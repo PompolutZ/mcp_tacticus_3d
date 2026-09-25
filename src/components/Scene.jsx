@@ -9,7 +9,7 @@ const TABLE_SIZE = 48
 const TABLE_THICKNESS = 0.5
 const DROP_HEIGHT = 15
 
-export default function Scene() {
+export default function Scene({ activeRange, activeMove }) {
   const matTexture = useTexture('/wakanda-mat.png')
 
   return (
@@ -37,16 +37,12 @@ export default function Scene() {
           <meshBasicMaterial map={matTexture} />
         </mesh>
 
-        {/* Movement rulers — short (red), medium (orange), long (green) */}
-        <MovementRuler type="short"  position={[-8, DROP_HEIGHT,  0]} />
-        <MovementRuler type="medium" position={[ 0, DROP_HEIGHT,  0]} />
-        <MovementRuler type="long"   position={[ 8, DROP_HEIGHT,  0]} />
-
-        {/* Range rulers 2–5 (purple) */}
-        <RangeRuler number={2} position={[-6, DROP_HEIGHT, 8]} />
-        <RangeRuler number={3} position={[-2, DROP_HEIGHT, 8]} />
-        <RangeRuler number={4} position={[ 2, DROP_HEIGHT, 8]} />
-        <RangeRuler number={5} position={[ 6, DROP_HEIGHT, 8]} />
+        {activeMove && (
+          <MovementRuler key={activeMove} type={activeMove} position={[0, DROP_HEIGHT, 0]} />
+        )}
+        {activeRange && (
+          <RangeRuler key={activeRange} number={activeRange} position={[0, DROP_HEIGHT, 6]} />
+        )}
       </Physics>
     </>
   )
