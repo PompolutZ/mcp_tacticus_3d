@@ -1,5 +1,5 @@
 import { useTexture, Stars } from '@react-three/drei'
-import { RepeatWrapping } from 'three'
+import Character from './Character.jsx'
 
 // MCP mat is 36" x 36". Table is larger — 48" x 48" in the same unit space.
 // 1 Three.js unit = 1 inch. Mat = 36 x 36, table = 48 x 48.
@@ -32,6 +32,19 @@ export default function Scene() {
         <planeGeometry args={[MAT_SIZE, MAT_SIZE]} />
         <meshStandardMaterial map={matTexture} roughness={0.9} />
       </mesh>
+
+      <Character
+        position={[-1.5, 0, 0]}
+        baseSize="small"
+        frontUrl="/omega-sentinel-standee-a.jpg"
+        backUrl="/omega-sentinel-standee-b.jpg"
+      />
+      <Character
+        position={[1.5, 0, 0]}
+        baseSize="small"
+        frontUrl="/medusa-standee-a.jpg"
+        backUrl="/medusa-standee-b.jpg"
+      />
     </>
   )
 }

@@ -19,7 +19,7 @@ export default function App() {
         enableRotate={true}
         minDistance={5}
         maxDistance={50}
-        maxPolarAngle={Math.PI / 2}
+        maxPolarAngle={85 * (Math.PI / 180)}
       />
     </Canvas>
   )
