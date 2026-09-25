@@ -22,11 +22,13 @@ export default function App() {
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <Canvas
+        shadows
         camera={{ position: CAMERA_POSITION, fov: 50 }}
         gl={{ antialias: true }}
       >
         <Scene activeRange={activeRange} activeMove={activeMove} />
         <OrbitControls
+          makeDefault
           target={[0, 0, 0]}
           enablePan={true}
           enableZoom={true}

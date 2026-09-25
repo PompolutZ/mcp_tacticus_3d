@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { useTexture, Stars, Environment } from '@react-three/drei'
 import { Physics, RigidBody } from '@react-three/rapier'
 import { MovementRuler, RangeRuler } from './RulerTool.jsx'
+import CharacterModel from './CharacterModel.jsx'
 
 // MCP mat is 36" x 36". Table is larger — 48" x 48" in the same unit space.
 // 1 Three.js unit = 1 inch. Mat = 36 x 36, table = 48 x 48.
@@ -11,6 +13,7 @@ const DROP_HEIGHT = 15
 
 export default function Scene({ activeRange, activeMove }) {
   const matTexture = useTexture('/wakanda-mat.png')
+  const [selectedId, setSelectedId] = useState(null)
 
   return (
     <>
@@ -19,7 +22,18 @@ export default function Scene({ activeRange, activeMove }) {
       <Stars radius={200} depth={60} count={5000} factor={4} fade speed={0.5} />
 
       <ambientLight intensity={0.6} />
-      <directionalLight position={[0, 30, 0]} intensity={1.2} />
+      <directionalLight
+        position={[10, 30, 10]}
+        intensity={1.2}
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-near={1}
+        shadow-camera-far={80}
+        shadow-camera-left={-20}
+        shadow-camera-right={20}
+        shadow-camera-top={20}
+        shadow-camera-bottom={-20}
+      />
       <Environment preset="city" backgroundIntensity={0} />
 
       <Physics gravity={[0, -30, 0]}>
@@ -31,11 +45,20 @@ export default function Scene({ activeRange, activeMove }) {
           </mesh>
         </RigidBody>
 
-        {/* Mat — visual only, no physics */}
-        <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        {/* Mat */}
+        <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
           <planeGeometry args={[MAT_SIZE, MAT_SIZE]} />
-          <meshBasicMaterial map={matTexture} />
+          <meshStandardMaterial map={matTexture} roughness={1} metalness={0} />
         </mesh>
+
+        <CharacterModel
+          url="/angel.glb"
+          position={[0, DROP_HEIGHT, 0]}
+          scale={1}
+          teamColor="red"
+          selected={selectedId === 'angel'}
+          onSelect={() => setSelectedId(prev => prev === 'angel' ? null : 'angel')}
+        />
 
         {activeMove && (
           <MovementRuler key={activeMove} type={activeMove} position={[0, DROP_HEIGHT, 0]} />
