@@ -1,4 +1,5 @@
 import { useTexture } from '@react-three/drei'
+import { RigidBody, CylinderCollider, CuboidCollider } from '@react-three/rapier'
 import { DoubleSide } from 'three'
 
 // MCP base sizes in inches (1 unit = 1 inch)
@@ -21,7 +22,12 @@ export default function Character({ position = [0, 0, 0], baseSize = 'small', fr
   const standeeY = MAT_Y + STANDEE_HEIGHT / 2
 
   return (
-    <group position={[position[0], 0, position[2]]}>
+    <RigidBody type="dynamic" position={position} colliders={false} linearDamping={0.2}>
+      {/* Cylinder collider for the base disk */}
+      <CylinderCollider args={[thickness / 2, radius]} position={[0, baseY, 0]} />
+      {/* Box collider approximating the standee card (0.05 inch depth) */}
+      <CuboidCollider args={[STANDEE_WIDTH / 2, STANDEE_HEIGHT / 2, 0.05]} position={[0, standeeY, 0]} />
+
       {/* Circular base */}
       <mesh position={[0, baseY, 0]}>
         <cylinderGeometry args={[radius, radius, thickness, 32]} />
@@ -39,6 +45,6 @@ export default function Character({ position = [0, 0, 0], baseSize = 'small', fr
         <planeGeometry args={[STANDEE_WIDTH, STANDEE_HEIGHT]} />
         <meshStandardMaterial map={back} transparent side={DoubleSide} roughness={1} />
       </mesh>
-    </group>
+    </RigidBody>
   )
 }

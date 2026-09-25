@@ -1,4 +1,5 @@
 import { useGLTF } from '@react-three/drei'
+import { RigidBody } from '@react-three/rapier'
 import { useEffect } from 'react'
 import { Color } from 'three'
 
@@ -18,11 +19,10 @@ export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, r
   }, [scene, teamColor])
 
   return (
-    <primitive
-      object={scene}
-      position={position}
-      scale={scale}
-      rotation={rotation}
-    />
+    // hull collider matches the actual GLB geometry (base + figure).
+    // lockRotations prevents the top-heavy figure from tipping sideways.
+    <RigidBody type="dynamic" position={position} colliders="hull" lockRotations linearDamping={0.2} ccd>
+      <primitive object={scene} scale={scale} rotation={rotation} />
+    </RigidBody>
   )
 }
