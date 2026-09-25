@@ -14,6 +14,19 @@ const DROP_HEIGHT = 15
 export default function Scene({ activeRange, activeMove }) {
   const matTexture = useTexture('/wakanda-mat.png')
   const [selectedId, setSelectedId] = useState(null)
+  const [characters, setCharacters] = useState([
+    { id: 'angel-1', url: '/angel.glb', position: [0, DROP_HEIGHT, 0], teamColor: 'red' },
+  ])
+
+  function handlePlace(pos) {
+    const id = `angel-${Date.now()}`
+    setCharacters(prev => [...prev, {
+      id,
+      url: '/angel.glb',
+      position: [pos.x, DROP_HEIGHT, pos.z],
+      teamColor: 'blue',
+    }])
+  }
 
   return (
     <>
@@ -51,20 +64,36 @@ export default function Scene({ activeRange, activeMove }) {
           <meshStandardMaterial map={matTexture} roughness={1} metalness={0} />
         </mesh>
 
-        <CharacterModel
-          url="/angel.glb"
-          position={[0, DROP_HEIGHT, 0]}
-          scale={1}
-          teamColor="red"
-          selected={selectedId === 'angel'}
-          onSelect={() => setSelectedId(prev => prev === 'angel' ? null : 'angel')}
-        />
+        {characters.map(ch => (
+          <CharacterModel
+            key={ch.id}
+            url={ch.url}
+            position={ch.position}
+            scale={1}
+            teamColor={ch.teamColor}
+            selected={selectedId === ch.id}
+            onSelect={() => setSelectedId(prev => prev === ch.id ? null : ch.id)}
+          />
+        ))}
 
         {activeMove && (
-          <MovementRuler key={activeMove} type={activeMove} position={[0, DROP_HEIGHT, 0]} />
+          <MovementRuler
+            key={activeMove}
+            type={activeMove}
+            position={[0, DROP_HEIGHT, 0]}
+            selected={selectedId === 'move'}
+            onSelect={() => setSelectedId(prev => prev === 'move' ? null : 'move')}
+          />
         )}
         {activeRange && (
-          <RangeRuler key={activeRange} number={activeRange} position={[0, DROP_HEIGHT, 6]} />
+          <RangeRuler
+            key={activeRange}
+            number={activeRange}
+            position={[0, DROP_HEIGHT, 6]}
+            selected={selectedId === 'range'}
+            onSelect={() => setSelectedId(prev => prev === 'range' ? null : 'range')}
+            onPlace={handlePlace}
+          />
         )}
       </Physics>
     </>
