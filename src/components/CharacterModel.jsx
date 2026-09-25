@@ -7,6 +7,9 @@ import { Color, Plane, Raycaster, Vector3 } from 'three'
 const TEAM_COLORS = { red: '#c0392b', blue: '#2980b9' }
 const TABLE_PLANE = new Plane(new Vector3(0, 1, 0), 0)
 const DRAG_THRESHOLD = 4
+const DAMPING_LOW = 0.2
+const DAMPING_HIGH = 10
+const LANDED_Y = 0.5
 
 export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, rotation = [0, 0, 0], teamColor = 'red', selected = false, onSelect }) {
   const { scene } = useGLTF(url)
@@ -21,12 +24,21 @@ export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, r
   const restY = useRef(0)
 
   useFrame(() => {
-    if (!isDragging.current || !rigidRef.current) return
-    raycaster.current.setFromCamera(mouseNDC.current, camera)
-    const target = new Vector3()
-    if (raycaster.current.ray.intersectPlane(TABLE_PLANE, target)) {
-      rigidRef.current.setNextKinematicTranslation({ x: target.x, y: restY.current, z: target.z })
+    const rb = rigidRef.current
+    if (!rb) return
+
+    if (isDragging.current) {
+      raycaster.current.setFromCamera(mouseNDC.current, camera)
+      const target = new Vector3()
+      if (raycaster.current.ray.intersectPlane(TABLE_PLANE, target)) {
+        rb.setNextKinematicTranslation({ x: target.x, y: restY.current, z: target.z })
+      }
+      return
     }
+
+    const landed = rb.translation().y < LANDED_Y
+    const damp = landed ? DAMPING_HIGH : DAMPING_LOW
+    rb.setLinearDamping(damp)
   })
 
   useEffect(() => {
@@ -104,8 +116,8 @@ export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, r
   const BASE_HALF_H = 0.059 * scale
 
   return (
-    <RigidBody ref={rigidRef} type="dynamic" position={position} colliders={false} lockRotations linearDamping={0.2} ccd>
-      <CylinderCollider args={[BASE_HALF_H, BASE_RADIUS]} position={[0, BASE_HALF_H, 0]} />
+    <RigidBody ref={rigidRef} type="dynamic" position={position} colliders={false} lockRotations linearDamping={DAMPING_LOW} angularDamping={5} ccd>
+      <CylinderCollider args={[BASE_HALF_H, BASE_RADIUS]} position={[0, BASE_HALF_H, 0]} friction={1.5} density={5} />
       <primitive
         object={scene}
         scale={scale}

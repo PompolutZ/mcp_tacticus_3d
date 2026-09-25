@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTexture, Stars, Environment } from '@react-three/drei'
-import { Physics, RigidBody } from '@react-three/rapier'
+import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import { MovementRuler, RangeRuler } from './RulerTool.jsx'
 import CharacterModel from './CharacterModel.jsx'
 
@@ -9,6 +9,7 @@ import CharacterModel from './CharacterModel.jsx'
 const MAT_SIZE = 36
 const TABLE_SIZE = 48
 const TABLE_THICKNESS = 0.5
+const TABLE_COLLIDER_HALF_H = 5
 const DROP_HEIGHT = 15
 
 export default function Scene({ activeRange, activeMove }) {
@@ -51,7 +52,13 @@ export default function Scene({ activeRange, activeMove }) {
 
       <Physics gravity={[0, -30, 0]}>
         {/* Table surface — fixed collider so models land on it */}
-        <RigidBody type="fixed">
+        <RigidBody type="fixed" colliders={false}>
+          {/* Collider much thicker than the visual so fast bodies can't tunnel through; top stays at y=0 */}
+          <CuboidCollider
+            args={[TABLE_SIZE / 2, TABLE_COLLIDER_HALF_H, TABLE_SIZE / 2]}
+            position={[0, -TABLE_COLLIDER_HALF_H, 0]}
+            friction={1.5}
+          />
           <mesh position={[0, -TABLE_THICKNESS / 2, 0]} receiveShadow>
             <boxGeometry args={[TABLE_SIZE, TABLE_THICKNESS, TABLE_SIZE]} />
             <meshStandardMaterial color="#2a1a0a" roughness={0.8} metalness={0.05} />
