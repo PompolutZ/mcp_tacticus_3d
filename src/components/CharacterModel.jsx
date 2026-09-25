@@ -1,5 +1,5 @@
 import { useGLTF } from '@react-three/drei'
-import { RigidBody } from '@react-three/rapier'
+import { RigidBody, CylinderCollider } from '@react-three/rapier'
 import { useEffect, useRef, useState } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
 import { Color, Plane, Raycaster, Vector3 } from 'three'
@@ -99,8 +99,13 @@ export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, r
     window.addEventListener('pointerup', upRef.current)
   }
 
+  // Base disk dims from angel.glb mesh0: radius≈0.983, height≈0.118
+  const BASE_RADIUS = 0.983 * scale
+  const BASE_HALF_H = 0.059 * scale
+
   return (
-    <RigidBody ref={rigidRef} type="dynamic" position={position} colliders="hull" lockRotations linearDamping={0.2} ccd>
+    <RigidBody ref={rigidRef} type="dynamic" position={position} colliders={false} lockRotations linearDamping={0.2} ccd>
+      <CylinderCollider args={[BASE_HALF_H, BASE_RADIUS]} position={[0, BASE_HALF_H, 0]} />
       <primitive
         object={scene}
         scale={scale}
