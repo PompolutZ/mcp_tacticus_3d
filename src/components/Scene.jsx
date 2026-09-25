@@ -1,7 +1,6 @@
 import { useTexture, Stars, Environment } from '@react-three/drei'
 import { Physics, RigidBody } from '@react-three/rapier'
-import Character from './Character.jsx'
-import CharacterModel from './CharacterModel.jsx'
+import { MovementRuler, RangeRuler } from './RulerTool.jsx'
 
 // MCP mat is 36" x 36". Table is larger — 48" x 48" in the same unit space.
 // 1 Three.js unit = 1 inch. Mat = 36 x 36, table = 48 x 48.
@@ -38,19 +37,16 @@ export default function Scene() {
           <meshBasicMaterial map={matTexture} />
         </mesh>
 
-        <Character
-          position={[-1.5, DROP_HEIGHT, 0]}
-          baseSize="small"
-          frontUrl="/omega-sentinel-standee-a.jpg"
-          backUrl="/omega-sentinel-standee-b.jpg"
-        />
-        <Character
-          position={[1.5, DROP_HEIGHT, 0]}
-          baseSize="small"
-          frontUrl="/medusa-standee-a.jpg"
-          backUrl="/medusa-standee-b.jpg"
-        />
-        <CharacterModel url="/angel.glb" position={[0, DROP_HEIGHT, 0]} scale={1} teamColor="red" />
+        {/* Movement rulers — short (red), medium (orange), long (green) */}
+        <MovementRuler type="short"  position={[-8, DROP_HEIGHT,  0]} />
+        <MovementRuler type="medium" position={[ 0, DROP_HEIGHT,  0]} />
+        <MovementRuler type="long"   position={[ 8, DROP_HEIGHT,  0]} />
+
+        {/* Range rulers 2–5 (purple) */}
+        <RangeRuler number={2} position={[-6, DROP_HEIGHT, 8]} />
+        <RangeRuler number={3} position={[-2, DROP_HEIGHT, 8]} />
+        <RangeRuler number={4} position={[ 2, DROP_HEIGHT, 8]} />
+        <RangeRuler number={5} position={[ 6, DROP_HEIGHT, 8]} />
       </Physics>
     </>
   )
