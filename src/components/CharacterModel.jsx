@@ -1,6 +1,6 @@
 import { useGLTF } from '@react-three/drei'
 import { RigidBody, CylinderCollider, useRapier } from '@react-three/rapier'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
 import { Color, Plane, Raycaster, Vector3 } from 'three'
 
@@ -26,6 +26,17 @@ const BASE_HALF_H = 0.059
 // Same density for every model, so the mass follows the base size
 const BASE_DENSITY = 5
 
+// Top of the table or terrain under the whole base at (x, z), or null when nothing is under it.
+// A cast of the base shape, not a ray, so terrain under any part of the base counts.
+// The body origin is the base bottom, so this is also the body Y that puts the base on the ground.
+export function baseGroundY(world, rapier, x, z, scale = 1) {
+  const halfH = BASE_HALF_H * scale
+  const shape = new rapier.Cylinder(halfH, BASE_RADIUS * scale)
+  const filter = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
+  const hit = world.castShape({ x, y: CAST_FROM + halfH, z }, NO_ROTATION, DOWN, shape, 0, CAST_FROM * 2, true, filter)
+  return hit ? CAST_FROM - hit.time_of_impact : null
+}
+
 export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, rotation = [0, 0, 0], teamColor = 'red', selected = false, onSelect, bodyRef }) {
   const { scene } = useGLTF(url)
   const { camera, gl, controls } = useThree()
@@ -42,13 +53,9 @@ export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, r
   const baseHalfH = BASE_HALF_H * scale
   // Pointer and ground casts hit only fixed bodies (table and terrain), and no sensors
   const groundOnly = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
-  const baseShape = useMemo(() => new rapier.Cylinder(baseHalfH, BASE_RADIUS * scale), [rapier, baseHalfH, scale])
 
-  // Top of the table or terrain under the whole base at (x, z), or null when nothing is under it.
-  // A cast of the base shape, not a ray, so terrain under any part of the base counts.
   function groundY(x, z) {
-    const hit = world.castShape({ x, y: CAST_FROM + baseHalfH, z }, NO_ROTATION, DOWN, baseShape, 0, CAST_FROM * 2, true, groundOnly)
-    return hit ? CAST_FROM - hit.time_of_impact : null
+    return baseGroundY(world, rapier, x, z, scale)
   }
 
   // Table or terrain point under the pointer, so the model stays under the cursor on raised terrain

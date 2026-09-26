@@ -32,6 +32,7 @@ export default function Scene({ activeRange, activeMove }) {
   const toolTarget = useMemo(() => selectedChar && {
     getBody: () => charBodies.current.get(selectedChar.id),
     radius: BASE_RADIUS * selectedChar.scale,
+    scale: selectedChar.scale,
   }, [selectedChar])
 
   function toggleTool(toolId) {
@@ -109,6 +110,7 @@ export default function Scene({ activeRange, activeMove }) {
             key={activeRange}
             number={activeRange}
             position={[0, TOOL_HOVER_HEIGHT, 6]}
+            hoverHeight={TOOL_HOVER_HEIGHT}
             selected={selectedToolId === 'range'}
             onSelect={() => toggleTool('range')}
             target={toolTarget}

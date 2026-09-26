@@ -50,6 +50,26 @@ Open `http://localhost:5173`. You can orbit, zoom, and pan with the mouse.
 
 Assets come from the Tabletop Simulator mod **3036795456** (community MCP mod). See `ASSETS.md` for the full inventory: character images, 3D models, terrain pieces, and crisis cards cached locally by TTS.
 
+## Range tool
+
+A range tool hangs 1" above the table. It measures with its outline, which is drawn flat on the table below it. While you drag or rotate the tool, it stays 1" above the table or above any terrain under its outline. Terrain within 0.5" of the outline already raises the tool.
+
+The tool has two states: **snapped** and **free**.
+
+### Snapped
+
+The tool is snapped to a model when it spawns while that model is selected. It spawns with one end of its outline touching the edge of the model's base, and it points toward the center of the mat.
+
+Dragging a handle rotates the tool around the center of that model's base. The distance between the tool and the base does not change, so the tool keeps touching the base.
+
+The tool stays snapped to the same model when you select another model. It also stays snapped after you press **Place**, because Place moves the model but keeps it touching the tool.
+
+### Free
+
+The tool is free when it spawns while no model is selected. Dragging the tool body makes a snapped tool free.
+
+Dragging a handle rotates the tool around the opposite handle.
+
 ## Roadmap
 
 - [ ] Place character tokens on the mat with correct scale

@@ -1,13 +1,23 @@
 import { useLoader, useFrame, useThree } from '@react-three/fiber'
 import { useTexture, Html } from '@react-three/drei'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
-import { RigidBody } from '@react-three/rapier'
+import { RigidBody, useRapier } from '@react-three/rapier'
 import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
+import { baseGroundY } from './CharacterModel.jsx'
 
 const TEXTURE = '/tools/toolbox-02.png'
 const TABLE_PLANE = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
 const DRAG_THRESHOLD = 4
+// How fast the dragged tool moves to the new hover height, per second (same as models)
+const HOVER_RATE = 25
+// Ground casts start this high and go straight down
+const CAST_FROM = 100
+const DOWN = { x: 0, y: -1, z: 0 }
+// Half height of the flat box cast down to find the ground under a footprint
+const FOOTPRINT_CAST_HALF_H = 0.01
+// Extra distance around the footprint where terrain already raises the dragged tool
+const HOVER_MARGIN = 0.5
 
 // X coordinate of the outer tip for each half, per ruler type
 const RULER_TIP = { short: 1.574, medium: 2.523, long: 3.535 }
@@ -27,9 +37,33 @@ function applyEmissive(obj, color, intensity) {
   })
 }
 
-// Whole-body drag: click body to select, drag when selected
-function useDragTool(rigidRef) {
+// Returns groundY(x, z, rotation): top of the table or terrain under the whole footprint,
+// or null when nothing is under it. hover: { halfLength, halfWidth }, or null.
+function useFootprintGround(hover) {
+  const { world, rapier } = useRapier()
+  // Larger than the footprint, so the tool rises before it reaches terrain
+  // and a tiny overlap at the edge does not switch it between heights
+  const footprintShape = useMemo(
+    () => hover && new rapier.Cuboid(hover.halfLength + HOVER_MARGIN, FOOTPRINT_CAST_HALF_H, hover.halfWidth + HOVER_MARGIN),
+    [rapier, hover?.halfLength, hover?.halfWidth],
+  )
+
+  return function groundY(x, z, rotation) {
+    const hit = world.castShape(
+      { x, y: CAST_FROM + FOOTPRINT_CAST_HALF_H, z }, rotation, DOWN, footprintShape,
+      0, CAST_FROM * 2, true, rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS,
+    )
+    return hit ? CAST_FROM - hit.time_of_impact : null
+  }
+}
+
+// Whole-body drag: click body to select, drag when selected.
+// hover: { halfLength, halfWidth, height } keeps the tool this high above the table or
+// terrain under its footprint, as a dragged model does. Without it the tool keeps its height.
+// onDragStart: called once when a drag starts (not on a plain click)
+function useDragTool(rigidRef, hover, onDragStart) {
   const { camera, gl, controls } = useThree()
+  const groundY = useFootprintGround(hover)
   const isDragging = useRef(false)
   const mouseNDC = useRef({ x: 0, y: 0 })
   const restY = useRef(0)
@@ -40,19 +74,26 @@ function useDragTool(rigidRef) {
   // Grabbed point minus body center (XZ), so the tool does not jump to center on the pointer
   const grabOffset = useRef({ x: 0, z: 0 })
 
-  useFrame(() => {
-    if (!isDragging.current || !rigidRef.current) return
+  useFrame((_, dt) => {
+    const rb = rigidRef.current
+    if (!isDragging.current || !rb) return
+    const t = rb.translation()
+    // The plane stays at the grab height. If it followed the tool, raising the tool would move
+    // the pointer hit off the terrain, the tool would drop, and it would shake between heights.
     raycaster.current.setFromCamera(mouseNDC.current, camera)
     const target = new THREE.Vector3()
-    if (raycaster.current.ray.intersectPlane(dragPlane.current, target)) {
-      // A sleeping body keeps moving but its mesh is not synced, so keep it awake
-      rigidRef.current.wakeUp()
-      rigidRef.current.setNextKinematicTranslation({
-        x: target.x - grabOffset.current.x,
-        y: restY.current,
-        z: target.z - grabOffset.current.z,
-      })
+    if (!raycaster.current.ray.intersectPlane(dragPlane.current, target)) return
+    const x = target.x - grabOffset.current.x
+    const z = target.z - grabOffset.current.z
+    let y = restY.current
+    if (hover) {
+      // Off the table there is no ground, so keep the current height
+      const ground = groundY(x, z, rb.rotation())
+      y = ground === null ? t.y : t.y + (ground + hover.height - t.y) * Math.min(1, dt * HOVER_RATE)
     }
+    // A sleeping body keeps moving but its mesh is not synced, so keep it awake
+    rb.wakeUp()
+    rb.setNextKinematicTranslation({ x, y, z })
   })
 
   return function onPointerDown(e, selected, onSelect) {
@@ -80,6 +121,7 @@ function useDragTool(rigidRef) {
         restType.current = rigidRef.current?.bodyType() ?? 0
         rigidRef.current?.setBodyType(2, true)
         isDragging.current = true
+        onDragStart?.()
       }
       const rect = gl.domElement.getBoundingClientRect()
       mouseNDC.current = {
@@ -284,6 +326,16 @@ function landingSpot(pose, halfLength, center, radius) {
   return { x: pose.x + along * Math.cos(pose.yaw), z: pose.z - along * Math.sin(pose.yaw) }
 }
 
+// Tool pose with one footprint end touching the base edge. The tool points from the base
+// toward the mat center, so it stays on the mat. This is the pose after pressing Place, seen from the tool.
+function snapPose(center, radius, halfLength) {
+  const len = Math.hypot(center.x, center.z)
+  const dx = len > 0.01 ? -center.x / len : 1
+  const dz = len > 0.01 ? -center.z / len : 0
+  const along = radius + halfLength
+  return { x: center.x + dx * along, z: center.z + dz * along, yaw: Math.atan2(-dz, dx) }
+}
+
 // The tool's rectangle drawn flat on the mat, straight below the tool.
 // Follows the body's XZ position and yaw only, so it stays on the table
 // while the tool is held above it. With a target base it turns green when
@@ -329,24 +381,44 @@ function ToolFootprint({ rigidRef, halfLength, halfWidth, selected, target }) {
   )
 }
 
-function useRotateHandle(rigidRef, tip) {
+// hover: { halfLength, halfWidth, height } keeps the tool this high above the table or
+// terrain under its footprint while it rotates, the same as during a drag
+function useRotateHandle(rigidRef, tip, hover) {
   const { camera, gl, controls } = useThree()
+  const groundY = useFootprintGround(hover)
   const raycaster = useRef(new THREE.Raycaster())
   const isRotating = useRef(false)
   const isRight = useRef(false)
   const pivot = useRef(null)        // world-space XZ of the fixed opposite handle
-  const pivotY = useRef(0)          // body Y height, kept constant during rotation
-  const targetT = useRef(null)      // next kinematic translation
+  const targetT = useRef(null)      // next kinematic XZ translation; Y follows the ground
   const targetR = useRef(null)      // next kinematic rotation (quaternion)
 
-  useFrame(() => {
-    if (!isRotating.current || !rigidRef.current || !targetT.current || !targetR.current) return
-    rigidRef.current.wakeUp()
-    rigidRef.current.setNextKinematicTranslation(targetT.current)
-    rigidRef.current.setNextKinematicRotation(targetR.current)
+  useFrame((_, dt) => {
+    const rb = rigidRef.current
+    if (!isRotating.current || !rb || !targetT.current || !targetR.current) return
+    const { x, z } = targetT.current
+    const t = rb.translation()
+    // Off the table there is no ground, so keep the current height
+    const ground = groundY(x, z, targetR.current)
+    const y = ground === null ? t.y : t.y + (ground + hover.height - t.y) * Math.min(1, dt * HOVER_RATE)
+    rb.wakeUp()
+    rb.setNextKinematicTranslation({ x, y, z })
+    rb.setNextKinematicRotation(targetR.current)
   })
 
-  return function startRotate(e, rightHandle) {
+  // Table point under the pointer, or null
+  function tableHit(ev) {
+    const rect = gl.domElement.getBoundingClientRect()
+    const ndc = {
+      x: ((ev.clientX - rect.left) / rect.width) * 2 - 1,
+      y: -((ev.clientY - rect.top) / rect.height) * 2 + 1,
+    }
+    raycaster.current.setFromCamera(ndc, camera)
+    return raycaster.current.ray.intersectPlane(TABLE_PLANE, new THREE.Vector3())
+  }
+
+  // snapBody: base of the model the tool is snapped to, or null when the tool is free
+  return function startRotate(e, rightHandle, snapBody) {
     e.stopPropagation()
     if (!rigidRef.current) return
     const pointerId = e.pointerId ?? e.nativeEvent?.pointerId
@@ -355,28 +427,51 @@ function useRotateHandle(rigidRef, tip) {
     const t = rigidRef.current.translation()
     const r = rigidRef.current.rotation()
     const q = new THREE.Quaternion(r.x, r.y, r.z, r.w)
-
-    // Opposite handle local position: right drag → opposite is left (−tip,0,0)
-    const oppLocal = new THREE.Vector3(rightHandle ? -tip : tip, 0, 0)
-    oppLocal.applyQuaternion(q)
-    pivot.current = { x: t.x + oppLocal.x, z: t.z + oppLocal.z }
-    pivotY.current = t.y
     isRight.current = rightHandle
+
+    // Snapped: orbit around the base center. The tool turns by the same angle as the pointer
+    // turns around the base, so the tool-to-base offset only rotates and the tool keeps touching the base.
+    let orbit = null
+    const start = snapBody && tableHit(e)
+    if (start) {
+      const c = snapBody.translation()
+      orbit = {
+        c,
+        offset: { x: t.x - c.x, z: t.z - c.z },
+        yaw: toolPose(rigidRef.current).yaw,
+        angle: Math.atan2(start.z - c.z, start.x - c.x),
+      }
+    } else {
+      // Opposite handle local position: right drag → opposite is left (−tip,0,0)
+      const oppLocal = new THREE.Vector3(rightHandle ? -tip : tip, 0, 0)
+      oppLocal.applyQuaternion(q)
+      pivot.current = { x: t.x + oppLocal.x, z: t.z + oppLocal.z }
+    }
 
     const restType = rigidRef.current.bodyType()
     rigidRef.current.setBodyType(2, true)
     isRotating.current = true
 
     const onMove = (ev) => {
-      if (ev.pointerId !== pointerId || !pivot.current) return
-      const rect = gl.domElement.getBoundingClientRect()
-      const ndc = {
-        x: ((ev.clientX - rect.left) / rect.width) * 2 - 1,
-        y: -((ev.clientY - rect.top) / rect.height) * 2 + 1,
+      if (ev.pointerId !== pointerId) return
+      const hit = tableHit(ev)
+      if (!hit) return
+
+      if (orbit) {
+        const { c, offset } = orbit
+        if (Math.hypot(hit.x - c.x, hit.z - c.z) < 0.01) return
+        // δ turns +X toward +Z. Yaw turns +X toward −Z, so yaw changes by −δ.
+        const d = Math.atan2(hit.z - c.z, hit.x - c.x) - orbit.angle
+        const cos = Math.cos(d), sin = Math.sin(d)
+        targetT.current = {
+          x: c.x + offset.x * cos - offset.z * sin,
+          z: c.z + offset.x * sin + offset.z * cos,
+        }
+        const half = (orbit.yaw - d) / 2
+        targetR.current = { x: 0, y: Math.sin(half), z: 0, w: Math.cos(half) }
+        return
       }
-      raycaster.current.setFromCamera(ndc, camera)
-      const hit = new THREE.Vector3()
-      if (!raycaster.current.ray.intersectPlane(TABLE_PLANE, hit)) return
+      if (!pivot.current) return
 
       const dx = hit.x - pivot.current.x
       const dz = hit.z - pivot.current.z
@@ -385,7 +480,7 @@ function useRotateHandle(rigidRef, tip) {
 
       // Body center stays at tip distance from the pivot in the mouse direction
       const nx = dx / dist, nz = dz / dist
-      targetT.current = { x: pivot.current.x + tip * nx, y: pivotY.current, z: pivot.current.z + tip * nz }
+      targetT.current = { x: pivot.current.x + tip * nx, z: pivot.current.z + tip * nz }
 
       const theta = isRight.current ? Math.atan2(-dz, dx) : Math.atan2(dz, -dx)
       const half = theta / 2
@@ -410,7 +505,8 @@ function useRotateHandle(rigidRef, tip) {
 }
 
 // target: the selected character as { getBody, radius }, or null
-export function RangeRuler({ number = 2, position = [0, 0, 0], selected = false, onSelect, target }) {
+// hoverHeight: how far above the table or terrain the tool hangs while dragged
+export function RangeRuler({ number = 2, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target }) {
   const raw = useLoader(OBJLoader, `/tools/range-${number}-mesh.obj`)
   const map = useTexture(TEXTURE)
   const [hovered, setHovered] = useState(false)
@@ -418,9 +514,36 @@ export function RangeRuler({ number = 2, position = [0, 0, 0], selected = false,
   const handleGroupRef = useRef()
   const obj = useMemo(() => textured(raw.clone(), map), [raw, map])
   const tip = RANGE_TIP[number] ?? 1.501
+  const hover = useMemo(
+    () => ({ halfLength: tip, halfWidth: RANGE_HALF_WIDTH, height: hoverHeight }),
+    [tip, hoverHeight],
+  )
 
-  const onPointerDown = useDragTool(rigidRef)
-  const startRotate = useRotateHandle(rigidRef, tip)
+  // Snapped: getBody of the model the tool is snapped to. Free: null. See README "Range tool".
+  const snapRef = useRef(null)
+  // Dragging the tool body makes it free
+  const onPointerDown = useDragTool(rigidRef, hover, () => { snapRef.current = null })
+  const startRotate = useRotateHandle(rigidRef, tip, hover)
+  const groundY = useFootprintGround(hover)
+  const { world, rapier } = useRapier()
+
+  function onHandleDown(e, rightHandle) {
+    startRotate(e, rightHandle, snapRef.current?.() ?? null)
+  }
+
+  // Spawned while a character is selected: start snapped to its base, not at the default position
+  useEffect(() => {
+    const body = target?.getBody()
+    const rb = rigidRef.current
+    if (!body || !rb) return
+    snapRef.current = target.getBody
+    const pose = snapPose(body.translation(), target.radius, tip)
+    const rotation = { x: 0, y: Math.sin(pose.yaw / 2), z: 0, w: Math.cos(pose.yaw / 2) }
+    const ground = groundY(pose.x, pose.z, rotation) ?? 0
+    rb.setTranslation({ x: pose.x, y: ground + hoverHeight, z: pose.z }, true)
+    rb.setRotation(rotation, true)
+    // Only at spawn. Selecting another character later must not move the tool.
+  }, [])
 
   // Sync handle group to the physics body so handles follow without being colliders
   useFrame(() => {
@@ -444,7 +567,10 @@ export function RangeRuler({ number = 2, position = [0, 0, 0], selected = false,
     if (!body || !rigidRef.current) return
     const t = body.translation()
     const spot = landingSpot(toolPose(rigidRef.current), tip, t, target.radius)
-    body.setTranslation({ x: spot.x, y: t.y, z: spot.z }, true)
+    // Put the base on top of the table or terrain at the spot. Keeping the old height
+    // would leave the model inside terrain that is higher than where it started.
+    const ground = baseGroundY(world, rapier, spot.x, spot.z, target.scale)
+    body.setTranslation({ x: spot.x, y: ground ?? t.y, z: spot.z }, true)
     body.setLinvel({ x: 0, y: 0, z: 0 }, true)
   }
 
@@ -492,11 +618,11 @@ export function RangeRuler({ number = 2, position = [0, 0, 0], selected = false,
       <ToolFootprint rigidRef={rigidRef} halfLength={tip} halfWidth={RANGE_HALF_WIDTH} selected={selected} target={target} />
       {/* Handles outside RigidBody — purely visual, no physics collider */}
       <group ref={handleGroupRef}>
-        <mesh position={[tip, 0.15, 0]} onPointerDown={(e) => startRotate(e, true)}>
+        <mesh position={[tip, 0.15, 0]} onPointerDown={(e) => onHandleDown(e, true)}>
           <sphereGeometry args={[0.12, 12, 8]} />
           <meshStandardMaterial color="#f5a623" roughness={0.3} metalness={0.5} />
         </mesh>
-        <mesh position={[-tip, 0.15, 0]} onPointerDown={(e) => startRotate(e, false)}>
+        <mesh position={[-tip, 0.15, 0]} onPointerDown={(e) => onHandleDown(e, false)}>
           <sphereGeometry args={[0.12, 12, 8]} />
           <meshStandardMaterial color="#f5a623" roughness={0.3} metalness={0.5} />
         </mesh>
