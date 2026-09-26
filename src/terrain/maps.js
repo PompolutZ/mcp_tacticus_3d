@@ -5,16 +5,18 @@
 // Mat top in TTS: the mat tile sits at y = 0.96 and is 0.1 thick
 export const TTS_MAT_TOP = 1.06
 
+// convex is the mod's collider flag. true: Unity uses the convex hull of the mesh.
+// false: Unity uses the mesh triangles. The mod's collider mesh is the visible mesh for all these pieces.
 export const TERRAIN_PIECES = {
-  'mech-hangar': { mesh: '/terrain/mech-hangar.obj', texture: '/terrain/mech-hangar.jpg' },
-  'cosmic-barricade': { mesh: '/terrain/cosmic-barricade.obj', texture: '/terrain/cosmic-barricade.png' },
-  'crystals': { mesh: '/terrain/crystals.obj', texture: '/terrain/crystals.jpg' },
-  'panther-fountain': { mesh: '/terrain/panther-fountain.obj', texture: '/terrain/panther-fountain.jpg' },
-  'wakandan-street-light': { mesh: '/terrain/wakandan-street-light.obj', texture: '/terrain/wakandan-street-light.jpg' },
-  'wakanda-tree': { mesh: '/terrain/wakanda-tree.obj', texture: '/terrain/wakanda-tree.jpg' },
-  'panther-statue': { mesh: '/terrain/panther-statue.obj', texture: '/terrain/panther-statue.jpg' },
-  'vibranium-haller': { mesh: '/terrain/vibranium-haller.obj', texture: '/terrain/vibranium-haller.jpg' },
-  'truck': { mesh: '/terrain/truck.obj', texture: '/terrain/truck.png' },
+  'mech-hangar': { mesh: '/terrain/mech-hangar.obj', texture: '/terrain/mech-hangar.jpg', convex: false },
+  'cosmic-barricade': { mesh: '/terrain/cosmic-barricade.obj', texture: '/terrain/cosmic-barricade.png', convex: true },
+  'crystals': { mesh: '/terrain/crystals.obj', texture: '/terrain/crystals.jpg', convex: false },
+  'panther-fountain': { mesh: '/terrain/panther-fountain.obj', texture: '/terrain/panther-fountain.jpg', convex: true },
+  'wakandan-street-light': { mesh: '/terrain/wakandan-street-light.obj', texture: '/terrain/wakandan-street-light.jpg', convex: true },
+  'wakanda-tree': { mesh: '/terrain/wakanda-tree.obj', texture: '/terrain/wakanda-tree.jpg', convex: true },
+  'panther-statue': { mesh: '/terrain/panther-statue.obj', texture: '/terrain/panther-statue.jpg', convex: true },
+  'vibranium-haller': { mesh: '/terrain/vibranium-haller.obj', texture: '/terrain/vibranium-haller.jpg', convex: true },
+  'truck': { mesh: '/terrain/truck.obj', texture: '/terrain/truck.png', convex: true },
 }
 
 // position and rotation (degrees) are TTS values. tint multiplies the texture, as in TTS.

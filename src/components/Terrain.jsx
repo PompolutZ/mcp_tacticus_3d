@@ -42,9 +42,9 @@ function TerrainPiece({ placement }) {
   }, [raw, map, placement.tint])
   const { position, quaternion } = useMemo(() => toThreeTransform(placement), [placement])
 
-  // Fixed convex hull, like the mod's convex colliders
+  // Fixed collider of the same kind as in the mod, so models stand and tip as they do in TTS
   return (
-    <RigidBody type="fixed" colliders="hull" position={position} quaternion={quaternion}>
+    <RigidBody type="fixed" colliders={piece.convex ? 'hull' : 'trimesh'} position={position} quaternion={quaternion}>
       <group scale={placement.scale}>
         <primitive object={obj} rotation={IMPORT_ROTATION} />
       </group>

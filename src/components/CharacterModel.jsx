@@ -1,6 +1,6 @@
 import { useGLTF } from '@react-three/drei'
-import { RigidBody, CylinderCollider } from '@react-three/rapier'
-import { useEffect, useRef, useState } from 'react'
+import { RigidBody, CylinderCollider, useRapier } from '@react-three/rapier'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
 import { Color, Plane, Raycaster, Vector3 } from 'three'
 
@@ -9,42 +9,99 @@ const TABLE_PLANE = new Plane(new Vector3(0, 1, 0), 0)
 const DRAG_THRESHOLD = 4
 const DAMPING_LOW = 0.2
 const DAMPING_HIGH = 10
-const LANDED_Y = 0.5
+// Base bottom closer than this to the ground counts as landed
+const LANDED_GAP = 0.5
+// While dragged, the base hangs this far above the table or terrain below it
+const DRAG_HOVER = 0.3
+// How fast the dragged model moves to the new hover height, per second
+const HOVER_RATE = 25
+// Ground casts start this high and go straight down
+const CAST_FROM = 100
+const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
+const DOWN = { x: 0, y: -1, z: 0 }
 
 // Base disk dims from angel.glb mesh0: radius≈0.983, height≈0.118
 export const BASE_RADIUS = 0.983
 const BASE_HALF_H = 0.059
+// Same density for every model, so the mass follows the base size
+const BASE_DENSITY = 5
 
 export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, rotation = [0, 0, 0], teamColor = 'red', selected = false, onSelect, bodyRef }) {
   const { scene } = useGLTF(url)
   const { camera, gl, controls } = useThree()
+  const { world, rapier } = useRapier()
   const [hovered, setHovered] = useState(false)
   const rigidRef = useRef()
   const moveRef = useRef(null)
   const upRef = useRef(null)
   const raycaster = useRef(new Raycaster())
   const isDragging = useRef(false)
+  // True after the model lost its support and may tilt. Picking it up clears it.
+  const tipping = useRef(false)
   const mouseNDC = useRef({ x: 0, y: 0 })
-  const restY = useRef(0)
+  const baseHalfH = BASE_HALF_H * scale
+  // Pointer and ground casts hit only fixed bodies (table and terrain), and no sensors
+  const groundOnly = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
+  const baseShape = useMemo(() => new rapier.Cylinder(baseHalfH, BASE_RADIUS * scale), [rapier, baseHalfH, scale])
 
-  useFrame(() => {
+  // Top of the table or terrain under the whole base at (x, z), or null when nothing is under it.
+  // A cast of the base shape, not a ray, so terrain under any part of the base counts.
+  function groundY(x, z) {
+    const hit = world.castShape({ x, y: CAST_FROM + baseHalfH, z }, NO_ROTATION, DOWN, baseShape, 0, CAST_FROM * 2, true, groundOnly)
+    return hit ? CAST_FROM - hit.time_of_impact : null
+  }
+
+  // Table or terrain point under the pointer, so the model stays under the cursor on raised terrain
+  function pointerPoint() {
+    raycaster.current.setFromCamera(mouseNDC.current, camera)
+    const { origin, direction } = raycaster.current.ray
+    const hit = world.castRay(new rapier.Ray(origin, direction), 1000, true, groundOnly)
+    if (hit) return raycaster.current.ray.at(hit.timeOfImpact, new Vector3())
+    return raycaster.current.ray.intersectPlane(TABLE_PLANE, new Vector3())
+  }
+
+  // True when the base center is over the piece the base rests on, or the base touches nothing yet.
+  // Like in TTS, a supported model stays upright even when part of its base hangs over an edge.
+  function centerSupported(rb) {
+    const base = rb.collider(0)
+    const touching = new Set()
+    world.contactPairsWith(base, other => {
+      world.contactPair(base, other, manifold => { if (manifold.numContacts() > 0) touching.add(other.handle) })
+    })
+    if (touching.size === 0) return true
+    const t = rb.translation()
+    const hit = world.castRay(new rapier.Ray({ x: t.x, y: t.y + baseHalfH, z: t.z }, DOWN), CAST_FROM, true, groundOnly)
+    return hit !== null && touching.has(hit.collider.handle)
+  }
+
+  useFrame((_, dt) => {
     const rb = rigidRef.current
     if (!rb) return
+    const t = rb.translation()
 
     if (isDragging.current) {
-      raycaster.current.setFromCamera(mouseNDC.current, camera)
-      const target = new Vector3()
-      if (raycaster.current.ray.intersectPlane(TABLE_PLANE, target)) {
-        // A sleeping body keeps moving but its mesh is not synced, so keep it awake
-        rb.wakeUp()
-        rb.setNextKinematicTranslation({ x: target.x, y: restY.current, z: target.z })
-      }
+      const p = pointerPoint()
+      if (!p) return
+      // Off the table there is no ground, so keep the current height
+      const ground = groundY(p.x, p.z)
+      const y = ground === null ? t.y : t.y + (ground + DRAG_HOVER - t.y) * Math.min(1, dt * HOVER_RATE)
+      // A sleeping body keeps moving but its mesh is not synced, so keep it awake
+      rb.wakeUp()
+      rb.setNextKinematicTranslation({ x: p.x, y, z: p.z })
+      // Picking the model up stands it upright again if it tipped over
+      rb.setNextKinematicRotation(NO_ROTATION)
       return
     }
 
-    const landed = rb.translation().y < LANDED_Y
-    const damp = landed ? DAMPING_HIGH : DAMPING_LOW
-    rb.setLinearDamping(damp)
+    const ground = groundY(t.x, t.z)
+    const landed = ground !== null && t.y - ground < LANDED_GAP
+    rb.setLinearDamping(landed ? DAMPING_HIGH : DAMPING_LOW)
+
+    // The center of mass is past the edge, so let gravity tip the model over
+    if (!tipping.current && !centerSupported(rb)) {
+      tipping.current = true
+      rb.setEnabledRotations(true, false, true, true)
+    }
   })
 
   useEffect(() => {
@@ -87,8 +144,8 @@ export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, r
         const dx = ev.clientX - startX
         const dy = ev.clientY - startY
         if (!selected || Math.hypot(dx, dy) < DRAG_THRESHOLD) return
-        restY.current = rigidRef.current?.translation().y ?? 0.1
         rigidRef.current?.setBodyType(2, true)
+        tipping.current = false
         isDragging.current = true
       }
       const rect = gl.domElement.getBoundingClientRect()
@@ -102,6 +159,10 @@ export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, r
       if (ev.pointerId !== pointerId) return
       if (isDragging.current) {
         isDragging.current = false
+        // Dynamic again, so gravity drops it onto whatever is below
+        // Upright again: tilt stays locked until the model loses its support
+        rigidRef.current?.lockRotations(true, false)
+        rigidRef.current?.setAngvel({ x: 0, y: 0, z: 0 }, false)
         rigidRef.current?.setBodyType(0, true)
       } else {
         onSelect?.()
@@ -117,17 +178,17 @@ export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, r
     window.addEventListener('pointerup', upRef.current)
   }
 
-  const baseHalfH = BASE_HALF_H * scale
-
   // Also hand the body to the parent, so tools can read and move it
   function setBody(rb) {
     rigidRef.current = rb
     bodyRef?.(rb)
   }
 
+  // Only the base collides, as in the mod's model bundles, so the center of mass is the base center.
+  // Rotation starts locked, so the model stays upright as in TTS. See centerSupported for when it tips.
   return (
-    <RigidBody ref={setBody} type="dynamic" position={position} colliders={false} lockRotations linearDamping={DAMPING_LOW} angularDamping={5} ccd>
-      <CylinderCollider args={[baseHalfH, BASE_RADIUS * scale]} position={[0, baseHalfH, 0]} friction={1.5} density={5} />
+    <RigidBody ref={setBody} type="dynamic" position={position} colliders={false} lockRotations linearDamping={DAMPING_LOW} angularDamping={1} ccd>
+      <CylinderCollider args={[baseHalfH, BASE_RADIUS * scale]} position={[0, baseHalfH, 0]} friction={1.5} density={BASE_DENSITY} />
       <primitive
         object={scene}
         scale={scale}
