@@ -11,7 +11,11 @@ const DAMPING_LOW = 0.2
 const DAMPING_HIGH = 10
 const LANDED_Y = 0.5
 
-export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, rotation = [0, 0, 0], teamColor = 'red', selected = false, onSelect }) {
+// Base disk dims from angel.glb mesh0: radius≈0.983, height≈0.118
+export const BASE_RADIUS = 0.983
+const BASE_HALF_H = 0.059
+
+export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, rotation = [0, 0, 0], teamColor = 'red', selected = false, onSelect, bodyRef }) {
   const { scene } = useGLTF(url)
   const { camera, gl, controls } = useThree()
   const [hovered, setHovered] = useState(false)
@@ -113,13 +117,17 @@ export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, r
     window.addEventListener('pointerup', upRef.current)
   }
 
-  // Base disk dims from angel.glb mesh0: radius≈0.983, height≈0.118
-  const BASE_RADIUS = 0.983 * scale
-  const BASE_HALF_H = 0.059 * scale
+  const baseHalfH = BASE_HALF_H * scale
+
+  // Also hand the body to the parent, so tools can read and move it
+  function setBody(rb) {
+    rigidRef.current = rb
+    bodyRef?.(rb)
+  }
 
   return (
-    <RigidBody ref={rigidRef} type="dynamic" position={position} colliders={false} lockRotations linearDamping={DAMPING_LOW} angularDamping={5} ccd>
-      <CylinderCollider args={[BASE_HALF_H, BASE_RADIUS]} position={[0, BASE_HALF_H, 0]} friction={1.5} density={5} />
+    <RigidBody ref={setBody} type="dynamic" position={position} colliders={false} lockRotations linearDamping={DAMPING_LOW} angularDamping={5} ccd>
+      <CylinderCollider args={[baseHalfH, BASE_RADIUS * scale]} position={[0, baseHalfH, 0]} friction={1.5} density={5} />
       <primitive
         object={scene}
         scale={scale}

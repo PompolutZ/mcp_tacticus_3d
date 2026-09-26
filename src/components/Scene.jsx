@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useTexture, Stars, Environment } from '@react-three/drei'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import { MovementRuler, RangeRuler } from './RulerTool.jsx'
-import CharacterModel from './CharacterModel.jsx'
+import CharacterModel, { BASE_RADIUS } from './CharacterModel.jsx'
 
 // MCP mat is 36" x 36". Table is larger — 48" x 48" in the same unit space.
 // 1 Three.js unit = 1 inch. Mat = 36 x 36, table = 48 x 48.
@@ -16,19 +16,23 @@ const TOOL_HOVER_HEIGHT = 1
 
 export default function Scene({ activeRange, activeMove }) {
   const matTexture = useTexture('/wakanda-mat.png')
-  const [selectedId, setSelectedId] = useState(null)
-  const [characters, setCharacters] = useState([
-    { id: 'angel-1', url: '/angel.glb', position: [0, DROP_HEIGHT, 0], teamColor: 'red' },
+  // One character and one tool can be selected at the same time
+  const [selectedCharId, setSelectedCharId] = useState(null)
+  const [selectedToolId, setSelectedToolId] = useState(null)
+  const [characters] = useState([
+    { id: 'angel-1', url: '/angel.glb', position: [0, DROP_HEIGHT, 0], teamColor: 'red', scale: 1 },
   ])
+  // Character id → Rapier body. Tools read and move the selected character through it.
+  const charBodies = useRef(new Map())
 
-  function handlePlace(pos) {
-    const id = `angel-${Date.now()}`
-    setCharacters(prev => [...prev, {
-      id,
-      url: '/angel.glb',
-      position: [pos.x, DROP_HEIGHT, pos.z],
-      teamColor: 'blue',
-    }])
+  const selectedChar = characters.find(ch => ch.id === selectedCharId)
+  const toolTarget = useMemo(() => selectedChar && {
+    getBody: () => charBodies.current.get(selectedChar.id),
+    radius: BASE_RADIUS * selectedChar.scale,
+  }, [selectedChar])
+
+  function toggleTool(toolId) {
+    setSelectedToolId(prev => prev === toolId ? null : toolId)
   }
 
   return (
@@ -78,10 +82,11 @@ export default function Scene({ activeRange, activeMove }) {
             key={ch.id}
             url={ch.url}
             position={ch.position}
-            scale={1}
+            scale={ch.scale}
             teamColor={ch.teamColor}
-            selected={selectedId === ch.id}
-            onSelect={() => setSelectedId(prev => prev === ch.id ? null : ch.id)}
+            selected={selectedCharId === ch.id}
+            onSelect={() => setSelectedCharId(prev => prev === ch.id ? null : ch.id)}
+            bodyRef={rb => rb ? charBodies.current.set(ch.id, rb) : charBodies.current.delete(ch.id)}
           />
         ))}
 
@@ -90,8 +95,8 @@ export default function Scene({ activeRange, activeMove }) {
             key={activeMove}
             type={activeMove}
             position={[0, DROP_HEIGHT, 0]}
-            selected={selectedId === 'move'}
-            onSelect={() => setSelectedId(prev => prev === 'move' ? null : 'move')}
+            selected={selectedToolId === 'move'}
+            onSelect={() => toggleTool('move')}
           />
         )}
         {activeRange && (
@@ -99,9 +104,9 @@ export default function Scene({ activeRange, activeMove }) {
             key={activeRange}
             number={activeRange}
             position={[0, TOOL_HOVER_HEIGHT, 6]}
-            selected={selectedId === 'range'}
-            onSelect={() => setSelectedId(prev => prev === 'range' ? null : 'range')}
-            onPlace={handlePlace}
+            selected={selectedToolId === 'range'}
+            onSelect={() => toggleTool('range')}
+            target={toolTarget}
           />
         )}
       </Physics>

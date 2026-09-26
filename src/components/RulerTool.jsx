@@ -243,15 +243,55 @@ const RANGE_HALF_WIDTH = 0.5
 // Just above the mat (y = 0.01) so the footprint does not z-fight with it
 const FOOTPRINT_Y = 0.015
 const FOOTPRINT_COLOR = '#3f7fd6'
+const FOOTPRINT_TOUCH = '#2ee06a'
+const FOOTPRINT_APART = '#e5484d'
+// Physics can nudge a resting base a little, so a small gap still counts as contact
+const CONTACT_EPS = 0.01
 const noRaycast = () => null
+
+const poseEuler = new THREE.Euler(0, 0, 0, 'YXZ')
+const poseQuat = new THREE.Quaternion()
+
+// Tool center on the table (XZ) and yaw. Yaw θ maps local +X to world (cos θ, 0, −sin θ).
+function toolPose(rb) {
+  const t = rb.translation()
+  const r = rb.rotation()
+  poseEuler.setFromQuaternion(poseQuat.set(r.x, r.y, r.z, r.w))
+  return { x: t.x, z: t.z, yaw: poseEuler.y }
+}
+
+// World XZ → tool-local XZ (inverse of the yaw rotation)
+function toLocal(pose, p) {
+  const dx = p.x - pose.x, dz = p.z - pose.z
+  const c = Math.cos(pose.yaw), s = Math.sin(pose.yaw)
+  return { x: dx * c - dz * s, z: dx * s + dz * c }
+}
+
+// Edge-to-edge gap between a round base and the footprint rectangle.
+// The rectangle keeps flat ends (not a capsule). Gap ≤ 0 means the base touches it.
+function footprintGap(pose, halfLength, halfWidth, center, radius) {
+  const l = toLocal(pose, center)
+  const ox = l.x - THREE.MathUtils.clamp(l.x, -halfLength, halfLength)
+  const oz = l.z - THREE.MathUtils.clamp(l.z, -halfWidth, halfWidth)
+  return Math.hypot(ox, oz) - radius
+}
+
+// Base center that puts the base edge on the middle of the footprint end
+// farther from the base, so the model moves across the tool.
+function landingSpot(pose, halfLength, center, radius) {
+  const side = toLocal(pose, center).x >= 0 ? -1 : 1
+  const along = side * (halfLength + radius)
+  return { x: pose.x + along * Math.cos(pose.yaw), z: pose.z - along * Math.sin(pose.yaw) }
+}
 
 // The tool's rectangle drawn flat on the mat, straight below the tool.
 // Follows the body's XZ position and yaw only, so it stays on the table
-// while the tool is held above it. Models are measured against this shape.
-function ToolFootprint({ rigidRef, halfLength, halfWidth, selected }) {
+// while the tool is held above it. With a target base it turns green when
+// the base touches it and red when it does not.
+function ToolFootprint({ rigidRef, halfLength, halfWidth, selected, target }) {
   const groupRef = useRef()
-  const euler = useMemo(() => new THREE.Euler(0, 0, 0, 'YXZ'), [])
-  const quat = useMemo(() => new THREE.Quaternion(), [])
+  const fillMatRef = useRef()
+  const lineMatRef = useRef()
   const edge = useMemo(() => new THREE.BufferGeometry().setFromPoints([
     new THREE.Vector3(-halfLength, 0, -halfWidth),
     new THREE.Vector3(halfLength, 0, -halfWidth),
@@ -261,21 +301,29 @@ function ToolFootprint({ rigidRef, halfLength, halfWidth, selected }) {
 
   useFrame(() => {
     if (!rigidRef.current || !groupRef.current) return
-    const t = rigidRef.current.translation()
-    const r = rigidRef.current.rotation()
-    euler.setFromQuaternion(quat.set(r.x, r.y, r.z, r.w))
-    groupRef.current.position.set(t.x, FOOTPRINT_Y, t.z)
-    groupRef.current.rotation.set(0, euler.y, 0)
+    const pose = toolPose(rigidRef.current)
+    groupRef.current.position.set(pose.x, FOOTPRINT_Y, pose.z)
+    groupRef.current.rotation.set(0, pose.yaw, 0)
+
+    // Set colors here, not through React state, because contact changes every frame during a drag
+    const body = selected && target?.getBody()
+    let fill = FOOTPRINT_COLOR
+    if (body) {
+      const touching = footprintGap(pose, halfLength, halfWidth, body.translation(), target.radius) <= CONTACT_EPS
+      fill = touching ? FOOTPRINT_TOUCH : FOOTPRINT_APART
+    }
+    fillMatRef.current?.color.set(fill)
+    lineMatRef.current?.color.set(body ? fill : selected ? '#ffffff' : FOOTPRINT_COLOR)
   })
 
   return (
     <group ref={groupRef}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} raycast={noRaycast} renderOrder={1}>
         <planeGeometry args={[halfLength * 2, halfWidth * 2]} />
-        <meshBasicMaterial color={FOOTPRINT_COLOR} transparent opacity={selected ? 0.35 : 0.2} depthWrite={false} />
+        <meshBasicMaterial ref={fillMatRef} color={FOOTPRINT_COLOR} transparent opacity={selected ? 0.35 : 0.2} depthWrite={false} />
       </mesh>
       <lineLoop geometry={edge} raycast={noRaycast} renderOrder={2}>
-        <lineBasicMaterial color={selected ? '#ffffff' : FOOTPRINT_COLOR} depthWrite={false} />
+        <lineBasicMaterial ref={lineMatRef} color={FOOTPRINT_COLOR} depthWrite={false} />
       </lineLoop>
     </group>
   )
@@ -361,12 +409,12 @@ function useRotateHandle(rigidRef, tip) {
   }
 }
 
-export function RangeRuler({ number = 2, position = [0, 0, 0], selected = false, onSelect, onPlace }) {
+// target: the selected character as { getBody, radius }, or null
+export function RangeRuler({ number = 2, position = [0, 0, 0], selected = false, onSelect, target }) {
   const raw = useLoader(OBJLoader, `/tools/range-${number}-mesh.obj`)
   const map = useTexture(TEXTURE)
   const [hovered, setHovered] = useState(false)
   const rigidRef = useRef()
-  const endMarkerRef = useRef()
   const handleGroupRef = useRef()
   const obj = useMemo(() => textured(raw.clone(), map), [raw, map])
   const tip = RANGE_TIP[number] ?? 1.501
@@ -389,19 +437,21 @@ export function RangeRuler({ number = 2, position = [0, 0, 0], selected = false,
     applyEmissive(obj, color, intensity)
   }, [obj, hovered, selected])
 
+  // Move the selected character so its base touches the far end of the footprint
   function handlePlace(e) {
     e.stopPropagation()
-    if (!endMarkerRef.current || !onPlace) return
-    const pos = new THREE.Vector3()
-    endMarkerRef.current.getWorldPosition(pos)
-    onPlace(pos)
+    const body = target?.getBody()
+    if (!body || !rigidRef.current) return
+    const t = body.translation()
+    const spot = landingSpot(toolPose(rigidRef.current), tip, t, target.radius)
+    body.setTranslation({ x: spot.x, y: t.y, z: spot.z }, true)
+    body.setLinvel({ x: 0, y: 0, z: 0 }, true)
   }
 
   return (
     <>
       {/* Held in the air like a real tool over terrain: kinematic, so it does not fall,
-          and a sensor, so models dropped by "Place" fall through it to the table.
-          The footprint below is what measures. */}
+          and a sensor, so models pass under it. The footprint below is what measures. */}
       <RigidBody ref={rigidRef} type="kinematicPosition" position={position} colliders="hull" sensor>
         <primitive
           object={obj}
@@ -409,8 +459,7 @@ export function RangeRuler({ number = 2, position = [0, 0, 0], selected = false,
           onPointerOut={() => setHovered(false)}
           onPointerDown={(e) => onPointerDown(e, selected, onSelect)}
         />
-        {/* Marker and Html stay inside RigidBody so they follow the body's transform automatically */}
-        <group ref={endMarkerRef} position={[tip, 0, 0]} />
+        {/* Html stays inside RigidBody so it follows the body's transform automatically */}
         {selected && (
           // Rx(π/2) lays the Html element flat on the tool's XZ surface facing up.
           // Without this the element stands perpendicular to the table.
@@ -423,12 +472,15 @@ export function RangeRuler({ number = 2, position = [0, 0, 0], selected = false,
                   color: '#f5a623',
                   padding: '4px 10px',
                   borderRadius: '4px',
-                  cursor: 'pointer',
+                  cursor: target ? 'pointer' : 'not-allowed',
+                  opacity: target ? 1 : 0.4,
                   fontSize: '11px',
                   fontFamily: 'sans-serif',
                   pointerEvents: 'auto',
                   whiteSpace: 'nowrap',
                 }}
+                disabled={!target}
+                title={target ? undefined : 'Select a character first'}
                 onClick={handlePlace}
               >
                 Place
@@ -437,7 +489,7 @@ export function RangeRuler({ number = 2, position = [0, 0, 0], selected = false,
           </group>
         )}
       </RigidBody>
-      <ToolFootprint rigidRef={rigidRef} halfLength={tip} halfWidth={RANGE_HALF_WIDTH} selected={selected} />
+      <ToolFootprint rigidRef={rigidRef} halfLength={tip} halfWidth={RANGE_HALF_WIDTH} selected={selected} target={target} />
       {/* Handles outside RigidBody — purely visual, no physics collider */}
       <group ref={handleGroupRef}>
         <mesh position={[tip, 0.15, 0]} onPointerDown={(e) => startRotate(e, true)}>
