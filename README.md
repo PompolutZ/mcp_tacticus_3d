@@ -50,10 +50,6 @@ Open `http://localhost:5173`. You can orbit, zoom, and pan with the mouse.
 
 Assets come from the Tabletop Simulator mod **3036795456** (community MCP mod). See `ASSETS.md` for the full inventory: character images, 3D models, terrain pieces, and crisis cards cached locally by TTS.
 
-## Known bugs
-
-**First drag after OrbitControls does not work.** After using the camera (orbit/pan/zoom), the first attempt to drag a character model does not follow the cursor. The model jumps to the final cursor position on mouse release. Subsequent drags work correctly. Root cause is a pointer capture conflict between OrbitControls and the drag handler — OrbitControls calls `setPointerCapture` on the canvas on its `pointerdown`, and the effect persists into the first drag gesture in a way that blocks `pointermove` from reaching the drag handler reliably.
-
 ## Roadmap
 
 - [ ] Place character tokens on the mat with correct scale

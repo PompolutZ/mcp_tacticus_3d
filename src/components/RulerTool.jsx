@@ -33,14 +33,25 @@ function useDragTool(rigidRef) {
   const isDragging = useRef(false)
   const mouseNDC = useRef({ x: 0, y: 0 })
   const restY = useRef(0)
+  const restType = useRef(0)
   const raycaster = useRef(new THREE.Raycaster())
+  // Horizontal plane through the grabbed point, so the pointer stays on the same spot of the tool
+  const dragPlane = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0))
+  // Grabbed point minus body center (XZ), so the tool does not jump to center on the pointer
+  const grabOffset = useRef({ x: 0, z: 0 })
 
   useFrame(() => {
     if (!isDragging.current || !rigidRef.current) return
     raycaster.current.setFromCamera(mouseNDC.current, camera)
     const target = new THREE.Vector3()
-    if (raycaster.current.ray.intersectPlane(TABLE_PLANE, target)) {
-      rigidRef.current.setNextKinematicTranslation({ x: target.x, y: restY.current, z: target.z })
+    if (raycaster.current.ray.intersectPlane(dragPlane.current, target)) {
+      // A sleeping body keeps moving but its mesh is not synced, so keep it awake
+      rigidRef.current.wakeUp()
+      rigidRef.current.setNextKinematicTranslation({
+        x: target.x - grabOffset.current.x,
+        y: restY.current,
+        z: target.z - grabOffset.current.z,
+      })
     }
   })
 
@@ -50,6 +61,11 @@ function useDragTool(rigidRef) {
     const startY = e.clientY
     const pointerId = e.pointerId ?? e.nativeEvent?.pointerId
     if (controls) controls.enabled = false
+    if (rigidRef.current) {
+      const t = rigidRef.current.translation()
+      dragPlane.current.constant = -e.point.y
+      grabOffset.current = { x: e.point.x - t.x, z: e.point.z - t.z }
+    }
     if (pointerId !== undefined && gl.domElement.hasPointerCapture?.(pointerId)) {
       gl.domElement.releasePointerCapture(pointerId)
     }
@@ -61,6 +77,7 @@ function useDragTool(rigidRef) {
         const dy = ev.clientY - startY
         if (!selected || Math.hypot(dx, dy) < DRAG_THRESHOLD) return
         restY.current = rigidRef.current?.translation().y ?? 0.1
+        restType.current = rigidRef.current?.bodyType() ?? 0
         rigidRef.current?.setBodyType(2, true)
         isDragging.current = true
       }
@@ -75,7 +92,7 @@ function useDragTool(rigidRef) {
       if (ev.pointerId !== pointerId) return
       if (isDragging.current) {
         isDragging.current = false
-        rigidRef.current?.setBodyType(0, true)
+        rigidRef.current?.setBodyType(restType.current, true)
       } else {
         onSelect?.()
       }
@@ -221,6 +238,48 @@ export function MovementRuler({ type = 'short', position = [0, 0, 0], selected =
 // Right handle dragged → pivot is the left handle → θ = atan2(−dz, dx)
 // Left  handle dragged → pivot is the right handle → θ = atan2( dz,−dx)
 const RANGE_TIP = { 2: 1.501, 3: 3.0, 4: 4.0, 5: 5.0 }
+// Range tools are 1" wide (mesh spans z = ±0.5)
+const RANGE_HALF_WIDTH = 0.5
+// Just above the mat (y = 0.01) so the footprint does not z-fight with it
+const FOOTPRINT_Y = 0.015
+const FOOTPRINT_COLOR = '#3f7fd6'
+const noRaycast = () => null
+
+// The tool's rectangle drawn flat on the mat, straight below the tool.
+// Follows the body's XZ position and yaw only, so it stays on the table
+// while the tool is held above it. Models are measured against this shape.
+function ToolFootprint({ rigidRef, halfLength, halfWidth, selected }) {
+  const groupRef = useRef()
+  const euler = useMemo(() => new THREE.Euler(0, 0, 0, 'YXZ'), [])
+  const quat = useMemo(() => new THREE.Quaternion(), [])
+  const edge = useMemo(() => new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(-halfLength, 0, -halfWidth),
+    new THREE.Vector3(halfLength, 0, -halfWidth),
+    new THREE.Vector3(halfLength, 0, halfWidth),
+    new THREE.Vector3(-halfLength, 0, halfWidth),
+  ]), [halfLength, halfWidth])
+
+  useFrame(() => {
+    if (!rigidRef.current || !groupRef.current) return
+    const t = rigidRef.current.translation()
+    const r = rigidRef.current.rotation()
+    euler.setFromQuaternion(quat.set(r.x, r.y, r.z, r.w))
+    groupRef.current.position.set(t.x, FOOTPRINT_Y, t.z)
+    groupRef.current.rotation.set(0, euler.y, 0)
+  })
+
+  return (
+    <group ref={groupRef}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} raycast={noRaycast} renderOrder={1}>
+        <planeGeometry args={[halfLength * 2, halfWidth * 2]} />
+        <meshBasicMaterial color={FOOTPRINT_COLOR} transparent opacity={selected ? 0.35 : 0.2} depthWrite={false} />
+      </mesh>
+      <lineLoop geometry={edge} raycast={noRaycast} renderOrder={2}>
+        <lineBasicMaterial color={selected ? '#ffffff' : FOOTPRINT_COLOR} depthWrite={false} />
+      </lineLoop>
+    </group>
+  )
+}
 
 function useRotateHandle(rigidRef, tip) {
   const { camera, gl, controls } = useThree()
@@ -234,6 +293,7 @@ function useRotateHandle(rigidRef, tip) {
 
   useFrame(() => {
     if (!isRotating.current || !rigidRef.current || !targetT.current || !targetR.current) return
+    rigidRef.current.wakeUp()
     rigidRef.current.setNextKinematicTranslation(targetT.current)
     rigidRef.current.setNextKinematicRotation(targetR.current)
   })
@@ -255,6 +315,7 @@ function useRotateHandle(rigidRef, tip) {
     pivotY.current = t.y
     isRight.current = rightHandle
 
+    const restType = rigidRef.current.bodyType()
     rigidRef.current.setBodyType(2, true)
     isRotating.current = true
 
@@ -289,7 +350,7 @@ function useRotateHandle(rigidRef, tip) {
       pivot.current = null
       targetT.current = null
       targetR.current = null
-      rigidRef.current?.setBodyType(0, true)
+      rigidRef.current?.setBodyType(restType, true)
       if (controls) controls.enabled = true
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('pointerup', onUp)
@@ -338,7 +399,10 @@ export function RangeRuler({ number = 2, position = [0, 0, 0], selected = false,
 
   return (
     <>
-      <RigidBody ref={rigidRef} type="dynamic" position={position} colliders="hull" linearDamping={0.4} ccd>
+      {/* Held in the air like a real tool over terrain: kinematic, so it does not fall,
+          and a sensor, so models dropped by "Place" fall through it to the table.
+          The footprint below is what measures. */}
+      <RigidBody ref={rigidRef} type="kinematicPosition" position={position} colliders="hull" sensor>
         <primitive
           object={obj}
           onPointerOver={(e) => { e.stopPropagation(); setHovered(true) }}
@@ -373,6 +437,7 @@ export function RangeRuler({ number = 2, position = [0, 0, 0], selected = false,
           </group>
         )}
       </RigidBody>
+      <ToolFootprint rigidRef={rigidRef} halfLength={tip} halfWidth={RANGE_HALF_WIDTH} selected={selected} />
       {/* Handles outside RigidBody — purely visual, no physics collider */}
       <group ref={handleGroupRef}>
         <mesh position={[tip, 0.15, 0]} onPointerDown={(e) => startRotate(e, true)}>

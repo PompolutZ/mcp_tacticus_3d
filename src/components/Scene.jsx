@@ -11,6 +11,8 @@ const TABLE_SIZE = 48
 const TABLE_THICKNESS = 0.5
 const TABLE_COLLIDER_HALF_H = 5
 const DROP_HEIGHT = 15
+// Range tools hang this far above the table and measure by the outline cast below them
+const TOOL_HOVER_HEIGHT = 1
 
 export default function Scene({ activeRange, activeMove }) {
   const matTexture = useTexture('/wakanda-mat.png')
@@ -96,7 +98,7 @@ export default function Scene({ activeRange, activeMove }) {
           <RangeRuler
             key={activeRange}
             number={activeRange}
-            position={[0, DROP_HEIGHT, 6]}
+            position={[0, TOOL_HOVER_HEIGHT, 6]}
             selected={selectedId === 'range'}
             onSelect={() => setSelectedId(prev => prev === 'range' ? null : 'range')}
             onPlace={handlePlace}

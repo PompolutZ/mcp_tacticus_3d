@@ -31,6 +31,8 @@ export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, r
       raycaster.current.setFromCamera(mouseNDC.current, camera)
       const target = new Vector3()
       if (raycaster.current.ray.intersectPlane(TABLE_PLANE, target)) {
+        // A sleeping body keeps moving but its mesh is not synced, so keep it awake
+        rb.wakeUp()
         rb.setNextKinematicTranslation({ x: target.x, y: restY.current, z: target.z })
       }
       return
