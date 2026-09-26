@@ -18,6 +18,7 @@ export const TERRAIN_PIECES = {
 }
 
 // position and rotation (degrees) are TTS values. tint multiplies the texture, as in TTS.
+// Exception: the mod tints the truck black (0, 0, 0), but the map card shows it olive, so the tint is left out.
 export const MAPS = {
   // "Vibranium Heist" (strict map 285). "Survival of the Fittest" (306) has the same layout.
   'vibranium-heist': {
@@ -42,7 +43,7 @@ export const MAPS = {
       { piece: 'wakanda-tree', position: [5.006, 2.746, 0.039], rotation: [0.04, -132.15, 0], scale: 2.35 },
       { piece: 'wakanda-tree', position: [7.924, 2.746, 9.883], rotation: [0.02, -78.07, -0.02], scale: 2.35 },
       { piece: 'panther-statue', position: [7.777, 2.488, 15.972], rotation: [0.01, -134.97, 0], scale: 1.5 },
-      { piece: 'truck', position: [11.968, 1.063, 4.13], rotation: [0, 102.22, 0], scale: 1.4, tint: [0, 0, 0] },
+      { piece: 'truck', position: [11.968, 1.063, 4.13], rotation: [0, 102.22, 0], scale: 1.4 },
       { piece: 'panther-fountain', position: [13.004, 2.392, -2.38], rotation: [0.01, -29.98, 0.01], scale: 2.9 },
       { piece: 'panther-statue', position: [14.515, 3.916, -9.351], rotation: [0.01, -44.99, 0], scale: 3 },
       { piece: 'wakandan-street-light', position: [13.171, 3.154, 12.518], rotation: [-0.03, 0.03, -0.04], scale: 2.2 },

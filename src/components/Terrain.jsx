@@ -27,6 +27,8 @@ function TerrainPiece({ placement }) {
   const map = useTexture(piece.texture)
   const obj = useMemo(() => {
     map.colorSpace = THREE.SRGBColorSpace
+    // Unity repeats textures by default, and some meshes (the truck) have UVs outside 0..1
+    map.wrapS = map.wrapT = THREE.RepeatWrapping
     const color = new THREE.Color().setRGB(...(placement.tint ?? WHITE), THREE.SRGBColorSpace)
     const material = new THREE.MeshStandardMaterial({ map, color, roughness: 0.8, metalness: 0 })
     const clone = raw.clone()
