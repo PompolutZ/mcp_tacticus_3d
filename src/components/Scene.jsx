@@ -3,6 +3,8 @@ import { useTexture, Stars, Environment } from '@react-three/drei'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import { MovementRuler, RangeRuler } from './RulerTool.jsx'
 import CharacterModel, { BASE_RADIUS } from './CharacterModel.jsx'
+import Terrain from './Terrain.jsx'
+import { MAPS } from '../terrain/maps.js'
 
 // MCP mat is 36" x 36". Table is larger — 48" x 48" in the same unit space.
 // 1 Three.js unit = 1 inch. Mat = 36 x 36, table = 48 x 48.
@@ -13,9 +15,10 @@ const TABLE_COLLIDER_HALF_H = 5
 const DROP_HEIGHT = 15
 // Range tools hang this far above the table and measure by the outline cast below them
 const TOOL_HOVER_HEIGHT = 1
+const MAP = MAPS['vibranium-heist']
 
 export default function Scene({ activeRange, activeMove }) {
-  const matTexture = useTexture('/wakanda-mat.png')
+  const matTexture = useTexture(MAP.mat)
   // One character and one tool can be selected at the same time
   const [selectedCharId, setSelectedCharId] = useState(null)
   const [selectedToolId, setSelectedToolId] = useState(null)
@@ -76,6 +79,8 @@ export default function Scene({ activeRange, activeMove }) {
           <planeGeometry args={[MAT_SIZE, MAT_SIZE]} />
           <meshStandardMaterial map={matTexture} roughness={1} metalness={0} />
         </mesh>
+
+        <Terrain placements={MAP.placements} />
 
         {characters.map(ch => (
           <CharacterModel

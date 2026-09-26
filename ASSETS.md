@@ -46,6 +46,18 @@ All 12 tool files are at:
 Files named `httpsd37ev18qvj5a3mcloudfrontnetttsterrainXXXXXXXXXXXX.obj`.
 Hashes have no readable names — cross-reference against the mod JSON `CustomMesh.MeshURL` to identify which terrain piece each file belongs to.
 
+The `Terrain Database` LuaScript has the names:
+- `terrainDatabase.pieces` — one row per piece: `key`, `name`, mesh / diffuse / collider URLs, default scale.
+- Map entries below it — `name`, `category`, and `placements` (piece `key`, position, rotation, scale, tint). The first placement is usually the mat tile (`tile-piece-*`).
+- A map's mat is found by its image hash. The Wakanda mat `af7a7354a68e` is `tile-piece-57` (Vibranium Heist, Survival of the Fittest) and `tile-piece-167` (AMG Wakanda Blank Map).
+
+Vibranium Heist pieces are copied to `public/terrain/` with readable names. Placements are in `src/terrain/maps.js`.
+
+TTS transform notes:
+- TTS units are inches. The mat tile has scale 18, so it is 36" wide and centered at the origin. Its top is at y = 1.06.
+- A placement position is the mesh origin.
+- TTS is left-handed. TTS also mirrors X when it imports an OBJ. See `src/components/Terrain.jsx` for the conversion.
+
 ### Character and token models — ~25 cached (pastebin/gist hosted)
 
 Files named `httppastebincomrawXXXXXX.obj` and `httpsgistgithub*.obj`.
