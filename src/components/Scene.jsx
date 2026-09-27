@@ -13,7 +13,7 @@ const TABLE_SIZE = 48
 const TABLE_THICKNESS = 0.5
 const TABLE_COLLIDER_HALF_H = 5
 const DROP_HEIGHT = 15
-// Range tools hang this far above the table and measure by the outline cast below them
+// Tools hang this far above the table and measure by the outline cast below them
 const TOOL_HOVER_HEIGHT = 1
 const MAP = MAPS['vibranium-heist']
 
@@ -100,9 +100,11 @@ export default function Scene({ activeRange, activeMove }) {
           <MovementRuler
             key={activeMove}
             type={activeMove}
-            position={[0, DROP_HEIGHT, 0]}
+            position={[0, TOOL_HOVER_HEIGHT, -6]}
+            hoverHeight={TOOL_HOVER_HEIGHT}
             selected={selectedToolId === 'move'}
             onSelect={() => toggleTool('move')}
+            target={toolTarget}
           />
         )}
         {activeRange && (

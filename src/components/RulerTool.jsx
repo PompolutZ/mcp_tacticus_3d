@@ -19,8 +19,10 @@ const FOOTPRINT_CAST_HALF_H = 0.01
 // Extra distance around the footprint where terrain already raises the dragged tool
 const HOVER_MARGIN = 0.5
 
-// X coordinate of the outer tip for each half, per ruler type
-const RULER_TIP = { short: 1.574, medium: 2.523, long: 3.535 }
+// X coordinate of the outer tip for each half, per movement tool type
+const MOVE_TIP = { short: 1.574, medium: 2.523, long: 3.535 }
+// Movement tools are about 0.56" wide (mesh-a spans z = ±0.279)
+const MOVE_HALF_WIDTH = 0.279
 
 function textured(obj, map) {
   const mat = new THREE.MeshStandardMaterial({ map, roughness: 0.5, metalness: 0.1 })
@@ -146,129 +148,6 @@ function useDragTool(rigidRef, hover, onDragStart) {
     window.addEventListener('pointermove', onMove)
     window.addEventListener('pointerup', onUp)
   }
-}
-
-// Handle drag: rotates one half of the movement ruler around the center pivot
-// isHandleA=true → mesh-a (positive X half), false → mesh-b (negative X half)
-//
-// THREE.js Y rotation transforms (x,0,z) as:
-//   wx = x*cos(θ) + z*sin(θ),  wz = -x*sin(θ) + z*cos(θ)
-// For mesh-a tip (tip, 0, 0): wx = tip*cos(angleA), wz = -tip*sin(angleA)
-//   → angleA = -atan2(dz, dx)
-// For mesh-b tip (-tip, 0, 0): wx = -tip*cos(angleB), wz = tip*sin(angleB)
-//   → angleB = atan2(dz, -dx)
-function useBendHandle(rigidRef) {
-  const { camera, gl, controls } = useThree()
-  const raycaster = useRef(new THREE.Raycaster())
-
-  return function startBend(e, isHandleA, setAngle) {
-    e.stopPropagation()
-    const pointerId = e.pointerId ?? e.nativeEvent?.pointerId
-    if (controls) controls.enabled = false
-
-    const onMove = (ev) => {
-      if (ev.pointerId !== pointerId || !rigidRef.current) return
-      const bodyPos = rigidRef.current.translation()
-      const rect = gl.domElement.getBoundingClientRect()
-      const ndc = {
-        x: ((ev.clientX - rect.left) / rect.width) * 2 - 1,
-        y: -((ev.clientY - rect.top) / rect.height) * 2 + 1,
-      }
-      raycaster.current.setFromCamera(ndc, camera)
-      const hit = new THREE.Vector3()
-      if (raycaster.current.ray.intersectPlane(TABLE_PLANE, hit)) {
-        const dx = hit.x - bodyPos.x
-        const dz = hit.z - bodyPos.z
-        const raw = isHandleA ? -Math.atan2(dz, dx) : Math.atan2(dz, -dx)
-        setAngle(Math.max(-Math.PI / 2, Math.min(Math.PI / 2, raw)))
-      }
-    }
-
-    const onUp = (ev) => {
-      if (ev.pointerId !== pointerId) return
-      if (controls) controls.enabled = true
-      window.removeEventListener('pointermove', onMove)
-      window.removeEventListener('pointerup', onUp)
-    }
-
-    window.addEventListener('pointermove', onMove)
-    window.addEventListener('pointerup', onUp)
-  }
-}
-
-export function MovementRuler({ type = 'short', position = [0, 0, 0], selected = false, onSelect }) {
-  const rawA = useLoader(OBJLoader, `/tools/${type}-movement-mesh-a.obj`)
-  const rawB = useLoader(OBJLoader, `/tools/${type}-movement-mesh-b.obj`)
-  const map = useTexture(TEXTURE)
-  const [hovered, setHovered] = useState(false)
-  const [angleA, setAngleA] = useState(0)
-  const [angleB, setAngleB] = useState(0)
-  const rigidRef = useRef()
-  const handleGroupRef = useRef()
-  const [objA, objB] = useMemo(
-    () => [textured(rawA.clone(), map), textured(rawB.clone(), map)],
-    [rawA, rawB, map],
-  )
-  const tip = RULER_TIP[type] ?? 1.574
-
-  const onPointerDown = useDragTool(rigidRef)
-  const startBend = useBendHandle(rigidRef)
-
-  // Sync handle group to the physics body so handles follow without being colliders
-  useFrame(() => {
-    if (!rigidRef.current || !handleGroupRef.current) return
-    const t = rigidRef.current.translation()
-    const r = rigidRef.current.rotation()
-    handleGroupRef.current.position.set(t.x, t.y, t.z)
-    handleGroupRef.current.quaternion.set(r.x, r.y, r.z, r.w)
-  })
-
-  useEffect(() => {
-    const color = selected ? '#f5a623' : hovered ? '#ffffff' : '#000000'
-    const intensity = selected ? 0.6 : hovered ? 0.4 : 0
-    applyEmissive(objA, color, intensity)
-    applyEmissive(objB, color, intensity)
-  }, [objA, objB, hovered, selected])
-
-  // Handle positions in body-local space derived from current bend angles
-  // mesh-a tip: (tip·cos angleA, 0, −tip·sin angleA)
-  // mesh-b tip: (−tip·cos angleB, 0, tip·sin angleB)
-  const hAx = tip * Math.cos(angleA), hAz = -tip * Math.sin(angleA)
-  const hBx = -tip * Math.cos(angleB), hBz = tip * Math.sin(angleB)
-
-  return (
-    <>
-      <RigidBody ref={rigidRef} type="dynamic" position={position} colliders="hull" linearDamping={0.4} ccd lockRotations>
-        <group rotation={[0, angleA, 0]}>
-          <primitive
-            object={objA}
-            onPointerOver={(e) => { e.stopPropagation(); setHovered(true) }}
-            onPointerOut={() => setHovered(false)}
-            onPointerDown={(e) => onPointerDown(e, selected, onSelect)}
-          />
-        </group>
-        <group rotation={[0, angleB, 0]}>
-          <primitive
-            object={objB}
-            onPointerOver={(e) => { e.stopPropagation(); setHovered(true) }}
-            onPointerOut={() => setHovered(false)}
-            onPointerDown={(e) => onPointerDown(e, selected, onSelect)}
-          />
-        </group>
-      </RigidBody>
-      {/* Handles outside RigidBody — purely visual, no physics collider */}
-      <group ref={handleGroupRef}>
-        <mesh position={[hAx, 0.15, hAz]} onPointerDown={(e) => startBend(e, true, setAngleA)}>
-          <sphereGeometry args={[0.12, 12, 8]} />
-          <meshStandardMaterial color="#f5a623" roughness={0.3} metalness={0.5} />
-        </mesh>
-        <mesh position={[hBx, 0.15, hBz]} onPointerDown={(e) => startBend(e, false, setAngleB)}>
-          <sphereGeometry args={[0.12, 12, 8]} />
-          <meshStandardMaterial color="#f5a623" roughness={0.3} metalness={0.5} />
-        </mesh>
-      </group>
-    </>
-  )
 }
 
 // Rotation around the OPPOSITE handle (pivot).
@@ -506,20 +385,37 @@ function useRotateHandle(rigidRef, tip, hover) {
 
 // target: the selected character as { getBody, radius }, or null
 // hoverHeight: how far above the table or terrain the tool hangs while dragged
-export function RangeRuler({ number = 2, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target }) {
+export function RangeRuler({ number = 2, ...props }) {
   const raw = useLoader(OBJLoader, `/tools/range-${number}-mesh.obj`)
   const map = useTexture(TEXTURE)
+  const objs = useMemo(() => [textured(raw.clone(), map)], [raw, map])
+  return <StraightTool objs={objs} tip={RANGE_TIP[number] ?? 1.501} halfWidth={RANGE_HALF_WIDTH} {...props} />
+}
+
+// Movement tool kept straight (no bend yet), so it behaves the same as a range tool
+export function MovementRuler({ type = 'short', ...props }) {
+  const rawA = useLoader(OBJLoader, `/tools/${type}-movement-mesh-a.obj`)
+  const rawB = useLoader(OBJLoader, `/tools/${type}-movement-mesh-b.obj`)
+  const map = useTexture(TEXTURE)
+  const objs = useMemo(
+    () => [textured(rawA.clone(), map), textured(rawB.clone(), map)],
+    [rawA, rawB, map],
+  )
+  return <StraightTool objs={objs} tip={MOVE_TIP[type] ?? 1.574} halfWidth={MOVE_HALF_WIDTH} {...props} />
+}
+
+// Straight tool that measures with its footprint. See README "Tools".
+// objs: meshes of the tool. tip: X of each end (footprint half length).
+function StraightTool({ objs, tip, halfWidth, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target }) {
   const [hovered, setHovered] = useState(false)
   const rigidRef = useRef()
   const handleGroupRef = useRef()
-  const obj = useMemo(() => textured(raw.clone(), map), [raw, map])
-  const tip = RANGE_TIP[number] ?? 1.501
   const hover = useMemo(
-    () => ({ halfLength: tip, halfWidth: RANGE_HALF_WIDTH, height: hoverHeight }),
-    [tip, hoverHeight],
+    () => ({ halfLength: tip, halfWidth, height: hoverHeight }),
+    [tip, halfWidth, hoverHeight],
   )
 
-  // Snapped: getBody of the model the tool is snapped to. Free: null. See README "Range tool".
+  // Snapped: getBody of the model the tool is snapped to. Free: null. See README "Tools".
   const snapRef = useRef(null)
   // Dragging the tool body makes it free
   const onPointerDown = useDragTool(rigidRef, hover, () => { snapRef.current = null })
@@ -557,8 +453,8 @@ export function RangeRuler({ number = 2, position = [0, 0, 0], hoverHeight = 1, 
   useEffect(() => {
     const color = selected ? '#f5a623' : hovered ? '#ffffff' : '#000000'
     const intensity = selected ? 0.6 : hovered ? 0.4 : 0
-    applyEmissive(obj, color, intensity)
-  }, [obj, hovered, selected])
+    objs.forEach(obj => applyEmissive(obj, color, intensity))
+  }, [objs, hovered, selected])
 
   // Move the selected character so its base touches the far end of the footprint
   function handlePlace(e) {
@@ -579,12 +475,15 @@ export function RangeRuler({ number = 2, position = [0, 0, 0], hoverHeight = 1, 
       {/* Held in the air like a real tool over terrain: kinematic, so it does not fall,
           and a sensor, so models pass under it. The footprint below is what measures. */}
       <RigidBody ref={rigidRef} type="kinematicPosition" position={position} colliders="hull" sensor>
-        <primitive
-          object={obj}
-          onPointerOver={(e) => { e.stopPropagation(); setHovered(true) }}
-          onPointerOut={() => setHovered(false)}
-          onPointerDown={(e) => onPointerDown(e, selected, onSelect)}
-        />
+        {objs.map(obj => (
+          <primitive
+            key={obj.uuid}
+            object={obj}
+            onPointerOver={(e) => { e.stopPropagation(); setHovered(true) }}
+            onPointerOut={() => setHovered(false)}
+            onPointerDown={(e) => onPointerDown(e, selected, onSelect)}
+          />
+        ))}
         {/* Html stays inside RigidBody so it follows the body's transform automatically */}
         {selected && (
           // Rx(π/2) lays the Html element flat on the tool's XZ surface facing up.
@@ -615,7 +514,7 @@ export function RangeRuler({ number = 2, position = [0, 0, 0], hoverHeight = 1, 
           </group>
         )}
       </RigidBody>
-      <ToolFootprint rigidRef={rigidRef} halfLength={tip} halfWidth={RANGE_HALF_WIDTH} selected={selected} target={target} />
+      <ToolFootprint rigidRef={rigidRef} halfLength={tip} halfWidth={halfWidth} selected={selected} target={target} />
       {/* Handles outside RigidBody — purely visual, no physics collider */}
       <group ref={handleGroupRef}>
         <mesh position={[tip, 0.15, 0]} onPointerDown={(e) => onHandleDown(e, true)}>
