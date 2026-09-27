@@ -11,6 +11,7 @@ const CAMERA_POSITION = [0, 20, 4]
 export default function App() {
   const [activeRange, setActiveRange] = useState(null)
   const [activeMove, setActiveMove] = useState(null)
+  const [showColliders, setShowColliders] = useState(false)
 
   function handleRangeClick(range) {
     setActiveRange(prev => prev === range ? null : range)
@@ -27,7 +28,7 @@ export default function App() {
         camera={{ position: CAMERA_POSITION, fov: 50 }}
         gl={{ antialias: true }}
       >
-        <Scene activeRange={activeRange} activeMove={activeMove} />
+        <Scene activeRange={activeRange} activeMove={activeMove} showColliders={showColliders} />
         <OrbitControls
           makeDefault
           target={[0, 0, 0]}
@@ -44,6 +45,8 @@ export default function App() {
         activeMove={activeMove}
         onRangeClick={handleRangeClick}
         onMoveClick={handleMoveClick}
+        showColliders={showColliders}
+        onCollidersClick={() => setShowColliders(prev => !prev)}
       />
       <LoadingOverlay />
     </div>

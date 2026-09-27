@@ -6,6 +6,7 @@ import CharacterModel, { BASE_RADIUS } from './CharacterModel.jsx'
 import Terrain from './Terrain.jsx'
 import { projectFootprints } from './footprintProjection.js'
 import { MAPS } from '../terrain/maps.js'
+import { FRICTION } from '../physics.js'
 import { assetUrl } from '../assets/index.js'
 
 // MCP mat is 36" x 36". Table is larger — 48" x 48" in the same unit space.
@@ -17,9 +18,12 @@ const TABLE_COLLIDER_HALF_H = 5
 const DROP_HEIGHT = 15
 // Tools hang this far above the table and measure by the outline cast below them
 const TOOL_HOVER_HEIGHT = 1
+// Two physics steps per frame. With one, a model dropped from high up sometimes gets stuck in terrain.
+const TIME_STEP = 1 / 120
 const MAP = MAPS['vibranium-heist']
 
-export default function Scene({ activeRange, activeMove }) {
+// showColliders: draw every physics collider as lines (the shapes physics uses, not the visible meshes)
+export default function Scene({ activeRange, activeMove, showColliders = false }) {
   const matTexture = useTexture(MAP.mat)
   // One character and one tool can be selected at the same time
   const [selectedCharId, setSelectedCharId] = useState(null)
@@ -63,14 +67,14 @@ export default function Scene({ activeRange, activeMove }) {
       {/* Same HDR as drei's "city" preset, served with the app instead of from a CDN */}
       <Environment files={assetUrl('hdri/potsdamer_platz_1k.hdr')} backgroundIntensity={0} />
 
-      <Physics gravity={[0, -30, 0]}>
+      <Physics gravity={[0, -30, 0]} timeStep={TIME_STEP} debug={showColliders}>
         {/* Table surface — fixed collider so models land on it */}
         <RigidBody type="fixed" colliders={false}>
           {/* Collider much thicker than the visual so fast bodies can't tunnel through; top stays at y=0 */}
           <CuboidCollider
             args={[TABLE_SIZE / 2, TABLE_COLLIDER_HALF_H, TABLE_SIZE / 2]}
             position={[0, -TABLE_COLLIDER_HALF_H, 0]}
-            friction={1.5}
+            friction={FRICTION}
           />
           <mesh position={[0, -TABLE_THICKNESS / 2, 0]} receiveShadow>
             <boxGeometry args={[TABLE_SIZE, TABLE_THICKNESS, TABLE_SIZE]} />

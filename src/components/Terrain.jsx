@@ -3,6 +3,7 @@ import { RigidBody } from '@react-three/rapier'
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import { TERRAIN_PIECES, TTS_MAT_TOP } from '../terrain/maps.js'
+import { FRICTION } from '../physics.js'
 import { projectFootprints } from './footprintProjection.js'
 
 const DEG = Math.PI / 180
@@ -44,13 +45,17 @@ function TerrainPiece({ placement }) {
   }, [raw, map, placement.tint])
   const { position, quaternion } = useMemo(() => toThreeTransform(placement), [placement])
 
-  // Fixed collider of the same kind as in the mod, so models stand and tip as they do in TTS
+  // Fixed collider of the same kind as in the mod, so models stand and tip as they do in TTS.
+  // The placement transform is on a group, not on RigidBody: @react-three/rapier 1.5 copies a RigidBody's
+  // quaternion prop onto the colliders it builds from the meshes, so every collider would be turned twice.
   return (
-    <RigidBody type="fixed" colliders={piece.convex ? 'hull' : 'trimesh'} position={position} quaternion={quaternion}>
-      <group scale={placement.scale}>
-        <primitive object={obj} rotation={IMPORT_ROTATION} />
-      </group>
-    </RigidBody>
+    <group position={position} quaternion={quaternion}>
+      <RigidBody type="fixed" colliders={piece.convex ? 'hull' : 'trimesh'} friction={FRICTION}>
+        <group scale={placement.scale}>
+          <primitive object={obj} rotation={IMPORT_ROTATION} />
+        </group>
+      </RigidBody>
+    </group>
   )
 }
 

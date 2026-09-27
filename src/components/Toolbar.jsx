@@ -5,7 +5,7 @@ const MOVES = [
   { label: 'L', type: 'long' },
 ]
 
-export function Toolbar({ activeRange, activeMove, onRangeClick, onMoveClick }) {
+export function Toolbar({ activeRange, activeMove, onRangeClick, onMoveClick, showColliders, onCollidersClick }) {
   return (
     <div className="toolbar">
       <div className="group">
@@ -33,6 +33,16 @@ export function Toolbar({ activeRange, activeMove, onRangeClick, onMoveClick }) 
             {m.label}
           </button>
         ))}
+      </div>
+      <div className="group">
+        <span className="group-label">Debug</span>
+        <button
+          type="button"
+          className={`chip${showColliders ? ' chip--active' : ''}`}
+          onClick={onCollidersClick}
+        >
+          Colliders
+        </button>
       </div>
     </div>
   )

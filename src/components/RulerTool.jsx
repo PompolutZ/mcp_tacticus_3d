@@ -4,8 +4,9 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import { RigidBody, useRapier } from '@react-three/rapier'
 import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
-import { baseGroundY } from './CharacterModel.jsx'
+import { baseGroundY, upright } from './CharacterModel.jsx'
 import { acquireFootprint } from './footprintProjection.js'
+import { castDown } from '../physics.js'
 import { assetUrl } from '../assets/index.js'
 
 const TEXTURE = assetUrl('tools/toolbox-02.png')
@@ -13,9 +14,6 @@ const TABLE_PLANE = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
 const DRAG_THRESHOLD = 4
 // How fast the dragged tool moves to the new hover height, per second (same as models)
 const HOVER_RATE = 25
-// Ground casts start this high and go straight down
-const CAST_FROM = 100
-const DOWN = { x: 0, y: -1, z: 0 }
 // Half height of the flat box cast down to find the ground under a footprint
 const FOOTPRINT_CAST_HALF_H = 0.01
 // Extra distance around the footprint where terrain already raises the dragged tool
@@ -53,11 +51,7 @@ function useFootprintGround(hover) {
   )
 
   return function groundY(x, z, rotation) {
-    const hit = world.castShape(
-      { x, y: CAST_FROM + FOOTPRINT_CAST_HALF_H, z }, rotation, DOWN, footprintShape,
-      0, CAST_FROM * 2, true, rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS,
-    )
-    return hit ? CAST_FROM - hit.time_of_impact : null
+    return castDown(world, rapier, footprintShape, rotation, x, z, FOOTPRINT_CAST_HALF_H)
   }
 }
 
@@ -454,7 +448,10 @@ function StraightTool({ objs, tip, halfWidth, position = [0, 0, 0], hoverHeight 
     // would leave the model inside terrain that is higher than where it started.
     const ground = baseGroundY(world, rapier, spot.x, spot.z, target.scale)
     body.setTranslation({ x: spot.x, y: ground ?? t.y, z: spot.z }, true)
+    // Upright, as if picked up and put down there, even when the model had tipped over
+    body.setRotation(upright(body.rotation()), true)
     body.setLinvel({ x: 0, y: 0, z: 0 }, true)
+    body.setAngvel({ x: 0, y: 0, z: 0 }, true)
   }
 
   return (

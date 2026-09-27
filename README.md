@@ -77,6 +77,10 @@ The tool is free when it spawns while no model is selected. Dragging the tool bo
 
 Dragging a handle rotates the tool around the opposite handle.
 
+## Collider view
+
+**Debug → Colliders** in the toolbar draws every physics collider as lines. A collider is the shape that physics uses for an object. It is not always the same as the visible mesh. Most terrain pieces use a convex hull: the mesh wrapped tight with no dents, so it fills gaps and holes. A model collides only with its base, so the figure can go into terrain.
+
 ## Roadmap
 
 - [ ] Place character tokens on the mat with correct scale
