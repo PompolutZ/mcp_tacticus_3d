@@ -5,6 +5,7 @@ import { RigidBody, useRapier } from '@react-three/rapier'
 import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 import { baseGroundY } from './CharacterModel.jsx'
+import { acquireFootprint } from './footprintProjection.js'
 
 const TEXTURE = '/tools/toolbox-02.png'
 const TABLE_PLANE = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
@@ -161,14 +162,11 @@ function useDragTool(rigidRef, hover, onDragStart) {
 const RANGE_TIP = { 2: 1.501, 3: 3.0, 4: 4.0, 5: 5.0 }
 // Range tools are 1" wide (mesh spans z = ±0.5)
 const RANGE_HALF_WIDTH = 0.5
-// Just above the mat (y = 0.01) so the footprint does not z-fight with it
-const FOOTPRINT_Y = 0.015
 const FOOTPRINT_COLOR = '#3f7fd6'
 const FOOTPRINT_TOUCH = '#2ee06a'
 const FOOTPRINT_APART = '#e5484d'
 // Physics can nudge a resting base a little, so a small gap still counts as contact
 const CONTACT_EPS = 0.01
-const noRaycast = () => null
 
 const poseEuler = new THREE.Euler(0, 0, 0, 'YXZ')
 const poseQuat = new THREE.Quaternion()
@@ -215,26 +213,24 @@ function snapPose(center, radius, halfLength) {
   return { x: center.x + dx * along, z: center.z + dz * along, yaw: Math.atan2(-dz, dx) }
 }
 
-// The tool's rectangle drawn flat on the mat, straight below the tool.
-// Follows the body's XZ position and yaw only, so it stays on the table
-// while the tool is held above it. With a target base it turns green when
+// The tool's rectangle straight below the tool, painted by the table and terrain
+// materials on every surface under it that faces up (see footprintProjection.js).
+// Follows the body's XZ position and yaw only. With a target base it turns green when
 // the base touches it and red when it does not.
 function ToolFootprint({ rigidRef, halfLength, halfWidth, selected, target }) {
-  const groupRef = useRef()
-  const fillMatRef = useRef()
-  const lineMatRef = useRef()
-  const edge = useMemo(() => new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(-halfLength, 0, -halfWidth),
-    new THREE.Vector3(halfLength, 0, -halfWidth),
-    new THREE.Vector3(halfLength, 0, halfWidth),
-    new THREE.Vector3(-halfLength, 0, halfWidth),
-  ]), [halfLength, halfWidth])
+  const slotRef = useRef(null)
+
+  useEffect(() => {
+    slotRef.current = acquireFootprint()
+    return () => {
+      slotRef.current?.release()
+      slotRef.current = null
+    }
+  }, [])
 
   useFrame(() => {
-    if (!rigidRef.current || !groupRef.current) return
+    if (!rigidRef.current || !slotRef.current) return
     const pose = toolPose(rigidRef.current)
-    groupRef.current.position.set(pose.x, FOOTPRINT_Y, pose.z)
-    groupRef.current.rotation.set(0, pose.yaw, 0)
 
     // Set colors here, not through React state, because contact changes every frame during a drag
     const body = selected && target?.getBody()
@@ -243,21 +239,11 @@ function ToolFootprint({ rigidRef, halfLength, halfWidth, selected, target }) {
       const touching = footprintGap(pose, halfLength, halfWidth, body.translation(), target.radius) <= CONTACT_EPS
       fill = touching ? FOOTPRINT_TOUCH : FOOTPRINT_APART
     }
-    fillMatRef.current?.color.set(fill)
-    lineMatRef.current?.color.set(body ? fill : selected ? '#ffffff' : FOOTPRINT_COLOR)
+    const line = body ? fill : selected ? '#ffffff' : FOOTPRINT_COLOR
+    slotRef.current.set(pose, halfLength, halfWidth, fill, selected ? 0.35 : 0.2, line)
   })
 
-  return (
-    <group ref={groupRef}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} raycast={noRaycast} renderOrder={1}>
-        <planeGeometry args={[halfLength * 2, halfWidth * 2]} />
-        <meshBasicMaterial ref={fillMatRef} color={FOOTPRINT_COLOR} transparent opacity={selected ? 0.35 : 0.2} depthWrite={false} />
-      </mesh>
-      <lineLoop geometry={edge} raycast={noRaycast} renderOrder={2}>
-        <lineBasicMaterial ref={lineMatRef} color={FOOTPRINT_COLOR} depthWrite={false} />
-      </lineLoop>
-    </group>
-  )
+  return null
 }
 
 // hover: { halfLength, halfWidth, height } keeps the tool this high above the table or

@@ -5,6 +5,7 @@ import { RigidBody } from '@react-three/rapier'
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import { TERRAIN_PIECES, TTS_MAT_TOP } from '../terrain/maps.js'
+import { projectFootprints } from './footprintProjection.js'
 
 const DEG = Math.PI / 180
 const WHITE = [1, 1, 1]
@@ -31,6 +32,7 @@ function TerrainPiece({ placement }) {
     map.wrapS = map.wrapT = THREE.RepeatWrapping
     const color = new THREE.Color().setRGB(...(placement.tint ?? WHITE), THREE.SRGBColorSpace)
     const material = new THREE.MeshStandardMaterial({ map, color, roughness: 0.8, metalness: 0 })
+    material.onBeforeCompile = projectFootprints
     const clone = raw.clone()
     clone.traverse(child => {
       if (!child.isMesh) return

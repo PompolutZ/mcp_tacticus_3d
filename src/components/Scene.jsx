@@ -4,6 +4,7 @@ import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import { MovementRuler, RangeRuler } from './RulerTool.jsx'
 import CharacterModel, { BASE_RADIUS } from './CharacterModel.jsx'
 import Terrain from './Terrain.jsx'
+import { projectFootprints } from './footprintProjection.js'
 import { MAPS } from '../terrain/maps.js'
 
 // MCP mat is 36" x 36". Table is larger — 48" x 48" in the same unit space.
@@ -71,14 +72,14 @@ export default function Scene({ activeRange, activeMove }) {
           />
           <mesh position={[0, -TABLE_THICKNESS / 2, 0]} receiveShadow>
             <boxGeometry args={[TABLE_SIZE, TABLE_THICKNESS, TABLE_SIZE]} />
-            <meshStandardMaterial color="#2a1a0a" roughness={0.8} metalness={0.05} />
+            <meshStandardMaterial color="#2a1a0a" roughness={0.8} metalness={0.05} onBeforeCompile={projectFootprints} />
           </mesh>
         </RigidBody>
 
         {/* Mat */}
         <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
           <planeGeometry args={[MAT_SIZE, MAT_SIZE]} />
-          <meshStandardMaterial map={matTexture} roughness={1} metalness={0} />
+          <meshStandardMaterial map={matTexture} roughness={1} metalness={0} onBeforeCompile={projectFootprints} />
         </mesh>
 
         <Terrain placements={MAP.placements} />
