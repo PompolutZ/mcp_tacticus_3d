@@ -6,8 +6,9 @@ import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 import { baseGroundY } from './CharacterModel.jsx'
 import { acquireFootprint } from './footprintProjection.js'
+import { assetUrl } from '../assets/index.js'
 
-const TEXTURE = '/tools/toolbox-02.png'
+const TEXTURE = assetUrl('tools/toolbox-02.png')
 const TABLE_PLANE = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
 const DRAG_THRESHOLD = 4
 // How fast the dragged tool moves to the new hover height, per second (same as models)
@@ -372,7 +373,7 @@ function useRotateHandle(rigidRef, tip, hover) {
 // target: the selected character as { getBody, radius }, or null
 // hoverHeight: how far above the table or terrain the tool hangs while dragged
 export function RangeRuler({ number = 2, ...props }) {
-  const raw = useLoader(OBJLoader, `/tools/range-${number}-mesh.obj`)
+  const raw = useLoader(OBJLoader, assetUrl(`tools/range-${number}-mesh.obj`))
   const map = useTexture(TEXTURE)
   const objs = useMemo(() => [textured(raw.clone(), map)], [raw, map])
   return <StraightTool objs={objs} tip={RANGE_TIP[number] ?? 1.501} halfWidth={RANGE_HALF_WIDTH} {...props} />
@@ -380,8 +381,8 @@ export function RangeRuler({ number = 2, ...props }) {
 
 // Movement tool kept straight (no bend yet), so it behaves the same as a range tool
 export function MovementRuler({ type = 'short', ...props }) {
-  const rawA = useLoader(OBJLoader, `/tools/${type}-movement-mesh-a.obj`)
-  const rawB = useLoader(OBJLoader, `/tools/${type}-movement-mesh-b.obj`)
+  const rawA = useLoader(OBJLoader, assetUrl(`tools/${type}-movement-mesh-a.obj`))
+  const rawB = useLoader(OBJLoader, assetUrl(`tools/${type}-movement-mesh-b.obj`))
   const map = useTexture(TEXTURE)
   const objs = useMemo(
     () => [textured(rawA.clone(), map), textured(rawB.clone(), map)],

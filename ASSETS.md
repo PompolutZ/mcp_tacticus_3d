@@ -51,7 +51,13 @@ The `Terrain Database` LuaScript has the names:
 - Map entries below it — `name`, `category`, and `placements` (piece `key`, position, rotation, scale, tint). The first placement is usually the mat tile (`tile-piece-*`).
 - A map's mat is found by its image hash. The Wakanda mat `af7a7354a68e` is `tile-piece-57` (Vibranium Heist, Survival of the Fittest) and `tile-piece-167` (AMG Wakanda Blank Map).
 
-Vibranium Heist pieces are copied to `public/terrain/` with readable names. Placements are in `src/terrain/maps.js`.
+Vibranium Heist pieces are copied to `src/assets/terrain/` with readable names. Placements are in `src/terrain/maps.js`.
+
+The web files are converted from the cached originals, so they load faster:
+- Mesh: OBJ → GLB with `npx obj2gltf -i x.obj -o x.glb`. Then, with `@gltf-transform/functions`: one material for all primitives, `flatten`, `join`, `dedup`, `prune({ keepAttributes: true })` (without this option, prune deletes the UVs because the material has no texture), and `draco({ quantizeTexcoord: 14 })`. A mesh without normals gets `unweld` + `normals` first (flat normals, as OBJLoader made them).
+- obj2gltf flips V, so `Terrain.jsx` sets `flipY = false` on the texture.
+- Texture: `magick x.jpg -resize '2048x2048>' -strip -quality 85 x.webp`.
+- The Draco decoder is in `public/draco/` (copied from `three/examples/jsm/libs/draco/gltf/`).
 
 TTS transform notes:
 - TTS units are inches. The mat tile has scale 18, so it is 36" wide and centered at the origin. Its top is at y = 1.06.

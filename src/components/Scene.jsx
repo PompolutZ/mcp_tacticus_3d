@@ -6,6 +6,7 @@ import CharacterModel, { BASE_RADIUS } from './CharacterModel.jsx'
 import Terrain from './Terrain.jsx'
 import { projectFootprints } from './footprintProjection.js'
 import { MAPS } from '../terrain/maps.js'
+import { assetUrl } from '../assets/index.js'
 
 // MCP mat is 36" x 36". Table is larger — 48" x 48" in the same unit space.
 // 1 Three.js unit = 1 inch. Mat = 36 x 36, table = 48 x 48.
@@ -24,7 +25,7 @@ export default function Scene({ activeRange, activeMove }) {
   const [selectedCharId, setSelectedCharId] = useState(null)
   const [selectedToolId, setSelectedToolId] = useState(null)
   const [characters] = useState([
-    { id: 'angel-1', url: '/angel.glb', position: [0, DROP_HEIGHT, 0], teamColor: 'red', scale: 1 },
+    { id: 'angel-1', url: assetUrl('angel.glb'), position: [0, DROP_HEIGHT, 0], teamColor: 'red', scale: 1 },
   ])
   // Character id → Rapier body. Tools read and move the selected character through it.
   const charBodies = useRef(new Map())
@@ -59,7 +60,8 @@ export default function Scene({ activeRange, activeMove }) {
         shadow-camera-top={20}
         shadow-camera-bottom={-20}
       />
-      <Environment preset="city" backgroundIntensity={0} />
+      {/* Same HDR as drei's "city" preset, served with the app instead of from a CDN */}
+      <Environment files={assetUrl('hdri/potsdamer_platz_1k.hdr')} backgroundIntensity={0} />
 
       <Physics gravity={[0, -30, 0]}>
         {/* Table surface — fixed collider so models land on it */}

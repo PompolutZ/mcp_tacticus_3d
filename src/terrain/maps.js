@@ -2,21 +2,23 @@
 // Transforms stay in TTS coordinates, as in the mod, so they can be compared
 // with the source. Terrain.jsx converts them to Three.js.
 
+import { assetUrl } from '../assets/index.js'
+
 // Mat top in TTS: the mat tile sits at y = 0.96 and is 0.1 thick
 export const TTS_MAT_TOP = 1.06
 
 // convex is the mod's collider flag. true: Unity uses the convex hull of the mesh.
 // false: Unity uses the mesh triangles. The mod's collider mesh is the visible mesh for all these pieces.
 export const TERRAIN_PIECES = {
-  'mech-hangar': { mesh: '/terrain/mech-hangar.obj', texture: '/terrain/mech-hangar.jpg', convex: false },
-  'cosmic-barricade': { mesh: '/terrain/cosmic-barricade.obj', texture: '/terrain/cosmic-barricade.png', convex: true },
-  'crystals': { mesh: '/terrain/crystals.obj', texture: '/terrain/crystals.jpg', convex: false },
-  'panther-fountain': { mesh: '/terrain/panther-fountain.obj', texture: '/terrain/panther-fountain.jpg', convex: true },
-  'wakandan-street-light': { mesh: '/terrain/wakandan-street-light.obj', texture: '/terrain/wakandan-street-light.jpg', convex: true },
-  'wakanda-tree': { mesh: '/terrain/wakanda-tree.obj', texture: '/terrain/wakanda-tree.jpg', convex: true },
-  'panther-statue': { mesh: '/terrain/panther-statue.obj', texture: '/terrain/panther-statue.jpg', convex: true },
-  'vibranium-haller': { mesh: '/terrain/vibranium-haller.obj', texture: '/terrain/vibranium-haller.jpg', convex: true },
-  'truck': { mesh: '/terrain/truck.obj', texture: '/terrain/truck.png', convex: true },
+  'mech-hangar': { mesh: assetUrl('terrain/mech-hangar.glb'), texture: assetUrl('terrain/mech-hangar.webp'), convex: false },
+  'cosmic-barricade': { mesh: assetUrl('terrain/cosmic-barricade.glb'), texture: assetUrl('terrain/cosmic-barricade.webp'), convex: true },
+  'crystals': { mesh: assetUrl('terrain/crystals.glb'), texture: assetUrl('terrain/crystals.webp'), convex: false },
+  'panther-fountain': { mesh: assetUrl('terrain/panther-fountain.glb'), texture: assetUrl('terrain/panther-fountain.webp'), convex: true },
+  'wakandan-street-light': { mesh: assetUrl('terrain/wakandan-street-light.glb'), texture: assetUrl('terrain/wakandan-street-light.webp'), convex: true },
+  'wakanda-tree': { mesh: assetUrl('terrain/wakanda-tree.glb'), texture: assetUrl('terrain/wakanda-tree.webp'), convex: true },
+  'panther-statue': { mesh: assetUrl('terrain/panther-statue.glb'), texture: assetUrl('terrain/panther-statue.webp'), convex: true },
+  'vibranium-haller': { mesh: assetUrl('terrain/vibranium-haller.glb'), texture: assetUrl('terrain/vibranium-haller.webp'), convex: true },
+  'truck': { mesh: assetUrl('terrain/truck.glb'), texture: assetUrl('terrain/truck.webp'), convex: true },
 }
 
 // position and rotation (degrees) are TTS values. tint multiplies the texture, as in TTS.
@@ -25,7 +27,7 @@ export const MAPS = {
   // "Vibranium Heist" (strict map 285). "Survival of the Fittest" (306) has the same layout.
   'vibranium-heist': {
     name: 'Vibranium Heist',
-    mat: '/wakanda-mat.png',
+    mat: assetUrl('wakanda-mat.webp'),
     placements: [
       { piece: 'crystals', position: [-16.723, 1.06, 12.843], rotation: [0, -45.01, 0], scale: 0.5, tint: [0.97, 0.01, 0.83] },
       { piece: 'crystals', position: [-15.284, 1.06, 6.679], rotation: [0, -45.01, 0], scale: 0.5, tint: [0.97, 0.01, 0.83] },

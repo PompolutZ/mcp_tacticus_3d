@@ -1,6 +1,4 @@
-import { useLoader } from '@react-three/fiber'
-import { useTexture } from '@react-three/drei'
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
+import { useGLTF, useTexture } from '@react-three/drei'
 import { RigidBody } from '@react-three/rapier'
 import { useMemo } from 'react'
 import * as THREE from 'three'
@@ -24,10 +22,12 @@ const IMPORT_ROTATION = [0, Math.PI, 0]
 
 function TerrainPiece({ placement }) {
   const piece = TERRAIN_PIECES[placement.piece]
-  const raw = useLoader(OBJLoader, piece.mesh)
+  const { scene: raw } = useGLTF(piece.mesh)
   const map = useTexture(piece.texture)
   const obj = useMemo(() => {
     map.colorSpace = THREE.SRGBColorSpace
+    // The GLB meshes use glTF UVs (V flipped from OBJ), so the texture must not be flipped
+    map.flipY = false
     // Unity repeats textures by default, and some meshes (the truck) have UVs outside 0..1
     map.wrapS = map.wrapT = THREE.RepeatWrapping
     const color = new THREE.Color().setRGB(...(placement.tint ?? WHITE), THREE.SRGBColorSpace)

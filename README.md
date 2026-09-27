@@ -23,9 +23,14 @@ src/
   App.jsx          — Canvas setup and camera position
   components/
     Scene.jsx      — 3D scene: space, table, mat, lights
+  assets/          — models and textures. Load them with assetUrl('path') from assets/index.js
+    wakanda-mat.webp — Wakanda Kingdom game mat (2592×2592 px, from TTS mod cache)
 public/
-  wakanda-mat.png  — Wakanda Kingdom game mat (2592×2592 px, from TTS mod cache)
+  _headers         — Netlify cache headers
+  draco/           — Draco decoder for compressed GLB files
 ```
+
+Put new models and textures in `src/assets/`, not in `public/`. Vite adds a content hash to their file names, so browsers can cache them forever (see `public/_headers`). Files in `public/` keep their names, so browsers must check them again on every load.
 
 ## Running locally
 
