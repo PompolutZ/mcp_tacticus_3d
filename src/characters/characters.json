@@ -1,0 +1,78 @@
+{
+  "angela": {
+    "id": "00280101",
+    "name": "Angela",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 0
+  },
+  "enchantress": {
+    "id": "00280102",
+    "name": "Enchantress",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0
+  },
+  "heimdall-the-all-seeing": {
+    "id": "01020101",
+    "name": "Heimdall, The All-Seeing",
+    "base": "small",
+    "figure": "model",
+    "rotation": 330
+  },
+  "lady-sif": {
+    "id": "00910101",
+    "name": "Lady Sif",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180
+  },
+  "loki-prince-of-lies": {
+    "id": "00910102",
+    "name": "Loki, Prince of Lies",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180
+  },
+  "the-mighty-thor": {
+    "id": "00910103",
+    "name": "The Mighty Thor",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180
+  },
+  "the-warriors-three": {
+    "id": "00940102",
+    "name": "The Warriors Three",
+    "base": "large",
+    "figure": "model",
+    "rotation": 180
+  },
+  "thor-hero-of-midgard": {
+    "id": "00910104",
+    "name": "Thor, Hero of Midgard",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180
+  },
+  "thor-prince-of-asgard": {
+    "id": "00110101",
+    "name": "Thor, Prince of Asgard",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0
+  },
+  "valkyrie": {
+    "id": "00110102",
+    "name": "Valkyrie",
+    "base": "small",
+    "figure": "model",
+    "rotation": 15
+  },
+  "valkyrie-and-elendil": {
+    "id": "00940101",
+    "name": "Valkyrie and Elendil",
+    "base": "large",
+    "figure": "standee"
+  }
+}

@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "migrate-terrain": "node scripts/migrate-terrain.mjs",
-    "fetch-jarvis-characters": "node scripts/fetch-jarvis-characters.mjs"
+    "fetch-jarvis-characters": "node scripts/fetch-jarvis-characters.mjs",
+    "migrate-characters": "node scripts/migrate-characters.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.115.0",

@@ -1,4 +1,4 @@
-// The TTS mod on this machine: its save file, the Terrain Database in it, and the TTS file cache.
+// The TTS mod on this machine: its save file, the Terrain Database and the character Database in it, and the TTS file cache.
 
 import fs from 'node:fs'
 import os from 'node:os'
@@ -29,11 +29,29 @@ export function cachedFile(url) {
 
 // pieces: key → piece definition. cards: map layouts, each with placements of piece keys.
 export function loadTerrainDatabase() {
-  const save = JSON.parse(fs.readFileSync(MOD_SAVE, 'utf8'))
-  const object = findObject(save.ObjectStates, o => o.Nickname === 'Terrain Database')
-  if (!object) throw new Error(`No "Terrain Database" object in ${MOD_SAVE}`)
-  const db = readLuaAssignment(object.LuaScript, 'terrainDatabase')
+  const db = readLuaAssignment(modScript('Terrain Database'), 'terrainDatabase')
   return { pieces: new Map(db.pieces.map(p => [p.key, p])), cards: db.cards }
+}
+
+// characters: rows of characterDatabase in the mod's "Database" object (cName, ID, cBase, cModel, cCard, ...).
+// affiliations: affiliation key → character names, for example asgard → ["Angela", "Beta Ray Bill", ...].
+// Lua names such as `cBase = large` or `cGem = {IG.mind}` are read as the name: 'large', 'IG.mind'.
+export function loadCharacterDatabase() {
+  const script = modScript('Database')
+  const resolveName = name => name
+  return {
+    characters: readLuaAssignment(script, 'characterDatabase', { resolveName }),
+    affiliations: readLuaAssignment(script, 'allAffiliations', { resolveName }),
+  }
+}
+
+let save
+
+function modScript(nickname) {
+  save ??= JSON.parse(fs.readFileSync(MOD_SAVE, 'utf8'))
+  const object = findObject(save.ObjectStates, o => o.Nickname === nickname)
+  if (!object) throw new Error(`No "${nickname}" object in ${MOD_SAVE}`)
+  return object.LuaScript
 }
 
 function findObject(objects = [], test) {

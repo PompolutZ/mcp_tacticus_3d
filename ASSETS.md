@@ -122,7 +122,7 @@ Soul gem (face + back). Other gems likely cached too.
 
 ## Asset Bundles
 
-Unity binary format. A browser cannot load them, but AssetRipper (in `tools/`, not committed) converts them to GLB. `scripts/migrate-terrain.mjs` does this for terrain pieces and also reads their colliders; see `scripts/README.md`. The Angel model was converted the same way, by hand in the AssetRipper UI.
+Unity binary format. A browser cannot load them, but AssetRipper (in `tools/`, not committed) converts them to GLB. `scripts/migrate-terrain.mjs` does this for terrain pieces and also reads their colliders; see `scripts/README.md`. The Angel model was converted the same way, by hand in the AssetRipper UI. `scripts/migrate-characters.mjs` converts the other character models, cards and portraits to `src/assets/characters/`; see `scripts/README.md`.
 
 Bundles include:
 - Red/Blue Tray Spawner

@@ -1,0 +1,102 @@
+{
+  "angela": {
+    "id": "00280101",
+    "sources": {
+      "characters/angela/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ANGELA_healthy.jpg",
+      "characters/angela/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ANGELA_injured.jpg",
+      "characters/angela/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/ANGELA_MODEL.unity3d",
+      "characters/angela/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ANGELA_UI.png"
+    }
+  },
+  "enchantress": {
+    "id": "00280102",
+    "sources": {
+      "characters/enchantress/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ENCHANTRESS_healthy.jpg",
+      "characters/enchantress/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ENCHANTRESS_injured.jpg",
+      "characters/enchantress/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/ENCHANTRESS_MODEL.unity3d",
+      "characters/enchantress/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ENCHANTRESS_UI.png"
+    }
+  },
+  "heimdall-the-all-seeing": {
+    "id": "01020101",
+    "sources": {
+      "characters/heimdall-the-all-seeing/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HEIMDALL_THE_ALL_SEEING_healthy.jpg",
+      "characters/heimdall-the-all-seeing/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HEIMDALL_THE_ALL_SEEING_injured.jpg",
+      "characters/heimdall-the-all-seeing/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/HEIMDALL_THE_ALL_SEEING_MODEL.unity3d",
+      "characters/heimdall-the-all-seeing/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HEIMDALL_THE_ALL_SEEING_UI.png"
+    }
+  },
+  "lady-sif": {
+    "id": "00910101",
+    "sources": {
+      "characters/lady-sif/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LADY_SIF_healthy.jpg",
+      "characters/lady-sif/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LADY_SIF_injured.jpg",
+      "characters/lady-sif/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/LADY_SIF_MODEL.unity3d",
+      "characters/lady-sif/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LADY_SIF_UI.png"
+    }
+  },
+  "loki-prince-of-lies": {
+    "id": "00910102",
+    "sources": {
+      "characters/loki-prince-of-lies/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LOKI_PRINCE_OF_LIES_healthy.jpg",
+      "characters/loki-prince-of-lies/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LOKI_PRINCE_OF_LIES_injured.jpg",
+      "characters/loki-prince-of-lies/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/LOKI_PRINCE_OF_LIES_MODEL.unity3d",
+      "characters/loki-prince-of-lies/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LOKI_PRINCE_OF_LIES_UI.png"
+    }
+  },
+  "the-mighty-thor": {
+    "id": "00910103",
+    "sources": {
+      "characters/the-mighty-thor/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_MIGHTY_THOR_healthy.jpg",
+      "characters/the-mighty-thor/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_MIGHTY_THOR_injured.jpg",
+      "characters/the-mighty-thor/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/THE_MIGHTY_THOR_MODEL.unity3d",
+      "characters/the-mighty-thor/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_MIGHTY_THOR_UI.png"
+    }
+  },
+  "the-warriors-three": {
+    "id": "00940102",
+    "sources": {
+      "characters/the-warriors-three/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WARRIORS_THREE_healthy.jpg",
+      "characters/the-warriors-three/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WARRIORS_THREE_injured.jpg",
+      "characters/the-warriors-three/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/THE_WARRIORS_THREE_MODEL.unity3d",
+      "characters/the-warriors-three/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_WARRIORS_THREE_UI.png"
+    }
+  },
+  "thor-hero-of-midgard": {
+    "id": "00910104",
+    "sources": {
+      "characters/thor-hero-of-midgard/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THOR_HERO_OF_MIDGARD_healthy.jpg",
+      "characters/thor-hero-of-midgard/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THOR_HERO_OF_MIDGARD_injured.jpg",
+      "characters/thor-hero-of-midgard/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/THOR_HERO_OF_MIDGARD_MODEL.unity3d",
+      "characters/thor-hero-of-midgard/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THOR_HERO_OF_MIDGARD_UI.png"
+    }
+  },
+  "thor-prince-of-asgard": {
+    "id": "00110101",
+    "sources": {
+      "characters/thor-prince-of-asgard/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THOR_PRINCE_OF_ASGARD_healthy.jpg",
+      "characters/thor-prince-of-asgard/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THOR_PRINCE_OF_ASGARD_injured.jpg",
+      "characters/thor-prince-of-asgard/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/THOR_PRINCE_OF_ASGARD_MODEL.unity3d",
+      "characters/thor-prince-of-asgard/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THOR_PRINCE_OF_ASGARD_UI.png"
+    }
+  },
+  "valkyrie": {
+    "id": "00110102",
+    "sources": {
+      "characters/valkyrie/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VALKYRIE_healthy.jpg",
+      "characters/valkyrie/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VALKYRIE_injured.jpg",
+      "characters/valkyrie/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/VALKYRIE_MODEL.unity3d",
+      "characters/valkyrie/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VALKYRIE_UI.png"
+    }
+  },
+  "valkyrie-and-elendil": {
+    "id": "00940101",
+    "sources": {
+      "characters/valkyrie-and-elendil/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VALKYRIE_AND_ELENDIL_healthy.jpg",
+      "characters/valkyrie-and-elendil/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VALKYRIE_AND_ELENDIL_injured.jpg",
+      "characters/valkyrie-and-elendil/standee-front.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VALKYRIE_AND_ELENDIL_STANDEE_A.jpg",
+      "characters/valkyrie-and-elendil/standee-back.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VALKYRIE_AND_ELENDIL_STANDEE_B.jpg",
+      "characters/valkyrie-and-elendil/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VALKYRIE_AND_ELENDIL_UI.png"
+    }
+  }
+}

@@ -35,10 +35,13 @@ export async function startAssetRipper() {
   const stop = () => proc.kill()
   process.on('exit', stop)
 
-  // Each route answers with a redirect after the work is done
+  // Each route answers with a redirect after the work is done.
+  // The body is always read: fetch keeps the connection of a response with an unread body until garbage
+  // collection, and a run that converts several bundles then waits for an answer that never comes.
   async function post(route, form = {}) {
     const res = await fetch(url + route, { method: 'POST', body: new URLSearchParams(form), redirect: 'manual' })
-    if (res.status >= 400) throw new Error(`AssetRipper ${route} failed with HTTP ${res.status}: ${await res.text()}`)
+    const text = await res.text()
+    if (res.status >= 400) throw new Error(`AssetRipper ${route} failed with HTTP ${res.status}: ${text}`)
   }
 
   return {

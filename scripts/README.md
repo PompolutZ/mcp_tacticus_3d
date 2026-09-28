@@ -143,6 +143,83 @@ The AssetRipper UI is a front end for a local HTTP server. `lib/assetripper.mjs`
 2. **`colliders`:** create one Rapier collider per entry, inside the same group as the mesh, so that `IMPORT_ROTATION` and the placement scale apply to it. Box → `CuboidCollider`, cylinder → `CylinderCollider`, capsule → `CapsuleCollider`, sphere → `BallCollider`, mesh → hull or trimesh of the collider GLB, with its `scale`. Check in the Debug → Colliders view that the colliders are not turned twice (see the note in `Terrain.jsx`).
 3. **`matRotation`:** turn the mat image. The app reads no `matRotation` yet, and it draws every mat as if it had 180. Vibranium Heist, Battle For Asgard and Hydra Vs Wakanda have 180 (the script prints -180 for Hydra Vs Wakanda, which is the same angle). TTS Y rotation `r` is `-r` in Three.js, so the extra turn is probably `-(matRotation - 180)` degrees. This is not checked in the browser yet.
 
+# TTS character migration
+
+`migrate-characters.mjs` copies characters from the TTS mod to `src/assets/characters/<key>/`. For each character, it converts the 3D model (or the standee images, if the mod has no model), the stat cards and the roster portrait. It writes the app data to `src/characters/characters.json` and the source URLs to `scripts/character-manifest.json`.
+
+The key is the character name as a slug, for example `heimdall-the-all-seeing`. `src/characters/files.js` names the files after the key, so `characters.json` has no paths.
+
+The requirements are the same as for the terrain migration: spawn the characters once in TTS, AssetRipper in `tools/`, ImageMagick.
+
+## Usage
+
+```bash
+npm run migrate-characters -- --list                   # characters with files in the TTS cache, and their status
+npm run migrate-characters -- --list asgard            # every character of one affiliation
+npm run migrate-characters -- asgard                   # migrate every character of an affiliation that has its files in the cache
+npm run migrate-characters -- 00280101 "Lady Sif"      # migrate by MCT id, name or key
+npm run migrate-characters -- asgard --out /tmp/try    # trial run: nothing is written to the repo
+npm run migrate-characters -- asgard --force           # convert files again that the manifest already lists
+```
+
+An affiliation is a key of `allAffiliations` in the mod's Database script, for example `asgard`, `wakanda`, `cabal` or `hydra`. A name matches with or without punctuation: "Loki, Prince of Lies" and "Loki (Prince of Lies)" are the same.
+
+The script converts a file only when the manifest does not have it with the same URL. Therefore, a second run converts only new or changed files. Commit `src/assets/characters/<key>/`, `src/characters/characters.json` and `scripts/character-manifest.json` together.
+
+## Output
+
+| File in `src/assets/characters/<key>/` | Source in the mod row | Required |
+|---|---|---|
+| `model.glb` | `cModel` | yes, if the mod has a model |
+| `standee-front.webp`, `standee-back.webp` | `cFigA`, `cFigB` | yes, if the mod has no model |
+| `card-healthy.webp`, `card-injured.webp` | `cCard.face`, `cCard.back` | yes |
+| `portrait.webp` | `UIurl` | no |
+| `model-2.glb`, `card-2-healthy.webp`, ... | list items 2, 3, ... of `cModel` and `cCard` | no |
+| `transform.glb` or `transform-standee-*.webp` | `cTModel`, or `cTFigA` and `cTFigB` | no |
+| `transform-portrait.webp` | `TUIurl` | no |
+
+When a file that is not required is missing in the TTS cache, the script leaves it out and prints a warning. For example, Apocalypse has a second version of his card on Steam, which TTS has not downloaded.
+
+Entry in `characters.json`:
+
+```js
+"heimdall-the-all-seeing": {
+  "id": "01020101",        // MCT code, the same id as in Jarvis and Cerebro
+  "name": "Heimdall, The All-Seeing",
+  "base": "small",         // small, medium or large: BASE_DIAMETER in src/characters/files.js
+  "figure": "model",       // model or standee
+  "rotation": 330          // cModelRot, only for a model (see below)
+}
+```
+
+Optional fields: `models` and `cards` (number of versions, when more than 1), `transform` (`figure`, `rotation`, and `name`, `base`, `portrait` when the mod has them), and `portrait: false` when the portrait is not in the cache.
+
+`$TMPDIR/mcp-assist-3d-characters/<key>/` has the AssetRipper exports, for inspection.
+
+## Conversion settings
+
+- **Model:** the same steps as a terrain bundle: the prefab GLB with the root rotation and scale, textures as WebP of at most 2048 × 2048, then `compressMesh` with Draco. The result is like `src/assets/angel.glb`. The colliders of the prefab are not copied, because `CharacterModel.jsx` makes a cylinder for the base.
+- **Base material:** the script renames the base material to `defaultMat`, because `CharacterModel.jsx` gives the material with that name the team color. The mod bundles use `defaultMat` or `Material`.
+- **Images:** cards, standees and portraits are WebP, quality 85, at most 2048 × 2048. The cards stay at 1800 × 1200 (about 250 KB instead of 1.8 MB).
+
+## TTS rules that the script depends on
+
+These rules were found on 2026-09-28 in the mod scripts ("Red Tray Spawner" and Global) and in the 10 Asgard model bundles.
+
+- In every model bundle, the base is the only material without a color texture. The base mesh is a disk from y = 0 to y = 0.12, and its radius is half of `cBase`: 0.69" for small, 0.98" for medium, 1.28" for large. The script checks this and prints a warning if a base does not fit.
+- The tray spawns a model with Y rotation = tray rotation + 180 + `cModelRot`. `characters.json` stores `cModelRot` as `rotation`. The app shows `angel.glb` with no turn, and Angel has `cModelRot` 180, so the app turn is probably `rotation - 180`. This is not checked in the browser yet.
+- No spawn script in this save reads `cTModelRot`, so the `rotation` of a transform model is not checked.
+- The tray spawns a standee as a `Figurine_Custom` with `image = cFigA` and `image_secondary = cFigB`, turned by 180 without `cModelRot`. The figurine scale is 0.75 for a small base, 1.1 for medium and 1.4 for large. The mod spawns a standee only when `cFigA` is set; when `cFigB` is empty, it uses `cFigA` on both sides.
+- When `cModel` is a list, the tray spawns the model with the same position in the list as the card face on the table (Mephisto, Crossbones, Merciless Merc).
+- The script ignores `cModelAlt` (Captain Marvel, Vision), `twoModels` (Ms. Marvel) and `construct` (Magneto, Phoenix), and prints a warning for them. `cTCard` is not needed, because the same cards are also in the `cCard` lists.
+
+## What the app still needs
+
+1. `Scene.jsx` loads only `angel.glb`. It needs a way to choose characters from `characters.json`.
+2. `CharacterModel.jsx` uses the base radius of Angel (medium) for every model. It needs the radius from `BASE_DIAMETER[base]`.
+3. A standee component for `figure: 'standee'` (Valkyrie and Elendil): the two images on a thin card, on a base of the character's size.
+4. The model turn from `rotation`, see the rule above.
+
 # Jarvis character data
 
 `fetch-jarvis-characters.mjs` downloads the stats and the stat card text of every character from [Jarvis Protocol](https://www.jarvis-protocol.com) to `src/characters/jarvis-characters.json`. The file is an array of the `/api/characters/<slug>` responses, sorted by slug.

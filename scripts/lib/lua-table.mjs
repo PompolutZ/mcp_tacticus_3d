@@ -1,26 +1,31 @@
 // Reads a Lua table literal, such as `terrainDatabase = { ... }` in the mod's Terrain Database script.
-// Supports what that script uses: tables, quoted and long strings, numbers, true/false/nil,
-// comments, and `..` concatenation with `local NAME = "..."` string variables.
+// Supports what the mod scripts use: tables, quoted and long strings, numbers, true/false/nil,
+// comments, parentheses, and `..` concatenation with `local NAME = "..."` string variables.
 
-// Value of the top-level assignment `name = ...` in source
-export function readLuaAssignment(source, name) {
+// Value of the top-level assignment `name = ...` in source. If source assigns name more than once,
+// the last assignment is read, because it is the value after the script has run.
+// resolveName(name): value of a name that is not a local string variable, for example `large` or `IG.mind`.
+//   Without it, such a name is an error.
+export function readLuaAssignment(source, name, { resolveName } = {}) {
   const vars = {}
   for (const [, key, value] of source.matchAll(/^local (\w+) = "([^"\n]*)"/gm)) vars[key] = value
-  const start = new RegExp(`^${name}\\s*=\\s*`, 'm').exec(source)
+  const start = [...source.matchAll(new RegExp(`^${name}\\s*=\\s*`, 'gm'))].at(-1)
   if (!start) throw new Error(`No "${name} =" in the Lua source`)
-  return new Parser(source, start.index + start[0].length, vars).expression()
+  return new Parser(source, start.index + start[0].length, vars, resolveName).expression()
 }
 
 const NUMBER = /-?(?:0[xX][0-9a-fA-F]+|(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)/y
-const NAME = /[A-Za-z_]\w*/y
+// A name, with fields: large, IG.mind
+const NAME = /[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*/y
 const FIELD_NAME = /([A-Za-z_]\w*)\s*=(?!=)/y
 const LONG_BRACKET = /\[(=*)\[/y
 
 class Parser {
-  constructor(src, pos, vars) {
+  constructor(src, pos, vars, resolveName) {
     this.src = src
     this.pos = pos
     this.vars = vars
+    this.resolveName = resolveName
   }
 
   fail(message) {
@@ -66,6 +71,12 @@ class Parser {
     this.skipSpace()
     const c = this.src[this.pos]
     if (c === '{') return this.table()
+    if (c === '(') {
+      this.pos++
+      const value = this.expression()
+      this.expect(')')
+      return value
+    }
     if (c === '"' || c === "'") return this.quotedString(c)
     const long = this.match(LONG_BRACKET)
     if (long) return this.longString(long[1])
@@ -78,6 +89,7 @@ class Parser {
       if (word === 'false') return false
       if (word === 'nil') return null
       if (word in this.vars) return this.vars[word]
+      if (this.resolveName) return this.resolveName(word)
       this.fail(`unknown name ${word}`)
     }
     this.fail(`unexpected ${JSON.stringify(c)}`)

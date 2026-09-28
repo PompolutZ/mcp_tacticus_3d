@@ -7,10 +7,11 @@ import os from 'node:os'
 import path from 'node:path'
 import { parseArgs } from 'node:util'
 import { startAssetRipper } from './lib/assetripper.mjs'
+import { readBundlePrefab } from './lib/bundle.mjs'
 import { compressMesh, imageToWebp, MAT_SIZE, readGlb, readObj, TEXTURE_SIZE, texturesToWebp, writeGlb } from './lib/convert.mjs'
 import { cachedFile, loadTerrainDatabase, matPlacement, pieceSources } from './lib/tts.mjs'
 import { bundleCollider, matImage, pieceCollider, pieceMesh, pieceTexture } from '../src/terrain/files.js'
-import { findAssetByGuid, readPrefab, walk } from './lib/unity-prefab.mjs'
+import { findAssetByGuid } from './lib/unity-prefab.mjs'
 
 const USAGE = `Usage:
   node scripts/migrate-terrain.mjs --list          maps whose mat is in the TTS cache, and which files are missing
@@ -198,31 +199,17 @@ async function migrateObjPiece(piece, appKey) {
 async function migrateBundlePiece(piece, appKey, ripper) {
   const out = path.join(WORK_DIR, appKey)
   await ripper.exportBundle(cachedFile(piece.assets.bundle), out)
-  const primary = path.join(out, 'primary')
-  const project = path.join(out, 'project/ExportedProject')
-  const warnings = []
-
-  // The bundle's manifest names its prefab, for example assets/examples/prefabs/container_orange.prefab
-  const bundleManifests = [...walk(path.join(primary, 'Assets/AssetBundle'))].filter(f => f.endsWith('.json')).map(f => JSON.parse(fs.readFileSync(f, 'utf8')))
-  const prefabs = bundleManifests.flatMap(m => Object.keys(m.m_Container)).filter(p => p.endsWith('.prefab'))
-  if (prefabs.length !== 1) throw new Error(`Expected 1 prefab in the bundle, found ${prefabs.length}: ${prefabs.join(', ')}`)
-  const dependencies = bundleManifests.flatMap(m => m.m_Dependencies ?? [])
-  if (dependencies.length) warnings.push(`depends on other bundles (${dependencies.join(', ')}). TTS does not load them, so materials from them are missing in TTS as well.`)
+  const { doc, colliders, primary, project, warnings } = await readBundlePrefab(out)
   if (piece.assets.bundleSecondary) warnings.push('has a secondary bundle, which the script ignores')
 
-  const prefab = readPrefab(fs.readFileSync(findByLowerCasePath(project, prefabs[0]), 'utf8'))
-  warnings.push(...prefab.warnings)
-
   const entry = { name: pieceName(piece), bundle: true }
-  const doc = await readGlb(findByLowerCasePath(primary, prefabs[0].replace(/\.prefab$/, '.glb')))
-  applyRoot(doc, prefab.root)
   texturesToWebp(doc)
   await writeGlb(assetPath(pieceMesh(appKey)), await compressMesh(doc, { singleMaterial: false }))
 
   // A custom collider mesh gets its own GLB, once per mesh. The entry has its number (bundleCollider in files.js).
   const meshNumbers = new Map()
   entry.colliders = []
-  for (const collider of prefab.colliders) {
+  for (const collider of colliders) {
     if (collider.shape !== 'mesh') {
       entry.colliders.push(collider)
       continue
@@ -244,24 +231,6 @@ async function migrateBundlePiece(piece, appKey, ripper) {
   }
   if (!entry.colliders.length) warnings.push('has no colliders')
   return { entry, warnings }
-}
-
-// AssetRipper leaves out the prefab root transform. A new top node gets the root rotation and scale,
-// and flatten() in compressMesh bakes it into the meshes.
-function applyRoot(doc, { rotation, scale }) {
-  const scene = doc.getRoot().getDefaultScene() ?? doc.getRoot().listScenes()[0]
-  const top = doc.createNode('prefab-root').setRotation(rotation).setScale(scale)
-  for (const child of scene.listChildren()) {
-    scene.removeChild(child)
-    top.addChild(child)
-  }
-  scene.addChild(top)
-}
-
-// AssetRipper writes the files with the original upper and lower case; bundle manifests use lower case
-function findByLowerCasePath(dir, lowerPath) {
-  for (const file of walk(dir)) if (path.relative(dir, file).toLowerCase() === lowerPath) return file
-  throw new Error(`No ${lowerPath} in ${dir}`)
 }
 
 function assetPath(file) {
