@@ -89,10 +89,51 @@
       "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4e76c5be1ba9.obj",
       "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/95ad9db31c81.jpg",
       "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4e76c5be1ba9.obj"
+    },
+    "contruction-site-size-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b53e4bc6706e.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/aa39c43a92ea.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8031bac0fd3c.obj"
+    },
+    "pallet-of-barrels-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/600b8cd7d1bc.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ed70a8d60d15.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/48e809850c5e.obj"
+    },
+    "size-3-hydra-turret": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1828e7752aac.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/044e4e068c61.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1828e7752aac.obj"
+    },
+    "size-3-hydra-power-station": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/41f70793f849.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7f39eb6554cf.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/41f70793f849.obj"
+    },
+    "barrel-stack-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f45e5ece73ad.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/863b5e7b04a5.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f45e5ece73ad.obj"
+    },
+    "size-4-hydra-tank": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/727a2d583ad4.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1ad79fc77894.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/727a2d583ad4.obj"
+    },
+    "size-4-talon-fighter": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6373ac45a03f.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/514bccbb7169.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6373ac45a03f.obj"
+    },
+    "size-3-hydra-missle-turret": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/43e2ad402388.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b532a238901a.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/43e2ad402388.obj"
     }
   },
   "mats": {
     "wakanda-mat.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/af7a7354a68e.png",
-    "battle-for-asgard-mat.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6752d3d43dee.png"
+    "battle-for-asgard-mat.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6752d3d43dee.png",
+    "hydra-vs-wakanda-mat.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/702601a131f7.png"
   }
 }
