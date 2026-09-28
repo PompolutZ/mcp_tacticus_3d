@@ -7,7 +7,7 @@ const MOVES = [
   { label: 'L', type: 'long' },
 ]
 
-export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeClick, onMoveClick, showColliders, onCollidersClick, onTurnMat }) {
+export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeClick, onMoveClick, showColliders, onCollidersClick, showLabels, onLabelsClick, onTurnMat }) {
   return (
     <div className="toolbar">
       <div className="group">
@@ -58,6 +58,14 @@ export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeCl
           onClick={onCollidersClick}
         >
           Colliders
+        </button>
+        <button
+          type="button"
+          className={`chip${showLabels ? ' chip--active' : ''}`}
+          title="Show the piece key and game Size above each terrain piece"
+          onClick={onLabelsClick}
+        >
+          Labels
         </button>
       </div>
     </div>

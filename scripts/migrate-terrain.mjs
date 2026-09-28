@@ -298,7 +298,8 @@ function mapsSnippet(card, mat, matFile, results) {
     const rotation = p.rotation.map(v => round(angle(v), 2))
     const scale = p.scale.every(s => Math.abs(s - p.scale[0]) < 1e-3) ? round(p.scale[0], 3) : `[${p.scale.map(s => round(s, 3)).join(', ')}]`
     const tint = p.tint && p.tint.slice(0, 3).some(c => c < 0.99) ? `, tint: [${p.tint.slice(0, 3).map(c => round(c, 2)).join(', ')}]` : ''
-    const line = `{ piece: '${r.appKey ?? p.key}', position: [${position.join(', ')}], rotation: [${rotation.join(', ')}], scale: ${scale}${tint} },`
+    const size = gameSize(db.pieces.get(p.key))
+    const line = `{ piece: '${r.appKey ?? p.key}',${size ? ` size: ${size},` : ''} position: [${position.join(', ')}], rotation: [${rotation.join(', ')}], scale: ${scale}${tint} },`
     lines.push(r.appKey ? `      ${line}` : `      // ${r.status.split('\n')[0]}: ${line}`)
   }
   lines.push('    ],', '  },', '')
@@ -318,6 +319,13 @@ function js(value, indent) {
 }
 
 // Degrees in [-180, 180)
+// The game Size of a mod piece, from its name ("Size 3 Panther Statue", "Crystals: Size 1"), or null.
+// It belongs to the mod piece, not to the mesh: two mod pieces with the same files get one app piece.
+function gameSize(piece) {
+  const match = piece?.name?.match(/\bsize\s*:?\s*(\d+)\b/i)
+  return match ? Number(match[1]) : null
+}
+
 function angle(deg) {
   return ((deg + 180) % 360 + 360) % 360 - 180
 }

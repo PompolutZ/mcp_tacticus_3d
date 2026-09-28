@@ -1,4 +1,4 @@
-import { useGLTF, useTexture } from '@react-three/drei'
+import { Html, useGLTF, useTexture } from '@react-three/drei'
 import { MeshCollider, RigidBody } from '@react-three/rapier'
 import { useMemo } from 'react'
 import * as THREE from 'three'
@@ -20,6 +20,18 @@ function toThreeTransform({ position: [x, y, z], rotation: [rx, ry, rz] }) {
 // TTS mirrors X when it imports an OBJ. Combined with the Z mirror above,
 // this is a 180° turn around Y, so each mesh gets that turn.
 const IMPORT_ROTATION = [0, Math.PI, 0]
+// Distance in inches between the top of a piece and its label
+const LABEL_GAP = 0.3
+
+// Label position in the placement group: above the top center of the mesh's bounding box.
+// raw is the loaded scene, which is never mounted, so its box is in mesh space.
+// IMPORT_ROTATION changes the sign of x and z, and then the placement scale applies.
+function labelPosition(raw, scale) {
+  const [sx, sy, sz] = Array.isArray(scale) ? scale : [scale, scale, scale]
+  const box = new THREE.Box3().setFromObject(raw)
+  const center = box.getCenter(new THREE.Vector3())
+  return [-center.x * sx, box.max.y * sy + LABEL_GAP, -center.z * sz]
+}
 
 // The mod's collider mesh of a piece, when it is not the visible mesh. It is converted from OBJ
 // in the same way as the visible mesh, so it gets the same turn. It is not drawn.
@@ -33,7 +45,8 @@ function ColliderMesh({ url, convex }) {
   )
 }
 
-function TerrainPiece({ placement }) {
+// showLabel: show the piece key and the game Size above the piece
+function TerrainPiece({ placement, showLabel }) {
   const piece = TERRAIN_PIECES[placement.piece]
   const { scene: raw } = useGLTF(piece.mesh)
   const map = useTexture(piece.texture)
@@ -56,6 +69,7 @@ function TerrainPiece({ placement }) {
     return clone
   }, [raw, map, placement.tint])
   const { position, quaternion } = useMemo(() => toThreeTransform(placement), [placement])
+  const labelPos = useMemo(() => labelPosition(raw, placement.scale), [raw, placement.scale])
 
   // Fixed collider of the same kind as in the mod, so models stand and tip as they do in TTS.
   // The placement transform is on a group, not on RigidBody: @react-three/rapier 1.5 copies a RigidBody's
@@ -75,10 +89,15 @@ function TerrainPiece({ placement }) {
           {piece.collider && <ColliderMesh url={piece.collider} convex={piece.convex} />}
         </group>
       </RigidBody>
+      {showLabel && (
+        <Html position={labelPos} center pointerEvents="none" zIndexRange={[100, 0]} className="terrain-label">
+          {placement.piece}{placement.size && ` · Size ${placement.size}`}
+        </Html>
+      )}
     </group>
   )
 }
 
-export default function Terrain({ placements }) {
-  return placements.map((placement, i) => <TerrainPiece key={i} placement={placement} />)
+export default function Terrain({ placements, showLabels = false }) {
+  return placements.map((placement, i) => <TerrainPiece key={i} placement={placement} showLabel={showLabels} />)
 }

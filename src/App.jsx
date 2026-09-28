@@ -12,6 +12,7 @@ export default function App() {
   const [activeRange, setActiveRange] = useState(null)
   const [activeMove, setActiveMove] = useState(null)
   const [showColliders, setShowColliders] = useState(false)
+  const [showLabels, setShowLabels] = useState(false)
   const [matTurns, setMatTurns] = useState(0)
   const [mapId, setMapId] = useState('vibranium-heist')
 
@@ -35,7 +36,7 @@ export default function App() {
         camera={{ position: CAMERA_POSITION, fov: 50 }}
         gl={{ antialias: true }}
       >
-        <Scene mapId={mapId} activeRange={activeRange} activeMove={activeMove} showColliders={showColliders} matTurns={matTurns} />
+        <Scene mapId={mapId} activeRange={activeRange} activeMove={activeMove} showColliders={showColliders} showLabels={showLabels} matTurns={matTurns} />
         <OrbitControls
           makeDefault
           target={[0, 0, 0]}
@@ -56,6 +57,8 @@ export default function App() {
         onMoveClick={handleMoveClick}
         showColliders={showColliders}
         onCollidersClick={() => setShowColliders(prev => !prev)}
+        showLabels={showLabels}
+        onLabelsClick={() => setShowLabels(prev => !prev)}
         onTurnMat={handleTurnMat}
       />
       <LoadingOverlay />

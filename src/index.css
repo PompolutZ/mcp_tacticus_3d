@@ -33,6 +33,8 @@ body {
   gap: 8px;
   align-items: center;
   pointer-events: none;
+  /* Above the terrain labels, which use z-index 0 to 100 */
+  z-index: 200;
 }
 
 .group {
@@ -83,6 +85,17 @@ body {
   border-color: #3a7de0;
 }
 
+.terrain-label {
+  font-size: 11px;
+  color: var(--text);
+  background: rgba(23, 26, 35, 0.85);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 5px;
+  white-space: nowrap;
+  user-select: none;
+}
+
 .loading {
   position: absolute;
   inset: 0;
@@ -90,7 +103,8 @@ body {
   align-items: center;
   justify-content: center;
   background: var(--bg);
-  z-index: 10;
+  /* Above the toolbar and the terrain labels */
+  z-index: 300;
 }
 
 .loading-panel {

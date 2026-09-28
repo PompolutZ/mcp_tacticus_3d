@@ -29,8 +29,9 @@ const TIME_STEP = 1 / 120
 
 // mapId: key in MAPS
 // showColliders: draw every physics collider as lines (the shapes physics uses, not the visible meshes)
+// showLabels: show the piece key and game Size above each terrain piece
 // matTurns: number of 90° counter-clockwise turns of the mat and its terrain
-export default function Scene({ mapId, activeRange, activeMove, showColliders = false, matTurns = 0 }) {
+export default function Scene({ mapId, activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0 }) {
   const map = MAPS[mapId]
   const matTexture = useTexture(map.mat)
   // One character and one tool can be selected at the same time
@@ -106,7 +107,7 @@ export default function Scene({ mapId, activeRange, activeMove, showColliders = 
           </mesh>
           {/* A fixed body does not follow its parent after it is created. So each turn mounts the terrain again,
               and its colliders are created at the new pose. A new map also mounts it again. */}
-          <Terrain key={`${mapId}-${matTurns}`} placements={map.placements} />
+          <Terrain key={`${mapId}-${matTurns}`} placements={map.placements} showLabels={showLabels} />
         </group>
 
         {characters.map(ch => (
