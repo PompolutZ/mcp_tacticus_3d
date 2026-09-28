@@ -44,9 +44,55 @@
       "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ec114c4f11d7.obj",
       "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8bbff89733ba.png",
       "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ec114c4f11d7.obj"
+    },
+    "size-3-statue": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1409a6f69e1c.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9d2194209645.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1409a6f69e1c.obj"
+    },
+    "asgard-ruins-size-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/32a57094acd0.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b40185d45baa.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b2d709878498.obj"
+    },
+    "size-2-devise": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b34feab50c4a.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/853fbeaf9d0c.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b34feab50c4a.obj"
+    },
+    "size-1-head": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/19622870a406.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/d17f1f33be37.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/19622870a406.obj"
+    },
+    "size-1-brazier": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9f648344d069.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c15c4413a6e5.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9f648344d069.obj"
+    },
+    "size-2-thinker": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a00f01ddebad.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/48852020bc49.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a00f01ddebad.obj"
+    },
+    "size-5-asgard-stairs": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/97761dc0f8ad.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5a03663b4dba.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/661bf486a70b.obj"
+    },
+    "size-3-ruins": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/cb165667eca2.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/2d31d821dc7c.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/cb165667eca2.obj"
+    },
+    "size-2-fire-pillar": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4e76c5be1ba9.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/95ad9db31c81.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4e76c5be1ba9.obj"
     }
   },
   "mats": {
-    "wakanda-mat.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/af7a7354a68e.png"
+    "wakanda-mat.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/af7a7354a68e.png",
+    "battle-for-asgard-mat.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6752d3d43dee.png"
   }
 }

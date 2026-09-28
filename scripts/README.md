@@ -128,10 +128,8 @@ The AssetRipper UI is a front end for a local HTTP server. `lib/assetripper.mjs`
 
 ## What the app still needs
 
-`Terrain.jsx` supports only OBJ pieces with `mesh`, `texture` and `convex`, and `Scene.jsx` always shows Vibranium Heist. A new map needs these changes:
+`Terrain.jsx` supports OBJ pieces with `mesh`, `texture`, `convex` and `collider`. The map list in the toolbar shows every entry in `MAPS`. A map with other pieces or another mat rotation needs these changes:
 
 1. **Bundle pieces:** use the materials in the GLB, because these pieces have no `texture`. Keep `IMPORT_ROTATION`. Decide how to apply `tint` to materials that have their own colors.
 2. **`colliders`:** create one Rapier collider per entry, inside the same group as the mesh, so that `IMPORT_ROTATION` and the placement scale apply to it. Box → `CuboidCollider`, cylinder → `CylinderCollider`, capsule → `CapsuleCollider`, sphere → `BallCollider`, mesh → hull or trimesh of the collider GLB, with its `scale`. Check in the Debug → Colliders view that the colliders are not turned twice (see the note in `Terrain.jsx`).
-3. **`collider` on OBJ pieces:** build the collider from that GLB, not from the visible mesh.
-4. **`matRotation`:** turn the mat image. The Vibranium Heist mat has 180 and needs no turn. TTS Y rotation `r` is `-r` in Three.js, so the extra turn is probably `-(matRotation - 180)` degrees. This is not checked in the browser yet.
-5. **Map choice:** `Scene.jsx` uses `MAPS['vibranium-heist']`.
+3. **`matRotation`:** turn the mat image. The app reads no `matRotation` yet, and it draws every mat as if it had 180. Vibranium Heist and Battle For Asgard have 180. TTS Y rotation `r` is `-r` in Three.js, so the extra turn is probably `-(matRotation - 180)` degrees. This is not checked in the browser yet.

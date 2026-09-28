@@ -26,12 +26,13 @@ const DROP_HEIGHT = 15
 const TOOL_HOVER_HEIGHT = 1
 // Two physics steps per frame. With one, a model dropped from high up sometimes gets stuck in terrain.
 const TIME_STEP = 1 / 120
-const MAP = MAPS['vibranium-heist']
 
+// mapId: key in MAPS
 // showColliders: draw every physics collider as lines (the shapes physics uses, not the visible meshes)
 // matTurns: number of 90° counter-clockwise turns of the mat and its terrain
-export default function Scene({ activeRange, activeMove, showColliders = false, matTurns = 0 }) {
-  const matTexture = useTexture(MAP.mat)
+export default function Scene({ mapId, activeRange, activeMove, showColliders = false, matTurns = 0 }) {
+  const map = MAPS[mapId]
+  const matTexture = useTexture(map.mat)
   // One character and one tool can be selected at the same time
   const [selectedCharId, setSelectedCharId] = useState(null)
   const [selectedToolId, setSelectedToolId] = useState(null)
@@ -104,8 +105,8 @@ export default function Scene({ activeRange, activeMove, showColliders = false, 
             <meshStandardMaterial map={matTexture} roughness={1} metalness={0} onBeforeCompile={projectFootprints} />
           </mesh>
           {/* A fixed body does not follow its parent after it is created. So each turn mounts the terrain again,
-              and its colliders are created at the new pose. */}
-          <Terrain key={matTurns} placements={MAP.placements} />
+              and its colliders are created at the new pose. A new map also mounts it again. */}
+          <Terrain key={`${mapId}-${matTurns}`} placements={map.placements} />
         </group>
 
         {characters.map(ch => (

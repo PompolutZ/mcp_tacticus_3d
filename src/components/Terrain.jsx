@@ -1,5 +1,5 @@
 import { useGLTF, useTexture } from '@react-three/drei'
-import { RigidBody } from '@react-three/rapier'
+import { MeshCollider, RigidBody } from '@react-three/rapier'
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import { TERRAIN_PIECES, TTS_MAT_TOP } from '../terrain/maps.js'
@@ -20,6 +20,18 @@ function toThreeTransform({ position: [x, y, z], rotation: [rx, ry, rz] }) {
 // TTS mirrors X when it imports an OBJ. Combined with the Z mirror above,
 // this is a 180° turn around Y, so each mesh gets that turn.
 const IMPORT_ROTATION = [0, Math.PI, 0]
+
+// The mod's collider mesh of a piece, when it is not the visible mesh. It is converted from OBJ
+// in the same way as the visible mesh, so it gets the same turn. It is not drawn.
+function ColliderMesh({ url, convex }) {
+  const { scene } = useGLTF(url)
+  const obj = useMemo(() => scene.clone(), [scene])
+  return (
+    <MeshCollider type={convex ? 'hull' : 'trimesh'}>
+      <primitive object={obj} rotation={IMPORT_ROTATION} visible={false} />
+    </MeshCollider>
+  )
+}
 
 function TerrainPiece({ placement }) {
   const piece = TERRAIN_PIECES[placement.piece]
@@ -48,11 +60,19 @@ function TerrainPiece({ placement }) {
   // Fixed collider of the same kind as in the mod, so models stand and tip as they do in TTS.
   // The placement transform is on a group, not on RigidBody: @react-three/rapier 1.5 copies a RigidBody's
   // quaternion prop onto the colliders it builds from the meshes, so every collider would be turned twice.
+  // A piece with a collider mesh gets no colliders from the visible mesh. includeInvisible lets
+  // MeshCollider read the collider mesh, which is hidden.
   return (
     <group position={position} quaternion={quaternion}>
-      <RigidBody type="fixed" colliders={piece.convex ? 'hull' : 'trimesh'} friction={FRICTION}>
+      <RigidBody
+        type="fixed"
+        colliders={piece.collider ? false : piece.convex ? 'hull' : 'trimesh'}
+        includeInvisible={Boolean(piece.collider)}
+        friction={FRICTION}
+      >
         <group scale={placement.scale}>
           <primitive object={obj} rotation={IMPORT_ROTATION} />
+          {piece.collider && <ColliderMesh url={piece.collider} convex={piece.convex} />}
         </group>
       </RigidBody>
     </group>

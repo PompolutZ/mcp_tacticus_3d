@@ -1,3 +1,5 @@
+import { MAPS } from '../terrain/maps.js'
+
 const RANGES = [2, 3, 4, 5]
 const MOVES = [
   { label: 'S', type: 'short' },
@@ -5,11 +7,16 @@ const MOVES = [
   { label: 'L', type: 'long' },
 ]
 
-export function Toolbar({ activeRange, activeMove, onRangeClick, onMoveClick, showColliders, onCollidersClick, onTurnMat }) {
+export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeClick, onMoveClick, showColliders, onCollidersClick, onTurnMat }) {
   return (
     <div className="toolbar">
       <div className="group">
         <span className="group-label">Mat</span>
+        <select className="chip" title="Map" value={mapId} onChange={e => onMapChange(e.target.value)}>
+          {Object.entries(MAPS).map(([id, map]) => (
+            <option key={id} value={id}>{map.name}</option>
+          ))}
+        </select>
         <button type="button" className="chip" title="Turn mat 90° counter-clockwise" onClick={() => onTurnMat(1)}>
           ↺
         </button>

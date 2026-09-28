@@ -13,6 +13,7 @@ export default function App() {
   const [activeMove, setActiveMove] = useState(null)
   const [showColliders, setShowColliders] = useState(false)
   const [matTurns, setMatTurns] = useState(0)
+  const [mapId, setMapId] = useState('vibranium-heist')
 
   // direction: 1 turns the mat 90° counter-clockwise, -1 clockwise
   function handleTurnMat(direction) {
@@ -34,7 +35,7 @@ export default function App() {
         camera={{ position: CAMERA_POSITION, fov: 50 }}
         gl={{ antialias: true }}
       >
-        <Scene activeRange={activeRange} activeMove={activeMove} showColliders={showColliders} matTurns={matTurns} />
+        <Scene mapId={mapId} activeRange={activeRange} activeMove={activeMove} showColliders={showColliders} matTurns={matTurns} />
         <OrbitControls
           makeDefault
           target={[0, 0, 0]}
@@ -47,6 +48,8 @@ export default function App() {
         />
       </Canvas>
       <Toolbar
+        mapId={mapId}
+        onMapChange={setMapId}
         activeRange={activeRange}
         activeMove={activeMove}
         onRangeClick={handleRangeClick}
