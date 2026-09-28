@@ -198,7 +198,7 @@ Optional fields: `models` and `cards` (number of versions, when more than 1), `t
 
 ## Conversion settings
 
-- **Model:** the same steps as a terrain bundle: the prefab GLB with the root rotation and scale, textures as WebP of at most 2048 × 2048, then `compressMesh` with Draco. The result is like `src/assets/angel.glb`. The colliders of the prefab are not copied, because `CharacterModel.jsx` makes a cylinder for the base.
+- **Model:** the same steps as a terrain bundle: the prefab GLB with the root rotation and scale, textures as WebP of at most 1024 × 1024, then `compressMesh` with Draco. The result is like `src/assets/angel.glb`, but with a smaller texture. The colliders of the prefab are not copied, because `CharacterModel.jsx` makes a cylinder for the base.
 - **Base material:** the script renames the base material to `defaultMat`, because `CharacterModel.jsx` gives the material with that name the team color. The mod bundles use `defaultMat` or `Material`.
 - **Images:** cards, standees and portraits are WebP, quality 85, at most 2048 × 2048. The cards stay at 1800 × 1200 (about 250 KB instead of 1.8 MB).
 

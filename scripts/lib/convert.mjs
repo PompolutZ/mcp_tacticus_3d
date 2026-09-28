@@ -1,6 +1,7 @@
 // Mesh and texture conversion for the web. The steps are the ones used for the Vibranium Heist pieces:
 // - mesh: GLB with one primitive per material, Draco compression
-// - texture: WebP, at most 2048 × 2048 (mats at most 4096 × 4096), quality 85, metadata removed
+// - texture: WebP, at most 2048 × 2048 (mats at most 4096 × 4096, character models at most 1024 × 1024), quality 85,
+//   metadata removed
 
 import { execFileSync } from 'node:child_process'
 import { Logger, NodeIO } from '@gltf-transform/core'
@@ -11,6 +12,9 @@ import obj2gltf from 'obj2gltf'
 
 export const TEXTURE_SIZE = 2048
 export const MAT_SIZE = 4096
+// A figure is 2–3" tall, so 1024 is about 1 texture pixel per screen pixel at the closest zoom on a retina screen.
+// It also uses a quarter of the GPU memory of 2048 (about 5.6 MB instead of 22 MB per figure).
+export const CHARACTER_TEXTURE_SIZE = 1024
 
 const io = new NodeIO().setLogger(new Logger(Logger.Verbosity.WARN)).registerExtensions(ALL_EXTENSIONS).registerDependencies({
   'draco3d.encoder': await draco3d.createEncoderModule(),
@@ -57,12 +61,12 @@ export async function compressMesh(doc, { singleMaterial }) {
 }
 
 // Converts every texture in the document to WebP (EXT_texture_webp, which three.js GLTFLoader reads)
-export function texturesToWebp(doc) {
+export function texturesToWebp(doc, maxSize = TEXTURE_SIZE) {
   const textures = doc.getRoot().listTextures()
   if (!textures.length) return
   doc.createExtension(EXTTextureWebP).setRequired(true)
   for (const texture of textures) {
-    texture.setImage(imageToWebp(texture.getImage(), TEXTURE_SIZE)).setMimeType('image/webp').setURI('')
+    texture.setImage(imageToWebp(texture.getImage(), maxSize)).setMimeType('image/webp').setURI('')
   }
 }
 

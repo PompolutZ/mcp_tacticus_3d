@@ -8,7 +8,7 @@ import path from 'node:path'
 import { parseArgs } from 'node:util'
 import { startAssetRipper } from './lib/assetripper.mjs'
 import { readBundlePrefab } from './lib/bundle.mjs'
-import { compressMesh, imageToWebp, TEXTURE_SIZE, texturesToWebp, writeGlb } from './lib/convert.mjs'
+import { CHARACTER_TEXTURE_SIZE, compressMesh, imageToWebp, TEXTURE_SIZE, texturesToWebp, writeGlb } from './lib/convert.mjs'
 import { cachedFile, loadCharacterDatabase } from './lib/tts.mjs'
 import { BASE_DIAMETER, characterCard, characterModel, characterPortrait, characterStandee, transformModel, transformPortrait, transformStandee } from '../src/characters/files.js'
 
@@ -224,14 +224,14 @@ function appEntry(row, key, sources) {
   return entry
 }
 
-// Unity bundle → GLB as angel.glb: the prefab with WebP textures, Draco compression, and the base material named
-// BASE_MATERIAL. Returns warnings.
+// Unity bundle → GLB as angel.glb: the prefab with WebP textures of at most CHARACTER_TEXTURE_SIZE, Draco compression,
+// and the base material named BASE_MATERIAL. Returns warnings.
 async function convertModel(source, { file, base }, ripper) {
   const out = path.join(WORK_DIR, file.replace(/^characters\//, '').replace(/\.glb$/, ''))
   await ripper.exportBundle(source, out)
   const { doc, warnings } = await readBundlePrefab(out)
   warnings.push(...markBase(doc, base))
-  texturesToWebp(doc)
+  texturesToWebp(doc, CHARACTER_TEXTURE_SIZE)
   await writeGlb(assetPath(file), await compressMesh(doc, { singleMaterial: false }))
   return warnings.map(w => `${path.basename(file)}: ${w}`)
 }
