@@ -142,3 +142,18 @@ The AssetRipper UI is a front end for a local HTTP server. `lib/assetripper.mjs`
 1. **Bundle pieces (`bundle: true`):** use the materials in the GLB, because these pieces have no texture file. Keep `IMPORT_ROTATION`. Decide how to apply `tint` to materials that have their own colors.
 2. **`colliders`:** create one Rapier collider per entry, inside the same group as the mesh, so that `IMPORT_ROTATION` and the placement scale apply to it. Box → `CuboidCollider`, cylinder → `CylinderCollider`, capsule → `CapsuleCollider`, sphere → `BallCollider`, mesh → hull or trimesh of the collider GLB, with its `scale`. Check in the Debug → Colliders view that the colliders are not turned twice (see the note in `Terrain.jsx`).
 3. **`matRotation`:** turn the mat image. The app reads no `matRotation` yet, and it draws every mat as if it had 180. Vibranium Heist, Battle For Asgard and Hydra Vs Wakanda have 180 (the script prints -180 for Hydra Vs Wakanda, which is the same angle). TTS Y rotation `r` is `-r` in Three.js, so the extra turn is probably `-(matRotation - 180)` degrees. This is not checked in the browser yet.
+
+# Jarvis character data
+
+`fetch-jarvis-characters.mjs` downloads the stats and the stat card text of every character from [Jarvis Protocol](https://www.jarvis-protocol.com) to `src/characters/jarvis-characters.json`. The file is an array of the `/api/characters/<slug>` responses, sorted by slug.
+
+```bash
+npm run fetch-jarvis-characters             # download new and changed characters
+npm run fetch-jarvis-characters -- --force  # download every character again
+```
+
+- `GET /api/characters` returns the list. Each entry has a `version` (a Unix timestamp), but no stat card. The script downloads `GET /api/characters/<slug>` only when the `version` in the list is different from the stored one. The script waits 3 s between requests, so a full download takes about 12 minutes.
+- Jarvis returns 403 for an unusual User-Agent or a Referer from another site. The script sends a Chrome User-Agent and `Referer: https://www.jarvis-protocol.com/`. The API sends no CORS headers, so the app cannot call it directly.
+- If a request fails, the script still writes the characters that it downloaded. Run it again to continue.
+- `statCard.frontSide` is the healthy side and `statCard.backSide` is the injured side. `secondStatCard` is the card of a second form (for example Emma Frost and Diamond Form). Rules text has markup such as `|!power|` (icon), `|*Stun|` (bold) and `|§stun§Stun|` (special condition).
+- `exportCode` is the MCT code. The TTS mod uses the same code as `ID` in its character database.
