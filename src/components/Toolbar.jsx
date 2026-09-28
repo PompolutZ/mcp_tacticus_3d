@@ -5,9 +5,18 @@ const MOVES = [
   { label: 'L', type: 'long' },
 ]
 
-export function Toolbar({ activeRange, activeMove, onRangeClick, onMoveClick, showColliders, onCollidersClick }) {
+export function Toolbar({ activeRange, activeMove, onRangeClick, onMoveClick, showColliders, onCollidersClick, onTurnMat }) {
   return (
     <div className="toolbar">
+      <div className="group">
+        <span className="group-label">Mat</span>
+        <button type="button" className="chip" title="Turn mat 90° counter-clockwise" onClick={() => onTurnMat(1)}>
+          ↺
+        </button>
+        <button type="button" className="chip" title="Turn mat 90° clockwise" onClick={() => onTurnMat(-1)}>
+          ↻
+        </button>
+      </div>
       <div className="group">
         <span className="group-label">Range</span>
         {RANGES.map(r => (

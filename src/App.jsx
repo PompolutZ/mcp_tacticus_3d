@@ -12,6 +12,12 @@ export default function App() {
   const [activeRange, setActiveRange] = useState(null)
   const [activeMove, setActiveMove] = useState(null)
   const [showColliders, setShowColliders] = useState(false)
+  const [matTurns, setMatTurns] = useState(0)
+
+  // direction: 1 turns the mat 90° counter-clockwise, -1 clockwise
+  function handleTurnMat(direction) {
+    setMatTurns(prev => (prev + direction + 4) % 4)
+  }
 
   function handleRangeClick(range) {
     setActiveRange(prev => prev === range ? null : range)
@@ -28,7 +34,7 @@ export default function App() {
         camera={{ position: CAMERA_POSITION, fov: 50 }}
         gl={{ antialias: true }}
       >
-        <Scene activeRange={activeRange} activeMove={activeMove} showColliders={showColliders} />
+        <Scene activeRange={activeRange} activeMove={activeMove} showColliders={showColliders} matTurns={matTurns} />
         <OrbitControls
           makeDefault
           target={[0, 0, 0]}
@@ -47,6 +53,7 @@ export default function App() {
         onMoveClick={handleMoveClick}
         showColliders={showColliders}
         onCollidersClick={() => setShowColliders(prev => !prev)}
+        onTurnMat={handleTurnMat}
       />
       <LoadingOverlay />
     </div>

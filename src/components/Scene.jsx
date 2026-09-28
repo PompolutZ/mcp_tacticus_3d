@@ -15,6 +15,12 @@ const MAT_SIZE = 36
 const TABLE_SIZE = 48
 const TABLE_THICKNESS = 0.5
 const TABLE_COLLIDER_HALF_H = 5
+// Blue half is the side of the player who won the priority roll-off. Red half is the other player's side.
+// Blue is at +z, the bottom of the default camera view.
+const TABLE_HALVES = [
+  { color: '#6fa0e0', z: TABLE_SIZE / 4 },
+  { color: '#e07272', z: -TABLE_SIZE / 4 },
+]
 const DROP_HEIGHT = 15
 // Tools hang this far above the table and measure by the outline cast below them
 const TOOL_HOVER_HEIGHT = 1
@@ -23,7 +29,8 @@ const TIME_STEP = 1 / 120
 const MAP = MAPS['vibranium-heist']
 
 // showColliders: draw every physics collider as lines (the shapes physics uses, not the visible meshes)
-export default function Scene({ activeRange, activeMove, showColliders = false }) {
+// matTurns: number of 90° counter-clockwise turns of the mat and its terrain
+export default function Scene({ activeRange, activeMove, showColliders = false, matTurns = 0 }) {
   const matTexture = useTexture(MAP.mat)
   // One character and one tool can be selected at the same time
   const [selectedCharId, setSelectedCharId] = useState(null)
@@ -81,19 +88,25 @@ export default function Scene({ activeRange, activeMove, showColliders = false }
             position={[0, -TABLE_COLLIDER_HALF_H, 0]}
             friction={FRICTION}
           />
-          <mesh position={[0, -TABLE_THICKNESS / 2, 0]} receiveShadow>
-            <boxGeometry args={[TABLE_SIZE, TABLE_THICKNESS, TABLE_SIZE]} />
-            <meshStandardMaterial color="#2a1a0a" roughness={0.8} metalness={0.05} onBeforeCompile={projectFootprints} />
-          </mesh>
+          {TABLE_HALVES.map(({ color, z }) => (
+            <mesh key={color} position={[0, -TABLE_THICKNESS / 2, z]} receiveShadow>
+              <boxGeometry args={[TABLE_SIZE, TABLE_THICKNESS, TABLE_SIZE / 2]} />
+              <meshStandardMaterial color={color} roughness={0.8} metalness={0.05} onBeforeCompile={projectFootprints} />
+            </mesh>
+          ))}
         </RigidBody>
 
-        {/* Mat */}
-        <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-          <planeGeometry args={[MAT_SIZE, MAT_SIZE]} />
-          <meshStandardMaterial map={matTexture} roughness={1} metalness={0} onBeforeCompile={projectFootprints} />
-        </mesh>
-
-        <Terrain placements={MAP.placements} />
+        {/* The mat and its terrain turn together around the mat center. In game setup, the player with priority
+            turns them so that the deployment edge they chose faces the blue side. */}
+        <group rotation={[0, matTurns * Math.PI / 2, 0]}>
+          <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+            <planeGeometry args={[MAT_SIZE, MAT_SIZE]} />
+            <meshStandardMaterial map={matTexture} roughness={1} metalness={0} onBeforeCompile={projectFootprints} />
+          </mesh>
+          {/* A fixed body does not follow its parent after it is created. So each turn mounts the terrain again,
+              and its colliders are created at the new pose. */}
+          <Terrain key={matTurns} placements={MAP.placements} />
+        </group>
 
         {characters.map(ch => (
           <CharacterModel

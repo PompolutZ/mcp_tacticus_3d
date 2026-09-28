@@ -55,6 +55,12 @@ Open `http://localhost:5173`. You can orbit, zoom, and pan with the mouse.
 
 Assets come from the Tabletop Simulator mod **3036795456** (community MCP mod). See `ASSETS.md` for the full inventory: character images, 3D models, terrain pieces, and crisis cards cached locally by TTS.
 
+## Table sides
+
+One half of the table is blue and the other half is red. Blue is the side of the player who won the priority roll-off. Red is the other player's side. Blue is at the bottom of the default view.
+
+In game setup, the player with priority chooses the edge of the mat to deploy from. **Mat → ↺ / ↻** in the toolbar turns the mat and all its terrain 90° around the mat center. Turn it until the chosen edge faces the blue side. Models and tools do not turn with the mat.
+
 ## Tools
 
 Range tools and movement tools work the same way, except for **Place** and bending. Movement tools can bend. Range tools stay straight.
