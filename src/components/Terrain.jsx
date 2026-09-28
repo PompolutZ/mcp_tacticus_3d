@@ -2,7 +2,10 @@ import { Html, useGLTF, useTexture } from '@react-three/drei'
 import { MeshCollider, RigidBody } from '@react-three/rapier'
 import { useMemo } from 'react'
 import * as THREE from 'three'
-import { TERRAIN_PIECES, TTS_MAT_TOP } from '../terrain/maps.js'
+import { assetUrl } from '../assets/index.js'
+import { pieceCollider, pieceMesh, pieceTexture } from '../terrain/files.js'
+import { TTS_MAT_TOP } from '../terrain/maps.js'
+import { TERRAIN_PIECES } from '../terrain/pieces.js'
 import { FRICTION } from '../physics.js'
 import { projectFootprints } from './footprintProjection.js'
 
@@ -45,11 +48,11 @@ function ColliderMesh({ url, convex }) {
   )
 }
 
-// showLabel: show the piece key and the game Size above the piece
+// showLabel: show the piece name and the game Size above the piece
 function TerrainPiece({ placement, showLabel }) {
   const piece = TERRAIN_PIECES[placement.piece]
-  const { scene: raw } = useGLTF(piece.mesh)
-  const map = useTexture(piece.texture)
+  const { scene: raw } = useGLTF(assetUrl(pieceMesh(placement.piece)))
+  const map = useTexture(assetUrl(pieceTexture(placement.piece)))
   const obj = useMemo(() => {
     map.colorSpace = THREE.SRGBColorSpace
     // The GLB meshes use glTF UVs (V flipped from OBJ), so the texture must not be flipped
@@ -86,12 +89,12 @@ function TerrainPiece({ placement, showLabel }) {
       >
         <group scale={placement.scale}>
           <primitive object={obj} rotation={IMPORT_ROTATION} />
-          {piece.collider && <ColliderMesh url={piece.collider} convex={piece.convex} />}
+          {piece.collider && <ColliderMesh url={assetUrl(pieceCollider(placement.piece))} convex={piece.convex} />}
         </group>
       </RigidBody>
       {showLabel && (
         <Html position={labelPos} center pointerEvents="none" zIndexRange={[100, 0]} className="terrain-label">
-          {placement.piece}{placement.size && ` · Size ${placement.size}`}
+          {piece.name}{placement.size && ` · Size ${placement.size}`}
         </Html>
       )}
     </group>

@@ -53,7 +53,7 @@ The `Terrain Database` LuaScript has the names:
 - Map entries below it — `name`, `category`, and `placements` (piece `key`, position, rotation, scale, tint). The first placement is usually the mat tile (`tile-piece-*`).
 - A map's mat is found by its image hash. The Wakanda mat `af7a7354a68e` is `tile-piece-57` (Vibranium Heist, Survival of the Fittest) and `tile-piece-167` (AMG Wakanda Blank Map).
 
-The pieces of Vibranium Heist, Battle For Asgard and Hydra Vs Wakanda are copied to `src/assets/terrain/` with readable names. Placements are in `src/terrain/maps.js`.
+The pieces of Vibranium Heist, Battle For Asgard and Hydra Vs Wakanda are copied to `src/assets/terrain/` with readable names. The pieces are described in `src/terrain/pieces.js`, and the placements are in `src/terrain/maps.js`. `src/terrain/files.js` has the file names.
 
 The web files are converted from the cached originals, so they load faster. `scripts/migrate-terrain.mjs` does the conversion; `scripts/README.md` describes the settings. The Draco decoder is in `public/draco/` (copied from `three/examples/jsm/libs/draco/gltf/`).
 

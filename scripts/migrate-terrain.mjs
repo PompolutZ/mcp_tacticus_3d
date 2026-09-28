@@ -1,4 +1,5 @@
-// Migrates the mat and terrain of one TTS map to src/assets, and prints the entries to add to src/terrain/maps.js.
+// Migrates the mat and terrain of one TTS map to src/assets, and prints the entries to add to
+// src/terrain/pieces.js and src/terrain/maps.js.
 // A "map" is a card in the mod's Terrain Database. See scripts/README.md.
 
 import fs from 'node:fs'
@@ -8,11 +9,12 @@ import { parseArgs } from 'node:util'
 import { startAssetRipper } from './lib/assetripper.mjs'
 import { compressMesh, imageToWebp, MAT_SIZE, readGlb, readObj, TEXTURE_SIZE, texturesToWebp, writeGlb } from './lib/convert.mjs'
 import { cachedFile, loadTerrainDatabase, matPlacement, pieceSources } from './lib/tts.mjs'
+import { bundleCollider, matImage, pieceCollider, pieceMesh, pieceTexture } from '../src/terrain/files.js'
 import { findAssetByGuid, readPrefab, walk } from './lib/unity-prefab.mjs'
 
 const USAGE = `Usage:
   node scripts/migrate-terrain.mjs --list          maps whose mat is in the TTS cache, and which files are missing
-  node scripts/migrate-terrain.mjs <map id|name>   convert the map's mat and pieces, print entries for maps.js
+  node scripts/migrate-terrain.mjs <map id|name>   convert the map's mat and pieces, print entries for pieces.js and maps.js
 Options:
   --force       convert pieces and mat again, even if terrain-manifest.json lists them
   --out <dir>   trial run: write assets to <dir>/assets and the manifest to <dir>, not to the repo`
@@ -33,6 +35,8 @@ const ASSETS = opts.out ? path.resolve(opts.out, 'assets') : path.resolve(import
 const WORK_DIR = path.join(os.tmpdir(), 'mcp-assist-3d-terrain')
 // Mat tile scale in TTS. At 18 the mat is 36" wide, which the app assumes.
 const TTS_MAT_SCALE = 18
+// The game Size in a mod piece name: "Size 3 Panther Statue", "Crystals: Size 1"
+const SIZE_IN_NAME = /\bsize\s*:?\s*(\d+)\b/i
 
 const db = loadTerrainDatabase()
 // A trial run continues from its own manifest, if an earlier trial run into the same directory wrote one
@@ -50,7 +54,7 @@ function listMaps() {
     if (!keys.length) continue
     const types = keys.map(k => db.pieces.get(k)?.type)
     const missing = keys.filter(k => missingSources(k).length)
-    const migrated = keys.every(k => migratedKey(db.pieces.get(k))) && matFileFor(mat) !== null
+    const migrated = keys.every(k => migratedKey(db.pieces.get(k))) && matNameFor(mat) !== null
     rows.push({ card, keys, missing, migrated, obj: types.filter(t => t === 'Custom_Model').length, bundle: types.filter(t => t === 'Custom_Assetbundle').length })
   }
   rows.sort((a, b) => a.missing.length - b.missing.length || a.card.name.localeCompare(b.card.name))
@@ -75,7 +79,7 @@ async function migrate(card) {
   console.log(`Map ${card.id}: ${card.name} (${card.category ?? 'no category'})\n`)
   const mat = matPlacement(card, db.pieces)
   if (!mat) throw new Error('The map has no mat (Custom_Tile)')
-  const matFile = migrateMat(card, mat)
+  const matName = migrateMat(card, mat)
 
   // mod piece key → { appKey, status, entry, warnings }
   const results = new Map()
@@ -113,11 +117,11 @@ async function migrate(card) {
   }
   const code = [...results.values()].some(r => r.status.startsWith('failed')) ? 1 : 0
 
-  const snippet = mapsSnippet(card, mat, matFile, results)
+  const snippet = mapsSnippet(card, mat, matName, results)
   fs.mkdirSync(WORK_DIR, { recursive: true })
   const snippetFile = path.join(WORK_DIR, `${slug(card.name)}.snippet.js`)
   fs.writeFileSync(snippetFile, snippet)
-  console.log(`\nEntries for src/terrain/maps.js (also in ${snippetFile}):\n\n${snippet}`)
+  console.log(`\nEntries for src/terrain/pieces.js and maps.js (also in ${snippetFile}):\n\n${snippet}`)
   return code
 }
 
@@ -147,46 +151,46 @@ function newAppKey(modKey) {
   return key
 }
 
-function matFileFor(mat) {
+// Name of the migrated mat with the same image, or null
+function matNameFor(mat) {
   const url = pieceSources(db.pieces.get(mat.key)).image
-  return Object.keys(manifest.mats).find(f => manifest.mats[f] === url) ?? null
+  return Object.keys(manifest.mats).find(name => manifest.mats[name] === url) ?? null
 }
 
+// Returns the mat name
 function migrateMat(card, mat) {
   const url = pieceSources(db.pieces.get(mat.key)).image
-  let file = matFileFor(mat)
-  if (file && !opts.force) return file
-  if (!file) {
-    file = `${slug(card.name)}-mat.webp`
-    for (let n = 2; file in manifest.mats; n++) file = `${slug(card.name)}-${n}-mat.webp`
+  let name = matNameFor(mat)
+  if (name && !opts.force) return name
+  if (!name) {
+    name = slug(card.name)
+    for (let n = 2; name in manifest.mats; n++) name = `${slug(card.name)}-${n}`
   }
   const source = cachedFile(url)
   if (!source) throw new Error(`The mat image ${url} is not in the TTS cache. Spawn the map once in TTS.`)
-  fs.writeFileSync(assetPath(file), imageToWebp(source, MAT_SIZE))
-  manifest.mats[file] = url
+  fs.writeFileSync(assetPath(matImage(name)), imageToWebp(source, MAT_SIZE))
+  manifest.mats[name] = url
   saveManifest()
   const [scaleX, , scaleZ] = mat.scale
   if (Math.abs(scaleX - TTS_MAT_SCALE) > 0.01 || Math.abs(scaleZ - TTS_MAT_SCALE) > 0.01) console.log(`warning: mat scale is ${mat.scale}, not ${TTS_MAT_SCALE}`)
-  console.log(`Mat: converted to ${assetPath(file)}\n`)
-  return file
+  console.log(`Mat: converted to ${assetPath(matImage(name))}\n`)
+  return name
 }
 
-// OBJ piece: mesh GLB with one material, texture as a separate WebP (Terrain.jsx puts them together)
+// OBJ piece: mesh GLB with one material, texture as a separate WebP (Terrain.jsx puts them together).
+// The entry has no paths: the files are named after the key (src/terrain/files.js).
 async function migrateObjPiece(piece, appKey) {
   const src = pieceSources(piece)
-  const entry = { mesh: `terrain/${appKey}.glb` }
-  await writeGlb(assetPath(entry.mesh), await compressMesh(await readObj(cachedFile(src.mesh)), { singleMaterial: true }))
-  if (src.diffuse) {
-    entry.texture = `terrain/${appKey}.webp`
-    fs.writeFileSync(assetPath(entry.texture), imageToWebp(cachedFile(src.diffuse), TEXTURE_SIZE))
-  }
   // convex is the mod's collider flag. true: Unity uses the convex hull of the collider mesh.
-  entry.convex = piece.convex === true
+  const entry = { name: pieceName(piece), convex: piece.convex === true }
+  await writeGlb(assetPath(pieceMesh(appKey)), await compressMesh(await readObj(cachedFile(src.mesh)), { singleMaterial: true }))
+  if (src.diffuse) fs.writeFileSync(assetPath(pieceTexture(appKey)), imageToWebp(cachedFile(src.diffuse), TEXTURE_SIZE))
+  else entry.texture = false
   if (src.collider !== src.mesh) {
-    entry.collider = `terrain/${appKey}-collider.glb`
-    await writeGlb(assetPath(entry.collider), await compressMesh(await readObj(cachedFile(src.collider)), { singleMaterial: true }))
+    entry.collider = true
+    await writeGlb(assetPath(pieceCollider(appKey)), await compressMesh(await readObj(cachedFile(src.collider)), { singleMaterial: true }))
   }
-  const warnings = src.diffuse ? [] : ['has no texture']
+  const warnings = src.diffuse ? [] : ['has no texture. Terrain.jsx does not support texture: false yet.']
   return { entry, warnings }
 }
 
@@ -209,14 +213,14 @@ async function migrateBundlePiece(piece, appKey, ripper) {
   const prefab = readPrefab(fs.readFileSync(findByLowerCasePath(project, prefabs[0]), 'utf8'))
   warnings.push(...prefab.warnings)
 
-  const entry = { mesh: `terrain/${appKey}.glb` }
+  const entry = { name: pieceName(piece), bundle: true }
   const doc = await readGlb(findByLowerCasePath(primary, prefabs[0].replace(/\.prefab$/, '.glb')))
   applyRoot(doc, prefab.root)
   texturesToWebp(doc)
-  await writeGlb(assetPath(entry.mesh), await compressMesh(doc, { singleMaterial: false }))
+  await writeGlb(assetPath(pieceMesh(appKey)), await compressMesh(doc, { singleMaterial: false }))
 
-  // A custom collider mesh gets its own GLB, once per mesh
-  const meshFiles = new Map()
+  // A custom collider mesh gets its own GLB, once per mesh. The entry has its number (bundleCollider in files.js).
+  const meshNumbers = new Map()
   entry.colliders = []
   for (const collider of prefab.colliders) {
     if (collider.shape !== 'mesh') {
@@ -224,7 +228,7 @@ async function migrateBundlePiece(piece, appKey, ripper) {
       continue
     }
     const { meshGuid, ...rest } = collider
-    if (!meshFiles.has(meshGuid)) {
+    if (!meshNumbers.has(meshGuid)) {
       // The project has Assets/Mesh/<name>.asset for the mesh, the primary export has Assets/Mesh/<name>.glb
       const asset = findAssetByGuid(project, meshGuid)
       const glb = asset && path.join(primary, path.relative(project, asset).replace(/\.[^./]*$/, '.glb'))
@@ -232,11 +236,11 @@ async function migrateBundlePiece(piece, appKey, ripper) {
         warnings.push(`collider mesh ${meshGuid} is not in the export, so that collider is left out`)
         continue
       }
-      const file = `terrain/${appKey}-collider-${meshFiles.size + 1}.glb`
-      await writeGlb(assetPath(file), await compressMesh(await readGlb(glb), { singleMaterial: true }))
-      meshFiles.set(meshGuid, file)
+      const n = meshNumbers.size + 1
+      await writeGlb(assetPath(bundleCollider(appKey, n)), await compressMesh(await readGlb(glb), { singleMaterial: true }))
+      meshNumbers.set(meshGuid, n)
     }
-    entry.colliders.push({ ...rest, mesh: meshFiles.get(meshGuid) })
+    entry.colliders.push({ ...rest, mesh: meshNumbers.get(meshGuid) })
   }
   if (!entry.colliders.length) warnings.push('has no colliders')
   return { entry, warnings }
@@ -275,18 +279,18 @@ function slug(text) {
   return text.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 }
 
-// Entries in the style of src/terrain/maps.js: TTS transforms, positions relative to the mat center
-function mapsSnippet(card, mat, matFile, results) {
-  const lines = ['// TERRAIN_PIECES: new pieces']
+// Entries in the style of src/terrain/pieces.js and maps.js: TTS transforms, positions relative to the mat center
+function mapsSnippet(card, mat, matName, results) {
+  const lines = ['// src/terrain/pieces.js, TERRAIN_PIECES: new pieces']
   for (const r of results.values()) if (r.entry) lines.push(`  '${r.appKey}': ${js(r.entry, '  ')},`)
   const [matX, , matZ] = mat.position
   lines.push(
     '',
-    '// MAPS',
+    '// src/terrain/maps.js, MAPS',
     `  // "${card.name}" (map ${card.id} in the Terrain Database${card.category ? `, ${card.category}` : ''})`,
     `  '${slug(card.name)}': {`,
-    `    name: '${card.name.replace(/'/g, "\\'")}',`,
-    `    mat: assetUrl('${matFile}'),`,
+    `    name: ${js(card.name)},`,
+    `    mat: '${matName}',`,
     '    // TTS rotation of the mat around Y. It is 180 for Vibranium Heist, and the app draws that mat with no turn.',
     `    matRotation: ${round(angle(mat.rotation[1]), 2)},`,
     '    placements: [',
@@ -306,9 +310,9 @@ function mapsSnippet(card, mat, matFile, results) {
   return lines.join('\n')
 }
 
-// JS source for a TERRAIN_PIECES entry. Asset paths become assetUrl() calls.
+// JS source for a TERRAIN_PIECES entry
 function js(value, indent) {
-  if (typeof value === 'string') return value.startsWith('terrain/') ? `assetUrl('${value}')` : `'${value}'`
+  if (typeof value === 'string') return `'${value.replace(/'/g, "\\'")}'`
   if (typeof value === 'number') return String(round(value, 4))
   if (typeof value !== 'object') return String(value)
   if (Array.isArray(value)) {
@@ -318,14 +322,22 @@ function js(value, indent) {
   return `{ ${Object.entries(value).map(([k, v]) => `${k}: ${js(v, indent)}`).join(', ')} }`
 }
 
-// Degrees in [-180, 180)
 // The game Size of a mod piece, from its name ("Size 3 Panther Statue", "Crystals: Size 1"), or null.
 // It belongs to the mod piece, not to the mesh: two mod pieces with the same files get one app piece.
 function gameSize(piece) {
-  const match = piece?.name?.match(/\bsize\s*:?\s*(\d+)\b/i)
+  const match = piece?.name?.match(SIZE_IN_NAME)
   return match ? Number(match[1]) : null
 }
 
+// Display name of a mod piece: its name without the Size and the separators around it
+// ("Size 3 Panther Statue" → "Panther Statue", "Portal: Size 4, delete all as one" → "Portal delete all as one"),
+// with the first letter in upper case. A name that is only a Size ("Size: 1") gives the mod key.
+function pieceName(piece) {
+  const name = piece.name.replace(new RegExp(`[\\s:,-]*${SIZE_IN_NAME.source}[\\s:,-]*`, 'i'), ' ').trim().replace(/\s+/g, ' ')
+  return name ? name[0].toUpperCase() + name.slice(1) : piece.key
+}
+
+// Degrees in [-180, 180)
 function angle(deg) {
   return ((deg + 180) % 360 + 360) % 360 - 180
 }

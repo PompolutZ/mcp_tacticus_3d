@@ -1,8 +1,15 @@
 # TTS terrain migration
 
-`migrate-terrain.mjs` copies the mat and terrain of one map from the TTS mod to `src/assets`. It converts the files for the web in the same way as the Vibranium Heist pieces. Then it prints the entries to add to `src/terrain/maps.js`.
+`migrate-terrain.mjs` copies the mat and terrain of one map from the TTS mod to `src/assets`. It converts the files for the web in the same way as the Vibranium Heist pieces. Then it prints the entries to add to `src/terrain/pieces.js` and `src/terrain/maps.js`.
 
 A "map" is a card in the mod's Terrain Database. It has an id, a name, and a list of placements (piece key, position, rotation, scale, tint). The first `Custom_Tile` placement is the mat.
+
+The app data has no file paths. `src/terrain/files.js` names each file after the piece key or the mat name, and the script writes the files with the same functions:
+
+- `pieces.js`: one entry per set of files, with `name`, `convex` and `collider`.
+- `maps.js`: one entry per map, with `name`, `mat` and `placements`.
+
+The script prints `name` as the mod piece name without the Size, for example "Panther Statue" for "Size 3 Panther Statue". The name is only shown in the app, so you can change it in `pieces.js`.
 
 The script prints the game Size on each placement (`size`). It reads the Size from the name of the mod piece, for example "Size 3 Panther Statue" or "Crystals: Size 1". A piece name without "Size" gets no `size`. The Size is on the placement and not on the piece: two mod pieces with the same files get one app piece, and their Sizes can be different.
 
@@ -30,7 +37,7 @@ Several maps have the same name, for example three "Cosmic Downtown" cards. Maps
 
 1. Run `--list` and choose a map id. If the map has "missing" pieces, spawn the map once in TTS and run `--list` again.
 2. Run the script with the id. Read the warnings in the report.
-3. Copy the printed entries into `src/terrain/maps.js`. The script also saves them in `$TMPDIR/mcp-assist-3d-terrain/<map>.snippet.js`.
+3. Copy the printed entries into `src/terrain/pieces.js` and `src/terrain/maps.js`. The script also saves them in `$TMPDIR/mcp-assist-3d-terrain/<map>.snippet.js`.
 4. Compare tints with the map card image. For example, the mod tints the Vibranium Heist truck black, but the card shows it olive, so `maps.js` leaves that tint out.
 5. Commit the new files in `src/assets` and `scripts/terrain-manifest.json` together.
 
@@ -40,22 +47,22 @@ The app does not use all the printed data yet. See [What the app still needs](#w
 
 | Output | Content |
 |---|---|
-| `src/assets/<map>-mat.webp` | Mat image |
+| `src/assets/<mat>-mat.webp` | Mat image |
 | `src/assets/terrain/<key>.glb` | Piece mesh |
-| `src/assets/terrain/<key>.webp` | Texture of an OBJ piece |
-| `src/assets/terrain/<key>-collider.glb` | Collider mesh of an OBJ piece, when it is not the visible mesh |
-| `src/assets/terrain/<key>-collider-<n>.glb` | Custom collider mesh of a bundle piece |
+| `src/assets/terrain/<key>.webp` | Texture of an OBJ piece. The entry has `texture: false` when the mod piece has no texture. |
+| `src/assets/terrain/<key>-collider.glb` | Collider mesh of an OBJ piece with `collider: true` |
+| `src/assets/terrain/<key>-collider-<n>.glb` | Custom collider mesh `n` of a bundle piece |
 | `scripts/terrain-manifest.json` | TTS source URLs of every migrated piece and mat |
 | `$TMPDIR/mcp-assist-3d-terrain/<key>/` | AssetRipper exports of a bundle piece (`primary/`, `project/`), kept for inspection |
 
-`<key>` is the piece key in the mod, for example `cargo-size-2`. The manifest stores the source URLs of each piece (`mesh`, `diffuse`, `collider`, or `bundle`). A piece with the same source URLs as a migrated piece gets that piece's key. For example, `size-2-wakanda-tree` in Hydra Vs Wakanda is `wakanda-tree` from Vibranium Heist. As a result, a piece is converted only once. The first 9 entries of the manifest were written by hand for the Vibranium Heist pieces.
+`<key>` is the piece key in the mod, for example `cargo-size-2`. `<mat>` is the map name in lower case, for example `battle-for-asgard`. The manifest stores the source URLs of each piece (`mesh`, `diffuse`, `collider`, or `bundle`) and the image URL of each mat. A piece with the same source URLs as a migrated piece gets that piece's key. For example, `size-2-wakanda-tree` in Hydra Vs Wakanda is `wakanda-tree` from Vibranium Heist. As a result, a piece is converted only once. The first 9 entries of the manifest were written by hand for the Vibranium Heist pieces.
 
 ## Piece types
 
 | TTS type | Source | Result |
 |---|---|---|
-| `Custom_Model` | OBJ mesh and texture image | GLB with one material, texture as a separate WebP, `convex` flag. Also `collider` if the piece has its own collider mesh. |
-| `Custom_Assetbundle` | Unity asset bundle | GLB with its own materials and WebP textures, and `colliders` from the prefab |
+| `Custom_Model` | OBJ mesh and texture image | GLB with one material, texture as a separate WebP, `convex` flag. Also `collider: true` if the piece has its own collider mesh. |
+| `Custom_Assetbundle` | Unity asset bundle | GLB with its own materials and WebP textures (`bundle: true`), and `colliders` from the prefab |
 | `Custom_Tile` (the first one) | Image | The mat |
 | `Custom_Token`, other tiles | Image | Skipped. The placement is printed as a comment. |
 
@@ -105,7 +112,7 @@ Format of `colliders`: GLB space, relative to the piece origin, before `IMPORT_R
 { shape: 'cylinder', position, quaternion, radius, halfHeight }   // axis is local Y
 { shape: 'capsule', position, quaternion, radius, halfHeight }    // halfHeight is the straight part, without the round ends
 { shape: 'sphere', position, radius }
-{ shape: 'mesh', convex, position, quaternion, scale, mesh }      // mesh: collider GLB; convex: use the convex hull
+{ shape: 'mesh', convex, position, quaternion, scale, mesh }      // mesh: number n of the collider GLB (<key>-collider-<n>.glb); convex: use the convex hull
 ```
 
 ### Other bundle details
@@ -130,8 +137,8 @@ The AssetRipper UI is a front end for a local HTTP server. `lib/assetripper.mjs`
 
 ## What the app still needs
 
-`Terrain.jsx` supports OBJ pieces with `mesh`, `texture`, `convex` and `collider`. The map list in the toolbar shows every entry in `MAPS`. A map with other pieces or another mat rotation needs these changes:
+`Terrain.jsx` supports OBJ pieces with a texture, with `convex` and `collider`. The map list in the toolbar shows every entry in `MAPS`. A map with other pieces or another mat rotation needs these changes:
 
-1. **Bundle pieces:** use the materials in the GLB, because these pieces have no `texture`. Keep `IMPORT_ROTATION`. Decide how to apply `tint` to materials that have their own colors.
+1. **Bundle pieces (`bundle: true`):** use the materials in the GLB, because these pieces have no texture file. Keep `IMPORT_ROTATION`. Decide how to apply `tint` to materials that have their own colors.
 2. **`colliders`:** create one Rapier collider per entry, inside the same group as the mesh, so that `IMPORT_ROTATION` and the placement scale apply to it. Box → `CuboidCollider`, cylinder → `CylinderCollider`, capsule → `CapsuleCollider`, sphere → `BallCollider`, mesh → hull or trimesh of the collider GLB, with its `scale`. Check in the Debug → Colliders view that the colliders are not turned twice (see the note in `Terrain.jsx`).
 3. **`matRotation`:** turn the mat image. The app reads no `matRotation` yet, and it draws every mat as if it had 180. Vibranium Heist, Battle For Asgard and Hydra Vs Wakanda have 180 (the script prints -180 for Hydra Vs Wakanda, which is the same angle). TTS Y rotation `r` is `-r` in Three.js, so the extra turn is probably `-(matRotation - 180)` degrees. This is not checked in the browser yet.

@@ -62,7 +62,7 @@ export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeCl
         <button
           type="button"
           className={`chip${showLabels ? ' chip--active' : ''}`}
-          title="Show the piece key and game Size above each terrain piece"
+          title="Show the piece name and game Size above each terrain piece"
           onClick={onLabelsClick}
         >
           Labels

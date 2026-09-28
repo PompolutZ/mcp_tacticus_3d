@@ -5,6 +5,7 @@ import { MovementRuler, RangeRuler } from './RulerTool.jsx'
 import CharacterModel, { BASE_RADIUS } from './CharacterModel.jsx'
 import Terrain from './Terrain.jsx'
 import { projectFootprints } from './footprintProjection.js'
+import { matImage } from '../terrain/files.js'
 import { MAPS } from '../terrain/maps.js'
 import { FRICTION } from '../physics.js'
 import { assetUrl } from '../assets/index.js'
@@ -29,11 +30,11 @@ const TIME_STEP = 1 / 120
 
 // mapId: key in MAPS
 // showColliders: draw every physics collider as lines (the shapes physics uses, not the visible meshes)
-// showLabels: show the piece key and game Size above each terrain piece
+// showLabels: show the piece name and game Size above each terrain piece
 // matTurns: number of 90° counter-clockwise turns of the mat and its terrain
 export default function Scene({ mapId, activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0 }) {
   const map = MAPS[mapId]
-  const matTexture = useTexture(map.mat)
+  const matTexture = useTexture(assetUrl(matImage(map.mat)))
   // One character and one tool can be selected at the same time
   const [selectedCharId, setSelectedCharId] = useState(null)
   const [selectedToolId, setSelectedToolId] = useState(null)

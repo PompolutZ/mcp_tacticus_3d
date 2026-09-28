@@ -132,8 +132,8 @@
     }
   },
   "mats": {
-    "wakanda-mat.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/af7a7354a68e.png",
-    "battle-for-asgard-mat.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6752d3d43dee.png",
-    "hydra-vs-wakanda-mat.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/702601a131f7.png"
+    "wakanda": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/af7a7354a68e.png",
+    "battle-for-asgard": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6752d3d43dee.png",
+    "hydra-vs-wakanda": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/702601a131f7.png"
   }
 }

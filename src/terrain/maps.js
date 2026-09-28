@@ -1,44 +1,13 @@
-// Terrain pieces and map layouts from the TTS mod's "Terrain Database" object.
+// Map layouts from the TTS mod's "Terrain Database" object. The pieces are in pieces.js.
 // Transforms stay in TTS coordinates, as in the mod, so they can be compared
 // with the source. Terrain.jsx converts them to Three.js.
-
-import { assetUrl } from '../assets/index.js'
 
 // Mat top in TTS: the mat tile sits at y = 0.96 and is 0.1 thick
 export const TTS_MAT_TOP = 1.06
 
-// convex is the mod's collider flag. true: Unity uses the convex hull of the collider mesh.
-// false: Unity uses the mesh triangles. The collider mesh is the visible mesh, unless the piece has a collider GLB.
-export const TERRAIN_PIECES = {
-  'mech-hangar': { mesh: assetUrl('terrain/mech-hangar.glb'), texture: assetUrl('terrain/mech-hangar.webp'), convex: false },
-  'cosmic-barricade': { mesh: assetUrl('terrain/cosmic-barricade.glb'), texture: assetUrl('terrain/cosmic-barricade.webp'), convex: true },
-  'crystals': { mesh: assetUrl('terrain/crystals.glb'), texture: assetUrl('terrain/crystals.webp'), convex: false },
-  'panther-fountain': { mesh: assetUrl('terrain/panther-fountain.glb'), texture: assetUrl('terrain/panther-fountain.webp'), convex: true },
-  'wakandan-street-light': { mesh: assetUrl('terrain/wakandan-street-light.glb'), texture: assetUrl('terrain/wakandan-street-light.webp'), convex: true },
-  'wakanda-tree': { mesh: assetUrl('terrain/wakanda-tree.glb'), texture: assetUrl('terrain/wakanda-tree.webp'), convex: true },
-  'panther-statue': { mesh: assetUrl('terrain/panther-statue.glb'), texture: assetUrl('terrain/panther-statue.webp'), convex: true },
-  'vibranium-haller': { mesh: assetUrl('terrain/vibranium-haller.glb'), texture: assetUrl('terrain/vibranium-haller.webp'), convex: true },
-  'truck': { mesh: assetUrl('terrain/truck.glb'), texture: assetUrl('terrain/truck.webp'), convex: true },
-  'size-3-statue': { mesh: assetUrl('terrain/size-3-statue.glb'), texture: assetUrl('terrain/size-3-statue.webp'), convex: true },
-  'asgard-ruins-size-4': { mesh: assetUrl('terrain/asgard-ruins-size-4.glb'), texture: assetUrl('terrain/asgard-ruins-size-4.webp'), convex: false, collider: assetUrl('terrain/asgard-ruins-size-4-collider.glb') },
-  'size-2-devise': { mesh: assetUrl('terrain/size-2-devise.glb'), texture: assetUrl('terrain/size-2-devise.webp'), convex: true },
-  'size-1-head': { mesh: assetUrl('terrain/size-1-head.glb'), texture: assetUrl('terrain/size-1-head.webp'), convex: true },
-  'size-1-brazier': { mesh: assetUrl('terrain/size-1-brazier.glb'), texture: assetUrl('terrain/size-1-brazier.webp'), convex: true },
-  'size-2-thinker': { mesh: assetUrl('terrain/size-2-thinker.glb'), texture: assetUrl('terrain/size-2-thinker.webp'), convex: true },
-  'size-5-asgard-stairs': { mesh: assetUrl('terrain/size-5-asgard-stairs.glb'), texture: assetUrl('terrain/size-5-asgard-stairs.webp'), convex: false, collider: assetUrl('terrain/size-5-asgard-stairs-collider.glb') },
-  'size-3-ruins': { mesh: assetUrl('terrain/size-3-ruins.glb'), texture: assetUrl('terrain/size-3-ruins.webp'), convex: false },
-  'size-2-fire-pillar': { mesh: assetUrl('terrain/size-2-fire-pillar.glb'), texture: assetUrl('terrain/size-2-fire-pillar.webp'), convex: true },
-  'contruction-site-size-4': { mesh: assetUrl('terrain/contruction-site-size-4.glb'), texture: assetUrl('terrain/contruction-site-size-4.webp'), convex: true, collider: assetUrl('terrain/contruction-site-size-4-collider.glb') },
-  'pallet-of-barrels-size-2': { mesh: assetUrl('terrain/pallet-of-barrels-size-2.glb'), texture: assetUrl('terrain/pallet-of-barrels-size-2.webp'), convex: true, collider: assetUrl('terrain/pallet-of-barrels-size-2-collider.glb') },
-  'size-3-hydra-turret': { mesh: assetUrl('terrain/size-3-hydra-turret.glb'), texture: assetUrl('terrain/size-3-hydra-turret.webp'), convex: true },
-  'size-3-hydra-power-station': { mesh: assetUrl('terrain/size-3-hydra-power-station.glb'), texture: assetUrl('terrain/size-3-hydra-power-station.webp'), convex: true },
-  'barrel-stack-size-2': { mesh: assetUrl('terrain/barrel-stack-size-2.glb'), texture: assetUrl('terrain/barrel-stack-size-2.webp'), convex: true },
-  'size-4-hydra-tank': { mesh: assetUrl('terrain/size-4-hydra-tank.glb'), texture: assetUrl('terrain/size-4-hydra-tank.webp'), convex: true },
-  'size-4-talon-fighter': { mesh: assetUrl('terrain/size-4-talon-fighter.glb'), texture: assetUrl('terrain/size-4-talon-fighter.webp'), convex: true },
-  'size-3-hydra-missle-turret': { mesh: assetUrl('terrain/size-3-hydra-missle-turret.glb'), texture: assetUrl('terrain/size-3-hydra-missle-turret.webp'), convex: true },
-}
-
-// size is the game Size from the mod piece's name. It is on the placement, because two mod pieces
+// mat: the mat name. The image is in src/assets (see matImage in files.js).
+// piece: a key in TERRAIN_PIECES.
+// size: the game Size from the mod piece's name. It is on the placement, because two mod pieces
 // with the same files, but a different Size, get one entry in TERRAIN_PIECES.
 // position and rotation (degrees) are TTS values. tint multiplies the texture, as in TTS.
 // Exception: the mod tints the truck black (0, 0, 0), but the map card shows it olive, so the tint is left out.
@@ -46,7 +15,7 @@ export const MAPS = {
   // "Vibranium Heist" (strict map 285). "Survival of the Fittest" (306) has the same layout.
   'vibranium-heist': {
     name: 'Vibranium Heist',
-    mat: assetUrl('wakanda-mat.webp'),
+    mat: 'wakanda',
     placements: [
       { piece: 'crystals', size: 1, position: [-16.723, 1.06, 12.843], rotation: [0, -45.01, 0], scale: 0.5, tint: [0.97, 0.01, 0.83] },
       { piece: 'crystals', size: 1, position: [-15.284, 1.06, 6.679], rotation: [0, -45.01, 0], scale: 0.5, tint: [0.97, 0.01, 0.83] },
@@ -75,7 +44,7 @@ export const MAPS = {
   // "Battle For Asgard" (map 300 in the Terrain Database, Strict Maps)
   'battle-for-asgard': {
     name: 'Battle For Asgard',
-    mat: assetUrl('battle-for-asgard-mat.webp'),
+    mat: 'battle-for-asgard',
     // TTS rotation of the mat around Y. It is 180 for Vibranium Heist, and the app draws that mat with no turn.
     matRotation: 180,
     placements: [
@@ -107,7 +76,7 @@ export const MAPS = {
   // "Survival of the Fittest" (278) has the same mat and placements in the mod, but its card image shows an Egypt map.
   'hydra-vs-wakanda': {
     name: 'Hydra Vs Wakanda',
-    mat: assetUrl('hydra-vs-wakanda-mat.webp'),
+    mat: 'hydra-vs-wakanda',
     // TTS rotation of the mat around Y. It is 180 for Vibranium Heist, and the app draws that mat with no turn.
     matRotation: 180,
     placements: [
