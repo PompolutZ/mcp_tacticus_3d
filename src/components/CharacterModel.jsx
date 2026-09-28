@@ -54,7 +54,8 @@ function turnBetween(a, b) {
   return 2 * Math.acos(Math.min(1, dot))
 }
 
-export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, rotation = [0, 0, 0], teamColor = 'red', selected = false, onSelect, bodyRef }) {
+// bodyRef, objectRef: get the Rapier body and the 3D object of the model (figure and base)
+export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, rotation = [0, 0, 0], teamColor = 'red', selected = false, onSelect, bodyRef, objectRef }) {
   const { scene } = useGLTF(url)
   const { camera, gl, controls } = useThree()
   const { world, rapier } = useRapier()
@@ -212,6 +213,7 @@ export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, r
     <RigidBody ref={setBody} type="dynamic" position={position} colliders={false} linearDamping={LINEAR_DAMPING} angularDamping={ANGULAR_DAMPING} ccd>
       <CylinderCollider args={[baseHalfH, BASE_RADIUS * scale]} position={[0, baseHalfH, 0]} friction={FRICTION} density={BASE_DENSITY} />
       <primitive
+        ref={objectRef}
         object={scene}
         scale={scale}
         rotation={rotation}

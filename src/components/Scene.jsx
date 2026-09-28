@@ -31,15 +31,20 @@ export default function Scene({ activeRange, activeMove, showColliders = false }
   const [characters] = useState([
     { id: 'angel-1', url: assetUrl('angel.glb'), position: [0, DROP_HEIGHT, 0], teamColor: 'red', scale: 1 },
   ])
-  // Character id → Rapier body. Tools read and move the selected character through it.
+  // Character id → Rapier body. Tools read and move characters through it.
   const charBodies = useRef(new Map())
+  // Character id → 3D object. Tools find the character under the pointer with it.
+  const charObjects = useRef(new Map())
 
-  const selectedChar = characters.find(ch => ch.id === selectedCharId)
-  const toolTarget = useMemo(() => selectedChar && {
-    getBody: () => charBodies.current.get(selectedChar.id),
-    radius: BASE_RADIUS * selectedChar.scale,
-    scale: selectedChar.scale,
-  }, [selectedChar])
+  // Every character as tools see it
+  const toolModels = useMemo(() => characters.map(ch => ({
+    id: ch.id,
+    getBody: () => charBodies.current.get(ch.id),
+    getObject: () => charObjects.current.get(ch.id),
+    radius: BASE_RADIUS * ch.scale,
+    scale: ch.scale,
+  })), [characters])
+  const toolTarget = toolModels.find(model => model.id === selectedCharId)
 
   function toggleTool(toolId) {
     setSelectedToolId(prev => prev === toolId ? null : toolId)
@@ -100,6 +105,7 @@ export default function Scene({ activeRange, activeMove, showColliders = false }
             selected={selectedCharId === ch.id}
             onSelect={() => setSelectedCharId(prev => prev === ch.id ? null : ch.id)}
             bodyRef={rb => rb ? charBodies.current.set(ch.id, rb) : charBodies.current.delete(ch.id)}
+            objectRef={obj => obj ? charObjects.current.set(ch.id, obj) : charObjects.current.delete(ch.id)}
           />
         ))}
 
@@ -112,6 +118,8 @@ export default function Scene({ activeRange, activeMove, showColliders = false }
             selected={selectedToolId === 'move'}
             onSelect={() => toggleTool('move')}
             target={toolTarget}
+            models={toolModels}
+            onSnap={model => setSelectedCharId(model.id)}
           />
         )}
         {activeRange && (
@@ -123,6 +131,8 @@ export default function Scene({ activeRange, activeMove, showColliders = false }
             selected={selectedToolId === 'range'}
             onSelect={() => toggleTool('range')}
             target={toolTarget}
+            models={toolModels}
+            onSnap={model => setSelectedCharId(model.id)}
           />
         )}
       </Physics>

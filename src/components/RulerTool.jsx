@@ -1,7 +1,7 @@
 import { useLoader, useFrame, useThree } from '@react-three/fiber'
 import { useTexture, Html } from '@react-three/drei'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
-import { RigidBody, useRapier } from '@react-three/rapier'
+import { RigidBody, ConvexHullCollider, useRapier } from '@react-three/rapier'
 import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 import { baseGroundY, upright } from './CharacterModel.jsx'
@@ -10,7 +10,6 @@ import { castDown } from '../physics.js'
 import { assetUrl } from '../assets/index.js'
 
 const TEXTURE = assetUrl('tools/toolbox-02.png')
-const TABLE_PLANE = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
 const DRAG_THRESHOLD = 4
 // How fast the dragged tool moves to the new hover height, per second (same as models)
 const HOVER_RATE = 25
@@ -23,6 +22,23 @@ const HOVER_MARGIN = 0.5
 const MOVE_TIP = { short: 1.574, medium: 2.523, long: 3.535 }
 // Movement tools are about 0.56" wide (mesh-a spans z = ±0.279)
 const MOVE_HALF_WIDTH = 0.279
+// A movement tool bends at its hinge, but never past a right angle, the same as the plastic one
+const MAX_BEND = Math.PI / 2
+// Handle sphere at each end. Big enough to grab easily, but smaller than a movement tool is wide.
+// Its center is a little above the top of the tool (about 0.17), so most of it shows.
+const HANDLE_RADIUS = 0.2
+const HANDLE_Y = 0.2
+// Place on a movement tool sits this far in from the tip. Place is about 1.04" wide (40 px per inch),
+// so on the short tool it fits between the bend button and the handle. Html is drawn over the 3D
+// view, so where it covered the handle, the handle could not be grabbed.
+const PLACE_INSET = 0.75
+
+// A tool has two halves, one on each side of its center: right is local +X, left is local −X.
+// On a movement tool the center is the hinge.
+const SIDES = ['right', 'left']
+const OTHER = { right: 'left', left: 'right' }
+// How far each half is turned around the center from straight, as a yaw
+const STRAIGHT = { right: 0, left: 0 }
 
 function textured(obj, map) {
   const mat = new THREE.MeshStandardMaterial({ map, roughness: 0.5, metalness: 0.1 })
@@ -39,32 +55,126 @@ function applyEmissive(obj, color, intensity) {
   })
 }
 
-// Returns groundY(x, z, rotation): top of the table or terrain under the whole footprint,
-// or null when nothing is under it. hover: { halfLength, halfWidth }, or null.
-function useFootprintGround(hover) {
+// Vertex positions of the mesh in obj, for a convex hull collider
+function hullPoints(obj) {
+  let points = null
+  obj.traverse(child => { if (child.isMesh && !points) points = child.geometry.attributes.position.array })
+  return points
+}
+
+// Yaw θ points along world (cos θ, 0, −sin θ). THREE.js Y-rotation by θ maps local +X there.
+function yawQuat(yaw) {
+  return { x: 0, y: Math.sin(yaw / 2), z: 0, w: Math.cos(yaw / 2) }
+}
+
+// Yaw of the direction from a to b (XZ)
+function yawTo(a, b) {
+  return Math.atan2(a.z - b.z, b.x - a.x)
+}
+
+// The same angle, in −π..π
+function wrapAngle(a) {
+  return Math.atan2(Math.sin(a), Math.cos(a))
+}
+
+const poseEuler = new THREE.Euler(0, 0, 0, 'YXZ')
+const poseQuat = new THREE.Quaternion()
+
+// Tool center on the table (XZ) and yaw
+function toolPose(rb) {
+  const t = rb.translation()
+  const r = rb.rotation()
+  poseEuler.setFromQuaternion(poseQuat.set(r.x, r.y, r.z, r.w))
+  return { x: t.x, z: t.z, yaw: poseEuler.y }
+}
+
+// Tool center and the yaw of each half, pointing out from the center
+function toolShape(pose, turn) {
+  return { x: pose.x, z: pose.z, right: pose.yaw + turn.right, left: pose.yaw + turn.left + Math.PI }
+}
+
+// Point on the center line of one half, dist from the tool center
+function alongHalf(shape, side, dist) {
+  const yaw = shape[side]
+  return { x: shape.x + dist * Math.cos(yaw), z: shape.z - dist * Math.sin(yaw) }
+}
+
+// The half whose end (length from the tool center) is nearer to point p
+function nearerHalf(shape, length, p) {
+  const [rightEnd, leftEnd] = SIDES.map(side => alongHalf(shape, side, length))
+  return Math.hypot(rightEnd.x - p.x, rightEnd.z - p.z) <= Math.hypot(leftEnd.x - p.x, leftEnd.z - p.z) ? 'right' : 'left'
+}
+
+// Pose turned by yaw d around pivot, as one rigid piece
+function turnAround(pose, pivot, d) {
+  const ox = pose.x - pivot.x, oz = pose.z - pivot.z
+  const c = Math.cos(d), s = Math.sin(d)
+  return { x: pivot.x + ox * c + oz * s, z: pivot.z - ox * s + oz * c, yaw: pose.yaw + d }
+}
+
+// World XZ → local XZ of a pose (inverse of the yaw rotation)
+function toLocal(pose, p) {
+  const dx = p.x - pose.x, dz = p.z - pose.z
+  const c = Math.cos(pose.yaw), s = Math.sin(pose.yaw)
+  return { x: dx * c - dz * s, z: dx * s + dz * c }
+}
+
+// Edge-to-edge gap between a round base and the footprint: a rectangle for each half and the
+// round hinge between them. The ends stay flat (not a capsule). Gap ≤ 0 means the base touches it.
+function footprintGap(shape, length, halfWidth, center, radius) {
+  let gap = Math.hypot(center.x - shape.x, center.z - shape.z) - halfWidth
+  for (const side of SIDES) {
+    const l = toLocal({ x: shape.x, z: shape.z, yaw: shape[side] }, center)
+    const ox = l.x - THREE.MathUtils.clamp(l.x, 0, length)
+    const oz = l.z - THREE.MathUtils.clamp(l.z, -halfWidth, halfWidth)
+    gap = Math.min(gap, Math.hypot(ox, oz))
+  }
+  return gap - radius
+}
+
+// Tool pose with the end of the left half touching the base edge. The tool points from the base
+// toward the mat center, so it stays on the mat.
+function snapPose(center, radius, halfLength) {
+  const len = Math.hypot(center.x, center.z)
+  const dx = len > 0.01 ? -center.x / len : 1
+  const dz = len > 0.01 ? -center.z / len : 0
+  const along = radius + halfLength
+  return { x: center.x + dx * along, z: center.z + dz * along, yaw: Math.atan2(-dz, dx) }
+}
+
+// Returns groundY(x, z, yaw): top of the table or terrain under the whole footprint of the tool
+// with its center at (x, z), or null when nothing is under it.
+// halfLength: length of each half. turn: how far each half is turned from straight.
+function useFootprintGround(halfLength, halfWidth, turn) {
   const { world, rapier } = useRapier()
-  // Larger than the footprint, so the tool rises before it reaches terrain
+  // One box for each half. Larger than the half, so the tool rises before it reaches terrain
   // and a tiny overlap at the edge does not switch it between heights
-  const footprintShape = useMemo(
-    () => hover && new rapier.Cuboid(hover.halfLength + HOVER_MARGIN, FOOTPRINT_CAST_HALF_H, hover.halfWidth + HOVER_MARGIN),
-    [rapier, hover?.halfLength, hover?.halfWidth],
+  const halfShape = useMemo(
+    () => new rapier.Cuboid(halfLength / 2 + HOVER_MARGIN, FOOTPRINT_CAST_HALF_H, halfWidth + HOVER_MARGIN),
+    [rapier, halfLength, halfWidth],
   )
 
-  return function groundY(x, z, rotation) {
-    return castDown(world, rapier, footprintShape, rotation, x, z, FOOTPRINT_CAST_HALF_H)
+  return function groundY(x, z, yaw) {
+    const shape = toolShape({ x, z, yaw }, turn)
+    let top = null
+    for (const side of SIDES) {
+      const c = alongHalf(shape, side, halfLength / 2)
+      const y = castDown(world, rapier, halfShape, yawQuat(shape[side]), c.x, c.z, FOOTPRINT_CAST_HALF_H)
+      if (y !== null && (top === null || y > top)) top = y
+    }
+    return top
   }
 }
 
 // Whole-body drag: click body to select, drag when selected.
-// hover: { halfLength, halfWidth, height } keeps the tool this high above the table or
-// terrain under its footprint, as a dragged model does. Without it the tool keeps its height.
-// onDragStart: called once when a drag starts (not on a plain click)
-function useDragTool(rigidRef, hover, onDragStart) {
+// The tool stays hoverHeight above the table or terrain under its footprint (from groundY),
+// as a dragged model does. onDragStart: called once when a drag starts (not on a plain click).
+// onDragMove(raycaster): called on each pointer move of a drag, with a raycaster set to the pointer
+// ray. When it returns true, the drag ends there and the rest of that press does nothing.
+function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove) {
   const { camera, gl, controls } = useThree()
-  const groundY = useFootprintGround(hover)
   const isDragging = useRef(false)
   const mouseNDC = useRef({ x: 0, y: 0 })
-  const restY = useRef(0)
   const restType = useRef(0)
   const raycaster = useRef(new THREE.Raycaster())
   // Horizontal plane through the grabbed point, so the pointer stays on the same spot of the tool
@@ -83,12 +193,9 @@ function useDragTool(rigidRef, hover, onDragStart) {
     if (!raycaster.current.ray.intersectPlane(dragPlane.current, target)) return
     const x = target.x - grabOffset.current.x
     const z = target.z - grabOffset.current.z
-    let y = restY.current
-    if (hover) {
-      // Off the table there is no ground, so keep the current height
-      const ground = groundY(x, z, rb.rotation())
-      y = ground === null ? t.y : t.y + (ground + hover.height - t.y) * Math.min(1, dt * HOVER_RATE)
-    }
+    // Off the table there is no ground, so keep the current height
+    const ground = groundY(x, z, toolPose(rb).yaw)
+    const y = ground === null ? t.y : t.y + (ground + hoverHeight - t.y) * Math.min(1, dt * HOVER_RATE)
     // A sleeping body keeps moving but its mesh is not synced, so keep it awake
     rb.wakeUp()
     rb.setNextKinematicTranslation({ x, y, z })
@@ -109,13 +216,15 @@ function useDragTool(rigidRef, hover, onDragStart) {
       gl.domElement.releasePointerCapture(pointerId)
     }
 
+    // The drag was ended by onDragMove
+    let ended = false
+
     const onMove = (ev) => {
-      if (ev.pointerId !== pointerId) return
+      if (ev.pointerId !== pointerId || ended) return
       if (!isDragging.current) {
         const dx = ev.clientX - startX
         const dy = ev.clientY - startY
         if (!selected || Math.hypot(dx, dy) < DRAG_THRESHOLD) return
-        restY.current = rigidRef.current?.translation().y ?? 0.1
         restType.current = rigidRef.current?.bodyType() ?? 0
         rigidRef.current?.setBodyType(2, true)
         isDragging.current = true
@@ -126,6 +235,12 @@ function useDragTool(rigidRef, hover, onDragStart) {
         x: ((ev.clientX - rect.left) / rect.width) * 2 - 1,
         y: -((ev.clientY - rect.top) / rect.height) * 2 + 1,
       }
+      raycaster.current.setFromCamera(mouseNDC.current, camera)
+      if (onDragMove?.(raycaster.current)) {
+        ended = true
+        isDragging.current = false
+        rigidRef.current?.setBodyType(restType.current, true)
+      }
     }
 
     const onUp = (ev) => {
@@ -133,7 +248,7 @@ function useDragTool(rigidRef, hover, onDragStart) {
       if (isDragging.current) {
         isDragging.current = false
         rigidRef.current?.setBodyType(restType.current, true)
-      } else {
+      } else if (!ended) {
         onSelect?.()
       }
       if (controls) controls.enabled = true
@@ -146,14 +261,78 @@ function useDragTool(rigidRef, hover, onDragStart) {
   }
 }
 
-// Rotation around the OPPOSITE handle (pivot).
-// On drag start, compute pivot = world pos of the opposite handle.
-// Each frame: new body center = pivot + RANGE_TIP * normalize(mouse − pivot).
-// Angle θ is derived from the direction (mouse − pivot), then applied as a quaternion.
-//
-// THREE.js Y-rotation maps local (+1,0,0) → world (cos θ, 0, −sin θ).
-// Right handle dragged → pivot is the left handle → θ = atan2(−dz, dx)
-// Left  handle dragged → pivot is the right handle → θ = atan2( dz,−dx)
+// Handle drag: the pointer turns around a pivot, and onTurn(d, startPose) returns the tool pose
+// for a turn of d (yaw) since the drag started. The tool stays hoverHeight above the table or
+// terrain under its footprint (from groundY), the same as during a drag.
+function useHandleDrag(rigidRef, groundY, hoverHeight) {
+  const { camera, gl, controls } = useThree()
+  const raycaster = useRef(new THREE.Raycaster())
+  // Horizontal plane through the grabbed point, so the handle stays under the pointer
+  const dragPlane = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0))
+  // Next kinematic pose { x, z, yaw }, or null when no handle is dragged. Y follows the ground.
+  const target = useRef(null)
+
+  useFrame((_, dt) => {
+    const rb = rigidRef.current
+    if (!rb || !target.current) return
+    const { x, z, yaw } = target.current
+    const t = rb.translation()
+    // Off the table there is no ground, so keep the current height
+    const ground = groundY(x, z, yaw)
+    const y = ground === null ? t.y : t.y + (ground + hoverHeight - t.y) * Math.min(1, dt * HOVER_RATE)
+    rb.wakeUp()
+    rb.setNextKinematicTranslation({ x, y, z })
+    rb.setNextKinematicRotation(yawQuat(yaw))
+  })
+
+  // Point on the drag plane under the pointer, or null
+  function planeHit(ev) {
+    const rect = gl.domElement.getBoundingClientRect()
+    const ndc = {
+      x: ((ev.clientX - rect.left) / rect.width) * 2 - 1,
+      y: -((ev.clientY - rect.top) / rect.height) * 2 + 1,
+    }
+    raycaster.current.setFromCamera(ndc, camera)
+    return raycaster.current.ray.intersectPlane(dragPlane.current, new THREE.Vector3())
+  }
+
+  return function startHandleDrag(e, pivot, onTurn) {
+    e.stopPropagation()
+    const rb = rigidRef.current
+    if (!rb) return
+    dragPlane.current.constant = -e.point.y
+    const start = planeHit(e)
+    if (!start) return
+    const pointerId = e.pointerId ?? e.nativeEvent?.pointerId
+    if (controls) controls.enabled = false
+
+    const startPose = toolPose(rb)
+    const startAngle = yawTo(pivot, start)
+    const restType = rb.bodyType()
+    rb.setBodyType(2, true)
+    target.current = startPose
+
+    const onMove = (ev) => {
+      if (ev.pointerId !== pointerId) return
+      const hit = planeHit(ev)
+      if (!hit || Math.hypot(hit.x - pivot.x, hit.z - pivot.z) < 0.01) return
+      target.current = onTurn(wrapAngle(yawTo(pivot, hit) - startAngle), startPose)
+    }
+
+    const onUp = (ev) => {
+      if (ev.pointerId !== pointerId) return
+      target.current = null
+      rigidRef.current?.setBodyType(restType, true)
+      if (controls) controls.enabled = true
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+    }
+
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+  }
+}
+
 const RANGE_TIP = { 2: 1.501, 3: 3.0, 4: 4.0, 5: 5.0 }
 // Range tools are 1" wide (mesh spans z = ±0.5)
 const RANGE_HALF_WIDTH = 0.5
@@ -163,56 +342,11 @@ const FOOTPRINT_APART = '#e5484d'
 // Physics can nudge a resting base a little, so a small gap still counts as contact
 const CONTACT_EPS = 0.01
 
-const poseEuler = new THREE.Euler(0, 0, 0, 'YXZ')
-const poseQuat = new THREE.Quaternion()
-
-// Tool center on the table (XZ) and yaw. Yaw θ maps local +X to world (cos θ, 0, −sin θ).
-function toolPose(rb) {
-  const t = rb.translation()
-  const r = rb.rotation()
-  poseEuler.setFromQuaternion(poseQuat.set(r.x, r.y, r.z, r.w))
-  return { x: t.x, z: t.z, yaw: poseEuler.y }
-}
-
-// World XZ → tool-local XZ (inverse of the yaw rotation)
-function toLocal(pose, p) {
-  const dx = p.x - pose.x, dz = p.z - pose.z
-  const c = Math.cos(pose.yaw), s = Math.sin(pose.yaw)
-  return { x: dx * c - dz * s, z: dx * s + dz * c }
-}
-
-// Edge-to-edge gap between a round base and the footprint rectangle.
-// The rectangle keeps flat ends (not a capsule). Gap ≤ 0 means the base touches it.
-function footprintGap(pose, halfLength, halfWidth, center, radius) {
-  const l = toLocal(pose, center)
-  const ox = l.x - THREE.MathUtils.clamp(l.x, -halfLength, halfLength)
-  const oz = l.z - THREE.MathUtils.clamp(l.z, -halfWidth, halfWidth)
-  return Math.hypot(ox, oz) - radius
-}
-
-// Base center that puts the base edge on the middle of the footprint end
-// farther from the base, so the model moves across the tool.
-function landingSpot(pose, halfLength, center, radius) {
-  const side = toLocal(pose, center).x >= 0 ? -1 : 1
-  const along = side * (halfLength + radius)
-  return { x: pose.x + along * Math.cos(pose.yaw), z: pose.z - along * Math.sin(pose.yaw) }
-}
-
-// Tool pose with one footprint end touching the base edge. The tool points from the base
-// toward the mat center, so it stays on the mat. This is the pose after pressing Place, seen from the tool.
-function snapPose(center, radius, halfLength) {
-  const len = Math.hypot(center.x, center.z)
-  const dx = len > 0.01 ? -center.x / len : 1
-  const dz = len > 0.01 ? -center.z / len : 0
-  const along = radius + halfLength
-  return { x: center.x + dx * along, z: center.z + dz * along, yaw: Math.atan2(-dz, dx) }
-}
-
-// The tool's rectangle straight below the tool, painted by the table and terrain
+// The tool's footprint straight below the tool, painted by the table and terrain
 // materials on every surface under it that faces up (see footprintProjection.js).
-// Follows the body's XZ position and yaw only. With a target base it turns green when
-// the base touches it and red when it does not.
-function ToolFootprint({ rigidRef, halfLength, halfWidth, selected, target }) {
+// Follows the body's XZ position and yaw, and the turn of each half. With a target base
+// it turns green when the base touches it and red when it does not.
+function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target }) {
   const slotRef = useRef(null)
 
   useEffect(() => {
@@ -225,187 +359,213 @@ function ToolFootprint({ rigidRef, halfLength, halfWidth, selected, target }) {
 
   useFrame(() => {
     if (!rigidRef.current || !slotRef.current) return
-    const pose = toolPose(rigidRef.current)
+    const shape = toolShape(toolPose(rigidRef.current), turn)
 
     // Set colors here, not through React state, because contact changes every frame during a drag
     const body = selected && target?.getBody()
     let fill = FOOTPRINT_COLOR
     if (body) {
-      const touching = footprintGap(pose, halfLength, halfWidth, body.translation(), target.radius) <= CONTACT_EPS
+      const touching = footprintGap(shape, halfLength, halfWidth, body.translation(), target.radius) <= CONTACT_EPS
       fill = touching ? FOOTPRINT_TOUCH : FOOTPRINT_APART
     }
     const line = body ? fill : selected ? '#ffffff' : FOOTPRINT_COLOR
-    slotRef.current.set(pose, halfLength, halfWidth, fill, selected ? 0.35 : 0.2, line)
+    slotRef.current.set(shape, halfLength, halfWidth, fill, selected ? 0.35 : 0.2, line)
   })
 
   return null
 }
 
-// hover: { halfLength, halfWidth, height } keeps the tool this high above the table or
-// terrain under its footprint while it rotates, the same as during a drag
-function useRotateHandle(rigidRef, tip, hover) {
-  const { camera, gl, controls } = useThree()
-  const groundY = useFootprintGround(hover)
-  const raycaster = useRef(new THREE.Raycaster())
-  const isRotating = useRef(false)
-  const isRight = useRef(false)
-  const pivot = useRef(null)        // world-space XZ of the fixed opposite handle
-  const targetT = useRef(null)      // next kinematic XZ translation; Y follows the ground
-  const targetR = useRef(null)      // next kinematic rotation (quaternion)
-
-  useFrame((_, dt) => {
-    const rb = rigidRef.current
-    if (!isRotating.current || !rb || !targetT.current || !targetR.current) return
-    const { x, z } = targetT.current
-    const t = rb.translation()
-    // Off the table there is no ground, so keep the current height
-    const ground = groundY(x, z, targetR.current)
-    const y = ground === null ? t.y : t.y + (ground + hover.height - t.y) * Math.min(1, dt * HOVER_RATE)
-    rb.wakeUp()
-    rb.setNextKinematicTranslation({ x, y, z })
-    rb.setNextKinematicRotation(targetR.current)
-  })
-
-  // Table point under the pointer, or null
-  function tableHit(ev) {
-    const rect = gl.domElement.getBoundingClientRect()
-    const ndc = {
-      x: ((ev.clientX - rect.left) / rect.width) * 2 - 1,
-      y: -((ev.clientY - rect.top) / rect.height) * 2 + 1,
-    }
-    raycaster.current.setFromCamera(ndc, camera)
-    return raycaster.current.ray.intersectPlane(TABLE_PLANE, new THREE.Vector3())
-  }
-
-  // snapBody: base of the model the tool is snapped to, or null when the tool is free
-  return function startRotate(e, rightHandle, snapBody) {
-    e.stopPropagation()
-    if (!rigidRef.current) return
-    const pointerId = e.pointerId ?? e.nativeEvent?.pointerId
-    if (controls) controls.enabled = false
-
-    const t = rigidRef.current.translation()
-    const r = rigidRef.current.rotation()
-    const q = new THREE.Quaternion(r.x, r.y, r.z, r.w)
-    isRight.current = rightHandle
-
-    // Snapped: orbit around the base center. The tool turns by the same angle as the pointer
-    // turns around the base, so the tool-to-base offset only rotates and the tool keeps touching the base.
-    let orbit = null
-    const start = snapBody && tableHit(e)
-    if (start) {
-      const c = snapBody.translation()
-      orbit = {
-        c,
-        offset: { x: t.x - c.x, z: t.z - c.z },
-        yaw: toolPose(rigidRef.current).yaw,
-        angle: Math.atan2(start.z - c.z, start.x - c.x),
-      }
-    } else {
-      // Opposite handle local position: right drag → opposite is left (−tip,0,0)
-      const oppLocal = new THREE.Vector3(rightHandle ? -tip : tip, 0, 0)
-      oppLocal.applyQuaternion(q)
-      pivot.current = { x: t.x + oppLocal.x, z: t.z + oppLocal.z }
-    }
-
-    const restType = rigidRef.current.bodyType()
-    rigidRef.current.setBodyType(2, true)
-    isRotating.current = true
-
-    const onMove = (ev) => {
-      if (ev.pointerId !== pointerId) return
-      const hit = tableHit(ev)
-      if (!hit) return
-
-      if (orbit) {
-        const { c, offset } = orbit
-        if (Math.hypot(hit.x - c.x, hit.z - c.z) < 0.01) return
-        // δ turns +X toward +Z. Yaw turns +X toward −Z, so yaw changes by −δ.
-        const d = Math.atan2(hit.z - c.z, hit.x - c.x) - orbit.angle
-        const cos = Math.cos(d), sin = Math.sin(d)
-        targetT.current = {
-          x: c.x + offset.x * cos - offset.z * sin,
-          z: c.z + offset.x * sin + offset.z * cos,
-        }
-        const half = (orbit.yaw - d) / 2
-        targetR.current = { x: 0, y: Math.sin(half), z: 0, w: Math.cos(half) }
-        return
-      }
-      if (!pivot.current) return
-
-      const dx = hit.x - pivot.current.x
-      const dz = hit.z - pivot.current.z
-      const dist = Math.sqrt(dx * dx + dz * dz)
-      if (dist < 0.01) return
-
-      // Body center stays at tip distance from the pivot in the mouse direction
-      const nx = dx / dist, nz = dz / dist
-      targetT.current = { x: pivot.current.x + tip * nx, z: pivot.current.z + tip * nz }
-
-      const theta = isRight.current ? Math.atan2(-dz, dx) : Math.atan2(dz, -dx)
-      const half = theta / 2
-      targetR.current = { x: 0, y: Math.sin(half), z: 0, w: Math.cos(half) }
-    }
-
-    const onUp = (ev) => {
-      if (ev.pointerId !== pointerId) return
-      isRotating.current = false
-      pivot.current = null
-      targetT.current = null
-      targetR.current = null
-      rigidRef.current?.setBodyType(restType, true)
-      if (controls) controls.enabled = true
-      window.removeEventListener('pointermove', onMove)
-      window.removeEventListener('pointerup', onUp)
-    }
-
-    window.addEventListener('pointermove', onMove)
-    window.addEventListener('pointerup', onUp)
-  }
-}
-
-// target: the selected character as { getBody, radius }, or null
+// target: the selected character as { id, getBody, getObject, radius, scale }, or null
+// models: every character, in the same form. onSnap(model): the tool snapped to that model during a drag.
 // hoverHeight: how far above the table or terrain the tool hangs while dragged
 export function RangeRuler({ number = 2, ...props }) {
   const raw = useLoader(OBJLoader, assetUrl(`tools/range-${number}-mesh.obj`))
   const map = useTexture(TEXTURE)
-  const objs = useMemo(() => [textured(raw.clone(), map)], [raw, map])
-  return <StraightTool objs={objs} tip={RANGE_TIP[number] ?? 1.501} halfWidth={RANGE_HALF_WIDTH} {...props} />
+  const parts = useMemo(() => [{ obj: textured(raw.clone(), map) }], [raw, map])
+  return <Tool parts={parts} tip={RANGE_TIP[number] ?? 1.501} halfWidth={RANGE_HALF_WIDTH} {...props} />
 }
 
-// Movement tool kept straight (no bend yet), so it behaves the same as a range tool
+// Movement tool: mesh-a is the right half with the round hinge, mesh-b is the left half
 export function MovementRuler({ type = 'short', ...props }) {
   const rawA = useLoader(OBJLoader, assetUrl(`tools/${type}-movement-mesh-a.obj`))
   const rawB = useLoader(OBJLoader, assetUrl(`tools/${type}-movement-mesh-b.obj`))
   const map = useTexture(TEXTURE)
-  const objs = useMemo(
-    () => [textured(rawA.clone(), map), textured(rawB.clone(), map)],
+  const parts = useMemo(
+    () => [{ obj: textured(rawA.clone(), map), side: 'right' }, { obj: textured(rawB.clone(), map), side: 'left' }],
     [rawA, rawB, map],
   )
-  return <StraightTool objs={objs} tip={MOVE_TIP[type] ?? 1.574} halfWidth={MOVE_HALF_WIDTH} {...props} />
+  return <Tool parts={parts} tip={MOVE_TIP[type] ?? 1.574} halfWidth={MOVE_HALF_WIDTH} bendable {...props} />
 }
 
-// Straight tool that measures with its footprint. See README "Tools".
-// objs: meshes of the tool. tip: X of each end (footprint half length).
-function StraightTool({ objs, tip, halfWidth, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target }) {
+const BUTTON_STYLE = {
+  background: '#1a1a1a',
+  border: '1px solid #f5a623',
+  color: '#f5a623',
+  cursor: 'pointer',
+  fontFamily: 'sans-serif',
+  pointerEvents: 'auto',
+}
+
+// Html element flat on the tool at local x, facing up. Html stays inside RigidBody,
+// so it follows the body's transform automatically.
+function FlatHtml({ x = 0, children }) {
+  return (
+    // Rx(π/2) lays the Html element flat on the tool's XZ surface facing up.
+    // Without this the element stands perpendicular to the table.
+    <group position={[x, 0.25, 0]} rotation={[Math.PI / 2, Math.PI, 0]}>
+      <Html center transform>{children}</Html>
+    </group>
+  )
+}
+
+function PlaceButton({ disabled = false, onClick }) {
+  return (
+    <button
+      type="button"
+      style={{
+        ...BUTTON_STYLE,
+        padding: '4px 6px',
+        borderRadius: '4px',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.4 : 1,
+        fontSize: '11px',
+        whiteSpace: 'nowrap',
+      }}
+      disabled={disabled}
+      title={disabled ? 'Select a character first' : undefined}
+      onClick={onClick}
+    >
+      Place
+    </button>
+  )
+}
+
+// Round toggle with a half circle that has an arrow at each end. About as big as the hinge.
+function BendButton({ on, onClick }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      aria-label="Bend"
+      title={on ? 'Bend on: a handle turns its half around the hinge' : 'Bend'}
+      style={{
+        ...BUTTON_STYLE,
+        background: on ? '#f5a623' : '#1a1a1a',
+        color: on ? '#1a1a1a' : '#f5a623',
+        width: '22px',
+        height: '22px',
+        padding: 0,
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+      onClick={onClick}
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5 15 A7 7 0 0 1 19 15" />
+        <path d="M2 12 L5 15.5 L8 12 M16 12 L19 15.5 L22 12" />
+      </svg>
+    </button>
+  )
+}
+
+// Tool that measures with its footprint. See README "Tools".
+// parts: [{ obj, side }], the meshes of the tool. A part with a side turns with that half.
+// tip: X of each end (length of each half of the footprint).
+// bendable: a movement tool. Its halves turn around the hinge at the center.
+function Tool({ parts, tip, halfWidth, bendable = false, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target, models = [], onSnap }) {
   const [hovered, setHovered] = useState(false)
   const rigidRef = useRef()
-  const handleGroupRef = useRef()
-  const hover = useMemo(
-    () => ({ halfLength: tip, halfWidth, height: hoverHeight }),
-    [tip, halfWidth, hoverHeight],
-  )
+  // Stays STRAIGHT on a tool that is not bendable
+  const [turn, setTurn] = useState(STRAIGHT)
+  // While the bend button is on, a handle turns its half instead of the whole tool
+  const [bendOn, setBendOn] = useState(false)
+  const bending = bendable && selected && bendOn
 
-  // Snapped: getBody of the model the tool is snapped to. Free: null. See README "Tools".
-  const snapRef = useRef(null)
+  // Snapped: { target, side }, the model the tool is snapped to and the half whose end touches
+  // its base. Free: null. See README "Tools".
+  const [snap, setSnap] = useState(null)
+  // Model under the pointer at the last move of a body drag, or null. undefined before the first move.
+  // The tool snaps when the pointer moves onto a model, not when the drag starts on one.
+  const overRef = useRef(undefined)
+  const groundY = useFootprintGround(tip, halfWidth, turn)
   // Dragging the tool body makes it free
-  const onPointerDown = useDragTool(rigidRef, hover, () => { snapRef.current = null })
-  const startRotate = useRotateHandle(rigidRef, tip, hover)
-  const groundY = useFootprintGround(hover)
+  const onPointerDown = useDragTool(rigidRef, groundY, hoverHeight, () => {
+    setSnap(null)
+    overRef.current = undefined
+  }, onDragMove)
+  const startHandleDrag = useHandleDrag(rigidRef, groundY, hoverHeight)
   const { world, rapier } = useRapier()
+  const hulls = useMemo(() => parts.map(part => hullPoints(part.obj)), [parts])
 
-  function onHandleDown(e, rightHandle) {
-    startRotate(e, rightHandle, snapRef.current?.() ?? null)
+  function partTurn(part) {
+    return part.side ? turn[part.side] : 0
+  }
+
+  function onHandleDown(e, side) {
+    const rb = rigidRef.current
+    if (!rb) return
+    if (bending) {
+      // The end of a turned half leaves the base, so turning the snapped half makes the tool free
+      if (snap?.side === side) setSnap(null)
+      const other = turn[OTHER[side]]
+      startHandleDrag(e, toolPose(rb), (d, pose) => {
+        const next = THREE.MathUtils.clamp(turn[side] + d, other - MAX_BEND, other + MAX_BEND)
+        setTurn({ ...turn, [side]: next })
+        return pose
+      })
+      return
+    }
+    // Snapped: turn around the base center. The distance to the base does not change,
+    // so the tool keeps touching the base. Free: turn around the end of the other half.
+    const body = snap?.target.getBody()
+    const pivot = body ? body.translation() : alongHalf(toolShape(toolPose(rb), turn), OTHER[side], tip)
+    startHandleDrag(e, pivot, (d, pose) => turnAround(pose, pivot, d))
+  }
+
+  // Nearest model under the pointer ray (figure or base), or null
+  function modelUnder(raycaster) {
+    let nearest = null
+    let nearestDistance = Infinity
+    for (const model of models) {
+      const object = model.getObject()
+      const hit = object && raycaster.intersectObject(object, true)[0]
+      if (hit && hit.distance < nearestDistance) {
+        nearest = model
+        nearestDistance = hit.distance
+      }
+    }
+    return nearest
+  }
+
+  // Body drag: when the pointer moves onto a model, snap to it and end the drag
+  function onDragMove(raycaster) {
+    const model = modelUnder(raycaster)
+    const entered = model && overRef.current !== undefined && model !== overRef.current
+    overRef.current = model
+    if (!entered || !snapTo(model)) return false
+    onSnap?.(model)
+    return true
+  }
+
+  // Move the tool without turning it, so that the end nearer to the model's base touches the base edge
+  function snapTo(model) {
+    const body = model.getBody()
+    const rb = rigidRef.current
+    if (!body || !rb) return false
+    const pose = toolPose(rb)
+    const shape = toolShape(pose, turn)
+    const c = body.translation()
+    const side = nearerHalf(shape, tip, c)
+    // The base center is past the end of that half, so the tool center is that far back from it
+    const back = tip + model.radius
+    const x = c.x - back * Math.cos(shape[side])
+    const z = c.z + back * Math.sin(shape[side])
+    const ground = groundY(x, z, pose.yaw)
+    rb.setTranslation({ x, y: ground === null ? rb.translation().y : ground + hoverHeight, z }, true)
+    setSnap({ target: model, side })
+    return true
   }
 
   // Spawned while a character is selected: start snapped to its base, not at the default position
@@ -413,40 +573,29 @@ function StraightTool({ objs, tip, halfWidth, position = [0, 0, 0], hoverHeight 
     const body = target?.getBody()
     const rb = rigidRef.current
     if (!body || !rb) return
-    snapRef.current = target.getBody
+    setSnap({ target, side: 'left' })
     const pose = snapPose(body.translation(), target.radius, tip)
-    const rotation = { x: 0, y: Math.sin(pose.yaw / 2), z: 0, w: Math.cos(pose.yaw / 2) }
-    const ground = groundY(pose.x, pose.z, rotation) ?? 0
+    const ground = groundY(pose.x, pose.z, pose.yaw) ?? 0
     rb.setTranslation({ x: pose.x, y: ground + hoverHeight, z: pose.z }, true)
-    rb.setRotation(rotation, true)
+    rb.setRotation(yawQuat(pose.yaw), true)
     // Only at spawn. Selecting another character later must not move the tool.
   }, [])
-
-  // Sync handle group to the physics body so handles follow without being colliders
-  useFrame(() => {
-    if (!rigidRef.current || !handleGroupRef.current) return
-    const t = rigidRef.current.translation()
-    const r = rigidRef.current.rotation()
-    handleGroupRef.current.position.set(t.x, t.y, t.z)
-    handleGroupRef.current.quaternion.set(r.x, r.y, r.z, r.w)
-  })
 
   useEffect(() => {
     const color = selected ? '#f5a623' : hovered ? '#ffffff' : '#000000'
     const intensity = selected ? 0.6 : hovered ? 0.4 : 0
-    objs.forEach(obj => applyEmissive(obj, color, intensity))
-  }, [objs, hovered, selected])
+    parts.forEach(part => applyEmissive(part.obj, color, intensity))
+  }, [parts, hovered, selected])
 
-  // Move the selected character so its base touches the far end of the footprint
-  function handlePlace(e) {
-    e.stopPropagation()
-    const body = target?.getBody()
+  // Move a model so its base touches the end of one half, outside the tool
+  function placeAt(model, side) {
+    const body = model.getBody()
     if (!body || !rigidRef.current) return
     const t = body.translation()
-    const spot = landingSpot(toolPose(rigidRef.current), tip, t, target.radius)
+    const spot = alongHalf(toolShape(toolPose(rigidRef.current), turn), side, tip + model.radius)
     // Put the base on top of the table or terrain at the spot. Keeping the old height
     // would leave the model inside terrain that is higher than where it started.
-    const ground = baseGroundY(world, rapier, spot.x, spot.z, target.scale)
+    const ground = baseGroundY(world, rapier, spot.x, spot.z, model.scale)
     body.setTranslation({ x: spot.x, y: ground ?? t.y, z: spot.z }, true)
     // Upright, as if picked up and put down there, even when the model had tipped over
     body.setRotation(upright(body.rotation()), true)
@@ -454,62 +603,66 @@ function StraightTool({ objs, tip, halfWidth, position = [0, 0, 0], hoverHeight 
     body.setAngvel({ x: 0, y: 0, z: 0 }, true)
   }
 
+  // Range tool: move the selected character to the end farther from its base
+  function handlePlace(e) {
+    e.stopPropagation()
+    const body = target?.getBody()
+    if (!body || !rigidRef.current) return
+    const shape = toolShape(toolPose(rigidRef.current), turn)
+    placeAt(target, OTHER[nearerHalf(shape, tip, body.translation())])
+  }
+
+  // Movement tool: move the snapped model to the other end. The model then touches that end,
+  // so the tool stays snapped to it at that end.
+  function handleSnapPlace(e) {
+    e.stopPropagation()
+    const side = OTHER[snap.side]
+    placeAt(snap.target, side)
+    setSnap({ target: snap.target, side })
+  }
+
   return (
     <>
       {/* Held in the air like a real tool over terrain: kinematic, so it does not fall,
           and a sensor, so models pass under it. The footprint below is what measures. */}
-      <RigidBody ref={rigidRef} type="kinematicPosition" position={position} colliders="hull" sensor>
-        {objs.map(obj => (
-          <primitive
-            key={obj.uuid}
-            object={obj}
-            onPointerOver={(e) => { e.stopPropagation(); setHovered(true) }}
-            onPointerOut={() => setHovered(false)}
-            onPointerDown={(e) => onPointerDown(e, selected, onSelect)}
-          />
-        ))}
-        {/* Html stays inside RigidBody so it follows the body's transform automatically */}
-        {selected && (
-          // Rx(π/2) lays the Html element flat on the tool's XZ surface facing up.
-          // Without this the element stands perpendicular to the table.
-          <group position={[0, 0.25, 0]} rotation={[Math.PI / 2, Math.PI, 0]}>
-            <Html center transform>
-              <button
-                style={{
-                  background: '#1a1a1a',
-                  border: '1px solid #f5a623',
-                  color: '#f5a623',
-                  padding: '4px 10px',
-                  borderRadius: '4px',
-                  cursor: target ? 'pointer' : 'not-allowed',
-                  opacity: target ? 1 : 0.4,
-                  fontSize: '11px',
-                  fontFamily: 'sans-serif',
-                  pointerEvents: 'auto',
-                  whiteSpace: 'nowrap',
-                }}
-                disabled={!target}
-                title={target ? undefined : 'Select a character first'}
-                onClick={handlePlace}
-              >
-                Place
-              </button>
-            </Html>
+      <RigidBody ref={rigidRef} type="kinematicPosition" position={position} colliders={false} sensor>
+        {parts.map(part => (
+          <group key={part.obj.uuid} rotation-y={partTurn(part)}>
+            <primitive
+              object={part.obj}
+              onPointerOver={(e) => { e.stopPropagation(); setHovered(true) }}
+              onPointerOut={() => setHovered(false)}
+              onPointerDown={(e) => onPointerDown(e, selected, onSelect)}
+            />
           </group>
+        ))}
+        {/* Not automatic colliders: those are made once from the meshes, so they would not turn with a half */}
+        {parts.map((part, i) => (
+          <ConvexHullCollider key={part.obj.uuid} args={[hulls[i]]} rotation={[0, partTurn(part), 0]} />
+        ))}
+        {SIDES.map(side => (
+          <group key={side} rotation-y={turn[side]}>
+            <mesh position={[side === 'right' ? tip : -tip, HANDLE_Y, 0]} onPointerDown={(e) => onHandleDown(e, side)}>
+              <sphereGeometry args={[HANDLE_RADIUS, 16, 12]} />
+              <meshStandardMaterial color="#f5a623" roughness={0.3} metalness={0.5} />
+            </mesh>
+            {/* Movement tool: Place is at the end the model moves to, the end that is not snapped */}
+            {bendable && selected && snap && snap.side !== side && (
+              <FlatHtml x={side === 'right' ? tip - PLACE_INSET : PLACE_INSET - tip}>
+                <PlaceButton onClick={handleSnapPlace} />
+              </FlatHtml>
+            )}
+          </group>
+        ))}
+        {selected && (
+          <FlatHtml>
+            {bendable
+              ? <BendButton on={bendOn} onClick={(e) => { e.stopPropagation(); setBendOn(on => !on) }} />
+              : <PlaceButton disabled={!target} onClick={handlePlace} />}
+          </FlatHtml>
         )}
       </RigidBody>
-      <ToolFootprint rigidRef={rigidRef} halfLength={tip} halfWidth={halfWidth} selected={selected} target={target} />
-      {/* Handles outside RigidBody — purely visual, no physics collider */}
-      <group ref={handleGroupRef}>
-        <mesh position={[tip, 0.15, 0]} onPointerDown={(e) => onHandleDown(e, true)}>
-          <sphereGeometry args={[0.12, 12, 8]} />
-          <meshStandardMaterial color="#f5a623" roughness={0.3} metalness={0.5} />
-        </mesh>
-        <mesh position={[-tip, 0.15, 0]} onPointerDown={(e) => onHandleDown(e, false)}>
-          <sphereGeometry args={[0.12, 12, 8]} />
-          <meshStandardMaterial color="#f5a623" roughness={0.3} metalness={0.5} />
-        </mesh>
-      </group>
+      <ToolFootprint rigidRef={rigidRef} turn={turn} halfLength={tip} halfWidth={halfWidth} selected={selected} target={target} />
     </>
   )
 }

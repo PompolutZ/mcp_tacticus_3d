@@ -57,7 +57,7 @@ Assets come from the Tabletop Simulator mod **3036795456** (community MCP mod). 
 
 ## Tools
 
-Range tools and movement tools work the same way. Movement tools do not bend yet, so they stay straight.
+Range tools and movement tools work the same way, except for **Place** and bending. Movement tools can bend. Range tools stay straight.
 
 A tool hangs 1" above the table. It measures with its outline, which is drawn straight below it on the table and on the tops of terrain. Walls and steep sides (more than about 60°) are not painted. While you drag or rotate the tool, it stays 1" above the table or above any terrain under its outline. Terrain within 0.5" of the outline already raises the tool.
 
@@ -66,6 +66,8 @@ The tool has two states: **snapped** and **free**.
 ### Snapped
 
 The tool is snapped to a model when it spawns while that model is selected. It spawns with one end of its outline touching the edge of the model's base, and it points toward the center of the mat.
+
+A tool also snaps to a model while you drag it: when the pointer moves onto a model (the figure or the base), that model becomes selected. The tool keeps its direction and its bend. It moves so that its end nearer to the base touches the edge of the base. The drag ends there, so moving the pointer further does nothing until you release it. If the drag starts with the pointer already on a model, the tool snaps only after the pointer leaves that model and moves onto a model again.
 
 Dragging a handle rotates the tool around the center of that model's base. The distance between the tool and the base does not change, so the tool keeps touching the base.
 
@@ -76,6 +78,22 @@ The tool stays snapped to the same model when you select another model. It also 
 The tool is free when it spawns while no model is selected. Dragging the tool body makes a snapped tool free.
 
 Dragging a handle rotates the tool around the opposite handle.
+
+### Place
+
+On a range tool, **Place** is in the middle of the tool. It moves the selected model to the end of the tool that is farther from its base.
+
+On a movement tool, **Place** is shown only while the tool is snapped. It is at the end that is not touching the base. It moves the snapped model to that end. After that, the model touches that end, so Place moves to the other end.
+
+### Bending
+
+A movement tool has a hinge in the middle. The round button on the hinge turns bending on and off.
+
+While bending is on, dragging a handle turns that half of the tool around the hinge. The other half does not move. A half turns at most 90° from straight, the same as the plastic tool. If the half touches the base of a snapped model, turning it takes its end off the base, so the tool becomes free.
+
+While bending is off, the handles rotate the whole tool, as described above. The tool keeps its bend.
+
+The outline of a bent tool is one rectangle for each half, plus the round hinge between them.
 
 ## Collider view
 
