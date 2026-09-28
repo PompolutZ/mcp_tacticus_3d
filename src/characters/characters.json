@@ -6,6 +6,20 @@
     "figure": "model",
     "rotation": 0
   },
+  "black-panther": {
+    "id": "00070101",
+    "name": "Black Panther",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0
+  },
+  "black-panther-chosen-of-bast": {
+    "id": "01580101",
+    "name": "Black Panther, Chosen of Bast",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180
+  },
   "enchantress": {
     "id": "00280102",
     "name": "Enchantress",
@@ -20,6 +34,27 @@
     "figure": "model",
     "rotation": 330
   },
+  "killmonger": {
+    "id": "00070102",
+    "name": "Killmonger",
+    "base": "small",
+    "figure": "model",
+    "rotation": 30
+  },
+  "killmonger-usurper": {
+    "id": "10040101",
+    "name": "Killmonger, Usurper",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180
+  },
+  "king-t-challa": {
+    "id": "10040102",
+    "name": "King T'Challa",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180
+  },
   "lady-sif": {
     "id": "00910101",
     "name": "Lady Sif",
@@ -33,6 +68,34 @@
     "base": "small",
     "figure": "model",
     "rotation": 180
+  },
+  "m-baku": {
+    "id": "01160102",
+    "name": "M'Baku",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0
+  },
+  "okoye": {
+    "id": "00080101",
+    "name": "Okoye",
+    "base": "small",
+    "figure": "model",
+    "rotation": 105
+  },
+  "shuri": {
+    "id": "00080102",
+    "name": "Shuri",
+    "base": "small",
+    "figure": "model",
+    "rotation": 135
+  },
+  "storm": {
+    "id": "00410102",
+    "name": "Storm",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0
   },
   "the-mighty-thor": {
     "id": "00910103",
@@ -61,6 +124,13 @@
     "base": "small",
     "figure": "model",
     "rotation": 0
+  },
+  "ultimate-spider-man": {
+    "id": "01690103",
+    "name": "Ultimate Spider-Man",
+    "base": "small",
+    "figure": "model",
+    "rotation": 210
   },
   "valkyrie": {
     "id": "00110102",

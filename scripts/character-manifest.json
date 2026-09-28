@@ -8,6 +8,24 @@
       "characters/angela/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ANGELA_UI.png"
     }
   },
+  "black-panther": {
+    "id": "00070101",
+    "sources": {
+      "characters/black-panther/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_PANTHER_healthy.jpg",
+      "characters/black-panther/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_PANTHER_injured.jpg",
+      "characters/black-panther/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/BLACK_PANTHER_MODEL.unity3d",
+      "characters/black-panther/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_PANTHER_UI.png"
+    }
+  },
+  "black-panther-chosen-of-bast": {
+    "id": "01580101",
+    "sources": {
+      "characters/black-panther-chosen-of-bast/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_PANTHER_CHOSEN_OF_BAST_healthy.jpg",
+      "characters/black-panther-chosen-of-bast/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_PANTHER_CHOSEN_OF_BAST_injured.jpg",
+      "characters/black-panther-chosen-of-bast/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/BLACK_PANTHER_CHOSEN_OF_BAST_MODEL.unity3d",
+      "characters/black-panther-chosen-of-bast/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_PANTHER_CHOSEN_OF_BAST_UI.png"
+    }
+  },
   "enchantress": {
     "id": "00280102",
     "sources": {
@@ -26,6 +44,33 @@
       "characters/heimdall-the-all-seeing/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HEIMDALL_THE_ALL_SEEING_UI.png"
     }
   },
+  "killmonger": {
+    "id": "00070102",
+    "sources": {
+      "characters/killmonger/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/KILLMONGER_healthy.jpg",
+      "characters/killmonger/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/KILLMONGER_injured.jpg",
+      "characters/killmonger/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/KILLMONGER_MODEL.unity3d",
+      "characters/killmonger/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/KILLMONGER_UI.png"
+    }
+  },
+  "killmonger-usurper": {
+    "id": "10040101",
+    "sources": {
+      "characters/killmonger-usurper/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/KILLMONGER_USURPER_healthy.jpg",
+      "characters/killmonger-usurper/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/KILLMONGER_USURPER_injured.jpg",
+      "characters/killmonger-usurper/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/KILLMONGER_USURPER_MODEL.unity3d",
+      "characters/killmonger-usurper/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/KILLMONGER_USURPER_UI.png"
+    }
+  },
+  "king-t-challa": {
+    "id": "10040102",
+    "sources": {
+      "characters/king-t-challa/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/KING_TCHALLA_healthy.jpg",
+      "characters/king-t-challa/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/KING_TCHALLA_injured.jpg",
+      "characters/king-t-challa/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/KING_TCHALLA_MODEL.unity3d",
+      "characters/king-t-challa/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/KING_TCHALLA_UI.png"
+    }
+  },
   "lady-sif": {
     "id": "00910101",
     "sources": {
@@ -42,6 +87,42 @@
       "characters/loki-prince-of-lies/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LOKI_PRINCE_OF_LIES_injured.jpg",
       "characters/loki-prince-of-lies/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/LOKI_PRINCE_OF_LIES_MODEL.unity3d",
       "characters/loki-prince-of-lies/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LOKI_PRINCE_OF_LIES_UI.png"
+    }
+  },
+  "m-baku": {
+    "id": "01160102",
+    "sources": {
+      "characters/m-baku/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MBAKU_healthy.jpg",
+      "characters/m-baku/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MBAKU_injured.jpg",
+      "characters/m-baku/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/MBAKU_MODEL.unity3d",
+      "characters/m-baku/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MBAKU_UI.png"
+    }
+  },
+  "okoye": {
+    "id": "00080101",
+    "sources": {
+      "characters/okoye/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/OKOYE_healthy.jpg",
+      "characters/okoye/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/OKOYE_injured.jpg",
+      "characters/okoye/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/OKOYE_MODEL.unity3d",
+      "characters/okoye/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/OKOYE_UI.png"
+    }
+  },
+  "shuri": {
+    "id": "00080102",
+    "sources": {
+      "characters/shuri/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHURI_healthy.jpg",
+      "characters/shuri/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHURI_injured.jpg",
+      "characters/shuri/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SHURI_MODEL.unity3d",
+      "characters/shuri/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHURI_UI.png"
+    }
+  },
+  "storm": {
+    "id": "00410102",
+    "sources": {
+      "characters/storm/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/STORM_healthy.jpg",
+      "characters/storm/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/STORM_injured.jpg",
+      "characters/storm/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/STORM_MODEL.unity3d",
+      "characters/storm/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/STORM_UI.png"
     }
   },
   "the-mighty-thor": {
@@ -78,6 +159,15 @@
       "characters/thor-prince-of-asgard/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THOR_PRINCE_OF_ASGARD_injured.jpg",
       "characters/thor-prince-of-asgard/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/THOR_PRINCE_OF_ASGARD_MODEL.unity3d",
       "characters/thor-prince-of-asgard/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THOR_PRINCE_OF_ASGARD_UI.png"
+    }
+  },
+  "ultimate-spider-man": {
+    "id": "01690103",
+    "sources": {
+      "characters/ultimate-spider-man/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ULTIMATE_SPIDER_MAN_healthy.jpg",
+      "characters/ultimate-spider-man/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ULTIMATE_SPIDER_MAN_injured.jpg",
+      "characters/ultimate-spider-man/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/ULTIMATE_SPIDER_MAN_MODEL.unity3d",
+      "characters/ultimate-spider-man/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ULTIMATE_SPIDER_MAN_UI.png"
     }
   },
   "valkyrie": {
