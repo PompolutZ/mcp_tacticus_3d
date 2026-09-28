@@ -28,6 +28,8 @@ src/
 public/
   _headers         — Netlify cache headers
   draco/           — Draco decoder for compressed GLB files
+scripts/
+  migrate-terrain.mjs — copies a map (mat and terrain) from the TTS mod to src/assets. See scripts/README.md
 ```
 
 Put new models and textures in `src/assets/`, not in `public/`. Vite adds a content hash to their file names, so browsers can cache them forever (see `public/_headers`). Files in `public/` keep their names, so browsers must check them again on every load.

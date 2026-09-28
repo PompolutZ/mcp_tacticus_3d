@@ -1,0 +1,52 @@
+{
+  "pieces": {
+    "crystals": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/989230f10611.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/85c1f1cbc10f.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/989230f10611.obj"
+    },
+    "vibranium-haller": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/730a3e599685.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ff97567669a3.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/730a3e599685.obj"
+    },
+    "panther-statue": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/312be060275c.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ce8923fa2225.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/312be060275c.obj"
+    },
+    "wakandan-street-light": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/deb5dd8f0464.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b575fa04c37e.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/deb5dd8f0464.obj"
+    },
+    "panther-fountain": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7f24791f6957.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7f706e711969.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7f24791f6957.obj"
+    },
+    "wakanda-tree": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4a283c8701c9.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a0e4219e219d.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4a283c8701c9.obj"
+    },
+    "cosmic-barricade": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3541c25f3475.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/d853b958535e.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3541c25f3475.obj"
+    },
+    "mech-hangar": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8f980f13df25.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6845403d8998.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8f980f13df25.obj"
+    },
+    "truck": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ec114c4f11d7.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8bbff89733ba.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ec114c4f11d7.obj"
+    }
+  },
+  "mats": {
+    "wakanda-mat.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/af7a7354a68e.png"
+  }
+}

@@ -11,9 +11,11 @@ Summary of all files available from the Tabletop Simulator MCP mod for building 
 | `~/Library/Tabletop Simulator/Mods/Workshop/3036795456.json` | Full mod save file — all objects, scripts, URLs, positions |
 | `~/Library/Tabletop Simulator/Mods/Models/` | Cached `.obj` 3D geometry files (330 total) |
 | `~/Library/Tabletop Simulator/Mods/Images/` | Cached image files (3,033 total) |
-| `~/Library/Tabletop Simulator/Mods/Assetbundles/` | Unity asset bundles (243 total) — not usable in browser |
+| `~/Library/Tabletop Simulator/Mods/Assetbundles/` | Unity asset bundles (243 total). Terrain bundles can be converted with AssetRipper, see `scripts/README.md` |
 
-TTS caches assets only after you load them in-game. Files not listed below exist in the mod JSON as URLs but are not on disk.
+TTS caches assets only after you load them in-game. Files not listed below exist in the mod JSON as URLs but are not on disk. The counts in this file are from 2026-09-27, and the cache has grown since then.
+
+To migrate a map (mat and terrain), use `scripts/migrate-terrain.mjs`. `npm run migrate-terrain -- --list` shows which maps have all their files in the cache. See `scripts/README.md`.
 
 ---
 
@@ -53,11 +55,7 @@ The `Terrain Database` LuaScript has the names:
 
 Vibranium Heist pieces are copied to `src/assets/terrain/` with readable names. Placements are in `src/terrain/maps.js`.
 
-The web files are converted from the cached originals, so they load faster:
-- Mesh: OBJ → GLB with `npx obj2gltf -i x.obj -o x.glb`. Then, with `@gltf-transform/functions`: one material for all primitives, `flatten`, `join`, `dedup`, `prune({ keepAttributes: true })` (without this option, prune deletes the UVs because the material has no texture), and `draco({ quantizeTexcoord: 14 })`. A mesh without normals gets `unweld` + `normals` first (flat normals, as OBJLoader made them).
-- obj2gltf flips V, so `Terrain.jsx` sets `flipY = false` on the texture.
-- Texture: `magick x.jpg -resize '2048x2048>' -strip -quality 85 x.webp`.
-- The Draco decoder is in `public/draco/` (copied from `three/examples/jsm/libs/draco/gltf/`).
+The web files are converted from the cached originals, so they load faster. `scripts/migrate-terrain.mjs` does the conversion; `scripts/README.md` describes the settings. The Draco decoder is in `public/draco/` (copied from `three/examples/jsm/libs/draco/gltf/`).
 
 TTS transform notes:
 - TTS units are inches. The mat tile has scale 18, so it is 36" wide and centered at the origin. Its top is at y = 1.06.
@@ -99,11 +97,11 @@ Both `face` and `back` images per crisis card.
 
 ### Game mat / map textures — 4 unique cached (of 188 total)
 
-Only maps played recently are on disk:
-- `014caf473322` — NYC construction site mat (community-made, FORGE watermark)
-- `af7a7354a68e` — Wakanda official AMG mat (Black Panther emblem, objective markers printed)
-- `702601a131f7` — (not yet viewed)
-- `9c562202bd3b` — (not yet viewed)
+Only maps played recently are on disk (run `npm run migrate-terrain -- --list` for the current list):
+- `014caf473322` — NYC construction site mat (community-made, FORGE watermark). Sinister Showdown.
+- `af7a7354a68e` — Wakanda official AMG mat (Black Panther emblem, objective markers printed). Vibranium Heist.
+- `702601a131f7` — Hydra Vs Wakanda.
+- `9c562202bd3b` — Old Town Road.
 
 The remaining 184 mat URLs follow the pattern:
 `https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/<hash>.png`
@@ -122,15 +120,16 @@ Soul gem (face + back). Other gems likely cached too.
 
 ---
 
-## Asset Bundles (not usable in browser)
+## Asset Bundles
 
-Unity binary format. These are the interactive table elements:
+Unity binary format. A browser cannot load them, but AssetRipper (in `tools/`, not committed) converts them to GLB. `scripts/migrate-terrain.mjs` does this for terrain pieces and also reads their colliders; see `scripts/README.md`. The Angel model was converted the same way, by hand in the AssetRipper UI.
+
+Bundles include:
 - Red/Blue Tray Spawner
 - Red/Blue Tool Tray
 - Red/Blue Tactic Tray
-- Ancient One terrain piece
-
-They include baked textures, physics colliders, and potentially animations. Cannot be extracted without Unity Editor tooling.
+- Terrain pieces (about 800 of the 3,036 pieces in the Terrain Database), for example vehicles, containers, the Daily Bugle
+- Character models
 
 ---
 
