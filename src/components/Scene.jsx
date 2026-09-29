@@ -40,9 +40,7 @@ export default function Scene({ mapId, activeRange, activeMove, showColliders = 
   // One character and one tool can be selected at the same time
   const [selectedCharId, setSelectedCharId] = useState(null)
   const [selectedToolId, setSelectedToolId] = useState(null)
-  const [characters] = useState([
-    { id: 'angel-1', url: assetUrl('angel.glb'), position: [0, DROP_HEIGHT, 0], teamColor: 'red', scale: 1 },
-  ])
+  const [characters] = useState([])
   // Character id → Rapier body. Tools read and move characters through it.
   const charBodies = useRef(new Map())
   // Character id → 3D object. Tools find the character under the pointer with it.
