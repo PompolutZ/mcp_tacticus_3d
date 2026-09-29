@@ -93,7 +93,13 @@ Two image types per character:
 ### Crisis card images — 48 cached
 
 Named `httpsd37ev18qvj5a3mcloudfrontnetttscrisisXXXX.png`.
-Both `face` and `back` images per crisis card.
+Both `face` and `back` images per crisis card. These are the 24 cards of the 2026 Challenger pool.
+
+The crisis cards and their tokens are copied to `src/assets/crisis/`, and the data is in `src/crisis/`. `scripts/migrate-crisis.mjs` does this, and `scripts/fetch-jarvis-crisis-cards.mjs` downloads the card text from Jarvis. See `scripts/README.md`.
+
+### Crisis token images
+
+Named `httpsd37ev18qvj5a3mcloudfrontnetttstokenobjectiveXXXX.png`, 300 × 300. The cache has all objective tokens that the mod places for the current cards.
 
 ### Game mat / map textures — 4 unique cached (of 188 total)
 

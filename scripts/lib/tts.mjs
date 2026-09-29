@@ -1,9 +1,10 @@
-// The TTS mod on this machine: its save file, the Terrain Database and the character Database in it, and the TTS file cache.
+// The TTS mod on this machine: its save file, the Terrain Database, the character Database and the crisis data in it,
+// and the TTS file cache.
 
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { readLuaAssignment } from './lua-table.mjs'
+import { readLuaAssignment, readLuaConstants, readLuaIndexedAssignments } from './lua-table.mjs'
 
 export const TTS_MODS = path.join(os.homedir(), 'Library/Tabletop Simulator/Mods')
 const MOD_SAVE = path.join(TTS_MODS, 'Workshop/3036795456.json')
@@ -42,6 +43,29 @@ export function loadCharacterDatabase() {
   return {
     characters: readLuaAssignment(script, 'characterDatabase', { resolveName }),
     affiliations: readLuaAssignment(script, 'allAffiliations', { resolveName }),
+  }
+}
+
+// Crisis cards and what the "Setup Crisis" button of the "Automatic Crisis Deployment" object places for them.
+// cards: rows of cardDatabase in "Database" with type "Crisis Card" (name, ID, tags, threat, face, back, token, released).
+// tokens: rows of tokenDatabase in "Database" (name, tShape, tSize, tType, url).
+// crises: rows of crisisDatabase in "Automatic Crisis Deployment" (crisisName, crisisMap, crisisToken, lock, frontName, ...).
+// maps: crisisMaps of the same object, by the Lua name of the map: mapC → { tokenPos, tokenSide, tokenRot }.
+// Constants of the script are read as their values: `tags = tExt` → 'Extract', `tSize = tLarge` → 0.5.
+// Other names are read as the name: `crisisMap = mapC` → 'mapC', `tokenSide = {front, back}` → ['front', 'back'].
+export function loadCrisisDatabase() {
+  const database = modScript('Database')
+  const deployment = modScript('Automatic Crisis Deployment')
+  const withConstants = source => {
+    const constants = readLuaConstants(source)
+    return { resolveName: name => (name in constants ? constants[name] : name) }
+  }
+  return {
+    cards: readLuaAssignment(database, 'cardDatabase', withConstants(database)).filter(c => c.type === 'Crisis Card'),
+    tokens: readLuaAssignment(database, 'tokenDatabase', withConstants(database)),
+    // Not with constants: the map names (mapC = 3) must stay names, because they are the keys of maps
+    crises: readLuaAssignment(deployment, 'crisisDatabase', { resolveName: name => name }),
+    maps: readLuaIndexedAssignments(deployment, 'crisisMaps', withConstants(deployment)),
   }
 }
 

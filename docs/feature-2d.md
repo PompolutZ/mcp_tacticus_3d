@@ -9,7 +9,7 @@ Render the map (mat and terrain) from straight above and save the result as a PN
 ## Approach
 
 - Use an **orthographic camera** pointed straight down. This camera has no perspective, so tall pieces (trees, street lights) do not lean outward from the center. The result looks like a floor plan: every inch on the mat is the same number of pixels, anywhere in the image.
-- Fit the camera to the mat (36" × 36") or to the whole table (48" × 48").
+- Fit the camera to the mat (36" × 36") or to the whole table (72" × 48").
 - Render once at a high resolution, for example 4096 × 4096. For the mat this is about 114 px per inch.
 - Hide the stars, characters and tools during that render. The background can be transparent.
 
@@ -20,7 +20,7 @@ Because the scale is exact, pixel positions convert directly to table positions.
 - Add a component inside `<Canvas>` in `src/App.jsx`, for example `TopViewExport`. It gets `gl` and `scene` from `useThree`.
 - Add an "Export top view" button to `src/components/Toolbar.jsx` that triggers it.
 - Steps in the component:
-  1. Create an `OrthographicCamera` with left/right/top/bottom = ±18 (mat) or ±24 (table). Place it at `(0, 50, 0)` and point it at the origin. Set `camera.up` so the top of the image always matches the same side of the table.
+  1. Create an `OrthographicCamera` with left/right/top/bottom = ±18 (mat), or left/right = ±36 and top/bottom = ±24 (table). Place it at `(0, 50, 0)` and point it at the origin. Set `camera.up` so the top of the image always matches the same side of the table.
   2. Hide stars, characters, tools and the background.
   3. Resize the renderer to 4096 × 4096 and render with this camera.
   4. Call `gl.domElement.toBlob()` right after the render, in the same task, and download the PNG.
@@ -30,7 +30,7 @@ Because the scale is exact, pixel positions convert directly to table positions.
 
 - **Colors.** In three r169, a render into a `WebGLRenderTarget` does not apply the output color space or tone mapping. Therefore the image would look darker than the app. Rendering into the main canvas at a temporary size avoids this.
 - **Canvas is cleared.** The canvas does not use `preserveDrawingBuffer`. So `toBlob()` must run right after `gl.render()`, before the browser draws the next frame.
-- **Shadow area.** The shadow camera covers ±20 (`src/components/Scene.jsx:61`). This covers the mat (±18) but not the full table (±24). For a full-table image, make the shadow camera bigger or turn shadows off.
+- **Shadow area.** The shadow camera covers ±20 (`src/components/Scene.jsx:79`). This covers the mat (±18) but not the full table (±36 × ±24). For a full-table image, make the shadow camera bigger or turn shadows off.
 - **Maximum size.** Most GPUs support 8192 px or more, but check `gl.capabilities.maxTextureSize` before choosing a bigger size.
 
 ## Things to decide

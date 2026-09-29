@@ -1,0 +1,5074 @@
+[
+  {
+    "id": 51,
+    "slug": "alien-ship-crashes-in-downtown",
+    "replacedBy": "alien-ship-crashes-in-downtown-ca09",
+    "replaces": null,
+    "cardFamily": "alien-ship-crashes-in-downtown",
+    "template": "2019",
+    "name": "Alien Ship Crashes In Downtown!",
+    "sanitizedName": "Alien Ship Crashes In Downtown",
+    "sanitizedOriginalName": "Alien Ship Crashes In Downtown",
+    "shortName": "Alien Ship",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "C",
+    "setupDescription": "Place 3 |<power_core_double>Power Core| tokens (Asset) as shown on |$C-Map C|.",
+    "sanitizedSetupDescription": "Place 3 Power Core tokens (Asset) as shown on Map C.",
+    "scoringDescription": "Players score 1 VP for each character they control that is holding a Power Core during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "3",
+    "exportCode": "00050301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Power Core)|: Pick up this Power Core. A character can hold only 1 Power Core at a time.",
+      "During the |*Cleanup Phase|, each character with 3 or more |!power| holding a Power Core rolls 3 dice. For each |!failure| and |!wild| in the result, the character holding the Power Core and all characters within |!range| 2 of it suffer 1 |!damage|."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "spidey",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CP05"
+    ],
+    "inBoxSets": [
+      {
+        "id": 5,
+        "name": "M.O.D.O.K.",
+        "sanitizedName": "MODOK",
+        "code": "CP05",
+        "releaseDate": "2019-11-15",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": [
+      {
+        "createdOn": "2025-04-05",
+        "body": "Threat level reduced from 20 to 17 on 2022-12-09 through digital update"
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous setup description read: \"Place three Rubble Piles (Target of Opportunity) as shown on Map C.\""
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous scoring description read: \"Players score 2 VPs if a character they control is holding the Core during the |*Cleanup Phase|.\""
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous rules read for 1st paragraph:|\\|\"|*Interact (Rubble Pile)|: Roll two dice. If either die is a |!critical|, that character picks up the Kree Power Core (Asset) and removes all Rubble Pile tokens from the battlefield.\""
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous rules read for 2nd paragraph:|\\|\"|*Interact (Kree Power Core)|: Pick up the Core.\""
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous rules read for 3rd paragraph:|\\|\"A character holding the Core cannot perform more then one move action per turn. When a character ends its activation while holding the Core, it suffers 1 |!damage| if it did not make an attack that activation.\""
+      }
+    ]
+  },
+  {
+    "id": 76,
+    "slug": "alien-ship-crashes-in-downtown-ca09",
+    "replacedBy": null,
+    "replaces": "alien-ship-crashes-in-downtown",
+    "cardFamily": "alien-ship-crashes-in-downtown",
+    "template": "2023",
+    "name": "Alien Ship Crashes In Downtown!",
+    "sanitizedName": "Alien Ship Crashes In Downtown",
+    "sanitizedOriginalName": "Alien Ship Crashes In Downtown",
+    "shortName": "Alien Ship",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "C",
+    "setupDescription": "Place 3 |<power_core_double>Power Core| tokens (Asset) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 3 Power Core tokens (Asset) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each character they control that is holding a Power Core during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "3",
+    "exportCode": "00050301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Power Core)|: Pick up this Power Core. A character can hold only 1 Power Core at a time.",
+      "During the |*Cleanup Phase|, each character with 3 or more |!power| holding a Power Core rolls 3 dice. For each |!failure| and |!wild| in the result, the character holding the Power Core and all characters within |!range| 2 of it suffer 1 |!damage|."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA09",
+      "CP272",
+      "CP271",
+      "MCP65",
+      "MCP64"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 352,
+        "name": "Spider-Foes Starter Pack",
+        "sanitizedName": "Spider Foes Starter Pack",
+        "code": "CP272",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 351,
+        "name": "X-Men Starter Pack",
+        "sanitizedName": "X Men Starter Pack",
+        "code": "CP271",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 672,
+        "name": "Guardians of the Galaxy Starter Set",
+        "sanitizedName": "Guardians of the Galaxy Starter Set",
+        "code": "MCP65",
+        "releaseDate": "2026-07-24",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 671,
+        "name": "Asgardians Starter Set",
+        "sanitizedName": "Asgardians Starter Set",
+        "code": "MCP64",
+        "releaseDate": "2026-07-31",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 262,
+    "slug": "assault-ships-make-sweeping-search",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "assault-ships-make-sweeping-search",
+    "template": "2023",
+    "name": "Assault Ships Make Sweeping Search!",
+    "sanitizedName": "Assault Ships Make Sweeping Search",
+    "sanitizedOriginalName": "Assault Ships Make Sweeping Search",
+    "shortName": "Assault Ships",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 16,
+    "setup": "W",
+    "setupDescription": "Place 4 Spotlight tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Spotlight tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Spotlight they Secure during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "20230303",
+    "attacks": [],
+    "paragraphs": [
+      "Once per Turn, when a character is attacking during its Activation, if the defender is within |!range| 2 of a Spotlight the attacker may reroll 1 of its attack dice."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard"
+    ],
+    "boxSets": [
+      "CA23"
+    ],
+    "inBoxSets": [
+      {
+        "id": 438,
+        "name": "Operation: Zero Tolerance",
+        "sanitizedName": "Operation: Zero Tolerance",
+        "code": "CA23",
+        "releaseDate": "2026-06-12",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": "2026-06-12",
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 197,
+    "slug": "black-bird-crash-retrieve-exotic-wildlife",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "black-bird-crash-retrieve-exotic-wildlife",
+    "template": "2023",
+    "name": "Black Bird Crash: Retrieve Exotic Wildlife!",
+    "sanitizedName": "Black Bird Crash: Retrieve Exotic Wildlife",
+    "sanitizedOriginalName": "Black Bird Crash: Retrieve Exotic Wildlife",
+    "shortName": "Wildlife",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "civilian"
+    ],
+    "payToFlip": null,
+    "event": true,
+    "threatLevel": 19,
+    "setup": "L",
+    "setupDescription": "Place 6 |<extract_civilian>Wildlife| tokens (Civilian) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 6 Wildlife tokens (Civilian) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each character they control holding a Wildlife during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "6",
+    "exportCode": null,
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Wildlife)|: Pick up this Wildlife. A character can hold only 1 Wildlife at a time.",
+      "When a character holding a Wildlife suffers |!damage| from an enemy effect, after the effect is resolved, that character is Pushed Away from the enemy character that caused the effect |!movement_small|. The opposing player resolves this Push."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": null,
+    "timelines": [
+      "extended"
+    ],
+    "boxSets": [],
+    "inBoxSets": [],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 200,
+    "slug": "black-bird-crash-secure-cargo",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "black-bird-crash-secure-cargo",
+    "template": "2023",
+    "name": "Black Bird Crash: Secure Cargo!",
+    "sanitizedName": "Black Bird Crash: Secure Cargo",
+    "sanitizedOriginalName": "Black Bird Crash: Secure Cargo",
+    "shortName": "Cargo",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": true,
+    "threatLevel": 17,
+    "setup": "B",
+    "setupDescription": "Place 4 |<secure_point_of_interest>Cargo| tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Cargo tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Cargo they are Securing during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": null,
+    "attacks": [],
+    "paragraphs": [
+      "During the |*Power Phase|, character Contesting a Cargo may remove 1 special condition."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": null,
+    "timelines": [
+      "extended"
+    ],
+    "boxSets": [],
+    "inBoxSets": [],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 199,
+    "slug": "cerero-locates-dangerous-mutants",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "cerero-locates-dangerous-mutants",
+    "template": "2023",
+    "name": "Cerebro Locates Dangerous Mutants!",
+    "sanitizedName": "Cerebro Locates Dangerous Mutants",
+    "sanitizedOriginalName": "Cerebro Locates Dangerous Mutants",
+    "shortName": "Cerebro",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "civilian"
+    ],
+    "payToFlip": null,
+    "event": true,
+    "threatLevel": 20,
+    "setup": "J",
+    "setupDescription": "Place 4 |<extract_civilian>Dangerous Mutants| tokens (Civilian) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Dangerous Mutants tokens (Civilian) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Dangerous Mutant held by a character they control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": null,
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Dangerous Mutant)|: Pick up this Dangerous Mutant. A character can hold only 1 Dangerous Mutant at a time.",
+      "During the |*Cleanup Phase|, each character with 3 or more |!power| holding a Dangerous Mutant rolls 3 dice. For each |!failure| and |!wild| in the result, the character holding the |*Dangerous Mutant| and all characters within |!range| 2 suffer 1 |!damage|."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": null,
+    "timelines": [
+      "extended"
+    ],
+    "boxSets": [],
+    "inBoxSets": [],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 52,
+    "slug": "cosmic-invasion-black-order-descends-on-earth",
+    "replacedBy": "cosmic-invasion-black-order-descends-on-earth-ca09",
+    "replaces": null,
+    "cardFamily": "cosmic-invasion-black-order-descends-on-earth",
+    "template": "2019",
+    "name": "Cosmic Invasion! Black Order Descends on Earth",
+    "sanitizedName": "Cosmic Invasion Black Order Descends on Earth",
+    "sanitizedOriginalName": "Cosmic Invasion Black Order Descends on Earth",
+    "shortName": "Cosmic Invasion",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 16,
+    "setup": "D",
+    "setupDescription": "Place 4 |<cosmic_vault>Cosmic Vault| tokens (Point of Interest) as shown on |$D-Map D|.",
+    "sanitizedSetupDescription": "Place 4 Cosmic Vault tokens (Point of Interest) as shown on Map D.",
+    "scoringDescription": "Players score 1 VP for each Cosmic Vault they are Securing during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00250301",
+    "attacks": [],
+    "paragraphs": [
+      "During the |*Power Phase|, some Cosmic Vaults will radiate cosmic energy. Starting with the player with Priority, players roll 1 die for each character they control within |!range| 1 of a Cosmic Vault. If the result is a |!critical| or |!wild|, that character gains 2 |!power| and is Pushed |!range_small|. The opposing player resolves this Push."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "spidey",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CP25"
+    ],
+    "inBoxSets": [
+      {
+        "id": 25,
+        "name": "Thanos",
+        "sanitizedName": "Thanos",
+        "code": "CP25",
+        "releaseDate": "2020-07-10",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": [
+      {
+        "createdOn": "2026-04-28",
+        "body": "Previous setup description read: \"Place four Cosmic Vaults (Target of Opportunity) onto the battlefield as indicated on Map D.\""
+      },
+      {
+        "createdOn": "2026-04-28",
+        "body": "Previous scoring description read: \"Players score 1 VP for each Cosmic Vault they secure during the |*Cleanup Phase|.\""
+      },
+      {
+        "createdOn": "2026-04-28",
+        "body": "Previous rules read for 1st paragraph:|\\|\"During the |*Power Phase|, some Cosmic Vaults will radiate cosmic energy. Starting with the player with Priority, players roll a die for each character they control within |!range| 1 of a Cosmic Vault. If the result is a |!critical| or |!wild|, that character gains 2 |!power| and is pushed away from the Vault |!range_small| before rolling for the next character. The opposing player resolves this push.\""
+      }
+    ]
+  },
+  {
+    "id": 77,
+    "slug": "cosmic-invasion-black-order-descends-on-earth-ca09",
+    "replacedBy": null,
+    "replaces": "cosmic-invasion-black-order-descends-on-earth",
+    "cardFamily": "cosmic-invasion-black-order-descends-on-earth",
+    "template": "2023",
+    "name": "Cosmic Invasion! Black Order Descends on Earth",
+    "sanitizedName": "Cosmic Invasion Black Order Descends on Earth",
+    "sanitizedOriginalName": "Cosmic Invasion Black Order Descends on Earth",
+    "shortName": "Cosmic Invasion",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 16,
+    "setup": "D",
+    "setupDescription": "Place 4 |<cosmic_vault>Cosmic Vault| tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Cosmic Vault tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Cosmic Vault they are Securing during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00250301",
+    "attacks": [],
+    "paragraphs": [
+      "During the |*Power Phase|, some Cosmic Vaults will radiate cosmic energy. Starting with the player with Priority, players roll 1 die for each character they control within |!range| 1 of a Cosmic Vault. If the result is a |!critical| or |!wild|, that character gains 2 |!power| and is Pushed |!range_small|. The opposing player resolves this Push."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA09"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": []
+  },
+  {
+    "id": 163,
+    "slug": "deadline-to-destruction",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "deadline-to-destruction",
+    "template": "2023",
+    "name": "Deadline to Destruction",
+    "sanitizedName": "Deadline to Destruction",
+    "sanitizedOriginalName": "Deadline to Destruction",
+    "shortName": "Deadline",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 16,
+    "setup": "P",
+    "setupDescription": "Place 4 |<secure_point_of_interest>Detonation Console| tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Detonation Console tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Detonation Console they Secure during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "20130301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Detonation Console)|: Choose an enemy character within |!range| 3 of this Detonation Console holding one or more Extract objective tokens. The chosen character may drop any number of objective tokens. Then, if the chosen character is holding one or more Extract objective tokens, it suffers 1 |!damage| and gains 1 |!power|."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA13"
+    ],
+    "inBoxSets": [
+      {
+        "id": 210,
+        "name": "War of Kings",
+        "sanitizedName": "War of Kings",
+        "code": "CA13",
+        "releaseDate": "2025-03-14",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": []
+  },
+  {
+    "id": 53,
+    "slug": "deadly-legacy-virus-cured",
+    "replacedBy": "deadly-legacy-virus-cured-ca09",
+    "replaces": null,
+    "cardFamily": "deadly-legacy-virus-cured",
+    "template": "2019",
+    "name": "Deadly Legacy Virus Cured?",
+    "sanitizedName": "Deadly Legacy Virus Cured",
+    "sanitizedOriginalName": "Deadly Legacy Virus Cured",
+    "shortName": "Legacy Virus",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 19,
+    "setup": "C",
+    "setupDescription": "Place 3 |<legacy_cure>Legacy Cure| tokens (Asset) as shown on |$C-Map C|.",
+    "sanitizedSetupDescription": "Place 3 Legacy Cure tokens (Asset) as shown on Map C.",
+    "scoringDescription": "Players score 1 VP for each Legacy Cure held by a character they control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "3",
+    "exportCode": "00460301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Legacy Cure)|: Pick up this Legacy Cure. A character must spend 1 |!power| per Legacy Cure it is holding before using this Interact.",
+      "During the |*Cleanup Phase|, if a non-Grunt character is holding all 3 Legacy Cures, its controlling player does not score VPs from this Crisis as normal. Instead, remove all Legacy Cures from the game. Then the character is KO’d and its controlling player scores 6 VPs."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "xmen",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CP46"
+    ],
+    "inBoxSets": [
+      {
+        "id": 46,
+        "name": "Mister Sinister",
+        "sanitizedName": "Mister Sinister",
+        "code": "CP46",
+        "releaseDate": "2021-05-14",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": [
+      {
+        "createdOn": "2026-04-28",
+        "body": "The original card indicates to use the map E, an errata was published on 2021-05-17"
+      },
+      {
+        "createdOn": "2026-04-28",
+        "body": "Previous setup description read: \"Place 3 Legacy Cures (Asset) as shown on Map C.\""
+      },
+      {
+        "createdOn": "2026-04-28",
+        "body": "Previous scoring description read: \"A player scores 1 VP for each Legacy Cure held by a character they control during the |*Cleanup Phase|.\""
+      },
+      {
+        "createdOn": "2026-04-28",
+        "body": "Previous rules read for 1st paragraph:|\\|\"|*Interact (Legacy Cure)|: Pick up a Legacy Cure. A character must spend 1 |!power| for each Legacy Cure it is holding before using this Interact.\""
+      },
+      {
+        "createdOn": "2026-04-28",
+        "body": "Previous rules read for 2nd paragraph:|\\|\"At the end of a character's activation, if it is holding one or more Legacy Cures, it may remove one special condition from itself.\""
+      },
+      {
+        "createdOn": "2026-04-28",
+        "body": "Previous rules read for 3rd paragraph:|\\|\"If at any time a character is holding all three Legacy Cures, the character is immediately KO'd and its controlling player scores 8VPs. Remove all of the Legacy Cures from the game.\""
+      }
+    ]
+  },
+  {
+    "id": 78,
+    "slug": "deadly-legacy-virus-cured-ca09",
+    "replacedBy": null,
+    "replaces": "deadly-legacy-virus-cured",
+    "cardFamily": "deadly-legacy-virus-cured",
+    "template": "2023",
+    "name": "Deadly Legacy Virus Cured?",
+    "sanitizedName": "Deadly Legacy Virus Cured",
+    "sanitizedOriginalName": "Deadly Legacy Virus Cured",
+    "shortName": "Legacy Virus",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 19,
+    "setup": "C",
+    "setupDescription": "Place 3 |<legacy_cure>Legacy Cure| tokens (Asset) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 3 Legacy Cure tokens (Asset) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Legacy Cure held by a character they control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "3",
+    "exportCode": "00460301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Legacy Cure)|: Pick up this Legacy Cure. A character must spend 1 |!power| per Legacy Cure it is holding before using this Interact.",
+      "During the |*Cleanup Phase|, if a non-Grunt character is holding all 3 Legacy Cures, its controlling player does not score VPs from this Crisis as normal. Instead, remove all Legacy Cures from the game. Then the character is KO’d and its controlling player scores 6 VPs."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA09"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": []
+  },
+  {
+    "id": 32,
+    "slug": "deadly-meteors-mutate-civilians",
+    "replacedBy": "deadly-meteors-mutate-civilians-ca09",
+    "replaces": null,
+    "cardFamily": "deadly-meteors-mutate-civilians",
+    "template": "2019",
+    "name": "Deadly Meteors Mutate Civilians",
+    "sanitizedName": "Deadly Meteors Mutate Civilians",
+    "sanitizedOriginalName": "Deadly Meteors Mutate Civilians",
+    "shortName": "Meteors",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": true,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "I",
+    "setupDescription": "Place 3 |<origin_bomb>Origin Bomb| tokens (Point of Interest) as shown on |$I-Map I|.",
+    "sanitizedSetupDescription": "Place 3 Origin Bomb tokens (Point of Interest) as shown on Map I.",
+    "scoringDescription": "Players score 1 VP for each Origin Bomb they Control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "3",
+    "exportCode": "00010301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Origin Bomb)|: Roll dice equal to this character’s |!energy| Defense. If the roll contains more |!critical|, |!wild|, and |!hit| results than the number of Healthy enemy characters Contesting this Origin Bomb, this character’s controlling player now Controls this Origin Bomb. If the roll contains at least 1 |!failure|, this character suffers 1 |!damage|."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "spidey",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CP01"
+    ],
+    "inBoxSets": [
+      {
+        "id": 1,
+        "name": "Core Set",
+        "sanitizedName": "Core Set",
+        "code": "CP01",
+        "releaseDate": "2019-11-15",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": [
+      {
+        "createdOn": "2025-04-05",
+        "body": "Map setup changed from C to I on 2022-12-09 through digital update"
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous setup description read: \"Place three Origin Bombs (Target of Opportunity) as shown on Map C.\""
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous scoring description read: \"The player controlling the most Origin Bombs scores 3 VPs during the |*Cleanup Phase|.\""
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous rules read for 1st paragraph:|\\|\"|*Interact (Origin Bomb)|: Roll dice equal to the interacting character’s |!energy| |*Defense|. If the roll contains more |!critical|, |!wild|, and |!hit| results than the number of Healthy enemy characters contesting this Origin Bomb, the interacting character’s controlling player now Controls the Origin Bomb. If the roll contains at least one |!failure|, the interacting character suffers 1 |!damage|.\""
+      }
+    ]
+  },
+  {
+    "id": 79,
+    "slug": "deadly-meteors-mutate-civilians-ca09",
+    "replacedBy": null,
+    "replaces": "deadly-meteors-mutate-civilians",
+    "cardFamily": "deadly-meteors-mutate-civilians",
+    "template": "2023",
+    "name": "Deadly Meteors Mutate Civilians",
+    "sanitizedName": "Deadly Meteors Mutate Civilians",
+    "sanitizedOriginalName": "Deadly Meteors Mutate Civilians",
+    "shortName": "Meteors",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": true,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "I",
+    "setupDescription": "Place 3 |<origin_bomb>Origin Bomb| tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 3 Origin Bomb tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Origin Bomb they Control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "3",
+    "exportCode": "00010301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Origin Bomb)|: Roll dice equal to this character’s |!energy| Defense. If the roll contains more |!critical|, |!wild|, and |!hit| results than the number of Healthy enemy characters Contesting this Origin Bomb, this character’s controlling player now Controls this Origin Bomb. If the roll contains at least 1 |!failure|, this character suffers 1 |!damage|."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA09",
+      "CP143",
+      "CP272",
+      "CP271",
+      "MCP65",
+      "MCP64"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 136,
+        "name": "Earth's Mightiest Core Set",
+        "sanitizedName": "Earth s Mightiest Core Set",
+        "code": "CP143",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 352,
+        "name": "Spider-Foes Starter Pack",
+        "sanitizedName": "Spider Foes Starter Pack",
+        "code": "CP272",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 351,
+        "name": "X-Men Starter Pack",
+        "sanitizedName": "X Men Starter Pack",
+        "code": "CP271",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 672,
+        "name": "Guardians of the Galaxy Starter Set",
+        "sanitizedName": "Guardians of the Galaxy Starter Set",
+        "code": "MCP65",
+        "releaseDate": "2026-07-24",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 671,
+        "name": "Asgardians Starter Set",
+        "sanitizedName": "Asgardians Starter Set",
+        "code": "MCP64",
+        "releaseDate": "2026-07-31",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 54,
+    "slug": "demons-downtown-has-our-comeuppance-come-due",
+    "replacedBy": "demons-downtown-has-our-comeuppance-come-due-ca09",
+    "replaces": null,
+    "cardFamily": "demons-downtown-has-our-comeuppance-come-due",
+    "template": "2019",
+    "name": "Demons Downtown! Has Our Comeuppance Come Due?",
+    "sanitizedName": "Demons Downtown Has Our Comeuppance Come Due",
+    "sanitizedOriginalName": "Demons Downtown Has Our Comeuppance Come Due",
+    "shortName": "Demons",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 19,
+    "setup": "E",
+    "setupDescription": "Place 3 |<flaming_portal>Flaming Portal| tokens (Point of Interest) as shown on |$E-Map E|.",
+    "sanitizedSetupDescription": "Place 3 Flaming Portal tokens (Point of Interest) as shown on Map E.",
+    "scoringDescription": "Players score 1 VP for each Flaming Portal they are Securing during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "3",
+    "exportCode": "00270301",
+    "attacks": [],
+    "paragraphs": [
+      "During the |*Power Phase|, characters within |!range| 1 of a Flaming Portal gain the Incinerate special condition."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "spidey",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CP27"
+    ],
+    "inBoxSets": [
+      {
+        "id": 27,
+        "name": "Ghost Rider",
+        "sanitizedName": "Ghost Rider",
+        "code": "CP27",
+        "releaseDate": "2020-09-12",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": [
+      {
+        "createdOn": "2026-01-28",
+        "body": "Previous setup description read: \"Place three Flaming Portals (Target of Opportunity) as shown on Map E.\""
+      },
+      {
+        "createdOn": "2026-01-28",
+        "body": "Previous scoring description read: \"Players score 1 VP for each Flaming Portal they are securing during the |*Cleanup Phase|.\""
+      },
+      {
+        "createdOn": "2026-01-28",
+        "body": "Previous rules read for 1st paragraph:|\\|\"During the |*Power Phase|, all characters within |!range| 1 of a Flaming Portal gain the Incinerate special condition.\""
+      }
+    ]
+  },
+  {
+    "id": 80,
+    "slug": "demons-downtown-has-our-comeuppance-come-due-ca09",
+    "replacedBy": null,
+    "replaces": "demons-downtown-has-our-comeuppance-come-due",
+    "cardFamily": "demons-downtown-has-our-comeuppance-come-due",
+    "template": "2023",
+    "name": "Demons Downtown! Has Our Comeuppance Come Due?",
+    "sanitizedName": "Demons Downtown Has Our Comeuppance Come Due",
+    "sanitizedOriginalName": "Demons Downtown Has Our Comeuppance Come Due",
+    "shortName": "Demons",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 19,
+    "setup": "E",
+    "setupDescription": "Place 3 |<flaming_portal>Flaming Portal| tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 3 Flaming Portal tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Flaming Portal they are Securing during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "3",
+    "exportCode": "00270301",
+    "attacks": [],
+    "paragraphs": [
+      "During the |*Power Phase|, characters within |!range| 1 of a Flaming Portal gain the Incinerate special condition."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA09"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 300,
+    "slug": "evidence-of-experimental-soldiers-exposed",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "evidence-of-experimental-soldiers-exposed",
+    "template": "2023",
+    "name": "Evidence of Experimental Soldiers Exposed!",
+    "sanitizedName": "Evidence of Experimental Soldiers Exposed",
+    "sanitizedOriginalName": "Evidence of Experimental Soldiers Exposed",
+    "shortName": "Evidence",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "source",
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 19,
+    "setup": "AB",
+    "setupDescription": "Place 3 Unexhausted Server tokens (Source) as shown on the map below. Set aside 3 Evidence tokens (Asset).",
+    "sanitizedSetupDescription": "Place 3 Unexhausted Server tokens (Source) as shown on the map below. Set aside 3 Evidence tokens (Asset).",
+    "scoringDescription": "Players score 1 VP for each character they control that is holding an Evidence during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "3",
+    "exportCode": "20230304",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Server)|: Flip this Server and pick up an Evidence from it. Evidence are Limited. A character cannot Interact with a Server while it is holding an Evidence.",
+      "When a character holding an Evidence is attacked, it may reroll 1 of its defense dice.",
+      "|*Upload|: During the |*Cleanup Phase|, remove all Evidence from the Game and Flip each Exhausted Server."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard"
+    ],
+    "boxSets": [
+      "CA23"
+    ],
+    "inBoxSets": [
+      {
+        "id": 438,
+        "name": "Operation: Zero Tolerance",
+        "sanitizedName": "Operation: Zero Tolerance",
+        "code": "CA23",
+        "releaseDate": "2026-06-12",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": "2026-06-12",
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 55,
+    "slug": "fear-grips-world-as-worthy-terrorize-cities",
+    "replacedBy": "fear-grips-world-as-worthy-terrorize-cities-ca09",
+    "replaces": null,
+    "cardFamily": "fear-grips-world-as-worthy-terrorize-cities",
+    "template": "2019",
+    "name": "Fear Grips World As “Worthy“ Terrorize Cities",
+    "sanitizedName": "Fear Grips World As Worthy Terrorize Cities",
+    "sanitizedOriginalName": "Fear Grips World As Worthy Terrorize Cities",
+    "shortName": "Hammers",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 18,
+    "setup": "D",
+    "setupDescription": "Place 4 |<celestial_hammer>Celestial Hammer| tokens (Asset) as shown on |$D-Map D|.",
+    "sanitizedSetupDescription": "Place 4 Celestial Hammer tokens (Asset) as shown on Map D.",
+    "scoringDescription": "Players score 1 VP for each Celestial Hammer held by a character they control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00110301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Celestial Hammer)|: Pick up this Celestial Hammer.",
+      "Characters add 1 die to their attack rolls for each Celestial Hammer they are holding. Characters holding one or more Celestial Hammers must pay 1 |!power| before playing a Team Tactic Card."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "spidey",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CP11",
+      "CP138"
+    ],
+    "inBoxSets": [
+      {
+        "id": 11,
+        "name": "Thor & Valkyrie",
+        "sanitizedName": "Thor  Valkyrie",
+        "code": "CP11",
+        "releaseDate": "2020-01-31",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 85,
+        "name": "Asgardians Affiliation Pack",
+        "sanitizedName": "Asgardians Affiliation Pack",
+        "code": "CP138",
+        "releaseDate": "2022-07-08",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": [
+      {
+        "createdOn": "2026-04-28",
+        "body": "Previous setup description read: \"Place 4 Celestial Hammers (Asset) as shown on Map D.\""
+      },
+      {
+        "createdOn": "2026-04-28",
+        "body": "Previous rules read for 1st paragraph:|\\|\"|*Interact (Celestial Hammer)|: Pick up a Celestial Hammer.\""
+      },
+      {
+        "createdOn": "2026-04-28",
+        "body": "Previous rules read for 2nd paragraph:|\\|\"Characters add one die to their attack rolls for each Celestial Hammer they are holding. When a character plays a Team Tactic Card, they must pay 1 additional |!power| for each Celestial Hammer they are holding.\""
+      }
+    ]
+  },
+  {
+    "id": 81,
+    "slug": "fear-grips-world-as-worthy-terrorize-cities-ca09",
+    "replacedBy": null,
+    "replaces": "fear-grips-world-as-worthy-terrorize-cities",
+    "cardFamily": "fear-grips-world-as-worthy-terrorize-cities",
+    "template": "2023",
+    "name": "Fear Grips World As “Worthy“ Terrorize Cities",
+    "sanitizedName": "Fear Grips World As Worthy Terrorize Cities",
+    "sanitizedOriginalName": "Fear Grips World As Worthy Terrorize Cities",
+    "shortName": "Hammers",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 18,
+    "setup": "D",
+    "setupDescription": "Place 4 |<celestial_hammer>Celestial Hammer| tokens (Asset) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Celestial Hammer tokens (Asset) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Celestial Hammer held by a character they control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00110301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Celestial Hammer)|: Pick up this Celestial Hammer.",
+      "Characters add 1 die to their attack rolls for each Celestial Hammer they are holding. Characters holding one or more Celestial Hammers must pay 1 |!power| before playing a Team Tactic Card."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA09"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": []
+  },
+  {
+    "id": 56,
+    "slug": "gamma-wave-sweeps-across-midwest",
+    "replacedBy": "gamma-wave-sweeps-across-midwest-ca09",
+    "replaces": null,
+    "cardFamily": "gamma-wave-sweeps-across-midwest",
+    "template": "2019",
+    "name": "Gamma Wave Sweeps Across Midwest",
+    "sanitizedName": "Gamma Wave Sweeps Across Midwest",
+    "sanitizedOriginalName": "Gamma Wave Sweeps Across Midwest",
+    "shortName": "Gamma",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 15,
+    "setup": "E",
+    "setupDescription": "Place 3 |<gamma_shelter>Gamma Shelter| tokens (Point of Interest) as shown on |$E-Map E|.",
+    "sanitizedSetupDescription": "Place 3 Gamma Shelter tokens (Point of Interest) as shown on Map E.",
+    "scoringDescription": "Players score 1 VP for Securing their Close, 1 VP for the Mid, and 2 VPs for Securing their Far Gamma Shelter during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00040301",
+    "attacks": [],
+    "paragraphs": [
+      "During the |*Cleanup Phase|, each character that is not within |!range| 2 of a Gamma Shelter suffers 1 |!damage|.",
+      "The Gamma Shelter closest to a player’s battlefield edge is their Close Shelter. The Gamma Shelter in the center is both players’ Mid Shelter. The Gamma Shelter farthest from a player’s battlefield edge is their Far Shelter."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "spidey",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025"
+    ],
+    "boxSets": [
+      "CP04"
+    ],
+    "inBoxSets": [
+      {
+        "id": 4,
+        "name": "Hulk",
+        "sanitizedName": "Hulk",
+        "code": "CP04",
+        "releaseDate": "2019-11-15",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": [
+      {
+        "createdOn": "2026-01-28",
+        "body": "Previous setup description read: \"Place three Gamma Shelters (Target of Opportunity) on the battlefield as shown on Map E.\""
+      },
+      {
+        "createdOn": "2026-01-28",
+        "body": "Previous scoring description read: \"Players score 1 VP for securing the close, 2 VPs for the central, and 3 VPs for the Far Shelter during the |*Cleanup Phase|.\""
+      },
+      {
+        "createdOn": "2026-01-28",
+        "body": "Previous rules read for 2nd paragraph:|\\|\"The Gamma Shelter closest to a player’s battlefield edge is their Close Shelter. The center Gamma Shelter is the Central Shelter. The Gamma Shelter farthest from their battlefield edge is their Far Shelter.\""
+      }
+    ]
+  },
+  {
+    "id": 82,
+    "slug": "gamma-wave-sweeps-across-midwest-ca09",
+    "replacedBy": null,
+    "replaces": "gamma-wave-sweeps-across-midwest",
+    "cardFamily": "gamma-wave-sweeps-across-midwest",
+    "template": "2023",
+    "name": "Gamma Wave Sweeps Across Midwest",
+    "sanitizedName": "Gamma Wave Sweeps Across Midwest",
+    "sanitizedOriginalName": "Gamma Wave Sweeps Across Midwest",
+    "shortName": "Gamma",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 15,
+    "setup": "E",
+    "setupDescription": "Place 3 |<gamma_shelter>Gamma Shelter| tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 3 Gamma Shelter tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for Securing their Close, 1 VP for the Mid, and 2 VPs for Securing their Far Gamma Shelter during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00040301",
+    "attacks": [],
+    "paragraphs": [
+      "During the |*Cleanup Phase|, each character that is not within |!range| 2 of a Gamma Shelter suffers 1 |!damage|.",
+      "The Gamma Shelter closest to a player’s battlefield edge is their Close Shelter. The Gamma Shelter in the center is both players’ Mid Shelter. The Gamma Shelter farthest from a player’s battlefield edge is their Far Shelter."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025"
+    ],
+    "boxSets": [
+      "CA09"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 97,
+    "slug": "guardians-save-shiar-empress-in-style",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "guardians-save-shiar-empress-in-style",
+    "template": "2023",
+    "name": "Guardians Save Shi‘ar Empress in Style",
+    "sanitizedName": "Guardians Save Shiar Empress in Style",
+    "sanitizedOriginalName": "Guardians Save Shiar Empress in Style",
+    "shortName": "Empress",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": true,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "M",
+    "setupDescription": "Place 4 |<secure_point_of_interest>Security Terminal| tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Security Terminal tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Security Terminal they Control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "20130302",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Security Terminal)|: Roll 3 dice. If the roll contains more |!critical|, |!wild|, or |!hit| results than the number of Healthy enemy characters Contesting this Security Terminal, you now Control this Security Terminal.",
+      "If a character is holding one or more Extract objective tokens, it may reroll 1 die when interacting with a Security Terminal."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA13",
+      "CP272",
+      "CP271",
+      "MCP65",
+      "MCP64"
+    ],
+    "inBoxSets": [
+      {
+        "id": 210,
+        "name": "War of Kings",
+        "sanitizedName": "War of Kings",
+        "code": "CA13",
+        "releaseDate": "2025-03-14",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 352,
+        "name": "Spider-Foes Starter Pack",
+        "sanitizedName": "Spider Foes Starter Pack",
+        "code": "CP272",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 351,
+        "name": "X-Men Starter Pack",
+        "sanitizedName": "X Men Starter Pack",
+        "code": "CP271",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 672,
+        "name": "Guardians of the Galaxy Starter Set",
+        "sanitizedName": "Guardians of the Galaxy Starter Set",
+        "code": "MCP65",
+        "releaseDate": "2026-07-24",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 671,
+        "name": "Asgardians Starter Set",
+        "sanitizedName": "Asgardians Starter Set",
+        "code": "MCP64",
+        "releaseDate": "2026-07-31",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 57,
+    "slug": "infinity-formula-goes-missing",
+    "replacedBy": "infinity-formula-goes-missing-ca09",
+    "replaces": null,
+    "cardFamily": "infinity-formula-goes-missing",
+    "template": "2019",
+    "name": "Infinity Formula Goes Missing!",
+    "sanitizedName": "Infinity Formula Goes Missing",
+    "sanitizedOriginalName": "Infinity Formula Goes Missing",
+    "shortName": "Infinity Formula",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "B",
+    "setupDescription": "Place 4 |<serum_canister>Serum Canister| tokens (Point of Interest) as shown on |$B-Map B|.",
+    "sanitizedSetupDescription": "Place 4 Serum Canister tokens (Point of Interest) as shown on Map B.",
+    "scoringDescription": "Players score 1 VP for each Serum Canister they Secure during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00010302",
+    "attacks": [],
+    "paragraphs": [
+      "During the |*Power Phase|, characters Contesting a Serum Canister gain 1 |!power|."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "spidey",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CP01"
+    ],
+    "inBoxSets": [
+      {
+        "id": 1,
+        "name": "Core Set",
+        "sanitizedName": "Core Set",
+        "code": "CP01",
+        "releaseDate": "2019-11-15",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": [
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous setup description read: \"Place four Serum Canisters (Target of Opportunity) as shown on Map B.\""
+      }
+    ]
+  },
+  {
+    "id": 83,
+    "slug": "infinity-formula-goes-missing-ca09",
+    "replacedBy": null,
+    "replaces": "infinity-formula-goes-missing",
+    "cardFamily": "infinity-formula-goes-missing",
+    "template": "2023",
+    "name": "Infinity Formula Goes Missing!",
+    "sanitizedName": "Infinity Formula Goes Missing",
+    "sanitizedOriginalName": "Infinity Formula Goes Missing",
+    "shortName": "Infinity Formula",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "B",
+    "setupDescription": "Place 4 |<serum_canister>Serum Canister| tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Serum Canister tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Serum Canister they Secure during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00010302",
+    "attacks": [],
+    "paragraphs": [
+      "During the |*Power Phase|, characters Contesting a Serum Canister gain 1 |!power|."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA09",
+      "CP143",
+      "CP272",
+      "CP271",
+      "MCP65",
+      "MCP64"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 136,
+        "name": "Earth's Mightiest Core Set",
+        "sanitizedName": "Earth s Mightiest Core Set",
+        "code": "CP143",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 352,
+        "name": "Spider-Foes Starter Pack",
+        "sanitizedName": "Spider Foes Starter Pack",
+        "code": "CP272",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 351,
+        "name": "X-Men Starter Pack",
+        "sanitizedName": "X Men Starter Pack",
+        "code": "CP271",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 672,
+        "name": "Guardians of the Galaxy Starter Set",
+        "sanitizedName": "Guardians of the Galaxy Starter Set",
+        "code": "MCP65",
+        "releaseDate": "2026-07-24",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 671,
+        "name": "Asgardians Starter Set",
+        "sanitizedName": "Asgardians Starter Set",
+        "code": "MCP64",
+        "releaseDate": "2026-07-31",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 164,
+    "slug": "inhumans-deploy-advanced-weaponry",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "inhumans-deploy-advanced-weaponry",
+    "template": "2023",
+    "name": "Inhumans Deploy Advanced Weaponry",
+    "sanitizedName": "Inhumans Deploy Advanced Weaponry",
+    "sanitizedOriginalName": "Inhumans Deploy Advanced Weaponry",
+    "shortName": "Weaponry",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 18,
+    "setup": "O",
+    "setupDescription": "Place 4 |<extract_asset>Inhuman Weapon| tokens (Asset) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Inhuman Weapon tokens (Asset) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each character they control that is holding an Inhuman Weapon during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "20130303",
+    "attacks": [
+      {
+        "type": "energy",
+        "name": "Inhuman Weapon",
+        "range": "B3",
+        "strength": "6",
+        "powerCost": 0,
+        "steps": []
+      }
+    ],
+    "paragraphs": [
+      "|*Interact (Inhuman Weapon)|: Pick up this Inhuman Weapon. A character can hold only 1 Inhuman Weapon at a time.",
+      "A character holding an Inhuman Weapon may use the following attack once per Turn. It cannot add additional dice to this attack or modify its dice during this attack."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA13",
+      "CP272",
+      "CP271",
+      "MCP65",
+      "MCP64"
+    ],
+    "inBoxSets": [
+      {
+        "id": 210,
+        "name": "War of Kings",
+        "sanitizedName": "War of Kings",
+        "code": "CA13",
+        "releaseDate": "2025-03-14",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 352,
+        "name": "Spider-Foes Starter Pack",
+        "sanitizedName": "Spider Foes Starter Pack",
+        "code": "CP272",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 351,
+        "name": "X-Men Starter Pack",
+        "sanitizedName": "X Men Starter Pack",
+        "code": "CP271",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 672,
+        "name": "Guardians of the Galaxy Starter Set",
+        "sanitizedName": "Guardians of the Galaxy Starter Set",
+        "code": "MCP65",
+        "releaseDate": "2026-07-24",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 671,
+        "name": "Asgardians Starter Set",
+        "sanitizedName": "Asgardians Starter Set",
+        "code": "MCP64",
+        "releaseDate": "2026-07-31",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 58,
+    "slug": "intrusions-open-across-city-as-seals-collapse",
+    "replacedBy": "intrusions-open-across-city-as-seals-collapse-ca09",
+    "replaces": null,
+    "cardFamily": "intrusions-open-across-city-as-seals-collapse",
+    "template": "2019",
+    "name": "Intrusions Open Across City As Seals Collapse",
+    "sanitizedName": "Intrusions Open Across City As Seals Collapse",
+    "sanitizedOriginalName": "Intrusions Open Across City As Seals Collapse",
+    "shortName": "Intrusions",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 19,
+    "setup": "C",
+    "setupDescription": "Place 3 |<dark_portal>Dark Portal| tokens (Point of Interest) as shown on |$C-Map C|.",
+    "sanitizedSetupDescription": "Place 3 Dark Portal tokens (Point of Interest) as shown on Map C.",
+    "scoringDescription": "Players score 1 VP for each Dark Portal they Secure during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "3",
+    "exportCode": "00640301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Dark Portal)|: This character drops all objective tokens it is holding. Then roll 1 die. If the result is a |!critical|, |!wild|, |!hit|, or |!block|, Place this character within |!range| 1 of another Dark Portal. Otherwise, the opposing player Places this character within |!range| 1 of another Dark Portal."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "nyc",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025"
+    ],
+    "boxSets": [
+      "CP64"
+    ],
+    "inBoxSets": [
+      {
+        "id": 63,
+        "name": "Mordo & Ancient One",
+        "sanitizedName": "Mordo  Ancient One",
+        "code": "CP64",
+        "releaseDate": "2021-09-09",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": [
+      {
+        "createdOn": "2026-04-28",
+        "body": "Previous setup description read: \"Place three Dark Portal (Target of Opportunity) as indicated on Map C.\""
+      },
+      {
+        "createdOn": "2026-04-28",
+        "body": "Previous rules read for 1st paragraph:|\\|\"|*Interact (Dark Portal)|: This character drops all objective tokens it is holding, if any. Then roll a die. If the result is |!critical|, |!wild|, |!hit|, or |!block|, place this character within |!range| 1 of another Dark Portal. Otherwise, your opponent places this character within |!range| 1 of another Dark Portal. After being placed, this character suffers 1 |!damage|.\""
+      }
+    ]
+  },
+  {
+    "id": 84,
+    "slug": "intrusions-open-across-city-as-seals-collapse-ca09",
+    "replacedBy": null,
+    "replaces": "intrusions-open-across-city-as-seals-collapse",
+    "cardFamily": "intrusions-open-across-city-as-seals-collapse",
+    "template": "2023",
+    "name": "Intrusions Open Across City As Seals Collapse",
+    "sanitizedName": "Intrusions Open Across City As Seals Collapse",
+    "sanitizedOriginalName": "Intrusions Open Across City As Seals Collapse",
+    "shortName": "Intrusions",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 19,
+    "setup": "C",
+    "setupDescription": "Place 3 |<dark_portal>Dark Portal| tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 3 Dark Portal tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Dark Portal they Secure during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "3",
+    "exportCode": "00640301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Dark Portal)|: This character drops all objective tokens it is holding. Then roll 1 die. If the result is a |!critical|, |!wild|, |!hit|, or |!block|, Place this character within |!range| 1 of another Dark Portal. Otherwise, the opposing player Places this character within |!range| 1 of another Dark Portal."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA09"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": []
+  },
+  {
+    "id": 230,
+    "slug": "jailbreak-leads-to-mass-mutant-escape",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "jailbreak-leads-to-mass-mutant-escape",
+    "template": "2023",
+    "name": "Jailbreak Leads to Mass Mutant Escape!",
+    "sanitizedName": "Jailbreak Leads to Mass Mutant Escape",
+    "sanitizedOriginalName": "Jailbreak Leads to Mass Mutant Escape",
+    "shortName": "Jailbreak",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "source",
+      "civilian"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 20,
+    "setup": "T",
+    "setupDescription": "Place 4 Unexhausted Cell tokens (Source) as shown on the map below. Set aside 4 Prisoner tokens (Civilian).",
+    "sanitizedSetupDescription": "Place 4 Unexhausted Cell tokens (Source) as shown on the map below. Set aside 4 Prisoner tokens (Civilian).",
+    "scoringDescription": "Players score 1 VP for each character they control that is holding a Prisoner during the Cleanup Phase.",
+    "maxVPsPerRound": "4",
+    "exportCode": "20230301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Cell)|: Flip this Cell and pick up a Prisoner from it. Prisoners are Limited. |=A character cannot Interact with a Cell while it is holding a Prisoner.=Upcoming addition=The following should be added a the near future&\\&&*Interact (Prisoner)&: Pick up this Prisoner&\\&Source: https://forums.atomicmassgames.com/topic/19378-jailbreak-leads-to-mass-mutant-escape|",
+      "When a character holding a Prisoner ends its Activation, if it is within |!range| 5 of any battlefield edge and not within |!range| 1 of a Cell, it drops that Prisoner.",
+      "|*Escape|: During the |*Cleanup Phase|, remove all Prisoners from the Game and Flip each Exhausted Cell."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard",
+      "2026"
+    ],
+    "boxSets": [
+      "WEB2025",
+      "CA23"
+    ],
+    "inBoxSets": [
+      {
+        "id": 504,
+        "name": "2025 Crisis Cards Print & Play",
+        "sanitizedName": "2025 Crisis Cards Print  Play",
+        "code": "WEB2025",
+        "releaseDate": "2025-11-15",
+        "approximateDate": null,
+        "digital": true
+      },
+      {
+        "id": 438,
+        "name": "Operation: Zero Tolerance",
+        "sanitizedName": "Operation: Zero Tolerance",
+        "code": "CA23",
+        "releaseDate": "2026-06-12",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 229,
+    "slug": "lockdown-security-systems-stymie-breakout",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "lockdown-security-systems-stymie-breakout",
+    "template": "2023",
+    "name": "Lockdown! Security Systems Stymie Breakout",
+    "sanitizedName": "Lockdown Security Systems Stymie Breakout",
+    "sanitizedOriginalName": "Lockdown Security Systems Stymie Breakout",
+    "shortName": "Lockdown",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 18,
+    "setup": "S",
+    "setupDescription": "Place 4 Prison Block tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Prison Block tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Prison Block they Secure during the Cleanup Phase.",
+    "maxVPsPerRound": "3",
+    "exportCode": "20230302",
+    "attacks": [],
+    "paragraphs": [
+      "Characters Contest Prison Blocks within |!range| 2 instead of |!range| 1.",
+      "During the |*Cleanup Phase|, remove all |!damage| tokens on Prison Blocks. Then roll a die. Put a |!damage| token on the Prison Block marked with the matching result on the map below. The unmarked Prison Block matches the Blank result. A Prison Block with a |!damage| token on it cannot be Interacted with, Contested, or Secured."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard",
+      "2026"
+    ],
+    "boxSets": [
+      "WEB2025",
+      "CA23"
+    ],
+    "inBoxSets": [
+      {
+        "id": 504,
+        "name": "2025 Crisis Cards Print & Play",
+        "sanitizedName": "2025 Crisis Cards Print  Play",
+        "code": "WEB2025",
+        "releaseDate": "2025-11-15",
+        "approximateDate": null,
+        "digital": true
+      },
+      {
+        "id": 438,
+        "name": "Operation: Zero Tolerance",
+        "sanitizedName": "Operation: Zero Tolerance",
+        "code": "CA23",
+        "releaseDate": "2026-06-12",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 196,
+    "slug": "malfunction-simulation-gone-wrong",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "malfunction-simulation-gone-wrong",
+    "template": "2023",
+    "name": "Malfunction- Simulation Gone Wrong!",
+    "sanitizedName": "Malfunction  Simulation Gone Wrong",
+    "sanitizedOriginalName": "Malfunction  Simulation Gone Wrong",
+    "shortName": "Malfunction",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": true,
+    "threatLevel": 18,
+    "setup": "D",
+    "setupDescription": "Place 4 |<secure_point_of_interest>Malfunction| tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Malfunction tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each character they control holding a Wildlife during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": null,
+    "attacks": [],
+    "paragraphs": [
+      "During the |*Cleanup Phase|, for each Malfunction a player is Securing, they choose an enemy within |!range| 2 of that Malfunction, and roll a die. On a |!critical|, |!wild|, or |!hit| result, the enemy character gains the Bleed special condition. On a |!block| or blank result, the enemy character gains the Incinerate special condition. On a |!failure| result, the enemy character gains the Stagger special condition. Completely resolve each Malfunction before moving to the next."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": null,
+    "timelines": [
+      "extended"
+    ],
+    "boxSets": [],
+    "inBoxSets": [],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 59,
+    "slug": "mayor-fisk-vows-to-find-missing-witnesses",
+    "replacedBy": "mayor-fisk-vows-to-find-missing-witnesses-ca09",
+    "replaces": null,
+    "cardFamily": "mayor-fisk-vows-to-find-missing-witnesses",
+    "template": "2019",
+    "name": "Mayor Fisk Vows To Find Missing Witnesses",
+    "sanitizedName": "Mayor Fisk Vows To Find Missing Witnesses",
+    "sanitizedOriginalName": "Mayor Fisk Vows To Find Missing Witnesses",
+    "shortName": "Witnesses",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "target_of_opportunity"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 16,
+    "setup": "H",
+    "setupDescription": "Place 2 |<witness>Witness| tokens (Target of Opportunity) as shown on |$H-Map H|.",
+    "sanitizedSetupDescription": "Place 2 Witness tokens (Target of Opportunity) as shown on Map H.",
+    "scoringDescription": "Players score 2 VPs for each Witness they Secure during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00290301",
+    "attacks": [],
+    "paragraphs": [
+      "During the |*Cleanup Phase|, each of the Witnesses may flee. Starting with the player with priority, each player Places all Witnesses Secured by their opponent within |!range| 2 of their current position. Each Witness may be Placed this way only once per Round.",
+      "After a Witness is Placed, each character within |!range| 1 of it suffers 1 |!damage| and gains the Stun special condition."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "spidey",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CP29"
+    ],
+    "inBoxSets": [
+      {
+        "id": 29,
+        "name": "Kingpin",
+        "sanitizedName": "Kingpin",
+        "code": "CP29",
+        "releaseDate": "2020-10-23",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": [
+      {
+        "createdOn": "2026-04-28",
+        "body": "Map setup changed from C to H on 2022-12-09 through digital update"
+      },
+      {
+        "createdOn": "2026-04-28",
+        "body": "Previous setup description read: \"Place two Witnesses (Civilian) on the points near each board edge as shown on Map C.\""
+      },
+      {
+        "createdOn": "2026-04-28",
+        "body": "Previous rules read for 1st paragraph:|\\|\"During the |*Cleanup Phase|, each of the Witnesses may flee. Starting with the player with priority, each player places all Witness tokens secured by their opponent within |!range| 2 of their current position. Each token may be placed in this way only once per round. Then each character within |!range| 1 of a Witness suffers 1 |!damage| and gains the Stun special condition.\""
+      }
+    ]
+  },
+  {
+    "id": 85,
+    "slug": "mayor-fisk-vows-to-find-missing-witnesses-ca09",
+    "replacedBy": null,
+    "replaces": "mayor-fisk-vows-to-find-missing-witnesses",
+    "cardFamily": "mayor-fisk-vows-to-find-missing-witnesses",
+    "template": "2023",
+    "name": "Mayor Fisk Vows To Find Missing Witnesses",
+    "sanitizedName": "Mayor Fisk Vows To Find Missing Witnesses",
+    "sanitizedOriginalName": "Mayor Fisk Vows To Find Missing Witnesses",
+    "shortName": "Witnesses",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "target_of_opportunity"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 16,
+    "setup": "H",
+    "setupDescription": "Place 2 |<witness>Witness| tokens (Target of Opportunity) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 2 Witness tokens (Target of Opportunity) as shown on the map below.",
+    "scoringDescription": "Players score 2 VPs for each Witness they Secure during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00290301",
+    "attacks": [],
+    "paragraphs": [
+      "During the |*Cleanup Phase|, each of the Witnesses may flee. Starting with the player with priority, each player Places all Witnesses Secured by their opponent within |!range| 2 of their current position. Each Witness may be Placed this way only once per Round.",
+      "After a Witness is Placed, each character within |!range| 1 of it suffers 1 |!damage| and gains the Stun special condition."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA09"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": []
+  },
+  {
+    "id": 165,
+    "slug": "mkraan-crystal-gets-heroes-home",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "mkraan-crystal-gets-heroes-home",
+    "template": "2023",
+    "name": "M‘Kraan Crystal Gets Heroes Home!",
+    "sanitizedName": "MKraan Crystal Gets Heroes Home",
+    "sanitizedOriginalName": "MKraan Crystal Gets Heroes Home",
+    "shortName": "Crystal",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": true,
+    "event": false,
+    "threatLevel": 19,
+    "setup": "G",
+    "setupDescription": "Place 4 |<secure_point_of_interest>M‘Kraan Crystal| tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 M‘Kraan Crystal tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each M‘Kraan Crystal they Control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "20130304",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (M‘Kraan Crystal)|: If no enemy characters are Contesting this M‘Kraan Crystal, you now Control this M‘Kraan Crystal. Otherwise roll 1 die. If the result is a |!critical|, |!wild|, or |!hit|, you now Control this M‘Kraan Crystal.",
+      "During the |*Power Phase|, each character holding 1 or more Extract objective tokens that is Contesting a M‘Kraan Crystal gains 1 |!power|."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard",
+      "2026"
+    ],
+    "boxSets": [
+      "CA13"
+    ],
+    "inBoxSets": [
+      {
+        "id": 210,
+        "name": "War of Kings",
+        "sanitizedName": "War of Kings",
+        "code": "CA13",
+        "releaseDate": "2025-03-14",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": []
+  },
+  {
+    "id": 60,
+    "slug": "mutant-extremists-target-us-senators",
+    "replacedBy": "mutant-extremists-target-us-senators-ca09",
+    "replaces": null,
+    "cardFamily": "mutant-extremists-target-us-senators",
+    "template": "2019",
+    "name": "Mutant Extremists Target U.S. Senators!",
+    "sanitizedName": "Mutant Extremists Target US Senators",
+    "sanitizedOriginalName": "Mutant Extremists Target US Senators",
+    "shortName": "Senators",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "civilian"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 19,
+    "setup": "L",
+    "setupDescription": "Place 6 |<senator>Senator| tokens (Civilian) as shown on |$L-Map L|.",
+    "sanitizedSetupDescription": "Place 6 Senator tokens (Civilian) as shown on Map L.",
+    "scoringDescription": "Players score 1 VP per character they control holding a Senator during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "6",
+    "exportCode": "00420301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Senator)|: Pick up this Senator. A character can hold only 1 Senator at a time.",
+      "A character holding a Senator can make only 1 move action per turn."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "xmen",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CP42",
+      "CP140"
+    ],
+    "inBoxSets": [
+      {
+        "id": 42,
+        "name": "Magneto & Toad",
+        "sanitizedName": "Magneto  Toad",
+        "code": "CP42",
+        "releaseDate": "2020-11-13",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 87,
+        "name": "Brotherhood of Mutants Affiliation Pack",
+        "sanitizedName": "Brotherhood of Mutants Affiliation Pack",
+        "code": "CP140",
+        "releaseDate": "2022-12-09",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": [
+      {
+        "createdOn": "2025-04-05",
+        "body": "Map setup changed from C to L on 2022-12-09 through digital update"
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Threat level increased from 14 to 19 on 2022-12-09 through digital update"
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous setup description read: \"Randomly place three Safe Houses (Target of Opportunity) face down as shown on Map C.\""
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous scoring description read: \"Players score 2 VPs if a character they control is holding the Senator during the |*Cleanup Phase|.\""
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous rules read for 1st paragraph:|\\|\"|*Interact (Safe House)|: Flip over the Safe House token. If it is empty, remove the token from the game. If it shows the Senator (Civilian), this character picks up the Senator (Civilian) token.\""
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous rules read for 2nd paragraph:|\\|\"|*Interact (Senator)|: Pick up the Senator.\""
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous rules read for 3rd paragraph:|\\|\"The Speed of the character holding the Senator becomes |!range_small| and it rolls one less dice on defense and dodge rolls.\""
+      }
+    ]
+  },
+  {
+    "id": 86,
+    "slug": "mutant-extremists-target-us-senators-ca09",
+    "replacedBy": null,
+    "replaces": "mutant-extremists-target-us-senators",
+    "cardFamily": "mutant-extremists-target-us-senators",
+    "template": "2023",
+    "name": "Mutant Extremists Target U.S. Senators!",
+    "sanitizedName": "Mutant Extremists Target US Senators",
+    "sanitizedOriginalName": "Mutant Extremists Target US Senators",
+    "shortName": "Senators",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "civilian"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 19,
+    "setup": "L",
+    "setupDescription": "Place 6 |<senator>Senator| tokens (Civilian) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 6 Senator tokens (Civilian) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP per character they control holding a Senator during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "6",
+    "exportCode": "00420301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Senator)|: Pick up this Senator. A character can hold only 1 Senator at a time.",
+      "A character holding a Senator can make only 1 move action per turn."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA09"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 61,
+    "slug": "mutant-madman-turns-city-into-lethal-amusement-park",
+    "replacedBy": "mutant-madman-turns-city-into-lethal-amusement-park-ca09",
+    "replaces": null,
+    "cardFamily": "mutant-madman-turns-city-into-lethal-amusement-park",
+    "template": "2019",
+    "name": "Mutant Madman Turns City Into Lethal Amusement Park",
+    "sanitizedName": "Mutant Madman Turns City Into Lethal Amusement Park",
+    "sanitizedOriginalName": "Mutant Madman Turns City Into Lethal Amusement Park",
+    "shortName": "Mutant Madman",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": true,
+    "event": false,
+    "threatLevel": 18,
+    "setup": "B",
+    "setupDescription": "Place 4 |<trap>Trap| tokens (Point of Interest) as shown on |$B-Map B|.",
+    "sanitizedSetupDescription": "Place 4 Trap tokens (Point of Interest) as shown on Map B.",
+    "scoringDescription": "Players score 1 VP for each Trap they are Controlling during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00410301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Trap)|: Roll dice equal to this character’s |!physical| Defense. If the roll contains more |!critical|, |!hit|, and |!wild| results than the number of Healthy enemy characters Contesting this Trap, this character’s controlling player now Controls this Trap.",
+      "During the |*Cleanup Phase|, each player Controlling a Trap chooses an enemy character within |!range| 2 of each Trap they Control. The chosen character suffers 1 |!damage| and gains 1 |!power|. Resolve each Trap completely before resolving the next."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "xmen",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CP41"
+    ],
+    "inBoxSets": [
+      {
+        "id": 41,
+        "name": "Cyclops & Storm",
+        "sanitizedName": "Cyclops  Storm",
+        "code": "CP41",
+        "releaseDate": "2020-11-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": [
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous setup description read: \"Place four Traps (Target of Opportunity) as indicated on mMap B.\""
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous rules read for 1st paragraph:|\\|\"|*Interact (Trap)|: Roll dice equal to the interacting character’s |!physical| Defense. If the roll contains more |!critical|, |!hit|, and |!wild| results than the number of Healthy contesting enemy characters, the interacting character’s controlling player now controls the Trap.\""
+      }
+    ]
+  },
+  {
+    "id": 87,
+    "slug": "mutant-madman-turns-city-into-lethal-amusement-park-ca09",
+    "replacedBy": null,
+    "replaces": "mutant-madman-turns-city-into-lethal-amusement-park",
+    "cardFamily": "mutant-madman-turns-city-into-lethal-amusement-park",
+    "template": "2023",
+    "name": "Mutant Madman Turns City Into Lethal Amusement Park",
+    "sanitizedName": "Mutant Madman Turns City Into Lethal Amusement Park",
+    "sanitizedOriginalName": "Mutant Madman Turns City Into Lethal Amusement Park",
+    "shortName": "Mutant Madman",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": true,
+    "event": false,
+    "threatLevel": 18,
+    "setup": "B",
+    "setupDescription": "Place 4 |<trap>Trap| tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Trap tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Trap they are Controlling during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00410301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Trap)|: Roll dice equal to this character’s |!physical| Defense. If the roll contains more |!critical|, |!hit|, and |!wild| results than the number of Healthy enemy characters Contesting this Trap, this character’s controlling player now Controls this Trap.",
+      "During the |*Cleanup Phase|, each player Controlling a Trap chooses an enemy character within |!range| 2 of each Trap they Control. The chosen character suffers 1 |!damage| and gains 1 |!power|. Resolve each Trap completely before resolving the next."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA09",
+      "CP272",
+      "CP271",
+      "MCP65",
+      "MCP64"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 352,
+        "name": "Spider-Foes Starter Pack",
+        "sanitizedName": "Spider Foes Starter Pack",
+        "code": "CP272",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 351,
+        "name": "X-Men Starter Pack",
+        "sanitizedName": "X Men Starter Pack",
+        "code": "CP271",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 672,
+        "name": "Guardians of the Galaxy Starter Set",
+        "sanitizedName": "Guardians of the Galaxy Starter Set",
+        "code": "MCP65",
+        "releaseDate": "2026-07-24",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 671,
+        "name": "Asgardians Starter Set",
+        "sanitizedName": "Asgardians Starter Set",
+        "code": "MCP64",
+        "releaseDate": "2026-07-31",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 62,
+    "slug": "mystic-wakandan-herb-fact-or-fiction",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "mystic-wakandan-herb-fact-or-fiction",
+    "template": "2023",
+    "name": "Mystic Wakandan Herb: Fact or Fiction?",
+    "sanitizedName": "Mystic Wakandan Herb: Fact or Fiction",
+    "sanitizedOriginalName": "Mystic Wakandan Herb: Fact or Fiction",
+    "shortName": "Mystic Herb",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "target_of_opportunity",
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 15,
+    "setup": "A",
+    "setupDescription": "Place two |<herb>Herb| (Asset) onto the central points on |$A-map A|. Place two |<vessel>Vessels| (Target of Opportunity) on the other two points.",
+    "sanitizedSetupDescription": "Place two Herb (Asset) onto the central points on map A. Place two Vessels (Target of Opportunity) on the other two points.",
+    "scoringDescription": "Players score 4 VPs if an allied character is holding their Herb while contesting their Vessel during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00070301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Herb)| Pick up your Herb.",
+      "A character holding an Herb cannot perform more than one move action per turn, adds one die to |!physical| attack rolls, and has the |!innate| Immunity [Slow, Stagger] superpower.",
+      "Herbs placed farthest from the player's board edge and Vessels placed closest to the player's board edge are their Herbs and Vessels."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "spidey",
+    "timelines": [
+      "extended"
+    ],
+    "boxSets": [
+      "CP07"
+    ],
+    "inBoxSets": [
+      {
+        "id": 7,
+        "name": "Black Panther & Killmonger",
+        "sanitizedName": "Black Panther  Killmonger",
+        "code": "CP07",
+        "releaseDate": "2019-12-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": [
+      {
+        "createdOn": "2024-10-13",
+        "body": "The card was banned on 2022-06-30."
+      }
+    ]
+  },
+  {
+    "id": 201,
+    "slug": "new-tech-from-the-armory",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "new-tech-from-the-armory",
+    "template": "2023",
+    "name": "New Tech From the Armory",
+    "sanitizedName": "New Tech From the Armory",
+    "sanitizedOriginalName": "New Tech From the Armory",
+    "shortName": "Armory",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": true,
+    "threatLevel": 17,
+    "setup": "E",
+    "setupDescription": "Place 3 |<extract_asset>X-Tech| tokens (Asset) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 3 X-Tech tokens (Asset) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each X-Tech held by a character they control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "3",
+    "exportCode": null,
+    "attacks": [
+      {
+        "type": "energy",
+        "name": "Laser Blast",
+        "range": "5",
+        "strength": "5",
+        "powerCost": 0,
+        "steps": []
+      }
+    ],
+    "paragraphs": [
+      "|*Interact (X-Tech)|: Pick up this X-Tech. A character can hold only 1 X-Tech at a time.",
+      "A character holding an X-Tech may use the following attack once per Turn. It cannot add additional dice to this attack or modify its dice during this attack."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": null,
+    "timelines": [
+      "extended"
+    ],
+    "boxSets": [],
+    "inBoxSets": [],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 63,
+    "slug": "panic-grips-city-as-evacuation-efforts-continue",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "panic-grips-city-as-evacuation-efforts-continue",
+    "template": "2023",
+    "name": "Panic Grips City As Evacuation Efforts Continue!",
+    "sanitizedName": "Panic Grips City As Evacuation Efforts Continue",
+    "sanitizedOriginalName": "Panic Grips City As Evacuation Efforts Continue",
+    "shortName": "Panic Grips City",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "civilian"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 19,
+    "setup": "B",
+    "setupDescription": "Place four |<citizen>Citizens| (Civilian) as indicated on |$B-Map B|.",
+    "sanitizedSetupDescription": "Place four Citizens (Civilian) as indicated on Map B.",
+    "scoringDescription": "Players score 1 VP for each Citizen held by a character they control during the |*Cleanup phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00180301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Citizen)|: Pick up a Citizen.",
+      "A character cannot hold more than one Citizen.",
+      "During its activation, a character holding a Citizen may evacuate the Citizen by spending 6 |!power|. The character's controlling player immediately scores 2 VPs and removes the Citizen held by that character from the game."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "spidey",
+    "timelines": [
+      "extended"
+    ],
+    "boxSets": [
+      "CP18"
+    ],
+    "inBoxSets": [
+      {
+        "id": 18,
+        "name": "Star-Lord",
+        "sanitizedName": "Star Lord",
+        "code": "CP18",
+        "releaseDate": "2020-03-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": [
+      {
+        "createdOn": "2024-10-13",
+        "body": "The card was restricted on 2021-04-23, then banned on 2021-11-22."
+      }
+    ]
+  },
+  {
+    "id": 41,
+    "slug": "paranoia-pummels-populace",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "paranoia-pummels-populace",
+    "template": "2023",
+    "name": "Paranoia Pummels Populace!",
+    "sanitizedName": "Paranoia Pummels Populace",
+    "sanitizedOriginalName": "Paranoia Pummels Populace",
+    "shortName": "Paranoia",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 16,
+    "setup": "K",
+    "setupDescription": "Place 4 Disturbance tokens (Asset) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Disturbance tokens (Asset) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Disturbance a character they control is holding during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "5",
+    "exportCode": "20000313",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Disturbance)|: Pick up this Disturbance. A character can hold only 1 Disturbance at a time.",
+      "When a character picks up a Disturbance, if there is not another allied character within |!range| 2 of it, it suffers 1 |!damage|.",
+      "During the |*Cleanup Phase|, if one or more characters holding a Disturbance are within |!range| 2 of another allied character, those characters’ controlling player scores 1 VP."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA09"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 64,
+    "slug": "portals-overrun-city-with-spider-people",
+    "replacedBy": "portals-overrun-city-with-spider-people-ca09",
+    "replaces": null,
+    "cardFamily": "portals-overrun-city-with-spider-people",
+    "template": "2019",
+    "name": "Portals Overrun City With Spider-People!",
+    "sanitizedName": "Portals Overrun City With Spider People",
+    "sanitizedOriginalName": "Portals Overrun City With Spider People",
+    "shortName": "Spider Portals",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": true,
+    "event": false,
+    "threatLevel": 18,
+    "setup": "D",
+    "setupDescription": "Place 4 |<inheritor_portal>Inheritor Portals| (Point of Interest) as shown on |$D-Map D|.",
+    "sanitizedSetupDescription": "Place 4 Inheritor Portals (Point of Interest) as shown on Map D.",
+    "scoringDescription": "Players score 1 VP for each Inheritor Portal they Control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00100301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Inheritor Portal)|: Roll dice equal to this character’s |!energy| Defense. If the roll contains more |!critical|, |!hit|, and |!wild| results than the number of Healthy enemy characters Contesting this Inheritor Portal, this character’s controlling player now Controls this Inheritor Portal. If the roll contains at least 1 |!failure|, this character is Placed within |!range| 2 of its current position. The opposing player resolves this Place."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "spidey",
+    "timelines": [
+      "extended",
+      "2024"
+    ],
+    "boxSets": [
+      "CP10",
+      "CP146"
+    ],
+    "inBoxSets": [
+      {
+        "id": 10,
+        "name": "Spider-Man & Ghost Spider",
+        "sanitizedName": "Spider Man  Ghost Spider",
+        "code": "CP10",
+        "releaseDate": "2020-08-14",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 88,
+        "name": "Web Warriors Affiliation Pack",
+        "sanitizedName": "Web Warriors Affiliation Pack",
+        "code": "CP146",
+        "releaseDate": "2023-01-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": [
+      {
+        "createdOn": "2026-01-28",
+        "body": "Previous setup description read: \"Place four Inheritor Portals (Target of Opportunity) as indicated on map D.\""
+      },
+      {
+        "createdOn": "2026-01-28",
+        "body": "Previous rules read for 1st paragraph:|\\|\"|*Interact (Inheritor Portal)|: Roll dice equal to the interacting character’s |!energy| |*Defense|. If the roll contains more |!critical|, |!wild|, and |!hit| results than the number of Healthy contesting enemy characters, the interacting character’s controlling player now controls the Portal. If the roll contains at least one |!failure|, the interacting character is placed within |!range| 2 of its current position. The opposing player resolves this placement.\""
+      }
+    ]
+  },
+  {
+    "id": 88,
+    "slug": "portals-overrun-city-with-spider-people-ca09",
+    "replacedBy": null,
+    "replaces": "portals-overrun-city-with-spider-people",
+    "cardFamily": "portals-overrun-city-with-spider-people",
+    "template": "2023",
+    "name": "Portals Overrun City With Spider-People!",
+    "sanitizedName": "Portals Overrun City With Spider People",
+    "sanitizedOriginalName": "Portals Overrun City With Spider People",
+    "shortName": "Spider Portals",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": true,
+    "event": false,
+    "threatLevel": 18,
+    "setup": "D",
+    "setupDescription": "Place 4 |<inheritor_portal>Inheritor Portals| (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Inheritor Portals (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Inheritor Portal they Control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00100301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Inheritor Portal)|: Roll dice equal to this character’s |!energy| Defense. If the roll contains more |!critical|, |!hit|, and |!wild| results than the number of Healthy enemy characters Contesting this Inheritor Portal, this character’s controlling player now Controls this Inheritor Portal. If the roll contains at least 1 |!failure|, this character is Placed within |!range| 2 of its current position. The opposing player resolves this Place."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024"
+    ],
+    "boxSets": [
+      "CA09"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 296,
+    "slug": "power-overload-factory-goes-up-in-flames",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "power-overload-factory-goes-up-in-flames",
+    "template": "2023",
+    "name": "Power Overload! Factory Goes Up in Flames",
+    "sanitizedName": "Power Overload Factory Goes Up in Flames",
+    "sanitizedOriginalName": "Power Overload Factory Goes Up in Flames",
+    "shortName": "Power Overload",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 19,
+    "setup": "Y",
+    "setupDescription": "Place 4 Power Conduit tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Power Conduit tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Power Conduit they Secure during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "5",
+    "exportCode": "20230305",
+    "attacks": [],
+    "paragraphs": [
+      "During the |*Score VPs| part of the |*Cleanup Phase|, if a player is Securing 2 or more Power Conduits and at least 2 of those Power Conduits are not within |!range| 5 of each other, that player scores 1 additional VP.",
+      "During the |*Cleanup Phase|, for each Power Conduit, if 3 or more characters are within |!range| 1 of that Power Conduit, each of those characters suffers 1 |!damage|."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard"
+    ],
+    "boxSets": [
+      "CA23"
+    ],
+    "inBoxSets": [
+      {
+        "id": 438,
+        "name": "Operation: Zero Tolerance",
+        "sanitizedName": "Operation: Zero Tolerance",
+        "code": "CA23",
+        "releaseDate": "2026-06-12",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": "2026-06-12",
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 65,
+    "slug": "research-station-attacked",
+    "replacedBy": "research-station-attacked-ca09",
+    "replaces": null,
+    "cardFamily": "research-station-attacked",
+    "template": "2019",
+    "name": "Research Station Attacked!",
+    "sanitizedName": "Research Station Attacked",
+    "sanitizedOriginalName": "Research Station Attacked",
+    "shortName": "Research Station",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset",
+      "civilian"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 15,
+    "setup": "E",
+    "setupDescription": "Place 1 |<researcher>Researcher| token (Civilian) onto the central point on |$E-Map E|. Place 2 |<evac_point>Evac Point| tokens (Asset) onto the other points on Map E.",
+    "sanitizedSetupDescription": "Place 1 Researcher token (Civilian) onto the central point on Map E. Place 2 Evac Point tokens (Asset) onto the other points on Map E.",
+    "scoringDescription": "A player scores 2 VPs if they are securing the Researcher during the |*Cleanup Phase|. Then they score 1 additional VP if the Researcher is within |!range| 1 of their Evac Point.",
+    "maxVPsPerRound": "3",
+    "exportCode": "00630301",
+    "attacks": [],
+    "paragraphs": [
+      "During the |*Power Phase|, the Researcher may move. If a player is securing the Researcher, they may Place it within |!range| 2 of its current location.",
+      "The Evac Point farthest from a player’s battlefield edge is their Evac Point."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "xmen",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025"
+    ],
+    "boxSets": [
+      "CP63"
+    ],
+    "inBoxSets": [
+      {
+        "id": 62,
+        "name": "Scarlet Witch & Quicksilver",
+        "sanitizedName": "Scarlet Witch  Quicksilver",
+        "code": "CP63",
+        "releaseDate": "2021-05-06",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": [
+      {
+        "createdOn": "2025-04-05",
+        "body": "Restricted since 2024-09-27"
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Threat level reduced from 16 to 15 on 2022-12-09 through digital update"
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous setup description read: \"Place 1 Researcher (Civilian) onto the central point on map E. Place two Evac Point (Target of Opportunity) on the other two points.\""
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous scoring description read: \"A player scores 2 VPs if they are securing the Researcher during the |*Cleanup Phase|. Then a player scores 2 VPs if the Researcher is within |!range| 1 of their Evac Point during the |*Cleanup Phase|.\""
+      }
+    ]
+  },
+  {
+    "id": 89,
+    "slug": "research-station-attacked-ca09",
+    "replacedBy": null,
+    "replaces": "research-station-attacked",
+    "cardFamily": "research-station-attacked",
+    "template": "2023",
+    "name": "Research Station Attacked!",
+    "sanitizedName": "Research Station Attacked",
+    "sanitizedOriginalName": "Research Station Attacked",
+    "shortName": "Research Station",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset",
+      "civilian"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 15,
+    "setup": "E",
+    "setupDescription": "Place 1 |<researcher>Researcher| token (Civilian) and 2 |<evac_point>Evac Point| tokens (Asset) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 1 Researcher token (Civilian) and 2 Evac Point tokens (Asset) as shown on the map below.",
+    "scoringDescription": "A player scores 2 VPs if they are securing the Researcher during the |*Cleanup Phase|. Then they score 1 additional VP if the Researcher is within |!range| 1 of their Evac Point.",
+    "maxVPsPerRound": "3",
+    "exportCode": "00630301",
+    "attacks": [],
+    "paragraphs": [
+      "During the |*Power Phase|, the Researcher may move. If a player is securing the Researcher, they may Place it within |!range| 2 of its current location.",
+      "The Evac Point farthest from a player’s battlefield edge is their Evac Point."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025"
+    ],
+    "boxSets": [
+      "CA09"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": [
+      {
+        "createdOn": "2026-01-28",
+        "body": "Restricted since 2024-09-27"
+      }
+    ]
+  },
+  {
+    "id": 66,
+    "slug": "riots-spark-over-extremis-30",
+    "replacedBy": "riots-spark-over-extremis-30-ca09",
+    "replaces": null,
+    "cardFamily": "riots-spark-over-extremis-30",
+    "template": "2019",
+    "name": "Riots Spark Over Extremis 3.0",
+    "sanitizedName": "Riots Spark Over Extremis 30",
+    "sanitizedOriginalName": "Riots Spark Over Extremis 30",
+    "shortName": "Riots",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "D",
+    "setupDescription": "Place 4 |<extremis_console>Extremis Console| tokens (Point of Interest) as shown on |$D-Map D|.",
+    "sanitizedSetupDescription": "Place 4 Extremis Console tokens (Point of Interest) as shown on Map D.",
+    "scoringDescription": "Players score 1 VP for each Extremis Console they Secure during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00010303",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Extremis Console)|: Remove 1 |!damage| from a non-Dazed character within |!range| 2 of this Extremis Console."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "spidey",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CP01"
+    ],
+    "inBoxSets": [
+      {
+        "id": 1,
+        "name": "Core Set",
+        "sanitizedName": "Core Set",
+        "code": "CP01",
+        "releaseDate": "2019-11-15",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": [
+      {
+        "createdOn": "2026-04-28",
+        "body": "The Challenger Crisis Card Set 2025 (following the release of War of King) dropped the \"allied\" constraint on the Interaction."
+      },
+      {
+        "createdOn": "2026-04-28",
+        "body": "The digital card mentions \"Players score 1 VP for each Extremis Console they Control\" in the scoring section, but a post on AMG's forum says it should read \"Secure\"."
+      },
+      {
+        "createdOn": "2026-04-28",
+        "body": "Previous setup description read: \"Place four Extremis Consoles (Target of Opportunity) as shown on Map D.\""
+      }
+    ]
+  },
+  {
+    "id": 90,
+    "slug": "riots-spark-over-extremis-30-ca09",
+    "replacedBy": null,
+    "replaces": "riots-spark-over-extremis-30",
+    "cardFamily": "riots-spark-over-extremis-30",
+    "template": "2023",
+    "name": "Riots Spark Over Extremis 3.0",
+    "sanitizedName": "Riots Spark Over Extremis 30",
+    "sanitizedOriginalName": "Riots Spark Over Extremis 30",
+    "shortName": "Riots",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "D",
+    "setupDescription": "Place 4 |<extremis_console>Extremis Console| tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Extremis Console tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Extremis Console they Secure during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00010303",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Extremis Console)|: Remove 1 |!damage| from a non-Dazed character within |!range| 2 of this Extremis Console."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA09",
+      "CP143"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 136,
+        "name": "Earth's Mightiest Core Set",
+        "sanitizedName": "Earth s Mightiest Core Set",
+        "code": "CP143",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": [
+      {
+        "createdOn": "2026-04-28",
+        "body": "The Challenger Crisis Card Set 2025 (following the release of War of King) dropped the \"allied\" constraint on the Interaction."
+      },
+      {
+        "createdOn": "2026-04-28",
+        "body": "The digital card mentions \"Players score 1 VP for each Extremis Console they Control\" in the scoring section, but a post on AMG's forum says it should read \"Secure\"."
+      }
+    ]
+  },
+  {
+    "id": 298,
+    "slug": "salvaged-supplies-fuel-resistance-efforts",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "salvaged-supplies-fuel-resistance-efforts",
+    "template": "2023",
+    "name": "Salvaged Supplies Fuel Resistance Efforts",
+    "sanitizedName": "Salvaged Supplies Fuel Resistance Efforts",
+    "sanitizedOriginalName": "Salvaged Supplies Fuel Resistance Efforts",
+    "shortName": "Salvaged Supplies",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 18,
+    "setup": "AA",
+    "setupDescription": "Place 2 Supply tokens (Asset) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 2 Supply tokens (Asset) as shown on the map below.",
+    "scoringDescription": "Players score 2 VPs for each character they control that is holding Supplies during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "20230306",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Supplies)|: If another allied non-Grunt character is Contesting these Supplies, pick them up. Supplies are Limited.",
+      "When a character that is holding Supplies ends its Activation, if it is not within |!range| 2 of another allied character, it drops those Supplies.",
+      "When Supplies would be moved to another character, they are dropped instead."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard"
+    ],
+    "boxSets": [
+      "CA23"
+    ],
+    "inBoxSets": [
+      {
+        "id": 438,
+        "name": "Operation: Zero Tolerance",
+        "sanitizedName": "Operation: Zero Tolerance",
+        "code": "CA23",
+        "releaseDate": "2026-06-12",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": "2026-06-12",
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 131,
+    "slug": "scientific-samples-found-in-discovered-universe",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "scientific-samples-found-in-discovered-universe",
+    "template": "2023",
+    "name": "Scientific Samples Found in Discovered Universe",
+    "sanitizedName": "Scientific Samples Found in Discovered Universe",
+    "sanitizedOriginalName": "Scientific Samples Found in Discovered Universe",
+    "shortName": "Samples",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "D",
+    "setupDescription": "Place 4 |<extract_asset>Sample| tokens (Assets) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Sample tokens (Assets) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each character they control that is holding a Sample during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "5",
+    "exportCode": "20130305",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Sample)|: Pick up this Sample. A character can hold only 1 Sample at a time.",
+      "Once per Turn, when a character holding a Sample rolls dice, after the effect is resolved, if the roll contained one or more |!failure| results, that character gains 1 |!power|.",
+      "Additionally, during the |*Cleanup Phase|, if all of a player's characters holding Extract objective tokens are within |!range| 2 of one or more Secure objective tokens, that player scores 1 VP."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA13",
+      "CP272",
+      "CP271",
+      "MCP65",
+      "MCP64"
+    ],
+    "inBoxSets": [
+      {
+        "id": 210,
+        "name": "War of Kings",
+        "sanitizedName": "War of Kings",
+        "code": "CA13",
+        "releaseDate": "2025-03-14",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 352,
+        "name": "Spider-Foes Starter Pack",
+        "sanitizedName": "Spider Foes Starter Pack",
+        "code": "CP272",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 351,
+        "name": "X-Men Starter Pack",
+        "sanitizedName": "X Men Starter Pack",
+        "code": "CP271",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 672,
+        "name": "Guardians of the Galaxy Starter Set",
+        "sanitizedName": "Guardians of the Galaxy Starter Set",
+        "code": "MCP65",
+        "releaseDate": "2026-07-24",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 671,
+        "name": "Asgardians Starter Set",
+        "sanitizedName": "Asgardians Starter Set",
+        "code": "MCP64",
+        "releaseDate": "2026-07-31",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 295,
+    "slug": "sentinel-schematics-sabotaged",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "sentinel-schematics-sabotaged",
+    "template": "2023",
+    "name": "Sentinel Schematics Sabotaged!",
+    "sanitizedName": "Sentinel Schematics Sabotaged",
+    "sanitizedOriginalName": "Sentinel Schematics Sabotaged",
+    "shortName": "Sentinel Schematics",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "source",
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "AC",
+    "setupDescription": "Place 4 Unexhausted Factory tokens (Source) as shown on the map below. Set aside 4 Nanite tokens (Asset).",
+    "sanitizedSetupDescription": "Place 4 Unexhausted Factory tokens (Source) as shown on the map below. Set aside 4 Nanite tokens (Asset).",
+    "scoringDescription": "Players score 1 VP for each character they control that is holding a Nanite during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "20230307",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Factory)|: Flip this Factory and pick up a Nanite from it. Nanites are Limited. A character cannot Interact with a Factory while it is holding a Nanite.",
+      "When a character holding a Nanite attacks a character within |!range| 2, add 1 die to that attack roll.",
+      "|*Disintegrate|: During the |*Cleanup Phase|, remove all Nanites from the Game and Flip each Exhausted Factory."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard"
+    ],
+    "boxSets": [
+      "CA23"
+    ],
+    "inBoxSets": [
+      {
+        "id": 438,
+        "name": "Operation: Zero Tolerance",
+        "sanitizedName": "Operation: Zero Tolerance",
+        "code": "CA23",
+        "releaseDate": "2026-06-12",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": "2026-06-12",
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 130,
+    "slug": "ship-security-breached-in-royal-rescue",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "ship-security-breached-in-royal-rescue",
+    "template": "2023",
+    "name": "Ship Security Breached in Royal Rescue",
+    "sanitizedName": "Ship Security Breached in Royal Rescue",
+    "sanitizedOriginalName": "Ship Security Breached in Royal Rescue",
+    "shortName": "Ship",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 20,
+    "setup": "J",
+    "setupDescription": "Place 4 |<extract_asset>Keycard| tokens (Assets) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Keycard tokens (Assets) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each character they control that is holding a Keycard during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "20130306",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Keycard)|: Pick up this Keycard. A character can hold only 1 Keycard at a time.",
+      "When a character holding a Keycard interacts with an objective token, after the effect is resolved, it gains 1 |!power|."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA13"
+    ],
+    "inBoxSets": [
+      {
+        "id": 210,
+        "name": "War of Kings",
+        "sanitizedName": "War of Kings",
+        "code": "CA13",
+        "releaseDate": "2025-03-14",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 198,
+    "slug": "sinkholes-open-across-city",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "sinkholes-open-across-city",
+    "template": "2023",
+    "name": "Sinkholes Open Across City!",
+    "sanitizedName": "Sinkholes Open Across City",
+    "sanitizedOriginalName": "Sinkholes Open Across City",
+    "shortName": "Sinkholes",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": true,
+    "threatLevel": 19,
+    "setup": "E",
+    "setupDescription": "Place 3 |<secure_point_of_interest>Sinkholes| tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 3 Sinkholes tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Sinkhole they are Securing during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "3",
+    "exportCode": null,
+    "attacks": [],
+    "paragraphs": [
+      "During the |*Power Phase|, characters within |!range| 1 of a Sinkhole gain the Slow special condition."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": null,
+    "timelines": [
+      "extended"
+    ],
+    "boxSets": [],
+    "inBoxSets": [],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 67,
+    "slug": "skrulls-infiltrate-world-leadership",
+    "replacedBy": "skrulls-infiltrate-world-leadership-ca09",
+    "replaces": null,
+    "cardFamily": "skrulls-infiltrate-world-leadership",
+    "template": "2019",
+    "name": "Skrulls Infiltrate World Leadership",
+    "sanitizedName": "Skrulls Infiltrate World Leadership",
+    "sanitizedOriginalName": "Skrulls Infiltrate World Leadership",
+    "shortName": "Skrulls",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "civilian"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 20,
+    "setup": "J",
+    "setupDescription": "Place 4 |<skrull_agent>Skrull Agent| tokens (Civilian) as shown on |$J-Map J|.",
+    "sanitizedSetupDescription": "Place 4 Skrull Agent tokens (Civilian) as shown on Map J.",
+    "scoringDescription": "Players score 1 VP for each Skrull Agent held by a character they control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00010304",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Skrull Agent)|: Pick up this Skrull Agent. A character can hold only 1 Skrull Agent at a time. Then roll dice equal to this character’s |!physical| defense. If the result does not contain one or more |!critical| or |!wild| results, the opposing player Pushes this character |!range_small|."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "spidey",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CP01"
+    ],
+    "inBoxSets": [
+      {
+        "id": 1,
+        "name": "Core Set",
+        "sanitizedName": "Core Set",
+        "code": "CP01",
+        "releaseDate": "2019-11-15",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": [
+      {
+        "createdOn": "2025-04-05",
+        "body": "Map setup changed from C to J on 2022-12-09 through digital update"
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Threat level increased from 17 to 20 on 2022-12-09 through digital update"
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous setup description read: \"Place three Decoys (Civilians) as shown on Map C.\""
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous scoring description read: \"Players score 2 VPs if a character they control is holding the Skrull Agent during the |*Cleanup Phase|.\""
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous rules read for 1st paragraph:|\\|\"|*Interact (Decoy)|: Roll two dice. If either die is a |!critical|, that character picks up the Skrull Agent (Civilian) and removes all Decoy tokens from the battlefield.\""
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous rules read for 2nd paragraph:|\\|\"|*Interact (Skrull Agent)|: Pick up this Skrull Agent.\""
+      },
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous rules read for 3rd paragraph:|\\|\"The |*Speed| of the character holding the Skrull Agent becomes |!range_small|.\""
+      }
+    ]
+  },
+  {
+    "id": 91,
+    "slug": "skrulls-infiltrate-world-leadership-ca09",
+    "replacedBy": null,
+    "replaces": "skrulls-infiltrate-world-leadership",
+    "cardFamily": "skrulls-infiltrate-world-leadership",
+    "template": "2023",
+    "name": "Skrulls Infiltrate World Leadership",
+    "sanitizedName": "Skrulls Infiltrate World Leadership",
+    "sanitizedOriginalName": "Skrulls Infiltrate World Leadership",
+    "shortName": "Skrulls",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "civilian"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 20,
+    "setup": "J",
+    "setupDescription": "Place 4 |<skrull_agent>Skrull Agent| tokens (Civilian) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Skrull Agent tokens (Civilian) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Skrull Agent held by a character they control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00010304",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Skrull Agent)|: Pick up this Skrull Agent. A character can hold only 1 Skrull Agent at a time. Then roll dice equal to this character’s |!physical| defense. If the result does not contain one or more |!critical| or |!wild| results, the opposing player Pushes this character |!range_small|."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA09",
+      "CP143",
+      "CP272",
+      "CP271",
+      "MCP65",
+      "MCP64"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 136,
+        "name": "Earth's Mightiest Core Set",
+        "sanitizedName": "Earth s Mightiest Core Set",
+        "code": "CP143",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 352,
+        "name": "Spider-Foes Starter Pack",
+        "sanitizedName": "Spider Foes Starter Pack",
+        "code": "CP272",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 351,
+        "name": "X-Men Starter Pack",
+        "sanitizedName": "X Men Starter Pack",
+        "code": "CP271",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 672,
+        "name": "Guardians of the Galaxy Starter Set",
+        "sanitizedName": "Guardians of the Galaxy Starter Set",
+        "code": "MCP65",
+        "releaseDate": "2026-07-24",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 671,
+        "name": "Asgardians Starter Set",
+        "sanitizedName": "Asgardians Starter Set",
+        "code": "MCP64",
+        "releaseDate": "2026-07-31",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 68,
+    "slug": "spider-infected-invade-manhattan",
+    "replacedBy": "spider-infected-invade-manhattan-ca09",
+    "replaces": null,
+    "cardFamily": "spider-infected-invade-manhattan",
+    "template": "2019",
+    "name": "Spider-Infected Invade Manhattan",
+    "sanitizedName": "Spider Infected Invade Manhattan",
+    "sanitizedOriginalName": "Spider Infected Invade Manhattan",
+    "shortName": "Spider-Infected",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "civilian"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "F",
+    "setupDescription": "Place 5 |<spider_infected_double>Spider-Infected| tokens (Civilian) as shown on |$F-Map F|.",
+    "sanitizedSetupDescription": "Place 5 Spider-Infected tokens (Civilian) as shown on Map F.",
+    "scoringDescription": "Players score 1 VP for each Spider-Infected held by a character they control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "5",
+    "exportCode": "00010305",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Spider-Infected)|: Pick up this Spider-Infected. A character can hold only 1 Spider-Infected at a time.",
+      "During the |*Power Phase|, starting with the player with Priority, players roll 1 die for each character they control holding a Spider-Infected. If the result is a |!critical|, |!wild|, or |!hit|, that character Advances |!range_small| before rolling for the next character. The opposing player resolves this Advance."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "spidey",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CP01"
+    ],
+    "inBoxSets": [
+      {
+        "id": 1,
+        "name": "Core Set",
+        "sanitizedName": "Core Set",
+        "code": "CP01",
+        "releaseDate": "2019-11-15",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 92,
+    "slug": "spider-infected-invade-manhattan-ca09",
+    "replacedBy": null,
+    "replaces": "spider-infected-invade-manhattan",
+    "cardFamily": "spider-infected-invade-manhattan",
+    "template": "2023",
+    "name": "Spider-Infected Invade Manhattan",
+    "sanitizedName": "Spider Infected Invade Manhattan",
+    "sanitizedOriginalName": "Spider Infected Invade Manhattan",
+    "shortName": "Spider-Infected",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "civilian"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "F",
+    "setupDescription": "Place 5 |<spider_infected_double>Spider-Infected| tokens (Civilian) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 5 Spider-Infected tokens (Civilian) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Spider-Infected held by a character they control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "5",
+    "exportCode": "00010305",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Spider-Infected)|: Pick up this Spider-Infected. A character can hold only 1 Spider-Infected at a time.",
+      "During the |*Power Phase|, starting with the player with Priority, players roll 1 die for each character they control holding a Spider-Infected. If the result is a |!critical|, |!wild|, or |!hit|, that character Advances |!range_small| before rolling for the next character. The opposing player resolves this Advance."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA09",
+      "CP143",
+      "CP272",
+      "CP271",
+      "MCP65",
+      "MCP64"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 136,
+        "name": "Earth's Mightiest Core Set",
+        "sanitizedName": "Earth s Mightiest Core Set",
+        "code": "CP143",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 352,
+        "name": "Spider-Foes Starter Pack",
+        "sanitizedName": "Spider Foes Starter Pack",
+        "code": "CP272",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 351,
+        "name": "X-Men Starter Pack",
+        "sanitizedName": "X Men Starter Pack",
+        "code": "CP271",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 672,
+        "name": "Guardians of the Galaxy Starter Set",
+        "sanitizedName": "Guardians of the Galaxy Starter Set",
+        "code": "MCP65",
+        "releaseDate": "2026-07-24",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 671,
+        "name": "Asgardians Starter Set",
+        "sanitizedName": "Asgardians Starter Set",
+        "code": "MCP64",
+        "releaseDate": "2026-07-31",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 166,
+    "slug": "strike-team-secures-shield-relay",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "strike-team-secures-shield-relay",
+    "template": "2023",
+    "name": "Strike Team Secures Shield Relay!",
+    "sanitizedName": "Strike Team Secures Shield Relay",
+    "sanitizedOriginalName": "Strike Team Secures Shield Relay",
+    "shortName": "Strike Team",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": true,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "D",
+    "setupDescription": "Place 4 |<secure_point_of_interest>Generator| tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Generator tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Generator they Control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "20130307",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Generator)|: Roll dice equal to this character's |!physical| defense. If the roll contains more |!critical|, |!wild|, and |!hit| results than the number of Healthy enemy characters Contesting this Generator, this character's controlling player now Controls this Generator.",
+      "Characters within |!range| 2 of a Generator they Control may reroll 1 die in their defense rolls."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard",
+      "2026"
+    ],
+    "boxSets": [
+      "CA13"
+    ],
+    "inBoxSets": [
+      {
+        "id": 210,
+        "name": "War of Kings",
+        "sanitizedName": "War of Kings",
+        "code": "CA13",
+        "releaseDate": "2025-03-14",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": "2026-06-12",
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 69,
+    "slug": "struggle-for-the-cube-continues",
+    "replacedBy": "struggle-for-the-cube-continues-ca09",
+    "replaces": null,
+    "cardFamily": "struggle-for-the-cube-continues",
+    "template": "2019",
+    "name": "Struggle For The Cube Continues",
+    "sanitizedName": "Struggle For The Cube Continues",
+    "sanitizedOriginalName": "Struggle For The Cube Continues",
+    "shortName": "Cosmic Cubes",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "F",
+    "setupDescription": "Place 5 |<cosmic_cube_fragment>Cosmic Cube Fragment| tokens (Asset) as shown on |$F-Map F|.",
+    "sanitizedSetupDescription": "Place 5 Cosmic Cube Fragment tokens (Asset) as shown on Map F.",
+    "scoringDescription": "Players score 1 VP for each Cosmic Cube Fragment held by a character they control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "5",
+    "exportCode": "00010306",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Cosmic Cube Fragment)|: Pick up this Cosmic Cube Fragment.",
+      "During the |*Cleanup Phase|, each character suffers 1 |!damage| for each Cosmic Cube Fragment it is holding. Characters gain 1 |!power| for each |!damage| they suffered this way."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "spidey",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CP01"
+    ],
+    "inBoxSets": [
+      {
+        "id": 1,
+        "name": "Core Set",
+        "sanitizedName": "Core Set",
+        "code": "CP01",
+        "releaseDate": "2019-11-15",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": []
+  },
+  {
+    "id": 93,
+    "slug": "struggle-for-the-cube-continues-ca09",
+    "replacedBy": null,
+    "replaces": "struggle-for-the-cube-continues",
+    "cardFamily": "struggle-for-the-cube-continues",
+    "template": "2023",
+    "name": "Struggle For The Cube Continues",
+    "sanitizedName": "Struggle For The Cube Continues",
+    "sanitizedOriginalName": "Struggle For The Cube Continues",
+    "shortName": "Cosmic Cubes",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "F",
+    "setupDescription": "Place 5 |<cosmic_cube_fragment>Cosmic Cube Fragment| tokens (Asset) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 5 Cosmic Cube Fragment tokens (Asset) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Cosmic Cube Fragment held by a character they control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "5",
+    "exportCode": "00010306",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Cosmic Cube Fragment)|: Pick up this Cosmic Cube Fragment.",
+      "During the |*Cleanup Phase|, each character suffers 1 |!damage| for each Cosmic Cube Fragment it is holding. Characters gain 1 |!power| for each |!damage| they suffered this way."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA09",
+      "CP143"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 136,
+        "name": "Earth's Mightiest Core Set",
+        "sanitizedName": "Earth s Mightiest Core Set",
+        "code": "CP143",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": []
+  },
+  {
+    "id": 70,
+    "slug": "super-powered-scoundrels-form-sinister-syndicate",
+    "replacedBy": "super-powered-scoundrels-form-sinister-syndicate-ca09",
+    "replaces": null,
+    "cardFamily": "super-powered-scoundrels-form-sinister-syndicate",
+    "template": "2019",
+    "name": "Super-Powered Scoundrels Form Sinister Syndicate",
+    "sanitizedName": "Super Powered Scoundrels Form Sinister Syndicate",
+    "sanitizedOriginalName": "Super Powered Scoundrels Form Sinister Syndicate",
+    "shortName": "Scoundrels",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 20,
+    "setup": "F",
+    "setupDescription": "Place 5 |<ambush>Ambush| tokens (Point of Interest) as shown on |$F-Map F|.",
+    "sanitizedSetupDescription": "Place 5 Ambush tokens (Point of Interest) as shown on Map F.",
+    "scoringDescription": "Players score 1 VP for each Ambush they Secure during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "5",
+    "exportCode": "00600301",
+    "attacks": [],
+    "paragraphs": [
+      "Characters Contesting an Ambush have Cover from characters not Contesting the same Ambush."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "xmen",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CP60"
+    ],
+    "inBoxSets": [
+      {
+        "id": 59,
+        "name": "Rogue & Gambit",
+        "sanitizedName": "Rogue  Gambit",
+        "code": "CP60",
+        "releaseDate": "2022-02-11",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": [
+      {
+        "createdOn": "2025-04-05",
+        "body": "Previous setup description read: \"Place 5 Ambush Tokens (Target of Opportunity) as shown on Map F.\""
+      }
+    ]
+  },
+  {
+    "id": 94,
+    "slug": "super-powered-scoundrels-form-sinister-syndicate-ca09",
+    "replacedBy": null,
+    "replaces": "super-powered-scoundrels-form-sinister-syndicate",
+    "cardFamily": "super-powered-scoundrels-form-sinister-syndicate",
+    "template": "2023",
+    "name": "Super-Powered Scoundrels Form Sinister Syndicate",
+    "sanitizedName": "Super Powered Scoundrels Form Sinister Syndicate",
+    "sanitizedOriginalName": "Super Powered Scoundrels Form Sinister Syndicate",
+    "shortName": "Scoundrels",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 20,
+    "setup": "F",
+    "setupDescription": "Place 5 |<ambush>Ambush| tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 5 Ambush tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Ambush they Secure during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "5",
+    "exportCode": "00600301",
+    "attacks": [],
+    "paragraphs": [
+      "Characters Contesting an Ambush have Cover from characters not Contesting the same Ambush."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA09",
+      "CP272",
+      "CP271",
+      "MCP65",
+      "MCP64"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 352,
+        "name": "Spider-Foes Starter Pack",
+        "sanitizedName": "Spider Foes Starter Pack",
+        "code": "CP272",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 351,
+        "name": "X-Men Starter Pack",
+        "sanitizedName": "X Men Starter Pack",
+        "code": "CP271",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 672,
+        "name": "Guardians of the Galaxy Starter Set",
+        "sanitizedName": "Guardians of the Galaxy Starter Set",
+        "code": "MCP65",
+        "releaseDate": "2026-07-24",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 671,
+        "name": "Asgardians Starter Set",
+        "sanitizedName": "Asgardians Starter Set",
+        "code": "MCP64",
+        "releaseDate": "2026-07-31",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 263,
+    "slug": "surprise-assault-mutant-homes-destroyed",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "surprise-assault-mutant-homes-destroyed",
+    "template": "2023",
+    "name": "Surprise Assault! Mutant Homes Destroyed",
+    "sanitizedName": "Surprise Assault Mutant Homes Destroyed",
+    "sanitizedOriginalName": "Surprise Assault Mutant Homes Destroyed",
+    "shortName": "Assault",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "source",
+      "civilian"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 16,
+    "setup": "U",
+    "setupDescription": "Place 4 Unexhausted Haven tokens (Source) as shown on the map below. Set aside 4 Mutant tokens (Civilian).",
+    "sanitizedSetupDescription": "Place 4 Unexhausted Haven tokens (Source) as shown on the map below. Set aside 4 Mutant tokens (Civilian).",
+    "scoringDescription": "Players score 1 VP for each character they control that is holding a Mutant during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "20230308",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Haven)|: Flip this Haven and pick up a Mutant from it. Mutants are Limited. A character cannot Interact with a Haven while it is holding a Mutant.",
+      "|*Flee!|: During the |*Cleanup Phase|, remove all Mutants from the Game and Flip each Exhausted Haven."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard"
+    ],
+    "boxSets": [
+      "CA23"
+    ],
+    "inBoxSets": [
+      {
+        "id": 438,
+        "name": "Operation: Zero Tolerance",
+        "sanitizedName": "Operation: Zero Tolerance",
+        "code": "CA23",
+        "releaseDate": "2026-06-12",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": "2026-06-12",
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 297,
+    "slug": "survivors-search-for-safe-shelters",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "survivors-search-for-safe-shelters",
+    "template": "2023",
+    "name": "Survivors Search for Safe Shelters",
+    "sanitizedName": "Survivors Search for Safe Shelters",
+    "sanitizedOriginalName": "Survivors Search for Safe Shelters",
+    "shortName": "Survivors",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 20,
+    "setup": "Z",
+    "setupDescription": "Place 3 Shelter tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 3 Shelter tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Shelter they Secure during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "3",
+    "exportCode": "20230309",
+    "attacks": [],
+    "paragraphs": [
+      "When a character Contesting a Shelter is targeted by an attack, 1 other allied character that is also Contesting that Shelter may spend 1 |!power|. If it does, the defender adds 1 die to its defense roll. A character can add dice to its roll in this way only once per Turn."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard"
+    ],
+    "boxSets": [
+      "CA23"
+    ],
+    "inBoxSets": [
+      {
+        "id": 438,
+        "name": "Operation: Zero Tolerance",
+        "sanitizedName": "Operation: Zero Tolerance",
+        "code": "CA23",
+        "releaseDate": "2026-06-12",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": "2026-06-12",
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 75,
+    "slug": "sword-establishes-base-on-moons-blue-area",
+    "replacedBy": "sword-establishes-base-on-moons-blue-area-ca09",
+    "replaces": null,
+    "cardFamily": "sword-establishes-base-on-moons-blue-area",
+    "template": "2019",
+    "name": "S.W.O.R.D. Establishes Base on Moon‘s Blue Area",
+    "sanitizedName": "SWORD Establishes Base on Moons Blue Area",
+    "sanitizedOriginalName": "SWORD Establishes Base on Moons Blue Area",
+    "shortName": "S.W.O.R.D.",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": true,
+    "event": false,
+    "threatLevel": 15,
+    "setup": "G",
+    "setupDescription": "Place 4 |<console>Console| tokens (Point of Interest) as shown on |$G-Map G|.",
+    "sanitizedSetupDescription": "Place 4 Console tokens (Point of Interest) as shown on Map G.",
+    "scoringDescription": "Players score 1 VP for each Console they Control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00470301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Console)|: If no enemy characters are Contesting this Console, this character’s controlling player now Controls this Console. Otherwise roll 1 die. If the result is a |!critical|, |!wild|, or |!hit|, this character’s controlling player now Controls this Console.",
+      "During the |*Power Phase|, if a player Controls more Consoles than their opponent, they command the base’s security system and may choose an enemy character. The chosen character is Pushed |!range_small|. The opposing player resolves this Push."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "xmen",
+    "timelines": [
+      "extended",
+      "2024"
+    ],
+    "boxSets": [
+      "CP47"
+    ],
+    "inBoxSets": [
+      {
+        "id": 47,
+        "name": "Cable & Domino",
+        "sanitizedName": "Cable  Domino",
+        "code": "CP47",
+        "releaseDate": "2021-06-10",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": [
+      {
+        "createdOn": "2026-01-28",
+        "body": "Map setup changed from C to G on 2022-12-09 through digital update"
+      },
+      {
+        "createdOn": "2026-01-28",
+        "body": "Threat level increased from 14 to 15 on 2022-12-09 through digital update"
+      },
+      {
+        "createdOn": "2026-01-28",
+        "body": "Previous setup description read: \"Place three Consoles (Target of Opportunity) as shown on Map C.\""
+      },
+      {
+        "createdOn": "2026-01-28",
+        "body": "Previous scoring description read: \"The player controlling the most Consoles scores 3 VPs during the |*Cleanup Phase|.\""
+      },
+      {
+        "createdOn": "2026-01-28",
+        "body": "Previous rules read for 1st paragraph:|\\|\"|*Interact (Console)|: If no enemy characters are contesting the Console, you are now controlling the Console. If one or more enemy characters are contesting the Console, roll a die. If the result is a |!critical|, |!wild|, or |!hit|, you are now controlling the Console.\""
+      },
+      {
+        "createdOn": "2026-01-28",
+        "body": "Previous rules read for 2nd paragraph:|\\|\"If a player controles more Consoles during the |*Power Phase| than their opponent, they control the security systems in the base and may choose an enemy character. The chosen character is pushed |!range_small|.\""
+      }
+    ]
+  },
+  {
+    "id": 95,
+    "slug": "sword-establishes-base-on-moons-blue-area-ca09",
+    "replacedBy": null,
+    "replaces": "sword-establishes-base-on-moons-blue-area",
+    "cardFamily": "sword-establishes-base-on-moons-blue-area",
+    "template": "2023",
+    "name": "S.W.O.R.D. Establishes Base on Moon‘s Blue Area",
+    "sanitizedName": "SWORD Establishes Base on Moons Blue Area",
+    "sanitizedOriginalName": "SWORD Establishes Base on Moons Blue Area",
+    "shortName": "S.W.O.R.D.",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "point_of_interest"
+    ],
+    "payToFlip": true,
+    "event": false,
+    "threatLevel": 15,
+    "setup": "G",
+    "setupDescription": "Place 4 |<console>Console| tokens (Point of Interest) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Console tokens (Point of Interest) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Console they Control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00470301",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Console)|: If no enemy characters are Contesting this Console, this character’s controlling player now Controls this Console. Otherwise roll 1 die. If the result is a |!critical|, |!wild|, or |!hit|, this character’s controlling player now Controls this Console.",
+      "During the |*Power Phase|, if a player Controls more Consoles than their opponent, they command the base’s security system and may choose an enemy character. The chosen character is Pushed |!range_small|. The opposing player resolves this Push."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024"
+    ],
+    "boxSets": [
+      "CA09"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 167,
+    "slug": "terrigen-canisters-fuel-doomsday-device",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "terrigen-canisters-fuel-doomsday-device",
+    "template": "2023",
+    "name": "Terrigen Canisters Fuel Doomsday Device",
+    "sanitizedName": "Terrigen Canisters Fuel Doomsday Device",
+    "sanitizedOriginalName": "Terrigen Canisters Fuel Doomsday Device",
+    "shortName": "Doomsday",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "F",
+    "setupDescription": "Place 5 |<extract_asset>Canister| tokens (Asset) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 5 Canister tokens (Asset) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each character they control that is holding a Canister during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "5",
+    "exportCode": "20130308",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Canister)|: Pick up this Canister. A character can hold only 1 Canister at a time.",
+      "When a character picks up a Canister, roll dice equal to this character's |!physical| Defense. If the result does not contain one or more |!critical| or |!wild| results, this character gains the Poison special condition. Additionally, while a character is holding a Canister, its speed becomes |!range_small|."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard",
+      "2026"
+    ],
+    "boxSets": [
+      "CA13"
+    ],
+    "inBoxSets": [
+      {
+        "id": 210,
+        "name": "War of Kings",
+        "sanitizedName": "War of Kings",
+        "code": "CA13",
+        "releaseDate": "2025-03-14",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": []
+  },
+  {
+    "id": 72,
+    "slug": "terrigen-clouds-sweep-over-city",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "terrigen-clouds-sweep-over-city",
+    "template": "2023",
+    "name": "Terrigen Clouds Sweep Over City",
+    "sanitizedName": "Terrigen Clouds Sweep Over City",
+    "sanitizedOriginalName": "Terrigen Clouds Sweep Over City",
+    "shortName": "Terrigen Clouds",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "target_of_opportunity"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 20,
+    "setup": "C",
+    "setupDescription": "Place two |<terrigen_mist_cloud>Terrigen Mist Clouds| (Target of Opportunity) on the points near each board edge as shown on |$C-Map C|.",
+    "sanitizedSetupDescription": "Place two Terrigen Mist Clouds (Target of Opportunity) on the points near each board edge as shown on Map C.",
+    "scoringDescription": "Players score 2 VPs for each Mist Cloud they are securing during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "00340301",
+    "attacks": [],
+    "paragraphs": [
+      "During the |*Cleanup Phase|, each of the Mist Clouds may move. Starting with the player with priority, each player places all Mist Clouds secured by their opponent within |!range| 2 of their current position. Each token may be placed only once per round in this way. Then each character within |!range| 1 of a Mist Cloud suffers 1 |!damage| and gains the Poison special condition."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard"
+    ],
+    "boxSets": [
+      "CP34"
+    ],
+    "inBoxSets": [
+      {
+        "id": 34,
+        "name": "Black Bolt & Medusa",
+        "sanitizedName": "Black Bolt  Medusa",
+        "code": "CP34",
+        "releaseDate": "2021-02-12",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 73,
+    "slug": "the-montesi-formula-found",
+    "replacedBy": "the-montesi-formula-found-ca09",
+    "replaces": null,
+    "cardFamily": "the-montesi-formula-found",
+    "template": "2019",
+    "name": "The Montesi Formula Found",
+    "sanitizedName": "The Montesi Formula Found",
+    "sanitizedOriginalName": "The Montesi Formula Found",
+    "shortName": "Montesi Formula",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 18,
+    "setup": "E",
+    "setupDescription": "Place 3 |<spellbook>Spellbook| tokens (Asset) as shown on |$E-Map E|.",
+    "sanitizedSetupDescription": "Place 3 Spellbook tokens (Asset) as shown on Map E.",
+    "scoringDescription": "Players score 1 VP for each Spellbook held by a character they control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "3",
+    "exportCode": "00230301",
+    "attacks": [
+      {
+        "type": "mystic",
+        "name": "Mystic Beam",
+        "range": "B3",
+        "strength": "6",
+        "powerCost": 0,
+        "steps": []
+      }
+    ],
+    "paragraphs": [
+      "|*Interact (Spellbook)|: Pick up this Spellbook. A character can hold only 1 Spellbook at a time.",
+      "A character holding a Spellbook may use the attack shown above once per turn. It cannot add additional dice to this attack or modify its dice during this attack."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "rotated",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "rotated_standard",
+    "setSymbol": "spidey",
+    "timelines": [
+      "extended",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CP23"
+    ],
+    "inBoxSets": [
+      {
+        "id": 23,
+        "name": "Doctor Strange & Wong",
+        "sanitizedName": "Doctor Strange  Wong",
+        "code": "CP23",
+        "releaseDate": "2020-09-11",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": [
+      {
+        "createdOn": "2026-04-28",
+        "body": "Threat level increased from 17 to 18 on 2022-12-09 through digital update"
+      },
+      {
+        "createdOn": "2026-04-28",
+        "body": "Previous rules read for 1st paragraph:|\\|\"|*Interact (Spellbook)|: Pick up a Spellbook.\""
+      },
+      {
+        "createdOn": "2026-04-28",
+        "body": "Previous rules read for 2nd paragraph:|\\|\"A character cannot hold more than one Spellbook. A character holding a Spellbook can use the following attack once per turn\""
+      }
+    ]
+  },
+  {
+    "id": 96,
+    "slug": "the-montesi-formula-found-ca09",
+    "replacedBy": null,
+    "replaces": "the-montesi-formula-found",
+    "cardFamily": "the-montesi-formula-found",
+    "template": "2023",
+    "name": "The Montesi Formula Found",
+    "sanitizedName": "The Montesi Formula Found",
+    "sanitizedOriginalName": "The Montesi Formula Found",
+    "shortName": "Montesi Formula",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "asset"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 18,
+    "setup": "E",
+    "setupDescription": "Place 3 |<spellbook>Spellbook| tokens (Asset) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 3 Spellbook tokens (Asset) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Spellbook held by a character they control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "3",
+    "exportCode": "00230301",
+    "attacks": [
+      {
+        "type": "mystic",
+        "name": "Mystic Beam",
+        "range": "B3",
+        "strength": "6",
+        "powerCost": 0,
+        "steps": []
+      }
+    ],
+    "paragraphs": [
+      "|*Interact (Spellbook)|: Pick up this Spellbook. A character can hold only 1 Spellbook at a time.",
+      "A character holding a Spellbook may use the following attack once per turn. It cannot add additional dice to this attack or modify its dice during this attack."
+    ],
+    "challengerStatus": "rotated",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": "damage_control",
+    "timelines": [
+      "extended",
+      "standard",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "boxSets": [
+      "CA09"
+    ],
+    "inBoxSets": [
+      {
+        "id": 135,
+        "name": "2023 Crisis Pack",
+        "sanitizedName": "2023 Crisis Pack",
+        "code": "CA09",
+        "releaseDate": "2023-10-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": "2026-06-12",
+    "erratas": []
+  },
+  {
+    "id": 168,
+    "slug": "unexpected-guests-crash-royal-wedding",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "unexpected-guests-crash-royal-wedding",
+    "template": "2023",
+    "name": "Unexpected Guests Crash Royal Wedding",
+    "sanitizedName": "Unexpected Guests Crash Royal Wedding",
+    "sanitizedOriginalName": "Unexpected Guests Crash Royal Wedding",
+    "shortName": "Guests",
+    "translatedInCurrentLocale": true,
+    "type": "Extraction",
+    "subTypes": [
+      "civilian"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "N",
+    "setupDescription": "Place 4 |<extract_civilian>Guest| tokens (Civilian) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Guest tokens (Civilian) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each character they Control that is holding a Guest during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "20130309",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Guest)|: Pick up this Guest. A character can hold only 1 Guest at a time.",
+      "During the |*Power Phase|, starting with the player with Priority, for each character that player controls that is not within |!range| 2 of a Secure objective that is also holding a Guest, the controlling player's opponent chooses a Secure objective. That character is Pushed Toward the chosen Secure objective |!range_small|. The opposing player resolves this Push."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard",
+      "2026"
+    ],
+    "boxSets": [
+      "CA13",
+      "CP272",
+      "CP271",
+      "MCP65",
+      "MCP64"
+    ],
+    "inBoxSets": [
+      {
+        "id": 210,
+        "name": "War of Kings",
+        "sanitizedName": "War of Kings",
+        "code": "CA13",
+        "releaseDate": "2025-03-14",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 352,
+        "name": "Spider-Foes Starter Pack",
+        "sanitizedName": "Spider Foes Starter Pack",
+        "code": "CP272",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 351,
+        "name": "X-Men Starter Pack",
+        "sanitizedName": "X Men Starter Pack",
+        "code": "CP271",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 672,
+        "name": "Guardians of the Galaxy Starter Set",
+        "sanitizedName": "Guardians of the Galaxy Starter Set",
+        "code": "MCP65",
+        "releaseDate": "2026-07-24",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 671,
+        "name": "Asgardians Starter Set",
+        "sanitizedName": "Asgardians Starter Set",
+        "code": "MCP64",
+        "releaseDate": "2026-07-31",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 169,
+    "slug": "wedding-party-targeted-in-terrible-attack",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "wedding-party-targeted-in-terrible-attack",
+    "template": "2023",
+    "name": "Wedding Party Targeted in Terrible Attack!",
+    "sanitizedName": "Wedding Party Targeted in Terrible Attack",
+    "sanitizedOriginalName": "Wedding Party Targeted in Terrible Attack",
+    "shortName": "VIPs",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "target_of_opportunity"
+    ],
+    "payToFlip": null,
+    "event": false,
+    "threatLevel": 20,
+    "setup": "R",
+    "setupDescription": "Place 2 |<secure_target_of_opportunity>VIP| tokens (Target of Opportunity) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 2 VIP tokens (Target of Opportunity) as shown on the map below.",
+    "scoringDescription": "Players score 2 VPs for each VIP they Secure during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "4",
+    "exportCode": "20130310",
+    "attacks": [],
+    "paragraphs": [
+      "During the |*Cleanup Phase|, each of the VIPs attempts to flee. Starting with the player with Priority, each player Places all VIPs Secured by their opponent within |!range| 2 of their current position. Each VIP may be Placed this way only once per Round.",
+      "Then, each character within |!range| 2 of a VIP loses 1 |!power|."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard",
+      "2026"
+    ],
+    "boxSets": [
+      "CA13",
+      "CP272",
+      "CP271",
+      "MCP65",
+      "MCP64"
+    ],
+    "inBoxSets": [
+      {
+        "id": 210,
+        "name": "War of Kings",
+        "sanitizedName": "War of Kings",
+        "code": "CA13",
+        "releaseDate": "2025-03-14",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 352,
+        "name": "Spider-Foes Starter Pack",
+        "sanitizedName": "Spider Foes Starter Pack",
+        "code": "CP272",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 351,
+        "name": "X-Men Starter Pack",
+        "sanitizedName": "X Men Starter Pack",
+        "code": "CP271",
+        "releaseDate": "2025-12-05",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 672,
+        "name": "Guardians of the Galaxy Starter Set",
+        "sanitizedName": "Guardians of the Galaxy Starter Set",
+        "code": "MCP65",
+        "releaseDate": "2026-07-24",
+        "approximateDate": null,
+        "digital": false
+      },
+      {
+        "id": 671,
+        "name": "Asgardians Starter Set",
+        "sanitizedName": "Asgardians Starter Set",
+        "code": "MCP64",
+        "releaseDate": "2026-07-31",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": null,
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  },
+  {
+    "id": 299,
+    "slug": "x-men-infiltrate-secret-weapons-facility",
+    "replacedBy": null,
+    "replaces": null,
+    "cardFamily": "x-men-infiltrate-secret-weapons-facility",
+    "template": "2023",
+    "name": "X-Men Infiltrate Secret Weapons Facility",
+    "sanitizedName": "X Men Infiltrate Secret Weapons Facility",
+    "sanitizedOriginalName": "X Men Infiltrate Secret Weapons Facility",
+    "shortName": "X-Men Infiltrate",
+    "translatedInCurrentLocale": true,
+    "type": "Secure",
+    "subTypes": [
+      "zone"
+    ],
+    "payToFlip": true,
+    "event": false,
+    "threatLevel": 17,
+    "setup": "X",
+    "setupDescription": "Place 4 Grid tokens (Zone) as shown on the map below.",
+    "sanitizedSetupDescription": "Place 4 Grid tokens (Zone) as shown on the map below.",
+    "scoringDescription": "Players score 1 VP for each Grid they Control during the |*Cleanup Phase|.",
+    "maxVPsPerRound": "5",
+    "exportCode": "20230310",
+    "attacks": [],
+    "paragraphs": [
+      "|*Interact (Grid)|: Roll dice equal to this character's |!energy| Defense. If the roll contains more |!critical|, |!wild|, and |!hit| results than the number of Healthy enemy characters Contesting this Grid, this character's controlling player now Controls this Grid.",
+      "During the |*Score VPs| part of the |*Cleanup Phase|, if a player Controls 2 or more Grids that have at least 1 enemy character in their Arc, that player scores 1 additional VP.",
+      "During the |*Cleanup Phase|, each player Places up to 1 Grid they Control within |!range| 1 of its current position."
+    ],
+    "challengerStatus": "legal",
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "setSymbol": null,
+    "timelines": [
+      "extended",
+      "standard"
+    ],
+    "boxSets": [
+      "CA23"
+    ],
+    "inBoxSets": [
+      {
+        "id": 438,
+        "name": "Operation: Zero Tolerance",
+        "sanitizedName": "Operation: Zero Tolerance",
+        "code": "CA23",
+        "releaseDate": "2026-06-12",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "challengerRotatesInOn": "2026-06-12",
+    "challengerRotatesOutOn": null,
+    "erratas": []
+  }
+]

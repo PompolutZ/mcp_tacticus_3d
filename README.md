@@ -50,7 +50,7 @@ Open `http://localhost:5173`. You can orbit, zoom, and pan with the mouse.
 | Object | Dimensions |
 |---|---|
 | Game mat | 36 × 36 units (36" × 36", matching the physical MCP mat) |
-| Table surface | 48 × 48 units |
+| Table surface | 72 × 48 units: 72 along x, 48 along z (between the players). The same 3:2 shape as the TTS table |
 | Camera default height | 20 units above the mat |
 
 ## Assets

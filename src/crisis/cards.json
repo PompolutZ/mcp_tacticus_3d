@@ -1,0 +1,915 @@
+{
+  "alien-ship-crashes-in-downtown": {
+    "id": "00050301",
+    "name": "Alien Ship Crashes in Downtown!",
+    "type": "extract",
+    "threat": 17,
+    "tokens": [
+      {
+        "token": "extract-asset",
+        "position": [
+          0,
+          0
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          12,
+          0
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          -12,
+          0
+        ]
+      }
+    ]
+  },
+  "assault-ships-make-sweeping-search": {
+    "id": "20230303",
+    "name": "Assault Ships Make Sweeping Search!",
+    "type": "secure",
+    "threat": 16,
+    "tokens": [
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          4,
+          -4
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -4,
+          4
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -10,
+          -4
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          10,
+          4
+        ],
+        "locked": true
+      }
+    ]
+  },
+  "deadly-meteors-mutate-civilians": {
+    "id": "00010301",
+    "name": "Deadly Meteors Mutate Civilians",
+    "type": "secure",
+    "threat": 17,
+    "tokens": [
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          0,
+          0
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          8,
+          -2
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -8,
+          2
+        ],
+        "locked": true
+      }
+    ]
+  },
+  "evidence-of-experimental-soldiers-exposed": {
+    "id": "20230304",
+    "name": "Evidence Of Experimental Soldiers Exposed",
+    "type": "extract",
+    "threat": 19,
+    "tokens": [
+      {
+        "token": "extract-unexhausted-source",
+        "back": "extract-exhausted-source",
+        "position": [
+          0,
+          0
+        ],
+        "flipOnly": true
+      },
+      {
+        "token": "extract-unexhausted-source",
+        "back": "extract-exhausted-source",
+        "position": [
+          10,
+          0
+        ],
+        "flipOnly": true
+      },
+      {
+        "token": "extract-unexhausted-source",
+        "back": "extract-exhausted-source",
+        "position": [
+          -10,
+          0
+        ],
+        "flipOnly": true
+      }
+    ],
+    "supply": "extract-source-asset"
+  },
+  "guardians-save-shiar-empress-in-style": {
+    "id": "20130302",
+    "name": "Guardians Save Shi'ar Empress in Style",
+    "type": "secure",
+    "threat": 17,
+    "tokens": [
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -7,
+          5
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -7,
+          -5
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          7,
+          -5
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          7,
+          5
+        ],
+        "locked": true
+      }
+    ]
+  },
+  "infinity-formula-goes-missing": {
+    "id": "00010302",
+    "name": "Infinity Formula Goes Missing!",
+    "type": "secure",
+    "threat": 17,
+    "tokens": [
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          10,
+          5
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -10,
+          5
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -10,
+          -5
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          10,
+          -5
+        ],
+        "locked": true
+      }
+    ]
+  },
+  "inhumans-deploy-advanced-weaponry": {
+    "id": "20130303",
+    "name": "Inhumans Deploy Advanced Weaponry",
+    "type": "extract",
+    "threat": 18,
+    "tokens": [
+      {
+        "token": "extract-asset",
+        "position": [
+          8,
+          0
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          -8,
+          0
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          -12,
+          0
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          12,
+          0
+        ]
+      }
+    ]
+  },
+  "jailbreak-leads-to-mass-mutant-escape": {
+    "id": "20230301",
+    "name": "Jailbreak Leads to Mass Mutant Escape!",
+    "type": "extract",
+    "threat": 20,
+    "tokens": [
+      {
+        "token": "extract-unexhausted-source",
+        "back": "extract-exhausted-source",
+        "position": [
+          8,
+          8
+        ],
+        "flipOnly": true
+      },
+      {
+        "token": "extract-unexhausted-source",
+        "back": "extract-exhausted-source",
+        "position": [
+          -8,
+          8
+        ],
+        "flipOnly": true
+      },
+      {
+        "token": "extract-unexhausted-source",
+        "back": "extract-exhausted-source",
+        "position": [
+          8,
+          -8
+        ],
+        "flipOnly": true
+      },
+      {
+        "token": "extract-unexhausted-source",
+        "back": "extract-exhausted-source",
+        "position": [
+          -8,
+          -8
+        ],
+        "flipOnly": true
+      }
+    ],
+    "supply": "extract-source-civilian"
+  },
+  "lockdown-security-systems-stymie-breakout": {
+    "id": "20230302",
+    "name": "Lockdown! Security Systems Stymie Breakout",
+    "type": "secure",
+    "threat": 18,
+    "tokens": [
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          5,
+          5
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -5,
+          5
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          5,
+          -5
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -5,
+          -5
+        ],
+        "locked": true
+      }
+    ]
+  },
+  "mutant-extremists-target-us-senators": {
+    "id": "00420301",
+    "name": "Mutant Extremists Target U.S. Senators!",
+    "type": "extract",
+    "threat": 19,
+    "tokens": [
+      {
+        "token": "extract-civilian",
+        "position": [
+          5,
+          2
+        ]
+      },
+      {
+        "token": "extract-civilian",
+        "position": [
+          -5,
+          2
+        ]
+      },
+      {
+        "token": "extract-civilian",
+        "position": [
+          -5,
+          -2
+        ]
+      },
+      {
+        "token": "extract-civilian",
+        "position": [
+          5,
+          -2
+        ]
+      },
+      {
+        "token": "extract-civilian",
+        "position": [
+          0,
+          2
+        ]
+      },
+      {
+        "token": "extract-civilian",
+        "position": [
+          0,
+          -2
+        ]
+      }
+    ]
+  },
+  "mutant-madman-turns-city-center-into-lethal-amusement-park": {
+    "id": "00410301",
+    "name": "Mutant Madman Turns City Center into Lethal Amusement Park",
+    "type": "secure",
+    "threat": 18,
+    "tokens": [
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          10,
+          5
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -10,
+          5
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -10,
+          -5
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          10,
+          -5
+        ],
+        "locked": true
+      }
+    ]
+  },
+  "power-overload-factory-goes-up-in-flames": {
+    "id": "20230305",
+    "name": "Power Overload! Factory Goes up in Flames",
+    "type": "secure",
+    "threat": 19,
+    "tokens": [
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          0,
+          8
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          0,
+          -8
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -7,
+          2
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          7,
+          -2
+        ],
+        "locked": true
+      }
+    ]
+  },
+  "salvaged-supplies-fuel-resistance-efforts": {
+    "id": "20230306",
+    "name": "Salvaged Supplies Fuel Resistance Efforts",
+    "type": "extract",
+    "threat": 18,
+    "tokens": [
+      {
+        "token": "extract-asset",
+        "position": [
+          -4,
+          2
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          4,
+          -2
+        ]
+      }
+    ]
+  },
+  "scientific-samples-found-in-discovered-universe": {
+    "id": "20130305",
+    "name": "Scientific Samples Found in Discovered Universe",
+    "type": "extract",
+    "threat": 17,
+    "tokens": [
+      {
+        "token": "extract-asset",
+        "position": [
+          0,
+          8
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          0,
+          -8
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          12,
+          0
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          -12,
+          0
+        ]
+      }
+    ]
+  },
+  "sentinel-schematics-sabotaged": {
+    "id": "20230307",
+    "name": "Sentinel Schematics Sabotaged!",
+    "type": "extract",
+    "threat": 17,
+    "tokens": [
+      {
+        "token": "extract-unexhausted-source",
+        "back": "extract-exhausted-source",
+        "position": [
+          4,
+          4
+        ],
+        "flipOnly": true
+      },
+      {
+        "token": "extract-unexhausted-source",
+        "back": "extract-exhausted-source",
+        "position": [
+          -4,
+          4
+        ],
+        "flipOnly": true
+      },
+      {
+        "token": "extract-unexhausted-source",
+        "back": "extract-exhausted-source",
+        "position": [
+          -4,
+          -4
+        ],
+        "flipOnly": true
+      },
+      {
+        "token": "extract-unexhausted-source",
+        "back": "extract-exhausted-source",
+        "position": [
+          4,
+          -4
+        ],
+        "flipOnly": true
+      }
+    ],
+    "supply": "extract-source-asset"
+  },
+  "skrulls-infiltrate-world-leadership": {
+    "id": "00010304",
+    "name": "Skrulls Infiltrate World Leadership",
+    "type": "extract",
+    "threat": 20,
+    "tokens": [
+      {
+        "token": "extract-civilian",
+        "position": [
+          0,
+          2
+        ]
+      },
+      {
+        "token": "extract-civilian",
+        "position": [
+          0,
+          -2
+        ]
+      },
+      {
+        "token": "extract-civilian",
+        "position": [
+          12,
+          0
+        ]
+      },
+      {
+        "token": "extract-civilian",
+        "position": [
+          -12,
+          0
+        ]
+      }
+    ]
+  },
+  "spider-infected-invade-manhattan": {
+    "id": "00010305",
+    "name": "Spider-Infected Invade Manhattan",
+    "type": "extract",
+    "threat": 17,
+    "tokens": [
+      {
+        "token": "extract-civilian",
+        "position": [
+          0,
+          0
+        ]
+      },
+      {
+        "token": "extract-civilian",
+        "position": [
+          8,
+          5
+        ]
+      },
+      {
+        "token": "extract-civilian",
+        "position": [
+          -8,
+          5
+        ]
+      },
+      {
+        "token": "extract-civilian",
+        "position": [
+          8,
+          -5
+        ]
+      },
+      {
+        "token": "extract-civilian",
+        "position": [
+          -8,
+          -5
+        ]
+      }
+    ]
+  },
+  "strike-team-secures-sheild-relay": {
+    "id": "20130307",
+    "name": "Strike Team Secures Sheild Relay!",
+    "type": "secure",
+    "threat": 17,
+    "tokens": [
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          0,
+          8
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          0,
+          -8
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          12,
+          0
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -12,
+          0
+        ],
+        "locked": true
+      }
+    ]
+  },
+  "super-powered-scoundrels-form-sinister-syndicate": {
+    "id": "00600301",
+    "name": "Super-Powered Scoundrels Form Sinister Syndicate!",
+    "type": "secure",
+    "threat": 20,
+    "tokens": [
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          0,
+          0
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          8,
+          5
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -8,
+          5
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          8,
+          -5
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -8,
+          -5
+        ],
+        "locked": true
+      }
+    ]
+  },
+  "surprise-assault-mutant-homes-destroyed": {
+    "id": "20230308",
+    "name": "Surprise Assault! Mutant Homes Destroyed",
+    "type": "extract",
+    "threat": 16,
+    "tokens": [
+      {
+        "token": "extract-unexhausted-source",
+        "back": "extract-exhausted-source",
+        "position": [
+          4,
+          -2
+        ],
+        "flipOnly": true
+      },
+      {
+        "token": "extract-unexhausted-source",
+        "back": "extract-exhausted-source",
+        "position": [
+          -4,
+          2
+        ],
+        "flipOnly": true
+      },
+      {
+        "token": "extract-unexhausted-source",
+        "back": "extract-exhausted-source",
+        "position": [
+          -10,
+          -2
+        ],
+        "flipOnly": true
+      },
+      {
+        "token": "extract-unexhausted-source",
+        "back": "extract-exhausted-source",
+        "position": [
+          10,
+          2
+        ],
+        "flipOnly": true
+      }
+    ],
+    "supply": "extract-source-civilian"
+  },
+  "survivors-search-for-safe-shelter": {
+    "id": "20230309",
+    "name": "Survivors Search for Safe Shelter",
+    "type": "secure",
+    "threat": 20,
+    "tokens": [
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -5,
+          0
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          4,
+          -5
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          4,
+          5
+        ],
+        "locked": true
+      }
+    ]
+  },
+  "unexpected-guests-crash-royal-wedding": {
+    "id": "20130309",
+    "name": "Unexpected Guests Crash Royal Wedding",
+    "type": "extract",
+    "threat": 17,
+    "tokens": [
+      {
+        "token": "extract-civilian",
+        "position": [
+          8,
+          5
+        ]
+      },
+      {
+        "token": "extract-civilian",
+        "position": [
+          -8,
+          5
+        ]
+      },
+      {
+        "token": "extract-civilian",
+        "position": [
+          8,
+          -5
+        ]
+      },
+      {
+        "token": "extract-civilian",
+        "position": [
+          -8,
+          -5
+        ]
+      }
+    ]
+  },
+  "wedding-party-targeted-in-terrible-attack": {
+    "id": "20130310",
+    "name": "Wedding Party Targeted In Terrible Attack!",
+    "type": "secure",
+    "threat": 20,
+    "tokens": [
+      {
+        "token": "secure-target-of-opportunity",
+        "position": [
+          -9,
+          0
+        ]
+      },
+      {
+        "token": "secure-target-of-opportunity",
+        "position": [
+          9,
+          0
+        ]
+      }
+    ]
+  },
+  "x-men-infiltrate-secret-weapons-facility": {
+    "id": "20230310",
+    "name": "X-MEN Infiltrate Secret Weapons Facility",
+    "type": "secure",
+    "threat": 17,
+    "tokens": [
+      {
+        "token": "secure-zone",
+        "position": [
+          0,
+          7
+        ],
+        "rotation": 315
+      },
+      {
+        "token": "secure-zone",
+        "position": [
+          0,
+          -7
+        ],
+        "rotation": 135
+      },
+      {
+        "token": "secure-zone",
+        "position": [
+          -7,
+          0
+        ],
+        "rotation": 40
+      },
+      {
+        "token": "secure-zone",
+        "position": [
+          7,
+          0
+        ],
+        "rotation": 220
+      }
+    ]
+  }
+}

@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "migrate-terrain": "node scripts/migrate-terrain.mjs",
     "fetch-jarvis-characters": "node scripts/fetch-jarvis-characters.mjs",
-    "migrate-characters": "node scripts/migrate-characters.mjs"
+    "migrate-characters": "node scripts/migrate-characters.mjs",
+    "fetch-jarvis-crisis-cards": "node scripts/fetch-jarvis-crisis-cards.mjs",
+    "migrate-crisis": "node scripts/migrate-crisis.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.115.0",

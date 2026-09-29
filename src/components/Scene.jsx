@@ -10,17 +10,19 @@ import { MAPS } from '../terrain/maps.js'
 import { FRICTION } from '../physics.js'
 import { assetUrl } from '../assets/index.js'
 
-// MCP mat is 36" x 36". Table is larger — 48" x 48" in the same unit space.
-// 1 Three.js unit = 1 inch. Mat = 36 x 36, table = 48 x 48.
+// MCP mat is 36" x 36". 1 Three.js unit = 1 inch.
+// The table is 72" wide (x) and 48" deep (z), the same 3:2 shape as the TTS table. It is wider than deep so that
+// the scoring board and the crisis cards fit next to the mat, at their TTS positions.
 const MAT_SIZE = 36
-const TABLE_SIZE = 48
+const TABLE_WIDTH = 72
+const TABLE_DEPTH = 48
 const TABLE_THICKNESS = 0.5
 const TABLE_COLLIDER_HALF_H = 5
 // Blue half is the side of the player who won the priority roll-off. Red half is the other player's side.
 // Blue is at +z, the bottom of the default camera view.
 const TABLE_HALVES = [
-  { color: '#6fa0e0', z: TABLE_SIZE / 4 },
-  { color: '#e07272', z: -TABLE_SIZE / 4 },
+  { color: '#6fa0e0', z: TABLE_DEPTH / 4 },
+  { color: '#e07272', z: -TABLE_DEPTH / 4 },
 ]
 const DROP_HEIGHT = 15
 // Tools hang this far above the table and measure by the outline cast below them
@@ -87,13 +89,13 @@ export default function Scene({ mapId, activeRange, activeMove, showColliders = 
         <RigidBody type="fixed" colliders={false}>
           {/* Collider much thicker than the visual so fast bodies can't tunnel through; top stays at y=0 */}
           <CuboidCollider
-            args={[TABLE_SIZE / 2, TABLE_COLLIDER_HALF_H, TABLE_SIZE / 2]}
+            args={[TABLE_WIDTH / 2, TABLE_COLLIDER_HALF_H, TABLE_DEPTH / 2]}
             position={[0, -TABLE_COLLIDER_HALF_H, 0]}
             friction={FRICTION}
           />
           {TABLE_HALVES.map(({ color, z }) => (
             <mesh key={color} position={[0, -TABLE_THICKNESS / 2, z]} receiveShadow>
-              <boxGeometry args={[TABLE_SIZE, TABLE_THICKNESS, TABLE_SIZE / 2]} />
+              <boxGeometry args={[TABLE_WIDTH, TABLE_THICKNESS, TABLE_DEPTH / 2]} />
               <meshStandardMaterial color={color} roughness={0.8} metalness={0.05} onBeforeCompile={projectFootprints} />
             </mesh>
           ))}

@@ -234,3 +234,95 @@ npm run fetch-jarvis-characters -- --force  # download every character again
 - If a request fails, the script still writes the characters that it downloaded. Run it again to continue.
 - `statCard.frontSide` is the healthy side and `statCard.backSide` is the injured side. `secondStatCard` is the card of a second form (for example Emma Frost and Diamond Form). Rules text has markup such as `|!power|` (icon), `|*Stun|` (bold) and `|§stun§Stun|` (special condition).
 - `exportCode` is the MCT code. The TTS mod uses the same code as `ID` in its character database.
+
+# TTS crisis cards
+
+`migrate-crisis.mjs` copies the crisis cards of the TTS mod to `src/assets/crisis/`. It converts the face of each card, one back for the Secure cards and one for the Extract cards, and the tokens that the mod puts on the mat for each card. It writes the app data to `src/crisis/cards.json` and `src/crisis/tokens.json`, and the source URLs to `scripts/crisis-manifest.json`. `src/crisis/files.js` names the files after the keys, so the JSON files have no paths.
+
+Requirements: ImageMagick, and the images in the TTS cache. TTS downloads a card image only when the card is out of its bag, so take a card out of the "Secure Crisis Cards" or "Extract Crisis Cards" bag once before you migrate it. The token images are in the cache after "Setup Crisis" of the "Automatic Crisis Deployment" object places them.
+
+## Usage
+
+```bash
+npm run migrate-crisis -- --list          # crisis cards of the mod and their status
+npm run migrate-crisis                    # migrate every card that has its files in the TTS cache
+npm run migrate-crisis -- --out /tmp/try  # trial run: nothing is written to the repo
+npm run migrate-crisis -- --force         # convert files again that the manifest already lists
+```
+
+The script always migrates all cards, because all files together are only about 2 MB. A card gets an entry in `cards.json` when its face and its token images are in the TTS cache or already migrated. On 2026-09-29, the cache had the 24 cards of the 2026 Challenger pool (12 Secure, 12 Extract). The images of the other 21 cards are missing. Commit `src/assets/crisis/`, `src/crisis/cards.json`, `src/crisis/tokens.json` and `scripts/crisis-manifest.json` together.
+
+## Output
+
+| Output | Content |
+|---|---|
+| `src/assets/crisis/cards/<key>.webp` | Face of a card: the text and the setup map |
+| `src/assets/crisis/cards/secure-back.webp`, `extract-back.webp` | Back of every card of the type |
+| `src/assets/crisis/tokens/<token>.webp` | One side of a token |
+| `src/crisis/cards.json` | One entry per card |
+| `src/crisis/tokens.json` | One entry per token image: `name` in the mod, `shape` (`circle` or `square`), `size` (diameter in inches) |
+
+`<key>` is the card name as a slug, without apostrophes and dots, for example `mkraan-crystal-gets-heroes-home`. The names come from the mod, with its spelling, for example "Strike Team Secures Sheild Relay!". Jarvis has the official names (see [Jarvis crisis cards](#jarvis-crisis-cards)). `<token>` is the token name in the mod as a slug, for example `extract-asset`.
+
+Entry in `cards.json`:
+
+```js
+"jailbreak-leads-to-mass-mutant-escape": {
+  "id": "20230301",        // MCT code, the same id as in Jarvis
+  "name": "Jailbreak Leads to Mass Mutant Escape!",
+  "type": "extract",       // secure or extract
+  "threat": 20,
+  "tokens": [              // one entry per token on the mat
+    {
+      "token": "extract-unexhausted-source",  // key in tokens.json: the side that faces up
+      "back": "extract-exhausted-source",     // the other side, only when it has another image
+      "position": [8, 8],                     // TTS x and z in inches, from the mat center
+      "flipOnly": true
+    },
+    // ...
+  ],
+  "supply": "extract-source-civilian"          // token next to the card. Players take copies of it during the game.
+}
+```
+
+Other token fields:
+
+- `rotation`: TTS Y rotation in degrees. Without it, the mod turns the token by 180. Only the Zone tokens of X-Men Infiltrate Secret Weapons Facility have it.
+- `locked: true`: players cannot move or flip the token (TTS `lock`). For example, the Secure tokens.
+- `flipOnly: true`: players can flip the token, but when they drop it, it goes back to its position (TTS `flipLock`). The Source tokens.
+- Neither: players can pick up the token. For example, the Extract tokens.
+
+## TTS rules that the script depends on
+
+These rules were found on 2026-09-29 in the scripts of the "Database" and "Automatic Crisis Deployment" objects.
+
+- The cards are the rows of `cardDatabase` with `type = tCri`. `tags` is Secure or Extract. The script leaves out the rows with `released = false` (the 7 cards of the Infinity OP kits, for example True Power and Mojo Ball) and the test rows "Test Snapping" and "Test Zones".
+- The "Setup Crisis" button finds a card in `crisisDatabase` by its name. It looks for a Secure card in the rows up to "SECURE - Drop Objectives at Every Location without Rotations", and for an Extract card in the rows after it. `crisisMap` is the name of a map in `crisisMaps`. The map has one position per token (`tokenPos`), the side that faces up (`tokenSide`), and for some maps a turn per token (`tokenRot`).
+- `crisisToken` and `lock` are one value for every token, or a list with one value per token. A token without its own list item gets the first item.
+- `frontName` and `backName` choose the images of the two sides. Without them, both sides show the `crisisToken` image. A token with `tokenSide` back has the `backName` image on top. Only two kinds of cards have two images: Mystic Wakandan Herbs (Herb and Vessel) and the four Source cards (Unexhausted and Exhausted Source).
+- A token is a `Custom_Tile` with scale `tSize`. A tile with scale 1 is 2" wide, so `tSize` 0.5 is a 1" token. The mod script uses the same size (`objectiveSize = tSize * 2`), and Jarvis also uses 1". The mod gives a token with `tSize` 2.5 another tile type, and the script does not support that.
+- For the current cards, the mod uses generic tokens such as "Secure Point of Interest" and "Extract Asset", not the named tokens of the card text (Cell, Prisoner). `tokenDatabase` has images of the named tokens, but `crisisDatabase` does not use them.
+- The mod puts the `token` of a `cardDatabase` row next to the card. The script migrates it as `supply` only when it is an objective token (shape Circle or Square). The condition and damage tokens (shape "Other") are character tokens, so the script leaves them out. These are 1 Damage (Lockdown), Poison (Terrigen Canisters, Terrigen Clouds), Stun (Mayor Fisk) and Incinerate (Demons Downtown).
+- The current cards have two back images, one per type. In the mod, Lockdown (Secure) has the Extract back, and Jailbreak (Extract) has the Secure back. The script uses the image that most cards of the type have, and prints a warning for the other cards.
+- The token positions are the same as the setup maps of Jarvis: TTS (x, z) = (x − 18, 18 − y), where x and y are the Jarvis inches from the top-left corner (`mcp_tacticus/src/data/setups.json`). This was checked for all 27 setup maps on 2026-09-29. The script does not check it.
+
+## What the app still needs
+
+1. A way to choose one Secure card and one Extract card, and to show their faces.
+2. Tokens on the mat: a thin disk of `size` with the `token` image on top and the `back` image (or the same image) below. `Terrain.jsx` converts a TTS position to Three.js with `z` → `-z`. The positions are relative to the player sides, not to the mat, so a mat turn (`matTurns`) must not turn the tokens. See `docs/feature-crisis.md`.
+3. The rules for `locked`, `flipOnly` and `supply`.
+4. Card text, legality and contest ranges from Jarvis. For example, the Prison Blocks of Lockdown are contested at Range 2.
+
+# Jarvis crisis cards
+
+`fetch-jarvis-crisis-cards.mjs` downloads every crisis card from [Jarvis Protocol](https://www.jarvis-protocol.com) to `src/crisis/jarvis-crisis-cards.json`. The file is the response of `GET /api/crisis_cards`, sorted by slug.
+
+```bash
+npm run fetch-jarvis-crisis-cards
+```
+
+- One request returns all cards with their text, so the script downloads everything each time. The headers are the same as for the characters.
+- The response has every printing of a card. The current printing has `replacedBy: null`. On 2026-09-29, there were 72 printings of 51 cards.
+- `exportCode` is the MCT code, the `id` in `cards.json`. All 24 migrated cards have a current Jarvis card with the same id, type and threat. `migrate-crisis.mjs` prints a warning when this is not true. 6 old Extended cards have no `exportCode` and are not in the TTS mod.
+- `setup` is the letter of the setup map. `challengerStatus` and `timelines` give the legality. The text has the same markup as the character text, and also `|<slug>Label|` (token with an icon), `|$A-Map A|` (link to a setup map) and `|=...=|` (a note by Jarvis, not card text).
+- `mcp_tacticus` uses this data in `src/data/crisisCards.json`, after `scripts/fetch-crisis-cards.mjs` removes the markup.

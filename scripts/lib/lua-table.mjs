@@ -7,11 +7,39 @@
 // resolveName(name): value of a name that is not a local string variable, for example `large` or `IG.mind`.
 //   Without it, such a name is an error.
 export function readLuaAssignment(source, name, { resolveName } = {}) {
-  const vars = {}
-  for (const [, key, value] of source.matchAll(/^local (\w+) = "([^"\n]*)"/gm)) vars[key] = value
   const start = [...source.matchAll(new RegExp(`^${name}\\s*=\\s*`, 'gm'))].at(-1)
   if (!start) throw new Error(`No "${name} =" in the Lua source`)
-  return new Parser(source, start.index + start[0].length, vars, resolveName).expression()
+  return new Parser(source, start.index + start[0].length, localStrings(source), resolveName).expression()
+}
+
+// Values of the top-level statements `name[KEY] = ...` in source, as { KEY: value }. KEY is the Lua name in the
+// brackets as it is written: `crisisMaps[mapC] = {...}` gives { mapC: {...} }. resolveName: as in readLuaAssignment.
+export function readLuaIndexedAssignments(source, name, { resolveName } = {}) {
+  const vars = localStrings(source)
+  const values = {}
+  for (const m of source.matchAll(new RegExp(`^${name}\\[(\\w+)\\]\\s*=\\s*`, 'gm'))) {
+    values[m[1]] = new Parser(source, m.index + m[0].length, vars, resolveName).expression()
+  }
+  return values
+}
+
+// Top-level assignments of a number or a quoted string, as { name: value }. A line can have several of them:
+// `tSmall = 0.375 tLarge = 0.5`. Use it in resolveName to read names such as `tSize = tLarge` as their values.
+export function readLuaConstants(source) {
+  const constants = {}
+  const line = /^(?:\w+\s*=\s*(?:-?\d+(?:\.\d+)?|"[^"\n]*")\s*)+(?:--.*)?$/gm
+  for (const [text] of source.matchAll(line)) {
+    for (const [, key, value] of text.replace(/--.*$/, '').matchAll(/(\w+)\s*=\s*(-?\d+(?:\.\d+)?|"[^"\n]*")/g)) {
+      constants[key] = value.startsWith('"') ? value.slice(1, -1) : Number(value)
+    }
+  }
+  return constants
+}
+
+function localStrings(source) {
+  const vars = {}
+  for (const [, key, value] of source.matchAll(/^local (\w+) = "([^"\n]*)"/gm)) vars[key] = value
+  return vars
 }
 
 const NUMBER = /-?(?:0[xX][0-9a-fA-F]+|(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)/y
