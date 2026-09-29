@@ -333,7 +333,7 @@ function useHandleDrag(rigidRef, groundY, hoverHeight) {
   }
 }
 
-const RANGE_TIP = { 2: 1.501, 3: 3.0, 4: 4.0, 5: 5.0 }
+export const RANGE_TIP = { 2: 1.501, 3: 3.0, 4: 4.0, 5: 5.0 }
 // Range tools are 1" wide (mesh spans z = ±0.5)
 const RANGE_HALF_WIDTH = 0.5
 const FOOTPRINT_COLOR = '#3f7fd6'
@@ -383,6 +383,42 @@ export function RangeRuler({ number = 2, ...props }) {
   const map = useTexture(TEXTURE)
   const parts = useMemo(() => [{ obj: textured(raw.clone(), map) }], [raw, map])
   return <Tool parts={parts} tip={RANGE_TIP[number] ?? 1.501} halfWidth={RANGE_HALF_WIDTH} {...props} />
+}
+
+// Non-interactive R3 tool that follows a dragged model along the deployment edge.
+// Visible only while a model is being dragged with the deploy-line toggle on.
+export function DeployRangeTool({ getBody, centerZ, yaw, hoverHeight = 1 }) {
+  const raw = useLoader(OBJLoader, assetUrl('tools/range-3-mesh.obj'))
+  const map = useTexture(TEXTURE)
+  const obj = useMemo(() => textured(raw.clone(), map), [raw, map])
+  const groupRef = useRef()
+  const slotRef = useRef(null)
+
+  useEffect(() => {
+    slotRef.current = acquireFootprint()
+    return () => {
+      slotRef.current?.release()
+      slotRef.current = null
+    }
+  }, [])
+
+  useFrame(() => {
+    const body = getBody()
+    if (!body || !groupRef.current) return
+    const { x } = body.translation()
+    groupRef.current.position.set(x, hoverHeight, centerZ)
+    groupRef.current.rotation.y = yaw
+    if (slotRef.current) {
+      const shape = { x, z: centerZ, right: yaw, left: yaw + Math.PI }
+      slotRef.current.set(shape, RANGE_TIP[3], RANGE_HALF_WIDTH, FOOTPRINT_COLOR, 0.25, FOOTPRINT_COLOR)
+    }
+  })
+
+  return (
+    <group ref={groupRef}>
+      <primitive object={obj} />
+    </group>
+  )
 }
 
 // Movement tool: mesh-a is the right half with the round hinge, mesh-b is the left half

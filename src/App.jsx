@@ -15,6 +15,7 @@ export default function App() {
   const [showLabels, setShowLabels] = useState(false)
   const [matTurns, setMatTurns] = useState(0)
   const [mapId, setMapId] = useState('vibranium-heist')
+  const [deployLine, setDeployLine] = useState(false)
 
   // direction: 1 turns the mat 90° counter-clockwise, -1 clockwise
   function handleTurnMat(direction) {
@@ -36,7 +37,7 @@ export default function App() {
         camera={{ position: CAMERA_POSITION, fov: 50 }}
         gl={{ antialias: true }}
       >
-        <Scene mapId={mapId} activeRange={activeRange} activeMove={activeMove} showColliders={showColliders} showLabels={showLabels} matTurns={matTurns} />
+        <Scene mapId={mapId} activeRange={activeRange} activeMove={activeMove} showColliders={showColliders} showLabels={showLabels} matTurns={matTurns} deployLine={deployLine} />
         <OrbitControls
           makeDefault
           target={[0, 0, 0]}
@@ -60,6 +61,8 @@ export default function App() {
         showLabels={showLabels}
         onLabelsClick={() => setShowLabels(prev => !prev)}
         onTurnMat={handleTurnMat}
+        deployLine={deployLine}
+        onDeployLineClick={() => setDeployLine(prev => !prev)}
       />
       <LoadingOverlay />
     </div>

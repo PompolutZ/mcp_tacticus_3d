@@ -55,7 +55,7 @@ function turnBetween(a, b) {
 }
 
 // bodyRef, objectRef: get the Rapier body and the 3D object of the model (figure and base)
-export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, rotation = [0, 0, 0], teamColor = 'red', selected = false, onSelect, bodyRef, objectRef }) {
+export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, rotation = [0, 0, 0], teamColor = 'red', selected = false, onSelect, bodyRef, objectRef, onDragStart, onDragEnd, constrainDrag }) {
   const { scene } = useGLTF(url)
   const { camera, gl, controls } = useThree()
   const { world, rapier } = useRapier()
@@ -115,6 +115,7 @@ export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, r
     rest.current = null
     const p = pointerPoint()
     if (!p) return
+    if (constrainDrag) constrainDrag(p)
     const t = rb.translation()
     // Off the table there is no ground, so keep the current height.
     // Never below the ground: a base released inside terrain can be pushed out through the bottom of it.
@@ -169,6 +170,7 @@ export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, r
         if (!selected || Math.hypot(dx, dy) < DRAG_THRESHOLD) return
         rigidRef.current?.setBodyType(2, true)
         isDragging.current = true
+        onDragStart?.()
       }
       const rect = gl.domElement.getBoundingClientRect()
       mouseNDC.current = {
@@ -181,11 +183,10 @@ export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, r
       if (ev.pointerId !== pointerId) return
       if (isDragging.current) {
         isDragging.current = false
-        // Dynamic again, so gravity drops it onto whatever is below.
-        // No velocity from the drag, so it drops straight down and is not thrown.
         rigidRef.current?.setBodyType(0, true)
         rigidRef.current?.setLinvel(ZERO, true)
         rigidRef.current?.setAngvel(ZERO, true)
+        onDragEnd?.()
       } else {
         onSelect?.()
       }

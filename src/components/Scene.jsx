@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { useTexture, Stars, Environment } from '@react-three/drei'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
-import { MovementRuler, RangeRuler } from './RulerTool.jsx'
+import { MovementRuler, RangeRuler, DeployRangeTool, RANGE_TIP } from './RulerTool.jsx'
 import CharacterModel, { BASE_RADIUS } from './CharacterModel.jsx'
 import Terrain from './Terrain.jsx'
 import { projectFootprints } from './footprintProjection.js'
@@ -34,7 +34,7 @@ const TIME_STEP = 1 / 120
 // showColliders: draw every physics collider as lines (the shapes physics uses, not the visible meshes)
 // showLabels: show the piece name and game Size above each terrain piece
 // matTurns: number of 90° counter-clockwise turns of the mat and its terrain
-export default function Scene({ mapId, activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0 }) {
+export default function Scene({ mapId, activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0, deployLine = false }) {
   const map = MAPS[mapId]
   const matTexture = useTexture(assetUrl(matImage(map.mat)))
   // One character and one tool can be selected at the same time
@@ -45,6 +45,12 @@ export default function Scene({ mapId, activeRange, activeMove, showColliders = 
   const charBodies = useRef(new Map())
   // Character id → 3D object. Tools find the character under the pointer with it.
   const charObjects = useRef(new Map())
+  const [draggingCharId, setDraggingCharId] = useState(null)
+
+  // Deploy-line: R3 zone depth from the deployment edge
+  const deployTip = RANGE_TIP[3]
+  const deployDepth = 2 * deployTip
+  const draggingChar = deployLine && draggingCharId ? characters.find(ch => ch.id === draggingCharId) : null
 
   // Every character as tools see it
   const toolModels = useMemo(() => characters.map(ch => ({
@@ -122,6 +128,12 @@ export default function Scene({ mapId, activeRange, activeMove, showColliders = 
             onSelect={() => setSelectedCharId(prev => prev === ch.id ? null : ch.id)}
             bodyRef={rb => rb ? charBodies.current.set(ch.id, rb) : charBodies.current.delete(ch.id)}
             objectRef={obj => obj ? charObjects.current.set(ch.id, obj) : charObjects.current.delete(ch.id)}
+            onDragStart={() => setDraggingCharId(ch.id)}
+            onDragEnd={() => setDraggingCharId(null)}
+            constrainDrag={deployLine ? (p) => {
+              if (ch.teamColor === 'blue') p.z = Math.max(p.z, MAT_SIZE / 2 - deployDepth)
+              else p.z = Math.min(p.z, -(MAT_SIZE / 2 - deployDepth))
+            } : undefined}
           />
         ))}
 
@@ -136,6 +148,14 @@ export default function Scene({ mapId, activeRange, activeMove, showColliders = 
             target={toolTarget}
             models={toolModels}
             onSnap={model => setSelectedCharId(model.id)}
+          />
+        )}
+        {draggingChar && (
+          <DeployRangeTool
+            getBody={() => charBodies.current.get(draggingCharId)}
+            centerZ={draggingChar.teamColor === 'blue' ? MAT_SIZE / 2 - deployTip : -(MAT_SIZE / 2 - deployTip)}
+            yaw={draggingChar.teamColor === 'blue' ? -Math.PI / 2 : Math.PI / 2}
+            hoverHeight={TOOL_HOVER_HEIGHT}
           />
         )}
         {activeRange && (

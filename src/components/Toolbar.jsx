@@ -7,7 +7,7 @@ const MOVES = [
   { label: 'L', type: 'long' },
 ]
 
-export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeClick, onMoveClick, showColliders, onCollidersClick, showLabels, onLabelsClick, onTurnMat }) {
+export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeClick, onMoveClick, showColliders, onCollidersClick, showLabels, onLabelsClick, onTurnMat, deployLine, onDeployLineClick }) {
   return (
     <div className="toolbar">
       <div className="group">
@@ -49,6 +49,17 @@ export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeCl
             {m.label}
           </button>
         ))}
+      </div>
+      <div className="group">
+        <span className="group-label">Deploy</span>
+        <button
+          type="button"
+          className={`chip${deployLine ? ' chip--active' : ''}`}
+          title="Lock models to within Range 3 of their deployment edge"
+          onClick={onDeployLineClick}
+        >
+          Lock
+        </button>
       </div>
       <div className="group">
         <span className="group-label">Debug</span>
