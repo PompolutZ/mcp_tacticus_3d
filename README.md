@@ -121,9 +121,32 @@ While the R1 tool is snapped and another model is selected, the outline is green
 
 **Place** works only while the R1 tool is snapped, the same as "Place 1" in the TTS mod. It moves the selected character across the tool, so its base touches the other long side at the same corner. Its base edge is then 1" from the snapped base edge. If the selected character is the snapped model, it now touches the other long side, so the tool stays snapped to it.
 
-## Collider view
+## Debug mode
 
-**Debug → Colliders** in the toolbar draws every physics collider as lines. A collider is the shape that physics uses for an object. It is not always the same as the visible mesh. Most terrain pieces use a convex hull: the mesh wrapped tight with no dents, so it fills gaps and holes. A model collides only with its base, so the figure can go into terrain.
+**Debug → Mode** in the toolbar turns debug mode on. It is only in the dev server (`npm run dev`). `vite build` leaves it out.
+
+### Collider view
+
+Debug mode draws every physics collider as lines. A collider is the shape that physics uses for an object. It is not always the same as the visible mesh. Most terrain pieces use a convex hull: the mesh wrapped tight with no dents, so it fills gaps and holes. A model collides only with its base, so the figure can go into terrain.
+
+### Frame numbers
+
+A panel at the bottom left shows numbers for the last 0.5 s. Hover a label to see what it means.
+
+- **FPS**: frames per second. The display refresh rate is the upper limit.
+- **Worst**: the longest time between two frames. A stutter shows here even when FPS looks fine.
+- **CPU**: JavaScript time of a frame: physics, `useFrame` callbacks and sending the draw calls. Pointer events are not included.
+- **GPU**: GPU time of a frame. It needs the `EXT_disjoint_timer_query_webgl2` WebGL extension. Chrome has it, Safari does not, so Safari shows n/a.
+- **Draw calls** and **Triangles**: counts of the last frame, of all renders together (shadow map, scene, outline passes). When a piece is selected, the Outline draws the whole scene one more time, so the triangle count goes up by about one scene.
+- **Canvas**: size of the drawing buffer in device pixels, and the device pixel ratio.
+
+### Render switch
+
+The panel also turns parts of the rendering off, to measure what they cost:
+
+- **Full**: as in the normal app.
+- **No outline**: the EffectComposer runs, but draws no outline.
+- **No composer**: R3F draws the scene straight to the screen. There are no outlines and no antialiasing, because the canvas is created without antialiasing.
 
 ## Crisis
 

@@ -12,7 +12,7 @@ const CRISIS_TYPES = [
   { type: 'extract', label: 'Extract' },
 ]
 
-export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeClick, onMoveClick, showColliders, onCollidersClick, showLabels, onLabelsClick, onTurnMat, deployLine, onDeployLineClick, crisis, onCrisisChange }) {
+export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeClick, onMoveClick, debug, onDebugClick, showLabels, onLabelsClick, onTurnMat, deployLine, onDeployLineClick, crisis, onCrisisChange }) {
   return (
     <div className="toolbar">
       <div className="group">
@@ -85,13 +85,17 @@ export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeCl
       </div>
       <div className="group">
         <span className="group-label">Debug</span>
-        <button
-          type="button"
-          className={`chip${showColliders ? ' chip--active' : ''}`}
-          onClick={onCollidersClick}
-        >
-          Colliders
-        </button>
+        {/* Only in the dev server, see App */}
+        {import.meta.env.DEV && (
+          <button
+            type="button"
+            className={`chip${debug ? ' chip--active' : ''}`}
+            title="Debug mode: frame numbers, render switch and collider lines. Only in the dev server."
+            onClick={onDebugClick}
+          >
+            Mode
+          </button>
+        )}
         <button
           type="button"
           className={`chip${showLabels ? ' chip--active' : ''}`}

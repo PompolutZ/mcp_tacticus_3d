@@ -310,3 +310,40 @@ body {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
   cursor: default;
 }
+
+/* Debug mode, dev server only. Bottom left, clear of the token panel in the middle. */
+.debug-panel {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  z-index: 200;
+}
+
+.debug-stats {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 12px;
+}
+
+.debug-label {
+  color: var(--muted);
+}
+
+.debug-label[title] {
+  cursor: help;
+}
+
+.debug-modes {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+}

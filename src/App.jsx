@@ -11,6 +11,8 @@ import { TokenPanel } from './components/TokenPanel.jsx'
 import { CardPopup } from './components/CardPopup.jsx'
 import { canFlip, canMove, getCard, hasArc, hasMarkers } from './crisis/cards.js'
 import { supplyPosition } from './crisis/layout.js'
+import FrameStats from './debug/FrameStats.jsx'
+import { DebugPanel } from './debug/DebugPanel.jsx'
 
 // Slightly offset from the exact top-down pole to avoid gimbal lock on first drag.
 const CAMERA_POSITION = [0, 20, 4]
@@ -71,7 +73,9 @@ function buildCardTokens(card) {
 export default function App() {
   const [activeRange, setActiveRange] = useState(null)
   const [activeMove, setActiveMove] = useState(null)
-  const [showColliders, setShowColliders] = useState(false)
+  const [debugOn, setDebugOn] = useState(false)
+  // 'full' | 'no-outline' | 'no-composer', see DebugPanel
+  const [renderMode, setRenderMode] = useState('full')
   const [showLabels, setShowLabels] = useState(false)
   const [matTurns, setMatTurns] = useState(0)
   const [mapId, setMapId] = useState('vibranium-heist')
@@ -146,6 +150,11 @@ export default function App() {
 
   const selectedToken = selection?.kind === 'token' ? tokens.find(t => t.id === selection.id) ?? null : null
 
+  // Debug mode is only in the dev server. import.meta.env.DEV is false in `vite build`, so debug
+  // is always false there and the build leaves out the debug code.
+  const debug = import.meta.env.DEV && debugOn
+  const mode = debug ? renderMode : 'full'
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <Canvas
@@ -154,13 +163,13 @@ export default function App() {
         // The EffectComposer in SelectionOutlines renders the scene with its own antialiasing (multisampling)
         gl={{ antialias: false }}
       >
-        <SelectionOutlines>
+        <SelectionOutlines composer={mode !== 'no-composer'} outlines={mode === 'full'}>
           <Scene
             mapId={mapId}
             characters={characters}
             activeRange={activeRange}
             activeMove={activeMove}
-            showColliders={showColliders}
+            showColliders={debug}
             showLabels={showLabels}
             matTurns={matTurns}
             deployLine={deployLine}
@@ -184,6 +193,7 @@ export default function App() {
           maxPolarAngle={85 * (Math.PI / 180)}
         />
         <KeyboardPan />
+        {debug && <FrameStats />}
       </Canvas>
       <div className="hud-top">
         <Toolbar
@@ -193,8 +203,8 @@ export default function App() {
           activeMove={activeMove}
           onRangeClick={handleRangeClick}
           onMoveClick={handleMoveClick}
-          showColliders={showColliders}
-          onCollidersClick={() => setShowColliders(prev => !prev)}
+          debug={debug}
+          onDebugClick={() => setDebugOn(prev => !prev)}
           showLabels={showLabels}
           onLabelsClick={() => setShowLabels(prev => !prev)}
           onTurnMat={handleTurnMat}
@@ -212,6 +222,7 @@ export default function App() {
         onDamage={damage => handleTokenDamage(selectedToken.id, damage)}
       />
       <CardPopup cardKey={openCard} onClose={() => setOpenCard(null)} />
+      {debug && <DebugPanel renderMode={renderMode} onRenderModeChange={setRenderMode} />}
       <LoadingOverlay />
     </div>
   )
