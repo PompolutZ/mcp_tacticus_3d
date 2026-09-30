@@ -327,3 +327,43 @@ npm run fetch-jarvis-crisis-cards
 - `exportCode` is the MCT code, the `id` in `cards.json`. All 24 migrated cards have a current Jarvis card with the same id, type and threat. `migrate-crisis.mjs` prints a warning when this is not true. 6 old Extended cards have no `exportCode` and are not in the TTS mod.
 - `setup` is the letter of the setup map. `challengerStatus` and `timelines` give the legality. The text has the same markup as the character text, and also `|<slug>Label|` (token with an icon), `|$A-Map A|` (link to a setup map) and `|=...=|` (a note by Jarvis, not card text).
 - `mcp_tacticus` uses this data in `src/data/crisisCards.json`, after `scripts/fetch-crisis-cards.mjs` removes the markup.
+
+# TTS dice migration
+
+`migrate-dice.mjs` writes the dice tray assets to `src/assets/dice/`: the die mesh and texture, the tray mesh and texture, and the 6 result icons. See `docs/feature-dice-rolling.md` for the design and `docs/plan-dice-rolling.md` for the face table and the tray numbers.
+
+```bash
+npm run migrate-dice
+```
+
+Requirements: ImageMagick, and the tray mesh, tray texture, die texture and icons in the TTS cache (spawn a "Blue Dice Tray" or "Red Dice Tray" once in TTS, and roll it once so the die image downloads).
+
+## Output
+
+| Output | Content |
+|---|---|
+| `src/assets/dice/d8.glb` | The die: the app's own regular octahedron (`src/dice/faces.js`), not a TTS mesh. 24 vertices (flat faces), no texture inside, no Draco. |
+| `src/assets/dice/d8.webp` | The die texture, at most 1024×1024 |
+| `src/assets/dice/tray.glb`, `tray.webp` | The tray mesh and texture, converted like a terrain OBJ piece |
+| `src/assets/dice/icons/<symbol>.webp` | The 6 result icons, at most 256×256 |
+
+The die is not converted from a TTS mesh: in TTS the die is the built-in D8 shape (`Custom_Dice`, type 2) with one image, and the mod has no mesh for it. The app builds its own regular octahedron so every face has the same chance. `d8.glb` gets a UV triangle per face, so the TTS die texture fits without changes. The UV triangles are a constant in the script (`FACE_UVS`), not re-measured on every run. They were measured once from `D8_1885.obj` (the TTS D8 mesh, exported by AssetRipper from the TTS game files, not from the mod) and its UVs: for each face, fit the affine map from the face plane to UV using the flat (unbevelled) triangle of the OBJ mesh with the same normal as the ideal face, then evaluate that map at the corners of the app's own octahedron. See `docs/plan-dice-rolling.md`, Phase 1 Result, for the full method and the face table (face number, symbol, normal).
+
+The tray and die source URLs come from the "Blue Dice Tray" object in the mod save (both trays use the same mesh, texture and die image). The tray mesh and texture URLs are its `CustomMesh.MeshURL` and `DiffuseURL`. The die image URL is read out of its Lua script text (the `image = "..."` line that `addDice()` passes to `setCustomObject`), because it is not a mod asset field. The icon URLs follow the fixed pattern `https://d37ev18qvj5a3m.cloudfront.net/tts/token/ui/D{CRIT,WILD,HIT,BLOCK,BLANK,FAIL}_UI.png` (FAIL is the skull).
+
+# Dice sim
+
+`dice-sim.mjs` builds the tray's Rapier world in Node, with no browser: the same gravity and time step as `Scene.jsx`, the table and its edge walls from `src/table.js`, the tray trimesh from `tray.glb` through `src/dice/tray.js`, and the throw, settle and read-face rules from `src/dice/throw.js`. It throws a die many times and prints a short report: fairness (chi-squared, see `docs/feature-dice-rolling.md`, "Fairness"), how often a die rests tilted, how often it leaves the well, how long 10 dice take to rest, and the cost per physics step with 42 dice.
+
+```bash
+npm run dice-sim                              # seed 1, 8000 single-die throws, 2000 multi-die throws
+npm run dice-sim -- --seed 2                   # a different seed, to check a chi-squared failure is real
+npm run dice-sim -- --quick                    # 300 throws each, for fast iteration while tuning
+npm run dice-sim -- --throws 500 --multi-throws 500
+```
+
+It uses the nested Rapier build under `@react-three/rapier` (0.14.0), not the top-level one (0.12.0, wrong version for this app) — see `docs/plan-dice-rolling.md`, Phase 3 Result, for why.
+
+See the Phase 3 Result in `docs/plan-dice-rolling.md` for the tuned values (`THROW_SPIN_MAX`, `DIE_SOLVER_ITERATIONS` in `throw.js`) and the measured numbers, and `docs/feature-dice-rolling.md`, "Measurements", for a short version.
+
+`scripts/tts-dice-measure.lua` is the TTS side of the same measurement (see the design, "Measurements", "In TTS"). It is a TTS object script, not a Node script, and it has not been run — there is no TTS install here. Its header says how to run it. It only adds a button to the object it is pasted into, and spawns and deletes its own dice.

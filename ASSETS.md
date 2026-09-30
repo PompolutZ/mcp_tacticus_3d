@@ -73,7 +73,8 @@ The largest files (likely detailed character models):
 - `httppastebincomrawAuCg1mFR.obj` — 446 KB
 
 ### What is NOT cached
-- Die mesh (8-sided custom die — Steam UGC ID `868485988860654056`, never downloaded)
+- The die has no mesh of its own: it is the TTS built-in D8 shape (`Custom_Dice`, type 2) with one
+  image. UGC ID `868485988860654056` is the retired "Click Roller Universal", not the die.
 - Most character models (only recently-used ones are on disk)
 
 ---
@@ -117,8 +118,9 @@ All 188 URLs are in the mod JSON and can be fetched at runtime.
 
 `httpssteamusercontentaakamaihdnetugc783003963486280633F22C6421...png`
 
-A 1024×1024 sprite sheet showing 7 symbols on a red background:
-spiral (miss), small starburst ×2 (hit), large starburst (wild), figure-with-spikes (special), shield+starburst (block), skull (critical). Maps to the 8 faces of the custom d8.
+A 2048×2048 sprite sheet showing 6 symbols on a red background: spiral (Wild), starburst ×2 (Hit),
+shield with a starburst (Block), burst with "!" (Crit), skull (Failure, shown as "Skull" in the app).
+2 of the 8 faces are blank. See `docs/feature-dice-rolling.md`, "The die", for the full face table.
 
 ### Infinity Gem images — cached
 

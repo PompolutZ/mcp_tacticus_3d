@@ -71,11 +71,16 @@ export function loadCrisisDatabase() {
 
 let save
 
-function modScript(nickname) {
+// The mod object with this Nickname, for example "Blue Dice Tray". Searches inside bags and boxes too.
+export function modObject(nickname) {
   save ??= JSON.parse(fs.readFileSync(MOD_SAVE, 'utf8'))
   const object = findObject(save.ObjectStates, o => o.Nickname === nickname)
   if (!object) throw new Error(`No "${nickname}" object in ${MOD_SAVE}`)
-  return object.LuaScript
+  return object
+}
+
+function modScript(nickname) {
+  return modObject(nickname).LuaScript
 }
 
 function findObject(objects = [], test) {

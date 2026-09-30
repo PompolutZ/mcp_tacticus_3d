@@ -99,6 +99,11 @@ body {
   border-color: #3a7de0;
 }
 
+.chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .terrain-label {
   font-size: 11px;
   color: var(--text);
@@ -201,6 +206,125 @@ body {
   font-size: 13px;
   color: var(--muted);
   white-space: nowrap;
+}
+
+/* The red dice panel stacks under the spawner, in normal flow, so it stays clear of the
+   toolbar even when the toolbar wraps to more rows (see App.jsx). */
+.hud-top-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  pointer-events: none;
+}
+
+/* One tray's HUD panel. No background on the wrapper itself: the inset box is a child of it
+   with no background either, so the canvas under the box shows through (Phase 6 draws there).
+   Only the groups, the face row and the history have their own panel background. */
+.dice-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 240px;
+  pointer-events: auto;
+}
+
+/* Blue sits at the bottom right of the screen, on its own (not in hud-top's flow). */
+.dice-panel--bottom {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  z-index: 200;
+}
+
+.dice-panel-inset {
+  width: 100%;
+  height: 130px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.dice-panel--blue .dice-panel-inset {
+  border-color: #2980b9;
+}
+
+.dice-panel--red .dice-panel-inset {
+  border-color: #c0392b;
+}
+
+.dice-panel-well {
+  min-width: 1.4em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.dice-panel-faces {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px;
+}
+
+.dice-panel-face {
+  position: relative;
+}
+
+.dice-panel-face-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dice-panel-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.dice-panel-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 170px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px;
+  z-index: 10;
+}
+
+.dice-panel-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-start;
+}
+
+.dice-panel-history {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 120px;
+  overflow-y: auto;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  color: var(--muted);
 }
 
 .chip--player-blue {

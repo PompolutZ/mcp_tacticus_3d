@@ -218,7 +218,10 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
   // Rotation is free, as in TTS: the model stays upright while its center of mass is over the ground
   // and tips over when it is past an edge.
   return (
-    <RigidBody ref={setBody} type="dynamic" position={position} colliders={false} linearDamping={LINEAR_DAMPING} angularDamping={ANGULAR_DAMPING} ccd>
+    // dominanceGroup 1 (dice stay at the default, 0): in a model-die contact, Rapier moves only the
+    // lower-group body, so a die never pushes a model (design, "Collisions"). Fixed/kinematic
+    // bodies are already always dominant, so this only changes model-die contacts.
+    <RigidBody ref={setBody} type="dynamic" position={position} colliders={false} linearDamping={LINEAR_DAMPING} angularDamping={ANGULAR_DAMPING} ccd dominanceGroup={1}>
       <CylinderCollider args={[BASE_HALF_H, baseRadius]} position={[0, BASE_HALF_H, 0]} friction={FRICTION} density={BASE_DENSITY} />
       <primitive
         ref={setFigure}
