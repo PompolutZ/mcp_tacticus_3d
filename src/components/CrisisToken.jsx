@@ -48,10 +48,11 @@ function angleTo(pivot, p) {
 
 // token: one entry of the tokens array in App.jsx (see buildCardTokens). onMove(x, z) and
 // onTurn(yaw): called once, when a drag ends, to commit the new pose to App state.
+// onHover(over): called when the pointer moves onto the token (true) and off it (false)
 // objectRef: standard ref callback for the token's 3D object, for the ruler tools' pointer raycast.
 // centerRef(getter): registers a function that returns the token's live { x, y, z }, for the ruler
 // tools. Called with undefined on unmount, the same pattern as bodyRef/objectRef in CharacterModel.
-export default function CrisisToken({ token, selected, onSelect, onMove, onTurn, objectRef, centerRef }) {
+export default function CrisisToken({ token, selected, onSelect, onHover, onMove, onTurn, objectRef, centerRef }) {
   const backKey = token.backKey ?? token.frontKey
   const [frontMap, backMap, damageMap] = useTexture([
     assetUrl(crisisToken(token.frontKey)),
@@ -205,6 +206,14 @@ export default function CrisisToken({ token, selected, onSelect, onMove, onTurn,
   }
 
   useOutline(diskRef, outlineMode(selected, hovered))
+
+  // onHover(true) while the pointer is over the token, onHover(false) after. The cleanup also runs
+  // on unmount, so a removed token does not stay hovered.
+  useEffect(() => {
+    if (!hovered) return undefined
+    onHover?.(true)
+    return () => onHover?.(false)
+  }, [hovered])
 
   const over = e => { e.stopPropagation(); setHovered(true) }
   const out = () => setHovered(false)

@@ -56,7 +56,8 @@ function turnBetween(a, b) {
 
 // bodyRef, objectRef: get the Rapier body and the 3D object of the model (figure and base)
 // baseRadius: radius of the base in the model file, which has the game size
-export default function CharacterModel({ url, position = [0, 0, 0], baseRadius = BASE_RADIUS, rotation = [0, 0, 0], teamColor = 'red', selected = false, onSelect, bodyRef, objectRef, onDragStart, onDragEnd, constrainDrag }) {
+// onHover(over): called when the pointer moves onto the model (true) and off it (false)
+export default function CharacterModel({ url, position = [0, 0, 0], baseRadius = BASE_RADIUS, rotation = [0, 0, 0], teamColor = 'red', selected = false, onSelect, onHover, bodyRef, objectRef, onDragStart, onDragEnd, constrainDrag }) {
   const { scene } = useGLTF(url)
   const { camera, gl, controls } = useThree()
   const { world, rapier } = useRapier()
@@ -143,6 +144,14 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
   }, [scene, teamColor])
 
   useOutline(figureRef, outlineMode(selected, hovered))
+
+  // onHover(true) while the pointer is over the model, onHover(false) after. The cleanup also runs
+  // on unmount, so a removed model does not stay hovered.
+  useEffect(() => {
+    if (!hovered) return undefined
+    onHover?.(true)
+    return () => onHover?.(false)
+  }, [hovered])
 
   function onPointerDown(e) {
     e.stopPropagation()

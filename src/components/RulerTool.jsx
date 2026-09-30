@@ -415,6 +415,7 @@ function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target
 // null. getBody is only there for a model (a character); Place uses it to move the piece, and is
 // disabled without it. models: every character and token, in the same form, for the pointer
 // raycast and the snap. onSnap(model): the tool snapped to that model during a drag.
+// onSpawn: called once, when the tool is created
 // hoverHeight: how far above the table or terrain the tool hangs while dragged
 // number 1: range 1 has no tool of its own. As with "Snap 1" in the TTS mod, the Range 2 tool lies
 // across the line from the base, and its 1" width measures range 1. See README "Tools".
@@ -553,7 +554,7 @@ function BendButton({ on, onClick }) {
 // tip: X of each end (length of each half of the footprint).
 // bendable: a movement tool. Its halves turn around the hinge at the center.
 // rangeOne: the range 1 tool. It snaps with a corner, not an end. See README "Tools", "Range 1".
-function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target, models = [], onSnap }) {
+function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target, models = [], onSnap, onSpawn }) {
   const [hovered, setHovered] = useState(false)
   const rigidRef = useRef()
   // The tool meshes, without the handles, for the outline
@@ -658,6 +659,7 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
 
   // Spawned while a character or a token is selected: start snapped to it, not at the default position
   useEffect(() => {
+    onSpawn?.()
     const center = target?.getCenter()
     const rb = rigidRef.current
     if (!center || !rb) return

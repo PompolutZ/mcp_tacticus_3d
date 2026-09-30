@@ -58,14 +58,17 @@ const TIME_STEP = 1 / 120
 // crisis: { secure, extract } chosen card keys. tokens: every crisis token on the table (see App.jsx).
 // selection: { kind: 'character' | 'token', id } | null, lifted to App so a character and a token
 // share one selection. onSelectionChange: the setter, called with a value or an updater function.
+// onPieceHover(piece, over): the pointer moved onto (true) or off (false) a character or a token,
+// piece as { kind, id }. toolSpawns: { range, move }, a count that changes when App spawns that tool
+// again. It is part of the tool key, so the tool mounts again and snaps to the selection.
+// selectedTool: 'range' | 'move' | null, lifted to App with its setter onSelectedToolChange.
+// One tool can be selected at the same time as a character or a token.
 export default function Scene({
   mapId, characters = [], activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, onTokenMove, onTokenTurn, onCardOpen,
+  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onCardOpen,
 }) {
   const map = MAPS[mapId]
   const matTexture = useTexture(assetUrl(matImage(map.mat)))
-  // One tool can be selected at the same time as a character or a token
-  const [selectedToolId, setSelectedToolId] = useState(null)
   // Character id → Rapier body. Tools read and move characters through it.
   const charBodies = useRef(new Map())
   // Character id → 3D object. Tools find the character under the pointer with it.
@@ -106,8 +109,8 @@ export default function Scene({
   ], [characters, tokens])
   const toolTarget = toolModels.find(model => selection && model.kind === selection.kind && model.id === selection.id)
 
-  function toggleTool(toolId) {
-    setSelectedToolId(prev => prev === toolId ? null : toolId)
+  function toggleTool(tool) {
+    onSelectedToolChange(prev => prev === tool ? null : tool)
   }
 
   function toggleSelect(kind, id) {
@@ -179,6 +182,7 @@ export default function Scene({
             token={tok}
             selected={selectedTokenId === tok.id}
             onSelect={() => toggleSelect('token', tok.id)}
+            onHover={over => onPieceHover?.({ kind: 'token', id: tok.id }, over)}
             onMove={(x, z) => onTokenMove(tok.id, x, z)}
             onTurn={yaw => onTokenTurn(tok.id, yaw)}
             objectRef={obj => obj ? tokenObjects.current.set(tok.id, obj) : tokenObjects.current.delete(tok.id)}
@@ -208,6 +212,7 @@ export default function Scene({
               teamColor={ch.teamColor}
               selected={selectedCharId === ch.id}
               onSelect={() => toggleSelect('character', ch.id)}
+              onHover={over => onPieceHover?.({ kind: 'character', id: ch.id }, over)}
               bodyRef={rb => rb ? charBodies.current.set(ch.id, rb) : charBodies.current.delete(ch.id)}
               objectRef={obj => obj ? charObjects.current.set(ch.id, obj) : charObjects.current.delete(ch.id)}
               onDragStart={() => setDraggingCharId(ch.id)}
@@ -222,12 +227,14 @@ export default function Scene({
 
         {activeMove && (
           <MovementRuler
-            key={activeMove}
+            key={`${activeMove}-${toolSpawns.move}`}
             type={activeMove}
             position={[0, TOOL_HOVER_HEIGHT, -6]}
             hoverHeight={TOOL_HOVER_HEIGHT}
-            selected={selectedToolId === 'move'}
+            selected={selectedTool === 'move'}
             onSelect={() => toggleTool('move')}
+            // A new tool is selected, so its buttons (Place, Bend) can be used right away
+            onSpawn={() => onSelectedToolChange('move')}
             target={toolTarget}
             models={toolModels}
             onSnap={model => onSelectionChange({ kind: model.kind, id: model.id })}
@@ -243,12 +250,13 @@ export default function Scene({
         )}
         {activeRange && (
           <RangeRuler
-            key={activeRange}
+            key={`${activeRange}-${toolSpawns.range}`}
             number={activeRange}
             position={[0, TOOL_HOVER_HEIGHT, 6]}
             hoverHeight={TOOL_HOVER_HEIGHT}
-            selected={selectedToolId === 'range'}
+            selected={selectedTool === 'range'}
             onSelect={() => toggleTool('range')}
+            onSpawn={() => onSelectedToolChange('range')}
             target={toolTarget}
             models={toolModels}
             onSnap={model => onSelectionChange({ kind: model.kind, id: model.id })}

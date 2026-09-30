@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import Scene from './components/Scene.jsx'
@@ -13,6 +13,7 @@ import { canFlip, canMove, getCard, hasArc, hasMarkers } from './crisis/cards.js
 import { supplyPosition } from './crisis/layout.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
+import { MOVE_KEYS, PAN_KEYS, RANGE_KEYS, isEditing, useWindowKeys } from './keyboard.js'
 
 // Slightly offset from the exact top-down pole to avoid gimbal lock on first drag.
 const CAMERA_POSITION = [0, 20, 4]
@@ -87,6 +88,14 @@ export default function App() {
   const [tokens, setTokens] = useState([])
   // A character or a token can be selected, not both: { kind: 'character' | 'token', id } | null
   const [selection, setSelection] = useState(null)
+  // Selected tool: 'range' | 'move' | null. It can be selected at the same time as a character or a token.
+  const [selectedTool, setSelectedTool] = useState(null)
+  // Character or token under the pointer: { kind, id } | null. Only the tool keys read it, so it is a ref.
+  const hoveredRef = useRef(null)
+  // Pan keys held down: key code → screen direction. KeyboardPan moves the camera while one is held.
+  const heldPan = useRef(new Map())
+  // Count of tool key presses over a piece, per tool: { range, move }. See Scene.
+  const [toolSpawns, setToolSpawns] = useState({ range: 0, move: 0 })
   // Crisis card whose face is open in the popup, by key. null = closed.
   const [openCard, setOpenCard] = useState(null)
 
@@ -113,6 +122,73 @@ export default function App() {
 
   function handleMoveClick(move) {
     setActiveMove(prev => prev === move ? null : move)
+  }
+
+  // over: true when the pointer moved onto the piece, false when it moved off
+  function handlePieceHover(piece, over) {
+    if (over) hoveredRef.current = piece
+    else if (hoveredRef.current?.kind === piece.kind && hoveredRef.current.id === piece.id) hoveredRef.current = null
+  }
+
+  // Every key press of the app is handled here, so that the same key can do different things in
+  // different states. The states now: the crisis card popup is open, or the table is in use.
+  // The keys are in keyboard.js.
+  function handleKeyDown(e) {
+    if (openCard) {
+      // Escape closes only the popup. Other keys do nothing, so nothing changes on the table behind it.
+      if (e.key === 'Escape') setOpenCard(null)
+      return
+    }
+    if (e.key === 'Escape') {
+      handleEscape()
+      return
+    }
+    if (e.metaKey || e.ctrlKey || e.altKey || isEditing(e.target)) return
+    if (PAN_KEYS[e.code]) {
+      // Arrow keys would also scroll the page
+      e.preventDefault()
+      heldPan.current.set(e.code, PAN_KEYS[e.code])
+      return
+    }
+    if (e.repeat) return
+    if (RANGE_KEYS[e.key]) handleToolKey('range', RANGE_KEYS[e.key])
+    else if (MOVE_KEYS[e.key]) handleToolKey('move', MOVE_KEYS[e.key])
+  }
+
+  function handleKeyUp(e) {
+    heldPan.current.delete(e.code)
+  }
+
+  // A key released outside the window sends no keyup
+  function handleBlur() {
+    heldPan.current.clear()
+  }
+
+  useWindowKeys(handleKeyDown, handleKeyUp, handleBlur)
+
+  // Escape clears every selection: the character or token, and the tool. The selected tool is also
+  // removed from the table.
+  function handleEscape() {
+    if (selectedTool === 'range') setActiveRange(null)
+    if (selectedTool === 'move') setActiveMove(null)
+    setSelectedTool(null)
+    setSelection(null)
+  }
+
+  // tool: 'range' | 'move'. value: the range number or the movement tool type.
+  // Toggles the tool, the same as its toolbar button. With the pointer over a character or a token,
+  // it selects that piece and spawns the tool again, snapped to it, even if the tool is already out.
+  function handleToolKey(tool, value) {
+    const piece = hoveredRef.current
+    if (!piece) {
+      if (tool === 'range') handleRangeClick(value)
+      else handleMoveClick(value)
+      return
+    }
+    setSelection(piece)
+    if (tool === 'range') setActiveRange(value)
+    else setActiveMove(value)
+    setToolSpawns(prev => ({ ...prev, [tool]: prev[tool] + 1 }))
   }
 
   // type: 'secure' | 'extract'. key: a card key, or null for "None".
@@ -162,6 +238,10 @@ export default function App() {
         camera={{ position: CAMERA_POSITION, fov: 50 }}
         // The EffectComposer in SelectionOutlines renders the scene with its own antialiasing (multisampling)
         gl={{ antialias: false }}
+        // A click with no piece under the pointer (table, terrain, background) clears the selection.
+        // R3F does not count a camera drag as a click. A right click is a 'contextmenu' event, and it also
+        // starts a camera pan, so it does not clear. Clicks on tool buttons (Html) are not on the canvas.
+        onPointerMissed={e => { if (e.type === 'click' && e.target instanceof HTMLCanvasElement) setSelection(null) }}
       >
         <SelectionOutlines composer={mode !== 'no-composer'} outlines={mode === 'full'}>
           <Scene
@@ -177,6 +257,10 @@ export default function App() {
             tokens={tokens}
             selection={selection}
             onSelectionChange={setSelection}
+            selectedTool={selectedTool}
+            onSelectedToolChange={setSelectedTool}
+            onPieceHover={handlePieceHover}
+            toolSpawns={toolSpawns}
             onTokenMove={handleTokenMove}
             onTokenTurn={handleTokenTurn}
             onCardOpen={setOpenCard}
@@ -192,7 +276,7 @@ export default function App() {
           maxDistance={50}
           maxPolarAngle={85 * (Math.PI / 180)}
         />
-        <KeyboardPan />
+        <KeyboardPan held={heldPan} />
         {debug && <FrameStats />}
       </Canvas>
       <div className="hud-top">
