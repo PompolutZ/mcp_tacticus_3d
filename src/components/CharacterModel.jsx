@@ -43,9 +43,8 @@ export function upright({ y, w }) {
 // Top of the table or terrain under the whole base at (x, z), or null when nothing is under it.
 // A cast of the base shape, not a ray, so terrain under any part of the base counts.
 // The body origin is the base bottom, so this is also the body Y that puts the base on the ground.
-export function baseGroundY(world, rapier, x, z, scale = 1) {
-  const halfH = BASE_HALF_H * scale
-  return castDown(world, rapier, new rapier.Cylinder(halfH, BASE_RADIUS * scale), NO_ROTATION, x, z, halfH)
+export function baseGroundY(world, rapier, x, z, radius = BASE_RADIUS) {
+  return castDown(world, rapier, new rapier.Cylinder(BASE_HALF_H, radius), NO_ROTATION, x, z, BASE_HALF_H)
 }
 
 // Angle between two rotations, in radians
@@ -55,7 +54,8 @@ function turnBetween(a, b) {
 }
 
 // bodyRef, objectRef: get the Rapier body and the 3D object of the model (figure and base)
-export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, rotation = [0, 0, 0], teamColor = 'red', selected = false, onSelect, bodyRef, objectRef, onDragStart, onDragEnd, constrainDrag }) {
+// baseRadius: radius of the base in the model file, which has the game size
+export default function CharacterModel({ url, position = [0, 0, 0], baseRadius = BASE_RADIUS, rotation = [0, 0, 0], teamColor = 'red', selected = false, onSelect, bodyRef, objectRef, onDragStart, onDragEnd, constrainDrag }) {
   const { scene } = useGLTF(url)
   const { camera, gl, controls } = useThree()
   const { world, rapier } = useRapier()
@@ -68,12 +68,11 @@ export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, r
   // Pose the model has stayed close to, and for how long: { t, r, time }. See SETTLE_TIME.
   const rest = useRef(null)
   const mouseNDC = useRef({ x: 0, y: 0 })
-  const baseHalfH = BASE_HALF_H * scale
   // Pointer and ground casts hit only fixed bodies (table and terrain), and no sensors
   const groundOnly = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
 
   function groundY(x, z) {
-    return baseGroundY(world, rapier, x, z, scale)
+    return baseGroundY(world, rapier, x, z, baseRadius)
   }
 
   // Table or terrain point under the pointer, so the model stays under the cursor on raised terrain
@@ -212,11 +211,10 @@ export default function CharacterModel({ url, position = [0, 0, 0], scale = 1, r
   // and tips over when it is past an edge.
   return (
     <RigidBody ref={setBody} type="dynamic" position={position} colliders={false} linearDamping={LINEAR_DAMPING} angularDamping={ANGULAR_DAMPING} ccd>
-      <CylinderCollider args={[baseHalfH, BASE_RADIUS * scale]} position={[0, baseHalfH, 0]} friction={FRICTION} density={BASE_DENSITY} />
+      <CylinderCollider args={[BASE_HALF_H, baseRadius]} position={[0, BASE_HALF_H, 0]} friction={FRICTION} density={BASE_DENSITY} />
       <primitive
         ref={objectRef}
         object={scene}
-        scale={scale}
         rotation={rotation}
         onPointerOver={(e) => { e.stopPropagation(); setHovered(true) }}
         onPointerOut={() => setHovered(false)}

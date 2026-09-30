@@ -375,7 +375,7 @@ function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target
   return null
 }
 
-// target: the selected character as { id, getBody, getObject, radius, scale }, or null
+// target: the selected character as { id, getBody, getObject, radius }, or null
 // models: every character, in the same form. onSnap(model): the tool snapped to that model during a drag.
 // hoverHeight: how far above the table or terrain the tool hangs while dragged
 export function RangeRuler({ number = 2, ...props }) {
@@ -631,7 +631,7 @@ function Tool({ parts, tip, halfWidth, bendable = false, position = [0, 0, 0], h
     const spot = alongHalf(toolShape(toolPose(rigidRef.current), turn), side, tip + model.radius)
     // Put the base on top of the table or terrain at the spot. Keeping the old height
     // would leave the model inside terrain that is higher than where it started.
-    const ground = baseGroundY(world, rapier, spot.x, spot.z, model.scale)
+    const ground = baseGroundY(world, rapier, spot.x, spot.z, model.radius)
     body.setTranslation({ x: spot.x, y: ground ?? t.y, z: spot.z }, true)
     // Upright, as if picked up and put down there, even when the model had tipped over
     body.setRotation(upright(body.rotation()), true)

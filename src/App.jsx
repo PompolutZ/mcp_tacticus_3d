@@ -3,6 +3,8 @@ import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import Scene from './components/Scene.jsx'
 import { Toolbar } from './components/Toolbar.jsx'
+import { CharacterSpawner } from './components/CharacterSpawner.jsx'
+import { KeyboardPan } from './components/KeyboardPan.jsx'
 import { LoadingOverlay } from './components/LoadingOverlay.jsx'
 
 // Slightly offset from the exact top-down pole to avoid gimbal lock on first drag.
@@ -16,10 +18,23 @@ export default function App() {
   const [matTurns, setMatTurns] = useState(0)
   const [mapId, setMapId] = useState('vibranium-heist')
   const [deployLine, setDeployLine] = useState(false)
+  const [characters, setCharacters] = useState([])
 
   // direction: 1 turns the mat 90° counter-clockwise, -1 clockwise
   function handleTurnMat(direction) {
     setMatTurns(prev => (prev + direction + 4) % 4)
+  }
+
+  function handleSpawn(ch) {
+    setCharacters(prev => [...prev, {
+      id: crypto.randomUUID(),
+      key: ch.slug,
+      figure: ch.figure,
+      base: ch.base,
+      rotation: ch.rotation,
+      teamColor: ch.teamColor,
+      slot: prev.filter(c => c.teamColor === ch.teamColor).length,
+    }])
   }
 
   function handleRangeClick(range) {
@@ -37,7 +52,7 @@ export default function App() {
         camera={{ position: CAMERA_POSITION, fov: 50 }}
         gl={{ antialias: true }}
       >
-        <Scene mapId={mapId} activeRange={activeRange} activeMove={activeMove} showColliders={showColliders} showLabels={showLabels} matTurns={matTurns} deployLine={deployLine} />
+        <Scene mapId={mapId} characters={characters} activeRange={activeRange} activeMove={activeMove} showColliders={showColliders} showLabels={showLabels} matTurns={matTurns} deployLine={deployLine} />
         <OrbitControls
           makeDefault
           target={[0, 0, 0]}
@@ -48,6 +63,7 @@ export default function App() {
           maxDistance={50}
           maxPolarAngle={85 * (Math.PI / 180)}
         />
+        <KeyboardPan />
       </Canvas>
       <Toolbar
         mapId={mapId}
@@ -64,6 +80,7 @@ export default function App() {
         deployLine={deployLine}
         onDeployLineClick={() => setDeployLine(prev => !prev)}
       />
+      <CharacterSpawner onSpawn={handleSpawn} />
       <LoadingOverlay />
     </div>
   )
