@@ -1,6 +1,6 @@
 # Feature: Crisis cards
 
-Status: design. Not started.
+Status: in progress. Players can choose a Secure and an Extract card, see them on the table, and move, flip and mark their tokens. Hold and drop are not built yet: a character cannot pick up an Asset, Civilian or VIP token. Players track that by hand for now.
 
 ## Goal
 
@@ -147,7 +147,7 @@ The details depend on how players select tokens. They will be decided later.
 ## Setup flow
 
 1. A player chooses the Secure card and the Extract card from a list. The list shows the name and the threat.
-2. The app puts both cards face up on the table, one on each side of the scoring board (see [Scoring board](#scoring-board)). Players expect the cards there, because they place them there on a real table. A player can open a card in a HUD popup to read it. The TTS mod has a button that brings a card forward for the same reason.
+2. The app puts both cards face up on the table, one on each side of the scoring board (see [Scoring board](#scoring-board)). The Secure card is on the blue side (+z) and the Extract card is on the red side (-z). The mod has no script that places the cards on the table; players place them by hand, so this is the app's own choice, not a measured mod rule. Players expect the cards there, because they place them there on a real table. A player can open a card in a HUD popup to read it. The TTS mod has a button that brings a card forward for the same reason.
 3. The app puts the tokens on the mat at the setup positions, with the side and rotation from the card.
 4. For a Source card, the app also puts the supply next to the card.
 5. The setup positions are always relative to the player sides (blue and red), as the setup map on each card shows. They are never relative to the mat. So when the mat turns (**Mat → ↺ / ↻**), the tokens do not turn with it. Each token stays at its place on the table and rests again on the new surface under it (see [Where a token rests](#where-a-token-rests)). As a result, players cannot know before the game if a token lands on the mat or on terrain.
@@ -169,10 +169,7 @@ What exists (see `scripts/README.md`, section "TTS crisis cards"):
 - `src/crisis/jarvis-crisis-cards.json`: official names, card text, setup map letter, `payToFlip`, legality.
 - Positions are TTS x and z in inches from the mat center. `Terrain.jsx` converts them to Three.js with `z` → `-z`.
 
-What is missing:
-
-- A Control marker image. A colored ring or disk in the player color is enough.
-- A damage marker image. The mod has a "1 Damage" token. `migrate-crisis.mjs` leaves it out because it is a character token. Character damage tokens will need the same image later.
+The Control marker has no image: it is a colored ring in the player color, drawn by the app. The damage marker uses the mod's "1 Damage" token image, migrated by `migrate-crisis.mjs` to `src/assets/crisis/markers/damage.webp`. Character damage tokens will need the same image later.
 
 ## Scoring board
 

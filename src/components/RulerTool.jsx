@@ -362,21 +362,23 @@ function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target
     const shape = toolShape(toolPose(rigidRef.current), turn)
 
     // Set colors here, not through React state, because contact changes every frame during a drag
-    const body = selected && target?.getBody()
+    const center = selected && target?.getCenter()
     let fill = FOOTPRINT_COLOR
-    if (body) {
-      const touching = footprintGap(shape, halfLength, halfWidth, body.translation(), target.radius) <= CONTACT_EPS
+    if (center) {
+      const touching = footprintGap(shape, halfLength, halfWidth, center, target.radius) <= CONTACT_EPS
       fill = touching ? FOOTPRINT_TOUCH : FOOTPRINT_APART
     }
-    const line = body ? fill : selected ? '#ffffff' : FOOTPRINT_COLOR
+    const line = center ? fill : selected ? '#ffffff' : FOOTPRINT_COLOR
     slotRef.current.set(shape, halfLength, halfWidth, fill, selected ? 0.35 : 0.2, line)
   })
 
   return null
 }
 
-// target: the selected character as { id, getBody, getObject, radius }, or null
-// models: every character, in the same form. onSnap(model): the tool snapped to that model during a drag.
+// target: the selected model or token as { id, kind, getObject, getCenter, radius, getBody? }, or
+// null. getBody is only there for a model (a character); Place uses it to move the piece, and is
+// disabled without it. models: every character and token, in the same form, for the pointer
+// raycast and the snap. onSnap(model): the tool snapped to that model during a drag.
 // hoverHeight: how far above the table or terrain the tool hangs while dragged
 export function RangeRuler({ number = 2, ...props }) {
   const raw = useLoader(OBJLoader, assetUrl(`tools/range-${number}-mesh.obj`))
@@ -468,7 +470,7 @@ function PlaceButton({ disabled = false, onClick }) {
         whiteSpace: 'nowrap',
       }}
       disabled={disabled}
-      title={disabled ? 'Select a character first' : undefined}
+      title={disabled ? 'Select a character' : undefined}
       onClick={onClick}
     >
       Place
@@ -555,8 +557,8 @@ function Tool({ parts, tip, halfWidth, bendable = false, position = [0, 0, 0], h
     }
     // Snapped: turn around the base center. The distance to the base does not change,
     // so the tool keeps touching the base. Free: turn around the end of the other half.
-    const body = snap?.target.getBody()
-    const pivot = body ? body.translation() : alongHalf(toolShape(toolPose(rb), turn), OTHER[side], tip)
+    const center = snap?.target.getCenter()
+    const pivot = center ?? alongHalf(toolShape(toolPose(rb), turn), OTHER[side], tip)
     startHandleDrag(e, pivot, (d, pose) => turnAround(pose, pivot, d))
   }
 
@@ -587,12 +589,11 @@ function Tool({ parts, tip, halfWidth, bendable = false, position = [0, 0, 0], h
 
   // Move the tool without turning it, so that the end nearer to the model's base touches the base edge
   function snapTo(model) {
-    const body = model.getBody()
+    const c = model.getCenter()
     const rb = rigidRef.current
-    if (!body || !rb) return false
+    if (!c || !rb) return false
     const pose = toolPose(rb)
     const shape = toolShape(pose, turn)
-    const c = body.translation()
     const side = nearerHalf(shape, tip, c)
     // The base center is past the end of that half, so the tool center is that far back from it
     const back = tip + model.radius
@@ -604,13 +605,13 @@ function Tool({ parts, tip, halfWidth, bendable = false, position = [0, 0, 0], h
     return true
   }
 
-  // Spawned while a character is selected: start snapped to its base, not at the default position
+  // Spawned while a character or a token is selected: start snapped to it, not at the default position
   useEffect(() => {
-    const body = target?.getBody()
+    const center = target?.getCenter()
     const rb = rigidRef.current
-    if (!body || !rb) return
+    if (!center || !rb) return
     setSnap({ target, side: 'left' })
-    const pose = snapPose(body.translation(), target.radius, tip)
+    const pose = snapPose(center, target.radius, tip)
     const ground = groundY(pose.x, pose.z, pose.yaw) ?? 0
     rb.setTranslation({ x: pose.x, y: ground + hoverHeight, z: pose.z }, true)
     rb.setRotation(yawQuat(pose.yaw), true)
@@ -682,8 +683,9 @@ function Tool({ parts, tip, halfWidth, bendable = false, position = [0, 0, 0], h
               <sphereGeometry args={[HANDLE_RADIUS, 16, 12]} />
               <meshStandardMaterial color="#f5a623" roughness={0.3} metalness={0.5} />
             </mesh>
-            {/* Movement tool: Place is at the end the model moves to, the end that is not snapped */}
-            {bendable && selected && snap && snap.side !== side && (
+            {/* Movement tool: Place is at the end the model moves to, the end that is not snapped.
+                Not shown for a token: it has no body, so there is nothing to move. */}
+            {bendable && selected && snap && snap.side !== side && snap.target.getBody && (
               <FlatHtml x={side === 'right' ? tip - PLACE_INSET : PLACE_INSET - tip}>
                 <PlaceButton onClick={handleSnapPlace} />
               </FlatHtml>
@@ -694,7 +696,8 @@ function Tool({ parts, tip, halfWidth, bendable = false, position = [0, 0, 0], h
           <FlatHtml>
             {bendable
               ? <BendButton on={bendOn} onClick={(e) => { e.stopPropagation(); setBendOn(on => !on) }} />
-              : <PlaceButton disabled={!target} onClick={handlePlace} />}
+              // Disabled for a token: it has no body, so Place has nothing to move.
+              : <PlaceButton disabled={!target || !target.getBody} onClick={handlePlace} />}
           </FlatHtml>
         )}
       </RigidBody>

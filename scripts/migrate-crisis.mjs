@@ -8,7 +8,7 @@ import path from 'node:path'
 import { parseArgs } from 'node:util'
 import { imageToWebp, TEXTURE_SIZE } from './lib/convert.mjs'
 import { cachedFile, loadCrisisDatabase } from './lib/tts.mjs'
-import { crisisCardBack, crisisCardFace, crisisToken } from '../src/crisis/files.js'
+import { crisisCardBack, crisisCardFace, crisisMarker, crisisToken } from '../src/crisis/files.js'
 
 const USAGE = `Usage:
   node scripts/migrate-crisis.mjs --list   crisis cards of the mod and their status
@@ -39,8 +39,11 @@ const TYPES = { Secure: 'secure', Extract: 'extract' }
 // and for an Extract card in the rows after it
 const LAST_SECURE_ROW = 'SECURE - Drop Objectives at Every Location without Rotations'
 // Token shapes that the mod spawns as a Custom_Tile. Condition and damage tokens have the shape "Other"
-// and are spawned as a Custom_Token. They are character tokens, so this script does not migrate them.
+// and are spawned as a Custom_Token. They are character tokens, so this script does not migrate them,
+// except for the row below, which the app also uses as the crisis damage marker (Lockdown).
 const SHAPES = { Circle: 'circle', Square: 'square' }
+// tokenDatabase row of the marker the app puts on a damaged crisis token
+const DAMAGE_ROW_NAME = '1 Damage'
 
 const db = loadCrisisDatabase()
 const tokenRows = new Map(db.tokens.map(t => [t.name, t]))
@@ -97,9 +100,10 @@ function migrate() {
   const tokenFiles = new Map(done.flatMap(p => p.files.slice(1)).map(f => [f.file, f]))
   const convertedTokens = [...tokenFiles.values()].filter(convert).length
   const backs = Object.values(TYPES).map(type => migrateBack(type, done.filter(p => p.entry.type === type)))
+  const marker = migrateMarker()
 
   const newManifest = {}
-  for (const f of [...done.map(p => p.files[0]), ...tokenFiles.values(), ...backs.map(b => b.file).filter(Boolean)]) newManifest[f.file] = f.url
+  for (const f of [...done.map(p => p.files[0]), ...tokenFiles.values(), ...backs.map(b => b.file).filter(Boolean), marker.file].filter(Boolean)) newManifest[f.file] = f.url
   writeJson(MANIFEST_OUT, newManifest)
   writeJson(CARDS_OUT, Object.fromEntries(done.map(p => [p.key, p.entry])))
   writeJson(TOKENS_OUT, Object.fromEntries(done.flatMap(p => [...p.tokens]).map(([key, row]) => [key, tokenEntry(row)])))
@@ -114,6 +118,7 @@ function migrate() {
     console.log(`Card back ${type}: ${status}`)
     for (const w of warnings) console.log(`  warning: ${w}`)
   }
+  console.log(`Damage marker: ${marker.status}`)
   console.log(`\n${done.length} of ${cards.length} cards migrated.\nApp data: ${CARDS_OUT}, ${TOKENS_OUT}\nAssets: ${path.join(ASSETS, 'crisis')}`)
   return results.some(r => r.status.startsWith('failed')) ? 1 : 0
 }
@@ -214,6 +219,15 @@ function migrateBack(type, plans) {
   const different = others.flat().map(b => b.key)
   const warnings = different.length ? [`in the mod, ${different.join(', ')} has another back image than ${common.length} other ${type} cards. The app shows the back of the ${common.length} cards.`] : []
   return { type, file, status: convert(file) ? `converted from ${file.key}` : 'already migrated', warnings }
+}
+
+// The "1 Damage" token image. Not a card face or a token side, so it is migrated on its own, not through planCard.
+function migrateMarker() {
+  const row = tokenRows.get(DAMAGE_ROW_NAME)
+  if (!row) return { status: `no "${DAMAGE_ROW_NAME}" row in tokenDatabase`, file: null }
+  const file = { file: crisisMarker('damage'), url: row.url, label: 'damage marker' }
+  if (!available(file)) return { status: 'missing in TTS cache', file: null }
+  return { status: convert(file) ? 'converted' : 'already migrated', file }
 }
 
 // Jarvis has the text and the legality of the cards. The app joins it by id, so the script checks the ids here.

@@ -259,6 +259,7 @@ The script always migrates all cards, because all files together are only about 
 | `src/assets/crisis/cards/<key>.webp` | Face of a card: the text and the setup map |
 | `src/assets/crisis/cards/secure-back.webp`, `extract-back.webp` | Back of every card of the type |
 | `src/assets/crisis/tokens/<token>.webp` | One side of a token |
+| `src/assets/crisis/markers/damage.webp` | The damage marker (the mod's "1 Damage" token) |
 | `src/crisis/cards.json` | One entry per card |
 | `src/crisis/tokens.json` | One entry per token image: `name` in the mod, `shape` (`circle` or `square`), `size` (diameter in inches) |
 
@@ -302,16 +303,16 @@ These rules were found on 2026-09-29 in the scripts of the "Database" and "Autom
 - `frontName` and `backName` choose the images of the two sides. Without them, both sides show the `crisisToken` image. A token with `tokenSide` back has the `backName` image on top. Only two kinds of cards have two images: Mystic Wakandan Herbs (Herb and Vessel) and the four Source cards (Unexhausted and Exhausted Source).
 - A token is a `Custom_Tile` with scale `tSize`. A tile with scale 1 is 2" wide, so `tSize` 0.5 is a 1" token. The mod script uses the same size (`objectiveSize = tSize * 2`), and Jarvis also uses 1". The mod gives a token with `tSize` 2.5 another tile type, and the script does not support that.
 - For the current cards, the mod uses generic tokens such as "Secure Point of Interest" and "Extract Asset", not the named tokens of the card text (Cell, Prisoner). `tokenDatabase` has images of the named tokens, but `crisisDatabase` does not use them.
-- The mod puts the `token` of a `cardDatabase` row next to the card. The script migrates it as `supply` only when it is an objective token (shape Circle or Square). The condition and damage tokens (shape "Other") are character tokens, so the script leaves them out. These are 1 Damage (Lockdown), Poison (Terrigen Canisters, Terrigen Clouds), Stun (Mayor Fisk) and Incinerate (Demons Downtown).
+- The mod puts the `token` of a `cardDatabase` row next to the card. The script migrates it as `supply` only when it is an objective token (shape Circle or Square). The condition tokens (shape "Other") are character tokens, so the script leaves them out. These are Poison (Terrigen Canisters, Terrigen Clouds), Stun (Mayor Fisk) and Incinerate (Demons Downtown). The script migrates the "1 Damage" row on its own, as the crisis damage marker (Lockdown uses it on a Prison Block).
 - The current cards have two back images, one per type. In the mod, Lockdown (Secure) has the Extract back, and Jailbreak (Extract) has the Secure back. The script uses the image that most cards of the type have, and prints a warning for the other cards.
 - The token positions are the same as the setup maps of Jarvis: TTS (x, z) = (x − 18, 18 − y), where x and y are the Jarvis inches from the top-left corner (`mcp_tacticus/src/data/setups.json`). This was checked for all 27 setup maps on 2026-09-29. The script does not check it.
 
 ## What the app still needs
 
-1. A way to choose one Secure card and one Extract card, and to show their faces.
-2. Tokens on the mat: a thin disk of `size` with the `token` image on top and the `back` image (or the same image) below. `Terrain.jsx` converts a TTS position to Three.js with `z` → `-z`. The positions are relative to the player sides, not to the mat, so a mat turn (`matTurns`) must not turn the tokens. See `docs/feature-crisis.md`.
-3. The rules for `locked`, `flipOnly` and `supply`.
-4. Card text, legality and contest ranges from Jarvis. For example, the Prison Blocks of Lockdown are contested at Range 2.
+The app now has crisis card and token display (see `docs/feature-crisis.md`). Still missing:
+
+1. Card text, legality and contest ranges from Jarvis. For example, the Prison Blocks of Lockdown are contested at Range 2.
+2. Hold and drop for the Asset and Civilian tokens.
 
 # Jarvis crisis cards
 

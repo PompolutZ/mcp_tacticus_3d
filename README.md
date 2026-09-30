@@ -73,6 +73,8 @@ The tool has two states: **snapped** and **free**.
 
 ### Snapped
 
+A tool snaps to a model or to a crisis token the same way. "Model" below also means a token.
+
 The tool is snapped to a model when it spawns while that model is selected. It spawns with one end of its outline touching the edge of the model's base, and it points toward the center of the mat.
 
 A tool also snaps to a model while you drag it: when the pointer moves onto a model (the figure or the base), that model becomes selected. The tool keeps its direction and its bend. It moves so that its end nearer to the base touches the edge of the base. The drag ends there, so moving the pointer further does nothing until you release it. If the drag starts with the pointer already on a model, the tool snaps only after the pointer leaves that model and moves onto a model again.
@@ -93,6 +95,8 @@ On a range tool, **Place** is in the middle of the tool. It moves the selected m
 
 On a movement tool, **Place** is shown only while the tool is snapped. It is at the end that is not touching the base. It moves the snapped model to that end. After that, the model touches that end, so Place moves to the other end.
 
+Place does not move a token: a token has no base to place, only a position that its own drag sets. Place is disabled while the tool is snapped to a token.
+
 ### Bending
 
 A movement tool has a hinge in the middle. The round button on the hinge turns bending on and off.
@@ -107,11 +111,17 @@ The outline of a bent tool is one rectangle for each half, plus the round hinge 
 
 **Debug → Colliders** in the toolbar draws every physics collider as lines. A collider is the shape that physics uses for an object. It is not always the same as the visible mesh. Most terrain pieces use a convex hull: the mesh wrapped tight with no dents, so it fills gaps and holes. A model collides only with its base, so the figure can go into terrain.
 
+## Crisis
+
+**Crisis → Secure / Extract** in the toolbar chooses one Secure card and one Extract card. The app puts the two cards on the table next to the scoring board, and their tokens on the mat. Choosing another card removes the old tokens and adds the new ones.
+
+Click a card to open its face image. Click a token to select it. A HUD panel at the bottom shows the actions that token allows: Flip, and for a Secure token, a Control marker (None / Blue / Red) and a damage marker. Drag a movable token to move it. A Zone token also gets a handle that turns it, and shows its Arc outline on the table while selected, the same way a tool shows its outline.
+
+The range and movement tools also snap to a selected token, the same way they snap to a model (see [Tools](#tools)). Hold and drop are not built yet; see `docs/feature-crisis.md`.
+
 ## Roadmap
 
-- [ ] Place character tokens on the mat with correct scale
-- [ ] Movement rulers (Short / Medium / Long) as interactive 3D objects
-- [ ] Range rulers
-- [ ] Crisis card display
 - [ ] Character stat cards
 - [ ] Turn and activation tracking
+- [ ] Scoring board
+- [ ] Hold and drop for Asset, Civilian and VIP tokens

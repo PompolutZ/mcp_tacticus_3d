@@ -5,12 +5,15 @@ import { MovementRuler, RangeRuler, DeployRangeTool, RANGE_TIP } from './RulerTo
 import CharacterModel from './CharacterModel.jsx'
 import Character from './Character.jsx'
 import Terrain from './Terrain.jsx'
+import CrisisCard from './CrisisCard.jsx'
+import CrisisToken from './CrisisToken.jsx'
 import { projectFootprints } from './footprintProjection.js'
 import { matImage } from '../terrain/files.js'
 import { characterModel, characterStandee, BASE_DIAMETER } from '../characters/files.js'
 import { MAPS } from '../terrain/maps.js'
 import { FRICTION } from '../physics.js'
 import { assetUrl } from '../assets/index.js'
+import { CARD_X, CARD_Y, CARD_Z } from '../crisis/layout.js'
 
 // MCP mat is 36" x 36". 1 Three.js unit = 1 inch.
 // The table is 72" wide (x) and 48" deep (z), the same 3:2 shape as the TTS table. It is wider than deep so that
@@ -52,34 +55,63 @@ const TIME_STEP = 1 / 120
 // showColliders: draw every physics collider as lines (the shapes physics uses, not the visible meshes)
 // showLabels: show the piece name and game Size above each terrain piece
 // matTurns: number of 90° counter-clockwise turns of the mat and its terrain
-export default function Scene({ mapId, characters = [], activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0, deployLine = false }) {
+// crisis: { secure, extract } chosen card keys. tokens: every crisis token on the table (see App.jsx).
+// selection: { kind: 'character' | 'token', id } | null, lifted to App so a character and a token
+// share one selection. onSelectionChange: the setter, called with a value or an updater function.
+export default function Scene({
+  mapId, characters = [], activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
+  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, onTokenMove, onTokenTurn, onCardOpen,
+}) {
   const map = MAPS[mapId]
   const matTexture = useTexture(assetUrl(matImage(map.mat)))
-  // One character and one tool can be selected at the same time
-  const [selectedCharId, setSelectedCharId] = useState(null)
+  // One tool can be selected at the same time as a character or a token
   const [selectedToolId, setSelectedToolId] = useState(null)
   // Character id → Rapier body. Tools read and move characters through it.
   const charBodies = useRef(new Map())
   // Character id → 3D object. Tools find the character under the pointer with it.
   const charObjects = useRef(new Map())
+  // Token id → 3D object, and token id → live center getter. The same purpose as charBodies and
+  // charObjects, but a token has no Rapier body (see CrisisToken.jsx).
+  const tokenObjects = useRef(new Map())
+  const tokenCenters = useRef(new Map())
   const [draggingCharId, setDraggingCharId] = useState(null)
+
+  const selectedCharId = selection?.kind === 'character' ? selection.id : null
+  const selectedTokenId = selection?.kind === 'token' ? selection.id : null
 
   // Deploy-line: R3 zone depth from the deployment edge
   const deployTip = RANGE_TIP[3]
   const deployDepth = 2 * deployTip
   const draggingChar = deployLine && draggingCharId ? characters.find(ch => ch.id === draggingCharId) : null
 
-  // Every character as tools see it
-  const toolModels = useMemo(() => characters.map(ch => ({
-    id: ch.id,
-    getBody: () => charBodies.current.get(ch.id),
-    getObject: () => charObjects.current.get(ch.id),
-    radius: BASE_DIAMETER[ch.base] / 2,
-  })), [characters])
-  const toolTarget = toolModels.find(model => model.id === selectedCharId)
+  // Every character and every token as the range and movement tools see them. A character has a
+  // Rapier body; a token does not, so getCenter (not getBody) is what the tools measure with.
+  // getBody is only used where a tool moves a piece (Place), and Place is disabled for a token.
+  const toolModels = useMemo(() => [
+    ...characters.map(ch => ({
+      kind: 'character',
+      id: ch.id,
+      getBody: () => charBodies.current.get(ch.id),
+      getObject: () => charObjects.current.get(ch.id),
+      getCenter: () => charBodies.current.get(ch.id)?.translation() ?? { x: 0, y: 0, z: 0 },
+      radius: BASE_DIAMETER[ch.base] / 2,
+    })),
+    ...tokens.map(tok => ({
+      kind: 'token',
+      id: tok.id,
+      getObject: () => tokenObjects.current.get(tok.id),
+      getCenter: () => tokenCenters.current.get(tok.id)?.() ?? { x: tok.x, y: 0, z: tok.z },
+      radius: 0.5,
+    })),
+  ], [characters, tokens])
+  const toolTarget = toolModels.find(model => selection && model.kind === selection.kind && model.id === selection.id)
 
   function toggleTool(toolId) {
     setSelectedToolId(prev => prev === toolId ? null : toolId)
+  }
+
+  function toggleSelect(kind, id) {
+    onSelectionChange(prev => (prev?.kind === kind && prev.id === id) ? null : { kind, id })
   }
 
   return (
@@ -133,6 +165,27 @@ export default function Scene({ mapId, characters = [], activeRange, activeMove,
           <Terrain key={`${mapId}-${matTurns}`} placements={map.placements} showLabels={showLabels} />
         </group>
 
+        {/* Crisis cards and tokens are relative to the player sides, not the mat, so they stay
+            outside the rotating group above: a mat turn must not turn them. See docs/feature-crisis.md. */}
+        {crisis.secure && (
+          <CrisisCard cardKey={crisis.secure} position={[CARD_X, CARD_Y, CARD_Z.secure]} onOpen={() => onCardOpen(crisis.secure)} />
+        )}
+        {crisis.extract && (
+          <CrisisCard cardKey={crisis.extract} position={[CARD_X, CARD_Y, CARD_Z.extract]} onOpen={() => onCardOpen(crisis.extract)} />
+        )}
+        {tokens.map(tok => (
+          <CrisisToken
+            key={tok.id}
+            token={tok}
+            selected={selectedTokenId === tok.id}
+            onSelect={() => toggleSelect('token', tok.id)}
+            onMove={(x, z) => onTokenMove(tok.id, x, z)}
+            onTurn={yaw => onTokenTurn(tok.id, yaw)}
+            objectRef={obj => obj ? tokenObjects.current.set(tok.id, obj) : tokenObjects.current.delete(tok.id)}
+            centerRef={fn => fn ? tokenCenters.current.set(tok.id, fn) : tokenCenters.current.delete(tok.id)}
+          />
+        ))}
+
         {characters.map(ch => {
           if (ch.figure === 'standee') {
             return (
@@ -154,7 +207,7 @@ export default function Scene({ mapId, characters = [], activeRange, activeMove,
               rotation={[0, ch.rotation * Math.PI / 180, 0]}
               teamColor={ch.teamColor}
               selected={selectedCharId === ch.id}
-              onSelect={() => setSelectedCharId(prev => prev === ch.id ? null : ch.id)}
+              onSelect={() => toggleSelect('character', ch.id)}
               bodyRef={rb => rb ? charBodies.current.set(ch.id, rb) : charBodies.current.delete(ch.id)}
               objectRef={obj => obj ? charObjects.current.set(ch.id, obj) : charObjects.current.delete(ch.id)}
               onDragStart={() => setDraggingCharId(ch.id)}
@@ -177,7 +230,7 @@ export default function Scene({ mapId, characters = [], activeRange, activeMove,
             onSelect={() => toggleTool('move')}
             target={toolTarget}
             models={toolModels}
-            onSnap={model => setSelectedCharId(model.id)}
+            onSnap={model => onSelectionChange({ kind: model.kind, id: model.id })}
           />
         )}
         {draggingChar && (
@@ -198,7 +251,7 @@ export default function Scene({ mapId, characters = [], activeRange, activeMove,
             onSelect={() => toggleTool('range')}
             target={toolTarget}
             models={toolModels}
-            onSnap={model => setSelectedCharId(model.id)}
+            onSnap={model => onSelectionChange({ kind: model.kind, id: model.id })}
           />
         )}
       </Physics>
