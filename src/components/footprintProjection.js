@@ -19,7 +19,8 @@ const uniforms = {
   // cos(yaw), sin(yaw) of the right half, then of the left half
   uFpDir: { value: Array.from({ length: MAX_FOOTPRINTS }, () => new THREE.Vector4(1, 0, -1, 0)) },
   // fill rgb, fill opacity. Opacity 0 means the slot is free.
-  uFpFill: { value: Array.from({ length: MAX_FOOTPRINTS }, () => new THREE.Vector4()) },
+  // w is set to 0 on purpose: Vector4() starts with w = 1, so a free slot would paint a black disc at the center.
+  uFpFill: { value: Array.from({ length: MAX_FOOTPRINTS }, () => new THREE.Vector4(0, 0, 0, 0)) },
   uFpLine: { value: Array.from({ length: MAX_FOOTPRINTS }, () => new THREE.Vector3()) },
 }
 const used = new Array(MAX_FOOTPRINTS).fill(false)
