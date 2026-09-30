@@ -13,6 +13,12 @@ const TEAM_COLORS = { blue: '#2980b9', red: '#c0392b' }
 // dims of the current tokens, which are all 1" circles)
 const RADIUS = 0.5
 const HALF_H = 0.04
+// Segments of the face disks and the edge, so the outline looks round at close zoom
+const SEGMENTS = 64
+// The token images are disks that fill the whole square, with transparent corners and a soft
+// (half-transparent) rim. A circle face already cuts off the corners. alphaTest also drops the
+// most transparent rim pixels, so no light fringe shows around the edge.
+const FACE_ALPHA_TEST = 0.5
 // Gap between the ground and the token bottom, so the token never z-fights with the surface
 const GAP = 0.02
 const DRAG_THRESHOLD = 4
@@ -203,20 +209,22 @@ export default function CrisisToken({ token, selected, onSelect, onMove, onTurn,
   return (
     <group ref={setGroupRef} position={[token.x, 0, token.z]} rotation={[0, token.yaw, 0]}>
       {/* Top face: the up side. Rotated like the mat and the crisis cards, so local +Y of the image
-          (its top) is local -Z, and local +X (its right) stays local +X. See CrisisCard.jsx. */}
+          (its top) is local -Z, and local +X (its right) stays local +X. See CrisisCard.jsx.
+          circleGeometry maps UVs the same way as a plane of size 2 * RADIUS, so the image disk
+          fills the circle exactly. */}
       <mesh position={[0, HALF_H, 0]} rotation={[-Math.PI / 2, 0, 0]} onPointerDown={onPointerDown} onPointerOver={over} onPointerOut={out}>
-        <planeGeometry args={[RADIUS * 2, RADIUS * 2]} />
-        <meshStandardMaterial map={topMap} roughness={1} emissive={emissive} emissiveIntensity={emissiveIntensity} />
+        <circleGeometry args={[RADIUS, SEGMENTS]} />
+        <meshStandardMaterial map={topMap} alphaTest={FACE_ALPHA_TEST} roughness={1} emissive={emissive} emissiveIntensity={emissiveIntensity} />
       </mesh>
       {/* Bottom face: the other side */}
       <mesh position={[0, -HALF_H, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[RADIUS * 2, RADIUS * 2]} />
-        <meshStandardMaterial map={bottomMap} roughness={1} emissive={emissive} emissiveIntensity={emissiveIntensity} />
+        <circleGeometry args={[RADIUS, SEGMENTS]} />
+        <meshStandardMaterial map={bottomMap} alphaTest={FACE_ALPHA_TEST} roughness={1} emissive={emissive} emissiveIntensity={emissiveIntensity} />
       </mesh>
       {/* Edge: open-ended, because a cylinder's own top and bottom caps have turned UVs (see the
-          note in the design), so the two planes above draw the faces instead. */}
+          note in the design), so the two disks above draw the faces instead. */}
       <mesh onPointerDown={onPointerDown} onPointerOver={over} onPointerOut={out}>
-        <cylinderGeometry args={[RADIUS, RADIUS, HALF_H * 2, 32, 1, true]} />
+        <cylinderGeometry args={[RADIUS, RADIUS, HALF_H * 2, SEGMENTS, 1, true]} />
         <meshStandardMaterial color="#3a3f4c" roughness={0.6} emissive={emissive} emissiveIntensity={emissiveIntensity} />
       </mesh>
       {token.control && (

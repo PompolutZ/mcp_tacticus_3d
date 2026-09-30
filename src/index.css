@@ -24,17 +24,31 @@ body {
   color: var(--text);
 }
 
-.toolbar {
+/* One row for the toolbar (left) and the spawner (right), so they never overlap.
+   The toolbar wraps to more rows when it does not fit. */
+.hud-top {
   position: absolute;
   top: 12px;
   left: 12px;
+  right: 12px;
   display: flex;
   flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 8px;
-  align-items: center;
   pointer-events: none;
   /* Above the terrain labels, which use z-index 0 to 100 */
   z-index: 200;
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  pointer-events: none;
 }
 
 .group {
@@ -97,10 +111,9 @@ body {
 }
 
 .spawner {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 200;
+  position: relative;
+  flex-shrink: 0;
+  pointer-events: auto;
 }
 
 .spawner-input {

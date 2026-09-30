@@ -181,24 +181,26 @@ export default function App() {
         />
         <KeyboardPan />
       </Canvas>
-      <Toolbar
-        mapId={mapId}
-        onMapChange={setMapId}
-        activeRange={activeRange}
-        activeMove={activeMove}
-        onRangeClick={handleRangeClick}
-        onMoveClick={handleMoveClick}
-        showColliders={showColliders}
-        onCollidersClick={() => setShowColliders(prev => !prev)}
-        showLabels={showLabels}
-        onLabelsClick={() => setShowLabels(prev => !prev)}
-        onTurnMat={handleTurnMat}
-        deployLine={deployLine}
-        onDeployLineClick={() => setDeployLine(prev => !prev)}
-        crisis={crisis}
-        onCrisisChange={handleCrisisChange}
-      />
-      <CharacterSpawner onSpawn={handleSpawn} />
+      <div className="hud-top">
+        <Toolbar
+          mapId={mapId}
+          onMapChange={setMapId}
+          activeRange={activeRange}
+          activeMove={activeMove}
+          onRangeClick={handleRangeClick}
+          onMoveClick={handleMoveClick}
+          showColliders={showColliders}
+          onCollidersClick={() => setShowColliders(prev => !prev)}
+          showLabels={showLabels}
+          onLabelsClick={() => setShowLabels(prev => !prev)}
+          onTurnMat={handleTurnMat}
+          deployLine={deployLine}
+          onDeployLineClick={() => setDeployLine(prev => !prev)}
+          crisis={crisis}
+          onCrisisChange={handleCrisisChange}
+        />
+        <CharacterSpawner onSpawn={handleSpawn} />
+      </div>
       <TokenPanel
         token={selectedToken}
         onFlip={() => handleTokenFlip(selectedToken.id)}
