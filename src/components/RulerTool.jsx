@@ -8,6 +8,7 @@ import { baseGroundY, upright } from './CharacterModel.jsx'
 import { acquireFootprint } from './footprintProjection.js'
 import { castDown } from '../physics.js'
 import { assetUrl } from '../assets/index.js'
+import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 
 const TEXTURE = assetUrl('tools/toolbox-02.png')
 const DRAG_THRESHOLD = 4
@@ -44,15 +45,6 @@ function textured(obj, map) {
   const mat = new THREE.MeshStandardMaterial({ map, roughness: 0.5, metalness: 0.1 })
   obj.traverse(child => { if (child.isMesh) child.material = mat })
   return obj
-}
-
-function applyEmissive(obj, color, intensity) {
-  obj.traverse(child => {
-    if (child.isMesh && child.material) {
-      child.material.emissive?.set(color)
-      child.material.emissiveIntensity = intensity
-    }
-  })
 }
 
 // Vertex positions of the mesh in obj, for a convex hull collider
@@ -564,6 +556,8 @@ function BendButton({ on, onClick }) {
 function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target, models = [], onSnap }) {
   const [hovered, setHovered] = useState(false)
   const rigidRef = useRef()
+  // The tool meshes, without the handles, for the outline
+  const partsRef = useRef()
   // Stays STRAIGHT on a tool that is not bendable
   const [turn, setTurn] = useState(STRAIGHT)
   // While the bend button is on, a handle turns its half instead of the whole tool
@@ -675,11 +669,7 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
     // Only at spawn. Selecting another character later must not move the tool.
   }, [])
 
-  useEffect(() => {
-    const color = selected ? '#f5a623' : hovered ? '#ffffff' : '#000000'
-    const intensity = selected ? 0.6 : hovered ? 0.4 : 0
-    parts.forEach(part => applyEmissive(part.obj, color, intensity))
-  }, [parts, hovered, selected])
+  useOutline(partsRef, outlineMode(selected, hovered))
 
   // Move a model so its base touches the end of one half, outside the tool
   function placeAt(model, side) {
@@ -737,16 +727,18 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
       {/* Held in the air like a real tool over terrain: kinematic, so it does not fall,
           and a sensor, so models pass under it. The footprint below is what measures. */}
       <RigidBody ref={rigidRef} type="kinematicPosition" position={position} colliders={false} sensor>
-        {parts.map(part => (
-          <group key={part.obj.uuid} rotation-y={partTurn(part)}>
-            <primitive
-              object={part.obj}
-              onPointerOver={(e) => { e.stopPropagation(); setHovered(true) }}
-              onPointerOut={() => setHovered(false)}
-              onPointerDown={(e) => onPointerDown(e, selected, onSelect)}
-            />
-          </group>
-        ))}
+        <group ref={partsRef}>
+          {parts.map(part => (
+            <group key={part.obj.uuid} rotation-y={partTurn(part)}>
+              <primitive
+                object={part.obj}
+                onPointerOver={(e) => { e.stopPropagation(); setHovered(true) }}
+                onPointerOut={() => setHovered(false)}
+                onPointerDown={(e) => onPointerDown(e, selected, onSelect)}
+              />
+            </group>
+          ))}
+        </group>
         {/* Not automatic colliders: those are made once from the meshes, so they would not turn with a half */}
         {parts.map((part, i) => (
           <ConvexHullCollider key={part.obj.uuid} args={[hulls[i]]} rotation={[0, partTurn(part), 0]} />

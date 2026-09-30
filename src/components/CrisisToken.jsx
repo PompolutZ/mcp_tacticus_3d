@@ -7,6 +7,7 @@ import { castDown } from '../physics.js'
 import { crisisMarker, crisisToken } from '../crisis/files.js'
 import { assetUrl } from '../assets/index.js'
 import { acquireFootprint } from './footprintProjection.js'
+import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 
 const TEAM_COLORS = { blue: '#2980b9', red: '#c0392b' }
 // A token is a 1" circle, about 0.08" thick (tokens.json size is used for the shape, not the exact
@@ -64,6 +65,8 @@ export default function CrisisToken({ token, selected, onSelect, onMove, onTurn,
   const shape = useMemo(() => new rapier.Cylinder(HALF_H, RADIUS), [rapier])
 
   const groupRef = useRef()
+  // The token disk (faces and edge), without the markers and the turn handle, for the outline
+  const diskRef = useRef()
   const [hovered, setHovered] = useState(false)
   // Live pose during a drag, in table XZ and yaw. Synced from the token prop when not dragging.
   const poseRef = useRef({ x: token.x, z: token.z, yaw: token.yaw })
@@ -201,32 +204,34 @@ export default function CrisisToken({ token, selected, onSelect, onMove, onTurn,
     objectRef?.(obj)
   }
 
-  const emissive = selected ? '#f5a623' : hovered ? '#ffffff' : '#000000'
-  const emissiveIntensity = selected ? 0.6 : hovered ? 0.4 : 0
+  useOutline(diskRef, outlineMode(selected, hovered))
+
   const over = e => { e.stopPropagation(); setHovered(true) }
   const out = () => setHovered(false)
 
   return (
     <group ref={setGroupRef} position={[token.x, 0, token.z]} rotation={[0, token.yaw, 0]}>
-      {/* Top face: the up side. Rotated like the mat and the crisis cards, so local +Y of the image
-          (its top) is local -Z, and local +X (its right) stays local +X. See CrisisCard.jsx.
-          circleGeometry maps UVs the same way as a plane of size 2 * RADIUS, so the image disk
-          fills the circle exactly. */}
-      <mesh position={[0, HALF_H, 0]} rotation={[-Math.PI / 2, 0, 0]} onPointerDown={onPointerDown} onPointerOver={over} onPointerOut={out}>
-        <circleGeometry args={[RADIUS, SEGMENTS]} />
-        <meshStandardMaterial map={topMap} alphaTest={FACE_ALPHA_TEST} roughness={1} emissive={emissive} emissiveIntensity={emissiveIntensity} />
-      </mesh>
-      {/* Bottom face: the other side */}
-      <mesh position={[0, -HALF_H, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[RADIUS, SEGMENTS]} />
-        <meshStandardMaterial map={bottomMap} alphaTest={FACE_ALPHA_TEST} roughness={1} emissive={emissive} emissiveIntensity={emissiveIntensity} />
-      </mesh>
-      {/* Edge: open-ended, because a cylinder's own top and bottom caps have turned UVs (see the
-          note in the design), so the two disks above draw the faces instead. */}
-      <mesh onPointerDown={onPointerDown} onPointerOver={over} onPointerOut={out}>
-        <cylinderGeometry args={[RADIUS, RADIUS, HALF_H * 2, SEGMENTS, 1, true]} />
-        <meshStandardMaterial color="#3a3f4c" roughness={0.6} emissive={emissive} emissiveIntensity={emissiveIntensity} />
-      </mesh>
+      <group ref={diskRef}>
+        {/* Top face: the up side. Rotated like the mat and the crisis cards, so local +Y of the image
+            (its top) is local -Z, and local +X (its right) stays local +X. See CrisisCard.jsx.
+            circleGeometry maps UVs the same way as a plane of size 2 * RADIUS, so the image disk
+            fills the circle exactly. */}
+        <mesh position={[0, HALF_H, 0]} rotation={[-Math.PI / 2, 0, 0]} onPointerDown={onPointerDown} onPointerOver={over} onPointerOut={out}>
+          <circleGeometry args={[RADIUS, SEGMENTS]} />
+          <meshStandardMaterial map={topMap} alphaTest={FACE_ALPHA_TEST} roughness={1} />
+        </mesh>
+        {/* Bottom face: the other side */}
+        <mesh position={[0, -HALF_H, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[RADIUS, SEGMENTS]} />
+          <meshStandardMaterial map={bottomMap} alphaTest={FACE_ALPHA_TEST} roughness={1} />
+        </mesh>
+        {/* Edge: open-ended, because a cylinder's own top and bottom caps have turned UVs (see the
+            note in the design), so the two disks above draw the faces instead. */}
+        <mesh onPointerDown={onPointerDown} onPointerOver={over} onPointerOut={out}>
+          <cylinderGeometry args={[RADIUS, RADIUS, HALF_H * 2, SEGMENTS, 1, true]} />
+          <meshStandardMaterial color="#3a3f4c" roughness={0.6} />
+        </mesh>
+      </group>
       {token.control && (
         <mesh position={[0, HALF_H + 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[CONTROL_INNER, CONTROL_OUTER, 32]} />

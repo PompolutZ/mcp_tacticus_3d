@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
 import { Color, Plane, Raycaster, Vector3 } from 'three'
 import { FRICTION, castDown } from '../physics.js'
+import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 
 const TEAM_COLORS = { red: '#c0392b', blue: '#2980b9' }
 const TABLE_PLANE = new Plane(new Vector3(0, 1, 0), 0)
@@ -61,6 +62,7 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
   const { world, rapier } = useRapier()
   const [hovered, setHovered] = useState(false)
   const rigidRef = useRef()
+  const figureRef = useRef()
   const moveRef = useRef(null)
   const upRef = useRef(null)
   const raycaster = useRef(new Raycaster())
@@ -140,16 +142,7 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
     })
   }, [scene, teamColor])
 
-  useEffect(() => {
-    const emissiveColor = selected ? '#f5a623' : hovered ? '#ffffff' : '#000000'
-    const intensity = selected ? 0.6 : hovered ? 0.4 : 0
-    scene.traverse((obj) => {
-      if (obj.isMesh && obj.material) {
-        obj.material.emissive?.set(emissiveColor)
-        obj.material.emissiveIntensity = intensity
-      }
-    })
-  }, [scene, hovered, selected])
+  useOutline(figureRef, outlineMode(selected, hovered))
 
   function onPointerDown(e) {
     e.stopPropagation()
@@ -206,6 +199,12 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
     bodyRef?.(rb)
   }
 
+  // Also hand the 3D object to the parent, so tools can find the model under the pointer
+  function setFigure(obj) {
+    figureRef.current = obj
+    objectRef?.(obj)
+  }
+
   // Only the base collides, as in the mod's model bundles, so the center of mass is the base center.
   // Rotation is free, as in TTS: the model stays upright while its center of mass is over the ground
   // and tips over when it is past an edge.
@@ -213,7 +212,7 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
     <RigidBody ref={setBody} type="dynamic" position={position} colliders={false} linearDamping={LINEAR_DAMPING} angularDamping={ANGULAR_DAMPING} ccd>
       <CylinderCollider args={[BASE_HALF_H, baseRadius]} position={[0, BASE_HALF_H, 0]} friction={FRICTION} density={BASE_DENSITY} />
       <primitive
-        ref={objectRef}
+        ref={setFigure}
         object={scene}
         rotation={rotation}
         onPointerOver={(e) => { e.stopPropagation(); setHovered(true) }}

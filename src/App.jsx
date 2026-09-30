@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import Scene from './components/Scene.jsx'
+import SelectionOutlines from './components/SelectionOutlines.jsx'
 import { Toolbar } from './components/Toolbar.jsx'
 import { CharacterSpawner } from './components/CharacterSpawner.jsx'
 import { KeyboardPan } from './components/KeyboardPan.jsx'
@@ -150,25 +151,28 @@ export default function App() {
       <Canvas
         shadows
         camera={{ position: CAMERA_POSITION, fov: 50 }}
-        gl={{ antialias: true }}
+        // The EffectComposer in SelectionOutlines renders the scene with its own antialiasing (multisampling)
+        gl={{ antialias: false }}
       >
-        <Scene
-          mapId={mapId}
-          characters={characters}
-          activeRange={activeRange}
-          activeMove={activeMove}
-          showColliders={showColliders}
-          showLabels={showLabels}
-          matTurns={matTurns}
-          deployLine={deployLine}
-          crisis={crisis}
-          tokens={tokens}
-          selection={selection}
-          onSelectionChange={setSelection}
-          onTokenMove={handleTokenMove}
-          onTokenTurn={handleTokenTurn}
-          onCardOpen={setOpenCard}
-        />
+        <SelectionOutlines>
+          <Scene
+            mapId={mapId}
+            characters={characters}
+            activeRange={activeRange}
+            activeMove={activeMove}
+            showColliders={showColliders}
+            showLabels={showLabels}
+            matTurns={matTurns}
+            deployLine={deployLine}
+            crisis={crisis}
+            tokens={tokens}
+            selection={selection}
+            onSelectionChange={setSelection}
+            onTokenMove={handleTokenMove}
+            onTokenTurn={handleTokenTurn}
+            onCardOpen={setOpenCard}
+          />
+        </SelectionOutlines>
         <OrbitControls
           makeDefault
           target={[0, 0, 0]}
