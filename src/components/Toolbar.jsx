@@ -1,7 +1,7 @@
 import { MAPS } from '../terrain/maps.js'
 import { cardsOfType } from '../crisis/cards.js'
 
-const RANGES = [2, 3, 4, 5]
+const RANGES = [1, 2, 3, 4, 5]
 const MOVES = [
   { label: 'S', type: 'short' },
   { label: 'M', type: 'medium' },

@@ -65,7 +65,7 @@ In game setup, the player with priority chooses the edge of the mat to deploy fr
 
 ## Tools
 
-Range tools and movement tools work the same way, except for **Place** and bending. Movement tools can bend. Range tools stay straight.
+Range tools and movement tools work the same way, except for **Place** and bending. Movement tools can bend. Range tools stay straight. The R1 tool snaps with a corner, not an end, see [Range 1](#range-1).
 
 A tool hangs 1" above the table. It measures with its outline, which is drawn straight below it on the table and on the tops of terrain. Walls and steep sides (more than about 60°) are not painted. While you drag or rotate the tool, it stays 1" above the table or above any terrain under its outline. Terrain within 0.5" of the outline already raises the tool.
 
@@ -106,6 +106,20 @@ While bending is on, dragging a handle turns that half of the tool around the hi
 While bending is off, the handles rotate the whole tool, as described above. The tool keeps its bend.
 
 The outline of a bent tool is one rectangle for each half, plus the round hinge between them.
+
+### Range 1
+
+Range 1 has no tool of its own. The short side of every range tool is 1", so the width of a range tool measures range 1. **R1** in the toolbar spawns the Range 2 tool, the shortest range tool, and uses it this way. The TTS mod does the same with its "Snap 1" button.
+
+The R1 tool snaps with a corner. The base touches one long side of the tool at its corner, so the tool lies across the line from the base. Along that line, the tool is 1" wide.
+
+- Spawned while a model is selected: the tool is on the side of the base toward the mat center.
+- Snapped during a drag: the tool keeps its direction. It moves so that its corner nearer to the base touches the base.
+- Dragging a handle rotates the tool around the base center, the same as other tools. So the corner moves along the base edge. Turn the tool until the corner points at the other model.
+
+While the R1 tool is snapped and another model is selected, the outline is green when that model is within range 1 of the snapped model, and red when it is not. The app measures this edge to edge, seen from above. Touching the tool is not enough, because the tool is 3" long: a base can touch its far end and still be more than 1" away.
+
+**Place** works only while the R1 tool is snapped, the same as "Place 1" in the TTS mod. It moves the selected character across the tool, so its base touches the other long side at the same corner. Its base edge is then 1" from the snapped base edge. If the selected character is the snapped model, it now touches the other long side, so the tool stays snapped to it.
 
 ## Collider view
 

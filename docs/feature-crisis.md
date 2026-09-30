@@ -134,7 +134,7 @@ The range tools measure along the table from above (see README, section "Tools")
 
 A range tool snaps to a selected token in the same way as it snaps to a selected model: one end of the tool touches the edge of the token, and a handle turns the tool around the token center.
 
-The short side of every range tool is 1". Players use it to measure range 1 from a token. On a real table, they hold the tool upright with the short side on the table, or they lay it flat. The TTS mod puts one corner or the short end of the range 2 tool against the token and turns the tool around the token.
+The short side of every range tool is 1". Players use it to measure range 1 from a token. On a real table, they hold the tool upright with the short side on the table, or they lay it flat. The TTS mod puts one corner or the short end of the range 2 tool against the token and turns the tool around the token. The app's R1 tool snaps with a corner in the same way (see README, section "Range 1").
 
 ### Models that cover a token
 

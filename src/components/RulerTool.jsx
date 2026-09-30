@@ -119,6 +119,26 @@ function toLocal(pose, p) {
   return { x: dx * c - dz * s, z: dx * s + dz * c }
 }
 
+// Local XZ of a pose → world XZ (inverse of toLocal)
+function fromLocal(pose, l) {
+  const c = Math.cos(pose.yaw), s = Math.sin(pose.yaw)
+  return { x: pose.x + l.x * c + l.z * s, z: pose.z - l.x * s + l.z * c }
+}
+
+// Range 1 (see README "Tools"): the tool lies across the line from the base, and its width measures
+// range 1. Returns the tool center for this yaw, so that the base (center c) touches the long side
+// `across` (±1: local ±Z) at the corner of the end `end` (±1: local ±X).
+function cornerSnapCenter(c, radius, yaw, tip, halfWidth, end, across) {
+  const o = fromLocal({ x: 0, z: 0, yaw }, { x: end * tip, z: across * (halfWidth + radius) })
+  return { x: c.x - o.x, z: c.z - o.z }
+}
+
+// Which corner of the tool the base (center c) is at: the end and the long side nearer to it
+function nearerCorner(pose, c) {
+  const l = toLocal(pose, c)
+  return { end: l.x >= 0 ? 1 : -1, across: l.z >= 0 ? 1 : -1 }
+}
+
 // Edge-to-edge gap between a round base and the footprint: a rectangle for each half and the
 // round hinge between them. The ends stay flat (not a capsule). Gap ≤ 0 means the base touches it.
 function footprintGap(shape, length, halfWidth, center, radius) {
@@ -140,6 +160,18 @@ function snapPose(center, radius, halfLength) {
   const dz = len > 0.01 ? -center.z / len : 0
   const along = radius + halfLength
   return { x: center.x + dx * along, z: center.z + dz * along, yaw: Math.atan2(-dz, dx) }
+}
+
+// Range 1: tool pose with the base at the corner of the left end, and the tool on the side of the
+// base toward the mat center, so it stays on the mat. The long sides are across the line from the
+// base to the mat center.
+function snapPoseOne(center, radius, halfLength, halfWidth) {
+  const len = Math.hypot(center.x, center.z)
+  const dx = len > 0.01 ? -center.x / len : 1
+  const dz = len > 0.01 ? -center.z / len : 0
+  // Local +Z points away from the mat center, so the base is on the +Z long side
+  const yaw = Math.atan2(-dx, -dz)
+  return { ...cornerSnapCenter(center, radius, yaw, halfLength, halfWidth, -1, 1), yaw }
 }
 
 // Returns groundY(x, z, yaw): top of the table or terrain under the whole footprint of the tool
@@ -342,11 +374,19 @@ const FOOTPRINT_APART = '#e5484d'
 // Physics can nudge a resting base a little, so a small gap still counts as contact
 const CONTACT_EPS = 0.01
 
+// The same character or token. The tool model objects are made again when the pieces change.
+function sameModel(a, b) {
+  return a.kind === b.kind && a.id === b.id
+}
+
 // The tool's footprint straight below the tool, painted by the table and terrain
 // materials on every surface under it that faces up (see footprintProjection.js).
 // Follows the body's XZ position and yaw, and the turn of each half. With a target base
 // it turns green when the base touches it and red when it does not.
-function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target }) {
+// rangeFrom: on the range 1 tool while snapped, the snapped model, else null. Then, for another
+// target, green means the target base is within range 1 of the snapped base (edge to edge, seen
+// from above). Touching is not enough there, because the long sides go across the line.
+function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target, rangeFrom }) {
   const slotRef = useRef(null)
 
   useEffect(() => {
@@ -365,8 +405,12 @@ function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target
     const center = selected && target?.getCenter()
     let fill = FOOTPRINT_COLOR
     if (center) {
-      const touching = footprintGap(shape, halfLength, halfWidth, center, target.radius) <= CONTACT_EPS
-      fill = touching ? FOOTPRINT_TOUCH : FOOTPRINT_APART
+      const from = rangeFrom && !sameModel(rangeFrom, target) && rangeFrom.getCenter()
+      const reached = from
+        // The tool width is range 1
+        ? Math.hypot(center.x - from.x, center.z - from.z) - target.radius - rangeFrom.radius <= 2 * halfWidth + CONTACT_EPS
+        : footprintGap(shape, halfLength, halfWidth, center, target.radius) <= CONTACT_EPS
+      fill = reached ? FOOTPRINT_TOUCH : FOOTPRINT_APART
     }
     const line = center ? fill : selected ? '#ffffff' : FOOTPRINT_COLOR
     slotRef.current.set(shape, halfLength, halfWidth, fill, selected ? 0.35 : 0.2, line)
@@ -380,11 +424,15 @@ function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target
 // disabled without it. models: every character and token, in the same form, for the pointer
 // raycast and the snap. onSnap(model): the tool snapped to that model during a drag.
 // hoverHeight: how far above the table or terrain the tool hangs while dragged
+// number 1: range 1 has no tool of its own. As with "Snap 1" in the TTS mod, the Range 2 tool lies
+// across the line from the base, and its 1" width measures range 1. See README "Tools".
 export function RangeRuler({ number = 2, ...props }) {
-  const raw = useLoader(OBJLoader, assetUrl(`tools/range-${number}-mesh.obj`))
+  const rangeOne = number === 1
+  const mesh = rangeOne ? 2 : number
+  const raw = useLoader(OBJLoader, assetUrl(`tools/range-${mesh}-mesh.obj`))
   const map = useTexture(TEXTURE)
   const parts = useMemo(() => [{ obj: textured(raw.clone(), map) }], [raw, map])
-  return <Tool parts={parts} tip={RANGE_TIP[number] ?? 1.501} halfWidth={RANGE_HALF_WIDTH} {...props} />
+  return <Tool parts={parts} tip={RANGE_TIP[mesh] ?? 1.501} halfWidth={RANGE_HALF_WIDTH} rangeOne={rangeOne} {...props} />
 }
 
 // Non-interactive R3 tool that follows a dragged model along the deployment edge.
@@ -456,7 +504,7 @@ function FlatHtml({ x = 0, children }) {
   )
 }
 
-function PlaceButton({ disabled = false, onClick }) {
+function PlaceButton({ disabled = false, disabledTitle = 'Select a character', onClick }) {
   return (
     <button
       type="button"
@@ -470,7 +518,7 @@ function PlaceButton({ disabled = false, onClick }) {
         whiteSpace: 'nowrap',
       }}
       disabled={disabled}
-      title={disabled ? 'Select a character' : undefined}
+      title={disabled ? disabledTitle : undefined}
       onClick={onClick}
     >
       Place
@@ -512,7 +560,8 @@ function BendButton({ on, onClick }) {
 // parts: [{ obj, side }], the meshes of the tool. A part with a side turns with that half.
 // tip: X of each end (length of each half of the footprint).
 // bendable: a movement tool. Its halves turn around the hinge at the center.
-function Tool({ parts, tip, halfWidth, bendable = false, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target, models = [], onSnap }) {
+// rangeOne: the range 1 tool. It snaps with a corner, not an end. See README "Tools", "Range 1".
+function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target, models = [], onSnap }) {
   const [hovered, setHovered] = useState(false)
   const rigidRef = useRef()
   // Stays STRAIGHT on a tool that is not bendable
@@ -587,18 +636,26 @@ function Tool({ parts, tip, halfWidth, bendable = false, position = [0, 0, 0], h
     return true
   }
 
-  // Move the tool without turning it, so that the end nearer to the model's base touches the base edge
+  // Move the tool without turning it, so that the end nearer to the model's base touches the base edge.
+  // Range 1: the corner nearer to the base touches it instead.
   function snapTo(model) {
     const c = model.getCenter()
     const rb = rigidRef.current
     if (!c || !rb) return false
     const pose = toolPose(rb)
-    const shape = toolShape(pose, turn)
-    const side = nearerHalf(shape, tip, c)
-    // The base center is past the end of that half, so the tool center is that far back from it
-    const back = tip + model.radius
-    const x = c.x - back * Math.cos(shape[side])
-    const z = c.z + back * Math.sin(shape[side])
+    let center, side
+    if (rangeOne) {
+      const { end, across } = nearerCorner(pose, c)
+      center = cornerSnapCenter(c, model.radius, pose.yaw, tip, halfWidth, end, across)
+      side = end > 0 ? 'right' : 'left'
+    } else {
+      const shape = toolShape(pose, turn)
+      side = nearerHalf(shape, tip, c)
+      // The base center is past the end of that half, so the tool center is that far back from it
+      const back = tip + model.radius
+      center = { x: c.x - back * Math.cos(shape[side]), z: c.z + back * Math.sin(shape[side]) }
+    }
+    const { x, z } = center
     const ground = groundY(x, z, pose.yaw)
     rb.setTranslation({ x, y: ground === null ? rb.translation().y : ground + hoverHeight, z }, true)
     setSnap({ target: model, side })
@@ -611,7 +668,7 @@ function Tool({ parts, tip, halfWidth, bendable = false, position = [0, 0, 0], h
     const rb = rigidRef.current
     if (!center || !rb) return
     setSnap({ target, side: 'left' })
-    const pose = snapPose(center, target.radius, tip)
+    const pose = rangeOne ? snapPoseOne(center, target.radius, tip, halfWidth) : snapPose(center, target.radius, tip)
     const ground = groundY(pose.x, pose.z, pose.yaw) ?? 0
     rb.setTranslation({ x: pose.x, y: ground + hoverHeight, z: pose.z }, true)
     rb.setRotation(yawQuat(pose.yaw), true)
@@ -626,10 +683,15 @@ function Tool({ parts, tip, halfWidth, bendable = false, position = [0, 0, 0], h
 
   // Move a model so its base touches the end of one half, outside the tool
   function placeAt(model, side) {
+    if (!rigidRef.current) return
+    placeOn(model, alongHalf(toolShape(toolPose(rigidRef.current), turn), side, tip + model.radius))
+  }
+
+  // Move a model's base center to spot (table XZ)
+  function placeOn(model, spot) {
     const body = model.getBody()
-    if (!body || !rigidRef.current) return
+    if (!body) return
     const t = body.translation()
-    const spot = alongHalf(toolShape(toolPose(rigidRef.current), turn), side, tip + model.radius)
     // Put the base on top of the table or terrain at the spot. Keeping the old height
     // would leave the model inside terrain that is higher than where it started.
     const ground = baseGroundY(world, rapier, spot.x, spot.z, model.radius)
@@ -647,6 +709,18 @@ function Tool({ parts, tip, halfWidth, bendable = false, position = [0, 0, 0], h
     if (!body || !rigidRef.current) return
     const shape = toolShape(toolPose(rigidRef.current), turn)
     placeAt(target, OTHER[nearerHalf(shape, tip, body.translation())])
+  }
+
+  // Range 1 tool, snapped: move the selected character across the tool, so its base touches the other
+  // long side at the same corner. Its base edge is then 1" (the tool width) from the snapped base edge.
+  // If it is the snapped model, it now touches the other long side, so the tool stays snapped to it.
+  function handlePlaceOne(e) {
+    e.stopPropagation()
+    const c = snap?.target.getCenter()
+    if (!c || !target?.getBody || !rigidRef.current) return
+    const pose = toolPose(rigidRef.current)
+    const { end, across } = nearerCorner(pose, c)
+    placeOn(target, fromLocal(pose, { x: end * tip, z: -across * (halfWidth + target.radius) }))
   }
 
   // Movement tool: move the snapped model to the other end. The model then touches that end,
@@ -697,11 +771,23 @@ function Tool({ parts, tip, halfWidth, bendable = false, position = [0, 0, 0], h
             {bendable
               ? <BendButton on={bendOn} onClick={(e) => { e.stopPropagation(); setBendOn(on => !on) }} />
               // Disabled for a token: it has no body, so Place has nothing to move.
-              : <PlaceButton disabled={!target || !target.getBody} onClick={handlePlace} />}
+              // Range 1: only while snapped, as "Place 1" in the TTS mod. Without a snapped model,
+              // there is no corner to measure from.
+              : rangeOne
+                ? <PlaceButton disabled={!snap || !target?.getBody} disabledTitle={snap ? 'Select a character' : 'Snap the tool to a model'} onClick={handlePlaceOne} />
+                : <PlaceButton disabled={!target || !target.getBody} onClick={handlePlace} />}
           </FlatHtml>
         )}
       </RigidBody>
-      <ToolFootprint rigidRef={rigidRef} turn={turn} halfLength={tip} halfWidth={halfWidth} selected={selected} target={target} />
+      <ToolFootprint
+        rigidRef={rigidRef}
+        turn={turn}
+        halfLength={tip}
+        halfWidth={halfWidth}
+        selected={selected}
+        target={target}
+        rangeFrom={rangeOne ? snap?.target ?? null : null}
+      />
     </>
   )
 }
