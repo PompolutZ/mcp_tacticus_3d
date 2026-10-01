@@ -1,6 +1,6 @@
 # Feature: Character trays
 
-Status: plan. Not started. See [Open questions](#open-questions) at the end.
+Status: plan. Not started. The decisions are in [Decisions](#decisions) at the end.
 
 ## Goal
 
@@ -11,9 +11,10 @@ Players track the game state of each character on the table:
 - Power
 - the objective tokens that the character holds (Extract tokens)
 - other tokens on the character: special conditions (Bleed, Incinerate, Poison, ...), Activated and Dazed, and tokens from character superpowers or Team Tactic cards (for example Winging It from Star-Lord)
-- cards attached to the character: Infinity Gems and Horsemen cards (Apocalypse)
 
-A click on any card opens its image in a full-screen popup that can be closed, the same way as a crisis card today.
+A click on a character card opens its image in a full-screen popup that can be closed, the same way as a crisis card today.
+
+Cards attached to a character (Infinity Gems, Horsemen cards of Apocalypse, Reserve members) come later, with the Team Tactic cards feature.
 
 ## First iteration: a tray in the 3D world
 
@@ -28,7 +29,12 @@ To make the later move to a 2D HUD cheap:
 
 The app does not apply the game rules, in the same way as the crisis feature (see `docs/feature-crisis.md`, "Players apply the rules"). It does not deal damage, find Dazed or KO'd characters, run the Power Phase or the Cleanup Phase. Players press the buttons.
 
-The app keeps only simple limits that never change: Damage from 0 to the Stamina of the side that faces up, and Power from 0 to 10.
+The app keeps only simple limits that never change:
+
+- Damage is from 0 to the Stamina of the side that faces up.
+- Power is from 0 to 10.
+- A character has each special condition at most once (p17). Activated and Dazed are also at most once.
+- A character cannot get a special condition it is immune to (p21). The app does not add it and shows a short message, for example "Okoye is immune to Bleed." The immunities come from the mod (`cImmune`), so they are data, not a rules engine.
 
 ## Rules
 
@@ -42,10 +48,9 @@ From the [Jarvis rules reference](https://www.jarvis-protocol.com/rules-referenc
 | Dazed or KO'd | Damage equal to Stamina: a Healthy character is Dazed, an Injured character is KO'd. A KO'd character is removed from the battlefield. | 16 |
 | Cleanup Phase | Dazed characters remove all damage, special conditions and the Dazed token, and flip to the Injured side. Then players remove all Activated tokens. | 12 |
 | Special conditions | A character cannot have the same special condition twice. | 17 |
-| Immunity | A character cannot get a special condition it is immune to. | 21 |
+| Immunity | A character cannot get a special condition it is immune to. If it already has it, it removes it. | 21 |
 | Hold | A character that picks up an objective token holds it. The token lies on its stat card. | 10 |
 | Drop | A Dazed or KO'd character drops all objective tokens it holds. The opponent places them within Range 2 of the character. | 10 |
-| Infinity Gems | A character can have only one Infinity Gem. In the Power Phase, it gains 1 more Power per gem. | 20 |
 | Grunts | Grunts have no Injured side and cannot have Power. | 21 |
 
 The 10 special conditions: Bleed, Hex, Incinerate, Judgment, Poison, Root, Shock, Slow, Stagger, Stun (p20).
@@ -57,12 +62,11 @@ These facts were found on 2026-10-01 in the scripts of the "Red Tray Spawner" ob
 - Each character has a tray in front of its player. The trays are in one row at TTS z = ±28.25, 7.5" apart, centered on x = 0. A tray mesh is 7" × 8". A player can have at most 15 trays.
 - The tray has a Power counter (`power / 10`) and a Damage counter (`damage / stamina`). A left click adds 1, a right click removes 1. The Stamina is `cStamH` on the Healthy side and `cStamW` on the Injured side.
 - The **Flip Card** button turns the card and sets Damage to 0.
-- A player can drop a "1 Power", "3 Power", "1 Damage", "3 Damage" or "5 Damage" token on the tray. The counter changes and the token is deleted.
+- A player can drop a "1 Power", "3 Power", "1 Damage", "3 Damage" or "5 Damage" token on the tray. The counter changes and the token is deleted. The app uses only the `−` and `+` buttons for this.
 - Any other token dropped on the tray becomes an icon on the tray and above the model. Each icon is on or off: a character has a token or not, there is no count. Two exceptions have a count: the character's personal token (`perToken`, at most `perMax`, for example Apocalypse's Evolution, at most 6) and Suppression. A click on an icon removes it.
 - `cImmune` lists the conditions that the character is immune to. The tray refuses them with a message.
 - A held objective token stays on the tray as an object. The tray has 5 slots for held tokens. Its icon shows above the model.
-- When the tray spawns, it puts these tokens next to it: Activated, Dazed, the affiliation token, and every token in the character's `cToken` list. For example, Apocalypse: Root, Shock, Bleed, Slow, Incinerate, Evolution, Poison.
-- An Infinity Gem card attaches to the tray only if the character can bear it (`cGem`). One gem per character, two for Thanos, The Mad Titan and Adam Warlock. A Horsemen card attaches only if it is in `cHorsemen`.
+- When the tray spawns, it puts these tokens next to it: Activated, Dazed, the affiliation token, and every token in the character's `cToken` list. For example, Apocalypse: Root, Shock, Bleed, Slow, Incinerate, Evolution, Poison. Players drag them from there onto the target. The "Token Tray" object next to the table has a copy of every token.
 - The tray also has **Auto Power** and **Auto Cleanup** buttons that apply the Power Phase and Cleanup Phase rules. The app leaves these out (see [Players apply the rules](#players-apply-the-rules)).
 
 ## Tray layout
@@ -71,7 +75,7 @@ These facts were found on 2026-10-01 in the scripts of the "Red Tray Spawner" ob
 
 The table today is 72" × 48" (`src/table.js`). Between the mat edge and the table edge there is a strip of 6" on each player side. The spawned models stand there (`benchPosition` in `Scene.jsx`). There is no free room for trays.
 
-Plan: the table grows from 48" to 60" deep (z from −30 to 30). Each player gets one row of trays between z = 24.5 and z = 29.5 (blue at +z, red at −z). This is close to the TTS row at z = ±28.25.
+The table grows from 48" to 60" deep (z from −30 to 30). Each player gets one row of trays between z = 24.5 and z = 29.5 (blue at +z, red at −z). This is close to the TTS row at z = ±28.25.
 
 Changes that follow from this:
 
@@ -82,7 +86,7 @@ Changes that follow from this:
 ### One tray
 
 - The card image is 1800 × 1200 px, so the card plane is 4.5" × 3".
-- The controls strip is below the card, on the side of the owner. It is about 1.5" deep.
+- The controls strip is below the card, on the side of the owner. It is about 2" deep.
 - So a tray is about 5" × 5". Trays are 5.5" apart, so a row has room for 13 trays. That is enough for a squad with Grunts.
 - Trays fill the row from the owner's left, in the order of spawn. This is the same order as the bench slots.
 - The card faces the owner. For blue, the top of the image points to −z, the same as a crisis card (`CrisisCard.jsx`). A red tray is turned by 180°.
@@ -98,24 +102,46 @@ Sketch, seen from the owner's seat:
 +-----------------------------------+
 |                                   |
 |     stat card (Healthy/Injured)   |   click: popup
-|     held tokens and attached      |
-|     cards on the card edge        |
+|     held objective tokens on      |   drop target for tokens
+|     the card edge                 |
 |                                   |
 +-----------------------------------+
 | Dmg [-] 3/6 [+]  Pow [-] 4/10 [+] |
-| [Flip]  [Bleed][Stun][Activated]  |   click on a chip: remove one
-| [+ Token]  [Attach]  [Remove]     |
+| [Flip]                   [Remove] |
+| On:   [Bleed][Stun][Activated]    |   click a chip: remove one
+| Give: [Act][Dazed][Root][Shock]   |   drag onto a model or a tray
 +-----------------------------------+
 ```
 
-- Damage and Power: `−` and `+` buttons around the value. TTS uses left and right click on the value. Buttons also work on a touch screen.
+- Damage and Power: `−` and `+` buttons around the value.
 - When Damage equals Stamina, the counter shows it in a warning color. The app does not add the Dazed token or flip the card.
 - Flip: turns the card to the other side and sets Damage to 0, as in TTS.
-- Token chips: one chip per token, with the token image and a count when the count is above 1. A tooltip shows the name and the mod's description (`tDescr`).
+- **On** row: the tokens on this character. One chip per token, with the token image and a count when the count is above 1. A tooltip shows the name and the mod's description (`tDescr`). A click on a chip removes one.
+- **Give** row: the tokens that this character gives to others or to itself: Activated, Dazed, and the tokens in its `cToken` list. This replaces the tokens that TTS puts next to each tray.
+
+## Give tokens by drag and drop
+
+A player gives a token to a character by dragging it onto the model or onto the tray of that character. This works the same way for all tokens:
+
+| Token | Drag from | Result |
+|---|---|---|
+| Character token (condition, Activated, Dazed, superpower or Team Tactic token) | The **Give** row of any tray, or the **Tokens** panel | The token count on the target goes up by 1, with the limits in [Players apply the rules](#players-apply-the-rules) |
+| Extract objective token (Asset, Civilian, supply token) | The table | The target holds the token, see [Hold and drop](#hold-and-drop) |
+
+The **Tokens** panel is a HUD panel, opened from a toolbar button. It shows every migrated token, in groups, with a search field. It has the same purpose as the TTS "Token Tray": a player can give a token that is not in any Give row, for example a token from a Team Tactic card.
+
+How the drag works:
+
+- A character token is a DOM element (in a tray or in the panel). On `pointerdown`, App stores the drag (`{ tokenKey }`) and shows a copy of the token image under the pointer. The copy has `pointer-events: none`.
+- On `pointerup`, App finds the character under the pointer:
+  1. DOM first: the nearest element with `data-character-id` under the pointer. The tray controls have it. A later 2D HUD can use the same attribute.
+  2. Then 3D: `Scene.jsx` gives App a `characterAt(clientX, clientY)` function through a ref, in the same way as the dice tray actions. It casts a ray from the camera and hits the model objects (`charObjects`) and the tray card meshes.
+- No character under the pointer: nothing happens. Escape cancels the drag.
+- An Extract token is a 3D object, and `CrisisToken.jsx` already drags it. On release, `Scene.jsx` calls the same `characterAt` at the pointer position.
 
 ## Card popup
 
-`CardPopup.jsx` today takes a crisis card key. It changes to take an image URL and an alt text. App keeps `openCard: { src, alt } | null`. The crisis card, the character card and the attached cards all use it. Escape still closes it.
+`CardPopup.jsx` today takes a crisis card key. It changes to take an image URL and an alt text. App keeps `openCard: { src, alt } | null`. The crisis card and the character card use it. Escape still closes it.
 
 The character card in the popup shows the side that faces up. The popup can have a button to show the other side, because players often read the Injured side while the card is Healthy.
 
@@ -137,7 +163,7 @@ The mod's `tokenDatabase` (in the `Database` script) has 310 rows. On 2026-10-01
 
 Notes:
 
-- A row with `altName` is a second art of the same token, for example "Bleed1" with `altName = "Bleed"`. The second art is a round icon. The first art is the shape of the real token. The script migrates only the first art.
+- A row with `altName` is a second art of the same token, for example "Bleed1" with `altName = "Bleed"`. The second art is the old round design. The first art is the new design: for conditions, a rounded diamond. The script migrates only the first art.
 - The Damage counter icon is the mod's "1 Damage" token. `migrate-crisis.mjs` already migrated it to `src/assets/crisis/markers/damage.webp`. Use that file.
 - The script also stores `cleanup: true` from the mod. It marks the tokens that the Cleanup Phase removes. The app does not use it yet.
 
@@ -152,19 +178,17 @@ Output, in the same style as the crisis migration:
 | `src/tokens/files.js` | `characterToken(key)` |
 | `scripts/token-manifest.json` | Source URLs, so a second run converts only new or changed files |
 
-`group` is one of `condition`, `status` (Activated and Dazed), `character` (images in `token/character/`) and `tactic` (images in `token/tactic/`). The token picker uses the groups.
+`group` is one of `condition`, `status` (Activated and Dazed), `character` (images in `token/character/`) and `tactic` (images in `token/tactic/`). The Tokens panel shows the groups.
 
 ## Character data
 
 | Data | Source | Where |
 |---|---|---|
 | Stamina, Healthy and Injured | Jarvis `statCard.frontSide.stamina`, `backSide.stamina` | `roster.js`, which already loads `jarvis-characters.json` |
-| Gems the character can bear | Jarvis `bearableGems` (MCT codes in `bearableGemsWithName`) | `roster.js` |
-| Horsemen cards the character can get | Jarvis `assignableToHorsemen`, for example `['death', 'pestilence']` | `roster.js` |
-| Tokens the character uses | Mod `cToken` | `characters.json`, written by `migrate-characters.mjs` |
+| Tokens the character uses (Give row) | Mod `cToken` | `characters.json`, written by `migrate-characters.mjs` |
 | Immunities | Mod `cImmune` | `characters.json` |
 
-Jarvis has the current official values, so the stats come from Jarvis. Only the mod has the token lists. The Jarvis text also marks tokens (`|<winging_it>Winging It|`) and conditions (`|§bleed§Bleed|`), but the mod's `cToken` list maps directly to the token images.
+Jarvis has the current official values, so the stats come from Jarvis. Only the mod has the token lists and the immunities as data. The Jarvis text also marks tokens (`|<winging_it>Winging It|`) and conditions (`|§bleed§Bleed|`), but the mod's `cToken` list maps directly to the token images.
 
 ## State
 
@@ -176,8 +200,7 @@ New fields on each entry of `characters` in `App.jsx`:
   side: 'healthy',   // card side that faces up: 'healthy' | 'injured'
   damage: 0,         // 0 .. Stamina of `side`
   power: 0,          // 0 .. 10
-  tokens: {},        // token key (tokens.json) -> count. A condition has count 1 at most.
-  cards: [],         // attached card keys: Infinity Gems and Horsemen
+  tokens: {},        // token key (tokens.json) -> count. Conditions, Activated and Dazed: 1 at most.
 }
 ```
 
@@ -189,21 +212,12 @@ All fields are plain JSON. So they fit into the `characters` and `tokens` maps o
 
 Only tokens of an Extract card that players can move can be held: Asset, Civilian and the supply tokens of Source cards. `buildMatTokens` and `buildSupplyTokens` set a new `canHold` flag.
 
-- **Hold:** a player drags the token and releases it over the base of a model. The character of that model now holds the token. The token leaves the mat and shows as a chip on the tray. The app does not check the range: players apply the rules.
-- **Drop:** the chip on the tray has a Drop button. The app puts the token on the table next to the base of the model and selects it. The opponent then moves it to a place within Range 2.
+- **Hold:** a player drags the token and releases it over a model or a tray (see [Give tokens by drag and drop](#give-tokens-by-drag-and-drop)). That character now holds the token. The token leaves the mat and shows on the edge of the tray card. The app does not check the range: players apply the rules.
+- **Drop:** the held token on the tray has a Drop button. The app puts the token on the table next to the base of the model and selects it. The opponent then moves it to a place within Range 2.
 - **Remove a character:** the character drops all its tokens first.
 - A held token is not in the list of models that the range and movement tools snap to.
 
 When this is done, update the status of `docs/feature-crisis.md`. It says that hold and drop are not built.
-
-## Attached cards
-
-- Infinity Gems (7 cards) and Horsemen cards (5 cards) are rows of the mod's `cardDatabase`, types "Infinity Gem" and "Horsemen".
-- On 2026-10-01, the TTS cache had all 5 Horsemen faces, but only the Soul gem card. Before the migration, take the gem cards out of the "Infinity Gems" bag in TTS once, so that TTS downloads them.
-- The Attach button lists the cards that the character can have first (Jarvis data), then the other cards. The app does not block a card, because players apply the rules.
-- The attached card shows as a small image on the edge of the tray card. A click opens it in the popup. The card has a button to remove it.
-
-Team Tactic cards, also Reserve members, are a separate feature. The app does not handle Team Tactic cards yet.
 
 ## Phases
 
@@ -230,7 +244,7 @@ Done when the trays show in a row for each player and a click on a card opens th
 
 - `roster.js` adds the Stamina of both sides from Jarvis.
 - New character fields `side`, `damage`, `power`. Handlers in `App.jsx`, the same way as the token handlers.
-- `TrayControls.jsx` (plain DOM) in a flat `<Html transform>` on the tray: Damage and Power counters, Flip.
+- `TrayControls.jsx` (plain DOM) in a flat `<Html transform>` on the tray: Damage and Power counters with `−` and `+`, Flip.
 - The tray card and the popup show the side that faces up.
 
 ### Phase 3: Token images
@@ -239,27 +253,28 @@ Done when the trays show in a row for each player and a click on a card opens th
 - Output as in [Tokens from the TTS mod](#tokens-from-the-tts-mod). A section in `scripts/README.md`. A line in `ASSETS.md`.
 - No UI change.
 
-### Phase 4: Tokens on the tray
+### Phase 4: Give tokens by drag and drop
 
-- `migrate-characters.mjs` writes `tokens` (`cToken`, as token keys) and `immune` (`cImmune`) to `characters.json`. Run it again for the migrated characters. The script converts only files that are not in the manifest, so only the JSON changes.
-- New character field `tokens`. Chips on the tray. A click on a chip removes one.
-- The `+ Token` picker: first this character's tokens, then the conditions, then Activated and Dazed, then all other tokens with a search field. A condition the character already has, or is immune to, is shown as such, but the app does not block it.
+- New character field `tokens`. The **On** row on the tray. A click on a chip removes one.
+- The **Tokens** panel in the HUD, with a toolbar button.
+- The drag from the panel onto a model or a tray: the drag state and the token copy under the pointer in `App.jsx`, `data-character-id` on the tray controls, and `characterAt` in `Scene.jsx`. Escape cancels.
+- Conditions, Activated and Dazed stay at 1.
 
-### Phase 5: Hold and drop
+### Phase 5: Give row and immunities
 
-As in [Hold and drop](#hold-and-drop). `CrisisToken.jsx` reports the drop point, and `Scene.jsx` finds the model under it with the character bodies (`charBodies`).
+- `migrate-characters.mjs` writes `tokens` (`cToken`, as token keys) and `immune` (`cImmune`, as token keys) to `characters.json`. Run it again for the migrated characters. The script converts only files that are not in the manifest, so only the JSON changes.
+- The **Give** row on each tray: Activated, Dazed and the character's tokens. The same drag as in phase 4.
+- A drop of a condition on an immune character does nothing and shows a short message in the HUD for a few seconds, like the spawner message.
 
-### Phase 6: Remove, and link the tray to the model
+### Phase 6: Hold and drop
+
+As in [Hold and drop](#hold-and-drop). `CrisisToken.jsx` reports the release, and `Scene.jsx` finds the character with `characterAt`.
+
+### Phase 7: Remove, and link the tray to the model
 
 - A Remove button on the tray (with a confirmation) removes the character, its model and its tray. It drops the held tokens first.
 - A new character takes the lowest free bench slot, so that it does not stand on a model that is still there.
 - A click on the character name on the tray selects the model. A selected model highlights its tray.
-
-### Phase 7: Attached cards
-
-- Migrate the Infinity Gem and Horsemen card images (a new script, or `migrate-tokens.mjs` with a second output).
-- `roster.js` adds `bearableGems` and `assignableToHorsemen` from Jarvis.
-- New character field `cards`. The Attach button, the card images on the tray, the popup, and Remove.
 
 ### Phase 8: Badges above the models (optional)
 
@@ -268,17 +283,20 @@ Small icons above each model: held objective tokens, Activated, Dazed, and maybe
 ## Out of scope
 
 - A 2D HUD separate from the 3D world. This is the next step after this feature.
-- Team Tactic cards, also Reserve members.
+- Team Tactic cards, and the cards attached to a character: Reserve members, Infinity Gems, Horsemen cards. These will be explored with the Team Tactic cards feature. Facts found on 2026-10-01: in TTS, a gem or Horsemen card attaches to the tray only if the character can have it (`cGem`, `cHorsemen` in the mod; `bearableGems`, `assignableToHorsemen` in Jarvis). The TTS cache has all 5 Horsemen faces, but only the Soul gem card.
 - Auto Power and Auto Cleanup, and any other rule automation.
-- Grunts (no Injured side, no Power), second forms (Emma Frost, Diamond Form) and the second card version of some characters (`cards` > 1 in `characters.json`). The tray uses card 1.
+- Grunts (no Injured side, no Power), second forms (Emma Frost, Diamond Form) and the second card version of some characters (`cards` > 1 in `characters.json`). The tray uses card 1. A second form can have other immunities (p21).
 - Tokens that lie on the table and not on a character (Use Tools, Pile).
 - Affiliation tokens.
+- The Power and Damage tokens of TTS. The counters use `−` and `+`.
 
-## Open questions
+## Decisions
 
-1. **Table size.** Grow the table to 72" × 60" for the tray rows (this plan), or put the trays somewhere else?
-2. **Counters.** `−` and `+` buttons (this plan), or the TTS way with left and right click on the value, or both?
-3. **Hold.** Drag the token onto a model (this plan), or a "Pick up" button in the token panel that lists the characters near the token?
-4. **Immunities.** Only show them in the picker (this plan), or block the condition?
-5. **Token art.** The first art of the mod (shape of the real token, this plan), or the round second art?
-6. **Gem cards.** Can you take the 7 gem cards out of the TTS bag before Phase 7, so that their images are in the cache?
+Made on 2026-10-01:
+
+1. The table grows to 72" × 60" for the tray rows.
+2. Damage and Power use `−` and `+` buttons.
+3. Players give tokens by dragging them onto a model or a tray. This is the same for character tokens and Extract tokens.
+4. Immunity blocks a condition.
+5. Attached cards wait for the Team Tactic cards feature.
+6. Tokens use the new art of the mod (rounded diamond for conditions), not the old round art.
