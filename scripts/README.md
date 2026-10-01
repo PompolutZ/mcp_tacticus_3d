@@ -366,4 +366,4 @@ It uses the nested Rapier build under `@react-three/rapier` (0.14.0), not the to
 
 See the Phase 3 Result in `docs/plan-dice-rolling.md` for the tuned values (`THROW_SPIN_MAX`, `DIE_SOLVER_ITERATIONS` in `throw.js`) and the measured numbers, and `docs/feature-dice-rolling.md`, "Measurements", for a short version.
 
-`scripts/tts-dice-measure.lua` is the TTS side of the same measurement (see the design, "Measurements", "In TTS"). It is a TTS object script, not a Node script, and it has not been run — there is no TTS install here. Its header says how to run it. It only adds a button to the object it is pasted into, and spawns and deletes its own dice.
+`scripts/tts-dice-measure.lua` is the TTS side of the same measurement (see the design, "Measurements", "In TTS"). It is a TTS object script, not a Node script, and it has not been run — there is no TTS install here. Its header says how to run it. It only adds a button and a right-click menu item to the object it is pasted into, and spawns and deletes its own dice.

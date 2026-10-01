@@ -336,3 +336,18 @@ The app uses these ideas from other projects:
   - The mesh `868485988860654056` belongs to the retired "Click Roller Universal". It is not the die.
   - The die texture is 2048 × 2048, not 1024.
   - Some symbol names are wrong. For example, the skull is Failure, not Critical.
+
+
+  Steps
+
+  1. Make your own save. With the mod loaded, open the top menu Games → Save & Load. Create a new save named, for example, Dice measure.
+  2. Load that save from the same window (Games → Save & Load → Dice measure). From now on, you work in your own copy, not in the Workshop mod.
+  3. Add the block. Objects → Components → Blocks. Put it on the table away from the Blue tray.
+  4. Paste the script. Right-click the block → Scripting → Scripting Editor. Select the block's tab, not Global. Paste all of scripts/tts-dice-measure.lua and click Save & Play.
+  5. Check the chat, "Game" tab. You should see Dice measure script loaded on "…".
+  6. Start it. Right-click the block → Measure dice, or click the button on the block. Wait a few minutes and do not touch the Blue tray.
+  7. Copy the results. Open the Notebook, tab "Dice measurement", copy the text and paste it here.
+
+  Your own save is a full copy of the mod, about 40 MB, in ~/Library/Tabletop Simulator/Saves. You can delete it when you are done. The Workshop mod does not change.
+
+  I added the save step to the script's instructions. The script changes are not committed.

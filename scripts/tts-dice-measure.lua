@@ -5,10 +5,14 @@
 --
 -- How to use:
 -- 1. Load the mod (3036795456) in TTS. The "Blue Dice Tray" is in the save, so it is on the table.
+--    Save it as your own save (Games > Save & Load) and load that save. Save & Play cannot change a
+--    Workshop mod: TTS says "Cannot commit save changes to a Workshop mod" and reloads without the script.
 -- 2. Put any object on the table, for example a block (Objects > Components > Blocks).
 -- 3. Right-click it > Scripting > Scripting Editor. Paste this file into the block's tab (not
---    Global) and click "Save & Play". A "Measure dice" button appears on the block.
--- 4. Click the button. It takes a few minutes. Do not touch the Blue tray while it runs.
+--    Global) and click "Save & Play". The game reloads. Chat shows "Dice measure script loaded", and
+--    a "Measure dice" button appears on the block.
+-- 4. Click the button, or right-click the block > "Measure dice". It takes a few minutes. Do not
+--    touch the Blue tray while it runs.
 -- 5. A short summary appears in chat. The full results, with one line per roll, are in the
 --    Notebook, tab "Dice measurement", where they can be copied.
 --
@@ -57,6 +61,9 @@ local details = {} -- lines for the notebook only
 local wellRestY = nil -- rest height of a die on the well floor, from the first rest
 
 function onLoad()
+  print("Dice measure script loaded on \"" .. self.getName() .. "\" (" .. self.getGUID() .. ").")
+  -- A second way to start, for when the button is hidden, for example under a big or turned object
+  self.addContextMenuItem("Measure dice", function() onMeasureClick() end)
   self.createButton({
     click_function = "onMeasureClick",
     function_owner = self,
