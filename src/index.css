@@ -25,6 +25,20 @@ body {
   color: var(--text);
 }
 
+/* Holds the Canvas only, nothing else. drei's <Html> (terrain labels, the ruler tool buttons, the
+   tray card and controls) mounts its wrappers as siblings of the <canvas> element, with a z-index
+   up to 16777271 (zIndexRange). `isolation: isolate` gives that whole subtree its own stacking
+   context, so those huge z-index values can never again out-rank a HUD element below, no matter
+   the number on either side -- only an element's place in this subtree still matters. HUD panels
+   that are DOM siblings of this element stack above it by normal rules (they all set a z-index,
+   this element does not), and true dialogs also render through Overlay.jsx, a portal straight to
+   <body>, so neither depends on this box at all. */
+.scene-root {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+}
+
 /* One row for the toolbar (left) and the spawner (right), so they never overlap.
    The toolbar wraps to more rows when it does not fit. */
 .hud-top {
@@ -38,7 +52,8 @@ body {
   justify-content: space-between;
   gap: 8px;
   pointer-events: none;
-  /* Above the terrain labels, which use z-index 0 to 100 */
+  /* Above every drei <Html> in the scene (terrain labels, ruler tool, tray controls): .scene-root
+     isolates their z-index, so any explicit z-index here beats them regardless of the number. */
   z-index: 200;
 }
 
@@ -114,20 +129,6 @@ body {
   padding: 1px 5px;
   white-space: nowrap;
   user-select: none;
-}
-
-/* A click selects the model (CharacterTray.jsx, Phase 7), so it needs pointer events and a
-   pointer cursor, unlike a plain label. */
-.tray-label {
-  font-size: 11px;
-  color: var(--text);
-  background: rgba(23, 26, 35, 0.85);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 1px 5px;
-  white-space: nowrap;
-  user-select: none;
-  cursor: pointer;
 }
 
 /* Tray controls (TrayControls.jsx): sized for the ~2in-deep strip of a tray in the 3D world,
@@ -599,8 +600,10 @@ body {
   border-color: #a93226;
 }
 
+/* Rendered through Overlay.jsx (createPortal to document.body), so `fixed` always means the
+   viewport, not some ancestor (see .scene-root). */
 .loading {
-  position: absolute;
+  position: fixed;
   inset: 0;
   display: flex;
   align-items: center;
@@ -666,8 +669,10 @@ body {
   white-space: nowrap;
 }
 
+/* Rendered through Overlay.jsx (createPortal to document.body), so `fixed` always means the
+   viewport, not some ancestor (see .scene-root). */
 .card-popup {
-  position: absolute;
+  position: fixed;
   inset: 0;
   display: flex;
   align-items: center;

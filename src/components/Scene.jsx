@@ -19,6 +19,7 @@ import { FRICTION } from '../physics.js'
 import { assetUrl } from '../assets/index.js'
 import { CARD_X, CARD_Y, CARD_Z } from '../crisis/layout.js'
 import { TRAYS } from '../dice/tray.js'
+import { trayModelPosition } from '../characters/trays.js'
 import { TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WIDTH } from '../table.js'
 
 // MCP mat is 36" x 36". 1 Three.js unit = 1 inch. Table size: see table.js.
@@ -30,23 +31,6 @@ const TABLE_HALVES = [
   { color: '#6fa0e0', z: TABLE_DEPTH / 4 },
   { color: '#e07272', z: -TABLE_DEPTH / 4 },
 ]
-// Spawned models stand on the table in front of their player's mat edge, in rows along that edge.
-// The strip between the mat and the table edge is 6" deep, so two rows of the largest base (2.56") fit.
-const BENCH_SPACING = 3
-const BENCH_COLUMNS = MAT_SIZE / BENCH_SPACING
-const BENCH_ROWS = 2
-
-// Table position of spawn slot n (from 0) of a player. The row fills from that player's left.
-// y = 0 is the table top, and the body origin is the base bottom, so the model stands and does not fall.
-function benchPosition(teamColor, slot) {
-  const col = slot % BENCH_COLUMNS
-  const row = Math.floor(slot / BENCH_COLUMNS) % BENCH_ROWS
-  const x = (col - (BENCH_COLUMNS - 1) / 2) * BENCH_SPACING
-  const z = MAT_SIZE / 2 + BENCH_SPACING / 2 + row * BENCH_SPACING
-  // Blue sits at +z, red at -z. Turning the layout 180° gives red the same order from its own seat.
-  const side = teamColor === 'blue' ? 1 : -1
-  return [x * side, 0, z * side]
-}
 // Tools hang this far above the table and measure by the outline cast below them
 const TOOL_HOVER_HEIGHT = 1
 // Two physics steps per frame. With one, a model dropped from high up sometimes gets stuck in terrain.
@@ -82,7 +66,7 @@ const TIME_STEP = 1 / 120
 // release (Phase 7) uses the same lookup as App's token drag, instead of 3D-only characterAt, so a
 // release over the tray's controls strip (DOM) counts too.
 // modelPositionRef: ref App calls with a character id to get its live table position { x, z }
-// (Rapier body or model object, not the bench slot), or null. Used by App's handleTokenDrop, the
+// (Rapier body or model object, not the spawn slot), or null. Used by App's handleTokenDrop, the
 // same pattern as characterAtRef. See "Hold and drop".
 // onTokenHold(tokenId, characterId): a canHold token was released over a character. onTokenDrop(id):
 // the tray's Held chip for that token, see TrayControls.jsx.
@@ -130,7 +114,7 @@ export default function Scene({
   }
 
   // Live table position of a character's model (Hold and drop, "Drop"): the Rapier body when there
-  // is one, otherwise the 3D object's own position. Not the bench slot, so a character that moved
+  // is one, otherwise the 3D object's own position. Not the spawn slot, so a character that moved
   // drops its token where it now stands. Returns null if neither is mounted yet.
   function modelPosition(id) {
     const body = charBodies.current.get(id)
@@ -294,9 +278,9 @@ export default function Scene({
           />
         ))}
 
-        {/* One tray per spawned character, in a row at the edge of the table (see trays.js and
-            docs/characters-hud.md, "Tray layout"). ch.slot is also the bench order, so the tray
-            row fills in the same order as the bench. */}
+        {/* One tray per spawned character, next to the mat edge (see trays.js and
+            docs/characters-hud.md, "Tray layout"). The model below spawns standing on the center
+            of this same tray's card (trayModelPosition, same ch.slot), so the two always match. */}
         {characters.map(ch => (
           <CharacterTray
             key={ch.id}
@@ -312,7 +296,6 @@ export default function Scene({
             heldTokens={tokens.filter(tok => tok.heldBy === ch.id)}
             onTokenDrop={onTokenDrop}
             selected={selectedCharId === ch.id}
-            onSelect={() => toggleSelect('character', ch.id)}
             objectRef={obj => obj ? trayObjects.current.set(ch.id, obj) : trayObjects.current.delete(ch.id)}
           />
         ))}
@@ -322,7 +305,7 @@ export default function Scene({
             return (
               <Character
                 key={ch.id}
-                position={benchPosition(ch.teamColor, ch.slot)}
+                position={trayModelPosition(ch.teamColor, ch.slot)}
                 baseSize={ch.base}
                 frontUrl={assetUrl(characterStandee(ch.key, 'front'))}
                 backUrl={assetUrl(characterStandee(ch.key, 'back'))}
@@ -333,7 +316,7 @@ export default function Scene({
             <CharacterModel
               key={ch.id}
               url={assetUrl(characterModel(ch.key))}
-              position={benchPosition(ch.teamColor, ch.slot)}
+              position={trayModelPosition(ch.teamColor, ch.slot)}
               baseRadius={BASE_DIAMETER[ch.base] / 2}
               rotation={[0, ch.rotation * Math.PI / 180, 0]}
               teamColor={ch.teamColor}

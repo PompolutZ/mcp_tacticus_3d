@@ -4,15 +4,22 @@ import { DoubleSide } from 'three'
 import { assetUrl } from '../assets/index.js'
 import { characterCard } from '../characters/files.js'
 import { characterName, characterStamina } from '../characters/roster.js'
-import { TRAY_CARD_HEIGHT, TRAY_CARD_WIDTH, TRAY_CONTROLS_DEPTH, trayPosition, trayYaw } from '../characters/trays.js'
+import {
+  TRAY_BG_DEPTH,
+  TRAY_BG_WIDTH,
+  TRAY_BG_Y,
+  TRAY_CARD_HEIGHT,
+  TRAY_CARD_LOCAL_Z,
+  TRAY_CARD_WIDTH,
+  TRAY_CONTROLS_DEPTH,
+  trayPosition,
+  trayYaw,
+} from '../characters/trays.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import TrayControls from './TrayControls.jsx'
 
-// Local offset of the card inside the tray group, before the group's own yaw: the controls strip
-// sits on the owner's side of the tray, so the card sits half that depth toward the opposite
-// edge, the same -Z direction as the card's own top (see trays.js, trayYaw).
-const CARD_Z = -TRAY_CONTROLS_DEPTH / 2
-const LABEL_GAP = 0.3
+// The card's local z offset inside the tray group (see trays.js).
+const CARD_Z = TRAY_CARD_LOCAL_Z
 // Center of the controls strip: the half of the tray the card does not occupy, on the owner's
 // side (local +Z, see trays.js, trayYaw).
 const CONTROLS_Z = CARD_Z + TRAY_CARD_HEIGHT / 2 + TRAY_CONTROLS_DEPTH / 2
@@ -21,16 +28,17 @@ function otherSide(side) {
   return side === 'healthy' ? 'injured' : 'healthy'
 }
 
-// One character tray: the stat card (the side that faces up), the character's name, and the
-// controls strip (see TrayControls.jsx). No collider yet (see docs/characters-hud.md, Phase 1).
+// One character tray: a background plate, the stat card (the side that faces up), and the
+// controls strip (see TrayControls.jsx). No collider (see docs/characters-hud.md, Phase 1).
 // A click on the card opens it in the popup (see CardPopup.jsx).
 // objectRef: the card mesh, so Scene's characterAt can hit the tray, the same way it hits the
 // model (see docs/characters-hud.md, "Give tokens by drag and drop"). The same mesh is also the
-// outline target: selected highlights the tray, the same way CharacterModel.jsx highlights a
-// selected model (see useOutline below).
+// outline target: selected highlights the tray card, the same way CharacterModel.jsx highlights a
+// selected model (see useOutline below). The model itself (now spawned on the card) stays the
+// usual way to select a character; the tray has no click target of its own for that.
 // heldTokens: this character's held crisis tokens (see "Hold and drop"). onTokenDrop(tokenId): the
-// tray's Held chip for one of them. onSelect: a click on the name selects the model (Phase 7).
-export default function CharacterTray({ character, index, onOpen, onDamage, onPower, onFlip, onRemove, onTokenRemove, onTokenDragStart, heldTokens, onTokenDrop, selected = false, onSelect, objectRef }) {
+// tray's Held chip for one of them.
+export default function CharacterTray({ character, index, onOpen, onDamage, onPower, onFlip, onRemove, onTokenRemove, onTokenDragStart, heldTokens, onTokenDrop, selected = false, objectRef }) {
   const cardUrl = assetUrl(characterCard(character.key, character.side))
   const map = useTexture(cardUrl)
   const name = characterName(character.key)
@@ -58,21 +66,16 @@ export default function CharacterTray({ character, index, onOpen, onDamage, onPo
 
   return (
     <group position={position} rotation={[0, yaw, 0]}>
+      {/* Background plate under the card and the controls strip, so the tray stands out from the
+          table (docs/characters-hud.md, "One tray"). No collider, no shadow: it is purely visual. */}
+      <mesh position={[0, TRAY_BG_Y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[TRAY_BG_WIDTH, TRAY_BG_DEPTH]} />
+        <meshStandardMaterial color="#20242b" roughness={1} />
+      </mesh>
       <mesh position={[0, 0, CARD_Z]} rotation={[-Math.PI / 2, 0, 0]} onClick={openPopup} ref={setCardRef}>
         <planeGeometry args={[TRAY_CARD_WIDTH, TRAY_CARD_HEIGHT]} />
         <meshStandardMaterial map={map} roughness={1} side={DoubleSide} />
       </mesh>
-      {/* A click selects the model (not the tray itself, which has no Rapier body): the same
-          selection the model's own click sets, so this is just another way to set it. */}
-      <Html
-        position={[0, 0.02, CARD_Z - TRAY_CARD_HEIGHT / 2 - LABEL_GAP]}
-        center
-        zIndexRange={[100, 0]}
-        className="tray-label"
-        onClick={e => { e.stopPropagation(); onSelect() }}
-      >
-        {name}
-      </Html>
       {/* Rx(-pi/2) lays the Html flat on the table facing up, with its top to local -Z, the same
           as the card. So the owner reads it the right way up. */}
       <group position={[0, 0.02, CONTROLS_Z]} rotation={[-Math.PI / 2, 0, 0]}>

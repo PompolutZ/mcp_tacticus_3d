@@ -91,7 +91,7 @@ function buildCardTokens(card) {
   return [...buildMatTokens(card), ...buildSupplyTokens(card)]
 }
 
-// Lowest bench/tray slot of teamColor that no character currently occupies. A removed character
+// Lowest tray slot of teamColor that no character currently occupies. A removed character
 // frees its slot, so the next spawn reuses it instead of growing past the trays still on the row.
 function lowestFreeSlot(characters, teamColor) {
   const used = new Set(characters.filter(c => c.teamColor === teamColor).map(c => c.slot))
@@ -156,7 +156,7 @@ export default function App() {
   // null, the same pattern as trayActionsRef. See Scene.jsx, characterAt.
   const characterAtRef = useRef(null)
   // Scene calls this with a character id and returns its live table position { x, z } (Rapier body
-  // or model object, not the bench slot), or null. Used by handleTokenDrop. See Scene.jsx, modelPosition.
+  // or model object, not the tray slot), or null. Used by handleTokenDrop. See Scene.jsx, modelPosition.
   const modelPositionRef = useRef(null)
 
   // direction: 1 turns the mat 90° counter-clockwise, -1 clockwise
@@ -188,7 +188,7 @@ export default function App() {
       rotation: ch.rotation,
       teamColor: ch.teamColor,
       // The lowest free slot, not just the next one: a removed character frees its slot and its
-      // bench spot, so a new one does not stand on a model that is still there (Phase 7).
+      // tray spot, so a new one does not stand on a model that is still there (Phase 7).
       slot: lowestFreeSlot(prev, ch.teamColor),
       // Card side that faces up, and the simple limits players apply by hand (see
       // docs/characters-hud.md, "Players apply the rules").
@@ -326,7 +326,7 @@ export default function App() {
   }
 
   // Drop: the token goes back on the table, next to the base of the model that held it (the live
-  // Rapier/object position, not the bench slot, so a moved character drops it where it stands).
+  // Rapier/object position, not the tray slot, so a moved character drops it where it stands).
   // rowOffset moves it along the base's edge (+z of the +x drop direction), so several tokens
   // dropped together (handleDropCharacterTokens) land in a row instead of stacked on each other.
   // select: the single tray Drop button selects its token, as before (so TokenPanel opens for it);
@@ -489,66 +489,71 @@ export default function App() {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <Canvas
-        shadows
-        camera={{ position: CAMERA_POSITION, fov: 50 }}
-        // The EffectComposer in SelectionOutlines renders the scene with its own antialiasing (multisampling)
-        gl={{ antialias: false }}
-        // A click with no piece under the pointer (table, terrain, background) clears the selection.
-        // R3F does not count a camera drag as a click. A right click is a 'contextmenu' event, and it also
-        // starts a camera pan, so it does not clear. Clicks on tool buttons (Html) are not on the canvas.
-        onPointerMissed={e => { if (e.type === 'click' && e.target instanceof HTMLCanvasElement) setSelection(null) }}
-      >
-        <SelectionOutlines composer={mode !== 'no-composer'} outlines={mode === 'full'}>
-          <Scene
-            mapId={mapId}
-            characters={characters}
-            activeRange={activeRange}
-            activeMove={activeMove}
-            showColliders={debug}
-            showLabels={showLabels}
-            matTurns={matTurns}
-            deployLine={deployLine}
-            crisis={crisis}
-            tokens={tokens}
-            selection={selection}
-            onSelectionChange={setSelection}
-            selectedTool={selectedTool}
-            onSelectedToolChange={setSelectedTool}
-            onPieceHover={handlePieceHover}
-            toolSpawns={toolSpawns}
-            onTokenMove={handleTokenMove}
-            onTokenTurn={handleTokenTurn}
-            onTokenHold={handleTokenHold}
-            onTokenDrop={handleTokenDrop}
-            onCharacterDamage={handleCharacterDamage}
-            onCharacterPower={handleCharacterPower}
-            onCharacterFlip={handleCharacterFlip}
-            onCharacterRemove={handleCharacterRemove}
-            onCharacterTokenRemove={handleCharacterTokenRemove}
-            onTokenDragStart={handleTokenDragStart}
-            onCardOpen={setOpenCard}
-            trayActionsRef={trayActions}
-            onTrayChange={handleTrayChange}
-            characterAtRef={characterAtRef}
-            findCharacterAt={findCharacterAt}
-            modelPositionRef={modelPositionRef}
+      {/* Holds the Canvas only: isolation: isolate (index.css) keeps every drei <Html> wrapper it
+          mounts (terrain labels, the ruler tool, the tray controls) from ever drawing over the
+          HUD below, no matter its z-index. See index.css, .scene-root. */}
+      <div className="scene-root">
+        <Canvas
+          shadows
+          camera={{ position: CAMERA_POSITION, fov: 50 }}
+          // The EffectComposer in SelectionOutlines renders the scene with its own antialiasing (multisampling)
+          gl={{ antialias: false }}
+          // A click with no piece under the pointer (table, terrain, background) clears the selection.
+          // R3F does not count a camera drag as a click. A right click is a 'contextmenu' event, and it also
+          // starts a camera pan, so it does not clear. Clicks on tool buttons (Html) are not on the canvas.
+          onPointerMissed={e => { if (e.type === 'click' && e.target instanceof HTMLCanvasElement) setSelection(null) }}
+        >
+          <SelectionOutlines composer={mode !== 'no-composer'} outlines={mode === 'full'}>
+            <Scene
+              mapId={mapId}
+              characters={characters}
+              activeRange={activeRange}
+              activeMove={activeMove}
+              showColliders={debug}
+              showLabels={showLabels}
+              matTurns={matTurns}
+              deployLine={deployLine}
+              crisis={crisis}
+              tokens={tokens}
+              selection={selection}
+              onSelectionChange={setSelection}
+              selectedTool={selectedTool}
+              onSelectedToolChange={setSelectedTool}
+              onPieceHover={handlePieceHover}
+              toolSpawns={toolSpawns}
+              onTokenMove={handleTokenMove}
+              onTokenTurn={handleTokenTurn}
+              onTokenHold={handleTokenHold}
+              onTokenDrop={handleTokenDrop}
+              onCharacterDamage={handleCharacterDamage}
+              onCharacterPower={handleCharacterPower}
+              onCharacterFlip={handleCharacterFlip}
+              onCharacterRemove={handleCharacterRemove}
+              onCharacterTokenRemove={handleCharacterTokenRemove}
+              onTokenDragStart={handleTokenDragStart}
+              onCardOpen={setOpenCard}
+              trayActionsRef={trayActions}
+              onTrayChange={handleTrayChange}
+              characterAtRef={characterAtRef}
+              findCharacterAt={findCharacterAt}
+              modelPositionRef={modelPositionRef}
+            />
+          </SelectionOutlines>
+          <TrayInsets insetBoxes={insetBoxes} noComposer={mode === 'no-composer'} />
+          <OrbitControls
+            makeDefault
+            target={[0, 0, 0]}
+            enablePan={true}
+            enableZoom={true}
+            enableRotate={true}
+            minDistance={5}
+            maxDistance={50}
+            maxPolarAngle={85 * (Math.PI / 180)}
           />
-        </SelectionOutlines>
-        <TrayInsets insetBoxes={insetBoxes} noComposer={mode === 'no-composer'} />
-        <OrbitControls
-          makeDefault
-          target={[0, 0, 0]}
-          enablePan={true}
-          enableZoom={true}
-          enableRotate={true}
-          minDistance={5}
-          maxDistance={50}
-          maxPolarAngle={85 * (Math.PI / 180)}
-        />
-        <KeyboardPan held={heldPan} />
-        {debug && <FrameStats />}
-      </Canvas>
+          <KeyboardPan held={heldPan} />
+          {debug && <FrameStats />}
+        </Canvas>
+      </div>
       <div className="hud-top">
         <Toolbar
           mapId={mapId}

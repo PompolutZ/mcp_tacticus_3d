@@ -73,9 +73,9 @@ These facts were found on 2026-10-01 in the scripts of the "Red Tray Spawner" ob
 
 ### Place on the table
 
-The table today is 72" × 48" (`src/table.js`). Between the mat edge and the table edge there is a strip of 6" on each player side. The spawned models stand there (`benchPosition` in `Scene.jsx`). There is no free room for trays.
+The table is 72" × 60" (`src/table.js`). The mat is 36" × 36" (`MAT_SIZE` in `Scene.jsx`), centered on the table, so its edge is 18" from the table center on every side.
 
-The table grows from 48" to 60" deep (z from −30 to 30). Each player gets one row of trays between z = 24.5 and z = 29.5 (blue at +z, red at −z). This is close to the TTS row at z = ±28.25.
+Each player's trays sit in one or two rows right next to the mat edge on that player's side (blue at +z, red at −z), not in a corner of the table. A tray row is flush with the mat's own width (36"), not the table's full width (72"), so a tray never sits in the table corners past the mat. See `src/characters/trays.js`.
 
 Changes that follow from this:
 
@@ -87,10 +87,13 @@ Changes that follow from this:
 
 - The card image is 1800 × 1200 px, so the card plane is 4.5" × 3".
 - The controls strip is below the card, on the side of the owner. It is about 2" deep.
-- So a tray is about 5" × 5". Trays are 5.5" apart, so a row has room for 13 trays. That is enough for a squad with Grunts.
-- Trays fill the row from the owner's left, in the order of spawn. This is the same order as the bench slots.
-- The card faces the owner. For blue, the top of the image points to −z, the same as a crisis card (`CrisisCard.jsx`). A red tray is turned by 180°.
+- So a tray is about 5" × 5" (`TRAY_WIDTH` × `TRAY_DEPTH`). A background plate under the card and the controls strip is slightly larger (5.6" × 5.6"), so the tray stands out from the table.
+- Trays sit 5.5" apart, center to center. A row fits `floor(36 / 5.5) = 6` trays. When a row is full, a second row starts right behind it, further from the mat, toward the owner. Two rows (12 trays per player) fit between the mat edge and the table edge; a third row would not.
+- A tray's position depends only on its slot number, never on how many characters exist, so a tray (and the model that spawns on it) never moves when another character is added or removed.
+- Trays fill a row from the owner's left corner of the mat, in the order of spawn, flush with the mat edge.
+- The card faces the owner and sits on the mat side of the tray; the controls strip sits on the owner's side, away from the mat. For blue, the top of the card image points to −z, the same as a crisis card (`CrisisCard.jsx`). A red tray is turned by 180°.
 - A tray has no collider. Models and dice do not touch it.
+- A newly spawned model stands on the table at the center of its tray's card (same slot), not on a separate bench. The model keeps its own rotation from the spawner.
 
 At the default camera position, the trays are at the edge of the view or outside it. Players pan the camera to see them. A 2D HUD fixes this later.
 
@@ -693,6 +696,15 @@ Open issues:
 ### Phase 8: Badges above the models (optional)
 
 Small icons above each model: held objective tokens, Activated, Dazed, and maybe Damage and Power. TTS shows the same above each model. Players can then see the board state without looking at the trays.
+
+### Fixes after Phase 7
+
+After testing, the tray row moved next to the mat and models now spawn on their tray's card, not on a separate bench:
+
+- Tray row: next to the mat edge, flush with the mat's width, not centered on the whole table and not in a table corner. A row holds 6 trays (was 13, centered on the table width); a second row behind the first holds 6 more, 12 per player total. `src/characters/trays.js`: `TRAY_COLUMNS`, `TRAY_ROWS`, `rowCenterZ`, `trayPosition` rewritten. Checked: no overlap with the crisis cards/supply tokens (`x = -23.1`/`-27`, about 3.4" clear of the nearest tray) or the dice trays (`x = 27`, about 7.1" clear); the farthest tray background stays 0.7" inside the table edge at z.
+- Models spawn on the tray: `benchPosition` in `Scene.jsx` is gone. `trayModelPosition(teamColor, slot)` (`trays.js`) returns the table position at the center of that slot's card; `CharacterModel`/`Character` use it instead of `benchPosition`. The model's own rotation from the spawner is unchanged. Tray and model share the same slot, so they always match and neither moves when another character spawns or is removed.
+- Tray background: a plate (`TRAY_BG_WIDTH` × `TRAY_BG_DEPTH`, 5.6" × 5.6") under the card and the controls strip, darker than the table, no collider, no shadow, just above the table and below the card. The card's selection outline (Phase 7) is unchanged.
+- Tray name label removed: the clickable `<Html>` name and `.tray-label` CSS are gone (`CharacterTray.jsx`, `index.css`). It set the model's selection, which the model itself already does on click, so `CharacterTray`'s `onSelect` prop and its use in `Scene.jsx` are also gone. `selected` stays, so a selected model still highlights its tray card.
 
 ## Out of scope
 
