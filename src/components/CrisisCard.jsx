@@ -9,9 +9,10 @@ import { CARD_WIDTH, CARD_HEIGHT } from '../crisis/layout.js'
 // The plane is rotated the same way as the mat and the table (see Terrain.jsx and Scene.jsx), so
 // local +Y of the image (its top) faces world -Z, the red side. See docs/feature-crisis.md, "Setup flow".
 export default function CrisisCard({ cardKey, position, onOpen }) {
-  const map = useTexture(assetUrl(crisisCardFace(cardKey)))
+  const cardUrl = assetUrl(crisisCardFace(cardKey))
+  const map = useTexture(cardUrl)
   return (
-    <mesh position={position} rotation={[-Math.PI / 2, 0, 0]} onClick={e => { e.stopPropagation(); onOpen() }}>
+    <mesh position={position} rotation={[-Math.PI / 2, 0, 0]} onClick={e => { e.stopPropagation(); onOpen({ src: cardUrl, alt: 'Crisis card' }) }}>
       <planeGeometry args={[CARD_WIDTH, CARD_HEIGHT]} />
       <meshStandardMaterial map={map} roughness={1} side={DoubleSide} />
     </mesh>

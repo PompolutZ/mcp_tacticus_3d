@@ -49,10 +49,15 @@ function angleTo(pivot, p) {
 // token: one entry of the tokens array in App.jsx (see buildCardTokens). onMove(x, z) and
 // onTurn(yaw): called once, when a drag ends, to commit the new pose to App state.
 // onHover(over): called when the pointer moves onto the token (true) and off it (false)
+// onHold(characterId): a canHold token (Asset, Civilian, a Source's supply) was dragged and
+// released over a character (model, tray card, or the tray's DOM controls strip).
+// findCharacter(clientX, clientY): App's findCharacterAt (DOM data-character-id first, then
+// Scene's characterAt), called on release to look for one, the same lookup App's own token drag
+// uses. See docs/characters-hud.md, "Hold and drop" and "Give tokens by drag and drop".
 // objectRef: standard ref callback for the token's 3D object, for the ruler tools' pointer raycast.
 // centerRef(getter): registers a function that returns the token's live { x, y, z }, for the ruler
 // tools. Called with undefined on unmount, the same pattern as bodyRef/objectRef in CharacterModel.
-export default function CrisisToken({ token, selected, onSelect, onHover, onMove, onTurn, objectRef, centerRef }) {
+export default function CrisisToken({ token, selected, onSelect, onHover, onMove, onTurn, onHold, findCharacter, objectRef, centerRef }) {
   const backKey = token.backKey ?? token.frontKey
   const [frontMap, backMap, damageMap] = useTexture([
     assetUrl(crisisToken(token.frontKey)),
@@ -156,7 +161,11 @@ export default function CrisisToken({ token, selected, onSelect, onHover, onMove
       if (ev.pointerId !== pointerId) return
       if (draggingRef.current) {
         draggingRef.current = false
-        onMove?.(poseRef.current.x, poseRef.current.z)
+        // A canHold token dropped on a character is held, not placed on the mat (see "Hold and
+        // drop"). Any other token, or no character under the release point, just moves as usual.
+        const holder = token.canHold ? findCharacter?.(ev.clientX, ev.clientY) : null
+        if (holder) onHold?.(holder)
+        else onMove?.(poseRef.current.x, poseRef.current.z)
       } else {
         onSelect?.()
       }

@@ -1,6 +1,6 @@
 # Feature: Crisis cards
 
-Status: in progress. Players can choose a Secure and an Extract card, see them on the table, and move, flip and mark their tokens. Hold and drop are not built yet: a character cannot pick up an Asset, Civilian or VIP token. Players track that by hand for now.
+Status: in progress. Players can choose a Secure and an Extract card, see them on the table, and move, flip and mark their tokens. A character can now hold and drop an Asset, Civilian or Source supply token (see `docs/characters-hud.md`, "Hold and drop").
 
 ## Goal
 

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import Scene from './components/Scene.jsx'
@@ -9,10 +9,16 @@ import { CharacterSpawner } from './components/CharacterSpawner.jsx'
 import { KeyboardPan } from './components/KeyboardPan.jsx'
 import { LoadingOverlay } from './components/LoadingOverlay.jsx'
 import { TokenPanel } from './components/TokenPanel.jsx'
+import { TokensPanel } from './components/TokensPanel.jsx'
 import { DicePanel } from './components/DicePanel.jsx'
 import { CardPopup } from './components/CardPopup.jsx'
 import { canFlip, canMove, getCard, hasArc, hasMarkers } from './crisis/cards.js'
 import { supplyPosition } from './crisis/layout.js'
+import { characterImmune, characterName, characterStamina } from './characters/roster.js'
+import { BASE_DIAMETER } from './characters/files.js'
+import { assetUrl } from './assets/index.js'
+import { characterToken } from './tokens/files.js'
+import { getToken, isCappedToken } from './tokens/tokens.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
 import { MOVE_KEYS, PAN_KEYS, RANGE_KEYS, isEditing, useWindowKeys } from './keyboard.js'
@@ -20,6 +26,12 @@ import { MOVE_KEYS, PAN_KEYS, RANGE_KEYS, isEditing, useWindowKeys } from './key
 // Slightly offset from the exact top-down pole to avoid gimbal lock on first drag.
 const CAMERA_POSITION = [0, 20, 4]
 const DEG = Math.PI / 180
+// A crisis token is a 1" circle (CrisisToken.jsx, RADIUS). Drop places it just clear of the base.
+const TOKEN_RADIUS = 0.5
+const DROP_GAP = 0.1
+// Several tokens dropped at once (handleDropCharacterTokens) are spread along a row next to the
+// base, one TOKEN_RADIUS*2 (diameter) apart plus a gap, so they do not overlap.
+const TOKEN_ROW_SPACING = TOKEN_RADIUS * 2 + DROP_GAP * 2
 
 // Mat token entries of a card, as tracked in App state. Position and rotation come from cards.json
 // (TTS x, z from the mat center, and TTS Y rotation), converted the same way as terrain: z -> -z.
@@ -39,6 +51,10 @@ function buildMatTokens(card) {
     canFlip: canFlip(t),
     hasArc: hasArc(t),
     hasMarkers: marked,
+    // Only Asset and Civilian can be held (p22); a Source stays on the mat and gives out its
+    // supply instead (see buildSupplyTokens, docs/characters-hud.md, "Hold and drop").
+    canHold: card.type === 'extract' && canMove(t),
+    heldBy: null, // character id, or null while the token sits on the mat
     control: null,
     damage: false,
   }))
@@ -63,6 +79,8 @@ function buildSupplyTokens(card) {
       canFlip: false,
       hasArc: false,
       hasMarkers: false,
+      canHold: true, // a Source's supply is the same Asset/Civilian token, see buildMatTokens above
+      heldBy: null,
       control: null,
       damage: false,
     }
@@ -71,6 +89,15 @@ function buildSupplyTokens(card) {
 
 function buildCardTokens(card) {
   return [...buildMatTokens(card), ...buildSupplyTokens(card)]
+}
+
+// Lowest bench/tray slot of teamColor that no character currently occupies. A removed character
+// frees its slot, so the next spawn reuses it instead of growing past the trays still on the row.
+function lowestFreeSlot(characters, teamColor) {
+  const used = new Set(characters.filter(c => c.teamColor === teamColor).map(c => c.slot))
+  let slot = 0
+  while (used.has(slot)) slot++
+  return slot
 }
 
 export default function App() {
@@ -98,7 +125,9 @@ export default function App() {
   const heldPan = useRef(new Map())
   // Count of tool key presses over a piece, per tool: { range, move }. See Scene.
   const [toolSpawns, setToolSpawns] = useState({ range: 0, move: 0 })
-  // Crisis card whose face is open in the popup, by key. null = closed.
+  // Card image open in the full-screen popup: a crisis card face or a character tray card.
+  // { src, alt, characterId? } | null, see CardPopup.jsx. characterId (character cards only) is
+  // how handleCharacterRemove knows to close a popup that shows the card of the removed character.
   const [openCard, setOpenCard] = useState(null)
   // Tray key -> its add/remove/roll/clear/addCrits/reroll/change actions, filled by Scene/DiceTray.
   // A ref, not state: DicePanel reads it at click time, so a stale render never matters.
@@ -110,6 +139,25 @@ export default function App() {
   // The open "Reroll one / Change one to" menu, at most one across both trays: { trayKey, symbol } | null.
   // Lifted here, not into DicePanel, so Escape can close it (see handleKeyDown).
   const [diceMenu, setDiceMenu] = useState(null)
+  // The Tokens HUD panel (see TokensPanel.jsx), toggled by its toolbar button.
+  const [tokensOpen, setTokensOpen] = useState(false)
+  // A short HUD message, for example an immunity block. Same pattern as CharacterSpawner's own
+  // message (a timeout clears it), but global: a drag can end over any tray.
+  const [hudMessage, setHudMessage] = useState(null)
+  const hudMessageTimer = useRef(null)
+  // A token drag in progress, from the Tokens panel: { tokenKey, x, y } | null. x, y place the
+  // ghost <img> only on its first render; moveDragGhost moves it directly after that, so a drag
+  // does not re-render App on every pointermove. See docs/characters-hud.md, "Give tokens by
+  // drag and drop".
+  const [tokenDrag, setTokenDrag] = useState(null)
+  const tokenDragRef = useRef(null)
+  const dragGhostRef = useRef(null)
+  // Scene calls this with (clientX, clientY) and returns the character id under the point, or
+  // null, the same pattern as trayActionsRef. See Scene.jsx, characterAt.
+  const characterAtRef = useRef(null)
+  // Scene calls this with a character id and returns its live table position { x, z } (Rapier body
+  // or model object, not the bench slot), or null. Used by handleTokenDrop. See Scene.jsx, modelPosition.
+  const modelPositionRef = useRef(null)
 
   // direction: 1 turns the mat 90° counter-clockwise, -1 clockwise
   function handleTurnMat(direction) {
@@ -139,7 +187,16 @@ export default function App() {
       base: ch.base,
       rotation: ch.rotation,
       teamColor: ch.teamColor,
-      slot: prev.filter(c => c.teamColor === ch.teamColor).length,
+      // The lowest free slot, not just the next one: a removed character frees its slot and its
+      // bench spot, so a new one does not stand on a model that is still there (Phase 7).
+      slot: lowestFreeSlot(prev, ch.teamColor),
+      // Card side that faces up, and the simple limits players apply by hand (see
+      // docs/characters-hud.md, "Players apply the rules").
+      side: 'healthy',
+      damage: 0,
+      power: 0,
+      // Token key (tokens.json) -> count, see handleCharacterTokenGive.
+      tokens: {},
     }])
   }
 
@@ -161,6 +218,11 @@ export default function App() {
   // different states. The states now: the crisis card popup is open, or the table is in use.
   // The keys are in keyboard.js.
   function handleKeyDown(e) {
+    if (tokenDrag) {
+      // Escape cancels the drag. Other keys do nothing while a token is under the pointer.
+      if (e.key === 'Escape') cancelTokenDrag()
+      return
+    }
     if (openCard) {
       // Escape closes only the popup. Other keys do nothing, so nothing changes on the table behind it.
       if (e.key === 'Escape') setOpenCard(null)
@@ -253,6 +315,171 @@ export default function App() {
     setTokens(prev => prev.map(t => t.id === id ? { ...t, damage } : t))
   }
 
+  // A canHold token is released over a character (CrisisToken.jsx reports it, Scene.jsx finds the
+  // character with characterAt): that character now holds it. The token leaves the mat (Scene.jsx
+  // filters heldBy tokens out of the 3D render and the tool snap list) and shows on the edge of its
+  // holder's tray. No range check (see docs/feature-crisis.md, "Players apply the rules"). A held
+  // token cannot stay selected, since it is no longer a 3D piece to show the TokenPanel for.
+  function handleTokenHold(id, characterId) {
+    setTokens(prev => prev.map(t => t.id === id ? { ...t, heldBy: characterId } : t))
+    setSelection(prev => prev?.kind === 'token' && prev.id === id ? null : prev)
+  }
+
+  // Drop: the token goes back on the table, next to the base of the model that held it (the live
+  // Rapier/object position, not the bench slot, so a moved character drops it where it stands).
+  // rowOffset moves it along the base's edge (+z of the +x drop direction), so several tokens
+  // dropped together (handleDropCharacterTokens) land in a row instead of stacked on each other.
+  // select: the single tray Drop button selects its token, as before (so TokenPanel opens for it);
+  // a character-removal drop of several tokens at once selects none (see handleDropCharacterTokens).
+  // If the holder's position is not available (see Scene.jsx, modelPosition), the token stays where
+  // it last sat on the mat.
+  function handleTokenDrop(id, { rowOffset = 0, select = true } = {}) {
+    setTokens(prev => {
+      const token = prev.find(t => t.id === id)
+      if (!token?.heldBy) return prev
+      const holder = characters.find(ch => ch.id === token.heldBy)
+      const pos = modelPositionRef.current?.(token.heldBy)
+      const baseRadius = holder ? BASE_DIAMETER[holder.base] / 2 : 0
+      const x = (pos?.x ?? token.x) + baseRadius + TOKEN_RADIUS + DROP_GAP
+      const z = (pos?.z ?? token.z) + rowOffset
+      return prev.map(t => t.id === id ? { ...t, heldBy: null, x, z } : t)
+    })
+    if (select) setSelection({ kind: 'token', id })
+  }
+
+  // Phase 7 calls this for a character it is about to remove, so the character drops every token it
+  // holds first (see docs/characters-hud.md, "Hold and drop"). Several tokens spread along a row
+  // next to the base (TOKEN_ROW_SPACING apart) instead of landing on the same spot, and none of
+  // them is selected: the character (and its tray) is about to disappear anyway.
+  function handleDropCharacterTokens(characterId) {
+    const held = tokens.filter(t => t.heldBy === characterId)
+    held.forEach((t, i) => {
+      const rowOffset = (i - (held.length - 1) / 2) * TOKEN_ROW_SPACING
+      handleTokenDrop(t.id, { rowOffset, select: false })
+    })
+  }
+
+  // Damage never goes below 0 or above the Stamina of the side that faces up (p16).
+  function handleCharacterDamage(id, damage) {
+    setCharacters(prev => prev.map(ch => {
+      if (ch.id !== id) return ch
+      const stamina = characterStamina(ch.key, ch.side)
+      return { ...ch, damage: Math.max(0, Math.min(damage, stamina)) }
+    }))
+  }
+
+  // Power never goes below 0 or above 10 (p7-8).
+  function handleCharacterPower(id, power) {
+    setCharacters(prev => prev.map(ch => ch.id === id ? { ...ch, power: Math.max(0, Math.min(power, 10)) } : ch))
+  }
+
+  // Flip turns the card to the other side and clears Damage, the same as in TTS.
+  function handleCharacterFlip(id) {
+    setCharacters(prev => prev.map(ch => ch.id === id
+      ? { ...ch, side: ch.side === 'healthy' ? 'injured' : 'healthy', damage: 0 }
+      : ch))
+  }
+
+  // Remove button on the tray (TrayControls.jsx confirms before calling this). Drops every token
+  // the character holds first (p10), then removes the character: its model and its tray both come
+  // from the same characters array (Scene.jsx), so one state update removes all three. Also clears
+  // a selection or popup that still points at it, so nothing keeps the id or its Rapier body after
+  // the model unmounts.
+  function handleCharacterRemove(id) {
+    handleDropCharacterTokens(id)
+    setCharacters(prev => prev.filter(ch => ch.id !== id))
+    setSelection(prev => prev?.kind === 'character' && prev.id === id ? null : prev)
+    setOpenCard(prev => prev?.characterId === id ? null : prev)
+  }
+
+  // A short message in the HUD, for a few seconds (the immunity block below; CharacterSpawner has
+  // its own copy of this pattern for the "no 3D model" message).
+  function showHudMessage(text) {
+    clearTimeout(hudMessageTimer.current)
+    setHudMessage(text)
+    hudMessageTimer.current = setTimeout(() => setHudMessage(null), 3000)
+  }
+
+  // Gives one of tokenKey to a character. A character cannot get a condition it is immune to
+  // (p21): the drop does nothing and the HUD shows why. Conditions, Activated and Dazed stay at 1
+  // at most (p17); every other token counts up (see docs/characters-hud.md, "Players apply the rules").
+  function handleCharacterTokenGive(id, tokenKey) {
+    const target = characters.find(ch => ch.id === id)
+    if (target && characterImmune(target.key).includes(tokenKey)) {
+      showHudMessage(`${characterName(target.key)} is immune to ${getToken(tokenKey)?.name ?? tokenKey}.`)
+      return
+    }
+    setCharacters(prev => prev.map(ch => {
+      if (ch.id !== id) return ch
+      const count = ch.tokens[tokenKey] ?? 0
+      if (isCappedToken(tokenKey) && count >= 1) return ch
+      return { ...ch, tokens: { ...ch.tokens, [tokenKey]: count + 1 } }
+    }))
+  }
+
+  // A click on a chip in the tray's "On" row removes one.
+  function handleCharacterTokenRemove(id, tokenKey) {
+    setCharacters(prev => prev.map(ch => {
+      if (ch.id !== id) return ch
+      const count = (ch.tokens[tokenKey] ?? 0) - 1
+      const tokens = { ...ch.tokens }
+      if (count > 0) tokens[tokenKey] = count
+      else delete tokens[tokenKey]
+      return { ...ch, tokens }
+    }))
+  }
+
+  // Moves the drag ghost directly (no React state), so a drag does not re-render App per pointermove.
+  function moveDragGhost(x, y) {
+    const el = dragGhostRef.current
+    if (el) el.style.transform = `translate(${x}px, ${y}px)`
+  }
+
+  // pointerdown on a token chip in the Tokens panel. Stores the drag and shows the ghost under the
+  // pointer. preventDefault stops the browser's own image drag and text selection.
+  function handleTokenDragStart(e, tokenKey) {
+    e.preventDefault()
+    e.stopPropagation()
+    tokenDragRef.current = { tokenKey }
+    // x, y only place the ghost on its first render; moveDragGhost moves it after that (see useEffect below).
+    setTokenDrag({ tokenKey, x: e.clientX, y: e.clientY })
+  }
+
+  function cancelTokenDrag() {
+    tokenDragRef.current = null
+    setTokenDrag(null)
+  }
+
+  // Character under (clientX, clientY): the DOM tray controls first (data-character-id, see
+  // TrayControls.jsx), then the 3D scene (Scene.jsx, characterAt). Usable outside a drag too: it is
+  // passed down to Scene, which gives it to CrisisToken.jsx for an Extract token's release (Phase
+  // 7), so a release over the tray's DOM controls strip counts, not only the model or card mesh.
+  function findCharacterAt(clientX, clientY) {
+    const el = document.elementFromPoint(clientX, clientY)?.closest('[data-character-id]')
+    if (el) return el.dataset.characterId
+    return characterAtRef.current?.(clientX, clientY) ?? null
+  }
+
+  // Window listeners for the active token drag: move the ghost, and on release give the token to
+  // the character under the pointer, if there is one. Escape cancels (see handleKeyDown).
+  useEffect(() => {
+    if (!tokenDrag) return undefined
+    function handleMove(e) {
+      moveDragGhost(e.clientX, e.clientY)
+    }
+    function handleUp(e) {
+      const id = findCharacterAt(e.clientX, e.clientY)
+      if (id) handleCharacterTokenGive(id, tokenDragRef.current.tokenKey)
+      cancelTokenDrag()
+    }
+    window.addEventListener('pointermove', handleMove)
+    window.addEventListener('pointerup', handleUp)
+    return () => {
+      window.removeEventListener('pointermove', handleMove)
+      window.removeEventListener('pointerup', handleUp)
+    }
+  }, [tokenDrag])
+
   const selectedToken = selection?.kind === 'token' ? tokens.find(t => t.id === selection.id) ?? null : null
 
   // Debug mode is only in the dev server. import.meta.env.DEV is false in `vite build`, so debug
@@ -292,9 +519,20 @@ export default function App() {
             toolSpawns={toolSpawns}
             onTokenMove={handleTokenMove}
             onTokenTurn={handleTokenTurn}
+            onTokenHold={handleTokenHold}
+            onTokenDrop={handleTokenDrop}
+            onCharacterDamage={handleCharacterDamage}
+            onCharacterPower={handleCharacterPower}
+            onCharacterFlip={handleCharacterFlip}
+            onCharacterRemove={handleCharacterRemove}
+            onCharacterTokenRemove={handleCharacterTokenRemove}
+            onTokenDragStart={handleTokenDragStart}
             onCardOpen={setOpenCard}
             trayActionsRef={trayActions}
             onTrayChange={handleTrayChange}
+            characterAtRef={characterAtRef}
+            findCharacterAt={findCharacterAt}
+            modelPositionRef={modelPositionRef}
           />
         </SelectionOutlines>
         <TrayInsets insetBoxes={insetBoxes} noComposer={mode === 'no-composer'} />
@@ -328,6 +566,8 @@ export default function App() {
           onDeployLineClick={() => setDeployLine(prev => !prev)}
           crisis={crisis}
           onCrisisChange={handleCrisisChange}
+          tokensOpen={tokensOpen}
+          onTokensClick={() => setTokensOpen(prev => !prev)}
         />
         {/* Column, not a row item: the red dice panel sits under the spawner, clear of the
             toolbar even when the toolbar wraps to more rows (the two are independent stacks). */}
@@ -360,9 +600,21 @@ export default function App() {
         onMenuToggle={symbol => handleDiceMenuToggle('blue', symbol)}
         onMenuClose={() => setDiceMenu(null)}
       />
-      <CardPopup cardKey={openCard} onClose={() => setOpenCard(null)} />
+      <TokensPanel open={tokensOpen} onDragStart={handleTokenDragStart} />
+      <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
+      {hudMessage && <div className="hud-message">{hudMessage}</div>}
       {debug && <DebugPanel renderMode={renderMode} onRenderModeChange={setRenderMode} />}
       <LoadingOverlay />
+      {/* Copy of the dragged token under the pointer, moved directly in moveDragGhost (see above). */}
+      {tokenDrag && (
+        <img
+          ref={dragGhostRef}
+          className="token-drag-ghost"
+          style={{ transform: `translate(${tokenDrag.x}px, ${tokenDrag.y}px)` }}
+          src={assetUrl(characterToken(tokenDrag.tokenKey))}
+          alt=""
+        />
+      )}
     </div>
   )
 }

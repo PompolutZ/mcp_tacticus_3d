@@ -6,6 +6,7 @@
   --text: #e6e8ee;
   --muted: #99a0b3;
   --accent: #4f8ef7;
+  --warn: #e2574c;
 
   color-scheme: dark;
   font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -113,6 +114,255 @@ body {
   padding: 1px 5px;
   white-space: nowrap;
   user-select: none;
+}
+
+/* A click selects the model (CharacterTray.jsx, Phase 7), so it needs pointer events and a
+   pointer cursor, unlike a plain label. */
+.tray-label {
+  font-size: 11px;
+  color: var(--text);
+  background: rgba(23, 26, 35, 0.85);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 5px;
+  white-space: nowrap;
+  user-select: none;
+  cursor: pointer;
+}
+
+/* Tray controls (TrayControls.jsx): sized for the ~2in-deep strip of a tray in the 3D world,
+   mounted through a drei Html transform (see CharacterTray.jsx). */
+.tray-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: auto;
+  user-select: none;
+}
+
+.tray-controls-row {
+  display: flex;
+  gap: 6px;
+}
+
+/* Flip and Remove share a row, Flip on the owner's left and Remove on the right (see the sketch in
+   docs/characters-hud.md, "Controls"). */
+.tray-controls-actions {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.tray-controls-flip {
+  font-size: 9px;
+  padding: 1px 8px;
+}
+
+.tray-controls-remove {
+  font-size: 9px;
+  padding: 1px 8px;
+  color: var(--warn);
+  border-color: var(--warn);
+}
+
+.tray-counter {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(23, 26, 35, 0.85);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 3px;
+}
+
+.tray-counter-btn {
+  font: inherit;
+  font-size: 10px;
+  line-height: 1;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.tray-counter-btn:hover {
+  border-color: #414a61;
+}
+
+.tray-counter-icon {
+  width: 11px;
+  height: 11px;
+}
+
+.tray-counter-label {
+  font-size: 9px;
+  color: var(--muted);
+}
+
+.tray-counter-value {
+  font-size: 10px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  min-width: 20px;
+  text-align: center;
+}
+
+.tray-counter-value--warn {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+/* "On", "Held" and "Give" rows of a tray (TrayControls.jsx). The text label keeps the rows apart
+   without costing a row of its own: it sits inline before the chips. */
+.tray-controls-on, .tray-controls-held, .tray-controls-give {
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.tray-controls-row-label {
+  font-size: 8px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+
+.token-chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  background: rgba(23, 26, 35, 0.85);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.token-chip-icon {
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.token-chip-count {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  min-width: 11px;
+  padding: 0 2px;
+  font-size: 9px;
+  line-height: 11px;
+  text-align: center;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 6px;
+}
+
+/* A Give chip is dragged, not clicked (see docs/characters-hud.md, "Give tokens by drag and
+   drop"): a dashed border and a grab cursor tell it apart from a solid "On" chip, which clicks
+   to remove. */
+.token-chip--give {
+  border-style: dashed;
+  cursor: grab;
+}
+
+/* A Held chip (crisis token the character holds, see docs/characters-hud.md, "Hold and drop"): a
+   click drops it, so an accent border tells it apart from an "On" chip, which clicks to remove. */
+.token-chip--held {
+  border-color: var(--accent);
+}
+
+/* The Tokens HUD panel (TokensPanel.jsx), opened from the toolbar. */
+.tokens-panel {
+  position: absolute;
+  top: 56px;
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 280px;
+  max-height: calc(100% - 100px);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  pointer-events: auto;
+  z-index: 200;
+}
+
+.tokens-panel-search {
+  width: 100%;
+}
+
+.tokens-panel-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.tokens-panel-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tokens-panel-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tokens-panel-chips .token-chip {
+  width: 28px;
+  height: 28px;
+}
+
+.tokens-panel-empty {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Copy of the dragged token under the pointer (App.jsx). Moved by setting its transform directly,
+   not through React state, so a drag does not re-render the app on every pointermove. */
+.token-drag-ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 32px;
+  margin: -16px 0 0 -16px;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 500;
+}
+
+/* Immunity block and similar short-lived notices (App.jsx, showHudMessage): a drop can land on
+   any tray, so this sits at the top center of the screen, not next to one panel. */
+.hud-message {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 600;
 }
 
 .spawner {
@@ -427,12 +677,19 @@ body {
   z-index: 400;
 }
 
+.card-popup-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: default;
+}
+
 .card-popup-image {
   max-width: min(90vw, 700px);
   max-height: 90vh;
   border-radius: 8px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-  cursor: default;
 }
 
 /* Debug mode, dev server only. Bottom left, clear of the token panel in the middle. */

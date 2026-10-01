@@ -1,10 +1,11 @@
 // Table size and the walls at its edge. Plain module, no React, so scripts/dice-sim.mjs builds the
 // same table in Node.
 
-// The table is 72" wide (x) and 48" deep (z), the same 3:2 shape as the TTS table. It is wider than deep so that
-// the scoring board and the crisis cards fit next to the mat, at their TTS positions.
+// The table is 72" wide (x) and 60" deep (z). It is deeper than the TTS table (72" x 48", 3:2) so that
+// each player gets a row of character trays between the mat edge and the table edge
+// (see docs/characters-hud.md, "Place on the table").
 export const TABLE_WIDTH = 72
-export const TABLE_DEPTH = 48
+export const TABLE_DEPTH = 60
 // The table collider is much thicker than the visible table, so fast bodies cannot pass through it. Its top is at y = 0.
 export const TABLE_COLLIDER_HALF_H = 5
 

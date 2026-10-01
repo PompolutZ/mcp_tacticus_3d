@@ -12,7 +12,7 @@ const CRISIS_TYPES = [
   { type: 'extract', label: 'Extract' },
 ]
 
-export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeClick, onMoveClick, debug, onDebugClick, showLabels, onLabelsClick, onTurnMat, deployLine, onDeployLineClick, crisis, onCrisisChange }) {
+export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeClick, onMoveClick, debug, onDebugClick, showLabels, onLabelsClick, onTurnMat, deployLine, onDeployLineClick, crisis, onCrisisChange, tokensOpen, onTokensClick }) {
   return (
     <div className="toolbar">
       <div className="group">
@@ -71,6 +71,17 @@ export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeCl
             ))}
           </select>
         ))}
+      </div>
+      <div className="group">
+        <span className="group-label">Tokens</span>
+        <button
+          type="button"
+          className={`chip${tokensOpen ? ' chip--active' : ''}`}
+          title="Give a token by dragging it onto a model or a tray"
+          onClick={onTokensClick}
+        >
+          Tokens
+        </button>
       </div>
       <div className="group">
         <span className="group-label">Deploy</span>

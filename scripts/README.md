@@ -192,7 +192,7 @@ Entry in `characters.json`:
 }
 ```
 
-Optional fields: `models` and `cards` (number of versions, when more than 1), `transform` (`figure`, `rotation`, and `name`, `base`, `portrait` when the mod has them), and `portrait: false` when the portrait is not in the cache.
+Optional fields: `models` and `cards` (number of versions, when more than 1), `transform` (`figure`, `rotation`, and `name`, `base`, `portrait` when the mod has them), `portrait: false` when the portrait is not in the cache, and `tokens`/`immune` (`cToken`/`cImmune`, as `src/tokens/tokens.json` keys, for the tray's Give row and immunity check; left out when the mod row has none). A mod token name maps to a key with the same slug `migrate-tokens.mjs` gave it; a name that does not match a migrated token (a dice result, an affiliation token, a mod data typo, ...) is left out and printed as a warning, not guessed.
 
 `$TMPDIR/mcp-assist-3d-characters/<key>/` has the AssetRipper exports, for inspection.
 
@@ -313,6 +313,32 @@ The app now has crisis card and token display (see `docs/feature-crisis.md`). St
 
 1. Card text, legality and contest ranges from Jarvis. For example, the Prison Blocks of Lockdown are contested at Range 2.
 2. Hold and drop for the Asset and Civilian tokens.
+
+# TTS character tokens
+
+`migrate-tokens.mjs` copies the character tokens of the TTS mod (conditions, Activated/Dazed, personal tokens, Team Tactic tokens, and the "1 Power" counter icon) to `src/assets/tokens/`. It writes the app data to `src/tokens/tokens.json`, and the source URLs to `scripts/token-manifest.json`. `src/tokens/files.js` names the files after the keys. See `docs/characters-hud.md`, "Tokens from the TTS mod", for which rows of the mod's `tokenDatabase` it migrates and why.
+
+Requirements: ImageMagick, and the images in the TTS cache. On 2026-10-01 the cache had all 310 `tokenDatabase` images, so no object needs to be spawned first.
+
+## Usage
+
+```bash
+npm run migrate-tokens -- --list          # character tokens of the mod and their status
+npm run migrate-tokens                    # migrate every token that has its file in the TTS cache
+npm run migrate-tokens -- --out /tmp/try  # trial run: nothing is written to the repo
+npm run migrate-tokens -- --force         # convert files again that the manifest already lists
+```
+
+## Output
+
+| Output | Content |
+|---|---|
+| `src/assets/tokens/<key>.webp` | Token image, at most 256×256 |
+| `src/tokens/tokens.json` | One entry per token: `name` in the mod, `group`, `description` (the mod's `tDescr`, omitted when empty) and `cleanup` (omitted when false) |
+
+`<key>` is the token name in the mod as a slug, for example `bleed`, `1-power`. `group` is `condition`, `status` (Activated and Dazed), `character`, `tactic`, from the folder the image is in (`token/condition/`, `token/misc/tracker/`, `token/character/`, `token/tactic/`), or `counter` for `1-power`: not a token a player gives to a character, only the icon of the tray's Power counter, so the app's Tokens panel and token drops leave that group out.
+
+A row with `altName` is a second art of the same token (the mod's old round design); the script migrates only the first art, the same rule `migrate-crisis.mjs` uses for the "1 Damage" row.
 
 # Jarvis crisis cards
 

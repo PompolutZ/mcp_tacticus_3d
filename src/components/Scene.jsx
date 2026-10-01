@@ -1,9 +1,12 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useThree } from '@react-three/fiber'
+import { Raycaster, Vector3 } from 'three'
 import { useTexture, Stars, Environment } from '@react-three/drei'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import { MovementRuler, RangeRuler, DeployRangeTool, RANGE_TIP } from './RulerTool.jsx'
 import CharacterModel from './CharacterModel.jsx'
 import Character from './Character.jsx'
+import CharacterTray from './CharacterTray.jsx'
 import Terrain from './Terrain.jsx'
 import CrisisCard from './CrisisCard.jsx'
 import CrisisToken from './CrisisToken.jsx'
@@ -61,25 +64,93 @@ const TIME_STEP = 1 / 120
 // again. It is part of the tool key, so the tool mounts again and snaps to the selection.
 // selectedTool: 'range' | 'move' | null, lifted to App with its setter onSelectedToolChange.
 // One tool can be selected at the same time as a character or a token.
+// onCharacterDamage(id, damage), onCharacterPower(id, power), onCharacterFlip(id): the tray's
+// controls, lifted to App the same way as the token handlers above (see TrayControls.jsx).
+// onCharacterRemove(id): the tray's Remove button, after its own confirmation.
+// onCharacterTokenRemove(id, key): a click on a chip in the tray's "On" row.
+// onTokenDragStart(e, key): pointerdown on a chip in the tray's "Give" row, the same handler the
+// Tokens panel uses (see App.jsx, handleTokenDragStart).
 // trayActionsRef: ref to a Map, tray key -> its add/remove/roll/clear actions (App does not pass
 // this yet; wired in Phase 5, the same pattern as charBodies below but owned by App because the
 // HUD panel that calls these actions is outside the canvas).
 // onTrayChange(trayKey, state): called when a tray's reported state changes (also Phase 5).
+// characterAtRef: ref App calls with (clientX, clientY) to find the character under the pointer,
+// the same pattern as trayActionsRef. Scene fills it with its own characterAt (3D only: the model
+// or the tray's card mesh), used by App's findCharacterAt below.
+// findCharacterAt(clientX, clientY): App's own lookup, the DOM tray controls (data-character-id)
+// first, then characterAtRef's characterAt. Passed back down so CrisisToken.jsx's Extract-token
+// release (Phase 7) uses the same lookup as App's token drag, instead of 3D-only characterAt, so a
+// release over the tray's controls strip (DOM) counts too.
+// modelPositionRef: ref App calls with a character id to get its live table position { x, z }
+// (Rapier body or model object, not the bench slot), or null. Used by App's handleTokenDrop, the
+// same pattern as characterAtRef. See "Hold and drop".
+// onTokenHold(tokenId, characterId): a canHold token was released over a character. onTokenDrop(id):
+// the tray's Held chip for that token, see TrayControls.jsx.
 export default function Scene({
   mapId, characters = [], activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onCardOpen, trayActionsRef, onTrayChange,
+  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onTokenDrop, onCharacterDamage, onCharacterPower, onCharacterFlip, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, onCardOpen, trayActionsRef, onTrayChange, characterAtRef, findCharacterAt, modelPositionRef,
 }) {
   const map = MAPS[mapId]
   const matTexture = useTexture(assetUrl(matImage(map.mat)))
+  const { camera, gl } = useThree()
   // Character id → Rapier body. Tools read and move characters through it.
   const charBodies = useRef(new Map())
   // Character id → 3D object. Tools find the character under the pointer with it.
   const charObjects = useRef(new Map())
+  // Character id → the tray's card mesh. characterAt below hits this too, so a drop on an empty
+  // part of the tray still finds the character (see CharacterTray.jsx).
+  const trayObjects = useRef(new Map())
+  const raycaster = useRef(new Raycaster())
   // Token id → 3D object, and token id → live center getter. The same purpose as charBodies and
   // charObjects, but a token has no Rapier body (see CrisisToken.jsx).
   const tokenObjects = useRef(new Map())
   const tokenCenters = useRef(new Map())
   const [draggingCharId, setDraggingCharId] = useState(null)
+
+  // Nearest character whose model or tray card is under the client point (DOM pixels), or null.
+  function characterAt(clientX, clientY) {
+    const rect = gl.domElement.getBoundingClientRect()
+    const ndc = {
+      x: ((clientX - rect.left) / rect.width) * 2 - 1,
+      y: -((clientY - rect.top) / rect.height) * 2 + 1,
+    }
+    raycaster.current.setFromCamera(ndc, camera)
+    let nearestId = null
+    let nearestDistance = Infinity
+    for (const ch of characters) {
+      for (const object of [charObjects.current.get(ch.id), trayObjects.current.get(ch.id)]) {
+        const hit = object && raycaster.current.intersectObject(object, true)[0]
+        if (hit && hit.distance < nearestDistance) {
+          nearestId = ch.id
+          nearestDistance = hit.distance
+        }
+      }
+    }
+    return nearestId
+  }
+
+  // Live table position of a character's model (Hold and drop, "Drop"): the Rapier body when there
+  // is one, otherwise the 3D object's own position. Not the bench slot, so a character that moved
+  // drops its token where it now stands. Returns null if neither is mounted yet.
+  function modelPosition(id) {
+    const body = charBodies.current.get(id)
+    if (body) {
+      const t = body.translation()
+      return { x: t.x, z: t.z }
+    }
+    const object = charObjects.current.get(id)
+    if (object) {
+      const p = object.getWorldPosition(new Vector3())
+      return { x: p.x, z: p.z }
+    }
+    return null
+  }
+
+  // Registered on every render, so the closures above always see the latest characters/objects.
+  useEffect(() => {
+    if (characterAtRef) characterAtRef.current = characterAt
+    if (modelPositionRef) modelPositionRef.current = modelPosition
+  })
 
   const selectedCharId = selection?.kind === 'character' ? selection.id : null
   const selectedTokenId = selection?.kind === 'token' ? selection.id : null
@@ -89,9 +160,11 @@ export default function Scene({
   const deployDepth = 2 * deployTip
   const draggingChar = deployLine && draggingCharId ? characters.find(ch => ch.id === draggingCharId) : null
 
-  // Every character and every token as the range and movement tools see them. A character has a
+  // Every character and every mat token as the range and movement tools see them. A character has a
   // Rapier body; a token does not, so getCenter (not getBody) is what the tools measure with.
   // getBody is only used where a tool moves a piece (Place), and Place is disabled for a token.
+  // A held token is not in this list: it is off the mat, on its holder's tray (see "Hold and drop").
+  const matTokens = useMemo(() => tokens.filter(tok => !tok.heldBy), [tokens])
   const toolModels = useMemo(() => [
     ...characters.map(ch => ({
       kind: 'character',
@@ -101,14 +174,14 @@ export default function Scene({
       getCenter: () => charBodies.current.get(ch.id)?.translation() ?? { x: 0, y: 0, z: 0 },
       radius: BASE_DIAMETER[ch.base] / 2,
     })),
-    ...tokens.map(tok => ({
+    ...matTokens.map(tok => ({
       kind: 'token',
       id: tok.id,
       getObject: () => tokenObjects.current.get(tok.id),
       getCenter: () => tokenCenters.current.get(tok.id)?.() ?? { x: tok.x, y: 0, z: tok.z },
       radius: 0.5,
     })),
-  ], [characters, tokens])
+  ], [characters, matTokens])
   const toolTarget = toolModels.find(model => selection && model.kind === selection.kind && model.id === selection.id)
 
   function toggleTool(tool) {
@@ -199,12 +272,13 @@ export default function Scene({
         {/* Crisis cards and tokens are relative to the player sides, not the mat, so they stay
             outside the rotating group above: a mat turn must not turn them. See docs/feature-crisis.md. */}
         {crisis.secure && (
-          <CrisisCard cardKey={crisis.secure} position={[CARD_X, CARD_Y, CARD_Z.secure]} onOpen={() => onCardOpen(crisis.secure)} />
+          <CrisisCard cardKey={crisis.secure} position={[CARD_X, CARD_Y, CARD_Z.secure]} onOpen={onCardOpen} />
         )}
         {crisis.extract && (
-          <CrisisCard cardKey={crisis.extract} position={[CARD_X, CARD_Y, CARD_Z.extract]} onOpen={() => onCardOpen(crisis.extract)} />
+          <CrisisCard cardKey={crisis.extract} position={[CARD_X, CARD_Y, CARD_Z.extract]} onOpen={onCardOpen} />
         )}
-        {tokens.map(tok => (
+        {/* A held token is not rendered here: it shows on its holder's tray instead (Hold and drop). */}
+        {matTokens.map(tok => (
           <CrisisToken
             key={tok.id}
             token={tok}
@@ -213,8 +287,33 @@ export default function Scene({
             onHover={over => onPieceHover?.({ kind: 'token', id: tok.id }, over)}
             onMove={(x, z) => onTokenMove(tok.id, x, z)}
             onTurn={yaw => onTokenTurn(tok.id, yaw)}
+            onHold={characterId => onTokenHold(tok.id, characterId)}
+            findCharacter={findCharacterAt}
             objectRef={obj => obj ? tokenObjects.current.set(tok.id, obj) : tokenObjects.current.delete(tok.id)}
             centerRef={fn => fn ? tokenCenters.current.set(tok.id, fn) : tokenCenters.current.delete(tok.id)}
+          />
+        ))}
+
+        {/* One tray per spawned character, in a row at the edge of the table (see trays.js and
+            docs/characters-hud.md, "Tray layout"). ch.slot is also the bench order, so the tray
+            row fills in the same order as the bench. */}
+        {characters.map(ch => (
+          <CharacterTray
+            key={ch.id}
+            character={ch}
+            index={ch.slot}
+            onOpen={onCardOpen}
+            onDamage={damage => onCharacterDamage(ch.id, damage)}
+            onPower={power => onCharacterPower(ch.id, power)}
+            onFlip={() => onCharacterFlip(ch.id)}
+            onRemove={() => onCharacterRemove(ch.id)}
+            onTokenRemove={key => onCharacterTokenRemove(ch.id, key)}
+            onTokenDragStart={onTokenDragStart}
+            heldTokens={tokens.filter(tok => tok.heldBy === ch.id)}
+            onTokenDrop={onTokenDrop}
+            selected={selectedCharId === ch.id}
+            onSelect={() => toggleSelect('character', ch.id)}
+            objectRef={obj => obj ? trayObjects.current.set(ch.id, obj) : trayObjects.current.delete(ch.id)}
           />
         ))}
 

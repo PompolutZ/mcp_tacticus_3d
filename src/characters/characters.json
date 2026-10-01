@@ -18,14 +18,22 @@
     "name": "Black Panther, Chosen of Bast",
     "base": "medium",
     "figure": "model",
-    "rotation": 180
+    "rotation": 180,
+    "tokens": [
+      "bleed"
+    ]
   },
   "enchantress": {
     "id": "00280102",
     "name": "Enchantress",
     "base": "small",
     "figure": "model",
-    "rotation": 0
+    "rotation": 0,
+    "tokens": [
+      "slow",
+      "stun",
+      "stagger"
+    ]
   },
   "heimdall-the-all-seeing": {
     "id": "01020101",
@@ -39,14 +47,21 @@
     "name": "Killmonger",
     "base": "small",
     "figure": "model",
-    "rotation": 30
+    "rotation": 30,
+    "tokens": [
+      "kill-count",
+      "stagger"
+    ]
   },
   "killmonger-usurper": {
     "id": "10040101",
     "name": "Killmonger, Usurper",
     "base": "small",
     "figure": "model",
-    "rotation": 180
+    "rotation": 180,
+    "tokens": [
+      "starherb"
+    ]
   },
   "king-t-challa": {
     "id": "10040102",
@@ -67,14 +82,20 @@
     "name": "Loki, Prince of Lies",
     "base": "small",
     "figure": "model",
-    "rotation": 180
+    "rotation": 180,
+    "tokens": [
+      "root"
+    ]
   },
   "m-baku": {
     "id": "01160102",
     "name": "M'Baku",
     "base": "small",
     "figure": "model",
-    "rotation": 0
+    "rotation": 0,
+    "immune": [
+      "stun"
+    ]
   },
   "okoye": {
     "id": "00080101",
@@ -88,61 +109,105 @@
     "name": "Shuri",
     "base": "small",
     "figure": "model",
-    "rotation": 135
+    "rotation": 135,
+    "tokens": [
+      "stun",
+      "stagger"
+    ]
   },
   "storm": {
     "id": "00410102",
     "name": "Storm",
     "base": "small",
     "figure": "model",
-    "rotation": 0
+    "rotation": 0,
+    "tokens": [
+      "shock",
+      "stun"
+    ],
+    "immune": [
+      "shock"
+    ]
   },
   "the-mighty-thor": {
     "id": "00910103",
     "name": "The Mighty Thor",
     "base": "small",
     "figure": "model",
-    "rotation": 180
+    "rotation": 180,
+    "tokens": [
+      "shock"
+    ],
+    "immune": [
+      "shock"
+    ]
   },
   "the-warriors-three": {
     "id": "00940102",
     "name": "The Warriors Three",
     "base": "large",
     "figure": "model",
-    "rotation": 180
+    "rotation": 180,
+    "tokens": [
+      "bleed",
+      "stun",
+      "stagger"
+    ]
   },
   "thor-hero-of-midgard": {
     "id": "00910104",
     "name": "Thor, Hero of Midgard",
     "base": "medium",
     "figure": "model",
-    "rotation": 180
+    "rotation": 180,
+    "immune": [
+      "shock"
+    ]
   },
   "thor-prince-of-asgard": {
     "id": "00110101",
     "name": "Thor, Prince of Asgard",
     "base": "small",
     "figure": "model",
-    "rotation": 0
+    "rotation": 0,
+    "tokens": [
+      "shock",
+      "stagger"
+    ],
+    "immune": [
+      "stun",
+      "shock"
+    ]
   },
   "ultimate-spider-man": {
     "id": "01690103",
     "name": "Ultimate Spider-Man",
     "base": "small",
     "figure": "model",
-    "rotation": 210
+    "rotation": 210,
+    "tokens": [
+      "stun",
+      "shock",
+      "slow"
+    ]
   },
   "valkyrie": {
     "id": "00110102",
     "name": "Valkyrie",
     "base": "small",
     "figure": "model",
-    "rotation": 15
+    "rotation": 15,
+    "tokens": [
+      "bleed"
+    ]
   },
   "valkyrie-and-elendil": {
     "id": "00940101",
     "name": "Valkyrie and Elendil",
     "base": "large",
-    "figure": "standee"
+    "figure": "standee",
+    "tokens": [
+      "stagger"
+    ]
   }
 }

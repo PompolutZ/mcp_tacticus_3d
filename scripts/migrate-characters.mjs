@@ -49,6 +49,11 @@ const IGNORED_FIELDS = {
 const db = loadCharacterDatabase()
 const characters = db.characters.filter(r => r.ID && !/^0+$/.test(r.ID) && !r.customChar)
 const keys = characterKeys(characters)
+// cToken/cImmune entries are mod token names (Root, Shock, ...); tokens.json is keyed by the slug
+// that scripts/migrate-tokens.mjs gave each token. Always the live file, not --out: it is migrated
+// separately and does not change with a trial run of this script.
+const TOKENS_FILE = path.resolve(import.meta.dirname, '../src/tokens/tokens.json')
+const tokensData = readJson(TOKENS_FILE, TOKENS_FILE)
 // A trial run continues from its own files, if an earlier trial run into the same directory wrote them
 const manifest = readJson(MANIFEST_OUT, MANIFEST_FILE)
 const appData = readJson(DATA_OUT, DATA_FILE)
@@ -151,11 +156,30 @@ async function migrateCharacter(row, getRipper) {
     else fs.writeFileSync(assetPath(f.file), imageToWebp(source, TEXTURE_SIZE))
     converted++
   }
+  const tokens = tokenKeys(row.cToken, 'cToken', warnings)
+  const immune = tokenKeys(row.cImmune, 'cImmune', warnings)
   manifest[key] = { id: row.ID, sources }
-  appData[key] = appEntry(row, key, sources)
+  appData[key] = appEntry(row, key, sources, tokens, immune)
   writeJson(MANIFEST_OUT, manifest)
   writeJson(DATA_OUT, appData)
   return { status: converted ? `converted ${converted} of ${Object.keys(sources).length} files` : 'already migrated', warnings }
+}
+
+// Mod token names (row.cToken or row.cImmune) as tokens.json keys, the same slug as migrate-tokens.mjs
+// gives each token. A name that is not a migrated token (dice results, affiliation tokens, mod typos,
+// tokens phase 3 skipped, ...) is left out and gets a warning instead of a guessed key.
+function tokenKeys(names, field, warnings) {
+  const keys = []
+  for (const name of (names ?? []).filter(Boolean)) {
+    const key = tokenSlug(name)
+    if (key in tokensData) keys.push(key)
+    else warnings.push(`${field} "${name}" has no migrated token (src/tokens/tokens.json has no "${key}")`)
+  }
+  return keys
+}
+
+function tokenSlug(text) {
+  return text.toLowerCase().normalize('NFKD').replace(/['‘’.]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 }
 
 // Files of a character: { file, url, required, base }. file is relative to src/assets (see src/characters/files.js).
@@ -197,7 +221,7 @@ function standee(front, back) {
 }
 
 // Entry of src/characters/characters.json. Counts and optional parts come from the files that were converted.
-function appEntry(row, key, sources) {
+function appEntry(row, key, sources, tokens, immune) {
   const has = file => file in sources
   const count = test => {
     let n = 0
@@ -221,6 +245,10 @@ function appEntry(row, key, sources) {
     entry.transform = transform
   }
   if (!has(characterPortrait(key))) entry.portrait = false
+  // tokens/immune feed the tray's Give row and immunity check (TrayControls.jsx). Activated and Dazed are
+  // not stored here: every character gets them, so the tray adds them on its own (see docs/characters-hud.md).
+  if (tokens.length) entry.tokens = tokens
+  if (immune.length) entry.immune = immune
   return entry
 }
 
