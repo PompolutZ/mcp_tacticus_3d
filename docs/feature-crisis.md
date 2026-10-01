@@ -42,7 +42,7 @@ All current tokens are 1" circles. There are two groups: Extract tokens (red) an
 
 ### Extract: Asset and Civilian
 
-- A character picks the token up and holds it. `docs/character-feature.md` describes where a held token goes.
+- A character picks the token up and holds it. `docs/characters-hud.md` describes where a held token goes.
 - A character can drop the token, so the token moves around the mat during the game. A dropped token is placed within Range 2 of the character, by the opponent.
 - Asset and Civilian look different (two images), but they are the same kind of token. The difference is only in some rules.
 
