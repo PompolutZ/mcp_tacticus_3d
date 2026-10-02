@@ -39,8 +39,14 @@ function otherSide(side) {
 // tray's Held chip for one of them.
 // position: the tray's table position, from trays.js layoutTrays (Scene.jsx).
 export default function CharacterTray({ character, position, onOpen, onDamage, onPower, onFlip, onRemove, onTokenRemove, onTokenDragStart, heldTokens, onTokenDrop, selected = false, objectRef }) {
+  // Both sides load when the tray mounts, so the first Flip does not wait for an image (that wait
+  // hides the tray, see Scene.jsx, Suspense). The order is fixed: the loader caches by the URL list.
+  const [healthyMap, injuredMap] = useTexture([
+    assetUrl(characterCard(character.key, 'healthy')),
+    assetUrl(characterCard(character.key, 'injured')),
+  ])
   const cardUrl = assetUrl(characterCard(character.key, character.side))
-  const map = useTexture(cardUrl)
+  const map = character.side === 'healthy' ? healthyMap : injuredMap
   const name = characterName(character.key)
   const stamina = characterStamina(character.key, character.side)
   const yaw = trayYaw(character.teamColor)

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useThree } from '@react-three/fiber'
 import { Raycaster, Vector3 } from 'three'
 import { useTexture, Stars, Environment } from '@react-three/drei'
@@ -38,6 +38,22 @@ const TOOL_HOVER_HEIGHT = 1
 // Two physics steps per frame. With one, a model dropped from high up sometimes gets stuck in terrain.
 const TIME_STEP = 1 / 120
 
+// Every piece that loads a file after the first scene load (the mat of a new map, terrain, crisis
+// cards and tokens, character trays and models, tools) is in its own Suspense below. While its file
+// loads, only that piece is not drawn. Without its own Suspense, the load hides the whole scene (the
+// Suspense that React Three Fiber puts around the Canvas content), and the screen flashes black.
+
+// The mat image. Its own component, so a new map's image loads inside the mat's Suspense below.
+function Mat({ mat }) {
+  const map = useTexture(assetUrl(matImage(mat)))
+  return (
+    <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <planeGeometry args={[MAT_SIZE, MAT_SIZE]} />
+      <meshStandardMaterial map={map} roughness={1} metalness={0} onBeforeCompile={projectFootprints} />
+    </mesh>
+  )
+}
+
 // mapId: key in MAPS
 // showColliders: draw every physics collider as lines (the shapes physics uses, not the visible meshes)
 // showLabels: show the piece name and game Size above each terrain piece
@@ -75,7 +91,6 @@ export default function Scene({
   crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onTokenDrop, onCharacterDamage, onCharacterPower, onCharacterFlip, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, onCardOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef,
 }) {
   const map = MAPS[mapId]
-  const matTexture = useTexture(assetUrl(matImage(map.mat)))
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
   const { camera, gl } = useThree()
   // Character id → Rapier body. Tools read and move characters through it.
@@ -249,13 +264,14 @@ export default function Scene({
         {/* The mat and its terrain turn together around the mat center. In game setup, the player with priority
             turns them so that the deployment edge they chose faces the blue side. */}
         <group rotation={[0, matTurns * Math.PI / 2, 0]}>
-          <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-            <planeGeometry args={[MAT_SIZE, MAT_SIZE]} />
-            <meshStandardMaterial map={matTexture} roughness={1} metalness={0} onBeforeCompile={projectFootprints} />
-          </mesh>
+          <Suspense fallback={null}>
+            <Mat mat={map.mat} />
+          </Suspense>
           {/* A fixed body does not follow its parent after it is created. So each turn mounts the terrain again,
               and its colliders are created at the new pose. A new map also mounts it again. */}
-          <Terrain key={`${mapId}-${matTurns}`} placements={map.placements} showLabels={showLabels} />
+          <Suspense key={`${mapId}-${matTurns}`} fallback={null}>
+            <Terrain placements={map.placements} showLabels={showLabels} />
+          </Suspense>
         </group>
 
         {/* Dice trays are relative to the table, not the mat: not keyed by mapId or matTurns, so a
@@ -274,26 +290,31 @@ export default function Scene({
         {/* Crisis cards and tokens are relative to the player sides, not the mat, so they stay
             outside the rotating group above: a mat turn must not turn them. See docs/feature-crisis.md. */}
         {crisis.secure && (
-          <CrisisCard cardKey={crisis.secure} position={[CARD_X, CARD_Y, CARD_Z.secure]} onOpen={onCardOpen} />
+          <Suspense fallback={null}>
+            <CrisisCard cardKey={crisis.secure} position={[CARD_X, CARD_Y, CARD_Z.secure]} onOpen={onCardOpen} />
+          </Suspense>
         )}
         {crisis.extract && (
-          <CrisisCard cardKey={crisis.extract} position={[CARD_X, CARD_Y, CARD_Z.extract]} onOpen={onCardOpen} />
+          <Suspense fallback={null}>
+            <CrisisCard cardKey={crisis.extract} position={[CARD_X, CARD_Y, CARD_Z.extract]} onOpen={onCardOpen} />
+          </Suspense>
         )}
         {/* A held token is not rendered here: it shows on its holder's tray instead (Hold and drop). */}
         {matTokens.map(tok => (
-          <CrisisToken
-            key={tok.id}
-            token={tok}
-            selected={selectedTokenId === tok.id}
-            onSelect={() => toggleSelect('token', tok.id)}
-            onHover={over => onPieceHover?.({ kind: 'token', id: tok.id }, over)}
-            onMove={(x, z) => onTokenMove(tok.id, x, z)}
-            onTurn={yaw => onTokenTurn(tok.id, yaw)}
-            onHold={characterId => onTokenHold(tok.id, characterId)}
-            findCharacter={findCharacterAt}
-            objectRef={obj => obj ? tokenObjects.current.set(tok.id, obj) : tokenObjects.current.delete(tok.id)}
-            centerRef={fn => fn ? tokenCenters.current.set(tok.id, fn) : tokenCenters.current.delete(tok.id)}
-          />
+          <Suspense key={tok.id} fallback={null}>
+            <CrisisToken
+              token={tok}
+              selected={selectedTokenId === tok.id}
+              onSelect={() => toggleSelect('token', tok.id)}
+              onHover={over => onPieceHover?.({ kind: 'token', id: tok.id }, over)}
+              onMove={(x, z) => onTokenMove(tok.id, x, z)}
+              onTurn={yaw => onTokenTurn(tok.id, yaw)}
+              onHold={characterId => onTokenHold(tok.id, characterId)}
+              findCharacter={findCharacterAt}
+              objectRef={obj => obj ? tokenObjects.current.set(tok.id, obj) : tokenObjects.current.delete(tok.id)}
+              centerRef={fn => fn ? tokenCenters.current.set(tok.id, fn) : tokenCenters.current.delete(tok.id)}
+            />
+          </Suspense>
         ))}
 
         {/* One tray per spawned character, next to the mat edge (see trays.js and
@@ -301,95 +322,97 @@ export default function Scene({
             of this tray's card (trayModelPosition). It reads that position only once, when its
             body mounts, so a later tray move does not teleport it. */}
         {characters.map(ch => (
-          <CharacterTray
-            key={ch.id}
-            character={ch}
-            position={trayPositions.get(ch.id)}
-            onOpen={onCardOpen}
-            onDamage={damage => onCharacterDamage(ch.id, damage)}
-            onPower={power => onCharacterPower(ch.id, power)}
-            onFlip={() => onCharacterFlip(ch.id)}
-            onRemove={() => onCharacterRemove(ch.id)}
-            onTokenRemove={key => onCharacterTokenRemove(ch.id, key)}
-            onTokenDragStart={onTokenDragStart}
-            heldTokens={tokens.filter(tok => tok.heldBy === ch.id)}
-            onTokenDrop={onTokenDrop}
-            selected={selectedCharId === ch.id}
-            objectRef={obj => obj ? trayObjects.current.set(ch.id, obj) : trayObjects.current.delete(ch.id)}
-          />
+          <Suspense key={ch.id} fallback={null}>
+            <CharacterTray
+              character={ch}
+              position={trayPositions.get(ch.id)}
+              onOpen={onCardOpen}
+              onDamage={damage => onCharacterDamage(ch.id, damage)}
+              onPower={power => onCharacterPower(ch.id, power)}
+              onFlip={() => onCharacterFlip(ch.id)}
+              onRemove={() => onCharacterRemove(ch.id)}
+              onTokenRemove={key => onCharacterTokenRemove(ch.id, key)}
+              onTokenDragStart={onTokenDragStart}
+              heldTokens={tokens.filter(tok => tok.heldBy === ch.id)}
+              onTokenDrop={onTokenDrop}
+              selected={selectedCharId === ch.id}
+              objectRef={obj => obj ? trayObjects.current.set(ch.id, obj) : trayObjects.current.delete(ch.id)}
+            />
+          </Suspense>
         ))}
 
-        {characters.map(ch => {
-          if (ch.figure === 'standee') {
-            return (
+        {characters.map(ch => (
+          <Suspense key={ch.id} fallback={null}>
+            {ch.figure === 'standee' ? (
               <Character
-                key={ch.id}
                 position={trayModelPosition(ch.teamColor, trayPositions.get(ch.id))}
                 baseSize={ch.base}
                 frontUrl={assetUrl(characterStandee(ch.key, 'front'))}
                 backUrl={assetUrl(characterStandee(ch.key, 'back'))}
               />
-            )
-          }
-          return (
-            <CharacterModel
-              key={ch.id}
-              url={assetUrl(characterModel(ch.key))}
-              position={trayModelPosition(ch.teamColor, trayPositions.get(ch.id))}
-              baseRadius={BASE_DIAMETER[ch.base] / 2}
-              rotation={[0, ch.rotation * Math.PI / 180, 0]}
-              teamColor={ch.teamColor}
-              selected={selectedCharId === ch.id}
-              onSelect={() => toggleSelect('character', ch.id)}
-              onHover={over => onPieceHover?.({ kind: 'character', id: ch.id }, over)}
-              bodyRef={rb => rb ? charBodies.current.set(ch.id, rb) : charBodies.current.delete(ch.id)}
-              objectRef={obj => obj ? charObjects.current.set(ch.id, obj) : charObjects.current.delete(ch.id)}
-              onDragStart={() => setDraggingCharId(ch.id)}
-              onDragEnd={() => setDraggingCharId(null)}
-              constrainDrag={deployLine ? (p) => {
-                if (ch.teamColor === 'blue') p.z = Math.max(p.z, MAT_SIZE / 2 - deployDepth)
-                else p.z = Math.min(p.z, -(MAT_SIZE / 2 - deployDepth))
-              } : undefined}
-            />
-          )
-        })}
+            ) : (
+              <CharacterModel
+                url={assetUrl(characterModel(ch.key))}
+                position={trayModelPosition(ch.teamColor, trayPositions.get(ch.id))}
+                baseRadius={BASE_DIAMETER[ch.base] / 2}
+                rotation={[0, ch.rotation * Math.PI / 180, 0]}
+                teamColor={ch.teamColor}
+                selected={selectedCharId === ch.id}
+                onSelect={() => toggleSelect('character', ch.id)}
+                onHover={over => onPieceHover?.({ kind: 'character', id: ch.id }, over)}
+                bodyRef={rb => rb ? charBodies.current.set(ch.id, rb) : charBodies.current.delete(ch.id)}
+                objectRef={obj => obj ? charObjects.current.set(ch.id, obj) : charObjects.current.delete(ch.id)}
+                onDragStart={() => setDraggingCharId(ch.id)}
+                onDragEnd={() => setDraggingCharId(null)}
+                constrainDrag={deployLine ? (p) => {
+                  if (ch.teamColor === 'blue') p.z = Math.max(p.z, MAT_SIZE / 2 - deployDepth)
+                  else p.z = Math.min(p.z, -(MAT_SIZE / 2 - deployDepth))
+                } : undefined}
+              />
+            )}
+          </Suspense>
+        ))}
 
         {activeMove && (
-          <MovementRuler
-            key={`${activeMove}-${toolSpawns.move}`}
-            type={activeMove}
-            position={[0, TOOL_HOVER_HEIGHT, -6]}
-            hoverHeight={TOOL_HOVER_HEIGHT}
-            selected={selectedTool === 'move'}
-            onSelect={() => toggleTool('move')}
-            // A new tool is selected, so its buttons (Place, Bend) can be used right away
-            onSpawn={() => onSelectedToolChange('move')}
-            target={toolTarget}
-            models={toolModels}
-            onSnap={model => onSelectionChange({ kind: model.kind, id: model.id })}
-          />
+          <Suspense key={`${activeMove}-${toolSpawns.move}`} fallback={null}>
+            <MovementRuler
+              type={activeMove}
+              position={[0, TOOL_HOVER_HEIGHT, -6]}
+              hoverHeight={TOOL_HOVER_HEIGHT}
+              selected={selectedTool === 'move'}
+              onSelect={() => toggleTool('move')}
+              // A new tool is selected, so its buttons (Place, Bend) can be used right away
+              onSpawn={() => onSelectedToolChange('move')}
+              target={toolTarget}
+              models={toolModels}
+              onSnap={model => onSelectionChange({ kind: model.kind, id: model.id })}
+            />
+          </Suspense>
         )}
         {draggingChar && (
-          <DeployRangeTool
-            getBody={() => charBodies.current.get(draggingCharId)}
-            centerZ={draggingChar.teamColor === 'blue' ? MAT_SIZE / 2 - deployTip : -(MAT_SIZE / 2 - deployTip)}
-            yaw={draggingChar.teamColor === 'blue' ? -Math.PI / 2 : Math.PI / 2}
-            hoverHeight={TOOL_HOVER_HEIGHT}
-          />
+          <Suspense fallback={null}>
+            <DeployRangeTool
+              getBody={() => charBodies.current.get(draggingCharId)}
+              centerZ={draggingChar.teamColor === 'blue' ? MAT_SIZE / 2 - deployTip : -(MAT_SIZE / 2 - deployTip)}
+              yaw={draggingChar.teamColor === 'blue' ? -Math.PI / 2 : Math.PI / 2}
+              hoverHeight={TOOL_HOVER_HEIGHT}
+            />
+          </Suspense>
         )}
         {activeRange && (
-          <RangeRuler
-            key={`${activeRange}-${toolSpawns.range}`}
-            number={activeRange}
-            position={[0, TOOL_HOVER_HEIGHT, 6]}
-            hoverHeight={TOOL_HOVER_HEIGHT}
-            selected={selectedTool === 'range'}
-            onSelect={() => toggleTool('range')}
-            onSpawn={() => onSelectedToolChange('range')}
-            target={toolTarget}
-            models={toolModels}
-            onSnap={model => onSelectionChange({ kind: model.kind, id: model.id })}
-          />
+          <Suspense key={`${activeRange}-${toolSpawns.range}`} fallback={null}>
+            <RangeRuler
+              number={activeRange}
+              position={[0, TOOL_HOVER_HEIGHT, 6]}
+              hoverHeight={TOOL_HOVER_HEIGHT}
+              selected={selectedTool === 'range'}
+              onSelect={() => toggleTool('range')}
+              onSpawn={() => onSelectedToolChange('range')}
+              target={toolTarget}
+              models={toolModels}
+              onSnap={model => onSelectionChange({ kind: model.kind, id: model.id })}
+            />
+          </Suspense>
         )}
       </Physics>
     </>
