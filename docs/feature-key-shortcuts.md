@@ -54,6 +54,7 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 | T | Tap (turn 90°) | Nothing | No |
 | R | Raise | Nothing | No |
 | L | Lock | Nothing | No |
+| Delete / Backspace | Delete the hovered or selected piece | Deletes the character token on the table under the pointer. Other pieces cannot be deleted with a key | Partly |
 | G | Group | Nothing | No |
 | U | Place under | Nothing | No |
 | Alt (hold, over a piece) | Zoomed preview, works best for cards | Click a card to open it in a popup | Partly |
@@ -77,7 +78,7 @@ The direction and the speed of the arrow keys (90° per second) are picked by lo
 
 ## Start view
 
-For now every player is Blue. Blue sits at +z. The start view stands behind the blue table edge and looks down at 45°, at a point 6" from the mat center toward Blue, from 46" away. In a 16:10 window it shows the whole mat, the first row of blue trays and the red trays. Space returns to it. The values are `CAMERA_TARGET` and `CAMERA_POSITION` in `src/App.jsx`.
+For now every player is Blue. Blue sits at +z. The start view stands behind the blue table edge and looks down at 45°, at a point 6" from the mat center toward Blue, from 46" away. In a 16:10 window it shows the whole mat, the blue trays and the red trays. Space returns to it. The values are `CAMERA_TARGET` and `CAMERA_POSITION` in `src/App.jsx`.
 
 ## Keyboard: keys of the mod
 

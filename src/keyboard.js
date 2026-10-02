@@ -13,6 +13,9 @@ export const PAN_KEYS = { KeyW: [0, 1], KeyS: [0, -1], KeyA: [-1, 0], KeyD: [1, 
 export const TURN_KEYS = { ArrowUp: [0, 1], ArrowDown: [0, -1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }
 // Camera back to the start view, as in TTS
 export const RESET_VIEW_KEY = 'Space'
+// Deletes the character token on the table under the pointer, as in TTS. A Mac keyboard's delete
+// key sends Backspace.
+export const DELETE_KEYS = ['Delete', 'Backspace']
 
 // Keys in a text field or a select edit it (letters type, arrow keys move the cursor or the option), so the app does not use them
 export function isEditing(target) {

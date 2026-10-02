@@ -10,6 +10,8 @@ import CharacterTray from './CharacterTray.jsx'
 import Terrain from './Terrain.jsx'
 import CrisisCard from './CrisisCard.jsx'
 import CrisisToken from './CrisisToken.jsx'
+import LooseToken from './LooseToken.jsx'
+import TokenDragPreview from './TokenDragPreview.jsx'
 import DiceTray from './DiceTray.jsx'
 import { projectFootprints } from './footprintProjection.js'
 import { matImage } from '../terrain/files.js'
@@ -69,14 +71,19 @@ function Mat({ mat }) {
 // onCharacterDamage(id, damage), onCharacterPower(id, power), onCharacterFlip(id): the tray's
 // controls, lifted to App the same way as the token handlers above (see TrayControls.jsx).
 // onCharacterRemove(id): the tray's Remove button, after its own confirmation.
-// onCharacterTokenRemove(id, key): a click on a chip in the tray's "On" row.
-// onTokenDragStart(e, key): pointerdown on a chip in the tray's "Give" row, the same handler the
-// Tokens panel uses (see App.jsx, handleTokenDragStart).
+// onCharacterTokenRemove(id, key): a click on a token in the tray's "On" row.
+// onTokenDragStart(e, key, looseId): pointerdown on a tray's Give source, or on a token on the
+// table (looseId), the same handler the Tokens panel uses (see App.jsx, handleTokenDragStart).
+// looseTokens: the character tokens that lie on the table, [{ id, key, x, z }] (see App.jsx).
+// onLooseHover(id, over): the pointer moved onto or off one of them, for the Delete key.
+// tokenDrag: the token drag in progress, see App.jsx. While it is active, the dragged token shows
+// under the pointer (TokenDragPreview) and, for a token from the table, not in its old place.
+// dragPointRef: the preview writes the table point under the pointer there, for App's release.
 // diceMenu: the open face menu of a dice tray, { trayKey, symbol } | null, lifted to App so Escape
 // can close it. onDiceMenuToggle(trayKey, symbol), onDiceMenuClose(): see DiceKeys.jsx.
 // characterAtRef: ref App calls with (clientX, clientY) to find the character under the pointer,
 // the same pattern as bodyRef. Scene fills it with its own characterAt (3D only: the model
-// or the tray's card mesh), used by App's findCharacterAt below.
+// or the tray's background plate), used by App's findCharacterAt below.
 // findCharacterAt(clientX, clientY): App's own lookup, the DOM tray controls (data-character-id)
 // first, then characterAtRef's characterAt. Passed back down so CrisisToken.jsx's Extract-token
 // release (Phase 7) uses the same lookup as App's token drag, instead of 3D-only characterAt, so a
@@ -88,7 +95,7 @@ function Mat({ mat }) {
 // the tray's Held chip for that token, see TrayControls.jsx.
 export default function Scene({
   mapId, characters = [], activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onTokenDrop, onCharacterDamage, onCharacterPower, onCharacterFlip, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, onCardOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef,
+  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onTokenDrop, onCharacterDamage, onCharacterPower, onCharacterFlip, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef,
 }) {
   const map = MAPS[mapId]
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
@@ -97,8 +104,8 @@ export default function Scene({
   const charBodies = useRef(new Map())
   // Character id → 3D object. Tools find the character under the pointer with it.
   const charObjects = useRef(new Map())
-  // Character id → the tray's card mesh. characterAt below hits this too, so a drop on an empty
-  // part of the tray still finds the character (see CharacterTray.jsx).
+  // Character id → the tray's background plate. characterAt below hits this too, so a drop anywhere
+  // on the tray finds the character (see CharacterTray.jsx).
   const trayObjects = useRef(new Map())
   const raycaster = useRef(new Raycaster())
   // Token id → 3D object, and token id → live center getter. The same purpose as charBodies and
@@ -107,7 +114,7 @@ export default function Scene({
   const tokenCenters = useRef(new Map())
   const [draggingCharId, setDraggingCharId] = useState(null)
 
-  // Nearest character whose model or tray card is under the client point (DOM pixels), or null.
+  // Nearest character whose model or tray is under the client point (DOM pixels), or null.
   function characterAt(clientX, clientY) {
     const rect = gl.domElement.getBoundingClientRect()
     const ndc = {
@@ -316,6 +323,20 @@ export default function Scene({
             />
           </Suspense>
         ))}
+
+        {/* Character tokens on the table. Relative to the table, not the mat, the same as the crisis
+            tokens above. A token that is being dragged shows under the pointer instead. */}
+        {looseTokens.filter(tok => !(tokenDrag?.active && tokenDrag.looseId === tok.id)).map(tok => (
+          <LooseToken
+            key={tok.id}
+            token={tok}
+            onDragStart={e => onTokenDragStart(e, tok.key, tok.id)}
+            onHover={over => onLooseHover?.(tok.id, over)}
+          />
+        ))}
+        {tokenDrag?.active && (
+          <TokenDragPreview tokenKey={tokenDrag.tokenKey} pointRef={dragPointRef} start={tokenDrag.start} />
+        )}
 
         {/* One tray per spawned character, next to the mat edge (see trays.js and
             docs/characters-hud.md, "Tray layout"). The model below spawns standing on the center

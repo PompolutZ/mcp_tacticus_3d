@@ -16,18 +16,17 @@ import { canFlip, canMove, getCard, hasArc, hasMarkers } from './crisis/cards.js
 import { supplyPosition } from './crisis/layout.js'
 import { characterImmune, characterName, characterStamina } from './characters/roster.js'
 import { BASE_DIAMETER } from './characters/files.js'
-import { assetUrl } from './assets/index.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
-import { characterToken } from './tokens/files.js'
 import { getToken, isCappedToken } from './tokens/tokens.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
-import { MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
+import { DELETE_KEYS, MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
 
 // Start view, the seat of the blue player. For now every player is Blue. Blue sits at +z (see
 // characters/trays.js). The camera stands behind the blue table edge and looks down at 45° at a
 // point 6" from the mat center toward blue, 46" away. Then a 16:10 view shows the whole mat, the
-// first row of blue trays and the red trays. Space returns to this view (see resetCamera).
+// blue trays and the red trays. The bottom edge of the view meets the table at z = 26.7", just
+// past the blue trays' edge (26.15", see trays.js). Space returns to this view (see resetCamera).
 const CAMERA_TARGET = [0, 0, 6]
 const CAMERA_POSITION = [0, 32.5, 38.5]
 // Camera mouse buttons as in TTS: right drag turns, middle drag pans. Left drag also turns, because
@@ -42,6 +41,9 @@ const DROP_GAP = 0.1
 // Several tokens dropped at once (handleDropCharacterTokens) are spread along a row next to the
 // base, one TOKEN_RADIUS*2 (diameter) apart plus a gap, so they do not overlap.
 const TOKEN_ROW_SPACING = TOKEN_RADIUS * 2 + DROP_GAP * 2
+// A character token drag starts only after the pointer moves this many pixels, so a click on a
+// Give source or a token on the table does not drop a token.
+const DRAG_THRESHOLD = 4
 
 // Mat token entries of a card, as tracked in App state. Position and rotation come from cards.json
 // (TTS x, z from the mat center, and TTS Y rotation), converted the same way as terrain: z -> -z.
@@ -146,13 +148,22 @@ export default function App() {
   // Name of the WebGL renderer when it runs on the CPU, see renderer.js. null: the graphics card draws, or
   // the player closed the warning.
   const [softwareRenderer, setSoftwareRenderer] = useState(null)
-  // A token drag in progress, from the Tokens panel: { tokenKey, x, y } | null. x, y place the
-  // ghost <img> only on its first render; moveDragGhost moves it directly after that, so a drag
-  // does not re-render App on every pointermove. See docs/characters-hud.md, "Give tokens by
-  // drag and drop".
+  // Character tokens that lie on the table: [{ id, key, x, z }]. A player drops them there from a
+  // Give source or the Tokens panel, and drags them on to a character or another place. See
+  // docs/characters-hud.md, "Give tokens by drag and drop".
+  const [looseTokens, setLooseTokens] = useState([])
+  // Id of the table token under the pointer, for the Delete key. A ref, the same as hoveredRef.
+  const hoveredLooseRef = useRef(null)
+  // A character token drag in progress: { tokenKey, looseId, active, start } | null. looseId: the
+  // table token that is dragged, or null for a new token from a source. active: the pointer has
+  // moved DRAG_THRESHOLD px, so the dragged token shows under the pointer (Scene.jsx,
+  // TokenDragPreview). start: the pointer position at that moment. The state changes only at
+  // start and when the drag becomes active, not on every pointermove.
   const [tokenDrag, setTokenDrag] = useState(null)
+  // The same drag, plus the pointerdown position, for the window listeners below
   const tokenDragRef = useRef(null)
-  const dragGhostRef = useRef(null)
+  // The table point under the pointer, written by TokenDragPreview: { x, y, z } | null
+  const dragPointRef = useRef(null)
   // Scene calls this with (clientX, clientY) and returns the character id under the point, or
   // null. See Scene.jsx, characterAt.
   const characterAtRef = useRef(null)
@@ -229,6 +240,10 @@ export default function App() {
       return
     }
     if (e.metaKey || e.ctrlKey || e.altKey || isEditing(e.target)) return
+    if (DELETE_KEYS.includes(e.key)) {
+      if (hoveredLooseRef.current) handleLooseRemove(hoveredLooseRef.current)
+      return
+    }
     if (PAN_KEYS[e.code]) {
       heldPan.current.set(e.code, PAN_KEYS[e.code])
       return
@@ -416,13 +431,15 @@ export default function App() {
   }
 
   // Gives one of tokenKey to a character. A character cannot get a condition it is immune to
-  // (p21): the drop does nothing and the HUD shows why. Conditions, Activated and Dazed stay at 1
-  // at most (p17); every other token counts up (see docs/characters-hud.md, "Players apply the rules").
+  // (p21): the drop does nothing, the HUD shows why, and the result is false. Conditions, Activated
+  // and Dazed stay at 1 at most (p17); every other token counts up (see docs/characters-hud.md,
+  // "Players apply the rules"). The result is true then, also for a token at its limit: the
+  // dropped token is used up, as in TTS, where the tray deletes it.
   function handleCharacterTokenGive(id, tokenKey) {
     const target = characters.find(ch => ch.id === id)
     if (target && characterImmune(target.key).includes(tokenKey)) {
       showHudMessage(`${characterName(target.key)} is immune to ${getToken(tokenKey)?.name ?? tokenKey}.`)
-      return
+      return false
     }
     setCharacters(prev => prev.map(ch => {
       if (ch.id !== id) return ch
@@ -430,9 +447,10 @@ export default function App() {
       if (isCappedToken(tokenKey) && count >= 1) return ch
       return { ...ch, tokens: { ...ch.tokens, [tokenKey]: count + 1 } }
     }))
+    return true
   }
 
-  // A click on a chip in the tray's "On" row removes one.
+  // A click on a token in the tray's "On" row removes one.
   function handleCharacterTokenRemove(id, tokenKey) {
     setCharacters(prev => prev.map(ch => {
       if (ch.id !== id) return ch
@@ -444,47 +462,80 @@ export default function App() {
     }))
   }
 
-  // Moves the drag ghost directly (no React state), so a drag does not re-render App per pointermove.
-  function moveDragGhost(x, y) {
-    const el = dragGhostRef.current
-    if (el) el.style.transform = `translate(${x}px, ${y}px)`
+  // over: the pointer moved onto (true) or off (false) a table token. A token that is removed or
+  // dragged unmounts, which also ends its hover (see TokenFace.jsx).
+  function handleLooseHover(id, over) {
+    if (over) hoveredLooseRef.current = id
+    else if (hoveredLooseRef.current === id) hoveredLooseRef.current = null
   }
 
-  // pointerdown on a token chip in the Tokens panel. Stores the drag and shows the ghost under the
-  // pointer. preventDefault stops the browser's own image drag and text selection.
-  function handleTokenDragStart(e, tokenKey) {
+  // Delete key over a token on the table, as in TTS
+  function handleLooseRemove(id) {
+    setLooseTokens(prev => prev.filter(t => t.id !== id))
+  }
+
+  // pointerdown on a character token: a Tokens panel chip, a tray's Give source (a new token, the
+  // source never runs out), or a token on the table (looseId). e is the DOM event. preventDefault
+  // stops the browser's own image drag and text selection. The camera does not move during the
+  // drag. A pointerdown on the canvas also starts an OrbitControls drag, which captures the
+  // pointer, so the capture is released, the same as CrisisToken.jsx.
+  function handleTokenDragStart(e, tokenKey, looseId = null) {
     e.preventDefault()
     e.stopPropagation()
-    tokenDragRef.current = { tokenKey }
-    // x, y only place the ghost on its first render; moveDragGhost moves it after that (see useEffect below).
-    setTokenDrag({ tokenKey, x: e.clientX, y: e.clientY })
+    if (e.target?.hasPointerCapture?.(e.pointerId)) e.target.releasePointerCapture(e.pointerId)
+    if (controlsRef.current) controlsRef.current.enabled = false
+    tokenDragRef.current = { tokenKey, looseId, startX: e.clientX, startY: e.clientY, active: false }
+    setTokenDrag({ tokenKey, looseId, active: false, start: null })
   }
 
   function cancelTokenDrag() {
     tokenDragRef.current = null
     setTokenDrag(null)
+    if (controlsRef.current) controlsRef.current.enabled = true
   }
 
   // Character under (clientX, clientY): the DOM tray controls first (data-character-id, see
   // TrayControls.jsx), then the 3D scene (Scene.jsx, characterAt). Usable outside a drag too: it is
   // passed down to Scene, which gives it to CrisisToken.jsx for an Extract token's release (Phase
-  // 7), so a release over the tray's DOM controls strip counts, not only the model or card mesh.
+  // 7), so a release over the tray's DOM controls strip counts, not only the model or the tray plate.
   function findCharacterAt(clientX, clientY) {
     const el = document.elementFromPoint(clientX, clientY)?.closest('[data-character-id]')
     if (el) return el.dataset.characterId
     return characterAtRef.current?.(clientX, clientY) ?? null
   }
 
-  // Window listeners for the active token drag: move the ghost, and on release give the token to
-  // the character under the pointer, if there is one. Escape cancels (see handleKeyDown).
+  // Release of an active token drag at (clientX, clientY). Over a HUD panel: nothing changes, so a
+  // drag back onto the Tokens panel cancels it. Over a character (its model, or anywhere on its
+  // tray): the character gets the token, the same as before. A table token is used up then, unless
+  // the character is immune. Over the table or terrain: a new token lies there, or the dragged table
+  // token moves there. Elsewhere (the space around the table): nothing changes.
+  function handleTokenRelease(clientX, clientY) {
+    const { tokenKey, looseId } = tokenDragRef.current
+    if (!document.elementFromPoint(clientX, clientY)?.closest('.scene-root')) return
+    const characterId = findCharacterAt(clientX, clientY)
+    if (characterId) {
+      if (handleCharacterTokenGive(characterId, tokenKey) && looseId) handleLooseRemove(looseId)
+      return
+    }
+    const point = dragPointRef.current
+    if (!point) return
+    if (looseId) setLooseTokens(prev => prev.map(t => t.id === looseId ? { ...t, x: point.x, z: point.z } : t))
+    else setLooseTokens(prev => [...prev, { id: crypto.randomUUID(), key: tokenKey, x: point.x, z: point.z }])
+  }
+
+  // Window listeners for the token drag: it becomes active after DRAG_THRESHOLD px, and its release
+  // drops the token (handleTokenRelease). A release before that is a click, which does nothing.
+  // Escape cancels (see handleKeyDown).
   useEffect(() => {
     if (!tokenDrag) return undefined
     function handleMove(e) {
-      moveDragGhost(e.clientX, e.clientY)
+      const drag = tokenDragRef.current
+      if (!drag || drag.active || Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < DRAG_THRESHOLD) return
+      drag.active = true
+      setTokenDrag(prev => prev && { ...prev, active: true, start: { clientX: e.clientX, clientY: e.clientY } })
     }
     function handleUp(e) {
-      const id = findCharacterAt(e.clientX, e.clientY)
-      if (id) handleCharacterTokenGive(id, tokenDragRef.current.tokenKey)
+      if (tokenDragRef.current?.active) handleTokenRelease(e.clientX, e.clientY)
       cancelTokenDrag()
     }
     window.addEventListener('pointermove', handleMove)
@@ -550,6 +601,10 @@ export default function App() {
               onCharacterRemove={handleCharacterRemove}
               onCharacterTokenRemove={handleCharacterTokenRemove}
               onTokenDragStart={handleTokenDragStart}
+              looseTokens={looseTokens}
+              onLooseHover={handleLooseHover}
+              tokenDrag={tokenDrag}
+              dragPointRef={dragPointRef}
               onCardOpen={setOpenCard}
               diceMenu={diceMenu}
               onDiceMenuToggle={handleDiceMenuToggle}
@@ -621,16 +676,6 @@ export default function App() {
       )}
       {debug && <DebugPanel renderMode={renderMode} onRenderModeChange={setRenderMode} />}
       <LoadingOverlay />
-      {/* Copy of the dragged token under the pointer, moved directly in moveDragGhost (see above). */}
-      {tokenDrag && (
-        <img
-          ref={dragGhostRef}
-          className="token-drag-ghost"
-          style={{ transform: `translate(${tokenDrag.x}px, ${tokenDrag.y}px)` }}
-          src={assetUrl(characterToken(tokenDrag.tokenKey))}
-          alt=""
-        />
-      )}
     </div>
   )
 }

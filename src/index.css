@@ -131,8 +131,8 @@ body {
   user-select: none;
 }
 
-/* Tray controls (TrayControls.jsx): sized for the ~2in-deep strip of a tray in the 3D world,
-   mounted through a drei Html transform (see CharacterTray.jsx). */
+/* Tray controls (TrayControls.jsx): sized for the 1.5in-deep strip of a tray in the 3D world,
+   mounted through a drei Html transform (see CharacterTray.jsx). 40 CSS px is 1in there. */
 .tray-controls {
   display: flex;
   flex-direction: column;
@@ -217,9 +217,9 @@ body {
   font-weight: 600;
 }
 
-/* "On", "Held" and "Give" rows of a tray (TrayControls.jsx). The text label keeps the rows apart
+/* "Held" row of a tray (TrayControls.jsx). The text label keeps the row apart from the buttons
    without costing a row of its own: it sits inline before the chips. */
-.tray-controls-on, .tray-controls-held, .tray-controls-give {
+.tray-controls-held {
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
@@ -255,30 +255,8 @@ body {
   pointer-events: none;
 }
 
-.token-chip-count {
-  position: absolute;
-  right: -4px;
-  bottom: -4px;
-  min-width: 11px;
-  padding: 0 2px;
-  font-size: 9px;
-  line-height: 11px;
-  text-align: center;
-  color: #fff;
-  background: var(--accent);
-  border-radius: 6px;
-}
-
-/* A Give chip is dragged, not clicked (see docs/characters-hud.md, "Give tokens by drag and
-   drop"): a dashed border and a grab cursor tell it apart from a solid "On" chip, which clicks
-   to remove. */
-.token-chip--give {
-  border-style: dashed;
-  cursor: grab;
-}
-
 /* A Held chip (crisis token the character holds, see docs/characters-hud.md, "Hold and drop"): a
-   click drops it, so an accent border tells it apart from an "On" chip, which clicks to remove. */
+   click drops it. The accent border shows that it is not a button of the tray. */
 .token-chip--held {
   border-color: var(--accent);
 }
@@ -334,18 +312,45 @@ body {
   color: var(--muted);
 }
 
-/* Copy of the dragged token under the pointer (App.jsx). Moved by setting its transform directly,
-   not through React state, so a drag does not re-render the app on every pointermove. */
-.token-drag-ghost {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 32px;
-  height: 32px;
-  margin: -16px 0 0 -16px;
-  border-radius: 4px;
+/* Count of a real-size token on a tray (TokenFace.jsx), flat on the table through an Html
+   transform: 11 CSS px is about 0.28in. */
+.token-face-count {
+  display: block;
+  min-width: 11px;
+  padding: 0 2px;
+  font-size: 9px;
+  line-height: 11px;
+  text-align: center;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 6px;
+  user-select: none;
+}
+
+/* Name and description of the token under the pointer (TokenFace.jsx). Screen size, not table
+   size, so it can be read at any zoom. Moved up from its anchor, so the pointer does not cover it.
+   pointer-events: none is needed here: drei's Html uses its pointerEvents prop only in transform
+   mode. A label that takes the pointer moves it off the token, the label hides, the pointer is on
+   the token again, and the label flickers. */
+.token-face-label {
   pointer-events: none;
-  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: max-content;
+  max-width: 220px;
+  transform: translateY(calc(-50% - 12px));
+  font-size: 11px;
+  color: var(--text);
+  background: rgba(23, 26, 35, 0.92);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 3px 6px;
+  user-select: none;
+}
+
+.token-face-label span {
+  color: var(--muted);
 }
 
 /* Immunity block and similar short-lived notices (App.jsx, showHudMessage): a drop can land on

@@ -75,7 +75,7 @@ These facts were found on 2026-10-01 in the scripts of the "Red Tray Spawner" ob
 
 The table is 72" × 60" (`src/table.js`). The mat is 36" × 36" (`MAT_SIZE` in `Scene.jsx`), centered on the table, so its edge is 18" from the table center on every side.
 
-Each player's trays sit in a row right next to the mat edge on that player's side (blue at +z, red at −z). The row is centered on the middle line of the table (x = 0), the same as TTS (`arrangeTrays` in the Red Tray Spawner). One row holds up to 12 trays, the table width. A row of more than 6 trays is wider than the mat, so it goes past the mat corners. See `src/characters/trays.js`.
+Each player's trays sit in one row right next to the mat edge on that player's side (blue at +z, red at −z). A player never has a second row. The row is centered on the middle line of the table (x = 0), the same as TTS (`arrangeTrays` in the Red Tray Spawner). 12 trays fit in the table width. A row of more than 6 trays is wider than the mat, so it goes past the mat corners. See `src/characters/trays.js`.
 
 Changes that follow from this:
 
@@ -86,9 +86,10 @@ Changes that follow from this:
 ### One tray
 
 - The card image is 1800 × 1200 px, so the card plane is 4.5" × 3".
-- The controls strip is below the card, on the side of the owner. It is about 2" deep.
-- So a tray is about 5" × 5" (`TRAY_WIDTH` × `TRAY_DEPTH`). A background plate under the card and the controls strip is slightly larger (5.6" × 5.6"), so the tray stands out from the table.
-- There is a 0.3" gap between two plates, between two rows, and between the mat edge and the first row. Without it, two trays look like one. So trays sit 5.9" apart, center to center, and a row fits `floor((72 + 0.3) / 5.9) = 12` trays. When a row is full, a second row starts right behind it, further from the mat, toward the owner. Two rows fit between the mat edge and the table edge; a third row would not.
+- Tokens on a tray are real size (0.75", see [Real-size tokens](#real-size-tokens)). A row of 6 tokens fills the 5" tray width.
+- From the mat side to the owner's side, a tray has: the **On** row of tokens (0.95"), the card (3"), the controls strip (1.5"), and 2 rows of **Give** sources (1.8").
+- So a tray is 5" × 7.25" (`TRAY_WIDTH` × `TRAY_DEPTH`). A background plate under all parts is slightly larger (5.6" × 7.85"), so the tray stands out from the table. The plate ends 26.15" from the table center; the table edge is at 30".
+- There is a 0.3" gap between two plates, and between the mat edge and the row. Without it, two trays look like one. So trays sit 5.9" apart, center to center, and `floor((72 + 0.3) / 5.9) = 12` trays fit in the table width.
 - The row is centered on the middle line of the table. One tray sits on the line. Two trays sit one on each side of the line, and so on. The order is the spawn order, from the owner's left.
 - So every tray of a player moves when that player adds or removes a character. A removed character's tray leaves the row, and the row closes the gap. The same happens in TTS.
 - The card faces the owner and sits on the mat side of the tray; the controls strip sits on the owner's side, away from the mat. For blue, the top of the card image points to −z, the same as a crisis card (`CrisisCard.jsx`). A red tray is turned by 180°.
@@ -103,25 +104,29 @@ At the default camera position, the trays are at the edge of the view or outside
 Sketch, seen from the owner's seat:
 
 ```
++-----------------------------------+   (mat side)
+| (Bleed)(Stun)(Activated)          |   On row: click a token to remove one
 +-----------------------------------+
 |                                   |
 |     stat card (Healthy/Injured)   |   click: popup
-|     held objective tokens on      |   drop target for tokens
-|     the card edge                 |
 |                                   |
 +-----------------------------------+
-| Dmg [-] 3/6 [+]  Pow [-] 4/10 [+] |
+| Dmg [-] 3/6 [+]  Pow [-] 4/10 [+] |   DOM controls strip
 | [Flip]                   [Remove] |
-| On:   [Bleed][Stun][Activated]    |   click a chip: remove one
-| Give: [Act][Dazed][Root][Shock]   |   drag onto a model or a tray
+| Held: [Asset]                     |
 +-----------------------------------+
+| (Act)(Dazed)(Root)(Shock)         |   Give sources: drag a new token from one
+|                                   |   second row for 7 to 12 sources
++-----------------------------------+   (owner's side)
 ```
+
+The whole tray is a drop target for tokens.
 
 - Damage and Power: `−` and `+` buttons around the value.
 - When Damage equals Stamina, the counter shows it in a warning color. The app does not add the Dazed token or flip the card.
 - Flip: turns the card to the other side and sets Damage to 0, as in TTS.
-- **On** row: the tokens on this character. One chip per token, with the token image and a count when the count is above 1. A tooltip shows the name and the mod's description (`tDescr`). A click on a chip removes one.
-- **Give** row: the tokens that this character gives to others or to itself: Activated, Dazed, and the tokens in its `cToken` list. This replaces the tokens that TTS puts next to each tray.
+- **On** row, above the card, where TTS shows the tokens on a character: one real-size 3D token per token key, with a count badge when the count is above 1. The tokens start at the owner's left, in the order the character got them. With more than 6 tokens they overlap, so the row stays as wide as the tray. A label above a token under the pointer shows its name and the mod's description (`tDescr`). A click on a token removes one.
+- **Give** sources, below the controls: the tokens that this character gives to others or to itself: Activated, Dazed, and the tokens in its `cToken` list. They are real-size 3D tokens, in rows of 6 from the owner's left. TTS spawns these tokens at the same place, below the card, in rows from the owner's left. Each source never runs out: a drag takes a new token from it.
 
 ## Give tokens by drag and drop
 
@@ -129,19 +134,35 @@ A player gives a token to a character by dragging it onto the model or onto the 
 
 | Token | Drag from | Result |
 |---|---|---|
-| Character token (condition, Activated, Dazed, superpower or Team Tactic token) | The **Give** row of any tray, or the **Tokens** panel | The token count on the target goes up by 1, with the limits in [Players apply the rules](#players-apply-the-rules) |
+| Character token (condition, Activated, Dazed, superpower or Team Tactic token) | A **Give** source of any tray, the **Tokens** panel, or the table | The token count on the target goes up by 1, with the limits in [Players apply the rules](#players-apply-the-rules) |
 | Extract objective token (Asset, Civilian, supply token) | The table | The target holds the token, see [Hold and drop](#hold-and-drop) |
 
-The **Tokens** panel is a HUD panel, opened from a toolbar button. It shows every migrated token, in groups, with a search field. It has the same purpose as the TTS "Token Tray": a player can give a token that is not in any Give row, for example a token from a Team Tactic card.
+The **Tokens** panel is a HUD panel, opened from a toolbar button. It shows every migrated token, in groups, with a search field. It has the same purpose as the TTS "Token Tray": a player can give a token that is not among the Give sources of any tray, for example a token from a Team Tactic card.
+
+A character token can also lie on the table, as in TTS. A player drags it there from a Give source or from the Tokens panel, and later drags it on to a character or to another place. The Delete key (or Backspace) removes the token under the pointer.
 
 How the drag works:
 
-- A character token is a DOM element (in a tray or in the panel). On `pointerdown`, App stores the drag (`{ tokenKey }`) and shows a copy of the token image under the pointer. The copy has `pointer-events: none`.
-- On `pointerup`, App finds the character under the pointer:
-  1. DOM first: the nearest element with `data-character-id` under the pointer. The tray controls have it. A later 2D HUD can use the same attribute.
-  2. Then 3D: `Scene.jsx` gives App a `characterAt(clientX, clientY)` function through a ref, in the same way as the dice tray actions. It casts a ray from the camera and hits the model objects (`charObjects`) and the tray card meshes.
-- No character under the pointer: nothing happens. Escape cancels the drag.
-- An Extract token is a 3D object, and `CrisisToken.jsx` already drags it. On release, `Scene.jsx` calls the same `characterAt` at the pointer position.
+- A drag starts on `pointerdown` on a Give source (3D), a token on the table (3D) or a Tokens panel chip (DOM). App stores it (`tokenDrag`) and turns off the camera controls.
+- The drag becomes active after the pointer moves 4 px. Then `TokenDragPreview` shows the token at real size on the table or terrain point under the pointer. A token from the table is hidden at its old place. A release before 4 px is a click, and nothing happens.
+- On `pointerup`, App decides:
+  1. Over a HUD panel: nothing happens. So a drag back onto the Tokens panel cancels it.
+  2. Over a character: the character gets the token. DOM first: the nearest element with `data-character-id` under the pointer (the tray controls have it, and a later 2D HUD can use the same attribute). Then 3D: `Scene.jsx` gives App a `characterAt(clientX, clientY)` function through a ref. It casts a ray from the camera and hits the model objects (`charObjects`) and the tray background plates. A token from the table is used up, also when the character is at the limit for that token, the same as TTS. It stays on the table when the character is immune.
+  3. Over the table or terrain: a new token lies there, or the token from the table moves there.
+  4. Over the space around the table: nothing happens.
+- Escape cancels the drag.
+- An Extract token is a 3D object, and `CrisisToken.jsx` already drags it. On release, it calls the same `findCharacterAt` at the pointer position.
+
+## Real-size tokens
+
+Character tokens on a tray and on the table have the real size of the TTS tokens. These facts were found on 2026-10-02 in the mod (`spawnToken` in the tray script, `tokenDatabase` in the `Database` script):
+
+- A token row has `tSize`: `tSmall = 0.375` for every character token, `tLarge = 0.5` for objective tokens.
+- A token with `tShape = "Circle"` spawns as a `Custom_Tile` with scale `tSize`. A tile with scale 1 is 2" wide (see `scripts/README.md`), so these tokens are 0.75" wide.
+- A token with `tShape = "Other"` (conditions, Activated, Dazed) spawns as a `Custom_Token` with scale `tSize / 2`. Its size in inches was not measured. The app uses 0.75" for it too (`TOKEN_SIZE` in `src/tokens/files.js`).
+- The tray spawns the Give tokens below the card, in rows of 3 from the owner's left, 0.85" apart.
+
+Every token image is square, with transparent corners around the circle or the rounded diamond. The app draws a square plane with `alphaTest`, so the plane shows the token's own shape (`TokenFace.jsx`).
 
 ## Card popup
 
@@ -189,7 +210,7 @@ Output, in the same style as the crisis migration:
 | Data | Source | Where |
 |---|---|---|
 | Stamina, Healthy and Injured | Jarvis `statCard.frontSide.stamina`, `backSide.stamina` | `roster.js`, which already loads `jarvis-characters.json` |
-| Tokens the character uses (Give row) | Mod `cToken` | `characters.json`, written by `migrate-characters.mjs` |
+| Tokens the character uses (Give sources) | Mod `cToken` | `characters.json`, written by `migrate-characters.mjs` |
 | Immunities | Mod `cImmune` | `characters.json` |
 
 Jarvis has the current official values, so the stats come from Jarvis. Only the mod has the token lists and the immunities as data. The Jarvis text also marks tokens (`|<winging_it>Winging It|`) and conditions (`|§bleed§Bleed|`), but the mod's `cToken` list maps directly to the token images.
@@ -208,9 +229,11 @@ New fields on each entry of `characters` in `App.jsx`:
 }
 ```
 
+Character tokens on the table are a separate list in `App.jsx`: `looseTokens: [{ id, key, x, z }]`.
+
 A held crisis token stays in the `tokens` list of `App.jsx` and gets one new field: `heldBy: characterId | null`. So each token is in one place only, and a change of crisis card still removes the held tokens of the old card.
 
-All fields are plain JSON. So they fit into the `characters` and `tokens` maps of the Yjs document in `docs/feature-peer-to-peer.md`.
+All fields are plain JSON. So they fit into the `characters` and `tokens` maps of the Yjs document in `docs/feature-peer-to-peer.md`. `looseTokens` needs its own map there.
 
 ## Hold and drop
 
@@ -707,6 +730,31 @@ After testing, the tray row moved next to the mat and models now spawn on their 
 - Tray background: a plate (`TRAY_BG_WIDTH` × `TRAY_BG_DEPTH`, 5.6" × 5.6") under the card and the controls strip, darker than the table, no collider, no shadow, just above the table and below the card. The card's selection outline (Phase 7) is unchanged.
 - Tray name label removed: the clickable `<Html>` name and `.tray-label` CSS are gone (`CharacterTray.jsx`, `index.css`). It set the model's selection, which the model itself already does on click, so `CharacterTray`'s `onSelect` prop and its use in `Scene.jsx` are also gone. `selected` stays, so a selected model still highlights its tray card.
 
+### Real-size tokens and one tray row
+
+Asked on 2026-10-02: the tokens a character gives and the tokens on a character are real size. Each Give source never runs out, and a token can go anywhere on the table. A player has only one tray row.
+
+#### Result
+
+Files: `src/tokens/files.js` (`TOKEN_SIZE`), `src/characters/trays.js` (new tray parts and token positions, one row), `src/components/TokenFace.jsx` (new), `src/components/LooseToken.jsx` (new), `src/components/TokenDragPreview.jsx` (new), `src/components/CharacterTray.jsx` (On row and Give sources in 3D, the plate is the drop target), `src/components/TrayControls.jsx` (On and Give rows removed), `src/components/Scene.jsx`, `src/App.jsx` (`looseTokens`, the new drag, Delete key), `src/keyboard.js` (`DELETE_KEYS`), `src/index.css`.
+
+Changes:
+
+- The **On** row is above the card, and the Give sources are below the controls strip. Both are real-size 3D tokens (see [Controls](#controls)).
+- One drag for every character token: from a Give source, from the Tokens panel, and from the table. The DOM copy of the token under the pointer is gone. A real-size 3D token shows under the pointer instead (`TokenDragPreview.jsx`).
+- The drop target of a tray is its whole background plate, not only the card. A token dropped anywhere on a tray goes to its character, as in TTS.
+- `handleCharacterTokenGive` returns false when the character is immune, so a token from the table stays there.
+- `TRAY_ROWS` and the second row are gone. With 13 or more trays, the row goes past the table edges.
+- Every tray has 2 Give rows, so all trays have the same size. The mod's longest `cToken` list has 8 tokens: with Activated and Dazed, that is 10 sources.
+
+Open issues:
+
+- The size of a TTS `Custom_Token` (conditions, Activated, Dazed) is not measured. All tokens are 0.75".
+- Tokens are flat planes with no edge and no shadow. The hover outline of `SelectionOutlines.jsx` is not used for them, because it would draw a square around a round or diamond token. A label and the cursor show the token under the pointer.
+- The range and movement tools do not snap to a token on the table.
+- Wider trays (a grunt card, characters with 2 forms) need a width per tray in `layoutTrays`. Today every tray has the same width.
+- Not checked in a browser, only `npx vite build`, per the project's rules.
+
 ## Out of scope
 
 - A 2D HUD separate from the 3D world. This is the next step after this feature.
@@ -727,3 +775,9 @@ Made on 2026-10-01:
 4. Immunity blocks a condition.
 5. Attached cards wait for the Team Tactic cards feature.
 6. Tokens use the new art of the mod (rounded diamond for conditions), not the old round art.
+
+Made on 2026-10-02:
+
+7. A player has one tray row only. Later, some trays can be wider (a grunt card, characters with 2 forms).
+8. Character tokens are real size. A Give source never runs out, and a token can lie anywhere on the table.
+9. The Delete key removes a token on the table, as in TTS. A Tokens panel drag can also place a token on the table.
