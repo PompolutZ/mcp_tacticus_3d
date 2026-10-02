@@ -14,22 +14,21 @@ export const TRAY_CARD_WIDTH = 4.5
 export const TRAY_CARD_HEIGHT = TRAY_CARD_WIDTH * (1200 / 1800)
 export const TRAY_WIDTH = 5
 
-// Real-size character tokens on the tray (TOKEN_SIZE wide), in rows: the tokens on the character
-// above the card, and the character's Give sources below the controls strip. A row holds 6 tokens,
+// Real-size character tokens (TOKEN_SIZE wide), in rows: the tokens on the character above the
+// card, and the character's Give sources on the table next to the tray. A row holds 6 tokens,
 // which fill the tray width exactly: 6 * 0.85 - 0.1 = 5.
 const TOKEN_GAP = 0.1
 const TOKEN_PITCH = TOKEN_SIZE + TOKEN_GAP
 const TOKENS_PER_ROW = Math.floor((TRAY_WIDTH + TOKEN_GAP) / TOKEN_PITCH)
-// The longest cToken list in the mod has 8 tokens. With Activated and Dazed, a Give area holds
-// up to 10 tokens, so 2 rows. Every tray has both rows, so all trays have the same size.
-const GIVE_ROWS = 2
+// The longest cToken list in the mod has 8 tokens. With Activated and Dazed, a character has up to
+// 10 Give sources, so 2 rows.
 
 // The parts of a tray, from the mat side to the owner's side: the "On" row of tokens, the card,
-// the controls strip (Damage, Power, Flip, Remove, Held, see TrayControls.jsx), and the Give rows.
+// and the controls strip (Damage, Power, Flip, Remove, Held, see TrayControls.jsx). The Give
+// sources are not part of the tray: they lie on the table on the owner's side of it.
 const ON_DEPTH = TOKEN_SIZE + TOKEN_GAP * 2
 export const TRAY_CONTROLS_DEPTH = 1.5
-const GIVE_DEPTH = GIVE_ROWS * TOKEN_PITCH + TOKEN_GAP
-export const TRAY_DEPTH = ON_DEPTH + TRAY_CARD_HEIGHT + TRAY_CONTROLS_DEPTH + GIVE_DEPTH
+export const TRAY_DEPTH = ON_DEPTH + TRAY_CARD_HEIGHT + TRAY_CONTROLS_DEPTH
 
 // A tray lies just above the table, like a crisis card (see crisis/layout.js, CARD_Y), so it does
 // not z-fight with the table top.
@@ -42,7 +41,6 @@ const MAT_SIDE_Z = -TRAY_DEPTH / 2
 const ON_Z = MAT_SIDE_Z + ON_DEPTH / 2
 export const TRAY_CARD_LOCAL_Z = MAT_SIDE_Z + ON_DEPTH + TRAY_CARD_HEIGHT / 2
 export const TRAY_CONTROLS_LOCAL_Z = MAT_SIDE_Z + ON_DEPTH + TRAY_CARD_HEIGHT + TRAY_CONTROLS_DEPTH / 2
-const GIVE_FIRST_Z = MAT_SIDE_Z + ON_DEPTH + TRAY_CARD_HEIGHT + TRAY_CONTROLS_DEPTH + TOKEN_GAP + TOKEN_SIZE / 2
 // Token rows start at the owner's left, as in TTS. That is local -x for both players (see trayYaw).
 const FIRST_TOKEN_X = -TRAY_WIDTH / 2 + TOKEN_SIZE / 2
 
@@ -54,13 +52,6 @@ export function trayOnTokenPosition(index, count) {
   return [FIRST_TOKEN_X + index * pitch, ON_Z]
 }
 
-// Local [x, z] of Give source `index`: rows of TOKENS_PER_ROW, the first row next to the controls.
-export function trayGiveTokenPosition(index) {
-  const row = Math.floor(index / TOKENS_PER_ROW)
-  const column = index % TOKENS_PER_ROW
-  return [FIRST_TOKEN_X + column * TOKEN_PITCH, GIVE_FIRST_Z + row * TOKEN_PITCH]
-}
-
 // Background plate under every part, so a tray stands out from the table (see
 // docs/characters-hud.md, "One tray"). Slightly larger than the parts, and just under the card's Y
 // (TRAY_Y), so it shows as a border and does not z-fight the card.
@@ -69,9 +60,20 @@ export const TRAY_BG_WIDTH = TRAY_WIDTH + TRAY_BG_MARGIN * 2
 export const TRAY_BG_DEPTH = TRAY_DEPTH + TRAY_BG_MARGIN * 2
 export const TRAY_BG_Y = -TRAY_Y / 2 // local offset from the tray group's own Y (TRAY_Y)
 
-// Gap between two background plates next to each other, and between the mat edge and the row.
-// Without it, the plates touch and two trays look like one.
+// Gap between two background plates next to each other, between the mat edge and the row, and
+// between the plate and the Give sources. Without it, the plates touch and two trays look like
+// one, and the sources look like part of the tray.
 const TRAY_GAP = 0.3
+const GIVE_FIRST_Z = TRAY_BG_DEPTH / 2 + TRAY_GAP + TOKEN_SIZE / 2
+
+// Local [x, z] of Give source `index`: rows of TOKENS_PER_ROW on the table, the first row next to
+// the plate's owner-side edge.
+export function trayGiveTokenPosition(index) {
+  const row = Math.floor(index / TOKENS_PER_ROW)
+  const column = index % TOKENS_PER_ROW
+  return [FIRST_TOKEN_X + column * TOKEN_PITCH, GIVE_FIRST_Z + row * TOKEN_PITCH]
+}
+
 // Trays sit 5.9" apart, center to center (5.6" plate + 0.3" gap). A player has one row of trays.
 // floor((72 + 0.3) / 5.9) = 12 trays fit in the table width; a row of more goes past the table
 // edges. A row of more than 6 trays is wider than the mat, so it goes past the mat corners (see

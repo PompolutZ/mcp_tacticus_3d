@@ -12,7 +12,7 @@ Players track the game state of each character on the table:
 - the objective tokens that the character holds (Extract tokens)
 - other tokens on the character: special conditions (Bleed, Incinerate, Poison, ...), Activated and Dazed, and tokens from character superpowers or Team Tactic cards (for example Winging It from Star-Lord)
 
-A click on a character card opens its image in a full-screen popup that can be closed, the same way as a crisis card today.
+A click on a character card opens the whole tray in a full-screen popup (see [Tray popup](#tray-popup)).
 
 Cards attached to a character (Infinity Gems, Horsemen cards of Apocalypse, Reserve members) come later, with the Team Tactic cards feature.
 
@@ -87,8 +87,9 @@ Changes that follow from this:
 
 - The card image is 1800 × 1200 px, so the card plane is 4.5" × 3".
 - Tokens on a tray are real size (0.75", see [Real-size tokens](#real-size-tokens)). A row of 6 tokens fills the 5" tray width.
-- From the mat side to the owner's side, a tray has: the **On** row of tokens (0.95"), the card (3"), the controls strip (1.5"), and 2 rows of **Give** sources (1.8").
-- So a tray is 5" × 7.25" (`TRAY_WIDTH` × `TRAY_DEPTH`). A background plate under all parts is slightly larger (5.6" × 7.85"), so the tray stands out from the table. The plate ends 26.15" from the table center; the table edge is at 30".
+- From the mat side to the owner's side, a tray has: the **On** row of tokens (0.95"), the card (3"), and the controls strip (1.5").
+- So a tray is 5" × 5.45" (`TRAY_WIDTH` × `TRAY_DEPTH`). A background plate under all parts is slightly larger (5.6" × 6.05"), so the tray stands out from the table. The plate ends 24.35" from the table center.
+- The **Give** sources are not part of the tray. They lie on the table on the owner's side of the plate, 0.3" from it, in 2 rows of 6 (1.6"). The second row ends 26.25" from the table center; the table edge is at 30". They move with the tray.
 - There is a 0.3" gap between two plates, and between the mat edge and the row. Without it, two trays look like one. So trays sit 5.9" apart, center to center, and `floor((72 + 0.3) / 5.9) = 12` trays fit in the table width.
 - The row is centered on the middle line of the table. One tray sits on the line. Two trays sit one on each side of the line, and so on. The order is the spawn order, from the owner's left.
 - So every tray of a player moves when that player adds or removes a character. A removed character's tray leaves the row, and the row closes the gap. The same happens in TTS.
@@ -108,25 +109,25 @@ Sketch, seen from the owner's seat:
 | (Bleed)(Stun)(Activated)          |   On row: click a token to remove one
 +-----------------------------------+
 |                                   |
-|     stat card (Healthy/Injured)   |   click: popup
+|     stat card (Healthy/Injured)   |   click: tray popup
 |                                   |
 +-----------------------------------+
 | Dmg [-] 3/6 [+]  Pow [-] 4/10 [+] |   DOM controls strip
 | [Flip]                   [Remove] |
 | Held: [Asset]                     |
 +-----------------------------------+
-| (Act)(Dazed)(Root)(Shock)         |   Give sources: drag a new token from one
-|                                   |   second row for 7 to 12 sources
-+-----------------------------------+   (owner's side)
+  (Act)(Dazed)(Root)(Shock)             Give sources on the table: drag a new
+                                        token from one; second row for 7 to 12
+                                        (owner's side)
 ```
 
-The whole tray is a drop target for tokens.
+The whole tray is a drop target for tokens. The Give sources are outside the tray, so a token dropped on them lies on the table.
 
 - Damage and Power: `−` and `+` buttons around the value.
 - When Damage equals Stamina, the counter shows it in a warning color. The app does not add the Dazed token or flip the card.
 - Flip: turns the card to the other side and sets Damage to 0, as in TTS.
 - **On** row, above the card, where TTS shows the tokens on a character: one real-size 3D token per token key, with a count badge when the count is above 1. The tokens start at the owner's left, in the order the character got them. With more than 6 tokens they overlap, so the row stays as wide as the tray. A label above a token under the pointer shows its name and the mod's description (`tDescr`). A click on a token removes one.
-- **Give** sources, below the controls: the tokens that this character gives to others or to itself: Activated, Dazed, and the tokens in its `cToken` list. They are real-size 3D tokens, in rows of 6 from the owner's left. TTS spawns these tokens at the same place, below the card, in rows from the owner's left. Each source never runs out: a drag takes a new token from it.
+- **Give** sources, on the table below the tray: the tokens that this character gives to others or to itself: Activated, Dazed, and the tokens in its `cToken` list. They are real-size 3D tokens, in rows of 6 from the owner's left. TTS spawns these tokens at the same place, on the table below the tray, in rows from the owner's left. Each source never runs out: a drag takes a new token from it.
 
 ## Give tokens by drag and drop
 
@@ -166,9 +167,18 @@ Every token image is square, with transparent corners around the circle or the r
 
 ## Card popup
 
-`CardPopup.jsx` today takes a crisis card key. It changes to take an image URL and an alt text. App keeps `openCard: { src, alt } | null`. The crisis card and the character card use it. Escape still closes it.
+`CardPopup.jsx` takes an image URL and an alt text. App keeps `openCard: { src, alt } | null`. Only the crisis card uses it. Escape closes it.
 
-The character card in the popup shows the side that faces up. The popup can have a button to show the other side, because players often read the Injured side while the card is Healthy.
+## Tray popup
+
+A click on a tray card opens the whole tray in a full-screen popup (`TrayPopup.jsx`). App keeps `openTrayId`, the id of the character, or null.
+
+- The popup shows the tray from the same live state as the 3D tray: the **On** row of tokens, the stat card at full size, and the controls (`TrayControls.jsx`, the same component as on the 3D tray). A change in the popup shows on the 3D tray too.
+- The **Give** sources are not part of the tray, so the popup does not show them.
+- A click on a token in the **On** row removes one, the same as on the 3D tray. Its tooltip shows the name and the mod's description.
+- The card shows the side that faces up. A button shows the other side, because players often read the Injured side while the card is Healthy. A Flip goes back to the side that faces up.
+- The cross button, Escape, or a click outside the tray closes the popup. Other keys do nothing while it is open.
+- Remove closes the popup, because the character is gone.
 
 ## Tokens from the TTS mod
 

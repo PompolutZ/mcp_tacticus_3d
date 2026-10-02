@@ -79,6 +79,8 @@ function Mat({ mat }) {
 // tokenDrag: the token drag in progress, see App.jsx. While it is active, the dragged token shows
 // under the pointer (TokenDragPreview) and, for a token from the table, not in its old place.
 // dragPointRef: the preview writes the table point under the pointer there, for App's release.
+// onCardOpen({ src, alt }): a click on a crisis card (see CardPopup.jsx). onTrayOpen(id): a click
+// on a tray card opens the whole tray (see TrayPopup.jsx).
 // diceMenu: the open face menu of a dice tray, { trayKey, symbol } | null, lifted to App so Escape
 // can close it. onDiceMenuToggle(trayKey, symbol), onDiceMenuClose(): see DiceKeys.jsx.
 // characterAtRef: ref App calls with (clientX, clientY) to find the character under the pointer,
@@ -95,7 +97,7 @@ function Mat({ mat }) {
 // the tray's Held chip for that token, see TrayControls.jsx.
 export default function Scene({
   mapId, characters = [], activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onTokenDrop, onCharacterDamage, onCharacterPower, onCharacterFlip, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef,
+  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onTokenDrop, onCharacterDamage, onCharacterPower, onCharacterFlip, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef,
 }) {
   const map = MAPS[mapId]
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
@@ -347,7 +349,7 @@ export default function Scene({
             <CharacterTray
               character={ch}
               position={trayPositions.get(ch.id)}
-              onOpen={onCardOpen}
+              onOpen={() => onTrayOpen(ch.id)}
               onDamage={damage => onCharacterDamage(ch.id, damage)}
               onPower={power => onCharacterPower(ch.id, power)}
               onFlip={() => onCharacterFlip(ch.id)}

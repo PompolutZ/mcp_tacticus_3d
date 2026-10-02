@@ -49,7 +49,7 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 | Z | Zoom to the pointer, press again to zoom back | Nothing | No |
 | P | Camera mode: third person, first person, top-down | Nothing | No |
 | Ctrl | First-person mode: fly down | Nothing | No |
-| F | Flip | Flip buttons in the token panel, the tray and the card popup. No key | No |
+| F | Flip | Flip buttons in the token panel, the tray and the tray popup. No key | No |
 | Q / E | Rotate the piece | Turn handle on a token. Characters cannot be rotated | No |
 | T | Tap (turn 90°) | Nothing | No |
 | R | Raise | Nothing | No |
@@ -102,7 +102,7 @@ The app also snaps a tool when the pointer is over a crisis token. The mod only 
 
 | Key | App |
 |---|---|
-| Escape | Cancels a token drag, or closes the card popup, or closes the dice menu. Otherwise it clears the selection and removes the selected tool |
+| Escape | Cancels a token drag, or closes the card or tray popup, or closes the dice menu. Otherwise it clears the selection and removes the selected tool |
 
 ## Differences to decide
 

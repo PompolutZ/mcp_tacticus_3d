@@ -3,7 +3,7 @@ import { Html, useTexture } from '@react-three/drei'
 import { DoubleSide } from 'three'
 import { assetUrl } from '../assets/index.js'
 import { characterCard } from '../characters/files.js'
-import { characterGiveTokens, characterName, characterStamina } from '../characters/roster.js'
+import { characterGiveTokens, characterStamina } from '../characters/roster.js'
 import {
   TRAY_BG_DEPTH,
   TRAY_BG_WIDTH,
@@ -23,23 +23,24 @@ import TrayControls from './TrayControls.jsx'
 // Every character's Give sources start with Activated and Dazed (characterGiveTokens adds only the
 // character-specific tokens, see migrate-characters.mjs: the mod spawns these next to every tray).
 const ALWAYS_GIVEN = ['activated', 'dazed']
-// Tokens lie on the background plate, just above it (see trays.js, TRAY_BG_Y).
+// Tokens lie at the tray's own height (TRAY_Y): the "On" row just above the background plate (see
+// trays.js, TRAY_BG_Y), the Give sources just above the table, the same height as a token on the
+// table (LooseToken.jsx).
 const TOKEN_Y = 0
 // A pointer that moved more than this many pixels between down and up was a camera drag, not a
 // click on an "On" token.
 const CLICK_MOVE = 4
 
-function otherSide(side) {
-  return side === 'healthy' ? 'injured' : 'healthy'
-}
-
 // One character tray: a background plate, the "On" row of tokens on the character, the stat card
-// (the side that faces up), the controls strip (see TrayControls.jsx), and the Give sources. The
-// tokens are real size, as in TTS (see trays.js for the layout). No collider (see
-// docs/characters-hud.md, Phase 1). A click on the card opens it in the popup (see CardPopup.jsx).
+// (the side that faces up), and the controls strip (see TrayControls.jsx). The Give sources are
+// not part of the tray: they lie on the table on the owner's side of the plate, as in TTS, and
+// move with the tray. The tokens are real size, as in TTS (see trays.js for the layout). No
+// collider (see docs/characters-hud.md, Phase 1). A click on the card calls onOpen(): App opens
+// the whole tray in a popup (see TrayPopup.jsx).
 // objectRef: the background plate, so Scene's characterAt can hit the whole tray, the same way it
 // hits the model (see docs/characters-hud.md, "Give tokens by drag and drop"). A token dropped
-// anywhere on the tray goes to its character, as in TTS. The card mesh is the outline target:
+// anywhere on the tray goes to its character, as in TTS. A token dropped on the Give sources lies
+// on the table, because they are outside the plate. The card mesh is the outline target:
 // selected highlights the tray card, the same way CharacterModel.jsx highlights a selected model
 // (see useOutline below). The model itself (spawned on the card) stays the usual way to select a
 // character; the tray has no click target of its own for that.
@@ -56,19 +57,14 @@ export default function CharacterTray({ character, position, onOpen, onDamage, o
     assetUrl(characterCard(character.key, 'healthy')),
     assetUrl(characterCard(character.key, 'injured')),
   ])
-  const cardUrl = assetUrl(characterCard(character.key, character.side))
   const map = character.side === 'healthy' ? healthyMap : injuredMap
-  const name = characterName(character.key)
   const stamina = characterStamina(character.key, character.side)
   const yaw = trayYaw(character.teamColor)
   const cardRef = useRef()
 
   function openPopup(e) {
     e.stopPropagation()
-    // The popup can show the other side too, since players often read the Injured side while
-    // the card is Healthy (see docs/characters-hud.md, "Card popup").
-    const altSrc = assetUrl(characterCard(character.key, otherSide(character.side)))
-    onOpen({ src: cardUrl, alt: name, altSrc, characterId: character.id })
+    onOpen()
   }
 
   useOutline(cardRef, outlineMode(selected, false))
@@ -114,6 +110,7 @@ export default function CharacterTray({ character, position, onOpen, onDamage, o
           </group>
         )
       })}
+      {/* Give sources, on the table next to the plate. */}
       {giveKeys.map((key, i) => {
         const [x, z] = trayGiveTokenPosition(i)
         return (

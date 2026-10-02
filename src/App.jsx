@@ -12,6 +12,7 @@ import { LoadingOverlay } from './components/LoadingOverlay.jsx'
 import { TokenPanel } from './components/TokenPanel.jsx'
 import { TokensPanel } from './components/TokensPanel.jsx'
 import { CardPopup } from './components/CardPopup.jsx'
+import { TrayPopup } from './components/TrayPopup.jsx'
 import { canFlip, canMove, getCard, hasArc, hasMarkers } from './crisis/cards.js'
 import { supplyPosition } from './crisis/layout.js'
 import { characterImmune, characterName, characterStamina } from './characters/roster.js'
@@ -131,10 +132,11 @@ export default function App() {
   const wheelCameraRef = useRef(null)
   // Count of tool key presses over a piece, per tool: { range, move }. See Scene.
   const [toolSpawns, setToolSpawns] = useState({ range: 0, move: 0 })
-  // Card image open in the full-screen popup: a crisis card face or a character tray card.
-  // { src, alt, characterId? } | null, see CardPopup.jsx. characterId (character cards only) is
-  // how handleCharacterRemove knows to close a popup that shows the card of the removed character.
+  // Crisis card image open in the full-screen popup: { src, alt } | null, see CardPopup.jsx.
   const [openCard, setOpenCard] = useState(null)
+  // Id of the character whose whole tray is open in the full-screen popup, or null (see
+  // TrayPopup.jsx). At most one of openCard and openTrayId is set: each popup covers the table.
+  const [openTrayId, setOpenTrayId] = useState(null)
   // The open "Reroll one / Change one to" menu of a dice tray face plate, at most one across both
   // trays: { trayKey, symbol } | null. Lifted here, not into DiceKeys, so Escape can close it (see
   // handleKeyDown).
@@ -220,7 +222,7 @@ export default function App() {
   }
 
   // Every key press of the app is handled here, so that the same key can do different things in
-  // different states. The states now: the crisis card popup is open, or the table is in use.
+  // different states. The states now: a card or tray popup is open, or the table is in use.
   // The keys are in keyboard.js.
   function handleKeyDown(e) {
     if (tokenDrag) {
@@ -228,9 +230,9 @@ export default function App() {
       if (e.key === 'Escape') cancelTokenDrag()
       return
     }
-    if (openCard) {
+    if (openCard || openTrayId) {
       // Escape closes only the popup. Other keys do nothing, so nothing changes on the table behind it.
-      if (e.key === 'Escape') setOpenCard(null)
+      if (e.key === 'Escape') { setOpenCard(null); setOpenTrayId(null) }
       return
     }
     if (e.key === 'Escape') {
@@ -419,7 +421,7 @@ export default function App() {
     handleDropCharacterTokens(id)
     setCharacters(prev => prev.filter(ch => ch.id !== id))
     setSelection(prev => prev?.kind === 'character' && prev.id === id ? null : prev)
-    setOpenCard(prev => prev?.characterId === id ? null : prev)
+    setOpenTrayId(prev => prev === id ? null : prev)
   }
 
   // A short message in the HUD, for a few seconds (the immunity block below; CharacterSpawner has
@@ -547,6 +549,7 @@ export default function App() {
   }, [tokenDrag])
 
   const selectedToken = selection?.kind === 'token' ? tokens.find(t => t.id === selection.id) ?? null : null
+  const openTray = openTrayId ? characters.find(ch => ch.id === openTrayId) ?? null : null
 
   // Debug mode is only in the dev server. import.meta.env.DEV is false in `vite build`, so debug
   // is always false there and the build leaves out the debug code.
@@ -606,6 +609,7 @@ export default function App() {
               tokenDrag={tokenDrag}
               dragPointRef={dragPointRef}
               onCardOpen={setOpenCard}
+              onTrayOpen={setOpenTrayId}
               diceMenu={diceMenu}
               onDiceMenuToggle={handleDiceMenuToggle}
               onDiceMenuClose={handleDiceMenuClose}
@@ -664,6 +668,19 @@ export default function App() {
       />
       <TokensPanel open={tokensOpen} onDragStart={handleTokenDragStart} />
       <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
+      {openTray && (
+        <TrayPopup
+          character={openTray}
+          heldTokens={tokens.filter(tok => tok.heldBy === openTray.id)}
+          onClose={() => setOpenTrayId(null)}
+          onDamage={damage => handleCharacterDamage(openTray.id, damage)}
+          onPower={power => handleCharacterPower(openTray.id, power)}
+          onFlip={() => handleCharacterFlip(openTray.id)}
+          onRemove={() => handleCharacterRemove(openTray.id)}
+          onTokenRemove={key => handleCharacterTokenRemove(openTray.id, key)}
+          onTokenDrop={handleTokenDrop}
+        />
+      )}
       {hudMessage && <div className="hud-message">{hudMessage}</div>}
       {softwareRenderer && (
         <div className="hud-warning" role="alert" title={softwareRenderer}>
