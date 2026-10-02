@@ -1,6 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { MathUtils, Spherical, Vector3 } from 'three'
-import { panOnTable } from '../camera.js'
+import { CAMERA_FRAME_PRIORITY, panOnTable } from '../camera.js'
 
 // Pan speed as a part of the camera distance per second, so it feels the same at every zoom
 const PAN_RATE = 0.8
@@ -32,7 +32,7 @@ export function KeyboardCamera({ pan, turn }) {
     if (!controls) return
     if (pan.current.size > 0) panCamera(heldDirection(pan.current), dt)
     if (turn.current.size > 0) turnCamera(heldDirection(turn.current), dt)
-  })
+  }, CAMERA_FRAME_PRIORITY)
 
   function panCamera([dx, dy], dt) {
     const length = Math.hypot(dx, dy)

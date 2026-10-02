@@ -754,3 +754,22 @@ body {
   flex-direction: row;
   gap: 4px;
 }
+
+/* Shown when the browser draws WebGL on the CPU (App.jsx, softwareRenderer). Bottom right, clear of
+   the token panel in the middle and the debug panel on the left. */
+.hud-warning {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  max-width: 360px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--panel);
+  border: 1px solid var(--warn);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text);
+  z-index: 600;
+}

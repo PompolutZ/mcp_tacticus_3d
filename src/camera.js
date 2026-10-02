@@ -1,6 +1,12 @@
-// Camera moves shared by the keyboard (KeyboardCamera.jsx) and the trackpad (TrackpadCamera.jsx).
+// Camera moves shared by the keyboard (KeyboardCamera.jsx) and the wheel (WheelCamera.jsx).
 // Plain module, no React.
 import { Vector3 } from 'three'
+
+// Frame priority of the camera moves of the keyboard and the wheel. Frame callbacks run from the lowest
+// priority, and most of them have priority 0. For example, each drei <Html> (tray keys, tool buttons)
+// reads the camera in its frame callback. If the camera moved after that, the <Html> would be one frame
+// behind the 3D view while the camera moves. OrbitControls updates at -1 too (drei).
+export const CAMERA_FRAME_PRIORITY = -1
 
 const up = new Vector3()
 const right = new Vector3()

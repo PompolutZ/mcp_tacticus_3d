@@ -7,7 +7,7 @@ import SelectionOutlines from './components/SelectionOutlines.jsx'
 import { Toolbar } from './components/Toolbar.jsx'
 import { CharacterSpawner } from './components/CharacterSpawner.jsx'
 import { KeyboardCamera } from './components/KeyboardCamera.jsx'
-import { TrackpadCamera } from './components/TrackpadCamera.jsx'
+import { WheelCamera } from './components/WheelCamera.jsx'
 import { LoadingOverlay } from './components/LoadingOverlay.jsx'
 import { TokenPanel } from './components/TokenPanel.jsx'
 import { TokensPanel } from './components/TokensPanel.jsx'
@@ -17,6 +17,7 @@ import { supplyPosition } from './crisis/layout.js'
 import { characterImmune, characterName, characterStamina } from './characters/roster.js'
 import { BASE_DIAMETER } from './characters/files.js'
 import { assetUrl } from './assets/index.js'
+import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { characterToken } from './tokens/files.js'
 import { getToken, isCappedToken } from './tokens/tokens.js'
 import FrameStats from './debug/FrameStats.jsx'
@@ -32,7 +33,7 @@ const CAMERA_POSITION = [0, 32.5, 38.5]
 // Camera mouse buttons as in TTS: right drag turns, middle drag pans. Left drag also turns, because
 // the app has no box select (the TTS left drag) and a trackpad has no easy right drag. Shift, Ctrl
 // or Cmd + a turn drag pans (OrbitControls). A mouse wheel zooms. On a trackpad, a two-finger swipe
-// pans and a pinch zooms (TrackpadCamera.jsx).
+// pans and a pinch zooms (WheelCamera.jsx).
 const CAMERA_MOUSE_BUTTONS = { LEFT: MOUSE.ROTATE, MIDDLE: MOUSE.PAN, RIGHT: MOUSE.ROTATE }
 const DEG = Math.PI / 180
 // A crisis token is a 1" circle (CrisisToken.jsx, RADIUS). Drop places it just clear of the base.
@@ -125,6 +126,7 @@ export default function App() {
   const heldPan = useRef(new Map())
   const heldTurn = useRef(new Map())
   const controlsRef = useRef(null)
+  const wheelCameraRef = useRef(null)
   // Count of tool key presses over a piece, per tool: { range, move }. See Scene.
   const [toolSpawns, setToolSpawns] = useState({ range: 0, move: 0 })
   // Card image open in the full-screen popup: a crisis card face or a character tray card.
@@ -141,6 +143,9 @@ export default function App() {
   // message (a timeout clears it), but global: a drag can end over any tray.
   const [hudMessage, setHudMessage] = useState(null)
   const hudMessageTimer = useRef(null)
+  // Name of the WebGL renderer when it runs on the CPU, see renderer.js. null: the graphics card draws, or
+  // the player closed the warning.
+  const [softwareRenderer, setSoftwareRenderer] = useState(null)
   // A token drag in progress, from the Tokens panel: { tokenKey, x, y } | null. x, y place the
   // ghost <img> only on its first render; moveDragGhost moves it directly after that, so a drag
   // does not re-render App on every pointermove. See docs/characters-hud.md, "Give tokens by
@@ -260,6 +265,8 @@ export default function App() {
   function resetCamera() {
     const controls = controlsRef.current
     if (!controls) return
+    // A zoom or pan of the wheel that is not done yet would move the camera away from the start view
+    wheelCameraRef.current?.stop()
     controls.object.position.set(...CAMERA_POSITION)
     controls.target.set(...CAMERA_TARGET)
     controls.update()
@@ -510,6 +517,10 @@ export default function App() {
           // R3F does not count a camera drag as a click. A right click is a 'contextmenu' event, and it also
           // starts a camera turn, so it does not clear. Clicks on tool buttons (Html) are not on the canvas.
           onPointerMissed={e => { if (e.type === 'click' && e.target instanceof HTMLCanvasElement) setSelection(null) }}
+          onCreated={({ gl }) => {
+            const name = rendererName(gl.getContext())
+            if (isSoftwareRenderer(name)) setSoftwareRenderer(name)
+          }}
         >
           <SelectionOutlines composer={mode !== 'no-composer'} outlines={mode === 'full'}>
             <Scene
@@ -553,6 +564,7 @@ export default function App() {
             makeDefault
             target={CAMERA_TARGET}
             enablePan={true}
+            // WheelCamera takes every wheel event, so this is only the pinch on a touch screen
             enableZoom={true}
             enableRotate={true}
             minDistance={5}
@@ -561,7 +573,7 @@ export default function App() {
             mouseButtons={CAMERA_MOUSE_BUTTONS}
           />
           <KeyboardCamera pan={heldPan} turn={heldTurn} />
-          <TrackpadCamera />
+          <WheelCamera ref={wheelCameraRef} />
           {debug && <FrameStats />}
         </Canvas>
       </div>
@@ -598,6 +610,15 @@ export default function App() {
       <TokensPanel open={tokensOpen} onDragStart={handleTokenDragStart} />
       <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
       {hudMessage && <div className="hud-message">{hudMessage}</div>}
+      {softwareRenderer && (
+        <div className="hud-warning" role="alert" title={softwareRenderer}>
+          <span>
+            The browser draws the 3D view without the graphics card (software rendering), so the app is slow.
+            Turn on hardware acceleration in the browser settings.
+          </span>
+          <button type="button" className="chip" onClick={() => setSoftwareRenderer(null)}>Close</button>
+        </div>
+      )}
       {debug && <DebugPanel renderMode={renderMode} onRenderModeChange={setRenderMode} />}
       <LoadingOverlay />
       {/* Copy of the dragged token under the pointer, moved directly in moveDragGhost (see above). */}
