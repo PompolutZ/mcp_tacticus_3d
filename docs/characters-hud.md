@@ -79,7 +79,7 @@ Each player's trays sit in one or two rows right next to the mat edge on that pl
 
 Changes that follow from this:
 
-- `TABLE_DEPTH` in `src/table.js`. The table halves, the table collider and the table walls follow it.
+- `TABLE_DEPTH` in `src/table.js`. The table mesh, the table collider and the table walls follow it.
 - `scripts/dice-sim.mjs` uses the same table. Run it once and check that the results do not change. The dice trays are at z = ±10.1, far from the walls, so they should not change.
 - The shadow camera in `Scene.jsx` does not need to cover the trays. Trays are flat and do not cast shadows.
 

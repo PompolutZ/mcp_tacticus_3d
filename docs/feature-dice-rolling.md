@@ -82,7 +82,7 @@ TTS puts both trays at x = 36. That is the edge of the app table, which is 72" w
 - Blue tray center at (27, 0, 10.1). Red tray center at (27, 0, -10.1).
 - Each tray covers x from 20.25 to 33.75. The mat ends at x = 18. The tray covers z from 1.7 to 18.5 on its side, the same range as in TTS.
 - Each tray turns so that its shelf faces the center line (z = 0), as in TTS.
-- In TTS, the Red tray is at -z. The app puts TTS z at app -z, so without a change the Red tray would be on the Blue half. The app puts each tray on the half of its own color.
+- In TTS, the Red tray is at -z. The app puts TTS z at app -z, so without a change the Red tray would be on the Blue side. The app puts each tray on the side of its own color.
 - The TTS Tool Trays are at x = 23.5, so they would overlap the dice trays. The app has no tool trays.
 - The planned scoring board is at x = -23.1, on the other side of the mat (see `docs/feature-crisis.md`).
 

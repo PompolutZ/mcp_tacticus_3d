@@ -118,6 +118,14 @@ The remaining 184 mat URLs follow the pattern:
 `https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/<hash>.png`
 All 188 URLs are in the mod JSON and can be fetched at runtime.
 
+### Table texture — cached
+
+`httpssteamusercontentaakamaihdnetugc12772041129510749627418A085405EB3B5A5D94C89CA4C9FC881378A413.jpg`
+
+The mod's `TableURL` (`Table` is `Table_Custom`). Dark wood planks, 4000×2667 (3:2, the same as the TTS table).
+`src/assets/table.webp` is this image, converted with the same settings as other textures:
+`magick <file> -resize '2048x2048>' -strip -quality 85 table.webp`.
+
 ### Dice texture — 1 cached
 
 `httpssteamusercontentaakamaihdnetugc783003963486280633F22C6421...png`

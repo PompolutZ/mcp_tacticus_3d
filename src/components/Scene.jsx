@@ -25,12 +25,14 @@ import { TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WIDTH } from '..
 // MCP mat is 36" x 36". 1 Three.js unit = 1 inch. Table size: see table.js.
 const MAT_SIZE = 36
 const TABLE_THICKNESS = 0.5
-// Blue half is the side of the player who won the priority roll-off. Red half is the other player's side.
-// Blue is at +z, the bottom of the default camera view.
-const TABLE_HALVES = [
-  { color: '#6fa0e0', z: TABLE_DEPTH / 4 },
-  { color: '#e07272', z: -TABLE_DEPTH / 4 },
-]
+// The table image of the TTS mod (its TableURL). The image is 3:2, the same as the TTS table. The app table is
+// deeper (table.js), so the image fills the table depth and its left and right ends are cut off. The planks
+// keep their shape.
+function fitTableTexture(texture) {
+  const repeatX = (TABLE_WIDTH / TABLE_DEPTH) / (texture.image.width / texture.image.height)
+  texture.repeat.set(repeatX, 1)
+  texture.offset.set((1 - repeatX) / 2, 0)
+}
 // Tools hang this far above the table and measure by the outline cast below them
 const TOOL_HOVER_HEIGHT = 1
 // Two physics steps per frame. With one, a model dropped from high up sometimes gets stuck in terrain.
@@ -76,6 +78,7 @@ export default function Scene({
 }) {
   const map = MAPS[mapId]
   const matTexture = useTexture(assetUrl(matImage(map.mat)))
+  const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
   const { camera, gl } = useThree()
   // Character id → Rapier body. Tools read and move characters through it.
   const charBodies = useRef(new Map())
@@ -220,12 +223,10 @@ export default function Scene({
             position={[0, -TABLE_COLLIDER_HALF_H, 0]}
             friction={FRICTION}
           />
-          {TABLE_HALVES.map(({ color, z }) => (
-            <mesh key={color} position={[0, -TABLE_THICKNESS / 2, z]} receiveShadow>
-              <boxGeometry args={[TABLE_WIDTH, TABLE_THICKNESS, TABLE_DEPTH / 2]} />
-              <meshStandardMaterial color={color} roughness={0.8} metalness={0.05} onBeforeCompile={projectFootprints} />
-            </mesh>
-          ))}
+          <mesh position={[0, -TABLE_THICKNESS / 2, 0]} receiveShadow>
+            <boxGeometry args={[TABLE_WIDTH, TABLE_THICKNESS, TABLE_DEPTH]} />
+            <meshStandardMaterial map={tableTexture} roughness={0.8} metalness={0.05} onBeforeCompile={projectFootprints} />
+          </mesh>
         </RigidBody>
         {/* Invisible walls at the table edge, so dice cannot fall off the table. Kinematic, see table.js. */}
         <RigidBody type="kinematicPosition" colliders={false}>
