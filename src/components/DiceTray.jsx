@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF, useTexture } from '@react-three/drei'
 import { RigidBody, TrimeshCollider, ConvexHullCollider, useRapier } from '@react-three/rapier'
@@ -40,9 +40,9 @@ import {
   shelfMovePose,
   sortShelfEntries,
 } from '../dice/shelf.js'
-import { CLEARED_TEXT, changeText, throwEntryText } from '../dice/history.js'
 import { FRICTION } from '../physics.js'
 import { FALL_LIMIT_Y } from '../table.js'
+import DiceKeys from './DiceKeys.jsx'
 
 // A tray holds at most 42 dice, shelf and well together (design, "Roll flow"). SHELF_SLOT_COUNT
 // is also 42 (one shelf place per die), so this reuses it instead of a second magic number.
@@ -56,8 +56,8 @@ const dieVertices = Float32Array.from(D8_CORNERS.flat())
 // Unique React key / Map key for a die, across both trays. Only used as an id, never as a seed.
 let nextDieId = 1
 
-// Unique id for a history entry, across both trays. Only used as a React key.
-let nextHistoryId = 1
+// All 6 shelf counts at 0, what the keys show before the first frame reports.
+const EMPTY_SHELF = Object.fromEntries(SYMBOLS.map(symbol => [symbol, 0]))
 
 // One die: a RigidBody with a convex hull collider (the die shape) and a shared mesh. Starts
 // dynamic; startShelfMove below switches it to kinematicPosition the first time it reaches the
@@ -95,11 +95,10 @@ function Die({ id, dice, geometry, material }) {
   )
 }
 
-// One dice tray: the tray body, the dice bodies, and the roll flow. trayKey: 'blue' | 'red'.
-// actionsRef(trayKey, actions | null): registers this tray's actions in the parent's ref map,
-// the same pattern as bodyRef in Scene.jsx. onChange(trayKey, state): reported after every frame
-// that changes it, { well, shelf, rolling, critsAvailable, history }.
-export default function DiceTray({ trayKey, actionsRef, onChange }) {
+// One dice tray: the tray body, the dice bodies, the roll flow, and the keys on the tray (see
+// DiceKeys.jsx). trayKey: 'blue' | 'red'. openMenuSymbol, onMenuToggle, onMenuClose: the face
+// menu of this tray, lifted to App so Escape can close it.
+export default function DiceTray({ trayKey, openMenuSymbol = null, onMenuToggle, onMenuClose }) {
   const tray = TRAYS[trayKey]
   const { rapier } = useRapier()
 
@@ -108,25 +107,19 @@ export default function DiceTray({ trayKey, actionsRef, onChange }) {
   const dieGltf = useGLTF(assetUrl('dice/d8.glb'))
   const dieTexture = useTexture(assetUrl('dice/d8.webp'))
 
-  // Every die lives here: id -> { id, body, state, symbol, face, source, rerollFrom, stillTime,
-  // throwTime, spawn, slot, moveFrom, moveTo, moveElapsed, moving }. state: 'well' (resting, done
-  // or not yet thrown) | 'thrown' (in the air) | 'shelf'. A die keeps its `symbol` (and `face`,
-  // the exact face number it landed on) once it settles, even while it still sits in 'well'
-  // waiting for the rest of the throw to finish. `source` is 'roll' | 'crits' | 'reroll' and is
-  // only meaningful until the die reaches the shelf; `rerollFrom` is the symbol it had before a
-  // reroll, used to write "Reroll: X → Y" once the die settles again. React state (`ids`) holds
-  // only the ordered list of ids, so mounting/unmounting a RigidBody is the only thing that
-  // re-renders this component; the roll flow itself lives in this ref and never touches React
-  // state.
+  // Every die lives here: id -> { id, body, state, symbol, face, stillTime, throwTime, spawn,
+  // slot, moveFrom, moveTo, moveElapsed, moving }. state: 'well' (resting, done or not yet thrown)
+  // | 'thrown' (in the air) | 'shelf'. A die keeps its `symbol` (and `face`, the exact face number
+  // it landed on) once it settles, even while it still sits in 'well' waiting for the rest of the
+  // throw to finish. React state holds only the ordered list of ids (`ids`) and what the keys show
+  // (`keys`); the roll flow itself lives in this ref.
   const dice = useRef(new Map())
   const idsRef = useRef([])
   const [ids, setIds] = useState([])
+  // What the keys show: { well, shelf, critsAvailable }, see reportChange.
+  const [keys, setKeys] = useState({ well: 0, shelf: EMPTY_SHELF, critsAvailable: 0 })
   const lastReported = useRef(null)
 
-  // History for this tray, newest entry first. Kept in a ref (not React state), like `dice`;
-  // onChange hands the array itself to the parent, so it only needs a reference check to see it
-  // changed. Lasts until the page reloads (design, "History"); nothing here persists it further.
-  const historyRef = useRef([])
   // True once addCrits has added dice this roll; reset by clear() (design, "Roll flow" step 7 /
   // the rulebook's "once per roll, not per Crit" rule).
   const critsUsedRef = useRef(false)
@@ -266,36 +259,19 @@ export default function DiceTray({ trayKey, actionsRef, onChange }) {
     })
   }
 
-  // Appends one history entry, newest first (design, "History").
-  function pushHistory(text) {
-    historyRef.current = [{ id: nextHistoryId++, text }, ...historyRef.current]
-  }
-
   // Every thrown die of one throw has a final result (design, "Roll flow" step 5): move them all
-  // onto the shelf, re-sort it, and write one history entry grouped by where each die came from.
+  // onto the shelf and re-sort it.
   function finalizeThrow(finishedIds) {
-    const shelfBefore = shelfCounts()
-    const roll = {}
-    const crits = {}
-    const reroll = []
     for (const id of finishedIds) {
       const entry = dice.current.get(id)
-      if (!entry) continue
-      if (entry.source === 'roll') roll[entry.symbol] = (roll[entry.symbol] ?? 0) + 1
-      else if (entry.source === 'crits') crits[entry.symbol] = (crits[entry.symbol] ?? 0) + 1
-      else if (entry.source === 'reroll') reroll.push({ from: entry.rerollFrom, to: entry.symbol })
-      entry.state = 'shelf'
-      entry.source = null
-      entry.rerollFrom = null
+      if (entry) entry.state = 'shelf'
     }
     resortShelf()
-    const shelfAfter = shelfCounts()
-    pushHistory(throwEntryText({ roll, crits, reroll, shelfBefore, shelfAfter }))
   }
 
-  // Adds one die with the given source ('roll' | 'crits'), at a free point above the well. Does
-  // nothing once the tray holds MAX_DICE. Returns whether it added one.
-  function addDie(source) {
+  // Adds one die at a free point above the well. Does nothing once the tray holds MAX_DICE.
+  // Returns whether it added one.
+  function addDie() {
     if (dice.current.size >= MAX_DICE) return false
     const point = freeDropPoint(trayKey, wellOccupiedPoints())
     const q = randomRotation()
@@ -306,8 +282,6 @@ export default function DiceTray({ trayKey, actionsRef, onChange }) {
       state: 'well',
       symbol: null,
       face: null,
-      source,
-      rerollFrom: null,
       stillTime: 0,
       throwTime: 0,
       spawn: { position: [point.x, point.y, point.z], quaternion: [q.x, q.y, q.z, q.w] },
@@ -317,10 +291,10 @@ export default function DiceTray({ trayKey, actionsRef, onChange }) {
   }
 
   // add/remove/roll/clear/addCrits/reroll/change read and write `dice` and `idsRef` directly (not
-  // React state), so they stay correct no matter how long ago this component last rendered.
-  // Defined once at mount and registered with the parent through actionsRef; see the effect below.
+  // React state), so they stay correct no matter how long ago this component last rendered. The
+  // keys on the tray call them (DiceKeys.jsx).
   function add() {
-    if (addDie('roll')) setIds(idsRef.current.slice())
+    if (addDie()) setIds(idsRef.current.slice())
   }
 
   // Removes the last added die that is not on the shelf. Does nothing when every die is on the
@@ -350,25 +324,24 @@ export default function DiceTray({ trayKey, actionsRef, onChange }) {
     }
   }
 
-  // Removes every die and adds a "Cleared" entry. History stays (design, "Roll flow" step 9).
+  // Removes every die (design, "Roll flow" step 9).
   function clear() {
     idsRef.current = []
     dice.current.clear()
     setIds([])
     critsUsedRef.current = false
-    pushHistory(CLEARED_TEXT)
   }
 
-  // Adds one die per Crit on the shelf, with source 'crits'. Does nothing when there are no Crits
-  // on the shelf, or once used already this roll (design, "Roll flow" step 7 / the rulebook's
-  // "once per roll" rule) — clear() is what allows it again.
+  // Adds one die per Crit on the shelf. Does nothing when there are no Crits on the shelf, or once
+  // used already this roll (design, "Roll flow" step 7 / the rulebook's "once per roll" rule) —
+  // clear() is what allows it again.
   function addCrits() {
     if (critsUsedRef.current) return
     const n = shelfCounts().crit
     if (n <= 0) return
     let added = 0
     for (let i = 0; i < n; i++) {
-      if (!addDie('crits')) break
+      if (!addDie()) break
       added++
     }
     if (added > 0) {
@@ -378,8 +351,7 @@ export default function DiceTray({ trayKey, actionsRef, onChange }) {
   }
 
   // Moves one shelf die showing `symbol` back into the well, dynamic again, at a free drop point.
-  // Its old symbol is kept as `rerollFrom`, for the "Reroll: X → Y" history line once it settles
-  // again. Does nothing when the shelf has no die with that symbol.
+  // Does nothing when the shelf has no die with that symbol.
   function reroll(symbol) {
     const entry = shelfEntries().find(e => e.symbol === symbol)
     if (!entry) return
@@ -393,10 +365,8 @@ export default function DiceTray({ trayKey, actionsRef, onChange }) {
     rb.setRotation(q, true)
     rb.setLinvel(ZERO, true)
     rb.setAngvel(ZERO, true)
-    entry.rerollFrom = entry.symbol
     entry.symbol = null
     entry.face = null
-    entry.source = 'reroll'
     entry.state = 'well'
     entry.slot = undefined
     entry.moving = false
@@ -405,43 +375,30 @@ export default function DiceTray({ trayKey, actionsRef, onChange }) {
     resortShelf() // close the gap this die left on the shelf
   }
 
-  // Turns one shelf die showing `symbol` to `toSymbol` in place, re-sorts the shelf and records
-  // the change. Does nothing when the shelf has no die with that symbol.
+  // Turns one shelf die showing `symbol` to `toSymbol` in place and re-sorts the shelf. Does
+  // nothing when the shelf has no die with that symbol.
   function change(symbol, toSymbol) {
     const entry = shelfEntries().find(e => e.symbol === symbol)
     if (!entry) return
     entry.symbol = toSymbol
     entry.face = defaultFaceForSymbol(toSymbol)
     resortShelf(new Set([entry.id]))
-    pushHistory(changeText(symbol, toSymbol))
   }
 
-  // Register once. These functions close only over refs and the stable setIds, so they never go
-  // stale — this effect intentionally runs only on mount/unmount, like bodyRef in Scene.jsx.
-  useEffect(() => {
-    actionsRef?.(trayKey, { add, remove, roll, clear, addCrits, reroll, change })
-    return () => actionsRef?.(trayKey, null)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // Reports { well, shelf, rolling, critsAvailable, history } to the parent, only when at least
-  // one field changed since the last report (so a rolling or moving tray does not flood the
-  // parent with identical updates every frame).
-  function reportChange(well, rolling) {
+  // Sets what the keys show, { well, shelf, critsAvailable }, only when a value changed since the
+  // last frame, so a rolling or moving tray does not re-render this component every frame.
+  function reportChange(well) {
     const shelf = shelfCounts()
     const critsAvailable = critsUsedRef.current ? 0 : shelf.crit
-    const history = historyRef.current
     const last = lastReported.current
     const changed =
       !last ||
       last.well !== well ||
-      last.rolling !== rolling ||
       last.critsAvailable !== critsAvailable ||
-      last.history !== history ||
       SYMBOLS.some(symbol => last.shelf[symbol] !== shelf[symbol])
     if (!changed) return
-    lastReported.current = { well, rolling, critsAvailable, shelf, history }
-    onChange?.(trayKey, { well, shelf, rolling, critsAvailable, history })
+    lastReported.current = { well, critsAvailable, shelf }
+    setKeys(lastReported.current)
   }
 
   // The roll flow: read faces once a thrown die rests (in the well or outside it, as in TTS),
@@ -509,7 +466,7 @@ export default function DiceTray({ trayKey, actionsRef, onChange }) {
       well -= finishedIds.length
     }
 
-    reportChange(well, rolling)
+    reportChange(well)
   })
 
   return (
@@ -524,6 +481,13 @@ export default function DiceTray({ trayKey, actionsRef, onChange }) {
         <group scale={TRAY_SCALE}>
           <primitive object={trayVisual} rotation={IMPORT_ROTATION} />
         </group>
+        <DiceKeys
+          state={keys}
+          actions={{ add, remove, roll, clear, addCrits, reroll, change }}
+          openMenuSymbol={openMenuSymbol}
+          onMenuToggle={onMenuToggle}
+          onMenuClose={onMenuClose}
+        />
       </RigidBody>
       {ids.map(id => (
         <Die key={id} id={id} dice={dice} geometry={dieGeometry} material={dieMaterial} />

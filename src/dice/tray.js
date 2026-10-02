@@ -111,40 +111,28 @@ export function worldToTrayRotation(trayKey, rotation) {
   return { x: scratchQuat.x, y: scratchQuat.y, z: scratchQuat.z, w: scratchQuat.w }
 }
 
-// Inset camera, in tray space: fixed, above the tray on the side away from the center line (the
-// player's side, over the well), looking across at an angle toward the shelf (the side toward the
-// center line), so the well and the shelf both fill the inset box. The well's outer edge and the
-// shelf's inner edge (the two far corners of the tray) are the "away" and "toward" ends used below.
-// Found by projecting the well/shelf floor rectangles (plus 1.5" of height, for the walls and the
-// standing dice) through a test camera at the box's aspect (240 / 130, `.dice-panel-inset` in
-// index.css) until the rectangles filled most of the box without going outside it (script in the
-// scratchpad, not committed). Same pose for both trays: TRAYS' yaw/position difference is handled
-// by trayToWorld, since tray-space "away from center" is -z for blue and red alike (yaw puts the
-// shelf, tray-space +z, on the side that faces world z = 0 for both).
-const INSET_SETBACK = 8 // tray-space z, beyond the well's outer edge, away from the center line
-const INSET_HEIGHT = 14 // tray-space y, above the well floor
-export const INSET_FOV = 32 // vertical field of view, degrees
-// Where the camera looks: halfway between the well's outer edge and the shelf's inner edge.
-const INSET_TARGET_Z_FRAC = 0.5
+// The keys lip: the flat face on the player's side of the tray (tray-space -z, past the well's
+// outer wall). It rises toward the well at about 14.4 deg. TTS puts its 5 tray buttons on it
+// (Clear, -, count, +, Roll), so the app draws its tray keys there too (DiceKeys.jsx). Measured
+// from tray.glb in tray space. The corners of the low edge are rounded, so the low edge is shorter
+// (x +-6.14) than the high edge.
+export const KEYS_LIP = {
+  width: 13.17, // along x, at the high edge
+  low: { y: 0.844, z: -6.92 }, // the outer edge
+  high: { y: 1.554, z: -4.164 }, // the edge at the well wall
+}
 
-// Fixed inset camera pose for tray `trayKey`, in world space: { position, target, fov }. `target`
-// is a lookAt point, not a direction. TrayInsets builds one PerspectiveCamera per tray from this,
-// once, and only changes its aspect to match the box's width/height.
-export function insetCamera(trayKey) {
-  const centerX = (Math.min(WELL.xMin, SHELF.xMin) + Math.max(WELL.xMax, SHELF.xMax)) / 2
-  const zAway = Math.min(WELL.zMin, SHELF.zMin) // the well's outer edge, away from the center line
-  const zToward = Math.max(WELL.zMax, SHELF.zMax) // the shelf's inner edge, toward the center line
-  const position = trayToWorld(trayKey, {
-    x: centerX,
-    y: WELL.floorY + INSET_HEIGHT,
-    z: zAway - INSET_SETBACK,
-  })
-  const target = trayToWorld(trayKey, {
-    x: centerX,
-    y: (WELL.floorY + SHELF.floorY) / 2,
-    z: zAway + (zToward - zAway) * INSET_TARGET_Z_FRAC,
-  })
-  return { position, target, fov: INSET_FOV }
+// The 6 raised plates on the rim past the shelf (tray-space +z). The tray texture prints a face
+// icon on the half of each plate that is on the player's left (the Blank plate has no icon). TTS
+// shows the count of each face on the other half. Measured from tray.glb in tray space: the
+// plate centers and the plate size. From the player's left to right: Hit, Crit, Wild, Block,
+// Blank, Skull, the same order as the TTS counters.
+export const FACE_PLATES = {
+  y: 1.668, // top of the plates
+  z: 8.905,
+  width: 1.64, // along x
+  depth: 1.11, // along z
+  x: { hit: 4.89, crit: 2.935, wild: 0.98, block: -0.98, blank: -2.935, skull: -4.89 },
 }
 
 // True when a world point falls inside the well's x/z rectangle, for tray `trayKey`. A die that

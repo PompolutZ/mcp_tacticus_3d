@@ -469,83 +469,112 @@ body {
   pointer-events: none;
 }
 
-/* One tray's HUD panel. No background on the wrapper itself: the inset box is a child of it
-   with no background either, so the canvas under the box shows through (Phase 6 draws there).
-   Only the groups, the face row and the history have their own panel background. */
-.dice-panel {
+/* Keys of a dice tray (DiceKeys.jsx), drawn on the tray's lip through a drei Html transform.
+   1 CSS px is 1/40" there, so the lip is about 527 x 114 px (491 px wide at its low edge). The
+   row is about 440 px wide. The colors are the TTS button tints:
+   Clear yellow, - and + red, the count grey, Roll green. */
+.dice-keys {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  width: 240px;
-  pointer-events: auto;
-}
-
-/* Blue sits at the bottom right of the screen, on its own (not in hud-top's flow). */
-.dice-panel--bottom {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  z-index: 200;
-}
-
-.dice-panel-inset {
-  width: 100%;
-  height: 130px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  pointer-events: none;
-}
-
-.dice-panel--blue .dice-panel-inset {
-  border-color: #2980b9;
-}
-
-.dice-panel--red .dice-panel-inset {
-  border-color: #c0392b;
-}
-
-.dice-panel-well {
-  min-width: 1.4em;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-
-.dice-panel-faces {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 4px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 6px;
-}
-
-.dice-panel-face {
-  position: relative;
-}
-
-.dice-panel-face-btn {
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 4px 6px;
-  font-size: 12px;
+  gap: 8px;
+  pointer-events: auto;
+  user-select: none;
+}
+
+.dice-key {
+  font: inherit;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  height: 60px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #111;
+  border: 2px solid rgba(0, 0, 0, 0.35);
+  border-radius: 8px;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+}
+
+/* Pressed: the key moves down onto the lip, as the TTS buttons do. */
+.dice-key:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+.dice-key:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.dice-key--clear {
+  background: #cccc00;
+}
+
+.dice-key--step {
+  min-width: 44px;
+  font-size: 32px;
+  color: #fff;
+  background: #cc0000;
+}
+
+.dice-key--count {
+  min-width: 56px;
+  background: #cccccc;
   font-variant-numeric: tabular-nums;
+  cursor: default;
 }
 
-.dice-panel-icon {
-  width: 16px;
-  height: 16px;
-  display: block;
+.dice-key--roll {
+  background: #38c02e;
 }
 
-.dice-panel-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: 4px;
+.dice-key--crits {
+  font-size: 20px;
+  color: var(--text);
+  background: var(--panel-2);
+  border-color: var(--line);
+}
+
+.dice-key--crits:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* One face plate on the rim of a dice tray. Clear, the size of the plate (set inline), with the
+   count on the half that has no icon. Black, as the TTS counters. */
+.dice-face-key {
+  font: inherit;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 6px;
+  color: #000;
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  pointer-events: auto;
+  user-select: none;
+}
+
+.dice-face-key:hover:not(:disabled) {
+  border-color: rgba(0, 0, 0, 0.6);
+}
+
+.dice-face-key:disabled {
+  cursor: default;
+}
+
+/* "Reroll one / Change one to" menu of a face plate. Screen-space Html anchored at the plate, so
+   it opens above the plate at the normal HUD size. */
+.dice-face-menu {
+  transform: translate(-50%, calc(-100% - 12px));
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -554,28 +583,20 @@ body {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 6px;
-  z-index: 10;
+  pointer-events: auto;
 }
 
-.dice-panel-menu-item {
+.dice-face-menu-item {
   display: flex;
   align-items: center;
   gap: 6px;
   justify-content: flex-start;
 }
 
-.dice-panel-history {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-height: 120px;
-  overflow-y: auto;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 6px 8px;
-  font-size: 12px;
-  color: var(--muted);
+.dice-face-menu-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
 }
 
 .chip--player-blue {

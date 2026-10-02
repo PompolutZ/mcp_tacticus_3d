@@ -56,12 +56,10 @@ const TIME_STEP = 1 / 120
 // onCharacterTokenRemove(id, key): a click on a chip in the tray's "On" row.
 // onTokenDragStart(e, key): pointerdown on a chip in the tray's "Give" row, the same handler the
 // Tokens panel uses (see App.jsx, handleTokenDragStart).
-// trayActionsRef: ref to a Map, tray key -> its add/remove/roll/clear actions (App does not pass
-// this yet; wired in Phase 5, the same pattern as charBodies below but owned by App because the
-// HUD panel that calls these actions is outside the canvas).
-// onTrayChange(trayKey, state): called when a tray's reported state changes (also Phase 5).
+// diceMenu: the open face menu of a dice tray, { trayKey, symbol } | null, lifted to App so Escape
+// can close it. onDiceMenuToggle(trayKey, symbol), onDiceMenuClose(): see DiceKeys.jsx.
 // characterAtRef: ref App calls with (clientX, clientY) to find the character under the pointer,
-// the same pattern as trayActionsRef. Scene fills it with its own characterAt (3D only: the model
+// the same pattern as bodyRef. Scene fills it with its own characterAt (3D only: the model
 // or the tray's card mesh), used by App's findCharacterAt below.
 // findCharacterAt(clientX, clientY): App's own lookup, the DOM tray controls (data-character-id)
 // first, then characterAtRef's characterAt. Passed back down so CrisisToken.jsx's Extract-token
@@ -74,7 +72,7 @@ const TIME_STEP = 1 / 120
 // the tray's Held chip for that token, see TrayControls.jsx.
 export default function Scene({
   mapId, characters = [], activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onTokenDrop, onCharacterDamage, onCharacterPower, onCharacterFlip, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, onCardOpen, trayActionsRef, onTrayChange, characterAtRef, findCharacterAt, modelPositionRef,
+  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onTokenDrop, onCharacterDamage, onCharacterPower, onCharacterFlip, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, onCardOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef,
 }) {
   const map = MAPS[mapId]
   const matTexture = useTexture(assetUrl(matImage(map.mat)))
@@ -179,14 +177,6 @@ export default function Scene({
     onSelectionChange(prev => (prev?.kind === kind && prev.id === id) ? null : { kind, id })
   }
 
-  // Registers a tray's actions in the parent's ref map, the same shape as bodyRef/objectRef
-  // above, called with null on unmount.
-  function registerTrayActions(trayKey, actions) {
-    if (!trayActionsRef) return
-    if (actions) trayActionsRef.current.set(trayKey, actions)
-    else trayActionsRef.current.delete(trayKey)
-  }
-
   return (
     <>
       {/* Space background */}
@@ -254,7 +244,13 @@ export default function Scene({
             map change or a mat turn (which remounts Terrain above) never remounts them and their
             dice keep their state. See docs/plan-dice-rolling.md, Phase 4. */}
         {Object.keys(TRAYS).map(trayKey => (
-          <DiceTray key={trayKey} trayKey={trayKey} actionsRef={registerTrayActions} onChange={onTrayChange} />
+          <DiceTray
+            key={trayKey}
+            trayKey={trayKey}
+            openMenuSymbol={diceMenu?.trayKey === trayKey ? diceMenu.symbol : null}
+            onMenuToggle={symbol => onDiceMenuToggle(trayKey, symbol)}
+            onMenuClose={onDiceMenuClose}
+          />
         ))}
 
         {/* Crisis cards and tokens are relative to the player sides, not the mat, so they stay

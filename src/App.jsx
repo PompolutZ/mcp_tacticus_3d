@@ -4,7 +4,6 @@ import { MOUSE } from 'three'
 import { OrbitControls } from '@react-three/drei'
 import Scene from './components/Scene.jsx'
 import SelectionOutlines from './components/SelectionOutlines.jsx'
-import TrayInsets from './components/TrayInsets.jsx'
 import { Toolbar } from './components/Toolbar.jsx'
 import { CharacterSpawner } from './components/CharacterSpawner.jsx'
 import { KeyboardCamera } from './components/KeyboardCamera.jsx'
@@ -12,7 +11,6 @@ import { TrackpadCamera } from './components/TrackpadCamera.jsx'
 import { LoadingOverlay } from './components/LoadingOverlay.jsx'
 import { TokenPanel } from './components/TokenPanel.jsx'
 import { TokensPanel } from './components/TokensPanel.jsx'
-import { DicePanel } from './components/DicePanel.jsx'
 import { CardPopup } from './components/CardPopup.jsx'
 import { canFlip, canMove, getCard, hasArc, hasMarkers } from './crisis/cards.js'
 import { supplyPosition } from './crisis/layout.js'
@@ -142,15 +140,9 @@ export default function App() {
   // { src, alt, characterId? } | null, see CardPopup.jsx. characterId (character cards only) is
   // how handleCharacterRemove knows to close a popup that shows the card of the removed character.
   const [openCard, setOpenCard] = useState(null)
-  // Tray key -> its add/remove/roll/clear/addCrits/reroll/change actions, filled by Scene/DiceTray.
-  // A ref, not state: DicePanel reads it at click time, so a stale render never matters.
-  const trayActions = useRef(new Map())
-  // Tray key -> its reported state (well, shelf, rolling, critsAvailable, history), see DiceTray.
-  const [trays, setTrays] = useState({ blue: null, red: null })
-  // Tray key -> the inset box element of its DicePanel, for Phase 6 to draw into.
-  const insetBoxes = useRef(new Map())
-  // The open "Reroll one / Change one to" menu, at most one across both trays: { trayKey, symbol } | null.
-  // Lifted here, not into DicePanel, so Escape can close it (see handleKeyDown).
+  // The open "Reroll one / Change one to" menu of a dice tray face plate, at most one across both
+  // trays: { trayKey, symbol } | null. Lifted here, not into DiceKeys, so Escape can close it (see
+  // handleKeyDown).
   const [diceMenu, setDiceMenu] = useState(null)
   // The Tokens HUD panel (see TokensPanel.jsx), toggled by its toolbar button.
   const [tokensOpen, setTokensOpen] = useState(false)
@@ -166,7 +158,7 @@ export default function App() {
   const tokenDragRef = useRef(null)
   const dragGhostRef = useRef(null)
   // Scene calls this with (clientX, clientY) and returns the character id under the point, or
-  // null, the same pattern as trayActionsRef. See Scene.jsx, characterAt.
+  // null. See Scene.jsx, characterAt.
   const characterAtRef = useRef(null)
   // Scene calls this with a character id and returns its live table position { x, z } (Rapier body
   // or model object, not the tray slot), or null. Used by handleTokenDrop. See Scene.jsx, modelPosition.
@@ -177,19 +169,13 @@ export default function App() {
     setMatTurns(prev => (prev + direction + 4) % 4)
   }
 
-  function handleTrayChange(trayKey, state) {
-    setTrays(prev => ({ ...prev, [trayKey]: state }))
-  }
-
-  // Called with the inset box element on mount, and null on unmount (a callback ref from DicePanel).
-  function registerInsetBox(trayKey, el) {
-    if (el) insetBoxes.current.set(trayKey, el)
-    else insetBoxes.current.delete(trayKey)
-  }
-
-  // Toggles the "Reroll one / Change one to" menu for one face count. Opening one closes any other.
+  // Toggles the "Reroll one / Change one to" menu for one face plate. Opening one closes any other.
   function handleDiceMenuToggle(trayKey, symbol) {
     setDiceMenu(prev => (prev?.trayKey === trayKey && prev.symbol === symbol) ? null : { trayKey, symbol })
+  }
+
+  function handleDiceMenuClose() {
+    setDiceMenu(null)
   }
 
   function handleSpawn(ch) {
@@ -242,7 +228,7 @@ export default function App() {
       return
     }
     if (e.key === 'Escape') {
-      // A dice panel menu closes first, before the table's own Escape behavior.
+      // A dice tray face menu closes first, before the table's own Escape behavior.
       if (diceMenu) { setDiceMenu(null); return }
       handleEscape()
       return
@@ -564,14 +550,14 @@ export default function App() {
               onCharacterTokenRemove={handleCharacterTokenRemove}
               onTokenDragStart={handleTokenDragStart}
               onCardOpen={setOpenCard}
-              trayActionsRef={trayActions}
-              onTrayChange={handleTrayChange}
+              diceMenu={diceMenu}
+              onDiceMenuToggle={handleDiceMenuToggle}
+              onDiceMenuClose={handleDiceMenuClose}
               characterAtRef={characterAtRef}
               findCharacterAt={findCharacterAt}
               modelPositionRef={modelPositionRef}
             />
           </SelectionOutlines>
-          <TrayInsets insetBoxes={insetBoxes} noComposer={mode === 'no-composer'} />
           <OrbitControls
             ref={controlsRef}
             makeDefault
@@ -609,19 +595,8 @@ export default function App() {
           tokensOpen={tokensOpen}
           onTokensClick={() => setTokensOpen(prev => !prev)}
         />
-        {/* Column, not a row item: the red dice panel sits under the spawner, clear of the
-            toolbar even when the toolbar wraps to more rows (the two are independent stacks). */}
         <div className="hud-top-right">
           <CharacterSpawner onSpawn={handleSpawn} />
-          <DicePanel
-            trayKey="red"
-            state={trays.red}
-            trayActionsRef={trayActions}
-            insetBoxRef={el => registerInsetBox('red', el)}
-            openMenuSymbol={diceMenu?.trayKey === 'red' ? diceMenu.symbol : null}
-            onMenuToggle={symbol => handleDiceMenuToggle('red', symbol)}
-            onMenuClose={() => setDiceMenu(null)}
-          />
         </div>
       </div>
       <TokenPanel
@@ -629,16 +604,6 @@ export default function App() {
         onFlip={() => handleTokenFlip(selectedToken.id)}
         onControl={control => handleTokenControl(selectedToken.id, control)}
         onDamage={damage => handleTokenDamage(selectedToken.id, damage)}
-      />
-      <DicePanel
-        trayKey="blue"
-        className="dice-panel--bottom"
-        state={trays.blue}
-        trayActionsRef={trayActions}
-        insetBoxRef={el => registerInsetBox('blue', el)}
-        openMenuSymbol={diceMenu?.trayKey === 'blue' ? diceMenu.symbol : null}
-        onMenuToggle={symbol => handleDiceMenuToggle('blue', symbol)}
-        onMenuClose={() => setDiceMenu(null)}
       />
       <TokensPanel open={tokensOpen} onDragStart={handleTokenDragStart} />
       <CardPopup card={openCard} onClose={() => setOpenCard(null)} />

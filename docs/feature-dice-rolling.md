@@ -3,6 +3,10 @@
 Status: implemented (all 6 phases). Not checked in a browser yet; every phase was built and read
 back against the code only, per the rules in `docs/plan-dice-rolling.md`.
 
+On 2026-10-02 the HUD panel was removed, with its inset view (Phase 6) and the history. The keys
+are now on the tray (see [Controls](#controls-keys-on-the-tray)). `docs/plan-dice-rolling.md`
+still describes the panel.
+
 ## Goal
 
 Players roll the Crisis Protocol die in the app, as in TTS. A player chooses how many dice to roll and presses Roll. The dice jump from the player's tray into the air and spin. Then they fall and bounce on the tray, the table, terrain, models and other dice. The result is the face that points up when a die stops. The app does not choose the result with a random number.
@@ -11,7 +15,7 @@ When a player presses Roll again, the dice are thrown again from where they are,
 
 ## Players apply the rules
 
-The app rolls the dice, shows the results and keeps a history. It does not apply the attack rules. For example, it does not compare Hits with Blocks, and it does not apply Hex, Shock, Incinerate or cover. Players do this themselves, in the same way as for the crisis cards (see `docs/feature-crisis.md`).
+The app rolls the dice and shows the results. It does not apply the attack rules. For example, it does not compare Hits with Blocks, and it does not apply Hex, Shock, Incinerate or cover. Players do this themselves, in the same way as for the crisis cards (see `docs/feature-crisis.md`).
 
 The app has the tools that the rules need. The rules come from the [Jarvis rules reference](https://www.jarvis-protocol.com/rules-reference):
 
@@ -71,7 +75,8 @@ Sizes at the TTS tray scale 0.8, measured from the mesh:
 | Whole tray | 13.5" (x) × 16.8" (z) × 1.67" | — |
 | Well | 12.8" × 8.6". The walls are 1.37" high. | about 0.3" |
 | Shelf | 12.8" × 2.9" | about 1.1" |
-| Counter strip and button lip | TTS puts its buttons and counters here. In the app they have no function, because the HUD panel replaces them. | — |
+| Keys lip | 13.2" × 2.85", on the player's side of the well. It rises toward the well at 14.4°. TTS puts its 5 buttons here, and the app draws its keys here. | 0.84" at the outer edge, 1.55" at the well |
+| Face plates | 6 plates of 1.64" × 1.11" on the rim past the shelf. The tray texture prints a face icon on each plate, except Blank. | 1.67" |
 
 The tray is a fixed body. Its collider is a trimesh of the tray mesh, because the mesh is not convex. TTS also uses the tray mesh as the collider.
 
@@ -86,25 +91,27 @@ TTS puts both trays at x = 36. That is the edge of the app table, which is 72" w
 - The TTS Tool Trays are at x = 23.5, so they would overlap the dice trays. The app has no tool trays.
 - The planned scoring board is at x = -23.1, on the other side of the mat (see `docs/feature-crisis.md`).
 
-## Controls: HUD panel
+## Controls: keys on the tray
 
-Each tray has its own HTML panel. The Blue panel is at the bottom right of the screen, and the Red panel is at the top right. In the default camera view, Blue is at the bottom.
+The keys are on the tray itself, as in TTS. The app draws them with drei `<Html transform>`, in the same way as the character tray controls. 1 CSS px is 1/40" on the table.
 
-A panel has:
+The keys lip has these keys, from the player's left to right:
 
-- An inset view of the tray (see [Inset view](#inset-view)).
-- `−  N  +`: N is the number of dice that are not on the shelf.
-- Roll and Clear.
-- 6 face icons with the number of dice on the shelf that show each face. The TTS icons are in the cache (`DCRIT_UI.png`, `DWILD_UI.png`, `DHIT_UI.png`, `DBLOCK_UI.png`, `DBLANK_UI.png`, `DFAIL_UI.png`).
+- Clear (yellow).
+- `−`, N, `+`: N is the number of dice that are not on the shelf. `−` and `+` are red, N is grey.
+- Roll (green).
 - `+N Crits`.
-- The history of the tray.
 
-A click on a face count opens a menu:
+TTS has the first 5 keys in the same order and in the same colors. TTS has no `+N Crits` key.
+
+Each face plate shows the number of shelf dice with that face. The number is black and is on the half of the plate that has no icon, as in TTS. From the player's left to right the plates are Hit, Crit, Wild, Block, Blank, Skull. A click on a plate opens a menu:
 
 - **Reroll one**: one die with this face moves from the shelf back into the well.
 - **Change one to**: the 5 other faces.
 
-The panel works even when the tray is off screen, because the panel has its own view of the tray.
+A plate with no dice cannot be clicked. The menu is screen-space HTML at the plate, so it has the normal HUD size at every camera distance. A click outside the menu or Escape closes it.
+
+One limit: the keys are HTML on top of the canvas. Therefore dice and models in front of the keys do not hide them.
 
 ## Roll flow
 
@@ -114,35 +121,21 @@ The flow follows the TTS tray script, with three changes (see the list after the
 2. Roll throws every die that is not on the shelf, from where it is (see [Throw](#throw)). Dice on the shelf do not move.
 3. When the player presses Roll while those dice move, they are thrown again from where they are, also in the air. TTS does the same, because its script does not block a second press. A die that is more than 5.6" above its rest height on the well floor is not thrown again (`ROLL_HEIGHT_LIMIT` in `src/dice/tray.js`). It only gets a new random spin (step 4 of [Throw](#throw)), so it is harder to see which face will be up. In TTS, when a player presses Roll many times, each die is thrown again only when it falls back to one height, as if it bounced on an invisible floor above the tray. Each press also changes the spin of the dice above that height. So the dice do not go higher with each press. A new die that falls into the well was not thrown yet, so Roll throws it at any height. 5.6" is the TTS height (see [Measurements](#measurements)).
 4. When every thrown die rests, the app reads the top face of each die, in the well or outside it. A tilted die is thrown again (see [Tilted dice](#tilted-dice)).
-5. Then each die turns flat on its top face and moves to the shelf. The dice on the shelf are sorted by face: Crit, Wild, Hit, Block, Blank, Skull. The counts and the history update.
+5. Then each die turns flat on its top face and moves to the shelf. The dice on the shelf are sorted by face: Crit, Wild, Hit, Block, Blank, Skull. The counts update.
 6. **Reroll one** moves one die from the shelf back into the well. The player presses Roll to throw it.
 7. `+N Crits` adds one die for each Crit on the shelf. It works once per roll (p23), until the next Clear. For any other case, `+` still adds dice.
-8. **Change one to** turns one die to the chosen face and moves it to that group on the shelf. The history records the change.
-9. Clear removes all dice from the tray. The history stays.
+8. **Change one to** turns one die to the chosen face and moves it to that group on the shelf.
+9. Clear removes all dice from the tray.
 
 Changes from TTS:
 
 - TTS puts the dice on the shelf in the order they were added. The app sorts them by face, so the counts are easier to read.
 - TTS reads the nearest face, even when a die is tilted. The app throws a tilted die again.
-- TTS has buttons and counters on the tray model. The app has the HUD panel instead.
+- In TTS, a click on a face count rerolls one die with that face. In the app, the click opens the Reroll one / Change one to menu.
 
 The dice on the shelf are kinematic bodies. As a result, thrown dice bounce off them, but they cannot move them or change their face. The app stores the result of each die, so it does not read the dice on the shelf again.
 
 In TTS, a player can pick up a die from the shelf. In the first version of the app, players cannot drag dice.
-
-### History
-
-Each tray has its own history, newest entry first. The history lasts until the page reloads, because the app does not store anything.
-
-An entry says where the thrown dice came from. It shows the result of each thrown die and the totals on the shelf after the throw. Examples:
-
-- `Roll: 2 Hit, 1 Crit, 1 Blank, 1 Skull`
-- `Crits: 1 Wild. Shelf: 2 Hit, 1 Crit, 1 Wild, 1 Blank, 1 Skull`
-- `Reroll: Blank → Hit. Shelf: 3 Hit, 1 Crit, 1 Wild, 1 Skull`
-- `Changed: Skull → Block`
-- `Cleared`
-
-TTS prints similar lines in the chat, for example `Initial Results: Hits - 2  Crits - 1  Wilds - 0 …`.
 
 ## Physics
 
@@ -221,15 +214,6 @@ A die that still moves after 8 s counts as tilted.
 - If a die still gets below y = -10, or its position is not a number after a physics error, it moves to a free point above the well, as a new die does (4.8" above the floor, at least one die size from the other dice). Then it is thrown again from there. The point is not on the well floor, because a die placed there starts inside the tray or inside a die that rests there.
 
 The rulebook has no rule for these cases. The app throws the die again so that every result is clear.
-
-## Inset view
-
-- Each panel has a box. The app draws the tray in that box, with a fixed camera above the tray at an angle. The main camera does not move.
-- The box is visible while the tray has dice.
-- drei `View` does not fit this case. It draws only its own children in its own scene, not the main scene.
-- So a component inside `<Canvas>` takes over the rendering, with `useFrame` and priority 1. In each frame, it first renders the main camera to the whole canvas. Then, for each visible box, it reads the box position with `getBoundingClientRect()`, sets the viewport and the scissor to that rectangle, and renders the same scene with the tray camera.
-- The box has no background, so the canvas under it can be seen.
-- Cost: the scene renders one more time for each visible box. The shadow maps only need to render once per frame, so the component turns off `gl.shadowMap.autoUpdate` for the inset renders.
 
 ## Fairness
 
@@ -319,10 +303,9 @@ Then the spin went back to 0–50 rad/s, because with 7.7–11 the dice did not 
 - `src/dice/faces.js`: the 8 faces, each with its name and its direction on the die.
 - `src/dice/throw.js`: functions without side effects: random rotation, throw speeds, top face, tilted check. The app and `scripts/dice-sim.mjs` both use them.
 - `src/components/DiceTray.jsx`: the tray body, the dice bodies and the roll flow of one tray. It is inside `<Physics>` in `Scene.jsx`.
-- `src/components/DicePanel.jsx`: the HUD panel. It is outside `<Canvas>` in `App.jsx`, next to `Toolbar`.
-- `src/components/TrayInsets.jsx`: the inset render, inside `<Canvas>`.
+- `src/components/DiceKeys.jsx`: the keys on the tray. `DiceTray.jsx` renders it inside the tray body, so its positions are in tray space (`KEYS_LIP` and `FACE_PLATES` in `src/dice/tray.js`).
 - `CharacterModel.jsx`: add `dominanceGroup={1}`.
-- State: the panel is outside the canvas, and the tray is inside it. Each tray puts its actions (add, remove, roll, clear, reroll, change) in a ref map in `App.jsx`, in the same way as `charBodies` in `Scene.jsx`. The tray sends its counts and history to state in `App.jsx`, and `App.jsx` passes them to the panel.
+- State: each tray keeps the counts that its keys show in its own React state. The open face menu is in `App.jsx`, so Escape can close it.
 
 ## Pitfalls to check
 
@@ -330,7 +313,6 @@ Then the spin went back to 0–50 rad/s, because with 7.7–11 the dice did not 
 - **New dice inside each other.** When two new dice overlap, Rapier pushes them apart at high speed. So each new die needs a free spot, at least one die size from the others. TTS uses 49 fixed spots 1" apart, and its dice can overlap. Done: `freeDropPoint` (`src/dice/tray.js`) keeps every new point at least one die size from the others, including dice added in the same React commit (Phase 4b's `wellOccupiedPoints`).
 - **Trimesh edges.** A die can bump on the inside edges between the triangles of the tray mesh. Rapier's `TriMeshFlags.FIX_INTERNAL_EDGES` reduces this. The @react-three/rapier 1.5 types do not list the flag, but the library passes extra arguments to `ColliderDesc.trimesh`. Confirmed by reading the library's own code (Phase 4a Result): the flag does reach Rapier's `ColliderDesc.trimesh`. Not checked with a real collision (no browser).
 - **Shadows.** The shadow camera covers ±20 (`Scene.jsx`). The trays reach x = 34 and z = ±18.5, so they get no shadows. The shadow camera can be larger, or a second light can cast shadows over the trays. A larger shadow camera gives less shadow detail on the mat. Done: the shadow camera is now `left -26, right 38, top 25, bottom -34` with `shadow-mapSize` 3072 (Phase 4 Result), covering both trays at close to the old per-pixel detail.
-- **Inset rectangle.** WebGL counts the scissor y from the bottom of the canvas, and `getBoundingClientRect()` counts from the top. The tray camera aspect must match the box. Done: `TrayInsets.jsx` flips the box's top-based rect to a bottom-based one before calling `gl.setViewport`/`gl.setScissor`, and sets each tray camera's `aspect` from the box's own width/height every frame. Checked in three's own code: `gl.setViewport`/`setScissor` take CSS pixels, not device pixels — three multiplies by the pixel ratio itself.
 - **Remounts.** Terrain mounts again when the mat turns. The trays are not in the mat group, so they stay. A new map loads new assets. Check that the dice keep their state when the map changes. Done: confirmed by reading `Scene.jsx` (Phase 4a Result) — `DiceTray` is keyed only by `trayKey`, outside the group that Terrain/the mat remount into, so a map change or a mat turn never remounts it.
 - **Rapier version.** @react-three/rapier 1.5 uses Rapier JS 0.14, which is built with enhanced determinism. From Rapier JS 0.15, the default package is built without it. This matters only if rolls are replayed or synced later. Still open — out of scope (see "Out of scope": no multiplayer sync).
 
@@ -359,12 +341,11 @@ The app uses these ideas from other projects:
 - Sounds.
 - Affiliation skins for the tray. The TTS cache has 4.
 - Picking up and dragging dice.
-- TTS messages when a player picks up or changes a die, for example "Jarvis: … picked up a Hit die". The app history records changes instead.
+- TTS messages when a player picks up or changes a die, for example "Jarvis: … picked up a Hit die".
 
 ## Open questions
 
 - Keyboard shortcuts? In TTS, keys 1–9 over the tray clear it and add that number of dice.
-- Where exactly do the panels go, and how big is the inset box?
 - `ASSETS.md` has three errors about the die:
   - The mesh `868485988860654056` belongs to the retired "Click Roller Universal". It is not the die.
   - The die texture is 2048 × 2048, not 1024.
