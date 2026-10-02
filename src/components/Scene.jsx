@@ -211,8 +211,11 @@ export default function Scene({
         shadow-camera-top={25}
         shadow-camera-bottom={-34}
       />
-      {/* Same HDR as drei's "city" preset, served with the app instead of from a CDN */}
-      <Environment files={assetUrl('hdri/potsdamer_platz_1k.hdr')} backgroundIntensity={0} />
+      {/* Same HDR as drei's "city" preset, served with the app instead of from a CDN.
+          On a surface that faces up, the light multiplies the texture color by: HDR 1.34 at intensity 1
+          (its cos-weighted sky average), directional 0.35, ambient 0.19. A texture shows its own colors at
+          about 1.0. At intensity 1 the total was 1.88, and cards and tokens looked washed out. At 0.5 it is 1.21. */}
+      <Environment files={assetUrl('hdri/potsdamer_platz_1k.hdr')} backgroundIntensity={0} environmentIntensity={0.5} />
 
       <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP} debug={showColliders}>
         {/* Table surface — fixed collider so models land on it */}

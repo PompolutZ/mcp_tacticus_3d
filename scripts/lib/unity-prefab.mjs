@@ -1,5 +1,6 @@
 // Reads a prefab from AssetRipper's Unity project export (Unity YAML): the root transform and the colliders.
 // The GLB export of the same prefab has neither: it drops the root transform and all collider components.
+// Also reads materials (readMaterial), because the GLB export drops their values too.
 //
 // Results are in GLB space. AssetRipper converts Unity (left-handed) to glTF (right-handed) by mirroring X,
 // so this module mirrors X too: position (-x, y, z), rotation (x, -y, -z, w). Checked on the container
@@ -11,6 +12,7 @@ import * as THREE from 'three'
 
 const GAME_OBJECT = 1
 const TRANSFORM = 4
+const MATERIAL = 21
 const MESH_COLLIDER = 64
 const BOX_COLLIDER = 65
 const SPHERE_COLLIDER = 135
@@ -124,6 +126,35 @@ function readCollider(doc, matrix) {
   }
   if (!mesh.guid) return 'MeshCollider without a mesh was skipped'
   return { shape: 'mesh', meshGuid: mesh.guid, convex, ...pose, scale: s }
+}
+
+// Unity's built-in Standard shader (metallic setup), by fileID in its default resources
+const BUILTIN_SHADER_GUID = '0000000000000000f000000000000000'
+const STANDARD_SHADER = '46'
+
+// Reads a material (.mat, Unity YAML) from AssetRipper's Unity project export.
+// Returns { name, standard, metallic, glossiness, color: [r, g, b, a], metallicGlossMap, smoothnessFromAlbedo }.
+// standard: the shader is Unity's built-in Standard shader. The other fields are null when the material
+// does not have them. color is as Unity stores it, in sRGB.
+export function readMaterial(yamlText) {
+  const material = [...parseDocuments(yamlText).values()].find(d => d.classId === MATERIAL)
+  if (!material) throw new Error('No Material object in the Unity YAML')
+  const { text } = material
+  const shader = ref(text, 'm_Shader')
+  // Serialized version 3 of m_SavedProperties writes "_Name: value", older versions "- _Name: value"
+  const property = name => new RegExp(`^\\s*(?:- )?${name}: (.*)$`, 'm').exec(text)?.[1] ?? null
+  const float = name => property(name) === null ? null : Number(property(name))
+  const color = /r: ([^,]+), g: ([^,]+), b: ([^,]+), a: ([^}]+)/.exec(property('_Color') ?? '')
+  const texture = name => new RegExp(`^\\s*(?:- )?${name}:\\s*\\n\\s*m_Texture: \\{fileID: (-?\\d+)`, 'm').exec(text)?.[1] ?? '0'
+  return {
+    name: field(text, 'm_Name'),
+    standard: shader.guid === BUILTIN_SHADER_GUID && shader.fileID === STANDARD_SHADER,
+    metallic: float('_Metallic'),
+    glossiness: float('_Glossiness'),
+    color: color ? color.slice(1).map(Number) : null,
+    metallicGlossMap: texture('_MetallicGlossMap') !== '0',
+    smoothnessFromAlbedo: float('_SmoothnessTextureChannel') === 1,
+  }
 }
 
 // Path of the asset whose .meta file has this guid, in an AssetRipper Unity project export, or null
