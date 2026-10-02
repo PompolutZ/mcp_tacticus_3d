@@ -154,6 +154,8 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
   }, [hovered])
 
   function onPointerDown(e) {
+    // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
+    if (e.button !== 0) return
     e.stopPropagation()
     const startX = e.clientX
     const startY = e.clientY

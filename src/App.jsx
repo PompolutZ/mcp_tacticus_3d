@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
+import { MOUSE } from 'three'
 import { OrbitControls } from '@react-three/drei'
 import Scene from './components/Scene.jsx'
 import SelectionOutlines from './components/SelectionOutlines.jsx'
 import TrayInsets from './components/TrayInsets.jsx'
 import { Toolbar } from './components/Toolbar.jsx'
 import { CharacterSpawner } from './components/CharacterSpawner.jsx'
-import { KeyboardPan } from './components/KeyboardPan.jsx'
+import { KeyboardCamera } from './components/KeyboardCamera.jsx'
+import { TrackpadCamera } from './components/TrackpadCamera.jsx'
 import { LoadingOverlay } from './components/LoadingOverlay.jsx'
 import { TokenPanel } from './components/TokenPanel.jsx'
 import { TokensPanel } from './components/TokensPanel.jsx'
@@ -21,10 +23,19 @@ import { characterToken } from './tokens/files.js'
 import { getToken, isCappedToken } from './tokens/tokens.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
-import { MOVE_KEYS, PAN_KEYS, RANGE_KEYS, isEditing, useWindowKeys } from './keyboard.js'
+import { MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
 
-// Slightly offset from the exact top-down pole to avoid gimbal lock on first drag.
-const CAMERA_POSITION = [0, 20, 4]
+// Start view, the seat of the blue player. For now every player is Blue. Blue sits at +z (see
+// characters/trays.js). The camera stands behind the blue table edge and looks down at 45° at a
+// point 6" from the mat center toward blue, 46" away. Then a 16:10 view shows the whole mat, the
+// first row of blue trays and the red trays. Space returns to this view (see resetCamera).
+const CAMERA_TARGET = [0, 0, 6]
+const CAMERA_POSITION = [0, 32.5, 38.5]
+// Camera mouse buttons as in TTS: right drag turns, middle drag pans. Left drag also turns, because
+// the app has no box select (the TTS left drag) and a trackpad has no easy right drag. Shift, Ctrl
+// or Cmd + a turn drag pans (OrbitControls). A mouse wheel zooms. On a trackpad, a two-finger swipe
+// pans and a pinch zooms (TrackpadCamera.jsx).
+const CAMERA_MOUSE_BUTTONS = { LEFT: MOUSE.ROTATE, MIDDLE: MOUSE.PAN, RIGHT: MOUSE.ROTATE }
 const DEG = Math.PI / 180
 // A crisis token is a 1" circle (CrisisToken.jsx, RADIUS). Drop places it just clear of the base.
 const TOKEN_RADIUS = 0.5
@@ -121,8 +132,10 @@ export default function App() {
   const [selectedTool, setSelectedTool] = useState(null)
   // Character or token under the pointer: { kind, id } | null. Only the tool keys read it, so it is a ref.
   const hoveredRef = useRef(null)
-  // Pan keys held down: key code → screen direction. KeyboardPan moves the camera while one is held.
+  // Pan and turn keys held down: key code → screen direction. KeyboardCamera moves the camera while one is held.
   const heldPan = useRef(new Map())
+  const heldTurn = useRef(new Map())
+  const controlsRef = useRef(null)
   // Count of tool key presses over a piece, per tool: { range, move }. See Scene.
   const [toolSpawns, setToolSpawns] = useState({ range: 0, move: 0 })
   // Card image open in the full-screen popup: a crisis card face or a character tray card.
@@ -236,9 +249,17 @@ export default function App() {
     }
     if (e.metaKey || e.ctrlKey || e.altKey || isEditing(e.target)) return
     if (PAN_KEYS[e.code]) {
-      // Arrow keys would also scroll the page
-      e.preventDefault()
       heldPan.current.set(e.code, PAN_KEYS[e.code])
+      return
+    }
+    if (TURN_KEYS[e.code]) {
+      heldTurn.current.set(e.code, TURN_KEYS[e.code])
+      return
+    }
+    if (e.code === RESET_VIEW_KEY) {
+      // Space also presses the focused button, for example the last clicked toolbar button
+      e.preventDefault()
+      if (!e.repeat) resetCamera()
       return
     }
     if (e.repeat) return
@@ -248,14 +269,25 @@ export default function App() {
 
   function handleKeyUp(e) {
     heldPan.current.delete(e.code)
+    heldTurn.current.delete(e.code)
   }
 
   // A key released outside the window sends no keyup
   function handleBlur() {
     heldPan.current.clear()
+    heldTurn.current.clear()
   }
 
   useWindowKeys(handleKeyDown, handleKeyUp, handleBlur)
+
+  // Moves the camera back to the start view at once
+  function resetCamera() {
+    const controls = controlsRef.current
+    if (!controls) return
+    controls.object.position.set(...CAMERA_POSITION)
+    controls.target.set(...CAMERA_TARGET)
+    controls.update()
+  }
 
   // Escape clears every selection: the character or token, and the tool. The selected tool is also
   // removed from the table.
@@ -500,7 +532,7 @@ export default function App() {
           gl={{ antialias: false }}
           // A click with no piece under the pointer (table, terrain, background) clears the selection.
           // R3F does not count a camera drag as a click. A right click is a 'contextmenu' event, and it also
-          // starts a camera pan, so it does not clear. Clicks on tool buttons (Html) are not on the canvas.
+          // starts a camera turn, so it does not clear. Clicks on tool buttons (Html) are not on the canvas.
           onPointerMissed={e => { if (e.type === 'click' && e.target instanceof HTMLCanvasElement) setSelection(null) }}
         >
           <SelectionOutlines composer={mode !== 'no-composer'} outlines={mode === 'full'}>
@@ -541,16 +573,19 @@ export default function App() {
           </SelectionOutlines>
           <TrayInsets insetBoxes={insetBoxes} noComposer={mode === 'no-composer'} />
           <OrbitControls
+            ref={controlsRef}
             makeDefault
-            target={[0, 0, 0]}
+            target={CAMERA_TARGET}
             enablePan={true}
             enableZoom={true}
             enableRotate={true}
             minDistance={5}
             maxDistance={50}
             maxPolarAngle={85 * (Math.PI / 180)}
+            mouseButtons={CAMERA_MOUSE_BUTTONS}
           />
-          <KeyboardPan held={heldPan} />
+          <KeyboardCamera pan={heldPan} turn={heldTurn} />
+          <TrackpadCamera />
           {debug && <FrameStats />}
         </Canvas>
       </div>

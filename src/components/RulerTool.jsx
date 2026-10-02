@@ -226,6 +226,8 @@ function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove) {
   })
 
   return function onPointerDown(e, selected, onSelect) {
+    // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
+    if (e.button !== 0) return
     e.stopPropagation()
     const startX = e.clientX
     const startY = e.clientY
@@ -586,6 +588,8 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
   }
 
   function onHandleDown(e, side) {
+    // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
+    if (e.button !== 0) return
     const rb = rigidRef.current
     if (!rb) return
     if (bending) {

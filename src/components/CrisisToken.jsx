@@ -133,6 +133,8 @@ export default function CrisisToken({ token, selected, onSelect, onHover, onMove
   }
 
   function onPointerDown(e) {
+    // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
+    if (e.button !== 0) return
     e.stopPropagation()
     const startX = e.clientX
     const startY = e.clientY
@@ -181,6 +183,8 @@ export default function CrisisToken({ token, selected, onSelect, onHover, onMove
   // Turn handle: drags the token's yaw around its own center. The pivot is the token's current
   // center, read every move so the turn stays correct even if the token is also being repositioned.
   function onHandleDown(e) {
+    // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
+    if (e.button !== 0) return
     e.stopPropagation()
     const pointerId = e.pointerId ?? e.nativeEvent?.pointerId
     if (controls) controls.enabled = false
