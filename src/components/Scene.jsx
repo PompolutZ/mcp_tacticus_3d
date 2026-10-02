@@ -19,7 +19,7 @@ import { FRICTION, WORLD_GRAVITY } from '../physics.js'
 import { assetUrl } from '../assets/index.js'
 import { CARD_X, CARD_Y, CARD_Z } from '../crisis/layout.js'
 import { TRAYS } from '../dice/tray.js'
-import { trayModelPosition } from '../characters/trays.js'
+import { layoutTrays, onTray, trayModelPosition } from '../characters/trays.js'
 import { TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WIDTH } from '../table.js'
 
 // MCP mat is 36" x 36". 1 Three.js unit = 1 inch. Table size: see table.js.
@@ -66,7 +66,7 @@ const TIME_STEP = 1 / 120
 // release (Phase 7) uses the same lookup as App's token drag, instead of 3D-only characterAt, so a
 // release over the tray's controls strip (DOM) counts too.
 // modelPositionRef: ref App calls with a character id to get its live table position { x, z }
-// (Rapier body or model object, not the spawn slot), or null. Used by App's handleTokenDrop, the
+// (Rapier body or model object, not the spawn position), or null. Used by App's handleTokenDrop, the
 // same pattern as characterAtRef. See "Hold and drop".
 // onTokenHold(tokenId, characterId): a canHold token was released over a character. onTokenDrop(id):
 // the tray's Held chip for that token, see TrayControls.jsx.
@@ -115,7 +115,7 @@ export default function Scene({
   }
 
   // Live table position of a character's model (Hold and drop, "Drop"): the Rapier body when there
-  // is one, otherwise the 3D object's own position. Not the spawn slot, so a character that moved
+  // is one, otherwise the 3D object's own position. Not the spawn position, so a character that moved
   // drops its token where it now stands. Returns null if neither is mounted yet.
   function modelPosition(id) {
     const body = charBodies.current.get(id)
@@ -136,6 +136,24 @@ export default function Scene({
     if (characterAtRef) characterAtRef.current = characterAt
     if (modelPositionRef) modelPositionRef.current = modelPosition
   })
+
+  // Tray position of every character (trays.js). A player's row recenters when that player adds
+  // or removes a character, so these positions change then.
+  const trayPositions = useMemo(() => layoutTrays(characters), [characters])
+  // Tray positions of the last layout, to find the trays that moved.
+  const lastTrayPositions = useRef(new Map())
+  // A model that still stands on its tray moves with the tray, the same as TTS (moveTray in the
+  // tray script). A model that the player moved off its tray, for example onto the mat, stays.
+  useEffect(() => {
+    for (const [id, pos] of trayPositions) {
+      const last = lastTrayPositions.current.get(id)
+      const body = charBodies.current.get(id)
+      if (!last || !body || (last[0] === pos[0] && last[2] === pos[2])) continue
+      const t = body.translation()
+      if (onTray(last, t)) body.setTranslation({ x: t.x + pos[0] - last[0], y: t.y, z: t.z + pos[2] - last[2] }, true)
+    }
+    lastTrayPositions.current = trayPositions
+  }, [trayPositions])
 
   const selectedCharId = selection?.kind === 'character' ? selection.id : null
   const selectedTokenId = selection?.kind === 'token' ? selection.id : null
@@ -280,12 +298,13 @@ export default function Scene({
 
         {/* One tray per spawned character, next to the mat edge (see trays.js and
             docs/characters-hud.md, "Tray layout"). The model below spawns standing on the center
-            of this same tray's card (trayModelPosition, same ch.slot), so the two always match. */}
+            of this tray's card (trayModelPosition). It reads that position only once, when its
+            body mounts, so a later tray move does not teleport it. */}
         {characters.map(ch => (
           <CharacterTray
             key={ch.id}
             character={ch}
-            index={ch.slot}
+            position={trayPositions.get(ch.id)}
             onOpen={onCardOpen}
             onDamage={damage => onCharacterDamage(ch.id, damage)}
             onPower={power => onCharacterPower(ch.id, power)}
@@ -305,7 +324,7 @@ export default function Scene({
             return (
               <Character
                 key={ch.id}
-                position={trayModelPosition(ch.teamColor, ch.slot)}
+                position={trayModelPosition(ch.teamColor, trayPositions.get(ch.id))}
                 baseSize={ch.base}
                 frontUrl={assetUrl(characterStandee(ch.key, 'front'))}
                 backUrl={assetUrl(characterStandee(ch.key, 'back'))}
@@ -316,7 +335,7 @@ export default function Scene({
             <CharacterModel
               key={ch.id}
               url={assetUrl(characterModel(ch.key))}
-              position={trayModelPosition(ch.teamColor, ch.slot)}
+              position={trayModelPosition(ch.teamColor, trayPositions.get(ch.id))}
               baseRadius={BASE_DIAMETER[ch.base] / 2}
               rotation={[0, ch.rotation * Math.PI / 180, 0]}
               teamColor={ch.teamColor}

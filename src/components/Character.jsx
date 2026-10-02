@@ -1,6 +1,6 @@
 import { useTexture } from '@react-three/drei'
 import { RigidBody, CylinderCollider, CuboidCollider } from '@react-three/rapier'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { DoubleSide } from 'three'
 
@@ -20,7 +20,9 @@ const DAMPING_LOW = 0.2
 const DAMPING_HIGH = 10
 const LANDED_Y = 0.5
 
+// position: where the body starts. Read only on mount, the same as CharacterModel.jsx.
 export default function Character({ position = [0, 0, 0], baseSize = 'small', frontUrl, backUrl }) {
+  const [startPosition] = useState(position)
   const [front, back] = useTexture([frontUrl, backUrl])
   const rigidRef = useRef()
   const { radius, thickness } = BASE[baseSize]
@@ -35,7 +37,7 @@ export default function Character({ position = [0, 0, 0], baseSize = 'small', fr
   })
 
   return (
-    <RigidBody ref={rigidRef} type="dynamic" position={position} colliders={false} linearDamping={DAMPING_LOW} angularDamping={5}>
+    <RigidBody ref={rigidRef} type="dynamic" position={startPosition} colliders={false} linearDamping={DAMPING_LOW} angularDamping={5}>
       <CylinderCollider args={[thickness / 2, radius]} position={[0, baseY, 0]} friction={1.5} density={5} />
       <CuboidCollider args={[STANDEE_WIDTH / 2, STANDEE_HEIGHT / 2, 0.05]} position={[0, standeeY, 0]} friction={1.5} density={5} />
 

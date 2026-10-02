@@ -75,7 +75,7 @@ These facts were found on 2026-10-01 in the scripts of the "Red Tray Spawner" ob
 
 The table is 72" × 60" (`src/table.js`). The mat is 36" × 36" (`MAT_SIZE` in `Scene.jsx`), centered on the table, so its edge is 18" from the table center on every side.
 
-Each player's trays sit in one or two rows right next to the mat edge on that player's side (blue at +z, red at −z), not in a corner of the table. A tray row is flush with the mat's own width (36"), not the table's full width (72"), so a tray never sits in the table corners past the mat. See `src/characters/trays.js`.
+Each player's trays sit in a row right next to the mat edge on that player's side (blue at +z, red at −z). The row is centered on the middle line of the table (x = 0), the same as TTS (`arrangeTrays` in the Red Tray Spawner). One row holds up to 12 trays, the table width. A row of more than 6 trays is wider than the mat, so it goes past the mat corners. See `src/characters/trays.js`.
 
 Changes that follow from this:
 
@@ -88,12 +88,13 @@ Changes that follow from this:
 - The card image is 1800 × 1200 px, so the card plane is 4.5" × 3".
 - The controls strip is below the card, on the side of the owner. It is about 2" deep.
 - So a tray is about 5" × 5" (`TRAY_WIDTH` × `TRAY_DEPTH`). A background plate under the card and the controls strip is slightly larger (5.6" × 5.6"), so the tray stands out from the table.
-- Trays sit 5.5" apart, center to center. A row fits `floor(36 / 5.5) = 6` trays. When a row is full, a second row starts right behind it, further from the mat, toward the owner. Two rows (12 trays per player) fit between the mat edge and the table edge; a third row would not.
-- A tray's position depends only on its slot number, never on how many characters exist, so a tray (and the model that spawns on it) never moves when another character is added or removed.
-- Trays fill a row from the owner's left corner of the mat, in the order of spawn, flush with the mat edge.
+- There is a 0.3" gap between two plates, between two rows, and between the mat edge and the first row. Without it, two trays look like one. So trays sit 5.9" apart, center to center, and a row fits `floor((72 + 0.3) / 5.9) = 12` trays. When a row is full, a second row starts right behind it, further from the mat, toward the owner. Two rows fit between the mat edge and the table edge; a third row would not.
+- The row is centered on the middle line of the table. One tray sits on the line. Two trays sit one on each side of the line, and so on. The order is the spawn order, from the owner's left.
+- So every tray of a player moves when that player adds or removes a character. A removed character's tray leaves the row, and the row closes the gap. The same happens in TTS.
 - The card faces the owner and sits on the mat side of the tray; the controls strip sits on the owner's side, away from the mat. For blue, the top of the card image points to −z, the same as a crisis card (`CrisisCard.jsx`). A red tray is turned by 180°.
 - A tray has no collider. Models and dice do not touch it.
-- A newly spawned model stands on the table at the center of its tray's card (same slot), not on a separate bench. The model keeps its own rotation from the spawner.
+- A newly spawned model stands on the table at the center of its tray's card, not on a separate bench. The model keeps its own rotation from the spawner. The model reads that position only once, when its body mounts. A Rapier `RigidBody` moves its body when its `position` prop changes, so a later tray move must not reach the body through that prop. A model that is still loading when the row shifts mounts on its tray's new place.
+- When a tray moves, a model that still stands on that tray moves with it (`Scene.jsx`). A model that the player moved off its tray, for example onto the mat, stays where it is. TTS does the same (`moveTray` in the tray script). TTS checks "not on the mat"; the app checks "on its own tray plate".
 
 At the default camera position, the trays are at the edge of the view or outside it. Players pan the camera to see them. A 2D HUD fixes this later.
 

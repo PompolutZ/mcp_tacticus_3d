@@ -57,7 +57,10 @@ function turnBetween(a, b) {
 // bodyRef, objectRef: get the Rapier body and the 3D object of the model (figure and base)
 // baseRadius: radius of the base in the model file, which has the game size
 // onHover(over): called when the pointer moves onto the model (true) and off it (false)
+// position: where the body starts. Read only on mount: RigidBody moves its body when its position
+// prop changes, and the spawn position follows the tray (Scene.jsx), which can move later.
 export default function CharacterModel({ url, position = [0, 0, 0], baseRadius = BASE_RADIUS, rotation = [0, 0, 0], teamColor = 'red', selected = false, onSelect, onHover, bodyRef, objectRef, onDragStart, onDragEnd, constrainDrag }) {
+  const [startPosition] = useState(position)
   const { scene } = useGLTF(url)
   const { camera, gl, controls } = useThree()
   const { world, rapier } = useRapier()
@@ -223,7 +226,7 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
     // dominanceGroup 1 (dice stay at the default, 0): in a model-die contact, Rapier moves only the
     // lower-group body, so a die never pushes a model (design, "Collisions"). Fixed/kinematic
     // bodies are already always dominant, so this only changes model-die contacts.
-    <RigidBody ref={setBody} type="dynamic" position={position} colliders={false} linearDamping={LINEAR_DAMPING} angularDamping={ANGULAR_DAMPING} ccd dominanceGroup={1}>
+    <RigidBody ref={setBody} type="dynamic" position={startPosition} colliders={false} linearDamping={LINEAR_DAMPING} angularDamping={ANGULAR_DAMPING} ccd dominanceGroup={1}>
       <CylinderCollider args={[BASE_HALF_H, baseRadius]} position={[0, BASE_HALF_H, 0]} friction={FRICTION} density={BASE_DENSITY} />
       <primitive
         ref={setFigure}

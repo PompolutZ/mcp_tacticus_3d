@@ -12,7 +12,6 @@ import {
   TRAY_CARD_LOCAL_Z,
   TRAY_CARD_WIDTH,
   TRAY_CONTROLS_DEPTH,
-  trayPosition,
   trayYaw,
 } from '../characters/trays.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
@@ -38,12 +37,12 @@ function otherSide(side) {
 // usual way to select a character; the tray has no click target of its own for that.
 // heldTokens: this character's held crisis tokens (see "Hold and drop"). onTokenDrop(tokenId): the
 // tray's Held chip for one of them.
-export default function CharacterTray({ character, index, onOpen, onDamage, onPower, onFlip, onRemove, onTokenRemove, onTokenDragStart, heldTokens, onTokenDrop, selected = false, objectRef }) {
+// position: the tray's table position, from trays.js layoutTrays (Scene.jsx).
+export default function CharacterTray({ character, position, onOpen, onDamage, onPower, onFlip, onRemove, onTokenRemove, onTokenDragStart, heldTokens, onTokenDrop, selected = false, objectRef }) {
   const cardUrl = assetUrl(characterCard(character.key, character.side))
   const map = useTexture(cardUrl)
   const name = characterName(character.key)
   const stamina = characterStamina(character.key, character.side)
-  const position = trayPosition(character.teamColor, index)
   const yaw = trayYaw(character.teamColor)
   const cardRef = useRef()
 

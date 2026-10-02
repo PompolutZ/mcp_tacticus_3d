@@ -100,15 +100,6 @@ function buildCardTokens(card) {
   return [...buildMatTokens(card), ...buildSupplyTokens(card)]
 }
 
-// Lowest tray slot of teamColor that no character currently occupies. A removed character
-// frees its slot, so the next spawn reuses it instead of growing past the trays still on the row.
-function lowestFreeSlot(characters, teamColor) {
-  const used = new Set(characters.filter(c => c.teamColor === teamColor).map(c => c.slot))
-  let slot = 0
-  while (used.has(slot)) slot++
-  return slot
-}
-
 export default function App() {
   const [activeRange, setActiveRange] = useState(null)
   const [activeMove, setActiveMove] = useState(null)
@@ -161,7 +152,7 @@ export default function App() {
   // null. See Scene.jsx, characterAt.
   const characterAtRef = useRef(null)
   // Scene calls this with a character id and returns its live table position { x, z } (Rapier body
-  // or model object, not the tray slot), or null. Used by handleTokenDrop. See Scene.jsx, modelPosition.
+  // or model object, not the spawn position), or null. Used by handleTokenDrop. See Scene.jsx, modelPosition.
   const modelPositionRef = useRef(null)
 
   // direction: 1 turns the mat 90° counter-clockwise, -1 clockwise
@@ -178,6 +169,8 @@ export default function App() {
     setDiceMenu(null)
   }
 
+  // The new character's tray goes at the end of its player's row, and the row recenters (see
+  // trays.js, layoutTrays).
   function handleSpawn(ch) {
     setCharacters(prev => [...prev, {
       id: crypto.randomUUID(),
@@ -186,9 +179,6 @@ export default function App() {
       base: ch.base,
       rotation: ch.rotation,
       teamColor: ch.teamColor,
-      // The lowest free slot, not just the next one: a removed character frees its slot and its
-      // tray spot, so a new one does not stand on a model that is still there (Phase 7).
-      slot: lowestFreeSlot(prev, ch.teamColor),
       // Card side that faces up, and the simple limits players apply by hand (see
       // docs/characters-hud.md, "Players apply the rules").
       side: 'healthy',
@@ -344,7 +334,7 @@ export default function App() {
   }
 
   // Drop: the token goes back on the table, next to the base of the model that held it (the live
-  // Rapier/object position, not the tray slot, so a moved character drops it where it stands).
+  // Rapier/object position, not the spawn position, so a moved character drops it where it stands).
   // rowOffset moves it along the base's edge (+z of the +x drop direction), so several tokens
   // dropped together (handleDropCharacterTokens) land in a row instead of stacked on each other.
   // select: the single tray Drop button selects its token, as before (so TokenPanel opens for it);
