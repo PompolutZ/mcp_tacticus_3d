@@ -112,7 +112,7 @@ The flow follows the TTS tray script, with three changes (see the list after the
 
 1. `+` adds one die. The die appears above the well at a random point, 4.8" above the floor, with a random rotation, and falls into the well. `−` removes the last added die that is not on the shelf. A tray holds at most 42 dice. This is the TTS limit, and the shelf has 42 places.
 2. Roll throws every die that is not on the shelf, from where it is (see [Throw](#throw)). Dice on the shelf do not move.
-3. When the player presses Roll while those dice move, they are thrown again from where they are, also in the air. TTS does the same, because its script does not block a second press. A die that is more than 3" above its rest height on the well floor is not thrown again (`ROLL_HEIGHT_LIMIT` in `src/dice/tray.js`). It only gets a new random spin (step 4 of [Throw](#throw)), so it is harder to see which face will be up. In TTS, when a player presses Roll many times, each die is thrown again only when it falls back to one height, as if it bounced on an invisible floor above the tray. Each press also changes the spin of the dice above that height. So the dice do not go higher with each press. A new die that falls into the well was not thrown yet, so Roll throws it at any height. 3" is a start value: `scripts/tts-dice-measure.lua` measures the TTS height.
+3. When the player presses Roll while those dice move, they are thrown again from where they are, also in the air. TTS does the same, because its script does not block a second press. A die that is more than 5.6" above its rest height on the well floor is not thrown again (`ROLL_HEIGHT_LIMIT` in `src/dice/tray.js`). It only gets a new random spin (step 4 of [Throw](#throw)), so it is harder to see which face will be up. In TTS, when a player presses Roll many times, each die is thrown again only when it falls back to one height, as if it bounced on an invisible floor above the tray. Each press also changes the spin of the dice above that height. So the dice do not go higher with each press. A new die that falls into the well was not thrown yet, so Roll throws it at any height. 5.6" is the TTS height (see [Measurements](#measurements)).
 4. When every thrown die rests, the app reads the top face of each die, in the well or outside it. A tilted die is thrown again (see [Tilted dice](#tilted-dice)).
 5. Then each die turns flat on its top face and moves to the shelf. The dice on the shelf are sorted by face: Crit, Wild, Hit, Block, Blank, Skull. The counts and the history update.
 6. **Reroll one** moves one die from the shelf back into the well. The player presses Roll to throw it.
@@ -149,18 +149,19 @@ TTS prints similar lines in the chat, for example `Initial Results: Hits - 2  Cr
 ### What TTS does
 
 - The tray script only calls TTS's own `roll()` on each die in the well. The script sets no speed and no force.
-- A TTS developer describes `roll()` like this: "a programatic random seed to snap to a rotation and additional random seeds to impart angular velocity" ([Steam, 2025-05-15](https://steamcommunity.com/app/286160/discussions/0/591770958120935244/)). Players also describe a random upward speed. TTS does not publish the numbers.
+- A TTS developer describes `roll()` like this: "a programatic random seed to snap to a rotation and additional random seeds to impart angular velocity" ([Steam, 2025-05-15](https://steamcommunity.com/app/286160/discussions/0/591770958120935244/)). Players also describe a random upward speed. TTS does not publish the numbers, so `scripts/tts-dice-measure.lua` measured them (see [Measurements](#measurements)). The upward speed is 11–19.5 in/s. In the first frames after `roll()`, the spin from `getAngularVelocity()` is only 7.7–11 rad/s. But TTS dice look like they spin much faster, so this number does not explain how TTS dice move. The next run of the script measures the spin during the whole roll.
 - TTS physics runs at 90 Hz with 14 solver iterations. The maximum angular speed is 50 rad/s.
-- The die uses the TTS defaults: mass 1, drag 0.1, angular drag 0.1, friction 0.4, combine rule Average. The tray script also sets `bounciness = 0.8` on each die. Other objects have bounciness 0.
+- The gravity is -25 in/s² (measured).
+- The die has mass 0.95, drag 0.1, angular drag 0.1 and friction 0.6 (measured). The combine rule is probably Average, the Unity default. The tray script also sets `bounciness = 0.8` on each die. Other objects have bounciness 0.
 
 ### Throw
 
 For each die, the app does the same steps as TTS `roll()`:
 
 1. Set a random rotation with a uniform distribution (Shoemake's method). Three random Euler angles do not give a uniform distribution, so the app does not use them.
-2. Set an upward speed.
+2. Set a random upward speed of 11–19.5 in/s (`THROW_UP_MIN`, `THROW_UP_MAX`), the TTS range. The die goes up 2.4–7.6".
 3. Set a small sideways speed toward a random point in the well, at least half a die from the walls. The app computes this speed from the flight time, so most dice land in the well. Walls and other dice then change their path.
-4. Set a spin around a random axis, with a random speed of at most 50 rad/s (`THROW_SPIN_MAX`), the TTS maximum. In TTS the dice spin fast in the air. Fast spin makes more dice bounce out of the well (see [Measurements](#measurements)).
+4. Set a spin around a random axis, with a random speed of 0–50 rad/s (`THROW_SPIN_MIN`, `THROW_SPIN_MAX`). 50 is the TTS upper limit. The range is chosen by look, because TTS dice spin fast in the air. On 2026-10-02 the app used 7.7–11 rad/s, the TTS reading after `roll()`. Then the dice only tilted in the air, and the app did not look like TTS. Faster spin makes more dice bounce out of the well (see [Headless](#headless)).
 
 The new speeds replace the old ones. So a die that falls goes up again, and a die in the air changes direction from where it is.
 
@@ -168,7 +169,7 @@ Step 1 can be seen as a jump in rotation when a die lies still. TTS has the same
 
 The random numbers come from `crypto.getRandomValues`.
 
-The upward speed and the spin speed will be measured in TTS (see [Measurements](#measurements)).
+The upward speed was measured in TTS on 2026-10-01 (see [Measurements](#measurements)). The spin is not measured yet in a way that matches the look of TTS.
 
 ### Values
 
@@ -177,11 +178,11 @@ The upward speed and the spin speed will be measured in TTS (see [Measurements](
 | Property | TTS | App | Reason |
 |---|---|---|---|
 | Size | 0.94" tip to tip | 0.94" tip to tip | Same die. |
-| Mass | 1 | 1, from the density and the volume | Mass matters only between dice. The app sets speeds directly, and models are dominant (see [Collisions](#collisions)). |
-| Friction | 0.4 on every object, Average: 0.4 | Die 0.4 with combine rule Min: 0.4 on the table and terrain | Table and terrain have friction 1 (`FRICTION` in `src/physics.js`). With Average, the die would get 0.7. |
+| Mass | 0.95 | 1, from the density and the volume | Mass matters only between dice, and all dice have the same mass. The app sets speeds directly, and models are dominant (see [Collisions](#collisions)). |
+| Friction | Die 0.6. The tray's friction was not measured. | Die 0.6 with combine rule Min: 0.6 on the table, tray and terrain | Table, tray and terrain have friction 1 (`FRICTION` in `src/physics.js`). With Average, the die would get 0.8. |
 | Restitution (bounce) | Die 0.8, others 0, Average: 0.4 | Die 0.8, Average: 0.4 | Table, tray and terrain have restitution 0 in the app too. So the result is the same as in TTS. |
 | Damping | Drag 0.1, angular drag 0.1 | Start value: linear 0.1, angular 0.1 | Unity drag and Rapier damping use similar formulas, but not the same one. |
-| Gravity | Not known. The TTS project value is -25 units/s², and TTS may change it when it runs. | World: -30 in/s² | Models use -30. If TTS dice fall faster, the dice get a `gravityScale`. |
+| Gravity | -25 in/s² (`Physics.getGravity()`; a free fall gave 24.3, and drag explains the difference) | World: -30 in/s². Dice: `gravityScale` 25/30, so -25 (`DIE_GRAVITY` in `src/dice/throw.js`) | Models use -30 (`WORLD_GRAVITY` in `src/physics.js`). |
 | Step | 90 Hz, 14 solver iterations | 120 Hz, 4 solver iterations (the whole world) | If dice shake when they touch each other, raise `numSolverIterations`, and measure the cost. |
 | CCD | Not known | On | The tray walls are a thin trimesh, and a fast die can pass through a thin wall. CCD (continuous collision detection) checks the path between two steps. |
 
@@ -257,7 +258,28 @@ TTS does not publish the numbers of `roll()`. `scripts/tts-dice-measure.lua` mea
 
 The tray script checks `resting` only every 1.5 s (`rollDelay`). So in TTS, the result appears up to 1.5 s after the dice rest.
 
-This script has not been run: there is no TTS install in the environment that built the app. Its header says so, and how to run it.
+To run it: `npm run tts-dice-measure` writes the TTS Saved Object "Dice measure", a red block with the script. In TTS, load the mod and spawn it from Objects → Saved Objects. The script runs at once, so the Workshop mod is fine. The script's header has the steps. Do not paste the script into an object and press Save & Play: on 2026-10-01 the game reloaded without the block, so the script never ran.
+
+**Results (2026-10-01):**
+
+| What | TTS |
+|---|---|
+| Physics step | 90 Hz |
+| Gravity | `Physics.getGravity()` -25. Free fall 24.3 in/s²; drag 0.1 slows the die a little. |
+| Die | Mass 0.95, drag 0.1, angular drag 0.1, bounciness 0.8, static and dynamic friction 0.6 |
+| Upward speed after `roll()`, 30 rolls | 11.1–19.3 in/s, average 15.1, spread evenly |
+| Spin in the first 5 frames after `roll()`, `getAngularVelocity()` | 7.7–11.1 rad/s, average 8.5. 13 of 30 rolls had exactly 7.67. TTS dice look like they spin much faster, so the app does not use this number. |
+| Highest point above the rest height | 2.3–7.2", average 4.5 |
+| Lift in the first frame | About 0.15", the normal rise of one frame. One roll of 30 lifted 1.12". |
+| Time until one die rests | 1.7–3.2 s, average 2.2 |
+| Time until 10 dice rest, 5 rounds | 2.55–3.1 s, average 2.8 |
+| Dice that rest off the well floor | 0 of 30 single rolls, 0 of 50 dice in rounds |
+| Rapid rolls: height of the next throw | Rises at first, then stays at 5.57–5.70" above the rest height |
+| Rapid rolls: spin changes | About 85 per second at 90 `roll()` calls per second, so almost every call changes the spin |
+
+The app takes the gravity, the upward speed, the friction and `ROLL_HEIGHT_LIMIT` (5.6") from these results. The spin stays 0–50 rad/s (see [Throw](#throw)).
+
+The script now also measures the spin during the whole roll, in the flight and in the bounces. It reads the spin in two ways: from `getAngularVelocity()`, and from the change of the die's rotation between two frames. If `roll()` turns the die without physics, only the second way sees it. The script also reports the tray's friction and bounciness. These numbers come from the next run.
 
 ### Headless
 
@@ -278,6 +300,18 @@ Spin and dice that leave the well (10 dice at once, 3 seeds, 3000 dice for each 
 Tuning found a real bug, not just numbers to adjust: two dice that collide can occasionally get a huge, sometimes non-finite (`NaN`), velocity from a single unstable contact. The die is a sharp shape (an octahedron, tip to tip) spun up to the TTS maximum of 50 rad/s, which is about 24° of turn in one 1/120 s physics step — enough for a tip to pass most of the way through another die's face between two steps, which the solver then corrects with a large, sometimes unstable, push. Cutting the spin cap to 10 rad/s (`THROW_SPIN_MAX` in `throw.js`) and giving each die 8 extra solver iterations of its own (`DIE_SOLVER_ITERATIONS`, applied per body with `additionalSolverIterations`, not on the whole `<Physics>` world) cut this from double digits of throws in a hundred (at the TTS spin and the world's default 4 iterations) down to the tilted rate above. It still happens occasionally, more so as more dice are thrown together (roughly 1-7% tilted at 42 dice in testing) — see the Phase 3 Result in `docs/plan-dice-rolling.md` for the full tuning story and what Phase 4 should do about the cases it does not remove.
 
 **Update, 2026-09-30:** with the current code, the explosions do not happen again. A test of 10 and 42 dice at 50 rad/s gave no die faster than 60 in/s and no `NaN`, also without `DIE_SOLVER_ITERATIONS`, and also with the old sim bug put back (a die outside the well restarted at the well floor). The cause of the Phase 3 explosions is not known. So the spin is back at 50 rad/s. `DIE_SOLVER_ITERATIONS` stays, because it is cheap. The app still moves a die with a `NaN` position back above the well.
+
+**Update, 2026-10-02 (TTS values):** the throw used the TTS measurements: gravity -25 for dice, upward speed 11–19.5 in/s, spin 7.7–11 rad/s, friction 0.6. With seeds 1–7:
+
+- Fairness passes on every test except one: seed 3, one die, 8000 throws (17.34). The same seed passes with 32000 throws (7.38). A fair die fails 1 test in 20 by chance.
+- A die leaves the well 0.2–0.3% of the time alone, and 0.3–0.9% with 10 dice at once (before: 2.0–2.5%).
+- A die rests tilted 1.2–1.8% of the time alone, and 0.7–2.3% with 10 dice (before: 0.4–0.7%). The app throws such a die again.
+- 10 dice at once settle in 3.1 s on average, 4.3 s at the worst seen. TTS gives 2.8 s on average.
+- 42 dice cost about 0.2 ms per physics step.
+
+The friction causes most of the extra tilted dice. A test with one change undone at a time (seed 5): friction 0.4 gave 0.8% tilted alone and 0.4% with 10 dice; spin 0–50 rad/s gave 1.4% and 1.6%; gravity -30 with speed 15–20 gave 1.4% and 0.9%. In the app, the die's friction on the tray is 0.6, because the tray has 1 and the rule is Min. In TTS, Unity probably takes the average of the die and the tray, and the tray's friction was not measured. `scripts/tts-dice-measure.lua` now reports it.
+
+Then the spin went back to 0–50 rad/s, because with 7.7–11 the dice did not look like TTS (see [Throw](#throw)). The other values stay. With spin 0–50 rad/s (seed 5, 3000 throws of one die, 1000 dice in throws of 10): fairness passes, a die rests tilted 1.4% of the time alone and 1.6% with 10 dice, and it leaves the well 0.5% of the time alone and 2.5% with 10 dice. 10 dice settle in 3.2 s on average, 4.6 s at the worst seen.
 
 ## Implementation sketch
 
@@ -329,25 +363,9 @@ The app uses these ideas from other projects:
 
 ## Open questions
 
-- How strong is the throw? The TTS measurements decide it.
 - Keyboard shortcuts? In TTS, keys 1–9 over the tray clear it and add that number of dice.
 - Where exactly do the panels go, and how big is the inset box?
 - `ASSETS.md` has three errors about the die:
   - The mesh `868485988860654056` belongs to the retired "Click Roller Universal". It is not the die.
   - The die texture is 2048 × 2048, not 1024.
   - Some symbol names are wrong. For example, the skull is Failure, not Critical.
-
-
-  Steps
-
-  1. Make your own save. With the mod loaded, open the top menu Games → Save & Load. Create a new save named, for example, Dice measure.
-  2. Load that save from the same window (Games → Save & Load → Dice measure). From now on, you work in your own copy, not in the Workshop mod.
-  3. Add the block. Objects → Components → Blocks. Put it on the table away from the Blue tray.
-  4. Paste the script. Right-click the block → Scripting → Scripting Editor. Select the block's tab, not Global. Paste all of scripts/tts-dice-measure.lua and click Save & Play.
-  5. Check the chat, "Game" tab. You should see Dice measure script loaded on "…".
-  6. Start it. Right-click the block → Measure dice, or click the button on the block. Wait a few minutes and do not touch the Blue tray.
-  7. Copy the results. Open the Notebook, tab "Dice measurement", copy the text and paste it here.
-
-  Your own save is a full copy of the mod, about 40 MB, in ~/Library/Tabletop Simulator/Saves. You can delete it when you are done. The Workshop mod does not change.
-
-  I added the save step to the script's instructions. The script changes are not committed.

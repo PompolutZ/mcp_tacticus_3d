@@ -17,17 +17,16 @@ import path from 'node:path'
 import { Quaternion, Vector3 } from 'three'
 import { readGlb } from './lib/convert.mjs'
 import { D8_CORNERS, D8_DENSITY } from '../src/dice/faces.js'
-import { DIE_BODY, DIE_SOLVER_ITERATIONS, SETTLE_TIME, SETTLE_TIMEOUT, isFinitePoint, isFiniteQuat, isTilted, randomRotation, stillTime, throwVelocities, topFace } from '../src/dice/throw.js'
+import { DIE_BODY, DIE_GRAVITY_SCALE, DIE_SOLVER_ITERATIONS, SETTLE_TIME, SETTLE_TIMEOUT, isFinitePoint, isFiniteQuat, isTilted, randomRotation, stillTime, throwVelocities, topFace } from '../src/dice/throw.js'
 import { TRAYS, freeDropPoint, inWell, randomWellPoint, trayColliderArrays } from '../src/dice/tray.js'
-import { FRICTION } from '../src/physics.js'
+import { FRICTION, WORLD_GRAVITY } from '../src/physics.js'
 import { FALL_LIMIT_Y, TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WIDTH } from '../src/table.js'
 
 // Nested Rapier build the app actually uses (0.14, enhanced determinism). The top-level
 // @dimforge/rapier3d-compat is 0.12 and must not be used (see docs/plan-dice-rolling.md, Phase 3).
 const RAPIER_PATH = path.resolve(import.meta.dirname, '../node_modules/@react-three/rapier/node_modules/@dimforge/rapier3d-compat/rapier.es.js')
 
-// Same values as Scene.jsx. Not imported: Scene.jsx does not export them.
-const GRAVITY = -30
+// Same value as Scene.jsx. Not imported: Scene.jsx does not export it.
 const TIME_STEP = 1 / 120
 
 const TRAY_KEY = 'blue' // the red tray is the same shape, only mirrored, so one tray is enough here
@@ -56,7 +55,7 @@ function mulberry32(seed) {
 }
 
 async function buildWorld(RAPIER) {
-  const world = new RAPIER.World({ x: 0, y: GRAVITY, z: 0 })
+  const world = new RAPIER.World({ x: 0, y: WORLD_GRAVITY, z: 0 })
   world.timestep = TIME_STEP
   // world.numSolverIterations left at the Rapier default (4), same as Scene.jsx. Dice get extra
   // iterations of their own (DIE_SOLVER_ITERATIONS, see createDie), so this does not need to change.
@@ -99,9 +98,9 @@ async function buildWorld(RAPIER) {
   return world
 }
 
-// One die: a dynamic body with CCD on and extra solver iterations (DIE_SOLVER_ITERATIONS, see
-// throw.js), and a convex hull collider of the app's own die shape (D8_CORNERS), with DIE_BODY's
-// friction, restitution and damping.
+// One die: a dynamic body with CCD on, extra solver iterations and its own gravity scale
+// (DIE_SOLVER_ITERATIONS, DIE_GRAVITY_SCALE, see throw.js), and a convex hull collider of the
+// app's own die shape (D8_CORNERS), with DIE_BODY's friction, restitution and damping.
 const dieVertices = Float32Array.from(D8_CORNERS.flat())
 
 function createDie(RAPIER, world, position) {
@@ -111,6 +110,7 @@ function createDie(RAPIER, world, position) {
     .setAngularDamping(DIE_BODY.angularDamping)
     .setCcdEnabled(true)
     .setAdditionalSolverIterations(DIE_SOLVER_ITERATIONS)
+    .setGravityScale(DIE_GRAVITY_SCALE)
   const body = world.createRigidBody(bodyDesc)
   const colliderDesc = RAPIER.ColliderDesc.convexHull(dieVertices)
     .setDensity(D8_DENSITY)

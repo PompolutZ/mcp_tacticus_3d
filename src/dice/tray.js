@@ -161,9 +161,9 @@ export function inWell(trayKey, worldPoint) {
 // same: when Roll is pressed many times, each die is thrown again only when it falls back to about
 // one height, as if it bounced on an invisible floor above the tray, and each press changes the
 // spin of the dice above it. So the dice do not go higher with each press. A die that was not
-// thrown yet (a new die that falls into the well) is thrown at any height. Start value: the TTS
-// height is not measured yet (scripts/tts-dice-measure.lua, "rapid rolls").
-export const ROLL_HEIGHT_LIMIT = 3
+// thrown yet (a new die that falls into the well) is thrown at any height. 5.6: the TTS height,
+// measured on 2026-10-01 (scripts/tts-dice-measure.lua, "rapid rolls": 5.57-5.70).
+export const ROLL_HEIGHT_LIMIT = 5.6
 
 // True when a die center at this world point is higher than ROLL_HEIGHT_LIMIT above a die that
 // rests on the well floor of tray `trayKey`.

@@ -7,6 +7,7 @@ import { assetUrl } from '../assets/index.js'
 import { D8_CORNERS, D8_DENSITY, FACES, SYMBOLS } from '../dice/faces.js'
 import {
   DIE_BODY,
+  DIE_GRAVITY_SCALE,
   DIE_SOLVER_ITERATIONS,
   SETTLE_TIME,
   SETTLE_TIMEOUT,
@@ -77,6 +78,7 @@ function Die({ id, dice, geometry, material }) {
       colliders={false}
       ccd
       additionalSolverIterations={DIE_SOLVER_ITERATIONS}
+      gravityScale={DIE_GRAVITY_SCALE}
       linearDamping={DIE_BODY.linearDamping}
       angularDamping={DIE_BODY.angularDamping}
     >

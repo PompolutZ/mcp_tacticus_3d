@@ -390,6 +390,16 @@ npm run dice-sim -- --throws 500 --multi-throws 500
 
 It uses the nested Rapier build under `@react-three/rapier` (0.14.0), not the top-level one (0.12.0, wrong version for this app) — see `docs/plan-dice-rolling.md`, Phase 3 Result, for why.
 
-See the Phase 3 Result in `docs/plan-dice-rolling.md` for the tuned values (`THROW_SPIN_MAX`, `DIE_SOLVER_ITERATIONS` in `throw.js`) and the measured numbers, and `docs/feature-dice-rolling.md`, "Measurements", for a short version.
+See `docs/feature-dice-rolling.md`, "Measurements", for the measured numbers. The gravity, upward speed and friction in `throw.js` come from the TTS measurement below. The spin is chosen by look. The Phase 3 Result in `docs/plan-dice-rolling.md` explains `DIE_SOLVER_ITERATIONS`.
 
-`scripts/tts-dice-measure.lua` is the TTS side of the same measurement (see the design, "Measurements", "In TTS"). It is a TTS object script, not a Node script, and it has not been run — there is no TTS install here. Its header says how to run it. It only adds a button and a right-click menu item to the object it is pasted into, and spawns and deletes its own dice.
+# TTS dice measurement
+
+`tts-dice-measure.lua` is the TTS side of the same measurement (see the design, "Measurements", "In TTS"). It is a TTS object script, not a Node script. It adds a button and a right-click menu item to its block, and spawns and deletes its own dice. It was first run on 2026-10-01.
+
+```bash
+npm run tts-dice-measure
+```
+
+`tts-dice-measure-object.mjs` writes the TTS Saved Object "Dice measure" to `~/Library/Tabletop Simulator/Saves/Saved Objects/`: a red block with the Lua file as its script. In TTS, load the mod and spawn it from Objects → Saved Objects. TTS runs the script of a spawned object at once, so the block needs no Save & Play and no own save. Run the command again after a change to the Lua file. The Lua file's header has the steps.
+
+Do not paste the script into an object and press Save & Play. On 2026-10-01 the game reloaded without the block, so the script never ran. On a Workshop mod, Save & Play fails with "Cannot commit save changes to a Workshop mod".

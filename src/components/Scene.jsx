@@ -15,7 +15,7 @@ import { projectFootprints } from './footprintProjection.js'
 import { matImage } from '../terrain/files.js'
 import { characterModel, characterStandee, BASE_DIAMETER } from '../characters/files.js'
 import { MAPS } from '../terrain/maps.js'
-import { FRICTION } from '../physics.js'
+import { FRICTION, WORLD_GRAVITY } from '../physics.js'
 import { assetUrl } from '../assets/index.js'
 import { CARD_X, CARD_Y, CARD_Z } from '../crisis/layout.js'
 import { TRAYS } from '../dice/tray.js'
@@ -211,7 +211,7 @@ export default function Scene({
       {/* Same HDR as drei's "city" preset, served with the app instead of from a CDN */}
       <Environment files={assetUrl('hdri/potsdamer_platz_1k.hdr')} backgroundIntensity={0} />
 
-      <Physics gravity={[0, -30, 0]} timeStep={TIME_STEP} debug={showColliders}>
+      <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP} debug={showColliders}>
         {/* Table surface — fixed collider so models land on it */}
         <RigidBody type="fixed" colliders={false}>
           {/* Collider much thicker than the visual so fast bodies can't tunnel through; top stays at y=0 */}

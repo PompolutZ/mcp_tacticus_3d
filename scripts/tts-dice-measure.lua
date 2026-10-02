@@ -1,16 +1,17 @@
 -- Measures what TTS's own die roll() does, for docs/feature-dice-rolling.md ("Measurements",
--- "In TTS"). Not run yet: there is no TTS install where it was written. It uses only documented TTS
+-- "In TTS"). First run on 2026-10-01; the results are in that doc. It uses only documented TTS
 -- API (spawnObject, Object.roll/resting/getVelocity/getAngularVelocity, Physics.getGravity,
 -- Time.time, Time.fixed_delta_time, startLuaCoroutine, Notes.addNotebookTab).
 --
 -- How to use:
--- 1. Load the mod (3036795456) in TTS. The "Blue Dice Tray" is in the save, so it is on the table.
---    Save it as your own save (Games > Save & Load) and load that save. Save & Play cannot change a
---    Workshop mod: TTS says "Cannot commit save changes to a Workshop mod" and reloads without the script.
--- 2. Put any object on the table, for example a block (Objects > Components > Blocks).
--- 3. Right-click it > Scripting > Scripting Editor. Paste this file into the block's tab (not
---    Global) and click "Save & Play". The game reloads. Chat shows "Dice measure script loaded", and
---    a "Measure dice" button appears on the block.
+-- 1. Run `npm run tts-dice-measure`. It writes the TTS Saved Object "Dice measure": a red block
+--    with this file as its script (scripts/tts-dice-measure-object.mjs).
+-- 2. Load the mod (3036795456) in TTS. The "Blue Dice Tray" is in the save, so it is on the table.
+--    The Workshop mod is fine: nothing is saved.
+-- 3. Objects > Saved Objects > "Dice measure". The block appears and its script runs at once. Chat
+--    shows "Dice measure script loaded", and a "Measure dice" button appears on the block.
+--    Do not paste this file into an object and press Save & Play: on 2026-10-01 the game reloaded
+--    without the block, so the script never ran.
 -- 4. Click the button, or right-click the block > "Measure dice". It takes a few minutes. Do not
 --    touch the Blue tray while it runs.
 -- 5. A short summary appears in chat. The full results, with one line per roll, are in the
@@ -21,10 +22,14 @@
 -- dice or the mod's scripts. Units: TTS units (inches), seconds, radians.
 --
 -- What it measures:
--- - TTS settings: gravity, physics step, and the die's mass, drag, friction and bounciness.
+-- - TTS settings: gravity, physics step, the die's mass, drag, friction and bounciness, and the
+--   tray's friction and bounciness (added after the first run).
 -- - ROLL_COUNT rolls of one die that rests in the well: the highest upward speed and spin in the
 --   first START_FRAMES frames after roll(), the height jump in the first frame (roll() may lift the
---   die), the highest point above the rest height, and the time until the die rests again.
+--   die), the highest point above the rest height, and the time until the die rests again. Also
+--   the spin during the whole roll, in the flight and in the bounces, from getAngularVelocity() and
+--   from the change of the rotation (added after the first run, which read only 7.7-11 rad/s in
+--   the first frames, while TTS dice look like they spin much faster).
 -- - ROUNDS rounds of ROUND_DICE dice rolled at once, as the Roll button does: the time until all
 --   of them rest. The app aims at about 3 s for 10 dice.
 -- - For both: how many dice rest off the well floor (on the shelf, the rim, the table or on top of
@@ -52,6 +57,8 @@ local RAPID_SECONDS = 6
 local RETHROW_SPEED_JUMP = 5 -- in/s; a bigger rise of the upward speed in one frame is a new throw
 local RETHROW_LIFT_JUMP = 0.5 -- in; a bigger rise of the height in one frame is a new throw (roll() may lift the die)
 local SPIN_JUMP = 3 -- rad/s; a bigger change of the spin in one frame, without a new throw, is a new spin
+local LANDING_JUMP = 1 -- in/s; a bigger rise of the upward speed in one frame, while the die falls, is a bounce
+local SNAP_FRAMES = 2 -- frames after roll() left out of the flight turn speed (roll() snaps the rotation)
 
 local busy = false
 local tray = nil
@@ -175,6 +182,61 @@ function vecLength(v)
   return math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z)
 end
 
+function unit(v)
+  local l = vecLength(v)
+  return { x = v.x / l, y = v.y / l, z = v.z / l }
+end
+
+-- The rotation of `obj` as its 3 axis directions
+function axes(obj)
+  return { unit(obj.getTransformRight()), unit(obj.getTransformUp()), unit(obj.getTransformForward()) }
+end
+
+-- Angle in radians between two rotations, each given by axes(): the angle of the rotation
+-- matrix A^T B, from its trace.
+function turnAngle(a, b)
+  local trace = 0
+  for i = 1, 3 do trace = trace + a[i].x * b[i].x + a[i].y * b[i].y + a[i].z * b[i].z end
+  return math.acos(math.max(-1, math.min(1, (trace - 1) / 2)))
+end
+
+-- Follows a rolled die frame by frame, from roll() until it rests. It reads the spin in two ways:
+-- getAngularVelocity(), and the turn speed from the change of the rotation between two frames.
+-- If roll() also turns the die without physics, only the second way sees it. Both are split into
+-- the flight (until the first bounce) and the bounces. Call trackSpin once per frame.
+function newSpinTracker(die)
+  return {
+    die = die, frames = 0, landed = false,
+    prevAxes = axes(die), prevTime = Time.time, prevVy = die.getVelocity().y,
+    flightSpin = 0, flightAngle = 0, flightTime = 0, bounceSpin = 0, bounceTurn = 0,
+  }
+end
+
+function trackSpin(t)
+  local now = Time.time
+  local dt = now - t.prevTime
+  if dt <= 0 then return end
+  local a = axes(t.die)
+  local vy = t.die.getVelocity().y
+  local spin = vecLength(t.die.getAngularVelocity())
+  t.frames = t.frames + 1
+  -- Gravity only lowers the upward speed, so a rise while the die falls is the first bounce
+  if not t.landed and t.prevVy < 0 and vy - t.prevVy > LANDING_JUMP then t.landed = true end
+  local angle = turnAngle(t.prevAxes, a)
+  if t.landed then
+    t.bounceSpin = math.max(t.bounceSpin, spin)
+    t.bounceTurn = math.max(t.bounceTurn, angle / dt)
+  else
+    t.flightSpin = math.max(t.flightSpin, spin)
+    -- The first frames hold the random rotation that roll() snaps to, which is not a spin
+    if t.frames > SNAP_FRAMES then
+      t.flightAngle = t.flightAngle + angle
+      t.flightTime = t.flightTime + dt
+    end
+  end
+  t.prevAxes, t.prevTime, t.prevVy = a, now, vy
+end
+
 function stats(values)
   if #values == 0 then return "no data" end
   local sum, low, high = 0, math.huge, -math.huge
@@ -200,6 +262,9 @@ function measureSettingsAndGravity()
     "Die: mass %.2f, drag %.2f, angular drag %.2f, bounciness %.2f, static friction %.2f, dynamic friction %.2f",
     die.mass, die.drag, die.angular_drag, die.bounciness, die.static_friction, die.dynamic_friction
   ))
+  -- The die's friction on the tray combines both values (Unity's default rule is Average)
+  report(string.format("Tray: bounciness %.2f, static friction %.2f, dynamic friction %.2f",
+    tray.bounciness, tray.static_friction, tray.dynamic_friction))
   report(string.format("Die rest height on the well floor: y %.3f (tray y %.3f)", wellRestY, center.y))
 
   -- Free fall: gravity from the change of the downward speed, between a sample a few frames after
@@ -227,16 +292,20 @@ end
 
 function measureRolls()
   local upSpeeds, spins, lifts, heights, restTimes = {}, {}, {}, {}, {}
+  local flightSpins, flightTurns, bounceSpins, bounceTurns = {}, {}, {}, {}
   local offFloor, timeouts = 0, 0
-  table.insert(details, "Rolls of one die: up speed, spin, first-frame lift, highest point, rest time, off floor")
+  table.insert(details, "Rolls of one die: up speed, spin, first-frame lift, highest point, rest time, off floor, "
+    .. "flight spin, flight turn speed, bounce spin, bounce turn speed")
   for i = 1, ROLL_COUNT do
     local die = spawnAndSettle(1)[1]
     local restY = die.getPosition().y
     local rollTime = Time.time
     die.roll()
+    local track = newSpinTracker(die)
     local upSpeed, spin, highest, lift = 0, 0, restY, nil
     for _ = 1, START_FRAMES do
       coroutine.yield(0)
+      trackSpin(track)
       local y = die.getPosition().y
       if lift == nil then lift = y - restY end
       highest = math.max(highest, y)
@@ -245,8 +314,10 @@ function measureRolls()
     end
     local rested = waitUntil(function()
       highest = math.max(highest, die.getPosition().y)
+      trackSpin(track)
       return die.resting
     end)
+    local flightTurn = track.flightTime > 0 and track.flightAngle / track.flightTime or 0
     if rested == nil then
       timeouts = timeouts + 1
       table.insert(details, string.format("%d: did not rest in %d s", i, TIMEOUT))
@@ -259,8 +330,13 @@ function measureRolls()
       table.insert(lifts, lift)
       table.insert(heights, highest - restY)
       table.insert(restTimes, restTime)
-      table.insert(details, string.format("%d: %.2f, %.2f, %.2f, %.2f, %.2f, %s",
-        i, upSpeed, spin, lift, highest - restY, restTime, off and "yes" or "no"))
+      table.insert(flightSpins, track.flightSpin)
+      table.insert(flightTurns, flightTurn)
+      table.insert(bounceSpins, track.bounceSpin)
+      table.insert(bounceTurns, track.bounceTurn)
+      table.insert(details, string.format("%d: %.2f, %.2f, %.2f, %.2f, %.2f, %s, %.2f, %.2f, %.2f, %.2f",
+        i, upSpeed, spin, lift, highest - restY, restTime, off and "yes" or "no",
+        track.flightSpin, flightTurn, track.bounceSpin, track.bounceTurn))
     end
     die.destruct()
     waitFrames(2)
@@ -268,6 +344,10 @@ function measureRolls()
   report(string.format("%d rolls of one die:", ROLL_COUNT))
   report("  up speed in/s: " .. stats(upSpeeds))
   report("  spin rad/s: " .. stats(spins))
+  report("  flight, highest getAngularVelocity() rad/s: " .. stats(flightSpins))
+  report("  flight, average turn speed from the rotation rad/s: " .. stats(flightTurns))
+  report("  bounces, highest getAngularVelocity() rad/s: " .. stats(bounceSpins))
+  report("  bounces, highest turn speed from the rotation rad/s: " .. stats(bounceTurns))
   report("  first-frame lift in: " .. stats(lifts))
   report("  highest point above rest in: " .. stats(heights))
   report("  rest time s: " .. stats(restTimes))

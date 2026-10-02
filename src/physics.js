@@ -4,6 +4,10 @@
 // stands on in TTS, such as the about 35° hood of the vibranium haller. 1.0 holds it on slopes up to 45°.
 export const FRICTION = 1
 
+// World gravity, in/s² (y). Models use it. Dice fall slower, as in TTS (DIE_GRAVITY_SCALE in
+// src/dice/throw.js).
+export const WORLD_GRAVITY = -30
+
 // Ground casts go straight down from this height, in steps of CAST_STEP.
 // One long cast can pass through a terrain hull without a hit (Rapier loses precision over a long
 // distance), so a model or tool would end up inside that piece. Short casts do not miss.

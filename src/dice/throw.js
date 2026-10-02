@@ -6,6 +6,7 @@
 // predictable. scripts/dice-sim.mjs passes a seeded one instead, so its measurements repeat.
 
 import { Quaternion, Vector3 } from 'three'
+import { WORLD_GRAVITY } from '../physics.js'
 import { FACES } from './faces.js'
 
 // Default random source: crypto.getRandomValues on a 32-bit int, scaled to [0, 1).
@@ -15,11 +16,12 @@ function cryptoRandom() {
   return buf[0] / 2 ** 32
 }
 
-// Physics body of a die, from the design ("Values"). Friction combines with Min (1), so the
-// table and terrain (friction 1) do not raise it. Restitution combines with Average (0).
+// Physics body of a die, from the design ("Values"). Friction 0.6, the TTS die's (measured).
+// Friction combines with Min (1), so the table, tray and terrain (friction 1) do not raise it.
+// Restitution combines with Average (0).
 // CoefficientCombineRule in @dimforge/rapier3d-compat: Average = 0, Min = 1.
 export const DIE_BODY = {
-  friction: 0.4,
+  friction: 0.6,
   frictionCombineRule: 1,
   restitution: 0.8,
   restitutionCombineRule: 0,
@@ -38,25 +40,31 @@ export const SETTLE_TIMEOUT = 8 // s
 const TILT_LIMIT_DEG = 15
 export const TILT_LIMIT_DOT = Math.cos(TILT_LIMIT_DEG * Math.PI / 180)
 
-// Upward speed at the start of a throw, in/s. Gives a flight top about 4-7" above the start
-// height with gravity -30 (v = sqrt(2 * 30 * h)). A start value; Phase 3 tunes it.
-export const THROW_UP_MIN = 15
-export const THROW_UP_MAX = 20
+// Gravity of a die, in/s², down: 25, the TTS gravity (Physics.getGravity(), measured on
+// 2026-10-01). The world has WORLD_GRAVITY (-30) for the models, so a die body gets
+// DIE_GRAVITY_SCALE.
+export const DIE_GRAVITY = 25
+export const DIE_GRAVITY_SCALE = DIE_GRAVITY / -WORLD_GRAVITY
 
-// Top spin speed, rad/s: 50, the TTS maximum (see docs/feature-dice-rolling.md, "Throw"). In TTS
-// the dice spin fast in the air. Phase 3 lowered it to 10, because dice exploded (huge or NaN
-// velocity) when they collided at 50. On 2026-09-30 that did not happen again with the current
-// code, at 10 or 42 dice, with or without DIE_SOLVER_ITERATIONS. The one cost of fast spin: dice
-// bounce out of the well more often (10-dice test, 3 seeds: 0.3% of dice at 10 rad/s, 1.5% at 40,
-// 2.9% at 50). Such a die counts where it lands, as in TTS.
+// Upward speed at the start of a throw, in/s: the range of TTS roll() (measured on 2026-10-01).
+// Gives a flight top about 2.4-7.6" above the start height (h = v² / (2 * DIE_GRAVITY)).
+export const THROW_UP_MIN = 11
+export const THROW_UP_MAX = 19.5
+
+// Spin speed at the start of a throw, rad/s: 0-50, chosen by look. 50 is the TTS upper limit.
+// TTS dice spin fast in the air. In TTS, getAngularVelocity() in the first frames after roll()
+// read only 7.7-11 rad/s (2026-10-01), but with 7.7-11 the app's dice only tilted in the air and
+// did not look like TTS (checked in the app, 2026-10-02). Why is not known yet:
+// scripts/tts-dice-measure.lua now also measures the spin during the whole roll.
+export const THROW_SPIN_MIN = 0
 export const THROW_SPIN_MAX = 50
 
 // Extra solver iterations for a die's rigid body only (@react-three/rapier's
 // `additionalSolverIterations` prop), on top of the world's own `numSolverIterations` (4, the
 // Rapier default, unchanged — see Scene.jsx). Phase 3 found the dice a lot less likely to explode
-// on a multi-die collision with it (see THROW_SPIN_MAX above); kept, because it is cheap. Left at
-// the Rapier default for every other body, so this does not change model physics. DiceTray.jsx
-// sets it on every die.
+// (huge or NaN velocity) on a multi-die collision with it (see docs/feature-dice-rolling.md,
+// "Headless"); kept, because it is cheap. Left at the Rapier default for every other body, so this
+// does not change model physics. DiceTray.jsx sets it on every die.
 export const DIE_SOLVER_ITERATIONS = 8
 
 function lerp(random, min, max) {
@@ -88,21 +96,21 @@ export function randomRotation(random = cryptoRandom) {
   }
 }
 
-// A spin around a random axis, at most THROW_SPIN_MAX rad/s, as a plain { x, y, z } angular
+// A spin around a random axis, THROW_SPIN_MIN..MAX rad/s, as a plain { x, y, z } angular
 // velocity. Part of every throw. Roll also gives it alone to a die that is high in the air
 // (ROLL_HEIGHT_LIMIT in tray.js), as TTS does.
 export function randomSpin(random = cryptoRandom) {
-  const spin = randomUnitVector(random).multiplyScalar(random() * THROW_SPIN_MAX)
+  const spin = randomUnitVector(random).multiplyScalar(lerp(random, THROW_SPIN_MIN, THROW_SPIN_MAX))
   return { x: spin.x, y: spin.y, z: spin.z }
 }
 
 // New linear and angular velocity for a throw from `position` toward `target` (both { x, y, z }
 // points in world space). Upward speed from THROW_UP_MIN..MAX. Sideways speed toward target,
-// sized so the die crosses target.y at about the time it would land there. Spin around a random
-// axis, at most THROW_SPIN_MAX rad/s. Called again for a die that is already in the air: the new
-// velocities replace the old ones, so it changes direction from where it is.
+// sized so the die crosses target.y at about the time it would land there. Spin from randomSpin.
+// Called again for a die that is already in the air: the new velocities replace the old ones, so
+// it changes direction from where it is.
 export function throwVelocities(position, target, random = cryptoRandom) {
-  const gravity = 30 // matches the world gravity, -30 in/s^2 (Scene.jsx)
+  const gravity = DIE_GRAVITY
   const up = lerp(random, THROW_UP_MIN, THROW_UP_MAX)
   // Time to fall from this height, with this upward speed, to target.y:
   // target.y = position.y + up * t - 0.5 * gravity * t^2, take the positive (falling) root.
