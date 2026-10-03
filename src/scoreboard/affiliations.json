@@ -1,0 +1,104 @@
+{
+  "a-force": {
+    "name": "A Force"
+  },
+  "asgard": {
+    "name": "Asgard"
+  },
+  "avengers": {
+    "name": "Avengers"
+  },
+  "black-order": {
+    "name": "Black Order"
+  },
+  "brotherhood-of-mutants": {
+    "name": "Brotherhood of Mutants"
+  },
+  "cabal": {
+    "name": "Cabal"
+  },
+  "captain-america-shield": {
+    "name": "Captain America Shield"
+  },
+  "convocation": {
+    "name": "Convocation"
+  },
+  "criminal-syndicate": {
+    "name": "Criminal Syndicate"
+  },
+  "dark-dimension": {
+    "name": "Dark Dimension"
+  },
+  "defenders": {
+    "name": "Defenders"
+  },
+  "guardians-of-the-galaxy": {
+    "name": "Guardians of the Galaxy"
+  },
+  "hellfire-club": {
+    "name": "Hellfire Club"
+  },
+  "hydra": {
+    "name": "Hydra"
+  },
+  "inhumans": {
+    "name": "Inhumans"
+  },
+  "legion-of-the-lost": {
+    "name": "Legion of The Lost"
+  },
+  "midnight-sons": {
+    "name": "Midnight Sons"
+  },
+  "mighty-avengers": {
+    "name": "Mighty Avengers"
+  },
+  "new-mutants": {
+    "name": "New Mutants"
+  },
+  "onslaughts-grip": {
+    "name": "Onslaught's Grip"
+  },
+  "sentinels": {
+    "name": "Sentinels"
+  },
+  "servants-of-the-apocalypse": {
+    "name": "Servants of the Apocalypse"
+  },
+  "shield": {
+    "name": "S.H.I.E.L.D."
+  },
+  "spider-foes": {
+    "name": "Spider Foes"
+  },
+  "thralls-of-dracula": {
+    "name": "Thralls of Dracula"
+  },
+  "unaffiliated": {
+    "name": "Unaffiliated"
+  },
+  "uncanny-xmen": {
+    "name": "Uncanny XMen"
+  },
+  "vibranium-heist": {
+    "name": "Vibranium Heist"
+  },
+  "wakanda": {
+    "name": "Wakanda"
+  },
+  "weapon-x": {
+    "name": "Weapon X"
+  },
+  "web-warriors": {
+    "name": "Web Warriors"
+  },
+  "winter-guard": {
+    "name": "Winter Guard"
+  },
+  "x-factor": {
+    "name": "X Factor"
+  },
+  "x-force": {
+    "name": "X Force"
+  }
+}

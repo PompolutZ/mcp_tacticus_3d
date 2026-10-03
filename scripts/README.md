@@ -378,6 +378,29 @@ The die is not converted from a TTS mesh: in TTS the die is the built-in D8 shap
 
 The tray and die source URLs come from the "Blue Dice Tray" object in the mod save (both trays use the same mesh, texture and die image). The tray mesh and texture URLs are its `CustomMesh.MeshURL` and `DiffuseURL`. The die image URL is read out of its Lua script text (the `image = "..."` line that `addDice()` passes to `setCustomObject`), because it is not a mod asset field. The icon URLs follow the fixed pattern `https://d37ev18qvj5a3m.cloudfront.net/tts/token/ui/D{CRIT,WILD,HIT,BLOCK,BLANK,FAIL}_UI.png` (FAIL is the skull).
 
+# TTS scoring board
+
+`migrate-scoreboard.mjs` copies the scoring board of the TTS mod to `src/assets/`: the board, the round marker, and the 34 affiliation tokens that the VP markers show. It writes the affiliation list to `src/scoreboard/affiliations.json`. `src/scoreboard/files.js` names the files. See `docs/feature-crisis.md`, "Scoring board", for how the app uses them.
+
+```bash
+npm run migrate-scoreboard
+```
+
+Requirements: ImageMagick, and the files in the TTS cache. On 2026-10-03 the cache had all of them.
+
+## Output
+
+| Output | Content |
+|---|---|
+| `src/assets/scoreboard/board.glb`, `board.webp` | The "Tracker" object: mesh and texture, converted like a terrain OBJ piece |
+| `src/assets/scoreboard/round.glb` | The "Round Tracker" object: mesh only. The mod gives it a yellow tint. |
+| `src/assets/affiliations/<key>.webp` | Affiliation token image, at most 256×256 (the mod's images are 225×225) |
+| `src/scoreboard/affiliations.json` | One entry per affiliation: `name` in the mod |
+
+`<key>` is the affiliation name as a slug, the same as the token keys of `migrate-tokens.mjs`, for example `shield` for "S.H.I.E.L.D.". The affiliations are the `tokenDatabase` rows of type Affiliation.
+
+The positions of the board, its spots and the markers are not read by the script. They are constants in `src/scoreboard/board.js`, with the mod object each value comes from.
+
 # Dice sim
 
 `dice-sim.mjs` builds the tray's Rapier world in Node, with no browser: the same gravity and time step as `Scene.jsx`, the table and its edge walls from `src/table.js`, the tray trimesh from `tray.glb` through `src/dice/tray.js`, and the throw, settle and read-face rules from `src/dice/throw.js`. It throws a die many times and prints a short report: fairness (chi-squared, see `docs/feature-dice-rolling.md`, "Fairness"), how often a die rests tilted, how often it leaves the well, how long 10 dice take to rest, and the cost per physics step with 42 dice.

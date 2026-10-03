@@ -13,6 +13,7 @@ import CrisisToken from './CrisisToken.jsx'
 import LooseToken from './LooseToken.jsx'
 import TokenDragPreview from './TokenDragPreview.jsx'
 import DiceTray from './DiceTray.jsx'
+import ScoreBoard from './ScoreBoard.jsx'
 import { projectFootprints } from './footprintProjection.js'
 import { matImage } from '../terrain/files.js'
 import { characterModel, characterStandee, BASE_DIAMETER } from '../characters/files.js'
@@ -95,9 +96,11 @@ function Mat({ mat }) {
 // same pattern as characterAtRef. See "Hold and drop".
 // onTokenHold(tokenId, characterId): a canHold token was released over a character. onTokenDrop(id):
 // the tray's Held chip for that token, see TrayControls.jsx.
+// scoreMarkers, affiliations, onScoreMarkerMove(marker, x, z): the scoring board markers, see
+// ScoreBoard.jsx.
 export default function Scene({
   mapId, characters = [], activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onTokenDrop, onCharacterDamage, onCharacterPower, onCharacterFlip, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef,
+  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onTokenDrop, onCharacterDamage, onCharacterPower, onCharacterFlip, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, scoreMarkers, affiliations, onScoreMarkerMove,
 }) {
   const map = MAPS[mapId]
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
@@ -295,6 +298,9 @@ export default function Scene({
             onMenuClose={onDiceMenuClose}
           />
         ))}
+
+        {/* The scoring board is relative to the table, the same as the dice trays */}
+        <ScoreBoard markers={scoreMarkers} affiliations={affiliations} onMarkerMove={onScoreMarkerMove} />
 
         {/* Crisis cards and tokens are relative to the player sides, not the mat, so they stay
             outside the rotating group above: a mat turn must not turn them. See docs/feature-crisis.md. */}

@@ -1,5 +1,6 @@
 import { MAPS } from '../terrain/maps.js'
 import { cardsOfType } from '../crisis/cards.js'
+import { AFFILIATIONS } from '../scoreboard/affiliations.js'
 
 const RANGES = [1, 2, 3, 4, 5]
 const MOVES = [
@@ -7,12 +8,16 @@ const MOVES = [
   { label: 'M', type: 'medium' },
   { label: 'L', type: 'long' },
 ]
+const TEAMS = [
+  { team: 'blue', label: 'Blue' },
+  { team: 'red', label: 'Red' },
+]
 const CRISIS_TYPES = [
   { type: 'secure', label: 'Secure' },
   { type: 'extract', label: 'Extract' },
 ]
 
-export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeClick, onMoveClick, debug, onDebugClick, showLabels, onLabelsClick, onTurnMat, deployLine, onDeployLineClick, crisis, onCrisisChange, tokensOpen, onTokensClick }) {
+export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeClick, onMoveClick, debug, onDebugClick, showLabels, onLabelsClick, onTurnMat, deployLine, onDeployLineClick, crisis, onCrisisChange, affiliations, onAffiliationChange, tokensOpen, onTokensClick }) {
   return (
     <div className="toolbar">
       <div className="group">
@@ -68,6 +73,22 @@ export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeCl
             <option value="">None</option>
             {cardsOfType(type).map(card => (
               <option key={card.key} value={card.key}>{card.name} · {card.threat}</option>
+            ))}
+          </select>
+        ))}
+      </div>
+      <div className="group">
+        <span className="group-label">VP</span>
+        {TEAMS.map(({ team, label }) => (
+          <select
+            key={team}
+            className={`chip chip--player-${team}`}
+            title={`${label} player's affiliation: the token on the ${label} VP marker`}
+            value={affiliations[team]}
+            onChange={e => onAffiliationChange(team, e.target.value)}
+          >
+            {AFFILIATIONS.map(a => (
+              <option key={a.key} value={a.key}>{a.name}</option>
             ))}
           </select>
         ))}

@@ -182,8 +182,17 @@ The board comes from the TTS mod. These facts were found in the mod on 2026-09-2
 - It is at TTS (-23.1, 0) with rotation 90. So it lies next to the mat edge at x = -18, halfway between the two players.
 - The mesh and texture of the board, the Round Tracker, the Priority Token and the two VP trackers are in the TTS cache. The Round Tracker has only a mesh.
 - The Lua script of the board reads the VP and the round from the positions of the tokens on it.
+- Each player has a VP marker ("Red Player VP Tracker", "Blue Player VP tracker"): a round tile, 1.2" wide, with the player tint on its edge. Its faces show the affiliation token that the player chooses on the Tray Spawner (`updateScoreTracker`). The mod has 34 affiliation tokens.
 
-The TTS table is wider than it is deep. So the app table is 72" × 48", the same 3:2 shape (see `src/components/Scene.jsx`). The board fits at its TTS position, with room for one card on each side of it.
+The app has the board since 2026-10-03 (`src/components/ScoreBoard.jsx`, `src/scoreboard/board.js`, files from `scripts/migrate-scoreboard.mjs`):
+
+- The board is at its TTS position, with z → -z. The VP 1 spot is on the blue side (+z). A card lies on each side of the board.
+- Each player has a VP marker. **VP** in the toolbar chooses the affiliation token it shows, for each player. The markers start next to the board, where the mod puts them.
+- The round marker starts on round 1.
+- Players drag a marker with the left button. A marker released less than 1" from a spot moves onto it, as on a TTS snap point. A marker released elsewhere stays there.
+- When both VP markers are on the same spot, the marker that was dropped last lies on top. Both edges show, so both colors can be seen.
+- The board mesh is a shallow tray: the tracks are printed in a 0.2" deep recess. The mod gives the board a convex collider, so in TTS a marker rests at the height of the rim. The app uses the shape of the mesh, so a marker rests on its printed spot.
+- The app does not read the score from the board. Players read it, as on a real table.
 
 ## Out of scope
 

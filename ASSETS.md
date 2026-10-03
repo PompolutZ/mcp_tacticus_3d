@@ -106,6 +106,10 @@ Named `httpsd37ev18qvj5a3mcloudfrontnetttstokenobjectiveXXXX.png`, 300 × 300. T
 
 Named `httpsd37ev18qvj5a3mcloudfrontnetttstokenXXXX.png`, under `token/condition/`, `token/dice/`, `token/character/`, `token/tactic/` and `token/misc/`. 225 to 375 px. 88 of them (conditions, Activated/Dazed, personal tokens, Team Tactic tokens and "1 Power") are copied to `src/assets/tokens/` by `scripts/migrate-tokens.mjs`; see `scripts/README.md`.
 
+### Scoring board and affiliation tokens — cached
+
+The "Tracker" board (mesh and texture), the "Round Tracker" mesh, and all 34 affiliation token images (`token/affiliation/*_AFFILIATION_TOKEN.png`, 225 × 225) are copied to `src/assets/scoreboard/` and `src/assets/affiliations/` by `scripts/migrate-scoreboard.mjs`; see `scripts/README.md`.
+
 ### Game mat / map textures — 4 unique cached (of 188 total)
 
 Only maps played recently are on disk (run `npm run migrate-terrain -- --list` for the current list):

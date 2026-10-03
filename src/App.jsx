@@ -19,6 +19,8 @@ import { characterImmune, characterName, characterStamina } from './characters/r
 import { BASE_DIAMETER } from './characters/files.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { getToken, isCappedToken } from './tokens/tokens.js'
+import { START_MARKERS } from './scoreboard/board.js'
+import { DEFAULT_AFFILIATION } from './scoreboard/affiliations.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
 import { DELETE_KEYS, MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
@@ -119,6 +121,10 @@ export default function App() {
   const [crisis, setCrisis] = useState({ secure: null, extract: null })
   // Every crisis token on the table: mat tokens and supply tokens together, see buildCardTokens.
   const [tokens, setTokens] = useState([])
+  // Scoring board markers: { blue, red, round } → { x, z } on the table (see ScoreBoard.jsx)
+  const [scoreMarkers, setScoreMarkers] = useState(START_MARKERS)
+  // Affiliation token that each player's VP marker shows: { blue, red } → key in scoreboard/affiliations.json
+  const [affiliations, setAffiliations] = useState({ blue: DEFAULT_AFFILIATION, red: DEFAULT_AFFILIATION })
   // A character or a token can be selected, not both: { kind: 'character' | 'token', id } | null
   const [selection, setSelection] = useState(null)
   // Selected tool: 'range' | 'move' | null. It can be selected at the same time as a character or a token.
@@ -616,6 +622,9 @@ export default function App() {
               characterAtRef={characterAtRef}
               findCharacterAt={findCharacterAt}
               modelPositionRef={modelPositionRef}
+              scoreMarkers={scoreMarkers}
+              affiliations={affiliations}
+              onScoreMarkerMove={(marker, x, z) => setScoreMarkers(prev => ({ ...prev, [marker]: { x, z } }))}
             />
           </SelectionOutlines>
           <OrbitControls
@@ -653,6 +662,8 @@ export default function App() {
           onDeployLineClick={() => setDeployLine(prev => !prev)}
           crisis={crisis}
           onCrisisChange={handleCrisisChange}
+          affiliations={affiliations}
+          onAffiliationChange={(team, key) => setAffiliations(prev => ({ ...prev, [team]: key }))}
           tokensOpen={tokensOpen}
           onTokensClick={() => setTokensOpen(prev => !prev)}
         />

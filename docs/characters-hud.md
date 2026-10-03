@@ -760,7 +760,8 @@ Changes:
 Open issues:
 
 - The size of a TTS `Custom_Token` (conditions, Activated, Dazed) is not measured. All tokens are 0.75".
-- Tokens are flat planes with no edge and no shadow. The hover outline of `SelectionOutlines.jsx` is not used for them, because it would draw a square around a round or diamond token. A label and the cursor show the token under the pointer.
+- Tokens have no shadow. The hover outline of `SelectionOutlines.jsx` is not used for them. A label and the cursor show the token under the pointer.
+- Since 2026-10-03, tokens are 2 mm (0.08") thick solids, not flat planes. The app finds the outline of the token image from its transparent pixels and extrudes it, the same way TTS builds a Custom_Token (`src/tokens/solid.js`). Real tokens are 1–2 mm thick. Crisis tokens and the VP markers use the same thickness.
 - The range and movement tools do not snap to a token on the table.
 - Wider trays (a grunt card, characters with 2 forms) need a width per tray in `layoutTrays`. Today every tray has the same width.
 - Not checked in a browser, only `npx vite build`, per the project's rules.
@@ -772,7 +773,7 @@ Open issues:
 - Auto Power and Auto Cleanup, and any other rule automation.
 - Grunts (no Injured side, no Power), second forms (Emma Frost, Diamond Form) and the second card version of some characters (`cards` > 1 in `characters.json`). The tray uses card 1. A second form can have other immunities (p21).
 - Tokens that lie on the table and not on a character (Use Tools, Pile).
-- Affiliation tokens.
+- Affiliation tokens on characters. The VP markers of the scoring board show them (see `docs/feature-crisis.md`, "Scoring board").
 - The Power and Damage tokens of TTS. The counters use `−` and `+`.
 
 ## Decisions

@@ -7,13 +7,14 @@ import { castDown } from '../physics.js'
 import { crisisMarker, crisisToken } from '../crisis/files.js'
 import { assetUrl } from '../assets/index.js'
 import { acquireFootprint } from './footprintProjection.js'
+import { TOKEN_EDGE_COLOR, TOKEN_THICKNESS } from '../tokens/solid.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 
 const TEAM_COLORS = { blue: '#2980b9', red: '#c0392b' }
-// A token is a 1" circle, about 0.08" thick (tokens.json size is used for the shape, not the exact
+// A token is a 1" circle, TOKEN_THICKNESS thick (tokens.json size is used for the shape, not the exact
 // dims of the current tokens, which are all 1" circles)
 const RADIUS = 0.5
-const HALF_H = 0.04
+const HALF_H = TOKEN_THICKNESS / 2
 // Segments of the face disks and the edge, so the outline looks round at close zoom
 const SEGMENTS = 64
 // The token images are disks that fill the whole square, with transparent corners and a soft
@@ -251,7 +252,7 @@ export default function CrisisToken({ token, selected, onSelect, onHover, onMove
             note in the design), so the two disks above draw the faces instead. */}
         <mesh onPointerDown={onPointerDown} onPointerOver={over} onPointerOut={out}>
           <cylinderGeometry args={[RADIUS, RADIUS, HALF_H * 2, SEGMENTS, 1, true]} />
-          <meshStandardMaterial color="#3a3f4c" roughness={0.6} />
+          <meshStandardMaterial color={TOKEN_EDGE_COLOR} roughness={0.6} />
         </mesh>
       </group>
       {token.control && (

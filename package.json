@@ -14,6 +14,7 @@
     "migrate-crisis": "node scripts/migrate-crisis.mjs",
     "migrate-tokens": "node scripts/migrate-tokens.mjs",
     "migrate-dice": "node scripts/migrate-dice.mjs",
+    "migrate-scoreboard": "node scripts/migrate-scoreboard.mjs",
     "dice-sim": "node scripts/dice-sim.mjs",
     "tts-dice-measure": "node scripts/tts-dice-measure-object.mjs"
   },
