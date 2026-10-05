@@ -10,15 +10,22 @@ import { ACESFilmicToneMapping } from 'three'
 // The edge value the library finds is 0.5 on a straight edge and up to 0.71 on a diagonal one.
 // edgeStrength 2 with the limit in clampEdges makes it 1 on every edge pixel: full color, fully opaque.
 const LINE = { blendFunction: BlendFunction.ALPHA, edgeStrength: 2 }
-const SELECTED = { ...LINE, visibleEdgeColor: 0xf5a623, hiddenEdgeColor: 0x7a5212, xRay: true }
-const HOVERED = { ...LINE, visibleEdgeColor: 0xffffff, xRay: false }
+// The line of each outline mode. Each Outline puts its meshes on its own selection layer, so the sets
+// stay apart. xRay also draws the hidden part of the line, in a darker color.
+// inRange and outOfRange mark the piece that a range tool measures against (RangeMark in
+// RulerTool.jsx). They have the green and red of the tool footprint. xRay, so that a piece behind
+// terrain still shows its mark.
+const OUTLINES = {
+  selected: { ...LINE, visibleEdgeColor: 0xf5a623, hiddenEdgeColor: 0x7a5212, xRay: true, selectionLayer: 10 },
+  hovered: { ...LINE, visibleEdgeColor: 0xffffff, xRay: false, selectionLayer: 11 },
+  inRange: { ...LINE, visibleEdgeColor: 0x2ee06a, hiddenEdgeColor: 0x177035, xRay: true, selectionLayer: 12 },
+  outOfRange: { ...LINE, visibleEdgeColor: 0xe5484d, hiddenEdgeColor: 0x732426, xRay: true, selectionLayer: 13 },
+}
+const MODES = Object.keys(OUTLINES)
 // Line width. The edges are found on a smaller copy of the screen: LINE_SCALE times its size in
 // CSS pixels. The line is about 1.5 pixels of that copy, so 0.5 gives a line of about 3 CSS pixels.
 // A smaller value gives a thicker line with rougher steps.
 const LINE_SCALE = 0.5
-// Each Outline puts its meshes on its own layer, so the two sets stay apart
-const SELECTED_LAYER = 10
-const HOVERED_LAYER = 11
 // Outline sets its selection to this prop each time the prop changes. The default is a new [] on
 // every render, which would clear the selection set below, so this constant is passed instead.
 const NO_SELECTION = []
@@ -48,8 +55,8 @@ const RegisterContext = createContext(null)
 export default function SelectionOutlines({ children, composer = true, outlines = true }) {
   // [{ meshes, mode }], one entry for each useOutline call that has a mode
   const [entries, setEntries] = useState([])
-  const selectedRef = useRef()
-  const hoveredRef = useRef()
+  // Outline effect of each mode
+  const effects = useRef({})
   const dpr = useThree(state => state.viewport.dpr)
   const gl = useThree(state => state.gl)
 
@@ -62,8 +69,9 @@ export default function SelectionOutlines({ children, composer = true, outlines 
   // An Outline with an empty selection skips its passes
   useEffect(() => {
     const shown = outlines ? entries : []
-    selectedRef.current.selection.set(shown.filter(e => e.mode === 'selected').flatMap(e => e.meshes))
-    hoveredRef.current.selection.set(shown.filter(e => e.mode === 'hovered').flatMap(e => e.meshes))
+    for (const mode of MODES) {
+      effects.current[mode].selection.set(shown.filter(e => e.mode === mode).flatMap(e => e.meshes))
+    }
   }, [entries, outlines])
 
   // The composer sets the renderer tone mapping to none, because ToneMapping below does it.
@@ -76,14 +84,12 @@ export default function SelectionOutlines({ children, composer = true, outlines 
   }, [composer, gl])
 
   useEffect(() => {
-    clampEdges(selectedRef.current)
-    clampEdges(hoveredRef.current)
+    for (const mode of MODES) clampEdges(effects.current[mode])
   }, [])
 
   // Outline does not update the scale from its props, so it is set on the effects
   useEffect(() => {
-    selectedRef.current.resolution.scale = LINE_SCALE / dpr
-    hoveredRef.current.resolution.scale = LINE_SCALE / dpr
+    for (const mode of MODES) effects.current[mode].resolution.scale = LINE_SCALE / dpr
   }, [dpr])
 
   // Created once. When the children of EffectComposer change, it builds its passes again and
@@ -93,8 +99,9 @@ export default function SelectionOutlines({ children, composer = true, outlines 
   const passes = useMemo(() => (
     <>
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
-      <Outline ref={selectedRef} selection={NO_SELECTION} selectionLayer={SELECTED_LAYER} {...SELECTED} />
-      <Outline ref={hoveredRef} selection={NO_SELECTION} selectionLayer={HOVERED_LAYER} {...HOVERED} />
+      {MODES.map(mode => (
+        <Outline key={mode} ref={effect => { effects.current[mode] = effect }} selection={NO_SELECTION} {...OUTLINES[mode]} />
+      ))}
     </>
   ), [])
 
@@ -111,7 +118,7 @@ export default function SelectionOutlines({ children, composer = true, outlines 
   )
 }
 
-// Outlines every mesh under ref.current. mode: 'selected', 'hovered' or null (no outline).
+// Outlines every mesh under ref.current. mode: a key of OUTLINES, or null (no outline).
 // The meshes are collected when mode changes, so a mesh added later is outlined from the next change.
 export function useOutline(ref, mode) {
   const register = useContext(RegisterContext)
@@ -124,7 +131,9 @@ export function useOutline(ref, mode) {
   }, [ref, mode, register])
 }
 
-// Outline mode of a piece from its selected and hovered state. Selected wins.
-export function outlineMode(selected, hovered) {
-  return selected ? 'selected' : hovered ? 'hovered' : null
+// Outline mode of a piece from its selected and hovered state, and its range mark ('inRange',
+// 'outOfRange' or none, see RangeMark in RulerTool.jsx). The range mark wins, because it shows only
+// while a tool measures against the piece under the pointer. Then selected wins over hovered.
+export function outlineMode(selected, hovered, rangeMark = null) {
+  return rangeMark ?? (selected ? 'selected' : hovered ? 'hovered' : null)
 }

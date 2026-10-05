@@ -50,6 +50,7 @@ function angleTo(pivot, p) {
 // token: one entry of the tokens array in App.jsx (see buildCardTokens). onMove(x, z) and
 // onTurn(yaw): called once, when a drag ends, to commit the new pose to App state.
 // onHover(over): called when the pointer moves onto the token (true) and off it (false)
+// rangeMark: 'inRange' or 'outOfRange' while a range tool marks the token (RangeMark in RulerTool.jsx)
 // onHold(characterId, point): a canHold token (Asset, Civilian, a Source's supply) was dragged and
 // released over a character (model, tray card, or the tray's DOM controls strip). point: the table
 // point { x, z } under the pointer at the release.
@@ -61,7 +62,7 @@ function angleTo(pivot, p) {
 // objectRef: standard ref callback for the token's 3D object, for the ruler tools' pointer raycast.
 // centerRef(getter): registers a function that returns the token's live { x, y, z }, for the ruler
 // tools. Called with undefined on unmount, the same pattern as bodyRef/objectRef in CharacterModel.
-export default function CrisisToken({ token, selected, onSelect, onHover, onMove, onTurn, onHold, findCharacter, floorY, objectRef, centerRef }) {
+export default function CrisisToken({ token, selected, rangeMark, onSelect, onHover, onMove, onTurn, onHold, findCharacter, floorY, objectRef, centerRef }) {
   const backKey = token.backKey ?? token.frontKey
   const [frontMap, backMap, damageMap] = useTexture([
     assetUrl(crisisToken(token.frontKey)),
@@ -232,7 +233,7 @@ export default function CrisisToken({ token, selected, onSelect, onHover, onMove
     objectRef?.(obj)
   }
 
-  useOutline(diskRef, outlineMode(selected, hovered))
+  useOutline(diskRef, outlineMode(selected, hovered, rangeMark))
 
   // onHover(true) while the pointer is over the token, onHover(false) after. The cleanup also runs
   // on unmount, so a removed token does not stay hovered.

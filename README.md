@@ -101,6 +101,17 @@ While Place is on, you can drag the selected character only to where its base to
 
 Place does not work for a token: a token has no base to place, only a position that its own drag sets. So Place cannot be turned on while a token or nothing is selected.
 
+### Range marks
+
+A snapped range tool measures against the model or token under the pointer while you drag a handle. Drag the handle toward a piece and move the pointer onto it. That piece gets an outline:
+
+- **Green**: the piece is within range.
+- **Red**: the piece is out of range.
+
+For R2 to R5, a piece is within range when its base touches the tool outline. For R1, a piece is within range when its base is within range 1 of the snapped base, edge to edge, seen from above. See [Range 1](#range-1).
+
+The outline shows only while the pointer is on that piece during the drag. It goes away when the pointer leaves the piece, or when you release the handle. The snapped model is not measured against itself. The movement tools do not measure against pieces.
+
 ### Bending
 
 A movement tool has a hinge in the middle. The round button on the hinge turns bending on and off.
@@ -144,7 +155,7 @@ A panel at the bottom left shows numbers for the last 0.5 s. Hover a label to se
 - **Worst**: the longest time between two frames. A stutter shows here even when FPS looks fine.
 - **CPU**: JavaScript time of a frame: physics, `useFrame` callbacks and sending the draw calls. Pointer events are not included.
 - **GPU**: GPU time of a frame. It needs the `EXT_disjoint_timer_query_webgl2` WebGL extension. Chrome has it, Safari does not, so Safari shows n/a.
-- **Draw calls** and **Triangles**: counts of the last frame, of all renders together (shadow map, scene, outline passes). When a piece is selected, the Outline draws the whole scene one more time, so the triangle count goes up by about one scene.
+- **Draw calls** and **Triangles**: counts of the last frame, of all renders together (shadow map, scene, outline passes). Each outline color that is in use (selected, hovered, and the green or red [range mark](#range-marks)) draws the whole scene one more time, so the triangle count goes up by about one scene for each color.
 - **Canvas**: size of the drawing buffer in device pixels, and the device pixel ratio.
 
 ### Render switch

@@ -321,6 +321,8 @@ function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove) {
 // Handle drag: the pointer turns around a pivot, and onTurn(d, startPose) returns the tool pose
 // for a turn of d (yaw) since the drag started. The tool stays hoverHeight above the table or
 // terrain under its footprint (from groundY), the same as during a drag.
+// onPointer(raycaster): called on each pointer move with a raycaster set to the pointer ray, and
+// with null when the drag ends.
 function useHandleDrag(rigidRef, groundY, hoverHeight) {
   const { camera, gl, controls } = useThree()
   const raycaster = useRef(new THREE.Raycaster())
@@ -353,7 +355,7 @@ function useHandleDrag(rigidRef, groundY, hoverHeight) {
     return raycaster.current.ray.intersectPlane(dragPlane.current, new THREE.Vector3())
   }
 
-  return function startHandleDrag(e, pivot, onTurn) {
+  return function startHandleDrag(e, pivot, onTurn, onPointer) {
     e.stopPropagation()
     const rb = rigidRef.current
     if (!rb) return
@@ -372,6 +374,7 @@ function useHandleDrag(rigidRef, groundY, hoverHeight) {
     const onMove = (ev) => {
       if (ev.pointerId !== pointerId) return
       const hit = planeHit(ev)
+      onPointer?.(raycaster.current)
       if (!hit || Math.hypot(hit.x - pivot.x, hit.z - pivot.z) < 0.01) return
       target.current = onTurn(wrapAngle(yawTo(pivot, hit) - startAngle), startPose)
     }
@@ -379,6 +382,7 @@ function useHandleDrag(rigidRef, groundY, hoverHeight) {
     const onUp = (ev) => {
       if (ev.pointerId !== pointerId) return
       target.current = null
+      onPointer?.(null)
       rigidRef.current?.setBodyType(restType, true)
       if (controls) controls.enabled = true
       window.removeEventListener('pointermove', onMove)
@@ -402,6 +406,50 @@ const CONTACT_EPS = 0.01
 // The same character or token. The tool model objects are made again when the pieces change.
 function sameModel(a, b) {
   return a.kind === b.kind && a.id === b.id
+}
+
+// Range 1, edge to edge seen from above, between the bases of models a and b. The tool width
+// (2 * halfWidth) is range 1.
+function withinRangeOne(a, b, halfWidth) {
+  const ca = a.getCenter()
+  const cb = b.getCenter()
+  return Math.hypot(ca.x - cb.x, ca.z - cb.z) - a.radius - b.radius <= 2 * halfWidth + CONTACT_EPS
+}
+
+// The same mark: both null, or the same piece with the same mode
+function sameMark(a, b) {
+  return a?.kind === b?.kind && a?.id === b?.id && a?.mode === b?.mode
+}
+
+// Range tool: the piece that a handle drag measures against gets a green or red outline (see
+// SelectionOutlines.jsx). measuredRef: the piece under the pointer while a handle of the snapped
+// tool is dragged, else null (set in Tool). In range:
+// - Range 2 to 5: the measured base touches the footprint.
+// - R1 (rangeOne): the measured base is within range 1 of the snapped base.
+// onChange(mark): called when the mark changes, with { kind, id, mode: 'inRange' | 'outOfRange' },
+// or with null. The tool turns on every frame of a drag, so the mark is found on every frame.
+function RangeMark({ rigidRef, turn, halfLength, halfWidth, rangeOne, snap, measuredRef, onChange }) {
+  // The mark of the last onChange call
+  const last = useRef(null)
+
+  // A removed tool marks nothing. Scene passes a state setter, so onChange stays the same function.
+  useEffect(() => () => onChange(null), [])
+
+  useFrame(() => {
+    const model = measuredRef.current
+    let mark = null
+    if (model && snap && rigidRef.current) {
+      const reached = rangeOne
+        ? withinRangeOne(snap.target, model, halfWidth)
+        : footprintGap(toolShape(toolPose(rigidRef.current), turn), halfLength, halfWidth, model.getCenter(), model.radius) <= CONTACT_EPS
+      mark = { kind: model.kind, id: model.id, mode: reached ? 'inRange' : 'outOfRange' }
+    }
+    if (sameMark(mark, last.current)) return
+    last.current = mark
+    onChange(mark)
+  })
+
+  return null
 }
 
 // The tool's footprint straight below the tool, painted by the table and terrain
@@ -430,10 +478,8 @@ function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target
     const center = selected && target?.getCenter()
     let fill = FOOTPRINT_COLOR
     if (center) {
-      const from = rangeFrom && !sameModel(rangeFrom, target) && rangeFrom.getCenter()
-      const reached = from
-        // The tool width is range 1
-        ? Math.hypot(center.x - from.x, center.z - from.z) - target.radius - rangeFrom.radius <= 2 * halfWidth + CONTACT_EPS
+      const reached = rangeFrom && !sameModel(rangeFrom, target)
+        ? withinRangeOne(rangeFrom, target, halfWidth)
         : footprintGap(shape, halfLength, halfWidth, center, target.radius) <= CONTACT_EPS
       fill = reached ? FOOTPRINT_TOUCH : FOOTPRINT_APART
     }
@@ -622,7 +668,9 @@ function BendButton({ on, onClick }) {
 // tip: X of each end (length of each half of the footprint).
 // bendable: a movement tool. Its halves turn around the hinge at the center.
 // rangeOne: the range 1 tool. It snaps with a corner, not an end. See README "Tools", "Range 1".
-function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target, models = [], onSnap, onPlaceLimit, onSpawn }) {
+// onRangeMark(mark): the piece that a handle drag measures against, see RangeMark. Only the range
+// tools pass it. Without it, the tool marks no pieces.
+function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target, models = [], onSnap, onPlaceLimit, onSpawn, onRangeMark }) {
   const [hovered, setHovered] = useState(false)
   const rigidRef = useRef()
   // The tool meshes, without the handles, for the outline
@@ -646,6 +694,8 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
   // Model under the pointer at the last move of a body drag, or null. undefined before the first move.
   // The tool snaps when the pointer moves onto a model, not when the drag starts on one.
   const overRef = useRef(undefined)
+  // Model under the pointer while a handle of the snapped tool is dragged, else null. See RangeMark.
+  const measuredRef = useRef(null)
   const groundY = useFootprintGround(tip, halfWidth, turn)
   // Dragging the tool body makes it free
   const onPointerDown = useDragTool(rigidRef, groundY, hoverHeight, () => {
@@ -680,7 +730,12 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
     // so the tool keeps touching the base. Free: turn around the end of the other half.
     const center = snap?.target.getCenter()
     const pivot = center ?? alongHalf(toolShape(toolPose(rb), turn), OTHER[side], tip)
-    startHandleDrag(e, pivot, (d, pose) => turnAround(pose, pivot, d))
+    // Snapped: the piece under the pointer is the one the tool measures against. Not the snapped one.
+    const snapped = snap?.target
+    startHandleDrag(e, pivot, (d, pose) => turnAround(pose, pivot, d), raycaster => {
+      const model = raycaster && snapped && modelUnder(raycaster)
+      measuredRef.current = model && !sameModel(model, snapped) ? model : null
+    })
   }
 
   // Nearest model under the pointer ray (figure or base), or null
@@ -884,6 +939,18 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
         target={target}
         rangeFrom={rangeOne ? snap?.target ?? null : null}
       />
+      {onRangeMark && (
+        <RangeMark
+          rigidRef={rigidRef}
+          turn={turn}
+          halfLength={tip}
+          halfWidth={halfWidth}
+          rangeOne={rangeOne}
+          snap={snap}
+          measuredRef={measuredRef}
+          onChange={onRangeMark}
+        />
+      )}
     </>
   )
 }

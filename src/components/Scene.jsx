@@ -137,6 +137,9 @@ export default function Scene({
   // A drag of character id keeps its base on that tool (see onPlaceLimit in RulerTool.jsx).
   const placeLimits = useRef({})
   const [draggingCharId, setDraggingCharId] = useState(null)
+  // The piece that a range tool measures against, { kind, id, mode: 'inRange' | 'outOfRange' } or null.
+  // See RangeMark in RulerTool.jsx.
+  const [rangeMark, setRangeMark] = useState(null)
 
   // Nearest character whose model or tray is under the client point (DOM pixels), or null.
   function characterAt(clientX, clientY) {
@@ -248,6 +251,11 @@ export default function Scene({
     })),
   ], [characters, matTokens])
   const toolTarget = toolModels.find(model => selection && model.kind === selection.kind && model.id === selection.id)
+
+  // Outline mode of the range mark on a piece, or null
+  function rangeMarkOf(kind, id) {
+    return rangeMark?.kind === kind && rangeMark.id === id ? rangeMark.mode : null
+  }
 
   function toggleTool(tool) {
     onSelectedToolChange(prev => prev === tool ? null : tool)
@@ -375,6 +383,7 @@ export default function Scene({
               token={tok}
               floorY={floorY}
               selected={selectedTokenId === tok.id}
+              rangeMark={rangeMarkOf('token', tok.id)}
               onSelect={() => toggleSelect('token', tok.id)}
               onHover={tok.heldBy ? over => onHeldHover?.(tok.id, over) : over => onPieceHover?.({ kind: 'token', id: tok.id }, over)}
               onMove={(x, z) => onTokenMove(tok.id, x, z)}
@@ -449,6 +458,7 @@ export default function Scene({
                 rotation={[0, ch.rotation * Math.PI / 180, 0]}
                 teamColor={ch.teamColor}
                 selected={selectedCharId === ch.id}
+                rangeMark={rangeMarkOf('character', ch.id)}
                 onSelect={() => toggleSelect('character', ch.id)}
                 onHover={over => onPieceHover?.({ kind: 'character', id: ch.id }, over)}
                 bodyRef={rb => rb ? charBodies.current.set(ch.id, rb) : charBodies.current.delete(ch.id)}
@@ -515,6 +525,7 @@ export default function Scene({
               models={toolModels}
               onSnap={model => onSelectionChange({ kind: model.kind, id: model.id })}
               onPlaceLimit={limit => { placeLimits.current.range = limit }}
+              onRangeMark={setRangeMark}
             />
           </Suspense>
         )}

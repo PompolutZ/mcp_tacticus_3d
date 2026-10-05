@@ -57,9 +57,10 @@ function turnBetween(a, b) {
 // bodyRef, objectRef: get the Rapier body and the 3D object of the model (figure and base)
 // baseRadius: radius of the base in the model file, which has the game size
 // onHover(over): called when the pointer moves onto the model (true) and off it (false)
+// rangeMark: 'inRange' or 'outOfRange' while a range tool marks the model (RangeMark in RulerTool.jsx)
 // position: where the body starts. Read only on mount: RigidBody moves its body when its position
 // prop changes, and the spawn position follows the tray (Scene.jsx), which can move later.
-export default function CharacterModel({ url, position = [0, 0, 0], baseRadius = BASE_RADIUS, rotation = [0, 0, 0], teamColor = 'red', selected = false, onSelect, onHover, bodyRef, objectRef, onDragStart, onDragEnd, constrainDrag }) {
+export default function CharacterModel({ url, position = [0, 0, 0], baseRadius = BASE_RADIUS, rotation = [0, 0, 0], teamColor = 'red', selected = false, rangeMark, onSelect, onHover, bodyRef, objectRef, onDragStart, onDragEnd, constrainDrag }) {
   const [startPosition] = useState(position)
   const { scene } = useGLTF(url)
   const { camera, gl, controls } = useThree()
@@ -146,7 +147,7 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
     })
   }, [scene, teamColor])
 
-  useOutline(figureRef, outlineMode(selected, hovered))
+  useOutline(figureRef, outlineMode(selected, hovered, rangeMark))
 
   // onHover(true) while the pointer is over the model, onHover(false) after. The cleanup also runs
   // on unmount, so a removed model does not stay hovered.
