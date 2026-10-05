@@ -1,6 +1,6 @@
 # Feature: Key and mouse controls as in TTS
 
-Status: WASD pan, arrow keys, Space, right drag, middle drag, trackpad gestures, Q / E on characters and tools, F, and R done. The rest is a list of differences, not started.
+Status: WASD pan, arrow keys, Space, right drag, middle drag, trackpad gestures, Q / E on characters and tools, F, R, and 0 done. The rest is a list of differences, not started.
 
 ## Goal
 
@@ -64,7 +64,7 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 | − / + | Scale | Nothing | No |
 | Tab | Line tool | Nothing. The range and move tools are not free lines | No |
 | Ctrl + X / C / V | Cut / copy / paste | Nothing | No |
-| Number row 1–9, 0 | Over a deck or a bag: draw that many | Range and move tools (see the next section) | No |
+| Number row 1–9, 0 | Over a deck or a bag: draw that many | Range and move tools. 0 removes every tool (see the next section) | No |
 | PageUp / PageDown | Previous / next state | Nothing | No |
 | H | Hide the hand | Nothing | No |
 | B | Blindfold | Nothing | No |
@@ -99,7 +99,7 @@ The mod handles a key only for the player whose tray it is (Blue or Red).
 | 7 / 8 / 9, pointer over a character | Short / Medium / Long movement tool, snapped | The same | Yes |
 | 6, pointer over a character | Long movement tool in "Toward/Away" mode, snapped | Nothing | No |
 | 1–5, 7–9, no character under the pointer | Removes that tool from the table | Toggles the tool, the same as its toolbar button | Partly |
-| 0 | Returns every tool to the tray | Nothing | No |
+| 0 | Returns every tool to the tray | Removes every tool from the table. The selected pieces stay selected | Yes |
 | 1–9, pointer over the player's own dice tray | Clears the tray and adds that number of dice | Nothing | No |
 
 The app also snaps a tool when the pointer is over a crisis token. The mod only checks characters.
@@ -120,4 +120,4 @@ In order of how often a TTS player will notice them:
 4. **Q / E** to turn a token.
 5. **Alt (hold)** over a card to show it large, as the click popup does now.
 6. **Number key with no character under the pointer.** The mod only removes the tool. The app toggles it, so a second press spawns the tool again.
-7. **Key 6** (Long tool, Toward/Away) and **key 0** (return every tool) of the mod.
+7. **Key 6** (Long tool, Toward/Away) of the mod.

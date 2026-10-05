@@ -75,6 +75,8 @@ Range tools and movement tools work the same way, except for bending. Movement t
 
 A tool hangs 1" above the table. It measures with its outline, which is drawn straight below it on the table and on the tops of terrain. Walls and steep sides (more than about 60°) are not painted. While you drag or rotate the tool, it stays 1" above the table or above any terrain under its outline. Terrain within 0.5" of the outline already raises the tool.
 
+Key **0** removes every tool from the table, as in the mod.
+
 The tool has two states: **snapped** and **free**.
 
 ### Snapped

@@ -25,7 +25,7 @@ import { DEFAULT_AFFILIATION } from './scoreboard/affiliations.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
 import { NO_PIECES, NO_TOOLS, deselectPiece, selectPiece, selectedId } from './selection.js'
-import { DELETE_KEYS, FLIP_KEY, LIFT_KEY, MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, ROTATE_KEYS, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
+import { CLEAR_TOOLS_KEY, DELETE_KEYS, FLIP_KEY, LIFT_KEY, MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, ROTATE_KEYS, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
 
 // Start view, the seat of the blue player. For now every player is Blue. Blue sits at +z (see
 // characters/trays.js). The camera stands behind the blue table edge and looks down at 45° at a
@@ -296,6 +296,7 @@ export default function App() {
     }
     if (RANGE_KEYS[e.key]) handleToolKey('range', RANGE_KEYS[e.key])
     else if (MOVE_KEYS[e.key]) handleToolKey('move', MOVE_KEYS[e.key])
+    else if (e.key === CLEAR_TOOLS_KEY) clearTools()
   }
 
   function handleKeyUp(e) {
@@ -331,6 +332,13 @@ export default function App() {
     if (selectedTools.move) setActiveMove(null)
     setSelectedTools(NO_TOOLS)
     setSelection(NO_PIECES)
+  }
+
+  // Key 0: removes every tool from the table. The selected pieces stay selected.
+  function clearTools() {
+    setActiveRange(null)
+    setActiveMove(null)
+    setSelectedTools(NO_TOOLS)
   }
 
   // tool: 'range' | 'move'. value: the range number or the movement tool type.

@@ -6,6 +6,8 @@ import { useEffect, useLayoutEffect, useRef } from 'react'
 // Toolbar tool buttons: key → range number, and key → movement tool type
 export const RANGE_KEYS = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 }
 export const MOVE_KEYS = { 7: 'short', 8: 'medium', 9: 'long' }
+// Removes every tool from the table, as key 0 of the mod (returns every tool to the tray)
+export const CLEAR_TOOLS_KEY = '0'
 // Camera pan, WASD as in TTS: key code → screen direction [right, up]. Up moves toward the top of the screen.
 // Key codes, not key values, so the keys stay in the same place on every keyboard layout.
 export const PAN_KEYS = { KeyW: [0, 1], KeyS: [0, -1], KeyA: [-1, 0], KeyD: [1, 0] }
