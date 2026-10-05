@@ -81,7 +81,7 @@ A tool also snaps to a model while you drag it: when the pointer moves onto a mo
 
 Dragging a handle rotates the tool around the center of that model's base. The distance between the tool and the base does not change, so the tool keeps touching the base.
 
-The tool stays snapped to the same model when you select another model. It also stays snapped when you drag that model with **Place** on, because the base keeps touching the tool.
+The tool stays snapped to the same model when you select another model. It also stays snapped when **Place** moves that model, or when you drag it with Place on, because the base keeps touching the tool.
 
 ### Free
 
@@ -93,9 +93,11 @@ Dragging a handle rotates the tool around the opposite handle.
 
 **Place** turns on and off. A selected range or movement tool has a Place button near each end. Both buttons show the same state.
 
+Turning Place on moves the selected character to the end of the button that you pressed. Its base then touches that end from outside. If the tool is snapped to that character, the tool stays snapped to it at that end. Turning Place off does not move anything.
+
 While Place is on, you can drag the selected character only to where its base touches the tool outline, so the outline stays green. When the pointer goes farther, the base stops at the nearest point where it still touches the outline. The deploy line limits a drag in the same way. You can still move and rotate the tool while Place is on.
 
-Place does not move a model by itself. It also does not work for a token: a token has no base to place, only a position that its own drag sets. So Place cannot be turned on while a token or nothing is selected.
+Place does not work for a token: a token has no base to place, only a position that its own drag sets. So Place cannot be turned on while a token or nothing is selected.
 
 ### Bending
 

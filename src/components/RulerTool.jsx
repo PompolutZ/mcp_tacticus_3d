@@ -574,7 +574,8 @@ function PlaceButton({ toolWidth, on, disabled = false, disabledTitle = 'Select 
         transform: `rotate(-90deg) scale(${PLACE_FILL * toolWidth})`,
       }}
       disabled={disabled}
-      title={disabled ? disabledTitle : on ? 'Place on: the selected character stays touching the tool' : undefined}
+      title={disabled ? disabledTitle : on ? 'Place on: the selected character stays touching the tool'
+        : on === false ? 'Move the selected character to this end, and keep it on the tool' : undefined}
       onClick={onClick}
     >
       Place
@@ -772,6 +773,21 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
     body.setAngvel({ x: 0, y: 0, z: 0 }, true)
   }
 
+  // Turning Place on with the button at one end moves the selected character to that end, so its
+  // base touches the end from outside. Turning it off does not move anything.
+  function togglePlace(e, side) {
+    e.stopPropagation()
+    if (placeOn) {
+      setPlaceOn(false)
+      return
+    }
+    if (!target?.getBody || !rigidRef.current) return
+    moveBase(target, alongHalf(toolShape(toolPose(rigidRef.current), turn), side, tip + target.radius))
+    // The snapped model now touches this end, so the tool stays snapped to it at this end
+    if (snap && sameModel(snap.target, target)) setSnap({ target: snap.target, side })
+    setPlaceOn(true)
+  }
+
   // Range 1 tool, snapped: move the selected character across the tool, so its base touches the other
   // long side at the same corner. Its base edge is then 1" (the tool width) from the snapped base edge.
   // If it is the snapped model, it now touches the other long side, so the tool stays snapped to it.
@@ -819,7 +835,7 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
                   toolWidth={halfWidth * 2}
                   on={placeOn}
                   disabled={!placeOn && !target?.getBody}
-                  onClick={(e) => { e.stopPropagation(); setPlaceOn(on => !on) }}
+                  onClick={(e) => togglePlace(e, side)}
                 />
               </FlatHtml>
             )}
