@@ -438,6 +438,9 @@ export function DeployRangeTool({ getBody, centerZ, yaw, hoverHeight = 1 }) {
   const obj = useMemo(() => textured(raw.clone(), map), [raw, map])
   const groupRef = useRef()
   const slotRef = useRef(null)
+  const groundY = useFootprintGround(RANGE_TIP[3], RANGE_HALF_WIDTH, STRAIGHT)
+  // Height of the tool, or null before the first frame
+  const yRef = useRef(null)
 
   useEffect(() => {
     slotRef.current = acquireFootprint()
@@ -447,11 +450,18 @@ export function DeployRangeTool({ getBody, centerZ, yaw, hoverHeight = 1 }) {
     }
   }, [])
 
-  useFrame(() => {
+  useFrame((_, dt) => {
     const body = getBody()
     if (!body || !groupRef.current) return
     const { x } = body.translation()
-    groupRef.current.position.set(x, hoverHeight, centerZ)
+    // hoverHeight above the table or terrain under the footprint, the same as a dragged tool.
+    // Off the table there is no ground, so keep the current height.
+    const ground = groundY(x, centerZ, yaw)
+    if (ground !== null) {
+      const goal = ground + hoverHeight
+      yRef.current = yRef.current === null ? goal : yRef.current + (goal - yRef.current) * Math.min(1, dt * HOVER_RATE)
+    }
+    groupRef.current.position.set(x, yRef.current ?? hoverHeight, centerZ)
     groupRef.current.rotation.y = yaw
     if (slotRef.current) {
       const shape = { x, z: centerZ, right: yaw, left: yaw + Math.PI }
