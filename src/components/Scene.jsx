@@ -43,9 +43,10 @@ function fitTableTexture(texture) {
 }
 // Tools hang this far above the table and measure by the outline cast below them
 const TOOL_HOVER_HEIGHT = 1
-// Only one player uses the app for now, so the toolbar tools are blue. Per-side tools come later
+// The side of the player. Only one player uses the app for now, so it is Blue: the toolbar tools
+// are blue, and the number keys add dice only to the blue dice tray. Per-side tools come later
 // (docs/feature-peer-to-peer.md).
-const TOOL_TEAM = 'blue'
+const PLAYER_TEAM = 'blue'
 // Two physics steps per frame. With one, a model dropped from high up sometimes gets stuck in terrain.
 const TIME_STEP = 1 / 120
 // Tokens held by one character lie on its card in a stack, in the order they were taken, so two
@@ -122,6 +123,9 @@ function Mat({ mat }) {
 // turnPieceRef: ref App calls with a direction for Q / E, the same pattern as characterAtRef. Scene
 // fills it with turnPiece. heldRotate: ref to a Map of the Q / E keys held down, key code → direction.
 // liftPieceRef: ref App calls for R, the same pattern. Scene fills it with liftPiece.
+// onDiceTrayHover(over): the pointer moved onto or off the player's dice tray, for the number keys.
+// addDiceRef: ref App calls with a count for the number keys over that tray. The tray fills it
+// with its addDice (DiceTray.jsx).
 // onTokenHold(tokenId, characterId, cardPoint): a canHold token was released over a character.
 // cardPoint: the tray-local [x, z] on that character's card (trays.js, trayHeldLocal) when the
 // release point is on its tray, otherwise null.
@@ -132,7 +136,7 @@ function Mat({ mat }) {
 // ScoreBoard.jsx.
 export default function Scene({
   mapId, characters = [], activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, heldRotate, scoreMarkers, affiliations, onScoreMarkerMove,
+  crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, onDiceTrayHover, addDiceRef, heldRotate, scoreMarkers, affiliations, onScoreMarkerMove,
 }) {
   const map = MAPS[mapId]
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
@@ -453,6 +457,8 @@ export default function Scene({
             openMenuSymbol={diceMenu?.trayKey === trayKey ? diceMenu.symbol : null}
             onMenuToggle={symbol => onDiceMenuToggle(trayKey, symbol)}
             onMenuClose={onDiceMenuClose}
+            onHover={trayKey === PLAYER_TEAM ? onDiceTrayHover : undefined}
+            addRef={trayKey === PLAYER_TEAM && addDiceRef ? add => { addDiceRef.current = add } : undefined}
           />
         ))}
 
@@ -608,7 +614,7 @@ export default function Scene({
           <Suspense key={`${activeMove}-${toolSpawns.move}`} fallback={null}>
             <MovementRuler
               type={activeMove}
-              team={TOOL_TEAM}
+              team={PLAYER_TEAM}
               position={[0, TOOL_HOVER_HEIGHT, -6]}
               hoverHeight={TOOL_HOVER_HEIGHT}
               selected={selectedTools.move}
@@ -639,7 +645,7 @@ export default function Scene({
           <Suspense key={`${activeRange}-${toolSpawns.range}`} fallback={null}>
             <RangeRuler
               number={activeRange}
-              team={TOOL_TEAM}
+              team={PLAYER_TEAM}
               position={[0, TOOL_HOVER_HEIGHT, 6]}
               hoverHeight={TOOL_HOVER_HEIGHT}
               selected={selectedTools.range}

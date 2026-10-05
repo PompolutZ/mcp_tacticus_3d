@@ -25,7 +25,7 @@ import { DEFAULT_AFFILIATION } from './scoreboard/affiliations.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
 import { NO_PIECES, NO_TOOLS, deselectPiece, selectPiece, selectedId } from './selection.js'
-import { CLEAR_TOOLS_KEY, DELETE_KEYS, FLIP_KEY, LIFT_KEY, MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, ROTATE_KEYS, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
+import { CLEAR_TOOLS_KEY, DELETE_KEYS, DICE_KEYS, FLIP_KEY, LIFT_KEY, MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, ROTATE_KEYS, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
 
 // Start view, the seat of the blue player. For now every player is Blue. Blue sits at +z (see
 // characters/trays.js). The camera stands behind the blue table edge and looks down at 45° at a
@@ -165,6 +165,10 @@ export default function App() {
   const hoveredHeldRef = useRef(null)
   // Id of the character whose tray card is under the pointer, for the F key
   const hoveredTrayCardRef = useRef(null)
+  // True while the pointer is over the player's dice tray, for the number keys
+  const diceTrayHoveredRef = useRef(false)
+  // The player's dice tray fills it with its addDice: adds that many dice. See DiceTray.jsx.
+  const addDiceRef = useRef(null)
   // A token drag in progress: { tokenKey, looseId, supplyCard, active, start } | null. looseId: the
   // table token that is dragged, or null for a new token from a source. supplyCard: the card key
   // when the new token comes from the supply pile of a Source card (tokenKey is then a crisis token
@@ -292,6 +296,11 @@ export default function App() {
     }
     if (e.code === LIFT_KEY) {
       liftPieceRef.current?.()
+      return
+    }
+    // Over the player's dice tray, the number keys add dice, not tools
+    if (DICE_KEYS[e.key] && diceTrayHoveredRef.current) {
+      addDiceRef.current?.(DICE_KEYS[e.key])
       return
     }
     if (RANGE_KEYS[e.key]) handleToolKey('range', RANGE_KEYS[e.key])
@@ -740,6 +749,8 @@ export default function App() {
               modelPositionRef={modelPositionRef}
               turnPieceRef={turnPieceRef}
               liftPieceRef={liftPieceRef}
+              onDiceTrayHover={over => { diceTrayHoveredRef.current = over }}
+              addDiceRef={addDiceRef}
               heldRotate={heldRotate}
               scoreMarkers={scoreMarkers}
               affiliations={affiliations}

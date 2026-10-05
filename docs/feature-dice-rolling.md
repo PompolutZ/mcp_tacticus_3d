@@ -113,6 +113,14 @@ A plate with no dice cannot be clicked. The menu is screen-space HTML at the pla
 
 One limit: the keys are HTML on top of the canvas. Therefore dice and models in front of the keys do not hide them.
 
+## Controls: number keys
+
+With the pointer over the player's own dice tray, keys 1–9 add that number of dice, and 0 adds 10. Each press adds to the dice that are already in the tray. When the tray would go over 42 dice, the key adds only the dice that are left to 42. For now the player is Blue, so only the blue tray takes the keys (`PLAYER_TEAM` in `src/components/Scene.jsx`). Away from the tray, the number keys spawn tools (see `docs/feature-key-shortcuts.md`).
+
+In TTS, keys 1–9 over the tray first clear it and then add that number of dice. The app does not clear the tray, so a player can add more dice with a second press.
+
+One side effect: a click on the player's tray does not clear the selection. The tray has pointer handlers for the hover, so R3F counts the click as a hit.
+
 ## Roll flow
 
 The flow follows the TTS tray script, with three changes (see the list after the steps).
@@ -345,7 +353,6 @@ The app uses these ideas from other projects:
 
 ## Open questions
 
-- Keyboard shortcuts? In TTS, keys 1–9 over the tray clear it and add that number of dice.
 - `ASSETS.md` has three errors about the die:
   - The mesh `868485988860654056` belongs to the retired "Click Roller Universal". It is not the die.
   - The die texture is 2048 × 2048, not 1024.

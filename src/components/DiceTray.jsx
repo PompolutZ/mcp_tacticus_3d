@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF, useTexture } from '@react-three/drei'
 import { RigidBody, TrimeshCollider, ConvexHullCollider, useRapier } from '@react-three/rapier'
@@ -98,7 +98,10 @@ function Die({ id, dice, geometry, material }) {
 // One dice tray: the tray body, the dice bodies, the roll flow, and the keys on the tray (see
 // DiceKeys.jsx). trayKey: 'blue' | 'red'. openMenuSymbol, onMenuToggle, onMenuClose: the face
 // menu of this tray, lifted to App so Escape can close it.
-export default function DiceTray({ trayKey, openMenuSymbol = null, onMenuToggle, onMenuClose }) {
+// onHover(over): the pointer moved onto (true) or off (false) the tray, for the number keys.
+// addRef(addDice): gets addDice, for the number keys, and null on unmount. Both are only given
+// for the player's tray (Scene.jsx).
+export default function DiceTray({ trayKey, openMenuSymbol = null, onMenuToggle, onMenuClose, onHover, addRef }) {
   const tray = TRAYS[trayKey]
   const { rapier } = useRapier()
 
@@ -290,11 +293,19 @@ export default function DiceTray({ trayKey, openMenuSymbol = null, onMenuToggle,
     return true
   }
 
+  // Adds `count` dice, fewer when the tray reaches MAX_DICE. Returns how many it added.
+  function addDice(count) {
+    let added = 0
+    while (added < count && addDie()) added++
+    if (added > 0) setIds(idsRef.current.slice())
+    return added
+  }
+
   // add/remove/roll/clear/addCrits/reroll/change read and write `dice` and `idsRef` directly (not
   // React state), so they stay correct no matter how long ago this component last rendered. The
   // keys on the tray call them (DiceKeys.jsx).
   function add() {
-    if (addDie()) setIds(idsRef.current.slice())
+    addDice(1)
   }
 
   // Removes the last added die that is not on the shelf. Does nothing when every die is on the
@@ -337,17 +348,7 @@ export default function DiceTray({ trayKey, openMenuSymbol = null, onMenuToggle,
   // clear() is what allows it again.
   function addCrits() {
     if (critsUsedRef.current) return
-    const n = shelfCounts().crit
-    if (n <= 0) return
-    let added = 0
-    for (let i = 0; i < n; i++) {
-      if (!addDie()) break
-      added++
-    }
-    if (added > 0) {
-      critsUsedRef.current = true
-      setIds(idsRef.current.slice())
-    }
+    if (addDice(shelfCounts().crit) > 0) critsUsedRef.current = true
   }
 
   // Moves one shelf die showing `symbol` back into the well, dynamic again, at a free drop point.
@@ -400,6 +401,12 @@ export default function DiceTray({ trayKey, openMenuSymbol = null, onMenuToggle,
     lastReported.current = { well, critsAvailable, shelf }
     setKeys(lastReported.current)
   }
+
+  // Registered on every render, the same as the turn of a tool (RulerTool.jsx)
+  useEffect(() => {
+    addRef?.(addDice)
+    return () => addRef?.(null)
+  })
 
   // The roll flow: read faces once a thrown die rests (in the well or outside it, as in TTS),
   // throw a tilted die again, move a lost die (fell off the table, non-finite) back above the well,
@@ -478,7 +485,14 @@ export default function DiceTray({ trayKey, openMenuSymbol = null, onMenuToggle,
         colliders={false}
       >
         <TrimeshCollider args={[trayVertices, trayIndices, rapier.TriMeshFlags.FIX_INTERNAL_EDGES]} friction={FRICTION} />
-        <group scale={TRAY_SCALE}>
+        {/* A die in the tray does not hide the tray from the pointer: the die has no pointer
+            handlers. A tray with these handlers counts as a hit for R3F, so a click on it does not
+            clear the selection (onPointerMissed in App.jsx). */}
+        <group
+          scale={TRAY_SCALE}
+          onPointerOver={onHover && (() => onHover(true))}
+          onPointerOut={onHover && (() => onHover(false))}
+        >
           <primitive object={trayVisual} rotation={IMPORT_ROTATION} />
         </group>
         <DiceKeys

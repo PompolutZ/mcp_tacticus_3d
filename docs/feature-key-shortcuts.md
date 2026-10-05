@@ -1,6 +1,6 @@
 # Feature: Key and mouse controls as in TTS
 
-Status: WASD pan, arrow keys, Space, right drag, middle drag, trackpad gestures, Q / E on characters and tools, F, R, and 0 done. The rest is a list of differences, not started.
+Status: WASD pan, arrow keys, Space, right drag, middle drag, trackpad gestures, Q / E on characters and tools, F, R, 0, and number keys over the dice tray done. The rest is a list of differences, not started.
 
 ## Goal
 
@@ -100,7 +100,7 @@ The mod handles a key only for the player whose tray it is (Blue or Red).
 | 6, pointer over a character | Long movement tool in "Toward/Away" mode, snapped | Nothing | No |
 | 1–5, 7–9, no character under the pointer | Removes that tool from the table | Toggles the tool, the same as its toolbar button | Partly |
 | 0 | Returns every tool to the tray | Removes every tool from the table. The selected pieces stay selected | Yes |
-| 1–9, pointer over the player's own dice tray | Clears the tray and adds that number of dice | Nothing | No |
+| 1–9, pointer over the player's own dice tray | Clears the tray and adds that number of dice | Adds that number of dice, 0 adds 10. It does not clear the tray. A tray holds at most 42 dice. See `docs/feature-dice-rolling.md` | Partly |
 
 The app also snaps a tool when the pointer is over a crisis token. The mod only checks characters.
 
@@ -116,8 +116,8 @@ In order of how often a TTS player will notice them:
 
 1. **Left drag on the empty table.** It turns the camera. In TTS it box-selects, and the app has no box select.
 2. **Left drag on a piece.** In TTS a player drags a piece at once. In the app the piece must be selected first.
-3. **Number keys over a dice tray.** Clear the tray and add that number of dice (also an open question in `feature-dice-rolling.md`).
-4. **Q / E** to turn a token.
-5. **Alt (hold)** over a card to show it large, as the click popup does now.
-6. **Number key with no character under the pointer.** The mod only removes the tool. The app toggles it, so a second press spawns the tool again.
-7. **Key 6** (Long tool, Toward/Away) of the mod.
+3. **Q / E** to turn a token.
+4. **Alt (hold)** over a card to show it large, as the click popup does now.
+5. **Number key with no character under the pointer.** The mod only removes the tool. The app toggles it, so a second press spawns the tool again.
+6. **Key 6** (Long tool, Toward/Away) of the mod.
+7. **Number keys over a dice tray.** The mod clears the tray first. The app only adds dice.
