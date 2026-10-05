@@ -98,6 +98,12 @@ Both `face` and `back` images per crisis card. These are the 24 cards of the 202
 
 The crisis cards and their tokens are copied to `src/assets/crisis/`, and the data is in `src/crisis/`. `scripts/migrate-crisis.mjs` does this, and `scripts/fetch-jarvis-crisis-cards.mjs` downloads the card text from Jarvis. See `scripts/README.md`.
 
+### Tactic card images (TTC)
+
+Named `httpsd37ev18qvj5a3mcloudfrontnetttsttcXXXX.png/jpg`. The `cardDatabase` of the `Database` object has 389 released tactic cards, each with a face (rules text) and a back (name on full-colour art). On 2026-10-05, the cache had both images of 69 cards. The cache also has older faces without `_sat` in the name, which are lighter versions of the current faces.
+
+The cards are copied to `src/assets/tactics/` by `scripts/migrate-tactics.mjs`; see `scripts/README.md`.
+
 ### Crisis token images
 
 Named `httpsd37ev18qvj5a3mcloudfrontnetttstokenobjectiveXXXX.png`, 300 × 300. The cache has all objective tokens that the mod places for the current cards.

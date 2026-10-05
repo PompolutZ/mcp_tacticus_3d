@@ -1,0 +1,278 @@
+{
+  "all-according-to-plan": {
+    "id": "00290201",
+    "name": "All According to Plan"
+  },
+  "attilan-rising": {
+    "id": "00340201",
+    "name": "Attilan Rising"
+  },
+  "brace-for-impact": {
+    "id": "00010202",
+    "name": "Brace for Impact"
+  },
+  "corporate-espionage": {
+    "id": "01540202",
+    "name": "Corporate Espionage"
+  },
+  "deeds-worth-of-song": {
+    "id": "00940201",
+    "name": "Deeds Worth of Song"
+  },
+  "directive-one": {
+    "id": "00510201",
+    "name": "Directive One"
+  },
+  "do-you-know-who-i-am": {
+    "id": "00560201",
+    "name": "Do You Know Who I Am?"
+  },
+  "doomed-prophecy": {
+    "id": "00120201",
+    "name": "Doomed Prophecy"
+  },
+  "extinction-event": {
+    "id": "30090203",
+    "name": "Extinction Event"
+  },
+  "fall-back": {
+    "id": "00520201",
+    "name": "Fall Back"
+  },
+  "for-a-limited-time-only": {
+    "id": "00910201",
+    "name": "For A Limited Time Only"
+  },
+  "freyjas-blessing": {
+    "id": "00910202",
+    "name": "Freyja's Blessing"
+  },
+  "genetic-prophecy": {
+    "id": "01660201",
+    "name": "Genetic Prophecy"
+  },
+  "giants-blood": {
+    "id": "00910203",
+    "name": "Giant's Blood"
+  },
+  "heart-of-the-worthy": {
+    "id": "00910204",
+    "name": "Heart of The Worthy"
+  },
+  "i-am-a-baron-after-all": {
+    "id": "1430206",
+    "name": "I Am a Baron, After All"
+  },
+  "indomitable": {
+    "id": "00570202",
+    "name": "Indomitable"
+  },
+  "inhuman-queen": {
+    "id": "01660203",
+    "name": "Inhuman Queen"
+  },
+  "inhuman-royal-family": {
+    "id": "00340203",
+    "name": "Inhuman Royal Family"
+  },
+  "jabari-chieftain": {
+    "id": "01160201",
+    "name": "Jabari Chieftain"
+  },
+  "joint-effort": {
+    "id": "1430207",
+    "name": "Joint effort"
+  },
+  "know-thy-enemy": {
+    "id": "30090205",
+    "name": "Know Thy Enemy"
+  },
+  "last-minute-save": {
+    "id": "00350202",
+    "name": "Last-Minute Save"
+  },
+  "lethal-protector": {
+    "id": "00090201",
+    "name": "Lethal Protector"
+  },
+  "lovable-misfits": {
+    "id": "00280202",
+    "name": "Lovable Misfits"
+  },
+  "mind-if-i-cut-in": {
+    "id": "00600203",
+    "name": "Mind If I Cut In?"
+  },
+  "odins-blessing": {
+    "id": "00110201",
+    "name": "Odin's Blessing"
+  },
+  "one-below-all": {
+    "id": "01440202",
+    "name": "One Below All"
+  },
+  "online-and-operational": {
+    "id": "01600201",
+    "name": "Online and Operational"
+  },
+  "patch-up": {
+    "id": "00010213",
+    "name": "Patch Up"
+  },
+  "plundered-goods": {
+    "id": "01260202",
+    "name": "Plundered Goods"
+  },
+  "power-couple": {
+    "id": "01910202",
+    "name": "Power Couple"
+  },
+  "power-of-the-cosmos": {
+    "id": "00250202",
+    "name": "Power of the Cosmos"
+  },
+  "price-of-failure": {
+    "id": "00150203",
+    "name": "Price of Failure"
+  },
+  "protector-of-the-empire": {
+    "id": "20130202",
+    "name": "Protector of the Empire"
+  },
+  "pyrotechnics": {
+    "id": "00820202",
+    "name": "Pyrotechnics"
+  },
+  "rainbow-bridge": {
+    "id": "00280203",
+    "name": "Rainbow Bridge"
+  },
+  "recalibration-matrix": {
+    "id": "00050203",
+    "name": "Recalibration Matrix"
+  },
+  "replusor-refraction": {
+    "id": "1430209",
+    "name": "Replusor Refraction"
+  },
+  "ride-of-the-valkyries": {
+    "id": "00940202",
+    "name": "Ride of the Valkyries"
+  },
+  "royal-guardians": {
+    "id": "01660205",
+    "name": "Royal Guardians"
+  },
+  "sacrifice": {
+    "id": "00010215",
+    "name": "Sacrifice"
+  },
+  "simpleton-ill-do-it-myself": {
+    "id": "01450202",
+    "name": "Simpleton! I'll Do It Myself!"
+  },
+  "sitrep": {
+    "id": "00550208",
+    "name": "Sitrep"
+  },
+  "smash": {
+    "id": "00010217",
+    "name": "Smash"
+  },
+  "spider-sleuth": {
+    "id": "01700204",
+    "name": "Spider-Sleuth"
+  },
+  "spider-totem-the-bride": {
+    "id": "01700203",
+    "name": "Spider Totem: The Bride"
+  },
+  "spirit-of-wakanda": {
+    "id": "01160202",
+    "name": "Spirit of Wakanda"
+  },
+  "stalwart-determination": {
+    "id": "00390204",
+    "name": "Stalwart Determination"
+  },
+  "static-arc": {
+    "id": "01560204",
+    "name": "Static Arc"
+  },
+  "survival": {
+    "id": "01070202",
+    "name": "Survival"
+  },
+  "tactical-maneuvers": {
+    "id": "00380203",
+    "name": "Tactical Maneuvers"
+  },
+  "terrigenesis": {
+    "id": "00340204",
+    "name": "Terrigenesis"
+  },
+  "the-air-force": {
+    "id": "00380204",
+    "name": "The Air Force"
+  },
+  "the-bar-with-no-doors": {
+    "id": "00670204",
+    "name": "The Bar With No Doors"
+  },
+  "the-magus": {
+    "id": "01910204",
+    "name": "The Magus"
+  },
+  "to-ash-and-cinder": {
+    "id": "00610202",
+    "name": "To Ash and Cinder"
+  },
+  "totem-of-the-tiger-god": {
+    "id": "01680204",
+    "name": "Totem of the Tiger God"
+  },
+  "tricksters-boon": {
+    "id": "00910205",
+    "name": "Trickster's Boon"
+  },
+  "under-your-skin": {
+    "id": "01600202",
+    "name": "Under Your Skin"
+  },
+  "usurp-the-throne": {
+    "id": "00070202",
+    "name": "Usurp the Throne"
+  },
+  "vibranium-shielding": {
+    "id": "00080202",
+    "name": "Vibranium Shielding"
+  },
+  "wakanda-forever": {
+    "id": "00070203",
+    "name": "Wakanda Forever"
+  },
+  "warpath": {
+    "id": "00470203",
+    "name": "Warpath"
+  },
+  "warriors-oath": {
+    "id": "00940204",
+    "name": "Warriors' Oath"
+  },
+  "wisdom-of-the-ancestors": {
+    "id": "01580205",
+    "name": "Wisdom of the Ancestors"
+  },
+  "wolverines": {
+    "id": "00710202",
+    "name": "Wolverines"
+  },
+  "x-ceptional-healing": {
+    "id": "00400202",
+    "name": "X-Ceptional Healing"
+  },
+  "yoink": {
+    "id": "00450203",
+    "name": "Yoink"
+  }
+}

@@ -355,6 +355,49 @@ npm run fetch-jarvis-crisis-cards
 - `setup` is the letter of the setup map. `challengerStatus` and `timelines` give the legality. The text has the same markup as the character text, and also `|<slug>Label|` (token with an icon), `|$A-Map A|` (link to a setup map) and `|=...=|` (a note by Jarvis, not card text).
 - `mcp_tacticus` uses this data in `src/data/crisisCards.json`, after `scripts/fetch-crisis-cards.mjs` removes the markup.
 
+# TTS tactic cards
+
+`migrate-tactics.mjs` copies the tactic cards (Team Tactic Cards, TTC) of the TTS mod to `src/assets/tactics/`. It converts the face and the back of each card. It writes the app data to `src/tactics/cards.json`, and the source URLs to `scripts/tactic-manifest.json`. `src/tactics/files.js` names the files after the keys.
+
+Requirements: ImageMagick, and the images in the TTS cache. TTS downloads a card image only when the card is out of the "Tactic Cards" bag. On 2026-10-05, the cache had both images of 69 of the 389 released cards.
+
+## Usage
+
+```bash
+npm run migrate-tactics -- --list          # tactic cards of the mod and their status
+npm run migrate-tactics                    # migrate every card that has its files in the TTS cache
+npm run migrate-tactics -- --out /tmp/try  # trial run: nothing is written to the repo
+npm run migrate-tactics -- --force         # convert files again that the manifest already lists
+```
+
+The script migrates every card that has its face and back in the TTS cache or already migrated. It makes an image smaller when its largest side is more than 1040 px (`CARD_SIZE`), and it does not make small images larger. Most sources are about 720×1040, so the cards have about the same size in the app. The other sources go from 180×252 (the back of Corporate Espionage, which looks blurry) to 2048 px or more (Extinction Event, Know Thy Enemy, Static Arc).
+
+## Output
+
+| Output | Content |
+|---|---|
+| `src/assets/tactics/<key>-face.webp` | Face of a card: the rules text on pale art |
+| `src/assets/tactics/<key>-back.webp` | Back of a card: the card name on full-colour art |
+| `src/tactics/cards.json` | One entry per card: `id` (MCT code) and `name` (with the spelling of the mod) |
+
+`<key>` is the card name as a slug, without apostrophes and dots, for example `freyjas-blessing`.
+
+## TTS rules that the script depends on
+
+These rules were found on 2026-10-05 in the scripts of the "Database" object and Global.
+
+- The cards are the rows of `cardDatabase` with `type = tTac`. The script leaves out the 13 rows with `released = false`, for example the 6 Ultimate Infinity Gems and Mutant X.
+- `face` and `back` are one URL, or a list with one URL per printed version of the card (42 cards). `recSpawnCard()` in Global spawns the first version, and the "Tactic Cards" bag also has the first version. So the script uses the first version.
+- Every card has its own back image.
+- Many face URLs end in `_sat`. The TTS cache still has older faces of the same cards without `_sat`. They have the same art and text, but they are lighter. The script does not use them.
+- The rows also have `tags`, `affiliation`, `list` (Rotated, Restricted, Banned) and `description` (the rules text). These fields have errors, for example the affiliation "Asguard", or no affiliation on Deeds Worth of Song (an Asgard card). So the script does not copy them.
+
+## What the app still needs
+
+1. Card text, affiliation and legality.
+2. The images of the other 320 cards. TTS must download them first.
+3. Display of the cards in the app.
+
 # TTS dice migration
 
 `migrate-dice.mjs` writes the dice tray assets to `src/assets/dice/`: the die mesh and texture, the tray mesh and texture, and the 6 result icons. See `docs/feature-dice-rolling.md` for the design and `docs/plan-dice-rolling.md` for the face table and the tray numbers.
