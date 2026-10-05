@@ -393,9 +393,12 @@ export default function Scene({
                 objectRef={obj => obj ? charObjects.current.set(ch.id, obj) : charObjects.current.delete(ch.id)}
                 onDragStart={() => setDraggingCharId(ch.id)}
                 onDragEnd={() => setDraggingCharId(null)}
+                // A base is within range if any part of it is within range (p8). So the base can
+                // go as far as touching the far end of the tool: its center is one radius past it.
                 constrainDrag={deployLine ? (p) => {
-                  if (ch.teamColor === 'blue') p.z = Math.max(p.z, MAT_SIZE / 2 - deployDepth)
-                  else p.z = Math.min(p.z, -(MAT_SIZE / 2 - deployDepth))
+                  const limit = MAT_SIZE / 2 - deployDepth - BASE_DIAMETER[ch.base] / 2
+                  if (ch.teamColor === 'blue') p.z = Math.max(p.z, limit)
+                  else p.z = Math.min(p.z, -limit)
                 } : undefined}
               />
             )}
