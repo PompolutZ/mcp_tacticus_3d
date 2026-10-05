@@ -52,6 +52,61 @@ export function trayOnTokenPosition(index, count) {
   return [FIRST_TOKEN_X + index * pitch, ON_Z]
 }
 
+// An objective token that the character holds (an Extract token, see docs/characters-hud.md, "Hold
+// and drop") lies on the card, as in TTS. Its place is stored in tray-local [x, z], so it moves with
+// the tray. The default place is the character art: on every card, the art fills the left column
+// below the stat box, about the left 26% of the width and the bottom 65% of the height. HELD_ART is
+// its center, as a fraction of the card width (u, from the left) and height (v, from the top).
+const HELD_ART = { u: 0.13, v: 0.67 }
+// A crisis token is a 1" circle (CrisisToken.jsx, RADIUS).
+const HELD_RADIUS = 0.5
+// Each next token in the default place is this far toward the card top, so the tokens under it show.
+const HELD_STEP = 0.4
+
+// Tray-local [x, z] of card point (u, v). The card image top is local -z (see trayYaw).
+function cardPoint(u, v) {
+  return [(u - 0.5) * TRAY_CARD_WIDTH, TRAY_CARD_LOCAL_Z + (v - 0.5) * TRAY_CARD_HEIGHT]
+}
+
+// Moves a tray-local [x, z] so that the whole token lies on the card.
+function clampToCard([x, z]) {
+  const maxX = TRAY_CARD_WIDTH / 2 - HELD_RADIUS
+  const maxZ = TRAY_CARD_HEIGHT / 2 - HELD_RADIUS
+  return [
+    Math.max(-maxX, Math.min(x, maxX)),
+    TRAY_CARD_LOCAL_Z + Math.max(-maxZ, Math.min(z - TRAY_CARD_LOCAL_Z, maxZ)),
+  ]
+}
+
+// Tray-local [x, z] of the default place of a newly held token, when the character already holds
+// `heldCount` tokens.
+export function trayHeldDefault(heldCount) {
+  const [x, z] = cardPoint(HELD_ART.u, HELD_ART.v)
+  return clampToCard([x, z - heldCount * HELD_STEP])
+}
+
+// Tray-local [x, z] of the table point { x, z } on the tray at `trayPos`, moved onto the card. A red
+// tray is turned 180 deg (trayYaw), so its local axes point the other way in world x and z.
+export function trayHeldLocal(teamColor, trayPos, point) {
+  const side = teamColor === 'blue' ? 1 : -1
+  return clampToCard([(point.x - trayPos[0]) * side, (point.z - trayPos[2]) * side])
+}
+
+// Table [x, z] of tray-local `local` on the tray at `trayPos`. The inverse of trayHeldLocal.
+export function trayHeldWorld(teamColor, trayPos, local) {
+  const side = teamColor === 'blue' ? 1 : -1
+  return [trayPos[0] + local[0] * side, trayPos[2] + local[1] * side]
+}
+
+// Card point (u, v) of tray-local `local`, as fractions of the card width and height, for the tray
+// popup (TrayPopup.jsx). The inverse of cardPoint.
+export function trayHeldCardPoint(local) {
+  return { u: local[0] / TRAY_CARD_WIDTH + 0.5, v: (local[1] - TRAY_CARD_LOCAL_Z) / TRAY_CARD_HEIGHT + 0.5 }
+}
+
+// Token diameter as a fraction of the card width, for the tray popup.
+export const HELD_SIZE_U = (HELD_RADIUS * 2) / TRAY_CARD_WIDTH
+
 // Background plate under every part, so a tray stands out from the table (see
 // docs/characters-hud.md, "One tray"). Slightly larger than the parts, and just under the card's Y
 // (TRAY_Y), so it shows as a border and does not z-fight the card.

@@ -41,23 +41,27 @@ export default function Character({ position = [0, 0, 0], baseSize = 'small', fr
       <CylinderCollider args={[thickness / 2, radius]} position={[0, baseY, 0]} friction={1.5} density={5} />
       <CuboidCollider args={[STANDEE_WIDTH / 2, STANDEE_HEIGHT / 2, 0.05]} position={[0, standeeY, 0]} friction={1.5} density={5} />
 
-      {/* Circular base */}
-      <mesh position={[0, baseY, 0]}>
-        <cylinderGeometry args={[radius, radius, thickness, 32]} />
-        <meshStandardMaterial color="#1a1a2e" roughness={0.6} metalness={0.3} />
-      </mesh>
+      {/* The standee has no actions of its own. The click handler only makes R3F raycast it, so a
+          click on it does not reach the tray card under it (CharacterTray.jsx, openPopup). */}
+      <group onClick={e => e.stopPropagation()}>
+        {/* Circular base */}
+        <mesh position={[0, baseY, 0]}>
+          <cylinderGeometry args={[radius, radius, thickness, 32]} />
+          <meshStandardMaterial color="#1a1a2e" roughness={0.6} metalness={0.3} />
+        </mesh>
 
-      {/* Standee — front face */}
-      <mesh position={[0, standeeY, 0]}>
-        <planeGeometry args={[STANDEE_WIDTH, STANDEE_HEIGHT]} />
-        <meshStandardMaterial map={front} transparent side={DoubleSide} roughness={1} />
-      </mesh>
+        {/* Standee — front face */}
+        <mesh position={[0, standeeY, 0]}>
+          <planeGeometry args={[STANDEE_WIDTH, STANDEE_HEIGHT]} />
+          <meshStandardMaterial map={front} transparent side={DoubleSide} roughness={1} />
+        </mesh>
 
-      {/* Standee — back face (offset by 1mm to avoid z-fighting) */}
-      <mesh position={[0, standeeY, -0.01]} rotation={[0, Math.PI, 0]}>
-        <planeGeometry args={[STANDEE_WIDTH, STANDEE_HEIGHT]} />
-        <meshStandardMaterial map={back} transparent side={DoubleSide} roughness={1} />
-      </mesh>
+        {/* Standee — back face (offset by 1mm to avoid z-fighting) */}
+        <mesh position={[0, standeeY, -0.01]} rotation={[0, Math.PI, 0]}>
+          <planeGeometry args={[STANDEE_WIDTH, STANDEE_HEIGHT]} />
+          <meshStandardMaterial map={back} transparent side={DoubleSide} roughness={1} />
+        </mesh>
+      </group>
     </RigidBody>
   )
 }

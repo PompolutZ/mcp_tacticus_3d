@@ -41,8 +41,14 @@ const OTHER = { right: 'left', left: 'right' }
 // How far each half is turned around the center from straight, as a yaw
 const STRAIGHT = { right: 0, left: 0 }
 
-function textured(obj, map) {
-  const mat = new THREE.MeshStandardMaterial({ map, roughness: 0.5, metalness: 0.1 })
+// Player tints, from the tools in the mod (3036795456). Every tool there has the same black and white
+// texture (TOOLBOX_IMAGE_02) and a ColorDiffuse in its player's color. TTS multiplies the texture by it.
+const TOOL_TINT = { blue: [0.12, 0.53, 1], red: [0.86, 0.1, 0.09] }
+
+// team: 'blue' or 'red' for a player's tint. Without it, the texture keeps its own colors.
+function textured(obj, map, team) {
+  const color = new THREE.Color().setRGB(...(TOOL_TINT[team] ?? [1, 1, 1]), THREE.SRGBColorSpace)
+  const mat = new THREE.MeshStandardMaterial({ map, color, roughness: 0.5, metalness: 0.1 })
   obj.traverse(child => { if (child.isMesh) child.material = mat })
   return obj
 }
@@ -418,24 +424,26 @@ function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target
 // disabled without it. models: every character and token, in the same form, for the pointer
 // raycast and the snap. onSnap(model): the tool snapped to that model during a drag.
 // onSpawn: called once, when the tool is created
+// team: 'blue' or 'red', the player tint of the tool
 // hoverHeight: how far above the table or terrain the tool hangs while dragged
 // number 1: range 1 has no tool of its own. As with "Snap 1" in the TTS mod, the Range 2 tool lies
 // across the line from the base, and its 1" width measures range 1. See README "Tools".
-export function RangeRuler({ number = 2, ...props }) {
+export function RangeRuler({ number = 2, team, ...props }) {
   const rangeOne = number === 1
   const mesh = rangeOne ? 2 : number
   const raw = useLoader(OBJLoader, assetUrl(`tools/range-${mesh}-mesh.obj`))
   const map = useTexture(TEXTURE)
-  const parts = useMemo(() => [{ obj: textured(raw.clone(), map) }], [raw, map])
+  const parts = useMemo(() => [{ obj: textured(raw.clone(), map, team) }], [raw, map, team])
   return <Tool parts={parts} tip={RANGE_TIP[mesh] ?? 1.501} halfWidth={RANGE_HALF_WIDTH} rangeOne={rangeOne} {...props} />
 }
 
 // Non-interactive R3 tool that follows a dragged model along the deployment edge.
 // Visible only while a model is being dragged with the deploy-line toggle on.
-export function DeployRangeTool({ getBody, centerZ, yaw, hoverHeight = 1 }) {
+// team: the dragged model's team, so the tool has that player's tint.
+export function DeployRangeTool({ getBody, centerZ, yaw, team, hoverHeight = 1 }) {
   const raw = useLoader(OBJLoader, assetUrl('tools/range-3-mesh.obj'))
   const map = useTexture(TEXTURE)
-  const obj = useMemo(() => textured(raw.clone(), map), [raw, map])
+  const obj = useMemo(() => textured(raw.clone(), map, team), [raw, map, team])
   const groupRef = useRef()
   const slotRef = useRef(null)
   const groundY = useFootprintGround(RANGE_TIP[3], RANGE_HALF_WIDTH, STRAIGHT)
@@ -477,13 +485,13 @@ export function DeployRangeTool({ getBody, centerZ, yaw, hoverHeight = 1 }) {
 }
 
 // Movement tool: mesh-a is the right half with the round hinge, mesh-b is the left half
-export function MovementRuler({ type = 'short', ...props }) {
+export function MovementRuler({ type = 'short', team, ...props }) {
   const rawA = useLoader(OBJLoader, assetUrl(`tools/${type}-movement-mesh-a.obj`))
   const rawB = useLoader(OBJLoader, assetUrl(`tools/${type}-movement-mesh-b.obj`))
   const map = useTexture(TEXTURE)
   const parts = useMemo(
-    () => [{ obj: textured(rawA.clone(), map), side: 'right' }, { obj: textured(rawB.clone(), map), side: 'left' }],
-    [rawA, rawB, map],
+    () => [{ obj: textured(rawA.clone(), map, team), side: 'right' }, { obj: textured(rawB.clone(), map, team), side: 'left' }],
+    [rawA, rawB, map, team],
   )
   return <Tool parts={parts} tip={MOVE_TIP[type] ?? 1.574} halfWidth={MOVE_HALF_WIDTH} bendable {...props} />
 }

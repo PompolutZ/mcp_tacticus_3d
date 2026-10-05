@@ -217,22 +217,6 @@ body {
   font-weight: 600;
 }
 
-/* "Held" row of a tray (TrayControls.jsx). The text label keeps the row apart from the buttons
-   without costing a row of its own: it sits inline before the chips. */
-.tray-controls-held {
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-}
-
-.tray-controls-row-label {
-  font-size: 8px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  user-select: none;
-}
-
 .token-chip {
   position: relative;
   display: flex;
@@ -253,12 +237,6 @@ body {
   border-radius: 3px;
   object-fit: cover;
   pointer-events: none;
-}
-
-/* A Held chip (crisis token the character holds, see docs/characters-hud.md, "Hold and drop"): a
-   click drops it. The accent border shows that it is not a button of the tray. */
-.token-chip--held {
-  border-color: var(--accent);
 }
 
 /* The Tokens HUD panel (TokensPanel.jsx), opened from the toolbar. */
@@ -810,8 +788,21 @@ body {
 /* The card image is 3:2. The width also follows the viewport height, so the controls below it
    stay on screen. */
 .tray-popup-card {
+  position: relative;
   width: min(80vw, 600px, 75vh);
+}
+
+.tray-popup-card > img {
+  display: block;
+  width: 100%;
   border-radius: 8px;
+}
+
+/* A held token on the card (TrayPopup.jsx, HeldToken). left and top are its center. */
+.tray-popup-held {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
 }
 
 /* The same controls as the 3D tray, which are sized for 40 CSS px per inch there. zoom makes them

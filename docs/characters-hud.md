@@ -241,7 +241,7 @@ New fields on each entry of `characters` in `App.jsx`:
 
 Character tokens on the table are a separate list in `App.jsx`: `looseTokens: [{ id, key, x, z }]`.
 
-A held crisis token stays in the `tokens` list of `App.jsx` and gets one new field: `heldBy: characterId | null`. So each token is in one place only, and a change of crisis card still removes the held tokens of the old card.
+A held crisis token stays in the `tokens` list of `App.jsx` and gets two new fields: `heldBy: characterId | null` and `heldAt: [x, z] | null`, its place on the holder's card in tray-local coordinates. So each token is in one place only, and a change of crisis card still removes the held tokens of the old card.
 
 All fields are plain JSON. So they fit into the `characters` and `tokens` maps of the Yjs document in `docs/feature-peer-to-peer.md`. `looseTokens` needs its own map there.
 
@@ -249,10 +249,12 @@ All fields are plain JSON. So they fit into the `characters` and `tokens` maps o
 
 Only tokens of an Extract card that players can move can be held: Asset, Civilian and the supply tokens of Source cards. `buildMatTokens` and `buildSupplyTokens` set a new `canHold` flag.
 
-- **Hold:** a player drags the token and releases it over a model or a tray (see [Give tokens by drag and drop](#give-tokens-by-drag-and-drop)). That character now holds the token. The token leaves the mat and shows on the edge of the tray card. The app does not check the range: players apply the rules.
-- **Drop:** the held token on the tray has a Drop button. The app puts the token on the table next to the base of the model and selects it. The opponent then moves it to a place within Range 2.
-- **Remove a character:** the character drops all its tokens first.
+- **Hold:** a player drags the token and releases it over a model or a tray (see [Give tokens by drag and drop](#give-tokens-by-drag-and-drop)). That character now holds the token. The token leaves the mat and lies on the tray card as a 3D token, as in TTS. Its default place is the character art, in the left column of the card (`trays.js`, `trayHeldDefault`). A second token goes a little higher on the art and lies on top of the first. The app does not check the range: players apply the rules.
+- **Move on the card:** a player drags the held token and releases it on the same tray. The token stays held and lies at the release point, moved so that the whole token is on the card.
+- **Drop:** a player drags the held token from the card and releases it on the table. It is no longer held. The opponent then moves it to a place within Range 2.
+- **Remove a character:** the character drops all its tokens first. The app puts them on the table next to the base of the model.
 - A held token is not in the list of models that the range and movement tools snap to.
+- The tray popup shows the held tokens on the card image, at the same place as on the 3D card. They cannot be moved there.
 
 When this is done, update the status of `docs/feature-crisis.md`. It says that hold and drop are not built.
 

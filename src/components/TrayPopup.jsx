@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
 import { characterCard } from '../characters/files.js'
 import { characterName, characterStamina } from '../characters/roster.js'
+import { HELD_SIZE_U, trayHeldCardPoint } from '../characters/trays.js'
+import { tokenInfo } from '../crisis/cards.js'
+import { crisisToken } from '../crisis/files.js'
 import { characterToken } from '../tokens/files.js'
 import { getToken } from '../tokens/tokens.js'
 import { Overlay } from './Overlay.jsx'
@@ -15,11 +18,13 @@ function otherSide(side) {
 // CharacterTray.jsx): the "On" row of tokens, the stat card at full size, and the same controls as
 // the 3D tray (TrayControls.jsx). It shows the live character from App state, so a change here or
 // on the 3D tray shows in both. The Give sources are not part of the tray (see trays.js), so they
-// are not here. Closes with the cross button or a click outside the tray. App also closes it on
+// are not here. The objective tokens the character holds show on the card image, at the same place
+// as on the 3D card. They only show here: a player moves or drops them on the 3D card. Closes with
+// the cross button or a click outside the tray. App also closes it on
 // Escape, as App handles all keys. A dialog, so it renders through Overlay (see CardPopup.jsx).
 // App mounts it only while a tray is open. onTokenRemove(key): a click on an "On" token removes
-// one, the same as on the 3D tray.
-export function TrayPopup({ character, heldTokens, onClose, onDamage, onPower, onFlip, onRemove, onTokenRemove, onTokenDrop }) {
+// one, the same as on the 3D tray. heldTokens: the crisis tokens this character holds.
+export function TrayPopup({ character, heldTokens, onClose, onDamage, onPower, onFlip, onRemove, onTokenRemove }) {
   // The other side of the card, shown with a button, because players often read the Injured side
   // while the card is Healthy. A Flip starts again on the side that faces up.
   const [showOther, setShowOther] = useState(false)
@@ -41,7 +46,10 @@ export function TrayPopup({ character, heldTokens, onClose, onDamage, onPower, o
           </div>
           <button type="button" className="tray-popup-close" aria-label="Close" onClick={onClose}>×</button>
         </div>
-        <img className="tray-popup-card" src={assetUrl(characterCard(character.key, shownSide))} alt={name} />
+        <div className="tray-popup-card">
+          <img src={assetUrl(characterCard(character.key, shownSide))} alt={name} />
+          {heldTokens.map(token => <HeldToken key={token.id} token={token} />)}
+        </div>
         <button type="button" className="chip" onClick={() => setShowOther(v => !v)}>
           {showOther ? 'Show side that faces up' : 'Show other side'}
         </button>
@@ -52,8 +60,6 @@ export function TrayPopup({ character, heldTokens, onClose, onDamage, onPower, o
           onPower={onPower}
           onFlip={onFlip}
           onRemove={onRemove}
-          heldTokens={heldTokens}
-          onTokenDrop={onTokenDrop}
         />
       </div>
     </Overlay>
@@ -72,4 +78,14 @@ function OnToken({ tokenKey, count, onClick }) {
       {count > 1 && <span className="tray-popup-token-count">{count}</span>}
     </button>
   )
+}
+
+// A crisis token the character holds, on the card image, the face that is up. Its place on the
+// image is its place on the 3D card (trays.js, heldAt), as a percentage of the image size.
+function HeldToken({ token }) {
+  const key = token.up === 'front' ? token.frontKey : (token.backKey ?? token.frontKey)
+  const name = tokenInfo(key)?.name ?? key
+  const { u, v } = trayHeldCardPoint(token.heldAt)
+  const style = { left: `${u * 100}%`, top: `${v * 100}%`, width: `${HELD_SIZE_U * 100}%` }
+  return <img className="tray-popup-held" src={assetUrl(crisisToken(key))} alt={name} title={name} style={style} />
 }

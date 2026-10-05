@@ -17,6 +17,7 @@ import { canFlip, canMove, getCard, hasArc, hasMarkers } from './crisis/cards.js
 import { supplyPosition } from './crisis/layout.js'
 import { characterImmune, characterName, characterStamina } from './characters/roster.js'
 import { BASE_DIAMETER } from './characters/files.js'
+import { trayHeldDefault } from './characters/trays.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { getToken, isCappedToken } from './tokens/tokens.js'
 import { START_MARKERS } from './scoreboard/board.js'
@@ -70,6 +71,7 @@ function buildMatTokens(card) {
     // supply instead (see buildSupplyTokens, docs/characters-hud.md, "Hold and drop").
     canHold: card.type === 'extract' && canMove(t),
     heldBy: null, // character id, or null while the token sits on the mat
+    heldAt: null, // tray-local [x, z] on the holder's card while held (see characters/trays.js)
     control: null,
     damage: false,
   }))
@@ -96,6 +98,7 @@ function buildSupplyTokens(card) {
       hasMarkers: false,
       canHold: true, // a Source's supply is the same Asset/Civilian token, see buildMatTokens above
       heldBy: null,
+      heldAt: null,
       control: null,
       damage: false,
     }
@@ -333,8 +336,9 @@ export default function App() {
     setSelection(prev => prev?.kind === 'token' ? null : prev)
   }
 
+  // A held token dragged off its tray card and released on the table is no longer held.
   function handleTokenMove(id, x, z) {
-    setTokens(prev => prev.map(t => t.id === id ? { ...t, x, z } : t))
+    setTokens(prev => prev.map(t => t.id === id ? { ...t, x, z, heldBy: null, heldAt: null } : t))
   }
 
   function handleTokenTurn(id, yaw) {
@@ -355,23 +359,31 @@ export default function App() {
 
   // A canHold token is released over a character (CrisisToken.jsx reports it, Scene.jsx finds the
   // character with characterAt): that character now holds it. The token leaves the mat (Scene.jsx
-  // filters heldBy tokens out of the 3D render and the tool snap list) and shows on the edge of its
-  // holder's tray. No range check (see docs/feature-crisis.md, "Players apply the rules"). A held
-  // token cannot stay selected, since it is no longer a 3D piece to show the TokenPanel for.
-  function handleTokenHold(id, characterId) {
-    setTokens(prev => prev.map(t => t.id === id ? { ...t, heldBy: characterId } : t))
-    setSelection(prev => prev?.kind === 'token' && prev.id === id ? null : prev)
+  // keeps heldBy tokens out of the tool snap list) and lies on its holder's tray card, on the
+  // character art (trays.js, trayHeldDefault). No range check (see docs/feature-crisis.md, "Players
+  // apply the rules"). cardPoint: the tray-local [x, z] on the character's card when the release
+  // point is on its tray, otherwise null. It is used only to move a token on its own holder's card:
+  // a token given to a character always goes to the default place.
+  function handleTokenHold(id, characterId, cardPoint) {
+    setTokens(prev => {
+      const token = prev.find(t => t.id === id)
+      if (!token) return prev
+      if (token.heldBy === characterId) {
+        return cardPoint ? prev.map(t => t.id === id ? { ...t, heldAt: cardPoint } : t) : prev
+      }
+      const heldCount = prev.filter(t => t.heldBy === characterId).length
+      return prev.map(t => t.id === id ? { ...t, heldBy: characterId, heldAt: trayHeldDefault(heldCount) } : t)
+    })
   }
 
-  // Drop: the token goes back on the table, next to the base of the model that held it (the live
-  // Rapier/object position, not the spawn position, so a moved character drops it where it stands).
-  // rowOffset moves it along the base's edge (+z of the +x drop direction), so several tokens
-  // dropped together (handleDropCharacterTokens) land in a row instead of stacked on each other.
-  // select: the single tray Drop button selects its token, as before (so TokenPanel opens for it);
-  // a character-removal drop of several tokens at once selects none (see handleDropCharacterTokens).
-  // If the holder's position is not available (see Scene.jsx, modelPosition), the token stays where
-  // it last sat on the mat.
-  function handleTokenDrop(id, { rowOffset = 0, select = true } = {}) {
+  // Drop, when its holder is removed: the token goes back on the table, next to the base of the
+  // model that held it (the live Rapier/object position, not the spawn position, so a moved
+  // character drops it where it stands). rowOffset moves it along the base's edge (+z of the +x drop
+  // direction), so several tokens dropped together (handleDropCharacterTokens) land in a row
+  // instead of stacked on each other. If the holder's position is not available (see Scene.jsx,
+  // modelPosition), the token stays where it last sat on the mat. During the game, a player drops a
+  // token by dragging it from the card to the table (handleTokenMove).
+  function handleTokenDrop(id, rowOffset) {
     setTokens(prev => {
       const token = prev.find(t => t.id === id)
       if (!token?.heldBy) return prev
@@ -380,20 +392,18 @@ export default function App() {
       const baseRadius = holder ? BASE_DIAMETER[holder.base] / 2 : 0
       const x = (pos?.x ?? token.x) + baseRadius + TOKEN_RADIUS + DROP_GAP
       const z = (pos?.z ?? token.z) + rowOffset
-      return prev.map(t => t.id === id ? { ...t, heldBy: null, x, z } : t)
+      return prev.map(t => t.id === id ? { ...t, heldBy: null, heldAt: null, x, z } : t)
     })
-    if (select) setSelection({ kind: 'token', id })
   }
 
   // Phase 7 calls this for a character it is about to remove, so the character drops every token it
   // holds first (see docs/characters-hud.md, "Hold and drop"). Several tokens spread along a row
-  // next to the base (TOKEN_ROW_SPACING apart) instead of landing on the same spot, and none of
-  // them is selected: the character (and its tray) is about to disappear anyway.
+  // next to the base (TOKEN_ROW_SPACING apart) instead of landing on the same spot.
   function handleDropCharacterTokens(characterId) {
     const held = tokens.filter(t => t.heldBy === characterId)
     held.forEach((t, i) => {
       const rowOffset = (i - (held.length - 1) / 2) * TOKEN_ROW_SPACING
-      handleTokenDrop(t.id, { rowOffset, select: false })
+      handleTokenDrop(t.id, rowOffset)
     })
   }
 
@@ -603,7 +613,6 @@ export default function App() {
               onTokenMove={handleTokenMove}
               onTokenTurn={handleTokenTurn}
               onTokenHold={handleTokenHold}
-              onTokenDrop={handleTokenDrop}
               onCharacterDamage={handleCharacterDamage}
               onCharacterPower={handleCharacterPower}
               onCharacterFlip={handleCharacterFlip}
@@ -689,7 +698,6 @@ export default function App() {
           onFlip={() => handleCharacterFlip(openTray.id)}
           onRemove={() => handleCharacterRemove(openTray.id)}
           onTokenRemove={key => handleCharacterTokenRemove(openTray.id, key)}
-          onTokenDrop={handleTokenDrop}
         />
       )}
       {hudMessage && <div className="hud-message">{hudMessage}</div>}

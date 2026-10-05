@@ -50,15 +50,18 @@ function angleTo(pivot, p) {
 // token: one entry of the tokens array in App.jsx (see buildCardTokens). onMove(x, z) and
 // onTurn(yaw): called once, when a drag ends, to commit the new pose to App state.
 // onHover(over): called when the pointer moves onto the token (true) and off it (false)
-// onHold(characterId): a canHold token (Asset, Civilian, a Source's supply) was dragged and
-// released over a character (model, tray card, or the tray's DOM controls strip).
+// onHold(characterId, point): a canHold token (Asset, Civilian, a Source's supply) was dragged and
+// released over a character (model, tray card, or the tray's DOM controls strip). point: the table
+// point { x, z } under the pointer at the release.
+// floorY: the height the token lies on while it is not dragged, instead of the ground under it. A
+// held token lies on its holder's tray card, which has no collider (see CharacterTray.jsx).
 // findCharacter(clientX, clientY): App's findCharacterAt (DOM data-character-id first, then
 // Scene's characterAt), called on release to look for one, the same lookup App's own token drag
 // uses. See docs/characters-hud.md, "Hold and drop" and "Give tokens by drag and drop".
 // objectRef: standard ref callback for the token's 3D object, for the ruler tools' pointer raycast.
 // centerRef(getter): registers a function that returns the token's live { x, y, z }, for the ruler
 // tools. Called with undefined on unmount, the same pattern as bodyRef/objectRef in CharacterModel.
-export default function CrisisToken({ token, selected, onSelect, onHover, onMove, onTurn, onHold, findCharacter, objectRef, centerRef }) {
+export default function CrisisToken({ token, selected, onSelect, onHover, onMove, onTurn, onHold, findCharacter, floorY, objectRef, centerRef }) {
   const backKey = token.backKey ?? token.frontKey
   const [frontMap, backMap, damageMap] = useTexture([
     assetUrl(crisisToken(token.frontKey)),
@@ -111,7 +114,9 @@ export default function CrisisToken({ token, selected, onSelect, onHover, onMove
   useFrame(() => {
     const { x, z, yaw } = poseRef.current
     // ONLY_FIXED + EXCLUDE_SENSORS inside castDown, so models and tools are ignored
-    const ground = castDown(world, rapier, shape, NO_ROTATION, x, z, HALF_H)
+    const ground = floorY !== undefined && !draggingRef.current
+      ? floorY
+      : castDown(world, rapier, shape, NO_ROTATION, x, z, HALF_H)
     const y = (ground ?? 0) + GAP + HALF_H
     if (groupRef.current) {
       groupRef.current.position.set(x, y, z)
@@ -167,8 +172,16 @@ export default function CrisisToken({ token, selected, onSelect, onHover, onMove
         // A canHold token dropped on a character is held, not placed on the mat (see "Hold and
         // drop"). Any other token, or no character under the release point, just moves as usual.
         const holder = token.canHold ? findCharacter?.(ev.clientX, ev.clientY) : null
-        if (holder) onHold?.(holder)
-        else onMove?.(poseRef.current.x, poseRef.current.z)
+        if (holder) {
+          const point = { x: poseRef.current.x, z: poseRef.current.z }
+          // The pose goes back to the token's last place. If the hold changes the place, the token
+          // prop changes and the effect above sets the new pose. If not (for example, a held token
+          // dropped on its own holder's model), the token goes back to its place on the card.
+          poseRef.current = { x: token.x, z: token.z, yaw: token.yaw }
+          onHold?.(holder, point)
+        } else {
+          onMove?.(poseRef.current.x, poseRef.current.z)
+        }
       } else {
         onSelect?.()
       }

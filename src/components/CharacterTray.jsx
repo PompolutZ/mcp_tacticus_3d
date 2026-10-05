@@ -27,8 +27,8 @@ const ALWAYS_GIVEN = ['activated', 'dazed']
 // trays.js, TRAY_BG_Y), the Give sources just above the table, the same height as a token on the
 // table (LooseToken.jsx).
 const TOKEN_Y = 0
-// A pointer that moved more than this many pixels between down and up was a camera drag, not a
-// click on an "On" token.
+// A pointer that moved more than this many pixels between down and up was a drag, not a click on
+// an "On" token or the card.
 const CLICK_MOVE = 4
 
 // One character tray: a background plate, the "On" row of tokens on the character, the stat card
@@ -46,11 +46,10 @@ const CLICK_MOVE = 4
 // character; the tray has no click target of its own for that.
 // onTokenRemove(key): a click on an "On" token removes one. onTokenDragStart(nativeEvent, key): a
 // left pointerdown on a Give source starts a drag of a new token (App.jsx, handleTokenDragStart).
-// A source never runs out.
-// heldTokens: this character's held crisis tokens (see "Hold and drop"). onTokenDrop(tokenId): the
-// tray's Held chip for one of them.
+// A source never runs out. The objective tokens the character holds lie on the card, but they are
+// crisis tokens, so Scene.jsx draws them (see "Hold and drop").
 // position: the tray's table position, from trays.js layoutTrays (Scene.jsx).
-export default function CharacterTray({ character, position, onOpen, onDamage, onPower, onFlip, onRemove, onTokenRemove, onTokenDragStart, heldTokens, onTokenDrop, selected = false, objectRef }) {
+export default function CharacterTray({ character, position, onOpen, onDamage, onPower, onFlip, onRemove, onTokenRemove, onTokenDragStart, selected = false, objectRef }) {
   // Both sides load when the tray mounts, so the first Flip does not wait for an image (that wait
   // hides the tray, see Scene.jsx, Suspense). The order is fixed: the loader caches by the URL list.
   const [healthyMap, injuredMap] = useTexture([
@@ -62,8 +61,12 @@ export default function CharacterTray({ character, position, onOpen, onDamage, o
   const yaw = trayYaw(character.teamColor)
   const cardRef = useRef()
 
+  // R3F sends a click to every object that was under the pointer at pointerdown and is under it at
+  // pointerup, also after a drag. The card lies under the model and the held tokens on it, so it
+  // gets their clicks and the end of their drags too. Only a click on the card itself opens the popup.
   function openPopup(e) {
     e.stopPropagation()
+    if (e.delta > CLICK_MOVE || e.intersections[0]?.object !== e.object) return
     onOpen()
   }
 
@@ -132,8 +135,6 @@ export default function CharacterTray({ character, position, onOpen, onDamage, o
             onPower={onPower}
             onFlip={onFlip}
             onRemove={onRemove}
-            heldTokens={heldTokens}
-            onTokenDrop={onTokenDrop}
           />
         </Html>
       </group>

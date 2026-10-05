@@ -22,7 +22,8 @@ import { FRICTION, WORLD_GRAVITY } from '../physics.js'
 import { assetUrl } from '../assets/index.js'
 import { CARD_X, CARD_Y, CARD_Z } from '../crisis/layout.js'
 import { TRAYS } from '../dice/tray.js'
-import { layoutTrays, onTray, trayModelPosition } from '../characters/trays.js'
+import { TRAY_Y, layoutTrays, onTray, trayHeldLocal, trayHeldWorld, trayModelPosition, trayYaw } from '../characters/trays.js'
+import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import { TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WIDTH } from '../table.js'
 
 // MCP mat is 36" x 36". 1 Three.js unit = 1 inch. Table size: see table.js.
@@ -38,8 +39,14 @@ function fitTableTexture(texture) {
 }
 // Tools hang this far above the table and measure by the outline cast below them
 const TOOL_HOVER_HEIGHT = 1
+// Only one player uses the app for now, so the toolbar tools are blue. Per-side tools come later
+// (docs/feature-peer-to-peer.md).
+const TOOL_TEAM = 'blue'
 // Two physics steps per frame. With one, a model dropped from high up sometimes gets stuck in terrain.
 const TIME_STEP = 1 / 120
+// Tokens held by one character lie on its card in a stack, in the order they were taken, so two
+// tokens that overlap do not z-fight. Each one is this much higher than the one before it.
+const HELD_STACK_STEP = TOKEN_THICKNESS + 0.01
 
 // Every piece that loads a file after the first scene load (the mat of a new map, terrain, crisis
 // cards and tokens, character trays and models, tools) is in its own Suspense below. While its file
@@ -94,13 +101,14 @@ function Mat({ mat }) {
 // modelPositionRef: ref App calls with a character id to get its live table position { x, z }
 // (Rapier body or model object, not the spawn position), or null. Used by App's handleTokenDrop, the
 // same pattern as characterAtRef. See "Hold and drop".
-// onTokenHold(tokenId, characterId): a canHold token was released over a character. onTokenDrop(id):
-// the tray's Held chip for that token, see TrayControls.jsx.
+// onTokenHold(tokenId, characterId, cardPoint): a canHold token was released over a character.
+// cardPoint: the tray-local [x, z] on that character's card (trays.js, trayHeldLocal) when the
+// release point is on its tray, otherwise null.
 // scoreMarkers, affiliations, onScoreMarkerMove(marker, x, z): the scoring board markers, see
 // ScoreBoard.jsx.
 export default function Scene({
   mapId, characters = [], activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onTokenDrop, onCharacterDamage, onCharacterPower, onCharacterFlip, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, scoreMarkers, affiliations, onScoreMarkerMove,
+  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onCharacterDamage, onCharacterPower, onCharacterFlip, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, scoreMarkers, affiliations, onScoreMarkerMove,
 }) {
   const map = MAPS[mapId]
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
@@ -195,6 +203,22 @@ export default function Scene({
   // getBody is only used where a tool moves a piece (Place), and Place is disabled for a token.
   // A held token is not in this list: it is off the mat, on its holder's tray (see "Hold and drop").
   const matTokens = useMemo(() => tokens.filter(tok => !tok.heldBy), [tokens])
+  // Every crisis token as it is drawn. A held token lies on its holder's card: its tray-local place
+  // (heldAt) moves to the table with the tray position, and it faces the holder's player, the same
+  // as the card (see trays.js, "An objective token that the character holds").
+  const tokenViews = useMemo(() => {
+    const stacks = new Map()
+    return tokens.map(tok => {
+      if (!tok.heldBy) return { token: tok }
+      const holder = characters.find(ch => ch.id === tok.heldBy)
+      const trayPos = trayPositions.get(tok.heldBy)
+      if (!holder || !trayPos) return { token: tok }
+      const [x, z] = trayHeldWorld(holder.teamColor, trayPos, tok.heldAt)
+      const level = stacks.get(tok.heldBy) ?? 0
+      stacks.set(tok.heldBy, level + 1)
+      return { token: { ...tok, x, z, yaw: trayYaw(holder.teamColor) }, floorY: TRAY_Y + level * HELD_STACK_STEP }
+    })
+  }, [tokens, characters, trayPositions])
   const toolModels = useMemo(() => [
     ...characters.map(ch => ({
       kind: 'character',
@@ -314,17 +338,25 @@ export default function Scene({
             <CrisisCard cardKey={crisis.extract} position={[CARD_X, CARD_Y, CARD_Z.extract]} onOpen={onCardOpen} />
           </Suspense>
         )}
-        {/* A held token is not rendered here: it shows on its holder's tray instead (Hold and drop). */}
-        {matTokens.map(tok => (
+        {/* A held token lies on its holder's tray card (Hold and drop). A drag off the card puts
+            it back on the mat (onMove). It is not a piece for the tools, so it reports no hover:
+            a tool key over it does not snap a tool to it (App.jsx, handleToolKey). */}
+        {tokenViews.map(({ token: tok, floorY }) => (
           <Suspense key={tok.id} fallback={null}>
             <CrisisToken
               token={tok}
+              floorY={floorY}
               selected={selectedTokenId === tok.id}
               onSelect={() => toggleSelect('token', tok.id)}
-              onHover={over => onPieceHover?.({ kind: 'token', id: tok.id }, over)}
+              onHover={tok.heldBy ? undefined : over => onPieceHover?.({ kind: 'token', id: tok.id }, over)}
               onMove={(x, z) => onTokenMove(tok.id, x, z)}
               onTurn={yaw => onTokenTurn(tok.id, yaw)}
-              onHold={characterId => onTokenHold(tok.id, characterId)}
+              onHold={(characterId, point) => {
+                const holder = characters.find(ch => ch.id === characterId)
+                const trayPos = trayPositions.get(characterId)
+                const onCard = holder && trayPos && onTray(trayPos, point)
+                onTokenHold(tok.id, characterId, onCard ? trayHeldLocal(holder.teamColor, trayPos, point) : null)
+              }}
               findCharacter={findCharacterAt}
               objectRef={obj => obj ? tokenObjects.current.set(tok.id, obj) : tokenObjects.current.delete(tok.id)}
               centerRef={fn => fn ? tokenCenters.current.set(tok.id, fn) : tokenCenters.current.delete(tok.id)}
@@ -362,8 +394,6 @@ export default function Scene({
               onRemove={() => onCharacterRemove(ch.id)}
               onTokenRemove={key => onCharacterTokenRemove(ch.id, key)}
               onTokenDragStart={onTokenDragStart}
-              heldTokens={tokens.filter(tok => tok.heldBy === ch.id)}
-              onTokenDrop={onTokenDrop}
               selected={selectedCharId === ch.id}
               objectRef={obj => obj ? trayObjects.current.set(ch.id, obj) : trayObjects.current.delete(ch.id)}
             />
@@ -409,6 +439,7 @@ export default function Scene({
           <Suspense key={`${activeMove}-${toolSpawns.move}`} fallback={null}>
             <MovementRuler
               type={activeMove}
+              team={TOOL_TEAM}
               position={[0, TOOL_HOVER_HEIGHT, -6]}
               hoverHeight={TOOL_HOVER_HEIGHT}
               selected={selectedTool === 'move'}
@@ -427,6 +458,7 @@ export default function Scene({
               getBody={() => charBodies.current.get(draggingCharId)}
               centerZ={draggingChar.teamColor === 'blue' ? MAT_SIZE / 2 - deployTip : -(MAT_SIZE / 2 - deployTip)}
               yaw={draggingChar.teamColor === 'blue' ? -Math.PI / 2 : Math.PI / 2}
+              team={draggingChar.teamColor}
               hoverHeight={TOOL_HOVER_HEIGHT}
             />
           </Suspense>
@@ -435,6 +467,7 @@ export default function Scene({
           <Suspense key={`${activeRange}-${toolSpawns.range}`} fallback={null}>
             <RangeRuler
               number={activeRange}
+              team={TOOL_TEAM}
               position={[0, TOOL_HOVER_HEIGHT, 6]}
               hoverHeight={TOOL_HOVER_HEIGHT}
               selected={selectedTool === 'range'}
