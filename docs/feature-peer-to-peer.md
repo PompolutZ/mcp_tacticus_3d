@@ -70,7 +70,7 @@ The table is a mailbox per room. Partition key `room`, sort key `id` (time + ran
 | `id` | Message id, sorts by time |
 | `from`, `to` | Peer ids. `to` is `*` for a message to every peer in the room |
 | `type` | `hello`, `offer`, `answer`, `bye` |
-| `data` | The SDP text. At most 8 KB |
+| `data` | The SDP text, or the app version in `hello`. At most 8 KB |
 | `ttl` | Unix time 1 hour from now |
 
 ### Endpoints
@@ -88,6 +88,8 @@ The table is a mailbox per room. Partition key `room`, sort key `id` (time + ran
 3. The guest opens the link. The guest posts `hello`, reads the host's `hello`, creates the offer, waits until ICE gathering ends (at most 3 s), and posts the `offer`.
 4. The host reads the offer, creates the answer the same way, and posts the `answer`.
 5. The guest reads the answer. The data channels open. Both stop polling.
+
+Both `hello` messages carry the app version (the build id). If the two versions are different, both players see a warning: "Your opponent uses a different version of the app. Both players should reload the page." The reason is in [State](#state), category 1.
 
 The guest makes the offer, not the host. The reason: an offer that waits for minutes until someone joins can stop working, because routers forget address mappings that are not used. With this order, the offer and the answer are created seconds apart.
 
@@ -127,9 +129,36 @@ The free tier is 1 million messages and 750,000 connection minutes per month, fo
 
 - **STUN**: `stun:stun.l.google.com:19302` and `stun:stun.cloudflare.com:3478`. Both are free. Cloudflare says its STUN service is free and unlimited.
 - **TURN, phase 1**: none. If the direct connection fails, the app says so: "Could not connect directly. One of the networks blocks peer-to-peer connections."
-- **TURN, later**: Cloudflare Realtime TURN. The first 1,000 GB per month are free, then $0.05 per GB. Only data from Cloudflare to the browser counts. Data from the browser to Cloudflare is free. The browser must not hold the long-term TURN key. So `GET /ice` asks the Cloudflare API for credentials that expire after a few hours, and returns them. The Cloudflare token is in a Lambda environment variable.
+- **TURN, later**: Cloudflare Realtime TURN. The first 1,000 GB per month are free, then $0.05 per GB. The TURN service and the Cloudflare SFU share these 1,000 GB. Only data from Cloudflare to the browser counts. Data from the browser to Cloudflare is free. There is no charge per minute or per connection. Limits per TURN connection: about 5,000–10,000 packets per second and 50–100 Mbps. The browser must not hold the long-term TURN key. So `GET /ice` asks the Cloudflare API for credentials that expire after a few hours, and returns them. The Cloudflare token is in a Lambda environment variable.
 
-Traffic of one game, rough estimate: Yjs changes are less than 1 MB. A moving object sends about 1 KB/s. If objects move for 20 minutes of a 2-hour game, the game sends about 5–10 MB. So 1,000 GB is enough for about 100,000 relayed games.
+### Traffic per game
+
+Only category 4 (see [State](#state)) sends data all the time, so it decides the TURN cost. Each packet has about 90 bytes of headers (IP, UDP, DTLS, SCTP, TURN). One pose in JSON with full number precision is about 170 bytes.
+
+Estimate for one 2-hour game. The numbers are calculated, not measured:
+
+| Item | Assumption | Data |
+|---|---|---|
+| Models, tokens and tools being moved | 20 minutes in total, 30 packets per second | about 9 MB |
+| Dice in the air | 100 rolls of about 8 dice, 3 s each | about 13 MB |
+| Cursor | 10 packets per second. The mouse moves over the table for 1 hour per player | about 10 MB |
+| Categories 2 and 3, keepalive packets | | about 1 MB |
+| **Total** | | **about 35 MB** |
+
+So 1,000 GB is enough for about 28,000 relayed games per month. It is not clear if Cloudflare counts the data twice when both players use the relay. In that case, the number is about 14,000. Only games where the direct connection fails use TURN.
+
+From phase 3, log the bytes of each game from `pc.getStats()` (`bytesSent` and `bytesReceived` of the selected candidate pair). Then replace this estimate with the measured numbers. If the traffic is too high, there are three ways to send less: send less often, round the numbers, or use a binary format.
+
+### Other Cloudflare Realtime products
+
+From Cloudflare Realtime we need only TURN and the free STUN server.
+
+| Product | What it is | Why we do not use it |
+|---|---|---|
+| RealtimeKit | SDK and ready-made UI for video and voice calls: participant grid, media controls, chat, polls, recording. It runs on the Cloudflare SFU | It is made for calls. It costs per participant per minute ($0.002 for audio and video), and the pricing page lists no free amount |
+| Realtime SFU | A server that forwards media and data channels from one browser to many (publish and subscribe). It supports reliable and unreliable data channels | All data goes through Cloudflare, not directly between browsers. It still needs our own backend, which holds the app secret and does the signaling. It helps only with many players |
+
+Cloudflare Realtime does not do signaling for direct connections. So with Cloudflare TURN we still need our own signaling service.
 
 ## Data channels
 
@@ -137,8 +166,8 @@ One `RTCPeerConnection` per pair of players, with two data channels:
 
 | Channel | Settings | Carries |
 |---|---|---|
-| `sync` | reliable, ordered (the default) | Yjs sync messages and Yjs awareness messages (`y-protocols`) |
-| `poses` | `ordered: false`, `maxRetransmits: 0` | Poses of moving objects, 30 times per second. A lost packet is not sent again, because the next one replaces it |
+| `sync` | reliable, ordered (the default) | Categories 2 and 3: Yjs sync messages. Also Yjs awareness messages (`y-protocols`) |
+| `poses` | `ordered: false`, `maxRetransmits: 0` | Category 4: poses of moving objects and dice, cursor positions. A lost packet is not sent again, because the next one replaces it |
 
 The data is encrypted (DTLS), also through TURN. Data channels need no camera or microphone permission.
 
@@ -146,26 +175,41 @@ Message size: before sending a big Yjs update (the first sync of a game), check 
 
 ## State
 
-The app state has three groups:
+The data has four categories. There is also local state, which is not sent.
 
-| Group | Where | Examples |
-|---|---|---|
-| Shared, lasting | Yjs document | map, mat turns, deploy line, crisis cards, tokens, characters on the table and their rest poses, tools on the table, dice and roll history |
-| Shared, short-lived | Yjs awareness | player name, side (blue or red), which objects this player moves now, pointer position on the table, selection |
-| Local | React state, as today | camera, hover, labels, debug mode, open card popup, open dice menu |
+| # | Category | Examples | Where | Channel |
+|---|---|---|---|---|
+| 1 | Assets | models, textures, card images, map images | Netlify, or AWS later. Loaded over HTTPS | None. Never through WebRTC |
+| 2 | Set-up: changes once per game | rosters, crisis cards, map, deploy line | Yjs document | `sync` |
+| 3 | Rare changes | rest poses of models, tokens and tools; card flips; damage and power; healthy or injured side; tokens gained or lost; mat turns; dice results and roll history | Yjs document | `sync` |
+| 4 | Presence: what the other player does now | dice in the air; a model, token or tool being moved; cursor | Not stored | `poses` |
+| | Players | name, side (blue or red), claims (`owns`), selection | Yjs awareness | `sync` |
+| | Local | camera, hover, labels, debug mode, open card popup, open dice menu | React state, as today | Not sent |
+
+The same object can be in two categories at different times. While a player drags a model, its pose is category 4. When the model stops, its rest pose goes into the document as category 3.
+
+**Category 1.** The game state refers to assets and data by id: character keys, crisis card ids, map id. So both players must run the same version of the app. See the version check in [Connect flow](#connect-flow).
+
+**Category 4** only shows each player what the other player does. It does not need to be exact: packets can be lost, and the motion can jump. The final state always comes through category 3. So category 4 uses the unreliable `poses` channel, and its send rates are starting values. We measure the traffic (see [Traffic per game](#traffic-per-game)) and change the rates after that.
+
+The cursor is in category 4, not in awareness. Awareness goes over the reliable, ordered `sync` channel. On that channel, a lost packet is sent again, and all messages after it wait. So a fast cursor stream would delay card flips and other Yjs changes.
 
 ### Yjs document
 
 ```
 Y.Doc
   game: Y.Map      mapId, matTurns, deployLine, crisis { secure, extract }
-  characters: Y.Map<id, Y.Map>   key, figure, base, rotation, teamColor, slot, pose
+  rosters: Y.Map<player side, Y.Map>   later: chosen characters and tactic cards
+  characters: Y.Map<id, Y.Map>   key, figure, base, rotation, teamColor, slot, side (healthy or injured), damage, power, pose
+  tactics: Y.Map<id, Y.Map>      later: tactic cards in play and their state
   tokens: Y.Map<id, Y.Map>       the token fields from buildMatTokens, with x, z, yaw, up, control, damage
   tools: Y.Map<side, Y.Map<kind, Y.Map>>   per side: range and move tool, which one, pose, bend, snap target
   dice: Y.Map<trayKey, Y.Map>    dice (id -> pose, face, place), history (Y.Array), critsUsed
 ```
 
 `pose` is `{ x, y, z, qx, qy, qz, qw }`: the rest pose of a body, written when the body falls asleep.
+
+`rosters` and `tactics` are placeholders. The app has no rosters or tactic cards yet.
 
 React reads the document through one hook, `useY(type)`, built on `useSyncExternalStore`. Handlers in `App.jsx` such as `handleTokenFlip` write to the document instead of calling `setTokens`. A game with no connection uses the same document, only without a provider. So single-player and multiplayer run the same code.
 
@@ -184,18 +228,30 @@ There are two kinds of bodies:
 
 1. A body at rest has no owner. Its pose is in the Yjs document.
 2. When a player starts to drag a model or a token, that player's browser **claims** the body. The claim is in awareness: `owns: [ids]`.
-3. The owner simulates the body as today. It sends the body's pose on the `poses` channel 30 times per second. A player body works the same way, but its player is always the owner.
-4. The other browser switches the body to `kinematicPosition` and moves it to the received poses. It shows the poses about 100 ms late and interpolates between them, so the motion is smooth even when packets arrive unevenly.
+3. The owner simulates the body as today. It sends the body's pose on the `poses` channel about 30 times per second: every 4th physics step, because the step is 1/120 s. A player body works the same way, but its player is always the owner.
+4. The other browser switches the body to `kinematicPosition` and moves it to the latest received pose. Lost packets and jumps are acceptable (category 4). If the motion looks bad, add a delay of about 100 ms and interpolate between poses.
 5. When the owner's body falls asleep, the owner writes the rest pose to the document and then removes the claim. Both go over the `sync` channel, which keeps the order. The other browser sets the exact rest pose, switches the body back to dynamic and puts it to sleep. A player body stays kinematic in the other browser.
 6. A shared body that is not owned can be pushed by a moving body, for example a die that hits a model. The browser that simulates the moving body claims the pushed body. It finds this with Rapier contact events.
 7. If both players claim the same shared body at the same time, the player with the lower Yjs client id keeps it. Both browsers apply the same rule, so they agree without more messages.
 8. When a player disconnects, its claims end. The other browser simulates the shared bodies from where they are. The player bodies of the disconnected player stop where they are until that player comes back.
 
+### Bodies moved by the other browser
+
+A body that the other browser moves must not push anything in this browser. Otherwise this browser's physics changes models and tokens that the other browser does not change, and the two tables stay different.
+
+1. While the body moves, it pushes nothing: its colliders produce no contact forces (Rapier solver groups). This starts with the first pose or claim that arrives, whichever comes first. The reason: a kinematic body pushes everything it touches, with no limit on the force. When a pose jumps, for example 10 cm in one step, the body can throw a model that lies still, but only in this browser. Only the owner's physics decides what a moving body hits. Pushed shared bodies reach this browser through rule 6.
+2. When the body rests (rule 5), contact forces come back. A shared body becomes dynamic again. A player body stays kinematic, so it acts as a fixed obstacle: this browser's dice bounce off the other player's tool, but cannot move it. The owner's browser agrees, because there this browser's dice push nothing (point 1).
+3. Two bodies that move at the same time, one per player, pass through each other. Example: dice from both trays meet in the air. This is rare, so we accept it.
+
 TTS does it differently: the host simulates everything, and the other players see their own drags with a delay. With the rules above, each player sees their own drags with no delay.
 
 ### Pose message
 
-One packet per physics step with every body this browser owns and that moved: object id, step number, position (3 numbers), rotation (4 numbers). Start with JSON. Change to a binary format only if we measure that it is too big.
+One packet every 4th physics step (about 30 per second), with every body this browser owns that moved since the last packet: object id, step number, position (3 numbers), rotation (4 numbers). Start with JSON. Change to a binary format only if we measure that it is too big.
+
+### Cursor message
+
+The cursor position on the table (x, z), at most 10 times per second, and only when it moved. It goes on the `poses` channel. The other browser shows the cursor at the latest received position.
 
 ### Dice
 
@@ -257,8 +313,8 @@ New packages: `yjs`, `y-protocols`, `y-indexeddb`.
 Each phase ends with a working app. Do not open the app in a browser. Check with `npx vite build`. The user checks the result in the browser.
 
 1. **Shared state in a local Yjs document.** Move map, mat turns, deploy line, crisis, tokens, the character list and the tools from `useState` into the document. Tools are stored per side. Write rest poses when bodies sleep. No network. The app works as before.
-2. **Two tabs, one browser.** `BroadcastChannel` signaling, `peer.js`, Yjs sync and awareness. Name and side. Discrete changes sync: map, crisis cards, token flips and markers, new characters.
-3. **Moving objects.** Player bodies and shared bodies, ownership, the pose channel, interpolation. Drag of models and tokens by both players. Each player uses only their own tools.
+2. **Two tabs, one browser.** `BroadcastChannel` signaling, `peer.js`, Yjs sync and awareness. Name and side. App version check in `hello`. Discrete changes sync: map, crisis cards, token flips and markers, new characters, damage and power.
+3. **Moving objects.** Player bodies and shared bodies, ownership, the pose channel, the cursor. Bodies moved by the other browser push nothing. Drag of models and tokens by both players. Each player uses only their own tools. Log the bytes of each game from `pc.getStats()`.
 4. **Dice.** Dice and roll history move into the document. Dice are player bodies. Only the tray's player can use its dice panel.
 5. **Signaling service.** Lambda, table, SAM template, AWS budget alert. Host and join UI, the room link, reconnect, IndexedDB.
 6. **TURN.** Cloudflare TURN through `GET /ice`. The app shows the connection type (direct or relayed). Only if phase 5 shows that direct connections fail too often.
@@ -266,7 +322,7 @@ Each phase ends with a working app. Do not open the app in a browser. Check with
 ## Open questions
 
 1. **Signaling vendor.** AWS Lambda (this plan) or a Cloudflare Worker with a Durable Object? The Worker gives a WebSocket, so no polling and faster reconnects. It is also free with no end date, and it could also make the TURN credentials. The cost is a second vendor.
-2. **Cloudflare TURN account.** Check if the free 1,000 GB needs a payment card or a paid plan.
+2. **Cloudflare TURN account.** No paid plan is needed: the TURN FAQ says the free 1,000 GB come before any charges. A search result says no payment card is needed to start, but no official page confirms it. Check when we create the account.
 3. **AWS account.** Use an existing account or a new one? A new one must move to the Paid plan within 6 months.
 4. **Spectators.** Needed later?
 
@@ -280,7 +336,11 @@ Each phase ends with a working app. Do not open the app in a browser. Check with
 - [CloudWatch pricing](https://aws.amazon.com/cloudwatch/pricing/): 5 GB of logs per month.
 - [AWS free data transfer out, 100 GB per month](https://aws.amazon.com/blogs/aws/aws-free-tier-data-transfer-expansion-100-gb-from-regions-and-1-tb-from-amazon-cloudfront-per-month/)
 - [Cloudflare Realtime pricing](https://developers.cloudflare.com/realtime/sfu/platform/pricing/): first 1,000 GB per month free, shared by SFU and TURN.
+- [Cloudflare TURN FAQ](https://developers.cloudflare.com/realtime/turn/faq/): $0.05 per GB after 1,000 GB free; only Cloudflare-to-client data counts; STUN free and unlimited.
+- [Cloudflare TURN overview](https://developers.cloudflare.com/realtime/turn/): limits per TURN connection; TURN free when used with the SFU.
 - [Cloudflare TURN credentials](https://developers.cloudflare.com/realtime/turn/generate-credentials/): generated by a backend with an API token.
+- [Cloudflare RealtimeKit](https://developers.cloudflare.com/realtime/realtimekit/) and [its pricing](https://developers.cloudflare.com/realtime/realtimekit/pricing/): video and voice calls; price per participant minute.
+- [Cloudflare Realtime SFU](https://developers.cloudflare.com/realtime/sfu/) and [its data channels](https://developers.cloudflare.com/realtime/sfu/datachannels/): needs your own backend; publish and subscribe.
 - [Cloudflare Durable Objects pricing](https://developers.cloudflare.com/durable-objects/platform/pricing): available on the Workers Free plan.
 - [y-webrtc public signaling server status](https://discuss.yjs.dev/t/is-the-public-signaling-server-that-ships-by-default-with-y-webrtc-still-working/1979)
 - [Trystero](https://github.com/dmotz/trystero)
