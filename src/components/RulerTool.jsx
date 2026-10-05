@@ -29,9 +29,9 @@ const MAX_BEND = Math.PI / 2
 // Its center is a little above the top of the tool (about 0.17), so most of it shows.
 const HANDLE_RADIUS = 0.2
 const HANDLE_Y = 0.2
-// Place on a movement tool sits this far in from the tip. Place is about 1.04" wide (40 px per inch),
-// so on the short tool it fits between the bend button and the handle. Html is drawn over the 3D
-// view, so where it covered the handle, the handle could not be grabbed.
+// Place sits this far in from each tip. Place is turned across the tool, so along the tool it takes
+// only its height, about 0.27" on a movement tool. It fits between the bend button and the handle.
+// Html is drawn over the 3D view, so where it covered the handle, the handle could not be grabbed.
 const PLACE_INSET = 0.75
 
 // A tool has two halves, one on each side of its center: right is local +X, left is local −X.
@@ -148,6 +148,31 @@ function footprintGap(shape, length, halfWidth, center, radius) {
     gap = Math.min(gap, Math.hypot(ox, oz))
   }
   return gap - radius
+}
+
+// Nearest point to p where a round base with its center there touches the footprint (gap ≤ 0 in
+// footprintGap). p itself when the base already touches it. Each piece of the footprint, grown by the
+// radius, is convex, so the nearest point is the nearest of the nearest points on each piece.
+function nearestTouching(shape, length, halfWidth, p, radius) {
+  // The round hinge
+  const reach = halfWidth + radius
+  const d = Math.hypot(p.x - shape.x, p.z - shape.z)
+  if (d <= reach) return p
+  let best = { x: shape.x + (p.x - shape.x) * reach / d, z: shape.z + (p.z - shape.z) * reach / d }
+  let bestGap = d - reach
+  // The rectangle of each half
+  for (const side of SIDES) {
+    const pose = { x: shape.x, z: shape.z, yaw: shape[side] }
+    const l = toLocal(pose, p)
+    const q = { x: THREE.MathUtils.clamp(l.x, 0, length), z: THREE.MathUtils.clamp(l.z, -halfWidth, halfWidth) }
+    const out = Math.hypot(l.x - q.x, l.z - q.z)
+    if (out <= radius) return p
+    if (out - radius < bestGap) {
+      bestGap = out - radius
+      best = fromLocal(pose, { x: q.x + (l.x - q.x) * radius / out, z: q.z + (l.z - q.z) * radius / out })
+    }
+  }
+  return best
 }
 
 // Tool pose with the end of the left half touching the base edge. The tool points from the base
@@ -423,6 +448,9 @@ function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target
 // null. getBody is only there for a model (a character); Place uses it to move the piece, and is
 // disabled without it. models: every character and token, in the same form, for the pointer
 // raycast and the snap. onSnap(model): the tool snapped to that model during a drag.
+// onPlaceLimit(limit): called with { id, clamp(p) } while Place is on and a character is selected,
+// and with null after. clamp moves a drag point p (table XZ) of that character, so its base keeps
+// touching the footprint. Not used by the R1 tool, whose Place moves the character once.
 // onSpawn: called once, when the tool is created
 // team: 'blue' or 'red', the player tint of the tool
 // hoverHeight: how far above the table or terrain the tool hangs while dragged
@@ -517,21 +545,36 @@ function FlatHtml({ x = 0, children }) {
   )
 }
 
-function PlaceButton({ disabled = false, disabledTitle = 'Select a character', onClick }) {
+// drei's Html transform draws 1 CSS px as 1/40 world unit (see DiceKeys.jsx)
+const PX_PER_INCH = 40
+// Share of the tool width that Place covers
+const PLACE_FILL = 0.85
+
+// toolWidth: width of the tool in inches. Place is 1" long before the scale, so the scale is the
+// length in inches: 0.47" on a movement tool, 0.85" on a range tool.
+// on: the toggle state, or undefined for the one-shot Place on the R1 tool
+function PlaceButton({ toolWidth, on, disabled = false, disabledTitle = 'Select a character', onClick }) {
   return (
     <button
       type="button"
+      aria-pressed={on}
       style={{
         ...BUTTON_STYLE,
-        padding: '4px 6px',
+        background: on ? '#f5a623' : '#1a1a1a',
+        color: on ? '#1a1a1a' : '#f5a623',
+        width: PX_PER_INCH,
+        padding: '4px 0',
         borderRadius: '4px',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.4 : 1,
         fontSize: '11px',
         whiteSpace: 'nowrap',
+        // Across the tool, reading toward the tool's local +Z. A tool snapped to a model on the
+        // player's half points to the mat center (snapPose), so the label reads from the player's side.
+        transform: `rotate(-90deg) scale(${PLACE_FILL * toolWidth})`,
       }}
       disabled={disabled}
-      title={disabled ? disabledTitle : undefined}
+      title={disabled ? disabledTitle : on ? 'Place on: the selected character stays touching the tool' : undefined}
       onClick={onClick}
     >
       Place
@@ -574,7 +617,7 @@ function BendButton({ on, onClick }) {
 // tip: X of each end (length of each half of the footprint).
 // bendable: a movement tool. Its halves turn around the hinge at the center.
 // rangeOne: the range 1 tool. It snaps with a corner, not an end. See README "Tools", "Range 1".
-function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target, models = [], onSnap, onSpawn }) {
+function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target, models = [], onSnap, onPlaceLimit, onSpawn }) {
   const [hovered, setHovered] = useState(false)
   const rigidRef = useRef()
   // The tool meshes, without the handles, for the outline
@@ -584,6 +627,9 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
   // While the bend button is on, a handle turns its half instead of the whole tool
   const [bendOn, setBendOn] = useState(false)
   const bending = bendable && selected && bendOn
+  // While Place is on, a drag of the selected character keeps its base touching the footprint
+  const [placeOn, setPlaceOn] = useState(false)
+  const placing = !rangeOne && selected && placeOn && !!target?.getBody
 
   // Snapped: { target, side }, the model the tool is snapped to and the half whose end touches
   // its base. Free: null. See README "Tools".
@@ -695,14 +741,24 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
 
   useOutline(partsRef, outlineMode(selected, hovered))
 
-  // Move a model so its base touches the end of one half, outside the tool
-  function placeAt(model, side) {
-    if (!rigidRef.current) return
-    placeOn(model, alongHalf(toolShape(toolPose(rigidRef.current), turn), side, tip + model.radius))
-  }
+  // The clamp reads the tool pose at each call, so the tool can move while Place is on
+  useEffect(() => {
+    if (!placing) return undefined
+    const { id, radius } = target
+    onPlaceLimit?.({
+      id,
+      clamp(p) {
+        if (!rigidRef.current) return
+        const spot = nearestTouching(toolShape(toolPose(rigidRef.current), turn), tip, halfWidth, p, radius)
+        p.x = spot.x
+        p.z = spot.z
+      },
+    })
+    return () => onPlaceLimit?.(null)
+  }, [placing, target, turn, tip, halfWidth])
 
   // Move a model's base center to spot (table XZ)
-  function placeOn(model, spot) {
+  function moveBase(model, spot) {
     const body = model.getBody()
     if (!body) return
     const t = body.translation()
@@ -716,15 +772,6 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
     body.setAngvel({ x: 0, y: 0, z: 0 }, true)
   }
 
-  // Range tool: move the selected character to the end farther from its base
-  function handlePlace(e) {
-    e.stopPropagation()
-    const body = target?.getBody()
-    if (!body || !rigidRef.current) return
-    const shape = toolShape(toolPose(rigidRef.current), turn)
-    placeAt(target, OTHER[nearerHalf(shape, tip, body.translation())])
-  }
-
   // Range 1 tool, snapped: move the selected character across the tool, so its base touches the other
   // long side at the same corner. Its base edge is then 1" (the tool width) from the snapped base edge.
   // If it is the snapped model, it now touches the other long side, so the tool stays snapped to it.
@@ -734,16 +781,7 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
     if (!c || !target?.getBody || !rigidRef.current) return
     const pose = toolPose(rigidRef.current)
     const { end, across } = nearerCorner(pose, c)
-    placeOn(target, fromLocal(pose, { x: end * tip, z: -across * (halfWidth + target.radius) }))
-  }
-
-  // Movement tool: move the snapped model to the other end. The model then touches that end,
-  // so the tool stays snapped to it at that end.
-  function handleSnapPlace(e) {
-    e.stopPropagation()
-    const side = OTHER[snap.side]
-    placeAt(snap.target, side)
-    setSnap({ target: snap.target, side })
+    moveBase(target, fromLocal(pose, { x: end * tip, z: -across * (halfWidth + target.radius) }))
   }
 
   return (
@@ -773,25 +811,28 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
               <sphereGeometry args={[HANDLE_RADIUS, 16, 12]} />
               <meshStandardMaterial color="#f5a623" roughness={0.3} metalness={0.5} />
             </mesh>
-            {/* Movement tool: Place is at the end the model moves to, the end that is not snapped.
-                Not shown for a token: it has no body, so there is nothing to move. */}
-            {bendable && selected && snap && snap.side !== side && snap.target.getBody && (
+            {/* One Place toggle at each end. Both show the same state. It cannot be turned on for a
+                token: a token has no body, so there is no base to keep on the tool. */}
+            {!rangeOne && selected && (
               <FlatHtml x={side === 'right' ? tip - PLACE_INSET : PLACE_INSET - tip}>
-                <PlaceButton onClick={handleSnapPlace} />
+                <PlaceButton
+                  toolWidth={halfWidth * 2}
+                  on={placeOn}
+                  disabled={!placeOn && !target?.getBody}
+                  onClick={(e) => { e.stopPropagation(); setPlaceOn(on => !on) }}
+                />
               </FlatHtml>
             )}
           </group>
         ))}
-        {selected && (
+        {selected && (bendable || rangeOne) && (
           <FlatHtml>
             {bendable
               ? <BendButton on={bendOn} onClick={(e) => { e.stopPropagation(); setBendOn(on => !on) }} />
               // Disabled for a token: it has no body, so Place has nothing to move.
-              // Range 1: only while snapped, as "Place 1" in the TTS mod. Without a snapped model,
+              // Only while snapped, as "Place 1" in the TTS mod. Without a snapped model,
               // there is no corner to measure from.
-              : rangeOne
-                ? <PlaceButton disabled={!snap || !target?.getBody} disabledTitle={snap ? 'Select a character' : 'Snap the tool to a model'} onClick={handlePlaceOne} />
-                : <PlaceButton disabled={!target || !target.getBody} onClick={handlePlace} />}
+              : <PlaceButton toolWidth={halfWidth * 2} disabled={!snap || !target?.getBody} disabledTitle={snap ? 'Select a character' : 'Snap the tool to a model'} onClick={handlePlaceOne} />}
           </FlatHtml>
         )}
       </RigidBody>

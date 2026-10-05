@@ -65,7 +65,7 @@ In game setup, the player with priority chooses the edge of the mat to deploy fr
 
 ## Tools
 
-Range tools and movement tools work the same way, except for **Place** and bending. Movement tools can bend. Range tools stay straight. The R1 tool snaps with a corner, not an end, see [Range 1](#range-1).
+Range tools and movement tools work the same way, except for bending. Movement tools can bend. Range tools stay straight. The R1 tool snaps with a corner, not an end, and its **Place** works differently, see [Range 1](#range-1).
 
 A tool hangs 1" above the table. It measures with its outline, which is drawn straight below it on the table and on the tops of terrain. Walls and steep sides (more than about 60°) are not painted. While you drag or rotate the tool, it stays 1" above the table or above any terrain under its outline. Terrain within 0.5" of the outline already raises the tool.
 
@@ -81,7 +81,7 @@ A tool also snaps to a model while you drag it: when the pointer moves onto a mo
 
 Dragging a handle rotates the tool around the center of that model's base. The distance between the tool and the base does not change, so the tool keeps touching the base.
 
-The tool stays snapped to the same model when you select another model. It also stays snapped after you press **Place**, because Place moves the model but keeps it touching the tool.
+The tool stays snapped to the same model when you select another model. It also stays snapped when you drag that model with **Place** on, because the base keeps touching the tool.
 
 ### Free
 
@@ -91,11 +91,11 @@ Dragging a handle rotates the tool around the opposite handle.
 
 ### Place
 
-On a range tool, **Place** is in the middle of the tool. It moves the selected model to the end of the tool that is farther from its base.
+**Place** turns on and off. A selected range or movement tool has a Place button near each end. Both buttons show the same state.
 
-On a movement tool, **Place** is shown only while the tool is snapped. It is at the end that is not touching the base. It moves the snapped model to that end. After that, the model touches that end, so Place moves to the other end.
+While Place is on, you can drag the selected character only to where its base touches the tool outline, so the outline stays green. When the pointer goes farther, the base stops at the nearest point where it still touches the outline. The deploy line limits a drag in the same way. You can still move and rotate the tool while Place is on.
 
-Place does not move a token: a token has no base to place, only a position that its own drag sets. Place is disabled while the tool is snapped to a token.
+Place does not move a model by itself. It also does not work for a token: a token has no base to place, only a position that its own drag sets. So Place cannot be turned on while a token or nothing is selected.
 
 ### Bending
 

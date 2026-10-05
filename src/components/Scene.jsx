@@ -133,6 +133,9 @@ export default function Scene({
   // charObjects, but a token has no Rapier body (see CrisisToken.jsx).
   const tokenObjects = useRef(new Map())
   const tokenCenters = useRef(new Map())
+  // Tool ('move' or 'range') → { id, clamp(p) } while its Place is on, else null.
+  // A drag of character id keeps its base on that tool (see onPlaceLimit in RulerTool.jsx).
+  const placeLimits = useRef({})
   const [draggingCharId, setDraggingCharId] = useState(null)
 
   // Nearest character whose model or tray is under the client point (DOM pixels), or null.
@@ -260,7 +263,7 @@ export default function Scene({
       <color attach="background" args={['#050510']} />
       <Stars radius={200} depth={60} count={5000} factor={4} fade speed={0.5} />
 
-      <ambientLight intensity={0.6} />
+      <ambientLight intensity={0.85} />
       {/* The shadow camera looks from the light to the origin, so its x axis runs along the world
           diagonal (x − z), not along world x. The bounds are the mat and both dice trays measured in
           that camera's space: the mat needs x ±25.5, y −23 to 24.7, and the trays reach x = 37.1 and
@@ -268,7 +271,7 @@ export default function Scene({
           (64" / 3072 ≈ 40" / 2048). */}
       <directionalLight
         position={[10, 30, 10]}
-        intensity={1.2}
+        intensity={0.8}
         castShadow
         shadow-mapSize={[3072, 3072]}
         shadow-camera-near={1}
@@ -279,10 +282,14 @@ export default function Scene({
         shadow-camera-bottom={-34}
       />
       {/* Same HDR as drei's "city" preset, served with the app instead of from a CDN.
-          On a surface that faces up, the light multiplies the texture color by: HDR 1.34 at intensity 1
-          (its cos-weighted sky average), directional 0.35, ambient 0.19. A texture shows its own colors at
-          about 1.0. At intensity 1 the total was 1.88, and cards and tokens looked washed out. At 0.5 it is 1.21. */}
-      <Environment files={assetUrl('hdri/potsdamer_platz_1k.hdr')} backgroundIntensity={0} environmentIntensity={0.5} />
+          The light multiplies the texture color. Per unit of intensity, a surface that faces up gets:
+          HDR 1.35 (its cos-weighted sky average), directional 0.29, ambient 0.32. A side face gets
+          HDR 0.35–0.66, directional 0–0.14, ambient 0.32. ACES tone mapping shows mid tones at their
+          texture color when the total is about 0.9. A total of 1.21 (HDR 0.5, directional 1.2, ambient 0.6)
+          looked like a strong lamp. Most HDR light comes from above, so it makes tops much brighter than
+          sides. Ambient is the same from every side, so part of the light moved from the HDR to ambient.
+          Now a face up gets 0.41 + 0.23 + 0.27 = 0.91, and a side face 0.38–0.55. */}
+      <Environment files={assetUrl('hdri/potsdamer_platz_1k.hdr')} backgroundIntensity={0} environmentIntensity={0.3} />
 
       <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP} debug={showColliders}>
         {/* Table surface — fixed collider so models land on it */}
@@ -450,11 +457,16 @@ export default function Scene({
                 onDragEnd={() => setDraggingCharId(null)}
                 // A base is within range if any part of it is within range (p8). So the base can
                 // go as far as touching the far end of the tool: its center is one radius past it.
-                constrainDrag={deployLine ? (p) => {
-                  const limit = MAT_SIZE / 2 - deployDepth - BASE_DIAMETER[ch.base] / 2
-                  if (ch.teamColor === 'blue') p.z = Math.max(p.z, limit)
-                  else p.z = Math.min(p.z, -limit)
-                } : undefined}
+                constrainDrag={(p) => {
+                  if (deployLine) {
+                    const limit = MAT_SIZE / 2 - deployDepth - BASE_DIAMETER[ch.base] / 2
+                    if (ch.teamColor === 'blue') p.z = Math.max(p.z, limit)
+                    else p.z = Math.min(p.z, -limit)
+                  }
+                  for (const limit of Object.values(placeLimits.current)) {
+                    if (limit?.id === ch.id) limit.clamp(p)
+                  }
+                }}
               />
             )}
           </Suspense>
@@ -474,6 +486,7 @@ export default function Scene({
               target={toolTarget}
               models={toolModels}
               onSnap={model => onSelectionChange({ kind: model.kind, id: model.id })}
+              onPlaceLimit={limit => { placeLimits.current.move = limit }}
             />
           </Suspense>
         )}
@@ -501,6 +514,7 @@ export default function Scene({
               target={toolTarget}
               models={toolModels}
               onSnap={model => onSelectionChange({ kind: model.kind, id: model.id })}
+              onPlaceLimit={limit => { placeLimits.current.range = limit }}
             />
           </Suspense>
         )}
