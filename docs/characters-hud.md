@@ -136,7 +136,7 @@ A player gives a token to a character by dragging it onto the model or onto the 
 | Token | Drag from | Result |
 |---|---|---|
 | Character token (condition, Activated, Dazed, superpower or Team Tactic token) | A **Give** source of any tray, the **Tokens** panel, or the table | The token count on the target goes up by 1, with the limits in [Players apply the rules](#players-apply-the-rules) |
-| Extract objective token (Asset, Civilian, supply token) | The table | The target holds the token, see [Hold and drop](#hold-and-drop) |
+| Extract objective token (Asset, Civilian, supply token) | The table, or the supply pile of a Source card | The target holds the token, see [Hold and drop](#hold-and-drop) |
 
 The **Tokens** panel is a HUD panel, opened from a toolbar button. It shows every migrated token, in groups, with a search field. It has the same purpose as the TTS "Token Tray": a player can give a token that is not among the Give sources of any tray, for example a token from a Team Tactic card.
 
@@ -247,12 +247,14 @@ All fields are plain JSON. So they fit into the `characters` and `tokens` maps o
 
 ## Hold and drop
 
-Only tokens of an Extract card that players can move can be held: Asset, Civilian and the supply tokens of Source cards. `buildMatTokens` and `buildSupplyTokens` set a new `canHold` flag.
+Only tokens of an Extract card that players can move can be held: Asset, Civilian and the supply tokens of Source cards. `buildMatTokens` and `supplyToken` set a new `canHold` flag.
 
 - **Hold:** a player drags the token and releases it over a model or a tray (see [Give tokens by drag and drop](#give-tokens-by-drag-and-drop)). That character now holds the token. The token leaves the mat and lies on the tray card as a 3D token, as in TTS. Its default place is the character art, in the left column of the card (`trays.js`, `trayHeldDefault`). A second token goes a little higher on the art and lies on top of the first. The app does not check the range: players apply the rules.
 - **Move on the card:** a player drags the held token and releases it on the same tray. The token stays held and lies at the release point, moved so that the whole token is on the card.
 - **Drop:** a player drags the held token from the card and releases it on the table. It is no longer held. The opponent then moves it to a place within Range 2.
 - **Remove a character:** the character drops all its tokens first. The app puts them on the table next to the base of the model.
+- **Take from the supply:** a player drags a new token from the supply pile of a Source card. The pile never runs out (see `docs/feature-crisis.md`, "Extract: Source"). Released over a character, the token goes to the default place on the card. Released on the table, it lies there.
+- **Delete:** the Delete key (or Backspace) removes the held token under the pointer, as in TTS. Players use it for the supply tokens in the Cleanup Phase.
 - A held token is not in the list of models that the range and movement tools snap to.
 - The tray popup shows the held tokens on the card image, at the same place as on the 3D card. They cannot be moved there.
 
@@ -794,3 +796,7 @@ Made on 2026-10-02:
 7. A player has one tray row only. Later, some trays can be wider (a grunt card, characters with 2 forms).
 8. Character tokens are real size. A Give source never runs out, and a token can lie anywhere on the table.
 9. The Delete key removes a token on the table, as in TTS. A Tokens panel drag can also place a token on the table.
+
+Made on 2026-10-05:
+
+10. A Source card has one supply pile that never runs out, below the card text. The Delete key also removes a crisis token that a character holds.

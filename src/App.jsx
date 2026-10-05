@@ -14,7 +14,7 @@ import { TokensPanel } from './components/TokensPanel.jsx'
 import { CardPopup } from './components/CardPopup.jsx'
 import { TrayPopup } from './components/TrayPopup.jsx'
 import { canFlip, canMove, getCard, hasArc, hasMarkers } from './crisis/cards.js'
-import { supplyPosition } from './crisis/layout.js'
+import { supplyPilePosition } from './crisis/layout.js'
 import { characterImmune, characterName, characterStamina } from './characters/roster.js'
 import { BASE_DIAMETER } from './characters/files.js'
 import { trayHeldDefault } from './characters/trays.js'
@@ -68,7 +68,7 @@ function buildMatTokens(card) {
     hasArc: hasArc(t),
     hasMarkers: marked,
     // Only Asset and Civilian can be held (p22); a Source stays on the mat and gives out its
-    // supply instead (see buildSupplyTokens, docs/characters-hud.md, "Hold and drop").
+    // supply instead (see supplyToken, docs/characters-hud.md, "Hold and drop").
     canHold: card.type === 'extract' && canMove(t),
     heldBy: null, // character id, or null while the token sits on the mat
     heldAt: null, // tray-local [x, z] on the holder's card while held (see characters/trays.js)
@@ -77,36 +77,28 @@ function buildMatTokens(card) {
   }))
 }
 
-// Supply tokens of a card: one per Source token (a token with flipOnly), in a column next to the card.
-function buildSupplyTokens(card) {
-  if (!card.supply) return []
-  const count = card.tokens.filter(t => t.flipOnly).length
-  return Array.from({ length: count }, (_, i) => {
-    const pos = supplyPosition(card.type, i, count)
-    return {
-      id: crypto.randomUUID(),
-      cardKey: card.key,
-      frontKey: card.supply,
-      backKey: null,
-      up: 'front',
-      x: pos.x,
-      z: pos.z,
-      yaw: 0,
-      canMove: true,
-      canFlip: false,
-      hasArc: false,
-      hasMarkers: false,
-      canHold: true, // a Source's supply is the same Asset/Civilian token, see buildMatTokens above
-      heldBy: null,
-      heldAt: null,
-      control: null,
-      damage: false,
-    }
-  })
-}
-
-function buildCardTokens(card) {
-  return [...buildMatTokens(card), ...buildSupplyTokens(card)]
+// A new supply token of a Source card, taken from its pile (see SupplyPile.jsx and
+// handleSupplyTake). It lies on the table at (x, z), or a character holds it.
+function supplyToken(card, x, z) {
+  return {
+    id: crypto.randomUUID(),
+    cardKey: card.key,
+    frontKey: card.supply,
+    backKey: null,
+    up: 'front',
+    x,
+    z,
+    yaw: 0,
+    canMove: true,
+    canFlip: false,
+    hasArc: false,
+    hasMarkers: false,
+    canHold: true, // a Source's supply is the same Asset/Civilian token, see buildMatTokens above
+    heldBy: null,
+    heldAt: null,
+    control: null,
+    damage: false,
+  }
 }
 
 export default function App() {
@@ -122,7 +114,8 @@ export default function App() {
   const [characters, setCharacters] = useState([])
   // The chosen Secure and Extract card, by key. null = none.
   const [crisis, setCrisis] = useState({ secure: null, extract: null })
-  // Every crisis token on the table: mat tokens and supply tokens together, see buildCardTokens.
+  // Every crisis token on the table: the mat tokens of the cards (buildMatTokens) and the supply
+  // tokens that players took from a pile (supplyToken).
   const [tokens, setTokens] = useState([])
   // Scoring board markers: { blue, red, round } → { x, z } on the table (see ScoreBoard.jsx)
   const [scoreMarkers, setScoreMarkers] = useState(START_MARKERS)
@@ -165,11 +158,15 @@ export default function App() {
   const [looseTokens, setLooseTokens] = useState([])
   // Id of the table token under the pointer, for the Delete key. A ref, the same as hoveredRef.
   const hoveredLooseRef = useRef(null)
-  // A character token drag in progress: { tokenKey, looseId, active, start } | null. looseId: the
-  // table token that is dragged, or null for a new token from a source. active: the pointer has
-  // moved DRAG_THRESHOLD px, so the dragged token shows under the pointer (Scene.jsx,
-  // TokenDragPreview). start: the pointer position at that moment. The state changes only at
-  // start and when the drag becomes active, not on every pointermove.
+  // Id of the crisis token under the pointer that a character holds, for the Delete key
+  const hoveredHeldRef = useRef(null)
+  // A token drag in progress: { tokenKey, looseId, supplyCard, active, start } | null. looseId: the
+  // table token that is dragged, or null for a new token from a source. supplyCard: the card key
+  // when the new token comes from the supply pile of a Source card (tokenKey is then a crisis token
+  // key), otherwise null. active: the pointer has moved DRAG_THRESHOLD px, so the dragged token
+  // shows under the pointer (Scene.jsx, TokenDragPreview). start: the pointer position at that
+  // moment. The state changes only at start and when the drag becomes active, not on every
+  // pointermove.
   const [tokenDrag, setTokenDrag] = useState(null)
   // The same drag, plus the pointerdown position, for the window listeners below
   const tokenDragRef = useRef(null)
@@ -253,6 +250,7 @@ export default function App() {
     if (e.metaKey || e.ctrlKey || e.altKey || isEditing(e.target)) return
     if (DELETE_KEYS.includes(e.key)) {
       if (hoveredLooseRef.current) handleLooseRemove(hoveredLooseRef.current)
+      else if (hoveredHeldRef.current) handleHeldRemove(hoveredHeldRef.current)
       return
     }
     if (PAN_KEYS[e.code]) {
@@ -330,7 +328,7 @@ export default function App() {
     setTokens(prev => {
       const kept = prev.filter(t => t.cardKey !== oldKey)
       const card = getCard(key)
-      return card ? [...kept, ...buildCardTokens(card)] : kept
+      return card ? [...kept, ...buildMatTokens(card)] : kept
     })
     // The selected token may no longer exist; a selected character is not affected.
     setSelection(prev => prev?.kind === 'token' ? null : prev)
@@ -374,6 +372,36 @@ export default function App() {
       const heldCount = prev.filter(t => t.heldBy === characterId).length
       return prev.map(t => t.id === id ? { ...t, heldBy: characterId, heldAt: trayHeldDefault(heldCount) } : t)
     })
+  }
+
+  // A new supply token from the pile of a Source card (handleTokenRelease). Released over a
+  // character: that character holds it, at the default place on its card, the same as
+  // handleTokenHold. Otherwise it lies on the table at (x, z).
+  function handleSupplyTake(cardKey, x, z, characterId) {
+    const card = getCard(cardKey)
+    if (!card?.supply) return
+    setTokens(prev => {
+      const token = supplyToken(card, x, z)
+      if (!characterId) return [...prev, token]
+      const heldCount = prev.filter(t => t.heldBy === characterId).length
+      return [...prev, { ...token, heldBy: characterId, heldAt: trayHeldDefault(heldCount) }]
+    })
+  }
+
+  // over: the pointer moved onto (true) or off (false) a crisis token that a character holds
+  function handleHeldHover(id, over) {
+    if (over) hoveredHeldRef.current = id
+    else if (hoveredHeldRef.current === id) hoveredHeldRef.current = null
+  }
+
+  // Delete key over a token on a character's card, as in TTS. Players remove a Source's supply
+  // tokens in the Cleanup Phase, and the pile gives new ones. The hover can outlive the hold (a
+  // drag off the card ends on the table before the pointer leaves the token), so only a token that
+  // is still held is removed.
+  function handleHeldRemove(id) {
+    if (!tokens.find(t => t.id === id)?.heldBy) return
+    setTokens(prev => prev.filter(t => t.id !== id))
+    setSelection(prev => prev?.kind === 'token' && prev.id === id ? null : prev)
   }
 
   // Drop, when its holder is removed: the token goes back on the table, next to the base of the
@@ -493,17 +521,27 @@ export default function App() {
   }
 
   // pointerdown on a character token: a Tokens panel chip, a tray's Give source (a new token, the
-  // source never runs out), or a token on the table (looseId). e is the DOM event. preventDefault
-  // stops the browser's own image drag and text selection. The camera does not move during the
-  // drag. A pointerdown on the canvas also starts an OrbitControls drag, which captures the
-  // pointer, so the capture is released, the same as CrisisToken.jsx.
+  // source never runs out), or a token on the table (looseId).
   function handleTokenDragStart(e, tokenKey, looseId = null) {
+    startTokenDrag(e, { tokenKey, looseId, supplyCard: null })
+  }
+
+  // pointerdown on the supply pile of a Source card: a new supply token. The pile never runs out.
+  function handleSupplyDragStart(e, cardKey) {
+    const supply = getCard(cardKey)?.supply
+    if (supply) startTokenDrag(e, { tokenKey: supply, looseId: null, supplyCard: cardKey })
+  }
+
+  // e is the DOM event. preventDefault stops the browser's own image drag and text selection. The
+  // camera does not move during the drag. A pointerdown on the canvas also starts an OrbitControls
+  // drag, which captures the pointer, so the capture is released, the same as CrisisToken.jsx.
+  function startTokenDrag(e, drag) {
     e.preventDefault()
     e.stopPropagation()
     if (e.target?.hasPointerCapture?.(e.pointerId)) e.target.releasePointerCapture(e.pointerId)
     if (controlsRef.current) controlsRef.current.enabled = false
-    tokenDragRef.current = { tokenKey, looseId, startX: e.clientX, startY: e.clientY, active: false }
-    setTokenDrag({ tokenKey, looseId, active: false, start: null })
+    tokenDragRef.current = { ...drag, startX: e.clientX, startY: e.clientY, active: false }
+    setTokenDrag({ ...drag, active: false, start: null })
   }
 
   function cancelTokenDrag() {
@@ -526,11 +564,19 @@ export default function App() {
   // drag back onto the Tokens panel cancels it. Over a character (its model, or anywhere on its
   // tray): the character gets the token, the same as before. A table token is used up then, unless
   // the character is immune. Over the table or terrain: a new token lies there, or the dragged table
-  // token moves there. Elsewhere (the space around the table): nothing changes.
+  // token moves there. Elsewhere (the space around the table): nothing changes. A supply token
+  // follows the same rules, but it is a crisis token: a character holds it (handleSupplyTake).
   function handleTokenRelease(clientX, clientY) {
-    const { tokenKey, looseId } = tokenDragRef.current
+    const { tokenKey, looseId, supplyCard } = tokenDragRef.current
     if (!document.elementFromPoint(clientX, clientY)?.closest('.scene-root')) return
     const characterId = findCharacterAt(clientX, clientY)
+    if (supplyCard) {
+      const point = dragPointRef.current
+      const pile = supplyPilePosition(getCard(supplyCard).type)
+      if (characterId) handleSupplyTake(supplyCard, pile.x, pile.z, characterId)
+      else if (point) handleSupplyTake(supplyCard, point.x, point.z, null)
+      return
+    }
     if (characterId) {
       if (handleCharacterTokenGive(characterId, tokenKey) && looseId) handleLooseRemove(looseId)
       return
@@ -613,6 +659,8 @@ export default function App() {
               onTokenMove={handleTokenMove}
               onTokenTurn={handleTokenTurn}
               onTokenHold={handleTokenHold}
+              onHeldHover={handleHeldHover}
+              onSupplyDragStart={handleSupplyDragStart}
               onCharacterDamage={handleCharacterDamage}
               onCharacterPower={handleCharacterPower}
               onCharacterFlip={handleCharacterFlip}

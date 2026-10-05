@@ -12,6 +12,8 @@ import CrisisCard from './CrisisCard.jsx'
 import CrisisToken from './CrisisToken.jsx'
 import LooseToken from './LooseToken.jsx'
 import TokenDragPreview from './TokenDragPreview.jsx'
+import TokenFace from './TokenFace.jsx'
+import SupplyPile, { SupplyToken } from './SupplyPile.jsx'
 import DiceTray from './DiceTray.jsx'
 import ScoreBoard from './ScoreBoard.jsx'
 import { projectFootprints } from './footprintProjection.js'
@@ -20,7 +22,8 @@ import { characterModel, characterStandee, BASE_DIAMETER } from '../characters/f
 import { MAPS } from '../terrain/maps.js'
 import { FRICTION, WORLD_GRAVITY } from '../physics.js'
 import { assetUrl } from '../assets/index.js'
-import { CARD_X, CARD_Y, CARD_Z } from '../crisis/layout.js'
+import { CARD_X, CARD_Y, CARD_Z, supplyPilePosition } from '../crisis/layout.js'
+import { getCard } from '../crisis/cards.js'
 import { TRAYS } from '../dice/tray.js'
 import { TRAY_Y, layoutTrays, onTray, trayHeldLocal, trayHeldWorld, trayModelPosition, trayYaw } from '../characters/trays.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
@@ -47,6 +50,8 @@ const TIME_STEP = 1 / 120
 // Tokens held by one character lie on its card in a stack, in the order they were taken, so two
 // tokens that overlap do not z-fight. Each one is this much higher than the one before it.
 const HELD_STACK_STEP = TOKEN_THICKNESS + 0.01
+// The dragged token gets no pointer events, so it does not hide what is under it
+const NO_RAYCAST = () => null
 
 // Every piece that loads a file after the first scene load (the mat of a new map, terrain, crisis
 // cards and tokens, character trays and models, tools) is in its own Suspense below. While its file
@@ -104,11 +109,14 @@ function Mat({ mat }) {
 // onTokenHold(tokenId, characterId, cardPoint): a canHold token was released over a character.
 // cardPoint: the tray-local [x, z] on that character's card (trays.js, trayHeldLocal) when the
 // release point is on its tray, otherwise null.
+// onHeldHover(tokenId, over): the pointer moved onto or off a crisis token that a character holds,
+// for the Delete key, the same as onLooseHover.
+// onSupplyDragStart(e, cardKey): pointerdown on the supply pile of a Source card (SupplyPile.jsx).
 // scoreMarkers, affiliations, onScoreMarkerMove(marker, x, z): the scoring board markers, see
 // ScoreBoard.jsx.
 export default function Scene({
   mapId, characters = [], activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onCharacterDamage, onCharacterPower, onCharacterFlip, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, scoreMarkers, affiliations, onScoreMarkerMove,
+  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, scoreMarkers, affiliations, onScoreMarkerMove,
 }) {
   const map = MAPS[mapId]
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
@@ -338,9 +346,22 @@ export default function Scene({
             <CrisisCard cardKey={crisis.extract} position={[CARD_X, CARD_Y, CARD_Z.extract]} onOpen={onCardOpen} />
           </Suspense>
         )}
+        {/* The supply pile of a Source card (only Extract cards have one now) */}
+        {Object.entries(crisis).map(([type, key]) => {
+          const supply = getCard(key)?.supply
+          return supply && (
+            <SupplyPile
+              key={type}
+              tokenKey={supply}
+              position={supplyPilePosition(type)}
+              onDragStart={e => onSupplyDragStart(e, key)}
+            />
+          )
+        })}
         {/* A held token lies on its holder's tray card (Hold and drop). A drag off the card puts
-            it back on the mat (onMove). It is not a piece for the tools, so it reports no hover:
-            a tool key over it does not snap a tool to it (App.jsx, handleToolKey). */}
+            it back on the mat (onMove). It is not a piece for the tools, so its hover goes to
+            onHeldHover, not onPieceHover: a tool key over it does not snap a tool to it (App.jsx,
+            handleToolKey), and the Delete key removes it. */}
         {tokenViews.map(({ token: tok, floorY }) => (
           <Suspense key={tok.id} fallback={null}>
             <CrisisToken
@@ -348,7 +369,7 @@ export default function Scene({
               floorY={floorY}
               selected={selectedTokenId === tok.id}
               onSelect={() => toggleSelect('token', tok.id)}
-              onHover={tok.heldBy ? undefined : over => onPieceHover?.({ kind: 'token', id: tok.id }, over)}
+              onHover={tok.heldBy ? over => onHeldHover?.(tok.id, over) : over => onPieceHover?.({ kind: 'token', id: tok.id }, over)}
               onMove={(x, z) => onTokenMove(tok.id, x, z)}
               onTurn={yaw => onTokenTurn(tok.id, yaw)}
               onHold={(characterId, point) => {
@@ -375,7 +396,11 @@ export default function Scene({
           />
         ))}
         {tokenDrag?.active && (
-          <TokenDragPreview tokenKey={tokenDrag.tokenKey} pointRef={dragPointRef} start={tokenDrag.start} />
+          <TokenDragPreview pointRef={dragPointRef} start={tokenDrag.start}>
+            {tokenDrag.supplyCard
+              ? <SupplyToken tokenKey={tokenDrag.tokenKey} raycast={NO_RAYCAST} />
+              : <TokenFace tokenKey={tokenDrag.tokenKey} interactive={false} />}
+          </TokenDragPreview>
         )}
 
         {/* One tray per spawned character, next to the mat edge (see trays.js and

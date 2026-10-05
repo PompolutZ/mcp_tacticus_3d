@@ -2,19 +2,20 @@ import { Suspense, useEffect, useRef } from 'react'
 import { useThree } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
 import { Raycaster } from 'three'
-import TokenFace from './TokenFace.jsx'
 
 // Gap between the ground and the token, the same as LooseToken.jsx
 const GAP = 0.02
 
-// The dragged character token, real size, on the table or terrain point under the pointer (see
-// App.jsx, the token drag). The pointer tracking is outside the Suspense, so it works while the
-// token image still loads. pointRef: App reads the last point, { x, y, z } or null, on release.
+// The dragged token, real size, on the table or terrain point under the pointer (see App.jsx, the
+// token drag). children: the token, with its bottom at y = 0 and no pointer events: a character
+// token (TokenFace) or a crisis supply token (SupplyPile.jsx, SupplyToken). The pointer tracking is
+// outside the Suspense, so it works while the token image still loads. pointRef: App reads the last
+// point, { x, y, z } or null, on release.
 // null means the pointer is not over the table (for example over the space around it), and the
 // preview is hidden then. Only fixed bodies count, so models and dice do not catch the token.
 // start: { clientX, clientY } of the pointer when the preview mounts, so the token shows (and a
 // release drops it) before the next pointermove.
-export default function TokenDragPreview({ tokenKey, pointRef, start }) {
+export default function TokenDragPreview({ pointRef, start, children }) {
   const { camera, gl } = useThree()
   const { world, rapier } = useRapier()
   const groupRef = useRef()
@@ -55,7 +56,7 @@ export default function TokenDragPreview({ tokenKey, pointRef, start }) {
   return (
     <group ref={groupRef} visible={false}>
       <Suspense fallback={null}>
-        <TokenFace tokenKey={tokenKey} interactive={false} />
+        {children}
       </Suspense>
     </group>
   )

@@ -1,6 +1,6 @@
 # Feature: Crisis cards
 
-Status: in progress. Players can choose a Secure and an Extract card, see them on the table, and move, flip and mark their tokens. A character can now hold and drop an Asset, Civilian or Source supply token (see `docs/characters-hud.md`, "Hold and drop").
+Status: in progress. Players can choose a Secure and an Extract card, see them on the table, and move, flip and mark their tokens. A character can now hold and drop an Asset, Civilian or Source supply token (see `docs/characters-hud.md`, "Hold and drop"). Players take supply tokens from a pile that never runs out, and delete held tokens with the Delete key.
 
 ## Goal
 
@@ -55,6 +55,8 @@ All current tokens are 1" circles. There are two groups: Extract tokens (red) an
 - In the Cleanup Phase, players flip every Exhausted Source back. On all 4 current Source cards, players also remove the supply tokens from the game at that time, so they go back to the supply.
 - The supply is next to the card. The card says how many supply tokens to set aside. On all 4 current Source cards, this is one per Source.
 - The supply images are the same as the normal Asset and Civilian images.
+
+In the app, the supply is one pile below the text of the card, between the card and the mat edge (`crisis/layout.js`, `supplyPilePosition`). The pile never runs out, the same as a Give source of a tray. A player drags a new token from it onto a character, who then holds it, or onto the table. In the Cleanup Phase, players delete the held supply tokens with the Delete key (see `docs/characters-hud.md`, "Hold and drop"). So the app does not count the supply tokens. Players check the limit on the card.
 
 Source cards: Evidence, Jailbreak, Sentinel Schematics, Surprise Assault.
 
@@ -147,9 +149,9 @@ The details depend on how players select tokens. They will be decided later.
 ## Setup flow
 
 1. A player chooses the Secure card and the Extract card from a list. The list shows the name and the threat.
-2. The app puts both cards face up on the table, one on each side of the scoring board (see [Scoring board](#scoring-board)). The Secure card is on the blue side (+z) and the Extract card is on the red side (-z). The mod has no script that places the cards on the table; players place them by hand, so this is the app's own choice, not a measured mod rule. Players expect the cards there, because they place them there on a real table. A player can open a card in a HUD popup to read it. The TTS mod has a button that brings a card forward for the same reason.
+2. The app puts both cards face up on the table, one at each end of the scoring board (see [Scoring board](#scoring-board)). The long side of a card lies along the end of the board, and the card text reads the same way as the board. The Secure card is on the blue side (+z) and the Extract card is on the red side (-z). The mod has no script that places the cards on the table; players place them by hand, so this is the app's own choice, not a measured mod rule. Players expect the cards there, because they place them there on a real table. A player can open a card in a HUD popup to read it. The TTS mod has a button that brings a card forward for the same reason.
 3. The app puts the tokens on the mat at the setup positions, with the side and rotation from the card.
-4. For a Source card, the app also puts the supply next to the card.
+4. For a Source card, the app also puts the supply pile next to the card (see [Extract: Source](#extract-source)).
 5. The setup positions are always relative to the player sides (blue and red), as the setup map on each card shows. They are never relative to the mat. So when the mat turns (**Mat → ↺ / ↻**), the tokens do not turn with it. Each token stays at its place on the table and rests again on the new surface under it (see [Where a token rests](#where-a-token-rests)). As a result, players cannot know before the game if a token lands on the mat or on terrain.
 
 The bottom edge of the setup map on a card is the deployment edge of the player with Priority, which is the blue side of the app. The top edge is the red side. The rulebook calls these the blue zone and the red zone (p9). The current card images use other colors: green at the bottom and purple at the top.
@@ -186,7 +188,7 @@ The board comes from the TTS mod. These facts were found in the mod on 2026-09-2
 
 The app has the board since 2026-10-03 (`src/components/ScoreBoard.jsx`, `src/scoreboard/board.js`, files from `scripts/migrate-scoreboard.mjs`):
 
-- The board is at its TTS position, with z → -z. The VP 1 spot is on the blue side (+z). A card lies on each side of the board.
+- The board is at its TTS position, with z → -z. The VP 1 spot is on the blue side (+z). A card lies at each end of the board.
 - Each player has a VP marker. **VP** in the toolbar chooses the affiliation token it shows, for each player. The markers start next to the board, where the mod puts them.
 - The round marker starts on round 1.
 - Players drag a marker with the left button. A marker released less than 1" from a spot moves onto it, as on a TTS snap point. A marker released elsewhere stays there.
