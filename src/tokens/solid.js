@@ -7,6 +7,10 @@ import { ExtrudeGeometry, Shape, Vector2 } from 'three'
 // Real tokens are cardboard, 1–2 mm thick. 0.08" is 2 mm. Every token uses it, also the crisis tokens
 // (CrisisToken.jsx).
 export const TOKEN_THICKNESS = 0.08
+// A dragged token hangs this far (inches) above the ground under it, so it passes over the bases of
+// models instead of under them. Every token drag uses it (CrisisToken.jsx, TokenDragPreview.jsx).
+// Picked by look.
+export const TOKEN_DRAG_LIFT = 1
 // Color of a token's edge, where the cardboard is cut
 export const TOKEN_EDGE_COLOR = '#3a3f4c'
 

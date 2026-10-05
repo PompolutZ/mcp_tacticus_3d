@@ -1,13 +1,14 @@
 import { useTexture } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { DoubleSide, Plane, Raycaster, Vector3 } from 'three'
 import { castDown } from '../physics.js'
 import { crisisMarker, crisisToken } from '../crisis/files.js'
 import { assetUrl } from '../assets/index.js'
+import { affiliationToken } from '../scoreboard/files.js'
 import { acquireFootprint } from './footprintProjection.js'
-import { TOKEN_EDGE_COLOR, TOKEN_THICKNESS } from '../tokens/solid.js'
+import { TOKEN_DRAG_LIFT, TOKEN_EDGE_COLOR, TOKEN_THICKNESS } from '../tokens/solid.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 
 const TEAM_COLORS = { blue: '#2980b9', red: '#c0392b' }
@@ -35,16 +36,34 @@ const ARC_OPACITY = 0.22
 const HANDLE_RADIUS = 0.12
 const HANDLE_DIST = RADIUS + 0.35
 const HANDLE_Y = 0.12
-// Control marker: a ring just outside the token edge
+// Control marker: a ring in the player color just outside the token edge, and the player's
+// affiliation token on top of the token. The ring shows the player also when both players have the
+// same affiliation.
 const CONTROL_INNER = 0.52
 const CONTROL_OUTER = 0.62
-// Damage marker: a smaller disk on top of the token
-const DAMAGE_RADIUS = 0.3
+// The affiliation token and the damage marker: a smaller disk on top of the token. With both on the
+// token, they are smaller and lie side by side: the affiliation token on the left, damage on the right.
+const MARKER_RADIUS = 0.3
+const PAIR_RADIUS = 0.25
+const PAIR_X = 0.25
+const MARKER_Y = HALF_H + 0.002
 
 // Angle (as used by RulerTool/footprintProjection: direction of angle a is (cos a, 0, −sin a))
 // from pivot to p, in the table's XZ plane.
 function angleTo(pivot, p) {
   return Math.atan2(pivot.z - p.z, p.x - pivot.x)
+}
+
+// The affiliation token of the controlling player, the same image as their VP marker (ScoreBoard.jsx).
+// The image is a disk, so a circle shows it the same way as the token faces.
+function AffiliationMarker({ affiliation, x, radius }) {
+  const map = useTexture(assetUrl(affiliationToken(affiliation)))
+  return (
+    <mesh position={[x, MARKER_Y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <circleGeometry args={[radius, SEGMENTS]} />
+      <meshStandardMaterial map={map} alphaTest={FACE_ALPHA_TEST} roughness={1} />
+    </mesh>
+  )
 }
 
 // token: one entry of the tokens array in App.jsx (see buildCardTokens). onMove(x, z) and
@@ -62,7 +81,9 @@ function angleTo(pivot, p) {
 // objectRef: standard ref callback for the token's 3D object, for the ruler tools' pointer raycast.
 // centerRef(getter): registers a function that returns the token's live { x, y, z }, for the ruler
 // tools. Called with undefined on unmount, the same pattern as bodyRef/objectRef in CharacterModel.
-export default function CrisisToken({ token, selected, rangeMark, onSelect, onHover, onMove, onTurn, onHold, findCharacter, floorY, objectRef, centerRef }) {
+// controlAffiliation: the affiliation key of the player in token.control (see App.jsx,
+// affiliations), or null when no player controls the token.
+export default function CrisisToken({ token, selected, rangeMark, onSelect, onHover, onMove, onTurn, onHold, findCharacter, floorY, objectRef, centerRef, controlAffiliation = null }) {
   const backKey = token.backKey ?? token.frontKey
   const [frontMap, backMap, damageMap] = useTexture([
     assetUrl(crisisToken(token.frontKey)),
@@ -98,6 +119,8 @@ export default function CrisisToken({ token, selected, rangeMark, onSelect, onHo
   }, [])
 
   const showArc = selected && token.hasArc
+  const markerPair = Boolean(token.control && token.damage)
+  const markerRadius = markerPair ? PAIR_RADIUS : MARKER_RADIUS
   useEffect(() => {
     if (showArc && !arcSlot.current) arcSlot.current = acquireFootprint()
     if (!showArc && arcSlot.current) {
@@ -118,7 +141,7 @@ export default function CrisisToken({ token, selected, rangeMark, onSelect, onHo
     const ground = floorY !== undefined && !draggingRef.current
       ? floorY
       : castDown(world, rapier, shape, NO_ROTATION, x, z, HALF_H)
-    const y = (ground ?? 0) + GAP + HALF_H
+    const y = (ground ?? 0) + GAP + HALF_H + (draggingRef.current ? TOKEN_DRAG_LIFT : 0)
     if (groupRef.current) {
       groupRef.current.position.set(x, y, z)
       groupRef.current.rotation.y = yaw
@@ -275,9 +298,16 @@ export default function CrisisToken({ token, selected, rangeMark, onSelect, onHo
           <meshStandardMaterial color={TEAM_COLORS[token.control]} roughness={0.5} side={DoubleSide} />
         </mesh>
       )}
+      {/* Its own Suspense: while a new affiliation image loads, only the marker is missing, not
+          the whole token */}
+      {token.control && controlAffiliation && (
+        <Suspense fallback={null}>
+          <AffiliationMarker affiliation={controlAffiliation} x={markerPair ? -PAIR_X : 0} radius={markerRadius} />
+        </Suspense>
+      )}
       {token.damage && (
-        <mesh position={[0, HALF_H + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[DAMAGE_RADIUS * 2, DAMAGE_RADIUS * 2]} />
+        <mesh position={[markerPair ? PAIR_X : 0, MARKER_Y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[markerRadius * 2, markerRadius * 2]} />
           <meshStandardMaterial map={damageMap} transparent roughness={1} />
         </mesh>
       )}

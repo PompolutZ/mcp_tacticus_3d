@@ -24,6 +24,7 @@ import { START_MARKERS } from './scoreboard/board.js'
 import { DEFAULT_AFFILIATION } from './scoreboard/affiliations.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
+import { NO_PIECES, NO_TOOLS, deselectPiece, selectPiece, selectedId } from './selection.js'
 import { DELETE_KEYS, FLIP_KEY, LIFT_KEY, MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, ROTATE_KEYS, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
 
 // Start view, the seat of the blue player. For now every player is Blue. Blue sits at +z (see
@@ -121,10 +122,10 @@ export default function App() {
   const [scoreMarkers, setScoreMarkers] = useState(START_MARKERS)
   // Affiliation token that each player's VP marker shows: { blue, red } → key in scoreboard/affiliations.json
   const [affiliations, setAffiliations] = useState({ blue: DEFAULT_AFFILIATION, red: DEFAULT_AFFILIATION })
-  // A character or a token can be selected, not both: { kind: 'character' | 'token', id } | null
-  const [selection, setSelection] = useState(null)
-  // Selected tool: 'range' | 'move' | null. It can be selected at the same time as a character or a token.
-  const [selectedTool, setSelectedTool] = useState(null)
+  // Selected pieces and tools, see selection.js. One character, one token, the range tool and the
+  // movement tool can all be selected at the same time.
+  const [selection, setSelection] = useState(NO_PIECES)
+  const [selectedTools, setSelectedTools] = useState(NO_TOOLS)
   // Character or token under the pointer: { kind, id } | null. Only the tool keys read it, so it is a ref.
   const hoveredRef = useRef(null)
   // Pan and turn keys held down: key code → screen direction. KeyboardCamera moves the camera while one is held.
@@ -323,18 +324,19 @@ export default function App() {
     controls.update()
   }
 
-  // Escape clears every selection: the character or token, and the tool. The selected tool is also
-  // removed from the table.
+  // Escape clears every selection: the character, the token and the tools. The selected tools are
+  // also removed from the table.
   function handleEscape() {
-    if (selectedTool === 'range') setActiveRange(null)
-    if (selectedTool === 'move') setActiveMove(null)
-    setSelectedTool(null)
-    setSelection(null)
+    if (selectedTools.range) setActiveRange(null)
+    if (selectedTools.move) setActiveMove(null)
+    setSelectedTools(NO_TOOLS)
+    setSelection(NO_PIECES)
   }
 
   // tool: 'range' | 'move'. value: the range number or the movement tool type.
   // Toggles the tool, the same as its toolbar button. With the pointer over a character or a token,
   // it selects that piece and spawns the tool again, snapped to it, even if the tool is already out.
+  // A selected piece of the other kind stays selected.
   function handleToolKey(tool, value) {
     const piece = hoveredRef.current
     if (!piece) {
@@ -342,7 +344,7 @@ export default function App() {
       else handleMoveClick(value)
       return
     }
-    setSelection(piece)
+    setSelection(prev => selectPiece(prev, piece))
     if (tool === 'range') setActiveRange(value)
     else setActiveMove(value)
     setToolSpawns(prev => ({ ...prev, [tool]: prev[tool] + 1 }))
@@ -350,13 +352,13 @@ export default function App() {
 
   // F, as in TTS: flips the crisis token under the pointer (also one that a character holds), or the
   // card of the character under the pointer (its model or its tray card). With nothing under the
-  // pointer, it flips the selected token or the card of the selected character. A token without a
-  // back does not flip (handleTokenFlip).
+  // pointer, it flips the piece selected last: a token, or the card of a character. A token without
+  // a back does not flip (handleTokenFlip).
   function handleFlipKey() {
     const piece = hoveredRef.current
       ?? (hoveredHeldRef.current && { kind: 'token', id: hoveredHeldRef.current })
       ?? (hoveredTrayCardRef.current && { kind: 'character', id: hoveredTrayCardRef.current })
-      ?? selection
+      ?? selection.at(-1)
     if (piece?.kind === 'token') handleTokenFlip(piece.id)
     else if (piece?.kind === 'character') handleCharacterFlip(piece.id)
   }
@@ -371,7 +373,7 @@ export default function App() {
       return card ? [...kept, ...buildMatTokens(card)] : kept
     })
     // The selected token may no longer exist; a selected character is not affected.
-    setSelection(prev => prev?.kind === 'token' ? null : prev)
+    setSelection(prev => prev.filter(p => p.kind !== 'token'))
   }
 
   // A held token dragged off its tray card and released on the table is no longer held.
@@ -447,7 +449,7 @@ export default function App() {
   function handleHeldRemove(id) {
     if (!tokens.find(t => t.id === id)?.heldBy) return
     setTokens(prev => prev.filter(t => t.id !== id))
-    setSelection(prev => prev?.kind === 'token' && prev.id === id ? null : prev)
+    setSelection(prev => deselectPiece(prev, { kind: 'token', id }))
   }
 
   // Drop, when its holder is removed: the token goes back on the table, next to the base of the
@@ -510,7 +512,7 @@ export default function App() {
   function handleCharacterRemove(id) {
     handleDropCharacterTokens(id)
     setCharacters(prev => prev.filter(ch => ch.id !== id))
-    setSelection(prev => prev?.kind === 'character' && prev.id === id ? null : prev)
+    setSelection(prev => deselectPiece(prev, { kind: 'character', id }))
     setOpenTrayId(prev => prev === id ? null : prev)
   }
 
@@ -656,7 +658,8 @@ export default function App() {
     }
   }, [tokenDrag])
 
-  const selectedToken = selection?.kind === 'token' ? tokens.find(t => t.id === selection.id) ?? null : null
+  const selectedTokenId = selectedId(selection, 'token')
+  const selectedToken = tokens.find(t => t.id === selectedTokenId) ?? null
   const openTray = openTrayId ? characters.find(ch => ch.id === openTrayId) ?? null : null
 
   // Debug mode is only in the dev server. import.meta.env.DEV is false in `vite build`, so debug
@@ -675,10 +678,11 @@ export default function App() {
           camera={{ position: CAMERA_POSITION, fov: 50 }}
           // The EffectComposer in SelectionOutlines renders the scene with its own antialiasing (multisampling)
           gl={{ antialias: false }}
-          // A click with no piece under the pointer (table, terrain, background) clears the selection.
+          // A click with no piece under the pointer (table, terrain, background) clears the selected
+          // pieces. The selected tools stay selected.
           // R3F does not count a camera drag as a click. A right click is a 'contextmenu' event, and it also
           // starts a camera turn, so it does not clear. Clicks on tool buttons (Html) are not on the canvas.
-          onPointerMissed={e => { if (e.type === 'click' && e.target instanceof HTMLCanvasElement) setSelection(null) }}
+          onPointerMissed={e => { if (e.type === 'click' && e.target instanceof HTMLCanvasElement) setSelection(NO_PIECES) }}
           onCreated={({ gl }) => {
             const name = rendererName(gl.getContext())
             if (isSoftwareRenderer(name)) setSoftwareRenderer(name)
@@ -698,8 +702,8 @@ export default function App() {
               tokens={tokens}
               selection={selection}
               onSelectionChange={setSelection}
-              selectedTool={selectedTool}
-              onSelectedToolChange={setSelectedTool}
+              selectedTools={selectedTools}
+              onSelectedToolsChange={setSelectedTools}
               onPieceHover={handlePieceHover}
               toolSpawns={toolSpawns}
               onTokenMove={handleTokenMove}

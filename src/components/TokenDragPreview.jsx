@@ -2,12 +2,13 @@ import { Suspense, useEffect, useRef } from 'react'
 import { useThree } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
 import { Raycaster } from 'three'
+import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
 
 // Gap between the ground and the token, the same as LooseToken.jsx
 const GAP = 0.02
 
-// The dragged token, real size, on the table or terrain point under the pointer (see App.jsx, the
-// token drag). children: the token, with its bottom at y = 0 and no pointer events: a character
+// The dragged token, real size, TOKEN_DRAG_LIFT above the table or terrain point under the pointer
+// (see App.jsx, the token drag). children: the token, with its bottom at y = 0 and no pointer events: a character
 // token (TokenFace) or a crisis supply token (SupplyPile.jsx, SupplyToken). The pointer tracking is
 // outside the Suspense, so it works while the token image still loads. pointRef: App reads the last
 // point, { x, y, z } or null, on release.
@@ -39,7 +40,7 @@ export default function TokenDragPreview({ pointRef, start, children }) {
       const group = groupRef.current
       if (!group) return
       group.visible = Boolean(point)
-      if (point) group.position.set(point.x, point.y + GAP, point.z)
+      if (point) group.position.set(point.x, point.y + GAP + TOKEN_DRAG_LIFT, point.z)
     }
 
     handleMove(start)

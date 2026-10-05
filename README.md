@@ -63,6 +63,12 @@ One half of the table is blue and the other half is red. Blue is the side of the
 
 In game setup, the player with priority chooses the edge of the mat to deploy from. **Mat → ↺ / ↻** in the toolbar turns the mat and all its terrain 90° around the mat center. Turn it until the chosen edge faces the blue side. Models and tools do not turn with the mat.
 
+## Selection
+
+Click a piece to select it. Click it again to deselect it. One character, one crisis token, the range tool and the movement tool can be selected at the same time. Selecting another character deselects the old character. The same is true for a token. A click on the empty table deselects the character and the token. Escape deselects everything and removes the selected tools from the table.
+
+A tool measures against the piece selected last. A new tool also snaps to it. Place moves the selected character, also when a token was selected after it.
+
 ## Tools
 
 Range tools and movement tools work the same way, except for bending. Movement tools can bend. Range tools stay straight. The R1 tool snaps with a corner, not an end, and it has two Place buttons, see [Range 1](#range-1).
@@ -75,7 +81,7 @@ The tool has two states: **snapped** and **free**.
 
 A tool snaps to a model or to a crisis token the same way. "Model" below also means a token.
 
-The tool is snapped to a model when it spawns while that model is selected. It spawns with one end of its outline touching the edge of the model's base, and it points toward the center of the mat.
+The tool is snapped to a model when it spawns while that model is selected. With a character and a token selected, it snaps to the one selected last. It spawns with one end of its outline touching the edge of the model's base, and it points toward the center of the mat.
 
 A tool also snaps to a model while you drag it: when the pointer moves onto a model (the figure or the base), that model becomes selected. The tool keeps its direction and its bend. It moves so that its end nearer to the base touches the edge of the base. The drag ends there, so moving the pointer further does nothing until you release it. If the drag starts with the pointer already on a model, the tool snaps only after the pointer leaves that model and moves onto a model again.
 
@@ -101,7 +107,7 @@ A free tool has no far end, so it shows Place only while Place is on. Then you c
 
 While Place is on, you can drag the selected character only to where its base touches the tool outline, so the outline stays green. When the pointer goes farther, the base stops at the nearest point where it still touches the outline. The deploy line limits a drag in the same way. You can still move and rotate the tool while Place is on.
 
-Place does not work for a token: a token has no base to place, only a position that its own drag sets. So Place cannot be turned on while a token or nothing is selected.
+Place does not work for a token: a token has no base to place, only a position that its own drag sets. So Place cannot be turned on while no character is selected. With a character and a token selected, Place moves the character.
 
 ### Range marks
 
@@ -172,9 +178,9 @@ The panel also turns parts of the rendering off, to measure what they cost:
 
 **Crisis → Secure / Extract** in the toolbar chooses one Secure card and one Extract card. The app puts the two cards on the table next to the scoring board, and their tokens on the mat. Choosing another card removes the old tokens and adds the new ones.
 
-Click a card to open its face image. Click a token to select it. A HUD panel at the bottom shows the actions that token allows: Flip, and for a Secure token, a Control marker (None / Blue / Red) and a damage marker. Drag a movable token to move it. A Zone token also gets a handle that turns it, and shows its Arc outline on the table while selected, the same way a tool shows its outline.
+Click a card to open its face image. Click a token to select it. A HUD panel at the bottom shows the actions that token allows: Flip, and for a Secure token, a Control marker (None / Blue / Red) and a damage marker. The Control marker shows the player's affiliation token, the same one as their VP marker, and a ring in the player color. Drag a movable token to move it. A Zone token also gets a handle that turns it, and shows its Arc outline on the table while selected, the same way a tool shows its outline.
 
-Press **F** with the pointer over a token to flip it, or with nothing under the pointer to flip the selected token. F also flips a character card: with the pointer over the card or the model, or with the character selected.
+Press **F** with the pointer over a token to flip it. F also flips a character card, with the pointer over the card or the model. With nothing under the pointer, F flips the piece selected last: a token, or the card of a character.
 
 A model that stands on a token can hide it. Press **R** with the pointer over the model to lift it 3". Press R over it again to put it back, or press R with the pointer over no model to put every lifted model back. The model goes back to the same place, and physics does not move it.
 

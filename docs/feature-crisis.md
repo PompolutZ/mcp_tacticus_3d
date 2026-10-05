@@ -99,7 +99,7 @@ The `locked` and `flipOnly` flags in `src/crisis/cards.json` decide if a token c
 
 Markers are available on every Secure token, not only on pay-to-flip cards. Because players apply the rules, a new card can use a marker in a new way without a change in the app.
 
-- **Control marker**: the color of the player's table side, blue or red. One marker per token. A player can set it to blue, set it to red, or remove it.
+- **Control marker**: the player's affiliation token (the same one as their VP marker), and a ring in the color of the player's table side, blue or red. One marker per token. A player can set it to blue, set it to red, or remove it.
 - **Damage marker**: on or off.
 
 ## Physical behavior
@@ -169,7 +169,7 @@ What exists (see `scripts/README.md`, section "TTS crisis cards"):
 - `src/crisis/jarvis-crisis-cards.json`: official names, card text, setup map letter, `payToFlip`, legality.
 - Positions are TTS x and z in inches from the mat center. `Terrain.jsx` converts them to Three.js with `z` → `-z`.
 
-The Control marker has no image: it is a colored ring in the player color, drawn by the app. The damage marker uses the mod's "1 Damage" token image, migrated by `migrate-crisis.mjs` to `src/assets/crisis/markers/damage.webp`. Character damage tokens will need the same image later.
+The Control marker is the affiliation token that the player chose in the toolbar (`src/assets/affiliations/`, see "Scoring board"), on top of the token. The app also draws a ring in the player color around the token, because both players can choose the same affiliation. With both markers on a token, they are smaller and lie side by side. The damage marker uses the mod's "1 Damage" token image, migrated by `migrate-crisis.mjs` to `src/assets/crisis/markers/damage.webp`. Character damage tokens will need the same image later.
 
 ## Scoring board
 

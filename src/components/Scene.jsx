@@ -28,6 +28,7 @@ import { TRAYS } from '../dice/tray.js'
 import { TRAY_Y, layoutTrays, onTray, trayHeldLocal, trayHeldWorld, trayModelPosition, trayYaw } from '../characters/trays.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import { TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WIDTH } from '../table.js'
+import { NO_PIECES, NO_TOOLS, selectPiece, selectedId, toggleSelectPiece } from '../selection.js'
 
 // MCP mat is 36" x 36". 1 Three.js unit = 1 inch. Table size: see table.js.
 const MAT_SIZE = 36
@@ -85,13 +86,12 @@ function Mat({ mat }) {
 // showLabels: show the piece name and game Size above each terrain piece
 // matTurns: number of 90° counter-clockwise turns of the mat and its terrain
 // crisis: { secure, extract } chosen card keys. tokens: every crisis token on the table (see App.jsx).
-// selection: { kind: 'character' | 'token', id } | null, lifted to App so a character and a token
-// share one selection. onSelectionChange: the setter, called with a value or an updater function.
+// selection: the selected pieces (see selection.js), lifted to App. onSelectionChange: the setter,
+// called with a value or an updater function.
 // onPieceHover(piece, over): the pointer moved onto (true) or off (false) a character or a token,
 // piece as { kind, id }. toolSpawns: { range, move }, a count that changes when App spawns that tool
-// again. It is part of the tool key, so the tool mounts again and snaps to the selection.
-// selectedTool: 'range' | 'move' | null, lifted to App with its setter onSelectedToolChange.
-// One tool can be selected at the same time as a character or a token.
+// again. It is part of the tool key, so the tool mounts again and snaps to the piece selected last.
+// selectedTools: { range, move } (see selection.js), lifted to App with its setter onSelectedToolsChange.
 // onCharacterDamage(id, damage), onCharacterPower(id, power), onCharacterFlip(id): the tray's
 // controls, lifted to App the same way as the token handlers above (see TrayControls.jsx).
 // onTrayCardHover(id, over): the pointer moved onto (true) or off (false) a character's tray card,
@@ -132,7 +132,7 @@ function Mat({ mat }) {
 // ScoreBoard.jsx.
 export default function Scene({
   mapId, characters = [], activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, heldRotate, scoreMarkers, affiliations, onScoreMarkerMove,
+  crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, heldRotate, scoreMarkers, affiliations, onScoreMarkerMove,
 }) {
   const map = MAPS[mapId]
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
@@ -302,8 +302,8 @@ export default function Scene({
     lastTrayPositions.current = trayPositions
   }, [trayPositions])
 
-  const selectedCharId = selection?.kind === 'character' ? selection.id : null
-  const selectedTokenId = selection?.kind === 'token' ? selection.id : null
+  const selectedCharId = selectedId(selection, 'character')
+  const selectedTokenId = selectedId(selection, 'token')
 
   // Deploy-line: R3 zone depth from the deployment edge
   const deployTip = RANGE_TIP[3]
@@ -348,7 +348,11 @@ export default function Scene({
       radius: 0.5,
     })),
   ], [characters, matTokens])
-  const toolTarget = toolModels.find(model => selection && model.kind === selection.kind && model.id === selection.id)
+  const toolModel = piece => toolModels.find(model => piece && model.kind === piece.kind && model.id === piece.id) ?? null
+  // The tools measure against the piece selected last, and a new tool snaps to it. Place moves the
+  // selected character, also when a token was selected after it.
+  const toolTarget = toolModel(selection.at(-1))
+  const placeTarget = toolModel(selection.find(piece => piece.kind === 'character'))
 
   // Outline mode of the range mark on a piece, or null
   function rangeMarkOf(kind, id) {
@@ -356,11 +360,19 @@ export default function Scene({
   }
 
   function toggleTool(tool) {
-    onSelectedToolChange(prev => prev === tool ? null : tool)
+    onSelectedToolsChange(prev => ({ ...prev, [tool]: !prev[tool] }))
+  }
+
+  function selectTool(tool) {
+    onSelectedToolsChange(prev => ({ ...prev, [tool]: true }))
   }
 
   function toggleSelect(kind, id) {
-    onSelectionChange(prev => (prev?.kind === kind && prev.id === id) ? null : { kind, id })
+    onSelectionChange(prev => toggleSelectPiece(prev, { kind, id }))
+  }
+
+  function selectModel(model) {
+    onSelectionChange(prev => selectPiece(prev, { kind: model.kind, id: model.id }))
   }
 
   return (
@@ -493,6 +505,7 @@ export default function Scene({
                 onTokenHold(tok.id, characterId, onCard ? trayHeldLocal(holder.teamColor, trayPos, point) : null)
               }}
               findCharacter={findCharacterAt}
+              controlAffiliation={tok.control ? affiliations[tok.control] : null}
               objectRef={obj => obj ? tokenObjects.current.set(tok.id, obj) : tokenObjects.current.delete(tok.id)}
               centerRef={fn => fn ? tokenCenters.current.set(tok.id, fn) : tokenCenters.current.delete(tok.id)}
             />
@@ -598,13 +611,14 @@ export default function Scene({
               team={TOOL_TEAM}
               position={[0, TOOL_HOVER_HEIGHT, -6]}
               hoverHeight={TOOL_HOVER_HEIGHT}
-              selected={selectedTool === 'move'}
+              selected={selectedTools.move}
               onSelect={() => toggleTool('move')}
               // A new tool is selected, so its buttons (Place, Bend) can be used right away
-              onSpawn={() => onSelectedToolChange('move')}
+              onSpawn={() => selectTool('move')}
               target={toolTarget}
+              placeTarget={placeTarget}
               models={toolModels}
-              onSnap={model => onSelectionChange({ kind: model.kind, id: model.id })}
+              onSnap={selectModel}
               onPlaceLimit={limit => { placeLimits.current.move = limit }}
               {...turnProps('move')}
             />
@@ -628,12 +642,13 @@ export default function Scene({
               team={TOOL_TEAM}
               position={[0, TOOL_HOVER_HEIGHT, 6]}
               hoverHeight={TOOL_HOVER_HEIGHT}
-              selected={selectedTool === 'range'}
+              selected={selectedTools.range}
               onSelect={() => toggleTool('range')}
-              onSpawn={() => onSelectedToolChange('range')}
+              onSpawn={() => selectTool('range')}
               target={toolTarget}
+              placeTarget={placeTarget}
               models={toolModels}
-              onSnap={model => onSelectionChange({ kind: model.kind, id: model.id })}
+              onSnap={selectModel}
               onPlaceLimit={limit => { placeLimits.current.range = limit }}
               onRangeMark={setRangeMark}
               {...turnProps('range')}
