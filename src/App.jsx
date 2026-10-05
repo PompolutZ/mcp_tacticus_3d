@@ -24,7 +24,7 @@ import { START_MARKERS } from './scoreboard/board.js'
 import { DEFAULT_AFFILIATION } from './scoreboard/affiliations.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
-import { DELETE_KEYS, MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, ROTATE_KEYS, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
+import { DELETE_KEYS, FLIP_KEY, LIFT_KEY, MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, ROTATE_KEYS, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
 
 // Start view, the seat of the blue player. For now every player is Blue. Blue sits at +z (see
 // characters/trays.js). The camera stands behind the blue table edge and looks down at 45° at a
@@ -162,6 +162,8 @@ export default function App() {
   const hoveredLooseRef = useRef(null)
   // Id of the crisis token under the pointer that a character holds, for the Delete key
   const hoveredHeldRef = useRef(null)
+  // Id of the character whose tray card is under the pointer, for the F key
+  const hoveredTrayCardRef = useRef(null)
   // A token drag in progress: { tokenKey, looseId, supplyCard, active, start } | null. looseId: the
   // table token that is dragged, or null for a new token from a source. supplyCard: the card key
   // when the new token comes from the supply pile of a Source card (tokenKey is then a crisis token
@@ -183,6 +185,9 @@ export default function App() {
   // Scene calls this with a direction for Q / E: it turns the dragged character or tool, else the
   // one under the pointer. See Scene.jsx, turnPiece.
   const turnPieceRef = useRef(null)
+  // Scene calls this for R: it lifts the character under the pointer or puts it back down. See
+  // Scene.jsx, liftPiece.
+  const liftPieceRef = useRef(null)
 
   // direction: 1 turns the mat 90° counter-clockwise, -1 clockwise
   function handleTurnMat(direction) {
@@ -280,6 +285,14 @@ export default function App() {
       return
     }
     if (e.repeat) return
+    if (e.code === FLIP_KEY) {
+      handleFlipKey()
+      return
+    }
+    if (e.code === LIFT_KEY) {
+      liftPieceRef.current?.()
+      return
+    }
     if (RANGE_KEYS[e.key]) handleToolKey('range', RANGE_KEYS[e.key])
     else if (MOVE_KEYS[e.key]) handleToolKey('move', MOVE_KEYS[e.key])
   }
@@ -333,6 +346,19 @@ export default function App() {
     if (tool === 'range') setActiveRange(value)
     else setActiveMove(value)
     setToolSpawns(prev => ({ ...prev, [tool]: prev[tool] + 1 }))
+  }
+
+  // F, as in TTS: flips the crisis token under the pointer (also one that a character holds), or the
+  // card of the character under the pointer (its model or its tray card). With nothing under the
+  // pointer, it flips the selected token or the card of the selected character. A token without a
+  // back does not flip (handleTokenFlip).
+  function handleFlipKey() {
+    const piece = hoveredRef.current
+      ?? (hoveredHeldRef.current && { kind: 'token', id: hoveredHeldRef.current })
+      ?? (hoveredTrayCardRef.current && { kind: 'character', id: hoveredTrayCardRef.current })
+      ?? selection
+    if (piece?.kind === 'token') handleTokenFlip(piece.id)
+    else if (piece?.kind === 'character') handleCharacterFlip(piece.id)
   }
 
   // type: 'secure' | 'extract'. key: a card key, or null for "None".
@@ -406,6 +432,12 @@ export default function App() {
   function handleHeldHover(id, over) {
     if (over) hoveredHeldRef.current = id
     else if (hoveredHeldRef.current === id) hoveredHeldRef.current = null
+  }
+
+  // over: the pointer moved onto (true) or off (false) the tray card of a character
+  function handleTrayCardHover(id, over) {
+    if (over) hoveredTrayCardRef.current = id
+    else if (hoveredTrayCardRef.current === id) hoveredTrayCardRef.current = null
   }
 
   // Delete key over a token on a character's card, as in TTS. Players remove a Source's supply
@@ -678,6 +710,7 @@ export default function App() {
               onCharacterDamage={handleCharacterDamage}
               onCharacterPower={handleCharacterPower}
               onCharacterFlip={handleCharacterFlip}
+              onTrayCardHover={handleTrayCardHover}
               onCharacterRemove={handleCharacterRemove}
               onCharacterTokenRemove={handleCharacterTokenRemove}
               onTokenDragStart={handleTokenDragStart}
@@ -694,6 +727,7 @@ export default function App() {
               findCharacterAt={findCharacterAt}
               modelPositionRef={modelPositionRef}
               turnPieceRef={turnPieceRef}
+              liftPieceRef={liftPieceRef}
               heldRotate={heldRotate}
               scoreMarkers={scoreMarkers}
               affiliations={affiliations}

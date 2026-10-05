@@ -21,6 +21,17 @@ const ZERO = { x: 0, y: 0, z: 0 }
 const SETTLE_TIME = 0.5
 const SETTLE_MOVE = 0.05
 const SETTLE_TURN = 2 * Math.PI / 180
+// The R key lifts a model straight up by LIFT_HEIGHT (inches), and a second press puts it back at the
+// same place, so a player can see and select a token under it. Picked by look: from the start view
+// (45°), a token under a large base shows below a model lifted 2" or more.
+const LIFT_HEIGHT = 3
+// The lift is smoothed the same way as a Q / E turn (Scene.jsx): each frame the model does
+// 1 − e^(−dt / time) of the move that is left. When less than LIFT_DONE (inches) is left, the move is done.
+const LIFT_SMOOTH_TIME = 0.06
+const LIFT_DONE = 0.001
+// Something else moved a lifted model (for example Place, see RulerTool.jsx) when its x or z is this
+// far (inches) from the place of the lift
+const LIFT_MOVED = 0.001
 
 // Base disk dims from angel.glb mesh0: radius≈0.983, height≈0.118
 export const BASE_RADIUS = 0.983
@@ -69,12 +80,13 @@ function turnBetween(a, b) {
 }
 
 // bodyRef, objectRef: get the Rapier body and the 3D object of the model (figure and base)
+// liftRef: gets { toggle(), down() } for the R key (see liftPiece in Scene.jsx), and null on unmount
 // baseRadius: radius of the base in the model file, which has the game size
 // onHover(over): called when the pointer moves onto the model (true) and off it (false)
 // rangeMark: 'inRange' or 'outOfRange' while a range tool marks the model (RangeMark in RulerTool.jsx)
 // position: where the body starts. Read only on mount: RigidBody moves its body when its position
 // prop changes, and the spawn position follows the tray (Scene.jsx), which can move later.
-export default function CharacterModel({ url, position = [0, 0, 0], baseRadius = BASE_RADIUS, rotation = [0, 0, 0], teamColor = 'red', selected = false, rangeMark, onSelect, onHover, bodyRef, objectRef, onDragStart, onDragEnd, constrainDrag }) {
+export default function CharacterModel({ url, position = [0, 0, 0], baseRadius = BASE_RADIUS, rotation = [0, 0, 0], teamColor = 'red', selected = false, rangeMark, onSelect, onHover, bodyRef, objectRef, liftRef, onDragStart, onDragEnd, constrainDrag }) {
   const [startPosition] = useState(position)
   const { scene } = useGLTF(url)
   const { camera, gl, controls } = useThree()
@@ -88,6 +100,11 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
   const isDragging = useRef(false)
   // Pose the model has stayed close to, and for how long: { t, r, time }. See SETTLE_TIME.
   const rest = useRef(null)
+  // The lift (R key): { x, y, z, sleeping, up, landing }, or null. x, y, z: the body position before
+  // the lift. The model goes back there exactly. sleeping: the body was asleep then. up: the model
+  // goes up (true) or back down (false). landing: the model is back at x, y, z, and becomes a
+  // dynamic body again in the next frame.
+  const lift = useRef(null)
   const mouseNDC = useRef({ x: 0, y: 0 })
   // Pointer and ground casts hit only fixed bodies (table and terrain), and no sensors
   const groundOnly = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
@@ -125,11 +142,81 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
     rest.current = { t, r, time: 0 }
   }
 
+  // R: lifts the model, or puts it back down if it is up. During a drag it does nothing.
+  // The body is kinematic during the lift, so physics does not move it: it does not fall, and
+  // nothing pushes it.
+  function toggleLift() {
+    const rb = rigidRef.current
+    if (!rb || isDragging.current) return
+    if (lift.current) {
+      lift.current.up = !lift.current.up
+      lift.current.landing = false
+      return
+    }
+    const t = rb.translation()
+    lift.current = { x: t.x, y: t.y, z: t.z, sleeping: rb.isSleeping(), up: true, landing: false }
+    rest.current = null
+    rb.setBodyType(2, true)
+  }
+
+  function lowerLift() {
+    if (lift.current) lift.current.up = false
+  }
+
+  function endLift(rb) {
+    lift.current = null
+    rb.setBodyType(0, true)
+    rb.setLinvel(ZERO, true)
+    rb.setAngvel(ZERO, true)
+  }
+
+  // Moves a lifted model one frame up or down. The heading stays as it is now, so a Q / E turn
+  // during the lift stays after it. Back down, the model is at the same place as before the lift,
+  // and a model that was asleep sleeps again. So physics does not move it from that place.
+  function moveLift(rb, dt) {
+    const from = lift.current
+    const t = rb.translation()
+    if (Math.abs(t.x - from.x) > LIFT_MOVED || Math.abs(t.z - from.z) > LIFT_MOVED) {
+      // Something else moved the model during the lift: Place, or its tray moved and took the model
+      // with it (Scene.jsx). The lift ends, and the model stands on the table or terrain there.
+      const ground = groundY(t.x, t.z)
+      if (ground !== null && t.y > ground) rb.setTranslation({ x: t.x, y: ground, z: t.z }, true)
+      endLift(rb)
+      return
+    }
+    const place = { x: from.x, y: from.y, z: from.z }
+    if (from.landing) {
+      // The kinematic move of the frame before put the body and its mesh at the place. The model
+      // sleeps only now, because the mesh of a sleeping body does not follow the body.
+      rb.setTranslation(place, true)
+      endLift(rb)
+      if (from.sleeping) rb.sleep()
+      return
+    }
+    const left = (from.up ? from.y + LIFT_HEIGHT : from.y) - t.y
+    if (Math.abs(left) < LIFT_DONE) {
+      if (from.up) return
+      from.landing = true
+      rb.setNextKinematicTranslation(place)
+      return
+    }
+    // A sleeping body keeps moving but its mesh is not synced, so keep it awake
+    rb.wakeUp()
+    rb.setNextKinematicTranslation({ ...place, y: t.y + left * (1 - Math.exp(-dt / LIFT_SMOOTH_TIME)) })
+  }
+
+  useEffect(() => {
+    liftRef?.({ toggle: toggleLift, down: lowerLift })
+    return () => liftRef?.(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   useFrame((_, dt) => {
     const rb = rigidRef.current
     if (!rb) return
     if (!isDragging.current) {
-      settle(rb, dt)
+      if (lift.current) moveLift(rb, dt)
+      else settle(rb, dt)
       return
     }
     rest.current = null
@@ -189,6 +276,8 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
         const dx = ev.clientX - startX
         const dy = ev.clientY - startY
         if (!selected || Math.hypot(dx, dy) < DRAG_THRESHOLD) return
+        // A drag ends a lift. The model follows the pointer and drops where it is released.
+        lift.current = null
         rigidRef.current?.setBodyType(2, true)
         isDragging.current = true
         onDragStart?.()

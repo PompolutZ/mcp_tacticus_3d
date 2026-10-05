@@ -94,6 +94,8 @@ function Mat({ mat }) {
 // One tool can be selected at the same time as a character or a token.
 // onCharacterDamage(id, damage), onCharacterPower(id, power), onCharacterFlip(id): the tray's
 // controls, lifted to App the same way as the token handlers above (see TrayControls.jsx).
+// onTrayCardHover(id, over): the pointer moved onto (true) or off (false) a character's tray card,
+// for the F key.
 // onCharacterRemove(id): the tray's Remove button, after its own confirmation.
 // onCharacterTokenRemove(id, key): a click on a token in the tray's "On" row.
 // onTokenDragStart(e, key, looseId): pointerdown on a tray's Give source, or on a token on the
@@ -119,6 +121,7 @@ function Mat({ mat }) {
 // same pattern as characterAtRef. See "Hold and drop".
 // turnPieceRef: ref App calls with a direction for Q / E, the same pattern as characterAtRef. Scene
 // fills it with turnPiece. heldRotate: ref to a Map of the Q / E keys held down, key code → direction.
+// liftPieceRef: ref App calls for R, the same pattern. Scene fills it with liftPiece.
 // onTokenHold(tokenId, characterId, cardPoint): a canHold token was released over a character.
 // cardPoint: the tray-local [x, z] on that character's card (trays.js, trayHeldLocal) when the
 // release point is on its tray, otherwise null.
@@ -129,7 +132,7 @@ function Mat({ mat }) {
 // ScoreBoard.jsx.
 export default function Scene({
   mapId, characters = [], activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, heldRotate, scoreMarkers, affiliations, onScoreMarkerMove,
+  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, heldRotate, scoreMarkers, affiliations, onScoreMarkerMove,
 }) {
   const map = MAPS[mapId]
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
@@ -138,6 +141,8 @@ export default function Scene({
   const charBodies = useRef(new Map())
   // Character id → 3D object. Tools find the character under the pointer with it.
   const charObjects = useRef(new Map())
+  // Character id → the lift of its model, { toggle(), down() }. See CharacterModel.jsx and liftPiece.
+  const charLifts = useRef(new Map())
   // Character id → the tray's background plate. characterAt below hits this too, so a drop anywhere
   // on the tray finds the character (see CharacterTray.jsx).
   const trayObjects = useRef(new Map())
@@ -252,6 +257,15 @@ export default function Scene({
     }
   })
 
+  // R press: lifts the character under the pointer, or puts it back down if it is up. With no
+  // character under the pointer, every lifted character goes back down. A player lifts a model to
+  // see and select a token under it (docs/feature-crisis.md, "Models that cover a token").
+  function liftPiece() {
+    const piece = hoveredPiece.current
+    if (piece?.kind === 'character') charLifts.current.get(piece.id)?.toggle()
+    else for (const lift of charLifts.current.values()) lift.down()
+  }
+
   // Props of a tool ('range' or 'move') for turnPiece
   function turnProps(tool) {
     const piece = { kind: 'tool', id: tool }
@@ -267,6 +281,7 @@ export default function Scene({
     if (characterAtRef) characterAtRef.current = characterAt
     if (modelPositionRef) modelPositionRef.current = modelPosition
     if (turnPieceRef) turnPieceRef.current = turnPiece
+    if (liftPieceRef) liftPieceRef.current = liftPiece
   })
 
   // Tray position of every character (trays.js). A player's row recenters when that player adds
@@ -515,6 +530,7 @@ export default function Scene({
               onDamage={damage => onCharacterDamage(ch.id, damage)}
               onPower={power => onCharacterPower(ch.id, power)}
               onFlip={() => onCharacterFlip(ch.id)}
+              onCardHover={over => onTrayCardHover?.(ch.id, over)}
               onRemove={() => onCharacterRemove(ch.id)}
               onTokenRemove={key => onCharacterTokenRemove(ch.id, key)}
               onTokenDragStart={onTokenDragStart}
@@ -549,6 +565,7 @@ export default function Scene({
                 }}
                 bodyRef={rb => rb ? charBodies.current.set(ch.id, rb) : charBodies.current.delete(ch.id)}
                 objectRef={obj => obj ? charObjects.current.set(ch.id, obj) : charObjects.current.delete(ch.id)}
+                liftRef={lift => lift ? charLifts.current.set(ch.id, lift) : charLifts.current.delete(ch.id)}
                 onDragStart={() => {
                   setDraggingCharId(ch.id)
                   trackPiece(draggedPiece, { kind: 'character', id: ch.id }, true)

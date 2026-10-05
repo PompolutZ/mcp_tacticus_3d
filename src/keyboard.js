@@ -14,6 +14,12 @@ export const TURN_KEYS = { ArrowUp: [0, 1], ArrowDown: [0, -1], ArrowLeft: [-1, 
 // Piece turn, Q / E as in TTS (Rotate Left / Rotate Right): key code → direction. 1 turns the piece
 // counter-clockwise seen from above. See turnPiece in Scene.jsx.
 export const ROTATE_KEYS = { KeyQ: 1, KeyE: -1 }
+// Flip, F as in TTS: flips the crisis token or the character card under the pointer, else the
+// selected one. See handleFlipKey in App.jsx.
+export const FLIP_KEY = 'KeyF'
+// Lift, R as in TTS (Raise): lifts the model under the pointer, or puts it back down. See liftPiece
+// in Scene.jsx.
+export const LIFT_KEY = 'KeyR'
 // Camera back to the start view, as in TTS
 export const RESET_VIEW_KEY = 'Space'
 // Deletes the character token on the table under the pointer, as in TTS. A Mac keyboard's delete

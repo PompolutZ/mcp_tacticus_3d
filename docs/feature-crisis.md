@@ -142,9 +142,7 @@ The short side of every range tool is 1". Players use it to measure range 1 from
 
 A model that stands on a token can cover it from above, so a player cannot select the token. On a real table and in TTS, one player lifts the model and the other player measures.
 
-The app can lift all models on the table at once. When the models go back down, each model must return exactly to its old position and rotation. It must not drop with physics, because physics can move it.
-
-The details depend on how players select tokens. They will be decided later.
+In the app, **R** with the pointer over a model lifts it 3". R over it again puts it back down. R with the pointer over no model puts every lifted model back down. The model goes back exactly to its old position, and physics does not move it (see `docs/feature-key-shortcuts.md`). From the start view, a player then sees the token under the model and can select it.
 
 ## Setup flow
 

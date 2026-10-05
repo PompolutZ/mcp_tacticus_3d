@@ -174,6 +174,10 @@ The panel also turns parts of the rendering off, to measure what they cost:
 
 Click a card to open its face image. Click a token to select it. A HUD panel at the bottom shows the actions that token allows: Flip, and for a Secure token, a Control marker (None / Blue / Red) and a damage marker. Drag a movable token to move it. A Zone token also gets a handle that turns it, and shows its Arc outline on the table while selected, the same way a tool shows its outline.
 
+Press **F** with the pointer over a token to flip it, or with nothing under the pointer to flip the selected token. F also flips a character card: with the pointer over the card or the model, or with the character selected.
+
+A model that stands on a token can hide it. Press **R** with the pointer over the model to lift it 3". Press R over it again to put it back, or press R with the pointer over no model to put every lifted model back. The model goes back to the same place, and physics does not move it.
+
 The range and movement tools also snap to a selected token, the same way they snap to a model (see [Tools](#tools)). Hold and drop are not built yet; see `docs/feature-crisis.md`.
 
 ## Roadmap

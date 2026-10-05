@@ -125,7 +125,7 @@ The whole tray is a drop target for tokens. The Give sources are outside the tra
 
 - Damage and Power: `−` and `+` buttons around the value.
 - When Damage equals Stamina, the counter shows it in a warning color. The app does not add the Dazed token or flip the card.
-- Flip: turns the card to the other side and sets Damage to 0, as in TTS.
+- Flip: turns the card to the other side and sets Damage to 0, as in TTS. The F key does the same with the pointer over the card or the model, or with the character selected (see `docs/feature-key-shortcuts.md`).
 - **On** row, above the card, where TTS shows the tokens on a character: one real-size 3D token per token key, with a count badge when the count is above 1. The tokens start at the owner's left, in the order the character got them. With more than 6 tokens they overlap, so the row stays as wide as the tray. A label above a token under the pointer shows its name and the mod's description (`tDescr`). A click on a token removes one.
 - **Give** sources, on the table below the tray: the tokens that this character gives to others or to itself: Activated, Dazed, and the tokens in its `cToken` list. They are real-size 3D tokens, in rows of 6 from the owner's left. TTS spawns these tokens at the same place, on the table below the tray, in rows from the owner's left. Each source never runs out: a drag takes a new token from it.
 

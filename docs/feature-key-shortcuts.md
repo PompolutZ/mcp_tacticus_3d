@@ -1,6 +1,6 @@
 # Feature: Key and mouse controls as in TTS
 
-Status: WASD pan, arrow keys, Space, right drag, middle drag, trackpad gestures, and Q / E on characters and tools done. The rest is a list of differences, not started.
+Status: WASD pan, arrow keys, Space, right drag, middle drag, trackpad gestures, Q / E on characters and tools, F, and R done. The rest is a list of differences, not started.
 
 ## Goal
 
@@ -49,10 +49,10 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 | Z | Zoom to the pointer, press again to zoom back | Nothing | No |
 | P | Camera mode: third person, first person, top-down | Nothing | No |
 | Ctrl | First-person mode: fly down | Nothing | No |
-| F | Flip | Flip buttons in the token panel, the tray and the tray popup. No key | No |
+| F | Flip | Flips the crisis token under the pointer, or the card of the character under the pointer (its model or its tray card). With nothing under the pointer: the selected token or the card of the selected character | Partly |
 | Q / E | Rotate the piece | Turns the dragged character or tool, else the one under the pointer, 15° around its center. Q turns counter-clockwise, E clockwise (seen from above). A token has a turn handle, no key | Partly |
 | T | Tap (turn 90°) | Nothing | No |
-| R | Raise | Nothing | No |
+| R | Raise | Lifts the model under the pointer 3", or puts it back down. With no model under the pointer: puts every lifted model back down | Partly |
 | L | Lock | Nothing | No |
 | Delete / Backspace | Delete the hovered or selected piece | Deletes the character token on the table under the pointer. Other pieces cannot be deleted with a key | Partly |
 | G | Group | Nothing | No |
@@ -77,6 +77,10 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 The direction and the speed of the arrow keys (90° per second) are picked by look. They are not compared with TTS yet.
 
 Q / E turn a piece 15° per press. 15° is `PointerRotationSnap` in the same plist, the TTS default (read on 2026-10-05). A key held for more than 0.3 s turns the piece on at 90° per second, the speed of the arrow keys. The app does not use the key repeat of the system, so the speed is the same on every computer. A held key keeps turning the piece of the press, also when the pointer leaves it. Each turn is smoothed in the same way as the wheel zoom: each frame, the piece does `1 − e^(−dt / 0.06 s)` of the turn that is left. The delay, the speed and the smoothing time are picked by look. The center of a character is its base center. The center of a movement tool is its hinge. A turn moves both ends of a tool, so a snapped tool is free after it. During a handle drag, Q / E do nothing.
+
+F flips the piece under the pointer first. A crisis token without a back does not flip. F over it does nothing, also when another token is selected. F over a model flips the character card, not the model. In TTS, F over a figurine turns the figurine upside down, which players do not need.
+
+R is a toggle. In TTS, a player lifts a model by holding it with the mouse. In the app, the model stays up, so the same player can select the token under it and measure. The model goes straight up 3" and comes back down to the same place, with no physics. A model that was asleep (at rest) sleeps again, so physics does not move it from its place. A Q / E turn during the lift stays after it. A drag ends the lift, and the model drops where it is released. Place on a lifted model also ends the lift: the model stands at the new place. The height and the smoothing (the same as Q / E) are picked by look. The TTS knowledge base does not describe the TTS Raise key.
 
 ## Start view
 
@@ -113,7 +117,7 @@ In order of how often a TTS player will notice them:
 1. **Left drag on the empty table.** It turns the camera. In TTS it box-selects, and the app has no box select.
 2. **Left drag on a piece.** In TTS a player drags a piece at once. In the app the piece must be selected first.
 3. **Number keys over a dice tray.** Clear the tray and add that number of dice (also an open question in `feature-dice-rolling.md`).
-4. **F** to flip the hovered or selected token or character card. **Q / E** to turn a token.
+4. **Q / E** to turn a token.
 5. **Alt (hold)** over a card to show it large, as the click popup does now.
 6. **Number key with no character under the pointer.** The mod only removes the tool. The app toggles it, so a second press spawns the tool again.
 7. **Key 6** (Long tool, Toward/Away) and **key 0** (return every tool) of the mod.

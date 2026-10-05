@@ -1,4 +1,4 @@
-import { Suspense, useRef } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { Html, useTexture } from '@react-three/drei'
 import { DoubleSide } from 'three'
 import { assetUrl } from '../assets/index.js'
@@ -49,7 +49,8 @@ const CLICK_MOVE = 4
 // A source never runs out. The objective tokens the character holds lie on the card, but they are
 // crisis tokens, so Scene.jsx draws them (see "Hold and drop").
 // position: the tray's table position, from trays.js layoutTrays (Scene.jsx).
-export default function CharacterTray({ character, position, onOpen, onDamage, onPower, onFlip, onRemove, onTokenRemove, onTokenDragStart, selected = false, objectRef }) {
+// onCardHover(over): the pointer moved onto (true) or off (false) the card, for the F key.
+export default function CharacterTray({ character, position, onOpen, onDamage, onPower, onFlip, onCardHover, onRemove, onTokenRemove, onTokenDragStart, selected = false, objectRef }) {
   // Both sides load when the tray mounts, so the first Flip does not wait for an image (that wait
   // hides the tray, see Scene.jsx, Suspense). The order is fixed: the loader caches by the URL list.
   const [healthyMap, injuredMap] = useTexture([
@@ -60,6 +61,7 @@ export default function CharacterTray({ character, position, onOpen, onDamage, o
   const stamina = characterStamina(character.key, character.side)
   const yaw = trayYaw(character.teamColor)
   const cardRef = useRef()
+  const [cardHovered, setCardHovered] = useState(false)
 
   // R3F sends a click to every object that was under the pointer at pointerdown and is under it at
   // pointerup, also after a drag. The card lies under the model and the held tokens on it, so it
@@ -71,6 +73,15 @@ export default function CharacterTray({ character, position, onOpen, onDamage, o
   }
 
   useOutline(cardRef, outlineMode(selected, false))
+
+  // onCardHover(true) while the pointer is over the card, onCardHover(false) after. The cleanup also
+  // runs on unmount, so a removed tray does not stay hovered. The model and the held tokens on the
+  // card stop their own pointerover, so the card is not hovered while the pointer is over them.
+  useEffect(() => {
+    if (!cardHovered) return undefined
+    onCardHover?.(true)
+    return () => onCardHover?.(false)
+  }, [cardHovered])
 
   // Tokens on the character, in the order it got them (see App.jsx, handleCharacterTokenGive).
   const onTokens = Object.entries(character.tokens ?? {})
@@ -97,7 +108,12 @@ export default function CharacterTray({ character, position, onOpen, onDamage, o
         <planeGeometry args={[TRAY_BG_WIDTH, TRAY_BG_DEPTH]} />
         <meshStandardMaterial color="#20242b" roughness={1} />
       </mesh>
-      <mesh position={[0, 0, TRAY_CARD_LOCAL_Z]} rotation={[-Math.PI / 2, 0, 0]} onClick={openPopup} ref={cardRef}>
+      <mesh position={[0, 0, TRAY_CARD_LOCAL_Z]} rotation={[-Math.PI / 2, 0, 0]}
+        onClick={openPopup}
+        onPointerOver={e => { e.stopPropagation(); setCardHovered(true) }}
+        onPointerOut={() => setCardHovered(false)}
+        ref={cardRef}
+      >
         <planeGeometry args={[TRAY_CARD_WIDTH, TRAY_CARD_HEIGHT]} />
         <meshStandardMaterial map={map} roughness={1} side={DoubleSide} />
       </mesh>
