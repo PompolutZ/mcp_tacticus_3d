@@ -24,7 +24,7 @@ import { START_MARKERS } from './scoreboard/board.js'
 import { DEFAULT_AFFILIATION } from './scoreboard/affiliations.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
-import { DELETE_KEYS, MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
+import { DELETE_KEYS, MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, ROTATE_KEYS, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
 
 // Start view, the seat of the blue player. For now every player is Blue. Blue sits at +z (see
 // characters/trays.js). The camera stands behind the blue table edge and looks down at 45° at a
@@ -130,6 +130,8 @@ export default function App() {
   // Pan and turn keys held down: key code → screen direction. KeyboardCamera moves the camera while one is held.
   const heldPan = useRef(new Map())
   const heldTurn = useRef(new Map())
+  // Q / E held down: key code → direction. Scene turns the piece on while one is held (see turnPiece).
+  const heldRotate = useRef(new Map())
   const controlsRef = useRef(null)
   const wheelCameraRef = useRef(null)
   // Count of tool key presses over a piece, per tool: { range, move }. See Scene.
@@ -178,6 +180,9 @@ export default function App() {
   // Scene calls this with a character id and returns its live table position { x, z } (Rapier body
   // or model object, not the spawn position), or null. Used by handleTokenDrop. See Scene.jsx, modelPosition.
   const modelPositionRef = useRef(null)
+  // Scene calls this with a direction for Q / E: it turns the dragged character or tool, else the
+  // one under the pointer. See Scene.jsx, turnPiece.
+  const turnPieceRef = useRef(null)
 
   // direction: 1 turns the mat 90° counter-clockwise, -1 clockwise
   function handleTurnMat(direction) {
@@ -267,6 +272,13 @@ export default function App() {
       if (!e.repeat) resetCamera()
       return
     }
+    if (ROTATE_KEYS[e.code]) {
+      heldRotate.current.set(e.code, ROTATE_KEYS[e.code])
+      // Scene turns the piece on while the key is held, at the same speed on every computer. So
+      // the key repeat of the system does not turn it.
+      if (!e.repeat) turnPieceRef.current?.(ROTATE_KEYS[e.code])
+      return
+    }
     if (e.repeat) return
     if (RANGE_KEYS[e.key]) handleToolKey('range', RANGE_KEYS[e.key])
     else if (MOVE_KEYS[e.key]) handleToolKey('move', MOVE_KEYS[e.key])
@@ -275,12 +287,14 @@ export default function App() {
   function handleKeyUp(e) {
     heldPan.current.delete(e.code)
     heldTurn.current.delete(e.code)
+    heldRotate.current.delete(e.code)
   }
 
   // A key released outside the window sends no keyup
   function handleBlur() {
     heldPan.current.clear()
     heldTurn.current.clear()
+    heldRotate.current.clear()
   }
 
   useWindowKeys(handleKeyDown, handleKeyUp, handleBlur)
@@ -679,6 +693,8 @@ export default function App() {
               characterAtRef={characterAtRef}
               findCharacterAt={findCharacterAt}
               modelPositionRef={modelPositionRef}
+              turnPieceRef={turnPieceRef}
+              heldRotate={heldRotate}
               scoreMarkers={scoreMarkers}
               affiliations={affiliations}
               onScoreMarkerMove={(marker, x, z) => setScoreMarkers(prev => ({ ...prev, [marker]: { x, z } }))}

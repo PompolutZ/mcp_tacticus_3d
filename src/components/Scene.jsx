@@ -1,10 +1,10 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
-import { useThree } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { Raycaster, Vector3 } from 'three'
 import { useTexture, Stars, Environment } from '@react-three/drei'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import { MovementRuler, RangeRuler, DeployRangeTool, RANGE_TIP } from './RulerTool.jsx'
-import CharacterModel from './CharacterModel.jsx'
+import CharacterModel, { turnBody } from './CharacterModel.jsx'
 import Character from './Character.jsx'
 import CharacterTray from './CharacterTray.jsx'
 import Terrain from './Terrain.jsx'
@@ -52,6 +52,17 @@ const TIME_STEP = 1 / 120
 const HELD_STACK_STEP = TOKEN_THICKNESS + 0.01
 // The dragged token gets no pointer events, so it does not hide what is under it
 const NO_RAYCAST = () => null
+// One Q / E press turns a piece this much. The TTS default (PointerRotationSnap in the TTS settings, read on 2026-10-05).
+const ROTATE_STEP = 15 * Math.PI / 180
+// A Q / E key held longer than this (s) turns the piece on at ROTATE_RATE (rad/s), 90° per second,
+// the same as the arrow keys turn the camera. Picked by look, not measured in TTS.
+const ROTATE_HOLD_DELAY = 0.3
+const ROTATE_RATE = Math.PI / 2
+// A turn is smoothed, the same way as the wheel zoom (WheelCamera.jsx). Each frame the piece does
+// 1 − e^(−dt / time) of the turn that is left, so 95% of a step is done after three times this (s).
+// Picked by look. When less than ROTATE_DONE (rad) is left, the rest is done in the same frame.
+const ROTATE_SMOOTH_TIME = 0.06
+const ROTATE_DONE = 1e-4
 
 // Every piece that loads a file after the first scene load (the mat of a new map, terrain, crisis
 // cards and tokens, character trays and models, tools) is in its own Suspense below. While its file
@@ -106,6 +117,8 @@ function Mat({ mat }) {
 // modelPositionRef: ref App calls with a character id to get its live table position { x, z }
 // (Rapier body or model object, not the spawn position), or null. Used by App's handleTokenDrop, the
 // same pattern as characterAtRef. See "Hold and drop".
+// turnPieceRef: ref App calls with a direction for Q / E, the same pattern as characterAtRef. Scene
+// fills it with turnPiece. heldRotate: ref to a Map of the Q / E keys held down, key code → direction.
 // onTokenHold(tokenId, characterId, cardPoint): a canHold token was released over a character.
 // cardPoint: the tray-local [x, z] on that character's card (trays.js, trayHeldLocal) when the
 // release point is on its tray, otherwise null.
@@ -116,7 +129,7 @@ function Mat({ mat }) {
 // ScoreBoard.jsx.
 export default function Scene({
   mapId, characters = [], activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, scoreMarkers, affiliations, onScoreMarkerMove,
+  crisis = { secure: null, extract: null }, tokens = [], selection = null, onSelectionChange, selectedTool = null, onSelectedToolChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, heldRotate, scoreMarkers, affiliations, onScoreMarkerMove,
 }) {
   const map = MAPS[mapId]
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
@@ -136,6 +149,16 @@ export default function Scene({
   // Tool ('move' or 'range') → { id, clamp(p) } while its Place is on, else null.
   // A drag of character id keeps its base on that tool (see onPlaceLimit in RulerTool.jsx).
   const placeLimits = useRef({})
+  // The pieces that Q / E can turn (turnPiece): the character or tool under the pointer, and the one
+  // that is dragged. { kind: 'character' | 'tool', id } | null. The id of a tool is 'range' or 'move'.
+  const hoveredPiece = useRef(null)
+  const draggedPiece = useRef(null)
+  // Tool ('move' or 'range') → its turn(angle), see turnAroundCenter in RulerTool.jsx
+  const toolTurns = useRef({})
+  // Turns that are not done yet: piece key → { piece, left }, left in radians. See the useFrame below.
+  const turnsLeft = useRef(new Map())
+  // The piece of the last Q / E press, which a held key turns on, and the time since that press (s)
+  const turnHold = useRef({ piece: null, time: 0 })
   const [draggingCharId, setDraggingCharId] = useState(null)
   // The piece that a range tool measures against, { kind, id, mode: 'inRange' | 'outOfRange' } or null.
   // See RangeMark in RulerTool.jsx.
@@ -180,10 +203,70 @@ export default function Scene({
     return null
   }
 
+  // on: the piece is now the hovered or dragged one (true), or no longer (false)
+  function trackPiece(ref, piece, on) {
+    if (on) ref.current = piece
+    else if (ref.current?.kind === piece.kind && ref.current.id === piece.id) ref.current = null
+  }
+
+  // Q / E press, as in TTS: turns the dragged character or tool, else the one under the pointer, by
+  // ROTATE_STEP around its center. direction: 1 counter-clockwise seen from above, -1 clockwise.
+  // The dragged piece comes first, so a turn during a drag does not go to a piece that the
+  // pointer passes over. A held key keeps turning the same piece, even when the pointer leaves it.
+  function turnPiece(direction) {
+    const piece = draggedPiece.current ?? hoveredPiece.current
+    turnHold.current = { piece, time: 0 }
+    if (piece) addTurn(piece, direction * ROTATE_STEP)
+  }
+
+  // Adds angle to the turn of the piece that is not done yet
+  function addTurn(piece, angle) {
+    const key = `${piece.kind}:${piece.id}`
+    const turn = turnsLeft.current.get(key)
+    if (turn) turn.left += angle
+    else turnsLeft.current.set(key, { piece, left: angle })
+  }
+
+  // Turns the piece by angle at once. Does nothing for a piece that is gone.
+  function applyTurn(piece, angle) {
+    if (piece.kind === 'tool') toolTurns.current[piece.id]?.(angle)
+    if (piece.kind === 'character') {
+      const body = charBodies.current.get(piece.id)
+      if (body) turnBody(body, angle)
+    }
+  }
+
+  // A held Q / E adds to the turn of its piece. Then every piece with a turn left does a part of it.
+  useFrame((_, dt) => {
+    let direction = 0
+    for (const d of heldRotate.current.values()) direction += d
+    const hold = turnHold.current
+    hold.time += dt
+    if (hold.piece && direction !== 0 && hold.time > ROTATE_HOLD_DELAY) addTurn(hold.piece, direction * ROTATE_RATE * dt)
+    const part = 1 - Math.exp(-dt / ROTATE_SMOOTH_TIME)
+    for (const [key, turn] of turnsLeft.current) {
+      const angle = Math.abs(turn.left) < ROTATE_DONE ? turn.left : turn.left * part
+      turn.left -= angle
+      applyTurn(turn.piece, angle)
+      if (turn.left === 0) turnsLeft.current.delete(key)
+    }
+  })
+
+  // Props of a tool ('range' or 'move') for turnPiece
+  function turnProps(tool) {
+    const piece = { kind: 'tool', id: tool }
+    return {
+      onHover: over => trackPiece(hoveredPiece, piece, over),
+      onDrag: on => trackPiece(draggedPiece, piece, on),
+      turnRef: turn => { toolTurns.current[tool] = turn },
+    }
+  }
+
   // Registered on every render, so the closures above always see the latest characters/objects.
   useEffect(() => {
     if (characterAtRef) characterAtRef.current = characterAt
     if (modelPositionRef) modelPositionRef.current = modelPosition
+    if (turnPieceRef) turnPieceRef.current = turnPiece
   })
 
   // Tray position of every character (trays.js). A player's row recenters when that player adds
@@ -460,11 +543,20 @@ export default function Scene({
                 selected={selectedCharId === ch.id}
                 rangeMark={rangeMarkOf('character', ch.id)}
                 onSelect={() => toggleSelect('character', ch.id)}
-                onHover={over => onPieceHover?.({ kind: 'character', id: ch.id }, over)}
+                onHover={over => {
+                  onPieceHover?.({ kind: 'character', id: ch.id }, over)
+                  trackPiece(hoveredPiece, { kind: 'character', id: ch.id }, over)
+                }}
                 bodyRef={rb => rb ? charBodies.current.set(ch.id, rb) : charBodies.current.delete(ch.id)}
                 objectRef={obj => obj ? charObjects.current.set(ch.id, obj) : charObjects.current.delete(ch.id)}
-                onDragStart={() => setDraggingCharId(ch.id)}
-                onDragEnd={() => setDraggingCharId(null)}
+                onDragStart={() => {
+                  setDraggingCharId(ch.id)
+                  trackPiece(draggedPiece, { kind: 'character', id: ch.id }, true)
+                }}
+                onDragEnd={() => {
+                  setDraggingCharId(null)
+                  trackPiece(draggedPiece, { kind: 'character', id: ch.id }, false)
+                }}
                 // A base is within range if any part of it is within range (p8). So the base can
                 // go as far as touching the far end of the tool: its center is one radius past it.
                 constrainDrag={(p) => {
@@ -497,6 +589,7 @@ export default function Scene({
               models={toolModels}
               onSnap={model => onSelectionChange({ kind: model.kind, id: model.id })}
               onPlaceLimit={limit => { placeLimits.current.move = limit }}
+              {...turnProps('move')}
             />
           </Suspense>
         )}
@@ -526,6 +619,7 @@ export default function Scene({
               onSnap={model => onSelectionChange({ kind: model.kind, id: model.id })}
               onPlaceLimit={limit => { placeLimits.current.range = limit }}
               onRangeMark={setRangeMark}
+              {...turnProps('range')}
             />
           </Suspense>
         )}

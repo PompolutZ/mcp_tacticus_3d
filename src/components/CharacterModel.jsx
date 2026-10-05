@@ -2,7 +2,7 @@ import { useGLTF } from '@react-three/drei'
 import { RigidBody, CylinderCollider, useRapier } from '@react-three/rapier'
 import { useEffect, useRef, useState } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
-import { Color, Plane, Raycaster, Vector3 } from 'three'
+import { Color, Plane, Quaternion, Raycaster, Vector3 } from 'three'
 import { FRICTION, castDown } from '../physics.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 
@@ -39,6 +39,20 @@ const ANGULAR_DAMPING = 5
 export function upright({ y, w }) {
   const len = Math.hypot(y, w)
   return len < 1e-6 ? NO_ROTATION : { x: 0, y: y / len, z: 0, w: w / len }
+}
+
+const UP = new Vector3(0, 1, 0)
+const turnQuat = new Quaternion()
+const bodyQuat = new Quaternion()
+
+// Turns the body by angle (yaw) around the vertical line through its origin, the base center, as
+// Q / E do in TTS. Scene.jsx calls it on every frame of a smoothed turn. The base is round, so the
+// turn does not push an upright model into anything.
+// While the model is dragged, the drag keeps the new heading (see upright).
+export function turnBody(body, angle) {
+  const r = body.rotation()
+  turnQuat.setFromAxisAngle(UP, angle).multiply(bodyQuat.set(r.x, r.y, r.z, r.w))
+  body.setRotation(turnQuat, true)
 }
 
 // Top of the table or terrain under the whole base at (x, z), or null when nothing is under it.

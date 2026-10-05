@@ -226,7 +226,8 @@ function useFootprintGround(halfLength, halfWidth, turn) {
 // as a dragged model does. onDragStart: called once when a drag starts (not on a plain click).
 // onDragMove(raycaster): called on each pointer move of a drag, with a raycaster set to the pointer
 // ray. When it returns true, the drag ends there and the rest of that press does nothing.
-function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove) {
+// onDragEnd: called once when a drag ends, also when onDragMove ends it.
+function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove, onDragEnd) {
   const { camera, gl, controls } = useThree()
   const isDragging = useRef(false)
   const mouseNDC = useRef({ x: 0, y: 0 })
@@ -297,6 +298,7 @@ function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove) {
         ended = true
         isDragging.current = false
         rigidRef.current?.setBodyType(restType.current, true)
+        onDragEnd?.()
       }
     }
 
@@ -305,6 +307,7 @@ function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove) {
       if (isDragging.current) {
         isDragging.current = false
         rigidRef.current?.setBodyType(restType.current, true)
+        onDragEnd?.()
       } else if (!ended) {
         onSelect?.()
       }
@@ -323,7 +326,8 @@ function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove) {
 // terrain under its footprint (from groundY), the same as during a drag.
 // onPointer(raycaster): called on each pointer move with a raycaster set to the pointer ray, and
 // with null when the drag ends.
-function useHandleDrag(rigidRef, groundY, hoverHeight) {
+// onDragStart, onDragEnd: called when a handle drag starts and when it ends.
+function useHandleDrag(rigidRef, groundY, hoverHeight, onDragStart, onDragEnd) {
   const { camera, gl, controls } = useThree()
   const raycaster = useRef(new THREE.Raycaster())
   // Horizontal plane through the grabbed point, so the handle stays under the pointer
@@ -370,6 +374,7 @@ function useHandleDrag(rigidRef, groundY, hoverHeight) {
     const restType = rb.bodyType()
     rb.setBodyType(2, true)
     target.current = startPose
+    onDragStart?.()
 
     const onMove = (ev) => {
       if (ev.pointerId !== pointerId) return
@@ -384,6 +389,7 @@ function useHandleDrag(rigidRef, groundY, hoverHeight) {
       target.current = null
       onPointer?.(null)
       rigidRef.current?.setBodyType(restType, true)
+      onDragEnd?.()
       if (controls) controls.enabled = true
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('pointerup', onUp)
@@ -670,7 +676,10 @@ function BendButton({ on, onClick }) {
 // rangeOne: the range 1 tool. It snaps with a corner, not an end. See README "Tools", "Range 1".
 // onRangeMark(mark): the piece that a handle drag measures against, see RangeMark. Only the range
 // tools pass it. Without it, the tool marks no pieces.
-function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target, models = [], onSnap, onPlaceLimit, onSpawn, onRangeMark }) {
+// onHover(over): the pointer moved onto (true) or off (false) the tool. onDrag(on): a drag of the
+// tool body or a handle started (true) or ended (false). Both are also called with false on unmount.
+// turnRef(turn): gets turnAroundCenter, for Q / E (see turnPiece in Scene.jsx), and null on unmount.
+function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target, models = [], onSnap, onPlaceLimit, onSpawn, onRangeMark, onHover, onDrag, turnRef }) {
   const [hovered, setHovered] = useState(false)
   const rigidRef = useRef()
   // The tool meshes, without the handles, for the outline
@@ -696,19 +705,59 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
   const overRef = useRef(undefined)
   // Model under the pointer while a handle of the snapped tool is dragged, else null. See RangeMark.
   const measuredRef = useRef(null)
+  // The drag in progress: 'body', 'handle' or null
+  const dragKind = useRef(null)
   const groundY = useFootprintGround(tip, halfWidth, turn)
   // Dragging the tool body makes it free
   const onPointerDown = useDragTool(rigidRef, groundY, hoverHeight, () => {
     setSnap(null)
     overRef.current = undefined
-  }, onDragMove)
-  const startHandleDrag = useHandleDrag(rigidRef, groundY, hoverHeight)
+    dragChange('body')
+  }, onDragMove, () => dragChange(null))
+  const startHandleDrag = useHandleDrag(rigidRef, groundY, hoverHeight, () => dragChange('handle'), () => dragChange(null))
   const { world, rapier } = useRapier()
   const hulls = useMemo(() => parts.map(part => hullPoints(part.obj)), [parts])
 
   function partTurn(part) {
     return part.side ? turn[part.side] : 0
   }
+
+  function dragChange(kind) {
+    dragKind.current = kind
+    onDrag?.(kind !== null)
+  }
+
+  // Q / E: turns the whole tool by angle (yaw) around its center, the hinge on a movement tool.
+  // Scene.jsx calls it on every frame of a smoothed turn. The tool keeps its bend. Both ends move,
+  // so a snapped tool is free after the turn. A tool that is not dragged then hangs hoverHeight
+  // above the ground under its new outline (a body drag already does this on every frame). A handle
+  // drag sets the pose on every frame, so a turn during it does nothing.
+  function turnAroundCenter(angle) {
+    const rb = rigidRef.current
+    if (!rb || dragKind.current === 'handle') return
+    const { x, z, yaw } = toolPose(rb)
+    if (!dragKind.current) {
+      const ground = groundY(x, z, yaw + angle)
+      if (ground !== null) rb.setTranslation({ x, y: ground + hoverHeight, z }, true)
+    }
+    rb.setRotation(yawQuat(yaw + angle), true)
+    setSnap(null)
+  }
+
+  // Registered on every render, so the turn reads the current state
+  useEffect(() => {
+    turnRef?.(turnAroundCenter)
+    return () => turnRef?.(null)
+  })
+
+  // The cleanups also run on unmount, so a removed tool does not stay hovered or dragged. Escape
+  // removes the selected tool, also during its drag.
+  useEffect(() => {
+    if (!hovered) return undefined
+    onHover?.(true)
+    return () => onHover?.(false)
+  }, [hovered])
+  useEffect(() => () => onDrag?.(false), [])
 
   function onHandleDown(e, side) {
     // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).

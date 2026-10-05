@@ -1,6 +1,6 @@
 # Feature: Key and mouse controls as in TTS
 
-Status: WASD pan, arrow keys, Space, right drag, middle drag and trackpad gestures done. The rest is a list of differences, not started.
+Status: WASD pan, arrow keys, Space, right drag, middle drag, trackpad gestures, and Q / E on characters and tools done. The rest is a list of differences, not started.
 
 ## Goal
 
@@ -50,7 +50,7 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 | P | Camera mode: third person, first person, top-down | Nothing | No |
 | Ctrl | First-person mode: fly down | Nothing | No |
 | F | Flip | Flip buttons in the token panel, the tray and the tray popup. No key | No |
-| Q / E | Rotate the piece | Turn handle on a token. Characters cannot be rotated | No |
+| Q / E | Rotate the piece | Turns the dragged character or tool, else the one under the pointer, 15° around its center. Q turns counter-clockwise, E clockwise (seen from above). A token has a turn handle, no key | Partly |
 | T | Tap (turn 90°) | Nothing | No |
 | R | Raise | Nothing | No |
 | L | Lock | Nothing | No |
@@ -75,6 +75,8 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 | ` | System console | Nothing | No |
 
 The direction and the speed of the arrow keys (90° per second) are picked by look. They are not compared with TTS yet.
+
+Q / E turn a piece 15° per press. 15° is `PointerRotationSnap` in the same plist, the TTS default (read on 2026-10-05). A key held for more than 0.3 s turns the piece on at 90° per second, the speed of the arrow keys. The app does not use the key repeat of the system, so the speed is the same on every computer. A held key keeps turning the piece of the press, also when the pointer leaves it. Each turn is smoothed in the same way as the wheel zoom: each frame, the piece does `1 − e^(−dt / 0.06 s)` of the turn that is left. The delay, the speed and the smoothing time are picked by look. The center of a character is its base center. The center of a movement tool is its hinge. A turn moves both ends of a tool, so a snapped tool is free after it. During a handle drag, Q / E do nothing.
 
 ## Start view
 
@@ -111,7 +113,7 @@ In order of how often a TTS player will notice them:
 1. **Left drag on the empty table.** It turns the camera. In TTS it box-selects, and the app has no box select.
 2. **Left drag on a piece.** In TTS a player drags a piece at once. In the app the piece must be selected first.
 3. **Number keys over a dice tray.** Clear the tray and add that number of dice (also an open question in `feature-dice-rolling.md`).
-4. **F** to flip the hovered or selected token or character card. **Q / E** to turn the hovered or selected token.
+4. **F** to flip the hovered or selected token or character card. **Q / E** to turn a token.
 5. **Alt (hold)** over a card to show it large, as the click popup does now.
 6. **Number key with no character under the pointer.** The mod only removes the tool. The app toggles it, so a second press spawns the tool again.
 7. **Key 6** (Long tool, Toward/Away) and **key 0** (return every tool) of the mod.

@@ -85,9 +85,11 @@ The tool stays snapped to the same model when you select another model. It also 
 
 ### Free
 
-The tool is free when it spawns while no model is selected. Dragging the tool body makes a snapped tool free.
+The tool is free when it spawns while no model is selected. Dragging the tool body, or turning it with Q / E, makes a snapped tool free.
 
 Dragging a handle rotates the tool around the opposite handle.
+
+**Q** and **E** turn the tool under the pointer, or the tool you drag, 15° around its center, as in TTS. Hold the key to keep turning. Q turns it counter-clockwise and E clockwise, seen from above. The center of a movement tool is its hinge, and the tool keeps its bend. During a handle drag, Q and E do nothing. They turn characters the same way.
 
 ### Place
 

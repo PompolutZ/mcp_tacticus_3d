@@ -11,6 +11,9 @@ export const MOVE_KEYS = { 7: 'short', 8: 'medium', 9: 'long' }
 export const PAN_KEYS = { KeyW: [0, 1], KeyS: [0, -1], KeyA: [-1, 0], KeyD: [1, 0] }
 // Camera turn, arrow keys as in TTS: key code → direction the view turns [right, up]
 export const TURN_KEYS = { ArrowUp: [0, 1], ArrowDown: [0, -1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }
+// Piece turn, Q / E as in TTS (Rotate Left / Rotate Right): key code → direction. 1 turns the piece
+// counter-clockwise seen from above. See turnPiece in Scene.jsx.
+export const ROTATE_KEYS = { KeyQ: 1, KeyE: -1 }
 // Camera back to the start view, as in TTS
 export const RESET_VIEW_KEY = 'Space'
 // Deletes the character token on the table under the pointer, as in TTS. A Mac keyboard's delete
