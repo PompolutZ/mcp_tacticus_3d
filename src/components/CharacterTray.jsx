@@ -20,6 +20,7 @@ import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import TokenFace from './TokenFace.jsx'
 import TrayControls from './TrayControls.jsx'
 import { useColorTexture } from './useColorTexture.js'
+import { useHoverCursor } from './useHoverCursor.js'
 
 // Every character's Give sources start with Activated and Dazed (characterGiveTokens adds only the
 // character-specific tokens, see migrate-characters.mjs: the mod spawns these next to every tray).
@@ -74,6 +75,8 @@ export default function CharacterTray({ character, position, onOpen, onDamage, o
   }
 
   useOutline(cardRef, outlineMode(selected, false))
+  // A click on the card opens the popup
+  useHoverCursor(cardHovered, 'pointer')
 
   // onCardHover(true) while the pointer is over the card, onCardHover(false) after. The cleanup also
   // runs on unmount, so a removed tray does not stay hovered. The model and the held tokens on the

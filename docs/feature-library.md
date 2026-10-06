@@ -17,14 +17,13 @@ The panel stays open after a pick. So a player can add 5 characters, then 5 tact
 | [Search name or MCT code       ] |
 | [All] [Characters] [Tactics] [Tokens]
 | For: [Blue] [Red]                |   player who gets characters and tactic cards
-| Tokens: [Single] [Pile]          |
 +----------------------------------+
 | CHARACTERS                       |
 | (portrait) Angela         MCP01  |   click: spawn with its tray
 | (portrait) Black Panther  ...    |
 | TACTICS                          |
 | [card] [card] [card]             |   click: into the tactic tray
-| TOKENS                           |
+| TOKENS          [Single] [Pile]  |
 | (o)(o)(o)(o)(o)(o)(o)            |   drag: one token or a pile
 +----------------------------------+
 ```
@@ -32,7 +31,6 @@ The panel stays open after a pick. So a player can add 5 characters, then 5 tact
 - **Search:** one field for all kinds. A character matches by name or MCT code. A tactic card matches by name or MCT code. A token matches by name.
 - **Tabs:** All, Characters, Tactics, Tokens. All shows a section for each kind. The other tabs show one kind.
 - **For:** Blue or Red. The player who gets the characters and the tactic cards. Tokens belong to no player.
-- **Tokens:** Single or Pile, see [Tokens](#tokens).
 
 ## Characters
 
@@ -50,7 +48,7 @@ The images load only when they scroll into view (`loading="lazy"`), so the panel
 
 The tokens are in groups, the same as the old Tokens panel: Conditions, Status, Character, Tactic. A label under the pointer shows the name and the description.
 
-The **Single / Pile** switch changes what a drag from the panel brings:
+The **Single / Pile** switch in the Tokens section header changes what a drag from the panel brings:
 
 | Mode | Released over a character | Released over the table |
 |---|---|---|

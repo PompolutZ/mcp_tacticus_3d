@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Html, useTexture } from '@react-three/drei'
-import { useThree } from '@react-three/fiber'
 import { assetUrl } from '../assets/index.js'
 import { TOKEN_SIZE, characterToken } from '../tokens/files.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import { getToken } from '../tokens/tokens.js'
 import TokenSolid from './TokenSolid.jsx'
+import { useHoverCursor } from './useHoverCursor.js'
 
 // The count badge sits on the token's bottom right corner, as seen by the owner of its tray, just above
 // the token's top
@@ -15,6 +15,10 @@ const BADGE_POSITION = [TOKEN_SIZE / 2 - 0.06, TOKEN_THICKNESS + 0.01, TOKEN_SIZ
 const FLAT = [-Math.PI / 2, 0, 0]
 // The name label floats above the token, so the pointer and the token do not hide it.
 const LABEL_POSITION = [0, 0.4, -TOKEN_SIZE / 2]
+// Without an <Html transform>, drei ignores its pointerEvents prop, and its wrapper div takes the
+// pointer. That div is as big as the label and covers the token on screen, so R3F reads the pointer
+// position inside the div, loses the token, the label hides, and then shows again (flicker).
+const NO_POINTER = { pointerEvents: 'none' }
 const NO_RAYCAST = () => null
 
 // One character token, real size (TOKEN_SIZE) and TOKEN_THICKNESS thick, with its bottom at y = 0, its
@@ -29,18 +33,14 @@ const NO_RAYCAST = () => null
 export default function TokenFace({ tokenKey, count = 1, cursor = 'pointer', interactive = true, onPointerDown, onClick, onHover }) {
   const map = useTexture(assetUrl(characterToken(tokenKey)))
   const token = getToken(tokenKey)
-  const gl = useThree(state => state.gl)
   const [hovered, setHovered] = useState(false)
+  useHoverCursor(hovered, cursor)
   // onHover(true) while the pointer is over the token, onHover(false) after. The cleanup also runs
-  // on unmount, so a removed token does not stay hovered and does not keep its cursor.
+  // on unmount, so a removed token does not stay hovered.
   useEffect(() => {
     if (!hovered) return undefined
-    gl.domElement.style.cursor = cursor
     onHover?.(true)
-    return () => {
-      gl.domElement.style.cursor = ''
-      onHover?.(false)
-    }
+    return () => onHover?.(false)
   }, [hovered])
 
   const events = interactive
@@ -63,7 +63,7 @@ export default function TokenFace({ tokenKey, count = 1, cursor = 'pointer', int
         </group>
       )}
       {hovered && token && (
-        <Html position={LABEL_POSITION} center>
+        <Html position={LABEL_POSITION} center style={NO_POINTER}>
           <div className="token-face-label">
             <strong>{token.name}</strong>
             {token.description && <span>{token.description}</span>}

@@ -77,11 +77,13 @@ export function Library({ open, onSpawnCharacter, onSpawnTactic, onTokenDragStar
     return tab === 'all' && ALL_TAB_LIMIT[kind] ? items.slice(0, ALL_TAB_LIMIT[kind]) : items
   }
 
-  function sectionHeader(kind, label) {
+  // controls: optional elements on the right of the header
+  function sectionHeader(kind, label, controls) {
     const hidden = found[kind].length - shown(kind).length
     return (
       <div className="library-section-header">
         <span className="group-label">{label}</span>
+        {controls}
         {hidden > 0 && (
           <button type="button" className="library-more" onClick={() => setTab(kind)}>
             More ({hidden})
@@ -121,18 +123,6 @@ export function Library({ open, onSpawnCharacter, onSpawnTactic, onTokenDragStar
             onClick={() => setTeam(t.team)}
           >
             {t.label}
-          </button>
-        ))}
-        <span className="group-label library-row-gap">Tokens</span>
-        {TOKEN_MODES.map(m => (
-          <button
-            key={m.mode}
-            type="button"
-            className={`chip${tokenMode === m.mode ? ' chip--active' : ''}`}
-            title={m.title}
-            onClick={() => setTokenMode(m.mode)}
-          >
-            {m.label}
           </button>
         ))}
       </div>
@@ -181,7 +171,21 @@ export function Library({ open, onSpawnCharacter, onSpawnTactic, onTokenDragStar
         )}
         {showKind('tokens') && (
           <section className="library-section">
-            {sectionHeader('tokens', 'Tokens')}
+            {sectionHeader('tokens', 'Tokens', (
+              <div className="library-row">
+                {TOKEN_MODES.map(m => (
+                  <button
+                    key={m.mode}
+                    type="button"
+                    className={`chip${tokenMode === m.mode ? ' chip--active' : ''}`}
+                    title={m.title}
+                    onClick={() => setTokenMode(m.mode)}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+            ))}
             {Object.entries(TOKEN_GROUPS).map(([group, label]) => {
               const tokens = found.tokens.filter(t => t.group === group)
               return tokens.length > 0 && (

@@ -1,4 +1,3 @@
-import { useThree } from '@react-three/fiber'
 import { Html, useGLTF, useTexture } from '@react-three/drei'
 import { MeshCollider, RigidBody } from '@react-three/rapier'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -10,6 +9,7 @@ import { TERRAIN_PIECES } from '../terrain/pieces.js'
 import { FRICTION } from '../physics.js'
 import { projectFootprints } from './footprintProjection.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
+import { useHoverCursor } from './useHoverCursor.js'
 
 const DEG = Math.PI / 180
 const WHITE = [1, 1, 1]
@@ -30,6 +30,9 @@ function toThreeTransform({ position: [x, y, z], rotation: [rx, ry, rz] }) {
 const IMPORT_ROTATION = [0, Math.PI, 0]
 // Distance in inches between the top of a piece and its label
 const LABEL_GAP = 0.3
+// The label must not take the pointer from the piece. Without an <Html transform>, drei ignores its
+// pointerEvents prop, so the style sets it (see TokenFace.jsx).
+const NO_POINTER = { pointerEvents: 'none' }
 
 // Label position in the placement group: above the top center of the mesh's bounding box.
 // raw is the loaded scene, which is never mounted, so its box is in mesh space.
@@ -86,7 +89,6 @@ function TerrainPiece({ placement, showLabel, selected, onSelect, onHover, objec
   }, [raw, map, placement.tint])
   const { position, quaternion } = useMemo(() => toThreeTransform(placement), [placement])
   const labelPos = useMemo(() => labelPosition(raw, placement.scale), [raw, placement.scale])
-  const gl = useThree(state => state.gl)
 
   useOutline(meshRef, outlineMode(selected, hovered))
 
@@ -95,16 +97,15 @@ function TerrainPiece({ placement, showLabel, selected, onSelect, onHover, objec
     if (locked) setHovered(false)
   }, [locked])
 
+  // A click selects the piece. It cannot be dragged.
+  useHoverCursor(hovered, 'pointer')
+
   // onHover(true) while the pointer is over the piece, onHover(false) after. The cleanup also runs on
-  // unmount, so a deleted piece does not stay hovered and does not keep its cursor.
+  // unmount, so a deleted piece does not stay hovered.
   useEffect(() => {
     if (!hovered) return undefined
-    gl.domElement.style.cursor = 'pointer'
     onHover?.(true)
-    return () => {
-      gl.domElement.style.cursor = ''
-      onHover?.(false)
-    }
+    return () => onHover?.(false)
   }, [hovered])
 
   function setMesh(obj) {
@@ -155,7 +156,7 @@ function TerrainPiece({ placement, showLabel, selected, onSelect, onHover, objec
         </group>
       </RigidBody>
       {showLabel && (
-        <Html position={labelPos} center pointerEvents="none" zIndexRange={[100, 0]} className="terrain-label">
+        <Html position={labelPos} center style={NO_POINTER} zIndexRange={[100, 0]} className="terrain-label">
           {piece.name}{placement.size && ` · Size ${placement.size}`}
         </Html>
       )}

@@ -1,10 +1,10 @@
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useTexture } from '@react-three/drei'
-import { useThree } from '@react-three/fiber'
 import { assetUrl } from '../assets/index.js'
 import { crisisToken } from '../crisis/files.js'
 import { CRISIS_TOKEN_SIZE } from '../crisis/layout.js'
 import TokenSolid from './TokenSolid.jsx'
+import { useHoverCursor } from './useHoverCursor.js'
 
 // Gap between the table and the pile, the same as LooseToken.jsx
 const GAP = 0.02
@@ -24,14 +24,8 @@ export function SupplyToken({ tokenKey, ...props }) {
 // tokenKey: the supply token key (cards.json, supply). position: { x, z }.
 // onDragStart(nativeEvent): a left pointerdown on the pile.
 export default function SupplyPile({ tokenKey, position, onDragStart }) {
-  const gl = useThree(state => state.gl)
   const [hovered, setHovered] = useState(false)
-
-  useEffect(() => {
-    if (!hovered) return undefined
-    gl.domElement.style.cursor = 'grab'
-    return () => { gl.domElement.style.cursor = '' }
-  }, [hovered, gl])
+  useHoverCursor(hovered, 'grab')
 
   function handlePointerDown(e) {
     // Only the left button takes a token. A right or middle drag goes to OrbitControls (the camera).

@@ -10,6 +10,7 @@ import { TACTIC_CARD_HEIGHT, TACTIC_CARD_WIDTH, TACTIC_CARD_Y, tacticCardYaw } f
 import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useColorTexture } from './useColorTexture.js'
+import { useHoverCursor } from './useHoverCursor.js'
 
 // A thin box as large as the card finds the ground under it, the same as LooseToken.jsx
 const HALF_H = 0.01
@@ -144,16 +145,14 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
 
   useOutline(flipGroupRef, outlineMode(false, hovered))
 
+  useHoverCursor(hovered, 'grab')
+
   // onHover(true) while the pointer is over the card, onHover(false) after. The cleanup also runs on
-  // unmount, so a removed card does not stay hovered and does not keep its cursor.
+  // unmount, so a removed card does not stay hovered.
   useEffect(() => {
     if (!hovered) return undefined
-    gl.domElement.style.cursor = 'grab'
     onHover?.(true)
-    return () => {
-      gl.domElement.style.cursor = ''
-      onHover?.(false)
-    }
+    return () => onHover?.(false)
   }, [hovered])
 
   return (

@@ -11,6 +11,8 @@ import { acquireFootprint } from './footprintProjection.js'
 import { TOKEN_DRAG_LIFT, TOKEN_EDGE_COLOR, TOKEN_THICKNESS } from '../tokens/solid.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useColorTexture } from './useColorTexture.js'
+import { useHoverCursor } from './useHoverCursor.js'
+import TurnHandle from './TurnHandle.jsx'
 
 const TEAM_COLORS = { blue: '#2980b9', red: '#c0392b' }
 // A token is a 1" circle, TOKEN_THICKNESS thick (tokens.json size is used for the shape, not the exact
@@ -295,6 +297,8 @@ export default function CrisisToken({ token, selected, rangeMark, onSelect, onHo
   }
 
   useOutline(diskRef, outlineMode(selected, hovered, rangeMark))
+  // A click selects the token. Only a selected token that can move moves by a drag.
+  useHoverCursor(hovered, selected && token.canMove ? 'grab' : 'pointer')
 
   // onHover(true) while the pointer is over the token, onHover(false) after. The cleanup also runs
   // on unmount, so a removed token does not stay hovered.
@@ -330,13 +334,11 @@ export default function CrisisToken({ token, selected, rangeMark, onSelect, onHo
         </mesh>
       )}
       {selected && token.hasArc && (
-        <mesh
+        <TurnHandle
           position={[HANDLE_DIST * Math.SQRT1_2, HANDLE_Y, -HANDLE_DIST * Math.SQRT1_2]}
+          radius={HANDLE_RADIUS}
           onPointerDown={onHandleDown}
-        >
-          <sphereGeometry args={[HANDLE_RADIUS, 16, 12]} />
-          <meshStandardMaterial color="#f5a623" roughness={0.3} metalness={0.5} />
-        </mesh>
+        />
       )}
     </group>
   )

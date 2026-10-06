@@ -10,6 +10,8 @@ import { castDown } from '../physics.js'
 import { throwMove, throwSlide } from './throwPath.js'
 import { assetUrl } from '../assets/index.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
+import TurnHandle from './TurnHandle.jsx'
+import { useHoverCursor } from './useHoverCursor.js'
 
 const TEXTURE = assetUrl('tools/toolbox-02.png')
 const DRAG_THRESHOLD = 4
@@ -739,6 +741,9 @@ function BendButton({ on, onClick }) {
 // ANGLE_LIMIT of it, while snapped to that model. Read at each use, because the angle tool can move.
 function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, angle = false, aim = null, angleLimit, angleRef, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target, placeTarget, models = [], onSnap, onPlaceLimit, onSpawn, onRangeMark, onHover, onDrag, turnRef }) {
   const [hovered, setHovered] = useState(false)
+  // The pointer is over a handle. The tool counts as hovered then too, for the keys and the outline.
+  const [handleHovered, setHandleHovered] = useState(false)
+  const toolHovered = hovered || handleHovered
   const rigidRef = useRef()
   // The tool meshes, without the handles, for the outline
   const partsRef = useRef()
@@ -828,11 +833,13 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, angle
   // The cleanups also run on unmount, so a removed tool does not stay hovered or dragged. Escape
   // removes the selected tool, also during its drag.
   useEffect(() => {
-    if (!hovered) return undefined
+    if (!toolHovered) return undefined
     onHover?.(true)
     return () => onHover?.(false)
-  }, [hovered])
+  }, [toolHovered])
   useEffect(() => () => onDrag?.(false), [])
+  // A click selects the tool. Only a selected tool moves by a drag. A handle sets its own cursor.
+  useHoverCursor(hovered, selected ? 'grab' : 'pointer')
 
   function onHandleDown(e, side) {
     // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
@@ -958,7 +965,7 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, angle
     // Only at spawn. Selecting another character later must not move the tool.
   }, [])
 
-  useOutline(partsRef, outlineMode(selected, hovered))
+  useOutline(partsRef, outlineMode(selected, toolHovered))
 
   // The clamp reads the tool pose at each call, so the tool can move while Place is on
   useEffect(() => {
@@ -1104,10 +1111,12 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, angle
         ))}
         {SIDES.map(side => (
           <group key={side} rotation-y={turn[side]}>
-            <mesh position={[side === 'right' ? tip : -tip, HANDLE_Y, 0]} onPointerDown={(e) => onHandleDown(e, side)}>
-              <sphereGeometry args={[HANDLE_RADIUS, 16, 12]} />
-              <meshStandardMaterial color="#f5a623" roughness={0.3} metalness={0.5} />
-            </mesh>
+            <TurnHandle
+              position={[side === 'right' ? tip : -tip, HANDLE_Y, 0]}
+              radius={HANDLE_RADIUS}
+              onPointerDown={(e) => onHandleDown(e, side)}
+              onHover={setHandleHovered}
+            />
             {/* Place toggle, Place 2 on the R1 tool. It cannot be turned on for a token: a token
                 has no body, so there is no base to keep on the tool. */}
             {selected && !angle && side === placeButtonSide && !throwLock && (

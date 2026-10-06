@@ -5,6 +5,7 @@ import { useThree, useFrame } from '@react-three/fiber'
 import { Box3, Color, Matrix4, Plane, Quaternion, Raycaster, Vector3 } from 'three'
 import { FRICTION, castDown } from '../physics.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
+import { useHoverCursor } from './useHoverCursor.js'
 
 const TEAM_COLORS = { red: '#c0392b', blue: '#2980b9' }
 const TABLE_PLANE = new Plane(new Vector3(0, 1, 0), 0)
@@ -316,6 +317,8 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
   }, [scene, teamColor])
 
   useOutline(figureRef, outlineMode(selected, hovered, rangeMark))
+  // A click selects the model. Only a selected model moves by a drag.
+  useHoverCursor(hovered, selected ? 'grab' : 'pointer')
 
   // onHover(true) while the pointer is over the model, onHover(false) after. The cleanup also runs
   // on unmount, so a removed model does not stay hovered.

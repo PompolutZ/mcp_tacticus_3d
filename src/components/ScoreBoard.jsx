@@ -22,6 +22,7 @@ import {
 import { affiliationToken, BOARD_MESH, BOARD_TEXTURE, ROUND_MESH } from '../scoreboard/files.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import TokenSolid from './TokenSolid.jsx'
+import { useHoverCursor } from './useHoverCursor.js'
 
 // TTS mirrors X when it imports an OBJ. With the z → -z conversion, this is a 180° turn around Y (see
 // Terrain.jsx).
@@ -96,11 +97,7 @@ function DraggableMarker({ position, points, shape, halfHeight, lift = 0, onMove
     groupRef.current?.position.set(x, (ground ?? 0) + GAP + lift, z)
   })
 
-  useEffect(() => {
-    if (!hovered) return undefined
-    gl.domElement.style.cursor = 'grab'
-    return () => { gl.domElement.style.cursor = '' }
-  }, [hovered, gl])
+  useHoverCursor(hovered, 'grab')
 
   // Board, terrain or table point under the pointer, the same as CrisisToken.jsx
   function pointerPoint(clientX, clientY) {
