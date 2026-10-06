@@ -52,7 +52,7 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 | F | Flip | Flips the crisis token under the pointer, or the card of the character under the pointer (its model or its tray card). With nothing under the pointer: the piece selected last, a token or the card of a character | Partly |
 | Q / E | Rotate the piece | Turns the dragged character or tool, else the one under the pointer, 15° around its center. Q turns counter-clockwise, E clockwise (seen from above). A token has a turn handle, no key | Partly |
 | T | Tap (turn 90°) | Nothing | No |
-| R | Raise | Lifts the model under the pointer 3", or puts it back down. With no model under the pointer: puts every lifted model back down | Partly |
+| R | Raise | Lifts the model under the pointer 6", or puts it back down. With no model under the pointer: puts every lifted model back down | Partly |
 | L | Lock | Nothing | No |
 | Delete / Backspace | Delete the hovered or selected piece | Deletes the character token on the table under the pointer. Other pieces cannot be deleted with a key | Partly |
 | G | Group | Nothing | No |
@@ -80,7 +80,7 @@ Q / E turn a piece 15° per press. 15° is `PointerRotationSnap` in the same pli
 
 F flips the piece under the pointer first. A crisis token without a back does not flip. F over it does nothing, also when another token is selected. F over a model flips the character card, not the model. In TTS, F over a figurine turns the figurine upside down, which players do not need.
 
-R is a toggle. In TTS, a player lifts a model by holding it with the mouse. In the app, the model stays up, so the same player can select the token under it and measure. The model goes straight up 3" and comes back down to the same place, with no physics. A model that was asleep (at rest) sleeps again, so physics does not move it from its place. A Q / E turn during the lift stays after it. A drag ends the lift, and the model drops where it is released. Place on a lifted model also ends the lift: the model stands at the new place. The height and the smoothing (the same as Q / E) are picked by look. The TTS knowledge base does not describe the TTS Raise key.
+R is a toggle. In TTS, a player lifts a model by holding it with the mouse. In the app, the model stays up, so the same player can select the token under it and measure. The model goes straight up 6" and comes back down to the same place, with no physics. A model that was asleep (at rest) sleeps again, so physics does not move it from its place. A Q / E turn during the lift stays after it. A drag ends the lift, and the model drops where it is released. Place on a lifted model also ends the lift: the model stands at the new place. The height is 6", so the tallest model measured (Sentinel Prime MK4, 5.28") can slide under a lifted model during a Throw or Push (README "Throw / Push"). The smoothing (the same as Q / E) is picked by look. The TTS knowledge base does not describe the TTS Raise key.
 
 ## Start view
 

@@ -1,6 +1,9 @@
 // Table size and the walls at its edge. Plain module, no React, so scripts/dice-sim.mjs builds the
 // same table in Node.
 
+// The MCP mat is 36" x 36", with its center at the table center. 1 Three.js unit = 1 inch.
+export const MAT_SIZE = 36
+
 // The table is 72" wide (x) and 60" deep (z). It is deeper than the TTS table (72" x 48", 3:2) so that
 // each player gets a row of character trays between the mat edge and the table edge
 // (see docs/characters-hud.md, "Place on the table").

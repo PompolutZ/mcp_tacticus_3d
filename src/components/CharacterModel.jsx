@@ -22,9 +22,11 @@ const SETTLE_TIME = 0.5
 const SETTLE_MOVE = 0.05
 const SETTLE_TURN = 2 * Math.PI / 180
 // The R key lifts a model straight up by LIFT_HEIGHT (inches), and a second press puts it back at the
-// same place, so a player can see and select a token under it. Picked by look: from the start view
-// (45°), a token under a large base shows below a model lifted 2" or more.
-const LIFT_HEIGHT = 3
+// same place. So a player can see and select a token under it, and a Throw or Push can move a model
+// under it (README "Throw / Push"). The tallest model measured, Sentinel Prime MK4 (5.28", on
+// 2026-10-06), fits under a lifted model. Onslaught was not in the TTS cache, so it is not measured.
+// From the start view (45°), a token under a large base already shows below a model lifted 2".
+const LIFT_HEIGHT = 6
 // The lift is smoothed the same way as a Q / E turn (Scene.jsx): each frame the model does
 // 1 − e^(−dt / time) of the move that is left. When less than LIFT_DONE (inches) is left, the move is done.
 const LIFT_SMOOTH_TIME = 0.06
@@ -35,7 +37,7 @@ const LIFT_MOVED = 0.001
 
 // Base disk dims from angel.glb mesh0: radius≈0.983, height≈0.118
 export const BASE_RADIUS = 0.983
-const BASE_HALF_H = 0.059
+export const BASE_HALF_H = 0.059
 // Same density for every model, so the mass follows the base size
 const BASE_DENSITY = 5
 // TTS drag of every object
@@ -80,13 +82,15 @@ function turnBetween(a, b) {
 }
 
 // bodyRef, objectRef: get the Rapier body and the 3D object of the model (figure and base)
-// liftRef: gets { toggle(), down() } for the R key (see liftPiece in Scene.jsx), and null on unmount
+// liftRef: gets { toggle(), down() } for the R key (see liftPiece in Scene.jsx), and isUp() for a Throw
+// (a lifted model does not stop it), and null on unmount
+// slideRef: gets startSlide for a Throw or Push (see RulerTool.jsx), and null on unmount
 // baseRadius: radius of the base in the model file, which has the game size
 // onHover(over): called when the pointer moves onto the model (true) and off it (false)
 // rangeMark: 'inRange' or 'outOfRange' while a range tool marks the model (RangeMark in RulerTool.jsx)
 // position: where the body starts. Read only on mount: RigidBody moves its body when its position
 // prop changes, and the spawn position follows the tray (Scene.jsx), which can move later.
-export default function CharacterModel({ url, position = [0, 0, 0], baseRadius = BASE_RADIUS, rotation = [0, 0, 0], teamColor = 'red', selected = false, rangeMark, onSelect, onHover, bodyRef, objectRef, liftRef, onDragStart, onDragEnd, constrainDrag }) {
+export default function CharacterModel({ url, position = [0, 0, 0], baseRadius = BASE_RADIUS, rotation = [0, 0, 0], teamColor = 'red', selected = false, rangeMark, onSelect, onHover, bodyRef, objectRef, liftRef, slideRef, onDragStart, onDragEnd, constrainDrag }) {
   const [startPosition] = useState(position)
   const { scene } = useGLTF(url)
   const { camera, gl, controls } = useThree()
@@ -105,6 +109,8 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
   // goes up (true) or back down (false). landing: the model is back at x, y, z, and becomes a
   // dynamic body again in the next frame.
   const lift = useRef(null)
+  // The slide of a Throw or Push (startSlide): { path, duration, time }, or null
+  const slide = useRef(null)
   const mouseNDC = useRef({ x: 0, y: 0 })
   // Pointer and ground casts hit only fixed bodies (table and terrain), and no sensors
   const groundOnly = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
@@ -147,7 +153,7 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
   // nothing pushes it.
   function toggleLift() {
     const rb = rigidRef.current
-    if (!rb || isDragging.current) return
+    if (!rb || isDragging.current || slide.current) return
     if (lift.current) {
       lift.current.up = !lift.current.up
       lift.current.landing = false
@@ -205,9 +211,50 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
     rb.setNextKinematicTranslation({ ...place, y: t.y + left * (1 - Math.exp(-dt / LIFT_SMOOTH_TIME)) })
   }
 
+  // Throw / Push (README "Throw / Push"): moves the model along path in duration seconds. path(f) is the
+  // body position at the share f (0..1) of the slide, with y null when nothing is under it. The body is
+  // kinematic during the slide, so physics does not move it. A slide ends a lift, and a drag ends a slide.
+  function startSlide(path, duration) {
+    const rb = rigidRef.current
+    if (!rb || isDragging.current) return
+    lift.current = null
+    rest.current = null
+    rb.setBodyType(2, true)
+    slide.current = { path, duration, time: 0 }
+  }
+
+  // Moves a sliding model one frame. It stands upright, as during a drag. Its height follows the path,
+  // smoothed the same way as during a drag, so a model that leaves a roof drops quickly but not at
+  // once. At the end the model stands at the last point of the path, and physics moves it again.
+  function moveSlide(rb, dt) {
+    const s = slide.current
+    const t = rb.translation()
+    s.time += dt
+    if (s.time >= s.duration) {
+      const end = s.path(1)
+      slide.current = null
+      rb.setBodyType(0, true)
+      rb.setTranslation({ x: end.x, y: end.y ?? t.y, z: end.z }, true)
+      rb.setRotation(upright(rb.rotation()), true)
+      rb.setLinvel(ZERO, true)
+      rb.setAngvel(ZERO, true)
+      return
+    }
+    const p = s.path(s.time / s.duration)
+    const y = p.y === null ? t.y : t.y + (p.y - t.y) * Math.min(1, dt * HOVER_RATE)
+    // A sleeping body keeps moving but its mesh is not synced, so keep it awake
+    rb.wakeUp()
+    rb.setNextKinematicTranslation({ x: p.x, y, z: p.z })
+    rb.setNextKinematicRotation(upright(rb.rotation()))
+  }
+
   useEffect(() => {
-    liftRef?.({ toggle: toggleLift, down: lowerLift })
-    return () => liftRef?.(null)
+    liftRef?.({ toggle: toggleLift, down: lowerLift, isUp: () => lift.current?.up === true })
+    slideRef?.(startSlide)
+    return () => {
+      liftRef?.(null)
+      slideRef?.(null)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -215,7 +262,8 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
     const rb = rigidRef.current
     if (!rb) return
     if (!isDragging.current) {
-      if (lift.current) moveLift(rb, dt)
+      if (slide.current) moveSlide(rb, dt)
+      else if (lift.current) moveLift(rb, dt)
       else settle(rb, dt)
       return
     }
@@ -276,8 +324,9 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
         const dx = ev.clientX - startX
         const dy = ev.clientY - startY
         if (!selected || Math.hypot(dx, dy) < DRAG_THRESHOLD) return
-        // A drag ends a lift. The model follows the pointer and drops where it is released.
+        // A drag ends a lift or a slide. The model follows the pointer and drops where it is released.
         lift.current = null
+        slide.current = null
         rigidRef.current?.setBodyType(2, true)
         isDragging.current = true
         onDragStart?.()

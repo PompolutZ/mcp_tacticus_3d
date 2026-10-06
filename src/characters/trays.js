@@ -2,11 +2,9 @@
 // React, the same as table.js and dice/tray.js, so a future headless sim could use it too.
 // See docs/characters-hud.md, "Tray layout".
 
-import { TABLE_WIDTH } from '../table.js'
+import { MAT_SIZE, TABLE_WIDTH } from '../table.js'
 import { TOKEN_SIZE } from '../tokens/files.js'
 
-// The mat is 36" x 36" (MAT_SIZE in Scene.jsx; not exported there, so this repeats the number).
-const MAT_SIZE = 36
 const MAT_HALF = MAT_SIZE / 2
 
 // Card face images are 1800x1200 px

@@ -7,6 +7,7 @@ import * as THREE from 'three'
 import { baseGroundY, upright } from './CharacterModel.jsx'
 import { acquireFootprint } from './footprintProjection.js'
 import { castDown } from '../physics.js'
+import { throwMove, throwSlide } from './throwPath.js'
 import { assetUrl } from '../assets/index.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 
@@ -29,8 +30,9 @@ const MAX_BEND = Math.PI / 2
 // Its center is a little above the top of the tool (about 0.17), so most of it shows.
 const HANDLE_RADIUS = 0.2
 const HANDLE_Y = 0.2
-// Place sits this far in from the tip. On a movement tool, Place is turned across the tool, so along
-// the tool it takes only its height, about 0.27". It fits between the bend button and the handle.
+// Place sits this far in from the tip, and so does Throw at the other end. On a movement tool, these
+// buttons are turned across the tool, so along the tool they take only their height, about 0.27" for
+// Place and 0.4" for Throw. They fit between the bend button and the handle.
 // Html is drawn over the 3D view, so where it covered the handle, the handle could not be grabbed.
 const PLACE_INSET = 0.75
 
@@ -195,6 +197,15 @@ function snapPoseOne(center, radius, halfLength, halfWidth) {
   // Local +Z points away from the mat center, so the base is on the +Z long side
   const yaw = Math.atan2(-dx, -dz)
   return { ...cornerSnapCenter(center, radius, yaw, halfLength, halfWidth, -1, 1), yaw }
+}
+
+// Throw / Push on a straight tool (README "Throw / Push"): the base center moves along the middle line,
+// from touching the end of half `side` from outside to touching the other end from outside, the same
+// as Place. The line follows that half, so it stays straight when the other half is bent.
+// Returns { start, dir, distance }: start point (table XZ), unit XZ direction and full distance.
+function throwLine(shape, side, tip, radius) {
+  const yaw = shape[side] + Math.PI
+  return { start: alongHalf(shape, side, tip + radius), dir: { x: Math.cos(yaw), z: -Math.sin(yaw) }, distance: 2 * (tip + radius) }
 }
 
 // Returns groundY(x, z, yaw): top of the table or terrain under the whole footprint of the tool
@@ -604,11 +615,12 @@ const PX_PER_INCH = 40
 // Share of the tool width that Place covers
 const PLACE_FILL = 0.85
 
-// toolWidth: width of the tool in inches. Place is 1" long before the scale, so the scale is the
+// Place, Place 1, Place 2 and Throw.
+// toolWidth: width of the tool in inches. The button is 1" long before the scale, so the scale is the
 // length in inches: 0.47" on a movement tool, 0.85" on a range tool.
 // on: the toggle state, or undefined for the one-shot Place 1 on the R1 tool
 // along: on the R1 tool, Place lies along the tool instead of across it. See the transform below.
-function PlaceButton({ label = 'Place', toolWidth, on, along = false, disabled = false, disabledTitle = 'Select a character', title, onClick }) {
+function ToolButton({ label = 'Place', toolWidth, on, along = false, disabled = false, disabledTitle = 'Select a character', title, onClick }) {
   return (
     <button
       type="button"
@@ -631,8 +643,7 @@ function PlaceButton({ label = 'Place', toolWidth, on, along = false, disabled =
         transform: `rotate(${along ? 180 : -90}deg) scale(${PLACE_FILL * toolWidth})`,
       }}
       disabled={disabled}
-      title={disabled ? disabledTitle : on ? 'Place on: the selected character stays touching the tool'
-        : on === false ? 'Move the selected character to this end, and keep it on the tool' : title}
+      title={disabled ? disabledTitle : title}
       onClick={onClick}
     >
       {label}
@@ -701,6 +712,12 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
   // Place moves the character to the far end, the end that does not touch the snapped base. A free
   // tool has no far end, so Place is shown there only while it is on, so that it can be turned off.
   const placeButtonSide = placeSide ?? (snap ? OTHER[snap.side] : null)
+  // While Throw is on: { side, target }, the end the Throw started from and the thrown character. The
+  // Throw button stays at that end. Off: null. While Throw is on, a drag of the thrown character keeps
+  // its base center on the middle line of the tool (throwLine), so the player can correct the stop.
+  // Place and Throw are never on at the same time: each one hides the other's button.
+  const [throwLock, setThrowLock] = useState(null)
+  const throwing = selected && throwLock !== null
   // Model under the pointer at the last move of a body drag, or null. undefined before the first move.
   // The tool snaps when the pointer moves onto a model, not when the drag starts on one.
   const overRef = useRef(undefined)
@@ -874,6 +891,23 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
     return () => onPlaceLimit?.(null)
   }, [placing, placeTarget, turn, tip, halfWidth])
 
+  // The clamp reads the tool pose at each call, so the tool can move while Throw is on
+  useEffect(() => {
+    if (!throwing) return undefined
+    const { side, target } = throwLock
+    onPlaceLimit?.({
+      id: target.id,
+      clamp(p) {
+        if (!rigidRef.current) return
+        const { start, dir, distance } = throwLine(toolShape(toolPose(rigidRef.current), turn), side, tip, target.radius)
+        const d = THREE.MathUtils.clamp((p.x - start.x) * dir.x + (p.z - start.z) * dir.z, 0, distance)
+        p.x = start.x + dir.x * d
+        p.z = start.z + dir.z * d
+      },
+    })
+    return () => onPlaceLimit?.(null)
+  }, [throwing, throwLock, turn, tip])
+
   // Move a model's base center to spot (table XZ)
   function moveBase(model, spot) {
     const body = model.getBody()
@@ -897,7 +931,7 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
       setPlaceSide(null)
       return
     }
-    if (!snap || !placeTarget || !rigidRef.current) return
+    if (!snap || !placeTarget || !rigidRef.current || throwLock) return
     const side = OTHER[snap.side]
     moveBase(placeTarget, alongHalf(toolShape(toolPose(rigidRef.current), turn), side, tip + placeTarget.radius))
     // The snapped model now touches the far end, so the tool stays snapped to it at that end.
@@ -915,6 +949,37 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
     const end = snap.side === 'right' ? 1 : -1
     moveBase(placeTarget, fromLocal(toolPose(rigidRef.current), { x: end * tip, z: -snap.across * (halfWidth + placeTarget.radius) }))
     if (sameModel(snap.target, placeTarget)) setSnap({ ...snap, across: -snap.across })
+  }
+
+  // Throw / Push (README "Throw / Push") turns on and off. Turning it on slides the snapped character
+  // along the middle line of the tool, from the snapped end toward the far end. It stops at the first
+  // character base, terrain piece or mat edge on the way (see throwPath.js). A lifted character does
+  // not stop it, so the player lifts a character that the move should pass. The rules use a straight
+  // tool, so a bent tool is straightened first: the far half lines up with the snapped half, and the
+  // snapped end stays on the base. Turning Throw off does not move anything.
+  function handleThrow(e) {
+    e.stopPropagation()
+    if (throwLock) {
+      setThrowLock(null)
+      return
+    }
+    const model = snap?.target
+    const rb = rigidRef.current
+    if (!model?.getBody?.() || !rb || placeSide) return
+    const far = OTHER[snap.side]
+    const straight = { [snap.side]: turn[snap.side], [far]: turn[snap.side] }
+    setTurn(straight)
+    const { start, dir, distance } = throwLine(toolShape(toolPose(rb), straight), snap.side, tip, model.radius)
+    const others = models
+      .filter(other => other.kind === 'character' && !sameModel(other, model) && other.getBody() && !other.isLifted())
+      .map(other => ({ center: other.getCenter(), radius: other.radius }))
+    const { moved, at } = throwMove(world, rapier, { start, dir, distance, radius: model.radius, others })
+    const { path, duration } = throwSlide(at, distance, moved)
+    model.slide(path, duration)
+    // After the full move the base touches the far end, so the tool stays snapped to it there.
+    // A base that stopped on the way touches no end, so the tool is free.
+    setSnap(moved >= distance ? { target: model, side: far } : null)
+    setThrowLock({ side: snap.side, target: model })
   }
 
   return (
@@ -946,15 +1011,34 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
             </mesh>
             {/* Place toggle, Place 2 on the R1 tool. It cannot be turned on for a token: a token
                 has no body, so there is no base to keep on the tool. */}
-            {selected && side === placeButtonSide && (
+            {selected && side === placeButtonSide && !throwLock && (
               <FlatHtml x={side === 'right' ? tip - PLACE_INSET : PLACE_INSET - tip}>
-                <PlaceButton
+                <ToolButton
                   label={rangeOne ? 'Place 2' : 'Place'}
                   toolWidth={halfWidth * 2}
                   along={rangeOne}
                   on={placeSide !== null}
                   disabled={placeSide === null && !placeTarget}
+                  title={placeSide !== null ? 'Place on: the selected character stays touching the tool' : 'Move the selected character to this end, and keep it on the tool'}
                   onClick={togglePlace}
+                />
+              </FlatHtml>
+            )}
+            {/* Throw / Push toggle of a movement tool: at the snapped end, and while it is on, at the end
+                the Throw started from. Not while Place is on: Place can put the snapped model at this
+                end, and then its button is here. Disabled for a token: it has no body, so there is
+                nothing to move. */}
+            {selected && bendable && (throwLock ? side === throwLock.side : snap && placeSide === null && side === snap.side) && (
+              <FlatHtml x={side === 'right' ? tip - PLACE_INSET : PLACE_INSET - tip}>
+                <ToolButton
+                  label={<>Throw<br />Push</>}
+                  toolWidth={halfWidth * 2}
+                  on={throwLock !== null}
+                  disabled={!throwLock && !snap.target.getBody}
+                  disabledTitle="Snap the tool to a character"
+                  title={throwLock ? 'Throw on: the thrown character stays on the middle line of the tool'
+                    : 'Throw or push the snapped character along the middle of the tool. It stops at the first character or terrain on the way.'}
+                  onClick={handleThrow}
                 />
               </FlatHtml>
             )}
@@ -970,7 +1054,7 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
             corner to measure from. Disabled for a token: it has no body, so there is nothing to move. */}
         {selected && rangeOne && snap && (
           <FlatHtml x={snap.side === 'right' ? tip - PLACE_INSET : PLACE_INSET - tip} z={-snap.across * halfWidth / 2}>
-            <PlaceButton
+            <ToolButton
               label="Place 1"
               toolWidth={halfWidth * 2}
               along

@@ -71,7 +71,7 @@ A tool measures against the piece selected last. A new tool also snaps to it. Pl
 
 ## Tools
 
-Range tools and movement tools work the same way, except for bending. Movement tools can bend. Range tools stay straight. The R1 tool snaps with a corner, not an end, and it has two Place buttons, see [Range 1](#range-1).
+Range tools and movement tools work the same way, except for bending and [Throw / Push](#throw--push). Movement tools can bend and throw. Range tools stay straight. The R1 tool snaps with a corner, not an end, and it has two Place buttons, see [Range 1](#range-1).
 
 A tool hangs 1" above the table. It measures with its outline, which is drawn straight below it on the table and on the tops of terrain. Walls and steep sides (more than about 60°) are not painted. While you drag or rotate the tool, it stays 1" above the table or above any terrain under its outline. Terrain within 0.5" of the outline already raises the tool.
 
@@ -110,6 +110,28 @@ A free tool has no far end, so it shows Place only while Place is on. Then you c
 While Place is on, you can drag the selected character only to where its base touches the tool outline, so the outline stays green. When the pointer goes farther, the base stops at the nearest point where it still touches the outline. The deploy line limits a drag in the same way. You can still move and rotate the tool while Place is on.
 
 Place does not work for a token: a token has no base to place, only a position that its own drag sets. So Place cannot be turned on while no character is selected. With a character and a token selected, Place moves the character.
+
+### Throw / Push
+
+**Throw / Push** turns on and off. A selected movement tool that is snapped to a character has the button at the snapped end, as in the mod. The button is hidden while Place is on, and Place is hidden while Throw is on. The button is disabled when the tool is snapped to a token.
+
+Turning Throw on slides the snapped character along the middle line of the tool, from the snapped end toward the far end. The rules (p13–14) move a Thrown and a Pushed character the same way, so one button does both. The app does not apply collision damage. The players resolve it.
+
+The rules need a straight tool. If the tool is bent, the button first straightens it: the far half turns to line up with the snapped half, so the snapped end still touches the base.
+
+The character moves the full distance, until its base touches the far end from outside, the same as Place. It stops earlier at the first of these:
+
+- **Another character's base.** The app measures bases from above, so the height of the other base does not matter. A base that the move goes away from does not stop it, also when the two touch at the start.
+- **A terrain piece.** The base moves at the height where it starts. So a base on the table passes under an overhang (rules p9), and a base on a roof does not hit lower terrain. Terrain that the base overlaps at the start, for example the roof or the stairs it stands on, does not stop it (rules p14).
+- **The mat edge.** A base never leaves the mat (rules p13).
+
+The base stops touching what stopped it. It starts fast and slows down, as if friction stops it at the full distance. When it hits something, it stops at once. At the end, the character stands upright on what is under it, below the height where it moved. A character that moved off a roof drops to the table or to the terrain under it.
+
+A **lifted** character (key **R**) does not stop the move. A character can throw or push another character through its own base, and the app does not know which character performs the Throw. So the player lifts the thrower before the Throw, and puts it back down after it. The same works for any other character that the move should pass.
+
+While Throw is on, the button stays at the end where the Throw started. You can drag the thrown character only along the middle line of the tool, between its start and the full distance. So you can correct where it stopped. Turning Throw off does not move anything.
+
+After a full move, the base touches the far end, so the tool stays snapped to the character at that end. After a shorter move, the base touches no end, so the tool is free.
 
 ### Range marks
 
@@ -184,7 +206,7 @@ Click a card to open its face image. Click a token to select it. A HUD panel at 
 
 Press **F** with the pointer over a token to flip it. F also flips a character card, with the pointer over the card or the model. With nothing under the pointer, F flips the piece selected last: a token, or the card of a character.
 
-A model that stands on a token can hide it. Press **R** with the pointer over the model to lift it 3". Press R over it again to put it back, or press R with the pointer over no model to put every lifted model back. The model goes back to the same place, and physics does not move it.
+A model that stands on a token can hide it. Press **R** with the pointer over the model to lift it 6". Press R over it again to put it back, or press R with the pointer over no model to put every lifted model back. The model goes back to the same place, and physics does not move it.
 
 The range and movement tools also snap to a selected token, the same way they snap to a model (see [Tools](#tools)). Hold and drop are not built yet; see `docs/feature-crisis.md`.
 

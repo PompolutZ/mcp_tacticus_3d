@@ -27,11 +27,9 @@ import { getCard } from '../crisis/cards.js'
 import { TRAYS } from '../dice/tray.js'
 import { TRAY_Y, layoutTrays, onTray, trayHeldLocal, trayHeldWorld, trayModelPosition, trayYaw } from '../characters/trays.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
-import { TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WIDTH } from '../table.js'
+import { MAT_SIZE, TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WIDTH } from '../table.js'
 import { NO_PIECES, NO_TOOLS, selectPiece, selectedId, toggleSelectPiece } from '../selection.js'
 
-// MCP mat is 36" x 36". 1 Three.js unit = 1 inch. Table size: see table.js.
-const MAT_SIZE = 36
 const TABLE_THICKNESS = 0.5
 // The table image of the TTS mod (its TableURL). The image is 3:2, the same as the TTS table. The app table is
 // deeper (table.js), so the image fills the table depth and its left and right ends are cut off. The planks
@@ -147,6 +145,9 @@ export default function Scene({
   const charObjects = useRef(new Map())
   // Character id → the lift of its model, { toggle(), down() }. See CharacterModel.jsx and liftPiece.
   const charLifts = useRef(new Map())
+  // Character id → the slide of its model, startSlide(path, duration). See CharacterModel.jsx and the
+  // Throw button in RulerTool.jsx.
+  const charSlides = useRef(new Map())
   // Character id → the tray's background plate. characterAt below hits this too, so a drop anywhere
   // on the tray finds the character (see CharacterTray.jsx).
   const trayObjects = useRef(new Map())
@@ -316,7 +317,9 @@ export default function Scene({
 
   // Every character and every mat token as the range and movement tools see them. A character has a
   // Rapier body; a token does not, so getCenter (not getBody) is what the tools measure with.
-  // getBody is only used where a tool moves a piece (Place), and Place is disabled for a token.
+  // getBody is only used where a tool moves a piece (Place, Throw), and both are disabled for a token.
+  // isLifted and slide are for a Throw: a lifted character does not stop it, and slide moves the
+  // thrown character.
   // A held token is not in this list: it is off the mat, on its holder's tray (see "Hold and drop").
   const matTokens = useMemo(() => tokens.filter(tok => !tok.heldBy), [tokens])
   // Every crisis token as it is drawn. A held token lies on its holder's card: its tray-local place
@@ -342,6 +345,8 @@ export default function Scene({
       getBody: () => charBodies.current.get(ch.id),
       getObject: () => charObjects.current.get(ch.id),
       getCenter: () => charBodies.current.get(ch.id)?.translation() ?? { x: 0, y: 0, z: 0 },
+      isLifted: () => charLifts.current.get(ch.id)?.isUp() ?? false,
+      slide: (path, duration) => charSlides.current.get(ch.id)?.(path, duration),
       radius: BASE_DIAMETER[ch.base] / 2,
     })),
     ...matTokens.map(tok => ({
@@ -585,6 +590,7 @@ export default function Scene({
                 bodyRef={rb => rb ? charBodies.current.set(ch.id, rb) : charBodies.current.delete(ch.id)}
                 objectRef={obj => obj ? charObjects.current.set(ch.id, obj) : charObjects.current.delete(ch.id)}
                 liftRef={lift => lift ? charLifts.current.set(ch.id, lift) : charLifts.current.delete(ch.id)}
+                slideRef={slide => slide ? charSlides.current.set(ch.id, slide) : charSlides.current.delete(ch.id)}
                 onDragStart={() => {
                   setDraggingCharId(ch.id)
                   trackPiece(draggedPiece, { kind: 'character', id: ch.id }, true)
