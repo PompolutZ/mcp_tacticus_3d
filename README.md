@@ -89,21 +89,23 @@ The tool has two states: **snapped** and **free**.
 
 A tool snaps to a model or to a crisis token the same way. "Model" below also means a token.
 
-The tool is snapped to a model when it spawns while that model is selected. With a character and a token selected, it snaps to the one selected last. It spawns with one end of its outline touching the edge of the model's base, and it points toward the center of the mat.
+The tool is snapped to a model when it spawns while that model is selected. With a character and a token selected, it snaps to the one selected last. A tool key with the pointer over a model selects that model and spawns the tool snapped to it, so the model does not have to be selected first. The tool spawns with one end of its outline touching the edge of the model's base, and it points toward the center of the mat.
 
-A tool also snaps to a model while you drag it: when the pointer moves onto a model (the figure or the base), that model becomes selected. The tool keeps its direction and its bend. It moves so that its end nearer to the base touches the edge of the base. The drag ends there, so moving the pointer further does nothing until you release it. If the drag starts with the pointer already on a model, the tool snaps only after the pointer leaves that model and moves onto a model again.
+A free tool also snaps to a model while you drag it: when the pointer moves onto a model (the figure or the base), that model becomes selected. The tool keeps its direction and its bend. It moves so that its end nearer to the base touches the edge of the base. The drag ends there, so moving the pointer further does nothing until you release it. If the drag starts with the pointer already on a model, the tool snaps only after the pointer leaves that model and moves onto a model again.
 
-Dragging a handle rotates the tool around the center of that model's base. The distance between the tool and the base does not change, so the tool keeps touching the base.
+Dragging a snapped tool rotates it around the center of that model's base. You can grab any part of the tool. The distance between the tool and the base does not change, so the tool keeps touching the base. The TTS mod does the same, but it points the tool at the pointer. The app turns the tool as far as the pointer turns around the base, so the grabbed spot stays under the pointer and the tool does not jump at the start.
 
-The tool stays snapped to the same model when you select another model. It also stays snapped when **Place** moves that model, or when you drag it with Place on, because the base keeps touching the tool.
+Only a free tool snaps during a drag. A drag that starts on a snapped tool never snaps it to another model, also when the pointer passes over one. So models that stand close together do not take the tool from each other.
+
+The tool stays snapped to the same model when you select another model. It also stays snapped when **Place** moves that model, or when you drag it with Place on, because the base keeps touching the tool. When the model leaves the table (a removed character, or a token that a character takes), the tool is free.
 
 ### Free
 
-The tool is free when it spawns while no model is selected. Dragging the tool body, or turning it with Q / E, makes a snapped tool free.
+The tool is free when it spawns while no model is selected and the pointer is not over a model. Turning a snapped tool with Q / E makes it free. The TTS mod has a Snap / Unsnap button on the tool for this, and no key.
 
-Dragging a handle rotates the tool around the opposite handle.
+Dragging a free tool moves it.
 
-**Q** and **E** turn the tool under the pointer, or the tool you drag, 15° around its center, as in TTS. Hold the key to keep turning. Q turns it counter-clockwise and E clockwise, seen from above. The center of a movement tool is its hinge, and the tool keeps its bend. During a handle drag, Q and E do nothing. They turn characters the same way.
+**Q** and **E** turn the tool under the pointer, or the tool you drag, 15° around its center, as in TTS. Hold the key to keep turning. Q turns it counter-clockwise and E clockwise, seen from above. The center of a movement tool is its hinge, and the tool keeps its bend. While a drag turns a snapped tool or bends a tool, Q and E do nothing. They turn characters the same way.
 
 ### Place
 
@@ -141,7 +143,7 @@ After a full move, the base touches the far end, so the tool stays snapped to th
 
 ### Toward / Away
 
-When a character moves Toward or Away from another piece, the rules (p14–15) use a movement tool bent to 90°. Key **6** and **Move → T/A** in the toolbar turn this tool on and off. It is a copy of the long movement tool, and it is always bent to a right angle. It has no Bend, Place or Throw button. Its handles work, and so do Q and E.
+When a character moves Toward or Away from another piece, the rules (p14–15) use a movement tool bent to 90°. Key **6** and **Move → T/A** in the toolbar turn this tool on and off. It is a copy of the long movement tool, and it is always bent to a right angle. It has no Bend, Place or Throw button. Drag and Q / E work the same as on the other tools.
 
 This is a separate tool. A short, medium or long movement tool can be on the table at the same time.
 
@@ -152,34 +154,34 @@ The tool is placed so that both arms touch the base of the moving character. The
 
 The mod puts the hinge one base diameter from the base center. That fits only a 35 mm base. The app uses the exact distance, so both arms touch a base of any size.
 
-**Spawn.** The tool spawns snapped to the selected character and aimed at the piece selected before it. If no other piece is selected, it aims at the center of the mat. It starts on Away. The toolbar button does the same, and it aims at the selected token. With the pointer over a character, key 6 selects that character and spawns the tool again at it, also when the tool is already out. It aims at the piece selected last that is not that character. Key 6 over a token does nothing. With the pointer over nothing, key 6 works like the toolbar button. With no character selected, the tool spawns free, already bent.
+**Spawn.** The toolbar button spawns the tool snapped to the selected character and aimed at the selected token. If no token is selected, it aims at the center of the mat. With no character selected, the tool spawns free, already bent. It starts on Away. With the pointer over a character or a token, key 6 selects that piece and spawns the tool again snapped to it, also when the tool is already out. It aims at the piece selected last that is not that piece. With the pointer over nothing, key 6 works like the toolbar button.
 
-**Snap.** The tool snaps only to characters, not to tokens. While you drag the tool, it snaps when the pointer moves onto a character. It keeps the direction of the angle, and it moves so that both arms touch that base.
+**Snap.** The tool snaps to characters and tokens, the same as the other tools. The mod snaps it only to characters. While you drag the free tool, it snaps when the pointer moves onto a character or a token. It keeps the direction of the angle, and it moves so that both arms touch that base.
 
-**Handles.** While the tool is snapped, a handle turns the whole tool around the base center, so the arms keep touching the base. Move the pointer onto another piece, a character or a token, and the tool shows the exact line through the center of that piece, with the current mode. Move the pointer off the piece and the tool goes back to the plain turn. A free tool works like any free tool.
+**Drag.** While the tool is snapped, a drag turns the whole tool around the base center, so the arms keep touching the base. Move the pointer onto another piece, a character or a token, and the tool shows the exact line through the center of that piece, with the current mode. Move the pointer off the piece and the tool goes back to the plain turn. A free tool works like any free tool.
 
 **Toward / Away button.** While the tool is selected and snapped, the button on the hinge moves the tool to the other side of the base. This switches between Toward and Away.
 
-**Limit.** In the mod, a movement tool that is snapped to the same character as the angle tool can only point within 45° of the middle of the angle. The app does the same for the short, medium and long tools, but not for range tools. The limit applies when the movement tool spawns, when you drag it onto the character, and when a handle turns it around the base. When the tool spawns on that character, it points along the middle of the angle. The app reads the angle tool at each move, so the limit follows the angle tool when you move it.
+**Limit.** In the mod, a movement tool that is snapped to the same character as the angle tool can only point within 45° of the middle of the angle. The app does the same for the short, medium and long tools, but not for range tools. The limit applies when the movement tool spawns, when you drag it onto the character, and when a drag turns it around the base. When the tool spawns on that character, it points along the middle of the angle. The app reads the angle tool at each move, so the limit follows the angle tool when you move it.
 
 ### Range marks
 
-A snapped range tool measures against the model or token under the pointer while you drag a handle. Drag the handle toward a piece and move the pointer onto it. That piece gets an outline:
+A snapped range tool measures against the model or token under the pointer while a drag turns the tool around the base. Turn the tool toward a piece and move the pointer onto it. That piece gets an outline:
 
 - **Green**: the piece is within range.
 - **Red**: the piece is out of range.
 
 For R2 to R5, a piece is within range when its base touches the tool outline. For R1, a piece is within range when its base is within range 1 of the snapped base, edge to edge, seen from above. See [Range 1](#range-1).
 
-The outline shows only while the pointer is on that piece during the drag. It goes away when the pointer leaves the piece, or when you release the handle. The snapped model is not measured against itself. The movement tools do not measure against pieces.
+The outline shows only while the pointer is on that piece during the drag. It goes away when the pointer leaves the piece, or when you release the tool. The snapped model is not measured against itself. The movement tools do not measure against pieces.
 
 ### Bending
 
 A movement tool has a hinge in the middle. The round button on the hinge turns bending on and off.
 
-While bending is on, dragging a handle turns that half of the tool around the hinge. The other half does not move. A half turns at most 90° from straight, the same as the plastic tool. If the half touches the base of a snapped model, turning it takes its end off the base, so the tool becomes free.
+While bending is on, dragging a half turns it around the hinge. The other half does not move. A half turns at most 90° from straight, the same as the plastic tool. On a snapped tool, only the far half bends. A drag on the half that touches the base turns the whole tool around the base, so the tool stays snapped. The TTS mod works the same way: its Bend button splits the tool, and one half turns around the hinge while the other half stays.
 
-While bending is off, the handles rotate the whole tool, as described above. The tool keeps its bend.
+While bending is off, a drag moves or turns the whole tool, as described above. The tool keeps its bend.
 
 The outline of a bent tool is one rectangle for each half, plus the round hinge between them.
 
@@ -191,7 +193,7 @@ The R1 tool snaps with a corner. The base touches one long side of the tool at i
 
 - Spawned while a model is selected: the tool is on the side of the base toward the mat center.
 - Snapped during a drag: the tool keeps its direction. It moves so that its corner nearer to the base touches the base.
-- Dragging a handle rotates the tool around the base center, the same as other tools. So the corner moves along the base edge. Turn the tool until the corner points at the other model.
+- Dragging the snapped tool rotates it around the base center, the same as other tools. So the corner moves along the base edge. Turn the tool until the corner points at the other model.
 
 While the R1 tool is snapped and another model is selected, the outline is green when that model is within range 1 of the snapped model, and red when it is not. The app measures this edge to edge, seen from above. Touching the tool is not enough, because the tool is 3" long: a base can touch its far end and still be more than 1" away.
 

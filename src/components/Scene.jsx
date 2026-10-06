@@ -100,8 +100,9 @@ function Mat({ mat }) {
 // piece as { kind, id }. toolSpawns: { range, move, angle }, a count that changes when App spawns that tool
 // again. It is part of the tool key, so the tool mounts again and snaps to the piece selected last.
 // selectedTools: { range, move, angle } (see selection.js), lifted to App with its setter onSelectedToolsChange.
-// angleOn: the Toward / Away tool is on the table. angleAim: { kind, id } | null, the piece it aims at
-// when it spawns (the mat center without one). It starts at the selected character.
+// angleOn: the Toward / Away tool is on the table. angleSpawn: { target, aim }, each { kind, id } | null:
+// the piece it snaps to when it spawns (free without one), and the piece it aims at (the mat center
+// without one). Like the other tools, it measures against the piece selected last.
 // onCharacterDamage(id, damage), onCharacterPower(id, power), onCharacterFlip(id): the tray's
 // controls, lifted to App the same way as the token handlers above (see TrayControls.jsx).
 // onTrayCardHover(id, over): the pointer moved onto (true) or off (false) a character's tray card,
@@ -150,7 +151,7 @@ function Mat({ mat }) {
 // scoreMarkers, affiliations, onScoreMarkerMove(marker, x, z): the scoring board markers, see
 // ScoreBoard.jsx.
 export default function Scene({
-  mapId, terrain = [], onTerrainHover, terrainAtRef, characters = [], activeRange, activeMove, angleOn = false, angleAim = null, showColliders = false, showLabels = false, spectator = false, matTurns = 0, deployLine = false,
+  mapId, terrain = [], onTerrainHover, terrainAtRef, characters = [], activeRange, activeMove, angleOn = false, angleSpawn = { target: null, aim: null }, showColliders = false, showLabels = false, spectator = false, matTurns = 0, deployLine = false,
   crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0, angle: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenPiles = [], onPileTakeStart, onPileMoveStart, onPileHover, tacticCards = [], onTacticMove, onTacticHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, onDiceTrayHover, addDiceRef, heldRotate, scoreMarkers, affiliations, onScoreMarkerMove,
 }) {
   const map = MAPS[mapId]
@@ -758,8 +759,9 @@ export default function Scene({
               selected={selectedTools.angle}
               onSelect={() => toggleTool('angle')}
               onSpawn={() => selectTool('angle')}
-              target={placeTarget}
-              aim={toolModel(angleAim)}
+              target={toolTarget}
+              spawnTarget={toolModel(angleSpawn.target)}
+              aim={toolModel(angleSpawn.aim)}
               models={toolModels}
               onSnap={selectModel}
               angleRef={get => { angleTool.current = get }}

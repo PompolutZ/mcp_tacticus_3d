@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useHoverCursor } from './useHoverCursor.js'
 
-// The orange ball that turns a piece by a drag: at each end of a tool (RulerTool.jsx) and on a
-// selected crisis token with an arc (CrisisToken.jsx). The cursor is an open hand over it.
+// The orange ball that turns a piece by a drag, on a selected crisis token with an arc (CrisisToken.jsx). The cursor is an open hand over it.
 // onHover(over): optional. The cleanup also runs on unmount, so a removed handle does not stay hovered.
 export default function TurnHandle({ position, radius, onPointerDown, onHover }) {
   const [hovered, setHovered] = useState(false)

@@ -117,9 +117,10 @@ function supplyToken(card, x, z) {
 export default function App() {
   const [activeRange, setActiveRange] = useState(null)
   const [activeMove, setActiveMove] = useState(null)
-  // The Toward / Away tool is on the table, and the piece it aims at when it spawns: { kind, id } | null
+  // The Toward / Away tool is on the table, and where it spawns: { target, aim }, the piece it snaps to
+  // and the piece it aims at, each { kind, id } | null
   const [angleOn, setAngleOn] = useState(false)
-  const [angleAim, setAngleAim] = useState(null)
+  const [angleSpawn, setAngleSpawn] = useState({ target: null, aim: null })
   const [debugOn, setDebugOn] = useState(false)
   // 'full' | 'no-outline' | 'no-composer', see DebugPanel
   const [renderMode, setRenderMode] = useState('full')
@@ -304,7 +305,7 @@ export default function App() {
 
   // The toolbar button: the tool spawns at the selected character, aimed at the selected token
   function handleAngleClick() {
-    setAngleAim(selection.find(p => p.kind === 'token') ?? null)
+    setAngleSpawn({ target: selection.find(p => p.kind === 'character') ?? null, aim: selection.find(p => p.kind === 'token') ?? null })
     setAngleOn(prev => !prev)
   }
 
@@ -434,17 +435,16 @@ export default function App() {
   }
 
   // Key 6, the Toward / Away tool. With nothing under the pointer, it toggles the tool, the same as its
-  // toolbar button. Over a character, it selects it and spawns the tool again snapped to it, even if the
-  // tool is already out. It aims at the character or token selected last that is not that character,
-  // or at the mat center. Over a token, it does nothing: the mover must be a character.
+  // toolbar button. Over a character or a token, it selects that piece and spawns the tool again
+  // snapped to it, even if the tool is already out. It aims at the character or token selected last
+  // that is not that piece, or at the mat center.
   function handleAngleKey() {
     const piece = hoveredRef.current
     if (!piece) {
       handleAngleClick()
       return
     }
-    if (piece.kind !== 'character') return
-    setAngleAim(selection.findLast(p => isToolPiece(p) && !(p.kind === piece.kind && p.id === piece.id)) ?? null)
+    setAngleSpawn({ target: piece, aim: selection.findLast(p => isToolPiece(p) && !(p.kind === piece.kind && p.id === piece.id)) ?? null })
     setSelection(prev => selectPiece(prev, piece))
     setAngleOn(true)
     setToolSpawns(prev => ({ ...prev, angle: prev.angle + 1 }))
@@ -890,7 +890,7 @@ export default function App() {
               activeRange={activeRange}
               activeMove={activeMove}
               angleOn={angleOn}
-              angleAim={angleAim}
+              angleSpawn={angleSpawn}
               showColliders={debug}
               showLabels={showLabels}
               spectator={spectator}

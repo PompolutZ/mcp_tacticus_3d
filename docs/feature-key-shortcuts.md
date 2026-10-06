@@ -76,7 +76,7 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 
 The direction and the speed of the arrow keys (90° per second) are picked by look. They are not compared with TTS yet.
 
-Q / E turn a piece 15° per press. 15° is `PointerRotationSnap` in the same plist, the TTS default (read on 2026-10-05). A key held for more than 0.3 s turns the piece on at 90° per second, the speed of the arrow keys. The app does not use the key repeat of the system, so the speed is the same on every computer. A held key keeps turning the piece of the press, also when the pointer leaves it. Each turn is smoothed in the same way as the wheel zoom: each frame, the piece does `1 − e^(−dt / 0.06 s)` of the turn that is left. The delay, the speed and the smoothing time are picked by look. The center of a character is its base center. The center of a movement tool is its hinge. A turn moves both ends of a tool, so a snapped tool is free after it. During a handle drag, Q / E do nothing.
+Q / E turn a piece 15° per press. 15° is `PointerRotationSnap` in the same plist, the TTS default (read on 2026-10-05). A key held for more than 0.3 s turns the piece on at 90° per second, the speed of the arrow keys. The app does not use the key repeat of the system, so the speed is the same on every computer. A held key keeps turning the piece of the press, also when the pointer leaves it. Each turn is smoothed in the same way as the wheel zoom: each frame, the piece does `1 − e^(−dt / 0.06 s)` of the turn that is left. The delay, the speed and the smoothing time are picked by look. The center of a character is its base center. The center of a movement tool is its hinge. A turn moves both ends of a tool, so a snapped tool is free after it. While a drag turns a snapped tool or bends a tool, Q / E do nothing.
 
 F flips the piece under the pointer first. A crisis token without a back does not flip. F over it does nothing, also when another token is selected. F over a model flips the character card, not the model. In TTS, F over a figurine turns the figurine upside down, which players do not need.
 
@@ -97,12 +97,12 @@ The mod handles a key only for the player whose tray it is (Blue or Red).
 | 1, pointer over a character | Range 2 tool in "Snap 1" mode, snapped to the character | Range 1 (the Range 2 tool in "Snap 1" mode), snapped | Yes |
 | 2–5, pointer over a character | Range 2–5 tool, snapped | The same | Yes |
 | 7 / 8 / 9, pointer over a character | Short / Medium / Long movement tool, snapped | The same | Yes |
-| 6, pointer over a character | Long movement tool in "Toward/Away" mode, snapped | Nothing | No |
+| 6, pointer over a character | Long movement tool in "Toward/Away" mode, snapped | The Toward / Away tool (a copy of the long tool, bent 90°), snapped | Yes |
 | 1–5, 7–9, no character under the pointer | Removes that tool from the table | Toggles the tool, the same as its toolbar button | Partly |
 | 0 | Returns every tool to the tray | Removes every tool from the table. The selected pieces stay selected | Yes |
 | 1–9, pointer over the player's own dice tray | Clears the tray and adds that number of dice | Adds that number of dice, 0 adds 10. It does not clear the tray. A tray holds at most 42 dice. See `docs/feature-dice-rolling.md` | Partly |
 
-The app also snaps a tool when the pointer is over a crisis token. The mod only checks characters.
+The app also snaps a tool, key 6 included, when the pointer is over a crisis token. The mod only checks characters. The piece does not have to be selected first: the key selects it.
 
 ## Keys only in the app
 
@@ -119,5 +119,4 @@ In order of how often a TTS player will notice them:
 3. **Q / E** to turn a token.
 4. **Alt (hold)** over a card to show it large, as the click popup does now.
 5. **Number key with no character under the pointer.** The mod only removes the tool. The app toggles it, so a second press spawns the tool again.
-6. **Key 6** (Long tool, Toward/Away) of the mod.
-7. **Number keys over a dice tray.** The mod clears the tray first. The app only adds dice.
+6. **Number keys over a dice tray.** The mod clears the tray first. The app only adds dice.

@@ -10,7 +10,6 @@ import { castDown } from '../physics.js'
 import { throwMove, throwSlide } from './throwPath.js'
 import { assetUrl } from '../assets/index.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
-import TurnHandle from './TurnHandle.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
 
 const TEXTURE = assetUrl('tools/toolbox-02.png')
@@ -28,14 +27,9 @@ const MOVE_TIP = { short: 1.574, medium: 2.523, long: 3.535 }
 const MOVE_HALF_WIDTH = 0.279
 // A movement tool bends at its hinge, but never past a right angle, the same as the plastic one
 const MAX_BEND = Math.PI / 2
-// Handle sphere at each end. Big enough to grab easily, but smaller than a movement tool is wide.
-// Its center is a little above the top of the tool (about 0.17), so most of it shows.
-const HANDLE_RADIUS = 0.2
-const HANDLE_Y = 0.2
 // Place sits this far in from the tip, and so does Throw at the other end. On a movement tool, these
 // buttons are turned across the tool, so along the tool they take only their height, about 0.27" for
-// Place and 0.4" for Throw. They fit between the bend button and the handle.
-// Html is drawn over the 3D view, so where it covered the handle, the handle could not be grabbed.
+// Place and 0.4" for Throw.
 const PLACE_INSET = 0.75
 
 // A tool has two halves, one on each side of its center: right is local +X, left is local −X.
@@ -260,10 +254,16 @@ function useFootprintGround(halfLength, halfWidth, turn) {
 }
 
 // Whole-body drag: click body to select, drag when selected.
-// The tool stays hoverHeight above the table or terrain under its footprint (from groundY),
-// as a dragged model does. onDragStart: called once when a drag starts (not on a plain click).
-// onDragMove(raycaster): called on each pointer move of a drag, with a raycaster set to the pointer
-// ray. When it returns true, the drag ends there and the rest of that press does nothing.
+// onPointerDown(e, selected, onSelect, plan): plan() is called once when a drag starts (not on a
+// plain click). It returns null for a move, or { pivot, onTurn, onPointer } for a turn:
+// - Move: the tool follows the pointer. onDragMove(raycaster) is called on each pointer move, with a
+//   raycaster set to the pointer ray. When it returns true, the drag ends there and the rest of that
+//   press does nothing.
+// - Turn: the pointer turns around pivot (table XZ), and onTurn(d, startPose) returns the tool pose
+//   for a turn of d (yaw) since the drag started. onPointer(raycaster) is called on each pointer
+//   move with a raycaster set to the pointer ray, and with null when the drag ends.
+// In both, the tool stays hoverHeight above the table or terrain under its footprint (from groundY),
+// as a dragged model does. onDragStart(kind): called once when a drag starts, with 'move' or 'turn'.
 // onDragEnd: called once when a drag ends, also when onDragMove ends it.
 function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove, onDragEnd) {
   const { camera, gl, controls } = useThree()
@@ -275,33 +275,41 @@ function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove, on
   const dragPlane = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0))
   // Grabbed point minus body center (XZ), so the tool does not jump to center on the pointer
   const grabOffset = useRef({ x: 0, z: 0 })
+  // Turn drag: the plan, with startPose, startAngle (yaw from the pivot to the grabbed point) and
+  // pose, the next kinematic pose { x, z, yaw }. Y follows the ground. null for a move drag.
+  const turning = useRef(null)
 
   useFrame((_, dt) => {
     const rb = rigidRef.current
     if (!isDragging.current || !rb) return
     const t = rb.translation()
-    // The plane stays at the grab height. If it followed the tool, raising the tool would move
-    // the pointer hit off the terrain, the tool would drop, and it would shake between heights.
-    raycaster.current.setFromCamera(mouseNDC.current, camera)
-    const target = new THREE.Vector3()
-    if (!raycaster.current.ray.intersectPlane(dragPlane.current, target)) return
-    const x = target.x - grabOffset.current.x
-    const z = target.z - grabOffset.current.z
+    let pose = turning.current?.pose
+    if (!pose) {
+      // The plane stays at the grab height. If it followed the tool, raising the tool would move
+      // the pointer hit off the terrain, the tool would drop, and it would shake between heights.
+      raycaster.current.setFromCamera(mouseNDC.current, camera)
+      const target = new THREE.Vector3()
+      if (!raycaster.current.ray.intersectPlane(dragPlane.current, target)) return
+      pose = { x: target.x - grabOffset.current.x, z: target.z - grabOffset.current.z, yaw: toolPose(rb).yaw }
+    }
+    const { x, z, yaw } = pose
     // Off the table there is no ground, so keep the current height
-    const ground = groundY(x, z, toolPose(rb).yaw)
+    const ground = groundY(x, z, yaw)
     const y = ground === null ? t.y : t.y + (ground + hoverHeight - t.y) * Math.min(1, dt * HOVER_RATE)
     // A sleeping body keeps moving but its mesh is not synced, so keep it awake
     rb.wakeUp()
     rb.setNextKinematicTranslation({ x, y, z })
+    if (turning.current) rb.setNextKinematicRotation(yawQuat(yaw))
   })
 
-  return function onPointerDown(e, selected, onSelect) {
+  return function onPointerDown(e, selected, onSelect, plan) {
     // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
     if (e.button !== 0) return
     e.stopPropagation()
     const startX = e.clientX
     const startY = e.clientY
     const pointerId = e.pointerId ?? e.nativeEvent?.pointerId
+    const grab = { x: e.point.x, z: e.point.z }
     if (controls) controls.enabled = false
     if (rigidRef.current) {
       const t = rigidRef.current.translation()
@@ -315,16 +323,30 @@ function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove, on
     // The drag was ended by onDragMove
     let ended = false
 
+    function endDrag() {
+      isDragging.current = false
+      turning.current?.onPointer?.(null)
+      turning.current = null
+      rigidRef.current?.setBodyType(restType.current, true)
+      onDragEnd?.()
+    }
+
     const onMove = (ev) => {
       if (ev.pointerId !== pointerId || ended) return
       if (!isDragging.current) {
         const dx = ev.clientX - startX
         const dy = ev.clientY - startY
-        if (!selected || Math.hypot(dx, dy) < DRAG_THRESHOLD) return
-        restType.current = rigidRef.current?.bodyType() ?? 0
-        rigidRef.current?.setBodyType(2, true)
+        const rb = rigidRef.current
+        if (!selected || !rb || Math.hypot(dx, dy) < DRAG_THRESHOLD) return
+        restType.current = rb.bodyType()
+        rb.setBodyType(2, true)
         isDragging.current = true
-        onDragStart?.()
+        const turn = plan?.() ?? null
+        if (turn) {
+          const startPose = toolPose(rb)
+          turning.current = { ...turn, startPose, startAngle: yawTo(turn.pivot, grab), pose: startPose }
+        }
+        onDragStart?.(turn ? 'turn' : 'move')
       }
       const rect = gl.domElement.getBoundingClientRect()
       mouseNDC.current = {
@@ -332,102 +354,24 @@ function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove, on
         y: -((ev.clientY - rect.top) / rect.height) * 2 + 1,
       }
       raycaster.current.setFromCamera(mouseNDC.current, camera)
+      const turn = turning.current
+      if (turn) {
+        turn.onPointer?.(raycaster.current)
+        const hit = raycaster.current.ray.intersectPlane(dragPlane.current, new THREE.Vector3())
+        if (!hit || Math.hypot(hit.x - turn.pivot.x, hit.z - turn.pivot.z) < 0.01) return
+        turn.pose = turn.onTurn(wrapAngle(yawTo(turn.pivot, hit) - turn.startAngle), turn.startPose)
+        return
+      }
       if (onDragMove?.(raycaster.current)) {
         ended = true
-        isDragging.current = false
-        rigidRef.current?.setBodyType(restType.current, true)
-        onDragEnd?.()
+        endDrag()
       }
     }
 
     const onUp = (ev) => {
       if (ev.pointerId !== pointerId) return
-      if (isDragging.current) {
-        isDragging.current = false
-        rigidRef.current?.setBodyType(restType.current, true)
-        onDragEnd?.()
-      } else if (!ended) {
-        onSelect?.()
-      }
-      if (controls) controls.enabled = true
-      window.removeEventListener('pointermove', onMove)
-      window.removeEventListener('pointerup', onUp)
-    }
-
-    window.addEventListener('pointermove', onMove)
-    window.addEventListener('pointerup', onUp)
-  }
-}
-
-// Handle drag: the pointer turns around a pivot, and onTurn(d, startPose) returns the tool pose
-// for a turn of d (yaw) since the drag started. The tool stays hoverHeight above the table or
-// terrain under its footprint (from groundY), the same as during a drag.
-// onPointer(raycaster): called on each pointer move with a raycaster set to the pointer ray, and
-// with null when the drag ends.
-// onDragStart, onDragEnd: called when a handle drag starts and when it ends.
-function useHandleDrag(rigidRef, groundY, hoverHeight, onDragStart, onDragEnd) {
-  const { camera, gl, controls } = useThree()
-  const raycaster = useRef(new THREE.Raycaster())
-  // Horizontal plane through the grabbed point, so the handle stays under the pointer
-  const dragPlane = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0))
-  // Next kinematic pose { x, z, yaw }, or null when no handle is dragged. Y follows the ground.
-  const target = useRef(null)
-
-  useFrame((_, dt) => {
-    const rb = rigidRef.current
-    if (!rb || !target.current) return
-    const { x, z, yaw } = target.current
-    const t = rb.translation()
-    // Off the table there is no ground, so keep the current height
-    const ground = groundY(x, z, yaw)
-    const y = ground === null ? t.y : t.y + (ground + hoverHeight - t.y) * Math.min(1, dt * HOVER_RATE)
-    rb.wakeUp()
-    rb.setNextKinematicTranslation({ x, y, z })
-    rb.setNextKinematicRotation(yawQuat(yaw))
-  })
-
-  // Point on the drag plane under the pointer, or null
-  function planeHit(ev) {
-    const rect = gl.domElement.getBoundingClientRect()
-    const ndc = {
-      x: ((ev.clientX - rect.left) / rect.width) * 2 - 1,
-      y: -((ev.clientY - rect.top) / rect.height) * 2 + 1,
-    }
-    raycaster.current.setFromCamera(ndc, camera)
-    return raycaster.current.ray.intersectPlane(dragPlane.current, new THREE.Vector3())
-  }
-
-  return function startHandleDrag(e, pivot, onTurn, onPointer) {
-    e.stopPropagation()
-    const rb = rigidRef.current
-    if (!rb) return
-    dragPlane.current.constant = -e.point.y
-    const start = planeHit(e)
-    if (!start) return
-    const pointerId = e.pointerId ?? e.nativeEvent?.pointerId
-    if (controls) controls.enabled = false
-
-    const startPose = toolPose(rb)
-    const startAngle = yawTo(pivot, start)
-    const restType = rb.bodyType()
-    rb.setBodyType(2, true)
-    target.current = startPose
-    onDragStart?.()
-
-    const onMove = (ev) => {
-      if (ev.pointerId !== pointerId) return
-      const hit = planeHit(ev)
-      onPointer?.(raycaster.current)
-      if (!hit || Math.hypot(hit.x - pivot.x, hit.z - pivot.z) < 0.01) return
-      target.current = onTurn(wrapAngle(yawTo(pivot, hit) - startAngle), startPose)
-    }
-
-    const onUp = (ev) => {
-      if (ev.pointerId !== pointerId) return
-      target.current = null
-      onPointer?.(null)
-      rigidRef.current?.setBodyType(restType, true)
-      onDragEnd?.()
+      if (isDragging.current) endDrag()
+      else if (!ended) onSelect?.()
       if (controls) controls.enabled = true
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('pointerup', onUp)
@@ -465,9 +409,9 @@ function sameMark(a, b) {
   return a?.kind === b?.kind && a?.id === b?.id && a?.mode === b?.mode
 }
 
-// Range tool: the piece that a handle drag measures against gets a green or red outline (see
-// SelectionOutlines.jsx). measuredRef: the piece under the pointer while a handle of the snapped
-// tool is dragged, else null (set in Tool). In range:
+// Range tool: the piece that a turn of the snapped tool measures against gets a green or red outline
+// (see SelectionOutlines.jsx). measuredRef: the piece under the pointer while a drag turns the snapped
+// tool around the base, else null (set in Tool). In range:
 // - Range 2 to 5: the measured base touches the footprint.
 // - R1 (rangeOne): the measured base is within range 1 of the snapped base.
 // onChange(mark): called when the mark changes, with { kind, id, mode: 'inRange' | 'outOfRange' },
@@ -535,8 +479,8 @@ function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target
 }
 
 // target: the piece selected last, a model or a token, as { id, kind, getObject, getCenter, radius,
-// getBody? }, or null. The tool measures against it, and snaps to it when it spawns. getBody is only
-// there for a model (a character). placeTarget: the selected character in the same form, or null.
+// getBody? }, or null. The tool measures against it. By default it also snaps to it when it spawns
+// (spawnTarget in Tool). getBody is only there for a model (a character). placeTarget: the selected character in the same form, or null.
 // Place moves it, and is disabled without it. models: every character and token, in the same form,
 // for the pointer raycast and the snap. onSnap(model): the tool snapped to that model during a drag.
 // onPlaceLimit(limit): called with { id, clamp(p) } while Place is on and a character is selected,
@@ -699,7 +643,7 @@ function BendButton({ on, onClick }) {
       type="button"
       aria-pressed={on}
       aria-label="Bend"
-      title={on ? 'Bend on: a handle turns its half around the hinge' : 'Bend'}
+      title={on ? 'Bend on: dragging a half turns it around the hinge' : 'Bend'}
       style={{
         ...BUTTON_STYLE,
         background: on ? '#f5a623' : '#1a1a1a',
@@ -727,33 +671,30 @@ function BendButton({ on, onClick }) {
 // tip: X of each end (length of each half of the footprint).
 // bendable: a movement tool. Its halves turn around the hinge at the center.
 // rangeOne: the range 1 tool. It snaps with a corner, not an end. See README "Tools", "Range 1".
-// onRangeMark(mark): the piece that a handle drag measures against, see RangeMark. Only the range
-// tools pass it. Without it, the tool marks no pieces.
+// onRangeMark(mark): the piece that a turn of the snapped tool measures against, see RangeMark. Only
+// the range tools pass it. Without it, the tool marks no pieces.
 // onHover(over): the pointer moved onto (true) or off (false) the tool. onDrag(on): a drag of the
-// tool body or a handle started (true) or ended (false). Both are also called with false on unmount.
+// tool started (true) or ended (false). Both are also called with false on unmount.
 // turnRef(turn): gets turnAroundCenter, for Q / E (see turnPiece in Scene.jsx), and null on unmount.
-// angle: the angle tool. It starts bent 90° and cannot bend, place or throw. It snaps only to a
-// character. target is its character: it spawns snapped to it, aimed at aim (a model) or at the mat
-// center. Without a target it spawns free at position.
+// spawnTarget: the piece the tool snaps to when it spawns, target by default. Without one it spawns
+// free at position.
+// angle: the angle tool. It starts bent 90° and cannot bend, place or throw. It spawns aimed at aim
+// (a model) or at the mat center.
 // angleRef(get): gets a function that returns { target, openYaw } while the angle tool is snapped, else
 // null, and null on unmount. angleLimit(model): on a movement tool, the openYaw of the angle tool
 // snapped to that model, else null. The movement tool then keeps its move direction within
 // ANGLE_LIMIT of it, while snapped to that model. Read at each use, because the angle tool can move.
-function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, angle = false, aim = null, angleLimit, angleRef, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target, placeTarget, models = [], onSnap, onPlaceLimit, onSpawn, onRangeMark, onHover, onDrag, turnRef }) {
+function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, angle = false, aim = null, angleLimit, angleRef, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target, spawnTarget = target, placeTarget, models = [], onSnap, onPlaceLimit, onSpawn, onRangeMark, onHover, onDrag, turnRef }) {
   const [hovered, setHovered] = useState(false)
-  // The pointer is over a handle. The tool counts as hovered then too, for the keys and the outline.
-  const [handleHovered, setHandleHovered] = useState(false)
-  const toolHovered = hovered || handleHovered
   const rigidRef = useRef()
-  // The tool meshes, without the handles, for the outline
+  // The tool meshes, for the outline
   const partsRef = useRef()
   // Stays STRAIGHT on a tool that is not bendable, and ANGLE_TURN on the angle tool
   const [turn, setTurn] = useState(angle ? ANGLE_TURN : STRAIGHT)
   // Angle tool: where the hinge goes when the tool aims at a piece
   const [mode, setMode] = useState('away')
-  // While the bend button is on, a handle turns its half instead of the whole tool
+  // While the bend button is on, a drag on a half turns that half instead of the whole tool
   const [bendOn, setBendOn] = useState(false)
-  const bending = bendable && selected && bendOn
   // Snapped: { target, side, across }, the model the tool is snapped to and the half whose end touches
   // its base. across (R1 tool only): the long side (±1: local ±Z) that the base touches.
   // Free: null. See README "Tools".
@@ -774,18 +715,16 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, angle
   // Model under the pointer at the last move of a body drag, or null. undefined before the first move.
   // The tool snaps when the pointer moves onto a model, not when the drag starts on one.
   const overRef = useRef(undefined)
-  // Model under the pointer while a handle of the snapped tool is dragged, else null. See RangeMark.
+  // Model under the pointer while a drag turns the snapped tool around the base, else null. See RangeMark.
   const measuredRef = useRef(null)
-  // The drag in progress: 'body', 'handle' or null
+  // The drag in progress: 'move', 'turn' or null. See useDragTool.
   const dragKind = useRef(null)
   const groundY = useFootprintGround(tip, halfWidth, turn)
-  // Dragging the tool body makes it free
-  const onPointerDown = useDragTool(rigidRef, groundY, hoverHeight, () => {
-    setSnap(null)
-    overRef.current = undefined
-    dragChange('body')
+  const onPointerDown = useDragTool(rigidRef, groundY, hoverHeight, kind => {
+    // Only a free tool moves (see dragPlan)
+    if (kind === 'move') overRef.current = undefined
+    dragChange(kind)
   }, onDragMove, () => dragChange(null))
-  const startHandleDrag = useHandleDrag(rigidRef, groundY, hoverHeight, () => dragChange('handle'), () => dragChange(null))
   const { world, rapier } = useRapier()
   const hulls = useMemo(() => parts.map(part => hullPoints(part.obj)), [parts])
 
@@ -798,14 +737,55 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, angle
     onDrag?.(kind !== null)
   }
 
+  // How a drag that starts on half side (undefined on a range tool) moves the tool. See useDragTool.
+  // Bend on: the grabbed half turns around the hinge, and the other half does not move. On a snapped
+  // tool only the far half bends, so the end on the base keeps touching it.
+  // Else a snapped tool turns around the base center. The distance to the base does not change, so
+  // the tool keeps touching the base. A free tool moves. Only a move snaps the tool (onDragMove), so
+  // a drag that starts snapped never snaps to another piece, also when the pointer passes over one.
+  function dragPlan(side) {
+    const rb = rigidRef.current
+    if (!rb) return null
+    if (bendable && bendOn && side && side !== snap?.side) {
+      const { x, z } = toolPose(rb)
+      const other = turn[OTHER[side]]
+      return {
+        pivot: { x, z },
+        onTurn(d, pose) {
+          setTurn({ ...turn, [side]: THREE.MathUtils.clamp(turn[side] + d, other - MAX_BEND, other + MAX_BEND) })
+          return pose
+        },
+      }
+    }
+    if (!snap) return null
+    // The piece under the pointer is the one the tool measures against. Not the snapped one.
+    const { target: snapped, side: snappedSide } = snap
+    const pivot = snapped.getCenter()
+    return {
+      pivot,
+      onTurn(d, pose) {
+        // Angle tool over another piece: the line through its center, not a plain turn
+        if (angle && measuredRef.current) return aimPose(pivot, snapped.radius, halfWidth, measuredRef.current.getCenter(), mode)
+        const open = angleLimit?.(snapped) ?? null
+        if (open === null) return turnAround(pose, pivot, d)
+        // A movement tool at an angle tool: the turn changes the move direction by d, so cut d
+        return turnAround(pose, pivot, limitTurn(toolShape(pose, turn)[snappedSide] + Math.PI, open, d))
+      },
+      onPointer(raycaster) {
+        const model = raycaster && modelUnder(raycaster)
+        measuredRef.current = model && !sameModel(model, snapped) ? model : null
+      },
+    }
+  }
+
   // Q / E: turns the whole tool by angle (yaw) around its center, the hinge on a movement tool.
   // Scene.jsx calls it on every frame of a smoothed turn. The tool keeps its bend. Both ends move,
   // so a snapped tool is free after the turn. A tool that is not dragged then hangs hoverHeight
-  // above the ground under its new outline (a body drag already does this on every frame). A handle
+  // above the ground under its new outline (a move drag already does this on every frame). A turn
   // drag sets the pose on every frame, so a turn during it does nothing.
   function turnAroundCenter(angle) {
     const rb = rigidRef.current
-    if (!rb || dragKind.current === 'handle') return
+    if (!rb || dragKind.current === 'turn') return
     const { x, z, yaw } = toolPose(rb)
     if (!dragKind.current) {
       const ground = groundY(x, z, yaw + angle)
@@ -833,49 +813,13 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, angle
   // The cleanups also run on unmount, so a removed tool does not stay hovered or dragged. Escape
   // removes the selected tool, also during its drag.
   useEffect(() => {
-    if (!toolHovered) return undefined
+    if (!hovered) return undefined
     onHover?.(true)
     return () => onHover?.(false)
-  }, [toolHovered])
+  }, [hovered])
   useEffect(() => () => onDrag?.(false), [])
-  // A click selects the tool. Only a selected tool moves by a drag. A handle sets its own cursor.
+  // A click selects the tool. Only a selected tool moves by a drag.
   useHoverCursor(hovered, selected ? 'grab' : 'pointer')
-
-  function onHandleDown(e, side) {
-    // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
-    if (e.button !== 0) return
-    const rb = rigidRef.current
-    if (!rb) return
-    if (bending) {
-      // The end of a turned half leaves the base, so turning the snapped half makes the tool free
-      if (snap?.side === side) setSnap(null)
-      const other = turn[OTHER[side]]
-      startHandleDrag(e, toolPose(rb), (d, pose) => {
-        const next = THREE.MathUtils.clamp(turn[side] + d, other - MAX_BEND, other + MAX_BEND)
-        setTurn({ ...turn, [side]: next })
-        return pose
-      })
-      return
-    }
-    // Snapped: turn around the base center. The distance to the base does not change,
-    // so the tool keeps touching the base. Free: turn around the end of the other half.
-    const center = snap?.target.getCenter()
-    const pivot = center ?? alongHalf(toolShape(toolPose(rb), turn), OTHER[side], tip)
-    // Snapped: the piece under the pointer is the one the tool measures against. Not the snapped one.
-    const snapped = snap?.target
-    const snappedSide = snap?.side
-    startHandleDrag(e, pivot, (d, pose) => {
-      // Angle tool over another piece: the line through its center, not a plain turn
-      if (angle && measuredRef.current) return aimPose(pivot, snapped.radius, halfWidth, measuredRef.current.getCenter(), mode)
-      if (!angleLimit || !snapped) return turnAround(pose, pivot, d)
-      // A movement tool at an angle tool: the turn changes the move direction by d, so cut d
-      const open = angleLimit(snapped)
-      return turnAround(pose, pivot, open === null ? d : limitTurn(toolShape(pose, turn)[snappedSide] + Math.PI, open, d))
-    }, raycaster => {
-      const model = raycaster && snapped && modelUnder(raycaster)
-      measuredRef.current = model && !sameModel(model, snapped) ? model : null
-    })
-  }
 
   // Nearest of the models (default: all of them) under the pointer ray (figure or base), or null
   function modelUnder(raycaster, list = models) {
@@ -894,8 +838,7 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, angle
 
   // Body drag: when the pointer moves onto a model, snap to it and end the drag
   function onDragMove(raycaster) {
-    // The angle tool snaps only to a character
-    const model = modelUnder(raycaster, angle ? models.filter(m => m.kind === 'character') : models)
+    const model = modelUnder(raycaster)
     const entered = model && overRef.current !== undefined && model !== overRef.current
     overRef.current = model
     if (!entered || !snapTo(model)) return false
@@ -946,26 +889,31 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, angle
     return true
   }
 
-  // Spawned while a character or a token is selected: start snapped to the piece selected last, not
-  // at the default position
+  // Spawned with a spawnTarget: start snapped to it, not at the default position
   useEffect(() => {
     onSpawn?.()
-    const center = target?.getCenter()
+    const center = spawnTarget?.getCenter()
     const rb = rigidRef.current
     if (!center || !rb) return
     // snapPoseOne puts the base on the +Z long side
-    setSnap({ target, side: 'left', across: 1 })
+    setSnap({ target: spawnTarget, side: 'left', across: 1 })
     // The angle tool aims at the aim piece, or at the mat center. A movement tool at an angle tool points along it.
-    const pose = angle ? aimPose(center, target.radius, halfWidth, aim?.getCenter() ?? { x: 0, z: 0 }, 'away')
-      : rangeOne ? snapPoseOne(center, target.radius, tip, halfWidth)
-      : snapPose(center, target.radius, tip, angleLimit?.(target))
+    const pose = angle ? aimPose(center, spawnTarget.radius, halfWidth, aim?.getCenter() ?? { x: 0, z: 0 }, 'away')
+      : rangeOne ? snapPoseOne(center, spawnTarget.radius, tip, halfWidth)
+      : snapPose(center, spawnTarget.radius, tip, angleLimit?.(spawnTarget))
     const ground = groundY(pose.x, pose.z, pose.yaw) ?? 0
     rb.setTranslation({ x: pose.x, y: ground + hoverHeight, z: pose.z }, true)
     rb.setRotation(yawQuat(pose.yaw), true)
     // Only at spawn. Selecting another character later must not move the tool.
   }, [])
 
-  useOutline(partsRef, outlineMode(selected, toolHovered))
+  // The snapped piece left the table (a removed character, a token that a character took), so the
+  // tool is free. Else a drag would turn the tool around a point where the piece is no longer.
+  useEffect(() => {
+    if (snap && !models.some(model => sameModel(model, snap.target))) setSnap(null)
+  }, [snap, models])
+
+  useOutline(partsRef, outlineMode(selected, hovered))
 
   // The clamp reads the tool pose at each call, so the tool can move while Place is on
   useEffect(() => {
@@ -1100,7 +1048,7 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, angle
                 object={part.obj}
                 onPointerOver={(e) => { e.stopPropagation(); setHovered(true) }}
                 onPointerOut={() => setHovered(false)}
-                onPointerDown={(e) => onPointerDown(e, selected, onSelect)}
+                onPointerDown={(e) => onPointerDown(e, selected, onSelect, () => dragPlan(part.side))}
               />
             </group>
           ))}
@@ -1111,12 +1059,6 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, angle
         ))}
         {SIDES.map(side => (
           <group key={side} rotation-y={turn[side]}>
-            <TurnHandle
-              position={[side === 'right' ? tip : -tip, HANDLE_Y, 0]}
-              radius={HANDLE_RADIUS}
-              onPointerDown={(e) => onHandleDown(e, side)}
-              onHover={setHandleHovered}
-            />
             {/* Place toggle, Place 2 on the R1 tool. It cannot be turned on for a token: a token
                 has no body, so there is no base to keep on the tool. */}
             {selected && !angle && side === placeButtonSide && !throwLock && (
