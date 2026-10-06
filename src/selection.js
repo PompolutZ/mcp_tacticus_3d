@@ -1,9 +1,16 @@
-// Selected pieces: [{ kind: 'character' | 'token', id }]. At most one piece of each kind is
-// selected, so a character and a token can be selected at the same time. Selecting another piece
-// of a kind deselects the old one. The piece selected last is at the end: a tool snaps to it when
-// it spawns, and measures against it (see Scene.jsx).
+// Selected pieces: [{ kind: 'character' | 'token' | 'terrain', id }]. At most one piece of each kind
+// is selected, so a character, a token and a terrain piece can be selected at the same time.
+// Selecting another piece of a kind deselects the old one. The piece selected last is at the end.
+// A tool snaps to the character or token selected last when it spawns, and measures against it (see
+// Scene.jsx). Only an unlocked terrain piece can be selected (see Terrain.jsx).
 
 export const NO_PIECES = []
+
+// A piece that the tools snap to and measure against, and that F flips: a character or a token.
+// Terrain is not one of them.
+export function isToolPiece(piece) {
+  return piece.kind === 'character' || piece.kind === 'token'
+}
 
 // Selected tools: { range, move, angle }, true when that tool is selected. There is at most one tool of
 // each kind on the table, so all three tools can be selected at the same time.

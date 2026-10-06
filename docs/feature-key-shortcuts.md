@@ -1,6 +1,6 @@
 # Feature: Key and mouse controls as in TTS
 
-Status: WASD pan, arrow keys, Space, right drag, middle drag, trackpad gestures, Q / E on characters and tools, F, R, 0, and number keys over the dice tray done. The rest is a list of differences, not started.
+Status: WASD pan, arrow keys, Space, right drag, middle drag, trackpad gestures, Q / E on characters and tools, F, R, L, 0, and number keys over the dice tray done. The rest is a list of differences, not started.
 
 ## Goal
 
@@ -53,8 +53,8 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 | Q / E | Rotate the piece | Turns the dragged character or tool, else the one under the pointer, 15° around its center. Q turns counter-clockwise, E clockwise (seen from above). A token has a turn handle, no key | Partly |
 | T | Tap (turn 90°) | Nothing | No |
 | R | Raise | Lifts the model under the pointer 6", or puts it back down. With no model under the pointer: puts every lifted model back down | Partly |
-| L | Lock | Nothing | No |
-| Delete / Backspace | Delete the hovered or selected piece | Deletes the piece under the pointer: a character token on the table, a crisis token that a character holds, a token pile, or a Team Tactic card. Other pieces cannot be deleted with a key | Partly |
+| L | Lock | Locks or unlocks the terrain piece under the pointer. Only terrain has a lock. Every terrain piece starts locked. A locked piece cannot be selected or deleted | Partly |
+| Delete / Backspace | Delete the hovered or selected piece | Deletes the piece under the pointer: a character token on the table, a crisis token that a character holds, a token pile, a Team Tactic card, or an unlocked terrain piece. Other pieces cannot be deleted with a key | Partly |
 | G | Group | Nothing | No |
 | U | Place under | Nothing | No |
 | Alt (hold, over a piece) | Zoomed preview, works best for cards | Click a card to open it in a popup | Partly |

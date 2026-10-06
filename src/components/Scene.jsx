@@ -31,7 +31,7 @@ import { TRAYS } from '../dice/tray.js'
 import { TRAY_Y, layoutTrays, onTray, trayHeldLocal, trayHeldWorld, trayModelPosition, trayYaw } from '../characters/trays.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import { MAT_SIZE, TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WIDTH } from '../table.js'
-import { NO_PIECES, NO_TOOLS, selectPiece, selectedId, toggleSelectPiece } from '../selection.js'
+import { NO_PIECES, NO_TOOLS, isToolPiece, selectPiece, selectedId, toggleSelectPiece } from '../selection.js'
 
 const TABLE_THICKNESS = 0.5
 // The table image of the TTS mod (its TableURL). The image is 3:2, the same as the TTS table. The app table is
@@ -83,7 +83,10 @@ function Mat({ mat }) {
   )
 }
 
-// mapId: key in MAPS
+// mapId: key in MAPS. terrain: the terrain pieces on the mat, [{ id, locked, ...placement }] (see
+// mapTerrain in App.jsx). onTerrainHover(id, over): the pointer moved onto or off an unlocked piece,
+// for the Delete key. terrainAtRef: ref App calls for the L key, the same pattern as characterAtRef.
+// Scene fills it with terrainAt.
 // showColliders: draw every physics collider as lines (the shapes physics uses, not the visible meshes)
 // showLabels: show the piece name and game Size above each terrain piece
 // matTurns: number of 90° counter-clockwise turns of the mat and its terrain
@@ -144,12 +147,12 @@ function Mat({ mat }) {
 // scoreMarkers, affiliations, onScoreMarkerMove(marker, x, z): the scoring board markers, see
 // ScoreBoard.jsx.
 export default function Scene({
-  mapId, characters = [], activeRange, activeMove, angleOn = false, angleAim = null, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
+  mapId, terrain = [], onTerrainHover, terrainAtRef, characters = [], activeRange, activeMove, angleOn = false, angleAim = null, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
   crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0, angle: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenPiles = [], onPileTakeStart, onPileMoveStart, onPileHover, tacticCards = [], onTacticMove, onTacticHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, onDiceTrayHover, addDiceRef, heldRotate, scoreMarkers, affiliations, onScoreMarkerMove,
 }) {
   const map = MAPS[mapId]
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
-  const { camera, gl } = useThree()
+  const { camera, gl, pointer } = useThree()
   // Character id → Rapier body. Tools read and move characters through it.
   const charBodies = useRef(new Map())
   // Character id → 3D object. Tools find the character under the pointer with it.
@@ -162,6 +165,8 @@ export default function Scene({
   // Character id → the tray's background plate. characterAt below hits this too, so a drop anywhere
   // on the tray finds the character (see CharacterTray.jsx).
   const trayObjects = useRef(new Map())
+  // Terrain piece id → its visible mesh, for terrainAt
+  const terrainObjects = useRef(new Map())
   const raycaster = useRef(new Raycaster())
   // Token id → 3D object, and token id → live center getter. The same purpose as charBodies and
   // charObjects, but a token has no Rapier body (see CrisisToken.jsx).
@@ -204,6 +209,24 @@ export default function Scene({
           nearestId = ch.id
           nearestDistance = hit.distance
         }
+      }
+    }
+    return nearestId
+  }
+
+  // Id of the nearest terrain piece under the pointer, locked or not, or null. A locked piece gets no
+  // pointer events (see Terrain.jsx), so this casts its own ray from the last pointer position. With
+  // the pointer off the canvas (over the HUD or a tray's controls), it is null.
+  function terrainAt() {
+    if (!gl.domElement.matches(':hover')) return null
+    raycaster.current.setFromCamera(pointer, camera)
+    let nearestId = null
+    let nearestDistance = Infinity
+    for (const [id, object] of terrainObjects.current) {
+      const hit = raycaster.current.intersectObject(object, true)[0]
+      if (hit && hit.distance < nearestDistance) {
+        nearestId = id
+        nearestDistance = hit.distance
       }
     }
     return nearestId
@@ -300,6 +323,7 @@ export default function Scene({
     if (modelPositionRef) modelPositionRef.current = modelPosition
     if (turnPieceRef) turnPieceRef.current = turnPiece
     if (liftPieceRef) liftPieceRef.current = liftPiece
+    if (terrainAtRef) terrainAtRef.current = terrainAt
   })
 
   // Tray position of every character (trays.js). A player's row recenters when that player adds
@@ -322,6 +346,7 @@ export default function Scene({
 
   const selectedCharId = selectedId(selection, 'character')
   const selectedTokenId = selectedId(selection, 'token')
+  const selectedTerrainId = selectedId(selection, 'terrain')
 
   // Deploy-line: R3 zone depth from the deployment edge
   const deployTip = RANGE_TIP[3]
@@ -371,9 +396,9 @@ export default function Scene({
     })),
   ], [characters, matTokens])
   const toolModel = piece => toolModels.find(model => piece && model.kind === piece.kind && model.id === piece.id) ?? null
-  // The tools measure against the piece selected last, and a new tool snaps to it. Place moves the
-  // selected character, also when a token was selected after it.
-  const toolTarget = toolModel(selection.at(-1))
+  // The tools measure against the character or token selected last, and a new tool snaps to it.
+  // Place moves the selected character, also when a token was selected after it.
+  const toolTarget = toolModel(selection.findLast(isToolPiece))
   const placeTarget = toolModel(selection.find(piece => piece.kind === 'character'))
 
   // Outline mode of the range mark on a piece, or null
@@ -468,7 +493,14 @@ export default function Scene({
           {/* A fixed body does not follow its parent after it is created. So each turn mounts the terrain again,
               and its colliders are created at the new pose. A new map also mounts it again. */}
           <Suspense key={`${mapId}-${matTurns}`} fallback={null}>
-            <Terrain placements={map.placements} showLabels={showLabels} />
+            <Terrain
+              placements={terrain}
+              showLabels={showLabels}
+              selectedId={selectedTerrainId}
+              onSelect={id => toggleSelect('terrain', id)}
+              onHover={onTerrainHover}
+              objectRef={(id, obj) => obj ? terrainObjects.current.set(id, obj) : terrainObjects.current.delete(id)}
+            />
           </Suspense>
         </group>
 

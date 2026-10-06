@@ -27,10 +27,12 @@ export const FLIP_KEY = 'KeyF'
 // Lift, R as in TTS (Raise): lifts the model under the pointer, or puts it back down. See liftPiece
 // in Scene.jsx.
 export const LIFT_KEY = 'KeyR'
+// Lock, L as in TTS: locks or unlocks the terrain piece under the pointer. See handleLockKey in App.jsx.
+export const LOCK_KEY = 'KeyL'
 // Camera back to the start view, as in TTS
 export const RESET_VIEW_KEY = 'Space'
-// Deletes the character token on the table under the pointer, as in TTS. A Mac keyboard's delete
-// key sends Backspace.
+// Deletes the piece under the pointer, as in TTS: a character token on the table, an unlocked
+// terrain piece and others (see handleKeyDown in App.jsx). A Mac keyboard's delete key sends Backspace.
 export const DELETE_KEYS = ['Delete', 'Backspace']
 
 // Keys in a text field or a select edit it (letters type, arrow keys move the cursor or the option), so the app does not use them

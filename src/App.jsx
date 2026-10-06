@@ -24,8 +24,10 @@ import { START_MARKERS } from './scoreboard/board.js'
 import { DEFAULT_AFFILIATION } from './scoreboard/affiliations.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
-import { NO_PIECES, NO_TOOLS, deselectPiece, selectPiece, selectedId } from './selection.js'
-import { ANGLE_KEY, CLEAR_TOOLS_KEY, DELETE_KEYS, DICE_KEYS, FLIP_KEY, LIFT_KEY, MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, ROTATE_KEYS, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
+import { MAPS } from './terrain/maps.js'
+import { TERRAIN_PIECES } from './terrain/pieces.js'
+import { NO_PIECES, NO_TOOLS, deselectPiece, isToolPiece, selectPiece, selectedId } from './selection.js'
+import { ANGLE_KEY, CLEAR_TOOLS_KEY, DELETE_KEYS, DICE_KEYS, FLIP_KEY, LIFT_KEY, LOCK_KEY, MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, ROTATE_KEYS, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
 
 // Start view, the seat of the blue player. For now every player is Blue. Blue sits at +z (see
 // characters/trays.js). The camera stands behind the blue table edge and looks down at 45° at a
@@ -50,6 +52,15 @@ const TOKEN_ROW_SPACING = TOKEN_RADIUS * 2 + DROP_GAP * 2
 // A character token drag starts only after the pointer moves this many pixels, so a click on a
 // Give source or a token on the table does not drop a token.
 const DRAG_THRESHOLD = 4
+// The map on the mat when the app starts, a key in MAPS
+const START_MAP = 'vibranium-heist'
+
+// Terrain pieces of a map, as tracked in App state: the placements of terrain/maps.js with an id and
+// a lock. Every piece starts locked, so a click on terrain does not select it and the Delete key
+// does not remove it by mistake. L unlocks it (handleLockKey).
+function mapTerrain(mapId) {
+  return MAPS[mapId].placements.map(placement => ({ ...placement, id: crypto.randomUUID(), locked: true }))
+}
 
 // Mat token entries of a card, as tracked in App state. Position and rotation come from cards.json
 // (TTS x, z from the mat center, and TTS Y rotation), converted the same way as terrain: z -> -z.
@@ -114,7 +125,14 @@ export default function App() {
   const [renderMode, setRenderMode] = useState('full')
   const [showLabels, setShowLabels] = useState(false)
   const [matTurns, setMatTurns] = useState(0)
-  const [mapId, setMapId] = useState('vibranium-heist')
+  const [mapId, setMapId] = useState(START_MAP)
+  // The terrain pieces on the mat, see mapTerrain. A new map replaces them.
+  const [terrain, setTerrain] = useState(() => mapTerrain(START_MAP))
+  // Id of the unlocked terrain piece under the pointer, for the Delete key
+  const hoveredTerrainRef = useRef(null)
+  // Scene calls this and returns the id of the terrain piece under the pointer, locked or not, or
+  // null. See Scene.jsx, terrainAt.
+  const terrainAtRef = useRef(null)
   const [deployLine, setDeployLine] = useState(false)
   const [characters, setCharacters] = useState([])
   // The chosen Secure and Extract card, by key. null = none.
@@ -214,6 +232,37 @@ export default function App() {
     setMatTurns(prev => (prev + direction + 4) % 4)
   }
 
+  // A new map brings its own terrain, all locked. The selected terrain piece is gone.
+  function handleMapChange(id) {
+    setMapId(id)
+    setTerrain(mapTerrain(id))
+    setSelection(prev => prev.filter(p => p.kind !== 'terrain'))
+  }
+
+  // L, as in TTS: locks or unlocks the terrain piece under the pointer. A piece that gets locked is
+  // deselected. A locked piece looks the same as an unlocked one, so the HUD message shows the new state.
+  function handleLockKey() {
+    const id = terrainAtRef.current?.()
+    const piece = id && terrain.find(p => p.id === id)
+    if (!piece) return
+    const locked = !piece.locked
+    setTerrain(prev => prev.map(p => p.id === id ? { ...p, locked } : p))
+    if (locked) setSelection(prev => deselectPiece(prev, { kind: 'terrain', id }))
+    showHudMessage(`${TERRAIN_PIECES[piece.piece].name} ${locked ? 'locked' : 'unlocked'}`)
+  }
+
+  function handleTerrainHover(id, over) {
+    if (over) hoveredTerrainRef.current = id
+    else if (hoveredTerrainRef.current === id) hoveredTerrainRef.current = null
+  }
+
+  // Delete key over an unlocked terrain piece. A locked piece gets no hover (Terrain.jsx), so it
+  // cannot be removed. Models on the piece fall: Rapier wakes the bodies that touched its collider.
+  function handleTerrainRemove(id) {
+    setTerrain(prev => prev.filter(p => p.id !== id))
+    setSelection(prev => deselectPiece(prev, { kind: 'terrain', id }))
+  }
+
   // Toggles the "Reroll one / Change one to" menu for one face plate. Opening one closes any other.
   function handleDiceMenuToggle(trayKey, symbol) {
     setDiceMenu(prev => (prev?.trayKey === trayKey && prev.symbol === symbol) ? null : { trayKey, symbol })
@@ -290,6 +339,7 @@ export default function App() {
       else if (hoveredHeldRef.current) handleHeldRemove(hoveredHeldRef.current)
       else if (hoveredPileRef.current) handlePileRemove(hoveredPileRef.current)
       else if (hoveredTacticRef.current) handleTacticRemove(hoveredTacticRef.current)
+      else if (hoveredTerrainRef.current) handleTerrainRemove(hoveredTerrainRef.current)
       return
     }
     if (PAN_KEYS[e.code]) {
@@ -320,6 +370,10 @@ export default function App() {
     }
     if (e.code === LIFT_KEY) {
       liftPieceRef.current?.()
+      return
+    }
+    if (e.code === LOCK_KEY) {
+      handleLockKey()
       return
     }
     // Over the player's dice tray, the number keys add dice, not tools
@@ -379,8 +433,8 @@ export default function App() {
 
   // Key 6, the Toward / Away tool. With nothing under the pointer, it toggles the tool, the same as its
   // toolbar button. Over a character, it selects it and spawns the tool again snapped to it, even if the
-  // tool is already out. It aims at the piece selected last that is not that character, or at the mat
-  // center. Over a token, it does nothing: the mover must be a character.
+  // tool is already out. It aims at the character or token selected last that is not that character,
+  // or at the mat center. Over a token, it does nothing: the mover must be a character.
   function handleAngleKey() {
     const piece = hoveredRef.current
     if (!piece) {
@@ -388,7 +442,7 @@ export default function App() {
       return
     }
     if (piece.kind !== 'character') return
-    setAngleAim(selection.findLast(p => !(p.kind === piece.kind && p.id === piece.id)) ?? null)
+    setAngleAim(selection.findLast(p => isToolPiece(p) && !(p.kind === piece.kind && p.id === piece.id)) ?? null)
     setSelection(prev => selectPiece(prev, piece))
     setAngleOn(true)
     setToolSpawns(prev => ({ ...prev, angle: prev.angle + 1 }))
@@ -413,14 +467,14 @@ export default function App() {
 
   // F, as in TTS: flips the crisis token under the pointer (also one that a character holds), the
   // card of the character under the pointer (its model or its tray card), or the tactic card under
-  // the pointer. With nothing under the pointer, it flips the piece selected last: a token, or the
-  // card of a character. A token without a back does not flip (handleTokenFlip).
+  // the pointer. With nothing under the pointer, it flips the token or character selected last (the
+  // card of a character). A token without a back does not flip (handleTokenFlip).
   function handleFlipKey() {
     const piece = hoveredRef.current
       ?? (hoveredHeldRef.current && { kind: 'token', id: hoveredHeldRef.current })
       ?? (hoveredTrayCardRef.current && { kind: 'character', id: hoveredTrayCardRef.current })
       ?? (hoveredTacticRef.current && { kind: 'tactic', id: hoveredTacticRef.current })
-      ?? selection.at(-1)
+      ?? selection.findLast(isToolPiece)
     if (piece?.kind === 'token') handleTokenFlip(piece.id)
     else if (piece?.kind === 'character') handleCharacterFlip(piece.id)
     else if (piece?.kind === 'tactic') handleTacticFlip(piece.id)
@@ -827,6 +881,9 @@ export default function App() {
           <SelectionOutlines composer={mode !== 'no-composer'} outlines={mode === 'full'}>
             <Scene
               mapId={mapId}
+              terrain={terrain}
+              onTerrainHover={handleTerrainHover}
+              terrainAtRef={terrainAtRef}
               characters={characters}
               activeRange={activeRange}
               activeMove={activeMove}
@@ -906,7 +963,7 @@ export default function App() {
       <div className="hud-top">
         <Toolbar
           mapId={mapId}
-          onMapChange={setMapId}
+          onMapChange={handleMapChange}
           activeRange={activeRange}
           activeMove={activeMove}
           angleOn={angleOn}

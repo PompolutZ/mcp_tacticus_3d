@@ -1,6 +1,7 @@
+import { useThree } from '@react-three/fiber'
 import { Html, useGLTF, useTexture } from '@react-three/drei'
 import { MeshCollider, RigidBody } from '@react-three/rapier'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { assetUrl } from '../assets/index.js'
 import { pieceCollider, pieceMesh, pieceTexture } from '../terrain/files.js'
@@ -8,9 +9,13 @@ import { TTS_MAT_TOP } from '../terrain/maps.js'
 import { TERRAIN_PIECES } from '../terrain/pieces.js'
 import { FRICTION } from '../physics.js'
 import { projectFootprints } from './footprintProjection.js'
+import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 
 const DEG = Math.PI / 180
 const WHITE = [1, 1, 1]
+// A press that moves the pointer more than this (px) before the release is a camera drag, not a click.
+// The same limit as R3F uses for a click on the empty table (onPointerMissed in App.jsx).
+const CLICK_SLOP = 2
 
 // TTS (Unity) is left-handed and Three.js is right-handed. Mirroring Z converts one to the other:
 // z changes sign, and so do rotations around X and Y. Unity applies Euler angles
@@ -48,9 +53,17 @@ function ColliderMesh({ url, convex }) {
   )
 }
 
+// placement: a terrain piece on the mat, see mapTerrain in App.jsx.
 // showLabel: show the piece name and the game Size above the piece
-function TerrainPiece({ placement, showLabel }) {
+// selected: the piece is selected. onSelect(): a click on the piece. onHover(over): the pointer
+// moved onto (true) or off (false) the piece, for the Delete key.
+// objectRef(obj): the visible mesh of the piece, or null on unmount. Scene finds the piece under the
+// pointer with it, for the L key.
+function TerrainPiece({ placement, showLabel, selected, onSelect, onHover, objectRef }) {
   const piece = TERRAIN_PIECES[placement.piece]
+  const { locked } = placement
+  const meshRef = useRef(null)
+  const [hovered, setHovered] = useState(false)
   const { scene: raw } = useGLTF(assetUrl(pieceMesh(placement.piece)))
   const map = useTexture(assetUrl(pieceTexture(placement.piece)))
   const obj = useMemo(() => {
@@ -73,12 +86,53 @@ function TerrainPiece({ placement, showLabel }) {
   }, [raw, map, placement.tint])
   const { position, quaternion } = useMemo(() => toThreeTransform(placement), [placement])
   const labelPos = useMemo(() => labelPosition(raw, placement.scale), [raw, placement.scale])
+  const gl = useThree(state => state.gl)
+
+  useOutline(meshRef, outlineMode(selected, hovered))
+
+  // A locked piece gets no pointer events (see the primitive below), so no pointerout ends its hover
+  useEffect(() => {
+    if (locked) setHovered(false)
+  }, [locked])
+
+  // onHover(true) while the pointer is over the piece, onHover(false) after. The cleanup also runs on
+  // unmount, so a deleted piece does not stay hovered and does not keep its cursor.
+  useEffect(() => {
+    if (!hovered) return undefined
+    gl.domElement.style.cursor = 'pointer'
+    onHover?.(true)
+    return () => {
+      gl.domElement.style.cursor = ''
+      onHover?.(false)
+    }
+  }, [hovered])
+
+  function setMesh(obj) {
+    meshRef.current = obj
+    objectRef?.(obj)
+  }
+
+  // pointerdown stops here, so a piece behind this one does not start its own select or drag.
+  // The camera still turns on a drag, because OrbitControls does not get R3F events.
+  function handlePointerDown(e) {
+    e.stopPropagation()
+  }
+
+  // A camera drag that starts on the piece is not a click
+  function handleClick(e) {
+    if (e.delta > CLICK_SLOP) return
+    e.stopPropagation()
+    onSelect?.()
+  }
 
   // Fixed collider of the same kind as in the mod, so models stand and tip as they do in TTS.
   // The placement transform is on a group, not on RigidBody: @react-three/rapier 1.5 copies a RigidBody's
   // quaternion prop onto the colliders it builds from the meshes, so every collider would be turned twice.
   // A piece with a collider mesh gets no colliders from the visible mesh. includeInvisible lets
   // MeshCollider read the collider mesh, which is hidden.
+  // A locked piece has no pointer handlers, so R3F does not see it: a click on it is a click on the
+  // empty table, and a piece behind it gets the pointer events. Only an unlocked piece can be hovered,
+  // selected and deleted.
   return (
     <group position={position} quaternion={quaternion}>
       <RigidBody
@@ -88,7 +142,15 @@ function TerrainPiece({ placement, showLabel }) {
         friction={FRICTION}
       >
         <group scale={placement.scale}>
-          <primitive object={obj} rotation={IMPORT_ROTATION} />
+          <primitive
+            ref={setMesh}
+            object={obj}
+            rotation={IMPORT_ROTATION}
+            onPointerOver={locked ? undefined : e => { e.stopPropagation(); setHovered(true) }}
+            onPointerOut={locked ? undefined : () => setHovered(false)}
+            onPointerDown={locked ? undefined : handlePointerDown}
+            onClick={locked ? undefined : handleClick}
+          />
           {piece.collider && <ColliderMesh url={assetUrl(pieceCollider(placement.piece))} convex={piece.convex} />}
         </group>
       </RigidBody>
@@ -101,6 +163,19 @@ function TerrainPiece({ placement, showLabel }) {
   )
 }
 
-export default function Terrain({ placements, showLabels = false }) {
-  return placements.map((placement, i) => <TerrainPiece key={i} placement={placement} showLabel={showLabels} />)
+// placements: the terrain pieces on the mat, [{ id, locked, ...placement }] (see mapTerrain in App.jsx).
+// selectedId: id of the selected piece, or null. onSelect(id), onHover(id, over), objectRef(id, obj):
+// see TerrainPiece.
+export default function Terrain({ placements, showLabels = false, selectedId = null, onSelect, onHover, objectRef }) {
+  return placements.map(placement => (
+    <TerrainPiece
+      key={placement.id}
+      placement={placement}
+      showLabel={showLabels}
+      selected={selectedId === placement.id}
+      onSelect={() => onSelect?.(placement.id)}
+      onHover={over => onHover?.(placement.id, over)}
+      objectRef={obj => objectRef?.(placement.id, obj)}
+    />
+  ))
 }

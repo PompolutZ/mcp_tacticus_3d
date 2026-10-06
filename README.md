@@ -65,9 +65,15 @@ In game setup, the player with priority chooses the edge of the mat to deploy fr
 
 ## Selection
 
-Click a piece to select it. Click it again to deselect it. One character, one crisis token, the range tool, the movement tool and the Toward / Away tool can be selected at the same time. Selecting another character deselects the old character. The same is true for a token. A click on the empty table deselects the character and the token. Escape deselects everything and removes the selected tools from the table.
+Click a piece to select it. Click it again to deselect it. One character, one crisis token, one unlocked terrain piece (see [Terrain lock](#terrain-lock)), the range tool, the movement tool and the Toward / Away tool can be selected at the same time. Selecting another character deselects the old character. The same is true for a token and a terrain piece. A click on the empty table deselects the character, the token and the terrain piece. Escape deselects everything and removes the selected tools from the table.
 
-A tool measures against the piece selected last. A new tool also snaps to it. Place moves the selected character, also when a token was selected after it.
+A tool measures against the character or token selected last. A new tool also snaps to it. Place moves the selected character, also when a token was selected after it.
+
+## Terrain lock
+
+Every terrain piece is locked when its map is loaded. A locked piece does not react to the pointer: a click on it is a click on the empty table, and a piece behind it can still be clicked. Press **L** with the pointer over a terrain piece to unlock it, as in TTS. Press L again to lock it. A HUD message shows the new state, because a locked piece looks the same as an unlocked one.
+
+An unlocked piece shows a white outline under the pointer. Click it to select it. Press **Delete** with the pointer over it to remove it. A model that stands on a removed piece falls to what is under it. A new map brings its own terrain, all locked again. Unlocked pieces cannot be moved yet.
 
 ## Tools
 
