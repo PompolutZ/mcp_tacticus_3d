@@ -65,7 +65,7 @@ In game setup, the player with priority chooses the edge of the mat to deploy fr
 
 ## Selection
 
-Click a piece to select it. Click it again to deselect it. One character, one crisis token, the range tool and the movement tool can be selected at the same time. Selecting another character deselects the old character. The same is true for a token. A click on the empty table deselects the character and the token. Escape deselects everything and removes the selected tools from the table.
+Click a piece to select it. Click it again to deselect it. One character, one crisis token, the range tool, the movement tool and the Toward / Away tool can be selected at the same time. Selecting another character deselects the old character. The same is true for a token. A click on the empty table deselects the character and the token. Escape deselects everything and removes the selected tools from the table.
 
 A tool measures against the piece selected last. A new tool also snaps to it. Place moves the selected character, also when a token was selected after it.
 
@@ -75,7 +75,7 @@ Range tools and movement tools work the same way, except for bending and [Throw 
 
 A tool hangs 1" above the table. It measures with its outline, which is drawn straight below it on the table and on the tops of terrain. Walls and steep sides (more than about 60°) are not painted. While you drag or rotate the tool, it stays 1" above the table or above any terrain under its outline. Terrain within 0.5" of the outline already raises the tool.
 
-Key **0** removes every tool from the table, as in the mod.
+Key **0** removes every tool from the table, as in the mod. Key **6** is the [Toward / Away](#toward--away) tool.
 
 The tool has two states: **snapped** and **free**.
 
@@ -132,6 +132,29 @@ A **lifted** character (key **R**) does not stop the move. A character can throw
 While Throw is on, the button stays at the end where the Throw started. You can drag the thrown character only along the middle line of the tool, between its start and the full distance. So you can correct where it stopped. Turning Throw off does not move anything.
 
 After a full move, the base touches the far end, so the tool stays snapped to the character at that end. After a shorter move, the base touches no end, so the tool is free.
+
+### Toward / Away
+
+When a character moves Toward or Away from another piece, the rules (p14–15) use a movement tool bent to 90°. Key **6** and **Move → T/A** in the toolbar turn this tool on and off. It is a copy of the long movement tool, and it is always bent to a right angle. It has no Bend, Place or Throw button. Its handles work, and so do Q and E.
+
+This is a separate tool. A short, medium or long movement tool can be on the table at the same time.
+
+The tool is placed so that both arms touch the base of the moving character. The point where the arms meet (the hinge) is on the line through the center of the moving character and the center of the other piece:
+
+- **Away**: the hinge is between the moving character and the other piece.
+- **Toward**: the hinge is on the far side of the moving character, away from the other piece.
+
+The mod puts the hinge one base diameter from the base center. That fits only a 35 mm base. The app uses the exact distance, so both arms touch a base of any size.
+
+**Spawn.** The tool spawns snapped to the selected character and aimed at the piece selected before it. If no other piece is selected, it aims at the center of the mat. It starts on Away. The toolbar button does the same, and it aims at the selected token. With the pointer over a character, key 6 selects that character and spawns the tool again at it, also when the tool is already out. It aims at the piece selected last that is not that character. Key 6 over a token does nothing. With the pointer over nothing, key 6 works like the toolbar button. With no character selected, the tool spawns free, already bent.
+
+**Snap.** The tool snaps only to characters, not to tokens. While you drag the tool, it snaps when the pointer moves onto a character. It keeps the direction of the angle, and it moves so that both arms touch that base.
+
+**Handles.** While the tool is snapped, a handle turns the whole tool around the base center, so the arms keep touching the base. Move the pointer onto another piece, a character or a token, and the tool shows the exact line through the center of that piece, with the current mode. Move the pointer off the piece and the tool goes back to the plain turn. A free tool works like any free tool.
+
+**Toward / Away button.** While the tool is selected and snapped, the button on the hinge moves the tool to the other side of the base. This switches between Toward and Away.
+
+**Limit.** In the mod, a movement tool that is snapped to the same character as the angle tool can only point within 45° of the middle of the angle. The app does the same for the short, medium and long tools, but not for range tools. The limit applies when the movement tool spawns, when you drag it onto the character, and when a handle turns it around the base. When the tool spawns on that character, it points along the middle of the angle. The app reads the angle tool at each move, so the limit follows the angle tool when you move it.
 
 ### Range marks
 

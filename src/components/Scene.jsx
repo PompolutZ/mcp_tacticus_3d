@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { Raycaster, Vector3 } from 'three'
 import { useTexture, Stars, Environment } from '@react-three/drei'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
-import { MovementRuler, RangeRuler, DeployRangeTool, RANGE_TIP } from './RulerTool.jsx'
+import { MovementRuler, AngleRuler, RangeRuler, DeployRangeTool, RANGE_TIP, sameModel } from './RulerTool.jsx'
 import CharacterModel, { turnBody } from './CharacterModel.jsx'
 import Character from './Character.jsx'
 import CharacterTray from './CharacterTray.jsx'
@@ -88,9 +88,11 @@ function Mat({ mat }) {
 // selection: the selected pieces (see selection.js), lifted to App. onSelectionChange: the setter,
 // called with a value or an updater function.
 // onPieceHover(piece, over): the pointer moved onto (true) or off (false) a character or a token,
-// piece as { kind, id }. toolSpawns: { range, move }, a count that changes when App spawns that tool
+// piece as { kind, id }. toolSpawns: { range, move, angle }, a count that changes when App spawns that tool
 // again. It is part of the tool key, so the tool mounts again and snaps to the piece selected last.
-// selectedTools: { range, move } (see selection.js), lifted to App with its setter onSelectedToolsChange.
+// selectedTools: { range, move, angle } (see selection.js), lifted to App with its setter onSelectedToolsChange.
+// angleOn: the Toward / Away tool is on the table. angleAim: { kind, id } | null, the piece it aims at
+// when it spawns (the mat center without one). It starts at the selected character.
 // onCharacterDamage(id, damage), onCharacterPower(id, power), onCharacterFlip(id): the tray's
 // controls, lifted to App the same way as the token handlers above (see TrayControls.jsx).
 // onTrayCardHover(id, over): the pointer moved onto (true) or off (false) a character's tray card,
@@ -133,8 +135,8 @@ function Mat({ mat }) {
 // scoreMarkers, affiliations, onScoreMarkerMove(marker, x, z): the scoring board markers, see
 // ScoreBoard.jsx.
 export default function Scene({
-  mapId, characters = [], activeRange, activeMove, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, onDiceTrayHover, addDiceRef, heldRotate, scoreMarkers, affiliations, onScoreMarkerMove,
+  mapId, characters = [], activeRange, activeMove, angleOn = false, angleAim = null, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
+  crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0, angle: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, onDiceTrayHover, addDiceRef, heldRotate, scoreMarkers, affiliations, onScoreMarkerMove,
 }) {
   const map = MAPS[mapId]
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
@@ -156,17 +158,19 @@ export default function Scene({
   // charObjects, but a token has no Rapier body (see CrisisToken.jsx).
   const tokenObjects = useRef(new Map())
   const tokenCenters = useRef(new Map())
-  // Tool ('move' or 'range') → { id, clamp(p) } while its Place is on, else null.
+  // Tool ('move', 'range' or 'angle') → { id, clamp(p) } while its Place is on, else null.
   // A drag of character id keeps its base on that tool (see onPlaceLimit in RulerTool.jsx).
   const placeLimits = useRef({})
   // The pieces that Q / E can turn (turnPiece): the character or tool under the pointer, and the one
-  // that is dragged. { kind: 'character' | 'tool', id } | null. The id of a tool is 'range' or 'move'.
+  // that is dragged. { kind: 'character' | 'tool', id } | null. The id of a tool is 'range', 'move' or 'angle'.
   const hoveredPiece = useRef(null)
   const draggedPiece = useRef(null)
-  // Tool ('move' or 'range') → its turn(angle), see turnAroundCenter in RulerTool.jsx
+  // Tool ('move', 'range' or 'angle') → its turn(angle), see turnAroundCenter in RulerTool.jsx
   const toolTurns = useRef({})
   // Turns that are not done yet: piece key → { piece, left }, left in radians. See the useFrame below.
   const turnsLeft = useRef(new Map())
+  // Function of the angle tool that returns { target, openYaw } while it is snapped, else null. See AngleRuler.
+  const angleTool = useRef(null)
   // The piece of the last Q / E press, which a held key turns on, and the time since that press (s)
   const turnHold = useRef({ piece: null, time: 0 })
   const [draggingCharId, setDraggingCharId] = useState(null)
@@ -271,7 +275,7 @@ export default function Scene({
     else for (const lift of charLifts.current.values()) lift.down()
   }
 
-  // Props of a tool ('range' or 'move') for turnPiece
+  // Props of a tool ('range', 'move' or 'angle') for turnPiece
   function turnProps(tool) {
     const piece = { kind: 'tool', id: tool }
     return {
@@ -366,6 +370,13 @@ export default function Scene({
   // Outline mode of the range mark on a piece, or null
   function rangeMarkOf(kind, id) {
     return rangeMark?.kind === kind && rangeMark.id === id ? rangeMark.mode : null
+  }
+
+  // The open direction of the angle tool when it is snapped to model, else null. A movement tool snapped
+  // to the same character points within 45° of it.
+  function angleLimit(model) {
+    const angle = angleTool.current?.()
+    return angle && sameModel(angle.target, model) ? angle.openYaw : null
   }
 
   function toggleTool(tool) {
@@ -627,12 +638,31 @@ export default function Scene({
               onSelect={() => toggleTool('move')}
               // A new tool is selected, so its buttons (Place, Bend) can be used right away
               onSpawn={() => selectTool('move')}
+              angleLimit={angleLimit}
               target={toolTarget}
               placeTarget={placeTarget}
               models={toolModels}
               onSnap={selectModel}
               onPlaceLimit={limit => { placeLimits.current.move = limit }}
               {...turnProps('move')}
+            />
+          </Suspense>
+        )}
+        {angleOn && (
+          <Suspense key={`angle-${toolSpawns.angle}`} fallback={null}>
+            <AngleRuler
+              team={PLAYER_TEAM}
+              position={[0, TOOL_HOVER_HEIGHT, 0]}
+              hoverHeight={TOOL_HOVER_HEIGHT}
+              selected={selectedTools.angle}
+              onSelect={() => toggleTool('angle')}
+              onSpawn={() => selectTool('angle')}
+              target={placeTarget}
+              aim={toolModel(angleAim)}
+              models={toolModels}
+              onSnap={selectModel}
+              angleRef={get => { angleTool.current = get }}
+              {...turnProps('angle')}
             />
           </Suspense>
         )}

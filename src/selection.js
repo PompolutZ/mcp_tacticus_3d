@@ -5,9 +5,9 @@
 
 export const NO_PIECES = []
 
-// Selected tools: { range, move }, true when that tool is selected. There is at most one tool of
-// each kind on the table, so both tools can be selected at the same time.
-export const NO_TOOLS = { range: false, move: false }
+// Selected tools: { range, move, angle }, true when that tool is selected. There is at most one tool of
+// each kind on the table, so all three tools can be selected at the same time.
+export const NO_TOOLS = { range: false, move: false, angle: false }
 
 function samePiece(a, b) {
   return a.kind === b.kind && a.id === b.id

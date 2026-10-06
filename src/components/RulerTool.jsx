@@ -42,6 +42,10 @@ const SIDES = ['right', 'left']
 const OTHER = { right: 'left', left: 'right' }
 // How far each half is turned around the center from straight, as a yaw
 const STRAIGHT = { right: 0, left: 0 }
+// The angle tool is always bent to a right angle, the same on both sides
+const ANGLE_TURN = { right: Math.PI / 4, left: -Math.PI / 4 }
+// A movement tool snapped to the base of an angle tool points at most this far from the middle of the angle
+const ANGLE_LIMIT = Math.PI / 4
 
 // Player tints, from the tools in the mod (3036795456). Every tool there has the same black and white
 // texture (TOOLBOX_IMAGE_02) and a ColorDiffuse in its player's color. TTS multiplies the texture by it.
@@ -178,13 +182,34 @@ function nearestTouching(shape, length, halfWidth, p, radius) {
 }
 
 // Tool pose with the end of the left half touching the base edge. The tool points from the base
-// toward the mat center, so it stays on the mat.
-function snapPose(center, radius, halfLength) {
+// along yaw. Without a yaw, it points toward the mat center, so it stays on the mat.
+function snapPose(center, radius, halfLength, yaw) {
   const len = Math.hypot(center.x, center.z)
-  const dx = len > 0.01 ? -center.x / len : 1
-  const dz = len > 0.01 ? -center.z / len : 0
+  const dir = yaw ?? (len > 0.01 ? yawTo(center, { x: 0, z: 0 }) : 0)
   const along = radius + halfLength
-  return { x: center.x + dx * along, z: center.z + dz * along, yaw: Math.atan2(-dz, dx) }
+  return { x: center.x + along * Math.cos(dir), z: center.z - along * Math.sin(dir), yaw: dir }
+}
+
+// Angle tool (README "Toward / Away"): pose of the tool bent 90° so that both arms touch the base
+// (center c). The angle opens along openYaw, from the hinge toward the base. The arm center lines
+// are d / √2 from the base center, and the arm is halfWidth wide, so d = √2 (radius + halfWidth).
+function anglePose(c, radius, halfWidth, openYaw) {
+  const d = Math.SQRT2 * (radius + halfWidth)
+  return { x: c.x - d * Math.cos(openYaw), z: c.z + d * Math.sin(openYaw), yaw: openYaw - Math.PI / 2 }
+}
+
+// Angle tool pose aimed at point p: the line from the base center to p goes through the hinge.
+// Away: the hinge is between the base and p. Toward: the hinge is on the other side of the base.
+function aimPose(c, radius, halfWidth, p, mode) {
+  const u = yawTo(c, p)
+  return anglePose(c, radius, halfWidth, mode === 'away' ? u + Math.PI : u)
+}
+
+// Turn d (yaw) of a movement tool around the base center, cut so that its move direction stays
+// within ANGLE_LIMIT of openYaw. moveYaw: the move direction before the turn.
+function limitTurn(moveYaw, openYaw, d) {
+  const diff = wrapAngle(moveYaw - openYaw)
+  return THREE.MathUtils.clamp(diff + d, -ANGLE_LIMIT, ANGLE_LIMIT) - diff
 }
 
 // Range 1: tool pose with the base at the corner of the left end, and the tool on the side of the
@@ -421,7 +446,7 @@ const FOOTPRINT_APART = '#e5484d'
 const CONTACT_EPS = 0.01
 
 // The same character or token. The tool model objects are made again when the pieces change.
-function sameModel(a, b) {
+export function sameModel(a, b) {
   return a.kind === b.kind && a.id === b.id
 }
 
@@ -576,16 +601,28 @@ export function DeployRangeTool({ getBody, centerZ, yaw, team, hoverHeight = 1 }
   )
 }
 
-// Movement tool: mesh-a is the right half with the round hinge, mesh-b is the left half
-export function MovementRuler({ type = 'short', team, ...props }) {
+// The meshes of a movement tool: mesh-a is the right half with the round hinge, mesh-b is the left half
+function useMovementParts(type, team) {
   const rawA = useLoader(OBJLoader, assetUrl(`tools/${type}-movement-mesh-a.obj`))
   const rawB = useLoader(OBJLoader, assetUrl(`tools/${type}-movement-mesh-b.obj`))
   const map = useTexture(TEXTURE)
-  const parts = useMemo(
+  return useMemo(
     () => [{ obj: textured(rawA.clone(), map, team), side: 'right' }, { obj: textured(rawB.clone(), map, team), side: 'left' }],
     [rawA, rawB, map, team],
   )
+}
+
+// Movement tool: mesh-a is the right half with the round hinge, mesh-b is the left half
+export function MovementRuler({ type = 'short', team, ...props }) {
+  const parts = useMovementParts(type, team)
   return <Tool parts={parts} tip={MOVE_TIP[type] ?? 1.574} halfWidth={MOVE_HALF_WIDTH} bendable {...props} />
+}
+
+// Angle tool, for Toward / Away: a copy of the long movement tool, always bent to a right angle.
+// See README "Toward / Away".
+export function AngleRuler({ team, ...props }) {
+  const parts = useMovementParts('long', team)
+  return <Tool parts={parts} tip={MOVE_TIP.long} halfWidth={MOVE_HALF_WIDTH} angle {...props} />
 }
 
 const BUTTON_STYLE = {
@@ -615,12 +652,14 @@ const PX_PER_INCH = 40
 // Share of the tool width that Place covers
 const PLACE_FILL = 0.85
 
-// Place, Place 1, Place 2 and Throw.
+// Place, Place 1, Place 2, Throw and Toward / Away.
 // toolWidth: width of the tool in inches. The button is 1" long before the scale, so the scale is the
 // length in inches: 0.47" on a movement tool, 0.85" on a range tool.
 // on: the toggle state, or undefined for the one-shot Place 1 on the R1 tool
 // along: on the R1 tool, Place lies along the tool instead of across it. See the transform below.
-function ToolButton({ label = 'Place', toolWidth, on, along = false, disabled = false, disabledTitle = 'Select a character', title, onClick }) {
+// rotation: the CSS rotation in degrees, for a button that is not across or along. Reads toward local
+// −X with 0, and toward local +X with 180.
+function ToolButton({ label = 'Place', toolWidth, on, along = false, rotation, disabled = false, disabledTitle = 'Select a character', title, onClick }) {
   return (
     <button
       type="button"
@@ -640,7 +679,7 @@ function ToolButton({ label = 'Place', toolWidth, on, along = false, disabled = 
         // player's half points to the mat center (snapPose), so the label reads from the player's side.
         // Along: reading toward local +X, with its top toward local −Z. The R1 tool snapped to a model
         // on the player's half has local +Z away from the mat center (snapPoseOne), so the same holds.
-        transform: `rotate(${along ? 180 : -90}deg) scale(${PLACE_FILL * toolWidth})`,
+        transform: `rotate(${rotation ?? (along ? 180 : -90)}deg) scale(${PLACE_FILL * toolWidth})`,
       }}
       disabled={disabled}
       title={disabled ? disabledTitle : title}
@@ -691,13 +730,22 @@ function BendButton({ on, onClick }) {
 // onHover(over): the pointer moved onto (true) or off (false) the tool. onDrag(on): a drag of the
 // tool body or a handle started (true) or ended (false). Both are also called with false on unmount.
 // turnRef(turn): gets turnAroundCenter, for Q / E (see turnPiece in Scene.jsx), and null on unmount.
-function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target, placeTarget, models = [], onSnap, onPlaceLimit, onSpawn, onRangeMark, onHover, onDrag, turnRef }) {
+// angle: the angle tool. It starts bent 90° and cannot bend, place or throw. It snaps only to a
+// character. target is its character: it spawns snapped to it, aimed at aim (a model) or at the mat
+// center. Without a target it spawns free at position.
+// angleRef(get): gets a function that returns { target, openYaw } while the angle tool is snapped, else
+// null, and null on unmount. angleLimit(model): on a movement tool, the openYaw of the angle tool
+// snapped to that model, else null. The movement tool then keeps its move direction within
+// ANGLE_LIMIT of it, while snapped to that model. Read at each use, because the angle tool can move.
+function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, angle = false, aim = null, angleLimit, angleRef, position = [0, 0, 0], hoverHeight = 1, selected = false, onSelect, target, placeTarget, models = [], onSnap, onPlaceLimit, onSpawn, onRangeMark, onHover, onDrag, turnRef }) {
   const [hovered, setHovered] = useState(false)
   const rigidRef = useRef()
   // The tool meshes, without the handles, for the outline
   const partsRef = useRef()
-  // Stays STRAIGHT on a tool that is not bendable
-  const [turn, setTurn] = useState(STRAIGHT)
+  // Stays STRAIGHT on a tool that is not bendable, and ANGLE_TURN on the angle tool
+  const [turn, setTurn] = useState(angle ? ANGLE_TURN : STRAIGHT)
+  // Angle tool: where the hinge goes when the tool aims at a piece
+  const [mode, setMode] = useState('away')
   // While the bend button is on, a handle turns its half instead of the whole tool
   const [bendOn, setBendOn] = useState(false)
   const bending = bendable && selected && bendOn
@@ -768,6 +816,15 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
     return () => turnRef?.(null)
   })
 
+  useEffect(() => {
+    if (!angle) return undefined
+    angleRef?.(() => {
+      const rb = rigidRef.current
+      return snap && rb ? { target: snap.target, openYaw: toolPose(rb).yaw + Math.PI / 2 } : null
+    })
+    return () => angleRef?.(null)
+  })
+
   // The cleanups also run on unmount, so a removed tool does not stay hovered or dragged. Escape
   // removes the selected tool, also during its drag.
   useEffect(() => {
@@ -799,17 +856,25 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
     const pivot = center ?? alongHalf(toolShape(toolPose(rb), turn), OTHER[side], tip)
     // Snapped: the piece under the pointer is the one the tool measures against. Not the snapped one.
     const snapped = snap?.target
-    startHandleDrag(e, pivot, (d, pose) => turnAround(pose, pivot, d), raycaster => {
+    const snappedSide = snap?.side
+    startHandleDrag(e, pivot, (d, pose) => {
+      // Angle tool over another piece: the line through its center, not a plain turn
+      if (angle && measuredRef.current) return aimPose(pivot, snapped.radius, halfWidth, measuredRef.current.getCenter(), mode)
+      if (!angleLimit || !snapped) return turnAround(pose, pivot, d)
+      // A movement tool at an angle tool: the turn changes the move direction by d, so cut d
+      const open = angleLimit(snapped)
+      return turnAround(pose, pivot, open === null ? d : limitTurn(toolShape(pose, turn)[snappedSide] + Math.PI, open, d))
+    }, raycaster => {
       const model = raycaster && snapped && modelUnder(raycaster)
       measuredRef.current = model && !sameModel(model, snapped) ? model : null
     })
   }
 
-  // Nearest model under the pointer ray (figure or base), or null
-  function modelUnder(raycaster) {
+  // Nearest of the models (default: all of them) under the pointer ray (figure or base), or null
+  function modelUnder(raycaster, list = models) {
     let nearest = null
     let nearestDistance = Infinity
-    for (const model of models) {
+    for (const model of list) {
       const object = model.getObject()
       const hit = object && raycaster.intersectObject(object, true)[0]
       if (hit && hit.distance < nearestDistance) {
@@ -822,7 +887,8 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
 
   // Body drag: when the pointer moves onto a model, snap to it and end the drag
   function onDragMove(raycaster) {
-    const model = modelUnder(raycaster)
+    // The angle tool snaps only to a character
+    const model = modelUnder(raycaster, angle ? models.filter(m => m.kind === 'character') : models)
     const entered = model && overRef.current !== undefined && model !== overRef.current
     overRef.current = model
     if (!entered || !snapTo(model)) return false
@@ -837,6 +903,14 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
     const rb = rigidRef.current
     if (!c || !rb) return false
     const pose = toolPose(rb)
+    if (angle) {
+      // Same direction, moved so that both arms touch the base
+      const { x, z } = anglePose(c, model.radius, halfWidth, pose.yaw + Math.PI / 2)
+      const ground = groundY(x, z, pose.yaw)
+      rb.setTranslation({ x, y: ground === null ? rb.translation().y : ground + hoverHeight, z }, true)
+      setSnap({ target: model, side: 'left' })
+      return true
+    }
     let center, side, across
     if (rangeOne) {
       const corner = nearerCorner(pose, c)
@@ -850,9 +924,17 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
       const back = tip + model.radius
       center = { x: c.x - back * Math.cos(shape[side]), z: c.z + back * Math.sin(shape[side]) }
     }
-    const { x, z } = center
-    const ground = groundY(x, z, pose.yaw)
+    let placed = { x: center.x, z: center.z, yaw: pose.yaw }
+    // At an angle tool, the move direction (away from the base) stays in range: turn the tool around the base
+    const open = angleLimit?.(model) ?? null
+    if (open !== null && !rangeOne) {
+      const moveYaw = toolShape(pose, turn)[side] + Math.PI
+      placed = turnAround(placed, c, limitTurn(moveYaw, open, 0))
+    }
+    const { x, z } = placed
+    const ground = groundY(x, z, placed.yaw)
     rb.setTranslation({ x, y: ground === null ? rb.translation().y : ground + hoverHeight, z }, true)
+    if (placed.yaw !== pose.yaw) rb.setRotation(yawQuat(placed.yaw), true)
     setSnap({ target: model, side, across })
     return true
   }
@@ -866,7 +948,10 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
     if (!center || !rb) return
     // snapPoseOne puts the base on the +Z long side
     setSnap({ target, side: 'left', across: 1 })
-    const pose = rangeOne ? snapPoseOne(center, target.radius, tip, halfWidth) : snapPose(center, target.radius, tip)
+    // The angle tool aims at the aim piece, or at the mat center. A movement tool at an angle tool points along it.
+    const pose = angle ? aimPose(center, target.radius, halfWidth, aim?.getCenter() ?? { x: 0, z: 0 }, 'away')
+      : rangeOne ? snapPoseOne(center, target.radius, tip, halfWidth)
+      : snapPose(center, target.radius, tip, angleLimit?.(target))
     const ground = groundY(pose.x, pose.z, pose.yaw) ?? 0
     rb.setTranslation({ x: pose.x, y: ground + hoverHeight, z: pose.z }, true)
     rb.setRotation(yawQuat(pose.yaw), true)
@@ -907,6 +992,20 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
     })
     return () => onPlaceLimit?.(null)
   }, [throwing, throwLock, turn, tip])
+
+  // Angle tool, snapped: move the tool to the other side of the base, the same angle turned half
+  // around. Toward becomes Away and Away becomes Toward.
+  function handleMirror(e) {
+    e.stopPropagation()
+    const rb = rigidRef.current
+    if (!snap || !rb) return
+    const c = snap.target.getCenter()
+    const pose = anglePose(c, snap.target.radius, halfWidth, toolPose(rb).yaw + Math.PI / 2 + Math.PI)
+    const ground = groundY(pose.x, pose.z, pose.yaw)
+    rb.setTranslation({ x: pose.x, y: ground === null ? rb.translation().y : ground + hoverHeight, z: pose.z }, true)
+    rb.setRotation(yawQuat(pose.yaw), true)
+    setMode(m => m === 'away' ? 'toward' : 'away')
+  }
 
   // Move a model's base center to spot (table XZ)
   function moveBase(model, spot) {
@@ -1011,7 +1110,7 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
             </mesh>
             {/* Place toggle, Place 2 on the R1 tool. It cannot be turned on for a token: a token
                 has no body, so there is no base to keep on the tool. */}
-            {selected && side === placeButtonSide && !throwLock && (
+            {selected && !angle && side === placeButtonSide && !throwLock && (
               <FlatHtml x={side === 'right' ? tip - PLACE_INSET : PLACE_INSET - tip}>
                 <ToolButton
                   label={rangeOne ? 'Place 2' : 'Place'}
@@ -1044,6 +1143,19 @@ function Tool({ parts, tip, halfWidth, bendable = false, rangeOne = false, posit
             )}
           </group>
         ))}
+        {selected && angle && snap && (
+          // The label reads toward screen right when the tool is on the player's half and aims up the
+          // screen. Mirroring turns the tool half around, so the label turns with it.
+          <FlatHtml>
+            <ToolButton
+              label={<>Toward<br />Away</>}
+              toolWidth={halfWidth * 2}
+              rotation={mode === 'away' ? 0 : 180}
+              title="Move the tool to the other side of the base, to switch between Toward and Away"
+              onClick={handleMirror}
+            />
+          </FlatHtml>
+        )}
         {selected && bendable && (
           <FlatHtml>
             <BendButton on={bendOn} onClick={(e) => { e.stopPropagation(); setBendOn(on => !on) }} />

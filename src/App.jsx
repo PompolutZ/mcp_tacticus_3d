@@ -25,7 +25,7 @@ import { DEFAULT_AFFILIATION } from './scoreboard/affiliations.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
 import { NO_PIECES, NO_TOOLS, deselectPiece, selectPiece, selectedId } from './selection.js'
-import { CLEAR_TOOLS_KEY, DELETE_KEYS, DICE_KEYS, FLIP_KEY, LIFT_KEY, MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, ROTATE_KEYS, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
+import { ANGLE_KEY, CLEAR_TOOLS_KEY, DELETE_KEYS, DICE_KEYS, FLIP_KEY, LIFT_KEY, MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, ROTATE_KEYS, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
 
 // Start view, the seat of the blue player. For now every player is Blue. Blue sits at +z (see
 // characters/trays.js). The camera stands behind the blue table edge and looks down at 45° at a
@@ -105,6 +105,9 @@ function supplyToken(card, x, z) {
 export default function App() {
   const [activeRange, setActiveRange] = useState(null)
   const [activeMove, setActiveMove] = useState(null)
+  // The Toward / Away tool is on the table, and the piece it aims at when it spawns: { kind, id } | null
+  const [angleOn, setAngleOn] = useState(false)
+  const [angleAim, setAngleAim] = useState(null)
   const [debugOn, setDebugOn] = useState(false)
   // 'full' | 'no-outline' | 'no-composer', see DebugPanel
   const [renderMode, setRenderMode] = useState('full')
@@ -122,8 +125,8 @@ export default function App() {
   const [scoreMarkers, setScoreMarkers] = useState(START_MARKERS)
   // Affiliation token that each player's VP marker shows: { blue, red } → key in scoreboard/affiliations.json
   const [affiliations, setAffiliations] = useState({ blue: DEFAULT_AFFILIATION, red: DEFAULT_AFFILIATION })
-  // Selected pieces and tools, see selection.js. One character, one token, the range tool and the
-  // movement tool can all be selected at the same time.
+  // Selected pieces and tools, see selection.js. One character, one token, the range tool, the
+  // movement tool and the Toward / Away tool can all be selected at the same time.
   const [selection, setSelection] = useState(NO_PIECES)
   const [selectedTools, setSelectedTools] = useState(NO_TOOLS)
   // Character or token under the pointer: { kind, id } | null. Only the tool keys read it, so it is a ref.
@@ -135,8 +138,8 @@ export default function App() {
   const heldRotate = useRef(new Map())
   const controlsRef = useRef(null)
   const wheelCameraRef = useRef(null)
-  // Count of tool key presses over a piece, per tool: { range, move }. See Scene.
-  const [toolSpawns, setToolSpawns] = useState({ range: 0, move: 0 })
+  // Count of tool key presses over a piece, per tool: { range, move, angle }. See Scene.
+  const [toolSpawns, setToolSpawns] = useState({ range: 0, move: 0, angle: 0 })
   // Crisis card image open in the full-screen popup: { src, alt } | null, see CardPopup.jsx.
   const [openCard, setOpenCard] = useState(null)
   // Id of the character whose whole tray is open in the full-screen popup, or null (see
@@ -236,6 +239,12 @@ export default function App() {
     setActiveMove(prev => prev === move ? null : move)
   }
 
+  // The toolbar button: the tool spawns at the selected character, aimed at the selected token
+  function handleAngleClick() {
+    setAngleAim(selection.find(p => p.kind === 'token') ?? null)
+    setAngleOn(prev => !prev)
+  }
+
   // over: true when the pointer moved onto the piece, false when it moved off
   function handlePieceHover(piece, over) {
     if (over) hoveredRef.current = piece
@@ -305,6 +314,7 @@ export default function App() {
     }
     if (RANGE_KEYS[e.key]) handleToolKey('range', RANGE_KEYS[e.key])
     else if (MOVE_KEYS[e.key]) handleToolKey('move', MOVE_KEYS[e.key])
+    else if (e.key === ANGLE_KEY) handleAngleKey()
     else if (e.key === CLEAR_TOOLS_KEY) clearTools()
   }
 
@@ -339,6 +349,7 @@ export default function App() {
   function handleEscape() {
     if (selectedTools.range) setActiveRange(null)
     if (selectedTools.move) setActiveMove(null)
+    if (selectedTools.angle) setAngleOn(false)
     setSelectedTools(NO_TOOLS)
     setSelection(NO_PIECES)
   }
@@ -347,7 +358,25 @@ export default function App() {
   function clearTools() {
     setActiveRange(null)
     setActiveMove(null)
+    setAngleOn(false)
     setSelectedTools(NO_TOOLS)
+  }
+
+  // Key 6, the Toward / Away tool. With nothing under the pointer, it toggles the tool, the same as its
+  // toolbar button. Over a character, it selects it and spawns the tool again snapped to it, even if the
+  // tool is already out. It aims at the piece selected last that is not that character, or at the mat
+  // center. Over a token, it does nothing: the mover must be a character.
+  function handleAngleKey() {
+    const piece = hoveredRef.current
+    if (!piece) {
+      handleAngleClick()
+      return
+    }
+    if (piece.kind !== 'character') return
+    setAngleAim(selection.findLast(p => !(p.kind === piece.kind && p.id === piece.id)) ?? null)
+    setSelection(prev => selectPiece(prev, piece))
+    setAngleOn(true)
+    setToolSpawns(prev => ({ ...prev, angle: prev.angle + 1 }))
   }
 
   // tool: 'range' | 'move'. value: the range number or the movement tool type.
@@ -711,6 +740,8 @@ export default function App() {
               characters={characters}
               activeRange={activeRange}
               activeMove={activeMove}
+              angleOn={angleOn}
+              angleAim={angleAim}
               showColliders={debug}
               showLabels={showLabels}
               matTurns={matTurns}
@@ -781,8 +812,10 @@ export default function App() {
           onMapChange={setMapId}
           activeRange={activeRange}
           activeMove={activeMove}
+          angleOn={angleOn}
           onRangeClick={handleRangeClick}
           onMoveClick={handleMoveClick}
+          onAngleClick={handleAngleClick}
           debug={debug}
           onDebugClick={() => setDebugOn(prev => !prev)}
           showLabels={showLabels}

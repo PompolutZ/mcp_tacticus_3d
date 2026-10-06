@@ -17,7 +17,7 @@ const CRISIS_TYPES = [
   { type: 'extract', label: 'Extract' },
 ]
 
-export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeClick, onMoveClick, debug, onDebugClick, showLabels, onLabelsClick, onTurnMat, deployLine, onDeployLineClick, crisis, onCrisisChange, affiliations, onAffiliationChange, tokensOpen, onTokensClick }) {
+export function Toolbar({ mapId, onMapChange, activeRange, activeMove, angleOn, onRangeClick, onMoveClick, onAngleClick, debug, onDebugClick, showLabels, onLabelsClick, onTurnMat, deployLine, onDeployLineClick, crisis, onCrisisChange, affiliations, onAffiliationChange, tokensOpen, onTokensClick }) {
   return (
     <div className="toolbar">
       <div className="group">
@@ -59,6 +59,14 @@ export function Toolbar({ mapId, onMapChange, activeRange, activeMove, onRangeCl
             {m.label}
           </button>
         ))}
+        <button
+          type="button"
+          className={`chip${angleOn ? ' chip--active' : ''}`}
+          title="Toward / Away: L tool bent 90° (key 6)"
+          onClick={onAngleClick}
+        >
+          T/A
+        </button>
       </div>
       <div className="group">
         <span className="group-label">Crisis</span>
