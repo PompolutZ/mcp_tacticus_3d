@@ -13,11 +13,11 @@ The game data goes directly from browser to browser over WebRTC. We run no game 
 | Part | Choice |
 |---|---|
 | Transport | WebRTC data channels, browser to browser |
-| Signaling | One AWS Lambda with a function URL, plus one DynamoDB table. HTTP polling, no WebSocket |
+| Signaling | One AWS Lambda with a function URL, plus one collection in the existing MongoDB Atlas cluster. HTTP polling, no WebSocket |
 | NAT traversal | Public STUN servers first. Cloudflare TURN later, only if direct connections fail too often |
 | Shared state | Yjs document, synced over a reliable data channel, the same way as the whiteboard at work |
 | Moving objects | The player who moves an object simulates it and streams its pose over an unreliable data channel. The rest pose goes into the Yjs document |
-| Cost | $0. Lambda and DynamoDB "Always Free" limits have no end date. See [Cost and free tier](#cost-and-free-tier) |
+| Cost | $0. Lambda "Always Free" limits have no end date, and the Atlas cluster exists already. See [Cost and free tier](#cost-and-free-tier) |
 
 ## How a WebRTC connection starts
 
@@ -40,29 +40,42 @@ At work, Twilio provided the transport and the signaling. Here the browser's `RT
 | [Trystero](https://github.com/dmotz/trystero) (signaling over public Nostr relays, BitTorrent trackers or MQTT brokers) | None | $0 | Depends on public servers that we do not control. They can be slow, rate-limited or gone |
 | y-webrtc public signaling server | None | $0 | Not reliable. The public server has been down, and the y-webrtc docs say to run your own |
 | PeerJS public server | None | $0 | Same problem: a free public service with no guarantee |
-| **AWS Lambda function URL + DynamoDB, HTTP polling** | One function, one table | $0 (Always Free) | Polling adds about 1 s to the connect time |
-| AWS API Gateway WebSocket + Lambda + DynamoDB | One API, functions, a table | Free for 12 months (old accounts) or while credits last (new accounts), then a few cents a month | More parts. Must track open connections |
+| **AWS Lambda function URL + MongoDB Atlas, HTTP polling** | One function, one collection | $0 (Lambda Always Free, existing Atlas cluster) | Polling adds about 1 s to the connect time. Depends on the Atlas cluster that wuclub also uses |
+| AWS Lambda function URL + DynamoDB, HTTP polling | One function, one table | $0 (Always Free) | Polling adds about 1 s to the connect time. One more database to run |
+| AWS API Gateway WebSocket + Lambda + a database | One API, functions, a database | Free for 12 months (old accounts) or while credits last (new accounts), then a few cents a month | More parts. Must track open connections |
 | Cloudflare Worker + Durable Object (WebSocket) | One Worker | $0 (Workers Free plan) | A second cloud vendor. Otherwise a good choice, see [Open questions](#open-questions) |
 
-**Choice: Lambda function URL + DynamoDB.** It is the only option that is under our control and stays free with no end date. Signaling needs few messages, because we send the offer and the answer only after the browser has found all its addresses (non-trickle ICE). So polling is cheap and simple.
+**Choice: Lambda function URL + MongoDB Atlas.** It is under our control and stays free with no end date. The Atlas cluster already exists (wuclub `apiv2` uses it) and has enough free space. DynamoDB is the fallback: it is also free with no end date, and the store interface keeps the switch small. Signaling needs few messages, because we send the offer and the answer only after the browser has found all its addresses (non-trickle ICE). So polling is cheap and simple.
 
-The client code uses a small `Signaling` interface, so we can change the option later without touching the rest. For development there is a second implementation over `BroadcastChannel`. It connects two tabs of the same browser with no server.
+The client code uses a small `Signaling` interface, so we can change the option later without touching the rest. For development, the same Lambda handler runs inside the Vite dev server. See [Local testing](#local-testing).
 
 ## Signaling service
 
 ### Parts
 
-- **Lambda function**, Node.js, about 100 lines. It uses only the AWS SDK that the Lambda runtime already has. Memory 128 MB.
+- **Lambda function**, Node.js, about 100 lines. Memory 256 MB, timeout 10 s. The handler reads and writes messages through a small store interface. The Lambda uses the MongoDB store. The local dev server uses an in-memory store. The bundle includes the official `mongodb` driver (6.x, the same as wuclub `apiv2`), because the Lambda runtime has only the AWS SDK. 256 MB gives more CPU than 128 MB, so the TLS and login steps of a new Atlas connection take less time.
 - **Function URL** with auth type `NONE`. CORS allows only the site origin and `http://localhost:5173`. A function URL has no cost of its own. We pay only for Lambda requests and compute.
-- **DynamoDB table** `signal` in **provisioned** mode (the free tier does not cover on-demand mode). Read and write capacity at most 25 units each. Time to live (TTL) deletes rows after 1 hour. TTL deletes are free.
+- **MongoDB collection** `messages` in its own database `assist3d`, on the existing Atlas cluster. A TTL index deletes each document after 1 hour. Atlas checks TTL indexes about once a minute, so a document can stay a little longer.
+- **Atlas database user** with `readWrite` on `assist3d` only. So the signaling Lambda cannot read or change the wuclub data.
 - **CloudWatch log group** with 7 days retention, so logs do not grow forever.
 - **AWS Budgets** alert by email at $1.
 
-A SAM template in `infra/signal/` creates all of this. One `sam deploy` command deploys it.
+A SAM template in `infra/signal/` creates the AWS parts. One `sam deploy` command deploys them. The Atlas database user is created once by hand in the Atlas UI.
+
+### MongoDB connection
+
+These rules come from wuclub `apiv2` (`src/dal/client.ts`), with two changes.
+
+- One `MongoClient` in module scope. Warm Lambda calls reuse it. Only the first call of a new Lambda instance opens a connection.
+- Options: `maxPoolSize: 2` and `serverSelectionTimeoutMS: 5000`. `apiv2` keeps the defaults: 100 connections per instance and 30 s. With 30 s, the Lambda reaches its own timeout before the driver reports that Atlas cannot be reached.
+- On the first call, the store creates the indexes: `{ room: 1, id: 1 }` and the TTL index `{ expiresAt: 1 }` with `expireAfterSeconds: 0`. `createIndex` does nothing when the index exists already, so this is safe on every cold start.
+- The connection string is the env var `MONGODB_URI`. `sam deploy` passes it as a template parameter with `NoEcho`, read from a local `.env` that git ignores. The value is still visible in the Lambda console, the same as in `apiv2`. Secrets Manager would hide it, but it costs $0.40 per secret per month.
+- Network: the Lambda runs outside a VPC, so its public IP address changes. Therefore the Atlas IP access list must allow `0.0.0.0/0`. The `apiv2` Lambda has the same setup, so the cluster probably allows this already. Check it before phase 5. A fixed IP address needs a VPC and a NAT gateway, and a NAT gateway costs money.
+- Region: deploy the Lambda in the AWS region nearest to the Atlas cluster. Every poll is one round trip to Atlas.
 
 ### Data
 
-The table is a mailbox per room. Partition key `room`, sort key `id` (time + random, so it sorts by time).
+The collection is a mailbox per room. One document per message. The index `{ room: 1, id: 1 }` finds the messages of a room in time order.
 
 | Field | Meaning |
 |---|---|
@@ -71,13 +84,13 @@ The table is a mailbox per room. Partition key `room`, sort key `id` (time + ran
 | `from`, `to` | Peer ids. `to` is `*` for a message to every peer in the room |
 | `type` | `hello`, `offer`, `answer`, `bye` |
 | `data` | The SDP text, or the app version in `hello`. At most 8 KB |
-| `ttl` | Unix time 1 hour from now |
+| `expiresAt` | `Date`, 1 hour from now. The TTL index deletes the document after this time |
 
 ### Endpoints
 
 | Request | Does |
 |---|---|
-| `POST /rooms/{room}/messages` | Stores one message. Rejects unknown types and big bodies |
+| `POST /rooms/{room}/messages` | Stores one message. Rejects unknown types, big bodies, and rooms that have 50 messages already |
 | `GET /rooms/{room}/messages?to={peer}&after={id}` | Returns the messages for this peer (or for `*`) after `id` |
 | `GET /ice` | Returns the ICE server list. Later also short-lived TURN credentials, see [STUN and TURN](#stun-and-turn) |
 
@@ -97,7 +110,7 @@ Polling stops after 15 minutes with no guest. So a forgotten tab does not make r
 
 ## Cost and free tier
 
-The question was: how long can we stay in the free tier with Lambda? Answer: **with no time limit**, if we follow the rules below. Lambda and DynamoDB are in the AWS "Always Free" group. Its limits are per month and have no end date, for old and new accounts.
+The question was: how long can we stay in the free tier with Lambda? Answer: **with no time limit**, if we follow the rules below. Lambda is in the AWS "Always Free" group. Its limits are per month and have no end date, for old and new accounts. The MongoDB Atlas cluster exists already, so signaling adds no cost there, but it must fit the limits of the cluster tier. See [Open questions](#open-questions).
 
 ### Use per game
 
@@ -106,10 +119,10 @@ Assumptions: 2 players, the host waits about 3 minutes for the guest, one reconn
 | Item | Use per game | Always Free per month | Games per month at $0 |
 |---|---|---|---|
 | Lambda requests | about 100 (most are the host's polls while waiting) | 1,000,000 | about 10,000 |
-| Lambda compute | about 0.4 GB-s (128 MB, about 30 ms per request) | 400,000 GB-s | about 1,000,000 |
-| DynamoDB | about 100 reads and 6 writes, rows deleted after 1 h | 25 read units, 25 write units, 25 GB | The limit is per second, not per month: about 100 hosts can wait at the same time |
+| Lambda compute | about 1.3 GB-s (256 MB, about 50 ms per request) | 400,000 GB-s | about 300,000 |
+| MongoDB Atlas | about 100 reads and 6 writes, documents deleted after 1 h | Existing cluster, no extra cost | Depends on the tier. The limits are per second and on open connections, not per month: 100 hosts waiting at the same time make about 50 reads per second |
 | CloudWatch Logs | about 30 KB | 5 GB | about 150,000 |
-| Data out to the internet | about 20 KB | 100 GB | not a limit |
+| Data out to the internet (browsers and Atlas) | about 50 KB | 100 GB | not a limit |
 
 Requests above the limit cost $0.20 per million. So even 20,000 games in one month cost about $0.20.
 
@@ -117,7 +130,7 @@ Requests above the limit cost $0.20 per million. So even 20,000 games in one mon
 
 1. **Account plan.** A new AWS account (created on or after 2025-07-15) on the **Free plan** closes after 6 months or when its credits run out. Before that, upgrade it to the **Paid plan**. Always Free stays on the Paid plan. The Paid plan needs a payment card. An older account already has Always Free.
 2. **No API Gateway.** Its free tier lasts 12 months for old accounts, and new accounts get only credits. The function URL has no charge of its own.
-3. **DynamoDB in provisioned mode**, at most 25 read and 25 write units in total. On-demand mode is not in the free tier.
+3. **No new paid services.** The existing Atlas cluster, no tier upgrade for signaling. The connection string in a Lambda env var, not in Secrets Manager. No VPC and no NAT gateway.
 4. **Log retention** of 7 days.
 5. **Budget alert** at $1, so we see a mistake or abuse early.
 
@@ -171,7 +184,7 @@ One `RTCPeerConnection` per pair of players, with two data channels:
 
 The data is encrypted (DTLS), also through TURN. Data channels need no camera or microphone permission.
 
-Message size: before sending a big Yjs update (the first sync of a game), check `pc.sctp.maxMessageSize`. Split the message if it is bigger.
+Message size: before sending a big Yjs update (the first sync of a game), check `pc.sctp.maxMessageSize`. Split the message if it is bigger. The value depends on both browsers, because each browser states in the SDP how big a message it can receive. Firefox has a different limit than Chrome and Safari. So test the first sync of a big game in each browser pair.
 
 ## State
 
@@ -286,8 +299,51 @@ With no connection, the app works as today: one player uses both trays and one s
 ## Security and abuse
 
 - The room code is the only secret. It has about 40 bits of randomness, so nobody can guess it. A person with the link can join.
-- The signaling endpoint is public, so anyone can call it. Limits: the message size limit, the TTL, CORS for browsers, and the provisioned DynamoDB capacity (too many requests are throttled, they do not cost more). Lambda reserved concurrency can cap the request rate, if the account quota allows it. The budget alert shows abuse. To stop all traffic at once, set reserved concurrency to 0.
+- The signaling endpoint is public, so anyone can call it. Limits: the message size limit, 50 messages per room, the TTL, and CORS for browsers. Lambda reserved concurrency caps how many calls run at the same time, if the account quota allows it. This also caps the Atlas connections, because each Lambda instance opens at most 2. The budget alert shows abuse. To stop all traffic at once, set reserved concurrency to 0.
+- The Atlas cluster is shared with wuclub. Abuse of signaling can use its storage and its connections. The limits above protect it, and the signaling database user cannot reach the wuclub data.
+- The Atlas IP access list allows every address. So only the database user and password protect the cluster.
 - The SDP contains the local IP addresses of the player. Browsers hide them behind mDNS names (`*.local`) by default. The signaling rows are deleted after 1 hour.
+
+## Local testing
+
+Every part must work on one Mac, with no AWS or Cloudflare account and no second person. Each player is a different browser: Chrome, Safari or Firefox. From phase 2 on, each phase is tested in three pairs: Chrome and Safari, Chrome and Firefox, Safari and Firefox.
+
+`BroadcastChannel` cannot connect the players, because it works only between tabs of one browser. So the local setup uses the same HTTP signaling as production.
+
+| Part | Production | Local |
+|---|---|---|
+| App | Netlify | `npm run dev`, `http://localhost:5173` |
+| Signaling | Lambda function URL with the MongoDB store | The same handler inside the Vite dev server at `/signal`, with the in-memory store |
+| MongoDB | Atlas cluster, database `assist3d` | Not needed. Only to test the MongoDB store: `mongo` in Docker |
+| TURN | Cloudflare (phase 6) | coturn in Docker |
+
+The Vite plugin builds a Lambda function URL event from the Node request, calls the handler, and writes the handler's response. The client reads the signaling URL from `VITE_SIGNAL_URL`. In dev, it is `/signal`. The in-memory store loses all rooms when the dev server restarts, which is fine for tests.
+
+To test the MongoDB store code before a deploy, start `mongo` in Docker and run the dev server with `SIGNAL_STORE=mongo` and `MONGODB_URI=mongodb://localhost:27017`. Local dev never uses the Atlas cluster. So a bug in local code cannot change data that the deployed service or wuclub uses.
+
+To connect, open `http://localhost:5173` in one browser and press **Host game**. Copy the room link into the other browser.
+
+### Browser differences
+
+- Each browser has its own `sessionStorage`, `localStorage` and IndexedDB. So peer ids, player names and the stored game do not collide.
+- All three browsers treat `http://localhost` as a secure context.
+- The maximum message size is different in Firefox. See [Data channels](#data-channels).
+- To log bytes per game, the app reads the selected candidate pair from `pc.getStats()`. Chrome and Safari give it through the transport stats (`selectedCandidatePairId`). Firefox has used a `selected` field on the candidate pair instead. The code must support both.
+- Risk: all three browsers can hide local addresses behind mDNS names (`*.local`). On one Mac these names should resolve, but this is not tested yet for every pair. If a pair cannot connect, use the local coturn server with `?relay`.
+
+### Debug flags
+
+Flags in the page URL. They work only in dev builds (`import.meta.env.DEV`), so a player cannot turn them on by mistake.
+
+| Flag | Does |
+|---|---|
+| `?relay` | Sets `iceTransportPolicy: 'relay'`, so all data goes through the TURN server. Tests the relay path before Cloudflare |
+| `?drop=10&delay=100` | Drops 10 % of the packets on the `poses` channel and delays the rest by 100 ms. Localhost loses no packets, so without this flag the interpolation and the rest pose rules are not tested |
+| `?build=test` | Sends a fake app version in `hello`, to test the version warning |
+
+### Save and load a game
+
+**Save game** writes the Yjs document to a file (`Y.encodeStateAsUpdate`). **Load game** reads it. So the same test case can be repeated in each browser pair. Load works only before a game is hosted, because a Yjs update adds to the document and does not replace it.
 
 ## Code layout
 
@@ -295,29 +351,33 @@ With no connection, the app works as today: one player uses both trays and one s
 src/net/
   doc.js          the Y.Doc and its maps, read and write helpers. No React
   useY.js         React hook that reads a Y type
-  signaling.js    Signaling interface: http (Lambda) and broadcast (two tabs) versions
+  signaling.js    Signaling interface and its http version (local dev server and Lambda)
   peer.js         RTCPeerConnection, data channels, ICE servers, reconnect
   syncChannel.js  Yjs sync and awareness over the sync channel (y-protocols)
   poses.js        sends poses of owned bodies, receives and interpolates
   ownership.js    claim and release rules
+  debugFlags.js   ?relay, ?drop, ?delay, ?build (dev builds only)
 infra/signal/
-  handler.mjs     the Lambda
-  template.yaml   SAM template: function, function URL, table, log group
-  README.md       deploy steps
+  handler.mjs     the Lambda. Takes a store
+  storeMongo.mjs  MongoDB store: client in module scope, indexes
+  storeMemory.mjs in-memory store for local dev
+  vitePlugin.mjs  runs the handler at /signal in the Vite dev server
+  template.yaml   SAM template: function, function URL, log group
+  README.md       deploy steps, Atlas user and access list, local coturn and mongo
 ```
 
 New packages: `yjs`, `y-protocols`, `y-indexeddb`.
 
 ## Phases
 
-Each phase ends with a working app. Do not open the app in a browser. Check with `npx vite build`. The user checks the result in the browser.
+Each phase ends with a working app. Do not open the app in a browser. Check with `npx vite build`. The user checks the result in the browser. From phase 2 on, the user tests in the three browser pairs of [Local testing](#local-testing).
 
-1. **Shared state in a local Yjs document.** Move map, mat turns, deploy line, crisis, tokens, the character list and the tools from `useState` into the document. Tools are stored per side. Write rest poses when bodies sleep. No network. The app works as before.
-2. **Two tabs, one browser.** `BroadcastChannel` signaling, `peer.js`, Yjs sync and awareness. Name and side. App version check in `hello`. Discrete changes sync: map, crisis cards, token flips and markers, new characters, damage and power.
-3. **Moving objects.** Player bodies and shared bodies, ownership, the pose channel, the cursor. Bodies moved by the other browser push nothing. Drag of models and tokens by both players. Each player uses only their own tools. Log the bytes of each game from `pc.getStats()`.
+1. **Shared state in a local Yjs document.** Move map, mat turns, deploy line, crisis, tokens, the character list and the tools from `useState` into the document. Tools are stored per side. Write rest poses when bodies sleep. Save and load a game as a file. No network. The app works as before.
+2. **Two browsers, one Mac.** Signaling handler with the in-memory store, run by the Vite dev server. Host and join UI, the room link. `peer.js`, Yjs sync and awareness. Name and side. App version check in `hello`, and the `?build` flag. Discrete changes sync: map, crisis cards, token flips and markers, new characters, damage and power. If a browser pair cannot connect directly, add the local coturn server and `?relay` here instead of in phase 6.
+3. **Moving objects.** Player bodies and shared bodies, ownership, the pose channel, the cursor. Bodies moved by the other browser push nothing. Drag of models and tokens by both players. Each player uses only their own tools. The `?drop` and `?delay` flags. Log the bytes of each game from `pc.getStats()`.
 4. **Dice.** Dice and roll history move into the document. Dice are player bodies. Only the tray's player can use its dice panel.
-5. **Signaling service.** Lambda, table, SAM template, AWS budget alert. Host and join UI, the room link, reconnect, IndexedDB.
-6. **TURN.** Cloudflare TURN through `GET /ice`. The app shows the connection type (direct or relayed). Only if phase 5 shows that direct connections fail too often.
+5. **Signaling service in AWS.** MongoDB store (tested first against local `mongo`), Atlas database user, SAM template, AWS budget alert. The same handler as in phase 2. Reconnect, IndexedDB. Reconnect and IndexedDB are tested locally first.
+6. **TURN.** Local coturn and `?relay` first (if not done in phase 2), then Cloudflare TURN through `GET /ice`. The app shows the connection type (direct or relayed). Cloudflare only if phase 5 shows that direct connections fail too often.
 
 ## Open questions
 
@@ -325,13 +385,19 @@ Each phase ends with a working app. Do not open the app in a browser. Check with
 2. **Cloudflare TURN account.** No paid plan is needed: the TURN FAQ says the free 1,000 GB come before any charges. A search result says no payment card is needed to start, but no official page confirms it. Check when we create the account.
 3. **AWS account.** Use an existing account or a new one? A new one must move to the Paid plan within 6 months.
 4. **Spectators.** Needed later?
+5. **Atlas cluster tier and region.** Not in the wuclub repo. The free tier (M0) has lower limits for open connections and operations per second than the paid tiers. Check them against [Use per game](#use-per-game). The region decides where to deploy the Lambda.
+6. **Atlas access list.** Does it allow `0.0.0.0/0` already? The `apiv2` Lambda suggests yes, but it is not confirmed.
+7. **Shared cluster.** If the wuclub cluster is removed or paused, signaling stops. Then switch to the DynamoDB store.
 
 ## Sources
 
 - [AWS Free Tier plans](https://aws.amazon.com/free/): Free plan closes after 6 months; Always Free applies on both plans.
 - [AWS Lambda pricing](https://aws.amazon.com/lambda/pricing/): 1M requests and 400,000 GB-s per month; $0.20 per 1M requests.
 - [Lambda: function URLs vs API Gateway](https://docs.aws.amazon.com/lambda/latest/dg/furls-http-invoke-decision.html): "There are no additional charges for the URL endpoint itself."
-- [DynamoDB pricing](https://aws.amazon.com/dynamodb/pricing/): 25 GB, 25 WCU, 25 RCU; provisioned capacity only.
+- [DynamoDB pricing](https://aws.amazon.com/dynamodb/pricing/): 25 GB, 25 WCU, 25 RCU; provisioned capacity only. For the DynamoDB fallback.
+- [MongoDB TTL indexes](https://www.mongodb.com/docs/manual/core/index-ttl/): a background task deletes expired documents about every 60 seconds.
+- [Atlas free cluster limits](https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/): connection and operation limits of M0.
+- wuclub `apps/apiv2/src/dal/client.ts`: the `MongoClient` cached in module scope that this plan copies.
 - [API Gateway pricing](https://aws.amazon.com/api-gateway/pricing/): WebSocket free tier for 12 months; $1.00 per 1M messages, $0.25 per 1M connection minutes.
 - [CloudWatch pricing](https://aws.amazon.com/cloudwatch/pricing/): 5 GB of logs per month.
 - [AWS free data transfer out, 100 GB per month](https://aws.amazon.com/blogs/aws/aws-free-tier-data-transfer-expansion-100-gb-from-regions-and-1-tb-from-amazon-cloudfront-per-month/)
