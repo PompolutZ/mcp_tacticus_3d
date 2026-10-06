@@ -55,7 +55,7 @@ A slot is free when no card center lies inside the slot area.
 |---|---|---|
 | Move | Left drag on the card | The card follows the pointer, a little above the table. On release it lies there, or in a slot (see [Free slot](#free-slot)). Released outside the table, it goes back. |
 | Open | Left click on the card | The side that faces up opens in the full-screen popup (`CardPopup.jsx`), the same as a crisis card |
-| Flip | F with the pointer over the card | The card turns to the other side |
+| Flip | F with the pointer over the card | The card turns over around its long side in 0.4 s. It goes up while it turns, so its edges stay above the table. |
 | Delete | Delete or Backspace with the pointer over the card | The card is removed |
 
 - A card has no physics body. It lies on the table or on the terrain under it, the same as a character token on the table (`LooseToken.jsx`).

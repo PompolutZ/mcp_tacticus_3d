@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useTexture } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
 import { Raycaster, Vector3 } from 'three'
@@ -10,6 +9,7 @@ import { tacticCardBack, tacticCardFace } from '../tactics/files.js'
 import { TACTIC_CARD_HEIGHT, TACTIC_CARD_WIDTH, TACTIC_CARD_Y, tacticCardYaw } from '../tactics/layout.js'
 import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
+import { useColorTexture } from './useColorTexture.js'
 
 // A thin box as large as the card finds the ground under it, the same as LooseToken.jsx
 const HALF_H = 0.01
@@ -19,6 +19,16 @@ const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 const STACK_STEP = 0.005
 // A pointer that moves more than this many pixels is a drag, not a click
 const DRAG_THRESHOLD = 4
+// Flip (F): the card turns 180° around its long side (local z) in FLIP_DURATION seconds. It goes up
+// while it turns, so its edges stay above the table: at 90° it stands on its long edge, FLIP_EDGE_GAP
+// above the table. Both values were chosen by look, not measured in TTS.
+const FLIP_DURATION = 0.4
+const FLIP_EDGE_GAP = 0.3
+const FLIP_LIFT = TACTIC_CARD_WIDTH / 2 + FLIP_EDGE_GAP
+// The turn starts and ends slowly (smoothstep)
+const ease = t => t * t * (3 - 2 * t)
+const upAngle = up => (up === 'back' ? Math.PI : 0)
+const flipAngle = flip => flip.from + (flip.to - flip.from) * ease(flip.time / FLIP_DURATION)
 
 // One Team Tactic card, flat on the table or on the terrain under it. It has no physics body, the
 // same as a token on the table. See docs/feature-team-tactic-cards.md, "Card on the table".
@@ -29,12 +39,12 @@ const DRAG_THRESHOLD = 4
 export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }) {
   // Both sides load when the card mounts, so the first flip does not wait for an image
   const [faceUrl, backUrl] = [assetUrl(tacticCardFace(card.key)), assetUrl(tacticCardBack(card.key))]
-  const [faceMap, backMap] = useTexture([faceUrl, backUrl])
+  const [faceMap, backMap] = useColorTexture([faceUrl, backUrl])
   const { camera, gl, controls } = useThree()
   const { world, rapier } = useRapier()
   const shape = useMemo(() => new rapier.Cuboid(TACTIC_CARD_WIDTH / 2, HALF_H, TACTIC_CARD_HEIGHT / 2), [rapier])
   const groupRef = useRef()
-  const meshRef = useRef()
+  const flipGroupRef = useRef()
   const raycaster = useRef(new Raycaster())
   const [hovered, setHovered] = useState(false)
   // Live position during a drag. Synced from the card prop when not dragging. App gives the card a
@@ -42,17 +52,35 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
   // the effect runs after every drop.
   const poseRef = useRef({ x: card.x, z: card.z })
   const draggingRef = useRef(false)
+  // The turn around the long side: { up, from, to, time }. An angle that is an even multiple of π is
+  // face up, an odd multiple is back up. up: the side of the last flip. time: seconds since that flip,
+  // FLIP_DURATION when it is over. Each flip adds π to `to`, so the card always turns the same way.
+  // A flip during a flip starts where the card is.
+  const flipRef = useRef({ up: card.up, from: upAngle(card.up), to: upAngle(card.up), time: FLIP_DURATION })
 
   useEffect(() => {
     if (!draggingRef.current) poseRef.current = { x: card.x, z: card.z }
   }, [card])
 
-  useFrame(() => {
+  useEffect(() => {
+    const flip = flipRef.current
+    if (flip.up === card.up) return
+    flip.from = flipAngle(flip)
+    flip.to += Math.PI
+    flip.time = 0
+    flip.up = card.up
+  }, [card.up])
+
+  useFrame((_, dt) => {
     const { x, z } = poseRef.current
+    const flip = flipRef.current
+    flip.time = Math.min(flip.time + dt, FLIP_DURATION)
+    const angle = flipAngle(flip)
     // ONLY_FIXED + EXCLUDE_SENSORS inside castDown, so models and tools are ignored
     const ground = castDown(world, rapier, shape, NO_ROTATION, x, z, HALF_H) ?? 0
     const y = ground + TACTIC_CARD_Y + (draggingRef.current ? TOKEN_DRAG_LIFT : stackIndex * STACK_STEP)
-    groupRef.current?.position.set(x, y, z)
+    groupRef.current?.position.set(x, y + FLIP_LIFT * Math.abs(Math.sin(angle)), z)
+    if (flipGroupRef.current) flipGroupRef.current.rotation.z = angle
   })
 
   // Table or terrain point under the pointer, or null when the pointer is not over the table. Only
@@ -114,7 +142,7 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
     window.addEventListener('pointerup', handleUp)
   }
 
-  useOutline(meshRef, outlineMode(false, hovered))
+  useOutline(flipGroupRef, outlineMode(false, hovered))
 
   // onHover(true) while the pointer is over the card, onHover(false) after. The cleanup also runs on
   // unmount, so a removed card does not stay hovered and does not keep its cursor.
@@ -130,17 +158,26 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
 
   return (
     <group ref={groupRef} position={[card.x, TACTIC_CARD_Y, card.z]} rotation={[0, tacticCardYaw(card.team), 0]}>
-      {/* Rx(-pi/2) lays the image flat, facing up, with its top to local -z (see tacticCardYaw) */}
-      <mesh
-        ref={meshRef}
-        rotation={[-Math.PI / 2, 0, 0]}
+      {/* The flip turns this group around local z (flipRef). Each side is a plane that is seen only
+          from its front, so only the side that faces up is drawn and gets the pointer. */}
+      <group
+        ref={flipGroupRef}
         onPointerDown={handlePointerDown}
         onPointerOver={e => { e.stopPropagation(); setHovered(true) }}
         onPointerOut={() => setHovered(false)}
       >
-        <planeGeometry args={[TACTIC_CARD_WIDTH, TACTIC_CARD_HEIGHT]} />
-        <meshStandardMaterial map={card.up === 'face' ? faceMap : backMap} roughness={1} />
-      </mesh>
+        {/* Rx(-pi/2) lays the face flat, facing up, with its top to local -z (see tacticCardYaw) */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[TACTIC_CARD_WIDTH, TACTIC_CARD_HEIGHT]} />
+          <meshStandardMaterial map={faceMap} roughness={1} />
+        </mesh>
+        {/* Rz(pi) turns the back image in its plane, then Rx(pi/2) lays it flat, facing down, with its
+            top to local -z. After a turn of pi around z, it lies the same way as the face. */}
+        <mesh rotation={[Math.PI / 2, 0, Math.PI]}>
+          <planeGeometry args={[TACTIC_CARD_WIDTH, TACTIC_CARD_HEIGHT]} />
+          <meshStandardMaterial map={backMap} roughness={1} />
+        </mesh>
+      </group>
     </group>
   )
 }

@@ -10,6 +10,7 @@ import { affiliationToken } from '../scoreboard/files.js'
 import { acquireFootprint } from './footprintProjection.js'
 import { TOKEN_DRAG_LIFT, TOKEN_EDGE_COLOR, TOKEN_THICKNESS } from '../tokens/solid.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
+import { useColorTexture } from './useColorTexture.js'
 
 const TEAM_COLORS = { blue: '#2980b9', red: '#c0392b' }
 // A token is a 1" circle, TOKEN_THICKNESS thick (tokens.json size is used for the shape, not the exact
@@ -60,7 +61,7 @@ function angleTo(pivot, p) {
 // for every user, so CrisisToken and the spectator view (SpectatorBadge.jsx) share the loaded textures.
 export function useTokenMaps(token) {
   const backKey = token.backKey ?? token.frontKey
-  const [frontMap, backMap, damageMap] = useTexture([
+  const [frontMap, backMap, damageMap] = useColorTexture([
     assetUrl(crisisToken(token.frontKey)),
     assetUrl(crisisToken(backKey)),
     assetUrl(crisisMarker('damage')),

@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useRef, useState } from 'react'
-import { Html, useTexture } from '@react-three/drei'
+import { Html } from '@react-three/drei'
 import { DoubleSide } from 'three'
 import { assetUrl } from '../assets/index.js'
 import { characterCard } from '../characters/files.js'
@@ -19,6 +19,7 @@ import {
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import TokenFace from './TokenFace.jsx'
 import TrayControls from './TrayControls.jsx'
+import { useColorTexture } from './useColorTexture.js'
 
 // Every character's Give sources start with Activated and Dazed (characterGiveTokens adds only the
 // character-specific tokens, see migrate-characters.mjs: the mod spawns these next to every tray).
@@ -53,7 +54,7 @@ const CLICK_MOVE = 4
 export default function CharacterTray({ character, position, onOpen, onDamage, onPower, onFlip, onCardHover, onRemove, onTokenRemove, onTokenDragStart, selected = false, objectRef }) {
   // Both sides load when the tray mounts, so the first Flip does not wait for an image (that wait
   // hides the tray, see Scene.jsx, Suspense). The order is fixed: the loader caches by the URL list.
-  const [healthyMap, injuredMap] = useTexture([
+  const [healthyMap, injuredMap] = useColorTexture([
     assetUrl(characterCard(character.key, 'healthy')),
     assetUrl(characterCard(character.key, 'injured')),
   ])
