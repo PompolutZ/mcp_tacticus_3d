@@ -21,7 +21,8 @@ const DAMPING_HIGH = 10
 const LANDED_Y = 0.5
 
 // position: where the body starts. Read only on mount, the same as CharacterModel.jsx.
-export default function Character({ position = [0, 0, 0], baseSize = 'small', frontUrl, backUrl }) {
+// overlay(top): optional, what moves with the standee above it, the same as CharacterModel.jsx.
+export default function Character({ position = [0, 0, 0], baseSize = 'small', frontUrl, backUrl, overlay }) {
   const [startPosition] = useState(position)
   const [front, back] = useTexture([frontUrl, backUrl])
   const rigidRef = useRef()
@@ -62,6 +63,7 @@ export default function Character({ position = [0, 0, 0], baseSize = 'small', fr
           <meshStandardMaterial map={back} transparent side={DoubleSide} roughness={1} />
         </mesh>
       </group>
+      {overlay?.(MAT_Y + STANDEE_HEIGHT)}
     </RigidBody>
   )
 }

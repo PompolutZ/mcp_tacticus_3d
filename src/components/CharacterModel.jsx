@@ -1,8 +1,8 @@
 import { useGLTF } from '@react-three/drei'
 import { RigidBody, CylinderCollider, useRapier } from '@react-three/rapier'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
-import { Color, Plane, Quaternion, Raycaster, Vector3 } from 'three'
+import { Box3, Color, Matrix4, Plane, Quaternion, Raycaster, Vector3 } from 'three'
 import { FRICTION, castDown } from '../physics.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 
@@ -75,6 +75,22 @@ export function baseGroundY(world, rapier, x, z, radius = BASE_RADIUS) {
   return castDown(world, rapier, new rapier.Cylinder(BASE_HALF_H, radius), NO_ROTATION, x, z, BASE_HALF_H)
 }
 
+// Height of the model top above its origin (the base bottom), in inches. Measured in the model's own
+// space, so it does not depend on where the model stands.
+function modelTop(scene) {
+  scene.updateMatrixWorld(true)
+  const toModel = new Matrix4().copy(scene.matrixWorld).invert()
+  const box = new Box3()
+  const meshBox = new Box3()
+  const toMesh = new Matrix4()
+  scene.traverse((obj) => {
+    if (!obj.isMesh) return
+    if (!obj.geometry.boundingBox) obj.geometry.computeBoundingBox()
+    box.union(meshBox.copy(obj.geometry.boundingBox).applyMatrix4(toMesh.multiplyMatrices(toModel, obj.matrixWorld)))
+  })
+  return box.isEmpty() ? 0 : box.max.y
+}
+
 // Angle between two rotations, in radians
 function turnBetween(a, b) {
   const dot = Math.abs(a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w)
@@ -90,9 +106,12 @@ function turnBetween(a, b) {
 // rangeMark: 'inRange' or 'outOfRange' while a range tool marks the model (RangeMark in RulerTool.jsx)
 // position: where the body starts. Read only on mount: RigidBody moves its body when its position
 // prop changes, and the spawn position follows the tray (Scene.jsx), which can move later.
-export default function CharacterModel({ url, position = [0, 0, 0], baseRadius = BASE_RADIUS, rotation = [0, 0, 0], teamColor = 'red', selected = false, rangeMark, onSelect, onHover, bodyRef, objectRef, liftRef, slideRef, onDragStart, onDragEnd, constrainDrag }) {
+// overlay(top): optional, what moves with the model above it (SpectatorBadge.jsx). top: height of the
+// model top above the base bottom, in inches.
+export default function CharacterModel({ url, position = [0, 0, 0], baseRadius = BASE_RADIUS, rotation = [0, 0, 0], teamColor = 'red', selected = false, rangeMark, onSelect, onHover, bodyRef, objectRef, liftRef, slideRef, onDragStart, onDragEnd, constrainDrag, overlay }) {
   const [startPosition] = useState(position)
   const { scene } = useGLTF(url)
+  const top = useMemo(() => modelTop(scene), [scene])
   const { camera, gl, controls } = useThree()
   const { world, rapier } = useRapier()
   const [hovered, setHovered] = useState(false)
@@ -389,6 +408,7 @@ export default function CharacterModel({ url, position = [0, 0, 0], baseRadius =
         onPointerOut={() => setHovered(false)}
         onPointerDown={onPointerDown}
       />
+      {overlay?.(top)}
     </RigidBody>
   )
 }

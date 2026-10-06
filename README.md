@@ -239,6 +239,10 @@ A model that stands on a token can hide it. Press **R** with the pointer over th
 
 The range and movement tools also snap to a selected token, the same way they snap to a model (see [Tools](#tools)). Hold and drop are not built yet; see `docs/feature-crisis.md`.
 
+## Spectator view
+
+**View → Spectator** in the toolbar shows a badge above every model, for viewers who do not look at the trays. A badge shows the objective tokens the character holds, the Secure tokens within range 1 of its base, the Damage and Power counters, and the tokens on the character. It uses the same counters and tokens as the character tray, it faces the camera, and it is read-only. Click the button again to hide the badges. See `docs/feature-spectator-view.md`.
+
 ## Roadmap
 
 - [ ] Character stat cards

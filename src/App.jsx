@@ -124,6 +124,8 @@ export default function App() {
   // 'full' | 'no-outline' | 'no-composer', see DebugPanel
   const [renderMode, setRenderMode] = useState('full')
   const [showLabels, setShowLabels] = useState(false)
+  // The spectator view above each model (SpectatorBadge.jsx)
+  const [spectator, setSpectator] = useState(false)
   const [matTurns, setMatTurns] = useState(0)
   const [mapId, setMapId] = useState(START_MAP)
   // The terrain pieces on the mat, see mapTerrain. A new map replaces them.
@@ -891,6 +893,7 @@ export default function App() {
               angleAim={angleAim}
               showColliders={debug}
               showLabels={showLabels}
+              spectator={spectator}
               matTurns={matTurns}
               deployLine={deployLine}
               crisis={crisis}
@@ -974,6 +977,8 @@ export default function App() {
           onDebugClick={() => setDebugOn(prev => !prev)}
           showLabels={showLabels}
           onLabelsClick={() => setShowLabels(prev => !prev)}
+          spectator={spectator}
+          onSpectatorClick={() => setSpectator(prev => !prev)}
           onTurnMat={handleTurnMat}
           deployLine={deployLine}
           onDeployLineClick={() => setDeployLine(prev => !prev)}

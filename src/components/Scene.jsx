@@ -7,6 +7,7 @@ import { MovementRuler, AngleRuler, RangeRuler, DeployRangeTool, RANGE_TIP, same
 import CharacterModel, { turnBody } from './CharacterModel.jsx'
 import Character from './Character.jsx'
 import CharacterTray from './CharacterTray.jsx'
+import SpectatorBadge from './SpectatorBadge.jsx'
 import Terrain from './Terrain.jsx'
 import CrisisCard from './CrisisCard.jsx'
 import CrisisToken from './CrisisToken.jsx'
@@ -23,6 +24,7 @@ import { projectFootprints } from './footprintProjection.js'
 import { matImage } from '../terrain/files.js'
 import { characterModel, characterStandee, BASE_DIAMETER } from '../characters/files.js'
 import { MAPS } from '../terrain/maps.js'
+import { characterStamina } from '../characters/roster.js'
 import { FRICTION, WORLD_GRAVITY } from '../physics.js'
 import { assetUrl } from '../assets/index.js'
 import { CARD_X, CARD_Y, CARD_Z, supplyPilePosition } from '../crisis/layout.js'
@@ -89,6 +91,7 @@ function Mat({ mat }) {
 // Scene fills it with terrainAt.
 // showColliders: draw every physics collider as lines (the shapes physics uses, not the visible meshes)
 // showLabels: show the piece name and game Size above each terrain piece
+// spectator: show the spectator view above each model (SpectatorBadge.jsx)
 // matTurns: number of 90° counter-clockwise turns of the mat and its terrain
 // crisis: { secure, extract } chosen card keys. tokens: every crisis token on the table (see App.jsx).
 // selection: the selected pieces (see selection.js), lifted to App. onSelectionChange: the setter,
@@ -147,7 +150,7 @@ function Mat({ mat }) {
 // scoreMarkers, affiliations, onScoreMarkerMove(marker, x, z): the scoring board markers, see
 // ScoreBoard.jsx.
 export default function Scene({
-  mapId, terrain = [], onTerrainHover, terrainAtRef, characters = [], activeRange, activeMove, angleOn = false, angleAim = null, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
+  mapId, terrain = [], onTerrainHover, terrainAtRef, characters = [], activeRange, activeMove, angleOn = false, angleAim = null, showColliders = false, showLabels = false, spectator = false, matTurns = 0, deployLine = false,
   crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0, angle: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenPiles = [], onPileTakeStart, onPileMoveStart, onPileHover, tacticCards = [], onTacticMove, onTacticHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, onDiceTrayHover, addDiceRef, heldRotate, scoreMarkers, affiliations, onScoreMarkerMove,
 }) {
   const map = MAPS[mapId]
@@ -360,6 +363,16 @@ export default function Scene({
   // thrown character.
   // A held token is not in this list: it is off the mat, on its holder's tray (see "Hold and drop").
   const matTokens = useMemo(() => tokens.filter(tok => !tok.heldBy), [tokens])
+  // For the spectator view: the tokens of the Secure card on the mat, and the held tokens of each
+  // character, in the order it took them
+  const secureTokens = useMemo(() => matTokens.filter(tok => tok.cardKey === crisis.secure), [matTokens, crisis.secure])
+  const heldTokens = useMemo(() => {
+    const held = new Map()
+    for (const tok of tokens) {
+      if (tok.heldBy) held.set(tok.heldBy, [...(held.get(tok.heldBy) ?? []), tok])
+    }
+    return held
+  }, [tokens])
   // Every crisis token as it is drawn. A held token lies on its holder's card: its tray-local place
   // (heldAt) moves to the table with the tray position, and it faces the holder's player, the same
   // as the card (see trays.js, "An objective token that the character holds").
@@ -411,6 +424,22 @@ export default function Scene({
   function angleLimit(model) {
     const angle = angleTool.current?.()
     return angle && sameModel(angle.target, model) ? angle.openYaw : null
+  }
+
+  // The spectator view above the model of ch, or undefined when it is off. The model draws it, so it
+  // moves with the model (CharacterModel.jsx and Character.jsx, overlay).
+  function spectatorOverlay(ch) {
+    if (!spectator) return undefined
+    return top => (
+      <SpectatorBadge
+        character={ch}
+        stamina={characterStamina(ch.key, ch.side)}
+        top={top}
+        baseRadius={BASE_DIAMETER[ch.base] / 2}
+        held={heldTokens.get(ch.id)}
+        secureTokens={secureTokens}
+      />
+    )
   }
 
   function toggleTool(tool) {
@@ -653,6 +682,7 @@ export default function Scene({
                 baseSize={ch.base}
                 frontUrl={assetUrl(characterStandee(ch.key, 'front'))}
                 backUrl={assetUrl(characterStandee(ch.key, 'back'))}
+                overlay={spectatorOverlay(ch)}
               />
             ) : (
               <CharacterModel
@@ -692,6 +722,7 @@ export default function Scene({
                     if (limit?.id === ch.id) limit.clamp(p)
                   }
                 }}
+                overlay={spectatorOverlay(ch)}
               />
             )}
           </Suspense>

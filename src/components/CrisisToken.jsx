@@ -15,6 +15,8 @@ const TEAM_COLORS = { blue: '#2980b9', red: '#c0392b' }
 // A token is a 1" circle, TOKEN_THICKNESS thick (tokens.json size is used for the shape, not the exact
 // dims of the current tokens, which are all 1" circles)
 const RADIUS = 0.5
+// For the range 1 check and the layout of the spectator view (SpectatorBadge.jsx)
+export const TOKEN_RADIUS = RADIUS
 const HALF_H = TOKEN_THICKNESS / 2
 // Segments of the face disks and the edge, so the outline looks round at close zoom
 const SEGMENTS = 64
@@ -54,6 +56,47 @@ function angleTo(pivot, p) {
   return Math.atan2(pivot.z - p.z, p.x - pivot.x)
 }
 
+// The textures of a token: the face that is up, the other face, and the damage marker. One URL list
+// for every user, so CrisisToken and the spectator view (SpectatorBadge.jsx) share the loaded textures.
+export function useTokenMaps(token) {
+  const backKey = token.backKey ?? token.frontKey
+  const [frontMap, backMap, damageMap] = useTexture([
+    assetUrl(crisisToken(token.frontKey)),
+    assetUrl(crisisToken(backKey)),
+    assetUrl(crisisMarker('damage')),
+  ])
+  return token.up === 'front' ? [frontMap, backMap, damageMap] : [backMap, frontMap, damageMap]
+}
+
+// The token disk: the face that is up, the other face and the edge, centered on y = 0. Used by
+// CrisisToken and the spectator view (SpectatorBadge.jsx). diskRef: the group, for the outline.
+// events: pointer props of the top face and the edge.
+export function TokenDisk({ topMap, bottomMap, diskRef, events }) {
+  return (
+    <group ref={diskRef}>
+      {/* Top face: the up side. Rotated like the mat and the crisis cards, so local +Y of the image
+          (its top) is local -Z, and local +X (its right) stays local +X. See CrisisCard.jsx.
+          circleGeometry maps UVs the same way as a plane of size 2 * RADIUS, so the image disk
+          fills the circle exactly. */}
+      <mesh position={[0, HALF_H, 0]} rotation={[-Math.PI / 2, 0, 0]} {...events}>
+        <circleGeometry args={[RADIUS, SEGMENTS]} />
+        <meshStandardMaterial map={topMap} alphaTest={FACE_ALPHA_TEST} roughness={1} />
+      </mesh>
+      {/* Bottom face: the other side */}
+      <mesh position={[0, -HALF_H, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[RADIUS, SEGMENTS]} />
+        <meshStandardMaterial map={bottomMap} alphaTest={FACE_ALPHA_TEST} roughness={1} />
+      </mesh>
+      {/* Edge: open-ended, because a cylinder's own top and bottom caps have turned UVs (see the
+          note in the design), so the two disks above draw the faces instead. */}
+      <mesh {...events}>
+        <cylinderGeometry args={[RADIUS, RADIUS, HALF_H * 2, SEGMENTS, 1, true]} />
+        <meshStandardMaterial color={TOKEN_EDGE_COLOR} roughness={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
 // The affiliation token of the controlling player, the same image as their VP marker (ScoreBoard.jsx).
 // The image is a disk, so a circle shows it the same way as the token faces.
 function AffiliationMarker({ affiliation, x, radius }) {
@@ -84,13 +127,7 @@ function AffiliationMarker({ affiliation, x, radius }) {
 // controlAffiliation: the affiliation key of the player in token.control (see App.jsx,
 // affiliations), or null when no player controls the token.
 export default function CrisisToken({ token, selected, rangeMark, onSelect, onHover, onMove, onTurn, onHold, findCharacter, floorY, objectRef, centerRef, controlAffiliation = null }) {
-  const backKey = token.backKey ?? token.frontKey
-  const [frontMap, backMap, damageMap] = useTexture([
-    assetUrl(crisisToken(token.frontKey)),
-    assetUrl(crisisToken(backKey)),
-    assetUrl(crisisMarker('damage')),
-  ])
-  const [topMap, bottomMap] = token.up === 'front' ? [frontMap, backMap] : [backMap, frontMap]
+  const [topMap, bottomMap, damageMap] = useTokenMaps(token)
 
   const { camera, gl, controls } = useThree()
   const { world, rapier } = useRapier()
@@ -271,27 +308,7 @@ export default function CrisisToken({ token, selected, rangeMark, onSelect, onHo
 
   return (
     <group ref={setGroupRef} position={[token.x, 0, token.z]} rotation={[0, token.yaw, 0]}>
-      <group ref={diskRef}>
-        {/* Top face: the up side. Rotated like the mat and the crisis cards, so local +Y of the image
-            (its top) is local -Z, and local +X (its right) stays local +X. See CrisisCard.jsx.
-            circleGeometry maps UVs the same way as a plane of size 2 * RADIUS, so the image disk
-            fills the circle exactly. */}
-        <mesh position={[0, HALF_H, 0]} rotation={[-Math.PI / 2, 0, 0]} onPointerDown={onPointerDown} onPointerOver={over} onPointerOut={out}>
-          <circleGeometry args={[RADIUS, SEGMENTS]} />
-          <meshStandardMaterial map={topMap} alphaTest={FACE_ALPHA_TEST} roughness={1} />
-        </mesh>
-        {/* Bottom face: the other side */}
-        <mesh position={[0, -HALF_H, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <circleGeometry args={[RADIUS, SEGMENTS]} />
-          <meshStandardMaterial map={bottomMap} alphaTest={FACE_ALPHA_TEST} roughness={1} />
-        </mesh>
-        {/* Edge: open-ended, because a cylinder's own top and bottom caps have turned UVs (see the
-            note in the design), so the two disks above draw the faces instead. */}
-        <mesh onPointerDown={onPointerDown} onPointerOver={over} onPointerOut={out}>
-          <cylinderGeometry args={[RADIUS, RADIUS, HALF_H * 2, SEGMENTS, 1, true]} />
-          <meshStandardMaterial color={TOKEN_EDGE_COLOR} roughness={0.6} />
-        </mesh>
-      </group>
+      <TokenDisk topMap={topMap} bottomMap={bottomMap} diskRef={diskRef} events={{ onPointerDown, onPointerOver: over, onPointerOut: out }} />
       {token.control && (
         <mesh position={[0, HALF_H + 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[CONTROL_INNER, CONTROL_OUTER, 32]} />

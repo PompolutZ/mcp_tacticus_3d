@@ -17,7 +17,7 @@ const CRISIS_TYPES = [
   { type: 'extract', label: 'Extract' },
 ]
 
-export function Toolbar({ mapId, onMapChange, activeRange, activeMove, angleOn, onRangeClick, onMoveClick, onAngleClick, debug, onDebugClick, showLabels, onLabelsClick, onTurnMat, deployLine, onDeployLineClick, crisis, onCrisisChange, affiliations, onAffiliationChange, libraryOpen, onLibraryClick }) {
+export function Toolbar({ mapId, onMapChange, activeRange, activeMove, angleOn, onRangeClick, onMoveClick, onAngleClick, debug, onDebugClick, showLabels, onLabelsClick, spectator, onSpectatorClick, onTurnMat, deployLine, onDeployLineClick, crisis, onCrisisChange, affiliations, onAffiliationChange, libraryOpen, onLibraryClick }) {
   return (
     <div className="toolbar">
       <div className="group">
@@ -120,6 +120,17 @@ export function Toolbar({ mapId, onMapChange, activeRange, activeMove, angleOn, 
           onClick={onDeployLineClick}
         >
           Lock
+        </button>
+      </div>
+      <div className="group">
+        <span className="group-label">View</span>
+        <button
+          type="button"
+          className={`chip${spectator ? ' chip--active' : ''}`}
+          title="Spectator view: Damage, Power, tokens and objectives above each model"
+          onClick={onSpectatorClick}
+        >
+          Spectator
         </button>
       </div>
       <div className="group">
