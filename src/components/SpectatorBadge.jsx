@@ -10,9 +10,12 @@ import { TrayCounters } from './TrayControls.jsx'
 // The badge is the tray's pieces at this scale. Picked by look, not measured: real size (1) is as
 // small as the tray tokens.
 const BADGE_SCALE = 1.25
-// Gap between the model top and the badge, and between two rows, in inches before the scale.
-// The same gap as between two tokens on the tray (trays.js, TOKEN_GAP).
+// Gap between two rows, in inches before the scale. The same gap as between two tokens on the tray
+// (trays.js, TOKEN_GAP).
 const GAP = 0.1
+// Gap between the model top and the badge bottom, in inches. Picked by look: with 0.1 the upright
+// badge's lowest row touches the model head.
+const LIFT = 0.5
 const TOKEN_PITCH = TOKEN_SIZE + GAP
 const TOKENS_PER_ROW = 4
 const OBJECTIVE_PITCH = 2 * TOKEN_RADIUS + GAP
@@ -20,8 +23,8 @@ const OBJECTIVE_PITCH = 2 * TOKEN_RADIUS + GAP
 // as 1" (see DiceKeys.jsx)
 const COUNTERS_HEIGHT = 0.45
 // Rx(π/2) stands up a token that lies flat (image up, image top to local -z): the image faces local
-// +z, which is the camera, with its top up
-const FACE_CAMERA = [Math.PI / 2, 0, 0]
+// +z, the badge front, with its top up
+const STAND_UP = [Math.PI / 2, 0, 0]
 // The badge draws after the rest of the scene, with no depth test, so terrain and other models never
 // hide a part of it. Its Html counters are on top of the canvas anyway.
 const ON_TOP = 10
@@ -34,8 +37,11 @@ const NO_EVENTS = { raycast: NO_RAYCAST }
 const RANGE_ONE = 1
 const CONTACT_EPS = 0.01
 
+const UP = new Vector3(0, 1, 0)
 const center = new Vector3()
 const baseTurn = new Quaternion()
+const cameraRight = new Vector3()
+const badgeTurn = new Quaternion()
 
 // Draws every mesh under object on top of the scene (see ON_TOP). Each frame, because a token mounts
 // later, after its image loads.
@@ -70,7 +76,8 @@ function Objective({ token }) {
 // tray's own pieces, so it looks the same as the tray. From top to bottom: the objective tokens the
 // character holds and the Secure tokens within range 1 of its base (the crisis token disk), the Damage
 // and Power counters (TrayControls.jsx, without -/+), and the tokens on the character (TokenFace.jsx,
-// with the count). It turns to face the camera, and it gets smaller with distance, as in TTS.
+// with the count). It stands upright, as in TTS, and turns only around the vertical axis to face the
+// camera. It gets smaller with distance, as in TTS.
 // Mounted inside the model's RigidBody (CharacterModel.jsx and Character.jsx, overlay), so it moves
 // with the model. Its origin is the base bottom center.
 // top: height of the model top above the base bottom, in inches. baseRadius: game size of the base.
@@ -93,9 +100,14 @@ export default function SpectatorBadge({ character, stamina, top, baseRadius, he
     if (!base || !anchor) return
     base.getWorldPosition(center)
     base.getWorldQuaternion(baseTurn).invert()
-    // Straight above the base center, also when the model tips over, and facing the camera
-    anchor.position.set(0, top + GAP, 0).applyQuaternion(baseTurn)
-    anchor.quaternion.copy(baseTurn).multiply(camera.quaternion)
+    // Straight above the base center and upright, also when the model tips over. A badge that tilts
+    // with the camera looks like a token on the mat when the camera looks down.
+    anchor.position.set(0, top + LIFT, 0).applyQuaternion(baseTurn)
+    // The badge's x axis is the camera's right side, so the badge faces the camera. OrbitControls keeps
+    // the camera without roll, so its right side is horizontal, also when it looks straight down.
+    cameraRight.set(1, 0, 0).applyQuaternion(camera.quaternion)
+    badgeTurn.setFromAxisAngle(UP, Math.atan2(-cameraRight.z, cameraRight.x))
+    anchor.quaternion.copy(baseTurn).multiply(badgeTurn)
     drawOnTop(anchor)
     const ids = secureTokens
       .filter(t => Math.hypot(t.x - center.x, t.z - center.z) - baseRadius - TOKEN_RADIUS <= RANGE_ONE + CONTACT_EPS)
@@ -119,7 +131,7 @@ export default function SpectatorBadge({ character, stamina, top, baseRadius, he
     <group ref={baseRef}>
       <group ref={anchorRef} scale={BADGE_SCALE}>
         {objectives.map((token, i) => (
-          <group key={token.id} position={[rowX(i, objectives.length, OBJECTIVE_PITCH), objectivesY, 0]} rotation={FACE_CAMERA}>
+          <group key={token.id} position={[rowX(i, objectives.length, OBJECTIVE_PITCH), objectivesY, 0]} rotation={STAND_UP}>
             <Suspense fallback={null}>
               <Objective token={token} />
             </Suspense>
@@ -136,7 +148,7 @@ export default function SpectatorBadge({ character, stamina, top, baseRadius, he
           const x = rowX(i % TOKENS_PER_ROW, inRow, TOKEN_PITCH)
           const y = (tokenRows - 1 - row) * TOKEN_PITCH + TOKEN_SIZE / 2
           return (
-            <group key={key} position={[x, y, 0]} rotation={FACE_CAMERA}>
+            <group key={key} position={[x, y, 0]} rotation={STAND_UP}>
               <Suspense fallback={null}>
                 <TokenFace tokenKey={key} count={count} interactive={false} />
               </Suspense>
