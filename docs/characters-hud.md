@@ -73,9 +73,9 @@ These facts were found on 2026-10-01 in the scripts of the "Red Tray Spawner" ob
 
 ### Place on the table
 
-The table is 72" × 60" (`src/table.js`). The mat is 36" × 36" (`MAT_SIZE` in `Scene.jsx`), centered on the table, so its edge is 18" from the table center on every side.
+The table is 72" × 66" (`src/table.js`). The mat is 36" × 36" (`MAT_SIZE` in `Scene.jsx`), centered on the table, so its edge is 18" from the table center on every side.
 
-Each player's trays sit in one row right next to the mat edge on that player's side (blue at +z, red at −z). A player never has a second row. The row is centered on the middle line of the table (x = 0), the same as TTS (`arrangeTrays` in the Red Tray Spawner). 12 trays fit in the table width. A row of more than 6 trays is wider than the mat, so it goes past the mat corners. See `src/characters/trays.js`.
+Each player's trays sit in one row on that player's side (blue at +z, red at −z), past the player's tactic tray. So the order from the mat is the same as in TTS: mat, tactic tray, character trays. The tactic tray plate ends 22.4" from the table center (see `docs/feature-team-tactic-cards.md`, "Tactic tray"). A player never has a second row. The row is centered on the middle line of the table (x = 0), the same as TTS (`arrangeTrays` in the Red Tray Spawner). 12 trays fit in the table width. A row of more than 6 trays is wider than the mat, so it goes past the mat corners. See `src/characters/trays.js`.
 
 Changes that follow from this:
 
@@ -88,9 +88,9 @@ Changes that follow from this:
 - The card image is 1800 × 1200 px, so the card plane is 4.5" × 3".
 - Tokens on a tray are real size (0.75", see [Real-size tokens](#real-size-tokens)). A row of 6 tokens fills the 5" tray width.
 - From the mat side to the owner's side, a tray has: the **On** row of tokens (0.95"), the card (3"), and the controls strip (1.5").
-- So a tray is 5" × 5.45" (`TRAY_WIDTH` × `TRAY_DEPTH`). A background plate under all parts is slightly larger (5.6" × 6.05"), so the tray stands out from the table. The plate ends 24.35" from the table center.
-- The **Give** sources are not part of the tray. They lie on the table on the owner's side of the plate, 0.3" from it, in 2 rows of 6 (1.6"). The second row ends 26.25" from the table center; the table edge is at 30". They move with the tray.
-- There is a 0.3" gap between two plates, and between the mat edge and the row. Without it, two trays look like one. So trays sit 5.9" apart, center to center, and `floor((72 + 0.3) / 5.9) = 12` trays fit in the table width.
+- So a tray is 5" × 5.45" (`TRAY_WIDTH` × `TRAY_DEPTH`). A background plate under all parts is slightly larger (5.6" × 6.05"), so the tray stands out from the table. The plate ends 28.75" from the table center.
+- The **Give** sources are not part of the tray. They lie on the table on the owner's side of the plate, 0.3" from it, in 2 rows of 6 (1.6"). The second row ends 30.65" from the table center; the table edge is at 33". They move with the tray.
+- There is a 0.3" gap between two plates, and between the tactic tray and the row. Without it, two trays look like one. So trays sit 5.9" apart, center to center, and `floor((72 + 0.3) / 5.9) = 12` trays fit in the table width.
 - The row is centered on the middle line of the table. One tray sits on the line. Two trays sit one on each side of the line, and so on. The order is the spawn order, from the owner's left.
 - So every tray of a player moves when that player adds or removes a character. A removed character's tray leaves the row, and the row closes the gap. The same happens in TTS.
 - The card faces the owner and sits on the mat side of the tray; the controls strip sits on the owner's side, away from the mat. For blue, the top of the card image points to −z, the same as a crisis card (`CrisisCard.jsx`). A red tray is turned by 180°.
@@ -98,7 +98,7 @@ Changes that follow from this:
 - A newly spawned model stands on the table at the center of its tray's card, not on a separate bench. The model keeps its own rotation from the spawner. The model reads that position only once, when its body mounts. A Rapier `RigidBody` moves its body when its `position` prop changes, so a later tray move must not reach the body through that prop. A model that is still loading when the row shifts mounts on its tray's new place.
 - When a tray moves, a model that still stands on that tray moves with it (`Scene.jsx`). A model that the player moved off its tray, for example onto the mat, stays where it is. TTS does the same (`moveTray` in the tray script). TTS checks "not on the mat"; the app checks "on its own tray plate".
 
-At the default camera position, the trays are at the edge of the view or outside it. Players pan the camera to see them. A 2D HUD fixes this later.
+The start view (`CAMERA_TARGET` and `CAMERA_POSITION` in `App.jsx`) shows the tactic trays and the character trays of both players. Its bottom edge is just past the blue Give sources.
 
 ### Controls
 
@@ -135,19 +135,19 @@ A player gives a token to a character by dragging it onto the model or onto the 
 
 | Token | Drag from | Result |
 |---|---|---|
-| Character token (condition, Activated, Dazed, superpower or Team Tactic token) | A **Give** source of any tray, the **Tokens** panel, or the table | The token count on the target goes up by 1, with the limits in [Players apply the rules](#players-apply-the-rules) |
+| Character token (condition, Activated, Dazed, superpower or Team Tactic token) | A **Give** source of any tray, the **Library**, a pile, or the table | The token count on the target goes up by 1, with the limits in [Players apply the rules](#players-apply-the-rules) |
 | Extract objective token (Asset, Civilian, supply token) | The table, or the supply pile of a Source card | The target holds the token, see [Hold and drop](#hold-and-drop) |
 
-The **Tokens** panel is a HUD panel, opened from a toolbar button. It shows every migrated token, in groups, with a search field. It has the same purpose as the TTS "Token Tray": a player can give a token that is not among the Give sources of any tray, for example a token from a Team Tactic card.
+The **Library** HUD panel shows every migrated token, in groups, with a search field (see `docs/feature-library.md`). It replaced the Tokens panel on 2026-10-06. It has the same purpose as the TTS "Token Tray": a player can give a token that is not among the Give sources of any tray, for example a token from a Team Tactic card. In Pile mode, a drag from the Library puts a pile on the table that never runs out.
 
-A character token can also lie on the table, as in TTS. A player drags it there from a Give source or from the Tokens panel, and later drags it on to a character or to another place. The Delete key (or Backspace) removes the token under the pointer.
+A character token can also lie on the table, as in TTS. A player drags it there from a Give source, a pile or the Library, and later drags it on to a character or to another place. The Delete key (or Backspace) removes the token under the pointer.
 
 How the drag works:
 
-- A drag starts on `pointerdown` on a Give source (3D), a token on the table (3D) or a Tokens panel chip (DOM). App stores it (`tokenDrag`) and turns off the camera controls.
+- A drag starts on `pointerdown` on a Give source (3D), a token or a pile on the table (3D) or a Library token chip (DOM). App stores it (`tokenDrag`) and turns off the camera controls.
 - The drag becomes active after the pointer moves 4 px. Then `TokenDragPreview` shows the token at real size on the table or terrain point under the pointer. A token from the table is hidden at its old place. A release before 4 px is a click, and nothing happens.
 - On `pointerup`, App decides:
-  1. Over a HUD panel: nothing happens. So a drag back onto the Tokens panel cancels it.
+  1. Over a HUD panel: nothing happens. So a drag back onto the Library cancels it.
   2. Over a character: the character gets the token. DOM first: the nearest element with `data-character-id` under the pointer (the tray controls have it, and a later 2D HUD can use the same attribute). Then 3D: `Scene.jsx` gives App a `characterAt(clientX, clientY)` function through a ref. It casts a ray from the camera and hits the model objects (`charObjects`) and the tray background plates. A token from the table is used up, also when the character is at the limit for that token, the same as TTS. It stays on the table when the character is immune.
   3. Over the table or terrain: a new token lies there, or the token from the table moves there.
   4. Over the space around the table: nothing happens.
@@ -213,7 +213,7 @@ Output, in the same style as the crisis migration:
 | `src/tokens/files.js` | `characterToken(key)` |
 | `scripts/token-manifest.json` | Source URLs, so a second run converts only new or changed files |
 
-`group` is one of `condition`, `status` (Activated and Dazed), `character` (images in `token/character/`) and `tactic` (images in `token/tactic/`). The Tokens panel shows the groups.
+`group` is one of `condition`, `status` (Activated and Dazed), `character` (images in `token/character/`) and `tactic` (images in `token/tactic/`). The Library shows the groups.
 
 ## Character data
 

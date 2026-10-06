@@ -2,10 +2,8 @@
 // React, the same as table.js and dice/tray.js, so a future headless sim could use it too.
 // See docs/characters-hud.md, "Tray layout".
 
-import { MAT_SIZE, TABLE_WIDTH } from '../table.js'
+import { TACTIC_TRAY_OUTER_Z } from '../tactics/layout.js'
 import { TOKEN_SIZE } from '../tokens/files.js'
-
-const MAT_HALF = MAT_SIZE / 2
 
 // Card face images are 1800x1200 px
 export const TRAY_CARD_WIDTH = 4.5
@@ -113,7 +111,7 @@ export const TRAY_BG_WIDTH = TRAY_WIDTH + TRAY_BG_MARGIN * 2
 export const TRAY_BG_DEPTH = TRAY_DEPTH + TRAY_BG_MARGIN * 2
 export const TRAY_BG_Y = -TRAY_Y / 2 // local offset from the tray group's own Y (TRAY_Y)
 
-// Gap between two background plates next to each other, between the mat edge and the row, and
+// Gap between two background plates next to each other, between the tactic tray and the row, and
 // between the plate and the Give sources. Without it, the plates touch and two trays look like
 // one, and the sources look like part of the tray.
 const TRAY_GAP = 0.3
@@ -132,8 +130,10 @@ export function trayGiveTokenPosition(index) {
 // edges. A row of more than 6 trays is wider than the mat, so it goes past the mat corners (see
 // docs/characters-hud.md, "Place on the table").
 const TRAY_SPACING = TRAY_BG_WIDTH + TRAY_GAP
-// Center z of the row, for a player at local +z (see trayPosition, which mirrors this for red).
-const ROW_CENTER_Z = MAT_HALF + TRAY_GAP + TRAY_BG_DEPTH / 2
+// Center z of the row, for a player at local +z (see trayPosition, which mirrors this for red). The
+// row lies past the player's tactic tray, as in TTS: mat, tactic tray, character trays (see
+// docs/feature-team-tactic-cards.md, "Tactic tray").
+const ROW_CENTER_Z = TACTIC_TRAY_OUTER_Z + TRAY_GAP + TRAY_BG_DEPTH / 2
 
 // Table position of tray `index` (from 0, in spawn order) of a player who has `count` trays. The
 // row is centered on the middle line of the table (x = 0), the same as TTS (arrangeTrays in the

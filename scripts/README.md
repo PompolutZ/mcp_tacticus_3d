@@ -396,7 +396,8 @@ These rules were found on 2026-10-05 in the scripts of the "Database" object and
 
 1. Card text, affiliation and legality.
 2. The images of the other 320 cards. TTS must download them first.
-3. Display of the cards in the app.
+
+The app shows the cards on a tactic tray per player, see `docs/feature-team-tactic-cards.md`.
 
 # TTS dice migration
 

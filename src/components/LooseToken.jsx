@@ -11,7 +11,7 @@ const HALF_H = 0.02
 const GAP = 0.02
 const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 
-// A character token that lies on the table: dropped there from a Give source or the Tokens panel
+// A character token that lies on the table: dropped there from a Give source, a pile or the Library
 // (see App.jsx, handleTokenDrop). It has no physics body. Each frame it sits on the table or on
 // the terrain under it, the same as a crisis token, so a mat turn or a map change keeps it on top.
 // token: { id, key, x, z }, see App.jsx, looseTokens. onDragStart(nativeEvent): a left

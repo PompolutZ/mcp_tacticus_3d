@@ -103,7 +103,7 @@ function FacePlate({ symbol, count, menuOpen, onToggle, onReroll, onChange, onMe
 }
 
 // The "Reroll one / Change one to" menu of one face plate. A pointerdown outside the menu closes
-// it, the same pattern as CharacterSpawner's dropdown. A pointerdown on a face plate does not:
+// it (a pointerdown listener on the document). A pointerdown on a face plate does not:
 // the click that follows toggles this menu, or opens the other plate's menu (App keeps one open).
 function FaceMenu({ symbol, onReroll, onChange, onClose }) {
   const menuRef = useRef(null)

@@ -5,12 +5,11 @@ import { OrbitControls } from '@react-three/drei'
 import Scene from './components/Scene.jsx'
 import SelectionOutlines from './components/SelectionOutlines.jsx'
 import { Toolbar } from './components/Toolbar.jsx'
-import { CharacterSpawner } from './components/CharacterSpawner.jsx'
+import { Library } from './components/Library.jsx'
 import { KeyboardCamera } from './components/KeyboardCamera.jsx'
 import { WheelCamera } from './components/WheelCamera.jsx'
 import { LoadingOverlay } from './components/LoadingOverlay.jsx'
 import { TokenPanel } from './components/TokenPanel.jsx'
-import { TokensPanel } from './components/TokensPanel.jsx'
 import { CardPopup } from './components/CardPopup.jsx'
 import { TrayPopup } from './components/TrayPopup.jsx'
 import { canFlip, canMove, getCard, hasArc, hasMarkers } from './crisis/cards.js'
@@ -20,6 +19,7 @@ import { BASE_DIAMETER } from './characters/files.js'
 import { trayHeldDefault } from './characters/trays.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { getToken, isCappedToken } from './tokens/tokens.js'
+import { firstFreeSlot, nearestFreeSlot, tacticTrayAt } from './tactics/layout.js'
 import { START_MARKERS } from './scoreboard/board.js'
 import { DEFAULT_AFFILIATION } from './scoreboard/affiliations.js'
 import FrameStats from './debug/FrameStats.jsx'
@@ -29,11 +29,12 @@ import { ANGLE_KEY, CLEAR_TOOLS_KEY, DELETE_KEYS, DICE_KEYS, FLIP_KEY, LIFT_KEY,
 
 // Start view, the seat of the blue player. For now every player is Blue. Blue sits at +z (see
 // characters/trays.js). The camera stands behind the blue table edge and looks down at 45° at a
-// point 6" from the mat center toward blue, 46" away. Then a 16:10 view shows the whole mat, the
-// blue trays and the red trays. The bottom edge of the view meets the table at z = 26.7", just
-// past the blue trays' edge (26.15", see trays.js). Space returns to this view (see resetCamera).
-const CAMERA_TARGET = [0, 0, 6]
-const CAMERA_POSITION = [0, 32.5, 38.5]
+// point 10.4" from the mat center toward blue, 46" away. Then a 16:10 view shows the whole mat, the
+// tactic trays and the character trays of both players. The bottom edge of the view meets the table
+// at z = 31.1", just past the blue Give sources (30.65", see trays.js). Space returns to this view
+// (see resetCamera).
+const CAMERA_TARGET = [0, 0, 10.4]
+const CAMERA_POSITION = [0, 32.5, 42.9]
 // Camera mouse buttons as in TTS: right drag turns, middle drag pans. Left drag also turns, because
 // the app has no box select (the TTS left drag) and a trackpad has no easy right drag. Shift, Ctrl
 // or Cmd + a turn drag pans (OrbitControls). A mouse wheel zooms. On a trackpad, a two-finger swipe
@@ -149,9 +150,9 @@ export default function App() {
   // trays: { trayKey, symbol } | null. Lifted here, not into DiceKeys, so Escape can close it (see
   // handleKeyDown).
   const [diceMenu, setDiceMenu] = useState(null)
-  // The Tokens HUD panel (see TokensPanel.jsx), toggled by its toolbar button.
-  const [tokensOpen, setTokensOpen] = useState(false)
-  // A short HUD message, for example an immunity block. Same pattern as CharacterSpawner's own
+  // The Library HUD panel (see Library.jsx), toggled by its toolbar button.
+  const [libraryOpen, setLibraryOpen] = useState(false)
+  // A short HUD message, for example an immunity block. Same pattern as the Library's own
   // message (a timeout clears it), but global: a drag can end over any tray.
   const [hudMessage, setHudMessage] = useState(null)
   const hudMessageTimer = useRef(null)
@@ -159,11 +160,21 @@ export default function App() {
   // the player closed the warning.
   const [softwareRenderer, setSoftwareRenderer] = useState(null)
   // Character tokens that lie on the table: [{ id, key, x, z }]. A player drops them there from a
-  // Give source or the Tokens panel, and drags them on to a character or another place. See
+  // Give source, a pile or the Library, and drags them on to a character or another place. See
   // docs/characters-hud.md, "Give tokens by drag and drop".
   const [looseTokens, setLooseTokens] = useState([])
   // Id of the table token under the pointer, for the Delete key. A ref, the same as hoveredRef.
   const hoveredLooseRef = useRef(null)
+  // Piles of character tokens on the table, dropped from the Library in Pile mode: [{ id, key, x, z }].
+  // A pile never runs out. See docs/feature-library.md, "Pile".
+  const [tokenPiles, setTokenPiles] = useState([])
+  // Id of the pile under the pointer, for the Delete key
+  const hoveredPileRef = useRef(null)
+  // Team Tactic cards on the table: [{ id, key, team, x, z, up }]. The order is the stack order: the
+  // last card lies on top. See docs/feature-team-tactic-cards.md, "State".
+  const [tacticCards, setTacticCards] = useState([])
+  // Id of the tactic card under the pointer, for the F and Delete keys
+  const hoveredTacticRef = useRef(null)
   // Id of the crisis token under the pointer that a character holds, for the Delete key
   const hoveredHeldRef = useRef(null)
   // Id of the character whose tray card is under the pointer, for the F key
@@ -172,10 +183,11 @@ export default function App() {
   const diceTrayHoveredRef = useRef(false)
   // The player's dice tray fills it with its addDice: adds that many dice. See DiceTray.jsx.
   const addDiceRef = useRef(null)
-  // A token drag in progress: { tokenKey, looseId, supplyCard, active, start } | null. looseId: the
-  // table token that is dragged, or null for a new token from a source. supplyCard: the card key
-  // when the new token comes from the supply pile of a Source card (tokenKey is then a crisis token
-  // key), otherwise null. active: the pointer has moved DRAG_THRESHOLD px, so the dragged token
+  // A token drag in progress: { tokenKey, looseId, supplyCard, pile, pileId, active, start } | null.
+  // looseId: the table token that is dragged, or null for a new token from a source. supplyCard: the
+  // card key when the new token comes from the supply pile of a Source card (tokenKey is then a
+  // crisis token key), otherwise null. pile: the drag brings a new pile from the Library. pileId: the
+  // drag moves that pile (Shift + drag). active: the pointer has moved DRAG_THRESHOLD px, so the dragged token
   // shows under the pointer (Scene.jsx, TokenDragPreview). start: the pointer position at that
   // moment. The state changes only at start and when the drag becomes active, not on every
   // pointermove.
@@ -266,8 +278,9 @@ export default function App() {
       return
     }
     if (e.key === 'Escape') {
-      // A dice tray face menu closes first, before the table's own Escape behavior.
+      // A dice tray face menu closes first, then the Library, before the table's own Escape behavior.
       if (diceMenu) { setDiceMenu(null); return }
+      if (libraryOpen) { setLibraryOpen(false); return }
       handleEscape()
       return
     }
@@ -275,6 +288,8 @@ export default function App() {
     if (DELETE_KEYS.includes(e.key)) {
       if (hoveredLooseRef.current) handleLooseRemove(hoveredLooseRef.current)
       else if (hoveredHeldRef.current) handleHeldRemove(hoveredHeldRef.current)
+      else if (hoveredPileRef.current) handlePileRemove(hoveredPileRef.current)
+      else if (hoveredTacticRef.current) handleTacticRemove(hoveredTacticRef.current)
       return
     }
     if (PAN_KEYS[e.code]) {
@@ -396,17 +411,19 @@ export default function App() {
     setToolSpawns(prev => ({ ...prev, [tool]: prev[tool] + 1 }))
   }
 
-  // F, as in TTS: flips the crisis token under the pointer (also one that a character holds), or the
-  // card of the character under the pointer (its model or its tray card). With nothing under the
-  // pointer, it flips the piece selected last: a token, or the card of a character. A token without
-  // a back does not flip (handleTokenFlip).
+  // F, as in TTS: flips the crisis token under the pointer (also one that a character holds), the
+  // card of the character under the pointer (its model or its tray card), or the tactic card under
+  // the pointer. With nothing under the pointer, it flips the piece selected last: a token, or the
+  // card of a character. A token without a back does not flip (handleTokenFlip).
   function handleFlipKey() {
     const piece = hoveredRef.current
       ?? (hoveredHeldRef.current && { kind: 'token', id: hoveredHeldRef.current })
       ?? (hoveredTrayCardRef.current && { kind: 'character', id: hoveredTrayCardRef.current })
+      ?? (hoveredTacticRef.current && { kind: 'tactic', id: hoveredTacticRef.current })
       ?? selection.at(-1)
     if (piece?.kind === 'token') handleTokenFlip(piece.id)
     else if (piece?.kind === 'character') handleCharacterFlip(piece.id)
+    else if (piece?.kind === 'tactic') handleTacticFlip(piece.id)
   }
 
   // type: 'secure' | 'extract'. key: a card key, or null for "None".
@@ -562,8 +579,8 @@ export default function App() {
     setOpenTrayId(prev => prev === id ? null : prev)
   }
 
-  // A short message in the HUD, for a few seconds (the immunity block below; CharacterSpawner has
-  // its own copy of this pattern for the "no 3D model" message).
+  // A short message in the HUD, for a few seconds (the immunity block below; the Library has its
+  // own copy of this pattern for the "no 3D model" message).
   function showHudMessage(text) {
     clearTimeout(hudMessageTimer.current)
     setHudMessage(text)
@@ -614,28 +631,93 @@ export default function App() {
     setLooseTokens(prev => prev.filter(t => t.id !== id))
   }
 
-  // pointerdown on a character token: a Tokens panel chip, a tray's Give source (a new token, the
-  // source never runs out), or a token on the table (looseId).
+  // pointerdown on a character token: a tray's Give source (a new token, the source never runs out),
+  // or a token on the table (looseId).
   function handleTokenDragStart(e, tokenKey, looseId = null) {
-    startTokenDrag(e, { tokenKey, looseId, supplyCard: null })
+    startTokenDrag(e, { tokenKey, looseId })
+  }
+
+  // pointerdown on a Library token chip. mode 'single': a new token, the same as from a Give
+  // source. mode 'pile': a new pile (see docs/feature-library.md, "Tokens").
+  function handleLibraryTokenDragStart(e, tokenKey, mode) {
+    startTokenDrag(e, { tokenKey, pile: mode === 'pile' })
+  }
+
+  // pointerdown on a pile on the table: a new token, the pile never runs out. With Shift, the drag
+  // moves the pile.
+  function handlePileTakeStart(e, pile) {
+    startTokenDrag(e, { tokenKey: pile.key })
+  }
+
+  function handlePileMoveStart(e, pile) {
+    startTokenDrag(e, { tokenKey: pile.key, pileId: pile.id })
+  }
+
+  function handlePileHover(id, over) {
+    if (over) hoveredPileRef.current = id
+    else if (hoveredPileRef.current === id) hoveredPileRef.current = null
+  }
+
+  // Delete key over a pile on the table
+  function handlePileRemove(id) {
+    setTokenPiles(prev => prev.filter(p => p.id !== id))
+  }
+
+  // A click on a tactic card in the Library: the card goes into the first free slot of the team's
+  // tactic tray, or next to the tray when its 5 slots are full. It lies face up.
+  function handleTacticSpawn(key, team) {
+    setTacticCards(prev => {
+      const slot = firstFreeSlot(team, prev)
+      return [...prev, { id: crypto.randomUUID(), key, team, x: slot.x, z: slot.z, up: 'face' }]
+    })
+  }
+
+  // The end of a tactic card drag at table point (x, z). Over the plate of a tactic tray, the card goes
+  // into the nearest free slot of that tray and faces that tray's player, the same as a TTS snap point.
+  // Otherwise it lies at the point. The card moves to the end of the list, so it lies on top.
+  function handleTacticMove(id, x, z) {
+    setTacticCards(prev => {
+      const card = prev.find(c => c.id === id)
+      if (!card) return prev
+      const team = tacticTrayAt({ x, z })
+      const slot = team && nearestFreeSlot(team, { x, z }, prev, id)
+      const moved = slot ? { ...card, team, x: slot.x, z: slot.z } : { ...card, x, z }
+      return [...prev.filter(c => c.id !== id), moved]
+    })
+  }
+
+  function handleTacticFlip(id) {
+    setTacticCards(prev => prev.map(c => c.id === id ? { ...c, up: c.up === 'face' ? 'back' : 'face' } : c))
+  }
+
+  // Delete key over a tactic card
+  function handleTacticRemove(id) {
+    setTacticCards(prev => prev.filter(c => c.id !== id))
+  }
+
+  function handleTacticHover(id, over) {
+    if (over) hoveredTacticRef.current = id
+    else if (hoveredTacticRef.current === id) hoveredTacticRef.current = null
   }
 
   // pointerdown on the supply pile of a Source card: a new supply token. The pile never runs out.
   function handleSupplyDragStart(e, cardKey) {
     const supply = getCard(cardKey)?.supply
-    if (supply) startTokenDrag(e, { tokenKey: supply, looseId: null, supplyCard: cardKey })
+    if (supply) startTokenDrag(e, { tokenKey: supply, supplyCard: cardKey })
   }
 
   // e is the DOM event. preventDefault stops the browser's own image drag and text selection. The
   // camera does not move during the drag. A pointerdown on the canvas also starts an OrbitControls
   // drag, which captures the pointer, so the capture is released, the same as CrisisToken.jsx.
+  // drag: tokenKey and the fields of tokenDrag that are set, the others get their defaults.
   function startTokenDrag(e, drag) {
     e.preventDefault()
     e.stopPropagation()
     if (e.target?.hasPointerCapture?.(e.pointerId)) e.target.releasePointerCapture(e.pointerId)
     if (controlsRef.current) controlsRef.current.enabled = false
-    tokenDragRef.current = { ...drag, startX: e.clientX, startY: e.clientY, active: false }
-    setTokenDrag({ ...drag, active: false, start: null })
+    const full = { looseId: null, supplyCard: null, pile: false, pileId: null, ...drag }
+    tokenDragRef.current = { ...full, startX: e.clientX, startY: e.clientY, active: false }
+    setTokenDrag({ ...full, active: false, start: null })
   }
 
   function cancelTokenDrag() {
@@ -655,15 +737,23 @@ export default function App() {
   }
 
   // Release of an active token drag at (clientX, clientY). Over a HUD panel: nothing changes, so a
-  // drag back onto the Tokens panel cancels it. Over a character (its model, or anywhere on its
+  // drag back onto the Library cancels it. Over a character (its model, or anywhere on its
   // tray): the character gets the token, the same as before. A table token is used up then, unless
   // the character is immune. Over the table or terrain: a new token lies there, or the dragged table
   // token moves there. Elsewhere (the space around the table): nothing changes. A supply token
-  // follows the same rules, but it is a crisis token: a character holds it (handleSupplyTake).
+  // follows the same rules, but it is a crisis token: a character holds it (handleSupplyTake). A
+  // pile goes only on the table: a new pile lies there, or the moved pile moves there.
   function handleTokenRelease(clientX, clientY) {
-    const { tokenKey, looseId, supplyCard } = tokenDragRef.current
+    const { tokenKey, looseId, supplyCard, pile, pileId } = tokenDragRef.current
     if (!document.elementFromPoint(clientX, clientY)?.closest('.scene-root')) return
     const characterId = findCharacterAt(clientX, clientY)
+    if (pile || pileId) {
+      const point = dragPointRef.current
+      if (characterId || !point) return
+      if (pileId) setTokenPiles(prev => prev.map(p => p.id === pileId ? { ...p, x: point.x, z: point.z } : p))
+      else setTokenPiles(prev => [...prev, { id: crypto.randomUUID(), key: tokenKey, x: point.x, z: point.z }])
+      return
+    }
     if (supplyCard) {
       const point = dragPointRef.current
       const pile = supplyPilePosition(getCard(supplyCard).type)
@@ -768,6 +858,13 @@ export default function App() {
               onTokenDragStart={handleTokenDragStart}
               looseTokens={looseTokens}
               onLooseHover={handleLooseHover}
+              tokenPiles={tokenPiles}
+              onPileTakeStart={handlePileTakeStart}
+              onPileMoveStart={handlePileMoveStart}
+              onPileHover={handlePileHover}
+              tacticCards={tacticCards}
+              onTacticMove={handleTacticMove}
+              onTacticHover={handleTacticHover}
               tokenDrag={tokenDrag}
               dragPointRef={dragPointRef}
               onCardOpen={setOpenCard}
@@ -827,12 +924,9 @@ export default function App() {
           onCrisisChange={handleCrisisChange}
           affiliations={affiliations}
           onAffiliationChange={(team, key) => setAffiliations(prev => ({ ...prev, [team]: key }))}
-          tokensOpen={tokensOpen}
-          onTokensClick={() => setTokensOpen(prev => !prev)}
+          libraryOpen={libraryOpen}
+          onLibraryClick={() => setLibraryOpen(prev => !prev)}
         />
-        <div className="hud-top-right">
-          <CharacterSpawner onSpawn={handleSpawn} />
-        </div>
       </div>
       <TokenPanel
         token={selectedToken}
@@ -840,7 +934,12 @@ export default function App() {
         onControl={control => handleTokenControl(selectedToken.id, control)}
         onDamage={damage => handleTokenDamage(selectedToken.id, damage)}
       />
-      <TokensPanel open={tokensOpen} onDragStart={handleTokenDragStart} />
+      <Library
+        open={libraryOpen}
+        onSpawnCharacter={handleSpawn}
+        onSpawnTactic={handleTacticSpawn}
+        onTokenDragStart={handleLibraryTokenDragStart}
+      />
       <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
       {openTray && (
         <TrayPopup

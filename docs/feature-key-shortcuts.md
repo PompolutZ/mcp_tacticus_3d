@@ -49,12 +49,12 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 | Z | Zoom to the pointer, press again to zoom back | Nothing | No |
 | P | Camera mode: third person, first person, top-down | Nothing | No |
 | Ctrl | First-person mode: fly down | Nothing | No |
-| F | Flip | Flips the crisis token under the pointer, or the card of the character under the pointer (its model or its tray card). With nothing under the pointer: the piece selected last, a token or the card of a character | Partly |
+| F | Flip | Flips the crisis token under the pointer, the card of the character under the pointer (its model or its tray card), or the Team Tactic card under the pointer. With nothing under the pointer: the piece selected last, a token or the card of a character | Partly |
 | Q / E | Rotate the piece | Turns the dragged character or tool, else the one under the pointer, 15° around its center. Q turns counter-clockwise, E clockwise (seen from above). A token has a turn handle, no key | Partly |
 | T | Tap (turn 90°) | Nothing | No |
 | R | Raise | Lifts the model under the pointer 6", or puts it back down. With no model under the pointer: puts every lifted model back down | Partly |
 | L | Lock | Nothing | No |
-| Delete / Backspace | Delete the hovered or selected piece | Deletes the character token on the table under the pointer. Other pieces cannot be deleted with a key | Partly |
+| Delete / Backspace | Delete the hovered or selected piece | Deletes the piece under the pointer: a character token on the table, a crisis token that a character holds, a token pile, or a Team Tactic card. Other pieces cannot be deleted with a key | Partly |
 | G | Group | Nothing | No |
 | U | Place under | Nothing | No |
 | Alt (hold, over a piece) | Zoomed preview, works best for cards | Click a card to open it in a popup | Partly |

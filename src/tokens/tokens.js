@@ -1,6 +1,6 @@
 // Token list built from tokens.json, the same pattern as crisis/cards.js. The 'counter' group has
 // only "1 Power" (the icon of the tray's Power counter, see TrayControls.jsx): not a token a
-// player gives to a character, so it is left out here and never reaches the Tokens panel or a drag.
+// player gives to a character, so it is left out here and never reaches the Library or a drag.
 import tokensData from './tokens.json'
 
 export const TOKENS = Object.entries(tokensData)

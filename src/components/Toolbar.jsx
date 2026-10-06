@@ -17,9 +17,19 @@ const CRISIS_TYPES = [
   { type: 'extract', label: 'Extract' },
 ]
 
-export function Toolbar({ mapId, onMapChange, activeRange, activeMove, angleOn, onRangeClick, onMoveClick, onAngleClick, debug, onDebugClick, showLabels, onLabelsClick, onTurnMat, deployLine, onDeployLineClick, crisis, onCrisisChange, affiliations, onAffiliationChange, tokensOpen, onTokensClick }) {
+export function Toolbar({ mapId, onMapChange, activeRange, activeMove, angleOn, onRangeClick, onMoveClick, onAngleClick, debug, onDebugClick, showLabels, onLabelsClick, onTurnMat, deployLine, onDeployLineClick, crisis, onCrisisChange, affiliations, onAffiliationChange, libraryOpen, onLibraryClick }) {
   return (
     <div className="toolbar">
+      <div className="group">
+        <button
+          type="button"
+          className={`chip${libraryOpen ? ' chip--active' : ''}`}
+          title="Characters, Team Tactic cards and tokens to bring to the table"
+          onClick={onLibraryClick}
+        >
+          Library
+        </button>
+      </div>
       <div className="group">
         <span className="group-label">Mat</span>
         <select className="chip" title="Map" value={mapId} onChange={e => onMapChange(e.target.value)}>
@@ -100,17 +110,6 @@ export function Toolbar({ mapId, onMapChange, activeRange, activeMove, angleOn, 
             ))}
           </select>
         ))}
-      </div>
-      <div className="group">
-        <span className="group-label">Tokens</span>
-        <button
-          type="button"
-          className={`chip${tokensOpen ? ' chip--active' : ''}`}
-          title="Give a token by dragging it onto a model or a tray"
-          onClick={onTokensClick}
-        >
-          Tokens
-        </button>
       </div>
       <div className="group">
         <span className="group-label">Deploy</span>

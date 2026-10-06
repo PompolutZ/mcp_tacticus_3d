@@ -39,8 +39,7 @@ body {
   isolation: isolate;
 }
 
-/* One row for the toolbar (left) and the spawner (right), so they never overlap.
-   The toolbar wraps to more rows when it does not fit. */
+/* The toolbar row. The toolbar wraps to more rows when it does not fit. */
 .hud-top {
   position: absolute;
   top: 12px;
@@ -239,16 +238,17 @@ body {
   pointer-events: none;
 }
 
-/* The Tokens HUD panel (TokensPanel.jsx), opened from the toolbar. */
-.tokens-panel {
+/* The Library HUD panel (Library.jsx), opened from the toolbar: characters, tactic cards and
+   tokens. See docs/feature-library.md. */
+.library {
   position: absolute;
   top: 56px;
   left: 12px;
+  bottom: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width: 280px;
-  max-height: calc(100% - 100px);
+  width: 340px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -257,35 +257,176 @@ body {
   z-index: 200;
 }
 
-.tokens-panel-search {
+.library-search {
   width: 100%;
 }
 
-.tokens-panel-groups {
+.library-search::placeholder {
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.library-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.library-row-gap {
+  margin-left: 10px;
+}
+
+.library-message {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.library-results {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+  min-height: 0;
   overflow-y: auto;
 }
 
-.tokens-panel-group {
+.library-section {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.tokens-panel-chips {
+.library-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.library-more {
+  font: inherit;
+  font-size: 11px;
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.library-character {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 3px 6px;
+  background: none;
+  border: none;
+  border-radius: 5px;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.library-character:hover {
+  background: var(--panel-2);
+}
+
+.library-character--unavailable {
+  color: var(--muted);
+}
+
+.library-portrait {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  background: var(--panel-2);
+  object-fit: cover;
+}
+
+.library-character-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.library-code {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.library-tactics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.library-tactic {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 4px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.library-tactic:hover {
+  background: var(--panel-2);
+  border-color: var(--line);
+}
+
+/* Poker card size, 2.5 x 3.5 (tactics/layout.js) */
+.library-tactic-image {
+  width: 100%;
+  aspect-ratio: 2.5 / 3.5;
+  border-radius: 4px;
+  background: var(--panel-2);
+  object-fit: cover;
+}
+
+.library-tactic-name {
+  width: 100%;
+  font-size: 11px;
+  line-height: 1.2;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.library-token-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.library-token-group-label {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.library-tokens {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
 }
 
-.tokens-panel-chips .token-chip {
+.library-tokens .token-chip {
   width: 28px;
   height: 28px;
+  cursor: grab;
 }
 
-.tokens-panel-empty {
+.library-empty {
   font-size: 12px;
   color: var(--muted);
 }
@@ -347,109 +488,6 @@ body {
   white-space: nowrap;
   pointer-events: none;
   z-index: 600;
-}
-
-.spawner {
-  position: relative;
-  flex-shrink: 0;
-  pointer-events: auto;
-}
-
-.spawner-input {
-  width: 180px;
-}
-
-.spawner-input::placeholder {
-  color: var(--muted);
-  opacity: 0.7;
-}
-
-.spawner-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin-top: 4px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  max-height: 300px;
-  overflow-y: auto;
-  min-width: 280px;
-}
-
-.spawner-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  padding: 6px 10px;
-  background: none;
-  border: none;
-  color: var(--text);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-  text-align: left;
-}
-
-.spawner-item:first-child {
-  border-radius: 8px 8px 0 0;
-}
-
-.spawner-item:last-child {
-  border-radius: 0 0 8px 8px;
-}
-
-.spawner-item:hover {
-  background: var(--panel-2);
-}
-
-.spawner-item--unavailable {
-  color: var(--muted);
-}
-
-.spawner-item--unavailable:hover {
-  background: var(--panel-2);
-}
-
-.spawner-item-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.spawner-item-code {
-  color: var(--muted);
-  font-size: 11px;
-  margin-left: 12px;
-  flex-shrink: 0;
-}
-
-.spawner-message {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: 4px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 13px;
-  color: var(--muted);
-  white-space: nowrap;
-}
-
-/* The red dice panel stacks under the spawner, in normal flow, so it stays clear of the
-   toolbar even when the toolbar wraps to more rows (see App.jsx). */
-.hud-top-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-  pointer-events: none;
 }
 
 /* Keys of a dice tray (DiceKeys.jsx), drawn on the tray's lip through a drei Html transform.

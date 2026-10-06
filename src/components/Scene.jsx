@@ -14,6 +14,9 @@ import LooseToken from './LooseToken.jsx'
 import TokenDragPreview from './TokenDragPreview.jsx'
 import TokenFace from './TokenFace.jsx'
 import SupplyPile, { SupplyToken } from './SupplyPile.jsx'
+import TokenPile, { PileStack } from './TokenPile.jsx'
+import TacticTray from './TacticTray.jsx'
+import TacticCard from './TacticCard.jsx'
 import DiceTray from './DiceTray.jsx'
 import ScoreBoard from './ScoreBoard.jsx'
 import { projectFootprints } from './footprintProjection.js'
@@ -65,7 +68,7 @@ const ROTATE_SMOOTH_TIME = 0.06
 const ROTATE_DONE = 1e-4
 
 // Every piece that loads a file after the first scene load (the mat of a new map, terrain, crisis
-// cards and tokens, character trays and models, tools) is in its own Suspense below. While its file
+// cards and tokens, character trays and models, tactic cards, tools) is in its own Suspense below. While its file
 // loads, only that piece is not drawn. Without its own Suspense, the load hides the whole scene (the
 // Suspense that React Three Fiber puts around the Canvas content), and the screen flashes black.
 
@@ -100,9 +103,15 @@ function Mat({ mat }) {
 // onCharacterRemove(id): the tray's Remove button, after its own confirmation.
 // onCharacterTokenRemove(id, key): a click on a token in the tray's "On" row.
 // onTokenDragStart(e, key, looseId): pointerdown on a tray's Give source, or on a token on the
-// table (looseId), the same handler the Tokens panel uses (see App.jsx, handleTokenDragStart).
+// table (looseId). See App.jsx, handleTokenDragStart.
 // looseTokens: the character tokens that lie on the table, [{ id, key, x, z }] (see App.jsx).
 // onLooseHover(id, over): the pointer moved onto or off one of them, for the Delete key.
+// tokenPiles: the piles of character tokens on the table, [{ id, key, x, z }] (see TokenPile.jsx).
+// onPileTakeStart(e, pile), onPileMoveStart(e, pile): a drag on a pile takes a token, or with Shift
+// moves the pile. onPileHover(id, over): for the Delete key.
+// tacticCards: the Team Tactic cards on the table (see TacticCard.jsx and App.jsx). onTacticMove(id,
+// x, z): a card drag ended over the table. onTacticHover(id, over): for the F and Delete keys. A
+// click on a card opens it with onCardOpen, the same as a crisis card.
 // tokenDrag: the token drag in progress, see App.jsx. While it is active, the dragged token shows
 // under the pointer (TokenDragPreview) and, for a token from the table, not in its old place.
 // dragPointRef: the preview writes the table point under the pointer there, for App's release.
@@ -136,7 +145,7 @@ function Mat({ mat }) {
 // ScoreBoard.jsx.
 export default function Scene({
   mapId, characters = [], activeRange, activeMove, angleOn = false, angleAim = null, showColliders = false, showLabels = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0, angle: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, onDiceTrayHover, addDiceRef, heldRotate, scoreMarkers, affiliations, onScoreMarkerMove,
+  crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0, angle: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenPiles = [], onPileTakeStart, onPileMoveStart, onPileHover, tacticCards = [], onTacticMove, onTacticHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, onDiceTrayHover, addDiceRef, heldRotate, scoreMarkers, affiliations, onScoreMarkerMove,
 }) {
   const map = MAPS[mapId]
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
@@ -544,13 +553,42 @@ export default function Scene({
             onHover={over => onLooseHover?.(tok.id, over)}
           />
         ))}
+        {/* Piles of character tokens on the table (Library, Pile mode). A pile that is moved shows
+            under the pointer instead. */}
+        {tokenPiles.filter(pile => !(tokenDrag?.active && tokenDrag.pileId === pile.id)).map(pile => (
+          <TokenPile
+            key={pile.id}
+            pile={pile}
+            onTakeStart={e => onPileTakeStart(e, pile)}
+            onMoveStart={e => onPileMoveStart(e, pile)}
+            onHover={over => onPileHover?.(pile.id, over)}
+          />
+        ))}
         {tokenDrag?.active && (
           <TokenDragPreview pointRef={dragPointRef} start={tokenDrag.start}>
             {tokenDrag.supplyCard
               ? <SupplyToken tokenKey={tokenDrag.tokenKey} raycast={NO_RAYCAST} />
-              : <TokenFace tokenKey={tokenDrag.tokenKey} interactive={false} />}
+              : tokenDrag.pile || tokenDrag.pileId
+                ? <PileStack tokenKey={tokenDrag.tokenKey} interactive={false} />
+                : <TokenFace tokenKey={tokenDrag.tokenKey} interactive={false} />}
           </TokenDragPreview>
         )}
+
+        {/* The tactic tray of each player, between the mat and the character trays, and the Team
+            Tactic cards. Relative to the table, not the mat. See docs/feature-team-tactic-cards.md. */}
+        <TacticTray team="blue" />
+        <TacticTray team="red" />
+        {tacticCards.map((card, i) => (
+          <Suspense key={card.id} fallback={null}>
+            <TacticCard
+              card={card}
+              stackIndex={i}
+              onMove={(x, z) => onTacticMove(card.id, x, z)}
+              onOpen={onCardOpen}
+              onHover={over => onTacticHover?.(card.id, over)}
+            />
+          </Suspense>
+        ))}
 
         {/* One tray per spawned character, next to the mat edge (see trays.js and
             docs/characters-hud.md, "Tray layout"). The model below spawns standing on the center
