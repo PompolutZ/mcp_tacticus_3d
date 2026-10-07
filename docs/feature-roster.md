@@ -115,18 +115,35 @@ row 2 [ttc]x10        [secure]x5        [extract]x5                             
 On 2026-10-07, the app has files for 65 of 233 character codes, 69 of 401 Team Tactic codes and 24 of 45 crisis codes. For example, the "Spider-foes 2foe2furious" roster on Jarvis community has files in the app for 0 of 10 characters, 2 of 10 Team Tactic cards and 5 of 10 crisis cards.
 
 - A card without an image is a plain plate of the same size, with the card name and the MCT code as a label. The label is a canvas texture on the plate, so it lies flat and faces the owner, the same as the card images. The `tray-label` CSS was removed earlier.
+- A click on a plate does not open the roster popup. The HUD message shows an error instead: "No card image for <name> (<code>)". For a character it is "No card image or model for <name> (<code>)", because a character without an image also has no model.
 - A character without a 3D model also gets the mark "No model", the same as the grey row in the Library. It cannot be spawned.
 
 ### Card actions
 
 | Action | Input | Result |
 |---|---|---|
-| Open | Left click on a card with an image | The image opens in the full-screen popup (`CardPopup.jsx`), the same as a tray card or a crisis card |
+| Open | Left click on a card | The roster popup opens on that card, see [Roster popup](#roster-popup). A card without an image shows an error, see [Cards without files](#cards-without-files) |
 | Move | — | Not possible. The cards are locked, the same as in TTS |
 
 - A roster card has no physics body. Models and dice do not touch it.
 - A roster card is not a piece for the range and movement tools. A tool key over a roster card works the same as over the empty table.
 - When a player has character trays on the table, the trays and the roster overlap. The app does not move either of them. The player removes the roster with **×**. Setup game will remove the roster when the squad is chosen.
+
+### Roster popup
+
+Added on 2026-10-07. `RosterPopup.jsx` shows the roster of one player in a full-screen popup.
+
+- The popup has no panel. The title, the tabs, the cards and the buttons lie on a dark backdrop that blurs the table, the same as the single card popup (`CardPopup.jsx`). Only the cards and the buttons take clicks. A click anywhere else goes to the backdrop.
+- The title says whose roster it is: "Blue player roster" or "Red player roster", in the player color.
+- The popup has 3 tabs: **Characters**, **Tactic cards** and **Crisis cards**. The Crisis tab has the Secure cards, then the Extract cards. A tab without cards is disabled.
+- Each tab shows its cards in a carousel, one card at a time, in the order of the table. The carousel is a loop in both directions: after the last card comes the first. The carousel uses Embla (`embla-carousel-react`), the same library as the wuclub carousel.
+- The popup opens on the tab and the card that the player clicked. A new tab starts at its first card.
+- Drag the card, click **‹** / **›**, or press the left and right arrow keys to see the other cards. The text "Card 3 of 10" shows the place.
+- A character card or a Team Tactic card flips with a click on the card or on the **Flip** button under it. A character card shows its Injured side, a Team Tactic card its back. The pointer cursor over the card shows that a click flips it. A crisis card does not flip: its back shows only the card type. Each card keeps its side until the player changes the tab or closes the popup.
+- A card without an image shows as a plate with its name and MCT code, the same as on the table. The popup never opens on such a card, but the carousel can move to it. The Infinity Gems of a character show as text lines under its card.
+- Escape, **×** in the top right corner of the screen, or a click on the backdrop closes the popup. A new load or **×** of that roster also closes it.
+
+`App.jsx` stores the open popup as `openRoster: { team, tab, index } | null`. App handles all keys (see `keyboard.js`), so App also owns the shown card. A drag in the carousel reports the new card to App.
 
 ## State
 
@@ -153,6 +170,7 @@ rosters: {
 | `src/rosters/cards.js` | `cardKind(code)`, `rosterCard(code)` (kind, name, image file or null, model or not), `parseRosterText(text)` |
 | `src/rosters/layout.js` | `rosterLayout(team, parsed)`, `ROSTER_CARD_Y`, `rosterRowInfo`. Card positions for each side. Plain module, the same as `characters/trays.js` |
 | `src/components/RosterCards.jsx` | The cards of one roster on the table |
+| `src/components/RosterPopup.jsx` | The roster popup: tabs and a card carousel |
 | `src/components/Toolbar.jsx` | The Roster group. The VP group goes away |
 | `scripts/fetch-jarvis-tactics.mjs` | The Team Tactic data, with a section in `scripts/README.md` |
 
@@ -193,6 +211,7 @@ Made on 2026-10-07:
 8. Codes after `-` are gems only when the first code of the group is a character. A gem is a code of kind `tactic`. An unknown gem code goes to the warning.
 9. The text search is `/\d{8}(?:-\d{8})*/g`, with no check of the characters around a match. TTS also uses a plain substring search.
 10. A card without an image shows its name and MCT code in a canvas texture on the plate.
-11. A plate takes no pointer events. The pointer works as over the empty table.
+11. A click on a plate shows an error in the HUD message. The roster popup opens only on a card with an image. (Changed on 2026-10-07. Before, a plate took no pointer events.)
 12. Roster cards lie at y = 0.01, below the character trays (y = 0.02). The tray draws on top of a roster.
 13. The toolbar field keeps the typed text. **×** clears the field and the roster.
+14. A click on a roster card opens the roster popup on that card, not the single card popup. App owns the open tab and card, so the arrow keys can move the carousel.

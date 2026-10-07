@@ -123,7 +123,8 @@ function Mat({ mat }) {
 // tokenDrag: the token drag in progress, see App.jsx. While it is active, the dragged token shows
 // under the pointer (TokenDragPreview) and, for a token from the table, not in its old place.
 // dragPointRef: the preview writes the table point under the pointer there, for App's release.
-// rosters: { blue, red } → null | { code }, the loaded rosters (RosterCards.jsx).
+// rosters: { blue, red } → null | { code }, the loaded rosters (RosterCards.jsx). onRosterOpen({ team, tab,
+// index }): a click on a roster card opens the roster popup on that card (see RosterPopup.jsx).
 // onCardOpen({ src, alt }): a click on a crisis card (see CardPopup.jsx). onTrayOpen(id): a click
 // on a tray card opens the whole tray (see TrayPopup.jsx).
 // diceMenu: the open face menu of a dice tray, { trayKey, symbol } | null, lifted to App so Escape
@@ -154,7 +155,7 @@ function Mat({ mat }) {
 // ScoreBoard.jsx.
 export default function Scene({
   mapId, terrain = [], onTerrainHover, terrainAtRef, characters = [], activeRange, activeMove, angleOn = false, angleSpawn = { target: null, aim: null }, showColliders = false, showLabels = false, spectator = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0, angle: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenPiles = [], onPileTakeStart, onPileMoveStart, onPileHover, tacticCards = [], onTacticMove, onTacticHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, onDiceTrayHover, addDiceRef, heldRotate, scoreMarkers, affiliations, rosters = { blue: null, red: null }, onScoreMarkerMove,
+  crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0, angle: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenPiles = [], onPileTakeStart, onPileMoveStart, onPileHover, tacticCards = [], onTacticMove, onTacticHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, onDiceTrayHover, addDiceRef, heldRotate, scoreMarkers, affiliations, rosters = { blue: null, red: null }, onRosterOpen, onScoreMarkerMove,
 }) {
   const map = MAPS[mapId]
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
@@ -671,7 +672,7 @@ export default function Scene({
         {/* The loaded rosters, in the area of the character trays (docs/feature-roster.md). Locked cards, no
             physics body, so a tool or a model passes over them. */}
         {['blue', 'red'].map(team => rosters[team] && (
-          <RosterCards key={team} team={team} code={rosters[team].code} onOpen={onCardOpen} />
+          <RosterCards key={team} team={team} code={rosters[team].code} onOpen={(tab, index) => onRosterOpen?.({ team, tab, index })} />
         ))}
         {tacticCards.map((card, i) => (
           <Suspense key={card.id} fallback={null}>

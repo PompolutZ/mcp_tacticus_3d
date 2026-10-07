@@ -18,6 +18,8 @@ export const DICE_KEYS = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9,
 export const PAN_KEYS = { KeyW: [0, 1], KeyS: [0, -1], KeyA: [-1, 0], KeyD: [1, 0] }
 // Camera turn, arrow keys as in TTS: key code → direction the view turns [right, up]
 export const TURN_KEYS = { ArrowUp: [0, 1], ArrowDown: [0, -1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }
+// Previous / next card in the roster popup (RosterPopup.jsx): key code → step
+export const CARD_STEP_KEYS = { ArrowLeft: -1, ArrowRight: 1 }
 // Piece turn, Q / E as in TTS (Rotate Left / Rotate Right): key code → direction. 1 turns the piece
 // counter-clockwise seen from above. See turnPiece in Scene.jsx.
 export const ROTATE_KEYS = { KeyQ: 1, KeyE: -1 }

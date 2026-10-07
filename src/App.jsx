@@ -12,6 +12,7 @@ import { LoadingOverlay } from './components/LoadingOverlay.jsx'
 import { TokenPanel } from './components/TokenPanel.jsx'
 import { CardPopup } from './components/CardPopup.jsx'
 import { TrayPopup } from './components/TrayPopup.jsx'
+import { RosterPopup } from './components/RosterPopup.jsx'
 import { canFlip, canMove, getCard, hasArc, hasMarkers } from './crisis/cards.js'
 import { supplyPilePosition } from './crisis/layout.js'
 import { characterImmune, characterName, characterStamina } from './characters/characters.js'
@@ -24,13 +25,13 @@ import { firstFreeSlot, nearestFreeSlot, tacticTrayAt } from './tactics/layout.j
 import { START_MARKERS } from './scoreboard/board.js'
 import { DEFAULT_AFFILIATION } from './scoreboard/affiliations.js'
 import { formatMctCode, isEmptyRoster } from './rosters/mct.js'
-import { parseRosterText } from './rosters/cards.js'
+import { parseRosterText, rosterCard, rosterTabs } from './rosters/cards.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
 import { MAPS } from './terrain/maps.js'
 import { TERRAIN_PIECES } from './terrain/pieces.js'
 import { NO_PIECES, NO_TOOLS, deselectPiece, isToolPiece, selectPiece, selectedId } from './selection.js'
-import { ANGLE_KEY, CLEAR_TOOLS_KEY, DELETE_KEYS, DICE_KEYS, FLIP_KEY, LIFT_KEY, LOCK_KEY, MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, ROTATE_KEYS, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
+import { ANGLE_KEY, CARD_STEP_KEYS, CLEAR_TOOLS_KEY, DELETE_KEYS, DICE_KEYS, FLIP_KEY, LIFT_KEY, LOCK_KEY, MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, ROTATE_KEYS, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
 
 // Start view, the seat of the blue player. For now every player is Blue. Blue sits at +z (see
 // characters/trays.js). The camera stands behind the blue table edge and looks down at 45° at a
@@ -171,8 +172,11 @@ export default function App() {
   // Crisis card image open in the full-screen popup: { src, alt } | null, see CardPopup.jsx.
   const [openCard, setOpenCard] = useState(null)
   // Id of the character whose whole tray is open in the full-screen popup, or null (see
-  // TrayPopup.jsx). At most one of openCard and openTrayId is set: each popup covers the table.
+  // TrayPopup.jsx). At most one of openCard, openTrayId and openRoster is set: each popup covers the table.
   const [openTrayId, setOpenTrayId] = useState(null)
+  // Roster open in the full-screen popup, see RosterPopup.jsx: { team, tab, index } | null. tab: a key
+  // of ROSTER_TABS (rosters/cards.js), index: the card shown in that tab.
+  const [openRoster, setOpenRoster] = useState(null)
   // The open "Reroll one / Change one to" menu of a dice tray face plate, at most one across both
   // trays: { trayKey, symbol } | null. Lifted here, not into DiceKeys, so Escape can close it (see
   // handleKeyDown).
@@ -333,9 +337,11 @@ export default function App() {
       if (e.key === 'Escape') cancelTokenDrag()
       return
     }
-    if (openCard || openTrayId) {
-      // Escape closes only the popup. Other keys do nothing, so nothing changes on the table behind it.
-      if (e.key === 'Escape') { setOpenCard(null); setOpenTrayId(null) }
+    if (openCard || openTrayId || openRoster) {
+      // Escape closes only the popup. The left and right arrows show the previous or next roster card.
+      // Other keys do nothing, so nothing changes on the table behind it.
+      if (e.key === 'Escape') { setOpenCard(null); setOpenTrayId(null); setOpenRoster(null) }
+      else if (openRoster && CARD_STEP_KEYS[e.code]) handleRosterCardStep(CARD_STEP_KEYS[e.code])
       return
     }
     if (e.key === 'Escape') {
@@ -662,6 +668,8 @@ export default function App() {
       return
     }
     setRosters(prev => ({ ...prev, [team]: { code: formatMctCode(parsed) } }))
+    // The open card may not be in the new roster
+    setOpenRoster(prev => prev?.team === team ? null : prev)
     const n = parsed.unknown.length
     if (n > 0) {
       const shown = parsed.unknown.slice(0, 5).join(', ') + (n > 5 ? ', …' : '')
@@ -671,6 +679,31 @@ export default function App() {
 
   function handleRosterRemove(team) {
     setRosters(prev => ({ ...prev, [team]: null }))
+    setOpenRoster(prev => prev?.team === team ? null : prev)
+  }
+
+  // A click on a roster card: { team, tab, index }. The popup opens only on a card with an image. For a card
+  // without one, the HUD shows what the app is missing. A character without an image also has no model.
+  function handleRosterOpen(open) {
+    const card = rosterTabs(parseRosterText(rosters[open.team].code))[open.tab][open.index]
+    const info = rosterCard(card.code)
+    if (info.image) {
+      setOpenRoster(open)
+      return
+    }
+    const missing = info.kind === 'character' ? 'No card image or model' : 'No card image'
+    showHudMessage(`${missing} for ${info.name} (${info.code})`)
+  }
+
+  // Shows the card `step` places away in the open tab of the roster popup. The tab is a loop: after the
+  // last card comes the first.
+  function handleRosterCardStep(step) {
+    setOpenRoster(prev => {
+      if (!prev || !rosters[prev.team]) return prev
+      const count = rosterTabs(parseRosterText(rosters[prev.team].code))[prev.tab].length
+      const index = (prev.index + step + count) % count
+      return index === prev.index ? prev : { ...prev, index }
+    })
   }
 
   // Gives one of tokenKey to a character. A character cannot get a condition it is immune to
@@ -973,6 +1006,7 @@ export default function App() {
               scoreMarkers={scoreMarkers}
               affiliations={affiliations}
               rosters={rosters}
+              onRosterOpen={handleRosterOpen}
               onScoreMarkerMove={(marker, x, z) => setScoreMarkers(prev => ({ ...prev, [marker]: { x, z } }))}
             />
           </SelectionOutlines>
@@ -1034,6 +1068,17 @@ export default function App() {
         onTokenDragStart={handleLibraryTokenDragStart}
       />
       <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
+      {openRoster && rosters[openRoster.team] && (
+        <RosterPopup
+          team={openRoster.team}
+          code={rosters[openRoster.team].code}
+          tab={openRoster.tab}
+          index={openRoster.index}
+          onTabChange={tab => setOpenRoster(prev => prev && { ...prev, tab, index: 0 })}
+          onIndexChange={index => setOpenRoster(prev => !prev || index === prev.index ? prev : { ...prev, index })}
+          onClose={() => setOpenRoster(null)}
+        />
+      )}
       {openTray && (
         <TrayPopup
           character={openTray}

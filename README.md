@@ -249,9 +249,11 @@ The range and movement tools also snap to a selected token, the same way they sn
 
 **Roster** in the toolbar has one text field for each player. Paste an MCT code and press Enter. On a Jarvis roster page, the **Copy MCT code** button gives the code. A code from the TTS mod works too. A new load replaces the old roster of that player. **×** next to the field removes the roster.
 
-The cards lie on the player's side of the table, in the area of the character trays. Row 1 has the characters. Row 2 has the Team Tactic cards, then the Secure cards, then the Extract cards. An Infinity Gem shows as a text line on its character card. Click a card with an image to open it. The cards are locked. They have no physics body, so a tool key over a card works as over the empty table.
+The cards lie on the player's side of the table, in the area of the character trays. Row 1 has the characters. Row 2 has the Team Tactic cards, then the Secure cards, then the Extract cards. An Infinity Gem shows as a text line on its character card. The cards are locked. They have no physics body, so a tool key over a card works as over the empty table.
 
-A card that the app has no image for shows as a plate with its name and MCT code. A character without a model also shows "No model".
+Click a card with an image to open the roster popup. The title shows whose roster it is: Blue or Red player. The popup has 3 tabs: Characters, Tactic cards and Crisis cards. Each tab shows its cards one at a time, in a loop: after the last card comes the first. Drag the card, click **‹** / **›**, or press the left and right arrow keys to see the other cards. The popup opens on the tab and the card that you clicked. Click a character card or a Team Tactic card, or its **Flip** button, to see its other side. Escape, **×** or a click next to the cards closes the popup.
+
+A card that the app has no image for shows as a plate with its name and MCT code. A character without a model also shows "No model". A click on a plate shows an error message and does not open the popup.
 
 A code that the app does not know shows in a message, and the other cards load. A text with no known code shows an error, and the old roster stays. The app does not check the roster: not the counts, and not Banned, Restricted or Rotated cards. Players check it. See `docs/feature-roster.md`.
 

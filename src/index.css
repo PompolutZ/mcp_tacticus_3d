@@ -862,6 +862,198 @@ body {
   zoom: 2;
 }
 
+/* One player's roster in a popup (RosterPopup.jsx). No panel: everything lies on the backdrop, the same
+   as the image of CardPopup.jsx. The backdrop is darker and blurs the table behind it. */
+.roster-popup-backdrop {
+  background: rgba(5, 5, 16, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: default;
+}
+
+.roster-popup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+/* Only the cards and the buttons take pointer events, so a click anywhere else goes to the backdrop
+   and closes the popup. A press on a card still reaches Embla on the viewport: events go up the DOM
+   tree also through an element without pointer events. */
+.roster-popup,
+.roster-popup * {
+  pointer-events: none;
+}
+
+.roster-popup button,
+.roster-popup .roster-popup-card,
+.roster-popup .roster-popup-flip {
+  pointer-events: auto;
+}
+
+/* In the top right corner of the screen. A child of the backdrop, not of .roster-popup, so it takes pointer events. */
+.roster-popup-close {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  font: inherit;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.roster-popup-close:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* The player colors of .chip--player-blue and .chip--player-red */
+.roster-popup-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 5px;
+}
+
+.roster-popup-title--blue {
+  background: #2980b9;
+}
+
+.roster-popup-title--red {
+  background: #c0392b;
+}
+
+.roster-popup-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+/* Embla needs a viewport that hides the other slides, a flex row of slides, and slides of full
+   width. The viewport is wider than the widest card (a character card, 600px), so the card shadow
+   has room at the sides. */
+.roster-popup-viewport {
+  overflow: hidden;
+  width: min(96vw, 720px);
+}
+
+.roster-popup-slides {
+  display: flex;
+  touch-action: pan-y pinch-zoom;
+}
+
+.roster-popup-slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0 24px;
+}
+
+/* width and aspect-ratio come from RosterPopup.jsx. The shadow is the one of .card-popup-image. */
+.roster-popup-card {
+  display: block;
+  border-radius: 8px;
+  object-fit: contain;
+  user-select: none;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* A card with two sides. A click turns it around its vertical axis. The side that faces away is
+   hidden. */
+.roster-popup-flip {
+  position: relative;
+  perspective: 2000px;
+  cursor: pointer;
+}
+
+.roster-popup-flip-inner {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.5s;
+}
+
+.roster-popup-flip--back .roster-popup-flip-inner {
+  transform: rotateY(180deg);
+}
+
+.roster-popup-side {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.roster-popup-side--back {
+  transform: rotateY(180deg);
+}
+
+.roster-popup-plate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  box-sizing: border-box;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  text-align: center;
+}
+
+.roster-popup-plate-name {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.roster-popup-plate-code {
+  font-family: monospace;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.roster-popup-plate-mark {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e8b04a;
+}
+
+.roster-popup-gem {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.roster-popup-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.roster-popup-count {
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 90px;
+  text-align: center;
+}
+
 /* Debug mode, dev server only. Bottom left, clear of the token panel in the middle. */
 .debug-panel {
   position: absolute;

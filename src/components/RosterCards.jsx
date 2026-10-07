@@ -1,14 +1,13 @@
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import { CanvasTexture, DoubleSide, SRGBColorSpace } from 'three'
 import { assetUrl } from '../assets/index.js'
-import { parseRosterText, rosterCard } from '../rosters/cards.js'
+import { PLATE_COLORS, TAB_OF_KIND, parseRosterText, rosterCard } from '../rosters/cards.js'
 import { ROSTER_CARD_Y, rosterLayout } from '../rosters/layout.js'
 import { useColorTexture } from './useColorTexture.js'
 import { useHoverCursor } from './useHoverCursor.js'
 
 const FLAT = [-Math.PI / 2, 0, 0] // the image top faces local -z, toward the mat, the same as a tray card
 const PX_PER_INCH = 100
-const PLATE_COLORS = { character: '#3a4658', tactic: '#4a3f5c', secure: '#3d5a4a', extract: '#5c4a3d' }
 const GEM_HEIGHT = 0.45
 // The gem line lies only 0.003" above its card. A negative polygon offset on its material
 // makes it draw on top of the card, so it does not z-fight from a distance.
@@ -51,7 +50,7 @@ function wrapLines(ctx, text, maxWidth) {
 }
 
 // A card without an image: a plain plate with the name, the MCT code and, for a character without a model,
-// "No model". It takes no pointer events, so the pointer works as over the empty table.
+// "No model".
 function Plate({ card, info }) {
   const { width, height } = card
   const draw = useMemo(() => (ctx, w, h) => {
@@ -84,26 +83,18 @@ function Plate({ card, info }) {
   }, [card.kind, info])
   const map = useCanvasTexture(width, height, draw)
   return (
-    <mesh rotation={FLAT} raycast={NO_RAYCAST}>
+    <mesh rotation={FLAT}>
       <planeGeometry args={[width, height]} />
       <meshStandardMaterial map={map} roughness={1} side={DoubleSide} />
     </mesh>
   )
 }
 
-// A card with an image. A click opens it in the card popup.
-function Face({ card, info, onOpen }) {
-  const url = assetUrl(info.image)
-  const map = useColorTexture(url)
-  const [hovered, setHovered] = useState(false)
-  useHoverCursor(hovered, 'pointer')
+// A card with an image
+function Face({ card, info }) {
+  const map = useColorTexture(assetUrl(info.image))
   return (
-    <mesh
-      rotation={FLAT}
-      onClick={e => { e.stopPropagation(); onOpen?.({ src: url, alt: info.name }) }}
-      onPointerOver={e => { e.stopPropagation(); setHovered(true) }}
-      onPointerOut={() => setHovered(false)}
-    >
+    <mesh rotation={FLAT}>
       <planeGeometry args={[card.width, card.height]} />
       <meshStandardMaterial map={map} roughness={1} side={DoubleSide} />
     </mesh>
@@ -141,24 +132,45 @@ function GemLine({ card, name, index }) {
   )
 }
 
+// One roster card with its gem lines. A click on the card goes to onOpen, also for a plate: App
+// decides if the card can open (see handleRosterOpen).
+function RosterCard({ card, info, onOpen }) {
+  const [hovered, setHovered] = useState(false)
+  useHoverCursor(hovered, 'pointer')
+  return (
+    <group
+      position={[card.x, ROSTER_CARD_Y, card.z]}
+      rotation={[0, card.yaw, 0]}
+      onClick={e => { e.stopPropagation(); onOpen?.(card.tab, card.index) }}
+      onPointerOver={e => { e.stopPropagation(); setHovered(true) }}
+      onPointerOut={() => setHovered(false)}
+    >
+      <Suspense fallback={null}>
+        {info.image ? <Face card={card} info={info} /> : <Plate card={card} info={info} />}
+      </Suspense>
+      {card.gems.map((gem, g) => {
+        const gemInfo = rosterCard(gem)
+        return gemInfo && <GemLine key={`${g}-${gem}`} card={card} name={gemInfo.name} index={g} />
+      })}
+    </group>
+  )
+}
+
 // The roster cards of one team: lie flat on the table, locked, with no physics body.
 // See docs/feature-roster.md, "On the table". code: the stored MCT code (App.jsx, rosters).
-// onOpen({ src, alt }): a click on a card with an image opens it in the card popup.
+// onOpen(tab, index): a click on a card, see RosterPopup.jsx. tab: a key of ROSTER_TABS, index: the
+// place of the card in that tab.
 export default function RosterCards({ team, code, onOpen }) {
-  const cards = useMemo(() => rosterLayout(team, parseRosterText(code)), [team, code])
+  const cards = useMemo(() => {
+    // rosterLayout keeps the card order of rosterTabs (cards.js), so a count per tab gives the index.
+    const next = { characters: 0, tactics: 0, crisis: 0 }
+    return rosterLayout(team, parseRosterText(code)).map(card => {
+      const tab = TAB_OF_KIND[card.kind]
+      return { ...card, tab, index: next[tab]++ }
+    })
+  }, [team, code])
   return cards.map((card, i) => {
     const info = rosterCard(card.code)
-    if (!info) return null
-    return (
-      <group key={`${i}-${card.code}`} position={[card.x, ROSTER_CARD_Y, card.z]} rotation={[0, card.yaw, 0]}>
-        <Suspense fallback={null}>
-          {info.image ? <Face card={card} info={info} onOpen={onOpen} /> : <Plate card={card} info={info} />}
-        </Suspense>
-        {card.gems.map((gem, g) => {
-          const gemInfo = rosterCard(gem)
-          return gemInfo && <GemLine key={`${g}-${gem}`} card={card} name={gemInfo.name} index={g} />
-        })}
-      </group>
-    )
+    return info && <RosterCard key={`${i}-${card.code}`} card={card} info={info} onOpen={onOpen} />
   })
 }

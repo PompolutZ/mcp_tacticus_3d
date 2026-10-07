@@ -15,7 +15,8 @@ const GROUP_GAP = 1
 // A row wider than the table minus this margin on both sides is scaled down to fit
 const TABLE_MARGIN = 1
 
-const SIZES = {
+// Card size on the table in inches, [width, height], by card kind. The roster popup uses it for the aspect ratio.
+export const CARD_SIZES = {
   character: [TRAY_CARD_WIDTH, TRAY_CARD_HEIGHT],
   tactic: [TACTIC_CARD_WIDTH, TACTIC_CARD_HEIGHT],
   secure: [CRISIS_CARD_WIDTH, CRISIS_CARD_HEIGHT],
@@ -28,7 +29,7 @@ function placeRow(groups) {
   const cards = groups.filter(group => group.length > 0)
   const count = cards.reduce((sum, group) => sum + group.length, 0)
   if (count === 0) return { placed: [], scale: 1, width: 0 }
-  const cardsWidth = cards.flat().reduce((sum, card) => sum + SIZES[card.kind][0], 0)
+  const cardsWidth = cards.flat().reduce((sum, card) => sum + CARD_SIZES[card.kind][0], 0)
   const gaps = (count - cards.length) * CARD_GAP + (cards.length - 1) * GROUP_GAP
   const natural = cardsWidth + gaps
   const scale = Math.min(1, (TABLE_WIDTH - TABLE_MARGIN * 2) / natural)
@@ -38,7 +39,7 @@ function placeRow(groups) {
     if (g > 0) x += GROUP_GAP * scale
     group.forEach((card, i) => {
       if (i > 0) x += CARD_GAP * scale
-      const [w, h] = SIZES[card.kind]
+      const [w, h] = CARD_SIZES[card.kind]
       placed.push({ ...card, x: x + (w * scale) / 2, width: w * scale, height: h * scale })
       x += w * scale
     })
