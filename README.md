@@ -49,7 +49,7 @@ Open `http://localhost:5173`. The app opens on the lobby. Open the Sandbox or a 
 
 The app opens on the **lobby**. It lists the rooms of this browser, the last changed room first. Each tile shows the map card, the map name, the room code and the time of the last change. Click a tile to enter the room. **Roster** shows the Blue roster of the room in the roster popup. **Delete** removes a room after a confirm.
 
-**+ New room** opens a dialog. **Random map** is on by default: the app picks the map when it creates the room. Turn it off to choose the map in a carousel of map cards. Paste the MCT code of your roster into **Blue roster**. **Create room** works when the code has a known card, and it enters the new room.
+**+ New room** opens a dialog. **Random map** is on by default: the app picks the map when it creates the room. Turn it off to choose the map in a carousel of map cards. Paste the MCT code of your roster into **Blue roster**. A warning box names the characters without a 3D model and the Team Tactic cards without an image, because the app cannot show them. **Create room** works when the code has a known card, and it enters the new room.
 
 In a **room**, you are the Blue player. The map and the Blue roster are fixed, so the toolbar has no map picker and only the Red roster field. The room saves itself in the browser storage (`localStorage`): the map, the rosters, the characters with their positions, damage and tokens, the crisis cards and tokens, the tactic cards and the score. Dice and tools are not saved. The loading screen stays until the map and the models of both rosters are in.
 

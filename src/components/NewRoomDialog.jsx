@@ -3,7 +3,7 @@ import { assetUrl } from '../assets/index.js'
 import { MAPS } from '../terrain/maps.js'
 import { MAP_CARD_BACK, mapCard } from '../terrain/files.js'
 import { formatMctCode, isEmptyRoster } from '../rosters/mct.js'
-import { parseRosterText, unknownCodesMessage } from '../rosters/cards.js'
+import { missingFiles, parseRosterText, unknownCodesMessage } from '../rosters/cards.js'
 import { createRoom } from '../rooms/store.js'
 import { CARD_STEP_KEYS, isEditing } from '../keyboard.js'
 import { Carousel } from './Carousel.jsx'
@@ -22,6 +22,20 @@ function rosterSummary(parsed) {
     `${parsed.secure.length} Secure`,
     `${parsed.extract.length} Extract`,
   ].join(' · ')
+}
+
+// The warning box for the roster cards that the app has no files for (missingFiles in rosters/cards.js),
+// or null when it has all of them. Only characters and Team Tactic cards.
+function MissingFiles({ parsed }) {
+  const { models, tactics } = useMemo(() => missingFiles(parsed), [parsed])
+  if (models.length === 0 && tactics.length === 0) return null
+  return (
+    <div className="new-room-missing">
+      <span className="new-room-missing-title">The app does not have these cards, so they will not show</span>
+      {models.length > 0 && <span>No 3D model for {count(models.length, 'character')}: {models.join(', ')}</span>}
+      {tactics.length > 0 && <span>No image for {count(tactics.length, 'tactic card')}: {tactics.join(', ')}</span>}
+    </div>
+  )
 }
 
 // The dialog that creates a room (docs/feature-rooms.md, "New room"): the map and the Blue roster. With
@@ -69,6 +83,7 @@ export function NewRoomDialog({ onCreate, onClose }) {
       <>
         <span>{rosterSummary(parsed)}</span>
         {parsed.unknown.length > 0 && <span className="new-room-warning">{unknownCodesMessage(parsed.unknown)}</span>}
+        <MissingFiles parsed={parsed} />
       </>
     )
   }

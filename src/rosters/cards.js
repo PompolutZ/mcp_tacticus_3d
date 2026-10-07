@@ -110,6 +110,18 @@ export function unknownCodesMessage(unknown) {
   return `${n === 1 ? '1 unknown code' : `${n} unknown codes`}: ${shown}`
 }
 
+// The cards of a parsed roster that the app has no files for, as names in roster order, each name once:
+// { models: characters without a 3D model, tactics: Team Tactic cards without an image }. On the table
+// and in the roster popup they show as plates, and a character without a model cannot be spawned.
+// For the warning in the new room dialog. parsed holds only known codes, so each code has a card.
+export function missingFiles(parsed) {
+  const names = infos => [...new Set(infos.map(info => info.name))]
+  return {
+    models: names(parsed.characters.map(ch => cards.get(ch.code)).filter(info => !info.model)),
+    tactics: names(parsed.tactics.map(code => cards.get(code)).filter(info => !info.image)),
+  }
+}
+
 // Background of a card without an image, on the table (RosterCards.jsx) and in the roster popup
 export const PLATE_COLORS = { character: '#3a4658', tactic: '#4a3f5c', secure: '#3d5a4a', extract: '#5c4a3d' }
 

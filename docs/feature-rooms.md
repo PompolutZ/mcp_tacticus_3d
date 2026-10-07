@@ -46,6 +46,7 @@ The **+** tile opens a dialog on a blurred backdrop, the same style as the roste
 - **Random map** switch, on by default. While it is on, the dialog shows the back of a map card. The app picks the map when the player creates the room.
 - With the switch off, a carousel shows the map cards. The card in the middle is the map of the room. It is the same carousel as in the roster popup.
 - **Blue roster:** a text field for the MCT code. Under it, the dialog shows what it found, for example "10 characters · 10 tactic cards · 5 Secure · 5 Extract", and the unknown codes. The parse rules are the ones of `docs/feature-roster.md`.
+- When the app has no 3D model for a character or no image for a Team Tactic card of the roster, a warning box under the summary names these cards, for example "No 3D model for 2 characters: Angela, Bishop". On the table, these cards show as plates, and a character without a model cannot be spawned. The box is only a warning: **Create room** still works. Added on 2026-10-07.
 - **Create room** works only when the code has a known card. It saves the room and enters it.
 - **Cancel**, Escape, **×** or a click on the backdrop closes the dialog.
 
