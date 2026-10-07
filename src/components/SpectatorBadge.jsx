@@ -78,7 +78,7 @@ function Objective({ token }) {
 // and Power counters (TrayControls.jsx, without -/+), and the tokens on the character (TokenFace.jsx,
 // with the count). It stands upright, as in TTS, and turns only around the vertical axis to face the
 // camera. It gets smaller with distance, as in TTS.
-// Mounted inside the model's RigidBody (CharacterModel.jsx and Character.jsx, overlay), so it moves
+// Mounted inside the model's RigidBody (CharacterModel.jsx, overlay), so it moves
 // with the model. Its origin is the base bottom center.
 // top: height of the model top above the base bottom, in inches. baseRadius: game size of the base.
 // stamina: Stamina of the side that faces up. held: the crisis tokens the character holds.

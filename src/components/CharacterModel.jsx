@@ -2,9 +2,10 @@ import { useGLTF } from '@react-three/drei'
 import { RigidBody, CylinderCollider, useRapier } from '@react-three/rapier'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
-import { Box3, Color, Matrix4, Plane, Quaternion, Raycaster, Vector3 } from 'three'
+import { Box3, Color, CylinderGeometry, FrontSide, Group, Matrix4, Mesh, MeshStandardMaterial, Plane, PlaneGeometry, Quaternion, Raycaster, Vector3 } from 'three'
 import { FRICTION, castDown } from '../physics.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
+import { useColorTexture } from './useColorTexture.js'
 import { useHoverCursor } from './useHoverCursor.js'
 
 const TEAM_COLORS = { red: '#c0392b', blue: '#2980b9' }
@@ -98,6 +99,58 @@ function turnBetween(a, b) {
   return 2 * Math.acos(Math.min(1, dot))
 }
 
+// url: the GLB of the model. The other props: see CharacterFigure below.
+export default function CharacterModel({ url, ...props }) {
+  // useGLTF caches one scene per url. Each model needs its own copy: two characters with the same
+  // model (both players take Mephisto) would share one object, and it can stand in one place only.
+  const { scene: source } = useGLTF(url)
+  const scene = useMemo(() => source.clone(), [source])
+  return <CharacterFigure scene={scene} {...props} />
+}
+
+// A standee: a character without a 3D model (Valkyrie and Elendil). The mod spawns it as a TTS custom
+// figurine with the two images (scripts/README.md, "TTS character migration"). Here it is a base of
+// the game size with the images on it, so it works the same as a 3D model: select, drag, Q / E, R,
+// the tools and token drops. The base material is named defaultMat, so it gets the team color, the
+// same as the base of a 3D model.
+// The image is as wide as the base, and its height follows the image. Not measured in TTS: the mod
+// scales the figurine by 0.75, 1.1 and 1.4 for a small, medium and large base, so its size follows
+// the base, but the image size of a TTS figurine at scale 1 is not known yet.
+// frontUrl, backUrl: the two images. The other props: see CharacterFigure below.
+export function StandeeModel({ frontUrl, backUrl, ...props }) {
+  const [front, back] = useColorTexture([frontUrl, backUrl])
+  const radius = props.baseRadius ?? BASE_RADIUS
+  const scene = useMemo(() => standeeScene(front, back, radius), [front, back, radius])
+  useEffect(() => () => scene.traverse(obj => {
+    if (!obj.isMesh) return
+    obj.geometry.dispose()
+    obj.material.dispose()
+  }), [scene])
+  return <CharacterFigure scene={scene} {...props} />
+}
+
+// Back image this far behind the front one, so the two do not z-fight
+const STANDEE_GAP = 0.005
+
+function standeeScene(front, back, radius) {
+  const scene = new Group()
+  const baseHeight = BASE_HALF_H * 2
+  const base = new Mesh(new CylinderGeometry(radius, radius, baseHeight, 48), new MeshStandardMaterial({ name: 'defaultMat', roughness: 0.6 }))
+  base.position.y = baseHeight / 2
+  scene.add(base)
+  const width = radius * 2
+  const height = width * front.image.height / front.image.width
+  for (const [map, turn, z] of [[front, 0, 0], [back, Math.PI, -STANDEE_GAP]]) {
+    const image = new Mesh(new PlaneGeometry(width, height), new MeshStandardMaterial({ map, roughness: 1, side: FrontSide }))
+    image.position.set(0, baseHeight + height / 2, z)
+    image.rotation.y = turn
+    scene.add(image)
+  }
+  return scene
+}
+
+// The body of a character model on the table: the base collider, the figure (scene, its own copy),
+// and everything a player does with it.
 // bodyRef, objectRef: get the Rapier body and the 3D object of the model (figure and base)
 // liftRef: gets { toggle(), down() } for the R key (see liftPiece in Scene.jsx), and isUp() for a Throw
 // (a lifted model does not stop it), and null on unmount
@@ -109,9 +162,8 @@ function turnBetween(a, b) {
 // prop changes, and the spawn position follows the tray (Scene.jsx), which can move later.
 // overlay(top): optional, what moves with the model above it (SpectatorBadge.jsx). top: height of the
 // model top above the base bottom, in inches.
-export default function CharacterModel({ url, position = [0, 0, 0], baseRadius = BASE_RADIUS, rotation = [0, 0, 0], teamColor = 'red', selected = false, rangeMark, onSelect, onHover, bodyRef, objectRef, liftRef, slideRef, onDragStart, onDragEnd, constrainDrag, overlay }) {
+function CharacterFigure({ scene, position = [0, 0, 0], baseRadius = BASE_RADIUS, rotation = [0, 0, 0], teamColor = 'red', selected = false, rangeMark, onSelect, onHover, bodyRef, objectRef, liftRef, slideRef, onDragStart, onDragEnd, constrainDrag, overlay }) {
   const [startPosition] = useState(position)
-  const { scene } = useGLTF(url)
   const top = useMemo(() => modelTop(scene), [scene])
   const { camera, gl, controls } = useThree()
   const { world, rapier } = useRapier()

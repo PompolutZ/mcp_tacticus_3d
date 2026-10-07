@@ -38,6 +38,11 @@ Each row has the portrait, the name and the MCT code. A click spawns the charact
 
 Characters with a 3D model come first. A character without a model is grey. A click on it shows a short message, and nothing spawns.
 
+The rows come from Jarvis (`src/characters/roster.js`), one row per MCT code. Two exceptions, found on 2026-10-07:
+
+- A Jarvis alternate sculpt (`isAlternateSculpt`, for example Mephisto Convention Exclusive) has the MCT code of its main character, so it gets no row.
+- The mod has a row for each of the two Sentinel MK4 sculpts in the box: 00510101 and 00510102, with the same card and two models. Jarvis has one entry, 00510101, and uses 00510102 in a roster code for the second Sentinel MK4 of a roster. So a migrated character with its own MCT code and no Jarvis entry gets a row, with the stats of the Jarvis character of the same name.
+
 ## Tactic cards
 
 Each card shows as a small image of its back (the card name on art), with the name under it. A click puts the card into the first free slot of the chosen player's tactic tray. See `docs/feature-team-tactic-cards.md`.

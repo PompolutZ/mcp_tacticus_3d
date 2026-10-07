@@ -67,8 +67,8 @@
     "sources": {
       "characters/ant-man/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ANT_MAN_NORMAL_healthy.jpg",
       "characters/ant-man/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ANT_MAN_NORMAL_injured.jpg",
-      "characters/ant-man/card-2-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ANT_MAN_TINY_healthy.jpg",
-      "characters/ant-man/card-2-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ANT_MAN_TINY_injured.jpg",
+      "characters/ant-man/transform-card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ANT_MAN_TINY_healthy.jpg",
+      "characters/ant-man/transform-card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ANT_MAN_TINY_injured.jpg",
       "characters/ant-man/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/ANT_MAN_MODEL.unity3d",
       "characters/ant-man/transform.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/ANT_MAN_MODEL_TRANSFORM.unity3d",
       "characters/ant-man/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ANT_MAN_UI.png"
@@ -187,6 +187,8 @@
     "sources": {
       "characters/emma-frost/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/EMMA_FROST_NORMAL_healthy.jpg",
       "characters/emma-frost/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/EMMA_FROST_NORMAL_injured.jpg",
+      "characters/emma-frost/transform-card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/EMMA_FROST_DIAMOND_healthy.jpg",
+      "characters/emma-frost/transform-card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/EMMA_FROST_DIAMOND_injured.jpg",
       "characters/emma-frost/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/EMMA_FROST_MODEL.unity3d",
       "characters/emma-frost/transform.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/EMMA_FROST_MODEL_TRANSFORM.unity3d",
       "characters/emma-frost/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/EMMA_FROST_UI.png",

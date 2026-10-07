@@ -4,8 +4,7 @@ import { Raycaster, Vector3 } from 'three'
 import { useTexture, Stars, Environment } from '@react-three/drei'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import { MovementRuler, AngleRuler, RangeRuler, DeployRangeTool, RANGE_TIP, sameModel } from './RulerTool.jsx'
-import CharacterModel, { turnBody } from './CharacterModel.jsx'
-import Character from './Character.jsx'
+import CharacterModel, { StandeeModel, turnBody } from './CharacterModel.jsx'
 import CharacterTray from './CharacterTray.jsx'
 import SpectatorBadge from './SpectatorBadge.jsx'
 import Terrain from './Terrain.jsx'
@@ -22,15 +21,16 @@ import DiceTray from './DiceTray.jsx'
 import ScoreBoard from './ScoreBoard.jsx'
 import { projectFootprints } from './footprintProjection.js'
 import { matImage } from '../terrain/files.js'
-import { characterModel, characterStandee, BASE_DIAMETER } from '../characters/files.js'
+import { BASE_DIAMETER } from '../characters/files.js'
 import { MAPS } from '../terrain/maps.js'
-import { characterStamina } from '../characters/roster.js'
+import { characterGiveSources, characterStamina } from '../characters/roster.js'
+import { characterModels, modelCharacterId, trayCards } from '../characters/models.js'
 import { FRICTION, WORLD_GRAVITY } from '../physics.js'
 import { assetUrl } from '../assets/index.js'
 import { CARD_X, CARD_Y, CARD_Z, supplyPilePosition } from '../crisis/layout.js'
 import { getCard } from '../crisis/cards.js'
 import { TRAYS } from '../dice/tray.js'
-import { TRAY_Y, layoutTrays, onTray, trayHeldLocal, trayHeldWorld, trayModelPosition, trayYaw } from '../characters/trays.js'
+import { TRAY_Y, inTrayArea, layoutTrays, onTray, trayHeldLocal, trayHeldWorld, trayModelPosition, traySpareModelPosition, trayYaw } from '../characters/trays.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import { MAT_SIZE, TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WIDTH } from '../table.js'
 import { NO_PIECES, NO_TOOLS, isToolPiece, selectPiece, selectedId, toggleSelectPiece } from '../selection.js'
@@ -157,13 +157,15 @@ export default function Scene({
   const map = MAPS[mapId]
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
   const { camera, gl, pointer } = useThree()
-  // Character id → Rapier body. Tools read and move characters through it.
+  // The maps below are keyed by model id: a character with a second form has two models (see
+  // characters/models.js). The first model has the character's own id.
+  // Model id → Rapier body. Tools read and move characters through it.
   const charBodies = useRef(new Map())
-  // Character id → 3D object. Tools find the character under the pointer with it.
+  // Model id → 3D object. Tools find the character under the pointer with it.
   const charObjects = useRef(new Map())
-  // Character id → the lift of its model, { toggle(), down() }. See CharacterModel.jsx and liftPiece.
+  // Model id → its lift, { toggle(), down() }. See CharacterModel.jsx and liftPiece.
   const charLifts = useRef(new Map())
-  // Character id → the slide of its model, startSlide(path, duration). See CharacterModel.jsx and the
+  // Model id → its slide, startSlide(path, duration). See CharacterModel.jsx and the
   // Throw button in RulerTool.jsx.
   const charSlides = useRef(new Map())
   // Character id → the tray's background plate. characterAt below hits this too, so a drop anywhere
@@ -196,7 +198,11 @@ export default function Scene({
   // See RangeMark in RulerTool.jsx.
   const [rangeMark, setRangeMark] = useState(null)
 
-  // Nearest character whose model or tray is under the client point (DOM pixels), or null.
+  // Every model of every character, in spawn order (characters/models.js)
+  const models = useMemo(() => characters.flatMap(characterModels), [characters])
+
+  // Nearest character whose model (either one) or tray is under the client point (DOM pixels), or
+  // null. Returns the character id.
   function characterAt(clientX, clientY) {
     const rect = gl.domElement.getBoundingClientRect()
     const ndc = {
@@ -206,13 +212,15 @@ export default function Scene({
     raycaster.current.setFromCamera(ndc, camera)
     let nearestId = null
     let nearestDistance = Infinity
-    for (const ch of characters) {
-      for (const object of [charObjects.current.get(ch.id), trayObjects.current.get(ch.id)]) {
-        const hit = object && raycaster.current.intersectObject(object, true)[0]
-        if (hit && hit.distance < nearestDistance) {
-          nearestId = ch.id
-          nearestDistance = hit.distance
-        }
+    const targets = [
+      ...models.map(model => [model.character.id, charObjects.current.get(model.id)]),
+      ...characters.map(ch => [ch.id, trayObjects.current.get(ch.id)]),
+    ]
+    for (const [id, object] of targets) {
+      const hit = object && raycaster.current.intersectObject(object, true)[0]
+      if (hit && hit.distance < nearestDistance) {
+        nearestId = id
+        nearestDistance = hit.distance
       }
     }
     return nearestId
@@ -236,7 +244,7 @@ export default function Scene({
     return nearestId
   }
 
-  // Live table position of a character's model (Hold and drop, "Drop"): the Rapier body when there
+  // Live table position of a character's first model (Hold and drop, "Drop"): the Rapier body when there
   // is one, otherwise the 3D object's own position. Not the spawn position, so a character that moved
   // drops its token where it now stands. Returns null if neither is mounted yet.
   function modelPosition(id) {
@@ -336,26 +344,31 @@ export default function Scene({
   // Tray positions of the last layout, to find the trays that moved.
   const lastTrayPositions = useRef(new Map())
   // A model that still stands on its tray moves with the tray, the same as TTS (moveTray in the
-  // tray script). A model that the player moved off its tray, for example onto the mat, stays.
+  // tray script). A model that the player moved off its tray, for example onto the mat, stays. A
+  // spare model past the Give sources (Hulkbuster's Iron Man) counts as on the tray (inTrayArea).
   useEffect(() => {
-    for (const [id, pos] of trayPositions) {
-      const last = lastTrayPositions.current.get(id)
-      const body = charBodies.current.get(id)
-      if (!last || !body || (last[0] === pos[0] && last[2] === pos[2])) continue
+    for (const model of models) {
+      const { id: characterId, teamColor } = model.character
+      const pos = trayPositions.get(characterId)
+      const last = lastTrayPositions.current.get(characterId)
+      const body = charBodies.current.get(model.id)
+      if (!pos || !last || !body || (last[0] === pos[0] && last[2] === pos[2])) continue
       const t = body.translation()
-      if (onTray(last, t)) body.setTranslation({ x: t.x + pos[0] - last[0], y: t.y, z: t.z + pos[2] - last[2] }, true)
+      if (inTrayArea(teamColor, last, t)) body.setTranslation({ x: t.x + pos[0] - last[0], y: t.y, z: t.z + pos[2] - last[2] }, true)
     }
     lastTrayPositions.current = trayPositions
   }, [trayPositions])
 
-  const selectedCharId = selectedId(selection, 'character')
+  // Model id of the selected model. Its character's tray card shows the selection too.
+  const selectedModelId = selectedId(selection, 'character')
+  const selectedCharId = selectedModelId && modelCharacterId(selectedModelId)
   const selectedTokenId = selectedId(selection, 'token')
   const selectedTerrainId = selectedId(selection, 'terrain')
 
   // Deploy-line: R3 zone depth from the deployment edge
   const deployTip = RANGE_TIP[3]
   const deployDepth = 2 * deployTip
-  const draggingChar = deployLine && draggingCharId ? characters.find(ch => ch.id === draggingCharId) : null
+  const draggingChar = deployLine && draggingCharId ? models.find(model => model.id === draggingCharId)?.character : null
 
   // Every character and every mat token as the range and movement tools see them. A character has a
   // Rapier body; a token does not, so getCenter (not getBody) is what the tools measure with.
@@ -391,15 +404,15 @@ export default function Scene({
     })
   }, [tokens, characters, trayPositions])
   const toolModels = useMemo(() => [
-    ...characters.map(ch => ({
+    ...models.map(model => ({
       kind: 'character',
-      id: ch.id,
-      getBody: () => charBodies.current.get(ch.id),
-      getObject: () => charObjects.current.get(ch.id),
-      getCenter: () => charBodies.current.get(ch.id)?.translation() ?? { x: 0, y: 0, z: 0 },
-      isLifted: () => charLifts.current.get(ch.id)?.isUp() ?? false,
-      slide: (path, duration) => charSlides.current.get(ch.id)?.(path, duration),
-      radius: BASE_DIAMETER[ch.base] / 2,
+      id: model.id,
+      getBody: () => charBodies.current.get(model.id),
+      getObject: () => charObjects.current.get(model.id),
+      getCenter: () => charBodies.current.get(model.id)?.translation() ?? { x: 0, y: 0, z: 0 },
+      isLifted: () => charLifts.current.get(model.id)?.isUp() ?? false,
+      slide: (path, duration) => charSlides.current.get(model.id)?.(path, duration),
+      radius: BASE_DIAMETER[model.base] / 2,
     })),
     ...matTokens.map(tok => ({
       kind: 'token',
@@ -408,7 +421,7 @@ export default function Scene({
       getCenter: () => tokenCenters.current.get(tok.id)?.() ?? { x: tok.x, y: 0, z: tok.z },
       radius: 0.5,
     })),
-  ], [characters, matTokens])
+  ], [models, matTokens])
   const toolModel = piece => toolModels.find(model => piece && model.kind === piece.kind && model.id === piece.id) ?? null
   // The tools measure against the character or token selected last, and a new tool snaps to it.
   // Place moves the selected character, also when a token was selected after it.
@@ -427,16 +440,29 @@ export default function Scene({
     return angle && sameModel(angle.target, model) ? angle.openYaw : null
   }
 
-  // The spectator view above the model of ch, or undefined when it is off. The model draws it, so it
-  // moves with the model (CharacterModel.jsx and Character.jsx, overlay).
-  function spectatorOverlay(ch) {
+  // Table position where a model spawns: on its card on the tray, or for a spare model (a second
+  // form without its own card), past the Give sources (trays.js). The model reads it only once,
+  // when its body mounts.
+  function modelSpawnPosition(model) {
+    const ch = model.character
+    const trayPos = trayPositions.get(ch.id)
+    if (model.card) return trayModelPosition(ch.teamColor, trayPos, model.card)
+    const giveCount = characterGiveSources(ch.key).length
+    return traySpareModelPosition(ch.teamColor, trayPos, trayCards(ch), giveCount, BASE_DIAMETER[model.base] / 2)
+  }
+
+  // The spectator view above a model of a character, or undefined when it is off. The model draws
+  // it, so it moves with the model (CharacterModel.jsx, overlay). Both models of a
+  // character with a second form show it.
+  function spectatorOverlay(model) {
     if (!spectator) return undefined
+    const ch = model.character
     return top => (
       <SpectatorBadge
         character={ch}
         stamina={characterStamina(ch.key, ch.side)}
         top={top}
-        baseRadius={BASE_DIAMETER[ch.base] / 2}
+        baseRadius={BASE_DIAMETER[model.base] / 2}
         held={heldTokens.get(ch.id)}
         secureTokens={secureTokens}
       />
@@ -594,7 +620,7 @@ export default function Scene({
               onHold={(characterId, point) => {
                 const holder = characters.find(ch => ch.id === characterId)
                 const trayPos = trayPositions.get(characterId)
-                const onCard = holder && trayPos && onTray(trayPos, point)
+                const onCard = holder && trayPos && onTray(holder.teamColor, trayPos, point, trayCards(holder))
                 onTokenHold(tok.id, characterId, onCard ? trayHeldLocal(holder.teamColor, trayPos, point) : null)
               }}
               findCharacter={findCharacterAt}
@@ -653,9 +679,9 @@ export default function Scene({
         ))}
 
         {/* One tray per spawned character, next to the mat edge (see trays.js and
-            docs/characters-hud.md, "Tray layout"). The model below spawns standing on the center
-            of this tray's card (trayModelPosition). It reads that position only once, when its
-            body mounts, so a later tray move does not teleport it. */}
+            docs/characters-hud.md, "Tray layout"). The models below spawn standing on the center
+            of this tray's cards (modelSpawnPosition). A model reads that position only once, when
+            its body mounts, so a later tray move does not teleport it. */}
         {characters.map(ch => (
           <Suspense key={ch.id} fallback={null}>
             <CharacterTray
@@ -675,59 +701,55 @@ export default function Scene({
           </Suspense>
         ))}
 
-        {characters.map(ch => (
-          <Suspense key={ch.id} fallback={null}>
-            {ch.figure === 'standee' ? (
-              <Character
-                position={trayModelPosition(ch.teamColor, trayPositions.get(ch.id))}
-                baseSize={ch.base}
-                frontUrl={assetUrl(characterStandee(ch.key, 'front'))}
-                backUrl={assetUrl(characterStandee(ch.key, 'back'))}
-                overlay={spectatorOverlay(ch)}
-              />
-            ) : (
-              <CharacterModel
-                url={assetUrl(characterModel(ch.key))}
-                position={trayModelPosition(ch.teamColor, trayPositions.get(ch.id))}
-                baseRadius={BASE_DIAMETER[ch.base] / 2}
-                rotation={[0, ch.rotation * Math.PI / 180, 0]}
-                teamColor={ch.teamColor}
-                selected={selectedCharId === ch.id}
-                rangeMark={rangeMarkOf('character', ch.id)}
-                onSelect={() => toggleSelect('character', ch.id)}
-                onHover={over => {
-                  onPieceHover?.({ kind: 'character', id: ch.id }, over)
-                  trackPiece(hoveredPiece, { kind: 'character', id: ch.id }, over)
-                }}
-                bodyRef={rb => rb ? charBodies.current.set(ch.id, rb) : charBodies.current.delete(ch.id)}
-                objectRef={obj => obj ? charObjects.current.set(ch.id, obj) : charObjects.current.delete(ch.id)}
-                liftRef={lift => lift ? charLifts.current.set(ch.id, lift) : charLifts.current.delete(ch.id)}
-                slideRef={slide => slide ? charSlides.current.set(ch.id, slide) : charSlides.current.delete(ch.id)}
-                onDragStart={() => {
-                  setDraggingCharId(ch.id)
-                  trackPiece(draggedPiece, { kind: 'character', id: ch.id }, true)
-                }}
-                onDragEnd={() => {
-                  setDraggingCharId(null)
-                  trackPiece(draggedPiece, { kind: 'character', id: ch.id }, false)
-                }}
-                // A base is within range if any part of it is within range (p8). So the base can
-                // go as far as touching the far end of the tool: its center is one radius past it.
-                constrainDrag={(p) => {
-                  if (deployLine) {
-                    const limit = MAT_SIZE / 2 - deployDepth - BASE_DIAMETER[ch.base] / 2
-                    if (ch.teamColor === 'blue') p.z = Math.max(p.z, limit)
-                    else p.z = Math.min(p.z, -limit)
-                  }
-                  for (const limit of Object.values(placeLimits.current)) {
-                    if (limit?.id === ch.id) limit.clamp(p)
-                  }
-                }}
-                overlay={spectatorOverlay(ch)}
-              />
-            )}
-          </Suspense>
-        ))}
+        {models.map(model => {
+          const ch = model.character
+          // The same props for a 3D model and a standee (CharacterModel.jsx)
+          const props = {
+            position: modelSpawnPosition(model),
+            baseRadius: BASE_DIAMETER[model.base] / 2,
+            rotation: [0, model.rotation * Math.PI / 180, 0],
+            teamColor: ch.teamColor,
+            selected: selectedModelId === model.id,
+            rangeMark: rangeMarkOf('character', model.id),
+            onSelect: () => toggleSelect('character', model.id),
+            onHover: over => {
+              onPieceHover?.({ kind: 'character', id: model.id }, over)
+              trackPiece(hoveredPiece, { kind: 'character', id: model.id }, over)
+            },
+            bodyRef: rb => rb ? charBodies.current.set(model.id, rb) : charBodies.current.delete(model.id),
+            objectRef: obj => obj ? charObjects.current.set(model.id, obj) : charObjects.current.delete(model.id),
+            liftRef: lift => lift ? charLifts.current.set(model.id, lift) : charLifts.current.delete(model.id),
+            slideRef: slide => slide ? charSlides.current.set(model.id, slide) : charSlides.current.delete(model.id),
+            onDragStart: () => {
+              setDraggingCharId(model.id)
+              trackPiece(draggedPiece, { kind: 'character', id: model.id }, true)
+            },
+            onDragEnd: () => {
+              setDraggingCharId(null)
+              trackPiece(draggedPiece, { kind: 'character', id: model.id }, false)
+            },
+            // A base is within range if any part of it is within range (p8). So the base can
+            // go as far as touching the far end of the tool: its center is one radius past it.
+            constrainDrag: (p) => {
+              if (deployLine) {
+                const limit = MAT_SIZE / 2 - deployDepth - BASE_DIAMETER[model.base] / 2
+                if (ch.teamColor === 'blue') p.z = Math.max(p.z, limit)
+                else p.z = Math.min(p.z, -limit)
+              }
+              for (const limit of Object.values(placeLimits.current)) {
+                if (limit?.id === model.id) limit.clamp(p)
+              }
+            },
+            overlay: spectatorOverlay(model),
+          }
+          return (
+            <Suspense key={model.id} fallback={null}>
+              {model.figure === 'standee'
+                ? <StandeeModel frontUrl={assetUrl(model.standeeFiles[0])} backUrl={assetUrl(model.standeeFiles[1])} {...props} />
+                : <CharacterModel url={assetUrl(model.file)} {...props} />}
+            </Suspense>
+          )
+        })}
 
         {activeMove && (
           <Suspense key={`${activeMove}-${toolSpawns.move}`} fallback={null}>

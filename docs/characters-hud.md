@@ -73,7 +73,7 @@ These facts were found on 2026-10-01 in the scripts of the "Red Tray Spawner" ob
 
 ### Place on the table
 
-The table is 72" × 66" (`src/table.js`). The mat is 36" × 36" (`MAT_SIZE` in `Scene.jsx`), centered on the table, so its edge is 18" from the table center on every side.
+The table is 72" × 68" (`src/table.js`). The mat is 36" × 36" (`MAT_SIZE` in `Scene.jsx`), centered on the table, so its edge is 18" from the table center on every side.
 
 Each player's trays sit in one row on that player's side (blue at +z, red at −z), past the player's tactic tray. So the order from the mat is the same as in TTS: mat, tactic tray, character trays. The tactic tray plate ends 22.4" from the table center (see `docs/feature-team-tactic-cards.md`, "Tactic tray"). A player never has a second row. The row is centered on the middle line of the table (x = 0), the same as TTS (`arrangeTrays` in the Red Tray Spawner). 12 trays fit in the table width. A row of more than 6 trays is wider than the mat, so it goes past the mat corners. See `src/characters/trays.js`.
 
@@ -89,14 +89,14 @@ Changes that follow from this:
 - Tokens on a tray are real size (0.75", see [Real-size tokens](#real-size-tokens)). A row of 6 tokens fills the 5" tray width.
 - From the mat side to the owner's side, a tray has: the **On** row of tokens (0.95"), the card (3"), and the controls strip (1.5").
 - So a tray is 5" × 5.45" (`TRAY_WIDTH` × `TRAY_DEPTH`). A background plate under all parts is slightly larger (5.6" × 6.05"), so the tray stands out from the table. The plate ends 28.75" from the table center.
-- The **Give** sources are not part of the tray. They lie on the table on the owner's side of the plate, 0.3" from it, in 2 rows of 6 (1.6"). The second row ends 30.65" from the table center; the table edge is at 33". They move with the tray.
+- The **Give** sources are not part of the tray. They lie on the table on the owner's side of the plate, 0.3" from it, in 2 rows of 6 (1.6"). The second row ends 30.65" from the table center; the table edge is at 34". They move with the tray.
 - There is a 0.3" gap between two plates, and between the tactic tray and the row. Without it, two trays look like one. So trays sit 5.9" apart, center to center, and `floor((72 + 0.3) / 5.9) = 12` trays fit in the table width.
 - The row is centered on the middle line of the table. One tray sits on the line. Two trays sit one on each side of the line, and so on. The order is the spawn order, from the owner's left.
 - So every tray of a player moves when that player adds or removes a character. A removed character's tray leaves the row, and the row closes the gap. The same happens in TTS.
 - The card faces the owner and sits on the mat side of the tray; the controls strip sits on the owner's side, away from the mat. For blue, the top of the card image points to −z, the same as a crisis card (`CrisisCard.jsx`). A red tray is turned by 180°.
 - A tray has no collider. Models and dice do not touch it.
 - A newly spawned model stands on the table at the center of its tray's card, not on a separate bench. The model keeps its own rotation from the spawner. The model reads that position only once, when its body mounts. A Rapier `RigidBody` moves its body when its `position` prop changes, so a later tray move must not reach the body through that prop. A model that is still loading when the row shifts mounts on its tray's new place.
-- When a tray moves, a model that still stands on that tray moves with it (`Scene.jsx`). A model that the player moved off its tray, for example onto the mat, stays where it is. TTS does the same (`moveTray` in the tray script). TTS checks "not on the mat"; the app checks "on its own tray plate".
+- When a tray moves, a model that still stands on that tray moves with it (`Scene.jsx`). A model that the player moved off its tray, for example onto the mat, stays where it is. TTS does the same (`moveTray` in the tray script). TTS checks "not on the mat"; the app checks "on its own tray plate, or on the table past it, as wide as the plate" (`inTrayArea` in `trays.js`), so a spare model (see [Second forms](#second-forms)) moves too.
 
 The start view (`CAMERA_TARGET` and `CAMERA_POSITION` in `App.jsx`) shows the tactic trays and the character trays of both players. Its bottom edge is just past the blue Give sources.
 
@@ -128,6 +128,36 @@ The whole tray is a drop target for tokens. The Give sources are outside the tra
 - Flip: turns the card to the other side and sets Damage to 0, as in TTS. The F key does the same with the pointer over the card or the model, or with the character selected (see `docs/feature-key-shortcuts.md`).
 - **On** row, above the card, where TTS shows the tokens on a character: one real-size 3D token per token key, with a count badge when the count is above 1. The tokens start at the owner's left, in the order the character got them. With more than 6 tokens they overlap, so the row stays as wide as the tray. A label above a token under the pointer shows its name and the mod's description (`tDescr`). A click on a token removes one.
 - **Give** sources, on the table below the tray: the tokens that this character gives to others or to itself: Activated, Dazed, and the tokens in its `cToken` list. They are real-size 3D tokens, in rows of 6 from the owner's left. TTS spawns these tokens at the same place, on the table below the tray, in rows from the owner's left. Each source never runs out: a drag takes a new token from it.
+
+## Second forms
+
+Some characters have a second form with its own model. The mod marks each of them with one of two flags in its `Database` (checked on 2026-10-07):
+
+| Mod flag | Characters | Cards | Second model |
+|---|---|---|---|
+| `twoCards` | Ant-Man, Captain Marvel Cosmic Avenger, Emma Frost, Hood, Ms. Marvel, Wasp | 2: one card per form (`cCard` and `cTCard`), each with a Healthy and an Injured side | spawns on card 2 |
+| `oneCard` | Hulkbuster (Iron Man), Phoenix (Phoenix Unleashed) | 1: the Injured side is the second form | spawns on the table past the Give sources |
+
+In TTS, the tray spawns both models for both flags (`assignValues` in the Red Tray Spawner). For `twoCards`, the tray mesh has room for two cards. For `oneCard`, the second model stands 5" from the first. The second model is a clone of the first one with the other bundle, so it has the same turn.
+
+The app does the same:
+
+- **Two cards:** card 2 lies under card 1, toward the owner, with the same side up. Flip turns both cards. Every part after card 1 moves 3.1" toward the owner (card height + 0.1" gap): card 2, the controls strip, the plate edge and the Give sources. The mat side of the tray stays in line with the other trays. A click on either card opens the tray popup, which shows both cards.
+- **Spare model:** the second model of a `oneCard` character stands past the last row of Give sources, 0.3" from the tokens, in the middle of the tray width.
+- Both models are full models: a player selects, moves and turns each one, and the tools measure against each one. A token dropped on either model goes to the character. Both models show the spectator badge.
+- A model that stands on its tray plate, or on the table past it (the Give sources and the spare model), moves with the tray when the row shifts (`inTrayArea` in `trays.js`).
+- Held objective tokens lie on card 1.
+- Damage and Power are one counter for the character, as in TTS. The Damage limit is the Stamina of the side that faces up. In Jarvis, both forms of each `twoCards` character have the same Stamina, so one limit is correct.
+- Players move the model of the form in use onto the mat by hand. The app does not swap the models (see [Players apply the rules](#players-apply-the-rules)).
+
+Space: a tray with two cards ends 31.85" from the table center, and its second row of Give sources ends 33.75". So the table grew from 66" to 68" deep (edge at 34"). A spare model past two rows of Give sources has its center 1.6" + 0.3" + its base radius past the plate, so even a large base (Phoenix Unleashed) ends 33.5" from the center.
+
+Data:
+
+- The card of the second form is `transform-card-healthy.webp` and `transform-card-injured.webp`, from the mod's `cTCard`. `characters.json` has `transform.card: true` when the character has it. `migrate-characters.mjs` writes it, and it requires the card for a `twoCards` character. A `transform` without `card` is a spare model.
+- Item 2 of the mod's `cCard` list is not always the second form: for Emma Frost it is an alternate card. The mod's tray uses `cTCard` (see `scripts/README.md`).
+- The roster copies `transform` to the character entry in App state, as it does for `figure`, `base` and `rotation`. It is plain JSON.
+- `src/characters/models.js` lists the models of a character. The first model has the character's id. The second model has the id `<character id>:2`. Selection, hover, the tools and the Rapier body maps use model ids. `characterAt` and the tray use the character id.
 
 ## Give tokens by drag and drop
 
@@ -642,7 +672,9 @@ Open issues:
   `{x:0,y:0,z:0}` for the same reason, not introduced by this phase). `handleTokenDrop` falls back to
   the token's last mat position instead of `{0,0,0}`, so a standee's drop does not teleport to the
   table center, but it is still not the character's actual position. Only one migrated character
-  (`characters.json`) uses `standee` today.
+  (`characters.json`) uses `standee` today. Fixed on 2026-10-07: a standee is now `StandeeModel` in
+  `CharacterModel.jsx`, with the same body, selection and tools as a 3D model, and a base of the
+  game size (`BASE_DIAMETER`). `Character.jsx` is removed.
 - No visual feedback while dragging a `canHold` token over a valid character (same open issue Phase 4
   noted for the Tokens-panel drag): the token itself is the only feedback.
 - `characterAt` is called again on every `canHold` token release (already a linear scan over every
@@ -775,7 +807,9 @@ Open issues:
 - A 2D HUD separate from the 3D world. This is the next step after this feature.
 - Team Tactic cards, and the cards attached to a character: Reserve members, Infinity Gems, Horsemen cards. These will be explored with the Team Tactic cards feature. Facts found on 2026-10-01: in TTS, a gem or Horsemen card attaches to the tray only if the character can have it (`cGem`, `cHorsemen` in the mod; `bearableGems`, `assignableToHorsemen` in Jarvis). The TTS cache has all 5 Horsemen faces, but only the Soul gem card.
 - Auto Power and Auto Cleanup, and any other rule automation.
-- Grunts (no Injured side, no Power), second forms (Emma Frost, Diamond Form) and the second card version of some characters (`cards` > 1 in `characters.json`). The tray uses card 1. A second form can have other immunities (p21).
+- Grunts. This is the next phase. Facts found on 2026-10-07: 6 mod characters have `grunts` (Elektra, Nick Fury, Red Skull Master of Hydra, Sandman, Shadowland Daredevil, Ultron Metal Tyrant). Each grunt is its own `Database` row (for example Hand Ninjas) with a card, a model, `cStamH`, tokens and immunities. TTS spawns the grunt card with its model below the tray, and a Wounds counter. Sandman has 2 grunts; TTS puts their cards side by side. None of these characters is in the TTS cache yet.
+- The second card version of a character without a second form (`cards` > 1 and no `transform` in `characters.json`, for example Mephisto). The tray uses card 1.
+- Other immunities of a second form (p21), and the mod's `twoModels` and `sideways` flags (Ms. Marvel).
 - Tokens that lie on the table and not on a character (Use Tools, Pile).
 - Affiliation tokens on characters. The VP markers of the scoring board show them (see `docs/feature-crisis.md`, "Scoring board").
 - The Power and Damage tokens of TTS. The counters use `−` and `+`.
@@ -800,3 +834,11 @@ Made on 2026-10-02:
 Made on 2026-10-05:
 
 10. A Source card has one supply pile that never runs out, below the card text. The Delete key also removes a crisis token that a character holds.
+
+Made on 2026-10-07:
+
+11. A character with a second form spawns both models, as in TTS.
+12. A second card lies under the first card. Flip turns both. Each model spawns on its own card.
+13. The second model of a `oneCard` character spawns past the Give sources.
+14. The table grows from 66" to 68" deep. Sandman's 2 grunt cards will sit side by side, so only his tray will be wider.
+15. Grunts come in a later phase, after a grunt character is in the TTS cache.

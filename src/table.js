@@ -4,11 +4,12 @@
 // The MCP mat is 36" x 36", with its center at the table center. 1 Three.js unit = 1 inch.
 export const MAT_SIZE = 36
 
-// The table is 72" wide (x) and 66" deep (z). It is deeper than the TTS table (72" x 48", 3:2) so that
+// The table is 72" wide (x) and 68" deep (z). It is deeper than the TTS table (72" x 48", 3:2) so that
 // each player gets a tactic tray and a row of character trays between the mat edge and the table edge
-// (see docs/characters-hud.md, "Place on the table", and docs/feature-team-tactic-cards.md).
+// (see docs/characters-hud.md, "Place on the table", and docs/feature-team-tactic-cards.md). 68" fits
+// a tray with two cards and two rows of Give sources (docs/characters-hud.md, "Second forms").
 export const TABLE_WIDTH = 72
-export const TABLE_DEPTH = 66
+export const TABLE_DEPTH = 68
 // The table collider is much thicker than the visible table, so fast bodies cannot pass through it. Its top is at y = 0.
 export const TABLE_COLLIDER_HALF_H = 5
 

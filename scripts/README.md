@@ -176,7 +176,8 @@ The script converts a file only when the manifest does not have it with the same
 | `standee-front.webp`, `standee-back.webp` | `cFigA`, `cFigB` | yes, if the mod has no model |
 | `card-healthy.webp`, `card-injured.webp` | `cCard.face`, `cCard.back` | yes |
 | `portrait.webp` | `UIurl` | no |
-| `model-2.glb`, `card-2-healthy.webp`, ... | list items 2, 3, ... of `cModel` and `cCard` | no |
+| `model-2.glb`, `card-2-healthy.webp`, ... | list items 2, 3, ... of `cModel` and `cCard`, without the `cTCard` image | no |
+| `transform-card-healthy.webp`, `transform-card-injured.webp` | `cTCard.face`, `cTCard.back` | yes, if the row has `twoCards` |
 | `transform.glb` or `transform-standee-*.webp` | `cTModel`, or `cTFigA` and `cTFigB` | no |
 | `transform-portrait.webp` | `TUIurl` | no |
 
@@ -194,7 +195,7 @@ Entry in `characters.json`:
 }
 ```
 
-Optional fields: `models` and `cards` (number of versions, when more than 1), `transform` (`figure`, `rotation`, and `name`, `base`, `portrait` when the mod has them), `portrait: false` when the portrait is not in the cache, and `tokens`/`immune` (`cToken`/`cImmune`, as `src/tokens/tokens.json` keys, for the tray's Give row and immunity check; left out when the mod row has none). A mod token name maps to a key with the same slug `migrate-tokens.mjs` gave it; a name that does not match a migrated token (a dice result, an affiliation token, a mod data typo, ...) is left out and printed as a warning, not guessed.
+Optional fields: `models` and `cards` (number of versions, when more than 1), `transform` (`figure`, `rotation`, and `name`, `base`, `portrait` when the mod has them, and `card: true` when the second form has its own card, `transform-card-*.webp`), `portrait: false` when the portrait is not in the cache, and `tokens`/`immune` (`cToken`/`cImmune`, as `src/tokens/tokens.json` keys, for the tray's Give row and immunity check; left out when the mod row has none). A mod token name maps to a key with the same slug `migrate-tokens.mjs` gave it; a name that does not match a migrated token (a dice result, an affiliation token, a mod data typo, ...) is left out and printed as a warning, not guessed.
 
 `$TMPDIR/mcp-assist-3d-characters/<key>/` has the AssetRipper exports, for inspection.
 
@@ -210,10 +211,12 @@ These rules were found on 2026-09-28 in the mod scripts ("Red Tray Spawner" and 
 
 - In every model bundle, the base is the only material without a color texture. The base mesh is a disk from y = 0 to y = 0.12, and its radius is half of `cBase`: 0.69" for small, 0.98" for medium, 1.28" for large. The script checks this and prints a warning if a base does not fit.
 - The tray spawns a model with Y rotation = tray rotation + 180 + `cModelRot`. `characters.json` stores `cModelRot` as `rotation`. The app shows `angel.glb` with no turn, and Angel has `cModelRot` 180, so the app turn is probably `rotation - 180`. This is not checked in the browser yet.
-- No spawn script in this save reads `cTModelRot`, so the `rotation` of a transform model is not checked.
+- No spawn script in this save reads `cTModelRot`. The tray makes the second model as a clone of the first model and then sets `cTModel` on it, so the second model has the turn of the first. The app does the same and does not use `transform.rotation`.
+- Every row with a second form has one of two flags (checked on 2026-10-07). `twoCards` (Ant-Man, Captain Marvel Cosmic Avenger, Emma Frost, Hood, Ms. Marvel, Wasp): the second form has its own card, `cTCard`, and the tray shows both cards. `oneCard` (Hulkbuster, Phoenix): the second form is the Injured side of the only card, and the tray spawns the second model 5" from the first. The tray spawns both models in both cases. See `docs/characters-hud.md`, "Second forms".
 - The tray spawns a standee as a `Figurine_Custom` with `image = cFigA` and `image_secondary = cFigB`, turned by 180 without `cModelRot`. The figurine scale is 0.75 for a small base, 1.1 for medium and 1.4 for large. The mod spawns a standee only when `cFigA` is set; when `cFigB` is empty, it uses `cFigA` on both sides.
 - When `cModel` is a list, the tray spawns the model with the same position in the list as the card face on the table (Mephisto, Crossbones, Merciless Merc).
-- The script ignores `cModelAlt` (Captain Marvel, Vision), `twoModels` (Ms. Marvel) and `construct` (Magneto, Phoenix), and prints a warning for them. `cTCard` is not needed, because the same cards are also in the `cCard` lists.
+- The script ignores `cModelAlt` (Captain Marvel, Vision), `twoModels` (Ms. Marvel) and `construct` (Magneto, Phoenix), and prints a warning for them.
+- The tray takes the second card of a `twoCards` character from `cTCard` (`spawnSecondCard`). Item 2 of the `cCard` list is often a different card: an alternate card (Emma Frost), a Steam copy (Captain Marvel Cosmic Avenger, Hood) or the other small form (Ms. Marvel: TINY, while `cTCard` is EMBIGGENED). So the script writes `cTCard` as `transform-card-*.webp`. When the `cCard` list has the `cTCard` image too (Ant-Man, Wasp), the script leaves it out of the versions.
 
 ## What the app still needs
 

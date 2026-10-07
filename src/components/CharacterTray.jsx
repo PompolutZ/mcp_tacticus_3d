@@ -2,18 +2,19 @@ import { Suspense, useEffect, useRef, useState } from 'react'
 import { Html } from '@react-three/drei'
 import { DoubleSide } from 'three'
 import { assetUrl } from '../assets/index.js'
-import { characterCard } from '../characters/files.js'
-import { characterGiveTokens, characterStamina } from '../characters/roster.js'
+import { characterCard, transformCard } from '../characters/files.js'
+import { trayCards } from '../characters/models.js'
+import { characterGiveSources, characterStamina } from '../characters/roster.js'
 import {
-  TRAY_BG_DEPTH,
   TRAY_BG_WIDTH,
   TRAY_BG_Y,
   TRAY_CARD_HEIGHT,
-  TRAY_CARD_LOCAL_Z,
   TRAY_CARD_WIDTH,
-  TRAY_CONTROLS_LOCAL_Z,
+  trayCardLocalZ,
+  trayControlsLocalZ,
   trayGiveTokenPosition,
   trayOnTokenPosition,
+  trayPlate,
   trayYaw,
 } from '../characters/trays.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
@@ -22,9 +23,6 @@ import TrayControls from './TrayControls.jsx'
 import { useColorTexture } from './useColorTexture.js'
 import { useHoverCursor } from './useHoverCursor.js'
 
-// Every character's Give sources start with Activated and Dazed (characterGiveTokens adds only the
-// character-specific tokens, see migrate-characters.mjs: the mod spawns these next to every tray).
-const ALWAYS_GIVEN = ['activated', 'dazed']
 // Tokens lie at the tray's own height (TRAY_Y): the "On" row just above the background plate (see
 // trays.js, TRAY_BG_Y), the Give sources just above the table, the same height as a token on the
 // table (LooseToken.jsx).
@@ -34,7 +32,9 @@ const TOKEN_Y = 0
 const CLICK_MOVE = 4
 
 // One character tray: a background plate, the "On" row of tokens on the character, the stat card
-// (the side that faces up), and the controls strip (see TrayControls.jsx). The Give sources are
+// (the side that faces up), and the controls strip (see TrayControls.jsx). A character whose second
+// form has its own card (Ant-Man) has that card under the first one, with the same side up, so
+// Flip turns both (see docs/characters-hud.md, "Second forms"). The Give sources are
 // not part of the tray: they lie on the table on the owner's side of the plate, as in TTS, and
 // move with the tray. The tokens are real size, as in TTS (see trays.js for the layout). No
 // collider (see docs/characters-hud.md, Phase 1). A click on the card calls onOpen(): App opens
@@ -53,15 +53,21 @@ const CLICK_MOVE = 4
 // position: the tray's table position, from trays.js layoutTrays (Scene.jsx).
 // onCardHover(over): the pointer moved onto (true) or off (false) the card, for the F key.
 export default function CharacterTray({ character, position, onOpen, onDamage, onPower, onFlip, onCardHover, onRemove, onTokenRemove, onTokenDragStart, selected = false, objectRef }) {
-  // Both sides load when the tray mounts, so the first Flip does not wait for an image (that wait
-  // hides the tray, see Scene.jsx, Suspense). The order is fixed: the loader caches by the URL list.
-  const [healthyMap, injuredMap] = useColorTexture([
-    assetUrl(characterCard(character.key, 'healthy')),
-    assetUrl(characterCard(character.key, 'injured')),
-  ])
-  const map = character.side === 'healthy' ? healthyMap : injuredMap
+  // Both sides of every card load when the tray mounts, so the first Flip does not wait for an image
+  // (that wait hides the tray, see Scene.jsx, Suspense). The order is fixed: the loader caches by
+  // the URL list.
+  const cards = trayCards(character)
+  const cardNumbers = cards === 2 ? [1, 2] : [1]
+  const cardFile = (n, side) => n === 1 ? characterCard(character.key, side) : transformCard(character.key, side)
+  const maps = useColorTexture(cardNumbers.flatMap(n => [
+    assetUrl(cardFile(n, 'healthy')),
+    assetUrl(cardFile(n, 'injured')),
+  ]))
+  const sideMap = n => maps[(n - 1) * 2 + (character.side === 'healthy' ? 0 : 1)]
+  const plate = trayPlate(cards)
   const stamina = characterStamina(character.key, character.side)
   const yaw = trayYaw(character.teamColor)
+  // Group of the cards, the outline target
   const cardRef = useRef()
   const [cardHovered, setCardHovered] = useState(false)
 
@@ -89,7 +95,7 @@ export default function CharacterTray({ character, position, onOpen, onDamage, o
 
   // Tokens on the character, in the order it got them (see App.jsx, handleCharacterTokenGive).
   const onTokens = Object.entries(character.tokens ?? {})
-  const giveKeys = [...ALWAYS_GIVEN, ...characterGiveTokens(character.key)]
+  const giveKeys = characterGiveSources(character.key)
 
   function removeOnToken(e, key) {
     e.stopPropagation()
@@ -108,19 +114,22 @@ export default function CharacterTray({ character, position, onOpen, onDamage, o
     <group position={position} rotation={[0, yaw, 0]}>
       {/* Background plate under every part, so the tray stands out from the table
           (docs/characters-hud.md, "One tray"). No collider, no shadow: it is purely visual. */}
-      <mesh position={[0, TRAY_BG_Y, 0]} rotation={[-Math.PI / 2, 0, 0]} ref={objectRef}>
-        <planeGeometry args={[TRAY_BG_WIDTH, TRAY_BG_DEPTH]} />
+      <mesh position={[0, TRAY_BG_Y, plate.z]} rotation={[-Math.PI / 2, 0, 0]} ref={objectRef}>
+        <planeGeometry args={[TRAY_BG_WIDTH, plate.depth]} />
         <meshStandardMaterial color="#20242b" roughness={1} />
       </mesh>
-      <mesh position={[0, 0, TRAY_CARD_LOCAL_Z]} rotation={[-Math.PI / 2, 0, 0]}
-        onClick={openPopup}
-        onPointerOver={e => { e.stopPropagation(); setCardHovered(true) }}
-        onPointerOut={() => setCardHovered(false)}
-        ref={cardRef}
-      >
-        <planeGeometry args={[TRAY_CARD_WIDTH, TRAY_CARD_HEIGHT]} />
-        <meshStandardMaterial map={map} roughness={1} side={DoubleSide} />
-      </mesh>
+      <group ref={cardRef}>
+        {cardNumbers.map(n => (
+          <mesh key={n} position={[0, 0, trayCardLocalZ(n)]} rotation={[-Math.PI / 2, 0, 0]}
+            onClick={openPopup}
+            onPointerOver={e => { e.stopPropagation(); setCardHovered(true) }}
+            onPointerOut={() => setCardHovered(false)}
+          >
+            <planeGeometry args={[TRAY_CARD_WIDTH, TRAY_CARD_HEIGHT]} />
+            <meshStandardMaterial map={sideMap(n)} roughness={1} side={DoubleSide} />
+          </mesh>
+        ))}
+      </group>
       {/* "On" row above the card, where TTS shows the tokens on a character. Each token has its own
           Suspense: a new token image loads without hiding the tray. */}
       {onTokens.map(([key, count], i) => {
@@ -135,7 +144,7 @@ export default function CharacterTray({ character, position, onOpen, onDamage, o
       })}
       {/* Give sources, on the table next to the plate. */}
       {giveKeys.map((key, i) => {
-        const [x, z] = trayGiveTokenPosition(i)
+        const [x, z] = trayGiveTokenPosition(i, cards)
         return (
           <group key={key} position={[x, TOKEN_Y, z]}>
             <Suspense fallback={null}>
@@ -146,7 +155,7 @@ export default function CharacterTray({ character, position, onOpen, onDamage, o
       })}
       {/* Rx(-pi/2) lays the Html flat on the table facing up, with its top to local -Z, the same
           as the card. So the owner reads it the right way up. */}
-      <group position={[0, 0.02, TRAY_CONTROLS_LOCAL_Z]} rotation={[-Math.PI / 2, 0, 0]}>
+      <group position={[0, 0.02, trayControlsLocalZ(cards)]} rotation={[-Math.PI / 2, 0, 0]}>
         <Html center transform>
           <TrayControls
             character={character}

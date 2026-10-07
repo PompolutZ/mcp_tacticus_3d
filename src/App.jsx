@@ -17,6 +17,7 @@ import { supplyPilePosition } from './crisis/layout.js'
 import { characterImmune, characterName, characterStamina } from './characters/roster.js'
 import { BASE_DIAMETER } from './characters/files.js'
 import { trayHeldDefault } from './characters/trays.js'
+import { modelCharacterId, secondModelId } from './characters/models.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { getToken, isCappedToken } from './tokens/tokens.js'
 import { firstFreeSlot, nearestFreeSlot, tacticTrayAt } from './tactics/layout.js'
@@ -284,6 +285,9 @@ export default function App() {
       figure: ch.figure,
       base: ch.base,
       rotation: ch.rotation,
+      // Second form, or null: a second model, and maybe a second card on the tray (see
+      // characters/models.js and docs/characters-hud.md, "Second forms").
+      transform: ch.transform,
       teamColor: ch.teamColor,
       // Card side that faces up, and the simple limits players apply by hand (see
       // docs/characters-hud.md, "Players apply the rules").
@@ -478,7 +482,8 @@ export default function App() {
       ?? (hoveredTacticRef.current && { kind: 'tactic', id: hoveredTacticRef.current })
       ?? selection.findLast(isToolPiece)
     if (piece?.kind === 'token') handleTokenFlip(piece.id)
-    else if (piece?.kind === 'character') handleCharacterFlip(piece.id)
+    // A character piece is a model; a second model has its own id (characters/models.js)
+    else if (piece?.kind === 'character') handleCharacterFlip(modelCharacterId(piece.id))
     else if (piece?.kind === 'tactic') handleTacticFlip(piece.id)
   }
 
@@ -631,7 +636,7 @@ export default function App() {
   function handleCharacterRemove(id) {
     handleDropCharacterTokens(id)
     setCharacters(prev => prev.filter(ch => ch.id !== id))
-    setSelection(prev => deselectPiece(prev, { kind: 'character', id }))
+    setSelection(prev => deselectPiece(deselectPiece(prev, { kind: 'character', id }), { kind: 'character', id: secondModelId(id) }))
     setOpenTrayId(prev => prev === id ? null : prev)
   }
 

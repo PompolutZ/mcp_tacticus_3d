@@ -74,10 +74,10 @@
     "base": "small",
     "figure": "model",
     "rotation": 175,
-    "cards": 2,
     "transform": {
       "figure": "model",
-      "rotation": 0
+      "rotation": 0,
+      "card": true
     },
     "tokens": [
       "poison",
@@ -223,6 +223,7 @@
     "transform": {
       "figure": "model",
       "rotation": 0,
+      "card": true,
       "portrait": true
     },
     "tokens": [

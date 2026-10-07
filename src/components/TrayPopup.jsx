@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
-import { characterCard } from '../characters/files.js'
+import { characterCard, transformCard } from '../characters/files.js'
+import { trayCards } from '../characters/models.js'
 import { characterName, characterStamina } from '../characters/roster.js'
 import { HELD_SIZE_U, trayHeldCardPoint } from '../characters/trays.js'
 import { tokenInfo } from '../crisis/cards.js'
@@ -23,7 +24,9 @@ function otherSide(side) {
 // the cross button or a click outside the tray. App also closes it on
 // Escape, as App handles all keys. A dialog, so it renders through Overlay (see CardPopup.jsx).
 // App mounts it only while a tray is open. onTokenRemove(key): a click on an "On" token removes
-// one, the same as on the 3D tray. heldTokens: the crisis tokens this character holds.
+// one, the same as on the 3D tray. heldTokens: the crisis tokens this character holds. A character
+// whose second form has its own card shows that card under the first, as on the 3D tray; the held
+// tokens lie on the first card.
 export function TrayPopup({ character, heldTokens, onClose, onDamage, onPower, onFlip, onRemove, onTokenRemove }) {
   // The other side of the card, shown with a button, because players often read the Injured side
   // while the card is Healthy. A Flip starts again on the side that faces up.
@@ -50,6 +53,11 @@ export function TrayPopup({ character, heldTokens, onClose, onDamage, onPower, o
           <img src={assetUrl(characterCard(character.key, shownSide))} alt={name} />
           {heldTokens.map(token => <HeldToken key={token.id} token={token} />)}
         </div>
+        {trayCards(character) === 2 && (
+          <div className="tray-popup-card">
+            <img src={assetUrl(transformCard(character.key, shownSide))} alt={`${name}, second form`} />
+          </div>
+        )}
         <button type="button" className="chip" onClick={() => setShowOther(v => !v)}>
           {showOther ? 'Show side that faces up' : 'Show other side'}
         </button>

@@ -10,7 +10,7 @@ import { startAssetRipper } from './lib/assetripper.mjs'
 import { readBundlePrefab } from './lib/bundle.mjs'
 import { CHARACTER_TEXTURE_SIZE, compressMesh, imageToWebp, TEXTURE_SIZE, texturesToWebp, writeGlb } from './lib/convert.mjs'
 import { cachedFile, loadCharacterDatabase } from './lib/tts.mjs'
-import { BASE_DIAMETER, characterCard, characterModel, characterPortrait, characterStandee, transformModel, transformPortrait, transformStandee } from '../src/characters/files.js'
+import { BASE_DIAMETER, characterCard, characterModel, characterPortrait, characterStandee, transformCard, transformModel, transformPortrait, transformStandee } from '../src/characters/files.js'
 
 const USAGE = `Usage:
   node scripts/migrate-characters.mjs --list [affiliation]      characters with files in the TTS cache, and their status
@@ -189,12 +189,21 @@ function characterFiles(row) {
   const key = keys.get(row)
   const files = []
   const add = (file, url, required, base = row.cBase) => url && files.push({ file, url, required, base })
-  // A card list has one card per version (Mephisto) or per form (Ant-Man: normal and tiny)
-  const injured = urls(row.cCard?.back)
-  urls(row.cCard?.face).forEach((url, i) => {
-    add(characterCard(key, 'healthy', i + 1), url, i === 0)
-    add(characterCard(key, 'injured', i + 1), injured[i], i === 0)
+  // A card list has one card per version (Mephisto). The tray of a twoCards character shows the card of
+  // the second form, cTCard, under the first card, so that card is required too. Item 2 of the list is
+  // not always that card: Emma Frost has an alternate card there. When the list has the cTCard image
+  // too (Ant-Man), it is left out of the versions, so it is not stored twice.
+  const formCard = row.twoCards ? row.cTCard : null
+  const backs = urls(row.cCard?.back)
+  const versions = urls(row.cCard?.face).map((face, i) => [face, backs[i]]).filter(([face]) => face !== formCard?.face)
+  versions.forEach(([face, back], i) => {
+    add(characterCard(key, 'healthy', i + 1), face, i === 0)
+    add(characterCard(key, 'injured', i + 1), back, i === 0)
   })
+  if (formCard) {
+    add(transformCard(key, 'healthy'), formCard.face, true)
+    add(transformCard(key, 'injured'), formCard.back, true)
+  }
   // A model list has one model per card version. The mod spawns the model of the card on the table.
   const models = urls(row.cModel)
   models.forEach((url, i) => add(characterModel(key, i + 1), url, i === 0))
@@ -239,6 +248,9 @@ function appEntry(row, key, sources, tokens, immune) {
   if (cards > 1) entry.cards = cards
   const transform = has(transformModel(key)) ? { figure: 'model', rotation: row.cTModelRot ?? 0 } : has(transformStandee(key, 'front')) ? { figure: 'standee' } : null
   if (transform) {
+    // twoCards: the second form has its own card (cTCard), and its model spawns on it. Without it
+    // (oneCard), the second form is the Injured side of card 1. See docs/characters-hud.md, "Second forms".
+    if (has(transformCard(key, 'healthy')) && has(transformCard(key, 'injured'))) transform.card = true
     if (row.cTName) transform.name = row.cTName
     if (row.cTBase) transform.base = row.cTBase
     if (has(transformPortrait(key))) transform.portrait = true
