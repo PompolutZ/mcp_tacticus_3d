@@ -1,10 +1,135 @@
 {
+  "abomination": {
+    "id": "01620101",
+    "name": "Abomination",
+    "base": "large",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "poison"
+    ],
+    "immune": [
+      "poison"
+    ]
+  },
+  "adam-warlock": {
+    "id": "01910101",
+    "name": "Adam Warlock",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0
+  },
+  "agent-venom": {
+    "id": "01000101",
+    "name": "Agent Venom",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "bleed",
+      "incinerate"
+    ]
+  },
+  "amazing-spider-man": {
+    "id": "00370101",
+    "name": "Amazing Spider-Man",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 75,
+    "tokens": [
+      "slow"
+    ]
+  },
+  "ancient-one": {
+    "id": "00640101",
+    "name": "Ancient One",
+    "base": "small",
+    "figure": "model",
+    "rotation": 60,
+    "tokens": [
+      "poison",
+      "stagger"
+    ]
+  },
+  "angel": {
+    "id": "01520101",
+    "name": "Angel",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stun"
+    ]
+  },
   "angela": {
     "id": "00280101",
     "name": "Angela",
     "base": "medium",
     "figure": "model",
     "rotation": 0
+  },
+  "ant-man": {
+    "id": "00260101",
+    "name": "Ant-Man",
+    "base": "small",
+    "figure": "model",
+    "rotation": 175,
+    "cards": 2,
+    "transform": {
+      "figure": "model",
+      "rotation": 0
+    },
+    "tokens": [
+      "poison",
+      "stun"
+    ]
+  },
+  "apocalypse": {
+    "id": "01070101",
+    "name": "Apocalypse",
+    "base": "large",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "root",
+      "shock",
+      "bleed",
+      "slow",
+      "incinerate",
+      "evolution",
+      "poison"
+    ],
+    "immune": [
+      "bleed",
+      "incinerate",
+      "stun"
+    ]
+  },
+  "archangel": {
+    "id": "01520102",
+    "name": "Archangel",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "bleed",
+      "poison",
+      "stagger"
+    ]
+  },
+  "black-bolt": {
+    "id": "00340101",
+    "name": "Black Bolt",
+    "base": "small",
+    "figure": "model",
+    "rotation": 165,
+    "tokens": [
+      "stun",
+      "stagger"
+    ],
+    "immune": [
+      "poison"
+    ]
   },
   "black-panther": {
     "id": "00070101",
@@ -23,6 +148,76 @@
       "bleed"
     ]
   },
+  "black-widow": {
+    "id": "00010102",
+    "name": "Black Widow",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stagger"
+    ]
+  },
+  "cassandra-nova": {
+    "id": "00530101",
+    "name": "Cassandra Nova",
+    "base": "small",
+    "figure": "model",
+    "rotation": 330,
+    "tokens": [
+      "root",
+      "slow"
+    ]
+  },
+  "corvus-glaive": {
+    "id": "00150101",
+    "name": "Corvus Glaive",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 255
+  },
+  "crossbones-merciless-merc": {
+    "id": "01430104",
+    "name": "Crossbones, Merciless Merc",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180
+  },
+  "dracula": {
+    "id": "02450101",
+    "name": "Dracula",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "slow",
+      "bleed",
+      "root",
+      "hex"
+    ]
+  },
+  "echo": {
+    "id": "01680101",
+    "name": "Echo",
+    "base": "small",
+    "figure": "model",
+    "rotation": 210
+  },
+  "emma-frost": {
+    "id": "01030101",
+    "name": "Emma Frost",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "transform": {
+      "figure": "model",
+      "rotation": 0,
+      "portrait": true
+    },
+    "tokens": [
+      "stun"
+    ]
+  },
   "enchantress": {
     "id": "00280102",
     "name": "Enchantress",
@@ -35,12 +230,68 @@
       "stagger"
     ]
   },
+  "gorgon": {
+    "id": "01660101",
+    "name": "Gorgon",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stagger",
+      "shock",
+      "stun"
+    ],
+    "immune": [
+      "poison"
+    ]
+  },
   "heimdall-the-all-seeing": {
     "id": "01020101",
     "name": "Heimdall, The All-Seeing",
     "base": "small",
     "figure": "model",
     "rotation": 330
+  },
+  "hulkbuster": {
+    "id": "00520101",
+    "name": "Hulkbuster",
+    "base": "large",
+    "figure": "model",
+    "rotation": 180,
+    "transform": {
+      "figure": "model",
+      "rotation": 180,
+      "name": "Iron Man",
+      "base": "small",
+      "portrait": true
+    }
+  },
+  "iron-monger": {
+    "id": "01540102",
+    "name": "Iron Monger",
+    "base": "large",
+    "figure": "model",
+    "rotation": 180
+  },
+  "juggernaut": {
+    "id": "00560101",
+    "name": "Juggernaut",
+    "base": "large",
+    "figure": "model",
+    "rotation": 0,
+    "immune": [
+      "stun"
+    ]
+  },
+  "karnak": {
+    "id": "01660102",
+    "name": "Karnak",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "weakness"
+    ]
   },
   "killmonger": {
     "id": "00070102",
@@ -70,12 +321,37 @@
     "figure": "model",
     "rotation": 180
   },
+  "kingpin": {
+    "id": "00290101",
+    "name": "Kingpin",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stun",
+      "stagger"
+    ]
+  },
   "lady-sif": {
     "id": "00910101",
     "name": "Lady Sif",
     "base": "small",
     "figure": "model",
     "rotation": 180
+  },
+  "lockjaw": {
+    "id": "00350102",
+    "name": "Lockjaw",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 150,
+    "tokens": [
+      "bleed",
+      "interdimensional-bloodhound"
+    ],
+    "immune": [
+      "poison"
+    ]
   },
   "loki-prince-of-lies": {
     "id": "00910102",
@@ -97,12 +373,212 @@
       "stun"
     ]
   },
+  "malekith-the-accursed": {
+    "id": "00930101",
+    "name": "Malekith the Accursed",
+    "base": "large",
+    "figure": "model",
+    "rotation": 75,
+    "tokens": [
+      "poison",
+      "bleed",
+      "shock",
+      "slow",
+      "stun",
+      "hex"
+    ],
+    "immune": [
+      "hex",
+      "stun"
+    ]
+  },
+  "man-thing": {
+    "id": "01860102",
+    "name": "Man-Thing",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "poison",
+      "incinerate"
+    ],
+    "immune": [
+      "hex",
+      "stun"
+    ]
+  },
+  "medusa": {
+    "id": "00340102",
+    "name": "Medusa",
+    "base": "small",
+    "figure": "model",
+    "rotation": 285,
+    "tokens": [
+      "bleed"
+    ],
+    "immune": [
+      "poison"
+    ]
+  },
+  "mephisto": {
+    "id": "00660101",
+    "name": "Mephisto",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "cards": 2,
+    "tokens": [
+      "incinerate",
+      "devils-deal"
+    ],
+    "immune": [
+      "incinerate",
+      "poison"
+    ]
+  },
+  "mister-sinister": {
+    "id": "00460101",
+    "name": "Mister Sinister",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "genetic-sample",
+      "genetic-sample-3",
+      "root"
+    ]
+  },
+  "nebula": {
+    "id": "00160102",
+    "name": "Nebula",
+    "base": "small",
+    "figure": "model",
+    "rotation": 60,
+    "tokens": [
+      "shock",
+      "stun"
+    ],
+    "immune": [
+      "bleed",
+      "poison",
+      "stun"
+    ]
+  },
   "okoye": {
     "id": "00080101",
     "name": "Okoye",
     "base": "small",
     "figure": "model",
     "rotation": 105
+  },
+  "omega-red": {
+    "id": "00540101",
+    "name": "Omega Red",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 105,
+    "tokens": [
+      "poison"
+    ],
+    "immune": [
+      "poison"
+    ]
+  },
+  "omega-sentinel": {
+    "id": "30090103",
+    "name": "Omega Sentinel",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "physical",
+      "energy",
+      "mystic"
+    ],
+    "immune": [
+      "poison",
+      "bleed"
+    ]
+  },
+  "proxima-midnight": {
+    "id": "00150102",
+    "name": "Proxima Midnight",
+    "base": "small",
+    "figure": "model",
+    "rotation": 20,
+    "tokens": [
+      "bleed",
+      "poison",
+      "stun"
+    ]
+  },
+  "red-skull": {
+    "id": "00010108",
+    "name": "Red Skull",
+    "base": "small",
+    "figure": "model",
+    "rotation": 285,
+    "tokens": [
+      "stun"
+    ]
+  },
+  "sabretooth": {
+    "id": "00400101",
+    "name": "Sabretooth",
+    "base": "small",
+    "figure": "model",
+    "rotation": 330,
+    "tokens": [
+      "bleed"
+    ]
+  },
+  "sentinel-mk4-00510101": {
+    "id": "00510101",
+    "name": "Sentinel MK4",
+    "base": "large",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "shock",
+      "slow"
+    ],
+    "immune": [
+      "bleed",
+      "poison"
+    ]
+  },
+  "sentinel-mk4-00510102": {
+    "id": "00510102",
+    "name": "Sentinel MK4",
+    "base": "large",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "shock",
+      "slow"
+    ],
+    "immune": [
+      "bleed",
+      "poison"
+    ]
+  },
+  "sentinel-prime-mk4": {
+    "id": "01600101",
+    "name": "Sentinel Prime MK4",
+    "base": "large",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "shock",
+      "slow"
+    ],
+    "immune": [
+      "bleed",
+      "poison"
+    ]
   },
   "shuri": {
     "id": "00080102",
@@ -113,6 +589,35 @@
     "tokens": [
       "stun",
       "stagger"
+    ]
+  },
+  "sin": {
+    "id": "00610101",
+    "name": "Sin",
+    "base": "small",
+    "figure": "model",
+    "rotation": 135
+  },
+  "spectacular-spider-man": {
+    "id": "01430108",
+    "name": "Spectacular Spider-Man",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0
+  },
+  "spider-woman": {
+    "id": "01000102",
+    "name": "Spider-Woman",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "poison",
+      "shock",
+      "stun"
+    ],
+    "immune": [
+      "poison"
     ]
   },
   "storm": {
@@ -208,6 +713,31 @@
     "figure": "standee",
     "tokens": [
       "stagger"
+    ]
+  },
+  "viper": {
+    "id": "00610102",
+    "name": "Viper",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "poison",
+      "stun",
+      "slow"
+    ]
+  },
+  "werewolf-by-night": {
+    "id": "02450104",
+    "name": "Werewolf By Night",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "bleed",
+      "slow",
+      "root",
+      "hex"
     ]
   }
 }
