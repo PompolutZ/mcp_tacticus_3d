@@ -92,6 +92,15 @@
       "characters/archangel/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ARCHANGEL_UI.png"
     }
   },
+  "bastion": {
+    "id": "30090101",
+    "sources": {
+      "characters/bastion/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BASTION_30090101_healthy.png",
+      "characters/bastion/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BASTION_30090101_injured.png",
+      "characters/bastion/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/BASTION_MODEL.unity3d",
+      "characters/bastion/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BASTION_UI.png"
+    }
+  },
   "black-bolt": {
     "id": "00340101",
     "sources": {

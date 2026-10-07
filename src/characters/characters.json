@@ -117,6 +117,17 @@
       "stagger"
     ]
   },
+  "bastion": {
+    "id": "30090101",
+    "name": "Bastion",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "root",
+      "degeneration"
+    ]
+  },
   "black-bolt": {
     "id": "00340101",
     "name": "Black Bolt",

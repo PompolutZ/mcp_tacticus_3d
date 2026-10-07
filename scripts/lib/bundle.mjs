@@ -17,7 +17,10 @@ export async function readBundlePrefab(outDir) {
   // The bundle's manifest names its prefab, for example assets/examples/prefabs/container_orange.prefab
   const bundleManifests = [...walk(path.join(primary, 'Assets/AssetBundle'))].filter(f => f.endsWith('.json')).map(f => JSON.parse(fs.readFileSync(f, 'utf8')))
   const prefabs = bundleManifests.flatMap(m => Object.keys(m.m_Container)).filter(p => p.endsWith('.prefab'))
-  if (prefabs.length !== 1) throw new Error(`Expected 1 prefab in the bundle, found ${prefabs.length}: ${prefabs.join(', ')}`)
+  if (!prefabs.length) throw new Error('No prefab in the bundle')
+  // Bastion's bundle has a second prefab, prefabs/baston.prefab, whose figure has no mesh. TTS shows the figure,
+  // so it uses the first prefab of m_Container. Not checked for other bundles.
+  if (prefabs.length > 1) warnings.push(`has ${prefabs.length} prefabs, using the first: ${prefabs[0]} (others: ${prefabs.slice(1).join(', ')})`)
   const dependencies = bundleManifests.flatMap(m => m.m_Dependencies ?? [])
   if (dependencies.length) warnings.push(`depends on other bundles (${dependencies.join(', ')}). TTS does not load them, so materials from them are missing in TTS as well.`)
 
