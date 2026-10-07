@@ -10,14 +10,14 @@ import { startAssetRipper } from './lib/assetripper.mjs'
 import { readBundlePrefab } from './lib/bundle.mjs'
 import { compressMesh, imageToWebp, MAT_SIZE, readGlb, readObj, TEXTURE_SIZE, texturesToWebp, writeGlb } from './lib/convert.mjs'
 import { cachedFile, loadTerrainDatabase, matPlacement, pieceSources } from './lib/tts.mjs'
-import { bundleCollider, matImage, pieceCollider, pieceMesh, pieceTexture } from '../src/terrain/files.js'
+import { bundleCollider, MAP_CARD_BACK, mapCard, matImage, pieceCollider, pieceMesh, pieceTexture } from '../src/terrain/files.js'
 import { findAssetByGuid } from './lib/unity-prefab.mjs'
 
 const USAGE = `Usage:
   node scripts/migrate-terrain.mjs --list          maps whose mat is in the TTS cache, and which files are missing
   node scripts/migrate-terrain.mjs <map id|name>   convert the map's mat and pieces, print entries for pieces.js and maps.js
 Options:
-  --force       convert pieces and mat again, even if terrain-manifest.json lists them
+  --force       convert pieces, mat and map card again, even if they were migrated before
   --out <dir>   trial run: write assets to <dir>/assets and the manifest to <dir>, not to the repo`
 
 const { values: opts, positionals } = parseArgs({
@@ -38,6 +38,8 @@ const WORK_DIR = path.join(os.tmpdir(), 'mcp-assist-3d-terrain')
 const TTS_MAT_SCALE = 18
 // The game Size in a mod piece name: "Size 3 Panther Statue", "Crystals: Size 1"
 const SIZE_IN_NAME = /\bsize\s*:?\s*(\d+)\b/i
+// Map card images are 800 × 1400 in the mod. They keep that size.
+const CARD_SIZE = 1400
 
 const db = loadTerrainDatabase()
 // A trial run continues from its own manifest, if an earlier trial run into the same directory wrote one
@@ -81,6 +83,7 @@ async function migrate(card) {
   const mat = matPlacement(card, db.pieces)
   if (!mat) throw new Error('The map has no mat (Custom_Tile)')
   const matName = migrateMat(card, mat)
+  migrateCard(card)
 
   // mod piece key → { appKey, status, entry, warnings }
   const results = new Map()
@@ -176,6 +179,23 @@ function migrateMat(card, mat) {
   if (Math.abs(scaleX - TTS_MAT_SCALE) > 0.01 || Math.abs(scaleZ - TTS_MAT_SCALE) > 0.01) console.log(`warning: mat scale is ${mat.scale}, not ${TTS_MAT_SCALE}`)
   console.log(`Mat: converted to ${assetPath(matImage(name))}\n`)
   return name
+}
+
+// The map card (face) and the shared card back, for the lobby (docs/feature-rooms.md). The face is
+// named after the map key that mapsSnippet prints. A file that exists is kept, unless --force.
+function migrateCard(card) {
+  for (const [url, file] of [[card.face, mapCard(slug(card.name))], [card.back, MAP_CARD_BACK]]) {
+    const out = assetPath(file)
+    if (fs.existsSync(out) && !opts.force) continue
+    const source = cachedFile(url)
+    if (!source) {
+      console.log(`warning: the card image ${url} is not in the TTS cache. Take the map card out of its bag once in TTS.`)
+      continue
+    }
+    fs.writeFileSync(out, imageToWebp(source, CARD_SIZE))
+    console.log(`Card: converted to ${out}`)
+  }
+  console.log()
 }
 
 // OBJ piece: mesh GLB with one material, texture as a separate WebP (Terrain.jsx puts them together).

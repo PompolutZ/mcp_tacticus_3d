@@ -97,6 +97,7 @@ The collection is a mailbox per room. One document per message. The index `{ roo
 ### Connect flow
 
 1. The host presses **Host game**. The browser makes a random room code and a link: `https://<site>/#room=K7Q2-M9XD`. The code is in the URL hash, so Netlify never receives it. The host posts `hello` and polls every 2 s.
+   Rooms exist already in one browser (`docs/feature-rooms.md`). A local room has a code of this format, and its page is this link. So the host shares the link of a room they created.
 2. The host sends the link to the other player (chat, email).
 3. The guest opens the link. The guest posts `hello`, reads the host's `hello`, creates the offer, waits until ICE gathering ends (at most 3 s), and posts the `offer`.
 4. The host reads the offer, creates the answer the same way, and posts the `answer`.
@@ -227,6 +228,8 @@ Y.Doc
 React reads the document through one hook, `useY(type)`, built on `useSyncExternalStore`. Handlers in `App.jsx` such as `handleTokenFlip` write to the document instead of calling `setTokens`. A game with no connection uses the same document, only without a provider. So single-player and multiplayer run the same code.
 
 Each browser also stores the document in IndexedDB (`y-indexeddb`), per room. After a page reload, the table comes back at once, and Yjs syncs the changes that the other player made in the meantime.
+
+Until then, a room stores its table in `localStorage` (`docs/feature-rooms.md`, "Storage"). The `table` of a room record has the fields of the categories above. With this phase, `table` moves into the Yjs document, and the room record keeps only the setup: map, rosters, owner, dates.
 
 ## Moving objects (physics)
 

@@ -20,7 +20,9 @@ It renders a game table floating in space. The camera sits directly above the ta
 
 ```
 src/
-  App.jsx          — Canvas setup and camera position
+  Root.jsx         — the page of the URL hash: lobby, room or Sandbox
+  App.jsx          — one table: Canvas setup, camera position, the table state
+  rooms/           — rooms in localStorage, the saved table, the files to load first
   components/
     Scene.jsx      — 3D scene: space, table, mat, lights
   assets/          — models and textures. Load them with assetUrl('path') from assets/index.js
@@ -41,7 +43,19 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173`. You can orbit, zoom, and pan with the mouse.
+Open `http://localhost:5173`. The app opens on the lobby. Open the Sandbox or a room to get the table. You can orbit, zoom, and pan with the mouse.
+
+## Lobby, rooms and Sandbox
+
+The app opens on the **lobby**. It lists the rooms of this browser, the last changed room first. Each tile shows the map card, the map name, the room code and the time of the last change. Click a tile to enter the room. **Delete** removes a room after a confirm.
+
+**+ New room** opens a dialog. **Random map** is on by default: the app picks the map when it creates the room. Turn it off to choose the map in a carousel of map cards. Paste the MCT code of your roster into **Blue roster**. **Create room** works when the code has a known card, and it enters the new room.
+
+In a **room**, you are the Blue player. The map and the Blue roster are fixed, so the toolbar has no map picker and only the Red roster field. The room saves itself in the browser storage (`localStorage`): the map, the rosters, the characters with their positions, damage and tokens, the crisis cards and tokens, the tactic cards and the score. Dice and tools are not saved. The loading screen stays until the map and the models of both rosters are in.
+
+The **Sandbox** is the free table: map picker and both roster fields. Nothing in it is saved.
+
+**← Lobby** at the start of the toolbar goes back to the lobby. The Sandbox asks first, because its table is lost. The URL shows the page: `#room=K7Q2-M9XD` for a room, `#sandbox` for the Sandbox, so the browser back button works. See `docs/feature-rooms.md`.
 
 ## Scene units
 
@@ -247,7 +261,7 @@ The range and movement tools also snap to a selected token, the same way they sn
 
 ## Roster
 
-**Roster** in the toolbar has one text field for each player. Paste an MCT code and press Enter. On a Jarvis roster page, the **Copy MCT code** button gives the code. A code from the TTS mod works too. A new load replaces the old roster of that player. **×** next to the field removes the roster.
+**Roster** in the toolbar has one text field for each player. In a room, the Blue roster comes from the new room dialog, so only the Red field shows. Paste an MCT code and press Enter. On a Jarvis roster page, the **Copy MCT code** button gives the code. A code from the TTS mod works too. A new load replaces the old roster of that player. **×** next to the field removes the roster.
 
 The cards lie on the player's side of the table, in the area of the character trays. Row 1 has the characters. Row 2 has the Team Tactic cards, then the Secure cards, then the Extract cards. An Infinity Gem shows as a text line on its character card. The cards are locked. They have no physics body, so a tool key over a card works as over the empty table.
 

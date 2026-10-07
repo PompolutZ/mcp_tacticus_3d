@@ -116,6 +116,10 @@ Named `httpsd37ev18qvj5a3mcloudfrontnetttstokenXXXX.png`, under `token/condition
 
 The "Tracker" board (mesh and texture), the "Round Tracker" mesh, and all 34 affiliation token images (`token/affiliation/*_AFFILIATION_TOKEN.png`, 225 × 225) are copied to `src/assets/scoreboard/` and `src/assets/affiliations/` by `scripts/migrate-scoreboard.mjs`; see `scripts/README.md`.
 
+### Map card images
+
+Each map in the Terrain Database has a card: `face` and `back` image URLs next to its `name`. The face shows the map name, its setting and a picture of the layout. The images are 800 × 1400. On 2026-10-07, the cache had the cards of 27 maps, all in "Strict Maps". `scripts/migrate-terrain.mjs` copies the card of a map to `src/assets/maps/` with the map.
+
 ### Game mat / map textures — 4 unique cached (of 188 total)
 
 Only maps played recently are on disk (run `npm run migrate-terrain -- --list` for the current list):

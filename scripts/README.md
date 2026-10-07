@@ -26,7 +26,7 @@ The script prints the game Size on each placement (`size`). It reads the Size fr
 npm run migrate-terrain -- --list                      # maps whose mat is in the TTS cache, and which pieces are missing
 npm run migrate-terrain -- 282                         # migrate map 282 (a name also works, if it is unique)
 npm run migrate-terrain -- 282 --out /tmp/terrain-try  # trial run: nothing is written to the repo
-npm run migrate-terrain -- 282 --force                 # convert pieces again that the manifest already lists
+npm run migrate-terrain -- 282 --force                 # convert pieces, mat and map card again
 ```
 
 `--list` reads the TTS cache each time. The cache grows when a map is spawned in TTS, so run `--list` again after that.
@@ -39,7 +39,8 @@ Several maps have the same name, for example three "Cosmic Downtown" cards. Maps
 2. Run the script with the id. Read the warnings in the report.
 3. Copy the printed entries into `src/terrain/pieces.js` and `src/terrain/maps.js`. The script also saves them in `$TMPDIR/mcp-assist-3d-terrain/<map>.snippet.js`.
 4. Compare tints with the map card image. For example, the mod tints the Vibranium Heist truck black, but the card shows it olive, so `maps.js` leaves that tint out.
-5. Commit the new files in `src/assets` and `scripts/terrain-manifest.json` together.
+5. Check that the report has no warning about the card image. Without the card, the lobby cannot show the map: take the map card out of its bag once in TTS, and run the script again.
+6. Commit the new files in `src/assets` and `scripts/terrain-manifest.json` together.
 
 The app does not use all the printed data yet. See [What the app still needs](#what-the-app-still-needs).
 
@@ -48,6 +49,8 @@ The app does not use all the printed data yet. See [What the app still needs](#w
 | Output | Content |
 |---|---|
 | `src/assets/<mat>-mat.webp` | Mat image |
+| `src/assets/maps/<map>.webp` | Map card image, the face. The lobby shows it (`docs/feature-rooms.md`). A file that exists is kept, unless `--force` |
+| `src/assets/maps/back.webp` | Back of a map card. The new room dialog shows it for Random map. The script writes it once, from the first map it migrates. The three maps of the app have the same back. Other maps in the mod have other backs |
 | `src/assets/terrain/<key>.glb` | Piece mesh |
 | `src/assets/terrain/<key>.webp` | Texture of an OBJ piece. The entry has `texture: false` when the mod piece has no texture. |
 | `src/assets/terrain/<key>-collider.glb` | Collider mesh of an OBJ piece with `collider: true` |
@@ -55,7 +58,7 @@ The app does not use all the printed data yet. See [What the app still needs](#w
 | `scripts/terrain-manifest.json` | TTS source URLs of every migrated piece and mat |
 | `$TMPDIR/mcp-assist-3d-terrain/<key>/` | AssetRipper exports of a bundle piece (`primary/`, `project/`), kept for inspection |
 
-`<key>` is the piece key in the mod, for example `cargo-size-2`. `<mat>` is the map name in lower case, for example `battle-for-asgard`. The manifest stores the source URLs of each piece (`mesh`, `diffuse`, `collider`, or `bundle`) and the image URL of each mat. A piece with the same source URLs as a migrated piece gets that piece's key. For example, `size-2-wakanda-tree` in Hydra Vs Wakanda is `wakanda-tree` from Vibranium Heist. As a result, a piece is converted only once. The first 9 entries of the manifest were written by hand for the Vibranium Heist pieces.
+`<key>` is the piece key in the mod, for example `cargo-size-2`. `<mat>` is the map name in lower case, for example `battle-for-asgard`. `<map>` is the key of the map in `maps.js`, the map name as a slug. The card images are the `face` and `back` of the map in the Terrain Database. They are 800 × 1400 and keep that size. TTS downloads them when the map card is out of its bag. On 2026-10-07, the cache had the cards of 27 maps. The manifest stores the source URLs of each piece (`mesh`, `diffuse`, `collider`, or `bundle`) and the image URL of each mat. A piece with the same source URLs as a migrated piece gets that piece's key. For example, `size-2-wakanda-tree` in Hydra Vs Wakanda is `wakanda-tree` from Vibranium Heist. As a result, a piece is converted only once. The first 9 entries of the manifest were written by hand for the Vibranium Heist pieces.
 
 ## Piece types
 

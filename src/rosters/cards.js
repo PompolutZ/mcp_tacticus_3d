@@ -82,6 +82,14 @@ export function parseRosterText(text) {
   return parseRoster(text, cardKind)
 }
 
+// The message for the codes of a roster text that the app does not know, for example
+// "2 unknown codes: 01234567, 07654321". The first 5 codes show.
+export function unknownCodesMessage(unknown) {
+  const n = unknown.length
+  const shown = unknown.slice(0, 5).join(', ') + (n > 5 ? ', …' : '')
+  return `${n === 1 ? '1 unknown code' : `${n} unknown codes`}: ${shown}`
+}
+
 // Background of a card without an image, on the table (RosterCards.jsx) and in the roster popup
 export const PLATE_COLORS = { character: '#3a4658', tactic: '#4a3f5c', secure: '#3d5a4a', extract: '#5c4a3d' }
 

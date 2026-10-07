@@ -6,6 +6,7 @@ import { Box3, Color, CylinderGeometry, FrontSide, Group, Matrix4, Mesh, MeshSta
 import { FRICTION, castDown } from '../physics.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useColorTexture } from './useColorTexture.js'
+import { assetUrl } from '../assets/index.js'
 import { useHoverCursor } from './useHoverCursor.js'
 
 const TEAM_COLORS = { red: '#c0392b', blue: '#2980b9' }
@@ -99,6 +100,15 @@ function turnBetween(a, b) {
   return 2 * Math.acos(Math.min(1, dot))
 }
 
+// The files of a model (characters/models.js), as its component loads them: the GLB of a 3D model, or the
+// front and back images of a standee, in this order. Scene passes them to the component, and Preload.jsx
+// loads the same before a table shows (docs/feature-rooms.md, "Loading").
+export function modelUrls(model) {
+  return model.figure === 'standee'
+    ? { standee: [assetUrl(model.standeeFiles[0]), assetUrl(model.standeeFiles[1])] }
+    : { gltf: assetUrl(model.file) }
+}
+
 // url: the GLB of the model. The other props: see CharacterFigure below.
 export default function CharacterModel({ url, ...props }) {
   // useGLTF caches one scene per url. Each model needs its own copy: two characters with the same
@@ -116,9 +126,9 @@ export default function CharacterModel({ url, ...props }) {
 // The image is as wide as the base, and its height follows the image. Not measured in TTS: the mod
 // scales the figurine by 0.75, 1.1 and 1.4 for a small, medium and large base, so its size follows
 // the base, but the image size of a TTS figurine at scale 1 is not known yet.
-// frontUrl, backUrl: the two images. The other props: see CharacterFigure below.
-export function StandeeModel({ frontUrl, backUrl, ...props }) {
-  const [front, back] = useColorTexture([frontUrl, backUrl])
+// urls: [front, back], the two images (modelUrls). The other props: see CharacterFigure below.
+export function StandeeModel({ urls, ...props }) {
+  const [front, back] = useColorTexture(urls)
   const radius = props.baseRadius ?? BASE_RADIUS
   const scene = useMemo(() => standeeScene(front, back, radius), [front, back, radius])
   useEffect(() => () => scene.traverse(obj => {
@@ -152,18 +162,22 @@ function standeeScene(front, back, radius) {
 // The body of a character model on the table: the base collider, the figure (scene, its own copy),
 // and everything a player does with it.
 // bodyRef, objectRef: get the Rapier body and the 3D object of the model (figure and base)
-// liftRef: gets { toggle(), down() } for the R key (see liftPiece in Scene.jsx), and isUp() for a Throw
-// (a lifted model does not stop it), and null on unmount
+// liftRef: gets { toggle(), down() } for the R key (see liftPiece in Scene.jsx), isUp() for a Throw
+// (a lifted model does not stop it), and restPosition() for the room save: the body position before the
+// lift, or null when the model is not lifted. Gets null on unmount.
 // slideRef: gets startSlide for a Throw or Push (see RulerTool.jsx), and null on unmount
 // baseRadius: radius of the base in the model file, which has the game size
 // onHover(over): called when the pointer moves onto the model (true) and off it (false)
 // rangeMark: 'inRange' or 'outOfRange' while a range tool marks the model (RangeMark in RulerTool.jsx)
 // position: where the body starts. Read only on mount: RigidBody moves its body when its position
 // prop changes, and the spawn position follows the tray (Scene.jsx), which can move later.
+// quaternion: the rotation the body starts with, [x, y, z, w], or undefined for none. Read only on mount,
+// the same as position. A model of a saved room starts at its saved pose, asleep (docs/feature-rooms.md).
 // overlay(top): optional, what moves with the model above it (SpectatorBadge.jsx). top: height of the
 // model top above the base bottom, in inches.
-function CharacterFigure({ scene, position = [0, 0, 0], baseRadius = BASE_RADIUS, rotation = [0, 0, 0], teamColor = 'red', selected = false, rangeMark, onSelect, onHover, bodyRef, objectRef, liftRef, slideRef, onDragStart, onDragEnd, constrainDrag, overlay }) {
+function CharacterFigure({ scene, position = [0, 0, 0], quaternion, baseRadius = BASE_RADIUS, rotation = [0, 0, 0], teamColor = 'red', selected = false, rangeMark, onSelect, onHover, bodyRef, objectRef, liftRef, slideRef, onDragStart, onDragEnd, constrainDrag, overlay }) {
   const [startPosition] = useState(position)
+  const [startQuaternion] = useState(quaternion)
   const top = useMemo(() => modelTop(scene), [scene])
   const { camera, gl, controls } = useThree()
   const { world, rapier } = useRapier()
@@ -320,8 +334,21 @@ function CharacterFigure({ scene, position = [0, 0, 0], baseRadius = BASE_RADIUS
     rb.setNextKinematicRotation(upright(rb.rotation()))
   }
 
+  // A model of a saved room starts asleep at its pose, the same as it was when the room saved. So it
+  // does not move before the terrain under it has its colliders. A touch, a drag or a removed terrain
+  // piece wakes it. RigidBody creates and places the body in its own effects, which run before this one.
   useEffect(() => {
-    liftRef?.({ toggle: toggleLift, down: lowerLift, isUp: () => lift.current?.up === true })
+    if (startQuaternion) rigidRef.current?.sleep()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    liftRef?.({
+      toggle: toggleLift,
+      down: lowerLift,
+      isUp: () => lift.current?.up === true,
+      restPosition: () => lift.current && { x: lift.current.x, y: lift.current.y, z: lift.current.z },
+    })
     slideRef?.(startSlide)
     return () => {
       liftRef?.(null)
@@ -453,7 +480,7 @@ function CharacterFigure({ scene, position = [0, 0, 0], baseRadius = BASE_RADIUS
     // dominanceGroup 1 (dice stay at the default, 0): in a model-die contact, Rapier moves only the
     // lower-group body, so a die never pushes a model (design, "Collisions"). Fixed/kinematic
     // bodies are already always dominant, so this only changes model-die contacts.
-    <RigidBody ref={setBody} type="dynamic" position={startPosition} colliders={false} linearDamping={LINEAR_DAMPING} angularDamping={ANGULAR_DAMPING} ccd dominanceGroup={1}>
+    <RigidBody ref={setBody} type="dynamic" position={startPosition} quaternion={startQuaternion} colliders={false} linearDamping={LINEAR_DAMPING} angularDamping={ANGULAR_DAMPING} ccd dominanceGroup={1}>
       <CylinderCollider args={[BASE_HALF_H, baseRadius]} position={[0, BASE_HALF_H, 0]} friction={FRICTION} density={BASE_DENSITY} />
       <primitive
         ref={setFigure}

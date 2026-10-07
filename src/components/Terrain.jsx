@@ -56,7 +56,17 @@ function ColliderMesh({ url, convex }) {
   )
 }
 
-// placement: a terrain piece on the mat, see mapTerrain in App.jsx.
+// The files of a terrain piece, as TerrainPiece loads them: mesh, texture, and collider mesh or null.
+// Preload.jsx loads the same before a table shows (docs/feature-rooms.md, "Loading").
+export function pieceUrls(key) {
+  return {
+    mesh: assetUrl(pieceMesh(key)),
+    texture: assetUrl(pieceTexture(key)),
+    collider: TERRAIN_PIECES[key].collider ? assetUrl(pieceCollider(key)) : null,
+  }
+}
+
+// placement: a terrain piece on the mat, see mapTerrain in rooms/table.js.
 // showLabel: show the piece name and the game Size above the piece
 // selected: the piece is selected. onSelect(): a click on the piece. onHover(over): the pointer
 // moved onto (true) or off (false) the piece, for the Delete key.
@@ -67,8 +77,9 @@ function TerrainPiece({ placement, showLabel, selected, onSelect, onHover, objec
   const { locked } = placement
   const meshRef = useRef(null)
   const [hovered, setHovered] = useState(false)
-  const { scene: raw } = useGLTF(assetUrl(pieceMesh(placement.piece)))
-  const map = useTexture(assetUrl(pieceTexture(placement.piece)))
+  const urls = pieceUrls(placement.piece)
+  const { scene: raw } = useGLTF(urls.mesh)
+  const map = useTexture(urls.texture)
   const obj = useMemo(() => {
     map.colorSpace = THREE.SRGBColorSpace
     // The GLB meshes use glTF UVs (V flipped from OBJ), so the texture must not be flipped
@@ -152,7 +163,7 @@ function TerrainPiece({ placement, showLabel, selected, onSelect, onHover, objec
             onPointerDown={locked ? undefined : handlePointerDown}
             onClick={locked ? undefined : handleClick}
           />
-          {piece.collider && <ColliderMesh url={assetUrl(pieceCollider(placement.piece))} convex={piece.convex} />}
+          {urls.collider && <ColliderMesh url={urls.collider} convex={piece.convex} />}
         </group>
       </RigidBody>
       {showLabel && (
@@ -164,7 +175,7 @@ function TerrainPiece({ placement, showLabel, selected, onSelect, onHover, objec
   )
 }
 
-// placements: the terrain pieces on the mat, [{ id, locked, ...placement }] (see mapTerrain in App.jsx).
+// placements: the terrain pieces on the mat, [{ id, locked, ...placement }] (see mapTerrain in rooms/table.js).
 // selectedId: id of the selected piece, or null. onSelect(id), onHover(id, over), objectRef(id, obj):
 // see TerrainPiece.
 export default function Terrain({ placements, showLabels = false, selectedId = null, onSelect, onHover, objectRef }) {

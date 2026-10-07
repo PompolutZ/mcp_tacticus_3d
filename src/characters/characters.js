@@ -68,6 +68,12 @@ export function searchCharacters(query) {
 }
 
 const bySlug = new Map(CHARACTERS.map(ch => [ch.slug, ch]))
+const byCode = new Map(CHARACTERS.map(ch => [ch.mctCode, ch]))
+
+// The Library row of an MCT code, or null. A roster stores characters by code (rosters/mct.js).
+export function characterByCode(code) {
+  return byCode.get(code) ?? null
+}
 
 // Display name of a spawned character (App.jsx stores only its slug as `key`).
 export function characterName(slug) {

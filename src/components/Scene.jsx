@@ -4,7 +4,7 @@ import { Raycaster, Vector3 } from 'three'
 import { useTexture, Stars, Environment } from '@react-three/drei'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import { MovementRuler, AngleRuler, RangeRuler, DeployRangeTool, RANGE_TIP, sameModel } from './RulerTool.jsx'
-import CharacterModel, { StandeeModel, turnBody } from './CharacterModel.jsx'
+import CharacterModel, { StandeeModel, modelUrls, turnBody } from './CharacterModel.jsx'
 import CharacterTray from './CharacterTray.jsx'
 import SpectatorBadge from './SpectatorBadge.jsx'
 import Terrain from './Terrain.jsx'
@@ -35,6 +35,7 @@ import { TRAY_Y, inTrayArea, layoutTrays, onTray, trayHeldLocal, trayHeldWorld, 
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import { MAT_SIZE, TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WIDTH } from '../table.js'
 import { NO_PIECES, NO_TOOLS, isToolPiece, selectPiece, selectedId, toggleSelectPiece } from '../selection.js'
+import { poseOf } from '../rooms/table.js'
 
 const TABLE_THICKNESS = 0.5
 // The table image of the TTS mod (its TableURL). The image is 3:2, the same as the TTS table. The app table is
@@ -74,10 +75,17 @@ const ROTATE_DONE = 1e-4
 // cards and tokens, character trays and models, tactic cards, tools) is in its own Suspense below. While its file
 // loads, only that piece is not drawn. Without its own Suspense, the load hides the whole scene (the
 // Suspense that React Three Fiber puts around the Canvas content), and the screen flashes black.
+// The map and the models of a new table are loaded before the scene mounts (Preload.jsx), so they show
+// in the first frame.
+
+// The mat image of a map. Preload.jsx loads it before a table shows (docs/feature-rooms.md, "Loading").
+export function matUrl(mapId) {
+  return assetUrl(matImage(MAPS[mapId].mat))
+}
 
 // The mat image. Its own component, so a new map's image loads inside the mat's Suspense below.
-function Mat({ mat }) {
-  const map = useTexture(assetUrl(matImage(mat)))
+function Mat({ mapId }) {
+  const map = useTexture(matUrl(mapId))
   return (
     <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
       <planeGeometry args={[MAT_SIZE, MAT_SIZE]} />
@@ -87,7 +95,7 @@ function Mat({ mat }) {
 }
 
 // mapId: key in MAPS. terrain: the terrain pieces on the mat, [{ id, locked, ...placement }] (see
-// mapTerrain in App.jsx). onTerrainHover(id, over): the pointer moved onto or off an unlocked piece,
+// mapTerrain in rooms/table.js). onTerrainHover(id, over): the pointer moved onto or off an unlocked piece,
 // for the Delete key. terrainAtRef: ref App calls for the L key, the same pattern as characterAtRef.
 // Scene fills it with terrainAt.
 // showColliders: draw every physics collider as lines (the shapes physics uses, not the visible meshes)
@@ -153,11 +161,14 @@ function Mat({ mat }) {
 // onSupplyDragStart(e, cardKey): pointerdown on the supply pile of a Source card (SupplyPile.jsx).
 // scoreMarkers, affiliations, onScoreMarkerMove(marker, x, z): the scoring board markers, see
 // ScoreBoard.jsx.
+// startPoses: model id → saved pose { x, y, z, qx, qy, qz, qw } of a room (rooms/table.js). A model with a
+// pose starts there instead of on its tray. Read when the model mounts.
+// modelPosesRef: ref App calls to get the pose of every model on the table, the same pattern as
+// modelPositionRef. Scene fills it with modelPoses. Used by the room save (docs/feature-rooms.md).
 export default function Scene({
   mapId, terrain = [], onTerrainHover, terrainAtRef, characters = [], activeRange, activeMove, angleOn = false, angleSpawn = { target: null, aim: null }, showColliders = false, showLabels = false, spectator = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0, angle: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenPiles = [], onPileTakeStart, onPileMoveStart, onPileHover, tacticCards = [], onTacticMove, onTacticHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, onDiceTrayHover, addDiceRef, heldRotate, scoreMarkers, affiliations, rosters = { blue: null, red: null }, onRosterOpen, onScoreMarkerMove,
+  crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0, angle: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenPiles = [], onPileTakeStart, onPileMoveStart, onPileHover, tacticCards = [], onTacticMove, onTacticHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, onDiceTrayHover, addDiceRef, heldRotate, scoreMarkers, affiliations, rosters = { blue: null, red: null }, onRosterOpen, onScoreMarkerMove, startPoses = {}, modelPosesRef,
 }) {
-  const map = MAPS[mapId]
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
   const { camera, gl, pointer } = useThree()
   // The maps below are keyed by model id: a character with a second form has two models (see
@@ -264,6 +275,16 @@ export default function Scene({
     return null
   }
 
+  // The pose of every mounted model, by model id: its body position and rotation. A lifted model (R)
+  // gives the place under the lift, so it stands there when the room opens again.
+  function modelPoses() {
+    const poses = {}
+    for (const [id, body] of charBodies.current) {
+      poses[id] = poseOf(charLifts.current.get(id)?.restPosition() ?? body.translation(), body.rotation())
+    }
+    return poses
+  }
+
   // on: the piece is now the hovered or dragged one (true), or no longer (false)
   function trackPiece(ref, piece, on) {
     if (on) ref.current = piece
@@ -336,6 +357,7 @@ export default function Scene({
   useEffect(() => {
     if (characterAtRef) characterAtRef.current = characterAt
     if (modelPositionRef) modelPositionRef.current = modelPosition
+    if (modelPosesRef) modelPosesRef.current = modelPoses
     if (turnPieceRef) turnPieceRef.current = turnPiece
     if (liftPieceRef) liftPieceRef.current = liftPiece
     if (terrainAtRef) terrainAtRef.current = terrainAt
@@ -443,10 +465,12 @@ export default function Scene({
     return angle && sameModel(angle.target, model) ? angle.openYaw : null
   }
 
-  // Table position where a model spawns: on its card on the tray, or for a spare model (a second
-  // form without its own card), past the Give sources (trays.js). The model reads it only once,
-  // when its body mounts.
+  // Table position where a model spawns: its saved pose in a room, else on its card on the tray, or for
+  // a spare model (a second form without its own card), past the Give sources (trays.js). The model
+  // reads it only once, when its body mounts.
   function modelSpawnPosition(model) {
+    const pose = startPoses[model.id]
+    if (pose) return [pose.x, pose.y, pose.z]
     const ch = model.character
     const trayPos = trayPositions.get(ch.id)
     if (model.card) return trayModelPosition(ch.teamColor, trayPos, model.card)
@@ -547,7 +571,7 @@ export default function Scene({
             turns them so that the deployment edge they chose faces the blue side. */}
         <group rotation={[0, matTurns * Math.PI / 2, 0]}>
           <Suspense fallback={null}>
-            <Mat mat={map.mat} />
+            <Mat mapId={mapId} />
           </Suspense>
           {/* A fixed body does not follow its parent after it is created. So each turn mounts the terrain again,
               and its colliders are created at the new pose. A new map also mounts it again. */}
@@ -712,8 +736,10 @@ export default function Scene({
         {models.map(model => {
           const ch = model.character
           // The same props for a 3D model and a standee (CharacterModel.jsx)
+          const pose = startPoses[model.id]
           const props = {
             position: modelSpawnPosition(model),
+            quaternion: pose && [pose.qx, pose.qy, pose.qz, pose.qw],
             baseRadius: BASE_DIAMETER[model.base] / 2,
             rotation: [0, model.rotation * Math.PI / 180, 0],
             teamColor: ch.teamColor,
@@ -750,11 +776,12 @@ export default function Scene({
             },
             overlay: spectatorOverlay(model),
           }
+          const urls = modelUrls(model)
           return (
             <Suspense key={model.id} fallback={null}>
-              {model.figure === 'standee'
-                ? <StandeeModel frontUrl={assetUrl(model.standeeFiles[0])} backUrl={assetUrl(model.standeeFiles[1])} {...props} />
-                : <CharacterModel url={assetUrl(model.file)} {...props} />}
+              {urls.standee
+                ? <StandeeModel urls={urls.standee} {...props} />
+                : <CharacterModel url={urls.gltf} {...props} />}
             </Suspense>
           )
         })}

@@ -78,6 +78,7 @@ Toolbar: … | Crisis … | Roster [Blue: MCT code] [x] [Red: MCT code] [x] | De
 ```
 
 - The toolbar gets a **Roster** group with one text field per player. The placeholder is "MCT code".
+- In a room, the Blue roster comes from the new room dialog, and only the Red field shows (added on 2026-10-07, see `docs/feature-rooms.md`).
 - Enter loads the roster.
 - A new load replaces the old roster of that player.
 - **×** next to the field removes the roster of that player, and its cards leave the table.

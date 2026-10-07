@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import useEmblaCarousel from 'embla-carousel-react'
+import { useMemo, useRef, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
 import { PLATE_COLORS, ROSTER_TABS, parseRosterText, rosterCard, rosterTabs } from '../rosters/cards.js'
 import { CARD_SIZES } from '../rosters/layout.js'
 import { Overlay } from './Overlay.jsx'
+import { Carousel } from './Carousel.jsx'
 
 const TEAM_NAMES = { blue: 'Blue', red: 'Red' }
 
@@ -29,7 +29,7 @@ export function RosterPopup({ team, code, tab, index, onTabChange, onIndexChange
       onPointerDown={e => { pressedBackdrop.current = e.target === e.currentTarget }}
       onClick={e => { if (pressedBackdrop.current && e.target === e.currentTarget) onClose() }}
     >
-      <button type="button" className="roster-popup-close" aria-label="Close" onClick={onClose}>×</button>
+      <button type="button" className="popup-close" aria-label="Close" onClick={onClose}>×</button>
       <div className="roster-popup" role="dialog" aria-modal="true" aria-label={title}>
         <h2 className={`roster-popup-title roster-popup-title--${team}`}>{title}</h2>
         <div className="roster-popup-tabs" role="tablist">
@@ -54,62 +54,20 @@ export function RosterPopup({ team, code, tab, index, onTabChange, onIndexChange
   )
 }
 
-// The cards of one tab in a loop: after the last card comes the first. The shown card is in the middle.
-// The other cards show at the sides, smaller and darker (see .roster-popup-slide--side in index.css): half
-// of a character card, more of the narrower cards. A click on a side card moves it to the middle. Embla gives the
-// drag, the loop and the slide animation. A drag or a button reports the new card with onIndexChange, and
-// App passes it back as index. A new index from App (an arrow key) scrolls the carousel to that card, the
-// short way around the loop.
-// Embla loops only when all cards but one fill the viewport. The viewport is 2 character slides wide, so
-// it needs 3 character cards, or about 6 Team Tactic or crisis cards (5 on a small screen). With fewer
-// cards the carousel does not loop. The buttons and the arrow keys then go the long way to the other end.
+// The cards of one tab in the carousel (Carousel.jsx). All cards have the same height (--card-h in
+// index.css). All cards of a tab have the same size, so the first card gives the card width of the tab.
+// The viewport is 2 character slides wide, so the loop needs 3 character cards, or about 6 Team Tactic or
+// crisis cards (5 on a small screen).
 function CardCarousel({ cards, index, onIndexChange }) {
-  // Only the first index is an option. A changed option would restart Embla without the animation.
-  // No containScroll: without the loop, every card must still get its own place in the middle.
-  const [options] = useState({ startIndex: index, loop: true, containScroll: false })
-  const [viewportRef, api] = useEmblaCarousel(options)
-  // All cards have the same height (--card-h in index.css). All cards of a tab have the same size, so
-  // the first card gives the card width of the tab.
   const [w, h] = CARD_SIZES[cards[0].kind]
-  const cardWidth = { '--card-w': `calc(var(--card-h) * ${w / h})` }
-  const step = s => api?.scrollTo((index + s + cards.length) % cards.length)
-
-  useEffect(() => {
-    if (!api) return
-    const onSelect = () => onIndexChange(api.selectedScrollSnap())
-    api.on('select', onSelect)
-    return () => { api.off('select', onSelect) }
-  }, [api, onIndexChange])
-
-  useEffect(() => {
-    if (api && api.selectedScrollSnap() !== index) api.scrollTo(index)
-  }, [api, index])
-
   return (
-    <div className="roster-popup-carousel" style={cardWidth} aria-roledescription="carousel">
-      <div className="roster-popup-viewport" ref={viewportRef}>
-        <div className="roster-popup-slides">
-          {cards.map((card, i) => (
-            <div
-              key={`${i}-${card.code}`}
-              className={i === index ? 'roster-popup-slide' : 'roster-popup-slide roster-popup-slide--side'}
-              role="group"
-              aria-roledescription="slide"
-              aria-label={`${i + 1} of ${cards.length}`}
-              // After a drag, Embla stops the click, so a drag does not move the carousel twice
-              onClick={i === index ? undefined : () => api?.scrollTo(i)}
-            >
-              <PopupCard card={card} active={i === index} />
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="roster-popup-nav">
-        <button type="button" className="chip" aria-label="Previous card" disabled={cards.length < 2} onClick={() => step(-1)}>‹</button>
-        <span className="roster-popup-count">Card {index + 1} of {cards.length}</span>
-        <button type="button" className="chip" aria-label="Next card" disabled={cards.length < 2} onClick={() => step(1)}>›</button>
-      </div>
-    </div>
+    <Carousel
+      count={cards.length}
+      index={index}
+      onIndexChange={onIndexChange}
+      style={{ '--card-w': `calc(var(--card-h) * ${w / h})` }}
+      renderSlide={(i, active) => <PopupCard card={cards[i]} active={active} />}
+    />
   )
 }
 
@@ -136,7 +94,7 @@ function PopupCard({ card, active }) {
   let face
   if (shown.image && shown.back) {
     face = (
-      <div className={flipped ? 'roster-popup-flip roster-popup-flip--back' : 'roster-popup-flip'} style={size} onClick={flip}>
+      <div className={flipped ? 'carousel-card roster-popup-flip roster-popup-flip--back' : 'carousel-card roster-popup-flip'} style={size} onClick={flip}>
         <div className="roster-popup-flip-inner">
           <img className="roster-popup-card roster-popup-side" src={assetUrl(shown.image)} alt={name} draggable={false} />
           <img className="roster-popup-card roster-popup-side roster-popup-side--back" src={assetUrl(shown.back)} alt={`${name}, other side`} draggable={false} />
@@ -144,10 +102,10 @@ function PopupCard({ card, active }) {
       </div>
     )
   } else if (shown.image) {
-    face = <img className="roster-popup-card" style={size} src={assetUrl(shown.image)} alt={name} draggable={false} />
+    face = <img className="carousel-card roster-popup-card" style={size} src={assetUrl(shown.image)} alt={name} draggable={false} />
   } else {
     face = (
-      <div className="roster-popup-card roster-popup-plate" style={{ ...size, background: PLATE_COLORS[card.kind] }}>
+      <div className="carousel-card roster-popup-card roster-popup-plate" style={{ ...size, background: PLATE_COLORS[card.kind] }}>
         <span className="roster-popup-plate-name">{info.name}</span>
         <span className="roster-popup-plate-code">{info.code}</span>
         {info.kind === 'character' && !info.model && <span className="roster-popup-plate-mark">No model</span>}
@@ -158,7 +116,7 @@ function PopupCard({ card, active }) {
   return (
     <>
       {face}
-      <div className="roster-popup-card-footer">
+      <div className="carousel-footer roster-popup-card-footer">
         <div className="roster-popup-card-actions">
           {info.variants && (
             <div className="roster-popup-variants" role="tablist" aria-label={`Cards of ${info.name}`}>

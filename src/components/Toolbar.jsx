@@ -17,11 +17,23 @@ const CRISIS_TYPES = [
   { type: 'extract', label: 'Extract' },
 ]
 
-export function Toolbar({ mapId, onMapChange, activeRange, activeMove, angleOn, onRangeClick, onMoveClick, onAngleClick, debug, onDebugClick, showLabels, onLabelsClick, spectator, onSpectatorClick, onTurnMat, deployLine, onDeployLineClick, crisis, onCrisisChange, onRosterLoad, onRosterRemove, libraryOpen, onLibraryClick }) {
+// roomCode: the code of the room, or null in the Sandbox. A room has a fixed map and the Blue roster of
+// the room, so the toolbar has no map picker and only the Red roster field there (docs/feature-rooms.md).
+// onLobby(): the ← Lobby button.
+export function Toolbar({ roomCode, onLobby, mapId, onMapChange, activeRange, activeMove, angleOn, onRangeClick, onMoveClick, onAngleClick, debug, onDebugClick, showLabels, onLabelsClick, spectator, onSpectatorClick, onTurnMat, deployLine, onDeployLineClick, crisis, onCrisisChange, onRosterLoad, onRosterRemove, libraryOpen, onLibraryClick }) {
   // The typed text stays in the field after Enter (x clears it)
   const [rosterText, setRosterText] = useState({ blue: '', red: '' })
+  const rosterTeams = roomCode ? TEAMS.filter(({ team }) => team === 'red') : TEAMS
   return (
     <div className="toolbar">
+      <div className="group">
+        <button type="button" className="chip" title="Back to the lobby" onClick={onLobby}>
+          ← Lobby
+        </button>
+        <span className="group-label toolbar-room" title={roomCode ? 'Room code' : 'Nothing on this table is saved'}>
+          {roomCode ?? 'Sandbox'}
+        </span>
+      </div>
       <div className="group">
         <button
           type="button"
@@ -34,11 +46,13 @@ export function Toolbar({ mapId, onMapChange, activeRange, activeMove, angleOn, 
       </div>
       <div className="group">
         <span className="group-label">Mat</span>
-        <select className="chip" title="Map" value={mapId} onChange={e => onMapChange(e.target.value)}>
-          {Object.entries(MAPS).map(([id, map]) => (
-            <option key={id} value={id}>{map.name}</option>
-          ))}
-        </select>
+        {!roomCode && (
+          <select className="chip" title="Map" value={mapId} onChange={e => onMapChange(e.target.value)}>
+            {Object.entries(MAPS).map(([id, map]) => (
+              <option key={id} value={id}>{map.name}</option>
+            ))}
+          </select>
+        )}
         <button type="button" className="chip" title="Turn mat 90° counter-clockwise" onClick={() => onTurnMat(1)}>
           ↺
         </button>
@@ -99,7 +113,7 @@ export function Toolbar({ mapId, onMapChange, activeRange, activeMove, angleOn, 
       </div>
       <div className="group">
         <span className="group-label">Roster</span>
-        {TEAMS.map(({ team, label }) => (
+        {rosterTeams.map(({ team, label }) => (
           <span key={team} className="roster-field">
             <input
               type="text"
