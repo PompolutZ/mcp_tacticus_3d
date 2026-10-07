@@ -359,6 +359,18 @@ npm run fetch-jarvis-crisis-cards
 - `setup` is the letter of the setup map. `challengerStatus` and `timelines` give the legality. The text has the same markup as the character text, and also `|<slug>Label|` (token with an icon), `|$A-Map A|` (link to a setup map) and `|=...=|` (a note by Jarvis, not card text).
 - `mcp_tacticus` uses this data in `src/data/crisisCards.json`, after `scripts/fetch-crisis-cards.mjs` removes the markup.
 
+# Jarvis Team Tactic cards
+
+`fetch-jarvis-tactics.mjs` downloads the Team Tactic cards from [Jarvis Protocol](https://www.jarvis-protocol.com) to `src/tactics/jarvis-tactics-cards.json`. The file is the response of `GET /api/team_tactics_cards`, sorted by slug.
+
+```bash
+npm run fetch-jarvis-tactics
+```
+
+- The headers are the same as for the characters. The full response is 1 MB with the card text, so the script keeps only these fields: `exportCode`, `slug`, `name`, `isInfinityGem`, `affiliation`, `tags`, and the legality fields `timelines`, `standardTimelineStatus`, `extendedTimelineStatus`, `computedStatus`, `latestComputedStatus`.
+- On 2026-10-07, there were 519 rows, 512 with an `exportCode` (401 different codes), and 14 Infinity Gems. Some cards appear several times with the same code. The app uses the first row of each code.
+- The roster loader (`src/rosters/cards.js`) uses the file to tell Team Tactic cards and Infinity Gems from other codes.
+
 # TTS tactic cards
 
 `migrate-tactics.mjs` copies the tactic cards (Team Tactic Cards, TTC) of the TTS mod to `src/assets/tactics/`. It converts the face and the back of each card. It writes the app data to `src/tactics/cards.json`, and the source URLs to `scripts/tactic-manifest.json`. `src/tactics/files.js` names the files after the keys.

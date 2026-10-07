@@ -245,6 +245,16 @@ The range and movement tools also snap to a selected token, the same way they sn
 
 **View → Spectator** in the toolbar shows a badge above every model, for viewers who do not look at the trays. A badge shows the objective tokens the character holds, the Secure tokens within range 1 of its base, the Damage and Power counters, and the tokens on the character. It uses the same counters and tokens as the character tray, it faces the camera, and it is read-only. Click the button again to hide the badges. See `docs/feature-spectator-view.md`.
 
+## Roster
+
+**Roster** in the toolbar has one text field for each player. Paste an MCT code and press Enter. On a Jarvis roster page, the **Copy MCT code** button gives the code. A code from the TTS mod works too. A new load replaces the old roster of that player. **×** next to the field removes the roster.
+
+The cards lie on the player's side of the table, in the area of the character trays. Row 1 has the characters. Row 2 has the Team Tactic cards, then the Secure cards, then the Extract cards. An Infinity Gem shows as a text line on its character card. Click a card with an image to open it. The cards are locked. They have no physics body, so a tool key over a card works as over the empty table.
+
+A card that the app has no image for shows as a plate with its name and MCT code. A character without a model also shows "No model".
+
+A code that the app does not know shows in a message, and the other cards load. A text with no known code shows an error, and the old roster stays. The app does not check the roster: not the counts, and not Banned, Restricted or Rotated cards. Players check it. See `docs/feature-roster.md`.
+
 ## Roadmap
 
 - [ ] Character stat cards

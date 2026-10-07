@@ -51,7 +51,7 @@ const extraRows = [...migrated.values()]
   .filter(m => !jarvisCodes.has(m.id) && jarvisByName.has(m.name))
   .map(m => rosterEntry(jarvisByName.get(m.name), m, m.id))
 
-export const ROSTER = [
+export const CHARACTERS = [
   ...jarvisRows.map(jch => rosterEntry(jch, migrated.get(jch.exportCode), jch.exportCode)),
   ...extraRows,
 ].sort((a, b) => a.name.localeCompare(b.name) || a.mctCode.localeCompare(b.mctCode))
@@ -59,12 +59,12 @@ export const ROSTER = [
 export function searchCharacters(query) {
   const q = query.toLowerCase().trim()
   if (!q) return []
-  return ROSTER.filter(ch =>
+  return CHARACTERS.filter(ch =>
     ch.name.toLowerCase().includes(q) || ch.mctCode.startsWith(q)
   )
 }
 
-const bySlug = new Map(ROSTER.map(ch => [ch.slug, ch]))
+const bySlug = new Map(CHARACTERS.map(ch => [ch.slug, ch]))
 
 // Display name of a spawned character (App.jsx stores only its slug as `key`).
 export function characterName(slug) {

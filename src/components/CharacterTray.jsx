@@ -4,7 +4,7 @@ import { DoubleSide } from 'three'
 import { assetUrl } from '../assets/index.js'
 import { characterCard, transformCard } from '../characters/files.js'
 import { trayCards } from '../characters/models.js'
-import { characterGiveSources, characterStamina } from '../characters/roster.js'
+import { characterGiveSources, characterStamina } from '../characters/characters.js'
 import {
   TRAY_BG_WIDTH,
   TRAY_BG_Y,

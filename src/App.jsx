@@ -14,7 +14,7 @@ import { CardPopup } from './components/CardPopup.jsx'
 import { TrayPopup } from './components/TrayPopup.jsx'
 import { canFlip, canMove, getCard, hasArc, hasMarkers } from './crisis/cards.js'
 import { supplyPilePosition } from './crisis/layout.js'
-import { characterImmune, characterName, characterStamina } from './characters/roster.js'
+import { characterImmune, characterName, characterStamina } from './characters/characters.js'
 import { BASE_DIAMETER } from './characters/files.js'
 import { trayHeldDefault } from './characters/trays.js'
 import { modelCharacterId, secondModelId } from './characters/models.js'
@@ -23,6 +23,8 @@ import { getToken, isCappedToken } from './tokens/tokens.js'
 import { firstFreeSlot, nearestFreeSlot, tacticTrayAt } from './tactics/layout.js'
 import { START_MARKERS } from './scoreboard/board.js'
 import { DEFAULT_AFFILIATION } from './scoreboard/affiliations.js'
+import { formatMctCode, isEmptyRoster } from './rosters/mct.js'
+import { parseRosterText } from './rosters/cards.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
 import { MAPS } from './terrain/maps.js'
@@ -146,7 +148,10 @@ export default function App() {
   const [tokens, setTokens] = useState([])
   // Scoring board markers: { blue, red, round } → { x, z } on the table (see ScoreBoard.jsx)
   const [scoreMarkers, setScoreMarkers] = useState(START_MARKERS)
-  // Affiliation token that each player's VP marker shows: { blue, red } → key in scoreboard/affiliations.json
+  // Loaded rosters: { blue, red } → null | { code }, code in Jarvis format (see rosters/mct.js)
+  const [rosters, setRosters] = useState({ blue: null, red: null })
+  // Affiliation token that each player's VP marker shows: { blue, red } → key in scoreboard/affiliations.json.
+  // No toolbar control: Setup game sets it (see docs/feature-setup-game.md).
   const [affiliations, setAffiliations] = useState({ blue: DEFAULT_AFFILIATION, red: DEFAULT_AFFILIATION })
   // Selected pieces and tools, see selection.js. One character, one token, the range tool, the
   // movement tool and the Toward / Away tool can all be selected at the same time.
@@ -648,6 +653,26 @@ export default function App() {
     hudMessageTimer.current = setTimeout(() => setHudMessage(null), 3000)
   }
 
+  // Loads the roster text of one team. A text with no known code keeps the old roster. Unknown
+  // codes are named in the HUD, the known ones load.
+  function handleRosterLoad(team, text) {
+    const parsed = parseRosterText(text)
+    if (isEmptyRoster(parsed)) {
+      showHudMessage('No known MCT code in the text')
+      return
+    }
+    setRosters(prev => ({ ...prev, [team]: { code: formatMctCode(parsed) } }))
+    const n = parsed.unknown.length
+    if (n > 0) {
+      const shown = parsed.unknown.slice(0, 5).join(', ') + (n > 5 ? ', …' : '')
+      showHudMessage(`${n === 1 ? '1 unknown code' : `${n} unknown codes`}: ${shown}`)
+    }
+  }
+
+  function handleRosterRemove(team) {
+    setRosters(prev => ({ ...prev, [team]: null }))
+  }
+
   // Gives one of tokenKey to a character. A character cannot get a condition it is immune to
   // (p21): the drop does nothing, the HUD shows why, and the result is false. Conditions, Activated
   // and Dazed stay at 1 at most (p17); every other token counts up (see docs/characters-hud.md,
@@ -947,6 +972,7 @@ export default function App() {
               heldRotate={heldRotate}
               scoreMarkers={scoreMarkers}
               affiliations={affiliations}
+              rosters={rosters}
               onScoreMarkerMove={(marker, x, z) => setScoreMarkers(prev => ({ ...prev, [marker]: { x, z } }))}
             />
           </SelectionOutlines>
@@ -989,8 +1015,8 @@ export default function App() {
           onDeployLineClick={() => setDeployLine(prev => !prev)}
           crisis={crisis}
           onCrisisChange={handleCrisisChange}
-          affiliations={affiliations}
-          onAffiliationChange={(team, key) => setAffiliations(prev => ({ ...prev, [team]: key }))}
+          onRosterLoad={handleRosterLoad}
+          onRosterRemove={handleRosterRemove}
           libraryOpen={libraryOpen}
           onLibraryClick={() => setLibraryOpen(prev => !prev)}
         />

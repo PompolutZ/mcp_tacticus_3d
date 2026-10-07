@@ -1,5 +1,5 @@
 import { assetUrl } from '../assets/index.js'
-import { characterName } from '../characters/roster.js'
+import { characterName } from '../characters/characters.js'
 import { crisisMarker } from '../crisis/files.js'
 import { characterToken } from '../tokens/files.js'
 

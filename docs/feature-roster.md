@@ -1,6 +1,6 @@
 # Feature: Load roster
 
-Status: plan. Not started.
+Status: done, 2026-10-07. Not checked in a browser.
 
 ## Goal
 
@@ -64,10 +64,10 @@ The app needs a name for every code, also for cards without files in the app.
 | Kind | Source | Rows on 2026-10-07 |
 |---|---|---|
 | Characters | `src/characters/jarvis-characters.json` (exists) | 248 |
-| Crisis cards | `src/crisis/jarvis-crisis-cards.json` (exists) | 72, 66 with a code |
-| Team Tactic cards and Infinity Gems | New: `src/tactics/jarvis-tactics-cards.json` from `GET /api/team_tactics_cards` | 519, 512 with a code, 14 gems |
+| Crisis cards | `src/crisis/jarvis-crisis-cards.json` (exists) | 72, 45 different codes. Each code has one current printing |
+| Team Tactic cards and Infinity Gems | New: `src/tactics/jarvis-tactics-cards.json` from `GET /api/team_tactics_cards` | 519, 512 with a code, 401 different codes, 14 gems |
 
-The Team Tactic file is new. A new script `scripts/fetch-jarvis-tactics.mjs` downloads it, the same as the other Jarvis scripts. The full response is 1 MB. The script keeps only the fields that the app uses: `exportCode`, `slug`, `name`, `isInfinityGem`, `affiliation`, `tags`, the legality fields. Some cards appear twice with the same code (for example "Infinity Gem: Mind"). The app uses the first row of each code.
+The Team Tactic file is new. A new script `scripts/fetch-jarvis-tactics.mjs` downloads it, the same as the other Jarvis scripts. The full response is 1 MB. The script keeps only the fields that the app uses: `exportCode`, `slug`, `name`, `isInfinityGem`, `affiliation`, `tags`, the legality fields. Some cards appear twice with the same code (for example "Infinity Gem: Mind"). The app uses the first row of each code. Three ids in `src/tactics/cards.json` have 7 digits, and `src/rosters/cards.js` pads them to 8.
 
 Setup game also needs this file: 11 Team Tactic cards give a Leadership ability (see `docs/feature-setup-game.md`).
 
@@ -112,9 +112,9 @@ row 2 [ttc]x10        [secure]x5        [extract]x5                             
 
 ### Cards without files
 
-On 2026-10-07, the app has files for 65 of 248 characters, 69 of 512 Team Tactic cards and 24 of 66 crisis cards. For example, the "Spider-foes 2foe2furious" roster on Jarvis community has files in the app for 0 of 10 characters, 2 of 10 Team Tactic cards and 5 of 10 crisis cards.
+On 2026-10-07, the app has files for 65 of 233 character codes, 69 of 401 Team Tactic codes and 24 of 45 crisis codes. For example, the "Spider-foes 2foe2furious" roster on Jarvis community has files in the app for 0 of 10 characters, 2 of 10 Team Tactic cards and 5 of 10 crisis cards.
 
-- A card without an image is a plain plate of the same size, with the card name and the MCT code as a label (the same kind of label as `tray-label`).
+- A card without an image is a plain plate of the same size, with the card name and the MCT code as a label. The label is a canvas texture on the plate, so it lies flat and faces the owner, the same as the card images. The `tray-label` CSS was removed earlier.
 - A character without a 3D model also gets the mark "No model", the same as the grey row in the Library. It cannot be spawned.
 
 ### Card actions
@@ -141,7 +141,7 @@ rosters: {
 }
 ```
 
-- `code` is the only roster data in the state. A pure function `parseRoster(code)` gives the 4 card groups, the gems and the unknown codes. The components call it, so the state cannot disagree with itself.
+- `code` is the only roster data in the state. A pure function `parseRoster(text, kindOf)` gives the 4 card groups, the gems and the unknown codes. The components call it, so the state cannot disagree with itself.
 - A roster is an object and not a plain string, so that Setup game can add fields to it, for example the chosen squad.
 - All fields are plain JSON. So they fit into the `rosters` map of the Yjs document in `docs/feature-peer-to-peer.md`. Both browsers must run the same app version, so that they have the same Jarvis data. The P2P plan already requires this.
 
@@ -149,9 +149,9 @@ rosters: {
 
 | File | Content |
 |---|---|
-| `src/rosters/mct.js` | `parseRoster(text)`, `formatMctCode(groups)`. Plain module, no React, so a Node script can test it |
-| `src/rosters/cards.js` | Find a code in the Jarvis data: kind, name, image file or null, model or not |
-| `src/rosters/layout.js` | Card positions for each side. Plain module, the same as `characters/trays.js` |
+| `src/rosters/mct.js` | `parseRoster(text, kindOf)`, `formatMctCode(parsed)`, `isEmptyRoster(parsed)`. `kindOf(code)` is an argument, so the module has no imports and a Node script can test it |
+| `src/rosters/cards.js` | `cardKind(code)`, `rosterCard(code)` (kind, name, image file or null, model or not), `parseRosterText(text)` |
+| `src/rosters/layout.js` | `rosterLayout(team, parsed)`, `ROSTER_CARD_Y`, `rosterRowInfo`. Card positions for each side. Plain module, the same as `characters/trays.js` |
 | `src/components/RosterCards.jsx` | The cards of one roster on the table |
 | `src/components/Toolbar.jsx` | The Roster group. The VP group goes away |
 | `scripts/fetch-jarvis-tactics.mjs` | The Team Tactic data, with a section in `scripts/README.md` |
@@ -188,3 +188,11 @@ Made on 2026-10-07:
 3. The Library list is called `CHARACTERS`, so "roster" means only a player's roster.
 4. A draft roster is a roster with fewer codes. It needs no special case.
 5. The roster cards lie in the tray area on the owner's side. **×** removes a roster.
+6. `parseRoster(text, kindOf)` gets the lookup as an argument, so `mct.js` has no imports.
+7. The stored `code` holds only known codes. Unknown codes show once, in the load warning.
+8. Codes after `-` are gems only when the first code of the group is a character. A gem is a code of kind `tactic`. An unknown gem code goes to the warning.
+9. The text search is `/\d{8}(?:-\d{8})*/g`, with no check of the characters around a match. TTS also uses a plain substring search.
+10. A card without an image shows its name and MCT code in a canvas texture on the plate.
+11. A plate takes no pointer events. The pointer works as over the empty table.
+12. Roster cards lie at y = 0.01, below the character trays (y = 0.02). The tray draws on top of a roster.
+13. The toolbar field keeps the typed text. **×** clears the field and the roster.

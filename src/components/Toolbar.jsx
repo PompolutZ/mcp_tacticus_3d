@@ -1,6 +1,6 @@
+import { useState } from 'react'
 import { MAPS } from '../terrain/maps.js'
 import { cardsOfType } from '../crisis/cards.js'
-import { AFFILIATIONS } from '../scoreboard/affiliations.js'
 
 const RANGES = [1, 2, 3, 4, 5]
 const MOVES = [
@@ -17,7 +17,9 @@ const CRISIS_TYPES = [
   { type: 'extract', label: 'Extract' },
 ]
 
-export function Toolbar({ mapId, onMapChange, activeRange, activeMove, angleOn, onRangeClick, onMoveClick, onAngleClick, debug, onDebugClick, showLabels, onLabelsClick, spectator, onSpectatorClick, onTurnMat, deployLine, onDeployLineClick, crisis, onCrisisChange, affiliations, onAffiliationChange, libraryOpen, onLibraryClick }) {
+export function Toolbar({ mapId, onMapChange, activeRange, activeMove, angleOn, onRangeClick, onMoveClick, onAngleClick, debug, onDebugClick, showLabels, onLabelsClick, spectator, onSpectatorClick, onTurnMat, deployLine, onDeployLineClick, crisis, onCrisisChange, onRosterLoad, onRosterRemove, libraryOpen, onLibraryClick }) {
+  // The typed text stays in the field after Enter (x clears it)
+  const [rosterText, setRosterText] = useState({ blue: '', red: '' })
   return (
     <div className="toolbar">
       <div className="group">
@@ -96,19 +98,30 @@ export function Toolbar({ mapId, onMapChange, activeRange, activeMove, angleOn, 
         ))}
       </div>
       <div className="group">
-        <span className="group-label">VP</span>
+        <span className="group-label">Roster</span>
         {TEAMS.map(({ team, label }) => (
-          <select
-            key={team}
-            className={`chip chip--player-${team}`}
-            title={`${label} player's affiliation: the token on the ${label} VP marker`}
-            value={affiliations[team]}
-            onChange={e => onAffiliationChange(team, e.target.value)}
-          >
-            {AFFILIATIONS.map(a => (
-              <option key={a.key} value={a.key}>{a.name}</option>
-            ))}
-          </select>
+          <span key={team} className="roster-field">
+            <input
+              type="text"
+              className={`chip chip--player-${team} chip--text`}
+              placeholder="MCT code"
+              title={`${label} roster: paste an MCT code and press Enter`}
+              value={rosterText[team]}
+              onChange={e => setRosterText(prev => ({ ...prev, [team]: e.target.value }))}
+              onKeyDown={e => { if (e.key === 'Enter') onRosterLoad(team, rosterText[team]) }}
+            />
+            <button
+              type="button"
+              className="chip"
+              title={`Remove the ${label} roster from the table`}
+              onClick={() => {
+                setRosterText(prev => ({ ...prev, [team]: '' }))
+                onRosterRemove(team)
+              }}
+            >
+              ×
+            </button>
+          </span>
         ))}
       </div>
       <div className="group">

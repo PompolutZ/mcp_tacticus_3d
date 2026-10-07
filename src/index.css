@@ -640,6 +640,21 @@ body {
   border-color: #a93226;
 }
 
+/* Roster text field in the toolbar (Toolbar.jsx), a chip with the player color */
+.roster-field {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.chip--text {
+  width: 110px;
+  cursor: text;
+}
+
+.chip--text::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
 /* Rendered through Overlay.jsx (createPortal to document.body), so `fixed` always means the
    viewport, not some ancestor (see .scene-root). */
 .loading {

@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
 import { characterPortrait } from '../characters/files.js'
-import { ROSTER } from '../characters/roster.js'
+import { CHARACTERS } from '../characters/characters.js'
 import { TACTICS } from '../tactics/cards.js'
 import { tacticCardBack } from '../tactics/files.js'
 import { characterToken } from '../tokens/files.js'
@@ -25,8 +25,8 @@ const TOKEN_GROUPS = { condition: 'Conditions', status: 'Status', character: 'Ch
 // The All tab shows this many characters and tactic cards. "More" opens their own tab with all of them.
 const ALL_TAB_LIMIT = { characters: 8, tactics: 6 }
 
-// Characters with a 3D model first, then by name (ROSTER is sorted by name)
-const CHARACTERS = [...ROSTER.filter(ch => ch.available), ...ROSTER.filter(ch => !ch.available)]
+// Characters with a 3D model first, then by name (CHARACTERS is sorted by name)
+const LIBRARY_ROWS = [...CHARACTERS.filter(ch => ch.available), ...CHARACTERS.filter(ch => !ch.available)]
 
 // Only migrated characters have a portrait
 function portraitUrl(ch) {
@@ -50,7 +50,7 @@ export function Library({ open, onSpawnCharacter, onSpawnTactic, onTokenDragStar
 
   const q = query.trim().toLowerCase()
   const found = useMemo(() => ({
-    characters: q ? CHARACTERS.filter(ch => ch.name.toLowerCase().includes(q) || ch.mctCode.startsWith(q)) : CHARACTERS,
+    characters: q ? LIBRARY_ROWS.filter(ch => ch.name.toLowerCase().includes(q) || ch.mctCode.startsWith(q)) : LIBRARY_ROWS,
     tactics: q ? TACTICS.filter(card => card.name.toLowerCase().includes(q) || card.id.startsWith(q)) : TACTICS,
     tokens: q ? TOKENS.filter(t => t.name.toLowerCase().includes(q)) : TOKENS,
   }), [q])

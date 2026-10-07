@@ -249,7 +249,7 @@ Output, in the same style as the crisis migration:
 
 | Data | Source | Where |
 |---|---|---|
-| Stamina, Healthy and Injured | Jarvis `statCard.frontSide.stamina`, `backSide.stamina` | `roster.js`, which already loads `jarvis-characters.json` |
+| Stamina, Healthy and Injured | Jarvis `statCard.frontSide.stamina`, `backSide.stamina` | `characters.js`, which already loads `jarvis-characters.json` |
 | Tokens the character uses (Give sources) | Mod `cToken` | `characters.json`, written by `migrate-characters.mjs` |
 | Immunities | Mod `cImmune` | `characters.json` |
 
@@ -315,7 +315,7 @@ Done when the trays show in a row for each player and a click on a card opens th
 
 Files: `src/table.js` (table depth), `src/characters/trays.js` (new), `src/components/CharacterTray.jsx`
 (new), `src/components/CrisisCard.jsx`, `src/components/CardPopup.jsx`, `src/App.jsx`,
-`src/components/Scene.jsx`, `src/characters/roster.js` (`characterName` helper), `src/index.css`
+`src/components/Scene.jsx`, `src/characters/characters.js` (`characterName` helper), `src/index.css`
 (`tray-label`).
 
 `npm run dice-sim`, seed 1, default throw counts:
@@ -353,14 +353,14 @@ Open issues:
 
 ### Phase 2: Damage, Power, Flip
 
-- `roster.js` adds the Stamina of both sides from Jarvis.
+- `characters.js` adds the Stamina of both sides from Jarvis.
 - New character fields `side`, `damage`, `power`. Handlers in `App.jsx`, the same way as the token handlers.
 - `TrayControls.jsx` (plain DOM) in a flat `<Html transform>` on the tray: Damage and Power counters with `−` and `+`, Flip.
 - The tray card and the popup show the side that faces up.
 
 #### Result
 
-Files: `src/characters/roster.js` (`staminaHealthy`/`staminaInjured`, `characterStamina`),
+Files: `src/characters/characters.js` (`staminaHealthy`/`staminaInjured`, `characterStamina`),
 `src/App.jsx` (`side`/`damage`/`power` on spawn, `handleCharacterDamage`/`Power`/`Flip`),
 `src/components/Scene.jsx` (forwards the three handlers to each tray), `src/components/CharacterTray.jsx`
 (card shows `character.side`, mounts the controls, builds the popup's `altSrc`), `src/components/TrayControls.jsx`
@@ -368,7 +368,7 @@ Files: `src/characters/roster.js` (`staminaHealthy`/`staminaInjured`, `character
 (`--warn`, `.tray-controls*`, `.tray-counter*`, `.card-popup-content`).
 
 Measured: Jarvis stores `statCard.frontSide.stamina` / `backSide.stamina` as strings, not numbers
-(`Number(...)` in `roster.js`). Every character with an `exportCode` has both sides, except
+(`Number(...)` in `characters.js`). Every character with an `exportCode` has both sides, except
 Multiple Man, whose stamina is the string `"?"` (variable stamina, not a fixed number); that case
 falls back to 0 and is harmless today since Multiple Man has no migrated model (`available: false`,
 so the Spawner blocks it).
@@ -520,7 +520,7 @@ Open issues:
 
 Files: `scripts/migrate-characters.mjs` (`tokens`/`immune` fields, mapped from `cToken`/`cImmune`),
 `src/characters/characters.json` (re-migrated, same 21 characters, only `tokens`/`immune` added),
-`src/characters/roster.js` (`characterGiveTokens`, `characterImmune`), `src/components/TrayControls.jsx`
+`src/characters/characters.js` (`characterGiveTokens`, `characterImmune`), `src/components/TrayControls.jsx`
 (the **Give** row, `GiveChip`), `src/components/CharacterTray.jsx`, `src/components/Scene.jsx`
 (forward `onTokenDragStart`), `src/App.jsx` (`handleCharacterTokenGive` checks immunity, `hudMessage`
 state and `showHudMessage`), `src/index.css` (`.tray-controls-row-label`, `.tray-controls-give`,
@@ -709,7 +709,7 @@ derived from `selection`, so clearing `selection` already drops a stale tool tar
 themselves are not forced to close (same as any other deselect, e.g. Escape with no tool active).
 
 Confirmation: a plain `window.confirm` inside `TrayControls.jsx`'s own click handler, not a new popup
-component. `TrayControls` already imports `characterGiveTokens` from `roster.js`; it now also imports
+component. `TrayControls` already imports `characterGiveTokens` from `characters.js`; it now also imports
 `characterName` for the confirm text, no new dependency.
 
 Lowest free slot: `lowestFreeSlot(characters, teamColor)` scans the current `slot` values of that

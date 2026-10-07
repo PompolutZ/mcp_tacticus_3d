@@ -17,13 +17,14 @@ import SupplyPile, { SupplyToken } from './SupplyPile.jsx'
 import TokenPile, { PileStack } from './TokenPile.jsx'
 import TacticTray from './TacticTray.jsx'
 import TacticCard from './TacticCard.jsx'
+import RosterCards from './RosterCards.jsx'
 import DiceTray from './DiceTray.jsx'
 import ScoreBoard from './ScoreBoard.jsx'
 import { projectFootprints } from './footprintProjection.js'
 import { matImage } from '../terrain/files.js'
 import { BASE_DIAMETER } from '../characters/files.js'
 import { MAPS } from '../terrain/maps.js'
-import { characterGiveSources, characterStamina } from '../characters/roster.js'
+import { characterGiveSources, characterStamina } from '../characters/characters.js'
 import { characterModels, modelCharacterId, trayCards } from '../characters/models.js'
 import { FRICTION, WORLD_GRAVITY } from '../physics.js'
 import { assetUrl } from '../assets/index.js'
@@ -122,6 +123,7 @@ function Mat({ mat }) {
 // tokenDrag: the token drag in progress, see App.jsx. While it is active, the dragged token shows
 // under the pointer (TokenDragPreview) and, for a token from the table, not in its old place.
 // dragPointRef: the preview writes the table point under the pointer there, for App's release.
+// rosters: { blue, red } → null | { code }, the loaded rosters (RosterCards.jsx).
 // onCardOpen({ src, alt }): a click on a crisis card (see CardPopup.jsx). onTrayOpen(id): a click
 // on a tray card opens the whole tray (see TrayPopup.jsx).
 // diceMenu: the open face menu of a dice tray, { trayKey, symbol } | null, lifted to App so Escape
@@ -152,7 +154,7 @@ function Mat({ mat }) {
 // ScoreBoard.jsx.
 export default function Scene({
   mapId, terrain = [], onTerrainHover, terrainAtRef, characters = [], activeRange, activeMove, angleOn = false, angleSpawn = { target: null, aim: null }, showColliders = false, showLabels = false, spectator = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0, angle: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenPiles = [], onPileTakeStart, onPileMoveStart, onPileHover, tacticCards = [], onTacticMove, onTacticHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, onDiceTrayHover, addDiceRef, heldRotate, scoreMarkers, affiliations, onScoreMarkerMove,
+  crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0, angle: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenPiles = [], onPileTakeStart, onPileMoveStart, onPileHover, tacticCards = [], onTacticMove, onTacticHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, onDiceTrayHover, addDiceRef, heldRotate, scoreMarkers, affiliations, rosters = { blue: null, red: null }, onScoreMarkerMove,
 }) {
   const map = MAPS[mapId]
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
@@ -666,6 +668,11 @@ export default function Scene({
             Tactic cards. Relative to the table, not the mat. See docs/feature-team-tactic-cards.md. */}
         <TacticTray team="blue" />
         <TacticTray team="red" />
+        {/* The loaded rosters, in the area of the character trays (docs/feature-roster.md). Locked cards, no
+            physics body, so a tool or a model passes over them. */}
+        {['blue', 'red'].map(team => rosters[team] && (
+          <RosterCards key={team} team={team} code={rosters[team].code} onOpen={onCardOpen} />
+        ))}
         {tacticCards.map((card, i) => (
           <Suspense key={card.id} fallback={null}>
             <TacticCard
