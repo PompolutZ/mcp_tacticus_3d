@@ -34,6 +34,9 @@ function rosterEntry(jch, m, mctCode) {
     // Second form: null, or { figure, rotation, base?, name?, portrait?, card? } from
     // characters.json. See docs/characters-hud.md, "Second forms", and models.js.
     transform: m?.transform ?? null,
+    // Jarvis name of the second form, for example 'diamond' for Emma Frost, or null. The roster popup
+    // uses it as the label of the second card (rosters/cards.js).
+    secondForm: jch.secondFormSlug || null,
   }
 }
 

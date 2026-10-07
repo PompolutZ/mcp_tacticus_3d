@@ -1,7 +1,7 @@
 // Find an MCT code in the Jarvis data: kind, name, image files or null, model or not.
 // See docs/feature-roster.md, "Data" and "Cards without files".
 import { CHARACTERS } from '../characters/characters.js'
-import { characterCard } from '../characters/files.js'
+import { characterCard, transformCard } from '../characters/files.js'
 import tacticsData from '../tactics/jarvis-tactics-cards.json'
 import tacticFiles from '../tactics/cards.json'
 import { tacticCardBack, tacticCardFace } from '../tactics/files.js'
@@ -16,20 +16,28 @@ const idToKey = files =>
 const tacticKeys = idToKey(tacticFiles)
 const crisisKeys = idToKey(crisisFiles)
 
-// code -> { code, kind, name, image, back, model }. Each code once. back: the image of the other side, for
-// the flip in the roster popup. null when the app has no image, or when the other side is the same for
-// every card of the kind: the back of a crisis card shows only its type.
+// code -> { code, kind, name, image, back, model, variants }. Each code once. back: the image of the other
+// side, for the flip in the roster popup. null when the app has no image, or when the other side is the
+// same for every card of the kind: the back of a crisis card shows only its type.
+// variants: the cards that the roster popup can switch between for this character, [{ label, image, back }],
+// the character card first. null when the character has one card. Now only a second form with its own card
+// (see docs/characters-hud.md, "Second forms"). Later also the grunts of a host.
 const cards = new Map()
 
+// 'diamond' -> 'Diamond form'
+const formLabel = slug =>
+  slug ? `${slug[0].toUpperCase()}${slug.slice(1).replace(/-/g, ' ')} form` : 'Second form'
+
 for (const ch of CHARACTERS) {
-  cards.set(ch.mctCode, {
-    code: ch.mctCode,
-    kind: 'character',
-    name: ch.name,
-    image: ch.available ? characterCard(ch.slug, 'healthy') : null,
-    back: ch.available ? characterCard(ch.slug, 'injured') : null,
-    model: ch.available,
-  })
+  const image = ch.available ? characterCard(ch.slug, 'healthy') : null
+  const back = ch.available ? characterCard(ch.slug, 'injured') : null
+  const variants = ch.available && ch.transform?.card
+    ? [
+        { label: ch.name, image, back },
+        { label: formLabel(ch.secondForm), image: transformCard(ch.slug, 'healthy'), back: transformCard(ch.slug, 'injured') },
+      ]
+    : null
+  cards.set(ch.mctCode, { code: ch.mctCode, kind: 'character', name: ch.name, image, back, model: ch.available, variants })
 }
 
 // Jarvis lists some codes twice (reprints). The first row is the card.
@@ -43,6 +51,7 @@ for (const row of tacticsData) {
     image: key ? tacticCardFace(key) : null,
     back: key ? tacticCardBack(key) : null,
     model: false,
+    variants: null,
   })
 }
 
@@ -57,6 +66,7 @@ for (const row of crisisData) {
     image: key ? crisisCardFace(key) : null,
     back: null,
     model: false,
+    variants: null,
   })
 }
 

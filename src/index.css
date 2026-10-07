@@ -866,8 +866,8 @@ body {
    as the image of CardPopup.jsx. The backdrop is darker and blurs the table behind it. */
 .roster-popup-backdrop {
   background: rgba(5, 5, 16, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   cursor: default;
 }
 
@@ -942,33 +942,23 @@ body {
   gap: 6px;
 }
 
-/* --card-w comes from RosterPopup.jsx. A slide is a card and a gap. The viewport is 2 slides wide: the
-   card in the middle and half of the previous and the next slide. --edge is the left edge of the card
-   in the middle. */
+/* All cards have the same height in every tab, and the viewport has the same width in every tab. So
+   the carousel and the buttons under it do not move. The limit by width keeps a character card (3:2)
+   within 70vw. --card-w comes from RosterPopup.jsx: --card-h times the card ratio. A slide is a card
+   and a gap. The viewport is 2 slides of character cards wide: the card in the middle and half of the
+   previous and the next slide. The Team Tactic and crisis cards are narrower, so more of them show at
+   the sides. */
 .roster-popup-carousel {
+  --card-h: min(60vh, 440px, 46vw);
   --card-gap: 24px;
   --slide-w: calc(var(--card-w) + var(--card-gap));
-  --view-w: min(100vw, calc(var(--slide-w) * 2));
-  --edge: calc((var(--view-w) - var(--card-w)) / 2);
+  --view-w: min(100vw, calc((var(--card-h) * 1.5 + var(--card-gap)) * 2));
 }
 
-/* Embla needs a viewport that hides the other slides and a flex row of slides. The mask fades the side
-   cards: 60% at their inner edge, then down to nothing at the viewport edge. The card in the middle
-   stays fully visible. */
+/* Embla needs a viewport that hides the other slides and a flex row of slides */
 .roster-popup-viewport {
   overflow: hidden;
   width: var(--view-w);
-  --fade: linear-gradient(
-    to right,
-    transparent,
-    rgba(0, 0, 0, 0.6) calc(var(--edge) - var(--card-gap)),
-    #000 var(--edge),
-    #000 calc(100% - var(--edge)),
-    rgba(0, 0, 0, 0.6) calc(100% - var(--edge) + var(--card-gap)),
-    transparent
-  );
-  -webkit-mask-image: var(--fade);
-  mask-image: var(--fade);
 }
 
 .roster-popup-slides {
@@ -986,9 +976,53 @@ body {
   padding: 12px 0 24px;
 }
 
-/* A click on a side card moves it to the middle */
-.roster-popup-slide--side .roster-popup-card {
+/* Not on the slide itself: in the loop, Embla moves the slides with transform. */
+.roster-popup-slide > * {
+  transition: transform 0.3s, filter 0.3s, opacity 0.3s, visibility 0.3s;
+}
+
+/* The side cards are smaller and darker, so the card in the middle stands out. A click on a side card
+   moves it to the middle. Their Flip button and gem lines show only in the middle. */
+.roster-popup-slide--side > .roster-popup-card,
+.roster-popup-slide--side > .roster-popup-flip {
+  transform: scale(0.92);
+  filter: brightness(0.45);
   cursor: pointer;
+}
+
+.roster-popup-slide--side > .roster-popup-card-footer {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Room for the Flip button and 2 gem lines in every tab, so that all slides have the same height */
+.roster-popup-card-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 64px;
+}
+
+/* As wide as the card: the card switch at the left, the Flip button in the middle */
+.roster-popup-card-actions {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  gap: 8px;
+  width: var(--card-w);
+}
+
+.roster-popup-variants {
+  grid-column: 1;
+  justify-self: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.roster-popup-flip-button {
+  grid-column: 2;
 }
 
 /* width and aspect-ratio come from RosterPopup.jsx. The shadow is the one of .card-popup-image. */
@@ -1064,6 +1098,7 @@ body {
 
 .roster-popup-gem {
   font-size: 13px;
+  line-height: 16px;
   color: var(--text);
 }
 
