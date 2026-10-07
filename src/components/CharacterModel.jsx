@@ -467,6 +467,12 @@ function CharacterFigure({ scene, position = [0, 0, 0], quaternion, baseRadius =
     bodyRef?.(rb)
   }
 
+  // RigidBody passes the new body to a function ref, but never passes null when it removes the body.
+  // So the parent forgets the body here, on unmount. A call on a removed body makes Rapier fail, and
+  // after that every call into the physics world fails (the room save read the removed body).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => () => setBody(null), [])
+
   // Also hand the 3D object to the parent, so tools can find the model under the pointer
   function setFigure(obj) {
     figureRef.current = obj
