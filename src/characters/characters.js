@@ -30,6 +30,8 @@ function rosterEntry(jch, m, mctCode) {
     // stores it as a string; "?" (Multiple Man's variable stamina) falls back to 0.
     staminaHealthy: Number(jch.statCard.frontSide.stamina) || 0,
     staminaInjured: Number(jch.statCard.backSide.stamina) || 0,
+    // Threat Level, for the squad threat in the game setup (see docs/feature-setup-game.md)
+    threat: jch.threatLevel ?? 0,
     // Token keys (tokens.json) from the mod's cToken/cImmune, written by migrate-characters.mjs.
     // See docs/characters-hud.md, "Give tokens by drag and drop", and TrayControls.jsx.
     tokens: m?.tokens || [],

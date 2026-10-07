@@ -4,7 +4,7 @@ Status: done, 2026-10-07. Not checked in a browser.
 
 ## Goal
 
-The app opens on a lobby. The lobby lists the rooms of this browser. A player creates a room with a map and their roster, enters it later, and finds the table as they left it. The table without a room is the Sandbox: the app as it was before this feature.
+The app opens on a lobby. The lobby lists the rooms of this browser. A player creates a room with a map and the rosters, enters it later, and finds the table as they left it. The table without a room is the Sandbox: the app as it was before this feature.
 
 There is no server yet. Each room is a record in `localStorage`. The peer-to-peer feature (`docs/feature-peer-to-peer.md`) will let a second player join a room.
 
@@ -13,7 +13,7 @@ There is no server yet. Each room is a record in `localStorage`. The peer-to-pee
 | Term | Meaning |
 |---|---|
 | Lobby | The start page. Lists the rooms, creates a room, opens the Sandbox |
-| Room | A saved table with a fixed map and the Blue roster. Saved in `localStorage` |
+| Room | A saved table with a fixed map, the Blue roster and, if given, the Red roster. Saved in `localStorage` |
 | Sandbox | A table with every control: map picker, both roster fields. Not saved |
 | Owner | The user who created the room. Only the owner can delete it |
 | Room code | The id of a room, for example `K7Q2-M9XD`. The same format as the room code of the peer-to-peer plan |
@@ -35,7 +35,8 @@ The URL hash selects the page. So the browser back button works, and a reload st
 ## Lobby
 
 - **Rooms:** a **+** tile, then a tile for each room, the last changed room first. A tile shows the map card, the map name, the room code and the time of the last change. A click on the tile enters the room.
-- **Roster** on a tile shows the Blue roster of the room in the roster popup of the table (`docs/feature-roster.md`). It opens on the first tab with cards, usually Characters. Escape, **×** or a click on the backdrop closes it. The left and right arrows show the previous or next card.
+- **Blue** and **Red** on a tile show that roster of the room in the roster popup of the table (`docs/feature-roster.md`). A button shows only when the room has that roster. The popup opens on the first tab with cards, usually Characters. Escape, **×** or a click on the backdrop closes it. The left and right arrows show the previous or next card. **Red** added on 2026-10-07.
+- On a narrow tile, **Delete** goes to a second line.
 - **Delete** on a tile removes the room. It shows only on rooms that this user owns. Now that is every room. A browser confirm asks first, the same as **Remove** on a character tray.
 - **Sandbox:** a button that opens the Sandbox.
 
@@ -45,9 +46,9 @@ The **+** tile opens a dialog on a blurred backdrop, the same style as the roste
 
 - **Random map** switch, on by default. While it is on, the dialog shows the back of a map card. The app picks the map when the player creates the room.
 - With the switch off, a carousel shows the map cards. The card in the middle is the map of the room. It is the same carousel as in the roster popup.
-- **Blue roster:** a text field for the MCT code. Under it, the dialog shows what it found, for example "10 characters · 10 tactic cards · 5 Secure · 5 Extract", and the unknown codes. The parse rules are the ones of `docs/feature-roster.md`.
-- When the app has no 3D model for a character or no image for a Team Tactic card of the roster, a warning box under the summary names these cards, for example "No 3D model for 2 characters: Angela, Bishop". On the table, these cards show as plates, and a character without a model cannot be spawned. The box is only a warning: **Create room** still works. Added on 2026-10-07.
-- **Create room** works only when the code has a known card. It saves the room and enters it.
+- **Blue roster** and **Red roster:** a text field for the MCT code of each player. Under each field, the dialog shows what it found, for example "10 characters · 10 tactic cards · 5 Secure · 5 Extract", and the unknown codes. The parse rules are the ones of `docs/feature-roster.md`. The Red field was added on 2026-10-07, because the game setup (`docs/feature-setup-game.md`) needs both rosters.
+- When the app has no 3D model for a character or no image for a Team Tactic card of a roster, a warning box under its summary names these cards, for example "No 3D model for 2 characters: Angela, Bishop". On the table, these cards show as plates, and a character without a model cannot be spawned. The box is only a warning: **Create room** still works. Added on 2026-10-07.
+- **Create room** works when the Blue code has a known card. The Red roster is optional, because the Red field of the toolbar can load it later. A Red text without a known card blocks **Create room**, so a wrong paste does not make a room without Red. **Create room** saves the room and enters it.
 - **Cancel**, Escape, **×** or a click on the backdrop closes the dialog.
 
 The carousel shows only maps that the app has (`src/terrain/maps.js`). A map card image comes from the TTS mod. `scripts/migrate-terrain.mjs` copies it with the map.
@@ -56,7 +57,8 @@ The carousel shows only maps that the app has (`src/terrain/maps.js`). A map car
 
 - The player is Blue, the same as before.
 - The map is the room map. The toolbar has no map picker. The mat turn buttons stay.
-- The Blue roster comes from the room. The Roster group has only the Red field. With a server, the Red field will be only in the Sandbox, because the second player loads their own roster.
+- The rosters come from the room. The Roster group has only the Red field. It loads, replaces or removes the Red roster of the room. The field is empty when the room opens, also when the room has a Red roster.
+- With a server, each player will load their own roster when they join. Then the new room dialog will have only the roster of the player who creates the room, and the Red field will be only in the Sandbox.
 - **← Lobby** at the start of the toolbar saves the room and opens the lobby. The toolbar also shows the room code.
 
 ## Sandbox
@@ -145,11 +147,11 @@ There are no accounts. The user id in `localStorage` is the owner of every room 
 | File | Content |
 |---|---|
 | `src/Root.jsx` | The page of the URL hash: Lobby, Room or Sandbox |
-| `src/rooms/store.js` | `localStorage`: user id, room code, list, read, create, save, delete |
+| `src/rooms/store.js` | `localStorage`: user id, room code, list, read, create, save, delete. `createRoom` takes both rosters |
 | `src/rooms/table.js` | The table state that a new or saved table starts with, and the saved form of it |
 | `src/rooms/preload.js` | The files to load before a table shows |
 | `src/components/Lobby.jsx` | The lobby page, and the roster popup of a room |
-| `src/components/NewRoomDialog.jsx` | The new room dialog: map switch, map carousel, roster field |
+| `src/components/NewRoomDialog.jsx` | The new room dialog: map switch, map carousel, Blue and Red roster fields |
 | `src/components/Carousel.jsx` | The Embla carousel, taken out of `RosterPopup.jsx`. The roster popup and the map picker use it |
 | `src/components/Preload.jsx` | `Preload` and `Ready`, see [Loading](#loading) |
 | `src/terrain/files.js` | `mapCard(id)` and `MAP_CARD_BACK` |
@@ -170,6 +172,7 @@ Made on 2026-10-07:
 9. With **Random map** on, the dialog shows a card back, and the map is picked at creation.
 10. The carousel of the roster popup became a shared component.
 11. A file list for the loading screen comes from helpers next to the components that load the files.
+12. The new room dialog takes both rosters, until players join a room from a server. Red is optional. The lobby tile shows each roster.
 
 ## Out of scope
 

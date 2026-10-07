@@ -18,6 +18,7 @@ import TokenPile, { PileStack } from './TokenPile.jsx'
 import TacticTray from './TacticTray.jsx'
 import TacticCard from './TacticCard.jsx'
 import RosterCards from './RosterCards.jsx'
+import GameSetup from './GameSetup.jsx'
 import DiceTray from './DiceTray.jsx'
 import ScoreBoard from './ScoreBoard.jsx'
 import { projectFootprints } from './footprintProjection.js'
@@ -132,7 +133,10 @@ function Mat({ mapId }) {
 // under the pointer (TokenDragPreview) and, for a token from the table, not in its old place.
 // dragPointRef: the preview writes the table point under the pointer there, for App's release.
 // rosters: { blue, red } → null | { code }, the loaded rosters (RosterCards.jsx). onRosterOpen({ team, tab,
-// index }): a click on a roster card opens the roster popup on that card (see RosterPopup.jsx).
+// index }): a click on a roster card. It opens the roster popup on that card (see RosterPopup.jsx), or
+// adds the card to the squad (App.jsx, handleRosterClick).
+// setup: the game setup (setup/setup.js). squadSelect, setupActions: see GameSetup.jsx. A player who
+// activated the squad has no roster cards on the table.
 // onCardOpen({ src, alt }): a click on a crisis card (see CardPopup.jsx). onTrayOpen(id): a click
 // on a tray card opens the whole tray (see TrayPopup.jsx).
 // diceMenu: the open face menu of a dice tray, { trayKey, symbol } | null, lifted to App so Escape
@@ -167,7 +171,7 @@ function Mat({ mapId }) {
 // modelPositionRef. Scene fills it with modelPoses. Used by the room save (docs/feature-rooms.md).
 export default function Scene({
   mapId, terrain = [], onTerrainHover, terrainAtRef, characters = [], activeRange, activeMove, angleOn = false, angleSpawn = { target: null, aim: null }, showColliders = false, showLabels = false, spectator = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0, angle: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenPiles = [], onPileTakeStart, onPileMoveStart, onPileHover, tacticCards = [], onTacticMove, onTacticHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, onDiceTrayHover, addDiceRef, heldRotate, scoreMarkers, affiliations, rosters = { blue: null, red: null }, onRosterOpen, onScoreMarkerMove, startPoses = {}, modelPosesRef,
+  crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0, angle: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenPiles = [], onPileTakeStart, onPileMoveStart, onPileHover, tacticCards = [], onTacticMove, onTacticHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, onDiceTrayHover, addDiceRef, heldRotate, scoreMarkers, affiliations, rosters = { blue: null, red: null }, onRosterOpen, setup, squadSelect, setupActions, onScoreMarkerMove, startPoses = {}, modelPosesRef,
 }) {
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
   const { camera, gl, pointer } = useThree()
@@ -568,7 +572,7 @@ export default function Scene({
         </RigidBody>
 
         {/* The mat and its terrain turn together around the mat center. In game setup, the player with priority
-            turns them so that the deployment edge they chose faces the blue side. */}
+            turns them so that the deployment edge they chose faces their side (GameSetup.jsx). */}
         <group rotation={[0, matTurns * Math.PI / 2, 0]}>
           <Suspense fallback={null}>
             <Mat mapId={mapId} />
@@ -693,11 +697,19 @@ export default function Scene({
             Tactic cards. Relative to the table, not the mat. See docs/feature-team-tactic-cards.md. */}
         <TacticTray team="blue" />
         <TacticTray team="red" />
-        {/* The loaded rosters, in the area of the character trays (docs/feature-roster.md). Locked cards, no
-            physics body, so a tool or a model passes over them. */}
-        {['blue', 'red'].map(team => rosters[team] && (
-          <RosterCards key={team} team={team} code={rosters[team].code} onOpen={(tab, index) => onRosterOpen?.({ team, tab, index })} />
+        {/* The loaded rosters, in the area of the character trays (docs/feature-roster.md), until the player
+            activates the squad. Locked cards, no physics body, so a tool or a model passes over them. The
+            crisis cards of the rosters and the setup buttons are in GameSetup. */}
+        {['blue', 'red'].map(team => rosters[team] && !setup.active[team] && (
+          <RosterCards
+            key={team}
+            team={team}
+            code={rosters[team].code}
+            squad={setup.squads[team]}
+            onOpen={(tab, index) => onRosterOpen?.({ team, tab, index })}
+          />
         ))}
+        <GameSetup setup={setup} rosters={rosters} squadSelect={squadSelect} actions={setupActions} onRosterOpen={onRosterOpen} />
         {tacticCards.map((card, i) => (
           <Suspense key={card.id} fallback={null}>
             <TacticCard

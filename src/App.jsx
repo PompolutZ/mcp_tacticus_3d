@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Canvas, events as pointerEvents } from '@react-three/fiber'
 import { MOUSE } from 'three'
 import { OrbitControls } from '@react-three/drei'
 import Scene from './components/Scene.jsx'
@@ -16,7 +16,7 @@ import { TrayPopup } from './components/TrayPopup.jsx'
 import { RosterPopup } from './components/RosterPopup.jsx'
 import { canFlip, canMove, getCard, hasArc, hasMarkers } from './crisis/cards.js'
 import { supplyPilePosition } from './crisis/layout.js'
-import { characterImmune, characterName, characterStamina } from './characters/characters.js'
+import { characterByCode, characterImmune, characterName, characterStamina } from './characters/characters.js'
 import { BASE_DIAMETER } from './characters/files.js'
 import { trayHeldDefault } from './characters/trays.js'
 import { characterModels, modelCharacterId, secondModelId } from './characters/models.js'
@@ -24,7 +24,8 @@ import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { getToken, isCappedToken } from './tokens/tokens.js'
 import { firstFreeSlot, nearestFreeSlot, tacticTrayAt } from './tactics/layout.js'
 import { formatMctCode, isEmptyRoster } from './rosters/mct.js'
-import { parseRosterText, rosterCard, rosterTabs, unknownCodesMessage } from './rosters/cards.js'
+import { parseRosterText, rosterCard, rosterTabs, squadThreat, unknownCodesMessage } from './rosters/cards.js'
+import { CRISIS_TYPES, NEW_SETUP, activateSquad, chooseDeck, chooseEdge, chooseThreat, otherTeam, otherType, pickCard, setupPlacedCards, setupStep, toggleSquadCard } from './setup/setup.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
 import { TERRAIN_PIECES } from './terrain/pieces.js'
@@ -59,6 +60,8 @@ const TOKEN_ROW_SPACING = TOKEN_RADIUS * 2 + DROP_GAP * 2
 const DRAG_THRESHOLD = 4
 // The map on the mat when the Sandbox starts, a key in MAPS
 const START_MAP = 'vibranium-heist'
+// What a restart of the game setup removes, for its confirm (restartSetup)
+const SETUP_REMOVAL = 'The squads and the crisis cards that the game setup put on the table are removed.'
 // A room saves its table this often (ms), when something changed. See docs/feature-rooms.md, "When the
 // room saves".
 const SAVE_INTERVAL = 2000
@@ -66,17 +69,21 @@ const SAVE_INTERVAL = 2000
 // Mat token entries of a card, as tracked in App state. Position and rotation come from cards.json
 // (TTS x, z from the mat center, and TTS Y rotation), converted the same way as terrain: z -> -z.
 // yaw: checked against the X-Men Infiltrate Secret Weapons Facility Zone map, see the report.
-function buildMatTokens(card) {
+// The bottom edge of the map on the card is the side of the player with Priority (p9). cards.json has it
+// at the blue side. turned: the red player has Priority, so the map turns a half turn around the mat
+// center (see docs/feature-setup-game.md, "Priority").
+function buildMatTokens(card, turned) {
   const marked = hasMarkers(card)
+  const sign = turned ? -1 : 1
   return card.tokens.map(t => ({
     id: crypto.randomUUID(),
     cardKey: card.key,
     frontKey: t.token,
     backKey: t.back ?? null,
     up: 'front',
-    x: t.position[0],
-    z: -t.position[1],
-    yaw: Math.PI - (t.rotation ?? 180) * DEG,
+    x: t.position[0] * sign,
+    z: -t.position[1] * sign,
+    yaw: Math.PI - (t.rotation ?? 180) * DEG + (turned ? Math.PI : 0),
     canMove: canMove(t),
     canFlip: canFlip(t),
     hasArc: hasArc(t),
@@ -115,9 +122,44 @@ function supplyToken(card, x, z) {
   }
 }
 
+// A new character on the table for `teamColor`. ch: a row of CHARACTERS (characters/characters.js).
+function newCharacter(ch, teamColor) {
+  return {
+    id: crypto.randomUUID(),
+    key: ch.slug,
+    figure: ch.figure,
+    base: ch.base,
+    rotation: ch.rotation,
+    // Second form, or null: a second model, and maybe a second card on the tray (see
+    // characters/models.js and docs/characters-hud.md, "Second forms").
+    transform: ch.transform,
+    teamColor,
+    // Card side that faces up, and the simple limits players apply by hand (see
+    // docs/characters-hud.md, "Players apply the rules").
+    side: 'healthy',
+    damage: 0,
+    power: 0,
+    // Token key (tokens.json) -> count, see handleCharacterTokenGive.
+    tokens: {},
+  }
+}
+
+// R3F listens for pointer events on the element around the canvas. drei Html puts its HTML into that
+// element too, so a click on an Html button (dice keys, game setup buttons) also reaches R3F. R3F aims its
+// ray with offsetX and offsetY, which are relative to the button, not to the canvas. So the ray points near
+// the top-left corner of the canvas, and an object there, for example a roster card, got the click. With
+// this filter, an event that is not on the canvas hits no object. Drags are not changed, because they
+// listen on window.
+function canvasEvents(store) {
+  return {
+    ...pointerEvents(store),
+    filter: (hits, state) => (state.internal.lastEvent.current?.target === state.gl.domElement ? hits : []),
+  }
+}
+
 // One table: a room, or the Sandbox. Root.jsx mounts a new App for each, so nothing stays from the last
 // table. room: the room record (rooms/store.js), or null for the Sandbox. A room starts with its saved
-// table and saves it (saveTable). Its map is fixed, and its Blue roster comes from the room. The Sandbox
+// table and saves it (saveTable). Its map is fixed, and its rosters come from the room. The Sandbox
 // starts empty and is not saved. onExit(): opens the lobby. See docs/feature-rooms.md.
 export default function App({ room = null, onExit }) {
   // The state of the table at the start (rooms/table.js): the saved table of the room, or a new one
@@ -153,8 +195,14 @@ export default function App({ room = null, onExit }) {
   // Scoring board markers: { blue, red, round } → { x, z } on the table (see ScoreBoard.jsx)
   const [scoreMarkers, setScoreMarkers] = useState(start.scoreMarkers)
   // Loaded rosters: { blue, red } → null | { code }, code in Jarvis format (see rosters/mct.js). A room
-  // brings its Blue roster.
+  // brings its rosters: Blue, and Red when the room has it.
   const [rosters, setRosters] = useState(room?.rosters ?? { blue: null, red: null })
+  // The game setup: crisis cards, threat, deployment edge and squads (setup/setup.js, GameSetup.jsx). A new
+  // roster starts it again.
+  const [setup, setSetup] = useState(start.setup)
+  // The players whose clicks on their roster cards choose the squad: { blue, red } → true. Off, a click opens
+  // the roster popup. Not saved.
+  const [squadSelect, setSquadSelect] = useState({ blue: false, red: false })
   // Affiliation token that each player's VP marker shows: { blue, red } → key in scoreboard/affiliations.json.
   // No toolbar control: Setup game sets it (see docs/feature-setup-game.md).
   const [affiliations, setAffiliations] = useState(start.affiliations)
@@ -270,7 +318,7 @@ export default function App({ room = null, onExit }) {
       if (pose) poses[id] = pose
     }
     lastPoses.current = poses
-    const table = savedTable({ matTurns, deployLine, terrain, characters, crisis, tokens, scoreMarkers, affiliations, looseTokens, tokenPiles, tacticCards, poses })
+    const table = savedTable({ matTurns, deployLine, terrain, characters, crisis, tokens, scoreMarkers, affiliations, setup, looseTokens, tokenPiles, tacticCards, poses })
     const saved = saveRoom(room, rosters, table)
     if (!saved && !saveFailed.current) showHudMessage('Room not saved: browser storage is full')
     saveFailed.current = !saved
@@ -356,24 +404,7 @@ export default function App({ room = null, onExit }) {
       showHudMessage(`${ch.teamColor === 'blue' ? 'Blue' : 'Red'} player already has ${ch.name} on the table`)
       return
     }
-    setCharacters(prev => [...prev, {
-      id: crypto.randomUUID(),
-      key: ch.slug,
-      figure: ch.figure,
-      base: ch.base,
-      rotation: ch.rotation,
-      // Second form, or null: a second model, and maybe a second card on the tray (see
-      // characters/models.js and docs/characters-hud.md, "Second forms").
-      transform: ch.transform,
-      teamColor: ch.teamColor,
-      // Card side that faces up, and the simple limits players apply by hand (see
-      // docs/characters-hud.md, "Players apply the rules").
-      side: 'healthy',
-      damage: 0,
-      power: 0,
-      // Token key (tokens.json) -> count, see handleCharacterTokenGive.
-      tokens: {},
-    }])
+    setCharacters(prev => [...prev, newCharacter(ch, ch.teamColor)])
   }
 
   function handleRangeClick(range) {
@@ -566,14 +597,16 @@ export default function App({ room = null, onExit }) {
     else if (piece?.kind === 'tactic') handleTacticFlip(piece.id)
   }
 
-  // type: 'secure' | 'extract'. key: a card key, or null for "None".
+  // type: 'secure' | 'extract'. key: a card key, or null for "None". The old card takes its tokens with it,
+  // also the supply tokens that players took from its pile. The new card's tokens turn with the Priority
+  // of the game setup (buildMatTokens).
   function handleCrisisChange(type, key) {
     const oldKey = crisis[type]
     setCrisis(prev => ({ ...prev, [type]: key }))
     setTokens(prev => {
       const kept = prev.filter(t => t.cardKey !== oldKey)
       const card = getCard(key)
-      return card ? [...kept, ...buildMatTokens(card)] : kept
+      return card ? [...kept, ...buildMatTokens(card, setup.deck?.team === 'red')] : kept
     })
     // The selected token may no longer exist; a selected character is not affected.
     setSelection(prev => prev.filter(p => p.kind !== 'token'))
@@ -728,22 +761,166 @@ export default function App({ room = null, onExit }) {
   }
 
   // Loads the roster text of one team. A text with no known code keeps the old roster. Unknown
-  // codes are named in the HUD, the known ones load.
+  // codes are named in the HUD, the known ones load. The game setup starts again, because it points to
+  // the cards of the rosters. When the setup put cards or a squad on the table, a confirm asks first,
+  // because the restart removes them.
   function handleRosterLoad(team, text) {
     const parsed = parseRosterText(text)
     if (isEmptyRoster(parsed)) {
       showHudMessage('No known MCT code in the text')
       return
     }
+    if (!confirmSetupRemoval('Load this roster')) return
     setRosters(prev => ({ ...prev, [team]: { code: formatMctCode(parsed) } }))
     // The open card may not be in the new roster
     setOpenRoster(prev => prev?.team === team ? null : prev)
+    const restarted = restartSetup()
     if (parsed.unknown.length > 0) showHudMessage(unknownCodesMessage(parsed.unknown))
+    else if (restarted) showHudMessage('Game setup started again')
   }
 
   function handleRosterRemove(team) {
+    if (!confirmSetupRemoval('Remove this roster')) return
     setRosters(prev => ({ ...prev, [team]: null }))
     setOpenRoster(prev => prev?.team === team ? null : prev)
+    if (restartSetup()) showHudMessage('Game setup started again')
+  }
+
+  // The rosters as parsed by rosters/mct.js: { blue, red } → parsed roster or null
+  const parsedRosters = useMemo(() => ({
+    blue: rosters.blue && parseRosterText(rosters.blue.code),
+    red: rosters.red && parseRosterText(rosters.red.code),
+  }), [rosters])
+
+  // True when nothing that the setup put on the table would be removed, or the player confirms. action:
+  // the start of the question, for example 'Load this roster'.
+  function confirmSetupRemoval(action) {
+    return !setupPlacedCards(setup) || window.confirm(`${action} and start the game setup again? ${SETUP_REMOVAL}`)
+  }
+
+  // Starts the game setup again. It removes what the setup put on the table: the characters and Team
+  // Tactic cards of the activated squads, and the crisis cards of the mission with their tokens. A crisis
+  // card that a player changed in the toolbar since then stays. So does the mat turn. Returns true when
+  // the setup had started.
+  function restartSetup() {
+    setSquadSelect({ blue: false, red: false })
+    if (setupStep(setup) === 'deck') return false
+    setup.placed.characters.forEach(handleCharacterRemove)
+    setTacticCards(prev => prev.filter(card => !setup.placed.tactics.includes(card.id)))
+    if (setup.edge) {
+      for (const type of CRISIS_TYPES) {
+        const key = rosterCard(setup.picks[type])?.key
+        if (key && crisis[type] === key) handleCrisisChange(type, null)
+      }
+    }
+    setSetup(NEW_SETUP)
+    return true
+  }
+
+  // The Restart setup button (GameSetup.jsx)
+  function handleSetupRestart() {
+    if (window.confirm(`Start the game setup again? ${SETUP_REMOVAL}`)) restartSetup()
+  }
+
+  // The roll-off winner uses their deck of `type`. The draws are random, so they are made here, outside a
+  // state updater, which React can call twice.
+  function handleSetupDeck(team, type) {
+    if (setupStep(setup) !== 'deck' || !parsedRosters[team]) return
+    setSetup(chooseDeck(setup, team, type, parsedRosters[team][type]))
+  }
+
+  // A Use button on a drawn crisis card. After the first card, 2 cards are drawn from the other deck of
+  // the other player.
+  function handleSetupPick(code) {
+    const step = setupStep(setup)
+    if (step !== 'first' && step !== 'second') return
+    const other = parsedRosters[otherTeam(setup.deck.team)]
+    setSetup(pickCard(setup, code, other?.[otherType(setup.deck.type)] ?? []))
+  }
+
+  function handleSetupThreat(threat) {
+    if (setupStep(setup) === 'threat') setSetup(chooseThreat(setup, threat))
+  }
+
+  // Select board edge: the mat stays as it is now. The two crisis cards of the mission go to the ends of
+  // the scoring board, and their tokens to the mat. A card without files in the app has no tokens.
+  function handleSetupEdge() {
+    if (setupStep(setup) !== 'edge') return
+    const missing = []
+    for (const type of CRISIS_TYPES) {
+      const info = rosterCard(setup.picks[type])
+      if (!info?.key) missing.push(info?.name ?? setup.picks[type])
+      handleCrisisChange(type, info?.key ?? null)
+    }
+    setSetup(chooseEdge(setup))
+    if (missing.length > 0) showHudMessage(`The app has no files for ${missing.join(' and ')}, so ${missing.length === 1 ? 'its' : 'their'} tokens are not on the mat`)
+  }
+
+  function handleSquadSelect(team) {
+    setSquadSelect(prev => ({ ...prev, [team]: !prev[team] }))
+  }
+
+  // A click on a roster card. While the player chooses the squad, a character or Team Tactic card goes into
+  // the squad or out of it. Only a card that the app can put on the table can join: a character with a
+  // model, a Team Tactic card with an image. Otherwise the roster popup opens.
+  function handleRosterClick(open) {
+    const { team, tab, index } = open
+    if (!squadSelect[team] || setupStep(setup) !== 'squads' || setup.active[team] || (tab !== 'characters' && tab !== 'tactics')) {
+      handleRosterOpen(open)
+      return
+    }
+    const parsed = parsedRosters[team]
+    const info = rosterCard(tab === 'characters' ? parsed.characters[index].code : parsed.tactics[index])
+    const joins = !setup.squads[team][tab].includes(index)
+    if (joins && tab === 'characters' && !info.model) {
+      showHudMessage(`No model for ${info.name} (${info.code}), so it cannot join the squad`)
+      return
+    }
+    if (joins && tab === 'tactics' && !info.key) {
+      showHudMessage(`No card image for ${info.name} (${info.code}), so it cannot join the squad`)
+      return
+    }
+    setSetup(toggleSquadCard(setup, team, tab, index))
+  }
+
+  // Activate squad: the characters of the squad get their trays and models, and its Team Tactic cards go
+  // into the tactic tray. A character that the player already has on the table is not added again
+  // (handleSpawn). The roster cards of the player leave the table (Scene.jsx). The new characters and cards
+  // are made here, outside the state updaters, because the setup stores their ids for a restart, and React
+  // can call an updater twice.
+  function handleSquadActivate(team) {
+    const parsed = parsedRosters[team]
+    const squad = setup.squads[team]
+    if (setupStep(setup) !== 'squads' || !parsed || squad.characters.length === 0 || squadThreat(parsed, squad.characters) > setup.threat) return
+    const newCharacters = []
+    for (const place of squad.characters) {
+      const ch = characterByCode(parsed.characters[place].code)
+      const onTable = [...characters, ...newCharacters].some(c => c.key === ch?.slug && c.teamColor === team)
+      if (ch?.available && !onTable) newCharacters.push(newCharacter(ch, team))
+    }
+    const newCards = []
+    for (const place of squad.tactics) {
+      const key = rosterCard(parsed.tactics[place])?.key
+      if (!key) continue
+      const slot = firstFreeSlot(team, [...tacticCards, ...newCards])
+      newCards.push({ id: crypto.randomUUID(), key, team, x: slot.x, z: slot.z, up: 'face' })
+    }
+    setCharacters(prev => [...prev, ...newCharacters])
+    setTacticCards(prev => [...prev, ...newCards])
+    setSetup(activateSquad(setup, team, { characters: newCharacters.map(ch => ch.id), tactics: newCards.map(card => card.id) }))
+    setSquadSelect(prev => ({ ...prev, [team]: false }))
+    setOpenRoster(prev => prev?.team === team ? null : prev)
+  }
+
+  const setupActions = {
+    deck: handleSetupDeck,
+    pick: handleSetupPick,
+    threat: handleSetupThreat,
+    turnMat: handleTurnMat,
+    edge: handleSetupEdge,
+    squadSelect: handleSquadSelect,
+    activate: handleSquadActivate,
+    restart: handleSetupRestart,
   }
 
   // A click on a roster card: { team, tab, index }. The popup opens only on a card with an image. For a card
@@ -997,6 +1174,7 @@ export default function App({ room = null, onExit }) {
           camera={{ position: CAMERA_POSITION, fov: 50 }}
           // The EffectComposer in SelectionOutlines renders the scene with its own antialiasing (multisampling)
           gl={{ antialias: false }}
+          events={canvasEvents}
           // A click with no piece under the pointer (table, terrain, background) clears the selected
           // pieces. The selected tools stay selected.
           // R3F does not count a camera drag as a click. A right click is a 'contextmenu' event, and it also
@@ -1072,7 +1250,10 @@ export default function App({ room = null, onExit }) {
               scoreMarkers={scoreMarkers}
               affiliations={affiliations}
               rosters={rosters}
-              onRosterOpen={handleRosterOpen}
+              onRosterOpen={handleRosterClick}
+              setup={setup}
+              squadSelect={squadSelect}
+              setupActions={setupActions}
               onScoreMarkerMove={(marker, x, z) => setScoreMarkers(prev => ({ ...prev, [marker]: { x, z } }))}
               startPoses={start.poses}
               modelPosesRef={modelPosesRef}

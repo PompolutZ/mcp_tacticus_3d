@@ -13,6 +13,10 @@ const GEM_HEIGHT = 0.45
 // makes it draw on top of the card, so it does not z-fight from a distance.
 const GEM_LIFT = 0.003
 const NO_RAYCAST = () => null
+// A card in the squad gets a frame around it (see docs/feature-setup-game.md, "Squads"). The frame lies
+// next to the card, not under it, so the two do not z-fight.
+const FRAME_WIDTH = 0.18
+const FRAME_COLOR = '#ffd34d'
 
 // A CanvasTexture that draws on a canvas of width x height inches. draw(ctx, w, h) gets pixel sizes.
 // The texture is freed when the component goes away.
@@ -132,9 +136,28 @@ function GemLine({ card, name, index }) {
   )
 }
 
+// The frame of a card in the squad: 4 strips around the card
+function SquadFrame({ card }) {
+  const { width, height } = card
+  const strips = [
+    [0, -(height + FRAME_WIDTH) / 2, width + FRAME_WIDTH * 2, FRAME_WIDTH],
+    [0, (height + FRAME_WIDTH) / 2, width + FRAME_WIDTH * 2, FRAME_WIDTH],
+    [-(width + FRAME_WIDTH) / 2, 0, FRAME_WIDTH, height],
+    [(width + FRAME_WIDTH) / 2, 0, FRAME_WIDTH, height],
+  ]
+  return strips.map(([x, z, w, h], i) => (
+    <mesh key={i} position={[x, 0, z]} rotation={FLAT} raycast={NO_RAYCAST}>
+      <planeGeometry args={[w, h]} />
+      <meshBasicMaterial color={FRAME_COLOR} toneMapped={false} />
+    </mesh>
+  ))
+}
+
 // One roster card with its gem lines. A click on the card goes to onOpen, also for a plate: App
-// decides if the card can open (see handleRosterOpen).
-function RosterCard({ card, info, onOpen }) {
+// decides if the card can open (see handleRosterOpen). card: { code, kind, gems, x, z, width, height, yaw,
+// tab, index }, see rosters/layout.js. selected: the card is in the squad. Also used for the crisis cards
+// next to the scoring board (GameSetup.jsx).
+export function RosterCard({ card, info, selected = false, onOpen }) {
   const [hovered, setHovered] = useState(false)
   useHoverCursor(hovered, 'pointer')
   return (
@@ -148,6 +171,7 @@ function RosterCard({ card, info, onOpen }) {
       <Suspense fallback={null}>
         {info.image ? <Face card={card} info={info} /> : <Plate card={card} info={info} />}
       </Suspense>
+      {selected && <SquadFrame card={card} />}
       {card.gems.map((gem, g) => {
         const gemInfo = rosterCard(gem)
         return gemInfo && <GemLine key={`${g}-${gem}`} card={card} name={gemInfo.name} index={g} />
@@ -156,14 +180,16 @@ function RosterCard({ card, info, onOpen }) {
   )
 }
 
-// The roster cards of one team: lie flat on the table, locked, with no physics body.
-// See docs/feature-roster.md, "On the table". code: the stored MCT code (App.jsx, rosters).
-// onOpen(tab, index): a click on a card, see RosterPopup.jsx. tab: a key of ROSTER_TABS, index: the
-// place of the card in that tab.
-export default function RosterCards({ team, code, onOpen }) {
+// The character and Team Tactic cards of one team's roster: lie flat on the table, locked, with no physics
+// body. See docs/feature-roster.md, "On the table". The crisis cards lie next to the scoring board
+// (GameSetup.jsx). code: the stored MCT code (App.jsx, rosters). squad: the places of the cards in the
+// squad, { characters, tactics } (setup/setup.js). onOpen(tab, index): a click on a card, see RosterPopup.jsx.
+// tab: a key of ROSTER_TABS, index: the place of the card in that tab. In the characters and tactics tabs,
+// the place in the tab is the place in the roster list.
+export default function RosterCards({ team, code, squad, onOpen }) {
   const cards = useMemo(() => {
     // rosterLayout keeps the card order of rosterTabs (cards.js), so a count per tab gives the index.
-    const next = { characters: 0, tactics: 0, crisis: 0 }
+    const next = { characters: 0, tactics: 0 }
     return rosterLayout(team, parseRosterText(code)).map(card => {
       const tab = TAB_OF_KIND[card.kind]
       return { ...card, tab, index: next[tab]++ }
@@ -171,6 +197,7 @@ export default function RosterCards({ team, code, onOpen }) {
   }, [team, code])
   return cards.map((card, i) => {
     const info = rosterCard(card.code)
-    return info && <RosterCard key={`${i}-${card.code}`} card={card} info={info} onOpen={onOpen} />
+    const selected = squad?.[card.tab]?.includes(card.index) ?? false
+    return info && <RosterCard key={`${i}-${card.code}`} card={card} info={info} selected={selected} onOpen={onOpen} />
   })
 }

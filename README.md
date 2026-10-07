@@ -47,11 +47,11 @@ Open `http://localhost:5173`. The app opens on the lobby. Open the Sandbox or a 
 
 ## Lobby, rooms and Sandbox
 
-The app opens on the **lobby**. It lists the rooms of this browser, the last changed room first. Each tile shows the map card, the map name, the room code and the time of the last change. Click a tile to enter the room. **Roster** shows the Blue roster of the room in the roster popup. **Delete** removes a room after a confirm.
+The app opens on the **lobby**. It lists the rooms of this browser, the last changed room first. Each tile shows the map card, the map name, the room code and the time of the last change. Click a tile to enter the room. **Blue** and **Red** show that roster of the room in the roster popup. **Delete** removes a room after a confirm.
 
-**+ New room** opens a dialog. **Random map** is on by default: the app picks the map when it creates the room. Turn it off to choose the map in a carousel of map cards. Paste the MCT code of your roster into **Blue roster**. A warning box names the characters without a 3D model and the Team Tactic cards without an image, because the app cannot show them. **Create room** works when the code has a known card, and it enters the new room.
+**+ New room** opens a dialog. **Random map** is on by default: the app picks the map when it creates the room. Turn it off to choose the map in a carousel of map cards. Paste the MCT codes of the rosters into **Blue roster** and **Red roster**. Red is optional: the toolbar can load it later. The game setup needs both rosters. A warning box names the characters without a 3D model and the Team Tactic cards without an image, because the app cannot show them. **Create room** works when the Blue code has a known card, and it enters the new room.
 
-In a **room**, you are the Blue player. The map and the Blue roster are fixed, so the toolbar has no map picker and only the Red roster field. The room saves itself in the browser storage (`localStorage`): the map, the rosters, the characters with their positions, damage and tokens, the crisis cards and tokens, the tactic cards and the score. Dice and tools are not saved. The loading screen stays until the map and the models of both rosters are in.
+In a **room**, you are the Blue player. The map and the Blue roster are fixed, so the toolbar has no map picker and only the Red roster field. That field replaces or removes the Red roster of the room. The room saves itself in the browser storage (`localStorage`): the map, the rosters, the characters with their positions, damage and tokens, the crisis cards and tokens, the tactic cards and the score. Dice and tools are not saved. The loading screen stays until the map and the models of both rosters are in.
 
 The **Sandbox** is the free table: map picker and both roster fields. Nothing in it is saved.
 
@@ -261,15 +261,30 @@ The range and movement tools also snap to a selected token, the same way they sn
 
 ## Roster
 
-**Roster** in the toolbar has one text field for each player. In a room, the Blue roster comes from the new room dialog, so only the Red field shows. Paste an MCT code and press Enter. On a Jarvis roster page, the **Copy MCT code** button gives the code. A code from the TTS mod works too. A new load replaces the old roster of that player. **×** next to the field removes the roster.
+**Roster** in the toolbar has one text field for each player. In a room, the rosters come from the new room dialog, so only the Red field shows. It replaces or removes the Red roster of the room. Paste an MCT code and press Enter. On a Jarvis roster page, the **Copy MCT code** button gives the code. A code from the TTS mod works too. A new load replaces the old roster of that player. **×** next to the field removes the roster.
 
-The cards lie on the player's side of the table, in the area of the character trays. Row 1 has the characters. Row 2 has the Team Tactic cards, then the Secure cards, then the Extract cards. An Infinity Gem shows as a text line on its character card. The cards are locked. They have no physics body, so a tool key over a card works as over the empty table.
+The cards lie on the player's side of the table, in the area of the character trays. Row 1 has the characters. Row 2 has the Team Tactic cards. The Secure and Extract cards lie next to the scoring board, on the player's side (see [Game setup](#game-setup)). An Infinity Gem shows as a text line on its character card. The cards are locked. They have no physics body, so a tool key over a card works as over the empty table.
 
 Click a card with an image to open the roster popup. The title shows whose roster it is: Blue or Red player. The popup has 3 tabs: Characters, Tactic cards and Crisis cards. Each tab shows its cards in a loop: after the last card comes the first. The previous and the next card show at the sides, smaller and darker. Drag the card, click a side card, click **‹** / **›**, or press the left and right arrow keys to see the other cards. The popup opens on the tab and the card that you clicked. Click a character card or a Team Tactic card, or its **Flip** button, to see its other side. A character with a second form card, for example Emma Frost, has a switch under its card to show that card. **Open this roster on Jarvis** under the title opens the roster in the Jarvis roster validator. **Open on Jarvis** under a card opens the page of that card on Jarvis. Both open in a new browser tab. Escape, **×** or a click next to the cards closes the popup.
 
 A card that the app has no image for shows as a plate with its name and MCT code. A character without a model also shows "No model". A click on a plate shows an error message and does not open the popup.
 
 A code that the app does not know shows in a message, and the other cards load. A text with no known code shows an error, and the old roster stays. The app does not check the roster: not the counts, and not Banned, Restricted or Rotated cards. Players check it. See `docs/feature-roster.md`.
+
+## Game setup
+
+With both rosters loaded, buttons on the table guide the players from the roll off to round 1. The buttons lie flat on the table and read the same way as the scoring board. The panel between the scoring board and the table edge says what to do in each step.
+
+The crisis cards of each roster lie in 2 rows next to the scoring board, parallel to it: Secure at the table edge, Extract toward the mat.
+
+1. Players roll off with the dice trays. The app does not track the roll off.
+2. The winner has Priority. Between their Secure and Extract rows, they click **Use … player Secures** (blue) or **Use … player Extracts** (red). The app draws 2 cards of that deck at random.
+3. The 2 drawn cards lie in line with the scoring board. The other player clicks **Use** next to one of them. The app draws 2 cards of the other type from the other player's deck. The player with Priority clicks **Use** next to one of them.
+4. The player without Priority chooses the Maximum Threat on the panel: the threat of the Secure card or of the Extract card.
+5. The player with Priority turns the mat with **↺** / **↻** until their deployment edge faces them, and clicks **Select board edge**. The two cards go to the ends of the scoring board, and their tokens to the mat. When red has Priority, the tokens turn a half turn, because the bottom of the card map is the side of the player with Priority.
+6. Each player clicks **Select squad**, then clicks characters and Team Tactic cards of their roster to add or remove them. A card in the squad has a yellow frame. The panel shows the squad threat and the Team Tactic count. **Activate squad** puts the trays, the models and the Team Tactic cards on the table. It does not work when the squad threat is above the Maximum Threat.
+
+**Restart setup** on the panel starts again. A new roster also starts again. A restart removes the squads and the crisis cards that the setup put on the table, after a confirm. See `docs/feature-setup-game.md`.
 
 ## Roadmap
 

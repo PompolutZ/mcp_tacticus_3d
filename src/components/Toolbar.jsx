@@ -18,7 +18,8 @@ const CRISIS_TYPES = [
 ]
 
 // roomCode: the code of the room, or null in the Sandbox. A room has a fixed map and the Blue roster of
-// the room, so the toolbar has no map picker and only the Red roster field there (docs/feature-rooms.md).
+// the room, so the toolbar has no map picker and only the Red roster field there. The Red field loads,
+// replaces or removes the Red roster of the room (docs/feature-rooms.md).
 // onLobby(): the ← Lobby button.
 export function Toolbar({ roomCode, onLobby, mapId, onMapChange, activeRange, activeMove, angleOn, onRangeClick, onMoveClick, onAngleClick, debug, onDebugClick, showLabels, onLabelsClick, spectator, onSpectatorClick, onTurnMat, deployLine, onDeployLineClick, crisis, onCrisisChange, onRosterLoad, onRosterRemove, libraryOpen, onLibraryClick }) {
   // The typed text stays in the field after Enter (x clears it)

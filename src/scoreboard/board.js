@@ -12,6 +12,8 @@
 export const BOARD_SCALE = 2
 export const BOARD_X = -23.125
 export const BOARD_HALF_LENGTH = 9
+// Half of the board's short side, along x
+export const BOARD_HALF_WIDTH = 4
 // The mesh center is half its height above its bottom, so this puts the bottom on the table (y = 0)
 export const BOARD_Y = 0.125 * BOARD_SCALE
 // TTS turn 90° around Y. Z → -z changes the sign of a turn around Y (Terrain.jsx, toThreeTransform).

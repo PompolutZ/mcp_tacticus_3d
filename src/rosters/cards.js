@@ -16,7 +16,9 @@ const idToKey = files =>
 const tacticKeys = idToKey(tacticFiles)
 const crisisKeys = idToKey(crisisFiles)
 
-// code -> { code, kind, name, image, back, model, variants, jarvisUrl }. Each code once. back: the image
+// code -> { code, kind, name, key, threat, image, back, model, variants, jarvisUrl }. Each code once. key: the
+// key of a Team Tactic or crisis card in its cards.json, or null when the app has no files for it. threat: the
+// Threat Level of a character, or the Maximum Threat of a crisis card, from Jarvis. back: the image
 // of the other side, for the flip in the roster popup. null when the app has no image, or when the other side is the
 // same for every card of the kind: the back of a crisis card shows only its type.
 // variants: the cards that the roster popup can switch between for this character, [{ label, image, back }],
@@ -45,6 +47,8 @@ for (const ch of CHARACTERS) {
     code: ch.mctCode,
     kind: 'character',
     name: ch.name,
+    key: null,
+    threat: ch.threat,
     image,
     back,
     model: ch.available,
@@ -61,6 +65,8 @@ for (const row of tacticsData) {
     code: row.exportCode,
     kind: 'tactic',
     name: row.name,
+    key: key ?? null,
+    threat: null,
     image: key ? tacticCardFace(key) : null,
     back: key ? tacticCardBack(key) : null,
     model: false,
@@ -77,6 +83,8 @@ for (const row of crisisData) {
     code: row.exportCode,
     kind: row.type === 'Secure' ? 'secure' : 'extract',
     name: row.name,
+    key: key ?? null,
+    threat: row.threatLevel,
     image: key ? crisisCardFace(key) : null,
     back: null,
     model: false,
@@ -100,6 +108,11 @@ export function parseRosterText(text) {
 // The page of a parsed roster in the Jarvis roster validator, for the link in the roster popup
 export function jarvisRosterUrl(parsed) {
   return `${JARVIS}/roster-validator?mctCode=${encodeURIComponent(jarvisValidatorCode(parsed))}`
+}
+
+// The sum of the Threat Levels of the characters at `places` of a parsed roster (setup/setup.js, squads)
+export function squadThreat(parsed, places) {
+  return places.reduce((sum, place) => sum + (cards.get(parsed.characters[place]?.code)?.threat ?? 0), 0)
 }
 
 // The message for the codes of a roster text that the app does not know, for example

@@ -68,9 +68,9 @@ export function openRoom(id) {
   return room.version === VERSION ? room : { ...room, table: null }
 }
 
-// Creates and stores a room. blueCode: the MCT code of the Blue roster (rosters/mct.js, formatMctCode).
-// Returns the room, or null when the browser did not store it.
-export function createRoom(mapId, blueCode) {
+// Creates and stores a room. rosters: { blue: { code }, red: null | { code } }, code: the MCT code of the
+// roster (rosters/mct.js, formatMctCode). Returns the room, or null when the browser did not store it.
+export function createRoom(mapId, rosters) {
   let id = newRoomCode()
   while (read(ROOM_PREFIX + id)) id = newRoomCode()
   const now = Date.now()
@@ -81,7 +81,7 @@ export function createRoom(mapId, blueCode) {
     createdAt: now,
     updatedAt: now,
     mapId,
-    rosters: { blue: { code: blueCode }, red: null },
+    rosters,
     table: null,
   }
   return write(ROOM_PREFIX + id, room) ? room : null

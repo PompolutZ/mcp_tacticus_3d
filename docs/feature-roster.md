@@ -78,7 +78,7 @@ Toolbar: … | Crisis … | Roster [Blue: MCT code] [x] [Red: MCT code] [x] | De
 ```
 
 - The toolbar gets a **Roster** group with one text field per player. The placeholder is "MCT code".
-- In a room, the Blue roster comes from the new room dialog, and only the Red field shows (added on 2026-10-07, see `docs/feature-rooms.md`).
+- In a room, the rosters come from the new room dialog, and only the Red field shows. It replaces or removes the Red roster of the room (added on 2026-10-07, see `docs/feature-rooms.md`).
 - Enter loads the roster.
 - A new load replaces the old roster of that player.
 - **×** next to the field removes the roster of that player, and its cards leave the table.
@@ -100,12 +100,14 @@ The app puts the cards in the area where the character trays lie during a game. 
       mat edge (z = 18)
       tactic tray            z = 18.3 … 22.4
 row 1 [char][char][char][char][char][char][char][char][char][char]                    z = 22.7 … 25.7
-row 2 [ttc]x10        [secure]x5        [extract]x5                                   z = 26.0 … 30.8
+row 2 [ttc]x10                                                                        z = 26.0 … 29.5
       table edge (z = 34)
 ```
 
+Changed on 2026-10-07 by Setup game: the Secure and Extract cards were in row 2 before. Now they lie next to the scoring board, on the owner's side (see `docs/feature-setup-game.md`, "On the table").
+
 - **Row 1, on the mat side:** character cards, 4.5" × 3", the same size and Healthy side image as the card on a tray. The cards are 0.3" apart, so 10 cards are 47.7" wide.
-- **Row 2:** 10 Team Tactic cards (2.5" × 3.5", face up), then the 5 Secure cards, then the 5 Extract cards (2.75" × 4.8", the size of a crisis card on the table). The cards are 0.3" apart, with 1" between the groups. So the row is 59.6" wide and 4.8" deep.
+- **Row 2:** 10 Team Tactic cards (2.5" × 3.5", face up), 0.3" apart. So the row is 27.7" wide and 3.5" deep.
 - Each row is centered on x = 0. The order is from the owner's left, the same as the trays.
 - When a row is wider than the table, its cards get smaller so that the row fits. The app does not limit the number of cards (see [Players apply the rules](#players-apply-the-rules)).
 - The cards face their owner, the same as the trays and the tactic cards. So the other player sees them upside down, the same as in TTS. A click opens a card the right way up.
@@ -128,7 +130,7 @@ On 2026-10-07, the app has files for 65 of 233 character codes, 69 of 401 Team T
 
 - A roster card has no physics body. Models and dice do not touch it.
 - A roster card is not a piece for the range and movement tools. A tool key over a roster card works the same as over the empty table.
-- When a player has character trays on the table, the trays and the roster overlap. The app does not move either of them. The player removes the roster with **×**. Setup game will remove the roster when the squad is chosen.
+- When a player has character trays on the table, the trays and the roster overlap. The app does not move either of them. **Activate squad** of Setup game removes the roster cards of that player from the table. The roster itself stays loaded.
 
 ### Roster popup
 
@@ -175,7 +177,7 @@ rosters: {
 |---|---|
 | `src/rosters/mct.js` | `parseRoster(text, kindOf)`, `formatMctCode(parsed)`, `jarvisValidatorCode(parsed)`, `isEmptyRoster(parsed)`. `kindOf(code)` is an argument, so the module has no imports and a Node script can test it |
 | `src/rosters/cards.js` | `cardKind(code)`, `rosterCard(code)` (kind, name, image file or null, model or not, Jarvis page), `parseRosterText(text)`, `jarvisRosterUrl(parsed)` |
-| `src/rosters/layout.js` | `rosterLayout(team, parsed)`, `ROSTER_CARD_Y`, `rosterRowInfo`. Card positions for each side. Plain module, the same as `characters/trays.js` |
+| `src/rosters/layout.js` | `rosterLayout(team, parsed)`, `ROSTER_CARD_Y`, `rosterRowInfo`, and since Setup game `crisisRowLayout`. Card positions for each side. Plain module, the same as `characters/trays.js` |
 | `src/components/RosterCards.jsx` | The cards of one roster on the table |
 | `src/components/RosterPopup.jsx` | The roster popup: tabs and a card carousel |
 | `src/components/Toolbar.jsx` | The Roster group. The VP group goes away |
@@ -195,7 +197,7 @@ rosters: {
 ## Out of scope
 
 - Loading a roster from a Jarvis link. The MCT code is the standard way to share a roster in the community. Jarvis also blocks calls from other sites, so a link needs a proxy.
-- Squad choice, crisis card choice from the roster, and the VP marker. See `docs/feature-setup-game.md`.
+- Squad choice, crisis card choice from the roster, and the VP marker. See `docs/feature-setup-game.md` (built on 2026-10-07, except the VP marker).
 - Roster checks (see [Players apply the rules](#players-apply-the-rules)).
 - A roster name. The toolbar field has one line, so the name line of a TTS code is lost. Jarvis puts no name in the code.
 - Marks for Unreleased, Restricted and Banned cards. Jarvis has the data, so a later change can add them.

@@ -152,7 +152,7 @@ In the app, **R** with the pointer over a model lifts it 6". R over it again put
 4. For a Source card, the app also puts the supply pile next to the card (see [Extract: Source](#extract-source)).
 5. The setup positions are always relative to the player sides (blue and red), as the setup map on each card shows. They are never relative to the mat. So when the mat turns (**Mat → ↺ / ↻**), the tokens do not turn with it. Each token stays at its place on the table and rests again on the new surface under it (see [Where a token rests](#where-a-token-rests)). As a result, players cannot know before the game if a token lands on the mat or on terrain.
 
-The bottom edge of the setup map on a card is the deployment edge of the player with Priority, which is the blue side of the app. The top edge is the red side. The rulebook calls these the blue zone and the red zone (p9). The current card images use other colors: green at the bottom and purple at the top.
+The bottom edge of the setup map on a card is the deployment edge of the player with Priority. Without a game setup, that is the blue side of the app, and the top edge is the red side. Since 2026-10-07, the game setup knows who has Priority. When red has Priority, the tokens turn a half turn (see `docs/feature-setup-game.md`, "Priority"). The rulebook calls these the blue zone and the red zone (p9). The current card images use other colors: green at the bottom and purple at the top.
 
 The positions in `cards.json` already follow this rule after the `z` → `-z` conversion. This was checked on 2026-09-29 with the Survivors card image. Survivors is the only current card with a map that changes after a half turn, so it is the only card that can show a wrong orientation.
 
@@ -200,4 +200,4 @@ The app has the board since 2026-10-03 (`src/components/ScoreBoard.jsx`, `src/sc
 - Phase steps, such as flipping Sources back in the Cleanup Phase.
 - Dice. Pay-to-flip, Lockdown and other cards need dice rolls. Players use their own dice for now, or a later dice feature.
 - The 21 cards without images in the TTS cache.
-- How players choose the cards and the threat, and legality checks. Players do this outside the app and then choose the two cards in the app. Rule (p9): the player with Priority draws 2 cards from one of their decks, and the other player chooses 1. Then the other player draws 2 cards of the other type, and the player with Priority chooses 1. The player without Priority chooses which card's threat is used.
+- Legality checks. Since 2026-10-07, players can choose the cards and the threat with the game setup (`docs/feature-setup-game.md`), or choose the two cards in the toolbar. Rule (p9): the player with Priority draws 2 cards from one of their decks, and the other player chooses 1. Then the other player draws 2 cards of the other type, and the player with Priority chooses 1. The player without Priority chooses which card's threat is used.

@@ -9,16 +9,18 @@ import { NewRoomDialog } from './NewRoomDialog.jsx'
 import { RosterPopup } from './RosterPopup.jsx'
 
 const TIME = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+const TEAMS = ['blue', 'red']
+const TEAM_NAMES = { blue: 'Blue', red: 'Red' }
 
 // The start page (docs/feature-rooms.md, "Lobby"): the rooms of this browser, the last changed first, a
-// tile that creates a room, and the Sandbox. Roster on a tile shows the Blue roster of the room. notice: a message to show at the top, or null.
-// onOpenRoom(id), onOpenSandbox(): open that page.
+// tile that creates a room, and the Sandbox. Blue and Red on a tile show that roster of the room. notice: a
+// message to show at the top, or null. onOpenRoom(id), onOpenSandbox(): open that page.
 export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
   // The rooms of a map that the app no longer has cannot open, so they do not show
   const [rooms, setRooms] = useState(() => listRooms().filter(room => MAPS[room.mapId]))
   const [creating, setCreating] = useState(false)
-  // The room whose roster is in the roster popup, or null
-  const [rosterRoom, setRosterRoom] = useState(null)
+  // The roster in the roster popup: { room, team }, or null
+  const [rosterView, setRosterView] = useState(null)
 
   // A browser confirm, the same as Remove on a character tray
   function handleDelete(room) {
@@ -50,11 +52,17 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
                 <span className="lobby-room-time">Last change {TIME.format(room.updatedAt)}</span>
               </button>
               <div className="lobby-room-actions">
-                {room.rosters?.blue && (
-                  <button type="button" className="chip" title={`Show the Blue roster of room ${room.id}`} onClick={() => setRosterRoom(room)}>
-                    Roster
+                {TEAMS.map(team => room.rosters?.[team] && (
+                  <button
+                    key={team}
+                    type="button"
+                    className={`chip chip--player-${team}`}
+                    title={`Show the ${TEAM_NAMES[team]} roster of room ${room.id}`}
+                    onClick={() => setRosterView({ room, team })}
+                  >
+                    {TEAM_NAMES[team]}
                   </button>
-                )}
+                ))}
                 {ownsRoom(room) && (
                   <button type="button" className="chip lobby-room-delete" title={`Delete room ${room.id}`} onClick={() => handleDelete(room)}>
                     Delete
@@ -73,17 +81,24 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
         </button>
       </section>
       {creating && <NewRoomDialog onClose={() => setCreating(false)} onCreate={room => onOpenRoom(room.id)} />}
-      {rosterRoom && <RoomRosterPopup code={rosterRoom.rosters.blue.code} onClose={() => setRosterRoom(null)} />}
+      {rosterView && (
+        <RoomRosterPopup
+          key={`${rosterView.room.id}-${rosterView.team}`}
+          team={rosterView.team}
+          code={rosterView.room.rosters[rosterView.team].code}
+          onClose={() => setRosterView(null)}
+        />
+      )}
     </div>
   )
 }
 
-// The roster popup of the table (RosterPopup.jsx) for the Blue roster of a room. It opens on the first
-// tab with cards. On the table, App owns the tab and the card, because App handles all keys there. The
+// The roster popup of the table (RosterPopup.jsx) for a roster of a room. It opens on the first tab with
+// cards. On the table, App owns the tab and the card, because App handles all keys there. The
 // lobby has no key handler, so this component owns them: Escape closes the popup, and the left and right
 // arrows show the previous or next card. The tab is a loop, the same as on the table.
-// code: the stored MCT code of the roster.
-function RoomRosterPopup({ code, onClose }) {
+// team: 'blue' | 'red'. code: the stored MCT code of the roster.
+function RoomRosterPopup({ team, code, onClose }) {
   const tabs = useMemo(() => rosterTabs(parseRosterText(code)), [code])
   const [tab, setTab] = useState(() => ROSTER_TABS.find(t => tabs[t.key].length > 0).key)
   const [index, setIndex] = useState(0)
@@ -100,7 +115,7 @@ function RoomRosterPopup({ code, onClose }) {
 
   return (
     <RosterPopup
-      team="blue"
+      team={team}
       code={code}
       tab={tab}
       index={index}
