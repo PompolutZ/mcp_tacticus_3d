@@ -212,7 +212,7 @@ The cursor is in category 4, not in awareness. Awareness goes over the reliable,
 ```
 Y.Doc
   game: Y.Map      mapId, matTurns, deployLine, crisis { secure, extract }
-  rosters: Y.Map<player side, Y.Map>   later: chosen characters and tactic cards
+  rosters: Y.Map<player side, Y.Map>   code (docs/feature-roster.md, "State")
   characters: Y.Map<id, Y.Map>   key, figure, base, rotation, teamColor, slot, side (healthy or injured), damage, power, pose
   tactics: Y.Map<id, Y.Map>      tactic cards on the table: key, team, x, z, up (docs/feature-team-tactic-cards.md)
   tokens: Y.Map<id, Y.Map>       the token fields from buildMatTokens, with x, z, yaw, up, control, damage
@@ -222,7 +222,7 @@ Y.Doc
 
 `pose` is `{ x, y, z, qx, qy, qz, qw }`: the rest pose of a body, written when the body falls asleep.
 
-`rosters` is a placeholder. The app has no rosters yet. The order of `tactics` is the stack order of the cards, so it needs an order field or a `Y.Array`. The token piles of the Library (`tokenPiles` in `App.jsx`) need their own map, the same as `looseTokens`.
+`rosters` holds the loaded roster of each player, see `docs/feature-roster.md`. The chosen squad is not designed yet (`docs/feature-setup-game.md`). The order of `tactics` is the stack order of the cards, so it needs an order field or a `Y.Array`. The token piles of the Library (`tokenPiles` in `App.jsx`) need their own map, the same as `looseTokens`.
 
 React reads the document through one hook, `useY(type)`, built on `useSyncExternalStore`. Handlers in `App.jsx` such as `handleTokenFlip` write to the document instead of calling `setTokens`. A game with no connection uses the same document, only without a provider. So single-player and multiplayer run the same code.
 
