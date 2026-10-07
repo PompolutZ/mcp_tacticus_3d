@@ -8,7 +8,7 @@ import { tacticCardBack, tacticCardFace } from '../tactics/files.js'
 import crisisData from '../crisis/jarvis-crisis-cards.json'
 import crisisFiles from '../crisis/cards.json'
 import { crisisCardFace } from '../crisis/files.js'
-import { parseRoster } from './mct.js'
+import { jarvisValidatorCode, parseRoster } from './mct.js'
 
 // Three tactic ids in cards.json lost their leading zero (1430206), so pad them to 8 digits.
 const idToKey = files =>
@@ -16,13 +16,17 @@ const idToKey = files =>
 const tacticKeys = idToKey(tacticFiles)
 const crisisKeys = idToKey(crisisFiles)
 
-// code -> { code, kind, name, image, back, model, variants }. Each code once. back: the image of the other
-// side, for the flip in the roster popup. null when the app has no image, or when the other side is the
+// code -> { code, kind, name, image, back, model, variants, jarvisUrl }. Each code once. back: the image
+// of the other side, for the flip in the roster popup. null when the app has no image, or when the other side is the
 // same for every card of the kind: the back of a crisis card shows only its type.
 // variants: the cards that the roster popup can switch between for this character, [{ label, image, back }],
 // the character card first. null when the character has one card. Now only a second form with its own card
 // (see docs/characters-hud.md, "Second forms"). Later also the grunts of a host.
+// jarvisUrl: the page of the card on Jarvis, for the link in the roster popup. A character with a second
+// form has one page for both cards.
 const cards = new Map()
+
+const JARVIS = 'https://www.jarvis-protocol.com'
 
 // 'diamond' -> 'Diamond form'
 const formLabel = slug =>
@@ -37,7 +41,16 @@ for (const ch of CHARACTERS) {
         { label: formLabel(ch.secondForm), image: transformCard(ch.slug, 'healthy'), back: transformCard(ch.slug, 'injured') },
       ]
     : null
-  cards.set(ch.mctCode, { code: ch.mctCode, kind: 'character', name: ch.name, image, back, model: ch.available, variants })
+  cards.set(ch.mctCode, {
+    code: ch.mctCode,
+    kind: 'character',
+    name: ch.name,
+    image,
+    back,
+    model: ch.available,
+    variants,
+    jarvisUrl: `${JARVIS}/characters/${ch.jarvisSlug}`,
+  })
 }
 
 // Jarvis lists some codes twice (reprints). The first row is the card.
@@ -52,6 +65,7 @@ for (const row of tacticsData) {
     back: key ? tacticCardBack(key) : null,
     model: false,
     variants: null,
+    jarvisUrl: `${JARVIS}/team-tactics-cards/${row.slug}`,
   })
 }
 
@@ -67,6 +81,7 @@ for (const row of crisisData) {
     back: null,
     model: false,
     variants: null,
+    jarvisUrl: `${JARVIS}/crisis-cards/${row.slug}`,
   })
 }
 
@@ -80,6 +95,11 @@ export function rosterCard(code) {
 
 export function parseRosterText(text) {
   return parseRoster(text, cardKind)
+}
+
+// The page of a parsed roster in the Jarvis roster validator, for the link in the roster popup
+export function jarvisRosterUrl(parsed) {
+  return `${JARVIS}/roster-validator?mctCode=${encodeURIComponent(jarvisValidatorCode(parsed))}`
 }
 
 // The message for the codes of a roster text that the app does not know, for example

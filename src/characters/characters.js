@@ -17,6 +17,9 @@ for (const [slug, ch] of Object.entries(migratedData)) {
 function rosterEntry(jch, m, mctCode) {
   return {
     slug: m?.slug || jch.slug,
+    // The page of the character on Jarvis is jarvis-protocol.com/characters/<jarvisSlug>. slug can
+    // differ: a migrated character has the slug of characters.json.
+    jarvisSlug: jch.slug,
     name: m?.name || jch.name,
     mctCode,
     available: !!m,

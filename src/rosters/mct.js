@@ -40,6 +40,22 @@ export function formatMctCode(parsed) {
   ].join(',')
 }
 
+// The code for the Jarvis roster validator (/roster-validator?mctCode=…). The validator reads the
+// entries by place: 1–10 are characters, 11–20 Team Tactic cards, 21–30 crisis cards. So each group gets
+// exactly 10 places. An empty entry fills a free place, and the cards after the 10th of a group are left
+// out. Without this, the cards of a draft roster with 8 characters would land in the wrong group.
+// A full roster gives the same code as formatMctCode.
+const JARVIS_GROUP_SIZE = 10
+
+export function jarvisValidatorCode(parsed) {
+  const places = list => Array.from({ length: JARVIS_GROUP_SIZE }, (_, i) => list[i] ?? '')
+  return [
+    ...places(parsed.characters.map(ch => [ch.code, ...ch.gems].join('-'))),
+    ...places(parsed.tactics),
+    ...places([...parsed.secure, ...parsed.extract]),
+  ].join(',').replace(/,+$/, '')
+}
+
 export function isEmptyRoster(parsed) {
   return parsed.characters.length === 0 && GROUPS.every(group => parsed[group].length === 0)
 }

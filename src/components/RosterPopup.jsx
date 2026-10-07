@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
-import { PLATE_COLORS, ROSTER_TABS, parseRosterText, rosterCard, rosterTabs } from '../rosters/cards.js'
+import { PLATE_COLORS, ROSTER_TABS, jarvisRosterUrl, parseRosterText, rosterCard, rosterTabs } from '../rosters/cards.js'
 import { CARD_SIZES } from '../rosters/layout.js'
 import { Overlay } from './Overlay.jsx'
 import { Carousel } from './Carousel.jsx'
@@ -11,14 +11,16 @@ const TEAM_NAMES = { blue: 'Blue', red: 'Red' }
 // (RosterCards.jsx), or by Roster on a room tile in the lobby (Lobby.jsx). It has a tab for each card group, and each tab shows its cards in a carousel.
 // No panel: the title, the tabs, the cards and the buttons lie on a dark, blurred backdrop, the same as
 // the image of CardPopup.jsx. The cross button in the screen corner or a click on the backdrop closes
-// the popup. Only the cards and the buttons take pointer events (see index.css), so a click next to
-// them also goes to the backdrop.
+// the popup. Only the cards, the buttons and the links take pointer events (see index.css), so a click
+// next to them also goes to the backdrop. The link under the title opens the roster in the Jarvis roster
+// validator, in a new browser tab.
 // The parent owns the open tab and card: App (openRoster) on the table, because App handles all keys,
 // and RoomRosterPopup in the lobby. Escape closes the popup, and the left and right arrows move the
 // carousel. A dialog, so it renders through Overlay.
 // code: the stored MCT code of the roster. tab: a key of ROSTER_TABS. index: the shown card of that tab.
 export function RosterPopup({ team, code, tab, index, onTabChange, onIndexChange, onClose }) {
-  const tabs = useMemo(() => rosterTabs(parseRosterText(code)), [code])
+  const parsed = useMemo(() => parseRosterText(code), [code])
+  const tabs = useMemo(() => rosterTabs(parsed), [parsed])
   // A carousel drag can end on the backdrop. The click then goes to the backdrop. So the backdrop
   // closes the popup only when the press also started on the backdrop.
   const pressedBackdrop = useRef(false)
@@ -33,6 +35,7 @@ export function RosterPopup({ team, code, tab, index, onTabChange, onIndexChange
       <button type="button" className="popup-close" aria-label="Close" onClick={onClose}>×</button>
       <div className="roster-popup" role="dialog" aria-modal="true" aria-label={title}>
         <h2 className={`roster-popup-title roster-popup-title--${team}`}>{title}</h2>
+        <JarvisLink href={jarvisRosterUrl(parsed)}>Open this roster on Jarvis</JarvisLink>
         <div className="roster-popup-tabs" role="tablist">
           {ROSTER_TABS.map(t => (
             <button
@@ -77,10 +80,10 @@ function CardCarousel({ cards, index, onIndexChange }) {
 // side, a Team Tactic card to its back. Only the card in the middle (active) flips: a click on a side
 // card goes to its slide, which moves the card to the middle. Each card keeps its side while the tab is
 // open. A card without an image is a plate with the name and the MCT code, the same as on the table.
-// The footer under the card holds the card switch, the Flip button and the Infinity Gems of a character
-// as text lines, as the app has no gem images. The card switch, at the left, shows when the character
-// has more than one card (variants in rosters/cards.js), for example Emma Frost and her Diamond form.
-// The shown card keeps its side.
+// The footer under the card holds the card switch, the Flip button, the link to the card page on Jarvis
+// and the Infinity Gems of a character as text lines, as the app has no gem images. The card switch, at
+// the left, shows when the character has more than one card (variants in rosters/cards.js), for example
+// Emma Frost and her Diamond form. The shown card keeps its side.
 function PopupCard({ card, active }) {
   const [flipped, setFlipped] = useState(false)
   const [variant, setVariant] = useState(0)
@@ -136,11 +139,22 @@ function PopupCard({ card, active }) {
             </div>
           )}
           {shown.image && shown.back && <button type="button" className="chip roster-popup-flip-button" onClick={flip}>Flip</button>}
+          <JarvisLink className="roster-popup-card-jarvis" href={info.jarvisUrl}>Open on Jarvis</JarvisLink>
         </div>
         {card.gems.map((gem, g) => (
           <div key={`${g}-${gem}`} className="roster-popup-gem">+ {rosterCard(gem)?.name ?? gem}</div>
         ))}
       </div>
     </>
+  )
+}
+
+// A link with the Jarvis logo that opens a Jarvis page in a new browser tab
+function JarvisLink({ href, className, children }) {
+  return (
+    <a className={className ? `jarvis-link ${className}` : 'jarvis-link'} href={href} target="_blank" rel="noreferrer" draggable={false}>
+      <img className="jarvis-link-logo" src={assetUrl('jarvis-logo.webp')} alt="" draggable={false} />
+      {children}
+    </a>
   )
 }

@@ -888,7 +888,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Only the cards and the buttons take pointer events, so a click anywhere else goes to the backdrop
+/* Only the cards, the buttons and the links take pointer events, so a click anywhere else goes to the backdrop
    and closes the popup. A press on a card still reaches Embla on the viewport: events go up the DOM
    tree also through an element without pointer events. */
 .roster-popup,
@@ -897,6 +897,7 @@ body {
 }
 
 .roster-popup button,
+.roster-popup a,
 .roster-popup .roster-popup-card,
 .roster-popup .roster-popup-flip {
   pointer-events: auto;
@@ -947,6 +948,27 @@ body {
 .roster-popup-tabs {
   display: flex;
   gap: 6px;
+}
+
+/* A link to a Jarvis page in the roster popup: the round Jarvis logo and a text */
+.jarvis-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.jarvis-link:hover {
+  text-decoration: underline;
+}
+
+.jarvis-link-logo {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
 }
 
 /* The carousel of the roster popup (RosterPopup.jsx). All cards have the same height in every tab, and
@@ -1030,7 +1052,8 @@ body {
   min-height: 64px;
 }
 
-/* As wide as the card: the card switch at the left, the Flip button in the middle */
+/* As wide as the card: the card switch at the left, the Flip button in the middle, the Jarvis link at the
+   right, under the bottom right corner of the card */
 .roster-popup-card-actions {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -1049,6 +1072,13 @@ body {
 
 .roster-popup-flip-button {
   grid-column: 2;
+}
+
+/* The height of a chip, so that the link lines up with the Flip button */
+.roster-popup-card-jarvis {
+  grid-column: 3;
+  justify-self: end;
+  min-height: 24px;
 }
 
 /* width and aspect-ratio come from RosterPopup.jsx. The shadow is the one of .card-popup-image. */
