@@ -1317,9 +1317,11 @@ body {
   color: var(--muted);
 }
 
-.lobby-room-delete {
-  align-self: flex-start;
-  margin: 0 12px 12px;
+/* Roster and Delete. margin-top: auto keeps them at the bottom of a tile that is taller than its content. */
+.lobby-room-actions {
+  display: flex;
+  gap: 8px;
+  margin: auto 12px 12px;
 }
 
 .lobby-room-delete:hover {

@@ -47,7 +47,7 @@ Open `http://localhost:5173`. The app opens on the lobby. Open the Sandbox or a 
 
 ## Lobby, rooms and Sandbox
 
-The app opens on the **lobby**. It lists the rooms of this browser, the last changed room first. Each tile shows the map card, the map name, the room code and the time of the last change. Click a tile to enter the room. **Delete** removes a room after a confirm.
+The app opens on the **lobby**. It lists the rooms of this browser, the last changed room first. Each tile shows the map card, the map name, the room code and the time of the last change. Click a tile to enter the room. **Roster** shows the Blue roster of the room in the roster popup. **Delete** removes a room after a confirm.
 
 **+ New room** opens a dialog. **Random map** is on by default: the app picks the map when it creates the room. Turn it off to choose the map in a carousel of map cards. Paste the MCT code of your roster into **Blue roster**. **Create room** works when the code has a known card, and it enters the new room.
 

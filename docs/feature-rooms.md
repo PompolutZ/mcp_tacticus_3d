@@ -35,6 +35,7 @@ The URL hash selects the page. So the browser back button works, and a reload st
 ## Lobby
 
 - **Rooms:** a **+** tile, then a tile for each room, the last changed room first. A tile shows the map card, the map name, the room code and the time of the last change. A click on the tile enters the room.
+- **Roster** on a tile shows the Blue roster of the room in the roster popup of the table (`docs/feature-roster.md`). It opens on the first tab with cards, usually Characters. Escape, **×** or a click on the backdrop closes it. The left and right arrows show the previous or next card.
 - **Delete** on a tile removes the room. It shows only on rooms that this user owns. Now that is every room. A browser confirm asks first, the same as **Remove** on a character tray.
 - **Sandbox:** a button that opens the Sandbox.
 
@@ -146,7 +147,7 @@ There are no accounts. The user id in `localStorage` is the owner of every room 
 | `src/rooms/store.js` | `localStorage`: user id, room code, list, read, create, save, delete |
 | `src/rooms/table.js` | The table state that a new or saved table starts with, and the saved form of it |
 | `src/rooms/preload.js` | The files to load before a table shows |
-| `src/components/Lobby.jsx` | The lobby page |
+| `src/components/Lobby.jsx` | The lobby page, and the roster popup of a room |
 | `src/components/NewRoomDialog.jsx` | The new room dialog: map switch, map carousel, roster field |
 | `src/components/Carousel.jsx` | The Embla carousel, taken out of `RosterPopup.jsx`. The roster popup and the map picker use it |
 | `src/components/Preload.jsx` | `Preload` and `Ready`, see [Loading](#loading) |

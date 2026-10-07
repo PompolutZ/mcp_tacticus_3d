@@ -1,19 +1,24 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
 import { MAPS } from '../terrain/maps.js'
 import { mapCard } from '../terrain/files.js'
 import { deleteRoom, listRooms, ownsRoom } from '../rooms/store.js'
+import { ROSTER_TABS, parseRosterText, rosterTabs } from '../rosters/cards.js'
+import { CARD_STEP_KEYS } from '../keyboard.js'
 import { NewRoomDialog } from './NewRoomDialog.jsx'
+import { RosterPopup } from './RosterPopup.jsx'
 
 const TIME = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 
 // The start page (docs/feature-rooms.md, "Lobby"): the rooms of this browser, the last changed first, a
-// tile that creates a room, and the Sandbox. notice: a message to show at the top, or null.
+// tile that creates a room, and the Sandbox. Roster on a tile shows the Blue roster of the room. notice: a message to show at the top, or null.
 // onOpenRoom(id), onOpenSandbox(): open that page.
 export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
   // The rooms of a map that the app no longer has cannot open, so they do not show
   const [rooms, setRooms] = useState(() => listRooms().filter(room => MAPS[room.mapId]))
   const [creating, setCreating] = useState(false)
+  // The room whose roster is in the roster popup, or null
+  const [rosterRoom, setRosterRoom] = useState(null)
 
   // A browser confirm, the same as Remove on a character tray
   function handleDelete(room) {
@@ -44,11 +49,18 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
                 <span className="lobby-room-code">{room.id}</span>
                 <span className="lobby-room-time">Last change {TIME.format(room.updatedAt)}</span>
               </button>
-              {ownsRoom(room) && (
-                <button type="button" className="chip lobby-room-delete" title={`Delete room ${room.id}`} onClick={() => handleDelete(room)}>
-                  Delete
-                </button>
-              )}
+              <div className="lobby-room-actions">
+                {room.rosters?.blue && (
+                  <button type="button" className="chip" title={`Show the Blue roster of room ${room.id}`} onClick={() => setRosterRoom(room)}>
+                    Roster
+                  </button>
+                )}
+                {ownsRoom(room) && (
+                  <button type="button" className="chip lobby-room-delete" title={`Delete room ${room.id}`} onClick={() => handleDelete(room)}>
+                    Delete
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -61,6 +73,40 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
         </button>
       </section>
       {creating && <NewRoomDialog onClose={() => setCreating(false)} onCreate={room => onOpenRoom(room.id)} />}
+      {rosterRoom && <RoomRosterPopup code={rosterRoom.rosters.blue.code} onClose={() => setRosterRoom(null)} />}
     </div>
+  )
+}
+
+// The roster popup of the table (RosterPopup.jsx) for the Blue roster of a room. It opens on the first
+// tab with cards. On the table, App owns the tab and the card, because App handles all keys there. The
+// lobby has no key handler, so this component owns them: Escape closes the popup, and the left and right
+// arrows show the previous or next card. The tab is a loop, the same as on the table.
+// code: the stored MCT code of the roster.
+function RoomRosterPopup({ code, onClose }) {
+  const tabs = useMemo(() => rosterTabs(parseRosterText(code)), [code])
+  const [tab, setTab] = useState(() => ROSTER_TABS.find(t => tabs[t.key].length > 0).key)
+  const [index, setIndex] = useState(0)
+  const count = tabs[tab].length
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') onClose()
+      else if (CARD_STEP_KEYS[e.code]) setIndex(i => (i + CARD_STEP_KEYS[e.code] + count) % count)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [count, onClose])
+
+  return (
+    <RosterPopup
+      team="blue"
+      code={code}
+      tab={tab}
+      index={index}
+      onTabChange={next => { setTab(next); setIndex(0) }}
+      onIndexChange={setIndex}
+      onClose={onClose}
+    />
   )
 }

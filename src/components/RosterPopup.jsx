@@ -8,13 +8,14 @@ import { Carousel } from './Carousel.jsx'
 const TEAM_NAMES = { blue: 'Blue', red: 'Red' }
 
 // One player's roster in a full-screen popup, opened by a click on a roster card on the table
-// (RosterCards.jsx). It has a tab for each card group, and each tab shows its cards in a carousel.
+// (RosterCards.jsx), or by Roster on a room tile in the lobby (Lobby.jsx). It has a tab for each card group, and each tab shows its cards in a carousel.
 // No panel: the title, the tabs, the cards and the buttons lie on a dark, blurred backdrop, the same as
 // the image of CardPopup.jsx. The cross button in the screen corner or a click on the backdrop closes
 // the popup. Only the cards and the buttons take pointer events (see index.css), so a click next to
 // them also goes to the backdrop.
-// App owns the open tab and card (openRoster), because App handles all keys: Escape closes the popup,
-// and the left and right arrows move the carousel. A dialog, so it renders through Overlay.
+// The parent owns the open tab and card: App (openRoster) on the table, because App handles all keys,
+// and RoomRosterPopup in the lobby. Escape closes the popup, and the left and right arrows move the
+// carousel. A dialog, so it renders through Overlay.
 // code: the stored MCT code of the roster. tab: a key of ROSTER_TABS. index: the shown card of that tab.
 export function RosterPopup({ team, code, tab, index, onTabChange, onIndexChange, onClose }) {
   const tabs = useMemo(() => rosterTabs(parseRosterText(code)), [code])
