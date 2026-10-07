@@ -878,6 +878,8 @@ body {
   gap: 10px;
   max-height: 100vh;
   overflow-y: auto;
+  /* The viewport can be 100vw wide. A vertical scrollbar must not add a horizontal one. */
+  overflow-x: hidden;
 }
 
 /* Only the cards and the buttons take pointer events, so a click anywhere else goes to the backdrop
@@ -940,12 +942,33 @@ body {
   gap: 6px;
 }
 
-/* Embla needs a viewport that hides the other slides, a flex row of slides, and slides of full
-   width. The viewport is wider than the widest card (a character card, 600px), so the card shadow
-   has room at the sides. */
+/* --card-w comes from RosterPopup.jsx. A slide is a card and a gap. The viewport is 2 slides wide: the
+   card in the middle and half of the previous and the next slide. --edge is the left edge of the card
+   in the middle. */
+.roster-popup-carousel {
+  --card-gap: 24px;
+  --slide-w: calc(var(--card-w) + var(--card-gap));
+  --view-w: min(100vw, calc(var(--slide-w) * 2));
+  --edge: calc((var(--view-w) - var(--card-w)) / 2);
+}
+
+/* Embla needs a viewport that hides the other slides and a flex row of slides. The mask fades the side
+   cards: 60% at their inner edge, then down to nothing at the viewport edge. The card in the middle
+   stays fully visible. */
 .roster-popup-viewport {
   overflow: hidden;
-  width: min(96vw, 720px);
+  width: var(--view-w);
+  --fade: linear-gradient(
+    to right,
+    transparent,
+    rgba(0, 0, 0, 0.6) calc(var(--edge) - var(--card-gap)),
+    #000 var(--edge),
+    #000 calc(100% - var(--edge)),
+    rgba(0, 0, 0, 0.6) calc(100% - var(--edge) + var(--card-gap)),
+    transparent
+  );
+  -webkit-mask-image: var(--fade);
+  mask-image: var(--fade);
 }
 
 .roster-popup-slides {
@@ -954,13 +977,18 @@ body {
 }
 
 .roster-popup-slide {
-  flex: 0 0 100%;
+  flex: 0 0 var(--slide-w);
   min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
   padding: 12px 0 24px;
+}
+
+/* A click on a side card moves it to the middle */
+.roster-popup-slide--side .roster-popup-card {
+  cursor: pointer;
 }
 
 /* width and aspect-ratio come from RosterPopup.jsx. The shadow is the one of .card-popup-image. */

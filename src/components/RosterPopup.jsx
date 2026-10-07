@@ -56,14 +56,23 @@ export function RosterPopup({ team, code, tab, index, onTabChange, onIndexChange
   )
 }
 
-// The cards of one tab, one card at a time, in a loop: after the last card comes the first. Embla gives
-// the drag, the loop and the slide animation. A drag or a button reports the new card with
-// onIndexChange, and App passes it back as index. A new index from App (an arrow key) scrolls the
-// carousel to that card, the short way around the loop.
+// The cards of one tab in a loop: after the last card comes the first. The shown card is in the middle.
+// Half of the previous and the next card show at the sides and fade out toward the screen edges (see
+// .roster-popup-viewport in index.css). A click on a side card moves it to the middle. Embla gives the
+// drag, the loop and the slide animation. A drag or a button reports the new card with onIndexChange, and
+// App passes it back as index. A new index from App (an arrow key) scrolls the carousel to that card, the
+// short way around the loop.
+// Embla can loop only with at least 3 cards here, because the viewport is 2 slides wide. With 2 cards
+// the carousel does not loop. The buttons and the arrow keys then go to the other card.
 function CardCarousel({ cards, index, onIndexChange }) {
   // Only the first index is an option. A changed option would restart Embla without the animation.
-  const [options] = useState({ startIndex: index, loop: true })
+  // No containScroll: without the loop, every card must still get its own place in the middle.
+  const [options] = useState({ startIndex: index, loop: true, containScroll: false })
   const [viewportRef, api] = useEmblaCarousel(options)
+  // All cards of a tab have the same size, so the first card gives the card width of the tab
+  const [w, h] = CARD_SIZES[cards[0].kind]
+  const cardWidth = { '--card-w': `min(70vw, 600px, ${(CARD_VH * w) / h}vh)` }
+  const step = s => api?.scrollTo((index + s + cards.length) % cards.length)
 
   useEffect(() => {
     if (!api) return
@@ -77,26 +86,28 @@ function CardCarousel({ cards, index, onIndexChange }) {
   }, [api, index])
 
   return (
-    <div className="roster-popup-carousel" aria-roledescription="carousel">
+    <div className="roster-popup-carousel" style={cardWidth} aria-roledescription="carousel">
       <div className="roster-popup-viewport" ref={viewportRef}>
         <div className="roster-popup-slides">
           {cards.map((card, i) => (
             <div
               key={`${i}-${card.code}`}
-              className="roster-popup-slide"
+              className={i === index ? 'roster-popup-slide' : 'roster-popup-slide roster-popup-slide--side'}
               role="group"
               aria-roledescription="slide"
               aria-label={`${i + 1} of ${cards.length}`}
+              // After a drag, Embla stops the click, so a drag does not move the carousel twice
+              onClick={i === index ? undefined : () => api?.scrollTo(i)}
             >
-              <PopupCard card={card} />
+              <PopupCard card={card} active={i === index} />
             </div>
           ))}
         </div>
       </div>
       <div className="roster-popup-nav">
-        <button type="button" className="chip" aria-label="Previous card" disabled={cards.length < 2} onClick={() => api?.scrollPrev()}>‹</button>
+        <button type="button" className="chip" aria-label="Previous card" disabled={cards.length < 2} onClick={() => step(-1)}>‹</button>
         <span className="roster-popup-count">Card {index + 1} of {cards.length}</span>
-        <button type="button" className="chip" aria-label="Next card" disabled={cards.length < 2} onClick={() => api?.scrollNext()}>›</button>
+        <button type="button" className="chip" aria-label="Next card" disabled={cards.length < 2} onClick={() => step(1)}>›</button>
       </div>
     </div>
   )
@@ -104,15 +115,17 @@ function CardCarousel({ cards, index, onIndexChange }) {
 
 // One card at popup size, with the aspect ratio of the card on the table. A card with a back image
 // (rosters/cards.js) flips with a click on it or with the Flip button: a character card to its Injured
-// side, a Team Tactic card to its back. Each card keeps its side while the tab is open. A card without
-// an image is a plate with the name and the MCT code, the same as on the table. The Infinity Gems of a
-// character show as text lines under its card, as the app has no gem images.
-function PopupCard({ card }) {
+// side, a Team Tactic card to its back. Only the card in the middle (active) flips: a click on a side
+// card goes to its slide, which moves the card to the middle. Each card keeps its side while the tab is
+// open. A card without an image is a plate with the name and the MCT code, the same as on the table. The
+// Infinity Gems of a character show as text lines under its card, as the app has no gem images.
+function PopupCard({ card, active }) {
   const [flipped, setFlipped] = useState(false)
   const info = rosterCard(card.code)
   const [w, h] = CARD_SIZES[card.kind]
-  const size = { width: `min(80vw, 600px, ${(CARD_VH * w) / h}vh)`, aspectRatio: `${w} / ${h}` }
-  const flip = () => setFlipped(v => !v)
+  // --card-w comes from CardCarousel
+  const size = { width: 'var(--card-w)', aspectRatio: `${w} / ${h}` }
+  const flip = () => { if (active) setFlipped(v => !v) }
 
   let face
   if (info.image && info.back) {
