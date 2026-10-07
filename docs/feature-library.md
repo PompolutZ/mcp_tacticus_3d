@@ -38,6 +38,8 @@ Each row has the portrait, the name and the MCT code. A click spawns the charact
 
 Characters with a 3D model come first. A character without a model is grey. A click on it shows a short message, and nothing spawns.
 
+A player has at most one copy of each character on the table. The characters that the chosen player already has are green in the list. A click on one of them shows a message in the HUD, for example "Blue player already has Angela on the table", and nothing spawns. Both players can have the same character. The two Sentinel MK4 rows are different characters, so a player can have both. `handleSpawn` in `App.jsx` does the check, so it also covers a later spawn from the roster. Added on 2026-10-07.
+
 The rows come from Jarvis (`src/characters/characters.js`), one row per MCT code. Two exceptions, found on 2026-10-07:
 
 - A Jarvis alternate sculpt (`isAlternateSculpt`, for example Mephisto Convention Exclusive) has the MCT code of its main character, so it gets no row.
@@ -93,3 +95,7 @@ Made on 2026-10-06:
 1. One Library panel replaces the Spawn field and the Tokens panel.
 2. The panel stays open after a pick.
 3. A pile never runs out. A drag takes a token, Shift + drag moves the pile.
+
+Made on 2026-10-07:
+
+4. A player cannot spawn a second copy of a character. Both players can have the same character.

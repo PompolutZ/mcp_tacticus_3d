@@ -36,11 +36,12 @@ function portraitUrl(ch) {
 // The Library HUD panel, opened from a toolbar button: characters, Team Tactic cards and tokens, with
 // one search field. See docs/feature-library.md. The panel only hides when it is closed, so its
 // search, tab, player and token mode stay.
+// characters: the characters on the table (App state). The ones of the chosen player show green.
 // onSpawnCharacter(ch): a click on a character with a 3D model; ch has teamColor set to the chosen player.
 // onSpawnTactic(key, team): a click on a tactic card.
 // onTokenDragStart(e, key, mode): a pointerdown on a token chip starts a drag in App.jsx. mode:
 // 'single' | 'pile'.
-export function Library({ open, onSpawnCharacter, onSpawnTactic, onTokenDragStart }) {
+export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onTokenDragStart }) {
   const [query, setQuery] = useState('')
   const [tab, setTab] = useState('all')
   const [team, setTeam] = useState('blue')
@@ -54,6 +55,8 @@ export function Library({ open, onSpawnCharacter, onSpawnTactic, onTokenDragStar
     tactics: q ? TACTICS.filter(card => card.name.toLowerCase().includes(q) || card.id.startsWith(q)) : TACTICS,
     tokens: q ? TOKENS.filter(t => t.name.toLowerCase().includes(q)) : TOKENS,
   }), [q])
+  // Slugs of the chosen player's characters on the table. App blocks a second copy (handleSpawn).
+  const spawned = useMemo(() => new Set(characters.filter(c => c.teamColor === team).map(c => c.key)), [characters, team])
 
   if (!open) return null
 
@@ -133,11 +136,14 @@ export function Library({ open, onSpawnCharacter, onSpawnTactic, onTokenDragStar
             {sectionHeader('characters', 'Characters')}
             {shown('characters').map(ch => {
               const portrait = portraitUrl(ch)
+              const onTable = spawned.has(ch.slug)
+              const state = !ch.available ? ' library-character--unavailable' : onTable ? ' library-character--spawned' : ''
               return (
                 <button
                   key={ch.mctCode}
                   type="button"
-                  className={`library-character${ch.available ? '' : ' library-character--unavailable'}`}
+                  className={`library-character${state}`}
+                  title={onTable ? `${team === 'blue' ? 'Blue' : 'Red'} player has this character on the table` : undefined}
                   onClick={() => handleCharacter(ch)}
                 >
                   {portrait

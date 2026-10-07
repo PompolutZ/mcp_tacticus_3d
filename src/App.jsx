@@ -348,8 +348,14 @@ export default function App({ room = null, onExit }) {
   }
 
   // The new character's tray goes at the end of its player's row, and the row recenters (see
-  // trays.js, layoutTrays).
+  // trays.js, layoutTrays). A player has at most one copy of each character (slug): every spawn comes
+  // here, so the check covers all of them. The two Sentinel MK4 sculpts have their own slugs, so a
+  // player can have both. Both players can have the same character.
   function handleSpawn(ch) {
+    if (characters.some(c => c.key === ch.slug && c.teamColor === ch.teamColor)) {
+      showHudMessage(`${ch.teamColor === 'blue' ? 'Blue' : 'Red'} player already has ${ch.name} on the table`)
+      return
+    }
     setCharacters(prev => [...prev, {
       id: crypto.randomUUID(),
       key: ch.slug,
@@ -1128,6 +1134,7 @@ export default function App({ room = null, onExit }) {
       />
       <Library
         open={libraryOpen}
+        characters={characters}
         onSpawnCharacter={handleSpawn}
         onSpawnTactic={handleTacticSpawn}
         onTokenDragStart={handleLibraryTokenDragStart}
