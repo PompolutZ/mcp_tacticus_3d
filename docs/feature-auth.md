@@ -24,7 +24,7 @@ In TTS, the Steam account gives each player a name and an avatar. Here, the Disc
 | Users | Collection `users`. Our own user id, the Discord id is a unique field |
 | Rooms | Collection `rooms`: setup, owner, two seats, and a snapshot of the table (Yjs) |
 | Offline rooms | Stay in `localStorage`, as today. They never connect to another player |
-| Site | `https://mcptacticus.netlify.app` |
+| Site | `https://mcptacticus3d.netlify.app` |
 | Cost | $0. See [Cost](#cost) |
 
 ## Terms
@@ -198,7 +198,7 @@ The Discord Developer Terms of Service (effective 2024-07-08, section 5) apply t
 
 | Requirement (section) | How the app does it |
 |---|---|
-| A privacy policy that says what data the app collects, how it uses the data and shares it with Discord and third parties, and how a user can ask for deletion (5a) | The page `https://mcptacticus.netlify.app/#privacy` |
+| A privacy policy that says what data the app collects, how it uses the data and shares it with Discord and third parties, and how a user can ask for deletion (5a) | The page `https://mcptacticus3d.netlify.app/#privacy` |
 | A public link to the privacy policy in the Developer Portal, and easy to reach from the app (5a) | The Privacy Policy URL field of the Discord application. The **Privacy** link in the lobby footer |
 | Share API Data only with service providers, when the law requires it, or when the user directs it (5b) | AWS and MongoDB Atlas are service providers. The opponent sees the name and avatar because the player joins a game with them. The lobby and the privacy page say this |
 | Update the data when the user asks (5b) | Each login updates the name and the avatar |
@@ -217,8 +217,8 @@ The Discord Developer Terms of Service (effective 2024-07-08, section 5) apply t
 
 - `DISCORD_CLIENT_SECRET` and `SESSION_SECRET` are Lambda env vars, passed by `sam deploy` as `NoEcho` parameters from a local `.env`, the same as `MONGODB_URI` in the peer-to-peer plan.
 - The browser reads the client id from `VITE_DISCORD_CLIENT_ID`: a Netlify env var in production, `.env.local` in dev.
-- Discord accepts only the redirect URIs registered in the Developer Portal: `https://mcptacticus.netlify.app/` and `http://localhost:5173/`. So a Netlify deploy preview (another origin) cannot log in.
-- CORS of the function URL allows the `Authorization` and `Content-Type` headers, from `https://mcptacticus.netlify.app` and `http://localhost:5173` only.
+- Discord accepts only the redirect URIs registered in the Developer Portal: `https://mcptacticus3d.netlify.app/` and `http://localhost:5173/`. So a Netlify deploy preview (another origin) cannot log in.
+- CORS of the function URL allows the `Authorization` and `Content-Type` headers, from `https://mcptacticus3d.netlify.app` and `http://localhost:5173` only.
 - The Lambda checks every write against the seat rules. The browser hides buttons, but the Lambda decides.
 - Same as the peer-to-peer plan: no protection against cheating inside a game.
 
@@ -226,7 +226,7 @@ The Discord Developer Terms of Service (effective 2024-07-08, section 5) apply t
 
 The site needs a fixed address before the Discord application gets its production redirect URI. No own domain for now.
 
-- Rename the existing Netlify site to `mcptacticus`: Site configuration → General → Site details → **Change site name**. A new site is not needed. Check that the name is free.
+- Rename the existing Netlify site to `mcptacticus3d`: Site configuration → General → Site details → **Change site name**. A new site is not needed. Check that the name is free.
 - After the rename, the old `*.netlify.app` address returns 404. Netlify does not redirect it.
 - `localStorage` belongs to one origin. So the offline rooms that were saved on the old address do not show on the new one.
 - Rename before phase 4. Phases 1 to 3 use only `http://localhost:5173/`.
@@ -235,9 +235,9 @@ The site needs a fixed address before the Discord application gets its productio
 
 Created once, by hand, in the Discord Developer Portal:
 
-1. **New Application**. Use a name like the site (`mcptacticus`), because Discord shows the name on the consent screen.
-2. **OAuth2 → Redirects:** `http://localhost:5173/` now, `https://mcptacticus.netlify.app/` in phase 4.
-3. **Privacy Policy URL:** `https://mcptacticus.netlify.app/#privacy`, in phase 4.
+1. **New Application**. Use a name like the site (`mcptacticus3d`), because Discord shows the name on the consent screen.
+2. **OAuth2 → Redirects:** `http://localhost:5173/` now, `https://mcptacticus3d.netlify.app/` in phase 4.
+3. **Privacy Policy URL:** `https://mcptacticus3d.netlify.app/#privacy`, in phase 4.
 4. Copy the client id to `VITE_DISCORD_CLIENT_ID`, and the client secret to `.env`. Git ignores both files.
 5. No bot user. No other scopes.
 
@@ -248,7 +248,7 @@ The rules of the peer-to-peer plan apply: everything works on one Mac, and each 
 | Part | Production | Local |
 |---|---|---|
 | Auth and rooms endpoints | The Lambda | The same handler in the Vite dev server, with the in-memory store |
-| Discord login | Discord, redirect `https://mcptacticus.netlify.app/` | The same Discord app, redirect `http://localhost:5173/`. Needs internet |
+| Discord login | Discord, redirect `https://mcptacticus3d.netlify.app/` | The same Discord app, redirect `http://localhost:5173/`. Needs internet |
 | Secrets | Lambda env vars | `.env.local` (git ignores it). Vite gives only `VITE_` vars to the browser, so the secrets stay in the dev server |
 | `users`, `rooms` | Atlas, database `assist3d` | In-memory store. `mongo` in Docker to test the MongoDB store |
 
@@ -321,7 +321,7 @@ Made on 2026-10-08:
 8. Our own user id. The Discord id is a unique field.
 9. The Discord access token is not stored.
 10. The server keeps the setup and a snapshot of the table of each online room. A player who joins sees the map and the host's roster at once.
-11. The site is `https://mcptacticus.netlify.app`: the existing Netlify site, renamed. No own domain.
+11. The site is `https://mcptacticus3d.netlify.app`: the existing Netlify site, renamed. No own domain.
 
 ## Open questions
 
