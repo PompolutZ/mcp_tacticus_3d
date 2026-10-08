@@ -11,11 +11,11 @@ Summary of all files available from the Tabletop Simulator MCP mod for building 
 | `~/Library/Tabletop Simulator/Mods/Workshop/3036795456.json` | Full mod save file — all objects, scripts, URLs, positions |
 | `~/Library/Tabletop Simulator/Mods/Models/` | Cached `.obj` 3D geometry files (330 total) |
 | `~/Library/Tabletop Simulator/Mods/Images/` | Cached image files (3,033 total) |
-| `~/Library/Tabletop Simulator/Mods/Assetbundles/` | Unity asset bundles (243 total). Terrain bundles can be converted with AssetRipper, see `scripts/README.md` |
+| `~/Library/Tabletop Simulator/Mods/Assetbundles/` | Unity asset bundles (243 total). Terrain bundles can be converted with AssetRipper, see `apps/web/scripts/README.md` |
 
 TTS caches assets only after you load them in-game. Files not listed below exist in the mod JSON as URLs but are not on disk. The counts in this file are from 2026-09-27, and the cache has grown since then.
 
-To migrate a map (mat and terrain), use `scripts/migrate-terrain.mjs`. `npm run migrate-terrain -- --list` shows which maps have all their files in the cache. See `scripts/README.md`.
+To migrate a map (mat and terrain), use `apps/web/scripts/migrate-terrain.mjs`. `pnpm --filter web migrate-terrain --list` shows which maps have all their files in the cache. See `apps/web/scripts/README.md`.
 
 ---
 
@@ -53,14 +53,14 @@ The `Terrain Database` LuaScript has the names:
 - Map entries below it — `name`, `category`, and `placements` (piece `key`, position, rotation, scale, tint). The first placement is usually the mat tile (`tile-piece-*`).
 - A map's mat is found by its image hash. The Wakanda mat `af7a7354a68e` is `tile-piece-57` (Vibranium Heist, Survival of the Fittest) and `tile-piece-167` (AMG Wakanda Blank Map).
 
-The pieces of Vibranium Heist, Battle For Asgard and Hydra Vs Wakanda are copied to `src/assets/terrain/` with readable names. The pieces are described in `src/terrain/pieces.js`, and the placements are in `src/terrain/maps.js`. `src/terrain/files.js` has the file names.
+The pieces of Vibranium Heist, Battle For Asgard and Hydra Vs Wakanda are copied to `apps/web/src/assets/terrain/` with readable names. The pieces are described in `apps/web/src/terrain/pieces.js`, and the placements are in `apps/web/src/terrain/maps.js`. `apps/web/src/terrain/files.js` has the file names.
 
-The web files are converted from the cached originals, so they load faster. `scripts/migrate-terrain.mjs` does the conversion; `scripts/README.md` describes the settings. The Draco decoder is in `public/draco/` (copied from `three/examples/jsm/libs/draco/gltf/`).
+The web files are converted from the cached originals, so they load faster. `apps/web/scripts/migrate-terrain.mjs` does the conversion; `apps/web/scripts/README.md` describes the settings. The Draco decoder is in `apps/web/public/draco/` (copied from `three/examples/jsm/libs/draco/gltf/`).
 
 TTS transform notes:
 - TTS units are inches. The mat tile has scale 18, so it is 36" wide and centered at the origin. Its top is at y = 1.06.
 - A placement position is the mesh origin.
-- TTS is left-handed. TTS also mirrors X when it imports an OBJ. See `src/components/Terrain.jsx` for the conversion.
+- TTS is left-handed. TTS also mirrors X when it imports an OBJ. See `apps/web/src/components/Terrain.jsx` for the conversion.
 
 ### Character and token models — ~25 cached (pastebin/gist hosted)
 
@@ -96,13 +96,13 @@ Two image types per character:
 Named `httpsd37ev18qvj5a3mcloudfrontnetttscrisisXXXX.png`.
 Both `face` and `back` images per crisis card. These are the 24 cards of the 2026 Challenger pool.
 
-The crisis cards and their tokens are copied to `src/assets/crisis/`, and the data is in `src/crisis/`. `scripts/migrate-crisis.mjs` does this, and `scripts/fetch-jarvis-crisis-cards.mjs` downloads the card text from Jarvis. See `scripts/README.md`.
+The crisis cards and their tokens are copied to `apps/web/src/assets/crisis/`, and the data is in `apps/web/src/crisis/`. `apps/web/scripts/migrate-crisis.mjs` does this, and `apps/web/scripts/fetch-jarvis-crisis-cards.mjs` downloads the card text from Jarvis. See `apps/web/scripts/README.md`.
 
 ### Tactic card images (TTC)
 
 Named `httpsd37ev18qvj5a3mcloudfrontnetttsttcXXXX.png/jpg`. The `cardDatabase` of the `Database` object has 389 released tactic cards, each with a face (rules text) and a back (name on full-colour art). On 2026-10-05, the cache had both images of 69 cards. The cache also has older faces without `_sat` in the name, which are lighter versions of the current faces.
 
-The cards are copied to `src/assets/tactics/` by `scripts/migrate-tactics.mjs`; see `scripts/README.md`.
+The cards are copied to `apps/web/src/assets/tactics/` by `apps/web/scripts/migrate-tactics.mjs`; see `apps/web/scripts/README.md`.
 
 ### Crisis token images
 
@@ -110,19 +110,19 @@ Named `httpsd37ev18qvj5a3mcloudfrontnetttstokenobjectiveXXXX.png`, 300 × 300. T
 
 ### Character token images — 310 cached (full `tokenDatabase`)
 
-Named `httpsd37ev18qvj5a3mcloudfrontnetttstokenXXXX.png`, under `token/condition/`, `token/dice/`, `token/character/`, `token/tactic/` and `token/misc/`. 225 to 375 px. 88 of them (conditions, Activated/Dazed, personal tokens, Team Tactic tokens and "1 Power") are copied to `src/assets/tokens/` by `scripts/migrate-tokens.mjs`; see `scripts/README.md`.
+Named `httpsd37ev18qvj5a3mcloudfrontnetttstokenXXXX.png`, under `token/condition/`, `token/dice/`, `token/character/`, `token/tactic/` and `token/misc/`. 225 to 375 px. 88 of them (conditions, Activated/Dazed, personal tokens, Team Tactic tokens and "1 Power") are copied to `apps/web/src/assets/tokens/` by `apps/web/scripts/migrate-tokens.mjs`; see `apps/web/scripts/README.md`.
 
 ### Scoring board and affiliation tokens — cached
 
-The "Tracker" board (mesh and texture), the "Round Tracker" mesh, and all 34 affiliation token images (`token/affiliation/*_AFFILIATION_TOKEN.png`, 225 × 225) are copied to `src/assets/scoreboard/` and `src/assets/affiliations/` by `scripts/migrate-scoreboard.mjs`; see `scripts/README.md`.
+The "Tracker" board (mesh and texture), the "Round Tracker" mesh, and all 34 affiliation token images (`token/affiliation/*_AFFILIATION_TOKEN.png`, 225 × 225) are copied to `apps/web/src/assets/scoreboard/` and `apps/web/src/assets/affiliations/` by `apps/web/scripts/migrate-scoreboard.mjs`; see `apps/web/scripts/README.md`.
 
 ### Map card images
 
-Each map in the Terrain Database has a card: `face` and `back` image URLs next to its `name`. The face shows the map name, its setting and a picture of the layout. The images are 800 × 1400. On 2026-10-07, the cache had the cards of 27 maps, all in "Strict Maps". `scripts/migrate-terrain.mjs` copies the card of a map to `src/assets/maps/` with the map.
+Each map in the Terrain Database has a card: `face` and `back` image URLs next to its `name`. The face shows the map name, its setting and a picture of the layout. The images are 800 × 1400. On 2026-10-07, the cache had the cards of 27 maps, all in "Strict Maps". `apps/web/scripts/migrate-terrain.mjs` copies the card of a map to `apps/web/src/assets/maps/` with the map.
 
 ### Game mat / map textures — 4 unique cached (of 188 total)
 
-Only maps played recently are on disk (run `npm run migrate-terrain -- --list` for the current list):
+Only maps played recently are on disk (run `pnpm --filter web migrate-terrain --list` for the current list):
 - `014caf473322` — NYC construction site mat (community-made, FORGE watermark). Sinister Showdown.
 - `af7a7354a68e` — Wakanda official AMG mat (Black Panther emblem, objective markers printed). Vibranium Heist.
 - `702601a131f7` — Hydra Vs Wakanda.
@@ -137,7 +137,7 @@ All 188 URLs are in the mod JSON and can be fetched at runtime.
 `httpssteamusercontentaakamaihdnetugc12772041129510749627418A085405EB3B5A5D94C89CA4C9FC881378A413.jpg`
 
 The mod's `TableURL` (`Table` is `Table_Custom`). Dark wood planks, 4000×2667 (3:2, the same as the TTS table).
-`src/assets/table.webp` is this image, converted with the same settings as other textures:
+`apps/web/src/assets/table.webp` is this image, converted with the same settings as other textures:
 `magick <file> -resize '2048x2048>' -strip -quality 85 table.webp`.
 
 ### Dice texture — 1 cached
@@ -156,7 +156,7 @@ Soul gem (face + back). Other gems likely cached too.
 
 ## Asset Bundles
 
-Unity binary format. A browser cannot load them, but AssetRipper (in `tools/`, not committed) converts them to GLB. `scripts/migrate-terrain.mjs` does this for terrain pieces and also reads their colliders; see `scripts/README.md`. The Angel model was converted the same way, by hand in the AssetRipper UI. `scripts/migrate-characters.mjs` converts the other character models, cards and portraits to `src/assets/characters/`; see `scripts/README.md`.
+Unity binary format. A browser cannot load them, but AssetRipper (in `apps/web/tools/`, not committed) converts them to GLB. `apps/web/scripts/migrate-terrain.mjs` does this for terrain pieces and also reads their colliders; see `apps/web/scripts/README.md`. The Angel model was converted the same way, by hand in the AssetRipper UI. `apps/web/scripts/migrate-characters.mjs` converts the other character models, cards and portraits to `apps/web/src/assets/characters/`; see `apps/web/scripts/README.md`.
 
 Bundles include:
 - Red/Blue Tray Spawner

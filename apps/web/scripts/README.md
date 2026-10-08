@@ -1,5 +1,7 @@
 # TTS terrain migration
 
+Paths in this file are relative to `apps/web/`, unless they start with `docs/`. Run the scripts from any folder with `pnpm --filter web <script> <args>`. pnpm runs a script in `apps/web/`, so a relative path argument is relative to `apps/web/` too.
+
 `migrate-terrain.mjs` copies the mat and terrain of one map from the TTS mod to `src/assets`. It converts the files for the web in the same way as the Vibranium Heist pieces. Then it prints the entries to add to `src/terrain/pieces.js` and `src/terrain/maps.js`.
 
 A "map" is a card in the mod's Terrain Database. It has an id, a name, and a list of placements (piece key, position, rotation, scale, tint). The first `Custom_Tile` placement is the mat.
@@ -18,15 +20,15 @@ The script prints the game Size on each placement (`size`). It reads the Size fr
 - Tabletop Simulator with mod 3036795456. TTS downloads a file to its cache only when an object uses it, so spawn a map once in TTS before you migrate it.
 - `tools/AssetRipper.GUI.Free` and `tools/libcapstone.dylib` (macOS arm64). `tools/` is in `.gitignore`. Get them from the [AssetRipper releases](https://github.com/AssetRipper/AssetRipper/releases). The script was tested with the build from 2026-08-24 (`tools/compile_time.txt`).
 - ImageMagick (`magick`).
-- `npm install`. The conversion libraries are dev dependencies.
+- `pnpm install`. The conversion libraries are dev dependencies.
 
 ## Usage
 
 ```bash
-npm run migrate-terrain -- --list                      # maps whose mat is in the TTS cache, and which pieces are missing
-npm run migrate-terrain -- 282                         # migrate map 282 (a name also works, if it is unique)
-npm run migrate-terrain -- 282 --out /tmp/terrain-try  # trial run: nothing is written to the repo
-npm run migrate-terrain -- 282 --force                 # convert pieces, mat and map card again
+pnpm --filter web migrate-terrain --list                      # maps whose mat is in the TTS cache, and which pieces are missing
+pnpm --filter web migrate-terrain 282                         # migrate map 282 (a name also works, if it is unique)
+pnpm --filter web migrate-terrain 282 --out /tmp/terrain-try  # trial run: nothing is written to the repo
+pnpm --filter web migrate-terrain 282 --force                 # convert pieces, mat and map card again
 ```
 
 `--list` reads the TTS cache each time. The cache grows when a map is spawned in TTS, so run `--list` again after that.
@@ -159,12 +161,12 @@ The requirements are the same as for the terrain migration: spawn the characters
 ## Usage
 
 ```bash
-npm run migrate-characters -- --list                   # characters with files in the TTS cache, and their status
-npm run migrate-characters -- --list asgard            # every character of one affiliation
-npm run migrate-characters -- asgard                   # migrate every character of an affiliation that has its files in the cache
-npm run migrate-characters -- 00280101 "Lady Sif"      # migrate by MCT id, name or key
-npm run migrate-characters -- asgard --out /tmp/try    # trial run: nothing is written to the repo
-npm run migrate-characters -- asgard --force           # convert files again that the manifest already lists
+pnpm --filter web migrate-characters --list                   # characters with files in the TTS cache, and their status
+pnpm --filter web migrate-characters --list asgard            # every character of one affiliation
+pnpm --filter web migrate-characters asgard                   # migrate every character of an affiliation that has its files in the cache
+pnpm --filter web migrate-characters 00280101 "Lady Sif"      # migrate by MCT id, name or key
+pnpm --filter web migrate-characters asgard --out /tmp/try    # trial run: nothing is written to the repo
+pnpm --filter web migrate-characters asgard --force           # convert files again that the manifest already lists
 ```
 
 An affiliation is a key of `allAffiliations` in the mod's Database script, for example `asgard`, `wakanda`, `cabal` or `hydra`. A name matches with or without punctuation: "Loki, Prince of Lies" and "Loki (Prince of Lies)" are the same.
@@ -233,8 +235,8 @@ These rules were found on 2026-09-28 in the mod scripts ("Red Tray Spawner" and 
 `fetch-jarvis-characters.mjs` downloads the stats and the stat card text of every character from [Jarvis Protocol](https://www.jarvis-protocol.com) to `src/characters/jarvis-characters.json`. The file is an array of the `/api/characters/<slug>` responses, sorted by slug.
 
 ```bash
-npm run fetch-jarvis-characters             # download new and changed characters
-npm run fetch-jarvis-characters -- --force  # download every character again
+pnpm --filter web fetch-jarvis-characters             # download new and changed characters
+pnpm --filter web fetch-jarvis-characters --force  # download every character again
 ```
 
 - `GET /api/characters` returns the list. Each entry has a `version` (a Unix timestamp), but no stat card. The script downloads `GET /api/characters/<slug>` only when the `version` in the list is different from the stored one. The script waits 3 s between requests, so a full download takes about 12 minutes.
@@ -252,10 +254,10 @@ Requirements: ImageMagick, and the images in the TTS cache. TTS downloads a card
 ## Usage
 
 ```bash
-npm run migrate-crisis -- --list          # crisis cards of the mod and their status
-npm run migrate-crisis                    # migrate every card that has its files in the TTS cache
-npm run migrate-crisis -- --out /tmp/try  # trial run: nothing is written to the repo
-npm run migrate-crisis -- --force         # convert files again that the manifest already lists
+pnpm --filter web migrate-crisis --list          # crisis cards of the mod and their status
+pnpm --filter web migrate-crisis                    # migrate every card that has its files in the TTS cache
+pnpm --filter web migrate-crisis --out /tmp/try  # trial run: nothing is written to the repo
+pnpm --filter web migrate-crisis --force         # convert files again that the manifest already lists
 ```
 
 The script always migrates all cards, because all files together are only about 2 MB. A card gets an entry in `cards.json` when its face and its token images are in the TTS cache or already migrated. On 2026-09-29, the cache had the 24 cards of the 2026 Challenger pool (12 Secure, 12 Extract). The images of the other 21 cards are missing. Commit `src/assets/crisis/`, `src/crisis/cards.json`, `src/crisis/tokens.json` and `scripts/crisis-manifest.json` together.
@@ -331,10 +333,10 @@ Requirements: ImageMagick, and the images in the TTS cache. On 2026-10-01 the ca
 ## Usage
 
 ```bash
-npm run migrate-tokens -- --list          # character tokens of the mod and their status
-npm run migrate-tokens                    # migrate every token that has its file in the TTS cache
-npm run migrate-tokens -- --out /tmp/try  # trial run: nothing is written to the repo
-npm run migrate-tokens -- --force         # convert files again that the manifest already lists
+pnpm --filter web migrate-tokens --list          # character tokens of the mod and their status
+pnpm --filter web migrate-tokens                    # migrate every token that has its file in the TTS cache
+pnpm --filter web migrate-tokens --out /tmp/try  # trial run: nothing is written to the repo
+pnpm --filter web migrate-tokens --force         # convert files again that the manifest already lists
 ```
 
 ## Output
@@ -353,7 +355,7 @@ A row with `altName` is a second art of the same token (the mod's old round desi
 `fetch-jarvis-crisis-cards.mjs` downloads every crisis card from [Jarvis Protocol](https://www.jarvis-protocol.com) to `src/crisis/jarvis-crisis-cards.json`. The file is the response of `GET /api/crisis_cards`, sorted by slug.
 
 ```bash
-npm run fetch-jarvis-crisis-cards
+pnpm --filter web fetch-jarvis-crisis-cards
 ```
 
 - One request returns all cards with their text, so the script downloads everything each time. The headers are the same as for the characters.
@@ -367,7 +369,7 @@ npm run fetch-jarvis-crisis-cards
 `fetch-jarvis-tactics.mjs` downloads the Team Tactic cards from [Jarvis Protocol](https://www.jarvis-protocol.com) to `src/tactics/jarvis-tactics-cards.json`. The file is the response of `GET /api/team_tactics_cards`, sorted by slug.
 
 ```bash
-npm run fetch-jarvis-tactics
+pnpm --filter web fetch-jarvis-tactics
 ```
 
 - The headers are the same as for the characters. The full response is 1 MB with the card text, so the script keeps only these fields: `exportCode`, `slug`, `name`, `isInfinityGem`, `affiliation`, `tags`, and the legality fields `timelines`, `standardTimelineStatus`, `extendedTimelineStatus`, `computedStatus`, `latestComputedStatus`.
@@ -383,10 +385,10 @@ Requirements: ImageMagick, and the images in the TTS cache. TTS downloads a card
 ## Usage
 
 ```bash
-npm run migrate-tactics -- --list          # tactic cards of the mod and their status
-npm run migrate-tactics                    # migrate every card that has its files in the TTS cache
-npm run migrate-tactics -- --out /tmp/try  # trial run: nothing is written to the repo
-npm run migrate-tactics -- --force         # convert files again that the manifest already lists
+pnpm --filter web migrate-tactics --list          # tactic cards of the mod and their status
+pnpm --filter web migrate-tactics                    # migrate every card that has its files in the TTS cache
+pnpm --filter web migrate-tactics --out /tmp/try  # trial run: nothing is written to the repo
+pnpm --filter web migrate-tactics --force         # convert files again that the manifest already lists
 ```
 
 The script migrates every card that has its face and back in the TTS cache or already migrated. It makes an image smaller when its largest side is more than 1040 px (`CARD_SIZE`), and it does not make small images larger. Most sources are about 720×1040, so the cards have about the same size in the app. The other sources go from 180×252 (the back of Corporate Espionage, which looks blurry) to 2048 px or more (Extinction Event, Know Thy Enemy, Static Arc).
@@ -423,7 +425,7 @@ The app shows the cards on a tactic tray per player, see `docs/feature-team-tact
 `migrate-dice.mjs` writes the dice tray assets to `src/assets/dice/`: the die mesh and texture, the tray mesh and texture, and the 6 result icons. See `docs/feature-dice-rolling.md` for the design and `docs/plan-dice-rolling.md` for the face table and the tray numbers.
 
 ```bash
-npm run migrate-dice
+pnpm --filter web migrate-dice
 ```
 
 Requirements: ImageMagick, and the tray mesh, tray texture, die texture and icons in the TTS cache (spawn a "Blue Dice Tray" or "Red Dice Tray" once in TTS, and roll it once so the die image downloads).
@@ -446,7 +448,7 @@ The tray and die source URLs come from the "Blue Dice Tray" object in the mod sa
 `migrate-scoreboard.mjs` copies the scoring board of the TTS mod to `src/assets/`: the board, the round marker, and the 34 affiliation tokens that the VP markers show. It writes the affiliation list to `src/scoreboard/affiliations.json`. `src/scoreboard/files.js` names the files. See `docs/feature-crisis.md`, "Scoring board", for how the app uses them.
 
 ```bash
-npm run migrate-scoreboard
+pnpm --filter web migrate-scoreboard
 ```
 
 Requirements: ImageMagick, and the files in the TTS cache. On 2026-10-03 the cache had all of them.
@@ -469,10 +471,10 @@ The positions of the board, its spots and the markers are not read by the script
 `dice-sim.mjs` builds the tray's Rapier world in Node, with no browser: the same gravity and time step as `Scene.jsx`, the table and its edge walls from `src/table.js`, the tray trimesh from `tray.glb` through `src/dice/tray.js`, and the throw, settle and read-face rules from `src/dice/throw.js`. It throws a die many times and prints a short report: fairness (chi-squared, see `docs/feature-dice-rolling.md`, "Fairness"), how often a die rests tilted, how often it leaves the well, how long 10 dice take to rest, and the cost per physics step with 42 dice.
 
 ```bash
-npm run dice-sim                              # seed 1, 8000 single-die throws, 2000 multi-die throws
-npm run dice-sim -- --seed 2                   # a different seed, to check a chi-squared failure is real
-npm run dice-sim -- --quick                    # 300 throws each, for fast iteration while tuning
-npm run dice-sim -- --throws 500 --multi-throws 500
+pnpm --filter web dice-sim                              # seed 1, 8000 single-die throws, 2000 multi-die throws
+pnpm --filter web dice-sim --seed 2                   # a different seed, to check a chi-squared failure is real
+pnpm --filter web dice-sim --quick                    # 300 throws each, for fast iteration while tuning
+pnpm --filter web dice-sim --throws 500 --multi-throws 500
 ```
 
 It uses the nested Rapier build under `@react-three/rapier` (0.14.0), not the top-level one (0.12.0, wrong version for this app) — see `docs/plan-dice-rolling.md`, Phase 3 Result, for why.
@@ -484,7 +486,7 @@ See `docs/feature-dice-rolling.md`, "Measurements", for the measured numbers. Th
 `tts-dice-measure.lua` is the TTS side of the same measurement (see the design, "Measurements", "In TTS"). It is a TTS object script, not a Node script. It adds a button and a right-click menu item to its block, and spawns and deletes its own dice. It was first run on 2026-10-01.
 
 ```bash
-npm run tts-dice-measure
+pnpm --filter web tts-dice-measure
 ```
 
 `tts-dice-measure-object.mjs` writes the TTS Saved Object "Dice measure" to `~/Library/Tabletop Simulator/Saves/Saved Objects/`: a red block with the Lua file as its script. In TTS, load the mod and spawn it from Objects → Saved Objects. TTS runs the script of a spawned object at once, so the block needs no Save & Play and no own save. Run the command again after a change to the Lua file. The Lua file's header has the steps.

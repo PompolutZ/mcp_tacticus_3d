@@ -18,6 +18,8 @@ It renders a game table floating in space. The camera sits directly above the ta
 
 ## Project structure
 
+Paths are under `apps/web/`.
+
 ```
 src/
   Root.jsx         — the page of the URL hash: lobby, room or Sandbox
@@ -31,16 +33,18 @@ public/
   _headers         — Netlify cache headers
   draco/           — Draco decoder for compressed GLB files
 scripts/
-  migrate-terrain.mjs — copies a map (mat and terrain) from the TTS mod to src/assets. See scripts/README.md
+  migrate-terrain.mjs — copies a map (mat and terrain) from the TTS mod to src/assets. See apps/web/scripts/README.md
 ```
 
 Put new models and textures in `src/assets/`, not in `public/`. Vite adds a content hash to their file names, so browsers can cache them forever (see `public/_headers`). Files in `public/` keep their names, so browsers must check them again on every load.
 
 ## Running locally
 
+Node 24 and pnpm 12 (`.node-version` and `packageManager` set them; pnpm downloads the pinned version).
+
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 Open `http://localhost:5173`. The app opens on the lobby. Open the Sandbox or a room to get the table. You can orbit, zoom, and pan with the mouse.
@@ -218,7 +222,7 @@ The R1 tool is the Range 2 tool, so it has two Place buttons while it is snapped
 
 ## Debug mode
 
-**Debug → Mode** in the toolbar turns debug mode on. It is only in the dev server (`npm run dev`). `vite build` leaves it out.
+**Debug → Mode** in the toolbar turns debug mode on. It is only in the dev server (`pnpm dev`). `pnpm --filter web build` leaves it out.
 
 ### Collider view
 

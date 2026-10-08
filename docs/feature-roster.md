@@ -55,7 +55,7 @@ Jarvis says that this code works with TTS, Longshanks and other roster tools.
 5. A code that the app does not know goes into a warning. The other cards load.
 6. A text with no known code is an error. The old roster stays.
 
-A new character that Jarvis adds after the last `npm run fetch-jarvis-characters` is an unknown code. The same is true for Team Tactic cards and crisis cards.
+A new character that Jarvis adds after the last `pnpm --filter web fetch-jarvis-characters` is an unknown code. The same is true for Team Tactic cards and crisis cards.
 
 ### Data
 

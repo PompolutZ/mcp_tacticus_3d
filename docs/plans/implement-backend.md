@@ -82,7 +82,7 @@ Read: backend doc "Repo layout", "pnpm", "Deploy" → "Netlify".
 1. `pnpm import`: creates `pnpm-lock.yaml` from `package-lock.json` with the same versions. Delete `package-lock.json` and `node_modules`.
 2. `git mv` of `src`, `public`, `scripts`, `index.html`, `vite.config.js` and `package.json` to `apps/web/`. The package name is `web`. Move `tools/` by hand, because git ignores it.
 3. Root files:
-   - `package.json`: private, `packageManager`, root scripts, `esbuild` as a dev dependency.
+   - `package.json`: private, `packageManager`, root scripts `dev` and `build`. Root `esbuild` comes in step 3.
    - `pnpm-workspace.yaml`: the package folders, `allowBuilds: { esbuild: true }`.
    - `.node-version`: 24.
    - `.gitignore`: `.env`, `cdk.out`, `apps/*/dist`, `apps/web/tools/`.
@@ -99,6 +99,14 @@ Done when:
 - `pnpm --filter web build` works.
 - `node apps/web/scripts/dice-sim.mjs` runs.
 - The Netlify deploy preview of the branch builds, and the app looks the same (the user checks).
+
+**Result:** Done on 2026-10-08. Details are in `docs/plans/implement-backend/01-monorepo.md`.
+- The repo is a pnpm workspace (pnpm 12.10.0, Node 24). The web app is in `apps/web/`. `netlify.toml` is at the root.
+- `pnpm install` has no build script warning and no peer warning.
+- The build file list and the dice-sim results equal the baseline. One dependency differs: `three@0.170.0` is gone, because pnpm gives `stats-gl` only a peer `three`. The app does not use `stats-gl`. The user accepted it.
+- pnpm 12.10.0 passes `--` to the script. Docs write `pnpm --filter web <script> <args>` without it.
+- Root `esbuild` moved to step 3 (decision 3 of the detailed plan).
+- Still open for the user: the Netlify deploy preview, `pnpm dev` check, and the Netlify UI steps.
 
 ## Step 2: API skeleton, local
 

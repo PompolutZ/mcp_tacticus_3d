@@ -6,7 +6,7 @@ Status: the script works. The app does not load custom models yet: you put the G
 
 Make a 3D model for the app from photos of a real object, for example a painted figure or a terrain piece. The TTS mod does not have a model for every character, and a scan of your own figure shows your paint.
 
-`npm run photos-to-glb` does this on a Mac. It uses Apple Object Capture, the photogrammetry engine of macOS (RealityKit). Photogrammetry finds the same points in many photos and computes the shape and the texture of the object from them.
+`pnpm --filter web photos-to-glb` does this on a Mac. It uses Apple Object Capture, the photogrammetry engine of macOS (RealityKit). Photogrammetry finds the same points in many photos and computes the shape and the texture of the object from them.
 
 ## How it works
 
@@ -19,14 +19,14 @@ There are two steps:
 
 - A Mac with Apple Silicon. Tested on an M1 Pro with macOS 26.6.
 - Xcode or the Command Line Tools, for `swiftc`. The script compiles `object-capture.swift` to `tools/object-capture` on the first run, and again after the Swift file changes. `tools/` is in `.gitignore`.
-- ImageMagick (`magick`) and `npm install`, as for the other scripts.
+- ImageMagick (`magick`) and `pnpm install`, as for the other scripts.
 
 ## Usage
 
 ```bash
-npm run photos-to-glb -- ~/Pictures/hulk --out /tmp/hulk.glb --base large                 # a figure on a large base
-npm run photos-to-glb -- ~/Pictures/hulk --out /tmp/hulk.glb --base large --texture 1024  # texture size of the migrated characters
-npm run photos-to-glb -- ~/Pictures/crate --out /tmp/crate.glb --height 38                # not a figure: 38 mm tall
+pnpm --filter web photos-to-glb ~/Pictures/hulk --out /tmp/hulk.glb --base large                 # a figure on a large base
+pnpm --filter web photos-to-glb ~/Pictures/hulk --out /tmp/hulk.glb --base large --texture 1024  # texture size of the migrated characters
+pnpm --filter web photos-to-glb ~/Pictures/crate --out /tmp/crate.glb --height 38                # not a figure: 38 mm tall
 ```
 
 | Option | Default | Meaning |

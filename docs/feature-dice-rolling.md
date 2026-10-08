@@ -250,7 +250,7 @@ TTS does not publish the numbers of `roll()`. `scripts/tts-dice-measure.lua` mea
 
 The tray script checks `resting` only every 1.5 s (`rollDelay`). So in TTS, the result appears up to 1.5 s after the dice rest.
 
-To run it: `npm run tts-dice-measure` writes the TTS Saved Object "Dice measure", a red block with the script. In TTS, load the mod and spawn it from Objects → Saved Objects. The script runs at once, so the Workshop mod is fine. The script's header has the steps. Do not paste the script into an object and press Save & Play: on 2026-10-01 the game reloaded without the block, so the script never ran.
+To run it: `pnpm --filter web tts-dice-measure` writes the TTS Saved Object "Dice measure", a red block with the script. In TTS, load the mod and spawn it from Objects → Saved Objects. The script runs at once, so the Workshop mod is fine. The script's header has the steps. Do not paste the script into an object and press Save & Play: on 2026-10-01 the game reloaded without the block, so the script never ran.
 
 **Results (2026-10-01):**
 
@@ -285,7 +285,7 @@ The script measures:
 - The time until all dice rest.
 - The cost per frame with 42 dice.
 
-**Results (2026-09-30, `npm run dice-sim`, seeds 1-3, spin up to 50 rad/s):** fairness passes for both the single-die test (8000 throws) and the 10-dice-at-once test (2000 throws), on every seed tried. A die rests tilted 0.4-0.7% of the time. A single die leaves the well 0-0.1% of the time. With 10 dice at once, 2.0-2.5% of the dice leave the well, because the dice hit each other. This is a little above the first target (under 2%). It is accepted, because such a die counts where it lands, as in TTS, and the walls keep it on the table. 10 dice at once settle in 2.7 s on average, 4.1 s at the worst seen (target: about 3 s or less). 42 dice cost about 0.3 ms per physics step, cheap next to the app's 1/120 s step.
+**Results (2026-09-30, `pnpm --filter web dice-sim`, seeds 1-3, spin up to 50 rad/s):** fairness passes for both the single-die test (8000 throws) and the 10-dice-at-once test (2000 throws), on every seed tried. A die rests tilted 0.4-0.7% of the time. A single die leaves the well 0-0.1% of the time. With 10 dice at once, 2.0-2.5% of the dice leave the well, because the dice hit each other. This is a little above the first target (under 2%). It is accepted, because such a die counts where it lands, as in TTS, and the walls keep it on the table. 10 dice at once settle in 2.7 s on average, 4.1 s at the worst seen (target: about 3 s or less). 42 dice cost about 0.3 ms per physics step, cheap next to the app's 1/120 s step.
 
 Spin and dice that leave the well (10 dice at once, 3 seeds, 3000 dice for each value): 10 rad/s 0.3%, 20 rad/s 0.7%, 30 rad/s 0.9%, 40 rad/s 1.5%, 50 rad/s 2.9%. The tilted rate and the settle time do not change with the spin.
 

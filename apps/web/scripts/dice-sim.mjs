@@ -13,6 +13,7 @@
 //   --multi-throws <n>  valid throws (summed over 10 dice) for the multi-die test (default 2000)
 //   --quick             small throw counts, for tuning (300 / 300)
 
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { Quaternion, Vector3 } from 'three'
 import { readGlb } from './lib/convert.mjs'
@@ -24,7 +25,7 @@ import { FALL_LIMIT_Y, TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WI
 
 // Nested Rapier build the app actually uses (0.14, enhanced determinism). The top-level
 // @dimforge/rapier3d-compat is 0.12 and must not be used (see docs/plan-dice-rolling.md, Phase 3).
-const RAPIER_PATH = path.resolve(import.meta.dirname, '../node_modules/@react-three/rapier/node_modules/@dimforge/rapier3d-compat/rapier.es.js')
+const RAPIER_PATH = createRequire(import.meta.resolve('@react-three/rapier')).resolve('@dimforge/rapier3d-compat/rapier.es.js')
 
 // Same value as Scene.jsx. Not imported: Scene.jsx does not export it.
 const TIME_STEP = 1 / 120
