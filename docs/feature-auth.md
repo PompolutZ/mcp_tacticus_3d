@@ -2,6 +2,8 @@
 
 Status: plan. Not started. See [Open questions](#open-questions) at the end.
 
+The backend (repo, stack, AWS, deploy) is in `docs/feature-backend.md`. The order of the work is in `docs/plans/implement-backend.md`.
+
 ## Goal
 
 A player can log in with their Discord account. Online play needs login. The Sandbox and offline rooms work without login, as today.
@@ -19,7 +21,7 @@ In TTS, the Steam account gives each player a name and an avatar. Here, the Disc
 |---|---|
 | Provider | Discord only, scope `identify`. No email |
 | Flow | OAuth2 authorization code. The browser goes to Discord and comes back with a code. The Lambda exchanges the code with the client secret |
-| Backend | The Lambda and the `assist3d` database of the peer-to-peer plan (`docs/feature-peer-to-peer.md`). No new vendor |
+| Backend | The API of `docs/feature-backend.md`: one Lambda, and the `assist3d` database in an Atlas Free cluster. Signaling (`docs/feature-peer-to-peer.md`) uses the same API. No new vendor |
 | Session | Our own signed token (JWT), 30 days. Kept in `localStorage`, sent in the `Authorization` header |
 | Users | Collection `users`. Our own user id, the Discord id is a unique field |
 | Rooms | Collection `rooms`: setup, owner, two seats, and a snapshot of the table (Yjs) |
@@ -40,7 +42,7 @@ In TTS, the Steam account gives each player a name and an avatar. Here, the Disc
 
 | Option | Result |
 |---|---|
-| **Own code in our Lambda** | Chosen. About 150 lines. The Lambda, the database and the deploy exist already for signaling |
+| **Own code in our Lambda** | Chosen. About 150 lines. Signaling uses the same Lambda, database and deploy |
 | Supabase Auth | Supports Discord with no code. 50,000 MAU free. But a free project pauses after 7 days with no requests, and someone must restore it by hand in the dashboard. A hobby app can have a week with no players. It is also a second backend next to the signaling Lambda |
 | Firebase Auth | Has no Discord provider. Our Lambda would make a Firebase custom token with the Admin SDK. The Lambda can run the Admin SDK, so the Blaze plan is not needed. But Firebase then only adds a second vendor and gives nothing that our own token does not give |
 | Amazon Cognito | Has no Discord provider. Discord would be a custom OIDC provider. Cognito gives only 50 free MAU per month to OIDC users (10,000 only to direct and social sign-ins). Discord also has no standard OIDC endpoints, so it needs a wrapper |
@@ -63,12 +65,12 @@ Next to the login button, the lobby says: "Your opponent sees your Discord name 
 
 ## Session
 
-- The session token is a JWT signed with HS256 (`jose` package). The key is the Lambda env var `SESSION_SECRET`. Claims: `sub` (our user id), `iat`, `exp` (30 days).
+- The session token is a JWT signed with HS256 (`hono/jwt`). The key is the SSM parameter `/mcptacticus/prod/session-secret` (backend doc, "Secrets and config"). Claims: `sub` (our user id), `iat`, `exp` (30 days).
 - The browser keeps it in `localStorage` (`mcp-assist-3d/session`) and sends `Authorization: Bearer <token>`.
 - On app start, the browser calls `GET /me`. The answer has the user, and a new token when the old one is more than 1 day old. So a player who opens the app at least once in 30 days stays logged in.
 - The Lambda checks the signature and `exp`, then reads the user by `_id`. A deleted user gets 401, and the browser logs out.
 - **Log out** deletes the token in the browser. There is no server call. A copied token stays valid until `exp`.
-- A new `SESSION_SECRET` logs out every player at once. Use it if the key leaks.
+- A new session secret logs out every player at once. Use it if the key leaks.
 
 ### Why not a cookie
 
@@ -148,7 +150,7 @@ How it works:
 - **Merge on the server:** the Lambda reads `table` and `tableRev`, merges the new update into it (`Y.mergeUpdates`), and writes with the filter `{ _id, tableRev }`. If the other player wrote in between, the filter finds no document. Then the Lambda reads again and merges again, one time. So no change is lost, also when both players write at the same time.
 - **Page close:** a `fetch` with `keepalive` allows at most 64 KB of body, and a table is bigger. So the browser does not write on page close. The IndexedDB copy has the last changes. The next time the room opens on that device, the merged document goes to the server with the next write.
 - **Size:** the Lambda rejects a snapshot above 1 MB (413) and logs the size of each write. A table is probably 50–200 KB. This is not measured yet. Atlas M0 has 512 MB, so it holds a few thousand rooms.
-- A new room has `table: null`. The browser builds the start table from the setup, as an offline room does today (`src/rooms/table.js`).
+- A new room has `table: null`. The browser builds the start table from the setup, as an offline room does today (`apps/web/src/rooms/table.js`).
 
 ### Endpoints
 
@@ -203,22 +205,22 @@ The Discord Developer Terms of Service (effective 2024-07-08, section 5) apply t
 | Share API Data only with service providers, when the law requires it, or when the user directs it (5b) | AWS and MongoDB Atlas are service providers. The opponent sees the name and avatar because the player joins a game with them. The lobby and the privacy page say this |
 | Update the data when the user asks (5b) | Each login updates the name and the avatar |
 | Delete the data promptly when the user asks, when it is not needed any more, when Discord asks, or when the app stops (5b). An easy way to ask for deletion | **Delete account**. The retention rules below. When the app stops, drop the `assist3d` database |
-| Encryption at rest, and other safeguards (5c) | Atlas encrypts all cluster storage with AES-256 by default. Lambda encrypts its env vars with an AWS managed key by default |
+| Encryption at rest, and other safeguards (5c) | Atlas encrypts all cluster storage with AES-256 by default. SSM stores the secrets as `SecureString`, encrypted with the AWS managed key `aws/ssm` |
 | Report unauthorized access to users (as the law requires) and to Discord (5c) | By hand, if it happens |
-| Keep developer credentials secret. No credentials in open source projects (2) | The client secret only in `.env` (git ignores it) and in Lambda env vars. The terms list the Application ID as a credential too, so the client id comes from a Netlify env var at build time, not from a file in git |
+| Keep developer credentials secret. No credentials in open source projects (2) | The client secret only in `apps/api/.env` and `infra/.env` (git ignores both) and in SSM. The terms list the Application ID as a credential too, so the client id comes from a Netlify env var at build time, not from a file in git |
 
 - **Delete account** asks with a browser confirm first. `DELETE /me` deletes the user, deletes the rooms that the user owns with their tables, and frees the user's seat in other rooms. The browser deletes the token. The privacy page also says that the player can remove the app in Discord under Settings → Authorized Apps.
 - **Retention:** a user with no login for 12 months is deleted by the TTL index (`expiresAt`). A room with no change for 12 months is deleted the same way, with its table. The seat rules in [Data](#data) handle rooms of deleted users.
-- **Region:** Discord EU data that goes to a country outside the EEA with no adequacy decision falls under the standard contract clauses of section 11. The Lambda and the Atlas cluster in an EU region avoid this. The Atlas region is still open in the peer-to-peer plan (open question 5).
+- **Region:** Discord EU data that goes to a country outside the EEA with no adequacy decision falls under the standard contract clauses of section 11. The Lambda and the Atlas cluster are both in `eu-central-1` (backend doc), so the data stays in the EEA.
 - Scope `identify` only. No email, no guilds, no friends list.
-- Logs do not contain codes or tokens. CloudWatch keeps logs 7 days (peer-to-peer plan).
+- Logs do not contain codes or tokens. CloudWatch keeps logs 1 week (backend doc).
 
 ## Security
 
-- `DISCORD_CLIENT_SECRET` and `SESSION_SECRET` are Lambda env vars, passed by `sam deploy` as `NoEcho` parameters from a local `.env`, the same as `MONGODB_URI` in the peer-to-peer plan.
-- The browser reads the client id from `VITE_DISCORD_CLIENT_ID`: a Netlify env var in production, `.env.local` in dev.
+- The Discord client id, the client secret and the session secret are SSM `SecureString` parameters. The Lambda reads them at cold start (backend doc, "Secrets and config"). They are not Lambda env vars, because CDK writes env var values in plain text into the template.
+- The browser reads the client id from `VITE_DISCORD_CLIENT_ID`: a Netlify env var in production, `apps/web/.env.local` in dev.
 - Discord accepts only the redirect URIs registered in the Developer Portal: `https://mcptacticus3d.netlify.app/` and `http://localhost:5173/`. So a Netlify deploy preview (another origin) cannot log in.
-- CORS of the function URL allows the `Authorization` and `Content-Type` headers, from `https://mcptacticus3d.netlify.app` and `http://localhost:5173` only.
+- CORS is set in the function URL config, for the origin `https://mcptacticus3d.netlify.app` only (backend doc, "McpTacticusApi"). In dev, Vite forwards `/api` to the local API, so there is no CORS.
 - The Lambda checks every write against the seat rules. The browser hides buttons, but the Lambda decides.
 - Same as the peer-to-peer plan: no protection against cheating inside a game.
 
@@ -229,7 +231,7 @@ The site needs a fixed address before the Discord application gets its productio
 - Rename the existing Netlify site to `mcptacticus3d`: Site configuration → General → Site details → **Change site name**. A new site is not needed. Check that the name is free.
 - After the rename, the old `*.netlify.app` address returns 404. Netlify does not redirect it.
 - `localStorage` belongs to one origin. So the offline rooms that were saved on the old address do not show on the new one.
-- Rename before phase 4. Phases 1 to 3 use only `http://localhost:5173/`.
+- The rename happens in step 1 of the plan (`docs/plans/implement-backend.md`), so the address is final from the start. The lost offline rooms do not matter before the first release, because all data is test data.
 
 ## Discord application
 
@@ -238,7 +240,7 @@ Created once, by hand, in the Discord Developer Portal:
 1. **New Application**. Use a name like the site (`mcptacticus3d`), because Discord shows the name on the consent screen.
 2. **OAuth2 → Redirects:** `http://localhost:5173/` now, `https://mcptacticus3d.netlify.app/` in phase 4.
 3. **Privacy Policy URL:** `https://mcptacticus3d.netlify.app/#privacy`, in phase 4.
-4. Copy the client id to `VITE_DISCORD_CLIENT_ID`, and the client secret to `.env`. Git ignores both files.
+4. Copy the client id to `VITE_DISCORD_CLIENT_ID` in `apps/web/.env.local`. Copy the client id and the client secret to `apps/api/.env` and `infra/.env`. Git ignores these files. `put-secrets` writes them to SSM (backend doc, "Secrets and config").
 5. No bot user. No other scopes.
 
 ## Local testing
@@ -247,12 +249,12 @@ The rules of the peer-to-peer plan apply: everything works on one Mac, and each 
 
 | Part | Production | Local |
 |---|---|---|
-| Auth and rooms endpoints | The Lambda | The same handler in the Vite dev server, with the in-memory store |
+| Auth and rooms endpoints | The Lambda | The same Hono app in a Node process, with the memory store. Vite forwards `/api/*` to it |
 | Discord login | Discord, redirect `https://mcptacticus3d.netlify.app/` | The same Discord app, redirect `http://localhost:5173/`. Needs internet |
-| Secrets | Lambda env vars | `.env.local` (git ignores it). Vite gives only `VITE_` vars to the browser, so the secrets stay in the dev server |
-| `users`, `rooms` | Atlas, database `assist3d` | In-memory store. `mongo` in Docker to test the MongoDB store |
+| Secrets | SSM | `apps/api/.env` (git ignores it). Only the API process reads it. The web app gets only `VITE_DISCORD_CLIENT_ID`, from `apps/web/.env.local` |
+| `users`, `rooms` | Atlas, database `assist3d` | Memory store. `mongo` in Docker to test the MongoDB store |
 
-**Dev login.** A two-browser test needs two users, and a tester usually has one Discord account. So the dev server has `POST /auth/dev { name }`. It creates or reads the user `dev:<name>` and returns a normal session token. In dev builds, the lobby header shows a **Dev login** field next to **Log in with Discord**. The route is in `vitePlugin.mjs`, not in `handler.mjs`, so the Lambda bundle does not contain it.
+**Dev login.** A two-browser test needs two users, and a tester usually has one Discord account. So the local API has `POST /auth/dev { name }`. It creates or reads the user `dev:<name>` and returns a normal session token. In dev builds, the lobby header shows a **Dev login** field next to **Log in with Discord**. The route is in `local.ts`, not in `app.ts`. The Lambda bundle has only the code that `lambda.ts` imports, so it does not contain the route.
 
 ## Cost
 
@@ -267,45 +269,48 @@ Assumptions of the peer-to-peer plan ("Use per game"): 2 players, a 2-hour game.
 | Signaling | The token check needs only CPU. The seats come from memory for 30 s |
 | Storage | A user is about 200 bytes. A room is about 500 bytes plus its table |
 
-With signaling (about 100 requests), a game uses about 220 Lambda requests. The 1,000,000 free requests per month are enough for about 4,500 games. The table writes move about 25 MB per game between the Lambda and Atlas. Check this against the network limits of the cluster tier (peer-to-peer plan, open question 5).
+With signaling (about 100 requests), a game uses about 220 Lambda requests. The 1,000,000 free requests per month are enough for about 4,500 games. The table writes move about 25 MB per game between the Lambda and Atlas. The Free cluster allows 10 GB out per 7 days, so this is about 400 games a week (backend doc, "Free cluster limits").
 
 ## Code layout
 
 ```
-src/auth/
-  session.js       token in localStorage, login redirect, callback, logout, fetch with Authorization
+apps/web/src/api/
+  client.js        base URL (VITE_API_URL), JSON, errors, the Authorization header
+apps/web/src/auth/
+  session.js       token in localStorage, login redirect, callback, logout
   useUser.js       React hook: the current user or null
   avatar.js        Discord avatar URL
-src/rooms/
+apps/web/src/rooms/
   serverStore.js   online rooms API: list, create, join, leave, remove, delete, roster
   serverTable.js   read and write the table snapshot
-src/components/
+apps/web/src/components/
   UserMenu.jsx     login button, avatar, menu, dev login
   JoinRoom.jsx     the join page of an online room
   Privacy.jsx      the privacy page
-infra/api/          (named infra/signal/ in the peer-to-peer plan)
-  handler.mjs      routes: auth, me, rooms, table, signaling
-  auth.mjs         Discord code exchange, JWT sign and verify
-  users.mjs        users store: memory and MongoDB
-  rooms.mjs        rooms store, seat rules, table merge
-  vitePlugin.mjs   runs the handler in the dev server. Also the dev login route
+apps/api/src/
+  routes/          auth (Discord code exchange), me, rooms (seat rules), table (merge), signal
+  middleware/      user: checks the session token with hono/jwt
+  stores/          users and rooms: memory and MongoDB
+  local.ts         the Node entry for dev. Also the dev login route
 ```
 
-The peer-to-peer plan names the folder `infra/signal/`. With auth and rooms, it is one API, so `infra/api/` is a better name. New packages in the Lambda: `jose`, `yjs`.
+The rest of `apps/api` is in the backend doc ("Code"). Auth, rooms, the table and signaling are one API. New packages in `apps/api`: `yjs`. `hono/jwt` is part of `hono`.
 
 ## Phases
 
-Each phase ends with a working app. Check with `npx vite build`. The user checks the result in the browser.
+Each phase ends with a working app. Check with type checks, tests and `pnpm --filter web build`. The user checks the result in the browser.
 
-1. **Login in dev.** Discord application with the localhost redirect. `auth.mjs`, the users store in memory, `POST /auth/discord`, `GET /me`, the dev login. Lobby header with login, avatar and menu. Needs the handler and the Vite plugin of peer-to-peer phase 2. If auth starts first, this phase adds them.
-2. **Online rooms.** After peer-to-peer phase 1, so the table is a Yjs document. Rooms store and endpoints, seats, the table snapshot, one room list in the lobby, the **Online** switch in the new room dialog, the join page.
-3. **Identity in peer-to-peer.** After peer-to-peer phase 2. Token and seat check on signaling requests, `user` on messages, the offer and answer check, names and avatars in the room toolbar. Signaling only for online rooms.
-4. **Deploy.** With peer-to-peer phase 5. Rename the Netlify site. MongoDB stores for `users` and `rooms` (tested first against local `mongo`), indexes and TTL indexes, the production redirect URI and Privacy Policy URL, the secrets in the SAM template, **Delete account**, the privacy page. Delete account and the privacy page must be live before the first real player logs in.
+The plan `docs/plans/implement-backend.md` gives the order of the phases and their steps. The API, the AWS parts and the deploy come first, in its steps 2 to 4. From step 3 on, each backend change is deployed when its step is done. Production shows no login until phase 4, because the web app shows the login button only when `VITE_DISCORD_CLIENT_ID` is set.
+
+1. **Login.** Discord application with the localhost redirect. The users store (memory and MongoDB), `POST /auth/discord`, `GET /me`, `DELETE /me`, the dev login. Lobby header with login, avatar and menu.
+2. **Online rooms.** After peer-to-peer phase 1, so the table is a Yjs document. Rooms store (memory and MongoDB, with indexes and TTL indexes) and endpoints, seats, the table snapshot, one room list in the lobby, the **Online** switch in the new room dialog, the join page.
+3. **Identity in peer-to-peer.** Together with peer-to-peer phase 2. Token and seat check on signaling requests, `user` on messages, the offer and answer check, names and avatars in the room toolbar. Signaling only for online rooms.
+4. **First release.** The production redirect URI and Privacy Policy URL, **Delete account**, the privacy page, and `VITE_DISCORD_CLIENT_ID` in Netlify. Delete account and the privacy page must be live before the first real player logs in. The site rename moved to step 1 of the plan, and the deploy to steps 3 and 4.
 
 ## Relation to other features
 
 - `docs/feature-rooms.md`: the rooms there become offline rooms. They stay in `localStorage` and never connect. Two lines there change: "Peer-to-peer will add rooms that this browser joined" (now these are online rooms), and "the Red field will be only in the Sandbox" (offline rooms keep both roster fields).
-- `docs/feature-peer-to-peer.md`: games happen only in online rooms, and both players are logged in. "No accounts" and the typed player name in "Room and players" go away. The host shares the link of an online room, not of an offline room ("Connect flow"). The signaling handler gets the token and seat check. The folder name changes to `infra/api/`. The IndexedDB copy of the Yjs document stays, and the server snapshot comes in addition.
+- `docs/feature-peer-to-peer.md`: games happen only in online rooms, and both players are logged in. "No accounts" and the typed player name in "Room and players" go away. The host shares the link of an online room, not of an offline room ("Connect flow"). The signaling routes get the token and seat check. They are in the same API (`apps/api`, backend doc). The IndexedDB copy of the Yjs document stays, and the server snapshot comes in addition.
 
 ## Decisions
 
@@ -328,7 +333,7 @@ Made on 2026-10-08:
 1. **Localhost redirect.** Does Discord accept `http://localhost:5173/` as a redirect URI? Guides say yes. Check when the application is created.
 2. **Session length.** 30 days, renewed once a day on app start. Fine?
 3. **Retention.** 12 months for users with no login and rooms with no change. Fine?
-4. **Region.** Is the Atlas cluster in an EU region? If not, put the `assist3d` data in a new free cluster in an EU region, or accept the section 11 clauses.
+4. **Region.** Answered in `docs/feature-backend.md`: the Atlas cluster and the Lambda are in `eu-central-1`.
 5. **Table size.** Measure the snapshot size of a full game in peer-to-peer phase 1. Then check the 1 MB limit and the write interval.
 
 ## Out of scope

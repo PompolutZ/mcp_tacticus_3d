@@ -121,11 +121,11 @@ The table snapshot is binary (`application/octet-stream`). Lambda base64-encodes
 - **Function URL.** Auth type `NONE`. Since October 2025, a function URL needs two invoke permissions. CDK 2.220.0 and later adds both.
 - **CORS** is set in the function URL config only:
   - Origin: `https://mcptacticus3d.netlify.app`.
-  - Headers: `authorization`, `content-type`.
+  - Headers: `authorization`, `content-type`, `x-after` (the signaling poll).
   - Methods: GET, POST, PUT, PATCH, DELETE.
   - `maxAge`: 86400 seconds. Browsers use less: Chrome keeps a preflight result for at most 2 hours.
   - Hono's `cors()` is not used. With both, every response gets each CORS header twice, and browsers reject it.
-- **Preflight per URL.** Every request has an `Authorization` header, so the browser sends a preflight first. The browser keeps the preflight result per URL. Therefore the signaling poll URL must stay the same between polls: the poll sends `after` in a header, not in the query.
+- **Preflight per URL.** Every request has an `Authorization` header, so the browser sends a preflight first. The browser keeps the preflight result per URL. Therefore the signaling poll URL must stay the same between polls: the poll sends `after` in the `x-after` header, not in the query.
 - **Reserved concurrency** 10, if the account quota allows it. It limits the cost of abuse and the Atlas connections (10 × 2 of 500). AWS keeps 100 units unreserved, so the account quota must be above 110.
 - **Log group** with 1 week retention.
 - **Keep-alive.** An EventBridge rule calls the function once a day with `{ keepAlive: true }`, and the function pings Atlas. Atlas pauses a Free cluster after 30 days with no connections, and a hobby app can have a month with no players. This adds about 30 requests a month.

@@ -69,6 +69,12 @@ Change the peer-to-peer, auth and rooms docs as listed in `docs/feature-backend.
 
 Done when: `grep -rn "SAM\|sam deploy\|vitePlugin\|infra/signal\|infra/api\|jose\|npm run" docs/feature-*.md` finds only text that explains the change.
 
+**Result** (2026-10-08):
+- Peer-to-peer, auth and rooms docs changed as listed. Both phase lists now point to this plan for the order.
+- Also changed, for the same reason: web paths in the code layouts of the peer-to-peer and auth docs became `apps/web/src/`. `npx vite build` became type checks, tests and `pnpm --filter web build`. The Cloudflare TURN token is an SSM parameter. The auth code layout has `apps/web/src/api/client.js` (backend doc, "Repo layout").
+- Gap filled: the poll header is `x-after`. The backend doc's CORS header list now has it. Without it, the preflight of the poll fails.
+- The grep also finds `SAML` in the auth doc sources (Cognito pricing, not SAM), and `npm run` in the custom models, dice rolling and roster docs. Those commands are correct until step 1.
+
 ## Step 1: Monorepo
 
 Read: backend doc "Repo layout", "pnpm", "Deploy" → "Netlify".

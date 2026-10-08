@@ -51,7 +51,7 @@ The **+** tile opens a dialog on a blurred backdrop, the same style as the roste
 - **Create room** works when the Blue code has a known card. The Red roster is optional, because the Red field of the toolbar can load it later. A Red text without a known card blocks **Create room**, so a wrong paste does not make a room without Red. **Create room** saves the room and enters it.
 - **Cancel**, Escape, **×** or a click on the backdrop closes the dialog.
 
-The carousel shows only maps that the app has (`src/terrain/maps.js`). A map card image comes from the TTS mod. `scripts/migrate-terrain.mjs` copies it with the map.
+The carousel shows only maps that the app has (`apps/web/src/terrain/maps.js`). A map card image comes from the TTS mod. `apps/web/scripts/migrate-terrain.mjs` copies it with the map.
 
 ## Room
 
@@ -146,16 +146,16 @@ There are no accounts. The user id in `localStorage` is the owner of every room 
 
 | File | Content |
 |---|---|
-| `src/Root.jsx` | The page of the URL hash: Lobby, Room or Sandbox |
-| `src/rooms/store.js` | `localStorage`: user id, room code, list, read, create, save, delete. `createRoom` takes both rosters |
-| `src/rooms/table.js` | The table state that a new or saved table starts with, and the saved form of it |
-| `src/rooms/preload.js` | The files to load before a table shows |
-| `src/components/Lobby.jsx` | The lobby page, and the roster popup of a room |
-| `src/components/NewRoomDialog.jsx` | The new room dialog: map switch, map carousel, Blue and Red roster fields |
-| `src/components/Carousel.jsx` | The Embla carousel, taken out of `RosterPopup.jsx`. The roster popup and the map picker use it |
-| `src/components/Preload.jsx` | `Preload` and `Ready`, see [Loading](#loading) |
-| `src/terrain/files.js` | `mapCard(id)` and `MAP_CARD_BACK` |
-| `scripts/migrate-terrain.mjs` | Copies the map card (face and back) with the map |
+| `apps/web/src/Root.jsx` | The page of the URL hash: Lobby, Room or Sandbox |
+| `apps/web/src/rooms/store.js` | `localStorage`: user id, room code, list, read, create, save, delete. `createRoom` takes both rosters |
+| `apps/web/src/rooms/table.js` | The table state that a new or saved table starts with, and the saved form of it |
+| `apps/web/src/rooms/preload.js` | The files to load before a table shows |
+| `apps/web/src/components/Lobby.jsx` | The lobby page, and the roster popup of a room |
+| `apps/web/src/components/NewRoomDialog.jsx` | The new room dialog: map switch, map carousel, Blue and Red roster fields |
+| `apps/web/src/components/Carousel.jsx` | The Embla carousel, taken out of `RosterPopup.jsx`. The roster popup and the map picker use it |
+| `apps/web/src/components/Preload.jsx` | `Preload` and `Ready`, see [Loading](#loading) |
+| `apps/web/src/terrain/files.js` | `mapCard(id)` and `MAP_CARD_BACK` |
+| `apps/web/scripts/migrate-terrain.mjs` | Copies the map card (face and back) with the map |
 
 ## Decisions
 
