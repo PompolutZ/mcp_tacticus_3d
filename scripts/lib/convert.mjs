@@ -4,6 +4,9 @@
 //   metadata removed
 
 import { execFileSync } from 'node:child_process'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { Logger, NodeIO } from '@gltf-transform/core'
 import { ALL_EXTENSIONS, EXTTextureWebP } from '@gltf-transform/extensions'
 import { dedup, dequantize, draco, flatten, join, normals, prune, unweld } from '@gltf-transform/functions'
@@ -31,6 +34,7 @@ export function writeGlb(file, doc) {
 
 // TTS OBJ → glTF document. obj2gltf flips V to the glTF convention, so the texture is used with flipY = false.
 // The OBJ files from TTS have no material file, so the document gets one default material.
+// An OBJ with a material file (Object Capture) keeps its material and texture.
 export async function readObj(file) {
   const glb = await obj2gltf(file, { binary: true, logger: () => {} })
   return io.readBinary(new Uint8Array(glb))
@@ -71,10 +75,21 @@ export function texturesToWebp(doc, maxSize = TEXTURE_SIZE) {
 }
 
 // input: file path or image bytes. Returns WebP bytes.
+// Image bytes go to magick through a temp file, not stdin. On 2026-10-08, execFileSync with a 1.3 MB
+// `input` hung in 2 of 30 runs: magick waited for the rest of stdin, and Node did not write it.
+// With a temp file, 60 of 60 runs finished.
 export function imageToWebp(input, maxSize) {
-  const fromBytes = typeof input !== 'string'
-  return execFileSync('magick', [fromBytes ? '-' : input, '-resize', `${maxSize}x${maxSize}>`, '-strip', '-quality', '85', 'webp:-'], {
-    input: fromBytes ? input : undefined,
+  if (typeof input !== 'string') {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-assist-3d-webp-'))
+    try {
+      const file = path.join(dir, 'image')
+      fs.writeFileSync(file, input)
+      return imageToWebp(file, maxSize)
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true })
+    }
+  }
+  return execFileSync('magick', [input, '-resize', `${maxSize}x${maxSize}>`, '-strip', '-quality', '85', 'webp:-'], {
     maxBuffer: 512 * 1024 * 1024,
   })
 }

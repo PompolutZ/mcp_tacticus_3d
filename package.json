@@ -17,6 +17,7 @@
     "migrate-tokens": "node scripts/migrate-tokens.mjs",
     "migrate-dice": "node scripts/migrate-dice.mjs",
     "migrate-scoreboard": "node scripts/migrate-scoreboard.mjs",
+    "photos-to-glb": "node scripts/photos-to-glb.mjs",
     "dice-sim": "node scripts/dice-sim.mjs",
     "tts-dice-measure": "node scripts/tts-dice-measure-object.mjs"
   },
