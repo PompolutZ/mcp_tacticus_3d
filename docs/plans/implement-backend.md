@@ -106,7 +106,7 @@ Done when:
 - The build file list and the dice-sim results equal the baseline. One dependency differs: `three@0.170.0` is gone, because pnpm gives `stats-gl` only a peer `three`. The app does not use `stats-gl`. The user accepted it.
 - pnpm 12.10.0 passes `--` to the script. Docs write `pnpm --filter web <script> <args>` without it.
 - Root `esbuild` moved to step 3 (decision 3 of the detailed plan).
-- Still open for the user: the Netlify deploy preview, `pnpm dev` check, and the Netlify UI steps.
+- On 2026-10-09 the user confirmed that the Netlify build works. The site answers at `https://mcptacticus3d.netlify.app`.
 
 ## Step 2: API skeleton, local
 
@@ -123,6 +123,13 @@ Read: backend doc "API", "Local development".
 **User:** `pnpm dev`, then open `http://localhost:5173/api/health`.
 
 Done when: `pnpm typecheck`, `pnpm test` and `pnpm --filter web build` pass.
+
+**Result:** Done on 2026-10-09. Details are in `docs/plans/implement-backend/02-api-skeleton.md`. The user checks `pnpm dev` and `/api/health`.
+- `apps/api` has a Hono app with `GET /health`, the error and 404 handlers, one log line per request, the memory store, and 5 Vitest tests.
+- Installed: `hono@4.13.13`, `@hono/node-server@2.1.3`, `typescript@7.0.2` (works with Hono's types), `vitest@5.0.3`, `tsx@4.23.15`, `@types/node@24.19.1`.
+- Vitest 5 uses `vite@6.4.4` as its peer, not Vite 8. No new build script warning.
+- Root `dev` starts web and api. Root `test` and `typecheck` run only in `api`.
+- Vite forwards `/api` to port 8787 without the prefix. `apps/web/.env.development` has `VITE_API_URL=/api`.
 
 ## Step 3: Infra and first deploy
 

@@ -18,7 +18,7 @@ It renders a game table floating in space. The camera sits directly above the ta
 
 ## Project structure
 
-Paths are under `apps/web/`.
+`apps/api/` is the API (Hono, TypeScript). The tree below is under `apps/web/`.
 
 ```
 src/
@@ -46,6 +46,10 @@ Node 24 and pnpm 12 (`.node-version` and `packageManager` set them; pnpm downloa
 pnpm install
 pnpm dev
 ```
+
+`pnpm dev` starts the web app and the API. The API listens on port 8787. Vite forwards `/api/*` to it, without the `/api` prefix. `http://localhost:5173/api/health` shows the API status.
+
+`pnpm test` and `pnpm typecheck` check the API.
 
 Open `http://localhost:5173`. The app opens on the lobby. Open the Sandbox or a room to get the table. You can orbit, zoom, and pan with the mouse.
 
