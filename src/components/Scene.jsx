@@ -37,6 +37,7 @@ import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import { MAT_SIZE, TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WIDTH } from '../table.js'
 import { NO_PIECES, NO_TOOLS, isToolPiece, selectPiece, selectedId, toggleSelectPiece } from '../selection.js'
 import { poseOf } from '../rooms/table.js'
+import { setupStep } from '../setup/setup.js'
 
 const TABLE_THICKNESS = 0.5
 // The table image of the TTS mod (its TableURL). The image is 3:2, the same as the TTS table. The app table is
@@ -135,8 +136,8 @@ function Mat({ mapId }) {
 // rosters: { blue, red } → null | { code }, the loaded rosters (RosterCards.jsx). onRosterOpen({ team, tab,
 // index }): a click on a roster card. It opens the roster popup on that card (see RosterPopup.jsx), or
 // adds the card to the squad (App.jsx, handleRosterClick).
-// setup: the game setup (setup/setup.js). squadSelect, setupActions: see GameSetup.jsx. A player who
-// activated the squad has no roster cards on the table.
+// setup: the game setup (setup/setup.js). squadSelect, setupActions: see GameSetup.jsx. When the squads
+// are on the table, the roster cards are not.
 // onCardOpen({ src, alt }): a click on a crisis card (see CardPopup.jsx). onTrayOpen(id): a click
 // on a tray card opens the whole tray (see TrayPopup.jsx).
 // diceMenu: the open face menu of a dice tray, { trayKey, symbol } | null, lifted to App so Escape
@@ -697,10 +698,10 @@ export default function Scene({
             Tactic cards. Relative to the table, not the mat. See docs/feature-team-tactic-cards.md. */}
         <TacticTray team="blue" />
         <TacticTray team="red" />
-        {/* The loaded rosters, in the area of the character trays (docs/feature-roster.md), until the player
-            activates the squad. Locked cards, no physics body, so a tool or a model passes over them. The
+        {/* The loaded rosters, in the area of the character trays (docs/feature-roster.md), until the squads
+            go on the table. Locked cards, no physics body, so a tool or a model passes over them. The
             crisis cards of the rosters and the setup buttons are in GameSetup. */}
-        {['blue', 'red'].map(team => rosters[team] && !setup.active[team] && (
+        {setupStep(setup) !== 'done' && ['blue', 'red'].map(team => rosters[team] && (
           <RosterCards
             key={team}
             team={team}

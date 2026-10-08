@@ -18,9 +18,9 @@ The app does not know who wins a roll off or who clicks a button. So it does not
 | Second card | The player with Priority chooses 1 of those 2 cards | **Use** next to each drawn card |
 | Maximum Threat | The player without Priority chooses which card's threat the mission uses | **Secure · 17** or **Extract · 18** on the panel next to the scoring board |
 | Deployment edge | The player with Priority chooses a battlefield edge | **↺ Select board edge ↻** on the panel. The arrows turn the mat 90°. **Select board edge** puts the two crisis cards on the board ends and their tokens on the mat |
-| Squads | Each player chooses characters with a total threat up to the Maximum Threat, and up to 5 Team Tactic cards | **Select squad**, then a click on a roster card adds it or removes it. **Activate squad** puts the squad on the table |
+| Squads | Each player chooses characters with a total threat up to the Maximum Threat, and up to 5 Team Tactic cards | **Select squad**, then a click on a roster card adds it or removes it. Then **Ready**. When both players are Ready, both squads go on the table |
 
-The app checks only one rule: **Activate squad** does not work when the squad threat is above the Maximum Threat. A squad with less threat is fine. The app does not check the Team Tactic count, alter egos (p11) or affiliations. The panel shows the Team Tactic count in red above 5.
+The app checks only one rule: **Ready** does not work when the squad threat is above the Maximum Threat. A squad with less threat is fine. The app does not check the Team Tactic count, alter egos (p11) or affiliations. The panel shows the Team Tactic count in red above 5.
 
 ### Roll off
 
@@ -80,22 +80,23 @@ z = 12.55   Use          [drawn 1]
 - The buttons read the same way as the scoring board and the crisis cards: their top faces the table edge (−x).
 - **Use Blue player Secures** is blue and **Use Blue player Extracts** is red, on both players' sides. So the color shows the crisis type, not the player.
 - The panel lies between the table edge and the scoring board (x = −31.6, z = 0). It shows what to do in the current step, who has Priority, the Maximum Threat and **Restart setup**. It is at most 440 px (17.6") long, and its text wraps.
-- The squad panel of each player lies in their crisis area, which is empty in this step: "Threat 15 / 18" and "Tactics 3 / 5", then **Select squad** and **Activate squad**. Under it, a red line says when the threat is too high.
+- The squad panel of each player lies in their crisis area, which is empty in this step: "Threat 15 / 18" and "Tactics 3 / 5", then **Select squad** and **Ready**. Under it, a red line says when the threat is too high.
 
 ### Squads
 
 - **Select squad** turns the choice on and off for that player. While it is on, it has a white outline, and a click on a character or Team Tactic card of that roster adds the card to the squad or removes it. While it is off, a click opens the roster popup as before.
 - A card in the squad has a yellow frame.
 - Only a card that the app can put on the table can join: a character with a model, a Team Tactic card with an image. For another card, the HUD message names it.
-- **Activate squad** works when the squad has at least 1 character and its threat is not above the Maximum Threat. It adds a tray and a model for each character, the same as the Library, and puts the Team Tactic cards into the free slots of the tactic tray. A character that the player already has on the table is not added again. Then the roster cards of that player leave the table.
-- When both squads are active, the setup is done, and its buttons go away.
+- **Ready** is a toggle. It works when the squad has at least 1 character and its threat is not above the Maximum Threat. While it is on, it has a white outline, the panel says "Waiting for the Red player.", and **Select squad** is off and does not work. So the squad does not change. A second click on **Ready** turns it off, and the player can change the squad again.
+- When the second player clicks **Ready**, both squads go on the table at the same time. Changed on 2026-10-08: before, each player clicked **Activate squad**, and their squad went on the table at once.
+- For each squad, the app adds a tray and a model for each character, the same as the Library, and puts the Team Tactic cards into the free slots of the tactic tray. A character or a Team Tactic card that the player already has on the table is not added again. Then the roster cards leave the table, the setup is done, and its buttons go away.
 
 ### Restart
 
 - **Restart setup** on the panel starts the setup again, after a confirm.
 - A new roster, or **×** of a roster, also starts the setup again, because the setup points to the cards of the rosters. The HUD message says so. When the setup has put something on the table, a confirm asks first.
-- A restart removes what the setup put on the table: the characters (trays and models) and the Team Tactic cards of the activated squads, and the two crisis cards of the mission with their tokens. Changed on 2026-10-07: before, all of it stayed on the table.
-- A restart keeps the rest: characters and cards that players added from the Library, a crisis card that a player changed in the toolbar after **Select board edge**, the mat turn and the score. A character that was on the table before **Activate squad** is not added again, so it is not removed either.
+- A restart removes what the setup put on the table: the characters (trays and models) and the Team Tactic cards of the squads, and the two crisis cards of the mission with their tokens. Changed on 2026-10-07: before, all of it stayed on the table.
+- A restart keeps the rest: characters and cards that players added from the Library, a crisis card that a player changed in the toolbar after **Select board edge**, the mat turn and the score. A character or a Team Tactic card that was on the table before the squads is not added again, so it is not removed either.
 
 ## State
 
@@ -109,23 +110,23 @@ setup: {
   threat: null | number,   // the Maximum Threat
   edge: false,   // the deployment edge is chosen
   squads: { blue: { characters: [place], tactics: [place] }, red: … },
-  active: { blue: false, red: false },
-  placed: { characters: [id], tactics: [id] },   // what Activate squad put on the table, both players
+  ready: { blue: false, red: false },   // the Ready toggles. Both true: the squads are on the table
+  placed: { characters: [id], tactics: [id] },   // what the squads put on the table, both players
 }
 ```
 
 - The current step comes from these fields (`setupStep`), so the state cannot disagree with itself.
 - A squad stores places in the roster lists, not codes, because a roster can list a code twice.
 - The random draws are in the state. So in a later peer-to-peer game, both players see the same cards (see `docs/feature-peer-to-peer.md`).
-- All fields are plain JSON. A room saves `setup` with its table (`rooms/table.js`). A room saved before this feature starts with a new setup. A saved setup without a newer field, for example `placed`, gets the start value of that field.
-- `placed` has the ids of the new characters and Team Tactic cards. **Activate squad** makes them before it changes the state, because React can call a state updater twice, and the ids must be the same in `placed` and on the table.
+- All fields are plain JSON. A room saves `setup` with its table (`rooms/table.js`). A room saved before this feature starts with a new setup. A saved setup without a newer field, for example `placed`, gets the start value of that field (`restoreSetup`). A setup saved before the Ready toggles has `active: { blue, red }`, the player activated their squad. `restoreSetup` uses it as `ready`. So a game with both squads on the table stays done.
+- `placed` has the ids of the new characters and Team Tactic cards. The second **Ready** makes them before it changes the state, because React can call a state updater twice, and the ids must be the same in `placed` and on the table.
 - `squadSelect: { blue, red }` in `App.jsx` says which player is choosing squad cards. It is not saved.
 
 ## Code
 
 | File | Content |
 |---|---|
-| `src/setup/setup.js` | `NEW_SETUP`, `setupStep`, the step changes (`chooseDeck`, `pickCard`, `chooseThreat`, `chooseEdge`, `toggleSquadCard`, `activateSquad`), `crisisRows`. No imports, so a Node script can check it |
+| `src/setup/setup.js` | `NEW_SETUP`, `setupStep`, the step changes (`chooseDeck`, `pickCard`, `chooseThreat`, `chooseEdge`, `toggleSquadCard`, `toggleReady`, `activateSquads`), `restoreSetup`, `crisisRows`. No imports, so a Node script can check it |
 | `src/components/GameSetup.jsx` | The crisis rows and all setup buttons |
 | `src/rosters/layout.js` | `crisisRowLayout`, `crisisCenterZ`, `CRISIS_GAP_X`. Row 2 of the roster has only the Team Tactic cards now |
 | `src/rosters/cards.js` | `threat` and `key` of each card, `squadThreat` |
@@ -153,6 +154,10 @@ Later on 2026-10-07, the user described the setup flow that is built now (see [W
 - The crisis cards of each player lie on their side of the scoring board: Secure cards in row 1, Extract cards in row 2, with the deck buttons between the rows.
 - The draws are random. Each drawn card has a **Use** button.
 - **Activate squad** must not work with more threat than the Maximum Threat. Less threat is fine.
+
+On 2026-10-08:
+
+- Each player clicks a **Ready** toggle in place of **Activate squad**. When both players are Ready, both squads go on the table at the same time.
 
 ## Rules
 
@@ -188,7 +193,11 @@ Made on 2026-10-07:
 3. The roll-off winner has Priority. When red has Priority, the crisis tokens turn a half turn, so that the bottom of the card map is at the red side.
 4. The crisis cards of a roster lie next to the scoring board, not in roster row 2. The rows run parallel to the board, and the cards are turned the same way as the board.
 5. The setup buttons lie flat on the table and read the same way as the board. The deck buttons have the color of the crisis type: Secure blue, Extract red.
-6. The only rule check is the squad threat. **Activate squad** also needs at least 1 character.
+6. The only rule check is the squad threat. **Ready** also needs at least 1 character.
 7. A squad card must be one that the app can put on the table: a character with a model, a Team Tactic card with an image.
 8. A new roster, **×** of a roster or **Restart setup** starts the setup again. It removes the squads and the crisis cards that the setup put on the table, after a confirm.
 9. The drawn and chosen crisis cards lie in line with the scoring board, next to its end.
+
+Made on 2026-10-08:
+
+10. Each player has a **Ready** toggle. Both squads go on the table when the second player clicks it. While a player is Ready, their squad does not change.

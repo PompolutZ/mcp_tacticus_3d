@@ -16,8 +16,9 @@ const NO_SQUAD = { characters: [], tactics: [] }
 // deck: the roll-off winner, who has Priority, and the crisis type of the deck they use: { team, type } |
 // null. draws: the codes of the 2 cards drawn from each deck. picks: the code of the card of each type that
 // the mission uses. threat: the Maximum Threat value. edge: the Priority player chose the deployment edge.
-// squads: see NO_SQUAD. active: the player activated their squad. placed: the ids of the characters and
-// Team Tactic cards that Activate squad put on the table, of both players. A restart removes them.
+// squads: see NO_SQUAD. ready: the player clicked Ready. When both players are Ready, both squads go on the
+// table at the same time. placed: the ids of the characters and Team Tactic cards that the squads put on
+// the table, of both players. A restart removes them.
 export const NEW_SETUP = {
   deck: null,
   draws: { secure: [], extract: [] },
@@ -25,14 +26,15 @@ export const NEW_SETUP = {
   threat: null,
   edge: false,
   squads: { blue: NO_SQUAD, red: NO_SQUAD },
-  active: { blue: false, red: false },
+  ready: { blue: false, red: false },
   placed: { characters: [], tactics: [] },
 }
 
 // 'deck': players roll off, and the winner chooses a deck. 'first': the other player uses 1 of the 2
 // drawn cards. 'second': the winner uses 1 of the 2 cards drawn from the other deck of the other player.
 // 'threat': the other player chooses the Maximum Threat. 'edge': the winner turns the mat and chooses the
-// deployment edge. 'squads': each player chooses and activates a squad. 'done'.
+// deployment edge. 'squads': each player chooses a squad and clicks Ready. 'done': both squads are on the
+// table.
 export function setupStep(setup) {
   if (!setup.deck) return 'deck'
   const first = setup.deck.type
@@ -40,7 +42,7 @@ export function setupStep(setup) {
   if (!setup.picks[otherType(first)]) return 'second'
   if (setup.threat === null) return 'threat'
   if (!setup.edge) return 'edge'
-  if (!setup.active.blue || !setup.active.red) return 'squads'
+  if (!setup.ready.blue || !setup.ready.red) return 'squads'
   return 'done'
 }
 
@@ -93,16 +95,29 @@ export function toggleSquadCard(setup, team, list, place) {
   return { ...setup, squads: { ...setup.squads, [team]: { ...squad, [list]: places } } }
 }
 
-// placed: { characters, tactics }, the ids of what the squad put on the table
-export function activateSquad(setup, team, placed) {
+// The Ready toggle of `team`, while the other player is not Ready
+export function toggleReady(setup, team) {
+  return { ...setup, ready: { ...setup.ready, [team]: !setup.ready[team] } }
+}
+
+// The second player clicks Ready: both squads go on the table. placed: { characters, tactics }, the ids of
+// what the squads put on the table.
+export function activateSquads(setup, placed) {
   return {
     ...setup,
-    active: { ...setup.active, [team]: true },
+    ready: { blue: true, red: true },
     placed: {
       characters: [...setup.placed.characters, ...placed.characters],
       tactics: [...setup.placed.tactics, ...placed.tactics],
     },
   }
+}
+
+// A saved setup, with the start value of each field that it does not have. A setup saved before the Ready
+// toggles has `active` (the player activated their squad) in place of `ready`.
+export function restoreSetup(saved) {
+  const { active, ...rest } = saved ?? {}
+  return { ...NEW_SETUP, ...(active && { ready: active }), ...rest }
 }
 
 // The setup put something on the table: the crisis cards of the mission, or a squad

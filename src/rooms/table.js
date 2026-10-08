@@ -4,7 +4,7 @@
 import { MAPS } from '../terrain/maps.js'
 import { START_MARKERS } from '../scoreboard/board.js'
 import { DEFAULT_AFFILIATION } from '../scoreboard/affiliations.js'
-import { NEW_SETUP } from '../setup/setup.js'
+import { restoreSetup } from '../setup/setup.js'
 
 // Terrain pieces of a map, as tracked in App state: the placements of terrain/maps.js with an id and
 // a lock. index: the place of the placement in the map data, which a room saves. Every piece starts
@@ -36,8 +36,8 @@ export function startTable(mapId, saved) {
     scoreMarkers: saved?.scoreMarkers ?? START_MARKERS,
     affiliations: saved?.affiliations ?? { blue: DEFAULT_AFFILIATION, red: DEFAULT_AFFILIATION },
     // The game setup (setup/setup.js). A room saved before the game setup starts with a new one. A field
-    // that a saved setup does not have yet gets its start value.
-    setup: { ...NEW_SETUP, ...saved?.setup },
+    // that a saved setup does not have yet gets its start value (restoreSetup).
+    setup: restoreSetup(saved?.setup),
     looseTokens: saved?.looseTokens ?? [],
     tokenPiles: saved?.tokenPiles ?? [],
     tacticCards: saved?.tacticCards ?? [],

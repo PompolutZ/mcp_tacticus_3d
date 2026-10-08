@@ -130,7 +130,7 @@ function BoardPanel({ setup, step, parsed, actions }) {
       </>
     )
   } else if (step === 'squads') {
-    hint = 'Each player chooses a squad and activates it.'
+    hint = 'Each player chooses a squad and clicks Ready. The squads go on the table when both players are Ready.'
   }
   const status = [winner && `${PLAYER[winner]} player has Priority`, setup.threat !== null && `Max threat ${setup.threat}`].filter(Boolean).join(' · ')
   return (
@@ -154,10 +154,12 @@ function BoardPanel({ setup, step, parsed, actions }) {
 
 // The squad buttons of a player, in their crisis area. The crisis cards are on the scoring board by now.
 // Select squad: clicks on the roster cards add them to the squad or remove them (App.jsx,
-// handleRosterClick). Activate squad works when the squad has a character and its threat is not above
-// the Maximum Threat. A squad with less threat is fine.
+// handleRosterClick). Ready works when the squad has a character and its threat is not above the Maximum
+// Threat. A squad with less threat is fine. While the player is Ready, the squad does not change. When both
+// players are Ready, both squads go on the table.
 function SquadPanel({ team, setup, parsed, selecting, actions }) {
   const squad = setup.squads[team]
+  const ready = setup.ready[team]
   const threat = squadThreat(parsed, squad.characters)
   const over = threat > setup.threat
   const problem = over
@@ -176,22 +178,26 @@ function SquadPanel({ team, setup, parsed, selecting, actions }) {
           <button
             type="button"
             className={`chip chip--player-${team}${selecting ? ' setup-toggle--on' : ''}`}
-            title={selecting ? 'Stop choosing: a click on a roster card opens it again' : 'Choose the squad: a click on a roster card adds it or removes it'}
+            aria-pressed={selecting}
+            disabled={ready}
+            title={ready ? 'Click Ready again to change the squad' : selecting ? 'Stop choosing: a click on a roster card opens it again' : 'Choose the squad: a click on a roster card adds it or removes it'}
             onClick={() => actions.squadSelect(team)}
           >
             Select squad
           </button>
           <button
             type="button"
-            className="chip"
-            disabled={problem !== null}
-            title={problem ?? 'Put the squad on the table'}
-            onClick={() => actions.activate(team)}
+            className={`chip${ready ? ' setup-toggle--on' : ''}`}
+            aria-pressed={ready}
+            disabled={!ready && problem !== null}
+            title={ready ? 'Not ready: change the squad' : problem ?? 'The squads go on the table when both players are Ready'}
+            onClick={() => actions.ready(team)}
           >
-            Activate squad
+            Ready
           </button>
         </div>
         {selecting && <div className="setup-note">Click characters and Team Tactic cards to add or remove them.</div>}
+        {ready && <div className="setup-note">Waiting for the {PLAYER[otherTeam(team)]} player.</div>}
         {over && <div className="setup-note setup-note--warn">{problem}</div>}
       </div>
     </OnTable>
@@ -202,7 +208,7 @@ function SquadPanel({ team, setup, parsed, selecting, actions }) {
 // of each step. The buttons lie flat on the table (OnTable). See docs/feature-setup-game.md.
 // setup: see setup/setup.js. rosters: { blue, red } → null | { code }. squadSelect: { blue, red } → the
 // player is choosing squad cards. actions: { deck(team, type), pick(code), threat(value), turnMat(direction),
-// edge(), squadSelect(team), activate(team), restart() }, see App.jsx. onRosterOpen({ team, tab, index }):
+// edge(), squadSelect(team), ready(team), restart() }, see App.jsx. onRosterOpen({ team, tab, index }):
 // a click on a crisis card.
 export default function GameSetup({ setup, rosters, squadSelect, actions, onRosterOpen }) {
   const parsed = useMemo(() => ({
@@ -227,7 +233,7 @@ export default function GameSetup({ setup, rosters, squadSelect, actions, onRost
         <DeckButtons key={team} team={team} parsed={parsed} onChoose={actions.deck} />
       ))}
       <BoardPanel setup={setup} step={step} parsed={parsed} actions={actions} />
-      {step === 'squads' && TEAMS.map(team => !setup.active[team] && (
+      {step === 'squads' && TEAMS.map(team => (
         <SquadPanel key={team} team={team} setup={setup} parsed={parsed[team]} selecting={squadSelect[team]} actions={actions} />
       ))}
     </>

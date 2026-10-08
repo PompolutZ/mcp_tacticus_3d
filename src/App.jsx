@@ -25,7 +25,7 @@ import { getToken, isCappedToken } from './tokens/tokens.js'
 import { firstFreeSlot, nearestFreeSlot, tacticTrayAt } from './tactics/layout.js'
 import { formatMctCode, isEmptyRoster } from './rosters/mct.js'
 import { parseRosterText, rosterCard, rosterTabs, squadThreat, unknownCodesMessage } from './rosters/cards.js'
-import { CRISIS_TYPES, NEW_SETUP, activateSquad, chooseDeck, chooseEdge, chooseThreat, otherTeam, otherType, pickCard, setupPlacedCards, setupStep, toggleSquadCard } from './setup/setup.js'
+import { CRISIS_TYPES, NEW_SETUP, TEAMS, activateSquads, chooseDeck, chooseEdge, chooseThreat, otherTeam, otherType, pickCard, setupPlacedCards, setupStep, toggleReady, toggleSquadCard } from './setup/setup.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
 import { TERRAIN_PIECES } from './terrain/pieces.js'
@@ -865,7 +865,7 @@ export default function App({ room = null, onExit }) {
   // model, a Team Tactic card with an image. Otherwise the roster popup opens.
   function handleRosterClick(open) {
     const { team, tab, index } = open
-    if (!squadSelect[team] || setupStep(setup) !== 'squads' || setup.active[team] || (tab !== 'characters' && tab !== 'tactics')) {
+    if (!squadSelect[team] || setupStep(setup) !== 'squads' || setup.ready[team] || (tab !== 'characters' && tab !== 'tactics')) {
       handleRosterOpen(open)
       return
     }
@@ -883,33 +883,51 @@ export default function App({ room = null, onExit }) {
     setSetup(toggleSquadCard(setup, team, tab, index))
   }
 
-  // Activate squad: the characters of the squad get their trays and models, and its Team Tactic cards go
-  // into the tactic tray. A character that the player already has on the table is not added again
-  // (handleSpawn). The roster cards of the player leave the table (Scene.jsx). The new characters and cards
-  // are made here, outside the state updaters, because the setup stores their ids for a restart, and React
-  // can call an updater twice.
-  function handleSquadActivate(team) {
-    const parsed = parsedRosters[team]
-    const squad = setup.squads[team]
-    if (setupStep(setup) !== 'squads' || !parsed || squad.characters.length === 0 || squadThreat(parsed, squad.characters) > setup.threat) return
-    const newCharacters = []
-    for (const place of squad.characters) {
-      const ch = characterByCode(parsed.characters[place].code)
-      const onTable = [...characters, ...newCharacters].some(c => c.key === ch?.slug && c.teamColor === team)
-      if (ch?.available && !onTable) newCharacters.push(newCharacter(ch, team))
+  // The Ready toggle of a player. Ready works when the squad has a character and its threat is not above the
+  // Maximum Threat. While the player is Ready, their squad does not change. When the second player clicks
+  // Ready, both squads go on the table at the same time (putSquadsOnTable).
+  function handleSquadReady(team) {
+    if (setupStep(setup) !== 'squads') return
+    if (setup.ready[team]) {
+      setSetup(toggleReady(setup, team))
+      return
     }
+    const squad = setup.squads[team]
+    if (squad.characters.length === 0 || squadThreat(parsedRosters[team], squad.characters) > setup.threat) return
+    setSquadSelect(prev => ({ ...prev, [team]: false }))
+    if (setup.ready[otherTeam(team)]) putSquadsOnTable()
+    else setSetup(toggleReady(setup, team))
+  }
+
+  // Both squads go on the table: the characters of each squad get their trays and models, and its Team
+  // Tactic cards go into the tactic tray. A character or a Team Tactic card that the player already has on
+  // the table is not added again. The roster cards leave the table (Scene.jsx). The new characters and
+  // cards are made here, outside the state updaters, because the setup stores their ids for a restart, and
+  // React can call an updater twice.
+  function putSquadsOnTable() {
+    const newCharacters = []
     const newCards = []
-    for (const place of squad.tactics) {
-      const key = rosterCard(parsed.tactics[place])?.key
-      if (!key) continue
-      const slot = firstFreeSlot(team, [...tacticCards, ...newCards])
-      newCards.push({ id: crypto.randomUUID(), key, team, x: slot.x, z: slot.z, up: 'face' })
+    for (const team of TEAMS) {
+      const parsed = parsedRosters[team]
+      const squad = setup.squads[team]
+      for (const place of squad.characters) {
+        const ch = characterByCode(parsed.characters[place].code)
+        const onTable = [...characters, ...newCharacters].some(c => c.key === ch?.slug && c.teamColor === team)
+        if (ch?.available && !onTable) newCharacters.push(newCharacter(ch, team))
+      }
+      for (const place of squad.tactics) {
+        const key = rosterCard(parsed.tactics[place])?.key
+        const cards = [...tacticCards, ...newCards]
+        if (!key || cards.some(card => card.key === key && card.team === team)) continue
+        const slot = firstFreeSlot(team, cards)
+        newCards.push({ id: crypto.randomUUID(), key, team, x: slot.x, z: slot.z, up: 'face' })
+      }
     }
     setCharacters(prev => [...prev, ...newCharacters])
     setTacticCards(prev => [...prev, ...newCards])
-    setSetup(activateSquad(setup, team, { characters: newCharacters.map(ch => ch.id), tactics: newCards.map(card => card.id) }))
-    setSquadSelect(prev => ({ ...prev, [team]: false }))
-    setOpenRoster(prev => prev?.team === team ? null : prev)
+    setSetup(activateSquads(setup, { characters: newCharacters.map(ch => ch.id), tactics: newCards.map(card => card.id) }))
+    setSquadSelect({ blue: false, red: false })
+    setOpenRoster(null)
   }
 
   const setupActions = {
@@ -919,7 +937,7 @@ export default function App({ room = null, onExit }) {
     turnMat: handleTurnMat,
     edge: handleSetupEdge,
     squadSelect: handleSquadSelect,
-    activate: handleSquadActivate,
+    ready: handleSquadReady,
     restart: handleSetupRestart,
   }
 

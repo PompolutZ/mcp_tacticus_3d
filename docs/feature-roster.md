@@ -130,7 +130,7 @@ On 2026-10-07, the app has files for 65 of 233 character codes, 69 of 401 Team T
 
 - A roster card has no physics body. Models and dice do not touch it.
 - A roster card is not a piece for the range and movement tools. A tool key over a roster card works the same as over the empty table.
-- When a player has character trays on the table, the trays and the roster overlap. The app does not move either of them. **Activate squad** of Setup game removes the roster cards of that player from the table. The roster itself stays loaded.
+- When a player has character trays on the table, the trays and the roster overlap. The app does not move either of them. When both players click **Ready** in the game setup, the squads go on the table, and the roster cards leave it. The roster itself stays loaded.
 
 ### Roster popup
 

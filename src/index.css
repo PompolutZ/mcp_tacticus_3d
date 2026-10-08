@@ -697,7 +697,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Select squad while the player chooses the squad */
+/* A setup toggle that is on: Select squad, Ready */
 .setup-toggle--on {
   box-shadow: 0 0 0 2px #fff;
 }
