@@ -19,6 +19,7 @@ import CrisisCard from './CrisisCard.jsx'
 import CrisisToken from './CrisisToken.jsx'
 import LooseToken from './LooseToken.jsx'
 import TokenDragPreview from './TokenDragPreview.jsx'
+import ToolPoint from './ToolPoint.jsx'
 import TokenFace from './TokenFace.jsx'
 import SupplyPile, { SupplyToken } from './SupplyPile.jsx'
 import TokenPile, { PileStack } from './TokenPile.jsx'
@@ -126,6 +127,8 @@ function Mat({ mapId }) {
   )
 }
 
+const NO_TOOL_AT = { range: null, move: null, angle: null }
+
 // How often (ms) Scene looks for overlapping models
 const OVERLAP_INTERVAL = 100
 
@@ -143,6 +146,8 @@ const OVERLAP_INTERVAL = 100
 // onPieceHover(piece, over): the pointer moved onto (true) or off (false) a character or a token,
 // piece as { kind, id }. toolSpawns: { range, move, angle }, a count that changes when App spawns that tool
 // again. It is part of the tool key, so the tool mounts again and snaps to the piece selected last.
+// toolAt: { range, move, angle }, the point where that tool spawns free, { x, z } | null (null: it snaps
+// to a piece). toolPointRef: ref App calls, filled by ToolPoint with { atPointer(), atCenter() }.
 // selectedTools: { range, move, angle } (see selection.js), lifted to App with its setter onSelectedToolsChange.
 // angleOn: the Toward / Away tool is on the table. angleSpawn: { target, aim }, each { kind, id } | null:
 // the piece it snaps to when it spawns (free without one), and the piece it aims at (the mat center
@@ -226,6 +231,8 @@ export default function Scene({
   onSelectedToolsChange,
   onPieceHover,
   toolSpawns = { range: 0, move: 0, angle: 0 },
+  toolAt = NO_TOOL_AT,
+  toolPointRef,
   onTokenMove,
   onTokenTurn,
   onTokenHold,
@@ -710,6 +717,7 @@ export default function Scene({
       />
 
       <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP} debug={showColliders}>
+        <ToolPoint pointRef={toolPointRef} />
         {/* Table surface — fixed collider so models land on it */}
         <RigidBody type="fixed" colliders={false}>
           {/* Collider much thicker than the visual so fast bodies can't tunnel through; top stays at y=0 */}
@@ -1036,7 +1044,7 @@ export default function Scene({
             <MovementRuler
               type={activeMove}
               team={PLAYER_TEAM}
-              position={[0, TOOL_HOVER_HEIGHT, -6]}
+              spawnAt={toolAt.move}
               hoverHeight={TOOL_HOVER_HEIGHT}
               selected={selectedTools.move}
               onSelect={() => toggleTool('move')}
@@ -1058,7 +1066,7 @@ export default function Scene({
           <Suspense key={`angle-${toolSpawns.angle}`} fallback={null}>
             <AngleRuler
               team={PLAYER_TEAM}
-              position={[0, TOOL_HOVER_HEIGHT, 0]}
+              spawnAt={toolAt.angle}
               hoverHeight={TOOL_HOVER_HEIGHT}
               selected={selectedTools.angle}
               onSelect={() => toggleTool('angle')}
@@ -1095,7 +1103,7 @@ export default function Scene({
             <RangeRuler
               number={activeRange}
               team={PLAYER_TEAM}
-              position={[0, TOOL_HOVER_HEIGHT, 6]}
+              spawnAt={toolAt.range}
               hoverHeight={TOOL_HOVER_HEIGHT}
               selected={selectedTools.range}
               onSelect={() => toggleTool('range')}

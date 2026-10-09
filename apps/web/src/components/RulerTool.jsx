@@ -782,6 +782,8 @@ function BendButton({ on, onClick }) {
 // turnRef(turn): gets turnAroundCenter, for Q / E (see turnPiece in Scene.jsx), and null on unmount.
 // spawnTarget: the piece the tool snaps to when it spawns, target by default. Without one it spawns
 // free at position.
+// spawnAt: { x, z } | null. With a point, the tool spawns free there (no snap), hoverHeight above the
+// ground under its footprint. Without one, the rules above.
 // angle: the angle tool. It starts bent 90° and cannot bend, place or throw. It spawns aimed at aim
 // (a model) or at the mat center.
 // angleRef(get): gets a function that returns { target, openYaw } while the angle tool is snapped, else
@@ -799,6 +801,7 @@ function Tool({
   angleLimit,
   angleRef,
   position = [0, 0, 0],
+  spawnAt = null,
   hoverHeight = 1,
   selected = false,
   onSelect,
@@ -1039,11 +1042,19 @@ function Tool({
     return true
   }
 
-  // Spawned with a spawnTarget: start snapped to it, not at the default position
+  // Spawned with a spawnAt: start free at that point. Spawned with a spawnTarget: start snapped to it.
   useEffect(() => {
     onSpawn?.()
-    const center = spawnTarget?.getCenter()
     const rb = rigidRef.current
+    if (spawnAt) {
+      // Free: no snap. The yaw stays 0.
+      if (rb) {
+        const ground = groundY(spawnAt.x, spawnAt.z, 0) ?? 0
+        rb.setTranslation({ x: spawnAt.x, y: ground + hoverHeight, z: spawnAt.z }, true)
+      }
+      return
+    }
+    const center = spawnTarget?.getCenter()
     if (!center || !rb) return
     // snapPoseOne puts the base on the +Z long side
     setSnap({ target: spawnTarget, side: 'left', across: 1 })
@@ -1246,7 +1257,7 @@ function Tool({
       <RigidBody
         ref={rigidRef}
         type="kinematicPosition"
-        position={position}
+        position={spawnAt ? [spawnAt.x, hoverHeight, spawnAt.z] : position}
         colliders={false}
         sensor
       >

@@ -386,6 +386,33 @@ User, after this phase, in a single player room: check 4c.
 
 ### Result
 
+Done.
+
+- New `components/ToolPoint.jsx`. It sits inside `Physics`, because `tablePoint` needs the Rapier world. It fills `toolPointRef` with `{ atPointer(), atCenter() }`. Scene passes the ref up, as it does for `characterAtRef`.
+- `atPointer()` reads the last pointer position of R3F. It gives `{ x, z }`, or `null` when the pointer is not over the canvas (`:hover`, as in `terrainAt`) or not over the table (`offTable: 'null'`).
+- `atCenter()` is the table point in the middle of the canvas. If the middle sees no collider, it uses the table plane.
+- `App.jsx`: new state `toolAt` (`{ range, move, angle }`, each `{ x, z }` or `null`). `handleToolKey` and `handleAngleKey`: piece under the pointer sets `null` and works as before. A point under the pointer sets it, turns the tool on and bumps `toolSpawns`, so an out tool mounts again. Else the toolbar rule.
+- The toolbar buttons set `toolAt` when they turn a tool on. A selected piece gives `null`. No selected piece gives the middle of the screen, or `{ x: 0, z: 0 }` if that is unknown.
+- `Scene.jsx`: `toolAt` and `toolPointRef` props. The fixed `position` of the three tools (z 6, z -6, center) is gone. Each tool gets `spawnAt`.
+- `RulerTool.jsx`, `Tool`: new `spawnAt` prop. With it, the spawn effect does not snap. It puts the center at the point, `hoverHeight` above `groundY` of the footprint. The yaw stays 0. The `RigidBody` starts at that point, so there is no frame at the old place. Without it, the old rules.
+- `README.md` ("Tools"): the spawn rules.
+
+Choices that the plan did not fix:
+- "Selected piece" for the toolbar rule is the same as the tool target: the piece selected last that a tool can measure against (`findLast(isToolPiece)`). For the Toward / Away tool it is the selected character, as before.
+- The key over the table does not change the selection. The angle tool then has no aim piece and no snap target.
+- The toolbar sets the point only when it turns the tool on, or switches range or movement type. Turning off sets nothing.
+
+Differences in behavior:
+- A tool key over the table used to remove an out tool (a toggle). Now it spawns the tool again at the pointer. This is decision 19.
+- A tool from the toolbar with no selected piece now spawns in the middle of the screen, not at the fixed place.
+- If a snap target has no center at spawn, the tool stays at the origin at ground height (it used to hang at the fixed place).
+
+Checks:
+- `pnpm --filter web test`: 134 pass, 0 fail.
+- `pnpm --filter web build`: passes.
+- `pnpm format` done. `pnpm lint`: 37 warnings, 0 errors, none new.
+- No new test: the parts are three.js and React code.
+
 ## Phase 3: Tools in the document
 
 Read: decisions 10 to 12. `App.jsx` (tool state, `handleRangeClick`, `handleMoveClick`, `handleAngleClick`, `handleAngleKey`, `handleToolKey`, `handleEscape`, `clearTools`, the Scene and Toolbar props). `components/Scene.jsx` (the tools, `PLAYER_TEAM`, `turnProps`). `components/RulerTool.jsx` (`Tool`, its spawn effect, `snapTo`, `turnAroundCenter`, `handleMirror`, `ToolFootprint`). `components/Toolbar.jsx` (the tool buttons). `components/footprintProjection.js`. `net/doc.js`, `net/collections.js`, `net/useY.js`, `rooms/table.js`.

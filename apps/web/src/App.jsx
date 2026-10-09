@@ -328,6 +328,10 @@ export default function App({
   const wheelCameraRef = useRef(null)
   // Count of tool key presses over a piece, per tool: { range, move, angle }. See Scene.
   const [toolSpawns, setToolSpawns] = useState({ range: 0, move: 0, angle: 0 })
+  // Free spawn point of each tool: { x, z } | null. null: the tool snaps to a piece. See Scene.
+  const [toolAt, setToolAt] = useState({ range: null, move: null, angle: null })
+  // Scene fills it: { atPointer(), atCenter() }, table points for a free tool spawn (ToolPoint.jsx)
+  const toolPointRef = useRef(null)
   // Crisis card image open in the full-screen popup: { src, alt } | null, see CardPopup.jsx.
   const [openCard, setOpenCard] = useState(null)
   // Id of the character whose whole tray is open in the full-screen popup, or null (see
@@ -484,18 +488,33 @@ export default function App({
     setCharacters((prev) => [...prev, newCharacter(ch, ch.teamColor)])
   }
 
+  // Spawn point of a tool turned on by the toolbar or by a key off the table: with a selected piece, null
+  // (it snaps to the piece). Else the table point in the middle of the screen.
+  function toolbarSpawnAt(snapPiece) {
+    if (snapPiece) return null
+    return toolPointRef.current?.atCenter() ?? { x: 0, z: 0 }
+  }
+
+  function setSpawnAt(tool, at) {
+    setToolAt((prev) => ({ ...prev, [tool]: at }))
+  }
+
   function handleRangeClick(range) {
+    if (activeRange !== range) setSpawnAt('range', toolbarSpawnAt(selection.findLast(isToolPiece)))
     setActiveRange((prev) => (prev === range ? null : range))
   }
 
   function handleMoveClick(move) {
+    if (activeMove !== move) setSpawnAt('move', toolbarSpawnAt(selection.findLast(isToolPiece)))
     setActiveMove((prev) => (prev === move ? null : move))
   }
 
   // The toolbar button: the tool spawns at the selected character, aimed at the selected token
   function handleAngleClick() {
+    const target = selection.find((p) => p.kind === 'character') ?? null
+    if (!angleOn) setSpawnAt('angle', toolbarSpawnAt(target))
     setAngleSpawn({
-      target: selection.find((p) => p.kind === 'character') ?? null,
+      target,
       aim: selection.find((p) => p.kind === 'token') ?? null,
     })
     setAngleOn((prev) => !prev)
@@ -638,16 +657,26 @@ export default function App({
     setSelectedTools(NO_TOOLS)
   }
 
-  // Key 6, the Toward / Away tool. With nothing under the pointer, it toggles the tool, the same as its
-  // toolbar button. Over a character or a token, it selects that piece and spawns the tool again
-  // snapped to it, even if the tool is already out. It aims at the character or token selected last
-  // that is not that piece, or at the mat center.
+  // Key 6, the Toward / Away tool. Over a character or a token, it selects that piece and spawns the
+  // tool again snapped to it, even if the tool is already out. It aims at the character or token
+  // selected last that is not that piece, or at the mat center. Over the table or terrain, it spawns
+  // the tool free at that point, also if it is already out. Else it toggles the tool, the same as its
+  // toolbar button.
   function handleAngleKey() {
     const piece = hoveredRef.current
     if (!piece) {
-      handleAngleClick()
+      const at = toolPointRef.current?.atPointer()
+      if (!at) {
+        handleAngleClick()
+        return
+      }
+      setSpawnAt('angle', at)
+      setAngleSpawn({ target: null, aim: null })
+      setAngleOn(true)
+      setToolSpawns((prev) => ({ ...prev, angle: prev.angle + 1 }))
       return
     }
+    setSpawnAt('angle', null)
     setAngleSpawn({
       target: piece,
       aim:
@@ -661,16 +690,26 @@ export default function App({
   }
 
   // tool: 'range' | 'move'. value: the range number or the movement tool type.
-  // Toggles the tool, the same as its toolbar button. With the pointer over a character or a token,
-  // it selects that piece and spawns the tool again, snapped to it, even if the tool is already out.
-  // A selected piece of the other kind stays selected.
+  // With the pointer over a character or a token, it selects that piece and spawns the tool again,
+  // snapped to it, even if the tool is already out. A selected piece of the other kind stays selected.
+  // Over the table or terrain, it spawns the tool free at that point, also if it is already out. Else it
+  // toggles the tool, the same as its toolbar button.
   function handleToolKey(tool, value) {
     const piece = hoveredRef.current
     if (!piece) {
-      if (tool === 'range') handleRangeClick(value)
-      else handleMoveClick(value)
+      const at = toolPointRef.current?.atPointer()
+      if (!at) {
+        if (tool === 'range') handleRangeClick(value)
+        else handleMoveClick(value)
+        return
+      }
+      setSpawnAt(tool, at)
+      if (tool === 'range') setActiveRange(value)
+      else setActiveMove(value)
+      setToolSpawns((prev) => ({ ...prev, [tool]: prev[tool] + 1 }))
       return
     }
+    setSpawnAt(tool, null)
     setSelection((prev) => selectPiece(prev, piece))
     if (tool === 'range') setActiveRange(value)
     else setActiveMove(value)
@@ -1456,6 +1495,8 @@ export default function App({
               onSelectedToolsChange={setSelectedTools}
               onPieceHover={handlePieceHover}
               toolSpawns={toolSpawns}
+              toolAt={toolAt}
+              toolPointRef={toolPointRef}
               onTokenMove={handleTokenMove}
               onTokenTurn={handleTokenTurn}
               onTokenHold={handleTokenHold}

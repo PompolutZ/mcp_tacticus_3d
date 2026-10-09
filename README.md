@@ -183,6 +183,13 @@ A tool hangs 1" above the table. It measures with its outline, which is drawn st
 
 Key **0** removes every tool from the table, as in the mod. Key **6** is the [Toward / Away](#toward--away) tool.
 
+**Where a tool spawns.**
+- A tool key (**1** to **5**, the movement keys, **6**) with the pointer over a character or a token selects that piece. The tool spawns snapped to it.
+- A tool key with the pointer over the table or terrain, not over a piece, spawns the tool free. Its center is at the point under the pointer. If the tool is already out, it spawns again there. A selected piece does not change this. The key no longer removes the tool.
+- A toolbar button, or a tool key with the pointer off the table, turns the tool on or off. A new tool snaps to the selected piece. With no selected piece, it spawns free at the table point in the middle of the screen.
+- Escape, key **0** and the toolbar button remove the tool.
+- A free tool starts turned the same way as before.
+
 The tool has two states: **snapped** and **free**.
 
 ### Snapped
