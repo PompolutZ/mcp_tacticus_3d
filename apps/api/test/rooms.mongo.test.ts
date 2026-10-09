@@ -1,8 +1,10 @@
 import { randomUUID } from 'node:crypto'
 import { MongoClient } from 'mongodb'
-import { afterAll, describe, expect, inject, it } from 'vitest'
+import { afterAll, describe, expect, inject, it, vi } from 'vitest'
+import { createApp } from '../src/app'
 import { createMongoStore } from '../src/stores/mongo'
-import { HostingError, type NewRoom } from '../src/stores/store'
+import { HostingError, type NewRoom, type PublicRoom } from '../src/stores/store'
+import { addUser, tableEntries, tableUpdate, testConfig } from './helpers'
 
 const uri = inject('mongoUri')
 const dbName = `assist3d_test_${randomUUID().slice(0, 8)}`
@@ -120,5 +122,49 @@ describe('mongo rooms store', () => {
     )
     const map = await store.users.getMany([u._id, 'u_missing'])
     expect([...map.keys()]).toEqual([u._id])
+  })
+})
+
+describe('table writes through the app on Mongo', () => {
+  it('two PUTs at the same time keep both changes', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const app = createApp({ store, config: testConfig, discord: null })
+    const alice = await addUser(store, 'tw-alice')
+    const bob = await addUser(store, 'tw-bob')
+    const start = tableUpdate({ mapId: 'vibranium-heist' })
+    const json = { 'Content-Type': 'application/json' }
+    const made = await app.request('/rooms', {
+      method: 'POST',
+      headers: { ...alice.headers, ...json },
+      body: JSON.stringify({
+        mapId: 'vibranium-heist',
+        side: 'blue',
+        roster: { code: 'abc' },
+        table: Buffer.from(start).toString('base64'),
+      }),
+    })
+    const code = ((await made.json()) as { room: PublicRoom }).room.code
+    await app.request(`/rooms/${code}/join`, {
+      method: 'POST',
+      headers: { ...bob.headers, ...json },
+      body: JSON.stringify({ roster: { code: 'xyz' } }),
+    })
+    const put = (who: typeof alice, key: string) =>
+      app.request(`/rooms/${code}/table`, {
+        method: 'PUT',
+        headers: { ...who.headers, 'Content-Type': 'application/octet-stream' },
+        body: Buffer.from(tableUpdate({ [key]: '1' })),
+      })
+    const results = await Promise.all([put(alice, 'fromAlice'), put(bob, 'fromBob')])
+    // A write that loses twice answers 409. Two writers lose at most once each.
+    expect(results.map((r) => r.status)).toEqual([204, 204])
+    const got = await app.request(`/rooms/${code}/table`, { headers: alice.headers })
+    expect(tableEntries(new Uint8Array(await got.arrayBuffer()))).toEqual({
+      mapId: 'vibranium-heist',
+      fromAlice: '1',
+      fromBob: '1',
+    })
+    expect((await store.rooms.getTable(code))?.tableRev).toBe(2)
+    vi.restoreAllMocks()
   })
 })

@@ -292,7 +292,16 @@ Checks:
 
 ### Result
 
-Not started.
+Added `mergeTables` in `rooms/table.ts`, `routes/table.ts` (`GET` and `PUT /rooms/{code}/table`), and the mount in `app.ts`. `rooms/read.ts` has the shared room read (404, host-gone cleanup). `routes/rooms.ts` uses it now.
+
+Tests: `pnpm --filter api test` 93 pass (new: `table.test.ts`, `lambda-binary.test.ts`). `test:mongo` 16 pass (one new case in `rooms.mongo.test.ts`). `pnpm --filter infra test` 16 pass, `synth` passes. typecheck, format and lint show no new errors.
+
+Lambda `index.mjs`: 882,867 bytes after step 6, 952,356 bytes at b4b8e6d (yjs imports from Phase 1), 956,348 bytes after Phase 2.
+
+Notes, no change of decisions:
+- Extra cases in `table.test.ts`: merged table above 1 MB gives 413 and no write, two lost writes give 409, a log line with sizes and no token.
+- `helpers.ts` has `addUser`, `tableUpdate` and `tableEntries` for the table tests.
+- Order in `PUT`: login, `bodyLimit` (413), seat and room (403, 404), Yjs check (400).
 
 ## Phase 3: Lobby list and new multiplayer room
 

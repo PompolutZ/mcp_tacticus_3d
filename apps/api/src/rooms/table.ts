@@ -9,3 +9,8 @@ export function isYjsUpdate(bytes: Uint8Array): boolean {
     return false
   }
 }
+
+// Merges a client update into the stored table. Yjs updates merge in any order.
+export function mergeTables(stored: Uint8Array, update: Uint8Array): Uint8Array {
+  return Y.mergeUpdates([stored, update])
+}

@@ -7,6 +7,7 @@ import { authRoutes } from './routes/auth'
 import { healthRoutes } from './routes/health'
 import { meRoutes } from './routes/me'
 import { roomRoutes } from './routes/rooms'
+import { tableRoutes } from './routes/table'
 import type { Store } from './stores/store'
 
 export interface Deps {
@@ -23,6 +24,7 @@ export function createApp(deps: Deps) {
   app.route('/', authRoutes(deps))
   app.route('/', meRoutes(deps))
   app.route('/', roomRoutes(deps))
+  app.route('/', tableRoutes(deps))
   app.onError(onError)
   app.notFound(notFound)
   return app

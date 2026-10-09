@@ -4,7 +4,7 @@ import { HTTPException } from 'hono/http-exception'
 import * as z from 'zod/mini'
 import { requireUser, type AuthEnv } from '../middleware/user'
 import { validate } from '../middleware/validate'
-import { isRoomCode } from '../rooms/code'
+import { readRoom as readRoomOf } from '../rooms/read'
 import { isYjsUpdate } from '../rooms/table'
 import {
   HostingError,
@@ -13,7 +13,6 @@ import {
   type RoomInfo,
   type Side,
   type Store,
-  type UserDoc,
 } from '../stores/store'
 import type { Config } from '../config'
 
@@ -39,17 +38,7 @@ export function roomRoutes(deps: { store: Store; config: Config }) {
   const login = requireUser(deps)
   const app = new Hono<AuthEnv>()
 
-  // Reads the room. A room whose host is gone is deleted, and answers 404.
-  async function readRoom(code: string): Promise<{ room: RoomInfo; users: Map<string, UserDoc> }> {
-    const room = isRoomCode(code) ? await store.rooms.get(code) : null
-    if (!room) throw err(404, 'Room not found')
-    const users = await store.users.getMany(userIdsOf([room]))
-    if (!users.has(room.host)) {
-      await store.rooms.delete(room._id)
-      throw err(404, 'Room not found')
-    }
-    return { room, users }
-  }
+  const readRoom = (code: string) => readRoomOf(store, code)
 
   app.get('/rooms', login, async (c) => {
     const userId = c.get('user')._id
