@@ -35,8 +35,6 @@ function loadError(code, err) {
 export default function Table({ room = null, onExit }) {
   const { user } = useUser()
   const userId = user?.id
-  // The bytes of a game file that replaced the table (Load game), or null
-  const [game, setGame] = useState(null)
   // { table, storageFailed } when the document is open, see openTableDoc
   const [opened, setOpened] = useState(null)
   // The text of the warning when the writer of a multiplayer room stopped, or null
@@ -73,7 +71,7 @@ export default function Table({ room = null, onExit }) {
       doc = null
     }
 
-    openTableDoc(name, game).then(async (result) => {
+    openTableDoc(name).then(async (result) => {
       doc = result.doc
       if (cancelled) {
         close()
@@ -100,7 +98,7 @@ export default function Table({ room = null, onExit }) {
         const rosters = room?.rosters ?? { blue: null, red: null }
         fillTable(table, { ...startTable(room?.mapId ?? START_MAP), rosters })
       }
-      if (room && !room.multiplayer) record.current = watchRoomRecord(room.id, table, game !== null)
+      if (room && !room.multiplayer) record.current = watchRoomRecord(room.id, table)
       if (room?.multiplayer) {
         writer.current = watchServerTable({
           doc,
@@ -125,7 +123,7 @@ export default function Table({ room = null, onExit }) {
       cancelled = true
       close()
     }
-  }, [room, userId, game])
+  }, [room, userId])
 
   // The lobby reads the room records when it renders, which is before this table unmounts. So the record
   // gets the last change of the table first. A multiplayer room writes to the server at once.
@@ -133,12 +131,6 @@ export default function Table({ room = null, onExit }) {
     record.current?.flush()
     writer.current?.flush()
     onExit()
-  }
-
-  // Load game (App.jsx, handleLoadGame): App unmounts, and the table opens again with the game
-  function handleLoadGame(bytes) {
-    setOpened(null)
-    setGame(bytes)
   }
 
   if (!opened) return <LoadingOverlay ready={false} />
@@ -150,7 +142,6 @@ export default function Table({ room = null, onExit }) {
       storageFailed={opened.storageFailed}
       serverWarning={serverWarning}
       onExit={handleExit}
-      onLoadGame={handleLoadGame}
     />
   )
 }

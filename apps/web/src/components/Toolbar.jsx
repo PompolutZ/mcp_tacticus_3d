@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { MAPS } from '../terrain/maps.js'
 import { cardsOfType } from '../crisis/cards.js'
 import { CopyLinkButton } from './CopyLinkButton.jsx'
@@ -24,15 +24,12 @@ const CRISIS_TYPES = [
 // multiplayer: the room is a multiplayer room, which has no Roster group (the rosters are fixed, plan 07,
 // decisions 10 and 13). guestSeatFree: the guest seat was free when the room opened, so Copy link shows next
 // to the room code (decision 23).
-// onLobby(): the ← Lobby button. onSaveGame(): the Save game button. onLoadGame(file): the player chose a file
-// with Load game.
+// onLobby(): the ← Lobby button.
 export function Toolbar({
   roomCode,
   multiplayer = false,
   guestSeatFree = false,
   onLobby,
-  onSaveGame,
-  onLoadGame,
   mapId,
   onMapChange,
   activeRange,
@@ -60,8 +57,6 @@ export function Toolbar({
   // The typed text stays in the field after Enter (x clears it)
   const [rosterText, setRosterText] = useState({ blue: '', red: '' })
   const rosterTeams = roomCode ? TEAMS.filter(({ team }) => team === 'red') : TEAMS
-  // The hidden file input of Load game
-  const gameFileRef = useRef(null)
   return (
     <div className="toolbar">
       <div className="group">
@@ -75,34 +70,6 @@ export function Toolbar({
           {roomCode ?? 'Sandbox'}
         </span>
         {multiplayer && guestSeatFree && <CopyLinkButton code={roomCode} />}
-        <button
-          type="button"
-          className="chip"
-          title="Save the table to a file"
-          onClick={onSaveGame}
-        >
-          Save game
-        </button>
-        <button
-          type="button"
-          className="chip"
-          title="Replace the table with a saved game"
-          onClick={() => gameFileRef.current?.click()}
-        >
-          Load game
-        </button>
-        <input
-          ref={gameFileRef}
-          type="file"
-          accept=".yjs"
-          hidden
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            // So the same file can be chosen again
-            e.target.value = ''
-            if (file) onLoadGame(file)
-          }}
-        />
       </div>
       <div className="group">
         <button

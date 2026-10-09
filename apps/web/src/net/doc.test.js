@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { SCHEMA, createTable, encodeGame, fillTable, readGame, tableSchema } from './doc.js'
+import * as Y from 'yjs'
+import { SCHEMA, createTable, encodeTable, fillTable, tableSchema } from './doc.js'
 
 const STATE = {
   mapId: 'vibranium-heist',
@@ -45,23 +46,10 @@ test('fillTable writes one update', () => {
   assert.equal(updates, 1)
 })
 
-test('a game file gives back the same table', () => {
+test('encodeTable gives back the same table', () => {
   const table = createTable()
   fillTable(table, STATE)
-  const loaded = readGame(encodeGame(table))
-  assert.ok(loaded)
-  assert.deepEqual(snapshot(loaded), snapshot(table))
-})
-
-test('readGame returns null for bytes that are not a game', () => {
-  assert.equal(readGame(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8])), null)
-  assert.equal(readGame(new TextEncoder().encode('{"not":"a game"}')), null)
-  assert.equal(readGame(encodeGame(createTable())), null)
-})
-
-test('readGame returns null for a game of another schema', () => {
-  const table = createTable()
-  fillTable(table, STATE)
-  table.game.setField('schema', SCHEMA + 1)
-  assert.equal(readGame(encodeGame(table)), null)
+  const doc = new Y.Doc()
+  Y.applyUpdate(doc, encodeTable(table))
+  assert.deepEqual(snapshot(createTable(doc)), snapshot(table))
 })

@@ -3,14 +3,14 @@
 // It imports no module that reads import.meta.env, so node --test can load it.
 
 import * as Y from 'yjs'
-import { createTable, encodeGame, fillTable } from '../net/doc.js'
+import { createTable, encodeTable, fillTable } from '../net/doc.js'
 import { startTable } from './table.js'
 
 // rosters: { blue, red }, each { code } or null
 export function startTableBytes(mapId, rosters) {
   const doc = new Y.Doc()
   fillTable(createTable(doc), { ...startTable(mapId), rosters })
-  const bytes = encodeGame({ doc })
+  const bytes = encodeTable({ doc })
   doc.destroy()
   return bytes
 }

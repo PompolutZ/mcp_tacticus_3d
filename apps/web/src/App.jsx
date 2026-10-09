@@ -58,8 +58,6 @@ import { TERRAIN_PIECES } from './terrain/pieces.js'
 import { mapTerrain, withPlacements } from './rooms/table.js'
 import { tableFiles } from './rooms/preload.js'
 import { useYField, useYList, useYRecord } from './net/useY.js'
-import { encodeGame, readGame } from './net/doc.js'
-import { MAPS } from './terrain/maps.js'
 import {
   NO_PIECES,
   NO_TOOLS,
@@ -212,7 +210,7 @@ function canvasEvents(store) {
 // IndexedDB, the Sandbox keeps it in memory. room: the room record (rooms/store.js), or null for the
 // Sandbox. A room has a fixed map. storageFailed: the room could not use IndexedDB, so it is not saved.
 // serverWarning: the text of the warning when a multiplayer room is no longer saved on the server, or null.
-// onExit(): opens the lobby. onLoadGame(bytes): replaces the table with a game file (Table.jsx). See
+// onExit(): opens the lobby. See
 // docs/feature-rooms.md and docs/plans/implement-backend/05-yjs-state.md.
 export default function App({
   table,
@@ -220,7 +218,6 @@ export default function App({
   storageFailed = false,
   serverWarning = null,
   onExit,
-  onLoadGame,
 }) {
   const [activeRange, setActiveRange] = useState(null)
   const [activeMove, setActiveMove] = useState(null)
@@ -257,6 +254,15 @@ export default function App({
   // Loaded rosters: { blue, red } → null | { code }, code in Jarvis format (see rosters/mct.js). A room
   // starts with its rosters: Blue, and Red when the room has it.
   const [rosters, setRosters] = useYRecord(table.rosters)
+  // The guest's roster comes from the server record (decision 10 of plan 07). At the first open, the key of
+  // the own seat is empty, so it gets the roster. Only that key is written. Nothing restarts the setup: it
+  // restarts only in handleRosterLoad and handleRosterRemove, and a roster that appears in an empty key
+  // changes no card that the setup chose.
+  useEffect(() => {
+    if (!room?.multiplayer) return
+    const roster = room.rosters?.[room.side]
+    if (roster && !table.rosters.read()[room.side]) table.rosters.setField(room.side, roster)
+  }, [table, room])
   // The game setup: crisis cards, threat, deployment edge and squads (setup/setup.js, GameSetup.jsx). A new
   // roster starts it again.
   const [setup, setSetup] = useYRecord(table.setup)
@@ -365,39 +371,6 @@ export default function App({
   function handleLobby() {
     if (!room && !window.confirm('Leave the Sandbox? Its table is not saved.')) return
     onExit()
-  }
-
-  // Save game: downloads the table document as a file. See docs/feature-peer-to-peer.md, "Save and load a
-  // game". The anchor is in the page for the click, because Firefox needs that for a download.
-  function handleSaveGame() {
-    const now = new Date()
-    const date = [now.getFullYear(), now.getMonth() + 1, now.getDate()]
-      .map((n) => String(n).padStart(2, '0'))
-      .join('-')
-    const url = URL.createObjectURL(new Blob([encodeGame(table)]))
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `game-${room?.id ?? 'sandbox'}-${date}.yjs`
-    document.body.append(link)
-    link.click()
-    link.remove()
-    // The download reads the URL after the click, so it is revoked later
-    setTimeout(() => URL.revokeObjectURL(url), 1000)
-  }
-
-  // Load game: a game file replaces the whole table, also the map and the rosters (Table.jsx). A file that
-  // is not a game of this app, or has a map that the app does not have, changes nothing.
-  async function handleLoadGame(file) {
-    const bytes = new Uint8Array(await file.arrayBuffer())
-    const game = readGame(bytes)
-    const known = Boolean(game && MAPS[game.game.get('mapId')])
-    game?.doc.destroy()
-    if (!known) {
-      showHudMessage('This file is not a saved game of this app')
-      return
-    }
-    const lost = room ? 'The table of this room is lost.' : 'The table is lost.'
-    if (window.confirm(`Replace the table with the saved game? ${lost}`)) onLoadGame(bytes)
   }
 
   // direction: 1 turns the mat 90° counter-clockwise, -1 clockwise
@@ -1481,8 +1454,6 @@ export default function App({
           multiplayer={Boolean(room?.multiplayer)}
           guestSeatFree={Boolean(room?.multiplayer && (!room.players.blue || !room.players.red))}
           onLobby={handleLobby}
-          onSaveGame={handleSaveGame}
-          onLoadGame={handleLoadGame}
           mapId={mapId}
           onMapChange={handleMapChange}
           activeRange={activeRange}

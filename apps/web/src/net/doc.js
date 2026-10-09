@@ -1,10 +1,10 @@
-// The Yjs document of one table: its maps, the start table, and the game file. No React. The layout is
+// The Yjs document of one table: its maps, and the start table. No React. The layout is
 // in docs/feature-peer-to-peer.md, "Yjs document", and docs/plans/implement-backend/05-yjs-state.md.
 
 import * as Y from 'yjs'
 import { createList, createRecord } from './collections.js'
 
-// The layout version of the document. A document or a game file with another one is not used, because
+// The layout version of the document. A document with another one is not used, because
 // before the first release all data is test data (05-yjs-state.md, decision 11).
 export const SCHEMA = 1
 
@@ -51,23 +51,8 @@ export function tableSchema(table) {
   return table.game.get('schema') ?? null
 }
 
-// The bytes of a game file: the whole document as one Yjs update. It is also the table snapshot of an
-// online room (docs/feature-auth.md, "Table on the server").
-export function encodeGame(table) {
+// The bytes of the table: the whole document as one Yjs update. It is the table snapshot of a multiplayer
+// room (docs/feature-auth.md, "Table on the server").
+export function encodeTable(table) {
   return Y.encodeStateAsUpdate(table.doc)
-}
-
-// The table of a game file, or null when the bytes are not a game of this schema
-export function readGame(bytes) {
-  const doc = new Y.Doc()
-  try {
-    Y.applyUpdate(doc, bytes)
-  } catch {
-    doc.destroy()
-    return null
-  }
-  const table = createTable(doc)
-  if (tableSchema(table) === SCHEMA) return table
-  doc.destroy()
-  return null
 }

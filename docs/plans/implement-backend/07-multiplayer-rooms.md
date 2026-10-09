@@ -395,7 +395,15 @@ Checks:
 
 ### Result
 
-Not started.
+Added an effect in `App.jsx`: in a multiplayer room, when `table.rosters` has no roster for `room.side` and the server record has one, it writes that key with `setField`. It never writes the other side.
+
+Removed Save game and Load game: the two toolbar buttons and the file input, `handleSaveGame`, `handleLoadGame`, the `game` state and `handleLoadGame` in `Table.jsx`, the `game` argument of `openTableDoc`, the `changed` argument of `watchRoomRecord`, and `readGame` with its tests. `encodeGame` is now `encodeTable` (`net/doc.js`, `startTable.js`, `yjs-size.mjs`, tests). No CSS used only by these.
+
+Tests: `pnpm --filter web test` 60 pass (62 before: 3 `readGame` tests removed, 1 `encodeTable` test added). Build passes, `yjs-size` runs, the grep finds nothing. Lint: 44 warnings before and after.
+
+No setup restart: the setup restarts only in `restartSetup`, which only `handleRosterLoad` and `handleRosterRemove` call. No effect watches `rosters`. The new write calls neither, so there is no confirm and no HUD message. A key that goes from empty to a roster changes no card that the setup chose.
+
+No deviation.
 
 ## Phase 6: Docs
 

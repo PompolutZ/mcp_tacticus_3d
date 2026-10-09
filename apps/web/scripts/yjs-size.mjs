@@ -2,7 +2,7 @@
 // write interval of step 7 (docs/feature-auth.md, open question 5). It builds a table with the stores of
 // src/net/doc.js and plays rounds through them, the way App.jsx writes: `set` with updater functions on
 // lists and records, `setField` for poses, one transaction for a handler that writes several names.
-// Snapshot size = Y.encodeStateAsUpdate(doc).byteLength, the same bytes as encodeGame and Save game.
+// Snapshot size = Y.encodeStateAsUpdate(doc).byteLength, the same bytes as encodeTable.
 //
 // Run with `pnpm --filter web yjs-size`. Options:
 //   --rounds <n>   rounds of the first game (default 6). The second game has 3 times as many.
@@ -14,7 +14,7 @@
 // have the shape of App.jsx (newCharacter, buildMatTokens, the tactic card and the loose token).
 
 import * as Y from 'yjs'
-import { createTable, fillTable, encodeGame } from '../src/net/doc.js'
+import { createTable, fillTable, encodeTable } from '../src/net/doc.js'
 import { NEW_SETUP } from '../src/setup/setup.js'
 import { START_MARKERS } from '../src/scoreboard/board.js'
 
@@ -277,7 +277,8 @@ function play(rounds, verbose) {
     if (verbose) console.log(`round ${round}: ${snapshotSize(table)} bytes`)
   }
   const size = snapshotSize(table)
-  if (size !== encodeGame(table).byteLength) throw new Error('encodeGame differs from the snapshot')
+  if (size !== encodeTable(table).byteLength)
+    throw new Error('encodeTable differs from the snapshot')
   const roundUpdates = updates.slice(afterSetup)
   return { setupSize, size, json: jsonSize(table), updates, roundUpdates }
 }
