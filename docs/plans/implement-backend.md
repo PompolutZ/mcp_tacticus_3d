@@ -146,7 +146,7 @@ Read: backend doc "Infrastructure", "Secrets and config", "Database", "Deploy" â
    - `lambda.ts`: reads the config from SSM at cold start, uses the Mongo store, answers the keep-alive event.
    - The Mongo client with the connection rules of the peer-to-peer doc.
    - `/health` pings Mongo and returns `APP_VERSION`.
-4. Mongo store tests against `mongo` in Docker: `pnpm --filter api test:mongo` with `MONGODB_URI`.
+4. Mongo store tests: `pnpm --filter api test:mongo`. The tests start a `mongo` container in Docker with Testcontainers.
 
 **User**, in this order:
 1. Check whether the `CDKToolkit` stack exists in `eu-central-1`. If not, run `cdk bootstrap` with `fxdx_admin`.

@@ -20,7 +20,7 @@ Every AWS resource is defined in code (CDK). Nobody creates or changes AWS resou
 | Database | New Atlas Free cluster in its own Atlas project, AWS `eu-central-1`, database `assist3d` |
 | Secrets | SSM Parameter Store, `SecureString`. The Lambda reads them at cold start |
 | Local dev | API in its own Node process (`@hono/node-server`). Vite forwards `/api` to it |
-| Tests | Vitest. Route tests through `app.request()` |
+| Tests | Vitest. Route tests through `app.request()`. Mongo store tests with Testcontainers |
 | Deploy | First from the user's machine with an assumed role. Then GitHub Actions with OIDC, on push to `main` |
 | Web hosting | Netlify, `https://mcptacticus3d.netlify.app`. Build settings in `netlify.toml`, output in `apps/web/dist` |
 
@@ -47,7 +47,7 @@ netlify.toml         Netlify build settings
 
 - The root `package.json` pins the version in `packageManager`: an exact version, the latest pnpm 12 at the time of the move. Netlify reads this field. pnpm 11 and later download the pinned version when the installed one is different.
 - `pnpm import` creates `pnpm-lock.yaml` from `package-lock.json`, so the versions stay the same. Then `package-lock.json` is deleted. CDK's `NodejsFunction` fails when one folder has two lock files.
-- pnpm 11 and later stop the install when a package has an install script and no `allowBuilds` entry. In today's dependencies only `esbuild` has one. So `pnpm-workspace.yaml` has `allowBuilds: { esbuild: true }`.
+- pnpm 11 and later stop the install when a package has an install script and no `allowBuilds` entry. `esbuild` has one, so `pnpm-workspace.yaml` has `allowBuilds: { esbuild: true }`. Testcontainers brings `ssh2`, `cpu-features` and `protobufjs`. Their scripts build an optional native part or only print a warning, so they get `false`.
 - With pnpm, a package can import only the packages that it lists. Today's `src` and `scripts` import only listed packages. One exception: `scripts/dice-sim.mjs` loads Rapier by a fixed path inside `node_modules/@react-three/rapier/node_modules/`. pnpm keeps packages in another place, so the script must resolve this path from `@react-three/rapier`.
 - No script is named `deploy`, because `pnpm deploy` is a built-in pnpm command.
 - Root scripts: `pnpm dev` (web and api together), `pnpm build`, `pnpm test`, `pnpm typecheck`.
@@ -224,7 +224,7 @@ region = eu-central-1
 
 - `.github/workflows/ci.yml` runs on pull requests and on pushes to `main`:
   - `pnpm install --frozen-lockfile`
-  - type checks and tests. The Mongo store tests use a `mongo` service container.
+  - type checks and tests. The Mongo store tests start a `mongo` container with Testcontainers. GitHub runners have Docker.
   - the web build
   - `cdk synth`
 - `.github/workflows/deploy-api.yml` runs on pushes to `main` that change `apps/api/**`, `infra/**`, `packages/**` or `pnpm-lock.yaml`. It also has a manual run button (`workflow_dispatch`).

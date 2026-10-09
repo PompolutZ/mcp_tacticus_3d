@@ -49,9 +49,20 @@ pnpm dev
 
 `pnpm dev` starts the web app and the API. The API listens on port 8787. Vite forwards `/api/*` to it, without the `/api` prefix. `http://localhost:5173/api/health` shows the API status.
 
+Open `http://localhost:5173`. The app opens on the lobby. Open the Sandbox or a room to get the table. You can orbit, zoom, and pan with the mouse.
+
 `pnpm test` and `pnpm typecheck` check the API.
 
-Open `http://localhost:5173`. The app opens on the lobby. Open the Sandbox or a room to get the table. You can orbit, zoom, and pan with the mouse.
+The API uses the memory store by default. To run it with Mongo, start one in Docker and set `STORE=mongo` in `apps/api/.env` (see `apps/api/.env.example`):
+
+```bash
+docker run --rm -d --name assist3d-mongo -p 27017:27017 mongo:8
+# stop it later: docker stop assist3d-mongo
+```
+
+The API refuses an Atlas connection string. Local dev uses only a local Mongo.
+
+`pnpm --filter api test:mongo` runs the Mongo tests. It needs Docker running. It starts its own `mongo:8` container and removes it at the end.
 
 ## Lobby, rooms and Sandbox
 

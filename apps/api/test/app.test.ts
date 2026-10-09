@@ -3,6 +3,7 @@ import { HTTPException } from 'hono/http-exception'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createApp } from '../src/app'
 import { createMemoryStore } from '../src/stores/memory'
+import type { Store } from '../src/stores/store'
 
 function makeApp() {
   const app = createApp({ store: createMemoryStore(), config: { version: 'test' } })
@@ -57,5 +58,13 @@ describe('app', () => {
     await makeApp().request('/health?x=1')
     expect(spy).toHaveBeenCalledTimes(1)
     expect(spy.mock.calls[0]?.[0]).toMatch(/^GET \/health 200 \d+ms$/)
+  })
+
+  it('GET /health returns 503 when the database ping fails', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const store: Store = { ping: async () => 'error', close: async () => {} }
+    const res = await createApp({ store, config: { version: 'test' } }).request('/health')
+    expect(res.status).toBe(503)
+    expect(await res.json()).toEqual({ ok: false, version: 'test', db: 'error' })
   })
 })

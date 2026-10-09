@@ -4,3 +4,7 @@ packages:
 
 allowBuilds:
   esbuild: true
+  # Testcontainers pulls these in. Their install scripts are not needed.
+  ssh2: false
+  cpu-features: false
+  protobufjs: false

@@ -4,14 +4,19 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/local.ts",
-    "test": "vitest run",
+    "test": "vitest run --project unit",
+    "test:mongo": "vitest run --project mongo",
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@hono/aws-lambda": "^1.0.0",
     "@hono/node-server": "^2.1.3",
-    "hono": "^4.13.13"
+    "hono": "^4.13.13",
+    "mongodb": "^7.7.0"
   },
   "devDependencies": {
+    "@aws-sdk/client-ssm": "^3.1147.0",
+    "@testcontainers/mongodb": "^12.2.0",
     "@types/node": "^24.19.1",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
