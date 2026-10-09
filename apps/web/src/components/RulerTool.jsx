@@ -537,7 +537,8 @@ function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target
 
 // target: the piece selected last, a model or a token, as { id, kind, getObject, getCenter, radius,
 // getBody? }, or null. The tool measures against it. By default it also snaps to it when it spawns
-// (spawnTarget in Tool). getBody is only there for a model (a character). placeTarget: the selected character in the same form, or null.
+// (spawnTarget in Tool). getBody is only there for a model (a character), with claim(): false when the other
+// player moves the model, so Place, Place 1 and Throw do nothing to it. placeTarget: the selected character in the same form, or null.
 // Place moves it, and is disabled without it. models: every character and token, in the same form,
 // for the pointer raycast and the snap. onSnap(model): the tool snapped to that model during a drag.
 // onPlaceLimit(limit): called with { id, clamp(p) } while Place is on and a character is selected,
@@ -1211,10 +1212,12 @@ function Tool({
     setMode((m) => (m === 'away' ? 'toward' : 'away'))
   }
 
-  // Move a model's base center to spot (table XZ)
+  // Move a model's base center to spot (table XZ). Returns false when the claim on the model is refused
+  // (the other player moves it): nothing moved then.
   function moveBase(model, spot) {
     const body = model.getBody()
-    if (!body) return
+    if (!body) return true
+    if (model.claim && !model.claim()) return false
     model.moved?.()
     const t = body.translation()
     // Put the base on top of the table or terrain at the spot. Keeping the old height
@@ -1225,6 +1228,7 @@ function Tool({
     body.setRotation(upright(body.rotation()), true)
     body.setLinvel({ x: 0, y: 0, z: 0 }, true)
     body.setAngvel({ x: 0, y: 0, z: 0 }, true)
+    return true
   }
 
   // Turning Place on moves the selected character past the far end, so its base touches that end
@@ -1237,10 +1241,11 @@ function Tool({
     }
     if (!snap || !placeTarget || !rigidRef.current || throwLock) return
     const side = OTHER[snap.side]
-    moveBase(
+    const done = moveBase(
       placeTarget,
       alongHalf(toolShape(toolPose(rigidRef.current), turn), side, tip + placeTarget.radius),
     )
+    if (!done) return
     // The snapped model now touches the far end, so the tool stays snapped to it at that end.
     // The R1 tool snaps with a corner. The base is no longer at a corner, so the tool is free.
     if (sameModel(snap.target, placeTarget))
@@ -1255,13 +1260,14 @@ function Tool({
     e.stopPropagation()
     if (!snap || !placeTarget || !rigidRef.current) return
     const end = snap.side === 'right' ? 1 : -1
-    moveBase(
+    const done = moveBase(
       placeTarget,
       fromLocal(toolPose(rigidRef.current), {
         x: end * tip,
         z: -snap.across * (halfWidth + placeTarget.radius),
       }),
     )
+    if (!done) return
     if (sameModel(snap.target, placeTarget)) setSnap({ ...snap, across: -snap.across })
   }
 
@@ -1280,6 +1286,8 @@ function Tool({
     const model = snap?.target
     const rb = rigidRef.current
     if (!model?.getBody?.() || !rb || placeSide) return
+    // The other player moves this model: no Throw
+    if (model.claim && !model.claim()) return
     const far = OTHER[snap.side]
     const straight = { [snap.side]: turn[snap.side], [far]: turn[snap.side] }
     setTurn(straight)

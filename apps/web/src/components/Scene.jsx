@@ -1,4 +1,12 @@
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Raycaster, Vector3 } from 'three'
 import { useTexture, Stars, Environment } from '@react-three/drei'
@@ -38,6 +46,7 @@ import { characterGiveSources, characterStamina } from '../characters/characters
 import { characterModels, modelCharacterId, trayCards } from '../characters/models.js'
 import { FRICTION, WORLD_GRAVITY } from '../physics.js'
 import { overlapMarks, overlapsAny } from '../characters/overlap.js'
+import { claimChanges, claimCheck, modelIdOfKey, modelKey } from '../characters/claims.js'
 import { assetUrl } from '../assets/index.js'
 import { CARD_X, CARD_Y, CARD_Z, supplyPilePosition } from '../crisis/layout.js'
 import { getCard } from '../crisis/cards.js'
@@ -128,6 +137,29 @@ function Mat({ mapId }) {
 }
 
 const NO_TOOLS_RECORD = {}
+const NO_POSES = {}
+// The other player's claims when there is no ownership
+const NO_KEYS = new Set()
+const noSubscribe = () => () => {}
+const noKeys = () => NO_KEYS
+
+// Two stored poses are the same (both rounded the same way, rooms/table.js, poseOf)
+function samePose(a, b) {
+  return (
+    Boolean(a && b) &&
+    a.x === b.x &&
+    a.y === b.y &&
+    a.z === b.z &&
+    a.qx === b.qx &&
+    a.qy === b.qy &&
+    a.qz === b.qz &&
+    a.qw === b.qw
+  )
+}
+
+// Frames a body waits after a pose is set, before it is put to sleep. A sleeping body is not synced to its
+// mesh, so the mesh must follow the new pose first.
+const SLEEP_AFTER_FRAMES = 2
 
 // How often (ms) Scene looks for overlapping models
 const OVERLAP_INTERVAL = 100
@@ -209,7 +241,11 @@ const OVERLAP_INTERVAL = 100
 // undefined. A model with a pose starts there instead of on its tray. Read when the model mounts.
 // onModelRest(modelId, pose): the body of a model fell asleep. App stores the pose in the table document, so
 // the model starts there when the table opens again (docs/plans/implement-backend/05-yjs-state.md, decision 8).
-// ownership: the claims on pieces (net/ownership.js). Pieces without a body pass it to the drag code.
+// ownership: the claims on pieces (net/ownership.js). Pieces without a body pass it to the drag code. Scene
+// claims a model before R, Q / E, Throw, Place and a drag, releases it when the body rests, and writes the rest
+// pose (plan 09, decisions 5 to 9).
+// poses: the live rest poses of the models, model id → pose (the table document). A pose that the other browser
+// wrote moves the body (decision 8). startPose is the pose at mount.
 export default function Scene({
   mapId,
   terrain = [],
@@ -278,6 +314,7 @@ export default function Scene({
   setupActions,
   mySide = null,
   onScoreMarkerMove,
+  poses = NO_POSES,
   startPose,
   onModelRest,
   ownership = null,
@@ -328,6 +365,35 @@ export default function Scene({
   const moved = useRef(new Map())
   const moveCount = useRef(0)
   const markMoved = (id) => moved.current.set(id, ++moveCount.current)
+  // The keys that the other player claims. Their models are remote (CharacterModel.jsx).
+  const otherOwned = useSyncExternalStore(
+    ownership?.subscribe ?? noSubscribe,
+    ownership?.otherOwned ?? noKeys,
+  )
+  // Piece key → time (s) of the last claim call of this browser, for the 0.2 s that a claim lasts
+  const claimTimes = useRef(new Map())
+  // The ownership that the models get: each claim sets the time of the claim
+  const claims = useMemo(
+    () =>
+      ownership && {
+        ...ownership,
+        claim(key) {
+          if (!ownership.claim(key)) return false
+          claimTimes.current.set(key, performance.now() / 1000)
+          return true
+        },
+      },
+    [ownership],
+  )
+  // Claims the model before an action. False: the other player moves it, so the action does nothing.
+  const claimModel = useCallback((id) => (claims ? claims.claim(modelKey(id)) : true), [claims])
+  // Model id → frames until its body is put to sleep after a pose
+  const sleepLater = useRef(new Map())
+  // The newest poses, and the poses of the last render
+  const posesRef = useRef(poses)
+  const prevPoses = useRef(poses)
+  // The set of the other player's claims of the last render
+  const prevOther = useRef(otherOwned)
   // Ids of the models that show the overlap mark
   const [overlapIds, setOverlapIds] = useState(() => new Set())
 
@@ -447,6 +513,8 @@ export default function Scene({
 
   // Adds angle to the turn of the piece that is not done yet
   function addTurn(piece, angle) {
+    // A model turn claims the model. A tool turn claims nothing.
+    if (piece.kind === 'character' && !claimModel(piece.id)) return
     const key = `${piece.kind}:${piece.id}`
     const turn = turnsLeft.current.get(key)
     if (turn) turn.left += angle
@@ -479,13 +547,123 @@ export default function Scene({
     }
   })
 
+  // Puts a model body at a stored pose: dynamic, exact, and asleep a few frames later (decision 8)
+  function applyPose(id, pose) {
+    const body = charBodies.current.get(id)
+    if (!body) return
+    body.setBodyType(0, true)
+    body.setTranslation({ x: pose.x, y: pose.y, z: pose.z }, true)
+    body.setRotation({ x: pose.qx, y: pose.qy, z: pose.qz, w: pose.qw }, true)
+    body.setLinvel({ x: 0, y: 0, z: 0 }, true)
+    body.setAngvel({ x: 0, y: 0, z: 0 }, true)
+    sleepLater.current.set(id, SLEEP_AFTER_FRAMES)
+  }
+
+  // The claim check of the own model claims (decision 5), and the bodies that wait to sleep. A claim ends
+  // when the body is dynamic and asleep and nothing of this browser moves the model. The rest pose goes
+  // to the document first, then the release, so the other browser gets the pose first.
+  useFrame(() => {
+    for (const [id, frames] of sleepLater.current) {
+      if (frames > 1) {
+        sleepLater.current.set(id, frames - 1)
+        continue
+      }
+      sleepLater.current.delete(id)
+      const body = charBodies.current.get(id)
+      if (body?.isDynamic() && ownership?.owner(modelKey(id)) !== 'other') body.sleep()
+    }
+    if (!ownership) return
+    const now = performance.now() / 1000
+    for (const key of ownership.mine()) {
+      const id = modelIdOfKey(key)
+      if (id === null) continue
+      const body = charBodies.current.get(id)
+      const action = claimCheck({
+        age: now - (claimTimes.current.get(key) ?? -Infinity),
+        dynamic: body?.isDynamic() ?? false,
+        asleep: body?.isSleeping() ?? false,
+        busy: Boolean(charLifts.current.get(id)?.isBusy()) || turnsLeft.current.has(key),
+        gone: !body || !models.some((model) => model.id === id),
+      })
+      if (action === 'keep') continue
+      if (action === 'rest') {
+        const rest = restPose(id)
+        if (rest) onModelRest?.(id, rest)
+      }
+      claimTimes.current.delete(key)
+      ownership.release(key)
+    }
+  })
+
+  // A lost tie (decision 7): a turn left for that model is removed. The drag, lift and slide stop in the
+  // model (CharacterModel.jsx, remote).
+  useEffect(() => ownership?.onLost((key) => turnsLeft.current.delete(key)), [ownership])
+
+  useEffect(() => {
+    posesRef.current = poses
+  })
+
+  // Rest poses from the other browser (decision 8). A model that nobody claims, with a changed pose that
+  // the body does not stand at: the body goes there. A pose that this browser wrote equals the body.
+  // A model that this browser claims ignores it. A model that the other player claims waits (below).
+  useEffect(() => {
+    const prev = prevPoses.current
+    prevPoses.current = poses
+    if (prev === poses) return
+    for (const model of models) {
+      const entry = poses[model.id]
+      if (!entry || samePose(entry, prev[model.id])) continue
+      if (ownership?.owner(modelKey(model.id)) != null) continue
+      const body = charBodies.current.get(model.id)
+      if (!body || samePose(poseOf(body.translation(), body.rotation()), entry)) continue
+      applyPose(model.id, entry)
+    }
+    // applyPose and models only read refs and the models of this render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [poses])
+
+  // The other player's claims start and end (decisions 1, 8, 9)
+  useEffect(() => {
+    const present = ownership?.otherPresent() ?? false
+    const { started, ended, gone } = claimChanges(prevOther.current, otherOwned, present)
+    prevOther.current = otherOwned
+    for (const key of started) {
+      const id = modelIdOfKey(key)
+      if (id !== null) markMoved(id)
+    }
+    for (const key of ended) {
+      const id = modelIdOfKey(key)
+      if (id === null || ownership.owner(key) === 'me') continue
+      const pose = posesRef.current[id]
+      if (pose) applyPose(id, pose)
+      else charBodies.current.get(id)?.setBodyType(0, true)
+    }
+    // The other player is gone: the body stays where it is and awake. This browser writes its rest pose.
+    for (const key of gone) {
+      const id = modelIdOfKey(key)
+      const body = id === null ? null : charBodies.current.get(id)
+      if (body && ownership.owner(key) !== 'me') {
+        body.setBodyType(0, true)
+        body.wakeUp()
+      }
+    }
+    // applyPose and markMoved only read refs
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [otherOwned])
+
   // R press: lifts the character under the pointer, or puts it back down if it is up. With no
   // character under the pointer, every lifted character goes back down. A player lifts a model to
   // see and select a token under it (docs/feature-crisis.md, "Models that cover a token").
   function liftPiece() {
     const piece = hoveredPiece.current
-    if (piece?.kind === 'character') charLifts.current.get(piece.id)?.toggle()
-    else for (const lift of charLifts.current.values()) lift.down()
+    if (piece?.kind === 'character') {
+      if (claimModel(piece.id)) charLifts.current.get(piece.id)?.toggle()
+    } else {
+      // Putting down a lift needs no new claim: it is an own lift. A model of the other player has none.
+      for (const [id, lift] of charLifts.current) {
+        if (ownership?.owner(modelKey(id)) !== 'other') lift.down()
+      }
+    }
   }
 
   // Props of a tool ('range', 'move' or 'angle') for turnPiece
@@ -524,6 +702,8 @@ export default function Scene({
       const last = lastTrayPositions.current.get(characterId)
       const body = charBodies.current.get(model.id)
       if (!pos || !last || !body || (last[0] === pos[0] && last[2] === pos[2])) continue
+      // The other player moves this model: its pose comes from the other browser
+      if (ownership?.owner(modelKey(model.id)) === 'other') continue
       const t = body.translation()
       if (inTrayArea(teamColor, last, t))
         body.setTranslation({ x: t.x + pos[0] - last[0], y: t.y, z: t.z + pos[2] - last[2] }, true)
@@ -594,6 +774,7 @@ export default function Scene({
         getCenter: () => charBodies.current.get(model.id)?.translation() ?? { x: 0, y: 0, z: 0 },
         isLifted: () => charLifts.current.get(model.id)?.isUp() ?? false,
         slide: (path, duration) => charSlides.current.get(model.id)?.(path, duration),
+        claim: () => claimModel(model.id),
         moved: () => markMoved(model.id),
         radius: BASE_DIAMETER[model.base] / 2,
       })),
@@ -605,7 +786,7 @@ export default function Scene({
         radius: 0.5,
       })),
     ],
-    [models, matTokens],
+    [models, matTokens, claimModel],
   )
   const toolModel = (piece) =>
     toolModels.find((model) => piece && model.kind === piece.kind && model.id === piece.id) ?? null
@@ -1008,7 +1189,12 @@ export default function Scene({
             },
             bodyRef: (rb) =>
               rb ? charBodies.current.set(model.id, rb) : charBodies.current.delete(model.id),
+            claimKey: modelKey(model.id),
+            ownership: claims,
+            remote: otherOwned.has(modelKey(model.id)),
             onRest: () => {
+              // One writer for each rest pose (decision 6)
+              if (ownership && !ownership.writes(modelKey(model.id))) return
               const rest = restPose(model.id)
               if (rest) onModelRest?.(model.id, rest)
             },

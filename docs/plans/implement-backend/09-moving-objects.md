@@ -559,6 +559,50 @@ Checks:
 - `pnpm format` done. `pnpm lint`: 37 warnings, 0 errors.
 - Not run in a browser, by the rules.
 
+#### Part 4c: models
+
+Done. Work item 6 (Scene and CharacterModel), the last part of Phase 4.
+
+What changed:
+- New `characters/claims.js` (plain, with `claims.test.js`): `claimCheck({ age, dynamic, asleep, busy, gone })` gives `'keep'`, `'rest'` or `'release'`. `claimChanges(prev, next, present)` gives `{ started, ended, gone }`. Also `MODEL_CLAIM_MIN` 0.2, `modelKey`, `modelIdOfKey`.
+- `physics.js`: `SOLVER_ALL` and `SOLVER_NONE`.
+- `App.jsx`: `useYRecord(table.poses)` goes to Scene as `poses`. `startPose` stays for the pose at mount.
+- `Scene.jsx`:
+  - `otherOwned` comes from `useSyncExternalStore(ownership.subscribe, ownership.otherOwned)`.
+  - Scene keeps the time of the last claim of each key. It gives the models a copy of the ownership whose `claim` sets the time. So a drag, R, Q / E, Throw and Place all set it.
+  - `claimModel(id)` runs before R, and before each turn step in `addTurn` (a tool turn claims nothing). R with no model under the pointer puts down every lift except those of the other player.
+  - A `useFrame` checks each own `character:` claim with `claimCheck`. `rest` writes the pose with `onModelRest`, then releases. `release` is for a gone model or body. `busy` is a drag, lift or slide (`isBusy()` of the model) or a turn left.
+  - `onRest` writes only when `ownership.writes(key)`.
+  - Poses from the other browser: an effect on `poses` sets the exact pose of a model that nobody claims when the pose changed and the body stands elsewhere. Nothing at mount. A claimed model is skipped.
+  - An effect on `otherOwned` uses `claimChanges`. A started key calls `markMoved`. An ended key gives the body the pose of `poses`, dynamic, then asleep. Without a pose the body only becomes dynamic. A gone key (the other player left) makes the body dynamic and awake. This browser then writes its rest pose, because `writes` is true when alone.
+  - A body gets its pose, then sleeps 2 frames later, so its mesh follows first.
+  - `onLost` removes the turn left for that model.
+  - The tray move effect skips a model that the other player claims.
+- `CharacterModel.jsx`: props `claimKey`, `ownership`, `remote`. The drag passes `key`, `ownership` and `releaseAtEnd: false`. The lift object has `isBusy()`.
+  - `remote` on: the body is kinematic (`kinematicPosition`), the colliders get solver groups 0, the lift and slide are dropped, and the frame does nothing. `remote` off: the solver groups come back. Scene sets the body type and the pose.
+  - `onCancel` of the drag (a lost tie) ends the drag state. It does not drop, write or change the body.
+- `RulerTool.jsx`: `moveBase` returns false when the claim is refused. Place and Place 1 then stop before they change the snap or the Place state. Throw stops before the slide.
+
+Choices that the plan did not fix:
+- Refusal for Place, Place 1 and Throw: the `toolModels` entry of a model has `claim()`. `RulerTool` calls it before it moves the model. `moved()` stays as it was.
+- The claim time is set by a wrapper around `claim`, so the drag code needs no change.
+- A turn left counts as `busy` through the key `character:<id>`. It is the same string as the key of `turnsLeft`.
+- `claimChanges` takes `present` and puts a left key in `ended` or in `gone`.
+- A key that left the other player's set and that this browser now owns (a won tie) gets no pose.
+- A lift or a slide of a model that loses a tie stops when the `remote` prop arrives, a render after `onLost`. Not at once.
+- A body that is `remote` skips `settle`, so it does not fall asleep by itself.
+
+Differences in behavior:
+- With the local ownership (single player room, Sandbox) every claim succeeds. A claim lasts at least 0.2 s, then ends at rest. Nothing looks different.
+- A model whose pose changes in the document while nobody claims it moves to that pose. This also fixes a guest that gets the poses after its models mounted.
+- Not tried in two browsers. Live poses of a remote model come in Phase 5.
+
+Checks:
+- `pnpm --filter web test`: 185 pass, 0 fail.
+- `pnpm --filter web build`: passes.
+- `pnpm format` done. `pnpm lint`: 37 warnings, 0 errors.
+- Not run in a browser, by the rules.
+
 ## Phase 5: The live channel: models, tools and the cursor
 
 Read: decisions 9 and 13 to 16. `net/peer.js` (+ test), `Table.jsx`, `components/Scene.jsx`, `components/CharacterModel.jsx` (the remote mode), `components/RulerTool.jsx` (`OtherTool`, `Tool`), `drag/tablePoint.js`, `net/debugFlags.js`. MDN for unordered data channels.

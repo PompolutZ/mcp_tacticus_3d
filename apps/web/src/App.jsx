@@ -244,6 +244,8 @@ export default function App({
   // single player room are Blue, because one player plays both sides there.
   const ownSide = red ? 'red' : 'blue'
   const [tools] = useYRecord(table.tools)
+  // The rest poses of the models, live: Scene applies a pose that the other browser wrote
+  const [poses] = useYRecord(table.poses)
   const ownTools = tools[ownSide]
   // The toolbar state comes from the own entries: the range number, the movement type, and whether the
   // Toward / Away tool is on
@@ -1567,6 +1569,7 @@ export default function App({
               onScoreMarkerMove={(marker, x, z) =>
                 setScoreMarkers((prev) => ({ ...prev, [marker]: { x, z } }))
               }
+              poses={poses}
               startPose={table.poses.get}
               onModelRest={table.poses.setField}
             />

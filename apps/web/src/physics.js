@@ -73,3 +73,8 @@ export function castAlong(world, rapier, shape, rotation, pos, dir, maxDistance,
   }
   return maxDistance
 }
+
+// Solver groups of a collider: all groups give contact forces, none gives no forces. A model that the
+// other player moves has none, so it pushes nothing (plan 09, decision 9).
+export const SOLVER_ALL = 0xffffffff
+export const SOLVER_NONE = 0

@@ -15,7 +15,7 @@ import {
   Quaternion,
   Vector3,
 } from 'three'
-import { FRICTION, MODEL_GROUPS, castDown } from '../physics.js'
+import { FRICTION, MODEL_GROUPS, SOLVER_ALL, SOLVER_NONE, castDown } from '../physics.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
 import { tablePoint } from '../drag/tablePoint.js'
 import DragFootprint from './DragFootprint.jsx'
@@ -205,8 +205,13 @@ function standeeScene(front, back, radius) {
 // bodyRef, objectRef: get the Rapier body and the 3D object of the model (figure and base)
 // onRest(): the body fell asleep, so the model rests. Scene.jsx stores its pose.
 // liftRef: gets { toggle(), down() } for the R key (see liftPiece in Scene.jsx), isUp() for a Throw
-// (a lifted model does not stop it), and restPosition() for the stored pose: the body position before the
+// (a lifted model does not stop it), isBusy() (a drag, lift or slide is going on), and restPosition() for the stored pose: the body position before the
 // lift, or null when the model is not lifted. Gets null on unmount.
+// claimKey, ownership: the piece key `character:<id>` and the claims (net/ownership.js). A drag claims the key and
+// leaves the release to Scene, which releases when the body is at rest (plan 09, decision 5).
+// remote: the other player moves this model (decision 9). The body is kinematic and its colliders give no
+// contact forces, so it pushes nothing. It stays where it is. A click still selects it. Scene sets the pose
+// when this goes false (decision 8), and this puts the contact forces back.
 // slideRef: gets startSlide for a Throw or Push (see RulerTool.jsx), and null on unmount
 // baseRadius: radius of the base in the model file, which has the game size
 // onHover(over): called when the pointer moves onto the model (true) and off it (false)
@@ -244,6 +249,9 @@ function CharacterFigure({
   onSlideStart,
   constrainDrag,
   overlay,
+  claimKey,
+  ownership,
+  remote = false,
 }) {
   const [startPosition] = useState(position)
   const [startQuaternion] = useState(quaternion)
@@ -269,6 +277,9 @@ function CharacterFigure({
   // goes up (true) or back down (false). landing: the model is back at x, y, z, and becomes a
   // dynamic body again in the next frame.
   const lift = useRef(null)
+  // The remote prop for the closures that are made once (toggleLift, startSlide)
+  const remoteRef = useRef(remote)
+  const wasRemote = useRef(false)
   // The slide of a Throw or Push (startSlide): { path, duration, time }, or null
   const slide = useRef(null)
   // The last pointer position of a drag, in screen pixels
@@ -313,7 +324,7 @@ function CharacterFigure({
   // nothing pushes it.
   function toggleLift() {
     const rb = rigidRef.current
-    if (!rb || isDragging.current || slide.current) return
+    if (!rb || isDragging.current || slide.current || remoteRef.current) return
     if (lift.current) {
       lift.current.up = !lift.current.up
       lift.current.landing = false
@@ -379,7 +390,7 @@ function CharacterFigure({
   // kinematic during the slide, so physics does not move it. A slide ends a lift, and a drag ends a slide.
   function startSlide(path, duration) {
     const rb = rigidRef.current
-    if (!rb || isDragging.current) return
+    if (!rb || isDragging.current || remoteRef.current) return
     lift.current = null
     rest.current = null
     rb.setBodyType(2, true)
@@ -425,6 +436,7 @@ function CharacterFigure({
       toggle: toggleLift,
       down: lowerLift,
       isUp: () => lift.current?.up === true,
+      isBusy: () => isDragging.current || lift.current !== null || slide.current !== null,
       restPosition: () =>
         lift.current && { x: lift.current.x, y: lift.current.y, z: lift.current.z },
     })
@@ -439,6 +451,8 @@ function CharacterFigure({
   useFrame((_, dt) => {
     const rb = rigidRef.current
     if (!rb) return
+    // The other player moves this model. Nothing here moves or settles the body.
+    if (remoteRef.current) return
     if (!isDragging.current) {
       if (slide.current) moveSlide(rb, dt)
       else if (lift.current) moveLift(rb, dt)
@@ -466,6 +480,24 @@ function CharacterFigure({
     // Picking the model up stands it upright again if it tipped over, as a TTS figurine does
     rb.setNextKinematicRotation(upright(rb.rotation()))
   })
+
+  // The remote mode (decision 9). A lift, a slide or a drag of this browser stops moving the body, with no drop
+  // and no write. Back from it, Scene sets the body type and the pose, and the contact forces come back here.
+  useEffect(() => {
+    remoteRef.current = remote
+    const rb = rigidRef.current
+    if (!rb || remote === wasRemote.current) return
+    wasRemote.current = remote
+    for (let i = 0; i < rb.numColliders(); i++) {
+      rb.collider(i).setSolverGroups(remote ? SOLVER_NONE : SOLVER_ALL)
+    }
+    if (remote) {
+      lift.current = null
+      slide.current = null
+      rest.current = null
+      rb.setBodyType(2, true)
+    }
+  }, [remote])
 
   useEffect(() => {
     const color = new Color(TEAM_COLORS[teamColor] ?? teamColor)
@@ -521,6 +553,9 @@ function CharacterFigure({
       canvas: gl.domElement,
       // A click selects the model. Only a selected model moves by a drag.
       canStart: () => selected,
+      key: claimKey,
+      ownership,
+      releaseAtEnd: false,
       onStart: () => {
         // A drag ends a lift or a slide. The model follows the pointer and drops where it is released.
         lift.current = null
@@ -550,6 +585,15 @@ function CharacterFigure({
         rigidRef.current?.setBodyType(0, true)
         rigidRef.current?.setLinvel(ZERO, true)
         rigidRef.current?.setAngvel(ZERO, true)
+        onDragEnd?.()
+      },
+      // A lost tie (the other player moves the model now): the drag ends with no drop and no write. The
+      // body stays as it is for the remote mode.
+      onCancel: () => {
+        isDragging.current = false
+        freePlace.current = null
+        setDragOverlap(false)
+        setDragging(false)
         onDragEnd?.()
       },
       onClick: () => onSelect?.(),
