@@ -241,7 +241,31 @@ Checks:
 
 ### Result
 
-(The agent adds it after the work.)
+Status: done. Not committed.
+
+Files changed:
+- New: `apps/api/src/routes/auth.ts`, `test/discord.test.ts` (11), `test/auth.test.ts` (12).
+- Changed: `auth/discord.ts` (now has `createDiscordClient` and `DiscordError`), `config.ts` (`configFromSsm`), `app.ts` (mounts `authRoutes`), `lambda.ts`, `local.ts`, `test/config.test.ts` (+4).
+
+Facts:
+- `DiscordError` has `kind`: `rejected` (route answers 401) or `unavailable` (route answers 502). Other errors go to the error handler.
+- `configFromSsm(params, env, prefix)` returns `Config & { discord: DiscordConfig }`, so `lambda.ts` needs no null check. `prefix` only shapes the error message.
+- Discord logs: the status only. A test checks that the body and the code are not in the log.
+- Lambda bundle: `index.mjs` 1.3 MB (synth warns about size, as before).
+- `lambda.ts` does not import `local.ts`, `devAuth.ts` or the dev secret.
+
+Checks:
+- `pnpm --filter api typecheck`: pass.
+- `pnpm --filter api test`: pass, 59 of 59.
+- `pnpm --filter api test:mongo`: pass, 5 of 5.
+- `pnpm --filter infra test`: pass, 16 of 16.
+- `pnpm --filter infra synth`: pass.
+- grep of the synth output for `auth/dev` and for `dev-session-secret`: nothing.
+- `pnpm lint`: 0 errors, 44 warnings (same as before). `pnpm format:check`: pass.
+
+Changes from the plan: none. The infra script is named `synth`.
+
+Open issues: none.
 
 ## Phase 3: Web login
 

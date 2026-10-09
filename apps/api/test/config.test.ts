@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { configFromEnv, loadSsmParams, requireParam } from '../src/config'
+import { configFromEnv, configFromSsm, loadSsmParams, requireParam } from '../src/config'
 
 const prefix = '/mcptacticus/prod/'
 
@@ -65,4 +65,27 @@ describe('configFromEnv', () => {
   it('turns Discord off when one value is missing', () => {
     expect(configFromEnv({ DISCORD_CLIENT_ID: 'id' }, 'f').discord).toBeNull()
   })
+})
+
+describe('configFromSsm', () => {
+  const all = { 'session-secret': 's', 'discord-client-id': 'id', 'discord-client-secret': 'sec' }
+
+  it('reads all values', () => {
+    expect(configFromSsm(all, { APP_VERSION: '2' }, prefix)).toEqual({
+      version: '2',
+      sessionSecret: 's',
+      discord: { clientId: 'id', clientSecret: 'sec' },
+    })
+  })
+
+  it.each(['session-secret', 'discord-client-id', 'discord-client-secret'])(
+    'names the missing %s',
+    (name) => {
+      const params: Record<string, string> = { ...all }
+      delete params[name]
+      expect(() => configFromSsm(params, {}, prefix)).toThrow(
+        new Error(`Missing SSM parameter ${prefix}${name}`),
+      )
+    },
+  )
 })

@@ -52,3 +52,19 @@ export function requireParam(params: Record<string, string>, name: string, prefi
   if (value === undefined) throw new Error(`Missing SSM parameter ${prefix}${name}`)
   return value
 }
+
+// Lambda config. All three values are required, so a deploy without secrets fails at cold start.
+export function configFromSsm(
+  params: Record<string, string>,
+  env: Record<string, string | undefined>,
+  prefix = '',
+): Config & { discord: DiscordConfig } {
+  return {
+    version: env.APP_VERSION ?? 'dev',
+    sessionSecret: requireParam(params, 'session-secret', prefix),
+    discord: {
+      clientId: requireParam(params, 'discord-client-id', prefix),
+      clientSecret: requireParam(params, 'discord-client-secret', prefix),
+    },
+  }
+}
