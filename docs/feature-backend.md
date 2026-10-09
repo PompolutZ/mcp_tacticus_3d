@@ -74,9 +74,9 @@ apps/api/src/
   local.ts        Node entry for dev: @hono/node-server, memory or Mongo store, the dev login route
   config.ts       the config type. Read from SSM (Lambda) or from process.env (local)
   auth/           token (session token), discord (Discord client)
-  routes/         health, auth, devAuth (local only), me, rooms (room and seat routes), table (GET and PUT of the snapshot), signal
-  rooms/          code (room code), table (Yjs check and merge), read (room read, 404, host-gone cleanup)
-  middleware/     user (token check), validate (body check), errors, log
+  routes/         health, auth, devAuth (local only), me, rooms (room and seat routes), table (GET and PUT of the snapshot), signal (POST and GET of the messages)
+  rooms/          code (room code), table (Yjs check and merge), read (room read, 404, host-gone cleanup), seats (seat cache, 30 s per room)
+  middleware/     user (token check and user read), session (token check only, for polls), validate (body check), errors, log
   stores/         store interfaces, and a memory and a Mongo version of each
 apps/api/test/    Vitest: routes through app.request(), with the memory store
 ```
@@ -175,6 +175,7 @@ CDK needs `cdk bootstrap` once per account and region, with admin rights. It cre
   - Database user `mcptacticus-api` with `readWrite@assist3d`.
   - IP access list `0.0.0.0/0`. The Lambda has no fixed IP address. A fixed address needs a NAT gateway, and a NAT gateway costs money.
 - Atlas is not in CDK. The Atlas CloudFormation resources need the Atlas API key in Secrets Manager ($0.40 per month), and third-party extensions that are activated in the account.
+- Collections: `users`, `rooms` and `messages`. `messages` holds the signaling messages: `{ _id, room, from, to, type, data, user, expiresAt }`. The `_id` is 13 digits of the server time in ms, `-`, and 8 random characters, so it sorts by time. Indexes: `{ room: 1, _id: 1 }` and the TTL index `{ expiresAt: 1 }` with `expireAfterSeconds: 0`. `expiresAt` is 1 hour after the write. `DELETE /rooms/{code}` and `DELETE /me` delete the messages too.
 - The connection rules of the peer-to-peer doc stay: one client per Lambda instance, `maxPoolSize: 2`, `serverSelectionTimeoutMS: 5000`, indexes created at cold start.
 
 ### Free cluster limits

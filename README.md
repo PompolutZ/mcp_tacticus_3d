@@ -94,7 +94,30 @@ A multiplayer room is on the API, so it needs login. To try one on one Mac, use 
 2. Click **Copy link** in the room toolbar or on the lobby tile.
 3. In the second browser, log in as `bob` and open the link. The join page shows the map and the host's roster. Paste a roster and click **Join**.
 
-Each browser writes its table to the API 60 seconds after a change, on **← Lobby**, and when the tab is hidden. There is no live sync yet, so a player sees the other player's changes when the room opens again. A user hosts one room at a time. To host a new one, delete the old one in the lobby.
+4. Open the room in both browsers. Within a few seconds the two browsers connect over WebRTC. Both toolbars show "Connected".
+
+Either player can open the room first. The player who opens it first sees "Waiting" until the other opens it.
+
+Discrete changes show on the other screen at once: mat turn, crisis cards, tokens, new characters, damage and power. Moving models and tokens do not sync live yet (step 9). A moved model shows at its new place on the other screen after the room opens again.
+
+A player who has the Red seat sees the Red side at the bottom. Space returns to this view.
+
+The room toolbar shows both seats: avatar and name, and "You" at your own seat. The text at the other player's seat is the connection status:
+
+| Text | Meaning |
+|---|---|
+| (none) with "Free seat" | The other seat is free, or that player has not opened the room yet |
+| Waiting | The other player's page is not seen. The browser asks the API every 2 seconds |
+| Connecting | The browsers exchange the offer and the answer |
+| Connected | The data channel is open. Changes sync |
+| Could not connect | The answer came, but the browsers could not connect. A network blocks peer-to-peer. Click **Try again** |
+| Not here | 15 minutes with no sign of the other player. The browser stopped asking. Click **Try again** |
+
+When the other player reloads or closes the page, the status goes back to "Waiting". It shows "Connected" again when the page is back.
+
+If the other player's app version differs, a warning shows. In a dev build, `?build=test` in the page URL sends a fake version, to test it: `http://localhost:5173/?build=test#room=<code>`.
+
+While the two browsers are connected, only the host writes the table to the API (60 seconds after a change). The guest writes on **← Lobby** and when the tab is hidden. Alone in the room, each player writes 60 seconds after a change, on **← Lobby**, and when the tab is hidden. A user hosts one room at a time. To host a new one, delete the old one in the lobby.
 
 With the memory store, a restart of the API deletes the rooms. With the dev Mongo (see above), the rooms stay.
 

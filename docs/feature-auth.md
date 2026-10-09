@@ -1,6 +1,6 @@
 # Feature: Login with Discord
 
-Status: phase 1 (login) is done and checked locally (step 6 of the plan). Phase 2 (multiplayer rooms, step 7) is built. The browser check is open. The rest is plan. See [Open questions](#open-questions) at the end.
+Status: phase 1 (login) is done and checked locally (step 6 of the plan). Phase 2 (multiplayer rooms, step 7) is built. Phase 3 (identity in peer-to-peer, step 8) is built. The browser checks of steps 7 and 8 are open. The rest is plan. See [Open questions](#open-questions) at the end.
 
 The backend (repo, stack, AWS, deploy) is in `docs/feature-backend.md`. The order of the work is in `docs/plans/implement-backend.md`.
 
@@ -135,7 +135,7 @@ The cost of `localStorage`: a script that runs in the page (XSS) can read the to
 - A room with two players shows "This room has two players already" to a third user (409).
 - After the join, both seats and both rosters are fixed. There is no **Leave**, no **Remove**, and no roster change. To change a player or a roster, the host deletes the room and creates a new one.
 - Only the host can **Delete** the room. The guest sees the room in their list and can open it again, until the host deletes it.
-- The guest finds out about a delete at their next table write, which gets 404. The browser then opens the lobby with "The host deleted room K7Q2-M9XD." and deletes its local copy. A guest who changes nothing stays on the table until the next write. In step 8, the host's browser tells the guest's browser at once over the peer-to-peer connection.
+- The guest finds out about a delete from the signaling poll or from the next table write. While the guest waits for the host, it polls, and a poll gets 404 within about 32 s (the seat cache of 30 s plus one poll). The table write gets 404 too. The browser then opens the lobby with "The host deleted room K7Q2-M9XD." and deletes its local copy. A guest whose polls stopped (15 minutes) finds out at the next write. The host deletes only from the lobby, where its room is not open and has no connection. So the old plan, that the host's browser tells the guest over the connection, was dropped in step 8 (decision 12 of its plan).
 - The link is the secret, the same as in the peer-to-peer plan. A code has about 40 bits of randomness, so nobody can guess it.
 
 ### Rosters
@@ -157,7 +157,7 @@ How it works:
 
 - The table is a Yjs document, saved in IndexedDB per room. The snapshot is this document as one Yjs update (`Y.encodeStateAsUpdate`). The body is `application/octet-stream`.
 - **Start table:** the host's browser builds it at creation and sends it with `POST /rooms` (base64). So a room always has a table. Only the host's browser builds it, because each terrain piece gets a random id, and two start tables would merge into two sets of pieces.
-- **Read:** when a seated player opens the room, the browser gets `GET /rooms/{code}/table` and applies it to the local document (`Y.applyUpdate`, origin `'server'`). Yjs merges it with the IndexedDB copy. A table of another schema gets a new start table. When the server does not answer, the room does not open: the lobby shows "Could not load room K7Q2-M9XD. Try again." For 403 and 404, the browser deletes its local copy. Then the peer-to-peer sync starts, if the other player is connected (step 8).
+- **Read:** when a seated player opens the room, the browser gets `GET /rooms/{code}/table` and applies it to the local document (`Y.applyUpdate`, origin `'server'`). Yjs merges it with the IndexedDB copy. A table of another schema gets a new start table. When the server does not answer, the room does not open: the lobby shows "Could not load room K7Q2-M9XD. Try again." For 403 and 404, the browser deletes its local copy. Then the connection starts (`docs/feature-peer-to-peer.md`, "Connect flow"), and the Yjs sync with the other player runs over it.
 - **Write:** `PUT /rooms/{code}/table` with the full update.
   - The first change starts a 60-second timer. When it ends, the browser sends the write. A change during a write starts the next timer.
   - **← Lobby** and a hidden tab (`visibilitychange`) write at once when the table changed. The hidden write uses `keepalive` when the body is at most 60 KB (the limit for a page is 64 KB).
@@ -166,7 +166,8 @@ How it works:
   - 403 or 413 stops the writer. The HUD shows "This table is no longer saved on the server: <error>" until the player closes it. The IndexedDB copy still saves.
   - At open, the browser compares the document with the server table (`Y.equalSnapshots`). If they differ, for example after a closed page, the browser writes at once. A state vector alone is not enough, because a delete does not change it.
   - There is no write on page close, because a table can pass 64 KB in a long game. The IndexedDB copy has the last changes.
-  - When both players are connected (step 8), only the host writes, because both browsers have the same document.
+  - When both players are connected (step 8), only the host writes, because both browsers have the same document. The guest's writer pauses on `connected`: a change starts no timer. It resumes on any other state, and a waiting change starts the timer. **← Lobby** and a hidden tab still write from the guest. The host counts changes from the guest, because their origin is not `'server'`. This halves the table writes, and Atlas M0 allows 10 GB out per week.
+  - If the host's page closes without its hidden-tab write, the guest's writer resumes and writes the whole document. No change is lost, but the server can have an older table for up to 60 s.
 - **Merge on the server:** the Lambda reads `table` and `tableRev`, merges the new update into it (`Y.mergeUpdates`), and writes with the filter `{ _id, tableRev }`. If the other player wrote in between, the filter finds no document. Then the Lambda reads again, merges again and writes once more. If that fails too, it answers 409 "The table changed. Try again." The browser tries again with its next write. So no change is lost, also when both players write at the same time.
 - **Size:** the Lambda rejects a body above 1 MB (413). It also does not write a merged table above 1 MB (413). It logs the size of the body and of the merged table for each write. A table of 6 rounds is 22 KB, and of 18 rounds 34 KB (open question 5). Atlas M0 has 512 MB, so it holds a few thousand rooms.
 - **Lambda:** a function URL sends a binary body as base64, and `@hono/aws-lambda` decodes it and encodes the `application/octet-stream` answer. `apps/api/test/lambda-binary.test.ts` tests both directions with a fake event. The real function URL is first used with a token in step 12.
@@ -177,27 +178,31 @@ How it works:
 |---|---|---|
 | `POST /auth/discord` | no | `{ code, redirectUri }`. Login flow steps 5 and 6. Answers 200 `{ token, user }`, 400 bad body, 401 Discord rejected the code, 502 Discord failed, 503 Discord not configured (local only) |
 | `GET /me` | yes | Answers 200 `{ user, token? }`, with a new token when the old one is more than 1 day old. 401: no token, bad token, or the user is gone |
-| `DELETE /me` | yes | Deletes the user and the room that the user hosts, with its table. Answers 204. The user's guest seats keep the user id. See [Privacy](#privacy) |
+| `DELETE /me` | yes | Deletes the user, the room that the user hosts, with its table, and the user's signaling messages. Answers 204. The user's guest seats keep the user id. See [Privacy](#privacy) |
 | `GET /rooms` | yes | `{ rooms }`: the rooms where the user has a seat, the last changed first, at most 100, with both players' names and avatars. No table. 401 |
 | `POST /rooms` | yes | `{ mapId, side, roster, table }`. `table` is base64. Answers 201 `{ room }`. 400 bad body or bad table, 409 the user hosts a room already, 413 table too large |
 | `GET /rooms/{code}` | no | 200 `{ room }`: map, rosters, players' names and avatars, free seats. No table. 404 |
 | `POST /rooms/{code}/join` | yes | `{ roster }`, required. Takes the free seat. 200 `{ room }`, also when the user has a seat already. 400 no roster, 409 no free seat, 404 |
 | `GET /rooms/{code}/table` | yes, seat | 200, the table bytes. 403 no seat, 404 |
 | `PUT /rooms/{code}/table` | yes, seat | The table bytes. Merges them into the stored table. 204. 400 not a Yjs update, 409 the merge lost twice, 413 too large, 403, 404. See [Table on the server](#table-on-the-server) |
-| `DELETE /rooms/{code}` | yes, host | Deletes the room and its table. 204. 403 not the host, 404 |
+| `DELETE /rooms/{code}` | yes, host | Deletes the room, its table and its signaling messages. 204. 403 not the host, 404 |
+| `POST /rooms/{code}/messages` | yes, seat | `{ from, to, type, data }`. Stores a signaling message. 201 `{ id }`. 400, 403, 404, 413, 429 |
+| `GET /rooms/{code}/messages?to={peer}` | yes, seat | The poll. Header `x-after`, optional. 200 `{ messages }`. 400, 403, 404 |
 
 A `room` in an answer is `{ code, host, players: { blue, red }, mapId, rosters: { blue, red }, createdAt, updatedAt }`. A player is `{ id, name, avatar, discordId }`, `{ id, gone: true }` when the user no longer exists, or `null` for a free seat. A room code that is not `XXXX-XXXX` (Crockford base32) answers 404. Errors are `{ error }`.
 
-The signaling paths `/rooms/{code}/messages` of the peer-to-peer plan fit under the same `/rooms/{code}` prefix.
+The signaling paths `/rooms/{code}/messages` are under the same `/rooms/{code}` prefix. Their rules are in `docs/feature-peer-to-peer.md` ("Endpoints").
 
 ## Identity in peer-to-peer games
 
 - Peer-to-peer games happen only in multiplayer rooms. So every signaling request (`hello`, `offer`, `answer`, `bye`, and the polls) sends the session token.
-- The Lambda accepts signaling requests only from users with a seat in the room. To avoid an Atlas read on every 2-second poll, each Lambda instance keeps the seats of a room in memory for 30 seconds.
+- The Lambda accepts signaling requests only from users with a seat in the room. To avoid an Atlas read on every 2-second poll, each Lambda instance keeps the seats of a room in memory for 30 seconds (`rooms/seats.ts`). The cache keeps `{ blue, red }`, or `null` for a room that does not exist. A cached entry is used only when it gives the user a seat. Otherwise the store is read again, so a guest who just joined is not refused.
+- A poll checks only the token (`middleware/session.ts`, `requireSession`) and does not read the user. The other routes use `requireUser`, which reads the user from Mongo on every request, and a poll every 2 s would cost two Atlas reads. `POST` reads the user, because it adds `user` to the message.
+- A deleted user with a valid token can still poll a room where they keep a guest seat. They see only signaling messages. This is accepted.
 - The Lambda adds `user: { id, name, avatar, discordId }` to each message that it stores. It ignores a `user` field that the browser sends.
-- The browser accepts an `offer` or an `answer` only when its `user` is the same as the `user` of the peer's `hello`.
+- The browser accepts an `offer` or an `answer` only when its `user.id` is the same as the `user.id` of the `hello` with the same `from`. It ignores every message whose `user.id` is its own, so a second tab of the same user does nothing.
 - The SDP of the offer and the answer has the fingerprint of the sender's DTLS certificate. The browsers check this fingerprint when the data channels connect. So the data channels are connected to the user that the Lambda added to the offer or the answer.
-- The player name comes from Discord. The typed player name of the peer-to-peer plan is not needed.
+- The player name comes from Discord. The typed player name and the peer id in `sessionStorage` of the old peer-to-peer plan are gone. The peer id is new at each table open.
 - When a browser opens a room code that is not a single player room of this browser, it asks `GET /rooms/{code}`. A multiplayer room opens the room (with a seat) or the join page (with a free seat). With no free seat, the lobby shows "This room has two players already.". An unknown code shows "Room K7Q2-M9XD not found.". With login off, no API call is made, and the lobby shows "Room K7Q2-M9XD is not in this browser.".
 
 ## Lobby and room UI
@@ -210,10 +215,10 @@ The signaling paths `/rooms/{code}/messages` of the peer-to-peer plan fit under 
   - **Single player:** both roster fields, as today.
   - When the user hosts a room already, **Multiplayer** shows "You host room K7Q2-M9XD already. Delete it to create a new one." and **Create room** is disabled.
 - **Tile buttons:** **Blue** and **Red** show the roster. **Delete** only for the host, with a browser confirm. **Copy link** while the guest seat is free.
-- **Copy link:** copies `<origin>/#room=<code>`. The button shows "Link copied" or "Copy failed" for 2 s. It is in the lobby tile and in the toolbar of a multiplayer room, next to the room code. It disappears when the guest seat is taken. The toolbar knows the seats from the time the room opened, so if the guest joins while the host is in the room, the button stays until the room opens again.
+- **Copy link:** copies `<origin>/#room=<code>`. The button shows "Link copied" or "Copy failed" for 2 s. It is in the lobby tile and in the toolbar of a multiplayer room, next to the room code. It disappears when the guest seat is taken. In the toolbar it also hides when the guest's `hello` arrives, so it hides when the guest joins while the host is in the room. If the guest is forgotten later (`bye`), it shows again.
 - **Link of a multiplayer room when logged out:** the join page shows the setup of the room, with **Log in with Discord to join**. In a dev build without Discord, it says "Log in above to join". After login, the player comes back to the same link (`returnHash`).
 - **Server not available:** the lobby shows the single player rooms and the message "Could not load your multiplayer rooms". **Multiplayer** in the dialog is disabled.
-- **Room toolbar of a multiplayer room:** no map picker (the map is fixed) and no Roster group. The room code and **Copy link** show. The avatar and name of each player come in step 8.
+- **Room toolbar of a multiplayer room:** no map picker (the map is fixed) and no Roster group. The room code and **Copy link** show. Then come both seats: the team name in the side color, avatar and name, and "You" at the own seat. The other seat shows the connection status: "Waiting", "Connecting", "Connected", "Could not connect" or "Not here", with **Try again** for the last two. A free seat shows "Free seat" until the guest's `hello` arrives. A deleted player shows "Deleted player" with no status.
 - **Local copy:** the IndexedDB database of a multiplayer room is `mcp-assist-3d/multiplayer/<user id>/<code>`. Each time `GET /rooms` succeeds, the lobby deletes the databases of this user whose code is not in the list. So a room that the host deleted leaves no copy in the guest's browser. A browser without `indexedDB.databases()` skips this.
 
 ## Privacy
@@ -310,14 +315,15 @@ apps/web/src/auth/
   useUser.js       React hook: the current user or null
   avatar.js        Discord avatar URL
 apps/web/src/rooms/
-  serverStore.js   multiplayer rooms API: list, get, create, join, delete, table
-  serverTable.js   the table writer (60 s timer, flush, retry) and hasLocalChanges
+  serverStore.js   multiplayer rooms API: list, get, create, join, delete, table, postMessage, getMessages
+  serverTable.js   the table writer (60 s timer, flush, retry, pause) and hasLocalChanges
   roomPage.js      which page a room link opens
   roomList.js      one list of single player and multiplayer rooms
   startTable.js    the bytes of the start table
   base64.js        bytes to base64 and back
   localDocs.js     the IndexedDB names of multiplayer rooms and their cleanup
 apps/web/src/components/
+  RoomPlayers.jsx  the seats and the connection status in the room toolbar (step 8)
   UserMenu.jsx     login button, avatar, menu, dev login
   JoinRoom.jsx     the join page of a multiplayer room
   CopyLinkButton.jsx  Copy link
@@ -325,9 +331,9 @@ apps/web/src/components/
   Privacy.jsx      the privacy page
 apps/api/src/
   auth/            token (sign and verify the session token), discord (the Discord client)
-  routes/          auth (Discord code exchange), devAuth (local only), me, rooms (seat rules), table (merge), signal (step 8)
-  rooms/           code (room code), table (Yjs checks and merge), read (room read, 404, host-gone cleanup)
-  middleware/      user: checks the session token with hono/jwt. validate: body check
+  routes/          auth (Discord code exchange), devAuth (local only), me, rooms (seat rules), table (merge), signal (messages, step 8)
+  rooms/           code (room code), table (Yjs checks and merge), read (room read, 404, host-gone cleanup), seats (the seat cache)
+  middleware/      user: checks the session token with hono/jwt and reads the user. session: the token only. validate: body check
   stores/          users and rooms: memory and MongoDB. Rooms need `yjs`
   local.ts         the Node entry for dev. Also the dev login route
 ```
@@ -348,7 +354,7 @@ The plan `docs/plans/implement-backend.md` gives the order of the phases and the
 ## Relation to other features
 
 - `docs/feature-rooms.md`: the rooms there become single player rooms. They stay in `localStorage` and never connect. Two lines there change: "Peer-to-peer will add rooms that this browser joined" (now these are multiplayer rooms), and "the Red field will be only in the Sandbox" (single player rooms keep both roster fields).
-- `docs/feature-peer-to-peer.md`: games happen only in multiplayer rooms, and both players are logged in. "No accounts" and the typed player name in "Room and players" go away. The host shares the link of a multiplayer room, not of a single player room ("Connect flow"). The signaling routes get the token and seat check. They are in the same API (`apps/api`, backend doc). The IndexedDB copy of the Yjs document stays, and the server snapshot comes in addition.
+- `docs/feature-peer-to-peer.md`: games happen only in multiplayer rooms, and both players are logged in. "No accounts", the typed player name and the peer id in `sessionStorage` in "Room and players" went away in step 8, and so did the **Host game** button. The host shares the link of a multiplayer room, not of a single player room ("Connect flow"). The signaling routes get the token and seat check. They are in the same API (`apps/api`, backend doc). The IndexedDB copy of the Yjs document stays, and the server snapshot comes in addition.
 
 ## Decisions
 

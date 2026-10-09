@@ -285,24 +285,46 @@ Done when: two dev-login users in two browsers can create a room, join it, and s
 
 Peer-to-peer phase 2 and auth phase 3. Read: peer-to-peer doc "How a WebRTC connection starts", "Signaling service", "Connect flow", "Data channels", "Room and players". Auth doc "Identity in peer-to-peer games".
 
-1. `apps/api`: signaling routes with the token and seat check. The API adds `user` to each message. The poll URL stays the same between polls.
-2. `apps/web`:
-   - `peer.js`, Yjs sync and awareness over the data channel.
-   - Host and join in a multiplayer room.
-   - Names and avatars in the room toolbar.
-   - The camera turn for the Red player (plan of step 7, "Left for later steps").
-   - The version check and the `?build` flag.
-3. Local coturn and `?relay`, if a browser pair cannot connect directly.
+Detailed plan: `docs/plans/implement-backend/08-two-browsers.md`. It has the decisions of 2026-10-09.
 
-Note from step 7: when the host deletes the room, the host's browser tells the guest's browser over the connection, and the guest leaves at once (plan of step 7, decision 15). Until then, the guest finds out at the next table write, which gets 404.
+1. `apps/api`:
+   - Signaling routes `POST` and `GET /rooms/{code}/messages` with the token and seat check. The API adds `user` to each message. The poll URL stays the same between polls (`x-after` header).
+   - The messages store (memory and Mongo), a token check without a user read for polls, and a seat cache of 30 s.
+   - The room delete and `DELETE /me` also delete messages.
+2. `apps/web`:
+   - `peer.js` and Yjs sync over one `sync` data channel, in frames of 16 KB.
+   - Both players post `hello` and poll. The guest offers, the host answers. No **Host game** button and no typed name.
+   - The players, their avatars and the connection status in the room toolbar.
+   - The camera turn for the Red player.
+   - The version check and the `?build` flag.
+   - The guest's table writer pauses while connected.
+   - The guest learns about a room delete from its poll (404), not over the connection.
+   - A new connection after the other page closes or reloads.
+3. Local coturn and `?relay`, only if a browser pair cannot connect directly (Phase 5 of the detailed plan).
+
+Left for later steps: awareness and the `poses` channel (step 9), a dropped network and "Reconnecting" (step 11), `GET /ice` (step 13).
 
 Done when: in the three browser pairs, discrete changes sync. Discrete changes are map, crisis cards, tokens, new characters, damage and power.
+
+**Result:** Built on 2026-10-09 in phases 1 to 4. The browser checks of the user are open. Details are in `docs/plans/implement-backend/08-two-browsers.md`.
+- `5f0b9b6` (phase 1): signaling routes, the messages store (memory and Mongo, two indexes), `requireSession`, the seat cache, the message cleanup in the room delete and `DELETE /me`. The Lambda `index.mjs` is 961,323 bytes (956,348 after step 7).
+- `8e58ba2` (phase 2): the signaling client, `peer.js`, `syncChannel.js`, the STUN list, `y-protocols` and `lib0`, and `pause` of the table writer.
+- `2144c58` (phase 3): the room connects. Players and status in the toolbar, the Red camera, the version check, `?build`, the pause of the guest's writer, the 404 of a poll.
+- Phase 4: docs. Phase 5 (coturn and `?relay`) is not built. It is needed only if a browser pair cannot connect.
+- The tests pass in all packages: the API 112 plus 19 Mongo cases, the web app 97, infra 16.
+- Design changes: no `GET /ice` (step 13), no awareness and no `poses` channel (step 9), the guest learns about a delete from its poll, and the peer id is new at each table open.
+- Known until step 9: a model that one player moves shows at its new place on the other screen only after the room opens again. Both browsers write the rest pose of a body that falls asleep.
 
 ## Step 9: Moving objects
 
 Peer-to-peer phase 3. Read: peer-to-peer doc "Moving objects (physics)".
 
 The tools (range, move, Toward/Away) move into the Yjs document in this step, per side (step 5, decision 1). Before this, they are React state and `RulerTool.jsx`.
+
+Step 8 built only the `sync` channel. This step adds:
+- The `poses` data channel (id 1, unreliable, unordered). A channel added after the connection needs no new offer.
+- Yjs awareness over `sync` (type `1` in the message layout): claims (`owns`), names and selection.
+- The rest-pose writes from both browsers (step 8, decision 18) get an owner, so only one browser writes them.
 
 Done when: both players can drag models and tokens, and each player uses only their own tools. The tools are in the document. The bytes per game are logged.
 
@@ -315,6 +337,12 @@ Done when: each player rolls in their own tray, and the other player sees the di
 ## Step 11: Reconnect
 
 The rest of peer-to-peer phase 5: reconnect. The IndexedDB copy of the Yjs document was done in step 5 (decision 7). Read: peer-to-peer doc "Room and players" (reconnect).
+
+Step 8 (decision 8) already handles a closed or reloaded page: the state goes back to `waiting`, and the other page connects again with a new `hello` or offer. This step keeps:
+- A dropped network and a sleeping laptop.
+- The "Reconnecting" message.
+- ICE restart.
+- The checks for lost changes.
 
 Done when: after a reload or a dropped connection, the game continues without lost changes.
 
@@ -343,6 +371,8 @@ From this step on, production data is real. A change of the data format needs a 
 ## Step 13: TURN
 
 Peer-to-peer phase 6. Only if step 12 or later games show that direct connections fail too often. Read: peer-to-peer doc "STUN and TURN".
+
+This step also adds `GET /ice` (step 8 decision 13). It returns the ICE server list and the short-lived TURN credentials. Until then, the web app has the two STUN servers as a constant in `net/ice.js`, and a connect makes no extra request.
 
 ## Decisions
 

@@ -1,6 +1,6 @@
 # Feature: Peer-to-peer play
 
-Status: plan. Not started. See [Open questions](#open-questions) at the end.
+Status: step 8 is built. Two browsers of a multiplayer room connect over WebRTC, and the Yjs document syncs over the `sync` channel. The `poses` channel, awareness and claims come in step 9. A dropped network and "Reconnecting" come in step 11. `GET /ice` and TURN come in step 13. The user's browser checks of step 8 are open. See [Open questions](#open-questions) at the end.
 
 The backend (repo, stack, AWS, deploy) is in `docs/feature-backend.md`. The order of the work is in `docs/plans/implement-backend.md`.
 
@@ -96,26 +96,65 @@ The collection is a mailbox per room. One document per message. The index `{ roo
 |---|---|
 | `POST /rooms/{room}/messages` | Stores one message. Rejects unknown types, big bodies, and rooms that have 50 messages already |
 | `GET /rooms/{room}/messages?to={peer}` | Returns the messages for this peer (or for `*`) after the id in the `x-after` header. Without the header, it returns all of them |
-| `GET /ice` | Returns the ICE server list. Later also short-lived TURN credentials, see [STUN and TURN](#stun-and-turn) |
+| `GET /ice` | Not built yet. Step 13 adds it: the ICE server list and short-lived TURN credentials, see [STUN and TURN](#stun-and-turn). Until then the web app has the two STUN servers as a constant in `net/ice.js` |
+
+Details of the routes (step 8):
+
+- Both routes need a valid token and a seat in the room. A user without a seat gets 403. An unknown room gets 404.
+- `to` of an `offer` or an `answer` is a peer id. Only `hello` and `bye` may use `*`.
+- A message in an answer is `{ id, from, to, type, data, user }`. The server sets `user` to `{ id, name, avatar, discordId }` and ignores a `user` in the body.
+- The message id is 13 digits of the server time in ms, `-`, and 8 random characters. A poll returns at most 50 messages, the oldest first, and not the messages of the asking peer.
+- Errors: 400 for a bad body, `to` or `x-after`. 413 above 16 KB. 429 for the 51st message of a room.
+- Before the server stores a `hello` or a `bye`, it deletes the older messages of the same user in the room. So a reload leaves no old `hello`, and a room keeps few messages.
+- A poll checks only the token. It does not read the user (`docs/feature-auth.md`, "Identity in peer-to-peer games"). The seat comes from a cache of 30 s per API instance.
+- `DELETE /rooms/{code}` and `DELETE /me` delete the messages too, because the SDP has the public IP address.
 
 The poll sends `after` in the `x-after` header, not in the query. So the poll URL stays the same between polls, and the browser sends one CORS preflight for it, not one per poll (backend doc, "Preflight per URL"). The CORS config of the function URL allows this header.
 
 ### Connect flow
 
-1. The host presses **Host game**. The browser makes a random room code and a link: `https://<site>/#room=K7Q2-M9XD`. The code is in the URL hash, so Netlify never receives it. The host posts `hello` and polls every 2 s.
-   Rooms exist already in one browser (`docs/feature-rooms.md`). A single player room has a code of this format, and its page is this link. A multiplayer room (step 7, `docs/feature-auth.md`) is on the server, and its link opens the join page for a guest. So the host shares the link of a multiplayer room they created. A single player room never connects.
-2. The host sends the link to the other player (chat, email).
-3. The guest opens the link. The guest posts `hello`, reads the host's `hello`, creates the offer, waits until ICE gathering ends (at most 3 s), and posts the `offer`.
-4. The host reads the offer, creates the answer the same way, and posts the `answer`.
-5. The guest reads the answer. The data channels open. Both stop polling.
+Both players of a multiplayer room (step 7, `docs/feature-auth.md`) run the same code. Either player can open the room first. The room's host answers. The guest makes the offer.
 
-When the host deletes the room while the guest is connected, the host's browser tells the guest's browser over the connection. The guest then leaves the room at once, with "The host deleted room K7Q2-M9XD.", and the browser deletes its local copy. This needs no server request. Until step 8, the guest finds out at their next table write, which gets 404 (`docs/feature-auth.md`, "Rules").
-
-Both `hello` messages carry the app version (the build id). If the two versions are different, both players see a warning: "Your opponent uses a different version of the app. Both players should reload the page." The reason is in [State](#state), category 1.
+1. When the table opens, the browser makes a new random peer id (`crypto.randomUUID()`), posts `hello` and polls every 2 s. The peer id is not kept: a reload makes a new one. The room link is `https://<site>/#room=K7Q2-M9XD`. The code is in the URL hash, so Netlify never receives it. A guest who opens the link joins the room first (`docs/feature-auth.md`). A single player room and the Sandbox never connect and make no signaling call.
+2. The guest sees the `hello` of the host. It creates the offer, waits until ICE gathering ends (at most 3 s), and posts the `offer`. A newer `hello` of the host ends the attempt in progress, and the guest offers again.
+3. The host reads the offer, creates the answer the same way, and posts the `answer`. A new offer ends the attempt in progress or the old connection, because the guest's page is new.
+4. The guest reads the answer. The `sync` channel opens. Both stop polling.
 
 The guest makes the offer, not the host. The reason: an offer that waits for minutes until someone joins can stop working, because routers forget address mappings that are not used. With this order, the offer and the answer are created seconds apart.
 
-Polling stops after 15 minutes with no guest. So a forgotten tab does not make requests forever.
+A browser uses a message only when:
+- its `user.id` is not the own user id, so a second tab of the same user is ignored.
+- for an `offer` or an `answer`: its `user.id` equals the `user.id` of the `hello` with the same `from`.
+
+Each attempt has its own `RTCPeerConnection`. The old one is closed.
+
+States, shown in the room toolbar next to the other player:
+
+| State | Means | Toolbar text |
+|---|---|---|
+| `waiting` | The browser polls. The other page is not seen | "Waiting" |
+| `connecting` | An offer or an answer is sent | "Connecting" |
+| `connected` | The `sync` channel is open | "Connected" |
+| `failed` | The answer came, but ICE did not connect. Polls go on | "Could not connect" and **Try again**. The title says: "Could not connect directly. One of the networks blocks peer-to-peer connections." |
+| `stopped` | 15 minutes with no message from the other player. No polls | "Not here" and **Try again** |
+| `gone` | A poll got 404: the room was deleted | The lobby opens with "The host deleted room K7Q2-M9XD." |
+
+Timeouts:
+- An offer with no answer after 15 s: the host's page is gone. The state goes back to `waiting`, and the guest does not offer to that `hello` again.
+- Not connected 15 s after the answer, or `connectionState` is `failed`: `failed`. Polls go on, so a new `hello` or offer starts a new attempt.
+- 15 minutes with no message from the other player: polls stop, and the state is `stopped`. So a forgotten tab does not make requests forever.
+- **Try again** posts a new `hello` and starts the 15 minutes again. The guest also offers again to the latest `hello` of the host.
+- Polls stop while the state is `connected`.
+
+A new connection after the other page closes or reloads (step 8): when the `sync` channel closes or `connectionState` is `failed`, the state goes back to `waiting` with the same peer id, and polls start again. The other page posts a new `hello` (as host) or a new offer (as guest). Yjs syncs what changed in between. When the table closes (**← Lobby**, a page close or reload), the browser posts `bye`. On a page close it uses `keepalive`, but this is best effort: in production, a `keepalive` request with an `Authorization` header needs a preflight, which a closing page may not send. Without `bye`, the other browser finds out by the timeouts. A `bye` of the other player ends the attempt in progress, and the state goes to `waiting`.
+
+Step 11 keeps the network cases: a dropped network, a sleeping laptop, the "Reconnecting" message, ICE restart, and the checks for lost changes.
+
+When the host deletes a room, the host is in the lobby, where its room is not open and has no connection. The old plan was that the host's browser tells the guest over the connection. Step 8 replaced it: the guest learns from its poll. While the guest waits, it polls. After the delete, a poll gets 404 within about 32 s (the seat cache of 30 s plus one poll). The guest's browser then opens the lobby with "The host deleted room K7Q2-M9XD." and deletes its local copy. A guest whose polls stopped finds out at its next table write, which gets 404 (`docs/feature-auth.md`, "Rules").
+
+Both `hello` messages carry the app version (the build id). The build id is `import.meta.env.VITE_BUILD_ID`: the Netlify `COMMIT_REF`, or `dev`. If the two versions are different, both players see a warning: "Your opponent uses a different version of the app. Both players should reload the page." The connection still runs. The reason is in [State](#state), category 1.
+
+While the two browsers are connected, only the host writes the table to the server. The guest's writer pauses, and it still writes on **← Lobby** and when its tab is hidden (`docs/feature-auth.md`, "Table on the server").
 
 ## Cost and free tier
 
@@ -184,16 +223,22 @@ Cloudflare Realtime does not do signaling for direct connections. So with Cloudf
 
 ## Data channels
 
-One `RTCPeerConnection` per pair of players, with two data channels:
+One `RTCPeerConnection` per pair of players. The design has two data channels:
 
-| Channel | Settings | Carries |
-|---|---|---|
-| `sync` | reliable, ordered (the default) | Categories 2 and 3: Yjs sync messages. Also Yjs awareness messages (`y-protocols`) |
-| `poses` | `ordered: false`, `maxRetransmits: 0` | Category 4: poses of moving objects and dice, cursor positions. A lost packet is not sent again, because the next one replaces it |
+| Channel | Settings | Carries | Step |
+|---|---|---|---|
+| `sync` | reliable, ordered. `negotiated: true`, `id: 0` | Categories 2 and 3: Yjs sync messages. Later also Yjs awareness messages (`y-protocols`) | 8 |
+| `poses` | `ordered: false`, `maxRetransmits: 0` | Category 4: poses of moving objects and dice, cursor positions. A lost packet is not sent again, because the next one replaces it | 9 |
+
+Step 8 builds only `sync`. Both browsers create it before the offer and the answer, as a negotiated channel, so there is no `ondatachannel` race. Step 9 adds `poses` (id 1) and awareness. A channel added after the connection needs no new offer, because the data channel transport exists already.
+
+Names and sides need no awareness in step 8. They come from the room and from the `user` of the messages, which the server sets.
+
+On `sync`, each message is a varUint type (`0` is sync) and then a `y-protocols/sync` message, the same layout as y-websocket. Type `1` (awareness) comes in step 9. A channel sends sync step 1 when it opens. A document update from the channel is applied with the channel as origin and is not sent back.
 
 The data is encrypted (DTLS), also through TURN. Data channels need no camera or microphone permission.
 
-Message size: before sending a big Yjs update (the first sync of a game), check `pc.sctp.maxMessageSize`. Split the message if it is bigger. The value depends on both browsers, because each browser states in the SDP how big a message it can receive. Firefox has a different limit than Chrome and Safari. So test the first sync of a big game in each browser pair.
+Message size: the first sync of a long game is about 35 KB. The design was to check `pc.sctp.maxMessageSize` and split. The value depends on both browsers, and Firefox has a different limit than Chrome and Safari. So `syncChannel.js` always splits a message above 16 KB, a size that works in every pair, and does not read the value. Each frame has a first byte: `0` a whole message, `1` a part with more to come, `2` the last part. The channel is ordered and reliable, so the parts arrive in order. Test the first sync of a big game in each browser pair.
 
 ## State
 
@@ -303,10 +348,11 @@ So the roller's browser decides the roll, and a changed client could cheat. This
 
 ## Room and players
 
-- No accounts. Each browser makes a random peer id and keeps it in `sessionStorage`. The player types a name once (kept in `localStorage`).
-- The host chooses a side: blue or red. The guest gets the other side. The default camera turns 180° for the red player, so the own side is at the bottom of the screen.
+- Players have accounts (step 7, `docs/feature-auth.md`). The name, the avatar and the side come from the room and from the server, not from the player. The peer id is new at each table open and is not stored. The old plan kept it in `sessionStorage` and asked for a typed name. A duplicated tab copies `sessionStorage`, and the account makes the name known, so both are gone.
+- The host chooses a side: blue or red. The guest gets the other side. In a multiplayer room where the user has the Red seat, the start view is the Blue view turned 180° around the mat center, so the own side is at the bottom of the screen. Position `[0, 32.5, -42.9]`, target `[0, 0, -10.4]`. Space returns to it. Single player rooms and the Sandbox keep the Blue view, because one player plays both sides there.
+- The room toolbar shows both seats: team name in the side color, avatar and name. The own seat says "You". The other seat shows the status of [Connect flow](#connect-flow). When the guest seat was free at open, the name and avatar come from the guest's `hello`, and **Copy link** hides.
 - Version 1 has two players. A third peer (a spectator) needs a connection to each other peer. Yjs supports that, but it is not in this plan.
-- When the connection drops, both sides show "Reconnecting". The guest runs the connect flow again with the same room code. Yjs syncs what changed.
+- When the connection drops, both sides show "Reconnecting". The guest runs the connect flow again with the same room code. Yjs syncs what changed. Step 8 does the case of a closed or reloaded page. The "Reconnecting" message and a dropped network come in step 11.
 
 ### What each player controls
 
@@ -348,11 +394,11 @@ Vite forwards `/api/*` to the API process and removes `/api`. The same Hono app 
 
 To test the MongoDB store code before a deploy, start `mongo` in Docker and run the API with `STORE=mongo` and `MONGODB_URI=mongodb://localhost:27017`. Local dev never uses the Atlas cluster. So a bug in local code cannot change production data.
 
-To connect, open `http://localhost:5173` in one browser and press **Host game**. Copy the room link into the other browser.
+To connect, log in with a dev login in each browser (for example `alice` and `bob`). The first player creates a multiplayer room. The second opens the room link and joins. `README.md` has the steps.
 
 ### Browser differences
 
-- Each browser has its own `sessionStorage`, `localStorage` and IndexedDB. So peer ids, player names and the stored tables do not collide.
+- Each browser has its own `localStorage` and IndexedDB. So logins and the stored tables do not collide.
 - All three browsers treat `http://localhost` as a secure context.
 - The maximum message size is different in Firefox. See [Data channels](#data-channels).
 - To log bytes per game, the app reads the selected candidate pair from `pc.getStats()`. Chrome and Safari give it through the transport stats (`selectedCandidatePairId`). Firefox has used a `selected` field on the candidate pair instead. The code must support both.
@@ -364,28 +410,33 @@ Flags in the page URL. They work only in dev builds (`import.meta.env.DEV`), so 
 
 | Flag | Does |
 |---|---|
-| `?relay` | Sets `iceTransportPolicy: 'relay'`, so all data goes through the TURN server. Tests the relay path before Cloudflare |
+| `?relay` | Not built yet (Phase 5 of step 8, only if a pair cannot connect). Sets `iceTransportPolicy: 'relay'`, so all data goes through the TURN server. Tests the relay path before Cloudflare |
 | `?drop=10&delay=100` | Drops 10 % of the packets on the `poses` channel and delays the rest by 100 ms. Localhost loses no packets, so without this flag the interpolation and the rest pose rules are not tested |
-| `?build=test` | Sends a fake app version in `hello`, to test the version warning |
+| `?build=test` | Built in step 8. Sends a fake app version in `hello`, to test the version warning |
 
 ## Code layout
 
 ```
 apps/web/src/
-  Table.jsx       opens the document of a room or the Sandbox, then mounts App. Multiplayer rooms: reads the table from the server and runs the table writer
+  Table.jsx       opens the document of a room or the Sandbox, then mounts App. Multiplayer rooms: reads the table from the server, runs the table writer, starts the connection, pauses the guest's writer while connected
   rooms/tableDoc.js  openTableDoc (IndexedDB, timeout, memory fallback), watchRoomRecord
 apps/web/src/net/
   doc.js          the layout of the Y.Doc, SCHEMA, createTable, fillTable, encodeTable. No React
   collections.js  the list and record stores over a Y.Map: diff writes, order, snapshots. No React
   useY.js         React hooks: useYList, useYRecord, useYField
-  signaling.js    Signaling interface and its HTTP version (local API and Lambda)
-  peer.js         RTCPeerConnection, data channels, ICE servers, reconnect
-  syncChannel.js  Yjs sync and awareness over the sync channel (y-protocols)
-  poses.js        sends poses of owned bodies, receives and interpolates
-  ownership.js    claim and release rules
-  debugFlags.js   ?relay, ?drop, ?delay, ?build (dev builds only)
+  ice.js          the STUN list (step 8). Step 13: GET /ice
+  signaling.js    createSignaling: hello, offer, answer, bye, poll with x-after
+  peer.js         connectRoom: roles, timeouts, states, RTCPeerConnection (built in step 8)
+  syncChannel.js  Yjs sync over the sync channel, frames of 16 KB (step 8). Awareness in step 9
+  debugFlags.js   ?build (step 8, dev builds only). ?relay, ?drop, ?delay later
+  poses.js        step 9: sends poses of owned bodies, receives and interpolates
+  ownership.js    step 9: claim and release rules
+apps/web/src/components/
+  RoomPlayers.jsx  the seats and the connection status in the room toolbar
 apps/api/
-  src/routes/signal.ts  signaling routes: messages, ICE servers
+  src/routes/signal.ts  signaling routes: messages (step 8). ICE servers in step 13
+  src/middleware/session.ts  requireSession: checks the token, reads no user
+  src/rooms/seats.ts    the seat cache, 30 s per room
   src/stores/           messages store: memory and MongoDB. The MongoDB store creates the indexes
   README.md             local mongo and coturn in Docker
 infra/
@@ -394,7 +445,7 @@ infra/
 
 The rest of `apps/api` and `infra/` is in the backend doc ("Code", "Infrastructure").
 
-New packages in `apps/web`: `yjs` and `y-indexeddb` (step 5), `y-protocols` (step 8).
+New packages in `apps/web`: `yjs` and `y-indexeddb` (step 5), `y-protocols` and `lib0` (step 8).
 
 ## Phases
 
@@ -403,7 +454,7 @@ Each phase ends with a working app. Do not open the app in a browser. Check with
 The plan `docs/plans/implement-backend.md` gives the order of the phases and their steps. The API, the AWS parts and the deploy come first, in its steps 2 to 4. From step 3 on, each backend change is deployed when its step is done.
 
 1. **Shared state in a local Yjs document.** Move the table state from `useState` into the document: map, mat turns, deploy line, crisis, tokens, the character list, terrain, setup and the rosters. Write rest poses when bodies sleep. A room stores its document in IndexedDB. Save and load a game as a file. No network. The app works as before. The tools stay in React state until phase 3 (step 5, decision 1).
-2. **Two browsers, one Mac.** Signaling routes in `apps/api`, with the memory store and the MongoDB store. Host and join UI, the room link. `peer.js`, Yjs sync and awareness. Name and side. App version check in `hello`, and the `?build` flag. Discrete changes sync: map, crisis cards, token flips and markers, new characters, damage and power. If a browser pair cannot connect directly, add the local coturn server and `?relay` here instead of in phase 6.
+2. **Two browsers, one Mac.** Signaling routes in `apps/api`, with the memory store and the MongoDB store. The room link and the players in the room toolbar. `peer.js` and Yjs sync (step 8). Awareness comes in step 9. App version check in `hello`, and the `?build` flag. Discrete changes sync: map, crisis cards, token flips and markers, new characters, damage and power. If a browser pair cannot connect directly, add the local coturn server and `?relay` here instead of in phase 6.
 3. **Moving objects.** Player bodies and shared bodies, ownership, the pose channel, the cursor. The tools (range, move, Toward/Away) move into the document, per side. Bodies moved by the other browser push nothing. Drag of models and tokens by both players. Each player uses only their own tools. The `?drop` and `?delay` flags. Log the bytes of each game from `pc.getStats()`.
 4. **Dice.** Dice and roll history move into the document. Dice are player bodies. Only the tray's player can use its dice panel.
 5. **Reconnect.** Reconnect after a reload or a dropped connection. The IndexedDB copy of the Yjs document was done in phase 1. It is tested locally first. The AWS parts of this phase (CDK stacks, Atlas database user, budget alert) moved to steps 3 and 4 of the plan.

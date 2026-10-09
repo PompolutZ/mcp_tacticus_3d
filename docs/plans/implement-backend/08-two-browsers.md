@@ -357,6 +357,19 @@ Checks:
 
 ### Result
 
+Changed docs:
+- `docs/feature-peer-to-peer.md`: status line, "Endpoints" (route details, `GET /ice` moved to step 13), "Connect flow" (both `hello`, states, timeouts, new connection after a close, the delete from the poll, build id, the guest's writer), "Data channels" (one channel, frames of 16 KB), "Room and players" (no `sessionStorage` peer id, no typed name, Red camera, toolbar), "Local testing", "Debug flags", "Code layout", phase 2.
+- `docs/feature-auth.md`: status line, "Rules" (delete from the poll), "Table on the server" (decision 11), "Endpoints" (messages routes), "Identity in peer-to-peer games" (decision 4, decision 15), toolbar text, "Code layout".
+- `docs/feature-backend.md`: "Code" (`signal`, `session`, `seats`), "Database" (`messages`).
+- `docs/plans/implement-backend.md`: step 8 text and **Result**. Steps 9, 11 and 13 got the parts that moved.
+- `README.md`: two browsers in local dev, and the status texts.
+
+Where the docs keep history, one sentence says what changed: the removed **Host game** button, the `sessionStorage` peer id and the typed name (peer-to-peer doc, "Room and players"; auth doc), and the host telling the guest about a delete (auth doc, "Rules").
+
+Checks: `pnpm test`, `pnpm format`, `pnpm lint` : `pnpm test` passes (web 97, api 112, infra 16), `pnpm format` done, `pnpm lint` has 0 errors (warnings are old).
+
+Deviations: none.
+
 ## Phase 5: Local coturn and `?relay`
 
 Only if a browser pair of the user checks cannot connect directly (peer-to-peer doc, "Browser differences", the mDNS risk). Planned after the user checks, with what they show.
