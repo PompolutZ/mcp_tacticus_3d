@@ -397,14 +397,14 @@ Files changed:
 Facts:
 - Lambda `index.mjs`: 851,963 bytes before step 6, 1,320,732 with `zod`, 882,867 with `zod/mini`.
 - Versions: `zod@4.6.5` (as `zod/mini`), `@hono/zod-validator@0.9.1`.
-- User checks 13 and 14 are not done. The overview Result says they are pending.
+- User checks 13 and 14 were not done when this phase ended. They passed later (see "User check results").
 
 Checks:
 - `pnpm test`: pass (api 59, web 30, infra 16). `pnpm format`: ok. `pnpm lint`: 0 errors, 44 warnings.
 
 Changes from the plan: none.
 
-Open issues: user checks 13 and 14.
+Open issues: none.
 
 ## User
 
@@ -447,6 +447,8 @@ On 2026-10-09:
 - Discord's **Verification Qualifications** page (Team, Terms of Service, install link, and more) is for bots in more than 100 servers. Login with `identify` works without it.
 - `put-secrets` and the deploy worked. `POST /auth/discord` with a fake code answered 401 `Discord login failed`.
 - Checks 7 to 12 passed, also the first login with `prompt=none`. One problem: after a restart of `pnpm dev`, the tester was logged out. Cause and fix: decision 16.
+- After Phase 4: the deploy and the `curl` checks passed again (check 13). With the dev Mongo and `STORE=mongo`, the tester stayed logged in after a restart of `pnpm dev` (check 14).
+- Check 15 (production after the Netlify build) waits for the push.
 
 ## Done when
 
