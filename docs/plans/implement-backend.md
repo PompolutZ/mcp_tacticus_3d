@@ -27,7 +27,6 @@ This plan is the overview: the steps, their order and why. Each step also gets i
 | 2 | API skeleton, local | 1 | | | `02-api-skeleton.md` |
 | 2b | Lint and format | 2 | | | `02b-lint-format.md` |
 | 3 | Infra and first deploy | 2 | 5 (AWS parts) | 4 (AWS parts) | `03-infra.md` |
-| 4 | CI deploy | 3 | | | `04-ci.md` |
 | 5 | Shared state in Yjs | 1 | 1 | | `05-yjs-state.md` |
 | 6 | Login | 3 | | 1 | `06-login.md` |
 | 7 | Online rooms | 5, 6 | | 2 | `07-online-rooms.md` |
@@ -35,14 +34,16 @@ This plan is the overview: the steps, their order and why. Each step also gets i
 | 9 | Moving objects | 8 | 3 | | `09-moving-objects.md` |
 | 10 | Dice | 9 | 4 | | `10-dice.md` |
 | 11 | Reconnect and stored game | 8 | 5 (the rest) | | `11-reconnect.md` |
-| 12 | First release | 10, 11 | | 4 (the rest) | `12-release.md` |
+| 4 | CI deploy | 3 | | | `04-ci.md` |
+| 12 | First release | 4, 10, 11 | | 4 (the rest) | `12-release.md` |
 | 13 | TURN | 12 | 6 | | `13-turn.md` |
 
 The detailed plans are in `docs/plans/implement-backend/`.
 
-- Steps 1 to 4 add no game feature. They make the path from code to AWS work while the API is small. So problems with pnpm, CDK, roles, Atlas or CI show early, one at a time.
+- Step 4 keeps its number, but it runs after step 11 and before step 12 (decision 5). The table shows the order of the work.
+- Steps 1 to 3 add no game feature. They make the path from code to AWS work while the API is small. So problems with pnpm, CDK, roles or Atlas show early, one at a time.
 - Step 5 is frontend only. Login (step 6) comes after it, because only the online features need login, and the first online feature is step 7.
-- From step 3 on, every backend change is deployed when its step is done. Production shows no login and no online rooms until step 12, because the web app shows the login button only when `VITE_DISCORD_CLIENT_ID` is set.
+- From step 3 on, every backend change is deployed when its step is done. Until step 4, the user deploys from their machine with `pnpm --filter infra cdk:deploy`. Production shows no login and no online rooms until step 12, because the web app shows the login button only when `VITE_DISCORD_CLIENT_ID` is set.
 - Step 12 is the first release. Steps 5 to 11 are tested locally, with dev login and the browser pairs. Then the app goes to production, and the user tests with another real person.
 
 ## Detailed plans
@@ -176,7 +177,9 @@ Done when:
 - The log group keeps logs for 1 week, and the budget exists.
 - The answers to the backend doc's open questions 1 to 3 are in the **Result**.
 
-**Result:** Code and docs done on 2026-10-09. The user's deploy is next. Details are in `docs/plans/implement-backend/03-infra.md`.
+**Result:** Done on 2026-10-09. Details are in `docs/plans/implement-backend/03-infra.md`.
+- The user deployed both stacks and ran the checks of `03-infra.md` ("User"). All passed: `/health` returns `db: "ok"`, CORS, keep-alive, log retention, budget. Netlify has `VITE_API_URL`.
+- The `REPORT` line of the first request (cold start time) is not recorded.
 - `apps/api`: `lambda.ts`, the Mongo store, the SSM reader, `/health` returns 503 when the Mongo ping fails. `pnpm test` needs no Docker. `test:mongo` starts its own `mongo:8` container with Testcontainers.
 - `infra/`: the stacks `McpTacticusAccount` and `McpTacticusApi`, `put-secrets`, 16 stack tests. `cdk synth` passes without credentials and bundles on the machine (832 kb).
 - The commands of the first deploy, in order, are in `03-infra.md` ("First deploy commands"). `infra/README.md` has the commands for a new machine and for later deploys.
@@ -185,6 +188,8 @@ Done when:
 - Installed: `mongodb@7.7.0`, `@hono/aws-lambda@1.0.0`, `@testcontainers/mongodb@12.2.0`, `aws-cdk-lib@2.272.0`, `aws-cdk@2.1144.0`, `esbuild@0.28.2`.
 
 ## Step 4: CI deploy
+
+Postponed on 2026-10-09 (decision 5). It runs after step 11 and before step 12. The detailed plan `04-ci.md` was written on 2026-10-09. Before the step starts, check it again (see the note at its top).
 
 Read: backend doc "Deploy" → "GitHub Actions".
 
@@ -314,3 +319,10 @@ Made on 2026-10-08:
 2. The Netlify site is renamed in step 1, so the address is final from the start. Before the first release, all data is test data, and nothing is migrated.
 3. Step 12 is the first release. The user tests it in production with another real person.
 4. Every step from 1 to 13 gets a detailed plan that records its intent and its path. It is written before the step starts, after the results of the steps that it needs.
+
+Made on 2026-10-09:
+
+5. Step 4 (CI deploy) runs after step 11, before step 12. Reasons:
+   - CI costs no money. GitHub Actions is free for a public repo, IAM is free, and each deploy adds about 1 MB to the bootstrap S3 bucket. But it is work, and no step before step 12 needs it.
+   - It is not known yet whether anyone will use the app. Until the first release, the user deploys from their machine.
+   - From step 12 on, real players use the API. Then each deploy must be repeatable and checked.

@@ -342,7 +342,7 @@ Checks:
 
 ### Result
 
-Status: done. The user's work (section "User") is next.
+Status: done. The user's work is in section "User".
 
 Files changed:
 - New: `infra/README.md`.
@@ -381,6 +381,12 @@ After phase 3, in the order of "First deploy commands" below:
 7. `curl <ApiUrl>health` returns `"db":"ok"` and the commit. The preflight returns `access-control-allow-origin: https://mcptacticus3d.netlify.app`. The keep-alive returns `{"db":"ok"}`.
 8. Paste the `REPORT` line of the first request from the logs (it has `Init Duration` and `Duration`). It goes into the **Result**.
 9. Netlify: set `VITE_API_URL`.
+
+### Result
+
+Done on 2026-10-09. The user ran items 1 to 9. All checks passed, and the user reported no problems.
+
+Not recorded: the `REPORT` line of item 8. So the cold start time (risk 6) is not measured yet. Every cold start logs it, so a later check can measure it: `aws logs tail` with `--filter-pattern "Init Duration"`.
 
 ## First deploy commands
 
