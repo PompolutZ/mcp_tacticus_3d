@@ -1,6 +1,6 @@
 # Feature: Login with Discord
 
-Status: phase 1 (login) is done and checked locally (step 6 of the plan). Phase 2 (multiplayer rooms, step 7) is built. Phase 3 (identity in peer-to-peer, step 8) is built. The browser checks of steps 7 and 8 are open. The rest is plan. See [Open questions](#open-questions) at the end.
+Status: phase 1 (login) is done and checked locally (step 6 of the plan). Phase 2 (multiplayer rooms, step 7) is built. Phase 3 (identity in peer-to-peer, step 8) is built. The browser checks of steps 7 and 8 passed on 2026-10-09. The rest is plan. See [Open questions](#open-questions) at the end.
 
 The backend (repo, stack, AWS, deploy) is in `docs/feature-backend.md`. The order of the work is in `docs/plans/implement-backend.md`.
 

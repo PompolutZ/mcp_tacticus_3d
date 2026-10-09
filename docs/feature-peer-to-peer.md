@@ -1,6 +1,6 @@
 # Feature: Peer-to-peer play
 
-Status: step 8 is built. Two browsers of a multiplayer room connect over WebRTC, and the Yjs document syncs over the `sync` channel. The `poses` channel, awareness and claims come in step 9. A dropped network and "Reconnecting" come in step 11. `GET /ice` and TURN come in step 13. The user's browser checks of step 8 are open. See [Open questions](#open-questions) at the end.
+Status: step 8 is built. Two browsers of a multiplayer room connect over WebRTC, and the Yjs document syncs over the `sync` channel. The `poses` channel, awareness and claims come in step 9. A dropped network and "Reconnecting" come in step 11. `GET /ice` and TURN come in step 13. The user's browser checks of step 8 passed on 2026-10-09. See [Open questions](#open-questions) at the end.
 
 The backend (repo, stack, AWS, deploy) is in `docs/feature-backend.md`. The order of the work is in `docs/plans/implement-backend.md`.
 

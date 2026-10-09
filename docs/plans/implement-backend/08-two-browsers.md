@@ -519,6 +519,7 @@ Once, in one pair:
 - 2026-10-09, after Phase 5 with `turn:up`: both sides show "Connected". Checks 5 to 12 are open.
 - 2026-10-09: the user reported that the sync works well. They found that the squad choice shows on the other screen while the player chooses. Phase 6 fixes it.
 - 2026-10-09, after Phase 6: the user reported that the secret squads work.
+- 2026-10-09: the user reported that all checks of step 8 pass, 1 to 12, in the three browser pairs.
 
 ## Done when
 

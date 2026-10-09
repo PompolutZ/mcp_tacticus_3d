@@ -272,7 +272,7 @@ Auth phase 2. Read: auth doc "Multiplayer rooms", "Lobby and room UI". The detai
 
 Done when: two dev-login users in two browsers can create a room, join it, and see the map and the host's roster. Another browser of the same user gets the saved table.
 
-**Result:** Built on 2026-10-09 in five commits. The browser checks of the user are open. Details are in `docs/plans/implement-backend/07-multiplayer-rooms.md`.
+**Result:** Built on 2026-10-09 in five commits. The user checks 3 to 12 passed on 2026-10-09. Details are in `docs/plans/implement-backend/07-multiplayer-rooms.md`.
 - `b4b8e6d` (phase 1): `yjs`, the rooms store (memory and Mongo, four indexes), `GET /rooms`, `POST /rooms`, `GET /rooms/{code}`, `POST /rooms/{code}/join`, `DELETE /rooms/{code}`, and the rooms part of `DELETE /me`.
 - `fe1d3c3` (phase 2): `GET` and `PUT /rooms/{code}/table`, merged with `Y.mergeUpdates` and the `tableRev` filter, one retry, then 409. A test sends a fake function URL event through the Lambda adapter. The Lambda `index.mjs` is 956,348 bytes (882,867 after step 6).
 - `c75aaff` (phase 3): one room list in the lobby, multiplayer tiles, **Copy link**, **Delete**, the **Single player** or **Multiplayer** choice in the new room dialog, and the start table sent with `POST /rooms`.
@@ -306,11 +306,13 @@ Left for later steps: awareness and the `poses` channel (step 9), a dropped netw
 
 Done when: in the three browser pairs, discrete changes sync. Discrete changes are map, crisis cards, tokens, new characters, damage and power.
 
-**Result:** Built on 2026-10-09 in phases 1 to 4. The browser checks of the user are open. Details are in `docs/plans/implement-backend/08-two-browsers.md`.
+**Result:** Done on 2026-10-09 in phases 1 to 6. All user checks passed in the three browser pairs. Details are in `docs/plans/implement-backend/08-two-browsers.md`.
 - `5f0b9b6` (phase 1): signaling routes, the messages store (memory and Mongo, two indexes), `requireSession`, the seat cache, the message cleanup in the room delete and `DELETE /me`. The Lambda `index.mjs` is 961,323 bytes (956,348 after step 7).
 - `8e58ba2` (phase 2): the signaling client, `peer.js`, `syncChannel.js`, the STUN list, `y-protocols` and `lib0`, and `pause` of the table writer.
 - `2144c58` (phase 3): the room connects. Players and status in the toolbar, the Red camera, the version check, `?build`, the pause of the guest's writer, the 404 of a poll.
-- Phase 4: docs. Phase 5 (coturn and `?relay`) is not built. It is needed only if a browser pair cannot connect.
+- Phase 4: docs.
+- `ef98f9a` (phase 5): every pair showed "Could not connect" on one Mac (no NAT hairpin). So every dev build has a local coturn in its ICE list. `pnpm --filter api turn:up` starts it. `?relay` sends all data through it.
+- `ec99b08` (phase 6): secret squads. In a multiplayer room, the squad that a player chooses stays in that browser until both players are Ready.
 - The tests pass in all packages: the API 112 plus 19 Mongo cases, the web app 97, infra 16.
 - Design changes: no `GET /ice` (step 13), no awareness and no `poses` channel (step 9), the guest learns about a delete from its poll, and the peer id is new at each table open.
 - Known until step 9: a model that one player moves shows at its new place on the other screen only after the room opens again. Both browsers write the rest pose of a body that falls asleep.
