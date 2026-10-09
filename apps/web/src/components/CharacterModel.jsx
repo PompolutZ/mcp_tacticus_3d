@@ -18,6 +18,7 @@ import {
 import { FRICTION, MODEL_GROUPS, castDown } from '../physics.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
 import { tablePoint } from '../drag/tablePoint.js'
+import DragFootprint from './DragFootprint.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useColorTexture } from './useColorTexture.js'
 import { assetUrl } from '../assets/index.js'
@@ -259,6 +260,8 @@ function CharacterFigure({
   // The dragged base overlaps a model now. Shows the mark without the 100 ms delay of Scene.
   const [dragOverlap, setDragOverlap] = useState(false)
   const showOverlap = overlap || dragOverlap
+  // Mounts the footprint of the base during a drag
+  const [dragging, setDragging] = useState(false)
   // Pose the model has stayed close to, and for how long: { t, r, time }. See SETTLE_TIME.
   const rest = useRef(null)
   // The lift (R key): { x, y, z, sleeping, up, landing }, or null. x, y, z: the body position before
@@ -524,6 +527,7 @@ function CharacterFigure({
         slide.current = null
         rigidRef.current?.setBodyType(2, true)
         isDragging.current = true
+        setDragging(true)
         freePlace.current = { ...rigidRef.current.translation() }
         onDragStart?.()
       },
@@ -542,6 +546,7 @@ function CharacterFigure({
         }
         freePlace.current = null
         setDragOverlap(false)
+        setDragging(false)
         rigidRef.current?.setBodyType(0, true)
         rigidRef.current?.setLinvel(ZERO, true)
         rigidRef.current?.setAngvel(ZERO, true)
@@ -572,6 +577,12 @@ function CharacterFigure({
   // Only the base collides, as in the mod's model bundles, so the center of mass is the base center.
   // Rotation is free, as in TTS: the model stays upright while its center of mass is over the ground
   // and tips over when it is past an edge.
+  // The base circle under the body, red while it overlaps another model
+  const footprintShape = () => {
+    const t = rigidRef.current?.translation()
+    return t ? { x: t.x, z: t.z, radius: baseRadius } : null
+  }
+
   return (
     // dominanceGroup 1 (dice stay at the default, 0): in a model-die contact, Rapier moves only the
     // lower-group body, so a die never pushes a model (design, "Collisions"). Fixed/kinematic
@@ -606,6 +617,7 @@ function CharacterFigure({
         onPointerOut={() => setHovered(false)}
         onPointerDown={onPointerDown}
       />
+      {dragging && <DragFootprint getShape={footprintShape} getApart={() => dragOverlap} />}
       {overlay?.(top)}
     </RigidBody>
   )

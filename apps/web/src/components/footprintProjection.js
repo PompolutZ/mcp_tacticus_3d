@@ -8,7 +8,11 @@ import * as THREE from 'three'
 // - sector: a quarter circle, corner at the center, out to a radius. Used by the Zone Arc outline.
 // The shader paints every surface under a shape that faces up enough.
 
-const MAX_FOOTPRINTS = 6
+const MAX_FOOTPRINTS = 7
+// Colors shared by every user of a slot
+export const FOOTPRINT_COLOR = '#3f7fd6'
+export const FOOTPRINT_TOUCH = '#2ee06a'
+export const FOOTPRINT_APART = '#e5484d'
 // Surfaces with a world normal Y below this are walls and are not painted (about 60° slope)
 const FACE_UP_MIN = 0.5
 // Outline width in screen pixels
@@ -110,7 +114,7 @@ function setColors(i, fill, opacity, line) {
   uniforms.uFpLine.value[i].set(color.r, color.g, color.b)
 }
 
-// Takes a free slot. Returns { set, setSector, release }, or null when all slots are used.
+// Takes a free slot. Returns { set, setCircle, setSector, hide, release }, or null when all slots are used.
 export function acquireFootprint() {
   const i = used.indexOf(false)
   if (i < 0) return null
@@ -129,6 +133,14 @@ export function acquireFootprint() {
       )
       setColors(i, fill, opacity, line)
     },
+    // Circle shape, for a dragged token or model base: the rect shape with half length 0, so the
+    // hinge (radius = half width) is the whole disk.
+    setCircle(x, z, radius, fill, opacity, line) {
+      uniforms.uFpKind.value[i] = KIND_RECT
+      uniforms.uFpRect.value[i].set(x, z, 0, radius)
+      uniforms.uFpDir.value[i].set(1, 0, -1, 0)
+      setColors(i, fill, opacity, line)
+    },
     // Quarter-circle shape, for the Zone Arc. Corner at (x, z), between the world directions of
     // angle1 and angle2 (angle2 is 90° further than angle1), out to radius.
     setSector(x, z, angle1, angle2, radius, fill, opacity, line) {
@@ -141,6 +153,10 @@ export function acquireFootprint() {
         Math.sin(angle2),
       )
       setColors(i, fill, opacity, line)
+    },
+    // Hides the shape and keeps the slot
+    hide() {
+      uniforms.uFpFill.value[i].w = 0
     },
     release() {
       uniforms.uFpFill.value[i].w = 0

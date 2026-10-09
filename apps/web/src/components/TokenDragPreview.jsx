@@ -2,6 +2,8 @@ import { Suspense, useEffect, useRef } from 'react'
 import { useThree } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
 import { tablePoint } from '../drag/tablePoint.js'
+import { TOKEN_RADIUS } from './CrisisToken.jsx'
+import DragFootprint from './DragFootprint.jsx'
 import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
 
 // Gap between the ground and the token, the same as LooseToken.jsx
@@ -43,10 +45,19 @@ export default function TokenDragPreview({ pointRef, start, children }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [camera, gl, world, rapier, pointRef])
 
+  // The footprint is the token radius under the point. It hides when the point is null.
+  const footprintShape = () => {
+    const p = pointRef.current
+    return p ? { x: p.x, z: p.z, radius: TOKEN_RADIUS } : null
+  }
+
   // Hidden until handleMove gives it a point
   return (
-    <group ref={groupRef} visible={false}>
-      <Suspense fallback={null}>{children}</Suspense>
-    </group>
+    <>
+      <group ref={groupRef} visible={false}>
+        <Suspense fallback={null}>{children}</Suspense>
+      </group>
+      <DragFootprint getShape={footprintShape} />
+    </>
   )
 }

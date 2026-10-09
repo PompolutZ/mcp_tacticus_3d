@@ -337,6 +337,33 @@ User, after this phase, in a single player room: check 4b.
 
 ### Result
 
+Done.
+
+- `footprintProjection.js`: `MAX_FOOTPRINTS` is 7. New `setCircle(x, z, radius, fill, opacity, line)`. New `hide()` on a slot: it clears the fill and keeps the slot. The shader did not change.
+- `FOOTPRINT_COLOR`, `FOOTPRINT_TOUCH` and `FOOTPRINT_APART` are exports of `footprintProjection.js`. `RulerTool.jsx` imports them.
+- New `components/DragFootprint.jsx`. It takes a slot on mount and gives it back on unmount. Props: `getShape` and `getApart`, both functions that run each frame. A null shape hides the slot. Look: `FOOTPRINT_COLOR` fill at 0.35, white line, `FOOTPRINT_APART` fill when `getApart` is true.
+- `CharacterModel.jsx`: a `dragging` state, set in `onStart` and `onEnd`. The shape is the body XZ and `baseRadius`. `apart` is `dragOverlap`.
+- `CrisisToken.jsx`: a `dragging` state, set in the token drag only. The turn with the handle does not set it. The shape is `poseRef` and the token radius.
+- `TokenDragPreview.jsx`: it mounts with the drag, so the footprint lives as long as the preview. The shape is `pointRef` and `TOKEN_RADIUS` (imported from `CrisisToken.jsx`). Null when the point is null.
+- `TacticCard.jsx`: a `dragging` state, and `overTableRef` (was a local `overTable`). The footprint hides while the pointer is off the table.
+- Score markers got none.
+
+Choices that the plan did not fix:
+- A card shape is `{ x, z, angle, halfLength, halfWidth }`, not `yaw`. `angle` is the direction of the long side, as in `RulerTool`. The rect shape has a round hinge of radius `halfWidth` at the center. The card is 2.5 wide and 3.5 long, so the long side (local z) is the length, `halfLength` 1.75 and `halfWidth` 1.25. With the short side as the length, the hinge would stick out of the card. The angle is `tacticCardYaw(team) - π/2`.
+- The footprint uses the card yaw of its team, so it is turned for a red card.
+- `hide()` is new, so a slot stays taken while the pointer is off the table.
+- The shape is the token radius, 0.5, for every token drag of `TokenDragPreview`, also a pile or a supply pile.
+
+Differences in behavior:
+- A drag takes one slot. Seven slots can run out when many tools, arcs and a drag are on at once. Then `acquireFootprint` returns null and the drag has no footprint. Phase 3 raises the number to 12.
+
+Checks:
+- `pnpm --filter web test`: 134 pass, 0 fail.
+- `pnpm --filter web build`: passes.
+- `pnpm format` done. `pnpm lint`: 37 warnings, 0 errors, none new in the changed files.
+- No new test, as the plan says.
+
+
 ## Phase 2c: Tools spawn at the pointer
 
 Read: decision 19. `App.jsx` (`handleRangeClick`, `handleMoveClick`, `handleAngleClick`, `handleAngleKey`, `handleToolKey`, `toolSpawns`, `angleSpawn`, `hoveredRef`, `characterAtRef`). `components/Scene.jsx` (the tools, `toolTarget`, `toolModel`, `characterAtRef`). `components/RulerTool.jsx` (`Tool`: `position`, `spawnTarget`, the spawn effect). `drag/tablePoint.js`. `README.md` ("Tools").

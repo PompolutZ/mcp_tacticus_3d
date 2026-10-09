@@ -5,7 +5,12 @@ import { RigidBody, ConvexHullCollider, useRapier } from '@react-three/rapier'
 import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 import { baseGroundY, upright } from './CharacterModel.jsx'
-import { acquireFootprint } from './footprintProjection.js'
+import {
+  acquireFootprint,
+  FOOTPRINT_APART,
+  FOOTPRINT_COLOR,
+  FOOTPRINT_TOUCH,
+} from './footprintProjection.js'
 import { castDown } from '../physics.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
 import { throwMove, throwSlide } from './throwPath.js'
@@ -421,9 +426,6 @@ function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove, on
 export const RANGE_TIP = { 2: 1.501, 3: 3.0, 4: 4.0, 5: 5.0 }
 // Range tools are 1" wide (mesh spans z = ±0.5)
 const RANGE_HALF_WIDTH = 0.5
-const FOOTPRINT_COLOR = '#3f7fd6'
-const FOOTPRINT_TOUCH = '#2ee06a'
-const FOOTPRINT_APART = '#e5484d'
 // Physics can nudge a resting base a little, so a small gap still counts as contact
 const CONTACT_EPS = 0.01
 

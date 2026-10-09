@@ -9,6 +9,7 @@ import { tablePoint } from '../drag/tablePoint.js'
 import { crisisMarker, crisisToken } from '../crisis/files.js'
 import { assetUrl } from '../assets/index.js'
 import { affiliationToken } from '../scoreboard/files.js'
+import DragFootprint from './DragFootprint.jsx'
 import { acquireFootprint } from './footprintProjection.js'
 import { TOKEN_DRAG_LIFT, TOKEN_EDGE_COLOR, TOKEN_THICKNESS } from '../tokens/solid.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
@@ -157,6 +158,8 @@ export default function CrisisToken({
   // Live pose during a drag, in table XZ and yaw. Synced from the token prop when not dragging.
   const poseRef = useRef({ x: token.x, z: token.z, yaw: token.yaw })
   const draggingRef = useRef(false)
+  // Mounts the footprint during a drag of the token. Not during a turn with the handle: it does not lift.
+  const [dragging, setDragging] = useState(false)
   const arcSlot = useRef(null)
 
   useEffect(() => {
@@ -231,6 +234,7 @@ export default function CrisisToken({
       canStart: () => selected && token.canMove,
       onStart: () => {
         draggingRef.current = true
+        setDragging(true)
       },
       onMove: (ev) => {
         const p = pointerPoint(ev.clientX, ev.clientY)
@@ -241,6 +245,7 @@ export default function CrisisToken({
       },
       onEnd: (ev) => {
         draggingRef.current = false
+        setDragging(false)
         // A canHold token dropped on a character is held, not placed on the mat (see "Hold and
         // drop"). Any other token, or no character under the release point, just moves as usual.
         const holder = token.canHold ? findCharacter?.(ev.clientX, ev.clientY) : null
@@ -310,6 +315,8 @@ export default function CrisisToken({
   }
   const out = () => setHovered(false)
 
+  const footprintShape = () => ({ ...poseRef.current, radius: RADIUS })
+
   return (
     <group ref={setGroupRef} position={[token.x, 0, token.z]} rotation={[0, token.yaw, 0]}>
       <TokenDisk
@@ -345,6 +352,7 @@ export default function CrisisToken({
           <meshStandardMaterial map={damageMap} transparent roughness={1} />
         </mesh>
       )}
+      {dragging && <DragFootprint getShape={footprintShape} />}
       {selected && token.hasArc && (
         <TurnHandle
           position={[HANDLE_DIST * Math.SQRT1_2, HANDLE_Y, -HANDLE_DIST * Math.SQRT1_2]}

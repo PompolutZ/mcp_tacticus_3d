@@ -14,6 +14,7 @@ import {
   tacticCardYaw,
 } from '../tactics/layout.js'
 import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
+import DragFootprint from './DragFootprint.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useColorTexture } from './useColorTexture.js'
 import { useHoverCursor } from './useHoverCursor.js'
@@ -63,6 +64,10 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
   // the effect runs after every drop.
   const poseRef = useRef({ x: card.x, z: card.z })
   const draggingRef = useRef(false)
+  // Mounts the footprint during a drag
+  const [dragging, setDragging] = useState(false)
+  // False while the pointer is off the table: the footprint hides, a release puts the card back
+  const overTableRef = useRef(true)
   // The turn around the long side: { up, from, to, time }. An angle that is an even multiple of π is
   // face up, an odd multiple is back up. up: the side of the last flip. time: seconds since that flip,
   // FLIP_DURATION when it is over. Each flip adds π to `to`, so the card always turns the same way.
@@ -110,24 +115,26 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
   // A drag moves the card, a click opens it
   function handlePointerDown(e) {
     // The last point over the table. A release off the table puts the card back.
-    let overTable = true
+    overTableRef.current = true
 
     startPointerDrag(e, {
       controls,
       canvas: gl.domElement,
       onStart: () => {
         draggingRef.current = true
+        setDragging(true)
       },
       onMove: (ev) => {
         const p = pointerPoint(ev.clientX, ev.clientY)
-        overTable = Boolean(p)
+        overTableRef.current = Boolean(p)
         if (p) poseRef.current = { x: p.x, z: p.z }
       },
       onEnd: () => {
         draggingRef.current = false
+        setDragging(false)
         // The card stays at the drop point until App's new card prop sets its place (a slot, or the
         // same point). Released off the table, it goes back to its last place.
-        if (overTable) onMove?.(poseRef.current.x, poseRef.current.z)
+        if (overTableRef.current) onMove?.(poseRef.current.x, poseRef.current.z)
         else poseRef.current = { x: card.x, z: card.z }
       },
       onClick: () => {
@@ -148,6 +155,17 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
     onHover?.(true)
     return () => onHover?.(false)
   }, [hovered])
+
+  // The long side of the card is local z. The footprint angle (cos a, 0, -sin a) of local z is yaw - π/2.
+  const footprintShape = () =>
+    overTableRef.current
+      ? {
+          ...poseRef.current,
+          angle: tacticCardYaw(card.team) - Math.PI / 2,
+          halfLength: TACTIC_CARD_HEIGHT / 2,
+          halfWidth: TACTIC_CARD_WIDTH / 2,
+        }
+      : null
 
   return (
     <group
@@ -178,6 +196,7 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
           <meshStandardMaterial map={backMap} roughness={1} />
         </mesh>
       </group>
+      {dragging && <DragFootprint getShape={footprintShape} />}
     </group>
   )
 }
