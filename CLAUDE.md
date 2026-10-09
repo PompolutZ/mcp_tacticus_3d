@@ -8,6 +8,10 @@ To migrate a map (mat and terrain) from the TTS mod, read `apps/web/scripts/READ
 
 Do not open the app in a browser (playwright-cli, dev server, screenshots) to check a change unless I ask for it in that message. `pnpm --filter web build` to catch errors is fine. I check the result in the browser myself.
 
+## Lint and format
+
+After a code change, run `pnpm format` and `pnpm lint`. Both are safe to run at any time.
+
 ## Paths in docs
 
 In `docs/`, the paths `src/`, `public/`, `scripts/` and `tools/` are under `apps/web/`.

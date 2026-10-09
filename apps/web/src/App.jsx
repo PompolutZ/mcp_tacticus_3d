@@ -205,7 +205,7 @@ export default function App({ room = null, onExit }) {
   const [squadSelect, setSquadSelect] = useState({ blue: false, red: false })
   // Affiliation token that each player's VP marker shows: { blue, red } → key in scoreboard/affiliations.json.
   // No toolbar control: Setup game sets it (see docs/feature-setup-game.md).
-  const [affiliations, setAffiliations] = useState(start.affiliations)
+  const [affiliations] = useState(start.affiliations)
   // Selected pieces and tools, see selection.js. One character, one token, the range tool, the
   // movement tool and the Toward / Away tool can all be selected at the same time.
   const [selection, setSelection] = useState(NO_PIECES)

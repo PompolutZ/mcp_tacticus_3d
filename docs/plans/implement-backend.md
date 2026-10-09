@@ -25,6 +25,7 @@ This plan is the overview: the steps, their order and why. Each step also gets i
 | 0 | Align the feature docs | — | | | — (the list is in the backend doc) |
 | 1 | Monorepo | 0 | | | `01-monorepo.md` |
 | 2 | API skeleton, local | 1 | | | `02-api-skeleton.md` |
+| 2b | Lint and format | 2 | | | `02b-lint-format.md` |
 | 3 | Infra and first deploy | 2 | 5 (AWS parts) | 4 (AWS parts) | `03-infra.md` |
 | 4 | CI deploy | 3 | | | `04-ci.md` |
 | 5 | Shared state in Yjs | 1 | 1 | | `05-yjs-state.md` |
@@ -131,6 +132,14 @@ Done when: `pnpm typecheck`, `pnpm test` and `pnpm --filter web build` pass.
 - Root `dev` starts web and api. Root `test` and `typecheck` run only in `api`.
 - Vite forwards `/api` to port 8787 without the prefix. `apps/web/.env.development` has `VITE_API_URL=/api`.
 
+## Step 2b: Lint and format
+
+Read: `docs/plans/implement-backend/02b-lint-format.md`.
+
+One linter (oxlint) and one formatter (oxfmt) for the whole repo, with root config and root scripts `lint`, `format`, `format:check`. Phase 1 adds the tools, the config and the fixes. Phase 2 formats the repo in its own commit. Phase 3 adds `.git-blame-ignore-revs`.
+
+**Result:** (added after phase 3)
+
 ## Step 3: Infra and first deploy
 
 Read: backend doc "Infrastructure", "Secrets and config", "Database", "Deploy" → "From the user's machine". Peer-to-peer doc "MongoDB connection".
@@ -166,7 +175,7 @@ Done when:
 
 Read: backend doc "Deploy" → "GitHub Actions".
 
-1. `.github/workflows/ci.yml` and `.github/workflows/deploy-api.yml`.
+1. `.github/workflows/ci.yml` and `.github/workflows/deploy-api.yml`. CI runs `pnpm lint` and `pnpm format:check`.
 2. `infra/README.md`: the `gh` commands for the environment `prod` and the variable `AWS_DEPLOY_ROLE_ARN`.
 
 **User:** run the `gh` commands. Merge a change in `apps/api` to `main`, and watch the deploy run.

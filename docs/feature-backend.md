@@ -50,7 +50,7 @@ netlify.toml         Netlify build settings
 - pnpm 11 and later stop the install when a package has an install script and no `allowBuilds` entry. `esbuild` has one, so `pnpm-workspace.yaml` has `allowBuilds: { esbuild: true }`. Testcontainers brings `ssh2`, `cpu-features` and `protobufjs`. Their scripts build an optional native part or only print a warning, so they get `false`.
 - With pnpm, a package can import only the packages that it lists. Today's `src` and `scripts` import only listed packages. One exception: `scripts/dice-sim.mjs` loads Rapier by a fixed path inside `node_modules/@react-three/rapier/node_modules/`. pnpm keeps packages in another place, so the script must resolve this path from `@react-three/rapier`.
 - No script is named `deploy`, because `pnpm deploy` is a built-in pnpm command.
-- Root scripts: `pnpm dev` (web and api together), `pnpm build`, `pnpm test`, `pnpm typecheck`.
+- Root scripts: `pnpm dev` (web and api together), `pnpm build`, `pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm format`, `pnpm format:check`.
 
 ## API
 
@@ -224,6 +224,7 @@ region = eu-central-1
 
 - `.github/workflows/ci.yml` runs on pull requests and on pushes to `main`:
   - `pnpm install --frozen-lockfile`
+  - `pnpm lint` and `pnpm format:check`
   - type checks and tests. The Mongo store tests start a `mongo` container with Testcontainers. GitHub runners have Docker.
   - the web build
   - `cdk synth`

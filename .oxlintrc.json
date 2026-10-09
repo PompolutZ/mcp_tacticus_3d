@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "react", "import", "vitest"],
+  "categories": { "correctness": "error" },
+  "rules": {
+    "react/immutability": "warn",
+    "react-hooks/exhaustive-deps": "warn",
+    "react/set-state-in-effect": "warn",
+    "react/refs": "warn"
+  },
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/cdk.out/**",
+    "apps/web/public/**",
+    "apps/web/tools/**",
+    "pnpm-lock.yaml",
+    "**/*.md",
+    "apps/web/src/**/*.json",
+    "apps/web/scripts/*-manifest.json"
+  ]
+}

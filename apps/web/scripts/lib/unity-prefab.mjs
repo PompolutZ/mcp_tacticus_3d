@@ -10,7 +10,6 @@ import fs from 'node:fs'
 import path from 'node:path'
 import * as THREE from 'three'
 
-const GAME_OBJECT = 1
 const TRANSFORM = 4
 const MATERIAL = 21
 const MESH_COLLIDER = 64

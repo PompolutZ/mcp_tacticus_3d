@@ -31,12 +31,7 @@ describe('requireParam', () => {
   it('names the missing parameter and shows no value', () => {
     const params = { other: 'topsecret' }
     expect(() => requireParam(params, 'mongodb-uri', prefix)).toThrow(
-      'Missing SSM parameter /mcptacticus/prod/mongodb-uri',
+      new Error('Missing SSM parameter /mcptacticus/prod/mongodb-uri'),
     )
-    try {
-      requireParam(params, 'mongodb-uri', prefix)
-    } catch (e) {
-      expect((e as Error).message).not.toContain('topsecret')
-    }
   })
 })

@@ -53,6 +53,13 @@ Open `http://localhost:5173`. The app opens on the lobby. Open the Sandbox or a 
 
 `pnpm test` and `pnpm typecheck` check the API.
 
+### Lint and format
+
+- `pnpm lint` runs oxlint on the whole repo. It fails on errors, not on warnings.
+- `pnpm format` formats the code with oxfmt. `pnpm format:check` only checks it.
+- The Oxc extension adds both to VS Code.
+- To let `git blame` skip the commit of the first format, run once: `git config blame.ignoreRevsFile .git-blame-ignore-revs`.
+
 The API uses the memory store by default. To run it with Mongo, start one in Docker and set `STORE=mongo` in `apps/api/.env` (see `apps/api/.env.example`):
 
 ```bash

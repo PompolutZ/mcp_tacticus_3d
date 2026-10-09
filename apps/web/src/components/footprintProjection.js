@@ -27,9 +27,9 @@ const uniforms = {
   uFpFill: { value: Array.from({ length: MAX_FOOTPRINTS }, () => new THREE.Vector4(0, 0, 0, 0)) },
   uFpLine: { value: Array.from({ length: MAX_FOOTPRINTS }, () => new THREE.Vector3()) },
   // 0 = rect, 1 = sector
-  uFpKind: { value: new Array(MAX_FOOTPRINTS).fill(KIND_RECT) },
+  uFpKind: { value: Array.from({ length: MAX_FOOTPRINTS }, () => KIND_RECT) },
 }
-const used = new Array(MAX_FOOTPRINTS).fill(false)
+const used = Array.from({ length: MAX_FOOTPRINTS }, () => false)
 const color = new THREE.Color()
 
 const VERTEX_DECL = /* glsl */`
