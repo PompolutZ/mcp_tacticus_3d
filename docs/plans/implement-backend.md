@@ -138,7 +138,12 @@ Read: `docs/plans/implement-backend/02b-lint-format.md`.
 
 One linter (oxlint) and one formatter (oxfmt) for the whole repo, with root config and root scripts `lint`, `format`, `format:check`. Phase 1 adds the tools, the config and the fixes. Phase 2 formats the repo in its own commit. Phase 3 adds `.git-blame-ignore-revs`.
 
-**Result:** (added after phase 3)
+**Result:** Done on 2026-10-09. Details are in `docs/plans/implement-backend/02b-lint-format.md`.
+- Root dev dependencies `oxlint` and `oxfmt`, config in `.oxlintrc.json` and `.oxfmtrc.json`, root scripts `lint`, `format`, `format:check`.
+- `pnpm lint` has 0 errors and 44 React warnings in the web app. A later step fixes them.
+- 5 findings of the default rules are fixed. One of them was a test in the code of step 3.
+- The format is its own commit (`b9fce64`). The web build output is the same before and after, except whitespace in the inline style of `index.html`. `.git-blame-ignore-revs` lists the commit.
+- The user tests the app in the browser after the format.
 
 ## Step 3: Infra and first deploy
 

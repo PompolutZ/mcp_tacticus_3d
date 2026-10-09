@@ -134,7 +134,14 @@ Checks:
 
 ### Result
 
-(Agent adds it after the work.)
+Done on 2026-10-09. The Result is not in the format commit.
+
+- `pnpm format` formatted 131 files. `git diff --stat`: 99 files changed, 4390 insertions(+), 1345 deletions(-).
+- Besides code files, it changed `apps/web/index.html` (the inline CSS goes to one rule per line), `netlify.toml` (indent under `[build]`) and `package.json` (key order). These are expected.
+- No JSON file of decision 4 changed. No `.md` file changed.
+- Build proof: 644 files in `apps/web/dist` before and after. 643 have the same SHA-256. Only `dist/index.html` differs. The difference is whitespace in the inline `<style>` block: the same rules, split into lines. With all spaces and newlines removed, the two files are equal. So the format changed no code.
+- `pnpm format:check` passes. `pnpm lint`: 0 errors, 44 warnings (same counts as phase 1). `pnpm typecheck` and `pnpm test` (14 tests) pass. `node apps/web/scripts/dice-sim.mjs --quick` runs (chi-squared 4.11 PASS, 0.255 ms/step).
+- No difference from the plan, except the `index.html` whitespace above.
 
 ## Phase 3: Blame file
 
@@ -149,7 +156,11 @@ Checks:
 
 ### Result
 
-(Agent adds it after the work.)
+Done on 2026-10-09.
+
+- `.git-blame-ignore-revs` has one comment line and the hash of the format commit: `b9fce64e10197c9a9f53e959f09cf4687e7beaf1`.
+- `git blame --ignore-revs-file .git-blame-ignore-revs apps/web/src/Root.jsx` shows older commits (`7189e90d`, 2026-10-07), not the format commit.
+- No difference from the plan.
 
 ## Commits
 
