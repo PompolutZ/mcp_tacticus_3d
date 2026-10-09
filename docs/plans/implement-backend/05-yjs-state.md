@@ -303,7 +303,42 @@ Checks:
 
 ### Result
 
-Not started.
+Status: work items 1 and 2 done. Work item 3 (docs) not started.
+
+Files changed:
+- New: `apps/web/scripts/yjs-size.mjs`.
+- Changed: `apps/web/package.json` (script `yjs-size`), `apps/web/scripts/README.md` (entry "Yjs size").
+
+Numbers (`pnpm --filter web yjs-size`, seed 1):
+
+| Rounds | Snapshot bytes | JSON bytes |
+|---|---|---|
+| 0 (setup) | 14904 | |
+| 1 | 16484 | |
+| 2 | 17636 | |
+| 3 | 18717 | |
+| 4 | 19797 | |
+| 5 | 20884 | |
+| 6 | 21930 | 12912 |
+| 18 | 34363 | 15169 |
+
+- Updates in the 6-round game: 804, average 84.3 bytes. After setup: 802, average 65.9 bytes.
+- Updates in the 18-round game: 2416, average 73.3 bytes.
+- Without pose writes (`--pose-writes 0`): 21144 bytes after 6 rounds, 32240 after 18.
+
+Facts:
+- A 6-round game is 21930 bytes, 2.1% of 1 MB. 18 rounds are 34363 bytes, 3.3%. So the 1 MB limit is far away.
+- The snapshot grows about 1 KB per round, 0.8 KB for the first 6 rounds and 1.0 KB for later ones. The JSON grows only 0.2 KB per round (new loose tokens and token counts). The rest is the history of overwritten fields, which Yjs keeps.
+- Pose writes are not the cause. 96 pose writes per round add about 0.1 to 0.2 KB per round (2 bytes per write), because a pose is replaced as a whole value and Yjs keeps only a small marker for the old one.
+- The snapshot is 1.7 times the JSON after 6 rounds and 2.3 times after 18. The setup alone is 14.9 KB, because each entity is a nested map.
+- The average update is about 70 bytes. At 800 updates per 6 rounds, a write interval of step 7 can be long without a size problem. The size does not limit it.
+
+Changes from the plan:
+- `startTable` does not import in Node: `affiliations.json` needs an import attribute. The script builds the start state by hand, with the same fields. `NEW_SETUP` and `START_MARKERS` are imported.
+- The script has the options `--rounds`, `--seed` and `--pose-writes`.
+- A token given to a character writes only the character, not a loose token.
+
+Open issues: none.
 
 ## User
 

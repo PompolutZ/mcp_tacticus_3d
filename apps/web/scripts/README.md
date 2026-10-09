@@ -492,3 +492,13 @@ pnpm --filter web tts-dice-measure
 `tts-dice-measure-object.mjs` writes the TTS Saved Object "Dice measure" to `~/Library/Tabletop Simulator/Saves/Saved Objects/`: a red block with the Lua file as its script. In TTS, load the mod and spawn it from Objects → Saved Objects. TTS runs the script of a spawned object at once, so the block needs no Save & Play and no own save. Run the command again after a change to the Lua file. The Lua file's header has the steps.
 
 Do not paste the script into an object and press Save & Play. On 2026-10-01 the game reloaded without the block, so the script never ran. On a Workshop mod, Save & Play fails with "Cannot commit save changes to a Workshop mod".
+
+# Yjs size
+
+`yjs-size.mjs` plays a full game through the table stores of `src/net/doc.js` and prints the snapshot size (`Y.encodeStateAsUpdate`, the same bytes as Save game), the size of the same table as JSON, and the number and average size of the doc updates. The game: 30 terrain pieces, 12 characters, 10 tactic cards, 8 crisis tokens, 6 rounds of moves, damage, power, tokens and card flips. It then plays 18 rounds to show the growth. It uses a seeded random, so two runs print the same numbers. See `docs/plans/implement-backend/05-yjs-state.md`, Phase 4 Result.
+
+```bash
+pnpm --filter web yjs-size
+pnpm --filter web yjs-size --rounds 10 --seed 2
+pnpm --filter web yjs-size --pose-writes 0     # the size without pose writes
+```
