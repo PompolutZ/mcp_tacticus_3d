@@ -4,7 +4,7 @@ Design. The order of the work is in `docs/plans/implement-backend.md`.
 
 ## Goal
 
-The app gets a backend for login, online rooms, the table snapshot and signaling. The endpoints and the data are in `docs/feature-auth.md` and `docs/feature-peer-to-peer.md`. This doc describes the repo layout, the stack, the AWS resources, the deploy path and local development.
+The app gets a backend for login, multiplayer rooms, the table snapshot and signaling. The endpoints and the data are in `docs/feature-auth.md` and `docs/feature-peer-to-peer.md`. This doc describes the repo layout, the stack, the AWS resources, the deploy path and local development.
 
 Every AWS resource is defined in code (CDK). Nobody creates or changes AWS resources in the AWS console.
 
@@ -58,10 +58,10 @@ netlify.toml         Netlify build settings
 
 - **Hono 4.** The Lambda adapter comes from the package `@hono/aws-lambda`. The import path `hono/aws-lambda` is deprecated and goes away in Hono 5. `@hono/aws-lambda` 1.0.1 was published on 2026-10-08. If its peer range needs Hono 5, use `hono/aws-lambda` until Hono 5 is stable.
 - **TypeScript**, strict. CDK bundles it with esbuild for Lambda. Locally, `tsx` runs it.
-- **zod** and `@hono/zod-validator` check request bodies, the same as wuclub `apiv2`. The code imports `zod/mini` (`zod@4.6.5`, `@hono/zod-validator@0.9.1`). The Lambda `index.mjs` is 883 KB with `zod/mini`, and 1.32 MB with full `zod` (852 KB before step 6).
+- **zod** and `@hono/zod-validator` check request bodies, the same as wuclub `apiv2`. The code imports `zod/mini` (`zod@4.6.5`, `@hono/zod-validator@0.9.1`). The Lambda `index.mjs` is 883 KB with `zod/mini`, and 1.32 MB with full `zod` (852 KB before step 6). With `yjs` (step 7) it is 956 KB (956,348 bytes). `yjs` adds about 73 KB.
 - **`hono/jwt`** signs and checks the session token (HS256). It replaces `jose` from the auth doc. The token is the same, and the API has one dependency less.
 - **`mongodb`**, the official driver.
-- **`yjs`** merges the table snapshots on the server.
+- **`yjs`** (`13.6.33`, the version of the web app) checks and merges the table snapshots on the server (`Y.decodeUpdate`, `Y.mergeUpdates`).
 - **Vitest** for tests.
 
 ### Code
@@ -74,7 +74,8 @@ apps/api/src/
   local.ts        Node entry for dev: @hono/node-server, memory or Mongo store, the dev login route
   config.ts       the config type. Read from SSM (Lambda) or from process.env (local)
   auth/           token (session token), discord (Discord client)
-  routes/         health, auth, devAuth (local only), me, rooms, table, signal
+  routes/         health, auth, devAuth (local only), me, rooms (room and seat routes), table (GET and PUT of the snapshot), signal
+  rooms/          code (room code), table (Yjs check and merge), read (room read, 404, host-gone cleanup)
   middleware/     user (token check), validate (body check), errors, log
   stores/         store interfaces, and a memory and a Mongo version of each
 apps/api/test/    Vitest: routes through app.request(), with the memory store
@@ -91,7 +92,7 @@ apps/api/test/    Vitest: routes through app.request(), with the memory store
 
 ### Binary bodies
 
-The table snapshot is binary (`application/octet-stream`). Lambda base64-encodes a binary request body, and the adapter decodes it. The adapter also base64-encodes a binary response. Lambda allows 6 MB per request and per response. The snapshot limit is 1 MB, so it fits, also after base64.
+The table snapshot is binary (`application/octet-stream`). Lambda base64-encodes a binary request body, and the adapter decodes it. The adapter also base64-encodes a binary response. Lambda allows 6 MB per request and per response. The snapshot limit is 1 MB, so it fits, also after base64. `apps/api/test/lambda-binary.test.ts` sends a fake function URL event through the adapter and checks both directions.
 
 ### Errors and logs
 
@@ -184,7 +185,7 @@ CDK needs `cdk bootstrap` once per account and region, with admin rights. It cre
 | 100 operations per second | About 50 reads per second with 100 waiting hosts (peer-to-peer doc) |
 | 10 GB in and 10 GB out per 7 days | About 25 MB of table writes per game, so about 400 games a week |
 | 0.5 GB storage | About 5,000 rooms with a 100 KB table. Rooms and users have a 12-month TTL |
-| No backups | Accepted. If the data is lost, players log in again, and online rooms are lost |
+| No backups | Accepted. If the data is lost, players log in again, and multiplayer rooms are lost |
 | Paused after 30 days with no connections | The keep-alive rule |
 
 ## Local development
@@ -294,7 +295,7 @@ The site is `https://mcptacticus3d.netlify.app`. Netlify builds the web app from
   - The secrets are SSM parameters, not `NoEcho` parameters.
   - "Code layout": `infra/api/*.mjs` becomes `apps/api/src/`. The dev login is in `local.ts`, not in `vitePlugin.mjs`.
   - "Phases": the deploy starts earlier (plan steps 3 and 4). Phase 4 keeps the release parts.
-  - "Site name": the rename happens in plan step 1, not before phase 4. The offline rooms on the old address are lost. Before the first release this does not matter, because all data is test data.
+  - "Site name": the rename happens in plan step 1, not before phase 4. The single player rooms on the old address are lost. Before the first release this does not matter, because all data is test data.
   - Open question 4 (region) is answered: `eu-central-1`.
 - `docs/feature-rooms.md`: the `src/` paths become `apps/web/src/`.
 - `CLAUDE.md`, `README.md`, `ASSETS.md`, `scripts/README.md`: the new paths, and `pnpm --filter web build` instead of `npx vite build`.

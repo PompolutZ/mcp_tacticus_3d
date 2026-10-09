@@ -1,17 +1,17 @@
 # Feature: Login with Discord
 
-Status: phase 1 (login) is done and checked locally (step 6 of the plan). The rest is plan. See [Open questions](#open-questions) at the end.
+Status: phase 1 (login) is done and checked locally (step 6 of the plan). Phase 2 (multiplayer rooms, step 7) is built. The browser check is open. The rest is plan. See [Open questions](#open-questions) at the end.
 
 The backend (repo, stack, AWS, deploy) is in `docs/feature-backend.md`. The order of the work is in `docs/plans/implement-backend.md`.
 
 ## Goal
 
-A player can log in with their Discord account. Online play needs login. The Sandbox and offline rooms work without login, as today.
+A player can log in with their Discord account. Multiplayer play needs login. The Sandbox and single player rooms work without login, as today.
 
 Login adds two things:
 
 1. **Player identity in peer-to-peer games.** The opponent sees your Discord name and avatar. The server checks the name, so a player cannot pretend to be someone else.
-2. **Online rooms.** A logged-in player creates a room on the server. The room has the map, the rosters, two seats and the table. So both players see the same room on every device, also when the other player is not connected. Only the owner can delete the room.
+2. **Multiplayer rooms.** A logged-in player hosts a room on the server. The room has the map, the rosters, two seats and the table. So both players see the same room on every device, also when the other player is not connected. Only the host can delete the room. The host creates the room. The guest joins it.
 
 In TTS, the Steam account gives each player a name and an avatar. Here, the Discord account does the same. Most MCP players have a Discord account already.
 
@@ -24,8 +24,8 @@ In TTS, the Steam account gives each player a name and an avatar. Here, the Disc
 | Backend | The API of `docs/feature-backend.md`: one Lambda, and the `assist3d` database in an Atlas Free cluster. Signaling (`docs/feature-peer-to-peer.md`) uses the same API. No new vendor |
 | Session | Our own signed token (JWT), 30 days. Kept in `localStorage`, sent in the `Authorization` header |
 | Users | Collection `users`. Our own user id, the Discord id is a unique field |
-| Rooms | Collection `rooms`: setup, owner, two seats, and a snapshot of the table (Yjs) |
-| Offline rooms | Stay in `localStorage`, as today. They never connect to another player |
+| Rooms | Collection `rooms`: setup, host, two seats, and a snapshot of the table (Yjs) |
+| Single player rooms | Stay in `localStorage`, as today. They never connect to another player |
 | Site | `https://mcptacticus3d.netlify.app` |
 | Cost | $0. See [Cost](#cost) |
 
@@ -33,9 +33,11 @@ In TTS, the Steam account gives each player a name and an avatar. Here, the Disc
 
 | Term | Meaning |
 |---|---|
-| Offline room | A room in `localStorage` of one browser: the rooms of today (`docs/feature-rooms.md`). For trying maps and rosters. It never connects to another player |
-| Online room | A room in the `rooms` collection. Only a logged-in player can create or join one. Peer-to-peer games happen only in online rooms |
-| Seat | The Blue or the Red player of an online room. A seat holds a user id or is free |
+| Single player room | A room in `localStorage` of one browser: the rooms of today (`docs/feature-rooms.md`). For trying maps and rosters. It never connects to another player. Before 2026-10-09 the docs called it an offline room |
+| Multiplayer room | A room in the `rooms` collection. Only a logged-in player can create or join one. Peer-to-peer games happen only in multiplayer rooms. Before 2026-10-09 the docs called it an online room |
+| Host | The user who creates a multiplayer room. Only the host can delete it |
+| Guest | The user who joins a multiplayer room with the link |
+| Seat | The Blue or the Red player of a multiplayer room. A seat holds a user id or is free |
 | Session token | The token that our Lambda gives after login. It proves the user id to the Lambda |
 
 ## Options that were checked
@@ -99,7 +101,7 @@ The cost of `localStorage`: a script that runs in the page (XSS) can read the to
 - Avatar URL: `https://cdn.discordapp.com/avatars/<discordId>/<avatar>.png?size=64`. With no avatar: `https://cdn.discordapp.com/embed/avatars/<index>.png`, with `index = (discordId >> 22) % 6` (`BigInt`, because the id has more than 53 bits).
 - The avatar shows only in HTML (`<img>`). It does not go into a 3D texture, because that needs CORS headers from the Discord CDN, and this is not checked.
 
-## Online rooms
+## Multiplayer rooms
 
 ### Data
 
@@ -107,33 +109,42 @@ The cost of `localStorage`: a script that runs in the page (XSS) can read the to
 {
   _id: 'K7Q2-M9XD',               // room code, the same format as today
   version: 1,
-  owner: '<user id>',
+  host: '<user id>',
   players: { blue: '<user id>' | null, red: '<user id>' | null },
   mapId: 'vibranium-heist',
   rosters: { blue: null | { code }, red: null | { code } },
-  table: null | Binary,           // Yjs snapshot, see "Table on the server"
+  table: Binary,                  // Yjs snapshot, always set. See "Table on the server"
   tableRev: 0,                    // +1 on each table write
   createdAt, updatedAt,           // Date
   expiresAt,                      // Date: updatedAt + 12 months. TTL index
 }
 ```
 
-- The Lambda makes the room code. It inserts the room and tries a new code when the code exists already.
-- Indexes: `{ 'players.blue': 1 }` and `{ 'players.red': 1 }`. `GET /rooms` finds the rooms of a user with `$or` on both. The list leaves out `table` (projection), so the list stays small.
-- Each player sets only the roster of their own seat. `docs/feature-rooms.md` planned this already: "With a server, each player will load their own roster when they join."
-- A seat whose user no longer exists counts as free. A room whose owner no longer exists is deleted when it is read next time.
+- The Lambda makes the room code. It inserts the room and tries a new code when the code exists already (at most 5 times).
+- Indexes: unique `{ host: 1 }` (one hosted room per user), `{ 'players.blue': 1 }`, `{ 'players.red': 1 }`, and the TTL index on `expiresAt`. `GET /rooms` finds the rooms of a user with `$or` on both seats. It returns the 100 rooms changed last. The list leaves out `table` (projection), so the list stays small.
+- A user who no longer exists keeps the seat. The answer shows `{ id, gone: true }`, and the UI shows "Deleted player". A room whose host no longer exists is deleted when it is read next time, and the route answers 404.
+- Limits: the table is at most 1 MB. The roster `code` has 1 to 1000 characters. `mapId` matches `^[a-z0-9-]{1,64}$`. The server does not check that the map exists or that the roster code is valid.
 
 ### Rules
 
-- Only a logged-in player can create or join an online room.
-- The owner creates the room with the map, a side and their own roster. The other seat is free.
-- Anyone with the link sees the setup of the room: the map, the owner's name and avatar, and the owner's roster. Only a seated player gets the table.
-- A logged-in player who opens the link of a room with a free seat sees the join page: the map card, the owner, the owner's roster (the same roster popup as on a lobby tile), a field for their own roster, and **Join**. **Join** takes the free seat. The roster field is optional, because the Red field of the toolbar can load it later.
-- A room with two players shows "This room has two players already" to a third user.
-- A player who is not the owner can **Leave**. The seat becomes free, and the room leaves their list.
-- The owner can **Remove** the other player, for example when the wrong person took the seat. The seat becomes free.
-- Only the owner can **Delete** the room.
+- Only a logged-in player can create or join a multiplayer room.
+- The host creates the room with the map, a side, their own roster and the start table. The other seat is free.
+- A user hosts at most one room. `POST /rooms` answers 409 "You host a multiplayer room already. Delete it first." when the user hosts one. A user can be the guest in any number of rooms.
+- Anyone with the link sees the setup of the room: the map, the host's name and avatar, and the host's roster. Only a seated player gets the table.
+- A logged-in player who opens the link of a room with a free seat sees the join page: the map card, the host, the host's roster (the same roster popup as on a lobby tile), a field for their own roster, and **Join**. The roster field is required. **Join** takes the free seat. A user who has a seat already gets 200 and no change, so a second click or a reload does no harm.
+- A room with two players shows "This room has two players already" to a third user (409).
+- After the join, both seats and both rosters are fixed. There is no **Leave**, no **Remove**, and no roster change. To change a player or a roster, the host deletes the room and creates a new one.
+- Only the host can **Delete** the room. The guest sees the room in their list and can open it again, until the host deletes it.
+- The guest finds out about a delete at their next table write, which gets 404. The browser then opens the lobby with "The host deleted room K7Q2-M9XD." and deletes its local copy. A guest who changes nothing stays on the table until the next write. In step 8, the host's browser tells the guest's browser at once over the peer-to-peer connection.
 - The link is the secret, the same as in the peer-to-peer plan. A code has about 40 bits of randomness, so nobody can guess it.
+
+### Rosters
+
+- Each roster is its own key in the table (`rosters.blue`, `rosters.red`). Each browser writes only the key of its own seat. So the two players never write the same key.
+- The host gives their roster at creation. It is in the start table and in the server record.
+- The guest gives their roster to join. It goes into the server record. The first time the guest's browser opens the table, it writes the roster into the guest's key, when that key is empty. The setup does not restart, because a key that changes from empty to a roster does not change any card that the setup chose.
+- The server record keeps a copy of both rosters for the lobby tile and the join page.
+- A roster change in the room can come later, if players ask for it.
 
 ### Table on the server
 
@@ -144,13 +155,21 @@ The setup (map and rosters) is fixed when the room is created and when a player 
 
 How it works:
 
-- After phase 1 of the peer-to-peer plan, the table is a Yjs document, saved in IndexedDB per room. The snapshot is this document as one Yjs update (`Y.encodeStateAsUpdate`).
-- **Read:** when a seated player opens the room, the browser gets `GET /rooms/{code}/table` and applies it to the local document (`Y.applyUpdate`). Yjs merges it with the IndexedDB copy. Then the peer-to-peer sync starts, if the other player is connected.
-- **Write:** `PUT /rooms/{code}/table` with the full update, every 60 s when the document changed, on **← Lobby**, and when the tab becomes hidden (`visibilitychange`). When both players are connected, only the owner writes, because both browsers have the same document.
-- **Merge on the server:** the Lambda reads `table` and `tableRev`, merges the new update into it (`Y.mergeUpdates`), and writes with the filter `{ _id, tableRev }`. If the other player wrote in between, the filter finds no document. Then the Lambda reads again and merges again, one time. So no change is lost, also when both players write at the same time.
-- **Page close:** a `fetch` with `keepalive` allows at most 64 KB of body. The measured tables are 22 to 34 KB, so they fit. But a table grows by about 1 KB per round, and a long game can pass 64 KB. So the browser does not write on page close. The IndexedDB copy has the last changes. The next time the room opens on that device, the merged document goes to the server with the next write.
-- **Size:** the Lambda rejects a snapshot above 1 MB (413) and logs the size of each write. A table of 6 rounds is 22 KB, and of 18 rounds 34 KB (open question 5). Atlas M0 has 512 MB, so it holds a few thousand rooms.
-- A new room has `table: null`. The browser builds the start table from the setup, as an offline room does today (`apps/web/src/rooms/table.js`).
+- The table is a Yjs document, saved in IndexedDB per room. The snapshot is this document as one Yjs update (`Y.encodeStateAsUpdate`). The body is `application/octet-stream`.
+- **Start table:** the host's browser builds it at creation and sends it with `POST /rooms` (base64). So a room always has a table. Only the host's browser builds it, because each terrain piece gets a random id, and two start tables would merge into two sets of pieces.
+- **Read:** when a seated player opens the room, the browser gets `GET /rooms/{code}/table` and applies it to the local document (`Y.applyUpdate`, origin `'server'`). Yjs merges it with the IndexedDB copy. A table of another schema gets a new start table. When the server does not answer, the room does not open: the lobby shows "Could not load room K7Q2-M9XD. Try again." For 403 and 404, the browser deletes its local copy. Then the peer-to-peer sync starts, if the other player is connected (step 8).
+- **Write:** `PUT /rooms/{code}/table` with the full update.
+  - The first change starts a 60-second timer. When it ends, the browser sends the write. A change during a write starts the next timer.
+  - **← Lobby** and a hidden tab (`visibilitychange`) write at once when the table changed. The hidden write uses `keepalive` when the body is at most 60 KB (the limit for a page is 64 KB).
+  - A failed write (no answer, 409, 5xx) keeps the change and tries again after 60 s.
+  - 404 ends the room for this player (see Rules).
+  - 403 or 413 stops the writer. The HUD shows "This table is no longer saved on the server: <error>" until the player closes it. The IndexedDB copy still saves.
+  - At open, the browser compares the document with the server table (`Y.equalSnapshots`). If they differ, for example after a closed page, the browser writes at once. A state vector alone is not enough, because a delete does not change it.
+  - There is no write on page close, because a table can pass 64 KB in a long game. The IndexedDB copy has the last changes.
+  - When both players are connected (step 8), only the host writes, because both browsers have the same document.
+- **Merge on the server:** the Lambda reads `table` and `tableRev`, merges the new update into it (`Y.mergeUpdates`), and writes with the filter `{ _id, tableRev }`. If the other player wrote in between, the filter finds no document. Then the Lambda reads again, merges again and writes once more. If that fails too, it answers 409 "The table changed. Try again." The browser tries again with its next write. So no change is lost, also when both players write at the same time.
+- **Size:** the Lambda rejects a body above 1 MB (413). It also does not write a merged table above 1 MB (413). It logs the size of the body and of the merged table for each write. A table of 6 rounds is 22 KB, and of 18 rounds 34 KB (open question 5). Atlas M0 has 512 MB, so it holds a few thousand rooms.
+- **Lambda:** a function URL sends a binary body as base64, and `@hono/aws-lambda` decodes it and encodes the `application/octet-stream` answer. `apps/api/test/lambda-binary.test.ts` tests both directions with a fake event. The real function URL is first used with a token in step 12.
 
 ### Endpoints
 
@@ -158,41 +177,44 @@ How it works:
 |---|---|---|
 | `POST /auth/discord` | no | `{ code, redirectUri }`. Login flow steps 5 and 6. Answers 200 `{ token, user }`, 400 bad body, 401 Discord rejected the code, 502 Discord failed, 503 Discord not configured (local only) |
 | `GET /me` | yes | Answers 200 `{ user, token? }`, with a new token when the old one is more than 1 day old. 401: no token, bad token, or the user is gone |
-| `DELETE /me` | yes | Deletes the user. Answers 204. The rooms part comes with step 7. See [Privacy](#privacy) |
-| `GET /rooms` | yes | The rooms where the user has a seat, with both players' names and avatars. No table |
-| `POST /rooms` | yes | `{ mapId, side, roster }`. Creates a room |
-| `GET /rooms/{code}` | no | The setup: map, rosters, players' names and avatars, free seats. No table |
-| `GET /rooms/{code}/table` | yes, seat | The table snapshot |
-| `PUT /rooms/{code}/table` | yes, seat | Merges a table snapshot. See [Table on the server](#table-on-the-server) |
-| `PATCH /rooms/{code}` | yes, seat | Changes the roster of the own seat |
-| `POST /rooms/{code}/join` | yes | `{ roster }`. Takes the free seat |
-| `POST /rooms/{code}/leave` | yes, seat | Frees the own seat. The owner cannot leave, only delete |
-| `POST /rooms/{code}/remove` | yes, owner | Frees the other seat |
-| `DELETE /rooms/{code}` | yes, owner | Deletes the room and its table |
+| `DELETE /me` | yes | Deletes the user and the room that the user hosts, with its table. Answers 204. The user's guest seats keep the user id. See [Privacy](#privacy) |
+| `GET /rooms` | yes | `{ rooms }`: the rooms where the user has a seat, the last changed first, at most 100, with both players' names and avatars. No table. 401 |
+| `POST /rooms` | yes | `{ mapId, side, roster, table }`. `table` is base64. Answers 201 `{ room }`. 400 bad body or bad table, 409 the user hosts a room already, 413 table too large |
+| `GET /rooms/{code}` | no | 200 `{ room }`: map, rosters, players' names and avatars, free seats. No table. 404 |
+| `POST /rooms/{code}/join` | yes | `{ roster }`, required. Takes the free seat. 200 `{ room }`, also when the user has a seat already. 400 no roster, 409 no free seat, 404 |
+| `GET /rooms/{code}/table` | yes, seat | 200, the table bytes. 403 no seat, 404 |
+| `PUT /rooms/{code}/table` | yes, seat | The table bytes. Merges them into the stored table. 204. 400 not a Yjs update, 409 the merge lost twice, 413 too large, 403, 404. See [Table on the server](#table-on-the-server) |
+| `DELETE /rooms/{code}` | yes, host | Deletes the room and its table. 204. 403 not the host, 404 |
+
+A `room` in an answer is `{ code, host, players: { blue, red }, mapId, rosters: { blue, red }, createdAt, updatedAt }`. A player is `{ id, name, avatar, discordId }`, `{ id, gone: true }` when the user no longer exists, or `null` for a free seat. A room code that is not `XXXX-XXXX` (Crockford base32) answers 404. Errors are `{ error }`.
 
 The signaling paths `/rooms/{code}/messages` of the peer-to-peer plan fit under the same `/rooms/{code}` prefix.
 
 ## Identity in peer-to-peer games
 
-- Peer-to-peer games happen only in online rooms. So every signaling request (`hello`, `offer`, `answer`, `bye`, and the polls) sends the session token.
+- Peer-to-peer games happen only in multiplayer rooms. So every signaling request (`hello`, `offer`, `answer`, `bye`, and the polls) sends the session token.
 - The Lambda accepts signaling requests only from users with a seat in the room. To avoid an Atlas read on every 2-second poll, each Lambda instance keeps the seats of a room in memory for 30 seconds.
 - The Lambda adds `user: { id, name, avatar, discordId }` to each message that it stores. It ignores a `user` field that the browser sends.
 - The browser accepts an `offer` or an `answer` only when its `user` is the same as the `user` of the peer's `hello`.
 - The SDP of the offer and the answer has the fingerprint of the sender's DTLS certificate. The browsers check this fingerprint when the data channels connect. So the data channels are connected to the user that the Lambda added to the offer or the answer.
 - The player name comes from Discord. The typed player name of the peer-to-peer plan is not needed.
-- When a browser opens a room code that is not an offline room of this browser, it asks `GET /rooms/{code}`. An online room opens the room (with a seat) or the join page (without a seat). Otherwise the page says "Room K7Q2-M9XD not found".
+- When a browser opens a room code that is not a single player room of this browser, it asks `GET /rooms/{code}`. A multiplayer room opens the room (with a seat) or the join page (with a free seat). With no free seat, the lobby shows "This room has two players already.". An unknown code shows "Room K7Q2-M9XD not found.". With login off, no API call is made, and the lobby shows "Room K7Q2-M9XD is not in this browser.".
 
 ## Lobby and room UI
 
 - **Header of the lobby:** **Log in with Discord** when logged out, with the line "Your opponent sees your Discord name and avatar." When logged in: avatar and name, with a menu: **Log out**, **Delete account**. A **Privacy** link in the footer.
-- **Room list:** one list with the online rooms and the offline rooms, the last changed room first. An online room tile shows the avatar and name of each seat. An offline room tile shows "Offline".
-- **+ (new room):** the dialog has an **Online** switch at the top. When logged in, it is on by default. When logged out, it is off and cannot be changed, with the text "Log in with Discord to play online".
-  - Online: **Blue** or **Red** for the own side, and only the own roster field.
-  - Offline: both roster fields, as today.
-- **Tile buttons:** **Delete** for the owner, **Leave** for the other player of an online room.
-- **Link of an online room when logged out:** the page shows the setup of the room, with "Log in with Discord to join". After login, the player comes back to the same link (`returnHash`).
-- **Server not available:** the lobby shows the offline rooms and the message "Could not load your online rooms".
-- **Room toolbar:** the avatar and name of each player, next to the room code.
+- **Room list:** one list with the multiplayer rooms and the single player rooms, the last changed room first. The list loads from the server each time the lobby shows. A multiplayer tile shows the map card, the map name, the code, the last change, and each seat: avatar and name, "Free seat", or "Deleted player". A single player tile shows "Single player".
+- **+ (new room):** with login off, the dialog makes a single player room, as today. With login on, the dialog has a choice at the top: **Single player** or **Multiplayer**.
+  - When logged in, **Multiplayer** is the default. When logged out, it is disabled, with "Log in with Discord to play multiplayer". A dev build without `VITE_DISCORD_CLIENT_ID` says "Log in to play multiplayer".
+  - **Multiplayer:** **Blue** or **Red** for the own side, and only the own roster field. It is required.
+  - **Single player:** both roster fields, as today.
+  - When the user hosts a room already, **Multiplayer** shows "You host room K7Q2-M9XD already. Delete it to create a new one." and **Create room** is disabled.
+- **Tile buttons:** **Blue** and **Red** show the roster. **Delete** only for the host, with a browser confirm. **Copy link** while the guest seat is free.
+- **Copy link:** copies `<origin>/#room=<code>`. The button shows "Link copied" or "Copy failed" for 2 s. It is in the lobby tile and in the toolbar of a multiplayer room, next to the room code. It disappears when the guest seat is taken. The toolbar knows the seats from the time the room opened, so if the guest joins while the host is in the room, the button stays until the room opens again.
+- **Link of a multiplayer room when logged out:** the join page shows the setup of the room, with **Log in with Discord to join**. In a dev build without Discord, it says "Log in above to join". After login, the player comes back to the same link (`returnHash`).
+- **Server not available:** the lobby shows the single player rooms and the message "Could not load your multiplayer rooms". **Multiplayer** in the dialog is disabled.
+- **Room toolbar of a multiplayer room:** no map picker (the map is fixed) and no Roster group. The room code and **Copy link** show. The avatar and name of each player come in step 8.
+- **Local copy:** the IndexedDB database of a multiplayer room is `mcp-assist-3d/multiplayer/<user id>/<code>`. Each time `GET /rooms` succeeds, the lobby deletes the databases of this user whose code is not in the list. So a room that the host deleted leaves no copy in the guest's browser. A browser without `indexedDB.databases()` skips this.
 
 ## Privacy
 
@@ -209,7 +231,7 @@ The Discord Developer Terms of Service (effective 2024-07-08, section 5) apply t
 | Report unauthorized access to users (as the law requires) and to Discord (5c) | By hand, if it happens |
 | Keep developer credentials secret. No credentials in open source projects (2) | The client secret only in `apps/api/.env` and `infra/.env` (git ignores both) and in SSM. The terms list the Application ID as a credential too, so the client id comes from a Netlify env var at build time, not from a file in git |
 
-- **Delete account** asks with a browser confirm first. `DELETE /me` deletes the user, deletes the rooms that the user owns with their tables, and frees the user's seat in other rooms. The browser deletes the token. The privacy page also says that the player can remove the app in Discord under Settings → Authorized Apps.
+- **Delete account** asks with a browser confirm first. `DELETE /me` deletes the user, deletes the room that the user hosts with its table. The user's seat in other rooms stays, and the room shows "Deleted player". The browser deletes the token. The privacy page also says that the player can remove the app in Discord under Settings → Authorized Apps.
 - **Retention:** a user with no login and no app start for 12 months is deleted by the TTL index (`expiresAt`). A room with no change for 12 months is deleted the same way, with its table. The seat rules in [Data](#data) handle rooms of deleted users.
 - **Region:** Discord EU data that goes to a country outside the EEA with no adequacy decision falls under the standard contract clauses of section 11. The Lambda and the Atlas cluster are both in `eu-central-1` (backend doc), so the data stays in the EEA.
 - Scope `identify` only. No email, no guilds, no friends list.
@@ -230,8 +252,8 @@ The site needs a fixed address before the Discord application gets its productio
 
 - Rename the existing Netlify site to `mcptacticus3d`: Site configuration → General → Site details → **Change site name**. A new site is not needed. Check that the name is free.
 - After the rename, the old `*.netlify.app` address returns 404. Netlify does not redirect it.
-- `localStorage` belongs to one origin. So the offline rooms that were saved on the old address do not show on the new one.
-- The rename happens in step 1 of the plan (`docs/plans/implement-backend.md`), so the address is final from the start. The lost offline rooms do not matter before the first release, because all data is test data.
+- `localStorage` belongs to one origin. So the single player rooms that were saved on the old address do not show on the new one.
+- The rename happens in step 1 of the plan (`docs/plans/implement-backend.md`), so the address is final from the start. The lost single player rooms do not matter before the first release, because all data is test data.
 
 ## Discord application
 
@@ -258,6 +280,8 @@ The rules of the peer-to-peer plan apply: everything works on one Mac, and each 
 
 **Session secret.** Without `SESSION_SECRET` in `apps/api/.env`, the local API uses a fixed dev value and logs one line. `tsx watch` restarts the API after each code change, and a random key per start would log the testers out each time. The fixed value is only in `local.ts`.
 
+**Multiplayer rooms.** A test needs two browsers with two dev logins, for example Chrome as `alice` and Firefox as `bob`. Alice creates a multiplayer room and copies the link. Bob opens it and joins. Each dev login is a different user, so the two browsers never share a session. The rooms are in the API store. With the memory store, a restart of the API deletes them. The dev Mongo keeps them.
+
 **Dev Mongo.** With the memory store, a restart of the API empties the users. The browser token is still valid, but `GET /me` finds no user and answers 401, so the tester is logged out. To keep the users, run `pnpm --filter api db:up` (Mongo 8 in Docker, `apps/api/compose.yaml`, a named volume) and set `STORE=mongo` in `apps/api/.env`. `pnpm --filter api db:down` stops it and keeps the data. `docker compose down -v` in `apps/api` deletes the data.
 
 ## Cost
@@ -268,7 +292,7 @@ Assumptions of the peer-to-peer plan ("Use per game"): 2 players, a 2-hour game.
 |---|---|
 | Login | 1 Lambda request, 2 Discord calls, 1 Atlas write. About once per player per 30 days |
 | `GET /me` | 1 Lambda request and 1 Atlas read per app start |
-| Rooms | A few requests per game: list, create, join, roster |
+| Rooms | A few requests per game: list, create, join |
 | Table writes | About 120 Lambda requests per game: one writer, once a minute. Each write reads and writes about 100 KB in Atlas |
 | Signaling | The token check needs only CPU. The seats come from memory for 30 s |
 | Storage | A user is about 200 bytes. A room is about 500 bytes plus its table |
@@ -286,17 +310,25 @@ apps/web/src/auth/
   useUser.js       React hook: the current user or null
   avatar.js        Discord avatar URL
 apps/web/src/rooms/
-  serverStore.js   online rooms API: list, create, join, leave, remove, delete, roster
-  serverTable.js   read and write the table snapshot
+  serverStore.js   multiplayer rooms API: list, get, create, join, delete, table
+  serverTable.js   the table writer (60 s timer, flush, retry) and hasLocalChanges
+  roomPage.js      which page a room link opens
+  roomList.js      one list of single player and multiplayer rooms
+  startTable.js    the bytes of the start table
+  base64.js        bytes to base64 and back
+  localDocs.js     the IndexedDB names of multiplayer rooms and their cleanup
 apps/web/src/components/
   UserMenu.jsx     login button, avatar, menu, dev login
-  JoinRoom.jsx     the join page of an online room
+  JoinRoom.jsx     the join page of a multiplayer room
+  CopyLinkButton.jsx  Copy link
+  RoomRosterPopup.jsx  the roster popup of a tile and of the join page
   Privacy.jsx      the privacy page
 apps/api/src/
   auth/            token (sign and verify the session token), discord (the Discord client)
-  routes/          auth (Discord code exchange), devAuth (local only), me, rooms (seat rules), table (merge), signal
+  routes/          auth (Discord code exchange), devAuth (local only), me, rooms (seat rules), table (merge), signal (step 8)
+  rooms/           code (room code), table (Yjs checks and merge), read (room read, 404, host-gone cleanup)
   middleware/      user: checks the session token with hono/jwt. validate: body check
-  stores/          users and rooms: memory and MongoDB
+  stores/          users and rooms: memory and MongoDB. Rooms need `yjs`
   local.ts         the Node entry for dev. Also the dev login route
 ```
 
@@ -309,30 +341,38 @@ Each phase ends with a working app. Check with type checks, tests and `pnpm --fi
 The plan `docs/plans/implement-backend.md` gives the order of the phases and their steps. The API, the AWS parts and the deploy come first, in its steps 2 to 4. From step 3 on, each backend change is deployed when its step is done. Production shows no login until phase 4, because the web app shows the login button only when `VITE_DISCORD_CLIENT_ID` is set.
 
 1. **Login.** Discord application with the localhost redirect. The users store (memory and MongoDB), `POST /auth/discord`, `GET /me`, `DELETE /me`, the dev login. Lobby header with login, avatar and menu.
-2. **Online rooms.** After peer-to-peer phase 1, so the table is a Yjs document. Rooms store (memory and MongoDB, with indexes and TTL indexes) and endpoints, seats, the table snapshot, one room list in the lobby, the **Online** switch in the new room dialog, the join page.
-3. **Identity in peer-to-peer.** Together with peer-to-peer phase 2. Token and seat check on signaling requests, `user` on messages, the offer and answer check, names and avatars in the room toolbar. Signaling only for online rooms.
+2. **Multiplayer rooms.** After peer-to-peer phase 1, so the table is a Yjs document. Rooms store (memory and MongoDB, with indexes and TTL indexes) and endpoints, seats, the table snapshot, one room list in the lobby, the **Single player** or **Multiplayer** choice in the new room dialog, the join page, **Copy link**. Done in step 7.
+3. **Identity in peer-to-peer.** Together with peer-to-peer phase 2. Token and seat check on signaling requests, `user` on messages, the offer and answer check, names and avatars in the room toolbar. Signaling only for multiplayer rooms.
 4. **First release.** The production redirect URI and Privacy Policy URL, **Delete account**, the privacy page, and `VITE_DISCORD_CLIENT_ID` in Netlify. Delete account and the privacy page must be live before the first real player logs in. The site rename moved to step 1 of the plan, and the deploy to steps 3 and 4.
 
 ## Relation to other features
 
-- `docs/feature-rooms.md`: the rooms there become offline rooms. They stay in `localStorage` and never connect. Two lines there change: "Peer-to-peer will add rooms that this browser joined" (now these are online rooms), and "the Red field will be only in the Sandbox" (offline rooms keep both roster fields).
-- `docs/feature-peer-to-peer.md`: games happen only in online rooms, and both players are logged in. "No accounts" and the typed player name in "Room and players" go away. The host shares the link of an online room, not of an offline room ("Connect flow"). The signaling routes get the token and seat check. They are in the same API (`apps/api`, backend doc). The IndexedDB copy of the Yjs document stays, and the server snapshot comes in addition.
+- `docs/feature-rooms.md`: the rooms there become single player rooms. They stay in `localStorage` and never connect. Two lines there change: "Peer-to-peer will add rooms that this browser joined" (now these are multiplayer rooms), and "the Red field will be only in the Sandbox" (single player rooms keep both roster fields).
+- `docs/feature-peer-to-peer.md`: games happen only in multiplayer rooms, and both players are logged in. "No accounts" and the typed player name in "Room and players" go away. The host shares the link of a multiplayer room, not of a single player room ("Connect flow"). The signaling routes get the token and seat check. They are in the same API (`apps/api`, backend doc). The IndexedDB copy of the Yjs document stays, and the server snapshot comes in addition.
 
 ## Decisions
 
 Made on 2026-10-08:
 
-1. Login unlocks player identity in peer-to-peer games and online rooms. Rosters, settings and custom model uploads stay out of this plan.
-2. Online play needs login. The Sandbox and offline rooms work without it.
-3. Offline rooms stay offline. They are for trying maps and rosters, and they never move into an account.
+1. Login unlocks player identity in peer-to-peer games and multiplayer rooms. Rosters, settings and custom model uploads stay out of this plan.
+2. Multiplayer play needs login. The Sandbox and single player rooms work without it.
+3. Single player rooms stay in the browser. They are for trying maps and rosters, and they never move into an account.
 4. Discord is the only provider.
 5. Our own Lambda and Atlas do the auth. No Supabase, Firebase or Cognito.
 6. Authorization code flow. The Lambda exchanges the code with the client secret.
 7. Our own JWT in `localStorage`, sent as a Bearer token. No cookie.
 8. Our own user id. The Discord id is a unique field.
 9. The Discord access token is not stored.
-10. The server keeps the setup and a snapshot of the table of each online room. A player who joins sees the map and the host's roster at once.
+10. The server keeps the setup and a snapshot of the table of each multiplayer room. A player who joins sees the map and the host's roster at once.
 11. The site is `https://mcptacticus3d.netlify.app`: the existing Netlify site, renamed. No own domain.
+
+Made on 2026-10-09 (step 7):
+
+12. Three kinds of table: Sandbox, single player room, multiplayer room. "Offline room" and "online room" go away.
+13. The host's browser builds the start table and sends it with `POST /rooms`. A room never has `table: null`.
+14. Seats and rosters are fixed after the join. No leave, remove or roster change. Only the host deletes the room.
+15. A user hosts one room at a time.
+16. There is no Save game and no Load game. A single player room keeps its table in IndexedDB. A multiplayer room keeps it on the server, with a copy in IndexedDB.
 
 ## Open questions
 

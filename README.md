@@ -86,13 +86,25 @@ The API refuses an Atlas connection string. Local dev uses only a local Mongo.
 
 `pnpm --filter api test:mongo` runs the Mongo tests. It needs Docker running. It starts its own `mongo:8` container and removes it at the end.
 
+### Multiplayer rooms
+
+A multiplayer room is on the API, so it needs login. To try one on one Mac, use two browsers with two dev logins:
+
+1. In the first browser, log in with the **Dev login** field as `alice`. **+ New room** → **Multiplayer**, a side and a roster → **Create room**.
+2. Click **Copy link** in the room toolbar or on the lobby tile.
+3. In the second browser, log in as `bob` and open the link. The join page shows the map and the host's roster. Paste a roster and click **Join**.
+
+Each browser writes its table to the API 60 seconds after a change, on **← Lobby**, and when the tab is hidden. There is no live sync yet, so a player sees the other player's changes when the room opens again. A user hosts one room at a time. To host a new one, delete the old one in the lobby.
+
+With the memory store, a restart of the API deletes the rooms. With the dev Mongo (see above), the rooms stay.
+
 ## Lobby, rooms and Sandbox
 
-The app opens on the **lobby**. It lists the rooms of this browser, the last changed room first. Each tile shows the map card, the map name, the room code and the time of the last change. Click a tile to enter the room. **Blue** and **Red** show that roster of the room in the roster popup. **Delete** removes a room after a confirm.
+The app opens on the **lobby**. It lists the single player rooms of this browser and, when you are logged in, your multiplayer rooms, the last changed room first. Each tile shows the map card, the map name, the room code and the time of the last change. A multiplayer tile also shows the players, and **Delete** shows only for the host. Click a tile to enter the room. **Blue** and **Red** show that roster of the room in the roster popup. **Delete** removes a room after a confirm.
 
-**+ New room** opens a dialog. **Random map** is on by default: the app picks the map when it creates the room. Turn it off to choose the map in a carousel of map cards. Paste the MCT codes of the rosters into **Blue roster** and **Red roster**. Red is optional: the toolbar can load it later. The game setup needs both rosters. A warning box names the characters without a 3D model and the Team Tactic cards without an image, because the app cannot show them. **Create room** works when the Blue code has a known card, and it enters the new room.
+**+ New room** opens a dialog. With login on, it has a choice: **Single player** (a room in this browser) or **Multiplayer** (a room on the server, see above). **Random map** is on by default: the app picks the map when it creates the room. Turn it off to choose the map in a carousel of map cards. Paste the MCT codes of the rosters into **Blue roster** and **Red roster**. Red is optional: the toolbar can load it later. The game setup needs both rosters. A warning box names the characters without a 3D model and the Team Tactic cards without an image, because the app cannot show them. **Create room** works when the Blue code has a known card, and it enters the new room.
 
-In a **room**, you are the Blue player. The map and the Blue roster are fixed, so the toolbar has no map picker and only the Red roster field. That field replaces or removes the Red roster of the room. The room saves itself in the browser storage. The room record (map, rosters, dates) is in `localStorage`. The table is a Yjs document in IndexedDB: the characters with their positions, damage and tokens, the crisis cards and tokens, the tactic cards and the score. Dice and tools are not saved. **Save game** writes the table to a `.yjs` file, and **Load game** replaces the table with such a file. The loading screen stays until the map and the models of both rosters are in.
+In a **single player room**, you are the Blue player. The map and the Blue roster are fixed, so the toolbar has no map picker and only the Red roster field. That field replaces or removes the Red roster of the room. The room saves itself in the browser storage. The room record (map, rosters, dates) is in `localStorage`. The table is a Yjs document in IndexedDB: the characters with their positions, damage and tokens, the crisis cards and tokens, the tactic cards and the score. Dice and tools are not saved. The loading screen stays until the map and the models of both rosters are in.
 
 The **Sandbox** is the free table: map picker and both roster fields. Nothing in it is saved.
 

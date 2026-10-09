@@ -430,7 +430,11 @@ Checks:
 
 ### Result
 
-Not started.
+Docs changed: `docs/feature-auth.md` (terms, data, rules, rosters, table, endpoints, lobby UI, local testing, code layout, phases, decisions 12 to 16), `docs/feature-rooms.md`, `docs/feature-peer-to-peer.md`, `docs/feature-backend.md`, `docs/plans/implement-backend.md` (step name, Result, note for step 8), `README.md` (multiplayer rooms in local dev).
+
+The names are single player room, multiplayer room, host and guest. The old names stay only where the docs explain the rename. `table: null`, `PATCH`, `/leave`, `/remove`, Save game and Load game are gone from the docs. `feature-rooms.md` decision 17 now says Load game was removed.
+
+Deviation from the plan: none. The Lambda size in the backend doc is 956,348 bytes (Phase 2 Result).
 
 ## User
 

@@ -3,9 +3,9 @@
 The order of the work, from today's app to the first release: a game between two real players on two machines. The designs are in:
 
 - `docs/feature-backend.md`: repo, stack, AWS, deploy.
-- `docs/feature-auth.md`: login, users, online rooms, table snapshot.
+- `docs/feature-auth.md`: login, users, multiplayer rooms, table snapshot.
 - `docs/feature-peer-to-peer.md`: signaling, WebRTC, Yjs, physics sync.
-- `docs/feature-rooms.md`: offline rooms.
+- `docs/feature-rooms.md`: single player rooms and multiplayer rooms.
 
 This plan is the overview: the steps, their order and why. Each step also gets its own detailed plan (see [Detailed plans](#detailed-plans)). Each step ends with a working app and a backend that can be deployed.
 
@@ -42,8 +42,8 @@ The detailed plans are in `docs/plans/implement-backend/`.
 
 - Step 4 keeps its number, but it runs after step 11 and before step 12 (decision 5). The table shows the order of the work.
 - Steps 1 to 3 add no game feature. They make the path from code to AWS work while the API is small. So problems with pnpm, CDK, roles or Atlas show early, one at a time.
-- Step 5 is frontend only. Login (step 6) comes after it, because only the online features need login, and the first online feature is step 7.
-- From step 3 on, every backend change is deployed when its step is done. Until step 4, the user deploys from their machine with `pnpm --filter infra cdk:deploy`. Production shows no login and no online rooms until step 12, because the web app shows the login button only when `VITE_DISCORD_CLIENT_ID` is set.
+- Step 5 is frontend only. Login (step 6) comes after it, because only the multiplayer features need login, and the first multiplayer feature is step 7.
+- From step 3 on, every backend change is deployed when its step is done. Until step 4, the user deploys from their machine with `pnpm --filter infra cdk:deploy`. Production shows no login and no multiplayer rooms until step 12, because the web app shows the login button only when `VITE_DISCORD_CLIENT_ID` is set.
 - Step 12 is the first release. Steps 5 to 11 are tested locally, with dev login and the browser pairs. Then the app goes to production, and the user tests with another real person.
 
 ## Detailed plans
@@ -94,7 +94,7 @@ Read: backend doc "Repo layout", "pnpm", "Deploy" → "Netlify".
 
 **User:**
 - Netlify: no build setting changes are needed, because `netlify.toml` overrides them. Clear the old build command and publish directory in the UI after the merge.
-- Netlify: rename the site to `mcptacticus3d` (auth doc, "Site name"). The address is then final from the start. The offline rooms on the old address are lost, which does not matter before the first release.
+- Netlify: rename the site to `mcptacticus3d` (auth doc, "Site name"). The address is then final from the start. The single player rooms on the old address are lost, which does not matter before the first release.
 
 Done when:
 - `pnpm install` shows no build script warnings.
@@ -255,9 +255,9 @@ Done when:
 - The user deployed the API with the auth routes, and all user checks passed. Production shows no login and sends no request to the API.
 - Open issues: none. `DELETE /me` needs the rooms part in step 7.
 
-## Step 7: Online rooms
+## Step 7: Multiplayer rooms
 
-Auth phase 2. Read: auth doc "Online rooms", "Lobby and room UI".
+Auth phase 2. Read: auth doc "Multiplayer rooms", "Lobby and room UI". The detailed plan has the decisions of 2026-10-09: three kinds of table, locked seats, one hosted room per user, no Save game and no Load game.
 
 1. `apps/api`:
    - The rooms store: memory and Mongo, with indexes and TTL indexes.
@@ -266,11 +266,20 @@ Auth phase 2. Read: auth doc "Online rooms", "Lobby and room UI".
    - Tests, including two writes at the same time.
 2. `apps/web`:
    - One room list in the lobby.
-   - The **Online** switch in the new room dialog.
+   - The **Single player** or **Multiplayer** choice in the new room dialog.
    - The join page.
    - The snapshot writes: every 60 s, on **← Lobby**, and when the tab is hidden.
 
 Done when: two dev-login users in two browsers can create a room, join it, and see the map and the host's roster. Another browser of the same user gets the saved table.
+
+**Result:** Built on 2026-10-09 in five commits. The browser checks of the user are open. Details are in `docs/plans/implement-backend/07-multiplayer-rooms.md`.
+- `b4b8e6d` (phase 1): `yjs`, the rooms store (memory and Mongo, four indexes), `GET /rooms`, `POST /rooms`, `GET /rooms/{code}`, `POST /rooms/{code}/join`, `DELETE /rooms/{code}`, and the rooms part of `DELETE /me`.
+- `fe1d3c3` (phase 2): `GET` and `PUT /rooms/{code}/table`, merged with `Y.mergeUpdates` and the `tableRev` filter, one retry, then 409. A test sends a fake function URL event through the Lambda adapter. The Lambda `index.mjs` is 956,348 bytes (882,867 after step 6).
+- `c75aaff` (phase 3): one room list in the lobby, multiplayer tiles, **Copy link**, **Delete**, the **Single player** or **Multiplayer** choice in the new room dialog, and the start table sent with `POST /rooms`.
+- `de3ff7a` (phase 4): the room link, the join page, opening a multiplayer room from the server, and the table writer (60 s, on **← Lobby**, on a hidden tab).
+- `1622ff2` (phase 5): the guest's roster is written at the first open. **Save game** and **Load game** are removed (`encodeGame` is `encodeTable`, `readGame` is gone).
+- Design changes agreed on 2026-10-09: a room always has a table (no `table: null`), seats are locked after the join (no `PATCH`, `/leave` or `/remove`), a user hosts one room, `owner` is `host`.
+- The tests pass in all packages: the API 93 plus 16 Mongo cases, the web app 60.
 
 ## Step 8: Two browsers
 
@@ -279,10 +288,12 @@ Peer-to-peer phase 2 and auth phase 3. Read: peer-to-peer doc "How a WebRTC conn
 1. `apps/api`: signaling routes with the token and seat check. The API adds `user` to each message. The poll URL stays the same between polls.
 2. `apps/web`:
    - `peer.js`, Yjs sync and awareness over the data channel.
-   - Host and join in an online room.
+   - Host and join in a multiplayer room.
    - Names and avatars in the room toolbar.
    - The version check and the `?build` flag.
 3. Local coturn and `?relay`, if a browser pair cannot connect directly.
+
+Note from step 7: when the host deletes the room, the host's browser tells the guest's browser over the connection, and the guest leaves at once (plan of step 7, decision 15). Until then, the guest finds out at the next table write, which gets 404.
 
 Done when: in the three browser pairs, discrete changes sync. Discrete changes are map, crisis cards, tokens, new characters, damage and power.
 
@@ -336,7 +347,7 @@ Peer-to-peer phase 6. Only if step 12 or later games show that direct connection
 
 Made on 2026-10-08:
 
-1. Yjs (step 5) comes before login (step 6). Only the online features need login.
+1. Yjs (step 5) comes before login (step 6). Only the multiplayer features need login.
 2. The Netlify site is renamed in step 1, so the address is final from the start. Before the first release, all data is test data, and nothing is migrated.
 3. Step 12 is the first release. The user tests it in production with another real person.
 4. Every step from 1 to 13 gets a detailed plan that records its intent and its path. It is written before the step starts, after the results of the steps that it needs.

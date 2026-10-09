@@ -6,16 +6,22 @@ Status: done, 2026-10-07. Not checked in a browser.
 
 The app opens on a lobby. The lobby lists the rooms of this browser. A player creates a room with a map and the rosters, enters it later, and finds the table as they left it. The table without a room is the Sandbox: the app as it was before this feature.
 
-There is no server yet. Each room is a record in `localStorage`, and its table is a Yjs document in IndexedDB. The peer-to-peer feature (`docs/feature-peer-to-peer.md`) will let a second player join a room.
+There are three kinds of table:
+
+- **Sandbox:** in this browser only. Not saved.
+- **Single player room:** in this browser only. A record in `localStorage`, and its table is a Yjs document in IndexedDB. This doc describes it. Before 2026-10-09 it was called an offline room.
+- **Multiplayer room:** on the server (step 7). The host creates it, and a guest joins it with a link. The table is on the server, with a copy in IndexedDB. Before 2026-10-09 it was called an online room. `docs/feature-auth.md` describes it.
+
+The peer-to-peer feature (`docs/feature-peer-to-peer.md`) syncs the table of a multiplayer room between the two players.
 
 ## Terms
 
 | Term | Meaning |
 |---|---|
 | Lobby | The start page. Lists the rooms, creates a room, opens the Sandbox |
-| Room | A saved table with a fixed map, the Blue roster and, if given, the Red roster. The record is in `localStorage`, the table in IndexedDB |
+| Room | A saved table with a fixed map, the Blue roster and, if given, the Red roster. A single player room has its record in `localStorage` and its table in IndexedDB. A multiplayer room is on the server |
 | Sandbox | A table with every control: map picker, both roster fields. Not saved |
-| Owner | The user who created the room. Only the owner can delete it |
+| Owner | The user who created a single player room. Only the owner can delete it. In a multiplayer room this user is the host |
 | Room code | The id of a room, for example `K7Q2-M9XD`. The same format as the room code of the peer-to-peer plan |
 
 ## Pages
@@ -29,12 +35,12 @@ The URL hash selects the page. So the browser back button works, and a reload st
 | `#sandbox` | Sandbox |
 
 - `#room=<code>` is the link format of the peer-to-peer plan ("Connect flow"). So the same link can invite the second player later.
-- A room code that is not in this browser opens the lobby with the message "Room K7Q2-M9XD is not in this browser".
+- A room code that is not in this browser opens the lobby with the message "Room K7Q2-M9XD is not in this browser". With login on, the app asks the server first: a multiplayer room opens, or the join page shows (`docs/feature-auth.md`, "Identity in peer-to-peer games").
 - Each room and the Sandbox mount a new table, so nothing from the last table stays.
 
 ## Lobby
 
-- **Rooms:** a **+** tile, then a tile for each room, the last changed room first. A tile shows the map card, the map name, the room code and the time of the last change. A click on the tile enters the room.
+- **Rooms:** a **+** tile, then one list with a tile for each single player room and each multiplayer room, the last changed room first. A single player tile shows "Single player". A multiplayer tile shows the seats, **Copy link** and **Delete** for the host (`docs/feature-auth.md`, "Lobby and room UI"). With login off, the list has only single player rooms and makes no API call. A tile shows the map card, the map name, the room code and the time of the last change. A click on the tile enters the room.
 - **Blue** and **Red** on a tile show that roster of the room in the roster popup of the table (`docs/feature-roster.md`). A button shows only when the room has that roster. The popup opens on the first tab with cards, usually Characters. Escape, **×** or a click on the backdrop closes it. The left and right arrows show the previous or next card. **Red** added on 2026-10-07.
 - On a narrow tile, **Delete** goes to a second line.
 - **Delete** on a tile removes the room. It shows only on rooms that this user owns. Now that is every room. A browser confirm asks first, the same as **Remove** on a character tray.
@@ -44,6 +50,7 @@ The URL hash selects the page. So the browser back button works, and a reload st
 
 The **+** tile opens a dialog on a blurred backdrop, the same style as the roster popup.
 
+- With login on, a choice at the top: **Single player** or **Multiplayer** (`docs/feature-auth.md`, "Lobby and room UI"). With login off, the dialog makes a single player room. The rest of this list describes **Single player**.
 - **Random map** switch, on by default. While it is on, the dialog shows the back of a map card. The app picks the map when the player creates the room.
 - With the switch off, a carousel shows the map cards. The card in the middle is the map of the room. It is the same carousel as in the roster popup.
 - **Blue roster** and **Red roster:** a text field for the MCT code of each player. Under each field, the dialog shows what it found, for example "10 characters · 10 tactic cards · 5 Secure · 5 Extract", and the unknown codes. The parse rules are the ones of `docs/feature-roster.md`. The Red field was added on 2026-10-07, because the game setup (`docs/feature-setup-game.md`) needs both rosters.
@@ -58,7 +65,7 @@ The carousel shows only maps that the app has (`apps/web/src/terrain/maps.js`). 
 - The player is Blue, the same as before.
 - The map is the room map. The toolbar has no map picker. The mat turn buttons stay.
 - The rosters come from the room. The Roster group has only the Red field. It loads, replaces or removes the Red roster of the room. The field is empty when the room opens, also when the room has a Red roster.
-- With a server, each player will load their own roster when they join. Then the new room dialog will have only the roster of the player who creates the room, and the Red field will be only in the Sandbox.
+- A multiplayer room has no Roster group and no map picker. Each player gives their own roster when they create or join the room. The new room dialog with **Multiplayer** has only the roster of the host. The join page has the roster of the guest. Single player rooms keep both roster fields.
 - **← Lobby** at the start of the toolbar writes the room record and opens the lobby. The toolbar also shows the room code.
 
 ## Sandbox
@@ -132,35 +139,32 @@ Not saved: dice, tools, selection, camera, open popups, spectator view, labels, 
 
 Two tabs with the same room store their changes in the same database. They do not see each other's changes while open. The next open of the room has both.
 
-### Save game and Load game
-
-The toolbar can write the document to a file and read it back (`docs/feature-peer-to-peer.md`, "Save and load a game"). **Load game** replaces the table, the map and the rosters of the room. The room record gets the map and the rosters of the file.
-
 ## Owner
 
-There are no accounts. The user id in `localStorage` is the owner of every room that this browser creates. So now every room in the list can be deleted. Peer-to-peer will add rooms that this browser joined. Their owner is another user, so they show no **Delete**.
+In a single player room, the user id in `localStorage` is the owner of every room that this browser creates. So every single player room in the list can be deleted. A multiplayer room has a host (a logged-in user). Only the host sees **Delete** on its tile. The guest sees the tile with no **Delete**.
 
 ## Relation to peer-to-peer
 
 - The room code and the link format are the ones of the peer-to-peer plan.
 - Phase 1 of that plan (step 5 of `docs/plans/implement-backend.md`) moved the table into a Yjs document, saved in IndexedDB per room. The room record keeps the setup: map, rosters, owner, dates. It has no `table`.
 - Step 8 syncs this document between two browsers. The code of one player and of two players is the same.
-- The room record keeps `rosters`. In a game with two players, each player loads their own roster.
+- Multiplayer rooms (step 7) keep the room record on the server, not in `localStorage`. Their IndexedDB database is `mcp-assist-3d/multiplayer/<user id>/<code>`. In a game with two players, each player has their own roster key in the table.
 
 ## Code
 
 | File | Content |
 |---|---|
 | `apps/web/src/Root.jsx` | The page of the URL hash: Lobby, Room or Sandbox |
-| `apps/web/src/Table.jsx` | Opens the document of a room or the Sandbox, shows the loading screen, mounts `App`. Replaces the document on Load game |
+| `apps/web/src/Table.jsx` | Opens the document of a room or the Sandbox, shows the loading screen, mounts `App`. Opens a multiplayer room from the server and runs the table writer |
 | `apps/web/src/rooms/store.js` | `localStorage`: user id, room code, list, read, create. `saveRoomRecord`, `roomDocName`, `deleteRoom` (also deletes the IndexedDB database). `createRoom` takes both rosters |
 | `apps/web/src/rooms/tableDoc.js` | `openTableDoc`: the document with IndexedDB, the 5-second timeout and the in-memory fallback. `watchRoomRecord`: writes the room record |
 | `apps/web/src/rooms/table.js` | The table state that a new table starts with (`startTable`), `withPlacements`, `poseOf` |
-| `apps/web/src/net/doc.js` | The layout of the document, `createTable`, `fillTable`, the game file (`encodeGame`, `readGame`) |
+| `apps/web/src/net/doc.js` | The layout of the document, `createTable`, `fillTable`, `encodeTable` |
 | `apps/web/src/net/collections.js` | The list and record stores over a `Y.Map`. No React |
 | `apps/web/src/net/useY.js` | `useYList`, `useYRecord`, `useYField`: React hooks over the stores |
 | `apps/web/src/rooms/preload.js` | The files to load before a table shows |
-| `apps/web/src/components/Lobby.jsx` | The lobby page, and the roster popup of a room |
+| `apps/web/src/components/Lobby.jsx` | The lobby page: one list of single player and multiplayer rooms |
+| `apps/web/src/components/RoomRosterPopup.jsx` | The roster popup of a room. The lobby and the join page use it |
 | `apps/web/src/components/NewRoomDialog.jsx` | The new room dialog: map switch, map carousel, Blue and Red roster fields |
 | `apps/web/src/components/Carousel.jsx` | The Embla carousel, taken out of `RosterPopup.jsx`. The roster popup and the map picker use it |
 | `apps/web/src/components/Preload.jsx` | `Preload` and `Ready`, see [Loading](#loading) |
@@ -190,11 +194,11 @@ Made on 2026-10-09 (step 5):
 14. The room record is version 2 and has no `table`. It keeps `mapId` and `rosters` for the lobby tile. A record of version 1 opens with a new table. Before the first release, all data is test data, so nothing is migrated.
 15. The room record is written at most every 2 seconds after a change of the document, on `pagehide`, and when the table unmounts.
 16. IndexedDB gets 5 seconds to load. After that, or after an error, the table opens in memory, with a warning that stays until the player closes it. Reason: a database that cannot open never answers, and the room must still open.
-17. Load game replaces the whole table: the table, the map and the rosters. A browser confirm asks first. Reason: a Yjs update adds to a document and cannot replace it, so the room gets a new database.
+17. Load game replaced the whole table. Removed on 2026-10-09 (step 7): the app does not need a game file. A single player room keeps its table in IndexedDB. A multiplayer room keeps it on the server.
 
 ## Out of scope
 
 - Room names, rename, export and import.
-- A second player, spectators. See `docs/feature-peer-to-peer.md`.
+- Spectators. See `docs/feature-peer-to-peer.md`.
 - A saved Sandbox.
 - A change of the Blue roster in a room.

@@ -103,11 +103,13 @@ The poll sends `after` in the `x-after` header, not in the query. So the poll UR
 ### Connect flow
 
 1. The host presses **Host game**. The browser makes a random room code and a link: `https://<site>/#room=K7Q2-M9XD`. The code is in the URL hash, so Netlify never receives it. The host posts `hello` and polls every 2 s.
-   Rooms exist already in one browser (`docs/feature-rooms.md`). A local room has a code of this format, and its page is this link. So the host shares the link of a room they created.
+   Rooms exist already in one browser (`docs/feature-rooms.md`). A single player room has a code of this format, and its page is this link. A multiplayer room (step 7, `docs/feature-auth.md`) is on the server, and its link opens the join page for a guest. So the host shares the link of a multiplayer room they created. A single player room never connects.
 2. The host sends the link to the other player (chat, email).
 3. The guest opens the link. The guest posts `hello`, reads the host's `hello`, creates the offer, waits until ICE gathering ends (at most 3 s), and posts the `offer`.
 4. The host reads the offer, creates the answer the same way, and posts the `answer`.
 5. The guest reads the answer. The data channels open. Both stop polling.
+
+When the host deletes the room while the guest is connected, the host's browser tells the guest's browser over the connection. The guest then leaves the room at once, with "The host deleted room K7Q2-M9XD.", and the browser deletes its local copy. This needs no server request. Until step 8, the guest finds out at their next table write, which gets 404 (`docs/feature-auth.md`, "Rules").
 
 Both `hello` messages carry the app version (the build id). If the two versions are different, both players see a warning: "Your opponent uses a different version of the app. Both players should reload the page." The reason is in [State](#state), category 1.
 
@@ -251,7 +253,7 @@ How the data is stored:
 
 React reads the document through three hooks in `net/useY.js`, built on `useSyncExternalStore`: `useYList`, `useYRecord` and `useYField`. Each returns the value and a setter, in the form of a React `useState`. The setter takes a value or an updater function. It compares the new value with the document and writes only the fields that changed. So the handlers in `App.jsx` such as `handleTokenFlip` keep their code. A handler that writes more than one name runs in `table.transact`, so the document has one update. A game with no connection uses the same document, only without a provider. So single-player and multiplayer run the same code.
 
-Each browser stores the document in IndexedDB (`y-indexeddb`), per room, from step 5 on. After a page reload, the table comes back at once, and Yjs syncs the changes that the other player made in the meantime. The room record in `localStorage` keeps only the setup: map, rosters, owner, dates (`docs/feature-rooms.md`, "Storage"). The Sandbox has the same document without IndexedDB.
+Each browser stores the document in IndexedDB (`y-indexeddb`), per room, from step 5 on. A single player room uses the database `mcp-assist-3d/room/<code>`. A multiplayer room uses `mcp-assist-3d/multiplayer/<user id>/<code>`, so two users of one browser never share a database. In a multiplayer room, the server also keeps a snapshot of the document (`docs/feature-auth.md`, "Table on the server"). After a page reload, the table comes back at once, and Yjs syncs the changes that the other player made in the meantime. The room record in `localStorage` of a single player room keeps only the setup: map, rosters, owner, dates (`docs/feature-rooms.md`, "Storage"). The Sandbox has the same document without IndexedDB.
 
 ## Moving objects (physics)
 
@@ -350,7 +352,7 @@ To connect, open `http://localhost:5173` in one browser and press **Host game**.
 
 ### Browser differences
 
-- Each browser has its own `sessionStorage`, `localStorage` and IndexedDB. So peer ids, player names and the stored game do not collide.
+- Each browser has its own `sessionStorage`, `localStorage` and IndexedDB. So peer ids, player names and the stored tables do not collide.
 - All three browsers treat `http://localhost` as a secure context.
 - The maximum message size is different in Firefox. See [Data channels](#data-channels).
 - To log bytes per game, the app reads the selected candidate pair from `pc.getStats()`. Chrome and Safari give it through the transport stats (`selectedCandidatePairId`). Firefox has used a `selected` field on the candidate pair instead. The code must support both.
@@ -366,25 +368,14 @@ Flags in the page URL. They work only in dev builds (`import.meta.env.DEV`), so 
 | `?drop=10&delay=100` | Drops 10 % of the packets on the `poses` channel and delays the rest by 100 ms. Localhost loses no packets, so without this flag the interpolation and the rest pose rules are not tested |
 | `?build=test` | Sends a fake app version in `hello`, to test the version warning |
 
-### Save and load a game
-
-**Save game** writes the Yjs document to a file. **Load game** reads it. So the same test case can be repeated in each browser pair. Both buttons are in the first group of the toolbar, after the room code.
-
-- The file is the bytes of `Y.encodeStateAsUpdate(doc)`. Its size is the snapshot size (`docs/feature-auth.md`, open question 5).
-- The name is `game-<room code or sandbox>-<yyyy-mm-dd>.yjs`.
-- **Load game** reads the file into a new document and checks it. The file must be a Yjs update with `game.schema` equal to `SCHEMA`, and the app must have its map. Otherwise the HUD shows "This file is not a saved game of this app", and nothing changes.
-- A browser confirm asks: "Replace the table with the saved game? The table of this room is lost." In the Sandbox: "The table is lost."
-- **Load game** replaces the whole table: the table, the map and the rosters. A Yjs update adds to a document and cannot replace it. So in a room, the old IndexedDB database is deleted, and the file's document is stored in a new one. The room record gets the map and the rosters of the file. `App` mounts again, so nothing stays from the old table.
-- It works in a room and in the Sandbox. In step 8, it will work only before a game is hosted.
-
 ## Code layout
 
 ```
 apps/web/src/
-  Table.jsx       opens the document of a room or the Sandbox, then mounts App. Load game
+  Table.jsx       opens the document of a room or the Sandbox, then mounts App. Multiplayer rooms: reads the table from the server and runs the table writer
   rooms/tableDoc.js  openTableDoc (IndexedDB, timeout, memory fallback), watchRoomRecord
 apps/web/src/net/
-  doc.js          the layout of the Y.Doc, SCHEMA, createTable, fillTable, the game file (encodeGame, readGame). No React
+  doc.js          the layout of the Y.Doc, SCHEMA, createTable, fillTable, encodeTable. No React
   collections.js  the list and record stores over a Y.Map: diff writes, order, snapshots. No React
   useY.js         React hooks: useYList, useYRecord, useYField
   signaling.js    Signaling interface and its HTTP version (local API and Lambda)
