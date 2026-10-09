@@ -195,10 +195,10 @@ function Mat({ mapId }) {
 // onSupplyDragStart(e, cardKey): pointerdown on the supply pile of a Source card (SupplyPile.jsx).
 // scoreMarkers, affiliations, onScoreMarkerMove(marker, x, z): the scoring board markers, see
 // ScoreBoard.jsx.
-// startPoses: model id → saved pose { x, y, z, qx, qy, qz, qw } of a room (rooms/table.js). A model with a
-// pose starts there instead of on its tray. Read when the model mounts.
-// modelPosesRef: ref App calls to get the pose of every model on the table, the same pattern as
-// modelPositionRef. Scene fills it with modelPoses. Used by the room save (docs/feature-rooms.md).
+// startPose(modelId): the stored pose { x, y, z, qx, qy, qz, qw } of a model (rooms/table.js, poseOf), or
+// undefined. A model with a pose starts there instead of on its tray. Read when the model mounts.
+// onModelRest(modelId, pose): the body of a model fell asleep. App stores the pose in the table document, so
+// the model starts there when the table opens again (docs/plans/implement-backend/05-yjs-state.md, decision 8).
 export default function Scene({
   mapId,
   terrain = [],
@@ -266,8 +266,8 @@ export default function Scene({
   squadSelect,
   setupActions,
   onScoreMarkerMove,
-  startPoses = {},
-  modelPosesRef,
+  startPose,
+  onModelRest,
 }) {
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
   const { camera, gl, pointer } = useThree()
@@ -375,17 +375,12 @@ export default function Scene({
     return null
   }
 
-  // The pose of every mounted model, by model id: its body position and rotation. A lifted model (R)
-  // gives the place under the lift, so it stands there when the room opens again.
-  function modelPoses() {
-    const poses = {}
-    for (const [id, body] of charBodies.current) {
-      poses[id] = poseOf(
-        charLifts.current.get(id)?.restPosition() ?? body.translation(),
-        body.rotation(),
-      )
-    }
-    return poses
+  // The pose of a mounted model to store: its body position and rotation, or null. A lifted model (R) gives
+  // the place under the lift, so it stands there when the table opens again.
+  function restPose(id) {
+    const body = charBodies.current.get(id)
+    if (!body) return null
+    return poseOf(charLifts.current.get(id)?.restPosition() ?? body.translation(), body.rotation())
   }
 
   // on: the piece is now the hovered or dragged one (true), or no longer (false)
@@ -463,7 +458,6 @@ export default function Scene({
   useEffect(() => {
     if (characterAtRef) characterAtRef.current = characterAt
     if (modelPositionRef) modelPositionRef.current = modelPosition
-    if (modelPosesRef) modelPosesRef.current = modelPoses
     if (turnPieceRef) turnPieceRef.current = turnPiece
     if (liftPieceRef) liftPieceRef.current = liftPiece
     if (terrainAtRef) terrainAtRef.current = terrainAt
@@ -589,7 +583,7 @@ export default function Scene({
   // a spare model (a second form without its own card), past the Give sources (trays.js). The model
   // reads it only once, when its body mounts.
   function modelSpawnPosition(model) {
-    const pose = startPoses[model.id]
+    const pose = startPose?.(model.id)
     if (pose) return [pose.x, pose.y, pose.z]
     const ch = model.character
     const trayPos = trayPositions.get(ch.id)
@@ -932,7 +926,7 @@ export default function Scene({
         {models.map((model) => {
           const ch = model.character
           // The same props for a 3D model and a standee (CharacterModel.jsx)
-          const pose = startPoses[model.id]
+          const pose = startPose?.(model.id)
           const props = {
             position: modelSpawnPosition(model),
             quaternion: pose && [pose.qx, pose.qy, pose.qz, pose.qw],
@@ -948,6 +942,10 @@ export default function Scene({
             },
             bodyRef: (rb) =>
               rb ? charBodies.current.set(model.id, rb) : charBodies.current.delete(model.id),
+            onRest: () => {
+              const rest = restPose(model.id)
+              if (rest) onModelRest?.(model.id, rest)
+            },
             objectRef: (obj) =>
               obj ? charObjects.current.set(model.id, obj) : charObjects.current.delete(model.id),
             liftRef: (lift) =>

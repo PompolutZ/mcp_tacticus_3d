@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { MAPS } from '../terrain/maps.js'
 import { cardsOfType } from '../crisis/cards.js'
 
@@ -20,10 +20,13 @@ const CRISIS_TYPES = [
 // roomCode: the code of the room, or null in the Sandbox. A room has a fixed map and the Blue roster of
 // the room, so the toolbar has no map picker and only the Red roster field there. The Red field loads,
 // replaces or removes the Red roster of the room (docs/feature-rooms.md).
-// onLobby(): the ← Lobby button.
+// onLobby(): the ← Lobby button. onSaveGame(): the Save game button. onLoadGame(file): the player chose a file
+// with Load game.
 export function Toolbar({
   roomCode,
   onLobby,
+  onSaveGame,
+  onLoadGame,
   mapId,
   onMapChange,
   activeRange,
@@ -51,6 +54,8 @@ export function Toolbar({
   // The typed text stays in the field after Enter (x clears it)
   const [rosterText, setRosterText] = useState({ blue: '', red: '' })
   const rosterTeams = roomCode ? TEAMS.filter(({ team }) => team === 'red') : TEAMS
+  // The hidden file input of Load game
+  const gameFileRef = useRef(null)
   return (
     <div className="toolbar">
       <div className="group">
@@ -63,6 +68,34 @@ export function Toolbar({
         >
           {roomCode ?? 'Sandbox'}
         </span>
+        <button
+          type="button"
+          className="chip"
+          title="Save the table to a file"
+          onClick={onSaveGame}
+        >
+          Save game
+        </button>
+        <button
+          type="button"
+          className="chip"
+          title="Replace the table with a saved game"
+          onClick={() => gameFileRef.current?.click()}
+        >
+          Load game
+        </button>
+        <input
+          ref={gameFileRef}
+          type="file"
+          accept=".yjs"
+          hidden
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            // So the same file can be chosen again
+            e.target.value = ''
+            if (file) onLoadGame(file)
+          }}
+        />
       </div>
       <div className="group">
         <button

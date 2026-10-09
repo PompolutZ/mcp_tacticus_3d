@@ -24,7 +24,7 @@ import {
 } from './characters/characters.js'
 import { BASE_DIAMETER } from './characters/files.js'
 import { trayHeldDefault } from './characters/trays.js'
-import { characterModels, modelCharacterId, secondModelId } from './characters/models.js'
+import { modelCharacterId, secondModelId } from './characters/models.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { getToken, isCappedToken } from './tokens/tokens.js'
 import { firstFreeSlot, nearestFreeSlot, tacticTrayAt } from './tactics/layout.js'
@@ -55,9 +55,11 @@ import {
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
 import { TERRAIN_PIECES } from './terrain/pieces.js'
-import { mapTerrain, savedTable, startTable } from './rooms/table.js'
+import { mapTerrain, withPlacements } from './rooms/table.js'
 import { tableFiles } from './rooms/preload.js'
-import { saveRoom } from './rooms/store.js'
+import { useYField, useYList, useYRecord } from './net/useY.js'
+import { encodeGame, readGame } from './net/doc.js'
+import { MAPS } from './terrain/maps.js'
 import {
   NO_PIECES,
   NO_TOOLS,
@@ -108,14 +110,9 @@ const TOKEN_ROW_SPACING = TOKEN_RADIUS * 2 + DROP_GAP * 2
 // A character token drag starts only after the pointer moves this many pixels, so a click on a
 // Give source or a token on the table does not drop a token.
 const DRAG_THRESHOLD = 4
-// The map on the mat when the Sandbox starts, a key in MAPS
-const START_MAP = 'vibranium-heist'
 // What a restart of the game setup removes, for its confirm (restartSetup)
 const SETUP_REMOVAL =
   'The squads and the crisis cards that the game setup put on the table are removed.'
-// A room saves its table this often (ms), when something changed. See docs/feature-rooms.md, "When the
-// room saves".
-const SAVE_INTERVAL = 2000
 
 // Mat token entries of a card, as tracked in App state. Position and rotation come from cards.json
 // (TTS x, z from the mat center, and TTS Y rotation), converted the same way as terrain: z -> -z.
@@ -209,13 +206,14 @@ function canvasEvents(store) {
   }
 }
 
-// One table: a room, or the Sandbox. Root.jsx mounts a new App for each, so nothing stays from the last
-// table. room: the room record (rooms/store.js), or null for the Sandbox. A room starts with its saved
-// table and saves it (saveTable). Its map is fixed, and its rosters come from the room. The Sandbox
-// starts empty and is not saved. onExit(): opens the lobby. See docs/feature-rooms.md.
-export default function App({ room = null, onExit }) {
-  // The state of the table at the start (rooms/table.js): the saved table of the room, or a new one
-  const [start] = useState(() => startTable(room?.mapId ?? START_MAP, room?.table ?? null))
+// One table: a room, or the Sandbox. Table.jsx opens the Yjs document of the table and mounts a new App for
+// each, so nothing stays from the last table. table: the stores of the document (net/doc.js). The table
+// state below comes from it, and each setter writes it (net/useY.js). A room stores the document in
+// IndexedDB, the Sandbox keeps it in memory. room: the room record (rooms/store.js), or null for the
+// Sandbox. A room has a fixed map. storageFailed: the room could not use IndexedDB, so it is not saved.
+// onExit(): opens the lobby. onLoadGame(bytes): replaces the table with a game file (Table.jsx). See
+// docs/feature-rooms.md and docs/plans/implement-backend/05-yjs-state.md.
+export default function App({ table, room = null, storageFailed = false, onExit, onLoadGame }) {
   const [activeRange, setActiveRange] = useState(null)
   const [activeMove, setActiveMove] = useState(null)
   // The Toward / Away tool is on the table, and where it spawns: { target, aim }, the piece it snaps to
@@ -228,36 +226,38 @@ export default function App({ room = null, onExit }) {
   const [showLabels, setShowLabels] = useState(false)
   // The spectator view above each model (SpectatorBadge.jsx)
   const [spectator, setSpectator] = useState(false)
-  const [matTurns, setMatTurns] = useState(start.matTurns)
-  const [mapId, setMapId] = useState(room?.mapId ?? START_MAP)
-  // The terrain pieces on the mat, see mapTerrain in rooms/table.js. A new map replaces them.
-  const [terrain, setTerrain] = useState(start.terrain)
+  const [matTurns, setMatTurns] = useYField(table.game, 'matTurns')
+  const [mapId, setMapId] = useYField(table.game, 'mapId')
+  // The terrain pieces on the mat, see mapTerrain in rooms/table.js. A new map replaces them. The document
+  // stores each piece's index in the map data and its lock. setTerrain writes only these.
+  const [storedTerrain, setTerrain] = useYList(table.terrain)
+  const terrain = useMemo(() => withPlacements(mapId, storedTerrain), [mapId, storedTerrain])
   // Id of the unlocked terrain piece under the pointer, for the Delete key
   const hoveredTerrainRef = useRef(null)
   // Scene calls this and returns the id of the terrain piece under the pointer, locked or not, or
   // null. See Scene.jsx, terrainAt.
   const terrainAtRef = useRef(null)
-  const [deployLine, setDeployLine] = useState(start.deployLine)
-  const [characters, setCharacters] = useState(start.characters)
+  const [deployLine, setDeployLine] = useYField(table.game, 'deployLine')
+  const [characters, setCharacters] = useYList(table.characters)
   // The chosen Secure and Extract card, by key. null = none.
-  const [crisis, setCrisis] = useState(start.crisis)
+  const [crisis, setCrisis] = useYField(table.game, 'crisis')
   // Every crisis token on the table: the mat tokens of the cards (buildMatTokens) and the supply
   // tokens that players took from a pile (supplyToken).
-  const [tokens, setTokens] = useState(start.tokens)
+  const [tokens, setTokens] = useYList(table.tokens)
   // Scoring board markers: { blue, red, round } → { x, z } on the table (see ScoreBoard.jsx)
-  const [scoreMarkers, setScoreMarkers] = useState(start.scoreMarkers)
+  const [scoreMarkers, setScoreMarkers] = useYField(table.game, 'scoreMarkers')
   // Loaded rosters: { blue, red } → null | { code }, code in Jarvis format (see rosters/mct.js). A room
-  // brings its rosters: Blue, and Red when the room has it.
-  const [rosters, setRosters] = useState(room?.rosters ?? { blue: null, red: null })
+  // starts with its rosters: Blue, and Red when the room has it.
+  const [rosters, setRosters] = useYRecord(table.rosters)
   // The game setup: crisis cards, threat, deployment edge and squads (setup/setup.js, GameSetup.jsx). A new
   // roster starts it again.
-  const [setup, setSetup] = useState(start.setup)
+  const [setup, setSetup] = useYRecord(table.setup)
   // The players whose clicks on their roster cards choose the squad: { blue, red } → true. Off, a click opens
   // the roster popup. Not saved.
   const [squadSelect, setSquadSelect] = useState({ blue: false, red: false })
   // Affiliation token that each player's VP marker shows: { blue, red } → key in scoreboard/affiliations.json.
   // No toolbar control: Setup game sets it (see docs/feature-setup-game.md).
-  const [affiliations] = useState(start.affiliations)
+  const [affiliations] = useYField(table.game, 'affiliations')
   // Selected pieces and tools, see selection.js. One character, one token, the range tool, the
   // movement tool and the Toward / Away tool can all be selected at the same time.
   const [selection, setSelection] = useState(NO_PIECES)
@@ -297,17 +297,17 @@ export default function App({ room = null, onExit }) {
   // Character tokens that lie on the table: [{ id, key, x, z }]. A player drops them there from a
   // Give source, a pile or the Library, and drags them on to a character or another place. See
   // docs/characters-hud.md, "Give tokens by drag and drop".
-  const [looseTokens, setLooseTokens] = useState(start.looseTokens)
+  const [looseTokens, setLooseTokens] = useYList(table.looseTokens)
   // Id of the table token under the pointer, for the Delete key. A ref, the same as hoveredRef.
   const hoveredLooseRef = useRef(null)
   // Piles of character tokens on the table, dropped from the Library in Pile mode: [{ id, key, x, z }].
   // A pile never runs out. See docs/feature-library.md, "Pile".
-  const [tokenPiles, setTokenPiles] = useState(start.tokenPiles)
+  const [tokenPiles, setTokenPiles] = useYList(table.tokenPiles)
   // Id of the pile under the pointer, for the Delete key
   const hoveredPileRef = useRef(null)
   // Team Tactic cards on the table: [{ id, key, team, x, z, up }]. The order is the stack order: the
   // last card lies on top. See docs/feature-team-tactic-cards.md, "State".
-  const [tacticCards, setTacticCards] = useState(start.tacticCards)
+  const [tacticCards, setTacticCards] = useYList(table.tactics)
   // Id of the tactic card under the pointer, for the F and Delete keys
   const hoveredTacticRef = useRef(null)
   // Id of the crisis token under the pointer that a character holds, for the Delete key
@@ -343,79 +343,51 @@ export default function App({ room = null, onExit }) {
   // Scene calls this for R: it lifts the character under the pointer or puts it back down. See
   // Scene.jsx, liftPiece.
   const liftPieceRef = useRef(null)
-  // Scene calls this and returns the pose of every model on the table, for the room save. See
-  // Scene.jsx, modelPoses.
-  const modelPosesRef = useRef(null)
-  // The poses of the last save. A model whose body is not mounted at a save keeps its pose from here.
-  const lastPoses = useRef(start.poses)
-  // The last save failed, so the next failure shows no message again
-  const saveFailed = useRef(false)
+  // The room could not use IndexedDB (storageFailed), and the player has not closed the warning yet
+  const [storageWarning, setStorageWarning] = useState(storageFailed)
   // The files to load before the table shows: the map and the models (rooms/preload.js). Read once.
-  const [preloadFiles] = useState(() =>
-    tableFiles({ mapId, terrain: start.terrain, characters: start.characters, rosters }),
-  )
+  const [preloadFiles] = useState(() => tableFiles({ mapId, terrain, characters, rosters }))
   // The scene and the preloaded files are in, so the loading screen hides (Preload.jsx, Ready)
   const [ready, setReady] = useState(false)
 
-  // Stores the table of the room (docs/feature-rooms.md, "Storage"). The bodies may be gone, for example
-  // when the table unmounts. Then each model keeps the pose of the last save.
-  function saveTable() {
-    let live = {}
-    try {
-      live = modelPosesRef.current?.() ?? {}
-    } catch {
-      // The physics world is gone
-    }
-    const poses = {}
-    for (const { id } of characters.flatMap(characterModels)) {
-      const pose = live[id] ?? lastPoses.current[id]
-      if (pose) poses[id] = pose
-    }
-    lastPoses.current = poses
-    const table = savedTable({
-      matTurns,
-      deployLine,
-      terrain,
-      characters,
-      crisis,
-      tokens,
-      scoreMarkers,
-      affiliations,
-      setup,
-      looseTokens,
-      tokenPiles,
-      tacticCards,
-      poses,
-    })
-    const saved = saveRoom(room, rosters, table)
-    if (!saved && !saveFailed.current) showHudMessage('Room not saved: browser storage is full')
-    saveFailed.current = !saved
+  // ← Lobby in the toolbar. A room is stored at each change (Table.jsx). The Sandbox is not saved, so it
+  // asks first.
+  function handleLobby() {
+    if (!room && !window.confirm('Leave the Sandbox? Its table is not saved.')) return
+    onExit()
   }
 
-  // The timer and the listeners below call the saveTable of the last render, which sees the last state
-  const saveTableRef = useRef(saveTable)
-  saveTableRef.current = saveTable
+  // Save game: downloads the table document as a file. See docs/feature-peer-to-peer.md, "Save and load a
+  // game". The anchor is in the page for the click, because Firefox needs that for a download.
+  function handleSaveGame() {
+    const now = new Date()
+    const date = [now.getFullYear(), now.getMonth() + 1, now.getDate()]
+      .map((n) => String(n).padStart(2, '0'))
+      .join('-')
+    const url = URL.createObjectURL(new Blob([encodeGame(table)]))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `game-${room?.id ?? 'sandbox'}-${date}.yjs`
+    document.body.append(link)
+    link.click()
+    link.remove()
+    // The download reads the URL after the click, so it is revoked later
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
 
-  // A room saves every SAVE_INTERVAL, when the page closes or reloads, and when the table unmounts (the
-  // back button). A model move changes no React state, so a timer, not the state, starts the save.
-  // saveRoom writes only a change.
-  useEffect(() => {
-    if (!room) return undefined
-    const save = () => saveTableRef.current()
-    const timer = setInterval(save, SAVE_INTERVAL)
-    window.addEventListener('pagehide', save)
-    return () => {
-      clearInterval(timer)
-      window.removeEventListener('pagehide', save)
-      save()
+  // Load game: a game file replaces the whole table, also the map and the rosters (Table.jsx). A file that
+  // is not a game of this app, or has a map that the app does not have, changes nothing.
+  async function handleLoadGame(file) {
+    const bytes = new Uint8Array(await file.arrayBuffer())
+    const game = readGame(bytes)
+    const known = Boolean(game && MAPS[game.game.get('mapId')])
+    game?.doc.destroy()
+    if (!known) {
+      showHudMessage('This file is not a saved game of this app')
+      return
     }
-  }, [room])
-
-  // ← Lobby in the toolbar. A room saves first. The Sandbox is not saved, so it asks first.
-  function handleLobby() {
-    if (room) saveTable()
-    else if (!window.confirm('Leave the Sandbox? Its table is not saved.')) return
-    onExit()
+    const lost = room ? 'The table of this room is lost.' : 'The table is lost.'
+    if (window.confirm(`Replace the table with the saved game? ${lost}`)) onLoadGame(bytes)
   }
 
   // direction: 1 turns the mat 90° counter-clockwise, -1 clockwise
@@ -423,10 +395,13 @@ export default function App({ room = null, onExit }) {
     setMatTurns((prev) => (prev + direction + 4) % 4)
   }
 
-  // A new map brings its own terrain, all locked. The selected terrain piece is gone.
+  // A new map brings its own terrain, all locked. The selected terrain piece is gone. One change of the
+  // document, so no render shows the new map with the old terrain.
   function handleMapChange(id) {
-    setMapId(id)
-    setTerrain(mapTerrain(id))
+    table.transact(() => {
+      setMapId(id)
+      setTerrain(mapTerrain(id))
+    })
     setSelection((prev) => prev.filter((p) => p.kind !== 'terrain'))
   }
 
@@ -694,11 +669,13 @@ export default function App({ room = null, onExit }) {
   // of the game setup (buildMatTokens).
   function handleCrisisChange(type, key) {
     const oldKey = crisis[type]
-    setCrisis((prev) => ({ ...prev, [type]: key }))
-    setTokens((prev) => {
-      const kept = prev.filter((t) => t.cardKey !== oldKey)
-      const card = getCard(key)
-      return card ? [...kept, ...buildMatTokens(card, setup.deck?.team === 'red')] : kept
+    table.transact(() => {
+      setCrisis((prev) => ({ ...prev, [type]: key }))
+      setTokens((prev) => {
+        const kept = prev.filter((t) => t.cardKey !== oldKey)
+        const card = getCard(key)
+        return card ? [...kept, ...buildMatTokens(card, setup.deck?.team === 'red')] : kept
+      })
     })
     // The selected token may no longer exist; a selected character is not affected.
     setSelection((prev) => prev.filter((p) => p.kind !== 'token'))
@@ -850,12 +827,15 @@ export default function App({ room = null, onExit }) {
 
   // Remove button on the tray (TrayControls.jsx confirms before calling this). Drops every token
   // the character holds first (p10), then removes the character: its model and its tray both come
-  // from the same characters array (Scene.jsx), so one state update removes all three. Also clears
-  // a selection or popup that still points at it, so nothing keeps the id or its Rapier body after
-  // the model unmounts.
+  // from the same characters array (Scene.jsx), so one state update removes all three. The poses of
+  // its models go too. Also clears a selection or popup that still points at it, so nothing keeps the
+  // id or its Rapier body after the model unmounts.
   function handleCharacterRemove(id) {
-    handleDropCharacterTokens(id)
-    setCharacters((prev) => prev.filter((ch) => ch.id !== id))
+    table.transact(() => {
+      handleDropCharacterTokens(id)
+      setCharacters((prev) => prev.filter((ch) => ch.id !== id))
+      table.poses.set(({ [id]: _first, [secondModelId(id)]: _second, ...rest }) => rest)
+    })
     setSelection((prev) =>
       deselectPiece(deselectPiece(prev, { kind: 'character', id }), {
         kind: 'character',
@@ -884,19 +864,24 @@ export default function App({ room = null, onExit }) {
       return
     }
     if (!confirmSetupRemoval('Load this roster')) return
-    setRosters((prev) => ({ ...prev, [team]: { code: formatMctCode(parsed) } }))
+    const restarted = table.transact(() => {
+      setRosters((prev) => ({ ...prev, [team]: { code: formatMctCode(parsed) } }))
+      return restartSetup()
+    })
     // The open card may not be in the new roster
     setOpenRoster((prev) => (prev?.team === team ? null : prev))
-    const restarted = restartSetup()
     if (parsed.unknown.length > 0) showHudMessage(unknownCodesMessage(parsed.unknown))
     else if (restarted) showHudMessage('Game setup started again')
   }
 
   function handleRosterRemove(team) {
     if (!confirmSetupRemoval('Remove this roster')) return
-    setRosters((prev) => ({ ...prev, [team]: null }))
+    const restarted = table.transact(() => {
+      setRosters((prev) => ({ ...prev, [team]: null }))
+      return restartSetup()
+    })
     setOpenRoster((prev) => (prev?.team === team ? null : prev))
-    if (restartSetup()) showHudMessage('Game setup started again')
+    if (restarted) showHudMessage('Game setup started again')
   }
 
   // The rosters as parsed by rosters/mct.js: { blue, red } → parsed roster or null
@@ -924,15 +909,17 @@ export default function App({ room = null, onExit }) {
   function restartSetup() {
     setSquadSelect({ blue: false, red: false })
     if (setupStep(setup) === 'deck') return false
-    setup.placed.characters.forEach(handleCharacterRemove)
-    setTacticCards((prev) => prev.filter((card) => !setup.placed.tactics.includes(card.id)))
-    if (setup.edge) {
-      for (const type of CRISIS_TYPES) {
-        const key = rosterCard(setup.picks[type])?.key
-        if (key && crisis[type] === key) handleCrisisChange(type, null)
+    table.transact(() => {
+      setup.placed.characters.forEach(handleCharacterRemove)
+      setTacticCards((prev) => prev.filter((card) => !setup.placed.tactics.includes(card.id)))
+      if (setup.edge) {
+        for (const type of CRISIS_TYPES) {
+          const key = rosterCard(setup.picks[type])?.key
+          if (key && crisis[type] === key) handleCrisisChange(type, null)
+        }
       }
-    }
-    setSetup(NEW_SETUP)
+      setSetup(NEW_SETUP)
+    })
     return true
   }
 
@@ -966,12 +953,14 @@ export default function App({ room = null, onExit }) {
   function handleSetupEdge() {
     if (setupStep(setup) !== 'edge') return
     const missing = []
-    for (const type of CRISIS_TYPES) {
-      const info = rosterCard(setup.picks[type])
-      if (!info?.key) missing.push(info?.name ?? setup.picks[type])
-      handleCrisisChange(type, info?.key ?? null)
-    }
-    setSetup(chooseEdge(setup))
+    table.transact(() => {
+      for (const type of CRISIS_TYPES) {
+        const info = rosterCard(setup.picks[type])
+        if (!info?.key) missing.push(info?.name ?? setup.picks[type])
+        handleCrisisChange(type, info?.key ?? null)
+      }
+      setSetup(chooseEdge(setup))
+    })
     if (missing.length > 0)
       showHudMessage(
         `The app has no files for ${missing.join(' and ')}, so ${missing.length === 1 ? 'its' : 'their'} tokens are not on the mat`,
@@ -1058,14 +1047,16 @@ export default function App({ room = null, onExit }) {
         newCards.push({ id: crypto.randomUUID(), key, team, x: slot.x, z: slot.z, up: 'face' })
       }
     }
-    setCharacters((prev) => [...prev, ...newCharacters])
-    setTacticCards((prev) => [...prev, ...newCards])
-    setSetup(
-      activateSquads(setup, {
-        characters: newCharacters.map((ch) => ch.id),
-        tactics: newCards.map((card) => card.id),
-      }),
-    )
+    table.transact(() => {
+      setCharacters((prev) => [...prev, ...newCharacters])
+      setTacticCards((prev) => [...prev, ...newCards])
+      setSetup(
+        activateSquads(setup, {
+          characters: newCharacters.map((ch) => ch.id),
+          tactics: newCards.map((card) => card.id),
+        }),
+      )
+    })
     setSquadSelect({ blue: false, red: false })
     setOpenRoster(null)
   }
@@ -1295,7 +1286,9 @@ export default function App({ room = null, onExit }) {
       return
     }
     if (characterId) {
-      if (handleCharacterTokenGive(characterId, tokenKey) && looseId) handleLooseRemove(looseId)
+      table.transact(() => {
+        if (handleCharacterTokenGive(characterId, tokenKey) && looseId) handleLooseRemove(looseId)
+      })
       return
     }
     const point = dragPointRef.current
@@ -1449,8 +1442,8 @@ export default function App({ room = null, onExit }) {
               onScoreMarkerMove={(marker, x, z) =>
                 setScoreMarkers((prev) => ({ ...prev, [marker]: { x, z } }))
               }
-              startPoses={start.poses}
-              modelPosesRef={modelPosesRef}
+              startPose={table.poses.get}
+              onModelRest={table.poses.setField}
             />
           </SelectionOutlines>
           <OrbitControls
@@ -1476,6 +1469,8 @@ export default function App({ room = null, onExit }) {
         <Toolbar
           roomCode={room?.id ?? null}
           onLobby={handleLobby}
+          onSaveGame={handleSaveGame}
+          onLoadGame={handleLoadGame}
           mapId={mapId}
           onMapChange={handleMapChange}
           activeRange={activeRange}
@@ -1541,17 +1536,30 @@ export default function App({ room = null, onExit }) {
         />
       )}
       {hudMessage && <div className="hud-message">{hudMessage}</div>}
-      {softwareRenderer && (
-        <div className="hud-warning" role="alert" title={softwareRenderer}>
-          <span>
-            The browser draws the 3D view without the graphics card (software rendering), so the app
-            is slow. Turn on hardware acceleration in the browser settings.
-          </span>
-          <button type="button" className="chip" onClick={() => setSoftwareRenderer(null)}>
-            Close
-          </button>
-        </div>
-      )}
+      <div className="hud-warnings">
+        {storageWarning && (
+          <div className="hud-warning" role="alert">
+            <span>
+              Room not saved: browser storage is not available. Changes on this table are lost when
+              the page closes.
+            </span>
+            <button type="button" className="chip" onClick={() => setStorageWarning(false)}>
+              Close
+            </button>
+          </div>
+        )}
+        {softwareRenderer && (
+          <div className="hud-warning" role="alert" title={softwareRenderer}>
+            <span>
+              The browser draws the 3D view without the graphics card (software rendering), so the
+              app is slow. Turn on hardware acceleration in the browser settings.
+            </span>
+            <button type="button" className="chip" onClick={() => setSoftwareRenderer(null)}>
+              Close
+            </button>
+          </div>
+        )}
+      </div>
       {debug && <DebugPanel renderMode={renderMode} onRenderModeChange={setRenderMode} />}
       <LoadingOverlay ready={ready} />
     </div>

@@ -1277,13 +1277,21 @@ body {
   gap: 4px;
 }
 
-/* Shown when the browser draws WebGL on the CPU (App.jsx, softwareRenderer). Bottom right, clear of
-   the token panel in the middle and the debug panel on the left. */
-.hud-warning {
+/* Warnings that stay until the player closes them (App.jsx): the browser draws WebGL on the CPU
+   (softwareRenderer), or a room cannot be stored (storageFailed). Bottom right, clear of the token panel in
+   the middle and the debug panel on the left. */
+.hud-warnings {
   position: absolute;
   bottom: 12px;
   right: 12px;
   max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 600;
+}
+
+.hud-warning {
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -1293,7 +1301,6 @@ body {
   padding: 8px 12px;
   font-size: 13px;
   color: var(--text);
-  z-index: 600;
 }
 
 /* The lobby (Lobby.jsx): the start page. html, body and #root hide overflow for the table, so the lobby

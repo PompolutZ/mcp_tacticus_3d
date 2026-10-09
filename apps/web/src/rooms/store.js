@@ -1,10 +1,15 @@
-// Rooms in localStorage, one key per room. See docs/feature-rooms.md, "Storage". No React.
+// Room records in localStorage, one key per room. The table of a room is a Yjs document in IndexedDB
+// (rooms/tableDoc.js). See docs/feature-rooms.md, "Storage". No React.
+
+import { clearDocument } from 'y-indexeddb'
+import { equal } from '../net/collections.js'
 
 const PREFIX = 'mcp-assist-3d/'
 const ROOM_PREFIX = `${PREFIX}room/`
 const USER_KEY = `${PREFIX}user`
-// The record format. A record with another version opens with an empty table (see openRoom).
-const VERSION = 1
+// The record format. Version 1 had the table in the record. Its table is not read, so the room opens with a
+// new table (docs/plans/implement-backend/05-yjs-state.md, decision 12).
+const VERSION = 2
 // Crockford base32: no I, L, O, U, so a code read aloud or typed is not mistaken. 8 characters are 40 bits,
 // the room code of docs/feature-peer-to-peer.md, "Security and abuse".
 const CODE_CHARS = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
@@ -60,12 +65,15 @@ export function listRooms() {
     .sort((a, b) => b.updatedAt - a.updatedAt)
 }
 
-// The room with this code, or null. A record of another version keeps its setup, but its table is
-// left out, because its fields may have other shapes.
+// The name of the IndexedDB database with the table of a room
+export function roomDocName(id) {
+  return ROOM_PREFIX + id
+}
+
+// The room with this code, or null
 export function openRoom(id) {
   const room = read(ROOM_PREFIX + id)
-  if (!room?.id || !room.mapId) return null
-  return room.version === VERSION ? room : { ...room, table: null }
+  return room?.id && room.mapId ? room : null
 }
 
 // Creates and stores a room. rosters: { blue: { code }, red: null | { code } }, code: the MCT code of the
@@ -82,37 +90,42 @@ export function createRoom(mapId, rosters) {
     updatedAt: now,
     mapId,
     rosters,
-    table: null,
   }
   return write(ROOM_PREFIX + id, room) ? room : null
 }
 
-// Room code → the JSON of the last stored rosters and table, so saveRoom writes only a change
-const lastSaved = new Map()
-
-// Stores the rosters and the table of a room. Writes only when they changed since the last save of
-// this page, and only then sets updatedAt. Returns false when the browser did not store it.
-export function saveRoom(room, rosters, table) {
-  const text = JSON.stringify({ rosters, table })
-  if (lastSaved.get(room.id) === text) return true
-  const saved = write(ROOM_PREFIX + room.id, {
-    ...room,
+// Writes the map and the rosters of the table of a room into its record, for the lobby tile. The table is the
+// source, the record has a copy. changed: the table changed, so updatedAt changes too. Without a change, it
+// writes only a different map or rosters, or an old version.
+export function saveRoomRecord(id, { mapId, rosters }, changed) {
+  const room = read(ROOM_PREFIX + id)
+  // Deleted in another tab
+  if (!room) return
+  const same = room.version === VERSION && room.mapId === mapId && equal(room.rosters, rosters)
+  if (same && !changed) return
+  const { table: _oldTable, ...record } = room
+  write(ROOM_PREFIX + id, {
+    ...record,
     version: VERSION,
-    updatedAt: Date.now(),
+    mapId,
     rosters,
-    table,
+    updatedAt: changed ? Date.now() : room.updatedAt,
   })
-  if (saved) lastSaved.set(room.id, text)
-  return saved
 }
 
+// Deletes the record and the table of a room
 export function deleteRoom(id) {
   try {
     localStorage.removeItem(ROOM_PREFIX + id)
   } catch {
     // Storage turned off: there is nothing to delete
   }
-  lastSaved.delete(id)
+  // IndexedDB can throw or fail when it is turned off. Then there is nothing to delete.
+  try {
+    clearDocument(roomDocName(id)).catch(() => {})
+  } catch {
+    // See above
+  }
 }
 
 // True when the user of this browser created the room, so they can delete it

@@ -120,13 +120,6 @@ export function activateSquads(setup, placed) {
   }
 }
 
-// A saved setup, with the start value of each field that it does not have. A setup saved before the Ready
-// toggles has `active` (the player activated their squad) in place of `ready`.
-export function restoreSetup(saved) {
-  const { active, ...rest } = saved ?? {}
-  return { ...NEW_SETUP, ...(active && { ready: active }), ...rest }
-}
-
 // The setup put something on the table: the crisis cards of the mission, or a squad
 export function setupPlacedCards(setup) {
   return setup.edge || setup.placed.characters.length > 0 || setup.placed.tactics.length > 0

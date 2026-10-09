@@ -1,13 +1,13 @@
-// The table state that App starts with, from a saved room or new, and the form that a room saves.
+// The start state of a table, and the terrain as App shows it. The table itself is a Yjs document (net/doc.js).
 // See docs/feature-rooms.md, "Storage". Plain module, the same as characters/trays.js.
 
 import { MAPS } from '../terrain/maps.js'
 import { START_MARKERS } from '../scoreboard/board.js'
 import { DEFAULT_AFFILIATION } from '../scoreboard/affiliations.js'
-import { restoreSetup } from '../setup/setup.js'
+import { NEW_SETUP } from '../setup/setup.js'
 
 // Terrain pieces of a map, as tracked in App state: the placements of terrain/maps.js with an id and
-// a lock. index: the place of the placement in the map data, which a room saves. Every piece starts
+// a lock. index: the place of the placement in the map data, which the document stores. Every piece starts
 // locked, so a click on terrain does not select it and the Delete key does not remove it by mistake.
 // L unlocks it (App.jsx, handleLockKey).
 export function mapTerrain(mapId) {
@@ -19,51 +19,48 @@ export function mapTerrain(mapId) {
   }))
 }
 
-// The terrain of a saved table: the saved pieces with the current map data. A piece that the map data
-// no longer has is left out.
-function savedTerrain(mapId, saved) {
+// Stored piece { id, index, locked } → the piece with its placement. The document stores only the index
+// (net/doc.js), so a fix of the map data reaches old tables. The snapshot of the document keeps an unchanged
+// piece as the same object, so the cache gives it the same placed object, and Terrain.jsx does not place
+// its body again.
+const placed = new WeakMap()
+
+// The terrain of the document with the placements of the map. A piece whose index the map data no longer
+// has is left out.
+export function withPlacements(mapId, terrain) {
   const placements = MAPS[mapId].placements
-  return saved
+  return terrain
     .filter(({ index }) => placements[index])
-    .map(({ index, locked }) => ({ ...placements[index], index, id: crypto.randomUUID(), locked }))
+    .map((piece) => {
+      if (!placed.has(piece)) placed.set(piece, { ...placements[piece.index], ...piece })
+      return placed.get(piece)
+    })
 }
 
-// The state of App that a room saves, at the start of a table. saved: the table of a room record, or
-// null for a new table.
-export function startTable(mapId, saved) {
+// The state of a new table on the map mapId: the fields of fillTable in net/doc.js, without the rosters
+export function startTable(mapId) {
   return {
-    matTurns: saved?.matTurns ?? 0,
-    deployLine: saved?.deployLine ?? false,
-    terrain: saved?.terrain ? savedTerrain(mapId, saved.terrain) : mapTerrain(mapId),
-    characters: saved?.characters ?? [],
-    crisis: saved?.crisis ?? { secure: null, extract: null },
-    tokens: saved?.tokens ?? [],
-    scoreMarkers: saved?.scoreMarkers ?? START_MARKERS,
-    affiliations: saved?.affiliations ?? { blue: DEFAULT_AFFILIATION, red: DEFAULT_AFFILIATION },
-    // The game setup (setup/setup.js). A room saved before the game setup starts with a new one. A field
-    // that a saved setup does not have yet gets its start value (restoreSetup).
-    setup: restoreSetup(saved?.setup),
-    looseTokens: saved?.looseTokens ?? [],
-    tokenPiles: saved?.tokenPiles ?? [],
-    tacticCards: saved?.tacticCards ?? [],
-    // Model id → pose, see poseOf. A model with a pose starts there, not on its tray (Scene.jsx).
-    poses: saved?.poses ?? {},
+    mapId,
+    matTurns: 0,
+    deployLine: false,
+    crisis: { secure: null, extract: null },
+    scoreMarkers: START_MARKERS,
+    affiliations: { blue: DEFAULT_AFFILIATION, red: DEFAULT_AFFILIATION },
+    setup: NEW_SETUP,
+    terrain: mapTerrain(mapId),
+    characters: [],
+    tokens: [],
+    tactics: [],
+    looseTokens: [],
+    tokenPiles: [],
   }
 }
 
-// The table of a room record. state: the fields of startTable, with the live terrain and poses.
-export function savedTable(state) {
-  return {
-    ...state,
-    terrain: state.terrain.map(({ index, locked }) => ({ index, locked })),
-  }
-}
-
-// 0.1 mm is far below what a player sees. Rounded values stay the same while a model rests, so the
-// save does not write the room again (rooms/store.js, saveRoom).
+// 0.1 mm is far below what a player sees. Rounded values stay the same while a model rests, so a pose
+// that did not change is not written again (net/collections.js writes only a change).
 const round = (v) => Math.round(v * 1e4) / 1e4
 
-// The saved pose of a body: position t { x, y, z } and rotation r { x, y, z, w }
+// The stored pose of a body: position t { x, y, z } and rotation r { x, y, z, w }
 export function poseOf(t, r) {
   return {
     x: round(t.x),

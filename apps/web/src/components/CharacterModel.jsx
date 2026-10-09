@@ -201,8 +201,9 @@ function standeeScene(front, back, radius) {
 // The body of a character model on the table: the base collider, the figure (scene, its own copy),
 // and everything a player does with it.
 // bodyRef, objectRef: get the Rapier body and the 3D object of the model (figure and base)
+// onRest(): the body fell asleep, so the model rests. Scene.jsx stores its pose.
 // liftRef: gets { toggle(), down() } for the R key (see liftPiece in Scene.jsx), isUp() for a Throw
-// (a lifted model does not stop it), and restPosition() for the room save: the body position before the
+// (a lifted model does not stop it), and restPosition() for the stored pose: the body position before the
 // lift, or null when the model is not lifted. Gets null on unmount.
 // slideRef: gets startSlide for a Throw or Push (see RulerTool.jsx), and null on unmount
 // baseRadius: radius of the base in the model file, which has the game size
@@ -226,6 +227,7 @@ function CharacterFigure({
   onSelect,
   onHover,
   bodyRef,
+  onRest,
   objectRef,
   liftRef,
   slideRef,
@@ -565,6 +567,7 @@ function CharacterFigure({
       angularDamping={ANGULAR_DAMPING}
       ccd
       dominanceGroup={1}
+      onSleep={onRest}
     >
       <CylinderCollider
         args={[BASE_HALF_H, baseRadius]}

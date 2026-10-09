@@ -14,7 +14,7 @@ This plan is the overview: the steps, their order and why. Each step also gets i
 - Read `CLAUDE.md`, this plan, the detailed plan of the step, and the design sections that it names.
 - Do not open the app in a browser. Check with type checks, tests and builds. The user checks the app in the browser.
 - Coding agents do not run `aws`, `cdk deploy` or `cdk bootstrap`. They do not change settings in AWS, Atlas, Discord, Netlify or GitHub. They write the code and the commands, and the user runs them. Steps list these as **User**.
-- No commit and no push unless the user asks.
+- Commits follow `CLAUDE.md`, "Work split": one commit per finished step or phase. No push unless the user asks.
 - From step 8 on, the user tests in the three browser pairs of the peer-to-peer doc ("Local testing").
 - Before the first release (step 12), all data is test data: in Atlas, and in the browsers' `localStorage` and IndexedDB. A change of the data format needs no migration. Delete the old data instead.
 

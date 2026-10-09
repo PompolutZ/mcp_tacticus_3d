@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import App from './App.jsx'
+import Table from './Table.jsx'
 import { Lobby } from './components/Lobby.jsx'
 import { openRoom } from './rooms/store.js'
 import { MAPS } from './terrain/maps.js'
@@ -31,7 +31,7 @@ export default function Root() {
   // A message for the lobby, for example for a room link that is not in this browser
   const [notice, setNotice] = useState(null)
   const page = pageOf(hash)
-  // Read from storage each time the room page opens, so it has the table of the last save
+  // Read from storage each time the room page opens, so it has the map and rosters of the last save
   const room = useMemo(() => (page.page === 'room' ? findRoom(page.id) : null), [hash])
 
   // The back and forward buttons, and a hash typed into the address bar
@@ -62,8 +62,8 @@ export default function Root() {
     go(next)
   }
 
-  if (page.page === 'sandbox') return <App key="sandbox" onExit={() => go('')} />
-  if (page.page === 'room') return room && <App key={room.id} room={room} onExit={() => go('')} />
+  if (page.page === 'sandbox') return <Table key="sandbox" onExit={() => go('')} />
+  if (page.page === 'room') return room && <Table key={room.id} room={room} onExit={() => go('')} />
   return (
     <Lobby
       notice={notice}
