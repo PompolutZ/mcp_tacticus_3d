@@ -63,6 +63,7 @@ import { mapTerrain, withPlacements } from './rooms/table.js'
 import { deleteSquad, readSquad, saveSquad } from './rooms/store.js'
 import { tableFiles } from './rooms/preload.js'
 import { useYField, useYList, useYRecord } from './net/useY.js'
+import { spawnEntry } from './components/storedTool.js'
 import {
   NO_PIECES,
   NO_TOOLS,
@@ -237,11 +238,18 @@ export default function App({
   const red = Boolean(room?.multiplayer && room.side === 'red')
   const cameraPosition = red ? CAMERA_POSITION_RED : CAMERA_POSITION
   const cameraTarget = red ? CAMERA_TARGET_RED : CAMERA_TARGET
-  const [activeRange, setActiveRange] = useState(null)
-  const [activeMove, setActiveMove] = useState(null)
-  // The Toward / Away tool is on the table, and where it spawns: { target, aim }, the piece it snaps to
-  // and the piece it aims at, each { kind, id } | null
-  const [angleOn, setAngleOn] = useState(false)
+  // The side of this browser. It writes the tools of that side only (net/doc.js, `tools`). The Sandbox and a
+  // single player room are Blue, because one player plays both sides there.
+  const ownSide = red ? 'red' : 'blue'
+  const [tools] = useYRecord(table.tools)
+  const ownTools = tools[ownSide]
+  // The toolbar state comes from the own entries: the range number, the movement type, and whether the
+  // Toward / Away tool is on
+  const activeRange = ownTools?.range?.which ?? null
+  const activeMove = ownTools?.move?.which ?? null
+  const angleOn = Boolean(ownTools?.angle)
+  // Where the Toward / Away tool spawns: { target, aim }, the piece it snaps to and the piece it aims at,
+  // each { kind, id } | null. Used once, at the spawn, in this browser only.
   const [angleSpawn, setAngleSpawn] = useState({ target: null, aim: null })
   const [debugOn, setDebugOn] = useState(false)
   // 'full' | 'no-outline' | 'no-composer', see DebugPanel
@@ -326,10 +334,6 @@ export default function App({
   const heldRotate = useRef(new Map())
   const controlsRef = useRef(null)
   const wheelCameraRef = useRef(null)
-  // Count of tool key presses over a piece, per tool: { range, move, angle }. See Scene.
-  const [toolSpawns, setToolSpawns] = useState({ range: 0, move: 0, angle: 0 })
-  // Free spawn point of each tool: { x, z } | null. null: the tool snaps to a piece. See Scene.
-  const [toolAt, setToolAt] = useState({ range: null, move: null, angle: null })
   // Scene fills it: { atPointer(), atCenter() }, table points for a free tool spawn (ToolPoint.jsx)
   const toolPointRef = useRef(null)
   // Crisis card image open in the full-screen popup: { src, alt } | null, see CardPopup.jsx.
@@ -495,29 +499,51 @@ export default function App({
     return toolPointRef.current?.atCenter() ?? { x: 0, z: 0 }
   }
 
-  function setSpawnAt(tool, at) {
-    setToolAt((prev) => ({ ...prev, [tool]: at }))
+  // Writes the own entry of a tool kind, or deletes it with null. Only the own side is written.
+  function setOwnTool(kind, entry) {
+    table.tools.setField(ownSide, (side) => {
+      if (!entry && !side?.[kind]) return side
+      const next = { ...side }
+      if (entry) next[kind] = entry
+      else delete next[kind]
+      return next
+    })
+  }
+
+  // A spawn: a new entry with a new id and no pose, so the tool mounts again in both browsers and an
+  // old pose is gone. at: { x, z } for a free spawn, null to snap to a piece.
+  function spawnTool(kind, which, at) {
+    setOwnTool(kind, spawnEntry(which, at))
+  }
+
+  // A tool of the own side rested (Tool in RulerTool.jsx). Only the entry of that spawn takes it, so
+  // a tool that was replaced meanwhile writes nothing.
+  function handleToolStore(kind, spawn, fields) {
+    table.tools.setField(ownSide, (side) => {
+      const entry = side?.[kind]
+      return entry?.spawn === spawn ? { ...side, [kind]: { ...entry, ...fields } } : side
+    })
   }
 
   function handleRangeClick(range) {
-    if (activeRange !== range) setSpawnAt('range', toolbarSpawnAt(selection.findLast(isToolPiece)))
-    setActiveRange((prev) => (prev === range ? null : range))
+    if (activeRange === range) setOwnTool('range', null)
+    else spawnTool('range', range, toolbarSpawnAt(selection.findLast(isToolPiece)))
   }
 
   function handleMoveClick(move) {
-    if (activeMove !== move) setSpawnAt('move', toolbarSpawnAt(selection.findLast(isToolPiece)))
-    setActiveMove((prev) => (prev === move ? null : move))
+    if (activeMove === move) setOwnTool('move', null)
+    else spawnTool('move', move, toolbarSpawnAt(selection.findLast(isToolPiece)))
   }
 
   // The toolbar button: the tool spawns at the selected character, aimed at the selected token
   function handleAngleClick() {
     const target = selection.find((p) => p.kind === 'character') ?? null
-    if (!angleOn) setSpawnAt('angle', toolbarSpawnAt(target))
     setAngleSpawn({
       target,
       aim: selection.find((p) => p.kind === 'token') ?? null,
     })
-    setAngleOn((prev) => !prev)
+    if (angleOn) setOwnTool('angle', null)
+    else spawnTool('angle', true, toolbarSpawnAt(target))
   }
 
   // over: true when the pointer moved onto the piece, false when it moved off
@@ -642,18 +668,16 @@ export default function App({
   // Escape clears every selection: the character, the token and the tools. The selected tools are
   // also removed from the table.
   function handleEscape() {
-    if (selectedTools.range) setActiveRange(null)
-    if (selectedTools.move) setActiveMove(null)
-    if (selectedTools.angle) setAngleOn(false)
+    if (selectedTools.range) setOwnTool('range', null)
+    if (selectedTools.move) setOwnTool('move', null)
+    if (selectedTools.angle) setOwnTool('angle', null)
     setSelectedTools(NO_TOOLS)
     setSelection(NO_PIECES)
   }
 
   // Key 0: removes every tool from the table. The selected pieces stay selected.
   function clearTools() {
-    setActiveRange(null)
-    setActiveMove(null)
-    setAngleOn(false)
+    table.tools.setField(ownSide, {})
     setSelectedTools(NO_TOOLS)
   }
 
@@ -670,13 +694,10 @@ export default function App({
         handleAngleClick()
         return
       }
-      setSpawnAt('angle', at)
       setAngleSpawn({ target: null, aim: null })
-      setAngleOn(true)
-      setToolSpawns((prev) => ({ ...prev, angle: prev.angle + 1 }))
+      spawnTool('angle', true, at)
       return
     }
-    setSpawnAt('angle', null)
     setAngleSpawn({
       target: piece,
       aim:
@@ -685,8 +706,7 @@ export default function App({
         ) ?? null,
     })
     setSelection((prev) => selectPiece(prev, piece))
-    setAngleOn(true)
-    setToolSpawns((prev) => ({ ...prev, angle: prev.angle + 1 }))
+    spawnTool('angle', true, null)
   }
 
   // tool: 'range' | 'move'. value: the range number or the movement tool type.
@@ -703,17 +723,11 @@ export default function App({
         else handleMoveClick(value)
         return
       }
-      setSpawnAt(tool, at)
-      if (tool === 'range') setActiveRange(value)
-      else setActiveMove(value)
-      setToolSpawns((prev) => ({ ...prev, [tool]: prev[tool] + 1 }))
+      spawnTool(tool, value, at)
       return
     }
-    setSpawnAt(tool, null)
     setSelection((prev) => selectPiece(prev, piece))
-    if (tool === 'range') setActiveRange(value)
-    else setActiveMove(value)
-    setToolSpawns((prev) => ({ ...prev, [tool]: prev[tool] + 1 }))
+    spawnTool(tool, value, null)
   }
 
   // F, as in TTS: flips the crisis token under the pointer (also one that a character holds), the
@@ -1478,9 +1492,9 @@ export default function App({
               onTerrainHover={handleTerrainHover}
               terrainAtRef={terrainAtRef}
               characters={characters}
-              activeRange={activeRange}
-              activeMove={activeMove}
-              angleOn={angleOn}
+              tools={tools}
+              ownSide={ownSide}
+              onToolStore={handleToolStore}
               angleSpawn={angleSpawn}
               showColliders={debug}
               showLabels={showLabels}
@@ -1494,8 +1508,6 @@ export default function App({
               selectedTools={selectedTools}
               onSelectedToolsChange={setSelectedTools}
               onPieceHover={handlePieceHover}
-              toolSpawns={toolSpawns}
-              toolAt={toolAt}
               toolPointRef={toolPointRef}
               onTokenMove={handleTokenMove}
               onTokenTurn={handleTokenTurn}

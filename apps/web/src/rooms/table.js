@@ -53,6 +53,7 @@ export function startTable(mapId) {
     tactics: [],
     looseTokens: [],
     tokenPiles: [],
+    tools: {},
   }
 }
 

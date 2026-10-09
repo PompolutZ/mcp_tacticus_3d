@@ -23,7 +23,17 @@ const STATE = {
 
 // Every store of the table as plain values
 function snapshot(table) {
-  const names = ['game', 'rosters', 'setup', 'terrain', 'characters', 'poses', 'tokens', 'tactics']
+  const names = [
+    'game',
+    'rosters',
+    'setup',
+    'terrain',
+    'characters',
+    'poses',
+    'tools',
+    'tokens',
+    'tactics',
+  ]
   return Object.fromEntries(
     [...names, 'looseTokens', 'tokenPiles'].map((name) => [name, table[name].read()]),
   )
@@ -52,4 +62,39 @@ test('encodeTable gives back the same table', () => {
   const doc = new Y.Doc()
   Y.applyUpdate(doc, encodeTable(table))
   assert.deepEqual(snapshot(createTable(doc)), snapshot(table))
+})
+
+const BLUE_RANGE = { which: 3, spawn: 'a1', pose: { x: 1, y: 1, z: 2, yaw: 0 } }
+const RED_RANGE = { which: 5, spawn: 'b2', at: { x: 0, z: -3 } }
+
+test('a new table has tools, empty without a start value', () => {
+  const table = createTable()
+  fillTable(table, STATE)
+  assert.deepEqual(table.tools.read(), {})
+  fillTable(table, { ...STATE, tools: { blue: { range: BLUE_RANGE } } })
+  assert.deepEqual(table.tools.read(), { blue: { range: BLUE_RANGE } })
+})
+
+test('an entry of one side does not change the other side', () => {
+  const table = createTable()
+  fillTable(table, STATE)
+  table.tools.setField('blue', { range: BLUE_RANGE })
+  table.tools.setField('red', (side) => ({ ...side, range: RED_RANGE }))
+  assert.deepEqual(table.tools.read(), { blue: { range: BLUE_RANGE }, red: { range: RED_RANGE } })
+  table.tools.setField('blue', (side) => ({ ...side, range: { ...side.range, spawn: 'a2' } }))
+  assert.deepEqual(table.tools.get('red'), { range: RED_RANGE })
+})
+
+test('tools of the two sides merge when written at the same time', () => {
+  const a = createTable()
+  fillTable(a, STATE)
+  const b = createTable()
+  Y.applyUpdate(b.doc, encodeTable(a))
+  a.tools.setField('blue', { range: BLUE_RANGE })
+  b.tools.setField('red', { range: RED_RANGE })
+  Y.applyUpdate(a.doc, Y.encodeStateAsUpdate(b.doc))
+  Y.applyUpdate(b.doc, Y.encodeStateAsUpdate(a.doc))
+  const both = { blue: { range: BLUE_RANGE }, red: { range: RED_RANGE } }
+  assert.deepEqual(a.tools.read(), both)
+  assert.deepEqual(b.tools.read(), both)
 })

@@ -8,7 +8,8 @@ import * as THREE from 'three'
 // - sector: a quarter circle, corner at the center, out to a radius. Used by the Zone Arc outline.
 // The shader paints every surface under a shape that faces up enough.
 
-const MAX_FOOTPRINTS = 7
+// Own tools (3), the other player's tools (3), the deploy tool, zone arcs, and two drags (decisions 11, 18)
+const MAX_FOOTPRINTS = 12
 // Colors shared by every user of a slot
 export const FOOTPRINT_COLOR = '#3f7fd6'
 export const FOOTPRINT_TOUCH = '#2ee06a'

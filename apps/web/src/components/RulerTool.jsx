@@ -17,6 +17,7 @@ import { throwMove, throwSlide } from './throwPath.js'
 import { assetUrl } from '../assets/index.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
+import { freeSpawnYaw, storedFields, sameStored } from './storedTool.js'
 
 const TEXTURE = assetUrl('tools/toolbox-02.png')
 // How fast the dragged tool moves to the new hover height, per second (same as models)
@@ -41,6 +42,8 @@ const PLACE_INSET = 0.75
 // On a movement tool the center is the hinge.
 const SIDES = ['right', 'left']
 const OTHER = { right: 'left', left: 'right' }
+// A tool rests this long (no change of pose, bend, snap or mode) before it is written to the document
+const REST_TIME = 0.3
 // How far each half is turned around the center from straight, as a yaw
 const STRAIGHT = { right: 0, left: 0 }
 // The angle tool is always bent to a right angle, the same on both sides
@@ -548,9 +551,7 @@ function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target
 export function RangeRuler({ number = 2, team, ...props }) {
   const rangeOne = number === 1
   const mesh = rangeOne ? 2 : number
-  const raw = useLoader(OBJLoader, assetUrl(`tools/range-${mesh}-mesh.obj`))
-  const map = useTexture(TEXTURE)
-  const parts = useMemo(() => [{ obj: textured(raw.clone(), map, team) }], [raw, map, team])
+  const parts = useRangeParts(mesh, team)
   return (
     <Tool
       parts={parts}
@@ -560,6 +561,13 @@ export function RangeRuler({ number = 2, team, ...props }) {
       {...props}
     />
   )
+}
+
+// The mesh of a range tool (2 to 5)
+function useRangeParts(mesh, team) {
+  const raw = useLoader(OBJLoader, assetUrl(`tools/range-${mesh}-mesh.obj`))
+  const map = useTexture(TEXTURE)
+  return useMemo(() => [{ obj: textured(raw.clone(), map, team) }], [raw, map, team])
 }
 
 // Non-interactive R3 tool that follows a dragged model along the deployment edge.
@@ -781,9 +789,17 @@ function BendButton({ on, onClick }) {
 // tool started (true) or ended (false). Both are also called with false on unmount.
 // turnRef(turn): gets turnAroundCenter, for Q / E (see turnPiece in Scene.jsx), and null on unmount.
 // spawnTarget: the piece the tool snaps to when it spawns, target by default. Without one it spawns
-// free at position.
-// spawnAt: { x, z } | null. With a point, the tool spawns free there (no snap), hoverHeight above the
-// ground under its footprint. Without one, the rules above.
+// at the origin.
+// entry: the stored tool entry of the own side (storedTool.js), read only when the tool mounts:
+// - with a pose, the tool starts there, with the stored turn, snap and mode. A snap whose piece is gone
+//   gives a free tool.
+// - without a pose, it is a new spawn. With `at`, the tool spawns free there (no snap), hoverHeight
+//   above the ground under its footprint, with the yaw of freeSpawnYaw(side). Without `at`, the rules
+//   above.
+// Later changes of the entry (the tool's own writes) do not move the tool.
+// side: 'blue' or 'red', the side of the owner. onStore(fields): called with { pose, turn, snap, mode }
+// (rounded, storedTool.js) when none of them changed for REST_TIME and they differ from the entry.
+// Not stored: Place, Throw, Bend and the selection.
 // angle: the angle tool. It starts bent 90° and cannot bend, place or throw. It spawns aimed at aim
 // (a model) or at the mat center.
 // angleRef(get): gets a function that returns { target, openYaw } while the angle tool is snapped, else
@@ -800,8 +816,9 @@ function Tool({
   aim = null,
   angleLimit,
   angleRef,
-  position = [0, 0, 0],
-  spawnAt = null,
+  entry,
+  side: ownSide,
+  onStore,
   hoverHeight = 1,
   selected = false,
   onSelect,
@@ -818,19 +835,28 @@ function Tool({
   turnRef,
 }) {
   const [hovered, setHovered] = useState(false)
+  // The entry at mount (see above)
+  const [start] = useState(entry)
+  const restored = Boolean(start.pose)
+  const spawnAt = restored ? null : (start.at ?? null)
+  const spawnYaw = freeSpawnYaw(ownSide)
   const rigidRef = useRef()
   // The tool meshes, for the outline
   const partsRef = useRef()
   // Stays STRAIGHT on a tool that is not bendable, and ANGLE_TURN on the angle tool
-  const [turn, setTurn] = useState(angle ? ANGLE_TURN : STRAIGHT)
+  const [turn, setTurn] = useState((restored && start.turn) || (angle ? ANGLE_TURN : STRAIGHT))
   // Angle tool: where the hinge goes when the tool aims at a piece
-  const [mode, setMode] = useState('away')
+  const [mode, setMode] = useState((restored && start.mode) || 'away')
   // While the bend button is on, a drag on a half turns that half instead of the whole tool
   const [bendOn, setBendOn] = useState(false)
   // Snapped: { target, side, across }, the model the tool is snapped to and the half whose end touches
   // its base. across (R1 tool only): the long side (±1: local ±Z) that the base touches.
   // Free: null. See README "Tools".
-  const [snap, setSnap] = useState(null)
+  const [snap, setSnap] = useState(() => {
+    const stored = restored && start.snap
+    const target = stored && models.find((model) => sameModel(model, stored))
+    return target ? { target, side: stored.side, across: stored.across } : null
+  })
   // While Place is on: the end where Place put the selected character. The Place button stays there.
   // Off: null. While Place is on, a drag of the selected character keeps its base touching the footprint.
   const [placeSide, setPlaceSide] = useState(null)
@@ -1042,15 +1068,18 @@ function Tool({
     return true
   }
 
-  // Spawned with a spawnAt: start free at that point. Spawned with a spawnTarget: start snapped to it.
+  // Mounted with a pose: the RigidBody starts there, nothing to do. Spawned with a spawnAt: start free at
+  // that point. Spawned with a spawnTarget: start snapped to it.
   useEffect(() => {
+    if (restored) return
     onSpawn?.()
     const rb = rigidRef.current
     if (spawnAt) {
-      // Free: no snap. The yaw stays 0.
+      // Free: no snap
       if (rb) {
-        const ground = groundY(spawnAt.x, spawnAt.z, 0) ?? 0
+        const ground = groundY(spawnAt.x, spawnAt.z, spawnYaw) ?? 0
         rb.setTranslation({ x: spawnAt.x, y: ground + hoverHeight, z: spawnAt.z }, true)
+        rb.setRotation(yawQuat(spawnYaw), true)
       }
       return
     }
@@ -1069,6 +1098,40 @@ function Tool({
     rb.setRotation(yawQuat(pose.yaw), true)
     // Only at spawn. Selecting another character later must not move the tool.
   }, [])
+
+  // Writes the stored fields once none of them changed for REST_TIME. The values are read on every frame,
+  // because the pose is in the body, not in React state.
+  const latest = useRef(null)
+  useEffect(() => {
+    latest.current = { turn, snap, mode, entry, onStore }
+  })
+  const rest = useRef({ seen: null, time: 0, written: false })
+  useFrame((_, dt) => {
+    const rb = rigidRef.current
+    if (!rb || !latest.current) return
+    const { turn, snap, mode, entry, onStore } = latest.current
+    if (!onStore) return
+    const cur = storedFields({
+      pose: { ...toolPose(rb), y: rb.translation().y },
+      turn,
+      snap: snap && {
+        kind: snap.target.kind,
+        id: snap.target.id,
+        side: snap.side,
+        across: snap.across,
+      },
+      mode,
+    })
+    const r = rest.current
+    if (!r.seen || !sameStored(cur, r.seen)) {
+      rest.current = { seen: cur, time: 0, written: false }
+      return
+    }
+    r.time += dt
+    if (r.written || r.time < REST_TIME || sameStored(cur, entry)) return
+    r.written = true
+    onStore(cur)
+  })
 
   // The snapped piece left the table (a removed character, a token that a character took), so the
   // tool is free. Else a drag would turn the tool around a point where the piece is no longer.
@@ -1257,7 +1320,14 @@ function Tool({
       <RigidBody
         ref={rigidRef}
         type="kinematicPosition"
-        position={spawnAt ? [spawnAt.x, hoverHeight, spawnAt.z] : position}
+        position={
+          restored
+            ? [start.pose.x, start.pose.y, start.pose.z]
+            : spawnAt
+              ? [spawnAt.x, hoverHeight, spawnAt.z]
+              : [0, 0, 0]
+        }
+        rotation={[0, restored ? start.pose.yaw : spawnAt ? spawnYaw : 0, 0]}
         colliders={false}
         sensor
       >
@@ -1412,4 +1482,110 @@ function Tool({
       )}
     </>
   )
+}
+
+const noRaycast = () => {}
+
+// The other player's tool (plan 09, decision 11): the shape of Tool without its controls. The side's tint,
+// the plain footprint (no target), no buttons, no hover, no outline, no range mark. The pointer does not
+// hit it, so a click goes to the piece below. A kinematic sensor, the same as Tool. It jumps to the pose
+// of the entry whenever that changes.
+// parts, tip, halfWidth: as in Tool. defaultTurn: the bend when the entry has none.
+function OtherToolBody({ parts, tip, halfWidth, defaultTurn, entry }) {
+  const rigidRef = useRef()
+  const { pose } = entry
+  const turn = entry.turn ?? defaultTurn
+  const hulls = useMemo(() => parts.map((part) => hullPoints(part.obj)), [parts])
+
+  useEffect(() => {
+    for (const part of parts) part.obj.traverse((child) => (child.raycast = noRaycast))
+  }, [parts])
+
+  useEffect(() => {
+    const rb = rigidRef.current
+    if (!rb) return
+    rb.setTranslation({ x: pose.x, y: pose.y, z: pose.z }, true)
+    rb.setRotation(yawQuat(pose.yaw), true)
+  }, [pose.x, pose.y, pose.z, pose.yaw])
+
+  return (
+    <>
+      <RigidBody
+        ref={rigidRef}
+        type="kinematicPosition"
+        position={[pose.x, pose.y, pose.z]}
+        rotation={[0, pose.yaw, 0]}
+        colliders={false}
+        sensor
+      >
+        {parts.map((part) => (
+          <group key={part.obj.uuid} rotation-y={part.side ? turn[part.side] : 0}>
+            <primitive object={part.obj} />
+          </group>
+        ))}
+        {parts.map((part, i) => (
+          <ConvexHullCollider
+            key={part.obj.uuid}
+            args={[hulls[i]]}
+            rotation={[0, part.side ? turn[part.side] : 0, 0]}
+          />
+        ))}
+      </RigidBody>
+      <ToolFootprint
+        rigidRef={rigidRef}
+        turn={turn}
+        halfLength={tip}
+        halfWidth={halfWidth}
+        selected={false}
+      />
+    </>
+  )
+}
+
+function OtherRange({ number, team, entry }) {
+  const mesh = number === 1 ? 2 : number
+  const parts = useRangeParts(mesh, team)
+  return (
+    <OtherToolBody
+      parts={parts}
+      tip={RANGE_TIP[mesh] ?? 1.501}
+      halfWidth={RANGE_HALF_WIDTH}
+      defaultTurn={STRAIGHT}
+      entry={entry}
+    />
+  )
+}
+
+function OtherMovement({ type, team, entry }) {
+  const parts = useMovementParts(type, team)
+  return (
+    <OtherToolBody
+      parts={parts}
+      tip={MOVE_TIP[type] ?? 1.574}
+      halfWidth={MOVE_HALF_WIDTH}
+      defaultTurn={STRAIGHT}
+      entry={entry}
+    />
+  )
+}
+
+function OtherAngle({ team, entry }) {
+  const parts = useMovementParts('long', team)
+  return (
+    <OtherToolBody
+      parts={parts}
+      tip={MOVE_TIP.long}
+      halfWidth={MOVE_HALF_WIDTH}
+      defaultTurn={ANGLE_TURN}
+      entry={entry}
+    />
+  )
+}
+
+// kind: 'range', 'move' or 'angle'. entry: a tool entry of the other side that has a pose.
+// team: the other side, for the tint. Scene keys it by kind, which, and spawn.
+export function OtherTool({ kind, entry, team }) {
+  if (kind === 'range') return <OtherRange number={entry.which} team={team} entry={entry} />
+  if (kind === 'move') return <OtherMovement type={entry.which} team={team} entry={entry} />
+  return <OtherAngle team={team} entry={entry} />
 }

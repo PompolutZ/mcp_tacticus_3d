@@ -21,3 +21,9 @@ test('the start table has the map, the rosters and the terrain of the map', () =
     terrain.map((_, i) => i),
   )
 })
+
+test('the start table has no tools', () => {
+  const doc = new Y.Doc()
+  Y.applyUpdate(doc, startTableBytes(Object.keys(MAPS)[0], { blue: null, red: null }))
+  assert.deepEqual(createTable(doc).tools.read(), {})
+})

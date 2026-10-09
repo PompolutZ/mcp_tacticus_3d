@@ -26,6 +26,8 @@ export function createTable(doc = new Y.Doc()) {
     characters: createList(doc.getMap('characters')),
     // Model id → rest pose. Written when a body falls asleep, read when a model mounts.
     poses: createRecord(doc.getMap('poses')),
+    // Side → tool kind → tool entry (components/storedTool.js). Depth 1, so the sides merge.
+    tools: createRecord(doc.getMap('tools'), { depth: 1 }),
     tokens: createList(doc.getMap('tokens')),
     tactics: createList(doc.getMap('tactics')),
     looseTokens: createList(doc.getMap('looseTokens')),
@@ -34,7 +36,7 @@ export function createTable(doc = new Y.Doc()) {
 }
 
 // Writes a start table as one change. state: the fields of GAME_FIELDS and LISTS, rosters, setup, and
-// poses (optional).
+// poses and tools (optional).
 export function fillTable(table, state) {
   table.transact(() => {
     const game = Object.fromEntries(GAME_FIELDS.map((key) => [key, state[key]]))
@@ -42,6 +44,7 @@ export function fillTable(table, state) {
     table.rosters.set(state.rosters)
     table.setup.set(state.setup)
     table.poses.set(state.poses ?? {})
+    table.tools.set(state.tools ?? {})
     for (const name of LISTS) table[name].set(state[name] ?? [])
   })
 }

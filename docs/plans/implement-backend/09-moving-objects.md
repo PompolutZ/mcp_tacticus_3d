@@ -434,6 +434,41 @@ User, after this phase: checks 5 to 7.
 
 ### Result
 
+Done.
+
+- `net/doc.js`: `tools`, `createRecord(doc.getMap('tools'), { depth: 1 })`. `fillTable` writes `state.tools ?? {}`. `rooms/table.js`: `startTable` has `tools: {}`. No new `SCHEMA`.
+- New `components/storedTool.js` (plain module): `roundPose`, `roundTurn`, `roundPoint`, `storedFields`, `sameStored`, `freeSpawnYaw(side)`, `newSpawnId(random)`, `spawnEntry(which, at, random)`. Positions have 3 decimals. Yaw and bend have 4.
+- `App.jsx`: `useYRecord(table.tools)`. `ownSide` is `red` for the Red seat of a multiplayer room (as the Red camera), else `blue`. `activeRange`, `activeMove` and `angleOn` are now read from the own entries. `toolSpawns`, `toolAt` and the state setters are gone. `angleSpawn` and `selectedTools` stay React state.
+- `App.jsx` writes: a spawn writes a new entry `{ which, spawn, at? }` (`spawnTool`). The toolbar off, a repeated toolbar click, Escape (selected tools) and key 0 delete only own entries. `handleToolStore(kind, spawn, fields)` merges the rest fields into the own entry, and only when the entry still has that `spawn`.
+- `Scene.jsx`: props `tools`, `ownSide`, `onToolStore`. Own tools come from the own entries, with the React key `kind-which-spawn` and the own side color. `OtherTool` is drawn for each entry of the other side that has a `pose`. `PLAYER_TEAM` stays for the dice only, with a comment.
+- `RulerTool.jsx`, `Tool`: new props `entry`, `side`, `onStore`. `spawnAt` and `position` props are gone. The entry is read once at mount. With a `pose`, the body starts there (`position` and `rotation` of the `RigidBody`), with the stored `turn`, `mode` and `snap`. A snap whose piece is gone gives a free tool. Without a `pose`, the spawn rules run: `at` gives a free spawn with the yaw of `freeSpawnYaw(side)`, else the snap rules of today. `onSpawn` (selects the tool) runs only for a new spawn.
+- `Tool` rest write: a `useFrame` reads pose, bend, snap and mode each frame. After 0.3 s (`REST_TIME`) without a change, and when the rounded values differ from the entry, it calls `onStore` once.
+- `RulerTool.jsx`, `OtherTool`: other side color, plain footprint (`ToolFootprint` with no target and not selected), no buttons, hover or outline, no range mark. Raycast is off on its meshes. A kinematic sensor body. It jumps to the entry pose. The mesh loading is shared with `Tool` (`useRangeParts`, `useMovementParts`, `ToolFootprint`).
+- `footprintProjection.js`: `MAX_FOOTPRINTS` is 12.
+- Tests: `net/doc.test.js` (a new table has `tools`, an entry of one side does not change the other, the two sides merge), `rooms/startTable.test.js` (no tools), `components/storedTool.test.js` (rounding, equality, Red yaw is Blue yaw + π, ids, spawn entry).
+
+Choices that the plan did not fix:
+- `freeSpawnYaw` takes only the side, because the free yaw is the same for every kind.
+- `mode` and `turn` are stored for every kind (a range tool stores a straight turn and `away`).
+- Key 0 writes `{}` for the own side. A kind of the other side is never touched.
+- A snap is stored with `across` only when it has one.
+- `OtherTool` is keyed by kind, `which` and `spawn`, not by pose, so a new pose moves the body and does not mount it again.
+- `OtherToolBody` repeats the hull collider and the part group of `Tool`, because `Tool`'s body is mixed with its buttons and handlers.
+
+Differences in behavior:
+- A tool now survives a reload, with pose, bend, snap and mode, once it rested 0.3 s.
+- A Red free spawn faces Red (yaw + π). A Blue one is as before.
+- After a reload, a tool that was never written (rest under 0.3 s) spawns again with the spawn rules. A snapped one then has no selected piece, so it is at the origin without `at`.
+- Place, Throw, the Bend button and the selection are off after a reload.
+- The other browser shows a tool only after the first rest write. Until Phase 5 it jumps to each new pose.
+
+Checks:
+- `pnpm --filter web test`: 147 pass, 0 fail.
+- `pnpm --filter web build`: passes.
+- `pnpm format` done. `pnpm lint`: 37 warnings, 0 errors. None are new.
+- Not run in a browser, by the rules.
+
+
 ## Phase 4: Claims and one writer
 
 Read: decisions 4 to 9. The y-protocols sources: `awareness.js`. `net/syncChannel.js` (+ test), `Table.jsx`, `App.jsx` (the Scene props, `startPose`, `onModelRest`, the token drag), `drag/pointerDrag.js`, `components/Scene.jsx` (`restPose`, `onRest`, `turnPiece`, `applyTurn`, `liftPiece`, `toolModels`, the tray move effect), `components/CharacterModel.jsx`, `components/RulerTool.jsx` (`moveBase`, `handleThrow`, `handlePlaceOne`), and the drags of `CrisisToken.jsx`, `TacticCard.jsx`, `ScoreBoard.jsx`.

@@ -8,6 +8,7 @@ import {
   AngleRuler,
   RangeRuler,
   DeployRangeTool,
+  OtherTool,
   RANGE_TIP,
   sameModel,
 } from './RulerTool.jsx'
@@ -76,9 +77,8 @@ function fitTableTexture(texture) {
 }
 // Tools hang this far above the table and measure by the outline cast below them
 const TOOL_HOVER_HEIGHT = 1
-// The side of the player. Only one player uses the app for now, so it is Blue: the toolbar tools
-// are blue, and the number keys add dice only to the blue dice tray. Per-side tools come later
-// (docs/feature-peer-to-peer.md).
+// The dice tray that the number keys add dice to. Tools use the own side (ownSide). Step 10 makes this the
+// own side too.
 const PLAYER_TEAM = 'blue'
 // Two physics steps per frame. With one, a model dropped from high up sometimes gets stuck in terrain.
 const TIME_STEP = 1 / 120
@@ -127,7 +127,7 @@ function Mat({ mapId }) {
   )
 }
 
-const NO_TOOL_AT = { range: null, move: null, angle: null }
+const NO_TOOLS_RECORD = {}
 
 // How often (ms) Scene looks for overlapping models
 const OVERLAP_INTERVAL = 100
@@ -144,12 +144,13 @@ const OVERLAP_INTERVAL = 100
 // selection: the selected pieces (see selection.js), lifted to App. onSelectionChange: the setter,
 // called with a value or an updater function.
 // onPieceHover(piece, over): the pointer moved onto (true) or off (false) a character or a token,
-// piece as { kind, id }. toolSpawns: { range, move, angle }, a count that changes when App spawns that tool
-// again. It is part of the tool key, so the tool mounts again and snaps to the piece selected last.
-// toolAt: { range, move, angle }, the point where that tool spawns free, { x, z } | null (null: it snaps
-// to a piece). toolPointRef: ref App calls, filled by ToolPoint with { atPointer(), atCenter() }.
+// piece as { kind, id }. tools: the `tools` record of the document, side → kind → entry (storedTool.js).
+// ownSide: 'blue' or 'red', the side of this browser. The own entries become tools; the key of a tool is
+// its `which` and `spawn`, so a new spawn mounts it again. The entry of the other side that has a pose
+// becomes an OtherTool. onToolStore(kind, spawn, fields): a tool of the own side rests, App writes the
+// fields into its entry. toolPointRef: ref App calls, filled by ToolPoint with { atPointer(), atCenter() }.
 // selectedTools: { range, move, angle } (see selection.js), lifted to App with its setter onSelectedToolsChange.
-// angleOn: the Toward / Away tool is on the table. angleSpawn: { target, aim }, each { kind, id } | null:
+// angleSpawn: { target, aim }, each { kind, id } | null, for the Toward / Away tool:
 // the piece it snaps to when it spawns (free without one), and the piece it aims at (the mat center
 // without one). Like the other tools, it measures against the piece selected last.
 // onCharacterDamage(id, damage), onCharacterPower(id, power), onCharacterFlip(id): the tray's
@@ -214,9 +215,9 @@ export default function Scene({
   onTerrainHover,
   terrainAtRef,
   characters = [],
-  activeRange,
-  activeMove,
-  angleOn = false,
+  tools = NO_TOOLS_RECORD,
+  ownSide = 'blue',
+  onToolStore,
   angleSpawn = { target: null, aim: null },
   showColliders = false,
   showLabels = false,
@@ -230,8 +231,6 @@ export default function Scene({
   selectedTools = NO_TOOLS,
   onSelectedToolsChange,
   onPieceHover,
-  toolSpawns = { range: 0, move: 0, angle: 0 },
-  toolAt = NO_TOOL_AT,
   toolPointRef,
   onTokenMove,
   onTokenTurn,
@@ -611,6 +610,17 @@ export default function Scene({
   // The tools measure against the character or token selected last, and a new tool snaps to it.
   // Place moves the selected character, also when a token was selected after it.
   const toolTarget = toolModel(selection.findLast(isToolPiece))
+  const otherSide = ownSide === 'red' ? 'blue' : 'red'
+  const ownTools = tools[ownSide] ?? {}
+  const otherTools = tools[otherSide] ?? {}
+  // Props that every own tool gets from its entry
+  const toolKey = (kind, entry) => `${kind}-${entry.which}-${entry.spawn}`
+  const toolEntry = (kind) => ({
+    team: ownSide,
+    side: ownSide,
+    entry: ownTools[kind],
+    onStore: (fields) => onToolStore?.(kind, ownTools[kind].spawn, fields),
+  })
   const placeTarget = toolModel(selection.find((piece) => piece.kind === 'character'))
 
   // Outline mode of the range mark on a piece, or null
@@ -1039,12 +1049,11 @@ export default function Scene({
           )
         })}
 
-        {activeMove && (
-          <Suspense key={`${activeMove}-${toolSpawns.move}`} fallback={null}>
+        {ownTools.move && (
+          <Suspense key={toolKey('move', ownTools.move)} fallback={null}>
             <MovementRuler
-              type={activeMove}
-              team={PLAYER_TEAM}
-              spawnAt={toolAt.move}
+              type={ownTools.move.which}
+              {...toolEntry('move')}
               hoverHeight={TOOL_HOVER_HEIGHT}
               selected={selectedTools.move}
               onSelect={() => toggleTool('move')}
@@ -1062,11 +1071,10 @@ export default function Scene({
             />
           </Suspense>
         )}
-        {angleOn && (
-          <Suspense key={`angle-${toolSpawns.angle}`} fallback={null}>
+        {ownTools.angle && (
+          <Suspense key={toolKey('angle', ownTools.angle)} fallback={null}>
             <AngleRuler
-              team={PLAYER_TEAM}
-              spawnAt={toolAt.angle}
+              {...toolEntry('angle')}
               hoverHeight={TOOL_HOVER_HEIGHT}
               selected={selectedTools.angle}
               onSelect={() => toggleTool('angle')}
@@ -1098,12 +1106,11 @@ export default function Scene({
             />
           </Suspense>
         )}
-        {activeRange && (
-          <Suspense key={`${activeRange}-${toolSpawns.range}`} fallback={null}>
+        {ownTools.range && (
+          <Suspense key={toolKey('range', ownTools.range)} fallback={null}>
             <RangeRuler
-              number={activeRange}
-              team={PLAYER_TEAM}
-              spawnAt={toolAt.range}
+              number={ownTools.range.which}
+              {...toolEntry('range')}
               hoverHeight={TOOL_HOVER_HEIGHT}
               selected={selectedTools.range}
               onSelect={() => toggleTool('range')}
@@ -1119,6 +1126,14 @@ export default function Scene({
               {...turnProps('range')}
             />
           </Suspense>
+        )}
+        {Object.entries(otherTools).map(
+          ([kind, entry]) =>
+            entry.pose && (
+              <Suspense key={toolKey(kind, entry)} fallback={null}>
+                <OtherTool kind={kind} entry={entry} team={otherSide} />
+              </Suspense>
+            ),
         )}
       </Physics>
     </>
