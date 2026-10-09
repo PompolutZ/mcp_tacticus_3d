@@ -429,6 +429,50 @@ Checks: `pnpm --filter web test` 101 pass, `pnpm --filter web build` passes, `pn
 
 Deviations: no `--no-dtls`. coturn 4.18 does not know it (container exited). DTLS is off by default there.
 
+## Phase 6: Secret squads
+
+### Why
+
+The user found on 2026-10-09: in a multiplayer room, each click of **Select squad** on a roster card shows on the other screen at once. The squad is in the Yjs document (`setup.squads`), and step 8 syncs it. The rules say that players choose their squads in secret and do not show them until deployment (rulebook p11, `docs/feature-setup-game.md`, "Rules"). So the squad and the Team Tactic cards of a player must stay in that player's browser until both players are Ready.
+
+Today the second **Ready** click puts both squads on the table (`putSquadsOnTable` in `App.jsx`). In a multiplayer room that browser does not know the other squad any more. So each browser puts its own squad on the table.
+
+### Decisions
+
+25. **The own squad stays in this browser.** In a multiplayer room, the squad that the player chooses is not in the document. It is in `localStorage`, key `mcp-assist-3d/squad/<user id>/<code>`, value `{ setupId, squad: { characters, tactics } }`. The functions are in `rooms/store.js`, the only module that uses `localStorage`. So the choice survives a reload, and the server and the other browser never get it before the reveal. Single player rooms and the Sandbox keep the squads in the document, as today: one person plays both sides there.
+26. **Ready writes only `ready[side]`.** The check of the threat and of at least 1 character stays. A second click turns Ready off, as today.
+27. **Reveal and placement.** When the document has `ready.blue` and `ready.red`, each browser reveals and places the squads of the sides it plays: the own side in a multiplayer room, both sides in a single player room and the Sandbox. For each such side, in one transaction: write the squad into `setup.squads[side]`, add the characters and Team Tactic cards of that squad to the table (the code of `putSquadsOnTable`, for one side), and set `setup.placed[side]`. Then the browser deletes the `localStorage` key.
+    - An effect does it, because the second Ready can come from the other browser.
+    - The effect reads the document, not React state, and skips a side whose `placed[side]` is set. So a second run (StrictMode, a new render) does nothing.
+    - Each browser writes only the sides it plays, so the two browsers never make the same characters (decision 18).
+28. **`placed` per side.** `setup.placed` becomes `{ blue: null | { characters, tactics }, red: … }`. Each browser writes only its key. A restart removes what both keys name. `NEW_SETUP` has `{ blue: null, red: null }`. A stored setup with the old shape `{ characters, tactics }` counts as the placed cards of Blue, so a restart of an old single player room still removes them. No schema change, because a new schema makes both browsers of a multiplayer room build a start table (step 7, decision 1).
+29. **Setup id.** `setup.id` is a random id, made where a new setup is made: the start table and `restartSetup`. Both run in one browser. A stored squad counts only when its `setupId` equals `setup.id`. So a restart in the other browser makes this browser drop its old choice.
+30. **The other player's squad panel.** In a multiplayer room, the panel of the other side shows only "Choosing a squad" or "Ready". It has no threat, no Team Tactic count, no **Select squad** and no **Ready**. A click on the other player's roster cards opens the roster popup. Single player rooms and the Sandbox show both panels, as today.
+31. **New step `reveal`.** `setupStep` returns `reveal` when both players are Ready but a side is not placed yet, for example while the other player's page is closed. The panel then says "Waiting for the Red player to reveal their squad." It returns `done` when both sides are placed.
+32. **No stored squad at the reveal.** When both players are Ready and this browser has no stored squad for its side (another device, cleared storage), it sets its own `ready` back to false. The HUD says "Your squad choice is not in this browser. Choose it again."
+33. **Cleanup.** The lobby deletes the squad keys of this user whose code is not in the room list, in the same cleanup as the IndexedDB copies (step 7, decision 12). `deleteDoc` of a multiplayer room also deletes its squad key.
+34. **Accepted race.** A player who turns Ready off at the same moment as the other player turns Ready on can see the other squad early. The window is the time of one sync message. Accepted, as the design accepts other ways to cheat.
+
+### Work
+
+Read: decisions 25 to 34. `docs/feature-setup-game.md` ("Squads", "State"). `apps/web/src/setup/setup.js`, the setup parts of `App.jsx` (`restartSetup`, `handleRosterClick`, `handleSquadReady`, `putSquadsOnTable`, the setup panel props), `components/GameSetup.jsx`, `components/RosterCards.jsx` (the squad frame), `Scene.jsx` (when the roster cards leave), `rooms/store.js`, `rooms/localDocs.js`, `components/Lobby.jsx` (the cleanup), `rooms/table.js` (`startTable`).
+
+1. `setup/setup.js`: `setup.id` in the new setup (a function, because `NEW_SETUP` is a constant and the id is random), `placed` per side, the reading of the old `placed` shape, `reveal` in `setupStep`, a pure function that says which sides this browser reveals now and with which squad (decisions 27, 31, 32).
+2. `rooms/store.js`: read, save and delete the stored squad (decision 25). `rooms/localDocs.js` and `Lobby.jsx`: the cleanup of decision 33.
+3. `App.jsx`: in a multiplayer room, the squad of the own side comes from the stored squad, and a click writes there. Ready writes only `ready`. The effect of decision 27. Decision 32. `restartSetup` makes a new setup id and removes both `placed` keys.
+4. `GameSetup.jsx`, `RosterCards.jsx`: decision 30, and the `reveal` text of decision 31. No yellow frame on the other player's roster cards.
+5. Tests (`node --test`): `setup.test.js` (new): `setupStep` with `reveal`, the old `placed` shape, the reveal function: both Ready reveals only the own side in multiplayer and both sides otherwise, a placed side is skipped, a stored squad of another setup id does not count, no stored squad gives decision 32. `localDocs.test.js`: the squad keys in the cleanup.
+6. `docs/feature-setup-game.md`: "Squads", "State", "Not built yet" (hidden squads are built for multiplayer rooms). The Result of this phase.
+
+Checks:
+- `pnpm --filter web test`, `pnpm --filter web build` pass.
+- `pnpm format`, `pnpm lint`: no new errors.
+- `grep -rn "localStorage" apps/web/src/rooms apps/web/src/components apps/web/src/App.jsx` shows only `rooms/store.js`.
+
+User, after this phase, in one pair: Alice and Bob each choose a squad with **Select squad**. The other screen shows only "Choosing a squad", with no frames on the cards. Alice clicks Ready: Bob sees "Ready" on her panel, and still no cards. Bob reloads during his choice: his choice is still there. Bob clicks Ready: both squads go on the table on both screens. **Restart setup** in one browser clears the choice in the other. In a single player room, the squad setup works as before.
+
+### Result
+
 ## User
 
 After Phase 1:
@@ -455,6 +499,7 @@ Once, in one pair:
 
 - 2026-10-09: every browser pair showed "Could not connect". The reason is in Phase 5 ("Why"). The user agreed to Phase 5 on 2026-10-09.
 - 2026-10-09, after Phase 5 with `turn:up`: both sides show "Connected". Checks 5 to 12 are open.
+- 2026-10-09: the user reported that the sync works well. They found that the squad choice shows on the other screen while the player chooses. Phase 6 fixes it.
 
 ## Done when
 
