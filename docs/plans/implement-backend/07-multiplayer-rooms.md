@@ -262,7 +262,15 @@ Checks:
 
 ### Result
 
-Not started.
+Added `yjs@13.6.33`, `rooms/code.ts`, `rooms/table.ts` (`isYjsUpdate`), the rooms store (types, memory, Mongo with the four indexes), `routes/rooms.ts`, the rooms part of `DELETE /me`, and the mount in `app.ts`.
+
+Tests: `pnpm --filter api test` 81 pass (new: `rooms.test.ts`, one case in `me.test.ts`). `test:mongo` 15 pass (new: `rooms.mongo.test.ts`, 9 cases). typecheck, format and lint show no new errors.
+
+Notes, no change of decisions:
+- `UsersStore.getMany` returns a `Map` by id. `publicRoom(doc, users)` takes that map.
+- `host` in a room answer is the host's user id. The host's name and avatar are in `players`.
+- `create(room, now, makeCode?)` takes `now` as an argument.
+- `POST /rooms` has a `bodyLimit` of about 1.4 MB (base64 size of 1 MB). A bigger body gives 413. The exact 1 MB check runs after the decode.
 
 ## Phase 2: Table snapshot
 

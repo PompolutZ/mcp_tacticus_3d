@@ -59,4 +59,27 @@ describe('/me', () => {
     expect(res.status).toBe(204)
     expect((await app.request('/me', auth(token))).status).toBe(401)
   })
+
+  it('DELETE removes the hosted room and keeps a guest seat as gone', async () => {
+    const { app, store } = makeApp()
+    const user = await store.users.upsertDiscord(profile, new Date())
+    const other = await store.users.upsertDiscord({ ...profile, discordId: '2' }, new Date())
+    const token = await signSession(user._id, testConfig.sessionSecret, new Date())
+    const table = new Uint8Array([0, 0])
+    const mine = await store.rooms.create(
+      { host: user._id, side: 'blue', mapId: 'm', roster: { code: 'a' }, table },
+      new Date(),
+    )
+    const theirs = await store.rooms.create(
+      { host: other._id, side: 'blue', mapId: 'm', roster: { code: 'b' }, table },
+      new Date(),
+    )
+    await store.rooms.join(theirs._id, 'red', user._id, { code: 'a' }, new Date())
+    const res = await app.request('/me', { method: 'DELETE', ...auth(token) })
+    expect(res.status).toBe(204)
+    expect(await store.rooms.get(mine._id)).toBeNull()
+    const got = await app.request(`/rooms/${theirs._id}`)
+    const body = (await got.json()) as { room: { players: { red: unknown } } }
+    expect(body.room.players.red).toEqual({ id: user._id, gone: true })
+  })
 })

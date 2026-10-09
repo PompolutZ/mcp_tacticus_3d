@@ -24,7 +24,10 @@ export function meRoutes(deps: { store: Store; config: Config }) {
   })
 
   app.delete('/me', async (c) => {
-    await store.users.delete(c.get('user')._id)
+    const id = c.get('user')._id
+    // Rooms first. If the user delete fails, a second call finishes the work.
+    await store.rooms.deleteHostedBy(id)
+    await store.users.delete(id)
     return c.body(null, 204)
   })
   return app
