@@ -6,3 +6,9 @@ export function buildOverride() {
   if (!import.meta.env.DEV) return null
   return new URLSearchParams(window.location.search).get('build') || null
 }
+
+// True with ?relay: all data goes through the TURN server (iceTransportPolicy 'relay').
+export function relayFlag() {
+  if (!import.meta.env.DEV) return false
+  return new URLSearchParams(window.location.search).has('relay')
+}

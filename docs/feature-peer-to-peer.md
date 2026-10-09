@@ -388,7 +388,7 @@ Every part must work on one Mac, with no AWS or Cloudflare account and no second
 | App | Netlify | `pnpm dev` (web and API), `http://localhost:5173` |
 | Signaling | Lambda function URL with the MongoDB store | The same Hono app in a Node process on port 8787, with the memory store. Vite forwards `/api/*` to it |
 | MongoDB | Atlas Free cluster, database `assist3d` | Not needed. Only to test the MongoDB store: `mongo` in Docker |
-| TURN | Cloudflare (phase 6) | coturn in Docker |
+| TURN | Cloudflare (phase 6) | coturn in Docker, from step 8. `pnpm --filter api turn:up` and `turn:down` |
 
 Vite forwards `/api/*` to the API process and removes `/api`. The same Hono app runs in Lambda and in Node, so no code converts requests into Lambda events (backend doc, "Local development"). The client reads the API address from `VITE_API_URL`. In dev, it is `/api`. The memory store loses all rooms when the API process restarts, which is fine for tests.
 
@@ -402,7 +402,7 @@ To connect, log in with a dev login in each browser (for example `alice` and `bo
 - All three browsers treat `http://localhost` as a secure context.
 - The maximum message size is different in Firefox. See [Data channels](#data-channels).
 - To log bytes per game, the app reads the selected candidate pair from `pc.getStats()`. Chrome and Safari give it through the transport stats (`selectedCandidatePairId`). Firefox has used a `selected` field on the candidate pair instead. The code must support both.
-- Risk: all three browsers can hide local addresses behind mDNS names (`*.local`). On one Mac these names should resolve, but this is not tested yet for every pair. If a pair cannot connect, use the local coturn server with `?relay`.
+- Risk: all three browsers can hide local addresses behind mDNS names (`*.local`). On one Mac these names should resolve, but this is not tested yet for every pair. This happened on 2026-10-09: the browsers had only a `srflx` candidate (the public router address), and most home routers do not send such packets back. So every dev build has the local coturn server in its ICE list (`net/ice.js`, `iceConfig`). Start it with `turn:up`. Add `?relay` to test the relay path.
 
 ### Debug flags
 
@@ -410,7 +410,7 @@ Flags in the page URL. They work only in dev builds (`import.meta.env.DEV`), so 
 
 | Flag | Does |
 |---|---|
-| `?relay` | Not built yet (Phase 5 of step 8, only if a pair cannot connect). Sets `iceTransportPolicy: 'relay'`, so all data goes through the TURN server. Tests the relay path before Cloudflare |
+| `?relay` | Built in step 8. Sets `iceTransportPolicy: 'relay'`, so all data goes through the TURN server. Tests the relay path before Cloudflare |
 | `?drop=10&delay=100` | Drops 10 % of the packets on the `poses` channel and delays the rest by 100 ms. Localhost loses no packets, so without this flag the interpolation and the rest pose rules are not tested |
 | `?build=test` | Built in step 8. Sends a fake app version in `hello`, to test the version warning |
 
@@ -428,7 +428,7 @@ apps/web/src/net/
   signaling.js    createSignaling: hello, offer, answer, bye, poll with x-after
   peer.js         connectRoom: roles, timeouts, states, RTCPeerConnection (built in step 8)
   syncChannel.js  Yjs sync over the sync channel, frames of 16 KB (step 8). Awareness in step 9
-  debugFlags.js   ?build (step 8, dev builds only). ?relay, ?drop, ?delay later
+  debugFlags.js   ?build, ?relay (step 8, dev builds only). ?drop, ?delay later
   poses.js        step 9: sends poses of owned bodies, receives and interpolates
   ownership.js    step 9: claim and release rules
 apps/web/src/components/

@@ -3,9 +3,9 @@ import * as Y from 'yjs'
 import App from './App.jsx'
 import { LoadingOverlay } from './components/LoadingOverlay.jsx'
 import { useUser } from './auth/useUser.js'
-import { buildOverride } from './net/debugFlags.js'
+import { buildOverride, relayFlag } from './net/debugFlags.js'
 import { SCHEMA, createTable, fillTable, tableSchema } from './net/doc.js'
-import { ICE_SERVERS } from './net/ice.js'
+import { iceConfig } from './net/ice.js'
 import { connectRoom } from './net/peer.js'
 import { createSignaling } from './net/signaling.js'
 import { syncOverChannel } from './net/syncChannel.js'
@@ -144,8 +144,8 @@ export default function Table({ room = null, onExit }) {
           peerId,
           build: buildOverride() ?? import.meta.env.VITE_BUILD_ID,
           signaling: createSignaling({ code, peerId, post: postMessage, get: getMessages }),
-          createPeerConnection: ({ iceServers }) => new RTCPeerConnection({ iceServers }),
-          iceServers: ICE_SERVERS,
+          createPeerConnection: (config) => new RTCPeerConnection(config),
+          iceConfig: iceConfig({ dev: import.meta.env.DEV, relay: relayFlag() }),
           // The open channel is synced at once. The sync stops with the channel or the table.
           onChannel(channel) {
             sync?.stop()

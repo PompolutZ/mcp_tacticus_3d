@@ -1,4 +1,5 @@
 # Dev Mongo. Start: pnpm --filter api db:up. Reset the data: docker compose down -v
+# Dev TURN for WebRTC. Start: pnpm --filter api turn:up
 name: mcptacticus
 services:
   mongo:
@@ -12,5 +13,22 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+  coturn:
+    image: coturn/coturn:4.18.0
+    ports:
+      - '127.0.0.1:3478:3478/udp'
+      - '127.0.0.1:3478:3478/tcp'
+    # The relay ports (49160-49200) stay inside the container: both browsers get a relay of this
+    # server, so the data passes between two relay ports inside it. coturn 4.18 allows peers in
+    # private ranges by default, and the container address is one.
+    command:
+      - -n # no config file
+      - --log-file=stdout
+      - --lt-cred-mech # user and password
+      - --user=dev:dev
+      - --realm=localhost
+      - --no-tls # DTLS is off by default in 4.18
+      - --min-port=49160
+      - --max-port=49200
 volumes:
   mongo-data:

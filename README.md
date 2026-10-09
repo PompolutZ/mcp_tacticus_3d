@@ -96,6 +96,8 @@ A multiplayer room is on the API, so it needs login. To try one on one Mac, use 
 
 4. Open the room in both browsers. Within a few seconds the two browsers connect over WebRTC. Both toolbars show "Connected".
 
+Start the local TURN server first with `pnpm --filter api turn:up` (needs Docker). Stop it with `pnpm --filter api turn:down`. Browsers on one Mac often cannot reach each other directly, and then the data goes through this server. Add `?relay` to both room links to force all data through it. Both toolbars should still show "Connected". The flag works in `pnpm dev` only.
+
 Either player can open the room first. The player who opens it first sees "Waiting" until the other opens it.
 
 Discrete changes show on the other screen at once: mat turn, crisis cards, tokens, new characters, damage and power. Moving models and tokens do not sync live yet (step 9). A moved model shows at its new place on the other screen after the room opens again.

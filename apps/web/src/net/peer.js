@@ -8,7 +8,7 @@ export const CONNECT_MS = 15_000
 export const IDLE_MS = 15 * 60_000
 
 // role: 'host' answers, 'guest' offers. userId: the own user id. peerId: the id of this table open.
-// build: the build id for hello. signaling: createSignaling(...). createPeerConnection({ iceServers }).
+// build: the build id for hello. signaling: createSignaling(...). createPeerConnection(iceConfig), iceConfig: { iceServers, iceTransportPolicy? }.
 // timers: { setTimeout, clearTimeout }.
 // onState({ state, peer, versionMismatch }): state is waiting, connecting, connected, failed, stopped or
 // gone. peer: the `user` of the other player's latest hello, or null. onChannel(channel): the sync channel
@@ -20,7 +20,7 @@ export function connectRoom({
   build,
   signaling,
   createPeerConnection,
-  iceServers,
+  iceConfig,
   timers = { setTimeout, clearTimeout },
   onState,
   onChannel,
@@ -152,7 +152,7 @@ export function connectRoom({
 
   function newAttempt(remote) {
     endAttempt()
-    const pc = createPeerConnection({ iceServers })
+    const pc = createPeerConnection(iceConfig)
     // Negotiated: both sides create it, so there is no ondatachannel race
     const channel = pc.createDataChannel('sync', { negotiated: true, id: 0 })
     const att = { pc, channel, peer: remote, opened: false, offerTimer: null, connectTimer: null }

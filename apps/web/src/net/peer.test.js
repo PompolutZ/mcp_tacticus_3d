@@ -123,7 +123,7 @@ async function player(server, role, user, { build = 'b1', gather = 'auto', peerI
     peerId: peerIdValue,
     build,
     signaling,
-    iceServers: [],
+    iceConfig: { iceServers: [] },
     createPeerConnection: () => {
       const pc = new FakePc(pcs.length, gather)
       pcs.push(pc)

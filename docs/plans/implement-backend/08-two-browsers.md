@@ -412,6 +412,23 @@ User, after this phase: `pnpm --filter api turn:up`, `pnpm dev`, then the user c
 
 ### Result
 
+Added:
+- `apps/api/compose.yaml`: `coturn` service, image `coturn/coturn:4.18.0`, `127.0.0.1:3478` udp and tcp only.
+- `apps/api/package.json`: `turn:up`, `turn:down`. `db:up` and `db:down` now name `mongo` only (`down` is `stop mongo`, so the volume stays).
+- `net/ice.js`: `iceConfig({ dev, relay })` returns `{ iceServers, iceTransportPolicy? }`. Dev adds the local TURN (udp and tcp, `dev:dev`). `relay` sets the policy in dev only. `ICE_SERVERS` is unchanged.
+- `net/debugFlags.js`: `relayFlag()`.
+- `peer.js`: option `iceConfig` replaces `iceServers`. `createPeerConnection(iceConfig)`. `Table.jsx` passes `iceConfig({ dev: import.meta.env.DEV, relay: relayFlag() })` and `new RTCPeerConnection(config)`. `peer.test.js` uses the new shape.
+- `net/ice.test.js`: 4 tests. Web tests 97 -> 101.
+- Docs: `README.md` (turn:up, `?relay`), `docs/feature-peer-to-peer.md` ("Local testing", "Debug flags", file list).
+
+coturn flags: `-n` (no config file), `--log-file=stdout` (see logs with `docker logs`), `--lt-cred-mech` with `--user=dev:dev` and `--realm=localhost` (browsers need a user), `--no-tls` (no certs), `--min-port=49160 --max-port=49200` (small relay range). No flag for peers: coturn 4.18 denies only loopback peers by default (`--allow-loopback-peers` is off), and the relay addresses are the container address, which is private and allowed. No `--external-ip`: the relay address is used only between the two relays inside the container. Relay-to-relay with two real allocations was not run (no browser).
+
+STUN check: Node `dgram` Binding request to `127.0.0.1:3478` got type `0x0101` with the same transaction id (PASS). `turn:up` ran before, `turn:down` after. Port 3478 was free, no container stopped. The log has one harmless `Unknown argument:` line and cert warnings.
+
+Checks: `pnpm --filter web test` 101 pass, `pnpm --filter web build` passes, `pnpm format` done, `pnpm lint` 0 errors, 44 warnings.
+
+Deviations: no `--no-dtls`. coturn 4.18 does not know it (container exited). DTLS is off by default there.
+
 ## User
 
 After Phase 1:
