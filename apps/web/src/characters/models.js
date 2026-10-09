@@ -42,16 +42,19 @@ export function characterModels(ch) {
   }
   const form = ch.transform
   if (!form) return [first]
-  return [first, {
-    id: secondModelId(ch.id),
-    character: ch,
-    figure: form.figure,
-    base: form.base ?? ch.base,
-    // TTS makes the second model as a clone of the first and swaps its bundle, so it has the first
-    // model's turn. No mod script reads cTModelRot (form.rotation).
-    rotation: ch.rotation,
-    file: transformModel(ch.key),
-    standeeFiles: [transformStandee(ch.key, 'front'), transformStandee(ch.key, 'back')],
-    card: form.card ? 2 : null,
-  }]
+  return [
+    first,
+    {
+      id: secondModelId(ch.id),
+      character: ch,
+      figure: form.figure,
+      base: form.base ?? ch.base,
+      // TTS makes the second model as a clone of the first and swaps its bundle, so it has the first
+      // model's turn. No mod script reads cTModelRot (form.rotation).
+      rotation: ch.rotation,
+      file: transformModel(ch.key),
+      standeeFiles: [transformStandee(ch.key, 'front'), transformStandee(ch.key, 'back')],
+      card: form.card ? 2 : null,
+    },
+  ]
 }

@@ -23,8 +23,14 @@ export default function CrisisCard({ cardKey, position, onOpen }) {
     <mesh
       position={position}
       rotation={CARD_ROTATION}
-      onClick={e => { e.stopPropagation(); onOpen({ src: cardUrl, alt: 'Crisis card' }) }}
-      onPointerOver={e => { e.stopPropagation(); setHovered(true) }}
+      onClick={(e) => {
+        e.stopPropagation()
+        onOpen({ src: cardUrl, alt: 'Crisis card' })
+      }}
+      onPointerOver={(e) => {
+        e.stopPropagation()
+        setHovered(true)
+      }}
       onPointerOut={() => setHovered(false)}
     >
       <planeGeometry args={[CARD_WIDTH, CARD_HEIGHT]} />

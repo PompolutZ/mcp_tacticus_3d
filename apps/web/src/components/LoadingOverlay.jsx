@@ -19,7 +19,7 @@ export function LoadingOverlay({ ready }) {
 
   const done = loaded - start.loaded
   const count = total - start.total
-  const progress = count > 0 ? done / count * 100 : 0
+  const progress = count > 0 ? (done / count) * 100 : 0
   return (
     <Overlay className="loading">
       <div className="loading-panel">
@@ -27,7 +27,9 @@ export function LoadingOverlay({ ready }) {
         <div className="loading-bar">
           <div className="loading-bar-fill" style={{ width: `${progress}%` }} />
         </div>
-        <div className="loading-detail">{done} / {count} files · {Math.round(progress)}%</div>
+        <div className="loading-detail">
+          {done} / {count} files · {Math.round(progress)}%
+        </div>
       </div>
     </Overlay>
   )

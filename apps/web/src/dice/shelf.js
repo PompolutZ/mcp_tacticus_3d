@@ -24,7 +24,7 @@ export function flatRotation(faceNumber) {
 // The face to show for a symbol picked without a real throw (the `change` action). Hit and Blank
 // are each on two faces; this always picks the lower face number, so the result is fixed too.
 export function defaultFaceForSymbol(symbol) {
-  return FACES.find(face => face.symbol === symbol).number
+  return FACES.find((face) => face.symbol === symbol).number
 }
 
 // Shelf order (design, "Roll flow"): by symbol, in SYMBOLS order, then by id, so dice with the
@@ -52,6 +52,11 @@ export function shelfMovePose(from, to, t) {
   scratchFromQuat.slerp(scratchToQuat, t)
   return {
     position: { x: scratchPos.x, y: scratchPos.y, z: scratchPos.z },
-    rotation: { x: scratchFromQuat.x, y: scratchFromQuat.y, z: scratchFromQuat.z, w: scratchFromQuat.w },
+    rotation: {
+      x: scratchFromQuat.x,
+      y: scratchFromQuat.y,
+      z: scratchFromQuat.z,
+      w: scratchFromQuat.w,
+    },
   }
 }

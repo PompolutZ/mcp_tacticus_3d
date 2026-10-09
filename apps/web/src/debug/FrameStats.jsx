@@ -48,7 +48,10 @@ function createGpuTimer(context) {
     collect(done) {
       // After a disjoint event (for example a GPU clock change) the waiting results are wrong
       const disjoint = context.getParameter(ext.GPU_DISJOINT_EXT)
-      while (waiting.length > 0 && context.getQueryParameter(waiting[0], context.QUERY_RESULT_AVAILABLE)) {
+      while (
+        waiting.length > 0 &&
+        context.getQueryParameter(waiting[0], context.QUERY_RESULT_AVAILABLE)
+      ) {
         const query = waiting.shift()
         if (!disjoint) done(context.getQueryParameter(query, context.QUERY_RESULT) / 1e6)
         context.deleteQuery(query)
@@ -64,7 +67,7 @@ function createGpuTimer(context) {
 // Measures every frame and publishes the numbers for DebugPanel. Put inside the Canvas.
 // A frame is one pass of the R3F loop: the useFrame callbacks (physics too) and all renders.
 export default function FrameStats() {
-  const gl = useThree(state => state.gl)
+  const gl = useThree((state) => state.gl)
 
   useEffect(() => {
     const info = gl.info
@@ -89,10 +92,10 @@ export default function FrameStats() {
       gpu?.begin()
     })
 
-    const stopAfter = addAfterEffect(timestamp => {
+    const stopAfter = addAfterEffect((timestamp) => {
       gpu?.end()
       cpuSum += performance.now() - frameStart
-      gpu?.collect(ms => {
+      gpu?.collect((ms) => {
         gpuSum += ms
         gpuCount++
       })

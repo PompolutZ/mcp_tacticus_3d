@@ -17,7 +17,8 @@ const SLOT_PITCH = 3.55
 // The plate is this much larger than the slots on every side, the same margin as a character tray's
 // plate (trays.js, TRAY_BG_MARGIN)
 const PLATE_MARGIN = 0.3
-export const TACTIC_PLATE_WIDTH = (TACTIC_SLOTS - 1) * SLOT_PITCH + TACTIC_CARD_WIDTH + PLATE_MARGIN * 2
+export const TACTIC_PLATE_WIDTH =
+  (TACTIC_SLOTS - 1) * SLOT_PITCH + TACTIC_CARD_WIDTH + PLATE_MARGIN * 2
 export const TACTIC_PLATE_DEPTH = TACTIC_CARD_HEIGHT + PLATE_MARGIN * 2
 // Gap between the mat edge and the plate, the same as between the mat and a character tray row
 const MAT_GAP = 0.3
@@ -32,7 +33,7 @@ export const TACTIC_TRAY_OUTER_Z = TRAY_CENTER_Z + TACTIC_PLATE_DEPTH / 2
 export const TACTIC_CARD_Y = 0.02
 export const TACTIC_PLATE_Y = 0.01
 
-const side = team => (team === 'blue' ? 1 : -1)
+const side = (team) => (team === 'blue' ? 1 : -1)
 
 // Table position { x, z } of the tactic tray of `team`
 export function tacticTrayPosition(team) {
@@ -56,7 +57,11 @@ export function tacticSlotPosition(team, index) {
 export function tacticTrayAt(point) {
   for (const team of ['blue', 'red']) {
     const tray = tacticTrayPosition(team)
-    if (Math.abs(point.x - tray.x) <= TACTIC_PLATE_WIDTH / 2 && Math.abs(point.z - tray.z) <= TACTIC_PLATE_DEPTH / 2) return team
+    if (
+      Math.abs(point.x - tray.x) <= TACTIC_PLATE_WIDTH / 2 &&
+      Math.abs(point.z - tray.z) <= TACTIC_PLATE_DEPTH / 2
+    )
+      return team
   }
   return null
 }
@@ -64,9 +69,12 @@ export function tacticTrayAt(point) {
 // A slot is free when no card center lies inside its outline. cards: [{ id, x, z }]. ignoreId: a card
 // that does not count, for example the one that is dragged.
 function slotFree(slot, cards, ignoreId) {
-  return !cards.some(card => card.id !== ignoreId
-    && Math.abs(card.x - slot.x) < TACTIC_CARD_WIDTH / 2
-    && Math.abs(card.z - slot.z) < TACTIC_CARD_HEIGHT / 2)
+  return !cards.some(
+    (card) =>
+      card.id !== ignoreId &&
+      Math.abs(card.x - slot.x) < TACTIC_CARD_WIDTH / 2 &&
+      Math.abs(card.z - slot.z) < TACTIC_CARD_HEIGHT / 2,
+  )
 }
 
 // Position of the first free slot of `team`, from the owner's left. When the 5 slots are full, the

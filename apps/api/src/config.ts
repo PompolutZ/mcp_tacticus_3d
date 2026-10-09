@@ -29,11 +29,7 @@ export async function loadSsmParams(
   return params
 }
 
-export function requireParam(
-  params: Record<string, string>,
-  name: string,
-  prefix = '',
-): string {
+export function requireParam(params: Record<string, string>, name: string, prefix = ''): string {
   const value = params[name]
   if (value === undefined) throw new Error(`Missing SSM parameter ${prefix}${name}`)
   return value

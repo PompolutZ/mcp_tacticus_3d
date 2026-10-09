@@ -15,14 +15,24 @@ export async function readBundlePrefab(outDir) {
   const warnings = []
 
   // The bundle's manifest names its prefab, for example assets/examples/prefabs/container_orange.prefab
-  const bundleManifests = [...walk(path.join(primary, 'Assets/AssetBundle'))].filter(f => f.endsWith('.json')).map(f => JSON.parse(fs.readFileSync(f, 'utf8')))
-  const prefabs = bundleManifests.flatMap(m => Object.keys(m.m_Container)).filter(p => p.endsWith('.prefab'))
+  const bundleManifests = [...walk(path.join(primary, 'Assets/AssetBundle'))]
+    .filter((f) => f.endsWith('.json'))
+    .map((f) => JSON.parse(fs.readFileSync(f, 'utf8')))
+  const prefabs = bundleManifests
+    .flatMap((m) => Object.keys(m.m_Container))
+    .filter((p) => p.endsWith('.prefab'))
   if (!prefabs.length) throw new Error('No prefab in the bundle')
   // Bastion's bundle has a second prefab, prefabs/baston.prefab, whose figure has no mesh. TTS shows the figure,
   // so it uses the first prefab of m_Container. Not checked for other bundles.
-  if (prefabs.length > 1) warnings.push(`has ${prefabs.length} prefabs, using the first: ${prefabs[0]} (others: ${prefabs.slice(1).join(', ')})`)
-  const dependencies = bundleManifests.flatMap(m => m.m_Dependencies ?? [])
-  if (dependencies.length) warnings.push(`depends on other bundles (${dependencies.join(', ')}). TTS does not load them, so materials from them are missing in TTS as well.`)
+  if (prefabs.length > 1)
+    warnings.push(
+      `has ${prefabs.length} prefabs, using the first: ${prefabs[0]} (others: ${prefabs.slice(1).join(', ')})`,
+    )
+  const dependencies = bundleManifests.flatMap((m) => m.m_Dependencies ?? [])
+  if (dependencies.length)
+    warnings.push(
+      `depends on other bundles (${dependencies.join(', ')}). TTS does not load them, so materials from them are missing in TTS as well.`,
+    )
 
   const prefab = readPrefab(fs.readFileSync(findByLowerCasePath(project, prefabs[0]), 'utf8'))
   warnings.push(...prefab.warnings)
@@ -59,9 +69,11 @@ function applyMaterials(doc, project) {
   for (const material of doc.getRoot().listMaterials()) {
     const name = material.getName()
     const found = unity.get(name) ?? []
-    const values = new Set(found.map(m => JSON.stringify(m)))
+    const values = new Set(found.map((m) => JSON.stringify(m)))
     if (values.size !== 1) {
-      warnings.push(`material ${name}: ${found.length ? `${found.length} Unity materials with different values` : 'no Unity material'} with this name. It keeps the glTF defaults (metallic 1).`)
+      warnings.push(
+        `material ${name}: ${found.length ? `${found.length} Unity materials with different values` : 'no Unity material'} with this name. It keeps the glTF defaults (metallic 1).`,
+      )
       continue
     }
     const m = found[0]
@@ -70,15 +82,28 @@ function applyMaterials(doc, project) {
       material.setMetallicFactor(m.metallic ?? 0)
       // Unity smoothness and glTF roughness are both perceptual values, so roughness = 1 - smoothness
       material.setRoughnessFactor(1 - (m.glossiness ?? 0.5))
-      if (m.metallicGlossMap) warnings.push(`material ${name}: has a metallic map, which is not converted. It uses _Metallic and _Glossiness.`)
-      if (m.smoothnessFromAlbedo) warnings.push(`material ${name}: takes smoothness from the color texture alpha, which is not converted. It uses _Glossiness.`)
+      if (m.metallicGlossMap)
+        warnings.push(
+          `material ${name}: has a metallic map, which is not converted. It uses _Metallic and _Glossiness.`,
+        )
+      if (m.smoothnessFromAlbedo)
+        warnings.push(
+          `material ${name}: takes smoothness from the color texture alpha, which is not converted. It uses _Glossiness.`,
+        )
     } else {
       material.setMetallicFactor(0).setRoughnessFactor(1)
-      warnings.push(`material ${name}: the shader is not Unity's Standard shader. It gets metallic 0 and roughness 1.`)
+      warnings.push(
+        `material ${name}: the shader is not Unity's Standard shader. It gets metallic 0 and roughness 1.`,
+      )
     }
     if (m.color) {
       // Unity stores the color in sRGB. glTF baseColorFactor is linear.
-      const linear = new THREE.Color().setRGB(m.color[0], m.color[1], m.color[2], THREE.SRGBColorSpace)
+      const linear = new THREE.Color().setRGB(
+        m.color[0],
+        m.color[1],
+        m.color[2],
+        THREE.SRGBColorSpace,
+      )
       material.setBaseColorFactor([linear.r, linear.g, linear.b, m.color[3]])
     }
   }
@@ -87,6 +112,7 @@ function applyMaterials(doc, project) {
 
 // AssetRipper writes the files with the original upper and lower case; bundle manifests use lower case
 function findByLowerCasePath(dir, lowerPath) {
-  for (const file of walk(dir)) if (path.relative(dir, file).toLowerCase() === lowerPath) return file
+  for (const file of walk(dir))
+    if (path.relative(dir, file).toLowerCase() === lowerPath) return file
   throw new Error(`No ${lowerPath} in ${dir}`)
 }

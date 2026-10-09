@@ -8,7 +8,9 @@ import { createPortal } from 'react-dom'
 // stay plain children of App: they are never covered by the scene, so they do not need this.
 export function Overlay({ className, onClick, onPointerDown, children }) {
   return createPortal(
-    <div className={className} onClick={onClick} onPointerDown={onPointerDown}>{children}</div>,
+    <div className={className} onClick={onClick} onPointerDown={onPointerDown}>
+      {children}
+    </div>,
     document.body,
   )
 }

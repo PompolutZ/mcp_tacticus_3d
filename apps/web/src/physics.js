@@ -22,7 +22,16 @@ const DOWN = { x: 0, y: -1, z: 0 }
 export function castDown(world, rapier, shape, rotation, x, z, halfHeight, from = CAST_TOP) {
   const filter = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
   for (let top = from; top > -CAST_STEP; top -= CAST_STEP) {
-    const hit = world.castShape({ x, y: top + halfHeight, z }, rotation, DOWN, shape, 0, CAST_STEP, true, filter)
+    const hit = world.castShape(
+      { x, y: top + halfHeight, z },
+      rotation,
+      DOWN,
+      shape,
+      0,
+      CAST_STEP,
+      true,
+      filter,
+    )
     if (hit) return top - hit.time_of_impact
   }
   return null
@@ -37,7 +46,20 @@ export function castAlong(world, rapier, shape, rotation, pos, dir, maxDistance,
   for (let done = 0; done < maxDistance; done += CAST_STEP) {
     const from = { x: pos.x + dir.x * done, y: pos.y + dir.y * done, z: pos.z + dir.z * done }
     const step = Math.min(CAST_STEP, maxDistance - done)
-    const hit = world.castShape(from, rotation, dir, shape, 0, step, false, filter, undefined, undefined, undefined, keep)
+    const hit = world.castShape(
+      from,
+      rotation,
+      dir,
+      shape,
+      0,
+      step,
+      false,
+      filter,
+      undefined,
+      undefined,
+      undefined,
+      keep,
+    )
     if (hit) return done + hit.time_of_impact
   }
   return maxDistance

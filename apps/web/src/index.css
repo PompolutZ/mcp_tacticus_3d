@@ -14,9 +14,13 @@
   font-size: 15px;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
   margin: 0;
 }
@@ -97,7 +101,9 @@ body {
   border-radius: 5px;
   padding: 3px 9px;
   cursor: pointer;
-  transition: border-color 0.1s, background 0.1s;
+  transition:
+    border-color 0.1s,
+    background 0.1s;
 }
 
 .chip:hover {
@@ -1084,7 +1090,11 @@ body {
 
 /* Not on the slide itself: in the loop, Embla moves the slides with transform. */
 .carousel-slide > * {
-  transition: transform 0.3s, filter 0.3s, opacity 0.3s, visibility 0.3s;
+  transition:
+    transform 0.3s,
+    filter 0.3s,
+    opacity 0.3s,
+    visibility 0.3s;
 }
 
 /* The side cards are smaller and darker, so the card in the middle stands out. A click on a side card
@@ -1336,7 +1346,10 @@ body {
   display: flex;
   flex-direction: column;
   border-radius: 12px;
-  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  transition:
+    transform 0.15s,
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .lobby-tile:hover {

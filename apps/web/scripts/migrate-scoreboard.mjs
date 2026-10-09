@@ -23,22 +23,34 @@ writeAffiliations()
 // The mod's Tray Spawner gives the VP marker the image of the affiliation that the player chooses
 // (updateScoreTracker). The choices are the tokenDatabase rows of type Affiliation.
 function writeAffiliations() {
-  const rows = loadCrisisDatabase().tokens.filter(t => t.tType === 'Affiliation')
+  const rows = loadCrisisDatabase().tokens.filter((t) => t.tType === 'Affiliation')
   const entries = {}
   for (const row of rows) {
     const key = slug(row.name)
-    if (entries[key]) throw new Error(`The affiliations "${entries[key].name}" and "${row.name}" have the same key ${key}`)
+    if (entries[key])
+      throw new Error(
+        `The affiliations "${entries[key].name}" and "${row.name}" have the same key ${key}`,
+      )
     writeImage(affiliationToken(key), row.url, TOKEN_SIZE)
     entries[key] = { name: row.name }
   }
   // Keys in sorted order, so that a new affiliation gives a small diff
-  const sorted = Object.fromEntries(Object.keys(entries).sort().map(k => [k, entries[k]]))
+  const sorted = Object.fromEntries(
+    Object.keys(entries)
+      .sort()
+      .map((k) => [k, entries[k]]),
+  )
   fs.writeFileSync(AFFILIATIONS_OUT, `${JSON.stringify(sorted, null, 2)}\n`)
-  console.log(`Wrote ${rows.length} affiliation tokens and ${path.relative(process.cwd(), AFFILIATIONS_OUT)}`)
+  console.log(
+    `Wrote ${rows.length} affiliation tokens and ${path.relative(process.cwd(), AFFILIATIONS_OUT)}`,
+  )
 }
 
 async function writeMesh(file, url) {
-  await writeGlb(assetPath(file), await compressMesh(await readObj(source(url)), { singleMaterial: true }))
+  await writeGlb(
+    assetPath(file),
+    await compressMesh(await readObj(source(url)), { singleMaterial: true }),
+  )
   console.log(`Wrote src/assets/${file}`)
 }
 
@@ -60,5 +72,10 @@ function assetPath(file) {
 
 // The same slug as migrate-tokens.mjs: "S.H.I.E.L.D." → shield, "Onslaught's Grip" → onslaughts-grip
 function slug(text) {
-  return text.toLowerCase().normalize('NFKD').replace(/['‘’.]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  return text
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/['‘’.]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
 }

@@ -21,6 +21,8 @@ export function Preload({ files }) {
 // Calls onReady once, when the content of its Suspense boundary commits. It sits after the scene in the
 // Canvas, so that is when the scene and Preload have their files.
 export function Ready({ onReady }) {
-  useEffect(() => { onReady() }, [])
+  useEffect(() => {
+    onReady()
+  }, [])
   return null
 }

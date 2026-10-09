@@ -28,7 +28,14 @@ export default function TrayControls({ character, stamina, onDamage, onPower, on
     <div className="tray-controls" data-character-id={character.id}>
       <TrayCounters character={character} stamina={stamina} onDamage={onDamage} onPower={onPower} />
       <div className="tray-controls-row tray-controls-actions">
-        <button type="button" className="chip tray-controls-flip" onClick={e => { e.stopPropagation(); onFlip() }}>
+        <button
+          type="button"
+          className="chip tray-controls-flip"
+          onClick={(e) => {
+            e.stopPropagation()
+            onFlip()
+          }}
+        >
           Flip
         </button>
         <button type="button" className="chip tray-controls-remove" onClick={handleRemove}>
@@ -70,12 +77,38 @@ export function TrayCounters({ character, stamina, onDamage, onPower }) {
 function Counter({ icon, alt, label, value, max, warn = false, onDec, onInc }) {
   return (
     <div className="tray-counter">
-      {onDec && <button type="button" className="tray-counter-btn" onClick={e => { e.stopPropagation(); onDec() }}>−</button>}
-      {icon
-        ? <img className="tray-counter-icon" src={icon} alt={alt} />
-        : <span className="tray-counter-label">{label}</span>}
-      <span className={`tray-counter-value${warn ? ' tray-counter-value--warn' : ''}`}>{value}/{max}</span>
-      {onInc && <button type="button" className="tray-counter-btn" onClick={e => { e.stopPropagation(); onInc() }}>+</button>}
+      {onDec && (
+        <button
+          type="button"
+          className="tray-counter-btn"
+          onClick={(e) => {
+            e.stopPropagation()
+            onDec()
+          }}
+        >
+          −
+        </button>
+      )}
+      {icon ? (
+        <img className="tray-counter-icon" src={icon} alt={alt} />
+      ) : (
+        <span className="tray-counter-label">{label}</span>
+      )}
+      <span className={`tray-counter-value${warn ? ' tray-counter-value--warn' : ''}`}>
+        {value}/{max}
+      </span>
+      {onInc && (
+        <button
+          type="button"
+          className="tray-counter-btn"
+          onClick={(e) => {
+            e.stopPropagation()
+            onInc()
+          }}
+        >
+          +
+        </button>
+      )}
     </div>
   )
 }

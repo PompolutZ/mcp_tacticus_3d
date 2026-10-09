@@ -16,10 +16,28 @@ const LINE = { blendFunction: BlendFunction.ALPHA, edgeStrength: 2 }
 // RulerTool.jsx). They have the green and red of the tool footprint. xRay, so that a piece behind
 // terrain still shows its mark.
 const OUTLINES = {
-  selected: { ...LINE, visibleEdgeColor: 0xf5a623, hiddenEdgeColor: 0x7a5212, xRay: true, selectionLayer: 10 },
+  selected: {
+    ...LINE,
+    visibleEdgeColor: 0xf5a623,
+    hiddenEdgeColor: 0x7a5212,
+    xRay: true,
+    selectionLayer: 10,
+  },
   hovered: { ...LINE, visibleEdgeColor: 0xffffff, xRay: false, selectionLayer: 11 },
-  inRange: { ...LINE, visibleEdgeColor: 0x2ee06a, hiddenEdgeColor: 0x177035, xRay: true, selectionLayer: 12 },
-  outOfRange: { ...LINE, visibleEdgeColor: 0xe5484d, hiddenEdgeColor: 0x732426, xRay: true, selectionLayer: 13 },
+  inRange: {
+    ...LINE,
+    visibleEdgeColor: 0x2ee06a,
+    hiddenEdgeColor: 0x177035,
+    xRay: true,
+    selectionLayer: 12,
+  },
+  outOfRange: {
+    ...LINE,
+    visibleEdgeColor: 0xe5484d,
+    hiddenEdgeColor: 0x732426,
+    xRay: true,
+    selectionLayer: 13,
+  },
 }
 const MODES = Object.keys(OUTLINES)
 // Line width. The edges are found on a smaller copy of the screen: LINE_SCALE times its size in
@@ -39,7 +57,9 @@ function clampEdges(effect) {
   const shader = effect.getFragmentShader()
   if (shader.includes(EDGE_CLAMPED)) return
   if (!shader.includes(EDGE_SCALE)) {
-    console.warn('SelectionOutlines: the postprocessing Outline shader has changed, so the edge limit is not applied')
+    console.warn(
+      'SelectionOutlines: the postprocessing Outline shader has changed, so the edge limit is not applied',
+    )
     return
   }
   effect.setFragmentShader(shader.replace(EDGE_SCALE, EDGE_CLAMPED))
@@ -57,20 +77,22 @@ export default function SelectionOutlines({ children, composer = true, outlines 
   const [entries, setEntries] = useState([])
   // Outline effect of each mode
   const effects = useRef({})
-  const dpr = useThree(state => state.viewport.dpr)
-  const gl = useThree(state => state.gl)
+  const dpr = useThree((state) => state.viewport.dpr)
+  const gl = useThree((state) => state.gl)
 
   const register = useCallback((meshes, mode) => {
     const entry = { meshes, mode }
-    setEntries(prev => [...prev, entry])
-    return () => setEntries(prev => prev.filter(e => e !== entry))
+    setEntries((prev) => [...prev, entry])
+    return () => setEntries((prev) => prev.filter((e) => e !== entry))
   }, [])
 
   // An Outline with an empty selection skips its passes
   useEffect(() => {
     const shown = outlines ? entries : []
     for (const mode of MODES) {
-      effects.current[mode].selection.set(shown.filter(e => e.mode === mode).flatMap(e => e.meshes))
+      effects.current[mode].selection.set(
+        shown.filter((e) => e.mode === mode).flatMap((e) => e.meshes),
+      )
     }
   }, [entries, outlines])
 
@@ -80,7 +102,9 @@ export default function SelectionOutlines({ children, composer = true, outlines 
     if (composer) return
     const previous = gl.toneMapping
     gl.toneMapping = ACESFilmicToneMapping
-    return () => { gl.toneMapping = previous }
+    return () => {
+      gl.toneMapping = previous
+    }
   }, [composer, gl])
 
   useEffect(() => {
@@ -96,14 +120,24 @@ export default function SelectionOutlines({ children, composer = true, outlines 
   // compiles a new shader, so the selection is set on the effects above, not passed as a prop.
   // The composer turns off the renderer tone mapping, so ToneMapping adds back the R3F default.
   // It comes before the outlines, so the outline colors are not tone mapped.
-  const passes = useMemo(() => (
-    <>
-      <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
-      {MODES.map(mode => (
-        <Outline key={mode} ref={effect => { effects.current[mode] = effect }} selection={NO_SELECTION} {...OUTLINES[mode]} />
-      ))}
-    </>
-  ), [])
+  const passes = useMemo(
+    () => (
+      <>
+        <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+        {MODES.map((mode) => (
+          <Outline
+            key={mode}
+            ref={(effect) => {
+              effects.current[mode] = effect
+            }}
+            selection={NO_SELECTION}
+            {...OUTLINES[mode]}
+          />
+        ))}
+      </>
+    ),
+    [],
+  )
 
   // enabled, not unmount, turns the composer off: the library does not free the GPU memory of an
   // unmounted composer. Disabled, it does not render, so R3F renders the scene itself.
@@ -113,7 +147,9 @@ export default function SelectionOutlines({ children, composer = true, outlines 
   return (
     <RegisterContext.Provider value={register}>
       {children}
-      <EffectComposer autoClear={false} enabled={composer}>{passes}</EffectComposer>
+      <EffectComposer autoClear={false} enabled={composer}>
+        {passes}
+      </EffectComposer>
     </RegisterContext.Provider>
   )
 }
@@ -126,7 +162,9 @@ export function useOutline(ref, mode) {
     const object = ref.current
     if (!mode || !object || !register) return
     const meshes = []
-    object.traverse(o => { if (o.isMesh) meshes.push(o) })
+    object.traverse((o) => {
+      if (o.isMesh) meshes.push(o)
+    })
     return register(meshes, mode)
   }, [ref, mode, register])
 }

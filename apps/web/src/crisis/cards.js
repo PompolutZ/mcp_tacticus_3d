@@ -26,14 +26,14 @@ export const CARDS = Object.entries(cardsData)
   }))
   .sort((a, b) => a.name.localeCompare(b.name))
 
-const cardByKey = new Map(CARDS.map(c => [c.key, c]))
+const cardByKey = new Map(CARDS.map((c) => [c.key, c]))
 
 export function cardsOfType(type) {
-  return CARDS.filter(c => c.type === type)
+  return CARDS.filter((c) => c.type === type)
 }
 
 export function getCard(key) {
-  return key ? cardByKey.get(key) ?? null : null
+  return key ? (cardByKey.get(key) ?? null) : null
 }
 
 // A token can be dragged to a new spot. Locked tokens (most Secure tokens) and flip-only tokens

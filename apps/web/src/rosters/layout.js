@@ -4,7 +4,11 @@
 import { TABLE_WIDTH } from '../table.js'
 import { TRAY_CARD_HEIGHT, TRAY_CARD_WIDTH } from '../characters/trays.js'
 import { TACTIC_CARD_HEIGHT, TACTIC_CARD_WIDTH, TACTIC_TRAY_OUTER_Z } from '../tactics/layout.js'
-import { CARD_HEIGHT as CRISIS_CARD_HEIGHT, CARD_WIDTH as CRISIS_CARD_WIDTH, CARD_Z as BOARD_CARD_Z } from '../crisis/layout.js'
+import {
+  CARD_HEIGHT as CRISIS_CARD_HEIGHT,
+  CARD_WIDTH as CRISIS_CARD_WIDTH,
+  CARD_Z as BOARD_CARD_Z,
+} from '../crisis/layout.js'
 import { BOARD_X } from '../scoreboard/board.js'
 
 // Below the character trays (y = 0.02), so a tray draws on top of a roster card
@@ -28,7 +32,7 @@ export const CARD_SIZES = {
 // { kind, ... }. A row wider than maxWidth is scaled down to fit. Returns [{ ...card, x, width, height }]
 // and the scale that was used.
 function placeRow(groups, maxWidth = TABLE_WIDTH - TABLE_MARGIN * 2) {
-  const cards = groups.filter(group => group.length > 0)
+  const cards = groups.filter((group) => group.length > 0)
   const count = cards.reduce((sum, group) => sum + group.length, 0)
   if (count === 0) return { placed: [], scale: 1, width: 0 }
   const cardsWidth = cards.flat().reduce((sum, card) => sum + CARD_SIZES[card.kind][0], 0)
@@ -49,9 +53,9 @@ function placeRow(groups, maxWidth = TABLE_WIDTH - TABLE_MARGIN * 2) {
   return { placed, scale, width: natural * scale }
 }
 
-const side = team => (team === 'blue' ? 1 : -1)
+const side = (team) => (team === 'blue' ? 1 : -1)
 // A card faces its owner, the same as a tray card: for blue, the image top points to -z
-const cardYaw = team => (team === 'blue' ? 0 : Math.PI)
+const cardYaw = (team) => (team === 'blue' ? 0 : Math.PI)
 
 // The cards of `parsed` (mct.js) for `team`: [{ code, kind, gems, x, z, width, height, yaw }]. Row 1 holds the
 // characters, row 2 the Team Tactic cards. The crisis cards lie next to the scoring board (crisisRowLayout).
@@ -61,10 +65,23 @@ export function rosterLayout(team, parsed) {
   const row1Z = TACTIC_TRAY_OUTER_Z + ROW_GAP
   const row2Z = row1Z + TRAY_CARD_HEIGHT + ROW_GAP
   const rows = [
-    [row1Z + TRAY_CARD_HEIGHT / 2, [parsed.characters.map(c => ({ code: c.code, kind: 'character', gems: c.gems }))]],
-    [row2Z + TACTIC_CARD_HEIGHT / 2, [parsed.tactics.map(code => ({ code, kind: 'tactic', gems: [] }))]],
+    [
+      row1Z + TRAY_CARD_HEIGHT / 2,
+      [parsed.characters.map((c) => ({ code: c.code, kind: 'character', gems: c.gems }))],
+    ],
+    [
+      row2Z + TACTIC_CARD_HEIGHT / 2,
+      [parsed.tactics.map((code) => ({ code, kind: 'tactic', gems: [] }))],
+    ],
   ]
-  return rows.flatMap(([z, groups]) => placeRow(groups).placed.map(card => ({ ...card, x: card.x * side(team), z: z * side(team), yaw: cardYaw(team) })))
+  return rows.flatMap(([z, groups]) =>
+    placeRow(groups).placed.map((card) => ({
+      ...card,
+      x: card.x * side(team),
+      z: z * side(team),
+      yaw: cardYaw(team),
+    })),
+  )
 }
 
 // Sizes of both rows, for the Node check: [{ width, scale }]
@@ -115,7 +132,15 @@ export function crisisCenterZ(team) {
 // [{ code, kind, gems, x, z, width, height, yaw }]. drawn: the cards were drawn from the deck (setup/setup.js,
 // crisisRows), so the row lies in line with the board.
 export function crisisRowLayout(team, type, codes, drawn = false) {
-  const { placed, width } = placeRow([codes.map(code => ({ code, kind: type, gems: [] }))], CRISIS_ROW_LENGTH)
+  const { placed, width } = placeRow(
+    [codes.map((code) => ({ code, kind: type, gems: [] }))],
+    CRISIS_ROW_LENGTH,
+  )
   const x = drawn ? DRAWN_ROW_X : CRISIS_ROW_X[type]
-  return placed.map(card => ({ ...card, x, z: (CRISIS_START_Z + width / 2 + card.x) * side(team), yaw: CRISIS_CARD_YAW }))
+  return placed.map((card) => ({
+    ...card,
+    x,
+    z: (CRISIS_START_Z + width / 2 + card.x) * side(team),
+    yaw: CRISIS_CARD_YAW,
+  }))
 }

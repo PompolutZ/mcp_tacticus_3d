@@ -33,8 +33,10 @@ export function throwMove(world, rapier, { start, dir, distance, radius, others 
   const ground = baseGroundY(world, rapier, start.x, start.z, radius - TOUCH_MARGIN)
   const slideBottom = ground === null ? null : ground + CAST_LIFT
   const hit = Math.min(
-    slideBottom === null ? Infinity : terrainHitDistance(world, rapier, start, dir, distance, radius, ground, slideBottom),
-    ...others.map(other => baseHitDistance(start, dir, radius, other)),
+    slideBottom === null
+      ? Infinity
+      : terrainHitDistance(world, rapier, start, dir, distance, radius, ground, slideBottom),
+    ...others.map((other) => baseHitDistance(start, dir, radius, other)),
   )
   const stop = Math.min(distance, matEdgeDistance(start, dir, radius))
   const moved = hit < stop ? Math.max(0, hit - STOP_GAP) : stop
@@ -54,7 +56,7 @@ export function throwSlide(at, distance, moved) {
   // Distance at the share u of fullTime: distance * (1 - (1 - u)²). share: u where it reaches moved.
   const share = 1 - Math.sqrt(Math.max(0, 1 - moved / distance))
   return {
-    path: f => at(distance * (1 - (1 - f * share) ** 2)),
+    path: (f) => at(distance * (1 - (1 - f * share) ** 2)),
     duration: fullTime * share,
   }
 }
@@ -95,13 +97,28 @@ function terrainHitDistance(world, rapier, start, dir, distance, radius, ground,
   const stand = new rapier.Cylinder(BASE_HALF_H + STAND_DEPTH / 2, radius - TOUCH_MARGIN)
   const standPos = { x: start.x, y: ground + BASE_HALF_H - STAND_DEPTH / 2, z: start.z }
   const filter = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
-  world.intersectionsWithShape(standPos, NO_ROTATION, stand, collider => {
-    started.add(collider.handle)
-    return true
-  }, filter)
+  world.intersectionsWithShape(
+    standPos,
+    NO_ROTATION,
+    stand,
+    (collider) => {
+      started.add(collider.handle)
+      return true
+    },
+    filter,
+  )
   const base = new rapier.Cylinder(BASE_HALF_H, radius)
   const pos = { x: start.x, y: slideBottom + BASE_HALF_H, z: start.z }
-  return castAlong(world, rapier, base, NO_ROTATION, pos, { x: dir.x, y: 0, z: dir.z }, distance, collider => !started.has(collider.handle))
+  return castAlong(
+    world,
+    rapier,
+    base,
+    NO_ROTATION,
+    pos,
+    { x: dir.x, y: 0, z: dir.z },
+    distance,
+    (collider) => !started.has(collider.handle),
+  )
 }
 
 // Height of the base bottom at the end. The base moved at slideBottom, so it lands on what is below
@@ -110,7 +127,16 @@ function terrainHitDistance(world, rapier, start, dir, distance, radius, ground,
 // on (stairs, a slope), or the start had no ground, the base stands on top of what is there.
 function landingY(world, rapier, end, radius, slideBottom) {
   if (slideBottom !== null) {
-    const y = castDown(world, rapier, new rapier.Cylinder(BASE_HALF_H, radius), NO_ROTATION, end.x, end.z, BASE_HALF_H, slideBottom)
+    const y = castDown(
+      world,
+      rapier,
+      new rapier.Cylinder(BASE_HALF_H, radius),
+      NO_ROTATION,
+      end.x,
+      end.z,
+      BASE_HALF_H,
+      slideBottom,
+    )
     if (y !== null && y < slideBottom) return y
   }
   return baseGroundY(world, rapier, end.x, end.z, radius)

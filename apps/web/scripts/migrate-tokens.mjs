@@ -19,7 +19,12 @@ Options:
 
 const { values: opts, positionals } = parseArgs({
   allowPositionals: true,
-  options: { list: { type: 'boolean' }, force: { type: 'boolean' }, out: { type: 'string' }, help: { type: 'boolean', short: 'h' } },
+  options: {
+    list: { type: 'boolean' },
+    force: { type: 'boolean' },
+    out: { type: 'string' },
+    help: { type: 'boolean', short: 'h' },
+  },
 })
 if (opts.help || positionals.length) {
   console.log(USAGE)
@@ -33,7 +38,9 @@ const DATA_DIR = path.resolve(import.meta.dirname, '../src/tokens')
 const OUT_DIR = opts.out ? path.resolve(opts.out) : null
 const MANIFEST_OUT = OUT_DIR ? path.join(OUT_DIR, 'token-manifest.json') : MANIFEST_FILE
 const TOKENS_OUT = path.join(OUT_DIR ?? DATA_DIR, 'tokens.json')
-const ASSETS = OUT_DIR ? path.join(OUT_DIR, 'assets') : path.resolve(import.meta.dirname, '../src/assets')
+const ASSETS = OUT_DIR
+  ? path.join(OUT_DIR, 'assets')
+  : path.resolve(import.meta.dirname, '../src/assets')
 // "1 Power" is the only Misc row the app uses: the icon of the tray's Power counter (see TrayControls.jsx).
 // It lives in the mod at token/misc/tracker/, next to Activated and Dazed, but it is not a token players give
 // to a character, so it gets its own "counter" group, kept out of the Tokens panel and out of drops.
@@ -53,12 +60,18 @@ else process.exitCode = migrate()
 function selected(row) {
   if (row.altName) return false
   switch (row.tType) {
-    case 'Condition': return groupPath(row) === 'condition' // not the dice results in token/dice/
-    case 'Status': return true
-    case 'Personal': return true
-    case 'Only Status': return groupPath(row) === 'tactic' // not the 3 rows in token/misc/
-    case 'Misc': return MISC_ROWS.includes(row.name)
-    default: return false // Secure/Extract/Source/Objective/Affiliation/Use Tools/Pile/Unused/Experiment
+    case 'Condition':
+      return groupPath(row) === 'condition' // not the dice results in token/dice/
+    case 'Status':
+      return true
+    case 'Personal':
+      return true
+    case 'Only Status':
+      return groupPath(row) === 'tactic' // not the 3 rows in token/misc/
+    case 'Misc':
+      return MISC_ROWS.includes(row.name)
+    default:
+      return false // Secure/Extract/Source/Objective/Affiliation/Use Tools/Pile/Unused/Experiment
   }
 }
 
@@ -70,18 +83,30 @@ function groupPath(row) {
 
 function group(row) {
   if (row.name === '1 Power') return 'counter'
-  const g = { condition: 'condition', 'misc/tracker': 'status', character: 'character', tactic: 'tactic' }[groupPath(row)]
-  if (!g) throw new Error(`the token "${row.name}" is in token/${groupPath(row)}/, which no group maps to`)
+  const g = {
+    condition: 'condition',
+    'misc/tracker': 'status',
+    character: 'character',
+    tactic: 'tactic',
+  }[groupPath(row)]
+  if (!g)
+    throw new Error(
+      `the token "${row.name}" is in token/${groupPath(row)}/, which no group maps to`,
+    )
   return g
 }
 
 function listTokens() {
   console.log('Character tokens of the mod. Missing: files that TTS has not downloaded.\n')
-  const sorted = [...rows].sort((a, b) => group(a).localeCompare(group(b)) || a.name.localeCompare(b.name))
+  const sorted = [...rows].sort(
+    (a, b) => group(a).localeCompare(group(b)) || a.name.localeCompare(b.name),
+  )
   for (const row of sorted) {
     const f = { file: characterToken(keys.get(row)), url: row.url }
     const status = available(f) ? (migrated(f) ? 'migrated' : 'cached') : 'missing'
-    console.log(`${keys.get(row).padEnd(28)} ${group(row).padEnd(9)} ${row.name.padEnd(28)} ${status}`)
+    console.log(
+      `${keys.get(row).padEnd(28)} ${group(row).padEnd(9)} ${row.name.padEnd(28)} ${status}`,
+    )
   }
 }
 
@@ -107,8 +132,10 @@ function migrate() {
 
   console.log('Tokens:')
   for (const { key, row, status } of results) console.log(`  ${key} (${row.name}): ${status}`)
-  console.log(`\n${done.length} of ${rows.length} tokens migrated.\nApp data: ${TOKENS_OUT}\nAssets: ${path.join(ASSETS, 'tokens')}`)
-  return results.some(r => r.status.startsWith('failed')) ? 1 : 0
+  console.log(
+    `\n${done.length} of ${rows.length} tokens migrated.\nApp data: ${TOKENS_OUT}\nAssets: ${path.join(ASSETS, 'tokens')}`,
+  )
+  return results.some((r) => r.status.startsWith('failed')) ? 1 : 0
 }
 
 // Entry of src/tokens/tokens.json. description and cleanup are left out when the mod row has none,
@@ -122,17 +149,25 @@ function tokenEntry(row) {
 
 // Key of each token: its name as a slug, the same way as scripts/migrate-crisis.mjs keys a card
 function rowKeys(list) {
-  const keyMap = new Map(list.map(r => [r, slug(r.name)]))
+  const keyMap = new Map(list.map((r) => [r, slug(r.name)]))
   const seen = new Map()
   for (const [row, key] of keyMap) {
-    if (seen.has(key)) throw new Error(`The tokens "${seen.get(key).name}" and "${row.name}" have the same key ${key}`)
+    if (seen.has(key))
+      throw new Error(
+        `The tokens "${seen.get(key).name}" and "${row.name}" have the same key ${key}`,
+      )
     seen.set(key, row)
   }
   return keyMap
 }
 
 function slug(text) {
-  return text.toLowerCase().normalize('NFKD').replace(/['‘’.]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  return text
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/['‘’.]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
 }
 
 // A file can be written when TTS has it in the cache, or when it is already migrated from the same URL
@@ -158,13 +193,17 @@ function assetPath(file) {
 }
 
 function readJson(file, fallback) {
-  const found = [file, fallback].find(f => fs.existsSync(f))
+  const found = [file, fallback].find((f) => fs.existsSync(f))
   return found ? JSON.parse(fs.readFileSync(found, 'utf8')) : {}
 }
 
 // Keys in sorted order, so that a new token gives a small diff
 function writeJson(file, data) {
-  const sorted = Object.fromEntries(Object.keys(data).sort().map(k => [k, data[k]]))
+  const sorted = Object.fromEntries(
+    Object.keys(data)
+      .sort()
+      .map((k) => [k, data[k]]),
+  )
   fs.mkdirSync(path.dirname(file), { recursive: true })
   fs.writeFileSync(file, `${JSON.stringify(sorted, null, 2)}\n`)
 }

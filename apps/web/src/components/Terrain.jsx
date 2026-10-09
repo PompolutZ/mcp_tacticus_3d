@@ -21,7 +21,9 @@ const CLICK_SLOP = 2
 // z changes sign, and so do rotations around X and Y. Unity applies Euler angles
 // in Z, X, Y order, which is Three.js order 'YXZ'.
 function toThreeTransform({ position: [x, y, z], rotation: [rx, ry, rz] }) {
-  const quaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(-rx * DEG, -ry * DEG, rz * DEG, 'YXZ'))
+  const quaternion = new THREE.Quaternion().setFromEuler(
+    new THREE.Euler(-rx * DEG, -ry * DEG, rz * DEG, 'YXZ'),
+  )
   return { position: [x, y - TTS_MAT_TOP, -z], quaternion }
 }
 
@@ -90,7 +92,7 @@ function TerrainPiece({ placement, showLabel, selected, onSelect, onHover, objec
     const material = new THREE.MeshStandardMaterial({ map, color, roughness: 0.8, metalness: 0 })
     material.onBeforeCompile = projectFootprints
     const clone = raw.clone()
-    clone.traverse(child => {
+    clone.traverse((child) => {
       if (!child.isMesh) return
       child.material = material
       child.castShadow = true
@@ -158,7 +160,14 @@ function TerrainPiece({ placement, showLabel, selected, onSelect, onHover, objec
             ref={setMesh}
             object={obj}
             rotation={IMPORT_ROTATION}
-            onPointerOver={locked ? undefined : e => { e.stopPropagation(); setHovered(true) }}
+            onPointerOver={
+              locked
+                ? undefined
+                : (e) => {
+                    e.stopPropagation()
+                    setHovered(true)
+                  }
+            }
             onPointerOut={locked ? undefined : () => setHovered(false)}
             onPointerDown={locked ? undefined : handlePointerDown}
             onClick={locked ? undefined : handleClick}
@@ -167,8 +176,15 @@ function TerrainPiece({ placement, showLabel, selected, onSelect, onHover, objec
         </group>
       </RigidBody>
       {showLabel && (
-        <Html position={labelPos} center style={NO_POINTER} zIndexRange={[100, 0]} className="terrain-label">
-          {piece.name}{placement.size && ` · Size ${placement.size}`}
+        <Html
+          position={labelPos}
+          center
+          style={NO_POINTER}
+          zIndexRange={[100, 0]}
+          className="terrain-label"
+        >
+          {piece.name}
+          {placement.size && ` · Size ${placement.size}`}
         </Html>
       )}
     </group>
@@ -178,16 +194,23 @@ function TerrainPiece({ placement, showLabel, selected, onSelect, onHover, objec
 // placements: the terrain pieces on the mat, [{ id, locked, ...placement }] (see mapTerrain in rooms/table.js).
 // selectedId: id of the selected piece, or null. onSelect(id), onHover(id, over), objectRef(id, obj):
 // see TerrainPiece.
-export default function Terrain({ placements, showLabels = false, selectedId = null, onSelect, onHover, objectRef }) {
-  return placements.map(placement => (
+export default function Terrain({
+  placements,
+  showLabels = false,
+  selectedId = null,
+  onSelect,
+  onHover,
+  objectRef,
+}) {
+  return placements.map((placement) => (
     <TerrainPiece
       key={placement.id}
       placement={placement}
       showLabel={showLabels}
       selected={selectedId === placement.id}
       onSelect={() => onSelect?.(placement.id)}
-      onHover={over => onHover?.(placement.id, over)}
-      objectRef={obj => objectRef?.(placement.id, obj)}
+      onHover={(over) => onHover?.(placement.id, over)}
+      objectRef={(obj) => objectRef?.(placement.id, obj)}
     />
   ))
 }

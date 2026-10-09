@@ -18,15 +18,31 @@ const TEAMS = [
   { team: 'red', label: 'Red' },
 ]
 const TOKEN_MODES = [
-  { mode: 'single', label: 'Single', title: 'A drag gives one token to a character, or puts one on the table' },
-  { mode: 'pile', label: 'Pile', title: 'A drag puts a pile on the table. The pile never runs out.' },
+  {
+    mode: 'single',
+    label: 'Single',
+    title: 'A drag gives one token to a character, or puts one on the table',
+  },
+  {
+    mode: 'pile',
+    label: 'Pile',
+    title: 'A drag puts a pile on the table. The pile never runs out.',
+  },
 ]
-const TOKEN_GROUPS = { condition: 'Conditions', status: 'Status', character: 'Character', tactic: 'Tactic' }
+const TOKEN_GROUPS = {
+  condition: 'Conditions',
+  status: 'Status',
+  character: 'Character',
+  tactic: 'Tactic',
+}
 // The All tab shows this many characters and tactic cards. "More" opens their own tab with all of them.
 const ALL_TAB_LIMIT = { characters: 8, tactics: 6 }
 
 // Characters with a 3D model first, then by name (CHARACTERS is sorted by name)
-const LIBRARY_ROWS = [...CHARACTERS.filter(ch => ch.available), ...CHARACTERS.filter(ch => !ch.available)]
+const LIBRARY_ROWS = [
+  ...CHARACTERS.filter((ch) => ch.available),
+  ...CHARACTERS.filter((ch) => !ch.available),
+]
 
 // Only migrated characters have a portrait
 function portraitUrl(ch) {
@@ -50,13 +66,23 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
   const messageTimer = useRef()
 
   const q = query.trim().toLowerCase()
-  const found = useMemo(() => ({
-    characters: q ? LIBRARY_ROWS.filter(ch => ch.name.toLowerCase().includes(q) || ch.mctCode.startsWith(q)) : LIBRARY_ROWS,
-    tactics: q ? TACTICS.filter(card => card.name.toLowerCase().includes(q) || card.id.startsWith(q)) : TACTICS,
-    tokens: q ? TOKENS.filter(t => t.name.toLowerCase().includes(q)) : TOKENS,
-  }), [q])
+  const found = useMemo(
+    () => ({
+      characters: q
+        ? LIBRARY_ROWS.filter((ch) => ch.name.toLowerCase().includes(q) || ch.mctCode.startsWith(q))
+        : LIBRARY_ROWS,
+      tactics: q
+        ? TACTICS.filter((card) => card.name.toLowerCase().includes(q) || card.id.startsWith(q))
+        : TACTICS,
+      tokens: q ? TOKENS.filter((t) => t.name.toLowerCase().includes(q)) : TOKENS,
+    }),
+    [q],
+  )
   // Slugs of the chosen player's characters on the table. App blocks a second copy (handleSpawn).
-  const spawned = useMemo(() => new Set(characters.filter(c => c.teamColor === team).map(c => c.key)), [characters, team])
+  const spawned = useMemo(
+    () => new Set(characters.filter((c) => c.teamColor === team).map((c) => c.key)),
+    [characters, team],
+  )
 
   if (!open) return null
 
@@ -96,8 +122,8 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
     )
   }
 
-  const showKind = kind => (tab === 'all' || tab === kind) && found[kind].length > 0
-  const nothing = ['characters', 'tactics', 'tokens'].every(kind => !showKind(kind))
+  const showKind = (kind) => (tab === 'all' || tab === kind) && found[kind].length > 0
+  const nothing = ['characters', 'tactics', 'tokens'].every((kind) => !showKind(kind))
 
   return (
     <div className="library">
@@ -106,18 +132,23 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
         className="chip library-search"
         placeholder="Search name or MCT code"
         value={query}
-        onChange={e => setQuery(e.target.value)}
+        onChange={(e) => setQuery(e.target.value)}
       />
       <div className="library-row">
-        {TABS.map(t => (
-          <button key={t.tab} type="button" className={`chip${tab === t.tab ? ' chip--active' : ''}`} onClick={() => setTab(t.tab)}>
+        {TABS.map((t) => (
+          <button
+            key={t.tab}
+            type="button"
+            className={`chip${tab === t.tab ? ' chip--active' : ''}`}
+            onClick={() => setTab(t.tab)}
+          >
             {t.label}
           </button>
         ))}
       </div>
       <div className="library-row">
         <span className="group-label">For</span>
-        {TEAMS.map(t => (
+        {TEAMS.map((t) => (
           <button
             key={t.team}
             type="button"
@@ -134,21 +165,37 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
         {showKind('characters') && (
           <section className="library-section">
             {sectionHeader('characters', 'Characters')}
-            {shown('characters').map(ch => {
+            {shown('characters').map((ch) => {
               const portrait = portraitUrl(ch)
               const onTable = spawned.has(ch.slug)
-              const state = !ch.available ? ' library-character--unavailable' : onTable ? ' library-character--spawned' : ''
+              const state = !ch.available
+                ? ' library-character--unavailable'
+                : onTable
+                  ? ' library-character--spawned'
+                  : ''
               return (
                 <button
                   key={ch.mctCode}
                   type="button"
                   className={`library-character${state}`}
-                  title={onTable ? `${team === 'blue' ? 'Blue' : 'Red'} player has this character on the table` : undefined}
+                  title={
+                    onTable
+                      ? `${team === 'blue' ? 'Blue' : 'Red'} player has this character on the table`
+                      : undefined
+                  }
                   onClick={() => handleCharacter(ch)}
                 >
-                  {portrait
-                    ? <img className="library-portrait" src={portrait} alt="" loading="lazy" draggable={false} />
-                    : <span className="library-portrait" />}
+                  {portrait ? (
+                    <img
+                      className="library-portrait"
+                      src={portrait}
+                      alt=""
+                      loading="lazy"
+                      draggable={false}
+                    />
+                  ) : (
+                    <span className="library-portrait" />
+                  )}
                   <span className="library-character-name">{ch.name}</span>
                   <span className="library-code">{ch.mctCode}</span>
                 </button>
@@ -160,7 +207,7 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
           <section className="library-section">
             {sectionHeader('tactics', 'Tactics')}
             <div className="library-tactics">
-              {shown('tactics').map(card => (
+              {shown('tactics').map((card) => (
                 <button
                   key={card.key}
                   type="button"
@@ -168,7 +215,13 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
                   title={`${card.name} · ${card.id}`}
                   onClick={() => onSpawnTactic(card.key, team)}
                 >
-                  <img className="library-tactic-image" src={assetUrl(tacticCardBack(card.key))} alt="" loading="lazy" draggable={false} />
+                  <img
+                    className="library-tactic-image"
+                    src={assetUrl(tacticCardBack(card.key))}
+                    alt=""
+                    loading="lazy"
+                    draggable={false}
+                  />
                   <span className="library-tactic-name">{card.name}</span>
                 </button>
               ))}
@@ -177,9 +230,11 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
         )}
         {showKind('tokens') && (
           <section className="library-section">
-            {sectionHeader('tokens', 'Tokens', (
+            {sectionHeader(
+              'tokens',
+              'Tokens',
               <div className="library-row">
-                {TOKEN_MODES.map(m => (
+                {TOKEN_MODES.map((m) => (
                   <button
                     key={m.mode}
                     type="button"
@@ -190,27 +245,34 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
                     {m.label}
                   </button>
                 ))}
-              </div>
-            ))}
+              </div>,
+            )}
             {Object.entries(TOKEN_GROUPS).map(([group, label]) => {
-              const tokens = found.tokens.filter(t => t.group === group)
-              return tokens.length > 0 && (
-                <div key={group} className="library-token-group">
-                  <span className="library-token-group-label">{label}</span>
-                  <div className="library-tokens">
-                    {tokens.map(t => (
-                      <button
-                        key={t.key}
-                        type="button"
-                        className="token-chip"
-                        title={t.description ? `${t.name}: ${t.description}` : t.name}
-                        onPointerDown={e => onTokenDragStart(e, t.key, tokenMode)}
-                      >
-                        <img className="token-chip-icon" src={assetUrl(characterToken(t.key))} alt={t.name} draggable={false} />
-                      </button>
-                    ))}
+              const tokens = found.tokens.filter((t) => t.group === group)
+              return (
+                tokens.length > 0 && (
+                  <div key={group} className="library-token-group">
+                    <span className="library-token-group-label">{label}</span>
+                    <div className="library-tokens">
+                      {tokens.map((t) => (
+                        <button
+                          key={t.key}
+                          type="button"
+                          className="token-chip"
+                          title={t.description ? `${t.name}: ${t.description}` : t.name}
+                          onPointerDown={(e) => onTokenDragStart(e, t.key, tokenMode)}
+                        >
+                          <img
+                            className="token-chip-icon"
+                            src={assetUrl(characterToken(t.key))}
+                            alt={t.name}
+                            draggable={false}
+                          />
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )
               )
             })}
           </section>

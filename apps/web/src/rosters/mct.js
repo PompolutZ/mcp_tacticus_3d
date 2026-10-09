@@ -35,8 +35,8 @@ export function parseRoster(text, kindOf) {
 // Jarvis format: characters (code-gem-gem), tactics, Secure, Extract, joined by commas.
 export function formatMctCode(parsed) {
   return [
-    ...parsed.characters.map(ch => [ch.code, ...ch.gems].join('-')),
-    ...GROUPS.flatMap(group => parsed[group]),
+    ...parsed.characters.map((ch) => [ch.code, ...ch.gems].join('-')),
+    ...GROUPS.flatMap((group) => parsed[group]),
   ].join(',')
 }
 
@@ -48,14 +48,16 @@ export function formatMctCode(parsed) {
 const JARVIS_GROUP_SIZE = 10
 
 export function jarvisValidatorCode(parsed) {
-  const places = list => Array.from({ length: JARVIS_GROUP_SIZE }, (_, i) => list[i] ?? '')
+  const places = (list) => Array.from({ length: JARVIS_GROUP_SIZE }, (_, i) => list[i] ?? '')
   return [
-    ...places(parsed.characters.map(ch => [ch.code, ...ch.gems].join('-'))),
+    ...places(parsed.characters.map((ch) => [ch.code, ...ch.gems].join('-'))),
     ...places(parsed.tactics),
     ...places([...parsed.secure, ...parsed.extract]),
-  ].join(',').replace(/,+$/, '')
+  ]
+    .join(',')
+    .replace(/,+$/, '')
 }
 
 export function isEmptyRoster(parsed) {
-  return parsed.characters.length === 0 && GROUPS.every(group => parsed[group].length === 0)
+  return parsed.characters.length === 0 && GROUPS.every((group) => parsed[group].length === 0)
 }

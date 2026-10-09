@@ -5,8 +5,8 @@
 export const TEAMS = ['blue', 'red']
 export const CRISIS_TYPES = ['secure', 'extract']
 
-export const otherTeam = team => (team === 'blue' ? 'red' : 'blue')
-export const otherType = type => (type === 'secure' ? 'extract' : 'secure')
+export const otherTeam = (team) => (team === 'blue' ? 'red' : 'blue')
+export const otherType = (type) => (type === 'secure' ? 'extract' : 'secure')
 
 // The cards that a player chose for the squad: places in the `characters` and `tactics` lists of the
 // parsed roster (rosters/mct.js, parseRoster), in roster order. A place and not a code, because a roster
@@ -55,12 +55,19 @@ function drawTwo(codes, random) {
     const j = i + Math.floor(random() * (places.length - i))
     ;[places[i], places[j]] = [places[j], places[i]]
   }
-  return places.slice(0, count).sort((a, b) => a - b).map(i => codes[i])
+  return places
+    .slice(0, count)
+    .sort((a, b) => a - b)
+    .map((i) => codes[i])
 }
 
 // The roll-off winner `team` uses their deck of `type`, with the card codes `codes`. 2 cards are drawn.
 export function chooseDeck(setup, team, type, codes, random = Math.random) {
-  return { ...setup, deck: { team, type }, draws: { ...setup.draws, [type]: drawTwo(codes, random) } }
+  return {
+    ...setup,
+    deck: { team, type },
+    draws: { ...setup.draws, [type]: drawTwo(codes, random) },
+  }
 }
 
 // A Use button: the card `code` of the drawn cards. After the first card, 2 cards are drawn from
@@ -90,7 +97,7 @@ export function chooseEdge(setup) {
 export function toggleSquadCard(setup, team, list, place) {
   const squad = setup.squads[team]
   const places = squad[list].includes(place)
-    ? squad[list].filter(p => p !== place)
+    ? squad[list].filter((p) => p !== place)
     : [...squad[list], place].sort((a, b) => a - b)
   return { ...setup, squads: { ...setup.squads, [team]: { ...squad, [list]: places } } }
 }
@@ -132,7 +139,17 @@ export function setupPlacedCards(setup) {
 export function crisisRows(setup, parsed) {
   const step = setupStep(setup)
   if (step === 'deck') {
-    return TEAMS.flatMap(team => (parsed[team] ? CRISIS_TYPES.map(type => ({ team, type, codes: parsed[team][type], use: false, drawn: false })) : []))
+    return TEAMS.flatMap((team) =>
+      parsed[team]
+        ? CRISIS_TYPES.map((type) => ({
+            team,
+            type,
+            codes: parsed[team][type],
+            use: false,
+            drawn: false,
+          }))
+        : [],
+    )
   }
   if (step === 'squads' || step === 'done') return []
   const { team: winner, type: first } = setup.deck

@@ -9,7 +9,16 @@ import os from 'node:os'
 import path from 'node:path'
 import { Logger, NodeIO } from '@gltf-transform/core'
 import { ALL_EXTENSIONS, EXTTextureWebP } from '@gltf-transform/extensions'
-import { dedup, dequantize, draco, flatten, join, normals, prune, unweld } from '@gltf-transform/functions'
+import {
+  dedup,
+  dequantize,
+  draco,
+  flatten,
+  join,
+  normals,
+  prune,
+  unweld,
+} from '@gltf-transform/functions'
 import draco3d from 'draco3dgltf'
 import obj2gltf from 'obj2gltf'
 
@@ -19,10 +28,13 @@ export const MAT_SIZE = 4096
 // It also uses a quarter of the GPU memory of 2048 (about 5.6 MB instead of 22 MB per figure).
 export const CHARACTER_TEXTURE_SIZE = 1024
 
-const io = new NodeIO().setLogger(new Logger(Logger.Verbosity.WARN)).registerExtensions(ALL_EXTENSIONS).registerDependencies({
-  'draco3d.encoder': await draco3d.createEncoderModule(),
-  'draco3d.decoder': await draco3d.createDecoderModule(),
-})
+const io = new NodeIO()
+  .setLogger(new Logger(Logger.Verbosity.WARN))
+  .registerExtensions(ALL_EXTENSIONS)
+  .registerDependencies({
+    'draco3d.encoder': await draco3d.createEncoderModule(),
+    'draco3d.decoder': await draco3d.createDecoderModule(),
+  })
 
 export function readGlb(file) {
   return io.read(file)
@@ -44,7 +56,7 @@ export async function readObj(file) {
 // Without it, materials and their textures stay in the GLB.
 export async function compressMesh(doc, { singleMaterial }) {
   const root = doc.getRoot()
-  const prims = root.listMeshes().flatMap(m => m.listPrimitives())
+  const prims = root.listMeshes().flatMap((m) => m.listPrimitives())
   if (singleMaterial) {
     const material = doc.createMaterial('terrain')
     for (const prim of prims) prim.setMaterial(material)
@@ -56,11 +68,18 @@ export async function compressMesh(doc, { singleMaterial }) {
     }
   }
   // Flat normals, as three.js OBJLoader computes them for a mesh without normals
-  if (prims.some(p => !p.getAttribute('NORMAL'))) await doc.transform(unweld(), normals())
+  if (prims.some((p) => !p.getAttribute('NORMAL'))) await doc.transform(unweld(), normals())
   // dedup before join: bundles often have many copies of the same material, and join merges
   // only primitives that share one material.
   // prune keeps attributes: without keepAttributes it deletes the UVs of a material without a texture
-  await doc.transform(dequantize(), flatten(), dedup(), join({ keepNamed: false }), prune({ keepAttributes: true }), draco({ quantizeTexcoord: 14 }))
+  await doc.transform(
+    dequantize(),
+    flatten(),
+    dedup(),
+    join({ keepNamed: false }),
+    prune({ keepAttributes: true }),
+    draco({ quantizeTexcoord: 14 }),
+  )
   return doc
 }
 
@@ -89,7 +108,11 @@ export function imageToWebp(input, maxSize) {
       fs.rmSync(dir, { recursive: true, force: true })
     }
   }
-  return execFileSync('magick', [input, '-resize', `${maxSize}x${maxSize}>`, '-strip', '-quality', '85', 'webp:-'], {
-    maxBuffer: 512 * 1024 * 1024,
-  })
+  return execFileSync(
+    'magick',
+    [input, '-resize', `${maxSize}x${maxSize}>`, '-strip', '-quality', '85', 'webp:-'],
+    {
+      maxBuffer: 512 * 1024 * 1024,
+    },
+  )
 }

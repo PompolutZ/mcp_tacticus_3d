@@ -1,6 +1,13 @@
 import { useMemo, useRef, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
-import { PLATE_COLORS, ROSTER_TABS, jarvisRosterUrl, parseRosterText, rosterCard, rosterTabs } from '../rosters/cards.js'
+import {
+  PLATE_COLORS,
+  ROSTER_TABS,
+  jarvisRosterUrl,
+  parseRosterText,
+  rosterCard,
+  rosterTabs,
+} from '../rosters/cards.js'
 import { CARD_SIZES } from '../rosters/layout.js'
 import { Overlay } from './Overlay.jsx'
 import { Carousel } from './Carousel.jsx'
@@ -29,15 +36,21 @@ export function RosterPopup({ team, code, tab, index, onTabChange, onIndexChange
   return (
     <Overlay
       className="card-popup roster-popup-backdrop"
-      onPointerDown={e => { pressedBackdrop.current = e.target === e.currentTarget }}
-      onClick={e => { if (pressedBackdrop.current && e.target === e.currentTarget) onClose() }}
+      onPointerDown={(e) => {
+        pressedBackdrop.current = e.target === e.currentTarget
+      }}
+      onClick={(e) => {
+        if (pressedBackdrop.current && e.target === e.currentTarget) onClose()
+      }}
     >
-      <button type="button" className="popup-close" aria-label="Close" onClick={onClose}>×</button>
+      <button type="button" className="popup-close" aria-label="Close" onClick={onClose}>
+        ×
+      </button>
       <div className="roster-popup" role="dialog" aria-modal="true" aria-label={title}>
         <h2 className={`roster-popup-title roster-popup-title--${team}`}>{title}</h2>
         <JarvisLink href={jarvisRosterUrl(parsed)}>Open this roster on Jarvis</JarvisLink>
         <div className="roster-popup-tabs" role="tablist">
-          {ROSTER_TABS.map(t => (
+          {ROSTER_TABS.map((t) => (
             <button
               key={t.key}
               type="button"
@@ -45,7 +58,9 @@ export function RosterPopup({ team, code, tab, index, onTabChange, onIndexChange
               aria-selected={t.key === tab}
               className={t.key === tab ? 'chip chip--active' : 'chip'}
               disabled={tabs[t.key].length === 0}
-              onClick={() => { if (t.key !== tab) onTabChange(t.key) }}
+              onClick={() => {
+                if (t.key !== tab) onTabChange(t.key)
+              }}
             >
               {t.label}
             </button>
@@ -93,26 +108,59 @@ function PopupCard({ card, active }) {
   const [w, h] = CARD_SIZES[card.kind]
   // --card-w comes from CardCarousel
   const size = { width: 'var(--card-w)', aspectRatio: `${w} / ${h}` }
-  const flip = () => { if (active) setFlipped(v => !v) }
+  const flip = () => {
+    if (active) setFlipped((v) => !v)
+  }
 
   let face
   if (shown.image && shown.back) {
     face = (
-      <div className={flipped ? 'carousel-card roster-popup-flip roster-popup-flip--back' : 'carousel-card roster-popup-flip'} style={size} onClick={flip}>
+      <div
+        className={
+          flipped
+            ? 'carousel-card roster-popup-flip roster-popup-flip--back'
+            : 'carousel-card roster-popup-flip'
+        }
+        style={size}
+        onClick={flip}
+      >
         <div className="roster-popup-flip-inner">
-          <img className="roster-popup-card roster-popup-side" src={assetUrl(shown.image)} alt={name} draggable={false} />
-          <img className="roster-popup-card roster-popup-side roster-popup-side--back" src={assetUrl(shown.back)} alt={`${name}, other side`} draggable={false} />
+          <img
+            className="roster-popup-card roster-popup-side"
+            src={assetUrl(shown.image)}
+            alt={name}
+            draggable={false}
+          />
+          <img
+            className="roster-popup-card roster-popup-side roster-popup-side--back"
+            src={assetUrl(shown.back)}
+            alt={`${name}, other side`}
+            draggable={false}
+          />
         </div>
       </div>
     )
   } else if (shown.image) {
-    face = <img className="carousel-card roster-popup-card" style={size} src={assetUrl(shown.image)} alt={name} draggable={false} />
+    face = (
+      <img
+        className="carousel-card roster-popup-card"
+        style={size}
+        src={assetUrl(shown.image)}
+        alt={name}
+        draggable={false}
+      />
+    )
   } else {
     face = (
-      <div className="carousel-card roster-popup-card roster-popup-plate" style={{ ...size, background: PLATE_COLORS[card.kind] }}>
+      <div
+        className="carousel-card roster-popup-card roster-popup-plate"
+        style={{ ...size, background: PLATE_COLORS[card.kind] }}
+      >
         <span className="roster-popup-plate-name">{info.name}</span>
         <span className="roster-popup-plate-code">{info.code}</span>
-        {info.kind === 'character' && !info.model && <span className="roster-popup-plate-mark">No model</span>}
+        {info.kind === 'character' && !info.model && (
+          <span className="roster-popup-plate-mark">No model</span>
+        )}
       </div>
     )
   }
@@ -123,7 +171,11 @@ function PopupCard({ card, active }) {
       <div className="carousel-footer roster-popup-card-footer">
         <div className="roster-popup-card-actions">
           {info.variants && (
-            <div className="roster-popup-variants" role="tablist" aria-label={`Cards of ${info.name}`}>
+            <div
+              className="roster-popup-variants"
+              role="tablist"
+              aria-label={`Cards of ${info.name}`}
+            >
               {info.variants.map((v, i) => (
                 <button
                   key={i}
@@ -138,11 +190,19 @@ function PopupCard({ card, active }) {
               ))}
             </div>
           )}
-          {shown.image && shown.back && <button type="button" className="chip roster-popup-flip-button" onClick={flip}>Flip</button>}
-          <JarvisLink className="roster-popup-card-jarvis" href={info.jarvisUrl}>Open on Jarvis</JarvisLink>
+          {shown.image && shown.back && (
+            <button type="button" className="chip roster-popup-flip-button" onClick={flip}>
+              Flip
+            </button>
+          )}
+          <JarvisLink className="roster-popup-card-jarvis" href={info.jarvisUrl}>
+            Open on Jarvis
+          </JarvisLink>
         </div>
         {card.gems.map((gem, g) => (
-          <div key={`${g}-${gem}`} className="roster-popup-gem">+ {rosterCard(gem)?.name ?? gem}</div>
+          <div key={`${g}-${gem}`} className="roster-popup-gem">
+            + {rosterCard(gem)?.name ?? gem}
+          </div>
         ))}
       </div>
     </>
@@ -152,8 +212,19 @@ function PopupCard({ card, active }) {
 // A link with the Jarvis logo that opens a Jarvis page in a new browser tab
 function JarvisLink({ href, className, children }) {
   return (
-    <a className={className ? `jarvis-link ${className}` : 'jarvis-link'} href={href} target="_blank" rel="noreferrer" draggable={false}>
-      <img className="jarvis-link-logo" src={assetUrl('jarvis-logo.webp')} alt="" draggable={false} />
+    <a
+      className={className ? `jarvis-link ${className}` : 'jarvis-link'}
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      draggable={false}
+    >
+      <img
+        className="jarvis-link-logo"
+        src={assetUrl('jarvis-logo.webp')}
+        alt=""
+        draggable={false}
+      />
       {children}
     </a>
   )

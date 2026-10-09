@@ -16,7 +16,10 @@ const GAP = 0.02
 const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 const NO_RAYCAST = () => null
 // The two tokens under the top one are a little off center, so the stack looks like a pile. Picked by look.
-const LOWER_OFFSETS = [[0.05, 0, -0.04], [-0.04, TOKEN_THICKNESS, 0.03]]
+const LOWER_OFFSETS = [
+  [0.05, 0, -0.04],
+  [-0.04, TOKEN_THICKNESS, 0.03],
+]
 const TOP_Y = TOKEN_THICKNESS * 2
 
 // 3 tokens of tokenKey in a short stack, with its bottom at y = 0. Only the top token takes the
@@ -32,7 +35,13 @@ export function PileStack({ tokenKey, interactive = true, onPointerDown, onHover
         </group>
       ))}
       <group position={[0, TOP_Y, 0]}>
-        <TokenFace tokenKey={tokenKey} cursor="grab" interactive={interactive} onPointerDown={onPointerDown} onHover={onHover} />
+        <TokenFace
+          tokenKey={tokenKey}
+          cursor="grab"
+          interactive={interactive}
+          onPointerDown={onPointerDown}
+          onHover={onHover}
+        />
       </group>
     </group>
   )

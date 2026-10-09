@@ -37,7 +37,12 @@ export default function LooseToken({ token, onDragStart, onHover }) {
   return (
     <group ref={groupRef} position={[token.x, GAP, token.z]}>
       <Suspense fallback={null}>
-        <TokenFace tokenKey={token.key} cursor="grab" onPointerDown={handlePointerDown} onHover={onHover} />
+        <TokenFace
+          tokenKey={token.key}
+          cursor="grab"
+          onPointerDown={handlePointerDown}
+          onHover={onHover}
+        />
       </Suspense>
     </group>
   )

@@ -17,7 +17,10 @@ export default function TurnHandle({ position, radius, onPointerDown, onHover })
     <mesh
       position={position}
       onPointerDown={onPointerDown}
-      onPointerOver={e => { e.stopPropagation(); setHovered(true) }}
+      onPointerOver={(e) => {
+        e.stopPropagation()
+        setHovered(true)
+      }}
       onPointerOut={() => setHovered(false)}
     >
       <sphereGeometry args={[radius, 16, 12]} />

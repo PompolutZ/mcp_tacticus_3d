@@ -83,7 +83,14 @@ function Objective({ token }) {
 // top: height of the model top above the base bottom, in inches. baseRadius: game size of the base.
 // stamina: Stamina of the side that faces up. held: the crisis tokens the character holds.
 // secureTokens: the tokens of the Secure card on the mat, [{ id, x, z, ... }] (App.jsx, tokens).
-export default function SpectatorBadge({ character, stamina, top, baseRadius, held = [], secureTokens = [] }) {
+export default function SpectatorBadge({
+  character,
+  stamina,
+  top,
+  baseRadius,
+  held = [],
+  secureTokens = [],
+}) {
   const baseRef = useRef()
   const anchorRef = useRef()
   // Ids of the Secure tokens within range 1, joined. The ref has the value of the last setNearIds
@@ -110,15 +117,19 @@ export default function SpectatorBadge({ character, stamina, top, baseRadius, he
     anchor.quaternion.copy(baseTurn).multiply(badgeTurn)
     drawOnTop(anchor)
     const ids = secureTokens
-      .filter(t => Math.hypot(t.x - center.x, t.z - center.z) - baseRadius - TOKEN_RADIUS <= RANGE_ONE + CONTACT_EPS)
-      .map(t => t.id)
+      .filter(
+        (t) =>
+          Math.hypot(t.x - center.x, t.z - center.z) - baseRadius - TOKEN_RADIUS <=
+          RANGE_ONE + CONTACT_EPS,
+      )
+      .map((t) => t.id)
       .join()
     if (ids === lastIds.current) return
     lastIds.current = ids
     setNearIds(ids)
   }, -1)
 
-  const near = nearIds ? secureTokens.filter(t => nearIds.split(',').includes(t.id)) : []
+  const near = nearIds ? secureTokens.filter((t) => nearIds.split(',').includes(t.id)) : []
   const objectives = [...held, ...near]
   // Tokens on the character, in the order it got them, in rows from the top left, as on the tray
   const onTokens = Object.entries(character.tokens ?? {})
@@ -131,7 +142,11 @@ export default function SpectatorBadge({ character, stamina, top, baseRadius, he
     <group ref={baseRef}>
       <group ref={anchorRef} scale={BADGE_SCALE}>
         {objectives.map((token, i) => (
-          <group key={token.id} position={[rowX(i, objectives.length, OBJECTIVE_PITCH), objectivesY, 0]} rotation={STAND_UP}>
+          <group
+            key={token.id}
+            position={[rowX(i, objectives.length, OBJECTIVE_PITCH), objectivesY, 0]}
+            rotation={STAND_UP}
+          >
             <Suspense fallback={null}>
               <Objective token={token} />
             </Suspense>

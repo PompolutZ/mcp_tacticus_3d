@@ -4,7 +4,11 @@ import { useFrameStats } from './FrameStats.jsx'
 const RENDER_MODES = [
   { id: 'full', label: 'Full', title: 'Composer with outlines, as in the normal app' },
   { id: 'no-outline', label: 'No outline', title: 'Composer without outlines' },
-  { id: 'no-composer', label: 'No composer', title: 'The scene drawn straight to the screen: no outlines and no antialiasing' },
+  {
+    id: 'no-composer',
+    label: 'No composer',
+    title: 'The scene drawn straight to the screen: no outlines and no antialiasing',
+  },
 ]
 
 function ms(value) {
@@ -20,7 +24,9 @@ function count(value) {
 function Row({ label, title, children }) {
   return (
     <>
-      <span className="debug-label" title={title}>{label}</span>
+      <span className="debug-label" title={title}>
+        {label}
+      </span>
       <span>{children}</span>
     </>
   )
@@ -36,16 +42,28 @@ export function DebugPanel({ renderMode, onRenderModeChange }) {
           <Row label="FPS" title="Frames per second. The display refresh rate is the upper limit.">
             {stats.fps.toFixed(0)}
           </Row>
-          <Row label="Worst" title="Longest time between two frames in the period. A stutter shows here even when FPS looks fine.">
+          <Row
+            label="Worst"
+            title="Longest time between two frames in the period. A stutter shows here even when FPS looks fine."
+          >
             {ms(stats.worstMs)}
           </Row>
-          <Row label="CPU" title="JavaScript time of a frame: physics, useFrame callbacks and sending the draw calls. Pointer events are not included.">
+          <Row
+            label="CPU"
+            title="JavaScript time of a frame: physics, useFrame callbacks and sending the draw calls. Pointer events are not included."
+          >
             {ms(stats.cpuMs)}
           </Row>
-          <Row label="GPU" title="GPU time of a frame. n/a when the browser cannot measure it (Safari, Firefox).">
+          <Row
+            label="GPU"
+            title="GPU time of a frame. n/a when the browser cannot measure it (Safari, Firefox)."
+          >
             {ms(stats.gpuMs)}
           </Row>
-          <Row label="Draw calls" title="Draw calls in the last frame, of all renders: shadow map, scene, outline passes">
+          <Row
+            label="Draw calls"
+            title="Draw calls in the last frame, of all renders: shadow map, scene, outline passes"
+          >
             {stats.calls}
           </Row>
           <Row label="Triangles" title="Triangles drawn in the last frame, of all renders">
@@ -59,7 +77,7 @@ export function DebugPanel({ renderMode, onRenderModeChange }) {
         <div className="debug-label">Measuring…</div>
       )}
       <div className="debug-modes">
-        {RENDER_MODES.map(mode => (
+        {RENDER_MODES.map((mode) => (
           <button
             key={mode.id}
             type="button"

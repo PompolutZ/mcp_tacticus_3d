@@ -10,7 +10,9 @@ const USAGE = `Usage:
 Options:
   --force   download every character again`
 
-const { values: opts } = parseArgs({ options: { force: { type: 'boolean' }, help: { type: 'boolean', short: 'h' } } })
+const { values: opts } = parseArgs({
+  options: { force: { type: 'boolean' }, help: { type: 'boolean', short: 'h' } },
+})
 if (opts.help) {
   console.log(USAGE)
   process.exit(0)
@@ -23,15 +25,16 @@ const DELAY_MS = 3000
 // Jarvis returns 403 for an unusual User-Agent or a Referer from another site
 const HEADERS = {
   Accept: 'application/json',
-  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  'User-Agent':
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
   Referer: 'https://www.jarvis-protocol.com/',
 }
 
-const stored = new Map(readStored().map(c => [c.slug, c]))
+const stored = new Map(readStored().map((c) => [c.slug, c]))
 // The list has the stats and the version of every character, but no stat card
 const list = await getJson(API)
-const slugs = new Set(list.map(c => c.slug))
-const removed = [...stored.keys()].filter(slug => !slugs.has(slug))
+const slugs = new Set(list.map((c) => c.slug))
+const removed = [...stored.keys()].filter((slug) => !slugs.has(slug))
 const records = new Map([...stored].filter(([slug]) => slugs.has(slug)))
 const added = []
 const changed = []
@@ -54,8 +57,11 @@ try {
 }
 
 const unchanged = list.length - added.length - changed.length
-console.log(`\n${list.length} characters: ${added.length} new, ${changed.length} changed, ${unchanged} unchanged`)
-if (removed.length) console.log(`Removed, because Jarvis no longer lists them: ${removed.join(', ')}`)
+console.log(
+  `\n${list.length} characters: ${added.length} new, ${changed.length} changed, ${unchanged} unchanged`,
+)
+if (removed.length)
+  console.log(`Removed, because Jarvis no longer lists them: ${removed.join(', ')}`)
 console.log(`Wrote ${path.relative(process.cwd(), OUT_FILE)}`)
 
 function readStored() {
@@ -69,5 +75,5 @@ async function getJson(url) {
 }
 
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms))
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }

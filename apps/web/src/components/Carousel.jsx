@@ -18,13 +18,15 @@ export function Carousel({ count, index, onIndexChange, renderSlide, itemName = 
   // No containScroll: without the loop, every card must still get its own place in the middle.
   const [options] = useState({ startIndex: index, loop: true, containScroll: false })
   const [viewportRef, api] = useEmblaCarousel(options)
-  const step = s => api?.scrollTo((index + s + count) % count)
+  const step = (s) => api?.scrollTo((index + s + count) % count)
 
   useEffect(() => {
     if (!api) return
     const onSelect = () => onIndexChange(api.selectedScrollSnap())
     api.on('select', onSelect)
-    return () => { api.off('select', onSelect) }
+    return () => {
+      api.off('select', onSelect)
+    }
   }, [api, onIndexChange])
 
   useEffect(() => {
@@ -51,9 +53,27 @@ export function Carousel({ count, index, onIndexChange, renderSlide, itemName = 
         </div>
       </div>
       <div className="carousel-nav">
-        <button type="button" className="chip" aria-label={`Previous ${itemName.toLowerCase()}`} disabled={count < 2} onClick={() => step(-1)}>‹</button>
-        <span className="carousel-count">{itemName} {index + 1} of {count}</span>
-        <button type="button" className="chip" aria-label={`Next ${itemName.toLowerCase()}`} disabled={count < 2} onClick={() => step(1)}>›</button>
+        <button
+          type="button"
+          className="chip"
+          aria-label={`Previous ${itemName.toLowerCase()}`}
+          disabled={count < 2}
+          onClick={() => step(-1)}
+        >
+          ‹
+        </button>
+        <span className="carousel-count">
+          {itemName} {index + 1} of {count}
+        </span>
+        <button
+          type="button"
+          className="chip"
+          aria-label={`Next ${itemName.toLowerCase()}`}
+          disabled={count < 2}
+          onClick={() => step(1)}
+        >
+          ›
+        </button>
       </div>
     </div>
   )

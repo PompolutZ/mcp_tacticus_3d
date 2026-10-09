@@ -57,34 +57,37 @@ function wrapLines(ctx, text, maxWidth) {
 // "No model".
 function Plate({ card, info }) {
   const { width, height } = card
-  const draw = useMemo(() => (ctx, w, h) => {
-    ctx.fillStyle = PLATE_COLORS[card.kind]
-    ctx.fillRect(0, 0, w, h)
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)'
-    ctx.lineWidth = 4
-    ctx.strokeRect(2, 2, w - 4, h - 4)
-    ctx.fillStyle = '#fff'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    const size = Math.min(h * 0.16, w * 0.12)
-    ctx.font = `bold ${size}px sans-serif`
-    const lines = wrapLines(ctx, info.name, w * 0.9)
-    const lineHeight = size * 1.15
-    const total = lines.length * lineHeight + size * 1.8
-    let y = (h - total) / 2 + lineHeight / 2
-    for (const line of lines) {
-      ctx.fillText(line, w / 2, y)
-      y += lineHeight
-    }
-    ctx.font = `${size * 0.8}px monospace`
-    ctx.fillStyle = 'rgba(255,255,255,0.8)'
-    ctx.fillText(info.code, w / 2, y + size * 0.2)
-    if (info.kind === 'character' && !info.model) {
-      ctx.font = `bold ${size * 0.7}px sans-serif`
-      ctx.fillStyle = '#e8b04a'
-      ctx.fillText('No model', w / 2, y + size * 1.1)
-    }
-  }, [card.kind, info])
+  const draw = useMemo(
+    () => (ctx, w, h) => {
+      ctx.fillStyle = PLATE_COLORS[card.kind]
+      ctx.fillRect(0, 0, w, h)
+      ctx.strokeStyle = 'rgba(255,255,255,0.35)'
+      ctx.lineWidth = 4
+      ctx.strokeRect(2, 2, w - 4, h - 4)
+      ctx.fillStyle = '#fff'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      const size = Math.min(h * 0.16, w * 0.12)
+      ctx.font = `bold ${size}px sans-serif`
+      const lines = wrapLines(ctx, info.name, w * 0.9)
+      const lineHeight = size * 1.15
+      const total = lines.length * lineHeight + size * 1.8
+      let y = (h - total) / 2 + lineHeight / 2
+      for (const line of lines) {
+        ctx.fillText(line, w / 2, y)
+        y += lineHeight
+      }
+      ctx.font = `${size * 0.8}px monospace`
+      ctx.fillStyle = 'rgba(255,255,255,0.8)'
+      ctx.fillText(info.code, w / 2, y + size * 0.2)
+      if (info.kind === 'character' && !info.model) {
+        ctx.font = `bold ${size * 0.7}px sans-serif`
+        ctx.fillStyle = '#e8b04a'
+        ctx.fillText('No model', w / 2, y + size * 1.1)
+      }
+    },
+    [card.kind, info],
+  )
   const map = useCanvasTexture(width, height, draw)
   return (
     <mesh rotation={FLAT}>
@@ -107,15 +110,18 @@ function Face({ card, info }) {
 
 // "+ Soul Gem" on the lower edge of a character card. The app has no gem images.
 function GemLine({ card, name, index }) {
-  const draw = useMemo(() => (ctx, w, h) => {
-    ctx.fillStyle = 'rgba(0,0,0,0.65)'
-    ctx.fillRect(0, 0, w, h)
-    ctx.fillStyle = '#fff'
-    ctx.font = `bold ${h * 0.6}px sans-serif`
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText(`+ ${name}`, w / 2, h / 2 + h * 0.04)
-  }, [name])
+  const draw = useMemo(
+    () => (ctx, w, h) => {
+      ctx.fillStyle = 'rgba(0,0,0,0.65)'
+      ctx.fillRect(0, 0, w, h)
+      ctx.fillStyle = '#fff'
+      ctx.font = `bold ${h * 0.6}px sans-serif`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(`+ ${name}`, w / 2, h / 2 + h * 0.04)
+    },
+    [name],
+  )
   const height = GEM_HEIGHT * (card.height / 3)
   const map = useCanvasTexture(card.width, height, draw)
   // Local +z is the lower edge of the card. A second gem lies above the first.
@@ -164,8 +170,14 @@ export function RosterCard({ card, info, selected = false, onOpen }) {
     <group
       position={[card.x, ROSTER_CARD_Y, card.z]}
       rotation={[0, card.yaw, 0]}
-      onClick={e => { e.stopPropagation(); onOpen?.(card.tab, card.index) }}
-      onPointerOver={e => { e.stopPropagation(); setHovered(true) }}
+      onClick={(e) => {
+        e.stopPropagation()
+        onOpen?.(card.tab, card.index)
+      }}
+      onPointerOver={(e) => {
+        e.stopPropagation()
+        setHovered(true)
+      }}
       onPointerOut={() => setHovered(false)}
     >
       <Suspense fallback={null}>
@@ -190,7 +202,7 @@ export default function RosterCards({ team, code, squad, onOpen }) {
   const cards = useMemo(() => {
     // rosterLayout keeps the card order of rosterTabs (cards.js), so a count per tab gives the index.
     const next = { characters: 0, tactics: 0 }
-    return rosterLayout(team, parseRosterText(code)).map(card => {
+    return rosterLayout(team, parseRosterText(code)).map((card) => {
       const tab = TAB_OF_KIND[card.kind]
       return { ...card, tab, index: next[tab]++ }
     })
@@ -198,6 +210,16 @@ export default function RosterCards({ team, code, squad, onOpen }) {
   return cards.map((card, i) => {
     const info = rosterCard(card.code)
     const selected = squad?.[card.tab]?.includes(card.index) ?? false
-    return info && <RosterCard key={`${i}-${card.code}`} card={card} info={info} selected={selected} onOpen={onOpen} />
+    return (
+      info && (
+        <RosterCard
+          key={`${i}-${card.code}`}
+          card={card}
+          info={info}
+          selected={selected}
+          onOpen={onOpen}
+        />
+      )
+    )
   })
 }

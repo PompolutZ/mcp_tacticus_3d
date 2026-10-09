@@ -11,7 +11,7 @@ import { crisisCardFace } from '../crisis/files.js'
 import { jarvisValidatorCode, parseRoster } from './mct.js'
 
 // Three tactic ids in cards.json lost their leading zero (1430206), so pad them to 8 digits.
-const idToKey = files =>
+const idToKey = (files) =>
   new Map(Object.entries(files).map(([key, card]) => [card.id.padStart(8, '0'), key]))
 const tacticKeys = idToKey(tacticFiles)
 const crisisKeys = idToKey(crisisFiles)
@@ -31,18 +31,23 @@ const cards = new Map()
 const JARVIS = 'https://www.jarvis-protocol.com'
 
 // 'diamond' -> 'Diamond form'
-const formLabel = slug =>
+const formLabel = (slug) =>
   slug ? `${slug[0].toUpperCase()}${slug.slice(1).replace(/-/g, ' ')} form` : 'Second form'
 
 for (const ch of CHARACTERS) {
   const image = ch.available ? characterCard(ch.slug, 'healthy') : null
   const back = ch.available ? characterCard(ch.slug, 'injured') : null
-  const variants = ch.available && ch.transform?.card
-    ? [
-        { label: ch.name, image, back },
-        { label: formLabel(ch.secondForm), image: transformCard(ch.slug, 'healthy'), back: transformCard(ch.slug, 'injured') },
-      ]
-    : null
+  const variants =
+    ch.available && ch.transform?.card
+      ? [
+          { label: ch.name, image, back },
+          {
+            label: formLabel(ch.secondForm),
+            image: transformCard(ch.slug, 'healthy'),
+            back: transformCard(ch.slug, 'injured'),
+          },
+        ]
+      : null
   cards.set(ch.mctCode, {
     code: ch.mctCode,
     kind: 'character',
@@ -112,7 +117,10 @@ export function jarvisRosterUrl(parsed) {
 
 // The sum of the Threat Levels of the characters at `places` of a parsed roster (setup/setup.js, squads)
 export function squadThreat(parsed, places) {
-  return places.reduce((sum, place) => sum + (cards.get(parsed.characters[place]?.code)?.threat ?? 0), 0)
+  return places.reduce(
+    (sum, place) => sum + (cards.get(parsed.characters[place]?.code)?.threat ?? 0),
+    0,
+  )
 }
 
 // The message for the codes of a roster text that the app does not know, for example
@@ -128,15 +136,20 @@ export function unknownCodesMessage(unknown) {
 // and in the roster popup they show as plates, and a character without a model cannot be spawned.
 // For the warning in the new room dialog. parsed holds only known codes, so each code has a card.
 export function missingFiles(parsed) {
-  const names = infos => [...new Set(infos.map(info => info.name))]
+  const names = (infos) => [...new Set(infos.map((info) => info.name))]
   return {
-    models: names(parsed.characters.map(ch => cards.get(ch.code)).filter(info => !info.model)),
-    tactics: names(parsed.tactics.map(code => cards.get(code)).filter(info => !info.image)),
+    models: names(parsed.characters.map((ch) => cards.get(ch.code)).filter((info) => !info.model)),
+    tactics: names(parsed.tactics.map((code) => cards.get(code)).filter((info) => !info.image)),
   }
 }
 
 // Background of a card without an image, on the table (RosterCards.jsx) and in the roster popup
-export const PLATE_COLORS = { character: '#3a4658', tactic: '#4a3f5c', secure: '#3d5a4a', extract: '#5c4a3d' }
+export const PLATE_COLORS = {
+  character: '#3a4658',
+  tactic: '#4a3f5c',
+  secure: '#3d5a4a',
+  extract: '#5c4a3d',
+}
 
 // The tabs of the roster popup (RosterPopup.jsx), in order, and the tab of each card kind
 export const ROSTER_TABS = [
@@ -144,14 +157,23 @@ export const ROSTER_TABS = [
   { key: 'tactics', label: 'Tactic cards' },
   { key: 'crisis', label: 'Crisis cards' },
 ]
-export const TAB_OF_KIND = { character: 'characters', tactic: 'tactics', secure: 'crisis', extract: 'crisis' }
+export const TAB_OF_KIND = {
+  character: 'characters',
+  tactic: 'tactics',
+  secure: 'crisis',
+  extract: 'crisis',
+}
 
 // The cards of each popup tab: { characters, tactics, crisis } → [{ code, kind, gems }]. The order is the
 // order of rosterLayout (layout.js), so the n-th card of a kind on the table is the n-th card of its tab.
 export function rosterTabs(parsed) {
-  const cards = (codes, kind) => codes.map(code => ({ code, kind, gems: [] }))
+  const cards = (codes, kind) => codes.map((code) => ({ code, kind, gems: [] }))
   return {
-    characters: parsed.characters.map(ch => ({ code: ch.code, kind: 'character', gems: ch.gems })),
+    characters: parsed.characters.map((ch) => ({
+      code: ch.code,
+      kind: 'character',
+      gems: ch.gems,
+    })),
     tactics: cards(parsed.tactics, 'tactic'),
     crisis: [...cards(parsed.secure, 'secure'), ...cards(parsed.extract, 'extract')],
   }

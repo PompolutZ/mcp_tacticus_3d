@@ -18,14 +18,41 @@ import path from 'node:path'
 import { Quaternion, Vector3 } from 'three'
 import { readGlb } from './lib/convert.mjs'
 import { D8_CORNERS, D8_DENSITY } from '../src/dice/faces.js'
-import { DIE_BODY, DIE_GRAVITY_SCALE, DIE_SOLVER_ITERATIONS, SETTLE_TIME, SETTLE_TIMEOUT, isFinitePoint, isFiniteQuat, isTilted, randomRotation, stillTime, throwVelocities, topFace } from '../src/dice/throw.js'
-import { TRAYS, freeDropPoint, inWell, randomWellPoint, trayColliderArrays } from '../src/dice/tray.js'
+import {
+  DIE_BODY,
+  DIE_GRAVITY_SCALE,
+  DIE_SOLVER_ITERATIONS,
+  SETTLE_TIME,
+  SETTLE_TIMEOUT,
+  isFinitePoint,
+  isFiniteQuat,
+  isTilted,
+  randomRotation,
+  stillTime,
+  throwVelocities,
+  topFace,
+} from '../src/dice/throw.js'
+import {
+  TRAYS,
+  freeDropPoint,
+  inWell,
+  randomWellPoint,
+  trayColliderArrays,
+} from '../src/dice/tray.js'
 import { FRICTION, WORLD_GRAVITY } from '../src/physics.js'
-import { FALL_LIMIT_Y, TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WIDTH } from '../src/table.js'
+import {
+  FALL_LIMIT_Y,
+  TABLE_COLLIDER_HALF_H,
+  TABLE_DEPTH,
+  TABLE_WALLS,
+  TABLE_WIDTH,
+} from '../src/table.js'
 
 // Nested Rapier build the app actually uses (0.14, enhanced determinism). The top-level
 // @dimforge/rapier3d-compat is 0.12 and must not be used (see docs/plan-dice-rolling.md, Phase 3).
-const RAPIER_PATH = createRequire(import.meta.resolve('@react-three/rapier')).resolve('@dimforge/rapier3d-compat/rapier.es.js')
+const RAPIER_PATH = createRequire(import.meta.resolve('@react-three/rapier')).resolve(
+  '@dimforge/rapier3d-compat/rapier.es.js',
+)
 
 // Same value as Scene.jsx. Not imported: Scene.jsx does not export it.
 const TIME_STEP = 1 / 120
@@ -38,7 +65,10 @@ function parseArgs(argv) {
     if (argv[i] === '--seed') opts.seed = Number(argv[++i])
     else if (argv[i] === '--throws') opts.throws = Number(argv[++i])
     else if (argv[i] === '--multi-throws') opts.multiThrows = Number(argv[++i])
-    else if (argv[i] === '--quick') { opts.throws = 300; opts.multiThrows = 300 }
+    else if (argv[i] === '--quick') {
+      opts.throws = 300
+      opts.multiThrows = 300
+    }
   }
   return opts
 }
@@ -73,7 +103,9 @@ async function buildWorld(RAPIER) {
   const wallBody = world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased())
   for (const { halfExtents, position } of TABLE_WALLS) {
     world.createCollider(
-      RAPIER.ColliderDesc.cuboid(...halfExtents).setTranslation(...position).setFriction(FRICTION),
+      RAPIER.ColliderDesc.cuboid(...halfExtents)
+        .setTranslation(...position)
+        .setFriction(FRICTION),
       wallBody,
     )
   }
@@ -89,10 +121,16 @@ async function buildWorld(RAPIER) {
   const tray = TRAYS[TRAY_KEY]
   const rotation = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), tray.yaw)
   const trayBody = world.createRigidBody(
-    RAPIER.RigidBodyDesc.fixed().setTranslation(tray.position.x, tray.position.y, tray.position.z).setRotation(rotation),
+    RAPIER.RigidBodyDesc.fixed()
+      .setTranslation(tray.position.x, tray.position.y, tray.position.z)
+      .setRotation(rotation),
   )
   world.createCollider(
-    RAPIER.ColliderDesc.trimesh(vertices, indices, RAPIER.TriMeshFlags.FIX_INTERNAL_EDGES).setFriction(FRICTION),
+    RAPIER.ColliderDesc.trimesh(
+      vertices,
+      indices,
+      RAPIER.TriMeshFlags.FIX_INTERNAL_EDGES,
+    ).setFriction(FRICTION),
     trayBody,
   )
 
@@ -180,7 +218,14 @@ function countResult(stats, { face, lost, tilted, outOfWell }) {
 }
 
 function newStats() {
-  return { counts: newFaceCounts(), attempts: 0, valid: 0, lostCount: 0, tiltedCount: 0, outOfWellCount: 0 }
+  return {
+    counts: newFaceCounts(),
+    attempts: 0,
+    valid: 0,
+    lostCount: 0,
+    tiltedCount: 0,
+    outOfWellCount: 0,
+  }
 }
 
 function newFaceCounts() {
@@ -227,7 +272,17 @@ function runSingle(RAPIER, world, random, target) {
 function runMulti(RAPIER, world, random, diceCount, target) {
   const bodies = []
   for (let i = 0; i < diceCount; i++) {
-    bodies.push(createDie(RAPIER, world, freeDropPoint(TRAY_KEY, bodies.map(b => b.translation()), random)))
+    bodies.push(
+      createDie(
+        RAPIER,
+        world,
+        freeDropPoint(
+          TRAY_KEY,
+          bodies.map((b) => b.translation()),
+          random,
+        ),
+      ),
+    )
   }
 
   const stats = newStats()
@@ -238,7 +293,7 @@ function runMulti(RAPIER, world, random, diceCount, target) {
     bodies.forEach((body, i) => {
       if (needsRespawn[i]) {
         // The same move as DiceTray.jsx: a free point above the well, away from the other dice
-        const others = bodies.filter(b => b !== body).map(b => b.translation())
+        const others = bodies.filter((b) => b !== body).map((b) => b.translation())
         body.setTranslation(freeDropPoint(TRAY_KEY, others, random), true)
         body.setLinvel({ x: 0, y: 0, z: 0 }, true)
         body.setAngvel({ x: 0, y: 0, z: 0 }, true)
@@ -259,10 +314,15 @@ function runMulti(RAPIER, world, random, diceCount, target) {
       bodies.forEach((body, i) => {
         if (done[i]) return
         still[i] = stillTime(still[i], body.linvel(), body.angvel(), TIME_STEP)
-        if (still[i] >= SETTLE_TIME) { done[i] = true; doneCount++ }
+        if (still[i] >= SETTLE_TIME) {
+          done[i] = true
+          doneCount++
+        }
       })
     }
-    bodies.forEach((_, i) => { if (!done[i]) timedOut[i] = true })
+    bodies.forEach((_, i) => {
+      if (!done[i]) timedOut[i] = true
+    })
     settleTimes.push(steps * TIME_STEP)
 
     bodies.forEach((body, i) => {
@@ -271,7 +331,7 @@ function runMulti(RAPIER, world, random, diceCount, target) {
     })
   }
 
-  bodies.forEach(b => world.removeRigidBody(b))
+  bodies.forEach((b) => world.removeRigidBody(b))
   return { ...stats, settleTimes }
 }
 
@@ -280,16 +340,26 @@ function runMulti(RAPIER, world, random, diceCount, target) {
 function runPerf(RAPIER, world, random, diceCount) {
   const bodies = []
   for (let i = 0; i < diceCount; i++) {
-    bodies.push(createDie(RAPIER, world, freeDropPoint(TRAY_KEY, bodies.map(b => b.translation()), random)))
+    bodies.push(
+      createDie(
+        RAPIER,
+        world,
+        freeDropPoint(
+          TRAY_KEY,
+          bodies.map((b) => b.translation()),
+          random,
+        ),
+      ),
+    )
   }
-  bodies.forEach(body => throwDie(body, random))
+  bodies.forEach((body) => throwDie(body, random))
 
   const steps = 300 // 2.5 s of sim time at 120 Hz, covers the busy landing/settling period
   const t0 = performance.now()
   for (let i = 0; i < steps; i++) world.step()
   const ms = performance.now() - t0
 
-  bodies.forEach(b => world.removeRigidBody(b))
+  bodies.forEach((b) => world.removeRigidBody(b))
   return { msPerStep: ms / steps }
 }
 
@@ -300,7 +370,9 @@ function pct(n, total) {
 function reportFairness(label, result) {
   const chi = chiSquared(result.counts)
   const verdict = chi < 14.07 ? 'PASS' : 'FAIL'
-  console.log(`${label}: ${result.valid} valid / ${result.attempts} attempts (tilted ${pct(result.tiltedCount, result.attempts)}%, out-of-well ${pct(result.outOfWellCount, result.attempts)}% (counted), lost ${pct(result.lostCount, result.attempts)}%)`)
+  console.log(
+    `${label}: ${result.valid} valid / ${result.attempts} attempts (tilted ${pct(result.tiltedCount, result.attempts)}%, out-of-well ${pct(result.outOfWellCount, result.attempts)}% (counted), lost ${pct(result.lostCount, result.attempts)}%)`,
+  )
   console.log(`  chi-squared (7 df, need < 14.07): ${chi.toFixed(2)} ${verdict}`)
   console.log(`  face counts: ${result.counts.map((n, i) => `${i + 1}:${n}`).join(' ')}`)
 }
@@ -327,7 +399,9 @@ async function main() {
     reportFairness(`${opts.multiDice} dice at once`, result)
     const avg = result.settleTimes.reduce((a, b) => a + b, 0) / result.settleTimes.length
     const max = Math.max(...result.settleTimes)
-    console.log(`  settle time per round: avg ${avg.toFixed(2)}s, max ${max.toFixed(2)}s, over ${result.settleTimes.length} rounds`)
+    console.log(
+      `  settle time per round: avg ${avg.toFixed(2)}s, max ${max.toFixed(2)}s, over ${result.settleTimes.length} rounds`,
+    )
     world.free()
   }
 

@@ -16,7 +16,12 @@ import { TrayPopup } from './components/TrayPopup.jsx'
 import { RosterPopup } from './components/RosterPopup.jsx'
 import { canFlip, canMove, getCard, hasArc, hasMarkers } from './crisis/cards.js'
 import { supplyPilePosition } from './crisis/layout.js'
-import { characterByCode, characterImmune, characterName, characterStamina } from './characters/characters.js'
+import {
+  characterByCode,
+  characterImmune,
+  characterName,
+  characterStamina,
+} from './characters/characters.js'
 import { BASE_DIAMETER } from './characters/files.js'
 import { trayHeldDefault } from './characters/trays.js'
 import { characterModels, modelCharacterId, secondModelId } from './characters/models.js'
@@ -24,16 +29,61 @@ import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { getToken, isCappedToken } from './tokens/tokens.js'
 import { firstFreeSlot, nearestFreeSlot, tacticTrayAt } from './tactics/layout.js'
 import { formatMctCode, isEmptyRoster } from './rosters/mct.js'
-import { parseRosterText, rosterCard, rosterTabs, squadThreat, unknownCodesMessage } from './rosters/cards.js'
-import { CRISIS_TYPES, NEW_SETUP, TEAMS, activateSquads, chooseDeck, chooseEdge, chooseThreat, otherTeam, otherType, pickCard, setupPlacedCards, setupStep, toggleReady, toggleSquadCard } from './setup/setup.js'
+import {
+  parseRosterText,
+  rosterCard,
+  rosterTabs,
+  squadThreat,
+  unknownCodesMessage,
+} from './rosters/cards.js'
+import {
+  CRISIS_TYPES,
+  NEW_SETUP,
+  TEAMS,
+  activateSquads,
+  chooseDeck,
+  chooseEdge,
+  chooseThreat,
+  otherTeam,
+  otherType,
+  pickCard,
+  setupPlacedCards,
+  setupStep,
+  toggleReady,
+  toggleSquadCard,
+} from './setup/setup.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
 import { TERRAIN_PIECES } from './terrain/pieces.js'
 import { mapTerrain, savedTable, startTable } from './rooms/table.js'
 import { tableFiles } from './rooms/preload.js'
 import { saveRoom } from './rooms/store.js'
-import { NO_PIECES, NO_TOOLS, deselectPiece, isToolPiece, selectPiece, selectedId } from './selection.js'
-import { ANGLE_KEY, CARD_STEP_KEYS, CLEAR_TOOLS_KEY, DELETE_KEYS, DICE_KEYS, FLIP_KEY, LIFT_KEY, LOCK_KEY, MOVE_KEYS, PAN_KEYS, RANGE_KEYS, RESET_VIEW_KEY, ROTATE_KEYS, TURN_KEYS, isEditing, useWindowKeys } from './keyboard.js'
+import {
+  NO_PIECES,
+  NO_TOOLS,
+  deselectPiece,
+  isToolPiece,
+  selectPiece,
+  selectedId,
+} from './selection.js'
+import {
+  ANGLE_KEY,
+  CARD_STEP_KEYS,
+  CLEAR_TOOLS_KEY,
+  DELETE_KEYS,
+  DICE_KEYS,
+  FLIP_KEY,
+  LIFT_KEY,
+  LOCK_KEY,
+  MOVE_KEYS,
+  PAN_KEYS,
+  RANGE_KEYS,
+  RESET_VIEW_KEY,
+  ROTATE_KEYS,
+  TURN_KEYS,
+  isEditing,
+  useWindowKeys,
+} from './keyboard.js'
 
 // Start view, the seat of the blue player. For now every player is Blue. Blue sits at +z (see
 // characters/trays.js). The camera stands behind the blue table edge and looks down at 45° at a
@@ -61,7 +111,8 @@ const DRAG_THRESHOLD = 4
 // The map on the mat when the Sandbox starts, a key in MAPS
 const START_MAP = 'vibranium-heist'
 // What a restart of the game setup removes, for its confirm (restartSetup)
-const SETUP_REMOVAL = 'The squads and the crisis cards that the game setup put on the table are removed.'
+const SETUP_REMOVAL =
+  'The squads and the crisis cards that the game setup put on the table are removed.'
 // A room saves its table this often (ms), when something changed. See docs/feature-rooms.md, "When the
 // room saves".
 const SAVE_INTERVAL = 2000
@@ -75,7 +126,7 @@ const SAVE_INTERVAL = 2000
 function buildMatTokens(card, turned) {
   const marked = hasMarkers(card)
   const sign = turned ? -1 : 1
-  return card.tokens.map(t => ({
+  return card.tokens.map((t) => ({
     id: crypto.randomUUID(),
     cardKey: card.key,
     frontKey: t.token,
@@ -153,7 +204,8 @@ function newCharacter(ch, teamColor) {
 function canvasEvents(store) {
   return {
     ...pointerEvents(store),
-    filter: (hits, state) => (state.internal.lastEvent.current?.target === state.gl.domElement ? hits : []),
+    filter: (hits, state) =>
+      state.internal.lastEvent.current?.target === state.gl.domElement ? hits : [],
   }
 }
 
@@ -299,7 +351,9 @@ export default function App({ room = null, onExit }) {
   // The last save failed, so the next failure shows no message again
   const saveFailed = useRef(false)
   // The files to load before the table shows: the map and the models (rooms/preload.js). Read once.
-  const [preloadFiles] = useState(() => tableFiles({ mapId, terrain: start.terrain, characters: start.characters, rosters }))
+  const [preloadFiles] = useState(() =>
+    tableFiles({ mapId, terrain: start.terrain, characters: start.characters, rosters }),
+  )
   // The scene and the preloaded files are in, so the loading screen hides (Preload.jsx, Ready)
   const [ready, setReady] = useState(false)
 
@@ -318,7 +372,21 @@ export default function App({ room = null, onExit }) {
       if (pose) poses[id] = pose
     }
     lastPoses.current = poses
-    const table = savedTable({ matTurns, deployLine, terrain, characters, crisis, tokens, scoreMarkers, affiliations, setup, looseTokens, tokenPiles, tacticCards, poses })
+    const table = savedTable({
+      matTurns,
+      deployLine,
+      terrain,
+      characters,
+      crisis,
+      tokens,
+      scoreMarkers,
+      affiliations,
+      setup,
+      looseTokens,
+      tokenPiles,
+      tacticCards,
+      poses,
+    })
     const saved = saveRoom(room, rosters, table)
     if (!saved && !saveFailed.current) showHudMessage('Room not saved: browser storage is full')
     saveFailed.current = !saved
@@ -352,25 +420,25 @@ export default function App({ room = null, onExit }) {
 
   // direction: 1 turns the mat 90° counter-clockwise, -1 clockwise
   function handleTurnMat(direction) {
-    setMatTurns(prev => (prev + direction + 4) % 4)
+    setMatTurns((prev) => (prev + direction + 4) % 4)
   }
 
   // A new map brings its own terrain, all locked. The selected terrain piece is gone.
   function handleMapChange(id) {
     setMapId(id)
     setTerrain(mapTerrain(id))
-    setSelection(prev => prev.filter(p => p.kind !== 'terrain'))
+    setSelection((prev) => prev.filter((p) => p.kind !== 'terrain'))
   }
 
   // L, as in TTS: locks or unlocks the terrain piece under the pointer. A piece that gets locked is
   // deselected. A locked piece looks the same as an unlocked one, so the HUD message shows the new state.
   function handleLockKey() {
     const id = terrainAtRef.current?.()
-    const piece = id && terrain.find(p => p.id === id)
+    const piece = id && terrain.find((p) => p.id === id)
     if (!piece) return
     const locked = !piece.locked
-    setTerrain(prev => prev.map(p => p.id === id ? { ...p, locked } : p))
-    if (locked) setSelection(prev => deselectPiece(prev, { kind: 'terrain', id }))
+    setTerrain((prev) => prev.map((p) => (p.id === id ? { ...p, locked } : p)))
+    if (locked) setSelection((prev) => deselectPiece(prev, { kind: 'terrain', id }))
     showHudMessage(`${TERRAIN_PIECES[piece.piece].name} ${locked ? 'locked' : 'unlocked'}`)
   }
 
@@ -382,13 +450,15 @@ export default function App({ room = null, onExit }) {
   // Delete key over an unlocked terrain piece. A locked piece gets no hover (Terrain.jsx), so it
   // cannot be removed. Models on the piece fall: Rapier wakes the bodies that touched its collider.
   function handleTerrainRemove(id) {
-    setTerrain(prev => prev.filter(p => p.id !== id))
-    setSelection(prev => deselectPiece(prev, { kind: 'terrain', id }))
+    setTerrain((prev) => prev.filter((p) => p.id !== id))
+    setSelection((prev) => deselectPiece(prev, { kind: 'terrain', id }))
   }
 
   // Toggles the "Reroll one / Change one to" menu for one face plate. Opening one closes any other.
   function handleDiceMenuToggle(trayKey, symbol) {
-    setDiceMenu(prev => (prev?.trayKey === trayKey && prev.symbol === symbol) ? null : { trayKey, symbol })
+    setDiceMenu((prev) =>
+      prev?.trayKey === trayKey && prev.symbol === symbol ? null : { trayKey, symbol },
+    )
   }
 
   function handleDiceMenuClose() {
@@ -400,31 +470,37 @@ export default function App({ room = null, onExit }) {
   // here, so the check covers all of them. The two Sentinel MK4 sculpts have their own slugs, so a
   // player can have both. Both players can have the same character.
   function handleSpawn(ch) {
-    if (characters.some(c => c.key === ch.slug && c.teamColor === ch.teamColor)) {
-      showHudMessage(`${ch.teamColor === 'blue' ? 'Blue' : 'Red'} player already has ${ch.name} on the table`)
+    if (characters.some((c) => c.key === ch.slug && c.teamColor === ch.teamColor)) {
+      showHudMessage(
+        `${ch.teamColor === 'blue' ? 'Blue' : 'Red'} player already has ${ch.name} on the table`,
+      )
       return
     }
-    setCharacters(prev => [...prev, newCharacter(ch, ch.teamColor)])
+    setCharacters((prev) => [...prev, newCharacter(ch, ch.teamColor)])
   }
 
   function handleRangeClick(range) {
-    setActiveRange(prev => prev === range ? null : range)
+    setActiveRange((prev) => (prev === range ? null : range))
   }
 
   function handleMoveClick(move) {
-    setActiveMove(prev => prev === move ? null : move)
+    setActiveMove((prev) => (prev === move ? null : move))
   }
 
   // The toolbar button: the tool spawns at the selected character, aimed at the selected token
   function handleAngleClick() {
-    setAngleSpawn({ target: selection.find(p => p.kind === 'character') ?? null, aim: selection.find(p => p.kind === 'token') ?? null })
-    setAngleOn(prev => !prev)
+    setAngleSpawn({
+      target: selection.find((p) => p.kind === 'character') ?? null,
+      aim: selection.find((p) => p.kind === 'token') ?? null,
+    })
+    setAngleOn((prev) => !prev)
   }
 
   // over: true when the pointer moved onto the piece, false when it moved off
   function handlePieceHover(piece, over) {
     if (over) hoveredRef.current = piece
-    else if (hoveredRef.current?.kind === piece.kind && hoveredRef.current.id === piece.id) hoveredRef.current = null
+    else if (hoveredRef.current?.kind === piece.kind && hoveredRef.current.id === piece.id)
+      hoveredRef.current = null
   }
 
   // Every key press of the app is handled here, so that the same key can do different things in
@@ -439,14 +515,23 @@ export default function App({ room = null, onExit }) {
     if (openCard || openTrayId || openRoster) {
       // Escape closes only the popup. The left and right arrows show the previous or next roster card.
       // Other keys do nothing, so nothing changes on the table behind it.
-      if (e.key === 'Escape') { setOpenCard(null); setOpenTrayId(null); setOpenRoster(null) }
-      else if (openRoster && CARD_STEP_KEYS[e.code]) handleRosterCardStep(CARD_STEP_KEYS[e.code])
+      if (e.key === 'Escape') {
+        setOpenCard(null)
+        setOpenTrayId(null)
+        setOpenRoster(null)
+      } else if (openRoster && CARD_STEP_KEYS[e.code]) handleRosterCardStep(CARD_STEP_KEYS[e.code])
       return
     }
     if (e.key === 'Escape') {
       // A dice tray face menu closes first, then the Library, before the table's own Escape behavior.
-      if (diceMenu) { setDiceMenu(null); return }
-      if (libraryOpen) { setLibraryOpen(false); return }
+      if (diceMenu) {
+        setDiceMenu(null)
+        return
+      }
+      if (libraryOpen) {
+        setLibraryOpen(false)
+        return
+      }
       handleEscape()
       return
     }
@@ -558,10 +643,16 @@ export default function App({ room = null, onExit }) {
       handleAngleClick()
       return
     }
-    setAngleSpawn({ target: piece, aim: selection.findLast(p => isToolPiece(p) && !(p.kind === piece.kind && p.id === piece.id)) ?? null })
-    setSelection(prev => selectPiece(prev, piece))
+    setAngleSpawn({
+      target: piece,
+      aim:
+        selection.findLast(
+          (p) => isToolPiece(p) && !(p.kind === piece.kind && p.id === piece.id),
+        ) ?? null,
+    })
+    setSelection((prev) => selectPiece(prev, piece))
     setAngleOn(true)
-    setToolSpawns(prev => ({ ...prev, angle: prev.angle + 1 }))
+    setToolSpawns((prev) => ({ ...prev, angle: prev.angle + 1 }))
   }
 
   // tool: 'range' | 'move'. value: the range number or the movement tool type.
@@ -575,10 +666,10 @@ export default function App({ room = null, onExit }) {
       else handleMoveClick(value)
       return
     }
-    setSelection(prev => selectPiece(prev, piece))
+    setSelection((prev) => selectPiece(prev, piece))
     if (tool === 'range') setActiveRange(value)
     else setActiveMove(value)
-    setToolSpawns(prev => ({ ...prev, [tool]: prev[tool] + 1 }))
+    setToolSpawns((prev) => ({ ...prev, [tool]: prev[tool] + 1 }))
   }
 
   // F, as in TTS: flips the crisis token under the pointer (also one that a character holds), the
@@ -586,11 +677,12 @@ export default function App({ room = null, onExit }) {
   // the pointer. With nothing under the pointer, it flips the token or character selected last (the
   // card of a character). A token without a back does not flip (handleTokenFlip).
   function handleFlipKey() {
-    const piece = hoveredRef.current
-      ?? (hoveredHeldRef.current && { kind: 'token', id: hoveredHeldRef.current })
-      ?? (hoveredTrayCardRef.current && { kind: 'character', id: hoveredTrayCardRef.current })
-      ?? (hoveredTacticRef.current && { kind: 'tactic', id: hoveredTacticRef.current })
-      ?? selection.findLast(isToolPiece)
+    const piece =
+      hoveredRef.current ??
+      (hoveredHeldRef.current && { kind: 'token', id: hoveredHeldRef.current }) ??
+      (hoveredTrayCardRef.current && { kind: 'character', id: hoveredTrayCardRef.current }) ??
+      (hoveredTacticRef.current && { kind: 'tactic', id: hoveredTacticRef.current }) ??
+      selection.findLast(isToolPiece)
     if (piece?.kind === 'token') handleTokenFlip(piece.id)
     // A character piece is a model; a second model has its own id (characters/models.js)
     else if (piece?.kind === 'character') handleCharacterFlip(modelCharacterId(piece.id))
@@ -602,35 +694,41 @@ export default function App({ room = null, onExit }) {
   // of the game setup (buildMatTokens).
   function handleCrisisChange(type, key) {
     const oldKey = crisis[type]
-    setCrisis(prev => ({ ...prev, [type]: key }))
-    setTokens(prev => {
-      const kept = prev.filter(t => t.cardKey !== oldKey)
+    setCrisis((prev) => ({ ...prev, [type]: key }))
+    setTokens((prev) => {
+      const kept = prev.filter((t) => t.cardKey !== oldKey)
       const card = getCard(key)
       return card ? [...kept, ...buildMatTokens(card, setup.deck?.team === 'red')] : kept
     })
     // The selected token may no longer exist; a selected character is not affected.
-    setSelection(prev => prev.filter(p => p.kind !== 'token'))
+    setSelection((prev) => prev.filter((p) => p.kind !== 'token'))
   }
 
   // A held token dragged off its tray card and released on the table is no longer held.
   function handleTokenMove(id, x, z) {
-    setTokens(prev => prev.map(t => t.id === id ? { ...t, x, z, heldBy: null, heldAt: null } : t))
+    setTokens((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, x, z, heldBy: null, heldAt: null } : t)),
+    )
   }
 
   function handleTokenTurn(id, yaw) {
-    setTokens(prev => prev.map(t => t.id === id ? { ...t, yaw } : t))
+    setTokens((prev) => prev.map((t) => (t.id === id ? { ...t, yaw } : t)))
   }
 
   function handleTokenFlip(id) {
-    setTokens(prev => prev.map(t => t.id === id && t.canFlip ? { ...t, up: t.up === 'front' ? 'back' : 'front' } : t))
+    setTokens((prev) =>
+      prev.map((t) =>
+        t.id === id && t.canFlip ? { ...t, up: t.up === 'front' ? 'back' : 'front' } : t,
+      ),
+    )
   }
 
   function handleTokenControl(id, control) {
-    setTokens(prev => prev.map(t => t.id === id ? { ...t, control } : t))
+    setTokens((prev) => prev.map((t) => (t.id === id ? { ...t, control } : t)))
   }
 
   function handleTokenDamage(id, damage) {
-    setTokens(prev => prev.map(t => t.id === id ? { ...t, damage } : t))
+    setTokens((prev) => prev.map((t) => (t.id === id ? { ...t, damage } : t)))
   }
 
   // A canHold token is released over a character (CrisisToken.jsx reports it, Scene.jsx finds the
@@ -641,14 +739,16 @@ export default function App({ room = null, onExit }) {
   // point is on its tray, otherwise null. It is used only to move a token on its own holder's card:
   // a token given to a character always goes to the default place.
   function handleTokenHold(id, characterId, cardPoint) {
-    setTokens(prev => {
-      const token = prev.find(t => t.id === id)
+    setTokens((prev) => {
+      const token = prev.find((t) => t.id === id)
       if (!token) return prev
       if (token.heldBy === characterId) {
-        return cardPoint ? prev.map(t => t.id === id ? { ...t, heldAt: cardPoint } : t) : prev
+        return cardPoint ? prev.map((t) => (t.id === id ? { ...t, heldAt: cardPoint } : t)) : prev
       }
-      const heldCount = prev.filter(t => t.heldBy === characterId).length
-      return prev.map(t => t.id === id ? { ...t, heldBy: characterId, heldAt: trayHeldDefault(heldCount) } : t)
+      const heldCount = prev.filter((t) => t.heldBy === characterId).length
+      return prev.map((t) =>
+        t.id === id ? { ...t, heldBy: characterId, heldAt: trayHeldDefault(heldCount) } : t,
+      )
     })
   }
 
@@ -658,10 +758,10 @@ export default function App({ room = null, onExit }) {
   function handleSupplyTake(cardKey, x, z, characterId) {
     const card = getCard(cardKey)
     if (!card?.supply) return
-    setTokens(prev => {
+    setTokens((prev) => {
       const token = supplyToken(card, x, z)
       if (!characterId) return [...prev, token]
-      const heldCount = prev.filter(t => t.heldBy === characterId).length
+      const heldCount = prev.filter((t) => t.heldBy === characterId).length
       return [...prev, { ...token, heldBy: characterId, heldAt: trayHeldDefault(heldCount) }]
     })
   }
@@ -683,9 +783,9 @@ export default function App({ room = null, onExit }) {
   // drag off the card ends on the table before the pointer leaves the token), so only a token that
   // is still held is removed.
   function handleHeldRemove(id) {
-    if (!tokens.find(t => t.id === id)?.heldBy) return
-    setTokens(prev => prev.filter(t => t.id !== id))
-    setSelection(prev => deselectPiece(prev, { kind: 'token', id }))
+    if (!tokens.find((t) => t.id === id)?.heldBy) return
+    setTokens((prev) => prev.filter((t) => t.id !== id))
+    setSelection((prev) => deselectPiece(prev, { kind: 'token', id }))
   }
 
   // Drop, when its holder is removed: the token goes back on the table, next to the base of the
@@ -696,15 +796,15 @@ export default function App({ room = null, onExit }) {
   // modelPosition), the token stays where it last sat on the mat. During the game, a player drops a
   // token by dragging it from the card to the table (handleTokenMove).
   function handleTokenDrop(id, rowOffset) {
-    setTokens(prev => {
-      const token = prev.find(t => t.id === id)
+    setTokens((prev) => {
+      const token = prev.find((t) => t.id === id)
       if (!token?.heldBy) return prev
-      const holder = characters.find(ch => ch.id === token.heldBy)
+      const holder = characters.find((ch) => ch.id === token.heldBy)
       const pos = modelPositionRef.current?.(token.heldBy)
       const baseRadius = holder ? BASE_DIAMETER[holder.base] / 2 : 0
       const x = (pos?.x ?? token.x) + baseRadius + TOKEN_RADIUS + DROP_GAP
       const z = (pos?.z ?? token.z) + rowOffset
-      return prev.map(t => t.id === id ? { ...t, heldBy: null, heldAt: null, x, z } : t)
+      return prev.map((t) => (t.id === id ? { ...t, heldBy: null, heldAt: null, x, z } : t))
     })
   }
 
@@ -712,7 +812,7 @@ export default function App({ room = null, onExit }) {
   // holds first (see docs/characters-hud.md, "Hold and drop"). Several tokens spread along a row
   // next to the base (TOKEN_ROW_SPACING apart) instead of landing on the same spot.
   function handleDropCharacterTokens(characterId) {
-    const held = tokens.filter(t => t.heldBy === characterId)
+    const held = tokens.filter((t) => t.heldBy === characterId)
     held.forEach((t, i) => {
       const rowOffset = (i - (held.length - 1) / 2) * TOKEN_ROW_SPACING
       handleTokenDrop(t.id, rowOffset)
@@ -721,23 +821,31 @@ export default function App({ room = null, onExit }) {
 
   // Damage never goes below 0 or above the Stamina of the side that faces up (p16).
   function handleCharacterDamage(id, damage) {
-    setCharacters(prev => prev.map(ch => {
-      if (ch.id !== id) return ch
-      const stamina = characterStamina(ch.key, ch.side)
-      return { ...ch, damage: Math.max(0, Math.min(damage, stamina)) }
-    }))
+    setCharacters((prev) =>
+      prev.map((ch) => {
+        if (ch.id !== id) return ch
+        const stamina = characterStamina(ch.key, ch.side)
+        return { ...ch, damage: Math.max(0, Math.min(damage, stamina)) }
+      }),
+    )
   }
 
   // Power never goes below 0 or above 10 (p7-8).
   function handleCharacterPower(id, power) {
-    setCharacters(prev => prev.map(ch => ch.id === id ? { ...ch, power: Math.max(0, Math.min(power, 10)) } : ch))
+    setCharacters((prev) =>
+      prev.map((ch) => (ch.id === id ? { ...ch, power: Math.max(0, Math.min(power, 10)) } : ch)),
+    )
   }
 
   // Flip turns the card to the other side and clears Damage, the same as in TTS.
   function handleCharacterFlip(id) {
-    setCharacters(prev => prev.map(ch => ch.id === id
-      ? { ...ch, side: ch.side === 'healthy' ? 'injured' : 'healthy', damage: 0 }
-      : ch))
+    setCharacters((prev) =>
+      prev.map((ch) =>
+        ch.id === id
+          ? { ...ch, side: ch.side === 'healthy' ? 'injured' : 'healthy', damage: 0 }
+          : ch,
+      ),
+    )
   }
 
   // Remove button on the tray (TrayControls.jsx confirms before calling this). Drops every token
@@ -747,9 +855,14 @@ export default function App({ room = null, onExit }) {
   // the model unmounts.
   function handleCharacterRemove(id) {
     handleDropCharacterTokens(id)
-    setCharacters(prev => prev.filter(ch => ch.id !== id))
-    setSelection(prev => deselectPiece(deselectPiece(prev, { kind: 'character', id }), { kind: 'character', id: secondModelId(id) }))
-    setOpenTrayId(prev => prev === id ? null : prev)
+    setCharacters((prev) => prev.filter((ch) => ch.id !== id))
+    setSelection((prev) =>
+      deselectPiece(deselectPiece(prev, { kind: 'character', id }), {
+        kind: 'character',
+        id: secondModelId(id),
+      }),
+    )
+    setOpenTrayId((prev) => (prev === id ? null : prev))
   }
 
   // A short message in the HUD, for a few seconds (the immunity block below; the Library has its
@@ -771,9 +884,9 @@ export default function App({ room = null, onExit }) {
       return
     }
     if (!confirmSetupRemoval('Load this roster')) return
-    setRosters(prev => ({ ...prev, [team]: { code: formatMctCode(parsed) } }))
+    setRosters((prev) => ({ ...prev, [team]: { code: formatMctCode(parsed) } }))
     // The open card may not be in the new roster
-    setOpenRoster(prev => prev?.team === team ? null : prev)
+    setOpenRoster((prev) => (prev?.team === team ? null : prev))
     const restarted = restartSetup()
     if (parsed.unknown.length > 0) showHudMessage(unknownCodesMessage(parsed.unknown))
     else if (restarted) showHudMessage('Game setup started again')
@@ -781,21 +894,27 @@ export default function App({ room = null, onExit }) {
 
   function handleRosterRemove(team) {
     if (!confirmSetupRemoval('Remove this roster')) return
-    setRosters(prev => ({ ...prev, [team]: null }))
-    setOpenRoster(prev => prev?.team === team ? null : prev)
+    setRosters((prev) => ({ ...prev, [team]: null }))
+    setOpenRoster((prev) => (prev?.team === team ? null : prev))
     if (restartSetup()) showHudMessage('Game setup started again')
   }
 
   // The rosters as parsed by rosters/mct.js: { blue, red } → parsed roster or null
-  const parsedRosters = useMemo(() => ({
-    blue: rosters.blue && parseRosterText(rosters.blue.code),
-    red: rosters.red && parseRosterText(rosters.red.code),
-  }), [rosters])
+  const parsedRosters = useMemo(
+    () => ({
+      blue: rosters.blue && parseRosterText(rosters.blue.code),
+      red: rosters.red && parseRosterText(rosters.red.code),
+    }),
+    [rosters],
+  )
 
   // True when nothing that the setup put on the table would be removed, or the player confirms. action:
   // the start of the question, for example 'Load this roster'.
   function confirmSetupRemoval(action) {
-    return !setupPlacedCards(setup) || window.confirm(`${action} and start the game setup again? ${SETUP_REMOVAL}`)
+    return (
+      !setupPlacedCards(setup) ||
+      window.confirm(`${action} and start the game setup again? ${SETUP_REMOVAL}`)
+    )
   }
 
   // Starts the game setup again. It removes what the setup put on the table: the characters and Team
@@ -806,7 +925,7 @@ export default function App({ room = null, onExit }) {
     setSquadSelect({ blue: false, red: false })
     if (setupStep(setup) === 'deck') return false
     setup.placed.characters.forEach(handleCharacterRemove)
-    setTacticCards(prev => prev.filter(card => !setup.placed.tactics.includes(card.id)))
+    setTacticCards((prev) => prev.filter((card) => !setup.placed.tactics.includes(card.id)))
     if (setup.edge) {
       for (const type of CRISIS_TYPES) {
         const key = rosterCard(setup.picks[type])?.key
@@ -853,11 +972,14 @@ export default function App({ room = null, onExit }) {
       handleCrisisChange(type, info?.key ?? null)
     }
     setSetup(chooseEdge(setup))
-    if (missing.length > 0) showHudMessage(`The app has no files for ${missing.join(' and ')}, so ${missing.length === 1 ? 'its' : 'their'} tokens are not on the mat`)
+    if (missing.length > 0)
+      showHudMessage(
+        `The app has no files for ${missing.join(' and ')}, so ${missing.length === 1 ? 'its' : 'their'} tokens are not on the mat`,
+      )
   }
 
   function handleSquadSelect(team) {
-    setSquadSelect(prev => ({ ...prev, [team]: !prev[team] }))
+    setSquadSelect((prev) => ({ ...prev, [team]: !prev[team] }))
   }
 
   // A click on a roster card. While the player chooses the squad, a character or Team Tactic card goes into
@@ -865,12 +987,19 @@ export default function App({ room = null, onExit }) {
   // model, a Team Tactic card with an image. Otherwise the roster popup opens.
   function handleRosterClick(open) {
     const { team, tab, index } = open
-    if (!squadSelect[team] || setupStep(setup) !== 'squads' || setup.ready[team] || (tab !== 'characters' && tab !== 'tactics')) {
+    if (
+      !squadSelect[team] ||
+      setupStep(setup) !== 'squads' ||
+      setup.ready[team] ||
+      (tab !== 'characters' && tab !== 'tactics')
+    ) {
       handleRosterOpen(open)
       return
     }
     const parsed = parsedRosters[team]
-    const info = rosterCard(tab === 'characters' ? parsed.characters[index].code : parsed.tactics[index])
+    const info = rosterCard(
+      tab === 'characters' ? parsed.characters[index].code : parsed.tactics[index],
+    )
     const joins = !setup.squads[team][tab].includes(index)
     if (joins && tab === 'characters' && !info.model) {
       showHudMessage(`No model for ${info.name} (${info.code}), so it cannot join the squad`)
@@ -893,8 +1022,12 @@ export default function App({ room = null, onExit }) {
       return
     }
     const squad = setup.squads[team]
-    if (squad.characters.length === 0 || squadThreat(parsedRosters[team], squad.characters) > setup.threat) return
-    setSquadSelect(prev => ({ ...prev, [team]: false }))
+    if (
+      squad.characters.length === 0 ||
+      squadThreat(parsedRosters[team], squad.characters) > setup.threat
+    )
+      return
+    setSquadSelect((prev) => ({ ...prev, [team]: false }))
     if (setup.ready[otherTeam(team)]) putSquadsOnTable()
     else setSetup(toggleReady(setup, team))
   }
@@ -912,20 +1045,27 @@ export default function App({ room = null, onExit }) {
       const squad = setup.squads[team]
       for (const place of squad.characters) {
         const ch = characterByCode(parsed.characters[place].code)
-        const onTable = [...characters, ...newCharacters].some(c => c.key === ch?.slug && c.teamColor === team)
+        const onTable = [...characters, ...newCharacters].some(
+          (c) => c.key === ch?.slug && c.teamColor === team,
+        )
         if (ch?.available && !onTable) newCharacters.push(newCharacter(ch, team))
       }
       for (const place of squad.tactics) {
         const key = rosterCard(parsed.tactics[place])?.key
         const cards = [...tacticCards, ...newCards]
-        if (!key || cards.some(card => card.key === key && card.team === team)) continue
+        if (!key || cards.some((card) => card.key === key && card.team === team)) continue
         const slot = firstFreeSlot(team, cards)
         newCards.push({ id: crypto.randomUUID(), key, team, x: slot.x, z: slot.z, up: 'face' })
       }
     }
-    setCharacters(prev => [...prev, ...newCharacters])
-    setTacticCards(prev => [...prev, ...newCards])
-    setSetup(activateSquads(setup, { characters: newCharacters.map(ch => ch.id), tactics: newCards.map(card => card.id) }))
+    setCharacters((prev) => [...prev, ...newCharacters])
+    setTacticCards((prev) => [...prev, ...newCards])
+    setSetup(
+      activateSquads(setup, {
+        characters: newCharacters.map((ch) => ch.id),
+        tactics: newCards.map((card) => card.id),
+      }),
+    )
     setSquadSelect({ blue: false, red: false })
     setOpenRoster(null)
   }
@@ -957,7 +1097,7 @@ export default function App({ room = null, onExit }) {
   // Shows the card `step` places away in the open tab of the roster popup. The tab is a loop: after the
   // last card comes the first.
   function handleRosterCardStep(step) {
-    setOpenRoster(prev => {
+    setOpenRoster((prev) => {
       if (!prev || !rosters[prev.team]) return prev
       const count = rosterTabs(parseRosterText(rosters[prev.team].code))[prev.tab].length
       const index = (prev.index + step + count) % count
@@ -971,30 +1111,36 @@ export default function App({ room = null, onExit }) {
   // "Players apply the rules"). The result is true then, also for a token at its limit: the
   // dropped token is used up, as in TTS, where the tray deletes it.
   function handleCharacterTokenGive(id, tokenKey) {
-    const target = characters.find(ch => ch.id === id)
+    const target = characters.find((ch) => ch.id === id)
     if (target && characterImmune(target.key).includes(tokenKey)) {
-      showHudMessage(`${characterName(target.key)} is immune to ${getToken(tokenKey)?.name ?? tokenKey}.`)
+      showHudMessage(
+        `${characterName(target.key)} is immune to ${getToken(tokenKey)?.name ?? tokenKey}.`,
+      )
       return false
     }
-    setCharacters(prev => prev.map(ch => {
-      if (ch.id !== id) return ch
-      const count = ch.tokens[tokenKey] ?? 0
-      if (isCappedToken(tokenKey) && count >= 1) return ch
-      return { ...ch, tokens: { ...ch.tokens, [tokenKey]: count + 1 } }
-    }))
+    setCharacters((prev) =>
+      prev.map((ch) => {
+        if (ch.id !== id) return ch
+        const count = ch.tokens[tokenKey] ?? 0
+        if (isCappedToken(tokenKey) && count >= 1) return ch
+        return { ...ch, tokens: { ...ch.tokens, [tokenKey]: count + 1 } }
+      }),
+    )
     return true
   }
 
   // A click on a token in the tray's "On" row removes one.
   function handleCharacterTokenRemove(id, tokenKey) {
-    setCharacters(prev => prev.map(ch => {
-      if (ch.id !== id) return ch
-      const count = (ch.tokens[tokenKey] ?? 0) - 1
-      const tokens = { ...ch.tokens }
-      if (count > 0) tokens[tokenKey] = count
-      else delete tokens[tokenKey]
-      return { ...ch, tokens }
-    }))
+    setCharacters((prev) =>
+      prev.map((ch) => {
+        if (ch.id !== id) return ch
+        const count = (ch.tokens[tokenKey] ?? 0) - 1
+        const tokens = { ...ch.tokens }
+        if (count > 0) tokens[tokenKey] = count
+        else delete tokens[tokenKey]
+        return { ...ch, tokens }
+      }),
+    )
   }
 
   // over: the pointer moved onto (true) or off (false) a table token. A token that is removed or
@@ -1006,7 +1152,7 @@ export default function App({ room = null, onExit }) {
 
   // Delete key over a token on the table, as in TTS
   function handleLooseRemove(id) {
-    setLooseTokens(prev => prev.filter(t => t.id !== id))
+    setLooseTokens((prev) => prev.filter((t) => t.id !== id))
   }
 
   // pointerdown on a character token: a tray's Give source (a new token, the source never runs out),
@@ -1038,13 +1184,13 @@ export default function App({ room = null, onExit }) {
 
   // Delete key over a pile on the table
   function handlePileRemove(id) {
-    setTokenPiles(prev => prev.filter(p => p.id !== id))
+    setTokenPiles((prev) => prev.filter((p) => p.id !== id))
   }
 
   // A click on a tactic card in the Library: the card goes into the first free slot of the team's
   // tactic tray, or next to the tray when its 5 slots are full. It lies face up.
   function handleTacticSpawn(key, team) {
-    setTacticCards(prev => {
+    setTacticCards((prev) => {
       const slot = firstFreeSlot(team, prev)
       return [...prev, { id: crypto.randomUUID(), key, team, x: slot.x, z: slot.z, up: 'face' }]
     })
@@ -1054,23 +1200,25 @@ export default function App({ room = null, onExit }) {
   // into the nearest free slot of that tray and faces that tray's player, the same as a TTS snap point.
   // Otherwise it lies at the point. The card moves to the end of the list, so it lies on top.
   function handleTacticMove(id, x, z) {
-    setTacticCards(prev => {
-      const card = prev.find(c => c.id === id)
+    setTacticCards((prev) => {
+      const card = prev.find((c) => c.id === id)
       if (!card) return prev
       const team = tacticTrayAt({ x, z })
       const slot = team && nearestFreeSlot(team, { x, z }, prev, id)
       const moved = slot ? { ...card, team, x: slot.x, z: slot.z } : { ...card, x, z }
-      return [...prev.filter(c => c.id !== id), moved]
+      return [...prev.filter((c) => c.id !== id), moved]
     })
   }
 
   function handleTacticFlip(id) {
-    setTacticCards(prev => prev.map(c => c.id === id ? { ...c, up: c.up === 'face' ? 'back' : 'face' } : c))
+    setTacticCards((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, up: c.up === 'face' ? 'back' : 'face' } : c)),
+    )
   }
 
   // Delete key over a tactic card
   function handleTacticRemove(id) {
-    setTacticCards(prev => prev.filter(c => c.id !== id))
+    setTacticCards((prev) => prev.filter((c) => c.id !== id))
   }
 
   function handleTacticHover(id, over) {
@@ -1128,8 +1276,15 @@ export default function App({ room = null, onExit }) {
     if (pile || pileId) {
       const point = dragPointRef.current
       if (characterId || !point) return
-      if (pileId) setTokenPiles(prev => prev.map(p => p.id === pileId ? { ...p, x: point.x, z: point.z } : p))
-      else setTokenPiles(prev => [...prev, { id: crypto.randomUUID(), key: tokenKey, x: point.x, z: point.z }])
+      if (pileId)
+        setTokenPiles((prev) =>
+          prev.map((p) => (p.id === pileId ? { ...p, x: point.x, z: point.z } : p)),
+        )
+      else
+        setTokenPiles((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), key: tokenKey, x: point.x, z: point.z },
+        ])
       return
     }
     if (supplyCard) {
@@ -1145,8 +1300,15 @@ export default function App({ room = null, onExit }) {
     }
     const point = dragPointRef.current
     if (!point) return
-    if (looseId) setLooseTokens(prev => prev.map(t => t.id === looseId ? { ...t, x: point.x, z: point.z } : t))
-    else setLooseTokens(prev => [...prev, { id: crypto.randomUUID(), key: tokenKey, x: point.x, z: point.z }])
+    if (looseId)
+      setLooseTokens((prev) =>
+        prev.map((t) => (t.id === looseId ? { ...t, x: point.x, z: point.z } : t)),
+      )
+    else
+      setLooseTokens((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), key: tokenKey, x: point.x, z: point.z },
+      ])
   }
 
   // Window listeners for the token drag: it becomes active after DRAG_THRESHOLD px, and its release
@@ -1156,9 +1318,17 @@ export default function App({ room = null, onExit }) {
     if (!tokenDrag) return undefined
     function handleMove(e) {
       const drag = tokenDragRef.current
-      if (!drag || drag.active || Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < DRAG_THRESHOLD) return
+      if (
+        !drag ||
+        drag.active ||
+        Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < DRAG_THRESHOLD
+      )
+        return
       drag.active = true
-      setTokenDrag(prev => prev && { ...prev, active: true, start: { clientX: e.clientX, clientY: e.clientY } })
+      setTokenDrag(
+        (prev) =>
+          prev && { ...prev, active: true, start: { clientX: e.clientX, clientY: e.clientY } },
+      )
     }
     function handleUp(e) {
       if (tokenDragRef.current?.active) handleTokenRelease(e.clientX, e.clientY)
@@ -1173,8 +1343,8 @@ export default function App({ room = null, onExit }) {
   }, [tokenDrag])
 
   const selectedTokenId = selectedId(selection, 'token')
-  const selectedToken = tokens.find(t => t.id === selectedTokenId) ?? null
-  const openTray = openTrayId ? characters.find(ch => ch.id === openTrayId) ?? null : null
+  const selectedToken = tokens.find((t) => t.id === selectedTokenId) ?? null
+  const openTray = openTrayId ? (characters.find((ch) => ch.id === openTrayId) ?? null) : null
 
   // Debug mode is only in the dev server. import.meta.env.DEV is false in `vite build`, so debug
   // is always false there and the build leaves out the debug code.
@@ -1197,7 +1367,9 @@ export default function App({ room = null, onExit }) {
           // pieces. The selected tools stay selected.
           // R3F does not count a camera drag as a click. A right click is a 'contextmenu' event, and it also
           // starts a camera turn, so it does not clear. Clicks on tool buttons (Html) are not on the canvas.
-          onPointerMissed={e => { if (e.type === 'click' && e.target instanceof HTMLCanvasElement) setSelection(NO_PIECES) }}
+          onPointerMissed={(e) => {
+            if (e.type === 'click' && e.target instanceof HTMLCanvasElement) setSelection(NO_PIECES)
+          }}
           onCreated={({ gl }) => {
             const name = rendererName(gl.getContext())
             if (isSoftwareRenderer(name)) setSoftwareRenderer(name)
@@ -1262,7 +1434,9 @@ export default function App({ room = null, onExit }) {
               modelPositionRef={modelPositionRef}
               turnPieceRef={turnPieceRef}
               liftPieceRef={liftPieceRef}
-              onDiceTrayHover={over => { diceTrayHoveredRef.current = over }}
+              onDiceTrayHover={(over) => {
+                diceTrayHoveredRef.current = over
+              }}
               addDiceRef={addDiceRef}
               heldRotate={heldRotate}
               scoreMarkers={scoreMarkers}
@@ -1272,7 +1446,9 @@ export default function App({ room = null, onExit }) {
               setup={setup}
               squadSelect={squadSelect}
               setupActions={setupActions}
-              onScoreMarkerMove={(marker, x, z) => setScoreMarkers(prev => ({ ...prev, [marker]: { x, z } }))}
+              onScoreMarkerMove={(marker, x, z) =>
+                setScoreMarkers((prev) => ({ ...prev, [marker]: { x, z } }))
+              }
               startPoses={start.poses}
               modelPosesRef={modelPosesRef}
             />
@@ -1309,27 +1485,27 @@ export default function App({ room = null, onExit }) {
           onMoveClick={handleMoveClick}
           onAngleClick={handleAngleClick}
           debug={debug}
-          onDebugClick={() => setDebugOn(prev => !prev)}
+          onDebugClick={() => setDebugOn((prev) => !prev)}
           showLabels={showLabels}
-          onLabelsClick={() => setShowLabels(prev => !prev)}
+          onLabelsClick={() => setShowLabels((prev) => !prev)}
           spectator={spectator}
-          onSpectatorClick={() => setSpectator(prev => !prev)}
+          onSpectatorClick={() => setSpectator((prev) => !prev)}
           onTurnMat={handleTurnMat}
           deployLine={deployLine}
-          onDeployLineClick={() => setDeployLine(prev => !prev)}
+          onDeployLineClick={() => setDeployLine((prev) => !prev)}
           crisis={crisis}
           onCrisisChange={handleCrisisChange}
           onRosterLoad={handleRosterLoad}
           onRosterRemove={handleRosterRemove}
           libraryOpen={libraryOpen}
-          onLibraryClick={() => setLibraryOpen(prev => !prev)}
+          onLibraryClick={() => setLibraryOpen((prev) => !prev)}
         />
       </div>
       <TokenPanel
         token={selectedToken}
         onFlip={() => handleTokenFlip(selectedToken.id)}
-        onControl={control => handleTokenControl(selectedToken.id, control)}
-        onDamage={damage => handleTokenDamage(selectedToken.id, damage)}
+        onControl={(control) => handleTokenControl(selectedToken.id, control)}
+        onDamage={(damage) => handleTokenDamage(selectedToken.id, damage)}
       />
       <Library
         open={libraryOpen}
@@ -1345,31 +1521,35 @@ export default function App({ room = null, onExit }) {
           code={rosters[openRoster.team].code}
           tab={openRoster.tab}
           index={openRoster.index}
-          onTabChange={tab => setOpenRoster(prev => prev && { ...prev, tab, index: 0 })}
-          onIndexChange={index => setOpenRoster(prev => !prev || index === prev.index ? prev : { ...prev, index })}
+          onTabChange={(tab) => setOpenRoster((prev) => prev && { ...prev, tab, index: 0 })}
+          onIndexChange={(index) =>
+            setOpenRoster((prev) => (!prev || index === prev.index ? prev : { ...prev, index }))
+          }
           onClose={() => setOpenRoster(null)}
         />
       )}
       {openTray && (
         <TrayPopup
           character={openTray}
-          heldTokens={tokens.filter(tok => tok.heldBy === openTray.id)}
+          heldTokens={tokens.filter((tok) => tok.heldBy === openTray.id)}
           onClose={() => setOpenTrayId(null)}
-          onDamage={damage => handleCharacterDamage(openTray.id, damage)}
-          onPower={power => handleCharacterPower(openTray.id, power)}
+          onDamage={(damage) => handleCharacterDamage(openTray.id, damage)}
+          onPower={(power) => handleCharacterPower(openTray.id, power)}
           onFlip={() => handleCharacterFlip(openTray.id)}
           onRemove={() => handleCharacterRemove(openTray.id)}
-          onTokenRemove={key => handleCharacterTokenRemove(openTray.id, key)}
+          onTokenRemove={(key) => handleCharacterTokenRemove(openTray.id, key)}
         />
       )}
       {hudMessage && <div className="hud-message">{hudMessage}</div>}
       {softwareRenderer && (
         <div className="hud-warning" role="alert" title={softwareRenderer}>
           <span>
-            The browser draws the 3D view without the graphics card (software rendering), so the app is slow.
-            Turn on hardware acceleration in the browser settings.
+            The browser draws the 3D view without the graphics card (software rendering), so the app
+            is slow. Turn on hardware acceleration in the browser settings.
           </span>
-          <button type="button" className="chip" onClick={() => setSoftwareRenderer(null)}>Close</button>
+          <button type="button" className="chip" onClick={() => setSoftwareRenderer(null)}>
+            Close
+          </button>
         </div>
       )}
       {debug && <DebugPanel renderMode={renderMode} onRenderModeChange={setRenderMode} />}

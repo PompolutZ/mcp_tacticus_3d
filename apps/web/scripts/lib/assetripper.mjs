@@ -10,14 +10,22 @@ const START_TIMEOUT_MS = 60_000
 
 export async function startAssetRipper() {
   if (!fs.existsSync(BINARY)) {
-    throw new Error(`AssetRipper is not at ${BINARY}. Get AssetRipper.GUI.Free for macOS arm64 from https://github.com/AssetRipper/AssetRipper/releases and put it (with libcapstone.dylib) in tools/.`)
+    throw new Error(
+      `AssetRipper is not at ${BINARY}. Get AssetRipper.GUI.Free for macOS arm64 from https://github.com/AssetRipper/AssetRipper/releases and put it (with libcapstone.dylib) in tools/.`,
+    )
   }
   // Without --port, AssetRipper picks a free port and prints it
-  const proc = spawn(BINARY, ['--headless', '--log=false'], { cwd: path.dirname(BINARY), stdio: ['ignore', 'pipe', 'pipe'] })
+  const proc = spawn(BINARY, ['--headless', '--log=false'], {
+    cwd: path.dirname(BINARY),
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
   let output = ''
   const url = await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`AssetRipper did not start:\n${output}`)), START_TIMEOUT_MS)
-    const onData = chunk => {
+    const timer = setTimeout(
+      () => reject(new Error(`AssetRipper did not start:\n${output}`)),
+      START_TIMEOUT_MS,
+    )
+    const onData = (chunk) => {
       output = (output + chunk).slice(-5000)
       const m = /Now listening on: (http:\/\/\S+)/.exec(output)
       if (m) {
@@ -27,7 +35,7 @@ export async function startAssetRipper() {
     }
     proc.stdout.on('data', onData)
     proc.stderr.on('data', onData)
-    proc.on('exit', code => reject(new Error(`AssetRipper exited with code ${code}:\n${output}`)))
+    proc.on('exit', (code) => reject(new Error(`AssetRipper exited with code ${code}:\n${output}`)))
   })
   // Keep reading, so a full pipe does not block the server
   proc.stdout.resume()
@@ -39,9 +47,14 @@ export async function startAssetRipper() {
   // The body is always read: fetch keeps the connection of a response with an unread body until garbage
   // collection, and a run that converts several bundles then waits for an answer that never comes.
   async function post(route, form = {}) {
-    const res = await fetch(url + route, { method: 'POST', body: new URLSearchParams(form), redirect: 'manual' })
+    const res = await fetch(url + route, {
+      method: 'POST',
+      body: new URLSearchParams(form),
+      redirect: 'manual',
+    })
     const text = await res.text()
-    if (res.status >= 400) throw new Error(`AssetRipper ${route} failed with HTTP ${res.status}: ${text}`)
+    if (res.status >= 400)
+      throw new Error(`AssetRipper ${route} failed with HTTP ${res.status}: ${text}`)
   }
 
   return {

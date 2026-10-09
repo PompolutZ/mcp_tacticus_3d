@@ -6,7 +6,12 @@ import { castDown } from '../physics.js'
 import { assetUrl } from '../assets/index.js'
 import { getTactic } from '../tactics/cards.js'
 import { tacticCardBack, tacticCardFace } from '../tactics/files.js'
-import { TACTIC_CARD_HEIGHT, TACTIC_CARD_WIDTH, TACTIC_CARD_Y, tacticCardYaw } from '../tactics/layout.js'
+import {
+  TACTIC_CARD_HEIGHT,
+  TACTIC_CARD_WIDTH,
+  TACTIC_CARD_Y,
+  tacticCardYaw,
+} from '../tactics/layout.js'
 import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useColorTexture } from './useColorTexture.js'
@@ -27,9 +32,9 @@ const FLIP_DURATION = 0.4
 const FLIP_EDGE_GAP = 0.3
 const FLIP_LIFT = TACTIC_CARD_WIDTH / 2 + FLIP_EDGE_GAP
 // The turn starts and ends slowly (smoothstep)
-const ease = t => t * t * (3 - 2 * t)
-const upAngle = up => (up === 'back' ? Math.PI : 0)
-const flipAngle = flip => flip.from + (flip.to - flip.from) * ease(flip.time / FLIP_DURATION)
+const ease = (t) => t * t * (3 - 2 * t)
+const upAngle = (up) => (up === 'back' ? Math.PI : 0)
+const flipAngle = (flip) => flip.from + (flip.to - flip.from) * ease(flip.time / FLIP_DURATION)
 
 // One Team Tactic card, flat on the table or on the terrain under it. It has no physics body, the
 // same as a token on the table. See docs/feature-team-tactic-cards.md, "Card on the table".
@@ -39,11 +44,17 @@ const flipAngle = flip => flip.from + (flip.to - flip.from) * ease(flip.time / F
 // onHover(over): the pointer moved onto (true) or off (false) the card, for the F and Delete keys.
 export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }) {
   // Both sides load when the card mounts, so the first flip does not wait for an image
-  const [faceUrl, backUrl] = [assetUrl(tacticCardFace(card.key)), assetUrl(tacticCardBack(card.key))]
+  const [faceUrl, backUrl] = [
+    assetUrl(tacticCardFace(card.key)),
+    assetUrl(tacticCardBack(card.key)),
+  ]
   const [faceMap, backMap] = useColorTexture([faceUrl, backUrl])
   const { camera, gl, controls } = useThree()
   const { world, rapier } = useRapier()
-  const shape = useMemo(() => new rapier.Cuboid(TACTIC_CARD_WIDTH / 2, HALF_H, TACTIC_CARD_HEIGHT / 2), [rapier])
+  const shape = useMemo(
+    () => new rapier.Cuboid(TACTIC_CARD_WIDTH / 2, HALF_H, TACTIC_CARD_HEIGHT / 2),
+    [rapier],
+  )
   const groupRef = useRef()
   const flipGroupRef = useRef()
   const raycaster = useRef(new Raycaster())
@@ -57,7 +68,12 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
   // face up, an odd multiple is back up. up: the side of the last flip. time: seconds since that flip,
   // FLIP_DURATION when it is over. Each flip adds π to `to`, so the card always turns the same way.
   // A flip during a flip starts where the card is.
-  const flipRef = useRef({ up: card.up, from: upAngle(card.up), to: upAngle(card.up), time: FLIP_DURATION })
+  const flipRef = useRef({
+    up: card.up,
+    from: upAngle(card.up),
+    to: upAngle(card.up),
+    time: FLIP_DURATION,
+  })
 
   useEffect(() => {
     if (!draggingRef.current) poseRef.current = { x: card.x, z: card.z }
@@ -79,7 +95,8 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
     const angle = flipAngle(flip)
     // ONLY_FIXED + EXCLUDE_SENSORS inside castDown, so models and tools are ignored
     const ground = castDown(world, rapier, shape, NO_ROTATION, x, z, HALF_H) ?? 0
-    const y = ground + TACTIC_CARD_Y + (draggingRef.current ? TOKEN_DRAG_LIFT : stackIndex * STACK_STEP)
+    const y =
+      ground + TACTIC_CARD_Y + (draggingRef.current ? TOKEN_DRAG_LIFT : stackIndex * STACK_STEP)
     groupRef.current?.position.set(x, y + FLIP_LIFT * Math.abs(Math.sin(angle)), z)
     if (flipGroupRef.current) flipGroupRef.current.rotation.z = angle
   })
@@ -88,7 +105,10 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
   // fixed bodies count, the same as TokenDragPreview.jsx.
   function pointerPoint(clientX, clientY) {
     const rect = gl.domElement.getBoundingClientRect()
-    const ndc = { x: ((clientX - rect.left) / rect.width) * 2 - 1, y: -((clientY - rect.top) / rect.height) * 2 + 1 }
+    const ndc = {
+      x: ((clientX - rect.left) / rect.width) * 2 - 1,
+      y: -((clientY - rect.top) / rect.height) * 2 + 1,
+    }
     raycaster.current.setFromCamera(ndc, camera)
     const { origin, direction } = raycaster.current.ray
     const filter = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
@@ -111,7 +131,7 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
     // The last point over the table. A release off the table puts the card back.
     let overTable = true
 
-    const handleMove = ev => {
+    const handleMove = (ev) => {
       if (ev.pointerId !== pointerId) return
       if (!draggingRef.current) {
         if (Math.hypot(ev.clientX - startX, ev.clientY - startY) < DRAG_THRESHOLD) return
@@ -122,7 +142,7 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
       if (p) poseRef.current = { x: p.x, z: p.z }
     }
 
-    const handleUp = ev => {
+    const handleUp = (ev) => {
       if (ev.pointerId !== pointerId) return
       if (draggingRef.current) {
         draggingRef.current = false
@@ -156,13 +176,20 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
   }, [hovered])
 
   return (
-    <group ref={groupRef} position={[card.x, TACTIC_CARD_Y, card.z]} rotation={[0, tacticCardYaw(card.team), 0]}>
+    <group
+      ref={groupRef}
+      position={[card.x, TACTIC_CARD_Y, card.z]}
+      rotation={[0, tacticCardYaw(card.team), 0]}
+    >
       {/* The flip turns this group around local z (flipRef). Each side is a plane that is seen only
           from its front, so only the side that faces up is drawn and gets the pointer. */}
       <group
         ref={flipGroupRef}
         onPointerDown={handlePointerDown}
-        onPointerOver={e => { e.stopPropagation(); setHovered(true) }}
+        onPointerOver={(e) => {
+          e.stopPropagation()
+          setHovered(true)
+        }}
         onPointerOut={() => setHovered(false)}
       >
         {/* Rx(-pi/2) lays the face flat, facing up, with its top to local -z (see tacticCardYaw) */}

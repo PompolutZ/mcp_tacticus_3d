@@ -34,8 +34,20 @@ const halfT = WALL_THICKNESS / 2
 // Cuboid colliders: half extents and center, [x, y, z]. The two walls at the x edges are longer by one wall
 // thickness at each end, so they close the corners.
 export const TABLE_WALLS = [
-  { halfExtents: [halfT, wallHalfH, TABLE_DEPTH / 2 + WALL_THICKNESS], position: [TABLE_WIDTH / 2 + halfT, wallY, 0] },
-  { halfExtents: [halfT, wallHalfH, TABLE_DEPTH / 2 + WALL_THICKNESS], position: [-TABLE_WIDTH / 2 - halfT, wallY, 0] },
-  { halfExtents: [TABLE_WIDTH / 2, wallHalfH, halfT], position: [0, wallY, TABLE_DEPTH / 2 + halfT] },
-  { halfExtents: [TABLE_WIDTH / 2, wallHalfH, halfT], position: [0, wallY, -TABLE_DEPTH / 2 - halfT] },
+  {
+    halfExtents: [halfT, wallHalfH, TABLE_DEPTH / 2 + WALL_THICKNESS],
+    position: [TABLE_WIDTH / 2 + halfT, wallY, 0],
+  },
+  {
+    halfExtents: [halfT, wallHalfH, TABLE_DEPTH / 2 + WALL_THICKNESS],
+    position: [-TABLE_WIDTH / 2 - halfT, wallY, 0],
+  },
+  {
+    halfExtents: [TABLE_WIDTH / 2, wallHalfH, halfT],
+    position: [0, wallY, TABLE_DEPTH / 2 + halfT],
+  },
+  {
+    halfExtents: [TABLE_WIDTH / 2, wallHalfH, halfT],
+    position: [0, wallY, -TABLE_DEPTH / 2 - halfT],
+  },
 ]

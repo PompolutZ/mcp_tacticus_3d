@@ -3,7 +3,14 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { Raycaster, Vector3 } from 'three'
 import { useTexture, Stars, Environment } from '@react-three/drei'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
-import { MovementRuler, AngleRuler, RangeRuler, DeployRangeTool, RANGE_TIP, sameModel } from './RulerTool.jsx'
+import {
+  MovementRuler,
+  AngleRuler,
+  RangeRuler,
+  DeployRangeTool,
+  RANGE_TIP,
+  sameModel,
+} from './RulerTool.jsx'
 import CharacterModel, { StandeeModel, modelUrls, turnBody } from './CharacterModel.jsx'
 import CharacterTray from './CharacterTray.jsx'
 import SpectatorBadge from './SpectatorBadge.jsx'
@@ -32,10 +39,27 @@ import { assetUrl } from '../assets/index.js'
 import { CARD_X, CARD_Y, CARD_Z, supplyPilePosition } from '../crisis/layout.js'
 import { getCard } from '../crisis/cards.js'
 import { TRAYS } from '../dice/tray.js'
-import { TRAY_Y, inTrayArea, layoutTrays, onTray, trayHeldLocal, trayHeldWorld, trayModelPosition, traySpareModelPosition, trayYaw } from '../characters/trays.js'
+import {
+  TRAY_Y,
+  inTrayArea,
+  layoutTrays,
+  onTray,
+  trayHeldLocal,
+  trayHeldWorld,
+  trayModelPosition,
+  traySpareModelPosition,
+  trayYaw,
+} from '../characters/trays.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import { MAT_SIZE, TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WIDTH } from '../table.js'
-import { NO_PIECES, NO_TOOLS, isToolPiece, selectPiece, selectedId, toggleSelectPiece } from '../selection.js'
+import {
+  NO_PIECES,
+  NO_TOOLS,
+  isToolPiece,
+  selectPiece,
+  selectedId,
+  toggleSelectPiece,
+} from '../selection.js'
 import { poseOf } from '../rooms/table.js'
 import { setupStep } from '../setup/setup.js'
 
@@ -44,7 +68,7 @@ const TABLE_THICKNESS = 0.5
 // deeper (table.js), so the image fills the table depth and its left and right ends are cut off. The planks
 // keep their shape.
 function fitTableTexture(texture) {
-  const repeatX = (TABLE_WIDTH / TABLE_DEPTH) / (texture.image.width / texture.image.height)
+  const repeatX = TABLE_WIDTH / TABLE_DEPTH / (texture.image.width / texture.image.height)
   texture.repeat.set(repeatX, 1)
   texture.offset.set((1 - repeatX) / 2, 0)
 }
@@ -62,7 +86,7 @@ const HELD_STACK_STEP = TOKEN_THICKNESS + 0.01
 // The dragged token gets no pointer events, so it does not hide what is under it
 const NO_RAYCAST = () => null
 // One Q / E press turns a piece this much. The TTS default (PointerRotationSnap in the TTS settings, read on 2026-10-05).
-const ROTATE_STEP = 15 * Math.PI / 180
+const ROTATE_STEP = (15 * Math.PI) / 180
 // A Q / E key held longer than this (s) turns the piece on at ROTATE_RATE (rad/s), 90° per second,
 // the same as the arrow keys turn the camera. Picked by look, not measured in TTS.
 const ROTATE_HOLD_DELAY = 0.3
@@ -91,7 +115,12 @@ function Mat({ mapId }) {
   return (
     <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
       <planeGeometry args={[MAT_SIZE, MAT_SIZE]} />
-      <meshStandardMaterial map={map} roughness={1} metalness={0} onBeforeCompile={projectFootprints} />
+      <meshStandardMaterial
+        map={map}
+        roughness={1}
+        metalness={0}
+        onBeforeCompile={projectFootprints}
+      />
     </mesh>
   )
 }
@@ -171,8 +200,74 @@ function Mat({ mapId }) {
 // modelPosesRef: ref App calls to get the pose of every model on the table, the same pattern as
 // modelPositionRef. Scene fills it with modelPoses. Used by the room save (docs/feature-rooms.md).
 export default function Scene({
-  mapId, terrain = [], onTerrainHover, terrainAtRef, characters = [], activeRange, activeMove, angleOn = false, angleSpawn = { target: null, aim: null }, showColliders = false, showLabels = false, spectator = false, matTurns = 0, deployLine = false,
-  crisis = { secure: null, extract: null }, tokens = [], selection = NO_PIECES, onSelectionChange, selectedTools = NO_TOOLS, onSelectedToolsChange, onPieceHover, toolSpawns = { range: 0, move: 0, angle: 0 }, onTokenMove, onTokenTurn, onTokenHold, onHeldHover, onSupplyDragStart, onCharacterDamage, onCharacterPower, onCharacterFlip, onTrayCardHover, onCharacterRemove, onCharacterTokenRemove, onTokenDragStart, looseTokens = [], onLooseHover, tokenPiles = [], onPileTakeStart, onPileMoveStart, onPileHover, tacticCards = [], onTacticMove, onTacticHover, tokenDrag = null, dragPointRef, onCardOpen, onTrayOpen, diceMenu = null, onDiceMenuToggle, onDiceMenuClose, characterAtRef, findCharacterAt, modelPositionRef, turnPieceRef, liftPieceRef, onDiceTrayHover, addDiceRef, heldRotate, scoreMarkers, affiliations, rosters = { blue: null, red: null }, onRosterOpen, setup, squadSelect, setupActions, onScoreMarkerMove, startPoses = {}, modelPosesRef,
+  mapId,
+  terrain = [],
+  onTerrainHover,
+  terrainAtRef,
+  characters = [],
+  activeRange,
+  activeMove,
+  angleOn = false,
+  angleSpawn = { target: null, aim: null },
+  showColliders = false,
+  showLabels = false,
+  spectator = false,
+  matTurns = 0,
+  deployLine = false,
+  crisis = { secure: null, extract: null },
+  tokens = [],
+  selection = NO_PIECES,
+  onSelectionChange,
+  selectedTools = NO_TOOLS,
+  onSelectedToolsChange,
+  onPieceHover,
+  toolSpawns = { range: 0, move: 0, angle: 0 },
+  onTokenMove,
+  onTokenTurn,
+  onTokenHold,
+  onHeldHover,
+  onSupplyDragStart,
+  onCharacterDamage,
+  onCharacterPower,
+  onCharacterFlip,
+  onTrayCardHover,
+  onCharacterRemove,
+  onCharacterTokenRemove,
+  onTokenDragStart,
+  looseTokens = [],
+  onLooseHover,
+  tokenPiles = [],
+  onPileTakeStart,
+  onPileMoveStart,
+  onPileHover,
+  tacticCards = [],
+  onTacticMove,
+  onTacticHover,
+  tokenDrag = null,
+  dragPointRef,
+  onCardOpen,
+  onTrayOpen,
+  diceMenu = null,
+  onDiceMenuToggle,
+  onDiceMenuClose,
+  characterAtRef,
+  findCharacterAt,
+  modelPositionRef,
+  turnPieceRef,
+  liftPieceRef,
+  onDiceTrayHover,
+  addDiceRef,
+  heldRotate,
+  scoreMarkers,
+  affiliations,
+  rosters = { blue: null, red: null },
+  onRosterOpen,
+  setup,
+  squadSelect,
+  setupActions,
+  onScoreMarkerMove,
+  startPoses = {},
+  modelPosesRef,
 }) {
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
   const { camera, gl, pointer } = useThree()
@@ -232,8 +327,8 @@ export default function Scene({
     let nearestId = null
     let nearestDistance = Infinity
     const targets = [
-      ...models.map(model => [model.character.id, charObjects.current.get(model.id)]),
-      ...characters.map(ch => [ch.id, trayObjects.current.get(ch.id)]),
+      ...models.map((model) => [model.character.id, charObjects.current.get(model.id)]),
+      ...characters.map((ch) => [ch.id, trayObjects.current.get(ch.id)]),
     ]
     for (const [id, object] of targets) {
       const hit = object && raycaster.current.intersectObject(object, true)[0]
@@ -285,7 +380,10 @@ export default function Scene({
   function modelPoses() {
     const poses = {}
     for (const [id, body] of charBodies.current) {
-      poses[id] = poseOf(charLifts.current.get(id)?.restPosition() ?? body.translation(), body.rotation())
+      poses[id] = poseOf(
+        charLifts.current.get(id)?.restPosition() ?? body.translation(),
+        body.rotation(),
+      )
     }
     return poses
   }
@@ -329,7 +427,8 @@ export default function Scene({
     for (const d of heldRotate.current.values()) direction += d
     const hold = turnHold.current
     hold.time += dt
-    if (hold.piece && direction !== 0 && hold.time > ROTATE_HOLD_DELAY) addTurn(hold.piece, direction * ROTATE_RATE * dt)
+    if (hold.piece && direction !== 0 && hold.time > ROTATE_HOLD_DELAY)
+      addTurn(hold.piece, direction * ROTATE_RATE * dt)
     const part = 1 - Math.exp(-dt / ROTATE_SMOOTH_TIME)
     for (const [key, turn] of turnsLeft.current) {
       const angle = Math.abs(turn.left) < ROTATE_DONE ? turn.left : turn.left * part
@@ -352,9 +451,11 @@ export default function Scene({
   function turnProps(tool) {
     const piece = { kind: 'tool', id: tool }
     return {
-      onHover: over => trackPiece(hoveredPiece, piece, over),
-      onDrag: on => trackPiece(draggedPiece, piece, on),
-      turnRef: turn => { toolTurns.current[tool] = turn },
+      onHover: (over) => trackPiece(hoveredPiece, piece, over),
+      onDrag: (on) => trackPiece(draggedPiece, piece, on),
+      turnRef: (turn) => {
+        toolTurns.current[tool] = turn
+      },
     }
   }
 
@@ -384,7 +485,8 @@ export default function Scene({
       const body = charBodies.current.get(model.id)
       if (!pos || !last || !body || (last[0] === pos[0] && last[2] === pos[2])) continue
       const t = body.translation()
-      if (inTrayArea(teamColor, last, t)) body.setTranslation({ x: t.x + pos[0] - last[0], y: t.y, z: t.z + pos[2] - last[2] }, true)
+      if (inTrayArea(teamColor, last, t))
+        body.setTranslation({ x: t.x + pos[0] - last[0], y: t.y, z: t.z + pos[2] - last[2] }, true)
     }
     lastTrayPositions.current = trayPositions
   }, [trayPositions])
@@ -398,7 +500,10 @@ export default function Scene({
   // Deploy-line: R3 zone depth from the deployment edge
   const deployTip = RANGE_TIP[3]
   const deployDepth = 2 * deployTip
-  const draggingChar = deployLine && draggingCharId ? models.find(model => model.id === draggingCharId)?.character : null
+  const draggingChar =
+    deployLine && draggingCharId
+      ? models.find((model) => model.id === draggingCharId)?.character
+      : null
 
   // Every character and every mat token as the range and movement tools see them. A character has a
   // Rapier body; a token does not, so getCenter (not getBody) is what the tools measure with.
@@ -406,10 +511,13 @@ export default function Scene({
   // isLifted and slide are for a Throw: a lifted character does not stop it, and slide moves the
   // thrown character.
   // A held token is not in this list: it is off the mat, on its holder's tray (see "Hold and drop").
-  const matTokens = useMemo(() => tokens.filter(tok => !tok.heldBy), [tokens])
+  const matTokens = useMemo(() => tokens.filter((tok) => !tok.heldBy), [tokens])
   // For the spectator view: the tokens of the Secure card on the mat, and the held tokens of each
   // character, in the order it took them
-  const secureTokens = useMemo(() => matTokens.filter(tok => tok.cardKey === crisis.secure), [matTokens, crisis.secure])
+  const secureTokens = useMemo(
+    () => matTokens.filter((tok) => tok.cardKey === crisis.secure),
+    [matTokens, crisis.secure],
+  )
   const heldTokens = useMemo(() => {
     const held = new Map()
     for (const tok of tokens) {
@@ -422,41 +530,48 @@ export default function Scene({
   // as the card (see trays.js, "An objective token that the character holds").
   const tokenViews = useMemo(() => {
     const stacks = new Map()
-    return tokens.map(tok => {
+    return tokens.map((tok) => {
       if (!tok.heldBy) return { token: tok }
-      const holder = characters.find(ch => ch.id === tok.heldBy)
+      const holder = characters.find((ch) => ch.id === tok.heldBy)
       const trayPos = trayPositions.get(tok.heldBy)
       if (!holder || !trayPos) return { token: tok }
       const [x, z] = trayHeldWorld(holder.teamColor, trayPos, tok.heldAt)
       const level = stacks.get(tok.heldBy) ?? 0
       stacks.set(tok.heldBy, level + 1)
-      return { token: { ...tok, x, z, yaw: trayYaw(holder.teamColor) }, floorY: TRAY_Y + level * HELD_STACK_STEP }
+      return {
+        token: { ...tok, x, z, yaw: trayYaw(holder.teamColor) },
+        floorY: TRAY_Y + level * HELD_STACK_STEP,
+      }
     })
   }, [tokens, characters, trayPositions])
-  const toolModels = useMemo(() => [
-    ...models.map(model => ({
-      kind: 'character',
-      id: model.id,
-      getBody: () => charBodies.current.get(model.id),
-      getObject: () => charObjects.current.get(model.id),
-      getCenter: () => charBodies.current.get(model.id)?.translation() ?? { x: 0, y: 0, z: 0 },
-      isLifted: () => charLifts.current.get(model.id)?.isUp() ?? false,
-      slide: (path, duration) => charSlides.current.get(model.id)?.(path, duration),
-      radius: BASE_DIAMETER[model.base] / 2,
-    })),
-    ...matTokens.map(tok => ({
-      kind: 'token',
-      id: tok.id,
-      getObject: () => tokenObjects.current.get(tok.id),
-      getCenter: () => tokenCenters.current.get(tok.id)?.() ?? { x: tok.x, y: 0, z: tok.z },
-      radius: 0.5,
-    })),
-  ], [models, matTokens])
-  const toolModel = piece => toolModels.find(model => piece && model.kind === piece.kind && model.id === piece.id) ?? null
+  const toolModels = useMemo(
+    () => [
+      ...models.map((model) => ({
+        kind: 'character',
+        id: model.id,
+        getBody: () => charBodies.current.get(model.id),
+        getObject: () => charObjects.current.get(model.id),
+        getCenter: () => charBodies.current.get(model.id)?.translation() ?? { x: 0, y: 0, z: 0 },
+        isLifted: () => charLifts.current.get(model.id)?.isUp() ?? false,
+        slide: (path, duration) => charSlides.current.get(model.id)?.(path, duration),
+        radius: BASE_DIAMETER[model.base] / 2,
+      })),
+      ...matTokens.map((tok) => ({
+        kind: 'token',
+        id: tok.id,
+        getObject: () => tokenObjects.current.get(tok.id),
+        getCenter: () => tokenCenters.current.get(tok.id)?.() ?? { x: tok.x, y: 0, z: tok.z },
+        radius: 0.5,
+      })),
+    ],
+    [models, matTokens],
+  )
+  const toolModel = (piece) =>
+    toolModels.find((model) => piece && model.kind === piece.kind && model.id === piece.id) ?? null
   // The tools measure against the character or token selected last, and a new tool snaps to it.
   // Place moves the selected character, also when a token was selected after it.
   const toolTarget = toolModel(selection.findLast(isToolPiece))
-  const placeTarget = toolModel(selection.find(piece => piece.kind === 'character'))
+  const placeTarget = toolModel(selection.find((piece) => piece.kind === 'character'))
 
   // Outline mode of the range mark on a piece, or null
   function rangeMarkOf(kind, id) {
@@ -480,7 +595,13 @@ export default function Scene({
     const trayPos = trayPositions.get(ch.id)
     if (model.card) return trayModelPosition(ch.teamColor, trayPos, model.card)
     const giveCount = characterGiveSources(ch.key).length
-    return traySpareModelPosition(ch.teamColor, trayPos, trayCards(ch), giveCount, BASE_DIAMETER[model.base] / 2)
+    return traySpareModelPosition(
+      ch.teamColor,
+      trayPos,
+      trayCards(ch),
+      giveCount,
+      BASE_DIAMETER[model.base] / 2,
+    )
   }
 
   // The spectator view above a model of a character, or undefined when it is off. The model draws
@@ -489,7 +610,7 @@ export default function Scene({
   function spectatorOverlay(model) {
     if (!spectator) return undefined
     const ch = model.character
-    return top => (
+    return (top) => (
       <SpectatorBadge
         character={ch}
         stamina={characterStamina(ch.key, ch.side)}
@@ -502,19 +623,19 @@ export default function Scene({
   }
 
   function toggleTool(tool) {
-    onSelectedToolsChange(prev => ({ ...prev, [tool]: !prev[tool] }))
+    onSelectedToolsChange((prev) => ({ ...prev, [tool]: !prev[tool] }))
   }
 
   function selectTool(tool) {
-    onSelectedToolsChange(prev => ({ ...prev, [tool]: true }))
+    onSelectedToolsChange((prev) => ({ ...prev, [tool]: true }))
   }
 
   function toggleSelect(kind, id) {
-    onSelectionChange(prev => toggleSelectPiece(prev, { kind, id }))
+    onSelectionChange((prev) => toggleSelectPiece(prev, { kind, id }))
   }
 
   function selectModel(model) {
-    onSelectionChange(prev => selectPiece(prev, { kind: model.kind, id: model.id }))
+    onSelectionChange((prev) => selectPiece(prev, { kind: model.kind, id: model.id }))
   }
 
   return (
@@ -549,7 +670,11 @@ export default function Scene({
           looked like a strong lamp. Most HDR light comes from above, so it makes tops much brighter than
           sides. Ambient is the same from every side, so part of the light moved from the HDR to ambient.
           Now a face up gets 0.41 + 0.23 + 0.27 = 0.91, and a side face 0.38–0.55. */}
-      <Environment files={assetUrl('hdri/potsdamer_platz_1k.hdr')} backgroundIntensity={0} environmentIntensity={0.3} />
+      <Environment
+        files={assetUrl('hdri/potsdamer_platz_1k.hdr')}
+        backgroundIntensity={0}
+        environmentIntensity={0.3}
+      />
 
       <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP} debug={showColliders}>
         {/* Table surface — fixed collider so models land on it */}
@@ -562,7 +687,12 @@ export default function Scene({
           />
           <mesh position={[0, -TABLE_THICKNESS / 2, 0]} receiveShadow>
             <boxGeometry args={[TABLE_WIDTH, TABLE_THICKNESS, TABLE_DEPTH]} />
-            <meshStandardMaterial map={tableTexture} roughness={0.8} metalness={0.05} onBeforeCompile={projectFootprints} />
+            <meshStandardMaterial
+              map={tableTexture}
+              roughness={0.8}
+              metalness={0.05}
+              onBeforeCompile={projectFootprints}
+            />
           </mesh>
         </RigidBody>
         {/* Invisible walls at the table edge, so dice cannot fall off the table. Kinematic, see table.js. */}
@@ -574,7 +704,7 @@ export default function Scene({
 
         {/* The mat and its terrain turn together around the mat center. In game setup, the player with priority
             turns them so that the deployment edge they chose faces their side (GameSetup.jsx). */}
-        <group rotation={[0, matTurns * Math.PI / 2, 0]}>
+        <group rotation={[0, (matTurns * Math.PI) / 2, 0]}>
           <Suspense fallback={null}>
             <Mat mapId={mapId} />
           </Suspense>
@@ -585,9 +715,11 @@ export default function Scene({
               placements={terrain}
               showLabels={showLabels}
               selectedId={selectedTerrainId}
-              onSelect={id => toggleSelect('terrain', id)}
+              onSelect={(id) => toggleSelect('terrain', id)}
               onHover={onTerrainHover}
-              objectRef={(id, obj) => obj ? terrainObjects.current.set(id, obj) : terrainObjects.current.delete(id)}
+              objectRef={(id, obj) =>
+                obj ? terrainObjects.current.set(id, obj) : terrainObjects.current.delete(id)
+              }
             />
           </Suspense>
         </group>
@@ -595,43 +727,63 @@ export default function Scene({
         {/* Dice trays are relative to the table, not the mat: not keyed by mapId or matTurns, so a
             map change or a mat turn (which remounts Terrain above) never remounts them and their
             dice keep their state. See docs/plan-dice-rolling.md, Phase 4. */}
-        {Object.keys(TRAYS).map(trayKey => (
+        {Object.keys(TRAYS).map((trayKey) => (
           <DiceTray
             key={trayKey}
             trayKey={trayKey}
             openMenuSymbol={diceMenu?.trayKey === trayKey ? diceMenu.symbol : null}
-            onMenuToggle={symbol => onDiceMenuToggle(trayKey, symbol)}
+            onMenuToggle={(symbol) => onDiceMenuToggle(trayKey, symbol)}
             onMenuClose={onDiceMenuClose}
             onHover={trayKey === PLAYER_TEAM ? onDiceTrayHover : undefined}
-            addRef={trayKey === PLAYER_TEAM && addDiceRef ? add => { addDiceRef.current = add } : undefined}
+            addRef={
+              trayKey === PLAYER_TEAM && addDiceRef
+                ? (add) => {
+                    addDiceRef.current = add
+                  }
+                : undefined
+            }
           />
         ))}
 
         {/* The scoring board is relative to the table, the same as the dice trays */}
-        <ScoreBoard markers={scoreMarkers} affiliations={affiliations} onMarkerMove={onScoreMarkerMove} />
+        <ScoreBoard
+          markers={scoreMarkers}
+          affiliations={affiliations}
+          onMarkerMove={onScoreMarkerMove}
+        />
 
         {/* Crisis cards and tokens are relative to the player sides, not the mat, so they stay
             outside the rotating group above: a mat turn must not turn them. See docs/feature-crisis.md. */}
         {crisis.secure && (
           <Suspense fallback={null}>
-            <CrisisCard cardKey={crisis.secure} position={[CARD_X, CARD_Y, CARD_Z.secure]} onOpen={onCardOpen} />
+            <CrisisCard
+              cardKey={crisis.secure}
+              position={[CARD_X, CARD_Y, CARD_Z.secure]}
+              onOpen={onCardOpen}
+            />
           </Suspense>
         )}
         {crisis.extract && (
           <Suspense fallback={null}>
-            <CrisisCard cardKey={crisis.extract} position={[CARD_X, CARD_Y, CARD_Z.extract]} onOpen={onCardOpen} />
+            <CrisisCard
+              cardKey={crisis.extract}
+              position={[CARD_X, CARD_Y, CARD_Z.extract]}
+              onOpen={onCardOpen}
+            />
           </Suspense>
         )}
         {/* The supply pile of a Source card (only Extract cards have one now) */}
         {Object.entries(crisis).map(([type, key]) => {
           const supply = getCard(key)?.supply
-          return supply && (
-            <SupplyPile
-              key={type}
-              tokenKey={supply}
-              position={supplyPilePosition(type)}
-              onDragStart={e => onSupplyDragStart(e, key)}
-            />
+          return (
+            supply && (
+              <SupplyPile
+                key={type}
+                tokenKey={supply}
+                position={supplyPilePosition(type)}
+                onDragStart={(e) => onSupplyDragStart(e, key)}
+              />
+            )
           )
         })}
         {/* A held token lies on its holder's tray card (Hold and drop). A drag off the card puts
@@ -646,51 +798,70 @@ export default function Scene({
               selected={selectedTokenId === tok.id}
               rangeMark={rangeMarkOf('token', tok.id)}
               onSelect={() => toggleSelect('token', tok.id)}
-              onHover={tok.heldBy ? over => onHeldHover?.(tok.id, over) : over => onPieceHover?.({ kind: 'token', id: tok.id }, over)}
+              onHover={
+                tok.heldBy
+                  ? (over) => onHeldHover?.(tok.id, over)
+                  : (over) => onPieceHover?.({ kind: 'token', id: tok.id }, over)
+              }
               onMove={(x, z) => onTokenMove(tok.id, x, z)}
-              onTurn={yaw => onTokenTurn(tok.id, yaw)}
+              onTurn={(yaw) => onTokenTurn(tok.id, yaw)}
               onHold={(characterId, point) => {
-                const holder = characters.find(ch => ch.id === characterId)
+                const holder = characters.find((ch) => ch.id === characterId)
                 const trayPos = trayPositions.get(characterId)
-                const onCard = holder && trayPos && onTray(holder.teamColor, trayPos, point, trayCards(holder))
-                onTokenHold(tok.id, characterId, onCard ? trayHeldLocal(holder.teamColor, trayPos, point) : null)
+                const onCard =
+                  holder && trayPos && onTray(holder.teamColor, trayPos, point, trayCards(holder))
+                onTokenHold(
+                  tok.id,
+                  characterId,
+                  onCard ? trayHeldLocal(holder.teamColor, trayPos, point) : null,
+                )
               }}
               findCharacter={findCharacterAt}
               controlAffiliation={tok.control ? affiliations[tok.control] : null}
-              objectRef={obj => obj ? tokenObjects.current.set(tok.id, obj) : tokenObjects.current.delete(tok.id)}
-              centerRef={fn => fn ? tokenCenters.current.set(tok.id, fn) : tokenCenters.current.delete(tok.id)}
+              objectRef={(obj) =>
+                obj ? tokenObjects.current.set(tok.id, obj) : tokenObjects.current.delete(tok.id)
+              }
+              centerRef={(fn) =>
+                fn ? tokenCenters.current.set(tok.id, fn) : tokenCenters.current.delete(tok.id)
+              }
             />
           </Suspense>
         ))}
 
         {/* Character tokens on the table. Relative to the table, not the mat, the same as the crisis
             tokens above. A token that is being dragged shows under the pointer instead. */}
-        {looseTokens.filter(tok => !(tokenDrag?.active && tokenDrag.looseId === tok.id)).map(tok => (
-          <LooseToken
-            key={tok.id}
-            token={tok}
-            onDragStart={e => onTokenDragStart(e, tok.key, tok.id)}
-            onHover={over => onLooseHover?.(tok.id, over)}
-          />
-        ))}
+        {looseTokens
+          .filter((tok) => !(tokenDrag?.active && tokenDrag.looseId === tok.id))
+          .map((tok) => (
+            <LooseToken
+              key={tok.id}
+              token={tok}
+              onDragStart={(e) => onTokenDragStart(e, tok.key, tok.id)}
+              onHover={(over) => onLooseHover?.(tok.id, over)}
+            />
+          ))}
         {/* Piles of character tokens on the table (Library, Pile mode). A pile that is moved shows
             under the pointer instead. */}
-        {tokenPiles.filter(pile => !(tokenDrag?.active && tokenDrag.pileId === pile.id)).map(pile => (
-          <TokenPile
-            key={pile.id}
-            pile={pile}
-            onTakeStart={e => onPileTakeStart(e, pile)}
-            onMoveStart={e => onPileMoveStart(e, pile)}
-            onHover={over => onPileHover?.(pile.id, over)}
-          />
-        ))}
+        {tokenPiles
+          .filter((pile) => !(tokenDrag?.active && tokenDrag.pileId === pile.id))
+          .map((pile) => (
+            <TokenPile
+              key={pile.id}
+              pile={pile}
+              onTakeStart={(e) => onPileTakeStart(e, pile)}
+              onMoveStart={(e) => onPileMoveStart(e, pile)}
+              onHover={(over) => onPileHover?.(pile.id, over)}
+            />
+          ))}
         {tokenDrag?.active && (
           <TokenDragPreview pointRef={dragPointRef} start={tokenDrag.start}>
-            {tokenDrag.supplyCard
-              ? <SupplyToken tokenKey={tokenDrag.tokenKey} raycast={NO_RAYCAST} />
-              : tokenDrag.pile || tokenDrag.pileId
-                ? <PileStack tokenKey={tokenDrag.tokenKey} interactive={false} />
-                : <TokenFace tokenKey={tokenDrag.tokenKey} interactive={false} />}
+            {tokenDrag.supplyCard ? (
+              <SupplyToken tokenKey={tokenDrag.tokenKey} raycast={NO_RAYCAST} />
+            ) : tokenDrag.pile || tokenDrag.pileId ? (
+              <PileStack tokenKey={tokenDrag.tokenKey} interactive={false} />
+            ) : (
+              <TokenFace tokenKey={tokenDrag.tokenKey} interactive={false} />
+            )}
           </TokenDragPreview>
         )}
 
@@ -701,16 +872,26 @@ export default function Scene({
         {/* The loaded rosters, in the area of the character trays (docs/feature-roster.md), until the squads
             go on the table. Locked cards, no physics body, so a tool or a model passes over them. The
             crisis cards of the rosters and the setup buttons are in GameSetup. */}
-        {setupStep(setup) !== 'done' && ['blue', 'red'].map(team => rosters[team] && (
-          <RosterCards
-            key={team}
-            team={team}
-            code={rosters[team].code}
-            squad={setup.squads[team]}
-            onOpen={(tab, index) => onRosterOpen?.({ team, tab, index })}
-          />
-        ))}
-        <GameSetup setup={setup} rosters={rosters} squadSelect={squadSelect} actions={setupActions} onRosterOpen={onRosterOpen} />
+        {setupStep(setup) !== 'done' &&
+          ['blue', 'red'].map(
+            (team) =>
+              rosters[team] && (
+                <RosterCards
+                  key={team}
+                  team={team}
+                  code={rosters[team].code}
+                  squad={setup.squads[team]}
+                  onOpen={(tab, index) => onRosterOpen?.({ team, tab, index })}
+                />
+              ),
+          )}
+        <GameSetup
+          setup={setup}
+          rosters={rosters}
+          squadSelect={squadSelect}
+          actions={setupActions}
+          onRosterOpen={onRosterOpen}
+        />
         {tacticCards.map((card, i) => (
           <Suspense key={card.id} fallback={null}>
             <TacticCard
@@ -718,7 +899,7 @@ export default function Scene({
               stackIndex={i}
               onMove={(x, z) => onTacticMove(card.id, x, z)}
               onOpen={onCardOpen}
-              onHover={over => onTacticHover?.(card.id, over)}
+              onHover={(over) => onTacticHover?.(card.id, over)}
             />
           </Suspense>
         ))}
@@ -727,26 +908,28 @@ export default function Scene({
             docs/characters-hud.md, "Tray layout"). The models below spawn standing on the center
             of this tray's cards (modelSpawnPosition). A model reads that position only once, when
             its body mounts, so a later tray move does not teleport it. */}
-        {characters.map(ch => (
+        {characters.map((ch) => (
           <Suspense key={ch.id} fallback={null}>
             <CharacterTray
               character={ch}
               position={trayPositions.get(ch.id)}
               onOpen={() => onTrayOpen(ch.id)}
-              onDamage={damage => onCharacterDamage(ch.id, damage)}
-              onPower={power => onCharacterPower(ch.id, power)}
+              onDamage={(damage) => onCharacterDamage(ch.id, damage)}
+              onPower={(power) => onCharacterPower(ch.id, power)}
               onFlip={() => onCharacterFlip(ch.id)}
-              onCardHover={over => onTrayCardHover?.(ch.id, over)}
+              onCardHover={(over) => onTrayCardHover?.(ch.id, over)}
               onRemove={() => onCharacterRemove(ch.id)}
-              onTokenRemove={key => onCharacterTokenRemove(ch.id, key)}
+              onTokenRemove={(key) => onCharacterTokenRemove(ch.id, key)}
               onTokenDragStart={onTokenDragStart}
               selected={selectedCharId === ch.id}
-              objectRef={obj => obj ? trayObjects.current.set(ch.id, obj) : trayObjects.current.delete(ch.id)}
+              objectRef={(obj) =>
+                obj ? trayObjects.current.set(ch.id, obj) : trayObjects.current.delete(ch.id)
+              }
             />
           </Suspense>
         ))}
 
-        {models.map(model => {
+        {models.map((model) => {
           const ch = model.character
           // The same props for a 3D model and a standee (CharacterModel.jsx)
           const pose = startPoses[model.id]
@@ -754,19 +937,23 @@ export default function Scene({
             position: modelSpawnPosition(model),
             quaternion: pose && [pose.qx, pose.qy, pose.qz, pose.qw],
             baseRadius: BASE_DIAMETER[model.base] / 2,
-            rotation: [0, model.rotation * Math.PI / 180, 0],
+            rotation: [0, (model.rotation * Math.PI) / 180, 0],
             teamColor: ch.teamColor,
             selected: selectedModelId === model.id,
             rangeMark: rangeMarkOf('character', model.id),
             onSelect: () => toggleSelect('character', model.id),
-            onHover: over => {
+            onHover: (over) => {
               onPieceHover?.({ kind: 'character', id: model.id }, over)
               trackPiece(hoveredPiece, { kind: 'character', id: model.id }, over)
             },
-            bodyRef: rb => rb ? charBodies.current.set(model.id, rb) : charBodies.current.delete(model.id),
-            objectRef: obj => obj ? charObjects.current.set(model.id, obj) : charObjects.current.delete(model.id),
-            liftRef: lift => lift ? charLifts.current.set(model.id, lift) : charLifts.current.delete(model.id),
-            slideRef: slide => slide ? charSlides.current.set(model.id, slide) : charSlides.current.delete(model.id),
+            bodyRef: (rb) =>
+              rb ? charBodies.current.set(model.id, rb) : charBodies.current.delete(model.id),
+            objectRef: (obj) =>
+              obj ? charObjects.current.set(model.id, obj) : charObjects.current.delete(model.id),
+            liftRef: (lift) =>
+              lift ? charLifts.current.set(model.id, lift) : charLifts.current.delete(model.id),
+            slideRef: (slide) =>
+              slide ? charSlides.current.set(model.id, slide) : charSlides.current.delete(model.id),
             onDragStart: () => {
               setDraggingCharId(model.id)
               trackPiece(draggedPiece, { kind: 'character', id: model.id }, true)
@@ -792,9 +979,11 @@ export default function Scene({
           const urls = modelUrls(model)
           return (
             <Suspense key={model.id} fallback={null}>
-              {urls.standee
-                ? <StandeeModel urls={urls.standee} {...props} />
-                : <CharacterModel url={urls.gltf} {...props} />}
+              {urls.standee ? (
+                <StandeeModel urls={urls.standee} {...props} />
+              ) : (
+                <CharacterModel url={urls.gltf} {...props} />
+              )}
             </Suspense>
           )
         })}
@@ -815,7 +1004,9 @@ export default function Scene({
               placeTarget={placeTarget}
               models={toolModels}
               onSnap={selectModel}
-              onPlaceLimit={limit => { placeLimits.current.move = limit }}
+              onPlaceLimit={(limit) => {
+                placeLimits.current.move = limit
+              }}
               {...turnProps('move')}
             />
           </Suspense>
@@ -834,7 +1025,9 @@ export default function Scene({
               aim={toolModel(angleSpawn.aim)}
               models={toolModels}
               onSnap={selectModel}
-              angleRef={get => { angleTool.current = get }}
+              angleRef={(get) => {
+                angleTool.current = get
+              }}
               {...turnProps('angle')}
             />
           </Suspense>
@@ -843,7 +1036,11 @@ export default function Scene({
           <Suspense fallback={null}>
             <DeployRangeTool
               getBody={() => charBodies.current.get(draggingCharId)}
-              centerZ={draggingChar.teamColor === 'blue' ? MAT_SIZE / 2 - deployTip : -(MAT_SIZE / 2 - deployTip)}
+              centerZ={
+                draggingChar.teamColor === 'blue'
+                  ? MAT_SIZE / 2 - deployTip
+                  : -(MAT_SIZE / 2 - deployTip)
+              }
               yaw={draggingChar.teamColor === 'blue' ? -Math.PI / 2 : Math.PI / 2}
               team={draggingChar.teamColor}
               hoverHeight={TOOL_HOVER_HEIGHT}
@@ -864,7 +1061,9 @@ export default function Scene({
               placeTarget={placeTarget}
               models={toolModels}
               onSnap={selectModel}
-              onPlaceLimit={limit => { placeLimits.current.range = limit }}
+              onPlaceLimit={(limit) => {
+                placeLimits.current.range = limit
+              }}
               onRangeMark={setRangeMark}
               {...turnProps('range')}
             />

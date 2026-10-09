@@ -47,33 +47,31 @@ function rosterEntry(jch, m, mctCode) {
 
 // An alternate sculpt (Mephisto Convention Exclusive) has the MCT code of its main character, so it
 // would be a second row for the same character.
-const jarvisRows = jarvisData.filter(jch => jch.exportCode && !jch.isAlternateSculpt)
-const jarvisCodes = new Set(jarvisRows.map(jch => jch.exportCode))
-const jarvisByName = new Map(jarvisRows.map(jch => [jch.name, jch]))
+const jarvisRows = jarvisData.filter((jch) => jch.exportCode && !jch.isAlternateSculpt)
+const jarvisCodes = new Set(jarvisRows.map((jch) => jch.exportCode))
+const jarvisByName = new Map(jarvisRows.map((jch) => [jch.name, jch]))
 
 // A migrated character with its own MCT code but no Jarvis entry of its own gets a row too, with the
 // stats of the Jarvis character of the same name. The only one now is the second Sentinel MK4
 // (00510102): the mod has a row for each of the two sculpts in the box, and Jarvis has one entry. Jarvis
 // uses 00510102 in a roster code for the second Sentinel MK4 of a roster.
 const extraRows = [...migrated.values()]
-  .filter(m => !jarvisCodes.has(m.id) && jarvisByName.has(m.name))
-  .map(m => rosterEntry(jarvisByName.get(m.name), m, m.id))
+  .filter((m) => !jarvisCodes.has(m.id) && jarvisByName.has(m.name))
+  .map((m) => rosterEntry(jarvisByName.get(m.name), m, m.id))
 
 export const CHARACTERS = [
-  ...jarvisRows.map(jch => rosterEntry(jch, migrated.get(jch.exportCode), jch.exportCode)),
+  ...jarvisRows.map((jch) => rosterEntry(jch, migrated.get(jch.exportCode), jch.exportCode)),
   ...extraRows,
 ].sort((a, b) => a.name.localeCompare(b.name) || a.mctCode.localeCompare(b.mctCode))
 
 export function searchCharacters(query) {
   const q = query.toLowerCase().trim()
   if (!q) return []
-  return CHARACTERS.filter(ch =>
-    ch.name.toLowerCase().includes(q) || ch.mctCode.startsWith(q)
-  )
+  return CHARACTERS.filter((ch) => ch.name.toLowerCase().includes(q) || ch.mctCode.startsWith(q))
 }
 
-const bySlug = new Map(CHARACTERS.map(ch => [ch.slug, ch]))
-const byCode = new Map(CHARACTERS.map(ch => [ch.mctCode, ch]))
+const bySlug = new Map(CHARACTERS.map((ch) => [ch.slug, ch]))
+const byCode = new Map(CHARACTERS.map((ch) => [ch.mctCode, ch]))
 
 // The Library row of an MCT code, or null. A roster stores characters by code (rosters/mct.js).
 export function characterByCode(code) {

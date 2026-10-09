@@ -27,7 +27,10 @@ export default function TokenDragPreview({ pointRef, start, children }) {
 
     function tablePoint(clientX, clientY) {
       const rect = gl.domElement.getBoundingClientRect()
-      const ndc = { x: ((clientX - rect.left) / rect.width) * 2 - 1, y: -((clientY - rect.top) / rect.height) * 2 + 1 }
+      const ndc = {
+        x: ((clientX - rect.left) / rect.width) * 2 - 1,
+        y: -((clientY - rect.top) / rect.height) * 2 + 1,
+      }
       raycaster.setFromCamera(ndc, camera)
       const { origin, direction } = raycaster.ray
       const hit = world.castRay(new rapier.Ray(origin, direction), 1000, true, filter)
@@ -56,9 +59,7 @@ export default function TokenDragPreview({ pointRef, start, children }) {
   // Hidden until handleMove gives it a point
   return (
     <group ref={groupRef} visible={false}>
-      <Suspense fallback={null}>
-        {children}
-      </Suspense>
+      <Suspense fallback={null}>{children}</Suspense>
     </group>
   )
 }

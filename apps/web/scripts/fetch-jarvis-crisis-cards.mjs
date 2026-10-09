@@ -8,7 +8,8 @@ const OUT_FILE = path.resolve(import.meta.dirname, '../src/crisis/jarvis-crisis-
 // Jarvis returns 403 for an unusual User-Agent or a Referer from another site
 const HEADERS = {
   Accept: 'application/json',
-  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  'User-Agent':
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
   Referer: 'https://www.jarvis-protocol.com/',
 }
 
@@ -19,6 +20,6 @@ const cards = (await res.json()).sort((a, b) => (a.slug < b.slug ? -1 : 1))
 fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true })
 fs.writeFileSync(OUT_FILE, JSON.stringify(cards, null, 2) + '\n')
 
-const current = cards.filter(c => c.replacedBy === null).length
+const current = cards.filter((c) => c.replacedBy === null).length
 console.log(`${cards.length} cards: ${current} current, ${cards.length - current} older printings`)
 console.log(`Wrote ${path.relative(process.cwd(), OUT_FILE)}`)

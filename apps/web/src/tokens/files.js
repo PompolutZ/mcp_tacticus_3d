@@ -1,7 +1,7 @@
 // Name of the token image file in src/assets/tokens/. The key is in tokens.json.
 // scripts/migrate-tokens.mjs writes the files with this name.
 // Plain function without Vite imports, so that the script can use it too.
-export const characterToken = key => `tokens/${key}.webp`
+export const characterToken = (key) => `tokens/${key}.webp`
 
 // Width of a character token image on the table, in inches. Here and not in tokens.js, so plain
 // modules such as characters/trays.js can use it without the JSON import. The mod spawns a circle

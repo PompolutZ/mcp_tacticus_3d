@@ -13,10 +13,17 @@ import { parseRosterText } from '../rosters/cards.js'
 // handleSpawn), so characterModels gives their models. The code is the id: only the files matter here.
 function rosterCharacters(roster) {
   if (!roster) return []
-  return parseRosterText(roster.code).characters
-    .map(({ code }) => characterByCode(code))
-    .filter(ch => ch?.available)
-    .map(ch => ({ id: ch.mctCode, key: ch.slug, figure: ch.figure, base: ch.base, rotation: ch.rotation, transform: ch.transform }))
+  return parseRosterText(roster.code)
+    .characters.map(({ code }) => characterByCode(code))
+    .filter((ch) => ch?.available)
+    .map((ch) => ({
+      id: ch.mctCode,
+      key: ch.slug,
+      figure: ch.figure,
+      base: ch.base,
+      rotation: ch.rotation,
+      transform: ch.transform,
+    }))
 }
 
 // { gltf: [url], textures: [url | [url]] } for Preload.jsx. A list of URLs is one input: a standee
@@ -25,9 +32,9 @@ function rosterCharacters(roster) {
 export function tableFiles({ mapId, terrain, characters, rosters }) {
   const gltf = new Set()
   const textures = new Map()
-  const addTexture = input => textures.set(JSON.stringify(input), input)
+  const addTexture = (input) => textures.set(JSON.stringify(input), input)
   addTexture(matUrl(mapId))
-  for (const key of new Set(terrain.map(p => p.piece))) {
+  for (const key of new Set(terrain.map((p) => p.piece))) {
     const urls = pieceUrls(key)
     gltf.add(urls.mesh)
     addTexture(urls.texture)

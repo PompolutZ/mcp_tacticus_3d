@@ -30,7 +30,15 @@ const NO_RAYCAST = () => null
 // token. interactive false: the token gets no pointer events, so it does not hide what is under it.
 // While the pointer is over the token, a label shows its name and the mod's description, as the
 // tooltip of a token chip did before.
-export default function TokenFace({ tokenKey, count = 1, cursor = 'pointer', interactive = true, onPointerDown, onClick, onHover }) {
+export default function TokenFace({
+  tokenKey,
+  count = 1,
+  cursor = 'pointer',
+  interactive = true,
+  onPointerDown,
+  onClick,
+  onHover,
+}) {
   const map = useTexture(assetUrl(characterToken(tokenKey)))
   const token = getToken(tokenKey)
   const [hovered, setHovered] = useState(false)
@@ -47,7 +55,10 @@ export default function TokenFace({ tokenKey, count = 1, cursor = 'pointer', int
     ? {
         onPointerDown,
         onClick,
-        onPointerOver: e => { e.stopPropagation(); setHovered(true) },
+        onPointerOver: (e) => {
+          e.stopPropagation()
+          setHovered(true)
+        },
         onPointerOut: () => setHovered(false),
       }
     : { raycast: NO_RAYCAST }

@@ -27,12 +27,21 @@ export default function TacticTray({ team }) {
 
   return (
     <group>
-      <mesh position={[tray.x, TACTIC_PLATE_Y, tray.z]} rotation={[-Math.PI / 2, 0, 0]} raycast={NO_RAYCAST}>
+      <mesh
+        position={[tray.x, TACTIC_PLATE_Y, tray.z]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        raycast={NO_RAYCAST}
+      >
         <planeGeometry args={[TACTIC_PLATE_WIDTH, TACTIC_PLATE_DEPTH]} />
         <meshStandardMaterial color={PLATE_COLOR} roughness={1} />
       </mesh>
       {slots.map((slot, i) => (
-        <mesh key={i} position={[slot.x, SLOT_Y, slot.z]} rotation={[-Math.PI / 2, 0, 0]} raycast={NO_RAYCAST}>
+        <mesh
+          key={i}
+          position={[slot.x, SLOT_Y, slot.z]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          raycast={NO_RAYCAST}
+        >
           <planeGeometry args={[TACTIC_CARD_WIDTH, TACTIC_CARD_HEIGHT]} />
           <meshStandardMaterial color={SLOT_COLOR} roughness={1} />
         </mesh>

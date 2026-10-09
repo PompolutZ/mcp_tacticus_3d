@@ -46,7 +46,7 @@ function faceNormal([i, j, k]) {
   const [a, b, c] = [D8_CORNERS[i], D8_CORNERS[j], D8_CORNERS[k]]
   const centroid = a.map((v, n) => (v + b[n] + c[n]) / 3)
   const length = Math.hypot(...centroid)
-  return centroid.map(v => v / length)
+  return centroid.map((v) => v / length)
 }
 
 // index = face number - 1. corners: counter-clockwise seen from outside (checked with the cross

@@ -38,7 +38,7 @@ export const SETTLE_TIMEOUT = 8 // s
 
 // A die is tilted when its top face is more than this many degrees from flat.
 const TILT_LIMIT_DEG = 15
-export const TILT_LIMIT_DOT = Math.cos(TILT_LIMIT_DEG * Math.PI / 180)
+export const TILT_LIMIT_DOT = Math.cos((TILT_LIMIT_DEG * Math.PI) / 180)
 
 // Gravity of a die, in/s², down: 25, the TTS gravity (Physics.getGravity(), measured on
 // 2026-10-01). The world has WORLD_GRAVITY (-30) for the models, so a die body gets
@@ -169,5 +169,7 @@ export function isFinitePoint(p) {
 
 // True when a rotation ({x, y, z, w}) has only finite numbers.
 export function isFiniteQuat(q) {
-  return Number.isFinite(q.x) && Number.isFinite(q.y) && Number.isFinite(q.z) && Number.isFinite(q.w)
+  return (
+    Number.isFinite(q.x) && Number.isFinite(q.y) && Number.isFinite(q.z) && Number.isFinite(q.w)
+  )
 }

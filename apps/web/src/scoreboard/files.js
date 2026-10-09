@@ -7,4 +7,4 @@ export const BOARD_TEXTURE = 'scoreboard/board.webp'
 // The round marker ("Round Tracker" in the mod). It has no texture, only a tint (see board.js).
 export const ROUND_MESH = 'scoreboard/round.glb'
 // Affiliation token image. The key is in src/scoreboard/affiliations.json.
-export const affiliationToken = key => `affiliations/${key}.webp`
+export const affiliationToken = (key) => `affiliations/${key}.webp`

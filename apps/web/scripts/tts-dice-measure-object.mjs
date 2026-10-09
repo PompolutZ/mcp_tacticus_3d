@@ -18,7 +18,17 @@ const NAME = 'Dice measure'
 const block = {
   GUID: 'd1ce5a',
   Name: 'BlockSquare',
-  Transform: { posX: 0, posY: 1, posZ: 0, rotX: 0, rotY: 0, rotZ: 0, scaleX: 1, scaleY: 1, scaleZ: 1 },
+  Transform: {
+    posX: 0,
+    posY: 1,
+    posZ: 0,
+    rotX: 0,
+    rotY: 0,
+    rotZ: 0,
+    scaleX: 1,
+    scaleY: 1,
+    scaleZ: 1,
+  },
   Nickname: NAME,
   Description: '',
   GMNotes: '',

@@ -57,7 +57,7 @@ const dieVertices = Float32Array.from(D8_CORNERS.flat())
 let nextDieId = 1
 
 // All 6 shelf counts at 0, what the keys show before the first frame reports.
-const EMPTY_SHELF = Object.fromEntries(SYMBOLS.map(symbol => [symbol, 0]))
+const EMPTY_SHELF = Object.fromEntries(SYMBOLS.map((symbol) => [symbol, 0]))
 
 // One die: a RigidBody with a convex hull collider (the die shape) and a shared mesh. Starts
 // dynamic; startShelfMove below switches it to kinematicPosition the first time it reaches the
@@ -101,7 +101,14 @@ function Die({ id, dice, geometry, material }) {
 // onHover(over): the pointer moved onto (true) or off (false) the tray, for the number keys.
 // addRef(addDice): gets addDice, for the number keys, and null on unmount. Both are only given
 // for the player's tray (Scene.jsx).
-export default function DiceTray({ trayKey, openMenuSymbol = null, onMenuToggle, onMenuClose, onHover, addRef }) {
+export default function DiceTray({
+  trayKey,
+  openMenuSymbol = null,
+  onMenuToggle,
+  onMenuClose,
+  onHover,
+  addRef,
+}) {
   const tray = TRAYS[trayKey]
   const { rapier } = useRapier()
 
@@ -146,7 +153,7 @@ export default function DiceTray({ trayKey, openMenuSymbol = null, onMenuToggle,
   // into its vertices, so it needs no extra transform of its own).
   const trayVisual = useMemo(() => {
     const clone = trayGltf.scene.clone()
-    clone.traverse(child => {
+    clone.traverse((child) => {
       if (!child.isMesh) return
       child.material = trayMaterial
       child.castShadow = true
@@ -327,7 +334,11 @@ export default function DiceTray({ trayKey, openMenuSymbol = null, onMenuToggle,
   function roll() {
     for (const entry of dice.current.values()) {
       if (entry.state === 'shelf') continue
-      if (entry.state === 'thrown' && entry.body && aboveRollLimit(trayKey, entry.body.translation())) {
+      if (
+        entry.state === 'thrown' &&
+        entry.body &&
+        aboveRollLimit(trayKey, entry.body.translation())
+      ) {
         entry.body.setAngvel(randomSpin(), true)
         continue
       }
@@ -354,7 +365,7 @@ export default function DiceTray({ trayKey, openMenuSymbol = null, onMenuToggle,
   // Moves one shelf die showing `symbol` back into the well, dynamic again, at a free drop point.
   // Does nothing when the shelf has no die with that symbol.
   function reroll(symbol) {
-    const entry = shelfEntries().find(e => e.symbol === symbol)
+    const entry = shelfEntries().find((e) => e.symbol === symbol)
     if (!entry) return
     const rb = entry.body
     if (!rb) return
@@ -379,7 +390,7 @@ export default function DiceTray({ trayKey, openMenuSymbol = null, onMenuToggle,
   // Turns one shelf die showing `symbol` to `toSymbol` in place and re-sorts the shelf. Does
   // nothing when the shelf has no die with that symbol.
   function change(symbol, toSymbol) {
-    const entry = shelfEntries().find(e => e.symbol === symbol)
+    const entry = shelfEntries().find((e) => e.symbol === symbol)
     if (!entry) return
     entry.symbol = toSymbol
     entry.face = defaultFaceForSymbol(toSymbol)
@@ -396,7 +407,7 @@ export default function DiceTray({ trayKey, openMenuSymbol = null, onMenuToggle,
       !last ||
       last.well !== well ||
       last.critsAvailable !== critsAvailable ||
-      SYMBOLS.some(symbol => last.shelf[symbol] !== shelf[symbol])
+      SYMBOLS.some((symbol) => last.shelf[symbol] !== shelf[symbol])
     if (!changed) return
     lastReported.current = { well, critsAvailable, shelf }
     setKeys(lastReported.current)
@@ -484,7 +495,10 @@ export default function DiceTray({ trayKey, openMenuSymbol = null, onMenuToggle,
         rotation={[0, tray.yaw, 0]}
         colliders={false}
       >
-        <TrimeshCollider args={[trayVertices, trayIndices, rapier.TriMeshFlags.FIX_INTERNAL_EDGES]} friction={FRICTION} />
+        <TrimeshCollider
+          args={[trayVertices, trayIndices, rapier.TriMeshFlags.FIX_INTERNAL_EDGES]}
+          friction={FRICTION}
+        />
         {/* A die in the tray does not hide the tray from the pointer: the die has no pointer
             handlers. A tray with these handlers counts as a hit for R3F, so a click on it does not
             clear the selection (onPointerMissed in App.jsx). */}
@@ -503,7 +517,7 @@ export default function DiceTray({ trayKey, openMenuSymbol = null, onMenuToggle,
           onMenuClose={onMenuClose}
         />
       </RigidBody>
-      {ids.map(id => (
+      {ids.map((id) => (
         <Die key={id} id={id} dice={dice} geometry={dieGeometry} material={dieMaterial} />
       ))}
     </>

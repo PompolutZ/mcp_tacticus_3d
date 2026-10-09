@@ -40,7 +40,10 @@ export default function SupplyPile({ tokenKey, position, onDragStart }) {
         <SupplyToken
           tokenKey={tokenKey}
           onPointerDown={handlePointerDown}
-          onPointerOver={e => { e.stopPropagation(); setHovered(true) }}
+          onPointerOver={(e) => {
+            e.stopPropagation()
+            setHovered(true)
+          }}
           onPointerOut={() => setHovered(false)}
         />
       </Suspense>

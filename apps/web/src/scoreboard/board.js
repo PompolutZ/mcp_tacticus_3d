@@ -33,9 +33,11 @@ function boardPoint(boardX, boardZ) {
 
 // VP_POINTS[n - 1] is the spot for n VP. The VP tracker script (checkScore) gives 1 VP at TTS z = -7.4, so
 // VP 1 is at board x = 3.7, and each row runs against the order of X_SCORE.
-export const VP_POINTS = Z_ROW.slice(0, 2).flatMap(row => [...X_SCORE].reverse().map(x => boardPoint(x, row)))
+export const VP_POINTS = Z_ROW.slice(0, 2).flatMap((row) =>
+  [...X_SCORE].reverse().map((x) => boardPoint(x, row)),
+)
 // ROUND_POINTS[n - 1] is the spot for round n. The Round Tracker starts on round 1 at TTS z = -5.2.
-export const ROUND_POINTS = X_ROUND.map(x => boardPoint(x, Z_ROW[2]))
+export const ROUND_POINTS = X_ROUND.map((x) => boardPoint(x, Z_ROW[2]))
 
 // A marker that is released this close to a spot moves onto it, as on a TTS snap point. Spots are about
 // 2" apart, so a marker released on the track always lands on the nearest spot.

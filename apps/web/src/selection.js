@@ -22,19 +22,21 @@ function samePiece(a, b) {
 
 // Selects piece. It deselects the selected piece of the same kind.
 export function selectPiece(selection, piece) {
-  return [...selection.filter(p => p.kind !== piece.kind), piece]
+  return [...selection.filter((p) => p.kind !== piece.kind), piece]
 }
 
 export function deselectPiece(selection, piece) {
-  return selection.filter(p => !samePiece(p, piece))
+  return selection.filter((p) => !samePiece(p, piece))
 }
 
 // A click on a piece: selects it, or deselects it when it is already selected
 export function toggleSelectPiece(selection, piece) {
-  return selection.some(p => samePiece(p, piece)) ? deselectPiece(selection, piece) : selectPiece(selection, piece)
+  return selection.some((p) => samePiece(p, piece))
+    ? deselectPiece(selection, piece)
+    : selectPiece(selection, piece)
 }
 
 // Id of the selected piece of kind, or null
 export function selectedId(selection, kind) {
-  return selection.find(p => p.kind === kind)?.id ?? null
+  return selection.find((p) => p.kind === kind)?.id ?? null
 }

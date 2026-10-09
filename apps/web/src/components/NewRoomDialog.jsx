@@ -33,9 +33,19 @@ function MissingFiles({ parsed }) {
   if (models.length === 0 && tactics.length === 0) return null
   return (
     <div className="new-room-missing">
-      <span className="new-room-missing-title">The app does not have these cards, so they will not show</span>
-      {models.length > 0 && <span>No 3D model for {count(models.length, 'character')}: {models.join(', ')}</span>}
-      {tactics.length > 0 && <span>No image for {count(tactics.length, 'tactic card')}: {tactics.join(', ')}</span>}
+      <span className="new-room-missing-title">
+        The app does not have these cards, so they will not show
+      </span>
+      {models.length > 0 && (
+        <span>
+          No 3D model for {count(models.length, 'character')}: {models.join(', ')}
+        </span>
+      )}
+      {tactics.length > 0 && (
+        <span>
+          No image for {count(tactics.length, 'tactic card')}: {tactics.join(', ')}
+        </span>
+      )}
     </div>
   )
 }
@@ -44,12 +54,15 @@ function MissingFiles({ parsed }) {
 // parsed: the parsed text. onChange(text). The Blue field has the focus when the dialog opens.
 function RosterField({ team, text, parsed, onChange }) {
   let status = null
-  if (text.trim() && isEmptyRoster(parsed)) status = <span className="new-room-error">No known MCT code in the text</span>
+  if (text.trim() && isEmptyRoster(parsed))
+    status = <span className="new-room-error">No known MCT code in the text</span>
   else if (!isEmptyRoster(parsed)) {
     status = (
       <>
         <span>{rosterSummary(parsed)}</span>
-        {parsed.unknown.length > 0 && <span className="new-room-warning">{unknownCodesMessage(parsed.unknown)}</span>}
+        {parsed.unknown.length > 0 && (
+          <span className="new-room-warning">{unknownCodesMessage(parsed.unknown)}</span>
+        )}
         <MissingFiles parsed={parsed} />
       </>
     )
@@ -63,11 +76,13 @@ function RosterField({ team, text, parsed, onChange }) {
           className={`chip chip--player-${team} chip--text new-room-input`}
           placeholder={team === 'blue' ? 'Paste an MCT code' : 'Optional: paste an MCT code'}
           value={text}
-          onChange={e => onChange(e.target.value)}
+          onChange={(e) => onChange(e.target.value)}
           autoFocus={team === 'blue'}
         />
       </label>
-      <div className="new-room-status" aria-live="polite">{status}</div>
+      <div className="new-room-status" aria-live="polite">
+        {status}
+      </div>
     </>
   )
 }
@@ -84,7 +99,10 @@ export function NewRoomDialog({ onCreate, onClose }) {
   const [text, setText] = useState({ blue: '', red: '' })
   // The browser did not store the room
   const [failed, setFailed] = useState(false)
-  const parsed = useMemo(() => ({ blue: parseRosterText(text.blue), red: parseRosterText(text.red) }), [text])
+  const parsed = useMemo(
+    () => ({ blue: parseRosterText(text.blue), red: parseRosterText(text.red) }),
+    [text],
+  )
   // A Red text without a known code blocks Create room, so a wrong paste does not make a room without Red
   const canCreate = !isEmptyRoster(parsed.blue) && (!text.red.trim() || !isEmptyRoster(parsed.red))
   // A carousel drag can end on the backdrop. The click then goes to the backdrop. So the backdrop
@@ -95,7 +113,7 @@ export function NewRoomDialog({ onCreate, onClose }) {
     function handleKeyDown(e) {
       if (e.key === 'Escape') onClose()
       else if (!random && CARD_STEP_KEYS[e.code] && !isEditing(e.target)) {
-        setMapIndex(i => (i + CARD_STEP_KEYS[e.code] + MAP_IDS.length) % MAP_IDS.length)
+        setMapIndex((i) => (i + CARD_STEP_KEYS[e.code] + MAP_IDS.length) % MAP_IDS.length)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -106,38 +124,56 @@ export function NewRoomDialog({ onCreate, onClose }) {
     e.preventDefault()
     if (!canCreate) return
     const mapId = random ? MAP_IDS[Math.floor(Math.random() * MAP_IDS.length)] : MAP_IDS[mapIndex]
-    const roster = team => (isEmptyRoster(parsed[team]) ? null : { code: formatMctCode(parsed[team]) })
+    const roster = (team) =>
+      isEmptyRoster(parsed[team]) ? null : { code: formatMctCode(parsed[team]) }
     const room = createRoom(mapId, { blue: roster('blue'), red: roster('red') })
     if (room) onCreate(room)
     else setFailed(true)
   }
 
   function handleTextChange(team, value) {
-    setText(prev => ({ ...prev, [team]: value }))
+    setText((prev) => ({ ...prev, [team]: value }))
     setFailed(false)
   }
 
   return (
     <Overlay
       className="new-room-backdrop"
-      onPointerDown={e => { pressedBackdrop.current = e.target === e.currentTarget }}
-      onClick={e => { if (pressedBackdrop.current && e.target === e.currentTarget) onClose() }}
+      onPointerDown={(e) => {
+        pressedBackdrop.current = e.target === e.currentTarget
+      }}
+      onClick={(e) => {
+        if (pressedBackdrop.current && e.target === e.currentTarget) onClose()
+      }}
     >
-      <button type="button" className="popup-close" aria-label="Close" onClick={onClose}>×</button>
-      <form className="new-room" role="dialog" aria-modal="true" aria-label="New room" onSubmit={handleCreate}>
+      <button type="button" className="popup-close" aria-label="Close" onClick={onClose}>
+        ×
+      </button>
+      <form
+        className="new-room"
+        role="dialog"
+        aria-modal="true"
+        aria-label="New room"
+        onSubmit={handleCreate}
+      >
         <h2 className="new-room-title">New room</h2>
         <button
           type="button"
           className={random ? 'chip chip--active' : 'chip'}
           aria-pressed={random}
           title="On: the app picks the map when it creates the room. Off: choose the map below."
-          onClick={() => setRandom(v => !v)}
+          onClick={() => setRandom((v) => !v)}
         >
           Random map
         </button>
         {random ? (
           <div className="new-room-random">
-            <img className="new-room-card" src={assetUrl(MAP_CARD_BACK)} alt="Random map" draggable={false} />
+            <img
+              className="new-room-card"
+              src={assetUrl(MAP_CARD_BACK)}
+              alt="Random map"
+              draggable={false}
+            />
             <span className="new-room-hint">The app picks the map when it creates the room</span>
           </div>
         ) : (
@@ -146,18 +182,37 @@ export function NewRoomDialog({ onCreate, onClose }) {
             index={mapIndex}
             onIndexChange={setMapIndex}
             itemName="Map"
-            renderSlide={i => (
-              <img className="carousel-card new-room-card" src={assetUrl(mapCard(MAP_IDS[i]))} alt={MAPS[MAP_IDS[i]].name} draggable={false} />
+            renderSlide={(i) => (
+              <img
+                className="carousel-card new-room-card"
+                src={assetUrl(mapCard(MAP_IDS[i]))}
+                alt={MAPS[MAP_IDS[i]].name}
+                draggable={false}
+              />
             )}
           />
         )}
-        {TEAMS.map(team => (
-          <RosterField key={team} team={team} text={text[team]} parsed={parsed[team]} onChange={value => handleTextChange(team, value)} />
+        {TEAMS.map((team) => (
+          <RosterField
+            key={team}
+            team={team}
+            text={text[team]}
+            parsed={parsed[team]}
+            onChange={(value) => handleTextChange(team, value)}
+          />
         ))}
-        {failed && <span className="new-room-error" role="alert">The browser did not store the room. Its storage is full or turned off.</span>}
+        {failed && (
+          <span className="new-room-error" role="alert">
+            The browser did not store the room. Its storage is full or turned off.
+          </span>
+        )}
         <div className="new-room-actions">
-          <button type="button" className="chip" onClick={onClose}>Cancel</button>
-          <button type="submit" className="chip chip--active" disabled={!canCreate}>Create room</button>
+          <button type="button" className="chip" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="submit" className="chip chip--active" disabled={!canCreate}>
+            Create room
+          </button>
         </div>
       </form>
     </Overlay>

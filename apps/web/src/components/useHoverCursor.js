@@ -6,10 +6,12 @@ import { useThree } from '@react-three/fiber'
 // Only the nearest piece gets pointerover (its handler stops propagation), so one piece at a time
 // sets the cursor. The cleanup also runs on unmount, so a removed piece does not keep its cursor.
 export function useHoverCursor(hovered, cursor) {
-  const gl = useThree(state => state.gl)
+  const gl = useThree((state) => state.gl)
   useEffect(() => {
     if (!hovered || !cursor) return undefined
     gl.domElement.style.cursor = cursor
-    return () => { gl.domElement.style.cursor = '' }
+    return () => {
+      gl.domElement.style.cursor = ''
+    }
   }, [hovered, cursor, gl])
 }

@@ -129,7 +129,21 @@ function AffiliationMarker({ affiliation, x, radius }) {
 // tools. Called with undefined on unmount, the same pattern as bodyRef/objectRef in CharacterModel.
 // controlAffiliation: the affiliation key of the player in token.control (see App.jsx,
 // affiliations), or null when no player controls the token.
-export default function CrisisToken({ token, selected, rangeMark, onSelect, onHover, onMove, onTurn, onHold, findCharacter, floorY, objectRef, centerRef, controlAffiliation = null }) {
+export default function CrisisToken({
+  token,
+  selected,
+  rangeMark,
+  onSelect,
+  onHover,
+  onMove,
+  onTurn,
+  onHold,
+  findCharacter,
+  floorY,
+  objectRef,
+  centerRef,
+  controlAffiliation = null,
+}) {
   const [topMap, bottomMap, damageMap] = useTokenMaps(token)
 
   const { camera, gl, controls } = useThree()
@@ -153,7 +167,11 @@ export default function CrisisToken({ token, selected, rangeMark, onSelect, onHo
   // Registers a live getter, not a ref object, because the pose changes on every pointer move of a
   // drag, not only once per frame.
   useEffect(() => {
-    centerRef?.(() => ({ x: poseRef.current.x, y: groupRef.current?.position.y ?? 0, z: poseRef.current.z }))
+    centerRef?.(() => ({
+      x: poseRef.current.x,
+      y: groupRef.current?.position.y ?? 0,
+      z: poseRef.current.z,
+    }))
     return () => centerRef?.(undefined)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -178,22 +196,36 @@ export default function CrisisToken({ token, selected, rangeMark, onSelect, onHo
   useFrame(() => {
     const { x, z, yaw } = poseRef.current
     // ONLY_FIXED + EXCLUDE_SENSORS inside castDown, so models and tools are ignored
-    const ground = floorY !== undefined && !draggingRef.current
-      ? floorY
-      : castDown(world, rapier, shape, NO_ROTATION, x, z, HALF_H)
+    const ground =
+      floorY !== undefined && !draggingRef.current
+        ? floorY
+        : castDown(world, rapier, shape, NO_ROTATION, x, z, HALF_H)
     const y = (ground ?? 0) + GAP + HALF_H + (draggingRef.current ? TOKEN_DRAG_LIFT : 0)
     if (groupRef.current) {
       groupRef.current.position.set(x, y, z)
       groupRef.current.rotation.y = yaw
     }
-    if (arcSlot.current) arcSlot.current.setSector(x, z, yaw, yaw + Math.PI / 2, ARC_RADIUS, ARC_FILL, ARC_OPACITY, ARC_LINE)
+    if (arcSlot.current)
+      arcSlot.current.setSector(
+        x,
+        z,
+        yaw,
+        yaw + Math.PI / 2,
+        ARC_RADIUS,
+        ARC_FILL,
+        ARC_OPACITY,
+        ARC_LINE,
+      )
   })
 
   // Table or terrain point under the pointer, the same fixed-body-or-table-plane pattern as
   // CharacterModel, so a dragged token stays under the cursor on raised terrain.
   function pointerPoint(clientX, clientY) {
     const rect = gl.domElement.getBoundingClientRect()
-    const ndc = { x: ((clientX - rect.left) / rect.width) * 2 - 1, y: -((clientY - rect.top) / rect.height) * 2 + 1 }
+    const ndc = {
+      x: ((clientX - rect.left) / rect.width) * 2 - 1,
+      y: -((clientY - rect.top) / rect.height) * 2 + 1,
+    }
     raycaster.current.setFromCamera(ndc, camera)
     const { origin, direction } = raycaster.current.ray
     const filter = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
@@ -308,23 +340,39 @@ export default function CrisisToken({ token, selected, rangeMark, onSelect, onHo
     return () => onHover?.(false)
   }, [hovered])
 
-  const over = e => { e.stopPropagation(); setHovered(true) }
+  const over = (e) => {
+    e.stopPropagation()
+    setHovered(true)
+  }
   const out = () => setHovered(false)
 
   return (
     <group ref={setGroupRef} position={[token.x, 0, token.z]} rotation={[0, token.yaw, 0]}>
-      <TokenDisk topMap={topMap} bottomMap={bottomMap} diskRef={diskRef} events={{ onPointerDown, onPointerOver: over, onPointerOut: out }} />
+      <TokenDisk
+        topMap={topMap}
+        bottomMap={bottomMap}
+        diskRef={diskRef}
+        events={{ onPointerDown, onPointerOver: over, onPointerOut: out }}
+      />
       {token.control && (
         <mesh position={[0, HALF_H + 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[CONTROL_INNER, CONTROL_OUTER, 32]} />
-          <meshStandardMaterial color={TEAM_COLORS[token.control]} roughness={0.5} side={DoubleSide} />
+          <meshStandardMaterial
+            color={TEAM_COLORS[token.control]}
+            roughness={0.5}
+            side={DoubleSide}
+          />
         </mesh>
       )}
       {/* Its own Suspense: while a new affiliation image loads, only the marker is missing, not
           the whole token */}
       {token.control && controlAffiliation && (
         <Suspense fallback={null}>
-          <AffiliationMarker affiliation={controlAffiliation} x={markerPair ? -PAIR_X : 0} radius={markerRadius} />
+          <AffiliationMarker
+            affiliation={controlAffiliation}
+            x={markerPair ? -PAIR_X : 0}
+            radius={markerRadius}
+          />
         </Suspense>
       )}
       {token.damage && (

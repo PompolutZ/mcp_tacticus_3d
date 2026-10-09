@@ -28,7 +28,9 @@ const PANEL_X = (-TABLE_WIDTH / 2 + BOARD_X - BOARD_HALF_WIDTH) / 2
 function OnTable({ position, children }) {
   return (
     <group position={position} rotation={BOARD_READ_ROTATION}>
-      <Html center transform distanceFactor={INCHES_PER_PX * 400}>{children}</Html>
+      <Html center transform distanceFactor={INCHES_PER_PX * 400}>
+        {children}
+      </Html>
     </group>
   )
 }
@@ -37,26 +39,41 @@ function OnTable({ position, children }) {
 function deckProblem(team, type, parsed) {
   const other = otherTeam(team)
   if (!parsed[other]) return `Load the ${PLAYER[other]} roster first`
-  if (parsed[team][type].length === 0) return `The ${PLAYER[team]} roster has no ${TYPE[type]} cards`
-  if (parsed[other][otherType(type)].length === 0) return `The ${PLAYER[other]} roster has no ${TYPE[otherType(type)]} cards`
+  if (parsed[team][type].length === 0)
+    return `The ${PLAYER[team]} roster has no ${TYPE[type]} cards`
+  if (parsed[other][otherType(type)].length === 0)
+    return `The ${PLAYER[other]} roster has no ${TYPE[otherType(type)]} cards`
   return null
 }
 
 // One row of crisis cards of a roster, next to the scoring board. With row.use, each card has a Use button
 // next to it. row: see crisisRows in setup/setup.js. A click on a card opens the crisis tab of the roster popup.
 function CrisisRow({ row, parsed, onOpen, onUse }) {
-  const cards = useMemo(() => crisisRowLayout(row.team, row.type, row.codes, row.drawn), [row.team, row.type, row.codes, row.drawn])
+  const cards = useMemo(
+    () => crisisRowLayout(row.team, row.type, row.codes, row.drawn),
+    [row.team, row.type, row.codes, row.drawn],
+  )
   // The crisis tab holds the Secure cards, then the Extract cards (rosters/cards.js, rosterTabs)
-  const tabIndex = code => (row.type === 'secure' ? 0 : parsed.secure.length) + parsed[row.type].indexOf(code)
+  const tabIndex = (code) =>
+    (row.type === 'secure' ? 0 : parsed.secure.length) + parsed[row.type].indexOf(code)
   return cards.map((card, i) => {
     const info = rosterCard(card.code)
     if (!info) return null
     return (
       <group key={`${i}-${card.code}`}>
-        <RosterCard card={{ ...card, tab: 'crisis', index: tabIndex(card.code) }} info={info} onOpen={onOpen} />
+        <RosterCard
+          card={{ ...card, tab: 'crisis', index: tabIndex(card.code) }}
+          info={info}
+          onOpen={onOpen}
+        />
         {row.use && (
           <OnTable position={[USE_BUTTON_X, TABLE_Y, card.z]}>
-            <button type="button" className="chip setup-use" title={`Use ${info.name}`} onClick={() => onUse(card.code)}>
+            <button
+              type="button"
+              className="chip setup-use"
+              title={`Use ${info.name}`}
+              onClick={() => onUse(card.code)}
+            >
               Use
             </button>
           </OnTable>
@@ -71,7 +88,7 @@ function DeckButtons({ team, parsed, onChoose }) {
   return (
     <OnTable position={[CRISIS_GAP_X, TABLE_Y, crisisCenterZ(team)]}>
       <div className="setup-buttons">
-        {CRISIS_TYPES.map(type => {
+        {CRISIS_TYPES.map((type) => {
           const problem = deckProblem(team, type, parsed)
           return (
             <button
@@ -105,17 +122,24 @@ function BoardPanel({ setup, step, parsed, actions }) {
     hint = 'Load both rosters to set up the game.'
   } else if (step === 'deck') {
     hint = 'Roll off. The winner uses their Secure or Extract cards.'
-    note = 'Most Crits, Wilds and Hits wins. On a tie: most Crits, then most Wilds, else roll again.'
+    note =
+      'Most Crits, Wilds and Hits wins. On a tie: most Crits, then most Wilds, else roll again.'
   } else if (step === 'first') {
     hint = `${PLAYER[other]} player: use 1 of the ${PLAYER[winner]} ${TYPE[first]} cards.`
   } else if (step === 'second') {
     hint = `${PLAYER[winner]} player: use 1 of the ${PLAYER[other]} ${TYPE[second]} cards.`
   } else if (step === 'threat') {
     hint = `${PLAYER[other]} player: choose the Maximum Threat.`
-    controls = CRISIS_TYPES.map(type => {
+    controls = CRISIS_TYPES.map((type) => {
       const info = rosterCard(setup.picks[type])
       return (
-        <button key={type} type="button" className="chip" title={info.name} onClick={() => actions.threat(info.threat)}>
+        <button
+          key={type}
+          type="button"
+          className="chip"
+          title={info.name}
+          onClick={() => actions.threat(info.threat)}
+        >
           {TYPE[type]} · {info.threat}
         </button>
       )
@@ -124,15 +148,37 @@ function BoardPanel({ setup, step, parsed, actions }) {
     hint = `${PLAYER[winner]} player: turn the mat until your deployment edge faces you.`
     controls = (
       <>
-        <button type="button" className="chip" title="Turn mat 90° counter-clockwise" onClick={() => actions.turnMat(1)}>↺</button>
-        <button type="button" className={`chip chip--player-${winner}`} onClick={actions.edge}>Select board edge</button>
-        <button type="button" className="chip" title="Turn mat 90° clockwise" onClick={() => actions.turnMat(-1)}>↻</button>
+        <button
+          type="button"
+          className="chip"
+          title="Turn mat 90° counter-clockwise"
+          onClick={() => actions.turnMat(1)}
+        >
+          ↺
+        </button>
+        <button type="button" className={`chip chip--player-${winner}`} onClick={actions.edge}>
+          Select board edge
+        </button>
+        <button
+          type="button"
+          className="chip"
+          title="Turn mat 90° clockwise"
+          onClick={() => actions.turnMat(-1)}
+        >
+          ↻
+        </button>
       </>
     )
   } else if (step === 'squads') {
-    hint = 'Each player chooses a squad and clicks Ready. The squads go on the table when both players are Ready.'
+    hint =
+      'Each player chooses a squad and clicks Ready. The squads go on the table when both players are Ready.'
   }
-  const status = [winner && `${PLAYER[winner]} player has Priority`, setup.threat !== null && `Max threat ${setup.threat}`].filter(Boolean).join(' · ')
+  const status = [
+    winner && `${PLAYER[winner]} player has Priority`,
+    setup.threat !== null && `Max threat ${setup.threat}`,
+  ]
+    .filter(Boolean)
+    .join(' · ')
   return (
     <OnTable position={[PANEL_X, TABLE_Y, 0]}>
       <div className="setup-panel">
@@ -143,7 +189,9 @@ function BoardPanel({ setup, step, parsed, actions }) {
           <div className="setup-row">
             {status && <span className="setup-note">{status}</span>}
             {step !== 'deck' && (
-              <button type="button" className="chip setup-restart" onClick={actions.restart}>Restart setup</button>
+              <button type="button" className="chip setup-restart" onClick={actions.restart}>
+                Restart setup
+              </button>
             )}
           </div>
         )}
@@ -164,13 +212,19 @@ function SquadPanel({ team, setup, parsed, selecting, actions }) {
   const over = threat > setup.threat
   const problem = over
     ? `The squad threat ${threat} is above the Maximum Threat ${setup.threat}`
-    : squad.characters.length === 0 ? 'Choose at least 1 character' : null
+    : squad.characters.length === 0
+      ? 'Choose at least 1 character'
+      : null
   return (
     <OnTable position={[CRISIS_GAP_X, TABLE_Y, crisisCenterZ(team)]}>
       <div className="setup-panel">
         <div className="setup-row">
-          <span className={`setup-count${over ? ' setup-count--warn' : ''}`}>Threat {threat} / {setup.threat}</span>
-          <span className={`setup-count${squad.tactics.length > TACTIC_LIMIT ? ' setup-count--warn' : ''}`}>
+          <span className={`setup-count${over ? ' setup-count--warn' : ''}`}>
+            Threat {threat} / {setup.threat}
+          </span>
+          <span
+            className={`setup-count${squad.tactics.length > TACTIC_LIMIT ? ' setup-count--warn' : ''}`}
+          >
             Tactics {squad.tactics.length} / {TACTIC_LIMIT}
           </span>
         </div>
@@ -180,7 +234,13 @@ function SquadPanel({ team, setup, parsed, selecting, actions }) {
             className={`chip chip--player-${team}${selecting ? ' setup-toggle--on' : ''}`}
             aria-pressed={selecting}
             disabled={ready}
-            title={ready ? 'Click Ready again to change the squad' : selecting ? 'Stop choosing: a click on a roster card opens it again' : 'Choose the squad: a click on a roster card adds it or removes it'}
+            title={
+              ready
+                ? 'Click Ready again to change the squad'
+                : selecting
+                  ? 'Stop choosing: a click on a roster card opens it again'
+                  : 'Choose the squad: a click on a roster card adds it or removes it'
+            }
             onClick={() => actions.squadSelect(team)}
           >
             Select squad
@@ -190,14 +250,24 @@ function SquadPanel({ team, setup, parsed, selecting, actions }) {
             className={`chip${ready ? ' setup-toggle--on' : ''}`}
             aria-pressed={ready}
             disabled={!ready && problem !== null}
-            title={ready ? 'Not ready: change the squad' : problem ?? 'The squads go on the table when both players are Ready'}
+            title={
+              ready
+                ? 'Not ready: change the squad'
+                : (problem ?? 'The squads go on the table when both players are Ready')
+            }
             onClick={() => actions.ready(team)}
           >
             Ready
           </button>
         </div>
-        {selecting && <div className="setup-note">Click characters and Team Tactic cards to add or remove them.</div>}
-        {ready && <div className="setup-note">Waiting for the {PLAYER[otherTeam(team)]} player.</div>}
+        {selecting && (
+          <div className="setup-note">
+            Click characters and Team Tactic cards to add or remove them.
+          </div>
+        )}
+        {ready && (
+          <div className="setup-note">Waiting for the {PLAYER[otherTeam(team)]} player.</div>
+        )}
         {over && <div className="setup-note setup-note--warn">{problem}</div>}
       </div>
     </OnTable>
@@ -211,16 +281,19 @@ function SquadPanel({ team, setup, parsed, selecting, actions }) {
 // edge(), squadSelect(team), ready(team), restart() }, see App.jsx. onRosterOpen({ team, tab, index }):
 // a click on a crisis card.
 export default function GameSetup({ setup, rosters, squadSelect, actions, onRosterOpen }) {
-  const parsed = useMemo(() => ({
-    blue: rosters.blue && parseRosterText(rosters.blue.code),
-    red: rosters.red && parseRosterText(rosters.red.code),
-  }), [rosters.blue, rosters.red])
+  const parsed = useMemo(
+    () => ({
+      blue: rosters.blue && parseRosterText(rosters.blue.code),
+      red: rosters.red && parseRosterText(rosters.red.code),
+    }),
+    [rosters.blue, rosters.red],
+  )
   const rows = useMemo(() => crisisRows(setup, parsed), [setup, parsed])
   const step = setupStep(setup)
   if (step === 'done' || (!parsed.blue && !parsed.red)) return null
   return (
     <>
-      {rows.map(row => (
+      {rows.map((row) => (
         <CrisisRow
           key={`${row.team}-${row.type}`}
           row={row}
@@ -229,13 +302,25 @@ export default function GameSetup({ setup, rosters, squadSelect, actions, onRost
           onUse={actions.pick}
         />
       ))}
-      {step === 'deck' && TEAMS.map(team => parsed[team] && (
-        <DeckButtons key={team} team={team} parsed={parsed} onChoose={actions.deck} />
-      ))}
+      {step === 'deck' &&
+        TEAMS.map(
+          (team) =>
+            parsed[team] && (
+              <DeckButtons key={team} team={team} parsed={parsed} onChoose={actions.deck} />
+            ),
+        )}
       <BoardPanel setup={setup} step={step} parsed={parsed} actions={actions} />
-      {step === 'squads' && TEAMS.map(team => (
-        <SquadPanel key={team} team={team} setup={setup} parsed={parsed[team]} selecting={squadSelect[team]} actions={actions} />
-      ))}
+      {step === 'squads' &&
+        TEAMS.map((team) => (
+          <SquadPanel
+            key={team}
+            team={team}
+            setup={setup}
+            parsed={parsed[team]}
+            selecting={squadSelect[team]}
+            actions={actions}
+          />
+        ))}
     </>
   )
 }

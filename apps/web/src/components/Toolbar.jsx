@@ -21,7 +21,33 @@ const CRISIS_TYPES = [
 // the room, so the toolbar has no map picker and only the Red roster field there. The Red field loads,
 // replaces or removes the Red roster of the room (docs/feature-rooms.md).
 // onLobby(): the ← Lobby button.
-export function Toolbar({ roomCode, onLobby, mapId, onMapChange, activeRange, activeMove, angleOn, onRangeClick, onMoveClick, onAngleClick, debug, onDebugClick, showLabels, onLabelsClick, spectator, onSpectatorClick, onTurnMat, deployLine, onDeployLineClick, crisis, onCrisisChange, onRosterLoad, onRosterRemove, libraryOpen, onLibraryClick }) {
+export function Toolbar({
+  roomCode,
+  onLobby,
+  mapId,
+  onMapChange,
+  activeRange,
+  activeMove,
+  angleOn,
+  onRangeClick,
+  onMoveClick,
+  onAngleClick,
+  debug,
+  onDebugClick,
+  showLabels,
+  onLabelsClick,
+  spectator,
+  onSpectatorClick,
+  onTurnMat,
+  deployLine,
+  onDeployLineClick,
+  crisis,
+  onCrisisChange,
+  onRosterLoad,
+  onRosterRemove,
+  libraryOpen,
+  onLibraryClick,
+}) {
   // The typed text stays in the field after Enter (x clears it)
   const [rosterText, setRosterText] = useState({ blue: '', red: '' })
   const rosterTeams = roomCode ? TEAMS.filter(({ team }) => team === 'red') : TEAMS
@@ -31,7 +57,10 @@ export function Toolbar({ roomCode, onLobby, mapId, onMapChange, activeRange, ac
         <button type="button" className="chip" title="Back to the lobby" onClick={onLobby}>
           ← Lobby
         </button>
-        <span className="group-label toolbar-room" title={roomCode ? 'Room code' : 'Nothing on this table is saved'}>
+        <span
+          className="group-label toolbar-room"
+          title={roomCode ? 'Room code' : 'Nothing on this table is saved'}
+        >
           {roomCode ?? 'Sandbox'}
         </span>
       </div>
@@ -48,22 +77,39 @@ export function Toolbar({ roomCode, onLobby, mapId, onMapChange, activeRange, ac
       <div className="group">
         <span className="group-label">Mat</span>
         {!roomCode && (
-          <select className="chip" title="Map" value={mapId} onChange={e => onMapChange(e.target.value)}>
+          <select
+            className="chip"
+            title="Map"
+            value={mapId}
+            onChange={(e) => onMapChange(e.target.value)}
+          >
             {Object.entries(MAPS).map(([id, map]) => (
-              <option key={id} value={id}>{map.name}</option>
+              <option key={id} value={id}>
+                {map.name}
+              </option>
             ))}
           </select>
         )}
-        <button type="button" className="chip" title="Turn mat 90° counter-clockwise" onClick={() => onTurnMat(1)}>
+        <button
+          type="button"
+          className="chip"
+          title="Turn mat 90° counter-clockwise"
+          onClick={() => onTurnMat(1)}
+        >
           ↺
         </button>
-        <button type="button" className="chip" title="Turn mat 90° clockwise" onClick={() => onTurnMat(-1)}>
+        <button
+          type="button"
+          className="chip"
+          title="Turn mat 90° clockwise"
+          onClick={() => onTurnMat(-1)}
+        >
           ↻
         </button>
       </div>
       <div className="group">
         <span className="group-label">Range</span>
-        {RANGES.map(r => (
+        {RANGES.map((r) => (
           <button
             key={r}
             type="button"
@@ -76,7 +122,7 @@ export function Toolbar({ roomCode, onLobby, mapId, onMapChange, activeRange, ac
       </div>
       <div className="group">
         <span className="group-label">Move</span>
-        {MOVES.map(m => (
+        {MOVES.map((m) => (
           <button
             key={m.type}
             type="button"
@@ -103,11 +149,13 @@ export function Toolbar({ roomCode, onLobby, mapId, onMapChange, activeRange, ac
             className="chip"
             title={`${label} card`}
             value={crisis[type] ?? ''}
-            onChange={e => onCrisisChange(type, e.target.value || null)}
+            onChange={(e) => onCrisisChange(type, e.target.value || null)}
           >
             <option value="">None</option>
-            {cardsOfType(type).map(card => (
-              <option key={card.key} value={card.key}>{card.name} · {card.threat}</option>
+            {cardsOfType(type).map((card) => (
+              <option key={card.key} value={card.key}>
+                {card.name} · {card.threat}
+              </option>
             ))}
           </select>
         ))}
@@ -122,15 +170,17 @@ export function Toolbar({ roomCode, onLobby, mapId, onMapChange, activeRange, ac
               placeholder="MCT code"
               title={`${label} roster: paste an MCT code and press Enter`}
               value={rosterText[team]}
-              onChange={e => setRosterText(prev => ({ ...prev, [team]: e.target.value }))}
-              onKeyDown={e => { if (e.key === 'Enter') onRosterLoad(team, rosterText[team]) }}
+              onChange={(e) => setRosterText((prev) => ({ ...prev, [team]: e.target.value }))}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') onRosterLoad(team, rosterText[team])
+              }}
             />
             <button
               type="button"
               className="chip"
               title={`Remove the ${label} roster from the table`}
               onClick={() => {
-                setRosterText(prev => ({ ...prev, [team]: '' }))
+                setRosterText((prev) => ({ ...prev, [team]: '' }))
                 onRosterRemove(team)
               }}
             >

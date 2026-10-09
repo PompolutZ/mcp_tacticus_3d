@@ -2,7 +2,21 @@ import { useGLTF } from '@react-three/drei'
 import { RigidBody, CylinderCollider, useRapier } from '@react-three/rapier'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
-import { Box3, Color, CylinderGeometry, FrontSide, Group, Matrix4, Mesh, MeshStandardMaterial, Plane, PlaneGeometry, Quaternion, Raycaster, Vector3 } from 'three'
+import {
+  Box3,
+  Color,
+  CylinderGeometry,
+  FrontSide,
+  Group,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Plane,
+  PlaneGeometry,
+  Quaternion,
+  Raycaster,
+  Vector3,
+} from 'three'
 import { FRICTION, castDown } from '../physics.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useColorTexture } from './useColorTexture.js'
@@ -23,7 +37,7 @@ const ZERO = { x: 0, y: 0, z: 0 }
 // shakes and creeps down it, and Rapier never puts it to sleep because of the shaking.
 const SETTLE_TIME = 0.5
 const SETTLE_MOVE = 0.05
-const SETTLE_TURN = 2 * Math.PI / 180
+const SETTLE_TURN = (2 * Math.PI) / 180
 // The R key lifts a model straight up by LIFT_HEIGHT (inches), and a second press puts it back at the
 // same place. So a player can see and select a token under it, and a Throw or Push can move a model
 // under it (README "Throw / Push"). The tallest model measured, Sentinel Prime MK4 (5.28", on
@@ -75,7 +89,15 @@ export function turnBody(body, angle) {
 // A cast of the base shape, not a ray, so terrain under any part of the base counts.
 // The body origin is the base bottom, so this is also the body Y that puts the base on the ground.
 export function baseGroundY(world, rapier, x, z, radius = BASE_RADIUS) {
-  return castDown(world, rapier, new rapier.Cylinder(BASE_HALF_H, radius), NO_ROTATION, x, z, BASE_HALF_H)
+  return castDown(
+    world,
+    rapier,
+    new rapier.Cylinder(BASE_HALF_H, radius),
+    NO_ROTATION,
+    x,
+    z,
+    BASE_HALF_H,
+  )
 }
 
 // Height of the model top above its origin (the base bottom), in inches. Measured in the model's own
@@ -89,7 +111,11 @@ function modelTop(scene) {
   scene.traverse((obj) => {
     if (!obj.isMesh) return
     if (!obj.geometry.boundingBox) obj.geometry.computeBoundingBox()
-    box.union(meshBox.copy(obj.geometry.boundingBox).applyMatrix4(toMesh.multiplyMatrices(toModel, obj.matrixWorld)))
+    box.union(
+      meshBox
+        .copy(obj.geometry.boundingBox)
+        .applyMatrix4(toMesh.multiplyMatrices(toModel, obj.matrixWorld)),
+    )
   })
   return box.isEmpty() ? 0 : box.max.y
 }
@@ -131,11 +157,15 @@ export function StandeeModel({ urls, ...props }) {
   const [front, back] = useColorTexture(urls)
   const radius = props.baseRadius ?? BASE_RADIUS
   const scene = useMemo(() => standeeScene(front, back, radius), [front, back, radius])
-  useEffect(() => () => scene.traverse(obj => {
-    if (!obj.isMesh) return
-    obj.geometry.dispose()
-    obj.material.dispose()
-  }), [scene])
+  useEffect(
+    () => () =>
+      scene.traverse((obj) => {
+        if (!obj.isMesh) return
+        obj.geometry.dispose()
+        obj.material.dispose()
+      }),
+    [scene],
+  )
   return <CharacterFigure scene={scene} {...props} />
 }
 
@@ -145,13 +175,22 @@ const STANDEE_GAP = 0.005
 function standeeScene(front, back, radius) {
   const scene = new Group()
   const baseHeight = BASE_HALF_H * 2
-  const base = new Mesh(new CylinderGeometry(radius, radius, baseHeight, 48), new MeshStandardMaterial({ name: 'defaultMat', roughness: 0.6 }))
+  const base = new Mesh(
+    new CylinderGeometry(radius, radius, baseHeight, 48),
+    new MeshStandardMaterial({ name: 'defaultMat', roughness: 0.6 }),
+  )
   base.position.y = baseHeight / 2
   scene.add(base)
   const width = radius * 2
-  const height = width * front.image.height / front.image.width
-  for (const [map, turn, z] of [[front, 0, 0], [back, Math.PI, -STANDEE_GAP]]) {
-    const image = new Mesh(new PlaneGeometry(width, height), new MeshStandardMaterial({ map, roughness: 1, side: FrontSide }))
+  const height = (width * front.image.height) / front.image.width
+  for (const [map, turn, z] of [
+    [front, 0, 0],
+    [back, Math.PI, -STANDEE_GAP],
+  ]) {
+    const image = new Mesh(
+      new PlaneGeometry(width, height),
+      new MeshStandardMaterial({ map, roughness: 1, side: FrontSide }),
+    )
     image.position.set(0, baseHeight + height / 2, z)
     image.rotation.y = turn
     scene.add(image)
@@ -175,7 +214,26 @@ function standeeScene(front, back, radius) {
 // the same as position. A model of a saved room starts at its saved pose, asleep (docs/feature-rooms.md).
 // overlay(top): optional, what moves with the model above it (SpectatorBadge.jsx). top: height of the
 // model top above the base bottom, in inches.
-function CharacterFigure({ scene, position = [0, 0, 0], quaternion, baseRadius = BASE_RADIUS, rotation = [0, 0, 0], teamColor = 'red', selected = false, rangeMark, onSelect, onHover, bodyRef, objectRef, liftRef, slideRef, onDragStart, onDragEnd, constrainDrag, overlay }) {
+function CharacterFigure({
+  scene,
+  position = [0, 0, 0],
+  quaternion,
+  baseRadius = BASE_RADIUS,
+  rotation = [0, 0, 0],
+  teamColor = 'red',
+  selected = false,
+  rangeMark,
+  onSelect,
+  onHover,
+  bodyRef,
+  objectRef,
+  liftRef,
+  slideRef,
+  onDragStart,
+  onDragEnd,
+  constrainDrag,
+  overlay,
+}) {
   const [startPosition] = useState(position)
   const [startQuaternion] = useState(quaternion)
   const top = useMemo(() => modelTop(scene), [scene])
@@ -223,7 +281,11 @@ function CharacterFigure({ scene, position = [0, 0, 0], quaternion, baseRadius =
     const t = rb.translation()
     const r = rb.rotation()
     const ref = rest.current
-    if (ref && Math.hypot(t.x - ref.t.x, t.y - ref.t.y, t.z - ref.t.z) < SETTLE_MOVE && turnBetween(r, ref.r) < SETTLE_TURN) {
+    if (
+      ref &&
+      Math.hypot(t.x - ref.t.x, t.y - ref.t.y, t.z - ref.t.z) < SETTLE_MOVE &&
+      turnBetween(r, ref.r) < SETTLE_TURN
+    ) {
       ref.time += dt
       if (ref.time >= SETTLE_TIME) {
         rb.sleep()
@@ -294,7 +356,10 @@ function CharacterFigure({ scene, position = [0, 0, 0], quaternion, baseRadius =
     }
     // A sleeping body keeps moving but its mesh is not synced, so keep it awake
     rb.wakeUp()
-    rb.setNextKinematicTranslation({ ...place, y: t.y + left * (1 - Math.exp(-dt / LIFT_SMOOTH_TIME)) })
+    rb.setNextKinematicTranslation({
+      ...place,
+      y: t.y + left * (1 - Math.exp(-dt / LIFT_SMOOTH_TIME)),
+    })
   }
 
   // Throw / Push (README "Throw / Push"): moves the model along path in duration seconds. path(f) is the
@@ -347,7 +412,8 @@ function CharacterFigure({ scene, position = [0, 0, 0], quaternion, baseRadius =
       toggle: toggleLift,
       down: lowerLift,
       isUp: () => lift.current?.up === true,
-      restPosition: () => lift.current && { x: lift.current.x, y: lift.current.y, z: lift.current.z },
+      restPosition: () =>
+        lift.current && { x: lift.current.x, y: lift.current.y, z: lift.current.z },
     })
     slideRef?.(startSlide)
     return () => {
@@ -374,7 +440,10 @@ function CharacterFigure({ scene, position = [0, 0, 0], quaternion, baseRadius =
     // Off the table there is no ground, so keep the current height.
     // Never below the ground: a base released inside terrain can be pushed out through the bottom of it.
     const ground = groundY(p.x, p.z)
-    const y = ground === null ? t.y : Math.max(ground, t.y + (ground + DRAG_HOVER - t.y) * Math.min(1, dt * HOVER_RATE))
+    const y =
+      ground === null
+        ? t.y
+        : Math.max(ground, t.y + (ground + DRAG_HOVER - t.y) * Math.min(1, dt * HOVER_RATE))
     // A sleeping body keeps moving but its mesh is not synced, so keep it awake
     rb.wakeUp()
     rb.setNextKinematicTranslation({ x: p.x, y, z: p.z })
@@ -486,13 +555,31 @@ function CharacterFigure({ scene, position = [0, 0, 0], quaternion, baseRadius =
     // dominanceGroup 1 (dice stay at the default, 0): in a model-die contact, Rapier moves only the
     // lower-group body, so a die never pushes a model (design, "Collisions"). Fixed/kinematic
     // bodies are already always dominant, so this only changes model-die contacts.
-    <RigidBody ref={setBody} type="dynamic" position={startPosition} quaternion={startQuaternion} colliders={false} linearDamping={LINEAR_DAMPING} angularDamping={ANGULAR_DAMPING} ccd dominanceGroup={1}>
-      <CylinderCollider args={[BASE_HALF_H, baseRadius]} position={[0, BASE_HALF_H, 0]} friction={FRICTION} density={BASE_DENSITY} />
+    <RigidBody
+      ref={setBody}
+      type="dynamic"
+      position={startPosition}
+      quaternion={startQuaternion}
+      colliders={false}
+      linearDamping={LINEAR_DAMPING}
+      angularDamping={ANGULAR_DAMPING}
+      ccd
+      dominanceGroup={1}
+    >
+      <CylinderCollider
+        args={[BASE_HALF_H, baseRadius]}
+        position={[0, BASE_HALF_H, 0]}
+        friction={FRICTION}
+        density={BASE_DENSITY}
+      />
       <primitive
         ref={setFigure}
         object={scene}
         rotation={rotation}
-        onPointerOver={(e) => { e.stopPropagation(); setHovered(true) }}
+        onPointerOver={(e) => {
+          e.stopPropagation()
+          setHovered(true)
+        }}
         onPointerOut={() => setHovered(false)}
         onPointerDown={onPointerDown}
       />

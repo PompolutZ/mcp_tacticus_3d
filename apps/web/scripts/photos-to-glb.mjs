@@ -45,10 +45,14 @@ const base = opts.base ?? null
 const heightMm = opts.height === undefined ? null : Number(opts.height)
 const triangles = Number(opts.triangles)
 const textureSize = Number(opts.texture)
-if (base !== null && !BASE_DIAMETER[base]) throw new Error(`--base must be small, medium or large, not "${opts.base}"`)
-if (heightMm !== null && !(heightMm > 0)) throw new Error(`--height must be a number of mm, not "${opts.height}"`)
-if (!Number.isInteger(triangles) || triangles <= 0) throw new Error(`--triangles must be a positive integer, not "${opts.triangles}"`)
-if (![1024, 2048, 4096].includes(textureSize)) throw new Error(`--texture must be 1024, 2048 or 4096, not "${opts.texture}"`)
+if (base !== null && !BASE_DIAMETER[base])
+  throw new Error(`--base must be small, medium or large, not "${opts.base}"`)
+if (heightMm !== null && !(heightMm > 0))
+  throw new Error(`--height must be a number of mm, not "${opts.height}"`)
+if (!Number.isInteger(triangles) || triangles <= 0)
+  throw new Error(`--triangles must be a positive integer, not "${opts.triangles}"`)
+if (![1024, 2048, 4096].includes(textureSize))
+  throw new Error(`--texture must be 1024, 2048 or 4096, not "${opts.texture}"`)
 
 const PHOTOS = path.resolve(positionals[0])
 const OUT = path.resolve(opts.out)
@@ -70,7 +74,8 @@ const BASE_SEGMENTS = 48
 const BASE_SLICE = 0.06
 const BASE_BANDS = 12
 
-if (!fs.statSync(PHOTOS, { throwIfNoEntry: false })?.isDirectory()) throw new Error(`Not a directory: ${PHOTOS}`)
+if (!fs.statSync(PHOTOS, { throwIfNoEntry: false })?.isDirectory())
+  throw new Error(`Not a directory: ${PHOTOS}`)
 buildTool()
 reconstruct()
 await convert()
@@ -99,7 +104,7 @@ function reconstruct() {
 }
 
 async function convert() {
-  const obj = fs.readdirSync(WORK_DIR).find(f => f.endsWith('.obj'))
+  const obj = fs.readdirSync(WORK_DIR).find((f) => f.endsWith('.obj'))
   if (!obj) throw new Error(`No OBJ file in ${WORK_DIR}`)
   const doc = await readObj(path.join(WORK_DIR, obj))
   placeOnTable(doc)
@@ -110,15 +115,22 @@ async function convert() {
   await writeGlb(OUT, doc)
 
   const { min, max } = getBounds(doc.getRoot().listScenes()[0])
-  const size = [0, 2, 1].map(i => ((max[i] - min[i]) * MM_PER_INCH).toFixed(1))
+  const size = [0, 2, 1].map((i) => ((max[i] - min[i]) * MM_PER_INCH).toFixed(1))
   const count = prims(doc).reduce((n, p) => n + p.getIndices().getCount() / 3, 0)
-  const shown = path.relative(process.cwd(), OUT).startsWith('..') ? OUT : path.relative(process.cwd(), OUT)
-  console.log(`Wrote ${shown}: ${count} triangles, ${size.join(' × ')} mm (width × depth × height), ${Math.round(fs.statSync(OUT).size / 1024)} KB`)
+  const shown = path.relative(process.cwd(), OUT).startsWith('..')
+    ? OUT
+    : path.relative(process.cwd(), OUT)
+  console.log(
+    `Wrote ${shown}: ${count} triangles, ${size.join(' × ')} mm (width × depth × height), ${Math.round(fs.statSync(OUT).size / 1024)} KB`,
+  )
   console.log(`Object Capture output: ${WORK_DIR}`)
 }
 
 function prims(doc) {
-  return doc.getRoot().listMeshes().flatMap(m => m.listPrimitives())
+  return doc
+    .getRoot()
+    .listMeshes()
+    .flatMap((m) => m.listPrimitives())
 }
 
 // Scales the model to inches and puts it on the table: bottom at y = 0, center on the Y axis.
@@ -128,22 +140,49 @@ function prims(doc) {
 function placeOnTable(doc) {
   const { min, max } = getBounds(doc.getRoot().listScenes()[0])
   const scanBase = base ? findScanBase(doc, min[1], (max[1] - min[1]) * BASE_SLICE) : null
-  const scale = heightMm !== null ? heightMm / MM_PER_INCH / (max[1] - min[1]) : scanBase ? BASE_DIAMETER[base] / scanBase.diameter : INCHES_PER_METER
+  const scale =
+    heightMm !== null
+      ? heightMm / MM_PER_INCH / (max[1] - min[1])
+      : scanBase
+        ? BASE_DIAMETER[base] / scanBase.diameter
+        : INCHES_PER_METER
   const [cx, cz] = scanBase ? scanBase.center : [(min[0] + max[0]) / 2, (min[2] + max[2]) / 2]
   // Column-major, as glTF matrices are
-  const matrix = [scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, scale, 0, -cx * scale, -min[1] * scale, -cz * scale, 1]
+  const matrix = [
+    scale,
+    0,
+    0,
+    0,
+    0,
+    scale,
+    0,
+    0,
+    0,
+    0,
+    scale,
+    0,
+    -cx * scale,
+    -min[1] * scale,
+    -cz * scale,
+    1,
+  ]
   for (const mesh of doc.getRoot().listMeshes()) transformMesh(mesh, matrix)
   // Without --height, the scanned base has the game size by definition
   if (scanBase && heightMm !== null) {
-    const mm = inches => (inches * MM_PER_INCH).toFixed(1)
-    console.log(`Scanned base: ${mm(scanBase.diameter * scale)} mm wide. Game base (${base}): ${mm(BASE_DIAMETER[base])} mm`)
+    const mm = (inches) => (inches * MM_PER_INCH).toFixed(1)
+    console.log(
+      `Scanned base: ${mm(scanBase.diameter * scale)} mm wide. Game base (${base}): ${mm(BASE_DIAMETER[base])} mm`,
+    )
   }
 }
 
 // Center (x, z) and diameter of the scanned base, in scan units: the bounding box of the widest band
 // between bottom and bottom + sliceHeight. The diameter is the mean of the band's width and depth.
 function findScanBase(doc, bottom, sliceHeight) {
-  const bands = Array.from({ length: BASE_BANDS }, () => ({ lo: [Infinity, Infinity], hi: [-Infinity, -Infinity] }))
+  const bands = Array.from({ length: BASE_BANDS }, () => ({
+    lo: [Infinity, Infinity],
+    hi: [-Infinity, -Infinity],
+  }))
   const v = [0, 0, 0]
   for (const prim of prims(doc)) {
     const position = prim.getAttribute('POSITION')
@@ -157,7 +196,10 @@ function findScanBase(doc, bottom, sliceHeight) {
   }
   const found = bands
     .filter(({ lo }) => lo[0] !== Infinity)
-    .map(({ lo, hi }) => ({ center: [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2], diameter: (hi[0] - lo[0] + hi[1] - lo[1]) / 2 }))
+    .map(({ lo, hi }) => ({
+      center: [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2],
+      diameter: (hi[0] - lo[0] + hi[1] - lo[1]) / 2,
+    }))
   return found.reduce((a, b) => (b.diameter > a.diameter ? b : a))
 }
 
@@ -175,7 +217,7 @@ function replaceBase(doc) {
     const kept = []
     for (let i = 0; i < all.length; i += 3) {
       const corners = [all[i], all[i + 1], all[i + 2]]
-      if (corners.some(c => scanned.getElement(c, v)[1] >= BASE_HEIGHT)) kept.push(...corners)
+      if (corners.some((c) => scanned.getElement(c, v)[1] >= BASE_HEIGHT)) kept.push(...corners)
     }
     indices.setArray(new all.constructor(kept))
     // Deletes the vertices that no triangle uses now
@@ -188,9 +230,14 @@ function replaceBase(doc) {
   }
 
   const radius = BASE_DIAMETER[base] / 2
-  const geometry = new CylinderGeometry(radius, radius, BASE_HEIGHT, BASE_SEGMENTS).translate(0, BASE_HEIGHT / 2, 0)
+  const geometry = new CylinderGeometry(radius, radius, BASE_HEIGHT, BASE_SEGMENTS).translate(
+    0,
+    BASE_HEIGHT / 2,
+    0,
+  )
   const buffer = doc.getRoot().listBuffers()[0]
-  const accessor = (type, array) => doc.createAccessor().setType(type).setArray(array).setBuffer(buffer)
+  const accessor = (type, array) =>
+    doc.createAccessor().setType(type).setArray(array).setBuffer(buffer)
   // Metallic 0 and roughness 1, as the base material of the migrated models
   const material = doc.createMaterial('defaultMat').setMetallicFactor(0).setRoughnessFactor(1)
   const cylinder = doc

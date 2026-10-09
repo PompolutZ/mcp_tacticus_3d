@@ -32,7 +32,7 @@ export default function Root() {
   const [notice, setNotice] = useState(null)
   const page = pageOf(hash)
   // Read from storage each time the room page opens, so it has the table of the last save
-  const room = useMemo(() => page.page === 'room' ? findRoom(page.id) : null, [hash])
+  const room = useMemo(() => (page.page === 'room' ? findRoom(page.id) : null), [hash])
 
   // The back and forward buttons, and a hash typed into the address bar
   useEffect(() => {
@@ -64,5 +64,11 @@ export default function Root() {
 
   if (page.page === 'sandbox') return <App key="sandbox" onExit={() => go('')} />
   if (page.page === 'room') return room && <App key={room.id} room={room} onExit={() => go('')} />
-  return <Lobby notice={notice} onOpenRoom={id => open(`room=${id}`)} onOpenSandbox={() => open('sandbox')} />
+  return (
+    <Lobby
+      notice={notice}
+      onOpenRoom={(id) => open(`room=${id}`)}
+      onOpenSandbox={() => open('sandbox')}
+    />
+  )
 }

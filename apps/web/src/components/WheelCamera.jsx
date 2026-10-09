@@ -35,9 +35,12 @@ const offset = new Vector3()
 // - a sideways part, or a step under 4 px. A mouse wheel step is at least 4 px.
 // deltaMode is read first: Firefox reports a mouse wheel in pixels if the deltas are read first.
 function looksLikeTrackpad(e) {
-  return e.deltaMode === WheelEvent.DOM_DELTA_PIXEL
-    && Number.isInteger(e.deltaX) && Number.isInteger(e.deltaY)
-    && (e.deltaX !== 0 || Math.abs(e.deltaY) < 4)
+  return (
+    e.deltaMode === WheelEvent.DOM_DELTA_PIXEL &&
+    Number.isInteger(e.deltaX) &&
+    Number.isInteger(e.deltaY) &&
+    (e.deltaX !== 0 || Math.abs(e.deltaY) < 4)
+  )
 }
 
 // The part of what is left that one frame of dt seconds does
@@ -51,10 +54,10 @@ function framePart(smoothTime, dt) {
 // event. It still zooms on a touch screen (two-finger pinch).
 // ref: { stop() } ends the zoom and pan that are left. App calls it when it moves the camera itself.
 export const WheelCamera = forwardRef(function WheelCamera(_, ref) {
-  const camera = useThree(state => state.camera)
-  const controls = useThree(state => state.controls)
+  const camera = useThree((state) => state.camera)
+  const controls = useThree((state) => state.controls)
   // The same element that OrbitControls listens on
-  const element = useThree(state => state.events.connected || state.gl.domElement)
+  const element = useThree((state) => state.events.connected || state.gl.domElement)
   // Zoom and pan that the camera has not done yet. zoomTime: smoothing time of the last zoom input.
   const left = useRef({ zoom: 0, zoomTime: WHEEL_SMOOTH_TIME, panX: 0, panY: 0 })
 
@@ -83,7 +86,11 @@ export const WheelCamera = forwardRef(function WheelCamera(_, ref) {
       e.stopPropagation()
       // OrbitControls is off during a piece drag. The wheel does nothing then.
       if (!controls.enabled) return
-      if (e.ctrlKey) addZoom(MathUtils.clamp(e.deltaY, -MAX_ZOOM_DELTA, MAX_ZOOM_DELTA) * PINCH_RATE, TRACKPAD_SMOOTH_TIME)
+      if (e.ctrlKey)
+        addZoom(
+          MathUtils.clamp(e.deltaY, -MAX_ZOOM_DELTA, MAX_ZOOM_DELTA) * PINCH_RATE,
+          TRACKPAD_SMOOTH_TIME,
+        )
       else if (trackpadGesture) addPan(e.deltaX, e.deltaY)
       else if (e.deltaY !== 0) addZoom(Math.sign(e.deltaY) * WHEEL_ZOOM_STEP, WHEEL_SMOOTH_TIME)
     }
@@ -93,7 +100,11 @@ export const WheelCamera = forwardRef(function WheelCamera(_, ref) {
     function addZoom(amount, smoothTime) {
       const distance = camera.position.distanceTo(controls.target)
       const m = left.current
-      m.zoom = MathUtils.clamp(m.zoom + amount, Math.log(controls.minDistance / distance), Math.log(controls.maxDistance / distance))
+      m.zoom = MathUtils.clamp(
+        m.zoom + amount,
+        Math.log(controls.minDistance / distance),
+        Math.log(controls.maxDistance / distance),
+      )
       m.zoomTime = smoothTime
     }
 
@@ -138,7 +149,8 @@ export const WheelCamera = forwardRef(function WheelCamera(_, ref) {
   // page. deltaY > 0 shows more of what is below the view.
   function pan(deltaX, deltaY) {
     const distance = camera.position.distanceTo(controls.target)
-    const inchesPerPixel = 2 * distance * Math.tan(MathUtils.degToRad(camera.fov / 2)) / element.clientHeight
+    const inchesPerPixel =
+      (2 * distance * Math.tan(MathUtils.degToRad(camera.fov / 2))) / element.clientHeight
     panOnTable(camera, controls.target, deltaX * inchesPerPixel, -deltaY * inchesPerPixel)
   }
 
@@ -146,7 +158,13 @@ export const WheelCamera = forwardRef(function WheelCamera(_, ref) {
   // amount: log of the distance factor.
   function zoom(amount) {
     offset.copy(camera.position).sub(controls.target)
-    offset.setLength(MathUtils.clamp(offset.length() * Math.exp(amount), controls.minDistance, controls.maxDistance))
+    offset.setLength(
+      MathUtils.clamp(
+        offset.length() * Math.exp(amount),
+        controls.minDistance,
+        controls.maxDistance,
+      ),
+    )
     camera.position.copy(controls.target).add(offset)
   }
 

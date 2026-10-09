@@ -41,7 +41,7 @@ export function userId() {
 // A new room code, for example K7Q2-M9XD
 function newRoomCode() {
   const bytes = crypto.getRandomValues(new Uint8Array(8))
-  const chars = [...bytes].map(b => CODE_CHARS[b % CODE_CHARS.length])
+  const chars = [...bytes].map((b) => CODE_CHARS[b % CODE_CHARS.length])
   return `${chars.slice(0, 4).join('')}-${chars.slice(4).join('')}`
 }
 
@@ -54,9 +54,9 @@ export function listRooms() {
     // Storage turned off: no rooms
   }
   return keys
-    .filter(key => key?.startsWith(ROOM_PREFIX))
+    .filter((key) => key?.startsWith(ROOM_PREFIX))
     .map(read)
-    .filter(room => room?.id && room.mapId)
+    .filter((room) => room?.id && room.mapId)
     .sort((a, b) => b.updatedAt - a.updatedAt)
 }
 
@@ -95,7 +95,13 @@ const lastSaved = new Map()
 export function saveRoom(room, rosters, table) {
   const text = JSON.stringify({ rosters, table })
   if (lastSaved.get(room.id) === text) return true
-  const saved = write(ROOM_PREFIX + room.id, { ...room, version: VERSION, updatedAt: Date.now(), rosters, table })
+  const saved = write(ROOM_PREFIX + room.id, {
+    ...room,
+    version: VERSION,
+    updatedAt: Date.now(),
+    rosters,
+    table,
+  })
   if (saved) lastSaved.set(room.id, text)
   return saved
 }

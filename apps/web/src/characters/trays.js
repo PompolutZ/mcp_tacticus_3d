@@ -43,7 +43,7 @@ const TRAY_CONTROLS_LOCAL_Z = MAT_SIDE_Z + ON_DEPTH + TRAY_CARD_HEIGHT + TRAY_CO
 // by this much, so the tray grows toward the owner and its mat side stays in line with the other
 // trays. `cards` below is the number of cards on the tray, 1 or 2.
 const TRAY_CARD_PITCH = TRAY_CARD_HEIGHT + TOKEN_GAP
-const extraDepth = cards => (cards - 1) * TRAY_CARD_PITCH
+const extraDepth = (cards) => (cards - 1) * TRAY_CARD_PITCH
 
 // Local z of the center of card `card` (from 1)
 export function trayCardLocalZ(card) {
@@ -124,7 +124,10 @@ export function trayHeldWorld(teamColor, trayPos, local) {
 // Card point (u, v) of tray-local `local`, as fractions of the card width and height, for the tray
 // popup (TrayPopup.jsx). The inverse of cardPoint.
 export function trayHeldCardPoint(local) {
-  return { u: local[0] / TRAY_CARD_WIDTH + 0.5, v: (local[1] - TRAY_CARD_LOCAL_Z) / TRAY_CARD_HEIGHT + 0.5 }
+  return {
+    u: local[0] / TRAY_CARD_WIDTH + 0.5,
+    v: (local[1] - TRAY_CARD_LOCAL_Z) / TRAY_CARD_HEIGHT + 0.5,
+  }
 }
 
 // Token diameter as a fraction of the card width, for the tray popup.
@@ -154,7 +157,10 @@ const GIVE_FIRST_Z = TRAY_BG_DEPTH / 2 + TRAY_GAP + TOKEN_SIZE / 2
 export function trayGiveTokenPosition(index, cards) {
   const row = Math.floor(index / TOKENS_PER_ROW)
   const column = index % TOKENS_PER_ROW
-  return [FIRST_TOKEN_X + column * TOKEN_PITCH, GIVE_FIRST_Z + extraDepth(cards) + row * TOKEN_PITCH]
+  return [
+    FIRST_TOKEN_X + column * TOKEN_PITCH,
+    GIVE_FIRST_Z + extraDepth(cards) + row * TOKEN_PITCH,
+  ]
 }
 
 // Trays sit 5.9" apart, center to center (5.6" plate + 0.3" gap). A player has one row of trays.
@@ -236,6 +242,9 @@ export function trayModelPosition(teamColor, trayPos, card = 1) {
 export function traySpareModelPosition(teamColor, trayPos, cards, giveCount, baseRadius) {
   const rows = Math.max(1, Math.ceil(giveCount / TOKENS_PER_ROW))
   const [, lastRowZ] = trayGiveTokenPosition((rows - 1) * TOKENS_PER_ROW, cards)
-  const [x, z] = trayWorld(teamColor, trayPos, [0, lastRowZ + TOKEN_SIZE / 2 + TRAY_GAP + baseRadius])
+  const [x, z] = trayWorld(teamColor, trayPos, [
+    0,
+    lastRowZ + TOKEN_SIZE / 2 + TRAY_GAP + baseRadius,
+  ])
   return [x, 0, z]
 }

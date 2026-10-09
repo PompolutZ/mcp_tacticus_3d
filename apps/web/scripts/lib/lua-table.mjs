@@ -9,7 +9,12 @@
 export function readLuaAssignment(source, name, { resolveName } = {}) {
   const start = [...source.matchAll(new RegExp(`^${name}\\s*=\\s*`, 'gm'))].at(-1)
   if (!start) throw new Error(`No "${name} =" in the Lua source`)
-  return new Parser(source, start.index + start[0].length, localStrings(source), resolveName).expression()
+  return new Parser(
+    source,
+    start.index + start[0].length,
+    localStrings(source),
+    resolveName,
+  ).expression()
 }
 
 // Values of the top-level statements `name[KEY] = ...` in source, as { KEY: value }. KEY is the Lua name in the
@@ -29,7 +34,9 @@ export function readLuaConstants(source) {
   const constants = {}
   const line = /^(?:\w+\s*=\s*(?:-?\d+(?:\.\d+)?|"[^"\n]*")\s*)+(?:--.*)?$/gm
   for (const [text] of source.matchAll(line)) {
-    for (const [, key, value] of text.replace(/--.*$/, '').matchAll(/(\w+)\s*=\s*(-?\d+(?:\.\d+)?|"[^"\n]*")/g)) {
+    for (const [, key, value] of text
+      .replace(/--.*$/, '')
+      .matchAll(/(\w+)\s*=\s*(-?\d+(?:\.\d+)?|"[^"\n]*")/g)) {
       constants[key] = value.startsWith('"') ? value.slice(1, -1) : Number(value)
     }
   }
@@ -175,7 +182,11 @@ class Parser {
       if (field) {
         fields[field[1]] = this.expression()
         named = true
-      } else if (this.src[this.pos] === '[' && !this.src.startsWith('[[', this.pos) && !this.src.startsWith('[=', this.pos)) {
+      } else if (
+        this.src[this.pos] === '[' &&
+        !this.src.startsWith('[[', this.pos) &&
+        !this.src.startsWith('[=', this.pos)
+      ) {
         this.pos++
         const key = this.expression()
         this.expect(']')
@@ -189,7 +200,9 @@ class Parser {
       else if (sep !== '}') this.fail(`expected , or } but found ${JSON.stringify(sep)}`)
     }
     if (!named) return list
-    list.forEach((value, i) => { fields[i + 1] = value })
+    list.forEach((value, i) => {
+      fields[i + 1] = value
+    })
     return fields
   }
 

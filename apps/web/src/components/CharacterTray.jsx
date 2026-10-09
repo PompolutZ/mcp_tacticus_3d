@@ -52,18 +52,34 @@ const CLICK_MOVE = 4
 // crisis tokens, so Scene.jsx draws them (see "Hold and drop").
 // position: the tray's table position, from trays.js layoutTrays (Scene.jsx).
 // onCardHover(over): the pointer moved onto (true) or off (false) the card, for the F key.
-export default function CharacterTray({ character, position, onOpen, onDamage, onPower, onFlip, onCardHover, onRemove, onTokenRemove, onTokenDragStart, selected = false, objectRef }) {
+export default function CharacterTray({
+  character,
+  position,
+  onOpen,
+  onDamage,
+  onPower,
+  onFlip,
+  onCardHover,
+  onRemove,
+  onTokenRemove,
+  onTokenDragStart,
+  selected = false,
+  objectRef,
+}) {
   // Both sides of every card load when the tray mounts, so the first Flip does not wait for an image
   // (that wait hides the tray, see Scene.jsx, Suspense). The order is fixed: the loader caches by
   // the URL list.
   const cards = trayCards(character)
   const cardNumbers = cards === 2 ? [1, 2] : [1]
-  const cardFile = (n, side) => n === 1 ? characterCard(character.key, side) : transformCard(character.key, side)
-  const maps = useColorTexture(cardNumbers.flatMap(n => [
-    assetUrl(cardFile(n, 'healthy')),
-    assetUrl(cardFile(n, 'injured')),
-  ]))
-  const sideMap = n => maps[(n - 1) * 2 + (character.side === 'healthy' ? 0 : 1)]
+  const cardFile = (n, side) =>
+    n === 1 ? characterCard(character.key, side) : transformCard(character.key, side)
+  const maps = useColorTexture(
+    cardNumbers.flatMap((n) => [
+      assetUrl(cardFile(n, 'healthy')),
+      assetUrl(cardFile(n, 'injured')),
+    ]),
+  )
+  const sideMap = (n) => maps[(n - 1) * 2 + (character.side === 'healthy' ? 0 : 1)]
   const plate = trayPlate(cards)
   const stamina = characterStamina(character.key, character.side)
   const yaw = trayYaw(character.teamColor)
@@ -119,10 +135,16 @@ export default function CharacterTray({ character, position, onOpen, onDamage, o
         <meshStandardMaterial color="#20242b" roughness={1} />
       </mesh>
       <group ref={cardRef}>
-        {cardNumbers.map(n => (
-          <mesh key={n} position={[0, 0, trayCardLocalZ(n)]} rotation={[-Math.PI / 2, 0, 0]}
+        {cardNumbers.map((n) => (
+          <mesh
+            key={n}
+            position={[0, 0, trayCardLocalZ(n)]}
+            rotation={[-Math.PI / 2, 0, 0]}
             onClick={openPopup}
-            onPointerOver={e => { e.stopPropagation(); setCardHovered(true) }}
+            onPointerOver={(e) => {
+              e.stopPropagation()
+              setCardHovered(true)
+            }}
             onPointerOut={() => setCardHovered(false)}
           >
             <planeGeometry args={[TRAY_CARD_WIDTH, TRAY_CARD_HEIGHT]} />
@@ -137,7 +159,7 @@ export default function CharacterTray({ character, position, onOpen, onDamage, o
         return (
           <group key={key} position={[x, TOKEN_Y, z]}>
             <Suspense fallback={null}>
-              <TokenFace tokenKey={key} count={count} onClick={e => removeOnToken(e, key)} />
+              <TokenFace tokenKey={key} count={count} onClick={(e) => removeOnToken(e, key)} />
             </Suspense>
           </group>
         )
@@ -148,7 +170,7 @@ export default function CharacterTray({ character, position, onOpen, onDamage, o
         return (
           <group key={key} position={[x, TOKEN_Y, z]}>
             <Suspense fallback={null}>
-              <TokenFace tokenKey={key} cursor="grab" onPointerDown={e => startGive(e, key)} />
+              <TokenFace tokenKey={key} cursor="grab" onPointerDown={(e) => startGive(e, key)} />
             </Suspense>
           </group>
         )

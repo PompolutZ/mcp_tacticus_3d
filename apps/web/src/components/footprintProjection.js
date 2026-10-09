@@ -32,13 +32,13 @@ const uniforms = {
 const used = Array.from({ length: MAX_FOOTPRINTS }, () => false)
 const color = new THREE.Color()
 
-const VERTEX_DECL = /* glsl */`
+const VERTEX_DECL = /* glsl */ `
 varying vec3 vFpWorldPos;`
 
-const VERTEX_MAIN = /* glsl */`
+const VERTEX_MAIN = /* glsl */ `
 vFpWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;`
 
-const FRAGMENT_DECL = /* glsl */`
+const FRAGMENT_DECL = /* glsl */ `
 #define FP_MAX ${MAX_FOOTPRINTS}
 varying vec3 vFpWorldPos;
 uniform vec4 uFpRect[FP_MAX];
@@ -67,7 +67,7 @@ float fpSector(vec2 d, vec2 cs1, vec2 cs2, float radius) {
 
 // Derivatives are taken before any branch, because they are undefined inside non-uniform flow.
 // The normal comes from the world position, so it is correct with any mesh normals and scale.
-const FRAGMENT_MAIN = /* glsl */`
+const FRAGMENT_MAIN = /* glsl */ `
 {
   vec3 fpN = normalize(cross(dFdx(vFpWorldPos), dFdy(vFpWorldPos)));
   float fpPx = max(fwidth(vFpWorldPos.x), fwidth(vFpWorldPos.z)) * ${LINE_PX.toFixed(2)};
@@ -121,7 +121,12 @@ export function acquireFootprint() {
     set(shape, length, halfWidth, fill, opacity, line) {
       uniforms.uFpKind.value[i] = KIND_RECT
       uniforms.uFpRect.value[i].set(shape.x, shape.z, length, halfWidth)
-      uniforms.uFpDir.value[i].set(Math.cos(shape.right), Math.sin(shape.right), Math.cos(shape.left), Math.sin(shape.left))
+      uniforms.uFpDir.value[i].set(
+        Math.cos(shape.right),
+        Math.sin(shape.right),
+        Math.cos(shape.left),
+        Math.sin(shape.left),
+      )
       setColors(i, fill, opacity, line)
     },
     // Quarter-circle shape, for the Zone Arc. Corner at (x, z), between the world directions of
@@ -129,7 +134,12 @@ export function acquireFootprint() {
     setSector(x, z, angle1, angle2, radius, fill, opacity, line) {
       uniforms.uFpKind.value[i] = KIND_SECTOR
       uniforms.uFpRect.value[i].set(x, z, radius, 0)
-      uniforms.uFpDir.value[i].set(Math.cos(angle1), Math.sin(angle1), Math.cos(angle2), Math.sin(angle2))
+      uniforms.uFpDir.value[i].set(
+        Math.cos(angle1),
+        Math.sin(angle1),
+        Math.cos(angle2),
+        Math.sin(angle2),
+      )
       setColors(i, fill, opacity, line)
     },
     release() {

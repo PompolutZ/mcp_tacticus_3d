@@ -9,7 +9,7 @@ export function CardPopup({ card, onClose }) {
 
   return (
     <Overlay className="card-popup" onClick={onClose}>
-      <div className="card-popup-content" onClick={e => e.stopPropagation()}>
+      <div className="card-popup-content" onClick={(e) => e.stopPropagation()}>
         <img className="card-popup-image" src={card.src} alt={card.alt} />
       </div>
     </Overlay>

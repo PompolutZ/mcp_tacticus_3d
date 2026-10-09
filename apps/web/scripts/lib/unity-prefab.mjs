@@ -19,7 +19,14 @@ const CAPSULE_COLLIDER = 136
 
 // Unity's built-in meshes, by fileID in its default resources. Built-in cube and cylinder are common collider shapes.
 const BUILTIN_GUID = '0000000000000000e000000000000000'
-const BUILTIN_MESH = { 10202: 'cube', 10206: 'cylinder', 10207: 'sphere', 10208: 'capsule', 10209: 'plane', 10210: 'quad' }
+const BUILTIN_MESH = {
+  10202: 'cube',
+  10206: 'cylinder',
+  10207: 'sphere',
+  10208: 'capsule',
+  10209: 'plane',
+  10210: 'quad',
+}
 
 // Mirroring X converts a Unity matrix to GLB space: S * M * S
 const MIRROR_X = new THREE.Matrix4().makeScale(-1, 1, 1)
@@ -32,13 +39,17 @@ const MIRROR_X = new THREE.Matrix4().makeScale(-1, 1, 1)
 // warnings: collider data that the script cannot convert
 export function readPrefab(yamlText) {
   const docs = parseDocuments(yamlText)
-  const transforms = [...docs.values()].filter(d => d.classId === TRANSFORM)
-  const transformByObject = new Map(transforms.map(t => [ref(t.text, 'm_GameObject').fileID, t]))
-  const roots = transforms.filter(t => ref(t.text, 'm_Father').fileID === '0')
+  const transforms = [...docs.values()].filter((d) => d.classId === TRANSFORM)
+  const transformByObject = new Map(transforms.map((t) => [ref(t.text, 'm_GameObject').fileID, t]))
+  const roots = transforms.filter((t) => ref(t.text, 'm_Father').fileID === '0')
   if (roots.length !== 1) throw new Error(`Prefab has ${roots.length} root transforms, expected 1`)
   const root = roots[0]
 
-  const unityRoot = new THREE.Matrix4().compose(new THREE.Vector3(), quat(root.text, 'm_LocalRotation'), vec(root.text, 'm_LocalScale'))
+  const unityRoot = new THREE.Matrix4().compose(
+    new THREE.Vector3(),
+    quat(root.text, 'm_LocalRotation'),
+    vec(root.text, 'm_LocalScale'),
+  )
   const rootGlb = toGlb(unityRoot)
   const rootRotation = new THREE.Quaternion()
   const rootScale = new THREE.Vector3()
@@ -47,7 +58,11 @@ export function readPrefab(yamlText) {
   // Matrix from a transform's local space to root space (root position ignored, as TTS does)
   function toRoot(t) {
     if (t === root) return unityRoot.clone()
-    const local = new THREE.Matrix4().compose(vec(t.text, 'm_LocalPosition'), quat(t.text, 'm_LocalRotation'), vec(t.text, 'm_LocalScale'))
+    const local = new THREE.Matrix4().compose(
+      vec(t.text, 'm_LocalPosition'),
+      quat(t.text, 'm_LocalRotation'),
+      vec(t.text, 'm_LocalScale'),
+    )
     return toRoot(docs.get(ref(t.text, 'm_Father').fileID)).multiply(local)
   }
   // A collider works only if its object and all parents are active
@@ -60,7 +75,8 @@ export function readPrefab(yamlText) {
   const colliders = []
   const warnings = []
   for (const doc of docs.values()) {
-    if (![MESH_COLLIDER, BOX_COLLIDER, SPHERE_COLLIDER, CAPSULE_COLLIDER].includes(doc.classId)) continue
+    if (![MESH_COLLIDER, BOX_COLLIDER, SPHERE_COLLIDER, CAPSULE_COLLIDER].includes(doc.classId))
+      continue
     if (num(doc.text, 'm_Enabled') === 0 || num(doc.text, 'm_IsTrigger') === 1) continue
     const t = transformByObject.get(ref(doc.text, 'm_GameObject').fileID)
     if (!t) {
@@ -72,7 +88,11 @@ export function readPrefab(yamlText) {
     if (typeof collider === 'string') warnings.push(collider)
     else colliders.push(collider)
   }
-  return { root: { rotation: rootRotation.toArray(), scale: rootScale.toArray() }, colliders, warnings }
+  return {
+    root: { rotation: rootRotation.toArray(), scale: rootScale.toArray() },
+    colliders,
+    warnings,
+  }
 }
 
 // One collider in root space:
@@ -86,7 +106,9 @@ function readCollider(doc, matrix) {
   const { classId, text } = doc
   // Collider center is an offset in the object's local space
   const center = classId === MESH_COLLIDER ? new THREE.Vector3() : vec(text, 'm_Center')
-  const m = matrix.clone().multiply(new THREE.Matrix4().makeTranslation(-center.x, center.y, center.z))
+  const m = matrix
+    .clone()
+    .multiply(new THREE.Matrix4().makeTranslation(-center.x, center.y, center.z))
   const position = new THREE.Vector3()
   const quaternion = new THREE.Quaternion()
   const scale = new THREE.Vector3()
@@ -96,18 +118,34 @@ function readCollider(doc, matrix) {
 
   if (classId === BOX_COLLIDER) {
     const size = vec(text, 'm_Size')
-    return { shape: 'box', ...pose, halfExtents: [size.x * s[0] / 2, size.y * s[1] / 2, size.z * s[2] / 2] }
+    return {
+      shape: 'box',
+      ...pose,
+      halfExtents: [(size.x * s[0]) / 2, (size.y * s[1]) / 2, (size.z * s[2]) / 2],
+    }
   }
   if (classId === SPHERE_COLLIDER) {
-    return { shape: 'sphere', position: pose.position, radius: num(text, 'm_Radius') * Math.max(...s) }
+    return {
+      shape: 'sphere',
+      position: pose.position,
+      radius: num(text, 'm_Radius') * Math.max(...s),
+    }
   }
   if (classId === CAPSULE_COLLIDER) {
     // m_Direction: 0 = X, 1 = Y, 2 = Z. Turn the capsule so its axis is local Y.
     const axis = num(text, 'm_Direction')
     const radius = num(text, 'm_Radius') * Math.max(...s.filter((_, i) => i !== axis))
-    const halfHeight = Math.max(0, num(text, 'm_Height') * s[axis] / 2 - radius)
-    const toAxis = new THREE.Quaternion().setFromEuler(new THREE.Euler(axis === 2 ? Math.PI / 2 : 0, 0, axis === 0 ? -Math.PI / 2 : 0))
-    return { shape: 'capsule', ...pose, quaternion: quaternion.clone().multiply(toAxis).toArray(), radius, halfHeight }
+    const halfHeight = Math.max(0, (num(text, 'm_Height') * s[axis]) / 2 - radius)
+    const toAxis = new THREE.Quaternion().setFromEuler(
+      new THREE.Euler(axis === 2 ? Math.PI / 2 : 0, 0, axis === 0 ? -Math.PI / 2 : 0),
+    )
+    return {
+      shape: 'capsule',
+      ...pose,
+      quaternion: quaternion.clone().multiply(toAxis).toArray(),
+      radius,
+      halfHeight,
+    }
   }
 
   const mesh = ref(text, 'm_Mesh')
@@ -116,11 +154,16 @@ function readCollider(doc, matrix) {
     // Built-in meshes: cube 1 × 1 × 1, cylinder and capsule radius 0.5 and height 2 along Y, sphere radius 0.5
     const radial = Math.max(s[0], s[2]) / 2
     switch (BUILTIN_MESH[mesh.fileID]) {
-      case 'cube': return { shape: 'box', ...pose, halfExtents: s.map(v => v / 2) }
-      case 'cylinder': return { shape: 'cylinder', ...pose, radius: radial, halfHeight: s[1] }
-      case 'capsule': return { shape: 'capsule', ...pose, radius: radial, halfHeight: Math.max(0, s[1] - radial) }
-      case 'sphere': return { shape: 'sphere', position: pose.position, radius: Math.max(...s) / 2 }
-      default: return `MeshCollider with built-in mesh ${mesh.fileID} (${BUILTIN_MESH[mesh.fileID] ?? 'unknown'}) was skipped`
+      case 'cube':
+        return { shape: 'box', ...pose, halfExtents: s.map((v) => v / 2) }
+      case 'cylinder':
+        return { shape: 'cylinder', ...pose, radius: radial, halfHeight: s[1] }
+      case 'capsule':
+        return { shape: 'capsule', ...pose, radius: radial, halfHeight: Math.max(0, s[1] - radial) }
+      case 'sphere':
+        return { shape: 'sphere', position: pose.position, radius: Math.max(...s) / 2 }
+      default:
+        return `MeshCollider with built-in mesh ${mesh.fileID} (${BUILTIN_MESH[mesh.fileID] ?? 'unknown'}) was skipped`
     }
   }
   if (!mesh.guid) return 'MeshCollider without a mesh was skipped'
@@ -136,15 +179,18 @@ const STANDARD_SHADER = '46'
 // standard: the shader is Unity's built-in Standard shader. The other fields are null when the material
 // does not have them. color is as Unity stores it, in sRGB.
 export function readMaterial(yamlText) {
-  const material = [...parseDocuments(yamlText).values()].find(d => d.classId === MATERIAL)
+  const material = [...parseDocuments(yamlText).values()].find((d) => d.classId === MATERIAL)
   if (!material) throw new Error('No Material object in the Unity YAML')
   const { text } = material
   const shader = ref(text, 'm_Shader')
   // Serialized version 3 of m_SavedProperties writes "_Name: value", older versions "- _Name: value"
-  const property = name => new RegExp(`^\\s*(?:- )?${name}: (.*)$`, 'm').exec(text)?.[1] ?? null
-  const float = name => property(name) === null ? null : Number(property(name))
+  const property = (name) => new RegExp(`^\\s*(?:- )?${name}: (.*)$`, 'm').exec(text)?.[1] ?? null
+  const float = (name) => (property(name) === null ? null : Number(property(name)))
   const color = /r: ([^,]+), g: ([^,]+), b: ([^,]+), a: ([^}]+)/.exec(property('_Color') ?? '')
-  const texture = name => new RegExp(`^\\s*(?:- )?${name}:\\s*\\n\\s*m_Texture: \\{fileID: (-?\\d+)`, 'm').exec(text)?.[1] ?? '0'
+  const texture = (name) =>
+    new RegExp(`^\\s*(?:- )?${name}:\\s*\\n\\s*m_Texture: \\{fileID: (-?\\d+)`, 'm').exec(
+      text,
+    )?.[1] ?? '0'
   return {
     name: field(text, 'm_Name'),
     standard: shader.guid === BUILTIN_SHADER_GUID && shader.fileID === STANDARD_SHADER,
@@ -159,7 +205,8 @@ export function readMaterial(yamlText) {
 // Path of the asset whose .meta file has this guid, in an AssetRipper Unity project export, or null
 export function findAssetByGuid(projectDir, guid) {
   for (const file of walk(projectDir)) {
-    if (file.endsWith('.meta') && fs.readFileSync(file, 'utf8').includes(`guid: ${guid}`)) return file.slice(0, -'.meta'.length)
+    if (file.endsWith('.meta') && fs.readFileSync(file, 'utf8').includes(`guid: ${guid}`))
+      return file.slice(0, -'.meta'.length)
   }
   return null
 }
@@ -180,7 +227,8 @@ function toGlb(unityMatrix) {
 function parseDocuments(text) {
   const docs = new Map()
   const parts = text.split(/^--- !u!(\d+) &(-?\d+).*$/m)
-  for (let i = 1; i < parts.length; i += 3) docs.set(parts[i + 1], { classId: Number(parts[i]), text: parts[i + 2] })
+  for (let i = 1; i < parts.length; i += 3)
+    docs.set(parts[i + 1], { classId: Number(parts[i]), text: parts[i + 2] })
   return docs
 }
 
@@ -196,7 +244,9 @@ function num(text, name) {
 
 // {x: 1, y: 2, z: 3} as numbers
 function components(text, name) {
-  return Object.fromEntries([...field(text, name).matchAll(/(\w+): ([^,}]+)/g)].map(([, k, v]) => [k, Number(v)]))
+  return Object.fromEntries(
+    [...field(text, name).matchAll(/(\w+): ([^,}]+)/g)].map(([, k, v]) => [k, Number(v)]),
+  )
 }
 
 function vec(text, name) {

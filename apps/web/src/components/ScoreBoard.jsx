@@ -49,7 +49,7 @@ function Board() {
     map.flipY = false
     const material = new MeshStandardMaterial({ map, roughness: 0.8, metalness: 0 })
     const clone = scene.clone()
-    clone.traverse(child => {
+    clone.traverse((child) => {
       if (!child.isMesh) return
       child.material = material
       child.castShadow = true
@@ -102,7 +102,10 @@ function DraggableMarker({ position, points, shape, halfHeight, lift = 0, onMove
   // Board, terrain or table point under the pointer, the same as CrisisToken.jsx
   function pointerPoint(clientX, clientY) {
     const rect = gl.domElement.getBoundingClientRect()
-    const ndc = { x: ((clientX - rect.left) / rect.width) * 2 - 1, y: -((clientY - rect.top) / rect.height) * 2 + 1 }
+    const ndc = {
+      x: ((clientX - rect.left) / rect.width) * 2 - 1,
+      y: -((clientY - rect.top) / rect.height) * 2 + 1,
+    }
     raycaster.current.setFromCamera(ndc, camera)
     const { origin, direction } = raycaster.current.ray
     const filter = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
@@ -149,7 +152,10 @@ function DraggableMarker({ position, points, shape, halfHeight, lift = 0, onMove
       ref={groupRef}
       position={[position.x, 0, position.z]}
       onPointerDown={handlePointerDown}
-      onPointerOver={e => { e.stopPropagation(); setHovered(true) }}
+      onPointerOver={(e) => {
+        e.stopPropagation()
+        setHovered(true)
+      }}
       onPointerOut={() => setHovered(false)}
     >
       {children}
@@ -160,8 +166,18 @@ function DraggableMarker({ position, points, shape, halfHeight, lift = 0, onMove
 // The face of a VP marker: the player's affiliation token, with the player tint on the edge
 function VpMarkerSolid({ team, affiliation }) {
   const map = useTexture(assetUrl(affiliationToken(affiliation)))
-  const edgeColor = useMemo(() => new Color().setRGB(...VP_MARKERS[team].tint, SRGBColorSpace), [team])
-  return <TokenSolid map={map} size={VP_MARKER_SIZE} edgeColor={edgeColor} rotation={[0, VP_MARKER_YAW[team], 0]} />
+  const edgeColor = useMemo(
+    () => new Color().setRGB(...VP_MARKERS[team].tint, SRGBColorSpace),
+    [team],
+  )
+  return (
+    <TokenSolid
+      map={map}
+      size={VP_MARKER_SIZE}
+      edgeColor={edgeColor}
+      rotation={[0, VP_MARKER_YAW[team], 0]}
+    />
+  )
 }
 
 // The round marker mesh, tinted, with its bottom at y = 0
@@ -171,14 +187,21 @@ function RoundMarkerMesh() {
     const color = new Color().setRGB(...ROUND_MARKER_TINT, SRGBColorSpace)
     const material = new MeshStandardMaterial({ color, roughness: 0.5, metalness: 0 })
     const clone = scene.clone()
-    clone.traverse(child => {
+    clone.traverse((child) => {
       if (!child.isMesh) return
       child.material = material
       child.castShadow = true
     })
     return clone
   }, [scene])
-  return <primitive object={obj} position={[0, ROUND_MARKER_HALF_SIZE, 0]} rotation={IMPORT_ROTATION} scale={ROUND_MARKER_SCALE} />
+  return (
+    <primitive
+      object={obj}
+      position={[0, ROUND_MARKER_HALF_SIZE, 0]}
+      rotation={IMPORT_ROTATION}
+      scale={ROUND_MARKER_SCALE}
+    />
+  )
 }
 
 // The scoring board with a VP marker per player and the round marker. Relative to the table, not the mat,
@@ -192,8 +215,12 @@ export default function ScoreBoard({ markers, affiliations, onMarkerMove }) {
   // The VP marker dropped last. When both players have the same VP, it lies on top of the other one, as
   // in TTS, where the second marker falls onto the first. Both edges show, so both colors can be seen.
   const topVpMarker = useRef('red')
-  const sameSpot = Math.hypot(markers.blue.x - markers.red.x, markers.blue.z - markers.red.z) < SAME_SPOT
-  const vpShape = useMemo(() => new rapier.Cylinder(TOKEN_THICKNESS / 2, VP_MARKER_SIZE / 2), [rapier])
+  const sameSpot =
+    Math.hypot(markers.blue.x - markers.red.x, markers.blue.z - markers.red.z) < SAME_SPOT
+  const vpShape = useMemo(
+    () => new rapier.Cylinder(TOKEN_THICKNESS / 2, VP_MARKER_SIZE / 2),
+    [rapier],
+  )
   const roundShape = useMemo(
     () => new rapier.Cuboid(ROUND_MARKER_HALF_SIZE, ROUND_MARKER_HALF_SIZE, ROUND_MARKER_HALF_SIZE),
     [rapier],
@@ -204,7 +231,7 @@ export default function ScoreBoard({ markers, affiliations, onMarkerMove }) {
       <Suspense fallback={null}>
         <Board />
       </Suspense>
-      {['blue', 'red'].map(team => (
+      {['blue', 'red'].map((team) => (
         <DraggableMarker
           key={team}
           position={markers[team]}

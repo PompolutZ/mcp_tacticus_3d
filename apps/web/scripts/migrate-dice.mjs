@@ -25,17 +25,50 @@ const ICON_SIZE = 256
 // index = face number - 1. Each triple is [tip, cornerA, cornerB], the same order as FACES[i].corners.
 // glTF convention (V flipped from the OBJ file).
 const FACE_UVS = [
-  [[0.1845, 0.6654], [0.0034, 0.9937], [0.3656, 0.9937]], // 1 skull
-  [[0.5693, 0.3118], [0.3882, 0.6401], [0.7504, 0.6401]], // 2 block
-  [[0.3776, 0.6098], [0.5587, 0.2816], [0.1965, 0.2816]], // 3 hit
-  [[0.8143, 0.9872], [0.9954, 0.6589], [0.6332, 0.6589]], // 4 blank
-  [[0.7569, 0.6125], [0.938, 0.2842], [0.5758, 0.2842]], // 5 crit
-  [[0.3936, 0.9884], [0.5747, 0.6601], [0.2125, 0.6601]], // 6 hit
-  [[0.1845, 0.3118], [0.0034, 0.6401], [0.3656, 0.6401]], // 7 wild
-  [[0.6062, 0.6571], [0.4251, 0.9854], [0.7873, 0.9854]], // 8 blank
+  [
+    [0.1845, 0.6654],
+    [0.0034, 0.9937],
+    [0.3656, 0.9937],
+  ], // 1 skull
+  [
+    [0.5693, 0.3118],
+    [0.3882, 0.6401],
+    [0.7504, 0.6401],
+  ], // 2 block
+  [
+    [0.3776, 0.6098],
+    [0.5587, 0.2816],
+    [0.1965, 0.2816],
+  ], // 3 hit
+  [
+    [0.8143, 0.9872],
+    [0.9954, 0.6589],
+    [0.6332, 0.6589],
+  ], // 4 blank
+  [
+    [0.7569, 0.6125],
+    [0.938, 0.2842],
+    [0.5758, 0.2842],
+  ], // 5 crit
+  [
+    [0.3936, 0.9884],
+    [0.5747, 0.6601],
+    [0.2125, 0.6601],
+  ], // 6 hit
+  [
+    [0.1845, 0.3118],
+    [0.0034, 0.6401],
+    [0.3656, 0.6401],
+  ], // 7 wild
+  [
+    [0.6062, 0.6571],
+    [0.4251, 0.9854],
+    [0.7873, 0.9854],
+  ], // 8 blank
 ]
 
-const ICON_URL = symbol => `https://d37ev18qvj5a3m.cloudfront.net/tts/token/ui/D${{ crit: 'CRIT', wild: 'WILD', hit: 'HIT', block: 'BLOCK', blank: 'BLANK', skull: 'FAIL' }[symbol]}_UI.png`
+const ICON_URL = (symbol) =>
+  `https://d37ev18qvj5a3m.cloudfront.net/tts/token/ui/D${{ crit: 'CRIT', wild: 'WILD', hit: 'HIT', block: 'BLOCK', blank: 'BLANK', skull: 'FAIL' }[symbol]}_UI.png`
 // The mesh, texture and rotation values are the same in the Lua script of both trays, so one nickname is enough
 const TRAY_NICKNAME = 'Blue Dice Tray'
 const DIE_IMAGE_RE = /image\s*=\s*"(https:[^"]+)"/
@@ -76,7 +109,12 @@ async function writeDie() {
   const normal = doc.createAccessor().setType('VEC3').setArray(normals).setBuffer(buffer)
   const texcoord = doc.createAccessor().setType('VEC2').setArray(uvs).setBuffer(buffer)
   const index = doc.createAccessor().setType('SCALAR').setArray(indices).setBuffer(buffer)
-  const prim = doc.createPrimitive().setAttribute('POSITION', position).setAttribute('NORMAL', normal).setAttribute('TEXCOORD_0', texcoord).setIndices(index)
+  const prim = doc
+    .createPrimitive()
+    .setAttribute('POSITION', position)
+    .setAttribute('NORMAL', normal)
+    .setAttribute('TEXCOORD_0', texcoord)
+    .setIndices(index)
   const mesh = doc.createMesh('d8').addPrimitive(prim)
   const node = doc.createNode('d8').setMesh(mesh)
   const scene = doc.createScene().addChild(node)
@@ -94,8 +132,12 @@ async function writeTray() {
   const tray = modObject(TRAY_NICKNAME).CustomMesh
   const mesh = cachedFile(tray.MeshURL)
   const diffuse = cachedFile(tray.DiffuseURL)
-  if (!mesh || !diffuse) throw new Error(`Tray mesh or texture not in the TTS cache (nickname "${TRAY_NICKNAME}")`)
-  await writeGlb(path.join(ASSETS, 'tray.glb'), await compressMesh(await readObj(mesh), { singleMaterial: true }))
+  if (!mesh || !diffuse)
+    throw new Error(`Tray mesh or texture not in the TTS cache (nickname "${TRAY_NICKNAME}")`)
+  await writeGlb(
+    path.join(ASSETS, 'tray.glb'),
+    await compressMesh(await readObj(mesh), { singleMaterial: true }),
+  )
   fs.writeFileSync(path.join(ASSETS, 'tray.webp'), imageToWebp(diffuse, TEXTURE_SIZE))
 }
 

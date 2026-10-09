@@ -11,7 +11,12 @@ import { restoreSetup } from '../setup/setup.js'
 // locked, so a click on terrain does not select it and the Delete key does not remove it by mistake.
 // L unlocks it (App.jsx, handleLockKey).
 export function mapTerrain(mapId) {
-  return MAPS[mapId].placements.map((placement, index) => ({ ...placement, index, id: crypto.randomUUID(), locked: true }))
+  return MAPS[mapId].placements.map((placement, index) => ({
+    ...placement,
+    index,
+    id: crypto.randomUUID(),
+    locked: true,
+  }))
 }
 
 // The terrain of a saved table: the saved pieces with the current map data. A piece that the map data
@@ -56,9 +61,17 @@ export function savedTable(state) {
 
 // 0.1 mm is far below what a player sees. Rounded values stay the same while a model rests, so the
 // save does not write the room again (rooms/store.js, saveRoom).
-const round = v => Math.round(v * 1e4) / 1e4
+const round = (v) => Math.round(v * 1e4) / 1e4
 
 // The saved pose of a body: position t { x, y, z } and rotation r { x, y, z, w }
 export function poseOf(t, r) {
-  return { x: round(t.x), y: round(t.y), z: round(t.z), qx: round(r.x), qy: round(r.y), qz: round(r.z), qw: round(r.w) }
+  return {
+    x: round(t.x),
+    y: round(t.y),
+    z: round(t.z),
+    qx: round(r.x),
+    qy: round(r.y),
+    qz: round(r.z),
+    qw: round(r.w),
+  }
 }

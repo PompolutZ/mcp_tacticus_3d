@@ -48,13 +48,22 @@ export function tokenSolidGeometry(texture, size) {
 function buildGeometry(outline, size) {
   // Shape coordinates in inches, centered, with the image top at +y
   const shape = new Shape(outline.map(([u, v]) => new Vector2((u - 0.5) * size, (0.5 - v) * size)))
-  const capUv = (vertices, i) => new Vector2(vertices[i * 3] / size + 0.5, vertices[i * 3 + 1] / size + 0.5)
+  const capUv = (vertices, i) =>
+    new Vector2(vertices[i * 3] / size + 0.5, vertices[i * 3 + 1] / size + 0.5)
   const uvGenerator = {
-    generateTopUV: (geometry, vertices, a, b, c) => [capUv(vertices, a), capUv(vertices, b), capUv(vertices, c)],
+    generateTopUV: (geometry, vertices, a, b, c) => [
+      capUv(vertices, a),
+      capUv(vertices, b),
+      capUv(vertices, c),
+    ],
     // The edge has a plain color and no image
     generateSideWallUV: () => [new Vector2(), new Vector2(), new Vector2(), new Vector2()],
   }
-  const geometry = new ExtrudeGeometry(shape, { depth: TOKEN_THICKNESS, bevelEnabled: false, UVGenerator: uvGenerator })
+  const geometry = new ExtrudeGeometry(shape, {
+    depth: TOKEN_THICKNESS,
+    bevelEnabled: false,
+    UVGenerator: uvGenerator,
+  })
   // Lay it flat: shape +y (the image top) goes to -z, and the extrusion (+z) goes up
   geometry.rotateX(-Math.PI / 2)
   return geometry
@@ -90,5 +99,9 @@ function imagePixels(image) {
   canvas.height = image.height
   const context = canvas.getContext('2d', { willReadFrequently: true })
   context.drawImage(image, 0, 0)
-  return { data: context.getImageData(0, 0, image.width, image.height).data, width: image.width, height: image.height }
+  return {
+    data: context.getImageData(0, 0, image.width, image.height).data,
+    width: image.width,
+    height: image.height,
+  }
 }

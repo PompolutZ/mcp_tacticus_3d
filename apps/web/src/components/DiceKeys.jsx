@@ -10,7 +10,11 @@ const PX_PER_INCH = 40
 
 // The lip's angle from flat, and its center, in tray space (see KEYS_LIP in tray.js).
 const LIP_TILT = Math.atan2(KEYS_LIP.high.y - KEYS_LIP.low.y, KEYS_LIP.high.z - KEYS_LIP.low.z)
-const LIP_CENTER = [0, (KEYS_LIP.low.y + KEYS_LIP.high.y) / 2, (KEYS_LIP.low.z + KEYS_LIP.high.z) / 2]
+const LIP_CENTER = [
+  0,
+  (KEYS_LIP.low.y + KEYS_LIP.high.y) / 2,
+  (KEYS_LIP.low.z + KEYS_LIP.high.z) / 2,
+]
 
 // Html transform lays its element in the local XY plane of its group, facing +Z. Rx(PI/2 - tilt)
 // * Ry(PI) turns that plane so the element faces up and toward the player (tray-space -z), tilted
@@ -40,11 +44,41 @@ export default function DiceKeys({ state, actions, openMenuSymbol, onMenuToggle,
       <group position={LIP_CENTER} rotation={LIP_ROTATION}>
         <Html center transform>
           <div className="dice-keys">
-            <button type="button" className="dice-key dice-key--clear" title="Remove all dice" onClick={actions.clear}>Clear</button>
-            <button type="button" className="dice-key dice-key--step" title="Remove a die" onClick={actions.remove}>−</button>
-            <span className="dice-key dice-key--count" title="Dice not on the shelf">{well}</span>
-            <button type="button" className="dice-key dice-key--step" title="Add a die" onClick={actions.add}>+</button>
-            <button type="button" className="dice-key dice-key--roll" title="Roll the dice" onClick={actions.roll}>Roll</button>
+            <button
+              type="button"
+              className="dice-key dice-key--clear"
+              title="Remove all dice"
+              onClick={actions.clear}
+            >
+              Clear
+            </button>
+            <button
+              type="button"
+              className="dice-key dice-key--step"
+              title="Remove a die"
+              onClick={actions.remove}
+            >
+              −
+            </button>
+            <span className="dice-key dice-key--count" title="Dice not on the shelf">
+              {well}
+            </span>
+            <button
+              type="button"
+              className="dice-key dice-key--step"
+              title="Add a die"
+              onClick={actions.add}
+            >
+              +
+            </button>
+            <button
+              type="button"
+              className="dice-key dice-key--roll"
+              title="Roll the dice"
+              onClick={actions.roll}
+            >
+              Roll
+            </button>
             <button
               type="button"
               className="dice-key dice-key--crits"
@@ -57,15 +91,21 @@ export default function DiceKeys({ state, actions, openMenuSymbol, onMenuToggle,
           </div>
         </Html>
       </group>
-      {SYMBOLS.map(symbol => (
+      {SYMBOLS.map((symbol) => (
         <FacePlate
           key={symbol}
           symbol={symbol}
           count={shelf[symbol]}
           menuOpen={openMenuSymbol === symbol}
           onToggle={() => onMenuToggle(symbol)}
-          onReroll={() => { actions.reroll(symbol); onMenuClose() }}
-          onChange={toSymbol => { actions.change(symbol, toSymbol); onMenuClose() }}
+          onReroll={() => {
+            actions.reroll(symbol)
+            onMenuClose()
+          }}
+          onChange={(toSymbol) => {
+            actions.change(symbol, toSymbol)
+            onMenuClose()
+          }}
           onMenuClose={onMenuClose}
         />
       ))}
@@ -80,12 +120,18 @@ export default function DiceKeys({ state, actions, openMenuSymbol, onMenuToggle,
 function FacePlate({ symbol, count, menuOpen, onToggle, onReroll, onChange, onMenuClose }) {
   const name = SYMBOL_NAMES[symbol]
   return (
-    <group position={[FACE_PLATES.x[symbol], FACE_PLATES.y, FACE_PLATES.z]} rotation={PLATE_ROTATION}>
+    <group
+      position={[FACE_PLATES.x[symbol], FACE_PLATES.y, FACE_PLATES.z]}
+      rotation={PLATE_ROTATION}
+    >
       <Html center transform>
         <button
           type="button"
           className="dice-face-key"
-          style={{ width: FACE_PLATES.width * PX_PER_INCH, height: FACE_PLATES.depth * PX_PER_INCH }}
+          style={{
+            width: FACE_PLATES.width * PX_PER_INCH,
+            height: FACE_PLATES.depth * PX_PER_INCH,
+          }}
           title={`${name}: reroll one or change one`}
           disabled={count === 0}
           onClick={onToggle}
@@ -119,10 +165,17 @@ function FaceMenu({ symbol, onReroll, onChange, onClose }) {
 
   return (
     <div ref={menuRef} className="dice-face-menu">
-      <button type="button" className="chip" onClick={onReroll}>Reroll one</button>
+      <button type="button" className="chip" onClick={onReroll}>
+        Reroll one
+      </button>
       <span className="group-label">Change one to</span>
-      {SYMBOLS.filter(other => other !== symbol).map(other => (
-        <button key={other} type="button" className="chip dice-face-menu-item" onClick={() => onChange(other)}>
+      {SYMBOLS.filter((other) => other !== symbol).map((other) => (
+        <button
+          key={other}
+          type="button"
+          className="chip dice-face-menu-item"
+          onClick={() => onChange(other)}
+        >
           <img src={iconUrl(other)} alt={SYMBOL_NAMES[other]} className="dice-face-menu-icon" />
           {SYMBOL_NAMES[other]}
         </button>

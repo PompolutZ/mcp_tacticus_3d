@@ -85,7 +85,11 @@ const scratchQuat = new Quaternion()
 export function trayToWorld(trayKey, point) {
   const tray = TRAYS[trayKey]
   scratchVec.set(point.x, point.y, point.z).applyAxisAngle(yAxis, tray.yaw)
-  return { x: scratchVec.x + tray.position.x, y: scratchVec.y + tray.position.y, z: scratchVec.z + tray.position.z }
+  return {
+    x: scratchVec.x + tray.position.x,
+    y: scratchVec.y + tray.position.y,
+    z: scratchVec.z + tray.position.z,
+  }
 }
 
 // World point -> tray-space point, for tray `trayKey`.
@@ -183,7 +187,9 @@ export function freeDropPoint(trayKey, occupied, random = Math.random, triesPerH
     const x = WELL.xMin + margin + random() * (WELL.xMax - WELL.xMin - 2 * margin)
     const z = WELL.zMin + margin + random() * (WELL.zMax - WELL.zMin - 2 * margin)
     candidate = trayToWorld(trayKey, { x, y: WELL.floorY + height, z })
-    const free = occupied.every(p => Math.hypot(p.x - candidate.x, p.y - candidate.y, p.z - candidate.z) >= D8_SIZE)
+    const free = occupied.every(
+      (p) => Math.hypot(p.x - candidate.x, p.y - candidate.y, p.z - candidate.z) >= D8_SIZE,
+    )
     if (free) return candidate
     if ((attempt + 1) % triesPerHeight === 0) height += D8_SIZE
   }

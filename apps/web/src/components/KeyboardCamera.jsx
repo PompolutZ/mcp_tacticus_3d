@@ -25,8 +25,8 @@ function heldDirection(held) {
 // PAN_KEYS and TURN_KEYS in keyboard.js). pan, turn: refs to a Map of the held keys, key code →
 // screen direction [right, up].
 export function KeyboardCamera({ pan, turn }) {
-  const camera = useThree(state => state.camera)
-  const controls = useThree(state => state.controls)
+  const camera = useThree((state) => state.camera)
+  const controls = useThree((state) => state.controls)
 
   useFrame((_, dt) => {
     if (!controls) return
@@ -37,7 +37,7 @@ export function KeyboardCamera({ pan, turn }) {
   function panCamera([dx, dy], dt) {
     const length = Math.hypot(dx, dy)
     if (length === 0) return
-    const step = camera.position.distanceTo(controls.target) * PAN_RATE * dt / length
+    const step = (camera.position.distanceTo(controls.target) * PAN_RATE * dt) / length
     panOnTable(camera, controls.target, dx * step, dy * step)
   }
 
@@ -48,7 +48,11 @@ export function KeyboardCamera({ pan, turn }) {
     offset.copy(camera.position).sub(controls.target)
     spherical.setFromVector3(offset)
     spherical.theta -= dx * TURN_RATE * dt
-    spherical.phi = MathUtils.clamp(spherical.phi + dy * TURN_RATE * dt, controls.minPolarAngle, controls.maxPolarAngle)
+    spherical.phi = MathUtils.clamp(
+      spherical.phi + dy * TURN_RATE * dt,
+      controls.minPolarAngle,
+      controls.maxPolarAngle,
+    )
     // A view straight down has no up direction for lookAt
     spherical.makeSafe()
     offset.setFromSpherical(spherical)

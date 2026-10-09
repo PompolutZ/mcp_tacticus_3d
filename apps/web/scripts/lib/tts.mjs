@@ -31,7 +31,7 @@ export function cachedFile(url) {
 // pieces: key → piece definition. cards: map layouts, each with placements of piece keys.
 export function loadTerrainDatabase() {
   const db = readLuaAssignment(modScript('Terrain Database'), 'terrainDatabase')
-  return { pieces: new Map(db.pieces.map(p => [p.key, p])), cards: db.cards }
+  return { pieces: new Map(db.pieces.map((p) => [p.key, p])), cards: db.cards }
 }
 
 // characters: rows of characterDatabase in the mod's "Database" object (cName, ID, cBase, cModel, cCard, ...).
@@ -39,7 +39,7 @@ export function loadTerrainDatabase() {
 // Lua names such as `cBase = large` or `cGem = {IG.mind}` are read as the name: 'large', 'IG.mind'.
 export function loadCharacterDatabase() {
   const script = modScript('Database')
-  const resolveName = name => name
+  const resolveName = (name) => name
   return {
     characters: readLuaAssignment(script, 'characterDatabase', { resolveName }),
     affiliations: readLuaAssignment(script, 'allAffiliations', { resolveName }),
@@ -56,15 +56,17 @@ export function loadCharacterDatabase() {
 export function loadCrisisDatabase() {
   const database = modScript('Database')
   const deployment = modScript('Automatic Crisis Deployment')
-  const withConstants = source => {
+  const withConstants = (source) => {
     const constants = readLuaConstants(source)
-    return { resolveName: name => (name in constants ? constants[name] : name) }
+    return { resolveName: (name) => (name in constants ? constants[name] : name) }
   }
   return {
-    cards: readLuaAssignment(database, 'cardDatabase', withConstants(database)).filter(c => c.type === 'Crisis Card'),
+    cards: readLuaAssignment(database, 'cardDatabase', withConstants(database)).filter(
+      (c) => c.type === 'Crisis Card',
+    ),
     tokens: readLuaAssignment(database, 'tokenDatabase', withConstants(database)),
     // Not with constants: the map names (mapC = 3) must stay names, because they are the keys of maps
-    crises: readLuaAssignment(deployment, 'crisisDatabase', { resolveName: name => name }),
+    crises: readLuaAssignment(deployment, 'crisisDatabase', { resolveName: (name) => name }),
     maps: readLuaIndexedAssignments(deployment, 'crisisMaps', withConstants(deployment)),
   }
 }
@@ -74,8 +76,10 @@ export function loadCrisisDatabase() {
 export function loadTacticCards() {
   const database = modScript('Database')
   const constants = readLuaConstants(database)
-  const resolveName = name => (name in constants ? constants[name] : name)
-  return readLuaAssignment(database, 'cardDatabase', { resolveName }).filter(c => c.type === 'Tactic Card')
+  const resolveName = (name) => (name in constants ? constants[name] : name)
+  return readLuaAssignment(database, 'cardDatabase', { resolveName }).filter(
+    (c) => c.type === 'Tactic Card',
+  )
 }
 
 let save
@@ -83,7 +87,7 @@ let save
 // The mod object with this Nickname, for example "Blue Dice Tray". Searches inside bags and boxes too.
 export function modObject(nickname) {
   save ??= JSON.parse(fs.readFileSync(MOD_SAVE, 'utf8'))
-  const object = findObject(save.ObjectStates, o => o.Nickname === nickname)
+  const object = findObject(save.ObjectStates, (o) => o.Nickname === nickname)
   if (!object) throw new Error(`No "${nickname}" object in ${MOD_SAVE}`)
   return object
 }
@@ -105,15 +109,19 @@ function findObject(objects = [], test) {
 export function pieceSources(piece) {
   const a = piece.assets ?? {}
   switch (piece.type) {
-    case 'Custom_Model': return { mesh: a.mesh, diffuse: a.diffuse, collider: a.collider || a.mesh }
-    case 'Custom_Assetbundle': return { bundle: a.bundle }
+    case 'Custom_Model':
+      return { mesh: a.mesh, diffuse: a.diffuse, collider: a.collider || a.mesh }
+    case 'Custom_Assetbundle':
+      return { bundle: a.bundle }
     case 'Custom_Tile':
-    case 'Custom_Token': return { image: a.image }
-    default: return {}
+    case 'Custom_Token':
+      return { image: a.image }
+    default:
+      return {}
   }
 }
 
 // The mat of a card: its first Custom_Tile placement
 export function matPlacement(card, pieces) {
-  return card.placements.find(p => pieces.get(p.key)?.type === 'Custom_Tile') ?? null
+  return card.placements.find((p) => pieces.get(p.key)?.type === 'Custom_Tile') ?? null
 }

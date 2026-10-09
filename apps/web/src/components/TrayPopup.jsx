@@ -27,11 +27,22 @@ function otherSide(side) {
 // one, the same as on the 3D tray. heldTokens: the crisis tokens this character holds. A character
 // whose second form has its own card shows that card under the first, as on the 3D tray; the held
 // tokens lie on the first card.
-export function TrayPopup({ character, heldTokens, onClose, onDamage, onPower, onFlip, onRemove, onTokenRemove }) {
+export function TrayPopup({
+  character,
+  heldTokens,
+  onClose,
+  onDamage,
+  onPower,
+  onFlip,
+  onRemove,
+  onTokenRemove,
+}) {
   // The other side of the card, shown with a button, because players often read the Injured side
   // while the card is Healthy. A Flip starts again on the side that faces up.
   const [showOther, setShowOther] = useState(false)
-  useEffect(() => { setShowOther(false) }, [character.side])
+  useEffect(() => {
+    setShowOther(false)
+  }, [character.side])
 
   const name = characterName(character.key)
   const shownSide = showOther ? otherSide(character.side) : character.side
@@ -40,25 +51,38 @@ export function TrayPopup({ character, heldTokens, onClose, onDamage, onPower, o
 
   return (
     <Overlay className="card-popup" onClick={onClose}>
-      <div className="tray-popup" role="dialog" aria-modal="true" aria-label={name} onClick={e => e.stopPropagation()}>
+      <div
+        className="tray-popup"
+        role="dialog"
+        aria-modal="true"
+        aria-label={name}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="tray-popup-top">
           <div className="tray-popup-on">
             {onTokens.map(([key, count]) => (
               <OnToken key={key} tokenKey={key} count={count} onClick={() => onTokenRemove(key)} />
             ))}
           </div>
-          <button type="button" className="tray-popup-close" aria-label="Close" onClick={onClose}>×</button>
+          <button type="button" className="tray-popup-close" aria-label="Close" onClick={onClose}>
+            ×
+          </button>
         </div>
         <div className="tray-popup-card">
           <img src={assetUrl(characterCard(character.key, shownSide))} alt={name} />
-          {heldTokens.map(token => <HeldToken key={token.id} token={token} />)}
+          {heldTokens.map((token) => (
+            <HeldToken key={token.id} token={token} />
+          ))}
         </div>
         {trayCards(character) === 2 && (
           <div className="tray-popup-card">
-            <img src={assetUrl(transformCard(character.key, shownSide))} alt={`${name}, second form`} />
+            <img
+              src={assetUrl(transformCard(character.key, shownSide))}
+              alt={`${name}, second form`}
+            />
           </div>
         )}
-        <button type="button" className="chip" onClick={() => setShowOther(v => !v)}>
+        <button type="button" className="chip" onClick={() => setShowOther((v) => !v)}>
           {showOther ? 'Show side that faces up' : 'Show other side'}
         </button>
         <TrayControls
@@ -79,7 +103,9 @@ export function TrayPopup({ character, heldTokens, onClose, onDamage, onPower, o
 function OnToken({ tokenKey, count, onClick }) {
   const token = getToken(tokenKey)
   const name = token?.name ?? tokenKey
-  const title = token?.description ? `${name}: ${token.description} (click to remove one)` : `${name} (click to remove one)`
+  const title = token?.description
+    ? `${name}: ${token.description} (click to remove one)`
+    : `${name} (click to remove one)`
   return (
     <button type="button" className="tray-popup-token" title={title} onClick={onClick}>
       <img src={assetUrl(characterToken(tokenKey))} alt={name} draggable={false} />
@@ -95,5 +121,13 @@ function HeldToken({ token }) {
   const name = tokenInfo(key)?.name ?? key
   const { u, v } = trayHeldCardPoint(token.heldAt)
   const style = { left: `${u * 100}%`, top: `${v * 100}%`, width: `${HELD_SIZE_U * 100}%` }
-  return <img className="tray-popup-held" src={assetUrl(crisisToken(key))} alt={name} title={name} style={style} />
+  return (
+    <img
+      className="tray-popup-held"
+      src={assetUrl(crisisToken(key))}
+      alt={name}
+      title={name}
+      style={style}
+    />
+  )
 }
