@@ -38,6 +38,14 @@ const OUTLINES = {
     xRay: true,
     selectionLayer: 13,
   },
+  // Two models overlap (characters/overlap.js). The red of outOfRange.
+  overlap: {
+    ...LINE,
+    visibleEdgeColor: 0xe5484d,
+    hiddenEdgeColor: 0x732426,
+    xRay: true,
+    selectionLayer: 14,
+  },
 }
 const MODES = Object.keys(OUTLINES)
 // Line width. The edges are found on a smaller copy of the screen: LINE_SCALE times its size in
@@ -169,9 +177,11 @@ export function useOutline(ref, mode) {
   }, [ref, mode, register])
 }
 
-// Outline mode of a piece from its selected and hovered state, and its range mark ('inRange',
-// 'outOfRange' or none, see RangeMark in RulerTool.jsx). The range mark wins, because it shows only
+// Outline mode of a piece from its selected and hovered state, its range mark ('inRange',
+// 'outOfRange' or none, see RangeMark in RulerTool.jsx) and its overlap mark. The overlap mark wins,
+// so a dragged model that is selected still shows it. The range mark comes next, because it shows only
 // while a tool measures against the piece under the pointer. Then selected wins over hovered.
-export function outlineMode(selected, hovered, rangeMark = null) {
+export function outlineMode(selected, hovered, rangeMark = null, overlap = false) {
+  if (overlap) return 'overlap'
   return rangeMark ?? (selected ? 'selected' : hovered ? 'hovered' : null)
 }

@@ -198,6 +198,19 @@ User, after this phase, in a single player room: checks 1 to 3.
 
 ### Result
 
+- `physics.js`: `MODEL_GROUPS` = `interactionGroups([1], [0, 2..15])`. `CharacterModel.jsx`: the base collider uses it. Dominance, sensors and other colliders unchanged.
+- `characters/overlap.js` and `overlap.test.js`: `overlapMarks`, 6 tests.
+  - Overlap: more than 0.01" (`OVERLAP_MIN`). Height: bases less than 0.25" apart (`HEIGHT_TOLERANCE`, my pick; the 6" lift is far above it).
+  - Equal `moved` (neither moved) gives no mark. So models that spawn overlapping show nothing.
+  - A model gets the mark if it has the higher number in any overlapping pair.
+- `Scene.jsx`: `moved` is a ref Map (id to a counter that only grows), set by `markMoved`. Called at drag start, slide start (`onSlideStart` of `CharacterModel`, set in `startSlide`) and by `toolModels[].moved()`. `RulerTool.jsx` `moveBase` calls `model.moved?.()`, so Place, Place 1 count. Throw / Push count through the slide start.
+- `Scene.jsx`: every 100 ms (`OVERLAP_INTERVAL`) it reads the body positions, runs `overlapMarks`, and sets `overlapIds` only when the set changed.
+- `CharacterModel.jsx`: `overlap` prop. Red tint = emissive `0xaa1111` on a copy of each mesh material. The copy is needed because GLB materials are shared between models of one file. The copy is disposed and the original put back when the mark goes.
+- `SelectionOutlines.jsx`: mode `overlap` (same red as `outOfRange`, layer 14). `outlineMode` has a 4th argument `overlap`, which wins.
+- `README.md`: new section "Overlapping models", known bug marked fixed (2026-10-10). `docs/feature-dice-rolling.md` "Collisions": models have their own group.
+- Checks: `pnpm --filter web test` 119 pass. `pnpm --filter web build` ok. `pnpm format` ok. `pnpm lint`: 44 warnings, the same as before, none new.
+- Not checked in a browser. Left for the user: that terrain and tokens still collide with models, and dice still do not move models (checks 1 to 3).
+
 ## Phase 2: One drag code
 
 Read: decision 3. The drag code of `components/CharacterModel.jsx`, `components/RulerTool.jsx` (`useDragTool`), `components/CrisisToken.jsx` (`onPointerDown`, `onHandleDown`, `pointerPoint`), `components/TacticCard.jsx`, `components/ScoreBoard.jsx`, `components/TokenDragPreview.jsx`, and the token drag of `App.jsx` (`handleTokenDragStart` and the window listeners after it, `cancelTokenDrag`).

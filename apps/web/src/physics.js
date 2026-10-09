@@ -1,4 +1,5 @@
 // Physics values and helpers shared by the table, the terrain, the models and the tools.
+import { interactionGroups } from '@react-three/rapier'
 
 // TTS (Tabletop Simulator) gives every object friction 0.4. With 0.4 here, a model slides off slopes it
 // stands on in TTS, such as the about 35° hood of the vibranium haller. 1.0 holds it on slopes up to 45°.
@@ -7,6 +8,14 @@ export const FRICTION = 1
 // World gravity, in/s² (y). Models use it. Dice fall slower, as in TTS (DIE_GRAVITY_SCALE in
 // src/dice/throw.js).
 export const WORLD_GRAVITY = -30
+
+// Collision groups of a model base. It is in group 1 and its filter leaves group 1 out, so models pass
+// through models (README "Known bugs"). Terrain, tokens and dice stay in the default groups, which
+// meet every group, so they still collide with it.
+export const MODEL_GROUPS = interactionGroups(
+  [1],
+  [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+)
 
 // Ground casts go straight down from this height, in steps of CAST_STEP.
 // One long cast can pass through a terrain hull without a hit (Rapier loses precision over a long

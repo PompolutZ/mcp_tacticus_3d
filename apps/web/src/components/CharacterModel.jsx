@@ -17,7 +17,7 @@ import {
   Raycaster,
   Vector3,
 } from 'three'
-import { FRICTION, castDown } from '../physics.js'
+import { FRICTION, MODEL_GROUPS, castDown } from '../physics.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useColorTexture } from './useColorTexture.js'
 import { assetUrl } from '../assets/index.js'
@@ -55,6 +55,9 @@ const LIFT_MOVED = 0.001
 // Base disk dims from angel.glb mesh0: radius≈0.983, height≈0.118
 export const BASE_RADIUS = 0.983
 export const BASE_HALF_H = 0.059
+// Red glow of the figure while it shows the overlap mark. Added to the colors of the material, so the
+// textures stay visible.
+const OVERLAP_TINT = 0xaa1111
 // Same density for every model, so the mass follows the base size
 const BASE_DENSITY = 5
 // TTS drag of every object
@@ -208,6 +211,8 @@ function standeeScene(front, back, radius) {
 // slideRef: gets startSlide for a Throw or Push (see RulerTool.jsx), and null on unmount
 // baseRadius: radius of the base in the model file, which has the game size
 // onHover(over): called when the pointer moves onto the model (true) and off it (false)
+// overlap: the model shows the overlap mark (overlap.js): a red outline and a red tint
+// onSlideStart(): a Throw or Push starts (startSlide). With onDragStart, Scene counts both as a move.
 // rangeMark: 'inRange' or 'outOfRange' while a range tool marks the model (RangeMark in RulerTool.jsx)
 // position: where the body starts. Read only on mount: RigidBody moves its body when its position
 // prop changes, and the spawn position follows the tray (Scene.jsx), which can move later.
@@ -224,6 +229,7 @@ function CharacterFigure({
   teamColor = 'red',
   selected = false,
   rangeMark,
+  overlap = false,
   onSelect,
   onHover,
   bodyRef,
@@ -233,6 +239,7 @@ function CharacterFigure({
   slideRef,
   onDragStart,
   onDragEnd,
+  onSlideStart,
   constrainDrag,
   overlay,
 }) {
@@ -374,6 +381,7 @@ function CharacterFigure({
     rest.current = null
     rb.setBodyType(2, true)
     slide.current = { path, duration, time: 0 }
+    onSlideStart?.()
   }
 
   // Moves a sliding model one frame. It stands upright, as during a drag. Its height follows the path,
@@ -466,7 +474,30 @@ function CharacterFigure({
     })
   }, [scene, teamColor])
 
-  useOutline(figureRef, outlineMode(selected, hovered, rangeMark))
+  // Red tint while the overlap mark is on. Each mesh gets its own copy of the material, because the
+  // materials of a GLB are shared with the other models made from the same file.
+  useEffect(() => {
+    if (!overlap) return undefined
+    const saved = []
+    scene.traverse((obj) => {
+      if (!obj.isMesh) return
+      const tint = (m) => {
+        const copy = m.clone()
+        if (copy.emissive) copy.emissive.set(OVERLAP_TINT)
+        return copy
+      }
+      saved.push([obj, obj.material])
+      obj.material = Array.isArray(obj.material) ? obj.material.map(tint) : tint(obj.material)
+    })
+    return () => {
+      for (const [obj, material] of saved) {
+        for (const m of Array.isArray(obj.material) ? obj.material : [obj.material]) m.dispose()
+        obj.material = material
+      }
+    }
+  }, [scene, overlap])
+
+  useOutline(figureRef, outlineMode(selected, hovered, rangeMark, overlap))
   // A click selects the model. Only a selected model moves by a drag.
   useHoverCursor(hovered, selected ? 'grab' : 'pointer')
 
@@ -574,6 +605,7 @@ function CharacterFigure({
         position={[0, BASE_HALF_H, 0]}
         friction={FRICTION}
         density={BASE_DENSITY}
+        collisionGroups={MODEL_GROUPS}
       />
       <primitive
         ref={setFigure}

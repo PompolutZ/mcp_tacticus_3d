@@ -161,6 +161,12 @@ Click a piece to select it. Click it again to deselect it. One character, one cr
 
 A tool measures against the character or token selected last. A new tool also snaps to it. Place moves the selected character, also when a token was selected after it.
 
+## Overlapping models
+
+A model passes through other models. Drag it through one, or drop it inside one: both stay where they are, and physics does not push them apart. Terrain still stops a model, and tokens do not.
+
+While two bases overlap by more than 0.01" at the same height, the model that moved last is red, with a red outline. Its place is probably wrong. A move is a drag, a Throw or Push, Place, Place 1. The red goes away when the bases no longer overlap. A lifted model (R) is at another height, so it has no mark.
+
 ## Terrain lock
 
 Every terrain piece is locked when its map is loaded. A locked piece does not react to the pointer: a click on it is a click on the empty table, and a piece behind it can still be clicked. Press **L** with the pointer over a terrain piece to unlock it, as in TTS. Press L again to lock it. A HUD message shows the new state, because a locked piece looks the same as an unlocked one.
@@ -373,10 +379,4 @@ The crisis cards of each roster lie in 2 rows next to the scoring board, paralle
 
 ## Known bugs
 
-- [ ] A model that you drag must not move anything else on the table: other characters, terrain and tokens. Today it pushes other characters. Found on 2026-10-09. On a real table, the players put moved pieces back as well as they can. The app can keep them exactly in place. A dragged model is a kinematic body, and a kinematic body pushes every body it touches (`docs/feature-dice-rolling.md`, "A model that a player drags"). The wanted behavior (the user decided on 2026-10-09):
-  - A dragged model passes through other models. It can be dropped inside another model. While the two models overlap, the moved model is red, with a red outline, to show that its place is wrong.
-  - After the drop, the two models stay where they are. Physics must not push them apart.
-  - A dragged model does not pass through terrain, the same as today.
-  - A dragged model can overlap tokens, for now.
-
-  The fix also changes step 9 of `docs/plans/implement-backend.md`: rule 6 of "Moving objects" in `docs/feature-peer-to-peer.md` expects a moving body to push shared bodies.
+- [x] A model that you drag must not move anything else on the table. Found on 2026-10-09, fixed on 2026-10-10. A dragged model passes through other models, and can be dropped inside one. Both stay where they are. It does not pass through terrain, and it can overlap tokens. The fix also changes step 9 of `docs/plans/implement-backend.md`: rule 6 of "Moving objects" in `docs/feature-peer-to-peer.md` (a moving body pushes shared bodies) goes away.

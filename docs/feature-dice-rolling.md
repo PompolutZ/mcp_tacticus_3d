@@ -202,7 +202,7 @@ The upward speed was measured in TTS on 2026-10-01 (see [Measurements](#measurem
 
 Models get `dominanceGroup={1}`, and dice keep the default 0. In a contact between two groups, Rapier moves only the body with the lower group. Fixed and kinematic bodies are always dominant. So this change affects only contacts between models and dice. Contacts between two models, or between a model and the table, do not change.
 
-The app has no collision groups today. The dice do not need any, because the dominance groups are enough.
+Model bases are in their own collision group (`MODEL_GROUPS` in `src/physics.js`): group 1, and their filter leaves out group 1. So a model passes through other models, and nothing pushes a resting model. Terrain, tokens and dice stay in the default groups, so they still collide with a model. The dice do not need any group of their own, because the dominance groups are enough.
 
 `castDown` in `src/physics.js` casts against fixed bodies. The tray is a fixed body, so a model or a tool that a player moves over the tray stands on the tray. The dice are dynamic, so the casts ignore them.
 

@@ -35,6 +35,7 @@ import { MAPS } from '../terrain/maps.js'
 import { characterGiveSources, characterStamina } from '../characters/characters.js'
 import { characterModels, modelCharacterId, trayCards } from '../characters/models.js'
 import { FRICTION, WORLD_GRAVITY } from '../physics.js'
+import { overlapMarks } from '../characters/overlap.js'
 import { assetUrl } from '../assets/index.js'
 import { CARD_X, CARD_Y, CARD_Z, supplyPilePosition } from '../crisis/layout.js'
 import { getCard } from '../crisis/cards.js'
@@ -124,6 +125,9 @@ function Mat({ mapId }) {
     </mesh>
   )
 }
+
+// How often (ms) Scene looks for overlapping models
+const OVERLAP_INTERVAL = 100
 
 // mapId: key in MAPS. terrain: the terrain pieces on the mat, [{ id, locked, ...placement }] (see
 // mapTerrain in rooms/table.js). onTerrainHover(id, over): the pointer moved onto or off an unlocked piece,
@@ -312,9 +316,40 @@ export default function Scene({
   // The piece that a range tool measures against, { kind, id, mode: 'inRange' | 'outOfRange' } or null.
   // See RangeMark in RulerTool.jsx.
   const [rangeMark, setRangeMark] = useState(null)
+  // Model id → number that grows with each move of the model (overlap.js). A model that never moved has none.
+  const moved = useRef(new Map())
+  const moveCount = useRef(0)
+  const markMoved = (id) => moved.current.set(id, ++moveCount.current)
+  // Ids of the models that show the overlap mark
+  const [overlapIds, setOverlapIds] = useState(() => new Set())
 
   // Every model of every character, in spawn order (characters/models.js)
   const models = useMemo(() => characters.flatMap(characterModels), [characters])
+
+  // Every 100 ms: which models overlap. State changes only when the set changes.
+  useEffect(() => {
+    const id = setInterval(() => {
+      const list = []
+      for (const model of models) {
+        const body = charBodies.current.get(model.id)
+        if (!body) continue
+        const t = body.translation()
+        list.push({
+          id: model.id,
+          x: t.x,
+          y: t.y,
+          z: t.z,
+          radius: BASE_DIAMETER[model.base] / 2,
+          moved: moved.current.get(model.id) ?? 0,
+        })
+      }
+      const marks = overlapMarks(list)
+      setOverlapIds((prev) =>
+        prev.size === marks.size && [...marks].every((m) => prev.has(m)) ? prev : marks,
+      )
+    }, OVERLAP_INTERVAL)
+    return () => clearInterval(id)
+  }, [models])
 
   // Nearest character whose model (either one) or tray is under the client point (DOM pixels), or
   // null. Returns the character id.
@@ -549,6 +584,7 @@ export default function Scene({
         getCenter: () => charBodies.current.get(model.id)?.translation() ?? { x: 0, y: 0, z: 0 },
         isLifted: () => charLifts.current.get(model.id)?.isUp() ?? false,
         slide: (path, duration) => charSlides.current.get(model.id)?.(path, duration),
+        moved: () => markMoved(model.id),
         radius: BASE_DIAMETER[model.base] / 2,
       })),
       ...matTokens.map((tok) => ({
@@ -937,6 +973,7 @@ export default function Scene({
             teamColor: ch.teamColor,
             selected: selectedModelId === model.id,
             rangeMark: rangeMarkOf('character', model.id),
+            overlap: overlapIds.has(model.id),
             onSelect: () => toggleSelect('character', model.id),
             onHover: (over) => {
               onPieceHover?.({ kind: 'character', id: model.id }, over)
@@ -954,7 +991,9 @@ export default function Scene({
               lift ? charLifts.current.set(model.id, lift) : charLifts.current.delete(model.id),
             slideRef: (slide) =>
               slide ? charSlides.current.set(model.id, slide) : charSlides.current.delete(model.id),
+            onSlideStart: () => markMoved(model.id),
             onDragStart: () => {
+              markMoved(model.id)
               setDraggingCharId(model.id)
               trackPiece(draggedPiece, { kind: 'character', id: model.id }, true)
             },

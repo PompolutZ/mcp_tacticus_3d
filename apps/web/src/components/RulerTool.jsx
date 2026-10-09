@@ -1160,6 +1160,7 @@ function Tool({
   function moveBase(model, spot) {
     const body = model.getBody()
     if (!body) return
+    model.moved?.()
     const t = body.translation()
     // Put the base on top of the table or terrain at the spot. Keeping the old height
     // would leave the model inside terrain that is higher than where it started.
