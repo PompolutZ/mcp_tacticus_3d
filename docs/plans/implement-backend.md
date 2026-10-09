@@ -176,6 +176,14 @@ Done when:
 - The log group keeps logs for 1 week, and the budget exists.
 - The answers to the backend doc's open questions 1 to 3 are in the **Result**.
 
+**Result:** Code and docs done on 2026-10-09. The user's deploy is next. Details are in `docs/plans/implement-backend/03-infra.md`.
+- `apps/api`: `lambda.ts`, the Mongo store, the SSM reader, `/health` returns 503 when the Mongo ping fails. `pnpm test` needs no Docker. `test:mongo` starts its own `mongo:8` container with Testcontainers.
+- `infra/`: the stacks `McpTacticusAccount` and `McpTacticusApi`, `put-secrets`, 16 stack tests. `cdk synth` passes without credentials and bundles on the machine (832 kb).
+- The commands of the first deploy, in order, are in `03-infra.md` ("First deploy commands"). `infra/README.md` has the commands for a new machine and for later deploys.
+- The region is `DEPLOY_REGION` in `infra/.env`, `eu-central-1`.
+- Open questions 1 to 3: the region is bootstrapped (version 32), the account has no GitHub OIDC provider, the Lambda concurrency quota is 10. So `githubOidcProvider: "create"` and `reservedConcurrency: null`.
+- Installed: `mongodb@7.7.0`, `@hono/aws-lambda@1.0.0`, `@testcontainers/mongodb@12.2.0`, `aws-cdk-lib@2.272.0`, `aws-cdk@2.1144.0`, `esbuild@0.28.2`.
+
 ## Step 4: CI deploy
 
 Read: backend doc "Deploy" → "GitHub Actions".

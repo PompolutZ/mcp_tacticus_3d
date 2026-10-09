@@ -64,7 +64,7 @@ The signaling routes are part of the API of `docs/feature-backend.md`. That doc 
 - **CloudWatch log group** with 1 week retention, so logs do not grow forever.
 - **AWS Budgets** alert by email at $1.
 
-The CDK stack `McpTacticusApi` in `infra/` creates the function, the function URL and the log group. The stack `McpTacticusAccount` creates the budget. The Atlas CLI commands in `infra/README.md` create the database user and the IP access list. The cluster is not shared with wuclub.
+The CDK stack `McpTacticusApi` in `infra/` creates the function, the function URL and the log group. The stack `McpTacticusAccount` creates the budget. The Atlas CLI commands in `docs/plans/implement-backend/03-infra.md` ("First deploy commands") create the database user and the IP access list. The cluster is not shared with wuclub.
 
 ### MongoDB connection
 
@@ -74,7 +74,7 @@ These rules come from wuclub `apiv2` (`src/dal/client.ts`), with two changes.
 - Options: `maxPoolSize: 2` and `serverSelectionTimeoutMS: 5000`. `apiv2` keeps the defaults: 100 connections per instance and 30 s. With 30 s, the Lambda reaches its own timeout before the driver reports that Atlas cannot be reached.
 - On the first call, the store creates the indexes: `{ room: 1, id: 1 }` and the TTL index `{ expiresAt: 1 }` with `expireAfterSeconds: 0`. `createIndex` does nothing when the index exists already, so this is safe on every cold start.
 - The connection string is the SSM `SecureString` parameter `/mcptacticus/prod/mongodb-uri`. The Lambda reads it at cold start (backend doc, "Secrets and config"). It is not a Lambda env var, so the Lambda console does not show it. Local dev reads `MONGODB_URI` from `apps/api/.env`.
-- Network: the Lambda runs outside a VPC, so its public IP address changes. Therefore the Atlas IP access list allows `0.0.0.0/0`. The Atlas CLI sets it (`infra/README.md`). A fixed IP address needs a VPC and a NAT gateway, and a NAT gateway costs money.
+- Network: the Lambda runs outside a VPC, so its public IP address changes. Therefore the Atlas IP access list allows `0.0.0.0/0`. The Atlas CLI sets it, with the command in `docs/plans/implement-backend/03-infra.md` ("First deploy commands"). A fixed IP address needs a VPC and a NAT gateway, and a NAT gateway costs money.
 - Region: the Lambda and the Atlas cluster are both in `eu-central-1`. Every poll is one round trip to Atlas, so they must be close.
 
 ### Data

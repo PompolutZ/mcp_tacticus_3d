@@ -18,7 +18,7 @@ It renders a game table floating in space. The camera sits directly above the ta
 
 ## Project structure
 
-`apps/api/` is the API (Hono, TypeScript). The tree below is under `apps/web/`.
+`apps/api/` is the API (Hono, TypeScript). `infra/` is the AWS CDK app that deploys the API (see `infra/README.md`). The tree below is under `apps/web/`.
 
 ```
 src/

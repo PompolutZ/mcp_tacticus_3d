@@ -169,7 +169,7 @@ CDK needs `cdk bootstrap` once per account and region, with admin rights. It cre
 
 - An Atlas Free cluster (the old name is M0) in its own Atlas project, on AWS `eu-central-1`. It was created on 2026-10-08 in the Atlas UI. Atlas allows one Free cluster per project, so the second project can have its own.
 - Database `assist3d`. The cluster is not shared with wuclub, so a problem in one cannot affect the other.
-- `infra/README.md` lists the Atlas CLI commands that set up the rest. So the setup can be repeated, and it is not done by clicks:
+- `docs/plans/implement-backend/03-infra.md` ("First deploy commands") lists the Atlas CLI commands that set up the rest. So the setup can be repeated, and it is not done by clicks:
   - Database user `mcptacticus-api` with `readWrite@assist3d`.
   - IP access list `0.0.0.0/0`. The Lambda has no fixed IP address. A fixed address needs a NAT gateway, and a NAT gateway costs money.
 - Atlas is not in CDK. The Atlas CloudFormation resources need the Atlas API key in Secrets Manager ($0.40 per month), and third-party extensions that are activated in the account.
@@ -319,8 +319,11 @@ Made on 2026-10-08:
 ## Open questions
 
 1. **Bootstrap.** Is `eu-central-1` of this account bootstrapped already (by wuclub)? If yes, update it to the current bootstrap template.
+   - Answered on 2026-10-09: yes, bootstrap version 32. The bootstrap command of the first deploy (CDK CLI 2.1144.0) reported no changes, so version 32 is the current template.
 2. **GitHub OIDC provider.** Does the account have one already? If yes, the account stack imports it.
+   - Answered on 2026-10-09: no. `cdk.json` has `githubOidcProvider: "create"`.
 3. **Concurrency quota.** Is the account's Lambda concurrency quota above 110? If not, there is no reserved concurrency.
+   - Answered on 2026-10-09: the quota is 10. `cdk.json` has `reservedConcurrency: null`. The quota of 10 still limits the cost of abuse and the Atlas connections (10 × 2 of 500). All functions of the account share it, also wuclub `apiv2`. AWS can raise the quota of a new account later. Then reserved concurrency 10 is possible again.
 4. **Shared free tier.** How many Lambda requests does wuclub `apiv2` use per month in this account?
 5. **CloudFormation execution policy.** Narrow it from admin rights to the services that the stacks use?
 6. **Hono 5.** The first release candidate came out on 2026-10-08. Move to it when it is stable.

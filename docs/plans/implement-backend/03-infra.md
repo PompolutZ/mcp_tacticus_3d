@@ -174,8 +174,8 @@ aws lambda get-account-settings --region eu-central-1 --profile fxdx_admin --que
 Answers of 2026-10-09:
 
 1. Caller: the IAM user `fxdx_admin`. Decision 13 stays as it is.
-2. MFA devices: none. An earlier setup had stopped before the device was enabled. The user added `arn:aws:iam::<account id>:mfa/fxdx_admin_mfa` (Authenticator app) on 2026-10-09. This serial goes into `mfa_serial`.
-3. `CDKToolkit`: bootstrap version 32. The region is bootstrapped already (by wuclub). The README bootstrap command updates it to the current template.
+2. MFA devices: none. An earlier setup had stopped before the device was enabled. The user added `arn:aws:iam::<account id>:mfa/<device name>` (Authenticator app) on 2026-10-09. This serial goes into `mfa_serial`.
+3. `CDKToolkit`: bootstrap version 32. The region is bootstrapped already (by wuclub). The README bootstrap command (CDK CLI 2.1144.0) reported no changes on 2026-10-09, so version 32 is the current template.
 4. OIDC providers: none. `githubOidcProvider` is `"create"`.
 5. Lambda concurrency quota: 10. `reservedConcurrency` is `null`. The account quota still limits the cost of abuse and the Atlas connections (10 × 2 of 500). All functions of the account share these 10, also wuclub `apiv2`. AWS can raise the quota of a new account later. Then the limit is gone, and reserved concurrency 10 is possible again.
 
@@ -342,13 +342,38 @@ Checks:
 
 ### Result
 
-(Agent adds it after the work.)
+Status: done. The user's work (section "User") is next.
+
+Files changed:
+- New: `infra/README.md`.
+- `README.md`: one line for `infra/` in "Project structure".
+- `docs/feature-backend.md`: open questions 1 to 3 have the answers of 2026-10-09.
+- `docs/plans/implement-backend.md`: **Result** of step 3.
+- This plan: this **Result**, and the order of section "User".
+
+Facts:
+- The README commands read the account id into `$ACCOUNT` and the function URL into `$API_URL`. So the README has no account id and no URL.
+- The AWS commands with `fxdx_admin` have `--region eu-central-1`, because the region of that profile can be another one. The README says to use the `DEPLOY_REGION` of `infra/.env` if it differs.
+- The README has more checks than the plan: the two roles, the OIDC provider, the budget, the SSM parameter names (no values) and the log retention.
+- The Atlas commands are not tested. The README says to check the flags with `--help`.
+
+Checks:
+- The README commands use only names of "Names". No account id, email or secret. Pass.
+- `git status`: only the files above. Pass.
+- `pnpm format:check`: pass. `pnpm lint`: 0 errors, 44 warnings (the same React ones).
+
+Changes from the plan:
+- `infra/.env` comes before the bootstrap in the README and in section "User". Reason: the bootstrap region is the `DEPLOY_REGION` of `infra/.env`.
+- The README has a short section "If a check fails". It is not in the plan.
+
+Open issues:
+- The Lambda reads the SSM parameters only at cold start. After `put-secrets` with a new value, the running instances keep the old value. Only a deploy that changes the function starts new instances. The user chose on 2026-10-09: after `put-secrets`, commit a change and deploy. The README says this in "Later deploys". No command forces new instances.
 
 ## User
 
-After phase 3, in the order of `infra/README.md`:
-1. Bootstrap.
-2. `infra/.env` with `BUDGET_EMAIL`. `pnpm --filter infra cdk:deploy:account`.
+After phase 3, in the order of "First deploy commands" below:
+1. `infra/.env` with `DEPLOY_REGION` and `BUDGET_EMAIL`. Bootstrap.
+2. `pnpm --filter infra cdk:deploy:account`.
 3. The `mcptacticus` profile.
 4. Atlas: database user, access list, connection string.
 5. `MONGODB_URI` and `SESSION_SECRET` in `infra/.env`. `pnpm --filter infra put-secrets`.
@@ -356,6 +381,246 @@ After phase 3, in the order of `infra/README.md`:
 7. `curl <ApiUrl>health` returns `"db":"ok"` and the commit. The preflight returns `access-control-allow-origin: https://mcptacticus3d.netlify.app`. The keep-alive returns `{"db":"ok"}`.
 8. Paste the `REPORT` line of the first request from the logs (it has `Init Duration` and `Duration`). It goes into the **Result**.
 9. Netlify: set `VITE_API_URL`.
+
+## First deploy commands
+
+Moved from `infra/README.md` on 2026-10-09, after the first deploy. Use them again for a new AWS account or a new Atlas cluster. `infra/README.md` keeps the commands for a new machine and for later deploys.
+
+The user runs these steps in this order. Coding agents do not run them.
+
+The commands use the region `eu-central-1`, the `DEPLOY_REGION` of `.env.example`. If `infra/.env` has another region, use it in the commands.
+
+### 1. Tools
+
+```sh
+brew install awscli mongodb-atlas-cli
+```
+
+The profile `fxdx_admin` must work: `aws sts get-caller-identity --profile fxdx_admin` shows the IAM user.
+
+### 2. Read-only checks
+
+The commands and what to do with each answer are in "User, before phase 2". The answers of 2026-10-09 are in its **Result**.
+
+### 3. `infra/.env`
+
+```sh
+cp infra/.env.example infra/.env
+```
+
+Set `DEPLOY_REGION` and `BUDGET_EMAIL`. The other values come in steps 7 and 8.
+
+### 4. Bootstrap
+
+```sh
+ACCOUNT=$(aws sts get-caller-identity --profile fxdx_admin --query Account --output text)
+pnpm --filter infra exec cdk bootstrap aws://$ACCOUNT/eu-central-1 --profile fxdx_admin
+```
+
+- The bootstrap creates the `CDKToolkit` stack: an S3 bucket for the Lambda zip files, an ECR repository and 5 IAM roles. The deploys of both stacks use these roles.
+- If the stack exists, the command updates it to the template of the installed CDK CLI. It keeps the options of the earlier bootstrap, because CDK uses the previous values of the parameters that the command does not set.
+- The next steps use `$ACCOUNT` too. In a new terminal, set it again.
+- It runs once. Run it again only when a deploy stops with an error that asks for a newer bootstrap version. A newer CDK version can need one.
+
+Check: the `CDKToolkit` command of step 2 prints the bootstrap version.
+
+### 5. Deploy `McpTacticusAccount`
+
+```sh
+pnpm --filter infra cdk:deploy:account
+```
+
+CDK shows the IAM changes and asks for a yes.
+
+Check:
+
+```sh
+aws iam get-role --role-name mcptacticus-deployer --profile fxdx_admin --query Role.Arn --output text
+aws iam get-role --role-name mcptacticus-github-deploy --profile fxdx_admin --query Role.Arn --output text
+aws iam list-open-id-connect-providers --profile fxdx_admin
+aws budgets describe-budget --account-id $ACCOUNT --budget-name mcptacticus-monthly --profile fxdx_admin --query Budget.BudgetLimit
+```
+
+The two role ARNs, one provider that ends with `token.actions.githubusercontent.com`, and a budget of 1 USD.
+
+### 6. The profile `mcptacticus`
+
+The deployer role trusts only a caller with MFA. If `fxdx_admin` has no MFA device, add one in the AWS console: IAM → Users → `fxdx_admin` → Security credentials → Assign MFA device → Authenticator app.
+
+This command adds the profile to `~/.aws/config`. It reads the role ARN and the MFA serial from AWS, so the profile has no placeholders. Run it once. If the file has a `[profile mcptacticus]` already, delete that block first.
+
+```sh
+cat >> ~/.aws/config <<EOF
+
+[profile mcptacticus]
+role_arn = $(aws iam get-role --role-name mcptacticus-deployer --profile fxdx_admin --query Role.Arn --output text)
+source_profile = fxdx_admin
+mfa_serial = $(aws iam list-mfa-devices --profile fxdx_admin --query 'MFADevices[0].SerialNumber' --output text)
+region = eu-central-1
+EOF
+```
+
+The result has this form:
+
+```ini
+[profile mcptacticus]
+role_arn = arn:aws:iam::<account id>:role/mcptacticus-deployer
+source_profile = fxdx_admin
+mfa_serial = arn:aws:iam::<account id>:mfa/<device name>
+region = eu-central-1
+```
+
+- The role trusts the account, not a named user. The policy of `fxdx_admin` must allow `sts:AssumeRole`. An admin user has this permission.
+- The commands with this profile ask for the MFA code. AWS accepts each code only once. When two commands ask within the same 30 seconds, wait for the next code.
+
+Check:
+
+```sh
+aws sts get-caller-identity --profile mcptacticus
+```
+
+The ARN has `assumed-role/mcptacticus-deployer`.
+
+### 7. Atlas
+
+The Free cluster exists already (created in the Atlas UI). These commands add the database user and the IP access list. Atlas CLI flags change between versions, so check each command with `--help` first.
+
+```sh
+atlas auth login
+atlas projects list
+PROJECT=<id of the project of the cluster>
+atlas clusters list --projectId $PROJECT
+```
+
+The database user `mcptacticus-api` with read and write access to the database `assist3d` only. A hex password needs no URL encoding in the connection string.
+
+```sh
+PW=$(openssl rand -hex 24)
+atlas dbusers create --username mcptacticus-api --password "$PW" --role readWrite@assist3d --projectId $PROJECT
+```
+
+The access list allows every IP address, because the Lambda has no fixed IP address. A fixed address needs a NAT gateway, and a NAT gateway costs money.
+
+```sh
+atlas accessLists create 0.0.0.0/0 --type cidrBlock --comment "mcptacticus-api: Lambda has no fixed IP address" --projectId $PROJECT
+```
+
+The connection string:
+
+```sh
+atlas clusters connectionStrings describe <cluster name> --projectId $PROJECT
+```
+
+It prints `standardSrv`: `mongodb+srv://<cluster host>`. The JSON output of `atlas clusters list` has the same value. Build the full string in the same terminal, because `$PW` is there:
+
+```sh
+echo "mongodb+srv://mcptacticus-api:$PW@<cluster host>/"
+```
+
+Copy the output into `MONGODB_URI` in `infra/.env`. The string has the password, so do not paste it anywhere else.
+
+Check:
+
+```sh
+atlas dbusers describe mcptacticus-api --projectId $PROJECT
+atlas accessLists list --projectId $PROJECT
+```
+
+Atlas can need a few minutes to apply both.
+
+A cluster created in the Atlas UI can have entries from "Auto Setup": a database user with `atlasAdmin` and an access list entry with the IP address of your machine. With `0.0.0.0/0`, that user can log in from any address. The app uses neither. Find and delete them:
+
+```sh
+atlas dbusers list --projectId $PROJECT
+atlas dbusers delete <user name> --projectId $PROJECT
+atlas accessLists delete <ip address>/32 --projectId $PROJECT
+```
+
+### 8. Secrets
+
+```sh
+openssl rand -base64 48
+```
+
+Copy the output into `SESSION_SECRET` in `infra/.env`. Then:
+
+```sh
+pnpm --filter infra put-secrets
+```
+
+- It asks for the MFA code.
+- It writes each value of `infra/.env` that is set as an SSM `SecureString` under `/mcptacticus/prod/`.
+- It prints the names that it wrote and the names that it skipped, never a value. Now: `Wrote: mongodb-uri, session-secret`. The Discord values come in step 6 of the plan.
+- It stops before any write when `MONGODB_URI` does not start with `mongodb+srv://` or `mongodb://`, or when `SESSION_SECRET` has fewer than 32 characters.
+
+Check (names and types only, no values):
+
+```sh
+aws ssm get-parameters-by-path --path /mcptacticus/prod/ --profile fxdx_admin --region eu-central-1 --query 'Parameters[].[Name,Type]' --output text
+```
+
+### 9. Deploy `McpTacticusApi`
+
+```sh
+pnpm --filter infra cdk:deploy
+```
+
+It asks for the MFA code. CDK bundles the Lambda with esbuild on this machine, shows the IAM changes and asks for a yes. At the end it prints `McpTacticusApi.ApiUrl`.
+
+### 10. Checks
+
+The URL of the API ends with `/`:
+
+```sh
+API_URL=$(aws cloudformation describe-stacks --stack-name McpTacticusApi --profile fxdx_admin --region eu-central-1 --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text)
+```
+
+Health:
+
+```sh
+curl -sS ${API_URL}health
+```
+
+It returns `{"ok":true,"version":"<commit>","db":"ok"}`. A version that ends with `-dirty` means that the deploy had uncommitted changes.
+
+CORS preflight:
+
+```sh
+curl -sS -o /dev/null -D - -X OPTIONS ${API_URL}health \
+  -H 'Origin: https://mcptacticus3d.netlify.app' \
+  -H 'Access-Control-Request-Method: GET' \
+  -H 'Access-Control-Request-Headers: authorization'
+```
+
+The headers have `access-control-allow-origin: https://mcptacticus3d.netlify.app`.
+
+Keep-alive:
+
+```sh
+aws lambda invoke --function-name mcptacticus-api --payload '{"keepAlive":true}' --cli-binary-format raw-in-base64-out --profile fxdx_admin --region eu-central-1 /dev/stdout
+```
+
+It prints `{"db":"ok"}`.
+
+Logs:
+
+```sh
+aws logs tail /aws/lambda/mcptacticus-api --since 10m --profile fxdx_admin --region eu-central-1
+aws logs describe-log-groups --log-group-name-prefix /aws/lambda/mcptacticus-api --profile fxdx_admin --region eu-central-1 --query 'logGroups[].retentionInDays'
+```
+
+- The first command shows one line per request, `keep-alive ok`, and a `REPORT` line for each call. The `REPORT` line of the first call has `Init Duration`: the time of the cold start.
+- The second command prints `[7]`.
+
+### 11. Netlify
+
+Set the Netlify env var `VITE_API_URL` to the `ApiUrl` without the trailing `/`:
+
+```sh
+echo ${API_URL%/}
+```
+
+Netlify: Site configuration → Environment variables → Add a variable. No web code reads it before step 6 of the plan.
 
 ## Done when
 
