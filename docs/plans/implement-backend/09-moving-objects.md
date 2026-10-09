@@ -431,6 +431,8 @@ After Phase 7:
 
 ### User check results
 
+- 2026-10-10: checks 1 to 3 pass (after Phase 1b).
+
 ## Done when
 
 - `pnpm test`, `pnpm typecheck`, `pnpm --filter web build` pass. `pnpm lint` has no new errors.
