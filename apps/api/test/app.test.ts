@@ -4,9 +4,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createApp } from '../src/app'
 import { createMemoryStore } from '../src/stores/memory'
 import type { Store } from '../src/stores/store'
+import { testConfig } from './helpers'
 
 function makeApp() {
-  const app = createApp({ store: createMemoryStore(), config: { version: 'test' } })
+  const app = createApp({ store: createMemoryStore(), config: testConfig, discord: null })
   const extra = new Hono()
   extra.get('/boom', () => {
     throw new Error('secret')
@@ -62,8 +63,8 @@ describe('app', () => {
 
   it('GET /health returns 503 when the database ping fails', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
-    const store: Store = { ping: async () => 'error', close: async () => {} }
-    const res = await createApp({ store, config: { version: 'test' } }).request('/health')
+    const store: Store = { ...createMemoryStore(), ping: async () => 'error' }
+    const res = await createApp({ store, config: testConfig, discord: null }).request('/health')
     expect(res.status).toBe(503)
     expect(await res.json()).toEqual({ ok: false, version: 'test', db: 'error' })
   })

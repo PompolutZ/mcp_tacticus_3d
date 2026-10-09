@@ -2,12 +2,30 @@ import type { SSMClient } from '@aws-sdk/client-ssm'
 import { GetParametersByPathCommand } from '@aws-sdk/client-ssm'
 
 // Only what routes use. The Mongo URI goes to the store, not here.
-export interface Config {
-  version: string
+export interface DiscordConfig {
+  clientId: string
+  clientSecret: string
 }
 
-export function configFromEnv(env: Record<string, string | undefined>): Config {
-  return { version: env.APP_VERSION ?? 'dev' }
+export interface Config {
+  version: string
+  sessionSecret: string
+  // Null: Discord login is off (local only). The Lambda requires the values.
+  discord: DiscordConfig | null
+}
+
+// The fallback secret comes from the caller. It must not live in a module that
+// the Lambda imports.
+export function configFromEnv(
+  env: Record<string, string | undefined>,
+  fallbackSessionSecret: string,
+): Config {
+  const { DISCORD_CLIENT_ID: clientId, DISCORD_CLIENT_SECRET: clientSecret } = env
+  return {
+    version: env.APP_VERSION ?? 'dev',
+    sessionSecret: env.SESSION_SECRET || fallbackSessionSecret,
+    discord: clientId && clientSecret ? { clientId, clientSecret } : null,
+  }
 }
 
 // Reads all parameters under the prefix. Keys are short names, without the prefix.

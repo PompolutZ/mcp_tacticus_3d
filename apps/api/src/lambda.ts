@@ -1,7 +1,7 @@
 import { SSMClient } from '@aws-sdk/client-ssm'
 import { handle, type LambdaContext, type LambdaEvent } from '@hono/aws-lambda'
 import { createApp } from './app'
-import { configFromEnv, loadSsmParams, requireParam } from './config'
+import { loadSsmParams, requireParam, type Config } from './config'
 import { createMongoStore } from './stores/mongo'
 
 interface KeepAliveEvent {
@@ -20,7 +20,13 @@ const store = createMongoStore({
   uri: requireParam(params, 'mongodb-uri', prefix),
   dbName: process.env.DB_NAME ?? 'assist3d',
 })
-const handleHttp = handle(createApp({ store, config: configFromEnv(process.env) }))
+// Phase 2 replaces this with configFromSsm.
+const config: Config = {
+  version: process.env.APP_VERSION ?? 'dev',
+  sessionSecret: requireParam(params, 'session-secret', prefix),
+  discord: null,
+}
+const handleHttp = handle(createApp({ store, config, discord: null }))
 
 // A daily ping gives Atlas a connection. Atlas pauses a Free cluster after 30 days with none.
 export const handler = async (event: LambdaEvent | KeepAliveEvent, context?: LambdaContext) => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { loadSsmParams, requireParam } from '../src/config'
+import { configFromEnv, loadSsmParams, requireParam } from '../src/config'
 
 const prefix = '/mcptacticus/prod/'
 
@@ -33,5 +33,36 @@ describe('requireParam', () => {
     expect(() => requireParam(params, 'mongodb-uri', prefix)).toThrow(
       new Error('Missing SSM parameter /mcptacticus/prod/mongodb-uri'),
     )
+  })
+})
+
+describe('configFromEnv', () => {
+  it('uses the fallback secret and no Discord without values', () => {
+    expect(configFromEnv({}, 'fallback')).toEqual({
+      version: 'dev',
+      sessionSecret: 'fallback',
+      discord: null,
+    })
+  })
+
+  it('reads the secret and the Discord values', () => {
+    const config = configFromEnv(
+      {
+        APP_VERSION: '1',
+        SESSION_SECRET: 's',
+        DISCORD_CLIENT_ID: 'id',
+        DISCORD_CLIENT_SECRET: 'sec',
+      },
+      'fallback',
+    )
+    expect(config).toEqual({
+      version: '1',
+      sessionSecret: 's',
+      discord: { clientId: 'id', clientSecret: 'sec' },
+    })
+  })
+
+  it('turns Discord off when one value is missing', () => {
+    expect(configFromEnv({ DISCORD_CLIENT_ID: 'id' }, 'f').discord).toBeNull()
   })
 })

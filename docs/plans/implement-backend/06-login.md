@@ -191,7 +191,32 @@ Checks:
 
 ### Result
 
-(The agent adds it after the work.)
+Status: done. Not committed.
+
+Files changed:
+- New: `apps/api/src/auth/token.ts`, `auth/discord.ts` (only the `DiscordClient` type), `middleware/user.ts`, `middleware/validate.ts`, `routes/me.ts`, `routes/devAuth.ts`.
+- New tests: `token.test.ts` (7), `me.test.ts` (4), `dev-auth.test.ts` (4), `users.mongo.test.ts` (3), `helpers.ts`.
+- Changed: `stores/store.ts`, `memory.ts`, `mongo.ts`, `config.ts`, `app.ts`, `lambda.ts`, `local.ts`, `.env.example`, `package.json`, `pnpm-lock.yaml`, `app.test.ts`, `config.test.ts`, `mongo.mongo.test.ts`.
+
+Facts:
+- Installed: `zod@4.6.5`, `@hono/zod-validator@0.9.1`, `hono@4.13.13`. Peer ranges of the validator: `hono >=4.11.2`, `zod ^3.25.0 || ^4.0.0`. They fit.
+- `configFromEnv(env, fallbackSessionSecret)` takes the fallback as an argument. The value `dev-session-secret-local-only` is only in `local.ts`. `lambda.ts` does not import `configFromEnv`.
+- `lambda.ts` builds `Config` with `session-secret` from SSM and `discord: null`. Phase 2 replaces it with `configFromSsm`.
+- `Deps.discord` is typed `DiscordClient | null`. `auth/discord.ts` has only the interface for now.
+- `verify` gets `'HS256'`. A token with `alg: none` or `HS384` fails.
+- `requireUser` is mounted on `/me` inside `meRoutes`.
+
+Checks:
+- `pnpm --filter api typecheck`: pass.
+- `pnpm --filter api test`: pass, 32 of 32.
+- `pnpm --filter api test:mongo`: pass, 5 of 5.
+- `pnpm lint`: 0 errors, 44 warnings (the same as before).
+- `pnpm format:check`: pass.
+- `grep console.log/error apps/api/src`: no line prints a token, a code or a secret.
+
+Changes from the plan: none. `.gitignore` is left for Phase 3 (no web env file exists yet).
+
+Open issues: none.
 
 ## Phase 2: Discord login and the Lambda
 

@@ -3,6 +3,7 @@ import { MongoClient } from 'mongodb'
 import { afterAll, describe, expect, inject, it, vi } from 'vitest'
 import { createApp } from '../src/app'
 import { createMongoStore } from '../src/stores/mongo'
+import { testConfig } from './helpers'
 
 const uri = inject('mongoUri')
 // Own database per file, so files can share one container.
@@ -23,7 +24,7 @@ describe('mongo store with a real server', () => {
 
   it('GET /health returns db ok', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
-    const res = await createApp({ store, config: { version: 'test' } }).request('/health')
+    const res = await createApp({ store, config: testConfig, discord: null }).request('/health')
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ ok: true, version: 'test', db: 'ok' })
   })
