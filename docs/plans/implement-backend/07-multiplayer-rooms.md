@@ -463,7 +463,8 @@ After the Netlify build of the merged code:
 
 ### User check results
 
-None yet.
+- 2026-10-09: checks 3 to 12 pass.
+- The guest in the Red seat sees the table from the Blue side. This is expected: the camera turn for Red is in step 8.
 
 ## Done when
 

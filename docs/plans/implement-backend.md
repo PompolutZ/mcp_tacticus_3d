@@ -290,6 +290,7 @@ Peer-to-peer phase 2 and auth phase 3. Read: peer-to-peer doc "How a WebRTC conn
    - `peer.js`, Yjs sync and awareness over the data channel.
    - Host and join in a multiplayer room.
    - Names and avatars in the room toolbar.
+   - The camera turn for the Red player (plan of step 7, "Left for later steps").
    - The version check and the `?build` flag.
 3. Local coturn and `?relay`, if a browser pair cannot connect directly.
 
