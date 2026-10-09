@@ -35,7 +35,7 @@ import { MAPS } from '../terrain/maps.js'
 import { characterGiveSources, characterStamina } from '../characters/characters.js'
 import { characterModels, modelCharacterId, trayCards } from '../characters/models.js'
 import { FRICTION, WORLD_GRAVITY } from '../physics.js'
-import { overlapMarks } from '../characters/overlap.js'
+import { overlapMarks, overlapsAny } from '../characters/overlap.js'
 import { assetUrl } from '../assets/index.js'
 import { CARD_X, CARD_Y, CARD_Z, supplyPilePosition } from '../crisis/layout.js'
 import { getCard } from '../crisis/cards.js'
@@ -326,29 +326,31 @@ export default function Scene({
   // Every model of every character, in spawn order (characters/models.js)
   const models = useMemo(() => characters.flatMap(characterModels), [characters])
 
+  // Body position and base radius of every model with a body, except the one with id `skip`
+  function modelBases(skip) {
+    const list = []
+    for (const model of models) {
+      if (model.id === skip) continue
+      const body = charBodies.current.get(model.id)
+      if (!body) continue
+      const t = body.translation()
+      list.push({ id: model.id, x: t.x, y: t.y, z: t.z, radius: BASE_DIAMETER[model.base] / 2 })
+    }
+    return list
+  }
+
   // Every 100 ms: which models overlap. State changes only when the set changes.
   useEffect(() => {
     const id = setInterval(() => {
-      const list = []
-      for (const model of models) {
-        const body = charBodies.current.get(model.id)
-        if (!body) continue
-        const t = body.translation()
-        list.push({
-          id: model.id,
-          x: t.x,
-          y: t.y,
-          z: t.z,
-          radius: BASE_DIAMETER[model.base] / 2,
-          moved: moved.current.get(model.id) ?? 0,
-        })
-      }
+      const list = modelBases().map((m) => ({ ...m, moved: moved.current.get(m.id) ?? 0 }))
       const marks = overlapMarks(list)
       setOverlapIds((prev) =>
         prev.size === marks.size && [...marks].every((m) => prev.has(m)) ? prev : marks,
       )
     }, OVERLAP_INTERVAL)
     return () => clearInterval(id)
+    // modelBases only reads `models` and refs
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [models])
 
   // Nearest character whose model (either one) or tray is under the client point (DOM pixels), or
@@ -974,6 +976,8 @@ export default function Scene({
             selected: selectedModelId === model.id,
             rangeMark: rangeMarkOf('character', model.id),
             overlap: overlapIds.has(model.id),
+            overlapsAt: (x, y, z) =>
+              overlapsAny({ x, y, z, radius: BASE_DIAMETER[model.base] / 2 }, modelBases(model.id)),
             onSelect: () => toggleSelect('character', model.id),
             onHover: (over) => {
               onPieceHover?.({ kind: 'character', id: model.id }, over)

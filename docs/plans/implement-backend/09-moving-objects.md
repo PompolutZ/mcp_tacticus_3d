@@ -115,6 +115,7 @@ apps/web/src/
    - A dragged model passes through other models. It can be dropped inside another model. After the drop, both models stay where they are.
    - It does not pass through terrain, and it can overlap tokens, as today.
    - While two models overlap, the one that moved last shows the overlap mark. Each model keeps a number that grows with each move: a drag, a Throw or Push, Place, Place 1, and from Phase 4 a claim of the other player. Of two models that overlap, the one with the higher number gets the mark. Two models overlap when their base circles overlap by more than 0.01" and their bases are at about the same height.
+   - Changed by the user on 2026-10-10 (Phase 1b): a dragged model shows the mark as soon as it enters another model. A drag that ends inside another model puts the model back at the last place of this drag where it overlapped nothing. If the drag had no such place, the model goes back to where the drag started. From there it drops as after any drag. Only a drag does this. Place, Place 1 and Throw or Push can still end inside a model, and then the mark shows.
    - So rule 6 of the design goes away. No body pushes a resting model any more: models pass through models, tools are sensors, and dice do not move models (dominance groups). So there are no pushed bodies to claim, and no contact events.
 2. **Every piece that a player drags is live.** The design streams models, tokens and tools. This step adds tactic cards, piles and score markers, because they move the same way. A new token from a Give source, a supply pile, a pile or the Library is the exception (see "Scope").
 3. **One drag code.** Today the same gesture code is copied in six places: `CharacterModel.jsx`, `useDragTool` in `RulerTool.jsx`, `CrisisToken.jsx` (the token and its turn handle), `TacticCard.jsx`, `ScoreBoard.jsx`, and the token drag of `App.jsx`. `DRAG_THRESHOLD` is defined five times, and the screen-to-table point is copied five times (`TokenDragPreview.jsx` too).
@@ -210,6 +211,45 @@ User, after this phase, in a single player room: checks 1 to 3.
 - `README.md`: new section "Overlapping models", known bug marked fixed (2026-10-10). `docs/feature-dice-rolling.md` "Collisions": models have their own group.
 - Checks: `pnpm --filter web test` 119 pass. `pnpm --filter web build` ok. `pnpm format` ok. `pnpm lint`: 44 warnings, the same as before, none new.
 - Not checked in a browser. Left for the user: that terrain and tokens still collide with models, and dice still do not move models (checks 1 to 3).
+
+## Phase 1b: The mark during a drag, and no drop inside a model
+
+The user asked for this on 2026-10-10, after Phase 1 (decision 1).
+
+Why the mark did not show during a drag: a dragged base hovers `DRAG_HOVER` (0.3") above the table or terrain. `HEIGHT_TOLERANCE` was 0.25". So the dragged model was at "another height" until the drop.
+
+Read: decision 1. `characters/overlap.js` (+ test), `components/CharacterModel.jsx` (the drag: `useFrame`, `onPointerDown`, `DRAG_HOVER`), `components/Scene.jsx` (`charBodies`, the overlap interval, the `CharacterModel` props).
+
+Work:
+1. `overlap.js`: `HEIGHT_TOLERANCE` 0.25 → 1. The comment says why: the dragged base hovers 0.3", and a lifted model is 6" up. A shared `overlaps(a, b)` (the distance and height rules, no `moved`). `overlapMarks` uses it. New `overlapsAny(model, others)`: true when `model` overlaps one of `others`.
+2. `Scene.jsx`: each `CharacterModel` gets `overlapsAt(x, y, z)`. It builds the other models from `charBodies` (the same fields as the interval, without this model) and calls `overlapsAny`.
+3. `CharacterModel.jsx`, during a drag:
+   - At the drag start, the last free place is the body position.
+   - On each drag frame, after the new position is known (with `constrainDrag`): when `overlapsAt` is false for it, it becomes the last free place.
+   - A `dragOverlap` state, set only when the result changes. The model shows the mark while `overlap || dragOverlap`. So the mark shows in the frame the base enters the other model, not up to 100 ms later.
+   - At the release: when `overlapsAt` is true for the body position, the body moves to the last free place (`setTranslation`) before it becomes dynamic. The rotation stays. `dragOverlap` goes off at the end of the drag.
+4. `overlap.test.js`: `overlapsAny` with no other model, with a touching base, with an overlap, with a base 0.3" higher (counts), with a base 6" higher (does not count).
+5. `README.md` ("Overlapping models"): the mark shows during the drag. A drop inside another model puts the model back at its last free place of the drag, or at its start. Place, Place 1, Throw or Push can still end inside a model, with the mark.
+
+Checks:
+- `pnpm --filter web test`, `pnpm --filter web build` pass.
+- `pnpm format`, `pnpm lint`: no new errors.
+
+User, after this phase, in a single player room: checks 1 to 3 (new text below).
+
+### Result
+
+- `overlap.js`: `HEIGHT_TOLERANCE` is 1. New `overlaps(a, b)` and `overlapsAny(model, others)`. `overlapMarks` uses `overlaps`.
+- `Scene.jsx`: `modelBases(skip)` reads the body positions. The 100 ms interval and the new `overlapsAt(x, y, z)` prop of each model both use it.
+- `CharacterModel.jsx`: `freePlace` ref, `dragOverlap` state.
+  - At drag start, `freePlace` is the body position.
+  - Each drag frame: if the new place overlaps nothing, it becomes `freePlace`. `dragOverlap` is set (React skips equal values).
+  - Mark shows while `overlap || dragOverlap`: outline and tint.
+  - At release: if the body overlaps, `setTranslation(freePlace)` before the body turns dynamic. Rotation stays. `dragOverlap` goes off.
+- Only a drag returns. Place, Place 1, Throw and Push are as before.
+- `overlap.test.js`: 3 new tests for `overlapsAny`. `README.md`: "Overlapping models" updated.
+- Checks: `pnpm --filter web test` 122 pass. Build ok. Format ok. Lint: no new errors.
+- Not checked in a browser. Left for the user: checks 1 to 3.
 
 ## Phase 2: One drag code
 
@@ -352,9 +392,9 @@ User, after this phase: check 23.
 
 ## User
 
-After Phase 1, in a single player room:
-1. Select a model and drag it through another model. It passes through. While the two overlap, the dragged model is red, with a red outline.
-2. Drop it inside the other model. Both stay where they are, and the dropped one stays red. Drag it away: the red goes away.
+After Phase 1b, in a single player room:
+1. Select a model and drag it through another model. It passes through. It turns red, with a red outline, as soon as its base enters the other base. The red goes away when it leaves.
+2. Drag a model into another model and drop it there. It goes back to the last place of the drag where it overlapped nothing, and drops there. The other model does not move. Use Place to put a model inside another one: it stays there, red.
 3. A dragged model still goes over terrain, not through it. Throw or Push still stops at a base. A die that hits a model does not move the model.
 
 After Phase 2, in a single player room:

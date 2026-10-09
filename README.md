@@ -163,9 +163,11 @@ A tool measures against the character or token selected last. A new tool also sn
 
 ## Overlapping models
 
-A model passes through other models. Drag it through one, or drop it inside one: both stay where they are, and physics does not push them apart. Terrain still stops a model, and tokens do not.
+A model passes through other models. Drag it through one: physics does not push either apart. Terrain still stops a model, and tokens do not.
 
 While two bases overlap by more than 0.01" at the same height, the model that moved last is red, with a red outline. Its place is probably wrong. A move is a drag, a Throw or Push, Place, Place 1. The red goes away when the bases no longer overlap. A lifted model (R) is at another height, so it has no mark.
+
+The red shows during a drag, as soon as the base enters another model. A drag that ends inside a model puts the model back at the last place of the drag where it overlapped nothing, or at its start. Place, Place 1, Throw and Push can still end inside a model. Then the mark shows.
 
 ## Terrain lock
 

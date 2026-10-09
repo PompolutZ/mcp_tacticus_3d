@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { overlapMarks } from './overlap.js'
+import { overlapMarks, overlapsAny } from './overlap.js'
 
 const model = (id, x, moved, extra = {}) => ({ id, x, y: 0, z: 0, radius: 1, moved, ...extra })
 
@@ -36,4 +36,18 @@ test('three models in a row', () => {
   assert.deepEqual([...overlapMarks(row(2, 1, 3))].sort(), ['a', 'c'])
   // The middle one moved last: only it has the mark
   assert.deepEqual([...overlapMarks(row(1, 3, 2))], ['b'])
+})
+
+test('overlapsAny: no other model', () => {
+  assert.equal(overlapsAny(model('a', 0, 1), []), false)
+})
+
+test('overlapsAny: touching base does not count, an overlap does', () => {
+  assert.equal(overlapsAny(model('a', 0, 1), [model('b', 2, 1)]), false)
+  assert.equal(overlapsAny(model('a', 0, 1), [model('b', 5, 1), model('c', 1, 1)]), true)
+})
+
+test('overlapsAny: a base 0.3" higher counts (drag hover), 6" higher does not', () => {
+  assert.equal(overlapsAny(model('a', 0, 1, { y: 0.3 }), [model('b', 1, 1)]), true)
+  assert.equal(overlapsAny(model('a', 0, 1, { y: 6 }), [model('b', 1, 1)]), false)
 })

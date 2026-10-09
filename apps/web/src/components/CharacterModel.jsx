@@ -212,6 +212,8 @@ function standeeScene(front, back, radius) {
 // baseRadius: radius of the base in the model file, which has the game size
 // onHover(over): called when the pointer moves onto the model (true) and off it (false)
 // overlap: the model shows the overlap mark (overlap.js): a red outline and a red tint
+// overlapsAt(x, y, z): true when a base of this model at that body position overlaps another model.
+// A drag uses it for the mark and for the drop (see freePlace).
 // onSlideStart(): a Throw or Push starts (startSlide). With onDragStart, Scene counts both as a move.
 // rangeMark: 'inRange' or 'outOfRange' while a range tool marks the model (RangeMark in RulerTool.jsx)
 // position: where the body starts. Read only on mount: RigidBody moves its body when its position
@@ -230,6 +232,7 @@ function CharacterFigure({
   selected = false,
   rangeMark,
   overlap = false,
+  overlapsAt,
   onSelect,
   onHover,
   bodyRef,
@@ -255,6 +258,12 @@ function CharacterFigure({
   const upRef = useRef(null)
   const raycaster = useRef(new Raycaster())
   const isDragging = useRef(false)
+  // Last body position of this drag where the base overlapped no model: { x, y, z }. Starts at the
+  // position of the drag start. A drop inside a model goes back here.
+  const freePlace = useRef(null)
+  // The dragged base overlaps a model now. Shows the mark without the 100 ms delay of Scene.
+  const [dragOverlap, setDragOverlap] = useState(false)
+  const showOverlap = overlap || dragOverlap
   // Pose the model has stayed close to, and for how long: { t, r, time }. See SETTLE_TIME.
   const rest = useRef(null)
   // The lift (R key): { x, y, z, sleeping, up, landing }, or null. x, y, z: the body position before
@@ -457,6 +466,9 @@ function CharacterFigure({
     // A sleeping body keeps moving but its mesh is not synced, so keep it awake
     rb.wakeUp()
     rb.setNextKinematicTranslation({ x: p.x, y, z: p.z })
+    const inside = overlapsAt?.(p.x, y, p.z) ?? false
+    if (!inside) freePlace.current = { x: p.x, y, z: p.z }
+    setDragOverlap(inside)
     // Picking the model up stands it upright again if it tipped over, as a TTS figurine does
     rb.setNextKinematicRotation(upright(rb.rotation()))
   })
@@ -477,7 +489,7 @@ function CharacterFigure({
   // Red tint while the overlap mark is on. Each mesh gets its own copy of the material, because the
   // materials of a GLB are shared with the other models made from the same file.
   useEffect(() => {
-    if (!overlap) return undefined
+    if (!showOverlap) return undefined
     const saved = []
     scene.traverse((obj) => {
       if (!obj.isMesh) return
@@ -495,9 +507,9 @@ function CharacterFigure({
         obj.material = material
       }
     }
-  }, [scene, overlap])
+  }, [scene, showOverlap])
 
-  useOutline(figureRef, outlineMode(selected, hovered, rangeMark, overlap))
+  useOutline(figureRef, outlineMode(selected, hovered, rangeMark, showOverlap))
   // A click selects the model. Only a selected model moves by a drag.
   useHoverCursor(hovered, selected ? 'grab' : 'pointer')
 
@@ -532,6 +544,7 @@ function CharacterFigure({
         slide.current = null
         rigidRef.current?.setBodyType(2, true)
         isDragging.current = true
+        freePlace.current = { ...rigidRef.current.translation() }
         onDragStart?.()
       }
       const rect = gl.domElement.getBoundingClientRect()
@@ -545,6 +558,16 @@ function CharacterFigure({
       if (ev.pointerId !== pointerId) return
       if (isDragging.current) {
         isDragging.current = false
+        // A drop inside a model goes back to the last free place (rotation stays). A jump, as no
+        // tween exists for a body.
+        const rb = rigidRef.current
+        const back = freePlace.current
+        if (rb && back) {
+          const t = rb.translation()
+          if (overlapsAt?.(t.x, t.y, t.z)) rb.setTranslation(back, true)
+        }
+        freePlace.current = null
+        setDragOverlap(false)
         rigidRef.current?.setBodyType(0, true)
         rigidRef.current?.setLinvel(ZERO, true)
         rigidRef.current?.setAngvel(ZERO, true)
