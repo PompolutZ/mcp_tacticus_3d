@@ -320,3 +320,7 @@ The crisis cards of each roster lie in 2 rows next to the scoring board, paralle
 - [ ] Turn and activation tracking
 - [ ] Scoring board
 - [ ] Hold and drop for Asset, Civilian and VIP tokens
+
+## Known bugs
+
+- [ ] A model that you drag pushes the other models on the table. It should not move them. Found on 2026-10-09. A dragged model is a kinematic body, and a kinematic body pushes every body it touches (`docs/feature-dice-rolling.md`, "A model that a player drags"). Tokens are not affected: tokens and models do not push each other (`docs/feature-crisis.md`). The fix also changes step 9 of `docs/plans/implement-backend.md`: rule 6 of "Moving objects" in `docs/feature-peer-to-peer.md` expects a moving body to push shared bodies.

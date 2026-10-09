@@ -326,6 +326,7 @@ Numbers (`pnpm --filter web yjs-size`, seed 1):
 - Updates in the 6-round game: 804, average 84.3 bytes. After setup: 802, average 65.9 bytes.
 - Updates in the 18-round game: 2416, average 73.3 bytes.
 - Without pose writes (`--pose-writes 0`): 21144 bytes after 6 rounds, 32240 after 18.
+- User check 8, on 2026-10-09: the user saved a room game after the full deploy of the game setup, before round 1. The file is 14963 bytes. The script gives 14904 bytes after setup.
 
 Facts:
 - A 6-round game is 21930 bytes, 2.1% of 1 MB. 18 rounds are 34363 bytes, 3.3%. So the 1 MB limit is far away.
