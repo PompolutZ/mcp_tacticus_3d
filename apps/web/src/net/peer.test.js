@@ -65,15 +65,23 @@ class FakePc extends EventTarget {
   closed = false
   localDescription = null
   remote = null
+  created = []
   constructor(index, gather) {
     super()
     this.index = index
     this.gather = gather
   }
   createDataChannel(label, options) {
-    this.channelArgs = { label, options }
-    this.channel = new FakeChannel()
-    return this.channel
+    const channel = new FakeChannel()
+    this.created.push({ label, options })
+    if (label === 'sync') {
+      this.channelArgs = { label, options }
+      this.channel = channel
+    } else {
+      this.liveArgs = { label, options }
+      this.live = channel
+    }
+    return channel
   }
   async createOffer() {
     return { type: 'offer', sdp: `offer-${this.index}` }
@@ -95,9 +103,10 @@ class FakePc extends EventTarget {
     this.iceGatheringState = 'complete'
     this.dispatchEvent(new Event('icegatheringstatechange'))
   }
-  // Both sides connect: the sync channel opens
+  // Both sides connect: the channels open
   connect() {
     this.connectionState = 'connected'
+    this.live.open()
     this.channel.open()
   }
   fail() {
@@ -130,7 +139,7 @@ async function player(server, role, user, { build = 'b1', gather = 'auto', peerI
       return pc
     },
     onState: (s) => states.push(s),
-    onChannel: (ch) => channels.push(ch),
+    onChannels: (chs) => channels.push(chs),
   })
   await settle()
   return {
@@ -182,6 +191,17 @@ test('the guest opens second: both connect', async () => {
     options: { negotiated: true, id: 0 },
   })
   assert.deepEqual(host.pcs[0].channelArgs, { label: 'sync', options: { negotiated: true, id: 0 } })
+  // Both channels in each attempt, sync first, both before the offer
+  const liveOptions = { negotiated: true, id: 1, ordered: false, maxRetransmits: 0 }
+  for (const player of [host, guest]) {
+    assert.deepEqual(
+      player.pcs[0].created.map((c) => c.label),
+      ['sync', 'live'],
+    )
+    assert.deepEqual(player.pcs[0].liveArgs, { label: 'live', options: liveOptions })
+    assert.equal(player.channels[0].sync, player.pcs[0].channel)
+    assert.equal(player.channels[0].live, player.pcs[0].live)
+  }
   assert.equal(host.pcs[0].remote.sdp, 'offer-0')
 })
 
@@ -334,6 +354,10 @@ test('the guest reloads: the host connects again with the same peer id', async (
   assert.equal(host.pcs.length, 2)
   assert.equal(host.state.state, 'connected')
   assert.equal(guest2.state.state, 'connected')
+  // onChannels: once per open, with the channels of the new attempt
+  assert.equal(host.channels.length, 2)
+  assert.equal(host.channels[1].sync, host.pcs[1].channel)
+  assert.equal(host.channels[1].live, host.pcs[1].live)
 })
 
 test('15 min without a message from the other player: stopped, no polls', async () => {

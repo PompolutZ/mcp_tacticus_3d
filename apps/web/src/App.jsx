@@ -225,6 +225,7 @@ function canvasEvents(store) {
 // connection: { state, peer, versionMismatch, retry } of a multiplayer room (net/peer.js, Table.jsx), or null.
 // userId: the id of the signed-in user, who owns the stored squad of a multiplayer room.
 // ownership: the claims on pieces (net/ownership.js). The drags claim their piece through it.
+// live: the live hub of a multiplayer room (net/live.js), or null. It goes to Scene.
 // onExit(): opens the lobby. See
 // docs/feature-rooms.md and docs/plans/implement-backend/05-yjs-state.md.
 export default function App({
@@ -235,6 +236,7 @@ export default function App({
   connection = null,
   userId = null,
   ownership = null,
+  live = null,
   onExit,
 }) {
   const red = Boolean(room?.multiplayer && room.side === 'red')
@@ -1506,6 +1508,7 @@ export default function App({
               ownSide={ownSide}
               onToolStore={handleToolStore}
               ownership={ownership}
+              live={live}
               angleSpawn={angleSpawn}
               showColliders={debug}
               showLabels={showLabels}

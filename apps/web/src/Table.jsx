@@ -4,9 +4,10 @@ import { Awareness } from 'y-protocols/awareness'
 import App from './App.jsx'
 import { LoadingOverlay } from './components/LoadingOverlay.jsx'
 import { useUser } from './auth/useUser.js'
-import { buildOverride, relayFlag } from './net/debugFlags.js'
+import { buildOverride, delayFlag, dropFlag, relayFlag } from './net/debugFlags.js'
 import { SCHEMA, createTable, fillTable, tableSchema } from './net/doc.js'
 import { iceConfig } from './net/ice.js'
+import { createLiveHub } from './net/live.js'
 import { createOwnership } from './net/ownership.js'
 import { connectRoom } from './net/peer.js'
 import { createSignaling } from './net/signaling.js'
@@ -78,6 +79,9 @@ export default function Table({ room = null, onExit }) {
     // The awareness of a multiplayer room (the claims) and the ownership on it, or null
     let awareness = null
     let ownership = null
+    // The live hub of a multiplayer room and the live channel attached to it, or null
+    let live = null
+    let liveChannel = null
 
     // Ends the watchers and the document. Safe to call twice.
     function close() {
@@ -85,6 +89,9 @@ export default function Table({ room = null, onExit }) {
       window.removeEventListener('pagehide', onPageHide)
       sync?.stop()
       sync = null
+      if (liveChannel) live?.detach(liveChannel)
+      liveChannel = null
+      live = null
       ownership?.destroy()
       ownership = null
       awareness?.destroy()
@@ -131,6 +138,8 @@ export default function Table({ room = null, onExit }) {
         awareness = new Awareness(doc)
         awareness.setLocalState({ owns: [] })
         ownership = createOwnership({ awareness, role })
+        // The flags act on the packets that this browser receives (plan 09, decision 16)
+        live = createLiveHub({ drop: dropFlag(), delay: delayFlag() })
       }
       if (room && !room.multiplayer) record.current = watchRoomRecord(room.id, table)
       if (room?.multiplayer) {
@@ -160,12 +169,20 @@ export default function Table({ room = null, onExit }) {
           signaling: createSignaling({ code, peerId, post: postMessage, get: getMessages }),
           createPeerConnection: (config) => new RTCPeerConnection(config),
           iceConfig: iceConfig({ dev: import.meta.env.DEV, relay: relayFlag() }),
-          // The open channel is synced at once. The sync stops with the channel or the table.
-          onChannel(channel) {
+          // The open sync channel is synced at once. The sync stops with the channel or the table. The live
+          // channel goes to the hub, and its close or the close of the table detaches it.
+          onChannels({ sync: channel, live: liveSide }) {
             sync?.stop()
             const mine = syncOverChannel(doc, channel, awareness)
             sync = mine
             channel.addEventListener('close', () => mine.stop())
+            if (liveChannel) live.detach(liveChannel)
+            liveChannel = liveSide
+            live.attach(liveSide)
+            liveSide.addEventListener('close', () => {
+              live?.detach(liveSide)
+              if (liveChannel === liveSide) liveChannel = null
+            })
           },
           onState(next) {
             // Both browsers have the same document while connected, so only the host writes (decision 11)
@@ -187,6 +204,8 @@ export default function Table({ room = null, onExit }) {
         storageFailed: result.storageFailed,
         // The local version in a single player room and the Sandbox
         ownership: ownership ?? createOwnership({}),
+        // The live hub of a multiplayer room, null in a single player room and the Sandbox
+        live,
       })
     })
     return () => {
@@ -214,6 +233,7 @@ export default function Table({ room = null, onExit }) {
       connection={connection && { ...connection, retry: () => link.current?.retry() }}
       userId={userId ?? null}
       ownership={opened.ownership}
+      live={opened.live}
       onExit={handleExit}
     />
   )

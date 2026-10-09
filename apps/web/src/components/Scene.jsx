@@ -244,6 +244,7 @@ const OVERLAP_INTERVAL = 100
 // ownership: the claims on pieces (net/ownership.js). Pieces without a body pass it to the drag code. Scene
 // claims a model before R, Q / E, Throw, Place and a drag, releases it when the body rests, and writes the rest
 // pose (plan 09, decisions 5 to 9).
+// live: the live hub of a multiplayer room (net/live.js), or null. Not used yet.
 // poses: the live rest poses of the models, model id → pose (the table document). A pose that the other browser
 // wrote moves the body (decision 8). startPose is the pose at mount.
 export default function Scene({
@@ -318,6 +319,7 @@ export default function Scene({
   startPose,
   onModelRest,
   ownership = null,
+  live: _live = null,
 }) {
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
   const { camera, gl, pointer } = useThree()

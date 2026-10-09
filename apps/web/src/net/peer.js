@@ -11,8 +11,9 @@ export const IDLE_MS = 15 * 60_000
 // build: the build id for hello. signaling: createSignaling(...). createPeerConnection(iceConfig), iceConfig: { iceServers, iceTransportPolicy? }.
 // timers: { setTimeout, clearTimeout }.
 // onState({ state, peer, versionMismatch }): state is waiting, connecting, connected, failed, stopped or
-// gone. peer: the `user` of the other player's latest hello, or null. onChannel(channel): the sync channel
-// is open. Returns { retry, stop }.
+// gone. peer: the `user` of the other player's latest hello, or null. onChannels({ sync, live }): the sync
+// channel is open, once per open. The live channel may open a moment later (plan 09, decision 13).
+// Returns { retry, stop }.
 export function connectRoom({
   role,
   userId,
@@ -23,7 +24,7 @@ export function connectRoom({
   iceConfig,
   timers = { setTimeout, clearTimeout },
   onState,
-  onChannel,
+  onChannels,
 }) {
   const { setTimeout: later, clearTimeout: cancel } = timers
   let state = 'waiting'
@@ -153,9 +154,24 @@ export function connectRoom({
   function newAttempt(remote) {
     endAttempt()
     const pc = createPeerConnection(iceConfig)
-    // Negotiated: both sides create it, so there is no ondatachannel race
+    // Negotiated: both sides create them, so there is no ondatachannel race. sync is reliable and ordered.
+    // live may lose and reorder packets: the next packet replaces a lost one (plan 09, decision 13).
     const channel = pc.createDataChannel('sync', { negotiated: true, id: 0 })
-    const att = { pc, channel, peer: remote, opened: false, offerTimer: null, connectTimer: null }
+    const live = pc.createDataChannel('live', {
+      negotiated: true,
+      id: 1,
+      ordered: false,
+      maxRetransmits: 0,
+    })
+    const att = {
+      pc,
+      channel,
+      live,
+      peer: remote,
+      opened: false,
+      offerTimer: null,
+      connectTimer: null,
+    }
     attempt = att
 
     channel.addEventListener('open', () => {
@@ -166,7 +182,7 @@ export function connectRoom({
       cancel(idleTimer)
       stopPolling()
       setState('connected')
-      if (att === attempt && !done) onChannel(channel)
+      if (att === attempt && !done) onChannels({ sync: channel, live })
     })
     channel.addEventListener('close', () => {
       if (att === attempt && att.opened) backToWaiting()

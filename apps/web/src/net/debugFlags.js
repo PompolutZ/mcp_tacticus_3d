@@ -12,3 +12,17 @@ export function relayFlag() {
   if (!import.meta.env.DEV) return false
   return new URLSearchParams(window.location.search).has('relay')
 }
+
+// The percent of ?drop=<percent>, 0 to 100, else 0. The receiving browser drops that share of the live packets.
+export function dropFlag() {
+  if (!import.meta.env.DEV) return 0
+  const value = Number(new URLSearchParams(window.location.search).get('drop'))
+  return Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : 0
+}
+
+// The ms of ?delay=<ms>, at least 0, else 0. The receiving browser hands on each live packet that much later.
+export function delayFlag() {
+  if (!import.meta.env.DEV) return 0
+  const value = Number(new URLSearchParams(window.location.search).get('delay'))
+  return Number.isFinite(value) ? Math.max(0, value) : 0
+}

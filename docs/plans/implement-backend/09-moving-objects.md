@@ -623,6 +623,34 @@ User, after this phase: checks 15 to 20.
 
 ### Result
 
+#### Part 5a: the live channel and the hub
+
+Done. Work items 1 to 4 and the tests of item 6. Part 5b (`LiveSync`, the follow, `RemoteCursor`) is not done.
+
+What changed:
+- `net/peer.js`: each attempt creates `sync` (id 0) and `live` (id 1, negotiated, `ordered: false`, `maxRetransmits: 0`) before the offer. `onChannel(channel)` is now `onChannels({ sync, live })`. It is called once per open, when `sync` opens. `live` may open a moment later.
+- New `net/live.js` (plain, with `live.test.js`): `createLiveHub({ timers, random, drop, delay })` gives `{ attach, detach, send, subscribe }`. It also exports the pure `newer(seqs, key, s)`.
+  - `send({ p?, c? })` sets `s`, rounds the numbers by key kind, and sends JSON on an open channel only.
+  - Receiving: parse, check, `drop`, `delay`, then the sequence check per key and for the cursor. Subscribers get `{ p, c? }` with the newer parts only. `p` is `{}` when only the cursor is newer.
+- `net/debugFlags.js`: `dropFlag()` and `delayFlag()`, dev builds only.
+- `Table.jsx`: one hub per open table in a multiplayer room, made with `dropFlag()` and `delayFlag()`. `onChannels` syncs `sync` as before and attaches `live`. The close of `live` and the close of the table detach it. The hub goes to App as `live`, and App passes it to Scene. A single player room and the Sandbox pass `null`.
+- `Scene.jsx` takes the `live` prop and does not use it yet.
+
+Choices that the plan did not fix:
+- `seqs` is a `Map`. The cursor has the key `cursor`. A piece key always has a colon, so they never meet.
+- `s` grows only for a packet that is sent. It does not reset on a new channel.
+- `attach` of a new channel detaches the old one first. `detach` of a channel that is not attached does nothing.
+- `send` skips a key of an unknown kind or with a wrong count of numbers. A packet with no valid key and no `c` sends nothing.
+- A packet with a `__proto__` key is bad. The sequence check runs after the `delay`, so the delay can reorder packets as the network would.
+- `delay` and `drop` of 0 take the direct path, with no timer.
+- `onChannels` runs for the `sync` open only. It does not wait for `live`. The hub sends nothing until `live` is open.
+
+Checks:
+- `pnpm --filter web test`: 201 pass, 0 fail.
+- `pnpm --filter web build`: passes.
+- `pnpm format` done. `pnpm lint`: 37 warnings, 0 errors.
+- Not run in a browser, by the rules.
+
 ## Phase 6: Live drags of tokens, cards and markers
 
 Read: decisions 2, 3, 9 and 14. `drag/pointerDrag.js`, `components/Scene.jsx` (`LiveSync`), `components/CrisisToken.jsx`, `components/TacticCard.jsx`, `components/ScoreBoard.jsx`, `components/LooseToken.jsx`, `components/TokenPile.jsx`, `components/TokenDragPreview.jsx`, and the token drag of `App.jsx`.
