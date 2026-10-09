@@ -1,0 +1,26 @@
+{
+  "name": "infra",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "synth": "cdk synth",
+    "cdk:deploy": "cdk deploy McpTacticusApi --profile mcptacticus",
+    "cdk:deploy:account": "cdk deploy McpTacticusAccount --profile fxdx_admin",
+    "put-secrets": "tsx scripts/put-secrets.ts",
+    "typecheck": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.272.0",
+    "constructs": "^10.8.1"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-ssm": "^3.1147.0",
+    "@aws-sdk/credential-providers": "^3.1147.0",
+    "@types/node": "^24.19.1",
+    "aws-cdk": "^2.1144.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}

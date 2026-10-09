@@ -17,5 +17,18 @@
     "**/*.md",
     "apps/web/src/**/*.json",
     "apps/web/scripts/*-manifest.json"
+  ],
+  "overrides": [
+    {
+      "files": ["infra/test/**"],
+      "rules": {
+        "vitest/expect-expect": [
+          "error",
+          {
+            "assertFunctionNames": ["expect", "*.has*", "*.resourceCountIs"]
+          }
+        ]
+      }
+    }
   ]
 }

@@ -12,6 +12,7 @@
     "format:check": "oxfmt --check"
   },
   "devDependencies": {
+    "esbuild": "^0.28.2",
     "oxfmt": "^0.72.0",
     "oxlint": "^1.87.0"
   },

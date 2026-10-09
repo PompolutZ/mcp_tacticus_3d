@@ -180,7 +180,7 @@ Done when:
 
 Read: backend doc "Deploy" → "GitHub Actions".
 
-1. `.github/workflows/ci.yml` and `.github/workflows/deploy-api.yml`. CI runs `pnpm lint` and `pnpm format:check`.
+1. `.github/workflows/ci.yml` and `.github/workflows/deploy-api.yml`. CI runs `pnpm lint` and `pnpm format:check`. The workflows set `DEPLOY_REGION` (step 3, decision 24), because CI has no `infra/.env`.
 2. `infra/README.md`: the `gh` commands for the environment `prod` and the variable `AWS_DEPLOY_ROLE_ARN`.
 
 **User:** run the `gh` commands. Merge a change in `apps/api` to `main`, and watch the deploy run.

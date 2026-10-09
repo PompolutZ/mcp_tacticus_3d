@@ -44,7 +44,7 @@ Left for later steps:
 | API dependencies (new) | `mongodb` 7, `@hono/aws-lambda` 1. Dev: `@aws-sdk/client-ssm` 3, `@testcontainers/mongodb` 12 |
 | Infra dependencies | `aws-cdk-lib` 2, `constructs` 10. Dev: `aws-cdk` (CLI), `@aws-sdk/client-ssm` 3, `@aws-sdk/credential-providers` 3, `typescript` 7, `tsx` 4, `vitest` 5, `@types/node` 24 |
 | Root dev dependency | `esbuild` (latest 0.x) |
-| Account and region | From the AWS profile. Region `eu-central-1` |
+| Account and region | Account: from the AWS profile (`CDK_DEFAULT_ACCOUNT`). Region: `DEPLOY_REGION` in `infra/.env`, `eu-central-1` (decision 24) |
 | Stacks | `McpTacticusAccount`, `McpTacticusApi` |
 | Function | `mcptacticus-api` |
 | Log group | `/aws/lambda/mcptacticus-api`, 1 week |
@@ -58,7 +58,7 @@ Left for later steps:
 | Keep-alive event | `{ "keepAlive": true }`, once a day |
 | Stack output | `ApiUrl` |
 | CDK context (`cdk.json`) | `githubOidcProvider`: `"create"` or `"import"`. `reservedConcurrency`: a number, or `null` for none |
-| `infra/.env` | `BUDGET_EMAIL`, `MONGODB_URI`, `SESSION_SECRET`. Step 6: `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET` |
+| `infra/.env` | `DEPLOY_REGION`, `BUDGET_EMAIL`, `MONGODB_URI`, `SESSION_SECRET`. Step 6: `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET` |
 | `apps/api/.env` | `STORE` (`memory` or `mongo`), `MONGODB_URI`, `DB_NAME` (default `assist3d`) |
 | AWS profiles | `fxdx_admin` (admin user), `mcptacticus` (deployer role, with MFA) |
 | Health response | 200 `{ ok: true, version, db: 'ok' \| 'none' }`. 503 `{ ok: false, version, db: 'error' }` |
@@ -149,6 +149,7 @@ infra/
 23. **`allowBuilds` for Testcontainers.** `pnpm-workspace.yaml` gets `ssh2: false`, `cpu-features: false` and `protobufjs: false`. `false` skips the scripts, and pnpm does not stop the install.
     - `dockerode` → `docker-modem` → `ssh2` → `cpu-features`: the install scripts build an optional native part with `node-gyp`. `ssh2` works without it, and the tests do not use SSH.
     - `dockerode` → `@grpc/grpc-js` → `@grpc/proto-loader` → `protobufjs@7`: the postinstall script only prints a warning when a parent package uses a version range without `~`. Added on 2026-10-09, after the first phase 1 install stopped on it.
+24. **Region.** `bin/app.ts` and `put-secrets.ts` read the region from `DEPLOY_REGION` in `infra/.env`. There is no default: both stop with `DEPLOY_REGION is not set in infra/.env`. `.env.example` has `eu-central-1` and the comment that the region must be the region of the Atlas cluster. Reason: every API request goes from the Lambda to Atlas and back, and the Lambda reads the SSM parameters in its own region. The name is not `AWS_REGION`, because the AWS SDK and the CDK CLI read that variable themselves. CI (step 4) has no `infra/.env`, so the workflow sets `DEPLOY_REGION`. Added on 2026-10-09, after phase 2.
 
 ## User, before phase 2
 
@@ -170,7 +171,13 @@ aws lambda get-account-settings --region eu-central-1 --profile fxdx_admin --que
 
 ### Result
 
-(Answers here.)
+Answers of 2026-10-09:
+
+1. Caller: the IAM user `fxdx_admin`. Decision 13 stays as it is.
+2. MFA devices: none. An earlier setup had stopped before the device was enabled. The user added `arn:aws:iam::<account id>:mfa/fxdx_admin_mfa` (Authenticator app) on 2026-10-09. This serial goes into `mfa_serial`.
+3. `CDKToolkit`: bootstrap version 32. The region is bootstrapped already (by wuclub). The README bootstrap command updates it to the current template.
+4. OIDC providers: none. `githubOidcProvider` is `"create"`.
+5. Lambda concurrency quota: 10. `reservedConcurrency` is `null`. The account quota still limits the cost of abuse and the Atlas connections (10 × 2 of 500). All functions of the account share these 10, also wuclub `apiv2`. AWS can raise the quota of a new account later. Then the limit is gone, and reserved concurrency 10 is possible again.
 
 ## Phase 1: API for Lambda and Mongo
 
@@ -260,7 +267,7 @@ Work:
 Checks:
 - `pnpm install`: no build script warning.
 - `pnpm --filter infra typecheck` and `pnpm --filter infra test` pass.
-- Synth without the user's credentials, with a test email: `AWS_CONFIG_FILE=/dev/null AWS_SHARED_CREDENTIALS_FILE=/dev/null BUDGET_EMAIL=test@example.com pnpm --filter infra synth --quiet`. It passes. The output shows local bundling, not Docker. Record the bundle size of `index.mjs` and any esbuild warnings.
+- Synth without the user's credentials, with a test email: `AWS_CONFIG_FILE=/dev/null AWS_SHARED_CREDENTIALS_FILE=/dev/null DEPLOY_REGION=eu-central-1 BUDGET_EMAIL=test@example.com pnpm --filter infra synth --quiet`. It passes. The output shows local bundling, not Docker. Record the bundle size of `index.mjs` and any esbuild warnings.
 - `grep` of `infra/cdk.out` for the test email finds it only in the account template. No file in `cdk.out` contains `mongodb+srv` or `SESSION_SECRET`.
 - Synth without `BUDGET_EMAIL` prints the skip line and passes.
 - Root `pnpm typecheck` and `pnpm test` run in `api` and `infra`.
@@ -268,7 +275,43 @@ Checks:
 
 ### Result
 
-(Agent adds it after the work.)
+Status: done. Two checks differ from the plan (see "Checks").
+
+Files changed:
+- `pnpm-workspace.yaml`: `infra` in `packages`.
+- `package.json`, `pnpm-lock.yaml`: `esbuild` 0.28.2 as a root dev dependency.
+- New `infra/`: `package.json`, `tsconfig.json`, `cdk.json`, `.env.example`, `bin/app.ts`, `lib/api-stack.ts`, `lib/account-stack.ts`, `scripts/put-secrets.ts`, `test/api-stack.test.ts`, `test/account-stack.test.ts`.
+
+Facts:
+- Installed: `aws-cdk-lib@2.272.0`, `constructs@10.8.1`, `aws-cdk@2.1144.0` (CLI), `@aws-sdk/client-ssm@3.1147.0`, `@aws-sdk/credential-providers@3.1147.0`. The CLI accepted the library with no version error.
+- `cdk.json`: `app` is `tsx bin/app.ts`. `context` has the feature flags from `cdk init app` of the installed CLI, plus `githubOidcProvider: "create"` and `reservedConcurrency: null` (the user's answers).
+- `pnpm install` prints no build script warning and no peer warning. It prints the same two deprecation notes as phase 1.
+- Bundle `index.mjs`: 832.0 kb (851,963 bytes). Source map 952.2 kb. esbuild printed no warning. Bundling was local, not Docker.
+- No optional `mongodb` dependency needed `externalModules`. Only `@aws-sdk/*` is external.
+- The banner with `createRequire` is the first line of `index.mjs`.
+- `APP_VERSION` in the synthesized template was `<commit>-dirty`, because the tree had changes.
+- The template of `McpTacticusApi` has no `ReservedConcurrentExecutions` (`null`).
+- `ApiStack` and `AccountStack` use `formatArn` for the SSM ARNs. The account id in the tests is a fake one.
+- Unit tests: 16 in 2 files. Typecheck passes.
+
+Checks:
+- `pnpm install`: no build script warning. Pass.
+- `pnpm --filter infra typecheck` and `test`: pass.
+- Synth without credentials, with the test email: pass, local bundling.
+- Synth without `BUDGET_EMAIL`: prints the skip line, passes.
+- Test email in `cdk.out`: found in `McpTacticusAccount.template.json` and also in `tree.json`. Differs from the plan. `tree.json` is the construct tree, and CDK does not upload it. Not in the Api template, not in the bundle.
+- `mongodb+srv` in `cdk.out`: found in the bundle `index.mjs`, as string literals of the `mongodb` driver (the scheme check and its error text). Differs from the plan. It is driver code, no connection string. `SESSION_SECRET` is in no file.
+- Root `pnpm typecheck` and `pnpm test`: pass in `api` (14 tests) and `infra` (16 tests).
+- `pnpm --filter web build`: pass.
+- `pnpm lint`: 0 errors, 44 warnings (the React ones in `apps/web`). `pnpm format:check`: pass.
+
+Changes from the plan:
+- After the phase, the user asked for the region as an env var with a comment. `DEPLOY_REGION` replaced the fixed `eu-central-1` in `bin/app.ts` and `put-secrets.ts` (decision 24). Synth without it stops with the error. Synth with it passes.
+- `vitest/expect-expect` does not know that the `Template` methods assert. So `.oxlintrc.json` has an override for `infra/test/**`: `has*` and `resourceCountIs` count as assertions. The rule still finds a test that asserts nothing.
+- `cdk.json` `watch.exclude` is the one of `cdk init`, without `yarn.lock` and with `cdk.out`.
+- `cdk.out` was in `.gitignore` already.
+
+Open issues: none.
 
 ## Phase 3: README and docs
 
@@ -278,9 +321,9 @@ Work:
 1. `infra/README.md`, in the order of the user's work. Each step: the command, what it does, and how to check it.
    1. Tools: AWS CLI, Atlas CLI (`brew install mongodb-atlas-cli`).
    2. The read-only checks of "User, before phase 2".
-   3. Bootstrap: `pnpm --filter infra exec cdk bootstrap aws://<account id>/eu-central-1 --profile fxdx_admin`.
+   3. Bootstrap: `pnpm --filter infra exec cdk bootstrap aws://<account id>/eu-central-1 --profile fxdx_admin`. The region is the `DEPLOY_REGION` of `infra/.env`.
    4. `infra/.env` from `.env.example`. Deploy `McpTacticusAccount`.
-   5. The `mcptacticus` profile in `~/.aws/config` (backend doc, "From the user's machine").
+   5. The `mcptacticus` profile in `~/.aws/config` (backend doc, "From the user's machine"). Before it: if `fxdx_admin` has no MFA device, add one in the console (IAM → Users → `fxdx_admin` → Security credentials → Assign MFA device → Authenticator app). Then `aws iam list-mfa-devices --profile fxdx_admin` shows the serial for `mfa_serial`.
    6. Atlas: `atlas auth login`, find the project id, the database user `mcptacticus-api` with `readWrite@assist3d` and a password from `openssl rand -hex 24` (hex needs no URL encoding), the access list `0.0.0.0/0` with a comment, the connection string. Tell the user to check the flags with `--help`, because Atlas CLI flags change between versions.
    7. `MONGODB_URI` and `SESSION_SECRET` in `infra/.env`. `pnpm --filter infra put-secrets`.
    8. `pnpm --filter infra cdk:deploy`.
