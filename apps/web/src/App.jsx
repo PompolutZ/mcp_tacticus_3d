@@ -93,6 +93,11 @@ import {
 // (see resetCamera).
 const CAMERA_TARGET = [0, 0, 10.4]
 const CAMERA_POSITION = [0, 32.5, 42.9]
+// The Red view: the Blue view turned 180° around the mat center (plan 08, decision 17). Only for the Red seat
+// of a multiplayer room. A single player room and the Sandbox keep the Blue view, because one player plays both
+// sides there.
+const CAMERA_TARGET_RED = [0, 0, -10.4]
+const CAMERA_POSITION_RED = [0, 32.5, -42.9]
 // Camera mouse buttons as in TTS: right drag turns, middle drag pans. Left drag also turns, because
 // the app has no box select (the TTS left drag) and a trackpad has no easy right drag. Shift, Ctrl
 // or Cmd + a turn drag pans (OrbitControls). A mouse wheel zooms. On a trackpad, a two-finger swipe
@@ -210,6 +215,7 @@ function canvasEvents(store) {
 // IndexedDB, the Sandbox keeps it in memory. room: the room record (rooms/store.js), or null for the
 // Sandbox. A room has a fixed map. storageFailed: the room could not use IndexedDB, so it is not saved.
 // serverWarning: the text of the warning when a multiplayer room is no longer saved on the server, or null.
+// connection: { state, peer, versionMismatch, retry } of a multiplayer room (net/peer.js, Table.jsx), or null.
 // onExit(): opens the lobby. See
 // docs/feature-rooms.md and docs/plans/implement-backend/05-yjs-state.md.
 export default function App({
@@ -217,8 +223,12 @@ export default function App({
   room = null,
   storageFailed = false,
   serverWarning = null,
+  connection = null,
   onExit,
 }) {
+  const red = Boolean(room?.multiplayer && room.side === 'red')
+  const cameraPosition = red ? CAMERA_POSITION_RED : CAMERA_POSITION
+  const cameraTarget = red ? CAMERA_TARGET_RED : CAMERA_TARGET
   const [activeRange, setActiveRange] = useState(null)
   const [activeMove, setActiveMove] = useState(null)
   // The Toward / Away tool is on the table, and where it spawns: { target, aim }, the piece it snaps to
@@ -361,6 +371,10 @@ export default function App({
   const [storageWarning, setStorageWarning] = useState(storageFailed)
   // The server warning text that the player closed. A new text shows again.
   const [closedServerWarning, setClosedServerWarning] = useState(null)
+  // The player closed the version warning (decision 14). It shows again after the next mismatch.
+  const [versionClosed, setVersionClosed] = useState(false)
+  const versionMismatch = Boolean(connection?.versionMismatch)
+  if (!versionMismatch && versionClosed) setVersionClosed(false)
   // The files to load before the table shows: the map and the models (rooms/preload.js). Read once.
   const [preloadFiles] = useState(() => tableFiles({ mapId, terrain, characters, rosters }))
   // The scene and the preloaded files are in, so the loading screen hides (Preload.jsx, Ready)
@@ -568,8 +582,8 @@ export default function App({
     if (!controls) return
     // A zoom or pan of the wheel that is not done yet would move the camera away from the start view
     wheelCameraRef.current?.stop()
-    controls.object.position.set(...CAMERA_POSITION)
-    controls.target.set(...CAMERA_TARGET)
+    controls.object.position.set(...cameraPosition)
+    controls.target.set(...cameraTarget)
     controls.update()
   }
 
@@ -1335,7 +1349,7 @@ export default function App({
       <div className="scene-root">
         <Canvas
           shadows
-          camera={{ position: CAMERA_POSITION, fov: 50 }}
+          camera={{ position: cameraPosition, fov: 50 }}
           // The EffectComposer in SelectionOutlines renders the scene with its own antialiasing (multisampling)
           gl={{ antialias: false }}
           events={canvasEvents}
@@ -1432,7 +1446,7 @@ export default function App({
           <OrbitControls
             ref={controlsRef}
             makeDefault
-            target={CAMERA_TARGET}
+            target={cameraTarget}
             enablePan={true}
             // WheelCamera takes every wheel event, so this is only the pinch on a touch screen
             enableZoom={true}
@@ -1453,6 +1467,9 @@ export default function App({
           roomCode={room?.id ?? null}
           multiplayer={Boolean(room?.multiplayer)}
           guestSeatFree={Boolean(room?.multiplayer && (!room.players.blue || !room.players.red))}
+          side={room?.side ?? null}
+          players={room?.players ?? null}
+          connection={connection}
           onLobby={handleLobby}
           mapId={mapId}
           onMapChange={handleMapChange}
@@ -1539,6 +1556,17 @@ export default function App({
               className="chip"
               onClick={() => setClosedServerWarning(serverWarning)}
             >
+              Close
+            </button>
+          </div>
+        )}
+        {versionMismatch && !versionClosed && (
+          <div className="hud-warning" role="alert">
+            <span>
+              Your opponent uses a different version of the app. Both players should reload the
+              page.
+            </span>
+            <button type="button" className="chip" onClick={() => setVersionClosed(true)}>
               Close
             </button>
           </div>

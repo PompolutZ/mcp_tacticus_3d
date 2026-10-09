@@ -310,6 +310,32 @@ Checks:
 
 ### Result
 
+Added in `apps/web`:
+- `vite.config.js`: `define` of `import.meta.env.VITE_BUILD_ID` from `process.env.COMMIT_REF`, else `dev`.
+- `net/debugFlags.js`: `buildOverride()` returns `?build=<text>` in a dev build, else `null`. `Table.jsx` sends `buildOverride() ?? VITE_BUILD_ID`.
+- `Table.jsx`: in a multiplayer room, after the writer starts, a new peer id, `createSignaling` with `postMessage` and `getMessages`, `connectRoom` with the role from `room.host === userId`. `onChannel` calls `syncOverChannel` and stops it on the channel `close` event. `close()` stops the sync and the connection. `pagehide` calls `stop({ keepalive: true })`. The guest's writer pauses on `connected` and resumes on the other states. `gone` does what the writer's `onGone` does. App gets a `connection` prop: `{ state, peer, versionMismatch, retry }`, or `null`.
+- `App.jsx`: Red start view (decision 17) for the Canvas camera, the OrbitControls target and `resetCamera`, when `room?.multiplayer && room.side === 'red'`. The version warning (decision 14 text) is a closable `hud-warning`. It shows again after the mismatch ends and comes back. `side`, `players` and `connection` go to the toolbar.
+- `components/RoomPlayers.jsx` and styles in `index.css` (`.room-player*`). `Toolbar.jsx` shows it in a multiplayer room.
+
+UI choices:
+- One row, two seats: team name in the side color, avatar, name. The own seat ends with "You". The other seat ends with the status text, and **Try again** (a chip) for `failed` and `stopped`. The "Could not connect" title has the design text.
+- A free seat with no `hello` yet shows only "Free seat", with no status. When the guest `hello` arrives, its `user` fills the seat.
+- **Copy link** shows while `guestSeatFree` and `connection.peer` is empty. It hides when a peer arrives. If the peer is forgotten later (`bye`), it shows again.
+- No status for a "Deleted player" seat.
+
+No signaling call outside a multiplayer room: `createSignaling` and `connectRoom` are called only inside the `if (room?.multiplayer)` block of the open effect in `Table.jsx`. The Sandbox has `room = null` and a single player room has `multiplayer` false, so neither reaches it. `pagehide` and the cleanup use `link.current?.`, which stays `null` there.
+
+Decision 18, writes outside a player action (none is fixed):
+1. `components/Scene.jsx:947` (`onRest`, the Rapier `onSleep` of a model body) calls `onModelRest`, which is `table.poses.setField` (`App.jsx:1443`). Writes the rest pose of the model. No random id. Runs in both browsers.
+2. `App.jsx:274`, in an effect on open: `table.rosters.setField(room.side, roster)`, only when the own key is empty. Writes the own roster once. No random id. Each browser writes only its own side, so it does not repeat on the other.
+3. `Table.jsx` `fillTable(table, startTable(...))` when the stored table has no schema: writes the whole start table, with random ids (`rooms/table.js:17`). It runs at open, before the connection. A multiplayer room gets its table from the server, so it only runs for a single player room or the Sandbox.
+
+Other effects, timers and frame callbacks I read only set local state, move bodies, or call hover callbacks. `Scene.jsx:420` (held turn) turns a body and writes only through its sleep (item 1). The `crypto.randomUUID()` calls in `App.jsx` are all in handlers (`handleSpawn`, `handleCrisisChange`, `handleSquadReady`, token and card handlers).
+
+Checks: `pnpm --filter web test` 97 pass, `pnpm --filter web build` passes, `pnpm format` done, `pnpm lint` 0 errors, 44 warnings (same as before).
+
+Deviations: none.
+
 ## Phase 4: Docs
 
 Work:

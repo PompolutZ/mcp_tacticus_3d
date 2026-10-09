@@ -3,8 +3,13 @@ import * as Y from 'yjs'
 import App from './App.jsx'
 import { LoadingOverlay } from './components/LoadingOverlay.jsx'
 import { useUser } from './auth/useUser.js'
+import { buildOverride } from './net/debugFlags.js'
 import { SCHEMA, createTable, fillTable, tableSchema } from './net/doc.js'
-import { getTable, putTable } from './rooms/serverStore.js'
+import { ICE_SERVERS } from './net/ice.js'
+import { connectRoom } from './net/peer.js'
+import { createSignaling } from './net/signaling.js'
+import { syncOverChannel } from './net/syncChannel.js'
+import { getMessages, getTable, postMessage, putTable } from './rooms/serverStore.js'
 import { hasLocalChanges, watchServerTable } from './rooms/serverTable.js'
 import { deleteDoc, multiplayerDocName, roomDocName } from './rooms/store.js'
 import { startTable } from './rooms/table.js'
@@ -31,7 +36,7 @@ function loadError(code, err) {
 // room, the room of rooms/roomPage.js (multiplayerRoom) for a multiplayer room, or null for the Sandbox.
 // onExit(notice): opens the lobby, with a message when notice is set. See
 // docs/plans/implement-backend/05-yjs-state.md, decisions 12 to 16, and 07-multiplayer-rooms.md, decisions
-// 14 and 16.
+// 14 and 16, and 08-two-browsers.md, decisions 11, 12 and 20.
 export default function Table({ room = null, onExit }) {
   const { user } = useUser()
   const userId = user?.id
@@ -39,6 +44,10 @@ export default function Table({ room = null, onExit }) {
   const [opened, setOpened] = useState(null)
   // The text of the warning when the writer of a multiplayer room stopped, or null
   const [serverWarning, setServerWarning] = useState(null)
+  // The connection to the other player, { state, peer, versionMismatch }, or null outside a multiplayer room
+  const [connection, setConnection] = useState(null)
+  // The retry() of the connection (net/peer.js), or null
+  const link = useRef(null)
   // The watcher of the room record (watchRoomRecord), or null
   const record = useRef(null)
   // The writer of the table to the server (watchServerTable), or null
@@ -60,9 +69,19 @@ export default function Table({ room = null, onExit }) {
       if (document.visibilityState === 'hidden') writer.current?.flush({ hidden: true })
     }
 
+    // The page closes or reloads: tell the other player (decision 20)
+    const onPageHide = () => link.current?.stop({ keepalive: true })
+    // Yjs sync over the open channel, or null
+    let sync = null
+
     // Ends the watchers and the document. Safe to call twice.
     function close() {
       document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('pagehide', onPageHide)
+      sync?.stop()
+      sync = null
+      link.current?.stop()
+      link.current = null
       record.current?.stop()
       record.current = null
       writer.current?.stop()
@@ -116,6 +135,38 @@ export default function Table({ room = null, onExit }) {
         })
         writer.current.flush()
         document.addEventListener('visibilitychange', onVisibility)
+        // Only a multiplayer room connects. A single player room and the Sandbox make no signaling call.
+        const peerId = crypto.randomUUID()
+        const role = room.host === userId ? 'host' : 'guest'
+        link.current = connectRoom({
+          role,
+          userId,
+          peerId,
+          build: buildOverride() ?? import.meta.env.VITE_BUILD_ID,
+          signaling: createSignaling({ code, peerId, post: postMessage, get: getMessages }),
+          createPeerConnection: ({ iceServers }) => new RTCPeerConnection({ iceServers }),
+          iceServers: ICE_SERVERS,
+          // The open channel is synced at once. The sync stops with the channel or the table.
+          onChannel(channel) {
+            sync?.stop()
+            const mine = syncOverChannel(doc, channel)
+            sync = mine
+            channel.addEventListener('close', () => mine.stop())
+          },
+          onState(next) {
+            // Both browsers have the same document while connected, so only the host writes (decision 11)
+            if (role === 'guest') writer.current?.pause(next.state === 'connected')
+            // The host deleted the room (decision 12)
+            if (next.state === 'gone') {
+              close()
+              deleteDoc(name)
+              exit.current(`The host deleted room ${code}.`)
+              return
+            }
+            setConnection(next)
+          },
+        })
+        window.addEventListener('pagehide', onPageHide)
       }
       setOpened({ table, storageFailed: result.storageFailed })
     })
@@ -141,6 +192,7 @@ export default function Table({ room = null, onExit }) {
       room={room}
       storageFailed={opened.storageFailed}
       serverWarning={serverWarning}
+      connection={connection && { ...connection, retry: () => link.current?.retry() }}
       onExit={handleExit}
     />
   )

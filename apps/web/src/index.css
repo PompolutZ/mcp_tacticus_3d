@@ -1778,3 +1778,52 @@ body {
   font-size: 12px;
   color: var(--muted);
 }
+
+/* The two players of a multiplayer room in the toolbar (RoomPlayers.jsx) */
+.room-players {
+  gap: 12px;
+}
+
+.room-player {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.room-player-team {
+  font-weight: 600;
+}
+
+.room-player--blue .room-player-team {
+  color: #5dade2;
+}
+
+.room-player--red .room-player-team {
+  color: #ec7063;
+}
+
+.room-player-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.room-player-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.room-player-status {
+  color: var(--muted);
+}
+
+.room-player-status--connected {
+  color: #58d68d;
+}
+
+.room-player-status--failed {
+  color: #f5b041;
+}

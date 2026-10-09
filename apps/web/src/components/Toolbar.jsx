@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { MAPS } from '../terrain/maps.js'
 import { cardsOfType } from '../crisis/cards.js'
 import { CopyLinkButton } from './CopyLinkButton.jsx'
+import { RoomPlayers } from './RoomPlayers.jsx'
 
 const RANGES = [1, 2, 3, 4, 5]
 const MOVES = [
@@ -23,12 +24,16 @@ const CRISIS_TYPES = [
 // replaces or removes the Red roster of the room (docs/feature-rooms.md).
 // multiplayer: the room is a multiplayer room, which has no Roster group (the rosters are fixed, plan 07,
 // decisions 10 and 13). guestSeatFree: the guest seat was free when the room opened, so Copy link shows next
-// to the room code (decision 23).
+// to the room code (decision 23), until the guest is seen. side, players, connection: the seats and the
+// connection of the room (RoomPlayers.jsx, plan 08 decision 16).
 // onLobby(): the ← Lobby button.
 export function Toolbar({
   roomCode,
   multiplayer = false,
   guestSeatFree = false,
+  side = null,
+  players = null,
+  connection = null,
   onLobby,
   mapId,
   onMapChange,
@@ -69,8 +74,9 @@ export function Toolbar({
         >
           {roomCode ?? 'Sandbox'}
         </span>
-        {multiplayer && guestSeatFree && <CopyLinkButton code={roomCode} />}
+        {multiplayer && guestSeatFree && !connection?.peer && <CopyLinkButton code={roomCode} />}
       </div>
+      {multiplayer && <RoomPlayers side={side} players={players} connection={connection} />}
       <div className="group">
         <button
           type="button"
