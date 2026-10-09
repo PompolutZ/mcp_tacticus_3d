@@ -5,6 +5,7 @@ import {
   newRoom,
   newUserId,
   userExpiry,
+  type MessageDoc,
   type RoomDoc,
   type RoomInfo,
   type Store,
@@ -19,6 +20,7 @@ export function createMemoryStore(): Store {
   const users = new Map<string, UserDoc>()
   const byDiscordId = new Map<string, string>()
   const rooms = new Map<string, RoomDoc>()
+  const messages = new Map<string, MessageDoc>()
   return {
     users: {
       async upsertDiscord(profile, now) {
@@ -108,6 +110,37 @@ export function createMemoryStore(): Store {
       },
       async deleteHostedBy(userId) {
         for (const [code, room] of rooms) if (room.host === userId) rooms.delete(code)
+      },
+    },
+    messages: {
+      async add(message) {
+        messages.set(message._id, { ...message })
+      },
+      async deleteFromUser(room, userId) {
+        for (const [id, m] of messages)
+          if (m.room === room && m.user.id === userId) messages.delete(id)
+      },
+      async count(room) {
+        return [...messages.values()].filter((m) => m.room === room).length
+      },
+      async list(room, peer, after, limit) {
+        return [...messages.values()]
+          .filter(
+            (m) =>
+              m.room === room &&
+              m.from !== peer &&
+              (m.to === peer || m.to === '*') &&
+              (after === null || m._id > after),
+          )
+          .sort((a, b) => (a._id < b._id ? -1 : 1))
+          .slice(0, limit)
+          .map((m) => ({ ...m }))
+      },
+      async deleteRoom(room) {
+        for (const [id, m] of messages) if (m.room === room) messages.delete(id)
+      },
+      async deleteUser(userId) {
+        for (const [id, m] of messages) if (m.user.id === userId) messages.delete(id)
       },
     },
     // No database, so there is nothing to ping.

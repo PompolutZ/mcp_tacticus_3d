@@ -107,6 +107,7 @@ export function roomRoutes(deps: { store: Store; config: Config }) {
     const { room } = await readRoom(c.req.param('code'))
     if (room.host !== c.get('user')._id) throw err(403, 'Only the host can do this')
     await store.rooms.delete(room._id)
+    await store.messages.deleteRoom(room._id)
     return c.body(null, 204)
   })
 

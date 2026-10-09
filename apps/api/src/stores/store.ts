@@ -99,9 +99,39 @@ export interface RoomsStore {
   deleteHostedBy(userId: string): Promise<void>
 }
 
+export type MessageType = 'hello' | 'offer' | 'answer' | 'bye'
+
+export type MessageUser = Pick<PublicUser, 'id' | 'name' | 'avatar' | 'discordId'>
+
+export interface MessageDoc {
+  _id: string
+  room: string
+  // Peer ids.
+  from: string
+  to: string
+  type: MessageType
+  data: string
+  // Set by the server.
+  user: MessageUser
+  // The TTL index deletes the message after this date.
+  expiresAt: Date
+}
+
+export interface MessagesStore {
+  add(message: MessageDoc): Promise<void>
+  // For hello and bye: the user's older messages in the room.
+  deleteFromUser(room: string, userId: string): Promise<void>
+  count(room: string): Promise<number>
+  // To the peer or to '*', not from the peer, id after `after` (all when null). Oldest first.
+  list(room: string, peer: string, after: string | null, limit: number): Promise<MessageDoc[]>
+  deleteRoom(room: string): Promise<void>
+  deleteUser(userId: string): Promise<void>
+}
+
 export interface Store {
   users: UsersStore
   rooms: RoomsStore
+  messages: MessagesStore
   ping(): Promise<DbStatus>
   close(): Promise<void>
 }

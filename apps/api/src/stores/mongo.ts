@@ -6,6 +6,7 @@ import {
   newRoom,
   newUserId,
   userExpiry,
+  type MessageDoc,
   type RoomDoc,
   type RoomInfo,
   type Store,
@@ -39,6 +40,7 @@ export function createMongoStore({
   const db = client.db(dbName)
   const usersCol = db.collection<UserDoc>('users')
   const roomsCol = db.collection<RoomRow>('rooms')
+  const messagesCol = db.collection<MessageDoc>('messages')
 
   // Created before the first users call, not at start, so /health still answers
   // 503 when the database is down. A failure clears the promise: the next call retries.
@@ -51,6 +53,8 @@ export function createMongoStore({
       roomsCol.createIndex({ 'players.blue': 1 }),
       roomsCol.createIndex({ 'players.red': 1 }),
       roomsCol.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+      messagesCol.createIndex({ room: 1, _id: 1 }),
+      messagesCol.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
     ]).catch((err) => {
       indexes = undefined
       throw err
@@ -166,6 +170,41 @@ export function createMongoStore({
       async deleteHostedBy(userId) {
         await ready()
         await roomsCol.deleteMany({ host: userId })
+      },
+    },
+    messages: {
+      async add(message) {
+        await ready()
+        await messagesCol.insertOne(message)
+      },
+      async deleteFromUser(room, userId) {
+        await ready()
+        await messagesCol.deleteMany({ room, 'user.id': userId })
+      },
+      async count(room) {
+        await ready()
+        return messagesCol.countDocuments({ room })
+      },
+      async list(room, peer, after, limit) {
+        await ready()
+        return messagesCol
+          .find({
+            room,
+            from: { $ne: peer },
+            to: { $in: [peer, '*'] },
+            ...(after === null ? {} : { _id: { $gt: after } }),
+          })
+          .sort({ _id: 1 })
+          .limit(limit)
+          .toArray()
+      },
+      async deleteRoom(room) {
+        await ready()
+        await messagesCol.deleteMany({ room })
+      },
+      async deleteUser(userId) {
+        await ready()
+        await messagesCol.deleteMany({ 'user.id': userId })
       },
     },
     async ping() {

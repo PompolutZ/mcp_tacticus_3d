@@ -270,6 +270,18 @@ describe('DELETE /rooms/{code}', () => {
     expect(rooms).toEqual([])
   })
 
+  it('removes the messages of the room', async () => {
+    const { call, create, store } = await setup()
+    const room = await create('alice')
+    const other = await create('bob')
+    const msg = { from: 'peer-alice', to: '*', type: 'hello', data: 'dev' }
+    await call('alice', 'POST', `/rooms/${room.code}/messages`, msg)
+    await call('bob', 'POST', `/rooms/${other.code}/messages`, { ...msg, from: 'peer-bob1' })
+    await call('alice', 'DELETE', `/rooms/${room.code}`)
+    expect(await store.messages.count(room.code)).toBe(0)
+    expect(await store.messages.count(other.code)).toBe(1)
+  })
+
   it('answers 403 for the guest and for a stranger, 401 without a token', async () => {
     const { call, create } = await setup()
     const room = await create('alice')

@@ -122,6 +122,7 @@ apps/web/
 4. **Polls do not read the user.** `requireUser` reads the user from Mongo on every request. A poll every 2 s would then cost two Atlas reads. So:
    - `requireSession` checks only the token and sets `userId`. The signal routes use it.
    - The seat cache keeps `{ blue, red }` of a room, or `null` for a room that does not exist, for 30 s (`store.rooms.get`). It answers 403 and 404.
+   - A cached entry is used only when it gives the user a seat. Otherwise the store is read again, so a guest who just joined is not refused.
    - `POST` reads the user, because it adds `user` to the message. A page posts about 3 messages.
    - A deleted user with a valid token can poll a room where they keep a guest seat. They see only signaling messages. Accepted.
 5. **The poll cursor.** The poll sends the last id it got in `x-after`. The URL has only `to`, so it stays the same between polls (backend doc, "Preflight per URL"). A message whose id is older than a message already read, but stored later, is missed. The window is the time of one Mongo write. The timeouts of decision 7 recover from it (risk 2).
@@ -199,6 +200,32 @@ Checks:
 - `pnpm format`, `pnpm lint`: no new errors.
 
 ### Result
+
+Added in `apps/api`:
+- `POST` and `GET /rooms/{code}/messages` in `routes/signal.ts`, with `newMessageId` and `isMessageId`.
+- `requireSession` in `middleware/session.ts`: token only, no user read.
+- `createSeatCache` in `rooms/seats.ts`: 30 s per room, injectable `now`. One cache per app, made in `app.ts`.
+- `MessagesStore` in `store.ts`, in memory and in Mongo. Mongo indexes `{ room: 1, _id: 1 }` and TTL `{ expiresAt: 1 }` are in the shared index promise.
+- `DELETE /rooms/{code}` and `DELETE /me` delete messages.
+- Tests: `signal.test.ts`, `seats.test.ts`, `signal.mongo.test.ts`, plus cases in `rooms.test.ts` and `me.test.ts`.
+
+Tests: api unit 93 -> 112. Mongo project: 19 pass, with 3 new in `signal.mongo.test.ts`. Infra 16 pass.
+
+Lambda `index.mjs`: 961,323 bytes (956,348 after step 7).
+
+Checks: typecheck, api test, test:mongo, infra test, infra synth pass. `pnpm lint` has 0 errors (warnings in `apps/web` are old).
+
+Notes:
+- The message `user` is `{ id, name, avatar, discordId }` (type `MessageUser`). Mongo deletes by `user.id`.
+- The body is parsed in the handler, not with `validate`, so the 400 text is `Invalid message`. The seat check runs before the body check.
+- `offer` and `answer` need a peer id in `to`. Only `hello` and `bye` may use `*`.
+- `data` limit is 8192 characters.
+- A poll with a bad `to` or `x-after` answers 400 `Invalid request` before the seat check.
+- The request log line of step 2 stays for every request, polls too. It has no query and no headers.
+
+- Seat cache fix: `seats(code, userId)` uses a cached entry only when it gives the user a seat, else it reads the store again. An unknown room is read each time (no 30 s cache for 404). A seated user still gets the cached answer, so a deleted room shows as 404 after at most 30 s.
+
+Deviations: none.
 
 ## Phase 2: Connection modules
 

@@ -6,7 +6,9 @@ import { log } from './middleware/log'
 import { authRoutes } from './routes/auth'
 import { healthRoutes } from './routes/health'
 import { meRoutes } from './routes/me'
+import { createSeatCache } from './rooms/seats'
 import { roomRoutes } from './routes/rooms'
+import { signalRoutes } from './routes/signal'
 import { tableRoutes } from './routes/table'
 import type { Store } from './stores/store'
 
@@ -25,6 +27,8 @@ export function createApp(deps: Deps) {
   app.route('/', meRoutes(deps))
   app.route('/', roomRoutes(deps))
   app.route('/', tableRoutes(deps))
+  // One cache per app, so the seats of a room are read once in 30 s.
+  app.route('/', signalRoutes({ ...deps, seats: createSeatCache(deps.store) }))
   app.onError(onError)
   app.notFound(notFound)
   return app

@@ -82,4 +82,28 @@ describe('/me', () => {
     const body = (await got.json()) as { room: { players: { red: unknown } } }
     expect(body.room.players.red).toEqual({ id: user._id, gone: true })
   })
+
+  it('DELETE removes the messages of the user and keeps the others', async () => {
+    const { app, store } = makeApp()
+    const user = await store.users.upsertDiscord(profile, new Date())
+    const other = await store.users.upsertDiscord({ ...profile, discordId: '2' }, new Date())
+    const token = await signSession(user._id, testConfig.sessionSecret, new Date())
+    const add = (id: string, u: typeof user) =>
+      store.messages.add({
+        _id: id,
+        room: 'AAAA-AAAA',
+        from: 'peer-0001',
+        to: '*',
+        type: 'hello',
+        data: '',
+        user: { id: u._id, name: u.name, avatar: null, discordId: u.discordId },
+        expiresAt: new Date(Date.now() + 1000),
+      })
+    await add('0000000000001-aaaaaaaa', user)
+    await add('0000000000002-bbbbbbbb', other)
+    const res = await app.request('/me', { method: 'DELETE', ...auth(token) })
+    expect(res.status).toBe(204)
+    const left = await store.messages.list('AAAA-AAAA', 'someone-else', null, 10)
+    expect(left.map((m) => m._id)).toEqual(['0000000000002-bbbbbbbb'])
+  })
 })

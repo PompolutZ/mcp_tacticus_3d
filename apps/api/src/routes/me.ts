@@ -27,6 +27,7 @@ export function meRoutes(deps: { store: Store; config: Config }) {
     const id = c.get('user')._id
     // Rooms first. If the user delete fails, a second call finishes the work.
     await store.rooms.deleteHostedBy(id)
+    await store.messages.deleteUser(id)
     await store.users.delete(id)
     return c.body(null, 204)
   })
