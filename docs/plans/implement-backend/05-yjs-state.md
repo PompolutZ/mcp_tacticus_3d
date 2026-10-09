@@ -201,7 +201,49 @@ Checks:
 
 ### Result
 
-Not started.
+Status: done. Code in commit `038a257`. The user checked the app in the browser on 2026-10-09.
+
+Files changed:
+- New: `apps/web/src/Table.jsx`, `net/useY.js`, `rooms/tableDoc.js`.
+- Changed: `App.jsx`, `Root.jsx`, `rooms/store.js`, `rooms/table.js`, `components/Scene.jsx`, `components/CharacterModel.jsx`, `index.css`, `setup/setup.js`.
+- The same commit also has the Phase 3 code, this plan, the "Work split" of `CLAUDE.md`, and one rule line of `docs/plans/implement-backend.md`.
+
+Facts:
+- `Table.jsx` opens the doc and mounts `App` with `key` = the doc's guid. `Root.jsx` renders `Table` for a room and for the Sandbox.
+- A pose write renders nothing. `Scene.jsx` passes `onRest` to each model. It reads the pose with `restPose(id)` and calls `onModelRest(id, pose)`. The standee gets `onRest` too, because it uses the same `CharacterFigure`.
+- `watchRoomRecord` writes the room record at most every 2 seconds after a change, on `pagehide`, and when it stops. The `Table.jsx` exit handler flushes it first, so the lobby shows the last change.
+
+Checks:
+- `pnpm --filter web test`: pass, 18 of 18.
+- `pnpm --filter web build`: pass. Only the known warning about chunks above 500 kB.
+- `pnpm lint`: 0 errors, 44 warnings (the same count as before step 5).
+- `pnpm format:check`: pass.
+- `grep -n "useState(start" apps/web/src/App.jsx`: no match.
+- `grep -rn "saveRoom\b\|savedTable\|modelPosesRef\|startPoses" apps/web/src`: no match.
+
+Risk 3 review. Every handler of `App.jsx` was read. No bug found.
+- No handler reads a state variable from render after it called that variable's setter and expects the new value. A handler that calls two setters of one name uses the updater form. Handlers that read `setup`, `crisis`, `tokens` or `characters` from render read values that no earlier line of the same handler changes.
+- `handleMapChange`, `handleCrisisChange`, `handleCharacterRemove`, `handleRosterLoad`, `handleRosterRemove`, `restartSetup`, `handleSetupEdge`, `putSquadsOnTable`, `handleTokenRelease` (the give branch): ok. Each writes more than one name inside `table.transact`. The nested calls (`restartSetup` calls `handleCharacterRemove` and `handleCrisisChange`) join the outer transaction.
+- `handleCharacterRemove` (`App.jsx:833`): ok. It deletes the poses of both models of the character.
+- `handleTokenRelease` (`App.jsx:1263`): ok. The pile and loose token branches, and `handleSupplyTake`, write one name each. No transaction is needed.
+- `handleDropCharacterTokens` and `handleTokenDrop` (`App.jsx:775`, `791`): ok. The updater reads `modelPositionRef` (line 780). That is a read of the physics body and has no side effect. It runs once, at the call, while the model is still mounted.
+- `handleTacticSpawn` (`App.jsx:1186`) and `handleSupplyTake` (`App.jsx:739`, via `supplyToken`, line 153): they make a random id inside an updater. The updater runs once now, so the id is made once. This is safe. It is still the pattern that decision 7 warns about. Moving the id out of the updater would keep it safe if the store ever runs an updater twice.
+- All other handlers write one name with an updater or a value: ok.
+
+Changes from the plan:
+- `rooms/tableDoc.js` has `openTableDoc(roomId, game)` and `watchRoomRecord(roomId, table, changed)`, in place of `openRoomDoc` and `deleteRoomDoc`. `openTableDoc` also takes the bytes of a loaded game and clears the old database first. It resolves to `{ doc, storageFailed }`. `watchRoomRecord` moved here from `Table.jsx` and returns `{ flush, stop }`.
+- `deleteRoom` in `rooms/store.js` calls `clearDocument` itself, with its own try and catch. There is no `deleteRoomDoc`. `store.js` also exports `roomDocName(id)` and imports `equal` from `net/collections.js`.
+- `storageFailed` is a prop of `App`. It shows a warning that stays until the player closes it (a Close button), not a 3-second HUD message. The text is "Room not saved: browser storage is not available. Changes on this table are lost when the page closes." The decision 13 text is the first sentence only.
+- `index.css`: `.hud-warning` is now one warning inside a new `.hud-warnings` box (bottom right, a column, `z-index: 600`). The storage warning and the software renderer warning share it.
+- `App.jsx` passes `startPose={table.poses.get}` and `onModelRest={table.poses.setField}`. `Scene.jsx` builds the pose with `restPose(id)`, which replaces `modelPoses`, and passes `onRest` to each model. It writes nothing when the body is gone.
+- `setup/setup.js`: `restoreSetup` is removed. Nothing uses it now. The plan does not name it.
+- `START_MAP` moved from `App.jsx` to `Table.jsx`.
+- Decision 11 says a stored document with another schema is deleted. `Table.jsx` calls `fillTable` on it, which overwrites the fields in the same document. It does not delete the database. The old content is replaced, and a top-level name that the new layout does not have would stay.
+- Same as the plan, no difference: names and files of `net/`, `useY.js` hooks, `table.js` (`startTable`, `withPlacements`, `poseOf`), version 2 of the record, the 2-second record write, the 5-second load timeout, the in-memory fallback, the StrictMode cleanup, the Sandbox without IndexedDB, `handleLobby`, `CharacterModel` `onSleep`.
+
+Open issues:
+- The `Table.jsx` schema case above (decision 11).
+- The random id inside the updaters of `handleTacticSpawn` and `handleSupplyTake`. Safe now.
 
 ## Phase 3: Save game and Load game
 
@@ -218,7 +260,27 @@ Checks:
 
 ### Result
 
-Not started.
+Status: done. Code in commit `038a257`. The user checked the app in the browser on 2026-10-09.
+
+Files changed:
+- `apps/web/src/components/Toolbar.jsx`, `App.jsx`, `Table.jsx`, `net/doc.test.js`. All in commit `038a257` with Phase 2.
+
+Facts:
+- `Toolbar.jsx`: **Save game** and **Load game** are in the first group, after the room code. Load uses a hidden `<input type="file" accept=".yjs">`. The input value is cleared after a pick, so the same file can be chosen again.
+- `handleSaveGame` downloads `encodeGame(table)` as `game-<room code or sandbox>-<yyyy-mm-dd>.yjs`. The link is added to the page for the click (Firefox).
+- `handleLoadGame(file)` reads the bytes, calls `readGame`, and checks that `MAPS` has the map. A file that fails shows "This file is not a saved game of this app". Otherwise a confirm asks, with the text of decision 16, and `onLoadGame(bytes)` runs.
+- `Table.jsx` `handleLoadGame` sets `opened` to null and stores the bytes. The effect then calls `openTableDoc(roomId, bytes)`, which clears the room database and stores the new doc. The room record gets `changed: true`.
+- The test "a game file gives back the same table" in `doc.test.js` fills a table, runs `encodeGame` and `readGame`, and compares `snapshot(loaded)` with `snapshot(table)`. `snapshot` reads every store: `game`, `rosters`, `setup`, `terrain`, `characters`, `poses`, `tokens`, `tactics`, `looseTokens`, `tokenPiles`. So it checks all ten. `tokenPiles` is an empty list in the test data, so that store is compared only as empty.
+
+Checks:
+- `pnpm --filter web test`: pass, 18 of 18.
+- `pnpm --filter web build`: pass.
+- `pnpm lint`: 0 errors, 44 warnings.
+- `pnpm format:check`: pass.
+
+Changes from the plan: none.
+
+Open issues: the `tokenPiles` test data is empty. Add one pile to `STATE` in `doc.test.js` to cover that store with data.
 
 ## Phase 4: Size and docs
 
