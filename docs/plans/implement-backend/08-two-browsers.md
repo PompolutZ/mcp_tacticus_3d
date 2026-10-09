@@ -454,6 +454,7 @@ Once, in one pair:
 ### User check results
 
 - 2026-10-09: every browser pair showed "Could not connect". The reason is in Phase 5 ("Why"). The user agreed to Phase 5 on 2026-10-09.
+- 2026-10-09, after Phase 5 with `turn:up`: both sides show "Connected". Checks 5 to 12 are open.
 
 ## Done when
 
