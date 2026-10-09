@@ -1,41 +1,11 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import * as Y from 'yjs'
+import { Awareness } from 'y-protocols/awareness'
+import { linkedChannels } from './linkedChannels.js'
 import { FRAME_SIZE, syncOverChannel } from './syncChannel.js'
 
 const settle = () => new Promise((resolve) => setImmediate(resolve))
-
-// Two linked fake channels. A frame sent on one arrives on the other, as an ArrayBuffer.
-function linkedChannels({ open = true } = {}) {
-  const make = () => {
-    const ch = new EventTarget()
-    ch.readyState = open ? 'open' : 'connecting'
-    ch.sent = []
-    return ch
-  }
-  const a = make()
-  const b = make()
-  const wire = (from, to) => {
-    from.send = (frame) => {
-      from.sent.push(frame)
-      const copy = frame.slice().buffer
-      queueMicrotask(() => {
-        const event = new Event('message')
-        event.data = copy
-        to.dispatchEvent(event)
-      })
-    }
-  }
-  wire(a, b)
-  wire(b, a)
-  const openBoth = () => {
-    for (const ch of [a, b]) {
-      ch.readyState = 'open'
-      ch.dispatchEvent(new Event('open'))
-    }
-  }
-  return { a, b, openBoth }
-}
 
 test('two documents end equal, both ways', async () => {
   const { a, b } = linkedChannels()
@@ -140,4 +110,99 @@ test('stop ends the sync', async () => {
   docA.getMap('m').set('k', 1)
   await settle()
   assert.equal(docB.getMap('m').get('k'), undefined)
+})
+
+// Two documents with an awareness each, synced over linked channels
+function pair(options) {
+  const channels = linkedChannels(options)
+  const docA = new Y.Doc()
+  const docB = new Y.Doc()
+  const awA = new Awareness(docA)
+  const awB = new Awareness(docB)
+  const syncA = syncOverChannel(docA, channels.a, awA)
+  const syncB = syncOverChannel(docB, channels.b, awB)
+  return { ...channels, docA, docB, awA, awB, syncA, syncB }
+}
+
+test('awareness states cross the channels, both ways', async () => {
+  const { awA, awB } = pair()
+  awA.setLocalStateField('owns', ['token:1'])
+  awB.setLocalStateField('owns', ['loose:2'])
+  await settle()
+  assert.deepEqual(awB.getStates().get(awA.clientID), { owns: ['token:1'] })
+  assert.deepEqual(awA.getStates().get(awB.clientID), { owns: ['loose:2'] })
+  awA.destroy()
+  awB.destroy()
+})
+
+test('the own state goes out when the channel opens', async () => {
+  const { awA, awB, openBoth } = pair({ open: false })
+  awA.setLocalStateField('owns', ['pile:1'])
+  assert.equal(awB.getStates().has(awA.clientID), false)
+  openBoth()
+  await settle()
+  assert.deepEqual(awB.getStates().get(awA.clientID), { owns: ['pile:1'] })
+  awA.destroy()
+  awB.destroy()
+})
+
+test('a renew of the same state is sent too', async () => {
+  const { a, awA, awB } = pair()
+  await settle()
+  a.sent.length = 0
+  awA.setLocalState(awA.getLocalState())
+  assert.equal(a.sent.length, 1)
+  assert.equal(a.sent[0][1], 1)
+  awA.destroy()
+  awB.destroy()
+})
+
+test('an awareness state applied from the channel is not sent back', async () => {
+  const { b, awA, awB } = pair()
+  await settle()
+  b.sent.length = 0
+  awA.setLocalStateField('owns', ['token:1'])
+  await settle()
+  assert.deepEqual(awB.getStates().get(awA.clientID), { owns: ['token:1'] })
+  assert.equal(b.sent.length, 0)
+  awA.destroy()
+  awB.destroy()
+})
+
+test('stop removes the states that came from the channel', async () => {
+  const { awA, awB, syncB } = pair()
+  awA.setLocalStateField('owns', ['token:1'])
+  await settle()
+  assert.equal(awB.getStates().has(awA.clientID), true)
+  syncB.stop()
+  assert.equal(awB.getStates().has(awA.clientID), false)
+  assert.equal(awB.getStates().has(awB.clientID), true)
+  awA.destroy()
+  awB.destroy()
+})
+
+test('after stop, awareness changes are not sent', async () => {
+  const { a, awA, awB, syncA } = pair()
+  await settle()
+  syncA.stop()
+  a.sent.length = 0
+  awA.setLocalStateField('owns', ['token:1'])
+  assert.equal(a.sent.length, 0)
+  awA.destroy()
+  awB.destroy()
+})
+
+test('a state comes again when a new channel opens after stop', async () => {
+  const first = pair()
+  first.awA.setLocalStateField('owns', ['token:1'])
+  await settle()
+  first.syncB.stop()
+  first.syncA.stop()
+  const again = linkedChannels()
+  syncOverChannel(first.docA, again.a, first.awA)
+  syncOverChannel(first.docB, again.b, first.awB)
+  await settle()
+  assert.deepEqual(first.awB.getStates().get(first.awA.clientID), { owns: ['token:1'] })
+  first.awA.destroy()
+  first.awB.destroy()
 })

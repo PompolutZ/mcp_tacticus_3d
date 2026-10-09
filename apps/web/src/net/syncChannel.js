@@ -1,12 +1,19 @@
 // Yjs sync over the `sync` data channel (plan 08, decisions 9 and 10). The message layout is the one of
-// y-websocket: a varUint type (0: sync), then a y-protocols/sync message. Awareness (type 1) comes in step 9.
+// y-websocket: a varUint type (0: sync, then a y-protocols/sync message; 1: awareness, then the bytes of
+// encodeAwarenessUpdate as a varUint8Array). Awareness carries the claims (plan 09, decision 13).
 // It imports no module that reads import.meta.env, so node --test can load it.
 
 import * as encoding from 'lib0/encoding'
 import * as decoding from 'lib0/decoding'
 import * as syncProtocol from 'y-protocols/sync'
+import {
+  applyAwarenessUpdate,
+  encodeAwarenessUpdate,
+  removeAwarenessStates,
+} from 'y-protocols/awareness'
 
 const MESSAGE_SYNC = 0
+const MESSAGE_AWARENESS = 1
 // Frame header: a whole message, a part with more to come, the last part
 const WHOLE = 0
 const PART = 1
@@ -35,10 +42,14 @@ function withHeader(header, bytes) {
 }
 
 // Syncs doc with the other end of channel (open). Updates that come from the channel have the channel as
-// origin, so they are not sent back. Returns { stop }.
-export function syncOverChannel(doc, channel) {
+// origin, so they are not sent back. awareness (y-protocols Awareness of doc) is optional: with it, the own
+// state goes out when the channel opens and on each update, and the states of the other end come in. stop()
+// removes those states. Returns { stop }.
+export function syncOverChannel(doc, channel, awareness = null) {
   channel.binaryType = 'arraybuffer'
   let parts = []
+  // The client ids whose awareness state came from the channel
+  const remote = new Set()
 
   function send(encoder) {
     sendFrames(channel, encoding.toUint8Array(encoder))
@@ -51,6 +62,30 @@ export function syncOverChannel(doc, channel) {
     send(encoder)
   }
 
+  function sendAwareness(clients) {
+    const encoder = encoding.createEncoder()
+    encoding.writeVarUint(encoder, MESSAGE_AWARENESS)
+    encoding.writeVarUint8Array(encoder, encodeAwarenessUpdate(awareness, clients))
+    send(encoder)
+  }
+
+  function onOpen() {
+    sendStep1()
+    if (awareness) sendAwareness([awareness.clientID])
+  }
+
+  // 'update', not 'change': y-protocols renews the own state every 15 s, and the other end drops a state
+  // that is silent for 30 s
+  function onAwareness({ added, updated, removed }, origin) {
+    if (origin === channel) {
+      for (const id of added.concat(updated)) if (id !== awareness.clientID) remote.add(id)
+      for (const id of removed) remote.delete(id)
+      return
+    }
+    if (channel.readyState !== 'open') return
+    sendAwareness(added.concat(updated, removed))
+  }
+
   function onUpdate(update, origin) {
     if (origin === channel || channel.readyState !== 'open') return
     const encoder = encoding.createEncoder()
@@ -61,7 +96,12 @@ export function syncOverChannel(doc, channel) {
 
   function handle(message) {
     const decoder = decoding.createDecoder(message)
-    if (decoding.readVarUint(decoder) !== MESSAGE_SYNC) return
+    const type = decoding.readVarUint(decoder)
+    if (type === MESSAGE_AWARENESS) {
+      if (awareness) applyAwarenessUpdate(awareness, decoding.readVarUint8Array(decoder), channel)
+      return
+    }
+    if (type !== MESSAGE_SYNC) return
     const encoder = encoding.createEncoder()
     encoding.writeVarUint(encoder, MESSAGE_SYNC)
     syncProtocol.readSyncMessage(decoder, encoder, doc, channel)
@@ -94,14 +134,23 @@ export function syncOverChannel(doc, channel) {
 
   doc.on('update', onUpdate)
   channel.addEventListener('message', onMessage)
-  if (channel.readyState === 'open') sendStep1()
-  else channel.addEventListener('open', sendStep1, { once: true })
+  awareness?.on('update', onAwareness)
+  if (channel.readyState === 'open') onOpen()
+  else channel.addEventListener('open', onOpen, { once: true })
 
   return {
     stop() {
       doc.off('update', onUpdate)
       channel.removeEventListener('message', onMessage)
-      channel.removeEventListener('open', sendStep1)
+      channel.removeEventListener('open', onOpen)
+      if (!awareness) return
+      awareness.off('update', onAwareness)
+      const ids = [...remote]
+      remote.clear()
+      removeAwarenessStates(awareness, ids, channel)
+      // y-protocols ignores a state whose clock is not newer than the one it knows. The other end sends the
+      // same clock again when the channel reopens, so forget the clocks of the removed states.
+      for (const id of ids) awareness.meta.delete(id)
     },
   }
 }

@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import * as Y from 'yjs'
+import { Awareness } from 'y-protocols/awareness'
 import App from './App.jsx'
 import { LoadingOverlay } from './components/LoadingOverlay.jsx'
 import { useUser } from './auth/useUser.js'
 import { buildOverride, relayFlag } from './net/debugFlags.js'
 import { SCHEMA, createTable, fillTable, tableSchema } from './net/doc.js'
 import { iceConfig } from './net/ice.js'
+import { createOwnership } from './net/ownership.js'
 import { connectRoom } from './net/peer.js'
 import { createSignaling } from './net/signaling.js'
 import { syncOverChannel } from './net/syncChannel.js'
@@ -73,6 +75,9 @@ export default function Table({ room = null, onExit }) {
     const onPageHide = () => link.current?.stop({ keepalive: true })
     // Yjs sync over the open channel, or null
     let sync = null
+    // The awareness of a multiplayer room (the claims) and the ownership on it, or null
+    let awareness = null
+    let ownership = null
 
     // Ends the watchers and the document. Safe to call twice.
     function close() {
@@ -80,6 +85,10 @@ export default function Table({ room = null, onExit }) {
       window.removeEventListener('pagehide', onPageHide)
       sync?.stop()
       sync = null
+      ownership?.destroy()
+      ownership = null
+      awareness?.destroy()
+      awareness = null
       link.current?.stop()
       link.current = null
       record.current?.stop()
@@ -117,6 +126,12 @@ export default function Table({ room = null, onExit }) {
         const rosters = room?.rosters ?? { blue: null, red: null }
         fillTable(table, { ...startTable(room?.mapId ?? START_MAP), rosters })
       }
+      const role = room?.host === userId ? 'host' : 'guest'
+      if (room?.multiplayer) {
+        awareness = new Awareness(doc)
+        awareness.setLocalState({ owns: [] })
+        ownership = createOwnership({ awareness, role })
+      }
       if (room && !room.multiplayer) record.current = watchRoomRecord(room.id, table)
       if (room?.multiplayer) {
         writer.current = watchServerTable({
@@ -137,7 +152,6 @@ export default function Table({ room = null, onExit }) {
         document.addEventListener('visibilitychange', onVisibility)
         // Only a multiplayer room connects. A single player room and the Sandbox make no signaling call.
         const peerId = crypto.randomUUID()
-        const role = room.host === userId ? 'host' : 'guest'
         link.current = connectRoom({
           role,
           userId,
@@ -149,7 +163,7 @@ export default function Table({ room = null, onExit }) {
           // The open channel is synced at once. The sync stops with the channel or the table.
           onChannel(channel) {
             sync?.stop()
-            const mine = syncOverChannel(doc, channel)
+            const mine = syncOverChannel(doc, channel, awareness)
             sync = mine
             channel.addEventListener('close', () => mine.stop())
           },
@@ -168,7 +182,12 @@ export default function Table({ room = null, onExit }) {
         })
         window.addEventListener('pagehide', onPageHide)
       }
-      setOpened({ table, storageFailed: result.storageFailed })
+      setOpened({
+        table,
+        storageFailed: result.storageFailed,
+        // The local version in a single player room and the Sandbox
+        ownership: ownership ?? createOwnership({}),
+      })
     })
     return () => {
       cancelled = true
@@ -194,6 +213,7 @@ export default function Table({ room = null, onExit }) {
       serverWarning={serverWarning}
       connection={connection && { ...connection, retry: () => link.current?.retry() }}
       userId={userId ?? null}
+      ownership={opened.ownership}
       onExit={handleExit}
     />
   )

@@ -224,6 +224,7 @@ function canvasEvents(store) {
 // serverWarning: the text of the warning when a multiplayer room is no longer saved on the server, or null.
 // connection: { state, peer, versionMismatch, retry } of a multiplayer room (net/peer.js, Table.jsx), or null.
 // userId: the id of the signed-in user, who owns the stored squad of a multiplayer room.
+// ownership: the claims on pieces (net/ownership.js). Not used yet.
 // onExit(): opens the lobby. See
 // docs/feature-rooms.md and docs/plans/implement-backend/05-yjs-state.md.
 export default function App({
@@ -233,6 +234,7 @@ export default function App({
   serverWarning = null,
   connection = null,
   userId = null,
+  ownership = null, // eslint-disable-line no-unused-vars
   onExit,
 }) {
   const red = Boolean(room?.multiplayer && room.side === 'red')

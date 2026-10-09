@@ -499,6 +499,31 @@ User, after this phase: checks 8 to 14.
 
 ### Result
 
+#### Part 4a: awareness and ownership
+
+Done. Work items 1, 2 and 3, and the tests of `syncChannel.test.js` and `ownership.test.js`.
+
+- `net/syncChannel.js`: `syncOverChannel(doc, channel, awareness)`. Type 1 is awareness, in the same frames as type 0. The own state goes out when the channel opens. Each awareness `update` whose origin is not the channel goes out while the channel is open, so the 15 s renew goes out too. Type 1 is applied with the channel as origin. `stop()` removes the listeners, then removes the states that came from the channel. Without `awareness` nothing changes.
+- New `net/ownership.js`: `createOwnership({ awareness, role })` with `claim`, `release`, `owner`, `writes`, `otherPresent`, `mine`, `onLost`, `subscribe`, `otherOwned`, `destroy`. Without awareness it is the local version. Pure functions: `resolveOwner`, `otherOwnedKeys`, `lostKeys`, `sameSet`.
+- `Table.jsx`: a multiplayer room makes one `Awareness` with `{ owns: [] }` and the ownership, after `createTable`. `close()` stops the sync, destroys the ownership, then the awareness. A single player room and the Sandbox get `createOwnership({})`. App takes the prop `ownership` and does not use it yet.
+- Tests: `net/syncChannel.test.js` (awareness both ways, open, renew, not sent back, `stop`, a new channel after `stop`), `net/ownership.test.js` (claim, release, refusal, tie and `onLost`, `writes`, `otherOwned`, `subscribe`, the local version, the pure rules). New helper `net/linkedChannels.js` (the fake channels, moved out of the syncChannel test).
+
+Choices that the plan did not fix:
+- `stop()` also deletes the clocks (`awareness.meta`) of the removed states. y-protocols ignores a state with a clock that is not newer. Without this, a state sent again on a new channel would be ignored.
+- Several other clients are handled (lowest id wins), though a room has two players.
+- `otherPresent()` is true when any other client id has a state. `subscribe` also runs when that changes.
+- A tie check runs on each awareness `change`, local ones too. It does nothing for a local change, because a claim is refused when the other owns the key.
+- `claim` of a key already owned by this browser returns true and adds nothing.
+- `createOwnership` sets the `owns` field at once, so the state has a clock above 0.
+- `ownership.destroy()` removes the listeners only. Table destroys the awareness.
+- App takes `ownership` with an eslint-disable for the unused variable, until 4b.
+
+Checks:
+- `pnpm --filter web test`: 165 pass, 0 fail.
+- `pnpm --filter web build`: passes.
+- `pnpm format` done. `pnpm lint`: 37 warnings, 0 errors.
+- Not run in a browser, by the rules.
+
 ## Phase 5: The live channel: models, tools and the cursor
 
 Read: decisions 9 and 13 to 16. `net/peer.js` (+ test), `Table.jsx`, `components/Scene.jsx`, `components/CharacterModel.jsx` (the remote mode), `components/RulerTool.jsx` (`OtherTool`, `Tool`), `drag/tablePoint.js`, `net/debugFlags.js`. MDN for unordered data channels.
