@@ -321,14 +321,18 @@ Done when: in the three browser pairs, discrete changes sync. Discrete changes a
 
 Peer-to-peer phase 3. Read: peer-to-peer doc "Moving objects (physics)".
 
-The tools (range, move, Toward/Away) move into the Yjs document in this step, per side (step 5, decision 1). Before this, they are React state and `RulerTool.jsx`.
+Detailed plan: `docs/plans/implement-backend/09-moving-objects.md`, agreed on 2026-10-09. Seven phases:
+1. Models pass through models. This fixes the known bug "a dragged model pushes other models". So rule 6 of the design (pushed bodies) goes away.
+2. One drag code. Six pieces copy the same drag gesture today.
+3. The tools (range, move, Toward/Away) move into the Yjs document, per side (step 5, decision 1). Before this, they are React state and `RulerTool.jsx`.
+4. Claims in Yjs awareness, for every piece that a player moves. The rest-pose writes from both browsers (step 8, decision 18) get an owner, so only one browser writes them.
+5. The live channel (`live`, id 1, unreliable, unordered): models, tools, the cursor.
+6. Live drags of tokens, cards and markers.
+7. Traffic log and docs.
 
-Step 8 built only the `sync` channel. This step adds:
-- The `poses` data channel (id 1, unreliable, unordered). A channel added after the connection needs no new offer.
-- Yjs awareness over `sync` (type `1` in the message layout): claims (`owns`), names and selection.
-- The rest-pose writes from both browsers (step 8, decision 18) get an owner, so only one browser writes them.
+Two channels: the persistence channel (`sync`, step 8) carries the document, which the host saves on the server, and the claims. The live channel carries what is not saved: poses of moving pieces, the cursor, and dice in flight from step 10.
 
-Done when: both players can drag models and tokens, and each player uses only their own tools. The tools are in the document. The bytes per game are logged.
+Done when: both players can drag every piece, and each player uses only their own tools. The tools are in the document. The bytes per game are logged.
 
 ## Step 10: Dice
 
