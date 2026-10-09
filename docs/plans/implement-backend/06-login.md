@@ -292,7 +292,33 @@ Checks:
 
 ### Result
 
-(The agent adds it after the work.)
+Status: done. Not committed.
+
+Files changed:
+- New: `apps/web/src/api/client.js`, `auth/oauth.js`, `auth/avatar.js`, `auth/session.js`, `auth/useUser.js`, `components/UserMenu.jsx`.
+- New tests: `auth/oauth.test.js` (8), `auth/avatar.test.js` (4).
+- Changed: `.gitignore`, `apps/web/.env.development`, `components/Lobby.jsx`, `Root.jsx`, `index.css`.
+
+Facts:
+- `session.js` exports `AUTH_ON`, `DISCORD_ON` (client id set), `startSession`, `login`, `devLogin`, `logout`, `subscribe`, `getSnapshot`. It is the only file with `localStorage` and `sessionStorage`.
+- `startSession()` resolves to `{ returnHash, error }`. `returnHash` has no `#`, so `Root.jsx` passes it to `go`. It is set only after a successful login.
+- On a callback error or a failed `POST /auth/discord`, the session still tries `GET /me` with a stored token.
+- `readCallback` checks the state first. So `access_denied` with a wrong state gives "Login failed. Try again.".
+- `client.js` throws `ApiError` with status 0 when the server does not answer. The session maps that to `error`.
+- `devLogin` returns an error text or `null`. It returns at once in a production build, so Vite drops the `/auth/dev` call.
+- `Lobby.jsx` header is a flex row: the title block at the left, `UserMenu` at the right.
+
+Checks:
+- `pnpm --filter web test`: pass, 30 of 30.
+- `pnpm --filter web build`: pass.
+- `pnpm lint`: 0 errors, 44 warnings (same as before). `pnpm format:check`: pass.
+- `git check-ignore apps/web/.env.local`: prints the path.
+- `grep localStorage|sessionStorage apps/web/src/auth`: only `session.js`.
+- Production build without `VITE_DISCORD_CLIENT_ID` (no `.env.local` exists): `grep -l "auth/dev\|Dev login" apps/web/dist/assets/*.js` finds nothing.
+
+Changes from the plan: none.
+
+Open issues: none. The browser flow is not tested (user checks 7 to 12).
 
 ## Phase 4: Docs
 

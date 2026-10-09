@@ -5,3 +5,5 @@ cdk.out
 .playwright-cli
 playwright-cli
 /apps/web/tools/
+.env.local
+.env.*.local

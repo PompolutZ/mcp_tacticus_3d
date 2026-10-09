@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Table from './Table.jsx'
 import { Lobby } from './components/Lobby.jsx'
+import { startSession } from './auth/session.js'
 import { openRoom } from './rooms/store.js'
 import { MAPS } from './terrain/maps.js'
 
@@ -51,6 +52,15 @@ export default function Root() {
     setNotice(`Room ${page.id} is not in this browser.`)
     go('', true)
   }, [hash])
+
+  // Once per page load (startSession keeps its promise). A login error shows in the lobby. After a login,
+  // the page that the player left opens.
+  useEffect(() => {
+    startSession().then(({ returnHash, error }) => {
+      if (error) setNotice(error)
+      if (returnHash) go(returnHash, true)
+    })
+  }, [])
 
   function go(next, replace = false) {
     navigate(next, replace)

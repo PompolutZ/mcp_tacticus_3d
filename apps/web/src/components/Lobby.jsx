@@ -5,6 +5,7 @@ import { mapCard } from '../terrain/files.js'
 import { deleteRoom, listRooms, ownsRoom } from '../rooms/store.js'
 import { ROSTER_TABS, parseRosterText, rosterTabs } from '../rosters/cards.js'
 import { CARD_STEP_KEYS } from '../keyboard.js'
+import { UserMenu } from './UserMenu.jsx'
 import { NewRoomDialog } from './NewRoomDialog.jsx'
 import { RosterPopup } from './RosterPopup.jsx'
 
@@ -33,8 +34,11 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
   return (
     <div className="lobby">
       <header className="lobby-header">
-        <h1 className="lobby-title">MCP Assist 3D</h1>
-        <p className="lobby-subtitle">A game table for Marvel Crisis Protocol</p>
+        <div>
+          <h1 className="lobby-title">MCP Assist 3D</h1>
+          <p className="lobby-subtitle">A game table for Marvel Crisis Protocol</p>
+        </div>
+        <UserMenu />
       </header>
       {notice && (
         <div className="lobby-notice" role="alert">
