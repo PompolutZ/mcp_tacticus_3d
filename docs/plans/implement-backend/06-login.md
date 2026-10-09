@@ -1,0 +1,315 @@
+# Step 6: Login
+
+Detailed plan of step 6 in `docs/plans/implement-backend.md`. The design is in `docs/feature-auth.md` ("Login flow", "Session", "Users", "Security", "Discord application", "Local testing", "Code layout", "Phases" 1) and `docs/feature-backend.md` ("API", "Secrets and config", "Local development").
+
+## Goal
+
+A player can log in with Discord in local dev. Two testers on one Mac can log in as two users with the dev login. The API with the auth routes is deployed. Production shows no login, because Netlify has no `VITE_DISCORD_CLIENT_ID`.
+
+Step 7 (online rooms) needs a logged-in user for every room route. So login comes first. The routes of step 7 use the user middleware of this step.
+
+## Scope
+
+In the step:
+- `apps/api`: the users store (memory and Mongo), the session token, the user middleware, `POST /auth/discord`, `GET /me`, `DELETE /me`, the dev login `POST /auth/dev` in `local.ts`, the config from SSM and from `.env`. Tests. Discord is mocked.
+- `apps/web`: the API client, the session (login redirect, callback, token, logout), `useUser`, the avatar URL, `UserMenu.jsx` in the lobby header, the dev login field.
+- `.gitignore`: `.env.local`.
+- Docs: auth doc, backend doc, the backend plan, `README.md`, `infra/README.md`.
+
+Left for later steps:
+- **Delete account** in the user menu, and the privacy page: step 12. The route `DELETE /me` comes now. Step 7 adds the rooms part of it (delete own rooms, free seats).
+- The login button outside the lobby (join page): step 7.
+- Names and avatars in the room toolbar: step 8.
+- The production redirect URI and `VITE_DISCORD_CLIENT_ID` in Netlify: step 12.
+
+## Rules for every phase
+
+- Read `CLAUDE.md`, `docs/plans/implement-backend.md` ("Rules for every step", "Step 6"), this plan, and the design sections named above.
+- Do not open the app in a browser. Do not start the dev server. The user checks the app.
+- Do not run `aws`, `cdk deploy` or `put-secrets`. `cdk synth` is fine.
+- Do not call Discord. Tests mock it.
+- Do not commit and do not push. The main model commits each finished phase.
+- Temporary files go in the session's scratchpad directory.
+- Keep tool output small (`head`, `grep`, `tail`, summaries).
+- Code: TypeScript, strict, in `apps/api`. Plain JavaScript in `apps/web`. Plain, short comments that say why. Match the style of the code around you.
+- Never log a code, a token, a secret or the `Authorization` header.
+- After a code change: `pnpm format` and `pnpm lint`.
+- Docs: short sentences, common words, one fact per sentence. Never the word "comprehensive".
+- If a check fails and the fix is not in this plan, stop and report. Do not change the plan's decisions on your own.
+
+## Names
+
+| Thing | Value |
+|---|---|
+| New API dependencies | `zod`, `@hono/zod-validator` (the latest versions whose peer ranges fit Hono 4) |
+| Routes | `POST /auth/discord`, `GET /me`, `DELETE /me`. Local only: `POST /auth/dev` |
+| Session token | JWT, HS256, `hono/jwt`. Claims `sub` (user id), `iat`, `exp` = `iat` + 30 days |
+| Token renewal | `GET /me` returns a new token when `iat` is more than 1 day old |
+| User id | `u_` + 16 base64url characters (12 random bytes) |
+| User expiry | `expiresAt` = 12 months after the last login or token renewal (decision 6) |
+| Dev user | `discordId: 'dev:<name>'`, `username` and `name` = `<name>`, `avatar: null` |
+| API env (local) | `SESSION_SECRET`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET` in `apps/api/.env`. Without `SESSION_SECRET`: the fixed value `dev-session-secret-local-only` |
+| SSM (Lambda) | `session-secret`, `discord-client-id`, `discord-client-secret` under `/mcptacticus/prod/` |
+| Web env | `VITE_DISCORD_CLIENT_ID` in `apps/web/.env.local` (git ignores it) |
+| Token in the browser | `localStorage` key `mcp-assist-3d/session` |
+| Login state | `sessionStorage` key `mcp-assist-3d/login`: `{ state, returnHash }` |
+| Discord URLs | Authorize `https://discord.com/oauth2/authorize`. Token `https://discord.com/api/v10/oauth2/token`. User `https://discord.com/api/v10/users/@me` |
+
+API answers:
+
+| Request | Body | Answer |
+|---|---|---|
+| `POST /auth/discord` | `{ code, redirectUri }` | 200 `{ token, user }`. 400 bad body. 401 Discord rejected the code. 502 Discord failed. 503 Discord not configured (local only) |
+| `GET /me` | | 200 `{ user, token? }`. 401 no token, bad token, or the user is gone |
+| `DELETE /me` | | 204. 401 as above |
+| `POST /auth/dev` | `{ name }` | 200 `{ token, user }`. 400 bad name |
+
+`user` in an answer is `{ id, discordId, username, name, avatar }`. Errors are `{ error }` (step 2).
+
+Files:
+
+```
+.gitignore                     + .env.local, .env.*.local
+apps/api/
+  .env.example                 + SESSION_SECRET, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET
+  package.json                 + zod, @hono/zod-validator
+  src/
+    app.ts                     Deps + discord. Routes auth and me
+    config.ts                  Config + sessionSecret, discord. configFromEnv, configFromSsm
+    lambda.ts                  config from SSM, Discord client
+    local.ts                   dev session secret, Discord client, dev login route
+    auth/
+      token.ts                 signSession, verifySession
+      discord.ts               createDiscordClient(discord, fetch): exchangeCode, getProfile
+    middleware/
+      user.ts                  requireUser: Bearer token → c.var.user
+      validate.ts              zod body check with the { error } answer
+    routes/
+      auth.ts                  POST /auth/discord
+      me.ts                    GET /me, DELETE /me
+      devAuth.ts               POST /auth/dev. Only local.ts imports it
+    stores/
+      store.ts                 + UsersStore, UserDoc, publicUser
+      memory.ts                + users
+      mongo.ts                 + users, indexes
+  test/
+    token.test.ts, me.test.ts, auth.test.ts, dev-auth.test.ts, discord.test.ts
+    config.test.ts             + configFromEnv, configFromSsm
+    users.mongo.test.ts        the Mongo users store
+apps/web/
+  .env.development             + comment: VITE_DISCORD_CLIENT_ID goes in .env.local
+  src/
+    api/client.js              base URL, JSON, ApiError, token header, 401 handler
+    auth/
+      oauth.js                 authorizeUrl, readCallback, randomState. No browser globals
+      oauth.test.js
+      avatar.js                avatarUrl(user, size)
+      avatar.test.js
+      session.js               the session store: start, login, dev login, logout, subscribe
+      useUser.js               useSyncExternalStore over the session
+    components/
+      UserMenu.jsx             login button, avatar, name, menu with Log out, dev login
+      Lobby.jsx                UserMenu in the header
+    Root.jsx                   starts the session, opens returnHash, login error → notice
+    index.css                  user menu styles
+```
+
+## Decisions that fill gaps in the design
+
+1. **Store shape.** `Store` gets a `users` field of type `UsersStore`. Step 7 adds `rooms` the same way. `UsersStore`:
+   - `upsertDiscord(profile, now)`: finds the user by `discordId`. Creates it with a new id, or updates `username`, `name`, `avatar`, `lastLoginAt`, `expiresAt`. Returns the user. One `findOneAndUpdate` with `upsert` in Mongo, with `$setOnInsert` for `_id` and `createdAt`.
+   - `get(id)`: the user or `null`.
+   - `touch(id, now)`: sets `expiresAt` (decision 6).
+   - `delete(id)`.
+   The dev login uses `upsertDiscord` with the dev profile.
+2. **Mongo indexes.** `users`: unique `{ discordId: 1 }`, TTL `{ expiresAt: 1 }` with `expireAfterSeconds: 0`. The Mongo store creates them once, before the first users call, with one shared promise. A failure clears the promise, so the next call tries again. Reason: `/health` must still answer 503 (not crash) when Atlas is down at cold start. The design says "indexes created at cold start". This is the same, but lazy.
+3. **Config.** `Config` = `{ version, sessionSecret, discord: { clientId, clientSecret } | null }`.
+   - Lambda (`configFromSsm`): all three SSM values are required. A missing one stops the cold start with the name of the parameter (`requireParam`). Reason: a deploy without the secrets must fail at once, not later at the first login. So the user runs `put-secrets` before the deploy.
+   - Local (`configFromEnv`): `discord` is `null` when one of the two values is not set. Then `POST /auth/discord` answers 503, and the dev login still works. `SESSION_SECRET` falls back to a fixed dev value, with one log line. Reason: `tsx watch` restarts the API on each change. A random secret per start would log out the testers each time. The fixed value is only in `local.ts`, which the Lambda bundle does not contain.
+4. **Discord client.** `createDiscordClient(discord, fetch)` has `exchangeCode(code, redirectUri)` and `getProfile(accessToken)`. `createApp` gets it in `Deps` as `discord` (or `null`). Tests pass a fake client. `discord.test.ts` tests the client with a fake `fetch`.
+   - The token request is form-encoded: `grant_type=authorization_code`, `code`, `redirect_uri`, `client_id`, `client_secret`.
+   - Each call has a 5-second timeout (`AbortSignal.timeout`). The Lambda timeout is 10 seconds.
+   - Discord answers 400 or 401 to the token request → `401 { error: 'Discord login failed' }`. Any other failure (network, timeout, 429, 5xx, a profile without `id`) → `502 { error: 'Discord is not available' }`.
+   - The log gets the Discord status only, never the body.
+5. **Profile to user.** `name` = `global_name ?? username`. `avatar` = the hash or `null`. The Discord access token is dropped after `getProfile` (auth doc decision 9).
+6. **User expiry.** The design says "a user with no login for 12 months is deleted". But a player who opens the app every week renews the token through `GET /me` and never logs in through Discord again. The TTL would then delete an active player after 12 months. So the token renewal in `GET /me` also calls `touch`, which moves `expiresAt` to 12 months later. This adds at most one Atlas write per user per day. The auth doc text changes to "no login and no app start for 12 months".
+7. **User middleware.** `requireUser` reads `Authorization: Bearer <token>`, checks it with `verify(token, secret, 'HS256')`, and reads the user by `sub`. Any failure answers `401 { error: 'Not logged in' }`: no header, a bad signature, an expired token, another algorithm, a user that is gone. It sets `c.var.user` (the `UserDoc`) and `c.var.tokenIat`. Our own middleware, not Hono's `jwt()`, because the user read and the error answer are ours anyway.
+8. **Body checks.** `validate(schema)` wraps `zValidator('json', ...)`. A bad body answers `400 { error: 'Invalid request' }`, without the zod details. Schemas:
+   - `/auth/discord`: `code` a string of 1 to 200 characters. `redirectUri` an `http:` or `https:` URL of at most 200 characters. Discord checks that it is a registered redirect URI.
+   - `/auth/dev`: `name` trimmed, 1 to 32 characters.
+9. **Dev login route.** `routes/devAuth.ts` exports `devAuthRoutes(deps)`. Only `local.ts` imports it and adds it with `app.route('/', ...)` after `createApp`. The step 2 test shows that a route added after `createApp` gets the error and 404 handlers. The Phase 2 check greps the Lambda bundle for `auth/dev`.
+10. **Web: login only when it is on.** `AUTH_ON` = `VITE_DISCORD_CLIENT_ID` is set, or a dev build (`import.meta.env.DEV`).
+    - Off (production now): the session does nothing and makes no API call. `UserMenu` renders nothing. So production looks and works as before.
+    - The **Log in with Discord** button shows only when `VITE_DISCORD_CLIENT_ID` is set. The dev login shows only in a dev build. So a tester without a Discord application can still use the dev login.
+11. **API client.** `client.js` keeps the token in module state (`setToken`). `api(path, { method, json })` adds the `Authorization` header when there is a token, sends and parses JSON, and throws `ApiError { status, message }`. A 401 on a request with a token calls the handler that `session.js` sets with `onUnauthorized`. So `client.js` imports nothing from `auth/`, and there is no import cycle. The base URL is `VITE_API_URL` without a trailing `/` (step 3, decision 18).
+12. **Session store.** `session.js` has a state `{ status, user }`, with `status` one of `off`, `loading`, `out`, `in`, `error`, and `subscribe` and `getSnapshot` for `useSyncExternalStore`.
+    - `startSession()` runs once per page load. It keeps its promise at module level, because React StrictMode runs effects twice in dev, and a Discord code works only once.
+    - It first handles a login callback in the query (decision 13). Then, with a token, it calls `GET /me`: `in` with the user, and a new token is stored. A 401 removes the token: `out`. A network error or 5xx keeps the token: `error`. Without a token: `out`.
+    - It resolves to `{ returnHash, error }` for `Root.jsx`.
+    - `login()` saves `{ state, returnHash: location.hash }` in `sessionStorage` and goes to the authorize URL with `prompt=none`.
+    - `devLogin(name)`, `logout()`. Logout removes the token, with no server call (design).
+13. **Callback.** `readCallback(search, saved)` in `oauth.js` is a pure function. It returns `null` (no callback), `{ code, returnHash }`, or `{ error }`.
+    - `error=access_denied` → "Login cancelled."
+    - A `state` that is not the saved one, a missing saved state, or another `error` → "Login failed. Try again."
+    - The session removes the query with `history.replaceState` before the API call, and removes the saved state. So a reload does not post the code again.
+    - `POST /auth/discord` failure → "Login failed. Try again."
+    - `Root.jsx` shows the error text as the lobby `notice`, and opens `returnHash` after a login.
+14. **Avatar.** `avatarUrl(user, size = 64)`. With a hash: `https://cdn.discordapp.com/avatars/<discordId>/<avatar>.png?size=<size>`. Without: `https://cdn.discordapp.com/embed/avatars/<index>.png`, with `index = (BigInt(discordId) >> 22n) % 6n`. A `discordId` that is not a number (dev users) uses the sum of its character codes `% 6`, so two dev users usually look different.
+15. **User menu.** In the lobby header, at the right, next to the title.
+    - `out`: **Log in with Discord** and the line "Your opponent sees your Discord name and avatar." In a dev build also a name field and **Dev login**.
+    - `loading`: nothing, so the header does not jump. The lobby works at once.
+    - `in`: avatar (28 px, round) and name. A click opens a small menu with **Log out**. Escape and a click outside close it.
+    - `error`: "Login not available: the server does not answer." A reload tries again.
+
+## Phase 1: Users, session token, `/me`, dev login
+
+Read: auth doc "Session", "Users", "Local testing". Backend doc "API". `apps/api/src/*`, `apps/api/test/*`. Hono docs for `hono/jwt` (`sign`, `verify`), `c.set` and `Variables`, `@hono/zod-validator`.
+
+Work:
+1. `pnpm --filter api add zod @hono/zod-validator`.
+2. `stores/store.ts`: `UserDoc`, `DiscordProfile`, `UsersStore` (decision 1), `publicUser(doc)`, `newUserId()`. `Store` gets `users`.
+3. `stores/memory.ts`: users in a `Map`, with a second map by `discordId`. No TTL.
+4. `stores/mongo.ts`: the users store, the indexes (decision 2).
+5. `config.ts`: the new `Config` and `configFromEnv` (decision 3). `configFromSsm` comes in Phase 2.
+6. `auth/token.ts`: `signSession(userId, secret, now)`, `verifySession(token, secret)`.
+7. `middleware/user.ts` (decision 7), `middleware/validate.ts` (decision 8).
+8. `routes/me.ts`: `GET /me` with renewal and `touch` (decision 6), `DELETE /me`.
+9. `routes/devAuth.ts` and its use in `local.ts` (decisions 3, 9).
+10. `app.ts`: `Deps` gets `discord` (type from Phase 2, `null` for now). Mount `me`.
+11. `.env.example`: the three new names, each with a comment.
+12. Tests:
+    - `token.test.ts`: round trip. An expired token, another secret, and a token with `alg: none` fail.
+    - `me.test.ts`: no header, a bad token and a deleted user give 401. `GET /me` gives the user and no token when `iat` is new. With `iat` older than 1 day it gives a new token, and `expiresAt` moved. `DELETE /me` gives 204, then `GET /me` gives 401.
+    - `dev-auth.test.ts`: a name gives a token and a user. The same name gives the same id. An empty or a 33-character name gives 400. The token works on `GET /me`.
+    - `users.mongo.test.ts`: `upsertDiscord` twice with one `discordId` keeps one user with the same `_id` and the new name. `get`, `touch`, `delete`. The two indexes exist, the TTL one with `expireAfterSeconds: 0`.
+    - `app.test.ts`, `mongo.mongo.test.ts`: update for the new `Store` and `Config`.
+
+Checks:
+- `pnpm --filter api typecheck`, `pnpm --filter api test`, `pnpm --filter api test:mongo` pass.
+- `pnpm format`, `pnpm lint`: no new errors.
+- `grep -rn "console\.\(log\|error\)" apps/api/src` shows no line that prints a token, a code or a secret.
+
+### Result
+
+(The agent adds it after the work.)
+
+## Phase 2: Discord login and the Lambda
+
+Read: auth doc "Login flow", "Security". Discord OAuth2 docs ("Authorization Code Grant"). `apps/api/src/lambda.ts`, `infra/README.md` ("Secrets").
+
+Work:
+1. `auth/discord.ts` (decisions 4 and 5).
+2. `routes/auth.ts`: `POST /auth/discord`. Exchange the code, read the profile, `upsertDiscord`, sign, answer `{ token, user }`. 503 when `deps.discord` is `null`.
+3. `config.ts`: `configFromSsm(params, env)` (decision 3).
+4. `lambda.ts`: config from `configFromSsm`, `createDiscordClient(config.discord, fetch)`.
+5. `local.ts`: the Discord client when `config.discord` is set.
+6. Tests:
+    - `discord.test.ts`: the form body and the headers of the token request. 400 from Discord → the "rejected" error. 500, a timeout and a network error → the "not available" error. The profile maps to `name` and `avatar`, with `global_name` `null`.
+    - `auth.test.ts`: a new user is created. A second login updates the name and keeps the id. Rejected → 401. Not available → 502. A bad body → 400. No Discord client → 503. The token works on `GET /me`. The log line has no code.
+    - `config.test.ts`: `configFromSsm` with all values, and the error that names a missing parameter.
+
+Checks:
+- `pnpm --filter api typecheck`, `pnpm --filter api test` pass.
+- `pnpm --filter infra test` and `pnpm --filter infra cdk synth` pass (no credentials needed, step 3 Result).
+- `grep -rl "auth/dev" infra/cdk.out` finds nothing. `grep -rl "dev-session-secret" infra/cdk.out` finds nothing.
+- `pnpm format`, `pnpm lint`: no new errors.
+
+### Result
+
+(The agent adds it after the work.)
+
+## Phase 3: Web login
+
+Read: auth doc "Login flow", "Session", "Lobby and room UI" (header only), "Users" (avatar). `apps/web/src/Root.jsx`, `components/Lobby.jsx`, `index.css` (lobby styles), `net/useY.js` (the `useSyncExternalStore` pattern).
+
+Work:
+1. `.gitignore`: `.env.local`, `.env.*.local`. `apps/web/.env.development`: a comment that names `VITE_DISCORD_CLIENT_ID` and `.env.local`.
+2. `api/client.js` (decision 11).
+3. `auth/oauth.js`: `randomState()`, `authorizeUrl({ clientId, redirectUri, state })`, `readCallback(search, saved)` (decision 13).
+4. `auth/avatar.js` (decision 14).
+5. `auth/session.js` (decisions 10, 12, 13), `auth/useUser.js`.
+6. `components/UserMenu.jsx` (decision 15). `Lobby.jsx`: the header gets it. `index.css`: the styles.
+7. `Root.jsx`: calls `startSession()` once. After it resolves: `error` → `setNotice`. `returnHash` → `go(returnHash, true)`.
+8. Tests (`node --test`):
+    - `oauth.test.js`: the authorize URL has `response_type=code`, `scope=identify`, `prompt=none`, `redirect_uri`, `state`. `readCallback`: no query → `null`. Code with the right state → code and `returnHash`. Wrong state → error. `access_denied` → "Login cancelled.". No saved state → error.
+    - `avatar.test.js`: with a hash. Without a hash, for the Discord example id `80351110224678912` → index from the BigInt formula. A dev id gives an index from 0 to 5.
+
+Checks:
+- `pnpm --filter web test`, `pnpm --filter web build` pass.
+- `pnpm format`, `pnpm lint`: no new errors.
+- `git check-ignore apps/web/.env.local` prints the path.
+- `grep -rn "localStorage\|sessionStorage" apps/web/src/auth` shows only `session.js`.
+- A production build without `VITE_DISCORD_CLIENT_ID`: `grep -l "auth/dev\|Dev login" apps/web/dist/assets/*.js` finds nothing. (Vite removes code under `import.meta.env.DEV` from a production build.)
+
+### Result
+
+(The agent adds it after the work.)
+
+## Phase 4: Docs
+
+Work:
+1. `docs/feature-auth.md`:
+   - "Users": `expiresAt` also moves on token renewal (decision 6). "Privacy" → "Retention": the same.
+   - "Local testing": the dev login shows in a dev build also without `VITE_DISCORD_CLIENT_ID` (decision 10). The fixed dev session secret (decision 3).
+   - "Code layout": `apps/web/src/auth/oauth.js`, `apps/api/src/auth/`, `routes/devAuth.ts`.
+   - "Endpoints": the answers of "Names" for the three routes.
+   - Open question 1 (localhost redirect): the answer from the user check.
+   - Status line at the top.
+2. `docs/feature-backend.md`: "Code" (`auth/`, `devAuth.ts`), "Stack" (`zod` version).
+3. `docs/plans/implement-backend.md`: a short **Result** under step 6.
+4. `README.md`: local login: `apps/api/.env`, `apps/web/.env.local`, the dev login.
+5. `infra/README.md`: the Discord values in "Secrets", and the order: `put-secrets` before the deploy (decision 3).
+
+Checks:
+- `pnpm test` at the root passes.
+- `pnpm format`, `pnpm lint`: no new errors.
+
+### Result
+
+(The agent adds it after the work.)
+
+## User
+
+Before Phase 3 (any time):
+1. Discord Developer Portal: **New Application** named `mcptacticus3d`. **OAuth2 → Redirects**: `http://localhost:5173/`. Record if Discord accepts it (auth doc open question 1).
+2. Copy the client id and the client secret:
+   - `apps/api/.env`: `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`.
+   - `apps/web/.env.local`: `VITE_DISCORD_CLIENT_ID`.
+   - `infra/.env`: `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`.
+
+After Phase 2, in this order:
+3. `pnpm --filter infra put-secrets`. It prints `Wrote: mongodb-uri, session-secret, discord-client-id, discord-client-secret`.
+4. `pnpm --filter infra cdk:deploy`.
+5. Checks against the deployed API (`<ApiUrl>` without the trailing `/`):
+   - `curl <ApiUrl>/health` → `db: "ok"`.
+   - `curl -i <ApiUrl>/me` → 401 `{"error":"Not logged in"}`.
+   - `curl -i -X POST <ApiUrl>/auth/discord -H 'content-type: application/json' -d '{"code":"x","redirectUri":"http://localhost:5173/"}'` → 401 `{"error":"Discord login failed"}`. This shows that the Lambda has the Discord values and reaches Discord.
+   - `curl -i -X POST <ApiUrl>/auth/dev -H 'content-type: application/json' -d '{"name":"a"}'` → 404.
+6. Do not set `VITE_DISCORD_CLIENT_ID` in Netlify.
+
+After Phase 3, with `pnpm dev`:
+7. Lobby: **Log in with Discord** → Discord → back in the lobby with avatar and name. The first login shows the consent screen (Risk 1).
+8. Reload: still logged in. **Log out**: the login button shows again. Log in again: no consent screen.
+9. On the Discord page, press **Cancel**: the lobby says "Login cancelled."
+10. A second browser: **Dev login** with the name `bob`. Each browser shows its own user.
+11. Run only the web app (`pnpm --filter web dev`) and reload: "Login not available". Run `pnpm dev` again and reload: logged in.
+12. The Sandbox and offline rooms work as before.
+
+After the Netlify build of the merged code:
+13. Production shows no login button, and DevTools → Network shows no request to the API.
+
+## Done when
+
+- `pnpm test`, `pnpm typecheck`, `pnpm --filter web build` pass. `pnpm lint` has no new errors.
+- The user checks pass.
+- The API with the auth routes is deployed. Production shows no login.
+- The **Result** of each phase is filled in.
+
+## Risks and open questions
+
+1. **`prompt=none` on the first login.** The Discord docs say that `none` skips the consent screen when the player approved the app before. They do not say what happens for a new player. If the first login fails with an error, `authorizeUrl` drops `prompt`, and Discord shows the consent screen each time. User check 7 shows it.
+2. **Localhost redirect.** Auth doc open question 1. If Discord refuses `http://localhost:5173/`, try `http://127.0.0.1:5173/`, and the dev server then runs on that host.
+3. **Two tabs.** A login in one tab does not update another open tab until it reloads. Accepted for now. A `storage` event listener could fix it later.
+4. **Token in `localStorage`.** Accepted in the design ("Why not a cookie").
+5. **Lambda cold start.** The first request after a cold start reads SSM, then calls Discord twice. That must finish within 10 seconds. The 5-second timeout per Discord call keeps one slow call from using all of it. The log `REPORT` line of the user check shows the time.
+6. **Delete account.** `DELETE /me` deletes only the user in this step. Step 7 must extend it for rooms before any room of a deleted user exists. Before the first release, all data is test data.
