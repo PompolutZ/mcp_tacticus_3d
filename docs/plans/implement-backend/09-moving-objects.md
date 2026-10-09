@@ -58,13 +58,13 @@ Left for later:
 | Overlap mark | Outline mode `overlap`, the red of `outOfRange`. It wins over `selected` and `hovered`. A red tint of the figure, picked by look |
 | Drag code | `drag/pointerDrag.js` (`startPointerDrag`, `DRAG_THRESHOLD` 4 px) and `drag/tablePoint.js` (`tablePoint`) |
 | `tools` in the document | Record, depth 1: `tools.<side>.<kind>`. `side` is `blue` or `red`. `kind` is `range`, `move` or `angle` |
-| Tool entry | `{ which, spawn, pose?, turn?, snap?, mode? }`. `which`: the range number (1 to 5), the movement type (`short`, `medium`, `long`), or `true` for `angle`. `spawn`: a random id, new at each spawn. `pose`: `{ x, y, z, yaw }`. `turn`: `{ right, left }`, the bend. `snap`: `{ kind, id, side, across }` or `null`. `mode`: `away` or `toward` |
+| Tool entry | `{ which, spawn, at?, pose?, turn?, snap?, mode? }`. `which`: the range number (1 to 5), the movement type (`short`, `medium`, `long`), or `true` for `angle`. `spawn`: a random id, new at each spawn. `at`: `{ x, z }`, the point of a free spawn (decision 19). `pose`: `{ x, y, z, yaw }`. `turn`: `{ right, left }`, the bend. `snap`: `{ kind, id, side, across }` or `null`. `mode`: `away` or `toward` |
 | Own tool side | The own seat in a multiplayer room. `blue` in a single player room and the Sandbox |
 | Awareness state | `{ owns: [piece key, …] }` |
 | Live packet | JSON: `{ s, p?, c? }`. `s`: a sequence number. `p`: piece key → numbers. A model: `[x, y, z, qx, qy, qz, qw]`. A tool: `[x, y, z, yaw, right, left]`. A crisis token: `[x, z, yaw]`. A loose token, a pile, a tactic card, a marker: `[x, z]`. `c`: `[x, y, z]`, or `null` when the pointer left the table. Only the parts that changed |
 | Packet rounding | Positions to 3 decimals (0.001"). Rotations, yaw and bend to 4 decimals |
 | Times | A packet every 33 ms at most (about 30 per second). The cursor every 100 ms at most. Follow time 0.05 s. Tool rest 0.3 s. A model claim lasts at least 0.2 s. Traffic read every 60 s, logged every 10 min |
-| Footprint slots | `MAX_FOOTPRINTS` 6 → 10 |
+| Footprint slots | `MAX_FOOTPRINTS` 6 → 7 (Phase 2b) → 12 (Phase 3) |
 | Flags | `?drop=<percent>` and `?delay=<ms>`, dev builds only, on the receiving browser |
 
 Ownership (`net/ownership.js`), the same API with and without a connection. `key` is a piece key:
@@ -106,7 +106,8 @@ apps/web/src/
                                 the drag code, claims, the other player's live pose
   components/RemoteCursor.jsx   the other player's cursor
   components/SelectionOutlines.jsx  + overlap mode
-  components/footprintProjection.js  MAX_FOOTPRINTS 10
+  components/footprintProjection.js  MAX_FOOTPRINTS 12, setCircle, the footprint colors
+  components/DragFootprint.jsx  the footprint of a dragged piece (decision 18)
 ```
 
 ## Decisions that fill gaps in the design
@@ -152,15 +153,15 @@ apps/web/src/
    - When the claim ends, the piece shows its place in the document (for a model, see decision 8).
 10. **Tools in the document, per side.**
     - The own side's entries replace `activeRange`, `activeMove`, `angleOn` and `toolSpawns` in `App.jsx`. Only the owner writes a side, so the two players never write the same entry. `angleSpawn` stays React state: only the owner's browser uses it, once, at the spawn.
-    - A spawn (a key over a piece, a toolbar button, key 6) writes an entry with a new `spawn` and no `pose`. The tool key has `which` and `spawn`, so the tool mounts again in both browsers.
-    - At mount, a tool with a `pose` starts there, with its `turn`, `snap` and `mode`. So a reload keeps the tool. Without a `pose`, the spawn rules of today apply.
+    - A spawn (a key, a toolbar button) writes an entry with a new `spawn` and no `pose`. A free spawn also writes `at` (decision 19). The tool key has `which` and `spawn`, so the tool mounts again in both browsers.
+    - At mount, a tool with a `pose` starts there, with its `turn`, `snap` and `mode`. So a reload keeps the tool. Without a `pose`, the spawn rules of decision 19 apply, with `at` for a free spawn.
     - The owner writes `pose`, `turn`, `snap` and `mode` when none of them changed for 0.3 s and they differ from the entry. The values are rounded the same way as `poseOf`.
     - `snap` is stored as `{ kind, id, side, across }`. At mount it is found in the models. A piece that is gone gives a free tool.
     - Not stored: Place, Throw, the Bend button and the selection. They are off after a reload.
     - Escape and key 0 delete the own entries.
     - No new `SCHEMA`: an old document has no tools, which is a valid state.
-11. **The other player's tools.** `OtherTool` draws an entry that has a `pose`, in the other side's color, with its footprint. It has no buttons, no hover, no outline and no range mark. The pointer does not hit it, so a click goes to the piece below. Its footprint has no target, so it shows the plain footprint color. It is a kinematic sensor body, the same as an own tool. A table can now have 3 own tools, 3 other tools, the deploy tool and zone arcs, so `MAX_FOOTPRINTS` goes from 6 to 10.
-12. **Red's tools spawn on Red's side.** A free spawn of a Red tool is the Blue spawn place turned 180° around the mat center, with yaw π. So Red's tools start in front of the Red camera, and their buttons read from Red's side. A spawn snapped to a piece keeps the rules of today.
+11. **The other player's tools.** `OtherTool` draws an entry that has a `pose`, in the other side's color, with its footprint. It has no buttons, no hover, no outline and no range mark. The pointer does not hit it, so a click goes to the piece below. Its footprint has no target, so it shows the plain footprint color. It is a kinematic sensor body, the same as an own tool. A table can now have 3 own tools, 3 other tools, the deploy tool, zone arcs, the own drag and the other player's drag (decision 18), so `MAX_FOOTPRINTS` goes from 7 to 12.
+12. **Red's tools face Red.** A free spawn (decision 19) of a Red tool has the Blue yaw + π. So the buttons of Red's tools read from Red's side. A spawn snapped to a piece keeps the rules of today.
 13. **Two channels, both before the offer.**
     - The persistence channel (`sync`, the name of step 8) carries the Yjs document. The host saves the document on the server (step 8, decision 11).
     - It also carries Yjs awareness, with the claims. Claims are not saved. They still go on this channel, because a lost release would lock a piece, and the release must come after the rest pose or the drop. Only a reliable, ordered channel does both.
@@ -177,6 +178,19 @@ apps/web/src/
     - `net/traffic.js` reads `bytesSent` and `bytesReceived` of the selected candidate pair from a `getStats()` report. Chrome and Safari give the pair through the transport stats (`selectedCandidatePairId`). Firefox marks it with `selected`. It also says if the pair is relayed (a `relay` candidate on either end).
     - `peer.js` gets `traffic()`, for the open connection.
     - `Table.jsx` reads it every 60 s while connected. It logs one `console.info` line every 10 min, when a connection ends, and on **← Lobby**: sent, received, minutes, direct or relayed, for the connection and for all connections of the open table. The last two use the last read value, because a closing page cannot wait for `getStats()`.
+18. **Drag footprints.** The user asked for this on 2026-10-10, after Phase 2. A dragged piece hangs above the table: a model 0.3" (`DRAG_HOVER`), a token or a tactic card 1" (`TOKEN_DRAG_LIFT`). Without a mark on the table, the player cannot see where it will land.
+    - During a drag, the piece shows a footprint on the table or terrain under it. It goes away at the drop or the cancel.
+    - Pieces: a model (its base circle), a crisis token, every token drag of `TokenDragPreview` (a character token on the table, a pile with Shift, a token from a Give source, a supply pile, a pile or the Library), and a tactic card (its rectangle). A score marker does not lift during a drag, so it gets none.
+    - The look is the footprint of a selected tool: `FOOTPRINT_COLOR` fill at 0.35, white line. A dragged model that overlaps another model (`dragOverlap`, Phase 1b) shows the red of `FOOTPRINT_APART`. So the player sees that a drop there goes back.
+    - A circle is the rect shape of `footprintProjection.js` with half length 0: only its round hinge, with the radius as the half width. A card is the rect shape with half length = half the card length. So the shader does not change.
+    - A drag takes one footprint slot. From Phase 5, a piece that the other player drags shows the same footprint, so it takes one more slot.
+
+19. **Tools spawn at the pointer.** The user asked for this on 2026-10-10. Today a free tool spawns at a fixed place: a range tool at z 6, a movement tool at z −6, the Toward / Away tool at the mat center.
+    - A tool key (1 to 5, the movement keys, 6) with the pointer over a character or a token: as today. The piece is selected, and the tool spawns snapped to it.
+    - A tool key with the pointer over the table or terrain, not over a piece: the tool spawns free, with its center at the table or terrain point under the pointer. When the tool is already out, it spawns again there. A selected piece does not change this: the tool does not snap to it. So a key over the table no longer removes the tool. Escape, key 0 and the toolbar button remove it.
+    - A toolbar button, and a tool key with the pointer off the table: as today, they turn the tool on or off. A new tool snaps to the selected piece. Without a selected piece, it spawns free at the table point in the middle of the screen, not at the fixed place.
+    - The yaw of a free tool is the yaw of today. Phase 3 turns it by π for Red (decision 12).
+    - From Phase 3, a free spawn stores its point in the entry (`at`), so the other browser and a reload get it.
 
 ## Phase 1: Models pass through models
 
@@ -272,7 +286,7 @@ User, after this phase: check 4.
 
 ### Result
 
-Done. Not committed.
+Done.
 
 - New: `drag/pointerDrag.js` (`startPointerDrag`, `DRAG_THRESHOLD`), `drag/tablePoint.js` (`tablePoint`), `drag/pointerDrag.test.js` (12 cases).
 - `startPointerDrag(event, options)` returns `{ cancel }`, or `null` when nothing started. It calls `stopPropagation`, turns the controls off, releases the pointer capture, and listens on the window for this pointer id. At the end it turns the controls on and removes the listeners.
@@ -300,18 +314,63 @@ Done. Not committed.
   - Model drag: the table point is read from the last pointer pixels each frame (before: the NDC stored at the move). Same value unless the canvas moves during a drag.
 
 
+## Phase 2b: Drag footprints
+
+Read: decision 18. `components/footprintProjection.js`, `components/RulerTool.jsx` (`ToolFootprint`, the footprint colors), `components/CharacterModel.jsx` (the drag, `dragOverlap`), `components/CrisisToken.jsx` (the drag, the Zone Arc slot), `components/TokenDragPreview.jsx`, `components/TacticCard.jsx` (the drag), `components/Scene.jsx` (where `TokenDragPreview` is drawn).
+
+Work:
+1. `footprintProjection.js`: `MAX_FOOTPRINTS` 6 → 7. A slot gets `setCircle(x, z, radius, fill, opacity, line)`: the rect shape with half length 0. The shader does not change.
+2. The footprint colors move from `RulerTool.jsx` to `footprintProjection.js` as exports, so every piece uses the same values.
+3. `components/DragFootprint.jsx`: a component that takes a slot on mount and gives it back on unmount. Each frame it reads the shape from a function prop (`{ x, z, radius }` for a circle, or `{ x, z, yaw, halfLength, halfWidth }` for a card) and an `apart` flag, and writes the slot. A null shape hides it (the pointer is off the table).
+4. The pieces mount it only during their drag:
+   - `CharacterModel.jsx`: the body XZ and the base radius. `apart` while `dragOverlap`.
+   - `CrisisToken.jsx`: the drag pose and the token radius. Not during a turn with the handle, because the token does not lift then.
+   - `TokenDragPreview.jsx`: the preview point and the token radius. Hidden when the point is null.
+   - `TacticCard.jsx`: the drag pose, the card size and its yaw.
+5. No test: the parts are three.js and frame code. The shape math is the rect shape that the tools already use.
+
+Checks:
+- `pnpm --filter web test`, `pnpm --filter web build` pass.
+- `pnpm format`, `pnpm lint`: no new errors.
+
+User, after this phase, in a single player room: check 4b.
+
+### Result
+
+## Phase 2c: Tools spawn at the pointer
+
+Read: decision 19. `App.jsx` (`handleRangeClick`, `handleMoveClick`, `handleAngleClick`, `handleAngleKey`, `handleToolKey`, `toolSpawns`, `angleSpawn`, `hoveredRef`, `characterAtRef`). `components/Scene.jsx` (the tools, `toolTarget`, `toolModel`, `characterAtRef`). `components/RulerTool.jsx` (`Tool`: `position`, `spawnTarget`, the spawn effect). `drag/tablePoint.js`. `README.md` ("Tools").
+
+Work:
+1. `Scene.jsx`: a ref for App, the same pattern as `characterAtRef`. It returns the table or terrain point under the last pointer position over the canvas, or `null` when the pointer is not over the canvas or not over the table (`tablePoint` with `null` off the table). A second function gives the table point in the middle of the canvas.
+2. `App.jsx`, `handleToolKey` and `handleAngleKey`:
+   - A piece under the pointer: as today.
+   - Else a point under the pointer: the tool spawns free at that point. It turns the tool on, and a new spawn mounts it again when it is already out.
+   - Else: as today (the toolbar rule).
+3. `App.jsx`: the spawn state gets the free point of each tool kind: `{ x, z }` or `null`. A spawn at the pointer sets it. A toolbar spawn sets it to the middle of the screen. The fixed places in `Scene.jsx` (z 6, z −6, the center) go away.
+4. `RulerTool.jsx`, `Tool`: a `spawnAt` prop, `{ x, z }` or `null`. With `spawnAt`, the tool does not snap at spawn, and its center starts at that point, `hoverHeight` above the ground under its footprint. The yaw stays as today. Without `spawnAt`, the rules of today (snap to `spawnTarget`).
+5. `README.md` ("Tools"): the spawn rules of decision 19.
+
+Checks:
+- `pnpm --filter web test`, `pnpm --filter web build` pass.
+- `pnpm format`, `pnpm lint`: no new errors.
+
+User, after this phase, in a single player room: check 4c.
+
+### Result
+
 ## Phase 3: Tools in the document
 
 Read: decisions 10 to 12. `App.jsx` (tool state, `handleRangeClick`, `handleMoveClick`, `handleAngleClick`, `handleAngleKey`, `handleToolKey`, `handleEscape`, `clearTools`, the Scene and Toolbar props). `components/Scene.jsx` (the tools, `PLAYER_TEAM`, `turnProps`). `components/RulerTool.jsx` (`Tool`, its spawn effect, `snapTo`, `turnAroundCenter`, `handleMirror`, `ToolFootprint`). `components/Toolbar.jsx` (the tool buttons). `components/footprintProjection.js`. `net/doc.js`, `net/collections.js`, `net/useY.js`, `rooms/table.js`.
 
 Work:
 1. `net/doc.js`: `tools`, a record of depth 1. `fillTable` writes `state.tools ?? {}`. `rooms/table.js`: `startTable` has `tools: {}`.
-2. `components/storedTool.js`: the rounded stored fields of a tool, their equality, and the free spawn place and yaw of a tool kind for a side (decision 12).
-3. `App.jsx`: `useYRecord(table.tools)`. The own side's entries give the toolbar state and the Scene props. The handlers write the own entries. A respawn writes a new `spawn`. Escape and key 0 delete the own entries. `toolSpawns`, `activeRange`, `activeMove` and `angleOn` go away.
+2. `components/storedTool.js`: the rounded stored fields of a tool, their equality, and the free spawn yaw of a tool kind for a side (decision 12).
+3. `App.jsx`: `useYRecord(table.tools)`. The own side's entries give the toolbar state and the Scene props. The handlers write the own entries. A respawn writes a new `spawn`. A free spawn writes `at` (decision 19). Escape and key 0 delete the own entries. `toolSpawns`, `activeRange`, `activeMove` and `angleOn` go away.
 4. `Scene.jsx`: the own tools from the own entries, keyed by `which` and `spawn`, in the own side's color, with the entry and a write function. `OtherTool` for each entry of the other side that has a `pose`. `PLAYER_TEAM` stays only for the dice (step 10), with a comment.
 5. `RulerTool.jsx`: `Tool` starts from a stored entry (decision 10) and writes on rest. `OtherTool` (decision 11).
-6. `footprintProjection.js`: `MAX_FOOTPRINTS` 10.
-7. Tests: `net/doc.test.js` (a new table has `tools`, an entry of one side does not change the other side). `components/storedTool.test.js` (rounding, equality, Red spawn is the Blue one turned).
+6. `footprintProjection.js`: `MAX_FOOTPRINTS` 12.
+7. Tests: `net/doc.test.js` (a new table has `tools`, an entry of one side does not change the other side). `components/storedTool.test.js` (rounding, equality, the Red yaw is the Blue yaw + π).
 
 Checks:
 - `pnpm --filter web test`, `pnpm --filter web build` pass.
@@ -360,7 +419,7 @@ Work:
 2. `net/live.js`: `createLiveHub({ timers, random, drop, delay })`: `attach(channel)`, `detach(channel)`, `send(packet)`, `subscribe(fn)`. It sets `s`, rounds the numbers, sends JSON only on an open channel, and ignores a bad packet. On the receiving side it applies `drop` and `delay`. A pure `newer(seqs, key, s)` keeps the last sequence number per key.
 3. `net/debugFlags.js`: `dropFlag()` and `delayFlag()`.
 4. `Table.jsx`: one hub per table. `onChannels` attaches `live`, and its close detaches it. The hub goes to App and Scene.
-5. `Scene.jsx`: `LiveSync`. It sends the own claimed models that moved, the own tools that moved or bent, and the cursor (decision 15). It keeps the latest received pose per piece key and of the cursor. `CharacterModel` in the remote mode and `OtherTool` follow them (decision 14). `components/RemoteCursor.jsx`.
+5. `Scene.jsx`: `LiveSync`. It sends the own claimed models that moved, the own tools that moved or bent, and the cursor (decision 15). It keeps the latest received pose per piece key and of the cursor. `CharacterModel` in the remote mode and `OtherTool` follow them (decision 14). A model that follows live poses shows its drag footprint (decision 18). `components/RemoteCursor.jsx`.
 6. Tests: `live.test.js` (sequence per key, rounding, no send on a closed channel, a bad packet, `drop`, `delay` with `mock.timers`, attach and detach). `peer.test.js`: both channels in each attempt, `onChannels` once per open.
 
 Checks:
@@ -378,7 +437,7 @@ Read: decisions 2, 3, 9 and 14. `drag/pointerDrag.js`, `components/Scene.jsx` (`
 Work:
 1. A dragged piece without a body gives its live pose to `LiveSync` through one function, in the form of the live packet ("Names"). The crisis token also gives its yaw during a turn with its handle. A loose token and a pile give the point of `TokenDragPreview`.
 2. `LiveSync` sends these poses with the others.
-3. `CrisisToken.jsx`, `TacticCard.jsx`, the markers of `ScoreBoard.jsx`, `LooseToken.jsx` and `TokenPile.jsx`: while the other player claims the piece, it follows the live pose (decision 14). When the claim ends, it shows its place in the document.
+3. `CrisisToken.jsx`, `TacticCard.jsx`, the markers of `ScoreBoard.jsx`, `LooseToken.jsx` and `TokenPile.jsx`: while the other player claims the piece, it follows the live pose (decision 14) and shows its drag footprint (decision 18). When the claim ends, it shows its place in the document.
 4. Tests: the pure part that turns a dragged pose into packet numbers and back, for each kind.
 
 Checks:
@@ -427,6 +486,15 @@ After Phase 1b, in a single player room:
 
 After Phase 2, in a single player room:
 4. Every drag works as before: a model, with the deploy line on and off. A tool: a move, a turn around a base, a bend, a snap to a model. A crisis token, and its turn handle. A token dropped on a character. A tactic card into a tray slot. A score marker onto a spot. A token from a Give source, from a supply pile and from the Library. A pile: a take, and a move with Shift. Escape during a token drag. A click still selects a piece or opens a card.
+
+After Phase 2b, in a single player room:
+- 4b. Drag a model, a crisis token, a character token on the table, a pile with Shift, a token from a Give source, from a supply pile and from the Library, and a tactic card. Each shows a footprint on the table or terrain under it during the drag. The footprint goes away at the drop, and after Escape. Over a terrain roof, the footprint is on the roof. A model dragged into another model has a red footprint. A turn with the handle of a crisis token shows no footprint.
+
+After Phase 2c, in a single player room:
+- 4c. Pointer over an empty spot of the table, press 3: range 3 appears with its center under the pointer. Move the pointer, press 3 again: it appears there. Over a terrain roof, it hangs above the roof. The same with a movement key and with key 6.
+- 4d. Pointer over a model, press 3: the model is selected and the tool snaps to it, as before. The same over a token.
+- 4e. Select a model, put the pointer over the empty table, press 3: the tool spawns at the pointer, not at the model.
+- 4f. Toolbar range 3 with a model selected: it snaps to the model. With nothing selected: it appears in the middle of the screen. The toolbar button again: it goes away.
 
 After Phase 3, with `pnpm --filter api turn:up` and `pnpm dev`. Checks 6 and 7 in one browser pair. Alice is on Blue, Bob on Red.
 5. Single player room: put out range 3, the long movement tool bent, and the Toward / Away tool snapped to a model. **← Lobby**, then open the room. The tools are where they were, with the bend. A drag on the snapped tool still turns it around the base.
