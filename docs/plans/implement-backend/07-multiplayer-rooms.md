@@ -367,7 +367,17 @@ Checks:
 
 ### Result
 
-Not started.
+Added `rooms/serverTable.js` (`hasLocalChanges`, `watchServerTable`), `rooms/roomPage.js` (`roomPage`, `seatOf`, `multiplayerRoom`), `components/JoinRoom.jsx` and its styles, `components/LobbyHeader.jsx` and `components/RosterField.jsx` (both moved out of `Lobby.jsx` and `NewRoomDialog.jsx`, so the join page shares them). `openTableDoc(name, game)` takes the database name. `Root.jsx` finds the page of a room link and fetches `GET /rooms/{code}`. `Table.jsx` opens a multiplayer room and runs the writer. `App.jsx` shows `serverWarning`. `Toolbar.jsx` has no Roster group in a multiplayer room, and **Copy link** while the guest seat is free.
+
+Tests: `pnpm --filter web test` 62 pass (37 before; new: `roomPage` 10, `serverTable` 15). `pnpm --filter web build` passes. Lint: 44 warnings before and after, none new. The `localStorage` grep shows only `rooms/store.js`.
+
+Notes:
+- `hasLocalChanges` rebuilds both docs with `gc: false`. A delete-only change shows in the test.
+- `roomPage` also takes `code`, for the notice texts. `room` is `undefined` (not asked), `{ notFound: true }`, `{ failed: true }`, or the API room. It returns `single`, `wait`, `fetch`, `multiplayer`, `join` or `lobby` with a notice.
+- `watchServerTable` has an option `changed` (the first `flush()` writes it) and `delay`. A `flush()` during a write is queued and writes when that write ends. `stop()` drops it, so the change stays in IndexedDB and `hasLocalChanges` finds it at the next open.
+- `Table.jsx` does the 403/404 cleanup and the writer 404 itself (it has the open document, which must close before the database is deleted). `Root` only shows the notice: `onExit(notice)`.
+- UI choices: while the room link loads, `LoadingOverlay`. The server warning stays closed for the same text and shows again for a new one. The join page shows "Deleted player" for a host that is gone. The host roster chip reads "Blue roster" or "Red roster".
+
 
 ## Phase 5: The guest's roster, no game file
 

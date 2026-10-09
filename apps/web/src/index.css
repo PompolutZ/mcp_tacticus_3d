@@ -1728,3 +1728,53 @@ body {
   border-radius: 8px;
   z-index: 10;
 }
+
+/* The join page (JoinRoom.jsx): the map card next to the room, the roster field and Join */
+.join-room {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 36px;
+}
+
+.join-room-card {
+  width: 200px;
+  aspect-ratio: 4 / 7;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.join-room-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(420px, 100%);
+}
+
+.join-room-title {
+  margin: 0;
+  font-size: 20px;
+}
+
+.join-room-map {
+  font-weight: 600;
+}
+
+.join-room-host {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.join-room-note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.join-room-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: var(--muted);
+}

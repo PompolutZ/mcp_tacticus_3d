@@ -8,7 +8,7 @@ import { deleteDoc, deleteRoom, listRooms, multiplayerDocName, ownsRoom } from '
 import * as server from '../rooms/serverStore.js'
 import { deleteStaleDocs } from '../rooms/localDocs.js'
 import { roomList } from '../rooms/roomList.js'
-import { UserMenu } from './UserMenu.jsx'
+import { LobbyHeader } from './LobbyHeader.jsx'
 import { NewRoomDialog } from './NewRoomDialog.jsx'
 import { RoomRosterPopup } from './RoomRosterPopup.jsx'
 import { CopyLinkButton } from './CopyLinkButton.jsx'
@@ -114,13 +114,7 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
 
   return (
     <div className="lobby">
-      <header className="lobby-header">
-        <div>
-          <h1 className="lobby-title">MCP Assist 3D</h1>
-          <p className="lobby-subtitle">A game table for Marvel Crisis Protocol</p>
-        </div>
-        <UserMenu />
-      </header>
+      <LobbyHeader />
       {notice && (
         <div className="lobby-notice" role="alert">
           {notice}

@@ -3,7 +3,7 @@
 
 import * as Y from 'yjs'
 import { IndexeddbPersistence, clearDocument } from 'y-indexeddb'
-import { roomDocName, saveRoomRecord } from './store.js'
+import { saveRoomRecord } from './store.js'
 
 // IndexedDB loads a table in far less time. A database that cannot open never answers, so this ends the wait.
 const LOAD_TIMEOUT = 5000
@@ -19,12 +19,12 @@ function newDoc(game) {
 
 const wait = (ms) => new Promise((resolve) => setTimeout(() => resolve(false), ms))
 
-// Opens the document of a table. roomId: the room, or null for the Sandbox. game: the bytes of a game file that
+// Opens the document of a table. name: the IndexedDB database name (roomDocName, multiplayerDocName in
+// rooms/store.js), or null for the Sandbox. game: the bytes of a game file that
 // replaces the table (checked by readGame in net/doc.js), or null. Resolves to { doc, storageFailed }.
 // storageFailed: the room could not use IndexedDB, so its table is in memory only.
-export async function openTableDoc(roomId, game) {
-  if (!roomId) return { doc: newDoc(game), storageFailed: false }
-  const name = roomDocName(roomId)
+export async function openTableDoc(name, game) {
+  if (!name) return { doc: newDoc(game), storageFailed: false }
   try {
     // A Yjs update adds to a document and cannot replace it, so a loaded game starts a new database
     if (game) await clearDocument(name)

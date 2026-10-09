@@ -211,9 +211,17 @@ function canvasEvents(store) {
 // state below comes from it, and each setter writes it (net/useY.js). A room stores the document in
 // IndexedDB, the Sandbox keeps it in memory. room: the room record (rooms/store.js), or null for the
 // Sandbox. A room has a fixed map. storageFailed: the room could not use IndexedDB, so it is not saved.
+// serverWarning: the text of the warning when a multiplayer room is no longer saved on the server, or null.
 // onExit(): opens the lobby. onLoadGame(bytes): replaces the table with a game file (Table.jsx). See
 // docs/feature-rooms.md and docs/plans/implement-backend/05-yjs-state.md.
-export default function App({ table, room = null, storageFailed = false, onExit, onLoadGame }) {
+export default function App({
+  table,
+  room = null,
+  storageFailed = false,
+  serverWarning = null,
+  onExit,
+  onLoadGame,
+}) {
   const [activeRange, setActiveRange] = useState(null)
   const [activeMove, setActiveMove] = useState(null)
   // The Toward / Away tool is on the table, and where it spawns: { target, aim }, the piece it snaps to
@@ -345,6 +353,8 @@ export default function App({ table, room = null, storageFailed = false, onExit,
   const liftPieceRef = useRef(null)
   // The room could not use IndexedDB (storageFailed), and the player has not closed the warning yet
   const [storageWarning, setStorageWarning] = useState(storageFailed)
+  // The server warning text that the player closed. A new text shows again.
+  const [closedServerWarning, setClosedServerWarning] = useState(null)
   // The files to load before the table shows: the map and the models (rooms/preload.js). Read once.
   const [preloadFiles] = useState(() => tableFiles({ mapId, terrain, characters, rosters }))
   // The scene and the preloaded files are in, so the loading screen hides (Preload.jsx, Ready)
@@ -1468,6 +1478,8 @@ export default function App({ table, room = null, storageFailed = false, onExit,
       <div className="hud-top">
         <Toolbar
           roomCode={room?.id ?? null}
+          multiplayer={Boolean(room?.multiplayer)}
+          guestSeatFree={Boolean(room?.multiplayer && (!room.players.blue || !room.players.red))}
           onLobby={handleLobby}
           onSaveGame={handleSaveGame}
           onLoadGame={handleLoadGame}
@@ -1544,6 +1556,18 @@ export default function App({ table, room = null, storageFailed = false, onExit,
               the page closes.
             </span>
             <button type="button" className="chip" onClick={() => setStorageWarning(false)}>
+              Close
+            </button>
+          </div>
+        )}
+        {serverWarning && serverWarning !== closedServerWarning && (
+          <div className="hud-warning" role="alert">
+            <span>{serverWarning}</span>
+            <button
+              type="button"
+              className="chip"
+              onClick={() => setClosedServerWarning(serverWarning)}
+            >
               Close
             </button>
           </div>

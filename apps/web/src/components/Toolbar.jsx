@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { MAPS } from '../terrain/maps.js'
 import { cardsOfType } from '../crisis/cards.js'
+import { CopyLinkButton } from './CopyLinkButton.jsx'
 
 const RANGES = [1, 2, 3, 4, 5]
 const MOVES = [
@@ -20,10 +21,15 @@ const CRISIS_TYPES = [
 // roomCode: the code of the room, or null in the Sandbox. A room has a fixed map and the Blue roster of
 // the room, so the toolbar has no map picker and only the Red roster field there. The Red field loads,
 // replaces or removes the Red roster of the room (docs/feature-rooms.md).
+// multiplayer: the room is a multiplayer room, which has no Roster group (the rosters are fixed, plan 07,
+// decisions 10 and 13). guestSeatFree: the guest seat was free when the room opened, so Copy link shows next
+// to the room code (decision 23).
 // onLobby(): the ← Lobby button. onSaveGame(): the Save game button. onLoadGame(file): the player chose a file
 // with Load game.
 export function Toolbar({
   roomCode,
+  multiplayer = false,
+  guestSeatFree = false,
   onLobby,
   onSaveGame,
   onLoadGame,
@@ -68,6 +74,7 @@ export function Toolbar({
         >
           {roomCode ?? 'Sandbox'}
         </span>
+        {multiplayer && guestSeatFree && <CopyLinkButton code={roomCode} />}
         <button
           type="button"
           className="chip"
@@ -193,35 +200,37 @@ export function Toolbar({
           </select>
         ))}
       </div>
-      <div className="group">
-        <span className="group-label">Roster</span>
-        {rosterTeams.map(({ team, label }) => (
-          <span key={team} className="roster-field">
-            <input
-              type="text"
-              className={`chip chip--player-${team} chip--text`}
-              placeholder="MCT code"
-              title={`${label} roster: paste an MCT code and press Enter`}
-              value={rosterText[team]}
-              onChange={(e) => setRosterText((prev) => ({ ...prev, [team]: e.target.value }))}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') onRosterLoad(team, rosterText[team])
-              }}
-            />
-            <button
-              type="button"
-              className="chip"
-              title={`Remove the ${label} roster from the table`}
-              onClick={() => {
-                setRosterText((prev) => ({ ...prev, [team]: '' }))
-                onRosterRemove(team)
-              }}
-            >
-              ×
-            </button>
-          </span>
-        ))}
-      </div>
+      {!multiplayer && (
+        <div className="group">
+          <span className="group-label">Roster</span>
+          {rosterTeams.map(({ team, label }) => (
+            <span key={team} className="roster-field">
+              <input
+                type="text"
+                className={`chip chip--player-${team} chip--text`}
+                placeholder="MCT code"
+                title={`${label} roster: paste an MCT code and press Enter`}
+                value={rosterText[team]}
+                onChange={(e) => setRosterText((prev) => ({ ...prev, [team]: e.target.value }))}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') onRosterLoad(team, rosterText[team])
+                }}
+              />
+              <button
+                type="button"
+                className="chip"
+                title={`Remove the ${label} roster from the table`}
+                onClick={() => {
+                  setRosterText((prev) => ({ ...prev, [team]: '' }))
+                  onRosterRemove(team)
+                }}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
       <div className="group">
         <span className="group-label">Deploy</span>
         <button
