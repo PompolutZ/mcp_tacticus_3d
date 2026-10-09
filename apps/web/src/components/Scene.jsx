@@ -29,6 +29,8 @@ import CrisisToken from './CrisisToken.jsx'
 import LooseToken from './LooseToken.jsx'
 import TokenDragPreview from './TokenDragPreview.jsx'
 import ToolPoint from './ToolPoint.jsx'
+import LiveSync from './LiveSync.jsx'
+import RemoteCursor from './RemoteCursor.jsx'
 import TokenFace from './TokenFace.jsx'
 import SupplyPile, { SupplyToken } from './SupplyPile.jsx'
 import TokenPile, { PileStack } from './TokenPile.jsx'
@@ -244,7 +246,7 @@ const OVERLAP_INTERVAL = 100
 // ownership: the claims on pieces (net/ownership.js). Pieces without a body pass it to the drag code. Scene
 // claims a model before R, Q / E, Throw, Place and a drag, releases it when the body rests, and writes the rest
 // pose (plan 09, decisions 5 to 9).
-// live: the live hub of a multiplayer room (net/live.js), or null. Not used yet.
+// live: the live hub of a multiplayer room (net/live.js), or null. With it, Scene mounts LiveSync and the cursor.
 // poses: the live rest poses of the models, model id → pose (the table document). A pose that the other browser
 // wrote moves the body (decision 8). startPose is the pose at mount.
 export default function Scene({
@@ -319,7 +321,7 @@ export default function Scene({
   startPose,
   onModelRest,
   ownership = null,
-  live: _live = null,
+  live = null,
 }) {
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
   const { camera, gl, pointer } = useThree()
@@ -353,6 +355,10 @@ export default function Scene({
   const draggedPiece = useRef(null)
   // Tool ('move', 'range' or 'angle') → its turn(angle), see turnAroundCenter in RulerTool.jsx
   const toolTurns = useRef({})
+  // The own tools' live poses for LiveSync: kind → a getter that Tool registers (like toolTurns)
+  const toolLives = useRef({})
+  // What LiveSync received: { pose(key), tool(kind), cursor() }, or null (LiveSync.jsx)
+  const received = useRef(null)
   // Turns that are not done yet: piece key → { piece, left }, left in radians. See the useFrame below.
   const turnsLeft = useRef(new Map())
   // Function of the angle tool that returns { target, openYaw } while it is snapped, else null. See AngleRuler.
@@ -677,6 +683,9 @@ export default function Scene({
       turnRef: (turn) => {
         toolTurns.current[tool] = turn
       },
+      liveRef: (get) => {
+        toolLives.current[tool] = get
+      },
     }
   }
 
@@ -913,6 +922,22 @@ export default function Scene({
 
       <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP} debug={showColliders}>
         <ToolPoint pointRef={toolPointRef} />
+        {live && ownership && (
+          <>
+            <LiveSync
+              live={live}
+              ownership={ownership}
+              getBody={(id) => charBodies.current.get(id)}
+              toolLives={toolLives}
+              liveRef={received}
+            />
+            <RemoteCursor
+              liveRef={received}
+              ownership={ownership}
+              side={ownSide === 'red' ? 'blue' : 'red'}
+            />
+          </>
+        )}
         {/* Table surface — fixed collider so models land on it */}
         <RigidBody type="fixed" colliders={false}>
           {/* Collider much thicker than the visual so fast bodies can't tunnel through; top stays at y=0 */}
@@ -1194,6 +1219,7 @@ export default function Scene({
             claimKey: modelKey(model.id),
             ownership: claims,
             remote: otherOwned.has(modelKey(model.id)),
+            getLivePose: (key) => received.current?.pose(key) ?? null,
             onRest: () => {
               // One writer for each rest pose (decision 6)
               if (ownership && !ownership.writes(modelKey(model.id))) return
@@ -1324,7 +1350,12 @@ export default function Scene({
           ([kind, entry]) =>
             entry.pose && (
               <Suspense key={toolKey(kind, entry)} fallback={null}>
-                <OtherTool kind={kind} entry={entry} team={otherSide} />
+                <OtherTool
+                  kind={kind}
+                  entry={entry}
+                  team={otherSide}
+                  getLive={() => received.current?.tool(kind) ?? null}
+                />
               </Suspense>
             ),
         )}

@@ -26,7 +26,7 @@ const round = (value, decimals) => {
 }
 
 // The numbers of a piece key, rounded by its kind, or null for an unknown kind or a wrong count
-function roundPiece(key, numbers) {
+export function roundPiece(key, numbers) {
   const layout = LAYOUTS[key.slice(0, key.indexOf(':'))]
   if (!layout || !Array.isArray(numbers) || numbers.length !== layout.total) return null
   return numbers.map((v, i) => round(v, i < layout.positions ? 3 : 4))

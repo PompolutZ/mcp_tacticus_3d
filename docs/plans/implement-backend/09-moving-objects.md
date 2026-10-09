@@ -625,7 +625,7 @@ User, after this phase: checks 15 to 20.
 
 #### Part 5a: the live channel and the hub
 
-Done. Work items 1 to 4 and the tests of item 6. Part 5b (`LiveSync`, the follow, `RemoteCursor`) is not done.
+Done. Work items 1 to 4 and the tests of item 6. Part 5b (`LiveSync`, the follow, `RemoteCursor`) is below.
 
 What changed:
 - `net/peer.js`: each attempt creates `sync` (id 0) and `live` (id 1, negotiated, `ordered: false`, `maxRetransmits: 0`) before the offer. `onChannel(channel)` is now `onChannels({ sync, live })`. It is called once per open, when `sync` opens. `live` may open a moment later.
@@ -649,6 +649,44 @@ Checks:
 - `pnpm --filter web test`: 201 pass, 0 fail.
 - `pnpm --filter web build`: passes.
 - `pnpm format` done. `pnpm lint`: 37 warnings, 0 errors.
+- Not run in a browser, by the rules.
+
+#### Part 5b: LiveSync, the follow and the cursor
+
+Done. Work items 1 to 6 of the plan for Phase 5, the last part of Phase 5. The tests of item 6 for `livePose.js` are in. Not tried in two browsers.
+
+What changed:
+- New `net/livePose.js` (plain, with `livePose.test.js`): `followPart(dt)`, `lerpAngle`, `poseToNumbers(key, pose)` (rounded as a packet), `numbersToPose`, `sameNumbers`, `isLiveKind`, `kindOf`, `sameSideQuat`. A table `KINDS` maps a key kind to its number layout. Phase 6 adds the other kinds there and in `LAYOUTS` of `live.js`. `live.js` now exports `roundPiece`.
+- New `components/LiveSync.jsx`, inside `Physics`. Scene mounts it only when `live` and `ownership` are set.
+  - Sending: a packet at most every 33 ms, with the parts whose rounded numbers changed since the last sent value. Models: each `ownership.mine()` key `character:`, from the body (a lifted model sends the lifted pose). Tools: `tool:range`, `tool:move`, `tool:angle`, from getters.
+  - The cursor: at most every 100 ms, only when the pointer moved, `c` = `tablePoint` under the last pointer position with `offTable: 'null'`. `c: null` once when the pointer leaves the canvas or the table.
+  - Receiving: latest numbers per key in a ref Map with the time they came. A `character:` pose counts only while `otherOwned` has the key. When the key leaves the set, the pose is removed. `tool:` poses always count. Latest cursor in a ref.
+  - `liveRef` (Scene calls it `received`) gives `pose(key)`, `tool(kind)` ({ pose, time }) and `cursor()`.
+- `RulerTool.jsx`, `Tool`: new prop `liveRef(get)`, the same pattern as `turnRef`. The getter gives `{ x, y, z, yaw, right, left }`. Scene keeps the getters in `toolLives`.
+- `CharacterModel.jsx`, remote mode: prop `getLivePose(key)`. Each frame the model keeps its own shown pose and goes `followPart(dt)` of the way to the latest live pose: position by lerp, rotation by slerp, then `setNextKinematicTranslation` and `setNextKinematicRotation`. Without a live pose it stays. While it follows it shows `DragFootprint`. The follow ends when `remote` goes false or the pose goes. The rules of 4c for the end of a claim did not change.
+- `RulerTool.jsx`, `OtherTool`: prop `getLive`. The target is the live pose if it came after the tool mounted and after the last change of the entry, else the entry pose. The body follows with `followPart(dt)`: position, yaw (shortest turn) and bend. The part groups and the colliders turn with the bend. The footprint reads the shown bend.
+- New `components/RemoteCursor.jsx`: a flat ring (0.2" to 0.25" radius, so 0.5" across) in the color of the other side, 0.04" above the point. No raycast. It follows the point with the same `followPart`. Hidden before the first cursor, after `null`, and when `otherPresent()` is false.
+- `Scene.jsx`: `live` replaces `_live`. A single player room and the Sandbox pass no `live`, so they have no LiveSync and no cursor.
+
+Choices that the plan did not fix:
+- The shown pose of a remote model is kept in a ref of the model, not read from the body, because a kinematic body shows its new pose only after the next physics step.
+- A remote model is woken up on each follow frame, as the drag does, so its mesh stays in sync.
+- A model starts to follow from where its body stands. It does not jump to the first live pose.
+- `OtherTool` moves its body with `setTranslation` and `setRotation`, not the next-kinematic calls, so the footprint reads the same pose that is drawn. The body is a sensor.
+- The time of the entry is set in an effect after the entry pose or bend changes. A packet that comes in the same frame as the change counts as older.
+- The cursor sends `null` only after a point was sent. A pointer that leaves before the first point sends nothing.
+- A tool pose is not removed when the other player is gone. The time rule handles stale poses.
+- The cursor is drawn for any other player that is present, in the opposite side color of the own side.
+
+Differences in behavior:
+- In a multiplayer room, a model that the other player drags moves smoothly in this browser, with its footprint. Before, it stayed.
+- The other player's tool follows live while it moves, but it is drawn only after its first rest write (the entry needs a `pose`). So a new tool does not show during its first move.
+- A single player room and the Sandbox look as before.
+
+Checks:
+- `pnpm --filter web test`: 208 pass, 0 fail.
+- `pnpm --filter web build`: passes.
+- `pnpm format` done. `pnpm lint`: 0 errors, no new warnings.
 - Not run in a browser, by the rules.
 
 ## Phase 6: Live drags of tokens, cards and markers

@@ -20,10 +20,13 @@ import { startPointerDrag } from '../drag/pointerDrag.js'
 import { tablePoint } from '../drag/tablePoint.js'
 import DragFootprint from './DragFootprint.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
+import { followPart } from '../net/livePose.js'
 import { useColorTexture } from './useColorTexture.js'
 import { assetUrl } from '../assets/index.js'
 import { useHoverCursor } from './useHoverCursor.js'
 
+// Scratch values of the follow
+const followTarget = { pos: new Vector3(), quat: new Quaternion() }
 const TEAM_COLORS = { red: '#c0392b', blue: '#2980b9' }
 // While dragged, the base hangs this far above the table or terrain below it
 const DRAG_HOVER = 0.3
@@ -212,6 +215,8 @@ function standeeScene(front, back, radius) {
 // remote: the other player moves this model (decision 9). The body is kinematic and its colliders give no
 // contact forces, so it pushes nothing. It stays where it is. A click still selects it. Scene sets the pose
 // when this goes false (decision 8), and this puts the contact forces back.
+// getLivePose(key): the latest live pose [x, y, z, qx, qy, qz, qw] of the model, or null (LiveSync.jsx). In the
+// remote mode the model follows it each frame (decision 14) and shows the drag footprint (decision 18).
 // slideRef: gets startSlide for a Throw or Push (see RulerTool.jsx), and null on unmount
 // baseRadius: radius of the base in the model file, which has the game size
 // onHover(over): called when the pointer moves onto the model (true) and off it (false)
@@ -252,6 +257,7 @@ function CharacterFigure({
   claimKey,
   ownership,
   remote = false,
+  getLivePose,
 }) {
   const [startPosition] = useState(position)
   const [startQuaternion] = useState(quaternion)
@@ -280,6 +286,11 @@ function CharacterFigure({
   // The remote prop for the closures that are made once (toggleLift, startSlide)
   const remoteRef = useRef(remote)
   const wasRemote = useRef(false)
+  // The shown pose while the model follows live poses: { pos, quat }, or null. It is kept here, not read
+  // from the body, because a kinematic body shows the new pose only after the next physics step.
+  const follow = useRef(null)
+  // The model follows live poses now: mounts the footprint of the base
+  const [following, setFollowing] = useState(false)
   // The slide of a Throw or Push (startSlide): { path, duration, time }, or null
   const slide = useRef(null)
   // The last pointer position of a drag, in screen pixels
@@ -451,8 +462,15 @@ function CharacterFigure({
   useFrame((_, dt) => {
     const rb = rigidRef.current
     if (!rb) return
-    // The other player moves this model. Nothing here moves or settles the body.
-    if (remoteRef.current) return
+    if (!remoteRef.current && follow.current) {
+      follow.current = null
+      setFollowing(false)
+    }
+    // The other player moves this model. Nothing here moves or settles the body, except the follow.
+    if (remoteRef.current) {
+      followLive(rb, dt)
+      return
+    }
     if (!isDragging.current) {
       if (slide.current) moveSlide(rb, dt)
       else if (lift.current) moveLift(rb, dt)
@@ -480,6 +498,33 @@ function CharacterFigure({
     // Picking the model up stands it upright again if it tipped over, as a TTS figurine does
     rb.setNextKinematicRotation(upright(rb.rotation()))
   })
+
+  // Goes the 1 − e^(−dt / 0.05) part of the way to the latest live pose (decision 14). Without a live pose
+  // the model stays where it is.
+  function followLive(rb, dt) {
+    const numbers = getLivePose?.(claimKey)
+    if (!numbers) {
+      if (follow.current) {
+        follow.current = null
+        setFollowing(false)
+      }
+      return
+    }
+    if (!follow.current) {
+      const t = rb.translation()
+      const r = rb.rotation()
+      follow.current = { pos: new Vector3(t.x, t.y, t.z), quat: new Quaternion(r.x, r.y, r.z, r.w) }
+      setFollowing(true)
+    }
+    const part = followPart(dt)
+    const { pos, quat } = follow.current
+    pos.lerp(followTarget.pos.set(numbers[0], numbers[1], numbers[2]), part)
+    quat.slerp(followTarget.quat.set(numbers[3], numbers[4], numbers[5], numbers[6]), part)
+    // A sleeping body moves but its mesh is not synced, so keep it awake (as in the drag)
+    rb.wakeUp()
+    rb.setNextKinematicTranslation(pos)
+    rb.setNextKinematicRotation(quat)
+  }
 
   // The remote mode (decision 9). A lift, a slide or a drag of this browser stops moving the body, with no drop
   // and no write. Back from it, Scene sets the body type and the pose, and the contact forces come back here.
@@ -623,7 +668,7 @@ function CharacterFigure({
   // and tips over when it is past an edge.
   // The base circle under the body, red while it overlaps another model
   const footprintShape = () => {
-    const t = rigidRef.current?.translation()
+    const t = follow.current?.pos ?? rigidRef.current?.translation()
     return t ? { x: t.x, z: t.z, radius: baseRadius } : null
   }
 
@@ -661,7 +706,9 @@ function CharacterFigure({
         onPointerOut={() => setHovered(false)}
         onPointerDown={onPointerDown}
       />
-      {dragging && <DragFootprint getShape={footprintShape} getApart={() => dragOverlap} />}
+      {(dragging || following) && (
+        <DragFootprint getShape={footprintShape} getApart={() => dragOverlap} />
+      )}
       {overlay?.(top)}
     </RigidBody>
   )

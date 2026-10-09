@@ -17,6 +17,7 @@ import { throwMove, throwSlide } from './throwPath.js'
 import { assetUrl } from '../assets/index.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
+import { followPart, lerpAngle } from '../net/livePose.js'
 import { freeSpawnYaw, storedFields, sameStored } from './storedTool.js'
 
 const TEXTURE = assetUrl('tools/toolbox-02.png')
@@ -789,6 +790,8 @@ function BendButton({ on, onClick }) {
 // onHover(over): the pointer moved onto (true) or off (false) the tool. onDrag(on): a drag of the
 // tool started (true) or ended (false). Both are also called with false on unmount.
 // turnRef(turn): gets turnAroundCenter, for Q / E (see turnPiece in Scene.jsx), and null on unmount.
+// liveRef(get): gets a function that returns the live pose { x, y, z, yaw, right, left } of the tool (LiveSync.jsx
+// sends it to the other player), and null on unmount.
 // spawnTarget: the piece the tool snaps to when it spawns, target by default. Without one it spawns
 // at the origin.
 // entry: the stored tool entry of the own side (storedTool.js), read only when the tool mounts:
@@ -834,6 +837,7 @@ function Tool({
   onHover,
   onDrag,
   turnRef,
+  liveRef,
 }) {
   const [hovered, setHovered] = useState(false)
   // The entry at mount (see above)
@@ -1106,6 +1110,18 @@ function Tool({
   useEffect(() => {
     latest.current = { turn, snap, mode, entry, onStore }
   })
+  // The live pose for LiveSync: the body and the bend, read when asked
+  useEffect(() => {
+    liveRef?.(() => {
+      const rb = rigidRef.current
+      if (!rb || !latest.current) return null
+      const t = rb.translation()
+      const { right, left } = latest.current.turn
+      return { x: t.x, y: t.y, z: t.z, yaw: toolPose(rb).yaw, right, left }
+    })
+    return () => liveRef?.(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const rest = useRef({ seen: null, time: 0, written: false })
   useFrame((_, dt) => {
     const rb = rigidRef.current
@@ -1494,54 +1510,104 @@ function Tool({
 
 const noRaycast = () => {}
 
-// The other player's tool (plan 09, decision 11): the shape of Tool without its controls. The side's tint,
-// the plain footprint (no target), no buttons, no hover, no outline, no range mark. The pointer does not
-// hit it, so a click goes to the piece below. A kinematic sensor, the same as Tool. It jumps to the pose
-// of the entry whenever that changes.
+// The other player's tool (plan 09, decisions 11 and 14): the shape of Tool without its controls. The side's
+// tint, the plain footprint (no target), no buttons, no hover, no outline, no range mark. The pointer does
+// not hit it, so a click goes to the piece below. A kinematic sensor, the same as Tool.
+// It goes to its latest pose, from the live channel or from the entry, whichever came last: the part
+// 1 − e^(−dt / 0.05) of the way each frame, for the position, the yaw and the bend. A live pose that came
+// before the tool mounted or before the last change of the entry does not count.
 // parts, tip, halfWidth: as in Tool. defaultTurn: the bend when the entry has none.
-function OtherToolBody({ parts, tip, halfWidth, defaultTurn, entry }) {
+// getLive(): { pose: [x, y, z, yaw, right, left], time } of the tool from LiveSync, or null. time: performance.now() ms.
+function OtherToolBody({ parts, tip, halfWidth, defaultTurn, entry, getLive }) {
   const rigidRef = useRef()
   const { pose } = entry
-  const turn = entry.turn ?? defaultTurn
+  const entryTurn = entry.turn ?? defaultTurn
   const hulls = useMemo(() => parts.map((part) => hullPoints(part.obj)), [parts])
+  // The start values. The body, the groups and the colliders are moved by the follow after that.
+  const [start] = useState(() => ({ pose, turn: entryTurn }))
+  // The shown pose and bend. The footprint reads turn each frame, so the object stays the same.
+  const shown = useRef({
+    x: pose.x,
+    y: pose.y,
+    z: pose.z,
+    yaw: pose.yaw,
+    turn: { right: entryTurn.right, left: entryTurn.left },
+  })
+  const groups = useRef([])
+  const colliders = useRef([])
+  // When the entry came (performance.now() ms), set on mount and after each change
+  const entryTime = useRef(0)
+  const latest = useRef(null)
+  useEffect(() => {
+    latest.current = { pose, turn: entryTurn, getLive }
+  })
 
   useEffect(() => {
     for (const part of parts) part.obj.traverse((child) => (child.raycast = noRaycast))
   }, [parts])
 
   useEffect(() => {
+    entryTime.current = performance.now()
+  }, [pose.x, pose.y, pose.z, pose.yaw, entryTurn.right, entryTurn.left])
+
+  useFrame((_, dt) => {
     const rb = rigidRef.current
-    if (!rb) return
-    rb.setTranslation({ x: pose.x, y: pose.y, z: pose.z }, true)
-    rb.setRotation(yawQuat(pose.yaw), true)
-  }, [pose.x, pose.y, pose.z, pose.yaw])
+    const now = latest.current
+    if (!rb || !now) return
+    const live = now.getLive?.()
+    const target =
+      live && live.time > entryTime.current
+        ? live.pose
+        : [now.pose.x, now.pose.y, now.pose.z, now.pose.yaw, now.turn.right, now.turn.left]
+    const part = followPart(dt)
+    const cur = shown.current
+    cur.x += (target[0] - cur.x) * part
+    cur.y += (target[1] - cur.y) * part
+    cur.z += (target[2] - cur.z) * part
+    cur.yaw = lerpAngle(cur.yaw, target[3], part)
+    cur.turn.right += (target[4] - cur.turn.right) * part
+    cur.turn.left += (target[5] - cur.turn.left) * part
+    rb.setTranslation({ x: cur.x, y: cur.y, z: cur.z }, true)
+    rb.setRotation(yawQuat(cur.yaw), true)
+    parts.forEach((p, i) => {
+      if (!p.side) return
+      const angle = cur.turn[p.side]
+      if (groups.current[i]) groups.current[i].rotation.y = angle
+      colliders.current[i]?.setRotationWithParent(yawQuat(angle))
+    })
+  })
 
   return (
     <>
       <RigidBody
         ref={rigidRef}
         type="kinematicPosition"
-        position={[pose.x, pose.y, pose.z]}
-        rotation={[0, pose.yaw, 0]}
+        position={[start.pose.x, start.pose.y, start.pose.z]}
+        rotation={[0, start.pose.yaw, 0]}
         colliders={false}
         sensor
       >
-        {parts.map((part) => (
-          <group key={part.obj.uuid} rotation-y={part.side ? turn[part.side] : 0}>
+        {parts.map((part, i) => (
+          <group
+            key={part.obj.uuid}
+            ref={(g) => (groups.current[i] = g)}
+            rotation-y={part.side ? start.turn[part.side] : 0}
+          >
             <primitive object={part.obj} />
           </group>
         ))}
         {parts.map((part, i) => (
           <ConvexHullCollider
             key={part.obj.uuid}
+            ref={(c) => (colliders.current[i] = c)}
             args={[hulls[i]]}
-            rotation={[0, part.side ? turn[part.side] : 0, 0]}
+            rotation={[0, part.side ? start.turn[part.side] : 0, 0]}
           />
         ))}
       </RigidBody>
       <ToolFootprint
         rigidRef={rigidRef}
-        turn={turn}
+        turn={shown.current.turn}
         halfLength={tip}
         halfWidth={halfWidth}
         selected={false}
@@ -1550,7 +1616,7 @@ function OtherToolBody({ parts, tip, halfWidth, defaultTurn, entry }) {
   )
 }
 
-function OtherRange({ number, team, entry }) {
+function OtherRange({ number, team, entry, getLive }) {
   const mesh = number === 1 ? 2 : number
   const parts = useRangeParts(mesh, team)
   return (
@@ -1560,11 +1626,12 @@ function OtherRange({ number, team, entry }) {
       halfWidth={RANGE_HALF_WIDTH}
       defaultTurn={STRAIGHT}
       entry={entry}
+      getLive={getLive}
     />
   )
 }
 
-function OtherMovement({ type, team, entry }) {
+function OtherMovement({ type, team, entry, getLive }) {
   const parts = useMovementParts(type, team)
   return (
     <OtherToolBody
@@ -1573,11 +1640,12 @@ function OtherMovement({ type, team, entry }) {
       halfWidth={MOVE_HALF_WIDTH}
       defaultTurn={STRAIGHT}
       entry={entry}
+      getLive={getLive}
     />
   )
 }
 
-function OtherAngle({ team, entry }) {
+function OtherAngle({ team, entry, getLive }) {
   const parts = useMovementParts('long', team)
   return (
     <OtherToolBody
@@ -1586,14 +1654,18 @@ function OtherAngle({ team, entry }) {
       halfWidth={MOVE_HALF_WIDTH}
       defaultTurn={ANGLE_TURN}
       entry={entry}
+      getLive={getLive}
     />
   )
 }
 
 // kind: 'range', 'move' or 'angle'. entry: a tool entry of the other side that has a pose.
 // team: the other side, for the tint. Scene keys it by kind, which, and spawn.
-export function OtherTool({ kind, entry, team }) {
-  if (kind === 'range') return <OtherRange number={entry.which} team={team} entry={entry} />
-  if (kind === 'move') return <OtherMovement type={entry.which} team={team} entry={entry} />
-  return <OtherAngle team={team} entry={entry} />
+// getLive(): the live pose of this tool from LiveSync (see OtherToolBody), or null.
+export function OtherTool({ kind, entry, team, getLive }) {
+  if (kind === 'range')
+    return <OtherRange number={entry.which} team={team} entry={entry} getLive={getLive} />
+  if (kind === 'move')
+    return <OtherMovement type={entry.which} team={team} entry={entry} getLive={getLive} />
+  return <OtherAngle team={team} entry={entry} getLive={getLive} />
 }
