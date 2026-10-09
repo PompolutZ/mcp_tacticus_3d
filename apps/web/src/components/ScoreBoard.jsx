@@ -2,9 +2,11 @@ import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useGLTF, useTexture } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { RigidBody, useRapier } from '@react-three/rapier'
-import { Color, MeshStandardMaterial, Plane, Raycaster, SRGBColorSpace, Vector3 } from 'three'
+import { Color, MeshStandardMaterial, SRGBColorSpace } from 'three'
 import { assetUrl } from '../assets/index.js'
 import { castDown, FRICTION } from '../physics.js'
+import { startPointerDrag } from '../drag/pointerDrag.js'
+import { tablePoint } from '../drag/tablePoint.js'
 import {
   BOARD_SCALE,
   BOARD_X,
@@ -30,7 +32,6 @@ const IMPORT_ROTATION = [0, Math.PI, 0]
 // Gap between the ground and a marker, so the marker never z-fights with the surface (CrisisToken.jsx)
 const GAP = 0.02
 const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
-const TABLE_PLANE = new Plane(new Vector3(0, 1, 0), 0)
 // Each VP marker faces its owner: the image top points away from the player's side
 const VP_MARKER_YAW = { blue: 0, red: Math.PI }
 // Two markers closer than this are on the same spot. Snapped markers have the same position exactly.
@@ -83,7 +84,6 @@ function DraggableMarker({ position, points, shape, halfHeight, lift = 0, onMove
   // Live position during a drag. Synced from the position prop when not dragging.
   const poseRef = useRef(position)
   const draggingRef = useRef(false)
-  const raycaster = useRef(new Raycaster())
   const [hovered, setHovered] = useState(false)
 
   useEffect(() => {
@@ -101,50 +101,30 @@ function DraggableMarker({ position, points, shape, halfHeight, lift = 0, onMove
 
   // Board, terrain or table point under the pointer, the same as CrisisToken.jsx
   function pointerPoint(clientX, clientY) {
-    const rect = gl.domElement.getBoundingClientRect()
-    const ndc = {
-      x: ((clientX - rect.left) / rect.width) * 2 - 1,
-      y: -((clientY - rect.top) / rect.height) * 2 + 1,
-    }
-    raycaster.current.setFromCamera(ndc, camera)
-    const { origin, direction } = raycaster.current.ray
-    const filter = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
-    const hit = world.castRay(new rapier.Ray(origin, direction), 1000, true, filter)
-    if (hit) return raycaster.current.ray.at(hit.timeOfImpact, new Vector3())
-    return raycaster.current.ray.intersectPlane(TABLE_PLANE, new Vector3())
+    return tablePoint({ camera, canvas: gl.domElement, world, rapier }, clientX, clientY)
   }
 
+  // The press is a drag at once, with no threshold and no click
   function handlePointerDown(e) {
-    // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
-    if (e.button !== 0) return
-    e.stopPropagation()
-    const pointerId = e.pointerId ?? e.nativeEvent?.pointerId
-    if (controls) controls.enabled = false
-    if (pointerId !== undefined && gl.domElement.hasPointerCapture?.(pointerId)) {
-      gl.domElement.releasePointerCapture(pointerId)
-    }
-    draggingRef.current = true
-
-    const onPointerMove = (ev) => {
-      if (ev.pointerId !== pointerId) return
-      const p = pointerPoint(ev.clientX, ev.clientY)
-      if (p) poseRef.current = { x: p.x, z: p.z }
-    }
-
-    const onPointerUp = (ev) => {
-      if (ev.pointerId !== pointerId) return
-      draggingRef.current = false
-      const { x, z } = poseRef.current
-      const spot = snapPoint(points, x, z)
-      poseRef.current = spot ?? { x, z }
-      onMove(poseRef.current.x, poseRef.current.z)
-      if (controls) controls.enabled = true
-      window.removeEventListener('pointermove', onPointerMove)
-      window.removeEventListener('pointerup', onPointerUp)
-    }
-
-    window.addEventListener('pointermove', onPointerMove)
-    window.addEventListener('pointerup', onPointerUp)
+    startPointerDrag(e, {
+      controls,
+      canvas: gl.domElement,
+      immediate: true,
+      onStart: () => {
+        draggingRef.current = true
+      },
+      onMove: (ev) => {
+        const p = pointerPoint(ev.clientX, ev.clientY)
+        if (p) poseRef.current = { x: p.x, z: p.z }
+      },
+      onEnd: () => {
+        draggingRef.current = false
+        const { x, z } = poseRef.current
+        const spot = snapPoint(points, x, z)
+        poseRef.current = spot ?? { x, z }
+        onMove(poseRef.current.x, poseRef.current.z)
+      },
+    })
   }
 
   return (

@@ -2,8 +2,10 @@ import { useTexture } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
-import { DoubleSide, Plane, Raycaster, Vector3 } from 'three'
+import { DoubleSide } from 'three'
 import { castDown } from '../physics.js'
+import { startPointerDrag } from '../drag/pointerDrag.js'
+import { tablePoint } from '../drag/tablePoint.js'
 import { crisisMarker, crisisToken } from '../crisis/files.js'
 import { assetUrl } from '../assets/index.js'
 import { affiliationToken } from '../scoreboard/files.js'
@@ -29,9 +31,7 @@ const SEGMENTS = 64
 const FACE_ALPHA_TEST = 0.5
 // Gap between the ground and the token bottom, so the token never z-fights with the surface
 const GAP = 0.02
-const DRAG_THRESHOLD = 4
 const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
-const TABLE_PLANE = new Plane(new Vector3(0, 1, 0), 0)
 // Range 3 (6") from the token edge, for the Zone Arc outline
 const ARC_RADIUS = RADIUS + 6
 const ARC_FILL = '#f5c542'
@@ -157,7 +157,6 @@ export default function CrisisToken({
   // Live pose during a drag, in table XZ and yaw. Synced from the token prop when not dragging.
   const poseRef = useRef({ x: token.x, z: token.z, yaw: token.yaw })
   const draggingRef = useRef(false)
-  const raycaster = useRef(new Raycaster())
   const arcSlot = useRef(null)
 
   useEffect(() => {
@@ -218,52 +217,29 @@ export default function CrisisToken({
       )
   })
 
-  // Table or terrain point under the pointer, the same fixed-body-or-table-plane pattern as
-  // CharacterModel, so a dragged token stays under the cursor on raised terrain.
+  // Table or terrain point under the pointer, so a dragged token stays under the cursor on raised
+  // terrain
   function pointerPoint(clientX, clientY) {
-    const rect = gl.domElement.getBoundingClientRect()
-    const ndc = {
-      x: ((clientX - rect.left) / rect.width) * 2 - 1,
-      y: -((clientY - rect.top) / rect.height) * 2 + 1,
-    }
-    raycaster.current.setFromCamera(ndc, camera)
-    const { origin, direction } = raycaster.current.ray
-    const filter = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
-    const hit = world.castRay(new rapier.Ray(origin, direction), 1000, true, filter)
-    if (hit) return raycaster.current.ray.at(hit.timeOfImpact, new Vector3())
-    return raycaster.current.ray.intersectPlane(TABLE_PLANE, new Vector3())
+    return tablePoint({ camera, canvas: gl.domElement, world, rapier }, clientX, clientY)
   }
 
   function onPointerDown(e) {
-    // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
-    if (e.button !== 0) return
-    e.stopPropagation()
-    const startX = e.clientX
-    const startY = e.clientY
-    const pointerId = e.pointerId ?? e.nativeEvent?.pointerId
-    if (controls) controls.enabled = false
-    if (pointerId !== undefined && gl.domElement.hasPointerCapture?.(pointerId)) {
-      gl.domElement.releasePointerCapture(pointerId)
-    }
-
-    const onPointerMove = (ev) => {
-      if (ev.pointerId !== pointerId) return
-      if (!draggingRef.current) {
-        const dx = ev.clientX - startX
-        const dy = ev.clientY - startY
-        if (!selected || !token.canMove || Math.hypot(dx, dy) < DRAG_THRESHOLD) return
+    startPointerDrag(e, {
+      controls,
+      canvas: gl.domElement,
+      // A click selects the token. Only a selected token that can move moves by a drag.
+      canStart: () => selected && token.canMove,
+      onStart: () => {
         draggingRef.current = true
-      }
-      const p = pointerPoint(ev.clientX, ev.clientY)
-      if (p) {
-        poseRef.current.x = p.x
-        poseRef.current.z = p.z
-      }
-    }
-
-    const onPointerUp = (ev) => {
-      if (ev.pointerId !== pointerId) return
-      if (draggingRef.current) {
+      },
+      onMove: (ev) => {
+        const p = pointerPoint(ev.clientX, ev.clientY)
+        if (p) {
+          poseRef.current.x = p.x
+          poseRef.current.z = p.z
+        }
+      },
+      onEnd: (ev) => {
         draggingRef.current = false
         // A canHold token dropped on a character is held, not placed on the mat (see "Hold and
         // drop"). Any other token, or no character under the release point, just moves as usual.
@@ -278,16 +254,9 @@ export default function CrisisToken({
         } else {
           onMove?.(poseRef.current.x, poseRef.current.z)
         }
-      } else {
-        onSelect?.()
-      }
-      if (controls) controls.enabled = true
-      window.removeEventListener('pointermove', onPointerMove)
-      window.removeEventListener('pointerup', onPointerUp)
-    }
-
-    window.addEventListener('pointermove', onPointerMove)
-    window.addEventListener('pointerup', onPointerUp)
+      },
+      onClick: () => onSelect?.(),
+    })
   }
 
   // Turn handle: drags the token's yaw around its own center. The pivot is the token's current
@@ -295,32 +264,27 @@ export default function CrisisToken({
   function onHandleDown(e) {
     // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
     if (e.button !== 0) return
-    e.stopPropagation()
-    const pointerId = e.pointerId ?? e.nativeEvent?.pointerId
-    if (controls) controls.enabled = false
     const pivot = { x: poseRef.current.x, z: poseRef.current.z }
     const start = pointerPoint(e.clientX, e.clientY)
-    if (!start) return
+    if (!start) {
+      e.stopPropagation()
+      return
+    }
     const startAngle = angleTo(pivot, start)
     const startYaw = poseRef.current.yaw
 
-    const onPointerMove = (ev) => {
-      if (ev.pointerId !== pointerId) return
-      const p = pointerPoint(ev.clientX, ev.clientY)
-      if (!p || Math.hypot(p.x - pivot.x, p.z - pivot.z) < 0.01) return
-      poseRef.current.yaw = startYaw + (angleTo(pivot, p) - startAngle)
-    }
-
-    const onPointerUp = (ev) => {
-      if (ev.pointerId !== pointerId) return
-      onTurn?.(poseRef.current.yaw)
-      if (controls) controls.enabled = true
-      window.removeEventListener('pointermove', onPointerMove)
-      window.removeEventListener('pointerup', onPointerUp)
-    }
-
-    window.addEventListener('pointermove', onPointerMove)
-    window.addEventListener('pointerup', onPointerUp)
+    startPointerDrag(e, {
+      controls,
+      // The handle never released the pointer capture
+      releaseCapture: false,
+      immediate: true,
+      onMove: (ev) => {
+        const p = pointerPoint(ev.clientX, ev.clientY)
+        if (!p || Math.hypot(p.x - pivot.x, p.z - pivot.z) < 0.01) return
+        poseRef.current.yaw = startYaw + (angleTo(pivot, p) - startAngle)
+      },
+      onEnd: () => onTurn?.(poseRef.current.yaw),
+    })
   }
 
   function setGroupRef(obj) {

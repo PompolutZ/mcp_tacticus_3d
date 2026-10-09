@@ -11,21 +11,19 @@ import {
   Matrix4,
   Mesh,
   MeshStandardMaterial,
-  Plane,
   PlaneGeometry,
   Quaternion,
-  Raycaster,
   Vector3,
 } from 'three'
 import { FRICTION, MODEL_GROUPS, castDown } from '../physics.js'
+import { startPointerDrag } from '../drag/pointerDrag.js'
+import { tablePoint } from '../drag/tablePoint.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useColorTexture } from './useColorTexture.js'
 import { assetUrl } from '../assets/index.js'
 import { useHoverCursor } from './useHoverCursor.js'
 
 const TEAM_COLORS = { red: '#c0392b', blue: '#2980b9' }
-const TABLE_PLANE = new Plane(new Vector3(0, 1, 0), 0)
-const DRAG_THRESHOLD = 4
 // While dragged, the base hangs this far above the table or terrain below it
 const DRAG_HOVER = 0.3
 // How fast the dragged model moves to the new hover height, per second
@@ -254,9 +252,6 @@ function CharacterFigure({
   const [hovered, setHovered] = useState(false)
   const rigidRef = useRef()
   const figureRef = useRef()
-  const moveRef = useRef(null)
-  const upRef = useRef(null)
-  const raycaster = useRef(new Raycaster())
   const isDragging = useRef(false)
   // Last body position of this drag where the base overlapped no model: { x, y, z }. Starts at the
   // position of the drag start. A drop inside a model goes back here.
@@ -273,9 +268,8 @@ function CharacterFigure({
   const lift = useRef(null)
   // The slide of a Throw or Push (startSlide): { path, duration, time }, or null
   const slide = useRef(null)
-  const mouseNDC = useRef({ x: 0, y: 0 })
-  // Pointer and ground casts hit only fixed bodies (table and terrain), and no sensors
-  const groundOnly = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
+  // The last pointer position of a drag, in screen pixels
+  const pointer = useRef({ x: 0, y: 0 })
 
   function groundY(x, z) {
     return baseGroundY(world, rapier, x, z, baseRadius)
@@ -283,11 +277,8 @@ function CharacterFigure({
 
   // Table or terrain point under the pointer, so the model stays under the cursor on raised terrain
   function pointerPoint() {
-    raycaster.current.setFromCamera(mouseNDC.current, camera)
-    const { origin, direction } = raycaster.current.ray
-    const hit = world.castRay(new rapier.Ray(origin, direction), 1000, true, groundOnly)
-    if (hit) return raycaster.current.ray.at(hit.timeOfImpact, new Vector3())
-    return raycaster.current.ray.intersectPlane(TABLE_PLANE, new Vector3())
+    const scene = { camera, canvas: gl.domElement, world, rapier }
+    return tablePoint(scene, pointer.current.x, pointer.current.y)
   }
 
   // Puts the body to sleep once it has stayed close to one pose for SETTLE_TIME
@@ -522,23 +513,12 @@ function CharacterFigure({
   }, [hovered])
 
   function onPointerDown(e) {
-    // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
-    if (e.button !== 0) return
-    e.stopPropagation()
-    const startX = e.clientX
-    const startY = e.clientY
-    const pointerId = e.pointerId ?? e.nativeEvent?.pointerId
-    if (controls) controls.enabled = false
-    if (pointerId !== undefined && gl.domElement.hasPointerCapture?.(pointerId)) {
-      gl.domElement.releasePointerCapture(pointerId)
-    }
-
-    moveRef.current = (ev) => {
-      if (ev.pointerId !== pointerId) return
-      if (!isDragging.current) {
-        const dx = ev.clientX - startX
-        const dy = ev.clientY - startY
-        if (!selected || Math.hypot(dx, dy) < DRAG_THRESHOLD) return
+    startPointerDrag(e, {
+      controls,
+      canvas: gl.domElement,
+      // A click selects the model. Only a selected model moves by a drag.
+      canStart: () => selected,
+      onStart: () => {
         // A drag ends a lift or a slide. The model follows the pointer and drops where it is released.
         lift.current = null
         slide.current = null
@@ -546,17 +526,11 @@ function CharacterFigure({
         isDragging.current = true
         freePlace.current = { ...rigidRef.current.translation() }
         onDragStart?.()
-      }
-      const rect = gl.domElement.getBoundingClientRect()
-      mouseNDC.current = {
-        x: ((ev.clientX - rect.left) / rect.width) * 2 - 1,
-        y: -((ev.clientY - rect.top) / rect.height) * 2 + 1,
-      }
-    }
-
-    upRef.current = (ev) => {
-      if (ev.pointerId !== pointerId) return
-      if (isDragging.current) {
+      },
+      onMove: (ev) => {
+        pointer.current = { x: ev.clientX, y: ev.clientY }
+      },
+      onEnd: () => {
         isDragging.current = false
         // A drop inside a model goes back to the last free place (rotation stays). A jump, as no
         // tween exists for a body.
@@ -572,18 +546,9 @@ function CharacterFigure({
         rigidRef.current?.setLinvel(ZERO, true)
         rigidRef.current?.setAngvel(ZERO, true)
         onDragEnd?.()
-      } else {
-        onSelect?.()
-      }
-      if (controls) controls.enabled = true
-      window.removeEventListener('pointermove', moveRef.current)
-      window.removeEventListener('pointerup', upRef.current)
-      moveRef.current = null
-      upRef.current = null
-    }
-
-    window.addEventListener('pointermove', moveRef.current)
-    window.addEventListener('pointerup', upRef.current)
+      },
+      onClick: () => onSelect?.(),
+    })
   }
 
   // Also hand the body to the parent, so tools can read and move it

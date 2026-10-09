@@ -272,6 +272,34 @@ User, after this phase: check 4.
 
 ### Result
 
+Done. Not committed.
+
+- New: `drag/pointerDrag.js` (`startPointerDrag`, `DRAG_THRESHOLD`), `drag/tablePoint.js` (`tablePoint`), `drag/pointerDrag.test.js` (12 cases).
+- `startPointerDrag(event, options)` returns `{ cancel }`, or `null` when nothing started. It calls `stopPropagation`, turns the controls off, releases the pointer capture, and listens on the window for this pointer id. At the end it turns the controls on and removes the listeners.
+- Callbacks: `onStart`, `onMove`, `onEnd` (drop), `onClick`, `onCancel`. `onMove` may return true: the drag ends there (`onEnd` runs at once, the release does nothing more). Used by the tools.
+- `tablePoint(scene, x, y, { offTable })`. `scene` is `{ camera, canvas, world, rapier }`.
+- Options, and why each exists:
+  - `canStart(ev)`: a drag needs a selected piece (model, tool, crisis token that can move). Called at each move past the threshold.
+  - `immediate`: the press is a drag at once, no threshold, no click (score marker, turn handle). `canStart` runs at the press then.
+  - `button: null`: any button. Only the token drag from the Library chips, which never checked the button.
+  - `releaseCapture: false`: only the turn handle, which never released the capture.
+  - `preventDefault: true`: token drag (DOM events from the HUD).
+  - `threshold`: default 4 px. No caller changes it yet.
+  - `controls`, `canvas`, `window`: come in so a test can pass fakes. `window` defaults to the real one.
+  - `tablePoint` `offTable: 'null'`: `TacticCard` and `TokenDragPreview` get `null` off the table. Default: fall back to the table plane.
+- Kept in the pieces:
+  - `CharacterModel`: lift, slide, `freePlace`, `dragOverlap`, `overlapsAt` at the drop. The frame loop keeps the pointer in pixels and calls `tablePoint` each frame.
+  - `useDragTool`: the grab plane and offset, `plan`, turn math. It keeps its own ray from the pointer, because it needs a ray and a plane, not a table point.
+  - Token drag in `App.jsx`: Escape (`cancelTokenDrag` now calls `cancel()`), Shift for a pile move, the release rules.
+- `addEventListener('pointermove'` is still in `TokenDragPreview.jsx`: it follows the pointer to show the preview. It is no drag gesture (no press, no id, no click).
+- Possible differences:
+  - Turn handle: when the first point is off the table, it used to leave the controls off. Now the controls stay on and nothing starts.
+  - Token drag: the window listeners start at the press, not after the next React render. They now ignore other pointer ids (before, any pointer).
+  - The grab setup of a tool now runs after the press starts, so a right click no longer changes the grab plane.
+  - If a drop callback throws, the listeners are removed and the controls turn on anyway (before: they stayed).
+  - Model drag: the table point is read from the last pointer pixels each frame (before: the NDC stored at the move). Same value unless the canvas moves during a drag.
+
+
 ## Phase 3: Tools in the document
 
 Read: decisions 10 to 12. `App.jsx` (tool state, `handleRangeClick`, `handleMoveClick`, `handleAngleClick`, `handleAngleKey`, `handleToolKey`, `handleEscape`, `clearTools`, the Scene and Toolbar props). `components/Scene.jsx` (the tools, `PLAYER_TEAM`, `turnProps`). `components/RulerTool.jsx` (`Tool`, its spawn effect, `snapTo`, `turnAroundCenter`, `handleMirror`, `ToolFootprint`). `components/Toolbar.jsx` (the tool buttons). `components/footprintProjection.js`. `net/doc.js`, `net/collections.js`, `net/useY.js`, `rooms/table.js`.

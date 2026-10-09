@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useRef } from 'react'
 import { useThree } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
-import { Raycaster } from 'three'
+import { tablePoint } from '../drag/tablePoint.js'
 import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
 
 // Gap between the ground and the token, the same as LooseToken.jsx
@@ -22,23 +22,10 @@ export default function TokenDragPreview({ pointRef, start, children }) {
   const groupRef = useRef()
 
   useEffect(() => {
-    const raycaster = new Raycaster()
-    const filter = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
-
-    function tablePoint(clientX, clientY) {
-      const rect = gl.domElement.getBoundingClientRect()
-      const ndc = {
-        x: ((clientX - rect.left) / rect.width) * 2 - 1,
-        y: -((clientY - rect.top) / rect.height) * 2 + 1,
-      }
-      raycaster.setFromCamera(ndc, camera)
-      const { origin, direction } = raycaster.ray
-      const hit = world.castRay(new rapier.Ray(origin, direction), 1000, true, filter)
-      return hit ? raycaster.ray.at(hit.timeOfImpact, origin.clone()) : null
-    }
+    const scene = { camera, canvas: gl.domElement, world, rapier }
 
     function handleMove(e) {
-      const point = tablePoint(e.clientX, e.clientY)
+      const point = tablePoint(scene, e.clientX, e.clientY, { offTable: 'null' })
       pointRef.current = point
       const group = groupRef.current
       if (!group) return

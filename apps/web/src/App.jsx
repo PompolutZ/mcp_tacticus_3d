@@ -14,6 +14,7 @@ import { TokenPanel } from './components/TokenPanel.jsx'
 import { CardPopup } from './components/CardPopup.jsx'
 import { TrayPopup } from './components/TrayPopup.jsx'
 import { RosterPopup } from './components/RosterPopup.jsx'
+import { startPointerDrag } from './drag/pointerDrag.js'
 import { canFlip, canMove, getCard, hasArc, hasMarkers } from './crisis/cards.js'
 import { supplyPilePosition } from './crisis/layout.js'
 import {
@@ -116,7 +117,6 @@ const DROP_GAP = 0.1
 const TOKEN_ROW_SPACING = TOKEN_RADIUS * 2 + DROP_GAP * 2
 // A character token drag starts only after the pointer moves this many pixels, so a click on a
 // Give source or a token on the table does not drop a token.
-const DRAG_THRESHOLD = 4
 const EMPTY_SQUAD = { characters: [], tactics: [] }
 
 // What a restart of the game setup removes, for its confirm (restartSetup)
@@ -382,8 +382,10 @@ export default function App({
   // moment. The state changes only at start and when the drag becomes active, not on every
   // pointermove.
   const [tokenDrag, setTokenDrag] = useState(null)
-  // The same drag, plus the pointerdown position, for the window listeners below
+  // The same drag without the active and start fields, for handleTokenRelease
   const tokenDragRef = useRef(null)
+  // The drag code of the token drag: { cancel }, or null
+  const tokenDragHandleRef = useRef(null)
   // The table point under the pointer, written by TokenDragPreview: { x, y, z } | null
   const dragPointRef = useRef(null)
   // Scene calls this with (clientX, clientY) and returns the character id under the point, or
@@ -1294,23 +1296,44 @@ export default function App({
   }
 
   // e is the DOM event. preventDefault stops the browser's own image drag and text selection. The
-  // camera does not move during the drag. A pointerdown on the canvas also starts an OrbitControls
-  // drag, which captures the pointer, so the capture is released, the same as CrisisToken.jsx.
+  // camera does not move during the drag (startPointerDrag). The drag becomes active after
+  // DRAG_THRESHOLD px, and its release drops the token (handleTokenRelease). A release before that
+  // is a click, which does nothing. Escape cancels (see handleKeyDown). Any button starts it: the
+  // Library chips never checked the button.
   // drag: tokenKey and the fields of tokenDrag that are set, the others get their defaults.
   function startTokenDrag(e, drag) {
-    e.preventDefault()
-    e.stopPropagation()
-    if (e.target?.hasPointerCapture?.(e.pointerId)) e.target.releasePointerCapture(e.pointerId)
-    if (controlsRef.current) controlsRef.current.enabled = false
     const full = { looseId: null, supplyCard: null, pile: false, pileId: null, ...drag }
-    tokenDragRef.current = { ...full, startX: e.clientX, startY: e.clientY, active: false }
+    const handle = startPointerDrag(e, {
+      controls: controlsRef.current,
+      canvas: e.target,
+      button: null,
+      preventDefault: true,
+      onStart: (ev) =>
+        setTokenDrag(
+          (prev) =>
+            prev && { ...prev, active: true, start: { clientX: ev.clientX, clientY: ev.clientY } },
+        ),
+      onEnd: (ev) => {
+        handleTokenRelease(ev.clientX, ev.clientY)
+        endTokenDrag()
+      },
+      onClick: endTokenDrag,
+      onCancel: endTokenDrag,
+    })
+    if (!handle) return
+    tokenDragHandleRef.current = handle
+    tokenDragRef.current = full
     setTokenDrag({ ...full, active: false, start: null })
   }
 
-  function cancelTokenDrag() {
+  function endTokenDrag() {
+    tokenDragHandleRef.current = null
     tokenDragRef.current = null
     setTokenDrag(null)
-    if (controlsRef.current) controlsRef.current.enabled = true
+  }
+
+  function cancelTokenDrag() {
+    tokenDragHandleRef.current?.cancel()
   }
 
   // Character under (clientX, clientY): the DOM tray controls first (data-character-id, see
@@ -1373,37 +1396,6 @@ export default function App({
         { id: crypto.randomUUID(), key: tokenKey, x: point.x, z: point.z },
       ])
   }
-
-  // Window listeners for the token drag: it becomes active after DRAG_THRESHOLD px, and its release
-  // drops the token (handleTokenRelease). A release before that is a click, which does nothing.
-  // Escape cancels (see handleKeyDown).
-  useEffect(() => {
-    if (!tokenDrag) return undefined
-    function handleMove(e) {
-      const drag = tokenDragRef.current
-      if (
-        !drag ||
-        drag.active ||
-        Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < DRAG_THRESHOLD
-      )
-        return
-      drag.active = true
-      setTokenDrag(
-        (prev) =>
-          prev && { ...prev, active: true, start: { clientX: e.clientX, clientY: e.clientY } },
-      )
-    }
-    function handleUp(e) {
-      if (tokenDragRef.current?.active) handleTokenRelease(e.clientX, e.clientY)
-      cancelTokenDrag()
-    }
-    window.addEventListener('pointermove', handleMove)
-    window.addEventListener('pointerup', handleUp)
-    return () => {
-      window.removeEventListener('pointermove', handleMove)
-      window.removeEventListener('pointerup', handleUp)
-    }
-  }, [tokenDrag])
 
   const selectedTokenId = selectedId(selection, 'token')
   const selectedToken = tokens.find((t) => t.id === selectedTokenId) ?? null

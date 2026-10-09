@@ -7,13 +7,13 @@ import * as THREE from 'three'
 import { baseGroundY, upright } from './CharacterModel.jsx'
 import { acquireFootprint } from './footprintProjection.js'
 import { castDown } from '../physics.js'
+import { startPointerDrag } from '../drag/pointerDrag.js'
 import { throwMove, throwSlide } from './throwPath.js'
 import { assetUrl } from '../assets/index.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
 
 const TEXTURE = assetUrl('tools/toolbox-02.png')
-const DRAG_THRESHOLD = 4
 // How fast the dragged tool moves to the new hover height, per second (same as models)
 const HOVER_RATE = 25
 // Half height of the flat box cast down to find the ground under a footprint
@@ -355,26 +355,7 @@ function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove, on
   })
 
   return function onPointerDown(e, selected, onSelect, plan) {
-    // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
-    if (e.button !== 0) return
-    e.stopPropagation()
-    const startX = e.clientX
-    const startY = e.clientY
-    const pointerId = e.pointerId ?? e.nativeEvent?.pointerId
     const grab = { x: e.point.x, z: e.point.z }
-    if (controls) controls.enabled = false
-    if (rigidRef.current) {
-      const t = rigidRef.current.translation()
-      dragPlane.current.constant = -e.point.y
-      grabOffset.current = { x: e.point.x - t.x, z: e.point.z - t.z }
-    }
-    if (pointerId !== undefined && gl.domElement.hasPointerCapture?.(pointerId)) {
-      gl.domElement.releasePointerCapture(pointerId)
-    }
-
-    // The drag was ended by onDragMove
-    let ended = false
-
     function endDrag() {
       isDragging.current = false
       turning.current?.onPointer?.(null)
@@ -383,13 +364,13 @@ function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove, on
       onDragEnd?.()
     }
 
-    const onMove = (ev) => {
-      if (ev.pointerId !== pointerId || ended) return
-      if (!isDragging.current) {
-        const dx = ev.clientX - startX
-        const dy = ev.clientY - startY
+    const pressed = startPointerDrag(e, {
+      controls,
+      canvas: gl.domElement,
+      // A click selects the tool. Only a selected tool moves by a drag.
+      canStart: () => selected && Boolean(rigidRef.current),
+      onStart: () => {
         const rb = rigidRef.current
-        if (!selected || !rb || Math.hypot(dx, dy) < DRAG_THRESHOLD) return
         restType.current = rb.bodyType()
         rb.setBodyType(2, true)
         isDragging.current = true
@@ -404,38 +385,36 @@ function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove, on
           }
         }
         onDragStart?.(turn ? 'turn' : 'move')
-      }
-      const rect = gl.domElement.getBoundingClientRect()
-      mouseNDC.current = {
-        x: ((ev.clientX - rect.left) / rect.width) * 2 - 1,
-        y: -((ev.clientY - rect.top) / rect.height) * 2 + 1,
-      }
-      raycaster.current.setFromCamera(mouseNDC.current, camera)
-      const turn = turning.current
-      if (turn) {
-        turn.onPointer?.(raycaster.current)
-        const hit = raycaster.current.ray.intersectPlane(dragPlane.current, new THREE.Vector3())
-        if (!hit || Math.hypot(hit.x - turn.pivot.x, hit.z - turn.pivot.z) < 0.01) return
-        turn.pose = turn.onTurn(wrapAngle(yawTo(turn.pivot, hit) - turn.startAngle), turn.startPose)
-        return
-      }
-      if (onDragMove?.(raycaster.current)) {
-        ended = true
-        endDrag()
-      }
+      },
+      // true: onDragMove ended the drag, and the rest of that press does nothing
+      onMove: (ev) => {
+        const rect = gl.domElement.getBoundingClientRect()
+        mouseNDC.current = {
+          x: ((ev.clientX - rect.left) / rect.width) * 2 - 1,
+          y: -((ev.clientY - rect.top) / rect.height) * 2 + 1,
+        }
+        raycaster.current.setFromCamera(mouseNDC.current, camera)
+        const turn = turning.current
+        if (turn) {
+          turn.onPointer?.(raycaster.current)
+          const hit = raycaster.current.ray.intersectPlane(dragPlane.current, new THREE.Vector3())
+          if (!hit || Math.hypot(hit.x - turn.pivot.x, hit.z - turn.pivot.z) < 0.01) return false
+          turn.pose = turn.onTurn(
+            wrapAngle(yawTo(turn.pivot, hit) - turn.startAngle),
+            turn.startPose,
+          )
+          return false
+        }
+        return Boolean(onDragMove?.(raycaster.current))
+      },
+      onEnd: endDrag,
+      onClick: () => onSelect?.(),
+    })
+    if (pressed && rigidRef.current) {
+      const t = rigidRef.current.translation()
+      dragPlane.current.constant = -e.point.y
+      grabOffset.current = { x: e.point.x - t.x, z: e.point.z - t.z }
     }
-
-    const onUp = (ev) => {
-      if (ev.pointerId !== pointerId) return
-      if (isDragging.current) endDrag()
-      else if (!ended) onSelect?.()
-      if (controls) controls.enabled = true
-      window.removeEventListener('pointermove', onMove)
-      window.removeEventListener('pointerup', onUp)
-    }
-
-    window.addEventListener('pointermove', onMove)
-    window.addEventListener('pointerup', onUp)
   }
 }
 

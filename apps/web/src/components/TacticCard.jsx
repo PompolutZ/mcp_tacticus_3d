@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
-import { Raycaster, Vector3 } from 'three'
 import { castDown } from '../physics.js'
+import { startPointerDrag } from '../drag/pointerDrag.js'
+import { tablePoint } from '../drag/tablePoint.js'
 import { assetUrl } from '../assets/index.js'
 import { getTactic } from '../tactics/cards.js'
 import { tacticCardBack, tacticCardFace } from '../tactics/files.js'
@@ -24,7 +25,6 @@ const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 // higher than the card before it, so two cards do not z-fight
 const STACK_STEP = 0.005
 // A pointer that moves more than this many pixels is a drag, not a click
-const DRAG_THRESHOLD = 4
 // Flip (F): the card turns 180° around its long side (local z) in FLIP_DURATION seconds. It goes up
 // while it turns, so its edges stay above the table: at 90° it stands on its long edge, FLIP_EDGE_GAP
 // above the table. Both values were chosen by look, not measured in TTS.
@@ -57,7 +57,6 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
   )
   const groupRef = useRef()
   const flipGroupRef = useRef()
-  const raycaster = useRef(new Raycaster())
   const [hovered, setHovered] = useState(false)
   // Live position during a drag. Synced from the card prop when not dragging. App gives the card a
   // new object on every move (handleTacticMove), also when a snap puts it back on its old place, so
@@ -104,63 +103,38 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
   // Table or terrain point under the pointer, or null when the pointer is not over the table. Only
   // fixed bodies count, the same as TokenDragPreview.jsx.
   function pointerPoint(clientX, clientY) {
-    const rect = gl.domElement.getBoundingClientRect()
-    const ndc = {
-      x: ((clientX - rect.left) / rect.width) * 2 - 1,
-      y: -((clientY - rect.top) / rect.height) * 2 + 1,
-    }
-    raycaster.current.setFromCamera(ndc, camera)
-    const { origin, direction } = raycaster.current.ray
-    const filter = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
-    const hit = world.castRay(new rapier.Ray(origin, direction), 1000, true, filter)
-    return hit ? raycaster.current.ray.at(hit.timeOfImpact, new Vector3()) : null
+    const scene = { camera, canvas: gl.domElement, world, rapier }
+    return tablePoint(scene, clientX, clientY, { offTable: 'null' })
   }
 
-  // The same window listeners as CrisisToken.jsx: a drag moves the card, a click opens it
+  // A drag moves the card, a click opens it
   function handlePointerDown(e) {
-    // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
-    if (e.button !== 0) return
-    e.stopPropagation()
-    const startX = e.clientX
-    const startY = e.clientY
-    const pointerId = e.pointerId ?? e.nativeEvent?.pointerId
-    if (controls) controls.enabled = false
-    if (pointerId !== undefined && gl.domElement.hasPointerCapture?.(pointerId)) {
-      gl.domElement.releasePointerCapture(pointerId)
-    }
     // The last point over the table. A release off the table puts the card back.
     let overTable = true
 
-    const handleMove = (ev) => {
-      if (ev.pointerId !== pointerId) return
-      if (!draggingRef.current) {
-        if (Math.hypot(ev.clientX - startX, ev.clientY - startY) < DRAG_THRESHOLD) return
+    startPointerDrag(e, {
+      controls,
+      canvas: gl.domElement,
+      onStart: () => {
         draggingRef.current = true
-      }
-      const p = pointerPoint(ev.clientX, ev.clientY)
-      overTable = Boolean(p)
-      if (p) poseRef.current = { x: p.x, z: p.z }
-    }
-
-    const handleUp = (ev) => {
-      if (ev.pointerId !== pointerId) return
-      if (draggingRef.current) {
+      },
+      onMove: (ev) => {
+        const p = pointerPoint(ev.clientX, ev.clientY)
+        overTable = Boolean(p)
+        if (p) poseRef.current = { x: p.x, z: p.z }
+      },
+      onEnd: () => {
         draggingRef.current = false
         // The card stays at the drop point until App's new card prop sets its place (a slot, or the
         // same point). Released off the table, it goes back to its last place.
         if (overTable) onMove?.(poseRef.current.x, poseRef.current.z)
         else poseRef.current = { x: card.x, z: card.z }
-      } else {
+      },
+      onClick: () => {
         const up = card.up === 'face' ? faceUrl : backUrl
         onOpen?.({ src: up, alt: getTactic(card.key)?.name ?? 'Team Tactic card' })
-      }
-      if (controls) controls.enabled = true
-      window.removeEventListener('pointermove', handleMove)
-      window.removeEventListener('pointerup', handleUp)
-    }
-
-    window.addEventListener('pointermove', handleMove)
-    window.addEventListener('pointerup', handleUp)
+      },
+    })
   }
 
   useOutline(flipGroupRef, outlineMode(false, hovered))
