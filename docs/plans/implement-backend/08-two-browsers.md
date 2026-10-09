@@ -372,7 +372,45 @@ Deviations: none.
 
 ## Phase 5: Local coturn and `?relay`
 
-Only if a browser pair of the user checks cannot connect directly (peer-to-peer doc, "Browser differences", the mDNS risk). Planned after the user checks, with what they show.
+### Why
+
+On 2026-10-09 every browser pair showed "Could not connect". `chrome://webrtc-internals` on the guest's Chrome showed:
+- Signaling worked: the offer went out, the answer came back, the signaling state became `stable`.
+- The answer had only one candidate, of type `srflx` (the public address of the home router). It had no `host` candidate.
+- The only candidate pair stayed `in-progress`, and ICE stayed `checking`.
+
+So the two browsers tried to reach each other through the public address of the router. Most home routers do not send such packets back into the same network (no NAT hairpin). The browsers do not share their local addresses, because a page without camera or microphone access gets only `*.local` names (Chrome, Firefox) or no local address at all (Safari). This was risk 1. Between two homes, the `srflx` candidates are the normal path, so production is not affected the same way.
+
+A local TURN server makes the connection work for every pair, with no change in the browsers or the router.
+
+### Decisions
+
+21. **coturn in Docker**, in `apps/api/compose.yaml` next to `mongo`. Image `coturn/coturn:4.18.0`. Port `3478` over UDP and TCP on `127.0.0.1`. User `dev`, password `dev`, realm `localhost`. No TLS. Relay ports `49160-49200`. The relay addresses are inside the container. Both browsers get relay addresses of the same server, so coturn passes the data between the two relay ports inside the container, and the relay ports need no port mapping.
+22. **The local TURN server is in the ICE list of every dev build.** `net/ice.js` gets `iceConfig({ dev, relay })`, which returns `{ iceServers, iceTransportPolicy }`. A dev build adds `turn:127.0.0.1:3478?transport=udp` and `?transport=tcp` with the dev user. A production build has only the STUN servers, as before. So in dev each pair connects directly when it can, and through coturn when not. When coturn does not run, ICE gathering ends after 3 s (decision 6), and the direct candidates still work.
+23. **`?relay`** (dev builds only, `net/debugFlags.js`) sets `iceTransportPolicy: 'relay'`, so all data goes through coturn (design, "Debug flags").
+24. **Start and stop.** `pnpm --filter api turn:up` and `turn:down` start and stop only the `coturn` service. `db:up` and `db:down` start and stop only `mongo`, so a tester who needs one does not need both.
+
+### Work
+
+Read: decisions 6, 13, 21 to 24. `apps/api/compose.yaml`, `apps/api/package.json`, `apps/web/src/net/ice.js`, `net/debugFlags.js`, `net/peer.js` (`createPeerConnection`), `Table.jsx`. The coturn docs for the flags of 4.18 (loopback and private peers, `--lt-cred-mech`, `--no-tls`, `--no-dtls`, `--log-file=stdout`).
+
+1. `apps/api/compose.yaml`: the `coturn` service (decision 21). Only the flags it needs, each with a short comment. If coturn 4.18 refuses relay peers in private ranges by default, allow the container's range.
+2. `apps/api/package.json`: `turn:up`, `turn:down`. `db:up` and `db:down` name the `mongo` service (decision 24).
+3. `net/ice.js`: `iceConfig({ dev, relay })` (decision 22). `ICE_SERVERS` stays the production list.
+4. `net/debugFlags.js`: `relayFlag()` (decision 23).
+5. `Table.jsx` and `peer.js`: the connection gets the whole config: `createPeerConnection({ iceServers, iceTransportPolicy })`. The tests of `peer.js` pass the new shape.
+6. `ice.test.js`: production has no TURN server and no policy. Dev has the TURN server. Dev with relay has `iceTransportPolicy: 'relay'`.
+7. Check that coturn answers: `pnpm --filter api turn:up`, then a small Node script in the scratchpad sends a STUN Binding request over UDP to `127.0.0.1:3478` and gets a Binding success answer. Then `turn:down`.
+8. `README.md` ("two browsers"): start coturn with `turn:up`, what `?relay` does. `docs/feature-peer-to-peer.md` ("Local testing", "Debug flags"): coturn is in dev from step 8, not from phase 6. The Result of this phase.
+
+Checks:
+- `pnpm --filter web test`, `pnpm --filter web build` pass.
+- The STUN check of work item 7 passes.
+- `pnpm format`, `pnpm lint`: no new errors.
+
+User, after this phase: `pnpm --filter api turn:up`, `pnpm dev`, then the user checks 3 to 12 again. Once in one pair, add `?relay` to both links: they still connect.
+
+### Result
 
 ## User
 
@@ -397,6 +435,8 @@ Once, in one pair:
 12. A long game: play some rounds in one room until the table is above 30 KB (the `PUT .../table` size in DevTools). Bob reloads: the table syncs. Do it in each pair.
 
 ### User check results
+
+- 2026-10-09: every browser pair showed "Could not connect". The reason is in Phase 5 ("Why"). The user agreed to Phase 5 on 2026-10-09.
 
 ## Done when
 
