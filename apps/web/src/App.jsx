@@ -402,6 +402,8 @@ export default function App({
   const tokenDragHandleRef = useRef(null)
   // The table point under the pointer, written by TokenDragPreview: { x, y, z } | null
   const dragPointRef = useRef(null)
+  // Live pose getters of the dragged pieces without a body, piece key → getter. Drag code fills it, LiveSync reads it.
+  const [pieceLives] = useState(() => new Map())
   // Scene calls this with (clientX, clientY) and returns the character id under the point, or
   // null. See Scene.jsx, characterAt.
   const characterAtRef = useRef(null)
@@ -1367,6 +1369,12 @@ export default function App({
     const handle = startPointerDrag(e, {
       key,
       ownership,
+      live: pieceLives,
+      // The point of TokenDragPreview. A new token has no key and sends nothing.
+      livePose: () => {
+        const p = dragPointRef.current
+        return p && { x: p.x, z: p.z }
+      },
       controls: controlsRef.current,
       canvas: e.target,
       button: null,
@@ -1509,6 +1517,7 @@ export default function App({
               onToolStore={handleToolStore}
               ownership={ownership}
               live={live}
+              pieceLives={pieceLives}
               angleSpawn={angleSpawn}
               showColliders={debug}
               showLabels={showLabels}

@@ -17,11 +17,13 @@ const round3 = (v) => Math.round(v * 1e3) / 1e3
 // getBody(id): the Rapier body of a model id, or undefined.
 // toolLives: a ref to { range, move, angle }, each a function that gives the pose of the own tool
 // { x, y, z, yaw, right, left }, or null (Tool in RulerTool.jsx registers it, the same way as turnRef).
+// pieceLives: a Map, piece key → getter of the live pose { x, z, yaw? } of a dragged piece without a body, or
+// null. The drag code fills it from the claim to the end of the drag (drag/pointerDrag.js, Phase 6).
 // liveRef: filled with { pose(key), tool(kind), cursor() }, for the pieces that follow. State is in refs,
-// because it changes every frame. pose(key): the numbers of a model while the other player claims it, else
+// because it changes every frame. pose(key): the numbers of a piece while the other player claims it, else
 // null. tool(kind): { pose, time } of the other player's tool, time in performance.now() ms. cursor():
 // { point: [x, y, z], time } or null.
-export default function LiveSync({ live, ownership, getBody, toolLives, liveRef }) {
+export default function LiveSync({ live, ownership, getBody, toolLives, pieceLives, liveRef }) {
   const { camera, gl } = useThree()
   const { world, rapier } = useRapier()
   // key → the numbers of the last sent pose
@@ -53,8 +55,8 @@ export default function LiveSync({ live, ownership, getBody, toolLives, liveRef 
     }
   }, [gl])
 
-  // Receiving (decision 9): a model pose counts only while the other player claims the key. A tool pose
-  // always counts.
+  // Receiving (decision 9): the pose of a piece counts only while the other player claims the key. A tool
+  // pose always counts.
   useEffect(() => {
     const store = received.current
     liveRef.current = {
@@ -68,7 +70,7 @@ export default function LiveSync({ live, ownership, getBody, toolLives, liveRef 
     const prune = () => {
       const owned = ownership.otherOwned()
       for (const key of store.keys()) {
-        if (key.startsWith('character:') && !owned.has(key)) store.delete(key)
+        if (!key.startsWith('tool:') && !owned.has(key)) store.delete(key)
       }
     }
     const offOwnership = ownership.subscribe(prune)
@@ -77,7 +79,7 @@ export default function LiveSync({ live, ownership, getBody, toolLives, liveRef 
       const owned = ownership.otherOwned()
       for (const key of Object.keys(p)) {
         if (!isLiveKind(key)) continue
-        if (key.startsWith('character:') && !owned.has(key)) continue
+        if (!key.startsWith('tool:') && !owned.has(key)) continue
         store.set(key, { numbers: p[key], time: now })
       }
       if (c !== undefined) cursor.current = c && { point: c, time: now }
@@ -139,6 +141,10 @@ export default function LiveSync({ live, ownership, getBody, toolLives, liveRef 
     for (const kind of ['range', 'move', 'angle']) {
       const key = `tool:${kind}`
       const pose = toolLives.current?.[kind]?.()
+      add(key, pose && poseToNumbers(key, pose))
+    }
+    for (const [key, get] of pieceLives) {
+      const pose = get()
       add(key, pose && poseToNumbers(key, pose))
     }
     // A key that is not sent any more is forgotten, so a new claim sends its first pose

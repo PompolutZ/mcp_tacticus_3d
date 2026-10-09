@@ -1,4 +1,4 @@
-import { Suspense, useMemo, useRef } from 'react'
+import { Suspense, useEffect, useMemo, useRef } from 'react'
 import { useTexture } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
@@ -7,7 +7,11 @@ import { assetUrl } from '../assets/index.js'
 import { TOKEN_SIZE, characterToken } from '../tokens/files.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import TokenFace from './TokenFace.jsx'
+import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
+import { TOKEN_RADIUS } from './CrisisToken.jsx'
+import DragFootprint from './DragFootprint.jsx'
 import TokenSolid from './TokenSolid.jsx'
+import useLiveFollow from './useLiveFollow.js'
 
 // A thin cylinder as wide as the token finds the ground under it, the same as LooseToken.jsx
 const HALF_H = 0.02
@@ -53,16 +57,46 @@ export function PileStack({ tokenKey, interactive = true, onPointerDown, onHover
 // the terrain under it, the same as LooseToken.jsx. See docs/feature-library.md, "Pile".
 // pile: { id, key, x, z }, see App.jsx, tokenPiles. onTakeStart(nativeEvent), onMoveStart(nativeEvent):
 // App starts the token drag. onHover(over): for the Delete key.
-export default function TokenPile({ pile, onTakeStart, onMoveStart, onHover }) {
+// remote: the other player moves the pile. getLivePose(key): their latest numbers. The pile follows them, hangs
+// above the table like a dragged token and shows its footprint.
+export default function TokenPile({
+  pile,
+  onTakeStart,
+  onMoveStart,
+  onHover,
+  remote = false,
+  getLivePose = null,
+}) {
   const { world, rapier } = useRapier()
   const shape = useMemo(() => new rapier.Cylinder(HALF_H, TOKEN_SIZE / 2), [rapier])
   const groupRef = useRef()
+  // The pose that is drawn, and the place in the document
+  const poseRef = useRef({ x: pile.x, z: pile.z })
+  const placeRef = useRef({ x: pile.x, z: pile.z })
+
+  const follow = useLiveFollow({
+    pieceKey: `pile:${pile.id}`,
+    remote,
+    getLivePose,
+    poseRef,
+    placeRef,
+  })
+
+  useEffect(() => {
+    placeRef.current = { x: pile.x, z: pile.z }
+    poseRef.current = { ...placeRef.current }
+  }, [pile.x, pile.z])
 
   useFrame(() => {
+    const { x, z } = poseRef.current
     // ONLY_FIXED + EXCLUDE_SENSORS inside castDown, so models and tools are ignored
-    const ground = castDown(world, rapier, shape, NO_ROTATION, pile.x, pile.z, HALF_H)
-    groupRef.current?.position.set(pile.x, (ground ?? 0) + GAP, pile.z)
+    const ground = castDown(world, rapier, shape, NO_ROTATION, x, z, HALF_H)
+    const lift = follow.current.moved ? TOKEN_DRAG_LIFT : 0
+    groupRef.current?.position.set(x, (ground ?? 0) + GAP + lift, z)
   })
+
+  const footprintShape = () =>
+    follow.current.moved ? { ...poseRef.current, radius: TOKEN_RADIUS } : null
 
   function handlePointerDown(e) {
     // Only the left button takes a token. A right or middle drag goes to OrbitControls (the camera).
@@ -77,6 +111,7 @@ export default function TokenPile({ pile, onTakeStart, onMoveStart, onHover }) {
       <Suspense fallback={null}>
         <PileStack tokenKey={pile.key} onPointerDown={handlePointerDown} onHover={onHover} />
       </Suspense>
+      {remote && <DragFootprint getShape={footprintShape} />}
     </group>
   )
 }

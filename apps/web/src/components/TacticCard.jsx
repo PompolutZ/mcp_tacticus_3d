@@ -16,6 +16,7 @@ import {
 import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
 import DragFootprint from './DragFootprint.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
+import useLiveFollow from './useLiveFollow.js'
 import { useColorTexture } from './useColorTexture.js'
 import { useHoverCursor } from './useHoverCursor.js'
 
@@ -45,6 +46,9 @@ const flipAngle = (flip) => flip.from + (flip.to - flip.from) * ease(flip.time /
 // onHover(over): the pointer moved onto (true) or off (false) the card, for the F and Delete keys.
 // ownership: the claims on pieces (net/ownership.js). A drag claims `tactic:<id>`. A cancelled drag (Escape,
 // or a lost tie) puts the card back to its place in the document.
+// pieceLives: the Map of live pose getters (net/live.js, LiveSync). remote: the other player claims the card.
+// getLivePose(key): their latest numbers. While remote, the card follows them, hangs above the table and shows
+// its footprint.
 export default function TacticCard({
   card,
   stackIndex,
@@ -52,6 +56,9 @@ export default function TacticCard({
   onOpen,
   onHover,
   ownership = null,
+  pieceLives = null,
+  remote = false,
+  getLivePose = null,
 }) {
   // Both sides load when the card mounts, so the first flip does not wait for an image
   const [faceUrl, backUrl] = [
@@ -96,6 +103,14 @@ export default function TacticCard({
     if (!draggingRef.current) poseRef.current = { ...placeRef.current }
   }, [card])
 
+  const follow = useLiveFollow({
+    pieceKey: `tactic:${card.id}`,
+    remote,
+    getLivePose,
+    poseRef,
+    placeRef,
+  })
+
   useEffect(() => {
     const flip = flipRef.current
     if (flip.up === card.up) return
@@ -113,7 +128,9 @@ export default function TacticCard({
     // ONLY_FIXED + EXCLUDE_SENSORS inside castDown, so models and tools are ignored
     const ground = castDown(world, rapier, shape, NO_ROTATION, x, z, HALF_H) ?? 0
     const y =
-      ground + TACTIC_CARD_Y + (draggingRef.current ? TOKEN_DRAG_LIFT : stackIndex * STACK_STEP)
+      ground +
+      TACTIC_CARD_Y +
+      (draggingRef.current || follow.current.moved ? TOKEN_DRAG_LIFT : stackIndex * STACK_STEP)
     groupRef.current?.position.set(x, y + FLIP_LIFT * Math.abs(Math.sin(angle)), z)
     if (flipGroupRef.current) flipGroupRef.current.rotation.z = angle
   })
@@ -133,6 +150,8 @@ export default function TacticCard({
     startPointerDrag(e, {
       key: `tactic:${card.id}`,
       ownership,
+      live: pieceLives,
+      livePose: () => poseRef.current,
       controls,
       canvas: gl.domElement,
       onStart: () => {
@@ -178,7 +197,7 @@ export default function TacticCard({
 
   // The long side of the card is local z. The footprint angle (cos a, 0, -sin a) of local z is yaw - π/2.
   const footprintShape = () =>
-    overTableRef.current
+    overTableRef.current && (draggingRef.current || follow.current.moved)
       ? {
           ...poseRef.current,
           angle: tacticCardYaw(card.team) - Math.PI / 2,
@@ -216,7 +235,7 @@ export default function TacticCard({
           <meshStandardMaterial map={backMap} roughness={1} />
         </mesh>
       </group>
-      {dragging && <DragFootprint getShape={footprintShape} />}
+      {(dragging || remote) && <DragFootprint getShape={footprintShape} />}
     </group>
   )
 }

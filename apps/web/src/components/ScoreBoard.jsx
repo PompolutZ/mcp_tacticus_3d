@@ -24,6 +24,7 @@ import {
 import { affiliationToken, BOARD_MESH, BOARD_TEXTURE, ROUND_MESH } from '../scoreboard/files.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import TokenSolid from './TokenSolid.jsx'
+import useLiveFollow from './useLiveFollow.js'
 import { useHoverCursor } from './useHoverCursor.js'
 
 // TTS mirrors X when it imports an OBJ. With the z → -z conversion, this is a 180° turn around Y (see
@@ -76,12 +77,17 @@ function Board() {
 // position: { x, z } from App. onMove(x, z): called once, when a drag ends. shape: a Rapier shape as wide as
 // the marker, for the ground cast. halfHeight: half the shape's height. lift: extra height, for a marker
 // that lies on another one. pieceKey: the key of the claim, `marker:<blue|red|round>`. ownership: the claims
-// on pieces (net/ownership.js). A cancelled drag (Escape, or a lost tie) puts the marker back to its place
+// on pieces (net/ownership.js). pieceLives: the Map of live pose getters (net/live.js, LiveSync). remote: the other
+// player claims the marker. getLivePose(key): their latest numbers. While remote, the marker follows them (it
+// does not lift, so it has no footprint). A cancelled drag (Escape, or a lost tie) puts the marker back to its place
 // in the document. children: the marker, with its bottom at y = 0. They can suspend while their
 // files load; the drag does not wait for them.
 function DraggableMarker({
   pieceKey,
   ownership,
+  pieceLives,
+  remote,
+  getLivePose,
   position,
   points,
   shape,
@@ -106,6 +112,8 @@ function DraggableMarker({
     if (!draggingRef.current) poseRef.current = position
   }, [position])
 
+  useLiveFollow({ pieceKey, remote, getLivePose, poseRef, placeRef })
+
   useFrame(() => {
     const { x, z } = poseRef.current
     // ONLY_FIXED + EXCLUDE_SENSORS inside castDown, so models and tools are ignored
@@ -125,6 +133,8 @@ function DraggableMarker({
     startPointerDrag(e, {
       key: pieceKey,
       ownership,
+      live: pieceLives,
+      livePose: () => poseRef.current,
       controls,
       canvas: gl.domElement,
       immediate: true,
@@ -212,7 +222,15 @@ function RoundMarkerMesh() {
 // markers: { blue, red, round } → { x, z }, see App.jsx. affiliations: { blue, red } → affiliation key.
 // onMarkerMove(marker, x, z): a marker was dropped, already moved onto a spot when it was near one.
 // The app does not read the score from the board. Players read it, as on a real table.
-export default function ScoreBoard({ markers, affiliations, onMarkerMove, ownership = null }) {
+export default function ScoreBoard({
+  markers,
+  affiliations,
+  onMarkerMove,
+  ownership = null,
+  pieceLives = null,
+  otherOwned = null,
+  getLivePose = null,
+}) {
   const { rapier } = useRapier()
   // The VP marker dropped last. When both players have the same VP, it lies on top of the other one, as
   // in TTS, where the second marker falls onto the first. Both edges show, so both colors can be seen.
@@ -238,6 +256,9 @@ export default function ScoreBoard({ markers, affiliations, onMarkerMove, owners
           key={team}
           pieceKey={`marker:${team}`}
           ownership={ownership}
+          pieceLives={pieceLives}
+          remote={otherOwned?.has(`marker:${team}`) ?? false}
+          getLivePose={getLivePose}
           position={markers[team]}
           points={VP_POINTS}
           shape={vpShape}
@@ -256,6 +277,9 @@ export default function ScoreBoard({ markers, affiliations, onMarkerMove, owners
       <DraggableMarker
         pieceKey="marker:round"
         ownership={ownership}
+        pieceLives={pieceLives}
+        remote={otherOwned?.has('marker:round') ?? false}
+        getLivePose={getLivePose}
         position={markers.round}
         points={ROUND_POINTS}
         shape={roundShape}

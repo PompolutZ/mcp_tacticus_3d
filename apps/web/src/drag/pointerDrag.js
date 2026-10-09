@@ -27,6 +27,9 @@ export const DRAG_THRESHOLD = 4
 // - onRefused(): the claim was refused. For a piece that set up state at the press.
 // - releaseAtEnd: release key after onEnd returned, and after onCancel, true by default. False: the piece
 //   releases its claim later (a model, when its body is at rest).
+// - live, livePose: the live poses of pieces without a body (plan 09, Phase 6). live: a Map, piece key →
+//   getter, which LiveSync reads at each send. livePose(): the pose of the piece ({ x, z, yaw? }), or null.
+//   The getter is in the Map from the claim to the end of the drag. Needs key and ownership.
 // - controls: the camera controls, off from the press to the end.
 // - canvas, window: where capture is released and where the listeners go. Tests pass fakes.
 export function startPointerDrag(event, options = {}) {
@@ -48,6 +51,8 @@ export function startPointerDrag(event, options = {}) {
     key = null,
     ownership = null,
     releaseAtEnd = true,
+    live = null,
+    livePose = null,
   } = options
   // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
   if (button !== null && event.button !== button) return null
@@ -85,7 +90,14 @@ export function startPointerDrag(event, options = {}) {
     claimed = false
     stopLost?.()
     stopLost = null
+    if (live && livePose && live.get(key) === livePose) live.delete(key)
     if (releaseAtEnd) ownership.release(key)
+  }
+
+  // The claim is held: the live pose of the piece goes to LiveSync, and a lost tie cancels the drag
+  function startClaim() {
+    if (live && livePose) live.set(key, livePose)
+    listenLost()
   }
 
   function listenLost() {
@@ -114,7 +126,7 @@ export function startPointerDrag(event, options = {}) {
           return
         }
         claimed = true
-        listenLost()
+        startClaim()
       }
       dragging = true
       onStart?.(ev)
@@ -155,7 +167,7 @@ export function startPointerDrag(event, options = {}) {
   target.addEventListener('pointermove', handleMove)
   target.addEventListener('pointerup', handleUp)
   if (immediate) {
-    if (claimed) listenLost()
+    if (claimed) startClaim()
     dragging = true
     onStart?.(event)
   }

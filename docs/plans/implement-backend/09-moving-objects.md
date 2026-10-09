@@ -707,6 +707,36 @@ User, after this phase: checks 21 and 22.
 
 ### Result
 
+Done. Work items 1 to 4. Not tried in two browsers.
+
+What changed:
+- `net/livePose.js`: `KINDS` has `token` ([x, z, yaw]) and `loose`, `pile`, `tactic`, `marker` ([x, z]). `livePose.test.js` tests each kind both ways.
+- `drag/pointerDrag.js`: new options `live` (a Map, piece key to getter) and `livePose()` (the pose `{ x, z, yaw? }` or null). The getter goes into the Map when the claim is held, and out at the end of the drag (drop, cancel, lost tie). A refused claim registers nothing. `pointerDrag.test.js` has two new tests.
+- `App.jsx`: makes the Map (`pieceLives`) and passes it to `Scene`. The token drag passes it with the point of `TokenDragPreview` (`dragPointRef`) as `livePose`. A new token has no key, so it sends nothing.
+- `Scene.jsx`: passes `pieceLives` to `LiveSync` and to `CrisisToken`, `TacticCard` and `ScoreBoard`. It gives each piece `remote` (the key is in `otherOwned`) and `getLivePose` (`received.pose`). `LooseToken` and `TokenPile` get the same two props.
+- `LiveSync.jsx`: each send also reads every getter in `pieceLives`. Receiving: every kind except `tool:` counts only while the other player claims the key, and is removed when the key leaves the set.
+- New `components/useLiveFollow.js`: the follow of a piece without a body. Each frame the drawn pose goes `followPart(dt)` of the way to the live pose (yaw by `lerpAngle`). With no live pose it does nothing. When the live pose goes, the pose goes back to the place in the document at once.
+- `CrisisToken.jsx`, `TacticCard.jsx`, `ScoreBoard.jsx` (markers), `LooseToken.jsx`, `TokenPile.jsx`: use the hook. The drags of the token (and its turn handle), the card and the markers pass `live` and `livePose`.
+
+Choices that the plan did not fix:
+- The registry is a plain Map made by `App`, not a context. It is passed down as a prop, as `ownership` is.
+- The crisis token sends `[x, z, yaw]` for both a drag and a turn. The two are told apart on the receiving side. A piece counts as moved when its live point is more than 0.05" from its place. Once moved, it stays moved until the claim ends. A moved piece hangs `TOKEN_DRAG_LIFT` above the table and shows its footprint. A turn alone does neither.
+- The footprint component is mounted while the other player claims the piece. It is hidden (shape null) until the piece moved. It takes one slot meanwhile.
+- A loose token and a pile use the radius of `TokenDragPreview` (`TOKEN_RADIUS`) for the footprint.
+- A place change in the document during a follow puts the drawn pose on the new place. The follow goes on from there.
+- The marker follows its position only. It has no lift and no footprint.
+- The drag registers its getter and the getter returns the drawn pose, so a token sends its yaw too.
+
+Differences in behavior:
+- In a multiplayer room, a token, card, marker, loose token or pile that the other player drags moves smoothly in this browser. Before, it stayed until the drop.
+- A single player room and the Sandbox look as before.
+
+Checks:
+- `pnpm --filter web test`: 218 pass, 0 fail.
+- `pnpm --filter web build`: passes.
+- `pnpm format` done. `pnpm lint`: 36 warnings, 0 errors.
+- Not run in a browser, by the rules.
+
 ## Phase 7: Traffic and docs
 
 Read: decision 17. `net/peer.js`, `Table.jsx`. MDN for `RTCStatsReport`, `RTCTransportStats`, `RTCIceCandidatePairStats`.

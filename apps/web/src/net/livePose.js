@@ -2,8 +2,7 @@
 // rounding and equality, and the follow step. No three.js and no import.meta.env, so node --test can load it.
 //
 // Numbers by kind of piece key (plan, "Names"). A model: [x, y, z, qx, qy, qz, qw]. A tool: [x, y, z, yaw,
-// right, left]. Phase 6 adds the crisis token, the loose token, the pile, the tactic card and the marker
-// as new entries of KINDS.
+// right, left]. A crisis token: [x, z, yaw]. A loose token, a pile, a tactic card, a marker: [x, z].
 import { roundPiece } from './live.js'
 
 // The time constant of the follow, in seconds (decision 14)
@@ -20,6 +19,12 @@ export function lerpAngle(a, b, part) {
   return a + diff * part
 }
 
+// A piece that moves on the table plane only
+const FLAT = {
+  toNumbers: ({ x, z }) => [x, z],
+  fromNumbers: ([x, z]) => ({ x, z }),
+}
+
 // kind → how a pose object becomes numbers, and back
 const KINDS = {
   character: {
@@ -30,6 +35,14 @@ const KINDS = {
     toNumbers: ({ x, y, z, yaw, right, left }) => [x, y, z, yaw, right, left],
     fromNumbers: ([x, y, z, yaw, right, left]) => ({ x, y, z, yaw, right, left }),
   },
+  token: {
+    toNumbers: ({ x, z, yaw }) => [x, z, yaw],
+    fromNumbers: ([x, z, yaw]) => ({ x, z, yaw }),
+  },
+  loose: FLAT,
+  pile: FLAT,
+  tactic: FLAT,
+  marker: FLAT,
 }
 
 export const kindOf = (key) => key.slice(0, key.indexOf(':'))

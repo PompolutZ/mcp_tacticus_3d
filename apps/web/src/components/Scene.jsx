@@ -247,6 +247,8 @@ const OVERLAP_INTERVAL = 100
 // claims a model before R, Q / E, Throw, Place and a drag, releases it when the body rests, and writes the rest
 // pose (plan 09, decisions 5 to 9).
 // live: the live hub of a multiplayer room (net/live.js), or null. With it, Scene mounts LiveSync and the cursor.
+// pieceLives: a Map, piece key → getter of the live pose of a dragged piece without a body. The drag code fills it and
+// LiveSync sends it (plan 09, Phase 6). The pieces follow the other player's live poses while they claim them.
 // poses: the live rest poses of the models, model id → pose (the table document). A pose that the other browser
 // wrote moves the body (decision 8). startPose is the pose at mount.
 export default function Scene({
@@ -322,6 +324,7 @@ export default function Scene({
   onModelRest,
   ownership = null,
   live = null,
+  pieceLives = null,
 }) {
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
   const { camera, gl, pointer } = useThree()
@@ -359,6 +362,8 @@ export default function Scene({
   const toolLives = useRef({})
   // What LiveSync received: { pose(key), tool(kind), cursor() }, or null (LiveSync.jsx)
   const received = useRef(null)
+  // The latest live numbers of a piece key, for the pieces that follow
+  const getPieceLive = (key) => received.current?.pose(key) ?? null
   // Turns that are not done yet: piece key → { piece, left }, left in radians. See the useFrame below.
   const turnsLeft = useRef(new Map())
   // Function of the angle tool that returns { target, openYaw } while it is snapped, else null. See AngleRuler.
@@ -929,6 +934,7 @@ export default function Scene({
               ownership={ownership}
               getBody={(id) => charBodies.current.get(id)}
               toolLives={toolLives}
+              pieceLives={pieceLives}
               liveRef={received}
             />
             <RemoteCursor
@@ -1012,6 +1018,9 @@ export default function Scene({
           affiliations={affiliations}
           onMarkerMove={onScoreMarkerMove}
           ownership={ownership}
+          pieceLives={pieceLives}
+          otherOwned={otherOwned}
+          getLivePose={getPieceLive}
         />
 
         {/* Crisis cards and tokens are relative to the player sides, not the mat, so they stay
@@ -1068,6 +1077,9 @@ export default function Scene({
               onMove={(x, z) => onTokenMove(tok.id, x, z)}
               onTurn={(yaw) => onTokenTurn(tok.id, yaw)}
               ownership={ownership}
+              pieceLives={pieceLives}
+              remote={otherOwned.has(`token:${tok.id}`)}
+              getLivePose={getPieceLive}
               onHold={(characterId, point) => {
                 const holder = characters.find((ch) => ch.id === characterId)
                 const trayPos = trayPositions.get(characterId)
@@ -1101,6 +1113,8 @@ export default function Scene({
               token={tok}
               onDragStart={(e) => onTokenDragStart(e, tok.key, tok.id)}
               onHover={(over) => onLooseHover?.(tok.id, over)}
+              remote={otherOwned.has(`loose:${tok.id}`)}
+              getLivePose={getPieceLive}
             />
           ))}
         {/* Piles of character tokens on the table (Library, Pile mode). A pile that is moved shows
@@ -1114,6 +1128,8 @@ export default function Scene({
               onTakeStart={(e) => onPileTakeStart(e, pile)}
               onMoveStart={(e) => onPileMoveStart(e, pile)}
               onHover={(over) => onPileHover?.(pile.id, over)}
+              remote={otherOwned.has(`pile:${pile.id}`)}
+              getLivePose={getPieceLive}
             />
           ))}
         {tokenDrag?.active && (
@@ -1163,6 +1179,9 @@ export default function Scene({
               stackIndex={i}
               onMove={(x, z) => onTacticMove(card.id, x, z)}
               ownership={ownership}
+              pieceLives={pieceLives}
+              remote={otherOwned.has(`tactic:${card.id}`)}
+              getLivePose={getPieceLive}
               onOpen={onCardOpen}
               onHover={(over) => onTacticHover?.(card.id, over)}
             />
@@ -1219,7 +1238,7 @@ export default function Scene({
             claimKey: modelKey(model.id),
             ownership: claims,
             remote: otherOwned.has(modelKey(model.id)),
-            getLivePose: (key) => received.current?.pose(key) ?? null,
+            getLivePose: getPieceLive,
             onRest: () => {
               // One writer for each rest pose (decision 6)
               if (ownership && !ownership.writes(modelKey(model.id))) return

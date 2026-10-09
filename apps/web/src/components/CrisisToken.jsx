@@ -16,6 +16,7 @@ import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useColorTexture } from './useColorTexture.js'
 import { useHoverCursor } from './useHoverCursor.js'
 import TurnHandle from './TurnHandle.jsx'
+import useLiveFollow from './useLiveFollow.js'
 
 const TEAM_COLORS = { blue: '#2980b9', red: '#c0392b' }
 // A token is a 1" circle, TOKEN_THICKNESS thick (tokens.json size is used for the shape, not the exact
@@ -132,6 +133,9 @@ function AffiliationMarker({ affiliation, x, radius }) {
 // affiliations), or null when no player controls the token.
 // ownership: the claims on pieces (net/ownership.js). A drag and a turn claim `token:<id>`; a cancelled
 // one (Escape, or a lost tie) puts the token back to its place in the document.
+// pieceLives: the Map of live pose getters (net/live.js, LiveSync). remote: the other player claims the token.
+// getLivePose(key): their latest numbers. While remote, the token follows them. It hangs above the table and shows
+// its footprint when it moved, not during a turn alone.
 export default function CrisisToken({
   token,
   selected,
@@ -147,6 +151,9 @@ export default function CrisisToken({
   centerRef,
   controlAffiliation = null,
   ownership = null,
+  pieceLives = null,
+  remote = false,
+  getLivePose = null,
 }) {
   const [topMap, bottomMap, damageMap] = useTokenMaps(token)
 
@@ -172,6 +179,15 @@ export default function CrisisToken({
     placeRef.current = { x: token.x, z: token.z, yaw: token.yaw }
     if (!draggingRef.current) poseRef.current = { ...placeRef.current }
   }, [token.x, token.z, token.yaw])
+
+  // The other player's drag or turn (Phase 6)
+  const follow = useLiveFollow({
+    pieceKey: `token:${token.id}`,
+    remote,
+    getLivePose,
+    poseRef,
+    placeRef,
+  })
 
   // Registers a live getter, not a ref object, because the pose changes on every pointer move of a
   // drag, not only once per frame.
@@ -205,11 +221,12 @@ export default function CrisisToken({
   useFrame(() => {
     const { x, z, yaw } = poseRef.current
     // ONLY_FIXED + EXCLUDE_SENSORS inside castDown, so models and tools are ignored
+    const lifted = draggingRef.current || follow.current.moved
     const ground =
-      floorY !== undefined && !draggingRef.current
+      floorY !== undefined && !lifted
         ? floorY
         : castDown(world, rapier, shape, NO_ROTATION, x, z, HALF_H)
-    const y = (ground ?? 0) + GAP + HALF_H + (draggingRef.current ? TOKEN_DRAG_LIFT : 0)
+    const y = (ground ?? 0) + GAP + HALF_H + (lifted ? TOKEN_DRAG_LIFT : 0)
     if (groupRef.current) {
       groupRef.current.position.set(x, y, z)
       groupRef.current.rotation.y = yaw
@@ -237,6 +254,8 @@ export default function CrisisToken({
     startPointerDrag(e, {
       key: `token:${token.id}`,
       ownership,
+      live: pieceLives,
+      livePose: () => poseRef.current,
       controls,
       canvas: gl.domElement,
       // A click selects the token. Only a selected token that can move moves by a drag.
@@ -295,6 +314,8 @@ export default function CrisisToken({
     startPointerDrag(e, {
       key: `token:${token.id}`,
       ownership,
+      live: pieceLives,
+      livePose: () => poseRef.current,
       controls,
       // The handle never released the pointer capture
       releaseCapture: false,
@@ -334,7 +355,8 @@ export default function CrisisToken({
   }
   const out = () => setHovered(false)
 
-  const footprintShape = () => ({ ...poseRef.current, radius: RADIUS })
+  const footprintShape = () =>
+    draggingRef.current || follow.current.moved ? { ...poseRef.current, radius: RADIUS } : null
 
   return (
     <group ref={setGroupRef} position={[token.x, 0, token.z]} rotation={[0, token.yaw, 0]}>
@@ -371,7 +393,7 @@ export default function CrisisToken({
           <meshStandardMaterial map={damageMap} transparent roughness={1} />
         </mesh>
       )}
-      {dragging && <DragFootprint getShape={footprintShape} />}
+      {(dragging || remote) && <DragFootprint getShape={footprintShape} />}
       {selected && token.hasArc && (
         <TurnHandle
           position={[HANDLE_DIST * Math.SQRT1_2, HANDLE_Y, -HANDLE_DIST * Math.SQRT1_2]}

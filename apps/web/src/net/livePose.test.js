@@ -77,3 +77,23 @@ test('sameSideQuat flips a quaternion that points away from the reference', () =
   assert.equal(sameSideQuat([0, 0, 0, -1], [0, 0, 0, 1])[3], 1)
   assert.deepEqual(sameSideQuat([0, 0, 0, 1], [0, 0, 0, 1]), [0, 0, 0, 1])
 })
+
+test('a crisis token pose goes to [x, z, yaw], rounded, and back', () => {
+  const numbers = poseToNumbers('token:t1', { x: 1.23456, z: -2.00049, yaw: 1.234567 })
+  assert.deepEqual(numbers, [1.235, -2, 1.2346])
+  assert.deepEqual(numbersToPose('token:t1', numbers), { x: 1.235, z: -2, yaw: 1.2346 })
+})
+
+for (const key of ['loose:a', 'pile:a', 'tactic:a', 'marker:blue', 'marker:red', 'marker:round']) {
+  test(`${key}: a flat pose goes to [x, z], rounded, and back`, () => {
+    assert.equal(isLiveKind(key), true)
+    const numbers = poseToNumbers(key, { x: 3.14159, z: -2.0004 })
+    assert.deepEqual(numbers, [3.142, -2])
+    assert.deepEqual(numbersToPose(key, numbers), { x: 3.142, z: -2 })
+  })
+}
+
+test('a wrong count of numbers for a new kind gives no pose', () => {
+  assert.equal(poseToNumbers('unknown:a', { x: 1, z: 2 }), null)
+  assert.equal(numbersToPose('token:a', null), null)
+})

@@ -344,3 +344,26 @@ test('without a key or without ownership, nothing is claimed', () => {
   noOwnership.win.dispatchEvent(up())
   assert.deepEqual(noOwnership.log, ['start', 'move', 'end'])
 })
+
+test('the live getter is registered from the claim to the drop', () => {
+  const live = new Map()
+  const livePose = () => ({ x: 1, z: 2 })
+  const { win } = claimSetup({ live, livePose })
+  assert.equal(live.size, 0)
+  win.dispatchEvent(move(200))
+  assert.equal(live.get('tactic:a'), livePose)
+  win.dispatchEvent(up())
+  assert.equal(live.size, 0)
+})
+
+test('the live getter goes at a cancel, and a refused claim registers none', () => {
+  const live = new Map()
+  const livePose = () => null
+  const a = claimSetup({ live, livePose, immediate: true })
+  assert.equal(live.get('tactic:a'), livePose)
+  a.drag.cancel()
+  assert.equal(live.size, 0)
+  const b = claimSetup({ live, livePose }, { refuse: ['tactic:a'] })
+  b.win.dispatchEvent(move(200))
+  assert.equal(live.size, 0)
+})
