@@ -448,7 +448,7 @@ On 2026-10-09:
 - `put-secrets` and the deploy worked. `POST /auth/discord` with a fake code answered 401 `Discord login failed`.
 - Checks 7 to 12 passed, also the first login with `prompt=none`. One problem: after a restart of `pnpm dev`, the tester was logged out. Cause and fix: decision 16.
 - After Phase 4: the deploy and the `curl` checks passed again (check 13). With the dev Mongo and `STORE=mongo`, the tester stayed logged in after a restart of `pnpm dev` (check 14).
-- Check 15 (production after the Netlify build) waits for the push.
+- Check 15 passed after the push of `8d9db43`: production shows no login and sends no request to the API. That Netlify build was also the first with step 5 in production.
 
 ## Done when
 

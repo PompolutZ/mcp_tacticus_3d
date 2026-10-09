@@ -252,7 +252,7 @@ Done when:
 - The first login works with `prompt=none`. Discord accepts the redirect `http://localhost:5173/`. Both answer auth doc open question 1 and risk 1.
 - Dev Mongo: `apps/api/compose.yaml`, `db:up`, `db:down`. With `STORE=mongo`, testers stay logged in after an API restart. The fixed dev session secret alone did not do this.
 - `zod/mini` replaced `zod`: the Lambda `index.mjs` is 851,963 bytes before step 6, 1,320,732 with `zod`, 882,867 with `zod/mini`. Installed: `zod@4.6.5`, `@hono/zod-validator@0.9.1`.
-- The user deployed the API with the auth routes, and the user checks passed. Check 15 (production shows no login) waits for the push.
+- The user deployed the API with the auth routes, and all user checks passed. Production shows no login and sends no request to the API.
 - Open issues: none. `DELETE /me` needs the rooms part in step 7.
 
 ## Step 7: Online rooms
