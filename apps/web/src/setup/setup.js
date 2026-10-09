@@ -13,13 +13,17 @@ export const otherType = (type) => (type === 'secure' ? 'extract' : 'secure')
 // can list a code twice.
 const NO_SQUAD = { characters: [], tactics: [] }
 
-// deck: the roll-off winner, who has Priority, and the crisis type of the deck they use: { team, type } |
-// null. draws: the codes of the 2 cards drawn from each deck. picks: the code of the card of each type that
-// the mission uses. threat: the Maximum Threat value. edge: the Priority player chose the deployment edge.
-// squads: see NO_SQUAD. ready: the player clicked Ready. When both players are Ready, both squads go on the
-// table at the same time. placed: the ids of the characters and Team Tactic cards that the squads put on
-// the table, of both players. A restart removes them.
+// id: random, made with each new setup (newSetup). A squad that a player keeps in their browser counts only
+// for the setup with its id (rooms/store.js, squad). deck: the roll-off winner, who has Priority, and the
+// crisis type of the deck they use: { team, type } | null. draws: the codes of the 2 cards drawn from each
+// deck. picks: the code of the card of each type that the mission uses. threat: the Maximum Threat value.
+// edge: the Priority player chose the deployment edge. squads: see NO_SQUAD. In a multiplayer room, a
+// squad is in the document only after the reveal. ready: the player clicked Ready. When both players are
+// Ready, each squad is revealed and goes on the table (revealPlan). placed: per team, the ids of the
+// characters and Team Tactic cards that the squad put on the table, or null before. A restart removes them.
+// A setup saved before the reveal has placed: { characters, tactics } for both teams (placedSides).
 export const NEW_SETUP = {
+  id: null,
   deck: null,
   draws: { secure: [], extract: [] },
   picks: { secure: null, extract: null },
@@ -27,14 +31,33 @@ export const NEW_SETUP = {
   edge: false,
   squads: { blue: NO_SQUAD, red: NO_SQUAD },
   ready: { blue: false, red: false },
-  placed: { characters: [], tactics: [] },
+  placed: { blue: null, red: null },
+}
+
+// A new setup. The id is random, so it is made here and not in NEW_SETUP.
+export function newSetup() {
+  return { ...NEW_SETUP, id: crypto.randomUUID() }
+}
+
+const NO_PLACED = { characters: [], tactics: [] }
+
+// setup.placed as { blue, red }, each null | { characters, tactics }. The old shape { characters, tactics }
+// belongs to Blue, and Red gets an empty list, but only when both players are Ready: then the old setup
+// was done. Before that the old lists are empty.
+export function placedSides(setup) {
+  const { placed } = setup
+  if (!Array.isArray(placed.characters))
+    return { blue: placed.blue ?? null, red: placed.red ?? null }
+  const done = setup.ready.blue && setup.ready.red
+  return { blue: done ? placed : null, red: done ? NO_PLACED : null }
 }
 
 // 'deck': players roll off, and the winner chooses a deck. 'first': the other player uses 1 of the 2
 // drawn cards. 'second': the winner uses 1 of the 2 cards drawn from the other deck of the other player.
 // 'threat': the other player chooses the Maximum Threat. 'edge': the winner turns the mat and chooses the
-// deployment edge. 'squads': each player chooses a squad and clicks Ready. 'done': both squads are on the
-// table.
+// deployment edge. 'squads': each player chooses a squad and clicks Ready. 'reveal': both players are
+// Ready, but a squad is not on the table yet, for example while the other player's page is closed. 'done':
+// both squads are on the table.
 export function setupStep(setup) {
   if (!setup.deck) return 'deck'
   const first = setup.deck.type
@@ -43,7 +66,31 @@ export function setupStep(setup) {
   if (setup.threat === null) return 'threat'
   if (!setup.edge) return 'edge'
   if (!setup.ready.blue || !setup.ready.red) return 'squads'
-  return 'done'
+  const placed = placedSides(setup)
+  return placed.blue && placed.red ? 'done' : 'reveal'
+}
+
+// The sides that this browser reveals now. Both players are Ready, and the side is not placed yet. sides:
+// the teams this browser plays. stored: null when the squads are in the document (single player room,
+// Sandbox), else { blue, red } → the squad record of this browser { setupId, squad } | null. Returns
+// { reveal: [{ side, squad }], missing: [side] }. missing: the browser has no squad of this setup for the
+// side, for example after a restart in the other browser, or on another device.
+export function revealPlan(setup, sides, stored) {
+  const plan = { reveal: [], missing: [] }
+  if (!setup.ready.blue || !setup.ready.red) return plan
+  const placed = placedSides(setup)
+  for (const side of sides) {
+    if (placed[side]) continue
+    if (!stored) {
+      plan.reveal.push({ side, squad: setup.squads[side] })
+      continue
+    }
+    const record = stored[side]
+    if (record && record.setupId === (setup.id ?? null)) {
+      plan.reveal.push({ side, squad: record.squad })
+    } else plan.missing.push(side)
+  }
+  return plan
 }
 
 // 2 different cards of `codes` at random, in roster order. All cards when there are fewer. random()
@@ -102,27 +149,34 @@ export function toggleSquadCard(setup, team, list, place) {
   return { ...setup, squads: { ...setup.squads, [team]: { ...squad, [list]: places } } }
 }
 
-// The Ready toggle of `team`, while the other player is not Ready
+// The Ready toggle of `team`
 export function toggleReady(setup, team) {
   return { ...setup, ready: { ...setup.ready, [team]: !setup.ready[team] } }
 }
 
-// The second player clicks Ready: both squads go on the table. placed: { characters, tactics }, the ids of
-// what the squads put on the table.
-export function activateSquads(setup, placed) {
+// The squad of `side` is revealed and on the table: it goes into the setup, with `placed`, the ids of what
+// it put on the table: { characters, tactics }.
+export function placeSquad(setup, side, squad, placed) {
   return {
     ...setup,
-    ready: { blue: true, red: true },
-    placed: {
-      characters: [...setup.placed.characters, ...placed.characters],
-      tactics: [...setup.placed.tactics, ...placed.tactics],
-    },
+    squads: { ...setup.squads, [side]: squad },
+    placed: { ...placedSides(setup), [side]: placed },
+  }
+}
+
+// The ids of the characters and Team Tactic cards that the squads put on the table: { characters, tactics }
+export function placedIds(setup) {
+  const sides = Object.values(placedSides(setup)).filter(Boolean)
+  return {
+    characters: sides.flatMap((side) => side.characters),
+    tactics: sides.flatMap((side) => side.tactics),
   }
 }
 
 // The setup put something on the table: the crisis cards of the mission, or a squad
 export function setupPlacedCards(setup) {
-  return setup.edge || setup.placed.characters.length > 0 || setup.placed.tactics.length > 0
+  const { characters, tactics } = placedIds(setup)
+  return setup.edge || characters.length > 0 || tactics.length > 0
 }
 
 // The crisis cards of each player on the table in the current step: [{ team, type, codes, use, drawn }].
@@ -144,7 +198,7 @@ export function crisisRows(setup, parsed) {
         : [],
     )
   }
-  if (step === 'squads' || step === 'done') return []
+  if (step === 'squads' || step === 'reveal' || step === 'done') return []
   const { team: winner, type: first } = setup.deck
   const other = otherTeam(winner)
   const second = otherType(first)

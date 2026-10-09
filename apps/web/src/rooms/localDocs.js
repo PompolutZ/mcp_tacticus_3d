@@ -1,6 +1,7 @@
-// The IndexedDB copies of multiplayer rooms (plan 07, decision 12). No React.
+// The IndexedDB copies of multiplayer rooms (plan 07, decision 12) and the stored squads of this browser (plan
+// 08, decision 33). No React.
 
-import { deleteDoc } from './store.js'
+import { deleteDoc, deleteSquad, listSquadCodes } from './store.js'
 
 // The user id has no '/', and a room code has none either, so a prefix match is exact
 const prefix = (userId) => `mcp-assist-3d/multiplayer/${userId}/`
@@ -23,4 +24,15 @@ export async function deleteStaleDocs(userId, codes) {
   } catch {
     // The copies stay. The next list load tries again.
   }
+}
+
+// The codes in stored whose room is not in codes
+export function staleSquadCodes(stored, codes) {
+  const keep = new Set(codes)
+  return stored.filter((code) => !keep.has(code))
+}
+
+// Deletes the stored squads of this user whose room is gone
+export function deleteStaleSquads(userId, codes) {
+  for (const code of staleSquadCodes(listSquadCodes(userId), codes)) deleteSquad(userId, code)
 }

@@ -38,15 +38,18 @@ import {
 } from './rosters/cards.js'
 import {
   CRISIS_TYPES,
-  NEW_SETUP,
   TEAMS,
-  activateSquads,
   chooseDeck,
   chooseEdge,
   chooseThreat,
+  newSetup,
   otherTeam,
   otherType,
   pickCard,
+  placeSquad,
+  placedSides,
+  placedIds,
+  revealPlan,
   setupPlacedCards,
   setupStep,
   toggleReady,
@@ -56,6 +59,7 @@ import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
 import { TERRAIN_PIECES } from './terrain/pieces.js'
 import { mapTerrain, withPlacements } from './rooms/table.js'
+import { deleteSquad, readSquad, saveSquad } from './rooms/store.js'
 import { tableFiles } from './rooms/preload.js'
 import { useYField, useYList, useYRecord } from './net/useY.js'
 import {
@@ -113,6 +117,8 @@ const TOKEN_ROW_SPACING = TOKEN_RADIUS * 2 + DROP_GAP * 2
 // A character token drag starts only after the pointer moves this many pixels, so a click on a
 // Give source or a token on the table does not drop a token.
 const DRAG_THRESHOLD = 4
+const EMPTY_SQUAD = { characters: [], tactics: [] }
+
 // What a restart of the game setup removes, for its confirm (restartSetup)
 const SETUP_REMOVAL =
   'The squads and the crisis cards that the game setup put on the table are removed.'
@@ -216,6 +222,7 @@ function canvasEvents(store) {
 // Sandbox. A room has a fixed map. storageFailed: the room could not use IndexedDB, so it is not saved.
 // serverWarning: the text of the warning when a multiplayer room is no longer saved on the server, or null.
 // connection: { state, peer, versionMismatch, retry } of a multiplayer room (net/peer.js, Table.jsx), or null.
+// userId: the id of the signed-in user, who owns the stored squad of a multiplayer room.
 // onExit(): opens the lobby. See
 // docs/feature-rooms.md and docs/plans/implement-backend/05-yjs-state.md.
 export default function App({
@@ -224,6 +231,7 @@ export default function App({
   storageFailed = false,
   serverWarning = null,
   connection = null,
+  userId = null,
   onExit,
 }) {
   const red = Boolean(room?.multiplayer && room.side === 'red')
@@ -279,6 +287,29 @@ export default function App({
   // The players whose clicks on their roster cards choose the squad: { blue, red } → true. Off, a click opens
   // the roster popup. Not saved.
   const [squadSelect, setSquadSelect] = useState({ blue: false, red: false })
+  // In a multiplayer room, the squad that the player chooses is not in the document until both players are
+  // Ready. It is in this browser (rooms/store.js, squad): { setupId, squad } | null. A single player room
+  // and the Sandbox keep the squads in the document. See docs/feature-setup-game.md, "Squads".
+  const hiddenSquads = Boolean(room?.multiplayer)
+  const mySide = hiddenSquads ? room.side : null
+  const [storedSquad, setStoredSquad] = useState(() =>
+    hiddenSquads ? readSquad(userId, room.id) : null,
+  )
+  // The squad of the own side, and the setup as this player sees it: the other player's squad is empty
+  const ownSquad =
+    storedSquad && storedSquad.setupId === (setup.id ?? null)
+      ? storedSquad.squad
+      : (setup.squads[mySide] ?? EMPTY_SQUAD)
+  const viewSetup = useMemo(
+    () =>
+      hiddenSquads
+        ? {
+            ...setup,
+            squads: { [mySide]: ownSquad, [otherTeam(mySide)]: EMPTY_SQUAD },
+          }
+        : setup,
+    [hiddenSquads, setup, mySide, ownSquad],
+  )
   // Affiliation token that each player's VP marker shows: { blue, red } → key in scoreboard/affiliations.json.
   // No toolbar control: Setup game sets it (see docs/feature-setup-game.md).
   const [affiliations] = useYField(table.game, 'affiliations')
@@ -905,17 +936,22 @@ export default function App({
   // the setup had started.
   function restartSetup() {
     setSquadSelect({ blue: false, red: false })
+    if (hiddenSquads) {
+      deleteSquad(userId, room.id)
+      setStoredSquad(null)
+    }
     if (setupStep(setup) === 'deck') return false
     table.transact(() => {
-      setup.placed.characters.forEach(handleCharacterRemove)
-      setTacticCards((prev) => prev.filter((card) => !setup.placed.tactics.includes(card.id)))
+      const placed = placedIds(setup)
+      placed.characters.forEach(handleCharacterRemove)
+      setTacticCards((prev) => prev.filter((card) => !placed.tactics.includes(card.id)))
       if (setup.edge) {
         for (const type of CRISIS_TYPES) {
           const key = rosterCard(setup.picks[type])?.key
           if (key && crisis[type] === key) handleCrisisChange(type, null)
         }
       }
-      setSetup(NEW_SETUP)
+      setSetup(newSetup())
     })
     return true
   }
@@ -970,10 +1006,13 @@ export default function App({
 
   // A click on a roster card. While the player chooses the squad, a character or Team Tactic card goes into
   // the squad or out of it. Only a card that the app can put on the table can join: a character with a
-  // model, a Team Tactic card with an image. Otherwise the roster popup opens.
+  // model, a Team Tactic card with an image. Otherwise the roster popup opens. In a multiplayer room, a
+  // click on the other player's cards always opens it.
   function handleRosterClick(open) {
     const { team, tab, index } = open
     if (
+      (hiddenSquads && team !== mySide) ||
+      placedSides(setup)[team] ||
       !squadSelect[team] ||
       setupStep(setup) !== 'squads' ||
       setup.ready[team] ||
@@ -986,7 +1025,8 @@ export default function App({
     const info = rosterCard(
       tab === 'characters' ? parsed.characters[index].code : parsed.tactics[index],
     )
-    const joins = !setup.squads[team][tab].includes(index)
+    const current = hiddenSquads ? ownSquad : setup.squads[team]
+    const joins = !current[tab].includes(index)
     if (joins && tab === 'characters' && !info.model) {
       showHudMessage(`No model for ${info.name} (${info.code}), so it cannot join the squad`)
       return
@@ -995,68 +1035,101 @@ export default function App({
       showHudMessage(`No card image for ${info.name} (${info.code}), so it cannot join the squad`)
       return
     }
-    setSetup(toggleSquadCard(setup, team, tab, index))
+    if (!hiddenSquads) {
+      setSetup(toggleSquadCard(setup, team, tab, index))
+      return
+    }
+    const record = {
+      setupId: setup.id ?? null,
+      squad: toggleSquadCard({ squads: { [team]: current } }, team, tab, index).squads[team],
+    }
+    setStoredSquad(record)
+    if (!saveSquad(userId, room.id, record))
+      showHudMessage('This browser could not store your squad choice')
   }
 
   // The Ready toggle of a player. Ready works when the squad has a character and its threat is not above the
-  // Maximum Threat. While the player is Ready, their squad does not change. When the second player clicks
-  // Ready, both squads go on the table at the same time (putSquadsOnTable).
+  // Maximum Threat. While the player is Ready, their squad does not change. It writes only the toggle. When
+  // both players are Ready, the effect below puts the squads on the table.
   function handleSquadReady(team) {
-    if (setupStep(setup) !== 'squads') return
-    if (setup.ready[team]) {
-      setSetup(toggleReady(setup, team))
-      return
+    if (setupStep(setup) !== 'squads' || (hiddenSquads && team !== mySide)) return
+    // A placed squad is on the table for good
+    if (placedSides(setup)[team]) return
+    if (!setup.ready[team]) {
+      const squad = hiddenSquads ? ownSquad : setup.squads[team]
+      if (
+        squad.characters.length === 0 ||
+        squadThreat(parsedRosters[team], squad.characters) > setup.threat
+      )
+        return
+      setSquadSelect((prev) => ({ ...prev, [team]: false }))
     }
-    const squad = setup.squads[team]
-    if (
-      squad.characters.length === 0 ||
-      squadThreat(parsedRosters[team], squad.characters) > setup.threat
-    )
-      return
-    setSquadSelect((prev) => ({ ...prev, [team]: false }))
-    if (setup.ready[otherTeam(team)]) putSquadsOnTable()
-    else setSetup(toggleReady(setup, team))
+    setSetup((prev) => toggleReady(prev, team))
   }
 
-  // Both squads go on the table: the characters of each squad get their trays and models, and its Team
-  // Tactic cards go into the tactic tray. A character or a Team Tactic card that the player already has on
-  // the table is not added again. The roster cards leave the table (Scene.jsx). The new characters and
-  // cards are made here, outside the state updaters, because the setup stores their ids for a restart, and
-  // React can call an updater twice.
-  function putSquadsOnTable() {
+  // The squad of `side` is revealed and goes on the table: the characters get their trays and models, and
+  // the Team Tactic cards go into the tactic tray. A character or a Team Tactic card that the player already
+  // has on the table is not added again. One transaction: the squad, the cards and `placed`. The new
+  // characters and cards are made before it, outside the state updaters, because the setup stores their ids
+  // for a restart, and React can call an updater twice. Reads the document, not React state.
+  function revealSquad(side, squad) {
+    const parsed = parseRosterText(table.rosters.read()[side]?.code ?? '')
     const newCharacters = []
     const newCards = []
-    for (const team of TEAMS) {
-      const parsed = parsedRosters[team]
-      const squad = setup.squads[team]
-      for (const place of squad.characters) {
-        const ch = characterByCode(parsed.characters[place].code)
-        const onTable = [...characters, ...newCharacters].some(
-          (c) => c.key === ch?.slug && c.teamColor === team,
-        )
-        if (ch?.available && !onTable) newCharacters.push(newCharacter(ch, team))
-      }
-      for (const place of squad.tactics) {
-        const key = rosterCard(parsed.tactics[place])?.key
-        const cards = [...tacticCards, ...newCards]
-        if (!key || cards.some((card) => card.key === key && card.team === team)) continue
-        const slot = firstFreeSlot(team, cards)
-        newCards.push({ id: crypto.randomUUID(), key, team, x: slot.x, z: slot.z, up: 'face' })
-      }
+    const onTable = table.characters.read()
+    const cardsOnTable = table.tactics.read()
+    for (const place of squad.characters) {
+      const ch = characterByCode(parsed.characters[place]?.code)
+      const there = [...onTable, ...newCharacters].some(
+        (c) => c.key === ch?.slug && c.teamColor === side,
+      )
+      if (ch?.available && !there) newCharacters.push(newCharacter(ch, side))
+    }
+    for (const place of squad.tactics) {
+      const key = rosterCard(parsed.tactics[place])?.key
+      const cards = [...cardsOnTable, ...newCards]
+      if (!key || cards.some((card) => card.key === key && card.team === side)) continue
+      const slot = firstFreeSlot(side, cards)
+      newCards.push({ id: crypto.randomUUID(), key, team: side, x: slot.x, z: slot.z, up: 'face' })
     }
     table.transact(() => {
       setCharacters((prev) => [...prev, ...newCharacters])
       setTacticCards((prev) => [...prev, ...newCards])
-      setSetup(
-        activateSquads(setup, {
+      setSetup((prev) =>
+        placeSquad(prev, side, squad, {
           characters: newCharacters.map((ch) => ch.id),
           tactics: newCards.map((card) => card.id),
         }),
       )
     })
-    setSquadSelect({ blue: false, red: false })
-    setOpenRoster(null)
   }
+
+  // Both players are Ready: this browser reveals the squads of the sides it plays. The second Ready can come
+  // from the other browser, so an effect does it. It reads the document and skips a placed side, so a second
+  // run does nothing. With no stored squad of this setup (another device, cleared storage), the player is
+  // not Ready any more and chooses again.
+  useEffect(() => {
+    const current = table.setup.read()
+    if (setupStep(current) !== 'reveal') return
+    const stored = hiddenSquads ? { [mySide]: readSquad(userId, room.id) } : null
+    const plan = revealPlan(current, hiddenSquads ? [mySide] : TEAMS, stored)
+    if (plan.reveal.length === 0 && plan.missing.length === 0) return
+    for (const { side, squad } of plan.reveal) revealSquad(side, squad)
+    if (plan.reveal.length > 0) {
+      if (hiddenSquads) {
+        deleteSquad(userId, room.id)
+        setStoredSquad(null)
+      }
+      setSquadSelect({ blue: false, red: false })
+      setOpenRoster(null)
+    }
+    if (plan.missing.length > 0) {
+      table.setup.set((prev) => ({ ...prev, ready: { ...prev.ready, [mySide]: false } }))
+      showHudMessage('Your squad choice is not in this browser. Choose it again.')
+    }
+    // revealSquad and showHudMessage read the table and set state, so they need no dependency
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setup])
 
   const setupActions = {
     deck: handleSetupDeck,
@@ -1433,7 +1506,8 @@ export default function App({
               affiliations={affiliations}
               rosters={rosters}
               onRosterOpen={handleRosterClick}
-              setup={setup}
+              setup={viewSetup}
+              mySide={mySide}
               squadSelect={squadSelect}
               setupActions={setupActions}
               onScoreMarkerMove={(marker, x, z) =>

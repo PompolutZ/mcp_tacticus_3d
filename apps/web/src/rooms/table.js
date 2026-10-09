@@ -4,7 +4,7 @@
 import { MAPS } from '../terrain/maps.js'
 import { START_MARKERS } from '../scoreboard/board.js'
 import { DEFAULT_AFFILIATION } from '../scoreboard/affiliations.js'
-import { NEW_SETUP } from '../setup/setup.js'
+import { newSetup } from '../setup/setup.js'
 
 // Terrain pieces of a map, as tracked in App state: the placements of terrain/maps.js with an id and
 // a lock. index: the place of the placement in the map data, which the document stores. Every piece starts
@@ -46,7 +46,7 @@ export function startTable(mapId) {
     crisis: { secure: null, extract: null },
     scoreMarkers: START_MARKERS,
     affiliations: { blue: DEFAULT_AFFILIATION, red: DEFAULT_AFFILIATION },
-    setup: NEW_SETUP,
+    setup: newSetup(),
     terrain: mapTerrain(mapId),
     characters: [],
     tokens: [],

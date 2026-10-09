@@ -4,7 +4,15 @@ import { TABLE_WIDTH } from '../table.js'
 import { BOARD_HALF_WIDTH, BOARD_X } from '../scoreboard/board.js'
 import { parseRosterText, rosterCard, squadThreat } from '../rosters/cards.js'
 import { CRISIS_GAP_X, USE_BUTTON_X, crisisCenterZ, crisisRowLayout } from '../rosters/layout.js'
-import { CRISIS_TYPES, TEAMS, crisisRows, otherTeam, otherType, setupStep } from '../setup/setup.js'
+import {
+  CRISIS_TYPES,
+  TEAMS,
+  crisisRows,
+  otherTeam,
+  otherType,
+  placedSides,
+  setupStep,
+} from '../setup/setup.js'
 import { RosterCard } from './RosterCards.jsx'
 
 const PLAYER = { blue: 'Blue', red: 'Red' }
@@ -172,6 +180,10 @@ function BoardPanel({ setup, step, parsed, actions }) {
   } else if (step === 'squads') {
     hint =
       'Each player chooses a squad and clicks Ready. The squads go on the table when both players are Ready.'
+  } else if (step === 'reveal') {
+    const placed = placedSides(setup)
+    const waiting = TEAMS.find((team) => !placed[team])
+    hint = `Waiting for the ${PLAYER[waiting]} player to reveal their squad.`
   }
   const status = [
     winner && `${PLAYER[winner]} player has Priority`,
@@ -205,9 +217,19 @@ function BoardPanel({ setup, step, parsed, actions }) {
 // handleRosterClick). Ready works when the squad has a character and its threat is not above the Maximum
 // Threat. A squad with less threat is fine. While the player is Ready, the squad does not change. When both
 // players are Ready, both squads go on the table.
-function SquadPanel({ team, setup, parsed, selecting, actions }) {
+function SquadPanel({ team, setup, parsed, selecting, own, actions }) {
   const squad = setup.squads[team]
   const ready = setup.ready[team]
+  // The other player in a multiplayer room (no squad is shown before the reveal), or a squad that is placed
+  if (!own || placedSides(setup)[team]) {
+    return (
+      <OnTable position={[CRISIS_GAP_X, TABLE_Y, crisisCenterZ(team)]}>
+        <div className="setup-panel">
+          <div className="setup-note">{ready ? 'Ready' : 'Choosing a squad'}</div>
+        </div>
+      </OnTable>
+    )
+  }
   const threat = squadThreat(parsed, squad.characters)
   const over = threat > setup.threat
   const problem = over
@@ -277,10 +299,11 @@ function SquadPanel({ team, setup, parsed, selecting, actions }) {
 // The game setup on the table: the crisis cards of the rosters next to the scoring board, and the buttons
 // of each step. The buttons lie flat on the table (OnTable). See docs/feature-setup-game.md.
 // setup: see setup/setup.js. rosters: { blue, red } → null | { code }. squadSelect: { blue, red } → the
-// player is choosing squad cards. actions: { deck(team, type), pick(code), threat(value), turnMat(direction),
-// edge(), squadSelect(team), ready(team), restart() }, see App.jsx. onRosterOpen({ team, tab, index }):
-// a click on a crisis card.
-export default function GameSetup({ setup, rosters, squadSelect, actions, onRosterOpen }) {
+// player is choosing squad cards. mySide: the team of the player in a multiplayer room, or null when one
+// person plays both teams. Only that team's squad panel has buttons. actions: { deck(team, type), pick(code),
+// threat(value), turnMat(direction), edge(), squadSelect(team), ready(team), restart() }, see App.jsx.
+// onRosterOpen({ team, tab, index }): a click on a crisis card.
+export default function GameSetup({ setup, rosters, squadSelect, mySide, actions, onRosterOpen }) {
   const parsed = useMemo(
     () => ({
       blue: rosters.blue && parseRosterText(rosters.blue.code),
@@ -318,6 +341,7 @@ export default function GameSetup({ setup, rosters, squadSelect, actions, onRost
             setup={setup}
             parsed={parsed[team]}
             selecting={squadSelect[team]}
+            own={!mySide || mySide === team}
             actions={actions}
           />
         ))}

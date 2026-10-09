@@ -165,7 +165,7 @@ function Mat({ mapId }) {
 // rosters: { blue, red } → null | { code }, the loaded rosters (RosterCards.jsx). onRosterOpen({ team, tab,
 // index }): a click on a roster card. It opens the roster popup on that card (see RosterPopup.jsx), or
 // adds the card to the squad (App.jsx, handleRosterClick).
-// setup: the game setup (setup/setup.js). squadSelect, setupActions: see GameSetup.jsx. When the squads
+// setup: the game setup (setup/setup.js). squadSelect, setupActions, mySide: see GameSetup.jsx. When the squads
 // are on the table, the roster cards are not.
 // onCardOpen({ src, alt }): a click on a crisis card (see CardPopup.jsx). onTrayOpen(id): a click
 // on a tray card opens the whole tray (see TrayPopup.jsx).
@@ -265,6 +265,7 @@ export default function Scene({
   setup,
   squadSelect,
   setupActions,
+  mySide = null,
   onScoreMarkerMove,
   startPose,
   onModelRest,
@@ -883,6 +884,7 @@ export default function Scene({
           setup={setup}
           rosters={rosters}
           squadSelect={squadSelect}
+          mySide={mySide}
           actions={setupActions}
           onRosterOpen={onRosterOpen}
         />

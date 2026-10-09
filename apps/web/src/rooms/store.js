@@ -75,9 +75,51 @@ export function multiplayerDocName(userId, code) {
   return `${PREFIX}multiplayer/${userId}/${code}`
 }
 
+const SQUAD_PREFIX = `${PREFIX}squad/`
+const MULTIPLAYER_PREFIX = `${PREFIX}multiplayer/`
+
+// The key of the squad that a user chose in a multiplayer room. It stays in this browser until both players
+// are Ready (docs/plans/implement-backend/08-two-browsers.md, decision 25).
+const squadKey = (userId, code) => `${SQUAD_PREFIX}${userId}/${code}`
+
+// The stored squad { setupId, squad: { characters, tactics } }, or null
+export function readSquad(userId, code) {
+  const record = read(squadKey(userId, code))
+  return record?.squad ? record : null
+}
+
+// Returns false when the browser did not store it
+export function saveSquad(userId, code, record) {
+  return write(squadKey(userId, code), record)
+}
+
+export function deleteSquad(userId, code) {
+  try {
+    localStorage.removeItem(squadKey(userId, code))
+  } catch {
+    // Storage turned off: there is nothing to delete
+  }
+}
+
+// The room codes of the stored squads of this user
+export function listSquadCodes(userId) {
+  const start = `${SQUAD_PREFIX}${userId}/`
+  try {
+    return Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i))
+      .filter((key) => key?.startsWith(start))
+      .map((key) => key.slice(start.length))
+  } catch {
+    return []
+  }
+}
+
 // Deletes an IndexedDB database with a table. IndexedDB can throw or fail when it is turned off. Then there
-// is nothing to delete.
+// is nothing to delete. The database of a multiplayer room also takes the squad of that room with it.
 export function deleteDoc(name) {
+  if (name.startsWith(MULTIPLAYER_PREFIX)) {
+    const [userId, code] = name.slice(MULTIPLAYER_PREFIX.length).split('/')
+    deleteSquad(userId, code)
+  }
   try {
     clearDocument(name).catch(() => {})
   } catch {

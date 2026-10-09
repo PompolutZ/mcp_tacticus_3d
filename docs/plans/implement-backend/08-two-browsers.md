@@ -473,6 +473,24 @@ User, after this phase, in one pair: Alice and Bob each choose a squad with **Se
 
 ### Result
 
+Done. `pnpm --filter web test`: 113 pass (12 new). `pnpm --filter web build` passes. `pnpm format` and `pnpm lint`: no new warnings or errors. `localStorage` appears only in `rooms/store.js`.
+
+- `setup/setup.js`: `NEW_SETUP` has `id: null` and `placed: { blue: null, red: null }`. New `newSetup()` makes a random id. New `placedSides` (old `placed` shape reads as Blue; it counts as placed only when both players are Ready, so an old done setup stays done), `placedIds`, `placeSquad` (replaces `activateSquads`), `revealPlan`. `setupStep` returns `reveal`. `setupPlacedCards` uses `placedIds`.
+- `setup/setup.test.js` (new, 11 tests): the steps, the old shape, `placeSquad`, `revealPlan` (own side only, both sides in single player, placed side skipped, other setup id, no stored squad).
+- `rooms/store.js`: `readSquad`, `saveSquad`, `deleteSquad`, `listSquadCodes`. `deleteDoc` of a multiplayer database name also deletes that room's squad key, so every caller (Lobby delete, 403/404 in `Table.jsx`) is covered.
+- `rooms/localDocs.js`: `staleSquadCodes`, `deleteStaleSquads`. `Lobby.jsx` calls it next to `deleteStaleDocs`. One new test in `localDocs.test.js`.
+- `rooms/table.js`: the start table uses `newSetup()`.
+- `App.jsx`: new prop `userId` (from `Table.jsx`). In a multiplayer room the own squad is React state backed by the stored squad. A click on the other player's roster cards opens the popup. `viewSetup` (own squad, other squad empty) goes to the scene. **Ready** writes only the toggle. `putSquadsOnTable` is now `revealSquad(side, squad)`, run by an effect on `setup` that reads the document. The effect handles decision 32. `restartSetup` makes a new id, removes the ids of both `placed` keys and deletes the stored squad.
+- A placed side is final: `handleSquadReady` and `handleRosterClick` ignore a team whose `placedSides(setup)[team]` is set, and its panel says only "Ready". This covers the missing case of decision 32.
+- `Scene.jsx`, `GameSetup.jsx`: new prop `mySide`. The other player's panel shows "Choosing a squad" or "Ready". The `reveal` hint names the side not placed.
+- `docs/feature-setup-game.md`: "Squads", "State", "Code", "Not built yet".
+
+Deviations and notes:
+- `deleteDoc` deletes the squad key (see above), not each caller. Same effect as decision 33.
+- A `react-hooks/exhaustive-deps` disable on the reveal effect: it reads the document, so its only trigger is `setup`.
+- Rooms made before this phase have no `setup.id`. A stored squad then has `setupId: null` and counts.
+- If the other browser has revealed its side and this player then has no stored squad, this player's Ready goes off while the other side stays placed. The next Ready reveals only the missing side.
+
 ## User
 
 After Phase 1:

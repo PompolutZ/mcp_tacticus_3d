@@ -18,7 +18,7 @@ The app does not know who wins a roll off or who clicks a button. So it does not
 | Second card | The player with Priority chooses 1 of those 2 cards | **Use** next to each drawn card |
 | Maximum Threat | The player without Priority chooses which card's threat the mission uses | **Secure · 17** or **Extract · 18** on the panel next to the scoring board |
 | Deployment edge | The player with Priority chooses a battlefield edge | **↺ Select board edge ↻** on the panel. The arrows turn the mat 90°. **Select board edge** puts the two crisis cards on the board ends and their tokens on the mat |
-| Squads | Each player chooses characters with a total threat up to the Maximum Threat, and up to 5 Team Tactic cards | **Select squad**, then a click on a roster card adds it or removes it. Then **Ready**. When both players are Ready, both squads go on the table |
+| Squads | Each player chooses characters with a total threat up to the Maximum Threat, and up to 5 Team Tactic cards | **Select squad**, then a click on a roster card adds it or removes it. Then **Ready**. When both players are Ready, the squads are revealed and go on the table. In a multiplayer room, each player's squad stays hidden until then (see [Squads](#squads)) |
 
 The app checks only one rule: **Ready** does not work when the squad threat is above the Maximum Threat. A squad with less threat is fine. The app does not check the Team Tactic count, alter egos (p11) or affiliations. The panel shows the Team Tactic count in red above 5.
 
@@ -88,7 +88,17 @@ z = 12.55   Use          [drawn 1]
 - A card in the squad has a yellow frame.
 - Only a card that the app can put on the table can join: a character with a model, a Team Tactic card with an image. For another card, the HUD message names it.
 - **Ready** is a toggle. It works when the squad has at least 1 character and its threat is not above the Maximum Threat. While it is on, it has a white outline, the panel says "Waiting for the Red player.", and **Select squad** is off and does not work. So the squad does not change. A second click on **Ready** turns it off, and the player can change the squad again.
-- When the second player clicks **Ready**, both squads go on the table at the same time. Changed on 2026-10-08: before, each player clicked **Activate squad**, and their squad went on the table at once.
+- When both players are Ready, both squads go on the table at the same time. Changed on 2026-10-08: before, each player clicked **Activate squad**, and their squad went on the table at once. Changed on 2026-10-09: **Ready** only sets the toggle. An effect in each browser puts the squads on the table (see below).
+- **Hidden squads (multiplayer rooms).** The rulebook says that players do not show their squads until deployment (p11). In a multiplayer room:
+  - The squad and Team Tactic cards that a player chooses are not in the shared document. They are in `localStorage` of that browser (`rooms/store.js`, key `mcp-assist-3d/squad/<user id>/<code>`, value `{ setupId, squad }`). A reload keeps the choice.
+  - **Ready** writes only `setup.ready[side]`.
+  - When both players are Ready, each browser reveals the squad of its own side: in one transaction it writes `setup.squads[side]`, adds the characters and Team Tactic cards, and sets `setup.placed[side]`. Then it deletes the stored squad.
+  - Until then, the panel of the other player shows only "Choosing a squad" or "Ready". It has no threat, no tactic count and no buttons, and their roster cards have no yellow frame. A click on their cards opens the roster popup.
+  - If the other page is closed, the panel says "Waiting for the Red player to reveal their squad." (step `reveal`).
+  - A stored squad counts only for the setup with the same `setup.id`. So a restart in the other browser drops it.
+  - If both players are Ready and this browser has no stored squad (another device, cleared storage), the player is not Ready any more, and the HUD says "Your squad choice is not in this browser. Choose it again."
+  - The lobby deletes stored squads of rooms that are not in the room list. Deleting a room deletes its stored squad.
+  - A single player room and the Sandbox keep the squads in the document, as before: one person plays both sides.
 - For each squad, the app adds a tray and a model for each character, the same as the Library, and puts the Team Tactic cards into the free slots of the tactic tray. A character or a Team Tactic card that the player already has on the table is not added again. Then the roster cards leave the table, the setup is done, and its buttons go away.
 
 ### Restart
@@ -104,39 +114,44 @@ z = 12.55   Use          [drawn 1]
 
 ```js
 setup: {
+  id: string | null,   // random, new with each setup. A stored squad counts only for its setup id
   deck: null | { team, type },   // the roll-off winner (Priority) and the deck type they use
   draws: { secure: [code], extract: [code] },   // the 2 cards drawn from each deck
   picks: { secure: code | null, extract: code | null },   // the cards of the mission
   threat: null | number,   // the Maximum Threat
   edge: false,   // the deployment edge is chosen
   squads: { blue: { characters: [place], tactics: [place] }, red: … },
-  ready: { blue: false, red: false },   // the Ready toggles. Both true: the squads are on the table
-  placed: { characters: [id], tactics: [id] },   // what the squads put on the table, both players
+  ready: { blue: false, red: false },   // the Ready toggles. Both true: the squads are revealed and put on the table
+  placed: { blue: null | { characters: [id], tactics: [id] }, red: … },   // what each squad put on the table
 }
 ```
 
 - The current step comes from these fields (`setupStep`), so the state cannot disagree with itself.
 - A squad stores places in the roster lists, not codes, because a roster can list a code twice.
 - The random draws are in the state. So in a later peer-to-peer game, both players see the same cards (see `docs/feature-peer-to-peer.md`).
-- All fields are plain JSON. A room saves `setup` with its table (`rooms/table.js`). A room saved before this feature starts with a new setup. A saved setup without a newer field, for example `placed`, gets the start value of that field (`restoreSetup`). A setup saved before the Ready toggles has `active: { blue, red }`, the player activated their squad. `restoreSetup` uses it as `ready`. So a game with both squads on the table stays done.
-- `placed` has the ids of the new characters and Team Tactic cards. The second **Ready** makes them before it changes the state, because React can call a state updater twice, and the ids must be the same in `placed` and on the table.
+- All fields are plain JSON. A room saves `setup` with its table (`rooms/table.js`). A setup saved with the old `placed` shape `{ characters, tactics }` is read by `placedSides` as the cards of Blue. When both players are Ready, such a setup stays done.
+- `placed` has the ids of the new characters and Team Tactic cards of each side. The reveal makes them before it changes the state, because React can call a state updater twice, and the ids must be the same in `placed` and on the table. Each browser writes only the sides it plays. A setup saved with the old shape `{ characters, tactics }` reads as the cards of Blue (`placedSides`).
+- `setupStep` has a step `reveal`: both players are Ready, but a side is not placed yet.
+- In a multiplayer room, `setup.squads` stays empty until the reveal.
 - `squadSelect: { blue, red }` in `App.jsx` says which player is choosing squad cards. It is not saved.
 
 ## Code
 
 | File | Content |
 |---|---|
-| `src/setup/setup.js` | `NEW_SETUP`, `setupStep`, the step changes (`chooseDeck`, `pickCard`, `chooseThreat`, `chooseEdge`, `toggleSquadCard`, `toggleReady`, `activateSquads`), `restoreSetup`, `crisisRows`. No imports, so a Node script can check it |
+| `src/setup/setup.js` | `NEW_SETUP`, `newSetup`, `setupStep`, the step changes (`chooseDeck`, `pickCard`, `chooseThreat`, `chooseEdge`, `toggleSquadCard`, `toggleReady`, `placeSquad`), `placedSides`, `revealPlan`, `crisisRows`. No imports, so a Node script can check it |
 | `src/components/GameSetup.jsx` | The crisis rows and all setup buttons |
 | `src/rosters/layout.js` | `crisisRowLayout`, `crisisCenterZ`, `CRISIS_GAP_X`. Row 2 of the roster has only the Team Tactic cards now |
 | `src/rosters/cards.js` | `threat` and `key` of each card, `squadThreat` |
 | `src/components/RosterCards.jsx` | The squad frame. `RosterCard` is exported for the crisis rows |
-| `src/App.jsx` | The setup handlers, `buildMatTokens(card, turned)`, `newCharacter` |
+| `src/rooms/store.js` | `readSquad`, `saveSquad`, `deleteSquad`, `listSquadCodes`: the stored squad of a multiplayer room |
+| `src/App.jsx` | The setup handlers, the reveal effect, `buildMatTokens(card, turned)`, `newCharacter` |
 
 ## Not built yet
 
 - The VP marker affiliation from the squad. See the notes below.
-- Leadership choice, Infinity Gem cards next to the character, hidden squads. The rulebook says that players do not show their squads until deployment (p11). In the app, both players see the choice.
+- Leadership choice, Infinity Gem cards next to the character.
+- Hidden squads are built for multiplayer rooms only (2026-10-09). In a single player room and the Sandbox, one person plays both sides, so both squads are in the document.
 - The Priority token on the scoring board.
 - A button to skip the setup, for players who set up the table by hand.
 

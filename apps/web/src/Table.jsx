@@ -193,6 +193,7 @@ export default function Table({ room = null, onExit }) {
       storageFailed={opened.storageFailed}
       serverWarning={serverWarning}
       connection={connection && { ...connection, retry: () => link.current?.retry() }}
+      userId={userId ?? null}
       onExit={handleExit}
     />
   )

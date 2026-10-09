@@ -6,7 +6,7 @@ import { avatarUrl } from '../auth/avatar.js'
 import { useUser } from '../auth/useUser.js'
 import { deleteDoc, deleteRoom, listRooms, multiplayerDocName, ownsRoom } from '../rooms/store.js'
 import * as server from '../rooms/serverStore.js'
-import { deleteStaleDocs } from '../rooms/localDocs.js'
+import { deleteStaleDocs, deleteStaleSquads } from '../rooms/localDocs.js'
 import { roomList } from '../rooms/roomList.js'
 import { LobbyHeader } from './LobbyHeader.jsx'
 import { NewRoomDialog } from './NewRoomDialog.jsx'
@@ -67,10 +67,9 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
         setLoaded({ userId, list })
         setFailed(null)
         // A room that the host deleted leaves no copy in this browser (plan 07, decision 12)
-        deleteStaleDocs(
-          userId,
-          list.map((room) => room.code),
-        )
+        const codes = list.map((room) => room.code)
+        deleteStaleDocs(userId, codes)
+        deleteStaleSquads(userId, codes)
       })
       .catch(() => {
         if (cancelled) return
