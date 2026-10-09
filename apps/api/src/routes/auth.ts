@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { z } from 'zod'
+import * as z from 'zod/mini'
 import { DiscordError } from '../auth/discord'
 import { signSession } from '../auth/token'
 import { validate } from '../middleware/validate'
@@ -7,9 +7,9 @@ import { publicUser } from '../stores/store'
 import type { Deps } from '../app'
 
 const bodySchema = z.object({
-  code: z.string().min(1).max(200),
+  code: z.string().check(z.minLength(1), z.maxLength(200)),
   // Discord checks that it is a registered redirect URI.
-  redirectUri: z.url({ protocol: /^https?$/ }).max(200),
+  redirectUri: z.url({ protocol: /^https?$/ }).check(z.maxLength(200)),
 })
 
 export function authRoutes({ store, config, discord }: Deps) {

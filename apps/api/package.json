@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/local.ts",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
     "test": "vitest run --project unit",
     "test:mongo": "vitest run --project mongo",
     "typecheck": "tsc"

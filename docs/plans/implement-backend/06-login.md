@@ -350,7 +350,18 @@ Checks:
 
 ### Result
 
-(The agent adds it after the work.)
+Status: done. Not committed.
+
+Files changed:
+- New: `apps/api/compose.yaml` (project `mcptacticus`, `mongo:8`, `127.0.0.1:27017`, volume `mongo-data`, health check for `--wait`).
+- Changed: `middleware/validate.ts`, `routes/auth.ts`, `routes/devAuth.ts` (all `zod/mini`), `package.json` (`db:up`, `db:down`), `.env.example` (comment at `STORE`).
+
+Facts:
+- `@hono/zod-validator` 0.9.1 accepts `zod/mini` schemas, types and runtime. It calls `safeParseAsync`, which mini schemas have. No fallback needed. `zod` and `@hono/zod-validator` stay in `package.json`.
+- Mini API used: `z.string().check(z.minLength(1), z.maxLength(200))`, `z.trim()`, `z.url({ protocol })`.
+- Tests did not change. Lambda `index.mjs`: 1,320,732 bytes before, 882,867 after (852 KB before step 6). About 31 KB is left over. Not checked where it comes from.
+- Checks: typecheck ok, `test` 59 passed, `test:mongo` 5 passed, no `from 'zod'` in `apps/api/src`, `docker compose config` ok, synth ok, lint 0 errors.
+- `apps/api/.env` not touched. The container was not started.
 
 ## Phase 5: Docs
 

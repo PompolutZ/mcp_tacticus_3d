@@ -1,11 +1,11 @@
 import { Hono } from 'hono'
-import { z } from 'zod'
+import * as z from 'zod/mini'
 import { signSession } from '../auth/token'
 import type { Config } from '../config'
 import { validate } from '../middleware/validate'
 import { publicUser, type Store } from '../stores/store'
 
-const bodySchema = z.object({ name: z.string().trim().min(1).max(32) })
+const bodySchema = z.object({ name: z.string().check(z.trim(), z.minLength(1), z.maxLength(32)) })
 
 // Local only. Only local.ts imports this file, so the Lambda bundle does not have it.
 export function devAuthRoutes({ store, config }: { store: Store; config: Config }) {

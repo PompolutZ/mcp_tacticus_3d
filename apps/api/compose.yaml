@@ -1,0 +1,16 @@
+# Dev Mongo. Start: pnpm --filter api db:up. Reset the data: docker compose down -v
+name: mcptacticus
+services:
+  mongo:
+    image: mongo:8
+    ports:
+      - '127.0.0.1:27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', 'db.adminCommand("ping")']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  mongo-data:
