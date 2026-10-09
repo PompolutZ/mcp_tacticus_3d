@@ -36,3 +36,16 @@ export function getTable(code, { keepalive } = {}) {
 export async function putTable(code, bytes, { keepalive } = {}) {
   await api(`${path(code)}/table`, { method: 'PUT', bytes, keepalive })
 }
+
+// Signaling (plan 08). message: { from, to, type, data }. Answers { id }.
+export function postMessage(code, message, { keepalive } = {}) {
+  return api(`${path(code)}/messages`, { method: 'POST', json: message, keepalive })
+}
+
+// The messages for peer that are newer than the id `after` (null: all). The cursor goes in a header, so the
+// URL stays the same between polls.
+export async function getMessages(code, peer, after) {
+  const headers = after ? { 'x-after': after } : undefined
+  const url = `${path(code)}/messages?to=${encodeURIComponent(peer)}`
+  return (await api(url, { headers })).messages
+}

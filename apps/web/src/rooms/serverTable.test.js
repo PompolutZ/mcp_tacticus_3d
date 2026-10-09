@@ -237,3 +237,58 @@ test('hasLocalChanges: true after a local delete only', () => {
   assert.deepEqual(Y.encodeStateVector(doc), before)
   assert.equal(hasLocalChanges(doc, server), true)
 })
+
+test('a change while paused starts no timer', async () => {
+  const { calls, change, writer } = setup()
+  writer.pause(true)
+  change()
+  mock.timers.tick(120_000)
+  await settle()
+  assert.equal(calls.length, 0)
+})
+
+test('flush writes while paused', async () => {
+  const { calls, change, writer } = setup()
+  writer.pause(true)
+  change()
+  writer.flush()
+  await settle()
+  assert.equal(calls.length, 1)
+})
+
+test('resume starts the timer for a waiting change', async () => {
+  const { calls, change, writer } = setup()
+  writer.pause(true)
+  change()
+  mock.timers.tick(30_000)
+  writer.pause(false)
+  mock.timers.tick(59_999)
+  await settle()
+  assert.equal(calls.length, 0)
+  mock.timers.tick(1)
+  await settle()
+  assert.equal(calls.length, 1)
+})
+
+test('pause stops a timer that runs, and resume starts it again', async () => {
+  const { calls, change, writer } = setup()
+  change()
+  mock.timers.tick(30_000)
+  writer.pause(true)
+  mock.timers.tick(120_000)
+  await settle()
+  assert.equal(calls.length, 0)
+  writer.pause(false)
+  mock.timers.tick(60_000)
+  await settle()
+  assert.equal(calls.length, 1)
+})
+
+test('resume with no waiting change starts no timer', async () => {
+  const { calls, writer } = setup()
+  writer.pause(true)
+  writer.pause(false)
+  mock.timers.tick(120_000)
+  await settle()
+  assert.equal(calls.length, 0)
+})

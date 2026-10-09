@@ -27,8 +27,12 @@ export function onUnauthorized(handler) {
 
 // Sends json or bytes (if given) and returns the parsed JSON answer, or null for an answer without a body.
 // bytes: a Uint8Array body. binary: the answer is a Uint8Array. keepalive: the request outlives the page.
-export async function api(path, { method = 'GET', json, bytes, keepalive, binary } = {}) {
-  const headers = {}
+// headers: more request headers, for example x-after.
+export async function api(
+  path,
+  { method = 'GET', json, bytes, keepalive, binary, headers: extra } = {},
+) {
+  const headers = { ...extra }
   if (token) headers.Authorization = `Bearer ${token}`
   const init = { method, headers }
   if (json !== undefined) {

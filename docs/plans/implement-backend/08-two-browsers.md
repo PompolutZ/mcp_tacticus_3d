@@ -252,6 +252,40 @@ Checks:
 
 ### Result
 
+Added in `apps/web`:
+- Dependencies `y-protocols@1.0.7` and `lib0@0.2.119` (exact versions).
+- `api/client.js`: `headers` option. `rooms/serverStore.js`: `postMessage(code, message, { keepalive })`, `getMessages(code, peer, after)`.
+- `net/ice.js`: the two STUN servers (`ICE_SERVERS`).
+- `net/signaling.js`: `createSignaling({ code, peerId, post, get })` with `hello(build)`, `offer(to, sdp)`, `answer(to, sdp)`, `bye({ keepalive })`, `poll()`. `post(code, message, options)` and `get(code, peer, after)` are the `serverStore` functions.
+- `net/syncChannel.js`: `syncOverChannel(doc, channel)` returns `{ stop }`. The channel must be open or about to open. It uses `addEventListener`, so the caller can add its own `close` listener. Origin of remote updates is the channel object.
+- `net/peer.js`: `connectRoom`, and the time constants (`POLL_MS`, `GATHER_MS`, `OFFER_MS`, `CONNECT_MS`, `IDLE_MS`).
+- `rooms/serverTable.js`: `pause(paused)`. A running timer is cleared on pause. Resume starts it when a change waits.
+
+Signature:
+
+```js
+connectRoom({ role, userId, peerId, build, signaling, createPeerConnection, iceServers,
+  timers = { setTimeout, clearTimeout }, onState, onChannel }) -> { retry(), stop({ keepalive }) }
+```
+
+- `role`: `'host'` or `'guest'`. `userId`: the own user id. `createPeerConnection({ iceServers })` returns an `RTCPeerConnection`.
+- `onState({ state, peer, versionMismatch })`: `state` is `waiting`, `connecting`, `connected`, `failed`, `stopped` or `gone`. `peer` is the `user` (`{ id, name, avatar, discordId }`) of the other player's latest `hello`, or `null`. `versionMismatch` is a boolean. It is called at start (`waiting`) and only when one of the three values changes.
+- `onChannel(channel)`: the `sync` channel is open. Call `syncOverChannel` there.
+- `retry()` is async (posts `hello`). `stop({ keepalive })` returns a promise that resolves when `bye` is sent (errors are swallowed). After `gone` or a `stop`, both do nothing.
+
+Tests: web 60 -> 97 (signaling 4, syncChannel 7, peer 21, serverTable 5 new).
+
+Checks: `pnpm --filter web test`, `pnpm --filter web build` pass. `pnpm lint`: 0 errors, 44 warnings (same as before). `pnpm format` done.
+
+Notes:
+- Polls stop while `connected`, as the plan says. So a `bye` of the other player is seen only after the channel closes. A message that was in flight when the channel opened is still handled (a new offer from a reloaded guest ends the old connection).
+- A failed post of `offer` or `answer` (not 404) ends the attempt and gives `waiting`. A 404 there gives `gone`. A failed post of `hello` is ignored, except 404.
+- The offer timeout (15 s) does not restart the 15 min. The 15 min restart only on a message of the other player, on start and on `retry()`.
+- A `bye` forgets the `hello` of that peer id, so an old offer of it is ignored and `retry()` does not offer to it.
+- Phase 3 must call `stop()` in the table cleanup. For `pagehide` use `stop({ keepalive: true })`. `onState` can come with `gone` once: do what the writer's `onGone` does.
+
+Deviations: none.
+
 ## Phase 3: The room connects
 
 Read: decisions 11, 12, 14 and 16 to 18. `apps/web/src/Table.jsx`, `App.jsx` (camera, `resetCamera`, `serverWarning`), `components/Toolbar.jsx`, `components/CopyLinkButton.jsx`, `components/Lobby.jsx` (the seats of a tile), `auth/avatar.js`, `vite.config.js`.

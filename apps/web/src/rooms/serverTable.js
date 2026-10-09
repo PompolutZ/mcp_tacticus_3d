@@ -28,7 +28,9 @@ export function hasLocalChanges(doc, serverBytes) {
 // Writes the document to the server. A change with an origin other than 'server' starts a timer. When it
 // ends, put(bytes, { keepalive }) writes the whole document. put rejects with an error that has a `status`
 // (0: no answer). changed: the document has changes already (hasLocalChanges), so flush() writes them.
-// Returns { flush({ hidden }), stop }. flush: writes at once when the table changed. stop: ends the writer.
+// Returns { flush({ hidden }), pause(paused), stop }. flush: writes at once when the table changed. pause: while
+// paused, a change starts no timer (the other browser writes the same document, plan 08 decision 11); flush still
+// writes. stop: ends the writer.
 // onGone(): the server has no room (404). onStop(text): the writer stopped (403 or 413).
 export function watchServerTable({
   doc,
@@ -46,9 +48,10 @@ export function watchServerTable({
   // A flush that came during a write: the next write starts when this one ends
   let flushHidden = null
   let ended = false
+  let paused = false
 
   function schedule() {
-    if (timer !== null || ended) return
+    if (timer !== null || ended || paused) return
     timer = setTimer(() => {
       timer = null
       write(false)
@@ -101,6 +104,13 @@ export function watchServerTable({
     flush({ hidden = false } = {}) {
       if (writing) flushHidden = hidden
       else write(hidden)
+    },
+    pause(next) {
+      paused = next
+      if (next) {
+        clearTimer(timer)
+        timer = null
+      } else if (dirty && !writing) schedule()
     },
     stop() {
       ended = true
