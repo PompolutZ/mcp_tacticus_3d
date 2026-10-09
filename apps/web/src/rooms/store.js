@@ -65,9 +65,24 @@ export function listRooms() {
     .sort((a, b) => b.updatedAt - a.updatedAt)
 }
 
-// The name of the IndexedDB database with the table of a room
+// The name of the IndexedDB database with the table of a single player room
 export function roomDocName(id) {
   return ROOM_PREFIX + id
+}
+
+// The name of the database of a multiplayer room. The user id keeps two users of one browser apart.
+export function multiplayerDocName(userId, code) {
+  return `${PREFIX}multiplayer/${userId}/${code}`
+}
+
+// Deletes an IndexedDB database with a table. IndexedDB can throw or fail when it is turned off. Then there
+// is nothing to delete.
+export function deleteDoc(name) {
+  try {
+    clearDocument(name).catch(() => {})
+  } catch {
+    // See above
+  }
 }
 
 // The room with this code, or null
@@ -120,12 +135,7 @@ export function deleteRoom(id) {
   } catch {
     // Storage turned off: there is nothing to delete
   }
-  // IndexedDB can throw or fail when it is turned off. Then there is nothing to delete.
-  try {
-    clearDocument(roomDocName(id)).catch(() => {})
-  } catch {
-    // See above
-  }
+  deleteDoc(roomDocName(id))
 }
 
 // True when the user of this browser created the room, so they can delete it

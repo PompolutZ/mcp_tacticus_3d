@@ -330,7 +330,18 @@ Checks:
 
 ### Result
 
-Not started.
+Added `bytes`, `binary` and `keepalive` in `api/client.js`, and in `rooms/`: `base64.js`, `startTable.js`, `serverStore.js`, `localDocs.js`, `roomList.js`, plus `multiplayerDocName` and `deleteDoc` in `store.js`. Added `RoomRosterPopup.jsx` (moved), `CopyLinkButton.jsx`, the one list and multiplayer tile in `Lobby.jsx`, the choice, side chips and multiplayer create in `NewRoomDialog.jsx`, and the styles in `index.css`.
+
+Tests: `pnpm --filter web test` 37 pass (new: `base64`, `startTable`, `roomList`, `localDocs`). `pnpm --filter web build` passes. Lint: 44 warnings before and after, none in the new files.
+
+Login-off check: `Lobby.jsx` loads `GET /rooms` in an effect that starts with `if (!loggedIn) return`, where `loggedIn = status === 'in'`. With login off, `status` is `'off'`. `NewRoomDialog.jsx` calls the API only in `handleCreate`, and only when `multiplayer` is true, which needs `loggedIn`.
+
+Deviation: `scoreboard/affiliations.js` now imports its JSON with `with { type: 'json' }`. Without it, `node --test` cannot load `rooms/table.js`, which `startTable.js` needs. The build is fine with it.
+
+Choices where the plan was open:
+- Dialog while the session is `loading`: Multiplayer is disabled with "Checking your login".
+- A failed **Delete** of a multiplayer room shows "Could not delete the room: <error>" as a lobby notice. A 404 counts as deleted.
+- The dialog calls `onCreate({ id: code })`, and the lobby opens `#room=<code>`.
 
 ## Phase 4: Open a multiplayer room, join, write the table
 

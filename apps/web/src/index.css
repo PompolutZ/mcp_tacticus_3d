@@ -1598,6 +1598,71 @@ body {
   gap: 8px;
 }
 
+/* A multiplayer tile (Lobby.jsx): the seats under the map name, and the kind of a single player tile */
+.lobby-seats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 0 12px;
+}
+
+.lobby-seat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.lobby-seat-team {
+  width: 30px;
+  font-weight: 600;
+}
+
+.lobby-seat--blue .lobby-seat-team {
+  color: #5dade2;
+}
+
+.lobby-seat--red .lobby-seat-team {
+  color: #ec7063;
+}
+
+.lobby-seat-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.lobby-seat-name {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lobby-room-kind {
+  margin-top: 6px;
+  padding: 0 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* The Single player or Multiplayer choice, and the side chips, of the new room dialog */
+.new-room-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.new-room-kinds {
+  display: flex;
+  gap: 8px;
+}
+
+.new-room-side--off {
+  opacity: 0.45;
+}
+
 /* The login part of the lobby header (UserMenu.jsx) */
 .lobby-header {
   display: flex;

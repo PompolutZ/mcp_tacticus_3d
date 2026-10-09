@@ -2,33 +2,114 @@ import { useEffect, useMemo, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
 import { MAPS } from '../terrain/maps.js'
 import { mapCard } from '../terrain/files.js'
-import { deleteRoom, listRooms, ownsRoom } from '../rooms/store.js'
-import { ROSTER_TABS, parseRosterText, rosterTabs } from '../rosters/cards.js'
-import { CARD_STEP_KEYS } from '../keyboard.js'
+import { avatarUrl } from '../auth/avatar.js'
+import { useUser } from '../auth/useUser.js'
+import { deleteDoc, deleteRoom, listRooms, multiplayerDocName, ownsRoom } from '../rooms/store.js'
+import * as server from '../rooms/serverStore.js'
+import { deleteStaleDocs } from '../rooms/localDocs.js'
+import { roomList } from '../rooms/roomList.js'
 import { UserMenu } from './UserMenu.jsx'
 import { NewRoomDialog } from './NewRoomDialog.jsx'
-import { RosterPopup } from './RosterPopup.jsx'
+import { RoomRosterPopup } from './RoomRosterPopup.jsx'
+import { CopyLinkButton } from './CopyLinkButton.jsx'
 
 const TIME = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 const TEAMS = ['blue', 'red']
 const TEAM_NAMES = { blue: 'Blue', red: 'Red' }
 
-// The start page (docs/feature-rooms.md, "Lobby"): the rooms of this browser, the last changed first, a
-// tile that creates a room, and the Sandbox. Blue and Red on a tile show that roster of the room. notice: a
-// message to show at the top, or null. onOpenRoom(id), onOpenSandbox(): open that page.
+// A seat of a multiplayer tile: avatar and name, "Free seat", or "Deleted player"
+function Seat({ team, player }) {
+  let content = <span className="lobby-seat-name">Free seat</span>
+  if (player?.gone) content = <span className="lobby-seat-name">Deleted player</span>
+  else if (player)
+    content = (
+      <>
+        <img className="lobby-seat-avatar" src={avatarUrl(player, 40)} alt="" draggable={false} />
+        <span className="lobby-seat-name">{player.name}</span>
+      </>
+    )
+  return (
+    <div className={`lobby-seat lobby-seat--${team}`}>
+      <span className="lobby-seat-team">{TEAM_NAMES[team]}</span>
+      {content}
+    </div>
+  )
+}
+
+// The start page (docs/feature-rooms.md, "Lobby"): the single player and the multiplayer rooms in one list,
+// the last changed first, a tile that creates a room, and the Sandbox. Blue and Red on a tile show that
+// roster of the room. notice: a message to show at the top, or null. onOpenRoom(id), onOpenSandbox(): open
+// that page.
 export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
-  // The rooms of a map that the app no longer has cannot open, so they do not show
-  const [rooms, setRooms] = useState(() => listRooms().filter((room) => MAPS[room.mapId]))
+  const { status, user } = useUser()
+  // The multiplayer rooms need a login. With login off or logged out, no API call is made: the effect below
+  // returns before the request when status is not 'in'.
+  const loggedIn = status === 'in'
+  const userId = user?.id
+  const [single, setSingle] = useState(() => listRooms())
+  // The API rooms { userId, list }, or null before the first answer. userId keeps the rooms of a user who
+  // logged out away from the next user. failed: the user id whose load failed, or null.
+  const [loaded, setLoaded] = useState(null)
+  const [failed, setFailed] = useState(null)
+  const [actionError, setActionError] = useState(null)
   const [creating, setCreating] = useState(false)
   // The roster in the roster popup: { room, team }, or null
   const [rosterView, setRosterView] = useState(null)
 
+  // Each time the lobby shows, and when the user changes
+  useEffect(() => {
+    if (!loggedIn) return
+    let cancelled = false
+    server
+      .listRooms()
+      .then((list) => {
+        if (cancelled) return
+        setLoaded({ userId, list })
+        setFailed(null)
+        // A room that the host deleted leaves no copy in this browser (plan 07, decision 12)
+        deleteStaleDocs(
+          userId,
+          list.map((room) => room.code),
+        )
+      })
+      .catch(() => {
+        if (cancelled) return
+        setLoaded(null)
+        setFailed(userId)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [loggedIn, userId])
+
+  const multiplayer = useMemo(
+    () => (loggedIn && loaded?.userId === userId ? loaded.list : []),
+    [loggedIn, loaded, userId],
+  )
+  const items = useMemo(() => roomList(single, multiplayer), [single, multiplayer])
+  const hosted = multiplayer.find((room) => room.host === userId)
+
   // A browser confirm, the same as Remove on a character tray
-  function handleDelete(room) {
-    if (!window.confirm(`Delete room ${room.id} (${MAPS[room.mapId].name})? Its table is lost.`))
+  async function handleDelete(item) {
+    if (!window.confirm(`Delete room ${item.id} (${MAPS[item.mapId].name})? Its table is lost.`))
       return
-    deleteRoom(room.id)
-    setRooms((prev) => prev.filter((r) => r.id !== room.id))
+    if (item.kind === 'single') {
+      deleteRoom(item.id)
+      setSingle((prev) => prev.filter((r) => r.id !== item.id))
+      return
+    }
+    try {
+      await server.deleteRoom(item.id)
+    } catch (err) {
+      // 404: the room is gone already
+      if (err.status !== 404) {
+        setActionError(`Could not delete the room: ${err.message}`)
+        return
+      }
+    }
+    setActionError(null)
+    deleteDoc(multiplayerDocName(userId, item.id))
+    setLoaded((prev) => prev && { ...prev, list: prev.list.filter((r) => r.code !== item.id) })
   }
 
   return (
@@ -45,6 +126,16 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
           {notice}
         </div>
       )}
+      {loggedIn && failed === userId && (
+        <div className="lobby-notice" role="alert">
+          Could not load your multiplayer rooms
+        </div>
+      )}
+      {actionError && (
+        <div className="lobby-notice" role="alert">
+          {actionError}
+        </div>
+      )}
       <section>
         <h2 className="lobby-section-title">Rooms</h2>
         <div className="lobby-rooms">
@@ -54,52 +145,71 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
             </span>
             <span>New room</span>
           </button>
-          {rooms.map((room) => (
-            <div key={room.id} className="lobby-tile lobby-room">
-              <button
-                type="button"
-                className="lobby-room-open"
-                title={`Enter room ${room.id}`}
-                onClick={() => onOpenRoom(room.id)}
-              >
-                <img
-                  className="lobby-room-card"
-                  src={assetUrl(mapCard(room.mapId))}
-                  alt=""
-                  draggable={false}
-                />
-                <span className="lobby-room-name">{MAPS[room.mapId].name}</span>
-                <span className="lobby-room-code">{room.id}</span>
-                <span className="lobby-room-time">Last change {TIME.format(room.updatedAt)}</span>
-              </button>
-              <div className="lobby-room-actions">
-                {TEAMS.map(
-                  (team) =>
-                    room.rosters?.[team] && (
-                      <button
-                        key={team}
-                        type="button"
-                        className={`chip chip--player-${team}`}
-                        title={`Show the ${TEAM_NAMES[team]} roster of room ${room.id}`}
-                        onClick={() => setRosterView({ room, team })}
-                      >
-                        {TEAM_NAMES[team]}
-                      </button>
-                    ),
-                )}
-                {ownsRoom(room) && (
-                  <button
-                    type="button"
-                    className="chip lobby-room-delete"
-                    title={`Delete room ${room.id}`}
-                    onClick={() => handleDelete(room)}
-                  >
-                    Delete
-                  </button>
-                )}
+          {items.map((item) => {
+            const room = item.room
+            const isMulti = item.kind === 'multiplayer'
+            const isHost = isMulti ? room.host === userId : ownsRoom(room)
+            return (
+              <div key={`${item.kind}-${item.id}`} className="lobby-tile lobby-room">
+                <button
+                  type="button"
+                  className="lobby-room-open"
+                  title={`Enter room ${item.id}`}
+                  onClick={() => onOpenRoom(item.id)}
+                >
+                  <img
+                    className="lobby-room-card"
+                    src={assetUrl(mapCard(item.mapId))}
+                    alt=""
+                    draggable={false}
+                  />
+                  <span className="lobby-room-name">{MAPS[item.mapId].name}</span>
+                  <span className="lobby-room-code">{item.id}</span>
+                  <span className="lobby-room-time">Last change {TIME.format(item.updatedAt)}</span>
+                  {isMulti ? (
+                    <span className="lobby-seats">
+                      {TEAMS.map((team) => (
+                        <Seat key={team} team={team} player={room.players[team]} />
+                      ))}
+                    </span>
+                  ) : (
+                    <span className="lobby-room-kind">Single player</span>
+                  )}
+                </button>
+                <div className="lobby-room-actions">
+                  {TEAMS.map(
+                    (team) =>
+                      item.rosters?.[team] && (
+                        <button
+                          key={team}
+                          type="button"
+                          className={`chip chip--player-${team}`}
+                          title={`Show the ${TEAM_NAMES[team]} roster of room ${item.id}`}
+                          onClick={() =>
+                            setRosterView({ id: item.id, team, rosters: item.rosters })
+                          }
+                        >
+                          {TEAM_NAMES[team]}
+                        </button>
+                      ),
+                  )}
+                  {isMulti && (!room.players.blue || !room.players.red) && (
+                    <CopyLinkButton code={item.id} />
+                  )}
+                  {isHost && (
+                    <button
+                      type="button"
+                      className="chip lobby-room-delete"
+                      title={`Delete room ${item.id}`}
+                      onClick={() => handleDelete(item)}
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </section>
       <section>
@@ -115,52 +225,17 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
         <NewRoomDialog
           onClose={() => setCreating(false)}
           onCreate={(room) => onOpenRoom(room.id)}
+          hostedCode={hosted?.code ?? null}
         />
       )}
       {rosterView && (
         <RoomRosterPopup
-          key={`${rosterView.room.id}-${rosterView.team}`}
+          key={`${rosterView.id}-${rosterView.team}`}
           team={rosterView.team}
-          code={rosterView.room.rosters[rosterView.team].code}
+          code={rosterView.rosters[rosterView.team].code}
           onClose={() => setRosterView(null)}
         />
       )}
     </div>
-  )
-}
-
-// The roster popup of the table (RosterPopup.jsx) for a roster of a room. It opens on the first tab with
-// cards. On the table, App owns the tab and the card, because App handles all keys there. The
-// lobby has no key handler, so this component owns them: Escape closes the popup, and the left and right
-// arrows show the previous or next card. The tab is a loop, the same as on the table.
-// team: 'blue' | 'red'. code: the stored MCT code of the roster.
-function RoomRosterPopup({ team, code, onClose }) {
-  const tabs = useMemo(() => rosterTabs(parseRosterText(code)), [code])
-  const [tab, setTab] = useState(() => ROSTER_TABS.find((t) => tabs[t.key].length > 0).key)
-  const [index, setIndex] = useState(0)
-  const count = tabs[tab].length
-
-  useEffect(() => {
-    function handleKeyDown(e) {
-      if (e.key === 'Escape') onClose()
-      else if (CARD_STEP_KEYS[e.code]) setIndex((i) => (i + CARD_STEP_KEYS[e.code] + count) % count)
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [count, onClose])
-
-  return (
-    <RosterPopup
-      team={team}
-      code={code}
-      tab={tab}
-      index={index}
-      onTabChange={(next) => {
-        setTab(next)
-        setIndex(0)
-      }}
-      onIndexChange={setIndex}
-      onClose={onClose}
-    />
   )
 }

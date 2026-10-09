@@ -25,18 +25,32 @@ export function onUnauthorized(handler) {
   unauthorizedHandler = handler
 }
 
-// Sends json (if given) and returns the parsed JSON answer, or null for an answer without a body.
-export async function api(path, { method = 'GET', json } = {}) {
+// Sends json or bytes (if given) and returns the parsed JSON answer, or null for an answer without a body.
+// bytes: a Uint8Array body. binary: the answer is a Uint8Array. keepalive: the request outlives the page.
+export async function api(path, { method = 'GET', json, bytes, keepalive, binary } = {}) {
   const headers = {}
   if (token) headers.Authorization = `Bearer ${token}`
-  if (json !== undefined) headers['Content-Type'] = 'application/json'
   const init = { method, headers }
-  if (json !== undefined) init.body = JSON.stringify(json)
+  if (json !== undefined) {
+    headers['Content-Type'] = 'application/json'
+    init.body = JSON.stringify(json)
+  } else if (bytes !== undefined) {
+    headers['Content-Type'] = 'application/octet-stream'
+    init.body = bytes
+  }
+  if (keepalive) init.keepalive = true
   let res
   try {
     res = await fetch(BASE + path, init)
   } catch {
     throw new ApiError(0, 'The server does not answer')
+  }
+  if (binary && res.ok) {
+    try {
+      return new Uint8Array(await res.arrayBuffer())
+    } catch {
+      throw new ApiError(0, 'The server does not answer')
+    }
   }
   const data = await res.json().catch(() => null)
   if (!res.ok) {
