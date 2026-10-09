@@ -524,6 +524,41 @@ Checks:
 - `pnpm format` done. `pnpm lint`: 37 warnings, 0 errors.
 - Not run in a browser, by the rules.
 
+#### Part 4b: drag claims
+
+Done. Work items 1 to 3 and 5 for the pieces without a body, and the tests of `pointerDrag.test.js`. The models are part 4c.
+
+What changed:
+- `drag/pointerDrag.js` has new options `key`, `ownership`, `releaseAtEnd` (true by default) and `onRefused`.
+- With `key` and `ownership`, the drag claims `key` when it starts: after the threshold, or at the press for `immediate`. If `claim` returns false, no drag starts. There is no `onStart`, `onMove`, `onEnd`, `onClick` or `onCancel`. The listeners go and the controls turn on. An `immediate` drag returns `null`.
+- With `releaseAtEnd` on, `release(key)` runs after `onEnd` returns (also when `onMove` ends the drag), and after `onCancel`. With it off, the drag code never releases.
+- During the drag it listens to `ownership.onLost`. A lost tie for `key` calls `cancel()`. The listener goes at the end of the drag, also with `releaseAtEnd` off.
+- Without `key` or `ownership` nothing changes. Tools, new tokens and the Library pass no key.
+- `CrisisToken.jsx`: `token:<id>` for the drag and for the turn handle.
+- `TacticCard.jsx`: `tactic:<id>`.
+- `ScoreBoard.jsx`: `marker:blue`, `marker:red`, `marker:round`, through new props of `DraggableMarker`.
+- `App.jsx`: the token drag claims `loose:<id>` for a character token on the table and `pile:<id>` for a pile moved with Shift. A take from a pile, a Give source, a supply pile and the Library claim nothing. The `eslint-disable` on `ownership` is gone.
+- Each of these pieces has an `onCancel` that puts its shown pose back to its place in the document: the token (drag and turn), the card, the marker. The token drag of App already ended in `endTokenDrag`.
+
+How the pieces get the ownership: as a prop. `App` gives it to `Scene`. `Scene` gives it to `CrisisToken`, `TacticCard` and `ScoreBoard`, and `ScoreBoard` to `DraggableMarker`. The chain is short, so there is no context.
+
+Choices that the plan did not fix:
+- New option `onRefused()`. The token drag of App sets its state at the press, before the claim. Without a callback the state would stay after a refused claim. App passes `endTokenDrag`.
+- A cancel at the press, before the claim, does not release.
+- Each piece keeps the place in the document in a `placeRef`, set by the same effect that syncs the pose. So a cancel puts the piece back to the newest place, not the place at the press.
+- `Scene` also takes `ownership` for 4c. It uses it for these pieces only.
+
+Differences in behavior:
+- With the local ownership (single player room, Sandbox) every claim succeeds, so nothing looks different.
+- A cancel by a lost tie now ends a piece drag. Before, only Escape did that for the token drag of App.
+- A token turn that is cancelled goes back to the old yaw.
+
+Checks:
+- `pnpm --filter web test`: 179 pass, 0 fail.
+- `pnpm --filter web build`: passes.
+- `pnpm format` done. `pnpm lint`: 37 warnings, 0 errors.
+- Not run in a browser, by the rules.
+
 ## Phase 5: The live channel: models, tools and the cursor
 
 Read: decisions 9 and 13 to 16. `net/peer.js` (+ test), `Table.jsx`, `components/Scene.jsx`, `components/CharacterModel.jsx` (the remote mode), `components/RulerTool.jsx` (`OtherTool`, `Tool`), `drag/tablePoint.js`, `net/debugFlags.js`. MDN for unordered data channels.

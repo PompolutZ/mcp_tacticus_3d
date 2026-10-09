@@ -43,7 +43,16 @@ const flipAngle = (flip) => flip.from + (flip.to - flip.from) * ease(flip.time /
 // onMove(x, z): a drag ended over the table; App puts the card there or into a tray slot.
 // onOpen({ src, alt }): a click opens the side that faces up in the card popup (CardPopup.jsx).
 // onHover(over): the pointer moved onto (true) or off (false) the card, for the F and Delete keys.
-export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }) {
+// ownership: the claims on pieces (net/ownership.js). A drag claims `tactic:<id>`. A cancelled drag (Escape,
+// or a lost tie) puts the card back to its place in the document.
+export default function TacticCard({
+  card,
+  stackIndex,
+  onMove,
+  onOpen,
+  onHover,
+  ownership = null,
+}) {
   // Both sides load when the card mounts, so the first flip does not wait for an image
   const [faceUrl, backUrl] = [
     assetUrl(tacticCardFace(card.key)),
@@ -79,8 +88,12 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
     time: FLIP_DURATION,
   })
 
+  // The place in the document, for a cancelled drag
+  const placeRef = useRef({ x: card.x, z: card.z })
+
   useEffect(() => {
-    if (!draggingRef.current) poseRef.current = { x: card.x, z: card.z }
+    placeRef.current = { x: card.x, z: card.z }
+    if (!draggingRef.current) poseRef.current = { ...placeRef.current }
   }, [card])
 
   useEffect(() => {
@@ -118,6 +131,8 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
     overTableRef.current = true
 
     startPointerDrag(e, {
+      key: `tactic:${card.id}`,
+      ownership,
       controls,
       canvas: gl.domElement,
       onStart: () => {
@@ -136,6 +151,11 @@ export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover }
         // same point). Released off the table, it goes back to its last place.
         if (overTableRef.current) onMove?.(poseRef.current.x, poseRef.current.z)
         else poseRef.current = { x: card.x, z: card.z }
+      },
+      onCancel: () => {
+        draggingRef.current = false
+        setDragging(false)
+        poseRef.current = { ...placeRef.current }
       },
       onClick: () => {
         const up = card.up === 'face' ? faceUrl : backUrl

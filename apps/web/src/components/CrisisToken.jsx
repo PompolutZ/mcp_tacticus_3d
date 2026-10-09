@@ -130,6 +130,8 @@ function AffiliationMarker({ affiliation, x, radius }) {
 // tools. Called with undefined on unmount, the same pattern as bodyRef/objectRef in CharacterModel.
 // controlAffiliation: the affiliation key of the player in token.control (see App.jsx,
 // affiliations), or null when no player controls the token.
+// ownership: the claims on pieces (net/ownership.js). A drag and a turn claim `token:<id>`; a cancelled
+// one (Escape, or a lost tie) puts the token back to its place in the document.
 export default function CrisisToken({
   token,
   selected,
@@ -144,6 +146,7 @@ export default function CrisisToken({
   objectRef,
   centerRef,
   controlAffiliation = null,
+  ownership = null,
 }) {
   const [topMap, bottomMap, damageMap] = useTokenMaps(token)
 
@@ -162,8 +165,12 @@ export default function CrisisToken({
   const [dragging, setDragging] = useState(false)
   const arcSlot = useRef(null)
 
+  // The place in the document, for a cancelled drag or turn
+  const placeRef = useRef({ x: token.x, z: token.z, yaw: token.yaw })
+
   useEffect(() => {
-    if (!draggingRef.current) poseRef.current = { x: token.x, z: token.z, yaw: token.yaw }
+    placeRef.current = { x: token.x, z: token.z, yaw: token.yaw }
+    if (!draggingRef.current) poseRef.current = { ...placeRef.current }
   }, [token.x, token.z, token.yaw])
 
   // Registers a live getter, not a ref object, because the pose changes on every pointer move of a
@@ -228,6 +235,8 @@ export default function CrisisToken({
 
   function onPointerDown(e) {
     startPointerDrag(e, {
+      key: `token:${token.id}`,
+      ownership,
       controls,
       canvas: gl.domElement,
       // A click selects the token. Only a selected token that can move moves by a drag.
@@ -261,6 +270,11 @@ export default function CrisisToken({
         }
       },
       onClick: () => onSelect?.(),
+      onCancel: () => {
+        draggingRef.current = false
+        setDragging(false)
+        poseRef.current = { ...placeRef.current }
+      },
     })
   }
 
@@ -279,6 +293,8 @@ export default function CrisisToken({
     const startYaw = poseRef.current.yaw
 
     startPointerDrag(e, {
+      key: `token:${token.id}`,
+      ownership,
       controls,
       // The handle never released the pointer capture
       releaseCapture: false,
@@ -289,6 +305,9 @@ export default function CrisisToken({
         poseRef.current.yaw = startYaw + (angleTo(pivot, p) - startAngle)
       },
       onEnd: () => onTurn?.(poseRef.current.yaw),
+      onCancel: () => {
+        poseRef.current.yaw = placeRef.current.yaw
+      },
     })
   }
 

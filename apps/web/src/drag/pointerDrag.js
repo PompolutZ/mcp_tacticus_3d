@@ -21,6 +21,12 @@ export const DRAG_THRESHOLD = 4
 // - button: the button that drags, 0 by default. null: any button.
 // - releaseCapture: release the pointer capture of the canvas, true by default.
 // - preventDefault: call preventDefault on the press (DOM events of the HUD), false by default.
+// - key, ownership: the piece key and the ownership (net/ownership.js). The drag claims key when it starts
+//   (at the press when immediate). A refused claim: no drag and no other callback, only onRefused. During the drag, a lost
+//   tie for key calls cancel(). Without both, the drag claims nothing (tools, new tokens).
+// - onRefused(): the claim was refused. For a piece that set up state at the press.
+// - releaseAtEnd: release key after onEnd returned, and after onCancel, true by default. False: the piece
+//   releases its claim later (a model, when its body is at rest).
 // - controls: the camera controls, off from the press to the end.
 // - canvas, window: where capture is released and where the listeners go. Tests pass fakes.
 export function startPointerDrag(event, options = {}) {
@@ -30,6 +36,7 @@ export function startPointerDrag(event, options = {}) {
     onEnd,
     onClick,
     onCancel,
+    onRefused,
     canStart,
     immediate = false,
     threshold = DRAG_THRESHOLD,
@@ -38,12 +45,20 @@ export function startPointerDrag(event, options = {}) {
     preventDefault = false,
     controls = null,
     canvas = null,
+    key = null,
+    ownership = null,
+    releaseAtEnd = true,
   } = options
   // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
   if (button !== null && event.button !== button) return null
   if (preventDefault) event.preventDefault?.()
   event.stopPropagation?.()
   if (immediate && canStart && !canStart(event)) return null
+  const claims = key !== null && key !== undefined && ownership
+  if (immediate && claims && !ownership.claim(key)) {
+    onRefused?.()
+    return null
+  }
 
   const target = options.window ?? window
   const pointerId = event.pointerId ?? event.nativeEvent?.pointerId
@@ -54,11 +69,29 @@ export function startPointerDrag(event, options = {}) {
   let over = false
   // The listeners are removed and the controls are back on
   let closed = false
+  // This drag holds the claim on key. stopLost removes the onLost listener.
+  let claimed = Boolean(immediate && claims)
+  let stopLost = null
 
   if (controls) controls.enabled = false
   // A pointerdown on the canvas also starts an OrbitControls drag, which captures the pointer
   if (releaseCapture && pointerId !== undefined && canvas?.hasPointerCapture?.(pointerId)) {
     canvas.releasePointerCapture(pointerId)
+  }
+
+  // The end of the drag, after onEnd or onCancel: the listener goes, and the claim with it when asked
+  function endClaim() {
+    if (!claimed) return
+    claimed = false
+    stopLost?.()
+    stopLost = null
+    if (releaseAtEnd) ownership.release(key)
+  }
+
+  function listenLost() {
+    stopLost = ownership.onLost((lostKey) => {
+      if (lostKey === key) cancel()
+    })
   }
 
   function finish() {
@@ -73,12 +106,23 @@ export function startPointerDrag(event, options = {}) {
     if (!dragging) {
       if (Math.hypot(ev.clientX - startX, ev.clientY - startY) < threshold) return
       if (canStart && !canStart(ev)) return
+      if (claims) {
+        if (!ownership.claim(key)) {
+          over = true
+          finish()
+          onRefused?.()
+          return
+        }
+        claimed = true
+        listenLost()
+      }
       dragging = true
       onStart?.(ev)
     }
     if (onMove?.(ev)) {
       over = true
       onEnd?.(ev)
+      endClaim()
     }
   }
 
@@ -91,6 +135,7 @@ export function startPointerDrag(event, options = {}) {
       else onClick?.(ev)
     } finally {
       finish()
+      endClaim()
     }
   }
 
@@ -100,12 +145,17 @@ export function startPointerDrag(event, options = {}) {
     const wasOver = over
     over = true
     finish()
-    if (!wasOver) onCancel?.()
+    try {
+      if (!wasOver) onCancel?.()
+    } finally {
+      endClaim()
+    }
   }
 
   target.addEventListener('pointermove', handleMove)
   target.addEventListener('pointerup', handleUp)
   if (immediate) {
+    if (claimed) listenLost()
     dragging = true
     onStart?.(event)
   }

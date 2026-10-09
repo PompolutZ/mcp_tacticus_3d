@@ -168,3 +168,179 @@ test('the pointer capture of the canvas is released', () => {
   setup({ canvas, releaseCapture: false })
   assert.deepEqual(released, [1])
 })
+
+// A fake ownership: claims that the other owns are refused. lost(key) calls the onLost listeners.
+function fakeOwnership(log, { refuse = [] } = {}) {
+  const listeners = new Set()
+  return {
+    claim: (key) => {
+      log.push(`claim ${key}`)
+      return !refuse.includes(key)
+    },
+    release: (key) => log.push(`release ${key}`),
+    onLost: (fn) => {
+      listeners.add(fn)
+      return () => listeners.delete(fn)
+    },
+    lost: (key) => listeners.forEach((fn) => fn(key)),
+    listenerCount: () => listeners.size,
+  }
+}
+
+function claimSetup(options = {}, ownershipOptions, eventProps) {
+  const log = []
+  const ownership = fakeOwnership(log, ownershipOptions)
+  const result = setup(
+    {
+      key: 'tactic:a',
+      ownership,
+      onStart: () => log.push('start'),
+      onMove: () => {
+        log.push('move')
+      },
+      onEnd: () => log.push('end'),
+      onClick: () => log.push('click'),
+      onCancel: () => log.push('cancel'),
+      ...options,
+    },
+    eventProps,
+  )
+  return { ...result, log, ownership }
+}
+
+test('a drag claims at the first move past the threshold, not at the press', () => {
+  const { win, log } = claimSetup()
+  assert.deepEqual(log, [])
+  win.dispatchEvent(move(100 + DRAG_THRESHOLD))
+  assert.deepEqual(log, ['claim tactic:a', 'start', 'move'])
+})
+
+test('a click claims nothing', () => {
+  const { win, log } = claimSetup()
+  win.dispatchEvent(up())
+  assert.deepEqual(log, ['click'])
+})
+
+test('a refused claim starts no drag', () => {
+  const { win, controls, log } = claimSetup({}, { refuse: ['tactic:a'] })
+  win.dispatchEvent(move(100 + DRAG_THRESHOLD))
+  win.dispatchEvent(move(200))
+  win.dispatchEvent(up())
+  assert.deepEqual(log, ['claim tactic:a'])
+  assert.equal(win.count(), 0)
+  assert.equal(controls.enabled, true)
+})
+
+test('a refused claim calls onRefused only', () => {
+  const refused = []
+  const { win, log } = claimSetup(
+    { onRefused: () => refused.push('refused') },
+    { refuse: ['tactic:a'] },
+  )
+  win.dispatchEvent(move(200))
+  win.dispatchEvent(up())
+  assert.deepEqual(log, ['claim tactic:a'])
+  assert.deepEqual(refused, ['refused'])
+})
+
+test('a refused claim of an immediate drag returns null and starts nothing', () => {
+  const { win, controls, log, drag } = claimSetup({ immediate: true }, { refuse: ['tactic:a'] })
+  assert.equal(drag, null)
+  assert.deepEqual(log, ['claim tactic:a'])
+  assert.equal(win.count(), 0)
+  assert.equal(controls.enabled, true)
+})
+
+test('an immediate drag claims at the press', () => {
+  const { log } = claimSetup({ immediate: true })
+  assert.deepEqual(log, ['claim tactic:a', 'start'])
+})
+
+test('a drop releases after the drop callback', () => {
+  const { win, log, ownership } = claimSetup()
+  win.dispatchEvent(move(200))
+  win.dispatchEvent(up())
+  assert.deepEqual(log, ['claim tactic:a', 'start', 'move', 'end', 'release tactic:a'])
+  assert.equal(ownership.listenerCount(), 0)
+})
+
+test('a drag that onMove ends releases after the drop callback', () => {
+  const { win, log } = claimSetup({
+    onMove: () => {
+      log.push('move')
+      return true
+    },
+  })
+  win.dispatchEvent(move(200))
+  assert.deepEqual(log, ['claim tactic:a', 'start', 'move', 'end', 'release tactic:a'])
+  win.dispatchEvent(up())
+  assert.equal(log.filter((l) => l.startsWith('release')).length, 1)
+})
+
+test('a cancel releases with no drop', () => {
+  const { win, log, drag, ownership } = claimSetup()
+  win.dispatchEvent(move(200))
+  drag.cancel()
+  assert.deepEqual(log, ['claim tactic:a', 'start', 'move', 'cancel', 'release tactic:a'])
+  win.dispatchEvent(up())
+  assert.equal(log.length, 5)
+  assert.equal(ownership.listenerCount(), 0)
+})
+
+test('with releaseAtEnd off, a drop and a cancel do not release', () => {
+  const dropped = claimSetup({ releaseAtEnd: false })
+  dropped.win.dispatchEvent(move(200))
+  dropped.win.dispatchEvent(up())
+  assert.equal(
+    dropped.log.some((l) => l.startsWith('release')),
+    false,
+  )
+  assert.equal(dropped.ownership.listenerCount(), 0)
+
+  const cancelled = claimSetup({ releaseAtEnd: false })
+  cancelled.win.dispatchEvent(move(200))
+  cancelled.drag.cancel()
+  assert.equal(
+    cancelled.log.some((l) => l.startsWith('release')),
+    false,
+  )
+  assert.equal(cancelled.ownership.listenerCount(), 0)
+})
+
+test('a lost tie for the key cancels the drag', () => {
+  const { win, controls, log, ownership } = claimSetup()
+  win.dispatchEvent(move(200))
+  ownership.lost('tactic:a')
+  assert.deepEqual(log, ['claim tactic:a', 'start', 'move', 'cancel', 'release tactic:a'])
+  assert.equal(win.count(), 0)
+  assert.equal(controls.enabled, true)
+  win.dispatchEvent(up())
+  assert.equal(log.includes('end'), false)
+})
+
+test('a lost tie of another key does nothing', () => {
+  const { win, log, ownership } = claimSetup()
+  win.dispatchEvent(move(200))
+  ownership.lost('tactic:b')
+  win.dispatchEvent(up())
+  assert.deepEqual(log, ['claim tactic:a', 'start', 'move', 'end', 'release tactic:a'])
+})
+
+test('a lost tie of an immediate drag cancels it', () => {
+  const { win, log, ownership } = claimSetup({ immediate: true })
+  ownership.lost('tactic:a')
+  assert.deepEqual(log, ['claim tactic:a', 'start', 'cancel', 'release tactic:a'])
+  assert.equal(win.count(), 0)
+})
+
+test('without a key or without ownership, nothing is claimed', () => {
+  const noKey = claimSetup({ key: null })
+  noKey.win.dispatchEvent(move(200))
+  noKey.win.dispatchEvent(up())
+  assert.deepEqual(noKey.log, ['start', 'move', 'end'])
+
+  const noOwnership = claimSetup({ ownership: null })
+  noOwnership.win.dispatchEvent(move(200))
+  noOwnership.win.dispatchEvent(up())
+  assert.deepEqual(noOwnership.log, ['start', 'move', 'end'])
+})

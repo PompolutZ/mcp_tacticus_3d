@@ -75,9 +75,21 @@ function Board() {
 // way as a crisis token. When it is released near a spot of `points`, it moves onto that spot (snapPoint).
 // position: { x, z } from App. onMove(x, z): called once, when a drag ends. shape: a Rapier shape as wide as
 // the marker, for the ground cast. halfHeight: half the shape's height. lift: extra height, for a marker
-// that lies on another one. children: the marker, with its bottom at y = 0. They can suspend while their
+// that lies on another one. pieceKey: the key of the claim, `marker:<blue|red|round>`. ownership: the claims
+// on pieces (net/ownership.js). A cancelled drag (Escape, or a lost tie) puts the marker back to its place
+// in the document. children: the marker, with its bottom at y = 0. They can suspend while their
 // files load; the drag does not wait for them.
-function DraggableMarker({ position, points, shape, halfHeight, lift = 0, onMove, children }) {
+function DraggableMarker({
+  pieceKey,
+  ownership,
+  position,
+  points,
+  shape,
+  halfHeight,
+  lift = 0,
+  onMove,
+  children,
+}) {
   const { camera, gl, controls } = useThree()
   const { world, rapier } = useRapier()
   const groupRef = useRef()
@@ -86,7 +98,11 @@ function DraggableMarker({ position, points, shape, halfHeight, lift = 0, onMove
   const draggingRef = useRef(false)
   const [hovered, setHovered] = useState(false)
 
+  // The place in the document, for a cancelled drag
+  const placeRef = useRef(position)
+
   useEffect(() => {
+    placeRef.current = position
     if (!draggingRef.current) poseRef.current = position
   }, [position])
 
@@ -107,6 +123,8 @@ function DraggableMarker({ position, points, shape, halfHeight, lift = 0, onMove
   // The press is a drag at once, with no threshold and no click
   function handlePointerDown(e) {
     startPointerDrag(e, {
+      key: pieceKey,
+      ownership,
       controls,
       canvas: gl.domElement,
       immediate: true,
@@ -123,6 +141,10 @@ function DraggableMarker({ position, points, shape, halfHeight, lift = 0, onMove
         const spot = snapPoint(points, x, z)
         poseRef.current = spot ?? { x, z }
         onMove(poseRef.current.x, poseRef.current.z)
+      },
+      onCancel: () => {
+        draggingRef.current = false
+        poseRef.current = placeRef.current
       },
     })
   }
@@ -190,7 +212,7 @@ function RoundMarkerMesh() {
 // markers: { blue, red, round } → { x, z }, see App.jsx. affiliations: { blue, red } → affiliation key.
 // onMarkerMove(marker, x, z): a marker was dropped, already moved onto a spot when it was near one.
 // The app does not read the score from the board. Players read it, as on a real table.
-export default function ScoreBoard({ markers, affiliations, onMarkerMove }) {
+export default function ScoreBoard({ markers, affiliations, onMarkerMove, ownership = null }) {
   const { rapier } = useRapier()
   // The VP marker dropped last. When both players have the same VP, it lies on top of the other one, as
   // in TTS, where the second marker falls onto the first. Both edges show, so both colors can be seen.
@@ -214,6 +236,8 @@ export default function ScoreBoard({ markers, affiliations, onMarkerMove }) {
       {['blue', 'red'].map((team) => (
         <DraggableMarker
           key={team}
+          pieceKey={`marker:${team}`}
+          ownership={ownership}
           position={markers[team]}
           points={VP_POINTS}
           shape={vpShape}
@@ -230,6 +254,8 @@ export default function ScoreBoard({ markers, affiliations, onMarkerMove }) {
         </DraggableMarker>
       ))}
       <DraggableMarker
+        pieceKey="marker:round"
+        ownership={ownership}
         position={markers.round}
         points={ROUND_POINTS}
         shape={roundShape}

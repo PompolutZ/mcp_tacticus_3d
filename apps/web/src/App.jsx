@@ -224,7 +224,7 @@ function canvasEvents(store) {
 // serverWarning: the text of the warning when a multiplayer room is no longer saved on the server, or null.
 // connection: { state, peer, versionMismatch, retry } of a multiplayer room (net/peer.js, Table.jsx), or null.
 // userId: the id of the signed-in user, who owns the stored squad of a multiplayer room.
-// ownership: the claims on pieces (net/ownership.js). Not used yet.
+// ownership: the claims on pieces (net/ownership.js). The drags claim their piece through it.
 // onExit(): opens the lobby. See
 // docs/feature-rooms.md and docs/plans/implement-backend/05-yjs-state.md.
 export default function App({
@@ -234,7 +234,7 @@ export default function App({
   serverWarning = null,
   connection = null,
   userId = null,
-  ownership = null, // eslint-disable-line no-unused-vars
+  ownership = null,
   onExit,
 }) {
   const red = Boolean(room?.multiplayer && room.side === 'red')
@@ -1358,7 +1358,11 @@ export default function App({
   // drag: tokenKey and the fields of tokenDrag that are set, the others get their defaults.
   function startTokenDrag(e, drag) {
     const full = { looseId: null, supplyCard: null, pile: false, pileId: null, ...drag }
+    // A character token on the table or a moved pile is claimed. A new token claims nothing.
+    const key = full.looseId ? `loose:${full.looseId}` : full.pileId ? `pile:${full.pileId}` : null
     const handle = startPointerDrag(e, {
+      key,
+      ownership,
       controls: controlsRef.current,
       canvas: e.target,
       button: null,
@@ -1374,6 +1378,8 @@ export default function App({
       },
       onClick: endTokenDrag,
       onCancel: endTokenDrag,
+      // The other player owns the piece: no drag, so the state set below must not stay
+      onRefused: endTokenDrag,
     })
     if (!handle) return
     tokenDragHandleRef.current = handle
@@ -1497,6 +1503,7 @@ export default function App({
               tools={tools}
               ownSide={ownSide}
               onToolStore={handleToolStore}
+              ownership={ownership}
               angleSpawn={angleSpawn}
               showColliders={debug}
               showLabels={showLabels}

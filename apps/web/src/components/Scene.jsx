@@ -209,6 +209,7 @@ const OVERLAP_INTERVAL = 100
 // undefined. A model with a pose starts there instead of on its tray. Read when the model mounts.
 // onModelRest(modelId, pose): the body of a model fell asleep. App stores the pose in the table document, so
 // the model starts there when the table opens again (docs/plans/implement-backend/05-yjs-state.md, decision 8).
+// ownership: the claims on pieces (net/ownership.js). Pieces without a body pass it to the drag code.
 export default function Scene({
   mapId,
   terrain = [],
@@ -279,6 +280,7 @@ export default function Scene({
   onScoreMarkerMove,
   startPose,
   onModelRest,
+  ownership = null,
 }) {
   const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
   const { camera, gl, pointer } = useThree()
@@ -801,6 +803,7 @@ export default function Scene({
           markers={scoreMarkers}
           affiliations={affiliations}
           onMarkerMove={onScoreMarkerMove}
+          ownership={ownership}
         />
 
         {/* Crisis cards and tokens are relative to the player sides, not the mat, so they stay
@@ -856,6 +859,7 @@ export default function Scene({
               }
               onMove={(x, z) => onTokenMove(tok.id, x, z)}
               onTurn={(yaw) => onTokenTurn(tok.id, yaw)}
+              ownership={ownership}
               onHold={(characterId, point) => {
                 const holder = characters.find((ch) => ch.id === characterId)
                 const trayPos = trayPositions.get(characterId)
@@ -950,6 +954,7 @@ export default function Scene({
               card={card}
               stackIndex={i}
               onMove={(x, z) => onTacticMove(card.id, x, z)}
+              ownership={ownership}
               onOpen={onCardOpen}
               onHover={(over) => onTacticHover?.(card.id, over)}
             />
