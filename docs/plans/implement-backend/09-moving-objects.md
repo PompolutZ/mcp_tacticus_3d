@@ -791,6 +791,22 @@ Checks:
 - `pnpm format` done. `pnpm lint`: 36 warnings, 0 errors.
 - Not run in a browser, by the rules.
 
+#### Part 7b: docs
+
+Done. Work items 5 to 8. Docs only, no code change.
+
+- `docs/feature-peer-to-peer.md`: status line, "Data channels" (`sync` and `live`, both before the offer), "State" and "Yjs document" (`tools`, the tool entry), "Moving objects (physics)" (rewritten for claims, one writer, the follow, no pushed bodies), "Pose message", "Cursor message", "Traffic per game", "Debug flags", "What each player controls", "Code layout", "Phases".
+- `README.md`: live moves, the other player's tools and cursor, the tools saved with the room, `?drop` and `?delay`, the traffic lines.
+- `docs/feature-rooms.md` ("Storage"): the tools are in the document.
+- `docs/plans/implement-backend.md`: **Result** under step 9, and the dice notes under step 10.
+- Check 23 (the bytes of a local game) is open. It is for the user. Put the numbers here when you have them.
+
+Choices that the plan did not fix:
+- The first design said the tools are player bodies that the owner simulates. They are sensor bodies that the owner moves, and the other browser follows the live pose. They are never claimed. The doc says so.
+- The first design said the cursor is `x, z`. The built cursor is `[x, y, z]` or `null`.
+- The "Traffic per game" estimate stays, with a note that the built packet is smaller. The measured numbers wait for check 23.
+- The selection of the other player is not built, and the "Players" row says so.
+
 ## User
 
 After Phase 1b, in a single player room:

@@ -117,13 +117,15 @@ The lobby finds the rooms by the key prefix. One key per room, so a room cannot 
 ```
 
 - The record keeps only the setup and the dates. `mapId` and `rosters` are a copy of the document, for the lobby tile. The lobby does not open the documents.
-- The table is in the document. Its layout is in `docs/feature-peer-to-peer.md` ("Yjs document"). The document has the map, the rosters, the characters, the tokens, the cards, the terrain pieces and the model poses.
+- The table is in the document. Its layout is in `docs/feature-peer-to-peer.md` ("Yjs document"). The document has the map, the rosters, the characters, the tokens, the cards, the terrain pieces, the model poses and the tools.
 - `terrain` stores the place of each piece in the map data (`index`, `locked`), not the whole placement. So a fix of the map data reaches old rooms. A deleted piece is not in the list.
 - A model writes its pose to `poses` when its body falls asleep. A lifted model (R) writes the place under the lift. A model that moves when the page closes keeps its last rest pose.
 - A saved model starts at its pose, asleep. So it does not move before the terrain under it has its colliders. A touch, a drag or a removed terrain piece wakes it.
 - A record of version 1 opens with a new table, with its map and rosters. Its old `table` is not read. A document with another `game.schema` gets a new start table.
 
-Not saved: dice, tools, selection, camera, open popups, spectator view, labels, debug mode. The dice are empty when the room opens.
+- The tools (range, movement, Toward / Away) are in `tools`, per side (`tools.blue`, `tools.red`). An entry has the pose, the bend, the snap target and the mode. A tool writes it after it rested for 0.3 s. A saved tool comes back where it was. Place, Throw, the Bend button and the selection of a tool are not saved.
+
+Not saved: dice, selection, camera, open popups, spectator view, labels, debug mode. The dice are empty when the room opens.
 
 ### When the room saves
 
@@ -175,7 +177,7 @@ In a single player room, the user id in `localStorage` is the owner of every roo
 
 Made on 2026-10-07:
 
-1. A saved room keeps the full table, also the model poses. Dice and tools reset.
+1. A saved room keeps the full table, also the model poses. Dice reset. The tools stay.
 2. The Sandbox is not saved. Leaving it asks first.
 3. The URL hash selects the page. The room code has the format of the peer-to-peer plan.
 4. One `localStorage` key per room. The lobby lists the keys with the room prefix.

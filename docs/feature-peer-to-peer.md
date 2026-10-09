@@ -1,6 +1,6 @@
 # Feature: Peer-to-peer play
 
-Status: step 8 is built. Two browsers of a multiplayer room connect over WebRTC, and the Yjs document syncs over the `sync` channel. The `poses` channel, awareness and claims come in step 9. A dropped network and "Reconnecting" come in step 11. `GET /ice` and TURN come in step 13. The user's browser checks of step 8 passed on 2026-10-09. See [Open questions](#open-questions) at the end.
+Status: steps 8 and 9 are built. Two browsers of a multiplayer room connect over WebRTC. The Yjs document and Yjs awareness (the claims) go over the `sync` channel. Live moves of pieces and the cursor go over the `live` channel. The tools are in the document, per side. Dice come in step 10. A dropped network and "Reconnecting" come in step 11. `GET /ice` and TURN come in step 13. The user's browser checks of step 8 passed on 2026-10-09. The browser checks of step 9 are open. See [Open questions](#open-questions) at the end.
 
 The backend (repo, stack, AWS, deploy) is in `docs/feature-backend.md`. The order of the work is in `docs/plans/implement-backend.md`.
 
@@ -18,7 +18,7 @@ The game data goes directly from browser to browser over WebRTC. We run no game 
 | Signaling | Routes in the API of `docs/feature-backend.md` (one AWS Lambda with a function URL), plus one collection in its Atlas Free cluster. HTTP polling, no WebSocket |
 | NAT traversal | Public STUN servers first. Cloudflare TURN later, only if direct connections fail too often |
 | Shared state | Yjs document, synced over a reliable data channel, the same way as the whiteboard at work |
-| Moving objects | The player who moves an object simulates it and streams its pose over an unreliable data channel. The rest pose goes into the Yjs document |
+| Moving objects | The player who moves a piece claims it and streams its pose over an unreliable data channel (`live`). The rest pose goes into the Yjs document |
 | Cost | $0. Lambda "Always Free" limits have no end date, and the Atlas cluster is a Free cluster. See [Cost and free tier](#cost-and-free-tier) |
 
 ## How a WebRTC connection starts
@@ -194,7 +194,7 @@ The free tier is 1 million messages and 750,000 connection minutes per month, fo
 
 ### Traffic per game
 
-Only category 4 (see [State](#state)) sends data all the time, so it decides the TURN cost. Each packet has about 90 bytes of headers (IP, UDP, DTLS, SCTP, TURN). One pose in JSON with full number precision is about 170 bytes.
+Only category 4 (see [State](#state)) sends data all the time, so it decides the TURN cost. Each packet has about 90 bytes of headers (IP, UDP, DTLS, SCTP, TURN). One pose in JSON with full number precision would be about 170 bytes. The built packet rounds the numbers, so a model pose is about 70 bytes, and the table below is an upper estimate.
 
 Estimate for one 2-hour game. The numbers are calculated, not measured:
 
@@ -208,7 +208,7 @@ Estimate for one 2-hour game. The numbers are calculated, not measured:
 
 So 1,000 GB is enough for about 28,000 relayed games per month. It is not clear if Cloudflare counts the data twice when both players use the relay. In that case, the number is about 14,000. Only games where the direct connection fails use TURN.
 
-From phase 3, log the bytes of each game from `pc.getStats()` (`bytesSent` and `bytesReceived` of the selected candidate pair). Then replace this estimate with the measured numbers. If the traffic is too high, there are three ways to send less: send less often, round the numbers, or use a binary format.
+Phase 3 logs the bytes from `pc.getStats()` (`bytesSent` and `bytesReceived` of the selected candidate pair, `net/traffic.js`). The browser reads them every 60 s and logs one `console.info` line every 10 min, when a connection ends, and on **← Lobby**. The line has the bytes sent and received, the minutes, and direct or relayed, for the connection and for all connections of the open table. The measured numbers of a local game are open (check 23 of `docs/plans/implement-backend/09-moving-objects.md`). Then replace this estimate with them. If the traffic is too high, there are three ways to send less: send less often, round the numbers, or use a binary format.
 
 ### Other Cloudflare Realtime products
 
@@ -223,18 +223,20 @@ Cloudflare Realtime does not do signaling for direct connections. So with Cloudf
 
 ## Data channels
 
-One `RTCPeerConnection` per pair of players. The design has two data channels:
+One `RTCPeerConnection` per pair of players. It has two data channels:
 
 | Channel | Settings | Carries | Step |
 |---|---|---|---|
-| `sync` | reliable, ordered. `negotiated: true`, `id: 0` | Categories 2 and 3: Yjs sync messages. Later also Yjs awareness messages (`y-protocols`) | 8 |
-| `poses` | `ordered: false`, `maxRetransmits: 0` | Category 4: poses of moving objects and dice, cursor positions. A lost packet is not sent again, because the next one replaces it | 9 |
+| `sync` (persistence) | reliable, ordered. `negotiated: true`, `id: 0` | Categories 2 and 3: Yjs sync messages. Yjs awareness messages (`y-protocols`): the claims | 8, 9 |
+| `live` | `negotiated: true`, `id: 1`, `ordered: false`, `maxRetransmits: 0` | Category 4: poses of moving pieces, the cursor, and later dice in flight. A lost packet is not sent again, because the next one replaces it | 9 |
 
-Step 8 builds only `sync`. Both browsers create it before the offer and the answer, as a negotiated channel, so there is no `ondatachannel` race. Step 9 adds `poses` (id 1) and awareness. A channel added after the connection needs no new offer, because the data channel transport exists already.
+Both browsers create both channels before the offer and the answer, as negotiated channels, so there is no `ondatachannel` race. The first design added `live` after the connection. Creating both before the offer is the same code path as `sync` and needs no new rule. `onChannels({ sync, live })` is called once per open, when `sync` opens. `live` may open a moment later, and the live hub sends nothing until it is open.
 
-Names and sides need no awareness in step 8. They come from the room and from the `user` of the messages, which the server sets.
+Claims go over `sync`, not over `live`, although they are not saved. A lost release would lock a piece. A release must also come after the rest pose or the drop. Only a reliable, ordered channel does both.
 
-On `sync`, each message is a varUint type (`0` is sync) and then a `y-protocols/sync` message, the same layout as y-websocket. Type `1` (awareness) comes in step 9. A channel sends sync step 1 when it opens. A document update from the channel is applied with the channel as origin and is not sent back.
+Names and sides need no awareness. They come from the room and from the `user` of the messages, which the server sets.
+
+On `sync`, each message is a varUint type and then a `y-protocols` message, the same layout as y-websocket. Type `0` is sync and type `1` is awareness. A channel sends sync step 1 and the own awareness state when it opens. A document update from the channel is applied with the channel as origin and is not sent back. When the channel stops, the awareness states that came from it are removed.
 
 The data is encrypted (DTLS), also through TURN. Data channels need no camera or microphone permission.
 
@@ -248,22 +250,22 @@ The data has four categories. There is also local state, which is not sent.
 |---|---|---|---|---|
 | 1 | Assets | models, textures, card images, map images | Netlify, or AWS later. Loaded over HTTPS | None. Never through WebRTC |
 | 2 | Set-up: changes once per game | rosters, crisis cards, map, deploy line | Yjs document | `sync` |
-| 3 | Rare changes | rest poses of models, tokens and tools; card flips; damage and power; healthy or injured side; tokens gained or lost; mat turns; dice results and roll history | Yjs document | `sync` |
-| 4 | Presence: what the other player does now | dice in the air; a model, token or tool being moved; cursor | Not stored | `poses` |
-| | Players | name, side (blue or red), claims (`owns`), selection | Yjs awareness | `sync` |
+| 3 | Rare changes | rest poses of models and tools; the places of tokens, cards and markers; card flips; damage and power; healthy or injured side; tokens gained or lost; mat turns; dice results and roll history | Yjs document | `sync` |
+| 4 | Presence: what the other player does now | dice in the air (step 10); every piece that a player drags (model, tool, crisis token, character token on the table, pile, tactic card, score marker); cursor | Not stored | `live` |
+| | Players | name, side (blue or red), claims (`owns`). Not built yet: selection | Yjs awareness | `sync` |
 | | Local | camera, hover, labels, debug mode, open card popup, open dice menu | React state, as today | Not sent |
 
-The same object can be in two categories at different times. While a player drags a model, its pose is category 4. When the model stops, its rest pose goes into the document as category 3.
+The same object can be in two categories at different times. While a player drags a model, its pose is category 4. When the model stops, its rest pose goes into the document as category 3. A piece without a body (a token, a card, a marker, a pile) writes its new place into the document at the drop.
 
 **Category 1.** The game state refers to assets and data by id: character keys, crisis card ids, map id. So both players must run the same version of the app. See the version check in [Connect flow](#connect-flow).
 
-**Category 4** only shows each player what the other player does. It does not need to be exact: packets can be lost, and the motion can jump. The final state always comes through category 3. So category 4 uses the unreliable `poses` channel, and its send rates are starting values. We measure the traffic (see [Traffic per game](#traffic-per-game)) and change the rates after that.
+**Category 4** only shows each player what the other player does. It does not need to be exact: packets can be lost, and the motion can jump. The final state always comes through category 3. So category 4 uses the unreliable `live` channel, and its send rates are starting values. We measure the traffic (see [Traffic per game](#traffic-per-game)) and change the rates after that.
 
 The cursor is in category 4, not in awareness. Awareness goes over the reliable, ordered `sync` channel. On that channel, a lost packet is sent again, and all messages after it wait. So a fast cursor stream would delay card flips and other Yjs changes.
 
 ### Yjs document
 
-Each name is a top-level `Y.Map` of the `Y.Doc`. Step 5 made the first ten. The tools come in step 9 and the dice in step 10.
+Each name is a top-level `Y.Map` of the `Y.Doc`. Step 5 made the first ten. Step 9 added `tools`. The dice come in step 10.
 
 | Name | Kind | Content |
 |---|---|---|
@@ -277,19 +279,33 @@ Each name is a top-level `Y.Map` of the `Y.Doc`. Step 5 made the first ten. The 
 | `tactics` | list | tactic cards on the table (`docs/feature-team-tactic-cards.md`) |
 | `looseTokens` | list | character tokens on the table |
 | `tokenPiles` | list | token piles on the table |
+| `tools` | record, depth 1 | the tools of both players: `tools.<side>.<kind>`. `side` is `blue` or `red`. `kind` is `range`, `move` or `angle` |
 
-Later steps add:
+Step 10 adds:
 
 ```
-  tools: Y.Map<side, Y.Map<kind, Y.Map>>   step 9: per side, range and move tool: which one, pose, bend, snap target
   dice: Y.Map<trayKey, Y.Map>              step 10: dice (id -> pose, face, place), history (Y.Array), critsUsed
 ```
+
+A tool entry is `{ which, spawn, at?, pose?, turn?, snap?, mode? }`:
+
+| Field | Meaning |
+|---|---|
+| `which` | The range number (1 to 5), the movement type (`short`, `medium`, `long`), or `true` for `angle` |
+| `spawn` | A random id, new at each spawn. A new `spawn` mounts the tool again in both browsers |
+| `at` | `{ x, z }`, the point of a free spawn |
+| `pose` | `{ x, y, z, yaw }`, the rest pose |
+| `turn` | `{ right, left }`, the bend |
+| `snap` | `{ kind, id, side, across }` or `null`: the model or token that the tool touches |
+| `mode` | `away` or `toward` (the Toward / Away tool) |
+
+Only the owner of a side writes it, so the two players never write the same entry. The owner writes `pose`, `turn`, `snap` and `mode` when none of them changed for 0.3 s. Positions have 3 decimals, yaw and bend 4. Escape and key 0 delete the own entries. Place, Throw, the Bend button and the selection are not stored. An old document has no tools, which is a valid state, so `SCHEMA` did not change.
 
 How the data is stored:
 
 - **List.** A `Y.Map` from the entity id to a nested `Y.Map` of the entity's fields. A field value is plain JSON. A field that is an object (`tokens` of a character, `heldAt`, `transform`) is replaced as a whole. So two players who change different fields of one entity both keep their change.
 - **Order.** Each entity of a list has a hidden `order` number. The store sorts by `order`, then by id, and App does not see `order`. The order is the tray row of `characters` and the stack of `tactics`. With equal numbers from two players, the id decides, the same in both browsers.
-- **Record.** A `Y.Map` of fields. With depth 0, each value is one plain value. With depth 1, a value that is a plain object becomes a nested `Y.Map` of its fields. `game` and `setup` have depth 1, so each player's squad and Ready in `setup` (`setup.squads.blue`, `setup.ready.red`) merge. `rosters` and `poses` have depth 0. A score marker position stays one value.
+- **Record.** A `Y.Map` of fields. With depth 0, each value is one plain value. With depth 1, a value that is a plain object becomes a nested `Y.Map` of its fields. `game` and `setup` have depth 1, so each player's squad and Ready in `setup` (`setup.squads.blue`, `setup.ready.red`) merge. `rosters` and `poses` have depth 0. `tools` has depth 1, so each side's entries merge. A score marker position stays one value.
 - **Poses by model id.** A character with a second form has two models (`characters/models.js`), so `poses` is a record by model id, not a field of the character. A removed character deletes the poses of its models.
 - **Terrain.** `terrain` stores only `index` and `locked`. App adds the placement from the map data (`withPlacements`), so a fix of the map data reaches old rooms.
 - **Schema.** `game.schema` is `SCHEMA` (1). A document or a game file with another schema is not used. Before the first release, all data is test data.
@@ -302,41 +318,73 @@ Each browser stores the document in IndexedDB (`y-indexeddb`), per room, from st
 
 ## Moving objects (physics)
 
-Both browsers run Rapier for every body. We cannot send only the inputs and let both browsers compute the same result: the Rapier build we use is not deterministic across machines, and both worlds would have to stay exactly equal from the start. Instead, one browser decides the motion of each moving object.
+Both browsers run Rapier for every body. We cannot send only the inputs and let both browsers compute the same result: the Rapier build we use is not deterministic across machines, and both worlds would have to stay exactly equal from the start. Instead, one browser decides the motion of each moving piece.
 
-There are two kinds of bodies:
+There are four kinds of pieces:
 
-- **Player bodies**: the tools and the dice of one player (see [What each player controls](#what-each-player-controls)). Only that player's browser simulates them, always. The other browser always moves them as kinematic bodies, to the received poses (rule 4). So player bodies need no claims, and two players never fight over them.
-- **Shared bodies**: models and tokens. Either player can move them. The rules below decide which browser simulates a moving shared body.
+- **Models**: either player can move them. A model has a physics body. The rules below decide which browser simulates it.
+- **Tools**: the tools of one player (see [What each player controls](#what-each-player-controls)). A tool is a sensor body. It pushes nothing and nothing pushes it. Only the owner moves it. The other browser draws it at the live pose. So tools need no claims.
+- **Pieces without a body**: crisis tokens, character tokens on the table, piles, tactic cards and score markers. Either player can move them. The piece has no rest pose. The drop writes its new place into the document.
+- **Dice** (step 10) are player bodies. Only the tray's player simulates them. The other browser moves them as kinematic bodies, to the received poses.
+
+Models do not push models. A dragged model passes through other models and through tokens. It does not pass through terrain. Models are in their own collision group, and that group does not collide with itself. Dice do not move models (dominance groups). So no body pushes a resting model, and the first design had a rule for that: the browser that moves a body claims a body it pushes. This rule is gone. There are no pushed bodies to claim and no contact events.
+
+While two models overlap, the one that moved last shows the overlap mark (a red outline and tint). A drag that ends inside another model puts the model back at the last place of the drag where it overlapped nothing. Place, Place 1 and Throw or Push can still end inside a model, and then the mark shows.
 
 ### Rules
 
 1. A body at rest has no owner. Its pose is in the Yjs document.
-2. When a player starts to drag a model or a token, that player's browser **claims** the body. The claim is in awareness: `owns: [ids]`.
-3. The owner simulates the body as today. It sends the body's pose on the `poses` channel about 30 times per second: every 4th physics step, because the step is 1/120 s. A player body works the same way, but its player is always the owner.
-4. The other browser switches the body to `kinematicPosition` and moves it to the latest received pose. Lost packets and jumps are acceptable (category 4). If the motion looks bad, add a delay of about 100 ms and interpolate between poses.
-5. When the owner's body falls asleep, the owner writes the rest pose to the document and then removes the claim. Both go over the `sync` channel, which keeps the order. The other browser sets the exact rest pose, switches the body back to dynamic and puts it to sleep. A player body stays kinematic in the other browser.
-6. A shared body that is not owned can be pushed by a moving body, for example a die that hits a model. The browser that simulates the moving body claims the pushed body. It finds this with Rapier contact events.
-7. If both players claim the same shared body at the same time, the player with the lower Yjs client id keeps it. Both browsers apply the same rule, so they agree without more messages.
-8. When a player disconnects, its claims end. The other browser simulates the shared bodies from where they are. The player bodies of the disconnected player stop where they are until that player comes back.
+2. A player action in one browser claims the piece. The actions are a drag of any piece, the turn handle of a crisis token, and for models R, Q / E, Throw or Push, Place and Place 1. The claim is in awareness: `owns: [piece keys]`. When the other player owns the piece, the action does nothing. A drag claims its piece when it starts, after the 4 px threshold. A change of the document that both browsers apply (a new character, a tray that moves, a removed terrain piece, a new map, a mat turn) claims nothing. Both browsers simulate that move from the same document.
+3. The owner simulates the model as today. It sends the pose on the `live` channel (see [Pose message](#pose-message)).
+4. The other browser makes the model a kinematic body with no contact forces (solver groups 0), so it pushes nothing here. It moves the body towards the latest received pose. A pose counts only while the other player claims the piece. A few lost first poses change nothing on the table, because models pass through models.
+5. The rest pose of a model has one writer:
+   - Claimed by this browser: this browser writes it.
+   - Claimed by the other player: this browser never writes it.
+   - Not claimed: the host writes it while the other player is present. Alone, this browser writes it.
+   - Both browsers simulate an unclaimed move from the same document, so their results are almost equal. One writer is enough.
+6. A model claim ends when the body is asleep and dynamic, and at least 0.2 s old. Each browser checks its own claims on every frame, because a lifted model (R) is kinematic and can fall asleep in the air. It writes the rest pose, then removes the claim. Both go over the `sync` channel, which keeps the order. The other browser sets the exact pose, makes the body dynamic, gives back its contact forces and puts it to sleep.
+7. A piece without a body keeps its claim until the drop wrote the document, or until the drag is cancelled. Then the claim is removed.
+8. If both players claim the same piece at the same time, the player with the lower Yjs client id keeps it. Both browsers apply the same rule, so they agree without more messages. The other browser removes its claim. Its drag of that piece is cancelled: no drop and no write.
+9. When a player disconnects, its claims end. A model of the other player becomes dynamic where it stands, gets its contact forces back and stays awake. This browser simulates it and writes its rest pose. A piece without a body shows its place in the document. A browser that stops without closing the channel (a sleeping laptop) keeps its claims on the other screen for up to 30 s, until the awareness times out.
+
+A rest pose from the other browser for a model that nobody claims: when the pose in `poses` changes and the body stands somewhere else, the body gets the exact pose and goes to sleep. A pose that this browser wrote equals the body, so nothing happens.
+
+### The follow
+
+A piece that the other player moves does not jump to each pose. On each frame it goes `1 − e^(−dt / 0.05)` of the way to its latest pose. A model's rotation uses slerp, a yaw uses the shortest turn. The follow needs no clock and hides lost packets and jumps. Packets are unordered, so each piece and the cursor keep the sequence number of their last pose, and an older pose is dropped. If the motion looks bad, a later change can add a delay of about 100 ms and interpolate between poses.
+
+A piece that the other player moves shows a footprint on the table or terrain under it, because it hangs above the table. The tool of the other player goes to its latest pose from the live channel or from the document, whichever came last.
 
 ### Bodies moved by the other browser
 
-A body that the other browser moves must not push anything in this browser. Otherwise this browser's physics changes models and tokens that the other browser does not change, and the two tables stay different.
+A model that the other browser moves must not push anything in this browser. Otherwise this browser's physics changes models and tokens that the other browser does not change, and the two tables stay different.
 
-1. While the body moves, it pushes nothing: its colliders produce no contact forces (Rapier solver groups). This starts with the first pose or claim that arrives, whichever comes first. The reason: a kinematic body pushes everything it touches, with no limit on the force. When a pose jumps, for example 10 cm in one step, the body can throw a model that lies still, but only in this browser. Only the owner's physics decides what a moving body hits. Pushed shared bodies reach this browser through rule 6.
-2. When the body rests (rule 5), contact forces come back. A shared body becomes dynamic again. A player body stays kinematic, so it acts as a fixed obstacle: this browser's dice bounce off the other player's tool, but cannot move it. The owner's browser agrees, because there this browser's dice push nothing (point 1).
-3. Two bodies that move at the same time, one per player, pass through each other. Example: dice from both trays meet in the air. This is rare, so we accept it.
+1. While the model is claimed by the other player, its colliders produce no contact forces (Rapier solver groups). A kinematic body pushes everything it touches, with no limit on the force. When a pose jumps, the body could throw a model that lies still, but only in this browser.
+2. When the claim ends (rule 6), contact forces come back and the model becomes dynamic again.
+3. Dice of the other player (step 10) stay kinematic, so they act as fixed obstacles for this browser's dice. The owner's browser agrees, because there this browser's dice push nothing.
+4. Two dice that move at the same time, one per player, pass through each other. This is rare, so we accept it.
 
 TTS does it differently: the host simulates everything, and the other players see their own drags with a delay. With the rules above, each player sees their own drags with no delay.
 
 ### Pose message
 
-One packet every 4th physics step (about 30 per second), with every body this browser owns that moved since the last packet: object id, step number, position (3 numbers), rotation (4 numbers). Start with JSON. Change to a binary format only if we measure that it is too big.
+The live packet is JSON, sent on the `live` channel, at most every 33 ms (about 30 per second). It has only the parts that changed since the last packet:
+
+```
+{ s, p?, c? }
+```
+
+| Field | Content |
+|---|---|
+| `s` | A sequence number. It grows with each packet that is sent |
+| `p` | Piece key → numbers. A model (`character:<model id>`): `[x, y, z, qx, qy, qz, qw]`. A tool (`tool:<kind>`): `[x, y, z, yaw, right, left]`. A crisis token (`token:<id>`): `[x, z, yaw]`. A character token on the table (`loose:<id>`), a pile (`pile:<id>`), a tactic card (`tactic:<id>`), a marker (`marker:<blue, red or round>`): `[x, z]` |
+| `c` | The cursor, see below |
+
+Positions have 3 decimals (0.001"). Rotations, yaw and bend have 4. A model pose is about 70 bytes, not the 170 of the first design. The receiver keeps the last sequence number per piece key and per cursor, and drops an older pose. A bad packet is ignored. It is not logged. Dice from step 10 use the same channel.
 
 ### Cursor message
 
-The cursor position on the table (x, z), at most 10 times per second, and only when it moved. It goes on the `poses` channel. The other browser shows the cursor at the latest received position.
+`c` in the live packet: `[x, y, z]`, the table or terrain point under the own pointer, or `null` when the pointer left the table or the canvas. At most every 100 ms (10 per second), and only when it moved. The other browser shows a flat ring in the side color of the other player at the latest received point. The ring hides after `null`, and when the other player is gone.
 
 ### Dice
 
@@ -360,10 +408,10 @@ Each side has its own set of tools and its own dice tray.
 
 | Object | Who can move or use it |
 |---|---|
-| Own range and movement tools | Only that player |
+| Own range, movement and Toward / Away tools | Only that player |
 | Own dice tray: roll, reroll, add dice for Crits, change a face, clear | Only that player |
-| The opponent's tools and tray | Nobody else. Both players see them. The opponent's dice panel shows the results and the history, with its buttons turned off |
-| Models, tokens, crisis cards, map, mat turn, deploy line | Both players. Game effects such as push and throw move enemy models, so both players must be able to move any model |
+| The opponent's tools and tray | Nobody else. Both players see them. The opponent's tool has no buttons or outline, and a click goes to the piece below. The opponent's dice panel shows the results and the history, with its buttons turned off |
+| Models, tokens, piles, tactic cards, score markers, crisis cards, map, mat turn, deploy line | Both players. Game effects such as push and throw move enemy models, so both players must be able to move any model |
 
 A tool can snap to any model or token, also of the opponent, because players measure range to enemy models.
 
@@ -411,7 +459,8 @@ Flags in the page URL. They work only in dev builds (`import.meta.env.DEV`), so 
 | Flag | Does |
 |---|---|
 | `?relay` | Built in step 8. Sets `iceTransportPolicy: 'relay'`, so all data goes through the TURN server. Tests the relay path before Cloudflare |
-| `?drop=10&delay=100` | Drops 10 % of the packets on the `poses` channel and delays the rest by 100 ms. Localhost loses no packets, so without this flag the interpolation and the rest pose rules are not tested |
+| `?drop=<percent>` | Built in step 9. Drops that percent of the packets on the `live` channel. The receiving browser drops them, so the browser with the flag shows the effect. Localhost loses no packets, so without this flag the follow and the rest pose rules are not tested |
+| `?delay=<ms>` | Built in step 9. Delays each packet of the `live` channel by that many ms, in the receiving browser. The delay can reorder packets as the network would. `?drop=10&delay=100` is a usual pair |
 | `?build=test` | Built in step 8. Sends a fake app version in `hello`, to test the version warning |
 
 ## Code layout
@@ -427,12 +476,25 @@ apps/web/src/net/
   ice.js          the STUN list (step 8). Step 13: GET /ice
   signaling.js    createSignaling: hello, offer, answer, bye, poll with x-after
   peer.js         connectRoom: roles, timeouts, states, RTCPeerConnection (built in step 8)
-  syncChannel.js  Yjs sync over the sync channel, frames of 16 KB (step 8). Awareness in step 9
-  debugFlags.js   ?build, ?relay (step 8, dev builds only). ?drop, ?delay later
-  poses.js        step 9: sends poses of owned bodies, receives and interpolates
-  ownership.js    step 9: claim and release rules
+  syncChannel.js  Yjs sync and awareness over the sync channel, frames of 16 KB
+  debugFlags.js   ?build, ?relay, ?drop, ?delay (dev builds only)
+  ownership.js    claims, owner, the writer of a rest pose (step 9)
+  live.js         the live hub: packets, sequence per key, rounding, ?drop, ?delay (step 9)
+  livePose.js     the number layout of each piece kind, the follow step (step 9)
+  traffic.js      bytes of the selected candidate pair from getStats (step 9)
+apps/web/src/drag/
+  pointerDrag.js  startPointerDrag: the gesture of every drag, claims, cancel (step 9)
+  tablePoint.js   the table, board or terrain point under a screen point (step 9)
 apps/web/src/components/
   RoomPlayers.jsx  the seats and the connection status in the room toolbar
+  LiveSync.jsx     sends the own live poses and the cursor, keeps the received ones (step 9)
+  RemoteCursor.jsx the other player's cursor (step 9)
+  DragFootprint.jsx the footprint of a dragged piece (step 9)
+  storedTool.js    the tool entry: rounding, equality, free spawn per side (step 9)
+  useLiveFollow.js the follow of a piece without a body (step 9)
+apps/web/src/characters/
+  overlap.js       which models show the overlap mark (step 9)
+  claims.js        when a model claim keeps, rests or ends (step 9)
 apps/api/
   src/routes/signal.ts  signaling routes: messages (step 8). ICE servers in step 13
   src/middleware/session.ts  requireSession: checks the token, reads no user
@@ -455,8 +517,8 @@ The plan `docs/plans/implement-backend.md` gives the order of the phases and the
 
 1. **Shared state in a local Yjs document.** Move the table state from `useState` into the document: map, mat turns, deploy line, crisis, tokens, the character list, terrain, setup and the rosters. Write rest poses when bodies sleep. A room stores its document in IndexedDB. Save and load a game as a file. No network. The app works as before. The tools stay in React state until phase 3 (step 5, decision 1).
 2. **Two browsers, one Mac.** Signaling routes in `apps/api`, with the memory store and the MongoDB store. The room link and the players in the room toolbar. `peer.js` and Yjs sync (step 8). Awareness comes in step 9. App version check in `hello`, and the `?build` flag. Discrete changes sync: map, crisis cards, token flips and markers, new characters, damage and power. If a browser pair cannot connect directly, add the local coturn server and `?relay` here instead of in phase 6.
-3. **Moving objects.** Player bodies and shared bodies, ownership, the pose channel, the cursor. The tools (range, move, Toward/Away) move into the document, per side. Bodies moved by the other browser push nothing. Drag of models and tokens by both players. Each player uses only their own tools. The `?drop` and `?delay` flags. Log the bytes of each game from `pc.getStats()`.
-4. **Dice.** Dice and roll history move into the document. Dice are player bodies. Only the tray's player can use its dice panel.
+3. **Moving objects. Done (step 9).** Models pass through models. Claims in awareness, one writer of each rest pose. The `live` channel and the cursor. The tools (range, move, Toward/Away) are in the document, per side. Bodies moved by the other browser push nothing. Both players drag models, tokens, piles, cards and markers. Each player uses only their own tools. The `?drop` and `?delay` flags. The bytes of each connection in the console. The browser checks of the step are open.
+4. **Dice.** Dice and roll history move into the document. Dice are player bodies on the `live` channel. Only the tray's player can use its dice panel.
 5. **Reconnect.** Reconnect after a reload or a dropped connection. The IndexedDB copy of the Yjs document was done in phase 1. It is tested locally first. The AWS parts of this phase (CDK stacks, Atlas database user, budget alert) moved to steps 3 and 4 of the plan.
 6. **TURN.** Local coturn and `?relay` first (if not done in phase 2), then Cloudflare TURN through `GET /ice`. The app shows the connection type (direct or relayed). Cloudflare only if the first real games (plan step 12) show that direct connections fail too often.
 

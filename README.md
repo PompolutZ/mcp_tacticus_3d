@@ -98,9 +98,17 @@ A multiplayer room is on the API, so it needs login. To try one on one Mac, use 
 
 Start the local TURN server first with `pnpm --filter api turn:up` (needs Docker). Stop it with `pnpm --filter api turn:down`. Browsers on one Mac often cannot reach each other directly, and then the data goes through this server. Add `?relay` to both room links to force all data through it. Both toolbars should still show "Connected". The flag works in `pnpm dev` only.
 
+Two more flags test a bad network, in `pnpm dev` only. They act on the browser that has the flag, on what it receives from the other player's live moves. `?drop=30` drops 30 % of the live packets. `?delay=150` delays them by 150 ms. Use both: `?drop=30&delay=150`. The pieces still end at the same place on both screens.
+
+The console of each browser logs the data of the connection: one `console.info` line every 10 minutes, when a connection ends, and on **← Lobby**. The line has the bytes sent and received, the minutes, and direct or relayed, for the connection and for all connections of the open table.
+
 Either player can open the room first. The player who opens it first sees "Waiting" until the other opens it.
 
-Discrete changes show on the other screen at once: mat turn, crisis cards, tokens, new characters, damage and power. Moving models and tokens do not sync live yet (step 9). A moved model shows at its new place on the other screen after the room opens again.
+Discrete changes show on the other screen at once: mat turn, crisis cards, tokens, new characters, damage and power.
+
+Moves show live. When one player drags a model, a tool, a crisis token, a character token on the table, a pile, a tactic card or a score marker, the other player sees it move, with a footprint on the table. A piece that one player moves cannot be moved by the other player until it rests. If both start at the same moment, one of them keeps the piece. The other player's cursor shows as a ring on the table, in the color of that side. Dice are not shared yet (step 10): each browser has its own dice.
+
+Each player uses only their own tools. The other player's tools show on the table in the other color. They have no buttons, and a click goes to the piece below. The tools are saved with the room: after **← Lobby** and a new open, they are where they were.
 
 A player who has the Red seat sees the Red side at the bottom. Space returns to this view.
 
@@ -129,7 +137,7 @@ The app opens on the **lobby**. It lists the single player rooms of this browser
 
 **+ New room** opens a dialog. With login on, it has a choice: **Single player** (a room in this browser) or **Multiplayer** (a room on the server, see above). **Random map** is on by default: the app picks the map when it creates the room. Turn it off to choose the map in a carousel of map cards. Paste the MCT codes of the rosters into **Blue roster** and **Red roster**. Red is optional: the toolbar can load it later. The game setup needs both rosters. A warning box names the characters without a 3D model and the Team Tactic cards without an image, because the app cannot show them. **Create room** works when the Blue code has a known card, and it enters the new room.
 
-In a **single player room**, you are the Blue player. The map and the Blue roster are fixed, so the toolbar has no map picker and only the Red roster field. That field replaces or removes the Red roster of the room. The room saves itself in the browser storage. The room record (map, rosters, dates) is in `localStorage`. The table is a Yjs document in IndexedDB: the characters with their positions, damage and tokens, the crisis cards and tokens, the tactic cards and the score. Dice and tools are not saved. The loading screen stays until the map and the models of both rosters are in.
+In a **single player room**, you are the Blue player. The map and the Blue roster are fixed, so the toolbar has no map picker and only the Red roster field. That field replaces or removes the Red roster of the room. The room saves itself in the browser storage. The room record (map, rosters, dates) is in `localStorage`. The table is a Yjs document in IndexedDB: the characters with their positions, damage and tokens, the crisis cards and tokens, the tactic cards and the score. Dice are not saved. The tools are. The loading screen stays until the map and the models of both rosters are in.
 
 The **Sandbox** is the free table: map picker and both roster fields. Nothing in it is saved.
 
