@@ -29,7 +29,7 @@ This plan is the overview: the steps, their order and why. Each step also gets i
 | 3 | Infra and first deploy | 2 | 5 (AWS parts) | 4 (AWS parts) | `03-infra.md` |
 | 5 | Shared state in Yjs | 1 | 1 | | `05-yjs-state.md` |
 | 6 | Login | 3 | | 1 | `06-login.md` |
-| 7 | Online rooms | 5, 6 | | 2 | `07-online-rooms.md` |
+| 7 | Multiplayer rooms | 5, 6 | | 2 | `07-multiplayer-rooms.md` |
 | 8 | Two browsers | 7 | 2 | 3 | `08-two-browsers.md` |
 | 9 | Moving objects | 8 | 3 | | `09-moving-objects.md` |
 | 10 | Dice | 9 | 4 | | `10-dice.md` |
