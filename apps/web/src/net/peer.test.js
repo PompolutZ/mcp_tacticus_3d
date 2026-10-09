@@ -99,6 +99,9 @@ class FakePc extends EventTarget {
   close() {
     this.closed = true
   }
+  async getStats() {
+    return this.stats ?? new Map()
+  }
   finishGathering() {
     this.iceGatheringState = 'complete'
     this.dispatchEvent(new Event('icegatheringstatechange'))
@@ -449,6 +452,26 @@ test('another build id gives versionMismatch', async () => {
   await run(POLL_MS)
   assert.equal(guest.state.versionMismatch, true)
   assert.equal(guest.state.peer.id, HOST.id)
+})
+
+test('traffic reads the stats of the open connection, else null', async () => {
+  const server = setup()
+  const host = await player(server, 'host', HOST)
+  const guest = await player(server, 'guest', GUEST)
+  assert.equal(await guest.conn.traffic(), null)
+  await connectBoth(host, guest)
+  assert.equal(await guest.conn.traffic(), null)
+  guest.pcs.at(-1).stats = new Map([
+    ['t1', { type: 'transport', selectedCandidatePairId: 'p1' }],
+    ['p1', { type: 'candidate-pair', bytesSent: 5, bytesReceived: 7, localCandidateId: 'l' }],
+    ['l', { type: 'local-candidate', candidateType: 'relay' }],
+  ])
+  assert.deepEqual(await guest.conn.traffic(), { sent: 5, received: 7, relayed: true })
+  guest.pcs.at(-1).channel.close()
+  await settle()
+  assert.equal(await guest.conn.traffic(), null)
+  host.conn.stop()
+  guest.conn.stop()
 })
 
 test('stop posts bye, ends the polls and closes the connection', async () => {

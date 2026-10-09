@@ -1,6 +1,8 @@
 // The WebRTC connection of a multiplayer room (plan 08, decisions 1, 6, 7, 8, 15 and 20). It imports no module
 // that reads import.meta.env, so node --test can load it. Everything outside is an argument.
 
+import { trafficOf } from './traffic.js'
+
 export const POLL_MS = 2000
 export const GATHER_MS = 3000
 export const OFFER_MS = 15_000
@@ -13,7 +15,8 @@ export const IDLE_MS = 15 * 60_000
 // onState({ state, peer, versionMismatch }): state is waiting, connecting, connected, failed, stopped or
 // gone. peer: the `user` of the other player's latest hello, or null. onChannels({ sync, live }): the sync
 // channel is open, once per open. The live channel may open a moment later (plan 09, decision 13).
-// Returns { retry, stop }.
+// Returns { retry, stop, traffic }. traffic(): a promise of trafficOf(getStats()) of the open connection, or
+// null when none is open (plan 09, decision 17).
 export function connectRoom({
   role,
   userId,
@@ -306,6 +309,16 @@ export function connectRoom({
   postHello().then(startPolling)
 
   return {
+    async traffic() {
+      const att = attempt
+      if (!att?.opened) return null
+      try {
+        return trafficOf(await att.pc.getStats())
+      } catch {
+        // The connection closed during the read
+        return null
+      }
+    },
     // Try again: a new hello, 15 min more, and the guest offers again to the host's latest hello
     async retry() {
       if (done) return

@@ -12,11 +12,16 @@ import { createOwnership } from './net/ownership.js'
 import { connectRoom } from './net/peer.js'
 import { createSignaling } from './net/signaling.js'
 import { syncOverChannel } from './net/syncChannel.js'
+import { sumTraffic, trafficLine } from './net/traffic.js'
 import { getMessages, getTable, postMessage, putTable } from './rooms/serverStore.js'
 import { hasLocalChanges, watchServerTable } from './rooms/serverTable.js'
 import { deleteDoc, multiplayerDocName, roomDocName } from './rooms/store.js'
 import { startTable } from './rooms/table.js'
 import { openTableDoc, watchRoomRecord } from './rooms/tableDoc.js'
+
+// Traffic: read every 60 s, logged every 10 min (plan 09, decision 17)
+const TRAFFIC_READ_MS = 60_000
+const TRAFFIC_LOG_MS = 10 * 60_000
 
 // The map on the mat when the Sandbox starts, a key in MAPS
 const START_MAP = 'vibranium-heist'
@@ -55,6 +60,8 @@ export default function Table({ room = null, onExit }) {
   const record = useRef(null)
   // The writer of the table to the server (watchServerTable), or null
   const writer = useRef(null)
+  // Logs the traffic line of the open table now, or null
+  const trafficLog = useRef(null)
   // The latest onExit, for the effect below, which must not run again when Root passes a new function
   const exit = useRef(onExit)
   useEffect(() => {
@@ -83,8 +90,54 @@ export default function Table({ room = null, onExit }) {
     let live = null
     let liveChannel = null
 
+    // Traffic of this open table: the ended connections { sent, received, ms }, and the current one
+    // { openedAt, last, readTimer, logTimer }. last is the latest read of traffic(), or null.
+    const ended = []
+    let current = null
+
+    // The numbers of the current connection, from the last read
+    function snapshot() {
+      return {
+        sent: current.last?.sent ?? 0,
+        received: current.last?.received ?? 0,
+        relayed: current.last?.relayed ?? false,
+        ms: Date.now() - current.openedAt,
+      }
+    }
+
+    // A closing page cannot wait for getStats(), so a line uses the last read value
+    function logTraffic() {
+      if (!current) return
+      const connection = snapshot()
+      console.info(trafficLine(connection, sumTraffic([...ended, connection])))
+    }
+
+    function startTraffic() {
+      if (current) return
+      const mine = { openedAt: Date.now(), last: null, readTimer: null, logTimer: null }
+      current = mine
+      mine.readTimer = setInterval(async () => {
+        const read = await link.current?.traffic()
+        if (read && current === mine) mine.last = read
+      }, TRAFFIC_READ_MS)
+      mine.logTimer = setInterval(logTraffic, TRAFFIC_LOG_MS)
+    }
+
+    // The connection ended: log it, and add it to the sum of the table. quiet: no line (the table closes).
+    function endTraffic(quiet) {
+      if (!current) return
+      if (!quiet) logTraffic()
+      const connection = snapshot()
+      clearInterval(current.readTimer)
+      clearInterval(current.logTimer)
+      ended.push(connection)
+      current = null
+    }
+    trafficLog.current = logTraffic
+
     // Ends the watchers and the document. Safe to call twice.
     function close() {
+      endTraffic(true)
       document.removeEventListener('visibilitychange', onVisibility)
       window.removeEventListener('pagehide', onPageHide)
       sync?.stop()
@@ -194,6 +247,8 @@ export default function Table({ room = null, onExit }) {
               exit.current(`The host deleted room ${code}.`)
               return
             }
+            if (next.state === 'connected') startTraffic()
+            else endTraffic(false)
             setConnection(next)
           },
         })
@@ -219,6 +274,7 @@ export default function Table({ room = null, onExit }) {
   function handleExit() {
     record.current?.flush()
     writer.current?.flush()
+    trafficLog.current?.()
     onExit()
   }
 

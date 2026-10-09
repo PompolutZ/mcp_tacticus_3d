@@ -766,6 +766,31 @@ User, after this phase: check 23.
 
 ### Result
 
+#### Part 7a: traffic
+
+Done. Work items 1 to 4. Not tried in two browsers.
+
+What changed:
+- New `net/traffic.js`: `trafficOf(report)` gives `{ sent, received, relayed }` or null. It takes the pair from the `transport` stat (`selectedCandidatePairId`), else a `candidate-pair` with `selected: true`. `relayed` is true when the local or the remote candidate has type `relay`. It also has `formatBytes`, `minutesOf`, `sumTraffic` and `trafficLine`.
+- `net/peer.js`: `traffic()` on the link. It reads `getStats()` of the open connection and gives `trafficOf` of it. It gives null when no connection is open.
+- `Table.jsx`: while connected, it reads `traffic()` every 60 s and keeps the last value. It logs one `console.info` line every 10 min, when a connection ends, and on **← Lobby**. The ended connections are summed with the current one for the table part. Both intervals stop at the end of the connection and at `close()`.
+- `net/traffic.test.js`: Chrome and Safari form, Firefox form, relayed pair, no selected pair, bytes format, sums, line. `peer.test.js`: the fake peer connection has `getStats`, and one new test for `traffic()`.
+
+Choices that the plan did not fix:
+- `traffic()` gives null when `getStats()` fails, for example when the connection closes during the read.
+- A read that ends after the connection ended is dropped.
+- `close()` ends the connection without a line. **← Lobby** already logged, and a page close cannot wait.
+- A line before the first read shows 0.0 KB and direct.
+- Minutes are whole, rounded. Time runs from the open of the channel to the end.
+- `relayed` is per connection. The table part has no direct or relayed word.
+- A bad `getStats` value of bytes counts as 0.
+
+Checks:
+- `pnpm --filter web test`: 226 pass, 0 fail.
+- `pnpm --filter web build`: passes.
+- `pnpm format` done. `pnpm lint`: 36 warnings, 0 errors.
+- Not run in a browser, by the rules.
+
 ## User
 
 After Phase 1b, in a single player room:
