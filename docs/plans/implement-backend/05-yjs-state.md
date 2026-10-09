@@ -303,11 +303,12 @@ Checks:
 
 ### Result
 
-Status: work items 1 and 2 done. Work item 3 (docs) not started.
+Status: done.
 
 Files changed:
 - New: `apps/web/scripts/yjs-size.mjs`.
 - Changed: `apps/web/package.json` (script `yjs-size`), `apps/web/scripts/README.md` (entry "Yjs size").
+- Docs (work item 3): `docs/feature-rooms.md`, `docs/feature-peer-to-peer.md`, `docs/feature-auth.md`, `docs/plans/implement-backend.md`, `README.md`, and this plan.
 
 Numbers (`pnpm --filter web yjs-size`, seed 1):
 
@@ -332,6 +333,12 @@ Facts:
 - Pose writes are not the cause. 96 pose writes per round add about 0.1 to 0.2 KB per round (2 bytes per write), because a pose is replaced as a whole value and Yjs keeps only a small marker for the old one.
 - The snapshot is 1.7 times the JSON after 6 rounds and 2.3 times after 18. The setup alone is 14.9 KB, because each entity is a nested map.
 - The average update is about 70 bytes. At 800 updates per 6 rounds, a write interval of step 7 can be long without a size problem. The size does not limit it.
+
+Checks:
+- `pnpm test` at the root: pass. `api` 14 of 14, `web` 18 of 18, `infra` 16 of 16.
+- `pnpm --filter web yjs-size`: runs, same numbers as above.
+- `pnpm format`, `pnpm lint`: 0 errors, 44 warnings.
+- `git status --short`: only docs and `README.md`.
 
 Changes from the plan:
 - `startTable` does not import in Node: `affiliations.json` needs an import attribute. The script builds the start state by hand, with the same fields. `NEW_SETUP` and `START_MARKERS` are imported.

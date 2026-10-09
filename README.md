@@ -24,7 +24,9 @@ It renders a game table floating in space. The camera sits directly above the ta
 src/
   Root.jsx         — the page of the URL hash: lobby, room or Sandbox
   App.jsx          — one table: Canvas setup, camera position, the table state
-  rooms/           — rooms in localStorage, the saved table, the files to load first
+  Table.jsx        — opens the table document of a room or the Sandbox, then mounts App
+  net/             — the Yjs document of a table: layout, stores, React hooks
+  rooms/           — room records in localStorage, the table document in IndexedDB, the files to load first
   components/
     Scene.jsx      — 3D scene: space, table, mat, lights
   assets/          — models and textures. Load them with assetUrl('path') from assets/index.js
@@ -51,7 +53,7 @@ pnpm dev
 
 Open `http://localhost:5173`. The app opens on the lobby. Open the Sandbox or a room to get the table. You can orbit, zoom, and pan with the mouse.
 
-`pnpm test` and `pnpm typecheck` check the API.
+`pnpm test` runs the tests of the API (Vitest) and of the web app (`node --test`). `pnpm --filter web test` runs only the web tests. `pnpm typecheck` checks the API.
 
 ### Lint and format
 
@@ -77,7 +79,7 @@ The app opens on the **lobby**. It lists the rooms of this browser, the last cha
 
 **+ New room** opens a dialog. **Random map** is on by default: the app picks the map when it creates the room. Turn it off to choose the map in a carousel of map cards. Paste the MCT codes of the rosters into **Blue roster** and **Red roster**. Red is optional: the toolbar can load it later. The game setup needs both rosters. A warning box names the characters without a 3D model and the Team Tactic cards without an image, because the app cannot show them. **Create room** works when the Blue code has a known card, and it enters the new room.
 
-In a **room**, you are the Blue player. The map and the Blue roster are fixed, so the toolbar has no map picker and only the Red roster field. That field replaces or removes the Red roster of the room. The room saves itself in the browser storage (`localStorage`): the map, the rosters, the characters with their positions, damage and tokens, the crisis cards and tokens, the tactic cards and the score. Dice and tools are not saved. The loading screen stays until the map and the models of both rosters are in.
+In a **room**, you are the Blue player. The map and the Blue roster are fixed, so the toolbar has no map picker and only the Red roster field. That field replaces or removes the Red roster of the room. The room saves itself in the browser storage. The room record (map, rosters, dates) is in `localStorage`. The table is a Yjs document in IndexedDB: the characters with their positions, damage and tokens, the crisis cards and tokens, the tactic cards and the score. Dice and tools are not saved. **Save game** writes the table to a `.yjs` file, and **Load game** replaces the table with such a file. The loading screen stays until the map and the models of both rosters are in.
 
 The **Sandbox** is the free table: map picker and both roster fields. Nothing in it is saved.
 

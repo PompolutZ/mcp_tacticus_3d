@@ -148,8 +148,8 @@ How it works:
 - **Read:** when a seated player opens the room, the browser gets `GET /rooms/{code}/table` and applies it to the local document (`Y.applyUpdate`). Yjs merges it with the IndexedDB copy. Then the peer-to-peer sync starts, if the other player is connected.
 - **Write:** `PUT /rooms/{code}/table` with the full update, every 60 s when the document changed, on **← Lobby**, and when the tab becomes hidden (`visibilitychange`). When both players are connected, only the owner writes, because both browsers have the same document.
 - **Merge on the server:** the Lambda reads `table` and `tableRev`, merges the new update into it (`Y.mergeUpdates`), and writes with the filter `{ _id, tableRev }`. If the other player wrote in between, the filter finds no document. Then the Lambda reads again and merges again, one time. So no change is lost, also when both players write at the same time.
-- **Page close:** a `fetch` with `keepalive` allows at most 64 KB of body, and a table is bigger. So the browser does not write on page close. The IndexedDB copy has the last changes. The next time the room opens on that device, the merged document goes to the server with the next write.
-- **Size:** the Lambda rejects a snapshot above 1 MB (413) and logs the size of each write. A table is probably 50–200 KB. This is not measured yet. Atlas M0 has 512 MB, so it holds a few thousand rooms.
+- **Page close:** a `fetch` with `keepalive` allows at most 64 KB of body. The measured tables are 22 to 34 KB, so they fit. But a table grows by about 1 KB per round, and a long game can pass 64 KB. So the browser does not write on page close. The IndexedDB copy has the last changes. The next time the room opens on that device, the merged document goes to the server with the next write.
+- **Size:** the Lambda rejects a snapshot above 1 MB (413) and logs the size of each write. A table of 6 rounds is 22 KB, and of 18 rounds 34 KB (open question 5). Atlas M0 has 512 MB, so it holds a few thousand rooms.
 - A new room has `table: null`. The browser builds the start table from the setup, as an offline room does today (`apps/web/src/rooms/table.js`).
 
 ### Endpoints
@@ -334,7 +334,11 @@ Made on 2026-10-08:
 2. **Session length.** 30 days, renewed once a day on app start. Fine?
 3. **Retention.** 12 months for users with no login and rooms with no change. Fine?
 4. **Region.** Answered in `docs/feature-backend.md`: the Atlas cluster and the Lambda are in `eu-central-1`.
-5. **Table size.** Measure the snapshot size of a full game in peer-to-peer phase 1. Then check the 1 MB limit and the write interval.
+5. **Table size.** Answered in step 5 (`docs/plans/implement-backend/05-yjs-state.md`, Phase 4 Result). `pnpm --filter web yjs-size` builds a full game with 12 characters, 30 terrain pieces, and many moves, damage and token changes, and prints the snapshot size.
+   - 6 rounds: 21930 bytes, 2.1% of 1 MB. 18 rounds: 34363 bytes, 3.3%.
+   - The snapshot grows about 1 KB per round. The JSON of the same table grows only 0.2 KB per round. The rest is the history of overwritten fields, which Yjs keeps.
+   - The average update is about 70 bytes. A 6-round game has 804 updates.
+   - The 1 MB limit is far away. The size does not limit the write interval of step 7. The interval can be chosen for other reasons: the number of Lambda requests, the Atlas transfer, and how much of a game a player can lose.
 
 ## Out of scope
 

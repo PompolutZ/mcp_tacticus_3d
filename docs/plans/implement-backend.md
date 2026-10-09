@@ -33,7 +33,7 @@ This plan is the overview: the steps, their order and why. Each step also gets i
 | 8 | Two browsers | 7 | 2 | 3 | `08-two-browsers.md` |
 | 9 | Moving objects | 8 | 3 | | `09-moving-objects.md` |
 | 10 | Dice | 9 | 4 | | `10-dice.md` |
-| 11 | Reconnect and stored game | 8 | 5 (the rest) | | `11-reconnect.md` |
+| 11 | Reconnect | 8 | 5 (the rest) | | `11-reconnect.md` |
 | 4 | CI deploy | 3 | | | `04-ci.md` |
 | 12 | First release | 4, 10, 11 | | 4 (the rest) | `12-release.md` |
 | 13 | TURN | 12 | 6 | | `13-turn.md` |
@@ -213,6 +213,15 @@ Done when:
 - The app works as before (the user checks).
 - The **Result** has the snapshot size of a full game. This answers auth doc open question 5 (the 1 MB limit and the write interval).
 
+**Result:** Done on 2026-10-09. Details are in `docs/plans/implement-backend/05-yjs-state.md`. The user checked the app in the browser.
+- The table state of `App.jsx` is a Yjs document with 10 top-level maps (`game`, `rosters`, `setup`, `terrain`, `characters`, `poses`, `tokens`, `tactics`, `looseTokens`, `tokenPiles`). A list is an id to nested map, with a hidden `order`. A record has depth 0 or 1. Model poses are written when a body falls asleep. The handlers in `App.jsx` keep their code, because the setters diff against the document.
+- A room stores its document in IndexedDB (`y-indexeddb`). The room record is version 2 and has no `table`. IndexedDB gets 5 seconds, then the table opens in memory with a warning.
+- **Save game** and **Load game** in the toolbar. The file is the Yjs update of the document. Load replaces the whole table, the map and the rosters.
+- The web app has tests: `node --test` (18 tests), because Vitest 5 needs Vite 6 and the web app has Vite 5. Root `pnpm test` runs the API and the web tests.
+- Installed: `yjs@13.6.33`, `y-indexeddb@9.0.12`.
+- Snapshot size (`pnpm --filter web yjs-size`): 6 rounds 21930 bytes (2.1% of 1 MB), 18 rounds 34363 bytes, about 1 KB per round, average update about 70 bytes. The size does not limit the write interval of step 7. Auth doc open question 5 is answered.
+- Open issues: a schema change makes `Table.jsx` overwrite the old fields of the same document, and it does not delete the database. The `tokenPiles` test data is empty. Random ids are made inside the updaters of `handleTacticSpawn` and `handleSupplyTake`. They are safe now.
+
 ## Step 6: Login
 
 Auth phase 1. Read: auth doc "Login flow", "Session", "Users", "Discord application", "Local testing". Backend doc "API".
@@ -271,7 +280,9 @@ Done when: in the three browser pairs, discrete changes sync. Discrete changes a
 
 Peer-to-peer phase 3. Read: peer-to-peer doc "Moving objects (physics)".
 
-Done when: both players can drag models and tokens, and each player uses only their own tools. The bytes per game are logged.
+The tools (range, move, Toward/Away) move into the Yjs document in this step, per side (step 5, decision 1). Before this, they are React state and `RulerTool.jsx`.
+
+Done when: both players can drag models and tokens, and each player uses only their own tools. The tools are in the document. The bytes per game are logged.
 
 ## Step 10: Dice
 
@@ -279,9 +290,9 @@ Peer-to-peer phase 4. Read: peer-to-peer doc "Dice".
 
 Done when: each player rolls in their own tray, and the other player sees the dice fly and land on the same face.
 
-## Step 11: Reconnect and stored game
+## Step 11: Reconnect
 
-The rest of peer-to-peer phase 5: reconnect, and the IndexedDB copy of the Yjs document. Read: peer-to-peer doc "Room and players" (reconnect).
+The rest of peer-to-peer phase 5: reconnect. The IndexedDB copy of the Yjs document was done in step 5 (decision 7). Read: peer-to-peer doc "Room and players" (reconnect).
 
 Done when: after a reload or a dropped connection, the game continues without lost changes.
 
@@ -326,3 +337,11 @@ Made on 2026-10-09:
    - CI costs no money. GitHub Actions is free for a public repo, IAM is free, and each deploy adds about 1 MB to the bootstrap S3 bucket. But it is work, and no step before step 12 needs it.
    - It is not known yet whether anyone will use the app. Until the first release, the user deploys from their machine.
    - From step 12 on, real players use the API. Then each deploy must be repeatable and checked.
+6. The tools (range, move, Toward/Away) move into the Yjs document in step 9, not in step 5. Reasons:
+   - A room does not save the tools today. Their pose, bend and snap target are inside `RulerTool.jsx`.
+   - Step 9 defines how tools sync: player bodies with a pose stream.
+   - With one player, the move has no visible effect and cannot be tested for its purpose.
+7. A room stores its Yjs document in IndexedDB (`y-indexeddb`) from step 5, not from step 11. Reasons:
+   - It is the final storage, so there is no temporary format.
+   - It stores each change at once, so the 2-second save poll goes away.
+   - Step 11 then adds only reconnect.

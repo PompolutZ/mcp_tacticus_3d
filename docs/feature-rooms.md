@@ -6,14 +6,14 @@ Status: done, 2026-10-07. Not checked in a browser.
 
 The app opens on a lobby. The lobby lists the rooms of this browser. A player creates a room with a map and the rosters, enters it later, and finds the table as they left it. The table without a room is the Sandbox: the app as it was before this feature.
 
-There is no server yet. Each room is a record in `localStorage`. The peer-to-peer feature (`docs/feature-peer-to-peer.md`) will let a second player join a room.
+There is no server yet. Each room is a record in `localStorage`, and its table is a Yjs document in IndexedDB. The peer-to-peer feature (`docs/feature-peer-to-peer.md`) will let a second player join a room.
 
 ## Terms
 
 | Term | Meaning |
 |---|---|
 | Lobby | The start page. Lists the rooms, creates a room, opens the Sandbox |
-| Room | A saved table with a fixed map, the Blue roster and, if given, the Red roster. Saved in `localStorage` |
+| Room | A saved table with a fixed map, the Blue roster and, if given, the Red roster. The record is in `localStorage`, the table in IndexedDB |
 | Sandbox | A table with every control: map picker, both roster fields. Not saved |
 | Owner | The user who created the room. Only the owner can delete it |
 | Room code | The id of a room, for example `K7Q2-M9XD`. The same format as the room code of the peer-to-peer plan |
@@ -59,7 +59,7 @@ The carousel shows only maps that the app has (`apps/web/src/terrain/maps.js`). 
 - The map is the room map. The toolbar has no map picker. The mat turn buttons stay.
 - The rosters come from the room. The Roster group has only the Red field. It loads, replaces or removes the Red roster of the room. The field is empty when the room opens, also when the room has a Red roster.
 - With a server, each player will load their own roster when they join. Then the new room dialog will have only the roster of the player who creates the room, and the Red field will be only in the Sandbox.
-- **← Lobby** at the start of the toolbar saves the room and opens the lobby. The toolbar also shows the room code.
+- **← Lobby** at the start of the toolbar writes the room record and opens the lobby. The toolbar also shows the room code.
 
 ## Sandbox
 
@@ -71,7 +71,7 @@ The carousel shows only maps that the app has (`apps/web/src/terrain/maps.js`). 
 The loading screen stays until the files of the map and the models are loaded:
 
 - the mat image, and the mesh, texture and collider of each terrain piece,
-- the models of every character in both rosters, and of the characters on the saved table,
+- the models of every character in both rosters, and of the characters on the stored table,
 - everything that the scene loads outside its own Suspense boundaries: table, light, dice trays, scoring board, roster cards.
 
 The table mounts after that, in one commit. So the terrain colliders and the saved models start in the same frame, and a model that stood on a roof does not fall through it.
@@ -88,49 +88,53 @@ Character trays, crisis cards, tokens and tactic cards are not in the list. They
 
 ## Storage
 
-| `localStorage` key | Value |
-|---|---|
-| `mcp-assist-3d/user` | `{ id }`: a random id of the user of this browser, made once |
-| `mcp-assist-3d/room/<code>` | One room record |
+A room has two parts. The room record is in `localStorage`. The table is a Yjs document in IndexedDB.
+
+| Where | Key or name | Value |
+|---|---|---|
+| `localStorage` | `mcp-assist-3d/user` | `{ id }`: a random id of the user of this browser, made once |
+| `localStorage` | `mcp-assist-3d/room/<code>` | One room record |
+| IndexedDB | `mcp-assist-3d/room/<code>` | The Yjs document of the table (`y-indexeddb`) |
 
 The lobby finds the rooms by the key prefix. One key per room, so a room cannot be half written, and there is no list that can disagree with the rooms.
 
 ```js
 {
-  version: 1,
+  version: 2,
   id: 'K7Q2-M9XD',
   owner: '<user id>',
   createdAt, updatedAt,           // ms since 1970
   mapId: 'vibranium-heist',       // key in MAPS
   rosters: { blue: { code }, red: null | { code } },   // docs/feature-roster.md, "State"
-  table: null | {
-    matTurns, deployLine, crisis, characters, tokens, scoreMarkers, affiliations,
-    looseTokens, tokenPiles, tacticCards,
-    terrain: [{ index, locked }],  // index in MAPS[mapId].placements
-    poses: { [modelId]: { x, y, z, qx, qy, qz, qw } },
-  },
 }
 ```
 
-- `table` is `null` until the first save. The fields have the same names and shapes as the state in `App.jsx`.
-- `terrain` stores the place of each piece in the map data, not the whole placement. So a fix of the map data reaches old rooms. A deleted piece is not in the list.
-- `poses` has the pose of each model: position and rotation of its physics body. A lifted model (R) saves the place under the lift. Model positions live only in the physics engine, not in App state, so the save reads them from the bodies.
-- A saved model starts at its pose, asleep. So it does not move before the terrain under it has its colliders. A touch, a drag or a removed terrain piece wakes it. A model that was in a drag at the save hangs 0.3" above the ground until a player touches it.
-- A record with another `version` opens with an empty table.
+- The record keeps only the setup and the dates. `mapId` and `rosters` are a copy of the document, for the lobby tile. The lobby does not open the documents.
+- The table is in the document. Its layout is in `docs/feature-peer-to-peer.md` ("Yjs document"). The document has the map, the rosters, the characters, the tokens, the cards, the terrain pieces and the model poses.
+- `terrain` stores the place of each piece in the map data (`index`, `locked`), not the whole placement. So a fix of the map data reaches old rooms. A deleted piece is not in the list.
+- A model writes its pose to `poses` when its body falls asleep. A lifted model (R) writes the place under the lift. A model that moves when the page closes keeps its last rest pose.
+- A saved model starts at its pose, asleep. So it does not move before the terrain under it has its colliders. A touch, a drag or a removed terrain piece wakes it.
+- A record of version 1 opens with a new table, with its map and rosters. Its old `table` is not read. A document with another `game.schema` gets a new start table.
 
 Not saved: dice, tools, selection, camera, open popups, spectator view, labels, debug mode. The dice are empty when the room opens.
 
 ### When the room saves
 
-- Every 2 seconds. The save builds the JSON of `rosters` and `table` and writes it only when it changed. `updatedAt` changes only then.
-- On **← Lobby**, when the page closes or reloads (`pagehide`), and when the table unmounts (for example after the back button).
-- The bodies may be gone when the table unmounts. Then a model keeps the pose of the last save, at most 2 seconds old.
+- The document: at each change. `y-indexeddb` stores each update at once. There is no poll.
+- The room record: at most every 2 seconds after a change of the document, when the page closes or reloads (`pagehide`), and when the table unmounts. **← Lobby** writes it first, so the lobby shows the last change. `updatedAt` changes only then, not when a room only opens.
+- **Delete** also deletes the IndexedDB database of the room.
 
-A poll is used because a model move does not change React state. Reading about 20 bodies and writing a string every 2 seconds costs less than a millisecond.
+### When IndexedDB does not work
 
-When the browser storage is full, the save fails, and the HUD message says "Room not saved: browser storage is full". A room with an empty table is about 1 KB. Each character, token and card adds a few hundred bytes. The browser gives a site about 5 MB.
+- The room waits at most 5 seconds for IndexedDB, with the loading screen. IndexedDB can be turned off (blocked site data), and then it never answers.
+- After 5 seconds, or after an error, the table opens in memory. The HUD shows a warning: "Room not saved: browser storage is not available. Changes on this table are lost when the page closes." It stays until the player closes it.
+- The browser gives a site much more room in IndexedDB than the 5 MB of `localStorage`. A table of 6 rounds is about 22 KB (`docs/feature-auth.md`, open question 5).
 
-Two tabs with the same room both write. The last write wins.
+Two tabs with the same room store their changes in the same database. They do not see each other's changes while open. The next open of the room has both.
+
+### Save game and Load game
+
+The toolbar can write the document to a file and read it back (`docs/feature-peer-to-peer.md`, "Save and load a game"). **Load game** replaces the table, the map and the rosters of the room. The room record gets the map and the rosters of the file.
 
 ## Owner
 
@@ -139,7 +143,8 @@ There are no accounts. The user id in `localStorage` is the owner of every room 
 ## Relation to peer-to-peer
 
 - The room code and the link format are the ones of the peer-to-peer plan.
-- Phase 1 of that plan moves the table into a Yjs document, saved in IndexedDB per room. Then `table` moves out of the room record into that document. The room record keeps the setup: map, rosters, owner, dates. The `table` fields already follow the categories of the plan ("State").
+- Phase 1 of that plan (step 5 of `docs/plans/implement-backend.md`) moved the table into a Yjs document, saved in IndexedDB per room. The room record keeps the setup: map, rosters, owner, dates. It has no `table`.
+- Step 8 syncs this document between two browsers. The code of one player and of two players is the same.
 - The room record keeps `rosters`. In a game with two players, each player loads their own roster.
 
 ## Code
@@ -147,8 +152,13 @@ There are no accounts. The user id in `localStorage` is the owner of every room 
 | File | Content |
 |---|---|
 | `apps/web/src/Root.jsx` | The page of the URL hash: Lobby, Room or Sandbox |
-| `apps/web/src/rooms/store.js` | `localStorage`: user id, room code, list, read, create, save, delete. `createRoom` takes both rosters |
-| `apps/web/src/rooms/table.js` | The table state that a new or saved table starts with, and the saved form of it |
+| `apps/web/src/Table.jsx` | Opens the document of a room or the Sandbox, shows the loading screen, mounts `App`. Replaces the document on Load game |
+| `apps/web/src/rooms/store.js` | `localStorage`: user id, room code, list, read, create. `saveRoomRecord`, `roomDocName`, `deleteRoom` (also deletes the IndexedDB database). `createRoom` takes both rosters |
+| `apps/web/src/rooms/tableDoc.js` | `openTableDoc`: the document with IndexedDB, the 5-second timeout and the in-memory fallback. `watchRoomRecord`: writes the room record |
+| `apps/web/src/rooms/table.js` | The table state that a new table starts with (`startTable`), `withPlacements`, `poseOf` |
+| `apps/web/src/net/doc.js` | The layout of the document, `createTable`, `fillTable`, the game file (`encodeGame`, `readGame`) |
+| `apps/web/src/net/collections.js` | The list and record stores over a `Y.Map`. No React |
+| `apps/web/src/net/useY.js` | `useYList`, `useYRecord`, `useYField`: React hooks over the stores |
 | `apps/web/src/rooms/preload.js` | The files to load before a table shows |
 | `apps/web/src/components/Lobby.jsx` | The lobby page, and the roster popup of a room |
 | `apps/web/src/components/NewRoomDialog.jsx` | The new room dialog: map switch, map carousel, Blue and Red roster fields |
@@ -173,6 +183,14 @@ Made on 2026-10-07:
 10. The carousel of the roster popup became a shared component.
 11. A file list for the loading screen comes from helpers next to the components that load the files.
 12. The new room dialog takes both rosters, until players join a room from a server. Red is optional. The lobby tile shows each roster.
+
+Made on 2026-10-09 (step 5):
+
+13. The table is a Yjs document in IndexedDB (`y-indexeddb`), one database per room. It replaces decisions 5 and 6 above, and decision 4 for the table. Reasons: it is the final storage of the peer-to-peer plan, so there is no temporary format. It stores each change at once, so the 2-second save poll is gone.
+14. The room record is version 2 and has no `table`. It keeps `mapId` and `rosters` for the lobby tile. A record of version 1 opens with a new table. Before the first release, all data is test data, so nothing is migrated.
+15. The room record is written at most every 2 seconds after a change of the document, on `pagehide`, and when the table unmounts.
+16. IndexedDB gets 5 seconds to load. After that, or after an error, the table opens in memory, with a warning that stays until the player closes it. Reason: a database that cannot open never answers, and the room must still open.
+17. Load game replaces the whole table: the table, the map and the rosters. A browser confirm asks first. Reason: a Yjs update adds to a document and cannot replace it, so the room gets a new database.
 
 ## Out of scope
 

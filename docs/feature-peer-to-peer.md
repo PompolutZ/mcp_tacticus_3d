@@ -216,26 +216,42 @@ The cursor is in category 4, not in awareness. Awareness goes over the reliable,
 
 ### Yjs document
 
+Each name is a top-level `Y.Map` of the `Y.Doc`. Step 5 made the first ten. The tools come in step 9 and the dice in step 10.
+
+| Name | Kind | Content |
+|---|---|---|
+| `game` | record, depth 1 | `schema`, `mapId`, `matTurns`, `deployLine`, `crisis { secure, extract }`, `scoreMarkers`, `affiliations` |
+| `rosters` | record | `blue` and `red`: `null` or `{ code }` (`docs/feature-roster.md`, "State") |
+| `setup` | record, depth 1 | the game setup: the fields of `NEW_SETUP` (`docs/feature-setup-game.md`) |
+| `terrain` | list | the pieces on the mat: `index` in the map data, `locked` |
+| `characters` | list | the fields of `newCharacter` in `App.jsx`: key, figure, base, rotation, side (healthy or injured), damage, power, tokens |
+| `poses` | record | model id → `{ x, y, z, qx, qy, qz, qw }`, the rest pose of a body, written when the body falls asleep |
+| `tokens` | list | crisis tokens: the fields from `buildMatTokens`, with place, `up`, control, damage |
+| `tactics` | list | tactic cards on the table (`docs/feature-team-tactic-cards.md`) |
+| `looseTokens` | list | character tokens on the table |
+| `tokenPiles` | list | token piles on the table |
+
+Later steps add:
+
 ```
-Y.Doc
-  game: Y.Map      mapId, matTurns, deployLine, crisis { secure, extract }
-  rosters: Y.Map<player side, Y.Map>   code (docs/feature-roster.md, "State")
-  characters: Y.Map<id, Y.Map>   key, figure, base, rotation, teamColor, slot, side (healthy or injured), damage, power, pose
-  tactics: Y.Map<id, Y.Map>      tactic cards on the table: key, team, x, z, up (docs/feature-team-tactic-cards.md)
-  tokens: Y.Map<id, Y.Map>       the token fields from buildMatTokens, with x, z, yaw, up, control, damage
-  tools: Y.Map<side, Y.Map<kind, Y.Map>>   per side: range and move tool, which one, pose, bend, snap target
-  dice: Y.Map<trayKey, Y.Map>    dice (id -> pose, face, place), history (Y.Array), critsUsed
+  tools: Y.Map<side, Y.Map<kind, Y.Map>>   step 9: per side, range and move tool: which one, pose, bend, snap target
+  dice: Y.Map<trayKey, Y.Map>              step 10: dice (id -> pose, face, place), history (Y.Array), critsUsed
 ```
 
-`pose` is `{ x, y, z, qx, qy, qz, qw }`: the rest pose of a body, written when the body falls asleep.
+How the data is stored:
 
-`rosters` holds the loaded roster of each player, see `docs/feature-roster.md`. The chosen squad is not designed yet (`docs/feature-setup-game.md`). The order of `tactics` is the stack order of the cards, so it needs an order field or a `Y.Array`. The token piles of the Library (`tokenPiles` in `App.jsx`) need their own map, the same as `looseTokens`.
+- **List.** A `Y.Map` from the entity id to a nested `Y.Map` of the entity's fields. A field value is plain JSON. A field that is an object (`tokens` of a character, `heldAt`, `transform`) is replaced as a whole. So two players who change different fields of one entity both keep their change.
+- **Order.** Each entity of a list has a hidden `order` number. The store sorts by `order`, then by id, and App does not see `order`. The order is the tray row of `characters` and the stack of `tactics`. With equal numbers from two players, the id decides, the same in both browsers.
+- **Record.** A `Y.Map` of fields. With depth 0, each value is one plain value. With depth 1, a value that is a plain object becomes a nested `Y.Map` of its fields. `game` and `setup` have depth 1, so each player's squad and Ready in `setup` (`setup.squads.blue`, `setup.ready.red`) merge. `rosters` and `poses` have depth 0. A score marker position stays one value.
+- **Poses by model id.** A character with a second form has two models (`characters/models.js`), so `poses` is a record by model id, not a field of the character. A removed character deletes the poses of its models.
+- **Terrain.** `terrain` stores only `index` and `locked`. App adds the placement from the map data (`withPlacements`), so a fix of the map data reaches old rooms.
+- **Schema.** `game.schema` is `SCHEMA` (1). A document or a game file with another schema is not used. Before the first release, all data is test data.
 
-React reads the document through one hook, `useY(type)`, built on `useSyncExternalStore`. Handlers in `App.jsx` such as `handleTokenFlip` write to the document instead of calling `setTokens`. A game with no connection uses the same document, only without a provider. So single-player and multiplayer run the same code.
+`rosters` holds the loaded roster of each player. The order of `tactics` is the stack order of the cards.
 
-Each browser also stores the document in IndexedDB (`y-indexeddb`), per room. After a page reload, the table comes back at once, and Yjs syncs the changes that the other player made in the meantime.
+React reads the document through three hooks in `net/useY.js`, built on `useSyncExternalStore`: `useYList`, `useYRecord` and `useYField`. Each returns the value and a setter, in the form of a React `useState`. The setter takes a value or an updater function. It compares the new value with the document and writes only the fields that changed. So the handlers in `App.jsx` such as `handleTokenFlip` keep their code. A handler that writes more than one name runs in `table.transact`, so the document has one update. A game with no connection uses the same document, only without a provider. So single-player and multiplayer run the same code.
 
-Until then, a room stores its table in `localStorage` (`docs/feature-rooms.md`, "Storage"). The `table` of a room record has the fields of the categories above. With this phase, `table` moves into the Yjs document, and the room record keeps only the setup: map, rosters, owner, dates.
+Each browser stores the document in IndexedDB (`y-indexeddb`), per room, from step 5 on. After a page reload, the table comes back at once, and Yjs syncs the changes that the other player made in the meantime. The room record in `localStorage` keeps only the setup: map, rosters, owner, dates (`docs/feature-rooms.md`, "Storage"). The Sandbox has the same document without IndexedDB.
 
 ## Moving objects (physics)
 
@@ -352,14 +368,25 @@ Flags in the page URL. They work only in dev builds (`import.meta.env.DEV`), so 
 
 ### Save and load a game
 
-**Save game** writes the Yjs document to a file (`Y.encodeStateAsUpdate`). **Load game** reads it. So the same test case can be repeated in each browser pair. Load works only before a game is hosted, because a Yjs update adds to the document and does not replace it.
+**Save game** writes the Yjs document to a file. **Load game** reads it. So the same test case can be repeated in each browser pair. Both buttons are in the first group of the toolbar, after the room code.
+
+- The file is the bytes of `Y.encodeStateAsUpdate(doc)`. Its size is the snapshot size (`docs/feature-auth.md`, open question 5).
+- The name is `game-<room code or sandbox>-<yyyy-mm-dd>.yjs`.
+- **Load game** reads the file into a new document and checks it. The file must be a Yjs update with `game.schema` equal to `SCHEMA`, and the app must have its map. Otherwise the HUD shows "This file is not a saved game of this app", and nothing changes.
+- A browser confirm asks: "Replace the table with the saved game? The table of this room is lost." In the Sandbox: "The table is lost."
+- **Load game** replaces the whole table: the table, the map and the rosters. A Yjs update adds to a document and cannot replace it. So in a room, the old IndexedDB database is deleted, and the file's document is stored in a new one. The room record gets the map and the rosters of the file. `App` mounts again, so nothing stays from the old table.
+- It works in a room and in the Sandbox. In step 8, it will work only before a game is hosted.
 
 ## Code layout
 
 ```
+apps/web/src/
+  Table.jsx       opens the document of a room or the Sandbox, then mounts App. Load game
+  rooms/tableDoc.js  openTableDoc (IndexedDB, timeout, memory fallback), watchRoomRecord
 apps/web/src/net/
-  doc.js          the Y.Doc and its maps, read and write helpers. No React
-  useY.js         React hook that reads a Y type
+  doc.js          the layout of the Y.Doc, SCHEMA, createTable, fillTable, the game file (encodeGame, readGame). No React
+  collections.js  the list and record stores over a Y.Map: diff writes, order, snapshots. No React
+  useY.js         React hooks: useYList, useYRecord, useYField
   signaling.js    Signaling interface and its HTTP version (local API and Lambda)
   peer.js         RTCPeerConnection, data channels, ICE servers, reconnect
   syncChannel.js  Yjs sync and awareness over the sync channel (y-protocols)
@@ -376,7 +403,7 @@ infra/
 
 The rest of `apps/api` and `infra/` is in the backend doc ("Code", "Infrastructure").
 
-New packages in `apps/web`: `yjs`, `y-protocols`, `y-indexeddb`.
+New packages in `apps/web`: `yjs` and `y-indexeddb` (step 5), `y-protocols` (step 8).
 
 ## Phases
 
@@ -384,11 +411,11 @@ Each phase ends with a working app. Do not open the app in a browser. Check with
 
 The plan `docs/plans/implement-backend.md` gives the order of the phases and their steps. The API, the AWS parts and the deploy come first, in its steps 2 to 4. From step 3 on, each backend change is deployed when its step is done.
 
-1. **Shared state in a local Yjs document.** Move map, mat turns, deploy line, crisis, tokens, the character list and the tools from `useState` into the document. Tools are stored per side. Write rest poses when bodies sleep. Save and load a game as a file. No network. The app works as before.
+1. **Shared state in a local Yjs document.** Move the table state from `useState` into the document: map, mat turns, deploy line, crisis, tokens, the character list, terrain, setup and the rosters. Write rest poses when bodies sleep. A room stores its document in IndexedDB. Save and load a game as a file. No network. The app works as before. The tools stay in React state until phase 3 (step 5, decision 1).
 2. **Two browsers, one Mac.** Signaling routes in `apps/api`, with the memory store and the MongoDB store. Host and join UI, the room link. `peer.js`, Yjs sync and awareness. Name and side. App version check in `hello`, and the `?build` flag. Discrete changes sync: map, crisis cards, token flips and markers, new characters, damage and power. If a browser pair cannot connect directly, add the local coturn server and `?relay` here instead of in phase 6.
-3. **Moving objects.** Player bodies and shared bodies, ownership, the pose channel, the cursor. Bodies moved by the other browser push nothing. Drag of models and tokens by both players. Each player uses only their own tools. The `?drop` and `?delay` flags. Log the bytes of each game from `pc.getStats()`.
+3. **Moving objects.** Player bodies and shared bodies, ownership, the pose channel, the cursor. The tools (range, move, Toward/Away) move into the document, per side. Bodies moved by the other browser push nothing. Drag of models and tokens by both players. Each player uses only their own tools. The `?drop` and `?delay` flags. Log the bytes of each game from `pc.getStats()`.
 4. **Dice.** Dice and roll history move into the document. Dice are player bodies. Only the tray's player can use its dice panel.
-5. **Reconnect and stored game.** Reconnect, and the IndexedDB copy of the Yjs document. Both are tested locally first. The AWS parts of this phase (CDK stacks, Atlas database user, budget alert) moved to steps 3 and 4 of the plan.
+5. **Reconnect.** Reconnect after a reload or a dropped connection. The IndexedDB copy of the Yjs document was done in phase 1. It is tested locally first. The AWS parts of this phase (CDK stacks, Atlas database user, budget alert) moved to steps 3 and 4 of the plan.
 6. **TURN.** Local coturn and `?relay` first (if not done in phase 2), then Cloudflare TURN through `GET /ice`. The app shows the connection type (direct or relayed). Cloudflare only if the first real games (plan step 12) show that direct connections fail too often.
 
 ## Open questions
