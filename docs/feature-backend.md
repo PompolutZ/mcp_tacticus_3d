@@ -58,7 +58,7 @@ netlify.toml         Netlify build settings
 
 - **Hono 4.** The Lambda adapter comes from the package `@hono/aws-lambda`. The import path `hono/aws-lambda` is deprecated and goes away in Hono 5. `@hono/aws-lambda` 1.0.1 was published on 2026-10-08. If its peer range needs Hono 5, use `hono/aws-lambda` until Hono 5 is stable.
 - **TypeScript**, strict. CDK bundles it with esbuild for Lambda. Locally, `tsx` runs it.
-- **zod** and `@hono/zod-validator` check request bodies, the same as wuclub `apiv2`.
+- **zod** and `@hono/zod-validator` check request bodies, the same as wuclub `apiv2`. The code imports `zod/mini` (`zod@4.6.5`, `@hono/zod-validator@0.9.1`). The Lambda `index.mjs` is 883 KB with `zod/mini`, and 1.32 MB with full `zod` (852 KB before step 6).
 - **`hono/jwt`** signs and checks the session token (HS256). It replaces `jose` from the auth doc. The token is the same, and the API has one dependency less.
 - **`mongodb`**, the official driver.
 - **`yjs`** merges the table snapshots on the server.
@@ -73,8 +73,9 @@ apps/api/src/
                   Also answers the keep-alive event
   local.ts        Node entry for dev: @hono/node-server, memory or Mongo store, the dev login route
   config.ts       the config type. Read from SSM (Lambda) or from process.env (local)
-  routes/         health, auth, me, rooms, table, signal
-  middleware/     user (token check), errors
+  auth/           token (session token), discord (Discord client)
+  routes/         health, auth, devAuth (local only), me, rooms, table, signal
+  middleware/     user (token check), validate (body check), errors, log
   stores/         store interfaces, and a memory and a Mongo version of each
 apps/api/test/    Vitest: routes through app.request(), with the memory store
 ```
@@ -197,6 +198,7 @@ CDK needs `cdk bootstrap` once per account and region, with admin rights. It cre
 | Discord | Redirect `https://mcptacticus3d.netlify.app/` | The same Discord application, redirect `http://localhost:5173/` |
 
 - `pnpm dev` at the root starts both.
+- The dev Mongo: `pnpm --filter api db:up` starts `mongo:8` from `apps/api/compose.yaml`, with a named volume. Set `STORE=mongo` in `apps/api/.env`. The data survives restarts of the API, so testers stay logged in. `db:down` stops it and keeps the data. `docker compose down -v` in `apps/api` deletes it. Port `127.0.0.1:27017`, no password.
 - The web app reads the API address from `VITE_API_URL`. In dev it is `/api`, set in `apps/web/.env.development`, which is in git because it is not secret. In production it is the function URL, set as a Netlify env var.
 - In dev, the web app and the API have one origin, so there is no CORS. CORS is tested only against the deployed API.
 - Local dev never connects to Atlas. So a bug in local code cannot change production data.

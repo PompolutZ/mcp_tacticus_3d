@@ -385,7 +385,26 @@ Checks:
 
 ### Result
 
-(The agent adds it after the work.)
+Status: done. Not committed.
+
+Files changed:
+- `docs/feature-auth.md`: status line. "Session" and "Users": `GET /me` moves `expiresAt`. "Retention": "no login and no app start for 12 months". "Endpoints": the answers of three routes. "Local testing": dev login in every dev build, the fixed dev session secret, the dev Mongo. "Code layout": `oauth.js`, `auth/`, `devAuth`, `validate`. Open question 1 answered. `prompt=none` checked.
+- `docs/feature-backend.md`: "Stack" (`zod/mini`, versions, bundle sizes), "Code" (`auth/`, `devAuth`, `validate`, `log`), "Local development" (the dev Mongo).
+- `docs/plans/implement-backend.md`: **Result** under step 6.
+- `README.md`: new "Login" and "Dev Mongo" sections (env files, dev login, `db:up`, `db:down`, `down -v`). The `docker run` command is replaced.
+- `infra/README.md`: new "Secrets" section (four values, `put-secrets` before the deploy).
+
+Facts:
+- Lambda `index.mjs`: 851,963 bytes before step 6, 1,320,732 with `zod`, 882,867 with `zod/mini`.
+- Versions: `zod@4.6.5` (as `zod/mini`), `@hono/zod-validator@0.9.1`.
+- User checks 13 and 14 are not done. The overview Result says they are pending.
+
+Checks:
+- `pnpm test`: pass (api 59, web 30, infra 16). `pnpm format`: ok. `pnpm lint`: 0 errors, 44 warnings.
+
+Changes from the plan: none.
+
+Open issues: user checks 13 and 14.
 
 ## User
 

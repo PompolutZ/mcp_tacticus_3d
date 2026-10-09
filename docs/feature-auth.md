@@ -1,6 +1,6 @@
 # Feature: Login with Discord
 
-Status: plan. Not started. See [Open questions](#open-questions) at the end.
+Status: phase 1 (login) is done and checked locally (step 6 of the plan). The rest is plan. See [Open questions](#open-questions) at the end.
 
 The backend (repo, stack, AWS, deploy) is in `docs/feature-backend.md`. The order of the work is in `docs/plans/implement-backend.md`.
 
@@ -52,7 +52,7 @@ In TTS, the Steam account gives each player a name and an avatar. Here, the Disc
 Discord's OAuth2 docs say that the token endpoint needs the client secret. They do not describe PKCE. So the browser cannot exchange the code itself, and the exchange runs in the Lambda.
 
 1. The player presses **Log in with Discord**. The browser makes a random `state` and saves `{ state, returnHash }` in `sessionStorage`. `returnHash` is the page the player was on, for example `#room=K7Q2-M9XD`.
-2. The browser goes to `https://discord.com/oauth2/authorize` with `response_type=code`, `client_id`, `scope=identify`, `redirect_uri=<origin>/`, `state` and `prompt=none`. With `prompt=none`, Discord skips the consent screen when the player approved the app before.
+2. The browser goes to `https://discord.com/oauth2/authorize` with `response_type=code`, `client_id`, `scope=identify`, `redirect_uri=<origin>/`, `state` and `prompt=none`. With `prompt=none`, Discord skips the consent screen when the player approved the app before. Checked on 2026-10-09: the first login of a new player also works with `prompt=none`.
 3. Discord sends the browser to `<origin>/?code=...&state=...`. When the player says no, it sends `?error=access_denied&state=...`.
 4. `Root.jsx` reads the query before the hash. It checks that `state` is the saved one, and removes the query from the address bar (`history.replaceState`). It posts the code to `POST /auth/discord`.
 5. The Lambda posts the code, the client id, the client secret and the redirect URI to `https://discord.com/api/oauth2/token`. It gets a Discord access token. It reads `GET https://discord.com/api/users/@me` with that token.
@@ -67,7 +67,7 @@ Next to the login button, the lobby says: "Your opponent sees your Discord name 
 
 - The session token is a JWT signed with HS256 (`hono/jwt`). The key is the SSM parameter `/mcptacticus/prod/session-secret` (backend doc, "Secrets and config"). Claims: `sub` (our user id), `iat`, `exp` (30 days).
 - The browser keeps it in `localStorage` (`mcp-assist-3d/session`) and sends `Authorization: Bearer <token>`.
-- On app start, the browser calls `GET /me`. The answer has the user, and a new token when the old one is more than 1 day old. So a player who opens the app at least once in 30 days stays logged in.
+- On app start, the browser calls `GET /me`. The answer has the user, and a new token when the old one is more than 1 day old. The same call moves `expiresAt` of the user (see [Users](#users)). So a player who opens the app at least once in 30 days stays logged in.
 - The Lambda checks the signature and `exp`, then reads the user by `_id`. A deleted user gets 401, and the browser logs out.
 - **Log out** deletes the token in the browser. There is no server call. A copied token stays valid until `exp`.
 - A new session secret logs out every player at once. Use it if the key leaks.
@@ -90,7 +90,7 @@ The cost of `localStorage`: a script that runs in the page (XSS) can read the to
   name: 'Nelly',                     // Discord global_name, or username when global_name is null
   avatar: '8342729096ea3675442027381ff50dfe',   // hash, or null
   createdAt, lastLoginAt,            // Date
-  expiresAt,                         // Date: lastLoginAt + 12 months. TTL index
+  expiresAt,                         // Date: last login or token renewal + 12 months. TTL index
 }
 ```
 
@@ -156,9 +156,9 @@ How it works:
 
 | Request | Login | Does |
 |---|---|---|
-| `POST /auth/discord` | no | `{ code, redirectUri }`. Login flow steps 5 and 6. Returns `{ token, user }` |
-| `GET /me` | yes | Returns the user, and a new token when the old one is more than 1 day old |
-| `DELETE /me` | yes | Deletes the account. See [Privacy](#privacy) |
+| `POST /auth/discord` | no | `{ code, redirectUri }`. Login flow steps 5 and 6. Answers 200 `{ token, user }`, 400 bad body, 401 Discord rejected the code, 502 Discord failed, 503 Discord not configured (local only) |
+| `GET /me` | yes | Answers 200 `{ user, token? }`, with a new token when the old one is more than 1 day old. 401: no token, bad token, or the user is gone |
+| `DELETE /me` | yes | Deletes the user. Answers 204. The rooms part comes with step 7. See [Privacy](#privacy) |
 | `GET /rooms` | yes | The rooms where the user has a seat, with both players' names and avatars. No table |
 | `POST /rooms` | yes | `{ mapId, side, roster }`. Creates a room |
 | `GET /rooms/{code}` | no | The setup: map, rosters, players' names and avatars, free seats. No table |
@@ -210,7 +210,7 @@ The Discord Developer Terms of Service (effective 2024-07-08, section 5) apply t
 | Keep developer credentials secret. No credentials in open source projects (2) | The client secret only in `apps/api/.env` and `infra/.env` (git ignores both) and in SSM. The terms list the Application ID as a credential too, so the client id comes from a Netlify env var at build time, not from a file in git |
 
 - **Delete account** asks with a browser confirm first. `DELETE /me` deletes the user, deletes the rooms that the user owns with their tables, and frees the user's seat in other rooms. The browser deletes the token. The privacy page also says that the player can remove the app in Discord under Settings → Authorized Apps.
-- **Retention:** a user with no login for 12 months is deleted by the TTL index (`expiresAt`). A room with no change for 12 months is deleted the same way, with its table. The seat rules in [Data](#data) handle rooms of deleted users.
+- **Retention:** a user with no login and no app start for 12 months is deleted by the TTL index (`expiresAt`). A room with no change for 12 months is deleted the same way, with its table. The seat rules in [Data](#data) handle rooms of deleted users.
 - **Region:** Discord EU data that goes to a country outside the EEA with no adequacy decision falls under the standard contract clauses of section 11. The Lambda and the Atlas cluster are both in `eu-central-1` (backend doc), so the data stays in the EEA.
 - Scope `identify` only. No email, no guilds, no friends list.
 - Logs do not contain codes or tokens. CloudWatch keeps logs 1 week (backend doc).
@@ -252,9 +252,13 @@ The rules of the peer-to-peer plan apply: everything works on one Mac, and each 
 | Auth and rooms endpoints | The Lambda | The same Hono app in a Node process, with the memory store. Vite forwards `/api/*` to it |
 | Discord login | Discord, redirect `https://mcptacticus3d.netlify.app/` | The same Discord app, redirect `http://localhost:5173/`. Needs internet |
 | Secrets | SSM | `apps/api/.env` (git ignores it). Only the API process reads it. The web app gets only `VITE_DISCORD_CLIENT_ID`, from `apps/web/.env.local` |
-| `users`, `rooms` | Atlas, database `assist3d` | Memory store. `mongo` in Docker to test the MongoDB store |
+| `users`, `rooms` | Atlas, database `assist3d` | Memory store (default), or the dev Mongo in Docker (see below) |
 
-**Dev login.** A two-browser test needs two users, and a tester usually has one Discord account. So the local API has `POST /auth/dev { name }`. It creates or reads the user `dev:<name>` and returns a normal session token. In dev builds, the lobby header shows a **Dev login** field next to **Log in with Discord**. The route is in `local.ts`, not in `app.ts`. The Lambda bundle has only the code that `lambda.ts` imports, so it does not contain the route.
+**Dev login.** A two-browser test needs two users, and a tester usually has one Discord account. So the local API has `POST /auth/dev { name }`. It creates or reads the user `dev:<name>` and returns a normal session token. In dev builds, the lobby header shows a **Dev login** field next to **Log in with Discord**. The route is in `local.ts`, not in `app.ts`. The Lambda bundle has only the code that `lambda.ts` imports, so it does not contain the route. The field shows in every dev build, also when `VITE_DISCORD_CLIENT_ID` is not set. The **Log in with Discord** button shows only when it is set.
+
+**Session secret.** Without `SESSION_SECRET` in `apps/api/.env`, the local API uses a fixed dev value and logs one line. `tsx watch` restarts the API after each code change, and a random key per start would log the testers out each time. The fixed value is only in `local.ts`.
+
+**Dev Mongo.** With the memory store, a restart of the API empties the users. The browser token is still valid, but `GET /me` finds no user and answers 401, so the tester is logged out. To keep the users, run `pnpm --filter api db:up` (Mongo 8 in Docker, `apps/api/compose.yaml`, a named volume) and set `STORE=mongo` in `apps/api/.env`. `pnpm --filter api db:down` stops it and keeps the data. `docker compose down -v` in `apps/api` deletes the data.
 
 ## Cost
 
@@ -278,6 +282,7 @@ apps/web/src/api/
   client.js        base URL (VITE_API_URL), JSON, errors, the Authorization header
 apps/web/src/auth/
   session.js       token in localStorage, login redirect, callback, logout
+  oauth.js         authorize URL, callback check (pure functions)
   useUser.js       React hook: the current user or null
   avatar.js        Discord avatar URL
 apps/web/src/rooms/
@@ -288,8 +293,9 @@ apps/web/src/components/
   JoinRoom.jsx     the join page of an online room
   Privacy.jsx      the privacy page
 apps/api/src/
-  routes/          auth (Discord code exchange), me, rooms (seat rules), table (merge), signal
-  middleware/      user: checks the session token with hono/jwt
+  auth/            token (sign and verify the session token), discord (the Discord client)
+  routes/          auth (Discord code exchange), devAuth (local only), me, rooms (seat rules), table (merge), signal
+  middleware/      user: checks the session token with hono/jwt. validate: body check
   stores/          users and rooms: memory and MongoDB
   local.ts         the Node entry for dev. Also the dev login route
 ```
@@ -330,7 +336,7 @@ Made on 2026-10-08:
 
 ## Open questions
 
-1. **Localhost redirect.** Does Discord accept `http://localhost:5173/` as a redirect URI? Guides say yes. Check when the application is created.
+1. **Localhost redirect.** Answered on 2026-10-09: Discord accepts `http://localhost:5173/`. The first save failed because the browser filled the field with the Discord email. Typed by hand, it saved.
 2. **Session length.** 30 days, renewed once a day on app start. Fine?
 3. **Retention.** 12 months for users with no login and rooms with no change. Fine?
 4. **Region.** Answered in `docs/feature-backend.md`: the Atlas cluster and the Lambda are in `eu-central-1`.

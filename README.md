@@ -62,11 +62,24 @@ Open `http://localhost:5173`. The app opens on the lobby. Open the Sandbox or a 
 - The Oxc extension adds both to VS Code.
 - To let `git blame` skip the commit of the first format, run once: `git config blame.ignoreRevsFile .git-blame-ignore-revs`.
 
-The API uses the memory store by default. To run it with Mongo, start one in Docker and set `STORE=mongo` in `apps/api/.env` (see `apps/api/.env.example`):
+### Login
+
+Login needs these settings (see `apps/api/.env.example`):
+
+- `apps/api/.env`: `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`. `SESSION_SECRET` is optional. Without it the API uses a fixed dev value.
+- `apps/web/.env.local`: `VITE_DISCORD_CLIENT_ID`. Git ignores both files.
+- The Discord application needs the redirect `http://localhost:5173/`.
+
+Without the Discord values, the **Log in with Discord** button is hidden or answers 503. The **Dev login** field in the lobby header always works in dev. Type a name, and use another name in another browser to get a second user.
+
+### Dev Mongo
+
+The API uses the memory store by default. A restart of the API empties it, and the testers are logged out. To keep the users, run a Mongo in Docker and set `STORE=mongo` in `apps/api/.env`:
 
 ```bash
-docker run --rm -d --name assist3d-mongo -p 27017:27017 mongo:8
-# stop it later: docker stop assist3d-mongo
+pnpm --filter api db:up      # starts mongo:8 with a named volume
+pnpm --filter api db:down    # stops it, keeps the data
+docker compose -f apps/api/compose.yaml down -v   # deletes the data
 ```
 
 The API refuses an Atlas connection string. Local dev uses only a local Mongo.

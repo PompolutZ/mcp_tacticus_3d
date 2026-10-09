@@ -83,6 +83,12 @@ The user runs these steps. Coding agents do not run them.
 
 The commands with the profile `mcptacticus` ask for the MFA code. AWS accepts each code only once. When two commands ask within the same 30 seconds, wait for the next code.
 
+## Secrets
+
+`put-secrets` writes four values from `infra/.env` to SSM: `mongodb-uri`, `session-secret`, `discord-client-id`, `discord-client-secret`. The Lambda needs all four. A missing one stops the cold start with `Missing SSM parameter` and the name. So run `put-secrets` before the first deploy that has the auth routes. It prints `Wrote:` and the four names.
+
+The Discord values come from the Discord Developer Portal (application `mcptacticus3d`).
+
 ## Later deploys
 
 - `pnpm --filter infra cdk:deploy` after a change in `apps/api` or `infra/lib/api-stack.ts`. From step 4 of the plan, GitHub Actions does it on a push to `main`.
