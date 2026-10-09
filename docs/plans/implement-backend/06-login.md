@@ -41,7 +41,8 @@ Left for later steps:
 
 | Thing | Value |
 |---|---|
-| New API dependencies | `zod`, `@hono/zod-validator` (the latest versions whose peer ranges fit Hono 4) |
+| New API dependencies | `zod` (used as `zod/mini`, decision 17), `@hono/zod-validator` (the latest versions whose peer ranges fit Hono 4) |
+| Dev Mongo | `apps/api/compose.yaml`, scripts `db:up`, `db:down` (decision 16) |
 | Routes | `POST /auth/discord`, `GET /me`, `DELETE /me`. Local only: `POST /auth/dev` |
 | Session token | JWT, HS256, `hono/jwt`. Claims `sub` (user id), `iat`, `exp` = `iat` + 30 days |
 | Token renewal | `GET /me` returns a new token when `iat` is more than 1 day old |
@@ -160,6 +161,16 @@ apps/web/
     - `loading`: nothing, so the header does not jump. The lobby works at once.
     - `in`: avatar (28 px, round) and name. A click opens a small menu with **Log out**. Escape and a click outside close it.
     - `error`: "Login not available: the server does not answer." A reload tries again.
+
+Added on 2026-10-09, after the user checks of Phase 3:
+
+16. **Dev Mongo.** With `STORE=memory`, a restart of the local API empties the users. The browser token is still valid, but `GET /me` finds no user and answers 401, so the tester is logged out. `tsx watch` restarts the API after each code change. So the fixed dev secret of decision 3 alone does not keep a tester logged in. Step 7 has the same problem with online rooms. Fix: a dev Mongo in Docker, defined in `apps/api/compose.yaml`:
+    - One `mongo:8` service. Port `127.0.0.1:27017`, so only this Mac reaches it (it has no password). A named volume, so the data survives restarts of the API, the container and the Mac.
+    - `apps/api` scripts `db:up` (`docker compose up -d --wait`) and `db:down` (`docker compose down`, keeps the volume). `docker compose down -v` deletes the data.
+    - The user sets `STORE=mongo` in `apps/api/.env`. `STORE=memory` stays the default, so `pnpm dev` works without Docker.
+    - Testcontainers stays for `test:mongo`. Tests need a new, empty database each run. Dev needs data that stays. The two do not share a port or a database.
+17. **`zod/mini`.** `zod` grew the Lambda bundle from 852 KB to 1.32 MB (Phase 2 Result). `zod/mini` has the same checks with a function API, and esbuild can drop the parts that the API does not use. Goal: the bundle close to its size before step 6. The schemas and the `{ error: 'Invalid request' }` answer stay the same.
+    - If `@hono/zod-validator` does not accept `zod/mini` schemas, use `@hono/standard-validator` instead (`zod/mini` implements Standard Schema), and remove `@hono/zod-validator`.
 
 ## Phase 1: Users, session token, `/me`, dev login
 
@@ -320,19 +331,41 @@ Changes from the plan: none.
 
 Open issues: none. The browser flow is not tested (user checks 7 to 12).
 
-## Phase 4: Docs
+## Phase 4: `zod/mini` and dev Mongo
+
+Read: decisions 16 and 17. `apps/api/src/middleware/validate.ts`, `routes/auth.ts`, `routes/devAuth.ts`, `src/local.ts`, `.env.example`, `package.json`. The `zod/mini` docs.
+
+Work:
+1. `zod/mini` in `validate.ts`, `auth.ts` and `devAuth.ts` (decision 17). Check that `@hono/zod-validator` accepts the schemas. If not, use the fallback of decision 17.
+2. `apps/api/compose.yaml` and the scripts `db:up`, `db:down` (decision 16).
+3. `apps/api/.env.example`: a comment at `STORE` that `mongo` needs `pnpm --filter api db:up` first.
+4. Do not edit `apps/api/.env`. The user sets `STORE` there.
+
+Checks:
+- `pnpm --filter api typecheck`, `pnpm --filter api test`, `pnpm --filter api test:mongo` pass. The body tests of `auth.test.ts` and `dev-auth.test.ts` pass with no change.
+- `pnpm --filter infra synth` passes. Give the size of the Lambda `index.mjs` before and after.
+- `grep -rln "from 'zod'" apps/api/src` finds nothing.
+- `docker compose -f apps/api/compose.yaml config` passes. Do not start the container.
+- `pnpm format`, `pnpm lint`: no new errors.
+
+### Result
+
+(The agent adds it after the work.)
+
+## Phase 5: Docs
 
 Work:
 1. `docs/feature-auth.md`:
    - "Users": `expiresAt` also moves on token renewal (decision 6). "Privacy" → "Retention": the same.
-   - "Local testing": the dev login shows in a dev build also without `VITE_DISCORD_CLIENT_ID` (decision 10). The fixed dev session secret (decision 3).
+   - "Local testing": the dev login shows in a dev build also without `VITE_DISCORD_CLIENT_ID` (decision 10). The fixed dev session secret (decision 3). The dev Mongo (decision 16): without it, a restart of the API logs the testers out.
    - "Code layout": `apps/web/src/auth/oauth.js`, `apps/api/src/auth/`, `routes/devAuth.ts`.
    - "Endpoints": the answers of "Names" for the three routes.
-   - Open question 1 (localhost redirect): the answer from the user check.
+   - Open question 1 (localhost redirect): answered (see "User check results").
+   - Risk 1 of this plan: the first login worked with `prompt=none` (see "User check results").
    - Status line at the top.
-2. `docs/feature-backend.md`: "Code" (`auth/`, `devAuth.ts`), "Stack" (`zod` version).
+2. `docs/feature-backend.md`: "Code" (`auth/`, `devAuth.ts`), "Stack" (`zod/mini` and the validator), "Local development" (the dev Mongo with `compose.yaml`, next to the memory store).
 3. `docs/plans/implement-backend.md`: a short **Result** under step 6.
-4. `README.md`: local login: `apps/api/.env`, `apps/web/.env.local`, the dev login.
+4. `README.md`: local login: `apps/api/.env`, `apps/web/.env.local`, the dev login, the dev Mongo (`db:up`, `STORE=mongo`, `docker compose down -v` to reset).
 5. `infra/README.md`: the Discord values in "Secrets", and the order: `put-secrets` before the deploy (decision 3).
 
 Checks:
@@ -370,8 +403,20 @@ After Phase 3, with `pnpm dev`:
 11. Run only the web app (`pnpm --filter web dev`) and reload: "Login not available". Run `pnpm dev` again and reload: logged in.
 12. The Sandbox and offline rooms work as before.
 
+After Phase 4:
+13. `pnpm --filter infra cdk:deploy` (the bundle changed). Then check 5 again.
+14. `pnpm --filter api db:up`, and `STORE=mongo` in `apps/api/.env`. `pnpm dev`, log in, stop `pnpm dev`, start it again, reload: still logged in.
+
 After the Netlify build of the merged code:
-13. Production shows no login button, and DevTools → Network shows no request to the API.
+15. Production shows no login button, and DevTools → Network shows no request to the API.
+
+### User check results
+
+On 2026-10-09:
+- Discord accepted `http://localhost:5173/` as a redirect (auth doc open question 1). The first save failed, because the browser autofilled the redirect field with the Discord email. Typed by hand, it saved.
+- Discord's **Verification Qualifications** page (Team, Terms of Service, install link, and more) is for bots in more than 100 servers. Login with `identify` works without it.
+- `put-secrets` and the deploy worked. `POST /auth/discord` with a fake code answered 401 `Discord login failed`.
+- Checks 7 to 12 passed, also the first login with `prompt=none`. One problem: after a restart of `pnpm dev`, the tester was logged out. Cause and fix: decision 16.
 
 ## Done when
 
