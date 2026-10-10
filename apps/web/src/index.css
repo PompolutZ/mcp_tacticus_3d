@@ -1916,6 +1916,7 @@ body {
   color: #58d68d;
 }
 
+.room-player-status--reconnecting,
 .room-player-status--failed {
   color: #f5b041;
 }

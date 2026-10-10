@@ -33,7 +33,7 @@ Left for later:
 
 - Read `CLAUDE.md`, `docs/plans/implement-backend.md` ("Rules for every step", "Step 11"), this plan, and the design sections named above.
 - Do not open the app in a browser. Do not start the dev server. The user checks the app.
-- Do not run `aws`, `cdk deploy` or `put-secrets`. The API code does not change in this step. Only `apps/api/package.json` (two scripts) and `apps/api/README.md` change.
+- Do not run `aws`, `cdk deploy` or `put-secrets`. The API code does not change in this step. Only `apps/api/package.json` changes (two scripts).
 - Do not commit and do not push. The main model commits each finished phase.
 - Temporary files go in the session's scratchpad directory.
 - Keep tool output small (`head`, `grep`, `tail`, summaries).
@@ -105,12 +105,13 @@ apps/api/
    - After `RECONNECT_TRIES` failed attempts in a row: `failed`, with "Could not connect" and **Try again**, as today. The host posts no more `hello`. Polls go on, as today.
    - A failed first connect (not after a drop) stays as today: `failed` at once.
 6. **No `online` and `offline` events.** The `hello` post and the polls repeat every 2 s. So the browser finds out within 2 s that the network is back. The events would save at most 2 s and add a second path.
-7. **Traffic per connection.** Today `Table.jsx` starts a traffic count at `connected` and ends it at any other state. With `reconnecting`, the same connection can come back. Then its bytes would count twice, because `getStats()` gives the sum since the connection started. So a count starts in `onChannels` and ends when that `sync` channel closes. A traffic line in the console then means that a connection ended.
+7. **Traffic per connection.** Today `Table.jsx` starts a traffic count at `connected` and ends it at any other state. With `reconnecting`, the same connection can come back. Then its bytes would count twice, because `getStats()` gives the sum since the connection started. So a count starts in `onChannels` and ends in `onChannelsEnd` (below). A traffic line in the console then means that a connection ended.
+   - A browser fires no `close` event on a channel when its own `pc.close()` runs. This is the case after `DROP_MS` and `failed`. So `connectRoom` calls `onChannelsEnd()` once for each opened attempt when it ends, from a channel close or from its own close, whichever comes first. `Table.jsx` then ends the traffic count, stops the Yjs sync (which removes the other player's awareness states) and detaches the live channel. Found in Phase 1.
 8. **Changes during a drop.** The code already keeps them. No change is needed:
    - Each change is in the document and in IndexedDB at once.
    - When a channel opens, Yjs sync step 1 and 2 send each side the changes that it does not have. This also covers a change that was sent on the old channel and did not arrive.
    - The guest's server writer runs when the state is not `connected` (step 8, decision 11). So during a drop both browsers write. `PUT /rooms/{code}/table` merges the bytes into the stored table (`mergeTables`). So no write replaces the other one.
-   - The other player's claims go when the old `sync` channel closes (`syncChannel.js`, `stop`). With `DROP_MS`, this is about 10 s after the drop, not 30 s (step 9, risk 6).
+   - The other player's claims go when the old connection ends (`onChannelsEnd`, then `syncChannel.js` `stop`). With `DROP_MS`, this is about 10 s after the drop, not 30 s (step 9, risk 6).
 9. **Table fingerprint.** It checks for lost changes. Two documents with the same changes have the same state vector and the same delete set. Yjs 13.6 writes both sorted by client id. So `tableFingerprint(doc)` is a short hash (FNV-1a, 32 bits, 8 hex characters) of `Y.encodeSnapshot(Y.snapshot(doc))`.
    - `Table.jsx` logs `table fingerprint <hash>` once per connection: when the document had no change for 2 s after the `sync` channel opened. A change inside the 2 s starts the 2 s again.
    - The two consoles show the same hash when no change is lost. The players compare them after a drop.
@@ -124,7 +125,7 @@ apps/api/
 
 ## Phase 1: Reconnect
 
-Read: decisions 1 to 7 and 10. `net/peer.js`, `net/peer.test.js` (the fake connection and timers), `Table.jsx` (`connectRoom`, `onChannels`, `onState`, the traffic functions), `components/RoomPlayers.jsx`, `index.css` (`.room-player-status`), `apps/api/package.json`, `apps/api/README.md`.
+Read: decisions 1 to 7 and 10. `net/peer.js`, `net/peer.test.js` (the fake connection and timers), `Table.jsx` (`connectRoom`, `onChannels`, `onState`, the traffic functions), `components/RoomPlayers.jsx`, `index.css` (`.room-player-status`), `apps/api/package.json`, `README.md` (the `turn:up` line).
 
 Work:
 1. `net/peer.js`: decisions 2 to 5.
@@ -147,7 +148,7 @@ Work:
    - The existing tests still pass, also the closed and reloaded page of step 8.
 3. `components/RoomPlayers.jsx`: `reconnecting: 'Reconnecting'`. No **Try again** for it. `index.css`: `.room-player-status--reconnecting` with the color of `--failed`.
 4. `Table.jsx`: decision 7. The traffic count starts in `onChannels` and ends when that `sync` channel closes. A closing table still ends it with no line, as today.
-5. `apps/api/package.json`: `turn:pause` (`docker compose pause coturn`) and `turn:resume` (`docker compose unpause coturn`). `apps/api/README.md`: one line for each.
+5. `apps/api/package.json`: `turn:pause` (`docker compose pause coturn`) and `turn:resume` (`docker compose unpause coturn`). The root `README.md` documents them, in Phase 2 (`apps/api/README.md` does not exist).
 
 Checks:
 - `pnpm --filter web test`, `pnpm --filter web build` pass.
@@ -156,6 +157,25 @@ Checks:
 User, after this phase: checks 1 to 6.
 
 ### Result
+
+Done. Web tests 269 pass, 0 fail (peer tests 36, 15 new, 1 changed). Build passes. `pnpm format` clean. Lint: no new warnings (the old ones are in other files).
+
+- `net/peer.js`:
+  - New exports `DROP_MS` (10 s) and `RECONNECT_TRIES` (3). Comment above `connectRoom` has the new state and rules.
+  - Flags `reconnecting`, `failures`, `helloPending`, `helloTimer`. `emit()` shows `reconnecting` when the flag is set and the internal state is `waiting` or `connecting`. The internal state `reconnecting` is only the `disconnected` wait (no polls then).
+  - `connectionstatechange` of an open attempt: `disconnected` starts `att.dropTimer`, `connected` cancels it (state `connected`, no new `onChannels`), `failed` and the drop timer call `dropped()`. The sync channel close calls `dropped()` too.
+  - `dropped()` ends the attempt, sets `reconnecting`, then `reconnectHello()`. It posts `hello`, repeats after `POLL_MS` on status 0 or 5xx, 404 is `gone`. Polls wait while `helloPending`. Another error (400, 429): no repeat, the polls start, like a table open.
+  - `failed()` during `reconnecting` counts. The host posts a new `hello` at once. At `RECONNECT_TRIES`: `failed`, no more hellos. An offer with no answer goes to `backToWaiting()` and does not count.
+  - `clearRound()` (count, flag, hello timer) runs at connected, bye, idle stop, `retry()`. `stop()` and `gone()` cancel the hello timer. A bye of a known peer during `reconnecting` gives `waiting`.
+  - New argument `onChannelsEnd()`: called once for each opened attempt, from `endAttempt` (flag `att.ended`). Every end of an attempt goes through `endAttempt`, and a channel close goes there through `dropped()`. Not called for an attempt that never opened.
+- `net/peer.test.js`: `makeServer` has `failHello(status)`, `FakePc` has `setConnectionState`, `player` has `ends`. New tests as in Work item 2, plus two for `onChannelsEnd`. The test "a closed channel gives waiting" is now "gives reconnecting".
+- `RoomPlayers.jsx`: `reconnecting: 'Reconnecting'`, no Try again. `index.css`: `.room-player-status--reconnecting` shares the `--failed` rule.
+- `Table.jsx`: `onChannels` starts the traffic count, the Yjs sync and attaches the live channel. `onChannelsEnd` ends the count (`endTraffic(false)`), stops the sync and detaches the live channel. The per-channel `close` listeners are gone. `close()` ends traffic quietly first, so the later `onChannelsEnd` from `link.current.stop()` finds nothing to do.
+- `apps/api/package.json`: `turn:pause`, `turn:resume`. `apps/api/README.md` does not exist; the root `README.md` is Phase 2.
+
+For Phase 2:
+- `Table.jsx`: start the fingerprint 2 s timer in `onChannels`. Clear it in `onChannelsEnd` and in `close()`.
+- `onState` no longer touches traffic. The guest writer still pauses on `next.state === 'connected'`; during `reconnecting` the guest writes (decision 8).
 
 ## Phase 2: Table fingerprint and docs
 
@@ -169,7 +189,7 @@ Work:
 2. `Table.jsx`: the console line of decision 9. The timer is cleared when the channel closes and when the table closes.
 3. Docs:
    - `docs/feature-peer-to-peer.md`: "Status" line at the top. "Connect flow": the state `reconnecting` in the states table, the drop rules (decisions 2 to 5), and the sentence "Step 11 keeps the network cases …" replaced by the rules. "Room and players": the "Reconnecting" item. "Local testing": `turn:pause` and `turn:resume` with `?relay`. "Debug flags" or "Local testing": the fingerprint line. "Phases": phase 5 done, a new connection instead of ICE restart (decision 1).
-   - `README.md`: the multiplayer part: "Reconnecting", and how to test a drop.
+   - `README.md`: the multiplayer part: "Reconnecting", and how to test a drop. `turn:pause` and `turn:resume` next to `turn:up` and `turn:down`.
    - `docs/plans/implement-backend.md`: a short **Result** under step 11. In the step 11 list, "ICE restart" is replaced by "a new connection (decision 1 of `11-reconnect.md`)".
 
 Checks:

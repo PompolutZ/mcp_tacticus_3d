@@ -228,20 +228,21 @@ export default function Table({ room = null, onExit }) {
           signaling: createSignaling({ code, peerId, post: postMessage, get: getMessages }),
           createPeerConnection: (config) => new RTCPeerConnection(config),
           iceConfig: iceConfig({ dev: import.meta.env.DEV, relay: relayFlag() }),
-          // The open sync channel is synced at once. The sync stops with the channel or the table. The live
-          // channel goes to the hub, and its close or the close of the table detaches it.
+          // The open sync channel is synced at once. The live channel goes to the hub. A traffic count is one
+          // connection. onChannelsEnd ends all three, also when the connection closes with no close event
+          // (plan 11, decision 7).
           onChannels({ sync: channel, live: liveSide }) {
-            sync?.stop()
-            const mine = syncOverChannel(doc, channel, awareness)
-            sync = mine
-            channel.addEventListener('close', () => mine.stop())
-            if (liveChannel) live.detach(liveChannel)
+            startTraffic()
+            sync = syncOverChannel(doc, channel, awareness)
             liveChannel = liveSide
             live.attach(liveSide)
-            liveSide.addEventListener('close', () => {
-              live?.detach(liveSide)
-              if (liveChannel === liveSide) liveChannel = null
-            })
+          },
+          onChannelsEnd() {
+            endTraffic(false)
+            sync?.stop()
+            sync = null
+            if (liveChannel) live?.detach(liveChannel)
+            liveChannel = null
           },
           onState(next) {
             // Both browsers have the same document while connected, so only the host writes (decision 11)
@@ -253,8 +254,6 @@ export default function Table({ room = null, onExit }) {
               exit.current(`The host deleted room ${code}.`)
               return
             }
-            if (next.state === 'connected') startTraffic()
-            else endTraffic(false)
             setConnection(next)
           },
         })

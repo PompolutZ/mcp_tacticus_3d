@@ -8,13 +8,27 @@ export const GATHER_MS = 3000
 export const OFFER_MS = 15_000
 export const CONNECT_MS = 15_000
 export const IDLE_MS = 15 * 60_000
+// How long connectionState can stay `disconnected` before the attempt ends (plan 11, decision 2)
+export const DROP_MS = 10_000
+// Failed attempts in a row after a drop, before the state is failed (plan 11, decision 5)
+export const RECONNECT_TRIES = 3
 
 // role: 'host' answers, 'guest' offers. userId: the own user id. peerId: the id of this table open.
 // build: the build id for hello. signaling: createSignaling(...). createPeerConnection(iceConfig), iceConfig: { iceServers, iceTransportPolicy? }.
 // timers: { setTimeout, clearTimeout }.
-// onState({ state, peer, versionMismatch }): state is waiting, connecting, connected, failed, stopped or
-// gone. peer: the `user` of the other player's latest hello, or null. onChannels({ sync, live }): the sync
-// channel is open, once per open. The live channel may open a moment later (plan 09, decision 13).
+// onState({ state, peer, versionMismatch }): state is waiting, connecting, connected, reconnecting, failed,
+// stopped or gone. peer: the `user` of the other player's latest hello, or null. onChannels({ sync, live }):
+// the sync channel is open, once per open. The live channel may open a moment later (plan 09, decision 13).
+// reconnecting (plan 11): the connection was open and dropped. It starts when connectionState is
+// `disconnected`, and ends with `connected` again within DROP_MS, with no new onChannels. After DROP_MS, or on
+// `failed`, or when the sync channel closes, the attempt ends and both roles post a new hello and poll, like
+// a table open. The state stays reconnecting through the new offers and answers until connected, a bye of the
+// other player (waiting), RECONNECT_TRIES attempts in a row that got an answer and did not connect (failed,
+// no more hellos), 15 min with no message (stopped) or a 404 (gone). An offer with no answer does not count.
+// A hello of the other player does not end it.
+// onChannelsEnd(): once for each attempt that opened, when it ends: the sync channel closes, or the attempt
+// ends here (drop timer, failed, a new attempt, bye, idle stop, retry, stop, gone), whichever comes first. A
+// browser fires no close event when its own pc.close() runs, so the caller cannot rely on the channel close.
 // Returns { retry, stop, traffic }. traffic(): a promise of trafficOf(getStats()) of the open connection, or
 // null when none is open (plan 09, decision 17).
 export function connectRoom({
@@ -28,6 +42,7 @@ export function connectRoom({
   timers = { setTimeout, clearTimeout },
   onState,
   onChannels,
+  onChannelsEnd = () => {},
 }) {
   const { setTimeout: later, clearTimeout: cancel } = timers
   let state = 'waiting'
@@ -43,12 +58,21 @@ export function connectRoom({
   let pollTimer = null
   let polling = false
   let idleTimer = null
+  // reconnecting: a drop is not over. failures: failed attempts in a row since the drop.
+  let reconnecting = false
+  let failures = 0
+  // The hello of a round is not stored yet: no polls, so a later hello never deletes an offer of this round
+  let helloPending = false
+  let helloTimer = null
 
   function emit() {
-    const key = JSON.stringify([state, peer, versionMismatch])
+    // After a drop, the waiting and connecting of the attempts show as reconnecting
+    const shown =
+      reconnecting && (state === 'waiting' || state === 'connecting') ? 'reconnecting' : state
+    const key = JSON.stringify([shown, peer, versionMismatch])
     if (key === lastEmit) return
     lastEmit = key
-    onState({ state, peer, versionMismatch })
+    onState({ state: shown, peer, versionMismatch })
   }
 
   function setState(next) {
@@ -75,7 +99,12 @@ export function connectRoom({
     if (shouldPoll() && pollTimer === null) pollTimer = later(pollOnce, POLL_MS)
   }
 
-  const shouldPoll = () => !done && state !== 'connected' && state !== 'stopped'
+  const shouldPoll = () =>
+    !done &&
+    !helloPending &&
+    state !== 'connected' &&
+    state !== 'reconnecting' &&
+    state !== 'stopped'
 
   function startPolling() {
     if (polling || pollTimer !== null || !shouldPoll()) return
@@ -97,6 +126,7 @@ export function connectRoom({
       idleTimer = null
       endAttempt()
       stopPolling()
+      clearRound()
       setState('stopped')
     }, IDLE_MS)
   }
@@ -106,9 +136,20 @@ export function connectRoom({
     state = 'gone'
     stopPolling()
     cancel(idleTimer)
+    cancel(helloTimer)
+    reconnecting = false
     endAttempt()
     emit()
     done = true
+  }
+
+  // The reconnect round is over: no hello repeat, no pending hello, no count
+  function clearRound() {
+    cancel(helloTimer)
+    helloTimer = null
+    helloPending = false
+    reconnecting = false
+    failures = 0
   }
 
   // Attempts: one RTCPeerConnection each
@@ -119,11 +160,17 @@ export function connectRoom({
     if (!old) return
     cancel(old.offerTimer)
     cancel(old.connectTimer)
+    cancel(old.dropTimer)
+    if (old.opened && !old.ended) {
+      old.ended = true
+      onChannelsEnd()
+    }
     old.pc.close()
   }
 
   function backToWaiting() {
     endAttempt()
+    // Keeps reconnecting: an offer with no answer, or an error, is not a failed attempt
     setState('waiting')
     // The 15 min count messages of the other player, so a timeout here does not restart them
     if (idleTimer === null) resetIdle()
@@ -174,6 +221,7 @@ export function connectRoom({
       opened: false,
       offerTimer: null,
       connectTimer: null,
+      dropTimer: null,
     }
     attempt = att
 
@@ -184,24 +232,86 @@ export function connectRoom({
       cancel(att.connectTimer)
       cancel(idleTimer)
       stopPolling()
+      clearRound()
       setState('connected')
       if (att === attempt && !done) onChannels({ sync: channel, live })
     })
     channel.addEventListener('close', () => {
-      if (att === attempt && att.opened) backToWaiting()
+      if (att === attempt && att.opened) dropped()
     })
     pc.addEventListener('connectionstatechange', () => {
-      if (att !== attempt || pc.connectionState !== 'failed') return
-      if (att.opened) backToWaiting()
-      else failed()
+      if (att !== attempt) return
+      const connection = pc.connectionState
+      if (!att.opened) {
+        if (connection === 'failed') failed()
+      } else if (connection === 'disconnected') {
+        if (att.dropTimer !== null) return
+        att.dropTimer = later(() => {
+          att.dropTimer = null
+          if (att === attempt) dropped()
+        }, DROP_MS)
+        reconnecting = true
+        setState('reconnecting')
+      } else if (connection === 'connected') {
+        // The channels stayed open, so nothing else happens
+        if (att.dropTimer === null) return
+        cancel(att.dropTimer)
+        att.dropTimer = null
+        reconnecting = false
+        setState('connected')
+      } else if (connection === 'failed') dropped()
     })
     return att
+  }
+
+  // The open connection dropped for good: a new round with a new hello (plan 11, decision 3)
+  function dropped() {
+    endAttempt()
+    reconnecting = true
+    failures = 0
+    setState('waiting')
+    resetIdle()
+    reconnectHello()
+  }
+
+  // Posts the hello of a round, and again after POLL_MS when the server did not answer. The polls start when
+  // the hello is stored.
+  async function reconnectHello() {
+    cancel(helloTimer)
+    helloTimer = null
+    helloPending = true
+    stopPolling()
+    try {
+      await signaling.hello(build)
+    } catch (err) {
+      if (done || !helloPending) return
+      if (err?.status === 404) return gone()
+      if (!err?.status || err.status >= 500) helloTimer = later(reconnectHello, POLL_MS)
+      else {
+        // Another error: like a table open, go on with the polls
+        helloPending = false
+        startPolling()
+      }
+      return
+    }
+    if (done || !helloPending) return
+    helloPending = false
+    startPolling()
   }
 
   // The answer came or went, and ICE did not connect. Polls go on.
   function failed() {
     endAttempt()
-    setState('failed')
+    if (!reconnecting) return setState('failed')
+    failures++
+    if (failures >= RECONNECT_TRIES) {
+      clearRound()
+      setState('failed')
+    } else {
+      setState('waiting')
+      // The guest offers again to the new hello
+      if (role === 'host') reconnectHello()
+    }
   }
 
   function startConnectTimer(att) {
@@ -276,8 +386,11 @@ export function connectRoom({
       else if (!attempt) setState('waiting')
       emit()
     } else if (message.type === 'bye') {
-      hellos.delete(message.from)
-      if (attempt?.peer === message.from || state === 'failed') backToWaiting()
+      const known = hellos.delete(message.from)
+      if (attempt?.peer === message.from || state === 'failed' || (reconnecting && known)) {
+        clearRound()
+        backToWaiting()
+      }
     } else if (message.type === 'offer' && role === 'host') {
       if (message.to === peerId && knownUser(message)) makeAnswer(message)
     } else if (message.type === 'answer' && role === 'guest') {
@@ -323,6 +436,7 @@ export function connectRoom({
     async retry() {
       if (done) return
       endAttempt()
+      clearRound()
       if (state !== 'waiting') setState('waiting')
       resetIdle()
       await postHello()
@@ -336,6 +450,7 @@ export function connectRoom({
       done = true
       stopPolling()
       cancel(idleTimer)
+      cancel(helloTimer)
       endAttempt()
       return signaling.bye({ keepalive }).catch(() => {})
     },

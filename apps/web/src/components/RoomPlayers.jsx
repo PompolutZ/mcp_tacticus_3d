@@ -6,6 +6,7 @@ const STATUS = {
   waiting: 'Waiting',
   connecting: 'Connecting',
   connected: 'Connected',
+  reconnecting: 'Reconnecting',
   failed: 'Could not connect',
   stopped: 'Not here',
 }

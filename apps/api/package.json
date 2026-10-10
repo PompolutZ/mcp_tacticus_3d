@@ -8,6 +8,8 @@
     "db:down": "docker compose stop mongo",
     "turn:up": "docker compose up -d coturn",
     "turn:down": "docker compose stop coturn",
+    "turn:pause": "docker compose pause coturn",
+    "turn:resume": "docker compose unpause coturn",
     "test": "vitest run --project unit",
     "test:mongo": "vitest run --project mongo",
     "typecheck": "tsc"

@@ -1,6 +1,14 @@
 import { test, mock, afterEach } from 'node:test'
 import assert from 'node:assert/strict'
-import { connectRoom, CONNECT_MS, IDLE_MS, OFFER_MS, POLL_MS } from './peer.js'
+import {
+  connectRoom,
+  CONNECT_MS,
+  DROP_MS,
+  IDLE_MS,
+  OFFER_MS,
+  POLL_MS,
+  RECONNECT_TRIES,
+} from './peer.js'
 import { createSignaling } from './signaling.js'
 
 afterEach(() => mock.timers.reset())
@@ -22,10 +30,13 @@ function makeServer() {
   const stats = { gets: 0, byPeer: {}, posts: [] }
   let n = 0
   let failGet = null
+  let failHello = null
   const client = (user) => ({
     user,
     post: async (_code, message, options) => {
       stats.posts.push({ ...message, user: user.id, options })
+      if (failHello !== null && message.type === 'hello')
+        throw Object.assign(new Error('x'), { status: failHello })
       if (message.type === 'hello' || message.type === 'bye') {
         for (let i = messages.length - 1; i >= 0; i--)
           if (messages[i].user.id === user.id) messages.splice(i, 1)
@@ -44,7 +55,13 @@ function makeServer() {
       )
     },
   })
-  return { client, stats, failGet: (status) => (failGet = status) }
+  return {
+    client,
+    stats,
+    failGet: (status) => (failGet = status),
+    // The status of a failed hello post (0: no answer), or null
+    failHello: (status) => (failHello = status),
+  }
 }
 
 class FakeChannel extends EventTarget {
@@ -113,7 +130,10 @@ class FakePc extends EventTarget {
     this.channel.open()
   }
   fail() {
-    this.connectionState = 'failed'
+    this.setConnectionState('failed')
+  }
+  setConnectionState(value) {
+    this.connectionState = value
     this.dispatchEvent(new Event('connectionstatechange'))
   }
 }
@@ -129,6 +149,7 @@ async function player(server, role, user, { build = 'b1', gather = 'auto', peerI
   const pcs = []
   const states = []
   const channels = []
+  const ends = []
   const conn = connectRoom({
     role,
     userId: user.id,
@@ -143,6 +164,7 @@ async function player(server, role, user, { build = 'b1', gather = 'auto', peerI
     },
     onState: (s) => states.push(s),
     onChannels: (chs) => channels.push(chs),
+    onChannelsEnd: () => ends.push(states.length),
   })
   await settle()
   return {
@@ -150,6 +172,7 @@ async function player(server, role, user, { build = 'b1', gather = 'auto', peerI
     pcs,
     states,
     channels,
+    ends,
     signaling,
     peerId: peerIdValue,
     get state() {
@@ -329,13 +352,13 @@ test('connectionState failed before the connection gives failed', async () => {
   assert.equal(host.state.state, 'connecting')
 })
 
-test('a closed channel gives waiting, and polls start again', async () => {
+test('a closed channel gives reconnecting, and polls start again', async () => {
   const server = setup()
   const host = await player(server, 'host', HOST)
   const guest = await player(server, 'guest', GUEST)
   await connectBoth(host, guest)
   host.pcs[0].channel.close()
-  assert.equal(host.state.state, 'waiting')
+  assert.equal(host.state.state, 'reconnecting')
   assert.equal(host.pcs[0].closed, true)
   const gets = server.stats.gets
   await run(POLL_MS * 2)
@@ -505,4 +528,298 @@ test('a bye of the other player gives waiting', async () => {
   // The host's old hello is not offered to again
   await run(POLL_MS * 5)
   assert.equal(guest.pcs.length, 1)
+})
+
+// Reconnect (plan 11)
+
+const helloCount = (server, user) =>
+  server.stats.posts.filter((p) => p.type === 'hello' && p.user === user.id).length
+
+test('disconnected, then connected within DROP_MS: the same connection goes on', async () => {
+  const server = setup()
+  const host = await player(server, 'host', HOST)
+  const guest = await player(server, 'guest', GUEST)
+  await connectBoth(host, guest)
+  const posts = server.stats.posts.length
+  host.pcs[0].setConnectionState('disconnected')
+  assert.equal(host.state.state, 'reconnecting')
+  await run(DROP_MS - POLL_MS)
+  host.pcs[0].setConnectionState('connected')
+  assert.equal(host.state.state, 'connected')
+  await run(DROP_MS * 3)
+  assert.equal(host.state.state, 'connected')
+  assert.equal(host.pcs.length, 1)
+  assert.equal(host.pcs[0].closed, false)
+  assert.equal(host.channels.length, 1)
+  assert.equal(server.stats.posts.length, posts)
+})
+
+test('disconnected for DROP_MS: both post hello, and connect again', async () => {
+  const server = setup()
+  const host = await player(server, 'host', HOST)
+  const guest = await player(server, 'guest', GUEST)
+  await connectBoth(host, guest)
+  const hostHellos = helloCount(server, HOST)
+  const guestHellos = helloCount(server, GUEST)
+  host.pcs[0].setConnectionState('disconnected')
+  guest.pcs[0].setConnectionState('disconnected')
+  await run(DROP_MS - POLL_MS)
+  assert.equal(host.pcs[0].closed, false)
+  await run(POLL_MS)
+  assert.equal(host.pcs[0].closed, true)
+  assert.equal(guest.pcs[0].closed, true)
+  assert.equal(host.state.state, 'reconnecting')
+  assert.equal(helloCount(server, HOST), hostHellos + 1)
+  assert.equal(helloCount(server, GUEST), guestHellos + 1)
+  await run(POLL_MS * 4)
+  assert.equal(host.pcs.length, 2)
+  assert.equal(guest.pcs.length, 2)
+  assert.equal(host.state.state, 'reconnecting')
+  host.pcs[1].connect()
+  guest.pcs[1].connect()
+  await settle()
+  assert.equal(host.state.state, 'connected')
+  assert.equal(guest.state.state, 'connected')
+  assert.equal(host.channels.length, 2)
+  // The state was reconnecting all the way, never waiting or connecting
+  const after = host.states.findIndex((s) => s.state === 'reconnecting')
+  assert.deepEqual(
+    [...new Set(host.states.slice(after).map((s) => s.state))],
+    ['reconnecting', 'connected'],
+  )
+})
+
+test('connectionState failed, or a closed sync channel: a round at once', async () => {
+  const server = setup()
+  const host = await player(server, 'host', HOST)
+  const guest = await player(server, 'guest', GUEST)
+  await connectBoth(host, guest)
+  const hostHellos = helloCount(server, HOST)
+  const guestHellos = helloCount(server, GUEST)
+  host.pcs[0].fail()
+  guest.pcs[0].channel.close()
+  await settle()
+  for (const p of [host, guest]) {
+    assert.equal(p.state.state, 'reconnecting')
+    assert.equal(p.pcs[0].closed, true)
+  }
+  assert.equal(helloCount(server, HOST), hostHellos + 1)
+  assert.equal(helloCount(server, GUEST), guestHellos + 1)
+})
+
+test('the hello post gets no answer: again after POLL_MS, and polls wait for it', async () => {
+  const server = setup()
+  const host = await player(server, 'host', HOST)
+  const guest = await player(server, 'guest', GUEST)
+  await connectBoth(host, guest)
+  const hellos = helloCount(server, HOST)
+  const gets = server.stats.byPeer[host.peerId]
+  server.failHello(0)
+  host.pcs[0].channel.close()
+  await settle()
+  await run(POLL_MS * 3)
+  assert.equal(helloCount(server, HOST), hellos + 4)
+  assert.equal(server.stats.byPeer[host.peerId], gets)
+  server.failHello(500)
+  await run(POLL_MS)
+  assert.equal(helloCount(server, HOST), hellos + 5)
+  server.failHello(null)
+  await run(POLL_MS)
+  assert.equal(helloCount(server, HOST), hellos + 6)
+  await run(POLL_MS * 2)
+  assert.ok(server.stats.byPeer[host.peerId] > gets)
+  // No more repeats
+  await run(POLL_MS * 3)
+  assert.equal(helloCount(server, HOST), hellos + 6)
+})
+
+test('the hello post gets 404: gone', async () => {
+  const server = setup()
+  const host = await player(server, 'host', HOST)
+  const guest = await player(server, 'guest', GUEST)
+  await connectBoth(host, guest)
+  server.failHello(404)
+  host.pcs[0].channel.close()
+  await settle()
+  assert.equal(host.state.state, 'gone')
+  const posts = server.stats.posts.length
+  await run(POLL_MS * 5)
+  assert.equal(server.stats.posts.length, posts)
+})
+
+test('attempts that get an answer and fail: a new hello each, then failed', async () => {
+  const server = setup()
+  const host = await player(server, 'host', HOST)
+  const guest = await player(server, 'guest', GUEST)
+  await connectBoth(host, guest)
+  const hellos = helloCount(server, HOST)
+  const start = host.states.length
+  host.pcs[0].channel.close()
+  guest.pcs[0].channel.close()
+  for (let i = 0; i < 60 && host.state.state !== 'failed'; i++) await run(POLL_MS)
+  assert.equal(host.state.state, 'failed')
+  assert.equal(host.pcs.length, 1 + RECONNECT_TRIES)
+  // One hello for the drop, one after each failed attempt but the last
+  assert.equal(helloCount(server, HOST), hellos + RECONNECT_TRIES)
+  assert.deepEqual(
+    [...new Set(host.states.slice(start).map((s) => s.state))],
+    ['reconnecting', 'failed'],
+  )
+  await run(CONNECT_MS * 4)
+  assert.equal(helloCount(server, HOST), hellos + RECONNECT_TRIES)
+  // Polls go on
+  const gets = server.stats.byPeer[host.peerId]
+  await run(POLL_MS * 2)
+  assert.ok(server.stats.byPeer[host.peerId] > gets)
+})
+
+test('offers with no answer do not count', async () => {
+  const server = setup()
+  const hostSide = raw(server, HOST, 'hostpeer-1')
+  await hostSide.hello('b1')
+  const guest = await player(server, 'guest', GUEST)
+  guest.pcs[0].connect()
+  await settle()
+  assert.equal(guest.state.state, 'connected')
+  guest.pcs[0].channel.close()
+  for (let i = 0; i <= RECONNECT_TRIES; i++) {
+    await hostSide.hello('b1')
+    await run(OFFER_MS + POLL_MS * 2)
+    assert.equal(guest.pcs.length, 2 + i)
+    assert.equal(guest.state.state, 'reconnecting')
+  }
+  assert.ok(guest.states.every((s) => s.state !== 'failed'))
+})
+
+test('a hello of the guest new page does not end reconnecting of the host', async () => {
+  const server = setup()
+  const host = await player(server, 'host', HOST)
+  const guest = await player(server, 'guest', GUEST)
+  await connectBoth(host, guest)
+  const start = host.states.length
+  host.pcs[0].channel.close()
+  await settle()
+  await raw(server, GUEST, 'newpage-1').hello('b1')
+  await run(POLL_MS * 3)
+  assert.ok(host.states.slice(start).every((s) => s.state === 'reconnecting'))
+  assert.equal(host.state.state, 'reconnecting')
+})
+
+test('a bye of the other player during reconnecting gives waiting', async () => {
+  const server = setup()
+  const host = await player(server, 'host', HOST)
+  const guest = await player(server, 'guest', GUEST)
+  await connectBoth(host, guest)
+  host.pcs[0].channel.close()
+  await settle()
+  await run(POLL_MS * 4)
+  assert.equal(host.state.state, 'reconnecting')
+  await guest.conn.stop()
+  await run(POLL_MS * 2)
+  assert.equal(host.state.state, 'waiting')
+  // Polls go on, and no hello repeats
+  const hellos = helloCount(server, HOST)
+  const gets = server.stats.byPeer[host.peerId]
+  await run(POLL_MS * 4)
+  assert.ok(server.stats.byPeer[host.peerId] > gets)
+  assert.equal(helloCount(server, HOST), hellos)
+})
+
+test('15 min with no message during reconnecting: stopped', async () => {
+  const server = setup()
+  const host = await player(server, 'host', HOST)
+  const guest = await player(server, 'guest', GUEST)
+  await connectBoth(host, guest)
+  host.pcs[0].channel.close()
+  await settle()
+  await run(IDLE_MS - POLL_MS)
+  assert.equal(host.state.state, 'reconnecting')
+  await run(POLL_MS)
+  assert.equal(host.state.state, 'stopped')
+  const gets = server.stats.byPeer[host.peerId]
+  await run(POLL_MS * 5)
+  assert.equal(server.stats.byPeer[host.peerId], gets)
+})
+
+test('stop during the hello repeats: no more posts', async () => {
+  const server = setup()
+  const host = await player(server, 'host', HOST)
+  const guest = await player(server, 'guest', GUEST)
+  await connectBoth(host, guest)
+  server.failHello(0)
+  host.pcs[0].channel.close()
+  await settle()
+  await run(POLL_MS * 2)
+  const posts = server.stats.posts.length
+  await host.conn.stop()
+  assert.equal(server.stats.posts.length, posts + 1)
+  await run(POLL_MS * 5)
+  assert.equal(server.stats.posts.length, posts + 1)
+})
+
+test('onChannelsEnd: once per opened attempt, from the first end', async () => {
+  const server = setup()
+  const host = await player(server, 'host', HOST)
+  const guest = await player(server, 'guest', GUEST)
+  await connectBoth(host, guest)
+  assert.equal(host.ends.length, 0)
+  // Back from disconnected: the same connection goes on
+  host.pcs[0].setConnectionState('disconnected')
+  await run(DROP_MS - POLL_MS)
+  host.pcs[0].setConnectionState('connected')
+  await run(DROP_MS * 2)
+  assert.equal(host.ends.length, 0)
+  // The drop timer
+  host.pcs[0].setConnectionState('disconnected')
+  await run(DROP_MS)
+  assert.equal(host.ends.length, 1)
+  // failed
+  guest.pcs[0].fail()
+  assert.equal(guest.ends.length, 1)
+  // A channel close, and then the local end: still once
+  const server2 = setup()
+  const host2 = await player(server2, 'host', HOST)
+  const guest2 = await player(server2, 'guest', GUEST)
+  await connectBoth(host2, guest2)
+  host2.pcs[0].channel.close()
+  assert.equal(host2.ends.length, 1)
+  await host2.conn.stop()
+  assert.equal(host2.ends.length, 1)
+  // stop() of an open attempt
+  await guest2.conn.stop()
+  assert.equal(guest2.ends.length, 1)
+})
+
+test('onChannelsEnd: not for an attempt that never opened', async () => {
+  const server = setup()
+  const host = await player(server, 'host', HOST)
+  const guest = await player(server, 'guest', GUEST)
+  await run(POLL_MS * 4)
+  guest.pcs[0].fail()
+  await host.conn.stop()
+  await guest.conn.stop()
+  assert.equal(host.ends.length, 0)
+  assert.equal(guest.ends.length, 0)
+})
+
+test('the hello post fails with 429 in a round: polls start, the guest still offers', async () => {
+  const server = setup()
+  const hostSide = raw(server, HOST, 'hostpeer-1')
+  await hostSide.hello('b1')
+  const guest = await player(server, 'guest', GUEST)
+  guest.pcs[0].connect()
+  await settle()
+  server.failHello(429)
+  const hellos = helloCount(server, GUEST)
+  guest.pcs[0].channel.close()
+  await settle()
+  assert.equal(helloCount(server, GUEST), hellos + 1)
+  server.failHello(null)
+  const gets = server.stats.byPeer[guest.peerId]
+  await hostSide.hello('b1')
+  await run(POLL_MS * 2)
+  assert.ok(server.stats.byPeer[guest.peerId] > gets)
+  assert.equal(guest.pcs.length, 2)
+  // No repeat of the hello
+  assert.equal(helloCount(server, GUEST), hellos + 1)
 })
