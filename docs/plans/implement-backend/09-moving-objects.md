@@ -919,6 +919,13 @@ After Phase 8, in one pair:
 
 - 2026-10-10: checks 1 to 3 pass (after Phase 1b).
 - 2026-10-10: checks 24 to 26 pass (after Phase 8). Checks 4 to 23 are open. Results of 6 to 22 from before Phase 8 do not count, because the crash of the other player's movement tool stopped the frame loop.
+- 2026-10-10, after Phase 8: checks 4 to 8, 10 to 13, 15 to 18, 21 and 22 pass. Check 8 shows the drag live, which is right since Phase 5. Open:
+  - 9: tested with a selection, not a drag. A selection claims nothing, so Bob can drag a model that Alice selected. That is the design. Retest with a lift: Alice lifts with R, Bob tries a drag, Q / E and R.
+  - 14: Bob sees a footprint under Alice's lifted model. Alice's own screen shows none during a lift. The tab close part is not reported yet.
+  - 19: the flags were in the hash (`#room=…&drop=30&delay=150`). `net/debugFlags.js` reads `location.search`. Retest with `/?drop=30&delay=150#room=…`.
+  - 20: one person cannot start two drags at the same moment. The tie rule has unit tests in `ownership.test.js`.
+  - 21, 22: the first drag of a token from a Give source shows only the cursor on the other screen. Later drags are live. This is the known limit in "Scope": a new token has no id before the drop.
+  - 23: no traffic lines seen. The page was reloaded during the game. A reload clears that browser's console, and a page close logs no line.
 
 ## Done when
 
