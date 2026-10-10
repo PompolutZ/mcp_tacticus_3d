@@ -60,7 +60,7 @@ Left for later:
 | `tools` in the document | Record, depth 1: `tools.<side>.<kind>`. `side` is `blue` or `red`. `kind` is `range`, `move` or `angle` |
 | Tool entry | `{ which, spawn, at?, pose?, turn?, snap?, mode? }`. `which`: the range number (1 to 5), the movement type (`short`, `medium`, `long`), or `true` for `angle`. `spawn`: a random id, new at each spawn. `at`: `{ x, z }`, the point of a free spawn (decision 19). `pose`: `{ x, y, z, yaw }`. `turn`: `{ right, left }`, the bend. `snap`: `{ kind, id, side, across }` or `null`. `mode`: `away` or `toward` |
 | Own tool side | The own seat in a multiplayer room. `blue` in a single player room and the Sandbox |
-| Awareness state | `{ owns: [piece key, …] }` |
+| Awareness state | `{ owns: [piece key, …], drag: piece key or null }` |
 | Live packet | JSON: `{ s, p?, c? }`. `s`: a sequence number. `p`: piece key → numbers. A model: `[x, y, z, qx, qy, qz, qw]`. A tool: `[x, y, z, yaw, right, left]`. A crisis token: `[x, z, yaw]`. A loose token, a pile, a tactic card, a marker: `[x, z]`. `c`: `[x, y, z]`, or `null` when the pointer left the table. Only the parts that changed |
 | Packet rounding | Positions to 3 decimals (0.001"). Rotations, yaw and bend to 4 decimals |
 | Times | A packet every 33 ms at most (about 30 per second). The cursor every 100 ms at most. Follow time 0.05 s. Tool rest 0.3 s. A model claim lasts at least 0.2 s. Traffic read every 60 s, logged every 10 min |
@@ -191,6 +191,17 @@ apps/web/src/
     - A toolbar button, and a tool key with the pointer off the table: as today, they turn the tool on or off. A new tool snaps to the selected piece. Without a selected piece, it spawns free at the table point in the middle of the screen, not at the fixed place.
     - The yaw of a free tool is the yaw of today. Phase 3 turns it by π for Red (decision 12).
     - From Phase 3, a free spawn stores its point in the entry (`at`), so the other browser and a reload get it.
+
+20. **The other player's deploy tool.** The user asked for this on 2026-10-10. With Deploy Lock on, a drag of a model shows the R3 deploy tool (`DeployRangeTool`) along the model's deployment edge. Today only the dragging browser shows it, because it depends on the local `draggingCharId`.
+    - The awareness state gets `drag`: the piece key of the model that the player drags now, or `null`. The drag sets it after the threshold, where it calls `setDraggingCharId`. The drag end and a cancelled drag set `null`.
+    - A claim alone is not enough. R, Q / E, Throw and Place also claim a model, and they show no deploy tool.
+    - The other browser shows `DeployRangeTool` for the other player's `drag` when Deploy Lock is on and the other player owns that key. The tool follows the model's body, and the body follows the live pose. So the tool moves live too.
+    - The other deploy tool needs one more footprint slot. Decision 11 counted one deploy tool in `MAX_FOOTPRINTS` 12. The coder counts the slots again and raises the number if it is short.
+
+21. **No cursor during Select squad.** The user asked for this on 2026-10-10. In a multiplayer room, the squad stays hidden until both players are Ready. The cursor over the roster cards shows which characters the player looks at.
+    - While the own side's Select squad is on, LiveSync sends no cursor point.
+    - When Select squad turns on, LiveSync sends `null` once, so the ring goes away on the other screen. It does not wait for a pointer move.
+    - When Select squad turns off, the cursor is sent again after the next pointer move.
 
 ## Phase 1: Models pass through models
 
@@ -807,6 +818,50 @@ Choices that the plan did not fix:
 - The "Traffic per game" estimate stays, with a note that the built packet is smaller. The measured numbers wait for check 23.
 - The selection of the other player is not built, and the "Players" row says so.
 
+## Phase 8: Fixes from the user checks
+
+The user found these on 2026-10-10, in a pair (alice on Blue, dylan on Red):
+- The canvas stopped. A drag moved only the HTML labels and buttons, not the table. After that nothing synced.
+- With Deploy Lock on, the other player does not see the R3 deploy tool of a model drag.
+- The cursor is sent while Select squad is on.
+
+Cause of the first one: `OtherToolBody` in `RulerTool.jsx` calls `colliders.current[i]?.setRotationWithParent(...)` every frame. The Rapier 0.14 collider has no such method. The name is `setRotationWrtParent`. The call runs only for a part with a `side`, so only for the other player's movement tool (S, M, L, T/A). Range tools have no sides. The error is thrown inside the R3F frame loop, so every later frame callback and `gl.render` stop on every frame: no physics, no LiveSync, no claim checks, no drawing. drei `<Html>` elements still follow the camera, because their callbacks run before the error. So the labels moved over a still image.
+
+Read: decisions 20 and 21. `components/RulerTool.jsx` (`OtherToolBody`, `DeployRangeTool`), `net/ownership.js` (+ test), `components/Scene.jsx` (the model drag, the deploy tool, LiveSync), `components/LiveSync.jsx`, `App.jsx` (`squadSelect`).
+
+Work:
+1. `RulerTool.jsx`: `setRotationWithParent` → `setRotationWrtParent`. Search `apps/web/src` for other Rapier calls with a wrong name.
+2. `net/ownership.js`: `setDrag(key | null)` writes the `drag` field of the own awareness state. `otherDrag()` gives the other player's `drag` key, or `null`. `subscribe` also calls on a change of it. The local version: `setDrag` does nothing, `otherDrag()` gives `null`. Tests in `ownership.test.js`.
+3. `Scene.jsx`: the model drag calls `setDrag(modelKey(id))` at its start and `setDrag(null)` at its end. A second `DeployRangeTool` for the other player's `drag` when `deployLine` is on and `owner(key)` is `'other'` (decision 20). The same props as the own one, from that model.
+4. `Scene.jsx`, `LiveSync.jsx`: `hideCursor` = the own side's `squadSelect`. While it is true, `cursorUpdate` gives `null` without the `moved` check, and the existing compare sends it once (decision 21). Put the choice in a plain function in `net/livePose.js` or a new plain module, with tests, if it fits.
+5. Docs: "Names" (awareness state `{ owns, drag }`). `docs/feature-peer-to-peer.md`: the "Players" row (`drag`), "Cursor message" (no cursor during Select squad).
+
+Checks:
+- `pnpm --filter web test`, `pnpm --filter web build` pass.
+- `pnpm format`, `pnpm lint`: no new errors.
+
+User, after this phase: checks 24 to 26, then the open checks from 6 on.
+
+### Result
+
+What changed:
+- `RulerTool.jsx`: `setRotationWithParent` → `setRotationWrtParent`. Other Rapier calls in `apps/web/src` checked by name (`setTranslation`, `setRotation`, `setBodyType`, `wakeUp`, `sleep`, `setAngvel`, `setLinvel`, `setNextKinematic*`, `castShape`, `castRay`, `intersectionsWithShape`): all exist. No other wrong name.
+- `net/ownership.js`: `setDrag(key | null)` and `otherDrag()`. `subscribe` also runs when the other player's `drag` changes. `drag` starts as `null` in the awareness state. The local version: `setDrag` does nothing, `otherDrag()` gives `null`. Tests: a drag set and cleared, no call for the same value, a player who left.
+- `Scene.jsx`: the model `onDragStart` and `onDragEnd` call `setDrag`. A cancelled drag ends through `onDragEnd`, so it clears too. A second `DeployRangeTool` for the other player's `drag` when `deployLine` is on and `owner(key)` is `'other'`. Scene reads `otherDrag` with `useSyncExternalStore`.
+- `MAX_FOOTPRINTS` stays 12. Count: 3 own tools, 3 other tools, 2 deploy tools, 1 zone arc, 2 drags = 11. Only the selected token shows an arc. The comment in `footprintProjection.js` says so.
+- `net/livePose.js`: `cursorStep({ hide, moved })` gives `'null'`, `'read'` or `'skip'`. Test added. `LiveSync.jsx` takes `hideCursor` and reads it through a ref in `useFrame`. Scene passes `squadSelect[ownSide]`.
+- Docs: "Names" (awareness state), `docs/feature-peer-to-peer.md` ("Players" row, "Cursor message").
+
+Choices that the plan did not fix:
+- While the cursor is hidden, `moved` is cleared each time. So the cursor comes back after the first pointer move after Select squad ends, not at once.
+- The hide ref is set in an effect, not in render, so lint has no new `react(refs)` warning.
+- If nothing was sent before Select squad turned on, no `null` is sent. The other screen has no ring then.
+
+Checks:
+- `pnpm --filter web test`: 229 pass, 0 fail.
+- `pnpm --filter web build`: passes.
+- `pnpm format`: done. `pnpm lint`: 0 errors, 36 warnings (the same as before).
+
 ## User
 
 After Phase 1b, in a single player room:
@@ -854,6 +909,11 @@ After Phase 6, in each pair:
 
 After Phase 7:
 23. Play a short game in one pair, with drags of models and tools for a few minutes. Open the console of each browser: the traffic lines show the bytes. Put the numbers in the **Result** of Phase 7.
+
+After Phase 8, in one pair:
+24. Alice puts out S, M, L and T/A, and bends one. Bob sees them move live. Bob's table keeps drawing, his camera moves the table, and the console has no `RulerTool.jsx` error.
+25. Deploy Lock on. Alice drags one of her models. Bob sees the R3 deploy tool on Alice's edge, and it moves with the model. It goes away at the drop. Alice turns a model with Q / E: no deploy tool on either screen. Then the same from Bob to Alice.
+26. Alice turns Select squad on. Her ring goes away on Bob's screen. She moves the pointer over her roster cards and the table: Bob sees no ring. She turns it off and moves the pointer: the ring shows again.
 
 ### User check results
 

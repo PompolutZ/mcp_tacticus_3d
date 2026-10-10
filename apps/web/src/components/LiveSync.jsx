@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
 import { tablePoint } from '../drag/tablePoint.js'
 import { modelIdOfKey } from '../characters/claims.js'
-import { isLiveKind, poseToNumbers, sameNumbers } from '../net/livePose.js'
+import { cursorStep, isLiveKind, poseToNumbers, sameNumbers } from '../net/livePose.js'
 
 // Packets at most every 33 ms, the cursor at most every 100 ms (plan 09, "Names", decisions 14 and 15)
 const SEND_MS = 33
@@ -19,16 +19,30 @@ const round3 = (v) => Math.round(v * 1e3) / 1e3
 // { x, y, z, yaw, right, left }, or null (Tool in RulerTool.jsx registers it, the same way as turnRef).
 // pieceLives: a Map, piece key → getter of the live pose { x, z, yaw? } of a dragged piece without a body, or
 // null. The drag code fills it from the claim to the end of the drag (drag/pointerDrag.js, Phase 6).
+// hideCursor: true while the own side's Select squad is on; no cursor point is sent (decision 21).
 // liveRef: filled with { pose(key), tool(kind), cursor() }, for the pieces that follow. State is in refs,
 // because it changes every frame. pose(key): the numbers of a piece while the other player claims it, else
 // null. tool(kind): { pose, time } of the other player's tool, time in performance.now() ms. cursor():
 // { point: [x, y, z], time } or null.
-export default function LiveSync({ live, ownership, getBody, toolLives, pieceLives, liveRef }) {
+export default function LiveSync({
+  live,
+  ownership,
+  getBody,
+  toolLives,
+  pieceLives,
+  liveRef,
+  hideCursor = false,
+}) {
   const { camera, gl } = useThree()
   const { world, rapier } = useRapier()
   // key → the numbers of the last sent pose
   const sent = useRef(new Map())
   const last = useRef({ packet: 0, cursor: 0 })
+  // Read inside useFrame, so a change does not rebuild the callback
+  const hideRef = useRef(hideCursor)
+  useEffect(() => {
+    hideRef.current = hideCursor
+  }, [hideCursor])
   // The own pointer: where it was last (client pixels), whether it moved since the last cursor send, and
   // whether it is over the canvas
   const pointer = useRef({ x: 0, y: 0, inside: false, moved: false })
@@ -98,9 +112,11 @@ export default function LiveSync({ live, ownership, getBody, toolLives, pieceLiv
   function cursorUpdate(now) {
     if (now - last.current.cursor < CURSOR_MS) return undefined
     const ptr = pointer.current
-    if (!ptr.moved) return undefined
+    const step = cursorStep({ hide: hideRef.current, moved: ptr.moved })
+    if (step === 'skip') return undefined
     let point = null
-    if (ptr.inside) {
+    // While hidden, the pointer counts as not moved, so the first move after the end sends the cursor again
+    if (step === 'read' && ptr.inside) {
       const found = tablePoint({ camera, canvas: gl.domElement, world, rapier }, ptr.x, ptr.y, {
         offTable: 'null',
       })

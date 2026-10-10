@@ -75,3 +75,11 @@ export function sameSideQuat(q, ref) {
   const dot = q[0] * ref[0] + q[1] * ref[1] + q[2] * ref[2] + q[3] * ref[3]
   return dot < 0 ? q.map((v) => -v) : q
 }
+
+// What the cursor step does (decision 21): 'null' while the cursor is hidden (Select squad), without the
+// moved check, so the compare with the last sent point sends null once. 'read' when the pointer moved.
+// 'skip' otherwise.
+export function cursorStep({ hide, moved }) {
+  if (hide) return 'null'
+  return moved ? 'read' : 'skip'
+}

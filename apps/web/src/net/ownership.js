@@ -71,6 +71,8 @@ function createLocalOwnership() {
     onLost: () => () => {},
     subscribe: () => () => {},
     otherOwned: () => none,
+    setDrag() {},
+    otherDrag: () => null,
     destroy() {},
   }
 }
@@ -93,14 +95,25 @@ export function createOwnership({ awareness = null, role = 'guest' } = {}) {
     return map
   }
 
+  // The piece key that the other player drags now, or null (decision 20)
+  function otherDragKey() {
+    for (const [id, state] of awareness.getStates()) {
+      if (id !== ownId && typeof state?.drag === 'string') return state.drag
+    }
+    return null
+  }
+
   let set = new Set()
   let present = false
+  let drag = null
   function refresh() {
     const next = otherOwnedKeys(ownId, ownKeys(), others())
     const isPresent = others().size > 0
-    if (sameSet(set, next) && present === isPresent) return
+    const nextDrag = otherDragKey()
+    if (sameSet(set, next) && present === isPresent && drag === nextDrag) return
     if (!sameSet(set, next)) set = next
     present = isPresent
+    drag = nextDrag
     changed.call()
   }
 
@@ -115,6 +128,7 @@ export function createOwnership({ awareness = null, role = 'guest' } = {}) {
 
   // Sets the field, so the other end gets a state with `owns` at once
   setOwn(ownKeys())
+  if (awareness.getLocalState()?.drag === undefined) awareness.setLocalStateField('drag', null)
   awareness.on('change', onChange)
   refresh()
 
@@ -142,6 +156,11 @@ export function createOwnership({ awareness = null, role = 'guest' } = {}) {
     onLost: lost.add,
     subscribe: changed.add,
     otherOwned: () => set,
+    setDrag(key) {
+      if ((awareness.getLocalState()?.drag ?? null) !== key)
+        awareness.setLocalStateField('drag', key)
+    },
+    otherDrag: () => drag,
     destroy() {
       awareness.off('change', onChange)
     },

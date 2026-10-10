@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  cursorStep,
   followPart,
   isLiveKind,
   lerpAngle,
@@ -96,4 +97,11 @@ for (const key of ['loose:a', 'pile:a', 'tactic:a', 'marker:blue', 'marker:red',
 test('a wrong count of numbers for a new kind gives no pose', () => {
   assert.equal(poseToNumbers('unknown:a', { x: 1, z: 2 }), null)
   assert.equal(numbersToPose('token:a', null), null)
+})
+
+test('cursorStep: hidden gives null without the moved check', () => {
+  assert.equal(cursorStep({ hide: true, moved: false }), 'null')
+  assert.equal(cursorStep({ hide: true, moved: true }), 'null')
+  assert.equal(cursorStep({ hide: false, moved: true }), 'read')
+  assert.equal(cursorStep({ hide: false, moved: false }), 'skip')
 })

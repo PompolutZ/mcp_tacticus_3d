@@ -144,6 +144,7 @@ const NO_POSES = {}
 const NO_KEYS = new Set()
 const noSubscribe = () => () => {}
 const noKeys = () => NO_KEYS
+const noDrag = () => null
 
 // Two stored poses are the same (both rounded the same way, rooms/table.js, poseOf)
 function samePose(a, b) {
@@ -382,6 +383,11 @@ export default function Scene({
   const otherOwned = useSyncExternalStore(
     ownership?.subscribe ?? noSubscribe,
     ownership?.otherOwned ?? noKeys,
+  )
+  // The piece key of the model that the other player drags now (decision 20)
+  const otherDragKey = useSyncExternalStore(
+    ownership?.subscribe ?? noSubscribe,
+    ownership?.otherDrag ?? noDrag,
   )
   // Piece key → time (s) of the last claim call of this browser, for the 0.2 s that a claim lasts
   const claimTimes = useRef(new Map())
@@ -740,6 +746,13 @@ export default function Scene({
     deployLine && draggingCharId
       ? models.find((model) => model.id === draggingCharId)?.character
       : null
+  // The other player's drag: the model, if Deploy Lock is on and they own its key
+  const otherDragId = deployLine && otherDragKey ? modelIdOfKey(otherDragKey) : null
+  const otherDragModel =
+    otherDragId !== null && ownership?.owner(otherDragKey) === 'other'
+      ? models.find((model) => model.id === otherDragId)
+      : null
+  const otherDragChar = otherDragModel?.character ?? null
 
   // Every character and every mat token as the range and movement tools see them. A character has a
   // Rapier body; a token does not, so getCenter (not getBody) is what the tools measure with.
@@ -936,6 +949,7 @@ export default function Scene({
               toolLives={toolLives}
               pieceLives={pieceLives}
               liveRef={received}
+              hideCursor={Boolean(squadSelect?.[ownSide])}
             />
             <RemoteCursor
               liveRef={received}
@@ -1255,10 +1269,12 @@ export default function Scene({
             onDragStart: () => {
               markMoved(model.id)
               setDraggingCharId(model.id)
+              ownership?.setDrag(modelKey(model.id))
               trackPiece(draggedPiece, { kind: 'character', id: model.id }, true)
             },
             onDragEnd: () => {
               setDraggingCharId(null)
+              ownership?.setDrag(null)
               trackPiece(draggedPiece, { kind: 'character', id: model.id }, false)
             },
             // A base is within range if any part of it is within range (p8). So the base can
@@ -1340,6 +1356,21 @@ export default function Scene({
               }
               yaw={draggingChar.teamColor === 'blue' ? -Math.PI / 2 : Math.PI / 2}
               team={draggingChar.teamColor}
+              hoverHeight={TOOL_HOVER_HEIGHT}
+            />
+          </Suspense>
+        )}
+        {otherDragChar && (
+          <Suspense fallback={null}>
+            <DeployRangeTool
+              getBody={() => charBodies.current.get(otherDragId)}
+              centerZ={
+                otherDragChar.teamColor === 'blue'
+                  ? MAT_SIZE / 2 - deployTip
+                  : -(MAT_SIZE / 2 - deployTip)
+              }
+              yaw={otherDragChar.teamColor === 'blue' ? -Math.PI / 2 : Math.PI / 2}
+              team={otherDragChar.teamColor}
               hoverHeight={TOOL_HOVER_HEIGHT}
             />
           </Suspense>

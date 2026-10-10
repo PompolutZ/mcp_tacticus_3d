@@ -1573,7 +1573,7 @@ function OtherToolBody({ parts, tip, halfWidth, defaultTurn, entry, getLive }) {
       if (!p.side) return
       const angle = cur.turn[p.side]
       if (groups.current[i]) groups.current[i].rotation.y = angle
-      colliders.current[i]?.setRotationWithParent(yawQuat(angle))
+      colliders.current[i]?.setRotationWrtParent(yawQuat(angle))
     })
   })
 

@@ -252,7 +252,7 @@ The data has four categories. There is also local state, which is not sent.
 | 2 | Set-up: changes once per game | rosters, crisis cards, map, deploy line | Yjs document | `sync` |
 | 3 | Rare changes | rest poses of models and tools; the places of tokens, cards and markers; card flips; damage and power; healthy or injured side; tokens gained or lost; mat turns; dice results and roll history | Yjs document | `sync` |
 | 4 | Presence: what the other player does now | dice in the air (step 10); every piece that a player drags (model, tool, crisis token, character token on the table, pile, tactic card, score marker); cursor | Not stored | `live` |
-| | Players | name, side (blue or red), claims (`owns`). Not built yet: selection | Yjs awareness | `sync` |
+| | Players | name, side (blue or red), claims (`owns`), the model that the player drags now (`drag`, for the deploy tool). Not built yet: selection | Yjs awareness | `sync` |
 | | Local | camera, hover, labels, debug mode, open card popup, open dice menu | React state, as today | Not sent |
 
 The same object can be in two categories at different times. While a player drags a model, its pose is category 4. When the model stops, its rest pose goes into the document as category 3. A piece without a body (a token, a card, a marker, a pile) writes its new place into the document at the drop.
@@ -384,7 +384,7 @@ Positions have 3 decimals (0.001"). Rotations, yaw and bend have 4. A model pose
 
 ### Cursor message
 
-`c` in the live packet: `[x, y, z]`, the table or terrain point under the own pointer, or `null` when the pointer left the table or the canvas. At most every 100 ms (10 per second), and only when it moved. The other browser shows a flat ring in the side color of the other player at the latest received point. The ring hides after `null`, and when the other player is gone.
+`c` in the live packet: `[x, y, z]`, the table or terrain point under the own pointer, or `null` when the pointer left the table or the canvas. At most every 100 ms (10 per second), and only when it moved. The other browser shows a flat ring in the side color of the other player at the latest received point. The ring hides after `null`, and when the other player is gone. While the own Select squad is on, no cursor is sent: `null` goes out once at the start, then nothing until the pointer moves after the end.
 
 ### Dice
 

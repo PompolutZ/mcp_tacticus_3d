@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import * as Y from 'yjs'
-import { Awareness } from 'y-protocols/awareness'
+import { Awareness, removeAwarenessStates } from 'y-protocols/awareness'
 import { linkedChannels } from './linkedChannels.js'
 import { syncOverChannel } from './syncChannel.js'
 import { createOwnership, lostKeys, otherOwnedKeys, resolveOwner } from './ownership.js'
@@ -187,6 +187,40 @@ test('destroy removes the awareness listener', async () => {
   p.end()
 })
 
+test('setDrag and otherDrag; subscribe runs on change', async () => {
+  const p = players()
+  await settle()
+  assert.equal(p.guest.otherDrag(), null)
+  let calls = 0
+  const off = p.guest.subscribe(() => calls++)
+  p.host.setDrag('character:a')
+  await settle()
+  assert.equal(p.guest.otherDrag(), 'character:a')
+  assert.equal(p.host.otherDrag(), null)
+  assert.equal(calls, 1)
+  p.host.setDrag('character:a')
+  await settle()
+  assert.equal(calls, 1)
+  p.host.setDrag(null)
+  await settle()
+  assert.equal(p.guest.otherDrag(), null)
+  assert.equal(calls, 2)
+  off()
+  p.end()
+})
+
+test('the drag of a player who left is gone', async () => {
+  const p = players()
+  await settle()
+  p.host.setDrag('character:a')
+  await settle()
+  assert.equal(p.guest.otherDrag(), 'character:a')
+  removeAwarenessStates(p.awB, [p.awA.clientID], 'test')
+  await settle()
+  assert.equal(p.guest.otherDrag(), null)
+  p.end()
+})
+
 test('the local version', () => {
   const own = createOwnership({})
   assert.equal(own.owner('token:1'), null)
@@ -202,6 +236,8 @@ test('the local version', () => {
   own.subscribe(() => assert.fail())()
   own.release('token:1')
   assert.deepEqual(own.mine(), [])
+  own.setDrag('character:a')
+  assert.equal(own.otherDrag(), null)
   own.destroy()
 })
 
