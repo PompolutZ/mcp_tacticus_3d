@@ -6,6 +6,7 @@ import Scene from './components/Scene.jsx'
 import SelectionOutlines from './components/SelectionOutlines.jsx'
 import { Toolbar } from './components/Toolbar.jsx'
 import { Library } from './components/Library.jsx'
+import { RollsPanel } from './components/RollsPanel.jsx'
 import { KeyboardCamera } from './components/KeyboardCamera.jsx'
 import { WheelCamera } from './components/WheelCamera.jsx'
 import { LoadingOverlay } from './components/LoadingOverlay.jsx'
@@ -368,6 +369,9 @@ export default function App({
   const [diceMenu, setDiceMenu] = useState(null)
   // The Library HUD panel (see Library.jsx), toggled by its toolbar button.
   const [libraryOpen, setLibraryOpen] = useState(false)
+  // The roll history panel (see RollsPanel.jsx), toggled by its toolbar button.
+  const [rollsOpen, setRollsOpen] = useState(false)
+  const [rolls] = useYList(table.rolls)
   // A short HUD message, for example an immunity block. Same pattern as the Library's own
   // message (a timeout clears it), but global: a drag can end over any tray.
   const [hudMessage, setHudMessage] = useState(null)
@@ -601,6 +605,10 @@ export default function App({
       }
       if (libraryOpen) {
         setLibraryOpen(false)
+        return
+      }
+      if (rollsOpen) {
+        setRollsOpen(false)
         return
       }
       handleEscape()
@@ -1595,6 +1603,8 @@ export default function App({
               poses={poses}
               startPose={table.poses.get}
               diceStore={table.dice}
+              rollsStore={table.rolls}
+              transact={table.transact}
               onModelRest={table.poses.setField}
             />
           </SelectionOutlines>
@@ -1649,6 +1659,8 @@ export default function App({
           onRosterRemove={handleRosterRemove}
           libraryOpen={libraryOpen}
           onLibraryClick={() => setLibraryOpen((prev) => !prev)}
+          rollsOpen={rollsOpen}
+          onRollsClick={() => setRollsOpen((prev) => !prev)}
         />
       </div>
       <TokenPanel
@@ -1664,6 +1676,7 @@ export default function App({
         onSpawnTactic={handleTacticSpawn}
         onTokenDragStart={handleLibraryTokenDragStart}
       />
+      <RollsPanel open={rollsOpen} rolls={rolls} />
       <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
       {openRoster && rosters[openRoster.team] && (
         <RosterPopup

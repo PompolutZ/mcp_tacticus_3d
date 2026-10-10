@@ -189,6 +189,20 @@ User, after this phase: checks 5 to 7.
 
 ### Result
 
+Done. Web tests 254 pass, 0 fail. Build passes. Lint: no new warnings.
+
+- `dice/history.js` (new, tested in `history.test.js`): `throwEntry(side, at, { roll, crits, reroll })` (null when empty), `changeEntry`, `clearEntry`, `countSymbols`, `countsText`, `entryText`. Each entry has a short random `id`.
+- `net/doc.js`: `rolls` list. `fillTable` writes `state.rolls ?? []`. `rooms/table.js`: `rolls: []`.
+- `DiceTray.jsx`: new props `rolls` (the list store) and `transact`. Each die has `source` (`roll`, `crits`, `reroll`) and `was` (old symbol of a reroll), cleared at the end of its throw. `finalizeThrow`, `change` and `clear` push an entry to `pendingRolls`. `commit()` writes the side and appends the pending entries in one `transact`. Clear on an empty tray adds no entry.
+- `Scene.jsx`: props `rollsStore`, `transact`, passed to each `DiceTray` as `rolls`, `transact`. `App.jsx`: `table.rolls`, `table.transact`; `rollsOpen`; Escape closes the panel after the Library.
+- `RollsPanel.jsx` (new), **Rolls** button in `Toolbar.jsx`, styles `.rolls*` in `index.css`.
+- Docs: `feature-dice-rolling.md` ("History"), `feature-peer-to-peer.md`, `README.md`.
+
+For next phases:
+- `DiceTray` props now: `trayKey, store, rolls, transact, openMenuSymbol, onMenuToggle, onMenuClose, onHover, addRef`.
+- Every `commit()` goes through `transact`, so a second tray component must not write `rolls`.
+- Both `DiceTray`s are still drawn in every browser until Phase 3, so history entries come from the tray of the side that rolled.
+
 ## Phase 3: The other player's tray
 
 Read: decisions 5, 6 and 8. The **Result** of Phases 1 and 2. `components/DiceTray.jsx`, `components/DiceKeys.jsx`, `components/Scene.jsx` (`PLAYER_TEAM`, the trays, `ownSide`), `App.jsx` (`diceTrayHoveredRef`, `addDiceRef`, the number keys, `diceMenu`), `physics.js`, `components/CharacterModel.jsx` (only to see how a remote model turns off its contact forces).

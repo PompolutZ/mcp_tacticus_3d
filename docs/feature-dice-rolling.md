@@ -145,6 +145,18 @@ The dice on the shelf are kinematic bodies. As a result, thrown dice bounce off 
 
 In TTS, a player can pick up a die from the shelf. In the first version of the app, players cannot drag dice.
 
+## History
+
+The room keeps a roll history, for both sides. It is the list `rolls` in the Yjs document. The roller's browser adds one entry for each event, in the same change as the dice.
+
+- `throw`: when a throw ends. It has the results of the thrown dice by source: `roll` (new dice), `crits` (`+N Crits` dice) and `reroll` (old face → new face). One throw can have all three.
+- `change`: Change one to, from → to.
+- `clear`: Clear. It is a line between two rolls. It does not delete the history. Clear on an empty tray adds nothing.
+
+An entry stores data: `{ side, at, kind, ... }`. Counts are `{ <symbol>: n }` with only the symbols above 0. `src/dice/history.js` makes the text, so a change of the look needs no change of the data.
+
+The **Rolls** button of the toolbar opens the panel on the right side of the screen. The newest entry is first. Each entry shows the side color, the time (hours and minutes) and the face icons with counts. Escape closes it.
+
 ## Physics
 
 ### What TTS does

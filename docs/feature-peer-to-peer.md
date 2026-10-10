@@ -265,7 +265,7 @@ The cursor is in category 4, not in awareness. Awareness goes over the reliable,
 
 ### Yjs document
 
-Each name is a top-level `Y.Map` of the `Y.Doc`. Step 5 made the first ten. Step 9 added `tools`. Step 10 added `dice`.
+Each name is a top-level `Y.Map` of the `Y.Doc`. Step 5 made the first ten. Step 9 added `tools`. Step 10 added `dice` and `rolls`.
 
 | Name | Kind | Content |
 |---|---|---|
@@ -282,7 +282,7 @@ Each name is a top-level `Y.Map` of the `Y.Doc`. Step 5 made the first ten. Step
 | `tools` | record, depth 1 | the tools of both players: `tools.<side>.<kind>`. `side` is `blue` or `red`. `kind` is `range`, `move` or `angle` |
 | `dice` | record, depth 2 | the dice trays: `dice.<side>` is `{ critsUsed, dice: { <die id>: { order, place, face?, pose? } } }`. `place` is `air`, `well` or `shelf`. `face` (1 to 8) is only on the shelf. `pose` is only in the air and the well. The room keeps the shelf |
 
-Step 10 adds the roll history (`rolls`).
+| `rolls` | list | the roll history, oldest first, for both sides. Each entry is `{ id, side, at, kind, ... }` with `kind` `throw`, `change` or `clear` (`src/dice/history.js`). The room keeps it. A new table starts with an empty one |
 
 A tool entry is `{ which, spawn, at?, pose?, turn?, snap?, mode? }`:
 
@@ -389,7 +389,7 @@ Positions have 3 decimals (0.001"). Rotations, yaw and bend have 4. A model pose
 
 - Dice are player bodies. Only the tray's player rolls them, so that player's physics decides the results, as in the single-player app.
 - The other browser sees the dice fly. When a die rests, its rest pose comes through the document, so both browsers find the same top face.
-- The roller writes the history entry to the document.
+- The roller writes the history entry to `rolls`, in the same change as the dice. Both players see the same list in the Rolls panel.
 
 So the roller's browser decides the roll, and a changed client could cheat. This does not matter: the app is a free hobby project for friendly games. So the plan has no protection against cheating.
 

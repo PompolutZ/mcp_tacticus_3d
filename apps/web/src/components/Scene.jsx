@@ -236,6 +236,7 @@ const OVERLAP_INTERVAL = 100
 // addDiceRef: ref App calls with a count for the number keys over that tray. The tray fills it
 // with its addDice (DiceTray.jsx).
 // diceStore: the dice record store of the table; each tray reads and writes its side (DiceTray.jsx).
+// rollsStore: the roll history list. transact(fn): fn writes several stores as one change.
 // onTokenHold(tokenId, characterId, cardPoint): a canHold token was released over a character.
 // cardPoint: the tray-local [x, z] on that character's card (trays.js, trayHeldLocal) when the
 // release point is on its tray, otherwise null.
@@ -316,6 +317,8 @@ export default function Scene({
   onDiceTrayHover,
   addDiceRef,
   diceStore,
+  rollsStore,
+  transact,
   heldRotate,
   scoreMarkers,
   affiliations,
@@ -1046,6 +1049,8 @@ export default function Scene({
             key={trayKey}
             trayKey={trayKey}
             store={diceStore}
+            rolls={rollsStore}
+            transact={transact}
             openMenuSymbol={diceMenu?.trayKey === trayKey ? diceMenu.symbol : null}
             onMenuToggle={(symbol) => onDiceMenuToggle(trayKey, symbol)}
             onMenuClose={onDiceMenuClose}

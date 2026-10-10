@@ -30,6 +30,8 @@ export function createTable(doc = new Y.Doc()) {
     tools: createRecord(doc.getMap('tools'), { depth: 1 }),
     // Side → { critsUsed, dice: { die id → die entry } } (dice/stored.js). Depth 2, so the sides merge.
     dice: createRecord(doc.getMap('dice'), { depth: 2 }),
+    // The roll history, oldest first (dice/history.js). One list for both sides; the roller appends.
+    rolls: createList(doc.getMap('rolls')),
     tokens: createList(doc.getMap('tokens')),
     tactics: createList(doc.getMap('tactics')),
     looseTokens: createList(doc.getMap('looseTokens')),
@@ -38,7 +40,7 @@ export function createTable(doc = new Y.Doc()) {
 }
 
 // Writes a start table as one change. state: the fields of GAME_FIELDS and LISTS, rosters, setup, and
-// poses, tools and dice (optional).
+// poses, tools, dice and rolls (optional).
 export function fillTable(table, state) {
   table.transact(() => {
     const game = Object.fromEntries(GAME_FIELDS.map((key) => [key, state[key]]))
@@ -48,6 +50,7 @@ export function fillTable(table, state) {
     table.poses.set(state.poses ?? {})
     table.tools.set(state.tools ?? {})
     table.dice.set(state.dice ?? {})
+    table.rolls.set(state.rolls ?? [])
     for (const name of LISTS) table[name].set(state[name] ?? [])
   })
 }

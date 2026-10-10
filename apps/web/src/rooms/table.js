@@ -55,6 +55,7 @@ export function startTable(mapId) {
     tokenPiles: [],
     tools: {},
     dice: {},
+    rolls: [],
   }
 }
 
