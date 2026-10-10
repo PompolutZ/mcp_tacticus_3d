@@ -334,14 +334,14 @@ Two channels: the persistence channel (`sync`, step 8) carries the document, whi
 
 Done when: both players can drag every piece, and each player uses only their own tools. The tools are in the document. The bytes per game are logged.
 
-**Result:** Code done on 2026-10-10 in phases 1 to 7. The browser checks are open. Details are in `docs/plans/implement-backend/09-moving-objects.md`.
+**Result:** Done on 2026-10-10 in phases 1 to 10. The user checked it in the browser pairs. A problem found later is fixed as a bug. Details are in `docs/plans/implement-backend/09-moving-objects.md`.
 - Models pass through models and show an overlap mark. A drag that ends inside a model goes back. Rule 6 of the design (pushed bodies) is gone.
 - One drag code (`drag/pointerDrag.js`). Drag footprints. Tools spawn at the pointer.
 - The tools are in the document (`tools.<side>.<kind>`), with no new `SCHEMA`. `OtherTool` shows the other side's tools.
 - Claims in Yjs awareness on the `sync` channel. One writer for each rest pose of a model: the owner, else the host.
 - The `live` channel (id 1, unordered, no retransmits), made before the offer with `sync`. JSON packets for models, tools, tokens, piles, cards, markers and the cursor, with a follow of 0.05 s.
 - `?drop` and `?delay` on the receiving browser. The bytes of each connection in the console (`net/traffic.js`).
-- Open: the user checks 5 to 23, in the three browser pairs. Check 23 gives the bytes of a local game.
+- Phases 8 to 10 came from the user checks: fixes, new tokens that are live from the first drag, and the other player's selection and range marks.
 
 ## Step 10: Dice
 

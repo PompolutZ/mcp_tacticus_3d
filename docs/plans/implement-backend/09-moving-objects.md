@@ -1048,6 +1048,7 @@ After Phase 10, in one pair:
   - 20: one person cannot start two drags at the same moment. The tie rule has unit tests in `ownership.test.js`.
   - 21, 22: the first drag of a token from a Give source shows only the cursor on the other screen. Later drags are live. This is the known limit in "Scope": a new token has no id before the drop.
   - 23: no traffic lines seen. The page was reloaded during the game. A reload clears that browser's console, and a page close logs no line.
+- 2026-10-10, after Phase 10: the user tried all checks and counts the step as done. A problem found later is fixed as a bug.
 
 ## Done when
 
