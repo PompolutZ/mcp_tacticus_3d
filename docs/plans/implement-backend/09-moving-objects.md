@@ -918,6 +918,7 @@ After Phase 8, in one pair:
 ### User check results
 
 - 2026-10-10: checks 1 to 3 pass (after Phase 1b).
+- 2026-10-10: checks 24 to 26 pass (after Phase 8). Checks 4 to 23 are open. Results of 6 to 22 from before Phase 8 do not count, because the crash of the other player's movement tool stopped the frame loop.
 
 ## Done when
 
