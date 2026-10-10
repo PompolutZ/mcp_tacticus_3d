@@ -206,6 +206,8 @@ Estimate for one 2-hour game. The numbers are calculated, not measured:
 | Categories 2 and 3, keepalive packets | | about 1 MB |
 | **Total** | | **about 35 MB** |
 
+Measured on 2026-10-10 (step 10, check 18): 10 rolls of 10 dice sent 1.2 MB in 2 min, relayed. That is about 120 KB for each roll of 10 dice, below the estimate of the dice row.
+
 So 1,000 GB is enough for about 28,000 relayed games per month. It is not clear if Cloudflare counts the data twice when both players use the relay. In that case, the number is about 14,000. Only games where the direct connection fails use TURN.
 
 Phase 3 logs the bytes from `pc.getStats()` (`bytesSent` and `bytesReceived` of the selected candidate pair, `net/traffic.js`). The browser reads them every 60 s and logs one `console.info` line every 10 min, when a connection ends, and on **← Lobby**. The line has the bytes sent and received, the minutes, and direct or relayed, for the connection and for all connections of the open table. The measured numbers of a local game are open (check 23 of `docs/plans/implement-backend/09-moving-objects.md`). Then replace this estimate with them. If the traffic is too high, there are three ways to send less: send less often, round the numbers, or use a binary format.

@@ -269,7 +269,11 @@ Done. Web tests 255 pass, 0 fail. Build passes. `pnpm test`, `pnpm typecheck`: p
 - `OtherDiceTray.jsx`: prop `liveRef`. `applyEntry` sets `airSince` when an entry becomes `air` (new, from `well` or `shelf`, or a new pose), and ends the follow. The `useFrame` follows the live pose of an `air` die when `time > airSince`: `followPart`, `sameSideQuat` slerp, kinematic moves.
 - Docs: `feature-peer-to-peer.md`, `feature-dice-rolling.md`, `README.md`, `plans/implement-backend.md`.
 
-Bytes of the dice (check 18): the user fills this in.
+Bytes of the dice (check 18), measured by the user on 2026-10-10. Alice rolled 10 dice 10 times. Her console: `connection 1.2 MB sent, 53.9 KB received, 2 min, relayed; table 1.2 MB sent, 53.9 KB received, 2 min`.
+- That is about 120 KB for each roll of 10 dice, headers included.
+- The estimate in `docs/feature-peer-to-peer.md` ("Traffic per game") is 13 MB for 100 rolls of 8 dice, so about 160 KB for a roll of 10 dice. The measured number is below it.
+- To compare, step 9 (check 23 of `09-moving-objects.md`) measured about 37 KB per minute without dice.
+- Bob's console line was not given.
 
 ## Phase 5: Tilted dice wait
 
