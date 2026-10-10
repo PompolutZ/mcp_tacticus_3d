@@ -301,6 +301,12 @@ After Phase 4. Checks 13 to 16 in each pair. Checks 17 and 18 once, in one pair:
 
 ### User check results
 
+2026-10-10: the user checked all and said "everything works". The bytes of check 18 are not in the Phase 4 **Result** yet.
+
+Found in the checks:
+1. Bug: on the guest's screen, the counts on the face plates of a tray are at a wrong place. Open: which tray, and how they are wrong.
+2. Question: after a roll, a die sometimes jumps out of the tray, as if it is thrown again, and can knock other dice. Cause: the tilted-die rule (`docs/feature-dice-rolling.md`, "Tilted dice"). `throwDie` gives the die a new random rotation in place, so it can overlap the die or wall it leans on, and then a full throw. Options are with the user.
+
 ## Done when
 
 - `pnpm test`, `pnpm typecheck`, `pnpm --filter web build` pass. `pnpm lint` has no new errors.
