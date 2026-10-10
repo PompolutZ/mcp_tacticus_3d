@@ -271,6 +271,42 @@ Done. Web tests 255 pass, 0 fail. Build passes. `pnpm test`, `pnpm typecheck`: p
 
 Bytes of the dice (check 18): the user fills this in.
 
+## Phase 5: Tilted dice wait
+
+The user asked for this on 2026-10-10, after the checks.
+
+Today a die that rests tilted is thrown again at once (`throwDie`). It gets a new random rotation in place, so it can overlap the die or the wall that it leans on. Then it gets a full throw. So it can knock dice that already have a result.
+
+The new rule:
+- A die that rests tilted, or does not rest by `SETTLE_TIMEOUT`, waits. It is not thrown again yet.
+- When every die of the throw rests, flat or tilted, the flat dice move to the shelf, in one change of the document.
+- When their slide ends (`SHELF_MOVE_TIME`), the tilted dice are thrown again from where they are.
+- This repeats until no die is tilted.
+- A lost die (below `FALL_LIMIT_Y`, or not finite) is thrown again at once from above the well, as today.
+- When a die that waits moves again, for example because another die hits it, it is a moving die of the throw again. Its rest is checked again.
+- Roll while dice wait: they are thrown with the others, as today.
+- History: one `throw` entry for each throw. It is written with the last dice that reach the shelf, and it has the results of all dice of the throw.
+
+Work:
+1. `DiceTray.jsx`: the rule above.
+2. Docs: `docs/feature-dice-rolling.md` ("Roll flow" steps 4 and 5, "Tilted dice", the change from TTS).
+
+Checks:
+- `pnpm --filter web test`, `pnpm --filter web build` pass.
+- `pnpm format`, `pnpm lint`: no new errors.
+
+User, after this phase: checks 19 and 20.
+
+### Result
+
+Done. Web tests and build pass. Lint: no new warnings.
+
+- `DiceTray.jsx`: a thrown die that rests tilted or times out becomes `waiting` (state `well`, no symbol, still `air` in the document). `rested` tells if it was still then. A waiting die that moves again goes back to `thrown`.
+- A lost die is thrown again at once from above the well, as before.
+- When no die is `thrown`: the flat dice go to the shelf in one change (`moveToShelf`). When no shelf die slides, the waiting dice are thrown again (`throwDie`). Repeat until none waits.
+- History: `throwFrom` (ref) keeps the results of the throw. `endThrow` writes one `throw` entry when no die waits. Clear drops `throwFrom`. `finalizeThrow` is gone.
+- Docs: `feature-dice-rolling.md` ("Roll flow" 4 and 5, "Settle", "Tilted dice", change from TTS).
+
 ## User
 
 After Phase 1, in a single player room:
@@ -298,6 +334,10 @@ After Phase 4. Checks 13 to 16 in each pair. Checks 17 and 18 once, in one pair:
 16. A die that hits a model base near a tray: the model does not move, on either screen.
 17. Bob opens the room with `/?drop=30&delay=150#room=…`. Alice's dice fly rougher, and land on the same faces.
 18. Alice rolls 10 dice 10 times. Then both go **← Lobby**. Put the bytes of the traffic line of each console in the **Result** of Phase 4, with a short game of step 9 to compare.
+
+After Phase 5:
+19. Single player room. Roll 20 dice, again and again, until a die rests tilted. The flat dice move to the shelf first. Then the tilted die is thrown again. No die on the shelf moves. The Rolls panel has one entry for the throw, with all 20 results.
+20. Alice and Bob. Alice does check 19. Bob sees the same, and the same history.
 
 ### User check results
 

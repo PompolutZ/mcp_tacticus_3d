@@ -66,6 +66,7 @@ function shelfFromDocument(trayKey, side) {
       doc: dieEntry(d.order, 'shelf', { face: d.face }),
       body: null,
       state: 'shelf',
+      waiting: false,
       settling: false,
       stillTime: 0,
       throwTime: 0,
@@ -149,7 +150,9 @@ export default function DiceTray({
   // document (dice/stored.js); it changes only when the die's place or face changes, and a write
   // builds the side from these. settling: a new or rerolled die that falls to rest, 'air' in the
   // document until it rests. state: 'well' (resting, done or not yet thrown)
-  // | 'thrown' (in the air) | 'shelf'. A die keeps its `symbol` (and `face`, the exact face number
+  // | 'thrown' (in the air) | 'shelf'. waiting: a die that rests tilted (or did not rest in time)
+  // waits in 'well', still 'air' in the document, with no symbol; rested: it was still when it
+  // began to wait, so a later move means a hit. A die keeps its `symbol` (and `face`, the exact face number
   // it landed on) once it settles, even while it still sits in 'well' waiting for the rest of the
   // throw to finish. React state holds only the ordered list of ids (`ids`) and what the keys show
   // (`keys`); the roll flow itself lives in this ref.
@@ -171,6 +174,10 @@ export default function DiceTray({
 
   // History entries that wait for the next commit
   const pendingRolls = useRef([])
+
+  // Where the dice of the running throw came from, kept until the last of them reaches the shelf:
+  // a throw with tilted dice has several parts, and the history has one entry for it.
+  const throwFrom = useRef({ roll: [], crits: [], reroll: [] })
 
   // Makes this side of the document equal to the dice in memory, and adds the waiting history
   // entries: one change.
@@ -217,6 +224,7 @@ export default function DiceTray({
     rb.setLinvel(linvel, true)
     rb.setAngvel(angvel, true)
     entry.state = 'thrown'
+    entry.waiting = false
     entry.settling = false
     entry.stillTime = 0
     entry.throwTime = 0
@@ -292,14 +300,12 @@ export default function DiceTray({
     })
   }
 
-  // Every thrown die of one throw has a final result (design, "Roll flow" step 5): move them all
-  // onto the shelf and re-sort it.
-  function finalizeThrow(finishedIds) {
+  // Dice that rest flat have a result (design, "Roll flow" step 5): move them onto the shelf and
+  // re-sort it, in one change of the document. Their results wait in throwFrom for the history.
+  function moveToShelf(finishedEntries) {
     // Where the dice came from: new (roll), Crits, or reroll with the old symbol
-    const from = { roll: [], crits: [], reroll: [] }
-    for (const id of finishedIds) {
-      const entry = dice.current.get(id)
-      if (!entry) continue
+    const from = throwFrom.current
+    for (const entry of finishedEntries) {
       if (entry.source === 'reroll') from.reroll.push([entry.was, entry.symbol])
       else from[entry.source ?? 'roll'].push(entry.symbol)
       entry.source = null
@@ -307,9 +313,16 @@ export default function DiceTray({
       entry.state = 'shelf'
       entry.doc = dieEntry(entry.order, 'shelf', { face: entry.face })
     }
+    resortShelf()
+    dirtyRef.current = true
+  }
+
+  // The last die of the throw is on the shelf: one history entry with all the results of the throw
+  function endThrow() {
+    const from = throwFrom.current
+    throwFrom.current = { roll: [], crits: [], reroll: [] }
     const logged = throwEntry(trayKey, Date.now(), from)
     if (logged) pendingRolls.current.push(logged)
-    resortShelf()
     dirtyRef.current = true
   }
 
@@ -329,6 +342,7 @@ export default function DiceTray({
       doc: dieEntry(order, 'air', { pose: roundPose(point, q) }),
       body: null,
       state: 'well',
+      waiting: false,
       symbol: null,
       face: null,
       settling: true,
@@ -405,6 +419,7 @@ export default function DiceTray({
     if (dice.current.size > 0) pendingRolls.current.push(clearEntry(trayKey, Date.now()))
     idsRef.current = []
     dice.current.clear()
+    throwFrom.current = { roll: [], crits: [], reroll: [] }
     setIds([])
     critsUsedRef.current = false
     commit()
@@ -441,6 +456,7 @@ export default function DiceTray({
     entry.symbol = null
     entry.face = null
     entry.state = 'well'
+    entry.waiting = false
     entry.settling = true
     entry.doc = dieEntry(entry.order, 'air', { pose: roundPose(point, q) })
     entry.slot = undefined
@@ -516,13 +532,24 @@ export default function DiceTray({
   }, [diceLives, trayKey])
 
   // The roll flow: read faces once a thrown die rests (in the well or outside it, as in TTS),
-  // throw a tilted die again, move a lost die (fell off the table, non-finite) back above the well,
-  // slide shelf dice to their slot, move a finished throw's dice onto the shelf, and report.
+  // let a tilted die wait, move a lost die (fell off the table, non-finite) back above the well,
+  // slide shelf dice to their slot, move the flat dice onto the shelf, throw the waiting dice
+  // again when the slide ends, and report.
   useFrame((_state, dt) => {
     const rethrows = []
     let well = 0
     for (const entry of dice.current.values()) {
       if (entry.state !== 'shelf') well++
+      // A waiting die that moves again (another die hit it) is a moving die of the throw again
+      if (entry.state === 'well' && entry.waiting && entry.rested && entry.body) {
+        const rb = entry.body
+        if (stillTime(0, rb.linvel(), rb.angvel(), dt) === 0) {
+          entry.state = 'thrown'
+          entry.waiting = false
+          entry.stillTime = 0
+          entry.throwTime = 0
+        }
+      }
       if (entry.state !== 'thrown') continue
       const rb = entry.body
       if (!rb) continue
@@ -537,12 +564,20 @@ export default function DiceTray({
       const timedOut = entry.throwTime >= SETTLE_TIMEOUT
       if (!finite || settled || timedOut) {
         // A lost die (non-finite, or below the table) is thrown again from above the well. A tilted
-        // die, or one that did not rest in time, is thrown again from where it is. A flat die
-        // counts, in the well or outside it (design, "Tilted dice").
+        // die, or one that did not rest in time, waits for the other dice. A flat die counts, in
+        // the well or outside it (design, "Tilted dice").
         const lost = !finite || t.y < FALL_LIMIT_Y
         const { face, dot } = topFace(rot)
-        if (lost || timedOut || isTilted(dot)) {
-          rethrows.push({ entry, respawn: lost })
+        if (lost) {
+          rethrows.push({ entry, respawn: true })
+        } else if (timedOut || isTilted(dot)) {
+          entry.state = 'well'
+          entry.waiting = true
+          entry.rested = settled
+          entry.symbol = null
+          entry.face = null
+          entry.stillTime = 0
+          entry.throwTime = 0
         } else {
           entry.symbol = FACES[face - 1].symbol
           entry.face = face
@@ -582,17 +617,31 @@ export default function DiceTray({
       if (t >= 1) entry.moving = false
     }
 
-    // Nothing left in the air? Move every die that just got a result onto the shelf, as one
-    // throw (design, "Roll flow" step 5) — a die stays in 'well' with its symbol set until then.
+    // Nothing left in the air? Move the flat dice onto the shelf (design, "Roll flow" step 5) — a
+    // die stays in 'well' with its symbol set until then. When their slide ends, the waiting dice
+    // are thrown again. When none waits, the throw is over.
     let rolling = false
-    const finishedIds = []
+    let sliding = false
+    const flat = []
+    const waiting = []
     for (const entry of dice.current.values()) {
       if (entry.state === 'thrown') rolling = true
-      else if (entry.state === 'well' && entry.symbol != null) finishedIds.push(entry.id)
+      else if (entry.state === 'well' && entry.symbol != null) flat.push(entry)
+      else if (entry.state === 'well' && entry.waiting) waiting.push(entry)
+      else if (entry.state === 'shelf' && entry.moving) sliding = true
     }
-    if (!rolling && finishedIds.length > 0) {
-      finalizeThrow(finishedIds)
-      well -= finishedIds.length
+    if (!rolling) {
+      if (flat.length > 0) {
+        moveToShelf(flat)
+        well -= flat.length
+        sliding = true
+      }
+      if (waiting.length > 0) {
+        if (!sliding) for (const entry of waiting) throwDie(entry)
+      } else {
+        const from = throwFrom.current
+        if (from.roll.length + from.crits.length + from.reroll.length > 0) endThrow()
+      }
     }
     if (dirtyRef.current) commit()
 
