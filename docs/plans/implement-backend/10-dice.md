@@ -260,6 +260,17 @@ User, after this phase: checks 13 to 18.
 
 ### Result
 
+Done. Web tests 255 pass, 0 fail. Build passes. `pnpm test`, `pnpm typecheck`: pass. Lint: no new warnings.
+
+- `net/live.js`: `die` layout (3 positions, 7 numbers). `net/livePose.js`: `die` kind, the numbers of `character`. Tests in `live.test.js`, `livePose.test.js`.
+- `Scene.jsx`: `diceLives` ref (side to getter), passed to each `DiceTray` and to `LiveSync`. `liveRef` goes to `OtherDiceTray`.
+- `DiceTray.jsx`: prop `diceLives`. An effect registers a getter with `die:<id>` and the pose of each die that is not on the shelf and has a body. It removes the getter on unmount.
+- `LiveSync.jsx`: sends the `diceLives` poses through `add`. `die:` keys are kept without a claim and not pruned (`isClaimFree`). `liveRef.current.die(key)` gives `{ numbers, time }` or null. Comment updated.
+- `OtherDiceTray.jsx`: prop `liveRef`. `applyEntry` sets `airSince` when an entry becomes `air` (new, from `well` or `shelf`, or a new pose), and ends the follow. The `useFrame` follows the live pose of an `air` die when `time > airSince`: `followPart`, `sameSideQuat` slerp, kinematic moves.
+- Docs: `feature-peer-to-peer.md`, `feature-dice-rolling.md`, `README.md`, `plans/implement-backend.md`.
+
+Bytes of the dice (check 18): the user fills this in.
+
 ## User
 
 After Phase 1, in a single player room:

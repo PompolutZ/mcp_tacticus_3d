@@ -127,6 +127,8 @@ function Die({ id, dice, geometry, material }) {
 // onHover(over): the pointer moved onto (true) or off (false) the tray, for the number keys.
 // addRef(addDice): gets addDice, for the number keys, and null on unmount. Both are only given
 // for the player's tray (Scene.jsx).
+// diceLives: a ref to { side: getter }. The tray registers a getter for LiveSync with the live pose of each
+// die that is not on the shelf (net/livePose.js, kind die).
 export default function DiceTray({
   trayKey,
   store,
@@ -137,6 +139,7 @@ export default function DiceTray({
   onMenuClose,
   onHover,
   addRef,
+  diceLives,
 }) {
   const { rapier } = useRapier()
 
@@ -488,6 +491,29 @@ export default function DiceTray({
     addRef?.(addDice)
     return () => addRef?.(null)
   })
+
+  // The live poses for LiveSync: the dice that are not on the shelf, read when asked
+  useEffect(() => {
+    if (!diceLives) return undefined
+    const lives = diceLives.current
+    lives[trayKey] = () => {
+      const out = []
+      for (const entry of dice.current.values()) {
+        const rb = entry.body
+        if (entry.state === 'shelf' || !rb) continue
+        const t = rb.translation()
+        const r = rb.rotation()
+        out.push({
+          key: `die:${entry.id}`,
+          pose: { x: t.x, y: t.y, z: t.z, qx: r.x, qy: r.y, qz: r.z, qw: r.w },
+        })
+      }
+      return out
+    }
+    return () => {
+      delete lives[trayKey]
+    }
+  }, [diceLives, trayKey])
 
   // The roll flow: read faces once a thrown die rests (in the well or outside it, as in TTS),
   // throw a tilted die again, move a lost die (fell off the table, non-finite) back above the well,

@@ -372,7 +372,9 @@ export default function Scene({
   const toolTurns = useRef({})
   // The own tools' live poses for LiveSync: kind → a getter that Tool registers (like toolTurns)
   const toolLives = useRef({})
-  // What LiveSync received: { pose(key), tool(kind), cursor() }, or null (LiveSync.jsx)
+  // The own dice's live poses for LiveSync: tray side → a getter that DiceTray registers
+  const diceLives = useRef({})
+  // What LiveSync received: { pose(key), tool(kind), die(key), cursor() }, or null (LiveSync.jsx)
   const received = useRef(null)
   // The latest live numbers of a piece key, for the pieces that follow
   const getPieceLive = (key) => received.current?.pose(key) ?? null
@@ -984,6 +986,7 @@ export default function Scene({
               ownership={ownership}
               getBody={(id) => charBodies.current.get(id)}
               toolLives={toolLives}
+              diceLives={diceLives}
               pieceLives={pieceLives}
               liveRef={received}
               hideCursor={Boolean(squadSelect?.[ownSide])}
@@ -1053,6 +1056,7 @@ export default function Scene({
               store={diceStore}
               rolls={rollsStore}
               transact={transact}
+              diceLives={diceLives}
               openMenuSymbol={diceMenu?.trayKey === trayKey ? diceMenu.symbol : null}
               onMenuToggle={(symbol) => onDiceMenuToggle(trayKey, symbol)}
               onMenuClose={onDiceMenuClose}
@@ -1067,7 +1071,7 @@ export default function Scene({
               }
             />
           ) : (
-            <OtherDiceTray key={trayKey} trayKey={trayKey} store={diceStore} />
+            <OtherDiceTray key={trayKey} trayKey={trayKey} store={diceStore} liveRef={received} />
           ),
         )}
 

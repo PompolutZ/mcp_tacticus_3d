@@ -1,7 +1,7 @@
 // The pure parts of the live follow (plan 09, decisions 9 and 14): the numbers of a piece pose, their
 // rounding and equality, and the follow step. No three.js and no import.meta.env, so node --test can load it.
 //
-// Numbers by kind of piece key (plan, "Names"). A model: [x, y, z, qx, qy, qz, qw]. A tool: [x, y, z, yaw,
+// Numbers by kind of piece key (plan, "Names"). A model or a die: [x, y, z, qx, qy, qz, qw]. A tool: [x, y, z, yaw,
 // right, left]. A crisis token: [x, z, yaw]. A loose token, a pile, a tactic card, a marker: [x, z].
 import { roundPiece } from './live.js'
 
@@ -28,6 +28,10 @@ const FLAT = {
 // kind → how a pose object becomes numbers, and back
 const KINDS = {
   character: {
+    toNumbers: ({ x, y, z, qx, qy, qz, qw }) => [x, y, z, qx, qy, qz, qw],
+    fromNumbers: ([x, y, z, qx, qy, qz, qw]) => ({ x, y, z, qx, qy, qz, qw }),
+  },
+  die: {
     toNumbers: ({ x, y, z, qx, qy, qz, qw }) => [x, y, z, qx, qy, qz, qw],
     fromNumbers: ([x, y, z, qx, qy, qz, qw]) => ({ x, y, z, qx, qy, qz, qw }),
   },

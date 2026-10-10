@@ -353,6 +353,8 @@ Known bug, found on 2026-10-10: Bob (Red) holds the pointer over his dice tray a
 
 Done when: each player rolls in their own tray, and the other player sees the dice fly and land on the same face.
 
+**Result:** Built on 2026-10-10 in four phases. Dice and the roll history are in the document (`dice`, `rolls`). Results stay on the shelf in the room. The own tray sends live poses with the key `die:<id>`. The other tray follows them only while the entry is `air`, and only poses that arrived after it. The other dice pass through models. The number keys work on any own tray. Details are in `docs/plans/implement-backend/10-dice.md`.
+
 ## Step 11: Reconnect
 
 The rest of peer-to-peer phase 5: reconnect. The IndexedDB copy of the Yjs document was done in step 5 (decision 7). Read: peer-to-peer doc "Room and players" (reconnect).

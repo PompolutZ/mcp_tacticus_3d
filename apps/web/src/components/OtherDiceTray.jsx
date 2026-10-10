@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { Quaternion, Vector3 } from 'three'
 import { RigidBody, ConvexHullCollider } from '@react-three/rapier'
 import { D8_CORNERS, FACES } from '../dice/faces.js'
 import { DIE_BODY } from '../dice/throw.js'
@@ -8,10 +9,14 @@ import { SHELF_MOVE_TIME, flatRotation, shelfMovePose, sortShelfEntries } from '
 import { trayCounts } from '../dice/stored.js'
 import { OTHER_DICE_GROUPS } from '../physics.js'
 import { useYField } from '../net/useY.js'
+import { followPart, sameSideQuat } from '../net/livePose.js'
 import { TrayBody, useDieLook } from './DiceTrayParts.jsx'
 
 // The die's own vertices (faces.js), flattened for ConvexHullCollider's args.
 const dieVertices = Float32Array.from(D8_CORNERS.flat())
+
+// Scratch values of the follow
+const followTarget = { pos: new Vector3(), quat: new Quaternion() }
 
 const POSE_KEYS = ['x', 'y', 'z', 'qx', 'qy', 'qz', 'qw']
 
@@ -90,7 +95,13 @@ function applyEntry(die, e, slot, trayKey) {
     die.slot = slot
     die.face = e.face
   } else {
-    if (!isNew && die.slot === undefined && samePose(die.doc.pose, e.d.pose)) {
+    const place = e.d.place
+    if (
+      !isNew &&
+      die.slot === undefined &&
+      die.doc.place === place &&
+      samePose(die.doc.pose, e.d.pose)
+    ) {
       die.doc = e.d
       return
     }
@@ -98,6 +109,9 @@ function applyEntry(die, e, slot, trayKey) {
     die.slot = undefined
     die.face = null
     die.moving = false
+    // Live poses count only when they arrive after this time (decision 7). A jump ends the follow.
+    die.airSince = place === 'air' ? performance.now() : null
+    die.follow = null
     // The die moves to its stored pose at once
     if (rb) {
       rb.setTranslation({ x: p.x, y: p.y, z: p.z }, true)
@@ -131,6 +145,8 @@ function syncDice(map, side, trayKey) {
         slot: undefined,
         face: null,
         moving: false,
+        airSince: null,
+        follow: null,
       }
       map.set(e.id, die)
       idsChanged = true
@@ -170,16 +186,19 @@ function OtherDie({ id, dice, geometry, material }) {
 }
 
 // The tray of the other player. It draws the stored side (dice/stored.js) and never writes the
-// document. trayKey: 'blue' | 'red'. store: the dice record store of the table.
+// document. trayKey: 'blue' | 'red'. store: the dice record store of the table. liveRef: what LiveSync
+// received (null without a live channel).
 // A well or air die stands at its stored pose, and moves there at once when the pose changes. A shelf
 // die slides to its slot when its slot or face changes (as DiceTray.startShelfMove). A die on the
-// shelf at mount stands at its slot. The keys show the stored counts and are turned off.
-export default function OtherDiceTray({ trayKey, store }) {
+// shelf at mount stands at its slot. An air die follows its live pose, as a remote model does, but only a pose
+// that arrived after its entry became air (the channel is unordered). The keys show the stored counts and are turned off.
+export default function OtherDiceTray({ trayKey, store, liveRef }) {
   const [side] = useYField(store, trayKey)
   const { geometry, material } = useDieLook()
 
   // dice: id -> { id, doc, body, spawn, slot, face, moving, moveFrom, moveTo, moveElapsed }. doc: the stored
-  // die entry now. body: the RigidBody. A later phase moves the body of an air die from the useFrame below.
+  // die entry now. body: the RigidBody. airSince: performance.now() when the entry became air. follow: the
+  // smoothed pose of an air die that has a live pose.
   // The Map is made once and changed in place; the React state is only the list of ids.
   const [dice] = useState(() => {
     const map = new Map()
@@ -193,11 +212,41 @@ export default function OtherDiceTray({ trayKey, store }) {
     if (syncDice(dice, side, trayKey)) setIds([...dice.keys()])
   }, [dice, side, trayKey])
 
+  // Goes the 1 - e^(-dt / 0.05) part of the way to the latest live pose of an air die. Without a newer pose
+  // the die stays where it is.
+  function followLive(die, dt) {
+    const live = liveRef?.current?.die(`die:${die.id}`)
+    if (!live || !(live.time > die.airSince)) {
+      die.follow = null
+      return
+    }
+    const rb = die.body
+    if (!die.follow) {
+      const t = rb.translation()
+      const r = rb.rotation()
+      die.follow = { pos: new Vector3(t.x, t.y, t.z), quat: new Quaternion(r.x, r.y, r.z, r.w) }
+    }
+    const n = live.numbers
+    const { pos, quat } = die.follow
+    const part = followPart(dt)
+    const [qx, qy, qz, qw] = sameSideQuat(
+      [n[3], n[4], n[5], n[6]],
+      [quat.x, quat.y, quat.z, quat.w],
+    )
+    pos.lerp(followTarget.pos.set(n[0], n[1], n[2]), part)
+    quat.slerp(followTarget.quat.set(qx, qy, qz, qw), part)
+    // A sleeping body moves but its mesh is not synced, so keep it awake
+    rb.wakeUp()
+    rb.setNextKinematicTranslation(pos)
+    rb.setNextKinematicRotation(quat)
+  }
+
   const keys = useMemo(() => trayCounts(side?.dice, side?.critsUsed === true), [side])
 
-  // Slide the shelf dice that are moving to their slot
+  // Slide the shelf dice that are moving to their slot, and move the air dice to their live pose
   useFrame((_state, dt) => {
     for (const die of dice.values()) {
+      if (die.doc?.place === 'air' && die.body) followLive(die, dt)
       if (!die.moving || !die.body) continue
       die.moveElapsed += dt
       const t = Math.min(1, die.moveElapsed / SHELF_MOVE_TIME)

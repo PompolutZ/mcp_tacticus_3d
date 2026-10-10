@@ -45,6 +45,21 @@ test('a model pose goes to numbers, rounded, and back', () => {
   })
 })
 
+test('a die pose goes to numbers, rounded, and back', () => {
+  const pose = { x: 1.00049, y: 2, z: 3, qx: 0.00004, qy: 0, qz: 0, qw: 1 }
+  const numbers = poseToNumbers('die:a1b2c3d4', pose)
+  assert.deepEqual(numbers, [1, 2, 3, 0, 0, 0, 1])
+  assert.deepEqual(numbersToPose('die:a1b2c3d4', numbers), {
+    x: 1,
+    y: 2,
+    z: 3,
+    qx: 0,
+    qy: 0,
+    qz: 0,
+    qw: 1,
+  })
+})
+
 test('a tool pose goes to numbers, rounded, and back', () => {
   const pose = { x: 1.00049, y: 0.5, z: 3, yaw: 1.234567, right: 0.00004, left: -0.5 }
   const numbers = poseToNumbers('tool:move', pose)
@@ -63,6 +78,7 @@ test('an unknown kind gives null', () => {
   assert.equal(poseToNumbers('dice:a', { x: 1 }), null)
   assert.equal(numbersToPose('dice:a', [1]), null)
   assert.equal(isLiveKind('dice:a'), false)
+  assert.equal(isLiveKind('die:a1b2c3d4'), true)
   assert.equal(isLiveKind('tool:range'), true)
   assert.equal(isLiveKind('character:x'), true)
 })

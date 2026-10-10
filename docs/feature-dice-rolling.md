@@ -334,7 +334,7 @@ Then the spin went back to 0–50 rad/s, because with 7.7–11 the dice did not 
 - **Trimesh edges.** A die can bump on the inside edges between the triangles of the tray mesh. Rapier's `TriMeshFlags.FIX_INTERNAL_EDGES` reduces this. The @react-three/rapier 1.5 types do not list the flag, but the library passes extra arguments to `ColliderDesc.trimesh`. Confirmed by reading the library's own code (Phase 4a Result): the flag does reach Rapier's `ColliderDesc.trimesh`. Not checked with a real collision (no browser).
 - **Shadows.** The shadow camera covers ±20 (`Scene.jsx`). The trays reach x = 34 and z = ±18.5, so they get no shadows. The shadow camera can be larger, or a second light can cast shadows over the trays. A larger shadow camera gives less shadow detail on the mat. Done: the shadow camera is now `left -26, right 38, top 25, bottom -34` with `shadow-mapSize` 3072 (Phase 4 Result), covering both trays at close to the old per-pixel detail.
 - **Remounts.** Terrain mounts again when the mat turns. The trays are not in the mat group, so they stay. A new map loads new assets. Check that the dice keep their state when the map changes. Done: confirmed by reading `Scene.jsx` (Phase 4a Result) — `DiceTray` is keyed only by `trayKey`, outside the group that Terrain/the mat remount into, so a map change or a mat turn never remounts it.
-- **Rapier version.** @react-three/rapier 1.5 uses Rapier JS 0.14, which is built with enhanced determinism. From Rapier JS 0.15, the default package is built without it. This matters only if rolls are replayed or synced later. Still open — out of scope (see "Out of scope": no multiplayer sync).
+- **Rapier version.** @react-three/rapier 1.5 uses Rapier JS 0.14, which is built with enhanced determinism. From Rapier JS 0.15, the default package is built without it. Closed: the dice are not replayed. The roller's browser simulates a roll, and the other browser follows the live poses and reads the results from the document (step 10).
 
 ## Other dice libraries
 
@@ -357,7 +357,7 @@ The app uses these ideas from other projects:
 
 ## Out of scope
 
-- Multiplayer sync.
+- Multiplayer sync is done (step 10): the other player sees the dice fly, the shelf and the history.
 - Sounds.
 - Affiliation skins for the tray. The TTS cache has 4.
 - Picking up and dragging dice.

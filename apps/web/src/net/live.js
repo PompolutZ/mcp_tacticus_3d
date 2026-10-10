@@ -9,6 +9,7 @@
 // count. The other numbers (rotation, yaw, bend) get 4 decimals.
 const LAYOUTS = {
   character: { positions: 3, total: 7 },
+  die: { positions: 3, total: 7 },
   tool: { positions: 3, total: 6 },
   token: { positions: 2, total: 3 },
   loose: { positions: 2, total: 2 },

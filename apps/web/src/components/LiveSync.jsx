@@ -9,6 +9,9 @@ import { cursorStep, isLiveKind, poseToNumbers, sameNumbers } from '../net/liveP
 const SEND_MS = 33
 const CURSOR_MS = 100
 
+// Tools and dice need no claim
+const isClaimFree = (key) => key.startsWith('tool:') || key.startsWith('die:')
+
 const round3 = (v) => Math.round(v * 1e3) / 1e3
 
 // Sends the own live poses and the cursor, and keeps the latest poses of the other player. It lives inside
@@ -17,18 +20,22 @@ const round3 = (v) => Math.round(v * 1e3) / 1e3
 // getBody(id): the Rapier body of a model id, or undefined.
 // toolLives: a ref to { range, move, angle }, each a function that gives the pose of the own tool
 // { x, y, z, yaw, right, left }, or null (Tool in RulerTool.jsx registers it, the same way as turnRef).
+// diceLives: a ref to { <tray side>: getter }. A getter gives [{ key: 'die:<id>', pose }] of the own dice that
+// are not on the shelf (DiceTray registers it). Dice need no claim.
 // pieceLives: a Map, piece key → getter of the live pose { x, z, yaw? } of a dragged piece without a body, or
 // null. The drag code fills it from the claim to the end of the drag (drag/pointerDrag.js, Phase 6).
 // hideCursor: true while the own side's Select squad is on; no cursor point is sent (decision 21).
-// liveRef: filled with { pose(key), tool(kind), cursor() }, for the pieces that follow. State is in refs,
+// liveRef: filled with { pose(key), tool(kind), die(key), cursor() }, for the pieces that follow. State is in refs,
 // because it changes every frame. pose(key): the numbers of a piece while the other player claims it, else
-// null. tool(kind): { pose, time } of the other player's tool, time in performance.now() ms. cursor():
+// null. tool(kind): { pose, time } of the other player's tool, time in performance.now() ms. die(key):
+// { numbers, time } of the other player's die, or null. cursor():
 // { point: [x, y, z], time } or null.
 export default function LiveSync({
   live,
   ownership,
   getBody,
   toolLives,
+  diceLives,
   pieceLives,
   liveRef,
   hideCursor = false,
@@ -70,7 +77,7 @@ export default function LiveSync({
   }, [gl])
 
   // Receiving (decision 9): the pose of a piece counts only while the other player claims the key. A tool
-  // pose always counts.
+  // pose and a die pose always count.
   useEffect(() => {
     const store = received.current
     liveRef.current = {
@@ -79,12 +86,16 @@ export default function LiveSync({
         const item = store.get(`tool:${kind}`)
         return item ? { pose: item.numbers, time: item.time } : null
       },
+      die: (key) => {
+        const item = store.get(key)
+        return item ? { numbers: item.numbers, time: item.time } : null
+      },
       cursor: () => cursor.current,
     }
     const prune = () => {
       const owned = ownership.otherOwned()
       for (const key of store.keys()) {
-        if (!key.startsWith('tool:') && !owned.has(key)) store.delete(key)
+        if (!isClaimFree(key) && !owned.has(key)) store.delete(key)
       }
     }
     const offOwnership = ownership.subscribe(prune)
@@ -93,7 +104,7 @@ export default function LiveSync({
       const owned = ownership.otherOwned()
       for (const key of Object.keys(p)) {
         if (!isLiveKind(key)) continue
-        if (!key.startsWith('tool:') && !owned.has(key)) continue
+        if (!isClaimFree(key) && !owned.has(key)) continue
         store.set(key, { numbers: p[key], time: now })
       }
       if (c !== undefined) cursor.current = c && { point: c, time: now }
@@ -158,6 +169,9 @@ export default function LiveSync({
       const key = `tool:${kind}`
       const pose = toolLives.current?.[kind]?.()
       add(key, pose && poseToNumbers(key, pose))
+    }
+    for (const get of Object.values(diceLives.current)) {
+      for (const { key, pose } of get()) add(key, poseToNumbers(key, pose))
     }
     for (const [key, get] of pieceLives) {
       const pose = get()

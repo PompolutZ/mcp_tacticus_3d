@@ -376,10 +376,10 @@ The live packet is JSON, sent on the `live` channel, at most every 33 ms (about 
 | Field | Content |
 |---|---|
 | `s` | A sequence number. It grows with each packet that is sent |
-| `p` | Piece key → numbers. A model (`character:<model id>`): `[x, y, z, qx, qy, qz, qw]`. A tool (`tool:<kind>`): `[x, y, z, yaw, right, left]`. A crisis token (`token:<id>`): `[x, z, yaw]`. A character token on the table (`loose:<id>`), a pile (`pile:<id>`), a tactic card (`tactic:<id>`), a marker (`marker:<blue, red or round>`): `[x, z]` |
+| `p` | Piece key → numbers. A model (`character:<model id>`): `[x, y, z, qx, qy, qz, qw]`. A die (`die:<die id>`): the same numbers as a model. A tool (`tool:<kind>`): `[x, y, z, yaw, right, left]`. A crisis token (`token:<id>`): `[x, z, yaw]`. A character token on the table (`loose:<id>`), a pile (`pile:<id>`), a tactic card (`tactic:<id>`), a marker (`marker:<blue, red or round>`): `[x, z]` |
 | `c` | The cursor, see below |
 
-Positions have 3 decimals (0.001"). Rotations, yaw and bend have 4. A model pose is about 70 bytes, not the 170 of the first design. The receiver keeps the last sequence number per piece key and per cursor, and drops an older pose. A bad packet is ignored. It is not logged. Dice from step 10 use the same channel.
+Positions have 3 decimals (0.001"). Rotations, yaw and bend have 4. A model pose is about 70 bytes, not the 170 of the first design. The receiver keeps the last sequence number per piece key and per cursor, and drops an older pose. A bad packet is ignored. It is not logged. The dice use the same channel (see Dice).
 
 ### Cursor message
 
@@ -388,7 +388,9 @@ Positions have 3 decimals (0.001"). Rotations, yaw and bend have 4. A model pose
 ### Dice
 
 - Dice are player bodies. Only the tray's player rolls them, so that player's physics decides the results, as in the single-player app.
-- The other browser sees the dice fly. When a die rests, its rest pose comes through the document, so both browsers find the same top face.
+- The other browser sees the dice fly. The roller sends the pose of each die that is not on the shelf, with the key `die:<die id>`. A die needs no claim, because only the tray's player moves it.
+- The other browser draws the dice as kinematic bodies. A die follows its latest pose like a model does. It counts a live pose only while the entry of the die is `air`, and only when the pose arrived after the entry became `air`. The channel is unordered, so a late pose of an old flight must not move a die that rests.
+- When a die rests, its rest pose (`well`) or its face (`shelf`) comes through the document, so both browsers show the same top face. The dice are not replayed, so the Rapier version does not matter.
 - The roller writes the history entry to `rolls`, in the same change as the dice. Both players see the same list in the Rolls panel.
 
 So the roller's browser decides the roll, and a changed client could cheat. This does not matter: the app is a free hobby project for friendly games. So the plan has no protection against cheating.
@@ -519,7 +521,7 @@ The plan `docs/plans/implement-backend.md` gives the order of the phases and the
 1. **Shared state in a local Yjs document.** Move the table state from `useState` into the document: map, mat turns, deploy line, crisis, tokens, the character list, terrain, setup and the rosters. Write rest poses when bodies sleep. A room stores its document in IndexedDB. Save and load a game as a file. No network. The app works as before. The tools stay in React state until phase 3 (step 5, decision 1).
 2. **Two browsers, one Mac.** Signaling routes in `apps/api`, with the memory store and the MongoDB store. The room link and the players in the room toolbar. `peer.js` and Yjs sync (step 8). Awareness comes in step 9. App version check in `hello`, and the `?build` flag. Discrete changes sync: map, crisis cards, token flips and markers, new characters, damage and power. If a browser pair cannot connect directly, add the local coturn server and `?relay` here instead of in phase 6.
 3. **Moving objects. Done (step 9).** Models pass through models. Claims in awareness, one writer of each rest pose. The `live` channel and the cursor. The tools (range, move, Toward/Away) are in the document, per side. Bodies moved by the other browser push nothing. Both players drag models, tokens, piles, cards and markers. Each player uses only their own tools. The `?drop` and `?delay` flags. The bytes of each connection in the console.
-4. **Dice.** Dice and roll history move into the document. Dice are player bodies on the `live` channel. Only the tray's player can use its dice panel.
+4. **Dice. Done (step 10).** Dice and roll history move into the document. Dice are player bodies on the `live` channel. Only the tray's player can use its dice panel. The other player sees the dice fly.
 5. **Reconnect.** Reconnect after a reload or a dropped connection. The IndexedDB copy of the Yjs document was done in phase 1. It is tested locally first. The AWS parts of this phase (CDK stacks, Atlas database user, budget alert) moved to steps 3 and 4 of the plan.
 6. **TURN.** Local coturn and `?relay` first (if not done in phase 2), then Cloudflare TURN through `GET /ice`. The app shows the connection type (direct or relayed). Cloudflare only if the first real games (plan step 12) show that direct connections fail too often.
 
