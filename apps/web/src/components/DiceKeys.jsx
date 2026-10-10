@@ -145,6 +145,17 @@ function FacePlate({
     width: FACE_PLATES.width * PX_PER_INCH,
     height: FACE_PLATES.depth * PX_PER_INCH,
   }
+  // The count is always in a span: in Safari a flex <button> puts its content in an extra box and
+  // the count sinks to the bottom.
+  const countBox = (
+    <span
+      className={disabled ? 'dice-face-key dice-face-key--static' : 'dice-face-key'}
+      style={plateSize}
+      title={disabled ? name : undefined}
+    >
+      {count}
+    </span>
+  )
   return (
     <group
       position={[FACE_PLATES.x[symbol], FACE_PLATES.y, FACE_PLATES.z]}
@@ -152,19 +163,17 @@ function FacePlate({
     >
       <Html center transform>
         {disabled ? (
-          <div className="dice-face-key dice-face-key--static" style={plateSize} title={name}>
-            {count}
-          </div>
+          countBox
         ) : (
           <button
             type="button"
-            className="dice-face-key"
+            className="dice-face-button"
             style={plateSize}
             title={`${name}: reroll one or change one`}
             disabled={count === 0}
             onClick={onToggle}
           >
-            {count}
+            {countBox}
           </button>
         )}
       </Html>
@@ -185,7 +194,11 @@ function FaceMenu({ symbol, onReroll, onChange, onClose }) {
 
   useEffect(() => {
     function handlePointerDown(e) {
-      if (menuRef.current?.contains(e.target) || e.target.closest?.('.dice-face-key')) return
+      if (
+        menuRef.current?.contains(e.target) ||
+        e.target.closest?.('.dice-face-key, .dice-face-button')
+      )
+        return
       onClose()
     }
     document.addEventListener('pointerdown', handlePointerDown)

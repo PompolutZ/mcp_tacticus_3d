@@ -671,11 +671,21 @@ body {
   user-select: none;
 }
 
-.dice-face-key:hover:not(:disabled) {
+/* The own tray wraps the plate in a button with no look of its own. */
+.dice-face-button {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  pointer-events: auto;
+}
+
+.dice-face-button:hover:not(:disabled) .dice-face-key {
   border-color: rgba(0, 0, 0, 0.6);
 }
 
-.dice-face-key:disabled,
+.dice-face-button:disabled .dice-face-key,
 .dice-face-key--static {
   cursor: default;
 }

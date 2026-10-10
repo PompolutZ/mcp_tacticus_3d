@@ -307,6 +307,26 @@ Done. Web tests and build pass. Lint: no new warnings.
 - History: `throwFrom` (ref) keeps the results of the throw. `endThrow` writes one `throw` entry when no die waits. Clear drops `throwFrom`. `finalizeThrow` is gone.
 - Docs: `feature-dice-rolling.md` ("Roll flow" 4 and 5, "Settle", "Tilted dice", change from TTS).
 
+## Phase 6: Face plate counts in Safari
+
+Found by the user on 2026-10-10. In Safari, the count of a face plate of the own tray is at the bottom of the plate, not in the middle. Chrome shows it in the middle. The plate of the other tray (`div.dice-face-key--static`, Phase 3) is right in Safari. The two have the same CSS class. So Safari lays out the content of a `<button>` differently: WebKit puts it in an extra box of its own.
+
+The flashing of the plate's divs in the Safari inspector is not the cause. drei `Html` with `transform` writes their `transform` style on each frame.
+
+Work:
+1. `DiceKeys.jsx`, `FacePlate`: the count is always in a `<span className="dice-face-key">`, the same element as the plate of the other tray. On the own tray, a `<button>` holds it, with no padding, no border, no background, and the size of the plate. The hover border, the disabled look and the click stay as they are. `FaceMenu` still does not close on a pointerdown on a plate.
+2. `index.css`: the styles for the button and the span.
+
+Checks:
+- `pnpm --filter web build` passes.
+- `pnpm format`, `pnpm lint`: no new errors.
+
+User, after this phase: check 21.
+
+### Result
+
+Done. `FacePlate` always renders the count in a `span.dice-face-key` (plus `--static` on the other tray). On the own tray, a `button.dice-face-button` holds the span. The button has the plate size, `display: block`, no padding, border or background. The hover border is on the span, when the button is hovered and not disabled. `FaceMenu` ignores a pointerdown on `.dice-face-key` or `.dice-face-button`. Build passes. Format and lint: no new warnings. Not checked in a browser (check 21).
+
 ## User
 
 After Phase 1, in a single player room:
@@ -338,6 +358,9 @@ After Phase 4. Checks 13 to 16 in each pair. Checks 17 and 18 once, in one pair:
 After Phase 5:
 19. Single player room. Roll 20 dice, again and again, until a die rests tilted. The flat dice move to the shelf first. Then the tilted die is thrown again. No die on the shelf moves. The Rolls panel has one entry for the throw, with all 20 results.
 20. Alice and Bob. Alice does check 19. Bob sees the same, and the same history.
+
+After Phase 6:
+21. Safari and Chrome. On both trays, the count of each face plate is in the middle of the plate's height, on the half without the icon. A click on a plate of the own tray opens its menu. A plate with 0 dice does nothing.
 
 ### User check results
 
