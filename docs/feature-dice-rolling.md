@@ -313,7 +313,7 @@ Then the spin went back to 0–50 rad/s, because with 7.7–11 the dice did not 
 - `src/components/DiceTray.jsx`: the tray body, the dice bodies and the roll flow of one tray. It is inside `<Physics>` in `Scene.jsx`.
 - `src/components/DiceKeys.jsx`: the keys on the tray. `DiceTray.jsx` renders it inside the tray body, so its positions are in tray space (`KEYS_LIP` and `FACE_PLATES` in `src/dice/tray.js`).
 - `CharacterModel.jsx`: add `dominanceGroup={1}`.
-- State: each tray keeps the counts that its keys show in its own React state. The open face menu is in `App.jsx`, so Escape can close it.
+- State: the state of a tray is in the table document, `dice.<side>` (`dice/stored.js`). Each die has `order`, `place` (`air`, `well` or `shelf`), `face` (on the shelf) and `pose` (in the air and the well). `critsUsed` is stored too. The tray writes its side when a die changes its place or face, never on each frame. At mount the tray builds only its shelf dice from the document, and the dice in the well and in the air go away. The bodies and the roll flow stay in memory (`DiceTray.jsx`). The keys show the counts of the dice in memory, which are the same as `trayCounts` of the document. The open face menu is in `App.jsx`, so Escape can close it.
 
 ## Pitfalls to check
 

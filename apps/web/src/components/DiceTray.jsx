@@ -40,6 +40,7 @@ import {
   shelfMovePose,
   sortShelfEntries,
 } from '../dice/shelf.js'
+import { dieEntry, dieId, nextOrder, roundPose, trayCounts } from '../dice/stored.js'
 import { FRICTION } from '../physics.js'
 import { FALL_LIMIT_Y } from '../table.js'
 import DiceKeys from './DiceKeys.jsx'
@@ -53,18 +54,46 @@ const ZERO = { x: 0, y: 0, z: 0 }
 // The die's own vertices (faces.js), flattened for ConvexHullCollider's args.
 const dieVertices = Float32Array.from(D8_CORNERS.flat())
 
-// Unique React key / Map key for a die, across both trays. Only used as an id, never as a seed.
-let nextDieId = 1
+// The dice of a tray at mount: the shelf dice of its side of the document, each at its slot, so they
+// start kinematic with no slide. side: the stored side, or undefined. docDice: the stored entries,
+// for the first counts of the keys.
+function shelfFromDocument(trayKey, side) {
+  const docDice = side?.dice ?? {}
+  const shelf = Object.entries(docDice)
+    .filter(([, d]) => d.place === 'shelf' && FACES[d.face - 1] && Number.isFinite(d.order))
+    .slice(0, MAX_DICE)
+    .map(([id, d]) => ({ id, order: d.order, face: d.face, symbol: FACES[d.face - 1].symbol }))
+  const dice = new Map()
+  const ids = []
+  sortShelfEntries(shelf).forEach((d, index) => {
+    const q = trayToWorldRotation(trayKey, flatRotation(d.face))
+    const p = trayToWorld(trayKey, shelfSlot(index))
+    dice.set(d.id, {
+      ...d,
+      doc: dieEntry(d.order, 'shelf', { face: d.face }),
+      body: null,
+      state: 'shelf',
+      settling: false,
+      stillTime: 0,
+      throwTime: 0,
+      slot: index,
+      moving: false,
+      spawn: { position: [p.x, p.y, p.z], quaternion: [q.x, q.y, q.z, q.w] },
+    })
+    ids.push(d.id)
+  })
+  return { dice, ids, docDice, critsUsed: side?.critsUsed === true }
+}
 
-// All 6 shelf counts at 0, what the keys show before the first frame reports.
-const EMPTY_SHELF = Object.fromEntries(SYMBOLS.map((symbol) => [symbol, 0]))
-
-// One die: a RigidBody with a convex hull collider (the die shape) and a shared mesh. Starts
-// dynamic; startShelfMove below switches it to kinematicPosition the first time it reaches the
-// shelf. The RigidBody ref is written into the die's entry in the parent's `dice` map (see
+// One die: a RigidBody with a convex hull collider (the die shape) and a shared mesh. A new die
+// starts dynamic; startShelfMove below switches it to kinematicPosition the first time it reaches
+// the shelf. A die that starts on the shelf (from the document) is kinematic at once, and has its
+// `slot` set. The RigidBody ref is written into the die's entry in the parent's `dice` map (see
 // DiceTray), not kept as React state, so a physics step never has to re-render this component.
 function Die({ id, dice, geometry, material }) {
   const entry = dice.current.get(id)
+  // Read once: a body type that changes with a re-render would fight startShelfMove
+  const [type] = useState(() => (entry.slot === undefined ? 'dynamic' : 'kinematicPosition'))
   function setBody(rb) {
     const e = dice.current.get(id)
     if (e) e.body = rb ?? null
@@ -72,7 +101,7 @@ function Die({ id, dice, geometry, material }) {
   return (
     <RigidBody
       ref={setBody}
-      type="dynamic"
+      type={type}
       position={entry.spawn.position}
       quaternion={entry.spawn.quaternion}
       colliders={false}
@@ -98,11 +127,14 @@ function Die({ id, dice, geometry, material }) {
 // One dice tray: the tray body, the dice bodies, the roll flow, and the keys on the tray (see
 // DiceKeys.jsx). trayKey: 'blue' | 'red'. openMenuSymbol, onMenuToggle, onMenuClose: the face
 // menu of this tray, lifted to App so Escape can close it.
+// store: the dice record store of the table (net/doc.js). The tray reads its side at mount and
+// writes it when a die changes its place or face (dice/stored.js).
 // onHover(over): the pointer moved onto (true) or off (false) the tray, for the number keys.
 // addRef(addDice): gets addDice, for the number keys, and null on unmount. Both are only given
 // for the player's tray (Scene.jsx).
 export default function DiceTray({
   trayKey,
+  store,
   openMenuSymbol = null,
   onMenuToggle,
   onMenuClose,
@@ -117,22 +149,44 @@ export default function DiceTray({
   const dieGltf = useGLTF(assetUrl('dice/d8.glb'))
   const dieTexture = useTexture(assetUrl('dice/d8.webp'))
 
-  // Every die lives here: id -> { id, body, state, symbol, face, stillTime, throwTime, spawn,
-  // slot, moveFrom, moveTo, moveElapsed, moving }. state: 'well' (resting, done or not yet thrown)
+  // Every die lives here: id -> { id, order, doc, body, state, symbol, face, settling, stillTime,
+  // throwTime, spawn, slot, moveFrom, moveTo, moveElapsed, moving }. doc: the die entry of the
+  // document (dice/stored.js); it changes only when the die's place or face changes, and a write
+  // builds the side from these. settling: a new or rerolled die that falls to rest, 'air' in the
+  // document until it rests. state: 'well' (resting, done or not yet thrown)
   // | 'thrown' (in the air) | 'shelf'. A die keeps its `symbol` (and `face`, the exact face number
   // it landed on) once it settles, even while it still sits in 'well' waiting for the rest of the
   // throw to finish. React state holds only the ordered list of ids (`ids`) and what the keys show
   // (`keys`); the roll flow itself lives in this ref.
-  const dice = useRef(new Map())
-  const idsRef = useRef([])
-  const [ids, setIds] = useState([])
+  // At mount only the shelf dice come back from the document (decision 3 of the step 10 plan);
+  // dice in the well and in the air are temporary.
+  const [initial] = useState(() => shelfFromDocument(trayKey, store.get(trayKey)))
+  const dice = useRef(initial.dice)
+  const idsRef = useRef(initial.ids)
+  const [ids, setIds] = useState(initial.ids)
   // What the keys show: { well, shelf, critsAvailable }, see reportChange.
-  const [keys, setKeys] = useState({ well: 0, shelf: EMPTY_SHELF, critsAvailable: 0 })
+  const [keys, setKeys] = useState(() => trayCounts(initial.docDice, initial.critsUsed))
   const lastReported = useRef(null)
 
   // True once addCrits has added dice this roll; reset by clear() (design, "Roll flow" step 7 /
   // the rulebook's "once per roll, not per Crit" rule).
-  const critsUsedRef = useRef(false)
+  const critsUsedRef = useRef(initial.critsUsed)
+  // A change of a die entry waits for the end of the frame, so dice that change together are one write
+  const dirtyRef = useRef(false)
+
+  // Makes this side of the document equal to the dice in memory: one change.
+  function commit() {
+    dirtyRef.current = false
+    const side = { critsUsed: critsUsedRef.current, dice: {} }
+    for (const entry of dice.current.values()) side.dice[entry.id] = entry.doc
+    store.setField(trayKey, side)
+  }
+
+  // The stored pose of a body now, or null when it is not finite or the body is not there yet
+  function bodyPose(entry) {
+    const rb = entry.body
+    return rb ? roundPose(rb.translation(), rb.rotation()) : null
+  }
 
   // Tray collider, in tray space, from the loaded mesh — the same function scripts/dice-sim.mjs
   // uses in Node, so the app and the headless sim build the exact identical trimesh.
@@ -195,6 +249,7 @@ export default function DiceTray({
     rb.setLinvel(linvel, true)
     rb.setAngvel(angvel, true)
     entry.state = 'thrown'
+    entry.settling = false
     entry.stillTime = 0
     entry.throwTime = 0
   }
@@ -274,9 +329,12 @@ export default function DiceTray({
   function finalizeThrow(finishedIds) {
     for (const id of finishedIds) {
       const entry = dice.current.get(id)
-      if (entry) entry.state = 'shelf'
+      if (!entry) continue
+      entry.state = 'shelf'
+      entry.doc = dieEntry(entry.order, 'shelf', { face: entry.face })
     }
     resortShelf()
+    dirtyRef.current = true
   }
 
   // Adds one die at a free point above the well. Does nothing once the tray holds MAX_DICE.
@@ -285,13 +343,17 @@ export default function DiceTray({
     if (dice.current.size >= MAX_DICE) return false
     const point = freeDropPoint(trayKey, wellOccupiedPoints())
     const q = randomRotation()
-    const id = nextDieId++
+    const id = dieId(dice.current)
+    const order = nextOrder(dice.current.values())
     dice.current.set(id, {
       id,
+      order,
+      doc: dieEntry(order, 'air', { pose: roundPose(point, q) }),
       body: null,
       state: 'well',
       symbol: null,
       face: null,
+      settling: true,
       stillTime: 0,
       throwTime: 0,
       spawn: { position: [point.x, point.y, point.z], quaternion: [q.x, q.y, q.z, q.w] },
@@ -300,11 +362,18 @@ export default function DiceTray({
     return true
   }
 
-  // Adds `count` dice, fewer when the tray reaches MAX_DICE. Returns how many it added.
-  function addDice(count) {
+  // Adds `count` dice, fewer when the tray reaches MAX_DICE. Returns how many it added. It does not
+  // write the document: the caller does (commit).
+  function addMany(count) {
     let added = 0
     while (added < count && addDie()) added++
     if (added > 0) setIds(idsRef.current.slice())
+    return added
+  }
+
+  function addDice(count) {
+    const added = addMany(count)
+    if (added > 0) commit()
     return added
   }
 
@@ -325,6 +394,7 @@ export default function DiceTray({
       dice.current.delete(id)
       idsRef.current.splice(i, 1)
       setIds(idsRef.current.slice())
+      commit()
       return
     }
   }
@@ -334,6 +404,11 @@ export default function DiceTray({
   function roll() {
     for (const entry of dice.current.values()) {
       if (entry.state === 'shelf') continue
+      // Every die that is not on the shelf moves now. A die that is 'air' already keeps its entry.
+      if (entry.doc.place !== 'air') {
+        const pose = bodyPose(entry)
+        if (pose) entry.doc = dieEntry(entry.order, 'air', { pose })
+      }
       if (
         entry.state === 'thrown' &&
         entry.body &&
@@ -344,6 +419,7 @@ export default function DiceTray({
       }
       throwDie(entry)
     }
+    commit()
   }
 
   // Removes every die (design, "Roll flow" step 9).
@@ -352,6 +428,7 @@ export default function DiceTray({
     dice.current.clear()
     setIds([])
     critsUsedRef.current = false
+    commit()
   }
 
   // Adds one die per Crit on the shelf. Does nothing when there are no Crits on the shelf, or once
@@ -359,7 +436,10 @@ export default function DiceTray({
   // clear() is what allows it again.
   function addCrits() {
     if (critsUsedRef.current) return
-    if (addDice(shelfCounts().crit) > 0) critsUsedRef.current = true
+    if (addMany(shelfCounts().crit) > 0) {
+      critsUsedRef.current = true
+      commit()
+    }
   }
 
   // Moves one shelf die showing `symbol` back into the well, dynamic again, at a free drop point.
@@ -380,11 +460,14 @@ export default function DiceTray({
     entry.symbol = null
     entry.face = null
     entry.state = 'well'
+    entry.settling = true
+    entry.doc = dieEntry(entry.order, 'air', { pose: roundPose(point, q) })
     entry.slot = undefined
     entry.moving = false
     entry.stillTime = 0
     entry.throwTime = 0
     resortShelf() // close the gap this die left on the shelf
+    commit()
   }
 
   // Turns one shelf die showing `symbol` to `toSymbol` in place and re-sorts the shelf. Does
@@ -394,7 +477,9 @@ export default function DiceTray({
     if (!entry) return
     entry.symbol = toSymbol
     entry.face = defaultFaceForSymbol(toSymbol)
+    entry.doc = dieEntry(entry.order, 'shelf', { face: entry.face })
     resortShelf(new Set([entry.id]))
+    commit()
   }
 
   // Sets what the keys show, { well, shelf, critsAvailable }, only when a value changed since the
@@ -412,6 +497,12 @@ export default function DiceTray({
     lastReported.current = { well, critsAvailable, shelf }
     setKeys(lastReported.current)
   }
+
+  // At mount, writes the side: the dice in the well and in the air go away from the document
+  useEffect(() => {
+    commit()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Registered on every render, the same as the turn of a tool (RulerTool.jsx)
   useEffect(() => {
@@ -458,6 +549,21 @@ export default function DiceTray({
     }
     for (const { entry, respawn } of rethrows) throwDie(entry, { respawn })
 
+    // A new or rerolled die rests: 'well' with its rest pose. Same settle rule, no face read and no
+    // new throw. A pose that is not finite is not written.
+    for (const entry of dice.current.values()) {
+      if (!entry.settling || !entry.body) continue
+      const rb = entry.body
+      entry.stillTime = stillTime(entry.stillTime, rb.linvel(), rb.angvel(), dt)
+      entry.throwTime += dt
+      if (entry.stillTime < SETTLE_TIME && entry.throwTime < SETTLE_TIMEOUT) continue
+      entry.settling = false
+      const pose = bodyPose(entry)
+      if (!pose) continue
+      entry.doc = dieEntry(entry.order, 'well', { pose })
+      dirtyRef.current = true
+    }
+
     // Slide every shelf die that is still moving to its slot (startShelfMove/resortShelf above).
     for (const entry of dice.current.values()) {
       if (entry.state !== 'shelf' || !entry.moving) continue
@@ -483,6 +589,7 @@ export default function DiceTray({
       finalizeThrow(finishedIds)
       well -= finishedIds.length
     }
+    if (dirtyRef.current) commit()
 
     reportChange(well)
   })

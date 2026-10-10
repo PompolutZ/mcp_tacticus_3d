@@ -250,7 +250,7 @@ The data has four categories. There is also local state, which is not sent.
 |---|---|---|---|---|
 | 1 | Assets | models, textures, card images, map images | Netlify, or AWS later. Loaded over HTTPS | None. Never through WebRTC |
 | 2 | Set-up: changes once per game | rosters, crisis cards, map, deploy line | Yjs document | `sync` |
-| 3 | Rare changes | rest poses of models and tools; the places of tokens, cards and markers; card flips; damage and power; healthy or injured side; tokens gained or lost; mat turns; dice results and roll history | Yjs document | `sync` |
+| 3 | Rare changes | rest poses of models and tools; the places of tokens, cards and markers; card flips; damage and power; healthy or injured side; tokens gained or lost; mat turns; dice results (the shelf) and roll history | Yjs document | `sync` |
 | 4 | Presence: what the other player does now | dice in the air (step 10); every piece that a player drags (model, tool, crisis token, character token on the table, pile, tactic card, score marker); cursor | Not stored | `live` |
 | | Players | name, side (blue or red), claims (`owns`), the model that the player drags now (`drag`, for the deploy tool), the new token or pile that the player drags now (`spawn`: `{ key, tokenKey }`). the selected character and crisis token (`selection`, piece keys, the last is the tool target), the selected tool kinds (`tools`), and the piece that a turning range tool marks (`mark`: `{ key, mode }`) | Yjs awareness | `sync` |
 | | Local | camera, hover, labels, debug mode, open card popup, open dice menu | React state, as today | Not sent |
@@ -265,7 +265,7 @@ The cursor is in category 4, not in awareness. Awareness goes over the reliable,
 
 ### Yjs document
 
-Each name is a top-level `Y.Map` of the `Y.Doc`. Step 5 made the first ten. Step 9 added `tools`. The dice come in step 10.
+Each name is a top-level `Y.Map` of the `Y.Doc`. Step 5 made the first ten. Step 9 added `tools`. Step 10 added `dice`.
 
 | Name | Kind | Content |
 |---|---|---|
@@ -280,12 +280,9 @@ Each name is a top-level `Y.Map` of the `Y.Doc`. Step 5 made the first ten. Step
 | `looseTokens` | list | character tokens on the table |
 | `tokenPiles` | list | token piles on the table |
 | `tools` | record, depth 1 | the tools of both players: `tools.<side>.<kind>`. `side` is `blue` or `red`. `kind` is `range`, `move` or `angle` |
+| `dice` | record, depth 2 | the dice trays: `dice.<side>` is `{ critsUsed, dice: { <die id>: { order, place, face?, pose? } } }`. `place` is `air`, `well` or `shelf`. `face` (1 to 8) is only on the shelf. `pose` is only in the air and the well. The room keeps the shelf |
 
-Step 10 adds:
-
-```
-  dice: Y.Map<trayKey, Y.Map>              step 10: dice (id -> pose, face, place), history (Y.Array), critsUsed
-```
+Step 10 adds the roll history (`rolls`).
 
 A tool entry is `{ which, spawn, at?, pose?, turn?, snap?, mode? }`:
 

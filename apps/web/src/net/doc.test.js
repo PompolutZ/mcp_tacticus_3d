@@ -31,6 +31,7 @@ function snapshot(table) {
     'characters',
     'poses',
     'tools',
+    'dice',
     'tokens',
     'tactics',
   ]
@@ -97,4 +98,44 @@ test('tools of the two sides merge when written at the same time', () => {
   const both = { blue: { range: BLUE_RANGE }, red: { range: RED_RANGE } }
   assert.deepEqual(a.tools.read(), both)
   assert.deepEqual(b.tools.read(), both)
+})
+
+const SHELF_DIE = { order: 1, place: 'shelf', face: 5 }
+const AIR_DIE = { order: 2, place: 'air', pose: { x: 1, y: 2, z: 3, qx: 0, qy: 0, qz: 0, qw: 1 } }
+
+test('a new table has no dice, and a start value is kept', () => {
+  const table = createTable()
+  fillTable(table, STATE)
+  assert.deepEqual(table.dice.read(), {})
+  const side = { critsUsed: false, dice: { aaaaaaaa: SHELF_DIE } }
+  fillTable(table, { ...STATE, dice: { blue: side } })
+  assert.deepEqual(table.dice.read(), { blue: side })
+})
+
+test('dice of the two sides merge when written at the same time', () => {
+  const a = createTable()
+  fillTable(a, STATE)
+  const b = createTable()
+  Y.applyUpdate(b.doc, encodeTable(a))
+  a.dice.setField('blue', { critsUsed: true, dice: { aaaaaaaa: SHELF_DIE } })
+  b.dice.setField('red', { critsUsed: false, dice: { bbbbbbbb: AIR_DIE } })
+  Y.applyUpdate(a.doc, Y.encodeStateAsUpdate(b.doc))
+  Y.applyUpdate(b.doc, Y.encodeStateAsUpdate(a.doc))
+  const both = {
+    blue: { critsUsed: true, dice: { aaaaaaaa: SHELF_DIE } },
+    red: { critsUsed: false, dice: { bbbbbbbb: AIR_DIE } },
+  }
+  assert.deepEqual(a.dice.read(), both)
+  assert.deepEqual(b.dice.read(), both)
+})
+
+test('writing a side deletes the dice it no longer has', () => {
+  const table = createTable()
+  fillTable(table, STATE)
+  table.dice.setField('blue', {
+    critsUsed: false,
+    dice: { aaaaaaaa: SHELF_DIE, bbbbbbbb: AIR_DIE },
+  })
+  table.dice.setField('blue', { critsUsed: false, dice: { aaaaaaaa: SHELF_DIE } })
+  assert.deepEqual(table.dice.get('blue'), { critsUsed: false, dice: { aaaaaaaa: SHELF_DIE } })
 })

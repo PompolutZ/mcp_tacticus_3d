@@ -152,6 +152,24 @@ User, after this phase: checks 1 to 4.
 
 ### Result
 
+Done. Web tests 249 pass, 0 fail. Build passes. Lint: no new warnings.
+
+- `dice/stored.js` (new, tested in `stored.test.js`): `dieId(taken)`, `roundPose(t, r)` (null when not finite), `dieEntry(order, place, { face, pose })`, `nextOrder(entries)`, `trayCounts(entries, critsUsed)`.
+- `dice/shelf.js`: `sortShelfEntries` sorts by symbol, then `order`.
+- `net/doc.js`: `dice` record, depth 2. `fillTable` writes `state.dice ?? {}`. `rooms/table.js`: `dice: {}`. `doc.test.js`: start value, merge of two sides, delete of missing dice.
+- `Scene.jsx`: prop `diceStore`, passed to each `DiceTray` as `store`. `App.jsx`: `diceStore={table.dice}`.
+- `DiceTray.jsx`:
+  - `shelfFromDocument` builds the shelf dice at mount (kinematic at their slot, `slot` set; `Die` reads its body type once). A mount effect calls `commit()`.
+  - Each in-memory die has `id`, `order`, `doc` (the die entry), `settling`. `commit()` writes the whole side: `store.setField(trayKey, { critsUsed, dice: { id: entry.doc } })`. It writes at once in the actions (add, remove, roll, clear, crits, reroll, change). The frame sets `dirtyRef` (settle, end of throw) and writes once at its end.
+  - New and rerolled dice: `air` with start pose, `settling`. The frame uses the settle rule and then writes `well` with the rest pose (also on `SETTLE_TIMEOUT`). A pose that is not finite is not written, and the die stops settling.
+  - Roll makes non-air, non-shelf dice `air` with their pose now. End of throw writes `shelf` + `face`.
+- Docs: `feature-rooms.md`, `README.md`, `feature-dice-rolling.md`, `feature-peer-to-peer.md`.
+
+For next phases:
+- Phase 2 adds a `rolls` entry in the same change: wrap `commit()` and the `rolls` write in `table.transact(...)`. `DiceTray` has only the `dice` store now, so it needs the `rolls` store or `table.transact` as a prop. The end of a throw is in `finalizeThrow` (frame), `change` and `clear` are actions.
+- Both `DiceTray`s are still drawn in every browser (`PLAYER_TEAM` stays), so each browser writes both sides at mount until Phase 3.
+- The mount reads the document once. `Table.jsx` loads the document (IndexedDB, then the server table) before it creates the table and draws the scene, so the document is loaded at mount.
+
 ## Phase 2: The roll history
 
 Read: decision 4. The **Result** of Phase 1. `components/DiceTray.jsx` (`finalizeThrow`, `addCrits`, `reroll`, `change`, `clear`), `net/doc.js`, `net/collections.js` (`createList`), `components/Library.jsx`, `components/Toolbar.jsx`, `App.jsx` (`libraryOpen`, Escape), `index.css` (`.library`). In git: `src/dice/history.js` and `src/components/DicePanel.jsx` before commit `c965bf4`, for the old text and look.

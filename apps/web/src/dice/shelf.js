@@ -27,13 +27,14 @@ export function defaultFaceForSymbol(symbol) {
   return FACES.find((face) => face.symbol === symbol).number
 }
 
-// Shelf order (design, "Roll flow"): by symbol, in SYMBOLS order, then by id, so dice with the
-// same symbol keep the order they reached the shelf instead of swapping places on every re-sort.
-// entries: anything with { id, symbol }.
+// Shelf order (design, "Roll flow"): by symbol, in SYMBOLS order, then by `order`, the order in
+// which the dice were added (the table document stores it). So dice with the same symbol keep their
+// place instead of swapping on every re-sort, and both browsers get the same shelf.
+// entries: anything with { order, symbol }.
 export function sortShelfEntries(entries) {
   return [...entries].sort((a, b) => {
     const bySymbol = SYMBOLS.indexOf(a.symbol) - SYMBOLS.indexOf(b.symbol)
-    return bySymbol !== 0 ? bySymbol : a.id - b.id
+    return bySymbol !== 0 ? bySymbol : a.order - b.order
   })
 }
 

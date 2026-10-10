@@ -1594,6 +1594,7 @@ export default function App({
               }
               poses={poses}
               startPose={table.poses.get}
+              diceStore={table.dice}
               onModelRest={table.poses.setField}
             />
           </SelectionOutlines>

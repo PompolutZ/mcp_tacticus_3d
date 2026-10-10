@@ -125,7 +125,9 @@ The lobby finds the rooms by the key prefix. One key per room, so a room cannot 
 
 - The tools (range, movement, Toward / Away) are in `tools`, per side (`tools.blue`, `tools.red`). An entry has the pose, the bend, the snap target and the mode. A tool writes it after it rested for 0.3 s. A saved tool comes back where it was. Place, Throw, the Bend button and the selection of a tool are not saved.
 
-Not saved: dice, selection, camera, open popups, spectator view, labels, debug mode. The dice are empty when the room opens.
+- The dice are in `dice`, per side (`dice.blue`, `dice.red`). The room keeps the shelf: the dice that have a result, with their face. Dice in the well and in the air are not kept. They go away when the room opens.
+
+Not saved: dice in the well and in the air, selection, camera, open popups, spectator view, labels, debug mode.
 
 ### When the room saves
 
@@ -177,7 +179,7 @@ In a single player room, the user id in `localStorage` is the owner of every roo
 
 Made on 2026-10-07:
 
-1. A saved room keeps the full table, also the model poses. Dice reset. The tools stay.
+1. A saved room keeps the full table, also the model poses. The shelf of each tray stays. Dice in the well and in the air reset. The tools stay.
 2. The Sandbox is not saved. Leaving it asks first.
 3. The URL hash selects the page. The room code has the format of the peer-to-peer plan.
 4. One `localStorage` key per room. The lobby lists the keys with the room prefix.
