@@ -212,11 +212,13 @@ function standeeScene(front, back, radius) {
 // lift, or null when the model is not lifted. Gets null on unmount.
 // claimKey, ownership: the piece key `character:<id>` and the claims (net/ownership.js). A drag claims the key and
 // leaves the release to Scene, which releases when the body is at rest (plan 09, decision 5).
+// otherDragging: the other player drags this model now (ownership.otherDrag). Only then the remote model shows the
+// drag footprint, not during their lift, turn, Throw or Place (decision 23).
 // remote: the other player moves this model (decision 9). The body is kinematic and its colliders give no
 // contact forces, so it pushes nothing. It stays where it is. A click still selects it. Scene sets the pose
 // when this goes false (decision 8), and this puts the contact forces back.
 // getLivePose(key): the latest live pose [x, y, z, qx, qy, qz, qw] of the model, or null (LiveSync.jsx). In the
-// remote mode the model follows it each frame (decision 14) and shows the drag footprint (decision 18).
+// remote mode the model follows it each frame (decision 14) and shows the drag footprint while otherDragging (decision 18).
 // slideRef: gets startSlide for a Throw or Push (see RulerTool.jsx), and null on unmount
 // baseRadius: radius of the base in the model file, which has the game size
 // onHover(over): called when the pointer moves onto the model (true) and off it (false)
@@ -257,6 +259,7 @@ function CharacterFigure({
   claimKey,
   ownership,
   remote = false,
+  otherDragging = false,
   getLivePose,
 }) {
   const [startPosition] = useState(position)
@@ -706,7 +709,7 @@ function CharacterFigure({
         onPointerOut={() => setHovered(false)}
         onPointerDown={onPointerDown}
       />
-      {(dragging || following) && (
+      {(dragging || (following && otherDragging)) && (
         <DragFootprint getShape={footprintShape} getApart={() => dragOverlap} />
       )}
       {overlay?.(top)}

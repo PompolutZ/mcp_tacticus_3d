@@ -83,3 +83,24 @@ export function cursorStep({ hide, moved }) {
   if (hide) return 'null'
   return moved ? 'read' : 'skip'
 }
+
+// The piece key of a token drag (plan 09, decision 22). drag: { looseId, pileId, supplyCard, pile }. newId: the id
+// of the new piece, or null for a piece on the table (looseId or pileId).
+export function tokenDragKey({ looseId, pileId, supplyCard, pile }, newId) {
+  if (looseId) return `loose:${looseId}`
+  if (pileId) return `pile:${pileId}`
+  if (supplyCard) return `token:${newId}`
+  return pile ? `pile:${newId}` : `loose:${newId}`
+}
+
+// The yaw of a supply token in its drag preview and as it lies after the drop (supplyToken in App.jsx)
+export const SUPPLY_YAW = 0
+
+// The live pose of a token drag at the table point (null off the table). A crisis token key (a new supply token)
+// needs a yaw: it sends the yaw of its own preview.
+export function dragPose(key, point) {
+  if (!point) return null
+  return kindOf(key) === 'token'
+    ? { x: point.x, z: point.z, yaw: SUPPLY_YAW }
+    : { x: point.x, z: point.z }
+}

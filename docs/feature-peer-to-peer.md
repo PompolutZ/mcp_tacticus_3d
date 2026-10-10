@@ -252,7 +252,7 @@ The data has four categories. There is also local state, which is not sent.
 | 2 | Set-up: changes once per game | rosters, crisis cards, map, deploy line | Yjs document | `sync` |
 | 3 | Rare changes | rest poses of models and tools; the places of tokens, cards and markers; card flips; damage and power; healthy or injured side; tokens gained or lost; mat turns; dice results and roll history | Yjs document | `sync` |
 | 4 | Presence: what the other player does now | dice in the air (step 10); every piece that a player drags (model, tool, crisis token, character token on the table, pile, tactic card, score marker); cursor | Not stored | `live` |
-| | Players | name, side (blue or red), claims (`owns`), the model that the player drags now (`drag`, for the deploy tool). Not built yet: selection | Yjs awareness | `sync` |
+| | Players | name, side (blue or red), claims (`owns`), the model that the player drags now (`drag`, for the deploy tool), the new token or pile that the player drags now (`spawn`: `{ key, tokenKey }`). Not built yet: selection | Yjs awareness | `sync` |
 | | Local | camera, hover, labels, debug mode, open card popup, open dice menu | React state, as today | Not sent |
 
 The same object can be in two categories at different times. While a player drags a model, its pose is category 4. When the model stops, its rest pose goes into the document as category 3. A piece without a body (a token, a card, a marker, a pile) writes its new place into the document at the drop.
@@ -325,6 +325,8 @@ There are four kinds of pieces:
 - **Models**: either player can move them. A model has a physics body. The rules below decide which browser simulates it.
 - **Tools**: the tools of one player (see [What each player controls](#what-each-player-controls)). A tool is a sensor body. It pushes nothing and nothing pushes it. Only the owner moves it. The other browser draws it at the live pose. So tools need no claims.
 - **Pieces without a body**: crisis tokens, character tokens on the table, piles, tactic cards and score markers. Either player can move them. The piece has no rest pose. The drop writes its new place into the document.
+
+A new token, pile or supply token (from a Give source, a supply pile, a pile or the Library) is live too. The drag makes its id and its piece key at the press (`loose:`, `pile:` or `token:`). The drag claims the key after the 4 px threshold and sets `spawn` in awareness. The other browser does not have the piece yet, so it draws a preview of it at the live pose, with the same look, height and footprint as the own preview. The drop writes the piece with the same id. Then the claim and `spawn` end, in this order, so the real piece shows before the preview goes. Escape and a drop that makes no piece (over a HUD panel, off the table, on a character) end `spawn` too. A drop on a character gives the token to the character, as before.
 - **Dice** (step 10) are player bodies. Only the tray's player simulates them. The other browser moves them as kinematic bodies, to the received poses.
 
 Models do not push models. A dragged model passes through other models and through tokens. It does not pass through terrain. Models are in their own collision group, and that group does not collide with itself. Dice do not move models (dominance groups). So no body pushes a resting model, and the first design had a rule for that: the browser that moves a body claims a body it pushes. This rule is gone. There are no pushed bodies to claim and no contact events.

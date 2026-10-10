@@ -73,6 +73,8 @@ function createLocalOwnership() {
     otherOwned: () => none,
     setDrag() {},
     otherDrag: () => null,
+    setSpawn() {},
+    otherSpawn: () => null,
     destroy() {},
   }
 }
@@ -103,17 +105,31 @@ export function createOwnership({ awareness = null, role = 'guest' } = {}) {
     return null
   }
 
+  // The new piece that the other player drags now, { key, tokenKey }, or null (decision 22)
+  function otherSpawnState() {
+    for (const [id, state] of awareness.getStates()) {
+      const s = state?.spawn
+      if (id !== ownId && s && typeof s.key === 'string' && typeof s.tokenKey === 'string') return s
+    }
+    return null
+  }
+
   let set = new Set()
   let present = false
   let drag = null
+  // The same object until its content changes
+  let spawn = null
   function refresh() {
     const next = otherOwnedKeys(ownId, ownKeys(), others())
     const isPresent = others().size > 0
     const nextDrag = otherDragKey()
-    if (sameSet(set, next) && present === isPresent && drag === nextDrag) return
+    const found = otherSpawnState()
+    const sameSpawn = found?.key === spawn?.key && found?.tokenKey === spawn?.tokenKey
+    if (sameSet(set, next) && present === isPresent && drag === nextDrag && sameSpawn) return
     if (!sameSet(set, next)) set = next
     present = isPresent
     drag = nextDrag
+    if (!sameSpawn) spawn = found && { key: found.key, tokenKey: found.tokenKey }
     changed.call()
   }
 
@@ -129,6 +145,7 @@ export function createOwnership({ awareness = null, role = 'guest' } = {}) {
   // Sets the field, so the other end gets a state with `owns` at once
   setOwn(ownKeys())
   if (awareness.getLocalState()?.drag === undefined) awareness.setLocalStateField('drag', null)
+  if (awareness.getLocalState()?.spawn === undefined) awareness.setLocalStateField('spawn', null)
   awareness.on('change', onChange)
   refresh()
 
@@ -161,6 +178,13 @@ export function createOwnership({ awareness = null, role = 'guest' } = {}) {
         awareness.setLocalStateField('drag', key)
     },
     otherDrag: () => drag,
+    // spawn: { key, tokenKey } or null
+    setSpawn(next) {
+      const now = awareness.getLocalState()?.spawn ?? null
+      if (now?.key === next?.key && now?.tokenKey === next?.tokenKey) return
+      awareness.setLocalStateField('spawn', next && { key: next.key, tokenKey: next.tokenKey })
+    },
+    otherSpawn: () => spawn,
     destroy() {
       awareness.off('change', onChange)
     },

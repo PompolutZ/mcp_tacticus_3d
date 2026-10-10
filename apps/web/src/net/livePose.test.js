@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   cursorStep,
+  dragPose,
   followPart,
   isLiveKind,
   lerpAngle,
@@ -9,6 +10,8 @@ import {
   poseToNumbers,
   sameNumbers,
   sameSideQuat,
+  SUPPLY_YAW,
+  tokenDragKey,
 } from './livePose.js'
 
 test('followPart: 0 for no time, 1 - e^-1 for one time constant, below 1 always', () => {
@@ -104,4 +107,21 @@ test('cursorStep: hidden gives null without the moved check', () => {
   assert.equal(cursorStep({ hide: true, moved: true }), 'null')
   assert.equal(cursorStep({ hide: false, moved: true }), 'read')
   assert.equal(cursorStep({ hide: false, moved: false }), 'skip')
+})
+
+test('tokenDragKey: the key by the kind of token drag', () => {
+  const none = { looseId: null, pileId: null, supplyCard: null, pile: false }
+  assert.equal(tokenDragKey({ ...none, looseId: 'a' }, null), 'loose:a')
+  assert.equal(tokenDragKey({ ...none, pileId: 'b' }, null), 'pile:b')
+  assert.equal(tokenDragKey({ ...none, supplyCard: 'c' }, 'n'), 'token:n')
+  assert.equal(tokenDragKey({ ...none, pile: true }, 'n'), 'pile:n')
+  assert.equal(tokenDragKey(none, 'n'), 'loose:n')
+})
+
+test('dragPose: a supply token sends the yaw of its preview, the others only x and z', () => {
+  assert.equal(dragPose('loose:a', null), null)
+  assert.deepEqual(dragPose('loose:a', { x: 1, y: 2, z: 3 }), { x: 1, z: 3 })
+  assert.deepEqual(dragPose('pile:a', { x: 1, y: 2, z: 3 }), { x: 1, z: 3 })
+  assert.deepEqual(dragPose('token:a', { x: 1, y: 2, z: 3 }), { x: 1, z: 3, yaw: SUPPLY_YAW })
+  assert.notEqual(poseToNumbers('token:a', dragPose('token:a', { x: 1, z: 3 })), null)
 })

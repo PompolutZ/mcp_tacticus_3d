@@ -63,6 +63,7 @@ import { mapTerrain, withPlacements } from './rooms/table.js'
 import { deleteSquad, readSquad, saveSquad } from './rooms/store.js'
 import { tableFiles } from './rooms/preload.js'
 import { useYField, useYList, useYRecord } from './net/useY.js'
+import { dragPose, SUPPLY_YAW, tokenDragKey } from './net/livePose.js'
 import { spawnEntry } from './components/storedTool.js'
 import {
   NO_PIECES,
@@ -158,16 +159,16 @@ function buildMatTokens(card, turned) {
 
 // A new supply token of a Source card, taken from its pile (see SupplyPile.jsx and
 // handleSupplyTake). It lies on the table at (x, z), or a character holds it.
-function supplyToken(card, x, z) {
+function supplyToken(card, x, z, id) {
   return {
-    id: crypto.randomUUID(),
+    id,
     cardKey: card.key,
     frontKey: card.supply,
     backKey: null,
     up: 'front',
     x,
     z,
-    yaw: 0,
+    yaw: SUPPLY_YAW,
     canMove: true,
     canFlip: false,
     hasArc: false,
@@ -387,8 +388,9 @@ export default function App({
   const diceTrayHoveredRef = useRef(false)
   // The player's dice tray fills it with its addDice: adds that many dice. See DiceTray.jsx.
   const addDiceRef = useRef(null)
-  // A token drag in progress: { tokenKey, looseId, supplyCard, pile, pileId, active, start } | null.
-  // looseId: the table token that is dragged, or null for a new token from a source. supplyCard: the
+  // A token drag in progress: { tokenKey, looseId, supplyCard, pile, pileId, newId, key, active, start } | null.
+  // newId: the id of the new piece of the drag (a new token, pile or supply token), else null. key: the piece
+  // key of the dragged piece, `loose:`, `pile:` or `token:` (decision 22). looseId: the table token that is dragged, or null for a new token from a source. supplyCard: the
   // card key when the new token comes from the supply pile of a Source card (tokenKey is then a
   // crisis token key), otherwise null. pile: the drag brings a new pile from the Library. pileId: the
   // drag moves that pile (Shift + drag). active: the pointer has moved DRAG_THRESHOLD px, so the dragged token
@@ -820,14 +822,14 @@ export default function App({
     })
   }
 
-  // A new supply token from the pile of a Source card (handleTokenRelease). Released over a
+  // A new supply token from the pile of a Source card (handleTokenRelease), with the id of the drag. Released over a
   // character: that character holds it, at the default place on its card, the same as
   // handleTokenHold. Otherwise it lies on the table at (x, z).
-  function handleSupplyTake(cardKey, x, z, characterId) {
+  function handleSupplyTake(cardKey, x, z, characterId, id) {
     const card = getCard(cardKey)
     if (!card?.supply) return
     setTokens((prev) => {
-      const token = supplyToken(card, x, z)
+      const token = supplyToken(card, x, z, id)
       if (!characterId) return [...prev, token]
       const heldCount = prev.filter((t) => t.heldBy === characterId).length
       return [...prev, { ...token, heldBy: characterId, heldAt: trayHeldDefault(heldCount) }]
@@ -1363,27 +1365,30 @@ export default function App({
   // Library chips never checked the button.
   // drag: tokenKey and the fields of tokenDrag that are set, the others get their defaults.
   function startTokenDrag(e, drag) {
-    const full = { looseId: null, supplyCard: null, pile: false, pileId: null, ...drag }
-    // A character token on the table or a moved pile is claimed. A new token claims nothing.
-    const key = full.looseId ? `loose:${full.looseId}` : full.pileId ? `pile:${full.pileId}` : null
+    const base = { looseId: null, supplyCard: null, pile: false, pileId: null, ...drag }
+    // A new piece gets its id and key at the press, so the drag claims it like a piece on the table (decision 22)
+    const newId = base.looseId || base.pileId ? null : crypto.randomUUID()
+    const key = tokenDragKey(base, newId)
+    const full = { ...base, newId, key }
+    const spawn = newId ? { key, tokenKey: full.tokenKey } : null
     const handle = startPointerDrag(e, {
       key,
       ownership,
       live: pieceLives,
-      // The point of TokenDragPreview. A new token has no key and sends nothing.
-      livePose: () => {
-        const p = dragPointRef.current
-        return p && { x: p.x, z: p.z }
-      },
+      // The point of TokenDragPreview
+      livePose: () => dragPose(key, dragPointRef.current),
       controls: controlsRef.current,
       canvas: e.target,
       button: null,
       preventDefault: true,
-      onStart: (ev) =>
+      onStart: (ev) => {
+        // After the claim, so the other player sees the key claimed when the spawn arrives
+        if (spawn) ownership?.setSpawn(spawn)
         setTokenDrag(
           (prev) =>
             prev && { ...prev, active: true, start: { clientX: ev.clientX, clientY: ev.clientY } },
-        ),
+        )
+      },
       onEnd: (ev) => {
         handleTokenRelease(ev.clientX, ev.clientY)
         endTokenDrag()
@@ -1399,7 +1404,9 @@ export default function App({
     setTokenDrag({ ...full, active: false, start: null })
   }
 
+  // The document write of a drop comes before this, and the release of the claim after it
   function endTokenDrag() {
+    ownership?.setSpawn(null)
     tokenDragHandleRef.current = null
     tokenDragRef.current = null
     setTokenDrag(null)
@@ -1427,7 +1434,7 @@ export default function App({
   // follows the same rules, but it is a crisis token: a character holds it (handleSupplyTake). A
   // pile goes only on the table: a new pile lies there, or the moved pile moves there.
   function handleTokenRelease(clientX, clientY) {
-    const { tokenKey, looseId, supplyCard, pile, pileId } = tokenDragRef.current
+    const { tokenKey, looseId, supplyCard, pile, pileId, newId } = tokenDragRef.current
     if (!document.elementFromPoint(clientX, clientY)?.closest('.scene-root')) return
     const characterId = findCharacterAt(clientX, clientY)
     if (pile || pileId) {
@@ -1437,18 +1444,14 @@ export default function App({
         setTokenPiles((prev) =>
           prev.map((p) => (p.id === pileId ? { ...p, x: point.x, z: point.z } : p)),
         )
-      else
-        setTokenPiles((prev) => [
-          ...prev,
-          { id: crypto.randomUUID(), key: tokenKey, x: point.x, z: point.z },
-        ])
+      else setTokenPiles((prev) => [...prev, { id: newId, key: tokenKey, x: point.x, z: point.z }])
       return
     }
     if (supplyCard) {
       const point = dragPointRef.current
       const pile = supplyPilePosition(getCard(supplyCard).type)
-      if (characterId) handleSupplyTake(supplyCard, pile.x, pile.z, characterId)
-      else if (point) handleSupplyTake(supplyCard, point.x, point.z, null)
+      if (characterId) handleSupplyTake(supplyCard, pile.x, pile.z, characterId, newId)
+      else if (point) handleSupplyTake(supplyCard, point.x, point.z, null, newId)
       return
     }
     if (characterId) {
@@ -1463,11 +1466,7 @@ export default function App({
       setLooseTokens((prev) =>
         prev.map((t) => (t.id === looseId ? { ...t, x: point.x, z: point.z } : t)),
       )
-    else
-      setLooseTokens((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), key: tokenKey, x: point.x, z: point.z },
-      ])
+    else setLooseTokens((prev) => [...prev, { id: newId, key: tokenKey, x: point.x, z: point.z }])
   }
 
   const selectedTokenId = selectedId(selection, 'token')

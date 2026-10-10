@@ -1,7 +1,10 @@
-import { Suspense, useEffect, useRef } from 'react'
-import { useThree } from '@react-three/fiber'
+import { Suspense, useEffect, useMemo, useRef } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
 import { tablePoint } from '../drag/tablePoint.js'
+import { followPart, numbersToPose } from '../net/livePose.js'
+import { castDown } from '../physics.js'
+import { TOKEN_SIZE } from '../tokens/files.js'
 import { TOKEN_RADIUS } from './CrisisToken.jsx'
 import DragFootprint from './DragFootprint.jsx'
 import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
@@ -52,6 +55,59 @@ export default function TokenDragPreview({ pointRef, start, children }) {
   }
 
   // Hidden until handleMove gives it a point
+  return (
+    <>
+      <group ref={groupRef} visible={false}>
+        <Suspense fallback={null}>{children}</Suspense>
+      </group>
+      <DragFootprint getShape={footprintShape} />
+    </>
+  )
+}
+
+// A thin cylinder as wide as the token finds the ground under it, the same as LooseToken.jsx
+const HALF_H = 0.02
+const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
+
+// The preview of a new piece that the other player drags (plan 09, decision 22): the same look, height and
+// footprint as TokenDragPreview, at the live pose of spawnKey. It is hidden until the first pose. The
+// pose is followed the same way as other live pieces (decision 14). The yaw is not used: the own preview has none.
+// getLivePose(key): the latest numbers of a piece key, or null (Scene.jsx). children: the token, as for
+// TokenDragPreview.
+export function OtherSpawnPreview({ spawnKey, getLivePose, children }) {
+  const { world, rapier } = useRapier()
+  const shape = useMemo(() => new rapier.Cylinder(HALF_H, TOKEN_SIZE / 2), [rapier])
+  const groupRef = useRef()
+  // The pose that is drawn: { x, z }, or null before the first live pose
+  const poseRef = useRef(null)
+
+  useFrame((_, dt) => {
+    const numbers = getLivePose(spawnKey)
+    const target = numbers && numbersToPose(spawnKey, numbers)
+    const group = groupRef.current
+    if (!target) {
+      poseRef.current = null
+      if (group) group.visible = false
+      return
+    }
+    const part = followPart(dt)
+    const pose = poseRef.current ?? target
+    poseRef.current = {
+      x: pose.x + (target.x - pose.x) * part,
+      z: pose.z + (target.z - pose.z) * part,
+    }
+    const { x, z } = poseRef.current
+    const ground = castDown(world, rapier, shape, NO_ROTATION, x, z, HALF_H)
+    if (!group) return
+    group.visible = true
+    group.position.set(x, (ground ?? 0) + GAP + TOKEN_DRAG_LIFT, z)
+  })
+
+  const footprintShape = () => {
+    const p = poseRef.current
+    return p ? { x: p.x, z: p.z, radius: TOKEN_RADIUS } : null
+  }
+
   return (
     <>
       <group ref={groupRef} visible={false}>

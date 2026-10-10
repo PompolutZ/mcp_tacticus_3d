@@ -5,6 +5,11 @@
 // Pixels the pointer must move before a press is a drag
 export const DRAG_THRESHOLD = 4
 
+// True for a DOM event of an element that is not the canvas. An R3F event has nativeEvent.
+function isHudEvent(event) {
+  return !event.nativeEvent && event.target?.tagName !== 'CANVAS'
+}
+
 // event: the pointerdown (an R3F event or a DOM event). Returns { cancel }, or null when nothing
 // started (another button, or canStart said no at the press).
 // options:
@@ -20,7 +25,9 @@ export const DRAG_THRESHOLD = 4
 // - threshold: pixels, DRAG_THRESHOLD by default.
 // - button: the button that drags, 0 by default. null: any button.
 // - releaseCapture: release the pointer capture of the canvas, true by default.
-// - preventDefault: call preventDefault on the press (DOM events of the HUD), false by default.
+// - preventDefault: call preventDefault on the press (DOM events of the HUD), false by default. Only a DOM event
+//   of an element other than the canvas gets it: R3F listens to the canvas as passive, so it does nothing there and
+//   the browser logs a warning.
 // - key, ownership: the piece key and the ownership (net/ownership.js). The drag claims key when it starts
 //   (at the press when immediate). A refused claim: no drag and no other callback, only onRefused. During the drag, a lost
 //   tie for key calls cancel(). Without both, the drag claims nothing (tools, new tokens).
@@ -56,7 +63,7 @@ export function startPointerDrag(event, options = {}) {
   } = options
   // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
   if (button !== null && event.button !== button) return null
-  if (preventDefault) event.preventDefault?.()
+  if (preventDefault && isHudEvent(event)) event.preventDefault?.()
   event.stopPropagation?.()
   if (immediate && canStart && !canStart(event)) return null
   const claims = key !== null && key !== undefined && ownership

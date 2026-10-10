@@ -27,7 +27,7 @@ import Terrain from './Terrain.jsx'
 import CrisisCard from './CrisisCard.jsx'
 import CrisisToken from './CrisisToken.jsx'
 import LooseToken from './LooseToken.jsx'
-import TokenDragPreview from './TokenDragPreview.jsx'
+import TokenDragPreview, { OtherSpawnPreview } from './TokenDragPreview.jsx'
 import ToolPoint from './ToolPoint.jsx'
 import LiveSync from './LiveSync.jsx'
 import RemoteCursor from './RemoteCursor.jsx'
@@ -145,6 +145,7 @@ const NO_KEYS = new Set()
 const noSubscribe = () => () => {}
 const noKeys = () => NO_KEYS
 const noDrag = () => null
+const noSpawn = () => null
 
 // Two stored poses are the same (both rounded the same way, rooms/table.js, poseOf)
 function samePose(a, b) {
@@ -388,6 +389,11 @@ export default function Scene({
   const otherDragKey = useSyncExternalStore(
     ownership?.subscribe ?? noSubscribe,
     ownership?.otherDrag ?? noDrag,
+  )
+  // The new piece that the other player drags now, { key, tokenKey }, or null (decision 22)
+  const otherSpawn = useSyncExternalStore(
+    ownership?.subscribe ?? noSubscribe,
+    ownership?.otherSpawn ?? noSpawn,
   )
   // Piece key → time (s) of the last claim call of this browser, for the 0.2 s that a claim lasts
   const claimTimes = useRef(new Map())
@@ -1157,6 +1163,22 @@ export default function Scene({
             )}
           </TokenDragPreview>
         )}
+        {/* The new piece that the other player drags: the kind comes from the key (decision 22) */}
+        {otherSpawn && (
+          <OtherSpawnPreview
+            key={otherSpawn.key}
+            spawnKey={otherSpawn.key}
+            getLivePose={getPieceLive}
+          >
+            {otherSpawn.key.startsWith('token:') ? (
+              <SupplyToken tokenKey={otherSpawn.tokenKey} raycast={NO_RAYCAST} />
+            ) : otherSpawn.key.startsWith('pile:') ? (
+              <PileStack tokenKey={otherSpawn.tokenKey} interactive={false} />
+            ) : (
+              <TokenFace tokenKey={otherSpawn.tokenKey} interactive={false} />
+            )}
+          </OtherSpawnPreview>
+        )}
 
         {/* The tactic tray of each player, between the mat and the character trays, and the Team
             Tactic cards. Relative to the table, not the mat. See docs/feature-team-tactic-cards.md. */}
@@ -1252,6 +1274,7 @@ export default function Scene({
             claimKey: modelKey(model.id),
             ownership: claims,
             remote: otherOwned.has(modelKey(model.id)),
+            otherDragging: otherDragKey === modelKey(model.id),
             getLivePose: getPieceLive,
             onRest: () => {
               // One writer for each rest pose (decision 6)

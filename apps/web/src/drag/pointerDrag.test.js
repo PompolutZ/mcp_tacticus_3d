@@ -367,3 +367,14 @@ test('the live getter goes at a cancel, and a refused claim registers none', () 
   b.win.dispatchEvent(move(200))
   assert.equal(live.size, 0)
 })
+
+test('preventDefault runs on a HUD DOM event, not on a canvas or R3F event', () => {
+  const calls = []
+  const props = (extra) => ({ preventDefault: () => calls.push('prevent'), ...extra })
+  setup({ preventDefault: true }, props({ target: { tagName: 'DIV' } }))
+  assert.deepEqual(calls, ['prevent'])
+  setup({ preventDefault: true }, props({ target: { tagName: 'CANVAS' } }))
+  setup({ preventDefault: true }, props({ nativeEvent: {}, target: {} }))
+  setup({ preventDefault: false }, props({ target: { tagName: 'DIV' } }))
+  assert.deepEqual(calls, ['prevent'])
+})

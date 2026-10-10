@@ -21,14 +21,13 @@ In the step:
 - One drag code for every piece (decision 3).
 - The tools in the document, per side. The other player's tools show on the table and cannot be used.
 - Claims in Yjs awareness, for every piece that a player moves. One browser writes each rest pose. A rest pose from the other browser moves the body.
-- The live channel: live moves of every piece, and the cursor.
+- The live channel: live moves of every piece, also a new token from a Give source, a supply pile, a pile or the Library (decision 22), and the cursor.
 - The `?drop` and `?delay` flags.
 - The bytes of each connection, in the browser console.
 - Docs.
 
 Left for later:
 - Dice: step 10. Until then, each browser has its own dice, and the number keys add dice to the Blue tray in both browsers.
-- A new token that a player drags from a Give source, a supply pile, a pile or the Library. It has no id before the drop, so it shows on the other screen at the drop. The cursor shows the drag.
 - The other player's selection.
 - A dropped network, "Reconnecting": step 11.
 
@@ -60,7 +59,7 @@ Left for later:
 | `tools` in the document | Record, depth 1: `tools.<side>.<kind>`. `side` is `blue` or `red`. `kind` is `range`, `move` or `angle` |
 | Tool entry | `{ which, spawn, at?, pose?, turn?, snap?, mode? }`. `which`: the range number (1 to 5), the movement type (`short`, `medium`, `long`), or `true` for `angle`. `spawn`: a random id, new at each spawn. `at`: `{ x, z }`, the point of a free spawn (decision 19). `pose`: `{ x, y, z, yaw }`. `turn`: `{ right, left }`, the bend. `snap`: `{ kind, id, side, across }` or `null`. `mode`: `away` or `toward` |
 | Own tool side | The own seat in a multiplayer room. `blue` in a single player room and the Sandbox |
-| Awareness state | `{ owns: [piece key, …], drag: piece key or null }` |
+| Awareness state | `{ owns: [piece key, …], drag: piece key or null, spawn: { key, tokenKey } or null }` |
 | Live packet | JSON: `{ s, p?, c? }`. `s`: a sequence number. `p`: piece key → numbers. A model: `[x, y, z, qx, qy, qz, qw]`. A tool: `[x, y, z, yaw, right, left]`. A crisis token: `[x, z, yaw]`. A loose token, a pile, a tactic card, a marker: `[x, z]`. `c`: `[x, y, z]`, or `null` when the pointer left the table. Only the parts that changed |
 | Packet rounding | Positions to 3 decimals (0.001"). Rotations, yaw and bend to 4 decimals |
 | Times | A packet every 33 ms at most (about 30 per second). The cursor every 100 ms at most. Follow time 0.05 s. Tool rest 0.3 s. A model claim lasts at least 0.2 s. Traffic read every 60 s, logged every 10 min |
@@ -79,6 +78,8 @@ Ownership (`net/ownership.js`), the same API with and without a connection. `key
 | `mine()` | The keys that this browser claims |
 | `onLost(fn)` | `fn(key)` when this browser loses a tie for `key` (decision 7) |
 | `subscribe(fn)`, `otherOwned()` | For React: the set of keys that the other player owns. The set object changes only when its content changes |
+| `setDrag(key \| null)`, `otherDrag()` | The model that the own player drags now, and the one that the other player drags (decision 20). `subscribe` runs on a change of the other's |
+| `setSpawn({ key, tokenKey } \| null)`, `otherSpawn()` | The same for a new piece (decision 22). `otherSpawn()` is the same object until its content changes |
 
 Files:
 
@@ -903,6 +904,28 @@ Checks:
 User, after this phase: checks 27 to 30.
 
 ### Result
+
+What changed:
+- `net/ownership.js`: `setSpawn({ key, tokenKey } | null)` and `otherSpawn()`. `subscribe` also runs when the other player's `spawn` changes. `otherSpawn()` is the same object until its content changes. `spawn` starts as `null` in the awareness state. The local version does nothing and gives `null`. Tests: set and clear, no call for the same value, a player who left, the local version.
+- `net/livePose.js`: `tokenDragKey` (the key by kind of drag), `dragPose` (a `token:` key sends the yaw of its preview), `SUPPLY_YAW` (0, also used by `supplyToken`). Tests.
+- `App.jsx`, `startTokenDrag`: a new piece gets `crypto.randomUUID()` and its key at the press. The drag claims it after the threshold, like a piece on the table. `onStart` sets `spawn` after the claim. `endTokenDrag` sets `null`: it runs at the end, at Escape, at a click and at a refused drag. `handleTokenRelease` and `handleSupplyTake` use the drag id. The document write comes before `setSpawn(null)`, and the claim release comes after.
+- `TokenDragPreview.jsx`: `OtherSpawnPreview`. It follows the live pose of the key, finds the ground like `LooseToken`, hangs `TOKEN_DRAG_LIFT` high, and has the round footprint. Hidden until the first pose.
+- `Scene.jsx`: reads `otherSpawn` and draws `OtherSpawnPreview` with the face of the kind (`token:` supply token, `pile:` pile stack, `loose:` token face). It gives `otherDragging` to each model.
+- `CharacterModel.jsx`: a remote model shows the drag footprint only while `otherDragging` (decision 23).
+- `drag/pointerDrag.js`: `preventDefault` only on a DOM event of an element that is not the canvas. An R3F event and a canvas event skip it. A Library chip is a HUD element, so its drag still gets it. Test added.
+- Docs: "Names" (awareness state, the two ownership rows), "Scope" (the new token is no longer left for later), `docs/feature-peer-to-peer.md` ("Players" row, "Moving objects (physics)").
+
+Choices that the plan did not fix:
+- The preview ignores the yaw. The own preview has none, so the look is the same. The yaw is sent only because the `token` kind needs three numbers.
+- `isHudEvent` tests `nativeEvent` and the `CANVAS` tag. Callers that pass `e.nativeEvent` from the canvas have the tag `CANVAS` on the target.
+- The preview component is next to `TokenDragPreview`, in the same file, and it does not use `useLiveFollow` (it has no place in the document to compare with).
+- Between the document write and `setSpawn(null)`, the real piece and the preview can both show for a moment. The preview is at the same place, so there is no jump.
+- `MAX_FOOTPRINTS` stays 12. The preview takes the slot of the other player's drag, which is only used when no model is dragged.
+
+Checks:
+- `pnpm --filter web test`: 234 pass, 0 fail.
+- `pnpm --filter web build`: passes.
+- `pnpm format`: done. `pnpm lint`: 0 errors, 36 warnings (the same as before).
 
 ## Phase 10: The other player's selection and range marks
 
