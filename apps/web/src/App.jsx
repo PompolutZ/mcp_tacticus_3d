@@ -399,10 +399,10 @@ export default function App({
   const hoveredHeldRef = useRef(null)
   // Id of the character whose tray card is under the pointer, for the F key
   const hoveredTrayCardRef = useRef(null)
-  // True while the pointer is over the player's dice tray, for the number keys
-  const diceTrayHoveredRef = useRef(false)
-  // The player's dice tray fills it with its addDice: adds that many dice. See DiceTray.jsx.
-  const addDiceRef = useRef(null)
+  // The side of the own dice tray under the pointer, or null, for the number keys
+  const diceTrayHoveredRef = useRef(null)
+  // Each own dice tray puts its addDice here by side: adds that many dice. See DiceTray.jsx.
+  const addDiceRef = useRef({})
   // A token drag in progress: { tokenKey, looseId, supplyCard, pile, pileId, newId, key, active, start } | null.
   // newId: the id of the new piece of the drag (a new token, pile or supply token), else null. key: the piece
   // key of the dragged piece, `loose:`, `pile:` or `token:` (decision 22). looseId: the table token that is dragged, or null for a new token from a source. supplyCard: the
@@ -657,9 +657,9 @@ export default function App({
       handleLockKey()
       return
     }
-    // Over the player's dice tray, the number keys add dice, not tools
+    // Over an own dice tray, the number keys add dice, not tools. Over the other tray they spawn tools.
     if (DICE_KEYS[e.key] && diceTrayHoveredRef.current) {
-      addDiceRef.current?.(DICE_KEYS[e.key])
+      addDiceRef.current[diceTrayHoveredRef.current]?.(DICE_KEYS[e.key])
       return
     }
     if (RANGE_KEYS[e.key]) handleToolKey('range', RANGE_KEYS[e.key])
@@ -1584,8 +1584,10 @@ export default function App({
               modelPositionRef={modelPositionRef}
               turnPieceRef={turnPieceRef}
               liftPieceRef={liftPieceRef}
-              onDiceTrayHover={(over) => {
-                diceTrayHoveredRef.current = over
+              ownTraySides={room?.multiplayer ? [ownSide] : ['blue', 'red']}
+              onDiceTrayHover={(side, over) => {
+                if (over) diceTrayHoveredRef.current = side
+                else if (diceTrayHoveredRef.current === side) diceTrayHoveredRef.current = null
               }}
               addDiceRef={addDiceRef}
               heldRotate={heldRotate}

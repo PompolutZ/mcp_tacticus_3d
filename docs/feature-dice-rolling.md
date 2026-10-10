@@ -115,7 +115,7 @@ One limit: the keys are HTML on top of the canvas. Therefore dice and models in 
 
 ## Controls: number keys
 
-With the pointer over the player's own dice tray, keys 1–9 add that number of dice, and 0 adds 10. Each press adds to the dice that are already in the tray. When the tray would go over 42 dice, the key adds only the dice that are left to 42. For now the player is Blue, so only the blue tray takes the keys (`PLAYER_TEAM` in `src/components/Scene.jsx`). Away from the tray, the number keys spawn tools (see `docs/feature-key-shortcuts.md`).
+With the pointer over an own dice tray, keys 1–9 add that number of dice, and 0 adds 10. Each press adds to the dice that are already in the tray. When the tray would go over 42 dice, the key adds only the dice that are left to 42. In a multiplayer room the player has one own tray, the tray of the own seat. In a single player room and the Sandbox both trays are own, and each takes the keys when the pointer is over it. Over the other player's tray the number keys act as over the table: they spawn a tool. Away from the trays, the number keys spawn tools (see `docs/feature-key-shortcuts.md`).
 
 In TTS, keys 1–9 over the tray first clear it and then add that number of dice. The app does not clear the tray, so a player can add more dice with a second press.
 

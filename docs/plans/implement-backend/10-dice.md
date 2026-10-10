@@ -224,6 +224,23 @@ User, after this phase: checks 8 to 12.
 
 ### Result
 
+Done. Web tests 254 pass, 0 fail. Build passes. Lint: no new errors. One new warning (`set-state-in-effect` in `OtherDiceTray`, see below).
+
+- `components/DiceTrayParts.jsx` (new): `useDieLook()` (d8 geometry and material) and `TrayBody({ trayKey, keysProps, onHover })` (fixed body, trimesh, tinted visual, `DiceKeys`). `DiceTray.jsx` uses both and keeps the roll flow only.
+- `components/OtherDiceTray.jsx` (new): props `trayKey`, `store`. No `commit`, no `rolls`. Reads its side with `useYField(store, trayKey)`.
+- `components/DiceKeys.jsx`: `disabled` prop. Buttons disabled, a face plate is a `div.dice-face-key--static` (css in `index.css`), no menu.
+- `physics.js`: `OTHER_DICE_GROUPS` (group 2, filter every group but 1).
+- `Scene.jsx`: `PLAYER_TEAM` removed. New prop `ownTraySides` (default both). Own side: `DiceTray`, else `OtherDiceTray`. `onDiceTrayHover(side, over)`. `addDiceRef.current[side]` holds each own tray's add.
+- `App.jsx`: `ownTraySides={room?.multiplayer ? [ownSide] : ['blue','red']}`. `diceTrayHoveredRef` is the side or null (out clears only the same side). `addDiceRef` is `{}` by side. Number key adds to the tray under the pointer.
+- Docs: `feature-dice-rolling.md`, `feature-key-shortcuts.md`, `feature-peer-to-peer.md`.
+
+For Phase 4:
+- `OtherDiceTray` keeps `dice`, a `Map` made once in `useState` and changed in place (id -> `{ id, doc, body, spawn, slot, face, moving, moveFrom, moveTo, moveElapsed }`). `doc` is the stored die entry now, `body` the RigidBody (set by `OtherDie`'s ref). React state is only `ids`.
+- `syncDice(map, side, trayKey)` runs in an effect when the stored side changes. It adds and removes dice and calls `applyEntry`: well or air die jumps to its pose (`setTranslation`), shelf die starts a slide (`moving`). A later live pose should go in the existing `useFrame` of `OtherDiceTray`, for dice with `doc.place === 'air'`. A later `applyEntry` jump to the stored pose would fight it: skip the jump for an air die that has a live pose newer than its entry.
+- Props: `DiceTray` `trayKey, store, rolls, transact, openMenuSymbol, onMenuToggle, onMenuClose, onHover, addRef`. `OtherDiceTray` `trayKey, store`.
+- The new warning: the effect calls `setIds` when dice were added or removed.
+
+
 ## Phase 4: Dice in flight
 
 Read: decisions 7 and 8. The **Result** of Phases 1 to 3. `net/live.js` (+ test), `net/livePose.js` (+ test), `components/LiveSync.jsx`, `components/useLiveFollow.js` (the follow), `components/CharacterModel.jsx` (how a remote model follows a live pose), `components/Scene.jsx` (LiveSync, `toolLives`), `components/DiceTray.jsx`, `components/OtherDiceTray.jsx`.

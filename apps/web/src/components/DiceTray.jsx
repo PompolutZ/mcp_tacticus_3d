@@ -1,9 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { useGLTF, useTexture } from '@react-three/drei'
-import { RigidBody, TrimeshCollider, ConvexHullCollider, useRapier } from '@react-three/rapier'
-import { Color, MeshStandardMaterial, SRGBColorSpace } from 'three'
-import { assetUrl } from '../assets/index.js'
+import { RigidBody, ConvexHullCollider, useRapier } from '@react-three/rapier'
 import { D8_CORNERS, D8_DENSITY, FACES, SYMBOLS } from '../dice/faces.js'
 import {
   DIE_BODY,
@@ -21,15 +18,11 @@ import {
   topFace,
 } from '../dice/throw.js'
 import {
-  IMPORT_ROTATION,
   SHELF_SLOT_COUNT,
-  TRAYS,
-  TRAY_SCALE,
   aboveRollLimit,
   freeDropPoint,
   randomWellPoint,
   shelfSlot,
-  trayColliderArrays,
   trayToWorld,
   trayToWorldRotation,
 } from '../dice/tray.js'
@@ -42,9 +35,8 @@ import {
 } from '../dice/shelf.js'
 import { changeEntry, clearEntry, throwEntry } from '../dice/history.js'
 import { dieEntry, dieId, nextOrder, roundPose, trayCounts } from '../dice/stored.js'
-import { FRICTION } from '../physics.js'
 import { FALL_LIMIT_Y } from '../table.js'
-import DiceKeys from './DiceKeys.jsx'
+import { TrayBody, useDieLook } from './DiceTrayParts.jsx'
 
 // A tray holds at most 42 dice, shelf and well together (design, "Roll flow"). SHELF_SLOT_COUNT
 // is also 42 (one shelf place per die), so this reuses it instead of a second magic number.
@@ -146,13 +138,7 @@ export default function DiceTray({
   onHover,
   addRef,
 }) {
-  const tray = TRAYS[trayKey]
   const { rapier } = useRapier()
-
-  const trayGltf = useGLTF(assetUrl('dice/tray.glb'))
-  const trayTexture = useTexture(assetUrl('dice/tray.webp'))
-  const dieGltf = useGLTF(assetUrl('dice/d8.glb'))
-  const dieTexture = useTexture(assetUrl('dice/d8.webp'))
 
   // Every die lives here: id -> { id, order, source, was, doc, body, state, symbol, face, settling, stillTime,
   // throwTime, spawn, slot, moveFrom, moveTo, moveElapsed, moving }. source: 'roll' | 'crits' | 'reroll',
@@ -203,43 +189,7 @@ export default function DiceTray({
     return rb ? roundPose(rb.translation(), rb.rotation()) : null
   }
 
-  // Tray collider, in tray space, from the loaded mesh — the same function scripts/dice-sim.mjs
-  // uses in Node, so the app and the headless sim build the exact identical trimesh.
-  const { vertices: trayVertices, indices: trayIndices } = useMemo(() => {
-    const mesh = trayGltf.scene.getObjectByProperty('type', 'Mesh')
-    return trayColliderArrays(mesh.geometry.attributes.position.array, mesh.geometry.index.array)
-  }, [trayGltf.scene])
-
-  const trayMaterial = useMemo(() => {
-    trayTexture.colorSpace = SRGBColorSpace
-    trayTexture.flipY = false
-    const color = new Color().setRGB(...tray.color, SRGBColorSpace)
-    return new MeshStandardMaterial({ map: trayTexture, color, roughness: 0.8, metalness: 0 })
-  }, [trayTexture, tray.color])
-
-  // Visible tray mesh: a clone of the loaded scene with the tinted material, IMPORT_ROTATION and
-  // TRAY_SCALE (same mirror-and-scale fix as Terrain.jsx; the collider above already bakes both
-  // into its vertices, so it needs no extra transform of its own).
-  const trayVisual = useMemo(() => {
-    const clone = trayGltf.scene.clone()
-    clone.traverse((child) => {
-      if (!child.isMesh) return
-      child.material = trayMaterial
-      child.castShadow = true
-      child.receiveShadow = true
-    })
-    return clone
-  }, [trayGltf.scene, trayMaterial])
-
-  const dieMaterial = useMemo(() => {
-    dieTexture.colorSpace = SRGBColorSpace
-    dieTexture.flipY = false
-    return new MeshStandardMaterial({ map: dieTexture, roughness: 0.5, metalness: 0 })
-  }, [dieTexture])
-  const dieGeometry = useMemo(
-    () => dieGltf.scene.getObjectByProperty('type', 'Mesh').geometry,
-    [dieGltf.scene],
-  )
+  const { geometry: dieGeometry, material: dieMaterial } = useDieLook()
 
   // Throws (or re-throws) one die from where it is now. respawn: first move the die to a free
   // point above the well, as a new die (a die that fell off the table or went non-finite). See the
@@ -625,34 +575,17 @@ export default function DiceTray({
 
   return (
     <>
-      <RigidBody
-        type="fixed"
-        position={[tray.position.x, tray.position.y, tray.position.z]}
-        rotation={[0, tray.yaw, 0]}
-        colliders={false}
-      >
-        <TrimeshCollider
-          args={[trayVertices, trayIndices, rapier.TriMeshFlags.FIX_INTERNAL_EDGES]}
-          friction={FRICTION}
-        />
-        {/* A die in the tray does not hide the tray from the pointer: the die has no pointer
-            handlers. A tray with these handlers counts as a hit for R3F, so a click on it does not
-            clear the selection (onPointerMissed in App.jsx). */}
-        <group
-          scale={TRAY_SCALE}
-          onPointerOver={onHover && (() => onHover(true))}
-          onPointerOut={onHover && (() => onHover(false))}
-        >
-          <primitive object={trayVisual} rotation={IMPORT_ROTATION} />
-        </group>
-        <DiceKeys
-          state={keys}
-          actions={{ add, remove, roll, clear, addCrits, reroll, change }}
-          openMenuSymbol={openMenuSymbol}
-          onMenuToggle={onMenuToggle}
-          onMenuClose={onMenuClose}
-        />
-      </RigidBody>
+      <TrayBody
+        trayKey={trayKey}
+        onHover={onHover}
+        keysProps={{
+          state: keys,
+          actions: { add, remove, roll, clear, addCrits, reroll, change },
+          openMenuSymbol,
+          onMenuToggle,
+          onMenuClose,
+        }}
+      />
       {ids.map((id) => (
         <Die key={id} id={id} dice={dice} geometry={dieGeometry} material={dieMaterial} />
       ))}

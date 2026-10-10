@@ -675,8 +675,13 @@ body {
   border-color: rgba(0, 0, 0, 0.6);
 }
 
-.dice-face-key:disabled {
+.dice-face-key:disabled,
+.dice-face-key--static {
   cursor: default;
+}
+
+.dice-face-key--static:hover {
+  border-color: transparent;
 }
 
 /* "Reroll one / Change one to" menu of a face plate. Screen-space Html anchored at the plate, so

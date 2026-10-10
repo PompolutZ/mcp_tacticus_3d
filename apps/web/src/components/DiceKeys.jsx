@@ -37,7 +37,15 @@ function iconUrl(symbol) {
 // state: { well, shelf, critsAvailable }, see DiceTray. actions: the tray's add, remove, roll,
 // clear, addCrits, reroll and change. openMenuSymbol: the symbol whose menu is open on this tray,
 // or null. onMenuToggle/onMenuClose: lifted to App so Escape can close the menu.
-export default function DiceKeys({ state, actions, openMenuSymbol, onMenuToggle, onMenuClose }) {
+// disabled: the other player's tray. Every button is off, a face plate is not a button, no menu opens.
+export default function DiceKeys({
+  state,
+  actions,
+  openMenuSymbol,
+  onMenuToggle,
+  onMenuClose,
+  disabled = false,
+}) {
   const { well, shelf, critsAvailable } = state
   return (
     <>
@@ -48,6 +56,7 @@ export default function DiceKeys({ state, actions, openMenuSymbol, onMenuToggle,
               type="button"
               className="dice-key dice-key--clear"
               title="Remove all dice"
+              disabled={disabled}
               onClick={actions.clear}
             >
               Clear
@@ -56,6 +65,7 @@ export default function DiceKeys({ state, actions, openMenuSymbol, onMenuToggle,
               type="button"
               className="dice-key dice-key--step"
               title="Remove a die"
+              disabled={disabled}
               onClick={actions.remove}
             >
               −
@@ -67,6 +77,7 @@ export default function DiceKeys({ state, actions, openMenuSymbol, onMenuToggle,
               type="button"
               className="dice-key dice-key--step"
               title="Add a die"
+              disabled={disabled}
               onClick={actions.add}
             >
               +
@@ -75,6 +86,7 @@ export default function DiceKeys({ state, actions, openMenuSymbol, onMenuToggle,
               type="button"
               className="dice-key dice-key--roll"
               title="Roll the dice"
+              disabled={disabled}
               onClick={actions.roll}
             >
               Roll
@@ -83,7 +95,7 @@ export default function DiceKeys({ state, actions, openMenuSymbol, onMenuToggle,
               type="button"
               className="dice-key dice-key--crits"
               title="Add a die for each Crit on the shelf, once per roll"
-              disabled={critsAvailable === 0}
+              disabled={disabled || critsAvailable === 0}
               onClick={actions.addCrits}
             >
               +{critsAvailable} Crits
@@ -96,7 +108,8 @@ export default function DiceKeys({ state, actions, openMenuSymbol, onMenuToggle,
           key={symbol}
           symbol={symbol}
           count={shelf[symbol]}
-          menuOpen={openMenuSymbol === symbol}
+          disabled={disabled}
+          menuOpen={!disabled && openMenuSymbol === symbol}
           onToggle={() => onMenuToggle(symbol)}
           onReroll={() => {
             actions.reroll(symbol)
@@ -117,27 +130,43 @@ export default function DiceKeys({ state, actions, openMenuSymbol, onMenuToggle,
 // icon (TTS shows its count there too). A plate with no dice does nothing, because Reroll and
 // Change need a die with that face. The menu is screen-space Html (not transform), anchored at the
 // plate, so it keeps the normal HUD size at any camera distance.
-function FacePlate({ symbol, count, menuOpen, onToggle, onReroll, onChange, onMenuClose }) {
+function FacePlate({
+  symbol,
+  count,
+  disabled,
+  menuOpen,
+  onToggle,
+  onReroll,
+  onChange,
+  onMenuClose,
+}) {
   const name = SYMBOL_NAMES[symbol]
+  const plateSize = {
+    width: FACE_PLATES.width * PX_PER_INCH,
+    height: FACE_PLATES.depth * PX_PER_INCH,
+  }
   return (
     <group
       position={[FACE_PLATES.x[symbol], FACE_PLATES.y, FACE_PLATES.z]}
       rotation={PLATE_ROTATION}
     >
       <Html center transform>
-        <button
-          type="button"
-          className="dice-face-key"
-          style={{
-            width: FACE_PLATES.width * PX_PER_INCH,
-            height: FACE_PLATES.depth * PX_PER_INCH,
-          }}
-          title={`${name}: reroll one or change one`}
-          disabled={count === 0}
-          onClick={onToggle}
-        >
-          {count}
-        </button>
+        {disabled ? (
+          <div className="dice-face-key dice-face-key--static" style={plateSize} title={name}>
+            {count}
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="dice-face-key"
+            style={plateSize}
+            title={`${name}: reroll one or change one`}
+            disabled={count === 0}
+            onClick={onToggle}
+          >
+            {count}
+          </button>
+        )}
       </Html>
       {menuOpen && (
         <Html>

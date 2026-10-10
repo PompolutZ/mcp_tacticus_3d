@@ -39,6 +39,7 @@ import TacticCard from './TacticCard.jsx'
 import RosterCards from './RosterCards.jsx'
 import GameSetup from './GameSetup.jsx'
 import DiceTray from './DiceTray.jsx'
+import OtherDiceTray from './OtherDiceTray.jsx'
 import ScoreBoard from './ScoreBoard.jsx'
 import { projectFootprints } from './footprintProjection.js'
 import { matImage } from '../terrain/files.js'
@@ -88,9 +89,6 @@ function fitTableTexture(texture) {
 }
 // Tools hang this far above the table and measure by the outline cast below them
 const TOOL_HOVER_HEIGHT = 1
-// The dice tray that the number keys add dice to. Tools use the own side (ownSide). Step 10 makes this the
-// own side too.
-const PLAYER_TEAM = 'blue'
 // Two physics steps per frame. With one, a model dropped from high up sometimes gets stuck in terrain.
 const TIME_STEP = 1 / 120
 // Tokens held by one character lie on its card in a stack, in the order they were taken, so two
@@ -232,9 +230,11 @@ const OVERLAP_INTERVAL = 100
 // turnPieceRef: ref App calls with a direction for Q / E, the same pattern as characterAtRef. Scene
 // fills it with turnPiece. heldRotate: ref to a Map of the Q / E keys held down, key code → direction.
 // liftPieceRef: ref App calls for R, the same pattern. Scene fills it with liftPiece.
-// onDiceTrayHover(over): the pointer moved onto or off the player's dice tray, for the number keys.
-// addDiceRef: ref App calls with a count for the number keys over that tray. The tray fills it
-// with its addDice (DiceTray.jsx).
+// ownTraySides: the sides whose dice tray this browser plays, one in a multiplayer room, both otherwise.
+// The other tray is only drawn (OtherDiceTray.jsx).
+// onDiceTrayHover(side, over): the pointer moved onto or off an own dice tray, for the number keys.
+// addDiceRef: ref App calls with a side and a count for the number keys over that tray. Each own
+// tray puts its addDice in addDiceRef.current[side] (DiceTray.jsx).
 // diceStore: the dice record store of the table; each tray reads and writes its side (DiceTray.jsx).
 // rollsStore: the roll history list. transact(fn): fn writes several stores as one change.
 // onTokenHold(tokenId, characterId, cardPoint): a canHold token was released over a character.
@@ -314,6 +314,7 @@ export default function Scene({
   modelPositionRef,
   turnPieceRef,
   liftPieceRef,
+  ownTraySides = ['blue', 'red'],
   onDiceTrayHover,
   addDiceRef,
   diceStore,
@@ -1044,26 +1045,31 @@ export default function Scene({
         {/* Dice trays are relative to the table, not the mat: not keyed by mapId or matTurns, so a
             map change or a mat turn (which remounts Terrain above) never remounts them and their
             dice keep their state. See docs/plan-dice-rolling.md, Phase 4. */}
-        {Object.keys(TRAYS).map((trayKey) => (
-          <DiceTray
-            key={trayKey}
-            trayKey={trayKey}
-            store={diceStore}
-            rolls={rollsStore}
-            transact={transact}
-            openMenuSymbol={diceMenu?.trayKey === trayKey ? diceMenu.symbol : null}
-            onMenuToggle={(symbol) => onDiceMenuToggle(trayKey, symbol)}
-            onMenuClose={onDiceMenuClose}
-            onHover={trayKey === PLAYER_TEAM ? onDiceTrayHover : undefined}
-            addRef={
-              trayKey === PLAYER_TEAM && addDiceRef
-                ? (add) => {
-                    addDiceRef.current = add
-                  }
-                : undefined
-            }
-          />
-        ))}
+        {Object.keys(TRAYS).map((trayKey) =>
+          ownTraySides.includes(trayKey) ? (
+            <DiceTray
+              key={trayKey}
+              trayKey={trayKey}
+              store={diceStore}
+              rolls={rollsStore}
+              transact={transact}
+              openMenuSymbol={diceMenu?.trayKey === trayKey ? diceMenu.symbol : null}
+              onMenuToggle={(symbol) => onDiceMenuToggle(trayKey, symbol)}
+              onMenuClose={onDiceMenuClose}
+              onHover={(over) => onDiceTrayHover?.(trayKey, over)}
+              addRef={
+                addDiceRef
+                  ? (add) => {
+                      if (add) addDiceRef.current[trayKey] = add
+                      else delete addDiceRef.current[trayKey]
+                    }
+                  : undefined
+              }
+            />
+          ) : (
+            <OtherDiceTray key={trayKey} trayKey={trayKey} store={diceStore} />
+          ),
+        )}
 
         {/* The scoring board is relative to the table, the same as the dice trays */}
         <ScoreBoard

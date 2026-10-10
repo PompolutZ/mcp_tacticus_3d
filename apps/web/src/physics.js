@@ -17,6 +17,15 @@ export const MODEL_GROUPS = interactionGroups(
   [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
 )
 
+// Collision groups of the other player's dice. They are in group 2 and their filter leaves group 1 out,
+// so they pass through models (MODEL_GROUPS). Nothing else uses group 2. Own dice, terrain and the trays
+// stay in the default groups, which meet every group, so they still collide with the other dice. A
+// kinematic body pushes a model with no force limit, so the other dice must not touch models.
+export const OTHER_DICE_GROUPS = interactionGroups(
+  [2],
+  [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+)
+
 // Ground casts go straight down from this height, in steps of CAST_STEP.
 // One long cast can pass through a terrain hull without a hit (Rapier loses precision over a long
 // distance), so a model or tool would end up inside that piece. Short casts do not miss.

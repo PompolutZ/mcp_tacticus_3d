@@ -360,7 +360,7 @@ A model that the other browser moves must not push anything in this browser. Oth
 
 1. While the model is claimed by the other player, its colliders produce no contact forces (Rapier solver groups). A kinematic body pushes everything it touches, with no limit on the force. When a pose jumps, the body could throw a model that lies still, but only in this browser.
 2. When the claim ends (rule 6), contact forces come back and the model becomes dynamic again.
-3. Dice of the other player (step 10) stay kinematic, so they act as fixed obstacles for this browser's dice. The owner's browser agrees, because there this browser's dice push nothing.
+3. Dice of the other player (step 10) stay kinematic, so they act as fixed obstacles for this browser's dice. The owner's browser agrees, because there this browser's dice push nothing. They pass through models (`OTHER_DICE_GROUPS` in `src/physics.js`), because a kinematic body would push a model with no limit on the force. This browser's dice still bounce off models.
 4. Two dice that move at the same time, one per player, pass through each other. This is rare, so we accept it.
 
 TTS does it differently: the host simulates everything, and the other players see their own drags with a delay. With the rules above, each player sees their own drags with no delay.
@@ -409,7 +409,7 @@ Each side has its own set of tools and its own dice tray.
 |---|---|
 | Own range, movement and Toward / Away tools | Only that player |
 | Own dice tray: roll, reroll, add dice for Crits, change a face, clear | Only that player |
-| The opponent's tools and tray | Nobody else. Both players see them. The opponent's tool has no buttons or outline, and a click goes to the piece below. The opponent's dice panel shows the results and the history, with its buttons turned off |
+| The opponent's tools and tray | Nobody else. Both players see them. The opponent's tool has no buttons or outline, and a click goes to the piece below. The opponent's tray shows its dice and its counts, and its keys do nothing. The history of both players is in the Rolls panel |
 | Models, tokens, piles, tactic cards, score markers, crisis cards, map, mat turn, deploy line | Both players. Game effects such as push and throw move enemy models, so both players must be able to move any model |
 
 The other player's selection shows too. A character or crisis token that they select has an outline in their side color (blue or red), under the own selection and range marks. Their selected tool has the green or red footprint against their tool target, calculated from the poses this browser shows. While they turn a snapped range tool, the piece under their pointer has the green or red range outline. A piece that this browser does not have shows nothing. Only the other player's selection and range marks are shared this way, not hover.
