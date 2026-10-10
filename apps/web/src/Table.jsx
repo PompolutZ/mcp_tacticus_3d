@@ -9,6 +9,7 @@ import { SCHEMA, createTable, fillTable, tableSchema } from './net/doc.js'
 import { iceConfig } from './net/ice.js'
 import { createLiveHub } from './net/live.js'
 import { createOwnership } from './net/ownership.js'
+import { createPresence } from './net/presence.js'
 import { connectRoom } from './net/peer.js'
 import { createSignaling } from './net/signaling.js'
 import { syncOverChannel } from './net/syncChannel.js'
@@ -86,6 +87,8 @@ export default function Table({ room = null, onExit }) {
     // The awareness of a multiplayer room (the claims) and the ownership on it, or null
     let awareness = null
     let ownership = null
+    // What the other player looks at (selection, tools, range mark) on the same awareness, or null
+    let presence = null
     // The live hub of a multiplayer room and the live channel attached to it, or null
     let live = null
     let liveChannel = null
@@ -147,6 +150,8 @@ export default function Table({ room = null, onExit }) {
       live = null
       ownership?.destroy()
       ownership = null
+      presence?.destroy()
+      presence = null
       awareness?.destroy()
       awareness = null
       link.current?.stop()
@@ -191,6 +196,7 @@ export default function Table({ room = null, onExit }) {
         awareness = new Awareness(doc)
         awareness.setLocalState({ owns: [] })
         ownership = createOwnership({ awareness, role })
+        presence = createPresence({ awareness })
         // The flags act on the packets that this browser receives (plan 09, decision 16)
         live = createLiveHub({ drop: dropFlag(), delay: delayFlag() })
       }
@@ -259,6 +265,7 @@ export default function Table({ room = null, onExit }) {
         storageFailed: result.storageFailed,
         // The local version in a single player room and the Sandbox
         ownership: ownership ?? createOwnership({}),
+        presence: presence ?? createPresence({}),
         // The live hub of a multiplayer room, null in a single player room and the Sandbox
         live,
       })
@@ -289,6 +296,7 @@ export default function Table({ room = null, onExit }) {
       connection={connection && { ...connection, retry: () => link.current?.retry() }}
       userId={userId ?? null}
       ownership={opened.ownership}
+      presence={opened.presence}
       live={opened.live}
       onExit={handleExit}
     />

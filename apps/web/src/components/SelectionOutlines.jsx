@@ -38,6 +38,22 @@ const OUTLINES = {
     xRay: true,
     selectionLayer: 13,
   },
+  // The other player's selection, in their side color (the cursor ring of RemoteCursor.jsx). One mode for
+  // each side, because an Outline has one color.
+  otherBlue: {
+    ...LINE,
+    visibleEdgeColor: 0x2980b9,
+    hiddenEdgeColor: 0x15405c,
+    xRay: true,
+    selectionLayer: 15,
+  },
+  otherRed: {
+    ...LINE,
+    visibleEdgeColor: 0xc0392b,
+    hiddenEdgeColor: 0x601c15,
+    xRay: true,
+    selectionLayer: 16,
+  },
   // Two models overlap (characters/overlap.js). The red of outOfRange.
   overlap: {
     ...LINE,
@@ -178,10 +194,13 @@ export function useOutline(ref, mode) {
 }
 
 // Outline mode of a piece from its selected and hovered state, its range mark ('inRange',
-// 'outOfRange' or none, see RangeMark in RulerTool.jsx) and its overlap mark. The overlap mark wins,
-// so a dragged model that is selected still shows it. The range mark comes next, because it shows only
-// while a tool measures against the piece under the pointer. Then selected wins over hovered.
-export function outlineMode(selected, hovered, rangeMark = null, overlap = false) {
+// 'outOfRange' or none, see RangeMark in RulerTool.jsx) and its overlap mark. The order: overlap, the range
+// mark (Scene gives the own one, else the other player's), selected, the other player's selection, hovered.
+// other: the side ('blue' or 'red') of the other player who has the piece selected, or null.
+export function outlineMode(selected, hovered, rangeMark = null, overlap = false, other = null) {
   if (overlap) return 'overlap'
-  return rangeMark ?? (selected ? 'selected' : hovered ? 'hovered' : null)
+  if (rangeMark) return rangeMark
+  if (selected) return 'selected'
+  if (other) return other === 'red' ? 'otherRed' : 'otherBlue'
+  return hovered ? 'hovered' : null
 }

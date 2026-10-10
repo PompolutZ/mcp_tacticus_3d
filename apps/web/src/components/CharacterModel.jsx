@@ -227,6 +227,7 @@ function standeeScene(front, back, radius) {
 // A drag uses it for the mark and for the drop (see freePlace).
 // onSlideStart(): a Throw or Push starts (startSlide). With onDragStart, Scene counts both as a move.
 // rangeMark: 'inRange' or 'outOfRange' while a range tool marks the model (RangeMark in RulerTool.jsx)
+// otherSelected: the side of the other player who has the model selected, or null
 // position: where the body starts. Read only on mount: RigidBody moves its body when its position
 // prop changes, and the spawn position follows the tray (Scene.jsx), which can move later.
 // quaternion: the rotation the body starts with, [x, y, z, w], or undefined for none. Read only on mount,
@@ -242,6 +243,7 @@ function CharacterFigure({
   teamColor = 'red',
   selected = false,
   rangeMark,
+  otherSelected = null,
   overlap = false,
   overlapsAt,
   onSelect,
@@ -583,7 +585,7 @@ function CharacterFigure({
     }
   }, [scene, showOverlap])
 
-  useOutline(figureRef, outlineMode(selected, hovered, rangeMark, showOverlap))
+  useOutline(figureRef, outlineMode(selected, hovered, rangeMark, showOverlap, otherSelected))
   // A click selects the model. Only a selected model moves by a drag.
   useHoverCursor(hovered, selected ? 'grab' : 'pointer')
 

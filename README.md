@@ -108,7 +108,7 @@ Discrete changes show on the other screen at once: mat turn, crisis cards, token
 
 Moves show live. When one player drags a model, a tool, a crisis token, a character token on the table, a pile, a tactic card or a score marker, the other player sees it move, with a footprint on the table. A piece that one player moves cannot be moved by the other player until it rests. If both start at the same moment, one of them keeps the piece. The other player's cursor shows as a ring on the table, in the color of that side. Dice are not shared yet (step 10): each browser has its own dice.
 
-Each player uses only their own tools. The other player's tools show on the table in the other color. They have no buttons, and a click goes to the piece below. The tools are saved with the room: after **← Lobby** and a new open, they are where they were.
+Each player uses only their own tools. The other player's tools show on the table in the other color. They have no buttons, and a click goes to the piece below. The tools are saved with the room: after **← Lobby** and a new open, they are where they were. The other player's selected character or crisis token has an outline in their color (blue or red). Their selected tool shows the green or red footprint, and the piece that their turning range tool measures has the green or red outline, as on their screen.
 
 A player who has the Red seat sees the Red side at the bottom. Space returns to this view.
 

@@ -118,6 +118,7 @@ function AffiliationMarker({ affiliation, x, radius }) {
 // onTurn(yaw): called once, when a drag ends, to commit the new pose to App state.
 // onHover(over): called when the pointer moves onto the token (true) and off it (false)
 // rangeMark: 'inRange' or 'outOfRange' while a range tool marks the token (RangeMark in RulerTool.jsx)
+// otherSelected: the side of the other player who has the token selected, or null
 // onHold(characterId, point): a canHold token (Asset, Civilian, a Source's supply) was dragged and
 // released over a character (model, tray card, or the tray's DOM controls strip). point: the table
 // point { x, z } under the pointer at the release.
@@ -140,6 +141,7 @@ export default function CrisisToken({
   token,
   selected,
   rangeMark,
+  otherSelected = null,
   onSelect,
   onHover,
   onMove,
@@ -337,7 +339,7 @@ export default function CrisisToken({
     objectRef?.(obj)
   }
 
-  useOutline(diskRef, outlineMode(selected, hovered, rangeMark))
+  useOutline(diskRef, outlineMode(selected, hovered, rangeMark, false, otherSelected))
   // A click selects the token. Only a selected token that can move moves by a drag.
   useHoverCursor(hovered, selected && token.canMove ? 'grab' : 'pointer')
 

@@ -40,3 +40,15 @@ export function toggleSelectPiece(selection, piece) {
 export function selectedId(selection, kind) {
   return selection.find((p) => p.kind === kind)?.id ?? null
 }
+
+// The piece keys of the selected character and token, in the order of the selection (the last one is the
+// tool target), for the other player (net/presence.js). Terrain is left out: only unlocked terrain can be
+// selected, to edit it. A character is a model id, a token a crisis token id.
+export function presenceSelection(selection) {
+  return selection.filter(isToolPiece).map((p) => `${p.kind}:${p.id}`)
+}
+
+// The kinds of the selected tools, in a fixed order
+export function presenceTools(tools) {
+  return ['range', 'move', 'angle'].filter((kind) => tools[kind])
+}

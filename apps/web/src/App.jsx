@@ -70,6 +70,8 @@ import {
   NO_TOOLS,
   deselectPiece,
   isToolPiece,
+  presenceSelection,
+  presenceTools,
   selectPiece,
   selectedId,
 } from './selection.js'
@@ -226,6 +228,7 @@ function canvasEvents(store) {
 // connection: { state, peer, versionMismatch, retry } of a multiplayer room (net/peer.js, Table.jsx), or null.
 // userId: the id of the signed-in user, who owns the stored squad of a multiplayer room.
 // ownership: the claims on pieces (net/ownership.js). The drags claim their piece through it.
+// presence: what the players look at (net/presence.js). Scene writes the range mark; this writes the selection.
 // live: the live hub of a multiplayer room (net/live.js), or null. It goes to Scene.
 // onExit(): opens the lobby. See
 // docs/feature-rooms.md and docs/plans/implement-backend/05-yjs-state.md.
@@ -237,6 +240,7 @@ export default function App({
   connection = null,
   userId = null,
   ownership = null,
+  presence = null,
   live = null,
   onExit,
 }) {
@@ -332,6 +336,13 @@ export default function App({
   // movement tool and the Toward / Away tool can all be selected at the same time.
   const [selection, setSelection] = useState(NO_PIECES)
   const [selectedTools, setSelectedTools] = useState(NO_TOOLS)
+  // The other player sees the selection and the selected tools (decision 24)
+  useEffect(() => {
+    presence?.set({
+      selection: presenceSelection(selection),
+      tools: presenceTools(selectedTools),
+    })
+  }, [presence, selection, selectedTools])
   // Character or token under the pointer: { kind, id } | null. Only the tool keys read it, so it is a ref.
   const hoveredRef = useRef(null)
   // Pan and turn keys held down: key code → screen direction. KeyboardCamera moves the camera while one is held.
@@ -1515,6 +1526,7 @@ export default function App({
               ownSide={ownSide}
               onToolStore={handleToolStore}
               ownership={ownership}
+              presence={presence}
               live={live}
               pieceLives={pieceLives}
               angleSpawn={angleSpawn}

@@ -146,6 +146,8 @@ const noSubscribe = () => () => {}
 const noKeys = () => NO_KEYS
 const noDrag = () => null
 const noSpawn = () => null
+const NO_PRESENCE = { selection: [], tools: [], mark: null }
+const noPresence = () => NO_PRESENCE
 
 // Two stored poses are the same (both rounded the same way, rooms/table.js, poseOf)
 function samePose(a, b) {
@@ -245,7 +247,8 @@ const OVERLAP_INTERVAL = 100
 // undefined. A model with a pose starts there instead of on its tray. Read when the model mounts.
 // onModelRest(modelId, pose): the body of a model fell asleep. App stores the pose in the table document, so
 // the model starts there when the table opens again (docs/plans/implement-backend/05-yjs-state.md, decision 8).
-// ownership: the claims on pieces (net/ownership.js). Pieces without a body pass it to the drag code. Scene
+// presence: what the other player looks at (net/presence.js). Scene writes the own range mark and reads the other's
+// selection and mark. ownership: the claims on pieces (net/ownership.js). Pieces without a body pass it to the drag code. Scene
 // claims a model before R, Q / E, Throw, Place and a drag, releases it when the body rests, and writes the rest
 // pose (plan 09, decisions 5 to 9).
 // live: the live hub of a multiplayer room (net/live.js), or null. With it, Scene mounts LiveSync and the cursor.
@@ -325,6 +328,7 @@ export default function Scene({
   startPose,
   onModelRest,
   ownership = null,
+  presence = null,
   live = null,
   pieceLives = null,
 }) {
@@ -395,6 +399,16 @@ export default function Scene({
     ownership?.subscribe ?? noSubscribe,
     ownership?.otherSpawn ?? noSpawn,
   )
+  // What the other player has selected and which piece their range tool marks (decisions 24 and 25)
+  const otherLook = useSyncExternalStore(
+    presence?.subscribe ?? noSubscribe,
+    presence?.other ?? noPresence,
+  )
+  useEffect(() => {
+    presence?.set({
+      mark: rangeMark && { key: `${rangeMark.kind}:${rangeMark.id}`, mode: rangeMark.mode },
+    })
+  }, [presence, rangeMark])
   // Piece key → time (s) of the last claim call of this browser, for the 0.2 s that a claim lasts
   const claimTimes = useRef(new Map())
   // The ownership that the models get: each claim sets the time of the claim
@@ -842,9 +856,20 @@ export default function Scene({
   const placeTarget = toolModel(selection.find((piece) => piece.kind === 'character'))
 
   // Outline mode of the range mark on a piece, or null
+  // The own mark wins over the other player's (decision 24)
   function rangeMarkOf(kind, id) {
-    return rangeMark?.kind === kind && rangeMark.id === id ? rangeMark.mode : null
+    if (rangeMark?.kind === kind && rangeMark.id === id) return rangeMark.mode
+    return otherLook.mark?.key === `${kind}:${id}` ? otherLook.mark.mode : null
   }
+  // The side of the other player who has the piece selected, or null
+  function otherSelectedOf(kind, id) {
+    return otherLook.selection.includes(`${kind}:${id}`) ? otherSide : null
+  }
+  // The other player's tool target: the last key of their selection, as a tool model
+  const otherKey = otherLook.selection.at(-1)
+  const otherTarget = otherKey
+    ? (toolModels.find((model) => `${model.kind}:${model.id}` === otherKey) ?? null)
+    : null
 
   // The open direction of the angle tool when it is snapped to model, else null. A movement tool snapped
   // to the same character points within 45° of it.
@@ -1088,6 +1113,7 @@ export default function Scene({
               floorY={floorY}
               selected={selectedTokenId === tok.id}
               rangeMark={rangeMarkOf('token', tok.id)}
+              otherSelected={otherSelectedOf('token', tok.id)}
               onSelect={() => toggleSelect('token', tok.id)}
               onHover={
                 tok.heldBy
@@ -1261,6 +1287,7 @@ export default function Scene({
             teamColor: ch.teamColor,
             selected: selectedModelId === model.id,
             rangeMark: rangeMarkOf('character', model.id),
+            otherSelected: otherSelectedOf('character', model.id),
             overlap: overlapIds.has(model.id),
             overlapsAt: (x, y, z) =>
               overlapsAny({ x, y, z, radius: BASE_DIAMETER[model.base] / 2 }, modelBases(model.id)),
@@ -1427,6 +1454,15 @@ export default function Scene({
                   kind={kind}
                   entry={entry}
                   team={otherSide}
+                  selected={otherLook.tools.includes(kind)}
+                  target={otherTarget}
+                  rangeFrom={
+                    kind === 'range' && entry.which === 1 && entry.snap
+                      ? (toolModels.find(
+                          (model) => model.kind === entry.snap.kind && model.id === entry.snap.id,
+                        ) ?? null)
+                      : null
+                  }
                   getLive={() => received.current?.tool(kind) ?? null}
                 />
               </Suspense>

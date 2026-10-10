@@ -28,7 +28,6 @@ In the step:
 
 Left for later:
 - Dice: step 10. Until then, each browser has its own dice, and the number keys add dice to the Blue tray in both browsers.
-- The other player's selection.
 - A dropped network, "Reconnecting": step 11.
 
 ## Rules for every phase
@@ -59,7 +58,7 @@ Left for later:
 | `tools` in the document | Record, depth 1: `tools.<side>.<kind>`. `side` is `blue` or `red`. `kind` is `range`, `move` or `angle` |
 | Tool entry | `{ which, spawn, at?, pose?, turn?, snap?, mode? }`. `which`: the range number (1 to 5), the movement type (`short`, `medium`, `long`), or `true` for `angle`. `spawn`: a random id, new at each spawn. `at`: `{ x, z }`, the point of a free spawn (decision 19). `pose`: `{ x, y, z, yaw }`. `turn`: `{ right, left }`, the bend. `snap`: `{ kind, id, side, across }` or `null`. `mode`: `away` or `toward` |
 | Own tool side | The own seat in a multiplayer room. `blue` in a single player room and the Sandbox |
-| Awareness state | `{ owns: [piece key, …], drag: piece key or null, spawn: { key, tokenKey } or null }` |
+| Awareness state | `{ owns: [piece key, …], drag: piece key or null, spawn: { key, tokenKey } or null, selection: [piece key, …], tools: [kind, …], mark: { key, mode } or null }` |
 | Live packet | JSON: `{ s, p?, c? }`. `s`: a sequence number. `p`: piece key → numbers. A model: `[x, y, z, qx, qy, qz, qw]`. A tool: `[x, y, z, yaw, right, left]`. A crisis token: `[x, z, yaw]`. A loose token, a pile, a tactic card, a marker: `[x, z]`. `c`: `[x, y, z]`, or `null` when the pointer left the table. Only the parts that changed |
 | Packet rounding | Positions to 3 decimals (0.001"). Rotations, yaw and bend to 4 decimals |
 | Times | A packet every 33 ms at most (about 30 per second). The cursor every 100 ms at most. Follow time 0.05 s. Tool rest 0.3 s. A model claim lasts at least 0.2 s. Traffic read every 60 s, logged every 10 min |
@@ -93,6 +92,7 @@ apps/web/src/
   net/doc.js                    + tools
   net/syncChannel.js            + awareness messages (type 1)
   net/ownership.js              claims, owner, writer (decisions 5 to 7)
+  net/presence.js               the other player's selection, selected tools and range mark (decisions 24, 25)
   net/peer.js                   + the live channel, traffic()
   net/live.js                   the live hub: packets, sequence, rounding, ?drop, ?delay (decisions 14, 16)
   net/traffic.js                bytes of the selected candidate pair from getStats (decision 17)
@@ -947,6 +947,30 @@ Checks:
 User, after this phase: checks 31 to 34.
 
 ### Result
+
+What changed:
+- `net/presence.js` (new): `createPresence({ awareness })` with `set(fields)`, `other()`, `subscribe`, `destroy`. The fields are `selection` (piece keys), `tools` (kinds) and `mark` (`{ key, mode }` or `null`). `other()` is the same object until a field changes. It sets only its own fields with `setLocalStateField`, so it and `ownership.js` share the awareness state. A field that equals the current one is not sent again. The local version does nothing and gives an empty `other()`. Tests in `presence.test.js`: both ways, the same object, a player who left, sharing with ownership, the local version.
+- `selection.js`: `presenceSelection` (character and token keys in selection order, terrain left out) and `presenceTools`.
+- `Table.jsx`: one presence per table on the awareness, next to the ownership. It goes to `App` and `Scene`. A single player room and the Sandbox get the local version.
+- `App.jsx`: an effect writes the own selection and selected tools.
+- `Scene.jsx`: writes the own range mark from `rangeMark`. Reads `other()`: `rangeMarkOf` gives the own mark, else the other player's. `otherSelectedOf` gives the side of the other player for a piece. The other tool target is the last key of their selection. `OtherTool` gets `selected`, `target` and `rangeFrom`.
+- `SelectionOutlines.jsx`: modes `otherBlue` and `otherRed` (the side colors of the cursor ring). `outlineMode(selected, hovered, rangeMark, overlap, other)`: overlap, range mark, selected, other, hovered.
+- `CharacterModel.jsx`, `CrisisToken.jsx`: prop `otherSelected` goes to `outlineMode`.
+- `RulerTool.jsx`: `OtherToolBody` passes `selected`, `target` and `rangeFrom` to `ToolFootprint`.
+- Docs: "Names" (awareness state, Files), "Scope", `docs/feature-peer-to-peer.md` ("Players" row, "What each player controls"), `README.md`.
+
+Choices that the plan did not fix:
+- Two outline modes (`otherBlue`, `otherRed`) in place of one `other`, because an Outline has one color. `outlineMode` takes the side.
+- The mark key is `<kind>:<id>`, the same as a piece key.
+- `rangeFrom` for the other tool: only when the entry is range 1 and has a `snap`. The model is found by `snap.kind` and `snap.id`.
+- `presence.set` is called from an effect when the selection, the selected tools or the mark change.
+- Only the first other client is read.
+- No tests for `outlineMode` and the selection helpers: they live in files that load three.js or have no test file.
+
+Checks:
+- `pnpm --filter web test`: 239 pass, 0 fail.
+- `pnpm --filter web build`: passes.
+- `pnpm format`: done. `pnpm lint`: 0 errors, 36 warnings (the same as before).
 
 ## User
 

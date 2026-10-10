@@ -1511,14 +1511,24 @@ function Tool({
 const noRaycast = () => {}
 
 // The other player's tool (plan 09, decisions 11 and 14): the shape of Tool without its controls. The side's
-// tint, the plain footprint (no target), no buttons, no hover, no outline, no range mark. The pointer does
+// tint, the footprint with the other player's target (selected, target, rangeFrom), no buttons, no hover, no outline, no range mark. The pointer does
 // not hit it, so a click goes to the piece below. A kinematic sensor, the same as Tool.
 // It goes to its latest pose, from the live channel or from the entry, whichever came last: the part
 // 1 − e^(−dt / 0.05) of the way each frame, for the position, the yaw and the bend. A live pose that came
 // before the tool mounted or before the last change of the entry does not count.
 // parts, tip, halfWidth: as in Tool. defaultTurn: the bend when the entry has none.
 // getLive(): { pose: [x, y, z, yaw, right, left], time } of the tool from LiveSync, or null. time: performance.now() ms.
-function OtherToolBody({ parts, tip, halfWidth, defaultTurn, entry, getLive }) {
+function OtherToolBody({
+  parts,
+  tip,
+  halfWidth,
+  defaultTurn,
+  entry,
+  getLive,
+  selected = false,
+  target = null,
+  rangeFrom = null,
+}) {
   const rigidRef = useRef()
   const { pose } = entry
   const entryTurn = entry.turn ?? defaultTurn
@@ -1610,13 +1620,15 @@ function OtherToolBody({ parts, tip, halfWidth, defaultTurn, entry, getLive }) {
         turn={shown.current.turn}
         halfLength={tip}
         halfWidth={halfWidth}
-        selected={false}
+        selected={selected}
+        target={target}
+        rangeFrom={rangeFrom}
       />
     </>
   )
 }
 
-function OtherRange({ number, team, entry, getLive }) {
+function OtherRange({ number, team, entry, getLive, ...look }) {
   const mesh = number === 1 ? 2 : number
   const parts = useRangeParts(mesh, team)
   return (
@@ -1627,11 +1639,12 @@ function OtherRange({ number, team, entry, getLive }) {
       defaultTurn={STRAIGHT}
       entry={entry}
       getLive={getLive}
+      {...look}
     />
   )
 }
 
-function OtherMovement({ type, team, entry, getLive }) {
+function OtherMovement({ type, team, entry, getLive, ...look }) {
   const parts = useMovementParts(type, team)
   return (
     <OtherToolBody
@@ -1641,11 +1654,12 @@ function OtherMovement({ type, team, entry, getLive }) {
       defaultTurn={STRAIGHT}
       entry={entry}
       getLive={getLive}
+      {...look}
     />
   )
 }
 
-function OtherAngle({ team, entry, getLive }) {
+function OtherAngle({ team, entry, getLive, ...look }) {
   const parts = useMovementParts('long', team)
   return (
     <OtherToolBody
@@ -1655,6 +1669,7 @@ function OtherAngle({ team, entry, getLive }) {
       defaultTurn={ANGLE_TURN}
       entry={entry}
       getLive={getLive}
+      {...look}
     />
   )
 }
@@ -1662,10 +1677,14 @@ function OtherAngle({ team, entry, getLive }) {
 // kind: 'range', 'move' or 'angle'. entry: a tool entry of the other side that has a pose.
 // team: the other side, for the tint. Scene keys it by kind, which, and spawn.
 // getLive(): the live pose of this tool from LiveSync (see OtherToolBody), or null.
-export function OtherTool({ kind, entry, team, getLive }) {
+// selected: the other player has this tool selected. target: their tool target (a tool model), or null.
+// rangeFrom: on their range 1 tool while snapped, the snapped model, else null (see ToolFootprint).
+export function OtherTool({ kind, entry, team, getLive, ...look }) {
   if (kind === 'range')
-    return <OtherRange number={entry.which} team={team} entry={entry} getLive={getLive} />
+    return <OtherRange number={entry.which} team={team} entry={entry} getLive={getLive} {...look} />
   if (kind === 'move')
-    return <OtherMovement type={entry.which} team={team} entry={entry} getLive={getLive} />
-  return <OtherAngle team={team} entry={entry} getLive={getLive} />
+    return (
+      <OtherMovement type={entry.which} team={team} entry={entry} getLive={getLive} {...look} />
+    )
+  return <OtherAngle team={team} entry={entry} getLive={getLive} {...look} />
 }

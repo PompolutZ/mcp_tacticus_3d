@@ -252,7 +252,7 @@ The data has four categories. There is also local state, which is not sent.
 | 2 | Set-up: changes once per game | rosters, crisis cards, map, deploy line | Yjs document | `sync` |
 | 3 | Rare changes | rest poses of models and tools; the places of tokens, cards and markers; card flips; damage and power; healthy or injured side; tokens gained or lost; mat turns; dice results and roll history | Yjs document | `sync` |
 | 4 | Presence: what the other player does now | dice in the air (step 10); every piece that a player drags (model, tool, crisis token, character token on the table, pile, tactic card, score marker); cursor | Not stored | `live` |
-| | Players | name, side (blue or red), claims (`owns`), the model that the player drags now (`drag`, for the deploy tool), the new token or pile that the player drags now (`spawn`: `{ key, tokenKey }`). Not built yet: selection | Yjs awareness | `sync` |
+| | Players | name, side (blue or red), claims (`owns`), the model that the player drags now (`drag`, for the deploy tool), the new token or pile that the player drags now (`spawn`: `{ key, tokenKey }`). the selected character and crisis token (`selection`, piece keys, the last is the tool target), the selected tool kinds (`tools`), and the piece that a turning range tool marks (`mark`: `{ key, mode }`) | Yjs awareness | `sync` |
 | | Local | camera, hover, labels, debug mode, open card popup, open dice menu | React state, as today | Not sent |
 
 The same object can be in two categories at different times. While a player drags a model, its pose is category 4. When the model stops, its rest pose goes into the document as category 3. A piece without a body (a token, a card, a marker, a pile) writes its new place into the document at the drop.
@@ -414,6 +414,8 @@ Each side has its own set of tools and its own dice tray.
 | Own dice tray: roll, reroll, add dice for Crits, change a face, clear | Only that player |
 | The opponent's tools and tray | Nobody else. Both players see them. The opponent's tool has no buttons or outline, and a click goes to the piece below. The opponent's dice panel shows the results and the history, with its buttons turned off |
 | Models, tokens, piles, tactic cards, score markers, crisis cards, map, mat turn, deploy line | Both players. Game effects such as push and throw move enemy models, so both players must be able to move any model |
+
+The other player's selection shows too. A character or crisis token that they select has an outline in their side color (blue or red), under the own selection and range marks. Their selected tool has the green or red footprint against their tool target, calculated from the poses this browser shows. While they turn a snapped range tool, the piece under their pointer has the green or red range outline. A piece that this browser does not have shows nothing. Only the other player's selection and range marks are shared this way, not hover.
 
 A tool can snap to any model or token, also of the opponent, because players measure range to enemy models.
 
