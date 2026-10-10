@@ -354,6 +354,8 @@ Known bug, found on 2026-10-10: Bob (Red) holds the pointer over his dice tray a
 Done when: each player rolls in their own tray, and the other player sees the dice fly and land on the same face.
 
 **Result:** Built on 2026-10-10 in four phases. Dice and the roll history are in the document (`dice`, `rolls`). Results stay on the shelf in the room. The own tray sends live poses with the key `die:<id>`. The other tray follows them only while the entry is `air`, and only poses that arrived after it. The other dice pass through models. The number keys work on any own tray. Details are in `docs/plans/implement-backend/10-dice.md`.
+- Phases 5 and 6 came from the user checks: tilted dice wait until the flat dice are on the shelf, and the face plate count in a `span`. The user checks passed on 2026-10-10.
+- Open, postponed by the user on 2026-10-10: in Safari, the face plate counts of the Red tray are at the bottom of the plate (`10-dice.md`, Phase 6).
 
 ## Step 11: Reconnect
 
