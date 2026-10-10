@@ -203,6 +203,27 @@ apps/web/src/
     - When Select squad turns on, LiveSync sends `null` once, so the ring goes away on the other screen. It does not wait for a pointer move.
     - When Select squad turns off, the cursor is sent again after the next pointer move.
 
+22. **New tokens are live.** The user chose this on 2026-10-10, after check 21. Today a new token from a Give source, the Library, a pile or a supply pile has no id before the drop, so the other screen sees only the cursor. An id alone is not enough: the other browser does not have the piece, so it does not know what to draw.
+    - The token drag makes the id of the new piece at pointerdown (`crypto.randomUUID()`), and its piece key: `loose:<id>` for a character token (Give source, Library single, pile take), `pile:<id>` for a new pile (Library, Pile mode), `token:<id>` for a supply token. The drag code claims the key only after the threshold, so a click claims nothing.
+    - The awareness state gets `spawn`: `{ key, tokenKey }` while a new piece is dragged, else `null`. `tokenKey` is the token key of the drag (a character token key, or the crisis token key of the supply). The key prefix gives the kind. The drag sets it after the threshold and sets `null` at the end, at Escape and at a refused drag.
+    - LiveSync sends the drag point under the key, the same as for a table token.
+    - The other browser draws a preview of the new piece at the live pose, the same look and height as the own preview, with its footprint. It shows from the first pose. While the pointer is off the table, the own browser sends no pose, so the preview stays at the last one.
+    - The drop writes the piece into the document with the same id, then the claim and `spawn` end. Both go over the `sync` channel in that order. So the real piece shows before the preview goes, with no jump.
+    - Escape, a drop over a HUD panel, a drop off the table, and a drop on a character write no new table piece. The preview goes when `spawn` ends. A drop on a character gives the token to the character, as today. A supply token on a character: the character holds a crisis token with the new id.
+    - The key is new and random, so the other player cannot claim it. No tie.
+
+23. **The footprint of a model that the other player moves.** Found in check 14. Today the other screen shows the drag footprint under every model that follows live poses, so also during a lift, a Q / E turn, Throw, Push and Place. The own screen shows it only during a drag. From now on the other screen shows it only while `otherDrag()` is that model's key (decision 20).
+
+24. **The other player's selection.** The user asked for this on 2026-10-10.
+    - The awareness state gets `selection`: the piece keys of the own selected character and crisis token, in the order of `selection.js` (the last one is the tool target). Terrain is left out: only unlocked terrain can be selected, to edit it. It also gets `tools`: the kinds of the own selected tools.
+    - The other browser draws an outline on the other player's selected pieces, in that player's side color (the colors of the cursor ring). New outline mode `other`.
+    - One piece, several marks. The order: `overlap`, a range mark (own, then the other player's), `selected`, `other`, `hovered`.
+    - A piece that the other browser does not have shows nothing.
+
+25. **The other player's range marks.** The user asked for this on 2026-10-10. The own screen has two marks:
+    - The footprint of a selected tool turns green or red against the tool target (`ToolFootprint`). The other browser calculates the same thing for `OtherTool`, with the other player's `tools` and tool target from decision 24, and for R1 the snapped piece of the entry. It uses the poses it shows, so it needs no more data. Its colors can lag the other screen by the follow time.
+    - While a player turns a snapped range tool, the piece under the pointer gets a green or red outline (`RangeMark`). The piece depends on the other player's pointer, so the other browser cannot calculate it. The awareness state gets `mark`: `{ key, mode }` or `null`, from the `onChange` of `RangeMark`. The other browser draws it with the `inRange` or `outOfRange` outline.
+
 ## Phase 1: Models pass through models
 
 Read: decision 1. `README.md` ("Known bugs", and the parts about dragging a model). `docs/feature-dice-rolling.md` ("Collisions"). `src/physics.js`, `components/CharacterModel.jsx`, `components/Scene.jsx` (models, `toolModels`), `components/SelectionOutlines.jsx`, `components/RulerTool.jsx` (`moveBase`, `handleThrow`, only to see where a model moves).
@@ -810,7 +831,7 @@ Done. Work items 5 to 8. Docs only, no code change.
 - `README.md`: live moves, the other player's tools and cursor, the tools saved with the room, `?drop` and `?delay`, the traffic lines.
 - `docs/feature-rooms.md` ("Storage"): the tools are in the document.
 - `docs/plans/implement-backend.md`: **Result** under step 9, and the dice notes under step 10.
-- Check 23 (the bytes of a local game) is open. It is for the user. Put the numbers here when you have them.
+- Check 23 (the bytes of a local game): the user measured it on 2026-10-10. One browser logged 139.2 KB sent and 233.0 KB received in 10 min, relayed. That is about 37 KB per minute, so about 4.5 MB for a 2-hour game without dice. The estimate in "Traffic per game" is 22 MB without dice. Open: the pair is not known, and why a pair on one Mac went through TURN, not direct.
 
 Choices that the plan did not fix:
 - The first design said the tools are player bodies that the owner simulates. They are sensor bodies that the owner moves, and the other browser follows the live pose. They are never claimed. The doc says so.
@@ -861,6 +882,48 @@ Checks:
 - `pnpm --filter web test`: 229 pass, 0 fail.
 - `pnpm --filter web build`: passes.
 - `pnpm format`: done. `pnpm lint`: 0 errors, 36 warnings (the same as before).
+
+## Phase 9: New tokens are live, the footprint of the other player's model
+
+Read: decisions 18, 20, 22 and 23. `App.jsx` (`startTokenDrag`, `handleTokenRelease`, `handleSupplyTake`), `drag/pointerDrag.js`, `net/ownership.js` (+ test), `net/livePose.js`, `components/Scene.jsx` (`TokenDragPreview` and its children, LiveSync), `components/TokenDragPreview.jsx`, `components/CharacterModel.jsx` (the remote mode and its footprint), `components/LiveSync.jsx`.
+
+Work:
+1. `net/ownership.js`: `setSpawn(spawn | null)` and `otherSpawn()`, the same way as `setDrag` and `otherDrag`. `subscribe` also runs on a change of it. The local version does nothing and gives `null`. Tests.
+2. `App.jsx`, `startTokenDrag`: a new piece gets its id and key (decision 22). The key goes to `startPointerDrag`, and `livePose` gives the drag point. `onStart` sets `spawn`. The end, Escape and a refused drag set `null`. `handleTokenRelease` uses the id of the drag for the new table token, the new pile and the supply token (`handleSupplyTake` takes it). The document write comes before `setSpawn(null)` and the release of the claim.
+3. `net/livePose.js`: if a `token:` key needs a yaw, a new supply token sends the yaw that its own preview has.
+4. `Scene.jsx`: the preview of the other player's `spawn`, at the live pose of its key, with the look and the footprint of the own preview for that kind. Reuse `TokenDragPreview` with a pose source in place of the pointer, or a small component next to it.
+5. `CharacterModel.jsx`, `Scene.jsx`: a model that follows live poses shows its drag footprint only while `otherDrag()` is its key (decision 23).
+6. `drag/pointerDrag.js` line 59: the console shows "Unable to preventDefault inside passive event listener invocation". R3F listens to `pointerdown` as a passive listener, so `preventDefault` on an R3F event does nothing and logs this. Call it only on a DOM event. Check that a drag from a Library chip (a DOM element) still does not start the browser's image drag or text selection.
+7. Docs: "Names" (awareness state `{ owns, drag, spawn }`). `docs/feature-peer-to-peer.md` ("Players" row, "Moving objects (physics)": new pieces). The "Scope" of this plan: the new token is no longer left for later.
+
+Checks:
+- `pnpm --filter web test`, `pnpm --filter web build` pass.
+- `pnpm format`, `pnpm lint`: no new errors.
+
+User, after this phase: checks 27 to 30.
+
+### Result
+
+## Phase 10: The other player's selection and range marks
+
+Read: decisions 24 and 25. `selection.js`, `App.jsx` (selection, selected tools), `components/Scene.jsx` (`rangeMark`, `toolTarget`, `OtherTool`), `components/SelectionOutlines.jsx`, `components/CharacterModel.jsx`, `components/CrisisToken.jsx`, `components/RulerTool.jsx` (`RangeMark`, `ToolFootprint`, `OtherToolBody`), `components/RemoteCursor.jsx` (side colors), `net/ownership.js`.
+
+Work:
+1. `net/presence.js`, new plain module: the fields `selection`, `tools` and `mark` of the own awareness state, and those of the other player. `set(fields)`, `other()` gives `{ selection, tools, mark }` (the same object until a field changes), `subscribe`, `destroy`. A version without awareness for a single player room. Tests. It is separate from `ownership.js`, because it is about what a player looks at, not about who moves a piece.
+2. `Table.jsx`: one presence per table, next to the ownership. It goes to App and Scene.
+3. `App.jsx` or `Scene.jsx`: writes the own selection (character and token keys, in order), the selected tool kinds, and the range mark (`{ key, mode }` or `null`).
+4. `SelectionOutlines.jsx`: the mode `other`, in the other side's color. `outlineMode` takes the other player's selection and range mark, in the order of decision 24.
+5. `CharacterModel.jsx`, `CrisisToken.jsx`: the outline mode from step 4.
+6. `RulerTool.jsx`, `OtherToolBody`: `ToolFootprint` gets `selected` (the kind is in the other player's `tools`), `target` (the other player's tool target, as a tool model) and `rangeFrom` (R1: the snapped piece of the entry). The footprint colors then follow the same rule as the own tool.
+7. Docs: "Names" (awareness state `{ owns, drag, spawn, selection, tools, mark }`). `docs/feature-peer-to-peer.md` ("Players" row: the selection is built; "What each player controls"). `README.md`: the other player's selection and range marks.
+
+Checks:
+- `pnpm --filter web test`, `pnpm --filter web build` pass.
+- `pnpm format`, `pnpm lint`: no new errors.
+
+User, after this phase: checks 31 to 34.
+
+### Result
 
 ## User
 
@@ -915,6 +978,18 @@ After Phase 8, in one pair:
 25. Deploy Lock on. Alice drags one of her models. Bob sees the R3 deploy tool on Alice's edge, and it moves with the model. It goes away at the drop. Alice turns a model with Q / E: no deploy tool on either screen. Then the same from Bob to Alice.
 26. Alice turns Select squad on. Her ring goes away on Bob's screen. She moves the pointer over her roster cards and the table: Bob sees no ring. She turns it off and moves the pointer: the ring shows again.
 
+After Phase 9, in one pair:
+27. Alice drags a token from a Give source over the table. Bob sees it move live from the first drag, with its footprint. Alice drops it on the table: on Bob's screen it lies at the same place, with no jump and no second token.
+28. The same from the Library (one token), from a pile on the table, a new pile from the Library in Pile mode, and a token from the supply pile of a Source card.
+29. Alice drags a new token and presses Escape: it goes away on Bob's screen too. Alice drops a new token on a character: the preview goes away on Bob's screen, and the character has the token on both screens. A supply token on a character: the character holds it on both screens.
+30. Alice lifts a model with R: no footprint on either screen. Alice drags a model: a footprint on both screens. A token drag from a tray, a pile or the Library: no "Unable to preventDefault" line in the console, and a drag from a Library chip does not select text.
+
+After Phase 10, in one pair:
+31. Alice selects a model. Bob sees a blue outline on it. Alice selects another model: the outline moves. Alice clicks the empty table: it goes away. The same with a crisis token. Bob selects the model that Alice selected: on Bob's screen his own orange outline shows. Then the same from Bob: Alice sees a red outline.
+32. Alice selects a model and her range 3 tool, and moves the tool. Bob sees the tool footprint turn green when it touches the model and red when it does not, the same as on Alice's screen.
+33. Alice snaps range 3 to a model and turns it around the base over another model. Bob sees the green or red outline on the measured model, the same as on Alice's screen. It goes away when Alice ends the turn.
+34. Alice snaps range 1 to a model and selects a second model. Bob sees the footprint color of check 32 for range 1 between the two bases.
+
 ### User check results
 
 - 2026-10-10: checks 1 to 3 pass (after Phase 1b).
@@ -942,3 +1017,4 @@ After Phase 8, in one pair:
 5. **Hidden tabs.** A browser does not draw frames in a hidden tab, so its physics and its claim checks stop. A player who drops a model and at once hides the tab keeps the claim until the tab shows again. A hidden host writes the second kind of move only when its tab shows again.
 6. **Awareness timeout.** A browser that stops without closing the channel (a sleeping laptop) keeps its claims on the other screen for up to 30 s. Step 11 handles a dropped network.
 7. **A snapped spawn for Red** (decision 12). A tool that spawns snapped to a piece keeps the yaw rules of today. Its buttons can read upside down from Red's side.
+8. **Red outline** (decision 24). Red's selection outline is in Red's side color `#c0392b`. It is close to the red of `outOfRange` and `overlap` (`#e5484d`). If the user cannot tell them apart, pick another color for the other player's selection.

@@ -349,6 +349,8 @@ Peer-to-peer phase 4. Read: peer-to-peer doc "Dice".
 
 Dice are player bodies. The roller's browser simulates them and sends their poses on the `live` channel (step 9). The other browser moves them as kinematic bodies. The rest poses and the faces go into the document. `PLAYER_TEAM` in `Scene.jsx` (the constant `'blue'` for the dice) becomes the own side.
 
+Known bug, found on 2026-10-10: Bob (Red) holds the pointer over his dice tray and presses a number key. The key spawns a range tool, not dice. Only the Blue tray calls `onDiceTrayHover`, because of `PLAYER_TEAM`. The change above fixes it.
+
 Done when: each player rolls in their own tray, and the other player sees the dice fly and land on the same face.
 
 ## Step 11: Reconnect
