@@ -327,6 +327,8 @@ User, after this phase: check 21.
 
 Done. `FacePlate` always renders the count in a `span.dice-face-key` (plus `--static` on the other tray). On the own tray, a `button.dice-face-button` holds the span. The button has the plate size, `display: block`, no padding, border or background. The hover border is on the span, when the button is hovered and not disabled. `FaceMenu` ignores a pointerdown on `.dice-face-key` or `.dice-face-button`. Build passes. Format and lint: no new warnings. Not checked in a browser (check 21).
 
+User, 2026-10-10: in Safari the counts are still wrong, and only on the Red tray. So the `<button>` was not the cause. Open: the cause. The Red tray has yaw 0, the Blue tray yaw π (`TRAYS` in `dice/tray.js`). Otherwise their plates are the same.
+
 ## User
 
 After Phase 1, in a single player room:
