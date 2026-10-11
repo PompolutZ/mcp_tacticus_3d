@@ -87,6 +87,7 @@ import {
   presenceTools,
   selectPiece,
   selectedId,
+  toolSelects,
 } from './selection.js'
 import {
   ANGLE_KEY,
@@ -749,9 +750,7 @@ export default function App({
   // Over a model of a side this browser does not play (the other side in a multiplayer room), a tool key
   // snaps the tool to it but does not select it. Else Place could move that model.
   function keySelects(piece) {
-    if (piece.kind !== 'character') return true
-    const side = characters.find((c) => c.id === modelCharacterId(piece.id))?.teamColor
-    return playedSides.includes(side)
+    return toolSelects(piece, characters, playedSides)
   }
 
   // Key 6, the Toward / Away tool. Over a character or a token, it selects that piece (except a model
@@ -1800,7 +1799,7 @@ export default function App({
               turnPieceRef={turnPieceRef}
               liftPieceRef={liftPieceRef}
               returnModelsRef={returnModelsRef}
-              ownTraySides={playedSides}
+              playedSides={playedSides}
               onDiceTrayHover={(side, over) => {
                 if (over) diceTrayHoveredRef.current = side
                 else if (diceTrayHoveredRef.current === side) diceTrayHoveredRef.current = null

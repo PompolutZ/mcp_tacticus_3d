@@ -80,6 +80,7 @@ import {
   selectPiece,
   selectedId,
   toggleSelectPiece,
+  toolSelects,
 } from '../selection.js'
 import { poseOf } from '../rooms/table.js'
 import { setupStep } from '../setup/setup.js'
@@ -242,7 +243,8 @@ const OVERLAP_INTERVAL = 100
 // liftPieceRef: ref App calls for R, the same pattern. Scene fills it with liftPiece.
 // returnModelsRef: ref App calls with a character id for the tray's Remove button, the same pattern.
 // Scene fills it with returnModels: the models of that character go back to their places on the tray.
-// ownTraySides: the sides whose dice tray this browser plays, one in a multiplayer room, both otherwise.
+// playedSides: the sides this browser plays (dice tray, tool snap selection), one in a multiplayer
+// room, both otherwise.
 // The other tray is only drawn (OtherDiceTray.jsx).
 // onDiceTrayHover(side, over): the pointer moved onto or off an own dice tray, for the number keys.
 // addDiceRef: ref App calls with a side and a count for the number keys over that tray. Each own
@@ -329,7 +331,7 @@ export default function Scene({
   turnPieceRef,
   liftPieceRef,
   returnModelsRef,
-  ownTraySides = ['blue', 'red'],
+  playedSides = ['blue', 'red'],
   onDiceTrayHover,
   addDiceRef,
   diceStore,
@@ -979,8 +981,11 @@ export default function Scene({
     onSelectionChange((prev) => toggleSelectPiece(prev, { kind, id }))
   }
 
+  // A tool snapped to model. It does not select a model of a side this browser does not play.
   function selectModel(model) {
-    onSelectionChange((prev) => selectPiece(prev, { kind: model.kind, id: model.id }))
+    const piece = { kind: model.kind, id: model.id }
+    if (!toolSelects(piece, characters, playedSides)) return
+    onSelectionChange((prev) => selectPiece(prev, piece))
   }
 
   return (
@@ -1095,7 +1100,7 @@ export default function Scene({
             map change or a mat turn (which remounts Terrain above) never remounts them and their
             dice keep their state. See docs/plans/dice-rolling.md, Phase 4. */}
         {Object.keys(TRAYS).map((trayKey) =>
-          ownTraySides.includes(trayKey) ? (
+          playedSides.includes(trayKey) ? (
             <DiceTray
               key={trayKey}
               trayKey={trayKey}

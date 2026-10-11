@@ -437,7 +437,7 @@ Each side has its own set of tools and its own dice tray.
 
 The other player's selection shows too. A character or crisis token that they select has an outline in their side color (blue or red), under the own selection and range marks. Their selected tool has the green or red footprint against their tool target, calculated from the poses this browser shows. While they turn a snapped range tool, the piece under their pointer has the green or red range outline. A piece that this browser does not have shows nothing. Only the other player's selection and range marks are shared this way, not hover.
 
-A tool can snap to any model or token, also of the opponent, because players measure range to enemy models.
+A tool can snap to any model or token, also of the opponent, because players measure range to enemy models. The snap (and a tool key) does not select a model of the other side, so **Place** cannot move it.
 
 With no connection, the app works as today: one player uses both trays and one set of tools.
 

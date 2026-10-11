@@ -4,12 +4,24 @@
 // A tool snaps to the character or token selected last when it spawns, and measures against it (see
 // Scene.jsx). Only an unlocked terrain piece can be selected (see Terrain.jsx).
 
+import { modelCharacterId } from './characters/models.js'
+
 export const NO_PIECES = []
 
 // A piece that the tools snap to and measure against, and that F flips: a character or a token.
 // Terrain is not one of them.
 export function isToolPiece(piece) {
   return piece.kind === 'character' || piece.kind === 'token'
+}
+
+// Whether a tool key or a tool snap selects the piece. It does not select a model of a side that this
+// browser does not play (the other side in a multiplayer room), else Place could move it. A token
+// and every other piece is selected. A second model (transform) counts for its character. See
+// docs/features/peer-to-peer.md.
+export function toolSelects(piece, characters, playedSides) {
+  if (piece.kind !== 'character') return true
+  const side = characters.find((c) => c.id === modelCharacterId(piece.id))?.teamColor
+  return playedSides.includes(side)
 }
 
 // Selected tools: { range, move, angle }, true when that tool is selected. There is at most one tool of
