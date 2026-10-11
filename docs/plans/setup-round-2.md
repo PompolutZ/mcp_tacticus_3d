@@ -129,7 +129,7 @@ Work:
 
 1. A helper `playerName(team, room, ownTeam)`: "You" for yourself in a multiplayer room, the Discord name for the other player, "Blue" / "Red" in the Sandbox and a single player room. A possessive form for "my" / "X's".
 2. Every setup text uses it and the word "Choose". Examples: "You choose the board edge", "Choose from my Secures", "Choose from Nelly's Secures", "Nelly chooses the Maximum Threat", "Waiting for Nelly to choose a deck".
-3. The panel says what to do now in each step, in the order of Facts, "Rules". After the reveal it says: "Deploy one model at a time, taking turns." The app does not enforce the deployment (open question 2). No Leadership step (open question 3).
+3. The panel says what to do now in each step, in the order of Facts, "Rules". After the reveal it says: "Deploy one model at a time, taking turns. Nelly deploys first.", with the name of the player with Priority, or "You deploy first." The app does not enforce the deployment (open question 2). No Leadership step (open question 3).
 4. Docs: `setup-game.md`, the table "What the app does".
 
 Checks: as in "Checks".
@@ -230,6 +230,6 @@ User, after this step: create a multiplayer room, join it from a second browser.
 
 ## Open questions
 
-1. **Single player room colors.** Does the roll off set the colors there too, as in a multiplayer room, or are they fixed as in the Sandbox? Proposal: as in a multiplayer room, because the room plays a real game. Step 1 uses the proposal. The user did not answer yet.
-2. ~~**Deployment order.**~~ Answered by the user on 2026-10-11: players deploy one model at a time, taking turns. The app does not enforce it. The panel says it after the reveal (step 3).
+1. ~~**Single player room colors.**~~ Answered by the user on 2026-10-11: the roll off decides Priority, and Priority decides the colors, also in a single player room. Only the Sandbox keeps fixed colors. Step 1 does this.
+2. ~~**Deployment order.**~~ Answered by the user on 2026-10-11: players deploy one model at a time, taking turns. The player with Priority deploys first. The app does not enforce it. The panel says it after the reveal (step 3).
 3. ~~**Leadership choice** (p7, p11).~~ Answered by the user on 2026-10-11: players agree on it out loud. The app has no control and no setup step for it, and does not store it.
