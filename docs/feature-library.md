@@ -72,13 +72,15 @@ A pile is a source on the table that never runs out, the same as a Give source o
 | Shift + left drag on the pile | Moves the pile |
 | Delete or Backspace with the pointer over the pile | Removes the pile |
 
+A pile that comes with a Team Tactic card (`docs/feature-team-tactic-cards.md`, "Token piles") also has `card`, the id of that card. It goes when the card leaves the table. A pile from the Library has no `card`.
+
 A pile has no physics body. It lies on the table or on the terrain under it, the same as a token on the table (`LooseToken.jsx`).
 
 ## State
 
 - `libraryOpen`: the panel is open.
 - The search text, the tab, the player and the token mode are state of the panel itself. They stay while the panel is closed, because the panel only hides.
-- `tokenPiles: [{ id, key, x, z }]` in `App.jsx`, the same shape as `looseTokens`. All fields are plain JSON, so they fit into a map of the Yjs document in `docs/feature-peer-to-peer.md`.
+- `tokenPiles: [{ id, key, x, z, card? }]` in `App.jsx`, the same shape as `looseTokens` plus the optional `card` (see Pile). Old documents have no `card`. All fields are plain JSON, so they fit into a map of the Yjs document in `docs/feature-peer-to-peer.md`.
 - The token drag (`tokenDrag` in `App.jsx`) gets two new fields: `pile` (the drag brings a new pile) and `pileId` (the drag moves this pile).
 
 ## Out of scope

@@ -101,3 +101,35 @@ export function nearestFreeSlot(team, point, cards, ignoreId) {
   }
   return best
 }
+
+// Token piles of the cards: they lie on the table past the owner's left end of the plate, in a row going
+// outward. See docs/plan-tactic-tokens.md, decision 4.
+const PILE_GAP = 0.3
+const PILE_PITCH = 1.2
+const PILE_RADIUS = 0.5
+// Piles in one row. The next ones go in a row behind it, away from the mat, still beside the plate.
+const PILES_PER_ROW = 6
+
+// Table position { x, z } of pile place `index` of `team`, numbered from the plate outward
+export function tacticPilePlace(team, index) {
+  const row = Math.floor(index / PILES_PER_ROW)
+  const column = index % PILES_PER_ROW
+  const edge = (TACTIC_PLATE_WIDTH / 2 + PILE_GAP + PILE_RADIUS + column * PILE_PITCH) * side(team)
+  // The owner's left is -x for blue and +x for red, as for the slots
+  const slot = tacticSlotPosition(team, 0)
+  return { x: -edge, z: slot.z + row * PILE_PITCH * side(team) }
+}
+
+// `count` pile places of `team` that no pile of `piles` ([{ x, z }]) lies on, in order. A place is taken
+// when a pile center is closer than PILE_PITCH / 2, so a Library add after the squad gets the next place.
+export function freePilePlaces(team, piles, count) {
+  const places = []
+  const taken = [...piles]
+  for (let index = 0; places.length < count; index++) {
+    const place = tacticPilePlace(team, index)
+    if (taken.some((p) => Math.hypot(p.x - place.x, p.z - place.z) < PILE_PITCH / 2)) continue
+    places.push(place)
+    taken.push(place)
+  }
+  return places
+}

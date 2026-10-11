@@ -64,6 +64,15 @@ Checks: `pnpm --filter web test`, `pnpm --filter web build`, `pnpm format`, `pnp
 
 ### Result
 
+Done 2026-10-11. Not committed.
+
+- `src/tactics/layout.js`: `tacticPilePlace(team, index)` and `freePilePlaces(team, piles, count)`. Test: `layout.test.js` (blue, red, 7 piles, taken places).
+- Place: blue at -x, red at +x of the plate (the owner's left, as the slots). 6 piles per row. The second row is 1.2" further from the mat, still within the plate depth.
+- `freePilePlaces` skips a place when any pile lies within 0.6" of it, not only card piles. So it also fills a gap after a card was deleted.
+- `App.jsx`: `makeCardPiles` and `removeCardPiles`. `revealSquad` and `handleTacticSpawn` add the piles in the same `table.transact` as the cards. `handleTacticSpawn` now reads the free slot from the document, not from an updater. `handleTacticRemove` and `restartSetup` remove the piles of the card in the same change.
+- Docs: `feature-team-tactic-cards.md` ("Token piles"), `feature-library.md` (`card` field).
+- Checks: 288 tests pass, build passes, format ok, lint has only the old warnings.
+
 ## User
 
 After Phase 2, in a single player room, with the friend's roster as Blue:

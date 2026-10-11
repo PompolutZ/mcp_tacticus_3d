@@ -30,7 +30,8 @@ import { trayHeldDefault } from './characters/trays.js'
 import { modelCharacterId, secondModelId } from './characters/models.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { getToken, isCappedToken } from './tokens/tokens.js'
-import { firstFreeSlot, nearestFreeSlot, tacticTrayAt } from './tactics/layout.js'
+import { firstFreeSlot, freePilePlaces, nearestFreeSlot, tacticTrayAt } from './tactics/layout.js'
+import { getTactic } from './tactics/cards.js'
 import { formatMctCode, isEmptyRoster } from './rosters/mct.js'
 import {
   parseRosterText,
@@ -1032,6 +1033,7 @@ export default function App({
       const placed = placedIds(setup)
       placed.characters.forEach(handleCharacterRemove)
       setTacticCards((prev) => prev.filter((card) => !placed.tactics.includes(card.id)))
+      removeCardPiles(placed.tactics)
       if (setup.edge) {
         for (const type of CRISIS_TYPES) {
           const key = rosterCard(setup.picks[type])?.key
@@ -1154,6 +1156,30 @@ export default function App({
     setSetup((prev) => toggleReady(prev, team))
   }
 
+  // Token piles for new tactic cards ([{ id, key, team }] as in tacticCards): one pile per token of each card, in the order
+  // of the cards, on the first free places beside the owner's tray. `card` links a pile to its card, so
+  // the pile goes with it (removeCardPiles). Reads the document, not React state.
+  function makeCardPiles(cards) {
+    const piles = []
+    for (const team of ['blue', 'red']) {
+      const wanted = cards
+        .filter((card) => card.team === team)
+        .flatMap((card) =>
+          (getTactic(card.key)?.tokens ?? []).map((key) => ({ card: card.id, key })),
+        )
+      const places = freePilePlaces(team, table.tokenPiles.read(), wanted.length)
+      wanted.forEach((pile, i) =>
+        piles.push({ id: crypto.randomUUID(), ...pile, x: places[i].x, z: places[i].z }),
+      )
+    }
+    return piles
+  }
+
+  // The piles of tactic cards that leave the table go too. A pile without `card` stays.
+  function removeCardPiles(cardIds) {
+    setTokenPiles((prev) => prev.filter((p) => !cardIds.includes(p.card)))
+  }
+
   // The squad of `side` is revealed and goes on the table: the characters get their trays and models, and
   // the Team Tactic cards go into the tactic tray. A character or a Team Tactic card that the player already
   // has on the table is not added again. One transaction: the squad, the cards and `placed`. The new
@@ -1180,9 +1206,11 @@ export default function App({
       const slot = firstFreeSlot(side, cards)
       newCards.push({ id: crypto.randomUUID(), key, team: side, x: slot.x, z: slot.z, up: 'face' })
     }
+    const newPiles = makeCardPiles(newCards)
     table.transact(() => {
       setCharacters((prev) => [...prev, ...newCharacters])
       setTacticCards((prev) => [...prev, ...newCards])
+      setTokenPiles((prev) => [...prev, ...newPiles])
       setSetup((prev) =>
         placeSquad(prev, side, squad, {
           characters: newCharacters.map((ch) => ch.id),
@@ -1352,9 +1380,12 @@ export default function App({
   // A click on a tactic card in the Library: the card goes into the first free slot of the team's
   // tactic tray, or next to the tray when its 5 slots are full. It lies face up.
   function handleTacticSpawn(key, team) {
-    setTacticCards((prev) => {
-      const slot = firstFreeSlot(team, prev)
-      return [...prev, { id: crypto.randomUUID(), key, team, x: slot.x, z: slot.z, up: 'face' }]
+    const slot = firstFreeSlot(team, table.tactics.read())
+    const card = { id: crypto.randomUUID(), key, team, x: slot.x, z: slot.z, up: 'face' }
+    const newPiles = makeCardPiles([card])
+    table.transact(() => {
+      setTacticCards((prev) => [...prev, card])
+      setTokenPiles((prev) => [...prev, ...newPiles])
     })
   }
 
@@ -1380,7 +1411,10 @@ export default function App({
 
   // Delete key over a tactic card
   function handleTacticRemove(id) {
-    setTacticCards((prev) => prev.filter((c) => c.id !== id))
+    table.transact(() => {
+      setTacticCards((prev) => prev.filter((c) => c.id !== id))
+      removeCardPiles([id])
+    })
   }
 
   function handleTacticHover(id, over) {

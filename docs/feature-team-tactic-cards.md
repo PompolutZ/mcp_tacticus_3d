@@ -49,6 +49,15 @@ A slot is free when no card center lies inside the slot area.
 - **Add from the Library:** the card goes into the first free slot of the chosen player, from the owner's left. When all 5 slots are full, the row goes on past the right end of the plate, at the same distance. So a 6th card lies on the table next to the tray.
 - **Drop on a tray:** a card released over the plate of a tactic tray goes into the nearest free slot of that tray. This is the same as a TTS snap point. When that tray has no free slot, the card lies where it was released. A card dropped on the other player's tray turns to face that player.
 
+## Token piles
+
+Some cards bring tokens, for example Mystic Ward (a Mystic Ward token) and Pentagram of Farallah (a Mystic Portal token). `tokens` in `cards.json` lists the token keys of a card. TTS spawns the tokens in front of the card, on the mat. The app puts a pile of each token instead, so players take tokens from it the same as from a Library pile (`docs/feature-library.md`, "Pile"). A pile never runs out, so a card that places two tokens needs no count.
+
+- **Place:** on the table past the owner's left end of the plate (`tacticPilePlace` in `layout.js`), 0.3" from it, in a row going outward, 1.2" apart, at the z of the slot row. The 6th and later cards go past the right end, so this side is free. The piles of all cards of a player share the row, in the order of the cards. A 7th pile goes in a second row, behind the first (away from the mat), still beside the plate.
+- **A new pile** takes the first place that no pile lies on (`freePilePlaces`). So a card added from the Library after the squad gets the next free place.
+- **When:** when a card goes on the table: when the squad is revealed, and when a player adds a card from the Library. In the same change of the document as the cards. A card that is dragged brings no piles.
+- **Removal:** a pile made this way has `card`, the id of its card. When the card is deleted (Delete key) or removed by the restart of the setup, its piles go in the same change. A pile without `card` stays. A player can still move a pile with Shift + drag.
+
 ## Card on the table
 
 | Action | Input | Result |
