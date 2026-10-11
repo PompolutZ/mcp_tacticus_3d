@@ -19,7 +19,7 @@ import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
 import { followPart, lerpAngle } from '../net/livePose.js'
 import { freeSpawnYaw, storedFields, sameStored } from './storedTool.js'
-import { MOVE_TIP, RANGE_TIP } from '../tabletools/toolTips.js'
+import { MOVE_TIP, RANGE_TIP, TOOL_TINT } from '../tabletools/toolTips.js'
 import { onRack } from '../tabletools/layout.js'
 
 const TEXTURE = assetUrl('tools/toolbox-02.png')
@@ -51,10 +51,6 @@ const STRAIGHT = { right: 0, left: 0 }
 const ANGLE_TURN = { right: Math.PI / 4, left: -Math.PI / 4 }
 // A movement tool snapped to the base of an angle tool points at most this far from the middle of the angle
 const ANGLE_LIMIT = Math.PI / 4
-
-// Player tints, from the tools in the mod (3036795456). Every tool there has the same black and white
-// texture (TOOLBOX_IMAGE_02) and a ColorDiffuse in its player's color. TTS multiplies the texture by it.
-const TOOL_TINT = { blue: [0.12, 0.53, 1], red: [0.86, 0.1, 0.09] }
 
 // team: 'blue' or 'red' for a player's tint. Without it, the texture keeps its own colors.
 function textured(obj, map, team) {

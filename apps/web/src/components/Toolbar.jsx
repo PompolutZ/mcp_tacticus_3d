@@ -51,6 +51,9 @@ export function Toolbar({
   spectator,
   onSpectatorClick,
   onTurnMat,
+  settings,
+  settingsOpen,
+  onSettingsClick,
   onPowerPhase,
   onCleanupPhase,
   cleanupDisabled,
@@ -68,6 +71,15 @@ export function Toolbar({
 }) {
   // The typed text stays in the field after Enter (x clears it)
   const [rosterText, setRosterText] = useState({ blue: '', red: '' })
+  // A setting of 'hud' puts the item in the toolbar, 'table' on the table (docs/features/table-tools.md,
+  // "Settings menu"). The Mat group stays for the map select, also when the mat turn is on the table.
+  const hud = (item) => settings.tools[item] === 'hud'
+  const rackHud = hud('rack')
+  const powerHud = hud('power')
+  const cleanupHud = hud('cleanup')
+  const deployHud = hud('deployLock')
+  const matTurnHud = hud('matTurn')
+  const showMat = !multiplayer && (matTurnHud || !roomCode)
   const rosterTeams = roomCode ? TEAMS.filter(({ team }) => team === 'red') : TEAMS
   return (
     <div className="toolbar">
@@ -102,7 +114,7 @@ export function Toolbar({
           Rolls
         </button>
       </div>
-      {!multiplayer && (
+      {showMat && (
         <div className="group">
           <span className="group-label">Mat</span>
           {!roomCode && (
@@ -119,58 +131,66 @@ export function Toolbar({
               ))}
             </select>
           )}
-          <button
-            type="button"
-            className="chip"
-            title="Turn mat 90° counter-clockwise"
-            onClick={() => onTurnMat(1)}
-          >
-            ↺
-          </button>
-          <button
-            type="button"
-            className="chip"
-            title="Turn mat 90° clockwise"
-            onClick={() => onTurnMat(-1)}
-          >
-            ↻
-          </button>
+          {matTurnHud && (
+            <>
+              <button
+                type="button"
+                className="chip"
+                title="Turn mat 90° counter-clockwise"
+                onClick={() => onTurnMat(1)}
+              >
+                ↺
+              </button>
+              <button
+                type="button"
+                className="chip"
+                title="Turn mat 90° clockwise"
+                onClick={() => onTurnMat(-1)}
+              >
+                ↻
+              </button>
+            </>
+          )}
         </div>
       )}
-      <div className="group">
-        <span className="group-label">Range</span>
-        {RANGES.map((r) => (
-          <button
-            key={r}
-            type="button"
-            className={`chip${activeRange === r ? ' chip--active' : ''}`}
-            onClick={() => onRangeClick(r)}
-          >
-            R{r}
-          </button>
-        ))}
-      </div>
-      <div className="group">
-        <span className="group-label">Move</span>
-        {MOVES.map((m) => (
-          <button
-            key={m.type}
-            type="button"
-            className={`chip${activeMove === m.type ? ' chip--active' : ''}`}
-            onClick={() => onMoveClick(m.type)}
-          >
-            {m.label}
-          </button>
-        ))}
-        <button
-          type="button"
-          className={`chip${angleOn ? ' chip--active' : ''}`}
-          title="Toward / Away: L tool bent 90° (key 6)"
-          onClick={onAngleClick}
-        >
-          T/A
-        </button>
-      </div>
+      {rackHud && (
+        <>
+          <div className="group">
+            <span className="group-label">Range</span>
+            {RANGES.map((r) => (
+              <button
+                key={r}
+                type="button"
+                className={`chip${activeRange === r ? ' chip--active' : ''}`}
+                onClick={() => onRangeClick(r)}
+              >
+                R{r}
+              </button>
+            ))}
+          </div>
+          <div className="group">
+            <span className="group-label">Move</span>
+            {MOVES.map((m) => (
+              <button
+                key={m.type}
+                type="button"
+                className={`chip${activeMove === m.type ? ' chip--active' : ''}`}
+                onClick={() => onMoveClick(m.type)}
+              >
+                {m.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              className={`chip${angleOn ? ' chip--active' : ''}`}
+              title="Toward / Away: L tool bent 90° (key 6)"
+              onClick={onAngleClick}
+            >
+              T/A
+            </button>
+          </div>
+        </>
+      )}
       {!multiplayer && (
         <div className="group">
           <span className="group-label">Crisis</span>
@@ -223,38 +243,46 @@ export function Toolbar({
           ))}
         </div>
       )}
-      <div className="group">
-        <span className="group-label">Deploy</span>
-        <button
-          type="button"
-          className={`chip${deployLine ? ' chip--active' : ''}`}
-          title="Lock models to within Range 3 of their deployment edge"
-          onClick={onDeployLineClick}
-        >
-          Lock
-        </button>
-      </div>
-      <div className="group">
-        <span className="group-label">Phase</span>
-        <button
-          type="button"
-          className="chip"
-          title="Power Phase: each of your characters gains Power"
-          onClick={onPowerPhase}
-        >
-          Power
-        </button>
-        {/* aria-disabled, not disabled: some browsers show no title on a disabled button */}
-        <button
-          type="button"
-          className="chip"
-          aria-disabled={cleanupDisabled}
-          title={cleanupTitle}
-          onClick={cleanupDisabled ? undefined : onCleanupPhase}
-        >
-          Cleanup
-        </button>
-      </div>
+      {deployHud && (
+        <div className="group">
+          <span className="group-label">Deploy</span>
+          <button
+            type="button"
+            className={`chip${deployLine ? ' chip--active' : ''}`}
+            title="Lock models to within Range 3 of their deployment edge"
+            onClick={onDeployLineClick}
+          >
+            Lock
+          </button>
+        </div>
+      )}
+      {(powerHud || cleanupHud) && (
+        <div className="group">
+          <span className="group-label">Phase</span>
+          {powerHud && (
+            <button
+              type="button"
+              className="chip"
+              title="Power Phase: each of your characters gains Power"
+              onClick={onPowerPhase}
+            >
+              Power
+            </button>
+          )}
+          {/* aria-disabled, not disabled: some browsers show no title on a disabled button */}
+          {cleanupHud && (
+            <button
+              type="button"
+              className="chip"
+              aria-disabled={cleanupDisabled}
+              title={cleanupTitle}
+              onClick={cleanupDisabled ? undefined : onCleanupPhase}
+            >
+              Cleanup
+            </button>
+          )}
+        </div>
+      )}
       <div className="group">
         <span className="group-label">View</span>
         <button
@@ -286,6 +314,16 @@ export function Toolbar({
           onClick={onLabelsClick}
         >
           Labels
+        </button>
+      </div>
+      <div className="group toolbar-settings">
+        <button
+          type="button"
+          className={`chip${settingsOpen ? ' chip--active' : ''}`}
+          title="Where the tools are, and the keys and mouse controls"
+          onClick={onSettingsClick}
+        >
+          Settings
         </button>
       </div>
     </div>

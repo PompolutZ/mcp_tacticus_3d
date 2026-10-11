@@ -78,6 +78,8 @@ import { useYField, useYList, useYRecord } from './net/useY.js'
 import { dragPose, SUPPLY_YAW, tokenDragKey } from './net/livePose.js'
 import { spawnEntry } from './components/storedTool.js'
 import { canDropTool } from './tabletools/dropShape.js'
+import { readSettings, writeSettings } from './settings/settings.js'
+import { SettingsPopup } from './components/SettingsPopup.jsx'
 import {
   NO_PIECES,
   NO_TOOLS,
@@ -451,8 +453,17 @@ export default function App({
   const toolDragHandleRef = useRef(null)
   // The table point under the pointer, written by ToolDragGhost: { x, y, z } | null
   const toolDragPointRef = useRef(null)
+  // The settings of this browser (settings/settings.js), read once. A change is stored at once.
+  const [settings, setSettings] = useState(readSettings)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  function handleSettingChange(item, place) {
+    const next = { ...settings, tools: { ...settings.tools, [item]: place } }
+    setSettings(next)
+    writeSettings(next)
+  }
+  const toolsOnTable = (item) => settings.tools[item] === 'table'
   // The own rack is on the table, so a tool dropped on it goes back to it
-  const rackShown = true
+  const rackShown = toolsOnTable('rack')
   // Live pose getters of the dragged pieces without a body, piece key → getter. Drag code fills it, LiveSync reads it.
   const [pieceLives] = useState(() => new Map())
   // Scene calls this with (clientX, clientY) and returns the character id under the point, or
@@ -628,13 +639,14 @@ export default function App({
       if (e.key === 'Escape') toolDragHandleRef.current?.cancel()
       return
     }
-    if (openCard || openTrayId || openRoster) {
+    if (openCard || openTrayId || openRoster || settingsOpen) {
       // Escape closes only the popup. The left and right arrows show the previous or next roster card.
       // Other keys do nothing, so nothing changes on the table behind it.
       if (e.key === 'Escape') {
         setOpenCard(null)
         setOpenTrayId(null)
         setOpenRoster(null)
+        setSettingsOpen(false)
       } else if (openRoster && CARD_STEP_KEYS[e.code]) handleRosterCardStep(CARD_STEP_KEYS[e.code])
       return
     }
@@ -1802,6 +1814,12 @@ export default function App({
               mapId={mapId}
               tableButtons={{
                 multiplayer: Boolean(room?.multiplayer),
+                show: {
+                  power: toolsOnTable('power'),
+                  cleanup: toolsOnTable('cleanup'),
+                  deployLock: toolsOnTable('deployLock'),
+                  matTurn: toolsOnTable('matTurn'),
+                },
                 onPowerPhase: handlePowerPhase,
                 onCleanupPhase: handleCleanupPhase,
                 cleanupDisabled,
@@ -1810,13 +1828,17 @@ export default function App({
                 onDeployLineClick: () => setDeployLine((prev) => !prev),
                 onTurnMat: handleTurnMat,
               }}
-              toolRack={{
-                multiplayer: Boolean(room?.multiplayer),
-                onRangeClick: handleRangeClick,
-                onMoveClick: handleMoveClick,
-                onAngleClick: handleAngleClick,
-                onDragStart: startToolDrag,
-              }}
+              toolRack={
+                rackShown
+                  ? {
+                      multiplayer: Boolean(room?.multiplayer),
+                      onRangeClick: handleRangeClick,
+                      onMoveClick: handleMoveClick,
+                      onAngleClick: handleAngleClick,
+                      onDragStart: startToolDrag,
+                    }
+                  : null
+              }
               terrain={terrain}
               onTerrainHover={handleTerrainHover}
               terrainAtRef={terrainAtRef}
@@ -1949,6 +1971,9 @@ export default function App({
           spectator={spectator}
           onSpectatorClick={() => setSpectator((prev) => !prev)}
           onTurnMat={handleTurnMat}
+          settings={settings}
+          settingsOpen={settingsOpen}
+          onSettingsClick={() => setSettingsOpen((prev) => !prev)}
           onPowerPhase={() => handlePowerPhase(playedSides)}
           onCleanupPhase={handleCleanupPhase}
           cleanupDisabled={cleanupDisabled}
@@ -1980,6 +2005,13 @@ export default function App({
       />
       <RollsPanel open={rollsOpen} rolls={rolls} />
       <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
+      {settingsOpen && (
+        <SettingsPopup
+          settings={settings}
+          onChange={handleSettingChange}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
       {openRoster && rosters[openRoster.team] && (
         <RosterPopup
           team={openRoster.team}

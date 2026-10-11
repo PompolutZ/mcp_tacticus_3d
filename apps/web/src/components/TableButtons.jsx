@@ -40,9 +40,12 @@ function PowerPhaseButton({ side, ownSide, multiplayer, onPowerPhase }) {
 // The board strip of `side`, in the corner between the mat and the end of the scoring board. It reads like the
 // scoring board (the top faces -x), so row 1 is nearer the table edge. Row 1: Cleanup Phase. Row 2: Deploy
 // Lock, and the mat turn where the toolbar has it. These change shared state, so any player presses them.
+// show: which buttons the settings put on the table (settings/settings.js). A row with no button is not drawn,
+// and a strip with no row is not drawn.
 function BoardStrip({
   side,
   multiplayer,
+  show,
   onTurnMat,
   onCleanupPhase,
   cleanupDisabled,
@@ -52,69 +55,81 @@ function BoardStrip({
 }) {
   const strip = boardStrip(side)
   const style = { width: px(strip.length), height: px(1) }
+  const showTurn = show.matTurn && !multiplayer
   return (
     <>
-      <OnTable position={[strip.rowX[0], TABLE_Y, strip.z]}>
-        <div className="table-strip-row" style={style}>
-          <button
-            type="button"
-            className="chip table-button"
-            aria-disabled={cleanupDisabled}
-            title={cleanupTitle}
-            onClick={cleanupDisabled ? undefined : onCleanupPhase}
-          >
-            Cleanup Phase
-          </button>
-        </div>
-      </OnTable>
-      <OnTable position={[strip.rowX[1], TABLE_Y, strip.z]}>
-        <div className="table-strip-row" style={style}>
-          <button
-            type="button"
-            className={`chip table-button${deployLine ? ' chip--active' : ''}`}
-            title="Lock models to within Range 3 of their deployment edge"
-            onClick={onDeployLineClick}
-          >
-            Deploy Lock
-          </button>
-          {!multiplayer && (
-            <>
+      {show.cleanup && (
+        <OnTable position={[strip.rowX[0], TABLE_Y, strip.z]}>
+          <div className="table-strip-row" style={style}>
+            <button
+              type="button"
+              className="chip table-button"
+              aria-disabled={cleanupDisabled}
+              title={cleanupTitle}
+              onClick={cleanupDisabled ? undefined : onCleanupPhase}
+            >
+              Cleanup Phase
+            </button>
+          </div>
+        </OnTable>
+      )}
+      {(show.deployLock || showTurn) && (
+        <OnTable position={[strip.rowX[1], TABLE_Y, strip.z]}>
+          <div className="table-strip-row" style={style}>
+            {show.deployLock && (
               <button
                 type="button"
-                className="chip table-button table-button--small"
-                title="Turn mat 90° counter-clockwise"
-                onClick={() => onTurnMat(1)}
+                className={`chip table-button${deployLine ? ' chip--active' : ''}`}
+                title="Lock models to within Range 3 of their deployment edge"
+                onClick={onDeployLineClick}
               >
-                ↺
+                Deploy Lock
               </button>
-              <button
-                type="button"
-                className="chip table-button table-button--small"
-                title="Turn mat 90° clockwise"
-                onClick={() => onTurnMat(-1)}
-              >
-                ↻
-              </button>
-            </>
-          )}
-        </div>
-      </OnTable>
+            )}
+            {showTurn && (
+              <>
+                <button
+                  type="button"
+                  className="chip table-button table-button--small"
+                  title="Turn mat 90° counter-clockwise"
+                  onClick={() => onTurnMat(1)}
+                >
+                  ↺
+                </button>
+                <button
+                  type="button"
+                  className="chip table-button table-button--small"
+                  title="Turn mat 90° clockwise"
+                  onClick={() => onTurnMat(-1)}
+                >
+                  ↻
+                </button>
+              </>
+            )}
+          </div>
+        </OnTable>
+      )}
     </>
   )
 }
 
 // All the table buttons. `ownSide` and `multiplayer` tell which Power Phase button is the player's own. The
 // other props are the handlers and states of the toolbar buttons, which these repeat.
-export default function TableButtons({ ownSide, multiplayer, onPowerPhase, ...strip }) {
+// show: { power, cleanup, deployLock, matTurn }, true where the settings put the button on the table.
+export default function TableButtons({ ownSide, multiplayer, show, onPowerPhase, ...strip }) {
   return TEAMS.map((side) => (
     <group key={side}>
-      <PowerPhaseButton
-        side={side}
-        ownSide={ownSide}
-        multiplayer={multiplayer}
-        onPowerPhase={onPowerPhase}
-      />
-      <BoardStrip side={side} multiplayer={multiplayer} {...strip} />
+      {show.power && (
+        <PowerPhaseButton
+          side={side}
+          ownSide={ownSide}
+          multiplayer={multiplayer}
+          onPowerPhase={onPowerPhase}
+        />
+      )}
+      {(show.cleanup || show.deployLock || (show.matTurn && !multiplayer)) && (
+        <BoardStrip side={side} multiplayer={multiplayer} show={show} {...strip} />
+      )}
     </group>
   ))
 }

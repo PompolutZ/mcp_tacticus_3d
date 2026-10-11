@@ -169,7 +169,11 @@ Assets come from the Tabletop Simulator mod **3036795456** (community MCP mod). 
 
 One half of the table is blue and the other half is red. Blue is the side of the player who won the priority roll-off. Red is the other player's side. Blue is at the bottom of the default view.
 
-In game setup, the player with priority chooses the edge of the mat to deploy from. **Mat → ↺ / ↻** in the toolbar turns the mat and all its terrain 90° around the mat center. Turn it until the chosen edge faces the blue side. Models and tools do not turn with the mat.
+In game setup, the player with priority chooses the edge of the mat to deploy from. **↺ / ↻** turn the mat. They are in the board strip on the table, or in the toolbar under **Mat** (the choice is in **Settings**). They turn the mat and all its terrain 90° around the mat center. Turn it until the chosen edge faces the blue side. Models and tools do not turn with the mat.
+
+## Settings
+
+**Settings** at the right end of the toolbar opens a popup. For the range and movement tools, Power Phase, Cleanup Phase, Deploy Lock and the mat turn, choose **Table** or **HUD** (the toolbar). The default is Table. A choice applies at once and stays in this browser. It does not change the table of the other player. The popup also lists the keys and the mouse controls.
 
 ## Selection
 
@@ -202,11 +206,11 @@ Key **0** removes every tool from the table, as in the mod. Key **6** is the [To
 **Where a tool spawns.**
 - A tool key (**1** to **5**, the movement keys, **6**) with the pointer over a character or a token selects that piece. The tool spawns snapped to it.
 - A tool key with the pointer over the table or terrain, not over a piece, spawns the tool free. Its center is at the point under the pointer. If the tool is already out, it spawns again there. A selected piece does not change this. The key no longer removes the tool.
-- A toolbar button, or a tool key with the pointer off the table, turns the tool on or off. A new tool snaps to the selected piece. With no selected piece, it spawns free at the table point in the middle of the screen.
+- A toolbar button (when the tools are set to the HUD in **Settings**), or a tool key with the pointer off the table, turns the tool on or off. A new tool snaps to the selected piece. With no selected piece, it spawns free at the table point in the middle of the screen.
 - A click on a tool or a chip of the tool rack on the table is the same as its toolbar button.
 - A drag from a tool or a chip of the rack works as the tool key at the point where you let go. An outline of the tool follows the pointer. Over the own rack or off the table, nothing happens. Escape cancels the drag.
 - A tool that you drag and let go over the own rack goes back to it. It is removed from the table.
-- Escape, key **0** and the toolbar button remove the tool.
+- Escape, key **0** and the toolbar button or the rack remove the tool.
 - A free tool starts turned the same way as before.
 
 The tool has two states: **snapped** and **free**.
@@ -269,7 +273,7 @@ After a full move, the base touches the far end, so the tool stays snapped to th
 
 ### Toward / Away
 
-When a character moves Toward or Away from another piece, the rules (p14–15) use a movement tool bent to 90°. Key **6** and **Move → T/A** in the toolbar turn this tool on and off. It is a copy of the long movement tool, and it is always bent to a right angle. It has no Bend, Place or Throw button. Drag and Q / E work the same as on the other tools.
+When a character moves Toward or Away from another piece, the rules (p14–15) use a movement tool bent to 90°. Key **6**, the **T/A** chip of the rack and **Move → T/A** in the toolbar turn this tool on and off. It is a copy of the long movement tool, and it is always bent to a right angle. It has no Bend, Place or Throw button. Drag and Q / E work the same as on the other tools.
 
 This is a separate tool. A short, medium or long movement tool can be on the table at the same time.
 
@@ -313,7 +317,7 @@ The outline of a bent tool is one rectangle for each half, plus the round hinge 
 
 ### Range 1
 
-Range 1 has no tool of its own. The short side of every range tool is 1", so the width of a range tool measures range 1. **R1** in the toolbar spawns the Range 2 tool, the shortest range tool, and uses it this way. The TTS mod does the same with its "Snap 1" button.
+Range 1 has no tool of its own. The short side of every range tool is 1", so the width of a range tool measures range 1. **R1** (the chip of the rack, or the toolbar button) spawns the Range 2 tool, the shortest range tool, and uses it this way. The TTS mod does the same with its "Snap 1" button.
 
 The R1 tool snaps with a corner. The base touches one long side of the tool at its corner, so the tool lies across the line from the base. Along that line, the tool is 1" wide.
 

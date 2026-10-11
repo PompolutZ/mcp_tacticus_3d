@@ -1294,7 +1294,7 @@ export default function Scene({
         {/* Power Phase and the board strip of each player (docs/features/table-tools.md) */}
         <TableButtons ownSide={ownSide} {...tableButtons} />
         {/* The tool rack of each player (docs/features/table-tools.md, "Tool rack") */}
-        <ToolRack ownSide={ownSide} tools={tools} {...toolRack} />
+        {toolRack && <ToolRack ownSide={ownSide} tools={tools} {...toolRack} />}
         {toolDrag?.active && (
           <ToolDragGhost
             pointRef={toolDragPointRef}

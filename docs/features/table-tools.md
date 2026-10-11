@@ -1,12 +1,6 @@
 # Feature: Tools on the table
 
-Status: partly built.
-
-Built: the table depth, the start view, the **Power Phase** buttons, the board strip and the tool rack with its click, its drag and the return of a tool.
-
-Not built yet: the **Settings** menu (table or HUD, the key and mouse lists).
-
-Until the Settings menu is built, the toolbar keeps all its buttons.
+Status: built.
 
 ## Goal
 
@@ -84,12 +78,14 @@ One row for each item, with the choice **Table** or **HUD**. The default is **Ta
 | Mat turn (Sandbox and single player rooms) | **↺** **↻** in the board strip | **Mat** → **↺** **↻**. The map select stays in the toolbar |
 
 - An item is in one place at a time. The keys work the same in both cases.
-- A board strip with no rows is not drawn.
+- A board strip with no rows is not drawn. A row with no buttons is not drawn.
+- When the rack is in the HUD, a tool does not go back to the rack. The rack is not on the table.
+- The **Mat** group of the toolbar stays while it has the map select (the Sandbox).
 - The settings are in localStorage, key `mcp-assist-3d/settings`: `{ tools: { rack, power, cleanup, deployLock, matTurn } }`, each `'table'` or `'hud'`. They belong to the browser, not to the user or the room. A missing or unknown value is the default. When localStorage cannot be read, the defaults apply.
 
 ### Keys and mouse
 
-Two tables: the keys of the app and what each key does, and the mouse controls. They come from `src/settings/controls.js`, a plain list. The source is `docs/features/key-shortcuts.md`. A change of a key changes that list in the same step. Changing the keys in the menu comes later.
+Two tables: the keys of the app and what each key does, and the mouse controls. They come from `src/settings/controls.js`, a plain list (`KEY_ROWS`, `MOUSE_ROWS`). The source is `docs/features/key-shortcuts.md`. A change of a key changes that list in the same step. Changing the keys in the menu comes later.
 
 ## Not on the table
 

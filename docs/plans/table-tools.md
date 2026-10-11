@@ -1,6 +1,6 @@
 # Plan: Tools on the table, settings menu
 
-Requested by the user on 2026-10-11. Plan 6 of `docs/plans/playtest-1.md`. Status: plan written on 2026-10-11. The user asked to run all coder steps and to check the result after the last step, so the plan was not shown for an OK first.
+Requested by the user on 2026-10-11. Plan 6 of `docs/plans/playtest-1.md`. Status: all 4 steps done on 2026-10-11, waiting for the user checks. (Plan written on 2026-10-11.) The user asked to run all coder steps and to check the result after the last step, so the plan was not shown for an OK first.
 
 The feature is `docs/features/table-tools.md`. Each step makes one commit and writes its **Result** below.
 
@@ -277,7 +277,18 @@ User, after this step:
 
 ### Result
 
-Not done.
+Done.
+
+- `src/settings/settings.js` (new): `defaultSettings`, `readSettings`, `writeSettings` (try/catch like `rooms/store.js`), `TOOL_ITEMS`, `PLACES`. A missing or unknown value is `'table'`; a read that throws gives the defaults. `settings.test.js`: 5 checks with a fake storage.
+- `src/settings/controls.js` (new): `KEY_ROWS` (15 rows) and `MOUSE_ROWS` (9 rows, with the two rack rows).
+- `components/SettingsPopup.jsx` (new), on `Overlay` with the `roster-popup-backdrop` look and `popup-close`: Table / HUD chips for the 5 items, then the Keys and Mouse tables. CSS `.settings-*` in `index.css`.
+- `App.jsx`: `settings` state (read once with `readSettings`, written in `handleSettingChange`), `settingsOpen`. `settingsOpen` is in the popup check of `handleKeyDown` (only Escape works, and it closes the popup). `rackShown` is `settings.tools.rack === 'table'`. `toolRack` is `null` when the rack is hidden, so no rack drag can start. `tableButtons.show` carries the four table flags.
+- `Scene.jsx`: `ToolRack` renders only when `toolRack` is set. `TableButtons.jsx`: `show` flags; the Power button, the Cleanup row, the Deploy Lock / mat turn row and the whole strip are drawn only when they have a button.
+- `Toolbar.jsx`: **Settings** chip in its own group at the right end (`.hud-top > .toolbar { flex: 1 }`, `.toolbar-settings { margin-left: auto }`). Range and Move groups, Deploy, Power, Cleanup, ↺ ↻ follow the settings. The Phase group is gone when both are hidden. The Mat group stays when it has the map select (the Sandbox) or the turn buttons.
+- Cleanup of Step 3: `TOOL_TINT` moved to `tabletools/toolTips.js`. `RulerTool.jsx` and `ToolDragGhost.jsx` (which built a Color from it) use it. No hex copy is left.
+- Docs: `table-tools.md` (status built), `key-shortcuts.md` (Settings popup), `round-phases.md`, `README.md` ("Settings", "Table sides", "Tools", "Toward / Away", "Range 1").
+- Checks: build, format, lint (41 warnings, as before), test 351 pass.
+- Differs from the plan: none. Not checked in a browser.
 
 ## Open questions
 

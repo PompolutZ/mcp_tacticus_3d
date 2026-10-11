@@ -108,11 +108,15 @@ The mod handles a key only for the player whose tray it is (Blue or Red).
 
 The app also snaps a tool, key 6 included, when the pointer is over a crisis token. The mod only checks characters. The piece does not have to be selected first: the key selects it.
 
+## Settings popup
+
+**Settings** in the toolbar opens a popup that lists the keys and the mouse controls of the app, from `src/settings/controls.js` (`docs/features/table-tools.md`, "Settings menu"). A change of a key or a mouse control in this document changes that list in the same step. While the popup is open, the keys of the table do nothing, and Escape closes it.
+
 ## Keys only in the app
 
 | Key | App |
 |---|---|
-| Escape | Cancels a token drag, or closes the card or tray popup, or closes the dice menu. Otherwise it clears the selection and removes the selected tools |
+| Escape | Cancels a token drag, or closes the card, tray or settings popup, or closes the dice menu. Otherwise it clears the selection and removes the selected tools |
 
 ## Differences to decide
 

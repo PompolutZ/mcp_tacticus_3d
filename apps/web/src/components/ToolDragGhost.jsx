@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef } from 'react'
+import { Color, SRGBColorSpace } from 'three'
 import { useThree } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
 import { tablePoint } from '../drag/tablePoint.js'
 import { canDropTool, toolArms } from '../tabletools/dropShape.js'
+import { TOOL_TINT } from '../tabletools/toolTips.js'
 import { freeSpawnYaw } from './storedTool.js'
 
 // The tool that is dragged from the rack: a flat, semi-transparent outline of its footprint in the player tint,
@@ -14,7 +16,6 @@ import { freeSpawnYaw } from './storedTool.js'
 
 // Just above the table or terrain point, so the outline does not fight with the surface
 const LIFT = 0.04
-const TINT = { blue: '#1e87ff', red: '#db1a17' }
 const OPACITY = 0.45
 const DIMMED_OPACITY = 0.12
 
@@ -24,6 +25,7 @@ export default function ToolDragGhost({ pointRef, start, kind, which, side }) {
   const groupRef = useRef()
   const arms = useMemo(() => toolArms(kind, which), [kind, which])
   const materials = useRef([])
+  const tint = useMemo(() => new Color().setRGB(...TOOL_TINT[side], SRGBColorSpace), [side])
 
   useEffect(() => {
     const scene = { camera, canvas: gl.domElement, world, rapier }
@@ -59,7 +61,7 @@ export default function ToolDragGhost({ pointRef, start, kind, which, side }) {
             <planeGeometry args={[arm.length, arm.width]} />
             <meshBasicMaterial
               ref={(m) => (materials.current[i] = m)}
-              color={TINT[side]}
+              color={tint}
               transparent
               opacity={OPACITY}
               depthWrite={false}
