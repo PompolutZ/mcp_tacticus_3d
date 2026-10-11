@@ -1,6 +1,6 @@
 # Plan: Setup round 2
 
-Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: steps 1 to 4 done. Branch `setup-round-2`, from main at `87f9b6e`.
+Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: steps 1 to 4 and 6 done; step 5 waits for table-controls to merge. Branch `setup-round-2`, from main at `87f9b6e`.
 
 The feature is `docs/features/setup-game.md`. Each step makes one commit and writes its **Result** below.
 
@@ -202,6 +202,15 @@ Work:
 Checks: as in "Checks".
 
 User, after this step: after the reveal (and the affiliation choice, if any), the panel shows the deployment text, and Deploy Lock is on. The first Power Phase turns it off and the panel goes away.
+
+### Result
+
+Done. Commit "setup round 2 part 6: deployment step, Deploy Lock".
+
+- `setup.js`: `NEW_SETUP.deployed: false`, step `deploy` after `affiliation` while `deployed === false`, `finishDeploy(setup)`. Rule for old saves: a missing `deployed` field is not `false`, so the setup skips `deploy` and stays done. `crisisRows` and the Scene card lock treat `deploy` like `affiliation`/`done`. Tests in `setup.test.js`.
+- `GameSetup.jsx`: the deploy line moved from the affiliation step to the `deploy` step, with "Press Power Phase when both squads are deployed."
+- `App.jsx`: `revealSquad` turns `game.deployLine` on in its transaction when the other side is already placed. `handlePowerPhase` in one transaction: in step `deploy` it sets `deployed` and turns Deploy Lock off, then gives the Power. The Deploy Lock chip is not tied to the step.
+- Docs: `setup-game.md`, `round-phases.md`. `table-tools.md` says nothing on when Deploy Lock turns on, unchanged.
 
 
 ## Step 7: History, Prev, Next, Override

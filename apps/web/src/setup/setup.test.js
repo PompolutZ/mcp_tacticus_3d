@@ -5,6 +5,7 @@ import {
   chooseAffiliation,
   chooseDeck,
   chooserOf,
+  finishDeploy,
   colorOf,
   crisisRows,
   newSetup,
@@ -48,12 +49,15 @@ test('setupStep: squads, reveal and done', () => {
   assert.equal(setupStep(oneSide), 'reveal')
   const both = placeSquad(oneSide, 'red', squad, { characters: [], tactics: [] }, 'unaffiliated')
   assert.equal(setupStep(both), 'affiliation')
-  assert.equal(setupStep(chooseAffiliation(both, 'blue', 'asgard')), 'done')
+  const chosen = chooseAffiliation(both, 'blue', 'asgard')
+  assert.equal(setupStep(chosen), 'deploy')
+  assert.equal(setupStep(finishDeploy(chosen)), 'done')
 })
 
 test('the old placed shape reads as Blue, and a done setup stays done', () => {
   const old = squadsSetup({ ...bothReady, placed: cards })
   delete old.affiliation
+  delete old.deployed
   assert.deepEqual(placedSides(old), { blue: cards, red: { characters: [], tactics: [] } })
   assert.equal(setupStep(old), 'done')
   assert.deepEqual(placedIds(old), cards)
@@ -140,12 +144,34 @@ test('step affiliation while a side has none, done when both have one', () => {
     none,
   )
   assert.equal(setupStep(base), 'affiliation')
-  assert.equal(setupStep(chooseAffiliation(base, 'red', 'unaffiliated')), 'done')
+  const chosen = chooseAffiliation(base, 'red', 'unaffiliated')
+  assert.equal(setupStep(chosen), 'deploy')
+  assert.equal(setupStep(finishDeploy(chosen)), 'done')
+})
+
+test('newSetup is not deployed, finishDeploy sets it', () => {
+  assert.equal(newSetup().deployed, false)
+  assert.equal(finishDeploy(newSetup()).deployed, true)
+})
+
+test('a saved setup with no deployed field has no deploy step', () => {
+  const none = { characters: [], tactics: [] }
+  const old = placeSquad(
+    placeSquad(squadsSetup(bothReady), 'blue', squad, none, 'asgard'),
+    'red',
+    squad,
+    none,
+    'asgard',
+  )
+  assert.equal(setupStep(old), 'deploy')
+  delete old.deployed
+  assert.equal(setupStep(old), 'done')
 })
 
 test('a setup with no affiliation field stays done', () => {
   const old = squadsSetup({ ...bothReady, placed: cards })
   delete old.affiliation
+  delete old.deployed
   assert.equal(setupStep(old), 'done')
 })
 
@@ -159,6 +185,7 @@ test('chooseAffiliation changes one side', () => {
   assert.deepEqual(next.affiliation, { blue: 'asgard', red: null })
   const old = squadsSetup()
   delete old.affiliation
+  delete old.deployed
   assert.deepEqual(chooseAffiliation(old, 'red', 'asgard').affiliation, {
     blue: null,
     red: 'asgard',

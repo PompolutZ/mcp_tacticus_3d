@@ -1344,7 +1344,7 @@ export default function Scene({
             go on the table (the steps before 'affiliation'). Locked cards, no physics body, so a tool or a
             model passes over them. The crisis cards of the rosters and the setup buttons are in
             GameSetup. */}
-        {!['affiliation', 'done'].includes(setupStep(setup)) &&
+        {!['affiliation', 'deploy', 'done'].includes(setupStep(setup)) &&
           ['blue', 'red'].map(
             (team) =>
               rosters[team] && (

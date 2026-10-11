@@ -11,7 +11,7 @@ Not built yet:
 
 Two phase buttons. Each one does the steps of a phase that need no choice. Each is on the table or in the toolbar, in the group **Phase**, by the setting of the browser (`docs/features/table-tools.md`, "Settings menu"). Power and Cleanup are set apart. On the table:
 
-- An **Automatic Power Phase** button for each player, on the table to the owner's left of the Team Tactic tray (`docs/features/table-tools.md`), facing its owner. It gives Power to the characters of its own side only, as the TTS button does. In the Sandbox, a player presses both buttons. In a multiplayer room, the other player's button is disabled, with the title "Only the Red player presses this." (or Blue). The HUD message names the side: "Power Phase (Blue): ...".
+- An **Automatic Power Phase** button for each player, on the table to the owner's left of the Team Tactic tray (`docs/features/table-tools.md`), facing its owner. It gives Power to the characters of its own side only, as the TTS button does. The first Power Phase in round 1, while the setup is in the step `deploy`, ends the deployment: it turns Deploy Lock off and ends the setup (`docs/features/setup-game.md`). In the Sandbox, a player presses both buttons. In a multiplayer room, the other player's button is disabled, with the title "Only the Red player presses this." (or Blue). The HUD message names the side: "Power Phase (Blue): ...".
 - **Cleanup Phase** in the board strip next to the scoring board, one strip for each player. It is the same action, disabled state and title as the toolbar **Cleanup**.
 
 The toolbar **Power** (when Power is set to the HUD) gives Power to all sides that the browser plays: both in the Sandbox and in a single player room, the own side in a multiplayer room.

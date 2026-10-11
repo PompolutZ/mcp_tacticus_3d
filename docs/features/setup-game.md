@@ -19,7 +19,7 @@ In a multiplayer room, only the player who chooses in the current step can click
 | Maximum Threat | The player without Priority chooses which card's threat the mission uses | **Secure · 17** or **Extract · 18** on the panel next to the scoring board. "You choose the Maximum Threat." or "Waiting for Nelly to choose the Maximum Threat." |
 | Deployment edge | The player with Priority chooses a battlefield edge | **↺ Choose this edge ↻** on the table in front of the player with Priority (see [Buttons](#buttons)). The arrows turn the mat 90°. **Choose this edge** puts the two crisis cards on the board ends and their tokens on the mat. In a multiplayer room, the toolbar has no ↺ ↻, so this step is the only mat turn. After it, the mat turn stays fixed until **Restart setup** |
 | Squads | Each player chooses characters with a total threat up to the Maximum Threat, and up to 5 Team Tactic cards | **Select squad**, then a click on a roster card adds it or removes it. Then **Ready**. The panel says "Choose your squad and click Ready." When both players are Ready, the squads are revealed and go on the table. In a multiplayer room, each player's squad stays hidden until then (see [Squads](#squads)) |
-| Deployment | Players deploy one model at a time, taking turns. The player with Priority deploys first (p12). The app does not enforce it | After the reveal the panel says "Deploy one model at a time, taking turns. Nelly deploys first." or "You deploy first.". It shows in the affiliation step. When no step opens, the setup is done and the panel is gone |
+| Deployment | Players deploy one model at a time, taking turns. The player with Priority deploys first (p12). The app does not enforce it | The step `deploy` comes after the reveal and the affiliation. The panel says "Deploy one model at a time, taking turns. Nelly deploys first." or "You deploy first.", and "Press Power Phase when both squads are deployed." When the squads go on the table, Deploy Lock turns on (`game.deployLine`). The first Power Phase in round 1 (a table button or the toolbar) sets `setup.deployed`, turns Deploy Lock off and gives the Power. The setup is then done and the panel is gone. A player can still turn Deploy Lock on and off by hand: it does not change the step |
 | Affiliation | A squad uses an affiliation when more than half of its characters have it (p11) | The app sets it with no click when the squad has 0 or 1 such affiliation. With 2 or 3, the panel shows the step. See [Affiliation](#affiliation) |
 
 The app checks only one rule: **Ready** does not work when the squad threat is above the Maximum Threat. The squad threat is the Threat Levels of the characters plus the threat of each attached Infinity Gem: 1, and 0 for Bonded Soul (from Jarvis). A squad with less threat is fine. The app does not check the Team Tactic count, alter egos (p11) or affiliations. The panel shows the Team Tactic count in red above 5.
@@ -144,9 +144,9 @@ Rule p11: a squad uses an affiliation when more than half of its characters have
 - A row that the app set can also change while the step is open.
 - In a multiplayer room, each player clicks only their own row. The other row is disabled. After the reveal, both squads are in the document, so both rows show their choices.
 - A choice writes `setup.affiliation` and `game.affiliations` together. The VP marker and the Control markers show the token.
-- The setup is done when both sides have an affiliation. When both squads have no choice, the step does not open.
+- The step `deploy` follows when both sides have an affiliation. When both squads have no choice, the step does not open.
 - **Restart setup** clears `setup.affiliation`. The VP markers keep their token until the next squads choose.
-- A saved setup with no `affiliation` field stays done.
+- A saved setup with no `affiliation` field skips this step.
 - Jarvis `uncanny-x-men` is the token `uncanny-xmen`.
 - The toolbar has no VP marker picker. The app finds the token of each VP marker from the characters of the squad: an affiliation that more than half of them have (p11). It does not use leaders (p7).
 - Most rosters have one possible affiliation. Many have 2, and a few have 3.
@@ -168,6 +168,7 @@ setup: {
   ready: { blue: false, red: false },   // the Ready toggles. Both true: the squads are revealed and put on the table
   placed: { blue: null | { characters: [id], tactics: [id] }, red: … },   // what each squad put on the table
   affiliation: { blue: null | key, red: null | key },   // the token key of each squad, null until set
+  deployed: false,   // the first Power Phase after the reveal sets it
 }
 ```
 
@@ -177,7 +178,7 @@ setup: {
 - The random draws are in the state. So in a later peer-to-peer game, both players see the same cards (see `docs/features/peer-to-peer.md`).
 - All fields are plain JSON. A room saves `setup` with its table (`rooms/table.js`). A setup saved with the old `placed` shape `{ characters, tactics }` is read by `placedSides` as the cards of Blue. When both players are Ready, such a setup stays done.
 - `placed` has the ids of the new characters and Team Tactic cards of each side. The reveal makes them before it changes the state, because React can call a state updater twice, and the ids must be the same in `placed` and on the table. Each browser writes only the sides it plays. A setup saved with the old shape `{ characters, tactics }` reads as the cards of Blue (`placedSides`).
-- `setupStep` has a step `reveal`: both players are Ready, but a side is not placed yet. The step `affiliation` comes after it, while a side has no affiliation.
+- `setupStep` has a step `reveal`: both players are Ready, but a side is not placed yet. The step `affiliation` comes after it, while a side has no affiliation. The step `deploy` follows while `deployed` is false. A saved setup with no `deployed` field counts as deployed, so a setup that was done stays done.
 - In a multiplayer room, `setup.squads` stays empty until the reveal.
 - `squadSelect: { blue, red }` in `App.jsx` says which player is choosing squad cards. It is not saved.
 
@@ -185,7 +186,7 @@ setup: {
 
 | File | Content |
 |---|---|
-| `src/setup/setup.js` | `NEW_SETUP`, `newSetup`, `setupStep`, the step changes (`chooseDeck`, `pickCard`, `chooseThreat`, `chooseEdge`, `toggleSquadCard`, `setSquadCharacters`, `toggleReady`, `placeSquad`, `chooseAffiliation`), `placedSides`, `revealPlan`, `crisisRows`. No imports, so a Node script can check it |
+| `src/setup/setup.js` | `NEW_SETUP`, `newSetup`, `setupStep`, the step changes (`chooseDeck`, `pickCard`, `chooseThreat`, `chooseEdge`, `toggleSquadCard`, `setSquadCharacters`, `toggleReady`, `placeSquad`, `chooseAffiliation`, `finishDeploy`), `placedSides`, `revealPlan`, `crisisRows`. No imports, so a Node script can check it |
 | `src/components/GameSetup.jsx` | The crisis rows and all setup buttons |
 | `src/rosters/layout.js` | `crisisRowLayout`, `crisisCenterZ`, `CRISIS_GAP_X`. Row 2 of the roster has only the Team Tactic cards now |
 | `src/rosters/cards.js` | `threat` and `key` of each card, `squadThreat`, `squadAffiliationKeys` |

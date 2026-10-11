@@ -278,9 +278,7 @@ function BoardPanel({ setup, step, parsed, mySide, ctx, actions }) {
       ? 'Putting your squad on the table.'
       : `Waiting for ${playerName(waiting, ctx)} to reveal ${mySide ? 'their' : 'the'} squad.`
   } else if (step === 'affiliation') {
-    // After the reveal the players deploy, one model at a time (p11). The player with Priority goes first.
-    hint = `Deploy one model at a time, taking turns. ${says(winner, ctx, 'deploy')} first.`
-    note = mySide
+    hint = mySide
       ? 'Choose the affiliation of your squad.'
       : 'Choose the affiliation of each squad.'
     // One row for each team: the affiliations that more than half of the squad have, then Unaffiliated
@@ -314,6 +312,10 @@ function BoardPanel({ setup, step, parsed, mySide, ctx, actions }) {
         </div>
       )
     })
+  } else if (step === 'deploy') {
+    // The players deploy one model at a time (p11). The player with Priority goes first.
+    hint = `Deploy one model at a time, taking turns. ${says(winner, ctx, 'deploy')} first.`
+    note = 'Press Power Phase when both squads are deployed.'
   }
   // What the app read from the dice trays, until the deck is chosen
   const read = setup.rollOff && (step === 'rollOff' || step === 'deck') ? setup.rollOff : null

@@ -27,7 +27,9 @@ const NO_SQUAD = { characters: [], tactics: [] }
 // A setup saved before the reveal has placed: { characters, tactics } for both teams (placedSides).
 // affiliation: per team, the affiliation token key of the squad for the scoring board, or null before the
 // squad is placed or while the player still chooses (scoreboard/affiliations.js). A setup saved before
-// the affiliation step has no affiliation field.
+// the affiliation step has no affiliation field. deployed: the players deployed their models. The first
+// Power Phase after the reveal sets it (finishDeploy). A setup saved before the deploy step has no field,
+// and counts as deployed.
 export const NEW_SETUP = {
   id: null,
   priority: null,
@@ -41,6 +43,7 @@ export const NEW_SETUP = {
   ready: { blue: false, red: false },
   placed: { blue: null, red: null },
   affiliation: { blue: null, red: null },
+  deployed: false,
 }
 
 // A new setup. The id is random, so it is made here and not in NEW_SETUP.
@@ -84,7 +87,8 @@ export function placedSides(setup) {
 // Ready, but a squad is not on the table yet, for example while the other player's page is closed.
 // 'affiliation': both squads are on the table, but a side has no affiliation yet. 'done': both squads are
 // on the table and have an affiliation (a setup with no affiliation field is done as soon as both are on
-// the table).
+// the table). 'deploy': both squads are on the table with an affiliation, and the players deploy until the
+// first Power Phase (`deployed` is false). A setup with no `deployed` field has no deploy step.
 export function setupStep(setup) {
   if (!priorityOf(setup)) return 'rollOff'
   if (!setup.deck) return 'deck'
@@ -97,6 +101,7 @@ export function setupStep(setup) {
   const placed = placedSides(setup)
   if (!placed.blue || !placed.red) return 'reveal'
   if (setup.affiliation && TEAMS.some((team) => !setup.affiliation[team])) return 'affiliation'
+  if (setup.deployed === false) return 'deploy'
   return 'done'
 }
 
@@ -243,6 +248,11 @@ export function chooseAffiliation(setup, side, key) {
   }
 }
 
+// The first Power Phase ends the deployment: the setup is done
+export function finishDeploy(setup) {
+  return { ...setup, deployed: true }
+}
+
 // The ids of the characters and Team Tactic cards that the squads put on the table: { characters, tactics }
 export function placedIds(setup) {
   const sides = Object.values(placedSides(setup)).filter(Boolean)
@@ -277,7 +287,14 @@ export function crisisRows(setup, parsed) {
         : [],
     )
   }
-  if (step === 'squads' || step === 'reveal' || step === 'affiliation' || step === 'done') return []
+  if (
+    step === 'squads' ||
+    step === 'reveal' ||
+    step === 'affiliation' ||
+    step === 'deploy' ||
+    step === 'done'
+  )
+    return []
   const winner = priorityOf(setup)
   const first = setup.deck.type
   const other = otherTeam(winner)

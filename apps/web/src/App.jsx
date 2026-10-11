@@ -62,6 +62,7 @@ import {
   chooseEdge,
   chooseThreat,
   newSetup,
+  finishDeploy,
   priorityOf,
   otherTeam,
   otherType,
@@ -1049,22 +1050,29 @@ export default function App({
   // inside setCharacters, so gains is filled when the HUD message is built.
   function handlePowerPhase(sides) {
     const gains = []
-    setCharacters((prev) =>
-      prev.map((ch) => {
-        if (!sides.includes(ch.teamColor) || !characterOnBoard(ch, poses)) return ch
-        if (characterIsGrunt(ch.key)) return ch
-        const power = powerAfterPhase({
-          power: ch.power,
-          bonus: characterPowerBonus(ch.key, ch.side),
-          gems: ch.attached,
-          stun: ch.tokens?.stun ?? 0,
-          poison: ch.tokens?.poison ?? 0,
-          grunt: false,
-        })
-        gains.push(`${characterName(ch.key)} ${ch.power} → ${power}`)
-        return { ...ch, power }
-      }),
-    )
+    table.transact(() => {
+      // The first Power Phase ends the deployment: the setup is done and Deploy Lock is off
+      if (setupStep(table.setup.read()) === 'deploy') {
+        setSetup((prev) => finishDeploy(prev))
+        setDeployLine(false)
+      }
+      setCharacters((prev) =>
+        prev.map((ch) => {
+          if (!sides.includes(ch.teamColor) || !characterOnBoard(ch, poses)) return ch
+          if (characterIsGrunt(ch.key)) return ch
+          const power = powerAfterPhase({
+            power: ch.power,
+            bonus: characterPowerBonus(ch.key, ch.side),
+            gems: ch.attached,
+            stun: ch.tokens?.stun ?? 0,
+            poison: ch.tokens?.poison ?? 0,
+            grunt: false,
+          })
+          gains.push(`${characterName(ch.key)} ${ch.power} → ${power}`)
+          return { ...ch, power }
+        }),
+      )
+    })
     // With one side, the message names it
     const title =
       sides.length === 1
@@ -1514,6 +1522,9 @@ export default function App({
         ),
       )
       if (auto) setAffiliations((prev) => ({ ...prev, [side]: auto }))
+      // Both squads are on the table: Deploy Lock on for the deployment
+      const placed = placedSides(table.setup.read())
+      if (TEAMS.every((team) => team === side || placed[team])) setDeployLine(true)
     })
   }
 
