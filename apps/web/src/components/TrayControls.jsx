@@ -4,7 +4,7 @@ import { crisisMarker } from '../crisis/files.js'
 import { characterToken } from '../tokens/files.js'
 
 // Damage and Power reuse the mod's own counter tokens ("1 Damage", "1 Power"), see
-// docs/characters-hud.md, "Tokens from the TTS mod".
+// docs/features/character-trays.md, "Tokens from the TTS mod".
 const DAMAGE_ICON = assetUrl(crisisMarker('damage'))
 const POWER_ICON = assetUrl(characterToken('1-power'))
 
@@ -12,14 +12,14 @@ const POWER_ICON = assetUrl(characterToken('1-power'))
 // the character and the Give sources are real-size 3D tokens on the tray (see CharacterTray.jsx).
 // The objective tokens the character holds lie on its card (see Scene.jsx, "Hold and drop").
 // Plain DOM, no three.js/drei: the 3D tray mounts it in a <Html transform> (see CharacterTray.jsx),
-// and a later 2D HUD panel can mount the same component (see docs/characters-hud.md, "First
+// and a later 2D HUD panel can mount the same component (see docs/features/character-trays.md, "First
 // iteration"). data-character-id is the drop target for giving
 // tokens by drag and drop, and the target CrisisToken.jsx's own drag uses to hold a crisis token
 // (Phase 6, "Hold and drop").
 // onAttachedOpen(code): a click on a gem chip, one per attached card (see App.jsx, handleAttachedOpen).
 // The chip only reads the card, so it works on any player's tray. hideAttached: no gem chips; the
 // tray popup sets it, because its thumbnails do the same job (TrayPopup.jsx).
-// onRemove(): Remove puts the model back on its card (docs/plan-cleanup-phase.md, decision 10), with no
+// onRemove(): Remove puts the model back on its card (docs/plans/cleanup-phase.md, decision 10), with no
 // confirm. onBoard: a model of the character is on the mat. Without it Remove does nothing (aria-disabled,
 // not disabled, so the browser still shows the title).
 const REMOVE_TITLE =

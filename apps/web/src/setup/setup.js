@@ -1,6 +1,6 @@
 // Game setup: the steps from two loaded rosters to the start of round 1. Plain module with no imports, the
 // same as rosters/mct.js, so a Node script can check it. The state is plain JSON, so a room saves it. See
-// docs/feature-setup-game.md.
+// docs/features/setup-game.md.
 
 export const TEAMS = ['blue', 'red']
 export const CRISIS_TYPES = ['secure', 'extract']

@@ -19,7 +19,7 @@ const ICON_SIZE = 256
 
 // Where the die UVs come from: for each face, fit the affine map from the face plane to UV using
 // the flat (unbevelled) triangle of D8_1885.obj that has the same normal as the ideal face, then
-// evaluate that map at the corners of the app's own regular octahedron (see docs/plan-dice-rolling.md,
+// evaluate that map at the corners of the app's own regular octahedron (see docs/plans/dice-rolling.md,
 // Phase 1 Result, for the full method). Checked by cropping the die texture at these UVs: face 1 is
 // the skull, 2 the shield, 3 and 6 the starburst, 5 the "!" burst, 7 the spiral, 4 and 8 are blank.
 // index = face number - 1. Each triple is [tip, cornerA, cornerB], the same order as FACES[i].corners.

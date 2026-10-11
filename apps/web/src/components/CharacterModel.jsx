@@ -133,7 +133,7 @@ function turnBetween(a, b) {
 
 // The files of a model (characters/models.js), as its component loads them: the GLB of a 3D model, or the
 // front and back images of a standee, in this order. Scene passes them to the component, and Preload.jsx
-// loads the same before a table shows (docs/feature-rooms.md, "Loading").
+// loads the same before a table shows (docs/features/rooms.md, "Loading").
 export function modelUrls(model) {
   return model.figure === 'standee'
     ? { standee: [assetUrl(model.standeeFiles[0]), assetUrl(model.standeeFiles[1])] }
@@ -231,7 +231,7 @@ function standeeScene(front, back, radius) {
 // position: where the body starts. Read only on mount: RigidBody moves its body when its position
 // prop changes, and the spawn position follows the tray (Scene.jsx), which can move later.
 // quaternion: the rotation the body starts with, [x, y, z, w], or undefined for none. Read only on mount,
-// the same as position. A model of a saved room starts at its saved pose, asleep (docs/feature-rooms.md).
+// the same as position. A model of a saved room starts at its saved pose, asleep (docs/features/rooms.md).
 // overlay(top): optional, what moves with the model above it (SpectatorBadge.jsx). top: height of the
 // model top above the base bottom, in inches.
 function CharacterFigure({

@@ -1,5 +1,5 @@
 // Makes a GLB for the app from a folder of photos of a real object, with Apple Object Capture.
-// See docs/feature-custom-models.md.
+// See docs/features/custom-models.md.
 //
 // object-capture.swift reconstructs the object (OBJ, MTL and one color texture). This script then
 // converts it in the same way as the TTS pieces: WebP texture, Draco mesh.

@@ -1,10 +1,10 @@
 # Feature: Dice rolling
 
 Status: implemented (all 6 phases). Not checked in a browser yet; every phase was built and read
-back against the code only, per the rules in `docs/plan-dice-rolling.md`.
+back against the code only, per the rules in `docs/plans/dice-rolling.md`.
 
 On 2026-10-02 the HUD panel was removed, with its inset view (Phase 6) and the history. The keys
-are now on the tray (see [Controls](#controls-keys-on-the-tray)). `docs/plan-dice-rolling.md`
+are now on the tray (see [Controls](#controls-keys-on-the-tray)). `docs/plans/dice-rolling.md`
 still describes the panel.
 
 ## Goal
@@ -15,7 +15,7 @@ When a player presses Roll again, the dice are thrown again from where they are,
 
 ## Players apply the rules
 
-The app rolls the dice and shows the results. It does not apply the attack rules. For example, it does not compare Hits with Blocks, and it does not apply Hex, Shock, Incinerate or cover. Players do this themselves, in the same way as for the crisis cards (see `docs/feature-crisis.md`).
+The app rolls the dice and shows the results. It does not apply the attack rules. For example, it does not compare Hits with Blocks, and it does not apply Hex, Shock, Incinerate or cover. Players do this themselves, in the same way as for the crisis cards (see `docs/features/crisis.md`).
 
 The app has the tools that the rules need. The rules come from the [Jarvis rules reference](https://www.jarvis-protocol.com/rules-reference):
 
@@ -89,7 +89,7 @@ TTS puts both trays at x = 36. That is the edge of the app table, which is 72" w
 - Each tray turns so that its shelf faces the center line (z = 0), as in TTS.
 - In TTS, the Red tray is at -z. The app puts TTS z at app -z, so without a change the Red tray would be on the Blue side. The app puts each tray on the side of its own color.
 - The TTS Tool Trays are at x = 23.5, so they would overlap the dice trays. The app has no tool trays.
-- The planned scoring board is at x = -23.1, on the other side of the mat (see `docs/feature-crisis.md`).
+- The planned scoring board is at x = -23.1, on the other side of the mat (see `docs/features/crisis.md`).
 
 ## Controls: keys on the tray
 
@@ -115,7 +115,7 @@ One limit: the keys are HTML on top of the canvas. Therefore dice and models in 
 
 ## Controls: number keys
 
-With the pointer over an own dice tray, keys 1–9 add that number of dice, and 0 adds 10. Each press adds to the dice that are already in the tray. When the tray would go over 42 dice, the key adds only the dice that are left to 42. In a multiplayer room the player has one own tray, the tray of the own seat. In a single player room and the Sandbox both trays are own, and each takes the keys when the pointer is over it. Over the other player's tray the number keys act as over the table: they spawn a tool. Away from the trays, the number keys spawn tools (see `docs/feature-key-shortcuts.md`).
+With the pointer over an own dice tray, keys 1–9 add that number of dice, and 0 adds 10. Each press adds to the dice that are already in the tray. When the tray would go over 42 dice, the key adds only the dice that are left to 42. In a multiplayer room the player has one own tray, the tray of the own seat. In a single player room and the Sandbox both trays are own, and each takes the keys when the pointer is over it. Over the other player's tray the number keys act as over the table: they spawn a tool. Away from the trays, the number keys spawn tools (see `docs/features/key-shortcuts.md`).
 
 In TTS, keys 1–9 over the tray first clear it and then add that number of dice. The app does not clear the tray, so a player can add more dice with a second press.
 
@@ -305,7 +305,7 @@ The script measures:
 
 Spin and dice that leave the well (10 dice at once, 3 seeds, 3000 dice for each value): 10 rad/s 0.3%, 20 rad/s 0.7%, 30 rad/s 0.9%, 40 rad/s 1.5%, 50 rad/s 2.9%. The tilted rate and the settle time do not change with the spin.
 
-Tuning found a real bug, not just numbers to adjust: two dice that collide can occasionally get a huge, sometimes non-finite (`NaN`), velocity from a single unstable contact. The die is a sharp shape (an octahedron, tip to tip) spun up to the TTS maximum of 50 rad/s, which is about 24° of turn in one 1/120 s physics step — enough for a tip to pass most of the way through another die's face between two steps, which the solver then corrects with a large, sometimes unstable, push. Cutting the spin cap to 10 rad/s (`THROW_SPIN_MAX` in `throw.js`) and giving each die 8 extra solver iterations of its own (`DIE_SOLVER_ITERATIONS`, applied per body with `additionalSolverIterations`, not on the whole `<Physics>` world) cut this from double digits of throws in a hundred (at the TTS spin and the world's default 4 iterations) down to the tilted rate above. It still happens occasionally, more so as more dice are thrown together (roughly 1-7% tilted at 42 dice in testing) — see the Phase 3 Result in `docs/plan-dice-rolling.md` for the full tuning story and what Phase 4 should do about the cases it does not remove.
+Tuning found a real bug, not just numbers to adjust: two dice that collide can occasionally get a huge, sometimes non-finite (`NaN`), velocity from a single unstable contact. The die is a sharp shape (an octahedron, tip to tip) spun up to the TTS maximum of 50 rad/s, which is about 24° of turn in one 1/120 s physics step — enough for a tip to pass most of the way through another die's face between two steps, which the solver then corrects with a large, sometimes unstable, push. Cutting the spin cap to 10 rad/s (`THROW_SPIN_MAX` in `throw.js`) and giving each die 8 extra solver iterations of its own (`DIE_SOLVER_ITERATIONS`, applied per body with `additionalSolverIterations`, not on the whole `<Physics>` world) cut this from double digits of throws in a hundred (at the TTS spin and the world's default 4 iterations) down to the tilted rate above. It still happens occasionally, more so as more dice are thrown together (roughly 1-7% tilted at 42 dice in testing) — see the Phase 3 Result in `docs/plans/dice-rolling.md` for the full tuning story and what Phase 4 should do about the cases it does not remove.
 
 **Update, 2026-09-30:** with the current code, the explosions do not happen again. A test of 10 and 42 dice at 50 rad/s gave no die faster than 60 in/s and no `NaN`, also without `DIE_SOLVER_ITERATIONS`, and also with the old sim bug put back (a die outside the well restarted at the well floor). The cause of the Phase 3 explosions is not known. So the spin is back at 50 rad/s. `DIE_SOLVER_ITERATIONS` stays, because it is cheap. The app still moves a die with a `NaN` position back above the well.
 
@@ -333,7 +333,7 @@ Then the spin went back to 0–50 rad/s, because with 7.7–11 the dice did not 
 
 ## Pitfalls to check
 
-- **Sleeping bodies.** @react-three/rapier does not copy the pose of a sleeping body to its mesh. So the app calls `wakeUp()` before it moves a die, as it does for models. Done: `DiceTray.jsx` calls `wakeUp()` on a die before every teleport, throw and shelf move (see the Phase 4 Result in `docs/plan-dice-rolling.md`).
+- **Sleeping bodies.** @react-three/rapier does not copy the pose of a sleeping body to its mesh. So the app calls `wakeUp()` before it moves a die, as it does for models. Done: `DiceTray.jsx` calls `wakeUp()` on a die before every teleport, throw and shelf move (see the Phase 4 Result in `docs/plans/dice-rolling.md`).
 - **New dice inside each other.** When two new dice overlap, Rapier pushes them apart at high speed. So each new die needs a free spot, at least one die size from the others. TTS uses 49 fixed spots 1" apart, and its dice can overlap. Done: `freeDropPoint` (`src/dice/tray.js`) keeps every new point at least one die size from the others, including dice added in the same React commit (Phase 4b's `wellOccupiedPoints`).
 - **Trimesh edges.** A die can bump on the inside edges between the triangles of the tray mesh. Rapier's `TriMeshFlags.FIX_INTERNAL_EDGES` reduces this. The @react-three/rapier 1.5 types do not list the flag, but the library passes extra arguments to `ColliderDesc.trimesh`. Confirmed by reading the library's own code (Phase 4a Result): the flag does reach Rapier's `ColliderDesc.trimesh`. Not checked with a real collision (no browser).
 - **Shadows.** The shadow camera covers ±20 (`Scene.jsx`). The trays reach x = 34 and z = ±18.5, so they get no shadows. The shadow camera can be larger, or a second light can cast shadows over the trays. A larger shadow camera gives less shadow detail on the mat. Done: the shadow camera is now `left -26, right 38, top 25, bottom -34` with `shadow-mapSize` 3072 (Phase 4 Result), covering both trays at close to the old per-pixel detail.

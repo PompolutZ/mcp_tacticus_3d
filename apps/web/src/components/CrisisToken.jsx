@@ -129,7 +129,7 @@ function AffiliationMarker({ affiliation, x, radius }) {
 // held token lies on its holder's tray card, which has no collider (see CharacterTray.jsx).
 // findCharacter(clientX, clientY): App's findCharacterAt (DOM data-character-id first, then
 // Scene's characterAt), called on release to look for one, the same lookup App's own token drag
-// uses. See docs/characters-hud.md, "Hold and drop" and "Give tokens by drag and drop".
+// uses. See docs/features/character-trays.md, "Hold and drop" and "Give tokens by drag and drop".
 // objectRef: standard ref callback for the token's 3D object, for the ruler tools' pointer raycast.
 // centerRef(getter): registers a function that returns the token's live { x, y, z }, for the ruler
 // tools. Called with undefined on unmount, the same pattern as bodyRef/objectRef in CharacterModel.

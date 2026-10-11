@@ -49,7 +49,7 @@ import {
 } from '../src/table.js'
 
 // Nested Rapier build the app actually uses (0.14, enhanced determinism). The top-level
-// @dimforge/rapier3d-compat is 0.12 and must not be used (see docs/plan-dice-rolling.md, Phase 3).
+// @dimforge/rapier3d-compat is 0.12 and must not be used (see docs/plans/dice-rolling.md, Phase 3).
 const RAPIER_PATH = createRequire(import.meta.resolve('@react-three/rapier')).resolve(
   '@dimforge/rapier3d-compat/rapier.es.js',
 )

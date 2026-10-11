@@ -1,6 +1,6 @@
 # Step 11: Reconnect
 
-Detailed plan of step 11 in `docs/plans/implement-backend.md`. The rest of peer-to-peer phase 5. The design is in `docs/feature-peer-to-peer.md` ("Connect flow", "Data channels", "Room and players", "Local testing"). Decision 1 changes the design: no ICE restart.
+Detailed plan of step 11 in `docs/plans/implement-backend.md`. The rest of peer-to-peer phase 5. The design is in `docs/features/peer-to-peer.md` ("Connect flow", "Data channels", "Room and players", "Local testing"). Decision 1 changes the design: no ICE restart.
 
 ## Goal
 
@@ -188,7 +188,7 @@ Work:
    - Two documents with different changes have different fingerprints.
 2. `Table.jsx`: the console line of decision 9. The timer is cleared when the channel closes and when the table closes.
 3. Docs:
-   - `docs/feature-peer-to-peer.md`: "Status" line at the top. "Connect flow": the state `reconnecting` in the states table, the drop rules (decisions 2 to 5), and the sentence "Step 11 keeps the network cases …" replaced by the rules. "Room and players": the "Reconnecting" item. "Local testing": `turn:pause` and `turn:resume` with `?relay`. "Debug flags" or "Local testing": the fingerprint line. "Phases": phase 5 done, a new connection instead of ICE restart (decision 1).
+   - `docs/features/peer-to-peer.md`: "Status" line at the top. "Connect flow": the state `reconnecting` in the states table, the drop rules (decisions 2 to 5), and the sentence "Step 11 keeps the network cases …" replaced by the rules. "Room and players": the "Reconnecting" item. "Local testing": `turn:pause` and `turn:resume` with `?relay`. "Debug flags" or "Local testing": the fingerprint line. "Phases": phase 5 done, a new connection instead of ICE restart (decision 1).
    - `README.md`: the multiplayer part: "Reconnecting", and how to test a drop. `turn:pause` and `turn:resume` next to `turn:up` and `turn:down`.
    - `docs/plans/implement-backend.md`: a short **Result** under step 11. In the step 11 list, "ICE restart" is replaced by "a new connection (decision 1 of `11-reconnect.md`)".
 
@@ -205,7 +205,7 @@ Done. Checks run at the end of the phase (numbers below).
 
 - `net/fingerprint.js`: `tableFingerprint(doc)`, FNV-1a 32 bit of `Y.encodeSnapshot(Y.snapshot(doc))`, 8 lowercase hex. `fingerprint.test.js`: 4 tests (format, order, delete, different changes).
 - `Table.jsx`: `startFingerprint()` in `onChannels` adds a doc `update` listener and a 2 s timer (`FINGERPRINT_QUIET_MS`). Each update restarts the timer. The timer logs `table fingerprint <hash>` and removes the listener. `onChannelsEnd` and `close()` call `stopFingerprint()`. All builds log it.
-- Docs: `docs/feature-peer-to-peer.md` (Status, Connect flow with the drop rules, states table, Room and players, Local testing "Test a dropped network" with the fingerprint line, Code layout, Phases). `apps/api/README.md` does not exist, so the layout line now names `apps/api/package.json` and its scripts. Root `README.md`: "Reconnecting" part, `turn:pause` and `turn:resume`. `docs/plans/implement-backend.md`: step 11 list and Result.
+- Docs: `docs/features/peer-to-peer.md` (Status, Connect flow with the drop rules, states table, Room and players, Local testing "Test a dropped network" with the fingerprint line, Code layout, Phases). `apps/api/README.md` does not exist, so the layout line now names `apps/api/package.json` and its scripts. Root `README.md`: "Reconnecting" part, `turn:pause` and `turn:resume`. `docs/plans/implement-backend.md`: step 11 list and Result.
 
 ## User
 

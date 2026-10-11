@@ -5,7 +5,7 @@
 // (IMPORT_ROTATION, the same mirror fix as Terrain.jsx, because TTS mirrors X on OBJ import) and
 // scaled by TRAY_SCALE. The tray bottom lands at tray-space y = 0.
 //
-// All the rectangles below come from the Phase 1 measurement (see docs/plan-dice-rolling.md,
+// All the rectangles below come from the Phase 1 measurement (see docs/plans/dice-rolling.md,
 // Phase 1 Result): a raycast grid over the tray mesh in tray space, 0.1" steps.
 
 import { Quaternion, Vector3 } from 'three'

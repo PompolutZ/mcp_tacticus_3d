@@ -34,13 +34,13 @@ const CLICK_MOVE = 4
 // One character tray: a background plate, the "On" row of tokens on the character, the stat card
 // (the side that faces up), and the controls strip (see TrayControls.jsx). A character whose second
 // form has its own card (Ant-Man) has that card under the first one, with the same side up, so
-// Flip turns both (see docs/characters-hud.md, "Second forms"). The Give sources are
+// Flip turns both (see docs/features/character-trays.md, "Second forms"). The Give sources are
 // not part of the tray: they lie on the table on the owner's side of the plate, as in TTS, and
 // move with the tray. The tokens are real size, as in TTS (see trays.js for the layout). No
-// collider (see docs/characters-hud.md, Phase 1). A click on the card calls onOpen(): App opens
+// collider (see docs/features/character-trays.md, Phase 1). A click on the card calls onOpen(): App opens
 // the whole tray in a popup (see TrayPopup.jsx).
 // objectRef: the background plate, so Scene's characterAt can hit the whole tray, the same way it
-// hits the model (see docs/characters-hud.md, "Give tokens by drag and drop"). A token dropped
+// hits the model (see docs/features/character-trays.md, "Give tokens by drag and drop"). A token dropped
 // anywhere on the tray goes to its character, as in TTS. A token dropped on the Give sources lies
 // on the table, because they are outside the plate. The card mesh is the outline target:
 // selected highlights the tray card, the same way CharacterModel.jsx highlights a selected model
@@ -132,7 +132,7 @@ export default function CharacterTray({
   return (
     <group position={position} rotation={[0, yaw, 0]}>
       {/* Background plate under every part, so the tray stands out from the table
-          (docs/characters-hud.md, "One tray"). No collider, no shadow: it is purely visual. */}
+          (docs/features/character-trays.md, "One tray"). No collider, no shadow: it is purely visual. */}
       <mesh position={[0, TRAY_BG_Y, plate.z]} rotation={[-Math.PI / 2, 0, 0]} ref={objectRef}>
         <planeGeometry args={[TRAY_BG_WIDTH, plate.depth]} />
         <meshStandardMaterial color="#20242b" roughness={1} />

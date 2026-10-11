@@ -1,6 +1,6 @@
 # Step 8: Two browsers
 
-Detailed plan of step 8 in `docs/plans/implement-backend.md`. Peer-to-peer phase 2 and auth phase 3. The design is in `docs/feature-peer-to-peer.md` ("How a WebRTC connection starts", "Signaling service", "Connect flow", "Data channels", "State", "Room and players", "Local testing", "Debug flags") and `docs/feature-auth.md` ("Identity in peer-to-peer games", "Table on the server"). Decisions 2, 3, 8, 9, 12 and 13 change parts of the design. The user agreed on 2026-10-09.
+Detailed plan of step 8 in `docs/plans/implement-backend.md`. Peer-to-peer phase 2 and auth phase 3. The design is in `docs/features/peer-to-peer.md` ("How a WebRTC connection starts", "Signaling service", "Connect flow", "Data channels", "State", "Room and players", "Local testing", "Debug flags") and `docs/features/auth.md` ("Identity in peer-to-peer games", "Table on the server"). Decisions 2, 3, 8, 9, 12 and 13 change parts of the design. The user agreed on 2026-10-09.
 
 ## Goal
 
@@ -339,15 +339,15 @@ Deviations: none.
 ## Phase 4: Docs
 
 Work:
-1. `docs/feature-peer-to-peer.md`:
+1. `docs/features/peer-to-peer.md`:
    - Status line.
    - "Endpoints": the answers of "Names". `GET /ice` comes in step 13 (decision 13).
    - "Connect flow": both players post `hello` (decision 1), `hello` and `bye` replace older messages (decision 3), the timeouts (decision 7), the new connection after a close (decision 8), the guest learns about a delete from the poll (decision 12). No **Host game** button.
    - "Data channels": one negotiated channel in step 8, `poses` and awareness in step 9, frames of 16 KB (decisions 9, 10).
    - "Room and players": no peer id in `sessionStorage`, no typed name. The camera for Red.
    - "Code layout": the files of this step.
-2. `docs/feature-auth.md`: "Identity in peer-to-peer games": polls check only the token (decision 4). "Rules" and "Table on the server": decisions 11 and 12. "Endpoints": the messages routes. Status line.
-3. `docs/feature-backend.md`: "Code" (`routes/signal.ts`, `middleware/session.ts`, `rooms/seats.ts`), "Database" (`messages`).
+2. `docs/features/auth.md`: "Identity in peer-to-peer games": polls check only the token (decision 4). "Rules" and "Table on the server": decisions 11 and 12. "Endpoints": the messages routes. Status line.
+3. `docs/features/backend.md`: "Code" (`routes/signal.ts`, `middleware/session.ts`, `rooms/seats.ts`), "Database" (`messages`).
 4. `docs/plans/implement-backend.md`: a short **Result** under step 8. Step 9: the `poses` channel and awareness. Step 11: what decision 8 leaves for it. Step 13: `GET /ice`.
 5. `README.md`: two browsers in local dev, and what the toolbar status means.
 
@@ -358,9 +358,9 @@ Checks:
 ### Result
 
 Changed docs:
-- `docs/feature-peer-to-peer.md`: status line, "Endpoints" (route details, `GET /ice` moved to step 13), "Connect flow" (both `hello`, states, timeouts, new connection after a close, the delete from the poll, build id, the guest's writer), "Data channels" (one channel, frames of 16 KB), "Room and players" (no `sessionStorage` peer id, no typed name, Red camera, toolbar), "Local testing", "Debug flags", "Code layout", phase 2.
-- `docs/feature-auth.md`: status line, "Rules" (delete from the poll), "Table on the server" (decision 11), "Endpoints" (messages routes), "Identity in peer-to-peer games" (decision 4, decision 15), toolbar text, "Code layout".
-- `docs/feature-backend.md`: "Code" (`signal`, `session`, `seats`), "Database" (`messages`).
+- `docs/features/peer-to-peer.md`: status line, "Endpoints" (route details, `GET /ice` moved to step 13), "Connect flow" (both `hello`, states, timeouts, new connection after a close, the delete from the poll, build id, the guest's writer), "Data channels" (one channel, frames of 16 KB), "Room and players" (no `sessionStorage` peer id, no typed name, Red camera, toolbar), "Local testing", "Debug flags", "Code layout", phase 2.
+- `docs/features/auth.md`: status line, "Rules" (delete from the poll), "Table on the server" (decision 11), "Endpoints" (messages routes), "Identity in peer-to-peer games" (decision 4, decision 15), toolbar text, "Code layout".
+- `docs/features/backend.md`: "Code" (`signal`, `session`, `seats`), "Database" (`messages`).
 - `docs/plans/implement-backend.md`: step 8 text and **Result**. Steps 9, 11 and 13 got the parts that moved.
 - `README.md`: two browsers in local dev, and the status texts.
 
@@ -401,7 +401,7 @@ Read: decisions 6, 13, 21 to 24. `apps/api/compose.yaml`, `apps/api/package.json
 5. `Table.jsx` and `peer.js`: the connection gets the whole config: `createPeerConnection({ iceServers, iceTransportPolicy })`. The tests of `peer.js` pass the new shape.
 6. `ice.test.js`: production has no TURN server and no policy. Dev has the TURN server. Dev with relay has `iceTransportPolicy: 'relay'`.
 7. Check that coturn answers: `pnpm --filter api turn:up`, then a small Node script in the scratchpad sends a STUN Binding request over UDP to `127.0.0.1:3478` and gets a Binding success answer. Then `turn:down`.
-8. `README.md` ("two browsers"): start coturn with `turn:up`, what `?relay` does. `docs/feature-peer-to-peer.md` ("Local testing", "Debug flags"): coturn is in dev from step 8, not from phase 6. The Result of this phase.
+8. `README.md` ("two browsers"): start coturn with `turn:up`, what `?relay` does. `docs/features/peer-to-peer.md` ("Local testing", "Debug flags"): coturn is in dev from step 8, not from phase 6. The Result of this phase.
 
 Checks:
 - `pnpm --filter web test`, `pnpm --filter web build` pass.
@@ -419,7 +419,7 @@ Added:
 - `net/debugFlags.js`: `relayFlag()`.
 - `peer.js`: option `iceConfig` replaces `iceServers`. `createPeerConnection(iceConfig)`. `Table.jsx` passes `iceConfig({ dev: import.meta.env.DEV, relay: relayFlag() })` and `new RTCPeerConnection(config)`. `peer.test.js` uses the new shape.
 - `net/ice.test.js`: 4 tests. Web tests 97 -> 101.
-- Docs: `README.md` (turn:up, `?relay`), `docs/feature-peer-to-peer.md` ("Local testing", "Debug flags", file list).
+- Docs: `README.md` (turn:up, `?relay`), `docs/features/peer-to-peer.md` ("Local testing", "Debug flags", file list).
 
 coturn flags: `-n` (no config file), `--log-file=stdout` (see logs with `docker logs`), `--lt-cred-mech` with `--user=dev:dev` and `--realm=localhost` (browsers need a user), `--no-tls` (no certs), `--min-port=49160 --max-port=49200` (small relay range). No flag for peers: coturn 4.18 denies only loopback peers by default (`--allow-loopback-peers` is off), and the relay addresses are the container address, which is private and allowed. No `--external-ip`: the relay address is used only between the two relays inside the container. Relay-to-relay with two real allocations was not run (no browser).
 
@@ -433,7 +433,7 @@ Deviations: no `--no-dtls`. coturn 4.18 does not know it (container exited). DTL
 
 ### Why
 
-The user found on 2026-10-09: in a multiplayer room, each click of **Select squad** on a roster card shows on the other screen at once. The squad is in the Yjs document (`setup.squads`), and step 8 syncs it. The rules say that players choose their squads in secret and do not show them until deployment (rulebook p11, `docs/feature-setup-game.md`, "Rules"). So the squad and the Team Tactic cards of a player must stay in that player's browser until both players are Ready.
+The user found on 2026-10-09: in a multiplayer room, each click of **Select squad** on a roster card shows on the other screen at once. The squad is in the Yjs document (`setup.squads`), and step 8 syncs it. The rules say that players choose their squads in secret and do not show them until deployment (rulebook p11, `docs/features/setup-game.md`, "Rules"). So the squad and the Team Tactic cards of a player must stay in that player's browser until both players are Ready.
 
 Today the second **Ready** click puts both squads on the table (`putSquadsOnTable` in `App.jsx`). In a multiplayer room that browser does not know the other squad any more. So each browser puts its own squad on the table.
 
@@ -455,14 +455,14 @@ Today the second **Ready** click puts both squads on the table (`putSquadsOnTabl
 
 ### Work
 
-Read: decisions 25 to 34. `docs/feature-setup-game.md` ("Squads", "State"). `apps/web/src/setup/setup.js`, the setup parts of `App.jsx` (`restartSetup`, `handleRosterClick`, `handleSquadReady`, `putSquadsOnTable`, the setup panel props), `components/GameSetup.jsx`, `components/RosterCards.jsx` (the squad frame), `Scene.jsx` (when the roster cards leave), `rooms/store.js`, `rooms/localDocs.js`, `components/Lobby.jsx` (the cleanup), `rooms/table.js` (`startTable`).
+Read: decisions 25 to 34. `docs/features/setup-game.md` ("Squads", "State"). `apps/web/src/setup/setup.js`, the setup parts of `App.jsx` (`restartSetup`, `handleRosterClick`, `handleSquadReady`, `putSquadsOnTable`, the setup panel props), `components/GameSetup.jsx`, `components/RosterCards.jsx` (the squad frame), `Scene.jsx` (when the roster cards leave), `rooms/store.js`, `rooms/localDocs.js`, `components/Lobby.jsx` (the cleanup), `rooms/table.js` (`startTable`).
 
 1. `setup/setup.js`: `setup.id` in the new setup (a function, because `NEW_SETUP` is a constant and the id is random), `placed` per side, the reading of the old `placed` shape, `reveal` in `setupStep`, a pure function that says which sides this browser reveals now and with which squad (decisions 27, 31, 32).
 2. `rooms/store.js`: read, save and delete the stored squad (decision 25). `rooms/localDocs.js` and `Lobby.jsx`: the cleanup of decision 33.
 3. `App.jsx`: in a multiplayer room, the squad of the own side comes from the stored squad, and a click writes there. Ready writes only `ready`. The effect of decision 27. Decision 32. `restartSetup` makes a new setup id and removes both `placed` keys.
 4. `GameSetup.jsx`, `RosterCards.jsx`: decision 30, and the `reveal` text of decision 31. No yellow frame on the other player's roster cards.
 5. Tests (`node --test`): `setup.test.js` (new): `setupStep` with `reveal`, the old `placed` shape, the reveal function: both Ready reveals only the own side in multiplayer and both sides otherwise, a placed side is skipped, a stored squad of another setup id does not count, no stored squad gives decision 32. `localDocs.test.js`: the squad keys in the cleanup.
-6. `docs/feature-setup-game.md`: "Squads", "State", "Not built yet" (hidden squads are built for multiplayer rooms). The Result of this phase.
+6. `docs/features/setup-game.md`: "Squads", "State", "Not built yet" (hidden squads are built for multiplayer rooms). The Result of this phase.
 
 Checks:
 - `pnpm --filter web test`, `pnpm --filter web build` pass.
@@ -483,7 +483,7 @@ Done. `pnpm --filter web test`: 113 pass (12 new). `pnpm --filter web build` pas
 - `App.jsx`: new prop `userId` (from `Table.jsx`). In a multiplayer room the own squad is React state backed by the stored squad. A click on the other player's roster cards opens the popup. `viewSetup` (own squad, other squad empty) goes to the scene. **Ready** writes only the toggle. `putSquadsOnTable` is now `revealSquad(side, squad)`, run by an effect on `setup` that reads the document. The effect handles decision 32. `restartSetup` makes a new id, removes the ids of both `placed` keys and deletes the stored squad.
 - A placed side is final: `handleSquadReady` and `handleRosterClick` ignore a team whose `placedSides(setup)[team]` is set, and its panel says only "Ready". This covers the missing case of decision 32.
 - `Scene.jsx`, `GameSetup.jsx`: new prop `mySide`. The other player's panel shows "Choosing a squad" or "Ready". The `reveal` hint names the side not placed.
-- `docs/feature-setup-game.md`: "Squads", "State", "Code", "Not built yet".
+- `docs/features/setup-game.md`: "Squads", "State", "Code", "Not built yet".
 
 Deviations and notes:
 - `deleteDoc` deletes the squad key (see above), not each caller. Same effect as decision 33.

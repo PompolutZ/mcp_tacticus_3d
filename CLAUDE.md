@@ -24,3 +24,15 @@ After a code change, run `pnpm format` and `pnpm lint`. Both are safe to run at 
 ## Paths in docs
 
 In `docs/`, the paths `src/`, `public/`, `scripts/` and `tools/` are under `apps/web/`.
+
+## Docs
+
+Two kinds of docs, each in its own folder.
+
+- Feature (`docs/features/`): the app or one part of it in its desired form. The feature is the authority when it differs from a plan.
+  - First line under the title: `Status:` in one line, built, partly built or not started.
+  - No dates and no plan step numbers.
+  - When the behavior changes, the feature changes in the same step.
+- Plan (`docs/plans/`): the request, the steps and their results. A done plan does not change, except for paths.
+  - A new request gets a new plan. Its lasting decisions go into the feature in the same step.
+- A code comment points to the feature for lasting behavior. It points to a plan only for a shortcut, or for a fact that only the plan has.

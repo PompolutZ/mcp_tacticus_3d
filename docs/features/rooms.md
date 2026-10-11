@@ -10,9 +10,9 @@ There are three kinds of table:
 
 - **Sandbox:** in this browser only. Not saved.
 - **Single player room:** in this browser only. A record in `localStorage`, and its table is a Yjs document in IndexedDB. This doc describes it. Before 2026-10-09 it was called an offline room.
-- **Multiplayer room:** on the server (step 7). The host creates it, and a guest joins it with a link. The table is on the server, with a copy in IndexedDB. Before 2026-10-09 it was called an online room. `docs/feature-auth.md` describes it.
+- **Multiplayer room:** on the server (step 7). The host creates it, and a guest joins it with a link. The table is on the server, with a copy in IndexedDB. Before 2026-10-09 it was called an online room. `docs/features/auth.md` describes it.
 
-The peer-to-peer feature (`docs/feature-peer-to-peer.md`) syncs the table of a multiplayer room between the two players.
+The peer-to-peer feature (`docs/features/peer-to-peer.md`) syncs the table of a multiplayer room between the two players.
 
 ## Terms
 
@@ -35,13 +35,13 @@ The URL hash selects the page. So the browser back button works, and a reload st
 | `#sandbox` | Sandbox |
 
 - `#room=<code>` is the link format of the peer-to-peer plan ("Connect flow"). So the same link can invite the second player later.
-- A room code that is not in this browser opens the lobby with the message "Room K7Q2-M9XD is not in this browser". With login on, the app asks the server first: a multiplayer room opens, or the join page shows (`docs/feature-auth.md`, "Identity in peer-to-peer games").
+- A room code that is not in this browser opens the lobby with the message "Room K7Q2-M9XD is not in this browser". With login on, the app asks the server first: a multiplayer room opens, or the join page shows (`docs/features/auth.md`, "Identity in peer-to-peer games").
 - Each room and the Sandbox mount a new table, so nothing from the last table stays.
 
 ## Lobby
 
-- **Rooms:** a **+** tile, then one list with a tile for each single player room and each multiplayer room, the last changed room first. A single player tile shows "Single player". A multiplayer tile shows the seats, **Copy link** and **Delete** for the host (`docs/feature-auth.md`, "Lobby and room UI"). With login off, the list has only single player rooms and makes no API call. A tile shows the map card, the map name, the room code and the time of the last change. A click on the tile enters the room.
-- **Blue** and **Red** on a tile show that roster of the room in the roster popup of the table (`docs/feature-roster.md`). A button shows only when the room has that roster. The popup opens on the first tab with cards, usually Characters. Escape, **×** or a click on the backdrop closes it. The left and right arrows show the previous or next card. **Red** added on 2026-10-07.
+- **Rooms:** a **+** tile, then one list with a tile for each single player room and each multiplayer room, the last changed room first. A single player tile shows "Single player". A multiplayer tile shows the seats, **Copy link** and **Delete** for the host (`docs/features/auth.md`, "Lobby and room UI"). With login off, the list has only single player rooms and makes no API call. A tile shows the map card, the map name, the room code and the time of the last change. A click on the tile enters the room.
+- **Blue** and **Red** on a tile show that roster of the room in the roster popup of the table (`docs/features/roster.md`). A button shows only when the room has that roster. The popup opens on the first tab with cards, usually Characters. Escape, **×** or a click on the backdrop closes it. The left and right arrows show the previous or next card. **Red** added on 2026-10-07.
 - On a narrow tile, **Delete** goes to a second line.
 - **Delete** on a tile removes the room. It shows only on rooms that this user owns. Now that is every room. A browser confirm asks first, the same as **Remove** on a character tray.
 - **Sandbox:** a button that opens the Sandbox.
@@ -50,10 +50,10 @@ The URL hash selects the page. So the browser back button works, and a reload st
 
 The **+** tile opens a dialog on a blurred backdrop, the same style as the roster popup.
 
-- With login on, a choice at the top: **Single player** or **Multiplayer** (`docs/feature-auth.md`, "Lobby and room UI"). With login off, the dialog makes a single player room. The rest of this list describes **Single player**.
+- With login on, a choice at the top: **Single player** or **Multiplayer** (`docs/features/auth.md`, "Lobby and room UI"). With login off, the dialog makes a single player room. The rest of this list describes **Single player**.
 - **Random map** switch, on by default. While it is on, the dialog shows the back of a map card. The app picks the map when the player creates the room.
 - With the switch off, a carousel shows the map cards. The card in the middle is the map of the room. It is the same carousel as in the roster popup.
-- **Blue roster** and **Red roster:** a text field for the MCT code of each player. Under each field, the dialog shows what it found, for example "10 characters · 10 tactic cards · 5 Secure · 5 Extract", and the unknown codes. The parse rules are the ones of `docs/feature-roster.md`. The Red field was added on 2026-10-07, because the game setup (`docs/feature-setup-game.md`) needs both rosters.
+- **Blue roster** and **Red roster:** a text field for the MCT code of each player. Under each field, the dialog shows what it found, for example "10 characters · 10 tactic cards · 5 Secure · 5 Extract", and the unknown codes. The parse rules are the ones of `docs/features/roster.md`. The Red field was added on 2026-10-07, because the game setup (`docs/features/setup-game.md`) needs both rosters.
 - When the app has no 3D model for a character or no image for a Team Tactic card of a roster, a warning box under its summary names these cards, for example "No 3D model for 2 characters: Angela, Bishop". On the table, these cards show as plates, and a character without a model cannot be spawned. The box is only a warning: **Create room** still works. Added on 2026-10-07.
 - **Create room** works when the Blue code has a known card. The Red roster is optional, because the Red field of the toolbar can load it later. A Red text without a known card blocks **Create room**, so a wrong paste does not make a room without Red. **Create room** saves the room and enters it.
 - **Cancel**, Escape, **×** or a click on the backdrop closes the dialog.
@@ -112,12 +112,12 @@ The lobby finds the rooms by the key prefix. One key per room, so a room cannot 
   owner: '<user id>',
   createdAt, updatedAt,           // ms since 1970
   mapId: 'vibranium-heist',       // key in MAPS
-  rosters: { blue: { code }, red: null | { code } },   // docs/feature-roster.md, "State"
+  rosters: { blue: { code }, red: null | { code } },   // docs/features/roster.md, "State"
 }
 ```
 
 - The record keeps only the setup and the dates. `mapId` and `rosters` are a copy of the document, for the lobby tile. The lobby does not open the documents.
-- The table is in the document. Its layout is in `docs/feature-peer-to-peer.md` ("Yjs document"). The document has the map, the rosters, the characters, the tokens, the cards, the terrain pieces, the model poses and the tools.
+- The table is in the document. Its layout is in `docs/features/peer-to-peer.md` ("Yjs document"). The document has the map, the rosters, the characters, the tokens, the cards, the terrain pieces, the model poses and the tools.
 - `terrain` stores the place of each piece in the map data (`index`, `locked`), not the whole placement. So a fix of the map data reaches old rooms. A deleted piece is not in the list.
 - A model writes its pose to `poses` when its body falls asleep. A lifted model (R) writes the place under the lift. A model that moves when the page closes keeps its last rest pose.
 - A saved model starts at its pose, asleep. So it does not move before the terrain under it has its colliders. A touch, a drag or a removed terrain piece wakes it.
@@ -139,7 +139,7 @@ Not saved: dice in the well and in the air, selection, camera, open popups, spec
 
 - The room waits at most 5 seconds for IndexedDB, with the loading screen. IndexedDB can be turned off (blocked site data), and then it never answers.
 - After 5 seconds, or after an error, the table opens in memory. The HUD shows a warning: "Room not saved: browser storage is not available. Changes on this table are lost when the page closes." It stays until the player closes it.
-- The browser gives a site much more room in IndexedDB than the 5 MB of `localStorage`. A table of 6 rounds is about 22 KB (`docs/feature-auth.md`, open question 5).
+- The browser gives a site much more room in IndexedDB than the 5 MB of `localStorage`. A table of 6 rounds is about 22 KB (`docs/features/auth.md`, open question 5).
 
 Two tabs with the same room store their changes in the same database. They do not see each other's changes while open. The next open of the room has both.
 
@@ -203,6 +203,6 @@ Made on 2026-10-09 (step 5):
 ## Out of scope
 
 - Room names, rename, export and import.
-- Spectators. See `docs/feature-peer-to-peer.md`.
+- Spectators. See `docs/features/peer-to-peer.md`.
 - A saved Sandbox.
 - A change of the Blue roster in a room.

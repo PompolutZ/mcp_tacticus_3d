@@ -1,6 +1,6 @@
 // Migrates the character tokens of the TTS mod (tokenDatabase rows of type Condition, Status, Personal and Only
 // Status, plus the "1 Power" row, plus every token that a released tactic card names) to src/assets/tokens/. Writes the app data to src/tokens/tokens.json, and the
-// source URLs to scripts/token-manifest.json. See scripts/README.md and docs/characters-hud.md, "Tokens from
+// source URLs to scripts/token-manifest.json. See scripts/README.md and docs/features/character-trays.md, "Tokens from
 // the TTS mod".
 
 import fs from 'node:fs'
@@ -67,12 +67,12 @@ const manifest = readJson(MANIFEST_OUT, MANIFEST_FILE)
 if (opts.list) listTokens()
 else process.exitCode = migrate()
 
-// Which rows of tokenDatabase this script migrates, see docs/characters-hud.md, "Tokens from the TTS mod".
+// Which rows of tokenDatabase this script migrates, see docs/features/character-trays.md, "Tokens from the TTS mod".
 // A row with altName is a second art of the same token (the old round design); only the first art is migrated.
 function selected(row) {
   if (row.altName) return false
   // The tokens of a Team Tactic card, of any type (Misc, Use Tools, Pile, ...): the app puts a pile of them on the
-  // table with the card, see docs/plan-tactic-tokens.md
+  // table with the card, see docs/plans/tactic-tokens.md
   if (tacticTokenNames.has(row.name.toLowerCase())) return true
   switch (row.tType) {
     case 'Condition':
@@ -91,7 +91,7 @@ function selected(row) {
 }
 
 // group: condition, status (Activated, Dazed, 1 Power), character or tactic, from the folder of the mod's url,
-// see docs/characters-hud.md, "Tokens from the TTS mod"
+// see docs/features/character-trays.md, "Tokens from the TTS mod"
 function groupPath(row) {
   return row.url.split('/token/')[1].replace(/\/[^/]+$/, '')
 }
@@ -165,7 +165,7 @@ function warnTacticTokens(done) {
   }
 }
 
-// Width of a token on the table, in inches, see docs/characters-hud.md, "Real-size tokens". The mod spawns a
+// Width of a token on the table, in inches, see docs/features/character-trays.md, "Real-size tokens". The mod spawns a
 // Circle token as a tile with scale tSize, and a tile with scale 1 is 2" wide. A token with another tShape
 // ("Other") keeps the default, because its real size was never measured.
 function tokenSize(row) {

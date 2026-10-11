@@ -2,7 +2,7 @@
 // Plain module, no React and no src/assets/index.js import, so scripts/dice-sim.mjs can use it in Node.
 //
 // Face numbers, symbols and corners come from 3 TTS sources, cross-checked against each other:
-// - `RotationValues` in the tray script (see docs/plan-dice-rolling.md): for each face number, the
+// - `RotationValues` in the tray script (see docs/plans/dice-rolling.md): for each face number, the
 //   Euler rotation that shows it face up. Converted to the local "up" direction with the same
 //   Unity -> three.js quaternion conversion as Terrain.jsx (mirror Z, negate the X and Y angles).
 // - The TTS D8 mesh (`D8_1885.obj`, from AssetRipper) and its UVs.

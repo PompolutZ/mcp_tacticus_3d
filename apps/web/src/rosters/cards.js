@@ -1,5 +1,5 @@
 // Find an MCT code in the Jarvis data: kind, name, image files or null, model or not.
-// See docs/feature-roster.md, "Data" and "Cards without files".
+// See docs/features/roster.md, "Data" and "Cards without files".
 import { CHARACTERS, characterByCode } from '../characters/characters.js'
 import { characterCard, transformCard } from '../characters/files.js'
 import tacticsData from '../tactics/jarvis-tactics-cards.json'
@@ -36,7 +36,7 @@ const crisisKeys = idToKey(crisisFiles)
 // same for every card of the kind: the back of a crisis card shows only its type.
 // variants: the cards that the roster popup can switch between for this character, [{ label, image, back }],
 // the character card first. null when the character has one card. Now only a second form with its own card
-// (see docs/characters-hud.md, "Second forms"). Later also the grunts of a host.
+// (see docs/features/character-trays.md, "Second forms"). Later also the grunts of a host.
 // gem: true for an Infinity Gem (isInfinityGem in Jarvis). It has kind 'tactic' and the files of a Team Tactic card.
 // jarvisUrl: the page of the card on Jarvis, for the link in the roster popup. A character with a second
 // form has one page for both cards.

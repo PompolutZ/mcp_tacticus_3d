@@ -1,6 +1,6 @@
 # Plan: Dice rolling
 
-Implementation plan for `docs/feature-dice-rolling.md` (the design). Coder agents do one phase each, in order. Each agent adds a short **Result** to its phase: files, measured facts, changes from the plan, open issues. The next agent reads the results of all earlier phases.
+Implementation plan for `docs/features/dice-rolling.md` (the design). Coder agents do one phase each, in order. Each agent adds a short **Result** to its phase: files, measured facts, changes from the plan, open issues. The next agent reads the results of all earlier phases.
 
 ## Rules for every phase
 
@@ -106,7 +106,7 @@ All close to the design's approximate numbers (13.5×16.8×1.67; well 12.8×8.6,
 
 **Open issues for later phases:**
 - Phase 2 (`tray.js`): use the tray-space numbers above, not the design's approximate ones. Shelf is +z in tray space, so each `TRAYS[key].yaw` must turn +z to face world z = 0 for that tray's side.
-- The "opposite faces add up to 9" correction above — the design doc (`feature-dice-rolling.md`) still has the old claim; not edited here since Phase 1 was only told to fix the 3 `ASSETS.md` errors.
+- The "opposite faces add up to 9" correction above — the design doc (`features/dice-rolling.md`) still has the old claim; not edited here since Phase 1 was only told to fix the 3 `ASSETS.md` errors.
 - `d8.glb`, the icons and `tray.glb`/`tray.webp` are not yet referenced by any component, so `vite build`'s output (`dist/`) does not currently include them (same as several other not-yet-wired assets already in the repo, e.g. `crystals.glb`) — expected to appear once Phase 4 imports them.
 
 ## Phase 2: Pure logic
@@ -182,7 +182,7 @@ Read in the design: "Physics", "Fairness", "Measurements". Read the Phase 1 and 
 
 **Result:**
 
-Files: `scripts/dice-sim.mjs` (+ `npm run dice-sim`), `scripts/tts-dice-measure.lua` (not run, no TTS here), `src/dice/throw.js` (`THROW_SPIN_MAX` 50 → 10, new `DIE_SOLVER_ITERATIONS` export), `docs/feature-dice-rolling.md` ("Measurements" filled in), `scripts/README.md` ("Dice sim" section). `npx vite build` passes.
+Files: `scripts/dice-sim.mjs` (+ `npm run dice-sim`), `scripts/tts-dice-measure.lua` (not run, no TTS here), `src/dice/throw.js` (`THROW_SPIN_MAX` 50 → 10, new `DIE_SOLVER_ITERATIONS` export), `docs/features/dice-rolling.md` ("Measurements" filled in), `scripts/README.md` ("Dice sim" section). `npx vite build` passes.
 
 **Command:** `npm run dice-sim` (seed 1, 8000 single-die throws, 2000 multi-die throws, both defaults). `--seed <n>`, `--throws <n>`, `--multi-throws <n>`, `--quick` (300/300, for fast tuning).
 
@@ -285,7 +285,7 @@ Files: `src/components/DiceTray.jsx` (new), `src/components/Scene.jsx` (renders 
 
 **Result 4b:**
 
-Files: `src/components/DiceTray.jsx` (shelf, sorting, `addCrits`/`reroll`/`change`, history, full `onChange`), `src/dice/shelf.js` (new — pure shelf helpers, see below), `src/dice/throw.js` (added `isFinitePoint`/`isFiniteQuat`, moved out of `DiceTray.jsx` so it stays smaller), `src/dice/tray.js` (added `randomWellPoint`, same reason — it was `DiceTray.jsx`'s private `randomWellTarget`, now exported next to `freeDropPoint`/`wellCenter` since it is pure). `npx vite build` passes, no new warnings. `DiceTray.jsx` is 525 lines — over the "about 450" guideline even after the `shelf.js`/`throw.js`/`tray.js` split; everything left in it touches the `dice` ref, a `RigidBody`, or `rapier`, so it is not pure and the plan says only pure helpers move out. Checked with a Node script (scratchpad, not committed): `flatRotation` puts every one of the 8 faces exactly up (dot 1 to float precision), `sortShelfEntries` sorts by `SYMBOLS` then id, `shelfMovePose` at t=0/0.5/1 gives the start/mid/end pose, and all 5 `docs/feature-dice-rolling.md` "History" examples reproduce exactly through `throwEntryText`/`changeText`/`CLEARED_TEXT` (same check Phase 2 already ran, re-run here against the values `DiceTray.jsx` actually builds).
+Files: `src/components/DiceTray.jsx` (shelf, sorting, `addCrits`/`reroll`/`change`, history, full `onChange`), `src/dice/shelf.js` (new — pure shelf helpers, see below), `src/dice/throw.js` (added `isFinitePoint`/`isFiniteQuat`, moved out of `DiceTray.jsx` so it stays smaller), `src/dice/tray.js` (added `randomWellPoint`, same reason — it was `DiceTray.jsx`'s private `randomWellTarget`, now exported next to `freeDropPoint`/`wellCenter` since it is pure). `npx vite build` passes, no new warnings. `DiceTray.jsx` is 525 lines — over the "about 450" guideline even after the `shelf.js`/`throw.js`/`tray.js` split; everything left in it touches the `dice` ref, a `RigidBody`, or `rapier`, so it is not pure and the plan says only pure helpers move out. Checked with a Node script (scratchpad, not committed): `flatRotation` puts every one of the 8 faces exactly up (dot 1 to float precision), `sortShelfEntries` sorts by `SYMBOLS` then id, `shelfMovePose` at t=0/0.5/1 gives the start/mid/end pose, and all 5 `docs/features/dice-rolling.md` "History" examples reproduce exactly through `throwEntryText`/`changeText`/`CLEARED_TEXT` (same check Phase 2 already ran, re-run here against the values `DiceTray.jsx` actually builds).
 
 **Die states, final:** `'well'` (resting or not yet thrown — also a die that just settled with a result, waiting for the rest of its throw to finish), `'thrown'` (in the air), `'shelf'` (kinematic, has a slot). A die's entry also carries `face` (the exact face number it landed on, 1-8; kept alongside `symbol` so the shelf pose is fixed per face, not just per symbol), `source` (`'roll' | 'crits' | 'reroll'`, meaningful only until the die reaches the shelf, then set back to `null`), `rerollFrom` (the symbol it had before a reroll, for the history line once it settles again), and, once on the shelf, `slot`/`moveFrom`/`moveTo`/`moveElapsed`/`moving` for the slide to its place.
 
@@ -359,7 +359,7 @@ Read in the design: "Inset view". Read the Phase 5 Result. Read `SelectionOutlin
 
 **Result:**
 
-Files: `src/components/TrayInsets.jsx` (new), `src/dice/tray.js` (new `insetCamera(trayKey)`, `INSET_FOV`), `src/App.jsx` (renders `<TrayInsets insetBoxes={insetBoxes} noComposer={mode === 'no-composer'} />` inside `<Canvas>`, next to `<SelectionOutlines>`), `docs/feature-dice-rolling.md` (status line, "Pitfalls to check"). `npx vite build` passes, no new warnings.
+Files: `src/components/TrayInsets.jsx` (new), `src/dice/tray.js` (new `insetCamera(trayKey)`, `INSET_FOV`), `src/App.jsx` (renders `<TrayInsets insetBoxes={insetBoxes} noComposer={mode === 'no-composer'} />` inside `<Canvas>`, next to `<SelectionOutlines>`), `docs/features/dice-rolling.md` (status line, "Pitfalls to check"). `npx vite build` passes, no new warnings.
 
 **Library facts checked, in `node_modules`:**
 - `@react-three/postprocessing`'s `EffectComposer` (`dist/EffectComposer.js`): `useFrame((_, delta) => { if (enabled) composer.render(delta) }, enabled ? renderPriority : 0)`, `renderPriority` defaulting to 1. So with the composer on, its `useFrame` runs at priority 1; with it off (`enabled={false}`, the 'no-composer' debug mode), the priority drops to **0**, not to "off" — it still runs (and does nothing, since `enabled` is false inside the callback too), just no longer as a priority subscriber.

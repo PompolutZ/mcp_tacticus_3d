@@ -51,7 +51,7 @@ The app does not use all the printed data yet. See [What the app still needs](#w
 | Output | Content |
 |---|---|
 | `src/assets/<mat>-mat.webp` | Mat image |
-| `src/assets/maps/<map>.webp` | Map card image, the face. The lobby shows it (`docs/feature-rooms.md`). A file that exists is kept, unless `--force` |
+| `src/assets/maps/<map>.webp` | Map card image, the face. The lobby shows it (`docs/features/rooms.md`). A file that exists is kept, unless `--force` |
 | `src/assets/maps/back.webp` | Back of a map card. The new room dialog shows it for Random map. The script writes it once, from the first map it migrates. The three maps of the app have the same back. Other maps in the mod have other backs |
 | `src/assets/terrain/<key>.glb` | Piece mesh |
 | `src/assets/terrain/<key>.webp` | Texture of an OBJ piece. The entry has `texture: false` when the mod piece has no texture. |
@@ -217,7 +217,7 @@ These rules were found on 2026-09-28 in the mod scripts ("Red Tray Spawner" and 
 - In every model bundle, the base is the only material without a color texture. The base mesh is a disk from y = 0 to y = 0.12, and its radius is half of `cBase`: 0.69" for small, 0.98" for medium, 1.28" for large. The script checks this and prints a warning if a base does not fit.
 - The tray spawns a model with Y rotation = tray rotation + 180 + `cModelRot`. `characters.json` stores `cModelRot` as `rotation`. The app shows `angel.glb` with no turn, and Angel has `cModelRot` 180, so the app turn is probably `rotation - 180`. This is not checked in the browser yet.
 - No spawn script in this save reads `cTModelRot`. The tray makes the second model as a clone of the first model and then sets `cTModel` on it, so the second model has the turn of the first. The app does the same and does not use `transform.rotation`.
-- Every row with a second form has one of two flags (checked on 2026-10-07). `twoCards` (Ant-Man, Captain Marvel Cosmic Avenger, Emma Frost, Hood, Ms. Marvel, Wasp): the second form has its own card, `cTCard`, and the tray shows both cards. `oneCard` (Hulkbuster, Phoenix): the second form is the Injured side of the only card, and the tray spawns the second model 5" from the first. The tray spawns both models in both cases. See `docs/characters-hud.md`, "Second forms".
+- Every row with a second form has one of two flags (checked on 2026-10-07). `twoCards` (Ant-Man, Captain Marvel Cosmic Avenger, Emma Frost, Hood, Ms. Marvel, Wasp): the second form has its own card, `cTCard`, and the tray shows both cards. `oneCard` (Hulkbuster, Phoenix): the second form is the Injured side of the only card, and the tray spawns the second model 5" from the first. The tray spawns both models in both cases. See `docs/features/character-trays.md`, "Second forms".
 - The tray spawns a standee as a `Figurine_Custom` with `image = cFigA` and `image_secondary = cFigB`, turned by 180 without `cModelRot`. The figurine scale is 0.75 for a small base, 1.1 for medium and 1.4 for large. The mod spawns a standee only when `cFigA` is set; when `cFigB` is empty, it uses `cFigA` on both sides.
 - When `cModel` is a list, the tray spawns the model with the same position in the list as the card face on the table (Mephisto, Crossbones, Merciless Merc).
 - The script ignores `cModelAlt` (Captain Marvel, Vision), `twoModels` (Ms. Marvel) and `construct` (Magneto, Phoenix), and prints a warning for them.
@@ -319,14 +319,14 @@ These rules were found on 2026-09-29 in the scripts of the "Database" and "Autom
 
 ## What the app still needs
 
-The app now has crisis card and token display (see `docs/feature-crisis.md`). Still missing:
+The app now has crisis card and token display (see `docs/features/crisis.md`). Still missing:
 
 1. Card text, legality and contest ranges from Jarvis. For example, the Prison Blocks of Lockdown are contested at Range 2.
 2. Hold and drop for the Asset and Civilian tokens.
 
 # TTS character tokens
 
-`migrate-tokens.mjs` copies the character tokens of the TTS mod (conditions, Activated/Dazed, personal tokens, Team Tactic tokens, the "1 Power" counter icon, and the tokens of Team Tactic cards) to `src/assets/tokens/`. It writes the app data to `src/tokens/tokens.json`, and the source URLs to `scripts/token-manifest.json`. `src/tokens/files.js` names the files after the keys. See `docs/characters-hud.md`, "Tokens from the TTS mod", for which rows of the mod's `tokenDatabase` it migrates and why.
+`migrate-tokens.mjs` copies the character tokens of the TTS mod (conditions, Activated/Dazed, personal tokens, Team Tactic tokens, the "1 Power" counter icon, and the tokens of Team Tactic cards) to `src/assets/tokens/`. It writes the app data to `src/tokens/tokens.json`, and the source URLs to `scripts/token-manifest.json`. `src/tokens/files.js` names the files after the keys. See `docs/features/character-trays.md`, "Tokens from the TTS mod", for which rows of the mod's `tokenDatabase` it migrates and why.
 
 Requirements: ImageMagick, and the images in the TTS cache. On 2026-10-01 the cache had all 310 `tokenDatabase` images, so no object needs to be spawned first.
 
@@ -350,7 +350,7 @@ pnpm --filter web migrate-tokens --force         # convert files again that the 
 
 A row with `altName` is a second art of the same token (the mod's old round design); the script migrates only the first art, the same rule `migrate-crisis.mjs` uses for the "1 Damage" row.
 
-The script also migrates every token that a released tactic card names in its `tokens` list, of any type (Misc, Use Tools, Pile, ...), for example Mystic Ward and Mystic Portal. The names are compared in lower case, because a card row can spell a name differently ("KickEm"). `group` comes from the image folder, as above. A name with no row, or with no image in the TTS cache, is left out with a warning. The row "1 Damage" (Steal the Future) is in `token/misc/tracker/`. It gets the group `counter`, like "1 Power", so the Library lists it for piles. The app puts a pile of the tokens of each tactic card on the table, see `docs/plan-tactic-tokens.md`.
+The script also migrates every token that a released tactic card names in its `tokens` list, of any type (Misc, Use Tools, Pile, ...), for example Mystic Ward and Mystic Portal. The names are compared in lower case, because a card row can spell a name differently ("KickEm"). `group` comes from the image folder, as above. A name with no row, or with no image in the TTS cache, is left out with a warning. The row "1 Damage" (Steal the Future) is in `token/misc/tracker/`. It gets the group `counter`, like "1 Power", so the Library lists it for piles. The app puts a pile of the tokens of each tactic card on the table, see `docs/plans/tactic-tokens.md`.
 
 # Jarvis crisis cards
 
@@ -423,11 +423,11 @@ These rules were found on 2026-10-05 in the scripts of the "Database" object and
 1. Card text, affiliation and legality.
 2. The images of the other 320 cards. TTS must download them first.
 
-The app shows the cards on a tactic tray per player, see `docs/feature-team-tactic-cards.md`.
+The app shows the cards on a tactic tray per player, see `docs/features/team-tactic-cards.md`.
 
 # TTS dice migration
 
-`migrate-dice.mjs` writes the dice tray assets to `src/assets/dice/`: the die mesh and texture, the tray mesh and texture, and the 6 result icons. See `docs/feature-dice-rolling.md` for the design and `docs/plan-dice-rolling.md` for the face table and the tray numbers.
+`migrate-dice.mjs` writes the dice tray assets to `src/assets/dice/`: the die mesh and texture, the tray mesh and texture, and the 6 result icons. See `docs/features/dice-rolling.md` for the design and `docs/plans/dice-rolling.md` for the face table and the tray numbers.
 
 ```bash
 pnpm --filter web migrate-dice
@@ -444,13 +444,13 @@ Requirements: ImageMagick, and the tray mesh, tray texture, die texture and icon
 | `src/assets/dice/tray.glb`, `tray.webp` | The tray mesh and texture, converted like a terrain OBJ piece |
 | `src/assets/dice/icons/<symbol>.webp` | The 6 result icons, at most 256×256 |
 
-The die is not converted from a TTS mesh: in TTS the die is the built-in D8 shape (`Custom_Dice`, type 2) with one image, and the mod has no mesh for it. The app builds its own regular octahedron so every face has the same chance. `d8.glb` gets a UV triangle per face, so the TTS die texture fits without changes. The UV triangles are a constant in the script (`FACE_UVS`), not re-measured on every run. They were measured once from `D8_1885.obj` (the TTS D8 mesh, exported by AssetRipper from the TTS game files, not from the mod) and its UVs: for each face, fit the affine map from the face plane to UV using the flat (unbevelled) triangle of the OBJ mesh with the same normal as the ideal face, then evaluate that map at the corners of the app's own octahedron. See `docs/plan-dice-rolling.md`, Phase 1 Result, for the full method and the face table (face number, symbol, normal).
+The die is not converted from a TTS mesh: in TTS the die is the built-in D8 shape (`Custom_Dice`, type 2) with one image, and the mod has no mesh for it. The app builds its own regular octahedron so every face has the same chance. `d8.glb` gets a UV triangle per face, so the TTS die texture fits without changes. The UV triangles are a constant in the script (`FACE_UVS`), not re-measured on every run. They were measured once from `D8_1885.obj` (the TTS D8 mesh, exported by AssetRipper from the TTS game files, not from the mod) and its UVs: for each face, fit the affine map from the face plane to UV using the flat (unbevelled) triangle of the OBJ mesh with the same normal as the ideal face, then evaluate that map at the corners of the app's own octahedron. See `docs/plans/dice-rolling.md`, Phase 1 Result, for the full method and the face table (face number, symbol, normal).
 
 The tray and die source URLs come from the "Blue Dice Tray" object in the mod save (both trays use the same mesh, texture and die image). The tray mesh and texture URLs are its `CustomMesh.MeshURL` and `DiffuseURL`. The die image URL is read out of its Lua script text (the `image = "..."` line that `addDice()` passes to `setCustomObject`), because it is not a mod asset field. The icon URLs follow the fixed pattern `https://d37ev18qvj5a3m.cloudfront.net/tts/token/ui/D{CRIT,WILD,HIT,BLOCK,BLANK,FAIL}_UI.png` (FAIL is the skull).
 
 # TTS scoring board
 
-`migrate-scoreboard.mjs` copies the scoring board of the TTS mod to `src/assets/`: the board, the round marker, and the 34 affiliation tokens that the VP markers show. It writes the affiliation list to `src/scoreboard/affiliations.json`. `src/scoreboard/files.js` names the files. See `docs/feature-crisis.md`, "Scoring board", for how the app uses them.
+`migrate-scoreboard.mjs` copies the scoring board of the TTS mod to `src/assets/`: the board, the round marker, and the 34 affiliation tokens that the VP markers show. It writes the affiliation list to `src/scoreboard/affiliations.json`. `src/scoreboard/files.js` names the files. See `docs/features/crisis.md`, "Scoring board", for how the app uses them.
 
 ```bash
 pnpm --filter web migrate-scoreboard
@@ -473,7 +473,7 @@ The positions of the board, its spots and the markers are not read by the script
 
 # Dice sim
 
-`dice-sim.mjs` builds the tray's Rapier world in Node, with no browser: the same gravity and time step as `Scene.jsx`, the table and its edge walls from `src/table.js`, the tray trimesh from `tray.glb` through `src/dice/tray.js`, and the throw, settle and read-face rules from `src/dice/throw.js`. It throws a die many times and prints a short report: fairness (chi-squared, see `docs/feature-dice-rolling.md`, "Fairness"), how often a die rests tilted, how often it leaves the well, how long 10 dice take to rest, and the cost per physics step with 42 dice.
+`dice-sim.mjs` builds the tray's Rapier world in Node, with no browser: the same gravity and time step as `Scene.jsx`, the table and its edge walls from `src/table.js`, the tray trimesh from `tray.glb` through `src/dice/tray.js`, and the throw, settle and read-face rules from `src/dice/throw.js`. It throws a die many times and prints a short report: fairness (chi-squared, see `docs/features/dice-rolling.md`, "Fairness"), how often a die rests tilted, how often it leaves the well, how long 10 dice take to rest, and the cost per physics step with 42 dice.
 
 ```bash
 pnpm --filter web dice-sim                              # seed 1, 8000 single-die throws, 2000 multi-die throws
@@ -482,9 +482,9 @@ pnpm --filter web dice-sim --quick                    # 300 throws each, for fas
 pnpm --filter web dice-sim --throws 500 --multi-throws 500
 ```
 
-It uses the nested Rapier build under `@react-three/rapier` (0.14.0), not the top-level one (0.12.0, wrong version for this app) — see `docs/plan-dice-rolling.md`, Phase 3 Result, for why.
+It uses the nested Rapier build under `@react-three/rapier` (0.14.0), not the top-level one (0.12.0, wrong version for this app) — see `docs/plans/dice-rolling.md`, Phase 3 Result, for why.
 
-See `docs/feature-dice-rolling.md`, "Measurements", for the measured numbers. The gravity, upward speed and friction in `throw.js` come from the TTS measurement below. The spin is chosen by look. The Phase 3 Result in `docs/plan-dice-rolling.md` explains `DIE_SOLVER_ITERATIONS`.
+See `docs/features/dice-rolling.md`, "Measurements", for the measured numbers. The gravity, upward speed and friction in `throw.js` come from the TTS measurement below. The spin is chosen by look. The Phase 3 Result in `docs/plans/dice-rolling.md` explains `DIE_SOLVER_ITERATIONS`.
 
 # TTS dice measurement
 

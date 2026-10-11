@@ -18,7 +18,7 @@ const SLOT_Y = (TACTIC_PLATE_Y + TACTIC_CARD_Y) / 2
 const NO_RAYCAST = () => null
 
 // The tactic tray of one player: a plate next to the mat edge with 5 card-sized slots (see
-// tactics/layout.js and docs/feature-team-tactic-cards.md, "Tactic tray"). The cards are not part of
+// tactics/layout.js and docs/features/team-tactic-cards.md, "Tactic tray"). The cards are not part of
 // the tray: Scene.jsx draws them (TacticCard.jsx), so a card can also lie anywhere on the table.
 // No collider and no pointer events, the same as a character tray's plate.
 export default function TacticTray({ team }) {

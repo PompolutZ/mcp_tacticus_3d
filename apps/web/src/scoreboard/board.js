@@ -1,11 +1,11 @@
 // Scoring board geometry: where the board and its markers sit on the table, and the spots of the VP track
-// and the round track. Plain module, no React, the same as table.js. See docs/feature-crisis.md,
+// and the round track. Plain module, no React, the same as table.js. See docs/features/crisis.md,
 // "Scoring board".
 //
 // The values come from the mod (3036795456) objects "Tracker" (the board), "Round Tracker", "Red Player VP
 // Tracker" and "Blue Player VP tracker", read on 2026-10-03. TTS positions convert to the app with z → -z
 // (Terrain.jsx). So TTS +z, the TTS Blue seat, is the app red side: a TTS object of the Red seat belongs to
-// the app's blue player (see docs/feature-crisis.md, "Setup flow").
+// the app's blue player (see docs/features/crisis.md, "Setup flow").
 
 // The board mesh is 9" × 4" × 0.25" and the mod uses scale 2, so the board is 18" × 8" × 0.5". The mod turns
 // it by 90°, so its long side runs along z, next to the mat edge (x = -18), halfway between the players.
@@ -83,7 +83,7 @@ export function snapPoint(points, x, z) {
 
 // The round spot after the one under the marker: the next one, the same one on round 6, or null when the
 // marker is on no spot (a player moved it off the track, so the Cleanup Phase leaves it).
-// position: { x, z }. See docs/plan-cleanup-phase.md, decision 7.
+// position: { x, z }. See docs/plans/cleanup-phase.md, decision 7.
 export function nextRoundSpot(position) {
   const spot = snapPoint(ROUND_POINTS, position.x, position.z)
   if (!spot) return null

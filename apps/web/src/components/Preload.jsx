@@ -3,7 +3,7 @@ import { useLoader } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import { TextureLoader } from 'three'
 
-// Loads files before the table shows (docs/feature-rooms.md, "Loading"). It sits in the Canvas next to
+// Loads files before the table shows (docs/features/rooms.md, "Loading"). It sits in the Canvas next to
 // the scene, in the same Suspense boundary, so the scene mounts only when every file is in. R3F caches a
 // load by the loader and the input, and the components use the same ones (useGLTF(url), useTexture(input)),
 // so they get the files at once, also inside their own Suspense boundaries.

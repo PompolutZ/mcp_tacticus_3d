@@ -121,7 +121,7 @@ const ROTATE_DONE = 1e-4
 // The map and the models of a new table are loaded before the scene mounts (Preload.jsx), so they show
 // in the first frame.
 
-// The mat image of a map. Preload.jsx loads it before a table shows (docs/feature-rooms.md, "Loading").
+// The mat image of a map. Preload.jsx loads it before a table shows (docs/features/rooms.md, "Loading").
 export function matUrl(mapId) {
   return assetUrl(matImage(MAPS[mapId].mat))
 }
@@ -711,7 +711,7 @@ export default function Scene({
 
   // R press: lifts the character under the pointer, or puts it back down if it is up. With no
   // character under the pointer, every lifted character goes back down. A player lifts a model to
-  // see and select a token under it (docs/feature-crisis.md, "Models that cover a token").
+  // see and select a token under it (docs/features/crisis.md, "Models that cover a token").
   function liftPiece() {
     const piece = hoveredPiece.current
     if (piece?.kind === 'character') {
@@ -724,7 +724,7 @@ export default function Scene({
     }
   }
 
-  // Remove button on the tray (docs/plan-cleanup-phase.md, decision 10): every model of the character
+  // Remove button on the tray (docs/plans/cleanup-phase.md, decision 10): every model of the character
   // goes back to its place on the tray, upright, so the model turns as it did at its spawn. A model that
   // the other player moves is skipped. y = 0 is the rest height: the card has no collider and the table
   // top is y = 0, the same as at the spawn, so the sleeping body touches only the table. A lift ends
@@ -1084,7 +1084,7 @@ export default function Scene({
 
         {/* Dice trays are relative to the table, not the mat: not keyed by mapId or matTurns, so a
             map change or a mat turn (which remounts Terrain above) never remounts them and their
-            dice keep their state. See docs/plan-dice-rolling.md, Phase 4. */}
+            dice keep their state. See docs/plans/dice-rolling.md, Phase 4. */}
         {Object.keys(TRAYS).map((trayKey) =>
           ownTraySides.includes(trayKey) ? (
             <DiceTray
@@ -1124,7 +1124,7 @@ export default function Scene({
         />
 
         {/* Crisis cards and tokens are relative to the player sides, not the mat, so they stay
-            outside the rotating group above: a mat turn must not turn them. See docs/feature-crisis.md. */}
+            outside the rotating group above: a mat turn must not turn them. See docs/features/crisis.md. */}
         {crisis.secure && (
           <Suspense fallback={null}>
             <CrisisCard
@@ -1277,10 +1277,10 @@ export default function Scene({
         )}
 
         {/* The tactic tray of each player, between the mat and the character trays, and the Team
-            Tactic cards. Relative to the table, not the mat. See docs/feature-team-tactic-cards.md. */}
+            Tactic cards. Relative to the table, not the mat. See docs/features/team-tactic-cards.md. */}
         <TacticTray team="blue" />
         <TacticTray team="red" />
-        {/* The loaded rosters, in the area of the character trays (docs/feature-roster.md), until the squads
+        {/* The loaded rosters, in the area of the character trays (docs/features/roster.md), until the squads
             go on the table (the steps before 'affiliation'). Locked cards, no physics body, so a tool or a
             model passes over them. The crisis cards of the rosters and the setup buttons are in
             GameSetup. */}
@@ -1322,7 +1322,7 @@ export default function Scene({
         ))}
 
         {/* One tray per spawned character, next to the mat edge (see trays.js and
-            docs/characters-hud.md, "Tray layout"). The models below spawn standing on the center
+            docs/features/character-trays.md, "Tray layout"). The models below spawn standing on the center
             of this tray's cards (modelSpawnPosition). A model reads that position only once, when
             its body mounts, so a later tray move does not teleport it. */}
         {characters.map((ch) => (

@@ -7,14 +7,14 @@ Bugs found by the user on 2026-10-11, before the first real game in production.
 
 ## Facts
 
-- The mod's `tokenDatabase` gives each token `tShape` and `tSize`: `tSmall = 0.375`, `tLarge = 0.5`. A `Circle` token spawns as a tile with scale `tSize`, and a tile with scale 1 is 2" wide. So a `tSmall` circle is 0.75" and a `tLarge` circle is 1" (`docs/characters-hud.md`, "Real-size tokens"). Mystic Portal, Black Bifrost, Mystic Ward, Chimichanga, LMD and Flare are `tLarge`.
+- The mod's `tokenDatabase` gives each token `tShape` and `tSize`: `tSmall = 0.375`, `tLarge = 0.5`. A `Circle` token spawns as a tile with scale `tSize`, and a tile with scale 1 is 2" wide. So a `tSmall` circle is 0.75" and a `tLarge` circle is 1" (`docs/features/character-trays.md`, "Real-size tokens"). Mystic Portal, Black Bifrost, Mystic Ward, Chimichanga, LMD and Flare are `tLarge`.
 - The app draws every character token `TOKEN_SIZE` (0.75") wide (`src/tokens/files.js`): on the table (`LooseToken.jsx`), in piles, in the drag preview, and on the trays.
 - A token on the table finds its height each frame with `castDown` (`physics.js`): a shape cast against fixed colliders, which are the table and the terrain. Crisis tokens and other tokens have no fixed collider, so the cast does not see them.
-- Lockdown already has a damage marker on a Secure token (`docs/feature-crisis.md`, "Damage marker"). A 1 Damage token on top is another way, and the rules allow both.
+- Lockdown already has a damage marker on a Secure token (`docs/features/crisis.md`, "Damage marker"). A 1 Damage token on top is another way, and the rules allow both.
 
 ## Decisions
 
-1. **Size from the mod.** `migrate-tokens.mjs` writes `size` (inches) into `src/tokens/tokens.json`: a `Circle` token is `tSize × 2`. A token with `tShape = "Other"` keeps 0.75", because its real size was never measured (`docs/characters-hud.md`). `tokenSize(key)` in `src/tokens/files.js` reads it, with 0.75" as the default.
+1. **Size from the mod.** `migrate-tokens.mjs` writes `size` (inches) into `src/tokens/tokens.json`: a `Circle` token is `tSize × 2`. A token with `tShape = "Other"` keeps 0.75", because its real size was never measured (`docs/features/character-trays.md`). `tokenSize(key)` in `src/tokens/files.js` reads it, with 0.75" as the default.
 2. **Where the size counts.** On the table: a loose token, a pile, the drag preview and its footprint. On a tray (the **On** row and the **Give** sources), every token keeps the slot size of 0.75", because the rows are laid out for it.
 3. **Tokens on top of tokens, without physics.** A token on the table lies on the highest token under its center. The app computes the height, the same in both browsers:
    - The bottom layer: the crisis tokens, with their markers (control, damage) on top. Their tops are known from their place and thickness.
@@ -31,7 +31,7 @@ Work:
 1. `migrate-tokens.mjs`: decision 1. Run it so `tokens.json` gets `size`. It must not convert images again. Report every token that is not 0.75".
 2. `src/tokens/files.js`: `tokenSize(key)`. Use it on the table (decision 2): `LooseToken.jsx`, the pile component, `TokenDragPreview.jsx`, the footprints. Keep the tray rows at 0.75".
 3. The Library lists the `counter` group too (1 Damage, 1 Power), so a player can make a 1 Damage pile. Today it leaves the group out. Check that the Power counter icon on the trays does not change.
-4. Docs: `docs/characters-hud.md` ("Real-size tokens"), `docs/feature-library.md`, `scripts/README.md`.
+4. Docs: `docs/features/character-trays.md` ("Real-size tokens"), `docs/features/library.md`, `scripts/README.md`.
 
 Checks: `pnpm --filter web test`, `pnpm --filter web build`, `pnpm format`, `pnpm lint`.
 
@@ -49,7 +49,7 @@ Done 2026-10-11. Not committed.
 - Used by `LooseToken.jsx` (ground check, `TokenFace` size), `TokenPile.jsx` (`PileStack`, ground check), `TokenDragPreview.jsx` (`OtherSpawnPreview` ground check, new `tokenKey` prop), `Scene.jsx` (own and other preview `TokenFace` size). `TokenFace` has a `size` prop (default `TOKEN_SIZE`, badge and label follow it). Trays pass no size.
 - Footprints keep `TOKEN_RADIUS` (0.5", the crisis token radius): it is already the 1" radius, and the 0.75" tokens had it before.
 - `tokens.js` no longer filters the `counter` group. Library has a "Counters" group (1 Damage, 1 Power). `TrayControls.jsx` reads the Power icon by key: unchanged.
-- Docs: `docs/characters-hud.md`, `docs/feature-library.md`, `scripts/README.md`.
+- Docs: `docs/features/character-trays.md`, `docs/features/library.md`, `scripts/README.md`.
 - Checks: test 288 pass, build ok, format ok, lint 41 warnings (same as before), no errors.
 
 For Phase 2:
@@ -64,7 +64,7 @@ For Phase 2:
 Work:
 1. A plain module with the rule of decision 3 and its tests: the height of each loose token from the crisis tokens and the loose tokens before it.
 2. `LooseToken.jsx`, `TokenDragPreview.jsx` and the crisis token component: they share what they need for the rule (the places and tops of the crisis tokens, the list of loose tokens). Keep the per-frame work small.
-3. Docs: `docs/feature-library.md` or `docs/characters-hud.md`, where the loose tokens are described; `docs/feature-crisis.md` ("Physical behavior": tokens on top).
+3. Docs: `docs/features/library.md` or `docs/features/character-trays.md`, where the loose tokens are described; `docs/features/crisis.md` ("Physical behavior": tokens on top).
 
 Checks: `pnpm --filter web test`, `pnpm --filter web build`, `pnpm format`, `pnpm lint`.
 
@@ -84,7 +84,7 @@ Done 2026-10-11. Not committed.
 - `LooseToken.jsx` has a new `index` prop (place in `looseTokens`, from `Scene.jsx`). Each frame: `rest = max(ground, tokenStack.topAt(x, z, index))`, y = rest + `GAP`. It writes `putLoose(..., size / 2, y + TOKEN_THICKNESS, index)`. A lifted token (remote drag) is removed from the registry, so the token on top goes down. The local dragged token is not mounted, so it is not in the registry either.
 - `App.jsx`, `handleTokenRelease`: a moved loose token is removed and appended (it goes to the end). `net/collections.js` gives it a new `order` above the highest, so the other browser gets the same order.
 - Drag preview: new `stacks` prop on `TokenDragPreview` and `OtherSpawnPreview` (true for a character token, false for a supply token and a pile). Height = max(point or ground, `topAt(x, z)` with index Infinity) + `GAP` + lift. `Scene.jsx` passes it (`loose:` key for the other player).
-- Docs: `docs/characters-hud.md` ("Tokens on top of tokens"), `docs/feature-library.md`, `docs/feature-crisis.md`.
+- Docs: `docs/features/character-trays.md` ("Tokens on top of tokens"), `docs/features/library.md`, `docs/features/crisis.md`.
 - Checks: test 294 pass, build ok, format ok, lint 41 warnings (same as before), no errors. No browser used.
 
 Notes:

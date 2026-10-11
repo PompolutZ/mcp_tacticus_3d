@@ -4,7 +4,7 @@ Design. The order of the work is in `docs/plans/implement-backend.md`.
 
 ## Goal
 
-The app gets a backend for login, multiplayer rooms, the table snapshot and signaling. The endpoints and the data are in `docs/feature-auth.md` and `docs/feature-peer-to-peer.md`. This doc describes the repo layout, the stack, the AWS resources, the deploy path and local development.
+The app gets a backend for login, multiplayer rooms, the table snapshot and signaling. The endpoints and the data are in `docs/features/auth.md` and `docs/features/peer-to-peer.md`. This doc describes the repo layout, the stack, the AWS resources, the deploy path and local development.
 
 Every AWS resource is defined in code (CDK). Nobody creates or changes AWS resources in the AWS console.
 
@@ -286,21 +286,21 @@ The site is `https://mcptacticus3d.netlify.app`. Netlify builds the web app from
 
 ## Relation to other features
 
-- `docs/feature-peer-to-peer.md`:
+- `docs/features/peer-to-peer.md`:
   - "Parts": the SAM template becomes the CDK stack `McpTacticusApi`. The secret is an SSM parameter, not a `NoEcho` parameter. The database is the new Free cluster, not the wuclub cluster. The Atlas user is created with the Atlas CLI.
   - "Local testing": the Vite plugin becomes the API process behind the Vite proxy. `npm run dev` becomes `pnpm dev`. `VITE_SIGNAL_URL` becomes `VITE_API_URL`.
   - "Endpoints": the poll sends `after` in a header (see "Preflight per URL").
   - "Code layout": `infra/signal/` becomes `apps/api/src/` (routes, stores) and `infra/` (CDK).
   - "Phases": the AWS parts of phase 5 move to steps 3 and 4 of the plan.
   - Open questions 3 (account), 5 (cluster tier and region), 6 (access list) and 7 (shared cluster) are answered here. Open question 1 (Cloudflare Worker) stays open. Hono also runs on Cloudflare Workers, so a later move is smaller.
-- `docs/feature-auth.md`:
+- `docs/features/auth.md`:
   - `jose` becomes `hono/jwt`.
   - The secrets are SSM parameters, not `NoEcho` parameters.
   - "Code layout": `infra/api/*.mjs` becomes `apps/api/src/`. The dev login is in `local.ts`, not in `vitePlugin.mjs`.
   - "Phases": the deploy starts earlier (plan steps 3 and 4). Phase 4 keeps the release parts.
   - "Site name": the rename happens in plan step 1, not before phase 4. The single player rooms on the old address are lost. Before the first release this does not matter, because all data is test data.
   - Open question 4 (region) is answered: `eu-central-1`.
-- `docs/feature-rooms.md`: the `src/` paths become `apps/web/src/`.
+- `docs/features/rooms.md`: the `src/` paths become `apps/web/src/`.
 - `CLAUDE.md`, `README.md`, `ASSETS.md`, `scripts/README.md`: the new paths, and `pnpm --filter web build` instead of `npx vite build`.
 
 ## Decisions

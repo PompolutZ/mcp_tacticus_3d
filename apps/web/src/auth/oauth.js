@@ -1,4 +1,4 @@
-// The pure parts of the Discord login (docs/feature-auth.md, "Login flow"). No browser globals, so the
+// The pure parts of the Discord login (docs/features/auth.md, "Login flow"). No browser globals, so the
 // tests run in node.
 
 // A random string for the OAuth state

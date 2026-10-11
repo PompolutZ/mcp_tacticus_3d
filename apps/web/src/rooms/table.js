@@ -1,5 +1,5 @@
 // The start state of a table, and the terrain as App shows it. The table itself is a Yjs document (net/doc.js).
-// See docs/feature-rooms.md, "Storage". Plain module, the same as characters/trays.js.
+// See docs/features/rooms.md, "Storage". Plain module, the same as characters/trays.js.
 
 import { MAPS } from '../terrain/maps.js'
 import { START_MARKERS } from '../scoreboard/board.js'

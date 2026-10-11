@@ -13,7 +13,7 @@ const GEM_HEIGHT = 0.45
 // makes it draw on top of the card, so it does not z-fight from a distance.
 const GEM_LIFT = 0.003
 const NO_RAYCAST = () => null
-// A card in the squad gets a frame around it (see docs/feature-setup-game.md, "Squads"). The frame lies
+// A card in the squad gets a frame around it (see docs/features/setup-game.md, "Squads"). The frame lies
 // next to the card, not under it, so the two do not z-fight.
 const FRAME_WIDTH = 0.18
 const FRAME_COLOR = '#ffd34d'
@@ -194,7 +194,7 @@ export function RosterCard({ card, info, selected = false, onOpen }) {
 }
 
 // The character and Team Tactic cards of one team's roster: lie flat on the table, locked, with no physics
-// body. See docs/feature-roster.md, "On the table". The crisis cards lie next to the scoring board
+// body. See docs/features/roster.md, "On the table". The crisis cards lie next to the scoring board
 // (GameSetup.jsx). code: the stored MCT code (App.jsx, rosters). squad: the places of the cards in the
 // squad, { characters, tactics } (setup/setup.js). onOpen(tab, index): a click on a card, see RosterPopup.jsx.
 // tab: a key of ROSTER_TABS, index: the place of the card in that tab. In the characters and tactics tabs,

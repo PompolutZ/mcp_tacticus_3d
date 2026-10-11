@@ -1,5 +1,5 @@
 // Room records in localStorage, one key per room. The table of a room is a Yjs document in IndexedDB
-// (rooms/tableDoc.js). See docs/feature-rooms.md, "Storage". No React.
+// (rooms/tableDoc.js). See docs/features/rooms.md, "Storage". No React.
 
 import { clearDocument } from 'y-indexeddb'
 import { equal } from '../net/collections.js'
@@ -11,7 +11,7 @@ const USER_KEY = `${PREFIX}user`
 // new table (docs/plans/implement-backend/05-yjs-state.md, decision 12).
 const VERSION = 2
 // Crockford base32: no I, L, O, U, so a code read aloud or typed is not mistaken. 8 characters are 40 bits,
-// the room code of docs/feature-peer-to-peer.md, "Security and abuse".
+// the room code of docs/features/peer-to-peer.md, "Security and abuse".
 const CODE_CHARS = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
 
 // localStorage can throw: storage turned off, or full. A read then finds nothing.

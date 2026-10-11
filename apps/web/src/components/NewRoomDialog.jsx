@@ -25,7 +25,7 @@ function unavailableText(status) {
   return DISCORD_ON ? 'Log in with Discord to play multiplayer' : 'Log in to play multiplayer'
 }
 
-// The dialog that creates a room (docs/feature-rooms.md, "New room"): the map and the rosters of both
+// The dialog that creates a room (docs/features/rooms.md, "New room"): the map and the rosters of both
 // players. With Random map on, the card back shows and the map is picked at creation. With it off, the map
 // card in the middle of the carousel is the map. Create room needs a Blue roster. The Red roster is
 // optional, because the Red field of the toolbar can load it later. Create room saves the room and calls

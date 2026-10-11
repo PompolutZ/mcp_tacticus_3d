@@ -39,7 +39,7 @@ const upAngle = (up) => (up === 'back' ? Math.PI : 0)
 const flipAngle = (flip) => flip.from + (flip.to - flip.from) * ease(flip.time / FLIP_DURATION)
 
 // One Team Tactic card, flat on the table or on the terrain under it. It has no physics body, the
-// same as a token on the table. See docs/feature-team-tactic-cards.md, "Card on the table".
+// same as a token on the table. See docs/features/team-tactic-cards.md, "Card on the table".
 // card: { id, key, team, x, z, up }, see App.jsx, tacticCards. stackIndex: its place in that list.
 // onMove(x, z): a drag ended over the table; App puts the card there or into a tray slot.
 // onOpen({ src, alt }): a click opens the side that faces up in the card popup (CardPopup.jsx).

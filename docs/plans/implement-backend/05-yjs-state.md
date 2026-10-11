@@ -1,6 +1,6 @@
 # Step 5: Shared state in Yjs
 
-Detailed plan of step 5 in `docs/plans/implement-backend.md`. The design is in `docs/feature-peer-to-peer.md` ("State", "Yjs document", "Save and load a game", "Phases" 1) and `docs/feature-rooms.md` ("Storage", "Relation to peer-to-peer").
+Detailed plan of step 5 in `docs/plans/implement-backend.md`. The design is in `docs/features/peer-to-peer.md` ("State", "Yjs document", "Save and load a game", "Phases" 1) and `docs/features/rooms.md` ("Storage", "Relation to peer-to-peer").
 
 ## Goal
 
@@ -291,9 +291,9 @@ Work:
    - Print: the size after setup, after each round, the size of the same table as JSON, and the average update size. Also the size with 3 times as many rounds, to show the growth.
 2. Run it. Put the numbers in the **Result**.
 3. Docs:
-   - `docs/feature-rooms.md`: "Storage", "When the room saves", "Relation to peer-to-peer", "Code", a decision for this change.
-   - `docs/feature-peer-to-peer.md`: "Yjs document" (the layout of "Names"), "Save and load a game" (the file), "Code layout", "Phases" 1, 3 and 5 (tools in phase 3, IndexedDB in phase 1).
-   - `docs/feature-auth.md`: open question 5 answered, with the numbers.
+   - `docs/features/rooms.md`: "Storage", "When the room saves", "Relation to peer-to-peer", "Code", a decision for this change.
+   - `docs/features/peer-to-peer.md`: "Yjs document" (the layout of "Names"), "Save and load a game" (the file), "Code layout", "Phases" 1, 3 and 5 (tools in phase 3, IndexedDB in phase 1).
+   - `docs/features/auth.md`: open question 5 answered, with the numbers.
    - `docs/plans/implement-backend.md`: a short **Result** under step 5. Step 9: the tools move into the doc. Step 11: IndexedDB is done in step 5. Decisions 6 and 7 (decisions 1 and 2 of this plan).
    - `README.md`: `pnpm test` also runs the web tests, if the README names the test command.
 
@@ -308,7 +308,7 @@ Status: done.
 Files changed:
 - New: `apps/web/scripts/yjs-size.mjs`.
 - Changed: `apps/web/package.json` (script `yjs-size`), `apps/web/scripts/README.md` (entry "Yjs size").
-- Docs (work item 3): `docs/feature-rooms.md`, `docs/feature-peer-to-peer.md`, `docs/feature-auth.md`, `docs/plans/implement-backend.md`, `README.md`, and this plan.
+- Docs (work item 3): `docs/features/rooms.md`, `docs/features/peer-to-peer.md`, `docs/features/auth.md`, `docs/plans/implement-backend.md`, `README.md`, and this plan.
 
 Numbers (`pnpm --filter web yjs-size`, seed 1):
 

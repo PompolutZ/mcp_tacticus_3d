@@ -146,7 +146,7 @@ The mod's `TableURL` (`Table` is `Table_Custom`). Dark wood planks, 4000×2667 (
 
 A 2048×2048 sprite sheet showing 6 symbols on a red background: spiral (Wild), starburst ×2 (Hit),
 shield with a starburst (Block), burst with "!" (Crit), skull (Failure, shown as "Skull" in the app).
-2 of the 8 faces are blank. See `docs/feature-dice-rolling.md`, "The die", for the full face table.
+2 of the 8 faces are blank. See `docs/features/dice-rolling.md`, "The die", for the full face table.
 
 ### Infinity Gem images — cached
 

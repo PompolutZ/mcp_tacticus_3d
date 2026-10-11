@@ -2,7 +2,7 @@
 
 Requested by the user on 2026-10-11, for the first real game in production (`docs/plans/implement-backend/12-release.md`). The friend's roster has two characters with an Infinity Gem: Doctor Strange with Infinity Gem: Soul (`00230101-00250104`), and Moondragon with Infinity Gem: Mind (`01910102-00250101`).
 
-Design notes that this plan follows: `docs/characters-hud.md` ("Out of scope": cards attached to a character), `docs/feature-setup-game.md` ("Not built yet": Infinity Gem cards next to the character), `docs/feature-roster.md` ("MCT code", "On the table").
+Design notes that this plan follows: `docs/features/character-trays.md` ("Out of scope": cards attached to a character), `docs/features/setup-game.md` ("Not built yet": Infinity Gem cards next to the character), `docs/features/roster.md` ("MCT code", "On the table").
 
 ## Goal
 
@@ -18,7 +18,7 @@ Today:
 Found on 2026-10-11 in the mod scripts ("Blue Roster Tray", "Blue Tray Spawner"):
 - The roster tray spawns each gem card next to its character card (`spawnGem`, scale 0.5).
 - A player drops the gem card on the character tray. The tray takes it only when the character can have that gem (`cGem` of the character row). Then it attaches the card at a fixed place on the tray (`gem1Position = {-1.82, 0.2, 1.5}`), with a **Remove Card** button. Thanos and Adam Warlock can have a second gem (`gem2Position`).
-- The tray counts the gems for the power gain of the Power Phase (`powerGain + gem`, the Power gem counts twice). The app does not count it: players apply the rules (`docs/characters-hud.md`, "Players apply the rules").
+- The tray counts the gems for the power gain of the Power Phase (`powerGain + gem`, the Power gem counts twice). The app does not count it: players apply the rules (`docs/features/character-trays.md`, "Players apply the rules").
 - The gem cards are 720 × 1039, the same size as Team Tactic cards. The TTS cache has the Soul and Mind cards (`tts/infinity-gems/gems/INFINITY_GEM_<NAME>_{face,back}.png`).
 
 ## Scope
@@ -113,7 +113,7 @@ Work:
 1. `TrayControls.jsx`: the gem chips (decision 3). The 3D tray and the tray popup use the same component, so both get them.
 2. `TrayPopup.jsx`: the attached cards next to the stat card (decision 4).
 3. `index.css`: the styles.
-4. Docs: `docs/characters-hud.md` ("Out of scope": gems are built, Horsemen and Reserve are not; a short "Attached cards" section). `docs/feature-setup-game.md` ("Not built yet": the gem cards are built). `docs/feature-roster.md` ("On the table": the gem line stays on the roster card; the tray shows the gem after the setup).
+4. Docs: `docs/features/character-trays.md` ("Out of scope": gems are built, Horsemen and Reserve are not; a short "Attached cards" section). `docs/features/setup-game.md` ("Not built yet": the gem cards are built). `docs/features/roster.md` ("On the table": the gem line stays on the roster card; the tray shows the gem after the setup).
 
 Checks:
 - `pnpm --filter web test`, `pnpm --filter web build` pass.
@@ -129,7 +129,7 @@ Done on 2026-10-11. Not committed.
 - `App.jsx`: `handleAttachedOpen(code)` opens `{ src, alt }` in `CardPopup`. No image: HUD message "No card image for <name> (<code>)". It also closes the tray popup, so one popup is open (the Escape rule stays).
 - `TrayPopup.jsx`: the gem cards face up under the stat card, as buttons. A card without an image has no picture there, only its chip. `index.css`: width `min(40vw, 260px, 36vh)`, so a small screen still scrolls inside the existing `max-height: 96vh`.
 - `RosterCards.jsx`: `GemLine` comment fixed.
-- Docs: `characters-hud.md` (new "Attached cards", Out of scope, Decisions 5), `feature-setup-game.md`, `feature-roster.md`.
+- Docs: `character-trays.md` (new "Attached cards", Out of scope, Decisions 5), `setup-game.md`, `features/roster.md`.
 - Found: the roster card line and the roster popup show the full name, "+ Infinity Gem: Soul", not "+ Soul Gem". The plan said they match. I left them as they are. Docs now say the true text. Only the chip says "Soul Gem". Decide if the roster should use the short text too.
 - Not checked in a browser (rule). The `stopPropagation` and the drei `<Html transform>` use follow the Flip button, which works the same way.
 - Checks: `pnpm --filter web test` (284 pass), `pnpm --filter web build`, `pnpm format`. `pnpm lint`: 41 warnings, same as before, no errors.
@@ -150,7 +150,7 @@ Work:
 1. `TrayPopup.jsx`: the thumbnails, the large card, the open state (the code of the large card, or null). It goes back to null when the popup closes.
 2. `TrayControls.jsx`: a prop that hides the chips; the popup sets it.
 3. `index.css`: the thumbnail column, the large card over the stat card. Check a small screen: the stat card width already follows the viewport height (`.tray-popup-card`). The thumbnail column must not make the popup wider than the screen. On a narrow screen, the thumbnails can go in a row under the stat card, small.
-4. Docs: `docs/characters-hud.md` ("Attached cards", "Tray popup").
+4. Docs: `docs/features/character-trays.md` ("Attached cards", "Tray popup").
 
 Checks:
 - `pnpm --filter web test`, `pnpm --filter web build` pass.
@@ -166,7 +166,7 @@ Done on 2026-10-11. Not committed.
 - `TrayControls.jsx`: new prop `hideAttached`; the popup sets it. The 3D tray keeps its chips.
 - `index.css`: `.tray-popup-main` (row), `.tray-popup-cards` (relative, holds the stat card and the large card), `.tray-popup-large` (absolute, centered, z-index 2, image height `min(70vh, 520px)`). With thumbnails, the stat card width is `min(100vw - 170px, 600px, 75vh)`, so the popup fits the screen. At 560 px or less, the thumbnails go in a row (64 px) under the stat card.
 - Every click is inside `.tray-popup`, which stops propagation, so none closes the popup. Escape is unchanged.
-- Docs: `characters-hud.md` ("Attached cards", "Tray popup").
+- Docs: `character-trays.md` ("Attached cards", "Tray popup").
 - Checks: `pnpm --filter web test` (284 pass), `pnpm --filter web build`, `pnpm format`. `pnpm lint` has 41 warnings, the same as before.
 - Not checked in a browser (rule). A large card taller than the stat card sticks out above and below it, inside the popup.
 
@@ -193,7 +193,7 @@ After Phase 3:
 
 ### User check results
 
-2026-10-11: the user checked 1 to 7 (and the 3 checks of `docs/plan-jarvis-immunities.md`): "all is good". The gem card in the tray popup is too large, and the controls are hard to reach. Phase 3 changes it.
+2026-10-11: the user checked 1 to 7 (and the 3 checks of `docs/plans/jarvis-immunities.md`): "all is good". The gem card in the tray popup is too large, and the controls are hard to reach. Phase 3 changes it.
 
 2026-10-11, after Phase 3: the user checked 8 to 10: "all works as expected".
 

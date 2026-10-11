@@ -2,7 +2,7 @@
 
 Status: phase 1 (login) is done and checked locally (step 6 of the plan). Phase 2 (multiplayer rooms, step 7) is built. Phase 3 (identity in peer-to-peer, step 8) is built. The browser checks of steps 7 and 8 passed on 2026-10-09. The rest is plan. See [Open questions](#open-questions) at the end.
 
-The backend (repo, stack, AWS, deploy) is in `docs/feature-backend.md`. The order of the work is in `docs/plans/implement-backend.md`.
+The backend (repo, stack, AWS, deploy) is in `docs/features/backend.md`. The order of the work is in `docs/plans/implement-backend.md`.
 
 ## Goal
 
@@ -21,7 +21,7 @@ In TTS, the Steam account gives each player a name and an avatar. Here, the Disc
 |---|---|
 | Provider | Discord only, scope `identify`. No email |
 | Flow | OAuth2 authorization code. The browser goes to Discord and comes back with a code. The Lambda exchanges the code with the client secret |
-| Backend | The API of `docs/feature-backend.md`: one Lambda, and the `assist3d` database in an Atlas Free cluster. Signaling (`docs/feature-peer-to-peer.md`) uses the same API. No new vendor |
+| Backend | The API of `docs/features/backend.md`: one Lambda, and the `assist3d` database in an Atlas Free cluster. Signaling (`docs/features/peer-to-peer.md`) uses the same API. No new vendor |
 | Session | Our own signed token (JWT), 30 days. Kept in `localStorage`, sent in the `Authorization` header |
 | Users | Collection `users`. Our own user id, the Discord id is a unique field |
 | Rooms | Collection `rooms`: setup, host, two seats, and a snapshot of the table (Yjs) |
@@ -33,7 +33,7 @@ In TTS, the Steam account gives each player a name and an avatar. Here, the Disc
 
 | Term | Meaning |
 |---|---|
-| Single player room | A room in `localStorage` of one browser: the rooms of today (`docs/feature-rooms.md`). For trying maps and rosters. It never connects to another player. Before 2026-10-09 the docs called it an offline room |
+| Single player room | A room in `localStorage` of one browser: the rooms of today (`docs/features/rooms.md`). For trying maps and rosters. It never connects to another player. Before 2026-10-09 the docs called it an offline room |
 | Multiplayer room | A room in the `rooms` collection. Only a logged-in player can create or join one. Peer-to-peer games happen only in multiplayer rooms. Before 2026-10-09 the docs called it an online room |
 | Host | The user who creates a multiplayer room. Only the host can delete it |
 | Guest | The user who joins a multiplayer room with the link |
@@ -157,7 +157,7 @@ How it works:
 
 - The table is a Yjs document, saved in IndexedDB per room. The snapshot is this document as one Yjs update (`Y.encodeStateAsUpdate`). The body is `application/octet-stream`.
 - **Start table:** the host's browser builds it at creation and sends it with `POST /rooms` (base64). So a room always has a table. Only the host's browser builds it, because each terrain piece gets a random id, and two start tables would merge into two sets of pieces.
-- **Read:** when a seated player opens the room, the browser gets `GET /rooms/{code}/table` and applies it to the local document (`Y.applyUpdate`, origin `'server'`). Yjs merges it with the IndexedDB copy. A table of another schema gets a new start table. When the server does not answer, the room does not open: the lobby shows "Could not load room K7Q2-M9XD. Try again." For 403 and 404, the browser deletes its local copy. Then the connection starts (`docs/feature-peer-to-peer.md`, "Connect flow"), and the Yjs sync with the other player runs over it.
+- **Read:** when a seated player opens the room, the browser gets `GET /rooms/{code}/table` and applies it to the local document (`Y.applyUpdate`, origin `'server'`). Yjs merges it with the IndexedDB copy. A table of another schema gets a new start table. When the server does not answer, the room does not open: the lobby shows "Could not load room K7Q2-M9XD. Try again." For 403 and 404, the browser deletes its local copy. Then the connection starts (`docs/features/peer-to-peer.md`, "Connect flow"), and the Yjs sync with the other player runs over it.
 - **Write:** `PUT /rooms/{code}/table` with the full update.
   - The first change starts a 60-second timer. When it ends, the browser sends the write. A change during a write starts the next timer.
   - **← Lobby** and a hidden tab (`visibilitychange`) write at once when the table changed. The hidden write uses `keepalive` when the body is at most 60 KB (the limit for a page is 64 KB).
@@ -191,7 +191,7 @@ How it works:
 
 A `room` in an answer is `{ code, host, players: { blue, red }, mapId, rosters: { blue, red }, createdAt, updatedAt }`. A player is `{ id, name, avatar, discordId }`, `{ id, gone: true }` when the user no longer exists, or `null` for a free seat. A room code that is not `XXXX-XXXX` (Crockford base32) answers 404. Errors are `{ error }`.
 
-The signaling paths `/rooms/{code}/messages` are under the same `/rooms/{code}` prefix. Their rules are in `docs/feature-peer-to-peer.md` ("Endpoints").
+The signaling paths `/rooms/{code}/messages` are under the same `/rooms/{code}` prefix. Their rules are in `docs/features/peer-to-peer.md` ("Endpoints").
 
 ## Identity in peer-to-peer games
 
@@ -352,8 +352,8 @@ The plan `docs/plans/implement-backend.md` gives the order of the phases and the
 
 ## Relation to other features
 
-- `docs/feature-rooms.md`: the rooms there become single player rooms. They stay in `localStorage` and never connect. Two lines there change: "Peer-to-peer will add rooms that this browser joined" (now these are multiplayer rooms), and "the Red field will be only in the Sandbox" (single player rooms keep both roster fields).
-- `docs/feature-peer-to-peer.md`: games happen only in multiplayer rooms, and both players are logged in. "No accounts", the typed player name and the peer id in `sessionStorage` in "Room and players" went away in step 8, and so did the **Host game** button. The host shares the link of a multiplayer room, not of a single player room ("Connect flow"). The signaling routes get the token and seat check. They are in the same API (`apps/api`, backend doc). The IndexedDB copy of the Yjs document stays, and the server snapshot comes in addition.
+- `docs/features/rooms.md`: the rooms there become single player rooms. They stay in `localStorage` and never connect. Two lines there change: "Peer-to-peer will add rooms that this browser joined" (now these are multiplayer rooms), and "the Red field will be only in the Sandbox" (single player rooms keep both roster fields).
+- `docs/features/peer-to-peer.md`: games happen only in multiplayer rooms, and both players are logged in. "No accounts", the typed player name and the peer id in `sessionStorage` in "Room and players" went away in step 8, and so did the **Host game** button. The host shares the link of a multiplayer room, not of a single player room ("Connect flow"). The signaling routes get the token and seat check. They are in the same API (`apps/api`, backend doc). The IndexedDB copy of the Yjs document stays, and the server snapshot comes in addition.
 
 ## Decisions
 
@@ -384,7 +384,7 @@ Made on 2026-10-09 (step 7):
 1. **Localhost redirect.** Answered on 2026-10-09: Discord accepts `http://localhost:5173/`. The first save failed because the browser filled the field with the Discord email. Typed by hand, it saved.
 2. **Session length.** 30 days, renewed once a day on app start. Fine?
 3. **Retention.** 12 months for users with no login and rooms with no change. Fine?
-4. **Region.** Answered in `docs/feature-backend.md`: the Atlas cluster and the Lambda are in `eu-central-1`.
+4. **Region.** Answered in `docs/features/backend.md`: the Atlas cluster and the Lambda are in `eu-central-1`.
 5. **Table size.** Answered in step 5 (`docs/plans/implement-backend/05-yjs-state.md`, Phase 4 Result). `pnpm --filter web yjs-size` builds a full game with 12 characters, 30 terrain pieces, and many moves, damage and token changes, and prints the snapshot size.
    - 6 rounds: 21930 bytes, 2.1% of 1 MB. 18 rounds: 34363 bytes, 3.3%.
    - The snapshot grows about 1 KB per round. The JSON of the same table grows only 0.2 KB per round. The rest is the history of overwritten fields, which Yjs keeps.
@@ -395,7 +395,7 @@ Made on 2026-10-09 (step 7):
 
 - Email login, Google and other providers.
 - Rosters, settings and the player name on the server.
-- Custom model uploads (`docs/feature-custom-models.md`). They need file storage per user.
+- Custom model uploads (`docs/features/custom-models.md`). They need file storage per user.
 - Discord friends list, Discord Social SDK, rich presence.
 - The app as a Discord Activity inside a voice channel. Discord's Embedded App SDK has its own login with the same code exchange. Not checked: whether WebRTC works inside an Activity.
 - Spectator seats.

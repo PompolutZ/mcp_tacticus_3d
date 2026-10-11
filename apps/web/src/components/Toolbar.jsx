@@ -21,7 +21,7 @@ const CRISIS_TYPES = [
 
 // roomCode: the code of the room, or null in the Sandbox. A room has a fixed map and the Blue roster of
 // the room, so the toolbar has no map picker and only the Red roster field there. The Red field loads,
-// replaces or removes the Red roster of the room (docs/feature-rooms.md).
+// replaces or removes the Red roster of the room (docs/features/rooms.md).
 // multiplayer: the room is a multiplayer room, which has no Roster group (the rosters are fixed, plan 07,
 // decisions 10 and 13), no Crisis group and no Mat group (the game setup chooses the crisis cards and the
 // board edge). guestSeatFree: the guest seat was free when the room opened, so Copy link shows next

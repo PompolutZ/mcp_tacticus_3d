@@ -1,6 +1,6 @@
 # Step 6: Login
 
-Detailed plan of step 6 in `docs/plans/implement-backend.md`. The design is in `docs/feature-auth.md` ("Login flow", "Session", "Users", "Security", "Discord application", "Local testing", "Code layout", "Phases" 1) and `docs/feature-backend.md` ("API", "Secrets and config", "Local development").
+Detailed plan of step 6 in `docs/plans/implement-backend.md`. The design is in `docs/features/auth.md` ("Login flow", "Session", "Users", "Security", "Discord application", "Local testing", "Code layout", "Phases" 1) and `docs/features/backend.md` ("API", "Secrets and config", "Local development").
 
 ## Goal
 
@@ -366,7 +366,7 @@ Facts:
 ## Phase 5: Docs
 
 Work:
-1. `docs/feature-auth.md`:
+1. `docs/features/auth.md`:
    - "Users": `expiresAt` also moves on token renewal (decision 6). "Privacy" → "Retention": the same.
    - "Local testing": the dev login shows in a dev build also without `VITE_DISCORD_CLIENT_ID` (decision 10). The fixed dev session secret (decision 3). The dev Mongo (decision 16): without it, a restart of the API logs the testers out.
    - "Code layout": `apps/web/src/auth/oauth.js`, `apps/api/src/auth/`, `routes/devAuth.ts`.
@@ -374,7 +374,7 @@ Work:
    - Open question 1 (localhost redirect): answered (see "User check results").
    - Risk 1 of this plan: the first login worked with `prompt=none` (see "User check results").
    - Status line at the top.
-2. `docs/feature-backend.md`: "Code" (`auth/`, `devAuth.ts`), "Stack" (`zod/mini` and the validator), "Local development" (the dev Mongo with `compose.yaml`, next to the memory store).
+2. `docs/features/backend.md`: "Code" (`auth/`, `devAuth.ts`), "Stack" (`zod/mini` and the validator), "Local development" (the dev Mongo with `compose.yaml`, next to the memory store).
 3. `docs/plans/implement-backend.md`: a short **Result** under step 6.
 4. `README.md`: local login: `apps/api/.env`, `apps/web/.env.local`, the dev login, the dev Mongo (`db:up`, `STORE=mongo`, `docker compose down -v` to reset).
 5. `infra/README.md`: the Discord values in "Secrets", and the order: `put-secrets` before the deploy (decision 3).
@@ -388,8 +388,8 @@ Checks:
 Status: done. Not committed.
 
 Files changed:
-- `docs/feature-auth.md`: status line. "Session" and "Users": `GET /me` moves `expiresAt`. "Retention": "no login and no app start for 12 months". "Endpoints": the answers of three routes. "Local testing": dev login in every dev build, the fixed dev session secret, the dev Mongo. "Code layout": `oauth.js`, `auth/`, `devAuth`, `validate`. Open question 1 answered. `prompt=none` checked.
-- `docs/feature-backend.md`: "Stack" (`zod/mini`, versions, bundle sizes), "Code" (`auth/`, `devAuth`, `validate`, `log`), "Local development" (the dev Mongo).
+- `docs/features/auth.md`: status line. "Session" and "Users": `GET /me` moves `expiresAt`. "Retention": "no login and no app start for 12 months". "Endpoints": the answers of three routes. "Local testing": dev login in every dev build, the fixed dev session secret, the dev Mongo. "Code layout": `oauth.js`, `auth/`, `devAuth`, `validate`. Open question 1 answered. `prompt=none` checked.
+- `docs/features/backend.md`: "Stack" (`zod/mini`, versions, bundle sizes), "Code" (`auth/`, `devAuth`, `validate`, `log`), "Local development" (the dev Mongo).
 - `docs/plans/implement-backend.md`: **Result** under step 6.
 - `README.md`: new "Login" and "Dev Mongo" sections (env files, dev login, `db:up`, `db:down`, `down -v`). The `docker run` command is replaced.
 - `infra/README.md`: new "Secrets" section (four values, `put-secrets` before the deploy).

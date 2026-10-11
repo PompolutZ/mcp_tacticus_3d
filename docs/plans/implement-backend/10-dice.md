@@ -1,6 +1,6 @@
 # Step 10: Dice
 
-Detailed plan of step 10 in `docs/plans/implement-backend.md`. Peer-to-peer phase 4. The design is in `docs/feature-peer-to-peer.md` ("Yjs document", "Moving objects (physics)", "Bodies moved by the other browser", "Pose message", "Dice", "What each player controls") and `docs/feature-dice-rolling.md`. Decisions 1, 3, 4 and 7 change parts of the design.
+Detailed plan of step 10 in `docs/plans/implement-backend.md`. Peer-to-peer phase 4. The design is in `docs/features/peer-to-peer.md` ("Yjs document", "Moving objects (physics)", "Bodies moved by the other browser", "Pose message", "Dice", "What each player controls") and `docs/features/dice-rolling.md`. Decisions 1, 3, 4 and 7 change parts of the design.
 
 ## Goal
 
@@ -26,7 +26,7 @@ In the step:
 
 Left for later:
 - A logging feature. The user plans it. It defines what the game logs, and can replace or extend the roll history.
-- Picking up and dragging dice (`docs/feature-dice-rolling.md`, "Out of scope").
+- Picking up and dragging dice (`docs/features/dice-rolling.md`, "Out of scope").
 - A dropped network, "Reconnecting": step 11.
 
 ## Rules for every phase
@@ -104,7 +104,7 @@ apps/web/src/
    - IndexedDB and the server snapshot keep the dice like the rest of the table. The Sandbox has no IndexedDB, so its trays are empty after a reload, as today.
 4. **The roll history.** The user decided this on 2026-10-10. It is a panel like the Library, and a later logging feature can extend it.
    - It is the list `rolls` in the document, one list for both sides. So the room keeps it, and both players see the same entries in the same order. Only the roller's browser writes an entry. Clear does not delete the history. A new table starts with an empty one.
-   - Events, as in the design before 2026-10-02 (`docs/plan-dice-rolling.md`, `history.js`):
+   - Events, as in the design before 2026-10-02 (`docs/plans/dice-rolling.md`, `history.js`):
      - `throw`: when a throw ends. The results of the thrown dice, by where they came from: `roll` (new dice), `crits` (`+N Crits` dice), `reroll` (from → to). One throw can have all three.
      - `change`: Change one to, from → to.
      - `clear`: Clear, as a line between two rolls.
@@ -142,7 +142,7 @@ Work:
    - Writes on each change of place or face (decision 2). A new or rerolled die settles to `well`. When it does not rest by `SETTLE_TIMEOUT`, it writes `well` with its pose at that moment. A pose that is not finite is not written.
    - The keys still read the state in memory. They show the same numbers as `trayCounts` of the document.
 5. `Scene.jsx`, `App.jsx`: the `dice` store goes to each `DiceTray`. `PLAYER_TEAM` stays in this phase.
-6. Docs: `docs/feature-rooms.md` ("Not saved", and the saved room list: the room keeps the shelf). `README.md` (the single player room: the shelf is saved). `docs/feature-dice-rolling.md` (the state of a tray is in the document). `docs/feature-peer-to-peer.md` ("State" table, "Yjs document": the `dice` layout).
+6. Docs: `docs/features/rooms.md` ("Not saved", and the saved room list: the room keeps the shelf). `README.md` (the single player room: the shelf is saved). `docs/features/dice-rolling.md` (the state of a tray is in the document). `docs/features/peer-to-peer.md` ("State" table, "Yjs document": the `dice` layout).
 
 Checks:
 - `pnpm --filter web test`, `pnpm --filter web build` pass.
@@ -163,7 +163,7 @@ Done. Web tests 249 pass, 0 fail. Build passes. Lint: no new warnings.
   - Each in-memory die has `id`, `order`, `doc` (the die entry), `settling`. `commit()` writes the whole side: `store.setField(trayKey, { critsUsed, dice: { id: entry.doc } })`. It writes at once in the actions (add, remove, roll, clear, crits, reroll, change). The frame sets `dirtyRef` (settle, end of throw) and writes once at its end.
   - New and rerolled dice: `air` with start pose, `settling`. The frame uses the settle rule and then writes `well` with the rest pose (also on `SETTLE_TIMEOUT`). A pose that is not finite is not written, and the die stops settling.
   - Roll makes non-air, non-shelf dice `air` with their pose now. End of throw writes `shelf` + `face`.
-- Docs: `feature-rooms.md`, `README.md`, `feature-dice-rolling.md`, `feature-peer-to-peer.md`.
+- Docs: `rooms.md`, `README.md`, `features/dice-rolling.md`, `peer-to-peer.md`.
 
 For next phases:
 - Phase 2 adds a `rolls` entry in the same change: wrap `commit()` and the `rolls` write in `table.transact(...)`. `DiceTray` has only the `dice` store now, so it needs the `rolls` store or `table.transact` as a prop. The end of a throw is in `finalizeThrow` (frame), `change` and `clear` are actions.
@@ -179,7 +179,7 @@ Work:
 2. `net/doc.js`: `rolls: createList(doc.getMap('rolls'))`. `fillTable` writes `state.rolls ?? []`. `rooms/table.js`: `rolls: []`.
 3. `DiceTray.jsx`: each die remembers where it came from (new, Crits, reroll with its old symbol) until the end of its throw. At the end of a throw, at a change and at a clear, the tray adds an entry to `rolls`, in the same change as the dice.
 4. `components/RollsPanel.jsx`: decision 4. `Toolbar.jsx`: the **Rolls** button. `App.jsx`: `rollsOpen`, Escape closes it, the same as the Library.
-5. Docs: `docs/feature-dice-rolling.md` (a short "History" section: what is stored, where it shows). `docs/feature-peer-to-peer.md` ("Yjs document": `rolls`. "Dice": the roller writes the history entry). `README.md` (the Rolls panel).
+5. Docs: `docs/features/dice-rolling.md` (a short "History" section: what is stored, where it shows). `docs/features/peer-to-peer.md` ("Yjs document": `rolls`. "Dice": the roller writes the history entry). `README.md` (the Rolls panel).
 
 Checks:
 - `pnpm --filter web test`, `pnpm --filter web build` pass.
@@ -196,7 +196,7 @@ Done. Web tests 254 pass, 0 fail. Build passes. Lint: no new warnings.
 - `DiceTray.jsx`: new props `rolls` (the list store) and `transact`. Each die has `source` (`roll`, `crits`, `reroll`) and `was` (old symbol of a reroll), cleared at the end of its throw. `finalizeThrow`, `change` and `clear` push an entry to `pendingRolls`. `commit()` writes the side and appends the pending entries in one `transact`. Clear on an empty tray adds no entry.
 - `Scene.jsx`: props `rollsStore`, `transact`, passed to each `DiceTray` as `rolls`, `transact`. `App.jsx`: `table.rolls`, `table.transact`; `rollsOpen`; Escape closes the panel after the Library.
 - `RollsPanel.jsx` (new), **Rolls** button in `Toolbar.jsx`, styles `.rolls*` in `index.css`.
-- Docs: `feature-dice-rolling.md` ("History"), `feature-peer-to-peer.md`, `README.md`.
+- Docs: `features/dice-rolling.md` ("History"), `peer-to-peer.md`, `README.md`.
 
 For next phases:
 - `DiceTray` props now: `trayKey, store, rolls, transact, openMenuSymbol, onMenuToggle, onMenuClose, onHover, addRef`.
@@ -214,7 +214,7 @@ Work:
 4. `components/OtherDiceTray.jsx`: decision 6. The dice are kinematic bodies with `OTHER_DICE_GROUPS`.
 5. `DiceKeys.jsx`: `disabled`. The buttons are disabled, a face plate is not a button, and no menu opens.
 6. `physics.js`: `OTHER_DICE_GROUPS` (decision 8).
-7. Docs: `docs/feature-dice-rolling.md` ("Controls: number keys": any own tray; the other player's tray). `docs/feature-key-shortcuts.md` (the number keys row). `docs/feature-peer-to-peer.md` ("What each player controls": the other tray shows its dice and counts, and its keys do nothing; the history is in the Rolls panel. "Bodies moved by the other browser", item 3: the other dice pass through models).
+7. Docs: `docs/features/dice-rolling.md` ("Controls: number keys": any own tray; the other player's tray). `docs/features/key-shortcuts.md` (the number keys row). `docs/features/peer-to-peer.md` ("What each player controls": the other tray shows its dice and counts, and its keys do nothing; the history is in the Rolls panel. "Bodies moved by the other browser", item 3: the other dice pass through models).
 
 Checks:
 - `pnpm --filter web test`, `pnpm --filter web build` pass.
@@ -232,7 +232,7 @@ Done. Web tests 254 pass, 0 fail. Build passes. Lint: no new errors. One new war
 - `physics.js`: `OTHER_DICE_GROUPS` (group 2, filter every group but 1).
 - `Scene.jsx`: `PLAYER_TEAM` removed. New prop `ownTraySides` (default both). Own side: `DiceTray`, else `OtherDiceTray`. `onDiceTrayHover(side, over)`. `addDiceRef.current[side]` holds each own tray's add.
 - `App.jsx`: `ownTraySides={room?.multiplayer ? [ownSide] : ['blue','red']}`. `diceTrayHoveredRef` is the side or null (out clears only the same side). `addDiceRef` is `{}` by side. Number key adds to the tray under the pointer.
-- Docs: `feature-dice-rolling.md`, `feature-key-shortcuts.md`, `feature-peer-to-peer.md`.
+- Docs: `features/dice-rolling.md`, `key-shortcuts.md`, `peer-to-peer.md`.
 
 For Phase 4:
 - `OtherDiceTray` keeps `dice`, a `Map` made once in `useState` and changed in place (id -> `{ id, doc, body, spawn, slot, face, moving, moveFrom, moveTo, moveElapsed }`). `doc` is the stored die entry now, `body` the RigidBody (set by `OtherDie`'s ref). React state is only `ids`.
@@ -250,7 +250,7 @@ Work:
 2. `DiceTray.jsx`: registers a getter in `diceLives` (a ref, side → getter, the same way as `toolLives`). The getter gives the key and the pose of each die that is not on the shelf.
 3. `LiveSync.jsx`: sends the poses of `diceLives`. Keeps a received `die:` key without a claim, like a `tool:` key, and does not prune it when the claims change. `liveRef.current.die(key)` gives `{ numbers, time }` or null.
 4. `OtherDiceTray.jsx`: an `air` die follows its live pose (decision 7). It notes the time when the entry became `air`, and uses only a pose that arrived after it.
-5. Docs: `docs/feature-peer-to-peer.md` ("Pose message": the `die:` key. "Dice". "Phases": phase 4 done). `docs/feature-dice-rolling.md` ("Out of scope": multiplayer sync is done. "Pitfalls", "Rapier version": closed, because the dice are not replayed). `README.md` (the multiplayer part: the dice are shared). `docs/plans/implement-backend.md`: a short **Result** under step 10.
+5. Docs: `docs/features/peer-to-peer.md` ("Pose message": the `die:` key. "Dice". "Phases": phase 4 done). `docs/features/dice-rolling.md` ("Out of scope": multiplayer sync is done. "Pitfalls", "Rapier version": closed, because the dice are not replayed). `README.md` (the multiplayer part: the dice are shared). `docs/plans/implement-backend.md`: a short **Result** under step 10.
 
 Checks:
 - `pnpm --filter web test`, `pnpm --filter web build` pass.
@@ -267,11 +267,11 @@ Done. Web tests 255 pass, 0 fail. Build passes. `pnpm test`, `pnpm typecheck`: p
 - `DiceTray.jsx`: prop `diceLives`. An effect registers a getter with `die:<id>` and the pose of each die that is not on the shelf and has a body. It removes the getter on unmount.
 - `LiveSync.jsx`: sends the `diceLives` poses through `add`. `die:` keys are kept without a claim and not pruned (`isClaimFree`). `liveRef.current.die(key)` gives `{ numbers, time }` or null. Comment updated.
 - `OtherDiceTray.jsx`: prop `liveRef`. `applyEntry` sets `airSince` when an entry becomes `air` (new, from `well` or `shelf`, or a new pose), and ends the follow. The `useFrame` follows the live pose of an `air` die when `time > airSince`: `followPart`, `sameSideQuat` slerp, kinematic moves.
-- Docs: `feature-peer-to-peer.md`, `feature-dice-rolling.md`, `README.md`, `plans/implement-backend.md`.
+- Docs: `peer-to-peer.md`, `features/dice-rolling.md`, `README.md`, `plans/implement-backend.md`.
 
 Bytes of the dice (check 18), measured by the user on 2026-10-10. Alice rolled 10 dice 10 times. Her console: `connection 1.2 MB sent, 53.9 KB received, 2 min, relayed; table 1.2 MB sent, 53.9 KB received, 2 min`.
 - That is about 120 KB for each roll of 10 dice, headers included.
-- The estimate in `docs/feature-peer-to-peer.md` ("Traffic per game") is 13 MB for 100 rolls of 8 dice, so about 160 KB for a roll of 10 dice. The measured number is below it.
+- The estimate in `docs/features/peer-to-peer.md` ("Traffic per game") is 13 MB for 100 rolls of 8 dice, so about 160 KB for a roll of 10 dice. The measured number is below it.
 - To compare, step 9 (check 23 of `09-moving-objects.md`) measured about 37 KB per minute without dice.
 - Bob's console line was not given.
 
@@ -293,7 +293,7 @@ The new rule:
 
 Work:
 1. `DiceTray.jsx`: the rule above.
-2. Docs: `docs/feature-dice-rolling.md` ("Roll flow" steps 4 and 5, "Tilted dice", the change from TTS).
+2. Docs: `docs/features/dice-rolling.md` ("Roll flow" steps 4 and 5, "Tilted dice", the change from TTS).
 
 Checks:
 - `pnpm --filter web test`, `pnpm --filter web build` pass.
@@ -309,7 +309,7 @@ Done. Web tests and build pass. Lint: no new warnings.
 - A lost die is thrown again at once from above the well, as before.
 - When no die is `thrown`: the flat dice go to the shelf in one change (`moveToShelf`). When no shelf die slides, the waiting dice are thrown again (`throwDie`). Repeat until none waits.
 - History: `throwFrom` (ref) keeps the results of the throw. `endThrow` writes one `throw` entry when no die waits. Clear drops `throwFrom`. `finalizeThrow` is gone.
-- Docs: `feature-dice-rolling.md` ("Roll flow" 4 and 5, "Settle", "Tilted dice", change from TTS).
+- Docs: `features/dice-rolling.md` ("Roll flow" 4 and 5, "Settle", "Tilted dice", change from TTS).
 
 ## Phase 6: Face plate counts in Safari
 
@@ -374,7 +374,7 @@ After Phase 6:
 
 Found in the checks:
 1. Bug: on the guest's screen, the counts on the face plates of a tray are at a wrong place. Open: which tray, and how they are wrong.
-2. Question: after a roll, a die sometimes jumps out of the tray, as if it is thrown again, and can knock other dice. Cause: the tilted-die rule (`docs/feature-dice-rolling.md`, "Tilted dice"). `throwDie` gives the die a new random rotation in place, so it can overlap the die or wall it leans on, and then a full throw. Options are with the user.
+2. Question: after a roll, a die sometimes jumps out of the tray, as if it is thrown again, and can knock other dice. Cause: the tilted-die rule (`docs/features/dice-rolling.md`, "Tilted dice"). `throwDie` gives the die a new random rotation in place, so it can overlap the die or wall it leans on, and then a full throw. Options are with the user.
 
 ## Done when
 

@@ -27,7 +27,7 @@ To make the later move to a 2D HUD cheap:
 
 ## Players apply the rules
 
-The app does not apply the game rules, in the same way as the crisis feature (see `docs/feature-crisis.md`, "Players apply the rules"). It does not deal damage, find KO'd characters, or score VP. Players press the buttons. The exceptions are the Power Phase gain, which the **Power** button in the toolbar runs (see [Power Phase](#power-phase)), and the steps of the Cleanup Phase that need no choice, which the **Cleanup** button runs (see [Cleanup Phase](#cleanup-phase)).
+The app does not apply the game rules, in the same way as the crisis feature (see `docs/features/crisis.md`, "Players apply the rules"). It does not deal damage, find KO'd characters, or score VP. Players press the buttons. The exceptions are the Power Phase gain, which the **Power** button in the toolbar runs (see [Power Phase](#power-phase)), and the steps of the Cleanup Phase that need no choice, which the **Cleanup** button runs (see [Cleanup Phase](#cleanup-phase)).
 
 The app keeps only simple limits that never change:
 
@@ -75,7 +75,7 @@ These facts were found on 2026-10-01 in the scripts of the "Red Tray Spawner" ob
 
 The table is 72" × 68" (`src/table.js`). The mat is 36" × 36" (`MAT_SIZE` in `Scene.jsx`), centered on the table, so its edge is 18" from the table center on every side.
 
-Each player's trays sit in one row on that player's side (blue at +z, red at −z), past the player's tactic tray. So the order from the mat is the same as in TTS: mat, tactic tray, character trays. The tactic tray plate ends 22.4" from the table center (see `docs/feature-team-tactic-cards.md`, "Tactic tray"). A player never has a second row. The row is centered on the middle line of the table (x = 0), the same as TTS (`arrangeTrays` in the Red Tray Spawner). 12 trays fit in the table width. A row of more than 6 trays is wider than the mat, so it goes past the mat corners. See `src/characters/trays.js`.
+Each player's trays sit in one row on that player's side (blue at +z, red at −z), past the player's tactic tray. So the order from the mat is the same as in TTS: mat, tactic tray, character trays. The tactic tray plate ends 22.4" from the table center (see `docs/features/team-tactic-cards.md`, "Tactic tray"). A player never has a second row. The row is centered on the middle line of the table (x = 0), the same as TTS (`arrangeTrays` in the Red Tray Spawner). 12 trays fit in the table width. A row of more than 6 trays is wider than the mat, so it goes past the mat corners. See `src/characters/trays.js`.
 
 Changes that follow from this:
 
@@ -125,7 +125,7 @@ The whole tray is a drop target for tokens. The Give sources are outside the tra
 
 - Damage and Power: `−` and `+` buttons around the value.
 - When Damage equals Stamina, the counter shows it in a warning color. The app does not add the Dazed token or flip the card.
-- Flip: turns the card to the other side and sets Damage to 0, as in TTS. The F key does the same with the pointer over the card or the model, or with the character selected (see `docs/feature-key-shortcuts.md`).
+- Flip: turns the card to the other side and sets Damage to 0, as in TTS. The F key does the same with the pointer over the card or the model, or with the character selected (see `docs/features/key-shortcuts.md`).
 - **On** row, above the card, where TTS shows the tokens on a character: one real-size 3D token per token key, with a count badge when the count is above 1. The tokens start at the owner's left, in the order the character got them. With more than 6 tokens they overlap, so the row stays as wide as the tray. A label above a token under the pointer shows its name and the mod's description (`tDescr`). A click on a token removes one.
 - **Give** sources, on the table below the tray: the tokens that this character gives to others or to itself: Activated, Dazed, and the tokens in its `cToken` list. They are real-size 3D tokens, in rows of 6 from the owner's left. TTS spawns these tokens at the same place, on the table below the tray, in rows from the owner's left. Each source never runs out: a drag takes a new token from it.
 
@@ -133,7 +133,7 @@ The whole tray is a drop target for tokens. The Give sources are outside the tra
 
 A character can have cards attached to it. Today these are the Infinity Gems of its roster entry. The field `attached` of the character holds their MCT codes. The setup sets it when the squad goes on the table (`revealSquad` in `App.jsx`). A character with no gem has no field, and an old document has none either. Both mean no attached cards.
 
-- **Remove** takes the character off the board (a KO'd character, p16, see `docs/plan-cleanup-phase.md`, decision 10). Its held tokens drop next to the model, then each model goes back to its place on the tray card with its spawn turn, and the new pose is stored. The character, its tray, tokens, Damage and Power stay. No confirm: a player can drag the model back. A model that the other player moves is skipped. **Remove** is disabled while no model of the character is on the mat. The Delete key over a tray card deletes the character, its models and its tray, after a confirm.
+- **Remove** takes the character off the board (a KO'd character, p16, see `docs/plans/cleanup-phase.md`, decision 10). Its held tokens drop next to the model, then each model goes back to its place on the tray card with its spawn turn, and the new pose is stored. The character, its tray, tokens, Damage and Power stay. No confirm: a player can drag the model back. A model that the other player moves is skipped. **Remove** is disabled while no model of the character is on the mat. The Delete key over a tray card deletes the character, its models and its tray, after a confirm.
 - The controls strip of the 3D tray has one chip per attached card, above Flip and Remove. Its text comes from the card name: "Infinity Gem: Soul" gives "Soul Gem".
 - A click on the chip opens the gem card in the card popup. A gem without an image shows the HUD message "No card image for <name> (<code>)".
 - The tray popup shows no chips. It shows each attached card as a small thumbnail (90 px wide) in a column at the side of the stat card, so the popup keeps its height. On a narrow screen (560 px or less) the thumbnails go in a row under the stat card.
@@ -143,11 +143,11 @@ A character can have cards attached to it. Today these are the Infinity Gems of 
 
 ## Power Phase
 
-The **Power** button in the toolbar (group Phase) gives each of your characters on the mat the Power of the Power Phase: 1, the extra Power of its superpower, and 1 per gem (2 for the Power gem), with the Stun, Poison and cap rules. Grunts and characters off the mat get nothing. A HUD message lists the changes. The rules, the data and the decisions are in `docs/plan-power-phase.md`.
+The **Power** button in the toolbar (group Phase) gives each of your characters on the mat the Power of the Power Phase: 1, the extra Power of its superpower, and 1 per gem (2 for the Power gem), with the Stun, Poison and cap rules. Grunts and characters off the mat get nothing. A HUD message lists the changes. The rules, the data and the decisions are in `docs/plans/power-phase.md`.
 
 ## Cleanup Phase
 
-The **Cleanup** button in the toolbar (group Phase) does the steps of the Cleanup Phase that need no choice, for both players. Dazed characters get Damage 0, the Injured side, and lose the Dazed token and the special conditions. All characters lose Activated and the tokens with `cleanup: true`, and so do loose tokens on the table. Exhausted Sources flip back, supply tokens leave the game, and the round marker moves to the next round. It is one change, so the other browser gets it at once. The button is disabled (`aria-disabled`, the title gives the reason) while a character on the board has neither an Activated nor a Dazed token, and while no character is on the board. Players score VP first. The rules, the data and the decisions are in `docs/plan-cleanup-phase.md`.
+The **Cleanup** button in the toolbar (group Phase) does the steps of the Cleanup Phase that need no choice, for both players. Dazed characters get Damage 0, the Injured side, and lose the Dazed token and the special conditions. All characters lose Activated and the tokens with `cleanup: true`, and so do loose tokens on the table. Exhausted Sources flip back, supply tokens leave the game, and the round marker moves to the next round. It is one change, so the other browser gets it at once. The button is disabled (`aria-disabled`, the title gives the reason) while a character on the board has neither an Activated nor a Dazed token, and while no character is on the board. Players score VP first. The rules, the data and the decisions are in `docs/plans/cleanup-phase.md`.
 
 ## Second forms
 
@@ -188,7 +188,7 @@ A player gives a token to a character by dragging it onto the model or onto the 
 | Character token (condition, Activated, Dazed, superpower or Team Tactic token) | A **Give** source of any tray, the **Library**, a pile, or the table | The token count on the target goes up by 1, with the limits in [Players apply the rules](#players-apply-the-rules) |
 | Extract objective token (Asset, Civilian, supply token) | The table, or the supply pile of a Source card | The target holds the token, see [Hold and drop](#hold-and-drop) |
 
-The **Library** HUD panel shows every migrated token, in groups, with a search field (see `docs/feature-library.md`). It replaced the Tokens panel on 2026-10-06. It has the same purpose as the TTS "Token Tray": a player can give a token that is not among the Give sources of any tray, for example a token from a Team Tactic card. In Pile mode, a drag from the Library puts a pile on the table that never runs out.
+The **Library** HUD panel shows every migrated token, in groups, with a search field (see `docs/features/library.md`). It replaced the Tokens panel on 2026-10-06. It has the same purpose as the TTS "Token Tray": a player can give a token that is not among the Give sources of any tray, for example a token from a Team Tactic card. In Pile mode, a drag from the Library puts a pile on the table that never runs out.
 
 A character token can also lie on the table, as in TTS. A player drags it there from a Give source, a pile or the Library, and later drags it on to a character or to another place. The Delete key (or Backspace) removes the token under the pointer.
 
@@ -246,7 +246,7 @@ The mod's `tokenDatabase` (in the `Database` script) has 310 rows. On 2026-10-01
 | Only Status | 26 | Disarm, Marked for Death, Crew of the Milano | yes, except 3 rows in `token/misc/` (Master of Metal, Antimatter Core, Suppression): AI mode and Infinity Gauntlet event |
 | Misc | 7 | 1/3/5 Power, 1/3/5 Damage, Mystic Ward | only `1 Power`, as the icon of the Power counter; and the tokens of tactic cards (next row) |
 | Use Tools, Pile | 14 | Chimichanga, Astral Ring, LMD | only the tokens of tactic cards (next row): these tokens lie on the table, not on a character |
-| Tokens of tactic cards | 17 more | Mystic Ward, Mystic Portal, Chimichanga | yes, any type: a released tactic card names them in `tokens` (`docs/plan-tactic-tokens.md`) |
+| Tokens of tactic cards | 17 more | Mystic Ward, Mystic Portal, Chimichanga | yes, any type: a released tactic card names them in `tokens` (`docs/plans/tactic-tokens.md`) |
 | Affiliation | 34 | Asgard, Wakanda | no |
 | Objective types | about 130 | Extract Asset, Secure Zone | no: the crisis feature migrates them |
 
@@ -307,7 +307,7 @@ Character tokens on the table are a separate list in `App.jsx`: `looseTokens: [{
 
 A held crisis token stays in the `tokens` list of `App.jsx` and gets two new fields: `heldBy: characterId | null` and `heldAt: [x, z] | null`, its place on the holder's card in tray-local coordinates. So each token is in one place only, and a change of crisis card still removes the held tokens of the old card.
 
-All fields are plain JSON. So they fit into the `characters` and `tokens` maps of the Yjs document in `docs/feature-peer-to-peer.md`. `looseTokens` needs its own map there.
+All fields are plain JSON. So they fit into the `characters` and `tokens` maps of the Yjs document in `docs/features/peer-to-peer.md`. `looseTokens` needs its own map there.
 
 ### Tokens on top of tokens
 
@@ -328,12 +328,12 @@ Only tokens of an Extract card that players can move can be held: Asset, Civilia
 - **Move on the card:** a player drags the held token and releases it on the same tray. The token stays held and lies at the release point, moved so that the whole token is on the card.
 - **Drop:** a player drags the held token from the card and releases it on the table. It is no longer held. The opponent then moves it to a place within Range 2.
 - **Remove from the board, or delete a character:** the character drops all its tokens first. The app puts them on the table next to the base of the model.
-- **Take from the supply:** a player drags a new token from the supply pile of a Source card. The pile never runs out (see `docs/feature-crisis.md`, "Extract: Source"). Released over a character, the token goes to the default place on the card. Released on the table, it lies there.
+- **Take from the supply:** a player drags a new token from the supply pile of a Source card. The pile never runs out (see `docs/features/crisis.md`, "Extract: Source"). Released over a character, the token goes to the default place on the card. Released on the table, it lies there.
 - **Delete:** the Delete key (or Backspace) removes the held token under the pointer, as in TTS. Players use it for the supply tokens in the Cleanup Phase.
 - A held token is not in the list of models that the range and movement tools snap to.
 - The tray popup shows the held tokens on the card image, at the same place as on the 3D card. They cannot be moved there.
 
-When this is done, update the status of `docs/feature-crisis.md`. It says that hold and drop are not built.
+When this is done, update the status of `docs/features/crisis.md`. It says that hold and drop are not built.
 
 ## Phases
 
@@ -650,7 +650,7 @@ Files: `src/App.jsx` (`canHold`/`heldBy` in `buildMatTokens`/`buildSupplyTokens`
 tokens out of the 3D render and `toolModels`), `src/components/CrisisToken.jsx` (`onHold`,
 `findCharacter` props, the drop-on-a-character check in `onPointerUp`), `src/components/CharacterTray.jsx`
 (`heldTokens`, `onTokenDrop` passthrough), `src/components/TrayControls.jsx` (the **Held** row,
-`HeldChip`), `src/index.css` (`.tray-controls-held`, `.token-chip--held`), `docs/feature-crisis.md`
+`HeldChip`), `src/index.css` (`.tray-controls-held`, `.token-chip--held`), `docs/features/crisis.md`
 (status line).
 
 `canHold`: `card.type === 'extract' && canMove(t)` in `buildMatTokens` (true only for `extract-asset`
@@ -856,7 +856,7 @@ Open issues:
 - The second card version of a character without a second form (`cards` > 1 and no `transform` in `characters.json`, for example Mephisto). The tray uses card 1.
 - Other immunities of a second form (p21), and the mod's `twoModels` and `sideways` flags (Ms. Marvel).
 - Tokens that lie on the table and not on a character (Use Tools, Pile).
-- Affiliation tokens on characters. The VP markers of the scoring board show them (see `docs/feature-crisis.md`, "Scoring board").
+- Affiliation tokens on characters. The VP markers of the scoring board show them (see `docs/features/crisis.md`, "Scoring board").
 - The Power and Damage tokens of TTS. The counters use `−` and `+`.
 
 ## Decisions

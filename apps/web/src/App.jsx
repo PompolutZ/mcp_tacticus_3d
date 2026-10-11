@@ -144,7 +144,7 @@ const SETUP_REMOVAL =
 // yaw: checked against the X-Men Infiltrate Secret Weapons Facility Zone map, see the report.
 // The bottom edge of the map on the card is the side of the player with Priority (p9). cards.json has it
 // at the blue side. turned: the red player has Priority, so the map turns a half turn around the mat
-// center (see docs/feature-setup-game.md, "Priority").
+// center (see docs/features/setup-game.md, "Priority").
 function buildMatTokens(card, turned) {
   const marked = hasMarkers(card)
   const sign = turned ? -1 : 1
@@ -162,7 +162,7 @@ function buildMatTokens(card, turned) {
     hasArc: hasArc(t),
     hasMarkers: marked,
     // Only Asset and Civilian can be held (p22); a Source stays on the mat and gives out its
-    // supply instead (see supplyToken, docs/characters-hud.md, "Hold and drop").
+    // supply instead (see supplyToken, docs/features/character-trays.md, "Hold and drop").
     canHold: card.type === 'extract' && canMove(t),
     heldBy: null, // character id, or null while the token sits on the mat
     heldAt: null, // tray-local [x, z] on the holder's card while held (see characters/trays.js)
@@ -205,11 +205,11 @@ function newCharacter(ch, teamColor, { attached = [] } = {}) {
     base: ch.base,
     rotation: ch.rotation,
     // Second form, or null: a second model, and maybe a second card on the tray (see
-    // characters/models.js and docs/characters-hud.md, "Second forms").
+    // characters/models.js and docs/features/character-trays.md, "Second forms").
     transform: ch.transform,
     teamColor,
     // Card side that faces up, and the simple limits players apply by hand (see
-    // docs/characters-hud.md, "Players apply the rules").
+    // docs/features/character-trays.md, "Players apply the rules").
     side: 'healthy',
     damage: 0,
     power: 0,
@@ -245,7 +245,7 @@ function canvasEvents(store) {
 // presence: what the players look at (net/presence.js). Scene writes the range mark; this writes the selection.
 // live: the live hub of a multiplayer room (net/live.js), or null. It goes to Scene.
 // onExit(): opens the lobby. See
-// docs/feature-rooms.md and docs/plans/implement-backend/05-yjs-state.md.
+// docs/features/rooms.md and docs/plans/implement-backend/05-yjs-state.md.
 export default function App({
   table,
   room = null,
@@ -324,7 +324,7 @@ export default function App({
   const [squadSelect, setSquadSelect] = useState({ blue: false, red: false })
   // In a multiplayer room, the squad that the player chooses is not in the document until both players are
   // Ready. It is in this browser (rooms/store.js, squad): { setupId, squad } | null. A single player room
-  // and the Sandbox keep the squads in the document. See docs/feature-setup-game.md, "Squads".
+  // and the Sandbox keep the squads in the document. See docs/features/setup-game.md, "Squads".
   const hiddenSquads = Boolean(room?.multiplayer)
   const mySide = hiddenSquads ? room.side : null
   const [storedSquad, setStoredSquad] = useState(() =>
@@ -353,7 +353,7 @@ export default function App({
   )
   // Affiliation token that each player's VP marker shows: { blue, red } → key in scoreboard/affiliations.json.
   // No toolbar control: the game setup sets it, when a squad is placed and at the step affiliation (see
-  // docs/feature-setup-game.md).
+  // docs/features/setup-game.md).
   const [affiliations, setAffiliations] = useYField(table.game, 'affiliations')
   // Selected pieces and tools, see selection.js. One character, one token, the range tool, the
   // movement tool and the Toward / Away tool can all be selected at the same time.
@@ -403,17 +403,17 @@ export default function App({
   const [softwareRenderer, setSoftwareRenderer] = useState(null)
   // Character tokens that lie on the table: [{ id, key, x, z }]. A player drops them there from a
   // Give source, a pile or the Library, and drags them on to a character or another place. See
-  // docs/characters-hud.md, "Give tokens by drag and drop".
+  // docs/features/character-trays.md, "Give tokens by drag and drop".
   const [looseTokens, setLooseTokens] = useYList(table.looseTokens)
   // Id of the table token under the pointer, for the Delete key. A ref, the same as hoveredRef.
   const hoveredLooseRef = useRef(null)
   // Piles of character tokens on the table, dropped from the Library in Pile mode: [{ id, key, x, z }].
-  // A pile never runs out. See docs/feature-library.md, "Pile".
+  // A pile never runs out. See docs/features/library.md, "Pile".
   const [tokenPiles, setTokenPiles] = useYList(table.tokenPiles)
   // Id of the pile under the pointer, for the Delete key
   const hoveredPileRef = useRef(null)
   // Team Tactic cards on the table: [{ id, key, team, x, z, up }]. The order is the stack order: the
-  // last card lies on top. See docs/feature-team-tactic-cards.md, "State".
+  // last card lies on top. See docs/features/team-tactic-cards.md, "State".
   const [tacticCards, setTacticCards] = useYList(table.tactics)
   // Id of the tactic card under the pointer, for the F and Delete keys
   const hoveredTacticRef = useRef(null)
@@ -848,7 +848,7 @@ export default function App({
   // A canHold token is released over a character (CrisisToken.jsx reports it, Scene.jsx finds the
   // character with characterAt): that character now holds it. The token leaves the mat (Scene.jsx
   // keeps heldBy tokens out of the tool snap list) and lies on its holder's tray card, on the
-  // character art (trays.js, trayHeldDefault). No range check (see docs/feature-crisis.md, "Players
+  // character art (trays.js, trayHeldDefault). No range check (see docs/features/crisis.md, "Players
   // apply the rules"). cardPoint: the tray-local [x, z] on the character's card when the release
   // point is on its tray, otherwise null. It is used only to move a token on its own holder's card:
   // a token given to a character always goes to the default place.
@@ -923,7 +923,7 @@ export default function App({
   }
 
   // Phase 7 calls this for a character it is about to remove, so the character drops every token it
-  // holds first (see docs/characters-hud.md, "Hold and drop"). Several tokens spread along a row
+  // holds first (see docs/features/character-trays.md, "Hold and drop"). Several tokens spread along a row
   // next to the base (TOKEN_ROW_SPACING apart) instead of landing on the same spot.
   function handleDropCharacterTokens(characterId) {
     const held = tokens.filter((t) => t.heldBy === characterId)
@@ -951,7 +951,7 @@ export default function App({
     )
   }
 
-  // Power button in the toolbar (docs/plan-power-phase.md). Gives the Power of the Power Phase to each
+  // Power button in the toolbar (docs/plans/power-phase.md). Gives the Power of the Power Phase to each
   // non-Grunt character of the played sides that has a model on the mat. The updater form reads the list
   // now, not at the last render, so a change the other browser just made is kept. The updater runs
   // inside setCharacters, so gains is filled when the HUD message is built.
@@ -981,7 +981,7 @@ export default function App({
     )
   }
 
-  // Cleanup chip state (docs/plan-cleanup-phase.md, decision 2): off while a character on the board has
+  // Cleanup chip state (docs/plans/cleanup-phase.md, decision 2): off while a character on the board has
   // neither Activated nor Dazed, and while no character is on the board.
   const cleanupBlocked = cleanupBlockers(characters, poses)
   const cleanupEmpty = !characters.some((ch) => characterOnBoard(ch, poses))
@@ -992,7 +992,7 @@ export default function App({
       ? `Each character on the board needs an Activated or Dazed token: ${cleanupBlocked.map((ch) => characterName(ch.key)).join(', ')}.`
       : 'Cleanup Phase for both players. Score VP first.'
 
-  // Cleanup button in the toolbar (docs/plan-cleanup-phase.md): both sides at once, in one transaction.
+  // Cleanup button in the toolbar (docs/plans/cleanup-phase.md): both sides at once, in one transaction.
   // It checks the blockers again at the click, and does nothing when blocked. Each write uses the updater
   // form, which reads the list now and runs inside set, so flipped and the round are filled after the
   // transaction. flipped lists the Dazed characters, also one that was already Injured.
@@ -1432,7 +1432,7 @@ export default function App({
 
   // Gives one of tokenKey to a character. A character cannot get a condition it is immune to
   // (p21): the drop does nothing, the HUD shows why, and the result is false. Conditions, Activated
-  // and Dazed stay at 1 at most (p17); every other token counts up (see docs/characters-hud.md,
+  // and Dazed stay at 1 at most (p17); every other token counts up (see docs/features/character-trays.md,
   // "Players apply the rules"). The result is true then, also for a token at its limit: the
   // dropped token is used up, as in TTS, where the tray deletes it.
   function handleCharacterTokenGive(id, tokenKey) {
@@ -1487,7 +1487,7 @@ export default function App({
   }
 
   // pointerdown on a Library token chip. mode 'single': a new token, the same as from a Give
-  // source. mode 'pile': a new pile (see docs/feature-library.md, "Tokens").
+  // source. mode 'pile': a new pile (see docs/features/library.md, "Tokens").
   function handleLibraryTokenDragStart(e, tokenKey, mode) {
     startTokenDrag(e, { tokenKey, pile: mode === 'pile' })
   }

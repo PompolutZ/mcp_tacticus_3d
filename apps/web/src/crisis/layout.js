@@ -1,5 +1,5 @@
 // Table geometry shared by the crisis cards and their tokens: where the two cards sit next to the
-// scoring board, and where a card's supply pile sits. See docs/feature-crisis.md, "Scoring board".
+// scoring board, and where a card's supply pile sits. See docs/features/crisis.md, "Scoring board".
 
 import { BOARD_HALF_LENGTH, BOARD_X } from '../scoreboard/board.js'
 

@@ -238,7 +238,7 @@ function migrateMat(card, mat) {
   return name
 }
 
-// The map card (face) and the shared card back, for the lobby (docs/feature-rooms.md). The face is
+// The map card (face) and the shared card back, for the lobby (docs/features/rooms.md). The face is
 // named after the map key that mapsSnippet prints. A file that exists is kept, unless --force.
 function migrateCard(card) {
   for (const [url, file] of [

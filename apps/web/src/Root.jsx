@@ -10,8 +10,8 @@ import { multiplayerRoom, roomPage } from './rooms/roomPage.js'
 import { openRoom } from './rooms/store.js'
 import { MAPS } from './terrain/maps.js'
 
-// The page of the URL hash (docs/feature-rooms.md, "Pages"): none → Lobby, #room=<code> → Room,
-// #sandbox → Sandbox. #room=<code> is the room link format of docs/feature-peer-to-peer.md.
+// The page of the URL hash (docs/features/rooms.md, "Pages"): none → Lobby, #room=<code> → Room,
+// #sandbox → Sandbox. #room=<code> is the room link format of docs/features/peer-to-peer.md.
 function pageOf(hash) {
   const params = new URLSearchParams(hash.slice(1))
   if (params.has('room')) return { page: 'room', id: params.get('room') }

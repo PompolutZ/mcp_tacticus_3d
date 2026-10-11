@@ -1,4 +1,4 @@
-// The files to load before a table shows: the map and the models. See docs/feature-rooms.md, "Loading".
+// The files to load before a table shows: the map and the models. See docs/features/rooms.md, "Loading".
 // Each file comes from the helper of the component that loads it, so Preload.jsx loads the same input
 // and the component then gets the file from the cache.
 

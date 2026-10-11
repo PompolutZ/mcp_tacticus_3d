@@ -75,7 +75,7 @@ Work:
    - The row of step 2b in "Order", after step 2. Needs: 2. Detailed plan: `02b-lint-format.md`.
    - A short section "Step 2b: Lint and format" after step 2, with the **Result** later.
    - Step 4: CI runs `pnpm lint` and `pnpm format:check`.
-8. `docs/feature-backend.md`, "GitHub Actions": `ci.yml` also runs `pnpm lint` and `pnpm format:check`. "pnpm": the root scripts `lint`, `format`, `format:check`.
+8. `docs/features/backend.md`, "GitHub Actions": `ci.yml` also runs `pnpm lint` and `pnpm format:check`. "pnpm": the root scripts `lint`, `format`, `format:check`.
 
 Checks:
 - `pnpm install`: no build script warning.
@@ -92,7 +92,7 @@ What changed:
 - `.oxlintrc.json`: plugins `eslint`, `typescript`, `unicorn`, `oxc`, `react`, `import`, `vitest`. `correctness` is `error`. The 4 React rules are `warn`. No `env` was needed.
 - `.oxfmtrc.json`: `semi: false`, `singleQuote: true`, `printWidth: 100`.
 - Root scripts `lint`, `format`, `format:check`.
-- Docs: `README.md` (Lint and format), `CLAUDE.md` (decision 8), `docs/plans/implement-backend.md` (row and section of step 2b, CI in step 4), `docs/feature-backend.md` (CI list and root scripts).
+- Docs: `README.md` (Lint and format), `CLAUDE.md` (decision 8), `docs/plans/implement-backend.md` (row and section of step 2b, CI in step 4), `docs/features/backend.md` (CI list and root scripts).
 
 Warnings, all in the web app (44 in total):
 - `react/immutability`: 20

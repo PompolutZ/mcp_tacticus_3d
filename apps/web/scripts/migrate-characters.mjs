@@ -350,7 +350,7 @@ function appEntry(row, key, sources, tokens) {
       : null
   if (transform) {
     // twoCards: the second form has its own card (cTCard), and its model spawns on it. Without it
-    // (oneCard), the second form is the Injured side of card 1. See docs/characters-hud.md, "Second forms".
+    // (oneCard), the second form is the Injured side of card 1. See docs/features/character-trays.md, "Second forms".
     if (has(transformCard(key, 'healthy')) && has(transformCard(key, 'injured')))
       transform.card = true
     if (row.cTName) transform.name = row.cTName
@@ -360,7 +360,7 @@ function appEntry(row, key, sources, tokens) {
   }
   if (!has(characterPortrait(key))) entry.portrait = false
   // tokens feed the tray's Give row (TrayControls.jsx). Activated and Dazed are not stored here: every
-  // character gets them, so the tray adds them on its own (see docs/characters-hud.md). Immunities are
+  // character gets them, so the tray adds them on its own (see docs/features/character-trays.md). Immunities are
   // not stored: they come from Jarvis (src/characters/immunity.js).
   if (tokens.length) entry.tokens = tokens
   return entry

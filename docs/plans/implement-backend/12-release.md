@@ -1,6 +1,6 @@
 # Step 12: First release
 
-Detailed plan of step 12 in `docs/plans/implement-backend.md`. The rest of auth phase 4. The design is in `docs/feature-auth.md` ("Privacy", "Lobby and room UI", "Discord application", "Site name") and `docs/feature-backend.md` ("Deploy", "Netlify", "Database"). Decision 2 changes the design: the privacy page is a static file, not `#privacy`.
+Detailed plan of step 12 in `docs/plans/implement-backend.md`. The rest of auth phase 4. The design is in `docs/features/auth.md` ("Privacy", "Lobby and room UI", "Discord application", "Site name") and `docs/features/backend.md` ("Deploy", "Netlify", "Database"). Decision 2 changes the design: the privacy page is a static file, not `#privacy`.
 
 ## Goal
 
@@ -150,7 +150,7 @@ For Phase 2:
 - Check the 12 months of `expiresAt` for users and rooms, the 1 hour of messages (`HOUR_MS` in `signal.ts` is the only hint seen), and all `console.*` calls. Keep the log wording of decision 3 unless the check says otherwise.
 - CORS: not looked at.
 - The page says "Frankfurt" from `DEPLOY_REGION=eu-central-1` in the example file. The Atlas cluster region is not checked.
-- `docs/feature-auth.md` "Privacy" still says `#privacy` and has the row "Share API Data..." that the page matches.
+- `docs/features/auth.md` "Privacy" still says `#privacy` and has the row "Share API Data..." that the page matches.
 
 ## Phase 2: Data rules, test data script, docs
 
@@ -164,8 +164,8 @@ Work:
    - If the privacy page says something that the code does not do, or the other way round, fix the page.
 2. `infra/scripts/delete-test-data.ts` and the script `delete-test-data` in `infra/package.json` (decision 5). Add `MONGODB_URI` to `infra/.env.example` if it is not there.
 3. Docs:
-   - `docs/feature-auth.md`: "Privacy": the page is `/privacy.html` (decision 2), and the Privacy Policy URL. "Discord application", item 3: the new URL. "Lobby and room UI": the footer link, **Delete account**, and "Reconnecting" in the toolbar states. "Phases": phase 4 is built (the user's release tasks are open).
-   - `docs/feature-backend.md`: "Deploy": step 4 comes after the first release (decision 1). `infra/` scripts: `delete-test-data`.
+   - `docs/features/auth.md`: "Privacy": the page is `/privacy.html` (decision 2), and the Privacy Policy URL. "Discord application", item 3: the new URL. "Lobby and room UI": the footer link, **Delete account**, and "Reconnecting" in the toolbar states. "Phases": phase 4 is built (the user's release tasks are open).
+   - `docs/features/backend.md`: "Deploy": step 4 comes after the first release (decision 1). `infra/` scripts: `delete-test-data`.
    - `docs/plans/implement-backend.md`: decision 8 (step 4 after step 12, decision 1 of this plan). The **Order** table and its notes: step 4 after step 12. The note "Step 4 keeps its number …" changes the same way. Steps 4 and 12 in the table: step 12 needs 10 and 11, step 4 needs 3 and 12.
    - `docs/plans/implement-backend/04-ci.md`: the "Postponed" note at the top: now after step 12.
    - `infra/README.md`: the test data script, with a warning that it deletes all data in production.
@@ -203,7 +203,7 @@ Page fix: the logs paragraph now says each request leaves one line with the meth
 
 Test data script: `infra/scripts/delete-test-data.ts`, script `delete-test-data`, `mongodb` `^7.7.0` in `infra` dev dependencies (same as `apps/api`), lockfile updated. `MONGODB_URI` was in `.env.example` already. The host name comes from `client.options`, so the URI is never printed. Not run.
 
-Docs: `docs/feature-auth.md` (Privacy, Discord application, Lobby and room UI, Phases, code layout), `docs/feature-backend.md` (Deploy, scripts), `docs/plans/implement-backend.md` (decision 8, Order), `04-ci.md` note, `infra/README.md` (section "Delete the test data"), root `README.md`.
+Docs: `docs/features/auth.md` (Privacy, Discord application, Lobby and room UI, Phases, code layout), `docs/features/backend.md` (Deploy, scripts), `docs/plans/implement-backend.md` (decision 8, Order), `04-ci.md` note, `infra/README.md` (section "Delete the test data"), root `README.md`.
 
 Checks: see the report of the phase. Tests, typecheck, web build, format and lint run at the end.
 

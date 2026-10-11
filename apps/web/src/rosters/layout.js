@@ -1,5 +1,5 @@
 // Where the roster cards lie on the table. Plain module, no React, the same as characters/trays.js.
-// See docs/feature-roster.md, "On the table", and docs/feature-setup-game.md, "On the table".
+// See docs/features/roster.md, "On the table", and docs/features/setup-game.md, "On the table".
 
 import { TABLE_WIDTH } from '../table.js'
 import { TRAY_CARD_HEIGHT, TRAY_CARD_WIDTH } from '../characters/trays.js'
@@ -103,7 +103,7 @@ export function rosterRowInfo(parsed) {
 // Numbers are for blue (+z). Red is the same at -z: only z changes sign, so the cards read the same way.
 const CRISIS_CARD_YAW = Math.PI / 2
 // The rows start past the Secure card on the board end. The deck area is as long as a row of 5 cards, the
-// most of one type in a roster (docs/feature-roster.md, "Terms"). A row of more cards is scaled down to fit.
+// most of one type in a roster (docs/features/roster.md, "Terms"). A row of more cards is scaled down to fit.
 const CRISIS_START_Z = BOARD_CARD_Z.secure + CRISIS_CARD_WIDTH / 2 + ROW_GAP
 const CRISIS_ROW_LENGTH = 5 * CRISIS_CARD_WIDTH + 4 * CARD_GAP
 // The deck rows reach past the tactic tray, next to roster row 1 (rosterLayout). So they lie between the

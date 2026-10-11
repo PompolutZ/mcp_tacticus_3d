@@ -36,7 +36,7 @@ function Seat({ team, player }) {
   )
 }
 
-// The start page (docs/feature-rooms.md, "Lobby"): the single player and the multiplayer rooms in one list,
+// The start page (docs/features/rooms.md, "Lobby"): the single player and the multiplayer rooms in one list,
 // the last changed first, a tile that creates a room, and the Sandbox. Blue and Red on a tile show that
 // roster of the room. notice: a message to show at the top, or null. onOpenRoom(id), onOpenSandbox(): open
 // that page.

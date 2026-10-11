@@ -32,12 +32,12 @@ function rosterEntry(jch, m, mctCode) {
     // stores it as a string; "?" (Multiple Man's variable stamina) falls back to 0.
     staminaHealthy: Number(jch.statCard.frontSide.stamina) || 0,
     staminaInjured: Number(jch.statCard.backSide.stamina) || 0,
-    // Threat Level, for the squad threat in the game setup (see docs/feature-setup-game.md)
+    // Threat Level, for the squad threat in the game setup (see docs/features/setup-game.md)
     threat: jch.threatLevel ?? 0,
     // Jarvis affiliation slugs, for the squad affiliation in the game setup (scoreboard/affiliations.js)
     affiliations: (jch.affiliations ?? []).map((a) => a.slug),
     // Token keys (tokens.json) from the mod's cToken, written by migrate-characters.mjs.
-    // See docs/characters-hud.md, "Give tokens by drag and drop", and TrayControls.jsx.
+    // See docs/features/character-trays.md, "Give tokens by drag and drop", and TrayControls.jsx.
     tokens: m?.tokens || [],
     // Conditions the character is immune to, per side, in every form (immunity.js). From Jarvis.
     immune: sharedImmunities(jch),
@@ -46,7 +46,7 @@ function rosterEntry(jch, m, mctCode) {
     // Grunts cannot have Power, so the Power Phase skips them (power.js).
     grunt: !!jch.isGrunt,
     // Second form: null, or { figure, rotation, base?, name?, portrait?, card? } from
-    // characters.json. See docs/characters-hud.md, "Second forms", and models.js.
+    // characters.json. See docs/features/character-trays.md, "Second forms", and models.js.
     transform: m?.transform ?? null,
     // Jarvis name of the second form, for example 'diamond' for Emma Frost, or null. The roster popup
     // uses it as the label of the second card (rosters/cards.js).
@@ -104,19 +104,19 @@ export function characterStamina(slug, side) {
 const ALWAYS_GIVEN = ['activated', 'dazed']
 
 // Token keys of the Give sources next to this character's tray, in order: Activated, Dazed, then
-// the tokens of the character (see docs/characters-hud.md, "Give tokens by drag and drop").
+// the tokens of the character (see docs/features/character-trays.md, "Give tokens by drag and drop").
 export function characterGiveSources(slug) {
   return [...ALWAYS_GIVEN, ...(bySlug.get(slug)?.tokens ?? [])]
 }
 
 // Token keys this character cannot get on its current side (p21), when every form is immune to
-// them. App.jsx's give handler uses this. See docs/characters-hud.md, "Immunities".
+// them. App.jsx's give handler uses this. See docs/features/character-trays.md, "Immunities".
 export function characterImmune(slug, side) {
   return bySlug.get(slug)?.immune[side === 'injured' ? 'injured' : 'healthy'] ?? []
 }
 
 // Fixed extra Power this character gains in the Power Phase on its current side (power.js); 0 when
-// unknown. See docs/plan-power-phase.md.
+// unknown. See docs/plans/power-phase.md.
 export function characterPowerBonus(slug, side) {
   return bySlug.get(slug)?.powerBonus[side === 'injured' ? 'injured' : 'healthy'] ?? 0
 }

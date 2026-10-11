@@ -23,7 +23,7 @@ Today `migrate-characters.mjs` copies `cImmune` of the mod row into `characters.
 ## Decisions
 
 1. **Per side.** The immunities of a character are the ones of the side that faces up (`side` of the character entry: `healthy` or `injured`).
-2. **Two forms.** The app does not know which form is in use: players move the model of the form in use by hand (`docs/characters-hud.md`, "Second forms"). So a give is refused only when every form of the character is immune on that side. Emma Frost is then never refused, and players apply her Diamond form immunity by hand. A refused give that the rules allow is worse than a give that players undo.
+2. **Two forms.** The app does not know which form is in use: players move the model of the form in use by hand (`docs/features/character-trays.md`, "Second forms"). So a give is refused only when every form of the character is immune on that side. Emma Frost is then never refused, and players apply her Diamond form immunity by hand. A refused give that the rules allow is worse than a give that players undo.
 3. **Special Conditions.** "Special Conditions" means every special condition. The list is a constant in the new module, with the rulebook page. Use the Jarvis rules reference (see the memory notes on the Jarvis JS bundle) or the conditions in `src/tokens/tokens.json`. Report the list and its source in the Result.
 4. **Names to token keys.** A name maps to the token key with the same slug ("Incinerate" → `incinerate`). A name with no token is left out and reported by the test of the module, not guessed.
 5. **Give tokens stay from TTS.** `tokens` (the Give sources) stays in `characters.json`, because the special tokens of a character (Kill Count, Devil's Deal, …) exist only in the mod. The user may revisit this.
@@ -31,13 +31,13 @@ Today `migrate-characters.mjs` copies `cImmune` of the mod row into `characters.
 
 ## Phase 1: Immunities from Jarvis
 
-Read: this plan. `src/characters/characters.js`, `src/characters/jarvis-characters.json` (one row, for example Blue Marvel, Apocalypse, Emma Frost), `App.jsx` (`handleCharacterTokenGive`, and every other caller of `characterImmune`), `components/TrayControls.jsx` if it uses immunities, `scripts/migrate-characters.mjs` (`cImmune`), `scripts/README.md` ("TTS character migration": `tokens`/`immune`), `docs/characters-hud.md` (immunity).
+Read: this plan. `src/characters/characters.js`, `src/characters/jarvis-characters.json` (one row, for example Blue Marvel, Apocalypse, Emma Frost), `App.jsx` (`handleCharacterTokenGive`, and every other caller of `characterImmune`), `components/TrayControls.jsx` if it uses immunities, `scripts/migrate-characters.mjs` (`cImmune`), `scripts/README.md` ("TTS character migration": `tokens`/`immune`), `docs/features/character-trays.md` (immunity).
 
 Work:
 1. `src/characters/immunity.js`, new plain module: the immunities of a Jarvis row per form and side, from the superpower names (decisions 1 to 4). Tests in `immunity.test.js`: Blue Marvel (both sides), Apocalypse (Healthy 3, Injured all), Emma Frost (none on form 1, four on form 2), a character with none, and a check over all rows that every name maps to a token key.
 2. `characterImmune(slug, side)`: decision 2. Update every caller.
 3. `migrate-characters.mjs`: no `immune` (decision 6). Remove `immune` from `characters.json`.
-4. Docs: `scripts/README.md` (the entry fields), `docs/characters-hud.md` (where immunities come from, decisions 1 and 2).
+4. Docs: `scripts/README.md` (the entry fields), `docs/features/character-trays.md` (where immunities come from, decisions 1 and 2).
 
 Checks:
 - `pnpm --filter web test`, `pnpm --filter web build` pass.
@@ -57,7 +57,7 @@ Phase 1 done on 2026-10-11. Not committed.
 - `src/characters/characters.js`: the roster entry has `immune: { healthy, injured }` from Jarvis. `characterImmune(slug, side)`.
 - `src/App.jsx`: `handleCharacterTokenGive` passes `target.side`. It is the only caller (`TrayControls.jsx` does not use immunities).
 - `scripts/migrate-characters.mjs`: no `immune`, no `cImmune`. `src/characters/characters.json`: `immune` removed from 22 entries, `tokens` kept.
-- Docs: `scripts/README.md` (entry fields), `docs/characters-hud.md` (new "Immunities" section, data table, rules list). The old Phase 5 text there is history and is not changed.
+- Docs: `scripts/README.md` (entry fields), `docs/features/character-trays.md` (new "Immunities" section, data table, rules list). The old Phase 5 text there is history and is not changed.
 
 Special Conditions list (10): bleed, hex, incinerate, judgement, poison, root, shock, slow, stagger, stun. Source: the `condition` group of `src/tokens/tokens.json`. The `immuneTo*` tags of Apocalypse (Immunity [Special Conditions] when Injured) list the same ten (Judgment is `judgement` in `tokens.json`). No network.
 

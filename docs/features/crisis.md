@@ -1,6 +1,6 @@
 # Feature: Crisis cards
 
-Status: in progress. Players can choose a Secure and an Extract card, see them on the table, and move, flip and mark their tokens. A character can now hold and drop an Asset, Civilian or Source supply token (see `docs/characters-hud.md`, "Hold and drop"). Players take supply tokens from a pile that never runs out, and delete held tokens with the Delete key.
+Status: in progress. Players can choose a Secure and an Extract card, see them on the table, and move, flip and mark their tokens. A character can now hold and drop an Asset, Civilian or Source supply token (see `docs/features/character-trays.md`, "Hold and drop"). Players take supply tokens from a pile that never runs out, and delete held tokens with the Delete key.
 
 ## Goal
 
@@ -42,7 +42,7 @@ All current tokens are 1" circles. There are two groups: Extract tokens (red) an
 
 ### Extract: Asset and Civilian
 
-- A character picks the token up and holds it. `docs/characters-hud.md` describes where a held token goes.
+- A character picks the token up and holds it. `docs/features/character-trays.md` describes where a held token goes.
 - A character can drop the token, so the token moves around the mat during the game. A dropped token is placed within Range 2 of the character, by the opponent.
 - Asset and Civilian look different (two images), but they are the same kind of token. The difference is only in some rules.
 
@@ -52,7 +52,7 @@ All current tokens are 1" circles. There are two groups: Extract tokens (red) an
 - A Source never moves. Players can only flip it. When a player drops it, it goes back to its position (TTS `flipLock`).
 - When a character interacts with an Unexhausted Source, the player flips it to Exhausted. Then the character takes one supply token (an Asset or a Civilian) and holds it.
 - An Exhausted Source cannot be contested, secured or interacted with. (p22)
-- In the Cleanup Phase, players flip every Exhausted Source back. On all 4 current Source cards, players also remove the supply tokens from the game at that time, so they go back to the supply. The **Cleanup** button does both (see `docs/plan-cleanup-phase.md`, decision 6).
+- In the Cleanup Phase, players flip every Exhausted Source back. On all 4 current Source cards, players also remove the supply tokens from the game at that time, so they go back to the supply. The **Cleanup** button does both (see `docs/plans/cleanup-phase.md`, decision 6).
 - The supply is next to the card. The card says how many supply tokens to set aside. On all 4 current Source cards, this is one per Source.
 - The supply images are the same as the normal Asset and Civilian images.
 
@@ -126,7 +126,7 @@ The same rule applies at setup and when a player drops a token during the game.
 
 ### Tokens on top of a crisis token
 
-A character token (for example Mystic Ward or 1 Damage) can lie on top of a crisis token, with its markers. It lies on the top of the crisis token and is fully visible. Another token on top lies on both. If the crisis token is picked up or moved away, the token on top goes down. A crisis token never lies on a character token. Rules and details: `docs/characters-hud.md`, "Tokens on top of tokens".
+A character token (for example Mystic Ward or 1 Damage) can lie on top of a crisis token, with its markers. It lies on the top of the crisis token and is fully visible. Another token on top lies on both. If the crisis token is picked up or moved away, the token on top goes down. A crisis token never lies on a character token. Rules and details: `docs/features/character-trays.md`, "Tokens on top of tokens".
 
 ### Why not copy the table or TTS
 
@@ -146,7 +146,7 @@ The short side of every range tool is 1". Players use it to measure range 1 from
 
 A model that stands on a token can cover it from above, so a player cannot select the token. On a real table and in TTS, one player lifts the model and the other player measures.
 
-In the app, **R** with the pointer over a model lifts it 6". R over it again puts it back down. R with the pointer over no model puts every lifted model back down. The model goes back exactly to its old position, and physics does not move it (see `docs/feature-key-shortcuts.md`). From the start view, a player then sees the token under the model and can select it.
+In the app, **R** with the pointer over a model lifts it 6". R over it again puts it back down. R with the pointer over no model puts every lifted model back down. The model goes back exactly to its old position, and physics does not move it (see `docs/features/key-shortcuts.md`). From the start view, a player then sees the token under the model and can select it.
 
 ## Setup flow
 
@@ -156,7 +156,7 @@ In the app, **R** with the pointer over a model lifts it 6". R over it again put
 4. For a Source card, the app also puts the supply pile next to the card (see [Extract: Source](#extract-source)).
 5. The setup positions are always relative to the player sides (blue and red), as the setup map on each card shows. They are never relative to the mat. So when the mat turns (**Mat → ↺ / ↻**), the tokens do not turn with it. Each token stays at its place on the table and rests again on the new surface under it (see [Where a token rests](#where-a-token-rests)). As a result, players cannot know before the game if a token lands on the mat or on terrain.
 
-The bottom edge of the setup map on a card is the deployment edge of the player with Priority. Without a game setup, that is the blue side of the app, and the top edge is the red side. Since 2026-10-07, the game setup knows who has Priority. When red has Priority, the tokens turn a half turn (see `docs/feature-setup-game.md`, "Priority"). The rulebook calls these the blue zone and the red zone (p9). The current card images use other colors: green at the bottom and purple at the top.
+The bottom edge of the setup map on a card is the deployment edge of the player with Priority. Without a game setup, that is the blue side of the app, and the top edge is the red side. Since 2026-10-07, the game setup knows who has Priority. When red has Priority, the tokens turn a half turn (see `docs/features/setup-game.md`, "Priority"). The rulebook calls these the blue zone and the red zone (p9). The current card images use other colors: green at the bottom and purple at the top.
 
 The positions in `cards.json` already follow this rule after the `z` → `-z` conversion. This was checked on 2026-09-29 with the Survivors card image. Survivors is the only current card with a map that changes after a half turn, so it is the only card that can show a wrong orientation.
 
@@ -191,7 +191,7 @@ The board comes from the TTS mod. These facts were found in the mod on 2026-09-2
 The app has the board since 2026-10-03 (`src/components/ScoreBoard.jsx`, `src/scoreboard/board.js`, files from `scripts/migrate-scoreboard.mjs`):
 
 - The board is at its TTS position, with z → -z. The VP 1 spot is on the blue side (+z). A card lies at each end of the board.
-- Each player has a VP marker. The token it shows comes from the game setup, for each player (`docs/feature-setup-game.md`, "Affiliation"). The toolbar has no VP group. The markers start next to the board, where the mod puts them.
+- Each player has a VP marker. The token it shows comes from the game setup, for each player (`docs/features/setup-game.md`, "Affiliation"). The toolbar has no VP group. The markers start next to the board, where the mod puts them.
 - The round marker starts on round 1.
 - Players drag a marker with the left button. A marker released less than 1" from a spot moves onto it, as on a TTS snap point. A marker released elsewhere stays there.
 - When both VP markers are on the same spot, the marker that was dropped last lies on top. Both edges show, so both colors can be seen.
@@ -204,4 +204,4 @@ The app has the board since 2026-10-03 (`src/components/ScoreBoard.jsx`, `src/sc
 - Phase steps other than the **Cleanup** button (it flips Sources back and removes supply tokens), for example the effects of other crisis cards.
 - Dice. Pay-to-flip, Lockdown and other cards need dice rolls. Players use their own dice for now, or a later dice feature.
 - The 21 cards without images in the TTS cache.
-- Legality checks. Since 2026-10-07, players can choose the cards and the threat with the game setup (`docs/feature-setup-game.md`), or choose the two cards in the toolbar. A multiplayer room has no Crisis group in the toolbar: the crisis cards come from the rosters in the game setup. Rule (p9): the player with Priority draws 2 cards from one of their decks, and the other player chooses 1. Then the other player draws 2 cards of the other type, and the player with Priority chooses 1. The player without Priority chooses which card's threat is used.
+- Legality checks. Since 2026-10-07, players can choose the cards and the threat with the game setup (`docs/features/setup-game.md`), or choose the two cards in the toolbar. A multiplayer room has no Crisis group in the toolbar: the crisis cards come from the rosters in the game setup. Rule (p9): the player with Priority draws 2 cards from one of their decks, and the other player chooses 1. Then the other player draws 2 cards of the other type, and the player with Priority chooses 1. The player without Priority chooses which card's threat is used.

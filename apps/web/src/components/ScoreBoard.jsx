@@ -217,7 +217,7 @@ function RoundMarkerMesh() {
 }
 
 // The scoring board with a VP marker per player and the round marker. Relative to the table, not the mat,
-// the same as the dice trays: a map change or a mat turn does not move it. See docs/feature-crisis.md,
+// the same as the dice trays: a map change or a mat turn does not move it. See docs/features/crisis.md,
 // "Scoring board".
 // markers: { blue, red, round } → { x, z }, see App.jsx. affiliations: { blue, red } → affiliation key.
 // onMarkerMove(marker, x, z): a marker was dropped, already moved onto a spot when it was near one.

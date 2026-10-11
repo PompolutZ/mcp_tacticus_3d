@@ -1,6 +1,6 @@
 // Character tray geometry: where a tray sits on the table and how big it is. Plain module, no
 // React, the same as table.js and dice/tray.js, so a future headless sim could use it too.
-// See docs/characters-hud.md, "Tray layout".
+// See docs/features/character-trays.md, "Tray layout".
 
 import { TACTIC_TRAY_OUTER_Z } from '../tactics/layout.js'
 import { TOKEN_SIZE } from '../tokens/files.js'
@@ -38,7 +38,7 @@ const ON_Z = MAT_SIDE_Z + ON_DEPTH / 2
 const TRAY_CARD_LOCAL_Z = MAT_SIDE_Z + ON_DEPTH + TRAY_CARD_HEIGHT / 2
 const TRAY_CONTROLS_LOCAL_Z = MAT_SIDE_Z + ON_DEPTH + TRAY_CARD_HEIGHT + TRAY_CONTROLS_DEPTH / 2
 
-// A character whose second form has its own card (see docs/characters-hud.md, "Second forms") has
+// A character whose second form has its own card (see docs/features/character-trays.md, "Second forms") has
 // that card under the first one, as in TTS. Every part after the first card moves toward the owner
 // by this much, so the tray grows toward the owner and its mat side stays in line with the other
 // trays. `cards` below is the number of cards on the tray, 1 or 2.
@@ -64,7 +64,7 @@ export function trayOnTokenPosition(index, count) {
   return [FIRST_TOKEN_X + index * pitch, ON_Z]
 }
 
-// An objective token that the character holds (an Extract token, see docs/characters-hud.md, "Hold
+// An objective token that the character holds (an Extract token, see docs/features/character-trays.md, "Hold
 // and drop") lies on the card, as in TTS. Its place is stored in tray-local [x, z], so it moves with
 // the tray. The default place is the character art: on every card, the art fills the left column
 // below the stat box, about the left 26% of the width and the bottom 65% of the height. HELD_ART is
@@ -134,7 +134,7 @@ export function trayHeldCardPoint(local) {
 export const HELD_SIZE_U = (HELD_RADIUS * 2) / TRAY_CARD_WIDTH
 
 // Background plate under every part, so a tray stands out from the table (see
-// docs/characters-hud.md, "One tray"). Slightly larger than the parts, and just under the card's Y
+// docs/features/character-trays.md, "One tray"). Slightly larger than the parts, and just under the card's Y
 // (TRAY_Y), so it shows as a border and does not z-fight the card.
 const TRAY_BG_MARGIN = 0.3
 export const TRAY_BG_WIDTH = TRAY_WIDTH + TRAY_BG_MARGIN * 2
@@ -166,11 +166,11 @@ export function trayGiveTokenPosition(index, cards) {
 // Trays sit 5.9" apart, center to center (5.6" plate + 0.3" gap). A player has one row of trays.
 // floor((72 + 0.3) / 5.9) = 12 trays fit in the table width; a row of more goes past the table
 // edges. A row of more than 6 trays is wider than the mat, so it goes past the mat corners (see
-// docs/characters-hud.md, "Place on the table").
+// docs/features/character-trays.md, "Place on the table").
 const TRAY_SPACING = TRAY_BG_WIDTH + TRAY_GAP
 // Center z of the row, for a player at local +z (see trayPosition, which mirrors this for red). The
 // row lies past the player's tactic tray, as in TTS: mat, tactic tray, character trays (see
-// docs/feature-team-tactic-cards.md, "Tactic tray").
+// docs/features/team-tactic-cards.md, "Tactic tray").
 const ROW_CENTER_Z = TACTIC_TRAY_OUTER_Z + TRAY_GAP + TRAY_BG_DEPTH / 2
 
 // Table position of tray `index` (from 0, in spawn order) of a player who has `count` trays. The
@@ -227,7 +227,7 @@ export function trayYaw(teamColor) {
 }
 
 // Table position for a newly spawned model: standing on the center of card `card` of its tray at
-// `trayPos` (from trayPosition; see docs/characters-hud.md, "Spawn on the card"). y = 0, the table
+// `trayPos` (from trayPosition; see docs/features/character-trays.md, "Spawn on the card"). y = 0, the table
 // top: the tray card is a flat plane with no collider, so the model stands on the table itself
 // (CharacterModel.jsx's body origin is the base bottom).
 export function trayModelPosition(teamColor, trayPos, card = 1) {
@@ -236,7 +236,7 @@ export function trayModelPosition(teamColor, trayPos, card = 1) {
 }
 
 // Table position for the model of a second form that has no card of its own (Hulkbuster's Iron
-// Man, see docs/characters-hud.md, "Second forms"): on the table past the last row of the
+// Man, see docs/features/character-trays.md, "Second forms"): on the table past the last row of the
 // `giveCount` Give sources, in the middle of the tray width. The base of radius `baseRadius`
 // starts TRAY_GAP after the tokens.
 export function traySpareModelPosition(teamColor, trayPos, cards, giveCount, baseRadius) {

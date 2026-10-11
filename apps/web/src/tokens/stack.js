@@ -1,4 +1,4 @@
-// Tokens on top of tokens, without physics (docs/plan-token-size-stacking.md, decision 3). A loose
+// Tokens on top of tokens, without physics (docs/plans/token-size-stacking.md, decision 3). A loose
 // character token lies on the highest token under its center: a crisis token, or a loose token that
 // comes earlier in the looseTokens list. A token counts when the center is inside its circle.
 // Piles do not stack and nothing stacks on a pile. Crisis tokens never lie on loose tokens.

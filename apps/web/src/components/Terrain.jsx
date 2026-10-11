@@ -59,7 +59,7 @@ function ColliderMesh({ url, convex }) {
 }
 
 // The files of a terrain piece, as TerrainPiece loads them: mesh, texture, and collider mesh or null.
-// Preload.jsx loads the same before a table shows (docs/feature-rooms.md, "Loading").
+// Preload.jsx loads the same before a table shows (docs/features/rooms.md, "Loading").
 export function pieceUrls(key) {
   return {
     mesh: assetUrl(pieceMesh(key)),

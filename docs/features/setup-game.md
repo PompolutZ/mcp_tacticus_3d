@@ -4,11 +4,11 @@ Status: done on 2026-10-07. Not checked in a browser. The squad affiliation is b
 
 ## Goal
 
-Players go from two loaded rosters to the start of round 1. In a room, the new room dialog takes both rosters, and the Red field of the toolbar can load Red later (`docs/feature-rooms.md`). In the Sandbox, the toolbar loads both. The app guides them through the mission setup of the rulebook (p9, p11) with buttons on the table. It draws the crisis cards at random, knows the Maximum Threat, and puts each squad on the table.
+Players go from two loaded rosters to the start of round 1. In a room, the new room dialog takes both rosters, and the Red field of the toolbar can load Red later (`docs/features/rooms.md`). In the Sandbox, the toolbar loads both. The app guides them through the mission setup of the rulebook (p9, p11) with buttons on the table. It draws the crisis cards at random, knows the Maximum Threat, and puts each squad on the table.
 
 ## What the app does
 
-The app does not know who wins a roll off or who clicks a button. So it does not check who may click. Each button names the player who makes the choice, and players click for the right player. This follows `docs/feature-crisis.md`, "Players apply the rules".
+The app does not know who wins a roll off or who clicks a button. So it does not check who may click. Each button names the player who makes the choice, and players click for the right player. This follows `docs/features/crisis.md`, "Players apply the rules".
 
 | Step | Rule (p9, p11) | In the app |
 |---|---|---|
@@ -27,11 +27,11 @@ The app checks only one rule: **Ready** does not work when the squad threat is a
 
 From the user, 2026-10-07: each player rolls. The player with more successes (Crits, Wilds and Hits together) wins. On a tie, the player with more Crits wins, then the player with more Wilds. Otherwise, players roll again.
 
-The app does not read the dice for this. A later change can do it, because the dice trays already know the faces (see `docs/feature-dice-rolling.md`).
+The app does not read the dice for this. A later change can do it, because the dice trays already know the faces (see `docs/features/dice-rolling.md`).
 
 ### Priority
 
-The bottom edge of the map on a crisis card is the deployment edge of the player with Priority (p9). Before this feature, the app always put that edge at the blue side (`docs/feature-crisis.md`, "Setup flow"). Now the app knows who has Priority: the player whose deck the mission uses first. When the red player has Priority, the tokens of both cards turn a half turn around the mat center (`buildMatTokens` in `App.jsx`, `turned`). A crisis card that a player chooses in the toolbar later turns the same way.
+The bottom edge of the map on a crisis card is the deployment edge of the player with Priority (p9). Before this feature, the app always put that edge at the blue side (`docs/features/crisis.md`, "Setup flow"). Now the app knows who has Priority: the player whose deck the mission uses first. When the red player has Priority, the tokens of both cards turn a half turn around the mat center (`buildMatTokens` in `App.jsx`, `turned`). A crisis card that a player chooses in the toolbar later turns the same way.
 
 On 2026-09-29, Survivors was the only current card with a map that changes after a half turn. So for the other cards, the tokens land at the same places.
 
@@ -144,7 +144,7 @@ setup: {
 
 - The current step comes from these fields (`setupStep`), so the state cannot disagree with itself.
 - A squad stores places in the roster lists, not codes, because a roster can list a code twice.
-- The random draws are in the state. So in a later peer-to-peer game, both players see the same cards (see `docs/feature-peer-to-peer.md`).
+- The random draws are in the state. So in a later peer-to-peer game, both players see the same cards (see `docs/features/peer-to-peer.md`).
 - All fields are plain JSON. A room saves `setup` with its table (`rooms/table.js`). A setup saved with the old `placed` shape `{ characters, tactics }` is read by `placedSides` as the cards of Blue. When both players are Ready, such a setup stays done.
 - `placed` has the ids of the new characters and Team Tactic cards of each side. The reveal makes them before it changes the state, because React can call a state updater twice, and the ids must be the same in `placed` and on the table. Each browser writes only the sides it plays. A setup saved with the old shape `{ characters, tactics }` reads as the cards of Blue (`placedSides`).
 - `setupStep` has a step `reveal`: both players are Ready, but a side is not placed yet. The step `affiliation` comes after it, while a side has no affiliation.
@@ -167,7 +167,7 @@ setup: {
 ## Not built yet
 
 - Leadership (p7): the app does not check it.
-- Leadership choice. The Infinity Gem cards are built: they show on the tray of their character (see `docs/characters-hud.md`, "Attached cards").
+- Leadership choice. The Infinity Gem cards are built: they show on the tray of their character (see `docs/features/character-trays.md`, "Attached cards").
 - Hidden squads are built for multiplayer rooms only (2026-10-09). In a single player room and the Sandbox, one person plays both sides, so both squads are in the document.
 - The Priority token on the scoring board.
 - A button to skip the setup, for players who set up the table by hand.

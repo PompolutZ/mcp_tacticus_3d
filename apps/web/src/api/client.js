@@ -1,4 +1,4 @@
-// The fetch wrapper for the API (docs/feature-auth.md). It keeps the session token in memory, and the
+// The fetch wrapper for the API (docs/features/auth.md). It keeps the session token in memory, and the
 // session (auth/session.js) sets it. It imports nothing from auth/, so there is no import cycle.
 
 // The base URL has no trailing slash

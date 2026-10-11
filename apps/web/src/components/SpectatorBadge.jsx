@@ -72,7 +72,7 @@ function Objective({ token }) {
   return <TokenDisk topMap={topMap} bottomMap={bottomMap} events={NO_EVENTS} />
 }
 
-// Spectator view: what TTS shows above each model (see docs/feature-spectator-view.md), made of the
+// Spectator view: what TTS shows above each model (see docs/features/spectator-view.md), made of the
 // tray's own pieces, so it looks the same as the tray. From top to bottom: the objective tokens the
 // character holds and the Secure tokens within range 1 of its base (the crisis token disk), the Damage
 // and Power counters (TrayControls.jsx, without -/+), and the tokens on the character (TokenFace.jsx,

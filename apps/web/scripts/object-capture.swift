@@ -1,5 +1,5 @@
 // Apple Object Capture (RealityKit photogrammetry): a folder of photos → OBJ, MTL and one color texture.
-// photos-to-glb.mjs compiles and runs this file. See docs/feature-custom-models.md.
+// photos-to-glb.mjs compiles and runs this file. See docs/features/custom-models.md.
 //
 // Usage: object-capture <photos dir> <output dir> <max triangles> <texture size: 1024|2048|4096|8192>
 

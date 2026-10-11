@@ -2,10 +2,10 @@
 
 The order of the work, from today's app to the first release: a game between two real players on two machines. The designs are in:
 
-- `docs/feature-backend.md`: repo, stack, AWS, deploy.
-- `docs/feature-auth.md`: login, users, multiplayer rooms, table snapshot.
-- `docs/feature-peer-to-peer.md`: signaling, WebRTC, Yjs, physics sync.
-- `docs/feature-rooms.md`: single player rooms and multiplayer rooms.
+- `docs/features/backend.md`: repo, stack, AWS, deploy.
+- `docs/features/auth.md`: login, users, multiplayer rooms, table snapshot.
+- `docs/features/peer-to-peer.md`: signaling, WebRTC, Yjs, physics sync.
+- `docs/features/rooms.md`: single player rooms and multiplayer rooms.
 
 This plan is the overview: the steps, their order and why. Each step also gets its own detailed plan (see [Detailed plans](#detailed-plans)). Each step ends with a working app and a backend that can be deployed.
 
@@ -48,11 +48,11 @@ The detailed plans are in `docs/plans/implement-backend/`.
 
 ## Detailed plans
 
-Every step from 1 to 13 gets a detailed plan before its work starts. The plan records the intent of the step and the path to it, so the work and the reasons can be read later. Step 0 has no own plan: its list of changes is in `docs/feature-backend.md` ("Relation to other features").
+Every step from 1 to 13 gets a detailed plan before its work starts. The plan records the intent of the step and the path to it, so the work and the reasons can be read later. Step 0 has no own plan: its list of changes is in `docs/features/backend.md` ("Relation to other features").
 
 A detailed plan is written after the **Result** of the steps that it needs. So it uses what those steps found, not guesses. Steps 1 to 4 need only the decisions in the backend doc, so their plans can be written at once.
 
-Each detailed plan has the format of `docs/plan-roster.md`, plus the intent:
+Each detailed plan has the format of `docs/plans/roster.md`, plus the intent:
 
 1. **Goal.** What the step makes possible, and why it comes at this point.
 2. **Scope.** What is in the step, and what is left for later steps.
@@ -67,9 +67,9 @@ After a step, its result goes into two places: the **Result** of each phase in t
 
 ## Step 0: Align the feature docs
 
-Change the peer-to-peer, auth and rooms docs as listed in `docs/feature-backend.md` ("Relation to other features"). No code. Then the agents of later steps do not read old instructions: SAM, the Vite plugin, `infra/signal/`, `jose`, npm.
+Change the peer-to-peer, auth and rooms docs as listed in `docs/features/backend.md` ("Relation to other features"). No code. Then the agents of later steps do not read old instructions: SAM, the Vite plugin, `infra/signal/`, `jose`, npm.
 
-Done when: `grep -rn "SAM\|sam deploy\|vitePlugin\|infra/signal\|infra/api\|jose\|npm run" docs/feature-*.md` finds only text that explains the change.
+Done when: `grep -rn "SAM\|sam deploy\|vitePlugin\|infra/signal\|infra/api\|jose\|npm run" docs/features/*.md` finds only text that explains the change.
 
 **Result** (2026-10-08):
 - Peer-to-peer, auth and rooms docs changed as listed. Both phase lists now point to this plan for the order.
@@ -90,7 +90,7 @@ Read: backend doc "Repo layout", "pnpm", "Deploy" → "Netlify".
    - `.gitignore`: `.env`, `cdk.out`, `apps/*/dist`, `apps/web/tools/`.
 4. `apps/web/scripts/dice-sim.mjs`: resolve the Rapier path from `@react-three/rapier`.
 5. `netlify.toml` at the root, as in the backend doc ("Netlify"): build command, publish directory `apps/web/dist`, `ignore` command.
-6. Update paths and commands in `CLAUDE.md`, `README.md`, `ASSETS.md` and `apps/web/scripts/README.md`. The old plans (`docs/plan-*.md`) are history and stay as they are.
+6. Update paths and commands in `CLAUDE.md`, `README.md`, `ASSETS.md` and `apps/web/scripts/README.md`. The old plans (`docs/plans/*.md`) are history and stay as they are.
 
 **User:**
 - Netlify: no build setting changes are needed, because `netlify.toml` overrides them. Clear the old build command and publish directory in the UI after the merge.

@@ -1,6 +1,6 @@
 # Step 1: Monorepo
 
-Detailed plan of step 1 in `docs/plans/implement-backend.md`. The design is in `docs/feature-backend.md` ("Repo layout", "pnpm", "Deploy" → "Netlify").
+Detailed plan of step 1 in `docs/plans/implement-backend.md`. The design is in `docs/features/backend.md` ("Repo layout", "pnpm", "Deploy" → "Netlify").
 
 ## Goal
 
@@ -48,8 +48,8 @@ Left for later steps:
 3. **Root `esbuild` waits until step 3.** Nothing uses it before the CDK bundling. Step 3 can check where CDK finds it (root or `infra`). `allowBuilds: { esbuild: true }` comes now, because Vite's `esbuild` has an install script. Phase 2 changes the overview plan to match. This differs from the overview plan. The user confirmed it on 2026-10-08.
 4. **Root scripts.** Only `dev` and `build` now. Both call the web package. Step 2 changes `dev` to start web and api together. The migration scripts stay in `apps/web/package.json`.
 5. **Arguments of web scripts.** Docs write `pnpm --filter web <script> <args>`, with no `--`. pnpm 12.10.0 passes a `--` to the script, and `parseArgs` then reads the flags as positional arguments (measured in phase 1: `No map "--list"`). pnpm 11.13.0 removed the `--`. pnpm runs a script in its package folder. Therefore a relative path argument is relative to `apps/web/`. `apps/web/scripts/README.md` says this once. Changed on 2026-10-08 after phase 1, confirmed by the user.
-6. **Paths in docs.** Root docs (`CLAUDE.md`, `README.md`, `ASSETS.md`) get full paths from the repo root (`apps/web/scripts/...`). `apps/web/scripts/README.md` keeps paths relative to `apps/web/`, and says so in its first lines. Feature docs keep short paths like `src/dice/throw.js`. `CLAUDE.md` gets one rule: in `docs/`, the paths `src/`, `public/`, `scripts/` and `tools/` are under `apps/web/`. Reason: the feature docs have about 120 such paths, and the rule is one line. The old plans (`docs/plan-*.md`, `docs/characters-hud.md`) are history and stay as they are.
-7. **Commands in feature docs.** The commands that still apply change to pnpm: `docs/feature-custom-models.md`, `docs/feature-dice-rolling.md`, `docs/feature-roster.md`. Step 0 left them for this step.
+6. **Paths in docs.** Root docs (`CLAUDE.md`, `README.md`, `ASSETS.md`) get full paths from the repo root (`apps/web/scripts/...`). `apps/web/scripts/README.md` keeps paths relative to `apps/web/`, and says so in its first lines. Feature docs keep short paths like `src/dice/throw.js`. `CLAUDE.md` gets one rule: in `docs/`, the paths `src/`, `public/`, `scripts/` and `tools/` are under `apps/web/`. Reason: the feature docs have about 120 such paths, and the rule is one line. The old plans (`docs/plans/*.md`, `docs/features/character-trays.md`) are history and stay as they are.
+7. **Commands in feature docs.** The commands that still apply change to pnpm: `docs/features/custom-models.md`, `docs/features/dice-rolling.md`, `docs/features/roster.md`. Step 0 left them for this step.
 8. **`.gitignore`.** Keep `dist` without a folder, so it matches `apps/web/dist` and later `dist` folders. `/tools/` becomes `/apps/web/tools/`. Add `.env` and `cdk.out`. `.playwright-cli` and `playwright-cli` stay at the root: the playwright-cli skill writes them in the working directory.
 9. **Rapier path in `dice-sim.mjs`.** `createRequire(import.meta.resolve('@react-three/rapier')).resolve('@dimforge/rapier3d-compat/rapier.es.js')`. `@dimforge/rapier3d-compat` has no `exports` field, so the subpath resolves. This finds 0.14, the copy that `@react-three/rapier` uses. The other copy (0.12) comes from `@types/three` through `drei` → `maath`, and must not be used.
 10. **Old output.** Delete the root `dist/` and `node_modules/`. Git ignores both.
@@ -127,7 +127,7 @@ Work:
 8. Add a short **Result** under step 1 in `docs/plans/implement-backend.md`.
 
 Checks:
-- `grep -rn "npm run\|npm install\|npx vite\|vite build" CLAUDE.md README.md ASSETS.md apps/web/scripts/README.md docs/feature-*.md` finds only text that explains the change (backend doc).
+- `grep -rn "npm run\|npm install\|npx vite\|vite build" CLAUDE.md README.md ASSETS.md apps/web/scripts/README.md docs/features/*.md` finds only text that explains the change (backend doc).
 - `grep -rn "scripts/\|tools/" CLAUDE.md README.md ASSETS.md` finds only `apps/web/...` paths.
 - `pnpm --filter web build` passes.
 
@@ -139,11 +139,11 @@ Files changed:
 - `README.md`: Node 24, `pnpm install`, `pnpm dev`, a note that the project tree is under `apps/web/`, the build command.
 - `ASSETS.md`: full paths and the pnpm command.
 - `apps/web/scripts/README.md`: pnpm commands without `--`, and a note at the top about relative paths.
-- `docs/feature-custom-models.md`, `docs/feature-dice-rolling.md`, `docs/feature-roster.md`: pnpm commands.
+- `docs/features/custom-models.md`, `docs/features/dice-rolling.md`, `docs/features/roster.md`: pnpm commands.
 - `docs/plans/implement-backend.md`: step 1 without root `esbuild`, and its **Result**.
 
 Checks:
-- The `grep` for `npm run`, `npm install`, `npx vite` and `vite build`: only `pnpm install` (a substring match) and text in `docs/feature-backend.md` that explains the change.
+- The `grep` for `npm run`, `npm install`, `npx vite` and `vite build`: only `pnpm install` (a substring match) and text in `docs/features/backend.md` that explains the change.
 - The `grep` for `scripts/` and `tools/` in `CLAUDE.md`, `README.md` and `ASSETS.md`: only `apps/web/...` paths, plus the path rule in `CLAUDE.md` and the `scripts/` line in the project tree of `README.md`. The tree sits under the note that it is under `apps/web/`.
 - `pnpm --filter web build`: pass.
 

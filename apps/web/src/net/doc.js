@@ -1,5 +1,5 @@
 // The Yjs document of one table: its maps, and the start table. No React. The layout is
-// in docs/feature-peer-to-peer.md, "Yjs document", and docs/plans/implement-backend/05-yjs-state.md.
+// in docs/features/peer-to-peer.md, "Yjs document", and docs/plans/implement-backend/05-yjs-state.md.
 
 import * as Y from 'yjs'
 import { createList, createRecord } from './collections.js'
@@ -61,7 +61,7 @@ export function tableSchema(table) {
 }
 
 // The bytes of the table: the whole document as one Yjs update. It is the table snapshot of a multiplayer
-// room (docs/feature-auth.md, "Table on the server").
+// room (docs/features/auth.md, "Table on the server").
 export function encodeTable(table) {
   return Y.encodeStateAsUpdate(table.doc)
 }

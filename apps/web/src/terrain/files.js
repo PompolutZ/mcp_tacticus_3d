@@ -13,7 +13,7 @@ export const bundleCollider = (key, n) => `terrain/${key}-collider-${n}.glb`
 // Mat image of a map
 export const matImage = (mat) => `${mat}-mat.webp`
 // Map card of a map, by its key in MAPS: the image of the card in the mod's Terrain Database. The lobby
-// shows it (docs/feature-rooms.md)
+// shows it (docs/features/rooms.md)
 export const mapCard = (id) => `maps/${id}.webp`
 // The back of a map card. The new room dialog shows it for Random map. The maps of the app have the same
 // back in the mod.

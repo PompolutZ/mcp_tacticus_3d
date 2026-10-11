@@ -149,7 +149,7 @@ In a **single player room**, you are the Blue player. The map and the Blue roste
 
 The **Sandbox** is the free table: map picker and both roster fields. Nothing in it is saved.
 
-**← Lobby** at the start of the toolbar goes back to the lobby. The Sandbox asks first, because its table is lost. The URL shows the page: `#room=K7Q2-M9XD` for a room, `#sandbox` for the Sandbox, so the browser back button works. See `docs/feature-rooms.md`.
+**← Lobby** at the start of the toolbar goes back to the lobby. The Sandbox asks first, because its table is lost. The URL shows the page: `#room=K7Q2-M9XD` for a room, `#sandbox` for the Sandbox, so the browser back button works. See `docs/features/rooms.md`.
 
 ## Scene units
 
@@ -362,11 +362,11 @@ Press **F** with the pointer over a token to flip it. F also flips a character c
 
 A model that stands on a token can hide it. Press **R** with the pointer over the model to lift it 6". Press R over it again to put it back, or press R with the pointer over no model to put every lifted model back. The model goes back to the same place, and physics does not move it.
 
-The range and movement tools also snap to a selected token, the same way they snap to a model (see [Tools](#tools)). Hold and drop are not built yet; see `docs/feature-crisis.md`.
+The range and movement tools also snap to a selected token, the same way they snap to a model (see [Tools](#tools)). Hold and drop are not built yet; see `docs/features/crisis.md`.
 
 ## Spectator view
 
-**View → Spectator** in the toolbar shows a badge above every model, for viewers who do not look at the trays. A badge shows the objective tokens the character holds, the Secure tokens within range 1 of its base, the Damage and Power counters, and the tokens on the character. It uses the same counters and tokens as the character tray, it faces the camera, and it is read-only. Click the button again to hide the badges. See `docs/feature-spectator-view.md`.
+**View → Spectator** in the toolbar shows a badge above every model, for viewers who do not look at the trays. A badge shows the objective tokens the character holds, the Secure tokens within range 1 of its base, the Damage and Power counters, and the tokens on the character. It uses the same counters and tokens as the character tray, it faces the camera, and it is read-only. Click the button again to hide the badges. See `docs/features/spectator-view.md`.
 
 ## Roster
 
@@ -378,7 +378,7 @@ Click a card with an image to open the roster popup. The title shows whose roste
 
 A card that the app has no image for shows as a plate with its name and MCT code. A character without a model also shows "No model". A click on a plate shows an error message and does not open the popup.
 
-A code that the app does not know shows in a message, and the other cards load. A text with no known code shows an error, and the old roster stays. The app does not check the roster: not the counts, and not Banned, Restricted or Rotated cards. Players check it. See `docs/feature-roster.md`.
+A code that the app does not know shows in a message, and the other cards load. A text with no known code shows an error, and the old roster stays. The app does not check the roster: not the counts, and not Banned, Restricted or Rotated cards. Players check it. See `docs/features/roster.md`.
 
 ## Game setup
 
@@ -393,7 +393,7 @@ The crisis cards of each roster lie in 2 rows next to the scoring board, paralle
 5. The player with Priority turns the mat with **↺** / **↻** until their deployment edge faces them, and clicks **Select board edge**. The two cards go to the ends of the scoring board, and their tokens to the mat. When red has Priority, the tokens turn a half turn, because the bottom of the card map is the side of the player with Priority.
 6. Each player clicks **Select squad**, then clicks characters and Team Tactic cards of their roster to add or remove them. A card in the squad has a yellow frame. The panel shows the squad threat and the Team Tactic count. Then the player clicks **Ready**. It does not work when the squad threat is above the Maximum Threat. When both players are Ready, the trays, the models and the Team Tactic cards of both squads go on the table at the same time.
 
-**Restart setup** on the panel starts again. A new roster also starts again. A restart removes the squads and the crisis cards that the setup put on the table, after a confirm. See `docs/feature-setup-game.md`.
+**Restart setup** on the panel starts again. A new roster also starts again. A restart removes the squads and the crisis cards that the setup put on the table, after a confirm. See `docs/features/setup-game.md`.
 
 ## Roadmap
 
@@ -404,4 +404,4 @@ The crisis cards of each roster lie in 2 rows next to the scoring board, paralle
 
 ## Known bugs
 
-- [x] A model that you drag must not move anything else on the table. Found on 2026-10-09, fixed on 2026-10-10. A dragged model passes through other models, and can be dropped inside one. Both stay where they are. It does not pass through terrain, and it can overlap tokens. The fix also changes step 9 of `docs/plans/implement-backend.md`: rule 6 of "Moving objects" in `docs/feature-peer-to-peer.md` (a moving body pushes shared bodies) goes away.
+- [x] A model that you drag must not move anything else on the table. Found on 2026-10-09, fixed on 2026-10-10. A dragged model passes through other models, and can be dropped inside one. Both stay where they are. It does not pass through terrain, and it can overlap tokens. The fix also changes step 9 of `docs/plans/implement-backend.md`: rule 6 of "Moving objects" in `docs/features/peer-to-peer.md` (a moving body pushes shared bodies) goes away.

@@ -1,6 +1,6 @@
 # Step 2: API skeleton, local
 
-Detailed plan of step 2 in `docs/plans/implement-backend.md`. The design is in `docs/feature-backend.md` ("Repo layout", "pnpm", "API", "Local development").
+Detailed plan of step 2 in `docs/plans/implement-backend.md`. The design is in `docs/features/backend.md` ("Repo layout", "pnpm", "API", "Local development").
 
 ## Goal
 

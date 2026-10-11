@@ -56,7 +56,7 @@ export function PileStack({ tokenKey, interactive = true, onPointerDown, onHover
 // A pile of character tokens on the table, dropped there from the Library in Pile mode. It never
 // runs out, the same as a Give source of a tray. A left drag takes a new token (onTakeStart), Shift +
 // left drag moves the pile (onMoveStart). It has no physics body; each frame it sits on the table or
-// the terrain under it, the same as LooseToken.jsx. See docs/feature-library.md, "Pile".
+// the terrain under it, the same as LooseToken.jsx. See docs/features/library.md, "Pile".
 // pile: { id, key, x, z }, see App.jsx, tokenPiles. onTakeStart(nativeEvent), onMoveStart(nativeEvent):
 // App starts the token drag. onHover(over): for the Delete key.
 // remote: the other player moves the pile. getLivePose(key): their latest numbers. The pile follows them, hangs

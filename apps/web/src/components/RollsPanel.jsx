@@ -71,7 +71,7 @@ function Entry({ entry }) {
 }
 
 // The roll history HUD panel, opened from a toolbar button. rolls: the entries of the document, oldest
-// first (dice/history.js); the newest shows first. See docs/feature-dice-rolling.md, "History".
+// first (dice/history.js); the newest shows first. See docs/features/dice-rolling.md, "History".
 export function RollsPanel({ open, rolls }) {
   if (!open) return null
   return (

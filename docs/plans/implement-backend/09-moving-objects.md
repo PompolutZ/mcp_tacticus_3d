@@ -1,6 +1,6 @@
 # Step 9: Moving objects
 
-Detailed plan of step 9 in `docs/plans/implement-backend.md`. Peer-to-peer phase 3. The design is in `docs/feature-peer-to-peer.md` ("Data channels", "State", "Yjs document", "Moving objects (physics)", "What each player controls", "Debug flags", "Traffic per game"). Decisions 1, 2, 5, 6, 13 and 14 change parts of the design. The user agreed on 2026-10-09.
+Detailed plan of step 9 in `docs/plans/implement-backend.md`. Peer-to-peer phase 3. The design is in `docs/features/peer-to-peer.md` ("Data channels", "State", "Yjs document", "Moving objects (physics)", "What each player controls", "Debug flags", "Traffic per game"). Decisions 1, 2, 5, 6, 13 and 14 change parts of the design. The user agreed on 2026-10-09.
 
 ## Goal
 
@@ -227,7 +227,7 @@ apps/web/src/
 
 ## Phase 1: Models pass through models
 
-Read: decision 1. `README.md` ("Known bugs", and the parts about dragging a model). `docs/feature-dice-rolling.md` ("Collisions"). `src/physics.js`, `components/CharacterModel.jsx`, `components/Scene.jsx` (models, `toolModels`), `components/SelectionOutlines.jsx`, `components/RulerTool.jsx` (`moveBase`, `handleThrow`, only to see where a model moves).
+Read: decision 1. `README.md` ("Known bugs", and the parts about dragging a model). `docs/features/dice-rolling.md` ("Collisions"). `src/physics.js`, `components/CharacterModel.jsx`, `components/Scene.jsx` (models, `toolModels`), `components/SelectionOutlines.jsx`, `components/RulerTool.jsx` (`moveBase`, `handleThrow`, only to see where a model moves).
 
 Work:
 1. `physics.js`: `MODEL_GROUPS`. `CharacterModel.jsx`: the base collider gets it as `collisionGroups`.
@@ -236,7 +236,7 @@ Work:
 4. `CharacterModel.jsx`: an `overlap` prop. The outline mode `overlap` wins over the other modes. A red tint on the figure meshes while it is on.
 5. `SelectionOutlines.jsx`: the `overlap` mode.
 6. `characters/overlap.test.js`: no mark without an overlap. Touching bases have no mark. Of two overlapping models, only the one moved last has the mark. A lifted model (other height) has no mark. Three models in a row.
-7. `README.md`: the known bug is fixed, with the date. The text about dragging a model says that it passes through models and shows the mark. `docs/feature-dice-rolling.md` ("Collisions"): models are in their own collision group.
+7. `README.md`: the known bug is fixed, with the date. The text about dragging a model says that it passes through models and shows the mark. `docs/features/dice-rolling.md` ("Collisions"): models are in their own collision group.
 
 Checks:
 - `pnpm --filter web test`, `pnpm --filter web build` pass.
@@ -255,7 +255,7 @@ User, after this phase, in a single player room: checks 1 to 3.
 - `Scene.jsx`: every 100 ms (`OVERLAP_INTERVAL`) it reads the body positions, runs `overlapMarks`, and sets `overlapIds` only when the set changed.
 - `CharacterModel.jsx`: `overlap` prop. Red tint = emissive `0xaa1111` on a copy of each mesh material. The copy is needed because GLB materials are shared between models of one file. The copy is disposed and the original put back when the mark goes.
 - `SelectionOutlines.jsx`: mode `overlap` (same red as `outOfRange`, layer 14). `outlineMode` has a 4th argument `overlap`, which wins.
-- `README.md`: new section "Overlapping models", known bug marked fixed (2026-10-10). `docs/feature-dice-rolling.md` "Collisions": models have their own group.
+- `README.md`: new section "Overlapping models", known bug marked fixed (2026-10-10). `docs/features/dice-rolling.md` "Collisions": models have their own group.
 - Checks: `pnpm --filter web test` 119 pass. `pnpm --filter web build` ok. `pnpm format` ok. `pnpm lint`: 44 warnings, the same as before, none new.
 - Not checked in a browser. Left for the user: that terrain and tokens still collide with models, and dice still do not move models (checks 1 to 3).
 
@@ -779,7 +779,7 @@ Work:
 2. `net/peer.js`: `traffic()`.
 3. `Table.jsx`: the reads and the log lines of decision 17.
 4. `traffic.test.js`: a report in the form of Chrome and Safari, one in the form of Firefox, one with a relayed pair, one with no selected pair.
-5. `docs/feature-peer-to-peer.md`:
+5. `docs/features/peer-to-peer.md`:
    - Status line.
    - "Data channels": the persistence channel and the live channel (decision 13), both before the offer.
    - "State" and "Yjs document": the tools, with the layout of "Names". Category 4 has every piece that a player drags.
@@ -788,7 +788,7 @@ Work:
    - "Debug flags": `?drop` and `?delay` are built.
    - "Code layout", "Phases" (3).
 6. `README.md`: the tools are saved with the room. The other player's tools, live moves and cursor. `?drop` and `?delay`. The traffic lines in the console.
-7. `docs/feature-rooms.md` ("Storage"): the tools are in the document.
+7. `docs/features/rooms.md` ("Storage"): the tools are in the document.
 8. `docs/plans/implement-backend.md`: a short **Result** under step 9. Step 10: dice are player bodies on the live channel, and `PLAYER_TEAM` in `Scene.jsx` becomes the own side.
 
 Checks:
@@ -828,9 +828,9 @@ Checks:
 
 Done. Work items 5 to 8. Docs only, no code change.
 
-- `docs/feature-peer-to-peer.md`: status line, "Data channels" (`sync` and `live`, both before the offer), "State" and "Yjs document" (`tools`, the tool entry), "Moving objects (physics)" (rewritten for claims, one writer, the follow, no pushed bodies), "Pose message", "Cursor message", "Traffic per game", "Debug flags", "What each player controls", "Code layout", "Phases".
+- `docs/features/peer-to-peer.md`: status line, "Data channels" (`sync` and `live`, both before the offer), "State" and "Yjs document" (`tools`, the tool entry), "Moving objects (physics)" (rewritten for claims, one writer, the follow, no pushed bodies), "Pose message", "Cursor message", "Traffic per game", "Debug flags", "What each player controls", "Code layout", "Phases".
 - `README.md`: live moves, the other player's tools and cursor, the tools saved with the room, `?drop` and `?delay`, the traffic lines.
-- `docs/feature-rooms.md` ("Storage"): the tools are in the document.
+- `docs/features/rooms.md` ("Storage"): the tools are in the document.
 - `docs/plans/implement-backend.md`: **Result** under step 9, and the dice notes under step 10.
 - Check 23 (the bytes of a local game): the user measured it on 2026-10-10. One browser logged 139.2 KB sent and 233.0 KB received in 10 min, relayed. That is about 37 KB per minute, so about 4.5 MB for a 2-hour game without dice. The estimate in "Traffic per game" is 22 MB without dice. Open: the pair is not known, and why a pair on one Mac went through TURN, not direct.
 
@@ -856,7 +856,7 @@ Work:
 2. `net/ownership.js`: `setDrag(key | null)` writes the `drag` field of the own awareness state. `otherDrag()` gives the other player's `drag` key, or `null`. `subscribe` also calls on a change of it. The local version: `setDrag` does nothing, `otherDrag()` gives `null`. Tests in `ownership.test.js`.
 3. `Scene.jsx`: the model drag calls `setDrag(modelKey(id))` at its start and `setDrag(null)` at its end. A second `DeployRangeTool` for the other player's `drag` when `deployLine` is on and `owner(key)` is `'other'` (decision 20). The same props as the own one, from that model.
 4. `Scene.jsx`, `LiveSync.jsx`: `hideCursor` = the own side's `squadSelect`. While it is true, `cursorUpdate` gives `null` without the `moved` check, and the existing compare sends it once (decision 21). Put the choice in a plain function in `net/livePose.js` or a new plain module, with tests, if it fits.
-5. Docs: "Names" (awareness state `{ owns, drag }`). `docs/feature-peer-to-peer.md`: the "Players" row (`drag`), "Cursor message" (no cursor during Select squad).
+5. Docs: "Names" (awareness state `{ owns, drag }`). `docs/features/peer-to-peer.md`: the "Players" row (`drag`), "Cursor message" (no cursor during Select squad).
 
 Checks:
 - `pnpm --filter web test`, `pnpm --filter web build` pass.
@@ -872,7 +872,7 @@ What changed:
 - `Scene.jsx`: the model `onDragStart` and `onDragEnd` call `setDrag`. A cancelled drag ends through `onDragEnd`, so it clears too. A second `DeployRangeTool` for the other player's `drag` when `deployLine` is on and `owner(key)` is `'other'`. Scene reads `otherDrag` with `useSyncExternalStore`.
 - `MAX_FOOTPRINTS` stays 12. Count: 3 own tools, 3 other tools, 2 deploy tools, 1 zone arc, 2 drags = 11. Only the selected token shows an arc. The comment in `footprintProjection.js` says so.
 - `net/livePose.js`: `cursorStep({ hide, moved })` gives `'null'`, `'read'` or `'skip'`. Test added. `LiveSync.jsx` takes `hideCursor` and reads it through a ref in `useFrame`. Scene passes `squadSelect[ownSide]`.
-- Docs: "Names" (awareness state), `docs/feature-peer-to-peer.md` ("Players" row, "Cursor message").
+- Docs: "Names" (awareness state), `docs/features/peer-to-peer.md` ("Players" row, "Cursor message").
 
 Choices that the plan did not fix:
 - While the cursor is hidden, `moved` is cleared each time. So the cursor comes back after the first pointer move after Select squad ends, not at once.
@@ -895,7 +895,7 @@ Work:
 4. `Scene.jsx`: the preview of the other player's `spawn`, at the live pose of its key, with the look and the footprint of the own preview for that kind. Reuse `TokenDragPreview` with a pose source in place of the pointer, or a small component next to it.
 5. `CharacterModel.jsx`, `Scene.jsx`: a model that follows live poses shows its drag footprint only while `otherDrag()` is its key (decision 23).
 6. `drag/pointerDrag.js` line 59: the console shows "Unable to preventDefault inside passive event listener invocation". R3F listens to `pointerdown` as a passive listener, so `preventDefault` on an R3F event does nothing and logs this. Call it only on a DOM event. Check that a drag from a Library chip (a DOM element) still does not start the browser's image drag or text selection.
-7. Docs: "Names" (awareness state `{ owns, drag, spawn }`). `docs/feature-peer-to-peer.md` ("Players" row, "Moving objects (physics)": new pieces). The "Scope" of this plan: the new token is no longer left for later.
+7. Docs: "Names" (awareness state `{ owns, drag, spawn }`). `docs/features/peer-to-peer.md` ("Players" row, "Moving objects (physics)": new pieces). The "Scope" of this plan: the new token is no longer left for later.
 
 Checks:
 - `pnpm --filter web test`, `pnpm --filter web build` pass.
@@ -913,7 +913,7 @@ What changed:
 - `Scene.jsx`: reads `otherSpawn` and draws `OtherSpawnPreview` with the face of the kind (`token:` supply token, `pile:` pile stack, `loose:` token face). It gives `otherDragging` to each model.
 - `CharacterModel.jsx`: a remote model shows the drag footprint only while `otherDragging` (decision 23).
 - `drag/pointerDrag.js`: `preventDefault` only on a DOM event of an element that is not the canvas. An R3F event and a canvas event skip it. A Library chip is a HUD element, so its drag still gets it. Test added.
-- Docs: "Names" (awareness state, the two ownership rows), "Scope" (the new token is no longer left for later), `docs/feature-peer-to-peer.md` ("Players" row, "Moving objects (physics)").
+- Docs: "Names" (awareness state, the two ownership rows), "Scope" (the new token is no longer left for later), `docs/features/peer-to-peer.md` ("Players" row, "Moving objects (physics)").
 
 Choices that the plan did not fix:
 - The preview ignores the yaw. The own preview has none, so the look is the same. The yaw is sent only because the `token` kind needs three numbers.
@@ -938,7 +938,7 @@ Work:
 4. `SelectionOutlines.jsx`: the mode `other`, in the other side's color. `outlineMode` takes the other player's selection and range mark, in the order of decision 24.
 5. `CharacterModel.jsx`, `CrisisToken.jsx`: the outline mode from step 4.
 6. `RulerTool.jsx`, `OtherToolBody`: `ToolFootprint` gets `selected` (the kind is in the other player's `tools`), `target` (the other player's tool target, as a tool model) and `rangeFrom` (R1: the snapped piece of the entry). The footprint colors then follow the same rule as the own tool.
-7. Docs: "Names" (awareness state `{ owns, drag, spawn, selection, tools, mark }`). `docs/feature-peer-to-peer.md` ("Players" row: the selection is built; "What each player controls"). `README.md`: the other player's selection and range marks.
+7. Docs: "Names" (awareness state `{ owns, drag, spawn, selection, tools, mark }`). `docs/features/peer-to-peer.md` ("Players" row: the selection is built; "What each player controls"). `README.md`: the other player's selection and range marks.
 
 Checks:
 - `pnpm --filter web test`, `pnpm --filter web build` pass.
@@ -957,7 +957,7 @@ What changed:
 - `SelectionOutlines.jsx`: modes `otherBlue` and `otherRed` (the side colors of the cursor ring). `outlineMode(selected, hovered, rangeMark, overlap, other)`: overlap, range mark, selected, other, hovered.
 - `CharacterModel.jsx`, `CrisisToken.jsx`: prop `otherSelected` goes to `outlineMode`.
 - `RulerTool.jsx`: `OtherToolBody` passes `selected`, `target` and `rangeFrom` to `ToolFootprint`.
-- Docs: "Names" (awareness state, Files), "Scope", `docs/feature-peer-to-peer.md` ("Players" row, "What each player controls"), `README.md`.
+- Docs: "Names" (awareness state, Files), "Scope", `docs/features/peer-to-peer.md` ("Players" row, "What each player controls"), `README.md`.
 
 Choices that the plan did not fix:
 - Two outline modes (`otherBlue`, `otherRed`) in place of one `other`, because an Outline has one color. `outlineMode` takes the side.

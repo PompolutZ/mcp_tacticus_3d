@@ -21,7 +21,7 @@ export function getToken(key) {
 }
 
 // A character has each special condition, Activated or Dazed at most once (p17). Every other
-// token (character, tactic) counts up, see docs/characters-hud.md, "Players apply the rules".
+// token (character, tactic) counts up, see docs/features/character-trays.md, "Players apply the rules".
 export function isCappedToken(key) {
   const group = tokensData[key]?.group
   return group === 'condition' || group === 'status'

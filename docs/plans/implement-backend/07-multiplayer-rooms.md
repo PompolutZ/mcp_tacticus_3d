@@ -1,6 +1,6 @@
 # Step 7: Multiplayer rooms
 
-Detailed plan of step 7 in `docs/plans/implement-backend.md`. The design is in `docs/feature-auth.md` ("Online rooms", "Lobby and room UI", "Identity in peer-to-peer games" (last point), "Privacy" (Delete account), "Code layout", "Phases" 2) and `docs/feature-rooms.md` ("Lobby", "New room", "Storage"). The user changed parts of the design on 2026-10-09. See decisions 1, 2, 5, 6, 10, 12, 13, 14 and 15.
+Detailed plan of step 7 in `docs/plans/implement-backend.md`. The design is in `docs/features/auth.md` ("Online rooms", "Lobby and room UI", "Identity in peer-to-peer games" (last point), "Privacy" (Delete account), "Code layout", "Phases" 2) and `docs/features/rooms.md` ("Lobby", "New room", "Storage"). The user changed parts of the design on 2026-10-09. See decisions 1, 2, 5, 6, 10, 12, 13, 14 and 15.
 
 ## Goal
 
@@ -408,7 +408,7 @@ No deviation.
 ## Phase 6: Docs
 
 Work:
-1. `docs/feature-auth.md`:
+1. `docs/features/auth.md`:
    - Status line.
    - "Terms": single player room and multiplayer room replace offline room and online room. Host and guest.
    - "Data": `host`, `table` always set (decision 1), `version`. "Rules": the lock (decision 5), one hosted room (decision 6), the guest after a delete (decision 15).
@@ -417,22 +417,22 @@ Work:
    - "Lobby and room UI": the list, the tile, **Copy link**, the dialog choice, the join page.
    - New text: the rosters (decision 10).
    - "Code layout": the new files.
-2. `docs/feature-rooms.md`: the three kinds of table. The lobby has one list. The new room dialog has the choice. "Relation to peer-to-peer": multiplayer rooms. "Save game and Load game" goes away (decision 13).
-3. `docs/feature-peer-to-peer.md`: the names. "Save and load a game" goes away, and "Local testing" no longer names it (decision 13). "Yjs document": the IndexedDB name of a multiplayer room. "Connect flow": the host's browser tells the guest when it deletes the room (decision 15).
-4. `docs/feature-backend.md`: "Code" (`rooms/`, `routes/rooms.ts`, `routes/table.ts`), "Stack" (`yjs` in the API, the bundle size).
+2. `docs/features/rooms.md`: the three kinds of table. The lobby has one list. The new room dialog has the choice. "Relation to peer-to-peer": multiplayer rooms. "Save game and Load game" goes away (decision 13).
+3. `docs/features/peer-to-peer.md`: the names. "Save and load a game" goes away, and "Local testing" no longer names it (decision 13). "Yjs document": the IndexedDB name of a multiplayer room. "Connect flow": the host's browser tells the guest when it deletes the room (decision 15).
+4. `docs/features/backend.md`: "Code" (`rooms/`, `routes/rooms.ts`, `routes/table.ts`), "Stack" (`yjs` in the API, the bundle size).
 5. `docs/plans/implement-backend.md`: the step name, a short **Result** under step 7, and the note for step 8 of decision 15.
 6. `README.md`: multiplayer rooms in local dev: two browsers, two dev logins, the dev Mongo keeps the rooms.
 
 Checks:
 - `pnpm test` at the root passes.
 - `pnpm format`, `pnpm lint`: no new errors.
-- `grep -rn "offline room\|online room" docs/feature-*.md` finds only text that explains the rename.
+- `grep -rn "offline room\|online room" docs/features/*.md` finds only text that explains the rename.
 
 ### Result
 
-Docs changed: `docs/feature-auth.md` (terms, data, rules, rosters, table, endpoints, lobby UI, local testing, code layout, phases, decisions 12 to 16), `docs/feature-rooms.md`, `docs/feature-peer-to-peer.md`, `docs/feature-backend.md`, `docs/plans/implement-backend.md` (step name, Result, note for step 8), `README.md` (multiplayer rooms in local dev).
+Docs changed: `docs/features/auth.md` (terms, data, rules, rosters, table, endpoints, lobby UI, local testing, code layout, phases, decisions 12 to 16), `docs/features/rooms.md`, `docs/features/peer-to-peer.md`, `docs/features/backend.md`, `docs/plans/implement-backend.md` (step name, Result, note for step 8), `README.md` (multiplayer rooms in local dev).
 
-The names are single player room, multiplayer room, host and guest. The old names stay only where the docs explain the rename. `table: null`, `PATCH`, `/leave`, `/remove`, Save game and Load game are gone from the docs. `feature-rooms.md` decision 17 now says Load game was removed.
+The names are single player room, multiplayer room, host and guest. The old names stay only where the docs explain the rename. `table: null`, `PATCH`, `/leave`, `/remove`, Save game and Load game are gone from the docs. `rooms.md` decision 17 now says Load game was removed.
 
 Deviation from the plan: none. The Lambda size in the backend doc is 956,348 bytes (Phase 2 Result).
 

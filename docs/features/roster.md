@@ -4,9 +4,9 @@ Status: done, 2026-10-07. Not checked in a browser.
 
 ## Goal
 
-A player loads their roster with an MCT code. The app puts the roster cards on that player's side of the table. Both players see both rosters until they choose their squads. Later, spectators see them too (see `docs/feature-peer-to-peer.md`).
+A player loads their roster with an MCT code. The app puts the roster cards on that player's side of the table. Both players see both rosters until they choose their squads. Later, spectators see them too (see `docs/features/peer-to-peer.md`).
 
-Choosing the squad from the roster is the next feature: `docs/feature-setup-game.md`.
+Choosing the squad from the roster is the next feature: `docs/features/setup-game.md`.
 
 ## Terms
 
@@ -18,7 +18,7 @@ Choosing the squad from the roster is the next feature: `docs/feature-setup-game
 
 ## Players apply the rules
 
-The app does not check a roster. It does not check the counts, duplicates, Banned, Restricted or Rotated cards, or which character can hold an Infinity Gem. It loads every code that it knows. Players check the roster themselves, the same as for the cards in the other features (see `docs/feature-crisis.md`, "Players apply the rules").
+The app does not check a roster. It does not check the counts, duplicates, Banned, Restricted or Rotated cards, or which character can hold an Infinity Gem. It loads every code that it knows. Players check the roster themselves, the same as for the cards in the other features (see `docs/features/crisis.md`, "Players apply the rules").
 
 So a draft roster with fewer codes loads in the same way.
 
@@ -30,7 +30,7 @@ These facts were found on 2026-10-07 in mod 3036795456, in the scripts of the "B
 - The Roster Maker has an input field: "Paste MCT codes OR Drop cards inside". When the text has more than one line, the first line is the roster name. **Create Roster** makes a roster object. Its script lists the codes.
 - The script finds every known code in the text with a substring search. So the separators between the codes do not matter.
 - The player puts the roster object on the Roster Tray and clicks **Show Roster**. The tray lays out the cards next to itself: 2 rows of 5 character cards, then 1 row of 10 crisis cards (5 Secure, then 5 Extract), then 1 row of 10 Team Tactic cards. The rows are 4.75" apart. The character cards are 3.5" apart, the other cards 2.5" apart.
-- The cards are locked, so players cannot move them. Each character card has a **SELECT** button for the squad (see `docs/feature-setup-game.md`).
+- The cards are locked, so players cannot move them. Each character card has a **SELECT** button for the squad (see `docs/features/setup-game.md`).
 - A character with an Infinity Gem has the code `<character>-<gem>`, or `<character>-<gem>-<gem>` with two gems. The gem card lies on the character card, a little to the side.
 - Unreleased, Restricted and Banned cards get a mark on the card (a decal).
 - The tray shows at most 10 characters, 5 Secure, 5 Extract and 10 Team Tactic cards. The mod also has Battle Realm and Collector Pack rosters, with other limits.
@@ -42,7 +42,7 @@ On a Jarvis roster page, the **Copy MCT code** button gives the code. Jarvis bui
 
 - Entries are separated by commas. The order is: characters, Team Tactic cards, Secure cards, Extract cards.
 - A character with Infinity Gems: the character code, then `-` and the code of each gem. Example: `01910101-01910104` is Adam Warlock with Infinity Gem: Bonded Soul.
-- The second Sentinel MK4 of a roster has the code `00510102` (see `docs/feature-library.md`, "Characters").
+- The second Sentinel MK4 of a roster has the code `00510102` (see `docs/features/library.md`, "Characters").
 
 Jarvis says that this code works with TTS, Longshanks and other roster tools.
 
@@ -69,7 +69,7 @@ The app needs a name for every code, also for cards without files in the app.
 
 The Team Tactic file is new. A new script `scripts/fetch-jarvis-tactics.mjs` downloads it, the same as the other Jarvis scripts. The full response is 1 MB. The script keeps only the fields that the app uses: `exportCode`, `slug`, `name`, `isInfinityGem`, `affiliation`, `tags`, the legality fields. Some cards appear twice with the same code (for example "Infinity Gem: Mind"). The app uses the first row of each code. Three ids in `src/tactics/cards.json` have 7 digits, and `src/rosters/cards.js` pads them to 8.
 
-Setup game also needs this file: 11 Team Tactic cards give a Leadership ability (see `docs/feature-setup-game.md`).
+Setup game also needs this file: 11 Team Tactic cards give a Leadership ability (see `docs/features/setup-game.md`).
 
 ## Input
 
@@ -78,7 +78,7 @@ Toolbar: … | Crisis … | Roster [Blue: MCT code] [x] [Red: MCT code] [x] | De
 ```
 
 - The toolbar gets a **Roster** group with one text field per player. The placeholder is "MCT code".
-- In a room, the rosters come from the new room dialog, and only the Red field shows. It replaces or removes the Red roster of the room (added on 2026-10-07, see `docs/feature-rooms.md`).
+- In a room, the rosters come from the new room dialog, and only the Red field shows. It replaces or removes the Red roster of the room (added on 2026-10-07, see `docs/features/rooms.md`).
 - Enter loads the roster.
 - A new load replaces the old roster of that player.
 - **×** next to the field removes the roster of that player, and its cards leave the table.
@@ -86,9 +86,9 @@ Toolbar: … | Crisis … | Roster [Blue: MCT code] [x] [Red: MCT code] [x] | De
 
 ## VP picker
 
-The **VP** group of the toolbar goes away with this feature. Setup game will choose the token of each VP marker from the squad (see `docs/feature-setup-game.md`).
+The **VP** group of the toolbar goes away with this feature. Setup game will choose the token of each VP marker from the squad (see `docs/features/setup-game.md`).
 
-Both VP markers start with the Unaffiliated token (`DEFAULT_AFFILIATION`). Since 2026-10-11 the game setup sets each one when the squads are on the table (step Affiliation, see `docs/feature-setup-game.md`, "Affiliation"). The Control markers on the Secure tokens use the same affiliation (see `docs/feature-crisis.md`, "Data"), so they show it too. The ring in the player color still shows which player controls a token.
+Both VP markers start with the Unaffiliated token (`DEFAULT_AFFILIATION`). Since 2026-10-11 the game setup sets each one when the squads are on the table (step Affiliation, see `docs/features/setup-game.md`, "Affiliation"). The Control markers on the Secure tokens use the same affiliation (see `docs/features/crisis.md`, "Data"), so they show it too. The ring in the player color still shows which player controls a token.
 
 The `affiliations` state in `App.jsx` is `game.affiliations`. Setup game writes it.
 
@@ -104,14 +104,14 @@ row 2 [ttc]x10                                                                  
       table edge (z = 34)
 ```
 
-Changed on 2026-10-07 by Setup game: the Secure and Extract cards were in row 2 before. Now they lie next to the scoring board, on the owner's side (see `docs/feature-setup-game.md`, "On the table").
+Changed on 2026-10-07 by Setup game: the Secure and Extract cards were in row 2 before. Now they lie next to the scoring board, on the owner's side (see `docs/features/setup-game.md`, "On the table").
 
 - **Row 1, on the mat side:** character cards, 4.5" × 3", the same size and Healthy side image as the card on a tray. The cards are 0.3" apart, so 10 cards are 47.7" wide.
 - **Row 2:** 10 Team Tactic cards (2.5" × 3.5", face up), 0.3" apart. So the row is 27.7" wide and 3.5" deep.
 - Each row is centered on x = 0. The order is from the owner's left, the same as the trays.
 - When a row is wider than the table, its cards get smaller so that the row fits. The app does not limit the number of cards (see [Players apply the rules](#players-apply-the-rules)).
 - The cards face their owner, the same as the trays and the tactic cards. So the other player sees them upside down, the same as in TTS. A click opens a card the right way up.
-- An Infinity Gem shows as a text line on the lower edge of its character card, for example "+ Infinity Gem: Soul". It stays on the roster card after the setup. The tray of the character shows the gem as a chip and a card, after the setup (see `docs/characters-hud.md`, "Attached cards").
+- An Infinity Gem shows as a text line on the lower edge of its character card, for example "+ Infinity Gem: Soul". It stays on the roster card after the setup. The tray of the character shows the gem as a chip and a card, after the setup (see `docs/features/character-trays.md`, "Attached cards").
 
 ### Cards without files
 
@@ -145,7 +145,7 @@ Added on 2026-10-07. `RosterPopup.jsx` shows the roster of one player in a full-
 - The popup opens on the tab and the card that the player clicked. A new tab starts at its first card.
 - Drag the card, click **‹** / **›**, or press the left and right arrow keys to see the other cards. The text "Card 3 of 10" shows the place.
 - A character card or a Team Tactic card flips with a click on the card or on the **Flip** button under it. A character card shows its Injured side, a Team Tactic card its back. The pointer cursor over the card shows that a click flips it. Only the card in the middle flips. A crisis card does not flip: its back shows only the card type. Each card keeps its side until the player changes the tab or closes the popup.
-- A character with a second form that has its own card (Ant-Man, Emma Frost, see `docs/characters-hud.md`, "Second forms") has a card switch under its card, at the left: for example **Emma Frost** and **Diamond form**. The label of the second form comes from Jarvis (`secondFormSlug`). The shown card keeps its side. A character whose second form is its Injured side (Hulkbuster, Phoenix) has no switch, because Flip shows it. The switch is ready for grunts: a host can list its grunt cards in `variants` (`rosters/cards.js`). The app has no grunt files yet: no host or grunt is migrated, and the TTS cache has none of their files.
+- A character with a second form that has its own card (Ant-Man, Emma Frost, see `docs/features/character-trays.md`, "Second forms") has a card switch under its card, at the left: for example **Emma Frost** and **Diamond form**. The label of the second form comes from Jarvis (`secondFormSlug`). The shown card keeps its side. A character whose second form is its Injured side (Hulkbuster, Phoenix) has no switch, because Flip shows it. The switch is ready for grunts: a host can list its grunt cards in `variants` (`rosters/cards.js`). The app has no grunt files yet: no host or grunt is migrated, and the TTS cache has none of their files.
 - A card without an image shows as a plate with its name and MCT code, the same as on the table. The popup never opens on such a card, but the carousel can move to it. The Infinity Gems of a character show as text lines under its card, below the Flip button.
 - **Open this roster on Jarvis** under the title opens the roster in the Jarvis roster validator (`/roster-validator?mctCode=…`), in a new browser tab. The validator reads the code by place: entries 1–10 are characters, 11–20 Team Tactic cards, 21–30 crisis cards. So the link gives each group exactly 10 places, and an empty entry fills a free place of a draft roster. Cards after the 10th of a group are left out, because the validator does not read them. A full roster gives the same code as **Copy MCT code** on Jarvis. Added on 2026-10-07.
 - **Open on Jarvis** under the bottom right corner of the card in the middle opens the page of that card on Jarvis, in a new browser tab: `/characters/<slug>`, `/team-tactics-cards/<slug>` or `/crisis-cards/<slug>`. The slug comes from the Jarvis data. A migrated character can have another slug in the app, for example `the-mighty-thor` for Jarvis `mighty-thor`. So `CHARACTERS` keeps the Jarvis slug as `jarvisSlug`. Both forms of a character link to the same page. A plate also has the link, so a player can read a card that has no image in the app. Added on 2026-10-07.
@@ -169,7 +169,7 @@ rosters: {
 
 - `code` is the only roster data in the state. A pure function `parseRoster(text, kindOf)` gives the 4 card groups, the gems and the unknown codes. The components call it, so the state cannot disagree with itself.
 - A roster is an object and not a plain string, so that Setup game can add fields to it, for example the chosen squad.
-- All fields are plain JSON. So they fit into the `rosters` map of the Yjs document in `docs/feature-peer-to-peer.md`. Both browsers must run the same app version, so that they have the same Jarvis data. The P2P plan already requires this.
+- All fields are plain JSON. So they fit into the `rosters` map of the Yjs document in `docs/features/peer-to-peer.md`. Both browsers must run the same app version, so that they have the same Jarvis data. The P2P plan already requires this.
 
 ## Code
 
@@ -197,7 +197,7 @@ rosters: {
 ## Out of scope
 
 - Loading a roster from a Jarvis link. The MCT code is the standard way to share a roster in the community. Jarvis also blocks calls from other sites, so a link needs a proxy.
-- Squad choice, crisis card choice from the roster, and the VP marker. See `docs/feature-setup-game.md` (built on 2026-10-07, except the VP marker).
+- Squad choice, crisis card choice from the roster, and the VP marker. See `docs/features/setup-game.md` (built on 2026-10-07, except the VP marker).
 - Roster checks (see [Players apply the rules](#players-apply-the-rules)).
 - A roster name. The toolbar field has one line, so the name line of a TTS code is lost. Jarvis puts no name in the code.
 - Marks for Unreleased, Restricted and Banned cards. Jarvis has the data, so a later change can add them.

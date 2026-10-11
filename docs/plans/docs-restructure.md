@@ -105,6 +105,15 @@ New files: `docs/plans/character-trays.md` (step 2) and `docs/features/round-pha
 - Check: `grep -rnE "docs/(feature|plan)-|characters-hud|(^|[^a-z/-])(feature|plan)-[a-z0-9-]+\.md" --exclude-dir=node_modules --exclude-dir=.git .` finds only this plan.
 - The main model updates the memory files that name old paths.
 
+**Result**
+
+- Moved with `git mv`: 24 files (14 features plus `characters-hud.md` to `features/character-trays.md`, 9 plans). Table unchanged.
+- Path edits: 104 files (docs, code comments, READMEs, `ASSETS.md`, `CLAUDE.md`, scripts). Bare names lost the prefix. `features/roster.md`, `plans/roster.md`, `features/dice-rolling.md`, `plans/dice-rolling.md` keep the folder. Relative forms became `../features/x.md` and `../plans/x.md`. Globs `docs/feature-*.md` and `docs/plan-*.md` in `implement-backend` plans became `docs/features/*.md` and `docs/plans/*.md`.
+- `CLAUDE.md`: section "Docs" added.
+- Grep check: finds only this plan (`apps/web/dist` build output excluded, it has no matches).
+- `pnpm format`: ok. `pnpm lint`: warnings only (existing ones in `Root.jsx`). `pnpm --filter web build`: ok.
+- Open issues: none. Memory files still name old paths (main model).
+
 ## Step 2: Character trays
 
 Files: `features/character-trays.md`, `features/crisis.md`, new `plans/character-trays.md`, `plans/infinity-gems.md`, `plans/jarvis-immunities.md`, `plans/token-size-stacking.md`.

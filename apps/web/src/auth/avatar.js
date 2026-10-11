@@ -1,4 +1,4 @@
-// The image of a user (docs/feature-auth.md, "Users"). user: { discordId, avatar }.
+// The image of a user (docs/features/auth.md, "Users"). user: { discordId, avatar }.
 export function avatarUrl(user, size = 64) {
   if (user.avatar)
     return `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png?size=${size}`

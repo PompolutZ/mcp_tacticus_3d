@@ -1,6 +1,6 @@
 # Step 3: Infra and first deploy
 
-Detailed plan of step 3 in `docs/plans/implement-backend.md`. The design is in `docs/feature-backend.md` ("Infrastructure", "Secrets and config", "Database", "Deploy" → "From the user's machine") and `docs/feature-peer-to-peer.md` ("MongoDB connection").
+Detailed plan of step 3 in `docs/plans/implement-backend.md`. The design is in `docs/features/backend.md` ("Infrastructure", "Secrets and config", "Database", "Deploy" → "From the user's machine") and `docs/features/peer-to-peer.md` ("MongoDB connection").
 
 ## Goal
 
@@ -333,7 +333,7 @@ Work:
    12. Emergency stop: `aws lambda put-function-concurrency … --reserved-concurrent-executions 0`, and how to undo it.
    13. A new `session-secret` logs out every user (from step 6 on).
 2. Root `README.md`: one line for `infra/` in "Project structure".
-3. `docs/feature-backend.md`, "Open questions": mark 1 to 3 as answered, with the answers from "User, before phase 2".
+3. `docs/features/backend.md`, "Open questions": mark 1 to 3 as answered, with the answers from "User, before phase 2".
 4. A short **Result** under step 3 in `docs/plans/implement-backend.md`.
 
 Checks:
@@ -347,7 +347,7 @@ Status: done. The user's work is in section "User".
 Files changed:
 - New: `infra/README.md`.
 - `README.md`: one line for `infra/` in "Project structure".
-- `docs/feature-backend.md`: open questions 1 to 3 have the answers of 2026-10-09.
+- `docs/features/backend.md`: open questions 1 to 3 have the answers of 2026-10-09.
 - `docs/plans/implement-backend.md`: **Result** of step 3.
 - This plan: this **Result**, and the order of section "User".
 

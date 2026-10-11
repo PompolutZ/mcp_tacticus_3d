@@ -2,7 +2,7 @@
 
 Status: steps 8 to 11 are built. Step 11 is reconnect: a dropped network gives "Reconnecting", and a new connection starts by itself. Two browsers of a multiplayer room connect over WebRTC. The Yjs document and Yjs awareness (the claims) go over the `sync` channel. Live moves of pieces and the cursor go over the `live` channel. The tools are in the document, per side. Dice are in step 10. `GET /ice` and TURN come in step 13. The user's browser checks of step 8 passed on 2026-10-09. The browser checks of step 9 are open. See [Open questions](#open-questions) at the end.
 
-The backend (repo, stack, AWS, deploy) is in `docs/feature-backend.md`. The order of the work is in `docs/plans/implement-backend.md`.
+The backend (repo, stack, AWS, deploy) is in `docs/features/backend.md`. The order of the work is in `docs/plans/implement-backend.md`.
 
 ## Goal
 
@@ -15,7 +15,7 @@ The game data goes directly from browser to browser over WebRTC. We run no game 
 | Part | Choice |
 |---|---|
 | Transport | WebRTC data channels, browser to browser |
-| Signaling | Routes in the API of `docs/feature-backend.md` (one AWS Lambda with a function URL), plus one collection in its Atlas Free cluster. HTTP polling, no WebSocket |
+| Signaling | Routes in the API of `docs/features/backend.md` (one AWS Lambda with a function URL), plus one collection in its Atlas Free cluster. HTTP polling, no WebSocket |
 | NAT traversal | Public STUN servers first. Cloudflare TURN later, only if direct connections fail too often |
 | Shared state | Yjs document, synced over a reliable data channel, the same way as the whiteboard at work |
 | Moving objects | The player who moves a piece claims it and streams its pose over an unreliable data channel (`live`). The rest pose goes into the Yjs document |
@@ -55,7 +55,7 @@ The client code uses a small `Signaling` interface, so we can change the option 
 
 ### Parts
 
-The signaling routes are part of the API of `docs/feature-backend.md`. That doc describes the AWS parts in detail.
+The signaling routes are part of the API of `docs/features/backend.md`. That doc describes the AWS parts in detail.
 
 - **Lambda function**: the Hono app of `apps/api`. Node.js 24, arm64, 256 MB, 10 s timeout. The signaling routes read and write messages through a store interface. The Lambda uses the MongoDB store. Local dev and the tests use the memory store. The bundle includes the official `mongodb` driver, because the Lambda runtime has only the AWS SDK. 256 MB gives more CPU than 128 MB, so the TLS and login steps of a new Atlas connection take less time.
 - **Function URL** with auth type `NONE`. CORS allows only the site origin. In dev, Vite forwards `/api` to the local API, so the browser sends no cross-origin request. A function URL has no cost of its own. We pay only for Lambda requests and compute.
@@ -106,16 +106,16 @@ Details of the routes (step 8):
 - The message id is 13 digits of the server time in ms, `-`, and 8 random characters. A poll returns at most 50 messages, the oldest first, and not the messages of the asking peer.
 - Errors: 400 for a bad body, `to` or `x-after`. 413 above 16 KB. 429 for the 51st message of a room.
 - Before the server stores a `hello` or a `bye`, it deletes the older messages of the same user in the room. So a reload leaves no old `hello`, and a room keeps few messages.
-- A poll checks only the token. It does not read the user (`docs/feature-auth.md`, "Identity in peer-to-peer games"). The seat comes from a cache of 30 s per API instance.
+- A poll checks only the token. It does not read the user (`docs/features/auth.md`, "Identity in peer-to-peer games"). The seat comes from a cache of 30 s per API instance.
 - `DELETE /rooms/{code}` and `DELETE /me` delete the messages too, because the SDP has the public IP address.
 
 The poll sends `after` in the `x-after` header, not in the query. So the poll URL stays the same between polls, and the browser sends one CORS preflight for it, not one per poll (backend doc, "Preflight per URL"). The CORS config of the function URL allows this header.
 
 ### Connect flow
 
-Both players of a multiplayer room (step 7, `docs/feature-auth.md`) run the same code. Either player can open the room first. The room's host answers. The guest makes the offer.
+Both players of a multiplayer room (step 7, `docs/features/auth.md`) run the same code. Either player can open the room first. The room's host answers. The guest makes the offer.
 
-1. When the table opens, the browser makes a new random peer id (`crypto.randomUUID()`), posts `hello` and polls every 2 s. The peer id is not kept: a reload makes a new one. The room link is `https://<site>/#room=K7Q2-M9XD`. The code is in the URL hash, so Netlify never receives it. A guest who opens the link joins the room first (`docs/feature-auth.md`). A single player room and the Sandbox never connect and make no signaling call.
+1. When the table opens, the browser makes a new random peer id (`crypto.randomUUID()`), posts `hello` and polls every 2 s. The peer id is not kept: a reload makes a new one. The room link is `https://<site>/#room=K7Q2-M9XD`. The code is in the URL hash, so Netlify never receives it. A guest who opens the link joins the room first (`docs/features/auth.md`). A single player room and the Sandbox never connect and make no signaling call.
 2. The guest sees the `hello` of the host. It creates the offer, waits until ICE gathering ends (at most 3 s), and posts the `offer`. A newer `hello` of the host ends the attempt in progress, and the guest offers again.
 3. The host reads the offer, creates the answer the same way, and posts the `answer`. A new offer ends the attempt in progress or the old connection, because the guest's page is new.
 4. The guest reads the answer. The `sync` channel opens. Both stop polling.
@@ -161,11 +161,11 @@ A dropped network or a sleeping laptop (step 11). There is no ICE restart: a dro
 
 `connectRoom` calls `onChannelsEnd()` once for each opened attempt when it ends. A browser fires no `close` event on a channel when its own `pc.close()` runs, so `Table.jsx` uses this call to end the traffic count, stop the Yjs sync and detach the live channel.
 
-When the host deletes a room, the host is in the lobby, where its room is not open and has no connection. The old plan was that the host's browser tells the guest over the connection. Step 8 replaced it: the guest learns from its poll. While the guest waits, it polls. After the delete, a poll gets 404 within about 32 s (the seat cache of 30 s plus one poll). The guest's browser then opens the lobby with "The host deleted room K7Q2-M9XD." and deletes its local copy. A guest whose polls stopped finds out at its next table write, which gets 404 (`docs/feature-auth.md`, "Rules").
+When the host deletes a room, the host is in the lobby, where its room is not open and has no connection. The old plan was that the host's browser tells the guest over the connection. Step 8 replaced it: the guest learns from its poll. While the guest waits, it polls. After the delete, a poll gets 404 within about 32 s (the seat cache of 30 s plus one poll). The guest's browser then opens the lobby with "The host deleted room K7Q2-M9XD." and deletes its local copy. A guest whose polls stopped finds out at its next table write, which gets 404 (`docs/features/auth.md`, "Rules").
 
 Both `hello` messages carry the app version (the build id). The build id is `import.meta.env.VITE_BUILD_ID`: the Netlify `COMMIT_REF`, or `dev`. If the two versions are different, both players see a warning: "Your opponent uses a different version of the app. Both players should reload the page." The connection still runs. The reason is in [State](#state), category 1.
 
-While the two browsers are connected, only the host writes the table to the server. The guest's writer pauses, and it still writes on **← Lobby** and when its tab is hidden (`docs/feature-auth.md`, "Table on the server").
+While the two browsers are connected, only the host writes the table to the server. The guest's writer pauses, and it still writes on **← Lobby** and when its tab is hidden (`docs/features/auth.md`, "Table on the server").
 
 ## Cost and free tier
 
@@ -283,13 +283,13 @@ Each name is a top-level `Y.Map` of the `Y.Doc`. Step 5 made the first ten. Step
 | Name | Kind | Content |
 |---|---|---|
 | `game` | record, depth 1 | `schema`, `mapId`, `matTurns`, `deployLine`, `crisis { secure, extract }`, `scoreMarkers`, `affiliations` |
-| `rosters` | record | `blue` and `red`: `null` or `{ code }` (`docs/feature-roster.md`, "State") |
-| `setup` | record, depth 1 | the game setup: the fields of `NEW_SETUP` (`docs/feature-setup-game.md`) |
+| `rosters` | record | `blue` and `red`: `null` or `{ code }` (`docs/features/roster.md`, "State") |
+| `setup` | record, depth 1 | the game setup: the fields of `NEW_SETUP` (`docs/features/setup-game.md`) |
 | `terrain` | list | the pieces on the mat: `index` in the map data, `locked` |
 | `characters` | list | the fields of `newCharacter` in `App.jsx`: key, figure, base, rotation, side (healthy or injured), damage, power, tokens |
 | `poses` | record | model id → `{ x, y, z, qx, qy, qz, qw }`, the rest pose of a body, written when the body falls asleep |
 | `tokens` | list | crisis tokens: the fields from `buildMatTokens`, with place, `up`, control, damage |
-| `tactics` | list | tactic cards on the table (`docs/feature-team-tactic-cards.md`) |
+| `tactics` | list | tactic cards on the table (`docs/features/team-tactic-cards.md`) |
 | `looseTokens` | list | character tokens on the table |
 | `tokenPiles` | list | token piles on the table |
 | `tools` | record, depth 1 | the tools of both players: `tools.<side>.<kind>`. `side` is `blue` or `red`. `kind` is `range`, `move` or `angle` |
@@ -324,7 +324,7 @@ How the data is stored:
 
 React reads the document through three hooks in `net/useY.js`, built on `useSyncExternalStore`: `useYList`, `useYRecord` and `useYField`. Each returns the value and a setter, in the form of a React `useState`. The setter takes a value or an updater function. It compares the new value with the document and writes only the fields that changed. So the handlers in `App.jsx` such as `handleTokenFlip` keep their code. A handler that writes more than one name runs in `table.transact`, so the document has one update. A game with no connection uses the same document, only without a provider. So single-player and multiplayer run the same code.
 
-Each browser stores the document in IndexedDB (`y-indexeddb`), per room, from step 5 on. A single player room uses the database `mcp-assist-3d/room/<code>`. A multiplayer room uses `mcp-assist-3d/multiplayer/<user id>/<code>`, so two users of one browser never share a database. In a multiplayer room, the server also keeps a snapshot of the document (`docs/feature-auth.md`, "Table on the server"). After a page reload, the table comes back at once, and Yjs syncs the changes that the other player made in the meantime. The room record in `localStorage` of a single player room keeps only the setup: map, rosters, owner, dates (`docs/feature-rooms.md`, "Storage"). The Sandbox has the same document without IndexedDB.
+Each browser stores the document in IndexedDB (`y-indexeddb`), per room, from step 5 on. A single player room uses the database `mcp-assist-3d/room/<code>`. A multiplayer room uses `mcp-assist-3d/multiplayer/<user id>/<code>`, so two users of one browser never share a database. In a multiplayer room, the server also keeps a snapshot of the document (`docs/features/auth.md`, "Table on the server"). After a page reload, the table comes back at once, and Yjs syncs the changes that the other player made in the meantime. The room record in `localStorage` of a single player room keeps only the setup: map, rosters, owner, dates (`docs/features/rooms.md`, "Storage"). The Sandbox has the same document without IndexedDB.
 
 ## Moving objects (physics)
 
@@ -410,7 +410,7 @@ So the roller's browser decides the roll, and a changed client could cheat. This
 
 ## Room and players
 
-- Players have accounts (step 7, `docs/feature-auth.md`). The name, the avatar and the side come from the room and from the server, not from the player. The peer id is new at each table open and is not stored. The old plan kept it in `sessionStorage` and asked for a typed name. A duplicated tab copies `sessionStorage`, and the account makes the name known, so both are gone.
+- Players have accounts (step 7, `docs/features/auth.md`). The name, the avatar and the side come from the room and from the server, not from the player. The peer id is new at each table open and is not stored. The old plan kept it in `sessionStorage` and asked for a typed name. A duplicated tab copies `sessionStorage`, and the account makes the name known, so both are gone.
 - The host chooses a side: blue or red. The guest gets the other side. In a multiplayer room where the user has the Red seat, the start view is the Blue view turned 180° around the mat center, so the own side is at the bottom of the screen. Position `[0, 32.5, -42.9]`, target `[0, 0, -10.4]`. Space returns to it. Single player rooms and the Sandbox keep the Blue view, because one player plays both sides there.
 - The room toolbar shows both seats: team name in the side color, avatar and name. The own seat says "You". The other seat shows the status of [Connect flow](#connect-flow). When the guest seat was free at open, the name and avatar come from the guest's `hello`, and **Copy link** hides.
 - Version 1 has two players. A third peer (a spectator) needs a connection to each other peer. Yjs supports that, but it is not in this plan.
@@ -553,11 +553,11 @@ The plan `docs/plans/implement-backend.md` gives the order of the phases and the
 
 1. **Signaling vendor.** AWS Lambda (this plan) or a Cloudflare Worker with a Durable Object? The Worker gives a WebSocket, so no polling and faster reconnects. It is also free with no end date, and it could also make the TURN credentials. The cost is a second vendor. Hono also runs on Cloudflare Workers, so a later move is smaller.
 2. **Cloudflare TURN account.** No paid plan is needed: the TURN FAQ says the free 1,000 GB come before any charges. A search result says no payment card is needed to start, but no official page confirms it. Check when we create the account.
-3. **AWS account.** Answered in `docs/feature-backend.md`: the existing personal account.
+3. **AWS account.** Answered in `docs/features/backend.md`: the existing personal account.
 4. **Spectators.** Needed later?
-5. **Atlas cluster tier and region.** Answered in `docs/feature-backend.md`: a new Atlas Free cluster in its own Atlas project, on AWS `eu-central-1`. Its limits are in "Free cluster limits".
-6. **Atlas access list.** Answered in `docs/feature-backend.md`: the Atlas CLI sets `0.0.0.0/0` on the new cluster.
-7. **Shared cluster.** Answered in `docs/feature-backend.md`: the cluster is not shared with wuclub. So a change of the wuclub cluster cannot stop signaling.
+5. **Atlas cluster tier and region.** Answered in `docs/features/backend.md`: a new Atlas Free cluster in its own Atlas project, on AWS `eu-central-1`. Its limits are in "Free cluster limits".
+6. **Atlas access list.** Answered in `docs/features/backend.md`: the Atlas CLI sets `0.0.0.0/0` on the new cluster.
+7. **Shared cluster.** Answered in `docs/features/backend.md`: the cluster is not shared with wuclub. So a change of the wuclub cluster cannot stop signaling.
 
 ## Sources
 

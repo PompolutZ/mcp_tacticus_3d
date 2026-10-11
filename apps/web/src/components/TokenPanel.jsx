@@ -1,7 +1,7 @@
 import { tokenInfo } from '../crisis/cards.js'
 
 // Bottom HUD for the selected crisis token. Shows only the actions the token allows (see
-// docs/feature-crisis.md, "Token actions"). Hold/drop is not built yet.
+// docs/features/crisis.md, "Token actions"). Hold/drop is not built yet.
 export function TokenPanel({ token, onFlip, onControl, onDamage }) {
   if (!token) return null
   const name =

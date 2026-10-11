@@ -1,4 +1,4 @@
--- Measures what TTS's own die roll() does, for docs/feature-dice-rolling.md ("Measurements",
+-- Measures what TTS's own die roll() does, for docs/features/dice-rolling.md ("Measurements",
 -- "In TTS"). First run on 2026-10-01; the results are in that doc. It uses only documented TTS
 -- API (spawnObject, Object.roll/resting/getVelocity/getAngularVelocity, Physics.getGravity,
 -- Time.time, Time.fixed_delta_time, startLuaCoroutine, Notes.addNotebookTab).

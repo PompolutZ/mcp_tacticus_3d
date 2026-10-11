@@ -1,4 +1,4 @@
-// Debug flags in the URL (docs/feature-peer-to-peer.md, "Debug flags"). They work in dev builds only.
+// Debug flags in the URL (docs/features/peer-to-peer.md, "Debug flags"). They work in dev builds only.
 
 // The build id of ?build=<text>, or null. It replaces the build id in hello, to try the version warning
 // with one browser pair.

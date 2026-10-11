@@ -34,7 +34,7 @@ The panel stays open after a pick. So a player can add 5 characters, then 5 tact
 
 ## Characters
 
-Each row has the portrait, the name and the MCT code. A click spawns the character for the chosen player, with its tray, the same as the old Spawn field (see `docs/characters-hud.md`).
+Each row has the portrait, the name and the MCT code. A click spawns the character for the chosen player, with its tray, the same as the old Spawn field (see `docs/features/character-trays.md`).
 
 Characters with a 3D model come first. A character without a model is grey. A click on it shows a short message, and nothing spawns.
 
@@ -47,19 +47,19 @@ The rows come from Jarvis (`src/characters/characters.js`), one row per MCT code
 
 ## Tactic cards
 
-Each card shows as a small image of its back (the card name on art), with the name under it. A click puts the card into the first free slot of the chosen player's tactic tray. See `docs/feature-team-tactic-cards.md`.
+Each card shows as a small image of its back (the card name on art), with the name under it. A click puts the card into the first free slot of the chosen player's tactic tray. See `docs/features/team-tactic-cards.md`.
 
 The images load only when they scroll into view (`loading="lazy"`), so the panel does not load all 69 images at once.
 
 ## Tokens
 
-The tokens are in groups, the same as the old Tokens panel: Conditions, Status, Character, Tactic, Counters. Counters are "1 Damage" and "1 Power", so a player can make a pile of them. A token is drawn on the table at its real size (0.75" or 1"), see `docs/characters-hud.md`, "Real-size tokens". A label under the pointer shows the name and the description.
+The tokens are in groups, the same as the old Tokens panel: Conditions, Status, Character, Tactic, Counters. Counters are "1 Damage" and "1 Power", so a player can make a pile of them. A token is drawn on the table at its real size (0.75" or 1"), see `docs/features/character-trays.md`, "Real-size tokens". A label under the pointer shows the name and the description.
 
 The **Single / Pile** switch in the Tokens section header changes what a drag from the panel brings:
 
 | Mode | Released over a character | Released over the table |
 |---|---|---|
-| Single | The character gets the token, the same as before (see `docs/characters-hud.md`, "Give tokens by drag and drop") | One token lies there, the same as before |
+| Single | The character gets the token, the same as before (see `docs/features/character-trays.md`, "Give tokens by drag and drop") | One token lies there, the same as before |
 | Pile | Nothing happens | A pile of that token lies there |
 
 ### Pile
@@ -72,15 +72,15 @@ A pile is a source on the table that never runs out, the same as a Give source o
 | Shift + left drag on the pile | Moves the pile |
 | Delete or Backspace with the pointer over the pile | Removes the pile |
 
-A pile that comes with a Team Tactic card (`docs/feature-team-tactic-cards.md`, "Token piles") also has `card`, the id of that card. It goes when the card leaves the table. A pile from the Library has no `card`.
+A pile that comes with a Team Tactic card (`docs/features/team-tactic-cards.md`, "Token piles") also has `card`, the id of that card. It goes when the card leaves the table. A pile from the Library has no `card`.
 
-A pile has no physics body. It lies on the table or on the terrain under it, the same as a token on the table (`LooseToken.jsx`). A pile does not stack: no token lies on it, and it does not lie on a token. A token taken from a pile lies on top of the tokens under it (`docs/characters-hud.md`, "Tokens on top of tokens").
+A pile has no physics body. It lies on the table or on the terrain under it, the same as a token on the table (`LooseToken.jsx`). A pile does not stack: no token lies on it, and it does not lie on a token. A token taken from a pile lies on top of the tokens under it (`docs/features/character-trays.md`, "Tokens on top of tokens").
 
 ## State
 
 - `libraryOpen`: the panel is open.
 - The search text, the tab, the player and the token mode are state of the panel itself. They stay while the panel is closed, because the panel only hides.
-- `tokenPiles: [{ id, key, x, z, card? }]` in `App.jsx`, the same shape as `looseTokens` plus the optional `card` (see Pile). Old documents have no `card`. All fields are plain JSON, so they fit into a map of the Yjs document in `docs/feature-peer-to-peer.md`.
+- `tokenPiles: [{ id, key, x, z, card? }]` in `App.jsx`, the same shape as `looseTokens` plus the optional `card` (see Pile). Old documents have no `card`. All fields are plain JSON, so they fit into a map of the Yjs document in `docs/features/peer-to-peer.md`.
 - The token drag (`tokenDrag` in `App.jsx`) gets two new fields: `pile` (the drag brings a new pile) and `pileId` (the drag moves this pile).
 
 ## Out of scope

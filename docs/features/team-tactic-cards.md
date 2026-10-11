@@ -1,6 +1,6 @@
 # Feature: Team Tactic cards
 
-Status: in progress. Players take Team Tactic cards (TTC) from the Library (see `docs/feature-library.md`). A card goes into the player's tactic tray. Players can move, flip, open and delete it.
+Status: in progress. Players take Team Tactic cards (TTC) from the Library (see `docs/features/library.md`). A card goes into the player's tactic tray. Players can move, flip, open and delete it.
 
 ## Goal
 
@@ -8,7 +8,7 @@ Each player picks 5 Team Tactic cards for a game. These are the only cards the p
 
 ## Players apply the rules
 
-The app does not check the card rules. It does not check the affiliation of a card, its cost, when a player can play it, or how many cards a player has. Players do this themselves, the same as for the crisis cards (see `docs/feature-crisis.md`, "Players apply the rules").
+The app does not check the card rules. It does not check the affiliation of a card, its cost, when a player can play it, or how many cards a player has. Players do this themselves, the same as for the crisis cards (see `docs/features/crisis.md`, "Players apply the rules").
 
 So the app does not stop a 6th card. The 6th card lies on the table next to the tray (see [Tactic tray](#tactic-tray)).
 
@@ -17,7 +17,7 @@ So the app does not stop a 6th card. The 6th card lies on the table next to the 
 These facts were found on 2026-10-06 in the save of mod 3036795456.
 
 - Each player has a "Blue Tactic Tray" or "Red Tactic Tray" object (`Custom_Assetbundle`). They are at TTS z = ±21.15, centered on x = 0, with scale 1.15 × 1. The mat edge is at 18, so the tray lies right next to the mat.
-- The character trays are further out, at z = ±28.25 (`arrangeTrays` in the Tray Spawner, see `docs/characters-hud.md`, "How TTS does it").
+- The character trays are further out, at z = ±28.25 (`arrangeTrays` in the Tray Spawner, see `docs/features/character-trays.md`, "How TTS does it").
 - A tactic tray has 5 snap points in one row, about 3.09 apart in local x. With the scale of 1.15, that is 3.55" between slot centers on the table.
 - A card is a `CardCustom` with scale 1.18 and its own face and back image. `HideWhenFaceDown` is false, so the back (card name on art) does not hide anything. Both sides are public.
 - The "Tactic Cards" bag has every released card. Players take their cards from the bag and put them on the tray.
@@ -36,11 +36,11 @@ Each player always has one tactic tray, also with no cards. See `src/tactics/lay
 - The tray has 5 slots in one row, 3.55" apart (the TTS distance). Each slot is a card-sized area, a little lighter than the plate.
 - The plate is 0.3" larger than the slots on every side: 4 × 3.55 + 2.5 + 0.6 = 17.3" wide, 3.5 + 0.6 = 4.1" deep.
 - It lies 0.3" from the mat edge, centered on x = 0. Blue at +z, red at −z. So its plate covers z = 18.3 to 22.4 on the blue side.
-- The slots are numbered from the owner's left, the same as the character trays (`docs/characters-hud.md`, "One tray").
+- The slots are numbered from the owner's left, the same as the character trays (`docs/features/character-trays.md`, "One tray").
 - A card faces its owner: for blue, the top of the image points to −z. A red card is turned 180°.
 - The tray has no collider, the same as a character tray.
 
-The character trays move out to make room: their row now starts 0.3" past the tactic tray plate. See `docs/characters-hud.md`, "Place on the table". The table is 66" deep now.
+The character trays move out to make room: their row now starts 0.3" past the tactic tray plate. See `docs/features/character-trays.md`, "Place on the table". The table is 66" deep now.
 
 ### Free slot
 
@@ -51,7 +51,7 @@ A slot is free when no card center lies inside the slot area.
 
 ## Token piles
 
-Some cards bring tokens, for example Mystic Ward (a Mystic Ward token) and Pentagram of Farallah (a Mystic Portal token). `tokens` in `cards.json` lists the token keys of a card. TTS spawns the tokens in front of the card, on the mat. The app puts a pile of each token instead, so players take tokens from it the same as from a Library pile (`docs/feature-library.md`, "Pile"). A pile never runs out, so a card that places two tokens needs no count.
+Some cards bring tokens, for example Mystic Ward (a Mystic Ward token) and Pentagram of Farallah (a Mystic Portal token). `tokens` in `cards.json` lists the token keys of a card. TTS spawns the tokens in front of the card, on the mat. The app puts a pile of each token instead, so players take tokens from it the same as from a Library pile (`docs/features/library.md`, "Pile"). A pile never runs out, so a card that places two tokens needs no count.
 
 - **Place:** on the table past the owner's left end of the plate (`tacticPilePlace` in `layout.js`), 0.3" from it, in a row going outward, 1.2" apart, at the z of the slot row. The 6th and later cards go past the right end, so this side is free. The piles of all cards of a player share the row, in the order of the cards. A 7th pile goes in a second row, behind the first (away from the mat), still beside the plate.
 - **A new pile** takes the first place that no pile lies on (`freePilePlaces`). So a card added from the Library after the squad gets the next free place.
@@ -88,15 +88,15 @@ tacticCards: [{
 
 The order of the list is the stack order: the last card lies on top. A move puts the card at the end.
 
-All fields are plain JSON. So they fit into the `tactics` map of the Yjs document in `docs/feature-peer-to-peer.md`.
+All fields are plain JSON. So they fit into the `tactics` map of the Yjs document in `docs/features/peer-to-peer.md`.
 
 ## Out of scope
 
 - Card text, affiliation and legality (Rotated, Restricted, Banned). The mod's data has errors (see `scripts/README.md`), and Jarvis was not checked yet. Then the Library could filter cards by the player's affiliation.
 - The other 320 card images. TTS must download them first.
 - Hidden cards. In TTS, both sides of a card are public.
-- Cards attached to a character: Reserve members, Infinity Gems, Horsemen cards (see `docs/characters-hud.md`, "Out of scope").
-- A list of the 5 cards per player (the `rosters` map in `docs/feature-peer-to-peer.md`). The cards on the tray are the list.
+- Cards attached to a character: Reserve members, Infinity Gems, Horsemen cards (see `docs/features/character-trays.md`, "Out of scope").
+- A list of the 5 cards per player (the `rosters` map in `docs/features/peer-to-peer.md`). The cards on the tray are the list.
 
 ## Decisions
 

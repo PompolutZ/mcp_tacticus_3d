@@ -155,7 +155,7 @@ body {
 }
 
 /* Flip and Remove share a row, Flip on the owner's left and Remove on the right (see the sketch in
-   docs/characters-hud.md, "Controls"). */
+   docs/features/character-trays.md, "Controls"). */
 .tray-controls-actions {
   width: 100%;
   justify-content: space-between;
@@ -253,7 +253,7 @@ body {
 }
 
 /* The Library HUD panel (Library.jsx), opened from the toolbar: characters, tactic cards and
-   tokens. See docs/feature-library.md. */
+   tokens. See docs/features/library.md. */
 .library {
   position: absolute;
   top: 56px;

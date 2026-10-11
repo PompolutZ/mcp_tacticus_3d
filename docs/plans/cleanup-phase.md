@@ -1,6 +1,6 @@
 # Plan: Automatic Cleanup Phase
 
-Requested by the user on 2026-10-11, together with the Power Phase button (`docs/plan-power-phase.md`). Status: plan approved by the user on 2026-10-11. Phase 1, 2 and 3 done on 2026-10-11. The user checked Phase 2 and 3 on 2026-10-11: all checks pass. Build it after the Power Phase plan, because that plan adds the **Phase** group in the toolbar and `characterOnBoard`.
+Requested by the user on 2026-10-11, together with the Power Phase button (`docs/plans/power-phase.md`). Status: plan approved by the user on 2026-10-11. Phase 1, 2 and 3 done on 2026-10-11. The user checked Phase 2 and 3 on 2026-10-11: all checks pass. Build it after the Power Phase plan, because that plan adds the **Phase** group in the toolbar and `characterOnBoard`.
 
 User input on 2026-10-11: the button is disabled until every character on the board has an Activated or a Dazed token (decision 2). The tray **Remove** button no longer deletes a character: it puts the model back on its card. The Delete key over the card deletes the character, after a confirm (decision 10). The mod's list of tokens to remove is fine for now; the user will report wrong ones.
 
@@ -38,13 +38,13 @@ Found on 2026-10-11 in the mod scripts (`autoCleanup` in "Red Tray Spawner", "UI
 - A tray with the Dazed token: the Dazed token and every special condition go, and the card flips (Damage goes to 0).
 - The mat: every flipped crisis token with `flipFront` (the Sources) turns back to its front. Every token with `cleanup = true` on the mat is deleted, except affiliation tokens.
 - The round token moves to the next round spot. It stays on round 6.
-- The Priority token moves to the player with fewer characters left to activate. The app has no Priority token (`docs/feature-setup-game.md`, "Not built yet").
+- The Priority token moves to the player with fewer characters left to activate. The app has no Priority token (`docs/features/setup-game.md`, "Not built yet").
 - TTS does not score VP and does not run character effects of the Cleanup Phase.
 
 ## Facts in the app
 
 - A character's tokens are `ch.tokens` (key → count). Dazed is `dazed`, Activated is `activated`. The 10 special conditions are `SPECIAL_CONDITIONS` in `src/characters/immunity.js`.
-- `src/tokens/tokens.json` already has `cleanup: true` from the mod (`docs/characters-hud.md`: "The app does not use it yet"). 41 tokens have it: Activated, 5 character tokens (Degeneration, Expert Tracker, StarHerb, Winging It, X-Gene) and 35 Team Tactic tokens (for example Mystic Ward, Rocket Boots, Target). No special condition and no affiliation token has it.
+- `src/tokens/tokens.json` already has `cleanup: true` from the mod (`docs/features/character-trays.md`: "The app does not use it yet"). 41 tokens have it: Activated, 5 character tokens (Degeneration, Expert Tracker, StarHerb, Winging It, X-Gene) and 35 Team Tactic tokens (for example Mystic Ward, Rocket Boots, Target). No special condition and no affiliation token has it.
 - Loose tokens on the table are `looseTokens` (`{ id, key, x, z }`). Piles are separate and never run out.
 - Crisis tokens are `tokens` in `App.jsx`. A Source has `flipOnly` in `src/crisis/cards.json`, front `extract-unexhausted-source`, back `extract-exhausted-source`. A supply token has the `supply` key of its card as `frontKey` (`extract-source-asset` or `extract-source-civilian`). A character holds a token when `heldBy` is its id.
 - The round marker is `scoreMarkers.round`. `ROUND_POINTS` in `src/scoreboard/board.js` has the 6 round spots, and `snapPoint` finds the spot under a marker.
@@ -52,7 +52,7 @@ Found on 2026-10-11 in the mod scripts (`autoCleanup` in "Red Tray Spawner", "UI
 - Today the tray **Remove** button asks "Remove X from the table?" (`TrayControls.jsx`), then `handleCharacterRemove` drops the held tokens next to the model and deletes the character, its models, its tray and its poses. The row of trays closes the gap.
 - A model on its tray stands on the card at `trayModelPosition` (card 1 or 2), and a spare model at `traySpareModelPosition` (`src/characters/trays.js`, `modelSpawnPosition` in `Scene.jsx`).
 - The rest pose of each model is in the table document (`poses`). Scene moves a model that nobody claims when its stored pose changes (`applyPose`), in both browsers.
-- The Delete key deletes the piece under the pointer: a token on the table, a held crisis token, a pile, a Team Tactic card, an unlocked terrain piece (`docs/feature-key-shortcuts.md`). Not a character.
+- The Delete key deletes the piece under the pointer: a token on the table, a held crisis token, a pile, a Team Tactic card, an unlocked terrain piece (`docs/features/key-shortcuts.md`). Not a character.
 
 ## Decisions
 
@@ -80,7 +80,7 @@ Found on 2026-10-11 in the mod scripts (`autoCleanup` in "Red Tray Spawner", "UI
 
 - VP scoring. Players move the VP markers first.
 - The Priority token. The app has none on the table.
-- Character effects in the Cleanup Phase, for example Dormammu (an ally with 5 or more Power suffers 1 damage) and Killmonger (Herb tokens give damage and Power, see `docs/plan-power-phase.md`, "Later: variable Power").
+- Character effects in the Cleanup Phase, for example Dormammu (an ally with 5 or more Power suffers 1 damage) and Killmonger (Herb tokens give damage and Power, see `docs/plans/power-phase.md`, "Later: variable Power").
 - Non-player effects of other crisis cards.
 - TTS special cases, for example Bob, Agent of Hydra.
 - A KO'd mark on the tray. A KO'd character is a character whose model is on its card.
@@ -108,7 +108,7 @@ Work (decision 10):
 2. `App.jsx`: `handleCharacterOffBoard(id)`: `handleDropCharacterTokens(id)` first (the live model position), then the ref function. The old `handleCharacterRemove` stays for the Delete key.
 3. `TrayControls.jsx` and `TrayPopup.jsx`: **Remove** calls `handleCharacterOffBoard`, without the confirm. Disabled when the character is not on the board (`characterOnBoard`), with the title of decision 10.
 4. Delete key: the tray card under the pointer (card 1 or 2) gives the character id, the same way as the other hover refs in `App.jsx`. Confirm, then `handleCharacterRemove`.
-5. Docs: `docs/characters-hud.md` (the Controls sketch and bullets, "Remove"), `docs/feature-key-shortcuts.md` (Delete row).
+5. Docs: `docs/features/character-trays.md` (the Controls sketch and bullets, "Remove"), `docs/features/key-shortcuts.md` (Delete row).
 
 Checks: `pnpm --filter web build`, `pnpm format`, `pnpm lint`.
 
@@ -124,7 +124,7 @@ User, after this phase:
 Work:
 1. `App.jsx`: `cleanupBlockers` for the chip state (decision 2). `handleCleanupPhase()`: checks the blockers again, then one `table.transact` (decision 8): characters with `cleanupCharacter`, loose tokens with `cleanup: true` removed, crisis tokens with `cleanupCrisisTokens`, the round marker with `nextRoundSpot`. Then the HUD message (decision 9). A removed held token must also leave the holder's tray: check how the tray finds its held tokens (`heldBy`).
 2. `Toolbar.jsx`: **Cleanup** chip in the **Phase** group, with the disabled state and the titles of decision 2.
-3. Docs: `docs/characters-hud.md` ("Players apply the rules", "How TTS does it", the `cleanup` note in the token data section), `docs/feature-crisis.md` (Source bullet in "Extract: Source", "Phase steps" in "Not built yet"), and a short section "Cleanup Phase" that points to this plan.
+3. Docs: `docs/features/character-trays.md` ("Players apply the rules", "How TTS does it", the `cleanup` note in the token data section), `docs/features/crisis.md` (Source bullet in "Extract: Source", "Phase steps" in "Not built yet"), and a short section "Cleanup Phase" that points to this plan.
 
 Checks: `pnpm --filter web build`, `pnpm format`, `pnpm lint`.
 
@@ -162,6 +162,6 @@ Phase 3 done on 2026-10-11.
 - `Toolbar.jsx`: **Cleanup** chip in the Phase group, `aria-disabled`, props `onCleanupPhase`, `cleanupDisabled`, `cleanupTitle`.
 - Held supply tokens leave the tray by themselves: the tray reads the held tokens from `tokens` (`heldBy`).
 - HUD message: "Flipped" lists every Dazed character, also one that was already Injured. Shown 8 s, as the Power Phase. Marker off the track: "Cleanup Phase: the round marker is not on the round track, so it did not move."
-- Docs: `characters-hud.md` (new "Cleanup Phase" section and the notes), `feature-crisis.md`.
+- Docs: `character-trays.md` (new "Cleanup Phase" section and the notes), `crisis.md`.
 
 User checks (2026-10-11): all checks of Phase 2 (5) and Phase 3 (7) pass.

@@ -1,5 +1,5 @@
 // Parse and format MCT roster codes. No imports, so that a Node script can load it.
-// See docs/feature-roster.md, "MCT code".
+// See docs/features/roster.md, "MCT code".
 
 // kind of a card: 'character' | 'tactic' | 'gem' | 'secure' | 'extract'. A gem is only valid behind a character.
 const GROUPS = ['tactics', 'secure', 'extract']

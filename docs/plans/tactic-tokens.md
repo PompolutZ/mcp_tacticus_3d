@@ -2,7 +2,7 @@
 
 Requested by the user on 2026-10-11, for the first real game in production. The friend's roster has Mystic Ward (`00690204`) and Pentagram of Farallah (`00230201`). Both cards need tokens on the table.
 
-Design notes that this plan follows: `docs/feature-team-tactic-cards.md` ("Tactic tray", "Card on the table"), `docs/feature-library.md` ("Pile"), `docs/characters-hud.md` ("Tokens from the TTS mod").
+Design notes that this plan follows: `docs/features/team-tactic-cards.md` ("Tactic tray", "Card on the table"), `docs/features/library.md` ("Pile"), `docs/features/character-trays.md` ("Tokens from the TTS mod").
 
 ## Goal
 
@@ -14,14 +14,14 @@ Found on 2026-10-11 in the mod (`Database` script and the script of each tactic 
 - A tactic card row has `tokens`: a list of token names, for example Mystic Ward → "Mystic Ward", Pentagram of Farallah → "Mystic Portal", Founding Members → six conditions. 82 rows have it.
 - When the card lands on a tactic tray, its script spawns the tokens (`spawnTokens`): one token per name, 2.85" in front of the card toward the mat, at x − 1.5, − 0.5, + 0.5 and + 1.5 from the card center. A token of type "Pile" becomes a pile.
 - When the card is picked up, its script deletes its tokens.
-- The token rows: Mystic Ward is type "Misc", Mystic Portal is type "Use Tools". `migrate-tokens.mjs` skips both types today (`docs/characters-hud.md`, "Tokens from the TTS mod"). The TTS cache has both images (`token/tactic/MYSTIC_WARD.png`, `token/tactic/MYSTIC_PORTAL.png`).
+- The token rows: Mystic Ward is type "Misc", Mystic Portal is type "Use Tools". `migrate-tokens.mjs` skips both types today (`docs/features/character-trays.md`, "Tokens from the TTS mod"). The TTS cache has both images (`token/tactic/MYSTIC_WARD.png`, `token/tactic/MYSTIC_PORTAL.png`).
 
 ## Decisions
 
 1. **Always a pile.** The app puts one pile per token name of the card, also where TTS spawns a single token. A pile never runs out, so a card that places two tokens (Pentagram: two Mystic Portals) needs no count.
-2. **The link is asset data from TTS.** Which tokens belong to a card is in the mod row only. Jarvis has no token images or names. So `migrate-tactics.mjs` writes `tokens` (token keys) into `src/tactics/cards.json`, the same exception as the Give tokens of a character (`docs/plan-jarvis-immunities.md`, decision 5).
+2. **The link is asset data from TTS.** Which tokens belong to a card is in the mod row only. Jarvis has no token images or names. So `migrate-tactics.mjs` writes `tokens` (token keys) into `src/tactics/cards.json`, the same exception as the Give tokens of a character (`docs/plans/jarvis-immunities.md`, decision 5).
 3. **Token images.** `migrate-tokens.mjs` also migrates every token that a released tactic card names, of any type, when its image is in the TTS cache. Group `tactic` or `condition`, as the existing rule by image folder says. A name with no image in the cache is left out with a warning.
-4. **Where the piles lie.** In the app, the tactic tray is 0.3" from the mat edge. The TTS place (2.85" toward the mat) would be on the mat, at the edge where players deploy. So the piles lie on the table past the owner's left end of the tactic tray plate, 0.3" from it, in a row going outward, 1.2" apart. The 6th and later cards go past the right end (`docs/feature-team-tactic-cards.md`, "Free slot"), so the left end is free. The piles of all cards share this row, in the order of the cards' slots. More than 6 piles go in a second row, behind the first, still beside the plate.
+4. **Where the piles lie.** In the app, the tactic tray is 0.3" from the mat edge. The TTS place (2.85" toward the mat) would be on the mat, at the edge where players deploy. So the piles lie on the table past the owner's left end of the tactic tray plate, 0.3" from it, in a row going outward, 1.2" apart. The 6th and later cards go past the right end (`docs/features/team-tactic-cards.md`, "Free slot"), so the left end is free. The piles of all cards share this row, in the order of the cards' slots. More than 6 piles go in a second row, behind the first, still beside the plate.
 5. **When.** The piles come when a card goes on the table: when the squad goes on the table (`revealSquad`), and when a player adds a card from the Library. A card that moves on the table (drag) does not bring new piles.
 6. **Removal.** A pile entry gets `card`: the id of its tactic card. When the card leaves the table (Delete key, the restart of the setup), its piles go too, as in TTS. A pile without `card` (from the Library) is not touched. Old documents have no `card` field. No new `SCHEMA`.
 
@@ -42,7 +42,7 @@ Done 2026-10-11. Not committed.
 - New tokens: Mystic Ward, Mystic Portal, and Astral Incursion, Astral Ring, Black Bifrost, Chimichanga, Demolition Charge, Dossier, Experiment, Flare, Gamma Drain, Jonathan, LMD, Masked Menace, Obscuring Mist, Stash, 1 Damage.
 - `1 Damage` (Steal the Future) is in `token/misc/tracker/`, which the group rule maps to `status`. That would put it in the Tokens panel as a capped status. So it gets the group `counter`, like `1 Power` (`COUNTER_ROWS` in the script). `TOKENS` in `src/tokens/tokens.js` already leaves `counter` out of the Library.
 - `migrate-tactics.mjs`: writes `tokens` per card, only keys of `tokens.json`, no warnings. Images were not converted again. 13 of the 75 migrated cards have `tokens`, among them Mystic Ward (`mystic-ward`) and Pentagram of Farallah (`mystic-portal`). The other 67 released cards with tokens have no card images in the cache yet, so they get `tokens` when their images migrate.
-- `scripts/README.md` and `docs/characters-hud.md` (token table) updated.
+- `scripts/README.md` and `docs/features/character-trays.md` (token table) updated.
 - Checks: tests pass, build passes, format ok, lint has only the old warnings (Scene.jsx, Root.jsx).
 
 #### For Phase 2
@@ -58,7 +58,7 @@ Done 2026-10-11. Not committed.
 Work:
 1. The pile place (decision 4) in a plain module with a test (`src/tactics/layout.js` or next to it).
 2. `App.jsx`: decisions 5 and 6, in the same change of the document as the cards.
-3. Docs: `docs/feature-team-tactic-cards.md` (token piles), `docs/feature-library.md` (the `card` field of a pile).
+3. Docs: `docs/features/team-tactic-cards.md` (token piles), `docs/features/library.md` (the `card` field of a pile).
 
 Checks: `pnpm --filter web test`, `pnpm --filter web build`, `pnpm format`, `pnpm lint`.
 
@@ -70,7 +70,7 @@ Done 2026-10-11. Not committed.
 - Place: blue at -x, red at +x of the plate (the owner's left, as the slots). 6 piles per row. The second row is 1.2" further from the mat, still within the plate depth.
 - `freePilePlaces` skips a place when any pile lies within 0.6" of it, not only card piles. So it also fills a gap after a card was deleted.
 - `App.jsx`: `makeCardPiles` and `removeCardPiles`. `revealSquad` and `handleTacticSpawn` add the piles in the same `table.transact` as the cards. `handleTacticSpawn` now reads the free slot from the document, not from an updater. `handleTacticRemove` and `restartSetup` remove the piles of the card in the same change.
-- Docs: `feature-team-tactic-cards.md` ("Token piles"), `feature-library.md` (`card` field).
+- Docs: `team-tactic-cards.md` ("Token piles"), `library.md` (`card` field).
 - Checks: 288 tests pass, build passes, format ok, lint has only the old warnings.
 
 ## User

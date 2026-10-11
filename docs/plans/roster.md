@@ -1,6 +1,6 @@
 # Plan: Load roster
 
-Implementation plan for `docs/feature-roster.md` (the design). Coder agents do one phase each, in order. Each agent adds a short **Result** to its phase: files, facts found, changes from the plan, open issues. The next agent reads the results of all earlier phases.
+Implementation plan for `docs/features/roster.md` (the design). Coder agents do one phase each, in order. Each agent adds a short **Result** to its phase: files, facts found, changes from the plan, open issues. The next agent reads the results of all earlier phases.
 
 ## Rules for every phase
 
@@ -29,7 +29,7 @@ Implementation plan for `docs/feature-roster.md` (the design). Coder agents do o
 2. The stored `code` holds only the known codes. The unknown codes show once, in the load warning.
 3. Codes after `-` are gems only when the first code of the group is a character. A gem is any code whose kind is `tactic`. An unknown gem code goes to `unknown`, and the character loads without it. When the first code is not a character, each code of the group counts on its own.
 4. The text search is `/\d{8}(?:-\d{8})*/g`, with no check of the characters around a match. TTS also uses a plain substring search.
-5. A card without an image shows its name and MCT code drawn into a canvas texture on the plate. So the label lies flat and faces the owner, the same as the card images. The `.tray-label` CSS that the design names was removed earlier (see `docs/characters-hud.md`, line ~777).
+5. A card without an image shows its name and MCT code drawn into a canvas texture on the plate. So the label lies flat and faces the owner, the same as the card images. The `.tray-label` CSS that the design names was removed earlier (see `docs/features/character-trays.md`, line ~777).
 6. A plate without an image takes no pointer events. It has no action, so the pointer works the same as over the empty table.
 7. Roster cards lie at y = 0.01, below the character trays (y = 0.02). When a tray and a roster overlap, the tray draws on top.
 8. The toolbar field keeps the text that the player typed. **×** clears the field and the roster.
@@ -40,19 +40,19 @@ Read in the design: "Data", "Code" (the last paragraph). Read `scripts/fetch-jar
 
 1. `git mv src/characters/roster.js src/characters/characters.js`. Rename the export `ROSTER` to `CHARACTERS`. Update the 6 imports in `src` (`grep -rn "characters/roster" src`).
 2. `Library.jsx` already has a local `const CHARACTERS` (available characters first). Give the local list another name, for example `LIBRARY_ROWS`.
-3. Update the docs that name `roster.js` or `ROSTER`: `docs/feature-library.md`, `docs/characters-hud.md`. Do not change `docs/feature-roster.md`.
+3. Update the docs that name `roster.js` or `ROSTER`: `docs/features/library.md`, `docs/features/character-trays.md`. Do not change `docs/features/roster.md`.
 4. `scripts/fetch-jarvis-tactics.mjs`, the same shape as `fetch-jarvis-crisis-cards.mjs`. API: `GET https://www.jarvis-protocol.com/api/team_tactics_cards` (needs the same `Referer` header). Keep every row, sorted by slug. Keep only these fields: `exportCode`, `slug`, `name`, `isInfinityGem`, `affiliation`, `tags`, and the legality fields. Look at one row first to find the legality field names; the crisis data uses `challengerStatus`, `standardTimelineStatus` and similar. Print the number of rows, rows with a code, and gems.
 5. Add `"fetch-jarvis-tactics"` to `package.json` scripts. Run it. Expected on 2026-10-07: 519 rows, 512 with a code, 14 gems.
 6. Add a section to `scripts/README.md`, next to the other Jarvis scripts.
 
-Checks: `npx vite build`. `grep -rn "ROSTER\|characters/roster\|roster\.js" src scripts docs README.md` finds only `docs/feature-roster.md` and this plan.
+Checks: `npx vite build`. `grep -rn "ROSTER\|characters/roster\|roster\.js" src scripts docs README.md` finds only `docs/features/roster.md` and this plan.
 
 ### Result
 
 Files:
 - Renamed `src/characters/roster.js` to `characters.js`, export `CHARACTERS`. Imports updated in `App.jsx`, `Scene.jsx`, `Library.jsx`, `TrayControls.jsx`, `TrayPopup.jsx`, `CharacterTray.jsx`.
 - `Library.jsx`: local list is now `LIBRARY_ROWS`.
-- Docs: `docs/feature-library.md`, `docs/characters-hud.md`.
+- Docs: `docs/features/library.md`, `docs/features/character-trays.md`.
 - New: `scripts/fetch-jarvis-tactics.mjs`, `src/tactics/jarvis-tactics-cards.json` (248 KB). Changed: `package.json`, `scripts/README.md`.
 
 Fetch script output: `519 cards: 512 with a code, 14 Infinity Gems`. The 512 rows have 401 different codes.
@@ -125,7 +125,7 @@ Read in the design: "Input", "VP picker", "State". Read `src/components/Toolbar.
    - Else set `{ code: formatMctCode(parsed) }`. When there are unknown codes, show "N unknown codes: a, b, c". Use "1 unknown code" for one. Show at most 5 codes, then "…".
    - `handleRosterRemove(team)` sets null.
 2. `Toolbar.jsx`: a **Roster** group after **Crisis**. One text input per team, with `chip chip--player-<team>` classes, placeholder "MCT code", and a title. Enter calls `onRosterLoad(team, text)`. A **×** button after each input calls `onRosterRemove(team)` and clears the input. The input text is local state in the toolbar (decision 8).
-3. Remove the **VP** group, its `AFFILIATIONS` import and the `onAffiliationChange` prop. In `App.jsx`, keep the `affiliations` state and add a comment: Setup game sets it (see `docs/feature-setup-game.md`).
+3. Remove the **VP** group, its `AFFILIATIONS` import and the `onAffiliationChange` prop. In `App.jsx`, keep the `affiliations` state and add a comment: Setup game sets it (see `docs/features/setup-game.md`).
 4. CSS for the text input in `index.css`, so that it looks like the other chips. Keys typed in the input must not start tools; `isEditing` in `src/keyboard.js` already handles inputs, so check that it covers this one.
 
 Checks: `npx vite build`. `grep -n "affiliation" src/components/Toolbar.jsx` is empty.
@@ -187,12 +187,12 @@ Open issues: not checked in a browser. Canvas text size and plate colors are by 
 ## Phase 5: Docs
 
 1. `README.md`: a short section "Roster" before "Roadmap". How to load, how to remove, what shows on the table, unknown codes, no roster checks.
-2. `docs/feature-roster.md`: set the status to done. Update the "Code" table and "Data" numbers where the code changed them (`parseRoster(text, kindOf)`, crisis codes: 45 different codes).
+2. `docs/features/roster.md`: set the status to done. Update the "Code" table and "Data" numbers where the code changed them (`parseRoster(text, kindOf)`, crisis codes: 45 different codes).
 3. Read the Results of all phases. List the open issues for the user.
 
 ### Result
 
-Files: `README.md` (new section "Roster" before "Roadmap"), `docs/feature-roster.md` (status done, "Data", "Code", "Cards without files", Decisions 6 to 13), `src/components/RosterCards.jsx`.
+Files: `README.md` (new section "Roster" before "Roadmap"), `docs/features/roster.md` (status done, "Data", "Code", "Cards without files", Decisions 6 to 13), `src/components/RosterCards.jsx`.
 
 Code fixes in `RosterCards.jsx`: the gem material has `polygonOffset` with factor and units -2, so it draws on top of its card. `NO_RAYCAST` is a module constant.
 

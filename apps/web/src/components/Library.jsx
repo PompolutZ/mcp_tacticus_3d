@@ -51,7 +51,7 @@ function portraitUrl(ch) {
 }
 
 // The Library HUD panel, opened from a toolbar button: characters, Team Tactic cards and tokens, with
-// one search field. See docs/feature-library.md. The panel only hides when it is closed, so its
+// one search field. See docs/features/library.md. The panel only hides when it is closed, so its
 // search, tab, player and token mode stay.
 // characters: the characters on the table (App state). The ones of the chosen player show green.
 // onSpawnCharacter(ch): a click on a character with a 3D model; ch has teamColor set to the chosen player.

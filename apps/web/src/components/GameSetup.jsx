@@ -333,7 +333,7 @@ function SquadPanel({ team, setup, parsed, selecting, own, actions }) {
 }
 
 // The game setup on the table: the crisis cards of the rosters next to the scoring board, and the buttons
-// of each step. The buttons lie flat on the table (OnTable). See docs/feature-setup-game.md.
+// of each step. The buttons lie flat on the table (OnTable). See docs/features/setup-game.md.
 // setup: see setup/setup.js. rosters: { blue, red } → null | { code }. squadSelect: { blue, red } → the
 // player is choosing squad cards. mySide: the team of the player in a multiplayer room, or null when one
 // person plays both teams. Only that team's squad panel has buttons. actions: { deck(team, type), pick(code),

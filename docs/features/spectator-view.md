@@ -32,10 +32,10 @@ These facts were found on 2026-10-06 in mod 3036795456: the `modelUI` XML in the
 - The counters are DOM in a drei `<Html transform>`, the same as on the tray. They are always on top of the canvas. So the badge's 3D tokens draw last and without the depth test (`drawOnTop`), and terrain or another model never hides a part of the badge.
 - The badge pose is set at frame priority −1, before drei's Html reads it at priority 0. So the counters and the 3D tokens turn in the same frame.
 - Tokens on the character are in rows of 4 from the top left. The tray has rows of 6 that overlap, but overlapping tokens without the depth test can draw in the wrong order.
-- One toggle for the whole badge, not 4. Only one player uses the app for now (see `docs/feature-peer-to-peer.md`).
+- One toggle for the whole badge, not 4. Only one player uses the app for now (see `docs/features/peer-to-peer.md`).
 - The badge sits above the top of the model. The app measures the model height from the model file (`modelTop` in `CharacterModel.jsx`), so it needs no `UIOffset` data. A standee uses its card height.
 - The model draws the badge inside its `RigidBody` (the `overlay` prop), so the badge moves with the model, also during a drag, a lift (R) or a Throw. The badge stays straight above the base center when the model tips over.
 - The badge is read-only. A player changes Damage, Power and tokens on the tray.
 - Range 1 to a Secure token is checked on every frame, edge to edge, seen from above, the same as the R1 tool (README "Range 1") and TTS. The badge shows the disk of each Secure token in range.
-- The app does not apply the game rules (see `docs/characters-hud.md`, "Players apply the rules"). A Dazed character still shows the Secure token. Nebula and S.H.I.E.L.D. Agents are not special cases.
+- The app does not apply the game rules (see `docs/features/character-trays.md`, "Players apply the rules"). A Dazed character still shows the Secure token. Nebula and S.H.I.E.L.D. Agents are not special cases.
 - No Defense values and no Telecasting portrait.

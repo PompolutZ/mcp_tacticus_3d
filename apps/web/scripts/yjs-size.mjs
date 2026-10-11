@@ -1,5 +1,5 @@
 // Measures the size of a full game as a Yjs document, for the 1 MB limit of a stored table snapshot and the
-// write interval of step 7 (docs/feature-auth.md, open question 5). It builds a table with the stores of
+// write interval of step 7 (docs/features/auth.md, open question 5). It builds a table with the stores of
 // src/net/doc.js and plays rounds through them, the way App.jsx writes: `set` with updater functions on
 // lists and records, `setField` for poses, one transaction for a handler that writes several names.
 // Snapshot size = Y.encodeStateAsUpdate(doc).byteLength, the same bytes as encodeTable.

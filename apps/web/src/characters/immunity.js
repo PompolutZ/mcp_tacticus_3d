@@ -1,5 +1,5 @@
 // Immunities of a character, from the superpower names of its Jarvis stat card sides, for example
-// "Flight, Immunity [Incinerate, Stun]". See docs/characters-hud.md, "Immunities".
+// "Flight, Immunity [Incinerate, Stun]". See docs/features/character-trays.md, "Immunities".
 
 // "Special Conditions" in an immunity means every special condition (rulebook p17, p21). These are
 // the condition tokens of tokens.json; the immuneTo* tags of Apocalypse (Immunity [Special Conditions]
@@ -66,7 +66,7 @@ export function formImmunities(jch) {
 }
 
 // { healthy, injured }: the token keys that every form is immune to on that side. The app does not
-// know which form is in use, so only these are refused (docs/characters-hud.md, "Immunities").
+// know which form is in use, so only these are refused (docs/features/character-trays.md, "Immunities").
 export function sharedImmunities(jch) {
   const all = formImmunities(jch)
   const shared = (side) =>

@@ -1,6 +1,6 @@
 // The roll history: the entries of the `rolls` list of the document, and their text. Plain module, no
 // React. An entry stores data, not text, so a later change of the look needs no change of the data.
-// See docs/feature-dice-rolling.md, "History".
+// See docs/features/dice-rolling.md, "History".
 
 import { SYMBOL_NAMES, SYMBOLS } from './faces.js'
 

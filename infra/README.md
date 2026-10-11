@@ -1,6 +1,6 @@
 # infra
 
-The AWS CDK app of the API. It defines every AWS resource of the project. The design is in `docs/feature-backend.md` ("Infrastructure", "Secrets and config", "Deploy").
+The AWS CDK app of the API. It defines every AWS resource of the project. The design is in `docs/features/backend.md` ("Infrastructure", "Secrets and config", "Deploy").
 
 ## Stacks
 

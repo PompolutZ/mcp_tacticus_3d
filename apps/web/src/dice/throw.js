@@ -62,7 +62,7 @@ export const THROW_SPIN_MAX = 50
 // Extra solver iterations for a die's rigid body only (@react-three/rapier's
 // `additionalSolverIterations` prop), on top of the world's own `numSolverIterations` (4, the
 // Rapier default, unchanged — see Scene.jsx). Phase 3 found the dice a lot less likely to explode
-// (huge or NaN velocity) on a multi-die collision with it (see docs/feature-dice-rolling.md,
+// (huge or NaN velocity) on a multi-die collision with it (see docs/features/dice-rolling.md,
 // "Headless"); kept, because it is cheap. Left at the Rapier default for every other body, so this
 // does not change model physics. DiceTray.jsx sets it on every die.
 export const DIE_SOLVER_ITERATIONS = 8

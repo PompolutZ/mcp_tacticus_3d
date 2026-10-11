@@ -1,5 +1,5 @@
 // Tactic tray geometry: where each player's Team Tactic cards lie on the table. Plain module, no
-// React, the same as characters/trays.js. See docs/feature-team-tactic-cards.md, "Tactic tray".
+// React, the same as characters/trays.js. See docs/features/team-tactic-cards.md, "Tactic tray".
 
 import { MAT_SIZE } from '../table.js'
 
@@ -103,7 +103,7 @@ export function nearestFreeSlot(team, point, cards, ignoreId) {
 }
 
 // Token piles of the cards: they lie on the table past the owner's left end of the plate, in a row going
-// outward. See docs/plan-tactic-tokens.md, decision 4.
+// outward. See docs/plans/tactic-tokens.md, decision 4.
 const PILE_GAP = 0.3
 const PILE_PITCH = 1.2
 const PILE_RADIUS = 0.5

@@ -1,4 +1,4 @@
-// The login session (docs/feature-auth.md, "Login flow" and "Session"; plan decisions 10, 12, 13). This is
+// The login session (docs/features/auth.md, "Login flow" and "Session"; plan decisions 10, 12, 13). This is
 // the only file that touches localStorage and sessionStorage. status: off (login is not on), loading, out,
 // in, error (the server does not answer).
 
@@ -141,13 +141,13 @@ export async function devLogin(name) {
   }
 }
 
-// No server call: the token stays valid until it expires (docs/feature-auth.md, "Session")
+// No server call: the token stays valid until it expires (docs/features/auth.md, "Session")
 export function logout() {
   clearToken()
   setState({ status: 'out', user: null })
 }
 
-// Delete account (docs/feature-auth.md, "Privacy"). DELETE /me first. When it fails, the user stays logged
+// Delete account (docs/features/auth.md, "Privacy"). DELETE /me first. When it fails, the user stays logged
 // in, and the error goes to the caller. Then the multiplayer data of this user in this browser, then log out.
 // Single player rooms stay: they belong to the browser.
 export async function deleteAccount() {
