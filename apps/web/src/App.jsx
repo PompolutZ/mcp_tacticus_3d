@@ -408,8 +408,8 @@ export default function App({
   // Roster open in the full-screen popup, see RosterPopup.jsx: { team, tab, index } | null. tab: a key
   // of ROSTER_TABS (rosters/cards.js), index: the card shown in that tab.
   const [openRoster, setOpenRoster] = useState(null)
-  // The open "Reroll one / Change one to" menu of a dice tray face plate, at most one across both
-  // trays: { trayKey, symbol } | null. Lifted here, not into DiceKeys, so Escape can close it (see
+  // The open "Change to" menu of a shelf die, at most one across both
+  // trays: { trayKey, dieId } | null. Lifted here, not into DiceKeys, so Escape can close it (see
   // handleKeyDown).
   const [diceMenu, setDiceMenu] = useState(null)
   // The Library HUD panel (see Library.jsx), toggled by its toolbar button.
@@ -453,7 +453,8 @@ export default function App({
   const [peekCard, setPeekCard] = useState(null)
   // The side of the own dice tray under the pointer, or null, for the number keys
   const diceTrayHoveredRef = useRef(null)
-  // Each own dice tray puts its addDice here by side: adds that many dice. See DiceTray.jsx.
+  // Each own dice tray puts a function here by side: clears the tray, then adds that many dice. See
+  // DiceTray.jsx.
   const addDiceRef = useRef({})
   // A token drag in progress: { tokenKey, looseId, giveId, supplyCard, pile, pileId, newId, key, active, start } | null.
   // newId: the id of the new piece of the drag (a new token, pile or supply token), else null. key: the piece
@@ -565,11 +566,9 @@ export default function App({
     setSelection((prev) => deselectPiece(prev, { kind: 'terrain', id }))
   }
 
-  // Toggles the "Reroll one / Change one to" menu for one face plate. Opening one closes any other.
-  function handleDiceMenuToggle(trayKey, symbol) {
-    setDiceMenu((prev) =>
-      prev?.trayKey === trayKey && prev.symbol === symbol ? null : { trayKey, symbol },
-    )
+  // Opens the "Change to" menu of one shelf die. Opening one closes any other.
+  function handleDiceMenuOpen(trayKey, dieId) {
+    setDiceMenu({ trayKey, dieId })
   }
 
   function handleDiceMenuClose() {
@@ -694,7 +693,7 @@ export default function App({
       return
     }
     if (e.key === 'Escape') {
-      // A dice tray face menu closes first, then the Library, before the table's own Escape behavior.
+      // A dice tray die menu closes first, then the Library, before the table's own Escape behavior.
       if (diceMenu) {
         setDiceMenu(null)
         return
@@ -754,7 +753,7 @@ export default function App({
       handleLockKey()
       return
     }
-    // Over an own dice tray, the number keys add dice, not tools. Over the other tray they spawn tools.
+    // Over an own dice tray, the number keys clear the tray, then add dice, not tools. Over the other tray they spawn tools.
     if (DICE_KEYS[e.key] && diceTrayHoveredRef.current) {
       addDiceRef.current[diceTrayHoveredRef.current]?.(DICE_KEYS[e.key])
       return
@@ -2057,7 +2056,7 @@ export default function App({
               onTrayOpen={setOpenTrayId}
               onAttachedOpen={handleAttachedOpen}
               diceMenu={diceMenu}
-              onDiceMenuToggle={handleDiceMenuToggle}
+              onDiceMenuOpen={handleDiceMenuOpen}
               onDiceMenuClose={handleDiceMenuClose}
               characterAtRef={characterAtRef}
               findCharacterAt={findCharacterAt}

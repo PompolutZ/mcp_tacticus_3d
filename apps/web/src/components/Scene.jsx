@@ -258,8 +258,8 @@ const OVERLAP_INTERVAL = 100
 // onCardOpen({ src, alt }): a click on a crisis card (see CardPopup.jsx). onTrayOpen(id): a click
 // on a tray card opens the whole tray (see TrayPopup.jsx). onAttachedOpen(code): a click on a gem chip
 // of a tray opens the gem card (App.jsx, handleAttachedOpen).
-// diceMenu: the open face menu of a dice tray, { trayKey, symbol } | null, lifted to App so Escape
-// can close it. onDiceMenuToggle(trayKey, symbol), onDiceMenuClose(): see DiceKeys.jsx.
+// diceMenu: the open "Change to" menu of a shelf die, { trayKey, dieId } | null, lifted to App so
+// Escape can close it. onDiceMenuOpen(trayKey, dieId), onDiceMenuClose(): see DiceTray.jsx.
 // characterAtRef: ref App calls with (clientX, clientY) to find the character under the pointer,
 // the same pattern as bodyRef. Scene fills it with its own characterAt (3D only: the model
 // or the tray's background plate), used by App's findCharacterAt below.
@@ -280,7 +280,7 @@ const OVERLAP_INTERVAL = 100
 // The other tray is only drawn (OtherDiceTray.jsx).
 // onDiceTrayHover(side, over): the pointer moved onto or off an own dice tray, for the number keys.
 // addDiceRef: ref App calls with a side and a count for the number keys over that tray. Each own
-// tray puts its addDice in addDiceRef.current[side] (DiceTray.jsx).
+// tray puts a function there that clears the tray, then adds that many dice (DiceTray.jsx).
 // diceStore: the dice record store of the table; each tray reads and writes its side (DiceTray.jsx).
 // rollsStore: the roll history list. transact(fn): fn writes several stores as one change.
 // onTokenHold(tokenId, characterId, cardPoint): a canHold token was released over a character.
@@ -361,7 +361,7 @@ export default function Scene({
   onTrayOpen,
   onAttachedOpen,
   diceMenu = null,
-  onDiceMenuToggle,
+  onDiceMenuOpen,
   onDiceMenuClose,
   characterAtRef,
   findCharacterAt,
@@ -1207,8 +1207,8 @@ export default function Scene({
               rolls={rollsStore}
               transact={transact}
               diceLives={diceLives}
-              openMenuSymbol={diceMenu?.trayKey === trayKey ? diceMenu.symbol : null}
-              onMenuToggle={(symbol) => onDiceMenuToggle(trayKey, symbol)}
+              openDieId={diceMenu?.trayKey === trayKey ? diceMenu.dieId : null}
+              onDieOpen={(dieId) => onDiceMenuOpen(trayKey, dieId)}
               onMenuClose={onDiceMenuClose}
               onHover={(over) => onDiceTrayHover?.(trayKey, over)}
               addRef={

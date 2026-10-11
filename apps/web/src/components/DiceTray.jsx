@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { Html } from '@react-three/drei'
 import { RigidBody, ConvexHullCollider, useRapier } from '@react-three/rapier'
 import { D8_CORNERS, D8_DENSITY, FACES, SYMBOLS } from '../dice/faces.js'
 import {
@@ -36,11 +37,17 @@ import {
 import { changeEntry, clearEntry, throwEntry } from '../dice/history.js'
 import { dieEntry, dieId, nextOrder, roundPose, trayCounts } from '../dice/stored.js'
 import { FALL_LIMIT_Y } from '../table.js'
+import { DieMenu } from './DiceKeys.jsx'
 import { TrayBody, useDieLook } from './DiceTrayParts.jsx'
+import { useHoverCursor } from './useHoverCursor.js'
 
 // A tray holds at most 42 dice, shelf and well together (design, "Roll flow"). SHELF_SLOT_COUNT
 // is also 42 (one shelf place per die), so this reuses it instead of a second magic number.
 const MAX_DICE = SHELF_SLOT_COUNT
+
+// A pointer that moved more than this many pixels between down and up was a camera drag, not a
+// click on a die.
+const CLICK_MOVE = 4
 
 const ZERO = { x: 0, y: 0, z: 0 }
 
@@ -84,13 +91,43 @@ function shelfFromDocument(trayKey, side) {
 // the shelf. A die that starts on the shelf (from the document) is kinematic at once, and has its
 // `slot` set. The RigidBody ref is written into the die's entry in the parent's `dice` map (see
 // DiceTray), not kept as React state, so a physics step never has to re-render this component.
-function Die({ id, dice, geometry, material }) {
+// A click on a die on the shelf calls onOpen(id). menuOpen: this die's "Change to" menu is open.
+// onChange(id, toSymbol), onMenuClose(), onHover(over): see DiceTray.
+function Die({ id, dice, geometry, material, menuOpen, onOpen, onChange, onMenuClose, onHover }) {
   const entry = dice.current.get(id)
   // Read once: a body type that changes with a re-render would fight startShelfMove
   const [type] = useState(() => (entry.slot === undefined ? 'dynamic' : 'kinematicPosition'))
+  const [hovered, setHovered] = useState(false)
+  useHoverCursor(hovered, 'pointer')
   function setBody(rb) {
     const e = dice.current.get(id)
     if (e) e.body = rb ?? null
+  }
+  // A die in the well or in the air gets no click. A camera drag that starts on the die is not a
+  // click.
+  function handleClick(e) {
+    if (e.delta > CLICK_MOVE || dice.current.get(id)?.state !== 'shelf') return
+    e.stopPropagation()
+    onOpen(id)
+  }
+  // Whether the pointer is over this die, so the tray hover ends when the die goes away
+  const over = useRef(false)
+  useEffect(
+    () => () => {
+      if (over.current) onHover(false)
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  )
+  function handleOver() {
+    over.current = true
+    onHover(true)
+    if (dice.current.get(id)?.state === 'shelf') setHovered(true)
+  }
+  function handleOut() {
+    over.current = false
+    onHover(false)
+    setHovered(false)
   }
   return (
     <RigidBody
@@ -113,20 +150,39 @@ function Die({ id, dice, geometry, material }) {
         restitutionCombineRule={DIE_BODY.restitutionCombineRule}
         density={D8_DENSITY}
       />
-      <mesh geometry={geometry} material={material} castShadow receiveShadow />
+      <mesh
+        geometry={geometry}
+        material={material}
+        castShadow
+        receiveShadow
+        onClick={handleClick}
+        onPointerOver={handleOver}
+        onPointerOut={handleOut}
+      />
+      {menuOpen && entry.symbol && (
+        <Html>
+          <DieMenu
+            symbol={entry.symbol}
+            onChange={(toSymbol) => onChange(id, toSymbol)}
+            onClose={onMenuClose}
+          />
+        </Html>
+      )}
     </RigidBody>
   )
 }
 
 // One dice tray: the tray body, the dice bodies, the roll flow, and the keys on the tray (see
-// DiceKeys.jsx). trayKey: 'blue' | 'red'. openMenuSymbol, onMenuToggle, onMenuClose: the face
-// menu of this tray, lifted to App so Escape can close it.
+// DiceKeys.jsx). trayKey: 'blue' | 'red'. openDieId, onDieOpen(dieId), onMenuClose: the "Change to"
+// menu of a shelf die of this tray, lifted to App so Escape can close it. It closes when its die
+// leaves the shelf (reroll, clear, roll).
 // store: the dice record store of the table (net/doc.js). The tray reads its side at mount and
 // writes it when a die changes its place or face (dice/stored.js).
 // rolls: the roll history list of the table. transact(fn): fn writes several stores as one change.
 // The tray adds a history entry in the same change as the dice (dice/history.js).
 // onHover(over): the pointer moved onto (true) or off (false) the tray, for the number keys.
-// addRef(addDice): gets addDice, for the number keys, and null on unmount. Both are only given
+// addRef(addAfterClear): gets a function that clears the tray, then adds that many dice, for the
+// number keys, and null on unmount. Both are only given
 // for the player's tray (Scene.jsx).
 // diceLives: a ref to { side: getter }. The tray registers a getter for LiveSync with the live pose of each
 // die that is not on the shelf (net/livePose.js, kind die).
@@ -135,8 +191,8 @@ export default function DiceTray({
   store,
   rolls,
   transact,
-  openMenuSymbol = null,
-  onMenuToggle,
+  openDieId = null,
+  onDieOpen,
   onMenuClose,
   onHover,
   addRef,
@@ -165,6 +221,16 @@ export default function DiceTray({
   // What the keys show: { well, shelf, critsAvailable }, see reportChange.
   const [keys, setKeys] = useState(() => trayCounts(initial.docDice, initial.critsUsed))
   const lastReported = useRef(null)
+
+  // The pointer is over the tray body or over a die: onHover(true) at the first, onHover(false) at
+  // the last, whatever the order of the over and out events.
+  const hoverCount = useRef(0)
+  function hover(over) {
+    const before = hoverCount.current
+    hoverCount.current = Math.max(0, before + (over ? 1 : -1))
+    if (before === 0 && hoverCount.current > 0) onHover?.(true)
+    else if (before > 0 && hoverCount.current === 0) onHover?.(false)
+  }
 
   // True once addCrits has added dice this roll; reset by clear() (design, "Roll flow" step 7 /
   // the rulebook's "once per roll, not per Crit" rule).
@@ -411,6 +477,7 @@ export default function DiceTray({
       }
       throwDie(entry)
     }
+    onMenuClose?.()
     commit()
   }
 
@@ -422,6 +489,7 @@ export default function DiceTray({
     throwFrom.current = { roll: [], crits: [], reroll: [] }
     setIds([])
     critsUsedRef.current = false
+    onMenuClose?.()
     commit()
   }
 
@@ -464,20 +532,27 @@ export default function DiceTray({
     entry.stillTime = 0
     entry.throwTime = 0
     resortShelf() // close the gap this die left on the shelf
+    onMenuClose?.()
     commit()
   }
 
-  // Turns one shelf die showing `symbol` to `toSymbol` in place and re-sorts the shelf. Does
-  // nothing when the shelf has no die with that symbol.
-  function change(symbol, toSymbol) {
-    const entry = shelfEntries().find((e) => e.symbol === symbol)
-    if (!entry) return
-    pendingRolls.current.push(changeEntry(trayKey, Date.now(), symbol, toSymbol))
+  // Turns the shelf die `dieId` to `toSymbol` in place and re-sorts the shelf. Does nothing when
+  // that die is not on the shelf or already shows `toSymbol`.
+  function change(dieId, toSymbol) {
+    const entry = dice.current.get(dieId)
+    if (!entry || entry.state !== 'shelf' || entry.symbol === toSymbol) return
+    pendingRolls.current.push(changeEntry(trayKey, Date.now(), entry.symbol, toSymbol))
     entry.symbol = toSymbol
     entry.face = defaultFaceForSymbol(toSymbol)
     entry.doc = dieEntry(entry.order, 'shelf', { face: entry.face })
     resortShelf(new Set([entry.id]))
     commit()
+  }
+
+  // The number keys over the tray: removes every die, then adds `count` dice, as in TTS.
+  function clearAndAdd(count) {
+    clear()
+    addDice(count)
   }
 
   // Sets what the keys show, { well, shelf, critsAvailable }, only when a value changed since the
@@ -504,7 +579,7 @@ export default function DiceTray({
 
   // Registered on every render, the same as the turn of a tool (RulerTool.jsx)
   useEffect(() => {
-    addRef?.(addDice)
+    addRef?.(clearAndAdd)
     return () => addRef?.(null)
   })
 
@@ -652,17 +727,25 @@ export default function DiceTray({
     <>
       <TrayBody
         trayKey={trayKey}
-        onHover={onHover}
+        onHover={hover}
         keysProps={{
           state: keys,
-          actions: { add, remove, roll, clear, addCrits, reroll, change },
-          openMenuSymbol,
-          onMenuToggle,
-          onMenuClose,
+          actions: { add, remove, roll, clear, addCrits, reroll },
         }}
       />
       {ids.map((id) => (
-        <Die key={id} id={id} dice={dice} geometry={dieGeometry} material={dieMaterial} />
+        <Die
+          key={id}
+          id={id}
+          dice={dice}
+          geometry={dieGeometry}
+          material={dieMaterial}
+          menuOpen={openDieId === id}
+          onOpen={onDieOpen}
+          onChange={change}
+          onMenuClose={onMenuClose}
+          onHover={hover}
+        />
       ))}
     </>
   )

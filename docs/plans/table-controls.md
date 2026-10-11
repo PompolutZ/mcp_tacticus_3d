@@ -205,7 +205,15 @@ User, after this step:
 
 ### Result
 
-Not started.
+Done.
+
+- `DiceTray.jsx`: `clearAndAdd(count)` does `clear`, then `addDice`. It goes to `addRef`, so `App.jsx` and `Scene.jsx` call it as before. `change(dieId, toSymbol)` changes that exact die (it must be on the shelf), and sorts the shelf. `reroll`, `clear` and `roll` call `onMenuClose`, so the menu closes when its die leaves the shelf. `Die` has the click: a mesh `onClick` with the `CLICK_MOVE` guard (`e.delta`) and a shelf check, then `stopPropagation` and `onOpen(id)`. A die in the well or in the air does nothing. The pointer cursor shows over a shelf die. The `DieMenu` is an `Html` child of the die's `RigidBody`, so it follows the die when the shelf sorts.
+- Tray hover. The dice are now hit by the pointer, so the tray out event could fire when the pointer moves from the tray onto a die, and the number keys would stop. `hover(over)` in `DiceTray` counts the over and out events of the tray and its dice, and calls `onHover` at the first and the last. A die that unmounts under the pointer ends its count.
+- `DiceKeys.jsx`: a plate with dice calls `actions.reroll(symbol)`, no menu. `FaceMenu` and the menu props are gone. `DieMenu` (exported) shows "Change to" and the 5 other faces.
+- `App.jsx`, `Scene.jsx`: `diceMenu` is `{ trayKey, dieId }`, `handleDiceMenuOpen`, `openDieId`/`onDieOpen` props. Escape closes it as before. `OtherDiceTray.jsx` is unchanged: no click.
+- Docs: `dice-rolling.md` (plates, die menu, number keys, the TTS line), `key-shortcuts.md` (number key row is Yes, the dice item removed from "Differences to decide"). `peer-to-peer.md` needs no change: "open dice menu" is still local state.
+- Checks: build, format, lint (44 warning lines, as before), test 380 pass. No new test: the new logic is in components.
+- Differs from the plan: a click on the die whose menu is open closes the menu on pointerdown (click outside), then the click opens it again, so it does not toggle. Not run in a browser (project rule).
 
 ## Step 6: Hover highlight
 
