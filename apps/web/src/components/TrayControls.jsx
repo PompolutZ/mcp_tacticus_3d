@@ -18,7 +18,8 @@ const POWER_ICON = assetUrl(characterToken('1-power'))
 // tokens by drag and drop, and the target CrisisToken.jsx's own drag uses to hold a crisis token
 // (Phase 6, "Hold and drop").
 // onAttachedOpen(code): a click on a gem chip, one per attached card (see App.jsx, handleAttachedOpen).
-// The chip only reads the card, so it works on any player's tray.
+// The chip only reads the card, so it works on any player's tray. hideAttached: no gem chips; the
+// tray popup sets it, because its thumbnails do the same job (TrayPopup.jsx).
 export default function TrayControls({
   character,
   stamina,
@@ -27,6 +28,7 @@ export default function TrayControls({
   onFlip,
   onRemove,
   onAttachedOpen,
+  hideAttached = false,
 }) {
   // A native confirm, so Remove needs no extra dialog component (Phase 7): a mistaken click on a
   // model removes nothing, since the browser dialog always pauses for an answer.
@@ -35,7 +37,7 @@ export default function TrayControls({
     if (window.confirm(`Remove ${characterName(character.key)} from the table?`)) onRemove()
   }
 
-  const attached = attachedCards(character)
+  const attached = hideAttached ? [] : attachedCards(character)
 
   return (
     <div className="tray-controls" data-character-id={character.id}>

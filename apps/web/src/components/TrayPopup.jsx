@@ -27,9 +27,10 @@ function otherSide(side) {
 // App mounts it only while a tray is open. onTokenRemove(key): a click on an "On" token removes
 // one, the same as on the 3D tray. heldTokens: the crisis tokens this character holds. A character
 // whose second form has its own card shows that card under the first, as on the 3D tray; the held
-// tokens lie on the first card. The attached cards (gems) show face up under the stat card; a click
-// on one calls onAttachedOpen(code), which opens it in the card popup. A card without an image has
-// no picture here, only its chip in the controls.
+// tokens lie on the first card. The attached cards (gems) show as small thumbnails at the side of the
+// stat card, so the popup keeps its height. A click on one shows it large over the stat card, a
+// second click on it or on the large card makes it small again. One card is large at a time. The
+// controls show no gem chips here. A card without an image has no thumbnail.
 export function TrayPopup({
   character,
   heldTokens,
@@ -38,7 +39,6 @@ export function TrayPopup({
   onPower,
   onFlip,
   onRemove,
-  onAttachedOpen,
   onTokenRemove,
 }) {
   // The other side of the card, shown with a button, because players often read the Injured side
@@ -48,10 +48,15 @@ export function TrayPopup({
     setShowOther(false)
   }, [character.side])
 
+  // The code of the attached card that shows large, or null. The popup unmounts on close, so it
+  // starts closed each time. A Flip or "Show other side" does not touch it.
+  const [largeCode, setLargeCode] = useState(null)
+
   const name = characterName(character.key)
   const shownSide = showOther ? otherSide(character.side) : character.side
   // Tokens on the character, in the order it got them (see App.jsx, handleCharacterTokenGive).
   const attached = attachedCards(character).filter((card) => card.image)
+  const large = attached.find((card) => card.code === largeCode)
   const onTokens = Object.entries(character.tokens ?? {})
 
   return (
@@ -73,35 +78,51 @@ export function TrayPopup({
             ×
           </button>
         </div>
-        <div className="tray-popup-card">
-          <img src={assetUrl(characterCard(character.key, shownSide))} alt={name} />
-          {heldTokens.map((token) => (
-            <HeldToken key={token.id} token={token} />
-          ))}
-        </div>
-        {trayCards(character) === 2 && (
-          <div className="tray-popup-card">
-            <img
-              src={assetUrl(transformCard(character.key, shownSide))}
-              alt={`${name}, second form`}
-            />
-          </div>
-        )}
-        {attached.length > 0 && (
-          <div className="tray-popup-attached">
-            {attached.map((card) => (
+        <div
+          className={`tray-popup-main${attached.length > 0 ? ' tray-popup-main--attached' : ''}`}
+        >
+          <div className="tray-popup-cards">
+            <div className="tray-popup-card">
+              <img src={assetUrl(characterCard(character.key, shownSide))} alt={name} />
+              {heldTokens.map((token) => (
+                <HeldToken key={token.id} token={token} />
+              ))}
+            </div>
+            {trayCards(character) === 2 && (
+              <div className="tray-popup-card">
+                <img
+                  src={assetUrl(transformCard(character.key, shownSide))}
+                  alt={`${name}, second form`}
+                />
+              </div>
+            )}
+            {large && (
               <button
-                key={card.code}
                 type="button"
-                className="tray-popup-attached-card"
-                title={card.name}
-                onClick={() => onAttachedOpen(card.code)}
+                className="tray-popup-large"
+                title={`${large.name} (click to make it small)`}
+                onClick={() => setLargeCode(null)}
               >
-                <img src={assetUrl(card.image)} alt={card.name} />
+                <img src={assetUrl(large.image)} alt={large.name} />
               </button>
-            ))}
+            )}
           </div>
-        )}
+          {attached.length > 0 && (
+            <div className="tray-popup-attached">
+              {attached.map((card) => (
+                <button
+                  key={card.code}
+                  type="button"
+                  className={`tray-popup-attached-card${card.code === largeCode ? ' tray-popup-attached-card--open' : ''}`}
+                  title={card.name}
+                  onClick={() => setLargeCode((code) => (code === card.code ? null : card.code))}
+                >
+                  <img src={assetUrl(card.image)} alt={card.name} />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <button type="button" className="chip" onClick={() => setShowOther((v) => !v)}>
           {showOther ? 'Show side that faces up' : 'Show other side'}
         </button>
@@ -112,7 +133,7 @@ export function TrayPopup({
           onPower={onPower}
           onFlip={onFlip}
           onRemove={onRemove}
-          onAttachedOpen={onAttachedOpen}
+          hideAttached
         />
       </div>
     </Overlay>

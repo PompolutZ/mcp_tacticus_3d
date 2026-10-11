@@ -160,6 +160,16 @@ User, after this phase: checks 8 to 10.
 
 ### Result
 
+Done on 2026-10-11. Not committed.
+
+- `TrayPopup.jsx`: thumbnails (buttons, 90 px) in a column at the side of the stat card. State `largeCode` (code or null) shows the large card in a button over the stat card. A click on the large card, or on its open thumbnail, sets null. Another thumbnail switches. The open thumbnail has the class `tray-popup-attached-card--open`. Flip and "Show other side" do not touch the state. The prop `onAttachedOpen` is gone from `TrayPopup`; `App.jsx` no longer passes it there (`handleAttachedOpen` stays for the 3D tray).
+- `TrayControls.jsx`: new prop `hideAttached`; the popup sets it. The 3D tray keeps its chips.
+- `index.css`: `.tray-popup-main` (row), `.tray-popup-cards` (relative, holds the stat card and the large card), `.tray-popup-large` (absolute, centered, z-index 2, image height `min(70vh, 520px)`). With thumbnails, the stat card width is `min(100vw - 170px, 600px, 75vh)`, so the popup fits the screen. At 560 px or less, the thumbnails go in a row (64 px) under the stat card.
+- Every click is inside `.tray-popup`, which stops propagation, so none closes the popup. Escape is unchanged.
+- Docs: `characters-hud.md` ("Attached cards", "Tray popup").
+- Checks: `pnpm --filter web test` (284 pass), `pnpm --filter web build`, `pnpm format`. `pnpm lint` has 41 warnings, the same as before.
+- Not checked in a browser (rule). A large card taller than the stat card sticks out above and below it, inside the popup.
+
 ## User
 
 After Phase 2, in a single player room, with the friend's roster as Blue:

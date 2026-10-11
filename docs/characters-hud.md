@@ -133,9 +133,10 @@ The whole tray is a drop target for tokens. The Give sources are outside the tra
 
 A character can have cards attached to it. Today these are the Infinity Gems of its roster entry. The field `attached` of the character holds their MCT codes. The setup sets it when the squad goes on the table (`revealSquad` in `App.jsx`). A character with no gem has no field, and an old document has none either. Both mean no attached cards.
 
-- The controls strip of the tray has one chip per attached card, above Flip and Remove. Its text comes from the card name: "Infinity Gem: Soul" gives "Soul Gem".
+- The controls strip of the 3D tray has one chip per attached card, above Flip and Remove. Its text comes from the card name: "Infinity Gem: Soul" gives "Soul Gem".
 - A click on the chip opens the gem card in the card popup. A gem without an image shows the HUD message "No card image for <name> (<code>)".
-- The tray popup shows the gem cards face up under the stat card. A click on one opens the card popup. The tray popup closes then, so only one popup is open.
+- The tray popup shows no chips. It shows each attached card as a small thumbnail (90 px wide) in a column at the side of the stat card, so the popup keeps its height. On a narrow screen (560 px or less) the thumbnails go in a row under the stat card.
+- A click on a thumbnail shows that card large over the stat card, centered, about `min(70vh, 520px)` high. A click on the large card or on its thumbnail makes it small again. A click on another thumbnail shows that card instead. One card is large at a time. The open thumbnail has an outline. The state is gone when the popup closes.
 - Both players see the chips, and both can open the cards. Reading a card changes nothing.
 - The app does not check which character can hold a gem, and does not count the gem for the Power gain. Players apply the rules.
 
@@ -219,6 +220,7 @@ A click on a tray card opens the whole tray in a full-screen popup (`TrayPopup.j
 - The card shows the side that faces up. A button shows the other side, because players often read the Injured side while the card is Healthy. A Flip goes back to the side that faces up.
 - The cross button, Escape, or a click outside the tray closes the popup. Other keys do nothing while it is open.
 - Remove closes the popup, because the character is gone.
+- Attached cards show as thumbnails at the side of the stat card (see [Attached cards](#attached-cards)). Flip and **Show other side** keep the large card open.
 
 ## Tokens from the TTS mod
 

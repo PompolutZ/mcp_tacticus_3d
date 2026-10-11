@@ -1031,20 +1031,39 @@ body {
   border-radius: 8px;
 }
 
-/* The attached cards (gems) under the stat card (TrayPopup.jsx). Gem cards are portrait, so the
-   height follows the viewport height, and they stay readable and on screen on a small screen. */
-.tray-popup-attached {
+/* The stat card (or two) and the attached cards (TrayPopup.jsx). The thumbnails sit at the side, so
+   the popup keeps its height and the controls stay reachable. */
+.tray-popup-main {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  align-items: flex-start;
   gap: 12px;
 }
 
+.tray-popup-cards {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* The stat card gives room to the thumbnail column (90px and the gap), so the popup never gets
+   wider than the screen. */
+.tray-popup-main--attached .tray-popup-card {
+  width: min(calc(100vw - 170px), 600px, 75vh);
+}
+
+.tray-popup-attached {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .tray-popup-attached-card {
-  width: min(40vw, 260px, 36vh);
+  width: 90px;
   padding: 0;
   background: none;
   border: none;
+  border-radius: 8px;
   cursor: pointer;
 }
 
@@ -1052,6 +1071,57 @@ body {
   display: block;
   width: 100%;
   border-radius: 8px;
+}
+
+/* The open card's thumbnail */
+.tray-popup-attached-card--open {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* An attached card large, centered on the stat card and above it. The height follows the viewport
+   height, so the card stays on screen. */
+.tray-popup-large {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.tray-popup-large img {
+  display: block;
+  height: min(70vh, 520px);
+  max-width: 94vw;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+}
+
+/* A narrow screen: the thumbnails go in a small row under the stat card. */
+@media (max-width: 560px) {
+  .tray-popup-main {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .tray-popup-main--attached .tray-popup-card {
+    width: min(80vw, 600px, 75vh);
+  }
+
+  .tray-popup-attached {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .tray-popup-attached-card {
+    width: 64px;
+  }
 }
 
 /* A held token on the card (TrayPopup.jsx, HeldToken). left and top are its center. */

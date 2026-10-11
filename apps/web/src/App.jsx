@@ -1720,7 +1720,6 @@ export default function App({
           onPower={(power) => handleCharacterPower(openTray.id, power)}
           onFlip={() => handleCharacterFlip(openTray.id)}
           onRemove={() => handleCharacterRemove(openTray.id)}
-          onAttachedOpen={handleAttachedOpen}
           onTokenRemove={(key) => handleCharacterTokenRemove(openTray.id, key)}
         />
       )}
