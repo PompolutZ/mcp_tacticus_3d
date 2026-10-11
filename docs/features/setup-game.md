@@ -88,6 +88,7 @@ z = 12.55   Use          [drawn 1]
 - Players choose their squad from the loaded roster. The roster cards show until then.
 - **Select squad** turns the choice on and off for that player. While it is on, it has a white outline, and a click on a character or Team Tactic card of that roster adds the card to the squad or removes it. While it is off, a click opens the roster popup as before.
 - A card in the squad has a yellow frame.
+- The Breakdown tab of the roster popup lists the squads that fit the Maximum Threat. A click on one of them chooses its characters (see `docs/features/squad-breakdown.md`, "Choose a squad").
 - Only a card that the app can put on the table can join: a character with a model, a Team Tactic card with an image. For another card, the HUD message names it.
 - **Ready** is a toggle. It works when the squad has at least 1 character and its threat is not above the Maximum Threat. While it is on, it has a white outline, the panel says "Waiting for the Red player.", and **Select squad** is off and does not work. So the squad does not change. A second click on **Ready** turns it off, and the player can change the squad again.
 - When both players are Ready, both squads go on the table at the same time. **Ready** only sets the toggle. An effect in each browser puts the squads on the table (see below).
