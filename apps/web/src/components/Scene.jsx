@@ -272,7 +272,6 @@ const OVERLAP_INTERVAL = 100
 // playedSides: the sides this browser plays (dice tray, tool snap selection), one in a multiplayer
 // room, both otherwise.
 // The other tray is only drawn (OtherDiceTray.jsx).
-// onThrowEnd(side): a throw of an own tray ended and its history entry is written (App.jsx, the roll off).
 // onDiceTrayHover(side, over): the pointer moved onto or off an own dice tray, for the number keys.
 // addDiceRef: ref App calls with a side and a count for the number keys over that tray. Each own
 // tray puts its addDice in addDiceRef.current[side] (DiceTray.jsx).
@@ -365,7 +364,6 @@ export default function Scene({
   returnModelsRef,
   playedSides = ['blue', 'red'],
   onDiceTrayHover,
-  onThrowEnd,
   addDiceRef,
   diceStore,
   rollsStore,
@@ -1141,7 +1139,6 @@ export default function Scene({
               store={diceStore}
               rolls={rollsStore}
               transact={transact}
-              onThrowEnd={onThrowEnd}
               diceLives={diceLives}
               openMenuSymbol={diceMenu?.trayKey === trayKey ? diceMenu.symbol : null}
               onMenuToggle={(symbol) => onDiceMenuToggle(trayKey, symbol)}

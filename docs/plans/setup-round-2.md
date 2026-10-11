@@ -114,12 +114,12 @@ User, after this step: each player clears their tray and rolls 5 dice. The winne
 
 ### Result
 
-Done. Commit "setup round 2 part 2: the app reads the roll off".
+Done. Commits "setup round 2 part 2: the app reads the roll off", "setup round 2 part 2: read the roll off on any throw".
 
 - `src/setup/rollOff.js` (`readRollOff({ blue, red })` of symbol lists, `shelfCounts`), tests in `rollOff.test.js`. Side keys are still `blue` / `red`.
 - `setup.rollOff: { winner, counts } | null` stores the read result for the panel. `setRollOff(setup, result)` sets Priority to the winner (a tie keeps it). `setPriority` (manual) clears `rollOff`. **Restart setup** clears it (`newSetup`).
-- Trigger: `DiceTray.jsx` `commit()`, right after the transaction that writes the history entry of kind `throw`, calls the new `onThrowEnd(trayKey)` prop (Scene to `handleThrowEnd` in `App.jsx`). It does nothing unless the step is `rollOff` and both shelves have exactly 5 dice in the document.
-- Single writer: only the browser whose throw ended writes. A browser has only its own tray, and both shelves are in the shared document, so the last to finish sees two full shelves. Simultaneous finishes write the same result. It reads `table.setup` and `table.dice` at that moment, not the render. A late sync of the other shelf is not covered: if the other shelf arrives after the last throw ended, nothing reads. Clearing and rolling one die again reads it.
+- Trigger: an effect in `App.jsx` on the history list (`rolls`). Every browser checks when a new `throw` entry appears, its own or from the other player. Entries present at mount, and entries older than 30 s (`ROLL_OFF_FRESH`, late sync), are not new, so shelves left from before a restart do not count without a new throw. It does nothing unless the step is `rollOff` and both shelves have exactly 5 dice in the document. (First version used an `onThrowEnd` prop of the tray; replaced, so players who roll at the same time are read.)
+- Writer rule: the shelf write and the entry are one transaction, so the browser that has the last entry has both full shelves. Both browsers may write the same result; a browser skips the write when `setup.rollOff` already equals it. It reads `table.setup` and `table.dice` at that moment, not the render.
 - Panel (`GameSetup.jsx`): "Blue wins the roll off: 4 successes against 3." with the tiebreak (Crits or Wilds) when successes are equal, or "Tie: roll again." Shown in the `rollOff` and `deck` steps, gone when a deck is chosen.
 - Docs: `setup-game.md` (What the app does, Roll off, Decision 1).
 

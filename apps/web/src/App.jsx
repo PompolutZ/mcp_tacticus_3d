@@ -132,6 +132,8 @@ import {
 // resetCamera).
 // Dice that each player rolls in the roll off
 const ROLL_OFF_DICE = 5
+// A throw entry older than this (ms) is not a new throw
+const ROLL_OFF_FRESH = 30000
 
 const CAMERA_TARGET = [0, 0, 16.8]
 const CAMERA_POSITION = [0, 32.5, 49.3]
@@ -1262,12 +1264,21 @@ export default function App({
     setSetup(setPriority(setup, team))
   }
 
-  // A throw of an own tray ended: its history entry is written. In the roll-off step, with 5 dice on both
-  // shelves, this browser reads the result. Only the browser whose throw ended writes it. Both shelves are in
-  // the shared document, and each browser has only its own tray, so the one that finishes last sees both full
-  // shelves. If both finish at the same moment and both write, they write the same result. Reads the document,
-  // not the render, so a stale closure cannot matter.
-  function handleThrowEnd() {
+  // The roll off is read when a new `throw` entry reaches the history, from this browser or the other one.
+  // The shelf write and the entry are one transaction, so a browser that has the last entry has both full
+  // shelves. Both browsers may write: the result is the same, and the write is skipped when it is already
+  // there. Entries that were there at mount, or older than ROLL_OFF_FRESH ms (a history that syncs late),
+  // are not new, so shelves left from before a restart do not count without a new throw.
+  const seenThrows = useRef(null)
+  useEffect(() => {
+    const seen = seenThrows.current
+    seenThrows.current = new Set(rolls.map((entry) => entry.id))
+    if (!seen) return
+    const fresh = rolls.some(
+      (entry) =>
+        entry.kind === 'throw' && !seen.has(entry.id) && Date.now() - entry.at < ROLL_OFF_FRESH,
+    )
+    if (!fresh) return
     const current = table.setup.read()
     if (setupStep(current) !== 'rollOff') return
     const dice = table.dice.read()
@@ -1277,8 +1288,10 @@ export default function App({
       if (onShelf.length !== ROLL_OFF_DICE) return
       shelves[team] = onShelf.map((die) => FACES[die.face - 1]?.symbol)
     }
-    table.setup.set(setRollOff(current, readRollOff(shelves)))
-  }
+    const result = readRollOff(shelves)
+    if (JSON.stringify(current.rollOff) === JSON.stringify(result)) return
+    table.setup.set(setRollOff(current, result))
+  }, [rolls, table])
 
   // The player with Priority uses their deck of `type`. The draws are random, so they are made here, outside
   // a state updater, which React can call twice.
@@ -2071,7 +2084,6 @@ export default function App({
               liftPieceRef={liftPieceRef}
               returnModelsRef={returnModelsRef}
               playedSides={playedSides}
-              onThrowEnd={handleThrowEnd}
               onDiceTrayHover={(side, over) => {
                 if (over) diceTrayHoveredRef.current = side
                 else if (diceTrayHoveredRef.current === side) diceTrayHoveredRef.current = null
