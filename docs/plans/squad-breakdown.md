@@ -1,6 +1,6 @@
 # Plan: Squad breakdown
 
-Requested by the user on 2026-10-11. Plan 3 of `docs/plans/playtest-1.md`. Status: parts 1 to 3 done, part 4 not started.
+Requested by the user on 2026-10-11. Plan 3 of `docs/plans/playtest-1.md`. Status: parts 1 to 4 done, waiting for the user checks.
 
 The user asked for the plan and the coder work in one go, on the branch `squad-breakdown`, in the worktree `../mcp_assist_3d-squad-breakdown`. The user checks the branch after all parts are done.
 
@@ -148,7 +148,7 @@ Checks: `pnpm format`, `pnpm lint`, `pnpm --filter web build`, `pnpm --filter we
 
 Commit: `squad breakdown part 4: choose a squad from the breakdown`.
 
-**Result:** not started.
+**Result:** done. `setSquadCharacters` in `setup.js` with a test. `App.jsx`: `handleBreakdownChoose`, `breakdownChooseBlock` (the checks and the reason text), and `writeSquad`, now shared with `handleRosterClick`. `popupBreakdown` has `chooseBlock`, `squadCharacters` and `onChoose`. `BreakdownTab.jsx`: rows are `role="button"` with keyboard (Enter, Space) when a click works; the row of the current squad has the yellow frame (`#ffd34d`); a line over the list says what can be done or why not. No deviation.
 
 ## User checks
 

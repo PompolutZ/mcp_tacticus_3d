@@ -6,12 +6,27 @@ import { affiliationName } from '../scoreboard/affiliations.js'
 import { CharacterPortrait } from './CharacterPortrait.jsx'
 
 // The Breakdown tab of the roster popup (RosterPopup.jsx): the squads that the roster can build for a threat
-// value, read only. See docs/features/squad-breakdown.md, "Breakdown tab".
+// value. In the squad step, a click on a row chooses the squad. See docs/features/squad-breakdown.md,
+// "Breakdown tab" and "Choose a squad".
 // parsed: the parsed roster. breakdown: { threats, threat, filters, onThreatChange, onFiltersChange }. threats:
 // the values to choose from. threat: the selected value. filters: as NO_FILTERS (breakdown.js).
-// onFiltersChange gets the whole new filters object.
+// onFiltersChange gets the whole new filters object. chooseBlock: why a click does not choose a squad now,
+// or null when it does. squadCharacters: the places of the current squad that this browser may show.
+// onChoose(places): a click on a row.
 export function BreakdownTab({ parsed, breakdown }) {
-  const { threats, threat, filters, onThreatChange, onFiltersChange } = breakdown
+  const {
+    threats,
+    threat,
+    filters,
+    onThreatChange,
+    onFiltersChange,
+    chooseBlock,
+    squadCharacters,
+    onChoose,
+  } = breakdown
+  const canChoose = !chooseBlock
+  const sameSquad = (places) =>
+    places.length === squadCharacters.length && places.every((p) => squadCharacters.includes(p))
   const [filtersOpen, setFiltersOpen] = useState(false)
   // The combinations of every shown value, for the counts on the chips
   const byThreat = useMemo(
@@ -204,28 +219,50 @@ export function BreakdownTab({ parsed, breakdown }) {
             : `No squad fits threat ${threat}.`
           : `${rows.length} ${rows.length === 1 ? 'squad' : 'squads'}`}
       </p>
+      <p className="breakdown-line">
+        {canChoose
+          ? 'Click a squad to choose it. Choose the Team Tactic cards on the table.'
+          : chooseBlock}
+      </p>
       <ul className="breakdown-list">
         {rows.map((row) => (
-          <li key={row.places.join('-')} className="breakdown-row">
-            <span className="breakdown-total">{row.threat}</span>
-            <div className="breakdown-characters">
-              {row.places.map((place) => {
-                const character = characterByCode(parsed.characters[place].code)
-                return (
-                  <div key={place} className="breakdown-character">
-                    <CharacterPortrait character={character} className="breakdown-portrait" />
-                    <span className="breakdown-name">{character?.name}</span>
-                  </div>
-                )
-              })}
-            </div>
-            <div className="breakdown-affiliations">
-              {row.affiliations.map((a) => (
-                <span key={a.key} className="breakdown-affiliation">
-                  {affiliationName(a.key)}
-                  {a.leader ? ' ★' : ''}
-                </span>
-              ))}
+          <li key={row.places.join('-')}>
+            <div
+              className={`breakdown-row${canChoose ? ' breakdown-row--click' : ''}${sameSquad(row.places) ? ' breakdown-row--squad' : ''}`}
+              role={canChoose ? 'button' : undefined}
+              tabIndex={canChoose ? 0 : undefined}
+              onClick={canChoose ? () => onChoose(row.places) : undefined}
+              onKeyDown={
+                canChoose
+                  ? (e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        onChoose(row.places)
+                      }
+                    }
+                  : undefined
+              }
+            >
+              <span className="breakdown-total">{row.threat}</span>
+              <div className="breakdown-characters">
+                {row.places.map((place) => {
+                  const character = characterByCode(parsed.characters[place].code)
+                  return (
+                    <div key={place} className="breakdown-character">
+                      <CharacterPortrait character={character} className="breakdown-portrait" />
+                      <span className="breakdown-name">{character?.name}</span>
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="breakdown-affiliations">
+                {row.affiliations.map((a) => (
+                  <span key={a.key} className="breakdown-affiliation">
+                    {affiliationName(a.key)}
+                    {a.leader ? ' ★' : ''}
+                  </span>
+                ))}
+              </div>
             </div>
           </li>
         ))}

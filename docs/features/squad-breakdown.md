@@ -1,6 +1,6 @@
 # Feature: Squad breakdown
 
-Status: partly built. See [Not built yet](#not-built-yet).
+Status: built.
 
 ## Goal
 
@@ -137,15 +137,10 @@ In the squad step, a click on a combination chooses its characters for the squad
 | `src/rosters/breakdown.js` | `squadCombinations(units, maxThreat)` and `matchesFilters(combination, filters)`. No imports, so a Node test can check it |
 | `src/rosters/cards.js` | The units of a roster (threat with gems, alter ego, Peerless, copies), the affiliations and leaders of each combination, the threat values of all crisis cards |
 | `src/characters/characters.js` | `alterEgo`, `peerless` and `leads` of each character, from Jarvis |
-| `src/setup/setup.js` | `possibleThreats(setup, parsed, threatOf)`: the threat values of the current step |
+| `src/setup/setup.js` | `possibleThreats(setup, parsed, threatOf)`: the threat values of the current step. `setSquadCharacters(setup, team, places)`: the squad characters of a click |
+| `src/App.jsx` | `handleBreakdownChoose`: the checks, the write and the close of the popup, shared with `handleRosterClick` (`writeSquad`) |
 | `src/components/BreakdownTab.jsx` | The Breakdown tab: threat chips, filters, the list |
 | `src/components/CharacterPortrait.jsx` | The portrait of a character, shared with the Library |
-
-## Not built yet
-
-- The click on a combination to choose a squad, and the yellow frame of the current squad. The rows only show now.
-
-See `docs/plans/squad-breakdown.md`.
 
 ## Out of scope
 

@@ -27,7 +27,8 @@ const TEAM_NAMES = { blue: 'Blue', red: 'Red' }
 // carousel. A dialog, so it renders through Overlay.
 // code: the stored MCT code of the roster. tab: a key of ROSTER_TABS, or 'breakdown'. index: the shown card of
 // that tab.
-// breakdown: { threats, threat, filters, onThreatChange, onFiltersChange } for the Breakdown tab after the card tabs (see
+// breakdown: { threats, threat, filters, onThreatChange, onFiltersChange, chooseBlock, squadCharacters,
+// onChoose } for the Breakdown tab after the card tabs (see
 // BreakdownTab.jsx and docs/features/squad-breakdown.md), or missing: no such tab, as in the lobby.
 export function RosterPopup({
   team,

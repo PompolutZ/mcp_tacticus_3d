@@ -9,6 +9,7 @@ import {
   placedSides,
   possibleThreats,
   revealPlan,
+  setSquadCharacters,
   setupPlacedCards,
   setupStep,
 } from './setup.js'
@@ -202,4 +203,12 @@ test('possibleThreats: missing roster, no cards, unknown code', () => {
     draws: { secure: [], extract: [] },
   }
   assert.deepEqual(possibleThreats(deck, { blue: null, red: null }, threatOf), [])
+})
+
+test('setSquadCharacters replaces the characters, sorted, and keeps the tactics', () => {
+  const setup = { ...newSetup(), squads: { blue: squad, red: { characters: [5], tactics: [] } } }
+  const next = setSquadCharacters(setup, 'blue', [4, 1, 3])
+  assert.deepEqual(next.squads.blue, { characters: [1, 3, 4], tactics: [1] })
+  assert.deepEqual(next.squads.red, setup.squads.red)
+  assert.deepEqual(setup.squads.blue, squad)
 })

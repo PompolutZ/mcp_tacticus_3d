@@ -157,6 +157,14 @@ export function toggleSquadCard(setup, team, list, place) {
   return { ...setup, squads: { ...setup.squads, [team]: { ...squad, [list]: places } } }
 }
 
+// The squad of `team` gets these character places (sorted). Its Team Tactic places stay.
+// See docs/features/squad-breakdown.md, "Choose a squad".
+export function setSquadCharacters(setup, team, places) {
+  const squad = setup.squads[team]
+  const characters = [...places].sort((a, b) => a - b)
+  return { ...setup, squads: { ...setup.squads, [team]: { ...squad, characters } } }
+}
+
 // The Ready toggle of `team`
 export function toggleReady(setup, team) {
   return { ...setup, ready: { ...setup.ready, [team]: !setup.ready[team] } }

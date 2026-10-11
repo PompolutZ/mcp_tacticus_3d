@@ -2166,6 +2166,20 @@ body {
   border-radius: 6px;
 }
 
+.breakdown-row--click {
+  cursor: pointer;
+}
+
+.breakdown-row--click:hover {
+  background: var(--panel-2);
+}
+
+/* The yellow of the squad frame on the table (RosterCards.jsx, FRAME_COLOR) */
+.breakdown-row--squad {
+  border-color: #ffd34d;
+  box-shadow: 0 0 0 1px #ffd34d;
+}
+
 .breakdown-total {
   flex-shrink: 0;
   min-width: 24px;

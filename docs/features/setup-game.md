@@ -159,7 +159,7 @@ setup: {
 
 | File | Content |
 |---|---|
-| `src/setup/setup.js` | `NEW_SETUP`, `newSetup`, `setupStep`, the step changes (`chooseDeck`, `pickCard`, `chooseThreat`, `chooseEdge`, `toggleSquadCard`, `toggleReady`, `placeSquad`, `chooseAffiliation`), `placedSides`, `revealPlan`, `crisisRows`. No imports, so a Node script can check it |
+| `src/setup/setup.js` | `NEW_SETUP`, `newSetup`, `setupStep`, the step changes (`chooseDeck`, `pickCard`, `chooseThreat`, `chooseEdge`, `toggleSquadCard`, `setSquadCharacters`, `toggleReady`, `placeSquad`, `chooseAffiliation`), `placedSides`, `revealPlan`, `crisisRows`. No imports, so a Node script can check it |
 | `src/components/GameSetup.jsx` | The crisis rows and all setup buttons |
 | `src/rosters/layout.js` | `crisisRowLayout`, `crisisCenterZ`, `CRISIS_GAP_X`. Row 2 of the roster has only the Team Tactic cards now |
 | `src/rosters/cards.js` | `threat` and `key` of each card, `squadThreat`, `squadAffiliationKeys` |

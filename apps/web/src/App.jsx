@@ -69,6 +69,7 @@ import {
   revealPlan,
   setupPlacedCards,
   setupStep,
+  setSquadCharacters,
   toggleReady,
   toggleSquadCard,
 } from './setup/setup.js'
@@ -1264,17 +1265,55 @@ export default function App({
       showHudMessage(`No card image for ${info.name} (${info.code}), so it cannot join the squad`)
       return
     }
+    writeSquad(
+      team,
+      toggleSquadCard({ squads: { [team]: current } }, team, tab, index).squads[team],
+    )
+  }
+
+  // Writes the squad of `team`: into the document, or in a multiplayer room into the stored own squad
+  function writeSquad(team, squad) {
     if (!hiddenSquads) {
-      setSetup(toggleSquadCard(setup, team, tab, index))
+      setSetup((prev) => ({ ...prev, squads: { ...prev.squads, [team]: squad } }))
       return
     }
-    const record = {
-      setupId: setup.id ?? null,
-      squad: toggleSquadCard({ squads: { [team]: current } }, team, tab, index).squads[team],
-    }
+    const record = { setupId: setup.id ?? null, squad }
     setStoredSquad(record)
     if (!saveSquad(userId, room.id, record))
       showHudMessage('This browser could not store your squad choice')
+  }
+
+  // Why a click on a squad of the Breakdown tab does not work for `team` now, or null when it works
+  // (docs/features/squad-breakdown.md, "Choose a squad")
+  function breakdownChooseBlock(team) {
+    if (hiddenSquads && team !== mySide)
+      return "This is the other player's roster, so you cannot choose its squad."
+    if (placedSides(setup)[team]) return 'The squad is on the table.'
+    if (setupStep(setup) !== 'squads') return 'You can choose a squad in the squad step.'
+    if (setup.ready[team]) return 'Ready is on, so the squad does not change.'
+    return null
+  }
+
+  // A click on a squad of the Breakdown tab: its characters become the squad, the Team Tactic cards stay.
+  // Characters without a model are left out. Then Select squad is on and the popup closes.
+  function handleBreakdownChoose(team, places) {
+    if (breakdownChooseBlock(team)) return
+    const characters = parsedRosters[team].characters
+    const missing = []
+    const joined = []
+    for (const place of places) {
+      const info = rosterCard(characters[place].code)
+      if (info.model) joined.push(place)
+      else missing.push(`${info.name} (${info.code})`)
+    }
+    if (missing.length > 0)
+      showHudMessage(
+        `No model for ${missing.join(' and ')}, so ${missing.length === 1 ? 'it' : 'they'} cannot join the squad`,
+      )
+    const current = hiddenSquads ? ownSquad : setup.squads[team]
+    writeSquad(team, setSquadCharacters({ squads: { [team]: current } }, team, joined).squads[team])
+    setSquadSelect((prev) => ({ ...prev, [team]: true }))
+    setOpenRoster(null)
   }
 
   // The Ready toggle of a player. Ready works when the squad has a character and its threat is not above the
@@ -1742,6 +1781,13 @@ export default function App({
         filters: choice?.filters ?? NO_FILTERS,
         onThreatChange: (threat) => store({ threat }),
         onFiltersChange: (filters) => store({ filters }),
+        // Whether a click chooses a squad, the reason when not, and the squad characters this browser may show
+        chooseBlock: breakdownChooseBlock(team),
+        squadCharacters:
+          hiddenSquads && team !== mySide
+            ? []
+            : (hiddenSquads ? ownSquad : setup.squads[team]).characters,
+        onChoose: (places) => handleBreakdownChoose(team, places),
       }
     } else if (rosterPopupTab === 'breakdown') {
       const cards = rosterTabs(parsedRosters[team])
