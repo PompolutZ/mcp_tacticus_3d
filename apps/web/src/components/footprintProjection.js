@@ -12,9 +12,8 @@ import * as THREE from 'three'
 // (only the selected token has one), and two drags: 11 at most (decisions 11, 18, 20)
 const MAX_FOOTPRINTS = 12
 // Colors shared by every user of a slot
-// FOOTPRINT_COLOR: a dragged piece (DragFootprint.jsx). FOOTPRINT_TOOL: a tool with no target.
+// FOOTPRINT_COLOR: light grey, a dragged piece (DragFootprint.jsx) and a tool with no target.
 export const FOOTPRINT_COLOR = '#c8c8c8'
-export const FOOTPRINT_TOOL = '#3f7fd6'
 export const FOOTPRINT_TOUCH = '#2ee06a'
 export const FOOTPRINT_APART = '#e5484d'
 // Surfaces with a world normal Y below this are walls and are not painted (about 60° slope)

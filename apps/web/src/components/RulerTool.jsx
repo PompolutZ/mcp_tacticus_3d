@@ -8,7 +8,7 @@ import { baseGroundY, upright } from './CharacterModel.jsx'
 import {
   acquireFootprint,
   FOOTPRINT_APART,
-  FOOTPRINT_TOOL,
+  FOOTPRINT_COLOR,
   FOOTPRINT_TOUCH,
 } from './footprintProjection.js'
 import { castDown } from '../physics.js'
@@ -516,7 +516,7 @@ function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target
 
     // Set colors here, not through React state, because contact changes every frame during a drag
     const center = selected && target?.getCenter()
-    let fill = FOOTPRINT_TOOL
+    let fill = FOOTPRINT_COLOR
     if (center) {
       const reached =
         rangeFrom && !sameModel(rangeFrom, target)
@@ -524,7 +524,7 @@ function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target
           : footprintGap(shape, halfLength, halfWidth, center, target.radius) <= CONTACT_EPS
       fill = reached ? FOOTPRINT_TOUCH : FOOTPRINT_APART
     }
-    const line = center ? fill : selected ? '#ffffff' : FOOTPRINT_TOOL
+    const line = center ? fill : selected ? '#ffffff' : FOOTPRINT_COLOR
     slotRef.current.set(shape, halfLength, halfWidth, fill, selected ? 0.35 : 0.2, line)
   })
 
@@ -612,9 +612,9 @@ export function DeployRangeTool({ getBody, centerZ, yaw, team, hoverHeight = 1 }
         shape,
         RANGE_TIP[3],
         RANGE_HALF_WIDTH,
-        FOOTPRINT_TOOL,
+        FOOTPRINT_COLOR,
         0.25,
-        FOOTPRINT_TOOL,
+        FOOTPRINT_COLOR,
       )
     }
   })

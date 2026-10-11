@@ -182,7 +182,7 @@ Done.
 - `footprintProjection.js`: `FOOTPRINT_COLOR` is `#c8c8c8`. Its only user is `DragFootprint.jsx` (a dragged piece). The green and red stay.
 - Docs: `key-shortcuts.md` (L row), `README.md` (Terrain lock: labels on at start, the text, the hover label, the grey footprint).
 - Checks: build, format, lint (44 warning lines, as before), test 380 pass (378 before).
-- Differs from the plan: `RulerTool.jsx` also used `FOOTPRINT_COLOR` for a tool with no target (blue). It would have turned grey, and the plan keeps the tool look. So a new `FOOTPRINT_TOOL` `#3f7fd6` holds the old blue for tools. Not run in a browser (project rule).
+- Differs from the plan: `RulerTool.jsx` also used `FOOTPRINT_COLOR` for a tool with no target (blue). It would have turned grey, and the plan keeps the tool look. So a new `FOOTPRINT_TOOL` `#3f7fd6` holds the old blue for tools. Not run in a browser (project rule). The user's answer (neutral light grey instead of blue) covers the tool footprint too, so commit A made it grey and removed `FOOTPRINT_TOOL`.
 
 ## Step 5: Dice tray clicks and keys
 
