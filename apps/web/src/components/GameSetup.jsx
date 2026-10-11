@@ -2,7 +2,8 @@ import { useMemo } from 'react'
 import { Html } from '@react-three/drei'
 import { TABLE_WIDTH } from '../table.js'
 import { BOARD_HALF_WIDTH, BOARD_X } from '../scoreboard/board.js'
-import { parseRosterText, rosterCard, squadThreat } from '../rosters/cards.js'
+import { DEFAULT_AFFILIATION, affiliationName } from '../scoreboard/affiliations.js'
+import { parseRosterText, rosterCard, squadAffiliationKeys, squadThreat } from '../rosters/cards.js'
 import { CRISIS_GAP_X, USE_BUTTON_X, crisisCenterZ, crisisRowLayout } from '../rosters/layout.js'
 import {
   CRISIS_TYPES,
@@ -118,7 +119,7 @@ function DeckButtons({ team, parsed, onChoose }) {
 
 // The panel next to the scoring board: what to do in this step, the buttons of the steps that are not about one
 // card, and Restart. The app does not know who won the roll off or who clicks, so the text names the player.
-function BoardPanel({ setup, step, parsed, actions }) {
+function BoardPanel({ setup, step, parsed, mySide, actions }) {
   const winner = setup.deck?.team
   const other = winner && otherTeam(winner)
   const first = setup.deck?.type
@@ -126,6 +127,7 @@ function BoardPanel({ setup, step, parsed, actions }) {
   let hint = null
   let note = null
   let controls = null
+  let teamRows = null
   if (step === 'deck' && (!parsed.blue || !parsed.red)) {
     hint = 'Load both rosters to set up the game.'
   } else if (step === 'deck') {
@@ -184,6 +186,39 @@ function BoardPanel({ setup, step, parsed, actions }) {
     const placed = placedSides(setup)
     const waiting = TEAMS.find((team) => !placed[team])
     hint = `Waiting for the ${PLAYER[waiting]} player to reveal their squad.`
+  } else if (step === 'affiliation') {
+    hint = 'Choose the affiliation of your squad.'
+    // One row for each team: the affiliations that more than half of the squad have, then Unaffiliated
+    teamRows = TEAMS.map((team) => {
+      const keys = parsed[team]
+        ? [
+            ...squadAffiliationKeys(parsed[team], setup.squads[team].characters),
+            DEFAULT_AFFILIATION,
+          ]
+        : [DEFAULT_AFFILIATION]
+      const locked = Boolean(mySide) && mySide !== team
+      return (
+        <div key={team} className="setup-row">
+          <span className="setup-note">{PLAYER[team]}</span>
+          {keys.map((key) => {
+            const on = setup.affiliation?.[team] === key
+            return (
+              <button
+                key={key}
+                type="button"
+                className={`chip chip--player-${team}${on ? ' setup-toggle--on' : ''}`}
+                aria-pressed={on}
+                disabled={locked}
+                title={locked ? `The ${PLAYER[team]} player chooses` : undefined}
+                onClick={() => actions.affiliation(team, key)}
+              >
+                {affiliationName(key)}
+              </button>
+            )
+          })}
+        </div>
+      )
+    })
   }
   const status = [
     winner && `${PLAYER[winner]} player has Priority`,
@@ -196,6 +231,7 @@ function BoardPanel({ setup, step, parsed, actions }) {
       <div className="setup-panel">
         <div className="setup-hint">{hint}</div>
         {note && <div className="setup-note">{note}</div>}
+        {teamRows}
         {controls && <div className="setup-row">{controls}</div>}
         {(status || step !== 'deck') && (
           <div className="setup-row">
@@ -301,7 +337,8 @@ function SquadPanel({ team, setup, parsed, selecting, own, actions }) {
 // setup: see setup/setup.js. rosters: { blue, red } → null | { code }. squadSelect: { blue, red } → the
 // player is choosing squad cards. mySide: the team of the player in a multiplayer room, or null when one
 // person plays both teams. Only that team's squad panel has buttons. actions: { deck(team, type), pick(code),
-// threat(value), turnMat(direction), edge(), squadSelect(team), ready(team), restart() }, see App.jsx.
+// threat(value), turnMat(direction), edge(), squadSelect(team), ready(team),
+// affiliation(team, key), restart() }, see App.jsx.
 // onRosterOpen({ team, tab, index }): a click on a crisis card.
 export default function GameSetup({ setup, rosters, squadSelect, mySide, actions, onRosterOpen }) {
   const parsed = useMemo(
@@ -332,7 +369,7 @@ export default function GameSetup({ setup, rosters, squadSelect, mySide, actions
               <DeckButtons key={team} team={team} parsed={parsed} onChoose={actions.deck} />
             ),
         )}
-      <BoardPanel setup={setup} step={step} parsed={parsed} actions={actions} />
+      <BoardPanel setup={setup} step={step} parsed={parsed} mySide={mySide} actions={actions} />
       {step === 'squads' &&
         TEAMS.map((team) => (
           <SquadPanel

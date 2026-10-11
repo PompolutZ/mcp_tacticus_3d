@@ -173,7 +173,7 @@ What exists (see `scripts/README.md`, section "TTS crisis cards"):
 - `src/crisis/jarvis-crisis-cards.json`: official names, card text, setup map letter, `payToFlip`, legality.
 - Positions are TTS x and z in inches from the mat center. `Terrain.jsx` converts them to Three.js with `z` → `-z`.
 
-The Control marker is the affiliation token that the player chose in the toolbar (`src/assets/affiliations/`, see "Scoring board"), on top of the token. The app also draws a ring in the player color around the token, because both players can choose the same affiliation. With both markers on a token, they are smaller and lie side by side. The damage marker uses the mod's "1 Damage" token image, migrated by `migrate-crisis.mjs` to `src/assets/crisis/markers/damage.webp`. Character damage tokens will need the same image later.
+The Control marker is the affiliation token that the player's squad has from the game setup (`src/assets/affiliations/`, see "Scoring board"), on top of the token. The app also draws a ring in the player color around the token, because both players can choose the same affiliation. With both markers on a token, they are smaller and lie side by side. The damage marker uses the mod's "1 Damage" token image, migrated by `migrate-crisis.mjs` to `src/assets/crisis/markers/damage.webp`. Character damage tokens will need the same image later.
 
 ## Scoring board
 
@@ -191,7 +191,7 @@ The board comes from the TTS mod. These facts were found in the mod on 2026-09-2
 The app has the board since 2026-10-03 (`src/components/ScoreBoard.jsx`, `src/scoreboard/board.js`, files from `scripts/migrate-scoreboard.mjs`):
 
 - The board is at its TTS position, with z → -z. The VP 1 spot is on the blue side (+z). A card lies at each end of the board.
-- Each player has a VP marker. **VP** in the toolbar chooses the affiliation token it shows, for each player. The markers start next to the board, where the mod puts them.
+- Each player has a VP marker. The token it shows comes from the game setup, for each player (`docs/feature-setup-game.md`, "Affiliation"). The toolbar has no VP group. The markers start next to the board, where the mod puts them.
 - The round marker starts on round 1.
 - Players drag a marker with the left button. A marker released less than 1" from a spot moves onto it, as on a TTS snap point. A marker released elsewhere stays there.
 - When both VP markers are on the same spot, the marker that was dropped last lies on top. Both edges show, so both colors can be seen.

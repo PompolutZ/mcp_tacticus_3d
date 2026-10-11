@@ -1,6 +1,6 @@
 # Feature: Setup game
 
-Status: done on 2026-10-07. Not checked in a browser. The VP marker affiliation is not built yet (see [Not built yet](#not-built-yet)).
+Status: done on 2026-10-07. Not checked in a browser. The squad affiliation is built (2026-10-11). Leadership is not (see [Not built yet](#not-built-yet)).
 
 ## Goal
 
@@ -19,6 +19,7 @@ The app does not know who wins a roll off or who clicks a button. So it does not
 | Maximum Threat | The player without Priority chooses which card's threat the mission uses | **Secure · 17** or **Extract · 18** on the panel next to the scoring board |
 | Deployment edge | The player with Priority chooses a battlefield edge | **↺ Select board edge ↻** on the panel. The arrows turn the mat 90°. **Select board edge** puts the two crisis cards on the board ends and their tokens on the mat. In a multiplayer room, the toolbar has no ↺ ↻, so this step is the only mat turn. After it, the mat turn stays fixed until **Restart setup** |
 | Squads | Each player chooses characters with a total threat up to the Maximum Threat, and up to 5 Team Tactic cards | **Select squad**, then a click on a roster card adds it or removes it. Then **Ready**. When both players are Ready, the squads are revealed and go on the table. In a multiplayer room, each player's squad stays hidden until then (see [Squads](#squads)) |
+| Affiliation | A squad uses an affiliation when more than half of its characters have it (p11) | The app sets it with no click when the squad has 0 or 1 such affiliation. With 2 or 3, the panel shows the step. See [Affiliation](#affiliation) |
 
 The app checks only one rule: **Ready** does not work when the squad threat is above the Maximum Threat. The squad threat is the Threat Levels of the characters plus the threat of each attached Infinity Gem: 1, and 0 for Bonded Soul (from Jarvis). A squad with less threat is fine. The app does not check the Team Tactic count, alter egos (p11) or affiliations. The panel shows the Team Tactic count in red above 5.
 
@@ -108,6 +109,20 @@ z = 12.55   Use          [drawn 1]
 - A restart removes what the setup put on the table: the characters (trays and models) and the Team Tactic cards of the squads, and the two crisis cards of the mission with their tokens. Changed on 2026-10-07: before, all of it stayed on the table.
 - A restart keeps the rest: characters and cards that players added from the Library, a crisis card that a player changed in the toolbar after **Select board edge**, the mat turn and the score. A character or a Team Tactic card that was on the table before the squads is not added again, so it is not removed either.
 
+## Affiliation
+
+Rule p11: a squad uses an affiliation when more than half of its characters have it. Exactly half is not enough. A squad has only one affiliation.
+
+- When a squad goes on the table, the app counts the affiliations of its characters (from Jarvis, `squadAffiliations` in `src/scoreboard/affiliations.js`). With none, the squad is Unaffiliated. With one, that is the affiliation. In both cases the app sets it with no click.
+- With 2 or 3, the step `affiliation` opens after both squads are on the table. The panel says "Choose the affiliation of your squad." and has a row of chips for each player: those affiliations and Unaffiliated. A click chooses it.
+- A row that the app set can also change while the step is open.
+- In a multiplayer room, each player clicks only their own row. The other row is disabled. After the reveal, both squads are in the document, so both rows show their choices.
+- A choice writes `setup.affiliation` and `game.affiliations` together. The VP marker and the Control markers show the token.
+- The setup is done when both sides have an affiliation. When both squads had no choice, the step does not open.
+- **Restart setup** clears `setup.affiliation`. The VP markers keep their token until the next squads choose.
+- A setup saved before this change has no `affiliation` field. It stays done.
+- Jarvis `uncanny-x-men` is the token `uncanny-xmen`.
+
 ## State
 
 `App.jsx` has a new object, `setup` (`src/setup/setup.js`):
@@ -123,6 +138,7 @@ setup: {
   squads: { blue: { characters: [place], tactics: [place] }, red: … },
   ready: { blue: false, red: false },   // the Ready toggles. Both true: the squads are revealed and put on the table
   placed: { blue: null | { characters: [id], tactics: [id] }, red: … },   // what each squad put on the table
+  affiliation: { blue: null | key, red: null | key },   // the token key of each squad, null until set
 }
 ```
 
@@ -131,7 +147,7 @@ setup: {
 - The random draws are in the state. So in a later peer-to-peer game, both players see the same cards (see `docs/feature-peer-to-peer.md`).
 - All fields are plain JSON. A room saves `setup` with its table (`rooms/table.js`). A setup saved with the old `placed` shape `{ characters, tactics }` is read by `placedSides` as the cards of Blue. When both players are Ready, such a setup stays done.
 - `placed` has the ids of the new characters and Team Tactic cards of each side. The reveal makes them before it changes the state, because React can call a state updater twice, and the ids must be the same in `placed` and on the table. Each browser writes only the sides it plays. A setup saved with the old shape `{ characters, tactics }` reads as the cards of Blue (`placedSides`).
-- `setupStep` has a step `reveal`: both players are Ready, but a side is not placed yet.
+- `setupStep` has a step `reveal`: both players are Ready, but a side is not placed yet. The step `affiliation` comes after it, while a side has no affiliation.
 - In a multiplayer room, `setup.squads` stays empty until the reveal.
 - `squadSelect: { blue, red }` in `App.jsx` says which player is choosing squad cards. It is not saved.
 
@@ -139,17 +155,18 @@ setup: {
 
 | File | Content |
 |---|---|
-| `src/setup/setup.js` | `NEW_SETUP`, `newSetup`, `setupStep`, the step changes (`chooseDeck`, `pickCard`, `chooseThreat`, `chooseEdge`, `toggleSquadCard`, `toggleReady`, `placeSquad`), `placedSides`, `revealPlan`, `crisisRows`. No imports, so a Node script can check it |
+| `src/setup/setup.js` | `NEW_SETUP`, `newSetup`, `setupStep`, the step changes (`chooseDeck`, `pickCard`, `chooseThreat`, `chooseEdge`, `toggleSquadCard`, `toggleReady`, `placeSquad`, `chooseAffiliation`), `placedSides`, `revealPlan`, `crisisRows`. No imports, so a Node script can check it |
 | `src/components/GameSetup.jsx` | The crisis rows and all setup buttons |
 | `src/rosters/layout.js` | `crisisRowLayout`, `crisisCenterZ`, `CRISIS_GAP_X`. Row 2 of the roster has only the Team Tactic cards now |
-| `src/rosters/cards.js` | `threat` and `key` of each card, `squadThreat` |
+| `src/rosters/cards.js` | `threat` and `key` of each card, `squadThreat`, `squadAffiliationKeys` |
+| `src/scoreboard/affiliations.js` | `affiliationKey`, `squadAffiliations`, `autoAffiliation` |
 | `src/components/RosterCards.jsx` | The squad frame. `RosterCard` is exported for the crisis rows |
 | `src/rooms/store.js` | `readSquad`, `saveSquad`, `deleteSquad`, `listSquadCodes`: the stored squad of a multiplayer room |
 | `src/App.jsx` | The setup handlers, the reveal effect, `buildMatTokens(card, turned)`, `newCharacter` |
 
 ## Not built yet
 
-- The VP marker affiliation from the squad. See the notes below.
+- Leadership (p7): the app does not check it.
 - Leadership choice. The Infinity Gem cards are built: they show on the tray of their character (see `docs/characters-hud.md`, "Attached cards").
 - Hidden squads are built for multiplayer rooms only (2026-10-09). In a single player room and the Sandbox, one person plays both sides, so both squads are in the document.
 - The Priority token on the scoring board.
@@ -160,7 +177,7 @@ setup: {
 From 2026-10-07:
 
 - Players choose their squad from the loaded roster. The roster cards show until then.
-- The toolbar has no VP marker picker. Load roster removes it, and the VP markers show the Unaffiliated token until this feature. The app then finds the token of each VP marker from the squad: from the leaders in it and the characters with the same affiliation.
+- The toolbar has no VP marker picker. Load roster removed it, and the VP markers showed the Unaffiliated token until the Affiliation step (2026-10-11). The app finds the token of each VP marker from the characters of the squad: an affiliation that more than half of them have (p11). It does not use leaders (p7).
 - Most rosters have one possible affiliation. Many have 2, and a few have 3.
 
 Later on 2026-10-07, the user described the setup flow that is built now (see [What the app does](#what-the-app-does)):

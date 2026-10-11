@@ -1,6 +1,6 @@
 // Find an MCT code in the Jarvis data: kind, name, image files or null, model or not.
 // See docs/feature-roster.md, "Data" and "Cards without files".
-import { CHARACTERS } from '../characters/characters.js'
+import { CHARACTERS, characterByCode } from '../characters/characters.js'
 import { characterCard, transformCard } from '../characters/files.js'
 import tacticsData from '../tactics/jarvis-tactics-cards.json'
 import tacticFiles from '../tactics/cards.json'
@@ -9,6 +9,7 @@ import jarvisCharacters from '../characters/jarvis-characters.json'
 import crisisData from '../crisis/jarvis-crisis-cards.json'
 import crisisFiles from '../crisis/cards.json'
 import { crisisCardFace } from '../crisis/files.js'
+import { squadAffiliations } from '../scoreboard/affiliations.js'
 import { jarvisValidatorCode, parseRoster } from './mct.js'
 
 // Gem code -> threat, from bearableGemsWithName of the Jarvis character rows. The first value of a code wins.
@@ -153,6 +154,14 @@ export function squadThreat(parsed, places) {
     const gems = (ch?.gems ?? []).reduce((g, code) => g + (cards.get(code)?.threat ?? 0), 0)
     return sum + (cards.get(ch?.code)?.threat ?? 0) + gems
   }, 0)
+}
+
+// The affiliation token keys that a squad can use (more than half of its characters, rule p11), sorted by
+// name. places: as in squadThreat.
+export function squadAffiliationKeys(parsed, places) {
+  return squadAffiliations(
+    places.map((place) => characterByCode(parsed.characters[place]?.code)?.affiliations ?? []),
+  )
 }
 
 // The message for the codes of a roster text that the app does not know, for example

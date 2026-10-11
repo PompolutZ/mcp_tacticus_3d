@@ -1281,9 +1281,10 @@ export default function Scene({
         <TacticTray team="blue" />
         <TacticTray team="red" />
         {/* The loaded rosters, in the area of the character trays (docs/feature-roster.md), until the squads
-            go on the table. Locked cards, no physics body, so a tool or a model passes over them. The
-            crisis cards of the rosters and the setup buttons are in GameSetup. */}
-        {setupStep(setup) !== 'done' &&
+            go on the table (the steps before 'affiliation'). Locked cards, no physics body, so a tool or a
+            model passes over them. The crisis cards of the rosters and the setup buttons are in
+            GameSetup. */}
+        {!['affiliation', 'done'].includes(setupStep(setup)) &&
           ['blue', 'red'].map(
             (team) =>
               rosters[team] && (

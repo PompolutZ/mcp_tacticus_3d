@@ -22,6 +22,9 @@ const NO_SQUAD = { characters: [], tactics: [] }
 // Ready, each squad is revealed and goes on the table (revealPlan). placed: per team, the ids of the
 // characters and Team Tactic cards that the squad put on the table, or null before. A restart removes them.
 // A setup saved before the reveal has placed: { characters, tactics } for both teams (placedSides).
+// affiliation: per team, the affiliation token key of the squad for the scoring board, or null before the
+// squad is placed or while the player still chooses (scoreboard/affiliations.js). A setup saved before
+// the affiliation step has no affiliation field.
 export const NEW_SETUP = {
   id: null,
   deck: null,
@@ -32,6 +35,7 @@ export const NEW_SETUP = {
   squads: { blue: NO_SQUAD, red: NO_SQUAD },
   ready: { blue: false, red: false },
   placed: { blue: null, red: null },
+  affiliation: { blue: null, red: null },
 }
 
 // A new setup. The id is random, so it is made here and not in NEW_SETUP.
@@ -56,8 +60,10 @@ export function placedSides(setup) {
 // drawn cards. 'second': the winner uses 1 of the 2 cards drawn from the other deck of the other player.
 // 'threat': the other player chooses the Maximum Threat. 'edge': the winner turns the mat and chooses the
 // deployment edge. 'squads': each player chooses a squad and clicks Ready. 'reveal': both players are
-// Ready, but a squad is not on the table yet, for example while the other player's page is closed. 'done':
-// both squads are on the table.
+// Ready, but a squad is not on the table yet, for example while the other player's page is closed.
+// 'affiliation': both squads are on the table, but a side has no affiliation yet. 'done': both squads are
+// on the table and have an affiliation (a setup with no affiliation field is done as soon as both are on
+// the table).
 export function setupStep(setup) {
   if (!setup.deck) return 'deck'
   const first = setup.deck.type
@@ -67,7 +73,9 @@ export function setupStep(setup) {
   if (!setup.edge) return 'edge'
   if (!setup.ready.blue || !setup.ready.red) return 'squads'
   const placed = placedSides(setup)
-  return placed.blue && placed.red ? 'done' : 'reveal'
+  if (!placed.blue || !placed.red) return 'reveal'
+  if (setup.affiliation && TEAMS.some((team) => !setup.affiliation[team])) return 'affiliation'
+  return 'done'
 }
 
 // The sides that this browser reveals now. Both players are Ready, and the side is not placed yet. sides:
@@ -155,12 +163,21 @@ export function toggleReady(setup, team) {
 }
 
 // The squad of `side` is revealed and on the table: it goes into the setup, with `placed`, the ids of what
-// it put on the table: { characters, tactics }.
-export function placeSquad(setup, side, squad, placed) {
+// it put on the table: { characters, tactics }. affiliation: the token key that the app set, or null.
+export function placeSquad(setup, side, squad, placed, affiliation = null) {
   return {
     ...setup,
     squads: { ...setup.squads, [side]: squad },
     placed: { ...placedSides(setup), [side]: placed },
+    affiliation: { ...(setup.affiliation ?? NEW_SETUP.affiliation), [side]: affiliation },
+  }
+}
+
+// The player of `side` chose the affiliation of the squad
+export function chooseAffiliation(setup, side, key) {
+  return {
+    ...setup,
+    affiliation: { ...(setup.affiliation ?? NEW_SETUP.affiliation), [side]: key },
   }
 }
 
@@ -198,7 +215,7 @@ export function crisisRows(setup, parsed) {
         : [],
     )
   }
-  if (step === 'squads' || step === 'reveal' || step === 'done') return []
+  if (step === 'squads' || step === 'reveal' || step === 'affiliation' || step === 'done') return []
   const { team: winner, type: first } = setup.deck
   const other = otherTeam(winner)
   const second = otherType(first)

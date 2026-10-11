@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   NEW_SETUP,
+  chooseAffiliation,
   newSetup,
   placeSquad,
   placedIds,
@@ -35,12 +36,14 @@ test('setupStep: squads, reveal and done', () => {
   assert.equal(setupStep(squadsSetup(bothReady)), 'reveal')
   const oneSide = placeSquad(squadsSetup(bothReady), 'blue', squad, cards)
   assert.equal(setupStep(oneSide), 'reveal')
-  const both = placeSquad(oneSide, 'red', squad, { characters: [], tactics: [] })
-  assert.equal(setupStep(both), 'done')
+  const both = placeSquad(oneSide, 'red', squad, { characters: [], tactics: [] }, 'unaffiliated')
+  assert.equal(setupStep(both), 'affiliation')
+  assert.equal(setupStep(chooseAffiliation(both, 'blue', 'asgard')), 'done')
 })
 
 test('the old placed shape reads as Blue, and a done setup stays done', () => {
   const old = squadsSetup({ ...bothReady, placed: cards })
+  delete old.affiliation
   assert.deepEqual(placedSides(old), { blue: cards, red: { characters: [], tactics: [] } })
   assert.equal(setupStep(old), 'done')
   assert.deepEqual(placedIds(old), cards)
@@ -112,4 +115,42 @@ test('revealPlan: an old setup without an id matches a stored squad without one'
   const setup = { ...squadsSetup(bothReady), id: undefined }
   const plan = revealPlan(setup, ['blue'], { blue: { setupId: null, squad } })
   assert.equal(plan.reveal.length, 1)
+})
+
+test('newSetup has no affiliation', () => {
+  assert.deepEqual(newSetup().affiliation, { blue: null, red: null })
+})
+
+test('step affiliation while a side has none, done when both have one', () => {
+  const none = { characters: [], tactics: [] }
+  const base = placeSquad(
+    placeSquad(squadsSetup(bothReady), 'blue', squad, none, 'asgard'),
+    'red',
+    squad,
+    none,
+  )
+  assert.equal(setupStep(base), 'affiliation')
+  assert.equal(setupStep(chooseAffiliation(base, 'red', 'unaffiliated')), 'done')
+})
+
+test('a setup with no affiliation field stays done', () => {
+  const old = squadsSetup({ ...bothReady, placed: cards })
+  delete old.affiliation
+  assert.equal(setupStep(old), 'done')
+})
+
+test('placeSquad writes the affiliation of one side only', () => {
+  const next = placeSquad(squadsSetup(bothReady), 'red', squad, cards, 'avengers')
+  assert.deepEqual(next.affiliation, { blue: null, red: 'avengers' })
+})
+
+test('chooseAffiliation changes one side', () => {
+  const next = chooseAffiliation(squadsSetup(), 'blue', 'asgard')
+  assert.deepEqual(next.affiliation, { blue: 'asgard', red: null })
+  const old = squadsSetup()
+  delete old.affiliation
+  assert.deepEqual(chooseAffiliation(old, 'red', 'asgard').affiliation, {
+    blue: null,
+    red: 'asgard',
+  })
 })

@@ -33,6 +33,7 @@ import { characterOnBoard, modelCharacterId, secondModelId } from './characters/
 import { powerAfterPhase } from './characters/power.js'
 import { cleanupBlockers, cleanupCharacter } from './characters/cleanup.js'
 import { cleanupCrisisTokens } from './crisis/cleanup.js'
+import { DEFAULT_AFFILIATION, autoAffiliation } from './scoreboard/affiliations.js'
 import { ROUND_POINTS, nextRoundSpot } from './scoreboard/board.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { CLEANUP_KEYS, getToken, isCappedToken } from './tokens/tokens.js'
@@ -43,12 +44,14 @@ import {
   parseRosterText,
   rosterCard,
   rosterTabs,
+  squadAffiliationKeys,
   squadThreat,
   unknownCodesMessage,
 } from './rosters/cards.js'
 import {
   CRISIS_TYPES,
   TEAMS,
+  chooseAffiliation,
   chooseDeck,
   chooseEdge,
   chooseThreat,
@@ -328,6 +331,7 @@ export default function App({
     hiddenSquads ? readSquad(userId, room.id) : null,
   )
   // The squad of the own side, and the setup as this player sees it: the other player's squad is empty
+  // until it is placed. After the reveal it is in the document, and the affiliation step needs it.
   const ownSquad =
     storedSquad && storedSquad.setupId === (setup.id ?? null)
       ? storedSquad.squad
@@ -337,14 +341,20 @@ export default function App({
       hiddenSquads
         ? {
             ...setup,
-            squads: { [mySide]: ownSquad, [otherTeam(mySide)]: EMPTY_SQUAD },
+            squads: {
+              [mySide]: ownSquad,
+              [otherTeam(mySide)]: placedSides(setup)[otherTeam(mySide)]
+                ? setup.squads[otherTeam(mySide)]
+                : EMPTY_SQUAD,
+            },
           }
         : setup,
     [hiddenSquads, setup, mySide, ownSquad],
   )
   // Affiliation token that each player's VP marker shows: { blue, red } → key in scoreboard/affiliations.json.
-  // No toolbar control: Setup game sets it (see docs/feature-setup-game.md).
-  const [affiliations] = useYField(table.game, 'affiliations')
+  // No toolbar control: the game setup sets it, when a squad is placed and at the step affiliation (see
+  // docs/feature-setup-game.md).
+  const [affiliations, setAffiliations] = useYField(table.game, 'affiliations')
   // Selected pieces and tools, see selection.js. One character, one token, the range tool, the
   // movement tool and the Toward / Away tool can all be selected at the same time.
   const [selection, setSelection] = useState(NO_PIECES)
@@ -1284,7 +1294,9 @@ export default function App({
   // the Team Tactic cards go into the tactic tray. A character or a Team Tactic card that the player already
   // has on the table is not added again. One transaction: the squad, the cards and `placed`. The new
   // characters and cards are made before it, outside the state updaters, because the setup stores their ids
-  // for a restart, and React can call an updater twice. Reads the document, not React state.
+  // for a restart, and React can call an updater twice. When the squad has no affiliation to choose
+  // (autoAffiliation), the same transaction sets it in the setup and in game.affiliations. Reads the
+  // document, not React state.
   function revealSquad(side, squad) {
     const parsed = parseRosterText(table.rosters.read()[side]?.code ?? '')
     const newCharacters = []
@@ -1307,16 +1319,38 @@ export default function App({
       newCards.push({ id: crypto.randomUUID(), key, team: side, x: slot.x, z: slot.z, up: 'face' })
     }
     const newPiles = makeCardPiles(newCards)
+    const auto = autoAffiliation(squadAffiliationKeys(parsed, squad.characters))
     table.transact(() => {
       setCharacters((prev) => [...prev, ...newCharacters])
       setTacticCards((prev) => [...prev, ...newCards])
       setTokenPiles((prev) => [...prev, ...newPiles])
       setSetup((prev) =>
-        placeSquad(prev, side, squad, {
-          characters: newCharacters.map((ch) => ch.id),
-          tactics: newCards.map((card) => card.id),
-        }),
+        placeSquad(
+          prev,
+          side,
+          squad,
+          {
+            characters: newCharacters.map((ch) => ch.id),
+            tactics: newCards.map((card) => card.id),
+          },
+          auto,
+        ),
       )
+      if (auto) setAffiliations((prev) => ({ ...prev, [side]: auto }))
+    })
+  }
+
+  // The player of `side` chooses the affiliation of the squad at the step affiliation: the setup and the
+  // VP marker, in one transaction. In a multiplayer room, only the own side.
+  function handleSetupAffiliation(side, key) {
+    if (setupStep(setup) !== 'affiliation') return
+    if (hiddenSquads && side !== mySide) return
+    const parsed = parsedRosters[side]
+    const choices = parsed ? squadAffiliationKeys(parsed, setup.squads[side].characters) : []
+    if (key !== DEFAULT_AFFILIATION && !choices.includes(key)) return
+    table.transact(() => {
+      setSetup((prev) => chooseAffiliation(prev, side, key))
+      setAffiliations((prev) => ({ ...prev, [side]: key }))
     })
   }
 
@@ -1355,6 +1389,7 @@ export default function App({
     edge: handleSetupEdge,
     squadSelect: handleSquadSelect,
     ready: handleSquadReady,
+    affiliation: handleSetupAffiliation,
     restart: handleSetupRestart,
   }
 

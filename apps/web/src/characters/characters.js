@@ -34,6 +34,8 @@ function rosterEntry(jch, m, mctCode) {
     staminaInjured: Number(jch.statCard.backSide.stamina) || 0,
     // Threat Level, for the squad threat in the game setup (see docs/feature-setup-game.md)
     threat: jch.threatLevel ?? 0,
+    // Jarvis affiliation slugs, for the squad affiliation in the game setup (scoreboard/affiliations.js)
+    affiliations: (jch.affiliations ?? []).map((a) => a.slug),
     // Token keys (tokens.json) from the mod's cToken, written by migrate-characters.mjs.
     // See docs/characters-hud.md, "Give tokens by drag and drop", and TrayControls.jsx.
     tokens: m?.tokens || [],
