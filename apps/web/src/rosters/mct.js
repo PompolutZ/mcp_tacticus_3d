@@ -1,7 +1,7 @@
 // Parse and format MCT roster codes. No imports, so that a Node script can load it.
 // See docs/feature-roster.md, "MCT code".
 
-// kind of a card: 'character' | 'tactic' | 'secure' | 'extract'
+// kind of a card: 'character' | 'tactic' | 'gem' | 'secure' | 'extract'. A gem is only valid behind a character.
 const GROUPS = ['tactics', 'secure', 'extract']
 const GROUP_OF_KIND = { tactic: 'tactics', secure: 'secure', extract: 'extract' }
 
@@ -16,7 +16,7 @@ export function parseRoster(text, kindOf) {
     if (kindOf(codes[0]) === 'character') {
       const gems = []
       for (const gem of codes.slice(1)) {
-        if (kindOf(gem) === 'tactic') gems.push(gem)
+        if (kindOf(gem) === 'gem') gems.push(gem)
         else parsed.unknown.push(gem)
       }
       parsed.characters.push({ code: codes[0], gems })

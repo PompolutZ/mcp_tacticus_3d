@@ -24,6 +24,7 @@ const crisisKeys = idToKey(crisisFiles)
 // variants: the cards that the roster popup can switch between for this character, [{ label, image, back }],
 // the character card first. null when the character has one card. Now only a second form with its own card
 // (see docs/characters-hud.md, "Second forms"). Later also the grunts of a host.
+// gem: true for an Infinity Gem (isInfinityGem in Jarvis). It has kind 'tactic' and the files of a Team Tactic card.
 // jarvisUrl: the page of the card on Jarvis, for the link in the roster popup. A character with a second
 // form has one page for both cards.
 const cards = new Map()
@@ -76,6 +77,7 @@ for (const row of tacticsData) {
     back: key ? tacticCardBack(key) : null,
     model: false,
     variants: null,
+    gem: Boolean(row.isInfinityGem),
     jarvisUrl: `${JARVIS}/team-tactics-cards/${row.slug}`,
   })
 }
@@ -98,8 +100,10 @@ for (const row of crisisData) {
   })
 }
 
+// The kind for the roster parser: a gem is not a Team Tactic card, so it stays out of the tactics group
 export function cardKind(code) {
-  return cards.get(code)?.kind ?? null
+  const info = cards.get(code)
+  return info?.gem ? 'gem' : (info?.kind ?? null)
 }
 
 export function rosterCard(code) {

@@ -87,6 +87,24 @@ Checks:
 
 ### Result
 
+Done on 2026-10-11. Not committed.
+
+- `migrate-tactics.mjs` (`loadTacticCards` in `scripts/lib/tts.mjs`) also takes the released rows with `type = tInf` (the constant is "Infinity Gem"). `--list` shows them. 7 gem rows are released. Only Soul and Mind have files in the TTS cache, and only they migrated (`infinity-gem-soul`, `infinity-gem-mind`). No other new card. Total: 75 of 400 cards.
+- Readers of `src/tactics/cards.json`: `src/tactics/cards.js` (`TACTICS`, used by the Library) and `src/rosters/cards.js`. The tactic tray, the squad choice and the roster tabs read the roster's `parsed.tactics`, not `cards.json`.
+  - `TACTICS` leaves out the codes with `isInfinityGem` in Jarvis.
+  - `rosters/cards.js`: each tactic entry has `gem` (`isInfinityGem`). `cardKind` gives `'gem'` for a gem, so the parser keeps a gem behind a character only, and a gem alone in the roster is an unknown code, not a Team Tactic card. The entry's own `kind` stays `'tactic'`.
+  - `mct.js` takes `'gem'` for the codes behind a character. `src/rosters/mct.test.js` is new.
+- `App.jsx`: `newCharacter(ch, teamColor, { attached })` sets `attached` only when the list is not empty. `revealSquad` passes `parsed.characters[place].gems`. `newCharacter` lives in `App.jsx`, so it has no test.
+- `scripts/README.md` has the gem rows.
+- Checks: `pnpm --filter web test` (284 pass), `pnpm --filter web build`, `pnpm format`. `pnpm lint` has 41 warnings, the same as before.
+
+For Phase 2:
+- Name of a gem: `rosterCard(code).name` (`rosters/cards.js`), for example "Infinity Gem: Soul". `RosterCards.jsx` already shows the line "+ Soul Gem" from it. Take the chip text from the same place.
+- Image URL: `rosterCard(code).image` is the face file name, `.back` the back (`tacticCardFace(key)` / `tacticCardBack(key)` from `tactics/files.js`). Both are null when the app has no image (gems other than Soul and Mind). `.key` is the key in `tactics/cards.json`.
+- `attached`: the field of a character entry, a list of MCT codes. Set in `newCharacter` (`App.jsx`) from `revealSquad`. Missing when there is no gem and in old documents.
+- A gem entry has `gem: true` in `rosterCard(code)`.
+- Comment in `RosterCards.jsx` above `GemLine` says "The app has no gem images". It is out of date. Fix it in Phase 2.
+
 ## Phase 2: Gem on the tray, docs
 
 Read: decisions 3 and 4. The **Result** of Phase 1. `components/TrayControls.jsx`, `components/CharacterTray.jsx`, `components/TrayPopup.jsx`, `components/CardPopup.jsx`, `App.jsx` (`openCard`, the HUD message), `components/RosterCards.jsx` (the gem line text), `index.css` (the tray styles).

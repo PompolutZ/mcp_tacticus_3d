@@ -378,7 +378,7 @@ pnpm --filter web fetch-jarvis-tactics
 
 # TTS tactic cards
 
-`migrate-tactics.mjs` copies the tactic cards (Team Tactic Cards, TTC) of the TTS mod to `src/assets/tactics/`. It converts the face and the back of each card. It writes the app data to `src/tactics/cards.json`, and the source URLs to `scripts/tactic-manifest.json`. `src/tactics/files.js` names the files after the keys.
+`migrate-tactics.mjs` copies the tactic cards (Team Tactic Cards, TTC) and the Infinity Gem cards of the TTS mod to `src/assets/tactics/`. It converts the face and the back of each card. It writes the app data to `src/tactics/cards.json`, and the source URLs to `scripts/tactic-manifest.json`. `src/tactics/files.js` names the files after the keys.
 
 Requirements: ImageMagick, and the images in the TTS cache. TTS downloads a card image only when the card is out of the "Tactic Cards" bag. On 2026-10-05, the cache had both images of 69 of the 389 released cards.
 
@@ -407,6 +407,7 @@ The script migrates every card that has its face and back in the TTS cache or al
 
 These rules were found on 2026-10-05 in the scripts of the "Database" object and Global.
 
+- The Infinity Gems are rows of `cardDatabase` with `type = tInf` and `released = true`. The script migrates them with the tactic cards: same card size, same files (`infinity-gem-soul-face.webp`), same `cards.json`. Their images are `S3_BASE.."infinity-gems/gems/INFINITY_GEM_<NAME>_{face,back}.png"`. On 2026-10-11, the TTS cache had the Soul and Mind cards. The app leaves the gems out of its Team Tactic lists with the Jarvis flag `isInfinityGem` (`src/tactics/cards.js`, `src/rosters/cards.js`).
 - The cards are the rows of `cardDatabase` with `type = tTac`. The script leaves out the 13 rows with `released = false`, for example the 6 Ultimate Infinity Gems and Mutant X.
 - `face` and `back` are one URL, or a list with one URL per printed version of the card (42 cards). `recSpawnCard()` in Global spawns the first version, and the "Tactic Cards" bag also has the first version. So the script uses the first version.
 - Every card has its own back image.

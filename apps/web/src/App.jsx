@@ -185,7 +185,8 @@ function supplyToken(card, x, z, id) {
 }
 
 // A new character on the table for `teamColor`. ch: a row of CHARACTERS (characters/characters.js).
-function newCharacter(ch, teamColor) {
+// attached: MCT codes of the cards attached to it (Infinity Gems from the roster). No field when empty.
+function newCharacter(ch, teamColor, { attached = [] } = {}) {
   return {
     id: crypto.randomUUID(),
     key: ch.slug,
@@ -203,6 +204,7 @@ function newCharacter(ch, teamColor) {
     power: 0,
     // Token key (tokens.json) -> count, see handleCharacterTokenGive.
     tokens: {},
+    ...(attached.length > 0 && { attached }),
   }
 }
 
@@ -1167,7 +1169,8 @@ export default function App({
       const there = [...onTable, ...newCharacters].some(
         (c) => c.key === ch?.slug && c.teamColor === side,
       )
-      if (ch?.available && !there) newCharacters.push(newCharacter(ch, side))
+      if (ch?.available && !there)
+        newCharacters.push(newCharacter(ch, side, { attached: parsed.characters[place].gems }))
     }
     for (const place of squad.tactics) {
       const key = rosterCard(parsed.tactics[place])?.key

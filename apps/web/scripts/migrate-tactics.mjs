@@ -1,4 +1,4 @@
-// Migrates the tactic cards (TTC) of the TTS mod to src/assets/tactics/: the face and the back of each card.
+// Migrates the tactic cards (TTC) and the Infinity Gem cards of the TTS mod to src/assets/tactics/: the face and the back of each card.
 // Writes the app data to src/tactics/cards.json, and the source URLs to scripts/tactic-manifest.json. See scripts/README.md.
 
 import fs from 'node:fs'

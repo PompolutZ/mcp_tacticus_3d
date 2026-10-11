@@ -71,14 +71,15 @@ export function loadCrisisDatabase() {
   }
 }
 
-// Rows of cardDatabase in "Database" with type "Tactic Card" (name, ID, tags, released, list, description, face, back).
+// Rows of cardDatabase in "Database" with type "Tactic Card" or "Infinity Gem" (name, ID, tags, released, list,
+// description, face, back). The gems have the same card size and files as the tactic cards.
 // face and back are one URL, or a list with one URL per printed version of the card.
 export function loadTacticCards() {
   const database = modScript('Database')
   const constants = readLuaConstants(database)
   const resolveName = (name) => (name in constants ? constants[name] : name)
   return readLuaAssignment(database, 'cardDatabase', { resolveName }).filter(
-    (c) => c.type === 'Tactic Card',
+    (c) => c.type === 'Tactic Card' || c.type === 'Infinity Gem',
   )
 }
 
