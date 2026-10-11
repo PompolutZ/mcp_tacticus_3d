@@ -63,7 +63,7 @@ The carousel shows only maps that the app has (`apps/web/src/terrain/maps.js`). 
 ## Room
 
 - The player is Blue, the same as before.
-- The map is the room map. The toolbar has no map picker. The mat turn buttons stay.
+- The map is the room map. The toolbar has no map picker. In a multiplayer room, the toolbar has no ↺ ↻. The player with Priority turns the mat in the setup step "edge". After that, the mat turn stays fixed. **Restart setup** brings the step back. Sandbox and single player rooms keep the ↺ ↻.
 - The rosters come from the room. The Roster group has only the Red field. It loads, replaces or removes the Red roster of the room. The field is empty when the room opens, also when the room has a Red roster.
 - A multiplayer room has no Roster group and no map picker. Each player gives their own roster when they create or join the room. The new room dialog with **Multiplayer** has only the roster of the host. The join page has the roster of the guest. Single player rooms keep both roster fields.
 - **← Lobby** at the start of the toolbar writes the room record and opens the lobby. The toolbar also shows the room code.
