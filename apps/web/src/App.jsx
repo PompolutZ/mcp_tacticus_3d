@@ -1149,22 +1149,6 @@ export default function App({
     const threats = possibleThreats(setup, parsedRosters, (code) => rosterCard(code)?.threat)
     return threats.length > 0 ? threats : CRISIS_THREATS
   }, [setup, parsedRosters])
-  // A choice of an old roster code, or of a value that left the list, is dropped: the first value applies
-  useEffect(() => {
-    setBreakdownChoice((prev) => {
-      const next = { ...prev }
-      for (const team of TEAMS) {
-        const choice = prev[team]
-        if (
-          choice &&
-          (choice.code !== rosters[team]?.code || !breakdownThreats.includes(choice.threat))
-        )
-          next[team] = null
-      }
-      return TEAMS.every((team) => next[team] === prev[team]) ? prev : next
-    })
-  }, [rosters, breakdownThreats])
-
   // True when nothing that the setup put on the table would be removed, or the player confirms. action:
   // the start of the question, for example 'Load this roster'.
   function confirmSetupRemoval(action) {
@@ -1734,20 +1718,30 @@ export default function App({
   if (openRoster && rosters[openRoster.team]) {
     const { team } = openRoster
     if (!placedSides(setup)[team]) {
-      const choice = breakdownChoice[team]
-      popupBreakdown = {
-        threats: breakdownThreats,
-        threat: choice?.threat ?? breakdownThreats[0],
-        filters: choice?.filters ?? NO_FILTERS,
-        onThreatChange: (threat) =>
-          setBreakdownChoice((prev) => ({
+      // A choice of another roster code counts as no choice. A threat that left the list shows the first
+      // value; the filters stay (docs/features/squad-breakdown.md, "State").
+      const stored = breakdownChoice[team]
+      const choice = stored && stored.code === rosters[team].code ? stored : null
+      const store = (change) =>
+        setBreakdownChoice((prev) => {
+          const prevChoice = prev[team]?.code === rosters[team].code ? prev[team] : null
+          return {
             ...prev,
             [team]: {
               code: rosters[team].code,
-              threat,
-              filters: prev[team]?.filters ?? NO_FILTERS,
+              threat: prevChoice?.threat ?? breakdownThreats[0],
+              filters: prevChoice?.filters ?? NO_FILTERS,
+              ...change,
             },
-          })),
+          }
+        })
+      popupBreakdown = {
+        threats: breakdownThreats,
+        threat:
+          choice && breakdownThreats.includes(choice.threat) ? choice.threat : breakdownThreats[0],
+        filters: choice?.filters ?? NO_FILTERS,
+        onThreatChange: (threat) => store({ threat }),
+        onFiltersChange: (filters) => store({ filters }),
       }
     } else if (rosterPopupTab === 'breakdown') {
       const cards = rosterTabs(parsedRosters[team])

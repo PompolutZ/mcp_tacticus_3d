@@ -1,21 +1,38 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { characterByCode } from '../characters/characters.js'
 import { rosterBreakdown } from '../rosters/cards.js'
-import { MAX_BREAKDOWN_CHARACTERS } from '../rosters/breakdown.js'
+import { MAX_BREAKDOWN_CHARACTERS, NO_FILTERS } from '../rosters/breakdown.js'
 import { affiliationName } from '../scoreboard/affiliations.js'
 import { CharacterPortrait } from './CharacterPortrait.jsx'
 
 // The Breakdown tab of the roster popup (RosterPopup.jsx): the squads that the roster can build for a threat
 // value, read only. See docs/features/squad-breakdown.md, "Breakdown tab".
-// parsed: the parsed roster. breakdown: { threats, threat, filters, onThreatChange }. threats: the values to
-// choose from. threat: the selected value. filters: as NO_FILTERS (breakdown.js).
+// parsed: the parsed roster. breakdown: { threats, threat, filters, onThreatChange, onFiltersChange }. threats:
+// the values to choose from. threat: the selected value. filters: as NO_FILTERS (breakdown.js).
+// onFiltersChange gets the whole new filters object.
 export function BreakdownTab({ parsed, breakdown }) {
-  const { threats, threat, filters, onThreatChange } = breakdown
+  const { threats, threat, filters, onThreatChange, onFiltersChange } = breakdown
+  const [filtersOpen, setFiltersOpen] = useState(false)
   // The combinations of every shown value, for the counts on the chips
   const byThreat = useMemo(
     () => new Map(threats.map((value) => [value, rosterBreakdown(parsed, value, filters)])),
     [parsed, threats, filters],
   )
+
+  // The affiliations of all combinations at the shown values, with no filter, for the Affiliation list
+  const affiliationKeys = useMemo(() => {
+    const keys = new Set()
+    if (parsed.characters.length <= MAX_BREAKDOWN_CHARACTERS) {
+      for (const value of threats) {
+        for (const row of rosterBreakdown(parsed, value, NO_FILTERS)) {
+          for (const a of row.affiliations) keys.add(a.key)
+        }
+      }
+    }
+    // The chosen affiliation stays in the list, also when no combination has it now
+    if (filters.affiliation && filters.affiliation !== '*') keys.add(filters.affiliation)
+    return [...keys].sort((a, b) => affiliationName(a).localeCompare(affiliationName(b)))
+  }, [parsed, threats, filters.affiliation])
 
   if (parsed.characters.length > MAX_BREAKDOWN_CHARACTERS) {
     return (
@@ -28,6 +45,85 @@ export function BreakdownTab({ parsed, breakdown }) {
   }
 
   const rows = byThreat.get(threat) ?? []
+  const filterCount = [
+    filters.must.length > 0,
+    filters.mustNot.length > 0,
+    filters.affiliation !== null,
+    filters.dual,
+    filters.leader,
+    filters.minSize !== null,
+    filters.maxSize !== null,
+  ].filter(Boolean).length
+  const setFilters = (change) => onFiltersChange({ ...filters, ...change })
+  // Put a place in one of the two rows, or take it out when it is there. It leaves the other row.
+  const toggleCharacter = (key, other, place) =>
+    setFilters({
+      [key]: filters[key].includes(place)
+        ? filters[key].filter((p) => p !== place)
+        : [...filters[key], place],
+      [other]: filters[other].filter((p) => p !== place),
+    })
+  // A min size above the max size moves the max size up, and the other way round
+  const setMin = (minSize) =>
+    setFilters({
+      minSize,
+      maxSize:
+        minSize !== null && filters.maxSize !== null && minSize > filters.maxSize
+          ? minSize
+          : filters.maxSize,
+    })
+  const setMax = (maxSize) =>
+    setFilters({
+      maxSize,
+      minSize:
+        maxSize !== null && filters.minSize !== null && maxSize < filters.minSize
+          ? maxSize
+          : filters.minSize,
+    })
+  const characterRow = (key, other, label) => (
+    <div className="breakdown-filter">
+      <span className="breakdown-filter-label">{label}</span>
+      <div className="breakdown-filter-chips">
+        {parsed.characters.map((ch, place) => {
+          const character = characterByCode(ch.code)
+          return (
+            <button
+              key={place}
+              type="button"
+              className={
+                filters[key].includes(place)
+                  ? 'chip breakdown-char-chip chip--active'
+                  : 'chip breakdown-char-chip'
+              }
+              aria-pressed={filters[key].includes(place)}
+              onClick={() => toggleCharacter(key, other, place)}
+            >
+              <CharacterPortrait character={character} className="breakdown-chip-portrait" />
+              {character?.name ?? ch.code}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+  const sizeRow = (label, values, selected, onSelect) => (
+    <div className="breakdown-filter">
+      <span className="breakdown-filter-label">{label}</span>
+      <div className="breakdown-filter-chips">
+        {values.map((value) => (
+          <button
+            key={value ?? 'any'}
+            type="button"
+            className={value === selected ? 'chip chip--active' : 'chip'}
+            aria-pressed={value === selected}
+            onClick={() => onSelect(value)}
+          >
+            {value ?? 'Any'}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
   return (
     <div className="breakdown">
       <div className="breakdown-threats">
@@ -44,9 +140,68 @@ export function BreakdownTab({ parsed, breakdown }) {
           </button>
         ))}
       </div>
+      <div>
+        <button
+          type="button"
+          className={filtersOpen ? 'chip chip--active' : 'chip'}
+          aria-expanded={filtersOpen}
+          onClick={() => setFiltersOpen(!filtersOpen)}
+        >
+          {filterCount > 0 ? `Filters (${filterCount})` : 'Filters'} {filtersOpen ? '▴' : '▾'}
+        </button>
+      </div>
+      {filtersOpen && (
+        <div className="breakdown-filters">
+          {characterRow('must', 'mustNot', 'Must have')}
+          {characterRow('mustNot', 'must', 'Must not have')}
+          <div className="breakdown-filter">
+            <span className="breakdown-filter-label">Affiliation</span>
+            <select
+              className="breakdown-select"
+              value={filters.affiliation ?? ''}
+              onChange={(e) => setFilters({ affiliation: e.target.value || null })}
+            >
+              <option value="">No filter</option>
+              <option value="*">Any affiliation</option>
+              {affiliationKeys.map((key) => (
+                <option key={key} value={key}>
+                  {affiliationName(key)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="breakdown-filter">
+            <label className="breakdown-check">
+              <input
+                type="checkbox"
+                checked={filters.dual}
+                onChange={(e) => setFilters({ dual: e.target.checked })}
+              />
+              At least 2 affiliations
+            </label>
+            <label className="breakdown-check">
+              <input
+                type="checkbox"
+                checked={filters.leader}
+                onChange={(e) => setFilters({ leader: e.target.checked })}
+              />
+              With a leader
+            </label>
+          </div>
+          {sizeRow('Min size', [null, 3, 4, 5, 6, 7], filters.minSize, setMin)}
+          {sizeRow('Max size', [3, 4, 5, 6, 7, null], filters.maxSize, setMax)}
+          <div>
+            <button type="button" className="chip" onClick={() => onFiltersChange(NO_FILTERS)}>
+              Clear filters
+            </button>
+          </div>
+        </div>
+      )}
       <p className="breakdown-line">
         {rows.length === 0
-          ? `No squad fits threat ${threat}.`
+          ? filterCount > 0
+            ? `No squad fits threat ${threat} with these filters.`
+            : `No squad fits threat ${threat}.`
           : `${rows.length} ${rows.length === 1 ? 'squad' : 'squads'}`}
       </p>
       <ul className="breakdown-list">

@@ -1,6 +1,6 @@
 # Plan: Squad breakdown
 
-Requested by the user on 2026-10-11. Plan 3 of `docs/plans/playtest-1.md`. Status: parts 1 and 2 done, parts 3 and 4 not started.
+Requested by the user on 2026-10-11. Plan 3 of `docs/plans/playtest-1.md`. Status: parts 1 to 3 done, part 4 not started.
 
 The user asked for the plan and the coder work in one go, on the branch `squad-breakdown`, in the worktree `../mcp_assist_3d-squad-breakdown`. The user checks the branch after all parts are done.
 
@@ -133,7 +133,7 @@ Checks: `pnpm format`, `pnpm lint`, `pnpm --filter web build`, `pnpm --filter we
 
 Commit: `squad breakdown part 3: filters`.
 
-**Result:** not started.
+**Result:** done. `BreakdownTab.jsx`: **Filters (n)** button (n = filters that are on) opens the block: Must have / Must not have chip rows (small round portrait and name, a place in at most one row), Affiliation `<select>` (No filter, Any affiliation, then the affiliations of all combinations at the shown values with no filter, sorted by `affiliationName`; the chosen one stays in the list), two check boxes, Min and Max size chips (min above max moves max, and the other way round), **Clear filters** (`NO_FILTERS`). The line says "No squad fits threat N with these filters." when filters are on. The chip counts use the filters. `RosterPopup` passes `onFiltersChange`. `App.jsx`: `onFiltersChange` writes `filters` into `breakdownChoice`. Deviation from part 2: the effect that dropped the choice is gone. At render, a choice with another roster code counts as no choice; a threat not in `breakdownThreats` shows the first value; the filters stay. `index.css`: `.breakdown-filter*`, `.breakdown-char-chip`, `.breakdown-chip-portrait`, `.breakdown-select`, `.breakdown-check` (they sit inside `.roster-popup .breakdown *`, which sets pointer events). Feature: "Not built yet" lists only the click. No new tests (UI only). Not checked in a browser.
 
 ## Part 4: Choose a squad from the breakdown
 
