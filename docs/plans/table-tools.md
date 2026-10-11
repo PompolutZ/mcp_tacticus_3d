@@ -1,6 +1,6 @@
 # Plan: Tools on the table, settings menu
 
-Requested by the user on 2026-10-11. Plan 6 of `docs/plans/playtest-1.md`. Status: all 4 steps done on 2026-10-11, waiting for the user checks. (Plan written on 2026-10-11.) The user asked to run all coder steps and to check the result after the last step, so the plan was not shown for an OK first.
+Requested by the user on 2026-10-11. Plan 6 of `docs/plans/playtest-1.md`. Status: done. Steps 1 to 5, checked by the user on 2026-10-11. (Plan written on 2026-10-11.) The user asked to run all coder steps and to check the result after the last step, so the plan was not shown for an OK first.
 
 The feature is `docs/features/table-tools.md`. Each step makes one commit and writes its **Result** below.
 
