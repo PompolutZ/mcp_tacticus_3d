@@ -176,17 +176,23 @@ Checks: as in "Checks".
 User, after this step: build a squad with the corner buttons, the popup, and a Breakdown row. A click on a card always opens the popup. **Squad ready** is the button you see first.
 
 
-## Step 6: Deploy Lock
+## Step 6: Deployment step, Deploy Lock
+
+Found in step 3: the deployment text shows only in the affiliation step. Most squads need no affiliation choice, so the setup ends at the reveal, and the text never shows. So deployment becomes a setup step of its own.
 
 Work:
 
-1. When the squads go on the table, `game.deployLine` turns on.
-2. The first **Power** (any Power Phase button or the toolbar) in round 1 turns it off.
-3. Docs: `setup-game.md`, `round-phases.md`.
+1. `setup.js`: a new field `setup.deployed: false`. `setupStep` gets a step `deploy` after the reveal and the affiliation, while `deployed` is false. A saved setup that is done and has no `deployed` field stays done.
+2. The panel in the `deploy` step: "Deploy one model at a time, taking turns. Nelly deploys first." and "Press Power Phase when both squads are deployed."
+3. When the squads go on the table, `game.deployLine` (Deploy Lock) turns on.
+4. The first **Power** in round 1 (any Power Phase button or the toolbar) sets `deployed` and turns Deploy Lock off. The setup is then done, and the panel goes away.
+5. Players can still turn Deploy Lock on and off by hand. It does not change the step.
+6. Tests for `setupStep` with `deploy`, and for the old saved setup.
+7. Docs: `setup-game.md` (steps table, State), `round-phases.md` (the first Power Phase ends the deployment).
 
 Checks: as in "Checks".
 
-User, after this step: after the reveal, Deploy Lock is on. The first Power Phase turns it off.
+User, after this step: after the reveal (and the affiliation choice, if any), the panel shows the deployment text, and Deploy Lock is on. The first Power Phase turns it off and the panel goes away.
 
 
 ## Step 7: History, Prev, Next, Override
