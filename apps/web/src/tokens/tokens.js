@@ -1,12 +1,17 @@
-// Token list built from tokens.json, the same pattern as crisis/cards.js. The 'counter' group has
-// only "1 Power" (the icon of the tray's Power counter, see TrayControls.jsx): not a token a
-// player gives to a character, so it is left out here and never reaches the Library or a drag.
+// Token list built from tokens.json, the same pattern as crisis/cards.js. The 'counter' group
+// ("1 Damage", "1 Power") is in the list: the Library has it for piles. "1 Power" is also the icon
+// of the tray's Power counter, see TrayControls.jsx.
 import tokensData from './tokens.json'
+import { TOKEN_SIZE } from './files.js'
 
 export const TOKENS = Object.entries(tokensData)
-  .filter(([, t]) => t.group !== 'counter')
   .map(([key, t]) => ({ key, ...t }))
   .sort((a, b) => a.name.localeCompare(b.name))
+
+// Width of the token on the table, in inches: the size that migrate-tokens.mjs wrote to tokens.json
+// (tLarge circles are 1"), else TOKEN_SIZE. A tray keeps TOKEN_SIZE for every token. Here and not in
+// files.js, because the migrate script imports files.js and cannot import the JSON.
+export const tokenSize = (key) => tokensData[key]?.size ?? TOKEN_SIZE
 
 export function getToken(key) {
   return tokensData[key] ?? null

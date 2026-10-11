@@ -31,6 +31,8 @@ if (opts.help || positionals.length) {
   process.exit(opts.help ? 0 : 1)
 }
 
+// Width of a token on the table that the mod gives no size for, in inches (TOKEN_SIZE of src/tokens/files.js)
+const DEFAULT_SIZE = 0.75
 // Tokens are small icons, not card art: 256 is already larger than the mod's cached originals (225-375 px)
 const TOKEN_SIZE = 256
 const MANIFEST_FILE = path.join(import.meta.dirname, 'token-manifest.json')
@@ -146,6 +148,9 @@ function migrate() {
   console.log('Tokens:')
   for (const { key, row, status } of results) console.log(`  ${key} (${row.name}): ${status}`)
   warnTacticTokens(done)
+  const sized = done.filter(({ row }) => tokenSize(row) !== DEFAULT_SIZE)
+  console.log(`\nTokens that are not ${DEFAULT_SIZE}" wide:`)
+  for (const { key, row } of sized) console.log(`  ${key} (${row.name}): ${tokenSize(row)}"`)
   console.log(
     `\n${done.length} of ${rows.length} tokens migrated.\nApp data: ${TOKENS_OUT}\nAssets: ${path.join(ASSETS, 'tokens')}`,
   )
@@ -160,10 +165,20 @@ function warnTacticTokens(done) {
   }
 }
 
-// Entry of src/tokens/tokens.json. description and cleanup are left out when the mod row has none,
-// the same way as the optional fields of src/crisis/cards.json.
+// Width of a token on the table, in inches, see docs/characters-hud.md, "Real-size tokens". The mod spawns a
+// Circle token as a tile with scale tSize, and a tile with scale 1 is 2" wide. A token with another tShape
+// ("Other") keeps the default, because its real size was never measured.
+function tokenSize(row) {
+  if (row.tShape !== 'Circle') return DEFAULT_SIZE
+  if (!(row.tSize > 0)) throw new Error(`the Circle token "${row.name}" has no tSize`)
+  return row.tSize * 2
+}
+
+// Entry of src/tokens/tokens.json. size, description and cleanup are left out when the mod row has none (size:
+// when it is the default), the same way as the optional fields of src/crisis/cards.json.
 function tokenEntry(row) {
   const entry = { name: row.name, group: group(row) }
+  if (tokenSize(row) !== DEFAULT_SIZE) entry.size = tokenSize(row)
   if (row.tDescr) entry.description = row.tDescr
   if (row.cleanup) entry.cleanup = true
   return entry

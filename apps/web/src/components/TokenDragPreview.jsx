@@ -4,7 +4,7 @@ import { useRapier } from '@react-three/rapier'
 import { tablePoint } from '../drag/tablePoint.js'
 import { followPart, numbersToPose } from '../net/livePose.js'
 import { castDown } from '../physics.js'
-import { TOKEN_SIZE } from '../tokens/files.js'
+import { tokenSize } from '../tokens/tokens.js'
 import { TOKEN_RADIUS } from './CrisisToken.jsx'
 import DragFootprint from './DragFootprint.jsx'
 import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
@@ -72,11 +72,15 @@ const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 // The preview of a new piece that the other player drags (plan 09, decision 22): the same look, height and
 // footprint as TokenDragPreview, at the live pose of spawnKey. It is hidden until the first pose. The
 // pose is followed the same way as other live pieces (decision 14). The yaw is not used: the own preview has none.
-// getLivePose(key): the latest numbers of a piece key, or null (Scene.jsx). children: the token, as for
+// getLivePose(key): the latest numbers of a piece key, or null (Scene.jsx). tokenKey: the token, for the
+// width of the ground check (the default width for a crisis supply token, as before). children: the token, as for
 // TokenDragPreview.
-export function OtherSpawnPreview({ spawnKey, getLivePose, children }) {
+export function OtherSpawnPreview({ spawnKey, tokenKey, getLivePose, children }) {
   const { world, rapier } = useRapier()
-  const shape = useMemo(() => new rapier.Cylinder(HALF_H, TOKEN_SIZE / 2), [rapier])
+  const shape = useMemo(
+    () => new rapier.Cylinder(HALF_H, tokenSize(tokenKey) / 2),
+    [rapier, tokenKey],
+  )
   const groupRef = useRef()
   // The pose that is drawn: { x, z }, or null before the first live pose
   const poseRef = useRef(null)

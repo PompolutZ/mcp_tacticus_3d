@@ -344,13 +344,13 @@ pnpm --filter web migrate-tokens --force         # convert files again that the 
 | Output | Content |
 |---|---|
 | `src/assets/tokens/<key>.webp` | Token image, at most 256×256 |
-| `src/tokens/tokens.json` | One entry per token: `name` in the mod, `group`, `description` (the mod's `tDescr`, omitted when empty) and `cleanup` (omitted when false) |
+| `src/tokens/tokens.json` | One entry per token: `name` in the mod, `group`, `description` (the mod's `tDescr`, omitted when empty), `cleanup` (omitted when false) and `size` (width in inches: `tSize × 2` of a `Circle` token; omitted when 0.75, which is also the size of a token with `tShape = "Other"`) |
 
-`<key>` is the token name in the mod as a slug, for example `bleed`, `1-power`. `group` is `condition`, `status` (Activated and Dazed), `character`, `tactic`, from the folder the image is in (`token/condition/`, `token/misc/tracker/`, `token/character/`, `token/tactic/`), or `counter` for `1-power`: not a token a player gives to a character, only the icon of the tray's Power counter, so the app's Tokens panel and token drops leave that group out.
+`<key>` is the token name in the mod as a slug, for example `bleed`, `1-power`. `group` is `condition`, `status` (Activated and Dazed), `character`, `tactic`, from the folder the image is in (`token/condition/`, `token/misc/tracker/`, `token/character/`, `token/tactic/`), or `counter` for `1-power` and `1-damage`: the icon of the tray's Power counter, and tokens for piles. The Library lists this group. `tokenSize(key)` in `src/tokens/tokens.js` reads `size`. The script writes `size` again on every run and does not convert images that are already migrated.
 
 A row with `altName` is a second art of the same token (the mod's old round design); the script migrates only the first art, the same rule `migrate-crisis.mjs` uses for the "1 Damage" row.
 
-The script also migrates every token that a released tactic card names in its `tokens` list, of any type (Misc, Use Tools, Pile, ...), for example Mystic Ward and Mystic Portal. The names are compared in lower case, because a card row can spell a name differently ("KickEm"). `group` comes from the image folder, as above. A name with no row, or with no image in the TTS cache, is left out with a warning. The row "1 Damage" (Steal the Future) is in `token/misc/tracker/`. It gets the group `counter`, like "1 Power", so it stays out of the Tokens panel. The app puts a pile of the tokens of each tactic card on the table, see `docs/plan-tactic-tokens.md`.
+The script also migrates every token that a released tactic card names in its `tokens` list, of any type (Misc, Use Tools, Pile, ...), for example Mystic Ward and Mystic Portal. The names are compared in lower case, because a card row can spell a name differently ("KickEm"). `group` comes from the image folder, as above. A name with no row, or with no image in the TTS cache, is left out with a warning. The row "1 Damage" (Steal the Future) is in `token/misc/tracker/`. It gets the group `counter`, like "1 Power", so the Library lists it for piles. The app puts a pile of the tokens of each tactic card on the table, see `docs/plan-tactic-tokens.md`.
 
 # Jarvis crisis cards
 

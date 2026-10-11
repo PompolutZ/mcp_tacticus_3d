@@ -197,11 +197,13 @@ How the drag works:
 
 ## Real-size tokens
 
-Character tokens on a tray and on the table have the real size of the TTS tokens. These facts were found on 2026-10-02 in the mod (`spawnToken` in the tray script, `tokenDatabase` in the `Database` script):
+Character tokens have the real size of the TTS tokens on the table. On a tray, every token keeps the slot size of 0.75". These facts were found on 2026-10-02 in the mod (`spawnToken` in the tray script, `tokenDatabase` in the `Database` script):
 
-- A token row has `tSize`: `tSmall = 0.375` for every character token, `tLarge = 0.5` for objective tokens.
-- A token with `tShape = "Circle"` spawns as a `Custom_Tile` with scale `tSize`. A tile with scale 1 is 2" wide (see `scripts/README.md`), so these tokens are 0.75" wide.
+- A token row has `tSize`: `tSmall = 0.375` or `tLarge = 0.5`. Mystic Portal, Black Bifrost, Masked Menace, Mystic Ward and 43 other tokens are `tLarge`.
+- A token with `tShape = "Circle"` spawns as a `Custom_Tile` with scale `tSize`. A tile with scale 1 is 2" wide (see `scripts/README.md`), so a `tSmall` token is 0.75" wide and a `tLarge` token is 1" wide.
 - A token with `tShape = "Other"` (conditions, Activated, Dazed) spawns as a `Custom_Token` with scale `tSize / 2`. Its size in inches was not measured. The app uses 0.75" for it too (`TOKEN_SIZE` in `src/tokens/files.js`).
+- `migrate-tokens.mjs` writes `size` (inches) into `tokens.json` for a `Circle` token: `tSize × 2`. It leaves `size` out when the token is 0.75". `tokenSize(key)` in `src/tokens/tokens.js` reads it, with 0.75" as the default.
+- The size counts on the table: a loose token, a pile, the drag preview, and the ground check under them. A tray (the **On** row and the **Give** sources) keeps 0.75" for every token, because the rows are laid out for it. The footprint of a dragged token stays the radius of a crisis token (0.5").
 - The tray spawns the Give tokens below the card, in rows of 3 from the owner's left, 0.85" apart.
 
 Every token image is square, with transparent corners around the circle or the rounded diamond. The app draws a square plane with `alphaTest`, so the plane shows the token's own shape (`TokenFace.jsx`).

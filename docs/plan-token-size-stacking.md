@@ -42,6 +42,23 @@ User, after this phase:
 
 ### Result
 
+Done 2026-10-11. Not committed.
+
+- `migrate-tokens.mjs` writes `size` (inches) for a `Circle` token (`tSize × 2`), and leaves it out at 0.75. Run: no image converted. 47 of 105 tokens are 1" (all `tLarge`: 37 `tactic`, 10 `character`); 58 are 0.75". Self-Discovery is still missing in the TTS cache (as before).
+- `tokenSize(key)` is in `src/tokens/tokens.js`, not `files.js`: the migrate script imports `files.js` and cannot import the JSON. `files.js` keeps `TOKEN_SIZE` (0.75, the tray slot size).
+- Used by `LooseToken.jsx` (ground check, `TokenFace` size), `TokenPile.jsx` (`PileStack`, ground check), `TokenDragPreview.jsx` (`OtherSpawnPreview` ground check, new `tokenKey` prop), `Scene.jsx` (own and other preview `TokenFace` size). `TokenFace` has a `size` prop (default `TOKEN_SIZE`, badge and label follow it). Trays pass no size.
+- Footprints keep `TOKEN_RADIUS` (0.5", the crisis token radius): it is already the 1" radius, and the 0.75" tokens had it before.
+- `tokens.js` no longer filters the `counter` group. Library has a "Counters" group (1 Damage, 1 Power). `TrayControls.jsx` reads the Power icon by key: unchanged.
+- Docs: `docs/characters-hud.md`, `docs/feature-library.md`, `scripts/README.md`.
+- Checks: test 288 pass, build ok, format ok, lint 41 warnings (same as before), no errors.
+
+For Phase 2:
+
+- Loose token height: `LooseToken.jsx`, `useFrame`: `groupRef.position.set(x, (ground ?? 0) + GAP + lift, z)`, `ground` from `castDown` with a cylinder `HALF_H = 0.02`, `GAP = 0.02`, `lift = TOKEN_DRAG_LIFT` (1) while `follow.current.moved` (remote drag). The token's own bottom is y = 0 of the group; `TOKEN_THICKNESS = 0.08`.
+- Drag preview height: `TokenDragPreview.jsx`, `handleMove`: `group.position.set(point.x, point.y + GAP + TOKEN_DRAG_LIFT, point.z)`, with `point` from `tablePoint` (fixed bodies only), written to `pointRef`. `OtherSpawnPreview` (remote) uses `castDown` in `useFrame`, same formula. Piles (`TokenPile.jsx`) have the same `castDown` formula and do not stack.
+- Crisis token: `CrisisToken.jsx`. Radius `RADIUS = 0.5` (`TOKEN_RADIUS`), `HALF_H = TOKEN_THICKNESS / 2`; group y = `ground + GAP + HALF_H` (+ `TOKEN_DRAG_LIFT` when lifted), so its top is `ground + GAP + TOKEN_THICKNESS`. Its place is `poseRef.current` `{ x, z, yaw }` (live; `token.x/z` in the document). Markers (control, damage) are flat meshes at `MARKER_Y = HALF_H + 0.002` above the group center, so about `TOKEN_THICKNESS + 0.002` above the token's bottom: practically no thickness. `floorY` (prop) replaces `castDown` when set and not lifted. Crisis token places are not shared in one list today: `Scene.jsx` renders them from `tokens` (App `tokens`), so a shared module needs them passed down, with the live pose for a token being dragged.
+- Loose token list: `looseTokens` in `App.jsx` (`useYList(table.looseTokens)`), items `{ id, key, x, z }`. `handleTokenRelease`: a new token is appended (`[...prev, {...}]`), so it is last. A moved token (`looseId`) is mapped in place: it KEEPS its index, it does not go to the end. Phase 2 must move it to the end on a move (remove + append in one update), or the order rule fails.
+
 ## Phase 2: Tokens on top of tokens
 
 Work:

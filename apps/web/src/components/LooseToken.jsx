@@ -2,7 +2,7 @@ import { Suspense, useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
 import { castDown } from '../physics.js'
-import { TOKEN_SIZE } from '../tokens/files.js'
+import { tokenSize } from '../tokens/tokens.js'
 import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
 import { TOKEN_RADIUS } from './CrisisToken.jsx'
 import DragFootprint from './DragFootprint.jsx'
@@ -30,7 +30,10 @@ export default function LooseToken({
   getLivePose = null,
 }) {
   const { world, rapier } = useRapier()
-  const shape = useMemo(() => new rapier.Cylinder(HALF_H, TOKEN_SIZE / 2), [rapier])
+  const shape = useMemo(
+    () => new rapier.Cylinder(HALF_H, tokenSize(token.key) / 2),
+    [rapier, token.key],
+  )
   const groupRef = useRef()
   // The pose that is drawn, and the place in the document
   const poseRef = useRef({ x: token.x, z: token.z })
@@ -72,6 +75,7 @@ export default function LooseToken({
       <Suspense fallback={null}>
         <TokenFace
           tokenKey={token.key}
+          size={tokenSize(token.key)}
           cursor="grab"
           onPointerDown={handlePointerDown}
           onHover={onHover}

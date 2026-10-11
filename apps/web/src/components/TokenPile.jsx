@@ -4,7 +4,8 @@ import { useFrame } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
 import { castDown } from '../physics.js'
 import { assetUrl } from '../assets/index.js'
-import { TOKEN_SIZE, characterToken } from '../tokens/files.js'
+import { characterToken } from '../tokens/files.js'
+import { tokenSize } from '../tokens/tokens.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import TokenFace from './TokenFace.jsx'
 import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
@@ -35,12 +36,13 @@ export function PileStack({ tokenKey, interactive = true, onPointerDown, onHover
     <group>
       {LOWER_OFFSETS.map((position, i) => (
         <group key={i} position={position}>
-          <TokenSolid map={map} size={TOKEN_SIZE} raycast={NO_RAYCAST} />
+          <TokenSolid map={map} size={tokenSize(tokenKey)} raycast={NO_RAYCAST} />
         </group>
       ))}
       <group position={[0, TOP_Y, 0]}>
         <TokenFace
           tokenKey={tokenKey}
+          size={tokenSize(tokenKey)}
           cursor="grab"
           interactive={interactive}
           onPointerDown={onPointerDown}
@@ -68,7 +70,10 @@ export default function TokenPile({
   getLivePose = null,
 }) {
   const { world, rapier } = useRapier()
-  const shape = useMemo(() => new rapier.Cylinder(HALF_H, TOKEN_SIZE / 2), [rapier])
+  const shape = useMemo(
+    () => new rapier.Cylinder(HALF_H, tokenSize(pile.key) / 2),
+    [rapier, pile.key],
+  )
   const groupRef = useRef()
   // The pose that is drawn, and the place in the document
   const poseRef = useRef({ x: pile.x, z: pile.z })

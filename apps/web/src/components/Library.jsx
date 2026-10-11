@@ -34,6 +34,7 @@ const TOKEN_GROUPS = {
   status: 'Status',
   character: 'Character',
   tactic: 'Tactic',
+  counter: 'Counters',
 }
 // The All tab shows this many characters and tactic cards. "More" opens their own tab with all of them.
 const ALL_TAB_LIMIT = { characters: 8, tactics: 6 }

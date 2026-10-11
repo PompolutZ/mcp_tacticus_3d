@@ -66,6 +66,7 @@ import {
   trayYaw,
 } from '../characters/trays.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
+import { tokenSize } from '../tokens/tokens.js'
 import { MAT_SIZE, TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WIDTH } from '../table.js'
 import {
   NO_PIECES,
@@ -1205,7 +1206,11 @@ export default function Scene({
             ) : tokenDrag.pile || tokenDrag.pileId ? (
               <PileStack tokenKey={tokenDrag.tokenKey} interactive={false} />
             ) : (
-              <TokenFace tokenKey={tokenDrag.tokenKey} interactive={false} />
+              <TokenFace
+                tokenKey={tokenDrag.tokenKey}
+                size={tokenSize(tokenDrag.tokenKey)}
+                interactive={false}
+              />
             )}
           </TokenDragPreview>
         )}
@@ -1214,6 +1219,7 @@ export default function Scene({
           <OtherSpawnPreview
             key={otherSpawn.key}
             spawnKey={otherSpawn.key}
+            tokenKey={otherSpawn.tokenKey}
             getLivePose={getPieceLive}
           >
             {otherSpawn.key.startsWith('token:') ? (
@@ -1221,7 +1227,11 @@ export default function Scene({
             ) : otherSpawn.key.startsWith('pile:') ? (
               <PileStack tokenKey={otherSpawn.tokenKey} interactive={false} />
             ) : (
-              <TokenFace tokenKey={otherSpawn.tokenKey} interactive={false} />
+              <TokenFace
+                tokenKey={otherSpawn.tokenKey}
+                size={tokenSize(otherSpawn.tokenKey)}
+                interactive={false}
+              />
             )}
           </OtherSpawnPreview>
         )}
