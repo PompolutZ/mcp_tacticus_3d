@@ -11,6 +11,7 @@ import {
 import { CARD_SIZES } from '../rosters/layout.js'
 import { Overlay } from './Overlay.jsx'
 import { Carousel } from './Carousel.jsx'
+import { BreakdownTab } from './BreakdownTab.jsx'
 
 const TEAM_NAMES = { blue: 'Blue', red: 'Red' }
 
@@ -24,8 +25,20 @@ const TEAM_NAMES = { blue: 'Blue', red: 'Red' }
 // The parent owns the open tab and card: App (openRoster) on the table, because App handles all keys,
 // and RoomRosterPopup in the lobby. Escape closes the popup, and the left and right arrows move the
 // carousel. A dialog, so it renders through Overlay.
-// code: the stored MCT code of the roster. tab: a key of ROSTER_TABS. index: the shown card of that tab.
-export function RosterPopup({ team, code, tab, index, onTabChange, onIndexChange, onClose }) {
+// code: the stored MCT code of the roster. tab: a key of ROSTER_TABS, or 'breakdown'. index: the shown card of
+// that tab.
+// breakdown: { threats, threat, filters, onThreatChange } for the Breakdown tab after the card tabs (see
+// BreakdownTab.jsx and docs/features/squad-breakdown.md), or missing: no such tab, as in the lobby.
+export function RosterPopup({
+  team,
+  code,
+  tab,
+  index,
+  breakdown,
+  onTabChange,
+  onIndexChange,
+  onClose,
+}) {
   const parsed = useMemo(() => parseRosterText(code), [code])
   const tabs = useMemo(() => rosterTabs(parsed), [parsed])
   // A carousel drag can end on the backdrop. The click then goes to the backdrop. So the backdrop
@@ -65,9 +78,27 @@ export function RosterPopup({ team, code, tab, index, onTabChange, onIndexChange
               {t.label}
             </button>
           ))}
+          {breakdown && (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'breakdown'}
+              className={tab === 'breakdown' ? 'chip chip--active' : 'chip'}
+              disabled={parsed.characters.length === 0}
+              onClick={() => {
+                if (tab !== 'breakdown') onTabChange('breakdown')
+              }}
+            >
+              Breakdown
+            </button>
+          )}
         </div>
-        {/* A new tab gets a new carousel, which starts at the index that App gives */}
-        <CardCarousel key={tab} cards={tabs[tab]} index={index} onIndexChange={onIndexChange} />
+        {tab === 'breakdown' && breakdown ? (
+          <BreakdownTab parsed={parsed} breakdown={breakdown} />
+        ) : (
+          // A new tab gets a new carousel, which starts at the index that App gives
+          <CardCarousel key={tab} cards={tabs[tab]} index={index} onIndexChange={onIndexChange} />
+        )}
       </div>
     </Overlay>
   )

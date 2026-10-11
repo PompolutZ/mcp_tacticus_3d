@@ -2044,3 +2044,104 @@ body {
 .room-player-status--failed {
   color: #f5b041;
 }
+
+/* The Breakdown tab of the roster popup (BreakdownTab.jsx). About as wide as the carousel, and at most the
+   screen width minus 16 px on each side. The list scrolls inside; the area takes pointer events, so the
+   scroll works and a click in it does not close the popup. */
+.roster-popup .breakdown {
+  --card-h: min(60vh, 440px, 46vw);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(calc(100vw - 32px), calc((var(--card-h) * 1.5 + 24px) * 2));
+  max-height: calc(100vh - 150px);
+  pointer-events: auto;
+}
+
+.roster-popup .breakdown * {
+  pointer-events: auto;
+}
+
+.breakdown-threats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.breakdown-line {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.breakdown-list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.breakdown-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 10px;
+  background: rgba(23, 26, 35, 0.85);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.breakdown-total {
+  flex-shrink: 0;
+  min-width: 24px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.breakdown-characters {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.breakdown-character {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 64px;
+}
+
+.breakdown-portrait {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--panel-2);
+  object-fit: cover;
+}
+
+.breakdown-name {
+  max-width: 100%;
+  font-size: 11px;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.breakdown-affiliations {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 35%;
+  font-size: 12px;
+  color: var(--muted);
+}

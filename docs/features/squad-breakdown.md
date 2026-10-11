@@ -1,6 +1,6 @@
 # Feature: Squad breakdown
 
-Status: not started. See [Not built yet](#not-built-yet).
+Status: partly built. See [Not built yet](#not-built-yet).
 
 ## Goal
 
@@ -143,7 +143,10 @@ In the squad step, a click on a combination chooses its characters for the squad
 
 ## Not built yet
 
-- Everything above. See `docs/plans/squad-breakdown.md`.
+- The filters: **Filters**, the filter block and their use on the list and the counts. The Breakdown tab shows all combinations now.
+- The click on a combination to choose a squad, and the yellow frame of the current squad. The rows only show now.
+
+See `docs/plans/squad-breakdown.md`.
 
 ## Out of scope
 

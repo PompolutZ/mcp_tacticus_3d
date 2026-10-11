@@ -40,7 +40,10 @@ import { CLEANUP_KEYS, getToken, isCappedToken } from './tokens/tokens.js'
 import { firstFreeSlot, freePilePlaces, nearestFreeSlot, tacticTrayAt } from './tactics/layout.js'
 import { getTactic } from './tactics/cards.js'
 import { formatMctCode, isEmptyRoster } from './rosters/mct.js'
+import { NO_FILTERS } from './rosters/breakdown.js'
 import {
+  CRISIS_THREATS,
+  ROSTER_TABS,
   parseRosterText,
   rosterCard,
   rosterTabs,
@@ -62,6 +65,7 @@ import {
   placeSquad,
   placedSides,
   placedIds,
+  possibleThreats,
   revealPlan,
   setupPlacedCards,
   setupStep,
@@ -327,6 +331,10 @@ export default function App({
   // The players whose clicks on their roster cards choose the squad: { blue, red } → true. Off, a click opens
   // the roster popup. Not saved.
   const [squadSelect, setSquadSelect] = useState({ blue: false, red: false })
+  // The selected threat value of the Breakdown tab of each roster: { blue, red } → { code, threat, filters } |
+  // null. code: the roster code it belongs to; null means the first value. Not saved. See
+  // docs/features/squad-breakdown.md, "State".
+  const [breakdownChoice, setBreakdownChoice] = useState({ blue: null, red: null })
   // In a multiplayer room, the squad that the player chooses is not in the document until both players are
   // Ready. It is in this browser (rooms/store.js, squad): { setupId, squad } | null. A single player room
   // and the Sandbox keep the squads in the document. See docs/features/setup-game.md, "Squads".
@@ -1136,6 +1144,27 @@ export default function App({
     [rosters],
   )
 
+  // The threat values that the game can still have, or all crisis threats when the rosters have none
+  const breakdownThreats = useMemo(() => {
+    const threats = possibleThreats(setup, parsedRosters, (code) => rosterCard(code)?.threat)
+    return threats.length > 0 ? threats : CRISIS_THREATS
+  }, [setup, parsedRosters])
+  // A choice of an old roster code, or of a value that left the list, is dropped: the first value applies
+  useEffect(() => {
+    setBreakdownChoice((prev) => {
+      const next = { ...prev }
+      for (const team of TEAMS) {
+        const choice = prev[team]
+        if (
+          choice &&
+          (choice.code !== rosters[team]?.code || !breakdownThreats.includes(choice.threat))
+        )
+          next[team] = null
+      }
+      return TEAMS.every((team) => next[team] === prev[team]) ? prev : next
+    })
+  }, [rosters, breakdownThreats])
+
   // True when nothing that the setup put on the table would be removed, or the player confirms. action:
   // the start of the question, for example 'Load this roster'.
   function confirmSetupRemoval(action) {
@@ -1440,7 +1469,7 @@ export default function App({
   // last card comes the first.
   function handleRosterCardStep(step) {
     setOpenRoster((prev) => {
-      if (!prev || !rosters[prev.team]) return prev
+      if (!prev || prev.tab === 'breakdown' || !rosters[prev.team]) return prev
       const count = rosterTabs(parseRosterText(rosters[prev.team].code))[prev.tab].length
       const index = (prev.index + step + count) % count
       return index === prev.index ? prev : { ...prev, index }
@@ -1698,6 +1727,34 @@ export default function App({
   const selectedToken = tokens.find((t) => t.id === selectedTokenId) ?? null
   const openTray = openTrayId ? (characters.find((ch) => ch.id === openTrayId) ?? null) : null
 
+  // The Breakdown tab of the open roster popup, only while the squad of that roster is not placed
+  // (docs/features/squad-breakdown.md). Without it, a popup left on that tab shows the first tab with cards.
+  let popupBreakdown = null
+  let rosterPopupTab = openRoster?.tab
+  if (openRoster && rosters[openRoster.team]) {
+    const { team } = openRoster
+    if (!placedSides(setup)[team]) {
+      const choice = breakdownChoice[team]
+      popupBreakdown = {
+        threats: breakdownThreats,
+        threat: choice?.threat ?? breakdownThreats[0],
+        filters: choice?.filters ?? NO_FILTERS,
+        onThreatChange: (threat) =>
+          setBreakdownChoice((prev) => ({
+            ...prev,
+            [team]: {
+              code: rosters[team].code,
+              threat,
+              filters: prev[team]?.filters ?? NO_FILTERS,
+            },
+          })),
+      }
+    } else if (rosterPopupTab === 'breakdown') {
+      const cards = rosterTabs(parsedRosters[team])
+      rosterPopupTab = ROSTER_TABS.find((t) => cards[t.key].length > 0)?.key ?? 'characters'
+    }
+  }
+
   // Debug mode is only in the dev server. import.meta.env.DEV is false in `vite build`, so debug
   // is always false there and the build leaves out the debug code.
   const debug = import.meta.env.DEV && debugOn
@@ -1897,8 +1954,9 @@ export default function App({
         <RosterPopup
           team={openRoster.team}
           code={rosters[openRoster.team].code}
-          tab={openRoster.tab}
+          tab={rosterPopupTab}
           index={openRoster.index}
+          breakdown={popupBreakdown}
           onTabChange={(tab) => setOpenRoster((prev) => prev && { ...prev, tab, index: 0 })}
           onIndexChange={(index) =>
             setOpenRoster((prev) => (!prev || index === prev.index ? prev : { ...prev, index }))

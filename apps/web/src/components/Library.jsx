@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
-import { characterPortrait } from '../characters/files.js'
 import { CHARACTERS } from '../characters/characters.js'
+import { CharacterPortrait } from './CharacterPortrait.jsx'
 import { TACTICS } from '../tactics/cards.js'
 import { tacticCardBack } from '../tactics/files.js'
 import { characterToken } from '../tokens/files.js'
@@ -44,11 +44,6 @@ const LIBRARY_ROWS = [
   ...CHARACTERS.filter((ch) => ch.available),
   ...CHARACTERS.filter((ch) => !ch.available),
 ]
-
-// Only migrated characters have a portrait
-function portraitUrl(ch) {
-  return ch.available ? assetUrl(characterPortrait(ch.slug)) : null
-}
 
 // The Library HUD panel, opened from a toolbar button: characters, Team Tactic cards and tokens, with
 // one search field. See docs/features/library.md. The panel only hides when it is closed, so its
@@ -167,7 +162,6 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
           <section className="library-section">
             {sectionHeader('characters', 'Characters')}
             {shown('characters').map((ch) => {
-              const portrait = portraitUrl(ch)
               const onTable = spawned.has(ch.slug)
               const state = !ch.available
                 ? ' library-character--unavailable'
@@ -186,17 +180,7 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
                   }
                   onClick={() => handleCharacter(ch)}
                 >
-                  {portrait ? (
-                    <img
-                      className="library-portrait"
-                      src={portrait}
-                      alt=""
-                      loading="lazy"
-                      draggable={false}
-                    />
-                  ) : (
-                    <span className="library-portrait" />
-                  )}
+                  <CharacterPortrait character={ch} className="library-portrait" />
                   <span className="library-character-name">{ch.name}</span>
                   <span className="library-code">{ch.mctCode}</span>
                 </button>

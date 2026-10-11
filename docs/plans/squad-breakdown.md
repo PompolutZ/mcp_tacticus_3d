@@ -1,6 +1,6 @@
 # Plan: Squad breakdown
 
-Requested by the user on 2026-10-11. Plan 3 of `docs/plans/playtest-1.md`. Status: part 1 done, parts 2 to 4 not started.
+Requested by the user on 2026-10-11. Plan 3 of `docs/plans/playtest-1.md`. Status: parts 1 and 2 done, parts 3 and 4 not started.
 
 The user asked for the plan and the coder work in one go, on the branch `squad-breakdown`, in the worktree `../mcp_assist_3d-squad-breakdown`. The user checks the branch after all parts are done.
 
@@ -117,7 +117,7 @@ Checks: `pnpm format`, `pnpm lint`, `pnpm --filter web build`, `pnpm --filter we
 
 Commit: `squad breakdown part 2: breakdown tab`.
 
-**Result:** not started.
+**Result:** done. New `CharacterPortrait.jsx` (`character` = `{ slug, available }`, `className`; image or empty `span` of the same class), used by `Library.jsx` (`portraitUrl` gone) and the tab. New `BreakdownTab.jsx` (props `parsed`, `breakdown`): threat chips with counts, the squad line, the rows (round 44 px portraits, names, affiliations with ★), the message above 14 characters. `RosterPopup.jsx`: prop `breakdown: { threats, threat, filters, onThreatChange }`, tab key `'breakdown'` (not in `ROSTER_TABS`, so the lobby and `RoomRosterPopup` are unchanged). `App.jsx`: state `breakdownChoice` `{ blue, red } → { code, threat, filters } | null`; `breakdownThreats` (`possibleThreats`, or `CRISIS_THREATS`); an effect drops a choice with an old code or a value that left the list; `onThreatChange` stores `NO_FILTERS` as `filters`; `handleRosterCardStep` returns on the breakdown tab. `index.css`: `.roster-popup .breakdown*`, `.breakdown-*`. Feature: status partly built, "Not built yet" lists the filters and the click. Deviation: when the squad is placed while the popup shows the Breakdown tab, the popup shows the first tab with cards (derived in `App.jsx`, `openRoster.tab` is unchanged). No new tests (UI only). Not checked in a browser.
 
 ## Part 3: Filters
 
