@@ -1,6 +1,6 @@
 # Plan: Automatic Cleanup Phase
 
-Requested by the user on 2026-10-11, together with the Power Phase button (`docs/plan-power-phase.md`). Status: plan approved by the user on 2026-10-11. Phase 1 and 2 done on 2026-10-11. User checks of Phase 2 pending. Build it after the Power Phase plan, because that plan adds the **Phase** group in the toolbar and `characterOnBoard`.
+Requested by the user on 2026-10-11, together with the Power Phase button (`docs/plan-power-phase.md`). Status: plan approved by the user on 2026-10-11. Phase 1, 2 and 3 done on 2026-10-11. User checks of Phase 2 and 3 pending. Build it after the Power Phase plan, because that plan adds the **Phase** group in the toolbar and `characterOnBoard`.
 
 User input on 2026-10-11: the button is disabled until every character on the board has an Activated or a Dazed token (decision 2). The tray **Remove** button no longer deletes a character: it puts the model back on its card. The Delete key over the card deletes the character, after a confirm (decision 10). The mod's list of tokens to remove is fine for now; the user will report wrong ones.
 
@@ -155,3 +155,11 @@ Phase 2 done on 2026-10-11.
 - Other browser: the claim of this browser is open until the body sleeps (2 frames), and the pose is written before that. Pose first: the poses effect skips the claimed model, the end of the claim applies the pose. Pose after the claim end: the poses effect applies it. Sandbox: the body already stands at the pose, so nothing moves twice.
 - `App.jsx`: `handleCharacterOffBoard`, `handleTrayCardDelete` (confirm, then `handleCharacterRemove`), Delete over a tray card is the last check, after terrain. `hoveredTrayCardRef` holds the character id. A selection of the models stays.
 - Remove button: `aria-disabled` (not `disabled`, so the title shows) with `.chip[aria-disabled='true']` in `index.css`. `onBoard` goes Scene -> `CharacterTray` / `TrayPopup` -> `TrayControls`. One title for both states.
+
+Phase 3 done on 2026-10-11.
+
+- `App.jsx`: `handleCleanupPhase` (blockers checked again, then one `table.transact` with updater writes to characters, loose tokens, crisis tokens and the round marker), and the chip state (`cleanupDisabled`, `cleanupTitle`, computed in App). `tokens.js`: `CLEANUP_KEYS`.
+- `Toolbar.jsx`: **Cleanup** chip in the Phase group, `aria-disabled`, props `onCleanupPhase`, `cleanupDisabled`, `cleanupTitle`.
+- Held supply tokens leave the tray by themselves: the tray reads the held tokens from `tokens` (`heldBy`).
+- HUD message: "Flipped" lists every Dazed character, also one that was already Injured. Shown 8 s, as the Power Phase. Marker off the track: "Cleanup Phase: the round marker is not on the round track, so it did not move."
+- Docs: `characters-hud.md` (new "Cleanup Phase" section and the notes), `feature-crisis.md`.

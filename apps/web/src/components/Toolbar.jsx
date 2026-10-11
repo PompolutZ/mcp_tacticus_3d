@@ -51,6 +51,9 @@ export function Toolbar({
   onSpectatorClick,
   onTurnMat,
   onPowerPhase,
+  onCleanupPhase,
+  cleanupDisabled,
+  cleanupTitle,
   deployLine,
   onDeployLineClick,
   crisis,
@@ -235,6 +238,16 @@ export function Toolbar({
           onClick={onPowerPhase}
         >
           Power
+        </button>
+        {/* aria-disabled, not disabled: some browsers show no title on a disabled button */}
+        <button
+          type="button"
+          className="chip"
+          aria-disabled={cleanupDisabled}
+          title={cleanupTitle}
+          onClick={cleanupDisabled ? undefined : onCleanupPhase}
+        >
+          Cleanup
         </button>
       </div>
       <div className="group">

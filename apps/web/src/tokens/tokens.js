@@ -8,6 +8,9 @@ export const TOKENS = Object.entries(tokensData)
   .map(([key, t]) => ({ key, ...t }))
   .sort((a, b) => a.name.localeCompare(b.name))
 
+// Keys of the tokens that the Cleanup Phase removes (cleanup: true, from the mod).
+export const CLEANUP_KEYS = TOKENS.filter((t) => t.cleanup).map((t) => t.key)
+
 // Width of the token on the table, in inches: the size that migrate-tokens.mjs wrote to tokens.json
 // (tLarge circles are 1"), else TOKEN_SIZE. A tray keeps TOKEN_SIZE for every token. Here and not in
 // files.js, because the migrate script imports files.js and cannot import the JSON.

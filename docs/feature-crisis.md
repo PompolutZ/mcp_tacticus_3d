@@ -52,11 +52,11 @@ All current tokens are 1" circles. There are two groups: Extract tokens (red) an
 - A Source never moves. Players can only flip it. When a player drops it, it goes back to its position (TTS `flipLock`).
 - When a character interacts with an Unexhausted Source, the player flips it to Exhausted. Then the character takes one supply token (an Asset or a Civilian) and holds it.
 - An Exhausted Source cannot be contested, secured or interacted with. (p22)
-- In the Cleanup Phase, players flip every Exhausted Source back. On all 4 current Source cards, players also remove the supply tokens from the game at that time, so they go back to the supply.
+- In the Cleanup Phase, players flip every Exhausted Source back. On all 4 current Source cards, players also remove the supply tokens from the game at that time, so they go back to the supply. The **Cleanup** button does both (see `docs/plan-cleanup-phase.md`, decision 6).
 - The supply is next to the card. The card says how many supply tokens to set aside. On all 4 current Source cards, this is one per Source.
 - The supply images are the same as the normal Asset and Civilian images.
 
-In the app, the supply is one pile below the text of the card, between the card and the mat edge (`crisis/layout.js`, `supplyPilePosition`). The pile never runs out, the same as a Give source of a tray. A player drags a new token from it onto a character, who then holds it, or onto the table. In the Cleanup Phase, players delete the held supply tokens with the Delete key (see `docs/characters-hud.md`, "Hold and drop"). So the app does not count the supply tokens. Players check the limit on the card.
+In the app, the supply is one pile below the text of the card, between the card and the mat edge (`crisis/layout.js`, `supplyPilePosition`). The pile never runs out, the same as a Give source of a tray. A player drags a new token from it onto a character, who then holds it, or onto the table. In the Cleanup Phase, the **Cleanup** button removes the supply tokens, held and on the table. The app does not count the supply tokens. Players check the limit on the card.
 
 Source cards: Evidence, Jailbreak, Sentinel Schematics, Surprise Assault.
 
@@ -201,7 +201,7 @@ The app has the board since 2026-10-03 (`src/components/ScoreBoard.jsx`, `src/sc
 ## Out of scope
 
 - Rule checks: contest, secure, control, hold limits, scoring.
-- Phase steps, such as flipping Sources back in the Cleanup Phase.
+- Phase steps other than the **Cleanup** button (it flips Sources back and removes supply tokens), for example the effects of other crisis cards.
 - Dice. Pay-to-flip, Lockdown and other cards need dice rolls. Players use their own dice for now, or a later dice feature.
 - The 21 cards without images in the TTS cache.
 - Legality checks. Since 2026-10-07, players can choose the cards and the threat with the game setup (`docs/feature-setup-game.md`), or choose the two cards in the toolbar. Rule (p9): the player with Priority draws 2 cards from one of their decks, and the other player chooses 1. Then the other player draws 2 cards of the other type, and the player with Priority chooses 1. The player without Priority chooses which card's threat is used.

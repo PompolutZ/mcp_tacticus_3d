@@ -31,8 +31,11 @@ import { BASE_DIAMETER } from './characters/files.js'
 import { trayHeldDefault } from './characters/trays.js'
 import { characterOnBoard, modelCharacterId, secondModelId } from './characters/models.js'
 import { powerAfterPhase } from './characters/power.js'
+import { cleanupBlockers, cleanupCharacter } from './characters/cleanup.js'
+import { cleanupCrisisTokens } from './crisis/cleanup.js'
+import { ROUND_POINTS, nextRoundSpot } from './scoreboard/board.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
-import { getToken, isCappedToken } from './tokens/tokens.js'
+import { CLEANUP_KEYS, getToken, isCappedToken } from './tokens/tokens.js'
 import { firstFreeSlot, freePilePlaces, nearestFreeSlot, tacticTrayAt } from './tactics/layout.js'
 import { getTactic } from './tactics/cards.js'
 import { formatMctCode, isEmptyRoster } from './rosters/mct.js'
@@ -968,6 +971,48 @@ export default function App({
     )
   }
 
+  // Cleanup chip state (docs/plan-cleanup-phase.md, decision 2): off while a character on the board has
+  // neither Activated nor Dazed, and while no character is on the board.
+  const cleanupBlocked = cleanupBlockers(characters, poses)
+  const cleanupEmpty = !characters.some((ch) => characterOnBoard(ch, poses))
+  const cleanupDisabled = cleanupEmpty || cleanupBlocked.length > 0
+  const cleanupTitle = cleanupEmpty
+    ? 'Cleanup Phase: no character is on the board.'
+    : cleanupBlocked.length > 0
+      ? `Each character on the board needs an Activated or Dazed token: ${cleanupBlocked.map((ch) => characterName(ch.key)).join(', ')}.`
+      : 'Cleanup Phase for both players. Score VP first.'
+
+  // Cleanup button in the toolbar (docs/plan-cleanup-phase.md): both sides at once, in one transaction.
+  // It checks the blockers again at the click, and does nothing when blocked. Each write uses the updater
+  // form, which reads the list now and runs inside set, so flipped and the round are filled after the
+  // transaction. flipped lists the Dazed characters, also one that was already Injured.
+  function handleCleanupPhase() {
+    if (cleanupBlockers(characters, poses).length > 0 || cleanupEmpty) return
+    const flipped = []
+    let round = null
+    table.transact(() => {
+      setCharacters((prev) =>
+        prev.map((ch) => {
+          if ((ch.tokens?.dazed ?? 0) > 0) flipped.push(characterName(ch.key))
+          return cleanupCharacter(ch, CLEANUP_KEYS)
+        }),
+      )
+      setLooseTokens((prev) => prev.filter((t) => !CLEANUP_KEYS.includes(t.key)))
+      setTokens((prev) => cleanupCrisisTokens(prev, getCard))
+      setScoreMarkers((prev) => {
+        const spot = prev?.round ? nextRoundSpot(prev.round) : null
+        if (!spot) return prev
+        round = ROUND_POINTS.indexOf(spot) + 1
+        return { ...prev, round: { x: spot.x, z: spot.z } }
+      })
+    })
+    const head =
+      round === null
+        ? 'Cleanup Phase: the round marker is not on the round track, so it did not move.'
+        : `Cleanup Phase: round ${round}.`
+    showHudMessage(flipped.length > 0 ? `${head} Flipped: ${flipped.join(', ')}.` : head, 8000)
+  }
+
   // Flip turns the card to the other side and clears Damage, the same as in TTS.
   function handleCharacterFlip(id) {
     setCharacters((prev) =>
@@ -1765,6 +1810,9 @@ export default function App({
           onSpectatorClick={() => setSpectator((prev) => !prev)}
           onTurnMat={handleTurnMat}
           onPowerPhase={handlePowerPhase}
+          onCleanupPhase={handleCleanupPhase}
+          cleanupDisabled={cleanupDisabled}
+          cleanupTitle={cleanupTitle}
           deployLine={deployLine}
           onDeployLineClick={() => setDeployLine((prev) => !prev)}
           crisis={crisis}
