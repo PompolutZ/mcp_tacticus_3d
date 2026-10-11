@@ -157,6 +157,14 @@ export function toggleSquadCard(setup, team, list, place) {
   return { ...setup, squads: { ...setup.squads, [team]: { ...squad, [list]: places } } }
 }
 
+// The squad of `team` gets these character places (sorted). Its Team Tactic places stay.
+// See docs/features/squad-breakdown.md, "Choose a squad".
+export function setSquadCharacters(setup, team, places) {
+  const squad = setup.squads[team]
+  const characters = [...places].sort((a, b) => a - b)
+  return { ...setup, squads: { ...setup.squads, [team]: { ...squad, characters } } }
+}
+
 // The Ready toggle of `team`
 export function toggleReady(setup, team) {
   return { ...setup, ready: { ...setup.ready, [team]: !setup.ready[team] } }
@@ -228,4 +236,27 @@ export function crisisRows(setup, parsed) {
   else if (setup.picks[first]) otherRow = row(other, second, setup.draws[second], true, true)
   else otherRow = row(other, second, parsed[other]?.[second] ?? [], false, false)
   return [winnerRow, otherRow]
+}
+
+// The Maximum Threat values that this game can still have, sorted, each once (docs/features/squad-breakdown.md,
+// "Threat values"). parsed: as in crisisRows. threatOf(code): the threat of a crisis card. [] when no card is
+// known, then the caller shows all values.
+export function possibleThreats(setup, parsed, threatOf) {
+  const values = (codes) => codes.map(threatOf).filter((v) => typeof v === 'number')
+  let list
+  if (setup.threat !== null) list = [setup.threat]
+  else if (!setup.deck) {
+    list = TEAMS.flatMap((team) =>
+      parsed[team] ? values([...parsed[team].secure, ...parsed[team].extract]) : [],
+    )
+  } else {
+    const { team: winner, type: first } = setup.deck
+    const second = otherType(first)
+    if (!setup.picks[first]) {
+      list = values([...setup.draws[first], ...(parsed[otherTeam(winner)]?.[second] ?? [])])
+    } else if (!setup.picks[second]) {
+      list = values([setup.picks[first], ...setup.draws[second]])
+    } else list = values([setup.picks[first], setup.picks[second]])
+  }
+  return [...new Set(list)].sort((a, b) => a - b)
 }

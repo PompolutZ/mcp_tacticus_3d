@@ -88,6 +88,7 @@ z = 12.55   Use          [drawn 1]
 - Players choose their squad from the loaded roster. The roster cards show until then.
 - **Select squad** turns the choice on and off for that player. While it is on, it has a white outline, and a click on a character or Team Tactic card of that roster adds the card to the squad or removes it. While it is off, a click opens the roster popup as before.
 - A card in the squad has a yellow frame.
+- The Breakdown tab of the roster popup lists the squads that fit the Maximum Threat. A click on one of them chooses its characters (see `docs/features/squad-breakdown.md`, "Choose a squad").
 - Only a card that the app can put on the table can join: a character with a model, a Team Tactic card with an image. For another card, the HUD message names it.
 - **Ready** is a toggle. It works when the squad has at least 1 character and its threat is not above the Maximum Threat. While it is on, it has a white outline, the panel says "Waiting for the Red player.", and **Select squad** is off and does not work. So the squad does not change. A second click on **Ready** turns it off, and the player can change the squad again.
 - When both players are Ready, both squads go on the table at the same time. **Ready** only sets the toggle. An effect in each browser puts the squads on the table (see below).
@@ -114,7 +115,7 @@ z = 12.55   Use          [drawn 1]
 
 Rule p11: a squad uses an affiliation when more than half of its characters have it. Exactly half is not enough. A squad has only one affiliation.
 
-- When a squad goes on the table, the app counts the affiliations of its characters (from Jarvis, `squadAffiliations` in `src/scoreboard/affiliations.js`). With none, the squad is Unaffiliated. With one, that is the affiliation. In both cases the app sets it with no click.
+- When a squad goes on the table, the app counts the affiliations of its characters (from Jarvis, `squadAffiliations` in `src/scoreboard/affiliations.js`). A Rogue Agent (Jarvis tag `rogueAgent`: Taskmaster, Winter Soldier) counts as a character of each affiliation that it does not have. Two Rogue Agents count only once. With none, the squad is Unaffiliated. With one, that is the affiliation. In both cases the app sets it with no click.
 - With 2 or 3, the step `affiliation` opens after both squads are on the table. The panel says "Choose the affiliation of your squad." and has a row of chips for each player: those affiliations and Unaffiliated. A click chooses it.
 - A row that the app set can also change while the step is open.
 - In a multiplayer room, each player clicks only their own row. The other row is disabled. After the reveal, both squads are in the document, so both rows show their choices.
@@ -158,7 +159,7 @@ setup: {
 
 | File | Content |
 |---|---|
-| `src/setup/setup.js` | `NEW_SETUP`, `newSetup`, `setupStep`, the step changes (`chooseDeck`, `pickCard`, `chooseThreat`, `chooseEdge`, `toggleSquadCard`, `toggleReady`, `placeSquad`, `chooseAffiliation`), `placedSides`, `revealPlan`, `crisisRows`. No imports, so a Node script can check it |
+| `src/setup/setup.js` | `NEW_SETUP`, `newSetup`, `setupStep`, the step changes (`chooseDeck`, `pickCard`, `chooseThreat`, `chooseEdge`, `toggleSquadCard`, `setSquadCharacters`, `toggleReady`, `placeSquad`, `chooseAffiliation`), `placedSides`, `revealPlan`, `crisisRows`. No imports, so a Node script can check it |
 | `src/components/GameSetup.jsx` | The crisis rows and all setup buttons |
 | `src/rosters/layout.js` | `crisisRowLayout`, `crisisCenterZ`, `CRISIS_GAP_X`. Row 2 of the roster has only the Team Tactic cards now |
 | `src/rosters/cards.js` | `threat` and `key` of each card, `squadThreat`, `squadAffiliationKeys` |

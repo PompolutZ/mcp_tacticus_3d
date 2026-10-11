@@ -36,6 +36,23 @@ function rosterEntry(jch, m, mctCode) {
     threat: jch.threatLevel ?? 0,
     // Jarvis affiliation slugs, for the squad affiliation in the game setup (scoreboard/affiliations.js)
     affiliations: (jch.affiliations ?? []).map((a) => a.slug),
+    // Alter ego from Jarvis, or null (grunts, Multiple Man). No two characters of a squad share one (p11), see
+    // rosters/breakdown.js.
+    alterEgo: jch.alterEgo ?? null,
+    // The Jarvis tag peerless: at most one such character per squad (p21), see rosters/breakdown.js.
+    peerless: (jch.tags ?? []).includes('peerless'),
+    // The Jarvis tag rogueAgent (Taskmaster, Winter Soldier): counts as affiliated in Squad building, see
+    // scoreboard/affiliations.js.
+    rogue: (jch.tags ?? []).includes('rogueAgent'),
+    // Where the character is a leader, for the leader star of the breakdown: [{ affiliation, tactic }].
+    // affiliation: the Jarvis slug. tactic: null (always a leader), or the slug of the Team Tactic card that
+    // the roster needs (isLeaderWithTeamTactics).
+    leads: (jch.affiliations ?? [])
+      .filter((a) => a.isLeader || a.isLeaderWithTeamTactics)
+      .map((a) => ({
+        affiliation: a.slug,
+        tactic: a.isLeader ? null : a.isLeaderWithTeamTactics,
+      })),
     // Token keys (tokens.json) from the mod's cToken, written by migrate-characters.mjs.
     // See docs/features/character-trays.md, "Give tokens by drag and drop", and TrayControls.jsx.
     tokens: m?.tokens || [],
