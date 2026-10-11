@@ -169,6 +169,16 @@
       "stagger"
     ]
   },
+  "blue-marvel": {
+    "id": "01290101",
+    "name": "Blue Marvel",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "stun"
+    ]
+  },
   "cassandra-nova": {
     "id": "00530101",
     "name": "Cassandra Nova",
@@ -193,6 +203,27 @@
     "base": "small",
     "figure": "model",
     "rotation": 180
+  },
+  "daredevil": {
+    "id": "00300102",
+    "name": "Daredevil",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "stun"
+    ]
+  },
+  "doctor-strange": {
+    "id": "00230101",
+    "name": "Doctor Strange",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 105,
+    "tokens": [
+      "hex",
+      "stagger"
+    ]
   },
   "dracula": {
     "id": "02450101",
@@ -277,6 +308,17 @@
       "base": "small",
       "portrait": true
     }
+  },
+  "iron-fist": {
+    "id": "00490101",
+    "name": "Iron Fist",
+    "base": "small",
+    "figure": "model",
+    "rotation": 345,
+    "tokens": [
+      "stun",
+      "stagger"
+    ]
   },
   "iron-monger": {
     "id": "01540102",
@@ -458,6 +500,26 @@
       "genetic-sample",
       "genetic-sample-3",
       "root"
+    ]
+  },
+  "moondragon": {
+    "id": "01910102",
+    "name": "Moondragon",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 120,
+    "tokens": [
+      "hex"
+    ]
+  },
+  "namor-the-sub-mariner": {
+    "id": "01580102",
+    "name": "Namor, the Sub-Mariner",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stagger"
     ]
   },
   "nebula": {

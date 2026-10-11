@@ -59,6 +59,10 @@
     "id": "00910204",
     "name": "Heart of The Worthy"
   },
+  "heroes-for-hire": {
+    "id": "00490201",
+    "name": "Heroes for Hire"
+  },
   "i-am-a-baron-after-all": {
     "id": "1430206",
     "name": "I Am a Baron, After All"
@@ -103,6 +107,10 @@
     "id": "00600203",
     "name": "Mind If I Cut In?"
   },
+  "mystic-ward": {
+    "id": "00690204",
+    "name": "Mystic Ward"
+  },
   "odins-blessing": {
     "id": "00110201",
     "name": "Odin's Blessing"
@@ -119,6 +127,10 @@
     "id": "00010213",
     "name": "Patch Up"
   },
+  "pentagram-of-farallah": {
+    "id": "00230201",
+    "name": "Pentagram of Farallah"
+  },
   "plundered-goods": {
     "id": "01260202",
     "name": "Plundered Goods"
@@ -134,6 +146,10 @@
   "price-of-failure": {
     "id": "00150203",
     "name": "Price of Failure"
+  },
+  "princes-protection": {
+    "id": "01580202",
+    "name": "Prince's Protection"
   },
   "protector-of-the-empire": {
     "id": "20130202",

@@ -137,6 +137,15 @@
       "characters/black-widow/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_WIDOW_UI.png"
     }
   },
+  "blue-marvel": {
+    "id": "01290101",
+    "sources": {
+      "characters/blue-marvel/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLUE_MARVEL_healthy.jpg",
+      "characters/blue-marvel/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLUE_MARVEL_injured.jpg",
+      "characters/blue-marvel/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/BLUE_MARVEL_MODEL.unity3d",
+      "characters/blue-marvel/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLUE_MARVEL_UI.png"
+    }
+  },
   "cassandra-nova": {
     "id": "00530101",
     "sources": {
@@ -162,6 +171,24 @@
       "characters/crossbones-merciless-merc/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CROSSBONES_MERCILESS_MERC_injured.jpg",
       "characters/crossbones-merciless-merc/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/CROSSBONES_MERCILESS_MERC_MODEL_1.unity3d",
       "characters/crossbones-merciless-merc/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CROSSBONES_MERCILESS_MERC_UI.png"
+    }
+  },
+  "daredevil": {
+    "id": "00300102",
+    "sources": {
+      "characters/daredevil/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DAREDEVIL_healthy.jpg",
+      "characters/daredevil/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DAREDEVIL_injured.jpg",
+      "characters/daredevil/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/DAREDEVIL_MODEL.unity3d",
+      "characters/daredevil/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DAREDEVIL_UI.png"
+    }
+  },
+  "doctor-strange": {
+    "id": "00230101",
+    "sources": {
+      "characters/doctor-strange/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DOCTOR_STRANGE_healthy.jpg",
+      "characters/doctor-strange/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DOCTOR_STRANGE_injured.jpg",
+      "characters/doctor-strange/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/DOCTOR_STRANGE_MODEL.unity3d",
+      "characters/doctor-strange/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DOCTOR_STRANGE_UI.png"
     }
   },
   "dracula": {
@@ -231,6 +258,15 @@
       "characters/hulkbuster/transform.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/HULKBUSTER_MODEL_TRANSFORM.unity3d",
       "characters/hulkbuster/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HULKBUSTER_UI.png",
       "characters/hulkbuster/transform-portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HULKBUSTER_UI_TRANSFORM.png"
+    }
+  },
+  "iron-fist": {
+    "id": "00490101",
+    "sources": {
+      "characters/iron-fist/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/IRON_FIST_healthy.jpg",
+      "characters/iron-fist/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/IRON_FIST_injured.jpg",
+      "characters/iron-fist/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/IRON_FIST_MODEL.unity3d",
+      "characters/iron-fist/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/IRON_FIST_UI.png"
     }
   },
   "iron-monger": {
@@ -377,6 +413,24 @@
       "characters/mister-sinister/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MISTER_SINISTER_injured.jpg",
       "characters/mister-sinister/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/MISTER_SINISTER_MODEL.unity3d",
       "characters/mister-sinister/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MISTER_SINISTER_UI.png"
+    }
+  },
+  "moondragon": {
+    "id": "01910102",
+    "sources": {
+      "characters/moondragon/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MOONDRAGON_healthy.jpg",
+      "characters/moondragon/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MOONDRAGON_injured.jpg",
+      "characters/moondragon/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/MOONDRAGON_MODEL.unity3d",
+      "characters/moondragon/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MOONDRAGON_UI.png"
+    }
+  },
+  "namor-the-sub-mariner": {
+    "id": "01580102",
+    "sources": {
+      "characters/namor-the-sub-mariner/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/NAMOR_THE_SUB_MARINER_healthy.jpg",
+      "characters/namor-the-sub-mariner/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/NAMOR_THE_SUB_MARINER_injured.jpg",
+      "characters/namor-the-sub-mariner/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/NAMOR_THE_SUB_MARINER_MODEL.unity3d",
+      "characters/namor-the-sub-mariner/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/NAMOR_THE_SUB_MARINER_UI.png"
     }
   },
   "nebula": {
