@@ -105,8 +105,8 @@ export default function CharacterTray({
     onOpen()
   }
 
-  useOutline(cardRef, outlineMode(selected, false))
-  // A click on the card opens the popup
+  // Selected or under the pointer. A click on the card opens the popup.
+  useOutline(cardRef, outlineMode(selected, cardHovered))
   useHoverCursor(cardHovered, 'pointer')
 
   // onCardHover(true) while the pointer is over the card, onCardHover(false) after. The cleanup also

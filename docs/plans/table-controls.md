@@ -1,6 +1,6 @@
 # Plan: Table controls
 
-Requested by the user on 2026-10-11. Plan 5 of `docs/plans/playtest-1.md`. Status: plan written and confirmed by the user on 2026-10-11. Branch `table-controls`, from `playtest-1-test`, because it builds on the table tools (Place, drag).
+Requested by the user on 2026-10-11. Plan 5 of `docs/plans/playtest-1.md`. Status: all 6 steps done on 2026-10-11, waiting for the user checks (the user asked to run all steps and test them at the end). Branch `table-controls`, from `playtest-1-test`, because it builds on the table tools (Place, drag).
 
 There is no new feature doc. Each step changes the feature docs of its area: `docs/features/key-shortcuts.md`, `docs/features/character-trays.md`, `docs/features/dice-rolling.md`, `README.md` and `apps/web/scripts/README.md`. Each step makes one commit and writes its **Result** below.
 
@@ -233,7 +233,14 @@ User, after this step:
 
 ### Result
 
-Not started.
+Done.
+
+- `useOutline(ref, outlineMode(selected, hovered))` added to: `TokenFace.jsx` (group; the On row, Give sources, `LooseToken`, `TokenPile`; `interactive` false is never hovered), `CharacterTray.jsx` (both cards, hover and selected), `RosterCards.jsx` `RosterCard` (also the setup crisis rows), `CrisisCard.jsx`, `ScoreBoard.jsx` (VP markers and round marker, one group), `SupplyPile.jsx`, `ToolRack.jsx` `RackTool` (not the faint copy of a tool that is out, not the other rack: no handlers), `DiceTray.jsx` `Die` (only a shelf die is hovered).
+- Cost: hover state changes only on pointer over and out, so no piece re-renders on a pointer move. `useOutline` returns the `register` cleanup from its effect, so a mesh that unmounts while hovered leaves the selection set. A change of mode re-collects the meshes.
+- No outline: `TurnHandle.jsx` (a control handle on a selected token, like an Html button), locked terrain, table, mat, other rack, `OtherDiceTray.jsx`, dice in the well or in the air.
+- Docs: `key-shortcuts.md` ("Hover"), `README.md` (the white outline line).
+- Checks: build, format, lint (44 warning lines, as before), test 380 pass. No new test: the change is in components.
+- Differs from the plan: the tray card outlines both cards of the tray, not only the one under the pointer. A shelf die that leaves the shelf (Roll) while the pointer is on it keeps its outline until the pointer leaves. Not run in a browser (project rule).
 
 ## Open questions
 

@@ -41,6 +41,12 @@ Wheel input is smoothed. A wheel event does not move the camera at once. Each fr
 
 The app shows a warning when the browser draws WebGL on the CPU (SwiftShader, llvmpipe, softpipe, Microsoft Basic Render Driver), for example with hardware acceleration off. See `src/renderer.js`.
 
+## Hover
+
+A piece under the pointer shows a white outline when this browser can use it with the pointer: a model, a tool, a crisis token, an unlocked terrain piece, a Team Tactic card, a token (in the On row of a tray, a Give source, on the table, a pile), a tray card, a roster card, a setup crisis card, a crisis card, a VP marker, the round marker, a supply pile, a tool of the own rack, and a die on the shelf of the own tray. A selected piece, a range mark, an overlap and the other player's selection have their own outline, which wins over the white one.
+
+No outline: locked terrain, the table, the mat, the other player's rack and dice tray, dice in the well or in the air, a token that takes no pointer (a drag preview), the turn handle, and the buttons on the table (they have a CSS hover).
+
 ## Keyboard: TTS defaults
 
 Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, which is moved from the number pad to the number row (see the next section).

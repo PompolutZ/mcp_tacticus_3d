@@ -1,8 +1,9 @@
-import { Suspense, useState } from 'react'
+import { Suspense, useRef, useState } from 'react'
 import { useTexture } from '@react-three/drei'
 import { assetUrl } from '../assets/index.js'
 import { crisisToken } from '../crisis/files.js'
 import { CRISIS_TOKEN_SIZE } from '../crisis/layout.js'
+import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import TokenSolid from './TokenSolid.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
 
@@ -25,7 +26,9 @@ export function SupplyToken({ tokenKey, ...props }) {
 // onDragStart(nativeEvent): a left pointerdown on the pile.
 export default function SupplyPile({ tokenKey, position, onDragStart }) {
   const [hovered, setHovered] = useState(false)
+  const groupRef = useRef()
   useHoverCursor(hovered, 'grab')
+  useOutline(groupRef, outlineMode(false, hovered))
 
   function handlePointerDown(e) {
     // Only the left button takes a token. A right or middle drag goes to OrbitControls (the camera).
@@ -35,7 +38,7 @@ export default function SupplyPile({ tokenKey, position, onDragStart }) {
   }
 
   return (
-    <group position={[position.x, GAP, position.z]}>
+    <group ref={groupRef} position={[position.x, GAP, position.z]}>
       <Suspense fallback={null}>
         <SupplyToken
           tokenKey={tokenKey}

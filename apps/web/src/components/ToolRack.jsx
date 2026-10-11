@@ -1,9 +1,10 @@
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Html } from '@react-three/drei'
 import { TEAMS } from '../setup/setup.js'
 import { rackPlate, rackSlots, rackYaw } from '../tabletools/layout.js'
 import { OnTable, OWNER_FACING_ROTATION } from './OnTable.jsx'
 import { useMovementParts, useRangeParts } from './RulerTool.jsx'
+import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
 
 // The tool rack of each player: a plate with the range and movement tools in the player tint, and the R1 and
@@ -62,10 +63,13 @@ function useFaintParts(parts) {
 // may become a drag.
 function RackTool({ parts, slot, side, out, label, onClick, onDragStart }) {
   const faint = useFaintParts(parts)
+  const toolRef = useRef()
   const [pointerOver, setHovered] = useState(false)
   // The rack of the other player has no handlers, so it is never hovered
   const hovered = pointerOver && Boolean(onClick)
   useHoverCursor(hovered, 'pointer')
+  // The faint copy of a tool that is out has no outline
+  useOutline(toolRef, outlineMode(false, hovered && !out))
 
   const events = onClick && {
     onPointerOver: (e) => {
@@ -84,7 +88,7 @@ function RackTool({ parts, slot, side, out, label, onClick, onDragStart }) {
 
   return (
     <group position={[slot.x, TOOL_Y, slot.z]}>
-      <group rotation-y={rackYaw(side)} {...events}>
+      <group ref={toolRef} rotation-y={rackYaw(side)} {...events}>
         {(out ? faint : parts).map((part) => (
           <primitive key={part.obj.uuid} object={part.obj} />
         ))}

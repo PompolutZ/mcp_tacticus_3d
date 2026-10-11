@@ -25,6 +25,7 @@ import { affiliationToken, BOARD_MESH, BOARD_TEXTURE, ROUND_MESH } from '../scor
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import TokenSolid from './TokenSolid.jsx'
 import useLiveFollow from './useLiveFollow.js'
+import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
 
 // TTS mirrors X when it imports an OBJ. With the z → -z conversion, this is a 180° turn around Y (see
@@ -122,6 +123,7 @@ function DraggableMarker({
   })
 
   useHoverCursor(hovered, 'grab')
+  useOutline(groupRef, outlineMode(false, hovered))
 
   // Board, terrain or table point under the pointer, the same as CrisisToken.jsx
   function pointerPoint(clientX, clientY) {

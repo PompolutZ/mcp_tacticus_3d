@@ -1,10 +1,11 @@
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { CanvasTexture, DoubleSide, SRGBColorSpace } from 'three'
 import { assetUrl } from '../assets/index.js'
 import { PLATE_COLORS, TAB_OF_KIND, parseRosterText, rosterCard } from '../rosters/cards.js'
 import { ROSTER_CARD_Y, rosterLayout } from '../rosters/layout.js'
 import { useColorTexture } from './useColorTexture.js'
 import FaceMaterial from './FaceMaterial.jsx'
+import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
 
 const FLAT = [-Math.PI / 2, 0, 0] // the image top faces local -z, toward the mat, the same as a tray card
@@ -167,7 +168,9 @@ function SquadFrame({ card }) {
 // next to the scoring board (GameSetup.jsx). onCardHover(card, over): the pointer moved onto or off the card, for Alt.
 export function RosterCard({ card, info, selected = false, onOpen, onCardHover }) {
   const [hovered, setHovered] = useState(false)
+  const groupRef = useRef()
   useHoverCursor(hovered, 'pointer')
+  useOutline(groupRef, outlineMode(false, hovered))
   // Alt shows the image large (App.jsx). A card without an image has nothing to show.
   useEffect(() => {
     if (!hovered || !info.image) return undefined
@@ -181,6 +184,7 @@ export function RosterCard({ card, info, selected = false, onOpen, onCardHover }
   }, [hovered])
   return (
     <group
+      ref={groupRef}
       position={[card.x, ROSTER_CARD_Y, card.z]}
       rotation={[0, card.yaw, 0]}
       onClick={(e) => {

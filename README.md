@@ -195,7 +195,7 @@ Every terrain piece is locked when its map is loaded. A locked piece does not re
 
 The **Labels** chip of the toolbar is on at the start. Each terrain piece then shows a label above it: "Tree - Size 2 - (L)ocked" or "Tree - Size 2 - Un(L)ocked" (a piece with no Size: "Tree - (L)ocked"). The label follows the lock state. With Labels off, only the piece under the pointer shows its label, locked or not. A model that you drag shows a light grey footprint on the table, and a red one over another model.
 
-An unlocked piece shows a white outline under the pointer. Click it to select it. Press **Delete** with the pointer over it to remove it. A model that stands on a removed piece falls to what is under it. A new map brings its own terrain, all locked again. Unlocked pieces cannot be moved yet.
+Every piece that you can use with the pointer shows a white outline under it: a model, a tool, a token, a card, a marker, a supply pile, a tool of your rack, a die on your shelf, an unlocked terrain piece. Locked terrain, the table, the mat and the other player's rack and dice tray have none. Click an unlocked piece to select it. Press **Delete** with the pointer over it to remove it. A model that stands on a removed piece falls to what is under it. A new map brings its own terrain, all locked again. Unlocked pieces cannot be moved yet.
 
 ## Tools
 

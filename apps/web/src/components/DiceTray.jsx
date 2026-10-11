@@ -39,6 +39,7 @@ import { dieEntry, dieId, nextOrder, roundPose, trayCounts } from '../dice/store
 import { FALL_LIMIT_Y } from '../table.js'
 import { DieMenu } from './DiceKeys.jsx'
 import { TrayBody, useDieLook } from './DiceTrayParts.jsx'
+import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
 
 // A tray holds at most 42 dice, shelf and well together (design, "Roll flow"). SHELF_SLOT_COUNT
@@ -98,7 +99,10 @@ function Die({ id, dice, geometry, material, menuOpen, onOpen, onChange, onMenuC
   // Read once: a body type that changes with a re-render would fight startShelfMove
   const [type] = useState(() => (entry.slot === undefined ? 'dynamic' : 'kinematicPosition'))
   const [hovered, setHovered] = useState(false)
+  const meshRef = useRef()
   useHoverCursor(hovered, 'pointer')
+  // Only a shelf die is hovered, so a die in the well or in the air has no outline
+  useOutline(meshRef, outlineMode(false, hovered))
   function setBody(rb) {
     const e = dice.current.get(id)
     if (e) e.body = rb ?? null
@@ -151,6 +155,7 @@ function Die({ id, dice, geometry, material, menuOpen, onOpen, onChange, onMenuC
         density={D8_DENSITY}
       />
       <mesh
+        ref={meshRef}
         geometry={geometry}
         material={material}
         castShadow
