@@ -20,19 +20,19 @@ export const NO_FILTERS = {
   maxSize: null,
 }
 
-// The combinations of `units` for the threat value maxThreat: [{ places, threat }], places sorted, the
-// highest threat first, then by places. units: [{ place, name, threat, alterEgo, peerless }] in roster
-// order. The 5 rules are in docs/features/squad-breakdown.md, "Combinations".
-export function squadCombinations(units, maxThreat) {
+// The combinations of `units` with a total threat of exactly `threat`: [{ places, threat }], places sorted,
+// the list sorted by places. units: [{ place, name, threat, alterEgo, peerless }] in roster order. The 4
+// rules are in docs/features/squad-breakdown.md, "Combinations".
+export function squadCombinations(units, threat) {
   // The previous unit with the same name (the earlier copy), or null
   const earlier = units.map((unit, i) => {
     for (let j = i - 1; j >= 0; j--) if (units[j].name === unit.name) return j
     return null
   })
-  // Can unit i join the chosen set `taken` (indexes) with total threat `total`?
+  // Can unit i join the chosen set `taken` (indexes) with total threat `total` (rules 1 to 3, and not over)?
   const fits = (i, taken, total) => {
     const unit = units[i]
-    if (total + unit.threat > maxThreat) return false
+    if (total + unit.threat > threat) return false
     if (earlier[i] !== null && !taken.includes(earlier[i])) return false
     const shared = unit.alterEgo === null || SHARED_ALTER_EGOS.includes(unit.alterEgo)
     for (const j of taken) {
@@ -44,11 +44,8 @@ export function squadCombinations(units, maxThreat) {
   const result = []
   const walk = (i, taken, total) => {
     if (i === units.length) {
-      if (taken.length === 0) return
-      // Rule 4: nothing outside the set still fits
-      for (let k = 0; k < units.length; k++) {
-        if (!taken.includes(k) && fits(k, taken, total)) return
-      }
+      // Rule 4: the total is exactly the threat value
+      if (taken.length === 0 || total !== threat) return
       result.push({ places: taken.map((k) => units[k].place), threat: total })
       return
     }
@@ -56,7 +53,7 @@ export function squadCombinations(units, maxThreat) {
     walk(i + 1, taken, total)
   }
   walk(0, [], 0)
-  return result.sort((a, b) => b.threat - a.threat || comparePlaces(a.places, b.places))
+  return result.sort((a, b) => comparePlaces(a.places, b.places))
 }
 
 // Roster order of two sorted place lists

@@ -23,7 +23,7 @@ These facts come from the Jarvis JS bundle (`application.<hash>.js`, the Breakdo
   - it has more than one character with the Jarvis tag `peerless`;
   - two characters share an `alterEgo`. Characters whose slug starts with `sentinel-mk4` or `prime-sentinel` do not count for this check;
   - it has the second Sentinel MK4 or Prime Sentinel, but not the first.
-- An affiliation of a set: more than half of its characters have it. Jarvis also has special cases: Legion of the Lost with the card Devil's Reckoning, Thralls of Dracula, Dark Dimension, Onslaught's Grip, and the rogue agents (Taskmaster, Winter Soldier).
+- An affiliation of a set: more than half of its characters have it. Jarvis also has special cases: Legion of the Lost with the card Devil's Reckoning, Thralls of Dracula, Dark Dimension, Onslaught's Grip, and the Rogue Agents (Taskmaster, Winter Soldier). For each affiliation of the set, Jarvis counts one more character when the set has a Rogue Agent without that affiliation. Two Rogue Agents still add only one.
 - A leader of an affiliation: a character that has the affiliation with `isLeader`, or with `isLeaderWithTeamTactics` when the roster has that Team Tactic card.
 - The options (cog button): must have, must not have, an affiliation (any, or one), at least 2 affiliations, a leader, the min and the max squad size. **Pinned** and **Played** use the games that Jarvis tracks.
 - Each set shows the character portraits and its affiliations. A menu has pin, notes, share and the Tactica previewer.
@@ -33,21 +33,21 @@ These facts come from the Jarvis JS bundle (`application.<hash>.js`, the Breakdo
 
 A combination is a set of roster characters with these rules:
 
-1. The total threat is at most the threat value. A character's threat is its Threat Level plus its attached Infinity Gems, the same as the squad threat of the setup (`squadThreat`).
+1. The total threat is exactly the threat value, the same as on Jarvis. A character's threat is its Threat Level plus its attached Infinity Gems, the same as the squad threat of the setup (`squadThreat`).
 2. No two characters share an alter ego (p11). The copies of Sentinel MK4 and of Prime Sentinel do not count for this rule, the same as on Jarvis. A character without an alter ego in Jarvis (Multiple Man) shares it with nobody.
 3. At most one character has the Peerless keyword (p21, Jarvis tag `peerless`).
-4. No other character of the roster still fits: each character that is not in the set would break rule 1, 2, 3 or 5.
-5. A set with a later copy of a character must also have the earlier copy. So each squad shows only once.
+4. A set with a later copy of a character must also have the earlier copy. So each squad shows only once.
 
-Rule 4 is different from Jarvis. Jarvis lists the sets with exactly that threat. The app lists the sets that a player can take for that threat. For example, at threat 18 a squad of 17 shows when no character of threat 1 is left.
-
-- The list is sorted by total threat, highest first. Squads with the same threat are sorted by the roster order of their characters.
+- A squad with a lower threat is also legal (p11). The breakdown does not list it under this value. It shows under its own value when the game can still have that value.
+- The list is sorted by the roster order of the characters.
 - The app finds the combinations of the roster's characters, also of characters without a 3D model. Such a character cannot join the squad (see [Choose a squad](#choose-a-squad)).
 - A roster with more than 14 characters gets no breakdown, the same as on Jarvis. The tab says so.
 
 ### Affiliations and leaders
 
-- The affiliations of a combination use the rule of the Affiliation step of the setup: more than half of the characters have it (`squadAffiliations`, see `docs/features/setup-game.md`, "Affiliation"). The Jarvis special cases are left out, the same as in the Affiliation step. Players apply them.
+- The affiliations of a combination use the rule of the Affiliation step of the setup: more than half of the characters have it (`squadAffiliations`, see `docs/features/setup-game.md`, "Affiliation").
+- Rogue Agent (Jarvis tag `rogueAgent`, Taskmaster and Winter Soldier): "One character with Rogue Agent counts as an affiliated character during Squad building." So for each affiliation, the app counts one more character when the combination has a Rogue Agent without that affiliation. Two Rogue Agents add only one. This is the same as on Jarvis and in the Affiliation step.
+- The other Jarvis special cases are left out, the same as in the Affiliation step. Players apply them.
 - A combination has a leader for an affiliation when one of its characters has that affiliation with `isLeader` in Jarvis, or with `isLeaderWithTeamTactics` and the roster has that Team Tactic card. The value of `isLeaderWithTeamTactics` is the Jarvis slug of the card. The app checks all Team Tactic cards of the roster, not only the chosen ones, the same as Jarvis.
 
 ## Threat values
@@ -62,7 +62,7 @@ The tab shows only the values that this game can still have. The values come fro
 | Maximum Threat | The 2 chosen cards | 1 or 2 values |
 | After the Maximum Threat | — | Only the Maximum Threat |
 
-- Each value shows once, sorted from low to high.
+- Each value shows once, sorted from low to high. A value with no combination shows the count 0.
 - When the rosters have no crisis cards, the tab shows every threat value of the current crisis cards in the Jarvis data (15 to 20).
 - One value is selected. Before the Maximum Threat is chosen, the first value is selected until the player clicks another one. When the selected value leaves the list, the first value is selected. After the Maximum Threat is chosen, it is the only value.
 
@@ -80,7 +80,7 @@ Layout, from top to bottom:
 ```
 [15 (8)] [17 (12)] [18 (14)]              threat chips: value and number of combinations
 Filters (2) ▾                              opens the filters
-12 squads                                  or "No squad fits threat 17 with these filters."
+12 squads                                  or "No squad has threat 17 with these filters."
 ┌──────────────────────────────────────────────────────────┐
 │ 17  (o) (o) (o) (o)    Avengers ★  Cabal                 │  a row: total threat, portraits, affiliations
 │     Hulk Thor Loki Wasp                                  │
@@ -136,7 +136,7 @@ In the squad step, a click on a combination chooses its characters for the squad
 |---|---|
 | `src/rosters/breakdown.js` | `squadCombinations(units, maxThreat)` and `matchesFilters(combination, filters)`. No imports, so a Node test can check it |
 | `src/rosters/cards.js` | The units of a roster (threat with gems, alter ego, Peerless, copies), the affiliations and leaders of each combination, the threat values of all crisis cards |
-| `src/characters/characters.js` | `alterEgo`, `peerless` and `leads` of each character, from Jarvis |
+| `src/characters/characters.js` | `alterEgo`, `peerless`, `rogue` and `leads` of each character, from Jarvis |
 | `src/setup/setup.js` | `possibleThreats(setup, parsed, threatOf)`: the threat values of the current step. `setSquadCharacters(setup, team, places)`: the squad characters of a click |
 | `src/App.jsx` | `handleBreakdownChoose`: the checks, the write and the close of the popup, shared with `handleRosterClick` (`writeSquad`) |
 | `src/components/BreakdownTab.jsx` | The Breakdown tab: threat chips, filters, the list |
@@ -146,15 +146,15 @@ In the squad step, a click on a combination chooses its characters for the squad
 
 - **Pinned** and **Played** of Jarvis. The app has no game history.
 - Notes, names and sharing of a squad.
-- The Jarvis special cases of affiliations (Legion of the Lost, Thralls of Dracula, Dark Dimension, Onslaught's Grip, rogue agents) and the Horsemen of Servants of the Apocalypse.
+- The Jarvis special cases of affiliations other than Rogue Agent (Legion of the Lost, Thralls of Dracula, Dark Dimension, Onslaught's Grip) and the Horsemen of Servants of the Apocalypse.
 - A choice of Team Tactic cards from the breakdown.
 
 ## Decisions
 
 1. The tab is in the roster popup on the table, during the setup, for both rosters.
-2. A combination follows the 5 rules in [Combinations](#combinations). The threat is at most the value, and no other character still fits (rule 4), as the user asked. Peerless (p21) and the Sentinel copies follow Jarvis.
+2. A combination follows the 4 rules in [Combinations](#combinations). The total threat is exactly the value, the same as on Jarvis. Peerless (p21) and the Sentinel copies also follow Jarvis.
 3. Only the threat values that this game can still have show. With no crisis cards, all values of the Jarvis data show.
-4. Affiliations use the same rule as the Affiliation step of the setup. The Jarvis special cases are left out.
+4. Affiliations use the same rule as the Affiliation step of the setup, with Rogue Agent. The other Jarvis special cases are left out.
 5. Must not have removes characters before the combinations are found. The other filters work on the list.
 6. A click in the squad step replaces the characters of the squad. The Team Tactic cards stay. The popup closes, and **Select squad** turns on.
 7. A roster with more than 14 characters gets no breakdown, the same as on Jarvis.

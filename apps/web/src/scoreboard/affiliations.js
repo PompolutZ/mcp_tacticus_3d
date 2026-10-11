@@ -22,17 +22,19 @@ export function affiliationKey(slug) {
 }
 
 // The affiliations of a squad (rule p11): the token keys that more than half of the characters have,
-// sorted by name. lists: the Jarvis slugs of each character of the squad.
-export function squadAffiliations(lists) {
-  const counts = new Map()
-  for (const list of lists) {
-    const keys = new Set(list.map(affiliationKey).filter(Boolean))
-    for (const key of keys) counts.set(key, (counts.get(key) ?? 0) + 1)
+// sorted by name. members: [{ affiliations: [Jarvis slug], rogue }] for each character of the squad. Rogue
+// Agent card text: "One character with Rogue Agent counts as an affiliated character during Squad
+// building." So a key gets +1 when a rogue member lacks it, and only 1 even with two rogue members.
+export function squadAffiliations(members) {
+  const sets = members.map((m) => new Set(m.affiliations.map(affiliationKey).filter(Boolean)))
+  const candidates = new Set(sets.flatMap((keys) => [...keys]))
+  const result = []
+  for (const key of candidates) {
+    let count = sets.filter((keys) => keys.has(key)).length
+    if (members.some((m, i) => m.rogue && !sets[i].has(key))) count += 1
+    if (count > members.length / 2) result.push(key)
   }
-  return [...counts]
-    .filter(([, n]) => n > lists.length / 2)
-    .map(([key]) => key)
-    .sort((a, b) => affiliationsData[a].name.localeCompare(affiliationsData[b].name))
+  return result.sort((a, b) => affiliationsData[a].name.localeCompare(affiliationsData[b].name))
 }
 
 // The affiliation that the app sets with no click: Unaffiliated with no choice, the one choice, or null

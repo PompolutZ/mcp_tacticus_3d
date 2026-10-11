@@ -161,7 +161,10 @@ export function squadThreat(parsed, places) {
 // name. places: as in squadThreat.
 export function squadAffiliationKeys(parsed, places) {
   return squadAffiliations(
-    places.map((place) => characterByCode(parsed.characters[place]?.code)?.affiliations ?? []),
+    places.map((place) => {
+      const ch = characterByCode(parsed.characters[place]?.code)
+      return { affiliations: ch?.affiliations ?? [], rogue: ch?.rogue ?? false }
+    }),
   )
 }
 

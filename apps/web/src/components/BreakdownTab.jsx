@@ -215,8 +215,8 @@ export function BreakdownTab({ parsed, breakdown }) {
       <p className="breakdown-line">
         {rows.length === 0
           ? filterCount > 0
-            ? `No squad fits threat ${threat} with these filters.`
-            : `No squad fits threat ${threat}.`
+            ? `No squad has threat ${threat} with these filters.`
+            : `No squad has threat ${threat}.`
           : `${rows.length} ${rows.length === 1 ? 'squad' : 'squads'}`}
       </p>
       <p className="breakdown-line">

@@ -41,6 +41,9 @@ function rosterEntry(jch, m, mctCode) {
     alterEgo: jch.alterEgo ?? null,
     // The Jarvis tag peerless: at most one such character per squad (p21), see rosters/breakdown.js.
     peerless: (jch.tags ?? []).includes('peerless'),
+    // The Jarvis tag rogueAgent (Taskmaster, Winter Soldier): counts as affiliated in Squad building, see
+    // scoreboard/affiliations.js.
+    rogue: (jch.tags ?? []).includes('rogueAgent'),
     // Where the character is a leader, for the leader star of the breakdown: [{ affiliation, tactic }].
     // affiliation: the Jarvis slug. tactic: null (always a leader), or the slug of the Team Tactic card that
     // the roster needs (isLeaderWithTeamTactics).

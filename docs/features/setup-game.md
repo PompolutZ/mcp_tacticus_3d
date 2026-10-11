@@ -115,7 +115,7 @@ z = 12.55   Use          [drawn 1]
 
 Rule p11: a squad uses an affiliation when more than half of its characters have it. Exactly half is not enough. A squad has only one affiliation.
 
-- When a squad goes on the table, the app counts the affiliations of its characters (from Jarvis, `squadAffiliations` in `src/scoreboard/affiliations.js`). With none, the squad is Unaffiliated. With one, that is the affiliation. In both cases the app sets it with no click.
+- When a squad goes on the table, the app counts the affiliations of its characters (from Jarvis, `squadAffiliations` in `src/scoreboard/affiliations.js`). A Rogue Agent (Jarvis tag `rogueAgent`: Taskmaster, Winter Soldier) counts as a character of each affiliation that it does not have. Two Rogue Agents count only once. With none, the squad is Unaffiliated. With one, that is the affiliation. In both cases the app sets it with no click.
 - With 2 or 3, the step `affiliation` opens after both squads are on the table. The panel says "Choose the affiliation of your squad." and has a row of chips for each player: those affiliations and Unaffiliated. A click chooses it.
 - A row that the app set can also change while the step is open.
 - In a multiplayer room, each player clicks only their own row. The other row is disabled. After the reveal, both squads are in the document, so both rows show their choices.

@@ -13,34 +13,29 @@ const unit = (place, threat, extra = {}) => ({
 })
 const places = (list) => list.map((c) => c.places)
 
-test('threat limit, and a squad under the value shows when nothing fits', () => {
+test('exact total: a set under the value is left out', () => {
   const units = [unit(0, 5), unit(1, 5), unit(2, 5)]
   assert.deepEqual(places(squadCombinations(units, 10)), [
     [0, 1],
     [0, 2],
     [1, 2],
   ])
-  assert.deepEqual(squadCombinations(units, 4), [])
-  // Threat 11: the squad of 10 still shows, nothing else fits
-  assert.equal(squadCombinations(units, 11)[0].threat, 10)
+  const mixed = [unit(0, 5), unit(1, 5), unit(2, 1)]
+  assert.deepEqual(places(squadCombinations(mixed, 11)), [[0, 1, 2]])
+  assert.deepEqual(places(squadCombinations(mixed, 10)), [[0, 1]])
 })
 
-test('rule 4: a set with room for a character is left out', () => {
-  const units = [unit(0, 5), unit(1, 5), unit(2, 1)]
-  assert.deepEqual(places(squadCombinations(units, 11)), [[0, 1, 2]])
-  // At 10 the 1 does not fit next to [0,1], and a 5 does not fit next to [x,2]
-  assert.deepEqual(places(squadCombinations(units, 10)), [
-    [0, 1],
-    [0, 2],
-    [1, 2],
-  ])
+test('exact total: a value no set reaches gives an empty list', () => {
+  const units = [unit(0, 5), unit(1, 5), unit(2, 5)]
+  assert.deepEqual(squadCombinations(units, 4), [])
+  assert.deepEqual(squadCombinations(units, 11), [])
 })
 
 test('alter ego: shared is out, null never matches', () => {
   const same = [unit(0, 3, { alterEgo: 'A' }), unit(1, 3, { alterEgo: 'A' })]
-  assert.deepEqual(places(squadCombinations(same, 10)), [[0], [1]])
+  assert.deepEqual(places(squadCombinations(same, 3)), [[0], [1]])
   const nulls = [unit(0, 3, { alterEgo: null }), unit(1, 3, { alterEgo: null })]
-  assert.deepEqual(places(squadCombinations(nulls, 10)), [[0, 1]])
+  assert.deepEqual(places(squadCombinations(nulls, 6)), [[0, 1]])
 })
 
 test('Sentinel exception: the shared alter ego does not count', () => {
@@ -48,7 +43,7 @@ test('Sentinel exception: the shared alter ego does not count', () => {
     unit(0, 3, { name: 'Sentinel MK4', alterEgo: 'Sentinel MK4' }),
     unit(1, 3, { name: 'Sentinel MK4', alterEgo: 'Sentinel MK4' }),
   ]
-  assert.deepEqual(places(squadCombinations(units, 10)), [[0, 1]])
+  assert.deepEqual(places(squadCombinations(units, 6)), [[0, 1]])
 })
 
 test('copies: the later copy needs the earlier one', () => {
@@ -67,13 +62,13 @@ test('copies: the later copy needs the earlier one', () => {
 
 test('Peerless: at most one', () => {
   const units = [unit(0, 3, { peerless: true }), unit(1, 3, { peerless: true }), unit(2, 3)]
-  assert.deepEqual(places(squadCombinations(units, 9)), [
+  assert.deepEqual(places(squadCombinations(units, 6)), [
     [0, 2],
     [1, 2],
   ])
 })
 
-test('sort: threat high first, then places', () => {
+test('sort: by places', () => {
   const units = [unit(0, 4), unit(1, 3), unit(2, 4), unit(3, 3)]
   const list = squadCombinations(units, 7)
   assert.deepEqual(places(list), [
@@ -81,9 +76,8 @@ test('sort: threat high first, then places', () => {
     [0, 3],
     [1, 2],
     [2, 3],
-    [1, 3],
   ])
-  const mixed = squadCombinations([unit(0, 2), unit(1, 5), unit(2, 6)], 7)
+  const mixed = squadCombinations([unit(0, 2), unit(1, 5), unit(2, 7)], 7)
   assert.deepEqual(places(mixed), [[0, 1], [2]])
   assert.deepEqual(squadCombinations([], 7), [])
 })

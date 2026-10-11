@@ -1,6 +1,6 @@
 # Plan: Squad breakdown
 
-Requested by the user on 2026-10-11. Plan 3 of `docs/plans/playtest-1.md`. Status: parts 1 to 4 done, waiting for the user checks.
+Requested by the user on 2026-10-11. Plan 3 of `docs/plans/playtest-1.md`. Status: parts 1 to 5 done, waiting for the user checks.
 
 The user asked for the plan and the coder work in one go, on the branch `squad-breakdown`, in the worktree `../mcp_assist_3d-squad-breakdown`. The user checks the branch after all parts are done.
 
@@ -68,7 +68,7 @@ From the Jarvis rules reference:
 
 The lasting decisions are in the feature. Decisions for this plan only:
 
-1. **Peerless and Sentinel copies.** The user named the threat, "no other character still fits" and the alter ego. The plan also uses Peerless (a rulebook rule, p21) and the copy rule of Jarvis. The user can say no after the check. Then rule 3 and rule 5 of the feature go away.
+1. **Peerless and Sentinel copies.** The user named the threat, "no other character still fits" and the alter ego. The plan also uses Peerless (a rulebook rule, p21) and the copy rule of Jarvis. The user can say no after the check. Then rule 3 and rule 5 of the feature go away. Answer after part 4: keep both, see part 5.
 2. **Order.** Pure logic with tests first, then the tab, then the filters, then the click. Each part leaves the app working.
 3. **No browser checks by coder.** The checks are build, format, lint and the web tests. The user checks the app in the browser after part 4.
 
@@ -150,6 +150,38 @@ Commit: `squad breakdown part 4: choose a squad from the breakdown`.
 
 **Result:** done. `setSquadCharacters` in `setup.js` with a test. `App.jsx`: `handleBreakdownChoose`, `breakdownChooseBlock` (the checks and the reason text), and `writeSquad`, now shared with `handleRosterClick`. `popupBreakdown` has `chooseBlock`, `squadCharacters` and `onChoose`. `BreakdownTab.jsx`: rows are `role="button"` with keyboard (Enter, Space) when a click works; the row of the current squad has the yellow frame (`#ffd34d`); a line over the list says what can be done or why not. No deviation.
 
+## Part 5: Exact threat and Rogue Agent
+
+The user's answer after part 4 (2026-10-11):
+
+- Keep Peerless: two Peerless characters cannot be in one squad.
+- Keep the Sentinel MK4 and Prime Sentinel exception: they are known exceptions to the same name rule.
+- Rogue Agent: characters like Taskmaster count as affiliated, so they can join an affiliated squad.
+- Like on Jarvis, list only the combinations whose threat sum is exactly the threat value.
+
+Facts:
+
+- Card text of Taskmaster (`00320102`) and Winter Soldier (`00130102`), innate "Rogue Agent": "One character with Rogue Agent counts as an affiliated character during Squad building." Only these 2 have the Jarvis tag `rogueAgent`.
+- Jarvis `NR` (same bundle): the candidate affiliations are the slugs of the set's characters. Count of a slug = characters with it, plus 1 when the set has a Rogue Agent without it (`SR = ["winter-soldier", "taskmaster"]`). Kept when the count is at least `floor(n / 2) + 1`.
+
+Decision: the Rogue Agent rule goes into `squadAffiliations`. So the Affiliation step of the setup also uses it, and the breakdown and the setup show the same affiliations. The feature changes (rules renumbered to 4, Rogue Agent) are in `docs/features/squad-breakdown.md` and `docs/features/setup-game.md`, "Affiliation".
+
+Work:
+1. `src/rosters/breakdown.js`, `squadCombinations(units, threat)`: keep the sets whose total is exactly `threat`. Remove the "nothing else fits" check (old rule 4). Keep the cut when the total is over the value. Sort by places only, because all sets have the same threat. Comments: 4 rules.
+2. `src/characters/characters.js`, `rosterEntry`: `rogue` (Jarvis tag `rogueAgent`), with a comment like the other fields.
+3. `src/scoreboard/affiliations.js`, `squadAffiliations(members)`: `members` is `[{ affiliations: [slug], rogue }]`. A key counts the members that have it, plus 1 when a rogue member does not have it. Kept when the count is more than half. Comment: p11 and the card text.
+4. `src/rosters/cards.js`, `squadAffiliationKeys`: pass `{ affiliations, rogue }` of each character.
+5. `src/components/BreakdownTab.jsx`: "No squad has threat N with these filters." and "No squad has threat N."
+6. Tests:
+   - `breakdown.test.js`: replace the two rule 4 tests: only the exact total shows, a set under the value is left out, no set gives an empty list. Fix the sort test.
+   - `affiliations.test.js`: the new input. A Rogue Agent adds 1 for an affiliation it does not have. Two Rogue Agents add only 1. A Rogue Agent with the affiliation counts once. The Jarvis data has the tag `rogueAgent` on Taskmaster and Winter Soldier only.
+
+Checks: `pnpm format`, `pnpm lint`, `pnpm --filter web build`, `pnpm --filter web test`.
+
+Commit: `squad breakdown part 5: exact threat, rogue agent` (with the doc changes).
+
+**Result:** done. `breakdown.js`: `squadCombinations(units, threat)` keeps only exact totals, rule 4 check removed, cut over the value kept, sort by places only, comments say 4 rules. `characters.js`: `rogue`. `affiliations.js`: `squadAffiliations(members)` with `{ affiliations, rogue }`. `cards.js`: `squadAffiliationKeys` passes `rogue`; no other callers. `BreakdownTab.jsx`: "No squad has threat N ..." texts. Tests: 349 total (344 before, +5: 1 in `breakdown.test.js`, 4 in `affiliations.test.js`). The two rule 4 tests and the sort test are rewritten; 3 older breakdown tests got exact totals. No deviation.
+
 ## User checks
 
 After part 4, in the browser. Write the results here.
@@ -157,7 +189,7 @@ After part 4, in the browser. Write the results here.
 Sandbox, two rosters loaded:
 1. Click a roster card. The popup has a fourth tab, **Breakdown**. The other tabs work as before. The left and right arrows do nothing in the Breakdown tab.
 2. Deck step: the threat chips show the values of all crisis cards of both rosters, each with a count. A click on a chip shows its list.
-3. Each row: total threat, portraits with names, affiliations, ★ for a leader. No row has two characters with the same alter ego or two Peerless characters. Adding any other character of the roster to a row would break a rule.
+3. Each row: total threat, portraits with names, affiliations, ★ for a leader. The total threat of each row is the value of the chip. No row has two characters with the same alter ego or two Peerless characters.
 4. Choose a deck, then the cards, then the threat. The chips get fewer at each step. After the Maximum Threat, one chip is left.
 5. Filters: must have, must not have, affiliation, at least 2 affiliations, leader, min and max size. The list and the chip counts change. **Clear filters** clears all of them. Close and open the popup: the filters stay.
 6. Squad step: click a row. The popup closes, the characters of the row have the yellow frame on the table, **Select squad** is on. The Team Tactic cards of the squad did not change. Open the Breakdown tab again: that row has the yellow frame.
@@ -172,4 +204,5 @@ Lobby:
 11. **Roster** on a room tile: the popup has no Breakdown tab.
 
 Rules:
-12. Peerless and the Sentinel copy rule (plan decision 1): keep them or remove them.
+12. Peerless and the Sentinel copy rule (plan decision 1): keep them or remove them. Answer: keep both (part 5).
+13. A roster with Taskmaster or Winter Soldier: a row with the Rogue Agent and characters of one affiliation shows that affiliation when the Rogue Agent makes it more than half. Example: Taskmaster and 2 Avengers out of 4 shows Avengers. Place such a squad: the Affiliation step offers the same affiliations.
