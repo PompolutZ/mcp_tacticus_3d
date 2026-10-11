@@ -2,16 +2,16 @@
 
 Requested by the user on 2026-10-11, after the first game with another player. Status: notes and answers collected on 2026-10-11. Each area below gets its own plan doc when it starts. This doc keeps the notes and the answers, so that no answer is lost between sessions.
 
-Order: plan 1 first, then 2 to 6.
+Order: plan 1 first, then 2 to 6. Plan 2 starts its rename of `blue` / `red` only when no other plan branch is open.
 
-| # | Plan doc | Content |
-|---|---|---|
-| 1 | `playtest-1-bugs.md` | Washed-out cards and tokens, tool key selects the enemy model |
-| 2 | `setup-round-2.md` | Roll off, colors, names, texts, history, who can click, panel places, squad buttons, Deploy Lock |
-| 3 | `squad-breakdown.md` | Breakdown tab in the roster popup |
-| 4 | `game-flow.md` | Priority marker, drop of objective tokens, log panel, sounds, ping |
-| 5 | `table-controls.md` | Drag, Alt, Place, Give click, model facing, labels, footprint, hover, dice tray clicks |
-| 6 | `table-tools.md` | TTS tools on the table, settings menu |
+| # | Plan doc | Branch | Content |
+|---|---|---|---|
+| 1 | `playtest-1-bugs.md` | main | Washed-out cards and tokens, tool key selects the enemy model |
+| 2 | `setup-round-2.md` | | Roll off, colors, names, texts, history, who can click, panel places, squad buttons, Deploy Lock |
+| 3 | `squad-breakdown.md` | `squad-breakdown`, in test | Breakdown tab in the roster popup |
+| 4 | `game-flow.md` | | Priority marker, drop of objective tokens, log panel, sounds, ping |
+| 5 | `table-controls.md` | | Drag, Alt, Place, Give click, model facing, labels, footprint, hover, dice tray clicks |
+| 6 | `table-tools.md` | `table-tools`, in test | TTS tools on the table, settings menu |
 
 ## Notes from the game
 

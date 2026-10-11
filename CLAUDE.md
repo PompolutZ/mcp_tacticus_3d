@@ -9,6 +9,14 @@
 - Each finished step is one commit. Commit without asking, unless the user asked to review the step first.
 - No push without asking.
 
+## Worktrees
+
+- Each plan runs in its own worktree `../mcp_assist_3d-<plan>`, on branch `<plan>` from main. The coder works only there.
+- The main dir is only for user tests.
+- Work done: remove the worktree. In the main dir, switch to the branch and merge main into it. The user tests. After the OK: fast-forward main, delete the branch.
+- At most 2 plan branches are open at a time. A change across many files (a rename) runs when no other branch is open.
+- A new worktree has no `.env` files. Lint, tests and build do not need them.
+
 ## TTS assets
 
 To migrate a map (mat and terrain) from the TTS mod, read `apps/web/scripts/README.md` first. It describes `apps/web/scripts/migrate-terrain.mjs`, the AssetRipper steps, and the TTS rules that were measured. `ASSETS.md` lists what the TTS cache has.
