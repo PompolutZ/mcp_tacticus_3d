@@ -195,6 +195,8 @@ After Phase 3:
 
 2026-10-11: the user checked 1 to 7 (and the 3 checks of `docs/plan-jarvis-immunities.md`): "all is good". The gem card in the tray popup is too large, and the controls are hard to reach. Phase 3 changes it.
 
+2026-10-11, after Phase 3: the user checked 8 to 10: "all works as expected".
+
 ## Risks and open questions
 
 1. **Gem name.** The chip text "Soul Gem" comes from the card name. The bonded soul gem of Adam Warlock (`01910104`, "Infinity Gem: Bonded Soul") gives "Bonded Soul Gem". Check the text if that card comes up.

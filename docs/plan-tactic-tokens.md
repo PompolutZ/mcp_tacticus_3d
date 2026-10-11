@@ -85,3 +85,5 @@ After Phase 2, in a single player room, with the friend's roster as Blue:
 7. Multiplayer (one pair): the other player sees the piles.
 
 ### User check results
+
+2026-10-11: the user checked 1 to 7: "all works as expected".

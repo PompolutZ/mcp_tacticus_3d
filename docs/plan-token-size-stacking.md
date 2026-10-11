@@ -95,3 +95,5 @@ Notes:
 - A crisis token held on a tray card (`floorY`) holds nothing.
 
 ### User check results
+
+2026-10-11: the user checked 1 to 8: "all works as expected".
