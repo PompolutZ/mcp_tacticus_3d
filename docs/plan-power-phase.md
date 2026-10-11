@@ -1,6 +1,6 @@
 # Plan: Automatic Power Phase
 
-Requested by the user on 2026-10-11. Status: plan approved by the user on 2026-10-11. Phase 1 and 2 done on 2026-10-11. User checks of Phase 2 pending. The user confirmed Stun and Poison (decision 1, the TTS way) on 2026-10-11.
+Requested by the user on 2026-10-11. Status: plan approved by the user on 2026-10-11. Phase 1 and 2 done on 2026-10-11. The user checked Phase 2 on 2026-10-11: all checks pass. The user confirmed Stun and Poison (decision 1, the TTS way) on 2026-10-11.
 
 Order of work, one coder step and one commit each: this plan's Phase 1 and Phase 2, then `docs/plan-cleanup-phase.md` Phase 1, 2 and 3. Each phase writes its **Result** below when it is done.
 
@@ -138,3 +138,5 @@ User, after this phase (move the models onto the mat first):
 **Phase 1 (2026-10-11).** `src/characters/power.js` reads the fixed extra Power from the superpower text of each side (English and French, all comma and star variants), with `sharedPowerBonus`, `POWER_GEM` and `powerAfterPhase`. `characters.js` rows have `powerBonus` and `grunt`, with `characterPowerBonus` and `characterIsGrunt`. `power.test.js` has 8 tests. The data matches the plan: 40 rows with extra Power, none with two stat cards, Magneto the only tag without a bonus.
 
 **Phase 2 (2026-10-11).** `characterOnBoard(ch, poses)` in `models.js` (with `models.test.js`). `App.jsx` has `handlePowerPhase`, `showHudMessage(text, ms)` and one `playedSides` const, used also for `ownTraySides`. The toolbar has the group Phase with the **Power** chip, after Deploy, also in a multiplayer room. The HUD message stays 8 s. Grunts are skipped and not listed. No difference from the plan.
+
+**User checks (2026-10-11).** All 7 checks of Phase 2 pass.

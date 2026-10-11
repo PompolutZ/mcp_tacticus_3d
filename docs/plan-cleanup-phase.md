@@ -1,6 +1,6 @@
 # Plan: Automatic Cleanup Phase
 
-Requested by the user on 2026-10-11, together with the Power Phase button (`docs/plan-power-phase.md`). Status: plan approved by the user on 2026-10-11. Phase 1, 2 and 3 done on 2026-10-11. User checks of Phase 2 and 3 pending. Build it after the Power Phase plan, because that plan adds the **Phase** group in the toolbar and `characterOnBoard`.
+Requested by the user on 2026-10-11, together with the Power Phase button (`docs/plan-power-phase.md`). Status: plan approved by the user on 2026-10-11. Phase 1, 2 and 3 done on 2026-10-11. The user checked Phase 2 and 3 on 2026-10-11: all checks pass. Build it after the Power Phase plan, because that plan adds the **Phase** group in the toolbar and `characterOnBoard`.
 
 User input on 2026-10-11: the button is disabled until every character on the board has an Activated or a Dazed token (decision 2). The tray **Remove** button no longer deletes a character: it puts the model back on its card. The Delete key over the card deletes the character, after a confirm (decision 10). The mod's list of tokens to remove is fine for now; the user will report wrong ones.
 
@@ -163,3 +163,5 @@ Phase 3 done on 2026-10-11.
 - Held supply tokens leave the tray by themselves: the tray reads the held tokens from `tokens` (`heldBy`).
 - HUD message: "Flipped" lists every Dazed character, also one that was already Injured. Shown 8 s, as the Power Phase. Marker off the track: "Cleanup Phase: the round marker is not on the round track, so it did not move."
 - Docs: `characters-hud.md` (new "Cleanup Phase" section and the notes), `feature-crisis.md`.
+
+User checks (2026-10-11): all checks of Phase 2 (5) and Phase 3 (7) pass.
