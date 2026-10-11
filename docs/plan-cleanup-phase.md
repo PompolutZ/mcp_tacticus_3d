@@ -1,6 +1,6 @@
 # Plan: Automatic Cleanup Phase
 
-Requested by the user on 2026-10-11, together with the Power Phase button (`docs/plan-power-phase.md`). Status: plan approved by the user on 2026-10-11, not started. Build it after the Power Phase plan, because that plan adds the **Phase** group in the toolbar and `characterOnBoard`.
+Requested by the user on 2026-10-11, together with the Power Phase button (`docs/plan-power-phase.md`). Status: plan approved by the user on 2026-10-11. Phase 1 done on 2026-10-11. Build it after the Power Phase plan, because that plan adds the **Phase** group in the toolbar and `characterOnBoard`.
 
 User input on 2026-10-11: the button is disabled until every character on the board has an Activated or a Dazed token (decision 2). The tray **Remove** button no longer deletes a character: it puts the model back on its card. The Delete key over the card deletes the character, after a confirm (decision 10). The mod's list of tokens to remove is fine for now; the user will report wrong ones.
 
@@ -139,4 +139,9 @@ User, after this phase:
 
 ## Result
 
-Not started.
+Phase 1 done on 2026-10-11.
+
+- `src/characters/cleanup.js`: `cleanupCharacter(ch, cleanupKeys)` (array or Set; returns the same object when nothing changes) and `cleanupBlockers(characters, poses)`.
+- `src/crisis/cleanup.js`: `cleanupCrisisTokens(tokens, cardOf)`. Differs from the plan: the second argument is a lookup `cardOf(cardKey)` (App passes `getCard` from `cards.js`, which has `tokens` and `supply`), not the cards object. The module imports no JSON, so node tests can load it.
+- `src/scoreboard/board.js`: `nextRoundSpot(position)`.
+- Tests: `characters/cleanup.test.js`, `crisis/cleanup.test.js`, `scoreboard/board.test.js`.
