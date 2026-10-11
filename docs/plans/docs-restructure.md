@@ -142,6 +142,16 @@ Files: new `features/round-phases.md`, `features/character-trays.md`, `features/
 - `crisis.md` (Source, cleanup decision 6) points to `round-phases.md`.
 - Code comments that cite `plans/power-phase.md` or `plans/cleanup-phase.md` point to `round-phases.md` with the new decision numbers. Today: `App.jsx`, `characters/cleanup.js`, `crisis/cleanup.js`, `TrayControls.jsx`, `Scene.jsx`, `scoreboard/board.js`.
 
+**Result**
+
+- New `features/round-phases.md`: Goal, Power Phase (rules, TTS, Jarvis facts), Cleanup Phase (rules, TTS, facts in the app), Decisions (16, one list), Out of scope, Later: variable Power. Text moved as it is. Dates, "this plan", "Today" and the Phase 1 to 3 work lists left out. Fixed wrong text: the Delete key also deletes a character over its tray card; the old Remove behavior ("Today ... asks") dropped. The Remove details of Phase 2 (y = 0, identity turn, lift cancel) and the HUD texts of Phase 3 went into decisions 15 and 16.
+- Decision map: Power 1 to 6 stay 1 to 6. Cleanup 1 to 10 became 7 to 16 (old N is new N+6): 2 is 8, 3 is 9, 4 is 10, 6 is 12, 7 is 13, 10 is 16.
+- `features/character-trays.md`: "Players apply the rules", "Power Phase", "Cleanup Phase", the Remove bullet, the gem bullet, the TTS Auto buttons bullet and "Out of scope" point to `round-phases.md`. The two sections were already short summaries, so they stay as summary plus pointer.
+- `features/crisis.md`: Source bullet points to `round-phases.md`, decision 12.
+- Code comments now point to `round-phases.md`: `App.jsx`, `characters/cleanup.js`, `characters/models.js`, `characters/characters.js`, `characters/power.js`, `crisis/cleanup.js`, `components/TrayControls.jsx`, `components/Scene.jsx`, `scoreboard/board.js`. No plan pointer is left.
+- The two plans did not change.
+- Open issues: none.
+
 ## Step 4: Backend features
 
 Files: `features/auth.md`, `features/peer-to-peer.md`, `features/backend.md`, `features/rooms.md`, `plans/implement-backend.md`, `plans/room-fixes.md`.

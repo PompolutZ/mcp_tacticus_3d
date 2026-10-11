@@ -951,7 +951,7 @@ export default function App({
     )
   }
 
-  // Power button in the toolbar (docs/plans/power-phase.md). Gives the Power of the Power Phase to each
+  // Power button in the toolbar (docs/features/round-phases.md). Gives the Power of the Power Phase to each
   // non-Grunt character of the played sides that has a model on the mat. The updater form reads the list
   // now, not at the last render, so a change the other browser just made is kept. The updater runs
   // inside setCharacters, so gains is filled when the HUD message is built.
@@ -981,7 +981,7 @@ export default function App({
     )
   }
 
-  // Cleanup chip state (docs/plans/cleanup-phase.md, decision 2): off while a character on the board has
+  // Cleanup chip state (docs/features/round-phases.md, decision 8): off while a character on the board has
   // neither Activated nor Dazed, and while no character is on the board.
   const cleanupBlocked = cleanupBlockers(characters, poses)
   const cleanupEmpty = !characters.some((ch) => characterOnBoard(ch, poses))
@@ -992,7 +992,7 @@ export default function App({
       ? `Each character on the board needs an Activated or Dazed token: ${cleanupBlocked.map((ch) => characterName(ch.key)).join(', ')}.`
       : 'Cleanup Phase for both players. Score VP first.'
 
-  // Cleanup button in the toolbar (docs/plans/cleanup-phase.md): both sides at once, in one transaction.
+  // Cleanup button in the toolbar (docs/features/round-phases.md): both sides at once, in one transaction.
   // It checks the blockers again at the click, and does nothing when blocked. Each write uses the updater
   // form, which reads the list now and runs inside set, so flipped and the round are filled after the
   // transaction. flipped lists the Dazed characters, also one that was already Injured.

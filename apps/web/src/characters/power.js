@@ -1,6 +1,6 @@
 // Extra Power of a character in the Power Phase, from the superpower text of its Jarvis stat card
 // sides, for example "During the Power Phase, this character gains 1 additional Power." Same idea as
-// immunity.js. See docs/plans/power-phase.md.
+// immunity.js. See docs/features/round-phases.md, "Facts from Jarvis".
 
 // The Power gem (MCT code). It gives 2 Power in the Power Phase, the other gems 1.
 export const POWER_GEM = '00250102'
@@ -48,7 +48,7 @@ export function sharedPowerBonus(jch) {
   return { healthy: least('healthy'), injured: least('injured') }
 }
 
-// New Power of a character after the Power Phase button (docs/plans/power-phase.md, decision 1).
+// New Power of a character after the Power Phase button (docs/features/round-phases.md, decision 1).
 // bonus: extra Power of the side that faces up. gems: attached MCT codes, may be undefined.
 // stun, poison: token counts. Grunts cannot have Power, so they stay as they are.
 export function powerAfterPhase({ power, bonus = 0, gems, stun, poison, grunt }) {

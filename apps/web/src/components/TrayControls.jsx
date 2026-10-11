@@ -19,7 +19,7 @@ const POWER_ICON = assetUrl(characterToken('1-power'))
 // onAttachedOpen(code): a click on a gem chip, one per attached card (see App.jsx, handleAttachedOpen).
 // The chip only reads the card, so it works on any player's tray. hideAttached: no gem chips; the
 // tray popup sets it, because its thumbnails do the same job (TrayPopup.jsx).
-// onRemove(): Remove puts the model back on its card (docs/plans/cleanup-phase.md, decision 10), with no
+// onRemove(): Remove puts the model back on its card (docs/features/round-phases.md, decision 16), with no
 // confirm. onBoard: a model of the character is on the mat. Without it Remove does nothing (aria-disabled,
 // not disabled, so the browser still shows the title).
 const REMOVE_TITLE =

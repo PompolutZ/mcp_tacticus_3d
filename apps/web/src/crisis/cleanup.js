@@ -1,5 +1,5 @@
 // Cleanup Phase rules for crisis tokens, as plain functions (no JSON, no React). See
-// docs/plans/cleanup-phase.md, decision 6.
+// docs/features/round-phases.md, decision 12.
 
 // New token list after the Cleanup Phase. cardOf(cardKey) → card with tokens and supply (getCard in
 // cards.js), or null. A Source (its card has a flipOnly token with this front) turns to its front.

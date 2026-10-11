@@ -83,7 +83,7 @@ export function snapPoint(points, x, z) {
 
 // The round spot after the one under the marker: the next one, the same one on round 6, or null when the
 // marker is on no spot (a player moved it off the track, so the Cleanup Phase leaves it).
-// position: { x, z }. See docs/plans/cleanup-phase.md, decision 7.
+// position: { x, z }. See docs/features/round-phases.md, decision 13.
 export function nextRoundSpot(position) {
   const spot = snapPoint(ROUND_POINTS, position.x, position.z)
   if (!spot) return null

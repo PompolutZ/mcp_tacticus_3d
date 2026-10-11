@@ -1,5 +1,5 @@
 // Cleanup Phase rules for characters, as plain functions (no JSON, no React). The caller passes the data.
-// See docs/plans/cleanup-phase.md, decisions 2, 3 and 4.
+// See docs/features/round-phases.md, decisions 8, 9 and 10.
 
 import { SPECIAL_CONDITIONS } from './immunity.js'
 import { characterOnBoard } from './models.js'

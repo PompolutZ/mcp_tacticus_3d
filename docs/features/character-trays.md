@@ -36,7 +36,7 @@ To make the later move to a 2D HUD cheap:
 
 ## Players apply the rules
 
-The app does not apply the game rules, in the same way as the crisis feature (see `docs/features/crisis.md`, "Players apply the rules"). It does not deal damage, find KO'd characters, or score VP. Players press the buttons. The exceptions are the Power Phase gain, which the **Power** button in the toolbar runs (see [Power Phase](#power-phase)), and the steps of the Cleanup Phase that need no choice, which the **Cleanup** button runs (see [Cleanup Phase](#cleanup-phase)).
+The app does not apply the game rules, in the same way as the crisis feature (see `docs/features/crisis.md`, "Players apply the rules"). It does not deal damage, find KO'd characters, or score VP. Players press the buttons. The exceptions are the Power Phase gain, which the **Power** button in the toolbar runs (see [Power Phase](#power-phase) and `docs/features/round-phases.md`), and the steps of the Cleanup Phase that need no choice, which the **Cleanup** button runs (see [Cleanup Phase](#cleanup-phase) and `docs/features/round-phases.md`).
 
 The app keeps only simple limits that never change:
 
@@ -76,7 +76,7 @@ These facts were found in the scripts of the "Red Tray Spawner" object (`trayScr
 - `cImmune` lists the conditions that the character is immune to. The tray refuses them with a message.
 - A held objective token stays on the tray as an object. The tray has 5 slots for held tokens. Its icon shows above the model.
 - When the tray spawns, it puts these tokens next to it: Activated, Dazed, the affiliation token, and every token in the character's `cToken` list. For example, Apocalypse: Root, Shock, Bleed, Slow, Incinerate, Evolution, Poison. Players drag them from there onto the target. The "Token Tray" object next to the table has a copy of every token.
-- The tray also has **Auto Power** and **Auto Cleanup** buttons that apply the Power Phase and Cleanup Phase rules. The app has a **Power** button in the toolbar for the Power Phase (see [Power Phase](#power-phase)) and a **Cleanup** button for the Cleanup Phase (see [Cleanup Phase](#cleanup-phase)). The Cleanup button works for both players at once, as in TTS.
+- The tray also has **Auto Power** and **Auto Cleanup** buttons that apply the Power Phase and Cleanup Phase rules. The app has a **Power** button in the toolbar for the Power Phase (see [Power Phase](#power-phase)) and a **Cleanup** button for the Cleanup Phase (see [Cleanup Phase](#cleanup-phase)). The Cleanup button works for both players at once, as in TTS (see `docs/features/round-phases.md`).
 
 ## Tray layout
 
@@ -146,7 +146,7 @@ The gem cards come with the Team Tactic card files: `migrate-tactics.mjs` also t
 
 In TTS, the gem cards lie next to the character card on the roster tray. A player drops a gem on the character tray. The tray takes it only when the character can have that gem (`cGem` of the character row). The tray puts it at a fixed place on the tray, with a **Remove Card** button. Thanos and Adam Warlock can have a second gem. The app does not copy this: the trays are 0.3" apart and have no free space at their sides, and a card over a part of the tray would cover the stat card. So the app shows a chip and a popup.
 
-- **Remove** takes the character off the board (a KO'd character, p16, see `docs/plans/cleanup-phase.md`, decision 10). Its held tokens drop next to the model, then each model goes back to its place on the tray card with its spawn turn, and the new pose is stored. The character, its tray, tokens, Damage and Power stay. No confirm: a player can drag the model back. A model that the other player moves is skipped. **Remove** is disabled while no model of the character is on the mat. The Delete key over a tray card deletes the character, its models and its tray, after a confirm.
+- **Remove** takes the character off the board (a KO'd character, p16, see `docs/features/round-phases.md`, decision 16). Its held tokens drop next to the model, then each model goes back to its place on the tray card with its spawn turn, and the new pose is stored. The character, its tray, tokens, Damage and Power stay. No confirm: a player can drag the model back. A model that the other player moves is skipped. **Remove** is disabled while no model of the character is on the mat. The Delete key over a tray card deletes the character, its models and its tray, after a confirm.
 - The controls strip of the 3D tray has one chip per attached card, above Flip and Remove. Its text comes from the card name: "Infinity Gem: Soul" gives "Soul Gem".
 - A click on the chip opens the gem card in the card popup. A gem without an image shows the HUD message "No card image for <name> (<code>)".
 - The tray popup shows no chips. It shows each attached card as a small thumbnail (90 px wide) in a column at the side of the stat card, so the popup keeps its height. On a narrow screen (560 px or less) the thumbnails go in a row under the stat card.
@@ -154,15 +154,15 @@ In TTS, the gem cards lie next to the character card on the roster tray. A playe
 - Both players see the chips, and both can open the cards. Reading a card changes nothing.
 - The strip has room for two chips (Thanos and Adam Warlock). More than two would need a second row.
 - The chip text comes from the card name. "Infinity Gem: Bonded Soul" gives "Bonded Soul Gem".
-- The app does not check which character can hold a gem, and does not check the range. The Power Phase counts the gems (see [Power Phase](#power-phase)). Players apply the other rules.
+- The app does not check which character can hold a gem, and does not check the range. The Power Phase counts the gems (see `docs/features/round-phases.md`, decision 1). Players apply the other rules.
 
 ## Power Phase
 
-The **Power** button in the toolbar (group Phase) gives each of your characters on the mat the Power of the Power Phase: 1, the extra Power of its superpower, and 1 per gem (2 for the Power gem), with the Stun, Poison and cap rules. Grunts and characters off the mat get nothing. A HUD message lists the changes. The rules, the data and the decisions are in `docs/plans/power-phase.md`.
+The **Power** button in the toolbar (group Phase) gives each of your characters on the mat the Power of the Power Phase: 1, the extra Power of its superpower, and 1 per gem (2 for the Power gem), with the Stun, Poison and cap rules. Grunts and characters off the mat get nothing. A HUD message lists the changes. The rules, the data and the decisions are in `docs/features/round-phases.md`.
 
 ## Cleanup Phase
 
-The **Cleanup** button in the toolbar (group Phase) does the steps of the Cleanup Phase that need no choice, for both players. Dazed characters get Damage 0, the Injured side, and lose the Dazed token and the special conditions. All characters lose Activated and the tokens with `cleanup: true`, and so do loose tokens on the table. Exhausted Sources flip back, supply tokens leave the game, and the round marker moves to the next round. It is one change, so the other browser gets it at once. The button is disabled (`aria-disabled`, the title gives the reason) while a character on the board has neither an Activated nor a Dazed token, and while no character is on the board. Players score VP first. The rules, the data and the decisions are in `docs/plans/cleanup-phase.md`.
+The **Cleanup** button in the toolbar (group Phase) does the steps of the Cleanup Phase that need no choice, for both players. Dazed characters get Damage 0, the Injured side, and lose the Dazed token and the special conditions. All characters lose Activated and the tokens with `cleanup: true`, and so do loose tokens on the table. Exhausted Sources flip back, supply tokens leave the game, and the round marker moves to the next round. It is one change, so the other browser gets it at once. The button is disabled (`aria-disabled`, the title gives the reason) while a character on the board has neither an Activated nor a Dazed token, and while no character is on the board. Players score VP first. The rules, the data and the decisions are in `docs/features/round-phases.md`.
 
 ## Second forms
 
@@ -359,7 +359,7 @@ Only tokens of an Extract card that players can move can be held: Asset, Civilia
 
 - A 2D HUD separate from the 3D world. This is the next step after this feature.
 - Horsemen cards and Reserve members attached to a character. Infinity Gems are built (see [Attached cards](#attached-cards)). Facts: in TTS, a gem or Horsemen card attaches to the tray only if the character can have it (`cGem`, `cHorsemen` in the mod; `bearableGems`, `assignableToHorsemen` in Jarvis). The TTS cache has all 5 Horsemen faces, but only the Soul gem card.
-- Rule automation beyond the Power Phase and Cleanup Phase buttons (see [Power Phase](#power-phase), [Cleanup Phase](#cleanup-phase)): VP scoring, the Priority token, character effects of the Cleanup Phase.
+- Rule automation beyond the Power Phase and Cleanup Phase buttons (see `docs/features/round-phases.md`): VP scoring, the Priority token, character effects of the Cleanup Phase.
 - Grunts. They come next. Facts: 6 mod characters have `grunts` (Elektra, Nick Fury, Red Skull Master of Hydra, Sandman, Shadowland Daredevil, Ultron Metal Tyrant). Each grunt is its own `Database` row (for example Hand Ninjas) with a card, a model, `cStamH`, tokens and immunities. TTS spawns the grunt card with its model below the tray, and a Wounds counter. Sandman has 2 grunts; TTS puts their cards side by side. None of these characters is in the TTS cache yet.
 - The second card version of a character without a second form (`cards` > 1 and no `transform` in `characters.json`, for example Mephisto). The tray uses card 1.
 - Other immunities of a second form (p21), and the mod's `twoModels` and `sideways` flags (Ms. Marvel).

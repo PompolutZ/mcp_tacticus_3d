@@ -52,7 +52,7 @@ All current tokens are 1" circles. There are two groups: Extract tokens (red) an
 - A Source never moves. Players can only flip it. When a player drops it, it goes back to its position (TTS `flipLock`).
 - When a character interacts with an Unexhausted Source, the player flips it to Exhausted. Then the character takes one supply token (an Asset or a Civilian) and holds it.
 - An Exhausted Source cannot be contested, secured or interacted with. (p22)
-- In the Cleanup Phase, players flip every Exhausted Source back. On all 4 current Source cards, players also remove the supply tokens from the game at that time, so they go back to the supply. The **Cleanup** button does both (see `docs/plans/cleanup-phase.md`, decision 6).
+- In the Cleanup Phase, players flip every Exhausted Source back. On all 4 current Source cards, players also remove the supply tokens from the game at that time, so they go back to the supply. The **Cleanup** button does both (see `docs/features/round-phases.md`, decision 12).
 - The supply is next to the card. The card says how many supply tokens to set aside. On all 4 current Source cards, this is one per Source.
 - The supply images are the same as the normal Asset and Civilian images.
 

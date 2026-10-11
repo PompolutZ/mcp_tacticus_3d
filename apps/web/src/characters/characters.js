@@ -116,7 +116,7 @@ export function characterImmune(slug, side) {
 }
 
 // Fixed extra Power this character gains in the Power Phase on its current side (power.js); 0 when
-// unknown. See docs/plans/power-phase.md.
+// unknown. See docs/features/round-phases.md, "Facts from Jarvis".
 export function characterPowerBonus(slug, side) {
   return bySlug.get(slug)?.powerBonus[side === 'injured' ? 'injured' : 'healthy'] ?? 0
 }

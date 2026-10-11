@@ -724,7 +724,7 @@ export default function Scene({
     }
   }
 
-  // Remove button on the tray (docs/plans/cleanup-phase.md, decision 10): every model of the character
+  // Remove button on the tray (docs/features/round-phases.md, decision 16): every model of the character
   // goes back to its place on the tray, upright, so the model turns as it did at its spawn. A model that
   // the other player moves is skipped. y = 0 is the rest height: the card has no collider and the table
   // top is y = 0, the same as at the spawn, so the sleeping body touches only the table. A lift ends
