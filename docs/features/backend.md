@@ -6,7 +6,6 @@ Not built yet:
 
 - The GitHub Actions workflows (`ci.yml`, `deploy-api.yml`). Every deploy is from the user's machine.
 - `GET /ice` (ICE servers and TURN credentials), see `docs/features/peer-to-peer.md`.
-- Login in production. The Discord redirect, the Privacy Policy URL and `VITE_DISCORD_CLIENT_ID` in Netlify are not set.
 
 The order of the work is in `docs/plans/implement-backend.md`.
 
@@ -193,7 +192,7 @@ CDK needs `cdk bootstrap` once per account and region, with admin rights. It cre
 |---|---|
 | 500 connections | At most 20 (10 instances × 2) |
 | 100 operations per second | About 50 reads per second with 100 waiting hosts (peer-to-peer doc) |
-| 10 GB in and 10 GB out per 7 days | About 25 MB of table writes per game, so about 400 games a week |
+| 10 GB in and 10 GB out per 7 days | Estimate: about 25 MB of table writes per game, so about 400 games a week. Measured in the first production game (96 min): below 1 MB each way |
 | 0.5 GB storage | About 5,000 rooms with a 100 KB table. Rooms and users have a 12-month TTL |
 | No backups | Accepted. If the data is lost, players log in again, and multiplayer rooms are lost |
 | Paused after 30 days with no connections | The keep-alive rule |
@@ -268,7 +267,7 @@ The site is `https://mcptacticus3d.netlify.app`. Netlify builds the web app from
 - The package directory setting stays empty. It tells Netlify where to find `netlify.toml` and Netlify Functions in a subfolder, and this site has neither.
 - `ignore`: Netlify skips the build when the commit changes none of the listed paths. Examples: a commit that changes only `apps/api`, `infra` or `docs`. `git diff --quiet` exits with 0 when nothing changed, and 0 means "skip".
 - `_headers` is in `apps/web/public/`. Vite copies it into `apps/web/dist`, so the cache headers keep working.
-- Env vars: `VITE_API_URL` (the function URL) is set. `VITE_DISCORD_CLIENT_ID` is not set yet. The web app shows the login button only when it is set. So production shows no login until the first release.
+- Env vars: `VITE_API_URL` (the function URL) and `VITE_DISCORD_CLIENT_ID`. The web app shows the login button only when `VITE_DISCORD_CLIENT_ID` is set.
 
 ## Cost
 

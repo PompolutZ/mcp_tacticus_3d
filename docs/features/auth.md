@@ -1,10 +1,6 @@
 # Feature: Login with Discord
 
-Status: partly built.
-
-Not built yet:
-
-- Login in production. The Discord application needs the production redirect and the Privacy Policy URL. Netlify needs `VITE_DISCORD_CLIENT_ID`. Until then, production shows no login.
+Status: built.
 
 The backend (repo, stack, AWS, deploy) is in `docs/features/backend.md`. The order of the work is in `docs/plans/implement-backend.md`.
 

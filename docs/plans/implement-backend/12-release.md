@@ -7,7 +7,7 @@ Detailed plan of step 12 in `docs/plans/implement-backend.md`. The rest of auth 
 The user plays a game with another real person, in production, on two machines in two networks. Before the first real player logs in, the site has a privacy page and **Delete account**, as the Discord Developer Terms require (auth doc, "Privacy"). The test data in Atlas is gone, so production starts with no data.
 
 After step 11:
-- The API with the auth, room, table and signal routes is deployed (steps 6 to 8). The API code has not changed since step 8 Phase 1. Step 8 Phase 5 and step 11 changed only `apps/api/compose.yaml` and `apps/api/package.json`, which are not deployed.
+- Only the auth routes are deployed (step 6, commit `6b5d1ef`). The room, table and signal routes of steps 7 and 8 are not deployed, because the deploy checks of steps 7 and 8 were not run. This plan first said they were deployed. The user deployed them in this step (see [User check results](#user-check-results)). The API code has not changed since step 8 Phase 1. Step 8 Phase 5 and step 11 changed only `apps/api/compose.yaml` and `apps/api/package.json`, which are not deployed.
 - `DELETE /me` exists in the API (step 6). The web app has no **Delete account** button.
 - There is no privacy page and no **Privacy** link.
 - Production shows no login button, because Netlify has no `VITE_DISCORD_CLIENT_ID`.
@@ -237,6 +237,18 @@ The game:
     - Anything that did not work or felt wrong.
 
 ### User check results
+
+2026-10-11:
+- Production `GET /rooms` gave 404. `/health` showed `6b5d1ef`, the API of step 6. The user ran `pnpm --filter infra cdk:deploy`. After it, `/health` shows `67a10b4-dirty`. Only docs were uncommitted, so the API code is the code of `67a10b4`.
+- Checks 10 and 11: two players played one game in production, on two machines.
+  - Connection: `direct` for all 96 min. One connection, no reconnect.
+  - Traffic: one player sent 1.8 MB and received 2.9 MB. The other player's line has the same numbers the other way round. Total 4.7 MB. The estimate in the peer-to-peer doc ("Traffic per game") is about 35 MB for 2 h.
+  - Lambda invocations: 395. The estimate is about 100. A browser polls only while it is not connected, 30 times a minute (`shouldPoll` in `net/peer.js`). So the waiting time decides most of the number. At 395 per game, the 1M free requests are enough for about 2,500 games a month.
+  - Atlas: the 1-week chart has one point per hour. The highest point (13:17) has bytesIn 153 B/s, bytesOut 172 B/s and 0.11 requests/s. That is about 0.55 MB in, 0.62 MB out and 400 requests in that hour. The point before it is much lower, so the whole game is below 1 MB each way. The backend doc estimates about 25 MB of table writes per game. The free cluster limit of 10 GB in and 10 GB out per 7 days is enough for more than 10,000 such games a week.
+  - `table fingerprint`: `579c863f` and `529c7e60`. They differ. Each browser logs it once, 2 s after the last change from when the connection opened. So one browser can log before the first sync data of the other browser arrives. The difference does not prove lost changes.
+  - The other player's console: "Layer out of range, resetting to 2", 3 times. It comes from the `postprocessing` library: each new `OutlineEffect` takes a layer number from a shared counter, and the counter goes back to 2 after 31. It is harmless, because `SelectionOutlines.jsx` sets its own layers 10 to 16. It shows that the outline effects were created about 13 times or more.
+- The user: everything else worked. The user's notes on the game went to another session.
+- Not checked: both players open the room at the same time, and compare the new `table fingerprint` lines.
 
 ## Done when
 

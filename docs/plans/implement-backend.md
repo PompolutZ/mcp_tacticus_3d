@@ -393,6 +393,8 @@ Done when:
 
 From this step on, production data is real. A change of the data format needs a migration.
 
+**Result:** Done on 2026-10-11. Two players played a 96 min game in production. The connection was direct. Traffic 4.7 MB, 395 Lambda requests, Atlas below 1 MB each way. The API of steps 7 and 8 had not been deployed before this step. Details are in `docs/plans/implement-backend/12-release.md`.
+
 ## Step 13: TURN
 
 Peer-to-peer phase 6. Only if step 12 or later games show that direct connections fail too often. Read: peer-to-peer doc "STUN and TURN".
@@ -412,7 +414,7 @@ The plan `docs/plans/implement-backend.md` gives the order of the phases and the
 1. **Login.** Discord application with the localhost redirect. The users store (memory and MongoDB), `POST /auth/discord`, `GET /me`, `DELETE /me`, the dev login. Lobby header with login, avatar and menu.
 2. **Multiplayer rooms.** After peer-to-peer phase 1, so the table is a Yjs document. Rooms store (memory and MongoDB, with indexes and TTL indexes) and endpoints, seats, the table snapshot, one room list in the lobby, the **Single player** or **Multiplayer** choice in the new room dialog, the join page, **Copy link**. Done in step 7.
 3. **Identity in peer-to-peer.** Together with peer-to-peer phase 2. Token and seat check on signaling requests, `user` on messages, the offer and answer check, names and avatars in the room toolbar. Signaling only for multiplayer rooms.
-4. **First release.** Built in step 12. The privacy page, **Delete account** and the footer link are done. The release tasks of the user are open. The production redirect URI and Privacy Policy URL, **Delete account**, the privacy page, and `VITE_DISCORD_CLIENT_ID` in Netlify. Delete account and the privacy page must be live before the first real player logs in. The site rename moved to step 1 of the plan, and the deploy to steps 3 and 4.
+4. **First release.** Built in step 12. The privacy page, **Delete account** and the footer link are done. The user did the release tasks on 2026-10-11. The production redirect URI and Privacy Policy URL, **Delete account**, the privacy page, and `VITE_DISCORD_CLIENT_ID` in Netlify. Delete account and the privacy page must be live before the first real player logs in. The site rename moved to step 1 of the plan, and the deploy to steps 3 and 4.
 
 ### Peer-to-peer play (`docs/features/peer-to-peer.md`)
 

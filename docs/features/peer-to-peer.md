@@ -189,6 +189,8 @@ Assumptions: 2 players, the host waits about 3 minutes for the guest, one reconn
 
 Requests above the limit cost $0.20 per million. So even 20,000 games in one month cost about $0.20.
 
+Measured in the first production game (96 min, `docs/plans/implement-backend/12-release.md`): 395 Lambda requests, about 400 Atlas requests, Atlas below 1 MB each way. The browsers poll only while they are not connected, so the waiting time decides most of the requests.
+
 ### Rules to stay at $0
 
 1. **Account plan.** A new AWS account (created on or after 2025-07-15) on the **Free plan** closes after 6 months or when its credits run out. Before that, upgrade it to the **Paid plan**. Always Free stays on the Paid plan. The Paid plan needs a payment card. An older account already has Always Free.
@@ -222,6 +224,8 @@ Estimate for one 2-hour game. The numbers are calculated, not measured:
 | **Total** | | **about 35 MB** |
 
 Measured (check 18 of `docs/plans/implement-backend/10-dice.md`): 10 rolls of 10 dice sent 1.2 MB in 2 min, relayed. That is about 120 KB for each roll of 10 dice, below the estimate of the dice row.
+
+Measured in the first production game: 4.7 MB in 96 min, direct, in both directions together. The estimate above is about 35 MB for 2 h.
 
 So 1,000 GB is enough for about 28,000 relayed games per month. It is not clear if Cloudflare counts the data twice when both players use the relay. In that case, the number is about 14,000. Only games where the direct connection fails use TURN.
 
