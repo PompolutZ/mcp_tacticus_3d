@@ -364,10 +364,12 @@ The rest of peer-to-peer phase 5: reconnect. The IndexedDB copy of the Yjs docum
 Step 8 (decision 8) already handles a closed or reloaded page: the state goes back to `waiting`, and the other page connects again with a new `hello` or offer. This step keeps:
 - A dropped network and a sleeping laptop.
 - The "Reconnecting" message.
-- ICE restart.
+- A new connection instead of ICE restart (decision 1 of `11-reconnect.md`).
 - The checks for lost changes.
 
 Done when: after a reload or a dropped connection, the game continues without lost changes.
+
+**Result:** Built on 2026-10-11 in two phases. A drop gives "Reconnecting". Both browsers post a new `hello` and make a new connection, with up to 3 failed attempts and no backoff. `pnpm --filter api turn:pause` and `turn:resume` test a drop with `?relay`. Each browser logs `table fingerprint <hash>` once per connection. Details are in `docs/plans/implement-backend/11-reconnect.md`. The user checks 1 to 3 passed after phase 1. The other checks are open.
 
 ## Step 12: First release
 

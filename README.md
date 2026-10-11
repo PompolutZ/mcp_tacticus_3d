@@ -96,7 +96,13 @@ A multiplayer room is on the API, so it needs login. To try one on one Mac, use 
 
 4. Open the room in both browsers. Within a few seconds the two browsers connect over WebRTC. Both toolbars show "Connected".
 
-Start the local TURN server first with `pnpm --filter api turn:up` (needs Docker). Stop it with `pnpm --filter api turn:down`. Browsers on one Mac often cannot reach each other directly, and then the data goes through this server. Add `?relay` to both room links to force all data through it. Both toolbars should still show "Connected". The flag works in `pnpm dev` only.
+Start the local TURN server first with `pnpm --filter api turn:up` (needs Docker). Stop it with `pnpm --filter api turn:down`. `turn:pause` and `turn:resume` freeze and release it. Browsers on one Mac often cannot reach each other directly, and then the data goes through this server. Add `?relay` to both room links to force all data through it. Both toolbars should still show "Connected". The flag works in `pnpm dev` only.
+
+#### Reconnecting
+
+After a dropped network or a sleeping laptop, both browsers show "Reconnecting" and connect again by themselves. A drop makes a new connection. Changes made during the drop show on the other screen after it. To test a drop on one Mac, open the room with `?relay` in both browsers, then run `pnpm --filter api turn:pause` (freezes the TURN server), wait, and `pnpm --filter api turn:resume`. A long drop: `turn:down`, then `turn:up`, then **Try again** if a toolbar shows "Could not connect". Do not restart the API during a test.
+
+Each browser logs `table fingerprint <hash>` once per connection, after 2 s with no change. When both consoles show the same hash, no change is lost.
 
 Two more flags test a bad network, in `pnpm dev` only. They act on the browser that has the flag, on what it receives from the other player's live moves. `?drop=30` drops 30 % of the live packets. `?delay=150` delays them by 150 ms. Use both: `?drop=30&delay=150`. The pieces still end at the same place on both screens.
 

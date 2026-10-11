@@ -201,6 +201,12 @@ User, after this phase: checks 7 to 9.
 
 ### Result
 
+Done. Checks run at the end of the phase (numbers below).
+
+- `net/fingerprint.js`: `tableFingerprint(doc)`, FNV-1a 32 bit of `Y.encodeSnapshot(Y.snapshot(doc))`, 8 lowercase hex. `fingerprint.test.js`: 4 tests (format, order, delete, different changes).
+- `Table.jsx`: `startFingerprint()` in `onChannels` adds a doc `update` listener and a 2 s timer (`FINGERPRINT_QUIET_MS`). Each update restarts the timer. The timer logs `table fingerprint <hash>` and removes the listener. `onChannelsEnd` and `close()` call `stopFingerprint()`. All builds log it.
+- Docs: `docs/feature-peer-to-peer.md` (Status, Connect flow with the drop rules, states table, Room and players, Local testing "Test a dropped network" with the fingerprint line, Code layout, Phases). `apps/api/README.md` does not exist, so the layout line now names `apps/api/package.json` and its scripts. Root `README.md`: "Reconnecting" part, `turn:pause` and `turn:resume`. `docs/plans/implement-backend.md`: step 11 list and Result.
+
 ## User
 
 Setup for checks 1 to 5: `pnpm --filter api turn:up`. Alice (Blue, host) and Bob (Red, guest) open the room with `?relay`, for example `/?relay#room=…`. They are connected.
@@ -219,6 +225,19 @@ After Phase 2. Checks 7 and 8 in one pair. Check 9 in each pair:
 9. A normal connect: both consoles show the same `table fingerprint` line.
 
 ### User check results
+
+2026-10-11, after Phase 1. Alice in Chrome. The user reported checks 1 to 3 as "a, b, c": they work. The user is happy with the results for now and plans more profiling later. Checks 4 to 6 and the other pairs were not reported.
+
+Alice's console, in order:
+
+```
+traffic: connection 0.0 KB sent, 0.0 KB received, 0 min, direct; table 0.0 KB sent, 0.0 KB received, 0 min
+traffic: connection 3.8 KB sent, 1.9 KB received, 1 min, relayed; table 3.8 KB sent, 1.9 KB received, 1 min
+traffic: connection 3.5 KB sent, 2.3 KB received, 1 min, relayed; table 7.2 KB sent, 4.2 KB received, 3 min
+```
+
+- The first line is a connection that ended before the first stats read (every 60 s). So its bytes are 0, and "direct" only means that nothing was read. Open: which check it came from. If it came from check 1, the short drop made a new connection.
+- The user asked if reconnect uses exponential backoff. It does not: polls and the `hello` repeat every 2 s, and new attempts stop after `RECONNECT_TRIES`. The answer and the options are in chat on 2026-10-11.
 
 ## Done when
 

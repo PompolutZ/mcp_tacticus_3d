@@ -7,6 +7,7 @@ import { useUser } from './auth/useUser.js'
 import { buildOverride, delayFlag, dropFlag, relayFlag } from './net/debugFlags.js'
 import { SCHEMA, createTable, fillTable, tableSchema } from './net/doc.js'
 import { iceConfig } from './net/ice.js'
+import { tableFingerprint } from './net/fingerprint.js'
 import { createLiveHub } from './net/live.js'
 import { createOwnership } from './net/ownership.js'
 import { createPresence } from './net/presence.js'
@@ -23,6 +24,8 @@ import { openTableDoc, watchRoomRecord } from './rooms/tableDoc.js'
 // Traffic: read every 60 s, logged every 10 min (plan 09, decision 17)
 const TRAFFIC_READ_MS = 60_000
 const TRAFFIC_LOG_MS = 10 * 60_000
+// The table fingerprint is logged after this long with no change (plan 11, decision 9)
+const FINGERPRINT_QUIET_MS = 2000
 
 // The map on the mat when the Sandbox starts, a key in MAPS
 const START_MAP = 'vibranium-heist'
@@ -138,9 +141,32 @@ export default function Table({ room = null, onExit }) {
     }
     trafficLog.current = logTraffic
 
+    // Logs the table fingerprint once per connection, when the document had no change for 2 s after the
+    // sync channel opened (plan 11, decision 9). A change inside the 2 s starts the 2 s again.
+    let fingerprintTimer = null
+    function onFingerprintUpdate() {
+      clearTimeout(fingerprintTimer)
+      fingerprintTimer = setTimeout(logFingerprint, FINGERPRINT_QUIET_MS)
+    }
+    function logFingerprint() {
+      stopFingerprint()
+      console.info(`table fingerprint ${tableFingerprint(doc)}`)
+    }
+    function startFingerprint() {
+      stopFingerprint()
+      doc.on('update', onFingerprintUpdate)
+      onFingerprintUpdate()
+    }
+    function stopFingerprint() {
+      clearTimeout(fingerprintTimer)
+      fingerprintTimer = null
+      doc?.off('update', onFingerprintUpdate)
+    }
+
     // Ends the watchers and the document. Safe to call twice.
     function close() {
       endTraffic(true)
+      stopFingerprint()
       document.removeEventListener('visibilitychange', onVisibility)
       window.removeEventListener('pagehide', onPageHide)
       sync?.stop()
@@ -233,12 +259,14 @@ export default function Table({ room = null, onExit }) {
           // (plan 11, decision 7).
           onChannels({ sync: channel, live: liveSide }) {
             startTraffic()
+            startFingerprint()
             sync = syncOverChannel(doc, channel, awareness)
             liveChannel = liveSide
             live.attach(liveSide)
           },
           onChannelsEnd() {
             endTraffic(false)
+            stopFingerprint()
             sync?.stop()
             sync = null
             if (liveChannel) live?.detach(liveChannel)
