@@ -8,6 +8,7 @@ import { tokenInfo } from '../crisis/cards.js'
 import { crisisToken } from '../crisis/files.js'
 import { characterToken } from '../tokens/files.js'
 import { getToken } from '../tokens/tokens.js'
+import { attachedCards } from '../rosters/cards.js'
 import { Overlay } from './Overlay.jsx'
 import TrayControls from './TrayControls.jsx'
 
@@ -26,7 +27,9 @@ function otherSide(side) {
 // App mounts it only while a tray is open. onTokenRemove(key): a click on an "On" token removes
 // one, the same as on the 3D tray. heldTokens: the crisis tokens this character holds. A character
 // whose second form has its own card shows that card under the first, as on the 3D tray; the held
-// tokens lie on the first card.
+// tokens lie on the first card. The attached cards (gems) show face up under the stat card; a click
+// on one calls onAttachedOpen(code), which opens it in the card popup. A card without an image has
+// no picture here, only its chip in the controls.
 export function TrayPopup({
   character,
   heldTokens,
@@ -35,6 +38,7 @@ export function TrayPopup({
   onPower,
   onFlip,
   onRemove,
+  onAttachedOpen,
   onTokenRemove,
 }) {
   // The other side of the card, shown with a button, because players often read the Injured side
@@ -47,6 +51,7 @@ export function TrayPopup({
   const name = characterName(character.key)
   const shownSide = showOther ? otherSide(character.side) : character.side
   // Tokens on the character, in the order it got them (see App.jsx, handleCharacterTokenGive).
+  const attached = attachedCards(character).filter((card) => card.image)
   const onTokens = Object.entries(character.tokens ?? {})
 
   return (
@@ -82,6 +87,21 @@ export function TrayPopup({
             />
           </div>
         )}
+        {attached.length > 0 && (
+          <div className="tray-popup-attached">
+            {attached.map((card) => (
+              <button
+                key={card.code}
+                type="button"
+                className="tray-popup-attached-card"
+                title={card.name}
+                onClick={() => onAttachedOpen(card.code)}
+              >
+                <img src={assetUrl(card.image)} alt={card.name} />
+              </button>
+            ))}
+          </div>
+        )}
         <button type="button" className="chip" onClick={() => setShowOther((v) => !v)}>
           {showOther ? 'Show side that faces up' : 'Show other side'}
         </button>
@@ -92,6 +112,7 @@ export function TrayPopup({
           onPower={onPower}
           onFlip={onFlip}
           onRemove={onRemove}
+          onAttachedOpen={onAttachedOpen}
         />
       </div>
     </Overlay>

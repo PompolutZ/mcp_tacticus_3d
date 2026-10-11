@@ -110,6 +110,20 @@ export function rosterCard(code) {
   return cards.get(code) ?? null
 }
 
+// The cards attached to a character (its `attached` list of MCT codes, missing in old documents), for
+// the gem chips on its tray: [{ code, name, label, image }]. label: "Infinity Gem: Soul" gives "Soul Gem".
+// image is null when the app has no image of the card. A code the app does not know is left out.
+export function attachedCards(character) {
+  return (character.attached ?? []).flatMap((code) => {
+    const info = cards.get(code)
+    if (!info) return []
+    const label = /^Infinity Gem: (.+)$/.test(info.name)
+      ? `${info.name.slice('Infinity Gem: '.length)} Gem`
+      : info.name
+    return [{ code, name: info.name, label, image: info.image }]
+  })
+}
+
 export function parseRosterText(text) {
   return parseRoster(text, cardKind)
 }

@@ -121,6 +121,19 @@ Checks:
 
 ### Result
 
+Done on 2026-10-11. Not committed.
+
+- `rosters/cards.js`: new `attachedCards(character)` gives `{ code, name, label, image }` per code in `attached`. `label` is the chip text ("Infinity Gem: Soul" gives "Soul Gem"). Old characters without `attached` give an empty list.
+- `TrayControls.jsx`: one `.chip` per attached card, in its own row above Flip and Remove. The click calls `stopPropagation()` and `onAttachedOpen(code)`. The 3D tray and the tray popup share the component. No owner check, so both players' trays work.
+- `CharacterTray.jsx`, `Scene.jsx`: pass `onAttachedOpen` down.
+- `App.jsx`: `handleAttachedOpen(code)` opens `{ src, alt }` in `CardPopup`. No image: HUD message "No card image for <name> (<code>)". It also closes the tray popup, so one popup is open (the Escape rule stays).
+- `TrayPopup.jsx`: the gem cards face up under the stat card, as buttons. A card without an image has no picture there, only its chip. `index.css`: width `min(40vw, 260px, 36vh)`, so a small screen still scrolls inside the existing `max-height: 96vh`.
+- `RosterCards.jsx`: `GemLine` comment fixed.
+- Docs: `characters-hud.md` (new "Attached cards", Out of scope, Decisions 5), `feature-setup-game.md`, `feature-roster.md`.
+- Found: the roster card line and the roster popup show the full name, "+ Infinity Gem: Soul", not "+ Soul Gem". The plan said they match. I left them as they are. Docs now say the true text. Only the chip says "Soul Gem". Decide if the roster should use the short text too.
+- Not checked in a browser (rule). The `stopPropagation` and the drei `<Html transform>` use follow the Flip button, which works the same way.
+- Checks: `pnpm --filter web test` (284 pass), `pnpm --filter web build`, `pnpm format`. `pnpm lint`: 41 warnings, same as before, no errors.
+
 ## User
 
 After Phase 2, in a single player room, with the friend's roster as Blue:

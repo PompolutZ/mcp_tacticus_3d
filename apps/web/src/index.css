@@ -165,6 +165,12 @@ body {
   padding: 1px 8px;
 }
 
+/* A gem chip: one per attached card (TrayControls.jsx), above Flip and Remove. */
+.tray-controls-gem {
+  font-size: 9px;
+  padding: 1px 8px;
+}
+
 .tray-controls-remove {
   font-size: 9px;
   padding: 1px 8px;
@@ -1020,6 +1026,29 @@ body {
 }
 
 .tray-popup-card > img {
+  display: block;
+  width: 100%;
+  border-radius: 8px;
+}
+
+/* The attached cards (gems) under the stat card (TrayPopup.jsx). Gem cards are portrait, so the
+   height follows the viewport height, and they stay readable and on screen on a small screen. */
+.tray-popup-attached {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.tray-popup-attached-card {
+  width: min(40vw, 260px, 36vh);
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.tray-popup-attached-card img {
   display: block;
   width: 100%;
   border-radius: 8px;

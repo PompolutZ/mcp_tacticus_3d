@@ -111,7 +111,7 @@ Changed on 2026-10-07 by Setup game: the Secure and Extract cards were in row 2 
 - Each row is centered on x = 0. The order is from the owner's left, the same as the trays.
 - When a row is wider than the table, its cards get smaller so that the row fits. The app does not limit the number of cards (see [Players apply the rules](#players-apply-the-rules)).
 - The cards face their owner, the same as the trays and the tactic cards. So the other player sees them upside down, the same as in TTS. A click opens a card the right way up.
-- An Infinity Gem shows as a text line on the lower edge of its character card, for example "+ Soul Gem". The app has no gem card images.
+- An Infinity Gem shows as a text line on the lower edge of its character card, for example "+ Infinity Gem: Soul". It stays on the roster card after the setup. The tray of the character shows the gem as a chip and a card, after the setup (see `docs/characters-hud.md`, "Attached cards").
 
 ### Cards without files
 
@@ -201,7 +201,7 @@ rosters: {
 - Roster checks (see [Players apply the rules](#players-apply-the-rules)).
 - A roster name. The toolbar field has one line, so the name line of a TTS code is lost. Jarvis puts no name in the code.
 - Marks for Unreleased, Restricted and Banned cards. Jarvis has the data, so a later change can add them.
-- Gem card images, and the images of the other cards. They need a migration first (see `scripts/README.md`).
+- The images of the gem cards other than Soul and Mind. They need a migration first (see `scripts/README.md`).
 - Battle Realm and Collector Pack rosters.
 - Saving rosters in the app. Jarvis stores rosters.
 - Building a roster from cards dropped into a bag (the TTS Roster Maker).

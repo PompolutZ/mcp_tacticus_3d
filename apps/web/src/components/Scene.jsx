@@ -214,7 +214,8 @@ const OVERLAP_INTERVAL = 100
 // setup: the game setup (setup/setup.js). squadSelect, setupActions, mySide: see GameSetup.jsx. When the squads
 // are on the table, the roster cards are not.
 // onCardOpen({ src, alt }): a click on a crisis card (see CardPopup.jsx). onTrayOpen(id): a click
-// on a tray card opens the whole tray (see TrayPopup.jsx).
+// on a tray card opens the whole tray (see TrayPopup.jsx). onAttachedOpen(code): a click on a gem chip
+// of a tray opens the gem card (App.jsx, handleAttachedOpen).
 // diceMenu: the open face menu of a dice tray, { trayKey, symbol } | null, lifted to App so Escape
 // can close it. onDiceMenuToggle(trayKey, symbol), onDiceMenuClose(): see DiceKeys.jsx.
 // characterAtRef: ref App calls with (clientX, clientY) to find the character under the pointer,
@@ -306,6 +307,7 @@ export default function Scene({
   dragPointRef,
   onCardOpen,
   onTrayOpen,
+  onAttachedOpen,
   diceMenu = null,
   onDiceMenuToggle,
   onDiceMenuClose,
@@ -1283,6 +1285,7 @@ export default function Scene({
               onFlip={() => onCharacterFlip(ch.id)}
               onCardHover={(over) => onTrayCardHover?.(ch.id, over)}
               onRemove={() => onCharacterRemove(ch.id)}
+              onAttachedOpen={onAttachedOpen}
               onTokenRemove={(key) => onCharacterTokenRemove(ch.id, key)}
               onTokenDragStart={onTokenDragStart}
               selected={selectedCharId === ch.id}

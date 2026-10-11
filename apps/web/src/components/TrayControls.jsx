@@ -1,3 +1,4 @@
+import { attachedCards } from '../rosters/cards.js'
 import { assetUrl } from '../assets/index.js'
 import { characterName } from '../characters/characters.js'
 import { crisisMarker } from '../crisis/files.js'
@@ -16,7 +17,17 @@ const POWER_ICON = assetUrl(characterToken('1-power'))
 // iteration"). data-character-id is the drop target for giving
 // tokens by drag and drop, and the target CrisisToken.jsx's own drag uses to hold a crisis token
 // (Phase 6, "Hold and drop").
-export default function TrayControls({ character, stamina, onDamage, onPower, onFlip, onRemove }) {
+// onAttachedOpen(code): a click on a gem chip, one per attached card (see App.jsx, handleAttachedOpen).
+// The chip only reads the card, so it works on any player's tray.
+export default function TrayControls({
+  character,
+  stamina,
+  onDamage,
+  onPower,
+  onFlip,
+  onRemove,
+  onAttachedOpen,
+}) {
   // A native confirm, so Remove needs no extra dialog component (Phase 7): a mistaken click on a
   // model removes nothing, since the browser dialog always pauses for an answer.
   function handleRemove(e) {
@@ -24,9 +35,29 @@ export default function TrayControls({ character, stamina, onDamage, onPower, on
     if (window.confirm(`Remove ${characterName(character.key)} from the table?`)) onRemove()
   }
 
+  const attached = attachedCards(character)
+
   return (
     <div className="tray-controls" data-character-id={character.id}>
       <TrayCounters character={character} stamina={stamina} onDamage={onDamage} onPower={onPower} />
+      {attached.length > 0 && (
+        <div className="tray-controls-row">
+          {attached.map((card) => (
+            <button
+              key={card.code}
+              type="button"
+              className="chip tray-controls-gem"
+              title={card.name}
+              onClick={(e) => {
+                e.stopPropagation()
+                onAttachedOpen?.(card.code)
+              }}
+            >
+              {card.label}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="tray-controls-row tray-controls-actions">
         <button
           type="button"

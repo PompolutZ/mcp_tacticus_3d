@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, events as pointerEvents } from '@react-three/fiber'
 import { MOUSE } from 'three'
 import { OrbitControls } from '@react-three/drei'
+import { assetUrl } from './assets/index.js'
 import Scene from './components/Scene.jsx'
 import SelectionOutlines from './components/SelectionOutlines.jsx'
 import { Toolbar } from './components/Toolbar.jsx'
@@ -1242,6 +1243,19 @@ export default function App({
     showHudMessage(`${missing} for ${info.name} (${info.code})`)
   }
 
+  // A click on a gem chip of a tray (TrayControls.jsx) or on an attached card in the tray popup: the card
+  // face opens in the card popup. Reading changes nothing, so it works on any player's tray. The tray
+  // popup closes, so only one popup is open. A card without an image shows what the app is missing.
+  function handleAttachedOpen(code) {
+    const info = rosterCard(code)
+    if (!info?.image) {
+      showHudMessage(`No card image for ${info?.name ?? code} (${code})`)
+      return
+    }
+    setOpenTrayId(null)
+    setOpenCard({ src: assetUrl(info.image), alt: info.name })
+  }
+
   // Shows the card `step` places away in the open tab of the roster popup. The tab is a loop: after the
   // last card comes the first.
   function handleRosterCardStep(step) {
@@ -1579,6 +1593,7 @@ export default function App({
               dragPointRef={dragPointRef}
               onCardOpen={setOpenCard}
               onTrayOpen={setOpenTrayId}
+              onAttachedOpen={handleAttachedOpen}
               diceMenu={diceMenu}
               onDiceMenuToggle={handleDiceMenuToggle}
               onDiceMenuClose={handleDiceMenuClose}
@@ -1705,6 +1720,7 @@ export default function App({
           onPower={(power) => handleCharacterPower(openTray.id, power)}
           onFlip={() => handleCharacterFlip(openTray.id)}
           onRemove={() => handleCharacterRemove(openTray.id)}
+          onAttachedOpen={handleAttachedOpen}
           onTokenRemove={(key) => handleCharacterTokenRemove(openTray.id, key)}
         />
       )}

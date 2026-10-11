@@ -46,6 +46,7 @@ const CLICK_MOVE = 4
 // selected highlights the tray card, the same way CharacterModel.jsx highlights a selected model
 // (see useOutline below). The model itself (spawned on the card) stays the usual way to select a
 // character; the tray has no click target of its own for that.
+// onAttachedOpen(code): a click on a gem chip (TrayControls.jsx).
 // onTokenRemove(key): a click on an "On" token removes one. onTokenDragStart(nativeEvent, key): a
 // left pointerdown on a Give source starts a drag of a new token (App.jsx, handleTokenDragStart).
 // A source never runs out. The objective tokens the character holds lie on the card, but they are
@@ -61,6 +62,7 @@ export default function CharacterTray({
   onFlip,
   onCardHover,
   onRemove,
+  onAttachedOpen,
   onTokenRemove,
   onTokenDragStart,
   selected = false,
@@ -186,6 +188,7 @@ export default function CharacterTray({
             onPower={onPower}
             onFlip={onFlip}
             onRemove={onRemove}
+            onAttachedOpen={onAttachedOpen}
           />
         </Html>
       </group>

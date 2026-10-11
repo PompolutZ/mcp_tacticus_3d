@@ -150,7 +150,7 @@ setup: {
 ## Not built yet
 
 - The VP marker affiliation from the squad. See the notes below.
-- Leadership choice, Infinity Gem cards next to the character.
+- Leadership choice. The Infinity Gem cards are built: they show on the tray of their character (see `docs/characters-hud.md`, "Attached cards").
 - Hidden squads are built for multiplayer rooms only (2026-10-09). In a single player room and the Sandbox, one person plays both sides, so both squads are in the document.
 - The Priority token on the scoring board.
 - A button to skip the setup, for players who set up the table by hand.

@@ -108,7 +108,8 @@ function Face({ card, info }) {
   )
 }
 
-// "+ Soul Gem" on the lower edge of a character card. The app has no gem images.
+// "+ Infinity Gem: Soul" on the lower edge of a character card. The gem card itself shows on the
+// character's tray after the setup (TrayControls.jsx).
 function GemLine({ card, name, index }) {
   const draw = useMemo(
     () => (ctx, w, h) => {

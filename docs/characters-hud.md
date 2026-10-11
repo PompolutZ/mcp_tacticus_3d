@@ -14,7 +14,7 @@ Players track the game state of each character on the table:
 
 A click on a character card opens the whole tray in a full-screen popup (see [Tray popup](#tray-popup)).
 
-Cards attached to a character (Infinity Gems, Horsemen cards of Apocalypse, Reserve members) come later, with the Team Tactic cards feature.
+Infinity Gems attached to a character show on its tray (see [Attached cards](#attached-cards)). Horsemen cards of Apocalypse and Reserve members come later.
 
 ## First iteration: a tray in the 3D world
 
@@ -128,6 +128,16 @@ The whole tray is a drop target for tokens. The Give sources are outside the tra
 - Flip: turns the card to the other side and sets Damage to 0, as in TTS. The F key does the same with the pointer over the card or the model, or with the character selected (see `docs/feature-key-shortcuts.md`).
 - **On** row, above the card, where TTS shows the tokens on a character: one real-size 3D token per token key, with a count badge when the count is above 1. The tokens start at the owner's left, in the order the character got them. With more than 6 tokens they overlap, so the row stays as wide as the tray. A label above a token under the pointer shows its name and the mod's description (`tDescr`). A click on a token removes one.
 - **Give** sources, on the table below the tray: the tokens that this character gives to others or to itself: Activated, Dazed, and the tokens in its `cToken` list. They are real-size 3D tokens, in rows of 6 from the owner's left. TTS spawns these tokens at the same place, on the table below the tray, in rows from the owner's left. Each source never runs out: a drag takes a new token from it.
+
+## Attached cards
+
+A character can have cards attached to it. Today these are the Infinity Gems of its roster entry. The field `attached` of the character holds their MCT codes. The setup sets it when the squad goes on the table (`revealSquad` in `App.jsx`). A character with no gem has no field, and an old document has none either. Both mean no attached cards.
+
+- The controls strip of the tray has one chip per attached card, above Flip and Remove. Its text comes from the card name: "Infinity Gem: Soul" gives "Soul Gem".
+- A click on the chip opens the gem card in the card popup. A gem without an image shows the HUD message "No card image for <name> (<code>)".
+- The tray popup shows the gem cards face up under the stat card. A click on one opens the card popup. The tray popup closes then, so only one popup is open.
+- Both players see the chips, and both can open the cards. Reading a card changes nothing.
+- The app does not check which character can hold a gem, and does not count the gem for the Power gain. Players apply the rules.
 
 ## Second forms
 
@@ -815,7 +825,7 @@ Open issues:
 ## Out of scope
 
 - A 2D HUD separate from the 3D world. This is the next step after this feature.
-- Team Tactic cards, and the cards attached to a character: Reserve members, Infinity Gems, Horsemen cards. These will be explored with the Team Tactic cards feature. Facts found on 2026-10-01: in TTS, a gem or Horsemen card attaches to the tray only if the character can have it (`cGem`, `cHorsemen` in the mod; `bearableGems`, `assignableToHorsemen` in Jarvis). The TTS cache has all 5 Horsemen faces, but only the Soul gem card.
+- Horsemen cards and Reserve members attached to a character. Infinity Gems are built (see [Attached cards](#attached-cards)). Facts found on 2026-10-01: in TTS, a gem or Horsemen card attaches to the tray only if the character can have it (`cGem`, `cHorsemen` in the mod; `bearableGems`, `assignableToHorsemen` in Jarvis). The TTS cache has all 5 Horsemen faces, but only the Soul gem card.
 - Auto Power and Auto Cleanup, and any other rule automation.
 - Grunts. This is the next phase. Facts found on 2026-10-07: 6 mod characters have `grunts` (Elektra, Nick Fury, Red Skull Master of Hydra, Sandman, Shadowland Daredevil, Ultron Metal Tyrant). Each grunt is its own `Database` row (for example Hand Ninjas) with a card, a model, `cStamH`, tokens and immunities. TTS spawns the grunt card with its model below the tray, and a Wounds counter. Sandman has 2 grunts; TTS puts their cards side by side. None of these characters is in the TTS cache yet.
 - The second card version of a character without a second form (`cards` > 1 and no `transform` in `characters.json`, for example Mephisto). The tray uses card 1.
@@ -832,7 +842,7 @@ Made on 2026-10-01:
 2. Damage and Power use `−` and `+` buttons.
 3. Players give tokens by dragging them onto a model or a tray. This is the same for character tokens and Extract tokens.
 4. Immunity blocks a condition.
-5. Attached cards wait for the Team Tactic cards feature.
+5. Attached cards: the Infinity Gems are built (2026-10-11). Horsemen cards and Reserve members wait.
 6. Tokens use the new art of the mod (rounded diamond for conditions), not the old round art.
 
 Made on 2026-10-02:
