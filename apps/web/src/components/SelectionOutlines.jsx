@@ -3,7 +3,7 @@ import { useThree } from '@react-three/fiber'
 import { EffectComposer, Outline, ToneMapping } from '@react-three/postprocessing'
 import { BlendFunction, ToneMappingMode } from 'postprocessing'
 import { ACESFilmicToneMapping, AgXToneMapping, NeutralToneMapping } from 'three'
-import { useLook } from './look.js'
+import { DEFAULT_LOOK, useLook } from './look.js'
 
 // Line around a selected or hovered piece, drawn after the scene render, as TTS highlights a piece.
 // ALPHA draws the line in its exact color. The default (SCREEN) mixes it with the color under it,
@@ -140,8 +140,7 @@ export default function SelectionOutlines({ children, composer = true, outlines 
   }, [entries, outlines])
 
   // The composer sets the renderer tone mapping to none, because ToneMapping below does it.
-  // While the composer is off, the renderer must do it again, with the chosen tone mapping (the R3F
-  // default is ACES Filmic). With the composer on, the scene goes to a render target, so a material
+  // While the composer is off, the renderer must do it again, with the chosen tone mapping. With the composer on, the scene goes to a render target, so a material
   // flag toneMapped has no effect: the pass maps the whole image.
   useEffect(() => {
     if (composer) return
@@ -152,7 +151,7 @@ export default function SelectionOutlines({ children, composer = true, outlines 
 
   // The mode is set on the effect, not as a prop of ToneMapping below, so the passes are not built again
   useEffect(() => {
-    setToneMode(toneEffect.current, tone.pass)
+    if (toneEffect.current) setToneMode(toneEffect.current, tone.pass)
   }, [tone])
 
   useEffect(() => {
@@ -166,13 +165,13 @@ export default function SelectionOutlines({ children, composer = true, outlines 
 
   // Created once. When the children of EffectComposer change, it builds its passes again and
   // compiles a new shader, so the selection is set on the effects above, not passed as a prop.
-  // The composer turns off the renderer tone mapping, so ToneMapping adds it back (ACES Filmic, the R3F
-  // default, until the effect above sets the chosen mode).
+  // The composer turns off the renderer tone mapping, so ToneMapping adds it back. It starts with the
+  // default mode (Neutral, see look.js); the effect above sets later switches from debug mode.
   // It comes before the outlines, so the outline colors are not tone mapped.
   const passes = useMemo(
     () => (
       <>
-        <ToneMapping ref={toneEffect} mode={ToneMappingMode.ACES_FILMIC} />
+        <ToneMapping ref={toneEffect} mode={TONE_MAPPINGS[DEFAULT_LOOK.toneMapping].pass} />
         {MODES.map((mode) => (
           <Outline
             key={mode}

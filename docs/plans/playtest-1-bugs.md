@@ -1,6 +1,6 @@
 # Plan: Bugs from the first playtest
 
-Requested by the user on 2026-10-11. Plan 1 of `docs/plans/playtest-1.md`. Status: Part 1 done. Part 2 built, waiting for the choice of the user. Part 3 not started.
+Requested by the user on 2026-10-11. Plan 1 of `docs/plans/playtest-1.md`. Status: All parts done.
 
 One coder step and one commit for each part. Each part writes its **Result** below when it is done.
 
@@ -40,7 +40,7 @@ One coder step and one commit for each part. Each part writes its **Result** bel
      - Matte: `meshPhysicalMaterial` with `specularIntensity` 0, so no reflection. The rest of the light stays.
      - Unlit: `meshBasicMaterial` with `toneMapped` false. Shows the exact image colors, with no light and no shadow.
    - All card and token meshes use one shared material component, so that the switch reaches all of them. The component stays after the choice, so the look of all cards and tokens is set in one place.
-3. **After the choice,** the chosen options become the default for everyone. The options that were not chosen and the debug switch are removed. The code comment at the light in `Scene.jsx` names the choice and points to this plan.
+3. **After the choice,** the chosen options become the default for everyone. All options and the two debug switches stay, so that the look can be compared again. The user may later move the switches to the settings, for every player. That is not part of this plan. The code comment at the light in `Scene.jsx` names the choice and points to this plan. (Changed by the user on 2026-10-11, after Part 2. The first version removed the options that were not chosen and the switches.)
 
 ## Part 1: Tool key over an enemy model
 
@@ -69,6 +69,8 @@ Work:
 
 **Result:** Built. New `components/look.js` (module store `{ toneMapping, surface }`, default `aces` + `standard`, read with `useLook`; React context does not cross the R3F v8 `<Canvas>`) and `components/FaceMaterial.jsx` (standard, matte or unlit face material). `FaceMaterial` replaces the face materials in `CharacterTray.jsx`, `RosterCards.jsx`, `TacticCard.jsx`, `CrisisCard.jsx`, `CrisisToken.jsx` and `TokenSolid.jsx`. `App.jsx` holds the two switches and writes them to the store (the default when debug is off). `DebugPanel.jsx` has the two button groups. `SelectionOutlines.jsx` sets `mode` on the `ToneMapping` effect through a ref (passes are not rebuilt), and `gl.toneMapping` when the composer is off. Unlit sets `toneMapped={false}`, but with the composer on the scene goes to a render target and the `ToneMapping` pass maps the whole image, so the flag has no effect. Unlit skips tone mapping only in the "No composer" render mode.
 
+The choice of the user: tone mapping **Neutral**, surface **Unlit**. The switches stay in debug mode (Decision 3).
+
 Checks: `pnpm --filter web build`, `pnpm format`, `pnpm lint`, the web tests.
 
 User, after this part:
@@ -77,13 +79,21 @@ User, after this part:
 
 ## Part 3: Apply the chosen look
 
+Facts (a calculation with the three.js r169 formulas, not measured):
+- three.js ACES Filmic multiplies the color by 1 / 0.6 before the curve. Neutral does not. So Neutral shows lit surfaces darker. At a light of 0.91 (a face that points up), a mid tone (sRGB 128) shows as about 110 with Neutral, and about 134 with ACES. This applies to the models, terrain, the mat, the dice and the dice trays.
+- An Unlit card or token under Neutral: sRGB 128 shows as about 116, and white as about 240.
+
 Work:
-1. The chosen tone mapping and surface become the defaults. Remove the other options and the two debug switches.
-2. The comment at the light in `Scene.jsx` names the choice and points to this plan.
-3. If the tone mapping changes, check the dice, terrain and models in the user check. They use the same tone mapping.
+1. `look.js`: `DEFAULT_LOOK` becomes Neutral and Unlit. All options and the two debug switches stay. In debug mode, the switches start at the new default.
+2. `SelectionOutlines.jsx`: the `ToneMapping` pass starts with the mode of `DEFAULT_LOOK`, not with ACES Filmic, so the first frame already has the right tone mapping.
+3. Comments in `look.js`, `FaceMaterial.jsx` and `SelectionOutlines.jsx`: the switches are no longer temporary. Name the default and point to this plan.
+4. The comment at the light in `Scene.jsx`: the tone mapping is Neutral, and the cards and tokens are Unlit, so the light does not change them. The light numbers now apply to the models, terrain, the mat and the dice. Point to this plan.
+
+**Result:** Done. `look.js`: `DEFAULT_LOOK` is `neutral` + `unlit`; the debug switches start there. `SelectionOutlines.jsx`: the `ToneMapping` pass starts with the mode of `DEFAULT_LOOK`; null guard in the mode effect. Comments in `look.js`, `FaceMaterial.jsx`, `SelectionOutlines.jsx` and at the light in `Scene.jsx` name the default.
 
 Checks: `pnpm --filter web build`, `pnpm format`, `pnpm lint`, the web tests.
 
 User, after this part:
-1. Cards and tokens look the same as the chosen option of Part 2, without debug mode, in the built app.
-2. Dice, dice trays, terrain, the mat and the models still look right.
+1. Without debug mode, cards and tokens look the same as Neutral and Unlit in Part 2.
+2. In debug mode, the switches start at Neutral and Unlit. The other options still work.
+3. Dice, dice trays, terrain, the mat and the models still look right. They are a bit darker than before (see Facts). If they are too dark, a brighter light is a new request.
