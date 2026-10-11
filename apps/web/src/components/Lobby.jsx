@@ -214,6 +214,9 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
           </span>
         </button>
       </section>
+      <footer className="lobby-footer">
+        <a href="/privacy.html">Privacy</a>
+      </footer>
       {creating && (
         <NewRoomDialog
           onClose={() => setCreating(false)}

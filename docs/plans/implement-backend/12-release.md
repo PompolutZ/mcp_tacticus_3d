@@ -137,6 +137,21 @@ User, after this phase: checks 1 to 4.
 
 ### Result
 
+Done. Web tests 273 pass, 0 fail. Build passes, `dist/privacy.html` exists. `pnpm format` clean. Lint: no warning in the changed files (41 old ones elsewhere).
+
+- `public/privacy.html`: decision 3, in its order. Inline `<style>` with the lobby colors (`--bg`, `--text`, `--muted`, `--accent`), text max 680 px, 16 px side gutter, no JavaScript. Controller: "its developer, a private person", mailto `pompolutz@gmail.com`, Discord `fxdxpz#5790`. Date 2026-10-11.
+- Facts checked in code: scope `identify` (`auth/oauth.js`), STUN Google and Cloudflare (`net/ice.js`), message TTL `HOUR_MS` (`routes/signal.ts`), TTL indexes on `expiresAt` (`stores/mongo.ts`), logs `ONE_WEEK` (`infra/lib/api-stack.ts`), `DEPLOY_REGION=eu-central-1` in `infra/.env.example`. The 12 months for users and rooms are not checked here (Phase 2).
+- `UserMenu.jsx`: **Delete account** under **Log out**, with the confirm text of decision 4 and the error "Could not delete the account. Try again." in the popup. **Privacy** link in the login note. `Lobby.jsx`: `<footer className="lobby-footer">` with **Privacy**.
+- `auth/session.js`: `deleteAccount()`: `DELETE /me`, then `deleteUserData(userId)`, then `logout()`. The logout is in a `finally`, so it runs even when the local delete throws. It throws when `DELETE /me` fails.
+- Deviation: the local delete is `deleteUserData(userId)` in `rooms/localDocs.js`, not `rooms/store.js`. It calls `deleteStaleSquads(userId, [])` and `deleteStaleDocs(userId, [])`. `localDocs.js` imports `store.js`, so the function in `store.js` would be an import cycle. No new test for it.
+- `index.css`: `.lobby-footer`, `.user-delete`, link color in the note, `.user-popup` is a column.
+
+For Phase 2:
+- Check the 12 months of `expiresAt` for users and rooms, the 1 hour of messages (`HOUR_MS` in `signal.ts` is the only hint seen), and all `console.*` calls. Keep the log wording of decision 3 unless the check says otherwise.
+- CORS: not looked at.
+- The page says "Frankfurt" from `DEPLOY_REGION=eu-central-1` in the example file. The Atlas cluster region is not checked.
+- `docs/feature-auth.md` "Privacy" still says `#privacy` and has the row "Share API Data..." that the page matches.
+
 ## Phase 2: Data rules, test data script, docs
 
 Read: decisions 1, 5 and 6. The **Result** of Phase 1. `apps/api/src/stores/mongo.ts`, `apps/api/src/stores/store.ts`, `apps/api/src/routes/*.ts`, `apps/api/src/lambda.ts`, `infra/lib/api-stack.ts`, `infra/scripts/put-secrets.ts`, `infra/package.json`, `infra/.env.example`.

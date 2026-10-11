@@ -3,6 +3,7 @@
 // in, error (the server does not answer).
 
 import { ApiError, api, onUnauthorized, setToken } from '../api/client.js'
+import { deleteUserData } from '../rooms/localDocs.js'
 import { authorizeUrl, randomState, readCallback } from './oauth.js'
 
 const TOKEN_KEY = 'mcp-assist-3d/session'
@@ -144,4 +145,18 @@ export async function devLogin(name) {
 export function logout() {
   clearToken()
   setState({ status: 'out', user: null })
+}
+
+// Delete account (docs/feature-auth.md, "Privacy"). DELETE /me first. When it fails, the user stays logged
+// in, and the error goes to the caller. Then the multiplayer data of this user in this browser, then log out.
+// Single player rooms stay: they belong to the browser.
+export async function deleteAccount() {
+  const userId = state.user?.id
+  await api('/me', { method: 'DELETE' })
+  // The server account is gone, so log out even when the local delete fails
+  try {
+    if (userId) await deleteUserData(userId)
+  } finally {
+    logout()
+  }
 }

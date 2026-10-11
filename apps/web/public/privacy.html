@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy – mcptacticus3d</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      }
+      body {
+        margin: 0;
+        padding: 32px 16px 64px;
+        background: #0f1117;
+        color: #e6e8ee;
+        font-size: 16px;
+        line-height: 1.6;
+      }
+      main {
+        max-width: 680px;
+        margin: 0 auto;
+      }
+      h1 {
+        margin: 24px 0 4px;
+        font-size: 28px;
+      }
+      h2 {
+        margin: 36px 0 8px;
+        font-size: 20px;
+      }
+      p,
+      ul {
+        margin: 8px 0;
+      }
+      li {
+        margin: 4px 0;
+      }
+      a {
+        color: #4f8ef7;
+      }
+      .muted {
+        color: #99a0b3;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a href="/">← Back to the app</a>
+      <h1>Privacy</h1>
+      <p class="muted">mcptacticus3d, https://mcptacticus3d.netlify.app. Date of this policy: 2026-10-11.</p>
+
+      <h2>Who runs the app</h2>
+      <p>The app is run by its developer, a private person.</p>
+      <p>
+        To reach them, write to <a href="mailto:pompolutz@gmail.com">pompolutz@gmail.com</a> or
+        message them on Discord: fxdxpz#5790.
+      </p>
+
+      <h2>What the app stores, and why</h2>
+      <p>After a login with Discord, the app stores:</p>
+      <ul>
+        <li>Your Discord id, username, display name and avatar.</li>
+      </ul>
+      <p>
+        The app uses them to show your name and avatar in the lobby and to your opponent, and to
+        keep the seats of a room. The app asks Discord for the scope <code>identify</code> only. It
+        does not get your email, your servers or your friends.
+      </p>
+      <p>For multiplayer rooms, the server stores:</p>
+      <ul>
+        <li>The map, the rosters and the seats.</li>
+        <li>The game table.</li>
+        <li>The dates of the room.</li>
+      </ul>
+      <p>
+        Two browsers connect with short messages that go through the server. They contain the
+        network address (IP address) of the browser. The server deletes them after 1 hour.
+      </p>
+      <p>
+        The server keeps technical logs. They have no game content and no login tokens. The server
+        deletes them after 1 week.
+      </p>
+      <p>
+        Your browser keeps the login token, your single player rooms, and a copy of each
+        multiplayer table. The login token goes only to the server of the app, with each request.
+        Single player rooms stay in the browser. The copy of a multiplayer table syncs with the
+        server and with your opponent.
+      </p>
+
+      <h2>Who gets data</h2>
+      <ul>
+        <li>
+          Your opponent gets your name and your avatar. During a game, the two browsers connect
+          directly. So each browser gets the IP address of the other one.
+        </li>
+        <li>Netlify hosts the site. It sees the IP address of each visit.</li>
+        <li>Amazon Web Services runs the server, in Frankfurt.</li>
+        <li>MongoDB Atlas is the database. It runs on AWS in Frankfurt.</li>
+        <li>
+          Discord does the login. Avatars load from the servers of Discord.
+        </li>
+        <li>
+          Google and Cloudflare run STUN servers. They see your IP address when two browsers
+          connect.
+        </li>
+      </ul>
+      <p>
+        The app has no ads, no analytics, no tracking and no cookies. The browser storage holds
+        only what the app needs.
+      </p>
+      <p>All data on the server stays in the EU (Frankfurt).</p>
+
+      <h2>How long</h2>
+      <ul>
+        <li>An account with no login and no app start for 12 months is deleted.</li>
+        <li>A room with no change for 12 months is deleted, with its table.</li>
+        <li>Connection messages are deleted after 1 hour.</li>
+        <li>Server logs are deleted after 1 week.</li>
+      </ul>
+
+      <h2>Your choices</h2>
+      <ul>
+        <li>
+          <strong>Delete account</strong> is in the user menu of the lobby. It deletes your account
+          and the room that you host, with its table, at once. In rooms of other hosts, your seat
+          shows "Deleted player".
+        </li>
+        <li>
+          You can remove the app in Discord: User Settings → Authorized Apps.
+        </li>
+        <li>
+          For a copy of your data, a correction, or any other question, write to the contact
+          above.
+        </li>
+        <li>You have the right to complain to the data protection authority of your country.</li>
+      </ul>
+    </main>
+  </body>
+</html>

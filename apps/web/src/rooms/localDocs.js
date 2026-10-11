@@ -36,3 +36,9 @@ export function staleSquadCodes(stored, codes) {
 export function deleteStaleSquads(userId, codes) {
   for (const code of staleSquadCodes(listSquadCodes(userId), codes)) deleteSquad(userId, code)
 }
+
+// Deletes all multiplayer data of one user in this browser: the copies and the squads (Delete account)
+export async function deleteUserData(userId) {
+  deleteStaleSquads(userId, [])
+  await deleteStaleDocs(userId, [])
+}

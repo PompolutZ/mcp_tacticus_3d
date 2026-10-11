@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { avatarUrl } from '../auth/avatar.js'
-import { DISCORD_ON, devLogin, login, logout } from '../auth/session.js'
+import { DISCORD_ON, deleteAccount, devLogin, login, logout } from '../auth/session.js'
 import { useUser } from '../auth/useUser.js'
 
 // The login part of the lobby header (docs/plans/implement-backend/06-login.md, decision 15). Renders
@@ -34,7 +34,9 @@ function LoggedOut() {
           <button type="button" className="chip user-login" onClick={login}>
             Log in with Discord
           </button>
-          <p className="user-menu-note">Your opponent sees your Discord name and avatar.</p>
+          <p className="user-menu-note">
+            Your opponent sees your Discord name and avatar. <a href="/privacy.html">Privacy</a>
+          </p>
         </>
       )}
       {import.meta.env.DEV && (
@@ -59,6 +61,7 @@ function LoggedOut() {
 
 function LoggedIn({ user }) {
   const [open, setOpen] = useState(false)
+  const [error, setError] = useState(null)
   const ref = useRef(null)
 
   // Escape and a click outside close the menu
@@ -74,6 +77,17 @@ function LoggedIn({ user }) {
     }
   }, [open])
 
+  async function handleDelete() {
+    const text =
+      'Delete your account? This also deletes the room you host and its table. You cannot undo this.'
+    if (!window.confirm(text)) return
+    try {
+      await deleteAccount()
+    } catch {
+      setError('Could not delete the account. Try again.')
+    }
+  }
+
   return (
     <div className="user-menu" ref={ref}>
       <button type="button" className="chip user-button" onClick={() => setOpen((o) => !o)}>
@@ -85,6 +99,10 @@ function LoggedIn({ user }) {
           <button type="button" className="chip" onClick={logout}>
             Log out
           </button>
+          <button type="button" className="chip user-delete" onClick={handleDelete}>
+            Delete account
+          </button>
+          {error && <p className="user-menu-error">{error}</p>}
         </div>
       )}
     </div>
