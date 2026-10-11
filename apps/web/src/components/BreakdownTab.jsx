@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { characterByCode } from '../characters/characters.js'
 import { rosterBreakdown } from '../rosters/cards.js'
-import { MAX_BREAKDOWN_CHARACTERS, NO_FILTERS } from '../rosters/breakdown.js'
+import { DEFAULT_FILTERS, MAX_BREAKDOWN_CHARACTERS, NO_FILTERS } from '../rosters/breakdown.js'
 import { affiliationName } from '../scoreboard/affiliations.js'
 import { affiliationToken } from '../scoreboard/files.js'
 import { assetUrl } from '../assets/index.js'
@@ -67,10 +67,12 @@ export function BreakdownTab({ parsed, breakdown }) {
     filters.mustNot.length > 0,
     filters.affiliation !== null,
     filters.dual,
-    filters.leader,
+    filters.leader !== DEFAULT_FILTERS.leader,
     filters.minSize !== null,
     filters.maxSize !== null,
   ].filter(Boolean).length
+  // The default leader filter is on but not counted, the list is still filtered by it.
+  const filtered = filterCount > 0 || filters.leader
   const setFilters = (change) => onFiltersChange({ ...filters, ...change })
   // Put a place in one of the two rows, or take it out when it is there. It leaves the other row.
   const toggleCharacter = (key, other, place) =>
@@ -221,15 +223,15 @@ export function BreakdownTab({ parsed, breakdown }) {
           {sizeRow('Min size', [null, 3, 4, 5, 6, 7], filters.minSize, setMin)}
           {sizeRow('Max size', [3, 4, 5, 6, 7, null], filters.maxSize, setMax)}
           <div>
-            <button type="button" className="chip" onClick={() => onFiltersChange(NO_FILTERS)}>
-              Clear filters
+            <button type="button" className="chip" onClick={() => onFiltersChange(DEFAULT_FILTERS)}>
+              Reset filters
             </button>
           </div>
         </div>
       )}
       <p className="breakdown-line">
         {rows.length === 0
-          ? filterCount > 0
+          ? filtered
             ? `No squad has threat ${threat} with these filters.`
             : `No squad has threat ${threat}.`
           : `${rows.length} ${rows.length === 1 ? 'squad' : 'squads'}`}

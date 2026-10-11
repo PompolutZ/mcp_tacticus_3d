@@ -96,7 +96,7 @@ Filters (2) ▾                              opens the filters
 
 ## Filters
 
-**Filters** opens and closes the filter block. While a filter is on, the button shows how many are on, for example "Filters (2)". **Clear filters** turns all of them off.
+**Filters** opens and closes the filter block. While a filter is on, the button shows how many differ from the start state, for example "Filters (2)". At the start, **With a leader** is on and the button shows "Filters" with no count. **Reset filters** goes back to the start state.
 
 | Filter | Input | Result |
 |---|---|---|
@@ -111,7 +111,7 @@ Filters (2) ▾                              opens the filters
 - A character is in at most one of the two character rows. A click in one row takes it out of the other row.
 - A min size above the max size moves the max size up, and the other way round, the same as Jarvis.
 - The counts on the threat chips use the filters too.
-- The selected threat value and the filters of each roster stay while the app is open, also when the popup closes. A new roster for that side starts with no filters. They are not saved.
+- The selected threat value and the filters of each roster stay while the app is open, also when the popup closes. A new roster for that side starts with the start filters (With a leader on). They are not saved.
 
 ## Choose a squad
 
