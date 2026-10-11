@@ -41,7 +41,6 @@ const inside = (a) =>
 function pieces(side) {
   const plate = rackPlate(side)
   const strip = boardStrip(side)
-  const power = powerButton(side)
   const out = {
     'rack plate': rect(plate.x, plate.z, plate.width, plate.depth),
     'board strip': rect(strip.x, strip.z, strip.width, strip.length),
