@@ -31,7 +31,7 @@ z = 38                   ─────────────── table edg
 ```
 
 - **Tool rack**, x −15.2 … 15.2, z 34.2 … 36.8. The deepest tray parts end at z 33.75: the plate of a tray with two cards, its two rows of Give sources, and a spare model. So the rack never meets a tray, also in a row of 12 trays.
-- **Automatic Power Phase button**, 9" × 2.4", in the row of the Team Tactic tray, to the owner's left of the tactic plate (blue: −x), with a gap of 0.6" from the plate edge: x −18.25 … −9.25, z 19.15 … 21.55 (center z = the tactic tray center). Free space there is x −20.6 … −8.65, z 18.3 … 22.4. Row 2 of the rack ends with the T/A chip.
+- **Automatic Power Phase button**, 7.48" × 1.2" (the size of the other table buttons: 12px font, icon 22px), in the row of the Team Tactic tray, to the owner's left of the tactic plate (blue: −x), with a gap of 0.6" from the plate edge: x −16.73 … −9.25, z 19.75 … 20.95 (center z = the tactic tray center). Free space there is x −20.6 … −8.65, z 18.3 … 22.4. Row 2 of the rack ends with the T/A chip.
 - **Board strip**, in the corner between the mat and the end of the scoring board on the player's side: x −20.6 … −18.3, z 12.6 … 18.0. Nothing else lies there, also during the setup.
 - The start view shows the own rack band (`docs/features/key-shortcuts.md`, "Start view").
 - A setting never moves a piece. It only shows or hides it. So the two browsers of a room have the same table.

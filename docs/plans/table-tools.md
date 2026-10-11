@@ -314,6 +314,8 @@ Checks:
 
 Button 9" x 2.4" (POWER_WIDTH, POWER_DEPTH), gap 0.6" (POWER_GAP). Blue: x -18.25 ... -9.25, z 19.15 ... 21.55. Free space left of the tactic plate: x -20.6 ... -8.65, z 18.3 ... 22.4.
 
+After the user check: 9" x 2.4" was too big and the label overflowed. Now 7.48" x 1.2" (187 x 30 px): 12px font as the other table buttons, icon 22px, gap 6px, overflow hidden as a guard. Blue x -16.73 ... -9.25, z 19.75 ... 20.95.
+
 ## Open questions
 
 For the user, after the last step:

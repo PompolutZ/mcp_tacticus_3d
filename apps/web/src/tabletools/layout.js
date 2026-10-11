@@ -93,8 +93,11 @@ export function rackSlots(side) {
 // 22.4 (the mat edge to the character tray row). width lies along x. See docs/features/table-tools.md,
 // "Automatic Power Phase button".
 export const POWER_GAP = 0.6 // from the left edge of the tactic plate
-export const POWER_WIDTH = 9
-export const POWER_DEPTH = 2.4
+// Width in px (1 px = 0.04"): icon 22 + gap 6 + padding 2 x 6 + the label "Automatic Power Phase" (21 chars at
+// 12px, estimated 7 px each) = 187 px
+const POWER_WIDTH_PX = 22 + 6 + 12 + 21 * 7
+export const POWER_WIDTH = POWER_WIDTH_PX * 0.04
+export const POWER_DEPTH = 1.2
 export function powerButton(side) {
   const s = sign(side)
   const x = -(TACTIC_PLATE_WIDTH / 2 + POWER_GAP + POWER_WIDTH / 2)
