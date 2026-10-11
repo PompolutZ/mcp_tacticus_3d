@@ -20,7 +20,7 @@ The app does not know who wins a roll off or who clicks a button. So it does not
 | Deployment edge | The player with Priority chooses a battlefield edge | **↺ Select board edge ↻** on the panel. The arrows turn the mat 90°. **Select board edge** puts the two crisis cards on the board ends and their tokens on the mat. In a multiplayer room, the toolbar has no ↺ ↻, so this step is the only mat turn. After it, the mat turn stays fixed until **Restart setup** |
 | Squads | Each player chooses characters with a total threat up to the Maximum Threat, and up to 5 Team Tactic cards | **Select squad**, then a click on a roster card adds it or removes it. Then **Ready**. When both players are Ready, the squads are revealed and go on the table. In a multiplayer room, each player's squad stays hidden until then (see [Squads](#squads)) |
 
-The app checks only one rule: **Ready** does not work when the squad threat is above the Maximum Threat. A squad with less threat is fine. The app does not check the Team Tactic count, alter egos (p11) or affiliations. The panel shows the Team Tactic count in red above 5.
+The app checks only one rule: **Ready** does not work when the squad threat is above the Maximum Threat. The squad threat is the Threat Levels of the characters plus the threat of each attached Infinity Gem: 1, and 0 for Bonded Soul (from Jarvis). A squad with less threat is fine. The app does not check the Team Tactic count, alter egos (p11) or affiliations. The panel shows the Team Tactic count in red above 5.
 
 ### Roll off
 

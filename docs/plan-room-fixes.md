@@ -91,3 +91,5 @@ User, after this part:
 ## Result
 
 Part 1: done. `Toolbar.jsx` hides the Crisis group and the whole Mat group when `multiplayer` is true. Sandbox and single player rooms are unchanged. Docs updated.
+
+Part 2: done. `cards.js` reads the gem threat from `bearableGemsWithName` (1, Bonded Soul 0) and `squadThreat` adds it for each attached gem. Docs updated.

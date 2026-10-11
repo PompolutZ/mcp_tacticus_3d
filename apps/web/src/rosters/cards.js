@@ -5,10 +5,21 @@ import { characterCard, transformCard } from '../characters/files.js'
 import tacticsData from '../tactics/jarvis-tactics-cards.json'
 import tacticFiles from '../tactics/cards.json'
 import { tacticCardBack, tacticCardFace } from '../tactics/files.js'
+import jarvisCharacters from '../characters/jarvis-characters.json'
 import crisisData from '../crisis/jarvis-crisis-cards.json'
 import crisisFiles from '../crisis/cards.json'
 import { crisisCardFace } from '../crisis/files.js'
 import { jarvisValidatorCode, parseRoster } from './mct.js'
+
+// Gem code -> threat, from bearableGemsWithName of the Jarvis character rows. The first value of a code wins.
+const gemThreats = new Map()
+for (const row of jarvisCharacters) {
+  for (const gem of row.bearableGemsWithName ?? []) {
+    if (gem.exportCode && !gemThreats.has(gem.exportCode)) {
+      gemThreats.set(gem.exportCode, gem.threatLevel)
+    }
+  }
+}
 
 // Three tactic ids in cards.json lost their leading zero (1430206), so pad them to 8 digits.
 const idToKey = (files) =>
@@ -18,7 +29,8 @@ const crisisKeys = idToKey(crisisFiles)
 
 // code -> { code, kind, name, key, threat, image, back, model, variants, jarvisUrl }. Each code once. key: the
 // key of a Team Tactic or crisis card in its cards.json, or null when the app has no files for it. threat: the
-// Threat Level of a character, or the Maximum Threat of a crisis card, from Jarvis. back: the image
+// Threat Level of a character, the Maximum Threat of a crisis card, or the threat of an Infinity Gem (from
+// bearableGemsWithName; 1 when Jarvis has none), from Jarvis. back: the image
 // of the other side, for the flip in the roster popup. null when the app has no image, or when the other side is the
 // same for every card of the kind: the back of a crisis card shows only its type.
 // variants: the cards that the roster popup can switch between for this character, [{ label, image, back }],
@@ -72,7 +84,7 @@ for (const row of tacticsData) {
     kind: 'tactic',
     name: row.name,
     key: key ?? null,
-    threat: null,
+    threat: row.isInfinityGem ? (gemThreats.get(row.exportCode) ?? 1) : null,
     image: key ? tacticCardFace(key) : null,
     back: key ? tacticCardBack(key) : null,
     model: false,
@@ -133,12 +145,14 @@ export function jarvisRosterUrl(parsed) {
   return `${JARVIS}/roster-validator?mctCode=${encodeURIComponent(jarvisValidatorCode(parsed))}`
 }
 
-// The sum of the Threat Levels of the characters at `places` of a parsed roster (setup/setup.js, squads)
+// The sum of the Threat Levels of the characters at `places` of a parsed roster and of their attached
+// Infinity Gems (setup/setup.js, squads)
 export function squadThreat(parsed, places) {
-  return places.reduce(
-    (sum, place) => sum + (cards.get(parsed.characters[place]?.code)?.threat ?? 0),
-    0,
-  )
+  return places.reduce((sum, place) => {
+    const ch = parsed.characters[place]
+    const gems = (ch?.gems ?? []).reduce((g, code) => g + (cards.get(code)?.threat ?? 0), 0)
+    return sum + (cards.get(ch?.code)?.threat ?? 0) + gems
+  }, 0)
 }
 
 // The message for the codes of a roster text that the app does not know, for example
