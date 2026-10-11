@@ -257,6 +257,21 @@ test('the edge controls lie inside the table, on the owner side, and mirror for 
   assert.equal(red.width, blue.width)
 })
 
+test('the edge controls lie in the start view, right of the tactic tray (blue: +x)', () => {
+  // The start view meets the table at z 37.47 with half width 23.4" (docs/plans/table-tools.md)
+  for (const side of TEAMS) {
+    const r = edgeRect(side)
+    const k = side === 'blue' ? 1 : -1
+    assert.ok(Math.abs(r.x0) <= 20 && Math.abs(r.x1) <= 20, side)
+    assert.ok(Math.abs(r.z0) <= 34 && Math.abs(r.z1) <= 34, side)
+    const tray = tacticTrayPosition(side)
+    assert.ok(k * (edgeControls(side).x - tray.x) > TACTIC_PLATE_WIDTH / 2, side)
+    assert.equal(edgeControls(side).z, tray.z)
+    // Between the mat edge (18) and the tactic plate's outer z, on the owner's side
+    assert.ok(k * (k > 0 ? r.z0 : r.z1) > 18, side)
+  }
+})
+
 test('the edge controls do not overlap the rest of the table, the Power button or the setup', () => {
   for (const side of TEAMS) {
     const mine = edgeRect(side)
