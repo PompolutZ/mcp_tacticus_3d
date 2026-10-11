@@ -2,6 +2,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -9,7 +10,7 @@ import {
 } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Raycaster, Vector3 } from 'three'
-import { useTexture, Stars, Environment } from '@react-three/drei'
+import { useTexture, Environment } from '@react-three/drei'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import {
   MovementRuler,
@@ -56,6 +57,7 @@ import { FRICTION, WORLD_GRAVITY } from '../physics.js'
 import { overlapMarks, overlapsAny } from '../characters/overlap.js'
 import { claimChanges, claimCheck, modelIdOfKey, modelKey } from '../characters/claims.js'
 import { assetUrl } from '../assets/index.js'
+import { useColorTexture } from './useColorTexture.js'
 import { CARD_X, CARD_Y, CARD_Z, supplyPilePosition } from '../crisis/layout.js'
 import { getCard } from '../crisis/cards.js'
 import { TRAYS } from '../dice/tray.js'
@@ -141,6 +143,22 @@ function Mat({ mapId }) {
       />
     </mesh>
   )
+}
+
+// The background image: fixed to the screen, "cover" fit (crop, never stretch). three.js draws a
+// texture background as a screen quad that stretches to the canvas, so repeat and offset crop the
+// image to the canvas aspect, centered.
+function Backdrop() {
+  const image = useColorTexture(assetUrl('backgrounds/knowhere.webp'))
+  const aspect = useThree((state) => state.size.width / state.size.height)
+  useLayoutEffect(() => {
+    const imageAspect = image.image.width / image.image.height
+    const sx = Math.min(1, aspect / imageAspect)
+    const sy = Math.min(1, imageAspect / aspect)
+    image.repeat.set(sx, sy)
+    image.offset.set((1 - sx) / 2, (1 - sy) / 2)
+  }, [image, aspect])
+  return <primitive object={image} attach="background" />
 }
 
 const NO_TOOLS_RECORD = {}
@@ -990,9 +1008,10 @@ export default function Scene({
 
   return (
     <>
-      {/* Space background */}
-      <color attach="background" args={['#050510']} />
-      <Stars radius={200} depth={60} count={5000} factor={4} fade speed={0.5} />
+      {/* Background image. The dark color shows while the image loads. */}
+      <Suspense fallback={<color attach="background" args={['#050510']} />}>
+        <Backdrop />
+      </Suspense>
 
       <ambientLight intensity={0.85} />
       {/* The shadow camera looks from the light to the origin, so its x axis runs along the world
@@ -1022,11 +1041,9 @@ export default function Scene({
           looked like a strong lamp. Most HDR light comes from above, so it makes tops much brighter than
           sides. Ambient is the same from every side, so part of the light moved from the HDR to ambient.
           Now a face up gets 0.41 + 0.23 + 0.27 = 0.91, and a side face 0.38–0.55. */}
-      <Environment
-        files={assetUrl('hdri/potsdamer_platz_1k.hdr')}
-        backgroundIntensity={0}
-        environmentIntensity={0.3}
-      />
+      {/* The HDR only lights the scene. backgroundIntensity is not set: drei applies it to the scene,
+          and 0 would darken the Backdrop image. */}
+      <Environment files={assetUrl('hdri/potsdamer_platz_1k.hdr')} environmentIntensity={0.3} />
 
       <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP} debug={showColliders}>
         <ToolPoint pointRef={toolPointRef} />
