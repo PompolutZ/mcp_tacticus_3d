@@ -73,7 +73,16 @@ If a model faces another way in TTS too, its `cModelRot` does not give the front
 
 ### Result
 
-Not started.
+Done.
+
+- `cRot`: the script is on the tray itself and snaps its rotation at spawn. A tray with Y in 90..270 gets 180 and is the mod's Red seat (the app's blue side). Any other tray gets 0 and is Blue (the app's red side). So the model spawn turn `tray + 180 + cModelRot` is `cModelRot` (mod Red, app blue) and `180 + cModelRot` (mod Blue, app red).
+- GLBs: `migrate-characters.mjs` uses the same bundle steps as terrain (`lib/bundle.mjs`: prefab root rotation and scale are baked, the AssetRipper X mirror is not undone). So a character GLB needs the 180 deg import turn like `IMPORT_ROTATION` in `Terrain.jsx`.
+- Formula (radians, around Y): body start turn `modelSpawnYaw` = `-(tray + 180)`: blue 0, red pi. Figure turn `modelFigureYaw` = `pi - cModelRot` for a model, 0 for a standee. Total for a model: blue `pi - c`, red `-c`. Before, the figure turn was `+c` and the body had none.
+- `src/characters/models.js`: `modelSpawnYaw`, `modelFigureYaw`, `yawQuaternion`. `models.test.js`: 4 new tests (blue and red 180 deg apart, standee has no model part, three `cModelRot` values, blue body 0 and red body a half turn).
+- `Scene.jsx`: a model with no stored pose starts with `startQuaternion(teamColor)`. `returnModels` (Remove) stores the same turn. The figure `rotation` is `modelFigureYaw(model)`. A stored pose keeps its turn. Second models and spare models use the same rule (first model's `cModelRot`).
+- Docs: `docs/features/character-trays.md` ("Models face the mat", spawn line), `apps/web/scripts/README.md` (the rule line, item 4 of "What the app still needs").
+- Checks: build, format, lint (40 warning lines, same as before), test 376 pass (372 before).
+- Differs from the plan: one TTS exception is not built. For `twoCards` with `newCard` (Ant-Man 175, Emma Frost 180; Captain Marvel Cosmic Avenger is in the mod only), the script turns the tray by -90 or +90 and sets both models to tray + 90, with no `cModelRot`: red-seat 0, blue-seat 180. Check Ant-Man and Emma Frost in TTS against the app in the user check 2. The import turn is derived from the GLB pipeline, not seen in the browser (project rule). A standee has front at +z in the app: blue standee at body turn 0 faces its owner. Not checked against TTS.
 
 ## Step 2: Drag without select, one Place
 

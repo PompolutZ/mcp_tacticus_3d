@@ -215,7 +215,7 @@ Optional fields: `models` and `cards` (number of versions, when more than 1), `t
 These rules were found on 2026-09-28 in the mod scripts ("Red Tray Spawner" and Global) and in the 10 Asgard model bundles.
 
 - In every model bundle, the base is the only material without a color texture. The base mesh is a disk from y = 0 to y = 0.12, and its radius is half of `cBase`: 0.69" for small, 0.98" for medium, 1.28" for large. The script checks this and prints a warning if a base does not fit.
-- The tray spawns a model with Y rotation = tray rotation + 180 + `cModelRot`. `characters.json` stores `cModelRot` as `rotation`. The app shows `angel.glb` with no turn, and Angel has `cModelRot` 180, so the app turn is probably `rotation - 180`. This is not checked in the browser yet.
+- The tray spawns a model with Y rotation = tray rotation + 180 + `cModelRot`. `characters.json` stores `cModelRot` as `rotation`. The tray script snaps the tray to 180 for the Red seat (the app's blue side) and to 0 for Blue. TTS Y rotation `r` is `-r` in Three.js, and the character GLBs come from the same AssetRipper bundles as terrain, so they need the 180° import turn (`IMPORT_ROTATION` in `Terrain.jsx`). The app turn: body `-(tray rotation + 180)` (`modelSpawnYaw`), figure `180 - cModelRot` (`modelFigureYaw`), both in `src/characters/models.js`. The GLB shows the right side only if this import turn is correct; the user compares it with TTS. Exception: for `twoCards` with `newCard` (Ant-Man, Captain Marvel Cosmic Avenger, Emma Frost) the script sets the model rotation to tray rotation + 90 (the tray is turned by -90 or +90 during the spawn), with no `cModelRot`. The app does not do this.
 - No spawn script in this save reads `cTModelRot`. The tray makes the second model as a clone of the first model and then sets `cTModel` on it, so the second model has the turn of the first. The app does the same and does not use `transform.rotation`.
 - Every row with a second form has one of two flags (checked on 2026-10-07). `twoCards` (Ant-Man, Captain Marvel Cosmic Avenger, Emma Frost, Hood, Ms. Marvel, Wasp): the second form has its own card, `cTCard`, and the tray shows both cards. `oneCard` (Hulkbuster, Phoenix): the second form is the Injured side of the only card, and the tray spawns the second model 5" from the first. The tray spawns both models in both cases. See `docs/features/character-trays.md`, "Second forms".
 - The tray spawns a standee as a `Figurine_Custom` with `image = cFigA` and `image_secondary = cFigB`, turned by 180 without `cModelRot`. The figurine scale is 0.75 for a small base, 1.1 for medium and 1.4 for large. The mod spawns a standee only when `cFigA` is set; when `cFigB` is empty, it uses `cFigA` on both sides.
@@ -228,7 +228,7 @@ These rules were found on 2026-09-28 in the mod scripts ("Red Tray Spawner" and 
 1. `Scene.jsx` loads only `angel.glb`. It needs a way to choose characters from `characters.json`.
 2. `CharacterModel.jsx` uses the base radius of Angel (medium) for every model. It needs the radius from `BASE_DIAMETER[base]`.
 3. A standee component for `figure: 'standee'` (Valkyrie and Elendil): the two images on a thin card, on a base of the character's size.
-4. The model turn from `rotation`, see the rule above.
+4. The exception of the model turn (`twoCards` with `newCard`), see the rule above.
 
 # Jarvis character data
 

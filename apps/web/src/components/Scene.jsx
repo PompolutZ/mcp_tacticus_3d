@@ -53,7 +53,10 @@ import {
   characterModels,
   characterOnBoard,
   modelCharacterId,
+  modelFigureYaw,
+  modelSpawnYaw,
   trayCards,
+  yawQuaternion,
 } from '../characters/models.js'
 import { FRICTION, WORLD_GRAVITY } from '../physics.js'
 import { overlapMarks, overlapsAny } from '../characters/overlap.js'
@@ -774,7 +777,7 @@ export default function Scene({
       charLifts.current.get(model.id)?.cancel()
       turnsLeft.current.delete(modelKey(model.id))
       const [x, y, z] = trayPlace(model)
-      const pose = poseOf({ x, y, z }, { x: 0, y: 0, z: 0, w: 1 })
+      const pose = poseOf({ x, y, z }, yawQuaternion(modelSpawnYaw(model.character.teamColor)))
       applyPose(model.id, pose)
       onModelRest?.(model.id, pose)
     }
@@ -965,6 +968,12 @@ export default function Scene({
     const pose = startPose?.(model.id)
     if (pose) return [pose.x, pose.y, pose.z]
     return trayPlace(model)
+  }
+
+  // The turn a model starts with, no stored pose: it faces the mat (characters/models.js, modelSpawnYaw)
+  function startQuaternion(teamColor) {
+    const { x, y, z, w } = yawQuaternion(modelSpawnYaw(teamColor))
+    return [x, y, z, w]
   }
 
   // Where a model stands on its tray: on its card, or for a spare model past the Give sources
@@ -1411,9 +1420,9 @@ export default function Scene({
           const pose = startPose?.(model.id)
           const props = {
             position: modelSpawnPosition(model),
-            quaternion: pose && [pose.qx, pose.qy, pose.qz, pose.qw],
+            quaternion: pose ? [pose.qx, pose.qy, pose.qz, pose.qw] : startQuaternion(ch.teamColor),
             baseRadius: BASE_DIAMETER[model.base] / 2,
-            rotation: [0, (model.rotation * Math.PI) / 180, 0],
+            rotation: [0, modelFigureYaw(model), 0],
             teamColor: ch.teamColor,
             selected: selectedModelId === model.id,
             rangeMark: rangeMarkOf('character', model.id),
