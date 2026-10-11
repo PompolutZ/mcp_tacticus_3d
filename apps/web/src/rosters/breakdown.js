@@ -20,6 +20,9 @@ export const NO_FILTERS = {
   maxSize: null,
 }
 
+// The filters a roster starts with. Players nearly always play with a leader (user, playtest 1).
+export const DEFAULT_FILTERS = { ...NO_FILTERS, leader: true }
+
 // The combinations of `units` with a total threat of exactly `threat`: [{ places, threat }], places sorted,
 // the list sorted by places. units: [{ place, name, threat, alterEgo, peerless }] in roster order. The 4
 // rules are in docs/features/squad-breakdown.md, "Combinations".

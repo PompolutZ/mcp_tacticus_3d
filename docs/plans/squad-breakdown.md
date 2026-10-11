@@ -1,6 +1,6 @@
 # Plan: Squad breakdown
 
-Requested by the user on 2026-10-11. Plan 3 of `docs/plans/playtest-1.md`. Status: parts 1 to 5 done, waiting for the user checks.
+Requested by the user on 2026-10-11. Plan 3 of `docs/plans/playtest-1.md`. Status: done. Parts 1 to 5 and the fixes from the user checks, checked by the user on 2026-10-11.
 
 The user asked for the plan and the coder work in one go, on the branch `squad-breakdown`, in the worktree `../mcp_assist_3d-squad-breakdown`. The user checks the branch after all parts are done.
 
@@ -185,6 +185,12 @@ Commit: `squad breakdown part 5: exact threat, rogue agent` (with the doc change
 ## User checks
 
 After part 4, in the browser. Write the results here.
+
+Results:
+- Filters: the filter box shrank to one row and scrolled; now it shows in full and pushes the list down (fix on playtest-1-test).
+- Affiliation filter: a chip row with affiliation icons instead of a select (fix on playtest-1-test).
+- With a leader: on by default, Clear filters became Reset filters (fix on playtest-1-test).
+- Must have: always shown, the other filters behind More filters (fix on playtest-1-test).
 
 Sandbox, two rosters loaded:
 1. Click a roster card. The popup has a fourth tab, **Breakdown**. The other tabs work as before. The left and right arrows do nothing in the Breakdown tab.

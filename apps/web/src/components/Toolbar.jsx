@@ -263,7 +263,7 @@ export function Toolbar({
             <button
               type="button"
               className="chip"
-              title="Power Phase: each of your characters gains Power"
+              title="Automatic Power Phase: each of your characters gains Power"
               onClick={onPowerPhase}
             >
               Power

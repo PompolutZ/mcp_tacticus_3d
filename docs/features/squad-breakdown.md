@@ -79,7 +79,8 @@ Layout, from top to bottom:
 
 ```
 [15 (8)] [17 (12)] [18 (14)]              threat chips: value and number of combinations
-Filters (2) ▾                              opens the filters
+[Must have row]                            always shown
+More filters (2) ▾                         opens the other filters
 12 squads                                  or "No squad has threat 17 with these filters."
 ┌──────────────────────────────────────────────────────────┐
 │ 17  (o) (o) (o) (o)    Avengers ★  Cabal                 │  a row: total threat, portraits, affiliations
@@ -88,7 +89,7 @@ Filters (2) ▾                              opens the filters
 …
 ```
 
-- The area is about as wide as the carousel of the other tabs, and never wider than the screen. The list scrolls inside the popup.
+- The area is about as wide as the carousel of the other tabs, and never wider than the screen. The filter box shows in full. The list below it takes the rest of the height and scrolls; on a short window the whole area scrolls.
 - Each row shows the total threat, the characters in roster order and the affiliations of the combination.
 - A character shows as its portrait with its name under it. The portrait is the same as in the Library (`characters/<key>/portrait.webp`). A character without a portrait (no files in the app) shows a grey circle.
 - An affiliation shows as its name. ★ after the name says that the combination has a leader for it.
@@ -96,22 +97,22 @@ Filters (2) ▾                              opens the filters
 
 ## Filters
 
-**Filters** opens and closes the filter block. While a filter is on, the button shows how many are on, for example "Filters (2)". **Clear filters** turns all of them off.
+The filter box is always shown. Its first row, **Must have**, is always visible. **More filters** opens and closes the rest. While a filter behind it is on, the button shows how many differ from the start state, for example "More filters (2)". Must have is not counted. At the start, **With a leader** is on and the button shows "More filters" with no count. **Reset filters** goes back to the start state.
 
 | Filter | Input | Result |
 |---|---|---|
 | Must have | A row of the roster's characters (small portrait and name). A click turns one on or off | Only combinations with all of these characters |
 | Must not have | The same row | These characters are left out before the app finds the combinations. So the list shows squads that fill the threat without them |
-| Affiliation | A list: **No filter**, **Any affiliation**, then each affiliation that a combination of the roster has at one of the shown threat values, by name | Any affiliation: combinations with at least one. An affiliation: combinations that have it |
+| Affiliation | A chip row with the affiliation icons: **Any affiliation**, then each affiliation that a combination of the roster has at one of the shown threat values, by name. One chip at a time; a click on the chosen chip clears the filter | Any affiliation: combinations with at least one. An affiliation: combinations that have it |
 | At least 2 affiliations | Check box | Combinations with 2 or more affiliations |
-| With a leader | Check box | Only affiliations with a leader count for the two filters above. With **No filter**, a combination needs at least one affiliation with a leader |
+| With a leader | Check box | Only affiliations with a leader count for the two filters above. With no affiliation chosen, a combination needs at least one affiliation with a leader |
 | Min size | **Any**, 3, 4, 5, 6, 7 | Combinations with at least that many characters |
 | Max size | 3, 4, 5, 6, 7, **Any** | Combinations with at most that many characters |
 
 - A character is in at most one of the two character rows. A click in one row takes it out of the other row.
 - A min size above the max size moves the max size up, and the other way round, the same as Jarvis.
 - The counts on the threat chips use the filters too.
-- The selected threat value and the filters of each roster stay while the app is open, also when the popup closes. A new roster for that side starts with no filters. They are not saved.
+- The selected threat value and the filters of each roster stay while the app is open, also when the popup closes. A new roster for that side starts with the start filters (With a leader on). They are not saved.
 
 ## Choose a squad
 

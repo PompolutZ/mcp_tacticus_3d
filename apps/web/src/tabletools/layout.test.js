@@ -3,8 +3,10 @@ import assert from 'node:assert/strict'
 import { TABLE_DEPTH, TABLE_WIDTH } from '../table.js'
 import { TEAMS } from '../setup/setup.js'
 import { boardStrip, onRack, powerButton, rackPlate, rackSlots, rackYaw } from './layout.js'
+import { crisisRowLayout, rosterLayout } from '../rosters/layout.js'
 import {
   layoutTrays,
+  TRAY_BG_WIDTH,
   trayGiveTokenPosition,
   trayPlate,
   trayPosition,
@@ -39,10 +41,8 @@ const inside = (a) =>
 function pieces(side) {
   const plate = rackPlate(side)
   const strip = boardStrip(side)
-  const power = powerButton(side)
   const out = {
     'rack plate': rect(plate.x, plate.z, plate.width, plate.depth),
-    'power button': rect(power.x, power.z, power.width, power.depth),
     'board strip': rect(strip.x, strip.z, strip.width, strip.length),
   }
   for (const slot of rackSlots(side))
@@ -116,7 +116,7 @@ test('no piece overlaps another part of the table', () => {
   }
 })
 
-test('the slots of a rack lie on the plate and do not overlap each other or the Power Phase button', () => {
+test('the slots of a rack lie on the plate and do not overlap each other ', () => {
   for (const side of TEAMS) {
     const plate = pieces(side)['rack plate']
     const slots = rackSlots(side)
@@ -128,7 +128,6 @@ test('the slots of a rack lie on the plate and do not overlap each other or the 
       )
     }
     const all = slots.map((s) => [s.key, rect(s.x, s.z, s.length, s.width)])
-    all.push(['power', pieces(side)['power button']])
     for (let i = 0; i < all.length; i++) {
       for (let j = i + 1; j < all.length; j++) {
         assert.ok(!overlap(all[i][1], all[j][1]), `${side} ${all[i][0]} overlaps ${all[j][0]}`)
@@ -149,7 +148,6 @@ test('blue row 1 reads R1, R2..R5 from the owner left (-x), row 2 S, M, L, T/A',
     row2.map((s) => s.key),
     ['s', 'm', 'l', 'ta'],
   )
-  assert.ok(powerButton('blue').x > Math.max(...row2.map((s) => s.x)))
 })
 
 test('red is the mirror of blue, turned 180 deg', () => {
@@ -160,14 +158,75 @@ test('red is the mirror of blue, turned 180 deg', () => {
     assert.ok(Math.abs(red[i].x + slot.x) < 1e-9)
     assert.ok(Math.abs(red[i].z + slot.z) < 1e-9)
   })
-  const power = powerButton('red')
-  assert.equal(power.x, -powerButton('blue').x)
-  assert.equal(power.z, -powerButton('blue').z)
+  assert.equal(powerButton('red').x, -powerButton('blue').x)
+  assert.equal(powerButton('red').width, powerButton('blue').width)
+  assert.equal(powerButton('red').z, -powerButton('blue').z)
   const strip = boardStrip('red')
   assert.equal(strip.x, boardStrip('blue').x)
   assert.equal(strip.z, -boardStrip('blue').z)
   assert.equal(rackYaw('blue'), 0)
   assert.equal(rackYaw('red'), Math.PI)
+})
+
+const powerRect = (side) => {
+  const p = powerButton(side)
+  return rect(p.x, p.z, p.width, p.depth)
+}
+
+test('the Power button lies inside the table, left of the tactic tray (blue: -x)', () => {
+  for (const side of TEAMS) assert.ok(inside(powerRect(side)), side)
+  const power = powerButton('blue')
+  const tray = tacticTrayPosition('blue')
+  assert.equal(power.z, tray.z)
+  assert.ok(power.x + power.width / 2 < tray.x - TACTIC_PLATE_WIDTH / 2)
+  assert.ok(powerButton('red').x > 0)
+})
+
+test('the Power button does not overlap the rest of the table or the setup', () => {
+  // The roster cards of a full roster (10 characters, 5 tactics, 5 + 5 crisis cards), and the crisis rows
+  const parsed = {
+    characters: Array.from({ length: 12 }, (_, i) => ({ code: `c${i}`, gems: [] })),
+    tactics: Array.from({ length: 5 }, (_, i) => `t${i}`),
+  }
+  const codes = ['a', 'b', 'c', 'd', 'e']
+  for (const side of TEAMS) {
+    const mine = powerRect(side)
+    const rest = { ...others() }
+    delete rest[`tactic tray ${side}`]
+    rest[`tactic plate ${side}`] = (() => {
+      const t = tacticTrayPosition(side)
+      return rect(t.x, t.z, TACTIC_PLATE_WIDTH, TACTIC_PLATE_DEPTH)
+    })()
+    for (const card of rosterLayout(side, parsed))
+      rest[`roster ${card.code}`] = rect(card.x, card.z, card.width, card.height)
+    for (const type of ['secure', 'extract'])
+      for (const drawn of [false, true])
+        for (const card of crisisRowLayout(side, type, codes, drawn))
+          rest[`crisis ${type} ${drawn} ${card.code}`] = rect(
+            card.x,
+            card.z,
+            Math.abs(Math.cos(card.yaw)) > 0.5 ? card.width : card.height,
+            Math.abs(Math.cos(card.yaw)) > 0.5 ? card.height : card.width,
+          )
+    // The board strip, the dice trays, the rack, the character trays (12 per row)
+    const strip = boardStrip(side)
+    rest['board strip'] = rect(strip.x, strip.z, strip.width, strip.length)
+    const plate = rackPlate(side)
+    rest['rack plate'] = rect(plate.x, plate.z, plate.width, plate.depth)
+    for (const pos of layoutTrays(
+      Array.from({ length: 12 }, (_, i) => ({ id: i, teamColor: side })),
+    ).values()) {
+      const p2 = trayPlate(2)
+      rest[`tray ${pos[0]}`] = rect(
+        pos[0],
+        pos[2] + p2.z * (side === 'blue' ? 1 : -1),
+        TRAY_BG_WIDTH,
+        p2.depth,
+      )
+    }
+    for (const [name, o] of Object.entries(rest))
+      assert.ok(!overlap(mine, o), `${side} power overlaps ${name}`)
+  }
 })
 
 test('onRack: a point on the plate of a side is on that rack only', () => {

@@ -1,6 +1,6 @@
 # Plan: Tools on the table, settings menu
 
-Requested by the user on 2026-10-11. Plan 6 of `docs/plans/playtest-1.md`. Status: all 4 steps done on 2026-10-11, waiting for the user checks. (Plan written on 2026-10-11.) The user asked to run all coder steps and to check the result after the last step, so the plan was not shown for an OK first.
+Requested by the user on 2026-10-11. Plan 6 of `docs/plans/playtest-1.md`. Status: done. Steps 1 to 5, checked by the user on 2026-10-11. (Plan written on 2026-10-11.) The user asked to run all coder steps and to check the result after the last step, so the plan was not shown for an OK first.
 
 The feature is `docs/features/table-tools.md`. Each step makes one commit and writes its **Result** below.
 
@@ -289,6 +289,32 @@ Done.
 - Docs: `table-tools.md` (status built), `key-shortcuts.md` (Settings popup), `round-phases.md`, `README.md` ("Settings", "Table sides", "Tools", "Toward / Away", "Range 1").
 - Checks: build, format, lint (41 warnings, as before), test 351 pass.
 - Differs from the plan: none. Not checked in a browser.
+
+## Step 5: Power Phase button next to the Team Tactic tray (user checks)
+
+Request (user): "move Power button from tools tray to be on the table, to the left of players ttcs, since it belongs to the squad rather than tools. Also make it as green as power color and maybe even use power image/icon next to it for more visibility. And call it Automatic power phase"
+
+Work:
+
+1. `powerButton(side)` in `tabletools/layout.js`: left of the tactic plate, same z as the tray center, 0.6" gap.
+2. Tests: the button is inside the table and overlaps no other piece (tactic plate, board strip, scoring board, crisis cards, setup rows, roster cards, VP markers, 12 character trays, dice trays, rack). Red is the mirror.
+3. `PowerPhaseButton`: label "Automatic Power Phase", Power token image, green #42B534, dark text, lighter on hover, no player tint.
+4. Names: Settings item, Toolbar chip title.
+5. Docs: feature table-tools, round-phases.
+
+Checks:
+
+- [ ] Blue button lies left of the blue tactic tray, red mirrored, both facing their owner
+- [ ] Green with the Power token and dark text, lighter on hover
+- [ ] In a room, the other player's button looks disabled
+- [ ] Start view shows it readably
+- [ ] The rack row 2 ends at T/A
+
+### Result
+
+Button 9" x 2.4" (POWER_WIDTH, POWER_DEPTH), gap 0.6" (POWER_GAP). Blue: x -18.25 ... -9.25, z 19.15 ... 21.55. Free space left of the tactic plate: x -20.6 ... -8.65, z 18.3 ... 22.4.
+
+After the user check: 9" x 2.4" was too big and the label overflowed. Now 7.48" x 1.2" (187 x 30 px): 12px font as the other table buttons, icon 22px, gap 6px, overflow hidden as a guard. Blue x -16.73 ... -9.25, z 19.75 ... 20.95.
 
 ## Open questions
 

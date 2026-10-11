@@ -1,5 +1,5 @@
-// Where the table tools lie: the tool rack and the Power Phase button of each player, and the board strip
-// next to the scoring board. Plain module, no React, the same as characters/trays.js. See
+// Where the table tools lie: the tool rack of each player, and the board strip next to the scoring board.
+// The Automatic Power Phase button of each player lies in the row of their Team Tactic tray, not on the rack. Plain module, no React, the same as characters/trays.js. See
 // docs/features/table-tools.md, "Place on the table".
 //
 // Everything is computed for blue (+z) and mirrored for red: x and z change sign, and a piece turns
@@ -7,6 +7,7 @@
 // the scoring board for both players.
 
 import { MOVE_TIP, RANGE_TIP } from './toolTips.js'
+import { TACTIC_PLATE_WIDTH, tacticTrayPosition } from '../tactics/layout.js'
 
 const sign = (side) => (side === 'blue' ? 1 : -1)
 
@@ -86,14 +87,21 @@ export function rackSlots(side) {
   return LOCAL_SLOTS.map((slot) => ({ ...slot, x: slot.x * s, z: slot.z * s }))
 }
 
-// The Power Phase button of `side`: { x, z, width, depth }. It lies at the owner's right end of row 2, so
-// the owner's right of the plate is +x for blue and -x for red. width lies along x.
-const POWER_WIDTH = 6
-const POWER_DEPTH = 1.2
+// The Automatic Power Phase button of `side`: { x, z, width, depth }. It belongs to the squad, so it lies on
+// the table in the row of the Team Tactic tray, to the owner's left of the tactic plate (blue: -x). Same z as
+// the tray center. Free space there: x -20.6 (the board strip, the setup) to the plate edge -8.65, z 18.3 to
+// 22.4 (the mat edge to the character tray row). width lies along x. See docs/features/table-tools.md,
+// "Automatic Power Phase button".
+export const POWER_GAP = 0.6 // from the left edge of the tactic plate
+// Width in px (1 px = 0.04"): icon 22 + gap 6 + padding 2 x 6 + the label "Automatic Power Phase" (21 chars at
+// 12px, estimated 7 px each) = 187 px
+const POWER_WIDTH_PX = 22 + 6 + 12 + 21 * 7
+export const POWER_WIDTH = POWER_WIDTH_PX * 0.04
+export const POWER_DEPTH = 1.2
 export function powerButton(side) {
   const s = sign(side)
-  const x = RACK_HALF_WIDTH - RACK_MARGIN - POWER_WIDTH / 2
-  return { x: x * s, z: ROW_2_Z * s, width: POWER_WIDTH, depth: POWER_DEPTH }
+  const x = -(TACTIC_PLATE_WIDTH / 2 + POWER_GAP + POWER_WIDTH / 2)
+  return { x: x * s, z: tacticTrayPosition(side).z, width: POWER_WIDTH, depth: POWER_DEPTH }
 }
 
 // True when a table point { x, z } is on the rack plate of `side`

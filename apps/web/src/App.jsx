@@ -41,7 +41,7 @@ import { CLEANUP_KEYS, getToken, isCappedToken } from './tokens/tokens.js'
 import { firstFreeSlot, freePilePlaces, nearestFreeSlot, tacticTrayAt } from './tactics/layout.js'
 import { getTactic } from './tactics/cards.js'
 import { formatMctCode, isEmptyRoster } from './rosters/mct.js'
-import { NO_FILTERS } from './rosters/breakdown.js'
+import { DEFAULT_FILTERS } from './rosters/breakdown.js'
 import {
   CRISIS_THREATS,
   ROSTER_TABS,
@@ -1909,7 +1909,7 @@ export default function App({
             [team]: {
               code: rosters[team].code,
               threat: prevChoice?.threat ?? breakdownThreats[0],
-              filters: prevChoice?.filters ?? NO_FILTERS,
+              filters: prevChoice?.filters ?? DEFAULT_FILTERS,
               ...change,
             },
           }
@@ -1918,7 +1918,7 @@ export default function App({
         threats: breakdownThreats,
         threat:
           choice && breakdownThreats.includes(choice.threat) ? choice.threat : breakdownThreats[0],
-        filters: choice?.filters ?? NO_FILTERS,
+        filters: choice?.filters ?? DEFAULT_FILTERS,
         onThreatChange: (threat) => store({ threat }),
         onFiltersChange: (filters) => store({ filters }),
         // Whether a click chooses a squad, the reason when not, and the squad characters this browser may show

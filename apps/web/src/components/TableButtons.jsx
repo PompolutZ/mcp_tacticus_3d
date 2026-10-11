@@ -1,17 +1,22 @@
 import { OnTable, OWNER_FACING_ROTATION } from './OnTable.jsx'
 import { TEAMS } from '../setup/setup.js'
 import { boardStrip, powerButton } from '../tabletools/layout.js'
+import { assetUrl } from '../assets/index.js'
+import { characterToken } from '../tokens/files.js'
 
 // The buttons that lie on the table: a Power Phase button for each player and a board strip for each player.
 // See docs/features/table-tools.md. They lie flat just above the table (OnTable), 1 CSS px is 0.04".
 const TABLE_Y = 0.05
 const INCHES_PER_PX = 0.04
+// The same image as the Power counter of a tray (TrayControls.jsx)
+const POWER_ICON = assetUrl(characterToken('1-power'))
 const PLAYER = { blue: 'Blue', red: 'Red' }
 const otherSide = (side) => (side === 'blue' ? 'red' : 'blue')
 
 const px = (inches) => Math.round(inches / INCHES_PER_PX)
 
-// Power Phase of `side`, at the owner's right end of the rack. It gives Power to the characters of its
+// Automatic Power Phase of `side`, on the table to the owner's left of the Team Tactic tray (the place is in
+// tabletools/layout.js, docs/features/table-tools.md, "Automatic Power Phase button"). It gives Power to the characters of its
 // own side only. In a multiplayer room, only the owner presses it.
 function PowerPhaseButton({ side, ownSide, multiplayer, onPowerPhase }) {
   const place = powerButton(side)
@@ -21,17 +26,18 @@ function PowerPhaseButton({ side, ownSide, multiplayer, onPowerPhase }) {
       {/* aria-disabled, not disabled: some browsers show no title on a disabled button */}
       <button
         type="button"
-        className={`chip chip--player-${side} table-button`}
+        className="chip table-button table-button--power"
         style={{ width: px(place.width), height: px(place.depth) }}
         aria-disabled={locked}
         title={
           locked
             ? `Only the ${PLAYER[otherSide(ownSide)]} player presses this.`
-            : 'Power Phase: each of your characters gains Power'
+            : 'Automatic Power Phase: each of your characters gains Power'
         }
         onClick={locked ? undefined : () => onPowerPhase([side])}
       >
-        Power Phase
+        <img className="table-button-icon" src={POWER_ICON} alt="" />
+        Automatic Power Phase
       </button>
     </OnTable>
   )

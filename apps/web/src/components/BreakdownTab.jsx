@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
 import { characterByCode } from '../characters/characters.js'
 import { rosterBreakdown } from '../rosters/cards.js'
-import { MAX_BREAKDOWN_CHARACTERS, NO_FILTERS } from '../rosters/breakdown.js'
+import { DEFAULT_FILTERS, MAX_BREAKDOWN_CHARACTERS, NO_FILTERS } from '../rosters/breakdown.js'
 import { affiliationName } from '../scoreboard/affiliations.js'
+import { affiliationToken } from '../scoreboard/files.js'
+import { assetUrl } from '../assets/index.js'
 import { CharacterPortrait } from './CharacterPortrait.jsx'
 
 // The Breakdown tab of the roster popup (RosterPopup.jsx): the squads that the roster can build for a threat
@@ -61,14 +63,15 @@ export function BreakdownTab({ parsed, breakdown }) {
 
   const rows = byThreat.get(threat) ?? []
   const filterCount = [
-    filters.must.length > 0,
     filters.mustNot.length > 0,
     filters.affiliation !== null,
     filters.dual,
-    filters.leader,
+    filters.leader !== DEFAULT_FILTERS.leader,
     filters.minSize !== null,
     filters.maxSize !== null,
   ].filter(Boolean).length
+  // The default leader filter is on but not counted, the list is still filtered by it.
+  const filtered = filterCount > 0 || filters.must.length > 0 || filters.leader
   const setFilters = (change) => onFiltersChange({ ...filters, ...change })
   // Put a place in one of the two rows, or take it out when it is there. It leaves the other row.
   const toggleCharacter = (key, other, place) =>
@@ -107,8 +110,8 @@ export function BreakdownTab({ parsed, breakdown }) {
               type="button"
               className={
                 filters[key].includes(place)
-                  ? 'chip breakdown-char-chip chip--active'
-                  : 'chip breakdown-char-chip'
+                  ? 'chip breakdown-icon-chip chip--active'
+                  : 'chip breakdown-icon-chip'
               }
               aria-pressed={filters[key].includes(place)}
               onClick={() => toggleCharacter(key, other, place)}
@@ -155,66 +158,86 @@ export function BreakdownTab({ parsed, breakdown }) {
           </button>
         ))}
       </div>
-      <div>
-        <button
-          type="button"
-          className={filtersOpen ? 'chip chip--active' : 'chip'}
-          aria-expanded={filtersOpen}
-          onClick={() => setFiltersOpen(!filtersOpen)}
-        >
-          {filterCount > 0 ? `Filters (${filterCount})` : 'Filters'} {filtersOpen ? '▴' : '▾'}
-        </button>
-      </div>
-      {filtersOpen && (
-        <div className="breakdown-filters">
-          {characterRow('must', 'mustNot', 'Must have')}
-          {characterRow('mustNot', 'must', 'Must not have')}
-          <div className="breakdown-filter">
-            <span className="breakdown-filter-label">Affiliation</span>
-            <select
-              className="breakdown-select"
-              value={filters.affiliation ?? ''}
-              onChange={(e) => setFilters({ affiliation: e.target.value || null })}
-            >
-              <option value="">No filter</option>
-              <option value="*">Any affiliation</option>
-              {affiliationKeys.map((key) => (
-                <option key={key} value={key}>
-                  {affiliationName(key)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="breakdown-filter">
-            <label className="breakdown-check">
-              <input
-                type="checkbox"
-                checked={filters.dual}
-                onChange={(e) => setFilters({ dual: e.target.checked })}
-              />
-              At least 2 affiliations
-            </label>
-            <label className="breakdown-check">
-              <input
-                type="checkbox"
-                checked={filters.leader}
-                onChange={(e) => setFilters({ leader: e.target.checked })}
-              />
-              With a leader
-            </label>
-          </div>
-          {sizeRow('Min size', [null, 3, 4, 5, 6, 7], filters.minSize, setMin)}
-          {sizeRow('Max size', [3, 4, 5, 6, 7, null], filters.maxSize, setMax)}
-          <div>
-            <button type="button" className="chip" onClick={() => onFiltersChange(NO_FILTERS)}>
-              Clear filters
-            </button>
-          </div>
+      <div className="breakdown-filters">
+        {characterRow('must', 'mustNot', 'Must have')}
+        <div>
+          <button
+            type="button"
+            className={filtersOpen ? 'chip chip--active' : 'chip'}
+            aria-expanded={filtersOpen}
+            onClick={() => setFiltersOpen(!filtersOpen)}
+          >
+            {filterCount > 0 ? `More filters (${filterCount})` : 'More filters'}{' '}
+            {filtersOpen ? '▴' : '▾'}
+          </button>
         </div>
-      )}
+        {filtersOpen && (
+          <>
+            {characterRow('mustNot', 'must', 'Must not have')}
+            <div className="breakdown-filter">
+              <span className="breakdown-filter-label">Affiliation</span>
+              <div className="breakdown-filter-chips">
+                {['*', ...affiliationKeys].map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={
+                      filters.affiliation === key
+                        ? 'chip breakdown-icon-chip chip--active'
+                        : 'chip breakdown-icon-chip'
+                    }
+                    aria-pressed={filters.affiliation === key}
+                    onClick={() =>
+                      setFilters({ affiliation: filters.affiliation === key ? null : key })
+                    }
+                  >
+                    {key !== '*' && (
+                      <img
+                        className="breakdown-chip-portrait"
+                        src={assetUrl(affiliationToken(key))}
+                        alt=""
+                      />
+                    )}
+                    {key === '*' ? 'Any affiliation' : affiliationName(key)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="breakdown-filter">
+              <label className="breakdown-check">
+                <input
+                  type="checkbox"
+                  checked={filters.dual}
+                  onChange={(e) => setFilters({ dual: e.target.checked })}
+                />
+                At least 2 affiliations
+              </label>
+              <label className="breakdown-check">
+                <input
+                  type="checkbox"
+                  checked={filters.leader}
+                  onChange={(e) => setFilters({ leader: e.target.checked })}
+                />
+                With a leader
+              </label>
+            </div>
+            {sizeRow('Min size', [null, 3, 4, 5, 6, 7], filters.minSize, setMin)}
+            {sizeRow('Max size', [3, 4, 5, 6, 7, null], filters.maxSize, setMax)}
+            <div>
+              <button
+                type="button"
+                className="chip"
+                onClick={() => onFiltersChange(DEFAULT_FILTERS)}
+              >
+                Reset filters
+              </button>
+            </div>
+          </>
+        )}
+      </div>
       <p className="breakdown-line">
         {rows.length === 0
-          ? filterCount > 0
+          ? filtered
             ? `No squad has threat ${threat} with these filters.`
             : `No squad has threat ${threat}.`
           : `${rows.length} ${rows.length === 1 ? 'squad' : 'squads'}`}

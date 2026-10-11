@@ -7,7 +7,7 @@ Status: built.
 The users of the app are TTS players. In the mod, their tools lie on the table: a tool tray with the range and movement tools, the dice tray, the Deploy lines and Rotate Map buttons next to the scoring board. So the app puts the same tools on the table:
 
 - a **tool rack** for each player, below their character trays, with the range and movement tools
-- a **Power Phase** button for each player, at the end of their rack
+- an **Automatic Power Phase** button for each player, next to their Team Tactic tray (it belongs to the squad, not to the tools)
 - a **board strip** next to the scoring board, with **Cleanup Phase**, **Deploy Lock** and the mat turn **↺** **↻**
 
 A **Settings** menu lets each player choose the table or the HUD (the toolbar) for each of these. It also lists the keys and the mouse controls of the app.
@@ -22,15 +22,16 @@ The table is 72" × 76" (`src/table.js`). Numbers below are for blue (+z). Red i
                          x = -20.6 … -18.3        x = -15.2 … 15.2
 z = 12.6 … 18.0          [board strip]
 z = 18                   ─────────────── mat edge ───────────────
-z = 18.3 … 22.4                                   tactic tray
+z = 18.3 … 22.4          [Automatic Power  ]      tactic tray
+                         [Phase            ]
 z = 22.7 … 33.75                                  character trays, Give sources
 z = 34.2 … 36.8                                   [R1][R2][R3 ][R4  ][R5   ]
-                                                  [S][M ][L  ][T/A]   [Power Phase]
+                                                  [S][M ][L  ][T/A]
 z = 38                   ─────────────── table edge ─────────────
 ```
 
 - **Tool rack**, x −15.2 … 15.2, z 34.2 … 36.8. The deepest tray parts end at z 33.75: the plate of a tray with two cards, its two rows of Give sources, and a spare model. So the rack never meets a tray, also in a row of 12 trays.
-- **Power Phase button**, in the rack band, at the owner's right end of row 2.
+- **Automatic Power Phase button**, 7.48" × 1.2" (the size of the other table buttons: 12px font, icon 22px), in the row of the Team Tactic tray, to the owner's left of the tactic plate (blue: −x), with a gap of 0.6" from the plate edge: x −16.73 … −9.25, z 19.75 … 20.95 (center z = the tactic tray center). Free space there is x −20.6 … −8.65, z 18.3 … 22.4. Row 2 of the rack ends with the T/A chip.
 - **Board strip**, in the corner between the mat and the end of the scoring board on the player's side: x −20.6 … −18.3, z 12.6 … 18.0. Nothing else lies there, also during the setup.
 - The start view shows the own rack band (`docs/features/key-shortcuts.md`, "Start view").
 - A setting never moves a piece. It only shows or hides it. So the two browsers of a room have the same table.
@@ -46,9 +47,10 @@ z = 38                   ─────────────── table edg
 - **Return**: when a move drag of an own tool (not a turn or a bend) ends with the tool center over the own rack, the tool goes back to the rack (it is removed from the table). TTS has this as the tool tray setting "Cleanup", on by default.
 - **Which racks.** A multiplayer room shows both racks. A player uses only their own rack. The other rack shows the other player's tools on the table as faint copies, and does not react to the pointer. The Sandbox and a single player room show only the blue rack, because that browser has only Blue's tools (`ownSide` in `App.jsx`).
 
-## Power Phase button
+## Automatic Power Phase button
 
-- One for each player. It lies flat and faces its owner. Label: **Power Phase**.
+- One for each player. It lies flat and faces its owner. Its place is under "Place on the table".
+- Look: the green of the Power token (#42B534) with dark text, the Power token image left of the label **Automatic Power Phase**. A lighter green on hover. No player tint. The other player's button in a room looks disabled.
 - A press gives Power to the characters of that side on the board, by the rules of `docs/features/round-phases.md`. The TTS button also gives Power to its own player's trays only. In the Sandbox, a player presses both buttons.
 - The toolbar **Power** (when it is in the HUD) gives Power to all sides that the browser plays.
 - In a multiplayer room, the other player's button is disabled, with the title "Only the Red player presses this." (or Blue).
@@ -72,7 +74,7 @@ One row for each item, with the choice **Table** or **HUD**. The default is **Ta
 | Item | On the table | In the HUD (toolbar) |
 |---|---|---|
 | Range and movement tools | The tool rack | Groups **Range** (R1–R5) and **Move** (S, M, L, T/A) |
-| Power Phase | The Power Phase buttons | **Phase** → **Power** |
+| Automatic Power Phase | The Automatic Power Phase buttons | **Phase** → **Power** |
 | Cleanup Phase | Row 1 of the board strip | **Phase** → **Cleanup** |
 | Deploy Lock | **Deploy Lock** in the board strip | **Deploy** → **Lock** |
 | Mat turn (Sandbox and single player rooms) | **↺** **↻** in the board strip | **Mat** → **↺** **↻**. The map select stays in the toolbar |
