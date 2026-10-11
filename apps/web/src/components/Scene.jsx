@@ -195,6 +195,9 @@ const OVERLAP_INTERVAL = 100
 // angleSpawn: { target, aim }, each { kind, id } | null, for the Toward / Away tool:
 // the piece it snaps to when it spawns (free without one), and the piece it aims at (the mat center
 // without one). Like the other tools, it measures against the piece selected last.
+// toolSpawn: { range, move }, each { kind, id } | null: the piece the range or movement tool snaps to when
+// it spawns. Set by a tool key over a piece, which may be a model that the key does not select. Without
+// one, the tool snaps to the selected piece (target).
 // onCharacterDamage(id, damage), onCharacterPower(id, power), onCharacterFlip(id): the tray's
 // controls, lifted to App the same way as the token handlers above (see TrayControls.jsx).
 // onTrayCardHover(id, over): the pointer moved onto (true) or off (false) a character's tray card,
@@ -277,6 +280,7 @@ export default function Scene({
   ownSide = 'blue',
   onToolStore,
   angleSpawn = { target: null, aim: null },
+  toolSpawn = { range: null, move: null },
   showColliders = false,
   showLabels = false,
   spectator = false,
@@ -879,6 +883,9 @@ export default function Scene({
   )
   const toolModel = (piece) =>
     toolModels.find((model) => piece && model.kind === piece.kind && model.id === piece.id) ?? null
+  // The spawn target of the range and movement tools. undefined without one, so that RulerTool falls back
+  // to target (null would mean "spawn free").
+  const spawnModel = (piece) => (piece ? toolModel(piece) : undefined)
   // The tools measure against the character or token selected last, and a new tool snaps to it.
   // Place moves the selected character, also when a token was selected after it.
   const toolTarget = toolModel(selection.findLast(isToolPiece))
@@ -1430,6 +1437,7 @@ export default function Scene({
           <Suspense key={toolKey('move', ownTools.move)} fallback={null}>
             <MovementRuler
               type={ownTools.move.which}
+              spawnTarget={spawnModel(toolSpawn.move)}
               {...toolEntry('move')}
               hoverHeight={TOOL_HOVER_HEIGHT}
               selected={selectedTools.move}
@@ -1502,6 +1510,7 @@ export default function Scene({
           <Suspense key={toolKey('range', ownTools.range)} fallback={null}>
             <RangeRuler
               number={ownTools.range.which}
+              spawnTarget={spawnModel(toolSpawn.range)}
               {...toolEntry('range')}
               hoverHeight={TOOL_HOVER_HEIGHT}
               selected={selectedTools.range}

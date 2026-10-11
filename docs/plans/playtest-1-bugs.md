@@ -1,6 +1,6 @@
 # Plan: Bugs from the first playtest
 
-Requested by the user on 2026-10-11. Plan 1 of `docs/plans/playtest-1.md`. Status: plan written, waiting for the OK of the user.
+Requested by the user on 2026-10-11. Plan 1 of `docs/plans/playtest-1.md`. Status: Part 1 done, Parts 2–3 not started.
 
 One coder step and one commit for each part. Each part writes its **Result** below when it is done.
 
@@ -48,6 +48,8 @@ Work:
 1. `App.jsx`: `handleToolKey` and `handleAngleKey`. Over a character of a side not in `playedSides`: no `selectPiece`. Keep the hovered piece as the spawn target of that tool kind (range, move, angle). Over an own piece: as now.
 2. `Scene.jsx`: pass the spawn target to the range and the movement tools as `spawnTarget`, as `angleSpawn.target` is passed today. A spawn without a key has no spawn target, so `RulerTool` uses `target` as now.
 3. Docs: `docs/features/key-shortcuts.md`, table "Keyboard: keys of the mod" and the line "The piece does not have to be selected first: the key selects it". Add the rule for the other side's models.
+
+**Result:** Done. `App.jsx`: new state `toolSpawn` ({ range, move }), set by `handleToolKey` over a piece and cleared by the toolbar buttons and the free spawn. `keySelects` skips `selectPiece` over a model of a side not in `playedSides`, in `handleToolKey` and `handleAngleKey`. `Scene.jsx`: prop `toolSpawn`, passed as `spawnTarget` to `RangeRuler` and `MovementRuler`; `undefined` without a spawn target, so `RulerTool` falls back to `target`. Doc: `docs/features/key-shortcuts.md`.
 
 Checks: `pnpm --filter web build`, `pnpm format`, `pnpm lint`, the web tests.
 

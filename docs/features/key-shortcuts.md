@@ -106,7 +106,7 @@ The mod handles a key only for the player whose tray it is (Blue or Red).
 | 0 | Returns every tool to the tray | Removes every tool from the table. The selected pieces stay selected | Yes |
 | 1–9, pointer over an own dice tray (both trays in a single player room, the own seat in a multiplayer room) | Clears the tray and adds that number of dice | Adds that number of dice, 0 adds 10. It does not clear the tray. A tray holds at most 42 dice. Over the other player's tray the keys spawn tools. See `docs/features/dice-rolling.md` | Partly |
 
-The app also snaps a tool, key 6 included, when the pointer is over a crisis token. The mod only checks characters. The piece does not have to be selected first: the key selects it.
+The app also snaps a tool, key 6 included, when the pointer is over a crisis token. The mod only checks characters. The piece does not have to be selected first: the key selects it. Over a model of a side this browser does not play (the other side in a multiplayer room), the tool snaps to it and the selection does not change. So Place cannot move that model.
 
 ## Keys only in the app
 

@@ -278,6 +278,11 @@ export default function App({
   // Where the Toward / Away tool spawns: { target, aim }, the piece it snaps to and the piece it aims at,
   // each { kind, id } | null. Used once, at the spawn, in this browser only.
   const [angleSpawn, setAngleSpawn] = useState({ target: null, aim: null })
+  // Where the range and movement tools spawn: { range, move }, the piece the tool snaps to, { kind, id } | null.
+  // Set by a tool key over a piece, null for any other spawn (null: the tool snaps to the selected piece, as
+  // before). Used once, at the spawn, in this browser only. Like angleSpawn.target, it also works over a model
+  // that the key does not select (see handleToolKey).
+  const [toolSpawn, setToolSpawn] = useState({ range: null, move: null })
   const [debugOn, setDebugOn] = useState(false)
   // 'full' | 'no-outline' | 'no-composer', see DebugPanel
   const [renderMode, setRenderMode] = useState('full')
@@ -575,11 +580,13 @@ export default function App({
   }
 
   function handleRangeClick(range) {
+    setToolSpawn((prev) => ({ ...prev, range: null }))
     if (activeRange === range) setOwnTool('range', null)
     else spawnTool('range', range, toolbarSpawnAt(selection.findLast(isToolPiece)))
   }
 
   function handleMoveClick(move) {
+    setToolSpawn((prev) => ({ ...prev, move: null }))
     if (activeMove === move) setOwnTool('move', null)
     else spawnTool('move', move, toolbarSpawnAt(selection.findLast(isToolPiece)))
   }
@@ -735,9 +742,17 @@ export default function App({
     setSelectedTools(NO_TOOLS)
   }
 
-  // Key 6, the Toward / Away tool. Over a character or a token, it selects that piece and spawns the
-  // tool again snapped to it, even if the tool is already out. It aims at the character or token
-  // selected last that is not that piece, or at the mat center. Over the table or terrain, it spawns
+  // Over a model of a side this browser does not play (the other side in a multiplayer room), a tool key
+  // snaps the tool to it but does not select it. Else Place could move that model.
+  function keySelects(piece) {
+    if (piece.kind !== 'character') return true
+    const side = characters.find((c) => c.id === modelCharacterId(piece.id))?.teamColor
+    return playedSides.includes(side)
+  }
+
+  // Key 6, the Toward / Away tool. Over a character or a token, it selects that piece (except a model
+  // of the other side, see keySelects) and spawns the tool again snapped to it, even if the tool is
+  // already out. It aims at the character or token selected last that is not that piece, or at the mat center. Over the table or terrain, it spawns
   // the tool free at that point, also if it is already out. Else it toggles the tool, the same as its
   // toolbar button.
   function handleAngleKey() {
@@ -759,13 +774,13 @@ export default function App({
           (p) => isToolPiece(p) && !(p.kind === piece.kind && p.id === piece.id),
         ) ?? null,
     })
-    setSelection((prev) => selectPiece(prev, piece))
+    if (keySelects(piece)) setSelection((prev) => selectPiece(prev, piece))
     spawnTool('angle', true, null)
   }
 
   // tool: 'range' | 'move'. value: the range number or the movement tool type.
-  // With the pointer over a character or a token, it selects that piece and spawns the tool again,
-  // snapped to it, even if the tool is already out. A selected piece of the other kind stays selected.
+  // With the pointer over a character or a token, it selects that piece (except a model of the other
+  // side, see keySelects) and spawns the tool again, snapped to it, even if the tool is already out. A selected piece of the other kind stays selected.
   // Over the table or terrain, it spawns the tool free at that point, also if it is already out. Else it
   // toggles the tool, the same as its toolbar button.
   function handleToolKey(tool, value) {
@@ -777,10 +792,12 @@ export default function App({
         else handleMoveClick(value)
         return
       }
+      setToolSpawn((prev) => ({ ...prev, [tool]: null }))
       spawnTool(tool, value, at)
       return
     }
-    setSelection((prev) => selectPiece(prev, piece))
+    setToolSpawn((prev) => ({ ...prev, [tool]: piece }))
+    if (keySelects(piece)) setSelection((prev) => selectPiece(prev, piece))
     spawnTool(tool, value, null)
   }
 
@@ -1727,6 +1744,7 @@ export default function App({
               live={live}
               pieceLives={pieceLives}
               angleSpawn={angleSpawn}
+              toolSpawn={toolSpawn}
               showColliders={debug}
               showLabels={showLabels}
               spectator={spectator}
