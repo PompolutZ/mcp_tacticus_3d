@@ -12,7 +12,7 @@ The app does not know who wins a roll off yet, or who clicks a button. So it doe
 
 | Step | Rule (p9, p11) | In the app |
 |---|---|---|
-| Roll off | Players roll off. See [Roll off](#roll-off) | Not read by the app yet. Players roll with the dice trays and read the result. The panel next to the scoring board shows the rule and two buttons, **Blue has Priority** and **Red has Priority** (in a multiplayer room **Blue side has Priority** and **Red side has Priority**). Both players can press them. The button sets `setup.priority` |
+| Roll off | Players roll off. See [Roll off](#roll-off) | The app reads the dice trays (see [Roll off](#roll-off)). The panel next to the scoring board shows the rule and two buttons, **Blue has Priority** and **Red has Priority** (in a multiplayer room **Blue side has Priority** and **Red side has Priority**). Both players can press them. The button sets `setup.priority` |
 | Deck | The player with Priority chooses one of their crisis decks: Secure or Extract | **Choose Secures** or **Choose Extracts**, in the crisis area of the player with Priority only. The buttons have no color. The app draws 2 cards of that deck at random |
 | First card | The other player chooses 1 of the 2 cards | **Use** next to each drawn card. The app then draws 2 cards of the other type from the other player's deck |
 | Second card | The player with Priority chooses 1 of those 2 cards | **Use** next to each drawn card |
@@ -25,9 +25,13 @@ The app checks only one rule: **Ready** does not work when the squad threat is a
 
 ### Roll off
 
-Setup always starts with a roll off. The app does not track it, but this doc lists it, so that it says what the app supports. Each player rolls. The player with more successes (Crits, Wilds and Hits together) wins. On a tie, the player with more Crits wins, then the player with more Wilds. Otherwise, players roll again.
+Setup always starts with a roll off. Each player rolls 5 dice with their dice tray. The player with more successes (Crits, Wilds and Hits together) wins. On a tie, the player with more Crits wins, then the player with more Wilds. Otherwise, players roll again. Blank, Block and Skull count for nothing.
 
-The app does not read the dice for this yet. A later change can do it, because the dice trays already know the faces (see `docs/features/dice-rolling.md`). Now the players press **Blue has Priority** or **Red has Priority** on the panel. Both players can press them in a multiplayer room, because players can agree on a roll off made with real dice. The step `rollOff` lasts while `setup.priority` is null.
+The app reads it (`src/setup/rollOff.js`). In the step `rollOff`, when a throw ends (the moment the history writes its `throw` entry) and both shelves hold exactly 5 dice, the app sets `setup.priority` to the winner and stores the result in `setup.rollOff`. The panel says "Blue wins the roll off: 4 successes against 3." (the side names of the panel), and adds which of Crits or Wilds decided when the successes were equal. On a tie the panel says "Tie: roll again.", and Priority stays null. A player clears the tray and rolls again. The text stays until the deck is chosen.
+
+In a multiplayer room, only the browser whose throw ended writes the result. Both shelves are in the shared document, and each browser throws only its own dice, so the browser that finishes last sees two full shelves. If both finish at the same moment, both write the same result.
+
+The manual buttons **Blue has Priority** and **Red has Priority** stay (in a multiplayer room **Blue side has Priority** and **Red side has Priority**). Both players can press them, because players can agree on a roll off made with real dice. A manual press replaces the read result. The step `rollOff` lasts while `setup.priority` is null.
 
 ### Colors
 
@@ -213,7 +217,7 @@ From the Jarvis rules reference (rulebook 1.3.0 and 1.4.0):
 
 ## Decisions
 
-1. The app does not read the roll off yet. The panel next to the scoring board shows the rule and the **Priority** buttons, which set `setup.priority`.
+1. The app reads the roll off from the shelves of the two dice trays when a throw ends and both hold 5 dice. The panel next to the scoring board shows the rule, the result and the **Priority** buttons, which set `setup.priority` by hand. A tie leaves Priority null.
 2. The app does not check who clicks a button. The text names the player who chooses.
 3. The roll-off winner has Priority (`setup.priority`) and is Blue, the other player is Red. When the −z side has Priority, the crisis tokens turn a half turn, so that the bottom of the card map is at that side.
 4. The crisis cards of a roster lie next to the scoring board, not in roster row 2. The rows run parallel to the board, and the cards are turned the same way as the board.

@@ -104,6 +104,18 @@ function DeckButtons({ team, parsed, onChoose }) {
   )
 }
 
+// The text of a roll off that the app read: "Blue wins the roll off: 4 successes against 3." On equal
+// successes the Crits or the Wilds decided. result: { winner, counts } (rollOff.js).
+function rollOffText({ winner, counts }, name) {
+  if (!winner) return 'Tie: roll again.'
+  const a = counts[winner]
+  const b = counts[otherTeam(winner)]
+  const base = `${name(winner)} wins the roll off: ${a.successes} successes against ${b.successes}`
+  if (a.successes !== b.successes) return `${base}.`
+  if (a.crits !== b.crits) return `${base}, with more Crits (${a.crits} against ${b.crits}).`
+  return `${base}, with more Wilds (${a.wilds} against ${b.wilds}).`
+}
+
 // The panel next to the scoring board: what to do in this step, the buttons of the steps that are not about one
 // card, and Restart. The app does not know who won the roll off or who clicks, so the text names the player.
 function BoardPanel({ setup, step, parsed, mySide, actions }) {
@@ -227,6 +239,9 @@ function BoardPanel({ setup, step, parsed, mySide, actions }) {
       )
     })
   }
+  // What the app read from the dice trays, until the deck is chosen
+  const read = setup.rollOff && (step === 'rollOff' || step === 'deck') ? setup.rollOff : null
+  const readText = read && rollOffText(read, (team) => PLAYER[team] + (mySide ? ' side' : ''))
   const status = [
     winner && `${PLAYER[winner]} player has Priority`,
     setup.threat !== null && `Max threat ${setup.threat}`,
@@ -238,6 +253,7 @@ function BoardPanel({ setup, step, parsed, mySide, actions }) {
       <div className="setup-panel">
         <div className="setup-hint">{hint}</div>
         {note && <div className="setup-note">{note}</div>}
+        {readText && <div className="setup-note">{readText}</div>}
         {teamRows}
         {controls && <div className="setup-row">{controls}</div>}
         {(status || step !== 'rollOff') && (

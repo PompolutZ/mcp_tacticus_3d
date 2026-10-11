@@ -14,6 +14,7 @@ import {
   priorityOf,
   revealPlan,
   setPriority,
+  setRollOff,
   setSquadCharacters,
   setupPlacedCards,
   setupStep,
@@ -277,4 +278,16 @@ test('crisisRows: the roll-off step shows the deck rows, the winner row comes fr
   const rows = crisisRows(next, parsed)
   assert.equal(rows[0].team, 'red')
   assert.equal(rows[1].team, 'blue')
+})
+
+test('setRollOff: a winner gets Priority, a tie keeps it null, a manual Priority clears the result', () => {
+  const counts = { blue: {}, red: {} }
+  const won = setRollOff(newSetup(), { winner: 'red', counts })
+  assert.equal(won.priority, 'red')
+  assert.equal(setupStep(won), 'deck')
+  assert.ok(won.rollOff)
+  const tie = setRollOff(newSetup(), { winner: null, counts })
+  assert.equal(tie.priority, null)
+  assert.equal(setupStep(tie), 'rollOff')
+  assert.equal(setPriority(tie, 'blue').rollOff, null)
 })

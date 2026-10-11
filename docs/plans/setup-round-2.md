@@ -1,6 +1,6 @@
 # Plan: Setup round 2
 
-Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: step 1 done. Branch `setup-round-2`, from main at `87f9b6e`.
+Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: steps 1 and 2 done. Branch `setup-round-2`, from main at `87f9b6e`.
 
 The feature is `docs/features/setup-game.md`. Each step makes one commit and writes its **Result** below.
 
@@ -111,6 +111,17 @@ Checks: as in "Checks".
 
 User, after this step: each player clears their tray and rolls 5 dice. The winner gets Priority. A tie asks to roll again.
 
+
+### Result
+
+Done. Commit "setup round 2 part 2: the app reads the roll off".
+
+- `src/setup/rollOff.js` (`readRollOff({ blue, red })` of symbol lists, `shelfCounts`), tests in `rollOff.test.js`. Side keys are still `blue` / `red`.
+- `setup.rollOff: { winner, counts } | null` stores the read result for the panel. `setRollOff(setup, result)` sets Priority to the winner (a tie keeps it). `setPriority` (manual) clears `rollOff`. **Restart setup** clears it (`newSetup`).
+- Trigger: `DiceTray.jsx` `commit()`, right after the transaction that writes the history entry of kind `throw`, calls the new `onThrowEnd(trayKey)` prop (Scene to `handleThrowEnd` in `App.jsx`). It does nothing unless the step is `rollOff` and both shelves have exactly 5 dice in the document.
+- Single writer: only the browser whose throw ended writes. A browser has only its own tray, and both shelves are in the shared document, so the last to finish sees two full shelves. Simultaneous finishes write the same result. It reads `table.setup` and `table.dice` at that moment, not the render. A late sync of the other shelf is not covered: if the other shelf arrives after the last throw ended, nothing reads. Clearing and rolling one die again reads it.
+- Panel (`GameSetup.jsx`): "Blue wins the roll off: 4 successes against 3." with the tiebreak (Crits or Wilds) when successes are equal, or "Tie: roll again." Shown in the `rollOff` and `deck` steps, gone when a deck is chosen.
+- Docs: `setup-game.md` (What the app does, Roll off, Decision 1).
 
 ## Step 3: Names and texts in the rulebook order
 

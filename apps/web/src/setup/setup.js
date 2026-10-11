@@ -15,7 +15,8 @@ const NO_SQUAD = { characters: [], tactics: [] }
 
 // id: random, made with each new setup (newSetup). A squad that a player keeps in their browser counts only
 // for the setup with its id (rooms/store.js, squad). priority: the side that won the roll off and has
-// Priority, null before. The colors follow it (colorOf). deck: the crisis type of the deck that the player
+// Priority, null before. The colors follow it (colorOf). rollOff: the roll off the app read, { winner, counts }
+// | null (setRollOff). deck: the crisis type of the deck that the player
 // with Priority uses: { type } | null. A setup saved before `priority` has deck: { team, type } and no
 // priority: priorityOf reads deck.team as the Priority side. draws: the codes of the 2 cards drawn from each
 // deck. picks: the code of the card of each type that the mission uses. threat: the Maximum Threat value.
@@ -30,6 +31,7 @@ const NO_SQUAD = { characters: [], tactics: [] }
 export const NEW_SETUP = {
   id: null,
   priority: null,
+  rollOff: null,
   deck: null,
   draws: { secure: [], extract: [] },
   picks: { secure: null, extract: null },
@@ -138,7 +140,14 @@ function drawTwo(codes, random) {
 
 // The roll off is over: `team` has Priority
 export function setPriority(setup, team) {
-  return { ...setup, priority: team }
+  return { ...setup, priority: team, rollOff: null }
+}
+
+// The app read the roll off (rollOff.js, readRollOff): result = { winner, counts }. A winner gets Priority. On
+// a tie (winner null) Priority stays null and the panel says so. The result stays in `setup.rollOff` for the
+// panel, until a manual Priority or a restart.
+export function setRollOff(setup, result) {
+  return { ...setup, priority: result.winner ?? setup.priority, rollOff: result }
 }
 
 // The player with Priority uses their deck of `type`, with the card codes `codes`. 2 cards are drawn.

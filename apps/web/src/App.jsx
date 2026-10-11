@@ -73,11 +73,14 @@ import {
   revealPlan,
   setupPlacedCards,
   setPriority,
+  setRollOff,
   setupStep,
   setSquadCharacters,
   toggleReady,
   toggleSquadCard,
 } from './setup/setup.js'
+import { readRollOff } from './setup/rollOff.js'
+import { FACES } from './dice/faces.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
 import { TERRAIN_PIECES } from './terrain/pieces.js'
@@ -127,6 +130,9 @@ import {
 // 36.8", see tabletools/layout.js). The bottom edge of the view meets the table at z = 37.5". The top
 // edge is past the red trays (z = -40, the table ends at -38). Space returns to this view (see
 // resetCamera).
+// Dice that each player rolls in the roll off
+const ROLL_OFF_DICE = 5
+
 const CAMERA_TARGET = [0, 0, 16.8]
 const CAMERA_POSITION = [0, 32.5, 49.3]
 // The Red view: the Blue view turned 180° around the mat center (plan 08, decision 17). Only for the Red seat
@@ -1256,6 +1262,24 @@ export default function App({
     setSetup(setPriority(setup, team))
   }
 
+  // A throw of an own tray ended: its history entry is written. In the roll-off step, with 5 dice on both
+  // shelves, this browser reads the result. Only the browser whose throw ended writes it. Both shelves are in
+  // the shared document, and each browser has only its own tray, so the one that finishes last sees both full
+  // shelves. If both finish at the same moment and both write, they write the same result. Reads the document,
+  // not the render, so a stale closure cannot matter.
+  function handleThrowEnd() {
+    const current = table.setup.read()
+    if (setupStep(current) !== 'rollOff') return
+    const dice = table.dice.read()
+    const shelves = {}
+    for (const team of TEAMS) {
+      const onShelf = Object.values(dice[team]?.dice ?? {}).filter((die) => die.place === 'shelf')
+      if (onShelf.length !== ROLL_OFF_DICE) return
+      shelves[team] = onShelf.map((die) => FACES[die.face - 1]?.symbol)
+    }
+    table.setup.set(setRollOff(current, readRollOff(shelves)))
+  }
+
   // The player with Priority uses their deck of `type`. The draws are random, so they are made here, outside
   // a state updater, which React can call twice.
   function handleSetupDeck(type) {
@@ -2047,6 +2071,7 @@ export default function App({
               liftPieceRef={liftPieceRef}
               returnModelsRef={returnModelsRef}
               playedSides={playedSides}
+              onThrowEnd={handleThrowEnd}
               onDiceTrayHover={(side, over) => {
                 if (over) diceTrayHoveredRef.current = side
                 else if (diceTrayHoveredRef.current === side) diceTrayHoveredRef.current = null

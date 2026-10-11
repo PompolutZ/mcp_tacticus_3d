@@ -135,6 +135,7 @@ export default function DiceTray({
   store,
   rolls,
   transact,
+  onThrowEnd,
   openMenuSymbol = null,
   onMenuToggle,
   onMenuClose,
@@ -191,6 +192,8 @@ export default function DiceTray({
       store.setField(trayKey, side)
       if (entries.length > 0) rolls.set((prev) => [...prev, ...entries])
     })
+    // The history wrote a throw: this browser's throw ended, so it reads the roll off (App.jsx)
+    if (entries.some((entry) => entry.kind === 'throw')) onThrowEnd?.(trayKey)
   }
 
   // The stored pose of a body now, or null when it is not finite or the body is not there yet
