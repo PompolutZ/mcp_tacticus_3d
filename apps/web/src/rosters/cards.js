@@ -9,7 +9,8 @@ import jarvisCharacters from '../characters/jarvis-characters.json'
 import crisisData from '../crisis/jarvis-crisis-cards.json'
 import crisisFiles from '../crisis/cards.json'
 import { crisisCardFace } from '../crisis/files.js'
-import { squadAffiliations } from '../scoreboard/affiliations.js'
+import { affiliationKey, squadAffiliations } from '../scoreboard/affiliations.js'
+import { MAX_BREAKDOWN_CHARACTERS, matchesFilters, squadCombinations } from './breakdown.js'
 import { jarvisValidatorCode, parseRoster } from './mct.js'
 
 // Gem code -> threat, from bearableGemsWithName of the Jarvis character rows. The first value of a code wins.
@@ -162,6 +163,62 @@ export function squadAffiliationKeys(parsed, places) {
   return squadAffiliations(
     places.map((place) => characterByCode(parsed.characters[place]?.code)?.affiliations ?? []),
   )
+}
+
+// The threat values of all current crisis cards, sorted, each once (15 to 20 now). The breakdown shows them
+// when the rosters have no crisis cards. See docs/features/squad-breakdown.md, "Threat values".
+export const CRISIS_THREATS = [
+  ...new Set(
+    [...cards.values()]
+      .filter((c) => c.kind === 'secure' || c.kind === 'extract')
+      .map((c) => c.threat),
+  ),
+].sort((a, b) => a - b)
+
+// The units of the characters of a parsed roster for squadCombinations (breakdown.js), in roster order.
+// place: the place in parsed.characters. threat: Threat Level plus attached gems, as in squadThreat.
+export function breakdownUnits(parsed) {
+  return parsed.characters.map((ch, place) => {
+    const info = characterByCode(ch.code)
+    return {
+      place,
+      name: info?.name ?? ch.code,
+      threat: squadThreat(parsed, [place]),
+      alterEgo: info?.alterEgo ?? null,
+      peerless: Boolean(info?.peerless),
+    }
+  })
+}
+
+// The Jarvis slugs of the Team Tactic cards of a roster. A code with two Jarvis rows gives both slugs.
+function tacticSlugs(parsed) {
+  const codes = new Set(parsed.tactics)
+  return new Set(tacticsData.filter((row) => codes.has(row.exportCode)).map((row) => row.slug))
+}
+
+// The combinations of a parsed roster for the threat value `threat` (see docs/features/squad-breakdown.md,
+// "Combinations" and "Filters"): [{ places, threat, affiliations: [{ key, leader }] }]. The characters in
+// filters.mustNot are removed first. null when the roster has more than 14 characters.
+// affiliations: the token keys of the combination (squadAffiliationKeys). leader: a character leads it,
+// with isLeader or with a Team Tactic card of the roster (all of them, not only the chosen ones).
+export function rosterBreakdown(parsed, threat, filters) {
+  if (parsed.characters.length > MAX_BREAKDOWN_CHARACTERS) return null
+  const units = breakdownUnits(parsed).filter((unit) => !filters.mustNot.includes(unit.place))
+  const slugs = tacticSlugs(parsed)
+  return squadCombinations(units, threat)
+    .map((combo) => ({
+      ...combo,
+      affiliations: squadAffiliationKeys(parsed, combo.places).map((key) => ({
+        key,
+        leader: combo.places.some((place) =>
+          (characterByCode(parsed.characters[place].code)?.leads ?? []).some(
+            (lead) =>
+              affiliationKey(lead.affiliation) === key && (!lead.tactic || slugs.has(lead.tactic)),
+          ),
+        ),
+      })),
+    }))
+    .filter((combo) => matchesFilters(combo, filters))
 }
 
 // The message for the codes of a roster text that the app does not know, for example

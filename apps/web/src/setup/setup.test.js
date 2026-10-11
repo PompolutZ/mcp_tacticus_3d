@@ -7,6 +7,7 @@ import {
   placeSquad,
   placedIds,
   placedSides,
+  possibleThreats,
   revealPlan,
   setupPlacedCards,
   setupStep,
@@ -153,4 +154,52 @@ test('chooseAffiliation changes one side', () => {
     blue: null,
     red: 'asgard',
   })
+})
+
+test('possibleThreats: each step', () => {
+  const rosters = {
+    blue: { secure: ['s1', 's2'], extract: ['e1'] },
+    red: { secure: ['s3'], extract: ['e2', 'e3'] },
+  }
+  const values = { s1: 17, s2: 15, s3: 17, e1: 20, e2: 16, e3: 18, x: 19 }
+  const threatOf = (code) => values[code]
+  assert.deepEqual(possibleThreats(newSetup(), rosters, threatOf), [15, 16, 17, 18, 20])
+  // Deck chosen: Blue uses secure, 2 cards drawn. Red's extract cards are all possible.
+  const deck = {
+    ...newSetup(),
+    deck: { team: 'blue', type: 'secure' },
+    draws: { secure: ['s1', 's2'], extract: [] },
+  }
+  assert.deepEqual(possibleThreats(deck, rosters, threatOf), [15, 16, 17, 18])
+  // First card picked: it and the 2 drawn extract cards
+  const first = {
+    ...deck,
+    picks: { secure: 's2', extract: null },
+    draws: { secure: ['s1', 's2'], extract: ['e2', 'e3'] },
+  }
+  assert.deepEqual(possibleThreats(first, rosters, threatOf), [15, 16, 18])
+  // Both picked: the threat step
+  const both = { ...first, picks: { secure: 's1', extract: 'e3' } }
+  assert.deepEqual(possibleThreats(both, rosters, threatOf), [17, 18])
+  // After the Maximum Threat only that value is left
+  assert.deepEqual(possibleThreats({ ...both, threat: 18 }, rosters, threatOf), [18])
+})
+
+test('possibleThreats: missing roster, no cards, unknown code', () => {
+  const threatOf = (code) => ({ s1: 17 })[code]
+  assert.deepEqual(
+    possibleThreats(
+      newSetup(),
+      { blue: { secure: ['s1', 'zz'], extract: [] }, red: null },
+      threatOf,
+    ),
+    [17],
+  )
+  assert.deepEqual(possibleThreats(newSetup(), { blue: null, red: null }, threatOf), [])
+  const deck = {
+    ...newSetup(),
+    deck: { team: 'red', type: 'extract' },
+    draws: { secure: [], extract: [] },
+  }
+  assert.deepEqual(possibleThreats(deck, { blue: null, red: null }, threatOf), [])
 })

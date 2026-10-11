@@ -1,6 +1,6 @@
 # Plan: Squad breakdown
 
-Requested by the user on 2026-10-11. Plan 3 of `docs/plans/playtest-1.md`. Status: plan written, parts 1 to 4 not started.
+Requested by the user on 2026-10-11. Plan 3 of `docs/plans/playtest-1.md`. Status: part 1 done, parts 2 to 4 not started.
 
 The user asked for the plan and the coder work in one go, on the branch `squad-breakdown`, in the worktree `../mcp_assist_3d-squad-breakdown`. The user checks the branch after all parts are done.
 
@@ -97,7 +97,7 @@ Checks: `pnpm format`, `pnpm lint`, `pnpm --filter web build`, `pnpm --filter we
 
 Commit: `squad breakdown part 1: combinations and threat values`.
 
-**Result:** not started.
+**Result:** done. `characters.js` `rosterEntry`: `alterEgo`, `peerless`, `leads`. New `rosters/breakdown.js`: `squadCombinations`, `matchesFilters`, `NO_FILTERS`, `MAX_BREAKDOWN_CHARACTERS`, `SHARED_ALTER_EGOS`. `rosters/cards.js`: `breakdownUnits`, `rosterBreakdown`, `CRISIS_THREATS` (15 to 20). `setup/setup.js`: `possibleThreats`. 11 new tests (344 total): 9 in `breakdown.test.js`, 2 in `setup.test.js`. No deviation. Copy rule: a unit needs the previous unit with the same name. `rosterBreakdown` is not in a Node test (`cards.js` imports JSON); checked once by hand through Vite SSR.
 
 ## Part 2: Breakdown tab, read only
 
