@@ -7,13 +7,14 @@ The AWS CDK app of the API. It defines every AWS resource of the project. The de
 | Stack | Contents | Deployed by |
 |---|---|---|
 | `McpTacticusAccount` | Deployer role `mcptacticus-deployer`, GitHub OIDC provider, CI role `mcptacticus-github-deploy`, budget `mcptacticus-monthly` (1 USD) | The user, with the admin profile `fxdx_admin`. Only when `lib/account-stack.ts` changes |
-| `McpTacticusApi` | Lambda `mcptacticus-api`, function URL with CORS, log group `/aws/lambda/mcptacticus-api` (1 week), SSM read permission, daily keep-alive rule. Output `ApiUrl` | The user, with the deployer profile `mcptacticus`. From step 4 of the plan, GitHub Actions |
+| `McpTacticusApi` | Lambda `mcptacticus-api`, function URL with CORS, log group `/aws/lambda/mcptacticus-api` (1 week), SSM read permission, daily keep-alive rule. Output `ApiUrl` | The user, with the deployer profile `mcptacticus`. After the first release (step 12), step 4 of the plan adds GitHub Actions |
 
 Files:
 
 - `bin/app.ts`: the CDK app. It reads `.env`, and it sets `APP_VERSION` to the git commit. It adds `-dirty` when the tree has uncommitted changes.
 - `lib/account-stack.ts`, `lib/api-stack.ts`: the two stacks.
 - `scripts/put-secrets.ts`: writes the secrets of `.env` to SSM.
+- `scripts/delete-test-data.ts`: deletes the data of the Atlas database `assist3d`.
 - `cdk.json`, `context`:
   - `githubOidcProvider`: `"create"` when the account has no GitHub OIDC provider, `"import"` when it has one. An account can have only one.
   - `reservedConcurrency`: a number, or `null` for none. A number needs an account concurrency quota above the number plus 100.
@@ -29,10 +30,24 @@ Files:
 | `pnpm --filter infra cdk:deploy` | Deploys `McpTacticusApi` with the profile `mcptacticus` |
 | `pnpm --filter infra cdk:deploy:account` | Deploys `McpTacticusAccount` with the profile `fxdx_admin` |
 | `pnpm --filter infra put-secrets` | Writes the secrets of `.env` to SSM with the profile `mcptacticus` |
+| `pnpm --filter infra delete-test-data` | Deletes all documents in `users`, `rooms` and `messages` of Atlas. See "Delete the test data" |
 
 `bin/app.ts` adds `McpTacticusAccount` only when `BUDGET_EMAIL` is set. Without it, every `cdk` command prints `McpTacticusAccount skipped: BUDGET_EMAIL is not set in infra/.env`.
 
 The AWS commands below use the region `eu-central-1`, the `DEPLOY_REGION` of `.env.example`. If `infra/.env` has another region, use it in the commands.
+
+## Delete the test data
+
+**This deletes all data in production.** Run it once, before the first release. After real players log in, never run it.
+
+```sh
+pnpm --filter infra delete-test-data
+```
+
+- It reads `MONGODB_URI` from `infra/.env`. It prints the host name only, never the string.
+- It prints the document counts of `users`, `rooms` and `messages` in the database `assist3d`.
+- It deletes nothing until you type `assist3d`. Any other answer stops it.
+- It deletes the documents and keeps the indexes. Then it prints the counts again. They must be 0.
 
 ## New machine
 
@@ -91,7 +106,7 @@ The Discord values come from the Discord Developer Portal (application `mcptacti
 
 ## Later deploys
 
-- `pnpm --filter infra cdk:deploy` after a change in `apps/api` or `infra/lib/api-stack.ts`. From step 4 of the plan, GitHub Actions does it on a push to `main`.
+- `pnpm --filter infra cdk:deploy` after a change in `apps/api` or `infra/lib/api-stack.ts`. After the first release (step 12), step 4 of the plan adds GitHub Actions for this.
 - `pnpm --filter infra cdk:deploy:account` only when `lib/account-stack.ts` changes.
 - `pnpm --filter infra put-secrets` when a secret in `infra/.env` changes. Then commit a change and run `pnpm --filter infra cdk:deploy`.
   - The Lambda reads the SSM parameters once, at cold start. Instances that run already keep the old values.

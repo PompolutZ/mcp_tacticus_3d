@@ -179,6 +179,34 @@ User, after this phase: the release (checks 5 to 9).
 
 ### Result
 
+Done. No API code changed (decision 6). No API change is needed.
+
+Data rules, checked in code:
+- TTL indexes: `users`, `rooms` and `messages` each have `{ expiresAt: 1 }` with `expireAfterSeconds: 0` (`stores/mongo.ts`). Mongo deletes a document some seconds after its `expiresAt`.
+- User `expiresAt` (12 months, `userExpiry`) moves on: login (`upsertDiscord`, used by `POST /auth/discord` and the dev login), and `GET /me` when the token is older than 1 day (`touch`). A player who only opens the app moves it once a day at most.
+- Room `expiresAt` (12 months) moves on: create, join, and each table write (`PUT /rooms/:code/table`, `replaceTable`). Delete and reads do not move it. This matches "no change for 12 months".
+- Message `expiresAt` is now + 1 hour (`HOUR_MS`, `routes/signal.ts`). `DELETE /me` also deletes the user's messages.
+- CloudWatch: `RetentionDays.ONE_WEEK` (`infra/lib/api-stack.ts`).
+- CORS: set on the function URL only. `allowedOrigins` is `https://mcptacticus3d.netlify.app` only, methods GET, POST, PUT, PATCH, DELETE, headers `authorization`, `content-type`, `x-after`. Not tested against the deployed API (check 9).
+- `console.*` in `apps/api/src`, outside tests:
+  - `middleware/log.ts`: `METHOD /path status Nms`. The path has the room code. No query, no headers, no IP.
+  - `routes/table.ts`: `table write body=<n> merged=<n>`, two sizes.
+  - `auth/discord.ts`: `discord call failed status=<n>` and `discord token request rejected status=<n>`. Status only, no body.
+  - `lambda.ts`: `keep-alive ok|error`.
+  - `stores/mongo.ts`: `mongo ping failed: <name>: <message>`. A Mongo message can name Atlas hosts, not the URI.
+  - `middleware/errors.ts`: `console.error(err)` for an unknown error: the error and its stack. It is the one call that prints something that is not fixed text. A Mongo or Hono error holds no token, code or SDP, because the code never puts them in an error. It can name an Atlas host.
+  - `local.ts`: dev start lines. Not in the Lambda.
+  - No call prints a token, a Discord code, an SDP, an IP address, a connection string or Discord data.
+- Atlas region: not checkable in code. Docs say the cluster is in `eu-central-1`, and `DEPLOY_REGION` must match it. The page says Frankfurt. The user can check it in Atlas.
+
+Page fix: the logs paragraph now says each request leaves one line with the method, the path (with the room code), the status and the time. Everything else on the page matches the code.
+
+Test data script: `infra/scripts/delete-test-data.ts`, script `delete-test-data`, `mongodb` `^7.7.0` in `infra` dev dependencies (same as `apps/api`), lockfile updated. `MONGODB_URI` was in `.env.example` already. The host name comes from `client.options`, so the URI is never printed. Not run.
+
+Docs: `docs/feature-auth.md` (Privacy, Discord application, Lobby and room UI, Phases, code layout), `docs/feature-backend.md` (Deploy, scripts), `docs/plans/implement-backend.md` (decision 8, Order), `04-ci.md` note, `infra/README.md` (section "Delete the test data"), root `README.md`.
+
+Checks: see the report of the phase. Tests, typecheck, web build, format and lint run at the end.
+
 ## User
 
 After Phase 1, local (`pnpm dev`), with dev logins:
@@ -226,3 +254,4 @@ From this step on, production data is real. A change of the data format needs a 
 3. **`bye` on page close** (step 8, risk 4). In production, the `keepalive` request needs a preflight. If the browser does not send it, the other player sees "Reconnecting" until the 15 minutes end, or until the page comes back.
 4. **Two versions.** After a new deploy, a player with an old page sees the version warning. Both reload.
 5. **The privacy page is not legal advice.** It covers the items of the Discord Developer Terms (auth doc, "Privacy") and the usual GDPR items. The user decides if it is enough.
+6. **Flaky API test, found in Phase 2.** `apps/api/test/signal.test.ts`, "returns only newer messages for x-after", failed once in 5 runs: `['two','one']` instead of `['one','two']`. A message id is the server time in ms and 8 random characters. So two messages in the same ms sort by the random part. In production, one browser posts each message in its own HTTP request, so two messages of one peer in the same ms are rare. Not fixed in this step. A fix for later: a counter per API instance after the time.

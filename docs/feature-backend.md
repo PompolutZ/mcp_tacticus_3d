@@ -115,7 +115,7 @@ The table snapshot is binary (`application/octet-stream`). Lambda base64-encodes
 | Stack | Contents | Who deploys it |
 |---|---|---|
 | `McpTacticusAccount` | Deployer role, GitHub OIDC provider, CI role, budget alert | The user, with the admin user `fxdx_admin`. It changes rarely |
-| `McpTacticusApi` | Lambda, function URL, log group, SSM read permission, keep-alive rule | The user with the deployer role at first. From step 4 of the plan, CI |
+| `McpTacticusApi` | Lambda, function URL, log group, SSM read permission, keep-alive rule | The user with the deployer role. After the first release (step 12), step 4 of the plan adds CI |
 
 ### McpTacticusApi
 
@@ -161,6 +161,7 @@ CDK needs `cdk bootstrap` once per account and region, with admin rights. It cre
 
 - All four are `SecureString`. At cold start, the Lambda reads them with one `GetParametersByPath` call and keeps them in memory.
 - CloudFormation cannot create `SecureString` parameters, so CDK does not create them. `infra/scripts/put-secrets.ts` writes them from `infra/.env` (git ignores it). The user runs it with the deployer profile.
+- `infra/scripts/delete-test-data.ts` (`pnpm --filter infra delete-test-data`) deletes all documents in `users`, `rooms` and `messages` of the database `assist3d`, and keeps the indexes. It reads `MONGODB_URI` from `infra/.env`, and asks to type `assist3d`. The user runs it once, before the first release. It needs `mongodb` as a dev dependency of `infra`.
 - Lambda env vars are not used for secrets. CDK writes env var values in plain text into the template: in `cdk.out`, in the bootstrap S3 bucket, and in the Lambda console.
 - Secrets Manager is not used, because it costs $0.40 per secret per month.
 - Cost: standard parameters are free. The AWS managed key `aws/ssm` decrypts them. KMS gives 20,000 free requests a month, and the Lambda needs one per cold start.
@@ -222,6 +223,7 @@ region = eu-central-1
 
 - `pnpm --filter infra cdk:deploy` runs `cdk deploy McpTacticusApi` with `AWS_PROFILE=mcptacticus`. The CLI asks for the MFA code.
 - `pnpm --filter infra cdk:deploy:account` runs `cdk deploy McpTacticusAccount` with `AWS_PROFILE=fxdx_admin`. Only when that stack changes.
+- Step 4 (CI) comes after the first release (step 12). Until then, every deploy is from the user's machine.
 - Coding agents do not run `aws`, `cdk deploy` or `cdk bootstrap`. They write the code and the commands, and the user runs them.
 
 ### GitHub Actions

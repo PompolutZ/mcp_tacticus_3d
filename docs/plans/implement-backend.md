@@ -34,16 +34,16 @@ This plan is the overview: the steps, their order and why. Each step also gets i
 | 9 | Moving objects | 8 | 3 | | `09-moving-objects.md` |
 | 10 | Dice | 9 | 4 | | `10-dice.md` |
 | 11 | Reconnect | 8 | 5 (the rest) | | `11-reconnect.md` |
-| 4 | CI deploy | 3 | | | `04-ci.md` |
-| 12 | First release | 4, 10, 11 | | 4 (the rest) | `12-release.md` |
+| 12 | First release | 10, 11 | | 4 (the rest) | `12-release.md` |
+| 4 | CI deploy | 3, 12 | | | `04-ci.md` |
 | 13 | TURN | 12 | 6 | | `13-turn.md` |
 
 The detailed plans are in `docs/plans/implement-backend/`.
 
-- Step 4 keeps its number, but it runs after step 11 and before step 12 (decision 5). The table shows the order of the work.
+- Step 4 keeps its number, but it runs after step 12 (decision 8). The table shows the order of the work.
 - Steps 1 to 3 add no game feature. They make the path from code to AWS work while the API is small. So problems with pnpm, CDK, roles or Atlas show early, one at a time.
 - Step 5 is frontend only. Login (step 6) comes after it, because only the multiplayer features need login, and the first multiplayer feature is step 7.
-- From step 3 on, every backend change is deployed when its step is done. Until step 4, the user deploys from their machine with `pnpm --filter infra cdk:deploy`. Production shows no login and no multiplayer rooms until step 12, because the web app shows the login button only when `VITE_DISCORD_CLIENT_ID` is set.
+- From step 3 on, every backend change is deployed when its step is done. Until step 4, which now runs after step 12, the user deploys from their machine with `pnpm --filter infra cdk:deploy`. Production shows no login and no multiplayer rooms until step 12, because the web app shows the login button only when `VITE_DISCORD_CLIENT_ID` is set.
 - Step 12 is the first release. Steps 5 to 11 are tested locally, with dev login and the browser pairs. Then the app goes to production, and the user tests with another real person.
 
 ## Detailed plans
@@ -189,7 +189,7 @@ Done when:
 
 ## Step 4: CI deploy
 
-Postponed on 2026-10-09 (decision 5). It runs after step 11 and before step 12. The detailed plan `04-ci.md` was written on 2026-10-09. Before the step starts, check it again (see the note at its top).
+Postponed on 2026-10-09 (decision 5), and again on 2026-10-11 (decision 8). It runs after step 12. The detailed plan `04-ci.md` was written on 2026-10-09. Before the step starts, check it again (see the note at its top).
 
 Read: backend doc "Deploy" → "GitHub Actions".
 
@@ -410,7 +410,7 @@ Made on 2026-10-08:
 
 Made on 2026-10-09:
 
-5. Step 4 (CI deploy) runs after step 11, before step 12. Reasons:
+5. Step 4 (CI deploy) runs after step 11, before step 12. Decision 8 changes this: it runs after step 12. Reasons:
    - CI costs no money. GitHub Actions is free for a public repo, IAM is free, and each deploy adds about 1 MB to the bootstrap S3 bucket. But it is work, and no step before step 12 needs it.
    - It is not known yet whether anyone will use the app. Until the first release, the user deploys from their machine.
    - From step 12 on, real players use the API. Then each deploy must be repeatable and checked.
@@ -422,3 +422,7 @@ Made on 2026-10-09:
    - It is the final storage, so there is no temporary format.
    - It stores each change at once, so the 2-second save poll goes away.
    - Step 11 then adds only reconnect.
+
+Made on 2026-10-11:
+
+8. Step 4 (CI deploy) runs after step 12. The first game is played in production first, and CI is added after it. Until step 4, the user deploys the API from their machine (`pnpm --filter infra cdk:deploy`). Step 12 changes no API code, so it needs no API deploy. This changes decision 5. See `12-release.md`, decision 1.

@@ -72,6 +72,8 @@ Login needs these settings (see `apps/api/.env.example`):
 
 Without the Discord values, the **Log in with Discord** button is hidden or answers 503. The **Dev login** field in the lobby header always works in dev. Type a name, and use another name in another browser to get a second user.
 
+The user menu has **Log out** and **Delete account**. **Delete account** asks first, then deletes the account, the room that the user hosts, and the local copies of the user's multiplayer tables. The **Privacy** link in the lobby footer opens `http://localhost:5173/privacy.html`, a static page.
+
 ### Dev Mongo
 
 The API uses the memory store by default. A restart of the API empties it, and the testers are logged out. To keep the users, run a Mongo in Docker and set `STORE=mongo` in `apps/api/.env`:

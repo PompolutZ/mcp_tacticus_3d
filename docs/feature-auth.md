@@ -207,7 +207,7 @@ The signaling paths `/rooms/{code}/messages` are under the same `/rooms/{code}` 
 
 ## Lobby and room UI
 
-- **Header of the lobby:** **Log in with Discord** when logged out, with the line "Your opponent sees your Discord name and avatar." When logged in: avatar and name, with a menu: **Log out**, **Delete account**. A **Privacy** link in the footer.
+- **Header of the lobby:** **Log in with Discord** when logged out, with the line "Your opponent sees your Discord name and avatar." When logged in: avatar and name, with a menu: **Log out**, **Delete account**. A **Privacy** link in the footer of the lobby, and in the login note. It opens `/privacy.html`, a static page with no app code. **Delete account** asks with a browser confirm first. See [Privacy](#privacy).
 - **Room list:** one list with the multiplayer rooms and the single player rooms, the last changed room first. The list loads from the server each time the lobby shows. A multiplayer tile shows the map card, the map name, the code, the last change, and each seat: avatar and name, "Free seat", or "Deleted player". A single player tile shows "Single player".
 - **+ (new room):** with login off, the dialog makes a single player room, as today. With login on, the dialog has a choice at the top: **Single player** or **Multiplayer**.
   - When logged in, **Multiplayer** is the default. When logged out, it is disabled, with "Log in with Discord to play multiplayer". A dev build without `VITE_DISCORD_CLIENT_ID` says "Log in to play multiplayer".
@@ -218,7 +218,7 @@ The signaling paths `/rooms/{code}/messages` are under the same `/rooms/{code}` 
 - **Copy link:** copies `<origin>/#room=<code>`. The button shows "Link copied" or "Copy failed" for 2 s. It is in the lobby tile and in the toolbar of a multiplayer room, next to the room code. It disappears when the guest seat is taken. In the toolbar it also hides when the guest's `hello` arrives, so it hides when the guest joins while the host is in the room. If the guest is forgotten later (`bye`), it shows again.
 - **Link of a multiplayer room when logged out:** the join page shows the setup of the room, with **Log in with Discord to join**. In a dev build without Discord, it says "Log in above to join". After login, the player comes back to the same link (`returnHash`).
 - **Server not available:** the lobby shows the single player rooms and the message "Could not load your multiplayer rooms". **Multiplayer** in the dialog is disabled.
-- **Room toolbar of a multiplayer room:** no map picker (the map is fixed) and no Roster group. The room code and **Copy link** show. Then come both seats: the team name in the side color, avatar and name, and "You" at the own seat. The other seat shows the connection status: "Waiting", "Connecting", "Connected", "Could not connect" or "Not here", with **Try again** for the last two. A free seat shows "Free seat" until the guest's `hello` arrives. A deleted player shows "Deleted player" with no status.
+- **Room toolbar of a multiplayer room:** no map picker (the map is fixed) and no Roster group. The room code and **Copy link** show. Then come both seats: the team name in the side color, avatar and name, and "You" at the own seat. The other seat shows the connection status: "Waiting", "Connecting", "Connected", "Reconnecting", "Could not connect" or "Not here", with **Try again** for the last two. "Reconnecting" shows when a connection that was open drops, and a new one starts by itself. A free seat shows "Free seat" until the guest's `hello` arrives. A deleted player shows "Deleted player" with no status.
 - **Local copy:** the IndexedDB database of a multiplayer room is `mcp-assist-3d/multiplayer/<user id>/<code>`. Each time `GET /rooms` succeeds, the lobby deletes the databases of this user whose code is not in the list. So a room that the host deleted leaves no copy in the guest's browser. A browser without `indexedDB.databases()` skips this.
 
 ## Privacy
@@ -227,7 +227,7 @@ The Discord Developer Terms of Service (effective 2024-07-08, section 5) apply t
 
 | Requirement (section) | How the app does it |
 |---|---|
-| A privacy policy that says what data the app collects, how it uses the data and shares it with Discord and third parties, and how a user can ask for deletion (5a) | The page `https://mcptacticus3d.netlify.app/#privacy` |
+| A privacy policy that says what data the app collects, how it uses the data and shares it with Discord and third parties, and how a user can ask for deletion (5a) | The static page `apps/web/public/privacy.html`, at `https://mcptacticus3d.netlify.app/privacy.html` |
 | A public link to the privacy policy in the Developer Portal, and easy to reach from the app (5a) | The Privacy Policy URL field of the Discord application. The **Privacy** link in the lobby footer |
 | Share API Data only with service providers, when the law requires it, or when the user directs it (5b) | AWS and MongoDB Atlas are service providers. The opponent sees the name and avatar because the player joins a game with them. The lobby and the privacy page say this |
 | Update the data when the user asks (5b) | Each login updates the name and the avatar |
@@ -236,7 +236,7 @@ The Discord Developer Terms of Service (effective 2024-07-08, section 5) apply t
 | Report unauthorized access to users (as the law requires) and to Discord (5c) | By hand, if it happens |
 | Keep developer credentials secret. No credentials in open source projects (2) | The client secret only in `apps/api/.env` and `infra/.env` (git ignores both) and in SSM. The terms list the Application ID as a credential too, so the client id comes from a Netlify env var at build time, not from a file in git |
 
-- **Delete account** asks with a browser confirm first. `DELETE /me` deletes the user, deletes the room that the user hosts with its table. The user's seat in other rooms stays, and the room shows "Deleted player". The browser deletes the token. The privacy page also says that the player can remove the app in Discord under Settings → Authorized Apps.
+- **Delete account** asks with a browser confirm first. `DELETE /me` deletes the user, the room that the user hosts with its table, and the user's signaling messages. The user's seat in other rooms stays, and the room shows "Deleted player". The browser deletes the token. The privacy page also says that the player can remove the app in Discord under Settings → Authorized Apps.
 - **Retention:** a user with no login and no app start for 12 months is deleted by the TTL index (`expiresAt`). A room with no change for 12 months is deleted the same way, with its table. The seat rules in [Data](#data) handle rooms of deleted users.
 - **Region:** Discord EU data that goes to a country outside the EEA with no adequacy decision falls under the standard contract clauses of section 11. The Lambda and the Atlas cluster are both in `eu-central-1` (backend doc), so the data stays in the EEA.
 - Scope `identify` only. No email, no guilds, no friends list.
@@ -266,7 +266,7 @@ Created once, by hand, in the Discord Developer Portal:
 
 1. **New Application**. Use a name like the site (`mcptacticus3d`), because Discord shows the name on the consent screen.
 2. **OAuth2 → Redirects:** `http://localhost:5173/` now, `https://mcptacticus3d.netlify.app/` in phase 4.
-3. **Privacy Policy URL:** `https://mcptacticus3d.netlify.app/#privacy`, in phase 4.
+3. **Privacy Policy URL:** `https://mcptacticus3d.netlify.app/privacy.html`, in phase 4.
 4. Copy the client id to `VITE_DISCORD_CLIENT_ID` in `apps/web/.env.local`. Copy the client id and the client secret to `apps/api/.env` and `infra/.env`. Git ignores these files. `put-secrets` writes them to SSM (backend doc, "Secrets and config").
 5. No bot user. No other scopes.
 
@@ -328,7 +328,6 @@ apps/web/src/components/
   JoinRoom.jsx     the join page of a multiplayer room
   CopyLinkButton.jsx  Copy link
   RoomRosterPopup.jsx  the roster popup of a tile and of the join page
-  Privacy.jsx      the privacy page
 apps/api/src/
   auth/            token (sign and verify the session token), discord (the Discord client)
   routes/          auth (Discord code exchange), devAuth (local only), me, rooms (seat rules), table (merge), signal (messages, step 8)
@@ -349,7 +348,7 @@ The plan `docs/plans/implement-backend.md` gives the order of the phases and the
 1. **Login.** Discord application with the localhost redirect. The users store (memory and MongoDB), `POST /auth/discord`, `GET /me`, `DELETE /me`, the dev login. Lobby header with login, avatar and menu.
 2. **Multiplayer rooms.** After peer-to-peer phase 1, so the table is a Yjs document. Rooms store (memory and MongoDB, with indexes and TTL indexes) and endpoints, seats, the table snapshot, one room list in the lobby, the **Single player** or **Multiplayer** choice in the new room dialog, the join page, **Copy link**. Done in step 7.
 3. **Identity in peer-to-peer.** Together with peer-to-peer phase 2. Token and seat check on signaling requests, `user` on messages, the offer and answer check, names and avatars in the room toolbar. Signaling only for multiplayer rooms.
-4. **First release.** The production redirect URI and Privacy Policy URL, **Delete account**, the privacy page, and `VITE_DISCORD_CLIENT_ID` in Netlify. Delete account and the privacy page must be live before the first real player logs in. The site rename moved to step 1 of the plan, and the deploy to steps 3 and 4.
+4. **First release.** Built in step 12. The privacy page, **Delete account** and the footer link are done. The release tasks of the user are open. The production redirect URI and Privacy Policy URL, **Delete account**, the privacy page, and `VITE_DISCORD_CLIENT_ID` in Netlify. Delete account and the privacy page must be live before the first real player logs in. The site rename moved to step 1 of the plan, and the deploy to steps 3 and 4.
 
 ## Relation to other features
 

@@ -335,6 +335,9 @@ importers:
       aws-cdk:
         specifier: ^2.1144.0
         version: 2.1144.0
+      mongodb:
+        specifier: ^7.7.0
+        version: 7.7.0(@aws-sdk/credential-providers@3.1147.0)
       tsx:
         specifier: ^4.23.15
         version: 4.23.15
