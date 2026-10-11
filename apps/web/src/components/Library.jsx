@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
+import { COLOR_NAME, useSideColors } from '../sideColors.js'
 import { CHARACTERS } from '../characters/characters.js'
 import { CharacterPortrait } from './CharacterPortrait.jsx'
 import { TACTICS } from '../tactics/cards.js'
@@ -13,10 +14,7 @@ const TABS = [
   { tab: 'tactics', label: 'Tactics' },
   { tab: 'tokens', label: 'Tokens' },
 ]
-const TEAMS = [
-  { team: 'blue', label: 'Blue' },
-  { team: 'red', label: 'Red' },
-]
+const TEAMS = ['blue', 'red']
 const TOKEN_MODES = [
   {
     mode: 'single',
@@ -56,6 +54,7 @@ const LIBRARY_ROWS = [
 export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onTokenDragStart }) {
   const [query, setQuery] = useState('')
   const [tab, setTab] = useState('all')
+  const colors = useSideColors()
   const [team, setTeam] = useState('blue')
   const [tokenMode, setTokenMode] = useState('single')
   const [message, setMessage] = useState(null)
@@ -146,13 +145,13 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
         <span className="group-label">For</span>
         {TEAMS.map((t) => (
           <button
-            key={t.team}
+            key={t}
             type="button"
-            className={`chip${team === t.team ? ` chip--player-${t.team}` : ''}`}
-            title={`${t.label} player gets the characters and tactic cards`}
-            onClick={() => setTeam(t.team)}
+            className={`chip${team === t ? ` chip--player-${colors[t]}` : ''}`}
+            title={`${COLOR_NAME[colors[t]]} player gets the characters and tactic cards`}
+            onClick={() => setTeam(t)}
           >
-            {t.label}
+            {COLOR_NAME[colors[t]]}
           </button>
         ))}
       </div>
@@ -175,7 +174,7 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
                   className={`library-character${state}`}
                   title={
                     onTable
-                      ? `${team === 'blue' ? 'Blue' : 'Red'} player has this character on the table`
+                      ? `${COLOR_NAME[colors[team]]} player has this character on the table`
                       : undefined
                   }
                   onClick={() => handleCharacter(ch)}

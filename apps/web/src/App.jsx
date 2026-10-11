@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, events as pointerEvents } from '@react-three/fiber'
 import { MOUSE } from 'three'
 import { OrbitControls } from '@react-three/drei'
@@ -6,6 +6,7 @@ import { assetUrl } from './assets/index.js'
 import Scene from './components/Scene.jsx'
 import SelectionOutlines from './components/SelectionOutlines.jsx'
 import { DEFAULT_LOOK, setLook } from './components/look.js'
+import { COLOR_NAME, DEFAULT_SIDE_COLORS, setSideColors } from './sideColors.js'
 import { Toolbar } from './components/Toolbar.jsx'
 import { Library } from './components/Library.jsx'
 import { RollsPanel } from './components/RollsPanel.jsx'
@@ -57,9 +58,11 @@ import {
   TEAMS,
   chooseAffiliation,
   chooseDeck,
+  colorOf,
   chooseEdge,
   chooseThreat,
   newSetup,
+  priorityOf,
   otherTeam,
   otherType,
   pickCard,
@@ -69,6 +72,7 @@ import {
   possibleThreats,
   revealPlan,
   setupPlacedCards,
+  setPriority,
   setupStep,
   setSquadCharacters,
   toggleReady,
@@ -338,6 +342,14 @@ export default function App({
   // The game setup: crisis cards, threat, deployment edge and squads (setup/setup.js, GameSetup.jsx). A new
   // roster starts it again.
   const [setup, setSetup] = useYRecord(table.setup)
+  // The colors of the sides (setup/setup.js, colorOf). The Sandbox (no room) keeps +z Blue. The store gives
+  // them to every component that shows a color (sideColors.js).
+  const followPriority = Boolean(room)
+  const blueColor = colorOf('blue', setup, followPriority)
+  useLayoutEffect(() => {
+    setSideColors({ blue: blueColor, red: blueColor === 'blue' ? 'red' : 'blue' })
+    return () => setSideColors(DEFAULT_SIDE_COLORS)
+  }, [blueColor])
   // The players whose clicks on their roster cards choose the squad: { blue, red } → true. Off, a click opens
   // the roster popup. Not saved.
   const [squadSelect, setSquadSelect] = useState({ blue: false, red: false })
@@ -576,7 +588,7 @@ export default function App({
   function handleSpawn(ch) {
     if (characters.some((c) => c.key === ch.slug && c.teamColor === ch.teamColor)) {
       showHudMessage(
-        `${ch.teamColor === 'blue' ? 'Blue' : 'Red'} player already has ${ch.name} on the table`,
+        `${COLOR_NAME[colorOf(ch.teamColor, setup, Boolean(room))]} player already has ${ch.name} on the table`,
       )
       return
     }
@@ -877,7 +889,7 @@ export default function App({
       setTokens((prev) => {
         const kept = prev.filter((t) => t.cardKey !== oldKey)
         const card = getCard(key)
-        return card ? [...kept, ...buildMatTokens(card, setup.deck?.team === 'red')] : kept
+        return card ? [...kept, ...buildMatTokens(card, priorityOf(setup) === 'red')] : kept
       })
     })
     // The selected token may no longer exist; a selected character is not affected.
@@ -1042,7 +1054,9 @@ export default function App({
     )
     // With one side, the message names it
     const title =
-      sides.length === 1 ? `Power Phase (${sides[0] === 'blue' ? 'Blue' : 'Red'})` : 'Power Phase'
+      sides.length === 1
+        ? `Power Phase (${COLOR_NAME[colorOf(sides[0], setup, Boolean(room))]})`
+        : 'Power Phase'
     showHudMessage(
       gains.length === 0
         ? `${title}: none of your characters is on the board`
@@ -1235,11 +1249,19 @@ export default function App({
     if (window.confirm(`Start the game setup again? ${SETUP_REMOVAL}`)) restartSetup()
   }
 
-  // The roll-off winner uses their deck of `type`. The draws are random, so they are made here, outside a
-  // state updater, which React can call twice.
-  function handleSetupDeck(team, type) {
+  // The roll off is over: `team` has Priority. Both players can press it in a multiplayer room, because
+  // players can agree on a roll off with real dice.
+  function handleSetupPriority(team) {
+    if (setupStep(setup) !== 'rollOff') return
+    setSetup(setPriority(setup, team))
+  }
+
+  // The player with Priority uses their deck of `type`. The draws are random, so they are made here, outside
+  // a state updater, which React can call twice.
+  function handleSetupDeck(type) {
+    const team = priorityOf(setup)
     if (setupStep(setup) !== 'deck' || !parsedRosters[team]) return
-    setSetup(chooseDeck(setup, team, type, parsedRosters[team][type]))
+    setSetup(chooseDeck(setup, type, parsedRosters[team][type]))
   }
 
   // A Use button on a drawn crisis card. After the first card, 2 cards are drawn from the other deck of
@@ -1247,7 +1269,7 @@ export default function App({
   function handleSetupPick(code) {
     const step = setupStep(setup)
     if (step !== 'first' && step !== 'second') return
-    const other = parsedRosters[otherTeam(setup.deck.team)]
+    const other = parsedRosters[otherTeam(priorityOf(setup))]
     setSetup(pickCard(setup, code, other?.[otherType(setup.deck.type)] ?? []))
   }
 
@@ -1495,6 +1517,7 @@ export default function App({
   }, [setup])
 
   const setupActions = {
+    priority: handleSetupPriority,
     deck: handleSetupDeck,
     pick: handleSetupPick,
     threat: handleSetupThreat,

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { COLOR_NAME, useSideColors } from '../sideColors.js'
 import { MAPS } from '../terrain/maps.js'
 import { cardsOfType } from '../crisis/cards.js'
 import { CopyLinkButton } from './CopyLinkButton.jsx'
@@ -10,10 +11,7 @@ const MOVES = [
   { label: 'M', type: 'medium' },
   { label: 'L', type: 'long' },
 ]
-const TEAMS = [
-  { team: 'blue', label: 'Blue' },
-  { team: 'red', label: 'Red' },
-]
+const TEAMS = [{ team: 'blue' }, { team: 'red' }]
 const CRISIS_TYPES = [
   { type: 'secure', label: 'Secure' },
   { type: 'extract', label: 'Extract' },
@@ -80,6 +78,7 @@ export function Toolbar({
   const deployHud = hud('deployLock')
   const matTurnHud = hud('matTurn')
   const showMat = !multiplayer && (matTurnHud || !roomCode)
+  const colors = useSideColors()
   const rosterTeams = roomCode ? TEAMS.filter(({ team }) => team === 'red') : TEAMS
   return (
     <div className="toolbar">
@@ -215,32 +214,35 @@ export function Toolbar({
       {!multiplayer && (
         <div className="group">
           <span className="group-label">Roster</span>
-          {rosterTeams.map(({ team, label }) => (
-            <span key={team} className="roster-field">
-              <input
-                type="text"
-                className={`chip chip--player-${team} chip--text`}
-                placeholder="MCT code"
-                title={`${label} roster: paste an MCT code and press Enter`}
-                value={rosterText[team]}
-                onChange={(e) => setRosterText((prev) => ({ ...prev, [team]: e.target.value }))}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') onRosterLoad(team, rosterText[team])
-                }}
-              />
-              <button
-                type="button"
-                className="chip"
-                title={`Remove the ${label} roster from the table`}
-                onClick={() => {
-                  setRosterText((prev) => ({ ...prev, [team]: '' }))
-                  onRosterRemove(team)
-                }}
-              >
-                ×
-              </button>
-            </span>
-          ))}
+          {rosterTeams.map(({ team }) => {
+            const label = COLOR_NAME[colors[team]]
+            return (
+              <span key={team} className="roster-field">
+                <input
+                  type="text"
+                  className={`chip chip--player-${colors[team]} chip--text`}
+                  placeholder="MCT code"
+                  title={`${label} roster: paste an MCT code and press Enter`}
+                  value={rosterText[team]}
+                  onChange={(e) => setRosterText((prev) => ({ ...prev, [team]: e.target.value }))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') onRosterLoad(team, rosterText[team])
+                  }}
+                />
+                <button
+                  type="button"
+                  className="chip"
+                  title={`Remove the ${label} roster from the table`}
+                  onClick={() => {
+                    setRosterText((prev) => ({ ...prev, [team]: '' }))
+                    onRosterRemove(team)
+                  }}
+                >
+                  ×
+                </button>
+              </span>
+            )
+          })}
         </div>
       )}
       {deployHud && (

@@ -9,6 +9,7 @@ import { tablePoint } from '../drag/tablePoint.js'
 import { crisisMarker, crisisToken } from '../crisis/files.js'
 import { assetUrl } from '../assets/index.js'
 import { affiliationToken } from '../scoreboard/files.js'
+import { COLOR_HEX, useSideColor } from '../sideColors.js'
 import DragFootprint from './DragFootprint.jsx'
 import FaceMaterial from './FaceMaterial.jsx'
 import { acquireFootprint } from './footprintProjection.js'
@@ -20,7 +21,6 @@ import { useHoverCursor } from './useHoverCursor.js'
 import TurnHandle from './TurnHandle.jsx'
 import useLiveFollow from './useLiveFollow.js'
 
-const TEAM_COLORS = { blue: '#2980b9', red: '#c0392b' }
 // A token is a 1" circle, TOKEN_THICKNESS thick (tokens.json size is used for the shape, not the exact
 // dims of the current tokens, which are all 1" circles)
 const RADIUS = 0.5
@@ -209,6 +209,8 @@ export default function CrisisToken({
 
   useEffect(() => () => tokenStack.removeCrisis(token.id), [token.id])
 
+  // token.control is a side. The ring has the color of that side.
+  const controlColor = useSideColor(token.control)
   const showArc = selected && token.hasArc
   const markerPair = Boolean(token.control && token.damage)
   const markerRadius = markerPair ? PAIR_RADIUS : MARKER_RADIUS
@@ -383,11 +385,7 @@ export default function CrisisToken({
       {token.control && (
         <mesh position={[0, HALF_H + 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[CONTROL_INNER, CONTROL_OUTER, 32]} />
-          <meshStandardMaterial
-            color={TEAM_COLORS[token.control]}
-            roughness={0.5}
-            side={DoubleSide}
-          />
+          <meshStandardMaterial color={COLOR_HEX[controlColor]} roughness={0.5} side={DoubleSide} />
         </mesh>
       )}
       {/* Its own Suspense: while a new affiliation image loads, only the marker is missing, not

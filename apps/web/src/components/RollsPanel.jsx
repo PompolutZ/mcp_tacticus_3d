@@ -1,6 +1,7 @@
 import { SYMBOLS, SYMBOL_NAMES } from '../dice/faces.js'
 import { entryText } from '../dice/history.js'
 import { assetUrl } from '../assets/index.js'
+import { useSideColor } from '../sideColors.js'
 
 function Icon({ symbol }) {
   return (
@@ -32,6 +33,8 @@ function time(at) {
 }
 
 function Entry({ entry }) {
+  // entry.side is a side. The entry has the color of that side.
+  const color = useSideColor(entry.side)
   let body
   if (entry.kind === 'clear') body = <span className="rolls-label">Cleared</span>
   else if (entry.kind === 'change') {
@@ -61,7 +64,7 @@ function Entry({ entry }) {
   }
   return (
     <div
-      className={`rolls-entry rolls-entry--${entry.side}${entry.kind === 'clear' ? ' rolls-entry--clear' : ''}`}
+      className={`rolls-entry rolls-entry--${color}${entry.kind === 'clear' ? ' rolls-entry--clear' : ''}`}
       title={entryText(entry)}
     >
       <span className="rolls-time">{time(entry.at)}</span>

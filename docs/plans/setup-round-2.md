@@ -1,6 +1,6 @@
 # Plan: Setup round 2
 
-Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: plan confirmed by the user on 2026-10-11. No step done yet. Branch `setup-round-2`, from main at `87f9b6e`.
+Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: step 1 done. Branch `setup-round-2`, from main at `87f9b6e`.
 
 The feature is `docs/features/setup-game.md`. Each step makes one commit and writes its **Result** below.
 
@@ -81,6 +81,21 @@ Work:
 Checks: as in "Checks". New tests: `setupStep` with `rollOff`, `colorOf` before and after Priority, in the Sandbox.
 
 User, after this step: a room, the guest has Priority: the −z player's trays, tools and dice turn Blue, the +z player's turn Red. Nobody moves. The crisis tokens of the −z player's card lie at the −z edge.
+
+### Result
+
+Done. Commit "setup round 2 part 1: Priority and colors".
+
+- `setup.priority: null | team`. `setupStep` starts with `rollOff`. `setPriority(setup, team)` sets it. `chooseDeck(setup, type, codes, random)` has no team and stores `deck: { type }`; the player with Priority chooses. **Restart setup** clears it (`newSetup`).
+- Old saved setups: `priorityOf(setup)` = `setup.priority ?? setup.deck?.team ?? null`. A saved setup with a deck keeps its step and its colors follow `deck.team`. One with no deck is at the roll off.
+- `colorOf(team, setup, followPriority)` in `setup.js`. `followPriority` is `Boolean(room)` in `App.jsx`: a single player room and a multiplayer room follow Priority, the Sandbox (no room) does not. Open question 1 of the plan (single player room follows the roll off) is taken as the proposal, so the user can check it.
+- `src/sideColors.js`: a module store (like `look.js`, because React context does not cross the Canvas). `App.jsx` sets the color of both sides in a layout effect. `useSideColor`, `useSideName`, `useSideColors`, `COLOR_NAME`, `COLOR_HEX`.
+- Places that use the color of a side now: tool meshes and the rack (`RulerTool.jsx` hooks, `TOOL_TINT` is keyed by color), `ToolDragGhost`, dice tray tint (`DiceTrayParts`, `TRAYS.color` removed), model base ring color (`CharacterModel`), crisis token Control ring (`CrisisToken`), VP marker edge (`ScoreBoard`, `COLOR_TINT` in `board.js`), remote cursor, outline of the other player's selection (`Scene` passes the color to `outlineMode`), dice history entries (`RollsPanel`), `TokenPanel` Control chips, `Library` team chips and texts, `Toolbar` roster fields, `RoomPlayers`, `RosterPopup` title, `TableButtons` Power Phase title, `GameSetup` (all texts, chips), `App.jsx` texts (already has the character, Power Phase message).
+- Not changed: Lobby, new room dialog, join page, `RosterField` (no setup there, colors before the roll off). Tray plates and tactic trays have no tint.
+- Roll-off panel: two buttons, **Blue has Priority** / **Red has Priority**; in a multiplayer room **Blue side has Priority** / **Red side has Priority** (names come in step 3). Both players can press them. Deck step: **Choose Secures** / **Choose Extracts**, with no color, only in the crisis area of the player with Priority.
+- Crisis tokens turn by `priorityOf(setup) === 'red'` (the −z side).
+- Tests: `setup.test.js` (`rollOff` step, `chooseDeck` by Priority, `colorOf` per mode, old saved setup, `crisisRows`).
+- The "Use" texts of the drawn cards and **Select board edge** stay for step 3.
 
 
 ## Step 2: The app reads the roll off

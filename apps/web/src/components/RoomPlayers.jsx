@@ -1,7 +1,7 @@
 import { avatarUrl } from '../auth/avatar.js'
+import { COLOR_NAME, useSideColors } from '../sideColors.js'
 
 const TEAMS = ['blue', 'red']
-const TEAM_NAMES = { blue: 'Blue', red: 'Red' }
 const STATUS = {
   waiting: 'Waiting',
   connecting: 'Connecting',
@@ -18,6 +18,7 @@ const FAILED_TITLE =
 // each a user, { gone: true } or null. connection: { state, peer, versionMismatch, retry } (net/peer.js). A free
 // seat shows the player from the hello (connection.peer) once it arrives.
 export function RoomPlayers({ side, players, connection }) {
+  const colors = useSideColors()
   return (
     <div className="group room-players">
       {TEAMS.map((team) => {
@@ -39,8 +40,8 @@ export function RoomPlayers({ side, players, connection }) {
             </>
           )
         return (
-          <span key={team} className={`room-player room-player--${team}`}>
-            <span className="room-player-team">{TEAM_NAMES[team]}</span>
+          <span key={team} className={`room-player room-player--${colors[team]}`}>
+            <span className="room-player-team">{COLOR_NAME[colors[team]]}</span>
             {name}
             {own && <span className="room-player-status">You</span>}
             {!own && player && !player.gone && connection && <Status connection={connection} />}

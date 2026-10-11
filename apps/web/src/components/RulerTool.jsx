@@ -19,6 +19,7 @@ import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
 import { followPart, lerpAngle } from '../net/livePose.js'
 import { freeSpawnYaw, storedFields, sameStored } from './storedTool.js'
+import { useSideColor } from '../sideColors.js'
 import { MOVE_TIP, RANGE_TIP, TOOL_TINT } from '../tabletools/toolTips.js'
 import { onRack } from '../tabletools/layout.js'
 
@@ -52,9 +53,12 @@ const ANGLE_TURN = { right: Math.PI / 4, left: -Math.PI / 4 }
 // A movement tool snapped to the base of an angle tool points at most this far from the middle of the angle
 const ANGLE_LIMIT = Math.PI / 4
 
-// team: 'blue' or 'red' for a player's tint. Without it, the texture keeps its own colors.
-function textured(obj, map, team) {
-  const color = new THREE.Color().setRGB(...(TOOL_TINT[team] ?? [1, 1, 1]), THREE.SRGBColorSpace)
+// color: 'blue' or 'red', the player color (not the side). Without it, the texture keeps its own colors.
+function textured(obj, map, playerColor) {
+  const color = new THREE.Color().setRGB(
+    ...(TOOL_TINT[playerColor] ?? [1, 1, 1]),
+    THREE.SRGBColorSpace,
+  )
   const mat = new THREE.MeshStandardMaterial({ map, color, roughness: 0.5, metalness: 0.1 })
   obj.traverse((child) => {
     if (child.isMesh) child.material = mat
@@ -562,18 +566,20 @@ export function RangeRuler({ number = 2, team, ...props }) {
 
 // The mesh of a range tool (2 to 5)
 export function useRangeParts(mesh, team) {
+  const playerColor = useSideColor(team)
   const raw = useLoader(OBJLoader, assetUrl(`tools/range-${mesh}-mesh.obj`))
   const map = useTexture(TEXTURE)
-  return useMemo(() => [{ obj: textured(raw.clone(), map, team) }], [raw, map, team])
+  return useMemo(() => [{ obj: textured(raw.clone(), map, playerColor) }], [raw, map, playerColor])
 }
 
 // Non-interactive R3 tool that follows a dragged model along the deployment edge.
 // Visible only while a model is being dragged with the deploy-line toggle on.
 // team: the dragged model's team, so the tool has that player's tint.
 export function DeployRangeTool({ getBody, centerZ, yaw, team, hoverHeight = 1 }) {
+  const playerColor = useSideColor(team)
   const raw = useLoader(OBJLoader, assetUrl('tools/range-3-mesh.obj'))
   const map = useTexture(TEXTURE)
-  const obj = useMemo(() => textured(raw.clone(), map, team), [raw, map, team])
+  const obj = useMemo(() => textured(raw.clone(), map, playerColor), [raw, map, playerColor])
   const groupRef = useRef()
   const slotRef = useRef(null)
   const groundY = useFootprintGround(RANGE_TIP[3], RANGE_HALF_WIDTH, STRAIGHT)
@@ -626,15 +632,16 @@ export function DeployRangeTool({ getBody, centerZ, yaw, team, hoverHeight = 1 }
 
 // The meshes of a movement tool: mesh-a is the right half with the round hinge, mesh-b is the left half
 export function useMovementParts(type, team) {
+  const playerColor = useSideColor(team)
   const rawA = useLoader(OBJLoader, assetUrl(`tools/${type}-movement-mesh-a.obj`))
   const rawB = useLoader(OBJLoader, assetUrl(`tools/${type}-movement-mesh-b.obj`))
   const map = useTexture(TEXTURE)
   return useMemo(
     () => [
-      { obj: textured(rawA.clone(), map, team), side: 'right' },
-      { obj: textured(rawB.clone(), map, team), side: 'left' },
+      { obj: textured(rawA.clone(), map, playerColor), side: 'right' },
+      { obj: textured(rawB.clone(), map, playerColor), side: 'left' },
     ],
-    [rawA, rawB, map, team],
+    [rawA, rawB, map, playerColor],
   )
 }
 

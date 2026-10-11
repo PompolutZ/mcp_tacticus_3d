@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
+import { COLOR_NAME, useSideColor } from '../sideColors.js'
 import {
   PLATE_COLORS,
   ROSTER_TABS,
@@ -12,8 +13,6 @@ import { CARD_SIZES } from '../rosters/layout.js'
 import { Overlay } from './Overlay.jsx'
 import { Carousel } from './Carousel.jsx'
 import { BreakdownTab } from './BreakdownTab.jsx'
-
-const TEAM_NAMES = { blue: 'Blue', red: 'Red' }
 
 // One player's roster in a full-screen popup, opened by a click on a roster card on the table
 // (RosterCards.jsx), or by Roster on a room tile in the lobby (Lobby.jsx). It has a tab for each card group, and each tab shows its cards in a carousel.
@@ -45,7 +44,8 @@ export function RosterPopup({
   // A carousel drag can end on the backdrop. The click then goes to the backdrop. So the backdrop
   // closes the popup only when the press also started on the backdrop.
   const pressedBackdrop = useRef(false)
-  const title = `${TEAM_NAMES[team]} player roster`
+  const color = useSideColor(team)
+  const title = `${COLOR_NAME[color]} player roster`
 
   return (
     <Overlay
@@ -61,7 +61,7 @@ export function RosterPopup({
         ×
       </button>
       <div className="roster-popup" role="dialog" aria-modal="true" aria-label={title}>
-        <h2 className={`roster-popup-title roster-popup-title--${team}`}>{title}</h2>
+        <h2 className={`roster-popup-title roster-popup-title--${color}`}>{title}</h2>
         <JarvisLink href={jarvisRosterUrl(parsed)}>Open this roster on Jarvis</JarvisLink>
         <div className="roster-popup-tabs" role="tablist">
           {ROSTER_TABS.map((t) => (

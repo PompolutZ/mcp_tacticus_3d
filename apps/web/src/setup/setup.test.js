@@ -3,12 +3,17 @@ import assert from 'node:assert/strict'
 import {
   NEW_SETUP,
   chooseAffiliation,
+  chooseDeck,
+  colorOf,
+  crisisRows,
   newSetup,
   placeSquad,
   placedIds,
   placedSides,
   possibleThreats,
+  priorityOf,
   revealPlan,
+  setPriority,
   setSquadCharacters,
   setupPlacedCards,
   setupStep,
@@ -17,7 +22,8 @@ import {
 // A setup at the squads step
 const squadsSetup = (extra = {}) => ({
   ...newSetup(),
-  deck: { team: 'blue', type: 'secure' },
+  priority: 'blue',
+  deck: { type: 'secure' },
   picks: { secure: 'a', extract: 'b' },
   threat: 17,
   edge: true,
@@ -168,7 +174,8 @@ test('possibleThreats: each step', () => {
   // Deck chosen: Blue uses secure, 2 cards drawn. Red's extract cards are all possible.
   const deck = {
     ...newSetup(),
-    deck: { team: 'blue', type: 'secure' },
+    priority: 'blue',
+    deck: { type: 'secure' },
     draws: { secure: ['s1', 's2'], extract: [] },
   }
   assert.deepEqual(possibleThreats(deck, rosters, threatOf), [15, 16, 17, 18])
@@ -199,7 +206,8 @@ test('possibleThreats: missing roster, no cards, unknown code', () => {
   assert.deepEqual(possibleThreats(newSetup(), { blue: null, red: null }, threatOf), [])
   const deck = {
     ...newSetup(),
-    deck: { team: 'red', type: 'extract' },
+    priority: 'red',
+    deck: { type: 'extract' },
     draws: { secure: [], extract: [] },
   }
   assert.deepEqual(possibleThreats(deck, { blue: null, red: null }, threatOf), [])
@@ -211,4 +219,62 @@ test('setSquadCharacters replaces the characters, sorted, and keeps the tactics'
   assert.deepEqual(next.squads.blue, { characters: [1, 3, 4], tactics: [1] })
   assert.deepEqual(next.squads.red, setup.squads.red)
   assert.deepEqual(setup.squads.blue, squad)
+})
+
+test('setupStep: the roll off comes first, until Priority is set', () => {
+  assert.equal(setupStep(newSetup()), 'rollOff')
+  assert.equal(setupStep(setPriority(newSetup(), 'red')), 'deck')
+  assert.equal(newSetup().priority, null)
+})
+
+test('chooseDeck: the player with Priority chooses, no team argument', () => {
+  const start = setPriority(newSetup(), 'red')
+  const next = chooseDeck(start, 'extract', ['a', 'b', 'c'], () => 0)
+  assert.equal(next.priority, 'red')
+  assert.deepEqual(next.deck, { type: 'extract' })
+  assert.equal(next.draws.extract.length, 2)
+  assert.equal(setupStep(next), 'first')
+})
+
+test('priorityOf: a setup saved with deck.team and no priority reads deck.team', () => {
+  const old = { ...newSetup(), priority: undefined, deck: { team: 'red', type: 'secure' } }
+  assert.equal(priorityOf(old), 'red')
+  assert.equal(setupStep(old), 'first')
+  assert.equal(colorOf('red', old, true), 'blue')
+  const none = { ...newSetup(), priority: undefined }
+  assert.equal(priorityOf(none), null)
+  assert.equal(setupStep(none), 'rollOff')
+  assert.equal(priorityOf({ ...newSetup(), priority: 'blue', deck: { team: 'red' } }), 'blue')
+})
+
+test('colorOf: before the roll off the +z side (key blue) is Blue', () => {
+  for (const follow of [true, false]) {
+    assert.equal(colorOf('blue', newSetup(), follow), 'blue')
+    assert.equal(colorOf('red', newSetup(), follow), 'red')
+  }
+  assert.equal(colorOf('blue', null, true), 'blue')
+})
+
+test('colorOf: in a room the side with Priority is Blue', () => {
+  const red = setPriority(newSetup(), 'red')
+  assert.equal(colorOf('red', red, true), 'blue')
+  assert.equal(colorOf('blue', red, true), 'red')
+  const blue = setPriority(newSetup(), 'blue')
+  assert.equal(colorOf('blue', blue, true), 'blue')
+  assert.equal(colorOf('red', blue, true), 'red')
+})
+
+test('colorOf: in the Sandbox the +z side is always Blue', () => {
+  const red = setPriority(newSetup(), 'red')
+  assert.equal(colorOf('blue', red, false), 'blue')
+  assert.equal(colorOf('red', red, false), 'red')
+})
+
+test('crisisRows: the roll-off step shows the deck rows, the winner row comes from Priority', () => {
+  const parsed = { blue: { secure: ['a'], extract: ['b'] }, red: { secure: ['c'], extract: ['d'] } }
+  assert.equal(crisisRows(newSetup(), parsed).length, 4)
+  const next = chooseDeck(setPriority(newSetup(), 'red'), 'secure', ['c', 'e'], () => 0)
+  const rows = crisisRows(next, parsed)
+  assert.equal(rows[0].team, 'red')
+  assert.equal(rows[1].team, 'blue')
 })

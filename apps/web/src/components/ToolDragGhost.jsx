@@ -4,6 +4,7 @@ import { useThree } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
 import { tablePoint } from '../drag/tablePoint.js'
 import { canDropTool, toolArms } from '../tabletools/dropShape.js'
+import { useSideColor } from '../sideColors.js'
 import { TOOL_TINT } from '../tabletools/toolTips.js'
 import { freeSpawnYaw } from './storedTool.js'
 
@@ -25,7 +26,8 @@ export default function ToolDragGhost({ pointRef, start, kind, which, side }) {
   const groupRef = useRef()
   const arms = useMemo(() => toolArms(kind, which), [kind, which])
   const materials = useRef([])
-  const tint = useMemo(() => new Color().setRGB(...TOOL_TINT[side], SRGBColorSpace), [side])
+  const color = useSideColor(side)
+  const tint = useMemo(() => new Color().setRGB(...TOOL_TINT[color], SRGBColorSpace), [color])
 
   useEffect(() => {
     const scene = { camera, canvas: gl.domElement, world, rapier }

@@ -1,4 +1,5 @@
 import { useGLTF } from '@react-three/drei'
+import { COLOR_HEX, useSideColor } from '../sideColors.js'
 import { RigidBody, CylinderCollider, useRapier } from '@react-three/rapier'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
@@ -27,7 +28,6 @@ import { useHoverCursor } from './useHoverCursor.js'
 
 // Scratch values of the follow
 const followTarget = { pos: new Vector3(), quat: new Quaternion() }
-const TEAM_COLORS = { red: '#c0392b', blue: '#2980b9' }
 // While dragged, the base hangs this far above the table or terrain below it
 const DRAG_HOVER = 0.3
 // How fast the dragged model moves to the new hover height, per second
@@ -553,8 +553,10 @@ function CharacterFigure({
     }
   }, [remote])
 
+  // teamColor is a side. The base has the color of that side (sideColors.js).
+  const playerColor = useSideColor(teamColor)
   useEffect(() => {
-    const color = new Color(TEAM_COLORS[teamColor] ?? teamColor)
+    const color = new Color(COLOR_HEX[playerColor] ?? teamColor)
     scene.traverse((obj) => {
       if (!obj.isMesh) return
       obj.castShadow = true
@@ -564,7 +566,7 @@ function CharacterFigure({
         obj.material.color = color
       }
     })
-  }, [scene, teamColor])
+  }, [scene, teamColor, playerColor])
 
   // Red tint while the overlap mark is on. Each mesh gets its own copy of the material, because the
   // materials of a GLB are shared with the other models made from the same file.

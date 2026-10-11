@@ -220,7 +220,7 @@ export function useOutline(ref, mode) {
 // Outline mode of a piece from its selected and hovered state, its range mark ('inRange',
 // 'outOfRange' or none, see RangeMark in RulerTool.jsx) and its overlap mark. The order: overlap, the range
 // mark (Scene gives the own one, else the other player's), selected, the other player's selection, hovered.
-// other: the side ('blue' or 'red') of the other player who has the piece selected, or null.
+// other: the color ('blue' or 'red', not the side) of the other player who has the piece selected, or null.
 export function outlineMode(selected, hovered, rangeMark = null, overlap = false, other = null) {
   if (overlap) return 'overlap'
   if (rangeMark) return rangeMark

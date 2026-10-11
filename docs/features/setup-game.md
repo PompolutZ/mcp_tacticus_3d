@@ -8,12 +8,12 @@ Players go from two loaded rosters to the start of round 1. In a room, the new r
 
 ## What the app does
 
-The app does not know who wins a roll off or who clicks a button. So it does not check who may click. Each button names the player who makes the choice, and players click for the right player. This follows `docs/features/crisis.md`, "Players apply the rules".
+The app does not know who wins a roll off yet, or who clicks a button. So it does not check who may click. Each button names the player who makes the choice, and players click for the right player. This follows `docs/features/crisis.md`, "Players apply the rules".
 
 | Step | Rule (p9, p11) | In the app |
 |---|---|---|
-| Roll off | Players roll off. See [Roll off](#roll-off) | Not tracked. Players roll with the dice trays and read the result. The panel next to the scoring board shows the rule |
-| Deck | The winner gets Priority. They choose one of their crisis decks: Secure or Extract | **Use Blue player Secures** or **Use Blue player Extracts** (the same for Red). The app draws 2 cards of that deck at random |
+| Roll off | Players roll off. See [Roll off](#roll-off) | Not read by the app yet. Players roll with the dice trays and read the result. The panel next to the scoring board shows the rule and two buttons, **Blue has Priority** and **Red has Priority** (in a multiplayer room **Blue side has Priority** and **Red side has Priority**). Both players can press them. The button sets `setup.priority` |
+| Deck | The player with Priority chooses one of their crisis decks: Secure or Extract | **Choose Secures** or **Choose Extracts**, in the crisis area of the player with Priority only. The buttons have no color. The app draws 2 cards of that deck at random |
 | First card | The other player chooses 1 of the 2 cards | **Use** next to each drawn card. The app then draws 2 cards of the other type from the other player's deck |
 | Second card | The player with Priority chooses 1 of those 2 cards | **Use** next to each drawn card |
 | Maximum Threat | The player without Priority chooses which card's threat the mission uses | **Secure · 17** or **Extract · 18** on the panel next to the scoring board |
@@ -27,11 +27,21 @@ The app checks only one rule: **Ready** does not work when the squad threat is a
 
 Setup always starts with a roll off. The app does not track it, but this doc lists it, so that it says what the app supports. Each player rolls. The player with more successes (Crits, Wilds and Hits together) wins. On a tie, the player with more Crits wins, then the player with more Wilds. Otherwise, players roll again.
 
-The app does not read the dice for this. A later change can do it, because the dice trays already know the faces (see `docs/features/dice-rolling.md`).
+The app does not read the dice for this yet. A later change can do it, because the dice trays already know the faces (see `docs/features/dice-rolling.md`). Now the players press **Blue has Priority** or **Red has Priority** on the panel. Both players can press them in a multiplayer room, because players can agree on a roll off made with real dice. The step `rollOff` lasts while `setup.priority` is null.
+
+### Colors
+
+A side is a seat at the table: the key `blue` is at +z and the key `red` is at −z. A color is Blue or Red. The two are not the same thing, so no code reads a color from a side key. Every place that shows a color calls `colorOf(team, setup, followPriority)` (`src/setup/setup.js`):
+
+- In a single player room and a multiplayer room (`followPriority` true), the side with Priority is Blue and the other side is Red, for the whole game.
+- Before the roll off, and always in the Sandbox (`followPriority` false), the +z side is Blue. The roll off sets Priority there, not the colors.
+- **Restart setup** clears Priority, so the colors go back to the +z side Blue.
+
+`App.jsx` computes the color of both sides and gives it to `src/sideColors.js`, a small store that the DOM and the Canvas read (`useSideColor(side)`). It tints the tools, the rack, the dice trays, the model bases, the VP markers, the Control rings of crisis tokens, the remote cursor, the outlines of the other player's selection, the dice history, the chips and the "Blue player" / "Red player" texts. The lobby, the new room dialog and the join page have no setup, so they show the colors before the roll off.
 
 ### Priority
 
-The bottom edge of the map on a crisis card is the deployment edge of the player with Priority (p9). The app knows who has Priority: the player whose deck the mission uses first (`docs/features/crisis.md`, "Setup flow"). When the red player has Priority, the tokens of both cards turn a half turn around the mat center (`buildMatTokens` in `App.jsx`, `turned`). A crisis card that a player chooses in the toolbar later turns the same way.
+The bottom edge of the map on a crisis card is the deployment edge of the player with Priority (p9). The app knows who has Priority: `setup.priority`, the side that won the roll off. The player with Priority chooses the deck, so the deck step has no team to pick. When the −z side (the key `red`) has Priority, the tokens of both cards turn a half turn around the mat center (`buildMatTokens` in `App.jsx`, `turned`). A crisis card that a player chooses in the toolbar later turns the same way.
 
 Survivors is the only current card with a map that changes after a half turn. So for the other cards, the tokens land at the same places.
 
@@ -48,7 +58,7 @@ Deck step. Seen from above, the table edge (−x) on the left. The deck buttons 
             Secure row          gap          Extract row
 z = 27.5    [secure 5]                       [extract 5]
             [secure 4]                       [extract 4]
-            [secure 3]   [Use Blue player …] [extract 3]
+            [secure 3]   [Choose Secures…] [extract 3]
             [secure 2]                       [extract 2]
 z = 12.55   [secure 1]                       [extract 1]
             ── board end card (z = 9.5 … 12.25), scoring board (z = −9 … 9) ──
@@ -79,7 +89,7 @@ z = 12.55   Use          [drawn 1]
 
 - The buttons lie flat on the table: drei `Html` with `transform`, the same as the tray controls. 1 CSS px is 0.04" on the table, so a 13 px button text is about 0.5" high.
 - The buttons read the same way as the scoring board and the crisis cards: their top faces the table edge (−x).
-- **Use Blue player Secures** is blue and **Use Blue player Extracts** is red, on both players' sides. So the color shows the crisis type, not the player.
+- **Choose Secures** and **Choose Extracts** have no color, so a color never shows a crisis type. Only the player with Priority has them.
 - The panel lies between the table edge and the scoring board (x = −31.6, z = 0). It shows what to do in the current step, who has Priority, the Maximum Threat and **Restart setup**. It is at most 440 px (17.6") long, and its text wraps.
 - The squad panel of each player lies in their crisis area, which is empty in this step: "Threat 15 / 18" and "Tactics 3 / 5", then **Select squad** and **Ready**. Under it, a red line says when the threat is too high.
 
@@ -134,7 +144,8 @@ Rule p11: a squad uses an affiliation when more than half of its characters have
 ```js
 setup: {
   id: string | null,   // random, new with each setup. A stored squad counts only for its setup id
-  deck: null | { team, type },   // the roll-off winner (Priority) and the deck type they use
+  priority: null | team,   // the roll-off winner (Priority). The colors follow it (see Colors)
+  deck: null | { type },   // the deck type that the player with Priority uses
   draws: { secure: [code], extract: [code] },   // the 2 cards drawn from each deck
   picks: { secure: code | null, extract: code | null },   // the cards of the mission
   threat: null | number,   // the Maximum Threat
@@ -146,7 +157,8 @@ setup: {
 }
 ```
 
-- The current step comes from these fields (`setupStep`), so the state cannot disagree with itself.
+- The current step comes from these fields (`setupStep`), so the state cannot disagree with itself. The first step is `rollOff`, while `priority` is null.
+- A setup saved before `priority` has `deck: { team, type }` and no `priority`. `priorityOf` reads `deck.team` as Priority for it. A saved setup with a `deck` keeps its step, and its colors follow that team. A saved setup with no `deck` is at the roll off.
 - A squad stores places in the roster lists, not codes, because a roster can list a code twice.
 - The random draws are in the state. So in a later peer-to-peer game, both players see the same cards (see `docs/features/peer-to-peer.md`).
 - All fields are plain JSON. A room saves `setup` with its table (`rooms/table.js`). A setup saved with the old `placed` shape `{ characters, tactics }` is read by `placedSides` as the cards of Blue. When both players are Ready, such a setup stays done.
@@ -201,11 +213,11 @@ From the Jarvis rules reference (rulebook 1.3.0 and 1.4.0):
 
 ## Decisions
 
-1. The app does not track the roll off. The panel next to the scoring board shows the rule.
+1. The app does not read the roll off yet. The panel next to the scoring board shows the rule and the **Priority** buttons, which set `setup.priority`.
 2. The app does not check who clicks a button. The text names the player who chooses.
-3. The roll-off winner has Priority. When red has Priority, the crisis tokens turn a half turn, so that the bottom of the card map is at the red side.
+3. The roll-off winner has Priority (`setup.priority`) and is Blue, the other player is Red. When the −z side has Priority, the crisis tokens turn a half turn, so that the bottom of the card map is at that side.
 4. The crisis cards of a roster lie next to the scoring board, not in roster row 2. The rows run parallel to the board, and the cards are turned the same way as the board.
-5. The setup buttons lie flat on the table and read the same way as the board. The deck buttons have the color of the crisis type: Secure blue, Extract red.
+5. The setup buttons lie flat on the table and read the same way as the board. The deck buttons have no color.
 6. The only rule check is the squad threat. **Ready** also needs at least 1 character.
 7. A squad card must be one that the app can put on the table: a character with a model, a Team Tactic card with an image.
 8. A new roster, **×** of a roster or **Restart setup** starts the setup again. It removes the squads and the crisis cards that the setup put on the table, after a confirm.

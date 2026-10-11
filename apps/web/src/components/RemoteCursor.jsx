@@ -1,8 +1,8 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { followPart } from '../net/livePose.js'
+import { COLOR_HEX, useSideColor } from '../sideColors.js'
 
-const SIDE_COLORS = { blue: '#2980b9', red: '#c0392b' }
 // The ring, in inches: about 0.5" across, thin
 const OUTER = 0.25
 const INNER = 0.2
@@ -17,6 +17,7 @@ const noRaycast = () => {}
 // liveRef: LiveSync's ref ({ cursor() }). ownership: net/ownership.js. side: the other player's side.
 export default function RemoteCursor({ liveRef, ownership, side }) {
   const ringRef = useRef()
+  const color = useSideColor(side)
   // The shown point. A new cursor starts at its first point, then follows.
   const shown = useRef(null)
 
@@ -52,7 +53,7 @@ export default function RemoteCursor({ liveRef, ownership, side }) {
       renderOrder={10}
     >
       <ringGeometry args={[INNER, OUTER, 32]} />
-      <meshBasicMaterial color={SIDE_COLORS[side]} transparent opacity={0.9} depthWrite={false} />
+      <meshBasicMaterial color={COLOR_HEX[color]} transparent opacity={0.9} depthWrite={false} />
     </mesh>
   )
 }

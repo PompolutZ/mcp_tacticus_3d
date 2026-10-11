@@ -89,6 +89,7 @@ import {
 } from '../selection.js'
 import { poseOf } from '../rooms/table.js'
 import { setupStep } from '../setup/setup.js'
+import { useSideColors } from '../sideColors.js'
 
 const TABLE_THICKNESS = 0.5
 // The table image of the TTS mod (its TableURL). The image is 3:2, the same as the TTS table. The app table is
@@ -922,6 +923,7 @@ export default function Scene({
   // Place moves the selected character, also when a token was selected after it.
   const toolTarget = toolModel(selection.findLast(isToolPiece))
   const otherSide = ownSide === 'red' ? 'blue' : 'red'
+  const sideColors = useSideColors()
   const ownTools = tools[ownSide] ?? {}
   const otherTools = tools[otherSide] ?? {}
   // Props that every own tool gets from its entry
@@ -941,9 +943,9 @@ export default function Scene({
     if (rangeMark?.kind === kind && rangeMark.id === id) return rangeMark.mode
     return otherLook.mark?.key === `${kind}:${id}` ? otherLook.mark.mode : null
   }
-  // The side of the other player who has the piece selected, or null
+  // The color of the other player who has the piece selected, or null
   function otherSelectedOf(kind, id) {
-    return otherLook.selection.includes(`${kind}:${id}`) ? otherSide : null
+    return otherLook.selection.includes(`${kind}:${id}`) ? sideColors[otherSide] : null
   }
   // The other player's tool target: the last key of their selection, as a tool model
   const otherKey = otherLook.selection.at(-1)

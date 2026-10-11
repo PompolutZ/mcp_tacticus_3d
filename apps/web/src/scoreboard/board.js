@@ -52,12 +52,15 @@ export const ROUND_MARKER_SCALE = 0.375
 export const ROUND_MARKER_HALF_SIZE = 1 * ROUND_MARKER_SCALE
 export const ROUND_MARKER_TINT = [0.96, 0.79, 0.048]
 
-// Tint and start place of each VP marker. The tint is the mod's tint of the same player color. The markers
+// Tint of each player color, the mod's tint (the tint of the VP marker edge). Keyed by color, not by side.
+export const COLOR_TINT = { blue: [0.118, 0.53, 1], red: [0.856, 0.1, 0.094] }
+
+// Start place of each VP marker, by side. The markers
 // start next to the board, where the mod puts them. Because of z → -z, the app blue marker starts at the
 // place of the mod's Red Player VP Tracker, and the app red marker at the place of its Blue one.
 export const VP_MARKERS = {
-  blue: { tint: [0.118, 0.53, 1], start: { x: -32.68, z: 10.82 } },
-  red: { tint: [0.856, 0.1, 0.094], start: { x: -32.28, z: -10.81 } },
+  blue: { start: { x: -32.68, z: 10.82 } },
+  red: { start: { x: -32.28, z: -10.81 } },
 }
 
 // Where every marker is when the app starts: { blue, red, round } → { x, z }

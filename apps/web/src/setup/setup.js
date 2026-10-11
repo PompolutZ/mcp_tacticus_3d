@@ -14,8 +14,10 @@ export const otherType = (type) => (type === 'secure' ? 'extract' : 'secure')
 const NO_SQUAD = { characters: [], tactics: [] }
 
 // id: random, made with each new setup (newSetup). A squad that a player keeps in their browser counts only
-// for the setup with its id (rooms/store.js, squad). deck: the roll-off winner, who has Priority, and the
-// crisis type of the deck they use: { team, type } | null. draws: the codes of the 2 cards drawn from each
+// for the setup with its id (rooms/store.js, squad). priority: the side that won the roll off and has
+// Priority, null before. The colors follow it (colorOf). deck: the crisis type of the deck that the player
+// with Priority uses: { type } | null. A setup saved before `priority` has deck: { team, type } and no
+// priority: priorityOf reads deck.team as the Priority side. draws: the codes of the 2 cards drawn from each
 // deck. picks: the code of the card of each type that the mission uses. threat: the Maximum Threat value.
 // edge: the Priority player chose the deployment edge. squads: see NO_SQUAD. In a multiplayer room, a
 // squad is in the document only after the reveal. ready: the player clicked Ready. When both players are
@@ -27,6 +29,7 @@ const NO_SQUAD = { characters: [], tactics: [] }
 // the affiliation step has no affiliation field.
 export const NEW_SETUP = {
   id: null,
+  priority: null,
   deck: null,
   draws: { secure: [], extract: [] },
   picks: { secure: null, extract: null },
@@ -45,6 +48,22 @@ export function newSetup() {
 
 const NO_PLACED = { characters: [], tactics: [] }
 
+// The side with Priority (the roll-off winner), or null before the roll off. A setup saved before `priority`
+// has none, and then the side of deck.team has it: the roll-off winner was stored there.
+export function priorityOf(setup) {
+  return setup?.priority ?? setup?.deck?.team ?? null
+}
+
+// The color of a side, 'blue' | 'red'. Side keys are seats, not colors (docs/features/setup-game.md,
+// "Colors"). setup: the setup state, or null. followPriority: true in a single player room and a
+// multiplayer room, false in the Sandbox. With followPriority the side with Priority is Blue and the other
+// is Red. Before the roll off, and always in the Sandbox, the +z side (the key 'blue') is Blue.
+export function colorOf(team, setup, followPriority) {
+  const priority = followPriority ? priorityOf(setup) : null
+  if (!priority) return team === 'blue' ? 'blue' : 'red'
+  return team === priority ? 'blue' : 'red'
+}
+
 // setup.placed as { blue, red }, each null | { characters, tactics }. The old shape { characters, tactics }
 // belongs to Blue, and Red gets an empty list, but only when both players are Ready: then the old setup
 // was done. Before that the old lists are empty.
@@ -56,7 +75,7 @@ export function placedSides(setup) {
   return { blue: done ? placed : null, red: done ? NO_PLACED : null }
 }
 
-// 'deck': players roll off, and the winner chooses a deck. 'first': the other player uses 1 of the 2
+// 'rollOff': players roll off, and nobody has Priority yet. 'deck': the player with Priority chooses a deck. 'first': the other player uses 1 of the 2
 // drawn cards. 'second': the winner uses 1 of the 2 cards drawn from the other deck of the other player.
 // 'threat': the other player chooses the Maximum Threat. 'edge': the winner turns the mat and chooses the
 // deployment edge. 'squads': each player chooses a squad and clicks Ready. 'reveal': both players are
@@ -65,6 +84,7 @@ export function placedSides(setup) {
 // on the table and have an affiliation (a setup with no affiliation field is done as soon as both are on
 // the table).
 export function setupStep(setup) {
+  if (!priorityOf(setup)) return 'rollOff'
   if (!setup.deck) return 'deck'
   const first = setup.deck.type
   if (!setup.picks[first]) return 'first'
@@ -116,11 +136,17 @@ function drawTwo(codes, random) {
     .map((i) => codes[i])
 }
 
-// The roll-off winner `team` uses their deck of `type`, with the card codes `codes`. 2 cards are drawn.
-export function chooseDeck(setup, team, type, codes, random = Math.random) {
+// The roll off is over: `team` has Priority
+export function setPriority(setup, team) {
+  return { ...setup, priority: team }
+}
+
+// The player with Priority uses their deck of `type`, with the card codes `codes`. 2 cards are drawn.
+export function chooseDeck(setup, type, codes, random = Math.random) {
   return {
     ...setup,
-    deck: { team, type },
+    priority: priorityOf(setup),
+    deck: { type },
     draws: { ...setup.draws, [type]: drawTwo(codes, random) },
   }
 }
@@ -210,7 +236,7 @@ export function setupPlacedCards(setup) {
 // (rosters/layout.js, crisisRowLayout).
 export function crisisRows(setup, parsed) {
   const step = setupStep(setup)
-  if (step === 'deck') {
+  if (step === 'rollOff' || step === 'deck') {
     return TEAMS.flatMap((team) =>
       parsed[team]
         ? CRISIS_TYPES.map((type) => ({
@@ -224,7 +250,8 @@ export function crisisRows(setup, parsed) {
     )
   }
   if (step === 'squads' || step === 'reveal' || step === 'affiliation' || step === 'done') return []
-  const { team: winner, type: first } = setup.deck
+  const winner = priorityOf(setup)
+  const first = setup.deck.type
   const other = otherTeam(winner)
   const second = otherType(first)
   const row = (team, type, codes, use, drawn) => ({ team, type, codes, use, drawn })
@@ -250,7 +277,8 @@ export function possibleThreats(setup, parsed, threatOf) {
       parsed[team] ? values([...parsed[team].secure, ...parsed[team].extract]) : [],
     )
   } else {
-    const { team: winner, type: first } = setup.deck
+    const winner = priorityOf(setup)
+    const first = setup.deck.type
     const second = otherType(first)
     if (!setup.picks[first]) {
       list = values([...setup.draws[first], ...(parsed[otherTeam(winner)]?.[second] ?? [])])

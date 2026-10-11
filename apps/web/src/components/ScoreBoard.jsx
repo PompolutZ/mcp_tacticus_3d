@@ -16,11 +16,12 @@ import {
   ROUND_MARKER_SCALE,
   ROUND_MARKER_TINT,
   ROUND_POINTS,
-  VP_MARKERS,
+  COLOR_TINT,
   VP_MARKER_SIZE,
   VP_POINTS,
   snapPoint,
 } from '../scoreboard/board.js'
+import { useSideColor } from '../sideColors.js'
 import { affiliationToken, BOARD_MESH, BOARD_TEXTURE, ROUND_MESH } from '../scoreboard/files.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import TokenSolid from './TokenSolid.jsx'
@@ -178,10 +179,8 @@ function DraggableMarker({
 // The face of a VP marker: the player's affiliation token, with the player tint on the edge
 function VpMarkerSolid({ team, affiliation }) {
   const map = useTexture(assetUrl(affiliationToken(affiliation)))
-  const edgeColor = useMemo(
-    () => new Color().setRGB(...VP_MARKERS[team].tint, SRGBColorSpace),
-    [team],
-  )
+  const color = useSideColor(team)
+  const edgeColor = useMemo(() => new Color().setRGB(...COLOR_TINT[color], SRGBColorSpace), [color])
   return (
     <TokenSolid
       map={map}

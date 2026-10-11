@@ -3,6 +3,8 @@ import { useGLTF, useTexture } from '@react-three/drei'
 import { RigidBody, TrimeshCollider, useRapier } from '@react-three/rapier'
 import { Color, MeshStandardMaterial, SRGBColorSpace } from 'three'
 import { assetUrl } from '../assets/index.js'
+import { useSideColor } from '../sideColors.js'
+import { TOOL_TINT } from '../tabletools/toolTips.js'
 import { IMPORT_ROTATION, TRAYS, TRAY_SCALE, trayColliderArrays } from '../dice/tray.js'
 import { FRICTION } from '../physics.js'
 import DiceKeys from './DiceKeys.jsx'
@@ -29,6 +31,8 @@ export function useDieLook() {
 // keysProps: the props of DiceKeys. onHover(over): the pointer moved onto (true) or off (false) the tray.
 export function TrayBody({ trayKey, keysProps, onHover }) {
   const tray = TRAYS[trayKey]
+  // The tray has the color of its side (sideColors.js), not the color of its key
+  const playerColor = useSideColor(trayKey) ?? trayKey
   const { rapier } = useRapier()
   const trayGltf = useGLTF(assetUrl('dice/tray.glb'))
   const trayTexture = useTexture(assetUrl('dice/tray.webp'))
@@ -43,9 +47,9 @@ export function TrayBody({ trayKey, keysProps, onHover }) {
   const trayMaterial = useMemo(() => {
     trayTexture.colorSpace = SRGBColorSpace
     trayTexture.flipY = false
-    const color = new Color().setRGB(...tray.color, SRGBColorSpace)
+    const color = new Color().setRGB(...TOOL_TINT[playerColor], SRGBColorSpace)
     return new MeshStandardMaterial({ map: trayTexture, color, roughness: 0.8, metalness: 0 })
-  }, [trayTexture, tray.color])
+  }, [trayTexture, playerColor])
 
   // Visible tray mesh: a clone of the loaded scene with the tinted material, IMPORT_ROTATION and
   // TRAY_SCALE (same mirror-and-scale fix as Terrain.jsx; the collider above already bakes both

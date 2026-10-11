@@ -41,10 +41,10 @@ export const DROP_HEIGHT = 4.8
 // One tray per team color. Position is the tray's world origin (tray-space (0, 0, 0)); the tray
 // bottom is on the table, so y = 0. yaw turns the tray so its shelf (tray-space +z) faces the
 // center line (world z = 0): Blue sits on world +z, so it turns all the way around (yaw = PI);
-// Red already faces the right way (yaw = 0). Color is the TTS tint (design, "Tray").
+// Red already faces the right way (yaw = 0). The tint comes from the color of the side (sideColors.js, TOOL_TINT).
 export const TRAYS = {
-  blue: { position: { x: 27, y: 0, z: 10.1 }, yaw: Math.PI, color: [0.12, 0.53, 1] },
-  red: { position: { x: 27, y: 0, z: -10.1 }, yaw: 0, color: [0.86, 0.1, 0.09] },
+  blue: { position: { x: 27, y: 0, z: 10.1 }, yaw: Math.PI },
+  red: { position: { x: 27, y: 0, z: -10.1 }, yaw: 0 },
 }
 
 // The die's height standing flat on a face: the distance between that face and the opposite,
