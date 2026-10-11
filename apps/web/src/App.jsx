@@ -442,6 +442,8 @@ export default function App({
   // Scene calls this for R: it lifts the character under the pointer or puts it back down. See
   // Scene.jsx, liftPiece.
   const liftPieceRef = useRef(null)
+  // Scene's returnModels: puts the models of a character back on its tray
+  const returnModelsRef = useRef(null)
   // The room could not use IndexedDB (storageFailed), and the player has not closed the warning yet
   const [storageWarning, setStorageWarning] = useState(storageFailed)
   // The server warning text that the player closed. A new text shows again.
@@ -630,6 +632,7 @@ export default function App({
       else if (hoveredPileRef.current) handlePileRemove(hoveredPileRef.current)
       else if (hoveredTacticRef.current) handleTacticRemove(hoveredTacticRef.current)
       else if (hoveredTerrainRef.current) handleTerrainRemove(hoveredTerrainRef.current)
+      else if (hoveredTrayCardRef.current) handleTrayCardDelete(hoveredTrayCardRef.current)
       return
     }
     if (PAN_KEYS[e.code]) {
@@ -976,7 +979,24 @@ export default function App({
     )
   }
 
-  // Remove button on the tray (TrayControls.jsx confirms before calling this). Drops every token
+  // Remove button on the tray: the character leaves the board (a KO'd character, p16). Its held tokens
+  // drop next to the model first (the live position), then each model goes back on its card (Scene.jsx,
+  // returnModels). The character, its tray, tokens, Damage and Power stay. The selection stays too:
+  // the models are still there.
+  function handleCharacterOffBoard(id) {
+    handleDropCharacterTokens(id)
+    returnModelsRef.current?.(id)
+  }
+
+  // Delete key over a tray card. The confirm names the character, because it takes the tray with it.
+  function handleTrayCardDelete(id) {
+    const ch = characters.find((c) => c.id === id)
+    if (!ch) return
+    if (window.confirm(`Remove ${characterName(ch.key)} from the table? Its tray is removed too.`))
+      handleCharacterRemove(id)
+  }
+
+  // Delete key over a tray card (handleTrayCardDelete) removes a character. Drops every token
   // the character holds first (p10), then removes the character: its model and its tray both come
   // from the same characters array (Scene.jsx), so one state update removes all three. The poses of
   // its models go too. Also clears a selection or popup that still points at it, so nothing keeps the
@@ -1649,7 +1669,7 @@ export default function App({
               onCharacterPower={handleCharacterPower}
               onCharacterFlip={handleCharacterFlip}
               onTrayCardHover={handleTrayCardHover}
-              onCharacterRemove={handleCharacterRemove}
+              onCharacterOffBoard={handleCharacterOffBoard}
               onCharacterTokenRemove={handleCharacterTokenRemove}
               onTokenDragStart={handleTokenDragStart}
               looseTokens={looseTokens}
@@ -1674,6 +1694,7 @@ export default function App({
               modelPositionRef={modelPositionRef}
               turnPieceRef={turnPieceRef}
               liftPieceRef={liftPieceRef}
+              returnModelsRef={returnModelsRef}
               ownTraySides={playedSides}
               onDiceTrayHover={(side, over) => {
                 if (over) diceTrayHoveredRef.current = side
@@ -1792,7 +1813,8 @@ export default function App({
           onDamage={(damage) => handleCharacterDamage(openTray.id, damage)}
           onPower={(power) => handleCharacterPower(openTray.id, power)}
           onFlip={() => handleCharacterFlip(openTray.id)}
-          onRemove={() => handleCharacterRemove(openTray.id)}
+          onRemove={() => handleCharacterOffBoard(openTray.id)}
+          onBoard={characterOnBoard(openTray, poses)}
           onTokenRemove={(key) => handleCharacterTokenRemove(openTray.id, key)}
         />
       )}

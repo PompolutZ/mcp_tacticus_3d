@@ -207,7 +207,7 @@ function standeeScene(front, back, radius) {
 // and everything a player does with it.
 // bodyRef, objectRef: get the Rapier body and the 3D object of the model (figure and base)
 // onRest(): the body fell asleep, so the model rests. Scene.jsx stores its pose.
-// liftRef: gets { toggle(), down() } for the R key (see liftPiece in Scene.jsx), isUp() for a Throw
+// liftRef: gets { toggle(), down(), cancel() } for the R key (see liftPiece in Scene.jsx), isUp() for a Throw
 // (a lifted model does not stop it), isBusy() (a drag, lift or slide is going on), and restPosition() for the stored pose: the body position before the
 // lift, or null when the model is not lifted. Gets null on unmount.
 // claimKey, ownership: the piece key `character:<id>` and the claims (net/ownership.js). A drag claims the key and
@@ -451,6 +451,10 @@ function CharacterFigure({
     liftRef?.({
       toggle: toggleLift,
       down: lowerLift,
+      // Ends the lift without a move: the caller puts the body elsewhere (Scene.jsx, returnModels)
+      cancel: () => {
+        lift.current = null
+      },
       isUp: () => lift.current?.up === true,
       isBusy: () => isDragging.current || lift.current !== null || slide.current !== null,
       restPosition: () =>

@@ -133,6 +133,7 @@ The whole tray is a drop target for tokens. The Give sources are outside the tra
 
 A character can have cards attached to it. Today these are the Infinity Gems of its roster entry. The field `attached` of the character holds their MCT codes. The setup sets it when the squad goes on the table (`revealSquad` in `App.jsx`). A character with no gem has no field, and an old document has none either. Both mean no attached cards.
 
+- **Remove** takes the character off the board (a KO'd character, p16, see `docs/plan-cleanup-phase.md`, decision 10). Its held tokens drop next to the model, then each model goes back to its place on the tray card with its spawn turn, and the new pose is stored. The character, its tray, tokens, Damage and Power stay. No confirm: a player can drag the model back. A model that the other player moves is skipped. **Remove** is disabled while no model of the character is on the mat. The Delete key over a tray card deletes the character, its models and its tray, after a confirm.
 - The controls strip of the 3D tray has one chip per attached card, above Flip and Remove. Its text comes from the card name: "Infinity Gem: Soul" gives "Soul Gem".
 - A click on the chip opens the gem card in the card popup. A gem without an image shows the HUD message "No card image for <name> (<code>)".
 - The tray popup shows no chips. It shows each attached card as a small thumbnail (90 px wide) in a column at the side of the stat card, so the popup keeps its height. On a narrow screen (560 px or less) the thumbnails go in a row under the stat card.
@@ -225,7 +226,7 @@ A click on a tray card opens the whole tray in a full-screen popup (`TrayPopup.j
 - A click on a token in the **On** row removes one, the same as on the 3D tray. Its tooltip shows the name and the mod's description.
 - The card shows the side that faces up. A button shows the other side, because players often read the Injured side while the card is Healthy. A Flip goes back to the side that faces up.
 - The cross button, Escape, or a click outside the tray closes the popup. Other keys do nothing while it is open.
-- Remove closes the popup, because the character is gone.
+- **Remove** works as on the 3D tray, and the popup stays open, because the character stays.
 - Attached cards show as thumbnails at the side of the stat card (see [Attached cards](#attached-cards)). Flip and **Show other side** keep the large card open.
 
 ## Tokens from the TTS mod
@@ -322,7 +323,7 @@ Only tokens of an Extract card that players can move can be held: Asset, Civilia
 - **Hold:** a player drags the token and releases it over a model or a tray (see [Give tokens by drag and drop](#give-tokens-by-drag-and-drop)). That character now holds the token. The token leaves the mat and lies on the tray card as a 3D token, as in TTS. Its default place is the character art, in the left column of the card (`trays.js`, `trayHeldDefault`). A second token goes a little higher on the art and lies on top of the first. The app does not check the range: players apply the rules.
 - **Move on the card:** a player drags the held token and releases it on the same tray. The token stays held and lies at the release point, moved so that the whole token is on the card.
 - **Drop:** a player drags the held token from the card and releases it on the table. It is no longer held. The opponent then moves it to a place within Range 2.
-- **Remove a character:** the character drops all its tokens first. The app puts them on the table next to the base of the model.
+- **Remove from the board, or delete a character:** the character drops all its tokens first. The app puts them on the table next to the base of the model.
 - **Take from the supply:** a player drags a new token from the supply pile of a Source card. The pile never runs out (see `docs/feature-crisis.md`, "Extract: Source"). Released over a character, the token goes to the default place on the card. Released on the table, it lies there.
 - **Delete:** the Delete key (or Backspace) removes the held token under the pointer, as in TTS. Players use it for the supply tokens in the Cleanup Phase.
 - A held token is not in the list of models that the range and movement tools snap to.

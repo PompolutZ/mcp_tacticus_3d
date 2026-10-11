@@ -121,7 +121,8 @@ body {
   border-color: #3a7de0;
 }
 
-.chip:disabled {
+.chip:disabled,
+.chip[aria-disabled='true'] {
   opacity: 0.4;
   cursor: not-allowed;
 }

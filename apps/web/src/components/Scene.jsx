@@ -46,7 +46,12 @@ import { matImage } from '../terrain/files.js'
 import { BASE_DIAMETER } from '../characters/files.js'
 import { MAPS } from '../terrain/maps.js'
 import { characterGiveSources, characterStamina } from '../characters/characters.js'
-import { characterModels, modelCharacterId, trayCards } from '../characters/models.js'
+import {
+  characterModels,
+  characterOnBoard,
+  modelCharacterId,
+  trayCards,
+} from '../characters/models.js'
 import { FRICTION, WORLD_GRAVITY } from '../physics.js'
 import { overlapMarks, overlapsAny } from '../characters/overlap.js'
 import { claimChanges, claimCheck, modelIdOfKey, modelKey } from '../characters/claims.js'
@@ -194,7 +199,7 @@ const OVERLAP_INTERVAL = 100
 // controls, lifted to App the same way as the token handlers above (see TrayControls.jsx).
 // onTrayCardHover(id, over): the pointer moved onto (true) or off (false) a character's tray card,
 // for the F key.
-// onCharacterRemove(id): the tray's Remove button, after its own confirmation.
+// onCharacterOffBoard(id): the tray's Remove button, enabled while a model of the character is on the mat.
 // onCharacterTokenRemove(id, key): a click on a token in the tray's "On" row.
 // onTokenDragStart(e, key, looseId): pointerdown on a tray's Give source, or on a token on the
 // table (looseId). See App.jsx, handleTokenDragStart.
@@ -232,6 +237,8 @@ const OVERLAP_INTERVAL = 100
 // turnPieceRef: ref App calls with a direction for Q / E, the same pattern as characterAtRef. Scene
 // fills it with turnPiece. heldRotate: ref to a Map of the Q / E keys held down, key code → direction.
 // liftPieceRef: ref App calls for R, the same pattern. Scene fills it with liftPiece.
+// returnModelsRef: ref App calls with a character id for the tray's Remove button, the same pattern.
+// Scene fills it with returnModels: the models of that character go back to their places on the tray.
 // ownTraySides: the sides whose dice tray this browser plays, one in a multiplayer room, both otherwise.
 // The other tray is only drawn (OtherDiceTray.jsx).
 // onDiceTrayHover(side, over): the pointer moved onto or off an own dice tray, for the number keys.
@@ -292,7 +299,7 @@ export default function Scene({
   onCharacterPower,
   onCharacterFlip,
   onTrayCardHover,
-  onCharacterRemove,
+  onCharacterOffBoard,
   onCharacterTokenRemove,
   onTokenDragStart,
   looseTokens = [],
@@ -317,6 +324,7 @@ export default function Scene({
   modelPositionRef,
   turnPieceRef,
   liftPieceRef,
+  returnModelsRef,
   ownTraySides = ['blue', 'red'],
   onDiceTrayHover,
   addDiceRef,
@@ -716,6 +724,26 @@ export default function Scene({
     }
   }
 
+  // Remove button on the tray (docs/plan-cleanup-phase.md, decision 10): every model of the character
+  // goes back to its place on the tray, upright, so the model turns as it did at its spawn. A model that
+  // the other player moves is skipped. y = 0 is the rest height: the card has no collider and the table
+  // top is y = 0, the same as at the spawn, so the sleeping body touches only the table. A lift ends
+  // (cancel) and does not animate down, which would move the body back to the place before the lift.
+  // The pose goes to the document at once, the same as a rest. The other browser waits for the claim of
+  // this one to end, then applies it (the otherOwned effect); with no claim it applies it at once.
+  function returnModels(characterId) {
+    for (const model of models) {
+      if (model.character.id !== characterId || !charBodies.current.has(model.id)) continue
+      if (!claimModel(model.id)) continue
+      charLifts.current.get(model.id)?.cancel()
+      turnsLeft.current.delete(modelKey(model.id))
+      const [x, y, z] = trayPlace(model)
+      const pose = poseOf({ x, y, z }, { x: 0, y: 0, z: 0, w: 1 })
+      applyPose(model.id, pose)
+      onModelRest?.(model.id, pose)
+    }
+  }
+
   // Props of a tool ('range', 'move' or 'angle') for turnPiece
   function turnProps(tool) {
     const piece = { kind: 'tool', id: tool }
@@ -737,6 +765,7 @@ export default function Scene({
     if (modelPositionRef) modelPositionRef.current = modelPosition
     if (turnPieceRef) turnPieceRef.current = turnPiece
     if (liftPieceRef) liftPieceRef.current = liftPiece
+    if (returnModelsRef) returnModelsRef.current = returnModels
     if (terrainAtRef) terrainAtRef.current = terrainAt
   })
 
@@ -895,6 +924,11 @@ export default function Scene({
   function modelSpawnPosition(model) {
     const pose = startPose?.(model.id)
     if (pose) return [pose.x, pose.y, pose.z]
+    return trayPlace(model)
+  }
+
+  // Where a model stands on its tray: on its card, or for a spare model past the Give sources
+  function trayPlace(model) {
     const ch = model.character
     const trayPos = trayPositions.get(ch.id)
     if (model.card) return trayModelPosition(ch.teamColor, trayPos, model.card)
@@ -1300,7 +1334,8 @@ export default function Scene({
               onPower={(power) => onCharacterPower(ch.id, power)}
               onFlip={() => onCharacterFlip(ch.id)}
               onCardHover={(over) => onTrayCardHover?.(ch.id, over)}
-              onRemove={() => onCharacterRemove(ch.id)}
+              onRemove={() => onCharacterOffBoard(ch.id)}
+              onBoard={characterOnBoard(ch, poses)}
               onAttachedOpen={onAttachedOpen}
               onTokenRemove={(key) => onCharacterTokenRemove(ch.id, key)}
               onTokenDragStart={onTokenDragStart}

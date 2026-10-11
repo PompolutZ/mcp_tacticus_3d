@@ -1,6 +1,6 @@
 # Plan: Automatic Cleanup Phase
 
-Requested by the user on 2026-10-11, together with the Power Phase button (`docs/plan-power-phase.md`). Status: plan approved by the user on 2026-10-11. Phase 1 done on 2026-10-11. Build it after the Power Phase plan, because that plan adds the **Phase** group in the toolbar and `characterOnBoard`.
+Requested by the user on 2026-10-11, together with the Power Phase button (`docs/plan-power-phase.md`). Status: plan approved by the user on 2026-10-11. Phase 1 and 2 done on 2026-10-11. User checks of Phase 2 pending. Build it after the Power Phase plan, because that plan adds the **Phase** group in the toolbar and `characterOnBoard`.
 
 User input on 2026-10-11: the button is disabled until every character on the board has an Activated or a Dazed token (decision 2). The tray **Remove** button no longer deletes a character: it puts the model back on its card. The Delete key over the card deletes the character, after a confirm (decision 10). The mod's list of tokens to remove is fine for now; the user will report wrong ones.
 
@@ -145,3 +145,13 @@ Phase 1 done on 2026-10-11.
 - `src/crisis/cleanup.js`: `cleanupCrisisTokens(tokens, cardOf)`. Differs from the plan: the second argument is a lookup `cardOf(cardKey)` (App passes `getCard` from `cards.js`, which has `tokens` and `supply`), not the cards object. The module imports no JSON, so node tests can load it.
 - `src/scoreboard/board.js`: `nextRoundSpot(position)`.
 - Tests: `characters/cleanup.test.js`, `crisis/cleanup.test.js`, `scoreboard/board.test.js`.
+
+Phase 2 done on 2026-10-11.
+
+- `Scene.jsx`: `returnModels(characterId)` (filled into the new `returnModelsRef`), and `trayPlace(model)` split out of `modelSpawnPosition`. Per model: skip if no body or `claimModel` is false; cancel a lift; drop a pending turn; `applyPose` to the tray place; `onModelRest` with the same pose at once.
+- y = 0: the card has no collider and the table top is y = 0, the same as the spawn (`trays.js`), so the sleeping body touches only the table.
+- Rotation: the body gets the identity quaternion. The spawn turn (`model.rotation`) sits on the inner figure, not on the RigidBody, so identity gives the spawn turn.
+- Lift: differs from the plan text "put down". `down()` animates and ends with a `setTranslation` back to the place before the lift, which would fight `applyPose`. `CharacterModel.jsx` has a new `cancel()` in the lift API that clears the lift state. `applyPose` makes the body dynamic.
+- Other browser: the claim of this browser is open until the body sleeps (2 frames), and the pose is written before that. Pose first: the poses effect skips the claimed model, the end of the claim applies the pose. Pose after the claim end: the poses effect applies it. Sandbox: the body already stands at the pose, so nothing moves twice.
+- `App.jsx`: `handleCharacterOffBoard`, `handleTrayCardDelete` (confirm, then `handleCharacterRemove`), Delete over a tray card is the last check, after terrain. `hoveredTrayCardRef` holds the character id. A selection of the models stays.
+- Remove button: `aria-disabled` (not `disabled`, so the title shows) with `.chip[aria-disabled='true']` in `index.css`. `onBoard` goes Scene -> `CharacterTray` / `TrayPopup` -> `TrayControls`. One title for both states.

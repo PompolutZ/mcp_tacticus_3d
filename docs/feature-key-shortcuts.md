@@ -54,7 +54,7 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 | T | Tap (turn 90°) | Nothing | No |
 | R | Raise | Lifts the model under the pointer 6", or puts it back down. With no model under the pointer: puts every lifted model back down | Partly |
 | L | Lock | Locks or unlocks the terrain piece under the pointer. Only terrain has a lock. Every terrain piece starts locked. A locked piece cannot be selected or deleted | Partly |
-| Delete / Backspace | Delete the hovered or selected piece | Deletes the piece under the pointer: a character token on the table, a crisis token that a character holds, a token pile, a Team Tactic card, or an unlocked terrain piece. Other pieces cannot be deleted with a key | Partly |
+| Delete / Backspace | Delete the hovered or selected piece | Deletes the piece under the pointer: a character token on the table, a crisis token that a character holds, a token pile, a Team Tactic card, an unlocked terrain piece, or a character (over its tray card, after a confirm; its models and tray go). Other pieces cannot be deleted with a key | Partly |
 | G | Group | Nothing | No |
 | U | Place under | Nothing | No |
 | Alt (hold, over a piece) | Zoomed preview, works best for cards | Click a card to open it in a popup | Partly |

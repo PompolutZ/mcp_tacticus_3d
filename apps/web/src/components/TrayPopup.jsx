@@ -39,6 +39,7 @@ export function TrayPopup({
   onPower,
   onFlip,
   onRemove,
+  onBoard,
   onTokenRemove,
 }) {
   // The other side of the card, shown with a button, because players often read the Injured side
@@ -133,6 +134,7 @@ export function TrayPopup({
           onPower={onPower}
           onFlip={onFlip}
           onRemove={onRemove}
+          onBoard={onBoard}
           hideAttached
         />
       </div>

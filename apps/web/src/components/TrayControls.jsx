@@ -1,6 +1,5 @@
 import { attachedCards } from '../rosters/cards.js'
 import { assetUrl } from '../assets/index.js'
-import { characterName } from '../characters/characters.js'
 import { crisisMarker } from '../crisis/files.js'
 import { characterToken } from '../tokens/files.js'
 
@@ -20,6 +19,12 @@ const POWER_ICON = assetUrl(characterToken('1-power'))
 // onAttachedOpen(code): a click on a gem chip, one per attached card (see App.jsx, handleAttachedOpen).
 // The chip only reads the card, so it works on any player's tray. hideAttached: no gem chips; the
 // tray popup sets it, because its thumbnails do the same job (TrayPopup.jsx).
+// onRemove(): Remove puts the model back on its card (docs/plan-cleanup-phase.md, decision 10), with no
+// confirm. onBoard: a model of the character is on the mat. Without it Remove does nothing (aria-disabled,
+// not disabled, so the browser still shows the title).
+const REMOVE_TITLE =
+  'Remove from the board: the model goes back on its card. Delete key over the card deletes the character.'
+
 export default function TrayControls({
   character,
   stamina,
@@ -27,14 +32,13 @@ export default function TrayControls({
   onPower,
   onFlip,
   onRemove,
+  onBoard,
   onAttachedOpen,
   hideAttached = false,
 }) {
-  // A native confirm, so Remove needs no extra dialog component (Phase 7): a mistaken click on a
-  // model removes nothing, since the browser dialog always pauses for an answer.
   function handleRemove(e) {
     e.stopPropagation()
-    if (window.confirm(`Remove ${characterName(character.key)} from the table?`)) onRemove()
+    if (onBoard) onRemove()
   }
 
   const attached = hideAttached ? [] : attachedCards(character)
@@ -71,7 +75,13 @@ export default function TrayControls({
         >
           Flip
         </button>
-        <button type="button" className="chip tray-controls-remove" onClick={handleRemove}>
+        <button
+          type="button"
+          className="chip tray-controls-remove"
+          aria-disabled={!onBoard}
+          title={REMOVE_TITLE}
+          onClick={handleRemove}
+        >
           Remove
         </button>
       </div>
