@@ -36,6 +36,23 @@ Checks: `pnpm --filter web test`, `pnpm --filter web build`, `pnpm format`, `pnp
 
 ### Result
 
+Done 2026-10-11. Not committed.
+
+- `migrate-tokens.mjs`: also migrates every token that a released tactic card names, of any type, matched in lower case. A name with no migrated token gives a warning. 17 new tokens, 105 of 106 rows now (the 1 missing is Self-Discovery, not in the cache, not named by a tactic card). No warnings for tactic tokens: all 65 names have rows and images.
+- New tokens: Mystic Ward, Mystic Portal, and Astral Incursion, Astral Ring, Black Bifrost, Chimichanga, Demolition Charge, Dossier, Experiment, Flare, Gamma Drain, Jonathan, LMD, Masked Menace, Obscuring Mist, Stash, 1 Damage.
+- `1 Damage` (Steal the Future) is in `token/misc/tracker/`, which the group rule maps to `status`. That would put it in the Tokens panel as a capped status. So it gets the group `counter`, like `1 Power` (`COUNTER_ROWS` in the script). `TOKENS` in `src/tokens/tokens.js` already leaves `counter` out of the Library.
+- `migrate-tactics.mjs`: writes `tokens` per card, only keys of `tokens.json`, no warnings. Images were not converted again. 13 of the 75 migrated cards have `tokens`, among them Mystic Ward (`mystic-ward`) and Pentagram of Farallah (`mystic-portal`). The other 67 released cards with tokens have no card images in the cache yet, so they get `tokens` when their images migrate.
+- `scripts/README.md` and `docs/characters-hud.md` (token table) updated.
+- Checks: tests pass, build passes, format ok, lint has only the old warnings (Scene.jsx, Root.jsx).
+
+#### For Phase 2
+
+- Card: `cards.json[key].tokens`, an array of token keys. Absent when the card has no tokens. Read it with `tactics/cards.js` or the JSON entry: `card.tokens ?? []`. Keys are unique per card (a double token is one key).
+- Token: `tokens.json[key]` (`getToken(key)` in `src/tokens/tokens.js`), image `characterToken(key)` in `src/tokens/files.js`. `group` of the new tokens: `tactic`, `condition`, `character` or `counter` (1 Damage).
+- A pile entry is `{ id, key, x, z }` plus `card`. `key` is the token key.
+- Token size for the pile spacing: `TOKEN_RADIUS = 0.5` in `App.jsx` (diameter 1"). The TTS large token is also 0.5. Piles 1.2" apart leave a 0.2" gap.
+- `src/tactics/cards.js` spreads the JSON entry, so its card objects already have `tokens`.
+
 ## Phase 2: Piles on the table, docs
 
 Work:

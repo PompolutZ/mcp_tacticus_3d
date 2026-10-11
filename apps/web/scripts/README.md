@@ -326,7 +326,7 @@ The app now has crisis card and token display (see `docs/feature-crisis.md`). St
 
 # TTS character tokens
 
-`migrate-tokens.mjs` copies the character tokens of the TTS mod (conditions, Activated/Dazed, personal tokens, Team Tactic tokens, and the "1 Power" counter icon) to `src/assets/tokens/`. It writes the app data to `src/tokens/tokens.json`, and the source URLs to `scripts/token-manifest.json`. `src/tokens/files.js` names the files after the keys. See `docs/characters-hud.md`, "Tokens from the TTS mod", for which rows of the mod's `tokenDatabase` it migrates and why.
+`migrate-tokens.mjs` copies the character tokens of the TTS mod (conditions, Activated/Dazed, personal tokens, Team Tactic tokens, the "1 Power" counter icon, and the tokens of Team Tactic cards) to `src/assets/tokens/`. It writes the app data to `src/tokens/tokens.json`, and the source URLs to `scripts/token-manifest.json`. `src/tokens/files.js` names the files after the keys. See `docs/characters-hud.md`, "Tokens from the TTS mod", for which rows of the mod's `tokenDatabase` it migrates and why.
 
 Requirements: ImageMagick, and the images in the TTS cache. On 2026-10-01 the cache had all 310 `tokenDatabase` images, so no object needs to be spawned first.
 
@@ -349,6 +349,8 @@ pnpm --filter web migrate-tokens --force         # convert files again that the 
 `<key>` is the token name in the mod as a slug, for example `bleed`, `1-power`. `group` is `condition`, `status` (Activated and Dazed), `character`, `tactic`, from the folder the image is in (`token/condition/`, `token/misc/tracker/`, `token/character/`, `token/tactic/`), or `counter` for `1-power`: not a token a player gives to a character, only the icon of the tray's Power counter, so the app's Tokens panel and token drops leave that group out.
 
 A row with `altName` is a second art of the same token (the mod's old round design); the script migrates only the first art, the same rule `migrate-crisis.mjs` uses for the "1 Damage" row.
+
+The script also migrates every token that a released tactic card names in its `tokens` list, of any type (Misc, Use Tools, Pile, ...), for example Mystic Ward and Mystic Portal. The names are compared in lower case, because a card row can spell a name differently ("KickEm"). `group` comes from the image folder, as above. A name with no row, or with no image in the TTS cache, is left out with a warning. The row "1 Damage" (Steal the Future) is in `token/misc/tracker/`. It gets the group `counter`, like "1 Power", so it stays out of the Tokens panel. The app puts a pile of the tokens of each tactic card on the table, see `docs/plan-tactic-tokens.md`.
 
 # Jarvis crisis cards
 
@@ -399,7 +401,9 @@ The script migrates every card that has its face and back in the TTS cache or al
 |---|---|
 | `src/assets/tactics/<key>-face.webp` | Face of a card: the rules text on pale art |
 | `src/assets/tactics/<key>-back.webp` | Back of a card: the card name on full-colour art |
-| `src/tactics/cards.json` | One entry per card: `id` (MCT code) and `name` (with the spelling of the mod) |
+| `src/tactics/cards.json` | One entry per card: `id` (MCT code), `name` (with the spelling of the mod) and `tokens` (omitted when the card has none) |
+
+`tokens` is the list of token keys of the card, from the `tokens` names of the card row in the mod. A key is the token name as a slug, as in `migrate-tokens.mjs`, so it is a key of `src/tokens/tokens.json`. The script writes only keys that exist there, and warns about the other names. Run `migrate-tokens` before `migrate-tactics`. The script does not convert images again for this: it only writes `cards.json`. A key that a card names twice (Pentagram of Farallah places two Mystic Portals) is written once: the app puts one pile per key.
 
 `<key>` is the card name as a slug, without apostrophes and dots, for example `freyjas-blessing`.
 

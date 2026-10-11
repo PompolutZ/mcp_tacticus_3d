@@ -233,8 +233,9 @@ The mod's `tokenDatabase` (in the `Database` script) has 310 rows. On 2026-10-01
 | Status | 35 | Activated, Dazed, Winging It, Bounty, Gadget | yes |
 | Personal | 21 | Loaded, Genetic Sample, Devil's Deal, Evolution | yes |
 | Only Status | 26 | Disarm, Marked for Death, Crew of the Milano | yes, except 3 rows in `token/misc/` (Master of Metal, Antimatter Core, Suppression): AI mode and Infinity Gauntlet event |
-| Misc | 7 | 1/3/5 Power, 1/3/5 Damage, Mystic Ward | only `1 Power`, as the icon of the Power counter |
-| Use Tools, Pile | 14 | Chimichanga, Astral Ring, LMD | no: these tokens lie on the table, not on a character |
+| Misc | 7 | 1/3/5 Power, 1/3/5 Damage, Mystic Ward | only `1 Power`, as the icon of the Power counter; and the tokens of tactic cards (next row) |
+| Use Tools, Pile | 14 | Chimichanga, Astral Ring, LMD | only the tokens of tactic cards (next row): these tokens lie on the table, not on a character |
+| Tokens of tactic cards | 17 more | Mystic Ward, Mystic Portal, Chimichanga | yes, any type: a released tactic card names them in `tokens` (`docs/plan-tactic-tokens.md`) |
 | Affiliation | 34 | Asgard, Wakanda | no |
 | Objective types | about 130 | Extract Asset, Secure Zone | no: the crisis feature migrates them |
 

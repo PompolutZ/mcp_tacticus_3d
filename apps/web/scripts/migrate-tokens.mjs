@@ -1,5 +1,5 @@
 // Migrates the character tokens of the TTS mod (tokenDatabase rows of type Condition, Status, Personal and Only
-// Status, plus the "1 Power" row) to src/assets/tokens/. Writes the app data to src/tokens/tokens.json, and the
+// Status, plus the "1 Power" row, plus every token that a released tactic card names) to src/assets/tokens/. Writes the app data to src/tokens/tokens.json, and the
 // source URLs to scripts/token-manifest.json. See scripts/README.md and docs/characters-hud.md, "Tokens from
 // the TTS mod".
 
@@ -7,7 +7,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { parseArgs } from 'node:util'
 import { imageToWebp } from './lib/convert.mjs'
-import { cachedFile, loadCrisisDatabase } from './lib/tts.mjs'
+import { cachedFile, loadCrisisDatabase, loadTacticCards } from './lib/tts.mjs'
 import { characterToken } from '../src/tokens/files.js'
 
 const USAGE = `Usage:
@@ -45,8 +45,18 @@ const ASSETS = OUT_DIR
 // It lives in the mod at token/misc/tracker/, next to Activated and Dazed, but it is not a token players give
 // to a character, so it gets its own "counter" group, kept out of the Tokens panel and out of drops.
 const MISC_ROWS = ['1 Power']
+// Misc rows in token/misc/tracker/ that are counters, not tokens for a character. "1 Damage" is here because the
+// card Steal the Future names it: it gets a pile like the tokens of other tactic cards.
+const COUNTER_ROWS = ['1 Power', '1 Damage']
 
 const { tokens } = loadCrisisDatabase()
+// Names are compared in lower case: a card row says "KickEm" or "Kickem" where the token row has its own spelling
+const tacticTokenNames = new Set(
+  loadTacticCards()
+    .filter((c) => c.released)
+    .flatMap((c) => c.tokens ?? [])
+    .map((n) => n.toLowerCase()),
+)
 const rows = tokens.filter(selected)
 const keys = rowKeys(rows)
 // A trial run continues from its own manifest, if an earlier trial run into the same directory wrote it
@@ -59,6 +69,9 @@ else process.exitCode = migrate()
 // A row with altName is a second art of the same token (the old round design); only the first art is migrated.
 function selected(row) {
   if (row.altName) return false
+  // The tokens of a Team Tactic card, of any type (Misc, Use Tools, Pile, ...): the app puts a pile of them on the
+  // table with the card, see docs/plan-tactic-tokens.md
+  if (tacticTokenNames.has(row.name.toLowerCase())) return true
   switch (row.tType) {
     case 'Condition':
       return groupPath(row) === 'condition' // not the dice results in token/dice/
@@ -82,7 +95,7 @@ function groupPath(row) {
 }
 
 function group(row) {
-  if (row.name === '1 Power') return 'counter'
+  if (COUNTER_ROWS.includes(row.name)) return 'counter'
   const g = {
     condition: 'condition',
     'misc/tracker': 'status',
@@ -132,10 +145,19 @@ function migrate() {
 
   console.log('Tokens:')
   for (const { key, row, status } of results) console.log(`  ${key} (${row.name}): ${status}`)
+  warnTacticTokens(done)
   console.log(
     `\n${done.length} of ${rows.length} tokens migrated.\nApp data: ${TOKENS_OUT}\nAssets: ${path.join(ASSETS, 'tokens')}`,
   )
   return results.some((r) => r.status.startsWith('failed')) ? 1 : 0
+}
+
+// A token name of a released tactic card that has no migrated token: no row, or no image in the TTS cache
+function warnTacticTokens(done) {
+  const migratedNames = new Set(done.map(({ row }) => row.name.toLowerCase()))
+  for (const name of [...tacticTokenNames].sort()) {
+    if (!migratedNames.has(name)) console.warn(`Warning: tactic token "${name}" is not migrated`)
+  }
 }
 
 // Entry of src/tokens/tokens.json. description and cleanup are left out when the mod row has none,

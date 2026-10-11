@@ -1,5 +1,5 @@
 // Migrates the tactic cards (TTC) and the Infinity Gem cards of the TTS mod to src/assets/tactics/: the face and the back of each card.
-// Writes the app data to src/tactics/cards.json, and the source URLs to scripts/tactic-manifest.json. See scripts/README.md.
+// Writes the app data (with the keys of the card's tokens) to src/tactics/cards.json, and the source URLs to scripts/tactic-manifest.json. See scripts/README.md.
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -29,6 +29,7 @@ if (opts.help || positionals.length) {
   process.exit(opts.help ? 0 : 1)
 }
 
+const TOKENS_FILE = path.resolve(import.meta.dirname, '../src/tokens/tokens.json')
 const MANIFEST_FILE = path.join(import.meta.dirname, 'tactic-manifest.json')
 const DATA_DIR = path.resolve(import.meta.dirname, '../src/tactics')
 const OUT_DIR = opts.out ? path.resolve(opts.out) : null
@@ -45,6 +46,8 @@ const cards = loadTacticCards().filter((c) => c.released)
 const keys = cardKeys(cards)
 // A trial run continues from its own manifest, if an earlier trial run into the same directory wrote it
 const manifest = readJson(MANIFEST_OUT, MANIFEST_FILE)
+// Keys of the tokens that migrate-tokens.mjs migrated
+const tokenKeys = new Set(Object.keys(readJson(TOKENS_FILE, TOKENS_FILE)))
 
 if (opts.list) listCards()
 else process.exitCode = migrate()
@@ -92,10 +95,7 @@ function migrate() {
     MANIFEST_OUT,
     Object.fromEntries(done.flatMap((d) => d.files).map((f) => [f.file, f.url])),
   )
-  writeJson(
-    CARDS_OUT,
-    Object.fromEntries(done.map(({ key, card }) => [key, { id: card.ID, name: card.name }])),
-  )
+  writeJson(CARDS_OUT, Object.fromEntries(done.map(({ key, card }) => [key, cardEntry(card)])))
 
   console.log('\nCards:')
   for (const { key, card, status } of results) console.log(`  ${key} (${card.ID}): ${status}`)
@@ -103,6 +103,23 @@ function migrate() {
     `\n${done.length} of ${cards.length} cards migrated.\nApp data: ${CARDS_OUT}\nAssets: ${path.join(ASSETS, 'tactics')}`,
   )
   return results.some((r) => r.status.startsWith('failed')) ? 1 : 0
+}
+
+// Entry of src/tactics/cards.json. tokens is left out when the card has none. The key of a token is its name as a
+// slug, as in migrate-tokens.mjs; a name without a migrated token is left out with a warning.
+function cardEntry(card) {
+  const entry = { id: card.ID, name: card.name }
+  const found = []
+  for (const name of card.tokens ?? []) {
+    const tokenKey = slug(name)
+    if (!tokenKeys.has(tokenKey)) {
+      console.warn(
+        `Warning: the card "${card.name}" names the token "${name}", which is not migrated`,
+      )
+    } else if (!found.includes(tokenKey)) found.push(tokenKey)
+  }
+  if (found.length) entry.tokens = found
+  return entry
 }
 
 // A card with several printed versions has a list of faces and backs. The mod spawns the first one (recSpawnCard() in Global).

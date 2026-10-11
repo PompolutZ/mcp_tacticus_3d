@@ -53,7 +53,11 @@
   },
   "giants-blood": {
     "id": "00910203",
-    "name": "Giant's Blood"
+    "name": "Giant's Blood",
+    "tokens": [
+      "slow",
+      "root"
+    ]
   },
   "heart-of-the-worthy": {
     "id": "00910204",
@@ -85,7 +89,10 @@
   },
   "inhuman-royal-family": {
     "id": "00340203",
-    "name": "Inhuman Royal Family"
+    "name": "Inhuman Royal Family",
+    "tokens": [
+      "inhuman-royal-family"
+    ]
   },
   "jabari-chieftain": {
     "id": "01160201",
@@ -109,15 +116,24 @@
   },
   "lovable-misfits": {
     "id": "00280202",
-    "name": "Lovable Misfits"
+    "name": "Lovable Misfits",
+    "tokens": [
+      "stun"
+    ]
   },
   "mind-if-i-cut-in": {
     "id": "00600203",
-    "name": "Mind If I Cut In?"
+    "name": "Mind If I Cut In?",
+    "tokens": [
+      "mind-if-i-cut-in"
+    ]
   },
   "mystic-ward": {
     "id": "00690204",
-    "name": "Mystic Ward"
+    "name": "Mystic Ward",
+    "tokens": [
+      "mystic-ward"
+    ]
   },
   "odins-blessing": {
     "id": "00110201",
@@ -137,7 +153,10 @@
   },
   "pentagram-of-farallah": {
     "id": "00230201",
-    "name": "Pentagram of Farallah"
+    "name": "Pentagram of Farallah",
+    "tokens": [
+      "mystic-portal"
+    ]
   },
   "plundered-goods": {
     "id": "01260202",
@@ -185,7 +204,11 @@
   },
   "royal-guardians": {
     "id": "01660205",
-    "name": "Royal Guardians"
+    "name": "Royal Guardians",
+    "tokens": [
+      "shock",
+      "stun"
+    ]
   },
   "sacrifice": {
     "id": "00010215",
@@ -205,7 +228,11 @@
   },
   "spider-sleuth": {
     "id": "01700204",
-    "name": "Spider-Sleuth"
+    "name": "Spider-Sleuth",
+    "tokens": [
+      "sleuthevidence",
+      "sleuthconfession"
+    ]
   },
   "spider-totem-the-bride": {
     "id": "01700203",
@@ -217,7 +244,10 @@
   },
   "stalwart-determination": {
     "id": "00390204",
-    "name": "Stalwart Determination"
+    "name": "Stalwart Determination",
+    "tokens": [
+      "stalwart-determination"
+    ]
   },
   "static-arc": {
     "id": "01560204",
@@ -249,7 +279,11 @@
   },
   "to-ash-and-cinder": {
     "id": "00610202",
-    "name": "To Ash and Cinder"
+    "name": "To Ash and Cinder",
+    "tokens": [
+      "stun",
+      "demolition-charge"
+    ]
   },
   "totem-of-the-tiger-god": {
     "id": "01680204",
@@ -261,7 +295,10 @@
   },
   "under-your-skin": {
     "id": "01600202",
-    "name": "Under Your Skin"
+    "name": "Under Your Skin",
+    "tokens": [
+      "nanite"
+    ]
   },
   "usurp-the-throne": {
     "id": "00070202",
@@ -269,7 +306,10 @@
   },
   "vibranium-shielding": {
     "id": "00080202",
-    "name": "Vibranium Shielding"
+    "name": "Vibranium Shielding",
+    "tokens": [
+      "vibranium-shielding"
+    ]
   },
   "wakanda-forever": {
     "id": "00070203",
@@ -289,7 +329,10 @@
   },
   "wolverines": {
     "id": "00710202",
-    "name": "Wolverines"
+    "name": "Wolverines",
+    "tokens": [
+      "wolverines"
+    ]
   },
   "x-ceptional-healing": {
     "id": "00400202",
