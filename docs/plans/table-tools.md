@@ -167,7 +167,18 @@ User, after this step:
 
 ### Result
 
-Not done.
+Done.
+
+- `table.js`: `TABLE_DEPTH` 76, comment updated.
+- `src/tabletools/layout.js` (new): rack plate (x ±15.2, z 34.2 … 36.8), `rackSlots(side)` (R1 chip, R2–R5 in row 1 from the owner's left, S, M, L, T/A chip in row 2), `powerButton(side)` (6" × 1.2", owner's right end of row 2), `boardStrip(side)`, `onRack(side, point)`, `rackYaw(side)`. Row 1 fills the plate width: the gap between its slots is 0.2". `layout.test.js`: 8 checks (inside the table, past z 33.775, 12 trays, no overlap with the dice trays, scoring board, crisis cards, tactic trays, VP markers and the setup areas, mirror, `onRack`).
+- `src/tabletools/toolTips.js` (new): `RANGE_TIP` and `MOVE_TIP` moved out of `RulerTool.jsx`, so Node tests can read them. `RulerTool.jsx` and `Scene.jsx` import them.
+- Start view: target [0, 0, 16.8], position [0, 32.5, 49.3], red the same with z → −z. Camera math (fov 50, aspect 16:10): the bottom edge meets the table at z = 37.47 (half width 23.4"), the top edge at z = −39.99. Before: 31.07 and −46.39. So the blue rack band (z ≤ 36.8, x ±15.2) and the red trays (z −22.7 … −33.75) are in view, and the whole red end of the table up to −38.
+- `components/OnTable.jsx` (new): `OnTable` with a `rotation` prop (default `BOARD_READ_ROTATION`), and `OWNER_FACING_ROTATION` (blue `[-π/2, 0, 0]`, red `[-π/2, 0, π]`). `GameSetup.jsx` imports it.
+- `App.jsx`: `handlePowerPhase(sides)`. The toolbar passes `playedSides`. With one side the message is "Power Phase (Blue): ...". A `tableButtons` prop carries the handlers and states to `Scene.jsx`.
+- `components/TableButtons.jsx` (new), rendered in `Scene.jsx`: `PowerPhaseButton` and `BoardStrip` for each side. CSS: `.table-button`, `.table-strip-row` in `index.css`.
+- Docs: `table-tools.md` (status), `round-phases.md`, `key-shortcuts.md`, `character-trays.md`, `README.md` ("Scene units" also said 72 × 48, now 72 × 76).
+- Dice sim, `--quick`, seed 1. Before the change: single die 300 valid / 304, tilted 1.3%, out-of-well 0.3%, chi-squared 9.81 PASS; 10 dice 305 valid / 310, tilted 1.6%, out-of-well 2.9%, chi-squared 4.11 PASS, settle avg 3.22 s, max 3.88 s; 0.278 ms/step. After: the single die is identical; 10 dice 304 valid / 310, tilted 1.9%, out-of-well 2.9%, chi-squared 4.79 PASS, settle avg 3.20 s, max 3.88 s; 0.273 ms/step. The run is deterministic (repeated twice). The multi-die difference is one throw: the table collider is deeper, so its numbers differ slightly and the sim, which is chaotic, took a different path. No fairness or out-of-well change.
+- Differs from the plan: none in behavior. The table title of the Power Phase button is the toolbar title ("Power Phase: each of your characters gains Power"). A spare model with a 1" base after one row of Give sources also ends before the rack (tested). A spare model past two rows of Give sources can reach about z 35 (center 35.05 for a 1" base), into the rack band; this is rare (the plan assumed 33).
 
 ## Step 2: Tool rack, click
 

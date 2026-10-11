@@ -108,17 +108,18 @@ import {
 
 // Start view, the seat of the blue player. For now every player is Blue. Blue sits at +z (see
 // characters/trays.js). The camera stands behind the blue table edge and looks down at 45° at a
-// point 10.4" from the mat center toward blue, 46" away. Then a 16:10 view shows the whole mat, the
-// tactic trays and the character trays of both players. The bottom edge of the view meets the table
-// at z = 31.1", just past the blue Give sources (30.65", see trays.js). Space returns to this view
-// (see resetCamera).
-const CAMERA_TARGET = [0, 0, 10.4]
-const CAMERA_POSITION = [0, 32.5, 42.9]
+// point 16.8" from the mat center toward blue, 46" away. Then a 16:10 view shows the whole mat, the
+// tactic trays and the character trays of both players, and the rack band of the own side (z up to
+// 36.8", see tabletools/layout.js). The bottom edge of the view meets the table at z = 37.5". The top
+// edge is past the red trays (z = -40, the table ends at -38). Space returns to this view (see
+// resetCamera).
+const CAMERA_TARGET = [0, 0, 16.8]
+const CAMERA_POSITION = [0, 32.5, 49.3]
 // The Red view: the Blue view turned 180° around the mat center (plan 08, decision 17). Only for the Red seat
 // of a multiplayer room. A single player room and the Sandbox keep the Blue view, because one player plays both
 // sides there.
-const CAMERA_TARGET_RED = [0, 0, -10.4]
-const CAMERA_POSITION_RED = [0, 32.5, -42.9]
+const CAMERA_TARGET_RED = [0, 0, -16.8]
+const CAMERA_POSITION_RED = [0, 32.5, -49.3]
 // Camera mouse buttons as in TTS: right drag turns, middle drag pans. Left drag also turns, because
 // the app has no box select (the TTS left drag) and a trackpad has no easy right drag. Shift, Ctrl
 // or Cmd + a turn drag pans (OrbitControls). A mouse wheel zooms. On a trackpad, a two-finger swipe
@@ -951,15 +952,16 @@ export default function App({
     )
   }
 
-  // Power button in the toolbar (docs/features/round-phases.md). Gives the Power of the Power Phase to each
-  // non-Grunt character of the played sides that has a model on the mat. The updater form reads the list
+  // Power button in the toolbar and the Power Phase buttons on the table (docs/features/round-phases.md). Gives
+  // the Power of the Power Phase to each non-Grunt character of `sides` that has a model on the mat. The
+  // toolbar passes the played sides, a table button its own side. The updater form reads the list
   // now, not at the last render, so a change the other browser just made is kept. The updater runs
   // inside setCharacters, so gains is filled when the HUD message is built.
-  function handlePowerPhase() {
+  function handlePowerPhase(sides) {
     const gains = []
     setCharacters((prev) =>
       prev.map((ch) => {
-        if (!playedSides.includes(ch.teamColor) || !characterOnBoard(ch, poses)) return ch
+        if (!sides.includes(ch.teamColor) || !characterOnBoard(ch, poses)) return ch
         if (characterIsGrunt(ch.key)) return ch
         const power = powerAfterPhase({
           power: ch.power,
@@ -973,10 +975,13 @@ export default function App({
         return { ...ch, power }
       }),
     )
+    // With one side, the message names it
+    const title =
+      sides.length === 1 ? `Power Phase (${sides[0] === 'blue' ? 'Blue' : 'Red'})` : 'Power Phase'
     showHudMessage(
       gains.length === 0
-        ? 'Power Phase: none of your characters is on the board'
-        : `Power Phase: ${gains.join(', ')}`,
+        ? `${title}: none of your characters is on the board`
+        : `${title}: ${gains.join(', ')}`,
       8000,
     )
   }
@@ -1715,6 +1720,16 @@ export default function App({
           <SelectionOutlines composer={mode !== 'no-composer'} outlines={mode === 'full'}>
             <Scene
               mapId={mapId}
+              tableButtons={{
+                multiplayer: Boolean(room?.multiplayer),
+                onPowerPhase: handlePowerPhase,
+                onCleanupPhase: handleCleanupPhase,
+                cleanupDisabled,
+                cleanupTitle,
+                deployLine,
+                onDeployLineClick: () => setDeployLine((prev) => !prev),
+                onTurnMat: handleTurnMat,
+              }}
               terrain={terrain}
               onTerrainHover={handleTerrainHover}
               terrainAtRef={terrainAtRef}
@@ -1844,7 +1859,7 @@ export default function App({
           spectator={spectator}
           onSpectatorClick={() => setSpectator((prev) => !prev)}
           onTurnMat={handleTurnMat}
-          onPowerPhase={handlePowerPhase}
+          onPowerPhase={() => handlePowerPhase(playedSides)}
           onCleanupPhase={handleCleanupPhase}
           cleanupDisabled={cleanupDisabled}
           cleanupTitle={cleanupTitle}

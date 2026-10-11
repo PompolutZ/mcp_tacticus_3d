@@ -19,6 +19,7 @@ import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
 import { followPart, lerpAngle } from '../net/livePose.js'
 import { freeSpawnYaw, storedFields, sameStored } from './storedTool.js'
+import { MOVE_TIP, RANGE_TIP } from '../tabletools/toolTips.js'
 
 const TEXTURE = assetUrl('tools/toolbox-02.png')
 // How fast the dragged tool moves to the new hover height, per second (same as models)
@@ -28,8 +29,6 @@ const FOOTPRINT_CAST_HALF_H = 0.01
 // Extra distance around the footprint where terrain already raises the dragged tool
 const HOVER_MARGIN = 0.5
 
-// X coordinate of the outer tip for each half, per movement tool type
-const MOVE_TIP = { short: 1.574, medium: 2.523, long: 3.535 }
 // Movement tools are about 0.56" wide (mesh-a spans z = ±0.279)
 const MOVE_HALF_WIDTH = 0.279
 // A movement tool bends at its hinge, but never past a right angle, the same as the plastic one
@@ -427,7 +426,6 @@ function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove, on
   }
 }
 
-export const RANGE_TIP = { 2: 1.501, 3: 3.0, 4: 4.0, 5: 5.0 }
 // Range tools are 1" wide (mesh spans z = ±0.5)
 const RANGE_HALF_WIDTH = 0.5
 // Physics can nudge a resting base a little, so a small gap still counts as contact

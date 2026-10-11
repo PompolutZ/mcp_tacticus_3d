@@ -1,6 +1,15 @@
 # Feature: Tools on the table
 
-Status: not started.
+Status: partly built.
+
+Built: the table depth, the start view, the **Power Phase** buttons and the board strip.
+
+Not built yet:
+
+- the tool rack, with its click and drag, and the return of a tool to the rack
+- the **Settings** menu (table or HUD, the key and mouse lists)
+
+Until the Settings menu is built, the toolbar keeps all its buttons.
 
 ## Goal
 

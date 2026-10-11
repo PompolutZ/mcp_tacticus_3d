@@ -17,11 +17,11 @@ import {
   RangeRuler,
   DeployRangeTool,
   OtherTool,
-  RANGE_TIP,
   sameModel,
 } from './RulerTool.jsx'
 import CharacterModel, { StandeeModel, modelUrls, turnBody } from './CharacterModel.jsx'
 import CharacterTray from './CharacterTray.jsx'
+import TableButtons from './TableButtons.jsx'
 import SpectatorBadge from './SpectatorBadge.jsx'
 import Terrain from './Terrain.jsx'
 import CrisisCard from './CrisisCard.jsx'
@@ -73,6 +73,7 @@ import {
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import { tokenSize } from '../tokens/tokens.js'
 import { MAT_SIZE, TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WIDTH } from '../table.js'
+import { RANGE_TIP } from '../tabletools/toolTips.js'
 import {
   NO_PIECES,
   NO_TOOLS,
@@ -269,6 +270,7 @@ const OVERLAP_INTERVAL = 100
 // wrote moves the body (decision 8). startPose is the pose at mount.
 export default function Scene({
   mapId,
+  tableButtons,
   terrain = [],
   onTerrainHover,
   terrainAtRef,
@@ -1278,6 +1280,8 @@ export default function Scene({
 
         {/* The tactic tray of each player, between the mat and the character trays, and the Team
             Tactic cards. Relative to the table, not the mat. See docs/features/team-tactic-cards.md. */}
+        {/* Power Phase and the board strip of each player (docs/features/table-tools.md) */}
+        <TableButtons ownSide={ownSide} {...tableButtons} />
         <TacticTray team="blue" />
         <TacticTray team="red" />
         {/* The loaded rosters, in the area of the character trays (docs/features/roster.md), until the squads

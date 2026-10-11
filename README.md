@@ -158,7 +158,7 @@ The **Sandbox** is the free table: map picker and both roster fields. Nothing in
 | Object | Dimensions |
 |---|---|
 | Game mat | 36 × 36 units (36" × 36", matching the physical MCP mat) |
-| Table surface | 72 × 48 units: 72 along x, 48 along z (between the players). The same 3:2 shape as the TTS table |
+| Table surface | 72 × 76 units: 72 along x, 76 along z (between the players). The TTS table is 72 × 48. The extra depth holds the trays, the tactic trays and the rack band of each player (`docs/features/table-tools.md`) |
 | Camera default height | 20 units above the mat |
 
 ## Assets

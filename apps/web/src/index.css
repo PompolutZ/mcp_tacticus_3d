@@ -2044,3 +2044,28 @@ body {
 .room-player-status--failed {
   color: #f5b041;
 }
+
+/* Buttons on the table (TableButtons.jsx). They lie flat, and 1 px is 0.04". The size comes from
+   tabletools/layout.js, set inline. */
+.table-button {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.table-button--small {
+  flex: 0 0 28px;
+}
+
+.table-strip-row {
+  display: flex;
+  gap: 4px;
+}
+
+.table-strip-row .table-button:not(.table-button--small) {
+  flex: 1;
+}

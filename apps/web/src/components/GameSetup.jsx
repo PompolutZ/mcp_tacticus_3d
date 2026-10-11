@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import { Html } from '@react-three/drei'
 import { TABLE_WIDTH } from '../table.js'
 import { BOARD_HALF_WIDTH, BOARD_X } from '../scoreboard/board.js'
 import { DEFAULT_AFFILIATION, affiliationName } from '../scoreboard/affiliations.js'
@@ -15,6 +14,7 @@ import {
   setupStep,
 } from '../setup/setup.js'
 import { RosterCard } from './RosterCards.jsx'
+import { OnTable } from './OnTable.jsx'
 
 const PLAYER = { blue: 'Blue', red: 'Red' }
 const TYPE = { secure: 'Secure', extract: 'Extract' }
@@ -22,27 +22,10 @@ const TYPE = { secure: 'Secure', extract: 'Extract' }
 const TYPE_COLOR = { secure: 'blue', extract: 'red' }
 // Players select up to 5 Team Tactic cards (p11). The app shows the count and does not stop a 6th card.
 const TACTIC_LIMIT = 5
-// The buttons lie flat on the table, just above it. They read the same way as the scoring board and the
-// crisis cards (CrisisCard.jsx, CARD_ROTATION): the top of the HTML faces the table edge (-x), and its
-// right faces -z.
+// The buttons lie flat on the table, just above it (OnTable).
 const TABLE_Y = 0.05
-const BOARD_READ_ROTATION = [-Math.PI / 2, 0, Math.PI / 2]
-// 1 CSS px of the buttons is this many inches on the table. drei Html with transform makes 1 CSS px
-// distanceFactor / 400 world units.
-const INCHES_PER_PX = 0.04
 // The panel lies between the table edge and the scoring board, at the middle of the board
 const PANEL_X = (-TABLE_WIDTH / 2 + BOARD_X - BOARD_HALF_WIDTH) / 2
-
-// drei Html that lies flat on the table at `position`, see BOARD_READ_ROTATION
-function OnTable({ position, children }) {
-  return (
-    <group position={position} rotation={BOARD_READ_ROTATION}>
-      <Html center transform distanceFactor={INCHES_PER_PX * 400}>
-        {children}
-      </Html>
-    </group>
-  )
-}
 
 // The reason why the deck of `type` of `team` cannot start the mission, or null
 function deckProblem(team, type, parsed) {

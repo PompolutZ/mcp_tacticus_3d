@@ -88,7 +88,7 @@ R is a toggle. In TTS, a player lifts a model by holding it with the mouse. In t
 
 ## Start view
 
-For now every player is Blue. Blue sits at +z. The start view stands behind the blue table edge and looks down at 45°, at a point 6" from the mat center toward Blue, from 46" away. In a 16:10 window it shows the whole mat, the blue trays and the red trays. Space returns to it. The values are `CAMERA_TARGET` and `CAMERA_POSITION` in `src/App.jsx`.
+For now every player is Blue. Blue sits at +z. The start view stands behind the blue table edge and looks down at 45°, at a point 16.8" from the mat center toward Blue, from 46" away. In a 16:10 window it shows the whole mat, the blue trays, the blue rack band (z up to 36.8") and the red trays. Its bottom edge meets the table at z = 37.5". Space returns to it. The values are `CAMERA_TARGET` and `CAMERA_POSITION` in `src/App.jsx`.
 
 ## Keyboard: keys of the mod
 
