@@ -247,7 +247,7 @@ const OVERLAP_INTERVAL = 100
 // rosters: { blue, red } → null | { code }, the loaded rosters (RosterCards.jsx). onRosterOpen({ team, tab,
 // index }): a click on a roster card. It opens the roster popup on that card (see RosterPopup.jsx), or
 // adds the card to the squad (App.jsx, handleRosterClick).
-// setup: the game setup (setup/setup.js). squadSelect, setupActions, mySide: see GameSetup.jsx. When the squads
+// setup: the game setup (setup/setup.js). squadSelect, setupActions, mySide, seatPlayers: see GameSetup.jsx. When the squads
 // are on the table, the roster cards are not.
 // onCardOpen({ src, alt }): a click on a crisis card (see CardPopup.jsx). onTrayOpen(id): a click
 // on a tray card opens the whole tray (see TrayPopup.jsx). onAttachedOpen(code): a click on a gem chip
@@ -377,6 +377,7 @@ export default function Scene({
   squadSelect,
   setupActions,
   mySide = null,
+  seatPlayers = null,
   onScoreMarkerMove,
   poses = NO_POSES,
   startPose,
@@ -1361,6 +1362,7 @@ export default function Scene({
           rosters={rosters}
           squadSelect={squadSelect}
           mySide={mySide}
+          seatPlayers={seatPlayers}
           actions={setupActions}
           onRosterOpen={onRosterOpen}
         />

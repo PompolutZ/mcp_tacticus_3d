@@ -14,6 +14,7 @@ import {
   priorityOf,
   setupStep,
 } from '../setup/setup.js'
+import { capital, isYou, playerName, possessive, says } from '../setup/names.js'
 import { COLOR_NAME, useSideColors } from '../sideColors.js'
 import { RosterCard } from './RosterCards.jsx'
 import { OnTable } from './OnTable.jsx'
@@ -26,21 +27,43 @@ const TABLE_Y = 0.05
 // The panel lies between the table edge and the scoring board, at the middle of the board
 const PANEL_X = (-TABLE_WIDTH / 2 + BOARD_X - BOARD_HALF_WIDTH) / 2
 
-// The name of the color of a side. colors: from useSideColors. A side key is a seat, not a color.
-const nameOf = (colors, team) => COLOR_NAME[colors[team]]
+// The context of the names (setup/names.js). seatPlayers: { players, peer } in a multiplayer room, else null.
+function useNames(mySide, seatPlayers) {
+  const colors = useSideColors()
+  return useMemo(
+    () => ({
+      mySide,
+      players: seatPlayers?.players ?? null,
+      peer: seatPlayers?.peer ?? null,
+      colors: { blue: COLOR_NAME[colors.blue], red: COLOR_NAME[colors.red] },
+    }),
+    [mySide, seatPlayers, colors],
+  )
+}
+
+// What `team` does in a step that one player chooses. The own side in a multiplayer room gets "You choose the
+// board edge", the other player "Waiting for Nelly to choose the board edge." What: "a deck", "the Maximum
+// Threat". With imperative, the own side gets "Choose …" ("Choose from Nelly's Secures.").
+function chooses(team, what, ctx, imperative = false) {
+  if (ctx.mySide && !isYou(team, ctx))
+    return `Waiting for ${playerName(team, ctx)} to choose ${what}.`
+  return imperative && isYou(team, ctx)
+    ? `Choose ${what}.`
+    : `${says(team, ctx, 'choose')} ${what}.`
+}
 
 // The reason why the deck of `type` of `team` cannot start the mission, or null
-function deckProblem(team, type, parsed, colors) {
+function deckProblem(team, type, parsed, ctx) {
   const other = otherTeam(team)
-  if (!parsed[other]) return `Load the ${nameOf(colors, other)} roster first`
+  if (!parsed[other]) return `Load ${possessive(other, ctx)} roster first`
   if (parsed[team][type].length === 0)
-    return `The ${nameOf(colors, team)} roster has no ${TYPE[type]} cards`
+    return `${capital(possessive(team, ctx))} roster has no ${TYPE[type]} cards`
   if (parsed[other][otherType(type)].length === 0)
-    return `The ${nameOf(colors, other)} roster has no ${TYPE[otherType(type)]} cards`
+    return `${capital(possessive(other, ctx))} roster has no ${TYPE[otherType(type)]} cards`
   return null
 }
 
-// One row of crisis cards of a roster, next to the scoring board. With row.use, each card has a Use button
+// One row of crisis cards of a roster, next to the scoring board. With row.use, each card has a Choose button
 // next to it. row: see crisisRows in setup/setup.js. A click on a card opens the crisis tab of the roster popup.
 function CrisisRow({ row, parsed, onOpen, onUse }) {
   const cards = useMemo(
@@ -65,10 +88,10 @@ function CrisisRow({ row, parsed, onOpen, onUse }) {
             <button
               type="button"
               className="chip setup-use"
-              title={`Use ${info.name}`}
+              title={`Choose ${info.name}`}
               onClick={() => onUse(card.code)}
             >
-              Use
+              Choose
             </button>
           </OnTable>
         )}
@@ -79,20 +102,19 @@ function CrisisRow({ row, parsed, onOpen, onUse }) {
 
 // The 2 deck buttons of the player with Priority, between their Secure and Extract rows. They have no color:
 // the color of a button does not tell the crisis type.
-function DeckButtons({ team, parsed, onChoose }) {
-  const colors = useSideColors()
+function DeckButtons({ team, parsed, ctx, onChoose }) {
   return (
     <OnTable position={[CRISIS_GAP_X, TABLE_Y, crisisCenterZ(team)]}>
       <div className="setup-buttons">
         {CRISIS_TYPES.map((type) => {
-          const problem = deckProblem(team, type, parsed, colors)
+          const problem = deckProblem(team, type, parsed, ctx)
           return (
             <button
               key={type}
               type="button"
               className="chip"
               disabled={problem !== null}
-              title={problem ?? `Draw 2 of the ${nameOf(colors, team)} ${TYPE[type]} cards`}
+              title={problem ?? `Draw 2 of ${possessive(team, ctx)} ${TYPE[type]} cards`}
               onClick={() => onChoose(type)}
             >
               Choose {TYPE[type]}s
@@ -104,23 +126,22 @@ function DeckButtons({ team, parsed, onChoose }) {
   )
 }
 
-// The text of a roll off that the app read: "Blue wins the roll off: 4 successes against 3." On equal
+// The text of a roll off that the app read: "Nelly wins the roll off: 4 successes against 3." On equal
 // successes the Crits or the Wilds decided. result: { winner, counts } (rollOff.js).
-function rollOffText({ winner, counts }, name) {
+function rollOffText({ winner, counts }, ctx) {
   if (!winner) return 'Tie: roll again.'
   const a = counts[winner]
   const b = counts[otherTeam(winner)]
-  const base = `${name(winner)} wins the roll off: ${a.successes} successes against ${b.successes}`
+  const base = `${says(winner, ctx, 'win')} the roll off: ${a.successes} successes against ${b.successes}`
   if (a.successes !== b.successes) return `${base}.`
   if (a.crits !== b.crits) return `${base}, with more Crits (${a.crits} against ${b.crits}).`
   return `${base}, with more Wilds (${a.wilds} against ${b.wilds}).`
 }
 
 // The panel next to the scoring board: what to do in this step, the buttons of the steps that are not about one
-// card, and Restart. The app does not know who won the roll off or who clicks, so the text names the player.
-function BoardPanel({ setup, step, parsed, mySide, actions }) {
+// card, and Restart. The text names the player who chooses (setup/names.js).
+function BoardPanel({ setup, step, parsed, mySide, ctx, actions }) {
   const colors = useSideColors()
-  const PLAYER = { blue: nameOf(colors, 'blue'), red: nameOf(colors, 'red') }
   const winner = priorityOf(setup)
   const other = winner && otherTeam(winner)
   const first = setup.deck?.type
@@ -135,7 +156,6 @@ function BoardPanel({ setup, step, parsed, mySide, actions }) {
     hint = 'Roll off. The winner has Priority.'
     note =
       'Most Crits, Wilds and Hits wins. On a tie: most Crits, then most Wilds, else roll again.'
-    // In a multiplayer room a name would flip when the color follows Priority, so the buttons name the side
     controls = TEAMS.map((team) => (
       <button
         key={team}
@@ -143,18 +163,17 @@ function BoardPanel({ setup, step, parsed, mySide, actions }) {
         className={`chip chip--player-${colors[team]}`}
         onClick={() => actions.priority(team)}
       >
-        {PLAYER[team]}
-        {mySide ? ' side' : ''} has Priority
+        {says(team, ctx, 'have')} Priority
       </button>
     ))
   } else if (step === 'deck') {
-    hint = `${PLAYER[winner]} player has Priority: choose Secures or Extracts.`
+    hint = chooses(winner, 'a deck', ctx)
   } else if (step === 'first') {
-    hint = `${PLAYER[other]} player: choose 1 of the ${PLAYER[winner]} ${TYPE[first]} cards.`
+    hint = chooses(other, `from ${possessive(winner, ctx)} ${TYPE[first]}s`, ctx, true)
   } else if (step === 'second') {
-    hint = `${PLAYER[winner]} player: choose 1 of the ${PLAYER[other]} ${TYPE[second]} cards.`
+    hint = chooses(winner, `from ${possessive(other, ctx)} ${TYPE[second]}s`, ctx, true)
   } else if (step === 'threat') {
-    hint = `${PLAYER[other]} player: choose the Maximum Threat.`
+    hint = chooses(other, 'the Maximum Threat', ctx)
     controls = CRISIS_TYPES.map((type) => {
       const info = rosterCard(setup.picks[type])
       return (
@@ -170,7 +189,8 @@ function BoardPanel({ setup, step, parsed, mySide, actions }) {
       )
     })
   } else if (step === 'edge') {
-    hint = `${PLAYER[winner]} player: turn the mat until your deployment edge faces you.`
+    hint = chooses(winner, 'the board edge', ctx)
+    note = `Turn the mat until the deployment edge faces ${isYou(winner, ctx) ? 'you' : playerName(winner, ctx)}.`
     controls = (
       <>
         <button
@@ -186,7 +206,7 @@ function BoardPanel({ setup, step, parsed, mySide, actions }) {
           className={`chip chip--player-${colors[winner]}`}
           onClick={actions.edge}
         >
-          Select board edge
+          Choose this edge
         </button>
         <button
           type="button"
@@ -199,14 +219,19 @@ function BoardPanel({ setup, step, parsed, mySide, actions }) {
       </>
     )
   } else if (step === 'squads') {
-    hint =
-      'Each player chooses a squad and clicks Ready. The squads go on the table when both players are Ready.'
+    hint = `${mySide ? 'Choose your squad' : 'Each player chooses a squad'} and click Ready. The squads go on the table when both players are Ready.`
   } else if (step === 'reveal') {
     const placed = placedSides(setup)
     const waiting = TEAMS.find((team) => !placed[team])
-    hint = `Waiting for the ${PLAYER[waiting]} player to reveal their squad.`
+    hint = isYou(waiting, ctx)
+      ? 'Putting your squad on the table.'
+      : `Waiting for ${playerName(waiting, ctx)} to reveal ${mySide ? 'their' : 'the'} squad.`
   } else if (step === 'affiliation') {
-    hint = 'Choose the affiliation of your squad.'
+    // After the reveal the players deploy, one model at a time (p11). The player with Priority goes first.
+    hint = `Deploy one model at a time, taking turns. ${says(winner, ctx, 'deploy')} first.`
+    note = mySide
+      ? 'Choose the affiliation of your squad.'
+      : 'Choose the affiliation of each squad.'
     // One row for each team: the affiliations that more than half of the squad have, then Unaffiliated
     teamRows = TEAMS.map((team) => {
       const keys = parsed[team]
@@ -218,7 +243,7 @@ function BoardPanel({ setup, step, parsed, mySide, actions }) {
       const locked = Boolean(mySide) && mySide !== team
       return (
         <div key={team} className="setup-row">
-          <span className="setup-note">{PLAYER[team]}</span>
+          <span className="setup-note">{playerName(team, ctx)}</span>
           {keys.map((key) => {
             const on = setup.affiliation?.[team] === key
             return (
@@ -228,7 +253,7 @@ function BoardPanel({ setup, step, parsed, mySide, actions }) {
                 className={`chip chip--player-${colors[team]}${on ? ' setup-toggle--on' : ''}`}
                 aria-pressed={on}
                 disabled={locked}
-                title={locked ? `The ${PLAYER[team]} player chooses` : undefined}
+                title={locked ? says(team, ctx, 'choose') : undefined}
                 onClick={() => actions.affiliation(team, key)}
               >
                 {affiliationName(key)}
@@ -241,9 +266,9 @@ function BoardPanel({ setup, step, parsed, mySide, actions }) {
   }
   // What the app read from the dice trays, until the deck is chosen
   const read = setup.rollOff && (step === 'rollOff' || step === 'deck') ? setup.rollOff : null
-  const readText = read && rollOffText(read, (team) => PLAYER[team] + (mySide ? ' side' : ''))
+  const readText = read && rollOffText(read, ctx)
   const status = [
-    winner && `${PLAYER[winner]} player has Priority`,
+    winner && `${says(winner, ctx, 'have')} Priority`,
     setup.threat !== null && `Max threat ${setup.threat}`,
   ]
     .filter(Boolean)
@@ -276,7 +301,7 @@ function BoardPanel({ setup, step, parsed, mySide, actions }) {
 // handleRosterClick). Ready works when the squad has a character and its threat is not above the Maximum
 // Threat. A squad with less threat is fine. While the player is Ready, the squad does not change. When both
 // players are Ready, both squads go on the table.
-function SquadPanel({ team, setup, parsed, selecting, own, actions }) {
+function SquadPanel({ team, setup, parsed, selecting, own, ctx, actions }) {
   const colors = useSideColors()
   const squad = setup.squads[team]
   const ready = setup.ready[team]
@@ -347,11 +372,7 @@ function SquadPanel({ team, setup, parsed, selecting, own, actions }) {
             Click characters and Team Tactic cards to add or remove them.
           </div>
         )}
-        {ready && (
-          <div className="setup-note">
-            Waiting for the {nameOf(colors, otherTeam(team))} player.
-          </div>
-        )}
+        {ready && <div className="setup-note">Waiting for {playerName(otherTeam(team), ctx)}.</div>}
         {over && <div className="setup-note setup-note--warn">{problem}</div>}
       </div>
     </OnTable>
@@ -361,12 +382,22 @@ function SquadPanel({ team, setup, parsed, selecting, own, actions }) {
 // The game setup on the table: the crisis cards of the rosters next to the scoring board, and the buttons
 // of each step. The buttons lie flat on the table (OnTable). See docs/features/setup-game.md.
 // setup: see setup/setup.js. rosters: { blue, red } → null | { code }. squadSelect: { blue, red } → the
-// player is choosing squad cards. mySide: the team of the player in a multiplayer room, or null when one
+// player is choosing squad cards. seatPlayers: { players, peer } of a multiplayer room, for the names
+// (setup/names.js). mySide: the team of the player in a multiplayer room, or null when one
 // person plays both teams. Only that team's squad panel has buttons. actions: { priority(team), deck(type), pick(code),
 // threat(value), turnMat(direction), edge(), squadSelect(team), ready(team),
 // affiliation(team, key), restart() }, see App.jsx.
 // onRosterOpen({ team, tab, index }): a click on a crisis card.
-export default function GameSetup({ setup, rosters, squadSelect, mySide, actions, onRosterOpen }) {
+export default function GameSetup({
+  setup,
+  rosters,
+  squadSelect,
+  mySide,
+  seatPlayers,
+  actions,
+  onRosterOpen,
+}) {
+  const ctx = useNames(mySide, seatPlayers)
   const parsed = useMemo(
     () => ({
       blue: rosters.blue && parseRosterText(rosters.blue.code),
@@ -389,9 +420,16 @@ export default function GameSetup({ setup, rosters, squadSelect, mySide, actions
         />
       ))}
       {step === 'deck' && parsed[priorityOf(setup)] && (
-        <DeckButtons team={priorityOf(setup)} parsed={parsed} onChoose={actions.deck} />
+        <DeckButtons team={priorityOf(setup)} parsed={parsed} ctx={ctx} onChoose={actions.deck} />
       )}
-      <BoardPanel setup={setup} step={step} parsed={parsed} mySide={mySide} actions={actions} />
+      <BoardPanel
+        setup={setup}
+        step={step}
+        parsed={parsed}
+        mySide={mySide}
+        ctx={ctx}
+        actions={actions}
+      />
       {step === 'squads' &&
         TEAMS.map((team) => (
           <SquadPanel
@@ -401,6 +439,7 @@ export default function GameSetup({ setup, rosters, squadSelect, mySide, actions
             parsed={parsed[team]}
             selecting={squadSelect[team]}
             own={!mySide || mySide === team}
+            ctx={ctx}
             actions={actions}
           />
         ))}

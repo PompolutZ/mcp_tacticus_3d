@@ -8,30 +8,39 @@ Players go from two loaded rosters to the start of round 1. In a room, the new r
 
 ## What the app does
 
-The app does not know who wins a roll off yet, or who clicks a button. So it does not check who may click. Each button names the player who makes the choice, and players click for the right player. This follows `docs/features/crisis.md`, "Players apply the rules".
+The app does not check who may click a button. Each text names the player who makes the choice, and players click for the right player. This follows `docs/features/crisis.md`, "Players apply the rules". The panel says what to do now, in the order of the rulebook. All texts use the word "Choose" and the names of the players (see [Names](#names)).
 
 | Step | Rule (p9, p11) | In the app |
 |---|---|---|
-| Roll off | Players roll off. See [Roll off](#roll-off) | The app reads the dice trays (see [Roll off](#roll-off)). The panel next to the scoring board shows the rule and two buttons, **Blue has Priority** and **Red has Priority** (in a multiplayer room **Blue side has Priority** and **Red side has Priority**). Both players can press them. The button sets `setup.priority` |
+| Roll off | Players roll off. See [Roll off](#roll-off) | The app reads the dice trays (see [Roll off](#roll-off)). The panel next to the scoring board shows the rule and two buttons with names: **Nelly has Priority** and **You have Priority** (in the Sandbox and a single player room **Blue has Priority** and **Red has Priority**). Both players can press them. The button sets `setup.priority` |
 | Deck | The player with Priority chooses one of their crisis decks: Secure or Extract | **Choose Secures** or **Choose Extracts**, in the crisis area of the player with Priority only. The buttons have no color. The app draws 2 cards of that deck at random |
-| First card | The other player chooses 1 of the 2 cards | **Use** next to each drawn card. The app then draws 2 cards of the other type from the other player's deck |
-| Second card | The player with Priority chooses 1 of those 2 cards | **Use** next to each drawn card |
-| Maximum Threat | The player without Priority chooses which card's threat the mission uses | **Secure · 17** or **Extract · 18** on the panel next to the scoring board |
-| Deployment edge | The player with Priority chooses a battlefield edge | **↺ Select board edge ↻** on the panel. The arrows turn the mat 90°. **Select board edge** puts the two crisis cards on the board ends and their tokens on the mat. In a multiplayer room, the toolbar has no ↺ ↻, so this step is the only mat turn. After it, the mat turn stays fixed until **Restart setup** |
-| Squads | Each player chooses characters with a total threat up to the Maximum Threat, and up to 5 Team Tactic cards | **Select squad**, then a click on a roster card adds it or removes it. Then **Ready**. When both players are Ready, the squads are revealed and go on the table. In a multiplayer room, each player's squad stays hidden until then (see [Squads](#squads)) |
+| First card | The other player chooses 1 of the 2 cards | **Choose** next to each drawn card. The panel says "Choose from Nelly's Secures." to the player who chooses, and "Waiting for Nelly to choose from my Secures." to the other. The app then draws 2 cards of the other type from the other player's deck |
+| Second card | The player with Priority chooses 1 of those 2 cards | **Choose** next to each drawn card |
+| Maximum Threat | The player without Priority chooses which card's threat the mission uses | **Secure · 17** or **Extract · 18** on the panel next to the scoring board. "You choose the Maximum Threat." or "Waiting for Nelly to choose the Maximum Threat." |
+| Deployment edge | The player with Priority chooses a battlefield edge | **↺ Choose this edge ↻** on the panel. The arrows turn the mat 90°. **Choose this edge** puts the two crisis cards on the board ends and their tokens on the mat. In a multiplayer room, the toolbar has no ↺ ↻, so this step is the only mat turn. After it, the mat turn stays fixed until **Restart setup** |
+| Squads | Each player chooses characters with a total threat up to the Maximum Threat, and up to 5 Team Tactic cards | **Select squad**, then a click on a roster card adds it or removes it. Then **Ready**. The panel says "Choose your squad and click Ready." When both players are Ready, the squads are revealed and go on the table. In a multiplayer room, each player's squad stays hidden until then (see [Squads](#squads)) |
+| Deployment | Players deploy one model at a time, taking turns. The player with Priority deploys first (p12). The app does not enforce it | After the reveal the panel says "Deploy one model at a time, taking turns. Nelly deploys first." or "You deploy first.". It shows in the affiliation step. When no step opens, the setup is done and the panel is gone |
 | Affiliation | A squad uses an affiliation when more than half of its characters have it (p11) | The app sets it with no click when the squad has 0 or 1 such affiliation. With 2 or 3, the panel shows the step. See [Affiliation](#affiliation) |
 
 The app checks only one rule: **Ready** does not work when the squad threat is above the Maximum Threat. The squad threat is the Threat Levels of the characters plus the threat of each attached Infinity Gem: 1, and 0 for Bonded Soul (from Jarvis). A squad with less threat is fine. The app does not check the Team Tactic count, alter egos (p11) or affiliations. The panel shows the Team Tactic count in red above 5.
+
+### Names
+
+`src/setup/names.js` (no imports) names the players in every setup text: `playerName(team, ctx)`, `possessive(team, ctx)`, `says(team, ctx, verb)` ("You choose" / "Nelly chooses"; `have` → "has"), `isYou`.
+
+- Multiplayer room: "You" and "my" for the own side. The other side is the Discord `name` of the player (`docs/features/auth.md`), from the room players or the hello of the peer. A deleted player is "Deleted player". A seat with no name is "Opponent".
+- Sandbox and single player room: the current color name of the side ("Blue" / "Red", `colorOf`). In a single player room it follows Priority, so after the roll off the winner is Blue.
+- A step that one player chooses says "You choose the board edge" to that player, and "Waiting for Nelly to choose the board edge." to the other. Without own side (Sandbox, single player room) it says "Blue chooses the board edge."
 
 ### Roll off
 
 Setup always starts with a roll off. Each player rolls 5 dice with their dice tray. The player with more successes (Crits, Wilds and Hits together) wins. On a tie, the player with more Crits wins, then the player with more Wilds. Otherwise, players roll again. Blank, Block and Skull count for nothing.
 
-The app reads it (`src/setup/rollOff.js`). In the step `rollOff`, when a new `throw` entry reaches the history (from this browser or the other one) and both shelves hold exactly 5 dice, the app sets `setup.priority` to the winner and stores the result in `setup.rollOff`. The panel says "Blue wins the roll off: 4 successes against 3." (the side names of the panel), and adds which of Crits or Wilds decided when the successes were equal. On a tie the panel says "Tie: roll again.", and Priority stays null. A player clears the tray and rolls again. The text stays until the deck is chosen.
+The app reads it (`src/setup/rollOff.js`). In the step `rollOff`, when a new `throw` entry reaches the history (from this browser or the other one) and both shelves hold exactly 5 dice, the app sets `setup.priority` to the winner and stores the result in `setup.rollOff`. The panel says "Nelly wins the roll off: 4 successes against 3." or "You win the roll off: …" (see [Names](#names)), and adds which of Crits or Wilds decided when the successes were equal. On a tie the panel says "Tie: roll again.", and Priority stays null. A player clears the tray and rolls again. The text stays until the deck is chosen.
 
 In a multiplayer room, every browser checks on every new `throw` entry, its own or the other player's. A shelf write and its entry are one change, so a browser that has the last entry has both full shelves. This covers players who roll at the same time. Both browsers may write: the result is the same, and a browser skips the write when `setup.rollOff` already has it. Only a new throw triggers it, so shelves left from before a restart do not count. An entry older than 30 s is not new (a history that syncs late).
 
-The manual buttons **Blue has Priority** and **Red has Priority** stay (in a multiplayer room **Blue side has Priority** and **Red side has Priority**). Both players can press them, because players can agree on a roll off made with real dice. A manual press replaces the read result. The step `rollOff` lasts while `setup.priority` is null.
+The manual buttons (**Nelly has Priority**, **You have Priority**) stay. Both players can press them, because players can agree on a roll off made with real dice. A manual press replaces the read result. The step `rollOff` lasts while `setup.priority` is null.
 
 ### Colors
 
@@ -53,7 +62,7 @@ Survivors is the only current card with a map that changes after a half turn. So
 
 ### Crisis cards
 
-The crisis cards of the rosters do not lie in the roster rows any more. They lie next to the scoring board, on the owner's side, until **Select board edge**. The rows run along z, parallel to the board. Numbers are for blue (+z). Red is the same at −z: only z changes sign.
+The crisis cards of the rosters do not lie in the roster rows any more. They lie next to the scoring board, on the owner's side, until **Choose this edge**. The rows run along z, parallel to the board. Numbers are for blue (+z). Red is the same at −z: only z changes sign.
 
 Deck step. Seen from above, the table edge (−x) on the left. The deck buttons lie in one line along z in the gap:
 
@@ -72,8 +81,8 @@ After a deck choice, a side with drawn cards:
 
 ```
             x = −26.1    x = −25.5 … −20.7 (in line with the board)
-z = 18.35   Use          [drawn 2]
-z = 12.55   Use          [drawn 1]
+z = 18.35   Choose         [drawn 2]
+z = 12.55   Choose         [drawn 1]
             ── board end card, scoring board ──
 ```
 
@@ -82,11 +91,11 @@ z = 12.55   Use          [drawn 1]
 - **Deck rows:** the Secure row is the first row, at the table edge (x = −35 … −30.2). The Extract row lies toward the mat (x = −29.0 … −24.2). The gap between them is 1.2", and the deck buttons are in it.
 - A row starts past the Secure card on the board end (z = 12.25 + 0.3), so its first card is the one nearest to the board. The deck area is as long as 5 cards, 14.95". A row with more cards gets smaller cards, so that it fits.
 - The deck rows reach past the tactic tray (z = 22.4), next to roster row 1. So they end 0.3" before x = −23.85, where a roster row of 10 character cards ends.
-- **Drawn cards:** the 2 cards drawn from a deck lie in line with the board (x = −23.1, the same as the cards on the board ends), from z = 12.55. So after the second **Use**, the chosen card of each player lies next to the board end.
-- A **Use** button is next to each drawn card, on the table-edge side (x = −26.1).
-- The steps: after **Use Blue player Secures**, blue shows its 2 drawn Secure cards in line with the board. Red shows its Extract row. After **Use**, blue shows the chosen card, and red shows its 2 drawn Extract cards in line with the board. After the second **Use**, each player shows their chosen card.
+- **Drawn cards:** the 2 cards drawn from a deck lie in line with the board (x = −23.1, the same as the cards on the board ends), from z = 12.55. So after the second **Choose**, the chosen card of each player lies next to the board end.
+- A **Choose** button is next to each drawn card, on the table-edge side (x = −26.1).
+- The steps: after **Choose Secures**, blue shows its 2 drawn Secure cards in line with the board. Red shows its Extract row. After **Choose**, blue shows the chosen card, and red shows its 2 drawn Extract cards in line with the board. After the second **Choose**, each player shows their chosen card.
 - A click on a card opens the crisis tab of the roster popup.
-- **Select board edge** removes the rows. The two chosen cards then lie on the board ends, the same as a card from the toolbar (Secure at +z, Extract at −z).
+- **Choose this edge** removes the rows. The two chosen cards then lie on the board ends, the same as a card from the toolbar (Secure at +z, Extract at −z).
 - A chosen card without files in the app has no image and no tokens. The HUD message says so.
 
 ### Buttons
@@ -104,14 +113,14 @@ z = 12.55   Use          [drawn 1]
 - A card in the squad has a yellow frame.
 - The Breakdown tab of the roster popup lists the squads that fit the Maximum Threat. A click on one of them chooses its characters (see `docs/features/squad-breakdown.md`, "Choose a squad").
 - Only a card that the app can put on the table can join: a character with a model, a Team Tactic card with an image. For another card, the HUD message names it.
-- **Ready** is a toggle. It works when the squad has at least 1 character and its threat is not above the Maximum Threat. While it is on, it has a white outline, the panel says "Waiting for the Red player.", and **Select squad** is off and does not work. So the squad does not change. A second click on **Ready** turns it off, and the player can change the squad again.
+- **Ready** is a toggle. It works when the squad has at least 1 character and its threat is not above the Maximum Threat. While it is on, it has a white outline, the panel says "Waiting for Nelly." (the name of the other player), and **Select squad** is off and does not work. So the squad does not change. A second click on **Ready** turns it off, and the player can change the squad again.
 - When both players are Ready, both squads go on the table at the same time. **Ready** only sets the toggle. An effect in each browser puts the squads on the table (see below).
 - **Hidden squads (multiplayer rooms).** The rulebook says that players do not show their squads until deployment (p11). In a multiplayer room:
   - The squad and Team Tactic cards that a player chooses are not in the shared document. They are in `localStorage` of that browser (`rooms/store.js`, key `mcp-assist-3d/squad/<user id>/<code>`, value `{ setupId, squad }`). A reload keeps the choice.
   - **Ready** writes only `setup.ready[side]`.
   - When both players are Ready, each browser reveals the squad of its own side: in one transaction it writes `setup.squads[side]`, adds the characters and Team Tactic cards, and sets `setup.placed[side]`. Then it deletes the stored squad.
   - Until then, the panel of the other player shows only "Choosing a squad" or "Ready". It has no threat, no tactic count and no buttons, and their roster cards have no yellow frame. A click on their cards opens the roster popup.
-  - If the other page is closed, the panel says "Waiting for the Red player to reveal their squad." (step `reveal`).
+  - If the other page is closed, the panel says "Waiting for Nelly to reveal their squad." (step `reveal`).
   - A stored squad counts only for the setup with the same `setup.id`. So a restart in the other browser drops it.
   - If both players are Ready and this browser has no stored squad (another device, cleared storage), the player is not Ready any more, and the HUD says "Your squad choice is not in this browser. Choose it again."
   - The lobby deletes stored squads of rooms that are not in the room list. Deleting a room deletes its stored squad.
@@ -123,7 +132,7 @@ z = 12.55   Use          [drawn 1]
 - **Restart setup** on the panel starts the setup again, after a confirm.
 - A new roster, or **×** of a roster, also starts the setup again, because the setup points to the cards of the rosters. The HUD message says so. When the setup has put something on the table, a confirm asks first.
 - A restart removes what the setup put on the table: the characters (trays and models) and the Team Tactic cards of the squads, and the two crisis cards of the mission with their tokens.
-- A restart keeps the rest: characters and cards that players added from the Library, a crisis card that a player changed in the toolbar after **Select board edge**, the mat turn and the score. A character or a Team Tactic card that was on the table before the squads is not added again, so it is not removed either.
+- A restart keeps the rest: characters and cards that players added from the Library, a crisis card that a player changed in the toolbar after **Choose this edge**, the mat turn and the score. A character or a Team Tactic card that was on the table before the squads is not added again, so it is not removed either.
 
 ## Affiliation
 

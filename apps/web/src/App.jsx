@@ -370,6 +370,11 @@ export default function App({
   // and the Sandbox keep the squads in the document. See docs/features/setup-game.md, "Squads".
   const hiddenSquads = Boolean(room?.multiplayer)
   const mySide = hiddenSquads ? room.side : null
+  // The names of the players for the setup texts (setup/names.js): the room players and the hello of the peer
+  const seatPlayers = useMemo(
+    () => (room?.multiplayer ? { players: room.players, peer: connection?.peer ?? null } : null),
+    [room, connection?.peer],
+  )
   const [storedSquad, setStoredSquad] = useState(() =>
     hiddenSquads ? readSquad(userId, room.id) : null,
   )
@@ -1314,7 +1319,7 @@ export default function App({
     if (setupStep(setup) === 'threat') setSetup(chooseThreat(setup, threat))
   }
 
-  // Select board edge: the mat stays as it is now. The two crisis cards of the mission go to the ends of
+  // Choose this edge: the mat stays as it is now. The two crisis cards of the mission go to the ends of
   // the scoring board, and their tokens to the mat. A card without files in the app has no tokens.
   function handleSetupEdge() {
     if (setupStep(setup) !== 'edge') return
@@ -2096,6 +2101,7 @@ export default function App({
               onRosterOpen={handleRosterClick}
               setup={viewSetup}
               mySide={mySide}
+              seatPlayers={seatPlayers}
               squadSelect={squadSelect}
               setupActions={setupActions}
               onScoreMarkerMove={(marker, x, z) =>

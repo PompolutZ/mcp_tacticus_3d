@@ -1,6 +1,6 @@
 # Plan: Setup round 2
 
-Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: steps 1 and 2 done. Branch `setup-round-2`, from main at `87f9b6e`.
+Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: steps 1 to 3 done. Branch `setup-round-2`, from main at `87f9b6e`.
 
 The feature is `docs/features/setup-game.md`. Each step makes one commit and writes its **Result** below.
 
@@ -135,6 +135,17 @@ Work:
 Checks: as in "Checks".
 
 User, after this step: read every setup step in a multiplayer room, from both browsers. Each text names the right player.
+
+
+### Result
+
+Done. Commit "setup round 2 part 3: player names and Choose texts".
+
+- `src/setup/names.js` (plain, tests in `names.test.js`): `playerName(team, ctx)`, `possessive(team, ctx)`, `says(team, ctx, verb)` ("You choose" / "Nelly chooses"), `verbFor`, `isYou`, `capital`. `ctx = { mySide, players, peer, colors }`. Fallback name "Opponent", deleted player "Deleted player". In the Sandbox and a single player room the name is the color name (`colorOf`), never "You".
+- `App.jsx` builds `seatPlayers = { players, peer }` (room players and the hello of the peer) and passes it through `Scene` to `GameSetup`, which builds the ctx.
+- Texts: roll-off buttons ("Nelly has Priority", "You have Priority"), roll-off result ("You win the roll off: …"), status line ("Nelly has Priority"), deck / card / threat / edge hints in the form "You choose …" / "Waiting for Nelly to choose …", cards "Choose from Nelly's Secures." / "Choose from my Secures.", card buttons **Choose**, **Choose this edge**, squad hint, reveal wait text, deck button titles and problems with names, affiliation row labels and lock title, squad panel "Waiting for Nelly."
+- After the reveal the affiliation step says "Deploy one model at a time, taking turns. Nelly deploys first." and then the affiliation prompt. When no affiliation step opens, the setup is done and the panel is gone, so the text does not show. No Leadership step.
+- Not changed: who can click (step 4), the squad buttons and the **Select squad** label (step 5).
 
 
 ## Step 4: Who can click, edge controls
