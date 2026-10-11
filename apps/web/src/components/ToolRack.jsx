@@ -172,8 +172,8 @@ function Rack({ side, tools, handlers }) {
               side={side}
               on={angleOn}
               title="Toward / Away · key 6"
-              onClick={click(handlers.onAngleClick)}
-              onDragStart={press('angle', true, handlers.onAngleClick)}
+              onClick={click(() => handlers.onAngleClick())}
+              onDragStart={press('angle', true, () => handlers.onAngleClick())}
             />
           )
         }
