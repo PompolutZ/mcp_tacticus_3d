@@ -20,6 +20,7 @@ import { useHoverCursor } from './useHoverCursor.js'
 import { followPart, lerpAngle } from '../net/livePose.js'
 import { freeSpawnYaw, storedFields, sameStored } from './storedTool.js'
 import { MOVE_TIP, RANGE_TIP } from '../tabletools/toolTips.js'
+import { onRack } from '../tabletools/layout.js'
 
 const TEXTURE = assetUrl('tools/toolbox-02.png')
 // How fast the dragged tool moves to the new hover height, per second (same as models)
@@ -802,6 +803,8 @@ function BendButton({ on, onClick }) {
 // side: 'blue' or 'red', the side of the owner. onStore(fields): called with { pose, turn, snap, mode }
 // (rounded, storedTool.js) when none of them changed for REST_TIME and they differ from the entry.
 // Not stored: Place, Throw, Bend and the selection.
+// onReturn(): called when a move drag (not a turn drag) ends with the tool center on the own rack. The owner
+// removes the tool then (docs/features/table-tools.md, "Tool rack"). Without it, the tool does not return.
 // angle: the angle tool. It starts bent 90° and cannot bend, place or throw. It spawns aimed at aim
 // (a model) or at the mat center.
 // angleRef(get): gets a function that returns { target, openYaw } while the angle tool is snapped, else
@@ -821,6 +824,7 @@ function Tool({
   entry,
   side: ownSide,
   onStore,
+  onReturn,
   hoverHeight = 1,
   selected = false,
   onSelect,
@@ -891,7 +895,16 @@ function Tool({
       dragChange(kind)
     },
     onDragMove,
-    () => dragChange(null),
+    () => {
+      const kind = dragKind.current
+      dragChange(null)
+      // Read on use: the closure is from the render of the press
+      const giveBack = latest.current?.onReturn
+      const rb = rigidRef.current
+      if (kind !== 'move' || !giveBack || !rb) return
+      const { x, z } = rb.translation()
+      if (onRack(ownSide, { x, z })) giveBack()
+    },
   )
   const { world, rapier } = useRapier()
   const hulls = useMemo(() => parts.map((part) => hullPoints(part.obj)), [parts])
@@ -1106,7 +1119,7 @@ function Tool({
   // because the pose is in the body, not in React state.
   const latest = useRef(null)
   useEffect(() => {
-    latest.current = { turn, snap, mode, entry, onStore }
+    latest.current = { turn, snap, mode, entry, onStore, onReturn }
   })
   // The live pose for LiveSync: the body and the bend, read when asked
   useEffect(() => {

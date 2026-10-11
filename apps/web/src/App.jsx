@@ -77,6 +77,7 @@ import { tableFiles } from './rooms/preload.js'
 import { useYField, useYList, useYRecord } from './net/useY.js'
 import { dragPose, SUPPLY_YAW, tokenDragKey } from './net/livePose.js'
 import { spawnEntry } from './components/storedTool.js'
+import { canDropTool } from './tabletools/dropShape.js'
 import {
   NO_PIECES,
   NO_TOOLS,
@@ -442,6 +443,16 @@ export default function App({
   const tokenDragHandleRef = useRef(null)
   // The table point under the pointer, written by TokenDragPreview: { x, y, z } | null
   const dragPointRef = useRef(null)
+  // A drag of a tool from the rack in progress: { kind, which, active, start } | null. active: the pointer has
+  // moved DRAG_THRESHOLD px, so the outline of the tool shows (Scene.jsx, ToolDragGhost). start: the pointer
+  // position at that moment. Like the token drag, the state changes only at start and when the drag becomes active.
+  const [toolDrag, setToolDrag] = useState(null)
+  // The drag code of the tool drag: { cancel }, or null
+  const toolDragHandleRef = useRef(null)
+  // The table point under the pointer, written by ToolDragGhost: { x, y, z } | null
+  const toolDragPointRef = useRef(null)
+  // The own rack is on the table, so a tool dropped on it goes back to it
+  const rackShown = true
   // Live pose getters of the dragged pieces without a body, piece key → getter. Drag code fills it, LiveSync reads it.
   const [pieceLives] = useState(() => new Map())
   // Scene calls this with (clientX, clientY) and returns the character id under the point, or
@@ -612,6 +623,11 @@ export default function App({
       if (e.key === 'Escape') cancelTokenDrag()
       return
     }
+    if (toolDrag) {
+      // The same for a tool dragged from the rack
+      if (e.key === 'Escape') toolDragHandleRef.current?.cancel()
+      return
+    }
     if (openCard || openTrayId || openRoster) {
       // Escape closes only the popup. The left and right arrows show the previous or next roster card.
       // Other keys do nothing, so nothing changes on the table behind it.
@@ -736,15 +752,24 @@ export default function App({
     setSelectedTools(NO_TOOLS)
   }
 
-  // Key 6, the Toward / Away tool. Over a character or a token, it selects that piece and spawns the
-  // tool again snapped to it, even if the tool is already out. It aims at the character or token
-  // selected last that is not that piece, or at the mat center. Over the table or terrain, it spawns
-  // the tool free at that point, also if it is already out. Else it toggles the tool, the same as its
-  // toolbar button.
+  // Key 6, the Toward / Away tool: placeAngleTool at the hovered piece and the table point under the pointer.
   function handleAngleKey() {
-    const piece = hoveredRef.current
+    placeAngleTool(hoveredRef.current, toolPointRef.current?.atPointer())
+  }
+
+  // The tool keys 1 to 5 and 7 to 9: placeTool at the hovered piece and the table point under the pointer.
+  // tool: 'range' | 'move'. value: the range number or the movement tool type.
+  function handleToolKey(tool, value) {
+    placeTool(tool, value, hoveredRef.current, toolPointRef.current?.atPointer())
+  }
+
+  // The Toward / Away tool at a piece or a table point (key 6, and the drop of a drag from the rack). Over a
+  // character or a token (piece), it selects that piece and spawns the tool again snapped to it, even if
+  // the tool is already out. It aims at the character or token selected last that is not that piece, or at the
+  // mat center. Over the table or terrain (at: { x, z }), it spawns the tool free at that point, also if it is
+  // already out. With neither, it toggles the tool, the same as its toolbar button.
+  function placeAngleTool(piece, at) {
     if (!piece) {
-      const at = toolPointRef.current?.atPointer()
       if (!at) {
         handleAngleClick()
         return
@@ -764,15 +789,14 @@ export default function App({
     spawnTool('angle', true, null)
   }
 
+  // A range or movement tool at a piece or a table point (the tool keys, and the drop of a drag from the rack).
   // tool: 'range' | 'move'. value: the range number or the movement tool type.
-  // With the pointer over a character or a token, it selects that piece and spawns the tool again,
-  // snapped to it, even if the tool is already out. A selected piece of the other kind stays selected.
-  // Over the table or terrain, it spawns the tool free at that point, also if it is already out. Else it
-  // toggles the tool, the same as its toolbar button.
-  function handleToolKey(tool, value) {
-    const piece = hoveredRef.current
+  // Over a character or a token (piece), it selects that piece and spawns the tool again, snapped to it, even
+  // if the tool is already out. A selected piece of the other kind stays selected. Over the table or terrain
+  // (at: { x, z }), it spawns the tool free at that point, also if it is already out. With neither, it toggles
+  // the tool, the same as its toolbar button.
+  function placeTool(tool, value, piece, at) {
     if (!piece) {
-      const at = toolPointRef.current?.atPointer()
       if (!at) {
         if (tool === 'range') handleRangeClick(value)
         else handleMoveClick(value)
@@ -1626,6 +1650,62 @@ export default function App({
     tokenDragHandleRef.current?.cancel()
   }
 
+  // A press on an own tool or chip of the rack (ToolRack.jsx). e is the pointer event of the 3D scene or the DOM
+  // event of a chip. kind: 'range' | 'move' | 'angle'. which: the range number, the movement type, or true. The
+  // camera does not move during the press (startPointerDrag). After DRAG_THRESHOLD px, the outline of the tool
+  // follows the pointer, and the release drops the tool (handleToolDrop). onClick: the release of a press
+  // that did not become a drag (chips only; a tool of the 3D scene has its own click). Escape cancels (see
+  // handleKeyDown).
+  function startToolDrag(e, kind, which, onClick) {
+    const drag = { kind, which }
+    const handle = startPointerDrag(e, {
+      controls: controlsRef.current,
+      canvas: e.nativeEvent?.target ?? e.target,
+      preventDefault: true,
+      onStart: (ev) =>
+        setToolDrag(
+          (prev) =>
+            prev && { ...prev, active: true, start: { clientX: ev.clientX, clientY: ev.clientY } },
+        ),
+      onEnd: (ev) => {
+        handleToolDrop(drag, ev.clientX, ev.clientY)
+        endToolDrag()
+      },
+      onClick: () => {
+        endToolDrag()
+        onClick?.()
+      },
+      onCancel: endToolDrag,
+    })
+    if (!handle) return
+    toolDragHandleRef.current = handle
+    setToolDrag({ ...drag, active: false, start: null })
+  }
+
+  function endToolDrag() {
+    toolDragHandleRef.current = null
+    setToolDrag(null)
+  }
+
+  // The release of a tool drag at (clientX, clientY): the same as the tool key at that point. Over the piece
+  // under the pointer, the tool snaps to it. Over the table or terrain, it spawns free there. Over a HUD
+  // panel, off the table or over the own rack: nothing, and no toggle (docs/features/table-tools.md, "Tool
+  // rack"). The piece under the pointer is hoveredRef: the drag releases the pointer capture of the canvas,
+  // so the hover events of the 3D scene go on during the drag.
+  function handleToolDrop({ kind, which }, clientX, clientY) {
+    if (!document.elementFromPoint(clientX, clientY)?.closest('.scene-root')) return
+    const point = toolDragPointRef.current
+    if (!canDropTool(ownSide, point)) return
+    const at = { x: point.x, z: point.z }
+    if (kind === 'angle') placeAngleTool(hoveredRef.current, at)
+    else placeTool(kind, which, hoveredRef.current, at)
+  }
+
+  // A move drag of an own tool ended on the own rack: the tool goes back to it (Scene.jsx, onToolReturn)
+  function handleToolReturn(kind) {
+    setOwnTool(kind, null)
+  }
+
   // Character under (clientX, clientY): the DOM tray controls first (data-character-id, see
   // TrayControls.jsx), then the 3D scene (Scene.jsx, characterAt). Usable outside a drag too: it is
   // passed down to Scene, which gives it to CrisisToken.jsx for an Extract token's release (Phase
@@ -1735,6 +1815,7 @@ export default function App({
                 onRangeClick: handleRangeClick,
                 onMoveClick: handleMoveClick,
                 onAngleClick: handleAngleClick,
+                onDragStart: startToolDrag,
               }}
               terrain={terrain}
               onTerrainHover={handleTerrainHover}
@@ -1743,6 +1824,7 @@ export default function App({
               tools={tools}
               ownSide={ownSide}
               onToolStore={handleToolStore}
+              onToolReturn={rackShown ? handleToolReturn : undefined}
               ownership={ownership}
               presence={presence}
               live={live}
@@ -1784,6 +1866,8 @@ export default function App({
               onTacticHover={handleTacticHover}
               tokenDrag={tokenDrag}
               dragPointRef={dragPointRef}
+              toolDrag={toolDrag}
+              toolDragPointRef={toolDragPointRef}
               onCardOpen={setOpenCard}
               onTrayOpen={setOpenTrayId}
               onAttachedOpen={handleAttachedOpen}

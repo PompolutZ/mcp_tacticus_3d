@@ -2,12 +2,9 @@
 
 Status: partly built.
 
-Built: the table depth, the start view, the **Power Phase** buttons, the board strip and the tool rack with its click.
+Built: the table depth, the start view, the **Power Phase** buttons, the board strip and the tool rack with its click, its drag and the return of a tool.
 
-Not built yet:
-
-- the drag from the tool rack, and the return of a tool to the rack
-- the **Settings** menu (table or HUD, the key and mouse lists)
+Not built yet: the **Settings** menu (table or HUD, the key and mouse lists).
 
 Until the Settings menu is built, the toolbar keeps all its buttons.
 
@@ -51,8 +48,8 @@ z = 38                   ─────────────── table edg
 - A tool that is on the table is a faint copy on the rack, the same as an empty place on the TTS tray. When R1 is on the table, R2 is faint and the R1 chip is on. When the Toward / Away tool is on the table, its chip is on.
 - Hover over a tool: a label with its name and key, for example "Range 3 · key 3".
 - **Click**: the same as the toolbar button of that tool. It turns the tool on or off. A new tool snaps to the selected piece, else it spawns free at the table point in the middle of the screen.
-- **Drag**: a flat outline of the tool follows the pointer on the table. The release works the same as the tool key at that point. Over a character or a crisis token, the tool snaps to it. Over the table or terrain, the tool spawns free there. Over the rack or off the table, nothing happens. Escape cancels the drag.
-- **Return**: when a drag of an own tool ends with the tool center over the own rack, the tool goes back to the rack (it is removed from the table). TTS has this as the tool tray setting "Cleanup", on by default.
+- **Drag**: a flat outline of the tool follows the pointer on the table. The release works the same as the tool key at that point. Over a character or a crisis token, the tool snaps to it. Over the table or terrain, the tool spawns free there. Over the rack or off the table, nothing happens. Escape cancels the drag. The outline has the footprint of the tool (the Toward / Away outline is the L shape of its two arms), in the player tint, turned as the tool spawns free. It is dimmed over the own rack, as a hint that a release does nothing, and hidden off the table.
+- **Return**: when a move drag of an own tool (not a turn or a bend) ends with the tool center over the own rack, the tool goes back to the rack (it is removed from the table). TTS has this as the tool tray setting "Cleanup", on by default.
 - **Which racks.** A multiplayer room shows both racks. A player uses only their own rack. The other rack shows the other player's tools on the table as faint copies, and does not react to the pointer. The Sandbox and a single player room show only the blue rack, because that browser has only Blue's tools (`ownSide` in `App.jsx`).
 
 ## Power Phase button

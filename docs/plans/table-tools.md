@@ -241,7 +241,17 @@ User, after this step:
 
 ### Result
 
-Not done.
+Done.
+
+- `App.jsx`: `startToolDrag` (like `startTokenDrag`: `startPointerDrag` with `controls`, state `toolDrag` with `active` and `start`, `toolDragHandleRef`, `toolDragPointRef`), `endToolDrag`, `handleToolDrop`, `handleToolReturn`, `rackShown` (`true` for now, step 4 takes it from the settings). Escape cancels the drag in `handleKeyDown`, and other keys do nothing while it lasts.
+- The tool key code moved into `placeTool(tool, value, piece, at)` and `placeAngleTool(piece, at)`. `handleToolKey` and `handleAngleKey` are one line each: `hoveredRef.current` and `toolPointRef.current?.atPointer()`. Key behavior is the same, with the toggle fallback when there is no piece and no point. The drop calls the same functions with the piece under the pointer and the drop point, and does nothing (no toggle) over a HUD panel, off the table or over the own rack (`canDropTool`).
+- The piece under the pointer at the release is `hoveredRef`. The drag releases the pointer capture of the canvas, so the R3F hover events go on. Not run in a browser (project rule): if a hover is missed, the fix is to find the piece at the release (`findCharacterAt`).
+- `components/ToolDragGhost.jsx` (new): flat semi-transparent arms in the player tint at the table point, turned to `freeSpawnYaw(ownSide)`, dimmed over the own rack, hidden off the table. `tabletools/dropShape.js` (new, with tests): `toolArms(kind, which)` and `canDropTool(side, point)`.
+- `ToolRack.jsx`: a press on an own tool (3D event) or chip (DOM event) calls `onDragStart(e, kind, which, onClick)`. A tool keeps its 3D click. A chip toggles from the click of the drag code, and its own `onClick` only works for the keyboard (detail 0), so a drag that ends on the chip does not toggle. The click guard is now `delta >= CLICK_MOVE`, the same as the drag threshold.
+- Return: `RulerTool.jsx` `Tool` has an `onReturn` prop. At the end of a move drag (not turn, not bend) with the tool center on the own rack (`onRack`), it calls it. `Scene.jsx` gets `onToolReturn` and passes `onReturn` to the three own tools. `App.jsx` passes it only when `rackShown`.
+- Docs: `table-tools.md` (status: only the Settings menu is left, the outline), `README.md` ("Where a tool spawns").
+- Checks: build, format, lint (41 warnings, as before), test 346 pass.
+- Differs from the plan: none. Not checked in a browser.
 
 ## Step 4: Settings menu
 

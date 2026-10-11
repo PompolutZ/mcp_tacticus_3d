@@ -8,14 +8,15 @@ import { useHoverCursor } from './useHoverCursor.js'
 
 // The tool rack of each player: a plate with the range and movement tools in the player tint, and the R1 and
 // T/A chips. See docs/features/table-tools.md, "Tool rack". The tools have no physics body. A click is the
-// same as the toolbar button of that tool.
+// same as the toolbar button of that tool. A drag takes the tool to the table (App.jsx, startToolDrag).
 
 // The plate is a little above the table, like the tray plates (CharacterTray.jsx); the tools lie on it
 const PLATE_Y = 0.01
 const TOOL_Y = 0.02
 const CHIP_Y = 0.05
 const INCHES_PER_PX = 0.04
-// A click that moved the pointer more than this many px was a drag of the camera
+// A press that moved the pointer this many px or more is not a click: it is a drag (pointerDrag.js,
+// DRAG_THRESHOLD) or a drag of the camera
 const CLICK_MOVE = 4
 // How much of the tool shows when it is on the table
 const FAINT_OPACITY = 0.25
@@ -57,8 +58,9 @@ function useFaintParts(parts) {
 }
 
 // One tool on the rack, lying along x at its slot. out: the tool is on the table, so a faint copy shows.
-// onClick undefined: the rack of the other player, with no pointer handlers.
-function RackTool({ parts, slot, side, out, label, onClick }) {
+// onClick undefined: the rack of the other player, with no pointer handlers. onDragStart(e): a press, which
+// may become a drag.
+function RackTool({ parts, slot, side, out, label, onClick, onDragStart }) {
   const faint = useFaintParts(parts)
   const [pointerOver, setHovered] = useState(false)
   // The rack of the other player has no handlers, so it is never hovered
@@ -71,10 +73,11 @@ function RackTool({ parts, slot, side, out, label, onClick }) {
       setHovered(true)
     },
     onPointerOut: () => setHovered(false),
+    onPointerDown: onDragStart,
     onClick: (e) => {
       // The click does not reach the table (it would clear the selection)
       e.stopPropagation()
-      if (e.delta > CLICK_MOVE) return
+      if (e.delta >= CLICK_MOVE) return
       onClick()
     },
   }
@@ -108,8 +111,9 @@ function RackMove({ slot, ...props }) {
   return <RackTool parts={parts} slot={slot} {...props} />
 }
 
-// A chip of the rack (R1, T/A). It lies flat and faces the owner. on: its tool is on the table.
-function RackChip({ slot, side, on, title, onClick }) {
+// A chip of the rack (R1, T/A). It lies flat and faces the owner. on: its tool is on the table. A press starts
+// the drag, and a release without a drag is the click. The keyboard click (detail 0) works as well.
+function RackChip({ slot, side, on, title, onClick, onDragStart }) {
   return (
     <OnTable position={[slot.x, CHIP_Y, slot.z]} rotation={OWNER_FACING_ROTATION[side]}>
       <button
@@ -117,7 +121,8 @@ function RackChip({ slot, side, on, title, onClick }) {
         className={`chip table-button rack-chip${on ? ' chip--active' : ''}${onClick ? '' : ' rack-chip--locked'}`}
         style={{ width: px(slot.length), height: px(slot.width) }}
         title={title}
-        onClick={onClick}
+        onPointerDown={onDragStart}
+        onClick={onClick && ((e) => e.detail === 0 && onClick())}
       >
         {slot.key === 'r1' ? 'R1' : 'T/A'}
       </button>
@@ -134,6 +139,10 @@ function Rack({ side, tools, handlers }) {
   const moveOn = entry.move?.which ?? null
   const angleOn = Boolean(entry.angle)
   const click = (fn) => handlers && (() => fn())
+  // The press of a tool or chip: it may become a drag. clickFn: the click of a chip, which has no click event
+  // of its own after a press (a tool uses the click event of the 3D scene).
+  const press = (kind, which, clickFn) =>
+    handlers && ((e) => handlers.onDragStart(e, kind, which, clickFn))
 
   return (
     <group>
@@ -151,6 +160,7 @@ function Rack({ side, tools, handlers }) {
               on={rangeOn === 1}
               title="Range 1 · key 1"
               onClick={click(() => handlers.onRangeClick(1))}
+              onDragStart={press('range', 1, () => handlers.onRangeClick(1))}
             />
           )
         }
@@ -163,6 +173,7 @@ function Rack({ side, tools, handlers }) {
               on={angleOn}
               title="Toward / Away · key 6"
               onClick={click(handlers.onAngleClick)}
+              onDragStart={press('angle', true, handlers.onAngleClick)}
             />
           )
         }
@@ -178,6 +189,7 @@ function Rack({ side, tools, handlers }) {
                 out={out}
                 label={`Range ${n} · key ${n}`}
                 onClick={click(() => handlers.onRangeClick(n))}
+                onDragStart={press('range', n)}
               />
             </Suspense>
           )
@@ -191,6 +203,7 @@ function Rack({ side, tools, handlers }) {
               out={moveOn === type}
               label={`${MOVE_NAMES[type]} · key ${MOVE_KEYS[type]}`}
               onClick={click(() => handlers.onMoveClick(type))}
+              onDragStart={press('move', type)}
             />
           </Suspense>
         )
@@ -201,6 +214,7 @@ function Rack({ side, tools, handlers }) {
 
 // The racks. A multiplayer room shows both, and only the own one reacts to the pointer. Else only the rack of
 // the own side shows, because this browser has only its own tools. The handlers are the toolbar handlers.
+// onDragStart(e, kind, which, onClick): a press on an own tool or chip (App.jsx, startToolDrag).
 export default function ToolRack({
   ownSide,
   multiplayer,
@@ -208,8 +222,9 @@ export default function ToolRack({
   onRangeClick,
   onMoveClick,
   onAngleClick,
+  onDragStart,
 }) {
-  const handlers = { onRangeClick, onMoveClick, onAngleClick }
+  const handlers = { onRangeClick, onMoveClick, onAngleClick, onDragStart }
   return (multiplayer ? TEAMS : [ownSide]).map((side) => (
     <Rack key={side} side={side} tools={tools} handlers={side === ownSide ? handlers : undefined} />
   ))
