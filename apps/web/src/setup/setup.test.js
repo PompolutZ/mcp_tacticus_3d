@@ -4,6 +4,7 @@ import {
   NEW_SETUP,
   chooseAffiliation,
   chooseDeck,
+  chooserOf,
   colorOf,
   crisisRows,
   newSetup,
@@ -290,4 +291,21 @@ test('setRollOff: a winner gets Priority, a tie keeps it null, a manual Priority
   assert.equal(tie.priority, null)
   assert.equal(setupStep(tie), 'rollOff')
   assert.equal(setPriority(tie, 'blue').rollOff, null)
+})
+
+test('chooserOf: the side that chooses in each step', () => {
+  // Red has Priority
+  const base = { ...newSetup(), priority: 'red' }
+  assert.equal(chooserOf(newSetup()), null)
+  assert.equal(chooserOf(base), 'red') // deck
+  const first = { ...base, deck: { type: 'secure' } }
+  assert.equal(chooserOf(first), 'blue')
+  const second = { ...first, picks: { secure: 's1', extract: null } }
+  assert.equal(chooserOf(second), 'red')
+  const threat = { ...second, picks: { secure: 's1', extract: 'e1' } }
+  assert.equal(chooserOf(threat), 'blue')
+  const edge = { ...threat, threat: 17 }
+  assert.equal(chooserOf(edge), 'red')
+  assert.equal(chooserOf({ ...edge, priority: 'blue' }), 'blue')
+  assert.equal(chooserOf({ ...edge, edge: true }), null)
 })

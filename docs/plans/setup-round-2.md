@@ -1,6 +1,6 @@
 # Plan: Setup round 2
 
-Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: steps 1 to 3 done. Branch `setup-round-2`, from main at `87f9b6e`.
+Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: steps 1 to 4 done. Branch `setup-round-2`, from main at `87f9b6e`.
 
 The feature is `docs/features/setup-game.md`. Each step makes one commit and writes its **Result** below.
 
@@ -159,6 +159,15 @@ Work:
 Checks: as in "Checks".
 
 User, after this step: in a multiplayer room, each step can be clicked only in the right browser. The edge controls lie in front of the player with Priority.
+
+### Result
+
+Done. Commit "setup round 2 part 4: who can click, edge controls".
+
+- `chooserOf(setup)` in `setup.js`: deck, second card, edge → the side with Priority; first card, threat → the other side; other steps null. Tests in `setup.test.js`.
+- `GameSetup.jsx`: `lockedTitle(setup, what, ctx)` is null in the Sandbox, a single player room and for the chooser. Else the deck buttons, card **Choose**, threat chips and edge controls get `aria-disabled`, no click handler and the title "Nelly chooses the Maximum Threat" (`says` of names.js). Manual Priority buttons unchanged.
+- `EdgeControls` (in `GameSetup.jsx`) uses `edgeControls(side)` in `tabletools/layout.js`: center x 26, z 36 (blue; red mirrors), 7.2" × 3.2", `OWNER_FACING_ROTATION`. Arrows 2.4" × 1.6" with font 28 px, **Choose this edge** 7.2" × 1.4" on the second row. The mat turn arrows left the panel. Node tests in `tabletools/layout.test.js` (inside the table, mirror, no overlap with the rest, the Power button, full rosters and crisis rows of both sides). The test setup of the Power button moved into a shared `crowded(side)`.
+- Docs: `setup-game.md` (What the app does, Deployment edge row, Buttons).
 
 
 ## Step 5: Squad step without a mode

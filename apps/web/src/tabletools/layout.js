@@ -131,3 +131,20 @@ export function boardStrip(side) {
     rowX: STRIP_ROW_X,
   }
 }
+
+// The edge controls of the setup (↺ Choose this edge ↻) lie on the side of the player with Priority, flat and
+// facing that player (OWNER_FACING_ROTATION), in the rack band next to the tool rack, near the table edge
+// (docs/features/setup-game.md, "Buttons"). Free there: x 15.2 (the rack plate ends) to the table edge, z 34.2
+// to 38, past the deepest tray parts. width lies along x, depth along z. Two rows: the arrows, then the
+// Choose button below them (toward the table edge). Sizes in inches, 1 CSS px is 0.04".
+export const EDGE_ARROW_WIDTH = 2.4
+export const EDGE_ARROW_HEIGHT = 1.6
+export const EDGE_CHOOSE_HEIGHT = 1.4
+export const EDGE_ROW_GAP = 0.2
+export const EDGE_ARROW_GAP = 0.8
+export function edgeControls(side) {
+  const s = sign(side)
+  const width = 7.2
+  const depth = EDGE_ARROW_HEIGHT + EDGE_ROW_GAP + EDGE_CHOOSE_HEIGHT
+  return { x: 26 * s, z: 36 * s, width, depth }
+}

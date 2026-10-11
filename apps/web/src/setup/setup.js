@@ -100,6 +100,25 @@ export function setupStep(setup) {
   return 'done'
 }
 
+// The side that chooses in the current step, or null when no single player does (docs/features/setup-game.md,
+// "What the app does"). Deck, second card and edge: the player with Priority. First card and Maximum
+// Threat: the other player. In a multiplayer room, only this side can click the buttons of the step. The roll
+// off, the squads and the later steps have no chooser: both players act.
+export function chooserOf(setup) {
+  const winner = priorityOf(setup)
+  switch (setupStep(setup)) {
+    case 'deck':
+    case 'second':
+    case 'edge':
+      return winner
+    case 'first':
+    case 'threat':
+      return otherTeam(winner)
+    default:
+      return null
+  }
+}
+
 // The sides that this browser reveals now. Both players are Ready, and the side is not placed yet. sides:
 // the teams this browser plays. stored: null when the squads are in the document (single player room,
 // Sandbox), else { blue, red } → the squad record of this browser { setupId, squad } | null. Returns

@@ -7,6 +7,7 @@ import { CRISIS_GAP_X, USE_BUTTON_X, crisisCenterZ, crisisRowLayout } from '../r
 import {
   CRISIS_TYPES,
   TEAMS,
+  chooserOf,
   crisisRows,
   otherTeam,
   otherType,
@@ -17,7 +18,15 @@ import {
 import { capital, isYou, playerName, possessive, says } from '../setup/names.js'
 import { COLOR_NAME, useSideColors } from '../sideColors.js'
 import { RosterCard } from './RosterCards.jsx'
-import { OnTable } from './OnTable.jsx'
+import { OnTable, OWNER_FACING_ROTATION } from './OnTable.jsx'
+import {
+  EDGE_ARROW_GAP,
+  EDGE_ARROW_HEIGHT,
+  EDGE_ARROW_WIDTH,
+  EDGE_CHOOSE_HEIGHT,
+  EDGE_ROW_GAP,
+  edgeControls,
+} from '../tabletools/layout.js'
 
 const TYPE = { secure: 'Secure', extract: 'Extract' }
 // Players select up to 5 Team Tactic cards (p11). The app shows the count and does not stop a 6th card.
@@ -26,6 +35,17 @@ const TACTIC_LIMIT = 5
 const TABLE_Y = 0.05
 // The panel lies between the table edge and the scoring board, at the middle of the board
 const PANEL_X = (-TABLE_WIDTH / 2 + BOARD_X - BOARD_HALF_WIDTH) / 2
+const INCHES_PER_PX = 0.04
+const px = (inches) => Math.round(inches / INCHES_PER_PX)
+
+// In a multiplayer room, only the chooser of the current step clicks (chooserOf, setup/setup.js). Returns
+// null when this browser may click, else the title for the disabled button: "Nelly chooses the Maximum
+// Threat". The Sandbox and a single player room (no mySide) let anyone click.
+function lockedTitle(setup, what, ctx) {
+  const chooser = chooserOf(setup)
+  if (!ctx.mySide || !chooser || chooser === ctx.mySide) return null
+  return `${says(chooser, ctx, 'choose')} ${what}`
+}
 
 // The context of the names (setup/names.js). seatPlayers: { players, peer } in a multiplayer room, else null.
 function useNames(mySide, seatPlayers) {
@@ -65,7 +85,7 @@ function deckProblem(team, type, parsed, ctx) {
 
 // One row of crisis cards of a roster, next to the scoring board. With row.use, each card has a Choose button
 // next to it. row: see crisisRows in setup/setup.js. A click on a card opens the crisis tab of the roster popup.
-function CrisisRow({ row, parsed, onOpen, onUse }) {
+function CrisisRow({ row, parsed, locked, onOpen, onUse }) {
   const cards = useMemo(
     () => crisisRowLayout(row.team, row.type, row.codes, row.drawn),
     [row.team, row.type, row.codes, row.drawn],
@@ -88,8 +108,9 @@ function CrisisRow({ row, parsed, onOpen, onUse }) {
             <button
               type="button"
               className="chip setup-use"
-              title={`Choose ${info.name}`}
-              onClick={() => onUse(card.code)}
+              aria-disabled={locked !== null}
+              title={locked ?? `Choose ${info.name}`}
+              onClick={locked === null ? () => onUse(card.code) : undefined}
             >
               Choose
             </button>
@@ -102,7 +123,7 @@ function CrisisRow({ row, parsed, onOpen, onUse }) {
 
 // The 2 deck buttons of the player with Priority, between their Secure and Extract rows. They have no color:
 // the color of a button does not tell the crisis type.
-function DeckButtons({ team, parsed, ctx, onChoose }) {
+function DeckButtons({ team, parsed, ctx, locked, onChoose }) {
   return (
     <OnTable position={[CRISIS_GAP_X, TABLE_Y, crisisCenterZ(team)]}>
       <div className="setup-buttons">
@@ -113,9 +134,10 @@ function DeckButtons({ team, parsed, ctx, onChoose }) {
               key={type}
               type="button"
               className="chip"
-              disabled={problem !== null}
-              title={problem ?? `Draw 2 of ${possessive(team, ctx)} ${TYPE[type]} cards`}
-              onClick={() => onChoose(type)}
+              disabled={locked === null && problem !== null}
+              aria-disabled={locked !== null}
+              title={locked ?? problem ?? `Draw 2 of ${possessive(team, ctx)} ${TYPE[type]} cards`}
+              onClick={locked === null ? () => onChoose(type) : undefined}
             >
               Choose {TYPE[type]}s
             </button>
@@ -138,9 +160,63 @@ function rollOffText({ winner, counts }, ctx) {
   return `${base}, with more Wilds (${a.wilds} against ${b.wilds}).`
 }
 
+// ↺ Choose this edge ↻ on the side of the player with Priority, lying flat and facing them (OWNER_FACING_ROTATION).
+// The arrows are on the first row, Choose this edge on the second (tabletools/layout.js, edgeControls).
+function EdgeControls({ team, locked, actions }) {
+  const colors = useSideColors()
+  const place = edgeControls(team)
+  const arrow = {
+    width: px(EDGE_ARROW_WIDTH),
+    height: px(EDGE_ARROW_HEIGHT),
+  }
+  const click = (fn) => (locked === null ? fn : undefined)
+  return (
+    <OnTable position={[place.x, TABLE_Y, place.z]} rotation={OWNER_FACING_ROTATION[team]}>
+      <div
+        className="setup-edge"
+        style={{ width: px(place.width), height: px(place.depth), gap: px(EDGE_ROW_GAP) }}
+      >
+        <div className="setup-edge-row" style={{ gap: px(EDGE_ARROW_GAP) }}>
+          <button
+            type="button"
+            className="chip setup-edge-arrow"
+            style={arrow}
+            aria-disabled={locked !== null}
+            title={locked ?? 'Turn mat 90° counter-clockwise'}
+            onClick={click(() => actions.turnMat(1))}
+          >
+            ↺
+          </button>
+          <button
+            type="button"
+            className="chip setup-edge-arrow"
+            style={arrow}
+            aria-disabled={locked !== null}
+            title={locked ?? 'Turn mat 90° clockwise'}
+            onClick={click(() => actions.turnMat(-1))}
+          >
+            ↻
+          </button>
+        </div>
+        <button
+          type="button"
+          className={`chip setup-edge-choose chip--player-${colors[team]}`}
+          style={{ height: px(EDGE_CHOOSE_HEIGHT) }}
+          aria-disabled={locked !== null}
+          title={locked ?? undefined}
+          onClick={click(actions.edge)}
+        >
+          Choose this edge
+        </button>
+      </div>
+    </OnTable>
+  )
+}
+
 // The panel next to the scoring board: what to do in this step, the buttons of the steps that are not about one
 // card, and Restart. The text names the player who chooses (setup/names.js).
 function BoardPanel({ setup, step, parsed, mySide, ctx, actions }) {
+  const threatLocked = lockedTitle(setup, 'the Maximum Threat', ctx)
   const colors = useSideColors()
   const winner = priorityOf(setup)
   const other = winner && otherTeam(winner)
@@ -181,8 +257,9 @@ function BoardPanel({ setup, step, parsed, mySide, ctx, actions }) {
           key={type}
           type="button"
           className="chip"
-          title={info.name}
-          onClick={() => actions.threat(info.threat)}
+          aria-disabled={threatLocked !== null}
+          title={threatLocked ?? info.name}
+          onClick={threatLocked === null ? () => actions.threat(info.threat) : undefined}
         >
           {TYPE[type]} · {info.threat}
         </button>
@@ -191,33 +268,7 @@ function BoardPanel({ setup, step, parsed, mySide, ctx, actions }) {
   } else if (step === 'edge') {
     hint = chooses(winner, 'the board edge', ctx)
     note = `Turn the mat until the deployment edge faces ${isYou(winner, ctx) ? 'you' : playerName(winner, ctx)}.`
-    controls = (
-      <>
-        <button
-          type="button"
-          className="chip"
-          title="Turn mat 90° counter-clockwise"
-          onClick={() => actions.turnMat(1)}
-        >
-          ↺
-        </button>
-        <button
-          type="button"
-          className={`chip chip--player-${colors[winner]}`}
-          onClick={actions.edge}
-        >
-          Choose this edge
-        </button>
-        <button
-          type="button"
-          className="chip"
-          title="Turn mat 90° clockwise"
-          onClick={() => actions.turnMat(-1)}
-        >
-          ↻
-        </button>
-      </>
-    )
+    // The controls lie on the side of the player with Priority (EdgeControls)
   } else if (step === 'squads') {
     hint = `${mySide ? 'Choose your squad' : 'Each player chooses a squad'} and click Ready. The squads go on the table when both players are Ready.`
   } else if (step === 'reveal') {
@@ -407,6 +458,7 @@ export default function GameSetup({
   )
   const rows = useMemo(() => crisisRows(setup, parsed), [setup, parsed])
   const step = setupStep(setup)
+  const cardLocked = lockedTitle(setup, 'a card', ctx)
   if (step === 'done' || (!parsed.blue && !parsed.red)) return null
   return (
     <>
@@ -415,12 +467,26 @@ export default function GameSetup({
           key={`${row.team}-${row.type}`}
           row={row}
           parsed={parsed[row.team]}
+          locked={cardLocked}
           onOpen={(tab, index) => onRosterOpen({ team: row.team, tab, index })}
           onUse={actions.pick}
         />
       ))}
       {step === 'deck' && parsed[priorityOf(setup)] && (
-        <DeckButtons team={priorityOf(setup)} parsed={parsed} ctx={ctx} onChoose={actions.deck} />
+        <DeckButtons
+          team={priorityOf(setup)}
+          parsed={parsed}
+          ctx={ctx}
+          locked={lockedTitle(setup, 'a deck', ctx)}
+          onChoose={actions.deck}
+        />
+      )}
+      {step === 'edge' && (
+        <EdgeControls
+          team={priorityOf(setup)}
+          locked={lockedTitle(setup, 'the board edge', ctx)}
+          actions={actions}
+        />
       )}
       <BoardPanel
         setup={setup}
