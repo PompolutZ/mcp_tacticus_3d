@@ -102,9 +102,9 @@ Filters (2) ▾                              opens the filters
 |---|---|---|
 | Must have | A row of the roster's characters (small portrait and name). A click turns one on or off | Only combinations with all of these characters |
 | Must not have | The same row | These characters are left out before the app finds the combinations. So the list shows squads that fill the threat without them |
-| Affiliation | A list: **No filter**, **Any affiliation**, then each affiliation that a combination of the roster has at one of the shown threat values, by name | Any affiliation: combinations with at least one. An affiliation: combinations that have it |
+| Affiliation | A chip row with the affiliation icons: **Any affiliation**, then each affiliation that a combination of the roster has at one of the shown threat values, by name. One chip at a time; a click on the chosen chip clears the filter | Any affiliation: combinations with at least one. An affiliation: combinations that have it |
 | At least 2 affiliations | Check box | Combinations with 2 or more affiliations |
-| With a leader | Check box | Only affiliations with a leader count for the two filters above. With **No filter**, a combination needs at least one affiliation with a leader |
+| With a leader | Check box | Only affiliations with a leader count for the two filters above. With no affiliation chosen, a combination needs at least one affiliation with a leader |
 | Min size | **Any**, 3, 4, 5, 6, 7 | Combinations with at least that many characters |
 | Max size | 3, 4, 5, 6, 7, **Any** | Combinations with at most that many characters |
 

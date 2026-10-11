@@ -2111,8 +2111,8 @@ body {
   gap: 4px;
 }
 
-/* A character chip: small round portrait and the name. chip--active (the selected state) comes from .chip */
-.breakdown-char-chip {
+/* An icon chip: small round portrait or affiliation icon and the name. chip--active (the selected state) comes from .chip */
+.breakdown-icon-chip {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -2127,17 +2127,6 @@ body {
   border-radius: 50%;
   background: var(--panel-2);
   object-fit: cover;
-}
-
-.breakdown-select {
-  font: inherit;
-  font-size: 13px;
-  color: var(--text);
-  background: var(--panel-2);
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  padding: 3px 6px;
-  cursor: pointer;
 }
 
 .breakdown-check {

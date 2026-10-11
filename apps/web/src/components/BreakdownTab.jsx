@@ -3,6 +3,8 @@ import { characterByCode } from '../characters/characters.js'
 import { rosterBreakdown } from '../rosters/cards.js'
 import { MAX_BREAKDOWN_CHARACTERS, NO_FILTERS } from '../rosters/breakdown.js'
 import { affiliationName } from '../scoreboard/affiliations.js'
+import { affiliationToken } from '../scoreboard/files.js'
+import { assetUrl } from '../assets/index.js'
 import { CharacterPortrait } from './CharacterPortrait.jsx'
 
 // The Breakdown tab of the roster popup (RosterPopup.jsx): the squads that the roster can build for a threat
@@ -107,8 +109,8 @@ export function BreakdownTab({ parsed, breakdown }) {
               type="button"
               className={
                 filters[key].includes(place)
-                  ? 'chip breakdown-char-chip chip--active'
-                  : 'chip breakdown-char-chip'
+                  ? 'chip breakdown-icon-chip chip--active'
+                  : 'chip breakdown-icon-chip'
               }
               aria-pressed={filters[key].includes(place)}
               onClick={() => toggleCharacter(key, other, place)}
@@ -171,19 +173,32 @@ export function BreakdownTab({ parsed, breakdown }) {
           {characterRow('mustNot', 'must', 'Must not have')}
           <div className="breakdown-filter">
             <span className="breakdown-filter-label">Affiliation</span>
-            <select
-              className="breakdown-select"
-              value={filters.affiliation ?? ''}
-              onChange={(e) => setFilters({ affiliation: e.target.value || null })}
-            >
-              <option value="">No filter</option>
-              <option value="*">Any affiliation</option>
-              {affiliationKeys.map((key) => (
-                <option key={key} value={key}>
-                  {affiliationName(key)}
-                </option>
+            <div className="breakdown-filter-chips">
+              {['*', ...affiliationKeys].map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={
+                    filters.affiliation === key
+                      ? 'chip breakdown-icon-chip chip--active'
+                      : 'chip breakdown-icon-chip'
+                  }
+                  aria-pressed={filters.affiliation === key}
+                  onClick={() =>
+                    setFilters({ affiliation: filters.affiliation === key ? null : key })
+                  }
+                >
+                  {key !== '*' && (
+                    <img
+                      className="breakdown-chip-portrait"
+                      src={assetUrl(affiliationToken(key))}
+                      alt=""
+                    />
+                  )}
+                  {key === '*' ? 'Any affiliation' : affiliationName(key)}
+                </button>
               ))}
-            </select>
+            </div>
           </div>
           <div className="breakdown-filter">
             <label className="breakdown-check">
