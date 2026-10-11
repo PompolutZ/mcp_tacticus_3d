@@ -48,10 +48,11 @@ import { projectFootprints } from './footprintProjection.js'
 import { matImage } from '../terrain/files.js'
 import { BASE_DIAMETER } from '../characters/files.js'
 import { MAPS } from '../terrain/maps.js'
-import { characterGiveSources, characterStamina } from '../characters/characters.js'
+import { characterGiveSources, characterName, characterStamina } from '../characters/characters.js'
 import {
   characterModels,
   characterOnBoard,
+  modelCardFile,
   modelCharacterId,
   modelFigureYaw,
   modelSpawnYaw,
@@ -230,8 +231,10 @@ const OVERLAP_INTERVAL = 100
 // for the F key.
 // onCharacterOffBoard(id): the tray's Remove button, enabled while a model of the character is on the mat.
 // onCharacterTokenRemove(id, key): a click on a token in the tray's "On" row.
-// onTokenDragStart(e, key, looseId): pointerdown on a tray's Give source, or on a token on the
-// table (looseId). See App.jsx, handleTokenDragStart.
+// onTokenDragStart(e, key, looseId, giveId): pointerdown on a tray's Give source (giveId: the character of the
+// tray), or on a token on the table (looseId). See App.jsx, handleTokenDragStart.
+// onCardHover(card, over): the pointer moved onto or off a card or a model, card as { src, alt, by }, for Alt
+// (App.jsx).
 // looseTokens: the character tokens that lie on the table, [{ id, key, x, z }] (see App.jsx).
 // onLooseHover(id, over): the pointer moved onto or off one of them, for the Delete key.
 // tokenPiles: the piles of character tokens on the table, [{ id, key, x, z }] (see TokenPile.jsx).
@@ -336,6 +339,7 @@ export default function Scene({
   onCharacterPower,
   onCharacterFlip,
   onTrayCardHover,
+  onCardHover,
   onCharacterOffBoard,
   onCharacterTokenRemove,
   onTokenDragStart,
@@ -1192,6 +1196,7 @@ export default function Scene({
               cardKey={crisis.secure}
               position={[CARD_X, CARD_Y, CARD_Z.secure]}
               onOpen={onCardOpen}
+              onCardHover={onCardHover}
             />
           </Suspense>
         )}
@@ -1201,6 +1206,7 @@ export default function Scene({
               cardKey={crisis.extract}
               position={[CARD_X, CARD_Y, CARD_Z.extract]}
               onOpen={onCardOpen}
+              onCardHover={onCardHover}
             />
           </Suspense>
         )}
@@ -1369,6 +1375,7 @@ export default function Scene({
                   code={rosters[team].code}
                   squad={setup.squads[team]}
                   onOpen={(tab, index) => onRosterOpen?.({ team, tab, index })}
+                  onCardHover={onCardHover}
                 />
               ),
           )}
@@ -1379,6 +1386,7 @@ export default function Scene({
           mySide={mySide}
           actions={setupActions}
           onRosterOpen={onRosterOpen}
+          onCardHover={onCardHover}
         />
         {tacticCards.map((card, i) => (
           <Suspense key={card.id} fallback={null}>
@@ -1392,6 +1400,7 @@ export default function Scene({
               getLivePose={getPieceLive}
               onOpen={onCardOpen}
               onHover={(over) => onTacticHover?.(card.id, over)}
+              onCardHover={onCardHover}
             />
           </Suspense>
         ))}
@@ -1410,6 +1419,7 @@ export default function Scene({
               onPower={(power) => onCharacterPower(ch.id, power)}
               onFlip={() => onCharacterFlip(ch.id)}
               onCardHover={(over) => onTrayCardHover?.(ch.id, over)}
+              onCardImageHover={onCardHover}
               onRemove={() => onCharacterOffBoard(ch.id)}
               onBoard={characterOnBoard(ch, poses)}
               onAttachedOpen={onAttachedOpen}
@@ -1444,6 +1454,14 @@ export default function Scene({
             onHover: (over) => {
               onPieceHover?.({ kind: 'character', id: model.id }, over)
               trackPiece(hoveredPiece, { kind: 'character', id: model.id }, over)
+              onCardHover?.(
+                {
+                  src: assetUrl(modelCardFile(model)),
+                  alt: characterName(ch.key),
+                  by: `model:${model.id}`,
+                },
+                over,
+              )
             },
             bodyRef: (rb) =>
               rb ? charBodies.current.set(model.id, rb) : charBodies.current.delete(model.id),

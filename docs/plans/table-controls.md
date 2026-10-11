@@ -142,7 +142,16 @@ User, after this step:
 
 ### Result
 
-Not started.
+Done.
+
+- `App.jsx`: `hoveredCardRef`, `altHeldRef`, `peekCard`, `handleCardHover(card, over)`. A card is `{ src, alt, by }`. `by` names who reports it, so the end of an old hover does not clear a newer one (a model lies on a tray card with the same image). The Alt key press runs before the `altKey` return, calls `preventDefault`, and shows the hovered card when no popup and no drag is open. The `keyup` of Alt and the window blur clear it, through the existing `useWindowKeys` handlers. While Alt is held, a hover change sets `peekCard`. The render guard hides the peek while a popup or a drag is open.
+- Hover reporting: `CharacterTray.jsx` (`onCardImageHover`, per card of a two-card tray, follows a Flip), `RosterCard` (only with an image, so the setup crisis rows too, through `GameSetup.jsx`), `CrisisCard.jsx`, `TacticCard.jsx` (the side that faces up, follows a flip), and the model `onHover` in `Scene.jsx`.
+- `characters/files.js` `trayCardFile`, `characters/models.js` `modelCardFile` pick the card file of a model. Tests: 2 new in `models.test.js` (first model, second model with its own card, spare model).
+- `CardPopup.jsx` has `peek`: class `card-popup--peek`, no backdrop, `pointer-events: none`, no click.
+- Give click: `CharacterTray.jsx` passes `character.id` as the 4th argument of `onTokenDragStart` (Scene passes it through). `handleTokenDragStart` stores it as `giveId`. `startTokenDrag` `onClick` gives 1 with `handleCharacterTokenGive`, then `endTokenDrag`. The claim and the spawn are set in `onStart`, after the threshold, so a click leaves no claim and no spawn. A press without `giveId` keeps the old click.
+- Docs: `key-shortcuts.md` (Alt row is Yes, item 3 removed, items 4 and 5 are now 3 and 4), `character-trays.md` (the click, how a drag starts). The reference in Step 5 is now item 4.
+- Checks: build, format, lint (44 warning lines, 4 more than before: the 4 hover effects have the `[hovered]` dependency list like the other hover effects), test 378 pass (376 before).
+- Differs from the plan: the model card is not updated when its character is flipped while the pointer stays on the model, until the pointer leaves and returns. Not run in a browser (project rule).
 
 ## Step 4: Labels, footprint color
 
@@ -174,7 +183,7 @@ Work:
 1. `DiceTray.jsx`: a function for the number keys that does `clear`, then `addDice(n)`. `App.jsx` calls it over the own tray.
 2. `DiceKeys.jsx`: a click on a plate with dice calls `reroll(symbol)`. The plate menu goes.
 3. `DiceTray.jsx` `Die`: a click on a die on the shelf of the own tray opens the menu at that die (`diceMenu` in `App.jsx` becomes `{ trayKey, dieId }`). The menu is screen-space Html at the die, as the plate menu was. `change(dieId, toSymbol)` changes that die. A camera drag that starts on a die is not a click. The click does not reach the table.
-4. Docs: `docs/features/dice-rolling.md` (the plates, the menu, the line "In TTS, a click on a face count rerolls one die"), `docs/features/key-shortcuts.md` (item 5 of "Differences to decide" after step 2).
+4. Docs: `docs/features/dice-rolling.md` (the plates, the menu, the line "In TTS, a click on a face count rerolls one die"), `docs/features/key-shortcuts.md` (item 4 of "Differences to decide" after step 3).
 
 Checks: `pnpm --filter web build`, `pnpm format`, `pnpm lint`, `pnpm --filter web test`.
 

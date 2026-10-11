@@ -21,6 +21,9 @@ export const transformPortrait = (key) => `${dir(key)}/transform-portrait.webp`
 // Stat card of a second form that has its own card (the mod's cTCard, for example Emma Frost in Diamond Form).
 // side: 'healthy' | 'injured'
 export const transformCard = (key, side) => `${dir(key)}/transform-card-${side}.webp`
+// Stat card n of a tray: 1 is the character's own card, 2 the card of the second form
+export const trayCardFile = (key, side, n) =>
+  n === 2 ? transformCard(key, side) : characterCard(key, side)
 
 // Base diameters in inches, by the mod's cBase names. These are the 35, 50 and 65 mm bases of the game.
 export const BASE_DIAMETER = { small: 1.37795, medium: 1.9685, large: 2.55906 }

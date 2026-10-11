@@ -61,7 +61,7 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 | Delete / Backspace | Delete the hovered or selected piece | Deletes the piece under the pointer: a character token on the table, a crisis token that a character holds, a token pile, a Team Tactic card, an unlocked terrain piece, or a character (over its tray card, after a confirm; its models and tray go). Other pieces cannot be deleted with a key | Partly |
 | G | Group | Nothing | No |
 | U | Place under | Nothing | No |
-| Alt (hold, over a piece) | Zoomed preview, works best for cards | Click a card to open it in a popup | Partly |
+| Alt (hold, over a piece) | Zoomed preview, works best for cards | Shows the card under the pointer large, with no backdrop, while Alt is held: a tray card (the side that faces up), a roster card with an image, a setup or scoring board crisis card, a Team Tactic card (the side that faces up), or a model (the card of its character; the second model of a two-card character shows card 2). Moving to another card shows that card, off every card shows nothing. Release Alt, or leave the window, to close it. A click on a card still opens the popup, and Alt does nothing while a popup or a drag is open | Yes |
 | Alt + Shift | Peek at the underside | Nothing | No |
 | M | Magnify | Nothing | No |
 | N | Nudge | Nothing | No |
@@ -124,6 +124,5 @@ In order of how often a TTS player will notice them:
 
 1. **Left drag on the empty table.** It turns the camera. In TTS it box-selects, and the app has no box select.
 2. **Q / E** to turn a token.
-3. **Alt (hold)** over a card to show it large, as the click popup does.
-4. **Number key with no character under the pointer.** The mod only removes the tool. The app toggles it, so a second press spawns the tool again.
-5. **Number keys over a dice tray.** The mod clears the tray first. The app only adds dice.
+3. **Number key with no character under the pointer.** The mod only removes the tool. The app toggles it, so a second press spawns the tool again.
+4. **Number keys over a dice tray.** The mod clears the tray first. The app only adds dice.

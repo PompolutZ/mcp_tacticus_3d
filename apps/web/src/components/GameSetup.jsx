@@ -40,7 +40,7 @@ function deckProblem(team, type, parsed) {
 
 // One row of crisis cards of a roster, next to the scoring board. With row.use, each card has a Use button
 // next to it. row: see crisisRows in setup/setup.js. A click on a card opens the crisis tab of the roster popup.
-function CrisisRow({ row, parsed, onOpen, onUse }) {
+function CrisisRow({ row, parsed, onOpen, onUse, onCardHover }) {
   const cards = useMemo(
     () => crisisRowLayout(row.team, row.type, row.codes, row.drawn),
     [row.team, row.type, row.codes, row.drawn],
@@ -57,6 +57,7 @@ function CrisisRow({ row, parsed, onOpen, onUse }) {
           card={{ ...card, tab: 'crisis', index: tabIndex(card.code) }}
           info={info}
           onOpen={onOpen}
+          onCardHover={onCardHover}
         />
         {row.use && (
           <OnTable position={[USE_BUTTON_X, TABLE_Y, card.z]}>
@@ -322,8 +323,16 @@ function SquadPanel({ team, setup, parsed, selecting, own, actions }) {
 // person plays both teams. Only that team's squad panel has buttons. actions: { deck(team, type), pick(code),
 // threat(value), turnMat(direction), edge(), squadSelect(team), ready(team),
 // affiliation(team, key), restart() }, see App.jsx.
-// onRosterOpen({ team, tab, index }): a click on a crisis card.
-export default function GameSetup({ setup, rosters, squadSelect, mySide, actions, onRosterOpen }) {
+// onRosterOpen({ team, tab, index }): a click on a crisis card. onCardHover(card, over): for Alt (App.jsx).
+export default function GameSetup({
+  setup,
+  rosters,
+  squadSelect,
+  mySide,
+  actions,
+  onRosterOpen,
+  onCardHover,
+}) {
   const parsed = useMemo(
     () => ({
       blue: rosters.blue && parseRosterText(rosters.blue.code),
@@ -343,6 +352,7 @@ export default function GameSetup({ setup, rosters, squadSelect, mySide, actions
           parsed={parsed[row.team]}
           onOpen={(tab, index) => onRosterOpen({ team: row.team, tab, index })}
           onUse={actions.pick}
+          onCardHover={onCardHover}
         />
       ))}
       {step === 'deck' &&

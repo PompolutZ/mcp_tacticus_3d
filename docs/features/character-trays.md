@@ -209,12 +209,14 @@ A player gives a token to a character by dragging it onto the model or onto the 
 
 The **Library** HUD panel shows every migrated token, in groups, with a search field (see `docs/features/library.md`). It replaced the old Tokens panel. It has the same purpose as the TTS "Token Tray": a player can give a token that is not among the Give sources of any tray, for example a token from a Team Tactic card. In Pile mode, a drag from the Library puts a pile on the table that never runs out.
 
+A click on a **Give** source (a press with no drag) gives 1 of that token to the character of that tray, with the same limits as a drop on it. A token that cannot be given (an immunity) shows the same HUD message.
+
 A character token can also lie on the table, as in TTS. A player drags it there from a Give source, a pile or the Library, and later drags it on to a character or to another place. The Delete key (or Backspace) removes the token under the pointer.
 
 How the drag works:
 
-- A drag starts on `pointerdown` on a Give source (3D), a token or a pile on the table (3D) or a Library token chip (DOM). App stores it (`tokenDrag`) and turns off the camera controls.
-- The drag becomes active after the pointer moves 4 px. Then `TokenDragPreview` shows the token at real size on the table or terrain point under the pointer. A token from the table is hidden at its old place. A release before 4 px is a click, and nothing happens.
+- A drag starts on `pointerdown` on a Give source (3D, the press also knows the character of the tray), a token or a pile on the table (3D) or a Library token chip (DOM). App stores it (`tokenDrag`) and turns off the camera controls.
+- The drag becomes active after the pointer moves 4 px. Then `TokenDragPreview` shows the token at real size on the table or terrain point under the pointer. A token from the table is hidden at its old place. A release before 4 px is a click. On a Give source, the click gives 1 token to that tray's character (`giveId`, the 4th argument of `onTokenDragStart`); on any other piece, nothing happens.
 - On `pointerup`, App decides:
   1. Over a HUD panel: nothing happens. So a drag back onto the Library cancels it.
   2. Over a character: the character gets the token. DOM first: the nearest element with `data-character-id` under the pointer (the tray controls have it, and a later 2D HUD can use the same attribute). Then 3D: `Scene.jsx` gives App a `characterAt(clientX, clientY)` function through a ref. It casts a ray from the camera and hits the model objects (`charObjects`) and the tray background plates. A token from the table is used up, also when the character is at the limit for that token, the same as TTS. It stays on the table when the character is immune.

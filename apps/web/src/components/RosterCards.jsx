@@ -164,10 +164,21 @@ function SquadFrame({ card }) {
 // One roster card with its gem lines. A click on the card goes to onOpen, also for a plate: App
 // decides if the card can open (see handleRosterOpen). card: { code, kind, gems, x, z, width, height, yaw,
 // tab, index }, see rosters/layout.js. selected: the card is in the squad. Also used for the crisis cards
-// next to the scoring board (GameSetup.jsx).
-export function RosterCard({ card, info, selected = false, onOpen }) {
+// next to the scoring board (GameSetup.jsx). onCardHover(card, over): the pointer moved onto or off the card, for Alt.
+export function RosterCard({ card, info, selected = false, onOpen, onCardHover }) {
   const [hovered, setHovered] = useState(false)
   useHoverCursor(hovered, 'pointer')
+  // Alt shows the image large (App.jsx). A card without an image has nothing to show.
+  useEffect(() => {
+    if (!hovered || !info.image) return undefined
+    const image = {
+      src: assetUrl(info.image),
+      alt: info.name,
+      by: `roster:${card.tab}:${card.index}:${card.code}`,
+    }
+    onCardHover?.(image, true)
+    return () => onCardHover?.(image, false)
+  }, [hovered])
   return (
     <group
       position={[card.x, ROSTER_CARD_Y, card.z]}
@@ -200,7 +211,7 @@ export function RosterCard({ card, info, selected = false, onOpen }) {
 // squad, { characters, tactics } (setup/setup.js). onOpen(tab, index): a click on a card, see RosterPopup.jsx.
 // tab: a key of ROSTER_TABS, index: the place of the card in that tab. In the characters and tactics tabs,
 // the place in the tab is the place in the roster list.
-export default function RosterCards({ team, code, squad, onOpen }) {
+export default function RosterCards({ team, code, squad, onOpen, onCardHover }) {
   const cards = useMemo(() => {
     // rosterLayout keeps the card order of rosterTabs (cards.js), so a count per tab gives the index.
     const next = { characters: 0, tactics: 0 }
@@ -220,6 +231,7 @@ export default function RosterCards({ team, code, squad, onOpen }) {
           info={info}
           selected={selected}
           onOpen={onOpen}
+          onCardHover={onCardHover}
         />
       )
     )

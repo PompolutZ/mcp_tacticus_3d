@@ -1,6 +1,14 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { characterOnBoard, modelFigureYaw, modelSpawnYaw, yawQuaternion } from './models.js'
+import {
+  characterModels,
+  characterOnBoard,
+  modelCardFile,
+  modelFigureYaw,
+  modelSpawnYaw,
+  yawQuaternion,
+} from './models.js'
+import { characterCard, transformCard } from './files.js'
 
 const ch = { id: 'c1', key: 'hulk', figure: 'model', base: 'medium', rotation: 0 }
 const two = { ...ch, transform: { figure: 'model', card: true } }
@@ -49,4 +57,17 @@ test('the blue body starts with no turn', () => {
   assert.equal(modelSpawnYaw('blue'), 0)
   const q = yawQuaternion(modelSpawnYaw('red'))
   assert.ok(Math.abs(Math.abs(q.y) - 1) < 1e-9 && Math.abs(q.w) < 1e-9)
+})
+
+test('a model shows the card of its character, the side that faces up', () => {
+  const [first] = characterModels({ ...ch, side: 'injured' })
+  assert.equal(modelCardFile(first), characterCard('hulk', 'injured'))
+})
+
+test('the second model with its own card shows that card, a spare model the first card', () => {
+  const [first, second] = characterModels({ ...two, side: 'healthy' })
+  assert.equal(modelCardFile(second), transformCard('hulk', 'healthy'))
+  assert.equal(modelCardFile(first), characterCard('hulk', 'healthy'))
+  const [, spare] = characterModels({ ...ch, side: 'healthy', transform: { figure: 'model' } })
+  assert.equal(modelCardFile(spare), characterCard('hulk', 'healthy'))
 })

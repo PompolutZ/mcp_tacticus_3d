@@ -2,7 +2,13 @@
 // (see docs/features/character-trays.md, "Second forms"). Plain module, the same as trays.js.
 
 import { MAT_SIZE } from '../table.js'
-import { characterModel, characterStandee, transformModel, transformStandee } from './files.js'
+import {
+  characterModel,
+  characterStandee,
+  trayCardFile,
+  transformModel,
+  transformStandee,
+} from './files.js'
 
 // The first model has the character's own id, so code that knows only the character (hold and
 // drop, the tray card) finds that model. The second model's id adds this suffix.
@@ -58,6 +64,13 @@ export function characterModels(ch) {
       card: form.card ? 2 : null,
     },
   ]
+}
+
+// The card file of a model (an entry of characterModels), the side of its character that faces up. A second
+// model with its own card shows that card. A spare model (card null) shows the first card.
+export function modelCardFile(model) {
+  const { key, side } = model.character
+  return trayCardFile(key, side, model.card === 2 ? 2 : 1)
 }
 
 const DEG = Math.PI / 180

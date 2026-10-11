@@ -444,13 +444,20 @@ export default function App({
   const hoveredHeldRef = useRef(null)
   // Id of the character whose tray card is under the pointer, for the F key
   const hoveredTrayCardRef = useRef(null)
+  // The card image under the pointer, { src, alt, by } | null, for Alt. by: who reports it, so that the
+  // end of an old hover does not clear a newer one (handleCardHover).
+  const hoveredCardRef = useRef(null)
+  // Alt is held down
+  const altHeldRef = useRef(false)
+  // The card image that shows large while Alt is held, or null (CardPopup.jsx, peek)
+  const [peekCard, setPeekCard] = useState(null)
   // The side of the own dice tray under the pointer, or null, for the number keys
   const diceTrayHoveredRef = useRef(null)
   // Each own dice tray puts its addDice here by side: adds that many dice. See DiceTray.jsx.
   const addDiceRef = useRef({})
-  // A token drag in progress: { tokenKey, looseId, supplyCard, pile, pileId, newId, key, active, start } | null.
+  // A token drag in progress: { tokenKey, looseId, giveId, supplyCard, pile, pileId, newId, key, active, start } | null.
   // newId: the id of the new piece of the drag (a new token, pile or supply token), else null. key: the piece
-  // key of the dragged piece, `loose:`, `pile:` or `token:` (decision 22). looseId: the table token that is dragged, or null for a new token from a source. supplyCard: the
+  // key of the dragged piece, `loose:`, `pile:` or `token:` (decision 22). looseId: the table token that is dragged, or null for a new token from a source. giveId: the character of the tray, when the press is on its Give source (a click gives it one token), else null. supplyCard: the
   // card key when the new token comes from the supply pile of a Source card (tokenKey is then a
   // crisis token key), otherwise null. pile: the drag brings a new pile from the Library. pileId: the
   // drag moves that pile (Shift + drag). active: the pointer has moved DRAG_THRESHOLD px, so the dragged token
@@ -646,10 +653,25 @@ export default function App({
       hoveredRef.current = null
   }
 
+  // over: the pointer moved onto (true) or off (false) a card or a model. While Alt is held, the shown card follows.
+  function handleCardHover(card, over) {
+    if (over) hoveredCardRef.current = card
+    else if (hoveredCardRef.current?.by === card.by) hoveredCardRef.current = null
+    if (altHeldRef.current) setPeekCard(hoveredCardRef.current)
+  }
+
   // Every key press of the app is handled here, so that the same key can do different things in
   // different states. The states now: a card or tray popup is open, or the table is in use.
   // The keys are in keyboard.js.
   function handleKeyDown(e) {
+    if (e.key === 'Alt') {
+      // Windows moves the focus to the browser menu on a bare Alt
+      e.preventDefault()
+      altHeldRef.current = true
+      if (!(tokenDrag || toolDrag || openCard || openTrayId || openRoster || settingsOpen))
+        setPeekCard(hoveredCardRef.current)
+      return
+    }
     if (tokenDrag) {
       // Escape cancels the drag. Other keys do nothing while a token is under the pointer.
       if (e.key === 'Escape') cancelTokenDrag()
@@ -744,6 +766,10 @@ export default function App({
   }
 
   function handleKeyUp(e) {
+    if (e.key === 'Alt') {
+      altHeldRef.current = false
+      setPeekCard(null)
+    }
     heldPan.current.delete(e.code)
     heldTurn.current.delete(e.code)
     heldRotate.current.delete(e.code)
@@ -751,6 +777,8 @@ export default function App({
 
   // A key released outside the window sends no keyup
   function handleBlur() {
+    altHeldRef.current = false
+    setPeekCard(null)
     heldPan.current.clear()
     heldTurn.current.clear()
     heldRotate.current.clear()
@@ -1595,8 +1623,9 @@ export default function App({
 
   // pointerdown on a character token: a tray's Give source (a new token, the source never runs out),
   // or a token on the table (looseId).
-  function handleTokenDragStart(e, tokenKey, looseId = null) {
-    startTokenDrag(e, { tokenKey, looseId })
+  // giveId: the character of the tray, for a Give source: a click gives it one token (startTokenDrag).
+  function handleTokenDragStart(e, tokenKey, looseId = null, giveId = null) {
+    startTokenDrag(e, { tokenKey, looseId, giveId })
   }
 
   // pointerdown on a Library token chip. mode 'single': a new token, the same as from a Give
@@ -1679,11 +1708,18 @@ export default function App({
   // e is the DOM event. preventDefault stops the browser's own image drag and text selection. The
   // camera does not move during the drag (startPointerDrag). The drag becomes active after
   // DRAG_THRESHOLD px, and its release drops the token (handleTokenRelease). A release before that
-  // is a click, which does nothing. Escape cancels (see handleKeyDown). Any button starts it: the
+  // is a click, which does nothing, except on a Give source (giveId). Escape cancels (see handleKeyDown). Any button starts it: the
   // Library chips never checked the button.
   // drag: tokenKey and the fields of tokenDrag that are set, the others get their defaults.
   function startTokenDrag(e, drag) {
-    const base = { looseId: null, supplyCard: null, pile: false, pileId: null, ...drag }
+    const base = {
+      looseId: null,
+      supplyCard: null,
+      pile: false,
+      pileId: null,
+      giveId: null,
+      ...drag,
+    }
     // A new piece gets its id and key at the press, so the drag claims it like a piece on the table (decision 22)
     const newId = base.looseId || base.pileId ? null : crypto.randomUUID()
     const key = tokenDragKey(base, newId)
@@ -1711,7 +1747,12 @@ export default function App({
         handleTokenRelease(ev.clientX, ev.clientY)
         endTokenDrag()
       },
-      onClick: endTokenDrag,
+      // A click on a Give source gives 1 token to the character of the tray, the same as a drop. The press
+      // claimed nothing and set no spawn (onStart), so endTokenDrag only clears the state.
+      onClick: () => {
+        if (full.giveId) handleCharacterTokenGive(full.giveId, full.tokenKey)
+        endTokenDrag()
+      },
       onCancel: endTokenDrag,
       // The other player owns the piece: no drag, so the state set below must not stay
       onRefused: endTokenDrag,
@@ -1995,6 +2036,7 @@ export default function App({
               onCharacterPower={handleCharacterPower}
               onCharacterFlip={handleCharacterFlip}
               onTrayCardHover={handleTrayCardHover}
+              onCardHover={handleCardHover}
               onCharacterOffBoard={handleCharacterOffBoard}
               onCharacterTokenRemove={handleCharacterTokenRemove}
               onTokenDragStart={handleTokenDragStart}
@@ -2126,6 +2168,9 @@ export default function App({
       />
       <RollsPanel open={rollsOpen} rolls={rolls} />
       <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
+      {!(tokenDrag || toolDrag || openCard || openTrayId || openRoster || settingsOpen) && (
+        <CardPopup card={peekCard} peek />
+      )}
       {settingsOpen && (
         <SettingsPopup
           settings={settings}

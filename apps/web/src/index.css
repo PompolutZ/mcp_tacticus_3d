@@ -929,6 +929,12 @@ body {
   z-index: 400;
 }
 
+/* Alt over a card: no backdrop, and the pointer goes through to the table (CardPopup.jsx, peek) */
+.card-popup--peek {
+  background: none;
+  pointer-events: none;
+}
+
 .card-popup-content {
   display: flex;
   flex-direction: column;
