@@ -74,8 +74,12 @@ The user answered on 2026-10-11. Numbers in brackets are the notes above.
 - **History** [5]. **Prev** / **Next** browse the choices made so far. Both players see the step that one player browses, because they talk during the setup. **Override** at an earlier step makes it the current step and drops the later choices, for both players. Either player can press it, after a confirm. The drawn cards stay, unless the deck step itself is done again. An Override before the squads are on the table removes them, the same as **Restart setup**.
 - **Who can click** [6]. In a multiplayer room, only the player who chooses can click a setup button (deck, cards, threat, edge). The other player sees the buttons disabled. This replaces the decision "the app does not check who clicks" in `docs/features/setup-game.md`.
 - **Edge controls** [6, 8]. Only ↺ **Choose this edge** ↻ moves, to the side of the player who chooses. The arrows are bigger, and the button is on a second row. The other player sees them, disabled. The info panel stays at the scoring board.
-- **Squad buttons** [13]. **Choose squad**, with the hint "Click roster cards to add them". Then **Squad ready**, and **Change squad** to go back.
-- **Roster popup** [11]. "Add to squad" / "Remove from squad" on the card, only in the squad step.
+- **Squad buttons** [13]. ~~**Choose squad**, with the hint "Click roster cards to add them". Then **Squad ready**, and **Change squad** to go back.~~ Replaced (user, 2026-10-11, while testing the squad breakdown): the **Select squad** toggle makes two modes. With it on, a click on a roster card does not open the popup. With it off, the Breakdown tab still chooses a squad. Also **Select squad** looks more important than **Ready**, which is wrong at that point. So:
+  - No squad mode. The **Select squad** toggle goes away.
+  - In the squad step, each roster card of the own roster has a small **+** / **✓** button in a corner. It adds the card to the squad or removes it.
+  - A click anywhere else on the card opens the roster popup, as in the other steps.
+  - **Squad ready** is the main button of the panel (the strongest style). Until the squad is valid, it is disabled and its title says why. While the player is ready, it becomes **Change squad**.
+- **Roster popup** [11]. "Add to squad" / "Remove from squad" on the card, only in the squad step. The Breakdown tab still fills the squad with a click on a row.
 - **Deploy Lock**. It turns on when the squads go on the table, because players deploy first. It turns off when a player first presses **Power** in round 1.
 
 ### Plan 3: Squad breakdown
