@@ -1,6 +1,14 @@
 # Feature: Backend
 
-Design. The order of the work is in `docs/plans/implement-backend.md`.
+Status: partly built.
+
+Not built yet:
+
+- The GitHub Actions workflows (`ci.yml`, `deploy-api.yml`). Every deploy is from the user's machine.
+- `GET /ice` (ICE servers and TURN credentials), see `docs/features/peer-to-peer.md`.
+- Login in production. The Discord redirect, the Privacy Policy URL and `VITE_DISCORD_CLIENT_ID` in Netlify are not set.
+
+The order of the work is in `docs/plans/implement-backend.md`.
 
 ## Goal
 
@@ -27,10 +35,10 @@ Every AWS resource is defined in code (CDK). Nobody creates or changes AWS resou
 ## Repo layout
 
 ```
-apps/web/            today's app: src, public, scripts, index.html, vite.config.js
+apps/web/            the web app: src, public, scripts, index.html, vite.config.js
 apps/api/            Hono API
 infra/               CDK app
-packages/            empty at first
+packages/            empty until web and api share code
 docs/                stays at the root, with README.md, ASSETS.md and CLAUDE.md
 pnpm-workspace.yaml
 package.json         root scripts, packageManager
@@ -45,10 +53,10 @@ netlify.toml         Netlify build settings
 
 ### pnpm
 
-- The root `package.json` pins the version in `packageManager`: an exact version, the latest pnpm 12 at the time of the move. Netlify reads this field. pnpm 11 and later download the pinned version when the installed one is different.
-- `pnpm import` creates `pnpm-lock.yaml` from `package-lock.json`, so the versions stay the same. Then `package-lock.json` is deleted. CDK's `NodejsFunction` fails when one folder has two lock files.
+- The root `package.json` pins the version in `packageManager`: an exact version of pnpm 12. Netlify reads this field. pnpm 11 and later download the pinned version when the installed one is different.
+- The only lock file is `pnpm-lock.yaml`. CDK's `NodejsFunction` fails when one folder has two lock files.
 - pnpm 11 and later stop the install when a package has an install script and no `allowBuilds` entry. `esbuild` has one, so `pnpm-workspace.yaml` has `allowBuilds: { esbuild: true }`. Testcontainers brings `ssh2`, `cpu-features` and `protobufjs`. Their scripts build an optional native part or only print a warning, so they get `false`.
-- With pnpm, a package can import only the packages that it lists. Today's `src` and `scripts` import only listed packages. One exception: `scripts/dice-sim.mjs` loads Rapier by a fixed path inside `node_modules/@react-three/rapier/node_modules/`. pnpm keeps packages in another place, so the script must resolve this path from `@react-three/rapier`.
+- With pnpm, a package can import only the packages that it lists. `src` and `scripts` of the web app import only listed packages. `scripts/dice-sim.mjs` resolves the Rapier path from `@react-three/rapier`, because pnpm keeps packages in another place than a fixed path in `node_modules`.
 - No script is named `deploy`, because `pnpm deploy` is a built-in pnpm command.
 - Root scripts: `pnpm dev` (web and api together), `pnpm build`, `pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm format`, `pnpm format:check`.
 
@@ -58,8 +66,8 @@ netlify.toml         Netlify build settings
 
 - **Hono 4.** The Lambda adapter comes from the package `@hono/aws-lambda`. The import path `hono/aws-lambda` is deprecated and goes away in Hono 5. `@hono/aws-lambda` 1.0.1 was published on 2026-10-08. If its peer range needs Hono 5, use `hono/aws-lambda` until Hono 5 is stable.
 - **TypeScript**, strict. CDK bundles it with esbuild for Lambda. Locally, `tsx` runs it.
-- **zod** and `@hono/zod-validator` check request bodies, the same as wuclub `apiv2`. The code imports `zod/mini` (`zod@4.6.5`, `@hono/zod-validator@0.9.1`). The Lambda `index.mjs` is 883 KB with `zod/mini`, and 1.32 MB with full `zod` (852 KB before step 6). With `yjs` (step 7) it is 956 KB (956,348 bytes). `yjs` adds about 73 KB.
-- **`hono/jwt`** signs and checks the session token (HS256). It replaces `jose` from the auth doc. The token is the same, and the API has one dependency less.
+- **zod** and `@hono/zod-validator` check request bodies, the same as wuclub `apiv2`. The code imports `zod/mini` (`zod@4.6.5`, `@hono/zod-validator@0.9.1`). The Lambda `index.mjs` is 883 KB with `zod/mini`, and 1.32 MB with full `zod` With `yjs` it is 956 KB. `yjs` adds about 73 KB.
+- **`hono/jwt`** signs and checks the session token (HS256). The API needs no extra JWT package.
 - **`mongodb`**, the official driver.
 - **`yjs`** (`13.6.33`, the version of the web app) checks and merges the table snapshots on the server (`Y.decodeUpdate`, `Y.mergeUpdates`).
 - **Vitest** for tests.
@@ -103,7 +111,7 @@ The table snapshot is binary (`application/octet-stream`). Lambda base64-encodes
 
 ### CDK
 
-- `aws-cdk-lib` 2.x and the `aws-cdk` CLI. The CLI has its own version numbers (2.1xxx), and it must be as new as the library or newer. On 2026-10-08: library 2.272.0, CLI 2.1145.0.
+- `aws-cdk-lib` 2.x and the `aws-cdk` CLI. The CLI has its own version numbers (2.1xxx), and it must be as new as the library or newer. The versions in use are in `package.json` of `infra`.
 - TypeScript, run by `tsx`: `cdk.json` has `"app": "tsx bin/app.ts"`.
 - Account: the personal account (profile `fxdx_admin`). Region: `eu-central-1`, the region of the Atlas cluster. Every poll is one round trip from the Lambda to Atlas, so they must be close.
 - One stage: prod. Local dev uses the memory store or `mongo` in Docker.
@@ -115,7 +123,7 @@ The table snapshot is binary (`application/octet-stream`). Lambda base64-encodes
 | Stack | Contents | Who deploys it |
 |---|---|---|
 | `McpTacticusAccount` | Deployer role, GitHub OIDC provider, CI role, budget alert | The user, with the admin user `fxdx_admin`. It changes rarely |
-| `McpTacticusApi` | Lambda, function URL, log group, SSM read permission, keep-alive rule | The user with the deployer role. After the first release (step 12), step 4 of the plan adds CI |
+| `McpTacticusApi` | Lambda, function URL, log group, SSM read permission, keep-alive rule | The user with the deployer role. CI deploy is not built yet |
 
 ### McpTacticusApi
 
@@ -170,7 +178,7 @@ CDK needs `cdk bootstrap` once per account and region, with admin rights. It cre
 
 ## Database
 
-- An Atlas Free cluster (the old name is M0) in its own Atlas project, on AWS `eu-central-1`. It was created on 2026-10-08 in the Atlas UI. Atlas allows one Free cluster per project, so the second project can have its own.
+- An Atlas Free cluster (the old name is M0) in its own Atlas project, on AWS `eu-central-1`. It was created in the Atlas UI. Atlas allows one Free cluster per project, so the second project can have its own.
 - Database `assist3d`. The cluster is not shared with wuclub, so a problem in one cannot affect the other.
 - `docs/plans/implement-backend/03-infra.md` ("First deploy commands") lists the Atlas CLI commands that set up the rest. So the setup can be repeated, and it is not done by clicks:
   - Database user `mcptacticus-api` with `readWrite@assist3d`.
@@ -205,7 +213,7 @@ CDK needs `cdk bootstrap` once per account and region, with admin rights. It cre
 - The web app reads the API address from `VITE_API_URL`. In dev it is `/api`, set in `apps/web/.env.development`, which is in git because it is not secret. In production it is the function URL, set as a Netlify env var.
 - In dev, the web app and the API have one origin, so there is no CORS. CORS is tested only against the deployed API.
 - Local dev never connects to Atlas. So a bug in local code cannot change production data.
-- This replaces the Vite plugin of the peer-to-peer doc and the auth doc. The API is its own package with its own Node process. The same Hono app runs in Lambda and in Node, so no code needs to convert requests into Lambda events.
+- The API is its own package with its own Node process. The same Hono app runs in Lambda and in Node, so no code needs to convert requests into Lambda events.
 
 ## Deploy
 
@@ -223,7 +231,7 @@ region = eu-central-1
 
 - `pnpm --filter infra cdk:deploy` runs `cdk deploy McpTacticusApi` with `AWS_PROFILE=mcptacticus`. The CLI asks for the MFA code.
 - `pnpm --filter infra cdk:deploy:account` runs `cdk deploy McpTacticusAccount` with `AWS_PROFILE=fxdx_admin`. Only when that stack changes.
-- Step 4 (CI) comes after the first release (step 12). Until then, every deploy is from the user's machine.
+- Until the GitHub Actions workflows are built, every deploy is from the user's machine.
 - Coding agents do not run `aws`, `cdk deploy` or `cdk bootstrap`. They write the code and the commands, and the user runs them.
 
 ### GitHub Actions
@@ -245,7 +253,7 @@ region = eu-central-1
 
 ### Netlify
 
-The site is `https://mcptacticus3d.netlify.app`. Netlify builds the web app from git, as today. The build settings move from the Netlify UI into `netlify.toml` at the repo root:
+The site is `https://mcptacticus3d.netlify.app`. Netlify builds the web app from git, as today. The build settings are in `netlify.toml` at the repo root, not in the Netlify UI:
 
 ```toml
 [build]
@@ -254,14 +262,13 @@ The site is `https://mcptacticus3d.netlify.app`. Netlify builds the web app from
   ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- apps/web packages package.json pnpm-lock.yaml pnpm-workspace.yaml .node-version"
 ```
 
-- The build output moves from `dist` to `apps/web/dist`. Paths in `netlify.toml` are relative to the base directory. The base directory stays unset, so it is the repo root.
+- The build output is `apps/web/dist`. Paths in `netlify.toml` are relative to the base directory. The base directory stays unset, so it is the repo root.
 - Netlify installs at the repo root. It finds `pnpm-lock.yaml` there, so it uses pnpm. It takes the pnpm version from `packageManager` and the Node version from `.node-version`.
-- `netlify.toml` overrides the build command and the publish directory of the UI. So the UI needs no change. The old UI values (`npm run build`, `dist`) are not used any more. Clear them, so nobody reads them by mistake.
-- The file comes in the same commit as the move. Older commits build with the UI values, and the new commit builds with the file. So the move needs no timing with a Netlify setting.
+- `netlify.toml` overrides the build command and the publish directory of the UI. The UI values should be empty, so nobody reads them by mistake.
 - The package directory setting stays empty. It tells Netlify where to find `netlify.toml` and Netlify Functions in a subfolder, and this site has neither.
 - `ignore`: Netlify skips the build when the commit changes none of the listed paths. Examples: a commit that changes only `apps/api`, `infra` or `docs`. `git diff --quiet` exits with 0 when nothing changed, and 0 means "skip".
-- `public/_headers` moves to `apps/web/public/_headers`. Vite copies it into `apps/web/dist`, so the cache headers keep working.
-- Env vars: `VITE_API_URL` from step 3 of the plan, `VITE_DISCORD_CLIENT_ID` at the first release (step 12). The web app shows the login button only when `VITE_DISCORD_CLIENT_ID` is set. So production shows no login until the first release.
+- `_headers` is in `apps/web/public/`. Vite copies it into `apps/web/dist`, so the cache headers keep working.
+- Env vars: `VITE_API_URL` (the function URL) is set. `VITE_DISCORD_CLIENT_ID` is not set yet. The web app shows the login button only when it is set. So production shows no login until the first release.
 
 ## Cost
 
@@ -286,26 +293,11 @@ The site is `https://mcptacticus3d.netlify.app`. Netlify builds the web app from
 
 ## Relation to other features
 
-- `docs/features/peer-to-peer.md`:
-  - "Parts": the SAM template becomes the CDK stack `McpTacticusApi`. The secret is an SSM parameter, not a `NoEcho` parameter. The database is the new Free cluster, not the wuclub cluster. The Atlas user is created with the Atlas CLI.
-  - "Local testing": the Vite plugin becomes the API process behind the Vite proxy. `npm run dev` becomes `pnpm dev`. `VITE_SIGNAL_URL` becomes `VITE_API_URL`.
-  - "Endpoints": the poll sends `after` in a header (see "Preflight per URL").
-  - "Code layout": `infra/signal/` becomes `apps/api/src/` (routes, stores) and `infra/` (CDK).
-  - "Phases": the AWS parts of phase 5 move to steps 3 and 4 of the plan.
-  - Open questions 3 (account), 5 (cluster tier and region), 6 (access list) and 7 (shared cluster) are answered here. Open question 1 (Cloudflare Worker) stays open. Hono also runs on Cloudflare Workers, so a later move is smaller.
-- `docs/features/auth.md`:
-  - `jose` becomes `hono/jwt`.
-  - The secrets are SSM parameters, not `NoEcho` parameters.
-  - "Code layout": `infra/api/*.mjs` becomes `apps/api/src/`. The dev login is in `local.ts`, not in `vitePlugin.mjs`.
-  - "Phases": the deploy starts earlier (plan steps 3 and 4). Phase 4 keeps the release parts.
-  - "Site name": the rename happens in plan step 1, not before phase 4. The single player rooms on the old address are lost. Before the first release this does not matter, because all data is test data.
-  - Open question 4 (region) is answered: `eu-central-1`.
-- `docs/features/rooms.md`: the `src/` paths become `apps/web/src/`.
-- `CLAUDE.md`, `README.md`, `ASSETS.md`, `scripts/README.md`: the new paths, and `pnpm --filter web build` instead of `npx vite build`.
+- `docs/features/peer-to-peer.md`: the signaling routes are routes of this API. The AWS parts (CDK stacks, Atlas database user, budget alert) are in this doc.
+- `docs/features/auth.md`: login, users, multiplayer rooms and the table snapshot are routes of this API. The secrets are SSM parameters. The dev login is in `local.ts`.
+- `docs/features/rooms.md`: multiplayer rooms are stored by this API.
 
 ## Decisions
-
-Made on 2026-10-08:
 
 1. The repo becomes a pnpm workspace: `apps/web`, `apps/api`, `infra`, `packages/*`.
 2. TypeScript for `apps/api` and `infra`. The web app stays JavaScript.
@@ -313,7 +305,7 @@ Made on 2026-10-08:
 4. CDK defines every AWS resource. No changes in the AWS console.
 5. The existing personal AWS account, `eu-central-1`, one stage (prod).
 6. A new Atlas Free cluster in its own project, AWS `eu-central-1`. Not shared with wuclub.
-7. The backend is deployed early, as an API with only `GET /health`. After that, every backend step deploys when it is done. Login stays hidden in production until the first release.
+7. Every backend change is deployed when its work is done. Login stays hidden in production until the first release.
 8. The first deploys run from the user's machine with an assumed role. Then GitHub Actions with OIDC deploys on every push to `main` that changes the backend.
 9. Secrets are SSM `SecureString` parameters, read at cold start.
 10. `hono/jwt` instead of `jose`.
@@ -325,11 +317,11 @@ Made on 2026-10-08:
 ## Open questions
 
 1. **Bootstrap.** Is `eu-central-1` of this account bootstrapped already (by wuclub)? If yes, update it to the current bootstrap template.
-   - Answered on 2026-10-09: yes, bootstrap version 32. The bootstrap command of the first deploy (CDK CLI 2.1144.0) reported no changes, so version 32 is the current template.
+   - Answered: yes, bootstrap version 32. The bootstrap command of the first deploy (CDK CLI 2.1144.0) reported no changes, so version 32 is the current template.
 2. **GitHub OIDC provider.** Does the account have one already? If yes, the account stack imports it.
-   - Answered on 2026-10-09: no. `cdk.json` has `githubOidcProvider: "create"`.
+   - Answered: no. `cdk.json` has `githubOidcProvider: "create"`.
 3. **Concurrency quota.** Is the account's Lambda concurrency quota above 110? If not, there is no reserved concurrency.
-   - Answered on 2026-10-09: the quota is 10. `cdk.json` has `reservedConcurrency: null`. The quota of 10 still limits the cost of abuse and the Atlas connections (10 × 2 of 500). All functions of the account share it, also wuclub `apiv2`. AWS can raise the quota of a new account later. Then reserved concurrency 10 is possible again.
+   - Answered: the quota is 10. `cdk.json` has `reservedConcurrency: null`. The quota of 10 still limits the cost of abuse and the Atlas connections (10 × 2 of 500). All functions of the account share it, also wuclub `apiv2`. AWS can raise the quota of a new account later. Then reserved concurrency 10 is possible again.
 4. **Shared free tier.** How many Lambda requests does wuclub `apiv2` use per month in this account?
 5. **CloudFormation execution policy.** Narrow it from admin rights to the services that the stacks use?
 6. **Hono 5.** The first release candidate came out on 2026-10-08. Move to it when it is stable.

@@ -1,6 +1,10 @@
 # Feature: Peer-to-peer play
 
-Status: steps 8 to 11 are built. Step 11 is reconnect: a dropped network gives "Reconnecting", and a new connection starts by itself. Two browsers of a multiplayer room connect over WebRTC. The Yjs document and Yjs awareness (the claims) go over the `sync` channel. Live moves of pieces and the cursor go over the `live` channel. The tools are in the document, per side. Dice are in step 10. `GET /ice` and TURN come in step 13. The user's browser checks of step 8 passed on 2026-10-09. The browser checks of step 9 are open. See [Open questions](#open-questions) at the end.
+Status: partly built.
+
+Not built yet:
+
+- `GET /ice` and Cloudflare TURN credentials, and the connection type (direct or relayed) in the app. They come only if real games show that direct connections fail too often. Until then the web app has the two STUN servers and the local coturn server (dev builds only).
 
 The backend (repo, stack, AWS, deploy) is in `docs/features/backend.md`. The order of the work is in `docs/plans/implement-backend.md`.
 
@@ -96,9 +100,9 @@ The collection is a mailbox per room. One document per message. The index `{ roo
 |---|---|
 | `POST /rooms/{room}/messages` | Stores one message. Rejects unknown types, big bodies, and rooms that have 50 messages already |
 | `GET /rooms/{room}/messages?to={peer}` | Returns the messages for this peer (or for `*`) after the id in the `x-after` header. Without the header, it returns all of them |
-| `GET /ice` | Not built yet. Step 13 adds it: the ICE server list and short-lived TURN credentials, see [STUN and TURN](#stun-and-turn). Until then the web app has the two STUN servers as a constant in `net/ice.js` |
+| `GET /ice` | Not built yet. It returns the ICE server list and short-lived TURN credentials, see [STUN and TURN](#stun-and-turn). Until then the web app has the two STUN servers as a constant in `net/ice.js` |
 
-Details of the routes (step 8):
+Details of the routes:
 
 - Both routes need a valid token and a seat in the room. A user without a seat gets 403. An unknown room gets 404.
 - `to` of an `offer` or an `answer` is a peer id. Only `hello` and `bye` may use `*`.
@@ -113,7 +117,7 @@ The poll sends `after` in the `x-after` header, not in the query. So the poll UR
 
 ### Connect flow
 
-Both players of a multiplayer room (step 7, `docs/features/auth.md`) run the same code. Either player can open the room first. The room's host answers. The guest makes the offer.
+Both players of a multiplayer room (`docs/features/auth.md`) run the same code. Either player can open the room first. The room's host answers. The guest makes the offer.
 
 1. When the table opens, the browser makes a new random peer id (`crypto.randomUUID()`), posts `hello` and polls every 2 s. The peer id is not kept: a reload makes a new one. The room link is `https://<site>/#room=K7Q2-M9XD`. The code is in the URL hash, so Netlify never receives it. A guest who opens the link joins the room first (`docs/features/auth.md`). A single player room and the Sandbox never connect and make no signaling call.
 2. The guest sees the `hello` of the host. It creates the offer, waits until ICE gathering ends (at most 3 s), and posts the `offer`. A newer `hello` of the host ends the attempt in progress, and the guest offers again.
@@ -147,9 +151,9 @@ Timeouts:
 - **Try again** posts a new `hello` and starts the 15 minutes again. The guest also offers again to the latest `hello` of the host.
 - Polls stop while the state is `connected`.
 
-A new connection after the other page closes or reloads (step 8): the other page posts a new `hello` (as host) or a new offer (as guest). Yjs syncs what changed in between. When the table closes (**← Lobby**, a page close or reload), the browser posts `bye`. On a page close it uses `keepalive`, but this is best effort: in production, a `keepalive` request with an `Authorization` header needs a preflight, which a closing page may not send. Without `bye`, the other browser finds out by the timeouts. A `bye` of the other player ends the attempt in progress, and the state goes to `waiting`.
+A new connection after the other page closes or reloads: the other page posts a new `hello` (as host) or a new offer (as guest). Yjs syncs what changed in between. When the table closes (**← Lobby**, a page close or reload), the browser posts `bye`. On a page close it uses `keepalive`, but this is best effort: in production, a `keepalive` request with an `Authorization` header needs a preflight, which a closing page may not send. Without `bye`, the other browser finds out by the timeouts. A `bye` of the other player ends the attempt in progress, and the state goes to `waiting`.
 
-A dropped network or a sleeping laptop (step 11). There is no ICE restart: a drop makes a new `RTCPeerConnection`, the same way as at the start. That path passed the checks in three browser pairs, and a new connection also works when the other page is new. The rules:
+A dropped network or a sleeping laptop. There is no ICE restart: a drop makes a new `RTCPeerConnection`, the same way as at the start. The same path works when the other page is new. The rules:
 - `connectionState` `disconnected` while `connected`: the state is `reconnecting` at once. If it is `connected` again within `DROP_MS` (10 s), the state is `connected` again. The channels stayed open, so nothing else happens.
 - `disconnected` for `DROP_MS`, or `failed`, or the `sync` channel closes: the connection is closed and a reconnect round starts.
 - Both browsers post a new `hello` with the same peer id. If the post fails with no answer or a 5xx, it is posted again after 2 s. A 404 is `gone`. The polls start when the `hello` is stored, so a later `hello` never deletes an offer or an answer of this round.
@@ -161,7 +165,7 @@ A dropped network or a sleeping laptop (step 11). There is no ICE restart: a dro
 
 `connectRoom` calls `onChannelsEnd()` once for each opened attempt when it ends. A browser fires no `close` event on a channel when its own `pc.close()` runs, so `Table.jsx` uses this call to end the traffic count, stop the Yjs sync and detach the live channel.
 
-When the host deletes a room, the host is in the lobby, where its room is not open and has no connection. The old plan was that the host's browser tells the guest over the connection. Step 8 replaced it: the guest learns from its poll. While the guest waits, it polls. After the delete, a poll gets 404 within about 32 s (the seat cache of 30 s plus one poll). The guest's browser then opens the lobby with "The host deleted room K7Q2-M9XD." and deletes its local copy. A guest whose polls stopped finds out at its next table write, which gets 404 (`docs/features/auth.md`, "Rules").
+When the host deletes a room, the host is in the lobby, where its room is not open and has no connection. So the host's browser cannot tell the guest over the connection. The guest learns from its poll. While the guest waits, it polls. After the delete, a poll gets 404 within about 32 s (the seat cache of 30 s plus one poll). The guest's browser then opens the lobby with "The host deleted room K7Q2-M9XD." and deletes its local copy. A guest whose polls stopped finds out at its next table write, which gets 404 (`docs/features/auth.md`, "Rules").
 
 Both `hello` messages carry the app version (the build id). The build id is `import.meta.env.VITE_BUILD_ID`: the Netlify `COMMIT_REF`, or `dev`. If the two versions are different, both players see a warning: "Your opponent uses a different version of the app. Both players should reload the page." The connection still runs. The reason is in [State](#state), category 1.
 
@@ -200,7 +204,7 @@ The free tier is 1 million messages and 750,000 connection minutes per month, fo
 ## STUN and TURN
 
 - **STUN**: `stun:stun.l.google.com:19302` and `stun:stun.cloudflare.com:3478`. Both are free. Cloudflare says its STUN service is free and unlimited.
-- **TURN, phase 1**: none. If the direct connection fails, the app says so: "Could not connect directly. One of the networks blocks peer-to-peer connections."
+- **TURN, now**: none. If the direct connection fails, the app says so: "Could not connect directly. One of the networks blocks peer-to-peer connections."
 - **TURN, later**: Cloudflare Realtime TURN. The first 1,000 GB per month are free, then $0.05 per GB. The TURN service and the Cloudflare SFU share these 1,000 GB. Only data from Cloudflare to the browser counts. Data from the browser to Cloudflare is free. There is no charge per minute or per connection. Limits per TURN connection: about 5,000–10,000 packets per second and 50–100 Mbps. The browser must not hold the long-term TURN key. So `GET /ice` asks the Cloudflare API for credentials that expire after a few hours, and returns them. The Cloudflare token is an SSM `SecureString` parameter, like the other secrets (backend doc, "Secrets and config").
 
 ### Traffic per game
@@ -217,11 +221,11 @@ Estimate for one 2-hour game. The numbers are calculated, not measured:
 | Categories 2 and 3, keepalive packets | | about 1 MB |
 | **Total** | | **about 35 MB** |
 
-Measured on 2026-10-10 (step 10, check 18): 10 rolls of 10 dice sent 1.2 MB in 2 min, relayed. That is about 120 KB for each roll of 10 dice, below the estimate of the dice row.
+Measured (check 18 of `docs/plans/implement-backend/10-dice.md`): 10 rolls of 10 dice sent 1.2 MB in 2 min, relayed. That is about 120 KB for each roll of 10 dice, below the estimate of the dice row.
 
 So 1,000 GB is enough for about 28,000 relayed games per month. It is not clear if Cloudflare counts the data twice when both players use the relay. In that case, the number is about 14,000. Only games where the direct connection fails use TURN.
 
-Phase 3 logs the bytes from `pc.getStats()` (`bytesSent` and `bytesReceived` of the selected candidate pair, `net/traffic.js`). The browser reads them every 60 s and logs one `console.info` line every 10 min, when a connection ends, and on **← Lobby**. The line has the bytes sent and received, the minutes, and direct or relayed, for the connection and for all connections of the open table. The measured numbers of a local game are open (check 23 of `docs/plans/implement-backend/09-moving-objects.md`). Then replace this estimate with them. If the traffic is too high, there are three ways to send less: send less often, round the numbers, or use a binary format.
+The app logs the bytes from `pc.getStats()` (`bytesSent` and `bytesReceived` of the selected candidate pair, `net/traffic.js`). The browser reads them every 60 s and logs one `console.info` line every 10 min, when a connection ends, and on **← Lobby**. The line has the bytes sent and received, the minutes, and direct or relayed, for the connection and for all connections of the open table. The measured numbers of a local game are open (check 23 of `docs/plans/implement-backend/09-moving-objects.md`). Then replace this estimate with them. If the traffic is too high, there are three ways to send less: send less often, round the numbers, or use a binary format.
 
 ### Other Cloudflare Realtime products
 
@@ -264,7 +268,7 @@ The data has four categories. There is also local state, which is not sent.
 | 1 | Assets | models, textures, card images, map images | Netlify, or AWS later. Loaded over HTTPS | None. Never through WebRTC |
 | 2 | Set-up: changes once per game | rosters, crisis cards, map, deploy line | Yjs document | `sync` |
 | 3 | Rare changes | rest poses of models and tools; the places of tokens, cards and markers; card flips; damage and power; healthy or injured side; tokens gained or lost; mat turns; dice results (the shelf) and roll history | Yjs document | `sync` |
-| 4 | Presence: what the other player does now | dice in the air (step 10); every piece that a player drags (model, tool, crisis token, character token on the table, pile, tactic card, score marker); cursor | Not stored | `live` |
+| 4 | Presence: what the other player does now | dice in the air; every piece that a player drags (model, tool, crisis token, character token on the table, pile, tactic card, score marker); cursor | Not stored | `live` |
 | | Players | name, side (blue or red), claims (`owns`), the model that the player drags now (`drag`, for the deploy tool), the new token or pile that the player drags now (`spawn`: `{ key, tokenKey }`). the selected character and crisis token (`selection`, piece keys, the last is the tool target), the selected tool kinds (`tools`), and the piece that a turning range tool marks (`mark`: `{ key, mode }`) | Yjs awareness | `sync` |
 | | Local | camera, hover, labels, debug mode, open card popup, open dice menu | React state, as today | Not sent |
 
@@ -278,7 +282,7 @@ The cursor is in category 4, not in awareness. Awareness goes over the reliable,
 
 ### Yjs document
 
-Each name is a top-level `Y.Map` of the `Y.Doc`. Step 5 made the first ten. Step 9 added `tools`. Step 10 added `dice` and `rolls`.
+Each name is a top-level `Y.Map` of the `Y.Doc`.
 
 | Name | Kind | Content |
 |---|---|---|
@@ -324,7 +328,7 @@ How the data is stored:
 
 React reads the document through three hooks in `net/useY.js`, built on `useSyncExternalStore`: `useYList`, `useYRecord` and `useYField`. Each returns the value and a setter, in the form of a React `useState`. The setter takes a value or an updater function. It compares the new value with the document and writes only the fields that changed. So the handlers in `App.jsx` such as `handleTokenFlip` keep their code. A handler that writes more than one name runs in `table.transact`, so the document has one update. A game with no connection uses the same document, only without a provider. So single-player and multiplayer run the same code.
 
-Each browser stores the document in IndexedDB (`y-indexeddb`), per room, from step 5 on. A single player room uses the database `mcp-assist-3d/room/<code>`. A multiplayer room uses `mcp-assist-3d/multiplayer/<user id>/<code>`, so two users of one browser never share a database. In a multiplayer room, the server also keeps a snapshot of the document (`docs/features/auth.md`, "Table on the server"). After a page reload, the table comes back at once, and Yjs syncs the changes that the other player made in the meantime. The room record in `localStorage` of a single player room keeps only the setup: map, rosters, owner, dates (`docs/features/rooms.md`, "Storage"). The Sandbox has the same document without IndexedDB.
+Each browser stores the document in IndexedDB (`y-indexeddb`), per room. A single player room uses the database `mcp-assist-3d/room/<code>`. A multiplayer room uses `mcp-assist-3d/multiplayer/<user id>/<code>`, so two users of one browser never share a database. In a multiplayer room, the server also keeps a snapshot of the document (`docs/features/auth.md`, "Table on the server"). After a page reload, the table comes back at once, and Yjs syncs the changes that the other player made in the meantime. The room record in `localStorage` of a single player room keeps only the setup: map, rosters, owner, dates (`docs/features/rooms.md`, "Storage"). The Sandbox has the same document without IndexedDB.
 
 ## Moving objects (physics)
 
@@ -337,7 +341,7 @@ There are four kinds of pieces:
 - **Pieces without a body**: crisis tokens, character tokens on the table, piles, tactic cards and score markers. Either player can move them. The piece has no rest pose. The drop writes its new place into the document.
 
 A new token, pile or supply token (from a Give source, a supply pile, a pile or the Library) is live too. The drag makes its id and its piece key at the press (`loose:`, `pile:` or `token:`). The drag claims the key after the 4 px threshold and sets `spawn` in awareness. The other browser does not have the piece yet, so it draws a preview of it at the live pose, with the same look, height and footprint as the own preview. The drop writes the piece with the same id. Then the claim and `spawn` end, in this order, so the real piece shows before the preview goes. Escape and a drop that makes no piece (over a HUD panel, off the table, on a character) end `spawn` too. A drop on a character gives the token to the character, as before.
-- **Dice** (step 10) are player bodies. Only the tray's player simulates them. The other browser moves them as kinematic bodies, to the received poses.
+- **Dice** are player bodies. Only the tray's player simulates them. The other browser moves them as kinematic bodies, to the received poses.
 
 Models do not push models. A dragged model passes through other models and through tokens. It does not pass through terrain. Models are in their own collision group, and that group does not collide with itself. Dice do not move models (dominance groups). So no body pushes a resting model, and the first design had a rule for that: the browser that moves a body claims a body it pushes. This rule is gone. There are no pushed bodies to claim and no contact events.
 
@@ -373,7 +377,7 @@ A model that the other browser moves must not push anything in this browser. Oth
 
 1. While the model is claimed by the other player, its colliders produce no contact forces (Rapier solver groups). A kinematic body pushes everything it touches, with no limit on the force. When a pose jumps, the body could throw a model that lies still, but only in this browser.
 2. When the claim ends (rule 6), contact forces come back and the model becomes dynamic again.
-3. Dice of the other player (step 10) stay kinematic, so they act as fixed obstacles for this browser's dice. The owner's browser agrees, because there this browser's dice push nothing. They pass through models (`OTHER_DICE_GROUPS` in `src/physics.js`), because a kinematic body would push a model with no limit on the force. This browser's dice still bounce off models.
+3. Dice of the other player stay kinematic, so they act as fixed obstacles for this browser's dice. The owner's browser agrees, because there this browser's dice push nothing. They pass through models (`OTHER_DICE_GROUPS` in `src/physics.js`), because a kinematic body would push a model with no limit on the force. This browser's dice still bounce off models.
 4. Two dice that move at the same time, one per player, pass through each other. This is rare, so we accept it.
 
 TTS does it differently: the host simulates everything, and the other players see their own drags with a delay. With the rules above, each player sees their own drags with no delay.
@@ -406,15 +410,15 @@ Positions have 3 decimals (0.001"). Rotations, yaw and bend have 4. A model pose
 - When a die rests, its rest pose (`well`) or its face (`shelf`) comes through the document, so both browsers show the same top face. The dice are not replayed, so the Rapier version does not matter.
 - The roller writes the history entry to `rolls`, in the same change as the dice. Both players see the same list in the Rolls panel.
 
-So the roller's browser decides the roll, and a changed client could cheat. This does not matter: the app is a free hobby project for friendly games. So the plan has no protection against cheating.
+So the roller's browser decides the roll, and a changed client could cheat. This does not matter: the app is a free hobby project for friendly games. So the app has no protection against cheating.
 
 ## Room and players
 
-- Players have accounts (step 7, `docs/features/auth.md`). The name, the avatar and the side come from the room and from the server, not from the player. The peer id is new at each table open and is not stored. The old plan kept it in `sessionStorage` and asked for a typed name. A duplicated tab copies `sessionStorage`, and the account makes the name known, so both are gone.
+- Players have accounts (`docs/features/auth.md`). The name, the avatar and the side come from the room and from the server, not from the player. The peer id is new at each table open and is not stored, because a duplicated tab copies `sessionStorage`.
 - The host chooses a side: blue or red. The guest gets the other side. In a multiplayer room where the user has the Red seat, the start view is the Blue view turned 180° around the mat center, so the own side is at the bottom of the screen. Position `[0, 32.5, -42.9]`, target `[0, 0, -10.4]`. Space returns to it. Single player rooms and the Sandbox keep the Blue view, because one player plays both sides there.
 - The room toolbar shows both seats: team name in the side color, avatar and name. The own seat says "You". The other seat shows the status of [Connect flow](#connect-flow). When the guest seat was free at open, the name and avatar come from the guest's `hello`, and **Copy link** hides.
-- Version 1 has two players. A third peer (a spectator) needs a connection to each other peer. Yjs supports that, but it is not in this plan.
-- When the connection drops, both sides show "Reconnecting". Both post a new `hello`, and a new connection starts with the same room code and peer id ([Connect flow](#connect-flow)). Yjs syncs what changed on both sides, so no change is lost. Awareness sends the own state when a channel opens. Step 8 does the case of a closed or reloaded page.
+- Version 1 has two players. A third peer (a spectator) needs a connection to each other peer. Yjs supports that, but it is not in this doc.
+- When the connection drops, both sides show "Reconnecting". Both post a new `hello`, and a new connection starts with the same room code and peer id ([Connect flow](#connect-flow)). Yjs syncs what changed on both sides, so no change is lost. Awareness sends the own state when a channel opens. The same path handles a closed or reloaded page.
 
 ### What each player controls
 
@@ -443,7 +447,7 @@ With no connection, the app works as today: one player uses both trays and one s
 
 ## Local testing
 
-Every part must work on one Mac, with no AWS or Cloudflare account and no second person. Each player is a different browser: Chrome, Safari or Firefox. From phase 2 on, each phase is tested in three pairs: Chrome and Safari, Chrome and Firefox, Safari and Firefox.
+Every part must work on one Mac, with no AWS or Cloudflare account and no second person. Each player is a different browser: Chrome, Safari or Firefox. Everything that needs two browsers is tested in three pairs: Chrome and Safari, Chrome and Firefox, Safari and Firefox.
 
 `BroadcastChannel` cannot connect the players, because it works only between tabs of one browser. So the local setup uses the same HTTP signaling as production.
 
@@ -452,7 +456,7 @@ Every part must work on one Mac, with no AWS or Cloudflare account and no second
 | App | Netlify | `pnpm dev` (web and API), `http://localhost:5173` |
 | Signaling | Lambda function URL with the MongoDB store | The same Hono app in a Node process on port 8787, with the memory store. Vite forwards `/api/*` to it |
 | MongoDB | Atlas Free cluster, database `assist3d` | Not needed. Only to test the MongoDB store: `mongo` in Docker |
-| TURN | Cloudflare (phase 6) | coturn in Docker, from step 8. `pnpm --filter api turn:up` and `turn:down`. `turn:pause` and `turn:resume` freeze and release it |
+| TURN | Cloudflare (not built yet) | coturn in Docker. `pnpm --filter api turn:up` and `turn:down`. `turn:pause` and `turn:resume` freeze and release it |
 
 Vite forwards `/api/*` to the API process and removes `/api`. The same Hono app runs in Lambda and in Node, so no code converts requests into Lambda events (backend doc, "Local development"). The client reads the API address from `VITE_API_URL`. In dev, it is `/api`. The memory store loses all rooms when the API process restarts, which is fine for tests.
 
@@ -476,7 +480,7 @@ To check for lost changes, each browser logs `table fingerprint <hash>` (8 hex c
 - All three browsers treat `http://localhost` as a secure context.
 - The maximum message size is different in Firefox. See [Data channels](#data-channels).
 - To log bytes per game, the app reads the selected candidate pair from `pc.getStats()`. Chrome and Safari give it through the transport stats (`selectedCandidatePairId`). Firefox has used a `selected` field on the candidate pair instead. The code must support both.
-- Risk: all three browsers can hide local addresses behind mDNS names (`*.local`). On one Mac these names should resolve, but this is not tested yet for every pair. This happened on 2026-10-09: the browsers had only a `srflx` candidate (the public router address), and most home routers do not send such packets back. So every dev build has the local coturn server in its ICE list (`net/ice.js`, `iceConfig`). Start it with `turn:up`. Add `?relay` to test the relay path.
+- Risk: all three browsers can hide local addresses behind mDNS names (`*.local`). On one Mac these names should resolve, but this is not tested yet for every pair. This happened on one Mac: the browsers had only a `srflx` candidate (the public router address), and most home routers do not send such packets back. So every dev build has the local coturn server in its ICE list (`net/ice.js`, `iceConfig`). Start it with `turn:up`. Add `?relay` to test the relay path.
 
 ### Debug flags
 
@@ -484,10 +488,10 @@ Flags in the page URL. They work only in dev builds (`import.meta.env.DEV`), so 
 
 | Flag | Does |
 |---|---|
-| `?relay` | Built in step 8. Sets `iceTransportPolicy: 'relay'`, so all data goes through the TURN server. Tests the relay path before Cloudflare |
-| `?drop=<percent>` | Built in step 9. Drops that percent of the packets on the `live` channel. The receiving browser drops them, so the browser with the flag shows the effect. Localhost loses no packets, so without this flag the follow and the rest pose rules are not tested |
-| `?delay=<ms>` | Built in step 9. Delays each packet of the `live` channel by that many ms, in the receiving browser. The delay can reorder packets as the network would. `?drop=10&delay=100` is a usual pair |
-| `?build=test` | Built in step 8. Sends a fake app version in `hello`, to test the version warning |
+| `?relay` | Sets `iceTransportPolicy: 'relay'`, so all data goes through the TURN server. Tests the relay path before Cloudflare |
+| `?drop=<percent>` | Drops that percent of the packets on the `live` channel. The receiving browser drops them, so the browser with the flag shows the effect. Localhost loses no packets, so without this flag the follow and the rest pose rules are not tested |
+| `?delay=<ms>` | Delays each packet of the `live` channel by that many ms, in the receiving browser. The delay can reorder packets as the network would. `?drop=10&delay=100` is a usual pair |
+| `?build=test` | Sends a fake app version in `hello`, to test the version warning |
 
 ## Code layout
 
@@ -499,31 +503,31 @@ apps/web/src/net/
   doc.js          the layout of the Y.Doc, SCHEMA, createTable, fillTable, encodeTable. No React
   collections.js  the list and record stores over a Y.Map: diff writes, order, snapshots. No React
   useY.js         React hooks: useYList, useYRecord, useYField
-  ice.js          the STUN list (step 8). Step 13: GET /ice
+  ice.js          the STUN list. GET /ice is not built yet
   signaling.js    createSignaling: hello, offer, answer, bye, poll with x-after
-  peer.js         connectRoom: roles, timeouts, states, RTCPeerConnection (built in step 8)
+  peer.js         connectRoom: roles, timeouts, states, RTCPeerConnection 
   syncChannel.js  Yjs sync and awareness over the sync channel, frames of 16 KB
   debugFlags.js   ?build, ?relay, ?drop, ?delay (dev builds only)
-  ownership.js    claims, owner, the writer of a rest pose (step 9)
-  live.js         the live hub: packets, sequence per key, rounding, ?drop, ?delay (step 9)
-  livePose.js     the number layout of each piece kind, the follow step (step 9)
-  traffic.js      bytes of the selected candidate pair from getStats (step 9)
-  fingerprint.js  tableFingerprint: a short hash of the document's changes (step 11)
+  ownership.js    claims, owner, the writer of a rest pose
+  live.js         the live hub: packets, sequence per key, rounding, ?drop, ?delay
+  livePose.js     the number layout of each piece kind, the follow step
+  traffic.js      bytes of the selected candidate pair from getStats
+  fingerprint.js  tableFingerprint: a short hash of the document's changes
 apps/web/src/drag/
-  pointerDrag.js  startPointerDrag: the gesture of every drag, claims, cancel (step 9)
-  tablePoint.js   the table, board or terrain point under a screen point (step 9)
+  pointerDrag.js  startPointerDrag: the gesture of every drag, claims, cancel
+  tablePoint.js   the table, board or terrain point under a screen point
 apps/web/src/components/
   RoomPlayers.jsx  the seats and the connection status in the room toolbar
-  LiveSync.jsx     sends the own live poses and the cursor, keeps the received ones (step 9)
-  RemoteCursor.jsx the other player's cursor (step 9)
-  DragFootprint.jsx the footprint of a dragged piece (step 9)
-  storedTool.js    the tool entry: rounding, equality, free spawn per side (step 9)
-  useLiveFollow.js the follow of a piece without a body (step 9)
+  LiveSync.jsx     sends the own live poses and the cursor, keeps the received ones
+  RemoteCursor.jsx the other player's cursor
+  DragFootprint.jsx the footprint of a dragged piece
+  storedTool.js    the tool entry: rounding, equality, free spawn per side
+  useLiveFollow.js the follow of a piece without a body
 apps/web/src/characters/
-  overlap.js       which models show the overlap mark (step 9)
-  claims.js        when a model claim keeps, rests or ends (step 9)
+  overlap.js       which models show the overlap mark
+  claims.js        when a model claim keeps, rests or ends
 apps/api/
-  src/routes/signal.ts  signaling routes: messages (step 8). ICE servers in step 13
+  src/routes/signal.ts  signaling routes: messages. ICE servers: not built yet
   src/middleware/session.ts  requireSession: checks the token, reads no user
   src/rooms/seats.ts    the seat cache, 30 s per room
   src/stores/           messages store: memory and MongoDB. The MongoDB store creates the indexes
@@ -534,24 +538,11 @@ infra/
 
 The rest of `apps/api` and `infra/` is in the backend doc ("Code", "Infrastructure").
 
-New packages in `apps/web`: `yjs` and `y-indexeddb` (step 5), `y-protocols` and `lib0` (step 8).
-
-## Phases
-
-Each phase ends with a working app. Do not open the app in a browser. Check with type checks, tests and `pnpm --filter web build`. The user checks the result in the browser. From phase 2 on, the user tests in the three browser pairs of [Local testing](#local-testing).
-
-The plan `docs/plans/implement-backend.md` gives the order of the phases and their steps. The API, the AWS parts and the deploy come first, in its steps 2 to 4. From step 3 on, each backend change is deployed when its step is done.
-
-1. **Shared state in a local Yjs document.** Move the table state from `useState` into the document: map, mat turns, deploy line, crisis, tokens, the character list, terrain, setup and the rosters. Write rest poses when bodies sleep. A room stores its document in IndexedDB. Save and load a game as a file. No network. The app works as before. The tools stay in React state until phase 3 (step 5, decision 1).
-2. **Two browsers, one Mac.** Signaling routes in `apps/api`, with the memory store and the MongoDB store. The room link and the players in the room toolbar. `peer.js` and Yjs sync (step 8). Awareness comes in step 9. App version check in `hello`, and the `?build` flag. Discrete changes sync: map, crisis cards, token flips and markers, new characters, damage and power. If a browser pair cannot connect directly, add the local coturn server and `?relay` here instead of in phase 6.
-3. **Moving objects. Done (step 9).** Models pass through models. Claims in awareness, one writer of each rest pose. The `live` channel and the cursor. The tools (range, move, Toward/Away) are in the document, per side. Bodies moved by the other browser push nothing. Both players drag models, tokens, piles, cards and markers. Each player uses only their own tools. The `?drop` and `?delay` flags. The bytes of each connection in the console.
-4. **Dice. Done (step 10).** Dice and roll history move into the document. Dice are player bodies on the `live` channel. Only the tray's player can use its dice panel. The other player sees the dice fly.
-5. **Reconnect. Done (step 11).** Reconnect after a reload or a dropped connection. A drop makes a new connection, not an ICE restart (plan 11, decision 1). The table fingerprint in the console checks for lost changes. The IndexedDB copy of the Yjs document was done in phase 1. It is tested locally first. The AWS parts of this phase (CDK stacks, Atlas database user, budget alert) moved to steps 3 and 4 of the plan.
-6. **TURN.** Local coturn and `?relay` first (if not done in phase 2), then Cloudflare TURN through `GET /ice`. The app shows the connection type (direct or relayed). Cloudflare only if the first real games (plan step 12) show that direct connections fail too often.
+New packages in `apps/web`: `yjs`, `y-indexeddb`, `y-protocols` and `lib0`.
 
 ## Open questions
 
-1. **Signaling vendor.** AWS Lambda (this plan) or a Cloudflare Worker with a Durable Object? The Worker gives a WebSocket, so no polling and faster reconnects. It is also free with no end date, and it could also make the TURN credentials. The cost is a second vendor. Hono also runs on Cloudflare Workers, so a later move is smaller.
+1. **Signaling vendor.** AWS Lambda (chosen) or a Cloudflare Worker with a Durable Object? The Worker gives a WebSocket, so no polling and faster reconnects. It is also free with no end date, and it could also make the TURN credentials. The cost is a second vendor. Hono also runs on Cloudflare Workers, so a later move is smaller.
 2. **Cloudflare TURN account.** No paid plan is needed: the TURN FAQ says the free 1,000 GB come before any charges. A search result says no payment card is needed to start, but no official page confirms it. Check when we create the account.
 3. **AWS account.** Answered in `docs/features/backend.md`: the existing personal account.
 4. **Spectators.** Needed later?
@@ -567,7 +558,7 @@ The plan `docs/plans/implement-backend.md` gives the order of the phases and the
 - [DynamoDB pricing](https://aws.amazon.com/dynamodb/pricing/): 25 GB, 25 WCU, 25 RCU; provisioned capacity only. For the DynamoDB fallback.
 - [MongoDB TTL indexes](https://www.mongodb.com/docs/manual/core/index-ttl/): a background task deletes expired documents about every 60 seconds.
 - [Atlas free cluster limits](https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/): connection and operation limits of M0.
-- wuclub `apps/apiv2/src/dal/client.ts`: the `MongoClient` cached in module scope that this plan copies.
+- wuclub `apps/apiv2/src/dal/client.ts`: the `MongoClient` cached in module scope that this doc copies.
 - [API Gateway pricing](https://aws.amazon.com/api-gateway/pricing/): WebSocket free tier for 12 months; $1.00 per 1M messages, $0.25 per 1M connection minutes.
 - [CloudWatch pricing](https://aws.amazon.com/cloudwatch/pricing/): 5 GB of logs per month.
 - [AWS free data transfer out, 100 GB per month](https://aws.amazon.com/blogs/aws/aws-free-tier-data-transfer-expansion-100-gb-from-regions-and-1-tb-from-amazon-cloudfront-per-month/)

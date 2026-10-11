@@ -1,6 +1,10 @@
 # Feature: Login with Discord
 
-Status: phase 1 (login) is done and checked locally (step 6 of the plan). Phase 2 (multiplayer rooms, step 7) is built. Phase 3 (identity in peer-to-peer, step 8) is built. The browser checks of steps 7 and 8 passed on 2026-10-09. The rest is plan. See [Open questions](#open-questions) at the end.
+Status: partly built.
+
+Not built yet:
+
+- Login in production. The Discord application needs the production redirect and the Privacy Policy URL. Netlify needs `VITE_DISCORD_CLIENT_ID`. Until then, production shows no login.
 
 The backend (repo, stack, AWS, deploy) is in `docs/features/backend.md`. The order of the work is in `docs/plans/implement-backend.md`.
 
@@ -33,8 +37,8 @@ In TTS, the Steam account gives each player a name and an avatar. Here, the Disc
 
 | Term | Meaning |
 |---|---|
-| Single player room | A room in `localStorage` of one browser: the rooms of today (`docs/features/rooms.md`). For trying maps and rosters. It never connects to another player. Before 2026-10-09 the docs called it an offline room |
-| Multiplayer room | A room in the `rooms` collection. Only a logged-in player can create or join one. Peer-to-peer games happen only in multiplayer rooms. Before 2026-10-09 the docs called it an online room |
+| Single player room | A room in `localStorage` of one browser: the rooms of today (`docs/features/rooms.md`). For trying maps and rosters. It never connects to another player. |
+| Multiplayer room | A room in the `rooms` collection. Only a logged-in player can create or join one. Peer-to-peer games happen only in multiplayer rooms. |
 | Host | The user who creates a multiplayer room. Only the host can delete it |
 | Guest | The user who joins a multiplayer room with the link |
 | Seat | The Blue or the Red player of a multiplayer room. A seat holds a user id or is free |
@@ -54,7 +58,7 @@ In TTS, the Steam account gives each player a name and an avatar. Here, the Disc
 Discord's OAuth2 docs say that the token endpoint needs the client secret. They do not describe PKCE. So the browser cannot exchange the code itself, and the exchange runs in the Lambda.
 
 1. The player presses **Log in with Discord**. The browser makes a random `state` and saves `{ state, returnHash }` in `sessionStorage`. `returnHash` is the page the player was on, for example `#room=K7Q2-M9XD`.
-2. The browser goes to `https://discord.com/oauth2/authorize` with `response_type=code`, `client_id`, `scope=identify`, `redirect_uri=<origin>/`, `state` and `prompt=none`. With `prompt=none`, Discord skips the consent screen when the player approved the app before. Checked on 2026-10-09: the first login of a new player also works with `prompt=none`.
+2. The browser goes to `https://discord.com/oauth2/authorize` with `response_type=code`, `client_id`, `scope=identify`, `redirect_uri=<origin>/`, `state` and `prompt=none`. With `prompt=none`, Discord skips the consent screen when the player approved the app before. The first login of a new player also works with `prompt=none`.
 3. Discord sends the browser to `<origin>/?code=...&state=...`. When the player says no, it sends `?error=access_denied&state=...`.
 4. `Root.jsx` reads the query before the hash. It checks that `state` is the saved one, and removes the query from the address bar (`history.replaceState`). It posts the code to `POST /auth/discord`.
 5. The Lambda posts the code, the client id, the client secret and the redirect URI to `https://discord.com/api/oauth2/token`. It gets a Discord access token. It reads `GET https://discord.com/api/users/@me` with that token.
@@ -135,8 +139,8 @@ The cost of `localStorage`: a script that runs in the page (XSS) can read the to
 - A room with two players shows "This room has two players already" to a third user (409).
 - After the join, both seats and both rosters are fixed. There is no **Leave**, no **Remove**, and no roster change. To change a player or a roster, the host deletes the room and creates a new one.
 - Only the host can **Delete** the room. The guest sees the room in their list and can open it again, until the host deletes it.
-- The guest finds out about a delete from the signaling poll or from the next table write. While the guest waits for the host, it polls, and a poll gets 404 within about 32 s (the seat cache of 30 s plus one poll). The table write gets 404 too. The browser then opens the lobby with "The host deleted room K7Q2-M9XD." and deletes its local copy. A guest whose polls stopped (15 minutes) finds out at the next write. The host deletes only from the lobby, where its room is not open and has no connection. So the old plan, that the host's browser tells the guest over the connection, was dropped in step 8 (decision 12 of its plan).
-- The link is the secret, the same as in the peer-to-peer plan. A code has about 40 bits of randomness, so nobody can guess it.
+- The guest finds out about a delete from the signaling poll or from the next table write. While the guest waits for the host, it polls, and a poll gets 404 within about 32 s (the seat cache of 30 s plus one poll). The table write gets 404 too. The browser then opens the lobby with "The host deleted room K7Q2-M9XD." and deletes its local copy. A guest whose polls stopped (15 minutes) finds out at the next write. The host deletes only from the lobby, where its room is not open and has no connection. So the host's browser cannot tell the guest over the connection.
+- The link is the secret, the same as in the peer-to-peer doc. A code has about 40 bits of randomness, so nobody can guess it.
 
 ### Rosters
 
@@ -166,11 +170,11 @@ How it works:
   - 403 or 413 stops the writer. The HUD shows "This table is no longer saved on the server: <error>" until the player closes it. The IndexedDB copy still saves.
   - At open, the browser compares the document with the server table (`Y.equalSnapshots`). If they differ, for example after a closed page, the browser writes at once. A state vector alone is not enough, because a delete does not change it.
   - There is no write on page close, because a table can pass 64 KB in a long game. The IndexedDB copy has the last changes.
-  - When both players are connected (step 8), only the host writes, because both browsers have the same document. The guest's writer pauses on `connected`: a change starts no timer. It resumes on any other state, and a waiting change starts the timer. **← Lobby** and a hidden tab still write from the guest. The host counts changes from the guest, because their origin is not `'server'`. This halves the table writes, and Atlas M0 allows 10 GB out per week.
+  - When both players are connected, only the host writes, because both browsers have the same document. The guest's writer pauses on `connected`: a change starts no timer. It resumes on any other state, and a waiting change starts the timer. **← Lobby** and a hidden tab still write from the guest. The host counts changes from the guest, because their origin is not `'server'`. This halves the table writes, and Atlas M0 allows 10 GB out per week.
   - If the host's page closes without its hidden-tab write, the guest's writer resumes and writes the whole document. No change is lost, but the server can have an older table for up to 60 s.
 - **Merge on the server:** the Lambda reads `table` and `tableRev`, merges the new update into it (`Y.mergeUpdates`), and writes with the filter `{ _id, tableRev }`. If the other player wrote in between, the filter finds no document. Then the Lambda reads again, merges again and writes once more. If that fails too, it answers 409 "The table changed. Try again." The browser tries again with its next write. So no change is lost, also when both players write at the same time.
 - **Size:** the Lambda rejects a body above 1 MB (413). It also does not write a merged table above 1 MB (413). It logs the size of the body and of the merged table for each write. A table of 6 rounds is 22 KB, and of 18 rounds 34 KB (open question 5). Atlas M0 has 512 MB, so it holds a few thousand rooms.
-- **Lambda:** a function URL sends a binary body as base64, and `@hono/aws-lambda` decodes it and encodes the `application/octet-stream` answer. `apps/api/test/lambda-binary.test.ts` tests both directions with a fake event. The real function URL is first used with a token in step 12.
+- **Lambda:** a function URL sends a binary body as base64, and `@hono/aws-lambda` decodes it and encodes the `application/octet-stream` answer. `apps/api/test/lambda-binary.test.ts` tests both directions with a fake event. The real function URL has not been used with a token yet.
 
 ### Endpoints
 
@@ -202,7 +206,7 @@ The signaling paths `/rooms/{code}/messages` are under the same `/rooms/{code}` 
 - The Lambda adds `user: { id, name, avatar, discordId }` to each message that it stores. It ignores a `user` field that the browser sends.
 - The browser accepts an `offer` or an `answer` only when its `user.id` is the same as the `user.id` of the `hello` with the same `from`. It ignores every message whose `user.id` is its own, so a second tab of the same user does nothing.
 - The SDP of the offer and the answer has the fingerprint of the sender's DTLS certificate. The browsers check this fingerprint when the data channels connect. So the data channels are connected to the user that the Lambda added to the offer or the answer.
-- The player name comes from Discord. The typed player name and the peer id in `sessionStorage` of the old peer-to-peer plan are gone. The peer id is new at each table open.
+- The player name comes from Discord, not from the player. The peer id is new at each table open and is not stored.
 - When a browser opens a room code that is not a single player room of this browser, it asks `GET /rooms/{code}`. A multiplayer room opens the room (with a seat) or the join page (with a free seat). With no free seat, the lobby shows "This room has two players already.". An unknown code shows "Room K7Q2-M9XD not found.". With login off, no API call is made, and the lobby shows "Room K7Q2-M9XD is not in this browser.".
 
 ## Lobby and room UI
@@ -249,30 +253,29 @@ The Discord Developer Terms of Service (effective 2024-07-08, section 5) apply t
 - Discord accepts only the redirect URIs registered in the Developer Portal: `https://mcptacticus3d.netlify.app/` and `http://localhost:5173/`. So a Netlify deploy preview (another origin) cannot log in.
 - CORS is set in the function URL config, for the origin `https://mcptacticus3d.netlify.app` only (backend doc, "McpTacticusApi"). In dev, Vite forwards `/api` to the local API, so there is no CORS.
 - The Lambda checks every write against the seat rules. The browser hides buttons, but the Lambda decides.
-- Same as the peer-to-peer plan: no protection against cheating inside a game.
+- Same as the peer-to-peer doc: no protection against cheating inside a game.
 
 ## Site name
 
-The site needs a fixed address before the Discord application gets its production redirect URI. No own domain for now.
+The site has a fixed address before the Discord application gets its production redirect URI. No own domain for now.
 
-- Rename the existing Netlify site to `mcptacticus3d`: Site configuration → General → Site details → **Change site name**. A new site is not needed. Check that the name is free.
+- The existing Netlify site is renamed to `mcptacticus3d` (Site configuration → General → Site details → **Change site name**). A new site was not needed.
 - After the rename, the old `*.netlify.app` address returns 404. Netlify does not redirect it.
-- `localStorage` belongs to one origin. So the single player rooms that were saved on the old address do not show on the new one.
-- The rename happens in step 1 of the plan (`docs/plans/implement-backend.md`), so the address is final from the start. The lost single player rooms do not matter before the first release, because all data is test data.
+- `localStorage` belongs to one origin. So the single player rooms that were saved on the old address do not show on the new one. This does not matter before the first release, because all data is test data.
 
 ## Discord application
 
 Created once, by hand, in the Discord Developer Portal:
 
 1. **New Application**. Use a name like the site (`mcptacticus3d`), because Discord shows the name on the consent screen.
-2. **OAuth2 → Redirects:** `http://localhost:5173/` now, `https://mcptacticus3d.netlify.app/` in phase 4.
-3. **Privacy Policy URL:** `https://mcptacticus3d.netlify.app/privacy.html`, in phase 4.
+2. **OAuth2 → Redirects:** `http://localhost:5173/`, and `https://mcptacticus3d.netlify.app/` for production (not set yet).
+3. **Privacy Policy URL:** `https://mcptacticus3d.netlify.app/privacy.html`, for production (not set yet).
 4. Copy the client id to `VITE_DISCORD_CLIENT_ID` in `apps/web/.env.local`. Copy the client id and the client secret to `apps/api/.env` and `infra/.env`. Git ignores these files. `put-secrets` writes them to SSM (backend doc, "Secrets and config").
 5. No bot user. No other scopes.
 
 ## Local testing
 
-The rules of the peer-to-peer plan apply: everything works on one Mac, and each player is a different browser.
+The rules of the peer-to-peer doc apply: everything works on one Mac, and each player is a different browser.
 
 | Part | Production | Local |
 |---|---|---|
@@ -291,7 +294,7 @@ The rules of the peer-to-peer plan apply: everything works on one Mac, and each 
 
 ## Cost
 
-Assumptions of the peer-to-peer plan ("Use per game"): 2 players, a 2-hour game.
+Assumptions of the peer-to-peer doc ("Use per game"): 2 players, a 2-hour game.
 
 | Item | Use |
 |---|---|
@@ -323,14 +326,14 @@ apps/web/src/rooms/
   base64.js        bytes to base64 and back
   localDocs.js     the IndexedDB names of multiplayer rooms and their cleanup
 apps/web/src/components/
-  RoomPlayers.jsx  the seats and the connection status in the room toolbar (step 8)
+  RoomPlayers.jsx  the seats and the connection status in the room toolbar
   UserMenu.jsx     login button, avatar, menu, dev login
   JoinRoom.jsx     the join page of a multiplayer room
   CopyLinkButton.jsx  Copy link
   RoomRosterPopup.jsx  the roster popup of a tile and of the join page
 apps/api/src/
   auth/            token (sign and verify the session token), discord (the Discord client)
-  routes/          auth (Discord code exchange), devAuth (local only), me, rooms (seat rules), table (merge), signal (messages, step 8)
+  routes/          auth (Discord code exchange), devAuth (local only), me, rooms (seat rules), table (merge), signal (messages)
   rooms/           code (room code), table (Yjs checks and merge), read (room read, 404, host-gone cleanup), seats (the seat cache)
   middleware/      user: checks the session token with hono/jwt and reads the user. session: the token only. validate: body check
   stores/          users and rooms: memory and MongoDB. Rooms need `yjs`
@@ -339,27 +342,14 @@ apps/api/src/
 
 The rest of `apps/api` is in the backend doc ("Code"). Auth, rooms, the table and signaling are one API. New packages in `apps/api`: `yjs`. `hono/jwt` is part of `hono`.
 
-## Phases
-
-Each phase ends with a working app. Check with type checks, tests and `pnpm --filter web build`. The user checks the result in the browser.
-
-The plan `docs/plans/implement-backend.md` gives the order of the phases and their steps. The API, the AWS parts and the deploy come first, in its steps 2 to 4. From step 3 on, each backend change is deployed when its step is done. Production shows no login until phase 4, because the web app shows the login button only when `VITE_DISCORD_CLIENT_ID` is set.
-
-1. **Login.** Discord application with the localhost redirect. The users store (memory and MongoDB), `POST /auth/discord`, `GET /me`, `DELETE /me`, the dev login. Lobby header with login, avatar and menu.
-2. **Multiplayer rooms.** After peer-to-peer phase 1, so the table is a Yjs document. Rooms store (memory and MongoDB, with indexes and TTL indexes) and endpoints, seats, the table snapshot, one room list in the lobby, the **Single player** or **Multiplayer** choice in the new room dialog, the join page, **Copy link**. Done in step 7.
-3. **Identity in peer-to-peer.** Together with peer-to-peer phase 2. Token and seat check on signaling requests, `user` on messages, the offer and answer check, names and avatars in the room toolbar. Signaling only for multiplayer rooms.
-4. **First release.** Built in step 12. The privacy page, **Delete account** and the footer link are done. The release tasks of the user are open. The production redirect URI and Privacy Policy URL, **Delete account**, the privacy page, and `VITE_DISCORD_CLIENT_ID` in Netlify. Delete account and the privacy page must be live before the first real player logs in. The site rename moved to step 1 of the plan, and the deploy to steps 3 and 4.
-
 ## Relation to other features
 
-- `docs/features/rooms.md`: the rooms there become single player rooms. They stay in `localStorage` and never connect. Two lines there change: "Peer-to-peer will add rooms that this browser joined" (now these are multiplayer rooms), and "the Red field will be only in the Sandbox" (single player rooms keep both roster fields).
-- `docs/features/peer-to-peer.md`: games happen only in multiplayer rooms, and both players are logged in. "No accounts", the typed player name and the peer id in `sessionStorage` in "Room and players" went away in step 8, and so did the **Host game** button. The host shares the link of a multiplayer room, not of a single player room ("Connect flow"). The signaling routes get the token and seat check. They are in the same API (`apps/api`, backend doc). The IndexedDB copy of the Yjs document stays, and the server snapshot comes in addition.
+- `docs/features/rooms.md`: the rooms there are single player rooms. They stay in `localStorage` and never connect. A multiplayer room is described here.
+- `docs/features/peer-to-peer.md`: games happen only in multiplayer rooms, and both players are logged in. The host shares the link of a multiplayer room, not of a single player room ("Connect flow"). The signaling routes need the token and a seat. They are in the same API (`apps/api`, backend doc). The IndexedDB copy of the Yjs document stays, and the server snapshot comes in addition.
 
 ## Decisions
 
-Made on 2026-10-08:
-
-1. Login unlocks player identity in peer-to-peer games and multiplayer rooms. Rosters, settings and custom model uploads stay out of this plan.
+1. Login unlocks player identity in peer-to-peer games and multiplayer rooms. Rosters, settings and custom model uploads stay out of this feature.
 2. Multiplayer play needs login. The Sandbox and single player rooms work without it.
 3. Single player rooms stay in the browser. They are for trying maps and rosters, and they never move into an account.
 4. Discord is the only provider.
@@ -371,9 +361,7 @@ Made on 2026-10-08:
 10. The server keeps the setup and a snapshot of the table of each multiplayer room. A player who joins sees the map and the host's roster at once.
 11. The site is `https://mcptacticus3d.netlify.app`: the existing Netlify site, renamed. No own domain.
 
-Made on 2026-10-09 (step 7):
-
-12. Three kinds of table: Sandbox, single player room, multiplayer room. "Offline room" and "online room" go away.
+12. Three kinds of table: Sandbox, single player room, multiplayer room.
 13. The host's browser builds the start table and sends it with `POST /rooms`. A room never has `table: null`.
 14. Seats and rosters are fixed after the join. No leave, remove or roster change. Only the host deletes the room.
 15. A user hosts one room at a time.
@@ -381,15 +369,15 @@ Made on 2026-10-09 (step 7):
 
 ## Open questions
 
-1. **Localhost redirect.** Answered on 2026-10-09: Discord accepts `http://localhost:5173/`. The first save failed because the browser filled the field with the Discord email. Typed by hand, it saved.
+1. **Localhost redirect.** Answered: Discord accepts `http://localhost:5173/`. The first save failed because the browser filled the field with the Discord email. Typed by hand, it saved.
 2. **Session length.** 30 days, renewed once a day on app start. Fine?
 3. **Retention.** 12 months for users with no login and rooms with no change. Fine?
 4. **Region.** Answered in `docs/features/backend.md`: the Atlas cluster and the Lambda are in `eu-central-1`.
-5. **Table size.** Answered in step 5 (`docs/plans/implement-backend/05-yjs-state.md`, Phase 4 Result). `pnpm --filter web yjs-size` builds a full game with 12 characters, 30 terrain pieces, and many moves, damage and token changes, and prints the snapshot size.
+5. **Table size.** Answered (measured in `docs/plans/implement-backend/05-yjs-state.md`, Phase 4 Result). `pnpm --filter web yjs-size` builds a full game with 12 characters, 30 terrain pieces, and many moves, damage and token changes, and prints the snapshot size.
    - 6 rounds: 21930 bytes, 2.1% of 1 MB. 18 rounds: 34363 bytes, 3.3%.
    - The snapshot grows about 1 KB per round. The JSON of the same table grows only 0.2 KB per round. The rest is the history of overwritten fields, which Yjs keeps.
    - The average update is about 70 bytes. A 6-round game has 804 updates.
-   - The 1 MB limit is far away. The size does not limit the write interval of step 7. The interval can be chosen for other reasons: the number of Lambda requests, the Atlas transfer, and how much of a game a player can lose.
+   - The 1 MB limit is far away. The size does not limit the write interval of the table writer. The interval can be chosen for other reasons: the number of Lambda requests, the Atlas transfer, and how much of a game a player can lose.
 
 ## Out of scope
 
@@ -403,7 +391,7 @@ Made on 2026-10-09 (step 7):
 
 ## Sources
 
-- [Discord Developer Terms of Service](https://support-dev.discord.com/hc/en-us/articles/8562894815383-Discord-Developer-Terms-of-Service), effective 2024-07-08: section 5 (privacy policy, sharing, deletion, encryption at rest), section 2 (credentials), section 11 (EEA transfers). Read on 2026-10-08 through the help center API, because the page returns 403 to scripts.
+- [Discord Developer Terms of Service](https://support-dev.discord.com/hc/en-us/articles/8562894815383-Discord-Developer-Terms-of-Service), effective 2024-07-08: section 5 (privacy policy, sharing, deletion, encryption at rest), section 2 (credentials), section 11 (EEA transfers). Read through the help center API, because the page returns 403 to scripts.
 - [Discord OAuth2](https://docs.discord.com/developers/topics/oauth2): authorization code and implicit grant; token endpoint needs the client secret; no PKCE in the docs; `prompt=none`; `expires_in` 604800 in the examples.
 - [Discord image formatting](https://docs.discord.com/developers/reference): avatar URL, default avatar index `(user_id >> 22) % 6`, sizes 16–4096.
 - [Amazon Cognito pricing](https://aws.amazon.com/cognito/pricing/): 10,000 free MAU for direct and social sign-in; 50 free MAU for SAML and OIDC federation.

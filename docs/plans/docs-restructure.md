@@ -162,6 +162,16 @@ Files: `features/auth.md`, `features/peer-to-peer.md`, `features/backend.md`, `f
 - Part 1 of `plans/room-fixes.md` (no crisis dropdowns and no mat turn buttons in a multiplayer room) goes into `rooms.md`, if it is not there yet.
 - References to `implement-backend/03-infra.md` "First deploy commands" stay. They point to commands, not to design.
 
+**Result**
+
+- `features/auth.md`, `features/peer-to-peer.md`, `features/backend.md`, `features/rooms.md`: status line is `Status:` in one line. Auth, peer-to-peer and backend are "partly built" with a "Not built yet" list (production login; `GET /ice` and TURN; the GitHub Actions workflows). Rooms is "built".
+- "Phases" of `auth.md` and `peer-to-peer.md` moved as they are to the new section "Phases of the features" in `plans/implement-backend.md` (one sub-heading per feature). One anchor link in the moved text became a section name. No other link pointed to them.
+- History became current state: offline/online room names, "went away in step 8", dropped host-tells-guest plan, typed name and `sessionStorage` peer id, site rename, Discord redirect "in phase 4", Netlify and pnpm move notes, "Made on" headings of decisions (lists kept, numbers kept). "Relation to other features" of `auth.md` and `backend.md` now say only how the features relate. "peer-to-peer plan" became "peer-to-peer doc".
+- Part 1 of `plans/room-fixes.md`: the mat turn was in `rooms.md` already. Added the missing part (no Crisis dropdowns in a multiplayer room, crisis cards from the setup, the setup panel buttons, restart) to the "Room" section. Fixed "Now that is every room" for **Delete** (host only in a multiplayer room).
+- Plans did not change, except the new section. The pointers to `03-infra.md` "First deploy commands" stay.
+- Left on purpose: plan pointers for measurements (`05-yjs-state.md`, `10-dice.md`, check 23 of `09-moving-objects.md`), package and vendor dates (Discord terms 2024-07-08, AWS 2025-07-15, repo 2026-07-15, `@hono/aws-lambda` 1.0.1, Hono 5 RC), and "plan" in vendor names ("Free plan").
+- Open issues: `plans/implement-backend.md` step 5 still says peer-to-peer doc "Phases" (1); plans do not change.
+
 ## Step 5: Other features
 
 Files: `features/roster.md`, `features/setup-game.md`, `features/dice-rolling.md`, `features/team-tactic-cards.md`, `features/crisis.md`, `features/library.md`, `features/key-shortcuts.md`, `features/spectator-view.md`, `features/custom-models.md`, `plans/roster.md`, `plans/dice-rolling.md`, `plans/tactic-tokens.md`, `plans/room-fixes.md`.

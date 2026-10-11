@@ -399,6 +399,34 @@ Peer-to-peer phase 6. Only if step 12 or later games show that direct connection
 
 This step also adds `GET /ice` (step 8 decision 13). It returns the ICE server list and the short-lived TURN credentials. Until then, the web app has the two STUN servers as a constant in `net/ice.js`, and a connect makes no extra request.
 
+## Phases of the features
+
+The phase lists of the auth and peer-to-peer features, moved here from the features. The steps above give the order of the work.
+
+### Login with Discord (`docs/features/auth.md`)
+
+Each phase ends with a working app. Check with type checks, tests and `pnpm --filter web build`. The user checks the result in the browser.
+
+The plan `docs/plans/implement-backend.md` gives the order of the phases and their steps. The API, the AWS parts and the deploy come first, in its steps 2 to 4. From step 3 on, each backend change is deployed when its step is done. Production shows no login until phase 4, because the web app shows the login button only when `VITE_DISCORD_CLIENT_ID` is set.
+
+1. **Login.** Discord application with the localhost redirect. The users store (memory and MongoDB), `POST /auth/discord`, `GET /me`, `DELETE /me`, the dev login. Lobby header with login, avatar and menu.
+2. **Multiplayer rooms.** After peer-to-peer phase 1, so the table is a Yjs document. Rooms store (memory and MongoDB, with indexes and TTL indexes) and endpoints, seats, the table snapshot, one room list in the lobby, the **Single player** or **Multiplayer** choice in the new room dialog, the join page, **Copy link**. Done in step 7.
+3. **Identity in peer-to-peer.** Together with peer-to-peer phase 2. Token and seat check on signaling requests, `user` on messages, the offer and answer check, names and avatars in the room toolbar. Signaling only for multiplayer rooms.
+4. **First release.** Built in step 12. The privacy page, **Delete account** and the footer link are done. The release tasks of the user are open. The production redirect URI and Privacy Policy URL, **Delete account**, the privacy page, and `VITE_DISCORD_CLIENT_ID` in Netlify. Delete account and the privacy page must be live before the first real player logs in. The site rename moved to step 1 of the plan, and the deploy to steps 3 and 4.
+
+### Peer-to-peer play (`docs/features/peer-to-peer.md`)
+
+Each phase ends with a working app. Do not open the app in a browser. Check with type checks, tests and `pnpm --filter web build`. The user checks the result in the browser. From phase 2 on, the user tests in the three browser pairs of "Local testing" of `docs/features/peer-to-peer.md`.
+
+The plan `docs/plans/implement-backend.md` gives the order of the phases and their steps. The API, the AWS parts and the deploy come first, in its steps 2 to 4. From step 3 on, each backend change is deployed when its step is done.
+
+1. **Shared state in a local Yjs document.** Move the table state from `useState` into the document: map, mat turns, deploy line, crisis, tokens, the character list, terrain, setup and the rosters. Write rest poses when bodies sleep. A room stores its document in IndexedDB. Save and load a game as a file. No network. The app works as before. The tools stay in React state until phase 3 (step 5, decision 1).
+2. **Two browsers, one Mac.** Signaling routes in `apps/api`, with the memory store and the MongoDB store. The room link and the players in the room toolbar. `peer.js` and Yjs sync (step 8). Awareness comes in step 9. App version check in `hello`, and the `?build` flag. Discrete changes sync: map, crisis cards, token flips and markers, new characters, damage and power. If a browser pair cannot connect directly, add the local coturn server and `?relay` here instead of in phase 6.
+3. **Moving objects. Done (step 9).** Models pass through models. Claims in awareness, one writer of each rest pose. The `live` channel and the cursor. The tools (range, move, Toward/Away) are in the document, per side. Bodies moved by the other browser push nothing. Both players drag models, tokens, piles, cards and markers. Each player uses only their own tools. The `?drop` and `?delay` flags. The bytes of each connection in the console.
+4. **Dice. Done (step 10).** Dice and roll history move into the document. Dice are player bodies on the `live` channel. Only the tray's player can use its dice panel. The other player sees the dice fly.
+5. **Reconnect. Done (step 11).** Reconnect after a reload or a dropped connection. A drop makes a new connection, not an ICE restart (plan 11, decision 1). The table fingerprint in the console checks for lost changes. The IndexedDB copy of the Yjs document was done in phase 1. It is tested locally first. The AWS parts of this phase (CDK stacks, Atlas database user, budget alert) moved to steps 3 and 4 of the plan.
+6. **TURN.** Local coturn and `?relay` first (if not done in phase 2), then Cloudflare TURN through `GET /ice`. The app shows the connection type (direct or relayed). Cloudflare only if the first real games (plan step 12) show that direct connections fail too often.
+
 ## Decisions
 
 Made on 2026-10-08:
