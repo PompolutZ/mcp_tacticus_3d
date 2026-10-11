@@ -1,6 +1,7 @@
 import jarvisData from './jarvis-characters.json'
 import migratedData from './characters.json'
 import { sharedImmunities } from './immunity.js'
+import { sharedPowerBonus } from './power.js'
 
 function baseName(mm) {
   if (mm <= 35) return 'small'
@@ -38,6 +39,10 @@ function rosterEntry(jch, m, mctCode) {
     tokens: m?.tokens || [],
     // Conditions the character is immune to, per side, in every form (immunity.js). From Jarvis.
     immune: sharedImmunities(jch),
+    // Fixed extra Power of the Power Phase, per side, smallest of the forms (power.js). From Jarvis.
+    powerBonus: sharedPowerBonus(jch),
+    // Grunts cannot have Power, so the Power Phase skips them (power.js).
+    grunt: !!jch.isGrunt,
     // Second form: null, or { figure, rotation, base?, name?, portrait?, card? } from
     // characters.json. See docs/characters-hud.md, "Second forms", and models.js.
     transform: m?.transform ?? null,
@@ -106,4 +111,15 @@ export function characterGiveSources(slug) {
 // them. App.jsx's give handler uses this. See docs/characters-hud.md, "Immunities".
 export function characterImmune(slug, side) {
   return bySlug.get(slug)?.immune[side === 'injured' ? 'injured' : 'healthy'] ?? []
+}
+
+// Fixed extra Power this character gains in the Power Phase on its current side (power.js); 0 when
+// unknown. See docs/plan-power-phase.md.
+export function characterPowerBonus(slug, side) {
+  return bySlug.get(slug)?.powerBonus[side === 'injured' ? 'injured' : 'healthy'] ?? 0
+}
+
+// True for a grunt: it cannot have Power.
+export function characterIsGrunt(slug) {
+  return bySlug.get(slug)?.grunt ?? false
 }
