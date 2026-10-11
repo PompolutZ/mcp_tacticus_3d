@@ -7,9 +7,6 @@
     "rotation": 180,
     "tokens": [
       "poison"
-    ],
-    "immune": [
-      "poison"
     ]
   },
   "adam-warlock": {
@@ -98,11 +95,6 @@
       "incinerate",
       "evolution",
       "poison"
-    ],
-    "immune": [
-      "bleed",
-      "incinerate",
-      "stun"
     ]
   },
   "archangel": {
@@ -137,9 +129,6 @@
     "tokens": [
       "stun",
       "stagger"
-    ],
-    "immune": [
-      "poison"
     ]
   },
   "black-panther": {
@@ -283,9 +272,6 @@
       "stagger",
       "shock",
       "stun"
-    ],
-    "immune": [
-      "poison"
     ]
   },
   "heimdall-the-all-seeing": {
@@ -332,10 +318,7 @@
     "name": "Juggernaut",
     "base": "large",
     "figure": "model",
-    "rotation": 0,
-    "immune": [
-      "stun"
-    ]
+    "rotation": 0
   },
   "karnak": {
     "id": "01660102",
@@ -402,9 +385,6 @@
     "tokens": [
       "bleed",
       "interdimensional-bloodhound"
-    ],
-    "immune": [
-      "poison"
     ]
   },
   "loki-prince-of-lies": {
@@ -422,10 +402,7 @@
     "name": "M'Baku",
     "base": "small",
     "figure": "model",
-    "rotation": 0,
-    "immune": [
-      "stun"
-    ]
+    "rotation": 0
   },
   "malekith-the-accursed": {
     "id": "00930101",
@@ -440,10 +417,6 @@
       "slow",
       "stun",
       "hex"
-    ],
-    "immune": [
-      "hex",
-      "stun"
     ]
   },
   "man-thing": {
@@ -455,10 +428,6 @@
     "tokens": [
       "poison",
       "incinerate"
-    ],
-    "immune": [
-      "hex",
-      "stun"
     ]
   },
   "medusa": {
@@ -469,9 +438,6 @@
     "rotation": 285,
     "tokens": [
       "bleed"
-    ],
-    "immune": [
-      "poison"
     ]
   },
   "mephisto": {
@@ -484,10 +450,6 @@
     "tokens": [
       "incinerate",
       "devils-deal"
-    ],
-    "immune": [
-      "incinerate",
-      "poison"
     ]
   },
   "mister-sinister": {
@@ -531,11 +493,6 @@
     "tokens": [
       "shock",
       "stun"
-    ],
-    "immune": [
-      "bleed",
-      "poison",
-      "stun"
     ]
   },
   "okoye": {
@@ -553,9 +510,6 @@
     "rotation": 105,
     "tokens": [
       "poison"
-    ],
-    "immune": [
-      "poison"
     ]
   },
   "omega-sentinel": {
@@ -568,10 +522,6 @@
       "physical",
       "energy",
       "mystic"
-    ],
-    "immune": [
-      "poison",
-      "bleed"
     ]
   },
   "proxima-midnight": {
@@ -616,10 +566,6 @@
       "incinerate",
       "shock",
       "slow"
-    ],
-    "immune": [
-      "bleed",
-      "poison"
     ]
   },
   "sentinel-mk4-00510102": {
@@ -632,10 +578,6 @@
       "incinerate",
       "shock",
       "slow"
-    ],
-    "immune": [
-      "bleed",
-      "poison"
     ]
   },
   "sentinel-prime-mk4": {
@@ -648,10 +590,6 @@
       "incinerate",
       "shock",
       "slow"
-    ],
-    "immune": [
-      "bleed",
-      "poison"
     ]
   },
   "shuri": {
@@ -689,9 +627,6 @@
       "poison",
       "shock",
       "stun"
-    ],
-    "immune": [
-      "poison"
     ]
   },
   "storm": {
@@ -703,9 +638,6 @@
     "tokens": [
       "shock",
       "stun"
-    ],
-    "immune": [
-      "shock"
     ]
   },
   "the-mighty-thor": {
@@ -715,9 +647,6 @@
     "figure": "model",
     "rotation": 180,
     "tokens": [
-      "shock"
-    ],
-    "immune": [
       "shock"
     ]
   },
@@ -738,10 +667,7 @@
     "name": "Thor, Hero of Midgard",
     "base": "medium",
     "figure": "model",
-    "rotation": 180,
-    "immune": [
-      "shock"
-    ]
+    "rotation": 180
   },
   "thor-prince-of-asgard": {
     "id": "00110101",
@@ -752,10 +678,6 @@
     "tokens": [
       "shock",
       "stagger"
-    ],
-    "immune": [
-      "stun",
-      "shock"
     ]
   },
   "ultimate-spider-man": {

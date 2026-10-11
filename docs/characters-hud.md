@@ -34,7 +34,7 @@ The app keeps only simple limits that never change:
 - Damage is from 0 to the Stamina of the side that faces up.
 - Power is from 0 to 10.
 - A character has each special condition at most once (p17). Activated and Dazed are also at most once.
-- A character cannot get a special condition it is immune to (p21). The app does not add it and shows a short message, for example "Okoye is immune to Bleed." The immunities come from the mod (`cImmune`), so they are data, not a rules engine.
+- A character cannot get a special condition it is immune to (p21). The app does not add it and shows a short message, for example "Okoye is immune to Bleed." The immunities come from Jarvis (see [Immunities](#immunities)), so they are data, not a rules engine.
 
 ## Rules
 
@@ -251,9 +251,19 @@ Output, in the same style as the crisis migration:
 |---|---|---|
 | Stamina, Healthy and Injured | Jarvis `statCard.frontSide.stamina`, `backSide.stamina` | `characters.js`, which already loads `jarvis-characters.json` |
 | Tokens the character uses (Give sources) | Mod `cToken` | `characters.json`, written by `migrate-characters.mjs` |
-| Immunities | Mod `cImmune` | `characters.json` |
+| Immunities, per side and form | Jarvis, the superpower names of the stat card sides | `immunity.js`, used by `characters.js` |
 
-Jarvis has the current official values, so the stats come from Jarvis. Only the mod has the token lists and the immunities as data. The Jarvis text also marks tokens (`|<winging_it>Winging It|`) and conditions (`|§bleed§Bleed|`), but the mod's `cToken` list maps directly to the token images.
+Jarvis has the current official values, so the stats come from Jarvis. Only the mod has the token lists as data. The Jarvis text also marks tokens (`|<winging_it>Winging It|`) and conditions (`|§bleed§Bleed|`), but the mod's `cToken` list maps directly to the token images.
+
+### Immunities
+
+The immunities come from the Jarvis data (`jarvis-characters.json`), not from the mod. The text is in the superpower names of a stat card side, for example "Flight, Immunity [Incinerate, Stun]". `immunity.js` reads it.
+
+- Per side. `frontSide` is Healthy, `backSide` is Injured. The tray uses the side that faces up (`characterImmune(slug, side)`). Apocalypse: Bleed, Incinerate, Stun when Healthy, every special condition when Injured.
+- Two forms. A character with a second form that has its own card has `secondStatCard`. The app does not know which form is in use (players move the model by hand), so a give is refused only when every form is immune on that side. Emma Frost is immune only as Diamond, so the app never refuses her, and players apply it by hand.
+- "Special Conditions" means all ten conditions of `tokens.json` (`SPECIAL_CONDITIONS` in `immunity.js`).
+- A name maps to the token key with the same slug ("Incinerate" to `incinerate`). `immunity.test.js` checks that every name in the data maps to a token key. Two French names ("Secoué" is `shock`, "Hémorragie" is `bleed`) are in a small table, checked against the `immuneTo*` tags of the row.
+- `characters.json` has no `immune` field since 2026-10-11 (before, it came from the mod `cImmune`). `tokens` stays from the mod.
 
 ## State
 

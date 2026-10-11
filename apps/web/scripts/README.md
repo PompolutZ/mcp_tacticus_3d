@@ -200,7 +200,7 @@ Entry in `characters.json`:
 }
 ```
 
-Optional fields: `models` and `cards` (number of versions, when more than 1), `transform` (`figure`, `rotation`, and `name`, `base`, `portrait` when the mod has them, and `card: true` when the second form has its own card, `transform-card-*.webp`), `portrait: false` when the portrait is not in the cache, and `tokens`/`immune` (`cToken`/`cImmune`, as `src/tokens/tokens.json` keys, for the tray's Give row and immunity check; left out when the mod row has none). A mod token name maps to a key with the same slug `migrate-tokens.mjs` gave it; a name that does not match a migrated token (a dice result, an affiliation token, a mod data typo, ...) is left out and printed as a warning, not guessed.
+Optional fields: `models` and `cards` (number of versions, when more than 1), `transform` (`figure`, `rotation`, and `name`, `base`, `portrait` when the mod has them, and `card: true` when the second form has its own card, `transform-card-*.webp`), `portrait: false` when the portrait is not in the cache, and `tokens` (`cToken`, as `src/tokens/tokens.json` keys, for the tray's Give row; left out when the mod row has none). There is no `immune` field: the immunities come from Jarvis (`src/characters/immunity.js`). A mod token name maps to a key with the same slug `migrate-tokens.mjs` gave it; a name that does not match a migrated token (a dice result, an affiliation token, a mod data typo, ...) is left out and printed as a warning, not guessed.
 
 `$TMPDIR/mcp-assist-3d-characters/<key>/` has the AssetRipper exports, for inspection.
 

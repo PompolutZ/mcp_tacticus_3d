@@ -1257,7 +1257,7 @@ export default function App({
   // dropped token is used up, as in TTS, where the tray deletes it.
   function handleCharacterTokenGive(id, tokenKey) {
     const target = characters.find((ch) => ch.id === id)
-    if (target && characterImmune(target.key).includes(tokenKey)) {
+    if (target && characterImmune(target.key, target.side).includes(tokenKey)) {
       showHudMessage(
         `${characterName(target.key)} is immune to ${getToken(tokenKey)?.name ?? tokenKey}.`,
       )

@@ -1,5 +1,6 @@
 import jarvisData from './jarvis-characters.json'
 import migratedData from './characters.json'
+import { sharedImmunities } from './immunity.js'
 
 function baseName(mm) {
   if (mm <= 35) return 'small'
@@ -32,10 +33,11 @@ function rosterEntry(jch, m, mctCode) {
     staminaInjured: Number(jch.statCard.backSide.stamina) || 0,
     // Threat Level, for the squad threat in the game setup (see docs/feature-setup-game.md)
     threat: jch.threatLevel ?? 0,
-    // Token keys (tokens.json) from the mod's cToken/cImmune, written by migrate-characters.mjs.
+    // Token keys (tokens.json) from the mod's cToken, written by migrate-characters.mjs.
     // See docs/characters-hud.md, "Give tokens by drag and drop", and TrayControls.jsx.
     tokens: m?.tokens || [],
-    immune: m?.immune || [],
+    // Conditions the character is immune to, per side, in every form (immunity.js). From Jarvis.
+    immune: sharedImmunities(jch),
     // Second form: null, or { figure, rotation, base?, name?, portrait?, card? } from
     // characters.json. See docs/characters-hud.md, "Second forms", and models.js.
     transform: m?.transform ?? null,
@@ -100,7 +102,8 @@ export function characterGiveSources(slug) {
   return [...ALWAYS_GIVEN, ...(bySlug.get(slug)?.tokens ?? [])]
 }
 
-// Token keys this character cannot get (p21). TrayControls.jsx and App.jsx's give handler use this.
-export function characterImmune(slug) {
-  return bySlug.get(slug)?.immune ?? []
+// Token keys this character cannot get on its current side (p21), when every form is immune to
+// them. App.jsx's give handler uses this. See docs/characters-hud.md, "Immunities".
+export function characterImmune(slug, side) {
+  return bySlug.get(slug)?.immune[side === 'injured' ? 'injured' : 'healthy'] ?? []
 }

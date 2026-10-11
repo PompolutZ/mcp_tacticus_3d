@@ -49,3 +49,22 @@ User, after this phase:
 3. Emma Frost: Bleed taken.
 
 ### Result
+
+Phase 1 done on 2026-10-11. Not committed.
+
+- `src/characters/immunity.js` (new): `parseImmunity` (superpower name to token keys), `formImmunities` (per form and side), `sharedImmunities` (keys that every form has, per side), `SPECIAL_CONDITIONS`.
+- `src/characters/immunity.test.js` (new): 8 tests. Blue Marvel, Apocalypse, Emma Frost, a character with none, name variants, the list against `tokens.json`, every name of every Jarvis row maps to a token key (all do), every `immuneTo*` tag is in the text.
+- `src/characters/characters.js`: the roster entry has `immune: { healthy, injured }` from Jarvis. `characterImmune(slug, side)`.
+- `src/App.jsx`: `handleCharacterTokenGive` passes `target.side`. It is the only caller (`TrayControls.jsx` does not use immunities).
+- `scripts/migrate-characters.mjs`: no `immune`, no `cImmune`. `src/characters/characters.json`: `immune` removed from 22 entries, `tokens` kept.
+- Docs: `scripts/README.md` (entry fields), `docs/characters-hud.md` (new "Immunities" section, data table, rules list). The old Phase 5 text there is history and is not changed.
+
+Special Conditions list (10): bleed, hex, incinerate, judgement, poison, root, shock, slow, stagger, stun. Source: the `condition` group of `src/tokens/tokens.json`. The `immuneTo*` tags of Apocalypse (Immunity [Special Conditions] when Injured) list the same ten (Judgment is `judgement` in `tokens.json`). No network.
+
+Found in the data, not in the plan:
+- Phoenix writes "Immune [...]", not "Immunity [...]". The parser takes both. "Psychic Immunity" (Emma Frost, form 2) has no list and is skipped.
+- Two French rows: Thor, Hero of Midgard ("Immunité [Secoué]") and Ultron, Metal Tyrant ("Immunité [Hémorragie, Poison]"). Without a fix, Thor loses Shock. A 2-name table maps Secoué to shock and Hémorragie to bleed. The `immuneToShock`, `immuneToBleed` tags of the rows confirm both. Remove the table if the user does not want it.
+- Havok has "Immunity [Incinerate]" in the text but no `immuneToIncinerate` tag. The text wins. So the test checks tags are a subset of the text.
+- Stat card sides can be null (7 grunt rows have no `backSide`). They count as no immunity.
+
+Checks: `pnpm --filter web test` 281 pass, 0 fail (8 new). `pnpm --filter web build` passes. `pnpm format` done. `pnpm lint`: no warnings in the changed files, the existing warnings are in other files.

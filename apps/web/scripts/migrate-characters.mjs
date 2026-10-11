@@ -73,7 +73,7 @@ const IGNORED_FIELDS = {
 const db = loadCharacterDatabase()
 const characters = db.characters.filter((r) => r.ID && !/^0+$/.test(r.ID) && !r.customChar)
 const keys = characterKeys(characters)
-// cToken/cImmune entries are mod token names (Root, Shock, ...); tokens.json is keyed by the slug
+// cToken entries are mod token names (Root, Shock, ...); tokens.json is keyed by the slug
 // that scripts/migrate-tokens.mjs gave each token. Always the live file, not --out: it is migrated
 // separately and does not change with a trial run of this script.
 const TOKENS_FILE = path.resolve(import.meta.dirname, '../src/tokens/tokens.json')
@@ -226,9 +226,8 @@ async function migrateCharacter(row, getRipper) {
     converted++
   }
   const tokens = tokenKeys(row.cToken, 'cToken', warnings)
-  const immune = tokenKeys(row.cImmune, 'cImmune', warnings)
   manifest[key] = { id: row.ID, sources }
-  appData[key] = appEntry(row, key, sources, tokens, immune)
+  appData[key] = appEntry(row, key, sources, tokens)
   writeJson(MANIFEST_OUT, manifest)
   writeJson(DATA_OUT, appData)
   return {
@@ -239,7 +238,7 @@ async function migrateCharacter(row, getRipper) {
   }
 }
 
-// Mod token names (row.cToken or row.cImmune) as tokens.json keys, the same slug as migrate-tokens.mjs
+// Mod token names (row.cToken) as tokens.json keys, the same slug as migrate-tokens.mjs
 // gives each token. A name that is not a migrated token (dice results, affiliation tokens, mod typos,
 // tokens phase 3 skipped, ...) is left out and gets a warning instead of a guessed key.
 function tokenKeys(names, field, warnings) {
@@ -326,7 +325,7 @@ function standee(front, back) {
 }
 
 // Entry of src/characters/characters.json. Counts and optional parts come from the files that were converted.
-function appEntry(row, key, sources, tokens, immune) {
+function appEntry(row, key, sources, tokens) {
   const has = (file) => file in sources
   const count = (test) => {
     let n = 0
@@ -360,10 +359,10 @@ function appEntry(row, key, sources, tokens, immune) {
     entry.transform = transform
   }
   if (!has(characterPortrait(key))) entry.portrait = false
-  // tokens/immune feed the tray's Give row and immunity check (TrayControls.jsx). Activated and Dazed are
-  // not stored here: every character gets them, so the tray adds them on its own (see docs/characters-hud.md).
+  // tokens feed the tray's Give row (TrayControls.jsx). Activated and Dazed are not stored here: every
+  // character gets them, so the tray adds them on its own (see docs/characters-hud.md). Immunities are
+  // not stored: they come from Jarvis (src/characters/immunity.js).
   if (tokens.length) entry.tokens = tokens
-  if (immune.length) entry.immune = immune
   return entry
 }
 
