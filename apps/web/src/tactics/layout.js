@@ -103,7 +103,7 @@ export function nearestFreeSlot(team, point, cards, ignoreId) {
 }
 
 // Token piles of the cards: they lie on the table past the owner's left end of the plate, in a row going
-// outward. See docs/plans/tactic-tokens.md, decision 4.
+// outward. See docs/features/team-tactic-cards.md, "Token piles".
 const PILE_GAP = 0.3
 const PILE_PITCH = 1.2
 const PILE_RADIUS = 0.5

@@ -1,6 +1,12 @@
 # Feature: Custom models from photos
 
-Status: the script works. The app does not load custom models yet: you put the GLB where you need it.
+Status: partly built.
+
+The script works.
+
+Not built yet:
+
+- Loading a custom model in the app. You put the GLB where you need it.
 
 ## Goal
 
@@ -84,7 +90,7 @@ The materials are the same as in the migrated models: metallic 0, roughness 1. T
 
 ## Test
 
-On 2026-10-08, the script was tested with 96 photos rendered by Blender from `src/assets/angel.glb` (4 heights × 24 angles, 1600 × 1200, grey background). Angel has a medium base.
+The script was tested with 96 photos rendered by Blender from `src/assets/angel.glb` (4 heights × 24 angles, 1600 × 1200, grey background). Angel has a medium base.
 
 | Run | Result |
 |---|---|
@@ -104,4 +110,4 @@ Rendered next to the original, the shape and colors were correct, and the model 
 - **No Blender.** An earlier plan used Blender to import a USDZ file, reduce the mesh, recenter it and export a GLB. The script does not need it. When the output is a folder (not a `.usdz` file), Object Capture writes an OBJ. Its `.custom` detail level reduces the mesh and the texture to the given limits. The repo already converts OBJ files to GLB for the TTS pieces. So the pipeline has one tool less.
 - **One generic GLB.** The script does not write into `src/assets/characters/` or `src/assets/terrain/`. A scan can be a figure, a terrain piece or something else, so you choose where the file goes.
 - **A new base instead of a recolored scanned base.** The other option was to give `defaultMat` to the scan triangles below about 2.5 mm. That keeps the scanned shape. But the line of the team color would be jagged, and the base size would be about 3 % off the game size. The new cylinder has the exact game size, so it matches the base collider.
-- **`imageToWebp` uses a temp file.** It gave image bytes to `magick` through stdin before. On 2026-10-08, this hung in 2 of 30 runs with the 1.3 MB texture of a scan: `magick` waited for the rest of stdin, and Node did not write it. With a temp file, 60 of 60 runs finished. The TTS migration scripts use the same function.
+- **`imageToWebp` uses a temp file.** Passing image bytes to `magick` through stdin hung in 2 of 30 runs with the 1.3 MB texture of a scan: `magick` waited for the rest of stdin, and Node did not write it. With a temp file, 60 of 60 runs finished. The TTS migration scripts use the same function.

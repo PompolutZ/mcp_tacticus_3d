@@ -1,6 +1,6 @@
 # Feature: Setup game
 
-Status: done on 2026-10-07. Not checked in a browser. The squad affiliation is built (2026-10-11). Leadership is not (see [Not built yet](#not-built-yet)).
+Status: partly built. See [Not built yet](#not-built-yet).
 
 ## Goal
 
@@ -25,21 +25,21 @@ The app checks only one rule: **Ready** does not work when the squad threat is a
 
 ### Roll off
 
-From the user, 2026-10-07: each player rolls. The player with more successes (Crits, Wilds and Hits together) wins. On a tie, the player with more Crits wins, then the player with more Wilds. Otherwise, players roll again.
+Setup always starts with a roll off. The app does not track it, but this doc lists it, so that it says what the app supports. Each player rolls. The player with more successes (Crits, Wilds and Hits together) wins. On a tie, the player with more Crits wins, then the player with more Wilds. Otherwise, players roll again.
 
 The app does not read the dice for this. A later change can do it, because the dice trays already know the faces (see `docs/features/dice-rolling.md`).
 
 ### Priority
 
-The bottom edge of the map on a crisis card is the deployment edge of the player with Priority (p9). Before this feature, the app always put that edge at the blue side (`docs/features/crisis.md`, "Setup flow"). Now the app knows who has Priority: the player whose deck the mission uses first. When the red player has Priority, the tokens of both cards turn a half turn around the mat center (`buildMatTokens` in `App.jsx`, `turned`). A crisis card that a player chooses in the toolbar later turns the same way.
+The bottom edge of the map on a crisis card is the deployment edge of the player with Priority (p9). The app knows who has Priority: the player whose deck the mission uses first (`docs/features/crisis.md`, "Setup flow"). When the red player has Priority, the tokens of both cards turn a half turn around the mat center (`buildMatTokens` in `App.jsx`, `turned`). A crisis card that a player chooses in the toolbar later turns the same way.
 
-On 2026-09-29, Survivors was the only current card with a map that changes after a half turn. So for the other cards, the tokens land at the same places.
+Survivors is the only current card with a map that changes after a half turn. So for the other cards, the tokens land at the same places.
 
 ## On the table
 
 ### Crisis cards
 
-The crisis cards of the rosters do not lie in the roster rows any more. They lie next to the scoring board, on the owner's side, until **Select board edge**. Changed on 2026-10-07: the rows now run along z, parallel to the board. Numbers are for blue (+z). Red is the same at −z: only z changes sign.
+The crisis cards of the rosters do not lie in the roster rows any more. They lie next to the scoring board, on the owner's side, until **Select board edge**. The rows run along z, parallel to the board. Numbers are for blue (+z). Red is the same at −z: only z changes sign.
 
 Deck step. Seen from above, the table edge (−x) on the left. The deck buttons lie in one line along z in the gap:
 
@@ -68,7 +68,7 @@ z = 12.55   Use          [drawn 1]
 - **Deck rows:** the Secure row is the first row, at the table edge (x = −35 … −30.2). The Extract row lies toward the mat (x = −29.0 … −24.2). The gap between them is 1.2", and the deck buttons are in it.
 - A row starts past the Secure card on the board end (z = 12.25 + 0.3), so its first card is the one nearest to the board. The deck area is as long as 5 cards, 14.95". A row with more cards gets smaller cards, so that it fits.
 - The deck rows reach past the tactic tray (z = 22.4), next to roster row 1. So they end 0.3" before x = −23.85, where a roster row of 10 character cards ends.
-- **Drawn cards:** the 2 cards drawn from a deck lie in line with the board (x = −23.1, the same as the cards on the board ends), from z = 12.55. So after the second **Use**, the chosen card of each player lies next to the board end. Added on 2026-10-07. Before, the drawn cards stayed in the row of their deck.
+- **Drawn cards:** the 2 cards drawn from a deck lie in line with the board (x = −23.1, the same as the cards on the board ends), from z = 12.55. So after the second **Use**, the chosen card of each player lies next to the board end.
 - A **Use** button is next to each drawn card, on the table-edge side (x = −26.1).
 - The steps: after **Use Blue player Secures**, blue shows its 2 drawn Secure cards in line with the board. Red shows its Extract row. After **Use**, blue shows the chosen card, and red shows its 2 drawn Extract cards in line with the board. After the second **Use**, each player shows their chosen card.
 - A click on a card opens the crisis tab of the roster popup.
@@ -77,7 +77,7 @@ z = 12.55   Use          [drawn 1]
 
 ### Buttons
 
-- The buttons lie flat on the table: drei `Html` with `transform`, the same as the tray controls. 1 CSS px is 0.04" on the table, so a 13 px button text is about 0.5" high. Changed on 2026-10-07: before, the buttons kept their size on the screen.
+- The buttons lie flat on the table: drei `Html` with `transform`, the same as the tray controls. 1 CSS px is 0.04" on the table, so a 13 px button text is about 0.5" high.
 - The buttons read the same way as the scoring board and the crisis cards: their top faces the table edge (−x).
 - **Use Blue player Secures** is blue and **Use Blue player Extracts** is red, on both players' sides. So the color shows the crisis type, not the player.
 - The panel lies between the table edge and the scoring board (x = −31.6, z = 0). It shows what to do in the current step, who has Priority, the Maximum Threat and **Restart setup**. It is at most 440 px (17.6") long, and its text wraps.
@@ -85,11 +85,12 @@ z = 12.55   Use          [drawn 1]
 
 ### Squads
 
+- Players choose their squad from the loaded roster. The roster cards show until then.
 - **Select squad** turns the choice on and off for that player. While it is on, it has a white outline, and a click on a character or Team Tactic card of that roster adds the card to the squad or removes it. While it is off, a click opens the roster popup as before.
 - A card in the squad has a yellow frame.
 - Only a card that the app can put on the table can join: a character with a model, a Team Tactic card with an image. For another card, the HUD message names it.
 - **Ready** is a toggle. It works when the squad has at least 1 character and its threat is not above the Maximum Threat. While it is on, it has a white outline, the panel says "Waiting for the Red player.", and **Select squad** is off and does not work. So the squad does not change. A second click on **Ready** turns it off, and the player can change the squad again.
-- When both players are Ready, both squads go on the table at the same time. Changed on 2026-10-08: before, each player clicked **Activate squad**, and their squad went on the table at once. Changed on 2026-10-09: **Ready** only sets the toggle. An effect in each browser puts the squads on the table (see below).
+- When both players are Ready, both squads go on the table at the same time. **Ready** only sets the toggle. An effect in each browser puts the squads on the table (see below).
 - **Hidden squads (multiplayer rooms).** The rulebook says that players do not show their squads until deployment (p11). In a multiplayer room:
   - The squad and Team Tactic cards that a player chooses are not in the shared document. They are in `localStorage` of that browser (`rooms/store.js`, key `mcp-assist-3d/squad/<user id>/<code>`, value `{ setupId, squad }`). A reload keeps the choice.
   - **Ready** writes only `setup.ready[side]`.
@@ -106,7 +107,7 @@ z = 12.55   Use          [drawn 1]
 
 - **Restart setup** on the panel starts the setup again, after a confirm.
 - A new roster, or **×** of a roster, also starts the setup again, because the setup points to the cards of the rosters. The HUD message says so. When the setup has put something on the table, a confirm asks first.
-- A restart removes what the setup put on the table: the characters (trays and models) and the Team Tactic cards of the squads, and the two crisis cards of the mission with their tokens. Changed on 2026-10-07: before, all of it stayed on the table.
+- A restart removes what the setup put on the table: the characters (trays and models) and the Team Tactic cards of the squads, and the two crisis cards of the mission with their tokens.
 - A restart keeps the rest: characters and cards that players added from the Library, a crisis card that a player changed in the toolbar after **Select board edge**, the mat turn and the score. A character or a Team Tactic card that was on the table before the squads is not added again, so it is not removed either.
 
 ## Affiliation
@@ -118,14 +119,16 @@ Rule p11: a squad uses an affiliation when more than half of its characters have
 - A row that the app set can also change while the step is open.
 - In a multiplayer room, each player clicks only their own row. The other row is disabled. After the reveal, both squads are in the document, so both rows show their choices.
 - A choice writes `setup.affiliation` and `game.affiliations` together. The VP marker and the Control markers show the token.
-- The setup is done when both sides have an affiliation. When both squads had no choice, the step does not open.
+- The setup is done when both sides have an affiliation. When both squads have no choice, the step does not open.
 - **Restart setup** clears `setup.affiliation`. The VP markers keep their token until the next squads choose.
-- A setup saved before this change has no `affiliation` field. It stays done.
+- A saved setup with no `affiliation` field stays done.
 - Jarvis `uncanny-x-men` is the token `uncanny-xmen`.
+- The toolbar has no VP marker picker. The app finds the token of each VP marker from the characters of the squad: an affiliation that more than half of them have (p11). It does not use leaders (p7).
+- Most rosters have one possible affiliation. Many have 2, and a few have 3.
 
 ## State
 
-`App.jsx` has a new object, `setup` (`src/setup/setup.js`):
+`App.jsx` has the object `setup` (`src/setup/setup.js`):
 
 ```js
 setup: {
@@ -167,29 +170,10 @@ setup: {
 ## Not built yet
 
 - Leadership (p7): the app does not check it.
-- Leadership choice. The Infinity Gem cards are built: they show on the tray of their character (see `docs/features/character-trays.md`, "Attached cards").
-- Hidden squads are built for multiplayer rooms only (2026-10-09). In a single player room and the Sandbox, one person plays both sides, so both squads are in the document.
+- Leadership choice.
+- Hidden squads in a single player room and the Sandbox. One person plays both sides there, so both squads are in the document.
 - The Priority token on the scoring board.
 - A button to skip the setup, for players who set up the table by hand.
-
-## Notes from the user
-
-From 2026-10-07:
-
-- Players choose their squad from the loaded roster. The roster cards show until then.
-- The toolbar has no VP marker picker. Load roster removed it, and the VP markers showed the Unaffiliated token until the Affiliation step (2026-10-11). The app finds the token of each VP marker from the characters of the squad: an affiliation that more than half of them have (p11). It does not use leaders (p7).
-- Most rosters have one possible affiliation. Many have 2, and a few have 3.
-
-Later on 2026-10-07, the user described the setup flow that is built now (see [What the app does](#what-the-app-does)):
-
-- Setup always starts with a roll off. The app does not track it, but this doc lists it, so that it says what the app supports.
-- The crisis cards of each player lie on their side of the scoring board: Secure cards in row 1, Extract cards in row 2, with the deck buttons between the rows.
-- The draws are random. Each drawn card has a **Use** button.
-- **Activate squad** must not work with more threat than the Maximum Threat. Less threat is fine.
-
-On 2026-10-08:
-
-- Each player clicks a **Ready** toggle in place of **Activate squad**. When both players are Ready, both squads go on the table at the same time.
 
 ## Rules
 
@@ -209,16 +193,12 @@ From the Jarvis rules reference (rulebook 1.3.0 and 1.4.0):
 
 ## Facts found
 
-On 2026-10-07:
-
 - Jarvis lists the affiliations of each character (`affiliations[]` in `src/characters/jarvis-characters.json`): `slug`, `name`, `isLeader`, `isLeaderWithTeamTactics`, `timelines`.
 - 21 characters can get a Leadership ability through a Team Tactic card (`isLeaderWithTeamTactics`), for example Adam Warlock and Doctor Strange. 11 Team Tactic cards have the Jarvis tag `leadership`. So a leader can come from a Team Tactic card.
 - 2 characters have the Jarvis tag `rogueAgent`: Taskmaster and Winter Soldier. Jarvis explains it as "Counts as an affiliated character during squad building".
 - Jarvis has 31 affiliations. The app has 34 affiliation tokens (`src/scoreboard/affiliations.json`). The keys are the same except `uncanny-x-men` (Jarvis) and `uncanny-xmen` (app). The app also has `unaffiliated`, `captain-america-shield` and `vibranium-heist`.
 
 ## Decisions
-
-Made on 2026-10-07:
 
 1. The app does not track the roll off. The panel next to the scoring board shows the rule.
 2. The app does not check who clicks a button. The text names the player who chooses.
@@ -229,7 +209,4 @@ Made on 2026-10-07:
 7. A squad card must be one that the app can put on the table: a character with a model, a Team Tactic card with an image.
 8. A new roster, **×** of a roster or **Restart setup** starts the setup again. It removes the squads and the crisis cards that the setup put on the table, after a confirm.
 9. The drawn and chosen crisis cards lie in line with the scoring board, next to its end.
-
-Made on 2026-10-08:
-
 10. Each player has a **Ready** toggle. Both squads go on the table when the second player clicks it. While a player is Ready, their squad does not change.

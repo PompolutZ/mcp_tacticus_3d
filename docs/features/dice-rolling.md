@@ -1,11 +1,6 @@
 # Feature: Dice rolling
 
-Status: implemented (all 6 phases). Not checked in a browser yet; every phase was built and read
-back against the code only, per the rules in `docs/plans/dice-rolling.md`.
-
-On 2026-10-02 the HUD panel was removed, with its inset view (Phase 6) and the history. The keys
-are now on the tray (see [Controls](#controls-keys-on-the-tray)). `docs/plans/dice-rolling.md`
-still describes the panel.
+Status: built.
 
 ## Goal
 
@@ -174,7 +169,7 @@ For each die, the app does the same steps as TTS `roll()`:
 1. Set a random rotation with a uniform distribution (Shoemake's method). Three random Euler angles do not give a uniform distribution, so the app does not use them.
 2. Set a random upward speed of 11–19.5 in/s (`THROW_UP_MIN`, `THROW_UP_MAX`), the TTS range. The die goes up 2.4–7.6".
 3. Set a small sideways speed toward a random point in the well, at least half a die from the walls. The app computes this speed from the flight time, so most dice land in the well. Walls and other dice then change their path.
-4. Set a spin around a random axis, with a random speed of 0–50 rad/s (`THROW_SPIN_MIN`, `THROW_SPIN_MAX`). 50 is the TTS upper limit. The range is chosen by look, because TTS dice spin fast in the air. On 2026-10-02 the app used 7.7–11 rad/s, the TTS reading after `roll()`. Then the dice only tilted in the air, and the app did not look like TTS. Faster spin makes more dice bounce out of the well (see [Headless](#headless)).
+4. Set a spin around a random axis, with a random speed of 0–50 rad/s (`THROW_SPIN_MIN`, `THROW_SPIN_MAX`). 50 is the TTS upper limit. The range is chosen by look, because TTS dice spin fast in the air. A spin of 7.7–11 rad/s, the TTS reading after `roll()`, made the dice only tilt in the air, and the app did not look like TTS. Faster spin makes more dice bounce out of the well (see [Headless](#headless)).
 
 The new speeds replace the old ones. So a die that falls goes up again, and a die in the air changes direction from where it is.
 
@@ -182,7 +177,7 @@ Step 1 can be seen as a jump in rotation when a die lies still. TTS has the same
 
 The random numbers come from `crypto.getRandomValues`.
 
-The upward speed was measured in TTS on 2026-10-01 (see [Measurements](#measurements)). The spin is not measured yet in a way that matches the look of TTS.
+The upward speed was measured in TTS (see [Measurements](#measurements)). The spin is not measured yet in a way that matches the look of TTS.
 
 ### Values
 
@@ -266,9 +261,9 @@ TTS does not publish the numbers of `roll()`. `scripts/tts-dice-measure.lua` mea
 
 The tray script checks `resting` only every 1.5 s (`rollDelay`). So in TTS, the result appears up to 1.5 s after the dice rest.
 
-To run it: `pnpm --filter web tts-dice-measure` writes the TTS Saved Object "Dice measure", a red block with the script. In TTS, load the mod and spawn it from Objects → Saved Objects. The script runs at once, so the Workshop mod is fine. The script's header has the steps. Do not paste the script into an object and press Save & Play: on 2026-10-01 the game reloaded without the block, so the script never ran.
+To run it: `pnpm --filter web tts-dice-measure` writes the TTS Saved Object "Dice measure", a red block with the script. In TTS, load the mod and spawn it from Objects → Saved Objects. The script runs at once, so the Workshop mod is fine. The script's header has the steps. Do not paste the script into an object and press Save & Play: the game reloads without the block, so the script never ran.
 
-**Results (2026-10-01):**
+**Results:**
 
 | What | TTS |
 |---|---|
@@ -291,7 +286,7 @@ The script now also measures the spin during the whole roll, in the flight and i
 
 ### Headless
 
-The model physics was tuned on 2026-09-27 with a Node script that builds the Rapier world without a browser. The dice need the same kind of script, with one difference. The earlier script built its colliders by hand, so it missed a bug in the way the app built them. The dice script uses the app's own code to throw, to read the face and to build the colliders from the GLB files. It is committed as `scripts/dice-sim.mjs`, so that the fairness test can run again after a change.
+The model physics was tuned with a Node script that builds the Rapier world without a browser. The dice need the same kind of script, with one difference. The earlier script built its colliders by hand, so it missed a bug in the way the app built them. The dice script uses the app's own code to throw, to read the face and to build the colliders from the GLB files. It is committed as `scripts/dice-sim.mjs`, so that the fairness test can run again after a change.
 
 The script measures:
 
@@ -301,15 +296,15 @@ The script measures:
 - The time until all dice rest.
 - The cost per frame with 42 dice.
 
-**Results (2026-09-30, `pnpm --filter web dice-sim`, seeds 1-3, spin up to 50 rad/s):** fairness passes for both the single-die test (8000 throws) and the 10-dice-at-once test (2000 throws), on every seed tried. A die rests tilted 0.4-0.7% of the time. A single die leaves the well 0-0.1% of the time. With 10 dice at once, 2.0-2.5% of the dice leave the well, because the dice hit each other. This is a little above the first target (under 2%). It is accepted, because such a die counts where it lands, as in TTS, and the walls keep it on the table. 10 dice at once settle in 2.7 s on average, 4.1 s at the worst seen (target: about 3 s or less). 42 dice cost about 0.3 ms per physics step, cheap next to the app's 1/120 s step.
+**Results (`pnpm --filter web dice-sim`, seeds 1-3, spin up to 50 rad/s):** fairness passes for both the single-die test (8000 throws) and the 10-dice-at-once test (2000 throws), on every seed tried. A die rests tilted 0.4-0.7% of the time. A single die leaves the well 0-0.1% of the time. With 10 dice at once, 2.0-2.5% of the dice leave the well, because the dice hit each other. This is a little above the first target (under 2%). It is accepted, because such a die counts where it lands, as in TTS, and the walls keep it on the table. 10 dice at once settle in 2.7 s on average, 4.1 s at the worst seen (target: about 3 s or less). 42 dice cost about 0.3 ms per physics step, cheap next to the app's 1/120 s step.
 
 Spin and dice that leave the well (10 dice at once, 3 seeds, 3000 dice for each value): 10 rad/s 0.3%, 20 rad/s 0.7%, 30 rad/s 0.9%, 40 rad/s 1.5%, 50 rad/s 2.9%. The tilted rate and the settle time do not change with the spin.
 
-Tuning found a real bug, not just numbers to adjust: two dice that collide can occasionally get a huge, sometimes non-finite (`NaN`), velocity from a single unstable contact. The die is a sharp shape (an octahedron, tip to tip) spun up to the TTS maximum of 50 rad/s, which is about 24° of turn in one 1/120 s physics step — enough for a tip to pass most of the way through another die's face between two steps, which the solver then corrects with a large, sometimes unstable, push. Cutting the spin cap to 10 rad/s (`THROW_SPIN_MAX` in `throw.js`) and giving each die 8 extra solver iterations of its own (`DIE_SOLVER_ITERATIONS`, applied per body with `additionalSolverIterations`, not on the whole `<Physics>` world) cut this from double digits of throws in a hundred (at the TTS spin and the world's default 4 iterations) down to the tilted rate above. It still happens occasionally, more so as more dice are thrown together (roughly 1-7% tilted at 42 dice in testing) — see the Phase 3 Result in `docs/plans/dice-rolling.md` for the full tuning story and what Phase 4 should do about the cases it does not remove.
+Tuning found a real bug, not just numbers to adjust: two dice that collide can occasionally get a huge, sometimes non-finite (`NaN`), velocity from a single unstable contact. The die is a sharp shape (an octahedron, tip to tip) spun up to the TTS maximum of 50 rad/s, which is about 24° of turn in one 1/120 s physics step — enough for a tip to pass most of the way through another die's face between two steps, which the solver then corrects with a large, sometimes unstable, push. Cutting the spin cap to 10 rad/s (`THROW_SPIN_MAX` in `throw.js`) and giving each die 8 extra solver iterations of its own (`DIE_SOLVER_ITERATIONS`, applied per body with `additionalSolverIterations`, not on the whole `<Physics>` world) cut this from double digits of throws in a hundred (at the TTS spin and the world's default 4 iterations) down to the tilted rate above. It still happens occasionally, more so as more dice are thrown together (roughly 1-7% tilted at 42 dice in testing). The tuning story is in the Phase 3 Result of `docs/plans/dice-rolling.md`.
 
-**Update, 2026-09-30:** with the current code, the explosions do not happen again. A test of 10 and 42 dice at 50 rad/s gave no die faster than 60 in/s and no `NaN`, also without `DIE_SOLVER_ITERATIONS`, and also with the old sim bug put back (a die outside the well restarted at the well floor). The cause of the Phase 3 explosions is not known. So the spin is back at 50 rad/s. `DIE_SOLVER_ITERATIONS` stays, because it is cheap. The app still moves a die with a `NaN` position back above the well.
+**Update:** with the current code, the explosions do not happen again. A test of 10 and 42 dice at 50 rad/s gave no die faster than 60 in/s and no `NaN`, also without `DIE_SOLVER_ITERATIONS`, and also with the old sim bug put back (a die outside the well restarted at the well floor). The cause of the earlier explosions is not known. So the spin is back at 50 rad/s. `DIE_SOLVER_ITERATIONS` stays, because it is cheap. The app still moves a die with a `NaN` position back above the well.
 
-**Update, 2026-10-02 (TTS values):** the throw used the TTS measurements: gravity -25 for dice, upward speed 11–19.5 in/s, spin 7.7–11 rad/s, friction 0.6. With seeds 1–7:
+**Update (TTS values):** the throw used the TTS measurements: gravity -25 for dice, upward speed 11–19.5 in/s, spin 7.7–11 rad/s, friction 0.6. With seeds 1–7:
 
 - Fairness passes on every test except one: seed 3, one die, 8000 throws (17.34). The same seed passes with 32000 throws (7.38). A fair die fails 1 test in 20 by chance.
 - A die leaves the well 0.2–0.3% of the time alone, and 0.3–0.9% with 10 dice at once (before: 2.0–2.5%).
@@ -321,24 +316,15 @@ The friction causes most of the extra tilted dice. A test with one change undone
 
 Then the spin went back to 0–50 rad/s, because with 7.7–11 the dice did not look like TTS (see [Throw](#throw)). The other values stay. With spin 0–50 rad/s (seed 5, 3000 throws of one die, 1000 dice in throws of 10): fairness passes, a die rests tilted 1.4% of the time alone and 1.6% with 10 dice, and it leaves the well 0.5% of the time alone and 2.5% with 10 dice. 10 dice settle in 3.2 s on average, 4.6 s at the worst seen.
 
-## Implementation sketch
+## Code
 
 - `scripts/migrate-dice.mjs` builds `src/assets/dice/d8.glb` and the die texture `d8.webp`. It converts the TTS tray OBJ and texture to `src/assets/dice/tray.glb` and `tray.webp`, and the 6 result icons to WebP. It uses `scripts/lib/convert.mjs` and `scripts/lib/tts.mjs`, like the other migrations.
 - `src/dice/faces.js`: the 8 faces, each with its name and its direction on the die.
 - `src/dice/throw.js`: functions without side effects: random rotation, throw speeds, top face, tilted check. The app and `scripts/dice-sim.mjs` both use them.
 - `src/components/DiceTray.jsx`: the tray body, the dice bodies and the roll flow of one tray. It is inside `<Physics>` in `Scene.jsx`.
 - `src/components/DiceKeys.jsx`: the keys on the tray. `DiceTray.jsx` renders it inside the tray body, so its positions are in tray space (`KEYS_LIP` and `FACE_PLATES` in `src/dice/tray.js`).
-- `CharacterModel.jsx`: add `dominanceGroup={1}`.
+- `CharacterModel.jsx`: has `dominanceGroup={1}`.
 - State: the state of a tray is in the table document, `dice.<side>` (`dice/stored.js`). Each die has `order`, `place` (`air`, `well` or `shelf`), `face` (on the shelf) and `pose` (in the air and the well). `critsUsed` is stored too. The tray writes its side when a die changes its place or face, never on each frame. At mount the tray builds only its shelf dice from the document, and the dice in the well and in the air go away. The bodies and the roll flow stay in memory (`DiceTray.jsx`). The keys show the counts of the dice in memory, which are the same as `trayCounts` of the document. The open face menu is in `App.jsx`, so Escape can close it.
-
-## Pitfalls to check
-
-- **Sleeping bodies.** @react-three/rapier does not copy the pose of a sleeping body to its mesh. So the app calls `wakeUp()` before it moves a die, as it does for models. Done: `DiceTray.jsx` calls `wakeUp()` on a die before every teleport, throw and shelf move (see the Phase 4 Result in `docs/plans/dice-rolling.md`).
-- **New dice inside each other.** When two new dice overlap, Rapier pushes them apart at high speed. So each new die needs a free spot, at least one die size from the others. TTS uses 49 fixed spots 1" apart, and its dice can overlap. Done: `freeDropPoint` (`src/dice/tray.js`) keeps every new point at least one die size from the others, including dice added in the same React commit (Phase 4b's `wellOccupiedPoints`).
-- **Trimesh edges.** A die can bump on the inside edges between the triangles of the tray mesh. Rapier's `TriMeshFlags.FIX_INTERNAL_EDGES` reduces this. The @react-three/rapier 1.5 types do not list the flag, but the library passes extra arguments to `ColliderDesc.trimesh`. Confirmed by reading the library's own code (Phase 4a Result): the flag does reach Rapier's `ColliderDesc.trimesh`. Not checked with a real collision (no browser).
-- **Shadows.** The shadow camera covers ±20 (`Scene.jsx`). The trays reach x = 34 and z = ±18.5, so they get no shadows. The shadow camera can be larger, or a second light can cast shadows over the trays. A larger shadow camera gives less shadow detail on the mat. Done: the shadow camera is now `left -26, right 38, top 25, bottom -34` with `shadow-mapSize` 3072 (Phase 4 Result), covering both trays at close to the old per-pixel detail.
-- **Remounts.** Terrain mounts again when the mat turns. The trays are not in the mat group, so they stay. A new map loads new assets. Check that the dice keep their state when the map changes. Done: confirmed by reading `Scene.jsx` (Phase 4a Result) — `DiceTray` is keyed only by `trayKey`, outside the group that Terrain/the mat remount into, so a map change or a mat turn never remounts it.
-- **Rapier version.** @react-three/rapier 1.5 uses Rapier JS 0.14, which is built with enhanced determinism. From Rapier JS 0.15, the default package is built without it. Closed: the dice are not replayed. The roller's browser simulates a roll, and the other browser follows the live poses and reads the results from the document (step 10).
 
 ## Other dice libraries
 
@@ -361,7 +347,7 @@ The app uses these ideas from other projects:
 
 ## Out of scope
 
-- Multiplayer sync is done (step 10): the other player sees the dice fly, the shelf and the history.
+- Multiplayer sync is built: the other player sees the dice fly, the shelf and the history.
 - Sounds.
 - Affiliation skins for the tray. The TTS cache has 4.
 - Picking up and dragging dice.

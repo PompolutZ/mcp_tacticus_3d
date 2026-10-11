@@ -1,6 +1,10 @@
 # Feature: Key and mouse controls as in TTS
 
-Status: WASD pan, arrow keys, Space, right drag, middle drag, trackpad gestures, Q / E on characters and tools, F, R, L, 0, and number keys over the dice tray done. The rest is a list of differences, not started.
+Status: partly built.
+
+Not built yet:
+
+- The TTS keys that the tables mark "No", and the points of [Differences to decide](#differences-to-decide).
 
 ## Goal
 
@@ -76,7 +80,7 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 
 The direction and the speed of the arrow keys (90° per second) are picked by look. They are not compared with TTS yet.
 
-Q / E turn a piece 15° per press. 15° is `PointerRotationSnap` in the same plist, the TTS default (read on 2026-10-05). A key held for more than 0.3 s turns the piece on at 90° per second, the speed of the arrow keys. The app does not use the key repeat of the system, so the speed is the same on every computer. A held key keeps turning the piece of the press, also when the pointer leaves it. Each turn is smoothed in the same way as the wheel zoom: each frame, the piece does `1 − e^(−dt / 0.06 s)` of the turn that is left. The delay, the speed and the smoothing time are picked by look. The center of a character is its base center. The center of a movement tool is its hinge. A turn moves both ends of a tool, so a snapped tool is free after it. While a drag turns a snapped tool or bends a tool, Q / E do nothing.
+Q / E turn a piece 15° per press. 15° is `PointerRotationSnap` in the same plist, the TTS default. A key held for more than 0.3 s turns the piece on at 90° per second, the speed of the arrow keys. The app does not use the key repeat of the system, so the speed is the same on every computer. A held key keeps turning the piece of the press, also when the pointer leaves it. Each turn is smoothed in the same way as the wheel zoom: each frame, the piece does `1 − e^(−dt / 0.06 s)` of the turn that is left. The delay, the speed and the smoothing time are picked by look. The center of a character is its base center. The center of a movement tool is its hinge. A turn moves both ends of a tool, so a snapped tool is free after it. While a drag turns a snapped tool or bends a tool, Q / E do nothing.
 
 F flips the piece under the pointer first. A crisis token without a back does not flip. F over it does nothing, also when another token is selected. F over a model flips the character card, not the model. In TTS, F over a figurine turns the figurine upside down, which players do not need.
 
@@ -117,6 +121,6 @@ In order of how often a TTS player will notice them:
 1. **Left drag on the empty table.** It turns the camera. In TTS it box-selects, and the app has no box select.
 2. **Left drag on a piece.** In TTS a player drags a piece at once. In the app the piece must be selected first.
 3. **Q / E** to turn a token.
-4. **Alt (hold)** over a card to show it large, as the click popup does now.
+4. **Alt (hold)** over a card to show it large, as the click popup does.
 5. **Number key with no character under the pointer.** The mod only removes the tool. The app toggles it, so a second press spawns the tool again.
 6. **Number keys over a dice tray.** The mod clears the tray first. The app only adds dice.

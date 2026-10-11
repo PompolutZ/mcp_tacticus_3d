@@ -72,7 +72,7 @@ else process.exitCode = migrate()
 function selected(row) {
   if (row.altName) return false
   // The tokens of a Team Tactic card, of any type (Misc, Use Tools, Pile, ...): the app puts a pile of them on the
-  // table with the card, see docs/plans/tactic-tokens.md
+  // table with the card, see docs/features/team-tactic-cards.md, "Token piles"
   if (tacticTokenNames.has(row.name.toLowerCase())) return true
   switch (row.tType) {
     case 'Condition':

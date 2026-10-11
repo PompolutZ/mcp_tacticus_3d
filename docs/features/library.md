@@ -1,10 +1,10 @@
 # Feature: Library
 
-Status: in progress. The Library panel replaces the Spawn field and the Tokens panel. Players find characters, Team Tactic cards and tokens in one place and bring them to the table.
+Status: built.
 
 ## Goal
 
-A player brings 3 kinds of things to the table: characters, Team Tactic cards and tokens. Before this feature, each kind had its own picker: the Spawn field (characters), the Tokens panel (tokens), and nothing for tactic cards. The Library is one panel for all of them, with one search field.
+A player brings 3 kinds of things to the table: characters, Team Tactic cards and tokens. The Library is one panel for all of them, with one search field. It replaces the Spawn field (characters) and the Tokens panel (tokens).
 
 ## Panel
 
@@ -40,7 +40,7 @@ Characters with a 3D model come first. A character without a model is grey. A cl
 
 A player has at most one copy of each character on the table. The characters that the chosen player already has are green in the list. A click on one of them shows a message in the HUD, for example "Blue player already has Angela on the table", and nothing spawns. Both players can have the same character. The two Sentinel MK4 rows are different characters, so a player can have both. `handleSpawn` in `App.jsx` does the check, so it also covers a later spawn from the roster. Added on 2026-10-07.
 
-The rows come from Jarvis (`src/characters/characters.js`), one row per MCT code. Two exceptions, found on 2026-10-07:
+The rows come from Jarvis (`src/characters/characters.js`), one row per MCT code. Two exceptions:
 
 - A Jarvis alternate sculpt (`isAlternateSculpt`, for example Mephisto Convention Exclusive) has the MCT code of its main character, so it gets no row.
 - The mod has a row for each of the two Sentinel MK4 sculpts in the box: 00510101 and 00510102, with the same card and two models. Jarvis has one entry, 00510101, and uses 00510102 in a roster code for the second Sentinel MK4 of a roster. So a migrated character with its own MCT code and no Jarvis entry gets a row, with the stats of the Jarvis character of the same name.
@@ -86,18 +86,13 @@ A pile has no physics body. It lies on the table or on the terrain under it, the
 ## Out of scope
 
 - A key to open the Library.
-- Drag from the Library for characters and tactic cards. A click puts them in a fixed place, so a drag adds nothing now.
+- Drag from the Library for characters and tactic cards. A click puts them in a fixed place, so a drag adds nothing.
 - Filters by affiliation. The app has no affiliation data for tactic cards yet.
 - Terrain pieces and maps in the Library.
 
 ## Decisions
 
-Made on 2026-10-06:
-
 1. One Library panel replaces the Spawn field and the Tokens panel.
 2. The panel stays open after a pick.
 3. A pile never runs out. A drag takes a token, Shift + drag moves the pile.
-
-Made on 2026-10-07:
-
 4. A player cannot spawn a second copy of a character. Both players can have the same character.

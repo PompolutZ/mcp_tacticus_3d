@@ -1,6 +1,6 @@
 # Feature: Load roster
 
-Status: done, 2026-10-07. Not checked in a browser.
+Status: built.
 
 ## Goal
 
@@ -24,7 +24,7 @@ So a draft roster with fewer codes loads in the same way.
 
 ## How TTS does it
 
-These facts were found on 2026-10-07 in mod 3036795456, in the scripts of the "Blue Roster Maker" and "Blue Roster Tray" objects. The red objects have the same scripts.
+These facts come from mod 3036795456, in the scripts of the "Blue Roster Maker" and "Blue Roster Tray" objects. The red objects have the same scripts.
 
 - Each player has a Roster Maker (a bag) and a Roster Tray. They lie next to the table, left of the scoring board, at TTS x ≈ −41 and z ≈ ±14.6.
 - The Roster Maker has an input field: "Paste MCT codes OR Drop cards inside". When the text has more than one line, the first line is the roster name. **Create Roster** makes a roster object. Its script lists the codes.
@@ -61,7 +61,7 @@ A new character that Jarvis adds after the last `pnpm --filter web fetch-jarvis-
 
 The app needs a name for every code, also for cards without files in the app.
 
-| Kind | Source | Rows on 2026-10-07 |
+| Kind | Source | Rows |
 |---|---|---|
 | Characters | `src/characters/jarvis-characters.json` (exists) | 248 |
 | Crisis cards | `src/crisis/jarvis-crisis-cards.json` (exists) | 72, 45 different codes. Each code has one current printing |
@@ -78,7 +78,7 @@ Toolbar: … | Crisis … | Roster [Blue: MCT code] [x] [Red: MCT code] [x] | De
 ```
 
 - The toolbar gets a **Roster** group with one text field per player. The placeholder is "MCT code".
-- In a room, the rosters come from the new room dialog, and only the Red field shows. It replaces or removes the Red roster of the room (added on 2026-10-07, see `docs/features/rooms.md`).
+- In a room, the rosters come from the new room dialog, and only the Red field shows. It replaces or removes the Red roster of the room (see `docs/features/rooms.md`).
 - Enter loads the roster.
 - A new load replaces the old roster of that player.
 - **×** next to the field removes the roster of that player, and its cards leave the table.
@@ -86,9 +86,9 @@ Toolbar: … | Crisis … | Roster [Blue: MCT code] [x] [Red: MCT code] [x] | De
 
 ## VP picker
 
-The **VP** group of the toolbar goes away with this feature. Setup game will choose the token of each VP marker from the squad (see `docs/features/setup-game.md`).
+The toolbar has no **VP** group. Setup game chooses the token of each VP marker from the squad (see `docs/features/setup-game.md`).
 
-Both VP markers start with the Unaffiliated token (`DEFAULT_AFFILIATION`). Since 2026-10-11 the game setup sets each one when the squads are on the table (step Affiliation, see `docs/features/setup-game.md`, "Affiliation"). The Control markers on the Secure tokens use the same affiliation (see `docs/features/crisis.md`, "Data"), so they show it too. The ring in the player color still shows which player controls a token.
+Both VP markers start with the Unaffiliated token (`DEFAULT_AFFILIATION`). The game setup sets each one when the squads are on the table (step Affiliation, see `docs/features/setup-game.md`, "Affiliation"). The Control markers on the Secure tokens use the same affiliation (see `docs/features/crisis.md`, "Data"), so they show it too. The ring in the player color still shows which player controls a token.
 
 The `affiliations` state in `App.jsx` is `game.affiliations`. Setup game writes it.
 
@@ -104,7 +104,7 @@ row 2 [ttc]x10                                                                  
       table edge (z = 34)
 ```
 
-Changed on 2026-10-07 by Setup game: the Secure and Extract cards were in row 2 before. Now they lie next to the scoring board, on the owner's side (see `docs/features/setup-game.md`, "On the table").
+The Secure and Extract cards do not lie in row 2. They lie next to the scoring board, on the owner's side (see `docs/features/setup-game.md`, "On the table").
 
 - **Row 1, on the mat side:** character cards, 4.5" × 3", the same size and Healthy side image as the card on a tray. The cards are 0.3" apart, so 10 cards are 47.7" wide.
 - **Row 2:** 10 Team Tactic cards (2.5" × 3.5", face up), 0.3" apart. So the row is 27.7" wide and 3.5" deep.
@@ -115,9 +115,9 @@ Changed on 2026-10-07 by Setup game: the Secure and Extract cards were in row 2 
 
 ### Cards without files
 
-On 2026-10-07, the app has files for 65 of 233 character codes, 69 of 401 Team Tactic codes and 24 of 45 crisis codes. For example, the "Spider-foes 2foe2furious" roster on Jarvis community has files in the app for 0 of 10 characters, 2 of 10 Team Tactic cards and 5 of 10 crisis cards.
+The app has files for 65 of 233 character codes, 69 of 401 Team Tactic codes and 24 of 45 crisis codes. For example, the "Spider-foes 2foe2furious" roster on Jarvis community has files in the app for 0 of 10 characters, 2 of 10 Team Tactic cards and 5 of 10 crisis cards.
 
-- A card without an image is a plain plate of the same size, with the card name and the MCT code as a label. The label is a canvas texture on the plate, so it lies flat and faces the owner, the same as the card images. The `tray-label` CSS was removed earlier.
+- A card without an image is a plain plate of the same size, with the card name and the MCT code as a label. The label is a canvas texture on the plate, so it lies flat and faces the owner, the same as the card images.
 - A click on a plate does not open the roster popup. The HUD message shows an error instead: "No card image for <name> (<code>)". For a character it is "No card image or model for <name> (<code>)", because a character without an image also has no model.
 - A character without a 3D model also gets the mark "No model", the same as the grey row in the Library. It cannot be spawned.
 
@@ -134,7 +134,7 @@ On 2026-10-07, the app has files for 65 of 233 character codes, 69 of 401 Team T
 
 ### Roster popup
 
-Added on 2026-10-07. `RosterPopup.jsx` shows the roster of one player in a full-screen popup.
+`RosterPopup.jsx` shows the roster of one player in a full-screen popup.
 
 - The popup has no panel. The title, the tabs, the cards and the buttons lie on a dark backdrop that blurs the table, the same as the single card popup (`CardPopup.jsx`). Only the cards and the buttons take clicks. A click anywhere else goes to the backdrop.
 - The title says whose roster it is: "Blue player roster" or "Red player roster", in the player color.
@@ -147,8 +147,8 @@ Added on 2026-10-07. `RosterPopup.jsx` shows the roster of one player in a full-
 - A character card or a Team Tactic card flips with a click on the card or on the **Flip** button under it. A character card shows its Injured side, a Team Tactic card its back. The pointer cursor over the card shows that a click flips it. Only the card in the middle flips. A crisis card does not flip: its back shows only the card type. Each card keeps its side until the player changes the tab or closes the popup.
 - A character with a second form that has its own card (Ant-Man, Emma Frost, see `docs/features/character-trays.md`, "Second forms") has a card switch under its card, at the left: for example **Emma Frost** and **Diamond form**. The label of the second form comes from Jarvis (`secondFormSlug`). The shown card keeps its side. A character whose second form is its Injured side (Hulkbuster, Phoenix) has no switch, because Flip shows it. The switch is ready for grunts: a host can list its grunt cards in `variants` (`rosters/cards.js`). The app has no grunt files yet: no host or grunt is migrated, and the TTS cache has none of their files.
 - A card without an image shows as a plate with its name and MCT code, the same as on the table. The popup never opens on such a card, but the carousel can move to it. The Infinity Gems of a character show as text lines under its card, below the Flip button.
-- **Open this roster on Jarvis** under the title opens the roster in the Jarvis roster validator (`/roster-validator?mctCode=…`), in a new browser tab. The validator reads the code by place: entries 1–10 are characters, 11–20 Team Tactic cards, 21–30 crisis cards. So the link gives each group exactly 10 places, and an empty entry fills a free place of a draft roster. Cards after the 10th of a group are left out, because the validator does not read them. A full roster gives the same code as **Copy MCT code** on Jarvis. Added on 2026-10-07.
-- **Open on Jarvis** under the bottom right corner of the card in the middle opens the page of that card on Jarvis, in a new browser tab: `/characters/<slug>`, `/team-tactics-cards/<slug>` or `/crisis-cards/<slug>`. The slug comes from the Jarvis data. A migrated character can have another slug in the app, for example `the-mighty-thor` for Jarvis `mighty-thor`. So `CHARACTERS` keeps the Jarvis slug as `jarvisSlug`. Both forms of a character link to the same page. A plate also has the link, so a player can read a card that has no image in the app. Added on 2026-10-07.
+- **Open this roster on Jarvis** under the title opens the roster in the Jarvis roster validator (`/roster-validator?mctCode=…`), in a new browser tab. The validator reads the code by place: entries 1–10 are characters, 11–20 Team Tactic cards, 21–30 crisis cards. So the link gives each group exactly 10 places, and an empty entry fills a free place of a draft roster. Cards after the 10th of a group are left out, because the validator does not read them. A full roster gives the same code as **Copy MCT code** on Jarvis.
+- **Open on Jarvis** under the bottom right corner of the card in the middle opens the page of that card on Jarvis, in a new browser tab: `/characters/<slug>`, `/team-tactics-cards/<slug>` or `/crisis-cards/<slug>`. The slug comes from the Jarvis data. A migrated character can have another slug in the app, for example `the-mighty-thor` for Jarvis `mighty-thor`. So `CHARACTERS` keeps the Jarvis slug as `jarvisSlug`. Both forms of a character link to the same page. A plate also has the link, so a player can read a card that has no image in the app.
 - Both links show the Jarvis logo: the Jarvis site icon, 64 px, in `src/assets/jarvis-logo.webp`.
 - Escape, **×** in the top right corner of the screen, or a click on the backdrop closes the popup. A new load or **×** of that roster also closes it.
 
@@ -156,7 +156,7 @@ Added on 2026-10-07. `RosterPopup.jsx` shows the roster of one player in a full-
 
 ## State
 
-`App.jsx` gets a new object:
+`App.jsx` holds this object:
 
 ```js
 rosters: {
@@ -169,7 +169,7 @@ rosters: {
 
 - `code` is the only roster data in the state. A pure function `parseRoster(text, kindOf)` gives the 4 card groups, the gems and the unknown codes. The components call it, so the state cannot disagree with itself.
 - A roster is an object and not a plain string, so that Setup game can add fields to it, for example the chosen squad.
-- All fields are plain JSON. So they fit into the `rosters` map of the Yjs document in `docs/features/peer-to-peer.md`. Both browsers must run the same app version, so that they have the same Jarvis data. The P2P plan already requires this.
+- All fields are plain JSON. So they fit into the `rosters` map of the Yjs document in `docs/features/peer-to-peer.md`. Both browsers must run the same app version, so that they have the same Jarvis data. The peer-to-peer feature already requires this.
 
 ## Code
 
@@ -177,27 +177,18 @@ rosters: {
 |---|---|
 | `src/rosters/mct.js` | `parseRoster(text, kindOf)`, `formatMctCode(parsed)`, `jarvisValidatorCode(parsed)`, `isEmptyRoster(parsed)`. `kindOf(code)` is an argument, so the module has no imports and a Node script can test it |
 | `src/rosters/cards.js` | `cardKind(code)`, `rosterCard(code)` (kind, name, image file or null, model or not, Jarvis page), `parseRosterText(text)`, `jarvisRosterUrl(parsed)` |
-| `src/rosters/layout.js` | `rosterLayout(team, parsed)`, `ROSTER_CARD_Y`, `rosterRowInfo`, and since Setup game `crisisRowLayout`. Card positions for each side. Plain module, the same as `characters/trays.js` |
+| `src/rosters/layout.js` | `rosterLayout(team, parsed)`, `ROSTER_CARD_Y`, `rosterRowInfo`, and `crisisRowLayout`. Card positions for each side. Plain module, the same as `characters/trays.js` |
 | `src/components/RosterCards.jsx` | The cards of one roster on the table |
 | `src/components/RosterPopup.jsx` | The roster popup: tabs and a card carousel |
-| `src/components/Toolbar.jsx` | The Roster group. The VP group goes away |
+| `src/components/Toolbar.jsx` | The Roster group |
 | `scripts/fetch-jarvis-tactics.mjs` | The Team Tactic data, with a section in `scripts/README.md` |
 
-`src/characters/roster.js` is the list of all characters for the Library, not a player roster. It becomes `src/characters/characters.js`, and its `ROSTER` export becomes `CHARACTERS`. So "roster" in the code means only a player's roster.
-
-## Steps
-
-1. Rename `ROSTER` to `CHARACTERS` and `src/characters/roster.js` to `src/characters/characters.js`. Update the imports and the docs that name them.
-2. `fetch-jarvis-tactics.mjs` and `src/tactics/jarvis-tactics-cards.json`.
-3. `mct.js`. Check it in Node with a few MCT codes from Jarvis community rosters, including one with an Infinity Gem and one with two Sentinel MK4.
-4. State and the Roster group in the toolbar. Remove the VP group.
-5. `layout.js` and `RosterCards.jsx`.
-6. README section "Roster", `scripts/README.md`.
+`src/characters/characters.js` is the list of all characters for the Library, not a player roster. Its export is `CHARACTERS`. So "roster" in the code means only a player's roster.
 
 ## Out of scope
 
 - Loading a roster from a Jarvis link. The MCT code is the standard way to share a roster in the community. Jarvis also blocks calls from other sites, so a link needs a proxy.
-- Squad choice, crisis card choice from the roster, and the VP marker. See `docs/features/setup-game.md` (built on 2026-10-07, except the VP marker).
+- Squad choice, crisis card choice from the roster, and the VP marker. See `docs/features/setup-game.md`.
 - Roster checks (see [Players apply the rules](#players-apply-the-rules)).
 - A roster name. The toolbar field has one line, so the name line of a TTS code is lost. Jarvis puts no name in the code.
 - Marks for Unreleased, Restricted and Banned cards. Jarvis has the data, so a later change can add them.
@@ -208,10 +199,8 @@ rosters: {
 
 ## Decisions
 
-Made on 2026-10-07:
-
 1. A roster loads only from an MCT code, not from a Jarvis link.
-2. The VP picker goes away now. The VP markers show the Unaffiliated token until Setup game.
+2. The VP picker is gone. The VP markers show the Unaffiliated token until Setup game sets them.
 3. The Library list is called `CHARACTERS`, so "roster" means only a player's roster.
 4. A draft roster is a roster with fewer codes. It needs no special case.
 5. The roster cards lie in the tray area on the owner's side. **×** removes a roster.
@@ -220,7 +209,7 @@ Made on 2026-10-07:
 8. Codes after `-` are gems only when the first code of the group is a character. A gem is a code of kind `tactic`. An unknown gem code goes to the warning.
 9. The text search is `/\d{8}(?:-\d{8})*/g`, with no check of the characters around a match. TTS also uses a plain substring search.
 10. A card without an image shows its name and MCT code in a canvas texture on the plate.
-11. A click on a plate shows an error in the HUD message. The roster popup opens only on a card with an image. (Changed on 2026-10-07. Before, a plate took no pointer events.)
+11. A click on a plate shows an error in the HUD message. The roster popup opens only on a card with an image.
 12. Roster cards lie at y = 0.01, below the character trays (y = 0.02). The tray draws on top of a roster.
 13. The toolbar field keeps the typed text. **×** clears the field and the roster.
 14. A click on a roster card opens the roster popup on that card, not the single card popup. App owns the open tab and card, so the arrow keys can move the carousel.

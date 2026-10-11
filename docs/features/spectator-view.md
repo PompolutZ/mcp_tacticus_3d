@@ -1,6 +1,6 @@
 # Feature: Spectator view
 
-Status: built on 2026-10-06. Not checked in a browser yet.
+Status: built.
 
 ## Goal
 
@@ -14,7 +14,7 @@ The badge is made of the same pieces as the character tray, so it looks the same
 
 ## How TTS does it
 
-These facts were found on 2026-10-06 in mod 3036795456: the `modelUI` XML in the "Scripts" object, the model script inside the "Red Tray Spawner" and "Blue Tray Spawner" (`checkForSecure`, `updateObjective`, `updateStats`, `updateVisible`), and the "UI Controller" object.
+These facts come from mod 3036795456: the `modelUI` XML in the "Scripts" object, the model script inside the "Red Tray Spawner" and "Blue Tray Spawner" (`checkForSecure`, `updateObjective`, `updateStats`, `updateVisible`), and the "UI Controller" object.
 
 - Each model has its own object UI above it. From top to bottom: up to 5 held objective icons and a "Securing" icon in one row, the three Defense values, a Damage bar (`wounds / stamina`), a Power bar (`power / 10`), and a row of status token icons.
 - The Damage bar is orange (`#ff9d00`) on the Healthy side and red (`#ff0000`) on the Injured side. The Power bar is green (`#31b32b`). Grunts have no Power bar.

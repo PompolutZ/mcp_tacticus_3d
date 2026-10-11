@@ -207,3 +207,14 @@ Open issues from all phases:
 - `setAffiliations` is unused until Setup game. Both VP markers show the Unaffiliated token until then.
 - The roster and the character trays overlap when both are on the table. The player removes the roster with **×**.
 - A new card that Jarvis adds is an unknown code until the fetch scripts run again.
+
+## Steps of the feature
+
+Moved from `docs/features/roster.md`.
+
+1. Rename `ROSTER` to `CHARACTERS` and `src/characters/roster.js` to `src/characters/characters.js`. Update the imports and the docs that name them.
+2. `fetch-jarvis-tactics.mjs` and `src/tactics/jarvis-tactics-cards.json`.
+3. `mct.js`. Check it in Node with a few MCT codes from Jarvis community rosters, including one with an Infinity Gem and one with two Sentinel MK4.
+4. State and the Roster group in the toolbar. Remove the VP group.
+5. `layout.js` and `RosterCards.jsx`.
+6. README section "Roster", `scripts/README.md`.

@@ -350,7 +350,7 @@ pnpm --filter web migrate-tokens --force         # convert files again that the 
 
 A row with `altName` is a second art of the same token (the mod's old round design); the script migrates only the first art, the same rule `migrate-crisis.mjs` uses for the "1 Damage" row.
 
-The script also migrates every token that a released tactic card names in its `tokens` list, of any type (Misc, Use Tools, Pile, ...), for example Mystic Ward and Mystic Portal. The names are compared in lower case, because a card row can spell a name differently ("KickEm"). `group` comes from the image folder, as above. A name with no row, or with no image in the TTS cache, is left out with a warning. The row "1 Damage" (Steal the Future) is in `token/misc/tracker/`. It gets the group `counter`, like "1 Power", so the Library lists it for piles. The app puts a pile of the tokens of each tactic card on the table, see `docs/plans/tactic-tokens.md`.
+The script also migrates every token that a released tactic card names in its `tokens` list, of any type (Misc, Use Tools, Pile, ...), for example Mystic Ward and Mystic Portal. The names are compared in lower case, because a card row can spell a name differently ("KickEm"). `group` comes from the image folder, as above. A name with no row, or with no image in the TTS cache, is left out with a warning. The row "1 Damage" (Steal the Future) is in `token/misc/tracker/`. It gets the group `counter`, like "1 Power", so the Library lists it for piles. The app puts a pile of the tokens of each tactic card on the table, see `docs/features/team-tactic-cards.md`, "Token piles".
 
 # Jarvis crisis cards
 

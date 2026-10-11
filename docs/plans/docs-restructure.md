@@ -1,6 +1,6 @@
 # Plan: Features and plans in their own folders
 
-Requested by the user on 2026-10-11, before the first real test of the backend. Status: the user gave the OK on 2026-10-11. No step done yet.
+Requested by the user on 2026-10-11, before the first real test of the backend. Status: the user gave the OK on 2026-10-11. All 5 steps are done.
 
 One coder step and one commit for each step. Commit each step without a user review. The user reads the result after step 5. Each step writes its **Result** below when it is done.
 
@@ -181,6 +181,18 @@ Files: `features/roster.md`, `features/setup-game.md`, `features/dice-rolling.md
 - `setup-game.md`: the requirements in "Notes from the user" go into the sections they describe, without dates, and the section goes away. Parts 2 and 3 of `plans/room-fixes.md` (threat counts the gems, the affiliation step) go into the feature, if they are not there yet.
 - `dice-rolling.md`: "Pitfalls to check" and the note about the removed HUD panel move to `plans/dice-rolling.md`. "Implementation sketch" becomes "Code".
 - `team-tactic-cards.md`: lasting decisions of `plans/tactic-tokens.md` go into "Token piles". Code comments that cite the plan (`tactics/layout.js`, `scripts/migrate-tokens.mjs`) point to the feature.
+
+**Result**
+
+- Status lines: all features in `docs/features/` have a one-line `Status:` (built, partly built, not started). `2d.md` is "not started, an idea". Dates, step numbers and check history left out of the texts of the 9 features. Vendor and source dates stay (Steam link 2025-05-15).
+- `roster.md`: "Steps" moved as they are to the end of `plans/roster.md` (new section "Steps of the feature"). Also history: "was renamed" became the current state; the "P2P plan" became "the peer-to-peer feature".
+- `setup-game.md`: "Notes from the user" went into "Roll off", "Squads" and "Affiliation". Parts 2 and 3 of `plans/room-fixes.md` were in the feature already (threat with gems, "Affiliation", the step in the table). Decisions lost the "Made on" headings. "Not built yet" lists Leadership, Leadership choice, hidden squads outside multiplayer rooms, the Priority token and a skip button.
+- `dice-rolling.md`: "Pitfalls to check" and the note about the removed HUD panel moved to the end of `plans/dice-rolling.md` (section "Moved from the feature"). "Implementation sketch" is now "Code". Dates removed from the measurement headings.
+- `team-tactic-cards.md`: "Token piles" got the TTS facts (`spawnTokens`, 82 rows), always a pile, TTS asset data in `cards.json`, token images, why the piles lie past the plate end, old documents without `card`. Fixed wrong text: 75 migrated cards (was 69), the table depth sentence.
+- Code comments now point to `team-tactic-cards.md`, "Token piles": `tactics/layout.js`, `scripts/migrate-tokens.mjs`, `scripts/README.md`, and `features/character-trays.md` (token table). No feature points to `plans/tactic-tokens.md`.
+- `crisis.md`: status shortened, dates removed. `library.md`, `key-shortcuts.md`, `spectator-view.md`, `custom-models.md`: status and dates.
+- Plans did not change, except `plans/roster.md` and `plans/dice-rolling.md`, which received sections. `plans/tactic-tokens.md` and `plans/room-fixes.md` did not change.
+- Open issues: `plans/dice-rolling.md` and `plans/roster.md` text still names the sections "Implementation sketch" and "Steps" of the features. The count of 389 released tactic cards was not checked. `roster.md` still says 69 of 401 Team Tactic codes have files (the migrated count is 75).
 
 ## Done when
 

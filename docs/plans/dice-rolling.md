@@ -384,3 +384,20 @@ Outlines: never appear in the insets, by construction — `TrayInsets` calls `gl
 - The phase's own text defines "visible box" as "element present and its rect has width and height", but Phase 5's `DicePanel` hides an empty tray's box with `visibility: hidden`, not `display: none` — which does not change `getBoundingClientRect()`'s size, only whether the box itself (its border) paints. Rendering into it anyway would still show up on the canvas, since the box's own invisibility does not hide the canvas underneath. Added a `getComputedStyle(el).visibility === 'hidden'` check on top of the size check to cover this; flagging it here since it goes beyond the phase's literal instruction.
 - Not checked in a browser, per the rules: how well the chosen camera pose actually frames the tray, whether 32° fov reads as "natural", and whether the box aspect needs a tweak once seen. The scratchpad projection check only confirms the math, not how it looks.
 - The inset renders reuse the same `scene` as the main view, so anything conditionally shown only for the main camera (there is nothing like that today) would need checking against this too if added later.
+
+## Moved from the feature
+
+The note about the removed HUD panel and "Pitfalls to check" of `docs/features/dice-rolling.md`.
+
+On 2026-10-02 the HUD panel was removed, with its inset view (Phase 6) and the history. The keys
+were moved to the tray (see `docs/features/dice-rolling.md`, "Controls: keys on the tray"). This plan
+still describes the panel.
+
+### Pitfalls to check
+
+- **Sleeping bodies.** @react-three/rapier does not copy the pose of a sleeping body to its mesh. So the app calls `wakeUp()` before it moves a die, as it does for models. Done: `DiceTray.jsx` calls `wakeUp()` on a die before every teleport, throw and shelf move (see the Phase 4 Result in `docs/plans/dice-rolling.md`).
+- **New dice inside each other.** When two new dice overlap, Rapier pushes them apart at high speed. So each new die needs a free spot, at least one die size from the others. TTS uses 49 fixed spots 1" apart, and its dice can overlap. Done: `freeDropPoint` (`src/dice/tray.js`) keeps every new point at least one die size from the others, including dice added in the same React commit (Phase 4b's `wellOccupiedPoints`).
+- **Trimesh edges.** A die can bump on the inside edges between the triangles of the tray mesh. Rapier's `TriMeshFlags.FIX_INTERNAL_EDGES` reduces this. The @react-three/rapier 1.5 types do not list the flag, but the library passes extra arguments to `ColliderDesc.trimesh`. Confirmed by reading the library's own code (Phase 4a Result): the flag does reach Rapier's `ColliderDesc.trimesh`. Not checked with a real collision (no browser).
+- **Shadows.** The shadow camera covers ±20 (`Scene.jsx`). The trays reach x = 34 and z = ±18.5, so they get no shadows. The shadow camera can be larger, or a second light can cast shadows over the trays. A larger shadow camera gives less shadow detail on the mat. Done: the shadow camera is now `left -26, right 38, top 25, bottom -34` with `shadow-mapSize` 3072 (Phase 4 Result), covering both trays at close to the old per-pixel detail.
+- **Remounts.** Terrain mounts again when the mat turns. The trays are not in the mat group, so they stay. A new map loads new assets. Check that the dice keep their state when the map changes. Done: confirmed by reading `Scene.jsx` (Phase 4a Result) — `DiceTray` is keyed only by `trayKey`, outside the group that Terrain/the mat remount into, so a map change or a mat turn never remounts it.
+- **Rapier version.** @react-three/rapier 1.5 uses Rapier JS 0.14, which is built with enhanced determinism. From Rapier JS 0.15, the default package is built without it. Closed: the dice are not replayed. The roller's browser simulates a roll, and the other browser follows the live poses and reads the results from the document (step 10).

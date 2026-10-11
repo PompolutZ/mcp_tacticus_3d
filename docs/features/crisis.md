@@ -1,6 +1,11 @@
 # Feature: Crisis cards
 
-Status: in progress. Players can choose a Secure and an Extract card, see them on the table, and move, flip and mark their tokens. A character can now hold and drop an Asset, Civilian or Source supply token (see `docs/features/character-trays.md`, "Hold and drop"). Players take supply tokens from a pile that never runs out, and delete held tokens with the Delete key.
+Status: partly built.
+
+Not built yet:
+
+- Images and tokens for the 21 cards without images in the TTS cache.
+
 
 ## Goal
 
@@ -156,9 +161,9 @@ In the app, **R** with the pointer over a model lifts it 6". R over it again put
 4. For a Source card, the app also puts the supply pile next to the card (see [Extract: Source](#extract-source)).
 5. The setup positions are always relative to the player sides (blue and red), as the setup map on each card shows. They are never relative to the mat. So when the mat turns (**Mat → ↺ / ↻**), the tokens do not turn with it. Each token stays at its place on the table and rests again on the new surface under it (see [Where a token rests](#where-a-token-rests)). As a result, players cannot know before the game if a token lands on the mat or on terrain.
 
-The bottom edge of the setup map on a card is the deployment edge of the player with Priority. Without a game setup, that is the blue side of the app, and the top edge is the red side. Since 2026-10-07, the game setup knows who has Priority. When red has Priority, the tokens turn a half turn (see `docs/features/setup-game.md`, "Priority"). The rulebook calls these the blue zone and the red zone (p9). The current card images use other colors: green at the bottom and purple at the top.
+The bottom edge of the setup map on a card is the deployment edge of the player with Priority. Without a game setup, that is the blue side of the app, and the top edge is the red side. The game setup knows who has Priority. When red has Priority, the tokens turn a half turn (see `docs/features/setup-game.md`, "Priority"). The rulebook calls these the blue zone and the red zone (p9). The current card images use other colors: green at the bottom and purple at the top.
 
-The positions in `cards.json` already follow this rule after the `z` → `-z` conversion. This was checked on 2026-09-29 with the Survivors card image. Survivors is the only current card with a map that changes after a half turn, so it is the only card that can show a wrong orientation.
+The positions in `cards.json` already follow this rule after the `z` → `-z` conversion. This was checked with the Survivors card image. Survivors is the only current card with a map that changes after a half turn, so it is the only card that can show a wrong orientation.
 
 In the TTS mod, the Blue seat is at +z. The mod puts the top edge of the card toward +z, so in the mod the bottom edge faces the Red seat. The app is the other way round, because the `z` → `-z` conversion puts TTS +z at the red side of the app. So TTS objects that belong to a seat, such as the VP trackers, change color when the app uses their TTS positions.
 
@@ -179,7 +184,7 @@ The Control marker is the affiliation token that the player's squad has from the
 
 The scoring board is a separate feature, but the cards are placed next to it. The rulebook calls it the Mission Tracker (p12). A player wins at once with 16 VP or more. After round 6, the player with the most VP wins (p11).
 
-The board comes from the TTS mod. These facts were found in the mod on 2026-09-29:
+The board comes from the TTS mod. These facts come from the mod:
 
 - The board is the "Tracker" object. It has a VP track from 1 to 16 and a round track from 1 to 6.
 - The mesh is 9" × 4" and the mod uses scale 2, so the board is 18" × 8".
@@ -188,7 +193,7 @@ The board comes from the TTS mod. These facts were found in the mod on 2026-09-2
 - The Lua script of the board reads the VP and the round from the positions of the tokens on it.
 - Each player has a VP marker ("Red Player VP Tracker", "Blue Player VP tracker"): a round tile, 1.2" wide, with the player tint on its edge. Its faces show the affiliation token that the player chooses on the Tray Spawner (`updateScoreTracker`). The mod has 34 affiliation tokens.
 
-The app has the board since 2026-10-03 (`src/components/ScoreBoard.jsx`, `src/scoreboard/board.js`, files from `scripts/migrate-scoreboard.mjs`):
+The app has the board (`src/components/ScoreBoard.jsx`, `src/scoreboard/board.js`, files from `scripts/migrate-scoreboard.mjs`):
 
 - The board is at its TTS position, with z → -z. The VP 1 spot is on the blue side (+z). A card lies at each end of the board.
 - Each player has a VP marker. The token it shows comes from the game setup, for each player (`docs/features/setup-game.md`, "Affiliation"). The toolbar has no VP group. The markers start next to the board, where the mod puts them.
@@ -204,4 +209,4 @@ The app has the board since 2026-10-03 (`src/components/ScoreBoard.jsx`, `src/sc
 - Phase steps other than the **Cleanup** button (it flips Sources back and removes supply tokens), for example the effects of other crisis cards.
 - Dice. Pay-to-flip, Lockdown and other cards need dice rolls. Players use their own dice for now, or a later dice feature.
 - The 21 cards without images in the TTS cache.
-- Legality checks. Since 2026-10-07, players can choose the cards and the threat with the game setup (`docs/features/setup-game.md`), or choose the two cards in the toolbar. A multiplayer room has no Crisis group in the toolbar: the crisis cards come from the rosters in the game setup. Rule (p9): the player with Priority draws 2 cards from one of their decks, and the other player chooses 1. Then the other player draws 2 cards of the other type, and the player with Priority chooses 1. The player without Priority chooses which card's threat is used.
+- Legality checks. Players can choose the cards and the threat with the game setup (`docs/features/setup-game.md`), or choose the two cards in the toolbar. A multiplayer room has no Crisis group in the toolbar: the crisis cards come from the rosters in the game setup. Rule (p9): the player with Priority draws 2 cards from one of their decks, and the other player chooses 1. Then the other player draws 2 cards of the other type, and the player with Priority chooses 1. The player without Priority chooses which card's threat is used.

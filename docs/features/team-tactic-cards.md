@@ -1,6 +1,12 @@
 # Feature: Team Tactic cards
 
-Status: in progress. Players take Team Tactic cards (TTC) from the Library (see `docs/features/library.md`). A card goes into the player's tactic tray. Players can move, flip, open and delete it.
+Status: partly built.
+
+Players take Team Tactic cards (TTC) from the Library (see `docs/features/library.md`). A card goes into the player's tactic tray. Players can move, flip, open and delete it. The Team Tactic cards of a squad go on the tray from the game setup (`docs/features/setup-game.md`).
+
+Not built yet:
+
+- Card images for most released cards (see [Out of scope](#out-of-scope)).
 
 ## Goal
 
@@ -14,7 +20,7 @@ So the app does not stop a 6th card. The 6th card lies on the table next to the 
 
 ## How TTS does it
 
-These facts were found on 2026-10-06 in the save of mod 3036795456.
+These facts come from the save of mod 3036795456.
 
 - Each player has a "Blue Tactic Tray" or "Red Tactic Tray" object (`Custom_Assetbundle`). They are at TTS z = ±21.15, centered on x = 0, with scale 1.15 × 1. The mat edge is at 18, so the tray lies right next to the mat.
 - The character trays are further out, at z = ±28.25 (`arrangeTrays` in the Tray Spawner, see `docs/features/character-trays.md`, "How TTS does it").
@@ -24,7 +30,7 @@ These facts were found on 2026-10-06 in the save of mod 3036795456.
 
 ## Cards
 
-- 69 of the 389 released cards are migrated (see `scripts/README.md`, "TTS tactic cards"). The app knows only their key, MCT code (`id`) and name (`src/tactics/cards.json`).
+- 73 released cards are migrated, plus the Soul and Mind Infinity Gem cards (see `scripts/README.md`, "TTS tactic cards"). The app knows only their key, MCT code (`id`) and name (`src/tactics/cards.json`).
 - A real card has the size of a poker card: 2.5" × 3.5". The app uses this size for every card. The face images are about 720 × 1040 px, so the image is 3% shorter on the table than in the file. The card size in TTS was not measured.
 - The **face** has the rules text on pale art. The **back** has the card name on full-colour art.
 - A new card lies face up, with the rules text showing.
@@ -40,7 +46,7 @@ Each player always has one tactic tray, also with no cards. See `src/tactics/lay
 - A card faces its owner: for blue, the top of the image points to −z. A red card is turned 180°.
 - The tray has no collider, the same as a character tray.
 
-The character trays move out to make room: their row now starts 0.3" past the tactic tray plate. See `docs/features/character-trays.md`, "Place on the table". The table is 66" deep now.
+The character trays move out to make room: their row starts 0.3" past the tactic tray plate. See `docs/features/character-trays.md`, "Place on the table".
 
 ### Free slot
 
@@ -53,10 +59,21 @@ A slot is free when no card center lies inside the slot area.
 
 Some cards bring tokens, for example Mystic Ward (a Mystic Ward token) and Pentagram of Farallah (a Mystic Portal token). `tokens` in `cards.json` lists the token keys of a card. TTS spawns the tokens in front of the card, on the mat. The app puts a pile of each token instead, so players take tokens from it the same as from a Library pile (`docs/features/library.md`, "Pile"). A pile never runs out, so a card that places two tokens needs no count.
 
-- **Place:** on the table past the owner's left end of the plate (`tacticPilePlace` in `layout.js`), 0.3" from it, in a row going outward, 1.2" apart, at the z of the slot row. The 6th and later cards go past the right end, so this side is free. The piles of all cards of a player share the row, in the order of the cards. A 7th pile goes in a second row, behind the first (away from the mat), still beside the plate.
+How TTS does it (from the `Database` script and the script of each tactic card):
+
+- A tactic card row has `tokens`: a list of token names, for example Mystic Ward → "Mystic Ward", Pentagram of Farallah → "Mystic Portal", Founding Members → six conditions. 82 rows have it.
+- When the card lands on a tactic tray, its script spawns the tokens (`spawnTokens`): one token per name, 2.85" in front of the card toward the mat, at x − 1.5, − 0.5, + 0.5 and + 1.5 from the card center. A token of type "Pile" becomes a pile. When the card is picked up, its script deletes its tokens.
+
+Data:
+
+- **Always a pile.** The app puts one pile per token name of the card, also where TTS spawns a single token.
+- **The link is asset data from TTS.** Which tokens belong to a card is in the mod row only. Jarvis has no token images or names. So `migrate-tactics.mjs` writes `tokens` (token keys) into `src/tactics/cards.json`. Only keys that exist in `src/tokens/tokens.json` are written. This is the same exception as the Give tokens of a character.
+- **Token images.** `migrate-tokens.mjs` migrates every token that a released tactic card names, of any type (Misc, Use Tools, Pile, ...), when its image is in the TTS cache. The group (`tactic` or `condition`) comes from the image folder. A name with no image in the cache is left out with a warning. See `docs/features/character-trays.md`, "Tokens from the TTS mod".
+
+- **Place:** the TTS place (2.85" toward the mat) would be on the mat, at the edge where players deploy, because the tactic tray lies 0.3" from the mat edge. So the piles lie on the table past the owner's left end of the plate (`tacticPilePlace` in `layout.js`), 0.3" from it, in a row going outward, 1.2" apart, at the z of the slot row. The 6th and later cards go past the right end, so this side is free. The piles of all cards of a player share the row, in the order of the cards. A 7th pile goes in a second row, behind the first (away from the mat), still beside the plate.
 - **A new pile** takes the first place that no pile lies on (`freePilePlaces`). So a card added from the Library after the squad gets the next free place.
 - **When:** when a card goes on the table: when the squad is revealed, and when a player adds a card from the Library. In the same change of the document as the cards. A card that is dragged brings no piles.
-- **Removal:** a pile made this way has `card`, the id of its card. When the card is deleted (Delete key) or removed by the restart of the setup, its piles go in the same change. A pile without `card` stays. A player can still move a pile with Shift + drag.
+- **Removal:** a pile made this way has `card`, the id of its card. When the card is deleted (Delete key) or removed by the restart of the setup, its piles go in the same change. A pile without `card` stays. A player can still move a pile with Shift + drag. A saved document without `card` in its piles stays valid.
 
 ## Card on the table
 
@@ -74,7 +91,7 @@ Some cards bring tokens, for example Mystic Ward (a Mystic Ward token) and Penta
 
 ## State
 
-`App.jsx` has a new list:
+`App.jsx` has this list:
 
 ```js
 tacticCards: [{
@@ -99,8 +116,6 @@ All fields are plain JSON. So they fit into the `tactics` map of the Yjs documen
 - A list of the 5 cards per player (the `rosters` map in `docs/features/peer-to-peer.md`). The cards on the tray are the list.
 
 ## Decisions
-
-Made on 2026-10-06:
 
 1. Each player has a tactic tray with 5 slots between the mat and the character trays, as in TTS. The table grows from 60" to 66" deep for it.
 2. A new card lies face up, with the rules text showing.
