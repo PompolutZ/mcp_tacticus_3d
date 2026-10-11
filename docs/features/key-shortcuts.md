@@ -22,7 +22,7 @@ The users of the app are active TTS players. They already know the TTS controls.
 | Input | TTS | App | Same |
 |---|---|---|---|
 | Left click on a piece | Pick up | Select | No |
-| Left drag on a piece | Move it | Move it, only if it is already selected | Partly |
+| Left drag on a piece | Move it | Move it at once and select it. A piece that is already selected stays selected | Yes |
 | Left drag on the empty table | Box select | Turn the camera | No |
 | Right drag on the empty table | Turn the camera | Turn the camera | Yes |
 | Right click on a piece | Context menu. While holding a piece: tap it | Nothing. The piece handlers take only the left button, so a right drag on a piece turns the camera | No |
@@ -123,8 +123,7 @@ The app also snaps a tool, key 6 included, when the pointer is over a crisis tok
 In order of how often a TTS player will notice them:
 
 1. **Left drag on the empty table.** It turns the camera. In TTS it box-selects, and the app has no box select.
-2. **Left drag on a piece.** In TTS a player drags a piece at once. In the app the piece must be selected first.
-3. **Q / E** to turn a token.
-4. **Alt (hold)** over a card to show it large, as the click popup does.
-5. **Number key with no character under the pointer.** The mod only removes the tool. The app toggles it, so a second press spawns the tool again.
-6. **Number keys over a dice tray.** The mod clears the tray first. The app only adds dice.
+2. **Q / E** to turn a token.
+3. **Alt (hold)** over a card to show it large, as the click popup does.
+4. **Number key with no character under the pointer.** The mod only removes the tool. The app toggles it, so a second press spawns the tool again.
+5. **Number keys over a dice tray.** The mod clears the tray first. The app only adds dice.

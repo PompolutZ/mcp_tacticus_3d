@@ -92,7 +92,7 @@ Work:
 2. `Scene.jsx`: `onDragSelect` selects with `selectPiece` (decision 1) for a model and a crisis token, and with `selectTool` for a tool.
 3. `src/drag/pointerDrag.js`: update the comment of `canStart` ("a piece that must be selected first").
 4. Place (decision 3). `Scene.jsx` keeps which own tool has Place or Throw on (`'range' | 'move' | null`). `RulerTool.jsx`: turning Place or Throw on reports it. When another tool turns it on, this tool turns its Place and Throw off. The angle tool has neither.
-5. Docs: `docs/features/key-shortcuts.md` (the row "Left drag on a piece", item 2 of "Differences to decide"), `README.md` ("Place", and any line that says a piece must be selected first).
+5. Docs: `docs/features/key-shortcuts.md` (the row "Left drag on a piece", item 2 of "Differences to decide", removed), `README.md` ("Place", and any line that says a piece must be selected first).
 
 Checks: `pnpm --filter web build`, `pnpm format`, `pnpm lint`, `pnpm --filter web test`.
 
@@ -107,7 +107,16 @@ User, after this step:
 
 ### Result
 
-Not started.
+Done.
+
+- `CharacterModel.jsx`, `CrisisToken.jsx`: `canStart` no longer needs `selected` (the model has none, the token keeps `token.canMove`). `onStart` calls the new prop `onDragSelect`. The hover cursor is `grab` (the token: `grab` when it can move).
+- `RulerTool.jsx`: `useDragTool` has one `startPointerDrag` (the plan named two places, the second is the hover cursor). `onPointerDown(e, onSelect, onDragSelect, plan)`, `canStart` only needs the body. The cursor is `grab`. The tool props `onDragSelect`, `limitTaken` and `onLimitOn` are new.
+- `Scene.jsx`: `dragSelect(kind, id)` uses `selectPiece` for a model (no side check, as a click) and a token. A tool uses `selectTool`. State `limitTool` (`'range' | 'move' | null`) gives `limitTaken` and `onLimitOn` to the two tools. The angle tool has neither.
+- Place: a tool calls `onLimitOn` from an effect when `placing || throwing` turns on. The other tool sees `limitTaken` and sets `placeSide` and `throwLock` to null. Its effects then clear its own slot in `placeLimits`. The slots `range` and `move` are separate, so the cleanup of A cannot clear the limit of B. Place 1 does not set `placeSide`, so it takes nothing.
+- `pointerDrag.js`: the `canStart` comment. No logic change, so no new tests.
+- Docs: `key-shortcuts.md` (row "Left drag on a piece" is now Yes, item 2 of "Differences to decide" removed, the rest renumbered), `README.md` ("Selection", "Place"). Items 4 and 6 in steps 3 and 5 of this plan are now items 3 and 5.
+- Checks: build, format, lint (40 warning lines, as before), test 376 pass (no new tests).
+- Differs from the plan: `limitTool` is not cleared when Place turns off. It does not need to be: the next tool that turns Place on sets it. Not run in a browser (project rule).
 
 ## Step 3: Alt over a card, Give click
 
@@ -117,7 +126,7 @@ Work:
 2. `handleKeyDown`: `e.key === 'Alt'` before the `altKey` return: `preventDefault`, and with no popup open, `peekCard` is the hovered card. While Alt is held, a hover change sets `peekCard`. `keyup` of Alt and the window `blur` clear it.
 3. `CardPopup.jsx`: a `peek` mode with no backdrop click and `pointer-events: none` (decision 2). App renders it from `peekCard`.
 4. Give click. `CharacterTray.jsx` passes the character id with the Give drag. `startTokenDrag`: `onClick` with a character id gives 1 of the token with `handleCharacterTokenGive`, then `endTokenDrag`.
-5. Docs: `docs/features/key-shortcuts.md` (Alt row, item 4 of "Differences to decide"), `docs/features/character-trays.md` ("Give tokens by drag and drop": the click).
+5. Docs: `docs/features/key-shortcuts.md` (Alt row, item 3 of "Differences to decide" after step 2), `docs/features/character-trays.md` ("Give tokens by drag and drop": the click).
 
 Checks: `pnpm --filter web build`, `pnpm format`, `pnpm lint`, `pnpm --filter web test`.
 
@@ -165,7 +174,7 @@ Work:
 1. `DiceTray.jsx`: a function for the number keys that does `clear`, then `addDice(n)`. `App.jsx` calls it over the own tray.
 2. `DiceKeys.jsx`: a click on a plate with dice calls `reroll(symbol)`. The plate menu goes.
 3. `DiceTray.jsx` `Die`: a click on a die on the shelf of the own tray opens the menu at that die (`diceMenu` in `App.jsx` becomes `{ trayKey, dieId }`). The menu is screen-space Html at the die, as the plate menu was. `change(dieId, toSymbol)` changes that die. A camera drag that starts on a die is not a click. The click does not reach the table.
-4. Docs: `docs/features/dice-rolling.md` (the plates, the menu, the line "In TTS, a click on a face count rerolls one die"), `docs/features/key-shortcuts.md` (item 6 of "Differences to decide").
+4. Docs: `docs/features/dice-rolling.md` (the plates, the menu, the line "In TTS, a click on a face count rerolls one die"), `docs/features/key-shortcuts.md` (item 5 of "Differences to decide" after step 2).
 
 Checks: `pnpm --filter web build`, `pnpm format`, `pnpm lint`, `pnpm --filter web test`.
 

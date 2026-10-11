@@ -20,7 +20,7 @@ function isHudEvent(event) {
 // - onClick(ev): the release of a press that did not become a drag.
 // - onCancel(): cancel() ended a drag or a press. No drop.
 // - canStart(ev): called at the press when immediate, else at each move past the threshold.
-//   False: no drag yet (a piece that must be selected first).
+//   False: no drag yet (a piece that cannot move now: a token that cannot move, a tool with no body).
 // - immediate: the press is a drag at once, with no threshold and no click.
 // - threshold: pixels, DRAG_THRESHOLD by default.
 // - button: the button that drags, 0 by default. null: any button.

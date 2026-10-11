@@ -228,6 +228,7 @@ function standeeScene(front, back, radius) {
 // onSlideStart(): a Throw or Push starts (startSlide). With onDragStart, Scene counts both as a move.
 // rangeMark: 'inRange' or 'outOfRange' while a range tool marks the model (RangeMark in RulerTool.jsx)
 // otherSelected: the side of the other player who has the model selected, or null
+// onSelect(): a click. onDragSelect(): a drag starts, the model is selected and stays selected.
 // position: where the body starts. Read only on mount: RigidBody moves its body when its position
 // prop changes, and the spawn position follows the tray (Scene.jsx), which can move later.
 // quaternion: the rotation the body starts with, [x, y, z, w], or undefined for none. Read only on mount,
@@ -247,6 +248,7 @@ function CharacterFigure({
   overlap = false,
   overlapsAt,
   onSelect,
+  onDragSelect,
   onHover,
   bodyRef,
   onRest,
@@ -590,8 +592,8 @@ function CharacterFigure({
   }, [scene, showOverlap])
 
   useOutline(figureRef, outlineMode(selected, hovered, rangeMark, showOverlap, otherSelected))
-  // A click selects the model. Only a selected model moves by a drag.
-  useHoverCursor(hovered, selected ? 'grab' : 'pointer')
+  // A click toggles the selection. A drag moves the model at once and selects it.
+  useHoverCursor(hovered, 'grab')
 
   // onHover(true) while the pointer is over the model, onHover(false) after. The cleanup also runs
   // on unmount, so a removed model does not stay hovered.
@@ -605,12 +607,11 @@ function CharacterFigure({
     startPointerDrag(e, {
       controls,
       canvas: gl.domElement,
-      // A click selects the model. Only a selected model moves by a drag.
-      canStart: () => selected,
       key: claimKey,
       ownership,
       releaseAtEnd: false,
       onStart: () => {
+        onDragSelect?.()
         // A drag ends a lift or a slide. The model follows the pointer and drops where it is released.
         lift.current = null
         slide.current = null

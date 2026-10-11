@@ -414,6 +414,9 @@ export default function Scene({
   // Tool ('move', 'range' or 'angle') → { id, clamp(p) } while its Place is on, else null.
   // A drag of character id keeps its base on that tool (see onPlaceLimit in RulerTool.jsx).
   const placeLimits = useRef({})
+  // The own tool that has Place or Throw on: 'range', 'move' or null. Only one at a time. The other tool turns
+  // its own off (limitTaken in RulerTool.jsx). A tool that turns off clears only its slot in placeLimits.
+  const [limitTool, setLimitTool] = useState(null)
   // The pieces that Q / E can turn (turnPiece): the character or tool under the pointer, and the one
   // that is dragged. { kind: 'character' | 'tool', id } | null. The id of a tool is 'range', 'move' or 'angle'.
   const hoveredPiece = useRef(null)
@@ -1017,6 +1020,11 @@ export default function Scene({
     onSelectedToolsChange((prev) => ({ ...prev, [tool]: true }))
   }
 
+  // A drag selects the piece and keeps it selected, a click toggles (toggleSelect)
+  function dragSelect(kind, id) {
+    onSelectionChange((prev) => selectPiece(prev, { kind, id }))
+  }
+
   function toggleSelect(kind, id) {
     onSelectionChange((prev) => toggleSelectPiece(prev, { kind, id }))
   }
@@ -1223,6 +1231,7 @@ export default function Scene({
               rangeMark={rangeMarkOf('token', tok.id)}
               otherSelected={otherSelectedOf('token', tok.id)}
               onSelect={() => toggleSelect('token', tok.id)}
+              onDragSelect={() => dragSelect('token', tok.id)}
               onHover={
                 tok.heldBy
                   ? (over) => onHeldHover?.(tok.id, over)
@@ -1431,6 +1440,7 @@ export default function Scene({
             overlapsAt: (x, y, z) =>
               overlapsAny({ x, y, z, radius: BASE_DIAMETER[model.base] / 2 }, modelBases(model.id)),
             onSelect: () => toggleSelect('character', model.id),
+            onDragSelect: () => dragSelect('character', model.id),
             onHover: (over) => {
               onPieceHover?.({ kind: 'character', id: model.id }, over)
               trackPiece(hoveredPiece, { kind: 'character', id: model.id }, over)
@@ -1501,6 +1511,7 @@ export default function Scene({
               hoverHeight={TOOL_HOVER_HEIGHT}
               selected={selectedTools.move}
               onSelect={() => toggleTool('move')}
+              onDragSelect={() => selectTool('move')}
               // A new tool is selected, so its buttons (Place, Bend) can be used right away
               onSpawn={() => selectTool('move')}
               angleLimit={angleLimit}
@@ -1511,6 +1522,8 @@ export default function Scene({
               onPlaceLimit={(limit) => {
                 placeLimits.current.move = limit
               }}
+              limitTaken={limitTool === 'range'}
+              onLimitOn={() => setLimitTool('move')}
               {...turnProps('move')}
             />
           </Suspense>
@@ -1522,6 +1535,7 @@ export default function Scene({
               hoverHeight={TOOL_HOVER_HEIGHT}
               selected={selectedTools.angle}
               onSelect={() => toggleTool('angle')}
+              onDragSelect={() => selectTool('angle')}
               onSpawn={() => selectTool('angle')}
               target={toolTarget}
               spawnTarget={toolModel(angleSpawn.target)}
@@ -1574,6 +1588,7 @@ export default function Scene({
               hoverHeight={TOOL_HOVER_HEIGHT}
               selected={selectedTools.range}
               onSelect={() => toggleTool('range')}
+              onDragSelect={() => selectTool('range')}
               onSpawn={() => selectTool('range')}
               target={toolTarget}
               placeTarget={placeTarget}
@@ -1582,6 +1597,8 @@ export default function Scene({
               onPlaceLimit={(limit) => {
                 placeLimits.current.range = limit
               }}
+              limitTaken={limitTool === 'move'}
+              onLimitOn={() => setLimitTool('range')}
               onRangeMark={setRangeMark}
               {...turnProps('range')}
             />

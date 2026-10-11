@@ -177,7 +177,7 @@ In game setup, the player with priority chooses the edge of the mat to deploy fr
 
 ## Selection
 
-Click a piece to select it. Click it again to deselect it. One character, one crisis token, one unlocked terrain piece (see [Terrain lock](#terrain-lock)), the range tool, the movement tool and the Toward / Away tool can be selected at the same time. Selecting another character deselects the old character. The same is true for a token and a terrain piece. A click on the empty table deselects the character, the token and the terrain piece. Escape deselects everything and removes the selected tools from the table.
+Click a piece to select it. Click it again to deselect it. A drag moves a model, a tool or a crisis token that can move at once, and selects it. A piece that is already selected stays selected. One character, one crisis token, one unlocked terrain piece (see [Terrain lock](#terrain-lock)), the range tool, the movement tool and the Toward / Away tool can be selected at the same time. Selecting another character deselects the old character. The same is true for a token and a terrain piece. A click on the empty table deselects the character, the token and the terrain piece. Escape deselects everything and removes the selected tools from the table.
 
 A tool measures against the character or token selected last. A new tool also snaps to it. Place moves the selected character, also when a token was selected after it.
 
@@ -246,6 +246,8 @@ Turning Place on moves the selected character past the far end. Its base then to
 A free tool has no far end, so it shows Place only while Place is on. Then you can still turn it off.
 
 While Place is on, you can drag the selected character only to where its base touches the tool outline, so the outline stays green. When the pointer goes farther, the base stops at the nearest point where it still touches the outline. The deploy line limits a drag in the same way. You can still move and rotate the tool while Place is on.
+
+Only one Place or Throw / Push is on at a time across the own tools. Turning it on on one tool turns it off on the other tool (range or movement), and the selected character now keeps its base on this tool. Place 1 of the R1 tool does not stay on, so it turns nothing off.
 
 Place does not work for a token: a token has no base to place, only a position that its own drag sets. So Place cannot be turned on while no character is selected. With a character and a token selected, Place moves the character.
 

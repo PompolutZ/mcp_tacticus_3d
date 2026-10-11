@@ -305,8 +305,8 @@ function useFootprintGround(halfLength, halfWidth, turn) {
   }
 }
 
-// Whole-body drag: click body to select, drag when selected.
-// onPointerDown(e, selected, onSelect, plan): plan() is called once when a drag starts (not on a
+// Whole-body drag: a click toggles the selection, a drag moves the tool at once and selects it.
+// onPointerDown(e, onSelect, onDragSelect, plan): plan() is called once when a drag starts (not on a
 // plain click). It returns null for a move, or { pivot, onTurn, onPointer } for a turn:
 // - Move: the tool follows the pointer. onDragMove(raycaster) is called on each pointer move, with a
 //   raycaster set to the pointer ray. When it returns true, the drag ends there and the rest of that
@@ -359,7 +359,7 @@ function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove, on
     if (turning.current) rb.setNextKinematicRotation(yawQuat(yaw))
   })
 
-  return function onPointerDown(e, selected, onSelect, plan) {
+  return function onPointerDown(e, onSelect, onDragSelect, plan) {
     const grab = { x: e.point.x, z: e.point.z }
     function endDrag() {
       isDragging.current = false
@@ -372,9 +372,9 @@ function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove, on
     const pressed = startPointerDrag(e, {
       controls,
       canvas: gl.domElement,
-      // A click selects the tool. Only a selected tool moves by a drag.
-      canStart: () => selected && Boolean(rigidRef.current),
+      canStart: () => Boolean(rigidRef.current),
       onStart: () => {
+        onDragSelect?.()
         const rb = rigidRef.current
         restType.current = rb.bodyType()
         rb.setBodyType(2, true)
@@ -540,6 +540,8 @@ function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target
 // onPlaceLimit(limit): called with { id, clamp(p) } while Place is on and a character is selected,
 // and with null after. clamp moves a drag point p (table XZ) of that character, so its base keeps
 // touching the footprint. On the R1 tool only Place 2 does this. Place 1 moves the character once.
+// limitTaken: the other own tool has Place or Throw on, so this tool turns its Place and Throw off. onLimitOn():
+// called when this tool's Place or Throw turns on (the drag limit). Only one own tool has it at a time.
 // onSpawn: called once, when the tool is created
 // team: 'blue' or 'red', the player tint of the tool
 // hoverHeight: how far above the table or terrain the tool hangs while dragged
@@ -824,12 +826,15 @@ function Tool({
   hoverHeight = 1,
   selected = false,
   onSelect,
+  onDragSelect,
   target,
   spawnTarget = target,
   placeTarget,
   models = [],
   onSnap,
   onPlaceLimit,
+  limitTaken = false,
+  onLimitOn,
   onSpawn,
   onRangeMark,
   onHover,
@@ -1003,8 +1008,8 @@ function Tool({
     return () => onHover?.(false)
   }, [hovered])
   useEffect(() => () => onDrag?.(false), [])
-  // A click selects the tool. Only a selected tool moves by a drag.
-  useHoverCursor(hovered, selected ? 'grab' : 'pointer')
+  // A click toggles the selection. A drag moves the tool at once and selects it.
+  useHoverCursor(hovered, 'grab')
 
   // Nearest of the models (default: all of them) under the pointer ray (figure or base), or null
   function modelUnder(raycaster, list = models) {
@@ -1213,6 +1218,19 @@ function Tool({
     return () => onPlaceLimit?.(null)
   }, [throwing, throwLock, turn, tip])
 
+  // One Place or Throw at a time across the own tools: this tool takes the drag limit, and turns its own
+  // off when the other tool takes it. Each tool clears only its own slot (onPlaceLimit in Scene.jsx).
+  const limiting = placing || throwing
+  useEffect(() => {
+    if (limiting) onLimitOn?.()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [limiting])
+  useEffect(() => {
+    if (!limitTaken) return
+    setPlaceSide(null)
+    setThrowLock(null)
+  }, [limitTaken])
+
   // Angle tool, snapped: move the tool to the other side of the base, the same angle turned half
   // around. Toward becomes Away and Away becomes Toward.
   function handleMirror(e) {
@@ -1373,7 +1391,7 @@ function Tool({
                 }}
                 onPointerOut={() => setHovered(false)}
                 onPointerDown={(e) =>
-                  onPointerDown(e, selected, onSelect, () => dragPlan(part.side))
+                  onPointerDown(e, onSelect, onDragSelect, () => dragPlan(part.side))
                 }
               />
             </group>
