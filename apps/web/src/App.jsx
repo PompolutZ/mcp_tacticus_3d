@@ -922,7 +922,7 @@ export default function App({
     })
   }
 
-  // Phase 7 calls this for a character it is about to remove, so the character drops every token it
+  // Remove calls this for a character it is about to remove, so the character drops every token it
   // holds first (see docs/features/character-trays.md, "Hold and drop"). Several tokens spread along a row
   // next to the base (TOKEN_ROW_SPACING apart) instead of landing on the same spot.
   function handleDropCharacterTokens(characterId) {

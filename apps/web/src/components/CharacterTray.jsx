@@ -37,7 +37,7 @@ const CLICK_MOVE = 4
 // Flip turns both (see docs/features/character-trays.md, "Second forms"). The Give sources are
 // not part of the tray: they lie on the table on the owner's side of the plate, as in TTS, and
 // move with the tray. The tokens are real size, as in TTS (see trays.js for the layout). No
-// collider (see docs/features/character-trays.md, Phase 1). A click on the card calls onOpen(): App opens
+// collider (see docs/features/character-trays.md, "One tray"). A click on the card calls onOpen(): App opens
 // the whole tray in a popup (see TrayPopup.jsx).
 // objectRef: the background plate, so Scene's characterAt can hit the whole tray, the same way it
 // hits the model (see docs/features/character-trays.md, "Give tokens by drag and drop"). A token dropped

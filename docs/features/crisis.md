@@ -126,7 +126,7 @@ The same rule applies at setup and when a player drops a token during the game.
 
 ### Tokens on top of a crisis token
 
-A character token (for example Mystic Ward or 1 Damage) can lie on top of a crisis token, with its markers. It lies on the top of the crisis token and is fully visible. Another token on top lies on both. If the crisis token is picked up or moved away, the token on top goes down. A crisis token never lies on a character token. Rules and details: `docs/features/character-trays.md`, "Tokens on top of tokens".
+A character token (for example Mystic Ward or 1 Damage) can lie on top of a crisis token, with its markers. It lies on the top of the crisis token and is fully visible. Another token on top lies on both. If the crisis token is picked up or moved away, the token on top goes down. A crisis token never lies on a character token. Players can also put a 1 Damage token on a Secure token, as another way to mark Damage (the Damage marker of Lockdown stays). Crisis tokens have no fixed collider, so the ground check under a token does not see them. The stack rule finds them instead. Rules and details: `docs/features/character-trays.md`, "Tokens on top of tokens".
 
 ### Why not copy the table or TTS
 

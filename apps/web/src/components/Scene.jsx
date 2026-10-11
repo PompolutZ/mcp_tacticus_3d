@@ -229,7 +229,7 @@ const OVERLAP_INTERVAL = 100
 // or the tray's background plate), used by App's findCharacterAt below.
 // findCharacterAt(clientX, clientY): App's own lookup, the DOM tray controls (data-character-id)
 // first, then characterAtRef's characterAt. Passed back down so CrisisToken.jsx's Extract-token
-// release (Phase 7) uses the same lookup as App's token drag, instead of 3D-only characterAt, so a
+// release uses the same lookup as App's token drag, instead of 3D-only characterAt, so a
 // release over the tray's controls strip (DOM) counts too.
 // modelPositionRef: ref App calls with a character id to get its live table position { x, z }
 // (Rapier body or model object, not the spawn position), or null. Used by App's handleTokenDrop, the

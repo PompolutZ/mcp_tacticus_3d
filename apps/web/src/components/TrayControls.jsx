@@ -15,7 +15,7 @@ const POWER_ICON = assetUrl(characterToken('1-power'))
 // and a later 2D HUD panel can mount the same component (see docs/features/character-trays.md, "First
 // iteration"). data-character-id is the drop target for giving
 // tokens by drag and drop, and the target CrisisToken.jsx's own drag uses to hold a crisis token
-// (Phase 6, "Hold and drop").
+// (docs/features/character-trays.md, "Hold and drop").
 // onAttachedOpen(code): a click on a gem chip, one per attached card (see App.jsx, handleAttachedOpen).
 // The chip only reads the card, so it works on any player's tray. hideAttached: no gem chips; the
 // tray popup sets it, because its thumbnails do the same job (TrayPopup.jsx).

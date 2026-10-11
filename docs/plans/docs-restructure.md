@@ -123,6 +123,16 @@ Files: `features/character-trays.md`, `features/crisis.md`, new `plans/character
 - Lasting decisions of the three plans go into the feature sections "Attached cards", "Immunities", "Real-size tokens" and "Tokens on top of tokens", and into "Tokens on top of a crisis token" of `crisis.md`.
 - Code comments that cite these three plans for lasting behavior point to the feature sections. Find them with `grep -rn "plans/\(infinity-gems\|jarvis-immunities\|token-size-stacking\)" apps`.
 
+**Result**
+
+- New `plans/character-trays.md`: "Phases" of the feature moved as they are (rules, Phase 1 to 8 with results, "Fixes after Phase 7", "Real-size tokens and one tray row"). It names the feature and the request date (2026-10-01). Links to feature anchors became `../features/character-trays.md#...`. "this doc" became "the feature".
+- `features/character-trays.md`: status `Status: built.` plus a "Not built yet" list (badges, grunts, Horsemen and Reserve, gem by hand, other gem cards, wider trays, 2D HUD). Dates, "Made on" headings and the note "update crisis.md status" removed. "Next phase" became "next". Fixed a wrong fact: Give tokens spawn in rows of 6, not 3 (code: `TOKENS_PER_ROW`).
+- Lasting decisions added to the feature: "Attached cards" (gem files, `attached` name, how TTS does it, why a chip, chip limits), "Immunities" (why Jarvis, mod errors, parser notes, data), "Tokens on top of tokens" (no physics reason, order on move, lifted or held crisis token, preview). "Real-size tokens" already had all. `features/crisis.md` "Tokens on top of a crisis token": 1 Damage token as another way to mark Damage, no fixed collider.
+- Code comments: `tokens/stack.js` points to the feature. Phase pointers (`CharacterTray.jsx`, `TrayControls.jsx`, `App.jsx`, `Scene.jsx`) point to feature sections or name the button.
+- The three plans did not change.
+- Checks: see the report of the step. The feature still points to `plans/power-phase.md`, `plans/cleanup-phase.md` (step 3) and `plans/tactic-tokens.md` (step 5).
+- Open issues: none.
+
 ## Step 3: Round phases
 
 Files: new `features/round-phases.md`, `features/character-trays.md`, `features/crisis.md`, `plans/power-phase.md`, `plans/cleanup-phase.md`.
