@@ -190,6 +190,7 @@ Results:
 - Filters: the filter box shrank to one row and scrolled; now it shows in full and pushes the list down (fix on playtest-1-test).
 - Affiliation filter: a chip row with affiliation icons instead of a select (fix on playtest-1-test).
 - With a leader: on by default, Clear filters became Reset filters (fix on playtest-1-test).
+- Must have: always shown, the other filters behind More filters (fix on playtest-1-test).
 
 Sandbox, two rosters loaded:
 1. Click a roster card. The popup has a fourth tab, **Breakdown**. The other tabs work as before. The left and right arrows do nothing in the Breakdown tab.

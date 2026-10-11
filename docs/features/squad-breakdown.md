@@ -79,7 +79,8 @@ Layout, from top to bottom:
 
 ```
 [15 (8)] [17 (12)] [18 (14)]              threat chips: value and number of combinations
-Filters (2) ▾                              opens the filters
+[Must have row]                            always shown
+More filters (2) ▾                         opens the other filters
 12 squads                                  or "No squad has threat 17 with these filters."
 ┌──────────────────────────────────────────────────────────┐
 │ 17  (o) (o) (o) (o)    Avengers ★  Cabal                 │  a row: total threat, portraits, affiliations
@@ -96,7 +97,7 @@ Filters (2) ▾                              opens the filters
 
 ## Filters
 
-**Filters** opens and closes the filter block. While a filter is on, the button shows how many differ from the start state, for example "Filters (2)". At the start, **With a leader** is on and the button shows "Filters" with no count. **Reset filters** goes back to the start state.
+The filter box is always shown. Its first row, **Must have**, is always visible. **More filters** opens and closes the rest. While a filter behind it is on, the button shows how many differ from the start state, for example "More filters (2)". Must have is not counted. At the start, **With a leader** is on and the button shows "More filters" with no count. **Reset filters** goes back to the start state.
 
 | Filter | Input | Result |
 |---|---|---|
