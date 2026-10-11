@@ -128,12 +128,20 @@ z = 12.55   Choose         [drawn 1]
   - A single player room and the Sandbox keep the squads in the document, as before: one person plays both sides.
 - For each squad, the app adds a tray and a model for each character, the same as the Library, and puts the Team Tactic cards into the free slots of the tactic tray. A character or a Team Tactic card that the player already has on the table is not added again. Then the roster cards leave the table, the setup is done, and its buttons go away.
 
-### Restart
+### Restart and history
 
 - **Restart setup** on the panel starts the setup again, after a confirm.
 - A new roster, or **×** of a roster, also starts the setup again, because the setup points to the cards of the rosters. The HUD message says so. When the setup has put something on the table, a confirm asks first.
 - A restart removes what the setup put on the table: the characters (trays and models) and the Team Tactic cards of the squads, and the two crisis cards of the mission with their tokens.
 - A restart keeps the rest: characters and cards that players added from the Library, a crisis card that a player changed in the toolbar after **Choose this edge**, the mat turn and the score. A character or a Team Tactic card that was on the table before the squads is not added again, so it is not removed either.
+- A restart also turns Deploy Lock (`game.deployLine`) off.
+- **Prev** / **Next** on the panel browse the steps that are done: roll off, deck, first card, second card, Maximum Threat, edge, squads, affiliation (when the state has it), deployment. **Next** from the last one goes back to the current step. While a player browses, the panel shows the step name and its choice in words ("Maximum Threat: Nelly chose Extract · 18"), and the buttons of the current step are disabled. The squad panels are hidden. `setup.view` is in the shared setup, so both players see the browsed step, and either player can press **Prev**, **Next** and **Override**.
+- **Override** on a browsed step, after a confirm, makes that step the current step for both players and drops the later choices:
+  - roll off: Priority and the read result, and everything after. Deck: the deck, the draws, the picks, and everything after.
+  - first card: both picks and everything after. Second card: the second pick and everything after. The drawn cards stay.
+  - Maximum Threat: the threat and later. Edge: the edge and later.
+  - squads or earlier: also the squads, Ready, `placed`, the affiliations and `deployed`. Affiliation: the affiliations and `deployed`. Deployment: `deployed`.
+  - What leaves the table is the same code as for a restart: with squads on the table, the characters and Team Tactic cards of the squads leave and Deploy Lock turns off. At the edge or earlier, with the edge chosen, the two crisis cards with their tokens leave the board ends. The crisis rows are then those of the step again. Other pieces stay. The confirm names what is removed.
 
 ## Affiliation
 
@@ -169,6 +177,7 @@ setup: {
   placed: { blue: null | { characters: [id], tactics: [id] }, red: … },   // what each squad put on the table
   affiliation: { blue: null | key, red: null | key },   // the token key of each squad, null until set
   deployed: false,   // the first Power Phase after the reveal sets it
+  view: null | step,   // the done step that a player browses (Prev / Next), null: the current step
 }
 ```
 

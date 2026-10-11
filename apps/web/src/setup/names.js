@@ -38,6 +38,9 @@ export function verbFor(team, ctx, base) {
   return `${base}s`
 }
 
+// The name and "chose": chose('red', ctx) → "Nelly chose" or "You chose"
+export const chose = (team, ctx) => `${playerName(team, ctx)} chose`
+
 // The name and the verb: says('red', ctx, 'choose') → "Nelly chooses" or "You choose"
 export function says(team, ctx, base) {
   return `${playerName(team, ctx)} ${verbFor(team, ctx, base)}`

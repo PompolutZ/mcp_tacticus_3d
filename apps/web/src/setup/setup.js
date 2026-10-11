@@ -29,7 +29,8 @@ const NO_SQUAD = { characters: [], tactics: [] }
 // squad is placed or while the player still chooses (scoreboard/affiliations.js). A setup saved before
 // the affiliation step has no affiliation field. deployed: the players deployed their models. The first
 // Power Phase after the reveal sets it (finishDeploy). A setup saved before the deploy step has no field,
-// and counts as deployed.
+// and counts as deployed. view: the step that a player browses with Prev / Next, or null for the current
+// step. It is shared, so both players see it (viewOf, browse). A setup saved before it has no field.
 export const NEW_SETUP = {
   id: null,
   priority: null,
@@ -44,6 +45,7 @@ export const NEW_SETUP = {
   placed: { blue: null, red: null },
   affiliation: { blue: null, red: null },
   deployed: false,
+  view: null,
 }
 
 // A new setup. The id is random, so it is made here and not in NEW_SETUP.
@@ -332,4 +334,107 @@ export function possibleThreats(setup, parsed, threatOf) {
     } else list = values([setup.picks[first], setup.picks[second]])
   }
   return [...new Set(list)].sort((a, b) => a - b)
+}
+
+// The steps in the order of the rulebook. `reveal` is the wait after the squads, it has no choice of its own.
+const FLOW = [
+  'rollOff',
+  'deck',
+  'first',
+  'second',
+  'threat',
+  'edge',
+  'squads',
+  'reveal',
+  'affiliation',
+  'deploy',
+  'done',
+]
+
+// The steps that are done, in order, for Prev / Next and Override: the steps before the current one, and
+// only the ones with a choice in the state. `affiliation` needs the field (a setup saved before it has none)
+// and `deploy` needs `deployed === true`. The app sets a single affiliation with no click, and the state
+// cannot tell that from a choice, so `affiliation` is listed in both cases.
+export function doneSteps(setup) {
+  const now = FLOW.indexOf(setupStep(setup))
+  return FLOW.filter((step, i) => {
+    if (i >= now || step === 'reveal') return false
+    if (step === 'affiliation') return Boolean(setup.affiliation)
+    if (step === 'deploy') return setup.deployed === true
+    return true
+  })
+}
+
+// The step that a player browses, or null for the current step. A step that is not done any more is null.
+export function viewOf(setup) {
+  const view = setup.view ?? null
+  return view && doneSteps(setup).includes(view) ? view : null
+}
+
+// Browse `step` (a done step), or null to go back to the current step
+export function browse(setup, step) {
+  return { ...setup, view: step && doneSteps(setup).includes(step) ? step : null }
+}
+
+// The step after (dir 1) or before (dir -1) the browsed one. null is the current step, the end of the list.
+export function neighbourStep(setup, dir) {
+  const list = doneSteps(setup)
+  const view = viewOf(setup)
+  const at = view === null ? list.length : list.indexOf(view)
+  const next = at + dir
+  if (next < 0) return view
+  return next >= list.length ? null : list[next]
+}
+
+const NO_SQUADS = {
+  squads: { blue: NO_SQUAD, red: NO_SQUAD },
+  ready: NEW_SETUP.ready,
+  placed: NEW_SETUP.placed,
+}
+
+// What an Override to `step` takes off the table: { squads, crisis }. squads: the characters and Team Tactic
+// cards that the squads put on the table (placedIds), when the step is `squads` or earlier. crisis: the two
+// crisis cards of the mission with their tokens, when the step is `edge` or earlier and the edge was chosen.
+// The caller removes them the same way as Restart setup (App.jsx, removeSetupPieces).
+export function overrideRemoval(setup, step) {
+  const at = FLOW.indexOf(step)
+  const placed = placedIds(setup)
+  return {
+    squads:
+      at <= FLOW.indexOf('squads') && (placed.characters.length > 0 || placed.tactics.length > 0),
+    crisis: at <= FLOW.indexOf('edge') && Boolean(setup.edge),
+  }
+}
+
+// Override: `step` is the current step again, and every later choice is dropped. The id stays. The cards
+// that were drawn stay, except for `deck` and `rollOff`, which draw again. The caller removes what
+// overrideRemoval names, and turns Deploy Lock off when it removes the squads.
+export function overrideTo(setup, step) {
+  const at = FLOW.indexOf(step)
+  const next = { ...setup, view: null }
+  if (at <= FLOW.indexOf('rollOff')) {
+    next.priority = null
+    next.rollOff = null
+  }
+  if (at <= FLOW.indexOf('deck')) {
+    next.deck = null
+    next.draws = { secure: [], extract: [] }
+    next.picks = { secure: null, extract: null }
+  }
+  if (at <= FLOW.indexOf('first') || at <= FLOW.indexOf('second')) {
+    const first = setup.deck?.type
+    const picks = { ...next.picks }
+    if (at <= FLOW.indexOf('first')) picks.secure = picks.extract = null
+    else if (first) picks[otherType(first)] = null
+    next.picks = picks
+  }
+  if (at <= FLOW.indexOf('threat')) next.threat = null
+  if (at <= FLOW.indexOf('edge')) next.edge = false
+  if (at <= FLOW.indexOf('squads'))
+    Object.assign(next, NO_SQUADS, { affiliation: NEW_SETUP.affiliation })
+  if (at <= FLOW.indexOf('affiliation')) {
+    next.affiliation = NEW_SETUP.affiliation
+  }
+  if (at <= FLOW.indexOf('deploy')) next.deployed = false
+  return next
 }

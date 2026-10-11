@@ -57,6 +57,7 @@ import {
   CRISIS_TYPES,
   TEAMS,
   chooseAffiliation,
+  browse,
   chooseDeck,
   colorOf,
   chooseEdge,
@@ -66,6 +67,8 @@ import {
   priorityOf,
   otherTeam,
   otherType,
+  overrideRemoval,
+  overrideTo,
   pickCard,
   placeSquad,
   placedSides,
@@ -1250,24 +1253,55 @@ export default function App({
     }
     if (setupStep(setup) === 'deck') return false
     table.transact(() => {
-      const placed = placedIds(setup)
-      placed.characters.forEach(handleCharacterRemove)
-      setTacticCards((prev) => prev.filter((card) => !placed.tactics.includes(card.id)))
-      removeCardPiles(placed.tactics)
-      if (setup.edge) {
-        for (const type of CRISIS_TYPES) {
-          const key = rosterCard(setup.picks[type])?.key
-          if (key && crisis[type] === key) handleCrisisChange(type, null)
-        }
-      }
+      removeSetupPieces({ squads: true, crisis: true })
+      setDeployLine(false)
       setSetup(newSetup())
     })
     return true
   }
 
+  // Takes what the setup put on the table off it: squads (the characters and Team Tactic cards of the
+  // activated squads) and crisis (the two crisis cards of the mission with their tokens). A crisis card that
+  // a player changed in the toolbar since then stays. Restart setup and Override use it.
+  function removeSetupPieces({ squads, crisis: crisisCards }) {
+    if (squads) {
+      const placed = placedIds(setup)
+      placed.characters.forEach(handleCharacterRemove)
+      setTacticCards((prev) => prev.filter((card) => !placed.tactics.includes(card.id)))
+      removeCardPiles(placed.tactics)
+    }
+    if (crisisCards && setup.edge) {
+      for (const type of CRISIS_TYPES) {
+        const key = rosterCard(setup.picks[type])?.key
+        if (key && crisis[type] === key) handleCrisisChange(type, null)
+      }
+    }
+  }
+
   // The Restart setup button (GameSetup.jsx)
   function handleSetupRestart() {
     if (window.confirm(`Start the game setup again? ${SETUP_REMOVAL}`)) restartSetup()
+  }
+
+  // Prev / Next of the panel: the step that both players browse, or null for the current step
+  function handleSetupBrowse(step) {
+    setSetup((prev) => browse(prev, step))
+  }
+
+  // The Override button of a browsed step, after a confirm. `step` becomes the current step for both players
+  // and the later choices are dropped (overrideTo). What the setup put on the table after that step leaves it
+  // the same way as for Restart setup (removeSetupPieces). Deploy Lock goes off with the squads.
+  function handleSetupOverride(step) {
+    const removal = overrideRemoval(setup, step)
+    const text = removal.squads || removal.crisis ? ` ${SETUP_REMOVAL}` : ''
+    if (!window.confirm(`Go back to this step and drop the later choices?${text}`)) return
+    table.transact(() => {
+      removeSetupPieces(removal)
+      if (removal.squads) setDeployLine(false)
+      setSetup(overrideTo(setup, step))
+    })
+    setSquadSelect({ blue: false, red: false })
+    setOpenRoster(null)
   }
 
   // The roll off is over: `team` has Priority. Both players can press it in a multiplayer room, because
@@ -1580,6 +1614,8 @@ export default function App({
     ready: handleSquadReady,
     affiliation: handleSetupAffiliation,
     restart: handleSetupRestart,
+    browse: handleSetupBrowse,
+    override: handleSetupOverride,
   }
 
   // A click on a roster card: { team, tab, index }. The popup opens only on a card with an image. For a card

@@ -9,13 +9,16 @@ import {
   TEAMS,
   chooserOf,
   crisisRows,
+  doneSteps,
+  neighbourStep,
   otherTeam,
   otherType,
   placedSides,
   priorityOf,
   setupStep,
+  viewOf,
 } from '../setup/setup.js'
-import { capital, isYou, playerName, possessive, says } from '../setup/names.js'
+import { capital, chose, isYou, playerName, possessive, says } from '../setup/names.js'
 import { COLOR_NAME, useSideColors } from '../sideColors.js'
 import { RosterCard } from './RosterCards.jsx'
 import { OnTable, OWNER_FACING_ROTATION } from './OnTable.jsx'
@@ -38,10 +41,58 @@ const PANEL_X = (-TABLE_WIDTH / 2 + BOARD_X - BOARD_HALF_WIDTH) / 2
 const INCHES_PER_PX = 0.04
 const px = (inches) => Math.round(inches / INCHES_PER_PX)
 
+// The names of the done steps (Prev / Next, Override)
+const STEP_NAME = {
+  rollOff: 'Roll off',
+  deck: 'Deck',
+  first: 'First card',
+  second: 'Second card',
+  threat: 'Maximum Threat',
+  edge: 'Deployment edge',
+  squads: 'Squads',
+  affiliation: 'Affiliation',
+  deploy: 'Deployment',
+}
+
+// The choice of a done step in words: "Nelly chose Extract · 18"
+function stepChoice(setup, step, ctx) {
+  const winner = priorityOf(setup)
+  const other = winner && otherTeam(winner)
+  const first = setup.deck?.type
+  const second = first && otherType(first)
+  const card = (code) => rosterCard(code)?.name ?? code
+  switch (step) {
+    case 'rollOff':
+      return `${says(winner, ctx, 'have')} Priority`
+    case 'deck':
+      return `${chose(winner, ctx)} ${TYPE[first]}s`
+    case 'first':
+      return `${chose(other, ctx)} ${card(setup.picks[first])}`
+    case 'second':
+      return `${chose(winner, ctx)} ${card(setup.picks[second])}`
+    case 'threat': {
+      const type = CRISIS_TYPES.find((t) => rosterCard(setup.picks[t])?.threat === setup.threat)
+      return `${chose(other, ctx)} ${type ? `${TYPE[type]} · ` : ''}${setup.threat}`
+    }
+    case 'edge':
+      return `${chose(winner, ctx)} the board edge`
+    case 'squads':
+      return 'Both squads are Ready'
+    case 'affiliation':
+      return TEAMS.map(
+        (team) =>
+          `${playerName(team, ctx)}: ${affiliationName(setup.affiliation?.[team] ?? DEFAULT_AFFILIATION)}`,
+      ).join(' · ')
+    default:
+      return 'Both squads deployed'
+  }
+}
+
 // In a multiplayer room, only the chooser of the current step clicks (chooserOf, setup/setup.js). Returns
 // null when this browser may click, else the title for the disabled button: "Nelly chooses the Maximum
 // Threat". The Sandbox and a single player room (no mySide) let anyone click.
 function lockedTitle(setup, what, ctx) {
+  if (viewOf(setup)) return 'Browsing an earlier step'
   const chooser = chooserOf(setup)
   if (!ctx.mySide || !chooser || chooser === ctx.mySide) return null
   return `${says(chooser, ctx, 'choose')} ${what}`
@@ -216,6 +267,7 @@ function EdgeControls({ team, locked, actions }) {
 // The panel next to the scoring board: what to do in this step, the buttons of the steps that are not about one
 // card, and Restart. The text names the player who chooses (setup/names.js).
 function BoardPanel({ setup, step, parsed, mySide, ctx, actions }) {
+  const view = viewOf(setup)
   const threatLocked = lockedTitle(setup, 'the Maximum Threat', ctx)
   const colors = useSideColors()
   const winner = priorityOf(setup)
@@ -226,7 +278,11 @@ function BoardPanel({ setup, step, parsed, mySide, ctx, actions }) {
   let note = null
   let controls = null
   let teamRows = null
-  if ((step === 'rollOff' || step === 'deck') && (!parsed.blue || !parsed.red)) {
+  if (view) {
+    // A done step that a player browses: its name and choice, read only (Override goes back to it)
+    hint = `${STEP_NAME[view]}: ${stepChoice(setup, view, ctx)}`
+    note = 'You are looking at an earlier step. Override makes it the current step again.'
+  } else if ((step === 'rollOff' || step === 'deck') && (!parsed.blue || !parsed.red)) {
     hint = 'Load both rosters to set up the game.'
   } else if (step === 'rollOff') {
     hint = 'Roll off. The winner has Priority.'
@@ -318,7 +374,8 @@ function BoardPanel({ setup, step, parsed, mySide, ctx, actions }) {
     note = 'Press Power Phase when both squads are deployed.'
   }
   // What the app read from the dice trays, until the deck is chosen
-  const read = setup.rollOff && (step === 'rollOff' || step === 'deck') ? setup.rollOff : null
+  const read =
+    !view && setup.rollOff && (step === 'rollOff' || step === 'deck') ? setup.rollOff : null
   const readText = read && rollOffText(read, ctx)
   const status = [
     winner && `${says(winner, ctx, 'have')} Priority`,
@@ -334,6 +391,35 @@ function BoardPanel({ setup, step, parsed, mySide, ctx, actions }) {
         {readText && <div className="setup-note">{readText}</div>}
         {teamRows}
         {controls && <div className="setup-row">{controls}</div>}
+        {doneSteps(setup).length > 0 && (
+          <div className="setup-row">
+            <button
+              type="button"
+              className="chip"
+              disabled={neighbourStep(setup, -1) === view}
+              onClick={() => actions.browse(neighbourStep(setup, -1))}
+            >
+              Prev
+            </button>
+            <button
+              type="button"
+              className="chip"
+              disabled={view === null}
+              onClick={() => actions.browse(neighbourStep(setup, 1))}
+            >
+              Next
+            </button>
+            {view && (
+              <button
+                type="button"
+                className="chip setup-restart"
+                onClick={() => actions.override(view)}
+              >
+                Override
+              </button>
+            )}
+          </div>
+        )}
         {(status || step !== 'rollOff') && (
           <div className="setup-row">
             {status && <span className="setup-note">{status}</span>}
@@ -439,7 +525,7 @@ function SquadPanel({ team, setup, parsed, selecting, own, ctx, actions }) {
 // (setup/names.js). mySide: the team of the player in a multiplayer room, or null when one
 // person plays both teams. Only that team's squad panel has buttons. actions: { priority(team), deck(type), pick(code),
 // threat(value), turnMat(direction), edge(), squadSelect(team), ready(team),
-// affiliation(team, key), restart() }, see App.jsx.
+// affiliation(team, key), restart(), browse(step | null), override(step) }, see App.jsx.
 // onRosterOpen({ team, tab, index }): a click on a crisis card.
 export default function GameSetup({
   setup,
@@ -460,6 +546,7 @@ export default function GameSetup({
   )
   const rows = useMemo(() => crisisRows(setup, parsed), [setup, parsed])
   const step = setupStep(setup)
+  const browsing = viewOf(setup) !== null
   const cardLocked = lockedTitle(setup, 'a card', ctx)
   if (step === 'done' || (!parsed.blue && !parsed.red)) return null
   return (
@@ -499,6 +586,7 @@ export default function GameSetup({
         actions={actions}
       />
       {step === 'squads' &&
+        !browsing &&
         TEAMS.map((team) => (
           <SquadPanel
             key={team}

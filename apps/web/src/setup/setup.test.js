@@ -5,6 +5,12 @@ import {
   chooseAffiliation,
   chooseDeck,
   chooserOf,
+  browse,
+  doneSteps,
+  neighbourStep,
+  overrideRemoval,
+  overrideTo,
+  viewOf,
   finishDeploy,
   colorOf,
   crisisRows,
@@ -335,4 +341,181 @@ test('chooserOf: the side that chooses in each step', () => {
   assert.equal(chooserOf(edge), 'red')
   assert.equal(chooserOf({ ...edge, priority: 'blue' }), 'blue')
   assert.equal(chooserOf({ ...edge, edge: true }), null)
+})
+
+// History: a setup at each step, built from the fields
+const atDeploy = () => {
+  const placed = placeSquad(
+    placeSquad(squadsSetup(bothReady), 'blue', squad, cards, 'asgard'),
+    'red',
+    squad,
+    { characters: ['c2'], tactics: [] },
+    'unaffiliated',
+  )
+  return placed
+}
+const withDraws = () =>
+  squadsSetup({
+    draws: { secure: ['a', 'x'], extract: ['b', 'y'] },
+    rollOff: { winner: 'blue', counts: {} },
+  })
+
+test('doneSteps lists the steps before the current one, in order', () => {
+  assert.deepEqual(doneSteps(newSetup()), [])
+  assert.deepEqual(doneSteps({ ...newSetup(), priority: 'blue' }), ['rollOff'])
+  assert.deepEqual(doneSteps({ ...newSetup(), priority: 'blue', deck: { type: 'secure' } }), [
+    'rollOff',
+    'deck',
+  ])
+  assert.deepEqual(doneSteps(squadsSetup()), [
+    'rollOff',
+    'deck',
+    'first',
+    'second',
+    'threat',
+    'edge',
+  ])
+  assert.deepEqual(doneSteps(squadsSetup(bothReady)), [
+    'rollOff',
+    'deck',
+    'first',
+    'second',
+    'threat',
+    'edge',
+    'squads',
+  ])
+  assert.deepEqual(doneSteps(atDeploy()).slice(-2), ['squads', 'affiliation'])
+  assert.equal(setupStep(atDeploy()), 'deploy')
+  assert.deepEqual(doneSteps(finishDeploy(atDeploy())).slice(-3), [
+    'squads',
+    'affiliation',
+    'deploy',
+  ])
+})
+
+test('doneSteps skips affiliation and deploy for a setup saved before them', () => {
+  const old = finishDeploy(atDeploy())
+  delete old.affiliation
+  delete old.deployed
+  assert.equal(setupStep(old), 'done')
+  assert.deepEqual(doneSteps(old).slice(-1), ['squads'])
+})
+
+test('browse sets the view for a done step only; viewOf and neighbourStep walk the list', () => {
+  const setup = squadsSetup()
+  assert.equal(viewOf(setup), null)
+  assert.equal(browse(setup, 'squads').view, null)
+  assert.equal(browse(setup, 'threat').view, 'threat')
+  const at = browse(setup, 'threat')
+  assert.equal(neighbourStep(at, -1), 'second')
+  assert.equal(neighbourStep(at, 1), 'edge')
+  assert.equal(neighbourStep(browse(setup, 'edge'), 1), null)
+  assert.equal(neighbourStep(setup, -1), 'edge')
+  assert.equal(neighbourStep(browse(setup, 'rollOff'), -1), 'rollOff')
+  assert.equal(browse(at, null).view, null)
+  // a view that is not done any more is the current step
+  assert.equal(viewOf({ ...setup, view: 'squads' }), null)
+  assert.equal(viewOf({ ...setup, view: undefined }), null)
+})
+
+test('overrideTo rollOff clears Priority, the read result and everything after', () => {
+  const next = overrideTo({ ...withDraws(), view: 'rollOff' }, 'rollOff')
+  assert.equal(setupStep(next), 'rollOff')
+  assert.equal(next.priority, null)
+  assert.equal(next.rollOff, null)
+  assert.equal(next.deck, null)
+  assert.deepEqual(next.draws, { secure: [], extract: [] })
+  assert.equal(next.view, null)
+})
+
+test('overrideTo deck clears the deck, draws, picks, threat and edge, and keeps Priority', () => {
+  const next = overrideTo(withDraws(), 'deck')
+  assert.equal(setupStep(next), 'deck')
+  assert.equal(next.priority, 'blue')
+  assert.deepEqual(next.draws, { secure: [], extract: [] })
+  assert.deepEqual(next.picks, { secure: null, extract: null })
+  assert.equal(next.threat, null)
+  assert.equal(next.edge, false)
+})
+
+test('overrideTo first clears both picks and keeps the draws', () => {
+  const setup = withDraws()
+  const next = overrideTo(setup, 'first')
+  assert.equal(setupStep(next), 'first')
+  assert.deepEqual(next.picks, { secure: null, extract: null })
+  assert.deepEqual(next.draws, setup.draws)
+  assert.deepEqual(next.deck, { type: 'secure' })
+  assert.equal(next.threat, null)
+  assert.equal(next.edge, false)
+})
+
+test('overrideTo second clears the second pick only and keeps the draws', () => {
+  const setup = withDraws()
+  const next = overrideTo(setup, 'second')
+  assert.equal(setupStep(next), 'second')
+  assert.deepEqual(next.picks, { secure: 'a', extract: null })
+  assert.deepEqual(next.draws, setup.draws)
+  assert.equal(next.threat, null)
+  // the first deck is Extract: the Secure pick goes
+  const extractFirst = overrideTo(
+    squadsSetup({ deck: { type: 'extract' }, picks: { secure: 'a', extract: 'b' } }),
+    'second',
+  )
+  assert.deepEqual(extractFirst.picks, { secure: null, extract: 'b' })
+})
+
+test('overrideTo threat and edge clear that choice and later ones', () => {
+  const threat = overrideTo(squadsSetup(), 'threat')
+  assert.equal(setupStep(threat), 'threat')
+  assert.equal(threat.threat, null)
+  assert.equal(threat.edge, false)
+  assert.deepEqual(threat.picks, { secure: 'a', extract: 'b' })
+  const edge = overrideTo(squadsSetup(), 'edge')
+  assert.equal(setupStep(edge), 'edge')
+  assert.equal(edge.threat, 17)
+  assert.equal(edge.edge, false)
+})
+
+test('overrideTo squads resets squads, Ready, placed, affiliation and deployed', () => {
+  const setup = { ...atDeploy(), view: 'squads' }
+  const next = overrideTo(setup, 'squads')
+  assert.equal(setupStep(next), 'squads')
+  assert.equal(next.edge, true)
+  assert.equal(next.threat, 17)
+  assert.deepEqual(next.squads.blue, { characters: [], tactics: [] })
+  assert.deepEqual(next.ready, { blue: false, red: false })
+  assert.deepEqual(next.placed, { blue: null, red: null })
+  assert.deepEqual(next.affiliation, { blue: null, red: null })
+  assert.equal(next.deployed, false)
+  assert.equal(next.id, setup.id)
+})
+
+test('overrideTo affiliation keeps the squads, clears affiliation and deployed', () => {
+  const setup = finishDeploy(atDeploy())
+  const next = overrideTo(setup, 'affiliation')
+  assert.equal(setupStep(next), 'affiliation')
+  assert.deepEqual(next.affiliation, { blue: null, red: null })
+  assert.equal(next.deployed, false)
+  assert.deepEqual(next.placed, setup.placed)
+  assert.deepEqual(next.ready, setup.ready)
+  assert.equal(setupStep(overrideTo(setup, 'deploy')), 'deploy')
+  assert.deepEqual(overrideTo(setup, 'deploy').affiliation, setup.affiliation)
+})
+
+test('overrideRemoval names what leaves the table', () => {
+  const setup = atDeploy()
+  assert.deepEqual(overrideRemoval(setup, 'squads'), { squads: true, crisis: false })
+  assert.deepEqual(overrideRemoval(setup, 'edge'), { squads: true, crisis: true })
+  assert.deepEqual(overrideRemoval(setup, 'rollOff'), { squads: true, crisis: true })
+  assert.deepEqual(overrideRemoval(setup, 'affiliation'), { squads: false, crisis: false })
+  // the edge was chosen, no squad on the table yet
+  assert.deepEqual(overrideRemoval(squadsSetup(bothReady), 'threat'), {
+    squads: false,
+    crisis: true,
+  })
+  // no edge yet: no crisis cards on the table
+  assert.deepEqual(overrideRemoval(overrideTo(squadsSetup(), 'edge'), 'first'), {
+    squads: false,
+    crisis: false,
+  })
 })

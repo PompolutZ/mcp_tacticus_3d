@@ -1,6 +1,6 @@
 # Plan: Setup round 2
 
-Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: steps 1 to 4 and 6 done; step 5 waits for table-controls to merge. Branch `setup-round-2`, from main at `87f9b6e`.
+Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: steps 1 to 4, 6 and 7 done; step 5 waits for table-controls to merge. Branch `setup-round-2`, from main at `87f9b6e`.
 
 The feature is `docs/features/setup-game.md`. Each step makes one commit and writes its **Result** below.
 
@@ -226,6 +226,17 @@ Work:
 Checks: as in "Checks".
 
 User, after this step: choose up to the edge, go **Prev** to the threat step in one browser: the other browser shows it too. **Override**: the threat step is current again, the edge choice is gone.
+
+### Result
+
+Done. Commit "setup round 2 part 7: history, Prev, Next, Override".
+
+- `setup.js`: `setup.view`, `doneSteps`, `viewOf`, `browse`, `neighbourStep`, `overrideTo`, `overrideRemoval`. Tests per target.
+- Override rules: rollOff clears Priority, the read result and all later; deck clears deck, draws, picks and later; first clears both picks; second clears the second pick; threat and edge clear that choice and later; draws stay for first and later. Squads or earlier also reset squads, Ready, placed, affiliation, deployed. Affiliation clears the affiliations and deployed; deploy clears deployed. The id stays. `view` is cleared.
+- Table removal: `restartSetup` in `App.jsx` now calls `removeSetupPieces({ squads, crisis })`, and Override calls it with `overrideRemoval(setup, step)`: squads when target is squads or earlier and squads are placed; the crisis cards (as Restart: `handleCrisisChange(type, null)` when the card is still the picked one) when target is edge or earlier and the edge was chosen. The crisis rows come from the state, so they are those of the step again. Restart and an Override that removes squads turn `game.deployLine` off.
+- Panel: **Prev** / **Next** / **Override** row. While browsing, the step buttons are disabled with the title "Browsing an earlier step", and the squad panels are hidden.
+- `affiliation` is listed whenever the field exists, because the state does not say whether the player chose or the app set it.
+- Override keeps the stored squad of a multiplayer browser (same setup id); Restart deletes it.
 
 ## Step 8: Sides `host` / `guest` in the web app
 
