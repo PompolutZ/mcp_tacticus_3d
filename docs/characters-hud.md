@@ -27,7 +27,7 @@ To make the later move to a 2D HUD cheap:
 
 ## Players apply the rules
 
-The app does not apply the game rules, in the same way as the crisis feature (see `docs/feature-crisis.md`, "Players apply the rules"). It does not deal damage, find Dazed or KO'd characters, run the Power Phase or the Cleanup Phase. Players press the buttons.
+The app does not apply the game rules, in the same way as the crisis feature (see `docs/feature-crisis.md`, "Players apply the rules"). It does not deal damage, find Dazed or KO'd characters, run the Cleanup Phase. Players press the buttons. The one exception is the Power Phase gain, which the **Power** button in the toolbar runs (see [Power Phase](#power-phase)).
 
 The app keeps only simple limits that never change:
 
@@ -67,7 +67,7 @@ These facts were found on 2026-10-01 in the scripts of the "Red Tray Spawner" ob
 - `cImmune` lists the conditions that the character is immune to. The tray refuses them with a message.
 - A held objective token stays on the tray as an object. The tray has 5 slots for held tokens. Its icon shows above the model.
 - When the tray spawns, it puts these tokens next to it: Activated, Dazed, the affiliation token, and every token in the character's `cToken` list. For example, Apocalypse: Root, Shock, Bleed, Slow, Incinerate, Evolution, Poison. Players drag them from there onto the target. The "Token Tray" object next to the table has a copy of every token.
-- The tray also has **Auto Power** and **Auto Cleanup** buttons that apply the Power Phase and Cleanup Phase rules. The app leaves these out (see [Players apply the rules](#players-apply-the-rules)).
+- The tray also has **Auto Power** and **Auto Cleanup** buttons that apply the Power Phase and Cleanup Phase rules. The app has a **Power** button in the toolbar for the Power Phase (see [Power Phase](#power-phase)) and leaves Auto Cleanup out (see [Players apply the rules](#players-apply-the-rules)).
 
 ## Tray layout
 
@@ -138,7 +138,11 @@ A character can have cards attached to it. Today these are the Infinity Gems of 
 - The tray popup shows no chips. It shows each attached card as a small thumbnail (90 px wide) in a column at the side of the stat card, so the popup keeps its height. On a narrow screen (560 px or less) the thumbnails go in a row under the stat card.
 - A click on a thumbnail shows that card large over the stat card, centered, about `min(70vh, 520px)` high. A click on the large card or on its thumbnail makes it small again. A click on another thumbnail shows that card instead. One card is large at a time. The open thumbnail has an outline. The state is gone when the popup closes.
 - Both players see the chips, and both can open the cards. Reading a card changes nothing.
-- The app does not check which character can hold a gem, and does not count the gem for the Power gain. Players apply the rules.
+- The app does not check which character can hold a gem, and does not check the range. The Power Phase counts the gems (see [Power Phase](#power-phase)). Players apply the other rules.
+
+## Power Phase
+
+The **Power** button in the toolbar (group Phase) gives each of your characters on the mat the Power of the Power Phase: 1, the extra Power of its superpower, and 1 per gem (2 for the Power gem), with the Stun, Poison and cap rules. Grunts and characters off the mat get nothing. A HUD message lists the changes. The rules, the data and the decisions are in `docs/plan-power-phase.md`.
 
 ## Second forms
 
@@ -842,7 +846,7 @@ Open issues:
 
 - A 2D HUD separate from the 3D world. This is the next step after this feature.
 - Horsemen cards and Reserve members attached to a character. Infinity Gems are built (see [Attached cards](#attached-cards)). Facts found on 2026-10-01: in TTS, a gem or Horsemen card attaches to the tray only if the character can have it (`cGem`, `cHorsemen` in the mod; `bearableGems`, `assignableToHorsemen` in Jarvis). The TTS cache has all 5 Horsemen faces, but only the Soul gem card.
-- Auto Power and Auto Cleanup, and any other rule automation.
+- Auto Cleanup, and any other rule automation. The Power Phase is built (see [Power Phase](#power-phase)).
 - Grunts. This is the next phase. Facts found on 2026-10-07: 6 mod characters have `grunts` (Elektra, Nick Fury, Red Skull Master of Hydra, Sandman, Shadowland Daredevil, Ultron Metal Tyrant). Each grunt is its own `Database` row (for example Hand Ninjas) with a card, a model, `cStamH`, tokens and immunities. TTS spawns the grunt card with its model below the tray, and a Wounds counter. Sandman has 2 grunts; TTS puts their cards side by side. None of these characters is in the TTS cache yet.
 - The second card version of a character without a second form (`cards` > 1 and no `transform` in `characters.json`, for example Mephisto). The tray uses card 1.
 - Other immunities of a second form (p21), and the mod's `twoModels` and `sideways` flags (Ms. Marvel).

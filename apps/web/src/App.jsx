@@ -22,12 +22,15 @@ import { supplyPilePosition } from './crisis/layout.js'
 import {
   characterByCode,
   characterImmune,
+  characterIsGrunt,
   characterName,
+  characterPowerBonus,
   characterStamina,
 } from './characters/characters.js'
 import { BASE_DIAMETER } from './characters/files.js'
 import { trayHeldDefault } from './characters/trays.js'
-import { modelCharacterId, secondModelId } from './characters/models.js'
+import { characterOnBoard, modelCharacterId, secondModelId } from './characters/models.js'
+import { powerAfterPhase } from './characters/power.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { getToken, isCappedToken } from './tokens/tokens.js'
 import { firstFreeSlot, freePilePlaces, nearestFreeSlot, tacticTrayAt } from './tactics/layout.js'
@@ -255,6 +258,8 @@ export default function App({
   // The side of this browser. It writes the tools of that side only (net/doc.js, `tools`). The Sandbox and a
   // single player room are Blue, because one player plays both sides there.
   const ownSide = red ? 'red' : 'blue'
+  // The sides this browser plays: its own in a multiplayer room, both in the Sandbox and a single player room
+  const playedSides = room?.multiplayer ? [ownSide] : ['blue', 'red']
   const [tools] = useYRecord(table.tools)
   // The rest poses of the models, live: Scene applies a pose that the other browser wrote
   const [poses] = useYRecord(table.poses)
@@ -930,6 +935,36 @@ export default function App({
     )
   }
 
+  // Power button in the toolbar (docs/plan-power-phase.md). Gives the Power of the Power Phase to each
+  // non-Grunt character of the played sides that has a model on the mat. The updater form reads the list
+  // now, not at the last render, so a change the other browser just made is kept. The updater runs
+  // inside setCharacters, so gains is filled when the HUD message is built.
+  function handlePowerPhase() {
+    const gains = []
+    setCharacters((prev) =>
+      prev.map((ch) => {
+        if (!playedSides.includes(ch.teamColor) || !characterOnBoard(ch, poses)) return ch
+        if (characterIsGrunt(ch.key)) return ch
+        const power = powerAfterPhase({
+          power: ch.power,
+          bonus: characterPowerBonus(ch.key, ch.side),
+          gems: ch.attached,
+          stun: ch.tokens?.stun ?? 0,
+          poison: ch.tokens?.poison ?? 0,
+          grunt: false,
+        })
+        gains.push(`${characterName(ch.key)} ${ch.power} → ${power}`)
+        return { ...ch, power }
+      }),
+    )
+    showHudMessage(
+      gains.length === 0
+        ? 'Power Phase: none of your characters is on the board'
+        : `Power Phase: ${gains.join(', ')}`,
+      8000,
+    )
+  }
+
   // Flip turns the card to the other side and clears Damage, the same as in TTS.
   function handleCharacterFlip(id) {
     setCharacters((prev) =>
@@ -963,10 +998,10 @@ export default function App({
 
   // A short message in the HUD, for a few seconds (the immunity block below; the Library has its
   // own copy of this pattern for the "no 3D model" message).
-  function showHudMessage(text) {
+  function showHudMessage(text, ms = 3000) {
     clearTimeout(hudMessageTimer.current)
     setHudMessage(text)
-    hudMessageTimer.current = setTimeout(() => setHudMessage(null), 3000)
+    hudMessageTimer.current = setTimeout(() => setHudMessage(null), ms)
   }
 
   // Loads the roster text of one team. A text with no known code keeps the old roster. Unknown
@@ -1639,7 +1674,7 @@ export default function App({
               modelPositionRef={modelPositionRef}
               turnPieceRef={turnPieceRef}
               liftPieceRef={liftPieceRef}
-              ownTraySides={room?.multiplayer ? [ownSide] : ['blue', 'red']}
+              ownTraySides={playedSides}
               onDiceTrayHover={(side, over) => {
                 if (over) diceTrayHoveredRef.current = side
                 else if (diceTrayHoveredRef.current === side) diceTrayHoveredRef.current = null
@@ -1708,6 +1743,7 @@ export default function App({
           spectator={spectator}
           onSpectatorClick={() => setSpectator((prev) => !prev)}
           onTurnMat={handleTurnMat}
+          onPowerPhase={handlePowerPhase}
           deployLine={deployLine}
           onDeployLineClick={() => setDeployLine((prev) => !prev)}
           crisis={crisis}

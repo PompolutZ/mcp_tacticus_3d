@@ -50,6 +50,7 @@ export function Toolbar({
   spectator,
   onSpectatorClick,
   onTurnMat,
+  onPowerPhase,
   deployLine,
   onDeployLineClick,
   crisis,
@@ -223,6 +224,17 @@ export function Toolbar({
           onClick={onDeployLineClick}
         >
           Lock
+        </button>
+      </div>
+      <div className="group">
+        <span className="group-label">Phase</span>
+        <button
+          type="button"
+          className="chip"
+          title="Power Phase: each of your characters gains Power"
+          onClick={onPowerPhase}
+        >
+          Power
         </button>
       </div>
       <div className="group">

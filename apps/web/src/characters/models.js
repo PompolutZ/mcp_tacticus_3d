@@ -1,6 +1,7 @@
 // The models of a spawned character on the table: one, or two for a character with a second form
 // (see docs/characters-hud.md, "Second forms"). Plain module, the same as trays.js.
 
+import { MAT_SIZE } from '../table.js'
 import { characterModel, characterStandee, transformModel, transformStandee } from './files.js'
 
 // The first model has the character's own id, so code that knows only the character (hold and
@@ -57,4 +58,16 @@ export function characterModels(ch) {
       card: form.card ? 2 : null,
     },
   ]
+}
+
+// True when a model of ch stands on the mat. poses: model id -> { x, z, ... } (the table poses). A model
+// with no pose has not moved from its tray card, so it is off the mat. The same check as the TTS
+// charOnBoard (|x| and |z| at most half the mat), see docs/plan-power-phase.md, decision 4. The mat turns
+// only by 90 degrees and is centered at 0,0, so the check does not depend on the turn.
+export function characterOnBoard(ch, poses) {
+  const half = MAT_SIZE / 2
+  return characterModels(ch).some((model) => {
+    const pose = poses?.[model.id]
+    return pose != null && Math.abs(pose.x) <= half && Math.abs(pose.z) <= half
+  })
 }
