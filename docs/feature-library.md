@@ -74,7 +74,7 @@ A pile is a source on the table that never runs out, the same as a Give source o
 
 A pile that comes with a Team Tactic card (`docs/feature-team-tactic-cards.md`, "Token piles") also has `card`, the id of that card. It goes when the card leaves the table. A pile from the Library has no `card`.
 
-A pile has no physics body. It lies on the table or on the terrain under it, the same as a token on the table (`LooseToken.jsx`).
+A pile has no physics body. It lies on the table or on the terrain under it, the same as a token on the table (`LooseToken.jsx`). A pile does not stack: no token lies on it, and it does not lie on a token. A token taken from a pile lies on top of the tokens under it (`docs/characters-hud.md`, "Tokens on top of tokens").
 
 ## State
 

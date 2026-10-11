@@ -12,6 +12,7 @@ import { affiliationToken } from '../scoreboard/files.js'
 import DragFootprint from './DragFootprint.jsx'
 import { acquireFootprint } from './footprintProjection.js'
 import { TOKEN_DRAG_LIFT, TOKEN_EDGE_COLOR, TOKEN_THICKNESS } from '../tokens/solid.js'
+import { tokenStack } from '../tokens/stack.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useColorTexture } from './useColorTexture.js'
 import { useHoverCursor } from './useHoverCursor.js'
@@ -54,6 +55,8 @@ const MARKER_RADIUS = 0.3
 const PAIR_RADIUS = 0.25
 const PAIR_X = 0.25
 const MARKER_Y = HALF_H + 0.002
+// A marker on the token raises what lies on it a little
+const MARKER_TOP = 0.002
 
 // Angle (as used by RulerTool/footprintProjection: direction of angle a is (cos a, 0, −sin a))
 // from pivot to p, in the table's XZ plane.
@@ -203,6 +206,8 @@ export default function CrisisToken({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  useEffect(() => () => tokenStack.removeCrisis(token.id), [token.id])
+
   const showArc = selected && token.hasArc
   const markerPair = Boolean(token.control && token.damage)
   const markerRadius = markerPair ? PAIR_RADIUS : MARKER_RADIUS
@@ -229,6 +234,12 @@ export default function CrisisToken({
         ? floorY
         : castDown(world, rapier, shape, NO_ROTATION, x, z, HALF_H)
     const y = (ground ?? 0) + GAP + HALF_H + (lifted ? TOKEN_DRAG_LIFT : 0)
+    // Loose tokens lie on this token (tokens/stack.js). Not while it is lifted or held on a tray card.
+    if (lifted || floorY !== undefined) tokenStack.removeCrisis(token.id)
+    else {
+      const top = y + HALF_H + (token.control || token.damage ? MARKER_TOP : 0)
+      tokenStack.putCrisis(token.id, x, z, RADIUS, top)
+    }
     if (groupRef.current) {
       groupRef.current.position.set(x, y, z)
       groupRef.current.rotation.y = yaw

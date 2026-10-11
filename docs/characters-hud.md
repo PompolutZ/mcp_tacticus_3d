@@ -300,6 +300,17 @@ A held crisis token stays in the `tokens` list of `App.jsx` and gets two new fie
 
 All fields are plain JSON. So they fit into the `characters` and `tokens` maps of the Yjs document in `docs/feature-peer-to-peer.md`. `looseTokens` needs its own map there.
 
+### Tokens on top of tokens
+
+A token on the table lies on the highest token under its center (`src/tokens/stack.js`). No physics. Both browsers get the same stack, because it comes from the synced places and the order of `looseTokens`.
+
+- It lies on a crisis token (its top, with the control and damage markers), or on a loose token that comes earlier in `looseTokens`. The center must be inside the circle of the token below (a crisis token 1", a loose token its own size). Else it lies on the table or the terrain. Never lower than the table or the terrain.
+- A token that is dropped or moved goes to the end of `looseTokens`, so it lies on top.
+- A token that is picked up (dragged by any player) holds nothing. The token on top goes down at the next frame.
+- A pile does not stack, nothing lies on a pile, and a crisis token never lies on a loose token.
+- The drag preview shows the height where the token would land. The other player's drag preview too.
+- Each token writes its place and top to a small registry every frame (`tokenStack`), no React state. A stack of three or more settles in a few frames, one level per frame at worst.
+
 ## Hold and drop
 
 Only tokens of an Extract card that players can move can be held: Asset, Civilian and the supply tokens of Source cards. `buildMatTokens` and `supplyToken` set a new `canHold` flag.

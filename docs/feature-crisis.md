@@ -124,6 +124,10 @@ As a result, a token is never inside terrain. So players can always see it from 
 
 The same rule applies at setup and when a player drops a token during the game.
 
+### Tokens on top of a crisis token
+
+A character token (for example Mystic Ward or 1 Damage) can lie on top of a crisis token, with its markers. It lies on the top of the crisis token and is fully visible. Another token on top lies on both. If the crisis token is picked up or moved away, the token on top goes down. A crisis token never lies on a character token. Rules and details: `docs/characters-hud.md`, "Tokens on top of tokens".
+
 ### Why not copy the table or TTS
 
 - On a real table, players put a token on the mat when it does not fit fully on terrain, and then put the terrain on top of it. In the app, the terrain would then hide the token. The rulebook says that players agree to put a token on top of or under terrain, and that they choose the place where it is easiest to see (p10). The app always chooses the place where the token is easiest to see.

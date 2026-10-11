@@ -1172,18 +1172,19 @@ export default function Scene({
 
         {/* Character tokens on the table. Relative to the table, not the mat, the same as the crisis
             tokens above. A token that is being dragged shows under the pointer instead. */}
-        {looseTokens
-          .filter((tok) => !(tokenDrag?.active && tokenDrag.looseId === tok.id))
-          .map((tok) => (
+        {looseTokens.map((tok, index) =>
+          tokenDrag?.active && tokenDrag.looseId === tok.id ? null : (
             <LooseToken
               key={tok.id}
               token={tok}
+              index={index}
               onDragStart={(e) => onTokenDragStart(e, tok.key, tok.id)}
               onHover={(over) => onLooseHover?.(tok.id, over)}
               remote={otherOwned.has(`loose:${tok.id}`)}
               getLivePose={getPieceLive}
             />
-          ))}
+          ),
+        )}
         {/* Piles of character tokens on the table (Library, Pile mode). A pile that is moved shows
             under the pointer instead. */}
         {tokenPiles
@@ -1200,7 +1201,11 @@ export default function Scene({
             />
           ))}
         {tokenDrag?.active && (
-          <TokenDragPreview pointRef={dragPointRef} start={tokenDrag.start}>
+          <TokenDragPreview
+            pointRef={dragPointRef}
+            start={tokenDrag.start}
+            stacks={!tokenDrag.supplyCard && !tokenDrag.pile && !tokenDrag.pileId}
+          >
             {tokenDrag.supplyCard ? (
               <SupplyToken tokenKey={tokenDrag.tokenKey} raycast={NO_RAYCAST} />
             ) : tokenDrag.pile || tokenDrag.pileId ? (
@@ -1221,6 +1226,7 @@ export default function Scene({
             spawnKey={otherSpawn.key}
             tokenKey={otherSpawn.tokenKey}
             getLivePose={getPieceLive}
+            stacks={otherSpawn.key.startsWith('loose:')}
           >
             {otherSpawn.key.startsWith('token:') ? (
               <SupplyToken tokenKey={otherSpawn.tokenKey} raycast={NO_RAYCAST} />

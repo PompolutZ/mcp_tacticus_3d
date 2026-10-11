@@ -1532,10 +1532,13 @@ export default function App({
     }
     const point = dragPointRef.current
     if (!point) return
+    // A moved token goes to the end of the list, so it lies on top (tokens/stack.js)
     if (looseId)
-      setLooseTokens((prev) =>
-        prev.map((t) => (t.id === looseId ? { ...t, x: point.x, z: point.z } : t)),
-      )
+      setLooseTokens((prev) => {
+        const moved = prev.find((t) => t.id === looseId)
+        if (!moved) return prev
+        return [...prev.filter((t) => t.id !== looseId), { ...moved, x: point.x, z: point.z }]
+      })
     else setLooseTokens((prev) => [...prev, { id: newId, key: tokenKey, x: point.x, z: point.z }])
   }
 

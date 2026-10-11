@@ -3,7 +3,8 @@ import { useFrame } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
 import { castDown } from '../physics.js'
 import { tokenSize } from '../tokens/tokens.js'
-import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
+import { TOKEN_DRAG_LIFT, TOKEN_THICKNESS } from '../tokens/solid.js'
+import { tokenStack } from '../tokens/stack.js'
 import { TOKEN_RADIUS } from './CrisisToken.jsx'
 import DragFootprint from './DragFootprint.jsx'
 import TokenFace from './TokenFace.jsx'
@@ -18,12 +19,15 @@ const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 // A character token that lies on the table: dropped there from a Give source, a pile or the Library
 // (see App.jsx, handleTokenDrop). It has no physics body. Each frame it sits on the table or on
 // the terrain under it, the same as a crisis token, so a mat turn or a map change keeps it on top.
-// token: { id, key, x, z }, see App.jsx, looseTokens. onDragStart(nativeEvent): a left
+// A token lies on the highest crisis token or earlier loose token under its center, else on the table or
+// the terrain (tokens/stack.js). token: { id, key, x, z }, see App.jsx, looseTokens. index: its place in
+// that list; the tokens after it lie on top. onDragStart(nativeEvent): a left
 // pointerdown, App starts the same drag as from a source. onHover(over): for the Delete key.
 // remote: the other player drags the token. getLivePose(key): their latest numbers. The token follows them,
 // hangs above the table like a dragged token and shows its footprint (this browser has no TokenDragPreview).
 export default function LooseToken({
   token,
+  index,
   onDragStart,
   onHover,
   remote = false,
@@ -52,12 +56,20 @@ export default function LooseToken({
     poseRef.current = { ...placeRef.current }
   }, [token.x, token.z])
 
+  useEffect(() => () => tokenStack.removeLoose(token.id), [token.id])
+
   useFrame(() => {
     const { x, z } = poseRef.current
     // ONLY_FIXED + EXCLUDE_SENSORS inside castDown, so models and tools are ignored
-    const ground = castDown(world, rapier, shape, NO_ROTATION, x, z, HALF_H)
-    const lift = follow.current.moved ? TOKEN_DRAG_LIFT : 0
-    groupRef.current?.position.set(x, (ground ?? 0) + GAP + lift, z)
+    const ground = castDown(world, rapier, shape, NO_ROTATION, x, z, HALF_H) ?? 0
+    const lifted = follow.current.moved
+    // Never below the table or terrain, also when the token below is low
+    const rest = lifted ? ground : Math.max(ground, tokenStack.topAt(x, z, index) ?? ground)
+    const y = rest + GAP + (lifted ? TOKEN_DRAG_LIFT : 0)
+    groupRef.current?.position.set(x, y, z)
+    // A lifted token (the other player drags it) holds nothing, so the token on top goes down
+    if (lifted) tokenStack.removeLoose(token.id)
+    else tokenStack.putLoose(token.id, x, z, tokenSize(token.key) / 2, y + TOKEN_THICKNESS, index)
   })
 
   const footprintShape = () =>

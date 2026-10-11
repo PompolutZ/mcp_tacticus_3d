@@ -77,4 +77,21 @@ User, after this phase:
 
 ### Result
 
+Done 2026-10-11. Not committed.
+
+- `src/tokens/stack.js` (plain, tests in `stack.test.js`): `stackTop(x, z, index, crisis, loose)` is the rule. `createTokenStack()` is a small registry (two Maps, entries changed in place, no allocation per frame). `tokenStack` is the one used by the scene.
+- `CrisisToken.jsx` writes `putCrisis(id, x, z, 0.5, top)` each frame, top = group y + `HALF_H` (+0.002 with a control or damage marker). Not written while lifted (drag, remote drag) or held on a tray card (`floorY`). Removed on unmount.
+- `LooseToken.jsx` has a new `index` prop (place in `looseTokens`, from `Scene.jsx`). Each frame: `rest = max(ground, tokenStack.topAt(x, z, index))`, y = rest + `GAP`. It writes `putLoose(..., size / 2, y + TOKEN_THICKNESS, index)`. A lifted token (remote drag) is removed from the registry, so the token on top goes down. The local dragged token is not mounted, so it is not in the registry either.
+- `App.jsx`, `handleTokenRelease`: a moved loose token is removed and appended (it goes to the end). `net/collections.js` gives it a new `order` above the highest, so the other browser gets the same order.
+- Drag preview: new `stacks` prop on `TokenDragPreview` and `OtherSpawnPreview` (true for a character token, false for a supply token and a pile). Height = max(point or ground, `topAt(x, z)` with index Infinity) + `GAP` + lift. `Scene.jsx` passes it (`loose:` key for the other player).
+- Docs: `docs/characters-hud.md` ("Tokens on top of tokens"), `docs/feature-library.md`, `docs/feature-crisis.md`.
+- Checks: test 294 pass, build ok, format ok, lint 41 warnings (same as before), no errors. No browser used.
+
+Notes:
+
+- The height is never below the ground (max with the table or terrain). The plan said "else the ground"; this only differs when a token below is lower than the terrain under the token on top.
+- Frame order: a loose token reads the tops that the other tokens wrote in the frame before or in this frame, by mount order. A stack of 3 may need 2 frames to settle after a change. One frame of lag is not visible.
+- The preview updates on pointer move, not each frame (as before), so a token below that moves while the pointer is still is seen at the next move.
+- A crisis token held on a tray card (`floorY`) holds nothing.
+
 ### User check results
