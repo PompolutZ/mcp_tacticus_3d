@@ -1,6 +1,6 @@
 # Plan: Table controls
 
-Requested by the user on 2026-10-11. Plan 5 of `docs/plans/playtest-1.md`. Status: steps 1 to 6 done and checked by the user on 2026-10-11. Step 7 (Place 1 toggle, from the user check) is planned and confirmed by the user. Branch `table-controls`, from `playtest-1-test`, because it builds on the table tools (Place, drag).
+Requested by the user on 2026-10-11. Plan 5 of `docs/plans/playtest-1.md`. Status: steps 1 to 6 done and checked by the user on 2026-10-11. Step 7 (Place 1 toggle, from the user check) done on 2026-10-11, waiting for the user check. Branch `table-controls`, from `playtest-1-test`, because it builds on the table tools (Place, drag).
 
 There is no new feature doc. Each step changes the feature docs of its area: `docs/features/key-shortcuts.md`, `docs/features/character-trays.md`, `docs/features/dice-rolling.md`, `README.md` and `apps/web/scripts/README.md`. Each step makes one commit and writes its **Result** below.
 
@@ -288,7 +288,14 @@ User, after this step:
 
 ### Result
 
-Not started.
+Done.
+
+- `rangeOne.js` (new), `rangeOne.test.js` (new): `lockPoint(c, p, reach, lastDir)` holds the drag point on the line from the snapped center, cut to `[0, r_snapped + 1 + r_char]`, with the last direction near 0. `lockYaw(dir, across)` gives the tool yaw that puts the short-side line on `dir`. 5 new tests.
+- `RulerTool.jsx`: state `placeOne`. Place 1 is a toggle with `on`. On: today's move, Place 2 off, then the effect `lockOne` registers the limit through `onPlaceLimit` (`limiting` includes it, so `onLimitOn` and `limitTaken` work as for Place). Off: nothing moves. Place 2 on, `limitTaken` and a free tool turn it off. Snapped to the selected character itself: one-shot move with the `across` flip, no on state.
+- The clamp also turns the tool: yaw from `lockYaw`, center from `cornerSnapCenter` (the same corner math as the snap), set with `setNextKinematicTranslation` and `setNextKinematicRotation` on the kinematic body, as a turn drag does. `snap` is unchanged. The stored pose and the live pose read the body, so they follow without more code. Not while the tool itself is dragged.
+- Docs: `README.md` ("Range 1", "Place"). `key-shortcuts.md` has no Place 1 line.
+- Checks: build, format, lint (44 warning lines, as before), test 387 pass.
+- Differs from the plan: none. The tool height follows the ground under its new place at once (no smoothing). Not run in a browser (project rule).
 
 ## Open questions
 

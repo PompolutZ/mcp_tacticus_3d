@@ -249,7 +249,7 @@ A free tool has no far end, so it shows Place only while Place is on. Then you c
 
 While Place is on, you can drag the selected character only to where its base touches the tool outline, so the outline stays green. When the pointer goes farther, the base stops at the nearest point where it still touches the outline. The deploy line limits a drag in the same way. You can still move and rotate the tool while Place is on.
 
-Only one Place or Throw / Push is on at a time across the own tools. Turning it on on one tool turns it off on the other tool (range or movement), and the selected character now keeps its base on this tool. Place 1 of the R1 tool does not stay on, so it turns nothing off.
+Only one Place or Throw / Push is on at a time across the own tools. Turning it on on one tool turns it off on the other tool (range or movement), and the selected character now keeps its base on this tool. Place 1 of the R1 tool counts too, except on the snapped model itself, where it does not stay on.
 
 Place does not work for a token: a token has no base to place, only a position that its own drag sets. So Place cannot be turned on while no character is selected. With a character and a token selected, Place moves the character.
 
@@ -333,7 +333,11 @@ While the R1 tool is snapped and another model is selected, the outline is green
 
 The R1 tool is the Range 2 tool, so it has two Place buttons while it is snapped:
 
-- **Place 1** is at the snapped corner, on the half of the tool next to the other long side. It moves the selected character across the tool, so its base touches the other long side at the same corner. Its base edge is then 1" from the snapped base edge. If the selected character is the snapped model, it now touches the other long side, so the tool stays snapped to it. Place 1 does not stay on.
+- **Place 1** is at the snapped corner, on the half of the tool next to the other long side. It moves the selected character across the tool, so its base touches the other long side at the same corner. Its base edge is then 1" from the snapped base edge. Place 1 is a toggle, like Place 2, and shows its on state. Turning it off moves nothing. Place 1 and Place 2 turn each other off.
+  - While it is on, you can drag the selected character only along the line from the center of the snapped piece through its own center. It can come as close as the center of the snapped piece (its base can cover a token or portal), and as far as full range 1. At the center, the line keeps its last direction.
+  - A drag to the side turns that line around the snapped piece, and the tool turns with it: its corner stays on the snapped piece and the character stays on its short side. The tool stays snapped. A drag of the tool itself works as before, and the character does not move with it. The next drag of the character uses the new line.
+  - A drag selects the character, so the movement tool footprint shows if the place is within its reach.
+  - If the selected character is the snapped model, it now touches the other long side, so the tool stays snapped to it. Place 1 does not stay on then.
 - **Place 2** is at the far end. It works the same as [Place](#place) on other tools. If it moves the snapped model, the base is no longer at a corner, so the tool becomes free.
 
 ## Debug mode
