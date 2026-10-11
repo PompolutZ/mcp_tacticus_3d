@@ -207,7 +207,15 @@ User, after this step:
 
 ### Result
 
-Not done.
+Done.
+
+- `RulerTool.jsx`: `useRangeParts` and `useMovementParts` exported. No change in behavior.
+- `components/ToolRack.jsx` (new), rendered in `Scene.jsx` with a `toolRack` prop from `App.jsx` (`multiplayer`, `onRangeClick`, `onMoveClick`, `onAngleClick`, the toolbar handlers). Plate: color and roughness of the tray plate. Tools lie along x at `rackSlots`, in the side tint, movement tools straight. A tool on the table is a clone with its own transparent material (opacity 0.25), so the cached meshes of the real tools stay as they are. R1 on the table: R2 faint and the R1 chip on. Toward / Away on the table: the T/A chip on. R1 and T/A chips: `OnTable` with `OWNER_FACING_ROTATION`, `chip--active` when on, `title` as the hover text. Hover over a tool: `token-face-label` with "Range 3 · key 3" and so on, and the pointer cursor. Click: `stopPropagation`, ignored after a camera drag (`CLICK_MOVE`, as in `CharacterTray.jsx`).
+- Racks: a multiplayer room shows both, the other one with no pointer handlers (its chips have `pointer-events: none`, see `.rack-chip--locked` in `index.css`). Else only the own side.
+- Cleanup: `SIDES` removed from `layout.js`. `TableButtons.jsx`, `ToolRack.jsx` and `layout.test.js` use `TEAMS` from `setup/setup.js` (a plain module, no cycle).
+- Docs: `table-tools.md` (status), `README.md` ("Where a tool spawns").
+- Checks: build, format, lint (no new warnings), test 341 pass.
+- Differs from the plan: none. Not checked in a browser (project rule).
 
 ## Step 3: Tool rack, drag and return
 

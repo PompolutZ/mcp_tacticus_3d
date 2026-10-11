@@ -2,11 +2,11 @@
 
 Status: partly built.
 
-Built: the table depth, the start view, the **Power Phase** buttons and the board strip.
+Built: the table depth, the start view, the **Power Phase** buttons, the board strip and the tool rack with its click.
 
 Not built yet:
 
-- the tool rack, with its click and drag, and the return of a tool to the rack
+- the drag from the tool rack, and the return of a tool to the rack
 - the **Settings** menu (table or HUD, the key and mouse lists)
 
 Until the Settings menu is built, the toolbar keeps all its buttons.

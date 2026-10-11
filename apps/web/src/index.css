@@ -2069,3 +2069,13 @@ body {
 .table-strip-row .table-button:not(.table-button--small) {
   flex: 1;
 }
+
+/* The R1 and T/A chips of the tool rack (ToolRack.jsx). They lie flat, like .table-button. The chips of the
+   other player's rack take no pointer. */
+.rack-chip {
+  pointer-events: auto;
+}
+
+.rack-chip--locked {
+  pointer-events: none;
+}

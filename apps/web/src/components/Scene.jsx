@@ -22,6 +22,7 @@ import {
 import CharacterModel, { StandeeModel, modelUrls, turnBody } from './CharacterModel.jsx'
 import CharacterTray from './CharacterTray.jsx'
 import TableButtons from './TableButtons.jsx'
+import ToolRack from './ToolRack.jsx'
 import SpectatorBadge from './SpectatorBadge.jsx'
 import Terrain from './Terrain.jsx'
 import CrisisCard from './CrisisCard.jsx'
@@ -271,6 +272,7 @@ const OVERLAP_INTERVAL = 100
 export default function Scene({
   mapId,
   tableButtons,
+  toolRack,
   terrain = [],
   onTerrainHover,
   terrainAtRef,
@@ -1282,6 +1284,8 @@ export default function Scene({
             Tactic cards. Relative to the table, not the mat. See docs/features/team-tactic-cards.md. */}
         {/* Power Phase and the board strip of each player (docs/features/table-tools.md) */}
         <TableButtons ownSide={ownSide} {...tableButtons} />
+        {/* The tool rack of each player (docs/features/table-tools.md, "Tool rack") */}
+        <ToolRack ownSide={ownSide} tools={tools} {...toolRack} />
         <TacticTray team="blue" />
         <TacticTray team="red" />
         {/* The loaded rosters, in the area of the character trays (docs/features/roster.md), until the squads

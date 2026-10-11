@@ -1,5 +1,6 @@
 import { OnTable, OWNER_FACING_ROTATION } from './OnTable.jsx'
-import { SIDES, boardStrip, powerButton } from '../tabletools/layout.js'
+import { TEAMS } from '../setup/setup.js'
+import { boardStrip, powerButton } from '../tabletools/layout.js'
 
 // The buttons that lie on the table: a Power Phase button for each player and a board strip for each player.
 // See docs/features/table-tools.md. They lie flat just above the table (OnTable), 1 CSS px is 0.04".
@@ -105,7 +106,7 @@ function BoardStrip({
 // All the table buttons. `ownSide` and `multiplayer` tell which Power Phase button is the player's own. The
 // other props are the handlers and states of the toolbar buttons, which these repeat.
 export default function TableButtons({ ownSide, multiplayer, onPowerPhase, ...strip }) {
-  return SIDES.map((side) => (
+  return TEAMS.map((side) => (
     <group key={side}>
       <PowerPhaseButton
         side={side}

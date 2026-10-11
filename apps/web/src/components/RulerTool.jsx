@@ -564,7 +564,7 @@ export function RangeRuler({ number = 2, team, ...props }) {
 }
 
 // The mesh of a range tool (2 to 5)
-function useRangeParts(mesh, team) {
+export function useRangeParts(mesh, team) {
   const raw = useLoader(OBJLoader, assetUrl(`tools/range-${mesh}-mesh.obj`))
   const map = useTexture(TEXTURE)
   return useMemo(() => [{ obj: textured(raw.clone(), map, team) }], [raw, map, team])
@@ -628,7 +628,7 @@ export function DeployRangeTool({ getBody, centerZ, yaw, team, hoverHeight = 1 }
 }
 
 // The meshes of a movement tool: mesh-a is the right half with the round hinge, mesh-b is the left half
-function useMovementParts(type, team) {
+export function useMovementParts(type, team) {
   const rawA = useLoader(OBJLoader, assetUrl(`tools/${type}-movement-mesh-a.obj`))
   const rawB = useLoader(OBJLoader, assetUrl(`tools/${type}-movement-mesh-b.obj`))
   const map = useTexture(TEXTURE)

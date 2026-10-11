@@ -1730,6 +1730,12 @@ export default function App({
                 onDeployLineClick: () => setDeployLine((prev) => !prev),
                 onTurnMat: handleTurnMat,
               }}
+              toolRack={{
+                multiplayer: Boolean(room?.multiplayer),
+                onRangeClick: handleRangeClick,
+                onMoveClick: handleMoveClick,
+                onAngleClick: handleAngleClick,
+              }}
               terrain={terrain}
               onTerrainHover={handleTerrainHover}
               terrainAtRef={terrainAtRef}

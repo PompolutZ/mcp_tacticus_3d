@@ -1,7 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { TABLE_DEPTH, TABLE_WIDTH } from '../table.js'
-import { SIDES, boardStrip, onRack, powerButton, rackPlate, rackSlots, rackYaw } from './layout.js'
+import { TEAMS } from '../setup/setup.js'
+import { boardStrip, onRack, powerButton, rackPlate, rackSlots, rackYaw } from './layout.js'
 import {
   layoutTrays,
   trayGiveTokenPosition,
@@ -62,7 +63,7 @@ function others() {
   for (const [type, z] of Object.entries(CARD_Z)) {
     out[`crisis card ${type}`] = rect(BOARD_X, z, CARD_HEIGHT, CARD_WIDTH)
   }
-  for (const side of SIDES) {
+  for (const side of TEAMS) {
     const tray = tacticTrayPosition(side)
     out[`tactic tray ${side}`] = rect(tray.x, tray.z, TACTIC_PLATE_WIDTH, TACTIC_PLATE_DEPTH)
     const vp = VP_MARKERS[side].start
@@ -79,7 +80,7 @@ const PLATE_END = trayPos[2] + plate2.z + plate2.depth / 2
 const GIVE_END = trayPos[2] + trayGiveTokenPosition(6, 2)[1] + TOKEN_SIZE / 2
 
 test('every piece lies inside the table', () => {
-  for (const side of SIDES) {
+  for (const side of TEAMS) {
     for (const [name, r] of Object.entries(pieces(side))) assert.ok(inside(r), `${side} ${name}`)
   }
 })
@@ -106,7 +107,7 @@ test('the row of the character trays can be 12 trays wide without meeting the ra
 
 test('no piece overlaps another part of the table', () => {
   const rest = others()
-  for (const side of SIDES) {
+  for (const side of TEAMS) {
     for (const [name, r] of Object.entries(pieces(side))) {
       for (const [otherName, o] of Object.entries(rest)) {
         assert.ok(!overlap(r, o), `${side} ${name} overlaps ${otherName}`)
@@ -116,7 +117,7 @@ test('no piece overlaps another part of the table', () => {
 })
 
 test('the slots of a rack lie on the plate and do not overlap each other or the Power Phase button', () => {
-  for (const side of SIDES) {
+  for (const side of TEAMS) {
     const plate = pieces(side)['rack plate']
     const slots = rackSlots(side)
     for (const slot of slots) {

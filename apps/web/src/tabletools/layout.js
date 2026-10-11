@@ -8,7 +8,6 @@
 
 import { MOVE_TIP, RANGE_TIP } from './toolTips.js'
 
-export const SIDES = ['blue', 'red']
 const sign = (side) => (side === 'blue' ? 1 : -1)
 
 // The rack plate: the band past the deepest tray parts (z 33.75), as wide as 5 range tools lying in a row.
