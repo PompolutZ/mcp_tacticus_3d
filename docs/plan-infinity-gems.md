@@ -134,6 +134,32 @@ Done on 2026-10-11. Not committed.
 - Not checked in a browser (rule). The `stopPropagation` and the drei `<Html transform>` use follow the Flip button, which works the same way.
 - Checks: `pnpm --filter web test` (284 pass), `pnpm --filter web build`, `pnpm format`. `pnpm lint`: 41 warnings, same as before, no errors.
 
+## Phase 3: Small attached cards in the tray popup
+
+The user asked for this on 2026-10-11, after the checks. Checks 1 to 7 passed. In the tray popup, the gem card under the stat card is large. It pushes the controls down, so they are hard to reach.
+
+The new rule, for every attached card (gems now; Horsemen or other cards later; Adam Warlock and Thanos can have two):
+- The tray popup shows the attached cards small: thumbnails in a column at the side of the stat card, about 90 px wide. So the popup has the same height as for a character without attached cards, and the controls stay where they are.
+- A click on a thumbnail shows that card large, over the stat card, centered on it. The large card is about as high as the popup allows (for example `min(70vh, 520px)`), so its text can be read.
+- A click on the large card, or on its thumbnail again, makes it small again. A click on another thumbnail shows that card instead. Only one card is large at a time.
+- The thumbnail of the large card is marked (an outline), so the player sees which one is open.
+- In the popup, the controls show no gem chips, because the thumbnails do the same job. The 3D tray keeps its chips, and a chip there opens the card popup, as before.
+- Escape closes the popup, as before. A Flip or **Show other side** keeps the large card open.
+
+Work:
+1. `TrayPopup.jsx`: the thumbnails, the large card, the open state (the code of the large card, or null). It goes back to null when the popup closes.
+2. `TrayControls.jsx`: a prop that hides the chips; the popup sets it.
+3. `index.css`: the thumbnail column, the large card over the stat card. Check a small screen: the stat card width already follows the viewport height (`.tray-popup-card`). The thumbnail column must not make the popup wider than the screen. On a narrow screen, the thumbnails can go in a row under the stat card, small.
+4. Docs: `docs/characters-hud.md` ("Attached cards", "Tray popup").
+
+Checks:
+- `pnpm --filter web test`, `pnpm --filter web build` pass.
+- `pnpm format`, `pnpm lint`: no new errors.
+
+User, after this phase: checks 8 to 10.
+
+### Result
+
 ## User
 
 After Phase 2, in a single player room, with the friend's roster as Blue:
@@ -150,7 +176,14 @@ After Phase 2, in a single player room, with the friend's roster as Blue:
 6. A multiplayer room (browser pair): the other player sees the gem chips on these trays and can open the cards.
 7. A room made before this change still opens. Its trays show no chips.
 
+After Phase 3:
+8. Doctor Strange's tray popup: the Soul gem is a small card at the side of the stat card. The controls are as easy to reach as on a tray without a gem.
+9. A click on the small Soul gem shows it large over the stat card. A click on the large card makes it small again. The same with a click on the small card.
+10. A character with two attached cards: load the Red roster `01910101-00250104-00250101` (Adam Warlock with the Soul and Mind gems, the two gem cards that the app has), choose him and Ready. A click on the second thumbnail shows the second card instead of the first.
+
 ### User check results
+
+2026-10-11: the user checked 1 to 7 (and the 3 checks of `docs/plan-jarvis-immunities.md`): "all is good". The gem card in the tray popup is too large, and the controls are hard to reach. Phase 3 changes it.
 
 ## Risks and open questions
 
