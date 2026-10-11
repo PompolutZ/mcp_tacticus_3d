@@ -5,7 +5,7 @@ import { KEY_ROWS, MOUSE_ROWS } from '../settings/controls.js'
 // What the first section chooses, in the order of the popup (docs/features/table-tools.md, "Settings menu")
 const ITEMS = [
   { item: 'rack', label: 'Range and movement tools' },
-  { item: 'power', label: 'Power Phase' },
+  { item: 'power', label: 'Automatic Power Phase' },
   { item: 'cleanup', label: 'Cleanup Phase' },
   { item: 'deployLock', label: 'Deploy Lock' },
   { item: 'matTurn', label: 'Mat turn (Sandbox and single player rooms)' },

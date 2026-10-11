@@ -290,6 +290,30 @@ Done.
 - Checks: build, format, lint (41 warnings, as before), test 351 pass.
 - Differs from the plan: none. Not checked in a browser.
 
+## Step 5: Power Phase button next to the Team Tactic tray (user checks)
+
+Request (user): "move Power button from tools tray to be on the table, to the left of players ttcs, since it belongs to the squad rather than tools. Also make it as green as power color and maybe even use power image/icon next to it for more visibility. And call it Automatic power phase"
+
+Work:
+
+1. `powerButton(side)` in `tabletools/layout.js`: left of the tactic plate, same z as the tray center, 0.6" gap.
+2. Tests: the button is inside the table and overlaps no other piece (tactic plate, board strip, scoring board, crisis cards, setup rows, roster cards, VP markers, 12 character trays, dice trays, rack). Red is the mirror.
+3. `PowerPhaseButton`: label "Automatic Power Phase", Power token image, green #42B534, dark text, lighter on hover, no player tint.
+4. Names: Settings item, Toolbar chip title.
+5. Docs: feature table-tools, round-phases.
+
+Checks:
+
+- [ ] Blue button lies left of the blue tactic tray, red mirrored, both facing their owner
+- [ ] Green with the Power token and dark text, lighter on hover
+- [ ] In a room, the other player's button looks disabled
+- [ ] Start view shows it readably
+- [ ] The rack row 2 ends at T/A
+
+### Result
+
+Button 9" x 2.4" (POWER_WIDTH, POWER_DEPTH), gap 0.6" (POWER_GAP). Blue: x -18.25 ... -9.25, z 19.15 ... 21.55. Free space left of the tactic plate: x -20.6 ... -8.65, z 18.3 ... 22.4.
+
 ## Open questions
 
 For the user, after the last step:
