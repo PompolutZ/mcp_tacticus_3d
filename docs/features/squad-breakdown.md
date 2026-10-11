@@ -88,7 +88,7 @@ Filters (2) ▾                              opens the filters
 …
 ```
 
-- The area is about as wide as the carousel of the other tabs, and never wider than the screen. The list scrolls inside the popup.
+- The area is about as wide as the carousel of the other tabs, and never wider than the screen. The filter box shows in full. The list below it takes the rest of the height and scrolls; on a short window the whole area scrolls.
 - Each row shows the total threat, the characters in roster order and the affiliations of the combination.
 - A character shows as its portrait with its name under it. The portrait is the same as in the Library (`characters/<key>/portrait.webp`). A character without a portrait (no files in the app) shows a grey circle.
 - An affiliation shows as its name. ★ after the name says that the combination has a leader for it.

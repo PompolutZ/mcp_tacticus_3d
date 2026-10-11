@@ -186,6 +186,9 @@ Commit: `squad breakdown part 5: exact threat, rogue agent` (with the doc change
 
 After part 4, in the browser. Write the results here.
 
+Results:
+- Filters: the filter box shrank to one row and scrolled; now it shows in full and pushes the list down (fix on playtest-1-test).
+
 Sandbox, two rosters loaded:
 1. Click a roster card. The popup has a fourth tab, **Breakdown**. The other tabs work as before. The left and right arrows do nothing in the Breakdown tab.
 2. Deck step: the threat chips show the values of all crisis cards of both rosters, each with a count. A click on a chip shows its list.
