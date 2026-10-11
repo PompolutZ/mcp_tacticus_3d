@@ -1,6 +1,6 @@
 # Plan: Table controls
 
-Requested by the user on 2026-10-11. Plan 5 of `docs/plans/playtest-1.md`. Status: all 6 steps done on 2026-10-11, waiting for the user checks (the user asked to run all steps and test them at the end). Branch `table-controls`, from `playtest-1-test`, because it builds on the table tools (Place, drag).
+Requested by the user on 2026-10-11. Plan 5 of `docs/plans/playtest-1.md`. Status: steps 1 to 6 done and checked by the user on 2026-10-11. Step 7 (Place 1 toggle, from the user check) is planned and confirmed by the user. Branch `table-controls`, from `playtest-1-test`, because it builds on the table tools (Place, drag).
 
 There is no new feature doc. Each step changes the feature docs of its area: `docs/features/key-shortcuts.md`, `docs/features/character-trays.md`, `docs/features/dice-rolling.md`, `README.md` and `apps/web/scripts/README.md`. Each step makes one commit and writes its **Result** below.
 
@@ -241,6 +241,54 @@ Done.
 - Docs: `key-shortcuts.md` ("Hover"), `README.md` (the white outline line).
 - Checks: build, format, lint (44 warning lines, as before), test 380 pass. No new test: the change is in components.
 - Differs from the plan: the tray card outlines both cards of the tray, not only the one under the pointer. A shelf die that leaves the shelf (Roll) while the pointer is on it keeps its outline until the pointer leaves. Not run in a browser (project rule).
+
+## User checks of steps 1 to 6
+
+The user tested all 6 steps on 2026-10-11, in one batch, on `table-controls` with `main` merged in.
+
+- Model turn: OK.
+- Drag and Place: mostly OK. Place 1 of the R1 tool is a one-shot move, so it never stays on. See step 7.
+- Alt, Give click, labels, footprint, dice tray, hover outline: OK.
+
+The user's case: a model has the M tool snapped to see its Advance. The player puts the R1 tool on an objective token, and wants the model to end within range 1 of the token, on the side away from the opponent's edge. Place 1 moves the model once, then nothing keeps it at range 1 during a drag.
+
+## Step 7: Place 1 toggle
+
+Answers of the user, 2026-10-11:
+
+- In TTS, Place 1 on locks the model on the short side of the tool, the same way Throw / Push locks it on the tool line. That is a good start.
+- The R1 tool is usually snapped to something else: a crisis token or a portal (Mystic, Bifrost). The app can do more than TTS: the model cannot go farther than the short side of the tool along that line, and the model with its R1 tool can turn around the piece snapped at the other end.
+- The tool target does not change after a move. The tools keep measuring the piece selected last.
+
+Decisions:
+
+1. **Place 1 is a toggle.** Turning it on moves the selected character as today: its base touches the other long side at the snapped corner, 1" from the snapped piece. Turning it off moves nothing. It shows the on state like Place 2.
+2. **The lock.** While Place 1 is on, a drag of the character keeps its center on the short-side line of the tool: the line through the snapped piece's center and the character's center. Along that line, it can go anywhere from the snapped piece's center out to full range 1 (base edge 1" from the snapped piece's base edge), and not farther. So its base can cover or overlap a token (user, 2026-10-11). The player picks the place by the footprint color of the movement tool that advances the model: the drag selects the model (step 2), so it is the tool target during the drag. At the center, the line keeps its last direction. A drop inside a model goes back as for any drag.
+3. **The turn.** A drag to the side turns that line around the center of the snapped piece. The R1 tool turns with it, so its corner stays on the snapped piece and the character stays on its short side. A drag of the tool itself works as today, and the character does not move with it.
+4. **One limit at a time.** Place 1 counts as a Place (decision 3): turning it on turns off Place and Throw on the other own tool. On the R1 tool, Place 1 and Place 2 turn each other off.
+5. **The snapped piece is the character itself.** Then there is no other piece to turn around. Place 1 stays a one-shot move, as today.
+
+Work:
+
+1. `RulerTool.jsx`: Place 1 state (on or off), with the on state on its button. Turning it on: today's `handlePlaceOne` move, then the drag limit through `onPlaceLimit` and `onLimitOn`, as Place does. Place 2 on turns Place 1 off, and the other way around. `limitTaken` turns it off. Decision 5: no on state when the snapped piece is the selected character.
+2. The clamp of decision 2 and 3: from the drag point, the direction from the snapped piece's center and the center distance clamped to `[0, r_snapped + 1 + r_char]`. Near 0, keep the last direction. Put the math in a plain module with tests (for example next to `nearestTouching`).
+3. The tool turn of decision 3: while the character is dragged with Place 1 on, the tool turns around the snapped piece's center, so its corner keeps touching that piece and the short-side line points at the character. Use the turn code of the snapped tool drag ("Dragging the snapped tool rotates it around the base center") where it fits.
+4. Docs: `README.md` ("Range 1": Place 1 is a toggle with a lock, decisions 1 to 5; "Place": Place 1 counts for the one limit rule), `docs/features/key-shortcuts.md` if it mentions Place 1.
+
+Checks: `pnpm --filter web build`, `pnpm format`, `pnpm lint`, `pnpm --filter web test`.
+
+User, after this step:
+
+1. A model with the M tool snapped. Key 1 over a crisis token: R1 snaps to the token. Select the model, then Place 1: the model moves to full range 1 of the token, and Place 1 shows on.
+2. Drag the model to the side: it moves around the token, at the same distance, and the R1 tool turns with it. The M tool footprint is green while the model is within its Advance, red past it.
+3. Drag the model away from the token: it stops at full range 1. Drag it toward the token: it can come closer, and its base can cover the token.
+4. Place 1 off: the drag is free again. Nothing moves.
+5. Place 1 on, then Place on the M tool: Place 1 turns off. The same with Place 2 on the R1 tool.
+6. R1 snapped to the model itself: Place 1 moves the model once and does not stay on.
+
+### Result
+
+Not started.
 
 ## Open questions
 
