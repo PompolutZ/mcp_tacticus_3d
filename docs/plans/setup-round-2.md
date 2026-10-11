@@ -1,10 +1,12 @@
 # Plan: Setup round 2
 
-Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: plan written, waiting for the user's OK. Branch `setup-round-2`, from main at `87f9b6e`.
+Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: plan confirmed by the user on 2026-10-11. No step done yet. Branch `setup-round-2`, from main at `87f9b6e`.
 
 The feature is `docs/features/setup-game.md`. Each step makes one commit and writes its **Result** below.
 
-Steps 1 and 2 rename the sides in about 70 files. They start only when no other plan branch is open: `table-controls` merges into main first, then this branch merges main. Steps 3 to 9 can run while another plan branch is open.
+Steps 1 to 7 can run while another plan branch is open. Steps 8 and 9 rename the sides in about 70 files, so they come last. They start only when no other plan branch is open: `table-controls` merges into main first, then this branch merges main. (Order changed by the user on 2026-10-11: the rename was steps 1 and 2.)
+
+Checks of every step: `pnpm format`, `pnpm lint`, `pnpm test`, `pnpm --filter web build`.
 
 ## Request
 
@@ -57,64 +59,31 @@ So the order is: roll off, deck, first card, second card, Maximum Threat, deploy
 1. **Side and color are two things.** A side is a seat at the table: `host` (+z) or `guest` (−z). A color is Blue or Red. The code stores sides. A color comes from one function, `colorOf(team, setup)`, so no code reads a color from a side key.
 2. **Names in code.** The values are `'host'` and `'guest'`. The character field `teamColor` becomes `team`. `TEAMS` and `otherTeam` stay. CSS color classes (`chip--player-blue`) stay, and get the color from `colorOf`.
 3. **The roll-off winner sets the colors.** `setup.priority` is the side that won the roll off. That side is Blue, the other is Red, for the whole game. The Priority token of the game (plan 4) is a different field, because it moves in the Cleanup Phase, and the colors must not move with it.
-4. **Before the roll off**, the host is Blue and the guest is Red. **Restart setup** goes back to that.
-5. **Sandbox:** the host is always Blue. The roll off sets Priority, not the colors.
-6. **Old rooms.** `SCHEMA` becomes 2. An old room gets a new start table. The API does not migrate seats. An old room record with `players.blue` / `players.red` is not read (see step 2).
+4. **Before the roll off**, the +z side is Blue and the −z side is Red. After step 8, the host is always at +z. **Restart setup** goes back to that.
+5. **Sandbox:** the +z side is always Blue. The roll off sets Priority, not the colors.
+6. **Old rooms.** `SCHEMA` becomes 2. An old room gets a new start table. The API does not migrate seats. An old room record with `players.blue` / `players.red` is not read (see step 9).
 7. **The host keeps the host rights,** whatever the color: delete the room, write the table while both are connected.
 8. **The panel follows the rulebook order** (see Facts). Each step says who does what now, with player names.
 9. **History is shared.** Both players see the step that one player browses. **Override** needs a confirm. Either player can press it.
 10. **Who can click** in a multiplayer room: the player who chooses in the current step. The other player sees the buttons disabled, with a title that says who chooses. The manual Priority buttons are an exception: both players can press them, because players can agree on a roll off made with real dice.
 
-## Step 1: Sides `host` / `guest` in the web app
-
-Starts only when no other plan branch is open. Merge main first.
-
-Work:
-
-1. `src/setup/setup.js`: `TEAMS = ['host', 'guest']`, `otherTeam`. Add `colorOf(team, setup)`: for now `host` → `'blue'`, `guest` → `'red'`. Step 3 makes it follow `setup.priority`.
-2. Every web file: the keys `blue` / `red` that mean a side become `host` / `guest`. The character field `teamColor` becomes `team`. Each place that shows a color (tints, CSS classes, "Blue player" texts, tool and tray colors, dice tray colors) calls `colorOf`. A key that means a color stays (for example the TTS file names, `chip--player-blue`).
-3. `src/net/doc.js`: `SCHEMA = 2`.
-4. Multiplayer: the own side is `host` when the user is the room host, else `guest`. This replaces the seat color from the API. `NewRoomDialog.jsx` loses the side choice.
-5. Tests: the same rename. Add a test for `colorOf`.
-6. Docs: every feature doc that names the sides `blue` / `red` as data keys. Text that means a color stays. `docs/features/setup-game.md`: Decision 1 and the State section.
-
-Checks: `pnpm format`, `pnpm lint`, `pnpm test`, `pnpm --filter web build`. A grep for `'blue'` and `'red'` in `apps/web/src` lists only colors.
-
-Tip for the coder: do the rename with a script per pattern, then read each diff hunk. Do not read whole files.
-
-User, after this step: everything works as before, in the Sandbox, a single player room and a multiplayer room. The host sits at +z. An old room opens with a fresh table.
-
-## Step 2: Seats `host` / `guest` in the API
-
-Work:
-
-1. `apps/api/src/stores/store.ts`: `type Side = 'host' | 'guest'`. `players: { host, guest }`. Indexes on `players.host` and `players.guest`. The creator takes `host`, join takes `guest`.
-2. `apps/api/src/routes/rooms.ts`: `POST /rooms` has no `side`. The answers use `players.host` / `players.guest`.
-3. An old record with `players.blue` / `players.red`: the list and the read leave it out (or answer 404). Write what you chose in the Result.
-4. Web: the lobby tiles, `RoomPlayers.jsx`, `JoinRoom.jsx`, `rooms/serverStore.js` read the new shape. Step 1's rule for the own side stays.
-5. Tests in `apps/api/test` and the web tests of the API client.
-6. Docs: `docs/features/auth.md` (Seat, the record, the indexes), `docs/features/rooms.md`.
-
-Checks: as step 1, plus `pnpm --filter api test`.
-
-User, after this step: create a multiplayer room, join it from a second browser. Both seats show the right names.
-
-## Step 3: Priority and colors
+## Step 1: Priority and colors
 
 Work:
 
 1. `setup.js`: new field `setup.priority: null | team`. `setupStep` gets a first step `rollOff` while `priority` is null. `chooseDeck` no longer takes the team: the player with Priority chooses.
-2. `colorOf(team, setup)`: in a room, the side with `setup.priority` is Blue. Before the roll off, and always in the Sandbox, the host is Blue (decisions 4, 5).
+2. New `colorOf(team, setup)` in `setup.js`: in a room, the side with `setup.priority` is Blue. Before the roll off, and always in the Sandbox, the +z side is Blue (decisions 4, 5). Until step 8, the side keys are still `blue` (+z) and `red` (−z), so a side key no longer tells the color. Each place that shows a color (tints, CSS classes, "Blue player" texts, tool, tray and dice tray colors) calls `colorOf`.
 3. The panel of the roll-off step: the rule text and two buttons with the player names, for example **Nelly has Priority** and **You have Priority**. In the Sandbox and a single player room: **Blue has Priority**, **Red has Priority**.
 4. The deck step: **Choose Secures** and **Choose Extracts**, for the player with Priority, with no color (decision of plan 1 notes 1, 3).
 5. The crisis tokens turn by `setup.priority`, not by the host (`buildMatTokens`).
 6. Docs: `setup-game.md` (Roll off, Priority, State, Decisions 1 and 3).
 
-Checks: as step 1. New tests: `setupStep` with `rollOff`, `colorOf` before and after Priority, in the Sandbox.
+Checks: as in "Checks". New tests: `setupStep` with `rollOff`, `colorOf` before and after Priority, in the Sandbox.
 
-User, after this step: a room, the guest has Priority: the guest's trays, tools and dice turn Blue, the host's turn Red. Nobody moves. The crisis tokens of the guest's card lie at the guest's edge.
+User, after this step: a room, the guest has Priority: the −z player's trays, tools and dice turn Blue, the +z player's turn Red. Nobody moves. The crisis tokens of the −z player's card lie at the −z edge.
 
-## Step 4: The app reads the roll off
+
+## Step 2: The app reads the roll off
 
 Work:
 
@@ -123,11 +92,12 @@ Work:
 3. The panel shows the result: "Name wins the roll off: 4 successes against 3."
 4. Docs: `setup-game.md`, "Roll off" (the app reads it now), Decision 1.
 
-Checks: as step 1.
+Checks: as in "Checks".
 
 User, after this step: each player clears their tray and rolls 5 dice. The winner gets Priority. A tie asks to roll again.
 
-## Step 5: Names and texts in the rulebook order
+
+## Step 3: Names and texts in the rulebook order
 
 Work:
 
@@ -136,11 +106,12 @@ Work:
 3. The panel says what to do now in each step, in the order of Facts, "Rules".
 4. Docs: `setup-game.md`, the table "What the app does".
 
-Checks: as step 1.
+Checks: as in "Checks".
 
 User, after this step: read every setup step in a multiplayer room, from both browsers. Each text names the right player.
 
-## Step 6: Who can click, edge controls
+
+## Step 4: Who can click, edge controls
 
 Work:
 
@@ -148,11 +119,12 @@ Work:
 2. ↺ **Choose this edge** ↻ lie on the side of the player with Priority, facing them. The arrows are bigger. **Choose this edge** is on a second row. The info panel stays at the scoring board.
 3. Docs: `setup-game.md`, "Buttons", replace "The app does not check who clicks" (What the app does, Decision 2).
 
-Checks: as step 1.
+Checks: as in "Checks".
 
 User, after this step: in a multiplayer room, each step can be clicked only in the right browser. The edge controls lie in front of the player with Priority.
 
-## Step 7: Squad step without a mode
+
+## Step 5: Squad step without a mode
 
 Work:
 
@@ -162,11 +134,12 @@ Work:
 4. The squad panel: **Squad ready** is the main button (the strongest style). Disabled with a title that says why, until the squad is valid. While ready: **Change squad**.
 5. Docs: `setup-game.md`, "Squads", `squad-breakdown.md` if it names **Select squad**.
 
-Checks: as step 1.
+Checks: as in "Checks".
 
 User, after this step: build a squad with the corner buttons, the popup, and a Breakdown row. A click on a card always opens the popup. **Squad ready** is the button you see first.
 
-## Step 8: Deploy Lock
+
+## Step 6: Deploy Lock
 
 Work:
 
@@ -174,11 +147,12 @@ Work:
 2. The first **Power** (any Power Phase button or the toolbar) in round 1 turns it off.
 3. Docs: `setup-game.md`, `round-phases.md`.
 
-Checks: as step 1.
+Checks: as in "Checks".
 
 User, after this step: after the reveal, Deploy Lock is on. The first Power Phase turns it off.
 
-## Step 9: History, Prev, Next, Override
+
+## Step 7: History, Prev, Next, Override
 
 Work:
 
@@ -188,9 +162,45 @@ Work:
 4. Tests for each Override target.
 5. Docs: `setup-game.md`, "Restart", State.
 
-Checks: as step 1.
+Checks: as in "Checks".
 
 User, after this step: choose up to the edge, go **Prev** to the threat step in one browser: the other browser shows it too. **Override**: the threat step is current again, the edge choice is gone.
+
+## Step 8: Sides `host` / `guest` in the web app
+
+Starts only when no other plan branch is open. Merge main first.
+
+Work:
+
+1. `src/setup/setup.js`: `TEAMS = ['host', 'guest']`, `otherTeam`. `colorOf` (step 1) keeps its rules with the new keys.
+2. Every web file: the keys `blue` / `red` that mean a side become `host` / `guest`. The character field `teamColor` becomes `team`. Each place that shows a color already calls `colorOf` (step 1). A key that means a color stays (for example the TTS file names, `chip--player-blue`).
+3. `src/net/doc.js`: `SCHEMA = 2`.
+4. Multiplayer: the own side is `host` when the user is the room host, else `guest`. This replaces the seat color from the API. `NewRoomDialog.jsx` loses the side choice.
+5. Tests: the same rename.
+6. Docs: every feature doc that names the sides `blue` / `red` as data keys. Text that means a color stays. `docs/features/setup-game.md`: Decision 1 and the State section.
+
+Checks: as in "Checks". A grep for `'blue'` and `'red'` in `apps/web/src` lists only colors.
+
+Tip for the coder: do the rename with a script per pattern, then read each diff hunk. Do not read whole files.
+
+User, after this step: everything works as before, in the Sandbox, a single player room and a multiplayer room. The host sits at +z. An old room opens with a fresh table.
+
+
+## Step 9: Seats `host` / `guest` in the API
+
+Work:
+
+1. `apps/api/src/stores/store.ts`: `type Side = 'host' | 'guest'`. `players: { host, guest }`. Indexes on `players.host` and `players.guest`. The creator takes `host`, join takes `guest`.
+2. `apps/api/src/routes/rooms.ts`: `POST /rooms` has no `side`. The answers use `players.host` / `players.guest`.
+3. An old record with `players.blue` / `players.red`: the list and the read leave it out (or answer 404). Write what you chose in the Result.
+4. Web: the lobby tiles, `RoomPlayers.jsx`, `JoinRoom.jsx`, `rooms/serverStore.js` read the new shape. Step 8's rule for the own side stays.
+5. Tests in `apps/api/test` and the web tests of the API client.
+6. Docs: `docs/features/auth.md` (Seat, the record, the indexes), `docs/features/rooms.md`.
+
+Checks: as in "Checks", plus `pnpm --filter api test`.
+
+User, after this step: create a multiplayer room, join it from a second browser. Both seats show the right names.
+
 
 ## Open questions
 
