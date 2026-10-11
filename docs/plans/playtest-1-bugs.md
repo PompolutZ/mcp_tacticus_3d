@@ -1,6 +1,6 @@
 # Plan: Bugs from the first playtest
 
-Requested by the user on 2026-10-11. Plan 1 of `docs/plans/playtest-1.md`. Status: Part 1 done, Parts 2–3 not started.
+Requested by the user on 2026-10-11. Plan 1 of `docs/plans/playtest-1.md`. Status: Part 1 done. Part 2 built, waiting for the choice of the user. Part 3 not started.
 
 One coder step and one commit for each part. Each part writes its **Result** below when it is done.
 
@@ -66,6 +66,8 @@ Work:
 1. A shared material component for the face of a card or a token (map, side, alphaTest, transparent). Use it in `CharacterTray.jsx`, `RosterCards.jsx`, `TacticCard.jsx`, `CrisisCard.jsx`, `CrisisToken.jsx` and `TokenSolid.jsx`. Edges and plain colors keep their materials.
 2. Two debug switches in `DebugPanel`: tone mapping (ACES Filmic, Neutral, AgX) and surface (Standard, Matte, Unlit). The default is ACES Filmic and Standard, so the normal app does not change.
 3. The tone mapping switch sets the mode of the `ToneMapping` pass (`SelectionOutlines.jsx`), and of the renderer when the composer is off.
+
+**Result:** Built. New `components/look.js` (module store `{ toneMapping, surface }`, default `aces` + `standard`, read with `useLook`; React context does not cross the R3F v8 `<Canvas>`) and `components/FaceMaterial.jsx` (standard, matte or unlit face material). `FaceMaterial` replaces the face materials in `CharacterTray.jsx`, `RosterCards.jsx`, `TacticCard.jsx`, `CrisisCard.jsx`, `CrisisToken.jsx` and `TokenSolid.jsx`. `App.jsx` holds the two switches and writes them to the store (the default when debug is off). `DebugPanel.jsx` has the two button groups. `SelectionOutlines.jsx` sets `mode` on the `ToneMapping` effect through a ref (passes are not rebuilt), and `gl.toneMapping` when the composer is off. Unlit sets `toneMapped={false}`, but with the composer on the scene goes to a render target and the `ToneMapping` pass maps the whole image, so the flag has no effect. Unlit skips tone mapping only in the "No composer" render mode.
 
 Checks: `pnpm --filter web build`, `pnpm format`, `pnpm lint`, the web tests.
 

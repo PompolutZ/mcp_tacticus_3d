@@ -5,6 +5,7 @@ import { OrbitControls } from '@react-three/drei'
 import { assetUrl } from './assets/index.js'
 import Scene from './components/Scene.jsx'
 import SelectionOutlines from './components/SelectionOutlines.jsx'
+import { DEFAULT_LOOK, setLook } from './components/look.js'
 import { Toolbar } from './components/Toolbar.jsx'
 import { Library } from './components/Library.jsx'
 import { RollsPanel } from './components/RollsPanel.jsx'
@@ -286,6 +287,9 @@ export default function App({
   const [debugOn, setDebugOn] = useState(false)
   // 'full' | 'no-outline' | 'no-composer', see DebugPanel
   const [renderMode, setRenderMode] = useState('full')
+  // Look options of cards and tokens, see DebugPanel and components/look.js
+  const [toneMapping, setToneMapping] = useState(DEFAULT_LOOK.toneMapping)
+  const [surface, setSurface] = useState(DEFAULT_LOOK.surface)
   const [showLabels, setShowLabels] = useState(false)
   // The spectator view above each model (SpectatorBadge.jsx)
   const [spectator, setSpectator] = useState(false)
@@ -1701,6 +1705,9 @@ export default function App({
   // Debug mode is only in the dev server. import.meta.env.DEV is false in `vite build`, so debug
   // is always false there and the build leaves out the debug code.
   const debug = import.meta.env.DEV && debugOn
+  useEffect(() => {
+    setLook(debug ? { toneMapping, surface } : DEFAULT_LOOK)
+  }, [debug, toneMapping, surface])
   const mode = debug ? renderMode : 'full'
 
   return (
@@ -1967,7 +1974,16 @@ export default function App({
           </div>
         )}
       </div>
-      {debug && <DebugPanel renderMode={renderMode} onRenderModeChange={setRenderMode} />}
+      {debug && (
+        <DebugPanel
+          renderMode={renderMode}
+          onRenderModeChange={setRenderMode}
+          toneMapping={toneMapping}
+          onToneMappingChange={setToneMapping}
+          surface={surface}
+          onSurfaceChange={setSurface}
+        />
+      )}
       <LoadingOverlay ready={ready} />
     </div>
   )

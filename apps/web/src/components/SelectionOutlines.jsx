@@ -2,7 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { useThree } from '@react-three/fiber'
 import { EffectComposer, Outline, ToneMapping } from '@react-three/postprocessing'
 import { BlendFunction, ToneMappingMode } from 'postprocessing'
-import { ACESFilmicToneMapping } from 'three'
+import { ACESFilmicToneMapping, AgXToneMapping, NeutralToneMapping } from 'three'
+import { useLook } from './look.js'
 
 // Line around a selected or hovered piece, drawn after the scene render, as TTS highlights a piece.
 // ALPHA draws the line in its exact color. The default (SCREEN) mixes it with the color under it,
@@ -64,6 +65,13 @@ const OUTLINES = {
   },
 }
 const MODES = Object.keys(OUTLINES)
+// The tone mapping of each look option (look.js): the ToneMapping pass mode, and the renderer
+// constant for when the composer is off
+const TONE_MAPPINGS = {
+  aces: { pass: ToneMappingMode.ACES_FILMIC, renderer: ACESFilmicToneMapping },
+  neutral: { pass: ToneMappingMode.NEUTRAL, renderer: NeutralToneMapping },
+  agx: { pass: ToneMappingMode.AGX, renderer: AgXToneMapping },
+}
 // Line width. The edges are found on a smaller copy of the screen: LINE_SCALE times its size in
 // CSS pixels. The line is about 1.5 pixels of that copy, so 0.5 gives a line of about 3 CSS pixels.
 // A smaller value gives a thicker line with rougher steps.
@@ -76,6 +84,14 @@ const NO_SELECTION = []
 // edges were lighter than straight ones.
 const EDGE_SCALE = 'edge*=(edgeStrength*mask.x*pulse);'
 const EDGE_CLAMPED = 'edge=min(edge*edgeStrength,1.0)*mask.x*pulse;'
+
+function setRendererToneMapping(gl, toneMapping) {
+  gl.toneMapping = toneMapping
+}
+
+function setToneMode(effect, mode) {
+  effect.mode = mode
+}
 
 function clampEdges(effect) {
   const shader = effect.getFragmentShader()
@@ -103,6 +119,9 @@ export default function SelectionOutlines({ children, composer = true, outlines 
   const effects = useRef({})
   const dpr = useThree((state) => state.viewport.dpr)
   const gl = useThree((state) => state.gl)
+  const tone = TONE_MAPPINGS[useLook().toneMapping]
+  // ToneMapping effect
+  const toneEffect = useRef(null)
 
   const register = useCallback((meshes, mode) => {
     const entry = { meshes, mode }
@@ -121,15 +140,20 @@ export default function SelectionOutlines({ children, composer = true, outlines 
   }, [entries, outlines])
 
   // The composer sets the renderer tone mapping to none, because ToneMapping below does it.
-  // While the composer is off, the renderer must do it again, with the R3F default.
+  // While the composer is off, the renderer must do it again, with the chosen tone mapping (the R3F
+  // default is ACES Filmic). With the composer on, the scene goes to a render target, so a material
+  // flag toneMapped has no effect: the pass maps the whole image.
   useEffect(() => {
     if (composer) return
     const previous = gl.toneMapping
-    gl.toneMapping = ACESFilmicToneMapping
-    return () => {
-      gl.toneMapping = previous
-    }
-  }, [composer, gl])
+    setRendererToneMapping(gl, tone.renderer)
+    return () => setRendererToneMapping(gl, previous)
+  }, [composer, gl, tone])
+
+  // The mode is set on the effect, not as a prop of ToneMapping below, so the passes are not built again
+  useEffect(() => {
+    setToneMode(toneEffect.current, tone.pass)
+  }, [tone])
 
   useEffect(() => {
     for (const mode of MODES) clampEdges(effects.current[mode])
@@ -142,12 +166,13 @@ export default function SelectionOutlines({ children, composer = true, outlines 
 
   // Created once. When the children of EffectComposer change, it builds its passes again and
   // compiles a new shader, so the selection is set on the effects above, not passed as a prop.
-  // The composer turns off the renderer tone mapping, so ToneMapping adds back the R3F default.
+  // The composer turns off the renderer tone mapping, so ToneMapping adds it back (ACES Filmic, the R3F
+  // default, until the effect above sets the chosen mode).
   // It comes before the outlines, so the outline colors are not tone mapped.
   const passes = useMemo(
     () => (
       <>
-        <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+        <ToneMapping ref={toneEffect} mode={ToneMappingMode.ACES_FILMIC} />
         {MODES.map((mode) => (
           <Outline
             key={mode}

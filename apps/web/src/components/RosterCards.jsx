@@ -4,6 +4,7 @@ import { assetUrl } from '../assets/index.js'
 import { PLATE_COLORS, TAB_OF_KIND, parseRosterText, rosterCard } from '../rosters/cards.js'
 import { ROSTER_CARD_Y, rosterLayout } from '../rosters/layout.js'
 import { useColorTexture } from './useColorTexture.js'
+import FaceMaterial from './FaceMaterial.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
 
 const FLAT = [-Math.PI / 2, 0, 0] // the image top faces local -z, toward the mat, the same as a tray card
@@ -92,7 +93,7 @@ function Plate({ card, info }) {
   return (
     <mesh rotation={FLAT}>
       <planeGeometry args={[width, height]} />
-      <meshStandardMaterial map={map} roughness={1} side={DoubleSide} />
+      <FaceMaterial map={map} side={DoubleSide} />
     </mesh>
   )
 }
@@ -103,7 +104,7 @@ function Face({ card, info }) {
   return (
     <mesh rotation={FLAT}>
       <planeGeometry args={[card.width, card.height]} />
-      <meshStandardMaterial map={map} roughness={1} side={DoubleSide} />
+      <FaceMaterial map={map} side={DoubleSide} />
     </mesh>
   )
 }

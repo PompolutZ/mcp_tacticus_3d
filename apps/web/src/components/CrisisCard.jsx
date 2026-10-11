@@ -5,6 +5,7 @@ import { assetUrl } from '../assets/index.js'
 import { crisisCardFace } from '../crisis/files.js'
 import { CARD_WIDTH, CARD_HEIGHT } from '../crisis/layout.js'
 import { useHoverCursor } from './useHoverCursor.js'
+import FaceMaterial from './FaceMaterial.jsx'
 
 // The card reads the same way as the scoring board (see crisis/layout.js): the image top faces world
 // -X (the table edge) and the image right faces world -Z (the red side). Rz turns the image in its own
@@ -34,7 +35,7 @@ export default function CrisisCard({ cardKey, position, onOpen }) {
       onPointerOut={() => setHovered(false)}
     >
       <planeGeometry args={[CARD_WIDTH, CARD_HEIGHT]} />
-      <meshStandardMaterial map={map} roughness={1} side={DoubleSide} />
+      <FaceMaterial map={map} side={DoubleSide} />
     </mesh>
   )
 }

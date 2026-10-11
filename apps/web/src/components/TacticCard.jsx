@@ -15,6 +15,7 @@ import {
 } from '../tactics/layout.js'
 import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
 import DragFootprint from './DragFootprint.jsx'
+import FaceMaterial from './FaceMaterial.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import useLiveFollow from './useLiveFollow.js'
 import { useColorTexture } from './useColorTexture.js'
@@ -226,13 +227,13 @@ export default function TacticCard({
         {/* Rx(-pi/2) lays the face flat, facing up, with its top to local -z (see tacticCardYaw) */}
         <mesh rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[TACTIC_CARD_WIDTH, TACTIC_CARD_HEIGHT]} />
-          <meshStandardMaterial map={faceMap} roughness={1} />
+          <FaceMaterial map={faceMap} />
         </mesh>
         {/* Rz(pi) turns the back image in its plane, then Rx(pi/2) lays it flat, facing down, with its
             top to local -z. After a turn of pi around z, it lies the same way as the face. */}
         <mesh rotation={[Math.PI / 2, 0, Math.PI]}>
           <planeGeometry args={[TACTIC_CARD_WIDTH, TACTIC_CARD_HEIGHT]} />
-          <meshStandardMaterial map={backMap} roughness={1} />
+          <FaceMaterial map={backMap} />
         </mesh>
       </group>
       {(dragging || remote) && <DragFootprint getShape={footprintShape} />}

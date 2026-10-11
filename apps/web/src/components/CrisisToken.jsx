@@ -10,6 +10,7 @@ import { crisisMarker, crisisToken } from '../crisis/files.js'
 import { assetUrl } from '../assets/index.js'
 import { affiliationToken } from '../scoreboard/files.js'
 import DragFootprint from './DragFootprint.jsx'
+import FaceMaterial from './FaceMaterial.jsx'
 import { acquireFootprint } from './footprintProjection.js'
 import { TOKEN_DRAG_LIFT, TOKEN_EDGE_COLOR, TOKEN_THICKNESS } from '../tokens/solid.js'
 import { tokenStack } from '../tokens/stack.js'
@@ -88,12 +89,12 @@ export function TokenDisk({ topMap, bottomMap, diskRef, events }) {
           fills the circle exactly. */}
       <mesh position={[0, HALF_H, 0]} rotation={[-Math.PI / 2, 0, 0]} {...events}>
         <circleGeometry args={[RADIUS, SEGMENTS]} />
-        <meshStandardMaterial map={topMap} alphaTest={FACE_ALPHA_TEST} roughness={1} />
+        <FaceMaterial map={topMap} alphaTest={FACE_ALPHA_TEST} />
       </mesh>
       {/* Bottom face: the other side */}
       <mesh position={[0, -HALF_H, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <circleGeometry args={[RADIUS, SEGMENTS]} />
-        <meshStandardMaterial map={bottomMap} alphaTest={FACE_ALPHA_TEST} roughness={1} />
+        <FaceMaterial map={bottomMap} alphaTest={FACE_ALPHA_TEST} />
       </mesh>
       {/* Edge: open-ended, because a cylinder's own top and bottom caps have turned UVs (see the
           note in the design), so the two disks above draw the faces instead. */}
@@ -112,7 +113,7 @@ function AffiliationMarker({ affiliation, x, radius }) {
   return (
     <mesh position={[x, MARKER_Y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
       <circleGeometry args={[radius, SEGMENTS]} />
-      <meshStandardMaterial map={map} alphaTest={FACE_ALPHA_TEST} roughness={1} />
+      <FaceMaterial map={map} alphaTest={FACE_ALPHA_TEST} />
     </mesh>
   )
 }
@@ -403,7 +404,7 @@ export default function CrisisToken({
       {token.damage && (
         <mesh position={[markerPair ? PAIR_X : 0, MARKER_Y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[markerRadius * 2, markerRadius * 2]} />
-          <meshStandardMaterial map={damageMap} transparent roughness={1} />
+          <FaceMaterial map={damageMap} transparent />
         </mesh>
       )}
       {(dragging || remote) && <DragFootprint getShape={footprintShape} />}

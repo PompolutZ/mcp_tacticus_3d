@@ -18,6 +18,7 @@ import {
   trayYaw,
 } from '../characters/trays.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
+import FaceMaterial from './FaceMaterial.jsx'
 import TokenFace from './TokenFace.jsx'
 import TrayControls from './TrayControls.jsx'
 import { useColorTexture } from './useColorTexture.js'
@@ -151,7 +152,7 @@ export default function CharacterTray({
             onPointerOut={() => setCardHovered(false)}
           >
             <planeGeometry args={[TRAY_CARD_WIDTH, TRAY_CARD_HEIGHT]} />
-            <meshStandardMaterial map={sideMap(n)} roughness={1} side={DoubleSide} />
+            <FaceMaterial map={sideMap(n)} side={DoubleSide} />
           </mesh>
         ))}
       </group>

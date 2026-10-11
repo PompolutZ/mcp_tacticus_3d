@@ -11,6 +11,22 @@ const RENDER_MODES = [
   },
 ]
 
+// Look options of cards and tokens, temporary until the look is chosen (docs/plans/playtest-1-bugs.md)
+const TONE_MAPPINGS = [
+  { id: 'aces', label: 'ACES Filmic', title: 'As in the normal app' },
+  { id: 'neutral', label: 'Neutral', title: 'Khronos PBR Neutral: shows base colors as they are' },
+  { id: 'agx', label: 'AgX', title: 'AgX: soft highlights, lower contrast' },
+]
+const SURFACES = [
+  { id: 'standard', label: 'Standard', title: 'As in the normal app: reflects some light' },
+  { id: 'matte', label: 'Matte', title: 'No reflection. The rest of the light stays.' },
+  {
+    id: 'unlit',
+    label: 'Unlit',
+    title: 'Exact image colors, no light and no shadow. Skips tone mapping only in No composer.',
+  },
+]
+
 function ms(value) {
   return value === null ? 'n/a' : `${value.toFixed(1)} ms`
 }
@@ -32,8 +48,33 @@ function Row({ label, title, children }) {
   )
 }
 
-// Numbers from FrameStats, and the render mode switch
-export function DebugPanel({ renderMode, onRenderModeChange }) {
+function ModeButtons({ options, value, onChange }) {
+  return (
+    <div className="debug-modes">
+      {options.map((option) => (
+        <button
+          key={option.id}
+          type="button"
+          className={`chip${value === option.id ? ' chip--active' : ''}`}
+          title={option.title}
+          onClick={() => onChange(option.id)}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+// Numbers from FrameStats, the render mode switch and the look switches
+export function DebugPanel({
+  renderMode,
+  onRenderModeChange,
+  toneMapping,
+  onToneMappingChange,
+  surface,
+  onSurfaceChange,
+}) {
   const stats = useFrameStats()
   return (
     <div className="debug-panel">
@@ -76,19 +117,9 @@ export function DebugPanel({ renderMode, onRenderModeChange }) {
       ) : (
         <div className="debug-label">Measuring…</div>
       )}
-      <div className="debug-modes">
-        {RENDER_MODES.map((mode) => (
-          <button
-            key={mode.id}
-            type="button"
-            className={`chip${renderMode === mode.id ? ' chip--active' : ''}`}
-            title={mode.title}
-            onClick={() => onRenderModeChange(mode.id)}
-          >
-            {mode.label}
-          </button>
-        ))}
-      </div>
+      <ModeButtons options={RENDER_MODES} value={renderMode} onChange={onRenderModeChange} />
+      <ModeButtons options={TONE_MAPPINGS} value={toneMapping} onChange={onToneMappingChange} />
+      <ModeButtons options={SURFACES} value={surface} onChange={onSurfaceChange} />
     </div>
   )
 }
