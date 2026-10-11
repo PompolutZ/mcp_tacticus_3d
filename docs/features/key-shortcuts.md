@@ -88,7 +88,7 @@ R is a toggle. In TTS, a player lifts a model by holding it with the mouse. In t
 
 ## Start view
 
-For now every player is Blue. Blue sits at +z. The start view stands behind the blue table edge and looks down at 45°, at a point 6" from the mat center toward Blue, from 46" away. In a 16:10 window it shows the whole mat, the blue trays and the red trays. Space returns to it. The values are `CAMERA_TARGET` and `CAMERA_POSITION` in `src/App.jsx`.
+For now every player is Blue. Blue sits at +z. The start view stands behind the blue table edge and looks down at 45°, at a point 16.8" from the mat center toward Blue, from 46" away. In a 16:10 window it shows the whole mat, the blue trays, the blue rack band (z up to 36.8") and the red trays. Its bottom edge meets the table at z = 37.5". Space returns to it. The values are `CAMERA_TARGET` and `CAMERA_POSITION` in `src/App.jsx`.
 
 ## Keyboard: keys of the mod
 
@@ -108,11 +108,15 @@ The mod handles a key only for the player whose tray it is (Blue or Red).
 
 The app also snaps a tool, key 6 included, when the pointer is over a crisis token. The mod only checks characters. The piece does not have to be selected first: the key selects it. Over a model of a side this browser does not play (the other side in a multiplayer room), the tool snaps to it and the selection does not change. So Place cannot move that model.
 
+## Settings popup
+
+**Settings** in the toolbar opens a popup that lists the keys and the mouse controls of the app, from `src/settings/controls.js` (`docs/features/table-tools.md`, "Settings menu"). A change of a key or a mouse control in this document changes that list in the same step. While the popup is open, the keys of the table do nothing, and Escape closes it.
+
 ## Keys only in the app
 
 | Key | App |
 |---|---|
-| Escape | Cancels a token drag, or closes the card or tray popup, or closes the dice menu. Otherwise it clears the selection and removes the selected tools |
+| Escape | Cancels a token drag, or closes the card, tray or settings popup, or closes the dice menu. Otherwise it clears the selection and removes the selected tools |
 
 ## Differences to decide
 

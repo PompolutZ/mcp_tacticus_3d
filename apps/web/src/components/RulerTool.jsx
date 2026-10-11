@@ -19,6 +19,8 @@ import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
 import { followPart, lerpAngle } from '../net/livePose.js'
 import { freeSpawnYaw, storedFields, sameStored } from './storedTool.js'
+import { MOVE_TIP, RANGE_TIP, TOOL_TINT } from '../tabletools/toolTips.js'
+import { onRack } from '../tabletools/layout.js'
 
 const TEXTURE = assetUrl('tools/toolbox-02.png')
 // How fast the dragged tool moves to the new hover height, per second (same as models)
@@ -28,8 +30,6 @@ const FOOTPRINT_CAST_HALF_H = 0.01
 // Extra distance around the footprint where terrain already raises the dragged tool
 const HOVER_MARGIN = 0.5
 
-// X coordinate of the outer tip for each half, per movement tool type
-const MOVE_TIP = { short: 1.574, medium: 2.523, long: 3.535 }
 // Movement tools are about 0.56" wide (mesh-a spans z = ±0.279)
 const MOVE_HALF_WIDTH = 0.279
 // A movement tool bends at its hinge, but never past a right angle, the same as the plastic one
@@ -51,10 +51,6 @@ const STRAIGHT = { right: 0, left: 0 }
 const ANGLE_TURN = { right: Math.PI / 4, left: -Math.PI / 4 }
 // A movement tool snapped to the base of an angle tool points at most this far from the middle of the angle
 const ANGLE_LIMIT = Math.PI / 4
-
-// Player tints, from the tools in the mod (3036795456). Every tool there has the same black and white
-// texture (TOOLBOX_IMAGE_02) and a ColorDiffuse in its player's color. TTS multiplies the texture by it.
-const TOOL_TINT = { blue: [0.12, 0.53, 1], red: [0.86, 0.1, 0.09] }
 
 // team: 'blue' or 'red' for a player's tint. Without it, the texture keeps its own colors.
 function textured(obj, map, team) {
@@ -427,7 +423,6 @@ function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove, on
   }
 }
 
-export const RANGE_TIP = { 2: 1.501, 3: 3.0, 4: 4.0, 5: 5.0 }
 // Range tools are 1" wide (mesh spans z = ±0.5)
 const RANGE_HALF_WIDTH = 0.5
 // Physics can nudge a resting base a little, so a small gap still counts as contact
@@ -566,7 +561,7 @@ export function RangeRuler({ number = 2, team, ...props }) {
 }
 
 // The mesh of a range tool (2 to 5)
-function useRangeParts(mesh, team) {
+export function useRangeParts(mesh, team) {
   const raw = useLoader(OBJLoader, assetUrl(`tools/range-${mesh}-mesh.obj`))
   const map = useTexture(TEXTURE)
   return useMemo(() => [{ obj: textured(raw.clone(), map, team) }], [raw, map, team])
@@ -630,7 +625,7 @@ export function DeployRangeTool({ getBody, centerZ, yaw, team, hoverHeight = 1 }
 }
 
 // The meshes of a movement tool: mesh-a is the right half with the round hinge, mesh-b is the left half
-function useMovementParts(type, team) {
+export function useMovementParts(type, team) {
   const rawA = useLoader(OBJLoader, assetUrl(`tools/${type}-movement-mesh-a.obj`))
   const rawB = useLoader(OBJLoader, assetUrl(`tools/${type}-movement-mesh-b.obj`))
   const map = useTexture(TEXTURE)
@@ -804,6 +799,8 @@ function BendButton({ on, onClick }) {
 // side: 'blue' or 'red', the side of the owner. onStore(fields): called with { pose, turn, snap, mode }
 // (rounded, storedTool.js) when none of them changed for REST_TIME and they differ from the entry.
 // Not stored: Place, Throw, Bend and the selection.
+// onReturn(): called when a move drag (not a turn drag) ends with the tool center on the own rack. The owner
+// removes the tool then (docs/features/table-tools.md, "Tool rack"). Without it, the tool does not return.
 // angle: the angle tool. It starts bent 90° and cannot bend, place or throw. It spawns aimed at aim
 // (a model) or at the mat center.
 // angleRef(get): gets a function that returns { target, openYaw } while the angle tool is snapped, else
@@ -823,6 +820,7 @@ function Tool({
   entry,
   side: ownSide,
   onStore,
+  onReturn,
   hoverHeight = 1,
   selected = false,
   onSelect,
@@ -893,7 +891,16 @@ function Tool({
       dragChange(kind)
     },
     onDragMove,
-    () => dragChange(null),
+    () => {
+      const kind = dragKind.current
+      dragChange(null)
+      // Read on use: the closure is from the render of the press
+      const giveBack = latest.current?.onReturn
+      const rb = rigidRef.current
+      if (kind !== 'move' || !giveBack || !rb) return
+      const { x, z } = rb.translation()
+      if (onRack(ownSide, { x, z })) giveBack()
+    },
   )
   const { world, rapier } = useRapier()
   const hulls = useMemo(() => parts.map((part) => hullPoints(part.obj)), [parts])
@@ -1108,7 +1115,7 @@ function Tool({
   // because the pose is in the body, not in React state.
   const latest = useRef(null)
   useEffect(() => {
-    latest.current = { turn, snap, mode, entry, onStore }
+    latest.current = { turn, snap, mode, entry, onStore, onReturn }
   })
   // The live pose for LiveSync: the body and the bend, read when asked
   useEffect(() => {

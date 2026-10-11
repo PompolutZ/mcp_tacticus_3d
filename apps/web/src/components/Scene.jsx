@@ -18,11 +18,13 @@ import {
   RangeRuler,
   DeployRangeTool,
   OtherTool,
-  RANGE_TIP,
   sameModel,
 } from './RulerTool.jsx'
 import CharacterModel, { StandeeModel, modelUrls, turnBody } from './CharacterModel.jsx'
 import CharacterTray from './CharacterTray.jsx'
+import TableButtons from './TableButtons.jsx'
+import ToolRack from './ToolRack.jsx'
+import ToolDragGhost from './ToolDragGhost.jsx'
 import SpectatorBadge from './SpectatorBadge.jsx'
 import Terrain from './Terrain.jsx'
 import CrisisCard from './CrisisCard.jsx'
@@ -75,6 +77,7 @@ import {
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import { tokenSize } from '../tokens/tokens.js'
 import { MAT_SIZE, TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WIDTH } from '../table.js'
+import { RANGE_TIP } from '../tabletools/toolTips.js'
 import {
   NO_PIECES,
   NO_TOOLS,
@@ -209,7 +212,8 @@ const OVERLAP_INTERVAL = 100
 // ownSide: 'blue' or 'red', the side of this browser. The own entries become tools; the key of a tool is
 // its `which` and `spawn`, so a new spawn mounts it again. The entry of the other side that has a pose
 // becomes an OtherTool. onToolStore(kind, spawn, fields): a tool of the own side rests, App writes the
-// fields into its entry. toolPointRef: ref App calls, filled by ToolPoint with { atPointer(), atCenter() }.
+// fields into its entry. onToolReturn(kind): a move drag of an own tool ended on the own rack, App removes the tool
+// (RulerTool.jsx, onReturn). Undefined: the tools do not return. toolPointRef: ref App calls, filled by ToolPoint with { atPointer(), atCenter() }.
 // selectedTools: { range, move, angle } (see selection.js), lifted to App with its setter onSelectedToolsChange.
 // angleSpawn: { target, aim }, each { kind, id } | null, for the Toward / Away tool:
 // the piece it snaps to when it spawns (free without one), and the piece it aims at (the mat center
@@ -233,6 +237,9 @@ const OVERLAP_INTERVAL = 100
 // tacticCards: the Team Tactic cards on the table (see TacticCard.jsx and App.jsx). onTacticMove(id,
 // x, z): a card drag ended over the table. onTacticHover(id, over): for the F and Delete keys. A
 // click on a card opens it with onCardOpen, the same as a crisis card.
+// toolDrag: the drag of a tool from the rack, { kind, which, active, start } | null (App.jsx). While it is active, a
+// flat outline of the tool follows the pointer (ToolDragGhost). toolDragPointRef: the ghost writes the table point
+// under the pointer there, for App's drop.
 // tokenDrag: the token drag in progress, see App.jsx. While it is active, the dragged token shows
 // under the pointer (TokenDragPreview) and, for a token from the table, not in its old place.
 // dragPointRef: the preview writes the table point under the pointer there, for App's release.
@@ -292,6 +299,8 @@ const OVERLAP_INTERVAL = 100
 // wrote moves the body (decision 8). startPose is the pose at mount.
 export default function Scene({
   mapId,
+  tableButtons,
+  toolRack,
   terrain = [],
   onTerrainHover,
   terrainAtRef,
@@ -299,6 +308,7 @@ export default function Scene({
   tools = NO_TOOLS_RECORD,
   ownSide = 'blue',
   onToolStore,
+  onToolReturn,
   angleSpawn = { target: null, aim: null },
   toolSpawn = { range: null, move: null },
   showColliders = false,
@@ -336,6 +346,8 @@ export default function Scene({
   onTacticMove,
   onTacticHover,
   tokenDrag = null,
+  toolDrag = null,
+  toolDragPointRef,
   dragPointRef,
   onCardOpen,
   onTrayOpen,
@@ -919,6 +931,7 @@ export default function Scene({
     side: ownSide,
     entry: ownTools[kind],
     onStore: (fields) => onToolStore?.(kind, ownTools[kind].spawn, fields),
+    onReturn: onToolReturn && (() => onToolReturn(kind)),
   })
   const placeTarget = toolModel(selection.find((piece) => piece.kind === 'character'))
 
@@ -1309,6 +1322,19 @@ export default function Scene({
 
         {/* The tactic tray of each player, between the mat and the character trays, and the Team
             Tactic cards. Relative to the table, not the mat. See docs/features/team-tactic-cards.md. */}
+        {/* Power Phase and the board strip of each player (docs/features/table-tools.md) */}
+        <TableButtons ownSide={ownSide} {...tableButtons} />
+        {/* The tool rack of each player (docs/features/table-tools.md, "Tool rack") */}
+        {toolRack && <ToolRack ownSide={ownSide} tools={tools} {...toolRack} />}
+        {toolDrag?.active && (
+          <ToolDragGhost
+            pointRef={toolDragPointRef}
+            start={toolDrag.start}
+            kind={toolDrag.kind}
+            which={toolDrag.which}
+            side={ownSide}
+          />
+        )}
         <TacticTray team="blue" />
         <TacticTray team="red" />
         {/* The loaded rosters, in the area of the character trays (docs/features/roster.md), until the squads

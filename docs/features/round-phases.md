@@ -9,7 +9,12 @@ Not built yet:
 
 ## Goal
 
-Two buttons in the toolbar, in the group **Phase**. Each one does the steps of a phase that need no choice.
+Two phase buttons. Each one does the steps of a phase that need no choice. Each is on the table or in the toolbar, in the group **Phase**, by the setting of the browser (`docs/features/table-tools.md`, "Settings menu"). Power and Cleanup are set apart. On the table:
+
+- A **Power Phase** button for each player, at the owner's right end of the rack band, facing its owner. It gives Power to the characters of its own side only, as the TTS button does. In the Sandbox, a player presses both buttons. In a multiplayer room, the other player's button is disabled, with the title "Only the Red player presses this." (or Blue). The HUD message names the side: "Power Phase (Blue): ...".
+- **Cleanup Phase** in the board strip next to the scoring board, one strip for each player. It is the same action, disabled state and title as the toolbar **Cleanup**.
+
+The toolbar **Power** (when Power is set to the HUD) gives Power to all sides that the browser plays: both in the Sandbox and in a single player room, the own side in a multiplayer room.
 
 **Power.** A player presses one button, and each of their characters on the table gets the Power of the Power Phase:
 

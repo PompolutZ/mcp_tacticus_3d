@@ -83,6 +83,9 @@ import { tableFiles } from './rooms/preload.js'
 import { useYField, useYList, useYRecord } from './net/useY.js'
 import { dragPose, SUPPLY_YAW, tokenDragKey } from './net/livePose.js'
 import { spawnEntry } from './components/storedTool.js'
+import { canDropTool } from './tabletools/dropShape.js'
+import { readSettings, writeSettings } from './settings/settings.js'
+import { SettingsPopup } from './components/SettingsPopup.jsx'
 import {
   NO_PIECES,
   NO_TOOLS,
@@ -115,17 +118,18 @@ import {
 
 // Start view, the seat of the blue player. For now every player is Blue. Blue sits at +z (see
 // characters/trays.js). The camera stands behind the blue table edge and looks down at 45° at a
-// point 10.4" from the mat center toward blue, 46" away. Then a 16:10 view shows the whole mat, the
-// tactic trays and the character trays of both players. The bottom edge of the view meets the table
-// at z = 31.1", just past the blue Give sources (30.65", see trays.js). Space returns to this view
-// (see resetCamera).
-const CAMERA_TARGET = [0, 0, 10.4]
-const CAMERA_POSITION = [0, 32.5, 42.9]
+// point 16.8" from the mat center toward blue, 46" away. Then a 16:10 view shows the whole mat, the
+// tactic trays and the character trays of both players, and the rack band of the own side (z up to
+// 36.8", see tabletools/layout.js). The bottom edge of the view meets the table at z = 37.5". The top
+// edge is past the red trays (z = -40, the table ends at -38). Space returns to this view (see
+// resetCamera).
+const CAMERA_TARGET = [0, 0, 16.8]
+const CAMERA_POSITION = [0, 32.5, 49.3]
 // The Red view: the Blue view turned 180° around the mat center (plan 08, decision 17). Only for the Red seat
 // of a multiplayer room. A single player room and the Sandbox keep the Blue view, because one player plays both
 // sides there.
-const CAMERA_TARGET_RED = [0, 0, -10.4]
-const CAMERA_POSITION_RED = [0, 32.5, -42.9]
+const CAMERA_TARGET_RED = [0, 0, -16.8]
+const CAMERA_POSITION_RED = [0, 32.5, -49.3]
 // Camera mouse buttons as in TTS: right drag turns, middle drag pans. Left drag also turns, because
 // the app has no box select (the TTS left drag) and a trackpad has no easy right drag. Shift, Ctrl
 // or Cmd + a turn drag pans (OrbitControls). A mouse wheel zooms. On a trackpad, a two-finger swipe
@@ -460,6 +464,25 @@ export default function App({
   const tokenDragHandleRef = useRef(null)
   // The table point under the pointer, written by TokenDragPreview: { x, y, z } | null
   const dragPointRef = useRef(null)
+  // A drag of a tool from the rack in progress: { kind, which, active, start } | null. active: the pointer has
+  // moved DRAG_THRESHOLD px, so the outline of the tool shows (Scene.jsx, ToolDragGhost). start: the pointer
+  // position at that moment. Like the token drag, the state changes only at start and when the drag becomes active.
+  const [toolDrag, setToolDrag] = useState(null)
+  // The drag code of the tool drag: { cancel }, or null
+  const toolDragHandleRef = useRef(null)
+  // The table point under the pointer, written by ToolDragGhost: { x, y, z } | null
+  const toolDragPointRef = useRef(null)
+  // The settings of this browser (settings/settings.js), read once. A change is stored at once.
+  const [settings, setSettings] = useState(readSettings)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  function handleSettingChange(item, place) {
+    const next = { ...settings, tools: { ...settings.tools, [item]: place } }
+    setSettings(next)
+    writeSettings(next)
+  }
+  const toolsOnTable = (item) => settings.tools[item] === 'table'
+  // The own rack is on the table, so a tool dropped on it goes back to it
+  const rackShown = toolsOnTable('rack')
   // Live pose getters of the dragged pieces without a body, piece key → getter. Drag code fills it, LiveSync reads it.
   const [pieceLives] = useState(() => new Map())
   // Scene calls this with (clientX, clientY) and returns the character id under the point, or
@@ -632,13 +655,19 @@ export default function App({
       if (e.key === 'Escape') cancelTokenDrag()
       return
     }
-    if (openCard || openTrayId || openRoster) {
+    if (toolDrag) {
+      // The same for a tool dragged from the rack
+      if (e.key === 'Escape') toolDragHandleRef.current?.cancel()
+      return
+    }
+    if (openCard || openTrayId || openRoster || settingsOpen) {
       // Escape closes only the popup. The left and right arrows show the previous or next roster card.
       // Other keys do nothing, so nothing changes on the table behind it.
       if (e.key === 'Escape') {
         setOpenCard(null)
         setOpenTrayId(null)
         setOpenRoster(null)
+        setSettingsOpen(false)
       } else if (openRoster && CARD_STEP_KEYS[e.code]) handleRosterCardStep(CARD_STEP_KEYS[e.code])
       return
     }
@@ -762,15 +791,24 @@ export default function App({
     return toolSelects(piece, characters, playedSides)
   }
 
-  // Key 6, the Toward / Away tool. Over a character or a token, it selects that piece (except a model
-  // of the other side, see keySelects) and spawns the tool again snapped to it, even if the tool is
-  // already out. It aims at the character or token selected last that is not that piece, or at the mat center. Over the table or terrain, it spawns
-  // the tool free at that point, also if it is already out. Else it toggles the tool, the same as its
-  // toolbar button.
+  // Key 6, the Toward / Away tool: placeAngleTool at the hovered piece and the table point under the pointer.
   function handleAngleKey() {
-    const piece = hoveredRef.current
+    placeAngleTool(hoveredRef.current, toolPointRef.current?.atPointer())
+  }
+
+  // The tool keys 1 to 5 and 7 to 9: placeTool at the hovered piece and the table point under the pointer.
+  // tool: 'range' | 'move'. value: the range number or the movement tool type.
+  function handleToolKey(tool, value) {
+    placeTool(tool, value, hoveredRef.current, toolPointRef.current?.atPointer())
+  }
+
+  // The Toward / Away tool at a piece or a table point (key 6, and the drop of a drag from the rack). Over a
+  // character or a token (piece), it selects that piece and spawns the tool again snapped to it, even if
+  // the tool is already out. It aims at the character or token selected last that is not that piece, or at the
+  // mat center. Over the table or terrain (at: { x, z }), it spawns the tool free at that point, also if it is
+  // already out. With neither, it toggles the tool, the same as its toolbar button.
+  function placeAngleTool(piece, at) {
     if (!piece) {
-      const at = toolPointRef.current?.atPointer()
       if (!at) {
         handleAngleClick()
         return
@@ -790,15 +828,14 @@ export default function App({
     spawnTool('angle', true, null)
   }
 
+  // A range or movement tool at a piece or a table point (the tool keys, and the drop of a drag from the rack).
   // tool: 'range' | 'move'. value: the range number or the movement tool type.
-  // With the pointer over a character or a token, it selects that piece (except a model of the other
-  // side, see keySelects) and spawns the tool again, snapped to it, even if the tool is already out. A selected piece of the other kind stays selected.
-  // Over the table or terrain, it spawns the tool free at that point, also if it is already out. Else it
-  // toggles the tool, the same as its toolbar button.
-  function handleToolKey(tool, value) {
-    const piece = hoveredRef.current
+  // Over a character or a token (piece), it selects that piece and spawns the tool again, snapped to it, even
+  // if the tool is already out. A selected piece of the other kind stays selected. Over the table or terrain
+  // (at: { x, z }), it spawns the tool free at that point, also if it is already out. With neither, it toggles
+  // the tool, the same as its toolbar button.
+  function placeTool(tool, value, piece, at) {
     if (!piece) {
-      const at = toolPointRef.current?.atPointer()
       if (!at) {
         if (tool === 'range') handleRangeClick(value)
         else handleMoveClick(value)
@@ -980,15 +1017,16 @@ export default function App({
     )
   }
 
-  // Power button in the toolbar (docs/features/round-phases.md). Gives the Power of the Power Phase to each
-  // non-Grunt character of the played sides that has a model on the mat. The updater form reads the list
+  // Power button in the toolbar and the Power Phase buttons on the table (docs/features/round-phases.md). Gives
+  // the Power of the Power Phase to each non-Grunt character of `sides` that has a model on the mat. The
+  // toolbar passes the played sides, a table button its own side. The updater form reads the list
   // now, not at the last render, so a change the other browser just made is kept. The updater runs
   // inside setCharacters, so gains is filled when the HUD message is built.
-  function handlePowerPhase() {
+  function handlePowerPhase(sides) {
     const gains = []
     setCharacters((prev) =>
       prev.map((ch) => {
-        if (!playedSides.includes(ch.teamColor) || !characterOnBoard(ch, poses)) return ch
+        if (!sides.includes(ch.teamColor) || !characterOnBoard(ch, poses)) return ch
         if (characterIsGrunt(ch.key)) return ch
         const power = powerAfterPhase({
           power: ch.power,
@@ -1002,10 +1040,13 @@ export default function App({
         return { ...ch, power }
       }),
     )
+    // With one side, the message names it
+    const title =
+      sides.length === 1 ? `Power Phase (${sides[0] === 'blue' ? 'Blue' : 'Red'})` : 'Power Phase'
     showHudMessage(
       gains.length === 0
-        ? 'Power Phase: none of your characters is on the board'
-        : `Power Phase: ${gains.join(', ')}`,
+        ? `${title}: none of your characters is on the board`
+        : `${title}: ${gains.join(', ')}`,
       8000,
     )
   }
@@ -1693,6 +1734,62 @@ export default function App({
     tokenDragHandleRef.current?.cancel()
   }
 
+  // A press on an own tool or chip of the rack (ToolRack.jsx). e is the pointer event of the 3D scene or the DOM
+  // event of a chip. kind: 'range' | 'move' | 'angle'. which: the range number, the movement type, or true. The
+  // camera does not move during the press (startPointerDrag). After DRAG_THRESHOLD px, the outline of the tool
+  // follows the pointer, and the release drops the tool (handleToolDrop). onClick: the release of a press
+  // that did not become a drag (chips only; a tool of the 3D scene has its own click). Escape cancels (see
+  // handleKeyDown).
+  function startToolDrag(e, kind, which, onClick) {
+    const drag = { kind, which }
+    const handle = startPointerDrag(e, {
+      controls: controlsRef.current,
+      canvas: e.nativeEvent?.target ?? e.target,
+      preventDefault: true,
+      onStart: (ev) =>
+        setToolDrag(
+          (prev) =>
+            prev && { ...prev, active: true, start: { clientX: ev.clientX, clientY: ev.clientY } },
+        ),
+      onEnd: (ev) => {
+        handleToolDrop(drag, ev.clientX, ev.clientY)
+        endToolDrag()
+      },
+      onClick: () => {
+        endToolDrag()
+        onClick?.()
+      },
+      onCancel: endToolDrag,
+    })
+    if (!handle) return
+    toolDragHandleRef.current = handle
+    setToolDrag({ ...drag, active: false, start: null })
+  }
+
+  function endToolDrag() {
+    toolDragHandleRef.current = null
+    setToolDrag(null)
+  }
+
+  // The release of a tool drag at (clientX, clientY): the same as the tool key at that point. Over the piece
+  // under the pointer, the tool snaps to it. Over the table or terrain, it spawns free there. Over a HUD
+  // panel, off the table or over the own rack: nothing, and no toggle (docs/features/table-tools.md, "Tool
+  // rack"). The piece under the pointer is hoveredRef: the drag releases the pointer capture of the canvas,
+  // so the hover events of the 3D scene go on during the drag.
+  function handleToolDrop({ kind, which }, clientX, clientY) {
+    if (!document.elementFromPoint(clientX, clientY)?.closest('.scene-root')) return
+    const point = toolDragPointRef.current
+    if (!canDropTool(ownSide, point)) return
+    const at = { x: point.x, z: point.z }
+    if (kind === 'angle') placeAngleTool(hoveredRef.current, at)
+    else placeTool(kind, which, hoveredRef.current, at)
+  }
+
+  // A move drag of an own tool ended on the own rack: the tool goes back to it (Scene.jsx, onToolReturn)
+  function handleToolReturn(kind) {
+    setOwnTool(kind, null)
+  }
+
   // Character under (clientX, clientY): the DOM tray controls first (data-character-id, see
   // TrayControls.jsx), then the 3D scene (Scene.jsx, characterAt). Usable outside a drag too: it is
   // passed down to Scene, which gives it to CrisisToken.jsx for an Extract token's release (Phase
@@ -1835,6 +1932,33 @@ export default function App({
           <SelectionOutlines composer={mode !== 'no-composer'} outlines={mode === 'full'}>
             <Scene
               mapId={mapId}
+              tableButtons={{
+                multiplayer: Boolean(room?.multiplayer),
+                show: {
+                  power: toolsOnTable('power'),
+                  cleanup: toolsOnTable('cleanup'),
+                  deployLock: toolsOnTable('deployLock'),
+                  matTurn: toolsOnTable('matTurn'),
+                },
+                onPowerPhase: handlePowerPhase,
+                onCleanupPhase: handleCleanupPhase,
+                cleanupDisabled,
+                cleanupTitle,
+                deployLine,
+                onDeployLineClick: () => setDeployLine((prev) => !prev),
+                onTurnMat: handleTurnMat,
+              }}
+              toolRack={
+                rackShown
+                  ? {
+                      multiplayer: Boolean(room?.multiplayer),
+                      onRangeClick: handleRangeClick,
+                      onMoveClick: handleMoveClick,
+                      onAngleClick: handleAngleClick,
+                      onDragStart: startToolDrag,
+                    }
+                  : null
+              }
               terrain={terrain}
               onTerrainHover={handleTerrainHover}
               terrainAtRef={terrainAtRef}
@@ -1842,6 +1966,7 @@ export default function App({
               tools={tools}
               ownSide={ownSide}
               onToolStore={handleToolStore}
+              onToolReturn={rackShown ? handleToolReturn : undefined}
               ownership={ownership}
               presence={presence}
               live={live}
@@ -1884,6 +2009,8 @@ export default function App({
               onTacticHover={handleTacticHover}
               tokenDrag={tokenDrag}
               dragPointRef={dragPointRef}
+              toolDrag={toolDrag}
+              toolDragPointRef={toolDragPointRef}
               onCardOpen={setOpenCard}
               onTrayOpen={setOpenTrayId}
               onAttachedOpen={handleAttachedOpen}
@@ -1965,7 +2092,10 @@ export default function App({
           spectator={spectator}
           onSpectatorClick={() => setSpectator((prev) => !prev)}
           onTurnMat={handleTurnMat}
-          onPowerPhase={handlePowerPhase}
+          settings={settings}
+          settingsOpen={settingsOpen}
+          onSettingsClick={() => setSettingsOpen((prev) => !prev)}
+          onPowerPhase={() => handlePowerPhase(playedSides)}
           onCleanupPhase={handleCleanupPhase}
           cleanupDisabled={cleanupDisabled}
           cleanupTitle={cleanupTitle}
@@ -1996,6 +2126,13 @@ export default function App({
       />
       <RollsPanel open={rollsOpen} rolls={rolls} />
       <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
+      {settingsOpen && (
+        <SettingsPopup
+          settings={settings}
+          onChange={handleSettingChange}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
       {openRoster && rosters[openRoster.team] && (
         <RosterPopup
           team={openRoster.team}
