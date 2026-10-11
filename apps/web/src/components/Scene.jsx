@@ -205,7 +205,8 @@ const OVERLAP_INTERVAL = 100
 // for the Delete key. terrainAtRef: ref App calls for the L key, the same pattern as characterAtRef.
 // Scene fills it with terrainAt.
 // showColliders: draw every physics collider as lines (the shapes physics uses, not the visible meshes)
-// showLabels: show the piece name and game Size above each terrain piece
+// showLabels: show the label (name, game Size, lock state) above each terrain piece. With labels off, the
+// piece under the pointer shows its label.
 // spectator: show the spectator view above each model (SpectatorBadge.jsx)
 // matTurns: number of 90° counter-clockwise turns of the mat and its terrain
 // crisis: { secure, extract } chosen card keys. tokens: every crisis token on the table (see App.jsx).
@@ -561,7 +562,12 @@ export default function Scene({
   // the pointer off the canvas (over the HUD or a tray's controls), it is null.
   function terrainAt() {
     if (!gl.domElement.matches(':hover')) return null
-    raycaster.current.setFromCamera(pointer, camera)
+    return terrainUnder(pointer)
+  }
+
+  // Id of the nearest terrain piece on the ray through ndc, or null
+  function terrainUnder(ndc) {
+    raycaster.current.setFromCamera(ndc, camera)
     let nearestId = null
     let nearestDistance = Infinity
     for (const [id, object] of terrainObjects.current) {
@@ -573,6 +579,47 @@ export default function Scene({
     }
     return nearestId
   }
+
+  // Hover label: with labels off, the piece under the pointer shows its label, locked or not. One ray
+  // per frame at most, only on pointer move, and the state changes only when the id changes.
+  const [hoverLabelId, setHoverLabelId] = useState(null)
+  useEffect(() => {
+    if (showLabels) {
+      setHoverLabelId(null)
+      return undefined
+    }
+    const canvas = gl.domElement
+    let frame = 0
+    let last = null
+    function cast() {
+      frame = 0
+      const rect = canvas.getBoundingClientRect()
+      const ndc = {
+        x: ((last.clientX - rect.left) / rect.width) * 2 - 1,
+        y: -((last.clientY - rect.top) / rect.height) * 2 + 1,
+      }
+      setHoverLabelId(terrainUnder(ndc))
+    }
+    function onMove(e) {
+      last = e
+      if (!frame) frame = requestAnimationFrame(cast)
+    }
+    function onLeave() {
+      cancelAnimationFrame(frame)
+      frame = 0
+      setHoverLabelId(null)
+    }
+    canvas.addEventListener('pointermove', onMove)
+    canvas.addEventListener('pointerleave', onLeave)
+    return () => {
+      canvas.removeEventListener('pointermove', onMove)
+      canvas.removeEventListener('pointerleave', onLeave)
+      cancelAnimationFrame(frame)
+      setHoverLabelId(null)
+    }
+    // terrainUnder only reads refs and the camera
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showLabels, gl, camera])
 
   // Live table position of a character's first model (Hold and drop, "Drop"): the Rapier body when there
   // is one, otherwise the 3D object's own position. Not the spawn position, so a character that moved
@@ -1137,6 +1184,7 @@ export default function Scene({
             <Terrain
               placements={terrain}
               showLabels={showLabels}
+              hoverLabelId={hoverLabelId}
               selectedId={selectedTerrainId}
               onSelect={(id) => toggleSelect('terrain', id)}
               onHover={onTerrainHover}

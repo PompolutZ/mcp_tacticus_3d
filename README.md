@@ -193,6 +193,8 @@ The red shows during a drag, as soon as the base enters another model. A drag th
 
 Every terrain piece is locked when its map is loaded. A locked piece does not react to the pointer: a click on it is a click on the empty table, and a piece behind it can still be clicked. Press **L** with the pointer over a terrain piece to unlock it, as in TTS. Press L again to lock it. A HUD message shows the new state, because a locked piece looks the same as an unlocked one.
 
+The **Labels** chip of the toolbar is on at the start. Each terrain piece then shows a label above it: "Tree - Size 2 - (L)ocked" or "Tree - Size 2 - Un(L)ocked" (a piece with no Size: "Tree - (L)ocked"). The label follows the lock state. With Labels off, only the piece under the pointer shows its label, locked or not. A model that you drag shows a light grey footprint on the table, and a red one over another model.
+
 An unlocked piece shows a white outline under the pointer. Click it to select it. Press **Delete** with the pointer over it to remove it. A model that stands on a removed piece falls to what is under it. A new map brings its own terrain, all locked again. Unlocked pieces cannot be moved yet.
 
 ## Tools

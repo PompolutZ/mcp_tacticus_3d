@@ -174,7 +174,15 @@ User, after this step:
 
 ### Result
 
-Not started.
+Done.
+
+- `App.jsx`: `showLabels` starts `true`.
+- `terrain/label.js` `terrainLabel(name, size, locked)` gives the text of decision 6. `Terrain.jsx` uses it for every label. Tests: 2 new in `terrain/label.test.js`.
+- Hover label. `Scene.jsx` has `hoverLabelId`. While labels are off, a `pointermove` listener on the canvas casts the ray of the L key (`terrainUnder`, the part of `terrainAt` that takes a point) at most once per frame. State changes only when the id changes. `pointerleave` of the canvas, and turning labels on, clear it. `Terrain` shows the label of that piece. A locked piece still has no pointer handlers.
+- `footprintProjection.js`: `FOOTPRINT_COLOR` is `#c8c8c8`. Its only user is `DragFootprint.jsx` (a dragged piece). The green and red stay.
+- Docs: `key-shortcuts.md` (L row), `README.md` (Terrain lock: labels on at start, the text, the hover label, the grey footprint).
+- Checks: build, format, lint (44 warning lines, as before), test 380 pass (378 before).
+- Differs from the plan: `RulerTool.jsx` also used `FOOTPRINT_COLOR` for a tool with no target (blue). It would have turned grey, and the plan keeps the tool look. So a new `FOOTPRINT_TOOL` `#3f7fd6` holds the old blue for tools. Not run in a browser (project rule).
 
 ## Step 5: Dice tray clicks and keys
 

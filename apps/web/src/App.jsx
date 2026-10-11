@@ -300,7 +300,7 @@ export default function App({
   // Look options of cards and tokens, see DebugPanel and components/look.js
   const [toneMapping, setToneMapping] = useState(DEFAULT_LOOK.toneMapping)
   const [surface, setSurface] = useState(DEFAULT_LOOK.surface)
-  const [showLabels, setShowLabels] = useState(false)
+  const [showLabels, setShowLabels] = useState(true)
   // The spectator view above each model (SpectatorBadge.jsx)
   const [spectator, setSpectator] = useState(false)
   const [matTurns, setMatTurns] = useYField(table.game, 'matTurns')
