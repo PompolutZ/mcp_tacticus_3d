@@ -254,6 +254,14 @@ User: the toolbar range, move and angle buttons; tool keys over a model (in mult
 
 ### Result
 
+New `src/tabletools/useTableTools.js` holds the tools record, `angleSpawn`, `toolSpawn`, the tool drag state and refs, `toolbarSpawnAt`, `setOwnTool`, `spawnTool`, the toolbar handlers, `handleEscape`, `clearTools`, `keySelects`, the key handlers, `placeAngleTool`, `placeTool`, `startToolDrag`, `endToolDrag`, `handleToolDrop` and `handleToolReturn`. Bodies are unchanged. `App` destructures the result into the same names. The call stands right after `usePing`, after the selection and hover hooks and before E6, so E6 still uses `placeTool` and keeps its lint warning.
+
+Args: the planned ones, all used. The hook also returns `toolDragHandleRef` (the key table cancels the drag with it) and `handleEscape`. Pointers fixed in `ToolRack.jsx` (2) and `Scene.jsx`.
+
+Effect order is the same: the hook has no effect. Only the store subscription of `useYRecord(table.tools)` now runs later among the passive subscriptions, which have no order dependence.
+
+Checks: `pnpm format`, `pnpm lint` (45 warnings before and after), `pnpm test` (568 web tests pass), `pnpm --filter web build`, debug grep 0.
+
 ## Step 8: Crisis tokens, drop and wait
 
 Needs step 7.

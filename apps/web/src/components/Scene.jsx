@@ -248,9 +248,9 @@ const OVERLAP_INTERVAL = 100
 // tacticCards: the Team Tactic cards on the table (see TacticCard.jsx and App.jsx). onTacticMove(id,
 // x, z): a card drag ended over the table. onTacticHover(id, over): for the F and Delete keys. A
 // click on a card opens it with onCardOpen, the same as a crisis card.
-// toolDrag: the drag of a tool from the rack, { kind, which, active, start } | null (App.jsx). While it is active, a
+// toolDrag: the drag of a tool from the rack, { kind, which, active, start } | null (tabletools/useTableTools.js). While it is active, a
 // flat outline of the tool follows the pointer (ToolDragGhost). toolDragPointRef: the ghost writes the table point
-// under the pointer there, for App's drop.
+// under the pointer there, for the drop (useTableTools.js).
 // tokenDrag: the token drag in progress, see App.jsx. While it is active, the dragged token shows
 // under the pointer (TokenDragPreview) and, for a token from the table, not in its old place.
 // dragPointRef: the preview writes the table point under the pointer there, for App's release.

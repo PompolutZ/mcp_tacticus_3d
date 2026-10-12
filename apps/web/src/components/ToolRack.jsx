@@ -9,7 +9,7 @@ import { useHoverCursor } from './useHoverCursor.js'
 
 // The tool rack of each player: a plate with the range and movement tools in the player tint, and the R1 and
 // T/A chips. See docs/features/table-tools.md, "Tool rack". The tools have no physics body. A click is the
-// same as the toolbar button of that tool. A drag takes the tool to the table (App.jsx, startToolDrag).
+// same as the toolbar button of that tool. A drag takes the tool to the table (tabletools/useTableTools.js, startToolDrag).
 
 // The plate is a little above the table, like the tray plates (CharacterTray.jsx); the tools lie on it
 const PLATE_Y = 0.01
@@ -218,7 +218,7 @@ function Rack({ side, tools, handlers }) {
 
 // The racks. A multiplayer room shows both, and only the own one reacts to the pointer. Else only the rack of
 // the own side shows, because this browser has only its own tools. The handlers are the toolbar handlers.
-// onDragStart(e, kind, which, onClick): a press on an own tool or chip (App.jsx, startToolDrag).
+// onDragStart(e, kind, which, onClick): a press on an own tool or chip (tabletools/useTableTools.js, startToolDrag).
 export default function ToolRack({
   ownSide,
   multiplayer,
