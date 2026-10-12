@@ -1,6 +1,6 @@
 # Plan: Game flow
 
-Requested by the user on 2026-10-12. Plan 4 of `docs/plans/playtest-1.md`. Status: all steps done, waiting for the user's test. Branch `game-flow`, from `setup-round-2` at `2c8f5d0`.
+Requested by the user on 2026-10-12. Plan 4 of `docs/plans/playtest-1.md`. Status: done. The user tested it on 2026-10-12. Branch `game-flow`, from `setup-round-2` at `2c8f5d0`.
 
 The branch starts from `setup-round-2`, not from main, because this plan needs its roll off, `setup.priority` and the side keys `host` / `guest`. `setup-round-2` merges into main first. Then this branch merges main.
 

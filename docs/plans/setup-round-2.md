@@ -1,6 +1,6 @@
 # Plan: Setup round 2
 
-Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: all 9 steps done, steps 8 and 9 waiting for the user checks. Branch `setup-round-2`, from main at `87f9b6e`.
+Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: done. The user tested it on 2026-10-12. Branch `setup-round-2`, from main at `87f9b6e`.
 
 The feature is `docs/features/setup-game.md`. Each step makes one commit and writes its **Result** below.
 
