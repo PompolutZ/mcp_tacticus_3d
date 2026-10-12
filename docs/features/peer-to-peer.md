@@ -404,7 +404,7 @@ Positions have 3 decimals (0.001"). Rotations, yaw and bend have 4. A model pose
 
 ### Cursor message
 
-`c` in the live packet: `[x, y, z]`, the table or terrain point under the own pointer, or `null` when the pointer left the table or the canvas. At most every 100 ms (10 per second), and only when it moved. The other browser shows a flat ring in the side color of the other player at the latest received point. The ring hides after `null`, and when the other player is gone. While the own Select squad is on, no cursor is sent: `null` goes out once at the start, then nothing until the pointer moves after the end.
+`c` in the live packet: `[x, y, z]`, the table or terrain point under the own pointer, or `null` when the pointer left the table or the canvas. At most every 100 ms (10 per second), and only when it moved. The other browser shows a flat ring in the side color of the other player at the latest received point. The ring hides after `null`, and when the other player is gone. While the own squad can change (squad step, not Squad ready), no cursor is sent: `null` goes out once at the start, then nothing until the pointer moves after the end.
 
 ### Dice
 

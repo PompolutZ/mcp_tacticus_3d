@@ -437,12 +437,11 @@ function BoardPanel({ setup, step, parsed, mySide, ctx, actions }) {
 }
 
 // The squad buttons of a player, in their crisis area. The crisis cards are on the scoring board by now.
-// Select squad: clicks on the roster cards add them to the squad or remove them (App.jsx,
-// handleRosterClick). Ready works when the squad has a character and its threat is not above the Maximum
-// Threat. A squad with less threat is fine. While the player is Ready, the squad does not change. When both
-// players are Ready, both squads go on the table.
-function SquadPanel({ team, setup, parsed, selecting, own, ctx, actions }) {
-  const colors = useSideColors()
+// The roster cards have a + / ✓ button that adds them to the squad or removes them (RosterCards.jsx, App.jsx
+// handleSquadToggle). Squad ready works when the squad has a character and its threat is not above the Maximum
+// Threat. A squad with less threat is fine. While the player is ready, the button is Change squad and the squad
+// does not change. When both players are ready, both squads go on the table.
+function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
   const squad = setup.squads[team]
   const ready = setup.ready[team]
   // The other player in a multiplayer room (no squad is shown before the reveal), or a squad that is placed
@@ -476,40 +475,32 @@ function SquadPanel({ team, setup, parsed, selecting, own, ctx, actions }) {
           </span>
         </div>
         <div className="setup-row">
-          <button
-            type="button"
-            className={`chip chip--player-${colors[team]}${selecting ? ' setup-toggle--on' : ''}`}
-            aria-pressed={selecting}
-            disabled={ready}
-            title={
-              ready
-                ? 'Click Ready again to change the squad'
-                : selecting
-                  ? 'Stop choosing: a click on a roster card opens it again'
-                  : 'Choose the squad: a click on a roster card adds it or removes it'
-            }
-            onClick={() => actions.squadSelect(team)}
-          >
-            Select squad
-          </button>
-          <button
-            type="button"
-            className={`chip${ready ? ' setup-toggle--on' : ''}`}
-            aria-pressed={ready}
-            disabled={!ready && problem !== null}
-            title={
-              ready
-                ? 'Not ready: change the squad'
-                : (problem ?? 'The squads go on the table when both players are Ready')
-            }
-            onClick={() => actions.ready(team)}
-          >
-            Ready
-          </button>
+          {ready ? (
+            <button
+              type="button"
+              className="chip"
+              title="Squad ready is off, so the squad can change"
+              onClick={() => actions.ready(team)}
+            >
+              Change squad
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="chip chip--primary"
+              aria-disabled={problem !== null}
+              title={problem ?? 'The squads go on the table when both players are ready'}
+              onClick={() => {
+                if (problem === null) actions.ready(team)
+              }}
+            >
+              Squad ready
+            </button>
+          )}
         </div>
-        {selecting && (
+        {!ready && (
           <div className="setup-note">
-            Click characters and Team Tactic cards to add or remove them.
+            Click + on a roster card, or choose a squad in the Breakdown tab.
           </div>
         )}
         {ready && <div className="setup-note">Waiting for {playerName(otherTeam(team), ctx)}.</div>}
@@ -521,17 +512,15 @@ function SquadPanel({ team, setup, parsed, selecting, own, ctx, actions }) {
 
 // The game setup on the table: the crisis cards of the rosters next to the scoring board, and the buttons
 // of each step. The buttons lie flat on the table (OnTable). See docs/features/setup-game.md.
-// setup: see setup/setup.js. rosters: { blue, red } → null | { code }. squadSelect: { blue, red } → the
-// player is choosing squad cards. seatPlayers: { players, peer } of a multiplayer room, for the names
+// setup: see setup/setup.js. rosters: { blue, red } → null | { code }. seatPlayers: { players, peer } of a multiplayer room, for the names
 // (setup/names.js). mySide: the team of the player in a multiplayer room, or null when one
 // person plays both teams. Only that team's squad panel has buttons. actions: { priority(team), deck(type), pick(code),
-// threat(value), turnMat(direction), edge(), squadSelect(team), ready(team),
+// threat(value), turnMat(direction), edge(), ready(team),
 // affiliation(team, key), restart(), browse(step | null), override(step) }, see App.jsx.
 // onRosterOpen({ team, tab, index }): a click on a crisis card. onCardHover(card, over): for Alt (App.jsx).
 export default function GameSetup({
   setup,
   rosters,
-  squadSelect,
   mySide,
   seatPlayers,
   actions,
@@ -596,7 +585,6 @@ export default function GameSetup({
             team={team}
             setup={setup}
             parsed={parsed[team]}
-            selecting={squadSelect[team]}
             own={!mySide || mySide === team}
             ctx={ctx}
             actions={actions}

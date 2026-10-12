@@ -29,12 +29,15 @@ import { BreakdownTab } from './BreakdownTab.jsx'
 // breakdown: { threats, threat, filters, onThreatChange, onFiltersChange, chooseBlock, squadCharacters,
 // onChoose } for the Breakdown tab after the card tabs (see
 // BreakdownTab.jsx and docs/features/squad-breakdown.md), or missing: no such tab, as in the lobby.
+// squad: { has(tab, index), onToggle(tab, index) }, or missing. With it, a character and Team Tactic card has
+// an Add to squad / Remove from squad button (docs/features/setup-game.md, "Squads").
 export function RosterPopup({
   team,
   code,
   tab,
   index,
   breakdown,
+  squad,
   onTabChange,
   onIndexChange,
   onClose,
@@ -98,7 +101,13 @@ export function RosterPopup({
           <BreakdownTab parsed={parsed} breakdown={breakdown} />
         ) : (
           // A new tab gets a new carousel, which starts at the index that App gives
-          <CardCarousel key={tab} cards={tabs[tab]} index={index} onIndexChange={onIndexChange} />
+          <CardCarousel
+            key={tab}
+            cards={tabs[tab]}
+            index={index}
+            onIndexChange={onIndexChange}
+            squad={squad && (tab === 'characters' || tab === 'tactics') ? { ...squad, tab } : null}
+          />
         )}
       </div>
     </Overlay>
@@ -109,7 +118,7 @@ export function RosterPopup({
 // index.css). All cards of a tab have the same size, so the first card gives the card width of the tab.
 // The viewport is 2 character slides wide, so the loop needs 3 character cards, or about 6 Team Tactic or
 // crisis cards (5 on a small screen).
-function CardCarousel({ cards, index, onIndexChange }) {
+function CardCarousel({ cards, index, onIndexChange, squad }) {
   const [w, h] = CARD_SIZES[cards[0].kind]
   return (
     <Carousel
@@ -117,7 +126,14 @@ function CardCarousel({ cards, index, onIndexChange }) {
       index={index}
       onIndexChange={onIndexChange}
       style={{ '--card-w': `calc(var(--card-h) * ${w / h})` }}
-      renderSlide={(i, active) => <PopupCard card={cards[i]} active={active} />}
+      renderSlide={(i, active) => (
+        <PopupCard
+          card={cards[i]}
+          active={active}
+          inSquad={squad ? squad.has(squad.tab, i) : null}
+          onSquadToggle={squad ? () => squad.onToggle(squad.tab, i) : null}
+        />
+      )}
     />
   )
 }
@@ -131,7 +147,7 @@ function CardCarousel({ cards, index, onIndexChange }) {
 // and the Infinity Gems of a character as text lines, as the app has no gem images. The card switch, at
 // the left, shows when the character has more than one card (variants in rosters/cards.js), for example
 // Emma Frost and her Diamond form. The shown card keeps its side.
-function PopupCard({ card, active }) {
+function PopupCard({ card, active, inSquad, onSquadToggle }) {
   const [flipped, setFlipped] = useState(false)
   const [variant, setVariant] = useState(0)
   const info = rosterCard(card.code)
@@ -221,6 +237,15 @@ function PopupCard({ card, active }) {
                 </button>
               ))}
             </div>
+          )}
+          {onSquadToggle && (
+            <button
+              type="button"
+              className={inSquad ? 'chip chip--active' : 'chip'}
+              onClick={onSquadToggle}
+            >
+              {inSquad ? 'Remove from squad' : 'Add to squad'}
+            </button>
           )}
           {shown.image && shown.back && (
             <button type="button" className="chip roster-popup-flip-button" onClick={flip}>

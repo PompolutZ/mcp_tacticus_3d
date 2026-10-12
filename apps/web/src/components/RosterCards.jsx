@@ -7,6 +7,7 @@ import { useColorTexture } from './useColorTexture.js'
 import FaceMaterial from './FaceMaterial.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
+import { OnTable } from './OnTable.jsx'
 
 const FLAT = [-Math.PI / 2, 0, 0] // the image top faces local -z, toward the mat, the same as a tray card
 const PX_PER_INCH = 100
@@ -15,6 +16,9 @@ const GEM_HEIGHT = 0.45
 // makes it draw on top of the card, so it does not z-fight from a distance.
 const GEM_LIFT = 0.003
 const NO_RAYCAST = () => null
+// The + / ✓ button sits in the top right corner of the card, this far from the edges, just above the card
+const TOGGLE_INSET = 0.7
+const TOGGLE_LIFT = 0.06
 // A card in the squad gets a frame around it (see docs/features/setup-game.md, "Squads"). The frame lies
 // next to the card, not under it, so the two do not z-fight.
 const FRAME_WIDTH = 0.18
@@ -165,8 +169,9 @@ function SquadFrame({ card }) {
 // One roster card with its gem lines. A click on the card goes to onOpen, also for a plate: App
 // decides if the card can open (see handleRosterOpen). card: { code, kind, gems, x, z, width, height, yaw,
 // tab, index }, see rosters/layout.js. selected: the card is in the squad. Also used for the crisis cards
-// next to the scoring board (GameSetup.jsx). onCardHover(card, over): the pointer moved onto or off the card, for Alt.
-export function RosterCard({ card, info, selected = false, onOpen, onCardHover }) {
+// next to the scoring board (GameSetup.jsx). onToggle(tab, index): with it, the card has a small + / ✓ button in a
+// corner that adds the card to the squad or removes it, and does not open the card. onCardHover(card, over): the pointer moved onto or off the card, for Alt.
+export function RosterCard({ card, info, selected = false, onOpen, onToggle, onCardHover }) {
   const [hovered, setHovered] = useState(false)
   const groupRef = useRef()
   useHoverCursor(hovered, 'pointer')
@@ -201,6 +206,27 @@ export function RosterCard({ card, info, selected = false, onOpen, onCardHover }
         {info.image ? <Face card={card} info={info} /> : <Plate card={card} info={info} />}
       </Suspense>
       {selected && <SquadFrame card={card} />}
+      {onToggle && (
+        <OnTable
+          position={[card.width / 2 - TOGGLE_INSET, TOGGLE_LIFT, -card.height / 2 + TOGGLE_INSET]}
+          rotation={FLAT}
+        >
+          <button
+            type="button"
+            className={`roster-toggle${selected ? ' roster-toggle--on' : ''}`}
+            title={selected ? 'Remove from the squad' : 'Add to the squad'}
+            aria-label={`${selected ? 'Remove' : 'Add'} ${info.name} ${selected ? 'from' : 'to'} the squad`}
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerUp={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggle(card.tab, card.index)
+            }}
+          >
+            {selected ? '✓' : '+'}
+          </button>
+        </OnTable>
+      )}
       {card.gems.map((gem, g) => {
         const gemInfo = rosterCard(gem)
         return gemInfo && <GemLine key={`${g}-${gem}`} card={card} name={gemInfo.name} index={g} />
@@ -213,9 +239,10 @@ export function RosterCard({ card, info, selected = false, onOpen, onCardHover }
 // body. See docs/features/roster.md, "On the table". The crisis cards lie next to the scoring board
 // (GameSetup.jsx). code: the stored MCT code (App.jsx, rosters). squad: the places of the cards in the
 // squad, { characters, tactics } (setup/setup.js). onOpen(tab, index): a click on a card, see RosterPopup.jsx.
+// onToggle(tab, index): the + / ✓ button of a character or Team Tactic card, or missing: no button.
 // tab: a key of ROSTER_TABS, index: the place of the card in that tab. In the characters and tactics tabs,
 // the place in the tab is the place in the roster list.
-export default function RosterCards({ team, code, squad, onOpen, onCardHover }) {
+export default function RosterCards({ team, code, squad, onOpen, onToggle, onCardHover }) {
   const cards = useMemo(() => {
     // rosterLayout keeps the card order of rosterTabs (cards.js), so a count per tab gives the index.
     const next = { characters: 0, tactics: 0 }
@@ -235,6 +262,7 @@ export default function RosterCards({ team, code, squad, onOpen, onCardHover }) 
           info={info}
           selected={selected}
           onOpen={onOpen}
+          onToggle={card.tab === 'characters' || card.tab === 'tactics' ? onToggle : undefined}
           onCardHover={onCardHover}
         />
       )

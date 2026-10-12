@@ -811,7 +811,53 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* A setup toggle that is on: Select squad, Ready */
+/* The main button of a panel: Squad ready. Stronger than .chip--active, the accent color with a white outline. */
+.chip--primary {
+  background: var(--accent);
+  border-color: #fff;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 6px 18px;
+}
+
+.chip--primary:hover {
+  background: #3a7de0;
+  border-color: #fff;
+}
+
+/* The + / ✓ button in the corner of a roster card in the squad step (RosterCards.jsx). 1 px is 0.04". */
+.roster-toggle {
+  pointer-events: auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  background: rgba(23, 26, 35, 0.92);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.roster-toggle:hover {
+  background: var(--accent);
+}
+
+.roster-toggle--on {
+  background: #e0b020;
+  border-color: #e0b020;
+  color: #000;
+}
+
+.roster-toggle--on:hover {
+  background: #f0c840;
+}
+
+/* A setup toggle that is on */
 .setup-toggle--on {
   box-shadow: 0 0 0 2px #fff;
 }

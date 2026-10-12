@@ -118,12 +118,12 @@ The filter box is always shown. Its first row, **Must have**, is always visible.
 
 In the squad step, a click on a combination chooses its characters for the squad.
 
-- The click works on a roster that this browser plays, while its player is not Ready and its squad is not on the table. In a multiplayer room, that is only the own roster. On the other roster, the rows do not take clicks.
+- The click works on a roster that this browser plays, while its player has not pressed Squad ready and its squad is not on the table. In a multiplayer room, that is only the own roster. On the other roster, the rows do not take clicks.
 - The click replaces the characters of the squad with the characters of the combination. The Team Tactic cards of the squad stay. Players choose them by hand.
 - A character without a 3D model cannot join, the same as with a click on its roster card. The other characters join, and the HUD message names the missing ones: "No model for <name> (<code>), so it cannot join the squad".
-- After the click, the popup closes and **Select squad** is on for that player. So the player sees the squad frames on the table and can change the squad or add Team Tactic cards with clicks on the roster cards.
+- After the click, the popup closes. The player sees the squad frames on the table and can change the squad or add Team Tactic cards with the **+** / **✓** buttons on the roster cards.
 - The row whose characters are the current squad has the yellow frame of a squad card. In a multiplayer room, only the own squad shows, because the other squad is hidden.
-- Before the squad step, and after **Ready**, the rows do not take clicks. The line over the list says why.
+- Before the squad step, and after **Squad ready**, the rows do not take clicks. The line over the list says why.
 
 ## State
 
@@ -157,5 +157,5 @@ In the squad step, a click on a combination chooses its characters for the squad
 3. Only the threat values that this game can still have show. With no crisis cards, all values of the Jarvis data show.
 4. Affiliations use the same rule as the Affiliation step of the setup, with Rogue Agent. The other Jarvis special cases are left out.
 5. Must not have removes characters before the combinations are found. The other filters work on the list.
-6. A click in the squad step replaces the characters of the squad. The Team Tactic cards stay. The popup closes, and **Select squad** turns on.
+6. A click in the squad step replaces the characters of the squad. The Team Tactic cards stay. The popup closes.
 7. A roster with more than 14 characters gets no breakdown, the same as on Jarvis.

@@ -252,9 +252,10 @@ const OVERLAP_INTERVAL = 100
 // under the pointer (TokenDragPreview) and, for a token from the table, not in its old place.
 // dragPointRef: the preview writes the table point under the pointer there, for App's release.
 // rosters: { blue, red } → null | { code }, the loaded rosters (RosterCards.jsx). onRosterOpen({ team, tab,
-// index }): a click on a roster card. It opens the roster popup on that card (see RosterPopup.jsx), or
-// adds the card to the squad (App.jsx, handleRosterClick).
-// setup: the game setup (setup/setup.js). squadSelect, setupActions, mySide, seatPlayers: see GameSetup.jsx. When the squads
+// index }): a click on a roster card. It opens the roster popup on that card (see RosterPopup.jsx).
+// squadEdit: { blue, red } → true: the roster cards of that side have the + / ✓ button, and onSquadToggle(team,
+// tab, index) adds the card to the squad or removes it (App.jsx, handleSquadToggle).
+// setup: the game setup (setup/setup.js). setupActions, mySide, seatPlayers: see GameSetup.jsx. When the squads
 // are on the table, the roster cards are not.
 // onCardOpen({ src, alt }): a click on a crisis card (see CardPopup.jsx). onTrayOpen(id): a click
 // on a tray card opens the whole tray (see TrayPopup.jsx). onAttachedOpen(code): a click on a gem chip
@@ -382,7 +383,8 @@ export default function Scene({
   rosters = { blue: null, red: null },
   onRosterOpen,
   setup,
-  squadSelect,
+  squadEdit,
+  onSquadToggle,
   setupActions,
   mySide = null,
   seatPlayers = null,
@@ -1141,7 +1143,7 @@ export default function Scene({
               diceLives={diceLives}
               pieceLives={pieceLives}
               liveRef={received}
-              hideCursor={Boolean(squadSelect?.[ownSide])}
+              hideCursor={Boolean(squadEdit?.[ownSide])}
             />
             <RemoteCursor
               liveRef={received}
@@ -1426,6 +1428,11 @@ export default function Scene({
                   code={rosters[team].code}
                   squad={setup.squads[team]}
                   onOpen={(tab, index) => onRosterOpen?.({ team, tab, index })}
+                  onToggle={
+                    squadEdit?.[team]
+                      ? (tab, index) => onSquadToggle?.(team, tab, index)
+                      : undefined
+                  }
                   onCardHover={onCardHover}
                 />
               ),
@@ -1433,7 +1440,6 @@ export default function Scene({
         <GameSetup
           setup={setup}
           rosters={rosters}
-          squadSelect={squadSelect}
           mySide={mySide}
           seatPlayers={seatPlayers}
           actions={setupActions}

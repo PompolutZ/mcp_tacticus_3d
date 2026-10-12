@@ -1,6 +1,6 @@
 # Plan: Setup round 2
 
-Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: steps 1 to 4, 6 and 7 done; step 5 waits for table-controls to merge. Branch `setup-round-2`, from main at `87f9b6e`.
+Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: steps 1 to 7 done, waiting for the user checks; steps 8 and 9 (rename) after the user checks. Branch `setup-round-2`, from main at `87f9b6e`.
 
 The feature is `docs/features/setup-game.md`. Each step makes one commit and writes its **Result** below.
 
@@ -183,6 +183,17 @@ Work:
 Checks: as in "Checks".
 
 User, after this step: build a squad with the corner buttons, the popup, and a Breakdown row. A click on a card always opens the popup. **Squad ready** is the button you see first.
+
+### Result
+
+Done after the merge of main (table-controls, 7 steps). Commits "Merge branch 'main' into setup-round-2", "setup round 2 part 5: squad step without a mode".
+
+- Merge: one conflict in `GameSetup.jsx` (`CrisisRow` props, the header comment, the `GameSetup` props). Kept both: `locked`, `seatPlayers`, `browse` / `override` and `onCardHover` (Alt). The rest of main's code has no side colors (only side keys in `TRAY_ROTATION` and `modelSpawnYaw`). The roll-off effect in `App.jsx` reads `kind: 'throw'` entries of `dice/history.js`, which main did not change.
+- `squadSelect` and the **Select squad** toggle are gone. `squadBlock(team)` in `App.jsx` (was `breakdownChooseBlock`; also blocks while `setup.view` is set) says if the squad of a side can change. `handleSquadToggle(team, tab, index)` is the old toggle code of `handleRosterClick`, which is gone: a click on a card always goes to `handleRosterOpen`.
+- `RosterCard` has the `onToggle` prop: a round **+** / **✓** button (`OnTable` in the card group, top right corner, `.roster-toggle`) with `stopPropagation` on pointer down, up and click. `Scene` gets `squadEdit` and `onSquadToggle`. `hideCursor` (decision 21 of plan 9) follows `squadEdit` of the own side, so the cursor is hidden for as long as the own squad can change.
+- `RosterPopup` takes `squad: { has, onToggle }` (built in `App.jsx` only when `squadBlock` is null): **Add to squad** / **Remove from squad** in the card footer of the characters and tactics tabs.
+- `GameSetup.jsx`: **Squad ready** with the new `.chip--primary` style (`aria-disabled` and the reason as title), **Change squad** while ready, the new hint.
+- Docs: `setup-game.md`, `squad-breakdown.md`, `peer-to-peer.md` (cursor), `README.md`.
 
 
 ## Step 6: Deployment step, Deploy Lock

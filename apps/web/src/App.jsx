@@ -82,6 +82,7 @@ import {
   setSquadCharacters,
   toggleReady,
   toggleSquadCard,
+  viewOf,
 } from './setup/setup.js'
 import { readRollOff } from './setup/rollOff.js'
 import { FACES } from './dice/faces.js'
@@ -362,9 +363,6 @@ export default function App({
     setSideColors({ blue: blueColor, red: blueColor === 'blue' ? 'red' : 'blue' })
     return () => setSideColors(DEFAULT_SIDE_COLORS)
   }, [blueColor])
-  // The players whose clicks on their roster cards choose the squad: { blue, red } → true. Off, a click opens
-  // the roster popup. Not saved.
-  const [squadSelect, setSquadSelect] = useState({ blue: false, red: false })
   // The selected threat value of the Breakdown tab of each roster: { blue, red } → { code, threat, filters } |
   // null. code: the roster code it belongs to; null means the first value. Not saved. See
   // docs/features/squad-breakdown.md, "State".
@@ -1407,27 +1405,11 @@ export default function App({
       )
   }
 
-  function handleSquadSelect(team) {
-    setSquadSelect((prev) => ({ ...prev, [team]: !prev[team] }))
-  }
-
-  // A click on a roster card. While the player chooses the squad, a character or Team Tactic card goes into
-  // the squad or out of it. Only a card that the app can put on the table can join: a character with a
-  // model, a Team Tactic card with an image. Otherwise the roster popup opens. In a multiplayer room, a
-  // click on the other player's cards always opens it.
-  function handleRosterClick(open) {
-    const { team, tab, index } = open
-    if (
-      (hiddenSquads && team !== mySide) ||
-      placedSides(setup)[team] ||
-      !squadSelect[team] ||
-      setupStep(setup) !== 'squads' ||
-      setup.ready[team] ||
-      (tab !== 'characters' && tab !== 'tactics')
-    ) {
-      handleRosterOpen(open)
-      return
-    }
+  // Adds a character or Team Tactic card of the roster of `team` to the squad, or removes it. This is the
+  // + / ✓ button on a roster card and the Add to squad button of the roster popup. Only a card that the app
+  // can put on the table can join: a character with a model, a Team Tactic card with an image.
+  function handleSquadToggle(team, tab, index) {
+    if (squadBlock(team) || (tab !== 'characters' && tab !== 'tactics')) return
     const parsed = parsedRosters[team]
     const info = rosterCard(
       tab === 'characters' ? parsed.characters[index].code : parsed.tactics[index],
@@ -1462,19 +1444,20 @@ export default function App({
 
   // Why a click on a squad of the Breakdown tab does not work for `team` now, or null when it works
   // (docs/features/squad-breakdown.md, "Choose a squad")
-  function breakdownChooseBlock(team) {
+  function squadBlock(team) {
     if (hiddenSquads && team !== mySide)
       return "This is the other player's roster, so you cannot choose its squad."
     if (placedSides(setup)[team]) return 'The squad is on the table.'
     if (setupStep(setup) !== 'squads') return 'You can choose a squad in the squad step.'
-    if (setup.ready[team]) return 'Ready is on, so the squad does not change.'
+    if (viewOf(setup)) return 'You are browsing an earlier step.'
+    if (setup.ready[team]) return 'Squad ready is on, so the squad does not change.'
     return null
   }
 
   // A click on a squad of the Breakdown tab: its characters become the squad, the Team Tactic cards stay.
-  // Characters without a model are left out. Then Select squad is on and the popup closes.
+  // Characters without a model are left out. Then the popup closes.
   function handleBreakdownChoose(team, places) {
-    if (breakdownChooseBlock(team)) return
+    if (squadBlock(team)) return
     const characters = parsedRosters[team].characters
     const missing = []
     const joined = []
@@ -1489,7 +1472,6 @@ export default function App({
       )
     const current = hiddenSquads ? ownSquad : setup.squads[team]
     writeSquad(team, setSquadCharacters({ squads: { [team]: current } }, team, joined).squads[team])
-    setSquadSelect((prev) => ({ ...prev, [team]: true }))
     setOpenRoster(null)
   }
 
@@ -1637,7 +1619,6 @@ export default function App({
     threat: handleSetupThreat,
     turnMat: handleTurnMat,
     edge: handleSetupEdge,
-    squadSelect: handleSquadSelect,
     ready: handleSquadReady,
     affiliation: handleSetupAffiliation,
     restart: handleSetupRestart,
@@ -2005,6 +1986,7 @@ export default function App({
   // The Breakdown tab of the open roster popup, only while the squad of that roster is not placed
   // (docs/features/squad-breakdown.md). Without it, a popup left on that tab shows the first tab with cards.
   let popupBreakdown = null
+  let popupSquad = null
   let rosterPopupTab = openRoster?.tab
   if (openRoster && rosters[openRoster.team]) {
     const { team } = openRoster
@@ -2034,18 +2016,29 @@ export default function App({
         onThreatChange: (threat) => store({ threat }),
         onFiltersChange: (filters) => store({ filters }),
         // Whether a click chooses a squad, the reason when not, and the squad characters this browser may show
-        chooseBlock: breakdownChooseBlock(team),
+        chooseBlock: squadBlock(team),
         squadCharacters:
           hiddenSquads && team !== mySide
             ? []
             : (hiddenSquads ? ownSquad : setup.squads[team]).characters,
         onChoose: (places) => handleBreakdownChoose(team, places),
       }
+      // The Add to squad button of the card tabs. Not while the squad is blocked (Ready, other roster).
+      if (!squadBlock(team)) {
+        const current = hiddenSquads ? ownSquad : setup.squads[team]
+        popupSquad = {
+          has: (tab, index) => current[tab]?.includes(index) ?? false,
+          onToggle: (tab, index) => handleSquadToggle(team, tab, index),
+        }
+      }
     } else if (rosterPopupTab === 'breakdown') {
       const cards = rosterTabs(parsedRosters[team])
       rosterPopupTab = ROSTER_TABS.find((t) => cards[t.key].length > 0)?.key ?? 'characters'
     }
   }
+
+  // The roster cards that have a + / ✓ button: { blue, red } → true, the own roster in the squad step
+  const squadEdit = { blue: !squadBlock('blue'), red: !squadBlock('red') }
 
   // Debug mode is only in the dev server. import.meta.env.DEV is false in `vite build`, so debug
   // is always false there and the build leaves out the debug code.
@@ -2186,11 +2179,12 @@ export default function App({
               scoreMarkers={scoreMarkers}
               affiliations={affiliations}
               rosters={rosters}
-              onRosterOpen={handleRosterClick}
+              onRosterOpen={handleRosterOpen}
               setup={viewSetup}
               mySide={mySide}
               seatPlayers={seatPlayers}
-              squadSelect={squadSelect}
+              squadEdit={squadEdit}
+              onSquadToggle={handleSquadToggle}
               setupActions={setupActions}
               onScoreMarkerMove={(marker, x, z) =>
                 setScoreMarkers((prev) => ({ ...prev, [marker]: { x, z } }))
@@ -2297,6 +2291,7 @@ export default function App({
           tab={rosterPopupTab}
           index={openRoster.index}
           breakdown={popupBreakdown}
+          squad={popupSquad}
           onTabChange={(tab) => setOpenRoster((prev) => prev && { ...prev, tab, index: 0 })}
           onIndexChange={(index) =>
             setOpenRoster((prev) => (!prev || index === prev.index ? prev : { ...prev, index }))
