@@ -1,6 +1,12 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { DIE_BUMP_MAX, DIE_BUMP_MIN, createBumpFinder } from './bumps.js'
+import {
+  DIE_BUMP_MAX,
+  DIE_BUMP_MIN,
+  REMOTE_DIE_MAX_SPEED,
+  createBumpFinder,
+  createPoseBumpFinder,
+} from './bumps.js'
 
 const G = 25
 const DT = 1 / 120
@@ -122,4 +128,92 @@ test('a velocity that is not finite or a dt that is not positive resets', () => 
   f.feed({ x: 0, y: -20, z: 0 }, DT)
   assert.equal(f.feed(still, 0), 0)
   assert.equal(f.feed(still, DT), 0)
+})
+
+// The other player's pieces: poses every 33 ms
+const MS = 33
+
+function poseFinder() {
+  return createPoseBumpFinder({ gravity: G })
+}
+
+// Feeds positions y at times 0, MS, 2 MS ... (x = z = 0) and returns the strengths
+function runPoses(f, ys, t0 = 1000) {
+  return ys.map((y, i) => f.feed({ x: 0, y, z: 0 }, t0 + i * MS))
+}
+
+test('poses: a fall that stops is a bump, a rest is quiet', () => {
+  const f = poseFinder()
+  const dt = MS / 1000
+  // Falls at 20 in/s, then rests: the speed over one interval goes from 20 to 0
+  const ys = [10, 10 - 20 * dt, 10 - 40 * dt, 10 - 40 * dt, 10 - 40 * dt, 10 - 40 * dt]
+  const out = runPoses(f, ys)
+  assert.deepEqual(out.slice(0, 3), [0, 0, 0])
+  assert.ok(out[3] > 0.5)
+  assert.deepEqual(out.slice(4), [0, 0])
+})
+
+test('poses: a half bump over one interval is still heard', () => {
+  const f = poseFinder()
+  const dt = MS / 1000
+  // A bump of 6 in/s: more than the minimum, less than the maximum
+  const ys = [0, 6 * dt, 12 * dt, 12 * dt, 12 * dt]
+  const out = runPoses(f, ys)
+  assert.ok(out[3] > 0 && out[3] < 1)
+})
+
+test('poses: a resting die is quiet', () => {
+  assert.deepEqual(runPoses(poseFinder(), [0, 0, 0, 0, 0]), [0, 0, 0, 0, 0])
+})
+
+test('poses: a gap of more than 100 ms starts fresh', () => {
+  const f = poseFinder()
+  const dt = MS / 1000
+  f.feed({ x: 0, y: 0, z: 0 }, 1000)
+  f.feed({ x: 0, y: 20 * dt, z: 0 }, 1000 + MS)
+  f.feed({ x: 0, y: 40 * dt, z: 0 }, 1000 + 2 * MS)
+  // Packets lost: the next arrives 150 ms later, at rest. It only remembers.
+  assert.equal(f.feed({ x: 0, y: 40 * dt, z: 0 }, 1000 + 2 * MS + 150), 0)
+  // The next one has no velocity before it, so it only remembers too
+  assert.equal(f.feed({ x: 0, y: 40 * dt, z: 0 }, 1000 + 3 * MS + 150), 0)
+})
+
+test('poses: a gap of exactly 100 ms still counts', () => {
+  const f = poseFinder()
+  f.feed({ x: 0, y: 0, z: 0 }, 1000)
+  f.feed({ x: 0, y: 0, z: 0 }, 1100)
+  f.feed({ x: 0, y: 2, z: 0 }, 1200)
+  assert.ok(f.feed({ x: 0, y: 2, z: 0 }, 1300) > 0)
+})
+
+test('poses: a jump is no bump', () => {
+  const f = poseFinder()
+  const far = (REMOTE_DIE_MAX_SPEED * MS) / 1000 + 1
+  const out = runPoses(f, [0, 0, far, far, far])
+  assert.deepEqual(out, [0, 0, 0, 0, 0])
+})
+
+test('poses: an older or equal time is skipped', () => {
+  const f = poseFinder()
+  const dt = MS / 1000
+  f.feed({ x: 0, y: 0, z: 0 }, 1000)
+  f.feed({ x: 0, y: 20 * dt, z: 0 }, 1000 + MS)
+  f.feed({ x: 0, y: 40 * dt, z: 0 }, 1000 + 2 * MS)
+  // An old pose and a repeat of the last one change nothing
+  assert.equal(f.feed({ x: 0, y: 99, z: 0 }, 1000 + MS), 0)
+  assert.equal(f.feed({ x: 0, y: 99, z: 0 }, 1000 + 2 * MS), 0)
+  assert.ok(f.feed({ x: 0, y: 40 * dt, z: 0 }, 1000 + 3 * MS) > 0.5)
+})
+
+test('poses: reset starts fresh', () => {
+  const f = poseFinder()
+  const dt = MS / 1000
+  f.feed({ x: 0, y: 0, z: 0 }, 1000)
+  f.feed({ x: 0, y: 20 * dt, z: 0 }, 1000 + MS)
+  f.reset()
+  assert.equal(f.feed({ x: 0, y: 20 * dt, z: 0 }, 1000 + 2 * MS), 0)
+})
+
+test('poses: a bad pose is skipped', () => {
+  assert.equal(poseFinder().feed({ x: NaN, y: 0, z: 0 }, 1000), 0)
 })

@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { Quaternion, Vector3 } from 'three'
 import { RigidBody, ConvexHullCollider } from '@react-three/rapier'
 import { D8_CORNERS, FACES } from '../dice/faces.js'
-import { DIE_BODY } from '../dice/throw.js'
+import { DIE_BODY, DIE_GRAVITY } from '../dice/throw.js'
 import { SHELF_SLOT_COUNT, shelfSlot, trayToWorld, trayToWorldRotation } from '../dice/tray.js'
 import { SHELF_MOVE_TIME, flatRotation, shelfMovePose, sortShelfEntries } from '../dice/shelf.js'
 import { trayCounts } from '../dice/stored.js'
@@ -11,7 +11,8 @@ import { OTHER_DICE_GROUPS } from '../physics.js'
 import { useYField } from '../net/useY.js'
 import { followPart, sameSideQuat } from '../net/livePose.js'
 import { TrayBody, useDieLook } from './DiceTrayParts.jsx'
-import { playShake } from '../sound.js'
+import { createPoseBumpFinder } from '../bumps.js'
+import { playShake, playSound } from '../sound.js'
 
 // The die's own vertices (faces.js), flattened for ConvexHullCollider's args.
 const dieVertices = Float32Array.from(D8_CORNERS.flat())
@@ -113,6 +114,7 @@ function applyEntry(die, e, slot, trayKey) {
     // Live poses count only when they arrive after this time (decision 7). A jump ends the follow.
     die.airSince = place === 'air' ? performance.now() : null
     die.follow = null
+    die.bump?.reset() // a jump is no bump
     // The die moves to its stored pose at once
     if (rb) {
       rb.setTranslation({ x: p.x, y: p.y, z: p.z }, true)
@@ -149,6 +151,7 @@ function syncDice(map, side, trayKey, announce) {
         moving: false,
         airSince: null,
         follow: null,
+        bump: null,
       }
       map.set(e.id, die)
       idsChanged = true
@@ -199,9 +202,9 @@ export default function OtherDiceTray({ trayKey, store, liveRef }) {
   const [side] = useYField(store, trayKey)
   const { geometry, material } = useDieLook()
 
-  // dice: id -> { id, doc, body, spawn, slot, face, moving, moveFrom, moveTo, moveElapsed }. doc: the stored
+  // dice: id -> { id, doc, body, spawn, slot, face, moving, moveFrom, moveTo, moveElapsed, bump }. doc: the stored
   // die entry now. body: the RigidBody. airSince: performance.now() when the entry became air. follow: the
-  // smoothed pose of an air die that has a live pose.
+  // smoothed pose of an air die that has a live pose. bump: its bump finder (bumps.js).
   // The Map is made once and changed in place; the React state is only the list of ids.
   const [dice] = useState(() => {
     const map = new Map()
@@ -223,13 +226,17 @@ export default function OtherDiceTray({ trayKey, store, liveRef }) {
       die.follow = null
       return
     }
+    // A hit on each bump of the live poses (docs/features/sounds.md)
+    die.bump ??= createPoseBumpFinder({ gravity: DIE_GRAVITY })
+    const n = live.numbers
+    const strength = die.bump.feed({ x: n[0], y: n[1], z: n[2] }, live.time)
+    if (strength > 0) playSound('die', { volume: strength, key: `remote:${trayKey}:${die.id}` })
     const rb = die.body
     if (!die.follow) {
       const t = rb.translation()
       const r = rb.rotation()
       die.follow = { pos: new Vector3(t.x, t.y, t.z), quat: new Quaternion(r.x, r.y, r.z, r.w) }
     }
-    const n = live.numbers
     const { pos, quat } = die.follow
     const part = followPart(dt)
     const [qx, qy, qz, qw] = sameSideQuat(

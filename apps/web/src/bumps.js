@@ -37,3 +37,53 @@ export function createBumpFinder({ gravity, min = DIE_BUMP_MIN, max = DIE_BUMP_M
     },
   }
 }
+
+// The other player's pieces (docs/features/sounds.md): live poses arrive about every 33 ms, so a
+// bump is a smaller change spread over a longer time. Measured with the dice-sim throws sampled
+// every 33 ms (docs/plans/table-sounds.md, Step 3): the minimum stays, the maximum is lower.
+export const REMOTE_DIE_BUMP_MIN = 1
+export const REMOTE_DIE_BUMP_MAX = 12
+// More than this between two arrivals (lost packets) starts fresh, in ms.
+export const REMOTE_GAP_MS = 100
+// A speed above this is a jump, not a move, in/s. A die is at most about 24 in/s in the sim.
+export const REMOTE_DIE_MAX_SPEED = 40
+
+// Like createBumpFinder, but fed with poses: feed({ x, y, z }, time) takes a position and the
+// arrival time in ms. The velocity is the distance over the time between two arrivals. A pose
+// that is not newer than the last one is skipped. A gap of more than gapMs, or a speed above
+// maxSpeed, starts fresh with no bump. reset() starts fresh.
+export function createPoseBumpFinder({
+  gravity,
+  min = REMOTE_DIE_BUMP_MIN,
+  max = REMOTE_DIE_BUMP_MAX,
+  gapMs = REMOTE_GAP_MS,
+  maxSpeed = REMOTE_DIE_MAX_SPEED,
+}) {
+  const finder = createBumpFinder({ gravity, min, max })
+  let last = null
+  return {
+    feed({ x, y, z }, time) {
+      if (!Number.isFinite(x + y + z + time)) return 0
+      if (last && time <= last.time) return 0
+      const before = last
+      last = { x, y, z, time }
+      if (!before || time - before.time > gapMs) {
+        finder.reset()
+        return 0
+      }
+      const dt = (time - before.time) / 1000
+      const vx = (x - before.x) / dt
+      const vy = (y - before.y) / dt
+      const vz = (z - before.z) / dt
+      if (Math.hypot(vx, vy, vz) > maxSpeed) {
+        finder.reset()
+        return 0
+      }
+      return finder.feed({ x: vx, y: vy, z: vz }, dt)
+    },
+    reset() {
+      last = null
+      finder.reset()
+    },
+  }
+}

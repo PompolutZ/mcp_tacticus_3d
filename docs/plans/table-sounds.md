@@ -166,7 +166,22 @@ User, after this step:
 
 ### Result
 
-(empty)
+Built.
+
+- `src/bumps.js`: `createPoseBumpFinder({ gravity })` with `feed({ x, y, z }, time)` (time in ms) and `reset()`. It makes the velocity from two poses and uses `createBumpFinder`. Rules: a pose not newer than the last is skipped; a gap of more than 100 ms (`REMOTE_GAP_MS`) starts fresh; a speed above 40 in/s (`REMOTE_DIE_MAX_SPEED`) starts fresh, no bump. Tests in `src/bumps.test.js`.
+- `OtherDiceTray.jsx`: each air die feeds its finder in `followLive` with each live pose, and plays `die` with the strength as volume and key `remote:<tray>:<die id>`. A jump (`applyEntry`) resets the finder.
+- Docs: `sounds.md`, `dice-rolling.md`.
+
+Measured with a scratch script (not committed): the dice-sim throws of step 2 (5 dice, 200 rounds), position sampled every 33 ms, velocity = distance / time, same finder.
+
+- Minimum 1 in/s still works: 7.5 bump events per die per throw, the 120 Hz own finder gives 7.46. Minimum 0.5 gives 10, 0.3 gives 14 (noise).
+- Maximum 20 does not work: the first bump of a throw has median strength 0.45 (own: 0.91), because the change is spread over the interval. Remote maximum 12: median 0.78 for the first bump (own 0.91), and the loudest bump of a die has median 1. Maximum 10 gives 0.95, so too loud for later bumps. Chosen: minimum 1, maximum 12 (`REMOTE_DIE_BUMP_MIN`, `REMOTE_DIE_BUMP_MAX`).
+- With 30% of the poses lost (gaps over 100 ms start fresh): 5.5 events per die against 7.4, so some small bumps are missed, as decision 5 says. Poses every 66 ms (8 steps): 6.4 events.
+- Die speed in the sim: p99 16, p99.9 19, max 23 in/s. Jump limit 40 in/s. A jump smaller than 40 in/s over 33 ms (about 1.3 in) is not caught, but it is a bump only when it also breaks the fall or rest pattern.
+
+Deviation: `time` in the live store is the arrival time in this browser, not a send time. So the channel order cannot make it go back, because a late old packet gets a new `time` and overwrites the pose. The skip of an older `time` is kept as a guard, but it is not reached today. The rules need the sender's time to be exact; this was not added (no new network message, decision 5).
+
+Not checked in a browser (the user checks).
 
 ## Step 4: Model landing
 
