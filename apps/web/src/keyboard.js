@@ -36,7 +36,7 @@ export const FLIP_KEY = 'KeyF'
 export const LIFT_KEY = 'KeyR'
 // Lock, L as in TTS: locks or unlocks the terrain piece under the pointer. See handleLockKey in App.jsx.
 export const LOCK_KEY = 'KeyL'
-// Ping, P (TTS uses it for the camera mode): a ping at the pointer. See handlePingKey in App.jsx.
+// Ping, P (TTS uses it for the camera mode): a ping at the pointer. See handlePingKey in components/usePing.js.
 export const PING_KEY = 'KeyP'
 // Camera back to the start view, as in TTS
 export const RESET_VIEW_KEY = 'Space'

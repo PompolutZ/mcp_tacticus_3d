@@ -176,7 +176,7 @@ export function RosterCard({ card, info, selected = false, onOpen, onToggle, onC
   const groupRef = useRef()
   useHoverCursor(hovered, 'pointer')
   useOutline(groupRef, outlineMode(false, hovered))
-  // Alt shows the image large (App.jsx). A card without an image has nothing to show.
+  // Alt shows the image large (useCardPeek.js). A card without an image has nothing to show.
   useEffect(() => {
     if (!hovered || !info.image) return undefined
     const image = {

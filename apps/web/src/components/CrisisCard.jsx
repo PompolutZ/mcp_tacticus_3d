@@ -16,7 +16,7 @@ const CARD_ROTATION = [-Math.PI / 2, 0, Math.PI / 2]
 // A crisis card face, flat on the table at one end of the scoring board. It does not turn with the
 // mat and has no collider. A click opens the full image in a HUD popup (see CardPopup.jsx).
 // See docs/features/crisis.md, "Setup flow". onCardHover(card, over): the pointer moved onto or off the card,
-// for Alt (App.jsx).
+// for Alt (useCardPeek.js).
 export default function CrisisCard({ cardKey, position, onOpen, onCardHover }) {
   const cardUrl = assetUrl(crisisCardFace(cardKey))
   const map = useTexture(cardUrl)

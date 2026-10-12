@@ -54,7 +54,7 @@ const CLICK_MOVE = 4
 // crisis tokens, so Scene.jsx draws them (see "Hold and drop").
 // position: the tray's table position, from trays.js layoutTrays (Scene.jsx).
 // onCardHover(over): the pointer moved onto (true) or off (false) the card, for the F key.
-// onCardImageHover(card, over): the same, with the image under the pointer, { src, alt, by }, for Alt (App.jsx).
+// onCardImageHover(card, over): the same, with the image under the pointer, { src, alt, by }, for Alt (useCardPeek.js).
 // onTokenDragStart gets the id of the character as the 4th argument: a click on a Give source gives
 // that character one token.
 export default function CharacterTray({

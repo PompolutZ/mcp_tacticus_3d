@@ -188,6 +188,18 @@ User: Delete over each of the 6 kinds (table token, held token, pile, tactic car
 
 ### Result
 
+`useHovered` is in `src/useHovered.js`. It owns the 8 hover refs and their 8 handlers (`handlePieceHover`, `handleTerrainHover`, `handleHeldHover`, `handleTrayCardHover`, `handleLooseHover`, `handlePileHover`, `handleTacticHover`, `handleDiceTrayHover`), with the bodies unchanged. The inline dice tray handler in the JSX became `handleDiceTrayHover`, same body. It also returns `current()`, a snapshot `{ piece, terrain, loose, pile, tactic, held, trayCard, diceTray }` read from the refs at the call. `current()` is not used yet (step 6). `App` destructures everything back into the same names, where `hoveredRef` was.
+
+`useCardPeek` is in `src/components/useCardPeek.js`: `hoveredCardRef`, `altHeldRef`, `peekCard`, `handleCardHover`, `altDown(blocked)`, `altUp()`. In `handleKeyDown`, `e.preventDefault()` stays in `App`, then `altDown(blocked)` with the same condition, then `return`. `handleKeyUp` and `handleBlur` call `altUp()` (the Cmd+Tab and window blur path goes through `handleBlur`, same two lines as before). `usePing(presence, toolPointRef)` is in `src/components/usePing.js`: `ownPing` and `handlePingKey`.
+
+Effect order in `App` is the same as before: E1, layout effect (E2), E3 (inside `useSelection`), `useLogSounds`, `useRemoteDropSounds`, the wait effect (E6), the window keys, E8, E9, look (E10 inside `useDebugLook`). The three new hooks have refs and state only, no effect.
+
+Pointers fixed: `keyboard.js`, `docs/features/ping.md`, and the Alt comments in `CardPopup.jsx`, `CharacterTray.jsx`, `CrisisCard.jsx`, `GameSetup.jsx`, `RosterCards.jsx`, `TacticCard.jsx`.
+
+Checks: `pnpm format`, `pnpm lint` (45 warnings before and after), `pnpm test`, `pnpm --filter web build`, debug grep 0 in all files.
+
+Deviations: `usePing` is called after `toolPointRef` (it needs it, Risk 2), not at the old place of `ownPing`. This moves only a `useState`. `hoveredCardRef` and `altHeldRef` stay inside `useCardPeek` and are not returned. `current()` has the 8 hovers of `useHovered`, not the card hover.
+
 ## Step 6: Keys
 
 Needs step 5.

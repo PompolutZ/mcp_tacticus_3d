@@ -10,6 +10,9 @@ import { Library } from './components/Library.jsx'
 import { LogPanel } from './components/LogPanel.jsx'
 import { addEntry, logEntry } from './log/log.js'
 import { logWriter } from './log/writer.js'
+import { useHovered } from './useHovered.js'
+import { useCardPeek } from './components/useCardPeek.js'
+import { usePing } from './components/usePing.js'
 import { useSelection } from './useSelection.js'
 import { useLogOpen } from './log/useLogOpen.js'
 import { useNames } from './setup/useNames.js'
@@ -229,8 +232,6 @@ export default function App({
   // stores each piece's index in the map data and its lock. setTerrain writes only these.
   const [storedTerrain, setTerrain] = useYList(table.terrain)
   const terrain = useMemo(() => withPlacements(mapId, storedTerrain), [mapId, storedTerrain])
-  // Id of the unlocked terrain piece under the pointer, for the Delete key
-  const hoveredTerrainRef = useRef(null)
   // Scene calls this and returns the id of the terrain piece under the pointer, locked or not, or
   // null. See Scene.jsx, terrainAt.
   const terrainAtRef = useRef(null)
@@ -312,10 +313,25 @@ export default function App({
   // Selected pieces and tools, see selection.js. One character, one token, the range tool, the
   // movement tool and the Toward / Away tool can all be selected at the same time.
   const { selection, setSelection, selectedTools, setSelectedTools } = useSelection(presence)
-  // The last ping of this browser, { id, at: [x, y, z], t } | null. Scene shows it (Ping.jsx).
-  const [ownPing, setOwnPing] = useState(null)
-  // Character or token under the pointer: { kind, id } | null. Only the tool keys read it, so it is a ref.
-  const hoveredRef = useRef(null)
+  // What is under the pointer, for the keys (useHovered.js)
+  const {
+    hoveredRef,
+    hoveredTerrainRef,
+    hoveredLooseRef,
+    hoveredPileRef,
+    hoveredTacticRef,
+    hoveredHeldRef,
+    hoveredTrayCardRef,
+    diceTrayHoveredRef,
+    handlePieceHover,
+    handleTerrainHover,
+    handleHeldHover,
+    handleTrayCardHover,
+    handleLooseHover,
+    handlePileHover,
+    handleTacticHover,
+    handleDiceTrayHover,
+  } = useHovered()
   // Pan and turn keys held down: key code → screen direction. KeyboardCamera moves the camera while one is held.
   const heldPan = useRef(new Map())
   const heldTurn = useRef(new Map())
@@ -325,6 +341,7 @@ export default function App({
   const wheelCameraRef = useRef(null)
   // Scene fills it: { atPointer(), atCenter() }, table points for a free tool spawn (ToolPoint.jsx)
   const toolPointRef = useRef(null)
+  const { ownPing, handlePingKey } = usePing(presence, toolPointRef)
   // Crisis card image open in the full-screen popup: { src, alt } | null, see CardPopup.jsx.
   const [openCard, setOpenCard] = useState(null)
   // Id of the character whose whole tray is open in the full-screen popup, or null (see
@@ -355,31 +372,13 @@ export default function App({
   // Give source, a pile or the Library, and drags them on to a character or another place. See
   // docs/features/character-trays.md, "Give tokens by drag and drop".
   const [looseTokens, setLooseTokens] = useYList(table.looseTokens)
-  // Id of the table token under the pointer, for the Delete key. A ref, the same as hoveredRef.
-  const hoveredLooseRef = useRef(null)
   // Piles of character tokens on the table, dropped from the Library in Pile mode: [{ id, key, x, z }].
   // A pile never runs out. See docs/features/library.md, "Pile".
   const [tokenPiles, setTokenPiles] = useYList(table.tokenPiles)
-  // Id of the pile under the pointer, for the Delete key
-  const hoveredPileRef = useRef(null)
   // Team Tactic cards on the table: [{ id, key, team, x, z, up }]. The order is the stack order: the
   // last card lies on top. See docs/features/team-tactic-cards.md, "State".
   const [tacticCards, setTacticCards] = useYList(table.tactics)
-  // Id of the tactic card under the pointer, for the F and Delete keys
-  const hoveredTacticRef = useRef(null)
-  // Id of the crisis token under the pointer that a character holds, for the Delete key
-  const hoveredHeldRef = useRef(null)
-  // Id of the character whose tray card is under the pointer, for the F key
-  const hoveredTrayCardRef = useRef(null)
-  // The card image under the pointer, { src, alt, by } | null, for Alt. by: who reports it, so that the
-  // end of an old hover does not clear a newer one (handleCardHover).
-  const hoveredCardRef = useRef(null)
-  // Alt is held down
-  const altHeldRef = useRef(false)
-  // The card image that shows large while Alt is held, or null (CardPopup.jsx, peek)
-  const [peekCard, setPeekCard] = useState(null)
-  // The side of the own dice tray under the pointer, or null, for the number keys
-  const diceTrayHoveredRef = useRef(null)
+  const { peekCard, handleCardHover, altDown, altUp } = useCardPeek()
   // Each own dice tray puts a function here by side: clears the tray, then adds that many dice. See
   // DiceTray.jsx.
   const addDiceRef = useRef({})
@@ -512,11 +511,6 @@ export default function App({
     showHudMessage(`${TERRAIN_PIECES[piece.piece].name} ${locked ? 'locked' : 'unlocked'}`)
   }
 
-  function handleTerrainHover(id, over) {
-    if (over) hoveredTerrainRef.current = id
-    else if (hoveredTerrainRef.current === id) hoveredTerrainRef.current = null
-  }
-
   // Delete key over an unlocked terrain piece. A locked piece gets no hover (Terrain.jsx), so it
   // cannot be removed. Models on the piece fall: Rapier wakes the bodies that touched its collider.
   function handleTerrainRemove(id) {
@@ -603,20 +597,6 @@ export default function App({
     else spawnTool('angle', true, toolbarSpawnAt(target))
   }
 
-  // over: true when the pointer moved onto the piece, false when it moved off
-  function handlePieceHover(piece, over) {
-    if (over) hoveredRef.current = piece
-    else if (hoveredRef.current?.kind === piece.kind && hoveredRef.current.id === piece.id)
-      hoveredRef.current = null
-  }
-
-  // over: the pointer moved onto (true) or off (false) a card or a model. While Alt is held, the shown card follows.
-  function handleCardHover(card, over) {
-    if (over) hoveredCardRef.current = card
-    else if (hoveredCardRef.current?.by === card.by) hoveredCardRef.current = null
-    if (altHeldRef.current) setPeekCard(hoveredCardRef.current)
-  }
-
   // Every key press of the app is handled here, so that the same key can do different things in
   // different states. The states now: a card or tray popup is open, or the table is in use.
   // The keys are in keyboard.js.
@@ -624,9 +604,7 @@ export default function App({
     if (e.key === 'Alt') {
       // Windows moves the focus to the browser menu on a bare Alt
       e.preventDefault()
-      altHeldRef.current = true
-      if (!(tokenDrag || toolDrag || openCard || openTrayId || openRoster || settingsOpen))
-        setPeekCard(hoveredCardRef.current)
+      altDown(!!(tokenDrag || toolDrag || openCard || openTrayId || openRoster || settingsOpen))
       return
     }
     if (tokenDrag) {
@@ -728,8 +706,7 @@ export default function App({
 
   function handleKeyUp(e) {
     if (e.key === 'Alt') {
-      altHeldRef.current = false
-      setPeekCard(null)
+      altUp()
     }
     heldPan.current.delete(e.code)
     heldTurn.current.delete(e.code)
@@ -738,8 +715,7 @@ export default function App({
 
   // A key released outside the window sends no keyup
   function handleBlur() {
-    altHeldRef.current = false
-    setPeekCard(null)
+    altUp()
     heldPan.current.clear()
     heldTurn.current.clear()
     heldRotate.current.clear()
@@ -772,16 +748,6 @@ export default function App({
   // snaps the tool to it but does not select it. Else Place could move that model.
   function keySelects(piece) {
     return toolSelects(piece, characters, playedSides)
-  }
-
-  // Key P: a ping at the table point under the pointer, none when the pointer is off the table. It shows
-  // here at once, and in the other browser through presence (docs/features/ping.md).
-  function handlePingKey() {
-    const point = toolPointRef.current?.atPointer()
-    if (!point) return
-    const next = { id: crypto.randomUUID(), at: [point.x, point.y, point.z] }
-    setOwnPing(next)
-    presence?.set({ ping: next })
   }
 
   // Key 6, the Toward / Away tool: placeAngleTool at the hovered piece and the table point under the pointer.
@@ -970,18 +936,6 @@ export default function App({
           true,
         )
     })
-  }
-
-  // over: the pointer moved onto (true) or off (false) a crisis token that a character holds
-  function handleHeldHover(id, over) {
-    if (over) hoveredHeldRef.current = id
-    else if (hoveredHeldRef.current === id) hoveredHeldRef.current = null
-  }
-
-  // over: the pointer moved onto (true) or off (false) the tray card of a character
-  function handleTrayCardHover(id, over) {
-    if (over) hoveredTrayCardRef.current = id
-    else if (hoveredTrayCardRef.current === id) hoveredTrayCardRef.current = null
   }
 
   // Delete key over a token on a character's card, as in TTS. Players remove a Source's supply
@@ -1851,13 +1805,6 @@ export default function App({
     })
   }
 
-  // over: the pointer moved onto (true) or off (false) a table token. A token that is removed or
-  // dragged unmounts, which also ends its hover (see TokenFace.jsx).
-  function handleLooseHover(id, over) {
-    if (over) hoveredLooseRef.current = id
-    else if (hoveredLooseRef.current === id) hoveredLooseRef.current = null
-  }
-
   // Delete key over a token on the table, as in TTS
   function handleLooseRemove(id) {
     setLooseTokens((prev) => prev.filter((t) => t.id !== id))
@@ -1884,11 +1831,6 @@ export default function App({
 
   function handlePileMoveStart(e, pile) {
     startTokenDrag(e, { tokenKey: pile.key, pileId: pile.id })
-  }
-
-  function handlePileHover(id, over) {
-    if (over) hoveredPileRef.current = id
-    else if (hoveredPileRef.current === id) hoveredPileRef.current = null
   }
 
   // Delete key over a pile on the table
@@ -1934,11 +1876,6 @@ export default function App({
       setTacticCards((prev) => prev.filter((c) => c.id !== id))
       removeCardPiles([id])
     })
-  }
-
-  function handleTacticHover(id, over) {
-    if (over) hoveredTacticRef.current = id
-    else if (hoveredTacticRef.current === id) hoveredTacticRef.current = null
   }
 
   // pointerdown on the supply pile of a Source card: a new supply token. The pile never runs out.
@@ -2324,10 +2261,7 @@ export default function App({
               returnModelsRef={returnModelsRef}
               playedSides={playedSides}
               removeWaits={removeWaits}
-              onDiceTrayHover={(side, over) => {
-                if (over) diceTrayHoveredRef.current = side
-                else if (diceTrayHoveredRef.current === side) diceTrayHoveredRef.current = null
-              }}
+              onDiceTrayHover={handleDiceTrayHover}
               addDiceRef={addDiceRef}
               heldRotate={heldRotate}
               scoreMarkers={scoreMarkers}

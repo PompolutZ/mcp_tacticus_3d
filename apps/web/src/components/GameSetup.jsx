@@ -505,7 +505,7 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
 // person plays both teams. Only that team's squad panel has buttons. actions: { priority(team), deck(type), pick(code),
 // threat(value), turnMat(direction), edge(), ready(team),
 // affiliation(team, key), restart(), browse(step | null), override(step) }, see App.jsx.
-// onRosterOpen({ team, tab, index }): a click on a crisis card. onCardHover(card, over): for Alt (App.jsx).
+// onRosterOpen({ team, tab, index }): a click on a crisis card. onCardHover(card, over): for Alt (useCardPeek.js).
 export default function GameSetup({
   setup,
   rosters,

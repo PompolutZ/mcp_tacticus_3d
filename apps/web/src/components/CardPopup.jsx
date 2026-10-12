@@ -4,7 +4,7 @@ import { Overlay } from './Overlay.jsx'
 // Escape, as App handles all keys. A dialog, so it renders through Overlay (portal to
 // document.body): a tray's own drei <Html> controls must never be able to draw over it, see
 // index.css, .scene-root. A character tray card opens the whole tray instead (TrayPopup.jsx).
-// peek: the image while Alt is held (App.jsx). The same image in the same place, but with no backdrop
+// peek: the image while Alt is held (useCardPeek.js). The same image in the same place, but with no backdrop
 // and no pointer events, so the hover of the table under it goes on.
 export function CardPopup({ card, onClose, peek = false }) {
   if (!card) return null
