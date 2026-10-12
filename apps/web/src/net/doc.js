@@ -6,7 +6,7 @@ import { createList, createRecord } from './collections.js'
 
 // The layout version of the document. A document with another one is not used, because
 // before the first release all data is test data (05-yjs-state.md, decision 11).
-export const SCHEMA = 1
+export const SCHEMA = 2
 
 // The fields of the game record, besides schema
 const GAME_FIELDS = ['mapId', 'matTurns', 'deployLine', 'crisis', 'scoreMarkers', 'affiliations']

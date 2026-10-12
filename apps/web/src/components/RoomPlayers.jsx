@@ -1,7 +1,7 @@
 import { avatarUrl } from '../auth/avatar.js'
 import { COLOR_NAME, useSideColors } from '../sideColors.js'
 
-const TEAMS = ['blue', 'red']
+const TEAMS = ['host', 'guest']
 const STATUS = {
   waiting: 'Waiting',
   connecting: 'Connecting',
@@ -14,7 +14,7 @@ const FAILED_TITLE =
   'Could not connect directly. One of the networks blocks peer-to-peer connections.'
 
 // The two players of a multiplayer room in the toolbar (plan 08, decision 16): avatar and name in the side
-// color, and the connection to the other player. side: the seat of this user. players: { blue, red } of the room,
+// color, and the connection to the other player. side: the seat of this user. players: { host, guest } of the room,
 // each a user, { gone: true } or null. connection: { state, peer, versionMismatch, retry } (net/peer.js). A free
 // seat shows the player from the hello (connection.peer) once it arrives.
 export function RoomPlayers({ side, players, connection }) {

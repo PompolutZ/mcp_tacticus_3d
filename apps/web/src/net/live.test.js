@@ -71,7 +71,7 @@ test('send rounds the numbers by the kind of the key', () => {
       'loose:a': [1.23456, 2.34567],
       'pile:a': [1.23456, 2.34567],
       'tactic:a': [1.23456, 2.34567],
-      'marker:blue': [1.23456, 2.34567],
+      'marker:host': [1.23456, 2.34567],
     },
     c: [1.23456, 2.34567, 3.45678],
   })
@@ -85,7 +85,7 @@ test('send rounds the numbers by the kind of the key', () => {
       'loose:a': [1.235, 2.346],
       'pile:a': [1.235, 2.346],
       'tactic:a': [1.235, 2.346],
-      'marker:blue': [1.235, 2.346],
+      'marker:host': [1.235, 2.346],
     },
     c: [1.235, 2.346, 3.457],
   })

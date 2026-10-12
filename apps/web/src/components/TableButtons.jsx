@@ -11,7 +11,7 @@ const TABLE_Y = 0.05
 const INCHES_PER_PX = 0.04
 // The same image as the Power counter of a tray (TrayControls.jsx)
 const POWER_ICON = assetUrl(characterToken('1-power'))
-const otherSide = (side) => (side === 'blue' ? 'red' : 'blue')
+const otherSide = (side) => (side === 'host' ? 'guest' : 'host')
 
 const px = (inches) => Math.round(inches / INCHES_PER_PX)
 

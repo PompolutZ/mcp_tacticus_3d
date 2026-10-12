@@ -11,7 +11,7 @@ const cleanupKeys = Object.keys(tokenData).filter((k) => tokenData[k].cleanup)
 const char = (over) => ({
   id: 'c1',
   key: 'hulk',
-  teamColor: 'blue',
+  team: 'host',
   side: 'healthy',
   damage: 0,
   power: 2,

@@ -130,12 +130,12 @@ import {
   useWindowKeys,
 } from './keyboard.js'
 
-// Start view, the seat of the blue player. For now every player is Blue. Blue sits at +z (see
-// characters/trays.js). The camera stands behind the blue table edge and looks down at 45° at a
-// point 16.8" from the mat center toward blue, 46" away. Then a 16:10 view shows the whole mat, the
+// Start view, the seat of the host player. The host sits at +z (see
+// characters/trays.js). The camera stands behind the host table edge and looks down at 45° at a
+// point 16.8" from the mat center toward host, 46" away. Then a 16:10 view shows the whole mat, the
 // tactic trays and the character trays of both players, and the rack band of the own side (z up to
 // 36.8", see tabletools/layout.js). The bottom edge of the view meets the table at z = 37.5". The top
-// edge is past the red trays (z = -40, the table ends at -38). Space returns to this view (see
+// edge is past the guest trays (z = -40, the table ends at -38). Space returns to this view (see
 // resetCamera).
 // Dice that each player rolls in the roll off
 const ROLL_OFF_DICE = 5
@@ -147,8 +147,8 @@ const CAMERA_POSITION = [0, 32.5, 49.3]
 // The Red view: the Blue view turned 180° around the mat center (plan 08, decision 17). Only for the Red seat
 // of a multiplayer room. A single player room and the Sandbox keep the Blue view, because one player plays both
 // sides there.
-const CAMERA_TARGET_RED = [0, 0, -16.8]
-const CAMERA_POSITION_RED = [0, 32.5, -49.3]
+const CAMERA_TARGET_GUEST = [0, 0, -16.8]
+const CAMERA_POSITION_GUEST = [0, 32.5, -49.3]
 // Camera mouse buttons as in TTS: right drag turns, middle drag pans. Left drag also turns, because
 // the app has no box select (the TTS left drag) and a trackpad has no easy right drag. Shift, Ctrl
 // or Cmd + a turn drag pans (OrbitControls). A mouse wheel zooms. On a trackpad, a two-finger swipe
@@ -173,7 +173,7 @@ const SETUP_REMOVAL =
 // (TTS x, z from the mat center, and TTS Y rotation), converted the same way as terrain: z -> -z.
 // yaw: checked against the X-Men Infiltrate Secret Weapons Facility Zone map, see the report.
 // The bottom edge of the map on the card is the side of the player with Priority (p9). cards.json has it
-// at the blue side. turned: the red player has Priority, so the map turns a half turn around the mat
+// at the host side. turned: the guest has Priority, so the map turns a half turn around the mat
 // center (see docs/features/setup-game.md, "Priority").
 function buildMatTokens(card, turned) {
   const marked = hasMarkers(card)
@@ -225,9 +225,9 @@ function supplyToken(card, x, z, id) {
   }
 }
 
-// A new character on the table for `teamColor`. ch: a row of CHARACTERS (characters/characters.js).
+// A new character on the table for `team`. ch: a row of CHARACTERS (characters/characters.js).
 // attached: MCT codes of the cards attached to it (Infinity Gems from the roster). No field when empty.
-function newCharacter(ch, teamColor, { attached = [] } = {}) {
+function newCharacter(ch, team, { attached = [] } = {}) {
   return {
     id: crypto.randomUUID(),
     key: ch.slug,
@@ -237,7 +237,7 @@ function newCharacter(ch, teamColor, { attached = [] } = {}) {
     // Second form, or null: a second model, and maybe a second card on the tray (see
     // characters/models.js and docs/features/character-trays.md, "Second forms").
     transform: ch.transform,
-    teamColor,
+    team,
     // Card side that faces up, and the simple limits players apply by hand (see
     // docs/features/character-trays.md, "Players apply the rules").
     side: 'healthy',
@@ -288,14 +288,14 @@ export default function App({
   live = null,
   onExit,
 }) {
-  const red = Boolean(room?.multiplayer && room.side === 'red')
-  const cameraPosition = red ? CAMERA_POSITION_RED : CAMERA_POSITION
-  const cameraTarget = red ? CAMERA_TARGET_RED : CAMERA_TARGET
+  const isGuest = Boolean(room?.multiplayer && room.side === 'guest')
+  const cameraPosition = isGuest ? CAMERA_POSITION_GUEST : CAMERA_POSITION
+  const cameraTarget = isGuest ? CAMERA_TARGET_GUEST : CAMERA_TARGET
   // The side of this browser. It writes the tools of that side only (net/doc.js, `tools`). The Sandbox and a
-  // single player room are Blue, because one player plays both sides there.
-  const ownSide = red ? 'red' : 'blue'
+  // single player room are the host, because one player plays both sides there.
+  const ownSide = isGuest ? 'guest' : 'host'
   // The sides this browser plays: its own in a multiplayer room, both in the Sandbox and a single player room
-  const playedSides = room?.multiplayer ? [ownSide] : ['blue', 'red']
+  const playedSides = room?.multiplayer ? [ownSide] : ['host', 'guest']
   const [tools] = useYRecord(table.tools)
   // The rest poses of the models, live: Scene applies a pose that the other browser wrote
   const [poses] = useYRecord(table.poses)
@@ -340,9 +340,9 @@ export default function App({
   // Every crisis token on the table: the mat tokens of the cards (buildMatTokens) and the supply
   // tokens that players took from a pile (supplyToken).
   const [tokens, setTokens] = useYList(table.tokens)
-  // Scoring board markers: { blue, red, round } → { x, z } on the table (see ScoreBoard.jsx)
+  // Scoring board markers: { host, guest, round } → { x, z } on the table (see ScoreBoard.jsx)
   const [scoreMarkers, setScoreMarkers] = useYField(table.game, 'scoreMarkers')
-  // Loaded rosters: { blue, red } → null | { code }, code in Jarvis format (see rosters/mct.js). A room
+  // Loaded rosters: { host, guest } → null | { code }, code in Jarvis format (see rosters/mct.js). A room
   // starts with its rosters: Blue, and Red when the room has it.
   const [rosters, setRosters] = useYRecord(table.rosters)
   // The guest's roster comes from the server record (decision 10 of plan 07). At the first open, the key of
@@ -360,15 +360,15 @@ export default function App({
   // The colors of the sides (setup/setup.js, colorOf). The Sandbox (no room) keeps +z Blue. The store gives
   // them to every component that shows a color (sideColors.js).
   const followPriority = Boolean(room)
-  const blueColor = colorOf('blue', setup, followPriority)
+  const hostColor = colorOf('host', setup, followPriority)
   useLayoutEffect(() => {
-    setSideColors({ blue: blueColor, red: blueColor === 'blue' ? 'red' : 'blue' })
+    setSideColors({ host: hostColor, guest: hostColor === 'blue' ? 'red' : 'blue' })
     return () => setSideColors(DEFAULT_SIDE_COLORS)
-  }, [blueColor])
-  // The selected threat value of the Breakdown tab of each roster: { blue, red } → { code, threat, filters } |
+  }, [hostColor])
+  // The selected threat value of the Breakdown tab of each roster: { host, guest } → { code, threat, filters } |
   // null. code: the roster code it belongs to; null means the first value. Not saved. See
   // docs/features/squad-breakdown.md, "State".
-  const [breakdownChoice, setBreakdownChoice] = useState({ blue: null, red: null })
+  const [breakdownChoice, setBreakdownChoice] = useState({ host: null, guest: null })
   // In a multiplayer room, the squad that the player chooses is not in the document until both players are
   // Ready. It is in this browser (rooms/store.js, squad): { setupId, squad } | null. A single player room
   // and the Sandbox keep the squads in the document. See docs/features/setup-game.md, "Squads".
@@ -403,7 +403,7 @@ export default function App({
         : setup,
     [hiddenSquads, setup, mySide, ownSquad],
   )
-  // Affiliation token that each player's VP marker shows: { blue, red } → key in scoreboard/affiliations.json.
+  // Affiliation token that each player's VP marker shows: { host, guest } → key in scoreboard/affiliations.json.
   // No toolbar control: the game setup sets it, when a squad is placed and at the step affiliation (see
   // docs/features/setup-game.md).
   const [affiliations, setAffiliations] = useYField(table.game, 'affiliations')
@@ -609,13 +609,13 @@ export default function App({
   // here, so the check covers all of them. The two Sentinel MK4 sculpts have their own slugs, so a
   // player can have both. Both players can have the same character.
   function handleSpawn(ch) {
-    if (characters.some((c) => c.key === ch.slug && c.teamColor === ch.teamColor)) {
+    if (characters.some((c) => c.key === ch.slug && c.team === ch.team)) {
       showHudMessage(
-        `${COLOR_NAME[colorOf(ch.teamColor, setup, Boolean(room))]} player already has ${ch.name} on the table`,
+        `${COLOR_NAME[colorOf(ch.team, setup, Boolean(room))]} player already has ${ch.name} on the table`,
       )
       return
     }
-    setCharacters((prev) => [...prev, newCharacter(ch, ch.teamColor)])
+    setCharacters((prev) => [...prev, newCharacter(ch, ch.team)])
   }
 
   // Spawn point of a tool turned on by the toolbar or by a key off the table: with a selected piece, null
@@ -933,7 +933,7 @@ export default function App({
       setTokens((prev) => {
         const kept = prev.filter((t) => t.cardKey !== oldKey)
         const card = getCard(key)
-        return card ? [...kept, ...buildMatTokens(card, priorityOf(setup) === 'red')] : kept
+        return card ? [...kept, ...buildMatTokens(card, priorityOf(setup) === 'guest')] : kept
       })
     })
     // The selected token may no longer exist; a selected character is not affected.
@@ -1088,7 +1088,7 @@ export default function App({
       }
       setCharacters((prev) =>
         prev.map((ch) => {
-          if (!sides.includes(ch.teamColor) || !characterOnBoard(ch, poses)) return ch
+          if (!sides.includes(ch.team) || !characterOnBoard(ch, poses)) return ch
           if (characterIsGrunt(ch.key)) return ch
           const power = powerAfterPhase({
             power: ch.power,
@@ -1245,11 +1245,11 @@ export default function App({
     if (restarted) showHudMessage('Game setup started again')
   }
 
-  // The rosters as parsed by rosters/mct.js: { blue, red } → parsed roster or null
+  // The rosters as parsed by rosters/mct.js: { host, guest } → parsed roster or null
   const parsedRosters = useMemo(
     () => ({
-      blue: rosters.blue && parseRosterText(rosters.blue.code),
-      red: rosters.red && parseRosterText(rosters.red.code),
+      host: rosters.host && parseRosterText(rosters.host.code),
+      guest: rosters.guest && parseRosterText(rosters.guest.code),
     }),
     [rosters],
   )
@@ -1498,7 +1498,7 @@ export default function App({
   // the pile goes with it (removeCardPiles). Reads the document, not React state.
   function makeCardPiles(cards) {
     const piles = []
-    for (const team of ['blue', 'red']) {
+    for (const team of ['host', 'guest']) {
       const wanted = cards
         .filter((card) => card.team === team)
         .flatMap((card) =>
@@ -1533,7 +1533,7 @@ export default function App({
     for (const place of squad.characters) {
       const ch = characterByCode(parsed.characters[place]?.code)
       const there = [...onTable, ...newCharacters].some(
-        (c) => c.key === ch?.slug && c.teamColor === side,
+        (c) => c.key === ch?.slug && c.team === side,
       )
       if (ch?.available && !there)
         newCharacters.push(newCharacter(ch, side, { attached: parsed.characters[place].gems }))
@@ -2039,8 +2039,8 @@ export default function App({
     }
   }
 
-  // The roster cards that have a + / ✓ button: { blue, red } → true, the own roster in the squad step
-  const squadEdit = { blue: !squadBlock('blue'), red: !squadBlock('red') }
+  // The roster cards that have a + / ✓ button: { host, guest } → true, the own roster in the squad step
+  const squadEdit = { host: !squadBlock('host'), guest: !squadBlock('guest') }
 
   // Debug mode is only in the dev server. import.meta.env.DEV is false in `vite build`, so debug
   // is always false there and the build leaves out the debug code.
@@ -2222,7 +2222,7 @@ export default function App({
         <Toolbar
           roomCode={room?.id ?? null}
           multiplayer={Boolean(room?.multiplayer)}
-          guestSeatFree={Boolean(room?.multiplayer && (!room.players.blue || !room.players.red))}
+          guestSeatFree={Boolean(room?.multiplayer && (!room.players.host || !room.players.guest))}
           side={room?.side ?? null}
           players={room?.players ?? null}
           connection={connection}

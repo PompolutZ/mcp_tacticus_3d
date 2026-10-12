@@ -53,18 +53,18 @@ function placeRow(groups, maxWidth = TABLE_WIDTH - TABLE_MARGIN * 2) {
   return { placed, scale, width: natural * scale }
 }
 
-// Outer z (far from the mat) of roster row 2 for blue. Row 2 holds at most 10 tactics, 10 x 2.5" + gaps = 27.7"
+// Outer z (far from the mat) of roster row 2 for host. Row 2 holds at most 10 tactics, 10 x 2.5" + gaps = 27.7"
 // wide, so it is never scaled and always ends here. The squad panel lies past it (tabletools/layout.js).
 export const ROSTER_ROWS_OUTER_Z =
   TACTIC_TRAY_OUTER_Z + ROW_GAP + TRAY_CARD_HEIGHT + ROW_GAP + TACTIC_CARD_HEIGHT
 
-const side = (team) => (team === 'blue' ? 1 : -1)
-// A card faces its owner, the same as a tray card: for blue, the image top points to -z
-const cardYaw = (team) => (team === 'blue' ? 0 : Math.PI)
+const side = (team) => (team === 'host' ? 1 : -1)
+// A card faces its owner, the same as a tray card: for host, the image top points to -z
+const cardYaw = (team) => (team === 'host' ? 0 : Math.PI)
 
 // The cards of `parsed` (mct.js) for `team`: [{ code, kind, gems, x, z, width, height, yaw }]. Row 1 holds the
 // characters, row 2 the Team Tactic cards. The crisis cards lie next to the scoring board (crisisRowLayout).
-// Computed for blue (+z), then mirrored for red, the same as the trays: x and z change sign, and the card
+// Computed for host (+z), then mirrored for guest, the same as the trays: x and z change sign, and the card
 // turns 180 deg to face its owner.
 export function rosterLayout(team, parsed) {
   const row1Z = TACTIC_TRAY_OUTER_Z + ROW_GAP
@@ -105,7 +105,7 @@ export function rosterRowInfo(parsed) {
 // the rows is a gap for the deck buttons (GameSetup.jsx).
 // The cards drawn from a deck, and at last the card that the mission uses, lie in one row in line with the
 // board instead (DRAWN_ROW_X). So the chosen card ends up next to the board end.
-// Numbers are for blue (+z). Red is the same at -z: only z changes sign, so the cards read the same way.
+// Numbers are for host (+z). Guest is the same at -z: only z changes sign, so the cards read the same way.
 const CRISIS_CARD_YAW = Math.PI / 2
 // The rows start past the Secure card on the board end. The deck area is as long as a row of 5 cards, the
 // most of one type in a roster (docs/features/roster.md, "Terms"). A row of more cards is scaled down to fit.

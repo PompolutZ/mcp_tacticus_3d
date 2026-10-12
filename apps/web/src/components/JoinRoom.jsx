@@ -8,22 +8,22 @@ import { useUser } from '../auth/useUser.js'
 import { formatMctCode, isEmptyRoster } from '../rosters/mct.js'
 import { parseRosterText } from '../rosters/cards.js'
 import { joinRoom } from '../rooms/serverStore.js'
+import { DEFAULT_SIDE_COLORS } from '../sideColors.js'
 import { LobbyHeader } from './LobbyHeader.jsx'
 import { RosterField } from './RosterField.jsx'
 import { RoomRosterPopup } from './RoomRosterPopup.jsx'
 
-const TEAM_NAMES = { blue: 'Blue', red: 'Red' }
+const TEAM_NAMES = { host: 'Blue', guest: 'Red' }
 
 // The join page of a multiplayer room with a free seat (plan 07, decision 20). room: the API room.
 // onJoined(room): the user has the seat, and the room opens. onExit(): back to the lobby without joining.
 export function JoinRoom({ room, onJoined, onExit }) {
   const { status } = useUser()
   const loggedIn = status === 'in'
-  // The free side is the guest's. The host is on the other side.
-  const side = room.players.blue ? 'red' : 'blue'
-  const hostSide = side === 'blue' ? 'red' : 'blue'
-  const host = room.players[hostSide]
-  const hostRoster = room.rosters[hostSide]
+  // The free side is the guest's. The host sits at +z.
+  const side = 'guest'
+  const host = room.players.host
+  const hostRoster = room.rosters.host
   const [text, setText] = useState('')
   const parsed = useMemo(() => parseRosterText(text), [text])
   const [busy, setBusy] = useState(false)
@@ -75,11 +75,11 @@ export function JoinRoom({ room, onJoined, onExit }) {
             {hostRoster && (
               <button
                 type="button"
-                className={`chip chip--player-${hostSide}`}
-                title={`Show the ${TEAM_NAMES[hostSide]} roster of room ${room.code}`}
+                className={`chip chip--player-${DEFAULT_SIDE_COLORS.host}`}
+                title={`Show the ${TEAM_NAMES.host} roster of room ${room.code}`}
                 onClick={() => setRosterOpen(true)}
               >
-                {TEAM_NAMES[hostSide]} roster
+                {TEAM_NAMES.host} roster
               </button>
             )}
           </div>
@@ -123,11 +123,7 @@ export function JoinRoom({ room, onJoined, onExit }) {
         </div>
       </form>
       {rosterOpen && (
-        <RoomRosterPopup
-          team={hostSide}
-          code={hostRoster.code}
-          onClose={() => setRosterOpen(false)}
-        />
+        <RoomRosterPopup team="host" code={hostRoster.code} onClose={() => setRosterOpen(false)} />
       )}
     </div>
   )

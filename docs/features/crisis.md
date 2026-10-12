@@ -159,13 +159,13 @@ In the app, **R** with the pointer over a model lifts it 6". R over it again put
 2. The app puts both cards face up on the table, one at each end of the scoring board (see [Scoring board](#scoring-board)). The long side of a card lies along the end of the board, and the card text reads the same way as the board. The Secure card is on the blue side (+z) and the Extract card is on the red side (-z). The mod has no script that places the cards on the table; players place them by hand, so this is the app's own choice, not a measured mod rule. Players expect the cards there, because they place them there on a real table. A player can open a card in a HUD popup to read it. The TTS mod has a button that brings a card forward for the same reason.
 3. The app puts the tokens on the mat at the setup positions, with the side and rotation from the card.
 4. For a Source card, the app also puts the supply pile next to the card (see [Extract: Source](#extract-source)).
-5. The setup positions are always relative to the player sides (blue and red), as the setup map on each card shows. They are never relative to the mat. So when the mat turns (**Mat → ↺ / ↻**), the tokens do not turn with it. Each token stays at its place on the table and rests again on the new surface under it (see [Where a token rests](#where-a-token-rests)). As a result, players cannot know before the game if a token lands on the mat or on terrain.
+5. The setup positions are always relative to the player sides (host and guest), as the setup map on each card shows. They are never relative to the mat. So when the mat turns (**Mat → ↺ / ↻**), the tokens do not turn with it. Each token stays at its place on the table and rests again on the new surface under it (see [Where a token rests](#where-a-token-rests)). As a result, players cannot know before the game if a token lands on the mat or on terrain.
 
-The bottom edge of the setup map on a card is the deployment edge of the player with Priority. Without a game setup, that is the blue side of the app, and the top edge is the red side. The game setup knows who has Priority. When red has Priority, the tokens turn a half turn (see `docs/features/setup-game.md`, "Priority"). The rulebook calls these the blue zone and the red zone (p9). The current card images use other colors: green at the bottom and purple at the top.
+The bottom edge of the setup map on a card is the deployment edge of the player with Priority. Without a game setup, that is the host side of the app (+z), and the top edge is the guest side. The game setup knows who has Priority. When the guest has Priority, the tokens turn a half turn (see `docs/features/setup-game.md`, "Priority"). The rulebook calls these the blue zone and the red zone (p9). The current card images use other colors: green at the bottom and purple at the top.
 
 The positions in `cards.json` already follow this rule after the `z` → `-z` conversion. This was checked with the Survivors card image. Survivors is the only current card with a map that changes after a half turn, so it is the only card that can show a wrong orientation.
 
-In the TTS mod, the Blue seat is at +z. The mod puts the top edge of the card toward +z, so in the mod the bottom edge faces the Red seat. The app is the other way round, because the `z` → `-z` conversion puts TTS +z at the red side of the app. So TTS objects that belong to a seat, such as the VP trackers, change color when the app uses their TTS positions.
+In the TTS mod, the Blue seat is at +z. The mod puts the top edge of the card toward +z, so in the mod the bottom edge faces the Red seat. The app is the other way round, because the `z` → `-z` conversion puts TTS +z at the guest side of the app. So TTS objects that belong to a seat, such as the VP trackers, change color when the app uses their TTS positions.
 
 A player can choose another card at any time. The app then removes the tokens of the old card and puts the tokens of the new card.
 
@@ -195,7 +195,7 @@ The board comes from the TTS mod. These facts come from the mod:
 
 The app has the board (`src/components/ScoreBoard.jsx`, `src/scoreboard/board.js`, files from `scripts/migrate-scoreboard.mjs`):
 
-- The board is at its TTS position, with z → -z. The VP 1 spot is on the blue side (+z). A card lies at each end of the board.
+- The board is at its TTS position, with z → -z. The VP 1 spot is on the host side (+z). A card lies at each end of the board.
 - Each player has a VP marker. The token it shows comes from the game setup, for each player (`docs/features/setup-game.md`, "Affiliation"). The toolbar has no VP group. The markers start next to the board, where the mod puts them.
 - The round marker starts on round 1.
 - Players drag a marker with the left button. A marker released less than 1" from a spot moves onto it, as on a TTS snap point. A marker released elsewhere stays there.

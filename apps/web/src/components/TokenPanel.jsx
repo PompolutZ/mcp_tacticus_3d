@@ -28,7 +28,7 @@ export function TokenPanel({ token, onFlip, onControl, onDamage }) {
           >
             None
           </button>
-          {['blue', 'red'].map((side) => (
+          {['host', 'guest'].map((side) => (
             <button
               key={side}
               type="button"

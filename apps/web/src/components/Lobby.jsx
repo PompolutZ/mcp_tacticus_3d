@@ -12,10 +12,11 @@ import { LobbyHeader } from './LobbyHeader.jsx'
 import { NewRoomDialog } from './NewRoomDialog.jsx'
 import { RoomRosterPopup } from './RoomRosterPopup.jsx'
 import { CopyLinkButton } from './CopyLinkButton.jsx'
+import { DEFAULT_SIDE_COLORS } from '../sideColors.js'
 
 const TIME = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
-const TEAMS = ['blue', 'red']
-const TEAM_NAMES = { blue: 'Blue', red: 'Red' }
+const TEAMS = ['host', 'guest']
+const TEAM_NAMES = { host: 'Blue', guest: 'Red' }
 
 // A seat of a multiplayer tile: avatar and name, "Free seat", or "Deleted player"
 function Seat({ team, player }) {
@@ -29,7 +30,7 @@ function Seat({ team, player }) {
       </>
     )
   return (
-    <div className={`lobby-seat lobby-seat--${team}`}>
+    <div className={`lobby-seat lobby-seat--${DEFAULT_SIDE_COLORS[team]}`}>
       <span className="lobby-seat-team">{TEAM_NAMES[team]}</span>
       {content}
     </div>
@@ -176,7 +177,7 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
                         <button
                           key={team}
                           type="button"
-                          className={`chip chip--player-${team}`}
+                          className={`chip chip--player-${DEFAULT_SIDE_COLORS[team]}`}
                           title={`Show the ${TEAM_NAMES[team]} roster of room ${item.id}`}
                           onClick={() =>
                             setRosterView({ id: item.id, team, rosters: item.rosters })
@@ -186,7 +187,7 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
                         </button>
                       ),
                   )}
-                  {isMulti && (!room.players.blue || !room.players.red) && (
+                  {isMulti && (!room.players.host || !room.players.guest) && (
                     <CopyLinkButton code={item.id} />
                   )}
                   {isHost && (

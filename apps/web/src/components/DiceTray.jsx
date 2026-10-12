@@ -178,7 +178,7 @@ function Die({ id, dice, geometry, material, menuOpen, onOpen, onChange, onMenuC
 }
 
 // One dice tray: the tray body, the dice bodies, the roll flow, and the keys on the tray (see
-// DiceKeys.jsx). trayKey: 'blue' | 'red'. openDieId, onDieOpen(dieId), onMenuClose: the "Change to"
+// DiceKeys.jsx). trayKey: 'host' | 'guest'. openDieId, onDieOpen(dieId), onMenuClose: the "Change to"
 // menu of a shelf die of this tray, lifted to App so Escape can close it. It closes when its die
 // leaves the shelf (reroll, clear, roll).
 // store: the dice record store of the table (net/doc.js). The tray reads its side at mount and

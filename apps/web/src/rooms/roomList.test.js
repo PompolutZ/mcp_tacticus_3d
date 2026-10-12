@@ -10,7 +10,7 @@ const multi = (code, updatedAt, map = mapId) => ({
   mapId: map,
   rosters: {},
   updatedAt,
-  players: { blue: null, red: null },
+  players: { host: null, guest: null },
 })
 
 test('both kinds in one list, the last changed first', () => {

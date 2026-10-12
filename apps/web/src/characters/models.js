@@ -76,15 +76,15 @@ export function modelCardFile(model) {
 const DEG = Math.PI / 180
 
 // Y rotation in degrees of the character tray of each side after the Tray Spawner snaps it (the mod's
-// Red seat is the app's blue side, see scoreboard/board.js). A tray is 0 or 180, never between.
-const TRAY_ROTATION = { blue: 180, red: 0 }
+// Red seat is the app's host side, see scoreboard/board.js). A tray is 0 or 180, never between.
+const TRAY_ROTATION = { host: 180, guest: 0 }
 
 // Body turn (radians around Y) of a model that spawns on its card: it faces the mat, as in TTS. The TTS
 // tray turns a model by tray rotation + 180 (+ cModelRot, see modelFigureYaw). A TTS Y rotation r is
 // -r in Three.js (Terrain.jsx, toThreeTransform). Used for a standee too, which has no model part.
 // See docs/features/character-trays.md, "Models face the mat".
-export function modelSpawnYaw(teamColor) {
-  return -(((TRAY_ROTATION[teamColor] + 180) % 360) * DEG) + 0
+export function modelSpawnYaw(team) {
+  return -(((TRAY_ROTATION[team] + 180) % 360) * DEG) + 0
 }
 
 // Turn of the figure on its body (radians around Y), the model part of the TTS spawn turn: cModelRot

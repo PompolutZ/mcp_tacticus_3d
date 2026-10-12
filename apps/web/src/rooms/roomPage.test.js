@@ -7,12 +7,12 @@ const bob = { id: 'b', name: 'Bob' }
 const loading = { status: 'loading', user: null }
 const out = { status: 'out', user: null }
 const as = (user) => ({ status: 'in', user })
-const room = (blue, red) => ({
+const room = (host, guest) => ({
   code: 'K7Q2-M9XD',
   host: 'a',
   mapId: 'vibranium-heist',
-  rosters: { blue: null, red: null },
-  players: { blue, red },
+  rosters: { host: null, guest: null },
+  players: { host, guest },
 })
 const base = { code: 'K7Q2-M9XD', singleRoom: null, authOn: true, session: out, room: undefined }
 
@@ -90,16 +90,16 @@ test('the page is found again when the user changes', () => {
 
 test('seatOf and multiplayerRoom', () => {
   const found = room(alice, bob)
-  assert.equal(seatOf(found, 'b'), 'red')
+  assert.equal(seatOf(found, 'b'), 'guest')
   assert.equal(seatOf(found, 'x'), null)
   assert.equal(seatOf(found, undefined), null)
   assert.deepEqual(multiplayerRoom(found, 'a'), {
     id: 'K7Q2-M9XD',
     multiplayer: true,
-    side: 'blue',
+    side: 'host',
     host: 'a',
     mapId: 'vibranium-heist',
-    rosters: { blue: null, red: null },
+    rosters: { host: null, guest: null },
     players: found.players,
   })
 })

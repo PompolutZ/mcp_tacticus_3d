@@ -84,7 +84,7 @@ These facts were found in the scripts of the "Red Tray Spawner" object (`trayScr
 
 The table is 72" × 76" (`src/table.js`). The last 4" at each end are the rack band of a player, past the Give sources (`docs/features/table-tools.md`). The mat is 36" × 36" (`MAT_SIZE` in `Scene.jsx`), centered on the table, so its edge is 18" from the table center on every side.
 
-Each player's trays sit in one row on that player's side (blue at +z, red at −z), past the player's tactic tray. So the order from the mat is the same as in TTS: mat, tactic tray, character trays. The tactic tray plate ends 22.4" from the table center (see `docs/features/team-tactic-cards.md`, "Tactic tray"). A player never has a second row. The row is centered on the middle line of the table (x = 0), the same as TTS (`arrangeTrays` in the Red Tray Spawner). 12 trays fit in the table width. A row of more than 6 trays is wider than the mat, so it goes past the mat corners. See `src/characters/trays.js`.
+Each player's trays sit in one row on that player's side (host at +z, guest at −z), past the player's tactic tray. So the order from the mat is the same as in TTS: mat, tactic tray, character trays. The tactic tray plate ends 22.4" from the table center (see `docs/features/team-tactic-cards.md`, "Tactic tray"). A player never has a second row. The row is centered on the middle line of the table (x = 0), the same as TTS (`arrangeTrays` in the Red Tray Spawner). 12 trays fit in the table width. A row of more than 6 trays is wider than the mat, so it goes past the mat corners. See `src/characters/trays.js`.
 
 Changes that follow from this:
 
@@ -102,7 +102,7 @@ Changes that follow from this:
 - There is a 0.3" gap between two plates, and between the tactic tray and the row. Without it, two trays look like one. So trays sit 5.9" apart, center to center, and `floor((72 + 0.3) / 5.9) = 12` trays fit in the table width.
 - The row is centered on the middle line of the table. One tray sits on the line. Two trays sit one on each side of the line, and so on. The order is the spawn order, from the owner's left.
 - So every tray of a player moves when that player adds or removes a character. A removed character's tray leaves the row, and the row closes the gap. The same happens in TTS.
-- The card faces the owner and sits on the mat side of the tray; the controls strip sits on the owner's side, away from the mat. For blue, the top of the card image points to −z, the same as a crisis card (`CrisisCard.jsx`). A red tray is turned by 180°.
+- The card faces the owner and sits on the mat side of the tray; the controls strip sits on the owner's side, away from the mat. For the host, the top of the card image points to −z, the same as a crisis card (`CrisisCard.jsx`). A guest tray is turned by 180°.
 - A tray has no collider. Models and dice do not touch it.
 - A newly spawned model stands on the table at the center of its tray's card, not on a separate bench. The model faces the mat, toward the opponent, as in TTS (see "Models face the mat"). The model reads that position only once, when its body mounts. A Rapier `RigidBody` moves its body when its `position` prop changes, so a later tray move must not reach the body through that prop. A model that is still loading when the row shifts mounts on its tray's new place.
 - When a tray moves, a model that still stands on that tray moves with it (`Scene.jsx`). A model that the player moved off its tray, for example onto the mat, stays where it is. TTS does the same (`moveTray` in the tray script). TTS checks "not on the mat"; the app checks "on its own tray plate, or on the table past it, as wide as the plate" (`inTrayArea` in `trays.js`), so a spare model (see [Second forms](#second-forms)) moves too.
@@ -140,7 +140,7 @@ The whole tray is a drop target for tokens. The Give sources are outside the tra
 
 ### Models face the mat
 
-A model that spawns on its card, and one that goes back to it (Remove), faces the mat. A blue model and a red model start 180 deg apart. The TTS tray turns a model by the tray rotation + 180 + the character's `cModelRot`; a standee gets no `cModelRot`. The tray rotation is 180 for the mod's Red seat (the app's blue side) and 0 for Blue. A TTS Y rotation `r` is `-r` in Three.js. The tray part (tray rotation + 180) is the start turn of the body, so Q / E and the stored pose include it. The `cModelRot` part is the turn of the figure on its body, plus the 180 deg import turn of the mod GLBs (`IMPORT_ROTATION` in `Terrain.jsx`). A stored pose keeps its own turn. The second model has the first model's `cModelRot`. See `src/characters/models.js`. One exception in TTS is not built: Ant-Man, Captain Marvel Cosmic Avenger and Emma Frost (`twoCards` with `newCard`) spawn their models with the tray rotation + 90 and no `cModelRot`.
+A model that spawns on its card, and one that goes back to it (Remove), faces the mat. A host model and a guest model start 180 deg apart. The TTS tray turns a model by the tray rotation + 180 + the character's `cModelRot`; a standee gets no `cModelRot`. The tray rotation is 180 for the mod's Red seat (the app's host side) and 0 for Blue. A TTS Y rotation `r` is `-r` in Three.js. The tray part (tray rotation + 180) is the start turn of the body, so Q / E and the stored pose include it. The `cModelRot` part is the turn of the figure on its body, plus the 180 deg import turn of the mod GLBs (`IMPORT_ROTATION` in `Terrain.jsx`). A stored pose keeps its own turn. The second model has the first model's `cModelRot`. See `src/characters/models.js`. One exception in TTS is not built: Ant-Man, Captain Marvel Cosmic Avenger and Emma Frost (`twoCards` with `newCard`) spawn their models with the tray rotation + 90 and no `cModelRot`.
 
 ## Attached cards
 
@@ -319,7 +319,7 @@ New fields on each entry of `characters` in `App.jsx`:
 
 ```js
 {
-  // existing: id, key, figure, base, rotation, teamColor, slot
+  // existing: id, key, figure, base, rotation, team, slot
   side: 'healthy',   // card side that faces up: 'healthy' | 'injured'
   damage: 0,         // 0 .. Stamina of `side`
   power: 0,          // 0 .. 10

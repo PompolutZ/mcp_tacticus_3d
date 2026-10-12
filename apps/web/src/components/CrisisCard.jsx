@@ -9,7 +9,7 @@ import { useHoverCursor } from './useHoverCursor.js'
 import FaceMaterial from './FaceMaterial.jsx'
 
 // The card reads the same way as the scoring board (see crisis/layout.js): the image top faces world
-// -X (the table edge) and the image right faces world -Z (the red side). Rz turns the image in its own
+// -X (the table edge) and the image right faces world -Z (the guest side). Rz turns the image in its own
 // plane first, then Rx lays it flat, the same way as the mat (see Terrain.jsx and Scene.jsx).
 const CARD_ROTATION = [-Math.PI / 2, 0, Math.PI / 2]
 

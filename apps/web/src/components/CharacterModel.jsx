@@ -241,7 +241,7 @@ function CharacterFigure({
   quaternion,
   baseRadius = BASE_RADIUS,
   rotation = [0, 0, 0],
-  teamColor = 'red',
+  team = 'guest',
   selected = false,
   rangeMark,
   otherSelected = null,
@@ -555,10 +555,10 @@ function CharacterFigure({
     }
   }, [remote])
 
-  // teamColor is a side. The base has the color of that side (sideColors.js).
-  const playerColor = useSideColor(teamColor)
+  // team is a side. The base has the color of that side (sideColors.js).
+  const playerColor = useSideColor(team)
   useEffect(() => {
-    const color = new Color(COLOR_HEX[playerColor] ?? teamColor)
+    const color = new Color(COLOR_HEX[playerColor] ?? team)
     scene.traverse((obj) => {
       if (!obj.isMesh) return
       obj.castShadow = true
@@ -568,7 +568,7 @@ function CharacterFigure({
         obj.material.color = color
       }
     })
-  }, [scene, teamColor, playerColor])
+  }, [scene, team, playerColor])
 
   // Red tint while the overlap mark is on. Each mesh gets its own copy of the material, because the
   // materials of a GLB are shared with the other models made from the same file.

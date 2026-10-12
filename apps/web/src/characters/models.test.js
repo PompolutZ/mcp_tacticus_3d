@@ -39,7 +39,7 @@ test('only the second model on the mat is on the board', () => {
 })
 
 test('blue and red models spawn 180 degrees apart', () => {
-  const turn = Math.abs(modelSpawnYaw('red') - modelSpawnYaw('blue'))
+  const turn = Math.abs(modelSpawnYaw('guest') - modelSpawnYaw('host'))
   assert.ok(Math.abs(turn - Math.PI) < 1e-9)
 })
 
@@ -54,8 +54,8 @@ test('the model part is the import turn minus cModelRot', () => {
 })
 
 test('the blue body starts with no turn', () => {
-  assert.equal(modelSpawnYaw('blue'), 0)
-  const q = yawQuaternion(modelSpawnYaw('red'))
+  assert.equal(modelSpawnYaw('host'), 0)
+  const q = yawQuaternion(modelSpawnYaw('guest'))
   assert.ok(Math.abs(Math.abs(q.y) - 1) < 1e-9 && Math.abs(q.w) < 1e-9)
 })
 

@@ -44,7 +44,7 @@ The manual buttons (**Nelly has Priority**, **You have Priority**) stay. Both pl
 
 ### Colors
 
-A side is a seat at the table: the key `blue` is at +z and the key `red` is at −z. A color is Blue or Red. The two are not the same thing, so no code reads a color from a side key. Every place that shows a color calls `colorOf(team, setup, followPriority)` (`src/setup/setup.js`):
+A side is a seat at the table: the key `host` is at +z and the key `guest` is at −z. The host of the room always sits at +z. A color is Blue or Red. The two are not the same thing, so no code reads a color from a side key. Every place that shows a color calls `colorOf(team, setup, followPriority)` (`src/setup/setup.js`):
 
 - In a single player room and a multiplayer room (`followPriority` true), the side with Priority is Blue and the other side is Red, for the whole game.
 - Before the roll off, and always in the Sandbox (`followPriority` false), the +z side is Blue. The roll off sets Priority there, not the colors.
@@ -54,7 +54,7 @@ A side is a seat at the table: the key `blue` is at +z and the key `red` is at �
 
 ### Priority
 
-The bottom edge of the map on a crisis card is the deployment edge of the player with Priority (p9). The app knows who has Priority: `setup.priority`, the side that won the roll off. The player with Priority chooses the deck, so the deck step has no team to pick. When the −z side (the key `red`) has Priority, the tokens of both cards turn a half turn around the mat center (`buildMatTokens` in `App.jsx`, `turned`). A crisis card that a player chooses in the toolbar later turns the same way.
+The bottom edge of the map on a crisis card is the deployment edge of the player with Priority (p9). The app knows who has Priority: `setup.priority`, the side that won the roll off. The player with Priority chooses the deck, so the deck step has no team to pick. When the −z side (the key `guest`) has Priority, the tokens of both cards turn a half turn around the mat center (`buildMatTokens` in `App.jsx`, `turned`). A crisis card that a player chooses in the toolbar later turns the same way.
 
 Survivors is the only current card with a map that changes after a half turn. So for the other cards, the tokens land at the same places.
 
@@ -62,7 +62,7 @@ Survivors is the only current card with a map that changes after a half turn. So
 
 ### Crisis cards
 
-The crisis cards of the rosters do not lie in the roster rows any more. They lie next to the scoring board, on the owner's side, until **Choose this edge**. The rows run along z, parallel to the board. Numbers are for blue (+z). Red is the same at −z: only z changes sign.
+The crisis cards of the rosters do not lie in the roster rows any more. They lie next to the scoring board, on the owner's side, until **Choose this edge**. The rows run along z, parallel to the board. Numbers are for the host (+z). The guest is the same at −z: only z changes sign.
 
 Deck step. Seen from above, the table edge (−x) on the left. The deck buttons lie in one line along z in the gap:
 
@@ -93,7 +93,7 @@ z = 12.55   Choose         [drawn 1]
 - The deck rows reach past the tactic tray (z = 22.4), next to roster row 1. So they end 0.3" before x = −23.85, where a roster row of 10 character cards ends.
 - **Drawn cards:** the 2 cards drawn from a deck lie in line with the board (x = −23.1, the same as the cards on the board ends), from z = 12.55. So after the second **Choose**, the chosen card of each player lies next to the board end.
 - A **Choose** button is next to each drawn card, on the table-edge side (x = −26.1).
-- The steps: after **Choose Secures**, blue shows its 2 drawn Secure cards in line with the board. Red shows its Extract row. After **Choose**, blue shows the chosen card, and red shows its 2 drawn Extract cards in line with the board. After the second **Choose**, each player shows their chosen card.
+- The steps: after **Choose Secures**, the host shows its 2 drawn Secure cards in line with the board. The guest shows its Extract row. After **Choose**, the host shows the chosen card, and the guest shows its 2 drawn Extract cards in line with the board. After the second **Choose**, each player shows their chosen card.
 - A click on a card opens the crisis tab of the roster popup.
 - **Choose this edge** removes the rows. The two chosen cards then lie on the board ends, the same as a card from the toolbar (Secure at +z, Extract at −z).
 - A chosen card without files in the app has no image and no tokens. The HUD message says so.
@@ -102,7 +102,7 @@ z = 12.55   Choose         [drawn 1]
 
 - The buttons lie flat on the table: drei `Html` with `transform`, the same as the tray controls. 1 CSS px is 0.04" on the table, so a 13 px button text is about 0.5" high.
 - The buttons read the same way as the scoring board and the crisis cards: their top faces the table edge (−x).
-- **↺ Choose this edge ↻** lie on the side of the player with Priority (also in the Sandbox), flat and facing that player, like the Power Phase buttons: in the row of the Team Tactic tray, on the owner's right of the tactic plate, the mirror of the Power Phase button (blue: x 9.25 … 16.45, z 18.55 … 22.15; red is the mirror). So they are inside the start view and next to the mat that the arrows turn. The arrows are on the first row, 2.2" × 1.4" each (about twice a normal chip). **Choose this edge** is on its own second row, 7.2" × 1.2", toward the table edge. The place is `edgeControls(side)` in `src/tabletools/layout.js`, and a Node test checks that it does not overlap the mat, trays, tactic tray, Power button, rack, dice trays, roster rows or crisis rows, and that it lies in the start view. The other player sees them disabled in a multiplayer room. The info panel stays next to the scoring board.
+- **↺ Choose this edge ↻** lie on the side of the player with Priority (also in the Sandbox), flat and facing that player, like the Power Phase buttons: in the row of the Team Tactic tray, on the owner's right of the tactic plate, the mirror of the Power Phase button (host: x 9.25 … 16.45, z 18.55 … 22.15; the guest is the mirror). So they are inside the start view and next to the mat that the arrows turn. The arrows are on the first row, 2.2" × 1.4" each (about twice a normal chip). **Choose this edge** is on its own second row, 7.2" × 1.2", toward the table edge. The place is `edgeControls(side)` in `src/tabletools/layout.js`, and a Node test checks that it does not overlap the mat, trays, tactic tray, Power button, rack, dice trays, roster rows or crisis rows, and that it lies in the start view. The other player sees them disabled in a multiplayer room. The info panel stays next to the scoring board.
 - **Choose Secures** and **Choose Extracts** have no color, so a color never shows a crisis type. Only the player with Priority has them.
 - The panel lies between the table edge and the scoring board (x = −31.6, z = 0). It shows what to do in the current step, who has Priority, the Maximum Threat and **Restart setup**. It is at most 440 px (17.6") long, and its text wraps.
 - The squad panel of each player lies flat and facing them, right below their roster rows (past the Team Tactic cards), centered in x, in the free band between the cards (z 29.5) and the tool rack (z 34.2), inside the start view. So the player clicks + on the roster cards and sees the threat and the buttons without turning the camera. It is 24" wide and 3.7" deep at most, text 12px. One row has "Threat 15 / 18", "Tactics 3 / 5" and **Squad ready** (the main button, the strongest style of the panel). Under it is the hint "Click + on a roster card, or choose a squad in the Breakdown tab." Under it, a red line says when the threat is too high.
@@ -167,16 +167,16 @@ Rule p11: a squad uses an affiliation when more than half of its characters have
 ```js
 setup: {
   id: string | null,   // random, new with each setup. A stored squad counts only for its setup id
-  priority: null | team,   // the roll-off winner (Priority). The colors follow it (see Colors)
+  priority: null | team,   // team: 'host' | 'guest'. The roll-off winner (Priority). The colors follow it (see Colors)
   deck: null | { type },   // the deck type that the player with Priority uses
   draws: { secure: [code], extract: [code] },   // the 2 cards drawn from each deck
   picks: { secure: code | null, extract: code | null },   // the cards of the mission
   threat: null | number,   // the Maximum Threat
   edge: false,   // the deployment edge is chosen
-  squads: { blue: { characters: [place], tactics: [place] }, red: … },
-  ready: { blue: false, red: false },   // the Ready toggles. Both true: the squads are revealed and put on the table
-  placed: { blue: null | { characters: [id], tactics: [id] }, red: … },   // what each squad put on the table
-  affiliation: { blue: null | key, red: null | key },   // the token key of each squad, null until set
+  squads: { host: { characters: [place], tactics: [place] }, guest: … },
+  ready: { host: false, guest: false },   // the Ready toggles. Both true: the squads are revealed and put on the table
+  placed: { host: null | { characters: [id], tactics: [id] }, guest: … },   // what each squad put on the table
+  affiliation: { host: null | key, guest: null | key },   // the token key of each squad, null until set
   deployed: false,   // the first Power Phase after the reveal sets it
   lockSet: false,    // Deploy Lock was turned on once, when both squads were placed; a hand toggle stays
   view: null | step,   // the done step that a player browses (Prev / Next), null: the current step

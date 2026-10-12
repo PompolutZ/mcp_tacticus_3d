@@ -14,14 +14,14 @@ export function shelfCounts(symbols) {
   return counts
 }
 
-// shelves: { blue: [symbol, …], red: [symbol, …] }. The winner has more successes (Crit, Wild and Hit),
-// then more Crits, then more Wilds. winner: 'blue' | 'red' | null on a tie.
+// shelves: { host: [symbol, …], guest: [symbol, …] }. The winner has more successes (Crit, Wild and Hit),
+// then more Crits, then more Wilds. winner: 'host' | 'guest' | null on a tie.
 export function readRollOff(shelves) {
-  const counts = { blue: shelfCounts(shelves.blue), red: shelfCounts(shelves.red) }
+  const counts = { host: shelfCounts(shelves.host), guest: shelfCounts(shelves.guest) }
   let winner = null
   for (const key of ['successes', 'crits', 'wilds']) {
-    if (counts.blue[key] !== counts.red[key]) {
-      winner = counts.blue[key] > counts.red[key] ? 'blue' : 'red'
+    if (counts.host[key] !== counts.guest[key]) {
+      winner = counts.host[key] > counts.guest[key] ? 'host' : 'guest'
       break
     }
   }

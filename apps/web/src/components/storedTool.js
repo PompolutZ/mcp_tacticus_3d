@@ -57,7 +57,7 @@ export function sameStored(a, b) {
 // The yaw of a free spawn. Blue's tools have yaw 0. Red's have Blue + π, so the buttons read from
 // Red's side (decision 12).
 export function freeSpawnYaw(side) {
-  return side === 'red' ? Math.PI : 0
+  return side === 'guest' ? Math.PI : 0
 }
 
 // A new random id for `spawn`. random: a function that gives a number in [0, 1), for tests.

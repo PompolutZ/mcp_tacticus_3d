@@ -81,9 +81,9 @@ function others() {
   return out
 }
 
-// The z of the deepest tray part of blue: the plate of a tray with two cards plus the Give sources
+// The z of the deepest tray part of host: the plate of a tray with two cards plus the Give sources
 // in two rows
-const trayPos = trayPosition('blue', 0, 1)
+const trayPos = trayPosition('host', 0, 1)
 const plate2 = trayPlate(2)
 const PLATE_END = trayPos[2] + plate2.z + plate2.depth / 2
 const GIVE_END = trayPos[2] + trayGiveTokenPosition(6, 2)[1] + TOKEN_SIZE / 2
@@ -96,20 +96,20 @@ test('every piece lies inside the table', () => {
 
 test('the rack starts past the deepest tray parts', () => {
   assert.ok(PLATE_END < GIVE_END)
-  for (const [name, r] of Object.entries(pieces('blue'))) {
+  for (const [name, r] of Object.entries(pieces('host'))) {
     if (name === 'board strip') continue
     assert.ok(r.z0 > GIVE_END, `${name}: ${r.z0} <= ${GIVE_END}`)
   }
   // A spare model after one row of Give sources (Hulkbuster, 1" radius) also ends before the rack
-  const spare = traySpareModelPosition('blue', trayPos, 1, 6, 1)
-  assert.ok(spare[2] + 1 < rackPlate('blue').z - rackPlate('blue').depth / 2)
+  const spare = traySpareModelPosition('host', trayPos, 1, 6, 1)
+  assert.ok(spare[2] + 1 < rackPlate('host').z - rackPlate('host').depth / 2)
 })
 
 test('the row of the character trays can be 12 trays wide without meeting the rack', () => {
-  const characters = Array.from({ length: 12 }, (_, i) => ({ id: i, teamColor: 'blue' }))
+  const characters = Array.from({ length: 12 }, (_, i) => ({ id: i, team: 'host' }))
   for (const pos of layoutTrays(characters).values()) {
     assert.ok(
-      pos[2] + plate2.z + plate2.depth / 2 < rackPlate('blue').z - rackPlate('blue').depth / 2,
+      pos[2] + plate2.z + plate2.depth / 2 < rackPlate('host').z - rackPlate('host').depth / 2,
     )
   }
 })
@@ -146,7 +146,7 @@ test('the slots of a rack lie on the plate and do not overlap each other ', () =
 })
 
 test('blue row 1 reads R1, R2..R5 from the owner left (-x), row 2 S, M, L, T/A', () => {
-  const slots = rackSlots('blue')
+  const slots = rackSlots('host')
   const row1 = slots.filter((s) => s.z < 35.5).sort((a, b) => a.x - b.x)
   assert.deepEqual(
     row1.map((s) => s.key),
@@ -160,21 +160,21 @@ test('blue row 1 reads R1, R2..R5 from the owner left (-x), row 2 S, M, L, T/A',
 })
 
 test('red is the mirror of blue, turned 180 deg', () => {
-  const blue = rackSlots('blue')
-  const red = rackSlots('red')
+  const blue = rackSlots('host')
+  const red = rackSlots('guest')
   blue.forEach((slot, i) => {
     assert.equal(red[i].key, slot.key)
     assert.ok(Math.abs(red[i].x + slot.x) < 1e-9)
     assert.ok(Math.abs(red[i].z + slot.z) < 1e-9)
   })
-  assert.equal(powerButton('red').x, -powerButton('blue').x)
-  assert.equal(powerButton('red').width, powerButton('blue').width)
-  assert.equal(powerButton('red').z, -powerButton('blue').z)
-  const strip = boardStrip('red')
-  assert.equal(strip.x, boardStrip('blue').x)
-  assert.equal(strip.z, -boardStrip('blue').z)
-  assert.equal(rackYaw('blue'), 0)
-  assert.equal(rackYaw('red'), Math.PI)
+  assert.equal(powerButton('guest').x, -powerButton('host').x)
+  assert.equal(powerButton('guest').width, powerButton('host').width)
+  assert.equal(powerButton('guest').z, -powerButton('host').z)
+  const strip = boardStrip('guest')
+  assert.equal(strip.x, boardStrip('host').x)
+  assert.equal(strip.z, -boardStrip('host').z)
+  assert.equal(rackYaw('host'), 0)
+  assert.equal(rackYaw('guest'), Math.PI)
 })
 
 const powerRect = (side) => {
@@ -182,13 +182,13 @@ const powerRect = (side) => {
   return rect(p.x, p.z, p.width, p.depth)
 }
 
-test('the Power button lies inside the table, left of the tactic tray (blue: -x)', () => {
+test('the Power button lies inside the table, left of the tactic tray (host: -x)', () => {
   for (const side of TEAMS) assert.ok(inside(powerRect(side)), side)
-  const power = powerButton('blue')
-  const tray = tacticTrayPosition('blue')
+  const power = powerButton('host')
+  const tray = tacticTrayPosition('host')
   assert.equal(power.z, tray.z)
   assert.ok(power.x + power.width / 2 < tray.x - TACTIC_PLATE_WIDTH / 2)
-  assert.ok(powerButton('red').x > 0)
+  assert.ok(powerButton('guest').x > 0)
 })
 
 // Everything else that lies near the table edge of `side`, with the setup rows and full rosters: name ->
@@ -222,12 +222,12 @@ function crowded(side) {
   const plate = rackPlate(side)
   rest['rack plate'] = rect(plate.x, plate.z, plate.width, plate.depth)
   for (const pos of layoutTrays(
-    Array.from({ length: 12 }, (_, i) => ({ id: i, teamColor: side })),
+    Array.from({ length: 12 }, (_, i) => ({ id: i, team: side })),
   ).values()) {
     const p2 = trayPlate(2)
     rest[`tray ${pos[0]}`] = rect(
       pos[0],
-      pos[2] + p2.z * (side === 'blue' ? 1 : -1),
+      pos[2] + p2.z * (side === 'host' ? 1 : -1),
       TRAY_BG_WIDTH,
       p2.depth,
     )
@@ -250,19 +250,19 @@ const edgeRect = (side) => {
 
 test('the edge controls lie inside the table, on the owner side, and mirror for red', () => {
   for (const side of TEAMS) assert.ok(inside(edgeRect(side)), side)
-  const blue = edgeControls('blue')
-  const red = edgeControls('red')
+  const blue = edgeControls('host')
+  const red = edgeControls('guest')
   assert.ok(blue.z > 0 && red.z < 0)
   assert.equal(red.x, -blue.x)
   assert.equal(red.z, -blue.z)
   assert.equal(red.width, blue.width)
 })
 
-test('the edge controls lie in the start view, right of the tactic tray (blue: +x)', () => {
+test('the edge controls lie in the start view, right of the tactic tray (host: +x)', () => {
   // The start view meets the table at z 37.47 with half width 23.4" (docs/plans/table-tools.md)
   for (const side of TEAMS) {
     const r = edgeRect(side)
-    const k = side === 'blue' ? 1 : -1
+    const k = side === 'host' ? 1 : -1
     assert.ok(Math.abs(r.x0) <= 20 && Math.abs(r.x1) <= 20, side)
     assert.ok(Math.abs(r.z0) <= 34 && Math.abs(r.z1) <= 34, side)
     const tray = tacticTrayPosition(side)
@@ -280,19 +280,19 @@ test('the edge controls do not overlap the rest of the table, the Power button o
     for (const [name, o] of Object.entries(rest))
       assert.ok(!overlap(mine, o), `${side} edge controls overlap ${name}`)
     // The other side's pieces too
-    const far = side === 'blue' ? 'red' : 'blue'
+    const far = side === 'host' ? 'guest' : 'host'
     for (const [name, o] of Object.entries(crowded(far)))
       assert.ok(!overlap(mine, o), `${side} edge controls overlap ${far} ${name}`)
   }
 })
 
 test('onRack: a point on the plate of a side is on that rack only', () => {
-  assert.ok(onRack('blue', { x: 0, z: 35 }))
-  assert.ok(!onRack('red', { x: 0, z: 35 }))
-  assert.ok(onRack('red', { x: 5, z: -36 }))
-  assert.ok(!onRack('blue', { x: 16, z: 35 }))
-  assert.ok(!onRack('blue', { x: 0, z: 33.9 }))
-  assert.ok(!onRack('blue', { x: 0, z: 37 }))
+  assert.ok(onRack('host', { x: 0, z: 35 }))
+  assert.ok(!onRack('guest', { x: 0, z: 35 }))
+  assert.ok(onRack('guest', { x: 5, z: -36 }))
+  assert.ok(!onRack('host', { x: 16, z: 35 }))
+  assert.ok(!onRack('host', { x: 0, z: 33.9 }))
+  assert.ok(!onRack('host', { x: 0, z: 37 }))
 })
 
 const squadRect = (side, compact = false) => {
@@ -301,20 +301,20 @@ const squadRect = (side, compact = false) => {
 }
 
 test('the squad panel lies under the roster rows, in the start view, and mirrors for red', () => {
-  const blue = squadPanel('blue')
-  const red = squadPanel('red')
+  const blue = squadPanel('host')
+  const red = squadPanel('guest')
   assert.equal(red.z, -blue.z)
   assert.equal(red.width, blue.width)
   assert.equal(blue.x, 0)
   for (const side of TEAMS) {
     for (const compact of [false, true]) {
       const r = squadRect(side, compact)
-      const k = side === 'blue' ? 1 : -1
+      const k = side === 'host' ? 1 : -1
       assert.ok(inside(r), side)
       // Start view: bottom edge at z 37.47, half width 23.4 (docs/plans/table-tools.md)
       assert.ok(Math.max(Math.abs(r.z0), Math.abs(r.z1)) <= 37.4, side)
       assert.ok(Math.abs(r.x0) <= 23 && Math.abs(r.x1) <= 23, side)
-      // Past the Team Tactic row (blue: larger z)
+      // Past the Team Tactic row (host: larger z)
       assert.ok(k * (k > 0 ? r.z0 : r.z1) >= 29.5, side)
     }
   }

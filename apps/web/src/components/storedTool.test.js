@@ -58,8 +58,8 @@ test('two null snaps are equal', () => {
 })
 
 test('the Red free spawn yaw is the Blue yaw + π', () => {
-  assert.equal(freeSpawnYaw('blue'), 0)
-  assert.equal(freeSpawnYaw('red'), freeSpawnYaw('blue') + Math.PI)
+  assert.equal(freeSpawnYaw('host'), 0)
+  assert.equal(freeSpawnYaw('guest'), freeSpawnYaw('host') + Math.PI)
 })
 
 test('spawn ids come from random, and differ for different numbers', () => {

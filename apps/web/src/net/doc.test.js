@@ -8,15 +8,15 @@ const STATE = {
   matTurns: 1,
   deployLine: false,
   crisis: { secure: 'a', extract: null },
-  scoreMarkers: { blue: { x: 1, z: 2 }, red: { x: 3, z: 4 }, round: { x: 5, z: 6 } },
-  affiliations: { blue: 'avengers', red: 'cabal' },
-  rosters: { blue: { code: 'B' }, red: null },
-  setup: { deck: null, ready: { blue: false, red: false } },
+  scoreMarkers: { host: { x: 1, z: 2 }, guest: { x: 3, z: 4 }, round: { x: 5, z: 6 } },
+  affiliations: { host: 'avengers', guest: 'cabal' },
+  rosters: { host: { code: 'B' }, guest: null },
+  setup: { deck: null, ready: { host: false, guest: false } },
   terrain: [{ id: 't1', index: 0, locked: true, piece: 'crate' }],
   characters: [{ id: 'c1', key: 'cap', tokens: {} }],
   poses: { c1: { x: 1, y: 0, z: 2, qx: 0, qy: 0, qz: 0, qw: 1 } },
   tokens: [{ id: 'k1', x: 0, z: 0, heldBy: null }],
-  tactics: [{ id: 'g1', key: 'x', team: 'blue', up: 'face' }],
+  tactics: [{ id: 'g1', key: 'x', team: 'host', up: 'face' }],
   looseTokens: [{ id: 'l1', key: 'stun', x: 1, z: 1 }],
   tokenPiles: [],
 }
@@ -72,18 +72,18 @@ test('a new table has tools, empty without a start value', () => {
   const table = createTable()
   fillTable(table, STATE)
   assert.deepEqual(table.tools.read(), {})
-  fillTable(table, { ...STATE, tools: { blue: { range: BLUE_RANGE } } })
-  assert.deepEqual(table.tools.read(), { blue: { range: BLUE_RANGE } })
+  fillTable(table, { ...STATE, tools: { host: { range: BLUE_RANGE } } })
+  assert.deepEqual(table.tools.read(), { host: { range: BLUE_RANGE } })
 })
 
 test('an entry of one side does not change the other side', () => {
   const table = createTable()
   fillTable(table, STATE)
-  table.tools.setField('blue', { range: BLUE_RANGE })
-  table.tools.setField('red', (side) => ({ ...side, range: RED_RANGE }))
-  assert.deepEqual(table.tools.read(), { blue: { range: BLUE_RANGE }, red: { range: RED_RANGE } })
-  table.tools.setField('blue', (side) => ({ ...side, range: { ...side.range, spawn: 'a2' } }))
-  assert.deepEqual(table.tools.get('red'), { range: RED_RANGE })
+  table.tools.setField('host', { range: BLUE_RANGE })
+  table.tools.setField('guest', (side) => ({ ...side, range: RED_RANGE }))
+  assert.deepEqual(table.tools.read(), { host: { range: BLUE_RANGE }, guest: { range: RED_RANGE } })
+  table.tools.setField('host', (side) => ({ ...side, range: { ...side.range, spawn: 'a2' } }))
+  assert.deepEqual(table.tools.get('guest'), { range: RED_RANGE })
 })
 
 test('tools of the two sides merge when written at the same time', () => {
@@ -91,11 +91,11 @@ test('tools of the two sides merge when written at the same time', () => {
   fillTable(a, STATE)
   const b = createTable()
   Y.applyUpdate(b.doc, encodeTable(a))
-  a.tools.setField('blue', { range: BLUE_RANGE })
-  b.tools.setField('red', { range: RED_RANGE })
+  a.tools.setField('host', { range: BLUE_RANGE })
+  b.tools.setField('guest', { range: RED_RANGE })
   Y.applyUpdate(a.doc, Y.encodeStateAsUpdate(b.doc))
   Y.applyUpdate(b.doc, Y.encodeStateAsUpdate(a.doc))
-  const both = { blue: { range: BLUE_RANGE }, red: { range: RED_RANGE } }
+  const both = { host: { range: BLUE_RANGE }, guest: { range: RED_RANGE } }
   assert.deepEqual(a.tools.read(), both)
   assert.deepEqual(b.tools.read(), both)
 })
@@ -108,8 +108,8 @@ test('a new table has no dice, and a start value is kept', () => {
   fillTable(table, STATE)
   assert.deepEqual(table.dice.read(), {})
   const side = { critsUsed: false, dice: { aaaaaaaa: SHELF_DIE } }
-  fillTable(table, { ...STATE, dice: { blue: side } })
-  assert.deepEqual(table.dice.read(), { blue: side })
+  fillTable(table, { ...STATE, dice: { host: side } })
+  assert.deepEqual(table.dice.read(), { host: side })
 })
 
 test('dice of the two sides merge when written at the same time', () => {
@@ -117,13 +117,13 @@ test('dice of the two sides merge when written at the same time', () => {
   fillTable(a, STATE)
   const b = createTable()
   Y.applyUpdate(b.doc, encodeTable(a))
-  a.dice.setField('blue', { critsUsed: true, dice: { aaaaaaaa: SHELF_DIE } })
-  b.dice.setField('red', { critsUsed: false, dice: { bbbbbbbb: AIR_DIE } })
+  a.dice.setField('host', { critsUsed: true, dice: { aaaaaaaa: SHELF_DIE } })
+  b.dice.setField('guest', { critsUsed: false, dice: { bbbbbbbb: AIR_DIE } })
   Y.applyUpdate(a.doc, Y.encodeStateAsUpdate(b.doc))
   Y.applyUpdate(b.doc, Y.encodeStateAsUpdate(a.doc))
   const both = {
-    blue: { critsUsed: true, dice: { aaaaaaaa: SHELF_DIE } },
-    red: { critsUsed: false, dice: { bbbbbbbb: AIR_DIE } },
+    host: { critsUsed: true, dice: { aaaaaaaa: SHELF_DIE } },
+    guest: { critsUsed: false, dice: { bbbbbbbb: AIR_DIE } },
   }
   assert.deepEqual(a.dice.read(), both)
   assert.deepEqual(b.dice.read(), both)
@@ -132,10 +132,10 @@ test('dice of the two sides merge when written at the same time', () => {
 test('writing a side deletes the dice it no longer has', () => {
   const table = createTable()
   fillTable(table, STATE)
-  table.dice.setField('blue', {
+  table.dice.setField('host', {
     critsUsed: false,
     dice: { aaaaaaaa: SHELF_DIE, bbbbbbbb: AIR_DIE },
   })
-  table.dice.setField('blue', { critsUsed: false, dice: { aaaaaaaa: SHELF_DIE } })
-  assert.deepEqual(table.dice.get('blue'), { critsUsed: false, dice: { aaaaaaaa: SHELF_DIE } })
+  table.dice.setField('host', { critsUsed: false, dice: { aaaaaaaa: SHELF_DIE } })
+  assert.deepEqual(table.dice.get('host'), { critsUsed: false, dice: { aaaaaaaa: SHELF_DIE } })
 })

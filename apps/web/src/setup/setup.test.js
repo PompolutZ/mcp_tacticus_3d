@@ -33,14 +33,14 @@ import {
 // A setup at the squads step
 const squadsSetup = (extra = {}) => ({
   ...newSetup(),
-  priority: 'blue',
+  priority: 'host',
   deck: { type: 'secure' },
   picks: { secure: 'a', extract: 'b' },
   threat: 17,
   edge: true,
   ...extra,
 })
-const bothReady = { ready: { blue: true, red: true } }
+const bothReady = { ready: { host: true, guest: true } }
 const squad = { characters: [0, 2], tactics: [1] }
 const cards = { characters: ['c1'], tactics: ['t1'] }
 
@@ -51,13 +51,13 @@ test('newSetup makes a random id', () => {
 
 test('setupStep: squads, reveal and done', () => {
   assert.equal(setupStep(squadsSetup()), 'squads')
-  assert.equal(setupStep(squadsSetup({ ready: { blue: true, red: false } })), 'squads')
+  assert.equal(setupStep(squadsSetup({ ready: { host: true, guest: false } })), 'squads')
   assert.equal(setupStep(squadsSetup(bothReady)), 'reveal')
-  const oneSide = placeSquad(squadsSetup(bothReady), 'blue', squad, cards)
+  const oneSide = placeSquad(squadsSetup(bothReady), 'host', squad, cards)
   assert.equal(setupStep(oneSide), 'reveal')
-  const both = placeSquad(oneSide, 'red', squad, { characters: [], tactics: [] }, 'unaffiliated')
+  const both = placeSquad(oneSide, 'guest', squad, { characters: [], tactics: [] }, 'unaffiliated')
   assert.equal(setupStep(both), 'affiliation')
-  const chosen = chooseAffiliation(both, 'blue', 'asgard')
+  const chosen = chooseAffiliation(both, 'host', 'asgard')
   assert.equal(setupStep(chosen), 'deploy')
   assert.equal(setupStep(finishDeploy(chosen)), 'done')
 })
@@ -66,35 +66,35 @@ test('the old placed shape reads as Blue, and a done setup stays done', () => {
   const old = squadsSetup({ ...bothReady, placed: cards })
   delete old.affiliation
   delete old.deployed
-  assert.deepEqual(placedSides(old), { blue: cards, red: { characters: [], tactics: [] } })
+  assert.deepEqual(placedSides(old), { host: cards, guest: { characters: [], tactics: [] } })
   assert.equal(setupStep(old), 'done')
   assert.deepEqual(placedIds(old), cards)
   assert.equal(setupPlacedCards(old), true)
   // Not both Ready: nothing is placed yet
   const early = squadsSetup({ placed: { characters: [], tactics: [] } })
-  assert.deepEqual(placedSides(early), { blue: null, red: null })
+  assert.deepEqual(placedSides(early), { host: null, guest: null })
   assert.equal(setupStep(early), 'squads')
 })
 
 test('placeSquad writes the squad and one placed key, in the new shape', () => {
   const old = squadsSetup({ ...bothReady, placed: { characters: [], tactics: [] } })
-  const next = placeSquad(old, 'red', squad, cards)
-  assert.deepEqual(next.squads.red, squad)
-  assert.equal(next.placed.red, cards)
+  const next = placeSquad(old, 'guest', squad, cards)
+  assert.deepEqual(next.squads.guest, squad)
+  assert.equal(next.placed.guest, cards)
   assert.equal(next.placed.characters, undefined)
   assert.deepEqual(placedIds(next), cards)
 })
 
 test('revealPlan: nothing until both players are Ready', () => {
-  const setup = squadsSetup({ ready: { blue: true, red: false } })
-  assert.deepEqual(revealPlan(setup, ['blue'], { blue: null }), { reveal: [], missing: [] })
+  const setup = squadsSetup({ ready: { host: true, guest: false } })
+  assert.deepEqual(revealPlan(setup, ['host'], { host: null }), { reveal: [], missing: [] })
 })
 
 test('revealPlan: a multiplayer browser reveals only its side', () => {
   const setup = squadsSetup(bothReady)
-  const stored = { red: { setupId: setup.id, squad } }
-  assert.deepEqual(revealPlan(setup, ['red'], stored), {
-    reveal: [{ side: 'red', squad }],
+  const stored = { guest: { setupId: setup.id, squad } }
+  assert.deepEqual(revealPlan(setup, ['guest'], stored), {
+    reveal: [{ side: 'guest', squad }],
     missing: [],
   })
 })
@@ -102,57 +102,57 @@ test('revealPlan: a multiplayer browser reveals only its side', () => {
 test('revealPlan: a single player room reveals both sides from the document', () => {
   const setup = squadsSetup({
     ...bothReady,
-    squads: { blue: squad, red: { characters: [1], tactics: [] } },
+    squads: { host: squad, guest: { characters: [1], tactics: [] } },
   })
-  const plan = revealPlan(setup, ['blue', 'red'], null)
+  const plan = revealPlan(setup, ['host', 'guest'], null)
   assert.deepEqual(
     plan.reveal.map((r) => r.side),
-    ['blue', 'red'],
+    ['host', 'guest'],
   )
   assert.deepEqual(plan.reveal[1].squad, { characters: [1], tactics: [] })
 })
 
 test('revealPlan: a placed side is skipped', () => {
-  const setup = placeSquad(squadsSetup(bothReady), 'blue', squad, cards)
-  const plan = revealPlan(setup, ['blue', 'red'], null)
+  const setup = placeSquad(squadsSetup(bothReady), 'host', squad, cards)
+  const plan = revealPlan(setup, ['host', 'guest'], null)
   assert.deepEqual(
     plan.reveal.map((r) => r.side),
-    ['red'],
+    ['guest'],
   )
-  assert.deepEqual(revealPlan(setup, ['blue'], { blue: null }), { reveal: [], missing: [] })
+  assert.deepEqual(revealPlan(setup, ['host'], { host: null }), { reveal: [], missing: [] })
 })
 
 test('revealPlan: a squad of another setup id does not count', () => {
   const setup = squadsSetup(bothReady)
-  const stale = { red: { setupId: 'other', squad } }
-  assert.deepEqual(revealPlan(setup, ['red'], stale), { reveal: [], missing: ['red'] })
+  const stale = { guest: { setupId: 'other', squad } }
+  assert.deepEqual(revealPlan(setup, ['guest'], stale), { reveal: [], missing: ['guest'] })
 })
 
 test('revealPlan: no stored squad is missing', () => {
   const setup = squadsSetup(bothReady)
-  assert.deepEqual(revealPlan(setup, ['blue'], { blue: null }), { reveal: [], missing: ['blue'] })
+  assert.deepEqual(revealPlan(setup, ['host'], { host: null }), { reveal: [], missing: ['host'] })
 })
 
 test('revealPlan: an old setup without an id matches a stored squad without one', () => {
   const setup = { ...squadsSetup(bothReady), id: undefined }
-  const plan = revealPlan(setup, ['blue'], { blue: { setupId: null, squad } })
+  const plan = revealPlan(setup, ['host'], { host: { setupId: null, squad } })
   assert.equal(plan.reveal.length, 1)
 })
 
 test('newSetup has no affiliation', () => {
-  assert.deepEqual(newSetup().affiliation, { blue: null, red: null })
+  assert.deepEqual(newSetup().affiliation, { host: null, guest: null })
 })
 
 test('step affiliation while a side has none, done when both have one', () => {
   const none = { characters: [], tactics: [] }
   const base = placeSquad(
-    placeSquad(squadsSetup(bothReady), 'blue', squad, none, 'asgard'),
-    'red',
+    placeSquad(squadsSetup(bothReady), 'host', squad, none, 'asgard'),
+    'guest',
     squad,
     none,
   )
   assert.equal(setupStep(base), 'affiliation')
-  const chosen = chooseAffiliation(base, 'red', 'unaffiliated')
+  const chosen = chooseAffiliation(base, 'guest', 'unaffiliated')
   assert.equal(setupStep(chosen), 'deploy')
   assert.equal(setupStep(finishDeploy(chosen)), 'done')
 })
@@ -165,8 +165,8 @@ test('newSetup is not deployed, finishDeploy sets it', () => {
 test('a saved setup with no deployed field has no deploy step', () => {
   const none = { characters: [], tactics: [] }
   const old = placeSquad(
-    placeSquad(squadsSetup(bothReady), 'blue', squad, none, 'asgard'),
-    'red',
+    placeSquad(squadsSetup(bothReady), 'host', squad, none, 'asgard'),
+    'guest',
     squad,
     none,
     'asgard',
@@ -184,26 +184,26 @@ test('a setup with no affiliation field stays done', () => {
 })
 
 test('placeSquad writes the affiliation of one side only', () => {
-  const next = placeSquad(squadsSetup(bothReady), 'red', squad, cards, 'avengers')
-  assert.deepEqual(next.affiliation, { blue: null, red: 'avengers' })
+  const next = placeSquad(squadsSetup(bothReady), 'guest', squad, cards, 'avengers')
+  assert.deepEqual(next.affiliation, { host: null, guest: 'avengers' })
 })
 
 test('chooseAffiliation changes one side', () => {
-  const next = chooseAffiliation(squadsSetup(), 'blue', 'asgard')
-  assert.deepEqual(next.affiliation, { blue: 'asgard', red: null })
+  const next = chooseAffiliation(squadsSetup(), 'host', 'asgard')
+  assert.deepEqual(next.affiliation, { host: 'asgard', guest: null })
   const old = squadsSetup()
   delete old.affiliation
   delete old.deployed
-  assert.deepEqual(chooseAffiliation(old, 'red', 'asgard').affiliation, {
-    blue: null,
-    red: 'asgard',
+  assert.deepEqual(chooseAffiliation(old, 'guest', 'asgard').affiliation, {
+    host: null,
+    guest: 'asgard',
   })
 })
 
 test('possibleThreats: each step', () => {
   const rosters = {
-    blue: { secure: ['s1', 's2'], extract: ['e1'] },
-    red: { secure: ['s3'], extract: ['e2', 'e3'] },
+    host: { secure: ['s1', 's2'], extract: ['e1'] },
+    guest: { secure: ['s3'], extract: ['e2', 'e3'] },
   }
   const values = { s1: 17, s2: 15, s3: 17, e1: 20, e2: 16, e3: 18, x: 19 }
   const threatOf = (code) => values[code]
@@ -211,7 +211,7 @@ test('possibleThreats: each step', () => {
   // Deck chosen: Blue uses secure, 2 cards drawn. Red's extract cards are all possible.
   const deck = {
     ...newSetup(),
-    priority: 'blue',
+    priority: 'host',
     deck: { type: 'secure' },
     draws: { secure: ['s1', 's2'], extract: [] },
   }
@@ -235,121 +235,124 @@ test('possibleThreats: missing roster, no cards, unknown code', () => {
   assert.deepEqual(
     possibleThreats(
       newSetup(),
-      { blue: { secure: ['s1', 'zz'], extract: [] }, red: null },
+      { host: { secure: ['s1', 'zz'], extract: [] }, guest: null },
       threatOf,
     ),
     [17],
   )
-  assert.deepEqual(possibleThreats(newSetup(), { blue: null, red: null }, threatOf), [])
+  assert.deepEqual(possibleThreats(newSetup(), { host: null, guest: null }, threatOf), [])
   const deck = {
     ...newSetup(),
-    priority: 'red',
+    priority: 'guest',
     deck: { type: 'extract' },
     draws: { secure: [], extract: [] },
   }
-  assert.deepEqual(possibleThreats(deck, { blue: null, red: null }, threatOf), [])
+  assert.deepEqual(possibleThreats(deck, { host: null, guest: null }, threatOf), [])
 })
 
 test('setSquadCharacters replaces the characters, sorted, and keeps the tactics', () => {
-  const setup = { ...newSetup(), squads: { blue: squad, red: { characters: [5], tactics: [] } } }
-  const next = setSquadCharacters(setup, 'blue', [4, 1, 3])
-  assert.deepEqual(next.squads.blue, { characters: [1, 3, 4], tactics: [1] })
-  assert.deepEqual(next.squads.red, setup.squads.red)
-  assert.deepEqual(setup.squads.blue, squad)
+  const setup = { ...newSetup(), squads: { host: squad, guest: { characters: [5], tactics: [] } } }
+  const next = setSquadCharacters(setup, 'host', [4, 1, 3])
+  assert.deepEqual(next.squads.host, { characters: [1, 3, 4], tactics: [1] })
+  assert.deepEqual(next.squads.guest, setup.squads.guest)
+  assert.deepEqual(setup.squads.host, squad)
 })
 
 test('setupStep: the roll off comes first, until Priority is set', () => {
   assert.equal(setupStep(newSetup()), 'rollOff')
-  assert.equal(setupStep(setPriority(newSetup(), 'red')), 'deck')
+  assert.equal(setupStep(setPriority(newSetup(), 'guest')), 'deck')
   assert.equal(newSetup().priority, null)
 })
 
 test('chooseDeck: the player with Priority chooses, no team argument', () => {
-  const start = setPriority(newSetup(), 'red')
+  const start = setPriority(newSetup(), 'guest')
   const next = chooseDeck(start, 'extract', ['a', 'b', 'c'], () => 0)
-  assert.equal(next.priority, 'red')
+  assert.equal(next.priority, 'guest')
   assert.deepEqual(next.deck, { type: 'extract' })
   assert.equal(next.draws.extract.length, 2)
   assert.equal(setupStep(next), 'first')
 })
 
 test('priorityOf: a setup saved with deck.team and no priority reads deck.team', () => {
-  const old = { ...newSetup(), priority: undefined, deck: { team: 'red', type: 'secure' } }
-  assert.equal(priorityOf(old), 'red')
+  const old = { ...newSetup(), priority: undefined, deck: { team: 'guest', type: 'secure' } }
+  assert.equal(priorityOf(old), 'guest')
   assert.equal(setupStep(old), 'first')
-  assert.equal(colorOf('red', old, true), 'blue')
+  assert.equal(colorOf('guest', old, true), 'blue')
   const none = { ...newSetup(), priority: undefined }
   assert.equal(priorityOf(none), null)
   assert.equal(setupStep(none), 'rollOff')
-  assert.equal(priorityOf({ ...newSetup(), priority: 'blue', deck: { team: 'red' } }), 'blue')
+  assert.equal(priorityOf({ ...newSetup(), priority: 'host', deck: { team: 'guest' } }), 'host')
 })
 
-test('colorOf: before the roll off the +z side (key blue) is Blue', () => {
+test('colorOf: before the roll off the +z side (host) is Blue', () => {
   for (const follow of [true, false]) {
-    assert.equal(colorOf('blue', newSetup(), follow), 'blue')
-    assert.equal(colorOf('red', newSetup(), follow), 'red')
+    assert.equal(colorOf('host', newSetup(), follow), 'blue')
+    assert.equal(colorOf('guest', newSetup(), follow), 'red')
   }
-  assert.equal(colorOf('blue', null, true), 'blue')
+  assert.equal(colorOf('host', null, true), 'blue')
 })
 
 test('colorOf: in a room the side with Priority is Blue', () => {
-  const red = setPriority(newSetup(), 'red')
-  assert.equal(colorOf('red', red, true), 'blue')
-  assert.equal(colorOf('blue', red, true), 'red')
-  const blue = setPriority(newSetup(), 'blue')
-  assert.equal(colorOf('blue', blue, true), 'blue')
-  assert.equal(colorOf('red', blue, true), 'red')
+  const guestFirst = setPriority(newSetup(), 'guest')
+  assert.equal(colorOf('guest', guestFirst, true), 'blue')
+  assert.equal(colorOf('host', guestFirst, true), 'red')
+  const hostFirst = setPriority(newSetup(), 'host')
+  assert.equal(colorOf('host', hostFirst, true), 'blue')
+  assert.equal(colorOf('guest', hostFirst, true), 'red')
 })
 
 test('colorOf: in the Sandbox the +z side is always Blue', () => {
-  const red = setPriority(newSetup(), 'red')
-  assert.equal(colorOf('blue', red, false), 'blue')
-  assert.equal(colorOf('red', red, false), 'red')
+  const guestFirst = setPriority(newSetup(), 'guest')
+  assert.equal(colorOf('host', guestFirst, false), 'blue')
+  assert.equal(colorOf('guest', guestFirst, false), 'red')
 })
 
 test('crisisRows: the roll-off step shows the deck rows, the winner row comes from Priority', () => {
-  const parsed = { blue: { secure: ['a'], extract: ['b'] }, red: { secure: ['c'], extract: ['d'] } }
+  const parsed = {
+    host: { secure: ['a'], extract: ['b'] },
+    guest: { secure: ['c'], extract: ['d'] },
+  }
   assert.equal(crisisRows(newSetup(), parsed).length, 4)
-  const next = chooseDeck(setPriority(newSetup(), 'red'), 'secure', ['c', 'e'], () => 0)
+  const next = chooseDeck(setPriority(newSetup(), 'guest'), 'secure', ['c', 'e'], () => 0)
   const rows = crisisRows(next, parsed)
-  assert.equal(rows[0].team, 'red')
-  assert.equal(rows[1].team, 'blue')
+  assert.equal(rows[0].team, 'guest')
+  assert.equal(rows[1].team, 'host')
 })
 
 test('setRollOff: a winner gets Priority, a tie keeps it null, a manual Priority clears the result', () => {
-  const counts = { blue: {}, red: {} }
-  const won = setRollOff(newSetup(), { winner: 'red', counts })
-  assert.equal(won.priority, 'red')
+  const counts = { host: {}, guest: {} }
+  const won = setRollOff(newSetup(), { winner: 'guest', counts })
+  assert.equal(won.priority, 'guest')
   assert.equal(setupStep(won), 'deck')
   assert.ok(won.rollOff)
   const tie = setRollOff(newSetup(), { winner: null, counts })
   assert.equal(tie.priority, null)
   assert.equal(setupStep(tie), 'rollOff')
-  assert.equal(setPriority(tie, 'blue').rollOff, null)
+  assert.equal(setPriority(tie, 'host').rollOff, null)
 })
 
 test('chooserOf: the side that chooses in each step', () => {
   // Red has Priority
-  const base = { ...newSetup(), priority: 'red' }
+  const base = { ...newSetup(), priority: 'guest' }
   assert.equal(chooserOf(newSetup()), null)
-  assert.equal(chooserOf(base), 'red') // deck
+  assert.equal(chooserOf(base), 'guest') // deck
   const first = { ...base, deck: { type: 'secure' } }
-  assert.equal(chooserOf(first), 'blue')
+  assert.equal(chooserOf(first), 'host')
   const second = { ...first, picks: { secure: 's1', extract: null } }
-  assert.equal(chooserOf(second), 'red')
+  assert.equal(chooserOf(second), 'guest')
   const threat = { ...second, picks: { secure: 's1', extract: 'e1' } }
-  assert.equal(chooserOf(threat), 'blue')
+  assert.equal(chooserOf(threat), 'host')
   const edge = { ...threat, threat: 17 }
-  assert.equal(chooserOf(edge), 'red')
-  assert.equal(chooserOf({ ...edge, priority: 'blue' }), 'blue')
+  assert.equal(chooserOf(edge), 'guest')
+  assert.equal(chooserOf({ ...edge, priority: 'host' }), 'host')
   assert.equal(chooserOf({ ...edge, edge: true }), null)
 })
 
 // History: a setup at each step, built from the fields
 const atDeploy = () => {
   const placed = placeSquad(
-    placeSquad(squadsSetup(bothReady), 'blue', squad, cards, 'asgard'),
-    'red',
+    placeSquad(squadsSetup(bothReady), 'host', squad, cards, 'asgard'),
+    'guest',
     squad,
     { characters: ['c2'], tactics: [] },
     'unaffiliated',
@@ -359,13 +362,13 @@ const atDeploy = () => {
 const withDraws = () =>
   squadsSetup({
     draws: { secure: ['a', 'x'], extract: ['b', 'y'] },
-    rollOff: { winner: 'blue', counts: {} },
+    rollOff: { winner: 'host', counts: {} },
   })
 
 test('doneSteps lists the steps before the current one, in order', () => {
   assert.deepEqual(doneSteps(newSetup()), [])
-  assert.deepEqual(doneSteps({ ...newSetup(), priority: 'blue' }), ['rollOff'])
-  assert.deepEqual(doneSteps({ ...newSetup(), priority: 'blue', deck: { type: 'secure' } }), [
+  assert.deepEqual(doneSteps({ ...newSetup(), priority: 'host' }), ['rollOff'])
+  assert.deepEqual(doneSteps({ ...newSetup(), priority: 'host', deck: { type: 'secure' } }), [
     'rollOff',
     'deck',
   ])
@@ -433,7 +436,7 @@ test('overrideTo rollOff clears Priority, the read result and everything after',
 test('overrideTo deck clears the deck, draws, picks, threat and edge, and keeps Priority', () => {
   const next = overrideTo(withDraws(), 'deck')
   assert.equal(setupStep(next), 'deck')
-  assert.equal(next.priority, 'blue')
+  assert.equal(next.priority, 'host')
   assert.deepEqual(next.draws, { secure: [], extract: [] })
   assert.deepEqual(next.picks, { secure: null, extract: null })
   assert.equal(next.threat, null)
@@ -490,15 +493,15 @@ test('overrideTo squads resets squads, Ready, placed, affiliation and deployed',
   assert.equal(setupStep(next), 'squads')
   assert.equal(next.edge, true)
   assert.equal(next.threat, 17)
-  assert.deepEqual(next.squads.blue, { characters: [], tactics: [] })
-  assert.deepEqual(next.ready, { blue: false, red: false })
-  assert.deepEqual(next.placed, { blue: null, red: null })
-  assert.deepEqual(next.affiliation, { blue: null, red: null })
+  assert.deepEqual(next.squads.host, { characters: [], tactics: [] })
+  assert.deepEqual(next.ready, { host: false, guest: false })
+  assert.deepEqual(next.placed, { host: null, guest: null })
+  assert.deepEqual(next.affiliation, { host: null, guest: null })
   assert.equal(next.deployed, false)
   assert.notEqual(next.id, setup.id)
   assert.equal(
-    revealPlan(next, ['red'], {
-      red: { setupId: setup.id, squad: { characters: [0], tactics: [] } },
+    revealPlan(next, ['guest'], {
+      guest: { setupId: setup.id, squad: { characters: [0], tactics: [] } },
     }).missing.length,
     0,
   )
@@ -509,7 +512,7 @@ test('overrideTo affiliation keeps the squads, clears affiliation and deployed',
   const next = overrideTo(setup, 'affiliation')
   assert.equal(next.id, setup.id)
   assert.equal(setupStep(next), 'affiliation')
-  assert.deepEqual(next.affiliation, { blue: null, red: null })
+  assert.deepEqual(next.affiliation, { host: null, guest: null })
   assert.equal(next.deployed, false)
   assert.deepEqual(next.placed, setup.placed)
   assert.deepEqual(next.ready, setup.ready)
@@ -538,9 +541,9 @@ test('overrideRemoval names what leaves the table', () => {
 test('deployLockDue is true once, when both squads are placed', () => {
   const start = squadsSetup(bothReady)
   assert.equal(deployLockDue(start), false)
-  const one = placeSquad(start, 'blue', squad, cards)
+  const one = placeSquad(start, 'host', squad, cards)
   assert.equal(deployLockDue(one), false)
-  const both = placeSquad(one, 'red', squad, cards, 'unaffiliated')
+  const both = placeSquad(one, 'guest', squad, cards, 'unaffiliated')
   assert.equal(deployLockDue(both), true)
   assert.equal(deployLockDue(lockWasSet(both)), false)
   assert.equal(deployLockDue(finishDeploy(both)), false)

@@ -2,7 +2,7 @@
 // The Automatic Power Phase button of each player lies in the row of their Team Tactic tray, not on the rack. Plain module, no React, the same as characters/trays.js. See
 // docs/features/table-tools.md, "Place on the table".
 //
-// Everything is computed for blue (+z) and mirrored for red: x and z change sign, and a piece turns
+// Everything is computed for host (+z) and mirrored for guest: x and z change sign, and a piece turns
 // 180 deg to face its owner (rackYaw), the same as the trays. The board strip does not turn: it reads like
 // the scoring board for both players.
 
@@ -10,15 +10,15 @@ import { MOVE_TIP, RANGE_TIP } from './toolTips.js'
 import { TACTIC_PLATE_WIDTH, tacticTrayPosition } from '../tactics/layout.js'
 import { ROSTER_ROWS_OUTER_Z } from '../rosters/layout.js'
 
-const sign = (side) => (side === 'blue' ? 1 : -1)
+const sign = (side) => (side === 'host' ? 1 : -1)
 
 // The rack plate: the band past the deepest tray parts (z 33.75), as wide as 5 range tools lying in a row.
 export const RACK_HALF_WIDTH = 15.2
 export const RACK_Z_MIN = 34.2
 export const RACK_Z_MAX = 36.8
 
-// The rack pieces face their owner: for blue, the top points to -z (trays.js, trayYaw). Red is turned 180 deg.
-export const rackYaw = (side) => (side === 'blue' ? 0 : Math.PI)
+// The rack pieces face their owner: for host, the top points to -z (trays.js, trayYaw). Guest is turned 180 deg.
+export const rackYaw = (side) => (side === 'host' ? 0 : Math.PI)
 
 // Two rows lie along x. Row 1 is on the mat side.
 const ROW_1_Z = 34.9
@@ -82,14 +82,14 @@ export function rackPlate(side) {
 
 // The slots of the rack of `side`: [{ key, kind, x, z, length, width }], center place and size on the table.
 // key: r1 (chip), r2..r5, s, m, l, ta (chip). kind: 'chip', 'range' or 'move'. length lies along x. Row 1
-// (mat side), from the owner's left: R1, R2..R5. Row 2: S, M, L, T/A. For red, the owner's left is +x.
+// (mat side), from the owner's left: R1, R2..R5. Row 2: S, M, L, T/A. For guest, the owner's left is +x.
 export function rackSlots(side) {
   const s = sign(side)
   return LOCAL_SLOTS.map((slot) => ({ ...slot, x: slot.x * s, z: slot.z * s }))
 }
 
 // The Automatic Power Phase button of `side`: { x, z, width, depth }. It belongs to the squad, so it lies on
-// the table in the row of the Team Tactic tray, to the owner's left of the tactic plate (blue: -x). Same z as
+// the table in the row of the Team Tactic tray, to the owner's left of the tactic plate (host: -x). Same z as
 // the tray center. Free space there: x -20.6 (the board strip, the setup) to the plate edge -8.65, z 18.3 to
 // 22.4 (the mat edge to the character tray row). width lies along x. See docs/features/table-tools.md,
 // "Automatic Power Phase button".

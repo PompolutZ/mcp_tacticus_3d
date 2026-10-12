@@ -41,9 +41,9 @@ Each player always has one tactic tray, also with no cards. See `src/tactics/lay
 
 - The tray has 5 slots in one row, 3.55" apart (the TTS distance). Each slot is a card-sized area, a little lighter than the plate.
 - The plate is 0.3" larger than the slots on every side: 4 × 3.55 + 2.5 + 0.6 = 17.3" wide, 3.5 + 0.6 = 4.1" deep.
-- It lies 0.3" from the mat edge, centered on x = 0. Blue at +z, red at −z. So its plate covers z = 18.3 to 22.4 on the blue side.
+- It lies 0.3" from the mat edge, centered on x = 0. Host at +z, guest at −z. So its plate covers z = 18.3 to 22.4 on the host side.
 - The slots are numbered from the owner's left, the same as the character trays (`docs/features/character-trays.md`, "One tray").
-- A card faces its owner: for blue, the top of the image points to −z. A red card is turned 180°.
+- A card faces its owner: for the host, the top of the image points to −z. A guest card is turned 180°.
 - The tray has no collider, the same as a character tray.
 
 The character trays move out to make room: their row starts 0.3" past the tactic tray plate. See `docs/features/character-trays.md`, "Place on the table".
@@ -97,7 +97,7 @@ Data:
 tacticCards: [{
   id,           // crypto.randomUUID()
   key,          // key in src/tactics/cards.json
-  team,         // 'blue' | 'red': the player the card faces
+  team,         // 'host' | 'guest': the player the card faces
   x, z,         // table position of the card center
   up,           // 'face' | 'back'
 }]

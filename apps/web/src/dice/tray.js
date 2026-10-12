@@ -43,8 +43,8 @@ export const DROP_HEIGHT = 4.8
 // center line (world z = 0): Blue sits on world +z, so it turns all the way around (yaw = PI);
 // Red already faces the right way (yaw = 0). The tint comes from the color of the side (sideColors.js, TOOL_TINT).
 export const TRAYS = {
-  blue: { position: { x: 27, y: 0, z: 10.1 }, yaw: Math.PI },
-  red: { position: { x: 27, y: 0, z: -10.1 }, yaw: 0 },
+  host: { position: { x: 27, y: 0, z: 10.1 }, yaw: Math.PI },
+  guest: { position: { x: 27, y: 0, z: -10.1 }, yaw: 0 },
 }
 
 // The die's height standing flat on a face: the distance between that face and the opposite,

@@ -2,10 +2,10 @@
 // same as rosters/mct.js, so a Node script can check it. The state is plain JSON, so a room saves it. See
 // docs/features/setup-game.md.
 
-export const TEAMS = ['blue', 'red']
+export const TEAMS = ['host', 'guest']
 export const CRISIS_TYPES = ['secure', 'extract']
 
-export const otherTeam = (team) => (team === 'blue' ? 'red' : 'blue')
+export const otherTeam = (team) => (team === 'host' ? 'guest' : 'host')
 export const otherType = (type) => (type === 'secure' ? 'extract' : 'secure')
 
 // The cards that a player chose for the squad: places in the `characters` and `tactics` lists of the
@@ -41,10 +41,10 @@ export const NEW_SETUP = {
   picks: { secure: null, extract: null },
   threat: null,
   edge: false,
-  squads: { blue: NO_SQUAD, red: NO_SQUAD },
-  ready: { blue: false, red: false },
-  placed: { blue: null, red: null },
-  affiliation: { blue: null, red: null },
+  squads: { host: NO_SQUAD, guest: NO_SQUAD },
+  ready: { host: false, guest: false },
+  placed: { host: null, guest: null },
+  affiliation: { host: null, guest: null },
   deployed: false,
   lockSet: false,
   view: null,
@@ -66,22 +66,22 @@ export function priorityOf(setup) {
 // The color of a side, 'blue' | 'red'. Side keys are seats, not colors (docs/features/setup-game.md,
 // "Colors"). setup: the setup state, or null. followPriority: true in a single player room and a
 // multiplayer room, false in the Sandbox. With followPriority the side with Priority is Blue and the other
-// is Red. Before the roll off, and always in the Sandbox, the +z side (the key 'blue') is Blue.
+// is Red. Before the roll off, and always in the Sandbox, the +z side (the key 'host') is Blue.
 export function colorOf(team, setup, followPriority) {
   const priority = followPriority ? priorityOf(setup) : null
-  if (!priority) return team === 'blue' ? 'blue' : 'red'
+  if (!priority) return team === 'host' ? 'blue' : 'red'
   return team === priority ? 'blue' : 'red'
 }
 
-// setup.placed as { blue, red }, each null | { characters, tactics }. The old shape { characters, tactics }
+// setup.placed as { host, guest }, each null | { characters, tactics }. The old shape { characters, tactics }
 // belongs to Blue, and Red gets an empty list, but only when both players are Ready: then the old setup
 // was done. Before that the old lists are empty.
 export function placedSides(setup) {
   const { placed } = setup
   if (!Array.isArray(placed.characters))
-    return { blue: placed.blue ?? null, red: placed.red ?? null }
-  const done = setup.ready.blue && setup.ready.red
-  return { blue: done ? placed : null, red: done ? NO_PLACED : null }
+    return { host: placed.host ?? null, guest: placed.guest ?? null }
+  const done = setup.ready.host && setup.ready.guest
+  return { host: done ? placed : null, guest: done ? NO_PLACED : null }
 }
 
 // 'rollOff': players roll off, and nobody has Priority yet. 'deck': the player with Priority chooses a deck. 'first': the other player uses 1 of the 2
@@ -101,9 +101,9 @@ export function setupStep(setup) {
   if (!setup.picks[otherType(first)]) return 'second'
   if (setup.threat === null) return 'threat'
   if (!setup.edge) return 'edge'
-  if (!setup.ready.blue || !setup.ready.red) return 'squads'
+  if (!setup.ready.host || !setup.ready.guest) return 'squads'
   const placed = placedSides(setup)
-  if (!placed.blue || !placed.red) return 'reveal'
+  if (!placed.host || !placed.guest) return 'reveal'
   if (setup.affiliation && TEAMS.some((team) => !setup.affiliation[team])) return 'affiliation'
   if (setup.deployed === false) return 'deploy'
   return 'done'
@@ -130,12 +130,12 @@ export function chooserOf(setup) {
 
 // The sides that this browser reveals now. Both players are Ready, and the side is not placed yet. sides:
 // the teams this browser plays. stored: null when the squads are in the document (single player room,
-// Sandbox), else { blue, red } → the squad record of this browser { setupId, squad } | null. Returns
+// Sandbox), else { host, guest } → the squad record of this browser { setupId, squad } | null. Returns
 // { reveal: [{ side, squad }], missing: [side] }. missing: the browser has no squad of this setup for the
 // side, for example after a restart in the other browser, or on another device.
 export function revealPlan(setup, sides, stored) {
   const plan = { reveal: [], missing: [] }
-  if (!setup.ready.blue || !setup.ready.red) return plan
+  if (!setup.ready.host || !setup.ready.guest) return plan
   const placed = placedSides(setup)
   for (const side of sides) {
     if (placed[side]) continue
@@ -248,7 +248,7 @@ export function placeSquad(setup, side, squad, placed, affiliation = null) {
 // The app then turns it on and calls lockWasSet, once. A setup with no `deployed` field has no deploy step.
 export function deployLockDue(setup) {
   const placed = placedSides(setup)
-  return Boolean(placed.blue && placed.red) && setup.deployed === false && !setup.lockSet
+  return Boolean(placed.host && placed.guest) && setup.deployed === false && !setup.lockSet
 }
 
 // The setup turned Deploy Lock on
@@ -285,7 +285,7 @@ export function setupPlacedCards(setup) {
 }
 
 // The crisis cards of each player on the table in the current step: [{ team, type, codes, use, drawn }].
-// parsed: { blue, red } → the parsed roster or null. use: each card has a Use button. drawn: the cards were
+// parsed: { host, guest } → the parsed roster or null. use: each card has a Use button. drawn: the cards were
 // drawn from the deck, or the card was chosen from them. These cards lie in line with the scoring board
 // (rosters/layout.js, crisisRowLayout).
 export function crisisRows(setup, parsed) {
@@ -401,7 +401,7 @@ export function neighbourStep(setup, dir) {
 }
 
 const NO_SQUADS = {
-  squads: { blue: NO_SQUAD, red: NO_SQUAD },
+  squads: { host: NO_SQUAD, guest: NO_SQUAD },
   ready: NEW_SETUP.ready,
   placed: NEW_SETUP.placed,
 }

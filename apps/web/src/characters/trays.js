@@ -97,28 +97,28 @@ export function trayHeldDefault(heldCount) {
   return clampToCard([x, z - heldCount * HELD_STEP])
 }
 
-// Tray-local [x, z] of the table point { x, z } on the tray at `trayPos`. A red tray is turned
+// Tray-local [x, z] of the table point { x, z } on the tray at `trayPos`. A guest tray is turned
 // 180 deg (trayYaw), so its local axes point the other way in world x and z.
-function trayLocal(teamColor, trayPos, point) {
-  const side = teamColor === 'blue' ? 1 : -1
+function trayLocal(team, trayPos, point) {
+  const side = team === 'host' ? 1 : -1
   return [(point.x - trayPos[0]) * side, (point.z - trayPos[2]) * side]
 }
 
 // Tray-local [x, z] of the table point { x, z } on the tray at `trayPos`, moved onto the first
 // card. A held token always lies on the first card, also on a tray with two cards.
-export function trayHeldLocal(teamColor, trayPos, point) {
-  return clampToCard(trayLocal(teamColor, trayPos, point))
+export function trayHeldLocal(team, trayPos, point) {
+  return clampToCard(trayLocal(team, trayPos, point))
 }
 
 // Table [x, z] of tray-local `local` on the tray at `trayPos`. The inverse of trayLocal.
-function trayWorld(teamColor, trayPos, local) {
-  const side = teamColor === 'blue' ? 1 : -1
+function trayWorld(team, trayPos, local) {
+  const side = team === 'host' ? 1 : -1
   return [trayPos[0] + local[0] * side, trayPos[2] + local[1] * side]
 }
 
 // Table [x, z] of a held token's tray-local place. The inverse of trayHeldLocal.
-export function trayHeldWorld(teamColor, trayPos, local) {
-  return trayWorld(teamColor, trayPos, local)
+export function trayHeldWorld(team, trayPos, local) {
+  return trayWorld(team, trayPos, local)
 }
 
 // Card point (u, v) of tray-local `local`, as fractions of the card width and height, for the tray
@@ -168,7 +168,7 @@ export function trayGiveTokenPosition(index, cards) {
 // edges. A row of more than 6 trays is wider than the mat, so it goes past the mat corners (see
 // docs/features/character-trays.md, "Place on the table").
 const TRAY_SPACING = TRAY_BG_WIDTH + TRAY_GAP
-// Center z of the row, for a player at local +z (see trayPosition, which mirrors this for red). The
+// Center z of the row, for a player at local +z (see trayPosition, which mirrors this for guest). The
 // row lies past the player's tactic tray, as in TTS: mat, tactic tray, character trays (see
 // docs/features/team-tactic-cards.md, "Tactic tray").
 const ROW_CENTER_Z = TACTIC_TRAY_OUTER_Z + TRAY_GAP + TRAY_BG_DEPTH / 2
@@ -179,12 +179,12 @@ const ROW_CENTER_Z = TACTIC_TRAY_OUTER_Z + TRAY_GAP + TRAY_BG_DEPTH / 2
 // So the whole row moves when the player adds or removes a character (see layoutTrays and
 // Scene.jsx, which moves the models that stand on their tray). The first tray is on the owner's
 // left.
-export function trayPosition(teamColor, index, count) {
+export function trayPosition(team, index, count) {
   // Local x, before mirroring: grows toward the owner's right.
   const x = (index - (count - 1) / 2) * TRAY_SPACING
-  // Blue sits at +z, red at -z. Mirroring x and z the same way gives red the same "owner's left"
+  // Host sits at +z, guest at -z. Mirroring x and z the same way gives guest the same "owner's left"
   // order from its own seat.
-  const side = teamColor === 'blue' ? 1 : -1
+  const side = team === 'host' ? 1 : -1
   return [x * side, TRAY_Y, ROW_CENTER_Z * side]
 }
 
@@ -193,21 +193,21 @@ export function trayPosition(teamColor, index, count) {
 // removed character's tray leaves the row, and the trays after it move up one place.
 export function layoutTrays(characters) {
   const counts = {}
-  for (const ch of characters) counts[ch.teamColor] = (counts[ch.teamColor] ?? 0) + 1
+  for (const ch of characters) counts[ch.team] = (counts[ch.team] ?? 0) + 1
   const next = {}
   const positions = new Map()
   for (const ch of characters) {
-    const index = next[ch.teamColor] ?? 0
-    next[ch.teamColor] = index + 1
-    positions.set(ch.id, trayPosition(ch.teamColor, index, counts[ch.teamColor]))
+    const index = next[ch.team] ?? 0
+    next[ch.team] = index + 1
+    positions.set(ch.id, trayPosition(ch.team, index, counts[ch.team]))
   }
   return positions
 }
 
 // True when a table point { x, z } is on the background plate of a tray with `cards` cards at
 // `trayPos` (from trayPosition).
-export function onTray(teamColor, trayPos, point, cards) {
-  const [x, z] = trayLocal(teamColor, trayPos, point)
+export function onTray(team, trayPos, point, cards) {
+  const [x, z] = trayLocal(team, trayPos, point)
   const plate = trayPlate(cards)
   return Math.abs(x) <= TRAY_BG_WIDTH / 2 && Math.abs(z - plate.z) <= plate.depth / 2
 }
@@ -215,23 +215,23 @@ export function onTray(teamColor, trayPos, point, cards) {
 // True when a table point { x, z } is on the plate of the tray at `trayPos`, or on the table on the
 // owner's side of it, as wide as the plate: the place of the Give sources and of a spare model
 // (traySpareModelPosition). A model there moves with the tray (see Scene.jsx).
-export function inTrayArea(teamColor, trayPos, point) {
-  const [x, z] = trayLocal(teamColor, trayPos, point)
+export function inTrayArea(team, trayPos, point) {
+  const [x, z] = trayLocal(team, trayPos, point)
   return Math.abs(x) <= TRAY_BG_WIDTH / 2 && z >= -TRAY_BG_DEPTH / 2
 }
 
-// The card faces its owner: for blue, the top of the image points to -z, the same as a crisis
-// card (see CrisisCard.jsx). A red tray is turned by 180 deg around the vertical axis.
-export function trayYaw(teamColor) {
-  return teamColor === 'blue' ? 0 : Math.PI
+// The card faces its owner: for host, the top of the image points to -z, the same as a crisis
+// card (see CrisisCard.jsx). A guest tray is turned by 180 deg around the vertical axis.
+export function trayYaw(team) {
+  return team === 'host' ? 0 : Math.PI
 }
 
 // Table position for a newly spawned model: standing on the center of card `card` of its tray at
 // `trayPos` (from trayPosition; see docs/features/character-trays.md, "Spawn on the card"). y = 0, the table
 // top: the tray card is a flat plane with no collider, so the model stands on the table itself
 // (CharacterModel.jsx's body origin is the base bottom).
-export function trayModelPosition(teamColor, trayPos, card = 1) {
-  const [x, z] = trayWorld(teamColor, trayPos, [0, trayCardLocalZ(card)])
+export function trayModelPosition(team, trayPos, card = 1) {
+  const [x, z] = trayWorld(team, trayPos, [0, trayCardLocalZ(card)])
   return [x, 0, z]
 }
 
@@ -239,12 +239,9 @@ export function trayModelPosition(teamColor, trayPos, card = 1) {
 // Man, see docs/features/character-trays.md, "Second forms"): on the table past the last row of the
 // `giveCount` Give sources, in the middle of the tray width. The base of radius `baseRadius`
 // starts TRAY_GAP after the tokens.
-export function traySpareModelPosition(teamColor, trayPos, cards, giveCount, baseRadius) {
+export function traySpareModelPosition(team, trayPos, cards, giveCount, baseRadius) {
   const rows = Math.max(1, Math.ceil(giveCount / TOKENS_PER_ROW))
   const [, lastRowZ] = trayGiveTokenPosition((rows - 1) * TOKENS_PER_ROW, cards)
-  const [x, z] = trayWorld(teamColor, trayPos, [
-    0,
-    lastRowZ + TOKEN_SIZE / 2 + TRAY_GAP + baseRadius,
-  ])
+  const [x, z] = trayWorld(team, trayPos, [0, lastRowZ + TOKEN_SIZE / 2 + TRAY_GAP + baseRadius])
   return [x, 0, z]
 }

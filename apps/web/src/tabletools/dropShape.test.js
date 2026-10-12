@@ -35,12 +35,12 @@ test('Toward / Away: two long arms at 90 degrees', () => {
 })
 
 test('canDropTool: false off the table and over the own rack', () => {
-  const plate = rackPlate('blue')
-  assert.equal(canDropTool('blue', null), false)
-  assert.equal(canDropTool('blue', { x: plate.x, z: plate.z }), false)
+  const plate = rackPlate('host')
+  assert.equal(canDropTool('host', null), false)
+  assert.equal(canDropTool('host', { x: plate.x, z: plate.z }), false)
 })
 
 test('canDropTool: true on the table, also over the other rack', () => {
-  assert.equal(canDropTool('blue', { x: 0, z: 0 }), true)
-  assert.equal(canDropTool('blue', { x: 0, z: rackPlate('red').z }), true)
+  assert.equal(canDropTool('host', { x: 0, z: 0 }), true)
+  assert.equal(canDropTool('host', { x: 0, z: rackPlate('guest').z }), true)
 })

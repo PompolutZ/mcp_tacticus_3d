@@ -20,7 +20,7 @@ export function isToolPiece(piece) {
 // docs/features/peer-to-peer.md.
 export function toolSelects(piece, characters, playedSides) {
   if (piece.kind !== 'character') return true
-  const side = characters.find((c) => c.id === modelCharacterId(piece.id))?.teamColor
+  const side = characters.find((c) => c.id === modelCharacterId(piece.id))?.team
   return playedSides.includes(side)
 }
 

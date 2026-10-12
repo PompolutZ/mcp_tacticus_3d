@@ -22,7 +22,7 @@ export const TACTIC_PLATE_WIDTH =
 export const TACTIC_PLATE_DEPTH = TACTIC_CARD_HEIGHT + PLATE_MARGIN * 2
 // Gap between the mat edge and the plate, the same as between the mat and a character tray row
 const MAT_GAP = 0.3
-// Center z of the tray of a player at +z (blue). Red mirrors it.
+// Center z of the tray of a player at +z (host). Guest mirrors it.
 const TRAY_CENTER_Z = MAT_HALF + MAT_GAP + TACTIC_PLATE_DEPTH / 2
 // Distance of the plate's outer edge from the table center. The character tray row starts past it
 // (trays.js, ROW_CENTER_Z).
@@ -33,17 +33,17 @@ export const TACTIC_TRAY_OUTER_Z = TRAY_CENTER_Z + TACTIC_PLATE_DEPTH / 2
 export const TACTIC_CARD_Y = 0.02
 export const TACTIC_PLATE_Y = 0.01
 
-const side = (team) => (team === 'blue' ? 1 : -1)
+const side = (team) => (team === 'host' ? 1 : -1)
 
 // Table position { x, z } of the tactic tray of `team`
 export function tacticTrayPosition(team) {
   return { x: 0, z: TRAY_CENTER_Z * side(team) }
 }
 
-// A card faces its owner: for blue, the top of the image points to -z, the same as a character tray
-// card (trays.js, trayYaw). A red card is turned 180 deg.
+// A card faces its owner: for host, the top of the image points to -z, the same as a character tray
+// card (trays.js, trayYaw). A guest card is turned 180 deg.
 export function tacticCardYaw(team) {
-  return team === 'blue' ? 0 : Math.PI
+  return team === 'host' ? 0 : Math.PI
 }
 
 // Table position { x, z } of slot `index` of the tray of `team`, numbered from the owner's left, the
@@ -55,7 +55,7 @@ export function tacticSlotPosition(team, index) {
 
 // The team whose plate is under the table point { x, z }, or null
 export function tacticTrayAt(point) {
-  for (const team of ['blue', 'red']) {
+  for (const team of ['host', 'guest']) {
     const tray = tacticTrayPosition(team)
     if (
       Math.abs(point.x - tray.x) <= TACTIC_PLATE_WIDTH / 2 &&
@@ -115,7 +115,7 @@ export function tacticPilePlace(team, index) {
   const row = Math.floor(index / PILES_PER_ROW)
   const column = index % PILES_PER_ROW
   const edge = (TACTIC_PLATE_WIDTH / 2 + PILE_GAP + PILE_RADIUS + column * PILE_PITCH) * side(team)
-  // The owner's left is -x for blue and +x for red, as for the slots
+  // The owner's left is -x for host and +x for guest, as for the slots
   const slot = tacticSlotPosition(team, 0)
   return { x: -edge, z: slot.z + row * PILE_PITCH * side(team) }
 }

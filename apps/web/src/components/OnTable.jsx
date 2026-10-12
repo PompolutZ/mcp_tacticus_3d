@@ -10,11 +10,11 @@ const INCHES_PER_PX = 0.04
 export const BOARD_READ_ROTATION = [-Math.PI / 2, 0, Math.PI / 2]
 
 // Faces the owner of a side, the same as the tray controls (CharacterTray.jsx): the top of the HTML faces the
-// mat (-z for blue). Rx(-pi/2) lays the HTML flat. Red turns 180 deg around the vertical axis, which is a
+// mat (-z for host). Rx(-pi/2) lays the HTML flat. Guest turns 180 deg around the vertical axis, which is a
 // turn of 180 deg in the plane of the HTML before it is laid flat.
 export const OWNER_FACING_ROTATION = {
-  blue: [-Math.PI / 2, 0, 0],
-  red: [-Math.PI / 2, 0, Math.PI],
+  host: [-Math.PI / 2, 0, 0],
+  guest: [-Math.PI / 2, 0, Math.PI],
 }
 
 // drei Html that lies flat on the table at `position`

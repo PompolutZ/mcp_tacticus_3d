@@ -215,7 +215,7 @@ const OVERLAP_INTERVAL = 100
 // called with a value or an updater function.
 // onPieceHover(piece, over): the pointer moved onto (true) or off (false) a character or a token,
 // piece as { kind, id }. tools: the `tools` record of the document, side → kind → entry (storedTool.js).
-// ownSide: 'blue' or 'red', the side of this browser. The own entries become tools; the key of a tool is
+// ownSide: 'host' or 'guest', the side of this browser. The own entries become tools; the key of a tool is
 // its `which` and `spawn`, so a new spawn mounts it again. The entry of the other side that has a pose
 // becomes an OtherTool. onToolStore(kind, spawn, fields): a tool of the own side rests, App writes the
 // fields into its entry. onToolReturn(kind): a move drag of an own tool ended on the own rack, App removes the tool
@@ -251,9 +251,9 @@ const OVERLAP_INTERVAL = 100
 // tokenDrag: the token drag in progress, see App.jsx. While it is active, the dragged token shows
 // under the pointer (TokenDragPreview) and, for a token from the table, not in its old place.
 // dragPointRef: the preview writes the table point under the pointer there, for App's release.
-// rosters: { blue, red } → null | { code }, the loaded rosters (RosterCards.jsx). onRosterOpen({ team, tab,
+// rosters: { host, guest } → null | { code }, the loaded rosters (RosterCards.jsx). onRosterOpen({ team, tab,
 // index }): a click on a roster card. It opens the roster popup on that card (see RosterPopup.jsx).
-// squadEdit: { blue, red } → true: the roster cards of that side have the + / ✓ button, and onSquadToggle(team,
+// squadEdit: { host, guest } → true: the roster cards of that side have the + / ✓ button, and onSquadToggle(team,
 // tab, index) adds the card to the squad or removes it (App.jsx, handleSquadToggle).
 // setup: the game setup (setup/setup.js). setupActions, mySide, seatPlayers: see GameSetup.jsx. When the squads
 // are on the table, the roster cards are not.
@@ -315,7 +315,7 @@ export default function Scene({
   terrainAtRef,
   characters = [],
   tools = NO_TOOLS_RECORD,
-  ownSide = 'blue',
+  ownSide = 'host',
   onToolStore,
   onToolReturn,
   angleSpawn = { target: null, aim: null },
@@ -371,7 +371,7 @@ export default function Scene({
   turnPieceRef,
   liftPieceRef,
   returnModelsRef,
-  playedSides = ['blue', 'red'],
+  playedSides = ['host', 'guest'],
   onDiceTrayHover,
   addDiceRef,
   diceStore,
@@ -380,7 +380,7 @@ export default function Scene({
   heldRotate,
   scoreMarkers,
   affiliations,
-  rosters = { blue: null, red: null },
+  rosters = { host: null, guest: null },
   onRosterOpen,
   setup,
   squadEdit,
@@ -835,7 +835,7 @@ export default function Scene({
       charLifts.current.get(model.id)?.cancel()
       turnsLeft.current.delete(modelKey(model.id))
       const [x, y, z] = trayPlace(model)
-      const pose = poseOf({ x, y, z }, yawQuaternion(modelSpawnYaw(model.character.teamColor)))
+      const pose = poseOf({ x, y, z }, yawQuaternion(modelSpawnYaw(model.character.team)))
       applyPose(model.id, pose)
       onModelRest?.(model.id, pose)
     }
@@ -876,7 +876,7 @@ export default function Scene({
   // spare model past the Give sources (Hulkbuster's Iron Man) counts as on the tray (inTrayArea).
   useEffect(() => {
     for (const model of models) {
-      const { id: characterId, teamColor } = model.character
+      const { id: characterId, team } = model.character
       const pos = trayPositions.get(characterId)
       const last = lastTrayPositions.current.get(characterId)
       const body = charBodies.current.get(model.id)
@@ -884,7 +884,7 @@ export default function Scene({
       // The other player moves this model: its pose comes from the other browser
       if (ownership?.owner(modelKey(model.id)) === 'other') continue
       const t = body.translation()
-      if (inTrayArea(teamColor, last, t))
+      if (inTrayArea(team, last, t))
         body.setTranslation({ x: t.x + pos[0] - last[0], y: t.y, z: t.z + pos[2] - last[2] }, true)
     }
     lastTrayPositions.current = trayPositions
@@ -941,11 +941,11 @@ export default function Scene({
       const holder = characters.find((ch) => ch.id === tok.heldBy)
       const trayPos = trayPositions.get(tok.heldBy)
       if (!holder || !trayPos) return { token: tok }
-      const [x, z] = trayHeldWorld(holder.teamColor, trayPos, tok.heldAt)
+      const [x, z] = trayHeldWorld(holder.team, trayPos, tok.heldAt)
       const level = stacks.get(tok.heldBy) ?? 0
       stacks.set(tok.heldBy, level + 1)
       return {
-        token: { ...tok, x, z, yaw: trayYaw(holder.teamColor) },
+        token: { ...tok, x, z, yaw: trayYaw(holder.team) },
         floorY: TRAY_Y + level * HELD_STACK_STEP,
       }
     })
@@ -982,7 +982,7 @@ export default function Scene({
   // The tools measure against the character or token selected last, and a new tool snaps to it.
   // Place moves the selected character, also when a token was selected after it.
   const toolTarget = toolModel(selection.findLast(isToolPiece))
-  const otherSide = ownSide === 'red' ? 'blue' : 'red'
+  const otherSide = ownSide === 'guest' ? 'host' : 'guest'
   const sideColors = useSideColors()
   const ownTools = tools[ownSide] ?? {}
   const otherTools = tools[otherSide] ?? {}
@@ -1030,8 +1030,8 @@ export default function Scene({
   }
 
   // The turn a model starts with, no stored pose: it faces the mat (characters/models.js, modelSpawnYaw)
-  function startQuaternion(teamColor) {
-    const { x, y, z, w } = yawQuaternion(modelSpawnYaw(teamColor))
+  function startQuaternion(team) {
+    const { x, y, z, w } = yawQuaternion(modelSpawnYaw(team))
     return [x, y, z, w]
   }
 
@@ -1039,10 +1039,10 @@ export default function Scene({
   function trayPlace(model) {
     const ch = model.character
     const trayPos = trayPositions.get(ch.id)
-    if (model.card) return trayModelPosition(ch.teamColor, trayPos, model.card)
+    if (model.card) return trayModelPosition(ch.team, trayPos, model.card)
     const giveCount = characterGiveSources(ch.key).length
     return traySpareModelPosition(
-      ch.teamColor,
+      ch.team,
       trayPos,
       trayCards(ch),
       giveCount,
@@ -1148,7 +1148,7 @@ export default function Scene({
             <RemoteCursor
               liveRef={received}
               ownership={ownership}
-              side={ownSide === 'red' ? 'blue' : 'red'}
+              side={ownSide === 'guest' ? 'host' : 'guest'}
             />
           </>
         )}
@@ -1306,11 +1306,11 @@ export default function Scene({
                 const holder = characters.find((ch) => ch.id === characterId)
                 const trayPos = trayPositions.get(characterId)
                 const onCard =
-                  holder && trayPos && onTray(holder.teamColor, trayPos, point, trayCards(holder))
+                  holder && trayPos && onTray(holder.team, trayPos, point, trayCards(holder))
                 onTokenHold(
                   tok.id,
                   characterId,
-                  onCard ? trayHeldLocal(holder.teamColor, trayPos, point) : null,
+                  onCard ? trayHeldLocal(holder.team, trayPos, point) : null,
                 )
               }}
               findCharacter={findCharacterAt}
@@ -1412,14 +1412,14 @@ export default function Scene({
             side={ownSide}
           />
         )}
-        <TacticTray team="blue" />
-        <TacticTray team="red" />
+        <TacticTray team="host" />
+        <TacticTray team="guest" />
         {/* The loaded rosters, in the area of the character trays (docs/features/roster.md), until the squads
             go on the table (the steps before 'affiliation'). Locked cards, no physics body, so a tool or a
             model passes over them. The crisis cards of the rosters and the setup buttons are in
             GameSetup. */}
         {!['affiliation', 'deploy', 'done'].includes(setupStep(setup)) &&
-          ['blue', 'red'].map(
+          ['host', 'guest'].map(
             (team) =>
               rosters[team] && (
                 <RosterCards
@@ -1499,10 +1499,10 @@ export default function Scene({
           const pose = startPose?.(model.id)
           const props = {
             position: modelSpawnPosition(model),
-            quaternion: pose ? [pose.qx, pose.qy, pose.qz, pose.qw] : startQuaternion(ch.teamColor),
+            quaternion: pose ? [pose.qx, pose.qy, pose.qz, pose.qw] : startQuaternion(ch.team),
             baseRadius: BASE_DIAMETER[model.base] / 2,
             rotation: [0, modelFigureYaw(model), 0],
-            teamColor: ch.teamColor,
+            team: ch.team,
             selected: selectedModelId === model.id,
             rangeMark: rangeMarkOf('character', model.id),
             otherSelected: otherSelectedOf('character', model.id),
@@ -1559,7 +1559,7 @@ export default function Scene({
             constrainDrag: (p) => {
               if (deployLine) {
                 const limit = MAT_SIZE / 2 - deployDepth - BASE_DIAMETER[model.base] / 2
-                if (ch.teamColor === 'blue') p.z = Math.max(p.z, limit)
+                if (ch.team === 'host') p.z = Math.max(p.z, limit)
                 else p.z = Math.min(p.z, -limit)
               }
               for (const limit of Object.values(placeLimits.current)) {
@@ -1632,12 +1632,12 @@ export default function Scene({
             <DeployRangeTool
               getBody={() => charBodies.current.get(draggingCharId)}
               centerZ={
-                draggingChar.teamColor === 'blue'
+                draggingChar.team === 'host'
                   ? MAT_SIZE / 2 - deployTip
                   : -(MAT_SIZE / 2 - deployTip)
               }
-              yaw={draggingChar.teamColor === 'blue' ? -Math.PI / 2 : Math.PI / 2}
-              team={draggingChar.teamColor}
+              yaw={draggingChar.team === 'host' ? -Math.PI / 2 : Math.PI / 2}
+              team={draggingChar.team}
               hoverHeight={TOOL_HOVER_HEIGHT}
             />
           </Suspense>
@@ -1647,12 +1647,12 @@ export default function Scene({
             <DeployRangeTool
               getBody={() => charBodies.current.get(otherDragId)}
               centerZ={
-                otherDragChar.teamColor === 'blue'
+                otherDragChar.team === 'host'
                   ? MAT_SIZE / 2 - deployTip
                   : -(MAT_SIZE / 2 - deployTip)
               }
-              yaw={otherDragChar.teamColor === 'blue' ? -Math.PI / 2 : Math.PI / 2}
-              team={otherDragChar.teamColor}
+              yaw={otherDragChar.team === 'host' ? -Math.PI / 2 : Math.PI / 2}
+              team={otherDragChar.team}
               hoverHeight={TOOL_HOVER_HEIGHT}
             />
           </Suspense>

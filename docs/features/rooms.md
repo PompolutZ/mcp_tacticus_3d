@@ -113,7 +113,7 @@ The lobby finds the rooms by the key prefix. One key per room, so a room cannot 
   owner: '<user id>',
   createdAt, updatedAt,           // ms since 1970
   mapId: 'vibranium-heist',       // key in MAPS
-  rosters: { blue: { code }, red: null | { code } },   // docs/features/roster.md, "State"
+  rosters: { host: { code }, guest: null | { code } },   // docs/features/roster.md, "State"
 }
 ```
 
@@ -122,11 +122,11 @@ The lobby finds the rooms by the key prefix. One key per room, so a room cannot 
 - `terrain` stores the place of each piece in the map data (`index`, `locked`), not the whole placement. So a fix of the map data reaches old rooms. A deleted piece is not in the list.
 - A model writes its pose to `poses` when its body falls asleep. A lifted model (R) writes the place under the lift. A model that moves when the page closes keeps its last rest pose.
 - A saved model starts at its pose, asleep. So it does not move before the terrain under it has its colliders. A touch, a drag or a removed terrain piece wakes it.
-- A record of version 1 opens with a new table, with its map and rosters. Its old `table` is not read. A document with another `game.schema` gets a new start table.
+- A record of version 1 opens with a new table, with its map and rosters. Its old `table` is not read. A document with another `game.schema` gets a new start table. The schema is 2 since the sides are `host` / `guest`, so a room of schema 1 starts with a new table. A single player record of version 2 or older is not listed or opened (saved rooms are not migrated).
 
-- The tools (range, movement, Toward / Away) are in `tools`, per side (`tools.blue`, `tools.red`). An entry has the pose, the bend, the snap target and the mode. A tool writes it after it rested for 0.3 s. A saved tool comes back where it was. Place, Throw, the Bend button and the selection of a tool are not saved.
+- The tools (range, movement, Toward / Away) are in `tools`, per side (`tools.host`, `tools.guest`). An entry has the pose, the bend, the snap target and the mode. A tool writes it after it rested for 0.3 s. A saved tool comes back where it was. Place, Throw, the Bend button and the selection of a tool are not saved.
 
-- The dice are in `dice`, per side (`dice.blue`, `dice.red`). The room keeps the shelf: the dice that have a result, with their face. Dice in the well and in the air are not kept. They go away when the room opens.
+- The dice are in `dice`, per side (`dice.host`, `dice.guest`). The room keeps the shelf: the dice that have a result, with their face. Dice in the well and in the air are not kept. They go away when the room opens.
 
 Not saved: dice in the well and in the air, selection, camera, open popups, spectator view, labels, debug mode.
 

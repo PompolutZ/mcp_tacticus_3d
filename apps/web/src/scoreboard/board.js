@@ -4,8 +4,8 @@
 //
 // The values come from the mod (3036795456) objects "Tracker" (the board), "Round Tracker", "Red Player VP
 // Tracker" and "Blue Player VP tracker", read on 2026-10-03. TTS positions convert to the app with z → -z
-// (Terrain.jsx). So TTS +z, the TTS Blue seat, is the app red side: a TTS object of the Red seat belongs to
-// the app's blue player (see docs/features/crisis.md, "Setup flow").
+// (Terrain.jsx). So TTS +z, the TTS Blue seat, is the app guest side: a TTS object of the Red seat belongs to
+// the app's host player (see docs/features/crisis.md, "Setup flow").
 
 // The board mesh is 9" × 4" × 0.25" and the mod uses scale 2, so the board is 18" × 8" × 0.5". The mod turns
 // it by 90°, so its long side runs along z, next to the mat edge (x = -18), halfway between the players.
@@ -56,17 +56,17 @@ export const ROUND_MARKER_TINT = [0.96, 0.79, 0.048]
 export const COLOR_TINT = { blue: [0.118, 0.53, 1], red: [0.856, 0.1, 0.094] }
 
 // Start place of each VP marker, by side. The markers
-// start next to the board, where the mod puts them. Because of z → -z, the app blue marker starts at the
-// place of the mod's Red Player VP Tracker, and the app red marker at the place of its Blue one.
+// start next to the board, where the mod puts them. Because of z → -z, the app host marker starts at the
+// place of the mod's Red Player VP Tracker, and the app guest marker at the place of its Blue one.
 export const VP_MARKERS = {
-  blue: { start: { x: -32.68, z: 10.82 } },
-  red: { start: { x: -32.28, z: -10.81 } },
+  host: { start: { x: -32.68, z: 10.82 } },
+  guest: { start: { x: -32.28, z: -10.81 } },
 }
 
-// Where every marker is when the app starts: { blue, red, round } → { x, z }
+// Where every marker is when the app starts: { host, guest, round } → { x, z }
 export const START_MARKERS = {
-  blue: VP_MARKERS.blue.start,
-  red: VP_MARKERS.red.start,
+  host: VP_MARKERS.host.start,
+  guest: VP_MARKERS.guest.start,
   round: ROUND_POINTS[0],
 }
 

@@ -94,7 +94,7 @@ The `affiliations` state in `App.jsx` is `game.affiliations`. Setup game writes 
 
 ## On the table
 
-The app puts the cards in the area where the character trays lie during a game. That area is empty before the players choose their squads. The numbers below are for blue (+z). Red is the same at −z, turned 180°.
+The app puts the cards in the area where the character trays lie during a game. That area is empty before the players choose their squads. The numbers below are for the host (+z). The guest is the same at −z, turned 180°.
 
 ```
       mat edge (z = 18)
@@ -161,10 +161,10 @@ The app has files for 65 of 233 character codes, 69 of 401 Team Tactic codes and
 
 ```js
 rosters: {
-  blue: null | {
+  host: null | {
     code,   // the MCT code in Jarvis order and format, built by the parser
   },
-  red: null | { … },
+  guest: null | { … },
 }
 ```
 

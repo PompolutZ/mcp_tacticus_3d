@@ -14,7 +14,7 @@ const TABS = [
   { tab: 'tactics', label: 'Tactics' },
   { tab: 'tokens', label: 'Tokens' },
 ]
-const TEAMS = ['blue', 'red']
+const TEAMS = ['host', 'guest']
 const TOKEN_MODES = [
   {
     mode: 'single',
@@ -47,7 +47,7 @@ const LIBRARY_ROWS = [
 // one search field. See docs/features/library.md. The panel only hides when it is closed, so its
 // search, tab, player and token mode stay.
 // characters: the characters on the table (App state). The ones of the chosen player show green.
-// onSpawnCharacter(ch): a click on a character with a 3D model; ch has teamColor set to the chosen player.
+// onSpawnCharacter(ch): a click on a character with a 3D model; ch has team set to the chosen player.
 // onSpawnTactic(key, team): a click on a tactic card.
 // onTokenDragStart(e, key, mode): a pointerdown on a token chip starts a drag in App.jsx. mode:
 // 'single' | 'pile'.
@@ -55,7 +55,7 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
   const [query, setQuery] = useState('')
   const [tab, setTab] = useState('all')
   const colors = useSideColors()
-  const [team, setTeam] = useState('blue')
+  const [team, setTeam] = useState('host')
   const [tokenMode, setTokenMode] = useState('single')
   const [message, setMessage] = useState(null)
   const messageTimer = useRef()
@@ -75,7 +75,7 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
   )
   // Slugs of the chosen player's characters on the table. App blocks a second copy (handleSpawn).
   const spawned = useMemo(
-    () => new Set(characters.filter((c) => c.teamColor === team).map((c) => c.key)),
+    () => new Set(characters.filter((c) => c.team === team).map((c) => c.key)),
     [characters, team],
   )
 
@@ -92,7 +92,7 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
       showMessage(`${ch.name} doesn't have a 3D model in the app yet`)
       return
     }
-    onSpawnCharacter({ ...ch, teamColor: team })
+    onSpawnCharacter({ ...ch, team: team })
   }
 
   // In the All tab, a section shows its first items and a "More" button that opens its own tab

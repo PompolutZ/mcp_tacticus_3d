@@ -7,7 +7,7 @@ import { startTableBytes } from './startTable.js'
 
 test('the start table has the map, the rosters and the terrain of the map', () => {
   const mapId = Object.keys(MAPS)[0]
-  const rosters = { blue: null, red: { code: 'ABC' } }
+  const rosters = { host: null, guest: { code: 'ABC' } }
   const doc = new Y.Doc()
   Y.applyUpdate(doc, startTableBytes(mapId, rosters))
   const table = createTable(doc)
@@ -24,6 +24,6 @@ test('the start table has the map, the rosters and the terrain of the map', () =
 
 test('the start table has no tools', () => {
   const doc = new Y.Doc()
-  Y.applyUpdate(doc, startTableBytes(Object.keys(MAPS)[0], { blue: null, red: null }))
+  Y.applyUpdate(doc, startTableBytes(Object.keys(MAPS)[0], { host: null, guest: null }))
   assert.deepEqual(createTable(doc).tools.read(), {})
 })

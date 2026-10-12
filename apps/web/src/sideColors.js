@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
 
-// The color of each side, { blue: 'blue' | 'red', red: 'blue' | 'red' }. A side key is a seat (+z or -z), not
+// The color of each side, { host: 'blue' | 'red', guest: 'blue' | 'red' }. A side key is a seat (+z or -z), not
 // a color. The color comes from colorOf in setup/setup.js (docs/features/setup-game.md, "Colors"). App.jsx
 // computes it from the setup and sets it here, so the DOM and the Canvas (React context does not cross the
 // <Canvas> boundary, see look.js) read it the same way. The default is the colors before the roll off.
@@ -22,8 +22,8 @@ function getSnapshot() {
 }
 
 export function setSideColors(next) {
-  if (next.blue === colors.blue && next.red === colors.red) return
-  colors = { blue: next.blue, red: next.red }
+  if (next.host === colors.host && next.guest === colors.guest) return
+  colors = { host: next.host, guest: next.guest }
   listeners.forEach((l) => l())
 }
 

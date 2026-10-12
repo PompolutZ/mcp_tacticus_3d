@@ -140,7 +140,7 @@ The cost of `localStorage`: a script that runs in the page (XSS) can read the to
 
 ### Rosters
 
-- Each roster is its own key in the table (`rosters.blue`, `rosters.red`). Each browser writes only the key of its own seat. So the two players never write the same key.
+- Each roster is its own key in the table (`rosters.host`, `rosters.guest`). Each browser writes only the key of its own side. So the two players never write the same key.
 - The host gives their roster at creation. It is in the start table and in the server record.
 - The guest gives their roster to join. It goes into the server record. The first time the guest's browser opens the table, it writes the roster into the guest's key, when that key is empty. The setup does not restart, because a key that changes from empty to a roster does not change any card that the setup chose.
 - The server record keeps a copy of both rosters for the lobby tile and the join page.

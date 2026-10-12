@@ -4,8 +4,8 @@
 // The side where this user has a seat, or null
 export function seatOf(room, userId) {
   if (!userId) return null
-  if (room.players.blue?.id === userId) return 'blue'
-  if (room.players.red?.id === userId) return 'red'
+  if (room.players.host?.id === userId) return 'host'
+  if (room.players.guest?.id === userId) return 'guest'
   return null
 }
 
@@ -45,6 +45,6 @@ export function roomPage({ code, singleRoom, authOn, session, room }) {
     }
   const loggedIn = session.status === 'in'
   if (loggedIn && seatOf(room, session.user.id)) return { page: 'multiplayer' }
-  if (!room.players.blue || !room.players.red) return { page: 'join', loggedIn }
+  if (!room.players.host || !room.players.guest) return { page: 'join', loggedIn }
   return { page: 'lobby', notice: 'This room has two players already.' }
 }

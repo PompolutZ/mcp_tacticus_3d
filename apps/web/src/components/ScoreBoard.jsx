@@ -36,7 +36,7 @@ const IMPORT_ROTATION = [0, Math.PI, 0]
 const GAP = 0.02
 const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 // Each VP marker faces its owner: the image top points away from the player's side
-const VP_MARKER_YAW = { blue: 0, red: Math.PI }
+const VP_MARKER_YAW = { host: 0, guest: Math.PI }
 // Two markers closer than this are on the same spot. Snapped markers have the same position exactly.
 const SAME_SPOT = 0.01
 
@@ -78,7 +78,7 @@ function Board() {
 // way as a crisis token. When it is released near a spot of `points`, it moves onto that spot (snapPoint).
 // position: { x, z } from App. onMove(x, z): called once, when a drag ends. shape: a Rapier shape as wide as
 // the marker, for the ground cast. halfHeight: half the shape's height. lift: extra height, for a marker
-// that lies on another one. pieceKey: the key of the claim, `marker:<blue|red|round>`. ownership: the claims
+// that lies on another one. pieceKey: the key of the claim, `marker:<host|guest|round>`. ownership: the claims
 // on pieces (net/ownership.js). pieceLives: the Map of live pose getters (net/live.js, LiveSync). remote: the other
 // player claims the marker. getLivePose(key): their latest numbers. While remote, the marker follows them (it
 // does not lift, so it has no footprint). A cancelled drag (Escape, or a lost tie) puts the marker back to its place
@@ -220,7 +220,7 @@ function RoundMarkerMesh() {
 // The scoring board with a VP marker per player and the round marker. Relative to the table, not the mat,
 // the same as the dice trays: a map change or a mat turn does not move it. See docs/features/crisis.md,
 // "Scoring board".
-// markers: { blue, red, round } → { x, z }, see App.jsx. affiliations: { blue, red } → affiliation key.
+// markers: { host, guest, round } → { x, z }, see App.jsx. affiliations: { host, guest } → affiliation key.
 // onMarkerMove(marker, x, z): a marker was dropped, already moved onto a spot when it was near one.
 // The app does not read the score from the board. Players read it, as on a real table.
 export default function ScoreBoard({
@@ -235,9 +235,9 @@ export default function ScoreBoard({
   const { rapier } = useRapier()
   // The VP marker dropped last. When both players have the same VP, it lies on top of the other one, as
   // in TTS, where the second marker falls onto the first. Both edges show, so both colors can be seen.
-  const topVpMarker = useRef('red')
+  const topVpMarker = useRef('guest')
   const sameSpot =
-    Math.hypot(markers.blue.x - markers.red.x, markers.blue.z - markers.red.z) < SAME_SPOT
+    Math.hypot(markers.host.x - markers.guest.x, markers.host.z - markers.guest.z) < SAME_SPOT
   const vpShape = useMemo(
     () => new rapier.Cylinder(TOKEN_THICKNESS / 2, VP_MARKER_SIZE / 2),
     [rapier],
@@ -252,7 +252,7 @@ export default function ScoreBoard({
       <Suspense fallback={null}>
         <Board />
       </Suspense>
-      {['blue', 'red'].map((team) => (
+      {['host', 'guest'].map((team) => (
         <DraggableMarker
           key={team}
           pieceKey={`marker:${team}`}

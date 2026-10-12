@@ -104,7 +104,14 @@ test('a crisis token pose goes to [x, z, yaw], rounded, and back', () => {
   assert.deepEqual(numbersToPose('token:t1', numbers), { x: 1.235, z: -2, yaw: 1.2346 })
 })
 
-for (const key of ['loose:a', 'pile:a', 'tactic:a', 'marker:blue', 'marker:red', 'marker:round']) {
+for (const key of [
+  'loose:a',
+  'pile:a',
+  'tactic:a',
+  'marker:host',
+  'marker:guest',
+  'marker:round',
+]) {
   test(`${key}: a flat pose goes to [x, z], rounded, and back`, () => {
     assert.equal(isLiveKind(key), true)
     const numbers = poseToNumbers(key, { x: 3.14159, z: -2.0004 })

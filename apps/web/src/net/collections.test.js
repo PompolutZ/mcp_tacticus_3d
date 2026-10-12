@@ -138,22 +138,22 @@ test('a record with depth 1 makes nested maps, and replaces them with null and b
   const setup = createRecord(doc.getMap('setup'), { depth: 1 })
   setup.set({
     deck: null,
-    ready: { blue: false, red: false },
-    squads: { blue: { characters: [] } },
+    ready: { host: false, guest: false },
+    squads: { host: { characters: [] } },
   })
   const ymap = doc.getMap('setup')
   assert.ok(ymap.get('ready') instanceof Y.Map)
-  assert.ok(!(ymap.get('squads').get('blue') instanceof Y.Map))
-  setup.setField('deck', { team: 'red', type: 'secure' })
+  assert.ok(!(ymap.get('squads').get('host') instanceof Y.Map))
+  setup.setField('deck', { team: 'guest', type: 'secure' })
   assert.ok(ymap.get('deck') instanceof Y.Map)
-  assert.deepEqual(setup.get('deck'), { team: 'red', type: 'secure' })
+  assert.deepEqual(setup.get('deck'), { team: 'guest', type: 'secure' })
   setup.setField('deck', null)
   assert.equal(setup.get('deck'), null)
-  setup.set((prev) => ({ ...prev, ready: { ...prev.ready, blue: true } }))
+  setup.set((prev) => ({ ...prev, ready: { ...prev.ready, host: true } }))
   assert.deepEqual(setup.read(), {
     deck: null,
-    ready: { blue: true, red: false },
-    squads: { blue: { characters: [] } },
+    ready: { host: true, guest: false },
+    squads: { host: { characters: [] } },
   })
 })
 
@@ -163,7 +163,7 @@ test('a record writes nothing for equal values, and its snapshot keeps unchanged
   game.set({
     mapId: 'm',
     crisis: { secure: null, extract: null },
-    scoreMarkers: { blue: { x: 1, z: 2 } },
+    scoreMarkers: { host: { x: 1, z: 2 } },
   })
   const first = game.getSnapshot()
   const updates = countUpdates(doc)
@@ -195,12 +195,12 @@ test('two docs merge the Ready of each player in setup', () => {
   const b = new Y.Doc()
   const setupA = createRecord(a.getMap('setup'), { depth: 1 })
   const setupB = createRecord(b.getMap('setup'), { depth: 1 })
-  setupA.set({ ready: { blue: false, red: false } })
+  setupA.set({ ready: { host: false, guest: false } })
   exchange(a, b)
-  setupA.set((prev) => ({ ...prev, ready: { ...prev.ready, blue: true } }))
-  setupB.set((prev) => ({ ...prev, ready: { ...prev.ready, red: true } }))
+  setupA.set((prev) => ({ ...prev, ready: { ...prev.ready, host: true } }))
+  setupB.set((prev) => ({ ...prev, ready: { ...prev.ready, guest: true } }))
   exchange(a, b)
-  assert.deepEqual(setupA.read(), { ready: { blue: true, red: true } })
+  assert.deepEqual(setupA.read(), { ready: { host: true, guest: true } })
   assert.deepEqual(setupB.read(), setupA.read())
 })
 

@@ -28,7 +28,7 @@ function rosterCharacters(roster) {
 
 // { gltf: [url], textures: [url | [url]] } for Preload.jsx. A list of URLs is one input: a standee
 // loads its 2 images together, and the loader caches them under that list.
-// terrain and characters: the App state at the start of the table. rosters: { blue, red }.
+// terrain and characters: the App state at the start of the table. rosters: { host, guest }.
 export function tableFiles({ mapId, terrain, characters, rosters }) {
   const gltf = new Set()
   const textures = new Map()
@@ -40,7 +40,7 @@ export function tableFiles({ mapId, terrain, characters, rosters }) {
     addTexture(urls.texture)
     if (urls.collider) gltf.add(urls.collider)
   }
-  const all = [...characters, ...rosterCharacters(rosters.blue), ...rosterCharacters(rosters.red)]
+  const all = [...characters, ...rosterCharacters(rosters.host), ...rosterCharacters(rosters.guest)]
   for (const model of all.flatMap(characterModels)) {
     const urls = modelUrls(model)
     if (urls.gltf) gltf.add(urls.gltf)

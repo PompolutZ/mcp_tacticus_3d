@@ -214,7 +214,7 @@ export default function Table({ room = null, onExit }) {
       const table = createTable(doc)
       // A new table, or one of an older layout: before the first release all data is test data (decision 11)
       if (tableSchema(table) !== SCHEMA) {
-        const rosters = room?.rosters ?? { blue: null, red: null }
+        const rosters = room?.rosters ?? { host: null, guest: null }
         fillTable(table, { ...startTable(room?.mapId ?? START_MAP), rosters })
       }
       const role = room?.host === userId ? 'host' : 'guest'

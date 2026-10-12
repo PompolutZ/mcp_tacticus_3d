@@ -186,7 +186,7 @@ function OtherDie({ id, dice, geometry, material }) {
 }
 
 // The tray of the other player. It draws the stored side (dice/stored.js) and never writes the
-// document. trayKey: 'blue' | 'red'. store: the dice record store of the table. liveRef: what LiveSync
+// document. trayKey: 'host' | 'guest'. store: the dice record store of the table. liveRef: what LiveSync
 // received (null without a live channel).
 // A well or air die stands at its stored pose, and moves there at once when the pose changes. A shelf
 // die slides to its slot when its slot or face changes (as DiceTray.startShelfMove). A die on the

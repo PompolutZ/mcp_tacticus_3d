@@ -1948,10 +1948,6 @@ body {
   gap: 8px;
 }
 
-.new-room-side--off {
-  opacity: 0.45;
-}
-
 /* The login part of the lobby header (UserMenu.jsx) */
 .lobby-header {
   display: flex;

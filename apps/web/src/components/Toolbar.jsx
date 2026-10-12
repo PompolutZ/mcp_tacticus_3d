@@ -11,7 +11,7 @@ const MOVES = [
   { label: 'M', type: 'medium' },
   { label: 'L', type: 'long' },
 ]
-const TEAMS = [{ team: 'blue' }, { team: 'red' }]
+const TEAMS = [{ team: 'host' }, { team: 'guest' }]
 const CRISIS_TYPES = [
   { type: 'secure', label: 'Secure' },
   { type: 'extract', label: 'Extract' },
@@ -68,7 +68,7 @@ export function Toolbar({
   onRollsClick,
 }) {
   // The typed text stays in the field after Enter (x clears it)
-  const [rosterText, setRosterText] = useState({ blue: '', red: '' })
+  const [rosterText, setRosterText] = useState({ host: '', guest: '' })
   // A setting of 'hud' puts the item in the toolbar, 'table' on the table (docs/features/table-tools.md,
   // "Settings menu"). The Mat group stays for the map select, also when the mat turn is on the table.
   const hud = (item) => settings.tools[item] === 'hud'
@@ -79,7 +79,7 @@ export function Toolbar({
   const matTurnHud = hud('matTurn')
   const showMat = !multiplayer && (matTurnHud || !roomCode)
   const colors = useSideColors()
-  const rosterTeams = roomCode ? TEAMS.filter(({ team }) => team === 'red') : TEAMS
+  const rosterTeams = roomCode ? TEAMS.filter(({ team }) => team === 'guest') : TEAMS
   return (
     <div className="toolbar">
       <div className="group">

@@ -89,14 +89,14 @@ function makeGame(seed) {
     }
   }
 
-  const character = (n, teamColor) => ({
+  const character = (n, team) => ({
     id: id(),
     key: `character-${n}`,
     figure: 'model',
     base: 'medium',
     rotation: 0,
     transform: null,
-    teamColor,
+    team,
     side: 'healthy',
     damage: 0,
     power: 0,
@@ -126,7 +126,7 @@ function makeGame(seed) {
   const tacticCard = (n) => ({
     id: id(),
     key: `tactic-${n}`,
-    team: n < TACTICS / 2 ? 'blue' : 'red',
+    team: n < TACTICS / 2 ? 'host' : 'guest',
     x: round4(between(-MAT_X, MAT_X)),
     z: round4(between(-MAT_Z, MAT_Z)),
     up: 'face',
@@ -144,22 +144,22 @@ function makeGame(seed) {
   table.doc.on('update', (update) => updates.push(update.byteLength))
 
   const characters = [
-    ...Array.from({ length: CHARACTERS_PER_SIDE }, (_, n) => character(n, 'blue')),
+    ...Array.from({ length: CHARACTERS_PER_SIDE }, (_, n) => character(n, 'host')),
     ...Array.from({ length: CHARACTERS_PER_SIDE }, (_, n) =>
-      character(CHARACTERS_PER_SIDE + n, 'red'),
+      character(CHARACTERS_PER_SIDE + n, 'guest'),
     ),
   ]
   const tactics = Array.from({ length: TACTICS }, (_, n) => tacticCard(n))
   const setup = {
     ...NEW_SETUP,
-    deck: { team: 'blue', type: 'secure' },
+    deck: { team: 'host', type: 'secure' },
     picks: { secure: '1234567', extract: '7654321' },
     threat: 8,
     edge: true,
-    ready: { blue: true, red: true },
+    ready: { host: true, guest: true },
     squads: {
-      blue: { characters: [0, 1, 2, 3, 4, 5], tactics: [0, 1, 2, 3, 4] },
-      red: { characters: [0, 1, 2, 3, 4, 5], tactics: [0, 1, 2, 3, 4] },
+      host: { characters: [0, 1, 2, 3, 4, 5], tactics: [0, 1, 2, 3, 4] },
+      guest: { characters: [0, 1, 2, 3, 4, 5], tactics: [0, 1, 2, 3, 4] },
     },
     placed: { characters: characters.map((c) => c.id), tactics: tactics.map((c) => c.id) },
   }
@@ -174,8 +174,8 @@ function makeGame(seed) {
     deployLine: false,
     crisis: { secure: 'secure-card', extract: 'extract-card' },
     scoreMarkers: START_MARKERS,
-    affiliations: { blue: 'shield', red: 'hydra' },
-    rosters: { blue: { code: code() }, red: { code: code() } },
+    affiliations: { host: 'shield', guest: 'hydra' },
+    rosters: { host: { code: code() }, guest: { code: code() } },
     setup,
     terrain: Array.from({ length: TERRAIN }, (_, index) => ({ id: id(), index, locked: true })),
     characters,

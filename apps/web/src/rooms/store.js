@@ -7,9 +7,10 @@ import { equal } from '../net/collections.js'
 const PREFIX = 'mcp-assist-3d/'
 const ROOM_PREFIX = `${PREFIX}room/`
 const USER_KEY = `${PREFIX}user`
-// The record format. Version 1 had the table in the record. Its table is not read, so the room opens with a
-// new table (docs/plans/implement-backend/05-yjs-state.md, decision 12).
-const VERSION = 2
+// The record format. Version 3 keys the rosters by side, host / guest. An older record is not read: saved
+// rooms are not migrated (docs/features/setup-game.md, "Colors"). Version 1 had the table in the record,
+// version 2 had the rosters keyed blue / red.
+const VERSION = 3
 // Crockford base32: no I, L, O, U, so a code read aloud or typed is not mistaken. 8 characters are 40 bits,
 // the room code of docs/features/peer-to-peer.md, "Security and abuse".
 const CODE_CHARS = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
@@ -61,7 +62,7 @@ export function listRooms() {
   return keys
     .filter((key) => key?.startsWith(ROOM_PREFIX))
     .map(read)
-    .filter((room) => room?.id && room.mapId)
+    .filter((room) => room?.id && room.mapId && room.version === VERSION)
     .sort((a, b) => b.updatedAt - a.updatedAt)
 }
 
@@ -130,10 +131,10 @@ export function deleteDoc(name) {
 // The room with this code, or null
 export function openRoom(id) {
   const room = read(ROOM_PREFIX + id)
-  return room?.id && room.mapId ? room : null
+  return room?.id && room.mapId && room.version === VERSION ? room : null
 }
 
-// Creates and stores a room. rosters: { blue: { code }, red: null | { code } }, code: the MCT code of the
+// Creates and stores a room. rosters: { host: { code }, guest: null | { code } }, code: the MCT code of the
 // roster (rosters/mct.js, formatMctCode). Returns the room, or null when the browser did not store it.
 export function createRoom(mapId, rosters) {
   let id = newRoomCode()

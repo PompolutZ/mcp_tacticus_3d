@@ -45,7 +45,7 @@ export function startTable(mapId) {
     deployLine: false,
     crisis: { secure: null, extract: null },
     scoreMarkers: START_MARKERS,
-    affiliations: { blue: DEFAULT_AFFILIATION, red: DEFAULT_AFFILIATION },
+    affiliations: { host: DEFAULT_AFFILIATION, guest: DEFAULT_AFFILIATION },
     setup: newSetup(),
     terrain: mapTerrain(mapId),
     characters: [],

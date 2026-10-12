@@ -16,7 +16,7 @@ The list of every TTS tool and button, and what the app has for each, is in `doc
 
 ## Place on the table
 
-The table is 72" × 76" (`src/table.js`). Numbers below are for blue (+z). Red is the same with z → −z, turned 180° so that it faces the red player. The places are constants in `src/tabletools/layout.js`.
+The table is 72" × 76" (`src/table.js`). Numbers below are for the host (+z). The guest is the same with z → −z, turned 180° so that it faces the guest. The places are constants in `src/tabletools/layout.js`.
 
 ```
                          x = -20.6 … -18.3        x = -15.2 … 15.2
@@ -31,7 +31,7 @@ z = 38                   ─────────────── table edg
 ```
 
 - **Tool rack**, x −15.2 … 15.2, z 34.2 … 36.8. The deepest tray parts end at z 33.75: the plate of a tray with two cards, its two rows of Give sources, and a spare model. So the rack never meets a tray, also in a row of 12 trays.
-- **Automatic Power Phase button**, 7.48" × 1.2" (the size of the other table buttons: 12px font, icon 22px), in the row of the Team Tactic tray, to the owner's left of the tactic plate (blue: −x), with a gap of 0.6" from the plate edge: x −16.73 … −9.25, z 19.75 … 20.95 (center z = the tactic tray center). Free space there is x −20.6 … −8.65, z 18.3 … 22.4. Row 2 of the rack ends with the T/A chip.
+- **Automatic Power Phase button**, 7.48" × 1.2" (the size of the other table buttons: 12px font, icon 22px), in the row of the Team Tactic tray, to the owner's left of the tactic plate (host: −x), with a gap of 0.6" from the plate edge: x −16.73 … −9.25, z 19.75 … 20.95 (center z = the tactic tray center). Free space there is x −20.6 … −8.65, z 18.3 … 22.4. Row 2 of the rack ends with the T/A chip.
 - **Board strip**, in the corner between the mat and the end of the scoring board on the player's side: x −20.6 … −18.3, z 12.6 … 18.0. Nothing else lies there, also during the setup.
 - The start view shows the own rack band (`docs/features/key-shortcuts.md`, "Start view").
 - A setting never moves a piece. It only shows or hides it. So the two browsers of a room have the same table.
@@ -45,7 +45,7 @@ z = 38                   ─────────────── table edg
 - **Click**: the same as the toolbar button of that tool. It turns the tool on or off. A new tool snaps to the selected piece, else it spawns free at the table point in the middle of the screen.
 - **Drag**: a flat outline of the tool follows the pointer on the table. The release works the same as the tool key at that point. Over a character or a crisis token, the tool snaps to it. Over the table or terrain, the tool spawns free there. Over the rack or off the table, nothing happens. Escape cancels the drag. The outline has the footprint of the tool (the Toward / Away outline is the L shape of its two arms), in the player tint, turned as the tool spawns free. It is dimmed over the own rack, as a hint that a release does nothing, and hidden off the table.
 - **Return**: when a move drag of an own tool (not a turn or a bend) ends with the tool center over the own rack, the tool goes back to the rack (it is removed from the table). TTS has this as the tool tray setting "Cleanup", on by default.
-- **Which racks.** A multiplayer room shows both racks. A player uses only their own rack. The other rack shows the other player's tools on the table as faint copies, and does not react to the pointer. The Sandbox and a single player room show only the blue rack, because that browser has only Blue's tools (`ownSide` in `App.jsx`).
+- **Which racks.** A multiplayer room shows both racks. A player uses only their own rack. The other rack shows the other player's tools on the table as faint copies, and does not react to the pointer. The Sandbox and a single player room show only the host rack, because that browser has only the host's tools (`ownSide` in `App.jsx`).
 
 ## Automatic Power Phase button
 

@@ -57,7 +57,7 @@ const RAPIER_PATH = createRequire(import.meta.resolve('@react-three/rapier')).re
 // Same value as Scene.jsx. Not imported: Scene.jsx does not export it.
 const TIME_STEP = 1 / 120
 
-const TRAY_KEY = 'blue' // the red tray is the same shape, only mirrored, so one tray is enough here
+const TRAY_KEY = 'host' // the guest tray is the same shape, only mirrored, so one tray is enough here
 
 function parseArgs(argv) {
   const opts = { seed: 1, throws: 8000, multiThrows: 2000, multiDice: 10, perfDice: 42 }

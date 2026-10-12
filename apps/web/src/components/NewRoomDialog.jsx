@@ -15,8 +15,7 @@ import { Overlay } from './Overlay.jsx'
 import { RosterField } from './RosterField.jsx'
 
 const MAP_IDS = Object.keys(MAPS)
-const TEAMS = ['blue', 'red']
-const TEAM_NAMES = { blue: 'Blue', red: 'Red' }
+const TEAMS = ['host', 'guest']
 
 // Why Multiplayer is disabled, by the session status
 function unavailableText(status) {
@@ -33,7 +32,7 @@ function unavailableText(status) {
 // move the carousel, the same as in the roster popup, but not while a roster field has the focus.
 //
 // Plan 07, decision 19: with login on, a choice at the top: Single player or Multiplayer. A multiplayer room
-// has one roster field, for the own side (Blue or Red). Create room builds the start table, posts the room to
+// has one roster field, for the own side: the host always sits at +z. Create room builds the start table, posts the room to
 // the server, and calls onCreate({ id: code }). hostedCode: the code of the multiplayer room that the user
 // hosts already, or null. The server allows one hosted room per user.
 export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
@@ -43,22 +42,21 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
   const loggedIn = status === 'in'
   const [choice, setChoice] = useState(null)
   const multiplayer = loggedIn && (choice ?? 'multiplayer') === 'multiplayer'
-  const [side, setSide] = useState('blue')
   const [busy, setBusy] = useState(false)
   const [createError, setCreateError] = useState(null)
   const [random, setRandom] = useState(true)
   const [mapIndex, setMapIndex] = useState(0)
-  const [text, setText] = useState({ blue: '', red: '' })
+  const [text, setText] = useState({ host: '', guest: '' })
   // The browser did not store the room
   const [failed, setFailed] = useState(false)
   const parsed = useMemo(
-    () => ({ blue: parseRosterText(text.blue), red: parseRosterText(text.red) }),
+    () => ({ host: parseRosterText(text.host), guest: parseRosterText(text.guest) }),
     [text],
   )
   // A Red text without a known code blocks Create room, so a wrong paste does not make a room without Red
   const canCreate = multiplayer
-    ? !isEmptyRoster(parsed[side]) && !hostedCode && !busy
-    : !isEmptyRoster(parsed.blue) && (!text.red.trim() || !isEmptyRoster(parsed.red))
+    ? !isEmptyRoster(parsed.host) && !hostedCode && !busy
+    : !isEmptyRoster(parsed.host) && (!text.guest.trim() || !isEmptyRoster(parsed.guest))
   // A carousel drag can end on the backdrop. The click then goes to the backdrop. So the backdrop
   // closes the dialog only when the press also started on the backdrop, the same as in RosterPopup.jsx.
   const pressedBackdrop = useRef(false)
@@ -81,13 +79,12 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
     const roster = (team) =>
       isEmptyRoster(parsed[team]) ? null : { code: formatMctCode(parsed[team]) }
     if (multiplayer) {
-      const own = roster(side)
-      const rosters = { blue: null, red: null, [side]: own }
+      const own = roster('host')
+      const rosters = { host: own, guest: null }
       setBusy(true)
       try {
         const created = await createServerRoom({
           mapId,
-          side,
           roster: own,
           table: startTableBytes(mapId, rosters),
         })
@@ -98,7 +95,7 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
       }
       return
     }
-    const room = createRoom(mapId, { blue: roster('blue'), red: roster('red') })
+    const room = createRoom(mapId, { host: roster('host'), guest: roster('guest') })
     if (room) onCreate(room)
     else setFailed(true)
   }
@@ -157,21 +154,6 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
                 You host room {hostedCode} already. Delete it to create a new one.
               </span>
             )}
-            {multiplayer && (
-              <div className="new-room-kinds" role="group" aria-label="Your side">
-                {TEAMS.map((team) => (
-                  <button
-                    key={team}
-                    type="button"
-                    className={`chip chip--player-${team}${side === team ? '' : ' new-room-side--off'}`}
-                    aria-pressed={side === team}
-                    onClick={() => setSide(team)}
-                  >
-                    {TEAM_NAMES[team]}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         )}
         <button
@@ -211,11 +193,10 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
         )}
         {multiplayer ? (
           <RosterField
-            key={side}
-            team={side}
-            text={text[side]}
-            parsed={parsed[side]}
-            onChange={(value) => handleTextChange(side, value)}
+            team="host"
+            text={text.host}
+            parsed={parsed.host}
+            onChange={(value) => handleTextChange('host', value)}
           />
         ) : (
           TEAMS.map((team) => (
@@ -224,7 +205,7 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
               team={team}
               text={text[team]}
               parsed={parsed[team]}
-              optional={team !== 'blue'}
+              optional={team !== 'host'}
               onChange={(value) => handleTextChange(team, value)}
             />
           ))

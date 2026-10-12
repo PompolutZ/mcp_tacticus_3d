@@ -1,8 +1,9 @@
 import { useMemo } from 'react'
 import { isEmptyRoster } from '../rosters/mct.js'
 import { missingFiles, unknownCodesMessage } from '../rosters/cards.js'
+import { DEFAULT_SIDE_COLORS } from '../sideColors.js'
 
-const TEAM_NAMES = { blue: 'Blue', red: 'Red' }
+const TEAM_NAMES = { host: 'Blue', guest: 'Red' }
 
 // "1 character", "10 characters"
 const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
@@ -65,7 +66,7 @@ export function RosterField({ team, text, parsed, optional, onChange }) {
         <span className="group-label">{TEAM_NAMES[team]} roster</span>
         <input
           type="text"
-          className={`chip chip--player-${team} chip--text new-room-input`}
+          className={`chip chip--player-${DEFAULT_SIDE_COLORS[team]} chip--text new-room-input`}
           placeholder={optional ? 'Optional: paste an MCT code' : 'Paste an MCT code'}
           value={text}
           onChange={(e) => onChange(e.target.value)}

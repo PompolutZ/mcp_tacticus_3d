@@ -6,7 +6,7 @@ import * as Y from 'yjs'
 import { createTable, encodeTable, fillTable } from '../net/doc.js'
 import { startTable } from './table.js'
 
-// rosters: { blue, red }, each { code } or null
+// rosters: { host, guest }, each { code } or null
 export function startTableBytes(mapId, rosters) {
   const doc = new Y.Doc()
   fillTable(createTable(doc), { ...startTable(mapId), rosters })

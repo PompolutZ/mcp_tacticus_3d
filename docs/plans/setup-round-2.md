@@ -1,6 +1,6 @@
 # Plan: Setup round 2
 
-Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: steps 1 to 7 done and checked by the user on 2026-10-12, merged into main. Steps 8 and 9 (rename) not started. Branch `setup-round-2`, from main at `87f9b6e`.
+Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: steps 1 to 8 done. Step 9 (API seats) not started. Branch `setup-round-2`, from main at `87f9b6e`.
 
 The feature is `docs/features/setup-game.md`. Each step makes one commit and writes its **Result** below.
 
@@ -274,6 +274,17 @@ Checks: as in "Checks". A grep for `'blue'` and `'red'` in `apps/web/src` lists 
 Tip for the coder: do the rename with a script per pattern, then read each diff hunk. Do not read whole files.
 
 User, after this step: everything works as before, in the Sandbox, a single player room and a multiplayer room. The host sits at +z. An old room opens with a fresh table.
+
+### Result
+
+Done. Commit "setup round 2 part 8: sides host and guest in the web app".
+
+- Renamed by script per pattern (string literals, `key:` keys, `.key` reads, `{ blue, red` shorthand in comments, `teamColor` to `team`, `blueColor` to `hostColor`), then each hunk reviewed. Lines about colors were kept: `COLOR_NAME`, `COLOR_HEX`, `COLOR_TINT`, `TOOL_TINT`, `DEFAULT_SIDE_COLORS` (values `'blue'` / `'red'`), `colorOf` results, `otherRed` / `otherBlue`, CSS classes.
+- `SCHEMA = 2` (`net/doc.js`); only `Table.jsx` reads it. Local single player record `VERSION = 3`; older records are not listed or opened.
+- Seat mapping: `src/rooms/seats.js` (`withSides`, `hostSeat`, `API_HOST_SEAT`), called in `serverStore.js`. Delete in step 9. `createRoom` sends `side: 'blue'`.
+- `NewRoomDialog.jsx`: no side choice; the host roster field only. Lobby, `JoinRoom`, `RosterField` take chip classes from `DEFAULT_SIDE_COLORS`.
+- No localStorage key holds a side (settings, session, squad keys).
+- Docs: feature docs with data keys updated.
 
 
 ## Step 9: Seats `host` / `guest` in the API

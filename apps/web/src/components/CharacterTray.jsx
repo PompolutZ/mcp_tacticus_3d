@@ -89,7 +89,7 @@ export default function CharacterTray({
   const sideMap = (n) => maps[(n - 1) * 2 + (character.side === 'healthy' ? 0 : 1)]
   const plate = trayPlate(cards)
   const stamina = characterStamina(character.key, character.side)
-  const yaw = trayYaw(character.teamColor)
+  const yaw = trayYaw(character.team)
   // Group of the cards, the outline target
   const cardRef = useRef()
   // The number of the card under the pointer (1 or 2), or null

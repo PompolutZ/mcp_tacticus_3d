@@ -107,7 +107,7 @@ function useNames(mySide, seatPlayers) {
       mySide,
       players: seatPlayers?.players ?? null,
       peer: seatPlayers?.peer ?? null,
-      colors: { blue: COLOR_NAME[colors.blue], red: COLOR_NAME[colors.red] },
+      colors: { host: COLOR_NAME[colors.host], guest: COLOR_NAME[colors.guest] },
     }),
     [mySide, seatPlayers, colors],
   )
@@ -284,7 +284,7 @@ function BoardPanel({ setup, step, parsed, mySide, ctx, actions }) {
     // A done step that a player browses: its name and choice, read only (Override goes back to it)
     hint = `${STEP_NAME[view]}: ${stepChoice(setup, view, ctx)}`
     note = 'You are looking at an earlier step. Override makes it the current step again.'
-  } else if ((step === 'rollOff' || step === 'deck') && (!parsed.blue || !parsed.red)) {
+  } else if ((step === 'rollOff' || step === 'deck') && (!parsed.host || !parsed.guest)) {
     hint = 'Load both rosters to set up the game.'
   } else if (step === 'rollOff') {
     hint = 'Roll off. The winner has Priority.'
@@ -513,7 +513,7 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
 
 // The game setup on the table: the crisis cards of the rosters next to the scoring board, and the buttons
 // of each step. The buttons lie flat on the table (OnTable). See docs/features/setup-game.md.
-// setup: see setup/setup.js. rosters: { blue, red } → null | { code }. seatPlayers: { players, peer } of a multiplayer room, for the names
+// setup: see setup/setup.js. rosters: { host, guest } → null | { code }. seatPlayers: { players, peer } of a multiplayer room, for the names
 // (setup/names.js). mySide: the team of the player in a multiplayer room, or null when one
 // person plays both teams. Only that team's squad panel has buttons. actions: { priority(team), deck(type), pick(code),
 // threat(value), turnMat(direction), edge(), ready(team),
@@ -531,16 +531,16 @@ export default function GameSetup({
   const ctx = useNames(mySide, seatPlayers)
   const parsed = useMemo(
     () => ({
-      blue: rosters.blue && parseRosterText(rosters.blue.code),
-      red: rosters.red && parseRosterText(rosters.red.code),
+      host: rosters.host && parseRosterText(rosters.host.code),
+      guest: rosters.guest && parseRosterText(rosters.guest.code),
     }),
-    [rosters.blue, rosters.red],
+    [rosters.host, rosters.guest],
   )
   const rows = useMemo(() => crisisRows(setup, parsed), [setup, parsed])
   const step = setupStep(setup)
   const browsing = viewOf(setup) !== null
   const cardLocked = lockedTitle(setup, 'a card', ctx)
-  if (step === 'done' || (!parsed.blue && !parsed.red)) return null
+  if (step === 'done' || (!parsed.host && !parsed.guest)) return null
   return (
     <>
       {rows.map((row) => (

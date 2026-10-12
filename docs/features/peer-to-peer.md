@@ -273,7 +273,7 @@ The data has four categories. There is also local state, which is not sent.
 | 2 | Set-up: changes once per game | rosters, crisis cards, map, deploy line | Yjs document | `sync` |
 | 3 | Rare changes | rest poses of models and tools; the places of tokens, cards and markers; card flips; damage and power; healthy or injured side; tokens gained or lost; mat turns; dice results (the shelf) and roll history | Yjs document | `sync` |
 | 4 | Presence: what the other player does now | dice in the air; every piece that a player drags (model, tool, crisis token, character token on the table, pile, tactic card, score marker); cursor | Not stored | `live` |
-| | Players | name, side (blue or red), claims (`owns`), the model that the player drags now (`drag`, for the deploy tool), the new token or pile that the player drags now (`spawn`: `{ key, tokenKey }`). the selected character and crisis token (`selection`, piece keys, the last is the tool target), the selected tool kinds (`tools`), and the piece that a turning range tool marks (`mark`: `{ key, mode }`) | Yjs awareness | `sync` |
+| | Players | name, side (host or guest), claims (`owns`), the model that the player drags now (`drag`, for the deploy tool), the new token or pile that the player drags now (`spawn`: `{ key, tokenKey }`). the selected character and crisis token (`selection`, piece keys, the last is the tool target), the selected tool kinds (`tools`), and the piece that a turning range tool marks (`mark`: `{ key, mode }`) | Yjs awareness | `sync` |
 | | Local | camera, hover, labels, debug mode, open card popup, open dice menu | React state, as today | Not sent |
 
 The same object can be in two categories at different times. While a player drags a model, its pose is category 4. When the model stops, its rest pose goes into the document as category 3. A piece without a body (a token, a card, a marker, a pile) writes its new place into the document at the drop.
@@ -291,7 +291,7 @@ Each name is a top-level `Y.Map` of the `Y.Doc`.
 | Name | Kind | Content |
 |---|---|---|
 | `game` | record, depth 1 | `schema`, `mapId`, `matTurns`, `deployLine`, `crisis { secure, extract }`, `scoreMarkers`, `affiliations` |
-| `rosters` | record | `blue` and `red`: `null` or `{ code }` (`docs/features/roster.md`, "State") |
+| `rosters` | record | `host` and `guest`: `null` or `{ code }` (`docs/features/roster.md`, "State") |
 | `setup` | record, depth 1 | the game setup: the fields of `NEW_SETUP` (`docs/features/setup-game.md`) |
 | `terrain` | list | the pieces on the mat: `index` in the map data, `locked` |
 | `characters` | list | the fields of `newCharacter` in `App.jsx`: key, figure, base, rotation, side (healthy or injured), damage, power, tokens |
@@ -300,7 +300,7 @@ Each name is a top-level `Y.Map` of the `Y.Doc`.
 | `tactics` | list | tactic cards on the table (`docs/features/team-tactic-cards.md`) |
 | `looseTokens` | list | character tokens on the table |
 | `tokenPiles` | list | token piles on the table |
-| `tools` | record, depth 1 | the tools of both players: `tools.<side>.<kind>`. `side` is `blue` or `red`. `kind` is `range`, `move` or `angle` |
+| `tools` | record, depth 1 | the tools of both players: `tools.<side>.<kind>`. `side` is `host` or `guest`. `kind` is `range`, `move` or `angle` |
 | `dice` | record, depth 2 | the dice trays: `dice.<side>` is `{ critsUsed, dice: { <die id>: { order, place, face?, pose? } } }`. `place` is `air`, `well` or `shelf`. `face` (1 to 8) is only on the shelf. `pose` is only in the air and the well. The room keeps the shelf |
 
 | `rolls` | list | the roll history, oldest first, for both sides. Each entry is `{ id, side, at, kind, ... }` with `kind` `throw`, `change` or `clear` (`src/dice/history.js`). The room keeps it. A new table starts with an empty one |
@@ -323,7 +323,7 @@ How the data is stored:
 
 - **List.** A `Y.Map` from the entity id to a nested `Y.Map` of the entity's fields. A field value is plain JSON. A field that is an object (`tokens` of a character, `heldAt`, `transform`) is replaced as a whole. So two players who change different fields of one entity both keep their change.
 - **Order.** Each entity of a list has a hidden `order` number. The store sorts by `order`, then by id, and App does not see `order`. The order is the tray row of `characters` and the stack of `tactics`. With equal numbers from two players, the id decides, the same in both browsers.
-- **Record.** A `Y.Map` of fields. With depth 0, each value is one plain value. With depth 1, a value that is a plain object becomes a nested `Y.Map` of its fields. `game` and `setup` have depth 1, so each player's squad and Ready in `setup` (`setup.squads.blue`, `setup.ready.red`) merge. `rosters` and `poses` have depth 0. `tools` has depth 1, so each side's entries merge. A score marker position stays one value.
+- **Record.** A `Y.Map` of fields. With depth 0, each value is one plain value. With depth 1, a value that is a plain object becomes a nested `Y.Map` of its fields. `game` and `setup` have depth 1, so each player's squad and Ready in `setup` (`setup.squads.host`, `setup.ready.guest`) merge. `rosters` and `poses` have depth 0. `tools` has depth 1, so each side's entries merge. A score marker position stays one value.
 - **Poses by model id.** A character with a second form has two models (`characters/models.js`), so `poses` is a record by model id, not a field of the character. A removed character deletes the poses of its models.
 - **Terrain.** `terrain` stores only `index` and `locked`. App adds the placement from the map data (`withPlacements`), so a fix of the map data reaches old rooms.
 - **Schema.** `game.schema` is `SCHEMA` (1). A document or a game file with another schema is not used. Before the first release, all data is test data.
@@ -419,7 +419,7 @@ So the roller's browser decides the roll, and a changed client could cheat. This
 ## Room and players
 
 - Players have accounts (`docs/features/auth.md`). The name, the avatar and the side come from the room and from the server, not from the player. The peer id is new at each table open and is not stored, because a duplicated tab copies `sessionStorage`.
-- The host chooses a side: blue or red. The guest gets the other side. In a multiplayer room where the user has the Red seat, the start view is the Blue view turned 180° around the mat center, so the own side is at the bottom of the screen. Position `[0, 32.5, -42.9]`, target `[0, 0, -10.4]`. Space returns to it. Single player rooms and the Sandbox keep the Blue view, because one player plays both sides there.
+- The host always sits at +z and the guest at −z. The own side is `host` when the signed-in user is the room host, else `guest`, whatever seat key the API returns. In a multiplayer room where the user is the guest, the start view is the host view turned 180° around the mat center, so the own side is at the bottom of the screen. Position `[0, 32.5, -42.9]`, target `[0, 0, -10.4]`. Space returns to it. Single player rooms and the Sandbox keep the host view, because one player plays both sides there.
 - The room toolbar shows both seats: team name in the side color, avatar and name. The own seat says "You". The other seat shows the status of [Connect flow](#connect-flow). When the guest seat was free at open, the name and avatar come from the guest's `hello`, and **Copy link** hides.
 - Version 1 has two players. A third peer (a spectator) needs a connection to each other peer. Yjs supports that, but it is not in this doc.
 - When the connection drops, both sides show "Reconnecting". Both post a new `hello`, and a new connection starts with the same room code and peer id ([Connect flow](#connect-flow)). Yjs syncs what changed on both sides, so no change is lost. Awareness sends the own state when a channel opens. The same path handles a closed or reloaded page.
@@ -435,7 +435,7 @@ Each side has its own set of tools and its own dice tray.
 | The opponent's tools and tray | Nobody else. Both players see them. The opponent's tool has no buttons or outline, and a click goes to the piece below. The opponent's tray shows its dice and its counts, and its keys do nothing. The history of both players is in the Rolls panel |
 | Models, tokens, piles, tactic cards, score markers, crisis cards, map, mat turn, deploy line | Both players. Game effects such as push and throw move enemy models, so both players must be able to move any model |
 
-The other player's selection shows too. A character or crisis token that they select has an outline in their side color (blue or red), under the own selection and range marks. Their selected tool has the green or red footprint against their tool target, calculated from the poses this browser shows. While they turn a snapped range tool, the piece under their pointer has the green or red range outline. A piece that this browser does not have shows nothing. Only the other player's selection and range marks are shared this way, not hover.
+The other player's selection shows too. A character or crisis token that they select has an outline in their color (blue or red), under the own selection and range marks. Their selected tool has the green or red footprint against their tool target, calculated from the poses this browser shows. While they turn a snapped range tool, the piece under their pointer has the green or red range outline. A piece that this browser does not have shows nothing. Only the other player's selection and range marks are shared this way, not hover.
 
 A tool can snap to any model or token, also of the opponent, because players measure range to enemy models. The snap (and a tool key) does not select a model of the other side, so **Place** cannot move it.
 

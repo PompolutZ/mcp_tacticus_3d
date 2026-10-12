@@ -807,7 +807,7 @@ function BendButton({ on, onClick }) {
 //   above the ground under its footprint, with the yaw of freeSpawnYaw(side). Without `at`, the rules
 //   above.
 // Later changes of the entry (the tool's own writes) do not move the tool.
-// side: 'blue' or 'red', the side of the owner. onStore(fields): called with { pose, turn, snap, mode }
+// side: 'host' or 'guest', the side of the owner. onStore(fields): called with { pose, turn, snap, mode }
 // (rounded, storedTool.js) when none of them changed for REST_TIME and they differ from the entry.
 // Not stored: Place, Throw, Bend and the selection.
 // onReturn(): called when a move drag (not a turn drag) ends with the tool center on the own rack. The owner

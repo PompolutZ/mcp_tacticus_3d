@@ -20,8 +20,8 @@ const CARD_GAP = 0.5
 
 export const CARD_X = BOARD_X
 // The mod has no automated placement for the crisis cards; players place them by hand on a real
-// table, and no mod script sets a table position for them. This puts Secure at the blue side (+z)
-// and Extract at the red side (-z), which was not checked against the mod.
+// table, and no mod script sets a table position for them. This puts Secure at the host side (+z)
+// and Extract at the guest side (-z), which was not checked against the mod.
 export const CARD_Z = {
   secure: BOARD_HALF_LENGTH + CARD_GAP + CARD_WIDTH / 2,
   extract: -(BOARD_HALF_LENGTH + CARD_GAP + CARD_WIDTH / 2),
