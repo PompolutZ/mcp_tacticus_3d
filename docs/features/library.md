@@ -38,7 +38,7 @@ Each row has the portrait, the name and the MCT code. A click spawns the charact
 
 Characters with a 3D model come first. A character without a model is grey. A click on it shows a short message, and nothing spawns.
 
-A player has at most one copy of each character on the table. The characters that the chosen player already has are green in the list. A click on one of them shows a message in the HUD, for example "Blue player already has Angela on the table", and nothing spawns. Both players can have the same character. The two Sentinel MK4 rows are different characters, so a player can have both. `handleSpawn` in `App.jsx` does the check, so it also covers a later spawn from the roster. Added on 2026-10-07.
+A player has at most one copy of each character on the table. The characters that the chosen player already has are green in the list. A click on one of them shows a message in the HUD, for example "Blue player already has Angela on the table", and nothing spawns. Both players can have the same character. The two Sentinel MK4 rows are different characters, so a player can have both. `handleSpawn` in `src/characters/useCharacterActions.js` does the check, so it also covers a later spawn from the roster. Added on 2026-10-07.
 
 The rows come from Jarvis (`src/characters/characters.js`), one row per MCT code. Two exceptions:
 

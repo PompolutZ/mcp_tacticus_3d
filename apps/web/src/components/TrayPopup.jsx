@@ -56,7 +56,7 @@ export function TrayPopup({
 
   const name = characterName(character.key)
   const shownSide = showOther ? otherSide(character.side) : character.side
-  // Tokens on the character, in the order it got them (see App.jsx, handleCharacterTokenGive).
+  // Tokens on the character, in the order it got them (see characters/useCharacterActions.js, handleCharacterTokenGive).
   const attached = attachedCards(character).filter((card) => card.image)
   const large = attached.find((card) => card.code === largeCode)
   const onTokens = Object.entries(character.tokens ?? {})

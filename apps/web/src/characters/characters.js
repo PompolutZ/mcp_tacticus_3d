@@ -127,7 +127,7 @@ export function characterGiveSources(slug) {
 }
 
 // Token keys this character cannot get on its current side (p21), when every form is immune to
-// them. App.jsx's give handler uses this. See docs/features/character-trays.md, "Immunities".
+// them. handleCharacterTokenGive (characters/useCharacterActions.js) uses this. See docs/features/character-trays.md, "Immunities".
 export function characterImmune(slug, side) {
   return bySlug.get(slug)?.immune[side === 'injured' ? 'injured' : 'healthy'] ?? []
 }

@@ -297,6 +297,16 @@ User: Damage and Power limits, flip, Remove, Delete of a tray card, give by drag
 
 ### Result
 
+New `src/characters/useCharacterActions.js` holds `handleSpawn`, `handleCharacterDamage`, `handleCharacterPower`, `handleCharacterFlip`, `handleCharacterOffBoard`, `handleTrayCardDelete`, `handleCharacterRemove`, `handleCharacterTokenGive` and `handleCharacterTokenRemove`. Bodies are unchanged. `App` destructures the result into the same names. The call stands right after `useCrisisTokens`. `handleCharacterRemove` has no new parameters, so `forEach(handleCharacterRemove)` still passes only the id it used before.
+
+Args: `table`, `room`, `setup`, `characters`, `setCharacters`, `tokens`, `setSelection`, `setOpenTrayId`, `showHudMessage`, `writeLog`, `writeStatLog`, `characterLogData`, `tokenEntryData`, `handleDropCharacterTokens`, `dropWait`, `removeWaits`, `returnModelsRef`. All are used.
+
+Deviations: `handlePowerPhase` stays in `App` (step 11, phases). `handleLooseRemove` stays (step 10, table pieces). Pointers fixed in `TrayPopup.jsx`, `CharacterTray.jsx`, `characters.js` and `library.md`. Other `App.jsx` pointers name things that did not move.
+
+Effect order, before and after: E2 and `useWindowKeys` (layout), E1, E3, E4, E5, E6, window listeners, E8, E9, E10. Same. The hook has no effect.
+
+Checks: `pnpm format`, `pnpm lint` (45 warnings before and after), `pnpm test` (574 web tests pass), `pnpm --filter web build`, debug grep 0. The diff review showed every removed line in the new file, except the five import and destructure lines that no longer apply.
+
 ## Step 10: Table pieces
 
 Work:
