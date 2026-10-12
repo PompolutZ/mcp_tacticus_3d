@@ -343,7 +343,7 @@ The app uses these ideas from other projects:
 ## Out of scope
 
 - Multiplayer sync is built: the other player sees the dice fly, the shelf and the history.
-- Sounds of the dice are built; see `sounds.md`.
+- The shake sound of **Roll** is built; the hit of each bump is not yet. See `sounds.md`.
 - Affiliation skins for the tray. The TTS cache has 4.
 - Picking up and dragging dice.
 - TTS messages when a player picks up or changes a die, for example "Jarvis: … picked up a Hit die".

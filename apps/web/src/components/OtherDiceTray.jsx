@@ -11,7 +11,7 @@ import { OTHER_DICE_GROUPS } from '../physics.js'
 import { useYField } from '../net/useY.js'
 import { followPart, sameSideQuat } from '../net/livePose.js'
 import { TrayBody, useDieLook } from './DiceTrayParts.jsx'
-import { playSound } from '../sound.js'
+import { playShake } from '../sound.js'
 
 // The die's own vertices (faces.js), flattened for ConvexHullCollider's args.
 const dieVertices = Float32Array.from(D8_CORNERS.flat())
@@ -153,7 +153,7 @@ function syncDice(map, side, trayKey, announce) {
       map.set(e.id, die)
       idsChanged = true
     }
-    if (announce && !e.shelf && e.d.place === 'air' && die.doc?.place !== 'air') playSound('dice')
+    if (announce && !e.shelf && e.d.place === 'air' && die.doc?.place !== 'air') playShake()
     applyEntry(die, e, slots.get(e.id), trayKey)
   }
   return idsChanged

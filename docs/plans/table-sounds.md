@@ -105,7 +105,14 @@ User, after this step:
 
 ### Result
 
-(empty)
+Built.
+
+- The 41 sound files are committed. `dice-throw-1..3` and `bong_001` are removed. `README.md` rewritten with sources, licenses, cut times.
+- `src/sound.js`: the 8 groups. `playSound(group, { volume, key })`. With a `key` the 60 ms key gap and the 6-in-100-ms cap apply, and the group gap does not. `shake`, `die`, `modelMat`, `modelTerrain` have no group gap. `playShake()` plays the pattern, with named constants.
+- `src/soundGate.js` (new) holds the gap and cap rules as plain code, so `src/soundGate.test.js` runs without an AudioContext.
+- `DiceTray.jsx` and `OtherDiceTray.jsx` call `playShake()`. `Ping.jsx` is unchanged: the group `ping` has the new file.
+- Docs: `sounds.md`, `dice-rolling.md`.
+- Deviation: the gate is in its own file `soundGate.js`, not in `sound.js`, because `sound.js` needs a browser.
 
 ## Step 2: Bump finder, own dice
 

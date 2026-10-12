@@ -41,7 +41,7 @@ import { DieMenu } from './DiceKeys.jsx'
 import { TrayBody, useDieLook } from './DiceTrayParts.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
-import { playSound } from '../sound.js'
+import { playShake } from '../sound.js'
 
 // A tray holds at most 42 dice, shelf and well together (design, "Roll flow"). SHELF_SLOT_COUNT
 // is also 42 (one shelf place per die), so this reuses it instead of a second magic number.
@@ -486,7 +486,7 @@ export default function DiceTray({
       throwDie(entry)
       thrown = true
     }
-    if (thrown) playSound('dice')
+    if (thrown) playShake()
     onMenuClose?.()
     commit()
   }
