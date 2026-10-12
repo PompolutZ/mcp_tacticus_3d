@@ -28,6 +28,30 @@ export function addEntry(list, entry) {
   return [...list, entry].slice(-LOG_LIMIT)
 }
 
+// Damage and Power clicks on one character, by one player, within this time change the last entry
+// (addStatEntry).
+export const MERGE_MS = 10_000
+
+// The list with a Damage or Power entry { kind: 'stat', characterId, stat, from, to }. When the last entry of
+// the list is the same character and stat, by the same writer, and at most MERGE_MS older, it changes
+// instead ("Damage 2 → 5") and takes the new time, so a run of clicks stays one entry. A value back at the
+// start of that entry removes it. A change that does nothing (from equals to) adds nothing.
+export function addStatEntry(list, entry) {
+  const last = list[list.length - 1]
+  const same =
+    last?.kind === 'stat' &&
+    last.by === entry.by &&
+    last.characterId === entry.characterId &&
+    last.stat === entry.stat &&
+    entry.at - last.at <= MERGE_MS
+  if (same) {
+    if (last.from === entry.to) return list.slice(0, -1)
+    return [...list.slice(0, -1), { ...last, to: entry.to, at: entry.at }]
+  }
+  if (entry.from === entry.to) return list
+  return addEntry(list, entry)
+}
+
 // The entries of both lists in one list, newest first. rolls, log: oldest first, as stored. On the same
 // millisecond the log entry is newer: the roll-off result is written after the throw.
 export function mergeLog(rolls, log) {
@@ -56,6 +80,8 @@ const STEP_NAMES = {
   affiliation: 'the affiliation',
   deploy: 'the deployment',
 }
+
+const STAT_NAMES = { damage: 'Damage', power: 'Power' }
 
 const DECK_NAMES = { secure: 'Secure', extract: 'Extract' }
 
@@ -109,6 +135,25 @@ export function logText(entry, ctx) {
     }
     case 'priority':
       return `Priority goes to ${to(side, ctx)}.`
+    case 'stat':
+      return `${entry.name} ${STAT_NAMES[entry.stat]} ${entry.from} → ${entry.to}`
+    case 'flip':
+      return `${entry.name} turns to the ${entry.to} side.`
+    case 'token': {
+      // The count shows for a token that counts up
+      const count = entry.on && entry.count > 1 ? ` (${entry.count})` : ''
+      return entry.on
+        ? `${entry.tokenName} put on ${entry.name}${count}.`
+        : `${entry.tokenName} taken off ${entry.name}.`
+    }
+    case 'held':
+      return entry.on
+        ? `${entry.name} holds ${entry.tokenName}.`
+        : `${entry.name} drops ${entry.tokenName} from the card.`
+    case 'offBoard':
+      return `${entry.name} is removed from the board.`
+    case 'deleted':
+      return `${entry.name} is deleted from the table.`
     default:
       return ''
   }

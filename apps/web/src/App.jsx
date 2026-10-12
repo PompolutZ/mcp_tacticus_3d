@@ -10,7 +10,7 @@ import { COLOR_NAME, DEFAULT_SIDE_COLORS, setSideColors } from './sideColors.js'
 import { Toolbar } from './components/Toolbar.jsx'
 import { Library } from './components/Library.jsx'
 import { LogPanel } from './components/LogPanel.jsx'
-import { addEntry, logEntry } from './log/log.js'
+import { addEntry, addStatEntry, logEntry } from './log/log.js'
 import { readLogOpen, writeLogOpen } from './log/open.js'
 import { useNames } from './setup/useNames.js'
 import { KeyboardCamera } from './components/KeyboardCamera.jsx'
@@ -467,6 +467,15 @@ export default function App({
   // an effect that runs in both browsers: the same id makes one entry.
   function writeLog(kind, data, id) {
     table.log.set((list) => addEntry(list, logEntry(kind, mySide, data, id)))
+  }
+  // A Damage or Power entry, with the merge of clicks (addStatEntry). Same transaction rule as writeLog.
+  function writeStatLog(ch, stat, from, to) {
+    const data = { ...characterLogData(ch), stat, from, to }
+    table.log.set((list) => addStatEntry(list, logEntry('stat', mySide, data)))
+  }
+  // The data that every character entry has: the side of the character gives the color of the entry
+  function characterLogData(ch) {
+    return { side: ch.team, characterId: ch.id, name: characterName(ch.key) }
   }
   // A short HUD message, for example an immunity block. Same pattern as the Library's own
   // message (a timeout clears it), but global: a drag can end over any tray.
@@ -964,9 +973,18 @@ export default function App({
 
   // A held token dragged off its tray card and released on the table is no longer held.
   function handleTokenMove(id, x, z) {
-    setTokens((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, x, z, heldBy: null, heldAt: null } : t)),
-    )
+    const token = tokens.find((t) => t.id === id)
+    table.transact(() => {
+      setTokens((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, x, z, heldBy: null, heldAt: null } : t)),
+      )
+      if (token?.heldBy)
+        writeHeldLog(
+          characters.find((ch) => ch.id === token.heldBy),
+          token,
+          false,
+        )
+    })
   }
 
   function handleTokenTurn(id, yaw) {
@@ -997,16 +1015,26 @@ export default function App({
   // point is on its tray, otherwise null. It is used only to move a token on its own holder's card:
   // a token given to a character always goes to the default place.
   function handleTokenHold(id, characterId, cardPoint) {
-    setTokens((prev) => {
-      const token = prev.find((t) => t.id === id)
-      if (!token) return prev
-      if (token.heldBy === characterId) {
-        return cardPoint ? prev.map((t) => (t.id === id ? { ...t, heldAt: cardPoint } : t)) : prev
-      }
-      const heldCount = prev.filter((t) => t.heldBy === characterId).length
-      return prev.map((t) =>
-        t.id === id ? { ...t, heldBy: characterId, heldAt: trayHeldDefault(heldCount) } : t,
-      )
+    const held = tokens.find((t) => t.id === id)
+    table.transact(() => {
+      setTokens((prev) => {
+        const token = prev.find((t) => t.id === id)
+        if (!token) return prev
+        if (token.heldBy === characterId) {
+          return cardPoint ? prev.map((t) => (t.id === id ? { ...t, heldAt: cardPoint } : t)) : prev
+        }
+        const heldCount = prev.filter((t) => t.heldBy === characterId).length
+        return prev.map((t) =>
+          t.id === id ? { ...t, heldBy: characterId, heldAt: trayHeldDefault(heldCount) } : t,
+        )
+      })
+      // A move on its own holder's card is no entry
+      if (held && held.heldBy !== characterId)
+        writeHeldLog(
+          characters.find((ch) => ch.id === characterId),
+          held,
+          true,
+        )
     })
   }
 
@@ -1016,11 +1044,19 @@ export default function App({
   function handleSupplyTake(cardKey, x, z, characterId, id) {
     const card = getCard(cardKey)
     if (!card?.supply) return
-    setTokens((prev) => {
-      const token = supplyToken(card, x, z, id)
-      if (!characterId) return [...prev, token]
-      const heldCount = prev.filter((t) => t.heldBy === characterId).length
-      return [...prev, { ...token, heldBy: characterId, heldAt: trayHeldDefault(heldCount) }]
+    table.transact(() => {
+      setTokens((prev) => {
+        const token = supplyToken(card, x, z, id)
+        if (!characterId) return [...prev, token]
+        const heldCount = prev.filter((t) => t.heldBy === characterId).length
+        return [...prev, { ...token, heldBy: characterId, heldAt: trayHeldDefault(heldCount) }]
+      })
+      if (characterId)
+        writeHeldLog(
+          characters.find((ch) => ch.id === characterId),
+          supplyToken(card, x, z, id),
+          true,
+        )
     })
   }
 
@@ -1077,22 +1113,46 @@ export default function App({
     })
   }
 
+  // Data of a 'token' entry (log/log.js). key: the token key ('activated' is the one that Step 4 gives its own
+  // sound), count: how many the character has after the change.
+  function tokenEntryData(ch, key, on, count) {
+    return {
+      ...characterLogData(ch),
+      key,
+      tokenName: getToken(key)?.name ?? key,
+      on,
+      count,
+    }
+  }
+
+  // An objective token that a character holds, or drops from its card (a 'held' entry). `token`: the entry of
+  // `tokens` (its name comes from the front token), ch: the character.
+  function writeHeldLog(ch, token, on) {
+    if (!ch) return
+    const tokenName = getToken(token.frontKey)?.name ?? token.frontKey
+    writeLog('held', { ...characterLogData(ch), tokenId: token.id, tokenName, on })
+  }
+
   // Damage never goes below 0 or above the Stamina of the side that faces up (p16).
   function handleCharacterDamage(id, damage) {
-    setCharacters((prev) =>
-      prev.map((ch) => {
-        if (ch.id !== id) return ch
-        const stamina = characterStamina(ch.key, ch.side)
-        return { ...ch, damage: Math.max(0, Math.min(damage, stamina)) }
-      }),
-    )
+    const target = table.characters.read().find((ch) => ch.id === id)
+    if (!target) return
+    const to = Math.max(0, Math.min(damage, characterStamina(target.key, target.side)))
+    table.transact(() => {
+      setCharacters((prev) => prev.map((ch) => (ch.id === id ? { ...ch, damage: to } : ch)))
+      writeStatLog(target, 'damage', target.damage ?? 0, to)
+    })
   }
 
   // Power never goes below 0 or above 10 (p7-8).
   function handleCharacterPower(id, power) {
-    setCharacters((prev) =>
-      prev.map((ch) => (ch.id === id ? { ...ch, power: Math.max(0, Math.min(power, 10)) } : ch)),
-    )
+    const target = table.characters.read().find((ch) => ch.id === id)
+    if (!target) return
+    const to = Math.max(0, Math.min(power, 10))
+    table.transact(() => {
+      setCharacters((prev) => prev.map((ch) => (ch.id === id ? { ...ch, power: to } : ch)))
+      writeStatLog(target, 'power', target.power ?? 0, to)
+    })
   }
 
   // Power button in the toolbar and the Power Phase buttons on the table (docs/features/round-phases.md). Gives
@@ -1211,13 +1271,15 @@ export default function App({
 
   // Flip turns the card to the other side and clears Damage, the same as in TTS.
   function handleCharacterFlip(id) {
-    setCharacters((prev) =>
-      prev.map((ch) =>
-        ch.id === id
-          ? { ...ch, side: ch.side === 'healthy' ? 'injured' : 'healthy', damage: 0 }
-          : ch,
-      ),
-    )
+    const target = table.characters.read().find((ch) => ch.id === id)
+    if (!target) return
+    const to = target.side === 'healthy' ? 'injured' : 'healthy'
+    table.transact(() => {
+      setCharacters((prev) =>
+        prev.map((ch) => (ch.id === id ? { ...ch, side: to, damage: 0 } : ch)),
+      )
+      writeLog('flip', { ...characterLogData(target), to })
+    })
   }
 
   // Remove button on the tray: the character leaves the board (a KO'd character, p16). Its held tokens
@@ -1225,7 +1287,11 @@ export default function App({
   // returnModels). The character, its tray, tokens, Damage and Power stay. The selection stays too:
   // the models are still there.
   function handleCharacterOffBoard(id) {
-    handleDropCharacterTokens(id)
+    const target = characters.find((ch) => ch.id === id)
+    table.transact(() => {
+      handleDropCharacterTokens(id)
+      if (target) writeLog('offBoard', characterLogData(target))
+    })
     returnModelsRef.current?.(id)
   }
 
@@ -1243,7 +1309,9 @@ export default function App({
   // its models go too. Also clears a selection or popup that still points at it, so nothing keeps the
   // id or its Rapier body after the model unmounts.
   function handleCharacterRemove(id) {
+    const target = characters.find((ch) => ch.id === id)
     table.transact(() => {
+      if (target) writeLog('deleted', characterLogData(target))
       handleDropCharacterTokens(id)
       setCharacters((prev) => prev.filter((ch) => ch.id !== id))
       table.poses.set(({ [id]: _first, [secondModelId(id)]: _second, ...rest }) => rest)
@@ -1789,22 +1857,31 @@ export default function App({
         }),
       )
       if (tokenKey === 'activated' && target) table.game.setField('lastActivated', target.team)
+      // A capped token that is already there changes nothing, so it has no entry
+      const had = target?.tokens[tokenKey] ?? 0
+      if (target && !(isCappedToken(tokenKey) && had >= 1))
+        writeLog('token', tokenEntryData(target, tokenKey, true, had + 1))
     })
     return true
   }
 
   // A click on a token in the tray's "On" row removes one.
   function handleCharacterTokenRemove(id, tokenKey) {
-    setCharacters((prev) =>
-      prev.map((ch) => {
-        if (ch.id !== id) return ch
-        const count = (ch.tokens[tokenKey] ?? 0) - 1
-        const tokens = { ...ch.tokens }
-        if (count > 0) tokens[tokenKey] = count
-        else delete tokens[tokenKey]
-        return { ...ch, tokens }
-      }),
-    )
+    const target = characters.find((ch) => ch.id === id)
+    table.transact(() => {
+      setCharacters((prev) =>
+        prev.map((ch) => {
+          if (ch.id !== id) return ch
+          const count = (ch.tokens[tokenKey] ?? 0) - 1
+          const tokens = { ...ch.tokens }
+          if (count > 0) tokens[tokenKey] = count
+          else delete tokens[tokenKey]
+          return { ...ch, tokens }
+        }),
+      )
+      const had = target?.tokens[tokenKey] ?? 0
+      if (target && had > 0) writeLog('token', tokenEntryData(target, tokenKey, false, had - 1))
+    })
   }
 
   // over: the pointer moved onto (true) or off (false) a table token. A token that is removed or

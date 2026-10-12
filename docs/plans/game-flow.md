@@ -223,7 +223,18 @@ User, after this step:
 
 ### Result
 
-(empty)
+Built, as planned. Checks pass. No browser test was done.
+
+- `src/log/log.js`: `MERGE_MS` (10 s), `addStatEntry` (the merge), and the texts of the new kinds: `stat`, `flip`, `token`, `held`, `offBoard`, `deleted`. Tests in `log.test.js`: same character and stat within 10 s, after 10 s, another player, character, stat, an entry in between, back to the start value, no change, and the texts.
+- `App.jsx`: each handler is one `table.transact` with its entry. `handleCharacterDamage`, `handleCharacterPower`, `handleCharacterFlip`, `handleCharacterTokenGive` and `Remove` (token), `handleCharacterOffBoard`, `handleCharacterRemove`, `handleTokenHold`, `handleSupplyTake`, `handleTokenMove`. Helpers `writeStatLog`, `characterLogData`, `tokenEntryData`, `writeHeldLog`.
+- For step 4: a `token` entry has `key` (`activated` or another) and `on`. An objective token held is its own kind, `held`, with `on`.
+- Docs: `game-log.md`.
+
+Deviations and notes:
+
+- The merge takes the last entry of the list only. Any other entry in between ends the run. The merged entry takes the new time, so pauses under 10 s keep it one entry.
+- Damage and Power handlers read the current value from the table (`table.characters.read()`), not from the render state, so fast clicks merge right.
+- A token that changes nothing (second Dazed, immune) has no entry. Tokens dropped by **Remove** or a delete have no entry of their own; the **Remove** or delete entry tells it. Step 6 adds the drop entries.
 
 ## Step 4: Sounds
 

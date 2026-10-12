@@ -1,6 +1,15 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { LOG_LIMIT, addEntry, entrySide, logEntry, logText, mergeLog } from './log.js'
+import {
+  LOG_LIMIT,
+  MERGE_MS,
+  addEntry,
+  addStatEntry,
+  entrySide,
+  logEntry,
+  logText,
+  mergeLog,
+} from './log.js'
 
 const COLORS = { host: 'Blue', guest: 'Red' }
 const SOLO = { mySide: null, players: null, peer: null, colors: COLORS }
@@ -135,5 +144,75 @@ test('cleanup lists the round, the flipped characters and Priority', () => {
       ROOM,
     ),
     'Cleanup Phase: the round marker did not move.',
+  )
+})
+
+const stat = (by, from, to, at, extra = {}) =>
+  logEntry(
+    'stat',
+    by,
+    { characterId: 'c1', name: 'Hulk', stat: 'damage', from, to, ...extra },
+    undefined,
+    at,
+  )
+
+test('clicks on one stat within 10 s are one entry', () => {
+  let list = addStatEntry([], stat('host', 2, 3, 1000))
+  list = addStatEntry(list, stat('host', 3, 4, 2000))
+  list = addStatEntry(list, stat('host', 4, 5, 3000))
+  assert.equal(list.length, 1)
+  assert.equal(list[0].from, 2)
+  assert.equal(list[0].to, 5)
+  assert.equal(logText(list[0], SOLO), 'Hulk Damage 2 → 5')
+})
+
+test('a click after the merge time is a new entry', () => {
+  let list = addStatEntry([], stat('host', 2, 3, 1000))
+  list = addStatEntry(list, stat('host', 3, 4, 1000 + MERGE_MS + 1))
+  assert.equal(list.length, 2)
+})
+
+test('another player, character, stat or entry in between is a new entry', () => {
+  const first = stat('host', 2, 3, 1000)
+  assert.equal(addStatEntry([first], stat('guest', 3, 4, 2000)).length, 2)
+  assert.equal(addStatEntry([first], stat('host', 3, 4, 2000, { characterId: 'c2' })).length, 2)
+  assert.equal(addStatEntry([first], stat('host', 3, 4, 2000, { stat: 'power' })).length, 2)
+  const between = logEntry('priority', 'host', { side: 'host' }, undefined, 1500)
+  assert.equal(addStatEntry([first, between], stat('host', 3, 4, 2000)).length, 3)
+})
+
+test('back to the start value removes the entry', () => {
+  let list = addStatEntry([], stat('host', 2, 3, 1000))
+  list = addStatEntry(list, stat('host', 3, 4, 2000))
+  list = addStatEntry(list, stat('host', 4, 3, 3000))
+  list = addStatEntry(list, stat('host', 3, 2, 4000))
+  assert.deepEqual(list, [])
+})
+
+test('a change that does nothing adds no entry', () => {
+  assert.deepEqual(addStatEntry([], stat('host', 5, 5, 1000)), [])
+})
+
+test('the text of character entries', () => {
+  const on = (key, tokenName, count) =>
+    logText(logEntry('token', 'host', { name: 'Hulk', key, tokenName, on: true, count }), SOLO)
+  assert.equal(on('activated', 'Activated', 1), 'Activated put on Hulk.')
+  assert.equal(on('poison', 'Poison', 2), 'Poison put on Hulk (2).')
+  const off = logEntry('token', 'host', { name: 'Hulk', tokenName: 'Dazed', on: false, count: 0 })
+  assert.equal(logText(off, SOLO), 'Dazed taken off Hulk.')
+  const held = logEntry('held', 'host', { name: 'Hulk', tokenName: 'Asset', on: true })
+  assert.equal(logText(held, SOLO), 'Hulk holds Asset.')
+  assert.equal(logText({ ...held, on: false }, SOLO), 'Hulk drops Asset from the card.')
+  assert.equal(
+    logText(logEntry('flip', 'host', { name: 'Hulk', to: 'injured' }), SOLO),
+    'Hulk turns to the injured side.',
+  )
+  assert.equal(
+    logText(logEntry('offBoard', 'host', { name: 'Hulk' }), SOLO),
+    'Hulk is removed from the board.',
+  )
+  assert.equal(
+    logText(logEntry('deleted', 'host', { name: 'Hulk' }), SOLO),
+    'Hulk is deleted from the table.',
   )
 })
