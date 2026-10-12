@@ -272,7 +272,7 @@ User, after this step:
 
 ### Result
 
-(empty)
+`DEFAULT_VOLUME` is 10 in `settings.js`. Tests changed to 10. `sounds.md` and `table-tools.md` say default 10. A browser with saved settings keeps its value. No other place had 60 as the volume.
 
 ## Step 7: Token put down on the table
 

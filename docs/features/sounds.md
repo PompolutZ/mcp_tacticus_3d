@@ -43,7 +43,7 @@ A short sound for the events that a player can miss: a dice throw, a token put o
 
 ## Volume
 
-**Sound** slider in the Settings menu (`table-tools.md`), 0 to 100, default 60. 0 is off. Stored in this browser (localStorage, `mcp-assist-3d/settings`).
+**Sound** slider in the Settings menu (`table-tools.md`), 0 to 100, default 10. 0 is off. Stored in this browser (localStorage, `mcp-assist-3d/settings`).
 
 ## First click
 

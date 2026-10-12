@@ -87,7 +87,7 @@ One row for each item, with the choice **Table** or **HUD**. The default is **Ta
 
 ### Sound
 
-A **Sound** section has a volume slider, 0 to 100, default 60. 0 is off. See `sounds.md`.
+A **Sound** section has a volume slider, 0 to 100, default 10. 0 is off. See `sounds.md`.
 
 ### Keys and mouse
 

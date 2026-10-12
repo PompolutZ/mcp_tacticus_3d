@@ -8,7 +8,7 @@ export const PLACES = ['table', 'hud']
 export const TOOL_ITEMS = ['rack', 'power', 'cleanup', 'deployLock', 'matTurn']
 
 // Sound volume, 0 (off) to 100 (docs/features/sounds.md)
-export const DEFAULT_VOLUME = 60
+export const DEFAULT_VOLUME = 10
 
 export function defaultSettings() {
   return {
