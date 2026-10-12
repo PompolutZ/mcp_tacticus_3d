@@ -1,6 +1,6 @@
 # Plan: Split App.jsx
 
-Requested by the user on 2026-10-12. Status: work in progress on branch `split-app`. Branch `split-app`, from main, after `docs/plans/fallow-cleanup.md` merges into main. No other branch that edits `App.jsx` is open while this plan runs.
+Requested by the user on 2026-10-12. Status: all steps done, waiting for the user test. Branch `split-app`, from main, after `docs/plans/fallow-cleanup.md` merges into main. No other branch that edits `App.jsx` is open while this plan runs.
 
 Each step makes one commit and writes its **Result** below. Feature docs change in the same step as the code.
 
@@ -460,6 +460,20 @@ Work:
 User: the full test, all the "User" lists above.
 
 ### Result
+
+Comment added at the top of `App` (hook order, E8 before E9, keys last). No unused imports or dead local code were left: lint reports none. `overlayOpen` was not added: the two checks differ (the key state tests `openCard || openTrayId || openRoster || settingsOpen`, the JSX also tests `tokenDrag || toolDrag`), so they stay.
+
+`pnpm fallow` (hooks counted by `use…(` calls in the function, not a fallow number):
+
+| | before | after |
+| --- | --- | --- |
+| lines of `App.jsx` | 2,748 | 895 |
+| `App` cyclomatic | 85 | 34 |
+| `App` cognitive | 180 | 91 |
+| `App` hook calls | 99 | 65 |
+| functions above threshold | 264 | 265 |
+
+The one more function above the threshold is `RosterPopupHost` (cyclomatic 21, cognitive 41), which holds JSX that was in `App`. No new hook function is above the threshold. The biggest are in `useGameSetup`: `handleSquadToggle` and `revealSquad` (cyclomatic 12, cognitive 9). `useTableKeys`, `useTokenDrag`, `usePhaseActions` and the other hooks are lower. The 12 unused exports fallow reports (`keyboard.js`, `matTokens.js`, `rollOff.js`) are not from this plan.
 
 ## Open questions
 

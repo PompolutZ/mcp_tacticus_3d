@@ -84,6 +84,10 @@ export default function App({
   live = null,
   onExit,
 }) {
+  // The order of the hook calls matters, because the effects run in this order. The layout effects come
+  // first. useRollOffReader (E8) comes before useGameSetup (E9): a remote update can carry a throw and a
+  // setup change together, and E9 reads what E8 wrote. useTableKeys is last: its table of actions uses
+  // what all the hooks above give.
   const { isGuest, ownSide, playedSides, hiddenSquads, mySide } = tableSeat(room)
   const { position: cameraPosition, target: cameraTarget } = startView(isGuest)
   // The rest poses of the models, live: Scene applies a pose that the other browser wrote
