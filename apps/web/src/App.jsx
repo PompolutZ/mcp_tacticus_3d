@@ -8,7 +8,9 @@ import { COLOR_NAME, DEFAULT_SIDE_COLORS, setSideColors } from './sideColors.js'
 import { Toolbar } from './components/Toolbar.jsx'
 import { Library } from './components/Library.jsx'
 import { LogPanel } from './components/LogPanel.jsx'
-import { addEntry, addStatEntry, logEntry } from './log/log.js'
+import { addEntry, logEntry } from './log/log.js'
+import { logWriter } from './log/writer.js'
+import { useSelection } from './useSelection.js'
 import { useLogOpen } from './log/useLogOpen.js'
 import { useNames } from './setup/useNames.js'
 import { KeyboardCamera } from './components/KeyboardCamera.jsx'
@@ -130,8 +132,6 @@ import {
   NO_TOOLS,
   deselectPiece,
   isToolPiece,
-  presenceSelection,
-  presenceTools,
   selectPiece,
   selectedId,
   toolSelects,
@@ -311,15 +311,7 @@ export default function App({
   const [affiliations, setAffiliations] = useYField(table.game, 'affiliations')
   // Selected pieces and tools, see selection.js. One character, one token, the range tool, the
   // movement tool and the Toward / Away tool can all be selected at the same time.
-  const [selection, setSelection] = useState(NO_PIECES)
-  const [selectedTools, setSelectedTools] = useState(NO_TOOLS)
-  // The other player sees the selection and the selected tools (decision 24)
-  useEffect(() => {
-    presence?.set({
-      selection: presenceSelection(selection),
-      tools: presenceTools(selectedTools),
-    })
-  }, [presence, selection, selectedTools])
+  const { selection, setSelection, selectedTools, setSelectedTools } = useSelection(presence)
   // The last ping of this browser, { id, at: [x, y, z], t } | null. Scene shows it (Ping.jsx).
   const [ownPing, setOwnPing] = useState(null)
   // Character or token under the pointer: { kind, id } | null. Only the tool keys read it, so it is a ref.
@@ -351,20 +343,10 @@ export default function App({
   const [rolls] = useYList(table.rolls)
   const [log] = useYList(table.log)
 
-  // Adds a log entry (log/log.js). Call it in the same transaction as the change it tells. A fixed id is for
-  // an effect that runs in both browsers: the same id makes one entry.
-  function writeLog(kind, data, id) {
-    table.log.set((list) => addEntry(list, logEntry(kind, mySide, data, id)))
-  }
-  // A Damage or Power entry, with the merge of clicks (addStatEntry). Same transaction rule as writeLog.
-  function writeStatLog(ch, stat, from, to) {
-    const data = { ...characterLogData(ch), stat, from, to }
-    table.log.set((list) => addStatEntry(list, logEntry('stat', mySide, data)))
-  }
-  // The data that every character entry has: the side of the character gives the color of the entry
-  function characterLogData(ch) {
-    return { side: ch.team, characterId: ch.id, name: characterName(ch.key) }
-  }
+  const { writeLog, writeStatLog, characterLogData, tokenEntryData, writeHeldLog } = logWriter(
+    table,
+    mySide,
+  )
   const { hudMessage, showHudMessage } = useHudMessage()
   // Name of the WebGL renderer when it runs on the CPU, see renderer.js. null: the graphics card draws, or
   // the player closed the warning.
@@ -1118,26 +1100,6 @@ export default function App({
     wheelCameraRef.current?.stop()
     stopPan.current?.()
     stopPan.current = panToPoint(controls, { x: token.x, y: 0, z: token.z })
-  }
-
-  // Data of a 'token' entry (log/log.js). key: the token key ('activated' is the one that Step 4 gives its own
-  // sound), count: how many the character has after the change.
-  function tokenEntryData(ch, key, on, count) {
-    return {
-      ...characterLogData(ch),
-      key,
-      tokenName: getToken(key)?.name ?? key,
-      on,
-      count,
-    }
-  }
-
-  // An objective token that a character holds, or drops from its card (a 'held' entry). `token`: the entry of
-  // `tokens` (its name comes from the front token), ch: the character.
-  function writeHeldLog(ch, token, on) {
-    if (!ch) return
-    const tokenName = getToken(token.frontKey)?.name ?? token.frontKey
-    writeLog('held', { ...characterLogData(ch), tokenId: token.id, tokenName, on })
   }
 
   // Damage never goes below 0 or above the Stamina of the side that faces up (p16).

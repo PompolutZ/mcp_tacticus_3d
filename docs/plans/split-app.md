@@ -168,6 +168,14 @@ User: Log entries for Damage and Power (quick clicks merge into one), flip, toke
 
 ### Result
 
+`logWriter(table, mySide)` is in the new `src/log/writer.js`. It is a plain function with no hooks. It returns `writeLog`, `writeStatLog`, `characterLogData`, `tokenEntryData` and `writeHeldLog`. `App` destructures them into the same names, where `writeLog` was. Bodies are unchanged. `useSelection(presence)` is in the new `src/useSelection.js`: `selection`, `selectedTools`, their setters and the presence effect (E3), called where they were. `App` keeps the `selection` comment and no longer imports `presenceSelection`, `presenceTools` or `addStatEntry`.
+
+Effect order in `App` is the same as before: E1, layout effect (E2), E3 (now inside `useSelection`), `useLogSounds`, `useRemoteDropSounds`, the wait effect (E6), the window keys, E8, E9, look (E10 inside `useDebugLook`).
+
+Checks: `pnpm format`, `pnpm lint` (45 warnings before and after), `pnpm test`, `pnpm --filter web build`, debug grep 0. No pointers needed.
+
+Deviations: no `writer.test.js`. `writer.js` imports `characters/characters.js` and `tokens/tokens.js`, which do not load in Node.
+
 ## Step 5: Hover, card peek, ping
 
 Work:
