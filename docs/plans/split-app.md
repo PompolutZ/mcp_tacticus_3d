@@ -1,6 +1,6 @@
 # Plan: Split App.jsx
 
-Requested by the user on 2026-10-12. Status: plan written, waiting for the user's OK. Branch `split-app`, from main, after `docs/plans/fallow-cleanup.md` merges into main. No other branch that edits `App.jsx` is open while this plan runs.
+Requested by the user on 2026-10-12. Status: work in progress on branch `split-app`. Branch `split-app`, from main, after `docs/plans/fallow-cleanup.md` merges into main. No other branch that edits `App.jsx` is open while this plan runs.
 
 Each step makes one commit and writes its **Result** below. Feature docs change in the same step as the code.
 
@@ -97,6 +97,10 @@ Work:
 User: change a crisis card in the toolbar; Edge with Red Priority turns the tokens; take a token from a supply pile; spawn a character from the Library; reveal a squad.
 
 ### Result
+
+`buildMatTokens`, `supplyToken` and `DEG` moved to `src/crisis/matTokens.js`. `DEG` is the only constant they need; `DROP_GAP`, `TOKEN_RADIUS` and `TOKEN_ROW_SPACING` stay in `App.jsx`, the drop code uses them. `SUPPLY_YAW` is imported from `net/livePose.js`. `newCharacter` moved to `src/characters/newCharacter.js`, with 4 tests. It loads in Node. Bodies are unchanged. Pointers fixed in `setup-game.md`, `peer-to-peer.md`, `livePose.js`, `CrisisToken.jsx` (it named `buildCardTokens`, an old name) and `yjs-size.mjs`.
+
+Checks: `pnpm format`, `pnpm lint` (45 warnings before and after), `pnpm test` (528 web tests pass), `pnpm --filter web build`, debug grep 0.
 
 ## Step 2: Seat, camera, canvas events
 

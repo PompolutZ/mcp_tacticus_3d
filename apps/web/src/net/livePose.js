@@ -97,7 +97,7 @@ export function tokenDragKey({ looseId, pileId, supplyCard, pile }, newId) {
   return pile ? `pile:${newId}` : `loose:${newId}`
 }
 
-// The yaw of a supply token in its drag preview and as it lies after the drop (supplyToken in App.jsx)
+// The yaw of a supply token in its drag preview and as it lies after the drop (supplyToken in crisis/matTokens.js)
 export const SUPPLY_YAW = 0
 
 // The live pose of a token drag at the table point (null off the table). A crisis token key (a new supply token)

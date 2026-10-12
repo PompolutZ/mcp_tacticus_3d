@@ -22,7 +22,9 @@ import { CardPopup } from './components/CardPopup.jsx'
 import { TrayPopup } from './components/TrayPopup.jsx'
 import { RosterPopup } from './components/RosterPopup.jsx'
 import { startPointerDrag } from './drag/pointerDrag.js'
-import { canFlip, canMove, getCard, hasArc, hasMarkers } from './crisis/cards.js'
+import { getCard } from './crisis/cards.js'
+import { buildMatTokens, supplyToken } from './crisis/matTokens.js'
+import { newCharacter } from './characters/newCharacter.js'
 import { supplyPilePosition } from './crisis/layout.js'
 import {
   characterByCode,
@@ -101,7 +103,7 @@ import { mapTerrain, withPlacements } from './rooms/table.js'
 import { deleteSquad, readSquad, saveSquad } from './rooms/store.js'
 import { tableFiles } from './rooms/preload.js'
 import { useYField, useYList, useYRecord } from './net/useY.js'
-import { dragPose, SUPPLY_YAW, tokenDragKey } from './net/livePose.js'
+import { dragPose, tokenDragKey } from './net/livePose.js'
 import { spawnEntry } from './components/storedTool.js'
 import { canDropTool } from './tabletools/dropShape.js'
 import { readSettings, writeSettings } from './settings/settings.js'
@@ -175,7 +177,6 @@ const CAMERA_POSITION_GUEST = [0, 32.5, -49.3]
 // or Cmd + a turn drag pans (OrbitControls). A mouse wheel zooms. On a trackpad, a two-finger swipe
 // pans and a pinch zooms (WheelCamera.jsx).
 const CAMERA_MOUSE_BUTTONS = { LEFT: MOUSE.ROTATE, MIDDLE: MOUSE.PAN, RIGHT: MOUSE.ROTATE }
-const DEG = Math.PI / 180
 // A crisis token is a 1" circle (CrisisToken.jsx, RADIUS). Drop places it just clear of the base.
 const TOKEN_RADIUS = 0.5
 const DROP_GAP = 0.1
@@ -189,86 +190,6 @@ const EMPTY_SQUAD = { characters: [], tactics: [] }
 // What a restart of the game setup removes, for its confirm (restartSetup)
 const SETUP_REMOVAL =
   'The squads and the crisis cards that the game setup put on the table are removed.'
-
-// Mat token entries of a card, as tracked in App state. Position and rotation come from cards.json
-// (TTS x, z from the mat center, and TTS Y rotation), converted the same way as terrain: z -> -z.
-// yaw: checked against the X-Men Infiltrate Secret Weapons Facility Zone map, see the report.
-// The bottom edge of the map on the card is the side of the player with Priority (p9). cards.json has it
-// at the host side. turned: the guest has Priority, so the map turns a half turn around the mat
-// center (see docs/features/setup-game.md, "Priority").
-function buildMatTokens(card, turned) {
-  const marked = hasMarkers(card)
-  const sign = turned ? -1 : 1
-  return card.tokens.map((t) => ({
-    id: crypto.randomUUID(),
-    cardKey: card.key,
-    frontKey: t.token,
-    backKey: t.back ?? null,
-    up: 'front',
-    x: t.position[0] * sign,
-    z: -t.position[1] * sign,
-    yaw: Math.PI - (t.rotation ?? 180) * DEG + (turned ? Math.PI : 0),
-    canMove: canMove(t),
-    canFlip: canFlip(t),
-    hasArc: hasArc(t),
-    hasMarkers: marked,
-    // Only Asset and Civilian can be held (p22); a Source stays on the mat and gives out its
-    // supply instead (see supplyToken, docs/features/character-trays.md, "Hold and drop").
-    canHold: card.type === 'extract' && canMove(t),
-    heldBy: null, // character id, or null while the token sits on the mat
-    heldAt: null, // tray-local [x, z] on the holder's card while held (see characters/trays.js)
-    control: null,
-    damage: false,
-  }))
-}
-
-// A new supply token of a Source card, taken from its pile (see SupplyPile.jsx and
-// handleSupplyTake). It lies on the table at (x, z), or a character holds it.
-function supplyToken(card, x, z, id) {
-  return {
-    id,
-    cardKey: card.key,
-    frontKey: card.supply,
-    backKey: null,
-    up: 'front',
-    x,
-    z,
-    yaw: SUPPLY_YAW,
-    canMove: true,
-    canFlip: false,
-    hasArc: false,
-    hasMarkers: false,
-    canHold: true, // a Source's supply is the same Asset/Civilian token, see buildMatTokens above
-    heldBy: null,
-    heldAt: null,
-    control: null,
-    damage: false,
-  }
-}
-
-// A new character on the table for `team`. ch: a row of CHARACTERS (characters/characters.js).
-// attached: MCT codes of the cards attached to it (Infinity Gems from the roster). No field when empty.
-function newCharacter(ch, team, { attached = [] } = {}) {
-  return {
-    id: crypto.randomUUID(),
-    key: ch.slug,
-    figure: ch.figure,
-    base: ch.base,
-    rotation: ch.rotation,
-    // Second form, or null: a second model, and maybe a second card on the tray (see
-    // characters/models.js and docs/features/character-trays.md, "Second forms").
-    transform: ch.transform,
-    team,
-    // Card side that faces up, and the simple limits players apply by hand (see
-    // docs/features/character-trays.md, "Players apply the rules").
-    side: 'healthy',
-    damage: 0,
-    power: 0,
-    // Token key (tokens.json) -> count, see handleCharacterTokenGive.
-    tokens: {},
-    ...(attached.length > 0 && { attached }),
-  }
-}
 
 // R3F listens for pointer events on the element around the canvas. drei Html puts its HTML into that
 // element too, so a click on an Html button (dice keys, game setup buttons) also reaches R3F. R3F aims its

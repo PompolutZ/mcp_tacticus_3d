@@ -58,7 +58,7 @@ A side is a seat at the table: the key `host` is at +z and the key `guest` is at
 
 ### Priority
 
-The bottom edge of the map on a crisis card is the deployment edge of the player with Priority (p9). The app knows who has Priority: `setup.priority`, the side that won the roll off. The player with Priority chooses the deck, so the deck step has no team to pick. When the −z side (the key `guest`) has Priority, the tokens of both cards turn a half turn around the mat center (`buildMatTokens` in `App.jsx`, `turned`). A crisis card that a player chooses in the toolbar later turns the same way.
+The bottom edge of the map on a crisis card is the deployment edge of the player with Priority (p9). The app knows who has Priority: `setup.priority`, the side that won the roll off. The player with Priority chooses the deck, so the deck step has no team to pick. When the −z side (the key `guest`) has Priority, the tokens of both cards turn a half turn around the mat center (`buildMatTokens` in `src/crisis/matTokens.js`, `turned`). A crisis card that a player chooses in the toolbar later turns the same way.
 
 Survivors is the only current card with a map that changes after a half turn. So for the other cards, the tokens land at the same places.
 
@@ -208,7 +208,9 @@ setup: {
 | `src/scoreboard/affiliations.js` | `affiliationKey`, `squadAffiliations`, `autoAffiliation` |
 | `src/components/RosterCards.jsx` | The squad frame. `RosterCard` is exported for the crisis rows |
 | `src/rooms/store.js` | `readSquad`, `saveSquad`, `deleteSquad`, `listSquadCodes`: the stored squad of a multiplayer room |
-| `src/App.jsx` | The setup handlers, the reveal effect, `buildMatTokens(card, turned)`, `newCharacter` |
+| `src/App.jsx` | The setup handlers, the reveal effect |
+| `src/crisis/matTokens.js` | `buildMatTokens(card, turned)`, `supplyToken` |
+| `src/characters/newCharacter.js` | `newCharacter` |
 
 ## Not built yet
 

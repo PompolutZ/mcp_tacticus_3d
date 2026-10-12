@@ -11,7 +11,7 @@
 //
 // startTable (src/rooms/table.js) does not import in Node: it needs affiliations.json, which Node does not
 // load without an import attribute. So the start state is built by hand, with the same fields. The entities
-// have the shape of App.jsx (newCharacter, buildMatTokens, the tactic card and the loose token).
+// have the shape of App.jsx (newCharacter in characters/newCharacter.js, buildMatTokens in crisis/matTokens.js, the tactic card and the loose token).
 
 import * as Y from 'yjs'
 import { createTable, fillTable, encodeTable } from '../src/net/doc.js'

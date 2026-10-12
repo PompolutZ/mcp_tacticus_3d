@@ -118,7 +118,7 @@ function AffiliationMarker({ affiliation, x, radius }) {
   )
 }
 
-// token: one entry of the tokens array in App.jsx (see buildCardTokens). onMove(x, z) and
+// token: one entry of the tokens array in App.jsx (see buildMatTokens in crisis/matTokens.js). onMove(x, z) and
 // onTurn(yaw): called once, when a drag ends, to commit the new pose to App state.
 // onHover(over): called when the pointer moves onto the token (true) and off it (false)
 // rangeMark: 'inRange' or 'outOfRange' while a range tool marks the token (RangeMark in RulerTool.jsx)

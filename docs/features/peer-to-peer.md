@@ -294,9 +294,9 @@ Each name is a top-level `Y.Map` of the `Y.Doc`.
 | `rosters` | record | `host` and `guest`: `null` or `{ code }` (`docs/features/roster.md`, "State") |
 | `setup` | record, depth 1 | the game setup: the fields of `NEW_SETUP` (`docs/features/setup-game.md`) |
 | `terrain` | list | the pieces on the mat: `index` in the map data, `locked` |
-| `characters` | list | the fields of `newCharacter` in `App.jsx`: key, figure, base, rotation, side (healthy or injured), damage, power, tokens |
+| `characters` | list | the fields of `newCharacter` in `src/characters/newCharacter.js`: key, figure, base, rotation, side (healthy or injured), damage, power, tokens |
 | `poses` | record | model id → `{ x, y, z, qx, qy, qz, qw }`, the rest pose of a body, written when the body falls asleep |
-| `tokens` | list | crisis tokens: the fields from `buildMatTokens`, with place, `up`, control, damage |
+| `tokens` | list | crisis tokens: the fields from `buildMatTokens` (`src/crisis/matTokens.js`), with place, `up`, control, damage |
 | `tactics` | list | tactic cards on the table (`docs/features/team-tactic-cards.md`) |
 | `looseTokens` | list | character tokens on the table |
 | `tokenPiles` | list | token piles on the table |
