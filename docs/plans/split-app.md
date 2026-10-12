@@ -145,6 +145,18 @@ User: tool places and volume stay after a reload; the Log chip state stays after
 
 ### Result
 
+`useSettings` is in `src/settings/useSettings.js`: the settings state, the two change handlers and the volume effect (E4), called where E4 was. `settingsOpen` stays in `App`. `useLogOpen` is in `src/log/useLogOpen.js` and returns `[logOpen, setLogOpen]`. `useHudMessage` is in `src/components/useHudMessage.js`; `showHudMessage` moved with it (it was a function declaration further down, now a destructured const that comes earlier, so it is never used before it exists).
+
+`HudWarnings` is in `src/components/HudWarnings.jsx`. It owns `storageWarning`, `closedServerWarning` and `versionClosed`, with the reset of `versionClosed` during render. It renders the same `.hud-warnings` div, in the same place, with the same markup. `softwareRenderer` and `versionMismatch` stay in `App` (Scene sets the first). `useDebugLook(debug)` is in `src/debug/useDebugLook.js`. It owns `renderMode`, `toneMapping`, `surface` and the look effect (E10), and returns `{ mode, panel }`. `debug` and `debugOn` stay in `App`, and `{debug && <DebugPanel {...debugPanel} />}` stays in the JSX.
+
+Pointers fixed in `index.css` (two comments) and `components/look.js`.
+
+Effect order in `App` is the same as before: E-top (259), layout effect, 320, settings (E4, now inside `useSettings`), 479, window keys, E8, E9, look (E10, now inside `useDebugLook`).
+
+Checks: `pnpm format`, `pnpm lint` (45 warnings before and after), `pnpm test` (539 web tests pass), `pnpm --filter web build`, debug grep 0 in all files.
+
+Deviations: the three debug `useState` calls moved from the top of `App` to the E10 place, because the hook is called there. They are state only, so no effect order changes. `DebugPanel` is still imported in `App`, behind `debug`.
+
 ## Step 4: Log writer, selection
 
 Work:

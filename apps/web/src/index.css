@@ -606,7 +606,7 @@ body {
   color: var(--muted);
 }
 
-/* Immunity block and similar short-lived notices (App.jsx, showHudMessage): a drop can land on
+/* Immunity block and similar short-lived notices (components/useHudMessage.js): a drop can land on
    any tray, so this sits at the top center of the screen, not next to one panel. */
 .hud-message {
   position: absolute;
@@ -1622,7 +1622,7 @@ body {
   gap: 4px;
 }
 
-/* Warnings that stay until the player closes them (App.jsx): the browser draws WebGL on the CPU
+/* Warnings that stay until the player closes them (components/HudWarnings.jsx): the browser draws WebGL on the CPU
    (softwareRenderer), or a room cannot be stored (storageFailed). Bottom right, clear of the token panel in
    the middle and the debug panel on the left. */
 .hud-warnings {

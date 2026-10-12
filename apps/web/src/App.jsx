@@ -4,13 +4,12 @@ import { OrbitControls } from '@react-three/drei'
 import { assetUrl } from './assets/index.js'
 import Scene from './components/Scene.jsx'
 import SelectionOutlines from './components/SelectionOutlines.jsx'
-import { DEFAULT_LOOK, setLook } from './components/look.js'
 import { COLOR_NAME, DEFAULT_SIDE_COLORS, setSideColors } from './sideColors.js'
 import { Toolbar } from './components/Toolbar.jsx'
 import { Library } from './components/Library.jsx'
 import { LogPanel } from './components/LogPanel.jsx'
 import { addEntry, addStatEntry, logEntry } from './log/log.js'
-import { readLogOpen, writeLogOpen } from './log/open.js'
+import { useLogOpen } from './log/useLogOpen.js'
 import { useNames } from './setup/useNames.js'
 import { KeyboardCamera } from './components/KeyboardCamera.jsx'
 import { WheelCamera } from './components/WheelCamera.jsx'
@@ -105,8 +104,8 @@ import { useYField, useYList, useYRecord } from './net/useY.js'
 import { dragPose, tokenDragKey } from './net/livePose.js'
 import { spawnEntry } from './components/storedTool.js'
 import { canDropTool } from './tabletools/dropShape.js'
-import { readSettings, writeSettings } from './settings/settings.js'
-import { playSound, setVolume } from './sound.js'
+import { useSettings } from './settings/useSettings.js'
+import { playSound } from './sound.js'
 import { CAMERA_MOUSE_BUTTONS, panToPoint, resetView, startView } from './camera.js'
 import { canvasEvents } from './components/canvasEvents.js'
 import { tableSeat } from './rooms/seat.js'
@@ -120,6 +119,9 @@ import {
   waitingTokens,
 } from './tokens/dropWait.js'
 import HudNotice from './components/HudNotice.jsx'
+import { HudWarnings } from './components/HudWarnings.jsx'
+import { useHudMessage } from './components/useHudMessage.js'
+import { useDebugLook } from './debug/useDebugLook.js'
 import { useLogSounds } from './log/useLogSounds.js'
 import { useRemoteDropSounds } from './tokens/useRemoteDropSounds.js'
 import { SettingsPopup } from './components/SettingsPopup.jsx'
@@ -218,11 +220,6 @@ export default function App({
   // that the key does not select (see handleToolKey).
   const [toolSpawn, setToolSpawn] = useState({ range: null, move: null })
   const [debugOn, setDebugOn] = useState(false)
-  // 'full' | 'no-outline' | 'no-composer', see DebugPanel
-  const [renderMode, setRenderMode] = useState('full')
-  // Look options of cards and tokens, see DebugPanel and components/look.js
-  const [toneMapping, setToneMapping] = useState(DEFAULT_LOOK.toneMapping)
-  const [surface, setSurface] = useState(DEFAULT_LOOK.surface)
   const [showLabels, setShowLabels] = useState(true)
   // The spectator view above each model (SpectatorBadge.jsx)
   const [spectator, setSpectator] = useState(false)
@@ -350,12 +347,7 @@ export default function App({
   const [diceMenu, setDiceMenu] = useState(null)
   // The Library HUD panel (see Library.jsx), toggled by its toolbar button.
   const [libraryOpen, setLibraryOpen] = useState(false)
-  // The Log panel (see LogPanel.jsx): expanded or collapsed, kept in this browser. The toolbar chip toggles it.
-  const [logOpen, setLogOpenState] = useState(readLogOpen)
-  function setLogOpen(open) {
-    setLogOpenState(open)
-    writeLogOpen(open)
-  }
+  const [logOpen, setLogOpen] = useLogOpen()
   const [rolls] = useYList(table.rolls)
   const [log] = useYList(table.log)
 
@@ -373,10 +365,7 @@ export default function App({
   function characterLogData(ch) {
     return { side: ch.team, characterId: ch.id, name: characterName(ch.key) }
   }
-  // A short HUD message, for example an immunity block. Same pattern as the Library's own
-  // message (a timeout clears it), but global: a drag can end over any tray.
-  const [hudMessage, setHudMessage] = useState(null)
-  const hudMessageTimer = useRef(null)
+  const { hudMessage, showHudMessage } = useHudMessage()
   // Name of the WebGL renderer when it runs on the CPU, see renderer.js. null: the graphics card draws, or
   // the player closed the warning.
   const [softwareRenderer, setSoftwareRenderer] = useState(null)
@@ -436,20 +425,8 @@ export default function App({
   const toolDragHandleRef = useRef(null)
   // The table point under the pointer, written by ToolDragGhost: { x, y, z } | null
   const toolDragPointRef = useRef(null)
-  // The settings of this browser (settings/settings.js), read once. A change is stored at once.
-  const [settings, setSettings] = useState(readSettings)
+  const { settings, handleSettingChange, handleVolumeChange } = useSettings()
   const [settingsOpen, setSettingsOpen] = useState(false)
-  function handleSettingChange(item, place) {
-    const next = { ...settings, tools: { ...settings.tools, [item]: place } }
-    setSettings(next)
-    writeSettings(next)
-  }
-  function handleVolumeChange(volume) {
-    const next = { ...settings, sound: { volume } }
-    setSettings(next)
-    writeSettings(next)
-  }
-  useEffect(() => setVolume(settings.sound.volume / 100), [settings.sound.volume])
   // A token put on a character sounds in both browsers (log/useLogSounds.js)
   useLogSounds(log)
   // A token that the other player puts down on the table sounds here (tokens/useRemoteDropSounds.js)
@@ -513,14 +490,7 @@ export default function App({
   const liftPieceRef = useRef(null)
   // Scene's returnModels: puts the models of a character back on its tray
   const returnModelsRef = useRef(null)
-  // The room could not use IndexedDB (storageFailed), and the player has not closed the warning yet
-  const [storageWarning, setStorageWarning] = useState(storageFailed)
-  // The server warning text that the player closed. A new text shows again.
-  const [closedServerWarning, setClosedServerWarning] = useState(null)
-  // The player closed the version warning (decision 14). It shows again after the next mismatch.
-  const [versionClosed, setVersionClosed] = useState(false)
   const versionMismatch = Boolean(connection?.versionMismatch)
-  if (!versionMismatch && versionClosed) setVersionClosed(false)
   // The files to load before the table shows: the map and the models (rooms/preload.js). Read once.
   const [preloadFiles] = useState(() => tableFiles({ mapId, terrain, characters, rosters }))
   // The scene and the preloaded files are in, so the loading screen hides (Preload.jsx, Ready)
@@ -1363,14 +1333,6 @@ export default function App({
       }),
     )
     setOpenTrayId((prev) => (prev === id ? null : prev))
-  }
-
-  // A short message in the HUD, for a few seconds (the immunity block below; the Library has its
-  // own copy of this pattern for the "no 3D model" message).
-  function showHudMessage(text, ms = 3000) {
-    clearTimeout(hudMessageTimer.current)
-    setHudMessage(text)
-    hudMessageTimer.current = setTimeout(() => setHudMessage(null), ms)
   }
 
   // Loads the roster text of one team. A text with no known code keeps the old roster. Unknown
@@ -2274,10 +2236,7 @@ export default function App({
   // Debug mode is only in the dev server. import.meta.env.DEV is false in `vite build`, so debug
   // is always false there and the build leaves out the debug code.
   const debug = import.meta.env.DEV && debugOn
-  useEffect(() => {
-    setLook(debug ? { toneMapping, surface } : DEFAULT_LOOK)
-  }, [debug, toneMapping, surface])
-  const mode = debug ? renderMode : 'full'
+  const { mode, panel: debugPanel } = useDebugLook(debug)
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -2564,63 +2523,14 @@ export default function App({
         onShow={handleNoticeShow}
         onDone={(line) => placeTokens(line.ids)}
       />
-      <div className="hud-warnings">
-        {storageWarning && (
-          <div className="hud-warning" role="alert">
-            <span>
-              Room not saved: browser storage is not available. Changes on this table are lost when
-              the page closes.
-            </span>
-            <button type="button" className="chip" onClick={() => setStorageWarning(false)}>
-              Close
-            </button>
-          </div>
-        )}
-        {serverWarning && serverWarning !== closedServerWarning && (
-          <div className="hud-warning" role="alert">
-            <span>{serverWarning}</span>
-            <button
-              type="button"
-              className="chip"
-              onClick={() => setClosedServerWarning(serverWarning)}
-            >
-              Close
-            </button>
-          </div>
-        )}
-        {versionMismatch && !versionClosed && (
-          <div className="hud-warning" role="alert">
-            <span>
-              Your opponent uses a different version of the app. Both players should reload the
-              page.
-            </span>
-            <button type="button" className="chip" onClick={() => setVersionClosed(true)}>
-              Close
-            </button>
-          </div>
-        )}
-        {softwareRenderer && (
-          <div className="hud-warning" role="alert" title={softwareRenderer}>
-            <span>
-              The browser draws the 3D view without the graphics card (software rendering), so the
-              app is slow. Turn on hardware acceleration in the browser settings.
-            </span>
-            <button type="button" className="chip" onClick={() => setSoftwareRenderer(null)}>
-              Close
-            </button>
-          </div>
-        )}
-      </div>
-      {debug && (
-        <DebugPanel
-          renderMode={renderMode}
-          onRenderModeChange={setRenderMode}
-          toneMapping={toneMapping}
-          onToneMappingChange={setToneMapping}
-          surface={surface}
-          onSurfaceChange={setSurface}
-        />
-      )}
+      <HudWarnings
+        storageFailed={storageFailed}
+        serverWarning={serverWarning}
+        versionMismatch={versionMismatch}
+        softwareRenderer={softwareRenderer}
+        onSoftwareRendererClose={() => setSoftwareRenderer(null)}
+      />
+      {debug && <DebugPanel {...debugPanel} />}
       <LoadingOverlay ready={ready} />
     </div>
   )
