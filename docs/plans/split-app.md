@@ -116,6 +116,18 @@ User: the start view as Blue, and as the Red seat of a multiplayer room; Space d
 
 ### Result
 
+`tableSeat(room)` is in the new `src/rooms/seat.js`. It gives `multiplayer`, `isGuest`, `ownSide`, `playedSides`, `hiddenSquads` and `mySide`, with the same expressions as before. `hiddenSquads` and `mySide` now come from the seat call at the top of `App`, not from their old place further down. Nothing between used them. 5 tests, among them a multiplayer room with `side: null` (hidden squads, no side).
+
+`src/camera.js` got the camera constants with their comments, `startView(isGuest)`, `CAMERA_MOUSE_BUTTONS` and `resetView(controls, wheelCamera, view)`. `startView` returns one of two module objects `{ position, target }`, so the references stay stable (Risk 6). `App` destructures it into `cameraPosition` and `cameraTarget`, and `resetCamera` calls `resetView`. 6 tests with a fake `controls`.
+
+`canvasEvents` moved unchanged to `src/components/canvasEvents.js`. It imports `@react-three/fiber`, so it has no test. `App.jsx` no longer imports `MOUSE` or `pointerEvents`.
+
+Pointers fixed: `key-shortcuts.md` (two), `character-trays.md:110`.
+
+Checks: `pnpm format`, `pnpm lint` (45 warnings before and after), `pnpm test` (539 web tests pass, 11 new), `pnpm --filter web build`, debug grep 0.
+
+Deviations: `resetCamera` stays as a one-line wrapper in `App`, and it calls `startView(isGuest)` again (same object). `resetView` keeps the order of the old code: no controls means no wheel stop.
+
 ## Step 3: Settings, Log panel state, HUD message, warnings, debug look
 
 Work:

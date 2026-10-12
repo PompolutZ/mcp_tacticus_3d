@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Canvas, events as pointerEvents } from '@react-three/fiber'
-import { MOUSE } from 'three'
+import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { assetUrl } from './assets/index.js'
 import Scene from './components/Scene.jsx'
@@ -108,7 +107,9 @@ import { spawnEntry } from './components/storedTool.js'
 import { canDropTool } from './tabletools/dropShape.js'
 import { readSettings, writeSettings } from './settings/settings.js'
 import { playSound, setVolume } from './sound.js'
-import { panToPoint } from './camera.js'
+import { CAMERA_MOUSE_BUTTONS, panToPoint, resetView, startView } from './camera.js'
+import { canvasEvents } from './components/canvasEvents.js'
+import { tableSeat } from './rooms/seat.js'
 import { playerName } from './setup/names.js'
 import {
   modelsToReturn,
@@ -153,30 +154,11 @@ import {
   useWindowKeys,
 } from './keyboard.js'
 
-// Start view, the seat of the host player. The host sits at +z (see
-// characters/trays.js). The camera stands behind the host table edge and looks down at 45° at a
-// point 16.8" from the mat center toward host, 46" away. Then a 16:10 view shows the whole mat, the
-// tactic trays and the character trays of both players, and the rack band of the own side (z up to
-// 36.8", see tabletools/layout.js). The bottom edge of the view meets the table at z = 37.5". The top
-// edge is past the guest trays (z = -40, the table ends at -38). Space returns to this view (see
-// resetCamera).
 // Dice that each player rolls in the roll off
 const ROLL_OFF_DICE = 5
 // A throw entry older than this (ms) is not a new throw
 const ROLL_OFF_FRESH = 30000
 
-const CAMERA_TARGET = [0, 0, 16.8]
-const CAMERA_POSITION = [0, 32.5, 49.3]
-// The Red view: the Blue view turned 180° around the mat center (plan 08, decision 17). Only for the Red seat
-// of a multiplayer room. A single player room and the Sandbox keep the Blue view, because one player plays both
-// sides there.
-const CAMERA_TARGET_GUEST = [0, 0, -16.8]
-const CAMERA_POSITION_GUEST = [0, 32.5, -49.3]
-// Camera mouse buttons as in TTS: right drag turns, middle drag pans. Left drag also turns, because
-// the app has no box select (the TTS left drag) and a trackpad has no easy right drag. Shift, Ctrl
-// or Cmd + a turn drag pans (OrbitControls). A mouse wheel zooms. On a trackpad, a two-finger swipe
-// pans and a pinch zooms (WheelCamera.jsx).
-const CAMERA_MOUSE_BUTTONS = { LEFT: MOUSE.ROTATE, MIDDLE: MOUSE.PAN, RIGHT: MOUSE.ROTATE }
 // A crisis token is a 1" circle (CrisisToken.jsx, RADIUS). Drop places it just clear of the base.
 const TOKEN_RADIUS = 0.5
 const DROP_GAP = 0.1
@@ -190,20 +172,6 @@ const EMPTY_SQUAD = { characters: [], tactics: [] }
 // What a restart of the game setup removes, for its confirm (restartSetup)
 const SETUP_REMOVAL =
   'The squads and the crisis cards that the game setup put on the table are removed.'
-
-// R3F listens for pointer events on the element around the canvas. drei Html puts its HTML into that
-// element too, so a click on an Html button (dice keys, game setup buttons) also reaches R3F. R3F aims its
-// ray with offsetX and offsetY, which are relative to the button, not to the canvas. So the ray points near
-// the top-left corner of the canvas, and an object there, for example a roster card, got the click. With
-// this filter, an event that is not on the canvas hits no object. Drags are not changed, because they
-// listen on window.
-function canvasEvents(store) {
-  return {
-    ...pointerEvents(store),
-    filter: (hits, state) =>
-      state.internal.lastEvent.current?.target === state.gl.domElement ? hits : [],
-  }
-}
 
 // One table: a room, or the Sandbox. Table.jsx opens the Yjs document of the table and mounts a new App for
 // each, so nothing stays from the last table. table: the stores of the document (net/doc.js). The table
@@ -230,14 +198,8 @@ export default function App({
   live = null,
   onExit,
 }) {
-  const isGuest = Boolean(room?.multiplayer && room.side === 'guest')
-  const cameraPosition = isGuest ? CAMERA_POSITION_GUEST : CAMERA_POSITION
-  const cameraTarget = isGuest ? CAMERA_TARGET_GUEST : CAMERA_TARGET
-  // The side of this browser. It writes the tools of that side only (net/doc.js, `tools`). The Sandbox and a
-  // single player room are the host, because one player plays both sides there.
-  const ownSide = isGuest ? 'guest' : 'host'
-  // The sides this browser plays: its own in a multiplayer room, both in the Sandbox and a single player room
-  const playedSides = room?.multiplayer ? [ownSide] : ['host', 'guest']
+  const { isGuest, ownSide, playedSides, hiddenSquads, mySide } = tableSeat(room)
+  const { position: cameraPosition, target: cameraTarget } = startView(isGuest)
   const [tools] = useYRecord(table.tools)
   // The rest poses of the models, live: Scene applies a pose that the other browser wrote
   const [poses] = useYRecord(table.poses)
@@ -314,11 +276,6 @@ export default function App({
   // null. code: the roster code it belongs to; null means the first value. Not saved. See
   // docs/features/squad-breakdown.md, "State".
   const [breakdownChoice, setBreakdownChoice] = useState({ host: null, guest: null })
-  // In a multiplayer room, the squad that the player chooses is not in the document until both players are
-  // Ready. It is in this browser (rooms/store.js, squad): { setupId, squad } | null. A single player room
-  // and the Sandbox keep the squads in the document. See docs/features/setup-game.md, "Squads".
-  const hiddenSquads = Boolean(room?.multiplayer)
-  const mySide = hiddenSquads ? room.side : null
   // The names of the players for the setup texts (setup/names.js): the room players and the hello of the peer
   const seatPlayers = useMemo(
     () => (room?.multiplayer ? { players: room.players, peer: connection?.peer ?? null } : null),
@@ -840,13 +797,7 @@ export default function App({
 
   // Moves the camera back to the start view at once
   function resetCamera() {
-    const controls = controlsRef.current
-    if (!controls) return
-    // A zoom or pan of the wheel that is not done yet would move the camera away from the start view
-    wheelCameraRef.current?.stop()
-    controls.object.position.set(...cameraPosition)
-    controls.target.set(...cameraTarget)
-    controls.update()
+    resetView(controlsRef.current, wheelCameraRef.current, startView(isGuest))
   }
 
   // Escape clears every selection: the character, the token and the tools. The selected tools are

@@ -33,7 +33,7 @@ The users of the app are active TTS players. They already know the TTS controls.
 | Two-finger swipe on a trackpad | Not in the sources | Pan | — |
 | Pinch on a trackpad, or Ctrl + scroll | Not in the sources | Zoom | — |
 
-The camera buttons are in `CAMERA_MOUSE_BUTTONS` in `src/App.jsx`. Left drag still turns the camera, because the app has no box select and a trackpad has no easy right drag.
+The camera buttons are in `CAMERA_MOUSE_BUTTONS` in `src/camera.js`. Left drag still turns the camera, because the app has no box select and a trackpad has no easy right drag.
 
 The mouse wheel and the trackpad gestures are in `src/components/WheelCamera.jsx`. OrbitControls gets no wheel event. It still zooms on a touch screen. The browser reports a mouse wheel and a two-finger swipe as the same wheel event, with no flag for the device. Therefore the app guesses from the deltas. The rules are for a Mac. A Mac trackpad sends whole pixels and starts a swipe with small steps. A Mac mouse wheel sends steps of 4.000244 px or more. A mouse that scrolls smoothly (the Magic Mouse, some Logitech mice) can count as a trackpad, so it pans. Then Ctrl + scroll zooms. A pinch is a wheel event with `ctrlKey` set in Chrome, Firefox and Safari.
 
@@ -94,7 +94,7 @@ R is a toggle. In TTS, a player lifts a model by holding it with the mouse. In t
 
 ## Start view
 
-The host sits at +z. The start view stands behind the host table edge and looks down at 45°, at a point 16.8" from the mat center toward the host, from 46" away. In a 16:10 window it shows the whole mat, the host trays, the host rack band (z up to 36.8") and the guest trays. Its bottom edge meets the table at z = 37.5". Space returns to it. The values are `CAMERA_TARGET` and `CAMERA_POSITION` in `src/App.jsx`.
+The host sits at +z. The start view stands behind the host table edge and looks down at 45°, at a point 16.8" from the mat center toward the host, from 46" away. In a 16:10 window it shows the whole mat, the host trays, the host rack band (z up to 36.8") and the guest trays. Its bottom edge meets the table at z = 37.5". Space returns to it. The values are `CAMERA_TARGET` and `CAMERA_POSITION` in `src/camera.js` (`startView`).
 
 ## Keyboard: keys of the mod
 

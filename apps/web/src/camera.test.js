@@ -1,7 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { Vector3 } from 'three'
-import { easeInOut, panToPoint } from './camera.js'
+import { MOUSE } from 'three'
+import { CAMERA_MOUSE_BUTTONS, easeInOut, panToPoint, resetView, startView } from './camera.js'
 
 test('the ease starts at 0, ends at 1 and is half at the middle', () => {
   assert.equal(easeInOut(0), 0)
@@ -59,4 +60,61 @@ test('the stop function ends the move', () => {
   stop()
   c.advance(600)
   assert.equal(controls.target.x, x)
+})
+
+test('startView gives the same object for the same seat', () => {
+  assert.equal(startView(false), startView(false))
+  assert.equal(startView(true), startView(true))
+  assert.notEqual(startView(false), startView(true))
+})
+
+test('the Red view is the Blue view turned 180° around the mat center', () => {
+  const blue = startView(false)
+  const red = startView(true)
+  assert.deepEqual(blue.target, [0, 0, 16.8])
+  assert.deepEqual(blue.position, [0, 32.5, 49.3])
+  assert.deepEqual(red.target, [0, 0, -16.8])
+  assert.deepEqual(red.position, [0, 32.5, -49.3])
+})
+
+test('the camera mouse buttons turn, pan and turn', () => {
+  assert.deepEqual(CAMERA_MOUSE_BUTTONS, {
+    LEFT: MOUSE.ROTATE,
+    MIDDLE: MOUSE.PAN,
+    RIGHT: MOUSE.ROTATE,
+  })
+})
+
+function fakeControls() {
+  const calls = []
+  return {
+    calls,
+    object: { position: new Vector3(1, 2, 3) },
+    target: new Vector3(4, 5, 6),
+    update: () => calls.push('update'),
+  }
+}
+
+test('resetView stops the wheel, sets the position and the target and updates', () => {
+  const controls = fakeControls()
+  const order = []
+  controls.update = () => order.push('update')
+  const wheel = { stop: () => order.push('stop') }
+  resetView(controls, wheel, startView(true))
+  assert.deepEqual(order, ['stop', 'update'])
+  assert.deepEqual(controls.object.position.toArray(), [0, 32.5, -49.3])
+  assert.deepEqual(controls.target.toArray(), [0, 0, -16.8])
+})
+
+test('resetView works with no wheel camera', () => {
+  const controls = fakeControls()
+  resetView(controls, null, startView(false))
+  assert.deepEqual(controls.object.position.toArray(), [0, 32.5, 49.3])
+  assert.deepEqual(controls.calls, ['update'])
+})
+
+test('resetView does nothing with no controls, and does not stop the wheel', () => {
+  let stopped = false
+  resetView(null, { stop: () => (stopped = true) }, startView(false))
+  assert.equal(stopped, false)
 })

@@ -107,7 +107,7 @@ Changes that follow from this:
 - A newly spawned model stands on the table at the center of its tray's card, not on a separate bench. The model faces the mat, toward the opponent, as in TTS (see "Models face the mat"). The model reads that position only once, when its body mounts. A Rapier `RigidBody` moves its body when its `position` prop changes, so a later tray move must not reach the body through that prop. A model that is still loading when the row shifts mounts on its tray's new place.
 - When a tray moves, a model that still stands on that tray moves with it (`Scene.jsx`). A model that the player moved off its tray, for example onto the mat, stays where it is. TTS does the same (`moveTray` in the tray script). TTS checks "not on the mat"; the app checks "on its own tray plate, or on the table past it, as wide as the plate" (`inTrayArea` in `trays.js`), so a spare model (see [Second forms](#second-forms)) moves too.
 
-The start view (`CAMERA_TARGET` and `CAMERA_POSITION` in `App.jsx`) shows the tactic trays and the character trays of both players. It also shows the rack band of the own side. Its bottom edge is at z = 37.5" (`docs/features/key-shortcuts.md`, "Start view").
+The start view (`CAMERA_TARGET` and `CAMERA_POSITION` in `src/camera.js`) shows the tactic trays and the character trays of both players. It also shows the rack band of the own side. Its bottom edge is at z = 37.5" (`docs/features/key-shortcuts.md`, "Start view").
 
 ### Controls
 
