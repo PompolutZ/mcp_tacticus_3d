@@ -159,6 +159,10 @@ export function logText(entry, ctx) {
       return entry.on
         ? `${entry.name} holds ${entry.tokenName}.`
         : `${entry.name} drops ${entry.tokenName} from the card.`
+    case 'dropped':
+      return `${entry.name} dropped ${entry.tokenName}. ${says(entry.placeBy, ctx, 'place')} it.`
+    case 'placed':
+      return `${playerName(entry.placeBy, ctx)} placed ${entry.name}'s ${entry.tokenName}.`
     case 'offBoard':
       return `${entry.name} is removed from the board.`
     case 'deleted':

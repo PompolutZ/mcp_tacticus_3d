@@ -2,6 +2,7 @@ import jarvisData from './jarvis-characters.json'
 import migratedData from './characters.json'
 import { sharedImmunities } from './immunity.js'
 import { sharedPowerBonus } from './power.js'
+import { dropPlacer } from './dropPlacer.js'
 
 function baseName(mm) {
   if (mm <= 35) return 'small'
@@ -58,6 +59,11 @@ function rosterEntry(jch, m, mctCode) {
     tokens: m?.tokens || [],
     // Conditions the character is immune to, per side, in every form (immunity.js). From Jarvis.
     immune: sharedImmunities(jch),
+    // Who places a token that the character drops, per side: 'opponent' or 'controller' (dropPlacer.js). From Jarvis.
+    dropPlacer: {
+      healthy: dropPlacer({ side: 'healthy' }, jch),
+      injured: dropPlacer({ side: 'injured' }, jch),
+    },
     // Fixed extra Power of the Power Phase, per side, smallest of the forms (power.js). From Jarvis.
     powerBonus: sharedPowerBonus(jch),
     // Grunts cannot have Power, so the Power Phase skips them (power.js).
@@ -130,6 +136,12 @@ export function characterGiveSources(slug) {
 // them. App.jsx's give handler uses this. See docs/features/character-trays.md, "Immunities".
 export function characterImmune(slug, side) {
   return bySlug.get(slug)?.immune[side === 'injured' ? 'injured' : 'healthy'] ?? []
+}
+
+// 'opponent' or 'controller': who places an objective token that this character drops on its current side
+// (dropPlacer.js). 'opponent' when unknown.
+export function characterDropPlacer(slug, side) {
+  return bySlug.get(slug)?.dropPlacer[side === 'injured' ? 'injured' : 'healthy'] ?? 'opponent'
 }
 
 // Fixed extra Power this character gains in the Power Phase on its current side (power.js); 0 when

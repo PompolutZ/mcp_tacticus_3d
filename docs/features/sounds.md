@@ -18,7 +18,7 @@ A short sound for the events that a player can miss: a dice throw, a token put o
 | `token` | `chip-lay-1..3` | A token is put on a character, or an objective token is held, by any player |
 | `activated` | `chips-stack-1..3` | The Activated token is put on a character, so the other player knows it was activated |
 | `ping` | `bong_001` | A ping starts (not built yet) |
-| `notice` | `question_001` | A dropped token waits for this player (not built yet) |
+| `notice` | `question_001` | A dropped token waits for a side that this browser plays: once for each drop, only for the player that places. Not for the other player. Tokens that wait when the table opens play nothing. |
 
 - A group has a random file for each play. The same group plays at most once in 80 ms.
 - The token sounds come from the Log (`game-log.md`): each browser plays a sound for each new `token` or `held` entry that is put on (`on`). Entries that exist when the table opens, and entries older than 5 s, play nothing. One source, so both players hear the same sound. If the batch has Activated, that sound plays.
@@ -39,5 +39,4 @@ A browser blocks sound until the player clicks or presses a key. The app makes i
 
 ## Not built
 
-- The drop notice sound (it has its feature).
 - Other files. The player listens and asks for others if needed.

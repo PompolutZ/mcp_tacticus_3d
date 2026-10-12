@@ -281,6 +281,8 @@ const OVERLAP_INTERVAL = 100
 // Scene fills it with returnModels: the models of that character go back to their places on the tray.
 // playedSides: the sides this browser plays (dice tray, tool snap selection), one in a multiplayer
 // room, both otherwise.
+// A token with placeBy can be dragged only by a browser that plays that side (tokens/dropWait.js).
+// removeWaits: character id → the text that disables its Remove button while a dropped token waits, or no entry.
 // The other tray is only drawn (OtherDiceTray.jsx).
 // onDiceTrayHover(side, over): the pointer moved onto or off an own dice tray, for the number keys.
 // addDiceRef: ref App calls with a side and a count for the number keys over that tray. Each own
@@ -376,6 +378,7 @@ export default function Scene({
   liftPieceRef,
   returnModelsRef,
   playedSides = ['host', 'guest'],
+  removeWaits = {},
   onDiceTrayHover,
   addDiceRef,
   diceStore,
@@ -1313,6 +1316,7 @@ export default function Scene({
                   ? (over) => onHeldHover?.(tok.id, over)
                   : (over) => onPieceHover?.({ kind: 'token', id: tok.id }, over)
               }
+              canDrag={!tok.placeBy || playedSides.includes(tok.placeBy)}
               onMove={(x, z) => onTokenMove(tok.id, x, z)}
               onTurn={(yaw) => onTokenTurn(tok.id, yaw)}
               ownership={ownership}
@@ -1499,6 +1503,7 @@ export default function Scene({
               onCardImageHover={onCardHover}
               onRemove={() => onCharacterOffBoard(ch.id)}
               onBoard={characterOnBoard(ch, poses)}
+              removeWait={removeWaits[ch.id] ?? null}
               onAttachedOpen={onAttachedOpen}
               onTokenRemove={(key) => onCharacterTokenRemove(ch.id, key)}
               onTokenDragStart={onTokenDragStart}

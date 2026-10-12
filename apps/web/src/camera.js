@@ -22,3 +22,41 @@ export function panOnTable(camera, target, dx, dy) {
   camera.position.add(move)
   target.add(move)
 }
+
+// Smooth start and end: 0 → 0, 1 → 1, slowest at both ends
+export const easeInOut = (t) => t * t * (3 - 2 * t)
+
+// Moves the orbit target to `point` ({ x, y, z }) in `ms`, smooth. The camera moves by the same shift, so the
+// view angle and the distance stay (the drop notice, "Show"). controls: OrbitControls. Returns a function that
+// stops the move. raf and now are for a test.
+export function panToPoint(
+  controls,
+  point,
+  {
+    ms = 600,
+    raf = requestAnimationFrame,
+    caf = cancelAnimationFrame,
+    now = () => performance.now(),
+  } = {},
+) {
+  const { target } = controls
+  const shift = new Vector3(point.x - target.x, point.y - target.y, point.z - target.z)
+  const applied = new Vector3()
+  const step = new Vector3()
+  const start = now()
+  let frame = 0
+  const tick = () => {
+    const t = Math.min(1, (now() - start) / ms)
+    step.copy(shift).multiplyScalar(easeInOut(t)).sub(applied)
+    applied.add(step)
+    controls.object.position.add(step)
+    target.add(step)
+    controls.update()
+    frame = t < 1 ? raf(tick) : 0
+  }
+  frame = raf(tick)
+  return () => {
+    if (frame) caf(frame)
+    frame = 0
+  }
+}

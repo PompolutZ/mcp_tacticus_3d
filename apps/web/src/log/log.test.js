@@ -208,6 +208,18 @@ test('the text of character entries', () => {
     logText(logEntry('flip', 'host', { name: 'Hulk', to: 'injured' }), SOLO),
     'Hulk turns to the injured side.',
   )
+  const dropped = logEntry('dropped', 'host', {
+    name: 'Hulk',
+    tokenName: 'Asset',
+    placeBy: 'guest',
+  })
+  assert.equal(logText(dropped, SOLO), 'Hulk dropped Asset. Red places it.')
+  assert.equal(logText(dropped, ROOM), 'Hulk dropped Asset. Nelly places it.')
+  assert.equal(logText({ ...dropped, placeBy: 'host' }, ROOM), 'Hulk dropped Asset. You place it.')
+  const placed = logEntry('placed', 'guest', { name: 'Hulk', tokenName: 'Asset', placeBy: 'guest' })
+  assert.equal(logText(placed, ROOM), "Nelly placed Hulk's Asset.")
+  assert.equal(logText({ ...placed, placeBy: 'host' }, ROOM), "You placed Hulk's Asset.")
+  assert.equal(soundOf(dropped), null)
   assert.equal(
     logText(logEntry('offBoard', 'host', { name: 'Hulk' }), SOLO),
     'Hulk is removed from the board.',

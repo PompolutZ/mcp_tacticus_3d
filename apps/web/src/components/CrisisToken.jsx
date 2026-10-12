@@ -142,6 +142,9 @@ function AffiliationMarker({ affiliation, x, radius }) {
 // pieceLives: the Map of live pose getters (net/live.js, LiveSync). remote: the other player claims the token.
 // getLivePose(key): their latest numbers. While remote, the token follows them. It hangs above the table and shows
 // its footprint when it moved, not during a turn alone.
+// canDrag: false while the token waits for the other side to place it (token.placeBy, see tokens/dropWait.js). A
+// waiting token is never held: a release lies on the table.
+// constrainDrag(point): returns the point where the dragged token may be, for a limit on the drag (null: none).
 export default function CrisisToken({
   token,
   selected,
@@ -162,6 +165,8 @@ export default function CrisisToken({
   pieceLives = null,
   remote = false,
   getLivePose = null,
+  canDrag = true,
+  constrainDrag = null,
 }) {
   const [topMap, bottomMap, damageMap] = useTokenMaps(token)
 
@@ -277,14 +282,15 @@ export default function CrisisToken({
       controls,
       canvas: gl.domElement,
       // A click toggles the selection. A token that can move is dragged at once and selected.
-      canStart: () => token.canMove,
+      canStart: () => token.canMove && canDrag,
       onStart: () => {
         onDragSelect?.()
         draggingRef.current = true
         setDragging(true)
       },
       onMove: (ev) => {
-        const p = pointerPoint(ev.clientX, ev.clientY)
+        const raw = pointerPoint(ev.clientX, ev.clientY)
+        const p = raw && (constrainDrag?.(raw) ?? raw)
         if (p) {
           poseRef.current.x = p.x
           poseRef.current.z = p.z
@@ -295,7 +301,8 @@ export default function CrisisToken({
         setDragging(false)
         // A canHold token dropped on a character is held, not placed on the mat (see "Hold and
         // drop"). Any other token, or no character under the release point, just moves as usual.
-        const holder = token.canHold ? findCharacter?.(ev.clientX, ev.clientY) : null
+        const holder =
+          token.canHold && !token.placeBy ? findCharacter?.(ev.clientX, ev.clientY) : null
         if (holder) {
           const point = { x: poseRef.current.x, z: poseRef.current.z }
           // The pose goes back to the token's last place. If the hold changes the place, the token
@@ -358,7 +365,7 @@ export default function CrisisToken({
 
   useOutline(diskRef, outlineMode(selected, hovered, rangeMark, false, otherSelected))
   // A click toggles the selection. A token that can move is dragged at once and selected.
-  useHoverCursor(hovered, token.canMove ? 'grab' : 'pointer')
+  useHoverCursor(hovered, token.canMove && canDrag ? 'grab' : 'pointer')
 
   // onHover(true) while the pointer is over the token, onHover(false) after. The cleanup also runs
   // on unmount, so a removed token does not stay hovered.

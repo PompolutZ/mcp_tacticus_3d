@@ -334,7 +334,29 @@ User, after this step:
 
 ### Result
 
-(empty)
+Built, as planned. Checks pass. No browser test was done.
+
+- `src/characters/dropPlacer.js`: `dropPlacer(character, jarvisRow)`, `'controller'` only when every form has "instead of their opponent" on the side that faces up. `characters.js` keeps it per side (`characterDropPlacer(slug, side)`). Tests in `dropPlacer.test.js`: The Black Widow both sides, S.H.I.E.L.D. Agents, Hulk, and a check that only these two Jarvis rows say it.
+- `src/tokens/dropWait.js` (plain, tested): `placerSide`, `waitGroups`, `waitText`, `modelsToReturn`, `placedToken`.
+- Tokens have `placeBy` and `placeFrom`. `App.jsx`: `handleDropCharacterTokens(id, wait)` and `handleTokenDrop` set them. A new Dazed token (`had === 0`) and **Remove** with held tokens drop with a wait, in the same transaction. `placeTokens(ids, points)` places them (release or **Done**), writes the `placed` entries and puts the models back.
+- Race: `placeTokens` reads `table.tokens.read()`, skips a token that is not waiting any more, and only the browser that clears the last token calls `returnModels`. In a multiplayer room only the browser of `placeBy` can drag or press **Done**, so one browser does it.
+- `CrisisToken.jsx`: props `canDrag` (`Scene.jsx` gives false when this browser does not play `placeBy`) and `constrainDrag(point)` (called in the drag move, not passed yet: the place for step 7). A waiting token is never held on release.
+- **Remove** is off while a token waits: `removeWaits` goes `App` > `Scene` > `CharacterTray` > `TrayControls`, and to `TrayPopup`. The text is the title.
+- `components/HudNotice.jsx` and `.hud-notice` in `index.css`: one line per character, **Show**, **Done** (only for the placing player).
+- `panToPoint(controls, point)` in `src/camera.js` (smooth, same angle and distance, returns a stop function). Tests in `camera.test.js`.
+- Sound: `notice` plays once per new drop for the placing player (an effect in `App.jsx`). Nothing plays for tokens that wait when the table opens.
+- Log: kinds `dropped` and `placed` in `log.js`, with tests.
+- Docs: `character-trays.md` (new "Wait for the place"), `round-phases.md` (decision 16), `crisis.md`, `game-log.md`, `sounds.md`.
+
+Deviations and notes:
+
+- `dropPlacer` reads every form, like the immunities, because the app does not know the form in use. No character with a second form has the text.
+- A placed token clears `placeFrom` too, not only `placeBy`.
+- **Show** moves the target to y = 0, not to the terrain height.
+- A crisis card change removes its tokens, also a waiting one. The models of a **Remove** then stay on the board.
+- If the other player drags a model at the moment the last token is placed, `returnModels` skips it (claimed model, as with **Remove** before).
+- The `offBoard` entry is written before the `dropped` entries.
+- A drop through a delete of the character has no wait.
 
 ## Step 7: Drop of objective tokens: Range 2 tool and drag limit
 

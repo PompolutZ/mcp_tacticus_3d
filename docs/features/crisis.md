@@ -30,7 +30,7 @@ The rules in this doc come from the [Jarvis rules reference](https://www.jarvis-
 | Secure (verb) | The player with the most Healthy characters contesting a token secures it. If no Healthy character contests it, the player with the most Injured characters secures it. There is no marker. Players count at the moment of scoring. (p10) |
 | Control | A player who gets Control puts their marker on the token. This removes the marker of the other player. The token stays controlled while the marker is on it, no matter where the characters are. (p10–11) |
 | Hold | A character that picks up a token holds it. The token lies on the character's Stat Card. (p10) |
-| Drop | A Dazed or KO'd character drops all tokens it holds. The opponent places them within Range 2 of that character. (p10) |
+| Drop | A Dazed or KO'd character drops all tokens it holds. The opponent places them within Range 2 of that character. (p10) The app does the drop and the wait for the place; the Range 2 check is by hand (`character-trays.md`, "Wait for the place"). |
 | Limited | A character can hold only one Limited token with the same name. (p22) |
 | Cleanup Phase | The end of each round. Players score VP first, then resolve the other effects. Every current card scores in this phase. (p12) |
 
@@ -48,7 +48,7 @@ All current tokens are 1" circles. There are two groups: Extract tokens (red) an
 ### Extract: Asset and Civilian
 
 - A character picks the token up and holds it. `docs/features/character-trays.md` describes where a held token goes.
-- A character can drop the token, so the token moves around the mat during the game. A dropped token is placed within Range 2 of the character, by the opponent.
+- A character can drop the token, so the token moves around the mat during the game. A dropped token is placed within Range 2 of the character, by the opponent. The app drops it on Dazed and **Remove** and waits for the opponent to place it (`docs/features/character-trays.md`).
 - Asset and Civilian look different (two images), but they are the same kind of token. The difference is only in some rules.
 
 ### Extract: Source

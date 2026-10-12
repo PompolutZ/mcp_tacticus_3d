@@ -68,6 +68,7 @@ export default function CharacterTray({
   onCardImageHover,
   onRemove,
   onBoard,
+  removeWait = null,
   onAttachedOpen,
   onTokenRemove,
   onTokenDragStart,
@@ -209,6 +210,7 @@ export default function CharacterTray({
             onFlip={onFlip}
             onRemove={onRemove}
             onBoard={onBoard}
+            removeWait={removeWait}
             onAttachedOpen={onAttachedOpen}
           />
         </Html>

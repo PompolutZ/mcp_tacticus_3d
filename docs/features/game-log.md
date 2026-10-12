@@ -1,6 +1,6 @@
 # Feature: Game log
 
-Status: partly built. The log has the setup, the Power and Cleanup Phases, Priority and the changes of characters. Drops are not built.
+Status: built. The log has the setup, the Power and Cleanup Phases, Priority, the changes of characters and the drop of objective tokens.
 
 ## Goal
 
@@ -40,6 +40,8 @@ The panel merges two lists by time: `rolls` (the dice, `docs/features/dice-rolli
 | Token taken off | "Dazed taken off Hulk." |
 | Objective token held | "Hulk holds Asset." (put on the card, or a supply token taken to it). A move on the same card is no entry |
 | Objective token dropped from the card | "Hulk drops Asset from the card." (dragged to the table) |
+| Objective token dropped by Dazed or Remove | "Hulk dropped Asset. Nelly places it." One entry for each token |
+| Objective token placed | "Nelly placed Hulk's Asset." (a release or **Done**) |
 | Remove | "Hulk is removed from the board." |
 | Character deleted | "Hulk is deleted from the table." |
 
@@ -54,7 +56,7 @@ An entry stores data, not text: `{ id, at, by, kind, ... }` (`src/log/log.js`).
 - `by`: the side of the browser that wrote it. It is null in the Sandbox and a single player room.
 - `side`: the side that did the thing (the chooser of a step, the side of a Power Phase).
 - Character entries: `side` is the side of the character, so the border has the color of its owner, and `by` is the player who clicked. Fields: `characterId`, `name`.
-- Token entries are told apart by `kind`. `token`: a token of the tray, with `key` (`activated` or another token key), `tokenName`, `on` (put on or taken off) and `count` (after the change). `held`: an objective token, with `tokenId`, `tokenName` and `on`. Token sounds play from these entries (`sounds.md`).
+- Token entries are told apart by `kind`. `token`: a token of the tray, with `key` (`activated` or another token key), `tokenName`, `on` (put on or taken off) and `count` (after the change). `held`: an objective token, with `tokenId`, `tokenName` and `on`. `dropped` and `placed`: an objective token of a drop, with `tokenId`, `tokenName` and `placeBy` (the side that places it). `placed` has `side` = `placeBy`. Token sounds play from the `token` and `held` entries (`sounds.md`).
 - Other fields by kind: `type`, `card`, `threat`, `ready`, `affiliation`, `step`, `gains`, `round`, `flipped`, `before`, `after`, `stat`, `from`, `to`.
 
 The text is made when the entry shows, with the names of the viewer (`src/setup/names.js`, `src/setup/useNames.js`). So the same entry reads "You choose ..." in one browser and "Nelly chooses ..." in the other, and "Blue" or "Red" in the Sandbox and a single player room.
@@ -68,7 +70,3 @@ Damage and Power clicks on one character change the last entry of the log when a
 ## Limit
 
 The `log` list keeps the newest 300 entries. A write that goes over removes the oldest ones in the same transaction. `rolls` has no limit.
-
-## Not built yet
-
-- Entries for the drop of objective tokens.

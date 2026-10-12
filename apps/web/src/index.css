@@ -624,6 +624,31 @@ body {
   z-index: 600;
 }
 
+/* Dropped objective tokens that wait for their place (HudNotice.jsx), below the HUD message */
+.hud-notice {
+  position: absolute;
+  top: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 600;
+}
+
+.hud-notice-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 10px 6px 14px;
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
 /* Keys of a dice tray (DiceKeys.jsx), drawn on the tray's lip through a drei Html transform.
    1 CSS px is 1/40" there, so the lip is about 527 x 114 px (491 px wide at its low edge). The
    row is about 440 px wide. The colors are the TTS button tints:

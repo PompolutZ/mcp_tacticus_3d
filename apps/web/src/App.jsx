@@ -26,6 +26,7 @@ import { canFlip, canMove, getCard, hasArc, hasMarkers } from './crisis/cards.js
 import { supplyPilePosition } from './crisis/layout.js'
 import {
   characterByCode,
+  characterDropPlacer,
   characterImmune,
   characterIsGrunt,
   characterName,
@@ -104,7 +105,18 @@ import { dragPose, SUPPLY_YAW, tokenDragKey } from './net/livePose.js'
 import { spawnEntry } from './components/storedTool.js'
 import { canDropTool } from './tabletools/dropShape.js'
 import { readSettings, writeSettings } from './settings/settings.js'
-import { setVolume } from './sound.js'
+import { playSound, setVolume } from './sound.js'
+import { panToPoint } from './camera.js'
+import { playerName } from './setup/names.js'
+import {
+  modelsToReturn,
+  placedToken,
+  placerSide,
+  waitGroups,
+  waitText,
+  waitingTokens,
+} from './tokens/dropWait.js'
+import HudNotice from './components/HudNotice.jsx'
 import { useLogSounds } from './log/useLogSounds.js'
 import { SettingsPopup } from './components/SettingsPopup.jsx'
 import {
@@ -561,6 +573,39 @@ export default function App({
   useEffect(() => setVolume(settings.sound.volume / 100), [settings.sound.volume])
   // A token put on a character sounds in both browsers (log/useLogSounds.js)
   useLogSounds(log)
+  // Dropped objective tokens that wait for their place (tokens/dropWait.js): one notice line for each character
+  const waitLines = waitGroups(tokens).map((group) => {
+    const ch = characters.find((c) => c.id === group.characterId)
+    const mine = playedSides.includes(group.placeBy)
+    const tokenNames = group.tokens.map((t) => getToken(t.frontKey)?.name ?? t.frontKey)
+    const name = ch ? characterName(ch.key) : 'A character'
+    const placer = playerName(group.placeBy, nameCtx)
+    return {
+      id: group.characterId ?? group.tokens[0].id,
+      characterId: group.characterId,
+      tokenId: group.tokens[0].id,
+      ids: group.tokens.map((t) => t.id),
+      mine,
+      text: waitText({ mine, name, tokenNames, placer }),
+    }
+  })
+  // Remove is off while a dropped token of the character waits, with the same text as its title
+  const removeWaits = Object.fromEntries(waitLines.map((line) => [line.characterId, line.text]))
+  // The notice sound, once for each new drop that this browser places. The tokens of an open table play nothing.
+  const seenWaiting = useRef(null)
+  const stopPan = useRef(null)
+  const multiplayerRoom = Boolean(room?.multiplayer)
+  useEffect(() => {
+    const sides = multiplayerRoom ? [ownSide] : ['host', 'guest']
+    const ids = new Set(
+      waitingTokens(tokens)
+        .filter((t) => sides.includes(t.placeBy))
+        .map((t) => t.id),
+    )
+    const known = seenWaiting.current
+    seenWaiting.current = ids
+    if (known && [...ids].some((id) => !known.has(id))) playSound('notice')
+  }, [tokens, multiplayerRoom, ownSide])
   const toolsOnTable = (item) => settings.tools[item] === 'table'
   // The own rack is on the table, so a tool dropped on it goes back to it
   const rackShown = toolsOnTable('rack')
@@ -1000,6 +1045,11 @@ export default function App({
 
   // A held token dragged off its tray card and released on the table is no longer held.
   function handleTokenMove(id, x, z) {
+    // A dropped token that waits for its place is placed where it is released
+    if (table.tokens.read().find((t) => t.id === id)?.placeBy) {
+      placeTokens([id], { [id]: { x, z } })
+      return
+    }
     const token = tokens.find((t) => t.id === id)
     table.transact(() => {
       setTokens((prev) =>
@@ -1116,7 +1166,9 @@ export default function App({
   // instead of stacked on each other. If the holder's position is not available (see Scene.jsx,
   // modelPosition), the token stays where it last sat on the mat. During the game, a player drops a
   // token by dragging it from the card to the table (handleTokenMove).
-  function handleTokenDrop(id, rowOffset) {
+  // wait: { placeBy, offBoard } or null. The token then waits for its place: only the side placeBy places it, and
+  // placeFrom keeps the base it dropped from (tokens/dropWait.js).
+  function handleTokenDrop(id, rowOffset, wait = null) {
     setTokens((prev) => {
       const token = prev.find((t) => t.id === id)
       if (!token?.heldBy) return prev
@@ -1125,19 +1177,94 @@ export default function App({
       const baseRadius = holder ? BASE_DIAMETER[holder.base] / 2 : 0
       const x = (pos?.x ?? token.x) + baseRadius + TOKEN_RADIUS + DROP_GAP
       const z = (pos?.z ?? token.z) + rowOffset
-      return prev.map((t) => (t.id === id ? { ...t, heldBy: null, heldAt: null, x, z } : t))
+      const dropped = { ...token, heldBy: null, heldAt: null, x, z }
+      if (wait) {
+        dropped.placeBy = wait.placeBy
+        dropped.placeFrom = {
+          characterId: token.heldBy,
+          x: pos?.x ?? token.x,
+          z: pos?.z ?? token.z,
+          radius: baseRadius,
+          offBoard: wait.offBoard,
+        }
+      }
+      return prev.map((t) => (t.id === id ? dropped : t))
     })
   }
 
   // Remove calls this for a character it is about to remove, so the character drops every token it
   // holds first (see docs/features/character-trays.md, "Hold and drop"). Several tokens spread along a row
   // next to the base (TOKEN_ROW_SPACING apart) instead of landing on the same spot.
-  function handleDropCharacterTokens(characterId) {
+  // wait: { placeBy, offBoard } or null (Dazed and Remove, decision of the plan "game flow"): the tokens then wait
+  // for their place and the log tells it. Call it inside a transaction. A character that already has a Remove
+  // wait keeps it for the new tokens too, so its models go back when the last one is placed.
+  function handleDropCharacterTokens(characterId, wait = null) {
     const held = tokens.filter((t) => t.heldBy === characterId)
+    const holder = characters.find((ch) => ch.id === characterId)
+    const offBoard =
+      Boolean(wait?.offBoard) ||
+      tokens.some(
+        (t) => t.placeBy && t.placeFrom?.characterId === characterId && t.placeFrom.offBoard,
+      )
+    const mark = wait && { placeBy: wait.placeBy, offBoard }
     held.forEach((t, i) => {
       const rowOffset = (i - (held.length - 1) / 2) * TOKEN_ROW_SPACING
-      handleTokenDrop(t.id, rowOffset)
+      handleTokenDrop(t.id, rowOffset, mark)
+      if (mark && holder)
+        writeLog('dropped', {
+          ...characterLogData(holder),
+          tokenId: t.id,
+          tokenName: getToken(t.frontKey)?.name ?? t.frontKey,
+          placeBy: mark.placeBy,
+        })
     })
+  }
+
+  // The side that places what `ch` drops: its opponent, or its controlling player (characters/dropPlacer.js)
+  function dropWait(ch, offBoard) {
+    return {
+      placeBy: placerSide(ch.team, characterDropPlacer(ch.key, ch.side)),
+      offBoard,
+    }
+  }
+
+  // The waiting tokens `ids` are placed: at the points (id → { x, z }) or where they lie (a click on Done). A token
+  // that is not waiting is skipped, so a second call does nothing. Only the browser that clears the last waiting
+  // token of a character that had Remove puts its models back, as Remove did before the wait.
+  function placeTokens(ids, points = {}) {
+    const current = table.tokens.read()
+    const waiting = current.filter((t) => ids.includes(t.id) && t.placeBy)
+    if (waiting.length === 0) return
+    const back = modelsToReturn(current, ids)
+    table.transact(() => {
+      setTokens((prev) =>
+        prev.map((t) =>
+          ids.includes(t.id) && t.placeBy ? placedToken(t, points[t.id] ?? null) : t,
+        ),
+      )
+      for (const t of waiting) {
+        const ch = characters.find((c) => c.id === t.placeFrom?.characterId)
+        if (ch)
+          writeLog('placed', {
+            ...characterLogData(ch),
+            side: t.placeBy,
+            tokenId: t.id,
+            tokenName: getToken(t.frontKey)?.name ?? t.frontKey,
+            placeBy: t.placeBy,
+          })
+      }
+    })
+    back.forEach((id) => returnModelsRef.current?.(id))
+  }
+
+  // Show in the notice: the camera target moves to the first waiting token of the character, smooth
+  function handleNoticeShow(line) {
+    const token = tokens.find((t) => t.id === line.tokenId)
+    const controls = controlsRef.current
+    if (!token || !controls) return
+    wheelCameraRef.current?.stop()
+    stopPan.current?.()
+    stopPan.current = panToPoint(controls, { x: token.x, y: 0, z: token.z })
   }
 
   // Data of a 'token' entry (log/log.js). key: the token key ('activated' is the one that Step 4 gives its own
@@ -1313,13 +1440,16 @@ export default function App({
   // drop next to the model first (the live position), then each model goes back on its card (Scene.jsx,
   // returnModels). The character, its tray, tokens, Damage and Power stay. The selection stays too:
   // the models are still there.
+  // With held tokens, the models stay until the tokens are placed (placeTokens). Remove waits then.
   function handleCharacterOffBoard(id) {
     const target = characters.find((ch) => ch.id === id)
+    if (removeWaits[id]) return
+    const holds = Boolean(target) && tokens.some((t) => t.heldBy === id)
     table.transact(() => {
-      handleDropCharacterTokens(id)
       if (target) writeLog('offBoard', characterLogData(target))
+      handleDropCharacterTokens(id, holds ? dropWait(target, true) : null)
     })
-    returnModelsRef.current?.(id)
+    if (!holds) returnModelsRef.current?.(id)
   }
 
   // Delete key over a tray card. The confirm names the character, because it takes the tray with it.
@@ -1888,6 +2018,9 @@ export default function App({
       const had = target?.tokens[tokenKey] ?? 0
       if (target && !(isCappedToken(tokenKey) && had >= 1))
         writeLog('token', tokenEntryData(target, tokenKey, true, had + 1))
+      // A new Dazed token makes the character drop its objective tokens (p10)
+      if (tokenKey === 'dazed' && target && had === 0)
+        handleDropCharacterTokens(id, dropWait(target, false))
     })
     return true
   }
@@ -2381,6 +2514,7 @@ export default function App({
               liftPieceRef={liftPieceRef}
               returnModelsRef={returnModelsRef}
               playedSides={playedSides}
+              removeWaits={removeWaits}
               onDiceTrayHover={(side, over) => {
                 if (over) diceTrayHoveredRef.current = side
                 else if (diceTrayHoveredRef.current === side) diceTrayHoveredRef.current = null
@@ -2532,10 +2666,16 @@ export default function App({
           onFlip={() => handleCharacterFlip(openTray.id)}
           onRemove={() => handleCharacterOffBoard(openTray.id)}
           onBoard={characterOnBoard(openTray, poses)}
+          removeWait={removeWaits[openTray.id] ?? null}
           onTokenRemove={(key) => handleCharacterTokenRemove(openTray.id, key)}
         />
       )}
       {hudMessage && <div className="hud-message">{hudMessage}</div>}
+      <HudNotice
+        lines={waitLines}
+        onShow={handleNoticeShow}
+        onDone={(line) => placeTokens(line.ids)}
+      />
       <div className="hud-warnings">
         {storageWarning && (
           <div className="hud-warning" role="alert">

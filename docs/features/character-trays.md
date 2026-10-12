@@ -354,18 +354,32 @@ Only tokens of an Extract card that players can move can be held: Asset, Civilia
 
 - **Hold:** a player drags the token and releases it over a model or a tray (see [Give tokens by drag and drop](#give-tokens-by-drag-and-drop)). That character now holds the token. The token leaves the mat and lies on the tray card as a 3D token, as in TTS. Its default place is the character art, in the left column of the card (`trays.js`, `trayHeldDefault`). A second token goes a little higher on the art and lies on top of the first. The app does not check the range: players apply the rules.
 - **Move on the card:** a player drags the held token and releases it on the same tray. The token stays held and lies at the release point, moved so that the whole token is on the card.
-- **Drop:** a player drags the held token from the card and releases it on the table. It is no longer held. The opponent then moves it to a place within Range 2.
-- **Remove from the board, or delete a character:** the character drops all its tokens first. The app puts them on the table next to the base of the model.
+- **Drop:** a player drags the held token from the card and releases it on the table. It is no longer held. The opponent then moves it to a place within Range 2. This drag has no wait and no notice: the players do it by hand.
+- **Dazed:** a new Dazed token on a character that holds tokens makes it drop them (p10). The tokens go on the table next to the base of the model, in a row, and wait for their place (see "Wait for the place").
+- **Remove from the board:** the tray **Remove** button with held tokens drops them the same way, and waits (see "Wait for the place"). Without held tokens, the models go back on the card at once.
+- **Delete a character:** the character drops all its tokens first, next to the base. They do not wait.
 - **Take from the supply:** a player drags a new token from the supply pile of a Source card. The pile never runs out (see `docs/features/crisis.md`, "Extract: Source"). Released over a character, the token goes to the default place on the card. Released on the table, it lies there.
 - **Delete:** the Delete key (or Backspace) removes the held token under the pointer, as in TTS. Players use it for the supply tokens in the Cleanup Phase.
 - A held token is not in the list of models that the range and movement tools snap to.
 - The tray popup shows the held tokens on the card image, at the same place as on the 3D card. They cannot be moved there.
 
+### Wait for the place
+
+A token dropped by Dazed or **Remove** waits for its place (`src/tokens/dropWait.js`). The token has `placeBy` (a side) and `placeFrom` (`{ characterId, x, z, radius, offBoard }`: the base it dropped from) while it waits.
+
+- **Who places:** the opponent of the character. The controlling player when the superpower text of the side that faces up says "instead of their opponent" (S.H.I.E.L.D. Agents, The Black Widow; `src/characters/dropPlacer.js`, read from Jarvis the same way as the immunities). In a multiplayer room only the browser of that side can drag the token. In the Sandbox and a single player room, one browser plays both sides and can place any waiting token.
+- **Place it:** a drag and a release put it on the table at the release point. The release never holds it, also over a model. **Done** in the notice places it where it lies. The token then has no wait and drags freely.
+- **Notice:** a HUD notice (`HudNotice.jsx`), one line for each character while its tokens wait. The player that places sees "Place Hulk's Asset within Range 2" with **Show** and **Done**, and hears the `notice` sound once for each drop. The other player sees "Waiting for Nelly to place Hulk's Asset" with **Show**. **Show** moves the camera target to the first waiting token, smooth (`panToPoint` in `src/camera.js`), and keeps the angle and the distance.
+- **Remove waits:** with held tokens, **Remove** drops them and leaves the models on the board (`placeFrom.offBoard`). When the last waiting token of the character is placed, the models go back on their cards, the same as **Remove** without tokens. Only the browser that places the last token does it. While a token waits, **Remove** is disabled with the title "Waiting for Nelly to place Hulk's Asset".
+- **Not built yet:** the Range 2 tool that snaps to the model, and the limit of the drag to Range 2. Players keep the range by hand.
+- **Log:** "Hulk dropped Asset. Nelly places it." and "Nelly placed Hulk's Asset." (`game-log.md`).
+- A crisis card that changes removes its tokens, also a waiting one. The models of a Remove then stay on the board, and the player moves them by hand.
+
 ## Out of scope
 
 - A 2D HUD separate from the 3D world. This is the next step after this feature.
 - Horsemen cards and Reserve members attached to a character. Infinity Gems are built (see [Attached cards](#attached-cards)). Facts: in TTS, a gem or Horsemen card attaches to the tray only if the character can have it (`cGem`, `cHorsemen` in the mod; `bearableGems`, `assignableToHorsemen` in Jarvis). The TTS cache has all 5 Horsemen faces, but only the Soul gem card.
-- Rule automation beyond the Power Phase and Cleanup Phase buttons (see `docs/features/round-phases.md`): VP scoring, the Priority token, character effects of the Cleanup Phase.
+- Rule automation beyond the Power Phase and Cleanup Phase buttons (see `docs/features/round-phases.md`) and the drop of objective tokens: VP scoring, character effects of the Cleanup Phase.
 - Grunts. They come next. Facts: 6 mod characters have `grunts` (Elektra, Nick Fury, Red Skull Master of Hydra, Sandman, Shadowland Daredevil, Ultron Metal Tyrant). Each grunt is its own `Database` row (for example Hand Ninjas) with a card, a model, `cStamH`, tokens and immunities. TTS spawns the grunt card with its model below the tray, and a Wounds counter. Sandman has 2 grunts; TTS puts their cards side by side. None of these characters is in the TTS cache yet.
 - The second card version of a character without a second form (`cards` > 1 and no `transform` in `characters.json`, for example Mephisto). The tray uses card 1.
 - Other immunities of a second form (p21), and the mod's `twoModels` and `sideways` flags (Ms. Marvel).

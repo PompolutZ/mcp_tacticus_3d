@@ -21,7 +21,8 @@ const POWER_ICON = assetUrl(characterToken('1-power'))
 // tray popup sets it, because its thumbnails do the same job (TrayPopup.jsx).
 // onRemove(): Remove puts the model back on its card (docs/features/round-phases.md, decision 16), with no
 // confirm. onBoard: a model of the character is on the mat. Without it Remove does nothing (aria-disabled,
-// not disabled, so the browser still shows the title).
+// not disabled, so the browser still shows the title). removeWait: the text of a dropped token that waits for its
+// place. Remove is off then, with this text as the title (docs/features/character-trays.md, "Hold and drop").
 const REMOVE_TITLE =
   'Remove from the board: the model goes back on its card. Delete key over the card deletes the character.'
 
@@ -33,12 +34,13 @@ export default function TrayControls({
   onFlip,
   onRemove,
   onBoard,
+  removeWait = null,
   onAttachedOpen,
   hideAttached = false,
 }) {
   function handleRemove(e) {
     e.stopPropagation()
-    if (onBoard) onRemove()
+    if (onBoard && !removeWait) onRemove()
   }
 
   const attached = hideAttached ? [] : attachedCards(character)
@@ -78,8 +80,8 @@ export default function TrayControls({
         <button
           type="button"
           className="chip tray-controls-remove"
-          aria-disabled={!onBoard}
-          title={REMOVE_TITLE}
+          aria-disabled={!onBoard || Boolean(removeWait)}
+          title={removeWait ?? REMOVE_TITLE}
           onClick={handleRemove}
         >
           Remove
