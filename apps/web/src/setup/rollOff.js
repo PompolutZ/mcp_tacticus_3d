@@ -4,7 +4,7 @@
 import { FACES } from '../dice/faces.js'
 
 // Dice that each player rolls in the roll off
-export const ROLL_OFF_DICE = 5
+const ROLL_OFF_DICE = 5
 // A throw entry older than this (ms) is not a new throw
 export const ROLL_OFF_FRESH = 30000
 

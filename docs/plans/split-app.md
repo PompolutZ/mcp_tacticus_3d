@@ -473,7 +473,9 @@ Comment added at the top of `App` (hook order, E8 before E9, keys last). No unus
 | `App` hook calls | 99 | 65 |
 | functions above threshold | 264 | 265 |
 
-The one more function above the threshold is `RosterPopupHost` (cyclomatic 21, cognitive 41), which holds JSX that was in `App`. No new hook function is above the threshold. The biggest are in `useGameSetup`: `handleSquadToggle` and `revealSquad` (cyclomatic 12, cognitive 9). `useTableKeys`, `useTokenDrag`, `usePhaseActions` and the other hooks are lower. The 12 unused exports fallow reports (`keyboard.js`, `matTokens.js`, `rollOff.js`) are not from this plan.
+The one more function above the threshold is `RosterPopupHost` (cyclomatic 21, cognitive 41), which holds JSX that was in `App`. No new hook function is above the threshold. The biggest are in `useGameSetup`: `handleSquadToggle` and `revealSquad` (cyclomatic 12, cognitive 9). `useTableKeys`, `useTokenDrag`, `usePhaseActions` and the other hooks are lower.
+
+The plan had left 12 unused exports (`keyboard.js`, `matTokens.js`, `rollOff.js`); they are fixed, fallow reports 0 unused exports.
 
 ## Open questions
 

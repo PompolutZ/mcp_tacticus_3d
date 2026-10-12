@@ -4,15 +4,15 @@ import { useEffect, useLayoutEffect, useRef } from 'react'
 // different things in different app states. useTableKeys.js runs it for every keydown.
 
 // Toolbar tool buttons: key → range number, and key → movement tool type
-export const RANGE_KEYS = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 }
-export const MOVE_KEYS = { 7: 'short', 8: 'medium', 9: 'long' }
+const RANGE_KEYS = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 }
+const MOVE_KEYS = { 7: 'short', 8: 'medium', 9: 'long' }
 // Toward / Away tool, key 6 as in the mod (its Scripting 6)
-export const ANGLE_KEY = '6'
+const ANGLE_KEY = '6'
 // Removes every tool from the table, as key 0 of the mod (returns every tool to the tray)
-export const CLEAR_TOOLS_KEY = '0'
+const CLEAR_TOOLS_KEY = '0'
 // Over the player's dice tray, the number keys add dice instead of tools: key → count. See addDice
 // in DiceTray.jsx.
-export const DICE_KEYS = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 0: 10 }
+const DICE_KEYS = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 0: 10 }
 // Camera pan, WASD as in TTS: key code → screen direction [right, up]. Up moves toward the top of the screen.
 // Key codes, not key values, so the keys stay in the same place on every keyboard layout.
 export const PAN_KEYS = { KeyW: [0, 1], KeyS: [0, -1], KeyA: [-1, 0], KeyD: [1, 0] }
@@ -30,14 +30,14 @@ export const CARD_STEP_KEYS = { ArrowLeft: -1, ArrowRight: 1 }
 export const ROTATE_KEYS = { KeyQ: 1, KeyE: -1 }
 // Flip, F as in TTS: flips the crisis token or the character card under the pointer, else the
 // selected one. See handleFlipKey in App.jsx.
-export const FLIP_KEY = 'KeyF'
+const FLIP_KEY = 'KeyF'
 // Lift, R as in TTS (Raise): lifts the model under the pointer, or puts it back down. See liftPiece
 // in Scene.jsx.
-export const LIFT_KEY = 'KeyR'
+const LIFT_KEY = 'KeyR'
 // Lock, L as in TTS: locks or unlocks the terrain piece under the pointer. See handleLockKey in pieces/useTablePieces.js.
-export const LOCK_KEY = 'KeyL'
+const LOCK_KEY = 'KeyL'
 // Ping, P (TTS uses it for the camera mode): a ping at the pointer. See handlePingKey in components/usePing.js.
-export const PING_KEY = 'KeyP'
+const PING_KEY = 'KeyP'
 // Camera back to the start view, as in TTS
 export const RESET_VIEW_KEY = 'Space'
 // Keys that act on the first press only, not on key repeat: key code → action name of keyAction
@@ -49,7 +49,7 @@ export const PRESS_KEYS = {
 }
 // Deletes the piece under the pointer, as in TTS: a character token on the table, an unlocked
 // terrain piece and others (see deleteTarget in hover.js). A Mac keyboard's delete key sends Backspace.
-export const DELETE_KEYS = ['Delete', 'Backspace']
+const DELETE_KEYS = ['Delete', 'Backspace']
 
 // Keys in a text field or a select edit it (letters type, arrow keys move the cursor or the option), so the app does not use them
 export function isEditing(target) {
