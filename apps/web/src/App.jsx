@@ -9,7 +9,10 @@ import { DEFAULT_LOOK, setLook } from './components/look.js'
 import { COLOR_NAME, DEFAULT_SIDE_COLORS, setSideColors } from './sideColors.js'
 import { Toolbar } from './components/Toolbar.jsx'
 import { Library } from './components/Library.jsx'
-import { RollsPanel } from './components/RollsPanel.jsx'
+import { LogPanel } from './components/LogPanel.jsx'
+import { addEntry, logEntry } from './log/log.js'
+import { readLogOpen, writeLogOpen } from './log/open.js'
+import { useNames } from './setup/useNames.js'
 import { KeyboardCamera } from './components/KeyboardCamera.jsx'
 import { WheelCamera } from './components/WheelCamera.jsx'
 import { LoadingOverlay } from './components/LoadingOverlay.jsx'
@@ -35,7 +38,7 @@ import { characterOnBoard, modelCharacterId, secondModelId } from './characters/
 import { powerAfterPhase } from './characters/power.js'
 import { cleanupBlockers, cleanupCharacter } from './characters/cleanup.js'
 import { cleanupCrisisTokens } from './crisis/cleanup.js'
-import { DEFAULT_AFFILIATION, autoAffiliation } from './scoreboard/affiliations.js'
+import { DEFAULT_AFFILIATION, affiliationName, autoAffiliation } from './scoreboard/affiliations.js'
 import { ROUND_POINTS, nextRoundSpot } from './scoreboard/board.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { CLEANUP_KEYS, getToken, isCappedToken } from './tokens/tokens.js'
@@ -59,6 +62,7 @@ import {
   chooseAffiliation,
   browse,
   chooseDeck,
+  chooserOf,
   colorOf,
   chooseEdge,
   chooseThreat,
@@ -384,18 +388,7 @@ export default function App({
     [room, connection?.peer],
   )
   // The names of the sides in the Priority texts (setup/names.js)
-  const nameCtx = useMemo(
-    () => ({
-      mySide,
-      players: seatPlayers?.players ?? null,
-      peer: seatPlayers?.peer ?? null,
-      colors: {
-        host: COLOR_NAME[hostColor],
-        guest: COLOR_NAME[hostColor === 'blue' ? 'red' : 'blue'],
-      },
-    }),
-    [mySide, seatPlayers, hostColor],
-  )
+  const nameCtx = useNames(mySide, seatPlayers)
   const priority = gamePriority({ priority: storedPriority }, setup)
   const [storedSquad, setStoredSquad] = useState(() =>
     hiddenSquads ? readSquad(userId, room.id) : null,
@@ -461,9 +454,20 @@ export default function App({
   const [diceMenu, setDiceMenu] = useState(null)
   // The Library HUD panel (see Library.jsx), toggled by its toolbar button.
   const [libraryOpen, setLibraryOpen] = useState(false)
-  // The roll history panel (see RollsPanel.jsx), toggled by its toolbar button.
-  const [rollsOpen, setRollsOpen] = useState(false)
+  // The Log panel (see LogPanel.jsx): expanded or collapsed, kept in this browser. The toolbar chip toggles it.
+  const [logOpen, setLogOpenState] = useState(readLogOpen)
+  function setLogOpen(open) {
+    setLogOpenState(open)
+    writeLogOpen(open)
+  }
   const [rolls] = useYList(table.rolls)
+  const [log] = useYList(table.log)
+
+  // Adds a log entry (log/log.js). Call it in the same transaction as the change it tells. A fixed id is for
+  // an effect that runs in both browsers: the same id makes one entry.
+  function writeLog(kind, data, id) {
+    table.log.set((list) => addEntry(list, logEntry(kind, mySide, data, id)))
+  }
   // A short HUD message, for example an immunity block. Same pattern as the Library's own
   // message (a timeout clears it), but global: a drag can end over any tray.
   const [hudMessage, setHudMessage] = useState(null)
@@ -749,8 +753,8 @@ export default function App({
         setLibraryOpen(false)
         return
       }
-      if (rollsOpen) {
-        setRollsOpen(false)
+      if (logOpen) {
+        setLogOpen(false)
         return
       }
       handleEscape()
@@ -1100,9 +1104,11 @@ export default function App({
     const gains = []
     table.transact(() => {
       // The first Power Phase ends the deployment: the setup is done and Deploy Lock is off
-      if (setupStep(table.setup.read()) === 'deploy') {
+      const current = table.setup.read()
+      if (setupStep(current) === 'deploy') {
         setSetup((prev) => finishDeploy(prev))
         setDeployLine(false)
+        writeLog('deployed', {}, `deployed:${current.id}`)
       }
       setCharacters((prev) =>
         prev.map((ch) => {
@@ -1116,10 +1122,19 @@ export default function App({
             poison: ch.tokens?.poison ?? 0,
             grunt: false,
           })
-          gains.push(`${characterName(ch.key)} ${ch.power} → ${power}`)
+          gains.push({ side: ch.team, name: characterName(ch.key), from: ch.power, to: power })
           return { ...ch, power }
         }),
       )
+      // One entry for each side that gained Power
+      for (const side of sides) {
+        const own = gains.filter((gain) => gain.side === side)
+        if (own.length > 0)
+          writeLog('power', {
+            side,
+            gains: own.map(({ name, from, to }) => ({ name, from, to })),
+          })
+      }
     })
     // With one side, the message names it
     const title =
@@ -1129,7 +1144,7 @@ export default function App({
     showHudMessage(
       gains.length === 0
         ? `${title}: none of your characters is on the board`
-        : `${title}: ${gains.join(', ')}`,
+        : `${title}: ${gains.map((g) => `${g.name} ${g.from} → ${g.to}`).join(', ')}`,
       8000,
     )
   }
@@ -1173,6 +1188,7 @@ export default function App({
       })
       if (after !== before) table.game.setField('priority', after)
       table.game.setField('lastActivated', null)
+      writeLog('cleanup', { round, flipped, before, after })
     })
     const head =
       round === null
@@ -1186,7 +1202,11 @@ export default function App({
   // A click on the Priority marker gives Priority to the other side. Any player can click, also in a
   // multiplayer room, because cards change Priority.
   function handlePriorityClick() {
-    if (priority) setPriorityField(otherTeam(priority))
+    if (!priority) return
+    table.transact(() => {
+      setPriorityField(otherTeam(priority))
+      writeLog('priority', { side: otherTeam(priority) })
+    })
   }
 
   // Flip turns the card to the other side and clears Damage, the same as in TTS.
@@ -1314,6 +1334,7 @@ export default function App({
       setDeployLine(false)
       setSetup(newSetup())
       clearPriorityMarker()
+      writeLog('restart', {})
     })
     return true
   }
@@ -1364,6 +1385,7 @@ export default function App({
       if (removal.squads) setDeployLine(false)
       setSetup(overrideTo(setup, step))
       if (step === 'rollOff') clearPriorityMarker()
+      writeLog('override', { step })
     })
     setOpenRoster(null)
   }
@@ -1375,6 +1397,7 @@ export default function App({
     table.transact(() => {
       setSetup(setPriority(setup, team))
       setPriorityField(team)
+      writeLog('rollOff', { side: team, manual: true })
     })
   }
 
@@ -1404,19 +1427,28 @@ export default function App({
     }
     const result = readRollOff(shelves)
     if (JSON.stringify(current.rollOff) === JSON.stringify(result)) return
-    // The marker follows the winner. On a tie it stays as it is.
+    // The marker follows the winner. On a tie it stays as it is. Both browsers may write the entry, so its id
+    // is fixed: the setup and the last throw.
+    const lastThrow = rolls.findLast((entry) => entry.kind === 'throw')
     table.transact(() => {
       table.setup.set(setRollOff(current, result))
       if (result.winner) table.game.setField('priority', result.winner)
+      const id = `rolloff:${current.id}:${lastThrow.id}`
+      table.log.set((list) =>
+        addEntry(list, logEntry('rollOff', mySide, { side: result.winner }, id)),
+      )
     })
-  }, [rolls, table])
+  }, [rolls, table, mySide])
 
   // The player with Priority uses their deck of `type`. The draws are random, so they are made here, outside
   // a state updater, which React can call twice.
   function handleSetupDeck(type) {
     const team = priorityOf(setup)
     if (setupStep(setup) !== 'deck' || !parsedRosters[team]) return
-    setSetup(chooseDeck(setup, type, parsedRosters[team][type]))
+    table.transact(() => {
+      setSetup(chooseDeck(setup, type, parsedRosters[team][type]))
+      writeLog('deck', { side: team, type })
+    })
   }
 
   // A Use button on a drawn crisis card. After the first card, 2 cards are drawn from the other deck of
@@ -1425,11 +1457,19 @@ export default function App({
     const step = setupStep(setup)
     if (step !== 'first' && step !== 'second') return
     const other = parsedRosters[otherTeam(priorityOf(setup))]
-    setSetup(pickCard(setup, code, other?.[otherType(setup.deck.type)] ?? []))
+    const type = step === 'first' ? setup.deck.type : otherType(setup.deck.type)
+    table.transact(() => {
+      setSetup(pickCard(setup, code, other?.[otherType(setup.deck.type)] ?? []))
+      writeLog('pick', { side: chooserOf(setup), type, card: rosterCard(code)?.name ?? code })
+    })
   }
 
   function handleSetupThreat(threat) {
-    if (setupStep(setup) === 'threat') setSetup(chooseThreat(setup, threat))
+    if (setupStep(setup) !== 'threat') return
+    table.transact(() => {
+      setSetup(chooseThreat(setup, threat))
+      writeLog('threat', { side: chooserOf(setup), threat })
+    })
   }
 
   // Choose this edge: the mat stays as it is now. The two crisis cards of the mission go to the ends of
@@ -1444,6 +1484,7 @@ export default function App({
         handleCrisisChange(type, info?.key ?? null)
       }
       setSetup(chooseEdge(setup))
+      writeLog('edge', { side: chooserOf(setup) })
     })
     if (missing.length > 0)
       showHudMessage(
@@ -1536,7 +1577,10 @@ export default function App({
       )
         return
     }
-    setSetup((prev) => toggleReady(prev, team))
+    table.transact(() => {
+      setSetup((prev) => toggleReady(prev, team))
+      writeLog('ready', { side: team, ready: !setup.ready[team] })
+    })
   }
 
   // Token piles for new tactic cards ([{ id, key, team }] as in tacticCards): one pile per token of each card, in the order
@@ -1610,6 +1654,15 @@ export default function App({
         ),
       )
       if (auto) setAffiliations((prev) => ({ ...prev, [side]: auto }))
+      // Fixed ids: an effect reveals, and a second run must not add a second entry
+      const setupId = table.setup.read().id
+      writeLog('revealed', { side }, `revealed:${setupId}:${side}`)
+      if (auto)
+        writeLog(
+          'affiliation',
+          { side, affiliation: affiliationName(auto) },
+          `affiliation:${setupId}:${side}`,
+        )
     })
   }
 
@@ -1624,6 +1677,7 @@ export default function App({
     table.transact(() => {
       setSetup((prev) => chooseAffiliation(prev, side, key))
       setAffiliations((prev) => ({ ...prev, [side]: key }))
+      writeLog('affiliation', { side, affiliation: affiliationName(key) })
     })
   }
 
@@ -2310,8 +2364,8 @@ export default function App({
           onRosterRemove={handleRosterRemove}
           libraryOpen={libraryOpen}
           onLibraryClick={() => setLibraryOpen((prev) => !prev)}
-          rollsOpen={rollsOpen}
-          onRollsClick={() => setRollsOpen((prev) => !prev)}
+          logOpen={logOpen}
+          onLogClick={() => setLogOpen(!logOpen)}
         />
       </div>
       <TokenPanel
@@ -2327,7 +2381,15 @@ export default function App({
         onSpawnTactic={handleTacticSpawn}
         onTokenDragStart={handleLibraryTokenDragStart}
       />
-      <RollsPanel open={rollsOpen} rolls={rolls} />
+      <LogPanel
+        open={logOpen}
+        onOpen={() => setLogOpen(true)}
+        onClose={() => setLogOpen(false)}
+        rolls={rolls}
+        log={log}
+        mySide={mySide}
+        seatPlayers={seatPlayers}
+      />
       <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
       {!(tokenDrag || toolDrag || openCard || openTrayId || openRoster || settingsOpen) && (
         <CardPopup card={peekCard} peek />

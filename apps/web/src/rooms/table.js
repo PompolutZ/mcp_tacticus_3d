@@ -59,6 +59,7 @@ export function startTable(mapId) {
     tools: {},
     dice: {},
     rolls: [],
+    log: [],
   }
 }
 

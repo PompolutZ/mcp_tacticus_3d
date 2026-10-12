@@ -122,7 +122,7 @@ The app also snaps a tool, key 6 included, when the pointer is over a crisis tok
 
 | Key | App |
 |---|---|
-| Escape | Cancels a token drag, or closes the card, tray or settings popup, or closes the dice menu. Otherwise it clears the selection and removes the selected tools |
+| Escape | Cancels a token drag, or closes the card, tray or settings popup, or closes the dice menu, or collapses the Log. Otherwise it clears the selection and removes the selected tools |
 
 ## Differences to decide
 

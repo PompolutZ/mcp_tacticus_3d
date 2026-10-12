@@ -19,7 +19,8 @@ import {
   viewOf,
 } from '../setup/setup.js'
 import { capital, chose, isYou, playerName, possessive, says } from '../setup/names.js'
-import { COLOR_NAME, useSideColors } from '../sideColors.js'
+import { useSideColors } from '../sideColors.js'
+import { useNames } from '../setup/useNames.js'
 import { RosterCard } from './RosterCards.jsx'
 import { OnTable, OWNER_FACING_ROTATION } from './OnTable.jsx'
 import {
@@ -97,20 +98,6 @@ function lockedTitle(setup, what, ctx) {
   const chooser = chooserOf(setup)
   if (!ctx.mySide || !chooser || chooser === ctx.mySide) return null
   return `${says(chooser, ctx, 'choose')} ${what}`
-}
-
-// The context of the names (setup/names.js). seatPlayers: { players, peer } in a multiplayer room, else null.
-function useNames(mySide, seatPlayers) {
-  const colors = useSideColors()
-  return useMemo(
-    () => ({
-      mySide,
-      players: seatPlayers?.players ?? null,
-      peer: seatPlayers?.peer ?? null,
-      colors: { host: COLOR_NAME[colors.host], guest: COLOR_NAME[colors.guest] },
-    }),
-    [mySide, seatPlayers, colors],
-  )
 }
 
 // What `team` does in a step that one player chooses. The own side in a multiplayer room gets "You choose the

@@ -64,8 +64,8 @@ export function Toolbar({
   onRosterRemove,
   libraryOpen,
   onLibraryClick,
-  rollsOpen,
-  onRollsClick,
+  logOpen,
+  onLogClick,
 }) {
   // The typed text stays in the field after Enter (x clears it)
   const [rosterText, setRosterText] = useState({ host: '', guest: '' })
@@ -106,11 +106,11 @@ export function Toolbar({
         </button>
         <button
           type="button"
-          className={`chip${rollsOpen ? ' chip--active' : ''}`}
-          title="The dice rolls of both players"
-          onClick={onRollsClick}
+          className={`chip${logOpen ? ' chip--active' : ''}`}
+          title="The log: dice, setup, phases and Priority"
+          onClick={onLogClick}
         >
-          Rolls
+          Log
         </button>
       </div>
       {showMat && (

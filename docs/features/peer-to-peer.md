@@ -304,6 +304,7 @@ Each name is a top-level `Y.Map` of the `Y.Doc`.
 | `dice` | record, depth 2 | the dice trays: `dice.<side>` is `{ critsUsed, dice: { <die id>: { order, place, face?, pose? } } }`. `place` is `air`, `well` or `shelf`. `face` (1 to 8) is only on the shelf. `pose` is only in the air and the well. The room keeps the shelf |
 
 | `rolls` | list | the roll history, oldest first, for both sides. Each entry is `{ id, side, at, kind, ... }` with `kind` `throw`, `change` or `clear` (`src/dice/history.js`). The room keeps it. A new table starts with an empty one |
+| `log` | list | the game log, oldest first, the newest 300 entries. Each entry is `{ id, at, by, kind, ... }` (`src/log/log.js`, `docs/features/game-log.md`). The room keeps it. A new table starts with an empty one |
 
 A tool entry is `{ which, spawn, at?, pose?, turn?, snap?, mode? }`:
 
@@ -412,7 +413,7 @@ Positions have 3 decimals (0.001"). Rotations, yaw and bend have 4. A model pose
 - The other browser sees the dice fly. The roller sends the pose of each die that is not on the shelf, with the key `die:<die id>`. A die needs no claim, because only the tray's player moves it.
 - The other browser draws the dice as kinematic bodies. A die follows its latest pose like a model does. It counts a live pose only while the entry of the die is `air`, and only when the pose arrived after the entry became `air`. The channel is unordered, so a late pose of an old flight must not move a die that rests.
 - When a die rests, its rest pose (`well`) or its face (`shelf`) comes through the document, so both browsers show the same top face. The dice are not replayed, so the Rapier version does not matter.
-- The roller writes the history entry to `rolls`, in the same change as the dice. Both players see the same list in the Rolls panel.
+- The roller writes the history entry to `rolls`, in the same change as the dice. Both players see the same list in the Log panel.
 
 So the roller's browser decides the roll, and a changed client could cheat. This does not matter: the app is a free hobby project for friendly games. So the app has no protection against cheating.
 
@@ -432,7 +433,7 @@ Each side has its own set of tools and its own dice tray.
 |---|---|
 | Own range, movement and Toward / Away tools | Only that player |
 | Own dice tray: roll, reroll, add dice for Crits, change a face, clear | Only that player |
-| The opponent's tools and tray | Nobody else. Both players see them. The opponent's tool has no buttons or outline, and a click goes to the piece below. The opponent's tray shows its dice and its counts, and its keys do nothing. The history of both players is in the Rolls panel |
+| The opponent's tools and tray | Nobody else. Both players see them. The opponent's tool has no buttons or outline, and a click goes to the piece below. The opponent's tray shows its dice and its counts, and its keys do nothing. The history of both players is in the Log panel |
 | Models, tokens, piles, tactic cards, score markers, crisis cards, map, mat turn, deploy line | Both players. Game effects such as push and throw move enemy models, so both players must be able to move any model |
 
 The other player's selection shows too. A character or crisis token that they select has an outline in their color (blue or red), under the own selection and range marks. Their selected tool has the green or red footprint against their tool target, calculated from the poses this browser shows. While they turn a snapped range tool, the piece under their pointer has the green or red range outline. A piece that this browser does not have shows nothing. Only the other player's selection and range marks are shared this way, not hover.

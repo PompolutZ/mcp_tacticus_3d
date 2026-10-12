@@ -182,7 +182,24 @@ User, after this step:
 
 ### Result
 
-(empty)
+Built, as planned. Checks pass. No browser test was done.
+
+- `src/net/doc.js`, `src/rooms/table.js`: the list `log` (document, `fillTable`, `startTable`).
+- `src/log/log.js`: `logEntry`, `addEntry` (fixed id, the 300 limit), `mergeLog`, `entrySide`, `logText`. Tests in `log.test.js`. An unknown kind has the text "", so step 3 adds a `case` and a builder, and the merge works on the same list (`addEntry`) without a new shape.
+- `src/log/open.js`: the collapse state in localStorage.
+- `src/setup/useNames.js`: `useNames`, moved from `GameSetup.jsx`. `App.jsx` uses it for `nameCtx` too, instead of its own copy.
+- `src/components/LogPanel.jsx` replaces `RollsPanel.jsx` (renamed, CSS classes `rolls-` are now `log-`). Toolbar chip is **Log**. Escape collapses.
+- `App.jsx`: `writeLog(kind, data, id)`, called in the same transaction as each change. Entries: roll off (result and manual), deck, first and second card, Maximum Threat, edge, ready, squads revealed, affiliation (manual and automatic), deployment done, Override, Restart, Power Phase (one per side), Cleanup, Priority click.
+- Docs: new `game-log.md`. Changed: `dice-rolling.md`, `peer-to-peer.md`, `key-shortcuts.md`, `round-phases.md`, `setup-game.md`.
+
+Deviations and notes:
+
+- The roll-off effect writes its entry inline, not with `writeLog`, so the hook keeps a complete dependency list (`mySide` is a dependency).
+- Fixed id of the roll off: setup id and the id of the newest throw. A second throw with the same result in the same setup is a new entry, as it should be.
+- The manual affiliation choice has a random id, so a changed choice shows. The automatic one has a fixed id.
+- Deploy Lock turning on by itself, and Prev / Next browsing, are not logged.
+- A Power Phase side with no gains writes no entry.
+
 
 ## Step 3: Character entries in the log
 

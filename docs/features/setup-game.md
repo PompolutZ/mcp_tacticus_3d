@@ -8,6 +8,8 @@ Players go from two loaded rosters to the start of round 1. In a room, the new r
 
 ## What the app does
 
+Every setup step writes an entry in the Log (`docs/features/game-log.md`).
+
 In a multiplayer room, only the player who chooses in the current step can click its buttons: the deck buttons, the card **Choose** buttons, the Maximum Threat chips and the edge controls (`chooserOf(setup)` in `src/setup/setup.js`: deck, second card and edge are the player with Priority, first card and Maximum Threat are the other player). The other player sees them disabled (`aria-disabled`, no click handler), with the title "Nelly chooses the Maximum Threat". The manual Priority buttons stay open to both players, because players can agree on a roll off made with real dice. In the Sandbox and a single player room anyone clicks, because one person plays both sides. The app still does not check the game rules (`docs/features/crisis.md`, "Players apply the rules"). The panel says what to do now, in the order of the rulebook. All texts use the word "Choose" and the names of the players (see [Names](#names)).
 
 | Step | Rule (p9, p11) | In the app |

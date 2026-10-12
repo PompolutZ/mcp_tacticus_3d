@@ -145,7 +145,7 @@ The room keeps a roll history, for both sides. It is the list `rolls` in the Yjs
 
 An entry stores data: `{ side, at, kind, ... }`. Counts are `{ <symbol>: n }` with only the symbols above 0. `src/dice/history.js` makes the text, so a change of the look needs no change of the data.
 
-The **Rolls** button of the toolbar opens the panel on the right side of the screen. The newest entry is first. Each entry shows the side color, the time (hours and minutes) and the face icons with counts. Escape closes it.
+The history shows in the Log panel (`docs/features/game-log.md`), with the other log entries, merged by time. The **Log** button of the toolbar opens it. The newest entry is first. Each dice entry shows the side color, the time (hours and minutes) and the face icons with counts.
 
 ## Physics
 
