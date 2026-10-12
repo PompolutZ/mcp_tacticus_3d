@@ -200,7 +200,37 @@ User, after this step:
 
 ### Result
 
-(empty)
+Built.
+
+- `CharacterModel.jsx`, own model: `useAfterPhysicsStep` feeds the vertical velocity of the body while it is dynamic and awake. A kinematic body (drag, lift, slide), a sleeping body and a remote model reset the finder each step, so a drop, a lift and a jump are never a bump. It plays `modelTerrain` or `modelMat` with the strength as volume and the claim key as key (the 60 ms gap).
+- Remote model: `LiveSync.jsx` has a new accessor `poseTime(key)` (arrival time). Scene passes it as `getLiveTime`. In remote mode `listenLanding` feeds each new live pose to `createPoseBumpFinder` and polls it each frame. A model that is not in remote mode costs nothing there. The finder is reset when remote mode starts and ends: the jump of the set pose is no bump. A bump that starts while `otherDragging` is dropped (`discard`).
+- `bumps.js`: `createBumpFinder` has `change()`, `strength()`, `wasFalling()` and the option `vertical`. `createPoseBumpFinder` has the options `mergeMs`, `restMs`, `afterFall`, `vertical`, and `poll(time)`, `discard()`. The defaults keep the dice as they were. Tests in `bumps.test.js`.
+- Docs: `sounds.md`.
+
+Measured with a scratch Rapier world (not committed): table cuboid, the model body of the app (cylinder collider r 0.983, half height 0.059, density 5, friction 1, damping 0.1 and 5, ccd, gravity 30, 120 Hz), released with zero speed, as `onEnd` does. Own = every step. Remote = positions rounded to 0.001, one sample about every 33 ms at a random phase, a pose that does not change is not sent, as `LiveSync` does. 300 random releases (heights 0.3, 0.3, 1 and 3" above the ground, on the table, on terrain blocks 0.5 to 4.5" high, near their edges, and next to a ramp).
+
+- A model stops dead (no bounce): a landing is one change of the vertical velocity, as big as the speed of the fall. From the drag height (0.3") 4.2 in/s, from 1" 7.7, 3" 13, 5" 17, 10" 24. The horizontal change is not used (see the drag-stop below).
+- The first bump has p10 4.2, p50 4.2, p90 13.2. Settling, rocking and creep after a landing are under 1. A model that falls off a terrain edge lands twice, and the second landing is 1.5 to 11 (47 of 300 releases had a second bump over 0.5, 16 over 1.5).
+- Own: minimum 1.5 in/s, maximum 6 in/s. Events per release: 1.06 (with minimum 1: 1.08, with 2: 1.02). A drag release is 0.6 of the volume, 1" or more is full.
+- Remote, poses with exact times: the merged stop is 0.85 of the own value at p50 (0.71 at p10, 0.95 at p90). 74 of 74 releases from 0.3" and 78 of 78 from 1" or more were heard, 1.0 events per release at minimum 1.5. Minimum 1.5, maximum 5, `mergeMs` 90, `restMs` 60, `maxSpeed` 60 (a fall from 30"; a drag is faster).
+- Why the remote needs more than the dice finder:
+  - A stop falls in two samples (a part, then the rest). Without a merge, the 60 ms key gap let the smaller first part play and hide the louder second. So the changes of the samples within `mergeMs` are added, and the sound plays about 90 ms after the first sample.
+  - A piece at rest sends no pose, so the stop is not in the poses at all. After `restMs` with no pose the last position counts as a velocity of zero. Without it, a landing from 1" was not heard.
+  - A lift (R), a lower and a drag stop with a change of velocity too: without a rule, 2 or 3 false bumps for each R press in the sim. A bump starts only after a free fall in one of the two changes before (a change of gravity * dt, within 0.5 of it plus 0.15 of the speed). With it: 0 false bumps for lift up, lift down and a drag with a stop. A drag that goes down from terrain made 2 false bumps in 3 of 5 phases, so a bump that starts while the other player drags (`otherDragging`) is dropped.
+  - Vertical only: when the hand lets go, the horizontal velocity of the drag goes to zero at once. A 3D change would sound as a bump in the other browser.
+- Network jitter: the time of a pose is its arrival time, and its position is from the send time. With 3 ms of random jitter the remote finder has 1.5 events per release at minimum 1.5 (1.0 with no jitter), because the error is about 10% of the speed of a fall. A local test (one Mac) has almost none.
+
+Terrain or table top: at a bump a cast of the base shape starts 0.1" above the base bottom and goes down (`baseGroundY` has a new optional `from`). A support top higher than 0.05" is terrain, else the table top. So the rule is where the model rests, not a contact. A piece above the model (an arch) does not count, because the cast starts at the base, not at the top.
+
+What falls by physics: a drag release (the common case), a model that tips or slides off a terrain edge, and a model whose terrain is removed. R down does not fall: `moveLift` sets the body at the lift place and `endLift` gives it zero speed. A Throw or Push does not fall: `moveSlide` sets the body at the end of the path, with the height of the ground under the end (`landingY`), and zero speed. So these two make no sound.
+
+Deviations:
+
+- The remote finder has `mergeMs`, `restMs`, `afterFall` and `vertical`, and the own finder has `vertical`: not in the plan. The measurements above need them.
+- The remote landing sound is about 90 ms later than the stop in the poses (plus the 33 to 50 ms of a pose).
+- Dice are as in step 3: they have the same gap with the missing stop sample, but their bumps are small, so it was not changed.
+- Not checked in a browser (the user checks).
+
 
 ## Step 5: Ping clock
 

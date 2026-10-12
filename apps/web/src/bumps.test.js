@@ -217,3 +217,120 @@ test('poses: reset starts fresh', () => {
 test('poses: a bad pose is skipped', () => {
   assert.equal(poseFinder().feed({ x: NaN, y: 0, z: 0 }, 1000), 0)
 })
+
+// Models: a free fall of a heavy piece in poses 33 ms apart, from a rest, g = 30 in/s²
+const MG = 30
+const MODEL_MS = 33
+function fallY(t) {
+  return Math.max(0, 1 - 0.5 * MG * t * t) // 1" high, released at t = 0
+}
+function modelFinder(extra = {}) {
+  return createPoseBumpFinder({
+    gravity: MG,
+    min: 1.5,
+    max: 5,
+    maxSpeed: 60,
+    gapMs: Infinity,
+    mergeMs: 90,
+    restMs: 60,
+    vertical: true,
+    afterFall: true,
+    ...extra,
+  })
+}
+// Feeds poses (only when the height changes, as the sender does), polls every 8 ms, and returns
+// the strengths that came out
+function runModel(f, heightAt, until = 1000, discard = false) {
+  const out = []
+  let sent = null
+  let next = 0
+  for (let ms = 0; ms < until; ms += 8) {
+    if (ms >= next) {
+      next += MODEL_MS
+      const y = Math.round(heightAt(ms / 1000) * 1000) / 1000
+      if (y !== sent) {
+        sent = y
+        const s = f.feed({ x: 0, y, z: 0 }, 1000 + ms)
+        if (s > 0) out.push(s)
+      }
+    }
+    const s = f.poll(1000 + ms)
+    if (s > 0) out.push(s)
+    if (discard) f.discard()
+  }
+  return out
+}
+
+test('model: a fall that stops is one bump, with no pose after the stop', () => {
+  const f = modelFinder()
+  f.feed({ x: 0, y: 1, z: 0 }, 500)
+  const out = runModel(f, fallY)
+  assert.equal(out.length, 1)
+  assert.ok(out[0] > 0.5)
+})
+
+test('model: a harder fall is a stronger bump', () => {
+  const low = modelFinder()
+  low.feed({ x: 0, y: 0.3, z: 0 }, 500)
+  const soft = runModel(low, (t) => Math.max(0, 0.3 - 0.5 * MG * t * t))
+  const high = modelFinder()
+  high.feed({ x: 0, y: 4, z: 0 }, 500)
+  const hard = runModel(high, (t) => Math.max(0, 4 - 0.5 * MG * t * t))
+  assert.equal(soft.length, 1)
+  assert.equal(hard.length, 1)
+  assert.ok(hard[0] > soft[0])
+})
+
+test('model: lowering with an ease out is no bump', () => {
+  const f = modelFinder()
+  f.feed({ x: 0, y: 6, z: 0 }, 500)
+  assert.deepEqual(
+    runModel(f, (t) => 6 * Math.exp(-t / 0.06)),
+    [],
+  )
+})
+
+test('model: lifting with an ease out is no bump', () => {
+  const f = modelFinder()
+  f.feed({ x: 0, y: 0, z: 0 }, 500)
+  assert.deepEqual(
+    runModel(f, (t) => 6 * (1 - Math.exp(-t / 0.06))),
+    [],
+  )
+})
+
+test('model: a slide along the table is no bump', () => {
+  const f = modelFinder()
+  const out = []
+  for (let i = 0; i < 12; i++) {
+    out.push(f.feed({ x: 15 * (i * 0.033 - 1.5 * (i * 0.033) ** 2), y: 0, z: 0 }, 1000 + i * 33))
+    out.push(f.poll(1000 + i * 33 + 20))
+  }
+  assert.deepEqual(
+    out.filter((s) => s > 0),
+    [],
+  )
+})
+
+test('model: discard drops the bump that waits', () => {
+  const f = modelFinder()
+  f.feed({ x: 0, y: 1, z: 0 }, 500)
+  assert.deepEqual(runModel(f, fallY, 1000, true), [])
+})
+
+test('model: reset starts fresh', () => {
+  const f = modelFinder()
+  f.feed({ x: 0, y: 1, z: 0 }, 500)
+  f.reset()
+  assert.equal(f.feed({ x: 0, y: 0, z: 0 }, 1000), 0)
+  assert.equal(f.poll(5000), 0)
+})
+
+test('finder: vertical ignores a change of the horizontal velocity', () => {
+  const f = createBumpFinder({ gravity: G, vertical: true })
+  f.feed({ x: 30, y: 0, z: 0 }, DT)
+  assert.equal(f.feed({ x: 0, y: 0, z: 0 }, DT), 0)
+  const all = createBumpFinder({ gravity: G })
+  all.feed({ x: 30, y: 0, z: 0 }, DT)
+  assert.ok(all.feed({ x: 0, y: 0, z: 0 }, DT) > 0.9)
+})

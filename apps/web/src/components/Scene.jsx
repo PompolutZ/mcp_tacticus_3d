@@ -448,10 +448,11 @@ export default function Scene({
   const toolLives = useRef({})
   // The own dice's live poses for LiveSync: tray side → a getter that DiceTray registers
   const diceLives = useRef({})
-  // What LiveSync received: { pose(key), tool(kind), die(key), cursor() }, or null (LiveSync.jsx)
+  // What LiveSync received: { pose(key), poseTime(key), tool(kind), die(key), cursor() }, or null (LiveSync.jsx)
   const received = useRef(null)
   // The latest live numbers of a piece key, for the pieces that follow
   const getPieceLive = (key) => received.current?.pose(key) ?? null
+  const getPieceLiveTime = (key) => received.current?.poseTime(key) ?? null
   // Turns that are not done yet: piece key → { piece, left }, left in radians. See the useFrame below.
   const turnsLeft = useRef(new Map())
   // Function of the angle tool that returns { target, openYaw } while it is snapped, else null. See AngleRuler.
@@ -1554,6 +1555,7 @@ export default function Scene({
             remote: otherOwned.has(modelKey(model.id)),
             otherDragging: otherDragKey === modelKey(model.id),
             getLivePose: getPieceLive,
+            getLiveTime: getPieceLiveTime,
             onRest: () => {
               // One writer for each rest pose (decision 6)
               if (ownership && !ownership.writes(modelKey(model.id))) return

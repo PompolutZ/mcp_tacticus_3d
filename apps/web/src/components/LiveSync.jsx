@@ -25,9 +25,9 @@ const round3 = (v) => Math.round(v * 1e3) / 1e3
 // pieceLives: a Map, piece key → getter of the live pose { x, z, yaw? } of a dragged piece without a body, or
 // null. The drag code fills it from the claim to the end of the drag (drag/pointerDrag.js, Phase 6).
 // hideCursor: true while the own side's Select squad is on; no cursor point is sent (decision 21).
-// liveRef: filled with { pose(key), tool(kind), die(key), cursor() }, for the pieces that follow. State is in refs,
+// liveRef: filled with { pose(key), poseTime(key), tool(kind), die(key), cursor() }, for the pieces that follow. State is in refs,
 // because it changes every frame. pose(key): the numbers of a piece while the other player claims it, else
-// null. tool(kind): { pose, time } of the other player's tool, time in performance.now() ms. die(key):
+// null. poseTime(key): when that pose arrived, in performance.now() ms, or null. tool(kind): { pose, time } of the other player's tool, time in performance.now() ms. die(key):
 // { numbers, time } of the other player's die, or null. cursor():
 // { point: [x, y, z], time } or null.
 export default function LiveSync({
@@ -82,6 +82,7 @@ export default function LiveSync({
     const store = received.current
     liveRef.current = {
       pose: (key) => store.get(key)?.numbers ?? null,
+      poseTime: (key) => store.get(key)?.time ?? null,
       tool: (kind) => {
         const item = store.get(`tool:${kind}`)
         return item ? { pose: item.numbers, time: item.time } : null

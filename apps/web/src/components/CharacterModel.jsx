@@ -1,6 +1,6 @@
 import { useGLTF } from '@react-three/drei'
 import { COLOR_HEX, useSideColor } from '../sideColors.js'
-import { RigidBody, CylinderCollider, useRapier } from '@react-three/rapier'
+import { RigidBody, CylinderCollider, useAfterPhysicsStep, useRapier } from '@react-three/rapier'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
 import {
@@ -16,7 +16,14 @@ import {
   Quaternion,
   Vector3,
 } from 'three'
-import { FRICTION, MODEL_GROUPS, SOLVER_ALL, SOLVER_NONE, castDown } from '../physics.js'
+import {
+  FRICTION,
+  MODEL_GROUPS,
+  SOLVER_ALL,
+  SOLVER_NONE,
+  WORLD_GRAVITY,
+  castDown,
+} from '../physics.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
 import { tablePoint } from '../drag/tablePoint.js'
 import DragFootprint from './DragFootprint.jsx'
@@ -25,6 +32,18 @@ import { followPart } from '../net/livePose.js'
 import { useColorTexture } from './useColorTexture.js'
 import { assetUrl } from '../assets/index.js'
 import { useHoverCursor } from './useHoverCursor.js'
+import {
+  MODEL_BUMP_MAX,
+  MODEL_BUMP_MIN,
+  REMOTE_MODEL_BUMP_MAX,
+  REMOTE_MODEL_BUMP_MIN,
+  REMOTE_MODEL_MAX_SPEED,
+  REMOTE_MODEL_MERGE_MS,
+  REMOTE_MODEL_REST_MS,
+  createBumpFinder,
+  createPoseBumpFinder,
+} from '../bumps.js'
+import { playSound } from '../sound.js'
 
 // Scratch values of the follow
 const followTarget = { pos: new Vector3(), quat: new Quaternion() }
@@ -34,6 +53,11 @@ const DRAG_HOVER = 0.3
 const HOVER_RATE = 25
 const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 const ZERO = { x: 0, y: 0, z: 0 }
+// A model lands on terrain, not on the table top, when what is under its base is higher than this
+// (inches). The table top is y = 0 (docs/features/sounds.md).
+const TERRAIN_MIN_TOP = 0.05
+// The cast for the support of a landed model starts this far (inches) above its base bottom
+const SUPPORT_LIFT = 0.1
 // A model that stays within SETTLE_MOVE inches and SETTLE_TURN of one pose for SETTLE_TIME seconds is put
 // to sleep, as PhysX does in TTS. Without it, a model resting on a curved hull (made of many small faces)
 // shakes and creeps down it, and Rapier never puts it to sleep because of the shaking.
@@ -93,7 +117,8 @@ export function turnBody(body, angle) {
 // Top of the table or terrain under the whole base at (x, z), or null when nothing is under it.
 // A cast of the base shape, not a ray, so terrain under any part of the base counts.
 // The body origin is the base bottom, so this is also the body Y that puts the base on the ground.
-export function baseGroundY(world, rapier, x, z, radius = BASE_RADIUS) {
+// from: height of the base bottom where the cast starts, when it is not above everything.
+export function baseGroundY(world, rapier, x, z, radius = BASE_RADIUS, from = undefined) {
   return castDown(
     world,
     rapier,
@@ -102,6 +127,7 @@ export function baseGroundY(world, rapier, x, z, radius = BASE_RADIUS) {
     x,
     z,
     BASE_HALF_H,
+    from,
   )
 }
 
@@ -219,6 +245,8 @@ function standeeScene(front, back, radius) {
 // when this goes false (decision 8), and this puts the contact forces back.
 // getLivePose(key): the latest live pose [x, y, z, qx, qy, qz, qw] of the model, or null (LiveSync.jsx). In the
 // remote mode the model follows it each frame (decision 14) and shows the drag footprint while otherDragging (decision 18).
+// getLiveTime(key): when that pose arrived, in performance.now() ms, or null. The remote model makes the sound of its
+// landing from the poses and their times (docs/features/sounds.md).
 // slideRef: gets startSlide for a Throw or Push (see RulerTool.jsx), and null on unmount
 // baseRadius: radius of the base in the model file, which has the game size
 // onHover(over): called when the pointer moves onto the model (true) and off it (false)
@@ -265,6 +293,7 @@ function CharacterFigure({
   remote = false,
   otherDragging = false,
   getLivePose,
+  getLiveTime,
 }) {
   const [startPosition] = useState(position)
   const [startQuaternion] = useState(quaternion)
@@ -302,6 +331,11 @@ function CharacterFigure({
   const slide = useRef(null)
   // The last pointer position of a drag, in screen pixels
   const pointer = useRef({ x: 0, y: 0 })
+  // The bump finder of the landing sound: of the body (own model) or of the live poses (remote
+  // model), and the last live position. See landed.
+  const bump = useRef(null)
+  const remoteBump = useRef(null)
+  const livePlace = useRef(null)
 
   function groundY(x, z) {
     return baseGroundY(world, rapier, x, z, baseRadius)
@@ -312,6 +346,67 @@ function CharacterFigure({
     const scene = { camera, canvas: gl.domElement, world, rapier }
     return tablePoint(scene, pointer.current.x, pointer.current.y)
   }
+
+  // The sound of a landing at body position (x, y, z): the terrain sound when the base rests on
+  // terrain, the mat sound on the table top. strength: 0 to 1, from the bump finder.
+  function landed(x, y, z, strength) {
+    const top = baseGroundY(world, rapier, x, z, baseRadius, y + SUPPORT_LIFT)
+    const group = top !== null && top > TERRAIN_MIN_TOP ? 'modelTerrain' : 'modelMat'
+    playSound(group, { volume: strength, key: claimKey })
+  }
+
+  // The landing of the other player's model, from its live poses. The finder also gets the poses
+  // of a drag, a lift and a slide, and it ignores them, because no free fall comes before them.
+  // A bump that starts in a drag is dropped.
+  function listenLanding() {
+    const finder = (remoteBump.current ??= createPoseBumpFinder({
+      gravity: -WORLD_GRAVITY,
+      min: REMOTE_MODEL_BUMP_MIN,
+      max: REMOTE_MODEL_BUMP_MAX,
+      maxSpeed: REMOTE_MODEL_MAX_SPEED,
+      gapMs: Infinity,
+      mergeMs: REMOTE_MODEL_MERGE_MS,
+      restMs: REMOTE_MODEL_REST_MS,
+      vertical: true,
+      afterFall: true,
+    }))
+    const n = getLivePose?.(claimKey)
+    const time = getLiveTime?.(claimKey)
+    let strength = 0
+    if (n && time != null) {
+      livePlace.current = { x: n[0], y: n[1], z: n[2] }
+      strength = finder.feed(livePlace.current, time)
+    }
+    strength = Math.max(strength, finder.poll(performance.now()))
+    if (otherDragging) finder.discard()
+    else if (strength > 0 && livePlace.current) {
+      const { x, y, z } = livePlace.current
+      landed(x, y, z, strength)
+    }
+  }
+
+  // A sound for each landing of the own model (docs/features/sounds.md): the bump finder gets the
+  // vertical velocity after each physics step, while the body is dynamic and awake. A body that is
+  // kinematic (drag, lift, slide), asleep or the other player's starts fresh when it moves again,
+  // so a drop, a lift, a jump or a set pose is never a bump.
+  useAfterPhysicsStep((physics) => {
+    const rb = rigidRef.current
+    if (!rb) return
+    if (remoteRef.current || !rb.isDynamic() || rb.isSleeping()) {
+      bump.current?.reset()
+      return
+    }
+    bump.current ??= createBumpFinder({
+      gravity: -WORLD_GRAVITY,
+      min: MODEL_BUMP_MIN,
+      max: MODEL_BUMP_MAX,
+      vertical: true,
+    })
+    const strength = bump.current.feed(rb.linvel(), physics.timestep)
+    if (strength <= 0) return
+    const t = rb.translation()
+    landed(t.x, t.y, t.z, strength)
+  })
 
   // Puts the body to sleep once it has stayed close to one pose for SETTLE_TIME
   function settle(rb, dt) {
@@ -479,6 +574,7 @@ function CharacterFigure({
     }
     // The other player moves this model. Nothing here moves or settles the body, except the follow.
     if (remoteRef.current) {
+      listenLanding()
       followLive(rb, dt)
       return
     }
@@ -544,6 +640,9 @@ function CharacterFigure({
     const rb = rigidRef.current
     if (!rb || remote === wasRemote.current) return
     wasRemote.current = remote
+    // The pose set when the remote mode ends is a jump, and no bump
+    remoteBump.current?.reset()
+    livePlace.current = null
     for (let i = 0; i < rb.numColliders(); i++) {
       rb.collider(i).setSolverGroups(remote ? SOLVER_NONE : SOLVER_ALL)
     }
