@@ -10,6 +10,8 @@ const STATE = {
   crisis: { secure: 'a', extract: null },
   scoreMarkers: { host: { x: 1, z: 2 }, guest: { x: 3, z: 4 }, round: { x: 5, z: 6 } },
   affiliations: { host: 'avengers', guest: 'cabal' },
+  priority: 'host',
+  lastActivated: null,
   rosters: { host: { code: 'B' }, guest: null },
   setup: { deck: null, ready: { host: false, guest: false } },
   terrain: [{ id: 't1', index: 0, locked: true, piece: 'crate' }],

@@ -175,6 +175,8 @@ function makeGame(seed) {
     crisis: { secure: 'secure-card', extract: 'extract-card' },
     scoreMarkers: START_MARKERS,
     affiliations: { host: 'shield', guest: 'hydra' },
+    priority: 'host',
+    lastActivated: null,
     rosters: { host: { code: code() }, guest: { code: code() } },
     setup,
     terrain: Array.from({ length: TERRAIN }, (_, index) => ({ id: id(), index, locked: true })),

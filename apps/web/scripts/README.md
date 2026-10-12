@@ -450,7 +450,7 @@ The tray and die source URLs come from the "Blue Dice Tray" object in the mod sa
 
 # TTS scoring board
 
-`migrate-scoreboard.mjs` copies the scoring board of the TTS mod to `src/assets/`: the board, the round marker, and the 34 affiliation tokens that the VP markers show. It writes the affiliation list to `src/scoreboard/affiliations.json`. `src/scoreboard/files.js` names the files. See `docs/features/crisis.md`, "Scoring board", for how the app uses them.
+`migrate-scoreboard.mjs` copies the scoring board of the TTS mod to `src/assets/`: the board, the round marker, the 34 affiliation tokens that the VP markers show, and the face of the Priority marker. It writes the affiliation list to `src/scoreboard/affiliations.json`. `src/scoreboard/files.js` names the files. See `docs/features/crisis.md`, "Scoring board", for how the app uses them.
 
 ```bash
 pnpm --filter web migrate-scoreboard
@@ -464,6 +464,7 @@ Requirements: ImageMagick, and the files in the TTS cache. On 2026-10-03 the cac
 |---|---|
 | `src/assets/scoreboard/board.glb`, `board.webp` | The "Tracker" object: mesh and texture, converted like a terrain OBJ piece |
 | `src/assets/scoreboard/round.glb` | The "Round Tracker" object: mesh only. The mod gives it a yellow tint. |
+| `src/assets/scoreboard/priority.webp` | The face of the Priority marker: the left face of the "Priority Token" texture (the bottom half of its 1024 × 1024 image has two equal round faces), cut at 512 × 512 and scaled to at most 256 × 256 |
 | `src/assets/affiliations/<key>.webp` | Affiliation token image, at most 256×256 (the mod's images are 225×225) |
 | `src/scoreboard/affiliations.json` | One entry per affiliation: `name` in the mod |
 

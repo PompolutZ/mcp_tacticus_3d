@@ -46,6 +46,9 @@ export function startTable(mapId) {
     crisis: { secure: null, extract: null },
     scoreMarkers: START_MARKERS,
     affiliations: { host: DEFAULT_AFFILIATION, guest: DEFAULT_AFFILIATION },
+    // The Priority marker side and the side that got the Activated token last (game/priority.js)
+    priority: null,
+    lastActivated: null,
     setup: newSetup(),
     terrain: mapTerrain(mapId),
     characters: [],

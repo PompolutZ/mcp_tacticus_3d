@@ -5,7 +5,7 @@ Status: built.
 Not built yet:
 
 - Variable extra Power (see [Later: variable Power](#later-variable-power)).
-- The Priority token, VP scoring and character effects of the Cleanup Phase (see [Out of scope](#out-of-scope)).
+- VP scoring and character effects of the Cleanup Phase (see [Out of scope](#out-of-scope)).
 
 ## Goal
 
@@ -28,6 +28,7 @@ The toolbar **Power** (when Power is set to the HUD) gives Power to all sides th
 - all characters remove the Activated token and the tokens that last until the end of the round
 - Exhausted Sources flip back, and the supply tokens leave the game
 - the round marker moves to the next round
+- Priority passes to the other player when the player who activated the last character has it (see [Priority marker](#priority-marker))
 
 Without the buttons, players do each step by hand on the trays, the tokens and the scoring board.
 
@@ -96,7 +97,7 @@ Found in the mod scripts (`autoCleanup` in "Red Tray Spawner", "UI Controller", 
 - A tray with the Dazed token: the Dazed token and every special condition go, and the card flips (Damage goes to 0).
 - The mat: every flipped crisis token with `flipFront` (the Sources) turns back to its front. Every token with `cleanup = true` on the mat is deleted, except affiliation tokens.
 - The round token moves to the next round spot. It stays on round 6.
-- The Priority token moves to the player with fewer characters left to activate. The app has no Priority token (`docs/features/setup-game.md`, "Not built yet").
+- The Priority token moves to the player with fewer characters left to activate. The app follows the rule (p12) instead: see [Priority marker](#priority-marker).
 - TTS does not score VP and does not run character effects of the Cleanup Phase.
 
 ### Facts in the app
@@ -138,7 +139,7 @@ Decisions 1 to 6 are for the Power button. Decisions 7 to 16 are for the Cleanup
 12. **Crisis tokens.** Every Source shows its front (Unexhausted). Every supply token goes, on the table and held. The 4 current Source cards say so. The app does not read the card text, so a new Source card with another rule needs a code change.
 13. **Round marker.** It moves to the next spot of `ROUND_POINTS`. It stays on round 6. When the marker is on no spot (a player moved it off the track), it does not move, and the message says so.
 14. **One change.** All of it is one `table.transact`, so the other browser gets it at once.
-15. **Feedback.** A HUD message: "Cleanup Phase: round 3. Flipped: Hulk, Angela." Without Dazed characters: "Cleanup Phase: round 3." When the marker is off the track: "Cleanup Phase: the round marker is not on the round track, so it did not move." "Flipped" lists every Dazed character, also one that was already Injured. The message stays 8 s, as the Power Phase message.
+15. **Feedback.** A HUD message: "Cleanup Phase: round 3. Flipped: Hulk, Angela. Priority passes to Nelly." Without Dazed characters: "Cleanup Phase: round 3." When the marker is off the track: "Cleanup Phase: the round marker is not on the round track, so it did not move." "Flipped" lists every Dazed character, also one that was already Injured. The last sentence is "Priority passes to Nelly." or "Nelly keeps Priority." ("to you" and "You keep" for the own side in a multiplayer room, "Blue" or "Red" in the Sandbox and a single player room), and it is missing before the roll off. The message stays 8 s, as the Power Phase message.
 16. **Remove from the board, and Delete.**
     - The tray **Remove** button removes the character from the board (a KO'd character, p16). Its held tokens drop next to the model. Then each model of the character goes back to its place on the tray (card 1, card 2 or the spare place), with its spawn turn. The new pose goes into `poses`, so the other browser moves it too. The character, its tray and its tokens, Damage and Power stay. No confirm: a player can drag the model back.
     - **Remove** is disabled when no model of the character is on the board. Title: "Remove from the board: the model goes back on its card. Delete key over the card deletes the character."
@@ -147,10 +148,21 @@ Decisions 1 to 6 are for the Power button. Decisions 7 to 16 are for the Cleanup
     - A model that the other player drags at that moment is skipped (Scene does not move a claimed model).
     - A model that goes back stands at y = 0 with the identity quaternion on its body. The spawn turn sits on the inner figure, so identity gives the spawn turn. A lifted model cancels its lift first, because the end of a lift would fight the pose.
 
+## Priority marker
+
+Cleanup step 4 (p12): if the player who activated the last character has Priority, they pass it to the opponent. The app has a marker for it, a flat token 1.25" wide, with the face of the TTS Priority Token (a yellow star on blue) and the edge in the color of the side that has Priority.
+
+- **Fields.** `game.priority` is the marker: `null | 'host' | 'guest'`. It is a different field from `setup.priority` (the roll-off winner), because the colors follow `setup.priority` for the whole game and must not move with the marker. `game.lastActivated` is the side of the character that got the Activated token last. A document from before the marker has no `game.priority`, and `gamePriority` (`src/game/priority.js`) reads the roll-off winner then.
+- **Who sets it.** The roll off and the manual Priority buttons set `setup.priority` and `game.priority` in one transaction. On a tie the marker stays as it is. **Restart setup** and **Override** to the roll off clear `game.priority` and `game.lastActivated`. After that only the Cleanup Phase and a click change `game.priority`.
+- **Last activator.** Giving the Activated token to a character writes the side of the character, not of the browser, in the same transaction. Taking an Activated token away changes nothing. A player fixes a wrong value with a click on the marker.
+- **Cleanup.** `priorityAfterCleanup`: when `lastActivated` equals `priority`, Priority goes to the other side. Then `lastActivated` is cleared. The HUD message of the Cleanup says what happened (decision 15).
+- **Place.** One spot for each side, on the table beside the end of the scoring board nearer that side, between the board and the mat edge (`priorityMarkerSpot` in `src/scoreboard/board.js`). Before the roll off there is no marker. When Priority changes, the marker slides to the other spot in about 0.4 s, in both browsers.
+- **Click.** Any player can click it, also in a multiplayer room, because cards such as All According to Plan change Priority. A click gives Priority to the other side. No confirm. The title is "Nelly has Priority. Click to give it to you." Hover shows the white outline, as other pieces.
+- **TTS difference.** TTS puts the token at (-17, ±19) by the mat corner, moves it with buttons, and in the Cleanup Phase gives it to the player with fewer characters left to activate. The app follows the rule of p12 instead, and the place is beside the scoring board.
+
 ## Out of scope
 
 - VP scoring. Players move the VP markers first.
-- The Priority token. The app has none on the table.
 - Character effects in the Cleanup Phase, for example Dormammu (an ally with 5 or more Power suffers 1 damage) and Killmonger (Herb tokens give damage and Power, see [Later: variable Power](#later-variable-power)).
 - Non-player effects of other crisis cards.
 - TTS special cases, for example Bob, Agent of Hydra.

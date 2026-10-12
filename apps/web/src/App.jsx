@@ -87,6 +87,7 @@ import {
   viewOf,
 } from './setup/setup.js'
 import { readRollOff } from './setup/rollOff.js'
+import { gamePriority, priorityAfterCleanup, priorityNote, priorityTitle } from './game/priority.js'
 import { FACES } from './dice/faces.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
@@ -342,6 +343,9 @@ export default function App({
   const [tokens, setTokens] = useYList(table.tokens)
   // Scoring board markers: { host, guest, round } → { x, z } on the table (see ScoreBoard.jsx)
   const [scoreMarkers, setScoreMarkers] = useYField(table.game, 'scoreMarkers')
+  // The Priority marker (game/priority.js): the raw field, null | side. A document from before the marker
+  // has none, and gamePriority reads the roll-off winner then (after setup below).
+  const [storedPriority, setPriorityField] = useYField(table.game, 'priority')
   // Loaded rosters: { host, guest } → null | { code }, code in Jarvis format (see rosters/mct.js). A room
   // starts with its rosters: Blue, and Red when the room has it.
   const [rosters, setRosters] = useYRecord(table.rosters)
@@ -379,6 +383,20 @@ export default function App({
     () => (room?.multiplayer ? { players: room.players, peer: connection?.peer ?? null } : null),
     [room, connection?.peer],
   )
+  // The names of the sides in the Priority texts (setup/names.js)
+  const nameCtx = useMemo(
+    () => ({
+      mySide,
+      players: seatPlayers?.players ?? null,
+      peer: seatPlayers?.peer ?? null,
+      colors: {
+        host: COLOR_NAME[hostColor],
+        guest: COLOR_NAME[hostColor === 'blue' ? 'red' : 'blue'],
+      },
+    }),
+    [mySide, seatPlayers, hostColor],
+  )
+  const priority = gamePriority({ priority: storedPriority }, setup)
   const [storedSquad, setStoredSquad] = useState(() =>
     hiddenSquads ? readSquad(userId, room.id) : null,
   )
@@ -1135,6 +1153,9 @@ export default function App({
     if (cleanupBlockers(characters, poses).length > 0 || cleanupEmpty) return
     const flipped = []
     let round = null
+    // Priority passes when its holder activated last (p12). Read now, inside the transaction.
+    const before = gamePriority(table.game.read(), table.setup.read())
+    const after = priorityAfterCleanup(before, table.game.read().lastActivated)
     table.transact(() => {
       setCharacters((prev) =>
         prev.map((ch) => {
@@ -1150,12 +1171,22 @@ export default function App({
         round = ROUND_POINTS.indexOf(spot) + 1
         return { ...prev, round: { x: spot.x, z: spot.z } }
       })
+      if (after !== before) table.game.setField('priority', after)
+      table.game.setField('lastActivated', null)
     })
     const head =
       round === null
         ? 'Cleanup Phase: the round marker is not on the round track, so it did not move.'
         : `Cleanup Phase: round ${round}.`
-    showHudMessage(flipped.length > 0 ? `${head} Flipped: ${flipped.join(', ')}.` : head, 8000)
+    const note = priorityNote(before, after, nameCtx)
+    const text = flipped.length > 0 ? `${head} Flipped: ${flipped.join(', ')}.` : head
+    showHudMessage(note ? `${text} ${note}` : text, 8000)
+  }
+
+  // A click on the Priority marker gives Priority to the other side. Any player can click, also in a
+  // multiplayer room, because cards change Priority.
+  function handlePriorityClick() {
+    if (priority) setPriorityField(otherTeam(priority))
   }
 
   // Flip turns the card to the other side and clears Damage, the same as in TTS.
@@ -1282,8 +1313,15 @@ export default function App({
       removeSetupPieces({ squads: true, crisis: true })
       setDeployLine(false)
       setSetup(newSetup())
+      clearPriorityMarker()
     })
     return true
+  }
+
+  // The marker and the last activation go with the roll off
+  function clearPriorityMarker() {
+    table.game.setField('priority', null)
+    table.game.setField('lastActivated', null)
   }
 
   // Takes what the setup put on the table off it: squads (the characters and Team Tactic cards of the
@@ -1325,6 +1363,7 @@ export default function App({
       removeSetupPieces(removal)
       if (removal.squads) setDeployLine(false)
       setSetup(overrideTo(setup, step))
+      if (step === 'rollOff') clearPriorityMarker()
     })
     setOpenRoster(null)
   }
@@ -1333,7 +1372,10 @@ export default function App({
   // players can agree on a roll off with real dice.
   function handleSetupPriority(team) {
     if (setupStep(setup) !== 'rollOff') return
-    setSetup(setPriority(setup, team))
+    table.transact(() => {
+      setSetup(setPriority(setup, team))
+      setPriorityField(team)
+    })
   }
 
   // The roll off is read when a new `throw` entry reaches the history, from this browser or the other one.
@@ -1362,7 +1404,11 @@ export default function App({
     }
     const result = readRollOff(shelves)
     if (JSON.stringify(current.rollOff) === JSON.stringify(result)) return
-    table.setup.set(setRollOff(current, result))
+    // The marker follows the winner. On a tie it stays as it is.
+    table.transact(() => {
+      table.setup.set(setRollOff(current, result))
+      if (result.winner) table.game.setField('priority', result.winner)
+    })
   }, [rolls, table])
 
   // The player with Priority uses their deck of `type`. The draws are random, so they are made here, outside
@@ -1678,14 +1724,18 @@ export default function App({
       )
       return false
     }
-    setCharacters((prev) =>
-      prev.map((ch) => {
-        if (ch.id !== id) return ch
-        const count = ch.tokens[tokenKey] ?? 0
-        if (isCappedToken(tokenKey) && count >= 1) return ch
-        return { ...ch, tokens: { ...ch.tokens, [tokenKey]: count + 1 } }
-      }),
-    )
+    // The Activated token also records the side of the character, for the Cleanup Phase (priority.js)
+    table.transact(() => {
+      setCharacters((prev) =>
+        prev.map((ch) => {
+          if (ch.id !== id) return ch
+          const count = ch.tokens[tokenKey] ?? 0
+          if (isCappedToken(tokenKey) && count >= 1) return ch
+          return { ...ch, tokens: { ...ch.tokens, [tokenKey]: count + 1 } }
+        }),
+      )
+      if (tokenKey === 'activated' && target) table.game.setField('lastActivated', target.team)
+    })
     return true
   }
 
@@ -2179,6 +2229,9 @@ export default function App({
               addDiceRef={addDiceRef}
               heldRotate={heldRotate}
               scoreMarkers={scoreMarkers}
+              priority={priority}
+              priorityTitle={priority ? priorityTitle(priority, nameCtx) : ''}
+              onPriorityClick={handlePriorityClick}
               affiliations={affiliations}
               rosters={rosters}
               onRosterOpen={handleRosterOpen}

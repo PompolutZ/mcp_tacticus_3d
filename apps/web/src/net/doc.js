@@ -9,7 +9,16 @@ import { createList, createRecord } from './collections.js'
 export const SCHEMA = 2
 
 // The fields of the game record, besides schema
-const GAME_FIELDS = ['mapId', 'matTurns', 'deployLine', 'crisis', 'scoreMarkers', 'affiliations']
+const GAME_FIELDS = [
+  'mapId',
+  'matTurns',
+  'deployLine',
+  'crisis',
+  'scoreMarkers',
+  'affiliations',
+  'priority',
+  'lastActivated',
+]
 const LISTS = ['terrain', 'characters', 'tokens', 'tactics', 'looseTokens', 'tokenPiles']
 
 // The stores of the table, one per top-level map of the document. App reads and writes them with the

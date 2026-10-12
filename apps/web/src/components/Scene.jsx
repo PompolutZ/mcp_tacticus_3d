@@ -44,6 +44,7 @@ import GameSetup from './GameSetup.jsx'
 import DiceTray from './DiceTray.jsx'
 import OtherDiceTray from './OtherDiceTray.jsx'
 import ScoreBoard from './ScoreBoard.jsx'
+import PriorityMarker from './PriorityMarker.jsx'
 import { projectFootprints } from './footprintProjection.js'
 import { matImage } from '../terrain/files.js'
 import { BASE_DIAMETER } from '../characters/files.js'
@@ -293,6 +294,7 @@ const OVERLAP_INTERVAL = 100
 // onSupplyDragStart(e, cardKey): pointerdown on the supply pile of a Source card (SupplyPile.jsx).
 // scoreMarkers, affiliations, onScoreMarkerMove(marker, x, z): the scoring board markers, see
 // ScoreBoard.jsx.
+// priority, priorityTitle, onPriorityClick: the Priority marker (PriorityMarker.jsx). priority: the side, or null.
 // startPose(modelId): the stored pose { x, y, z, qx, qy, qz, qw } of a model (rooms/table.js, poseOf), or
 // undefined. A model with a pose starts there instead of on its tray. Read when the model mounts.
 // onModelRest(modelId, pose): the body of a model fell asleep. App stores the pose in the table document, so
@@ -389,6 +391,9 @@ export default function Scene({
   mySide = null,
   seatPlayers = null,
   onScoreMarkerMove,
+  priority,
+  priorityTitle,
+  onPriorityClick,
   poses = NO_POSES,
   startPose,
   onModelRest,
@@ -1240,6 +1245,7 @@ export default function Scene({
           otherOwned={otherOwned}
           getLivePose={getPieceLive}
         />
+        <PriorityMarker priority={priority} title={priorityTitle} onClick={onPriorityClick} />
 
         {/* Crisis cards and tokens are relative to the player sides, not the mat, so they stay
             outside the rotating group above: a mat turn must not turn them. See docs/features/crisis.md. */}

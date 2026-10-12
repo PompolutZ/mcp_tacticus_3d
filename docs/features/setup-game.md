@@ -12,7 +12,7 @@ In a multiplayer room, only the player who chooses in the current step can click
 
 | Step | Rule (p9, p11) | In the app |
 |---|---|---|
-| Roll off | Players roll off. See [Roll off](#roll-off) | The app reads the dice trays (see [Roll off](#roll-off)). The panel next to the scoring board shows the rule and two buttons with names: **Nelly has Priority** and **You have Priority** (in the Sandbox and a single player room **Blue has Priority** and **Red has Priority**). Both players can press them. The button sets `setup.priority` |
+| Roll off | Players roll off. See [Roll off](#roll-off) | The app reads the dice trays (see [Roll off](#roll-off)). The panel next to the scoring board shows the rule and two buttons with names: **Nelly has Priority** and **You have Priority** (in the Sandbox and a single player room **Blue has Priority** and **Red has Priority**). Both players can press them. The button sets `setup.priority` and the Priority marker (`game.priority`, see `docs/features/round-phases.md`, "Priority marker") |
 | Deck | The player with Priority chooses one of their crisis decks: Secure or Extract | **Choose Secures** or **Choose Extracts**, in the crisis area of the player with Priority only. The buttons have no color. The app draws 2 cards of that deck at random |
 | First card | The other player chooses 1 of the 2 cards | **Choose** next to each drawn card. The panel says "Choose from Nelly's Secures." to the player who chooses, and "Waiting for Nelly to choose from my Secures." to the other. The app then draws 2 cards of the other type from the other player's deck |
 | Second card | The player with Priority chooses 1 of those 2 cards | **Choose** next to each drawn card |
@@ -41,6 +41,8 @@ The app reads it (`src/setup/rollOff.js`). In the step `rollOff`, when a new `th
 In a multiplayer room, every browser checks on every new `throw` entry, its own or the other player's. A shelf write and its entry are one change, so a browser that has the last entry has both full shelves. This covers players who roll at the same time. Both browsers may write: the result is the same, and a browser skips the write when `setup.rollOff` already has it. Only a new throw triggers it, so shelves left from before a restart do not count. An entry older than 30 s is not new (a history that syncs late).
 
 The manual buttons (**Nelly has Priority**, **You have Priority**) stay. Both players can press them, because players can agree on a roll off made with real dice. A manual press replaces the read result. The step `rollOff` lasts while `setup.priority` is null.
+
+The roll off also sets the Priority marker `game.priority` on the scoring board, in the same change as `setup.priority`. `setup.priority` is the roll-off winner and sets the colors for the whole game. `game.priority` is the marker that moves in the Cleanup Phase (`docs/features/round-phases.md`, "Priority marker"). **Restart setup** and **Override** to the roll off clear both.
 
 ### Colors
 
@@ -211,7 +213,6 @@ setup: {
 - Leadership (p7): the app does not check it.
 - Leadership choice.
 - Hidden squads in a single player room and the Sandbox. One person plays both sides there, so both squads are in the document.
-- The Priority token on the scoring board.
 - A button to skip the setup, for players who set up the table by hand.
 
 ## Rules

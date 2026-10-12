@@ -8,3 +8,5 @@ export const BOARD_TEXTURE = 'scoreboard/board.webp'
 export const ROUND_MESH = 'scoreboard/round.glb'
 // Affiliation token image. The key is in src/scoreboard/affiliations.json.
 export const affiliationToken = (key) => `affiliations/${key}.webp`
+// The face of the Priority marker, cropped from the texture of the mod's "Priority Token"
+export const PRIORITY_TEXTURE = 'scoreboard/priority.webp'

@@ -52,6 +52,19 @@ export const ROUND_MARKER_SCALE = 0.375
 export const ROUND_MARKER_HALF_SIZE = 1 * ROUND_MARKER_SCALE
 export const ROUND_MARKER_TINT = [0.96, 0.79, 0.048]
 
+// The Priority marker is a flat token 1.25" wide: the mod's Priority Token is a coin mesh scaled 1.25 (see
+// docs/features/round-phases.md, "Priority marker"). It lies by the end of the board that is nearer its side, on
+// the table between the board and the mat edge (x = -18): the crisis card and its supply pile end at x -19.4,
+// and the board strip starts at z 12.6. The mod puts the token at (-17, 19) instead, outside the mat corner.
+export const PRIORITY_MARKER_SIZE = 1.25
+const PRIORITY_MARKER_X = -18.7
+const PRIORITY_MARKER_Z = 10.8
+
+// Spot of the Priority marker for `side` ('host' | 'guest'), { x, z }. The guest spot mirrors the host spot.
+export function priorityMarkerSpot(side) {
+  return { x: PRIORITY_MARKER_X, z: side === 'host' ? PRIORITY_MARKER_Z : -PRIORITY_MARKER_Z }
+}
+
 // Tint of each player color, the mod's tint (the tint of the VP marker edge). Keyed by color, not by side.
 export const COLOR_TINT = { blue: [0.118, 0.53, 1], red: [0.856, 0.1, 0.094] }
 

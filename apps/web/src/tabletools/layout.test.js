@@ -22,11 +22,19 @@ import {
   traySpareModelPosition,
 } from '../characters/trays.js'
 import { TOKEN_SIZE } from '../tokens/files.js'
-import { CARD_HEIGHT, CARD_WIDTH, CARD_Z } from '../crisis/layout.js'
+import {
+  CARD_HEIGHT,
+  CARD_WIDTH,
+  CARD_Z,
+  CRISIS_TOKEN_SIZE,
+  supplyPilePosition,
+} from '../crisis/layout.js'
 import {
   BOARD_HALF_LENGTH,
   BOARD_HALF_WIDTH,
   BOARD_X,
+  PRIORITY_MARKER_SIZE,
+  priorityMarkerSpot,
   VP_MARKERS,
   VP_MARKER_SIZE,
 } from '../scoreboard/board.js'
@@ -338,5 +346,42 @@ test('the squad panel does not overlap the full roster rows, the rack, the Power
     // The compact panel (placed squad, other player) also clears the trays
     for (const [name, o] of Object.entries({ ...crowded(side), ...base }))
       assert.ok(!overlap(squadRect(side, true), o), `${side} compact squad panel overlaps ${name}`)
+  }
+})
+
+const priorityRect = (side) => {
+  const spot = priorityMarkerSpot(side)
+  return rect(spot.x, spot.z, PRIORITY_MARKER_SIZE, PRIORITY_MARKER_SIZE)
+}
+
+test('the Priority marker spots lie inside the table and mirror each other', () => {
+  const host = priorityMarkerSpot('host')
+  const guest = priorityMarkerSpot('guest')
+  assert.equal(guest.x, host.x)
+  assert.equal(guest.z, -host.z)
+  for (const side of TEAMS) assert.ok(inside(priorityRect(side)), side)
+})
+
+test('the Priority marker spots are by the end of the scoring board, on its own side', () => {
+  assert.ok(priorityMarkerSpot('host').z > BOARD_HALF_LENGTH)
+  assert.ok(priorityMarkerSpot('guest').z < -BOARD_HALF_LENGTH)
+})
+
+test('no Priority marker spot overlaps another part of the table', () => {
+  const rest = { ...others() }
+  for (const type of Object.keys(CARD_Z)) {
+    const pile = supplyPilePosition(type)
+    rest[`supply pile ${type}`] = rect(pile.x, pile.z, CRISIS_TOKEN_SIZE, CRISIS_TOKEN_SIZE)
+  }
+  for (const side of TEAMS) {
+    const marker = priorityRect(side)
+    for (const [name, r] of Object.entries(rest)) {
+      assert.ok(!overlap(marker, r), `${side} marker overlaps ${name}`)
+    }
+    for (const owner of TEAMS) {
+      for (const [name, r] of Object.entries(pieces(owner))) {
+        assert.ok(!overlap(marker, r), `${side} marker overlaps ${owner} ${name}`)
+      }
+    }
   }
 })

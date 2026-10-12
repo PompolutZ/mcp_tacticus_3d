@@ -138,7 +138,21 @@ User, after this step:
 
 ### Result
 
-(empty)
+Built, as planned. Checks pass. No browser test was done.
+
+- Asset: `scripts/migrate-scoreboard.mjs` writes `src/assets/scoreboard/priority.webp` (256 × 256), the left face of the TTS texture, cut at 512 × 512 from y 512. `PRIORITY_TEXTURE` is in `src/scoreboard/files.js`. The corners of the face are transparent, so `TokenSolid` finds a round outline.
+- Fields: `priority` and `lastActivated` in `GAME_FIELDS` (`src/net/doc.js`), `startTable`, `doc.test.js` and `scripts/yjs-size.mjs`.
+- `src/game/priority.js`: `gamePriority`, `priorityAfterCleanup`, and two text helpers, `priorityNote` (the Cleanup message) and `priorityTitle` (the hover title), both with names from `setup/names.js`. Tests in `priority.test.js`.
+- Spots: `priorityMarkerSpot(side)` and `PRIORITY_MARKER_SIZE` in `src/scoreboard/board.js`. Host (+z) spot is x -18.7, z 10.8. Guest is x -18.7, z -10.8. The marker is 1.25" wide. Tests in `layout.test.js`: inside the table, mirror, by the board end, and no overlap with the board, the board strip, the setup panels, the VP marker start places, the supply piles, the crisis cards and the racks.
+- `PriorityMarker.jsx` in `Scene.jsx`: hidden when Priority is null, slide of about 0.4 s, click, hover outline and pointer cursor. The edge has the color of the side that has Priority.
+- `App.jsx`: the roll-off effect and `handleSetupPriority` write both fields in one transaction. `restartSetup` and an Override to `rollOff` clear both. `handleCharacterTokenGive` sets `lastActivated` to `character.team`. `handleCleanupPhase` passes Priority and adds the sentence to the HUD message. `handlePriorityClick`.
+- Docs: `round-phases.md` (new section "Priority marker"), `setup-game.md`, `key-shortcuts.md`, `scripts/README.md`.
+
+Deviations:
+
+- The spot is not next to the end of the board itself: the crisis card and its supply pile lie there (z 9.5 … 12.25, x up to -19.4). The marker lies beside them, at the mat edge (x -18.7, 0.3" from the mat edge at -18). It is the free place nearest to the board end.
+- The hover title is the native title of the canvas, set while the pointer is on the marker. A 3D piece has no DOM element for `title`.
+- The migrate script was run with the current TTS cache, which has 36 affiliation tokens, not 34. The two new ones (Intelligencia, Thunderbolts) are not part of this step and were left out of the commit (`affiliations.json` and their images are unchanged).
 
 ## Step 2: Log panel, setup, phase and Priority entries
 
