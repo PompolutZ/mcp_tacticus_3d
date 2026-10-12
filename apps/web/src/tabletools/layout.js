@@ -8,6 +8,7 @@
 
 import { MOVE_TIP, RANGE_TIP } from './toolTips.js'
 import { TACTIC_PLATE_WIDTH, tacticTrayPosition } from '../tactics/layout.js'
+import { ROSTER_ROWS_OUTER_Z } from '../rosters/layout.js'
 
 const sign = (side) => (side === 'blue' ? 1 : -1)
 
@@ -151,4 +152,20 @@ export function edgeControls(side) {
   const depth = EDGE_ARROW_HEIGHT + EDGE_ROW_GAP + EDGE_CHOOSE_HEIGHT
   const x = TACTIC_PLATE_WIDTH / 2 + EDGE_GAP + EDGE_WIDTH / 2
   return { x: x * s, z: tacticTrayPosition(side).z, width: EDGE_WIDTH, depth }
+}
+
+// The squad panel of the setup (Threat, Tactics, Squad ready, hint, problem) lies flat and facing its owner,
+// right below the roster rows (past the Team Tactic cards, row 2), centered in x. The free band is between the
+// far edge of row 2 (z 29.5) and the rack plate (RACK_Z_MIN 34.2), 4.7" deep; the panel keeps 0.25" free on
+// both sides. width lies along x. See docs/features/setup-game.md, "Buttons".
+// The character trays of a placed squad reach z 31.85, so a placed side (or the other player's panel, one
+// line "Choosing a squad" / "Ready") uses `compact`: a 1.6" band past the trays, z 32.1 to 33.7.
+export const SQUAD_PANEL_MARGIN = 0.25
+export const SQUAD_PANEL_WIDTH = 24
+const TRAYS_OUTER_Z = 31.85
+const COMPACT_DEPTH = 1.6
+export function squadPanel(side, compact = false) {
+  const z0 = (compact ? TRAYS_OUTER_Z : ROSTER_ROWS_OUTER_Z) + SQUAD_PANEL_MARGIN
+  const z1 = compact ? z0 + COMPACT_DEPTH : RACK_Z_MIN - SQUAD_PANEL_MARGIN
+  return { x: 0, z: ((z0 + z1) / 2) * sign(side), width: SQUAD_PANEL_WIDTH, depth: z1 - z0 }
 }

@@ -10,6 +10,7 @@ import {
   rackPlate,
   rackSlots,
   rackYaw,
+  squadPanel,
 } from './layout.js'
 import { crisisRowLayout, rosterLayout } from '../rosters/layout.js'
 import {
@@ -292,4 +293,50 @@ test('onRack: a point on the plate of a side is on that rack only', () => {
   assert.ok(!onRack('blue', { x: 16, z: 35 }))
   assert.ok(!onRack('blue', { x: 0, z: 33.9 }))
   assert.ok(!onRack('blue', { x: 0, z: 37 }))
+})
+
+const squadRect = (side, compact = false) => {
+  const q = squadPanel(side, compact)
+  return rect(q.x, q.z, q.width, q.depth)
+}
+
+test('the squad panel lies under the roster rows, in the start view, and mirrors for red', () => {
+  const blue = squadPanel('blue')
+  const red = squadPanel('red')
+  assert.equal(red.z, -blue.z)
+  assert.equal(red.width, blue.width)
+  assert.equal(blue.x, 0)
+  for (const side of TEAMS) {
+    for (const compact of [false, true]) {
+      const r = squadRect(side, compact)
+      const k = side === 'blue' ? 1 : -1
+      assert.ok(inside(r), side)
+      // Start view: bottom edge at z 37.47, half width 23.4 (docs/plans/table-tools.md)
+      assert.ok(Math.max(Math.abs(r.z0), Math.abs(r.z1)) <= 37.4, side)
+      assert.ok(Math.abs(r.x0) <= 23 && Math.abs(r.x1) <= 23, side)
+      // Past the Team Tactic row (blue: larger z)
+      assert.ok(k * (k > 0 ? r.z0 : r.z1) >= 29.5, side)
+    }
+  }
+})
+
+test('the squad panel does not overlap the full roster rows, the rack, the Power button or the edge controls', () => {
+  for (const side of TEAMS) {
+    const base = { 'power button': powerRect(side), 'edge controls': edgeRect(side) }
+    // The largest roster: 10 characters, 10 tactics
+    const parsed = {
+      characters: Array.from({ length: 10 }, (_, i) => ({ code: `c${i}`, gems: [] })),
+      tactics: Array.from({ length: 10 }, (_, i) => `t${i}`),
+    }
+    for (const card of rosterLayout(side, parsed))
+      base[`big roster ${card.code}`] = rect(card.x, card.z, card.width, card.height)
+    // The full panel shows before the squad is placed: no character trays yet
+    const full = { ...crowded(side), ...base }
+    for (const name of Object.keys(full)) if (name.startsWith('tray ')) delete full[name]
+    for (const [name, o] of Object.entries(full))
+      assert.ok(!overlap(squadRect(side), o), `${side} squad panel overlaps ${name}`)
+    // The compact panel (placed squad, other player) also clears the trays
+    for (const [name, o] of Object.entries({ ...crowded(side), ...base }))
+      assert.ok(!overlap(squadRect(side, true), o), `${side} compact squad panel overlaps ${name}`)
+  }
 })

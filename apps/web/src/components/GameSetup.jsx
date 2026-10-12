@@ -29,6 +29,7 @@ import {
   EDGE_CHOOSE_HEIGHT,
   EDGE_ROW_GAP,
   edgeControls,
+  squadPanel,
 } from '../tabletools/layout.js'
 
 const TYPE = { secure: 'Secure', extract: 'Extract' }
@@ -436,7 +437,7 @@ function BoardPanel({ setup, step, parsed, mySide, ctx, actions }) {
   )
 }
 
-// The squad buttons of a player, in their crisis area. The crisis cards are on the scoring board by now.
+// The squad buttons of a player, right below their roster rows (squadPanel in tabletools/layout.js), flat and facing them.
 // The roster cards have a + / ✓ button that adds them to the squad or removes them (RosterCards.jsx, App.jsx
 // handleSquadToggle). Squad ready works when the squad has a character and its threat is not above the Maximum
 // Threat. A squad with less threat is fine. While the player is ready, the button is Change squad and the squad
@@ -444,11 +445,13 @@ function BoardPanel({ setup, step, parsed, mySide, ctx, actions }) {
 function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
   const squad = setup.squads[team]
   const ready = setup.ready[team]
+  const compact = !own || placedSides(setup)[team]
+  const place = squadPanel(team, compact)
   // The other player in a multiplayer room (no squad is shown before the reveal), or a squad that is placed
-  if (!own || placedSides(setup)[team]) {
+  if (compact) {
     return (
-      <OnTable position={[CRISIS_GAP_X, TABLE_Y, crisisCenterZ(team)]}>
-        <div className="setup-panel">
+      <OnTable position={[place.x, TABLE_Y, place.z]} rotation={OWNER_FACING_ROTATION[team]}>
+        <div className="setup-panel setup-panel--squad">
           <div className="setup-note">{ready ? 'Ready' : 'Choosing a squad'}</div>
         </div>
       </OnTable>
@@ -462,8 +465,8 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
       ? 'Choose at least 1 character'
       : null
   return (
-    <OnTable position={[CRISIS_GAP_X, TABLE_Y, crisisCenterZ(team)]}>
-      <div className="setup-panel">
+    <OnTable position={[place.x, TABLE_Y, place.z]} rotation={OWNER_FACING_ROTATION[team]}>
+      <div className="setup-panel setup-panel--squad">
         <div className="setup-row">
           <span className={`setup-count${over ? ' setup-count--warn' : ''}`}>
             Threat {threat} / {setup.threat}
@@ -473,8 +476,6 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
           >
             Tactics {squad.tactics.length} / {TACTIC_LIMIT}
           </span>
-        </div>
-        <div className="setup-row">
           {ready ? (
             <button
               type="button"

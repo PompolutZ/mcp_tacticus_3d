@@ -53,6 +53,11 @@ function placeRow(groups, maxWidth = TABLE_WIDTH - TABLE_MARGIN * 2) {
   return { placed, scale, width: natural * scale }
 }
 
+// Outer z (far from the mat) of roster row 2 for blue. Row 2 holds at most 10 tactics, 10 x 2.5" + gaps = 27.7"
+// wide, so it is never scaled and always ends here. The squad panel lies past it (tabletools/layout.js).
+export const ROSTER_ROWS_OUTER_Z =
+  TACTIC_TRAY_OUTER_Z + ROW_GAP + TRAY_CARD_HEIGHT + ROW_GAP + TACTIC_CARD_HEIGHT
+
 const side = (team) => (team === 'blue' ? 1 : -1)
 // A card faces its owner, the same as a tray card: for blue, the image top points to -z
 const cardYaw = (team) => (team === 'blue' ? 0 : Math.PI)

@@ -780,6 +780,13 @@ body {
   user-select: none;
 }
 
+.setup-panel--squad {
+  max-width: 800px;
+  padding: 6px 10px;
+  gap: 4px;
+  font-size: 12px;
+}
+
 .setup-row,
 .setup-buttons {
   display: flex;
