@@ -13,7 +13,8 @@
 
 - Each plan runs in its own worktree `../mcp_assist_3d-<plan>`, on branch `<plan>` from main. The coder works only there.
 - The main dir is only for user tests.
-- Work done: remove the worktree. In the main dir, switch to the branch and merge main into it. The user tests. After the OK: fast-forward main, delete the branch.
+- Work done: in the worktree, merge main into the branch. In the main dir, `git switch --detach <plan>`. The user tests. Fixes go in the worktree, then the main dir moves to the new head the same way.
+- After the OK: fast-forward main, remove the worktree, delete the branch.
 - At most 2 plan branches are open at a time. A change across many files (a rename) runs when no other branch is open.
 - A new worktree has no `.env` files. Lint, tests and build do not need them.
 
