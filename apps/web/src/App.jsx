@@ -604,7 +604,14 @@ export default function App({
     )
     const known = seenWaiting.current
     seenWaiting.current = ids
-    if (known && [...ids].some((id) => !known.has(id))) playSound('notice')
+    if (!known) return
+    const fresh = waitingTokens(tokens).filter((t) => ids.has(t.id) && !known.has(t.id))
+    if (!fresh.length) return
+    playSound('notice')
+    // The Range 2 tool snaps to the model once per drop. Only the own tool can be written, so in the Sandbox
+    // and a single player room it is the own tool also for a token of the other side.
+    const characterId = fresh.find((t) => t.placeFrom?.characterId)?.placeFrom.characterId
+    if (characterId) placeTool('range', 2, { kind: 'character', id: characterId }, null)
   }, [tokens, multiplayerRoom, ownSide])
   const toolsOnTable = (item) => settings.tools[item] === 'table'
   // The own rack is on the table, so a tool dropped on it goes back to it

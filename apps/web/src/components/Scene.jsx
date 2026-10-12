@@ -28,7 +28,8 @@ import ToolDragGhost from './ToolDragGhost.jsx'
 import SpectatorBadge from './SpectatorBadge.jsx'
 import Terrain from './Terrain.jsx'
 import CrisisCard from './CrisisCard.jsx'
-import CrisisToken from './CrisisToken.jsx'
+import CrisisToken, { TOKEN_RADIUS } from './CrisisToken.jsx'
+import { clampWaiting } from '../tokens/dropWait.js'
 import LooseToken from './LooseToken.jsx'
 import TokenDragPreview, { OtherSpawnPreview } from './TokenDragPreview.jsx'
 import ToolPoint from './ToolPoint.jsx'
@@ -1317,6 +1318,7 @@ export default function Scene({
                   : (over) => onPieceHover?.({ kind: 'token', id: tok.id }, over)
               }
               canDrag={!tok.placeBy || playedSides.includes(tok.placeBy)}
+              constrainDrag={tok.placeBy ? (p) => clampWaiting(tok, p, TOKEN_RADIUS) : null}
               onMove={(x, z) => onTokenMove(tok.id, x, z)}
               onTurn={(yaw) => onTokenTurn(tok.id, yaw)}
               ownership={ownership}

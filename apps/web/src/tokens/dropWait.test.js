@@ -1,6 +1,9 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
+  RANGE_2,
+  clampToRange,
+  clampWaiting,
   joinNames,
   modelsToReturn,
   placedToken,
@@ -67,4 +70,32 @@ test('a placed token has no wait and is not held', () => {
   assert.equal(placed.heldBy, null)
   assert.deepEqual([placed.x, placed.z], [4, 5])
   assert.equal(placedToken({ ...waits('a', 'c1'), x: 7, z: 8 }, null).x, 7)
+})
+
+test('Range 2 is the length of the Range 2 tool', () => {
+  assert.equal(RANGE_2, 3.002)
+})
+
+test('clampToRange keeps a point inside, and cuts one outside along the line to the centre', () => {
+  const centre = { x: 1, z: 1 }
+  const inside = { x: 2, z: 2 }
+  assert.equal(clampToRange(inside, centre, 5), inside)
+  const out = clampToRange({ x: 11, z: 1 }, centre, 4)
+  assert.deepEqual(out, { x: 5, z: 1 })
+  const diag = clampToRange({ x: 4, z: 5 }, centre, 2.5)
+  assert.ok(Math.abs(diag.x - 2.5) < 1e-9 && Math.abs(diag.z - 3) < 1e-9)
+  assert.equal(clampToRange({ x: 1, z: 1 }, centre, 0).x, 1)
+})
+
+test('a waiting token stays within base radius + Range 2 + token radius', () => {
+  const token = { placeBy: 'guest', placeFrom: from('c1') }
+  const p = clampWaiting(token, { x: 100, z: 2 }, 0.5)
+  assert.ok(Math.abs(p.x - (1 + 0.5 + RANGE_2 + 0.5)) < 1e-9)
+  assert.equal(p.z, 2)
+})
+
+test('a token that does not wait is not limited', () => {
+  const point = { x: 100, z: 2 }
+  assert.equal(clampWaiting({ placeBy: null, placeFrom: null }, point, 0.5), point)
+  assert.equal(clampWaiting({ placeBy: 'host', placeFrom: null }, point, 0.5), point)
 })

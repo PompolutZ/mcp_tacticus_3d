@@ -1,6 +1,6 @@
 # Plan: Game flow
 
-Requested by the user on 2026-10-12. Plan 4 of `docs/plans/playtest-1.md`. Status: OK by the user on 2026-10-12, in progress. Branch `game-flow`, from `setup-round-2` at `2c8f5d0`.
+Requested by the user on 2026-10-12. Plan 4 of `docs/plans/playtest-1.md`. Status: all steps done, waiting for the user's test. Branch `game-flow`, from `setup-round-2` at `2c8f5d0`.
 
 The branch starts from `setup-round-2`, not from main, because this plan needs its roll off, `setup.priority` and the side keys `host` / `guest`. `setup-round-2` merges into main first. Then this branch merges main.
 
@@ -376,7 +376,20 @@ User, after this step:
 
 ### Result
 
-(empty)
+Built, as planned. Checks pass. No browser test was done.
+
+- `src/tokens/dropWait.js`: `RANGE_2`, `clampToRange(point, centre, maxDistance)` and `clampWaiting(token, point, tokenRadius)`. Tests in `dropWait.test.js`.
+- Range 2 number: 3.002". `snapPose` (`RulerTool.jsx`) puts the tool centre at base radius + `RANGE_TIP[2]` (1.501) from the base centre, so one end touches the base edge. The far end is then 2 × 1.501 = 3.002 from the edge. The limit is base radius + 3.002 + token radius (0.5), measured from `placeFrom`.
+- `Scene.jsx` passes `constrainDrag` (`clampWaiting`) to a token with `placeBy`. Nothing else in `CrisisToken.jsx` changed.
+- `App.jsx`: the effect that plays the notice also calls `placeTool('range', 2, { kind: 'character', id }, null)` for the first new drop of the update. A token that waits when the table opens snaps nothing.
+- Docs: `character-trays.md`, "Hold and drop".
+
+Deviations and notes:
+
+- Only the own side's tool can be written. So in the Sandbox and a single player room the own (host) tool snaps, also when the guest places. The tool code has no way to snap the guest tool.
+- `placeTool` also selects the model, as the key 2 does.
+- If two characters drop in one update, only the first one gets the tool.
+- A release is not limited: the clamp acts during the drag, and the release point is the last clamped pose. Done places where it lies.
 
 ## Open questions
 
