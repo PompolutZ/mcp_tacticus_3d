@@ -1,6 +1,6 @@
 # Plan: Table sounds
 
-Requested by the user on 2026-10-12, after the test of `game-flow.md`. Status: all steps done, steps 6 and 7 waiting for the user's test. Branch `table-sounds`, from main at `21ca644`.
+Requested by the user on 2026-10-12, after the test of `game-flow.md`. Status: done. The user tested it on 2026-10-12. Branch `table-sounds`, from main at `21ca644`.
 
 Each step makes one commit and writes its **Result** below. Feature docs change in the same step as the code.
 
