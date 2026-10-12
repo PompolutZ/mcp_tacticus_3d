@@ -49,7 +49,7 @@ const LIBRARY_ROWS = [
 // characters: the characters on the table (App state). The ones of the chosen player show green.
 // onSpawnCharacter(ch): a click on a character with a 3D model; ch has team set to the chosen player.
 // onSpawnTactic(key, team): a click on a tactic card.
-// onTokenDragStart(e, key, mode): a pointerdown on a token chip starts a drag in App.jsx. mode:
+// onTokenDragStart(e, key, mode): a pointerdown on a token chip starts a drag in drag/useTokenDrag.js. mode:
 // 'single' | 'pile'.
 export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onTokenDragStart }) {
   const [query, setQuery] = useState('')

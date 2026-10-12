@@ -237,7 +237,7 @@ const OVERLAP_INTERVAL = 100
 // onCharacterOffBoard(id): the tray's Remove button, enabled while a model of the character is on the mat.
 // onCharacterTokenRemove(id, key): a click on a token in the tray's "On" row.
 // onTokenDragStart(e, key, looseId, giveId): pointerdown on a tray's Give source (giveId: the character of the
-// tray), or on a token on the table (looseId). See App.jsx, handleTokenDragStart.
+// tray), or on a token on the table (looseId). See drag/useTokenDrag.js, handleTokenDragStart.
 // onCardHover(card, over): the pointer moved onto or off a card or a model, card as { src, alt, by }, for Alt
 // (App.jsx).
 // looseTokens: the character tokens that lie on the table, [{ id, key, x, z }] (see App.jsx).
@@ -251,9 +251,9 @@ const OVERLAP_INTERVAL = 100
 // toolDrag: the drag of a tool from the rack, { kind, which, active, start } | null (tabletools/useTableTools.js). While it is active, a
 // flat outline of the tool follows the pointer (ToolDragGhost). toolDragPointRef: the ghost writes the table point
 // under the pointer there, for the drop (useTableTools.js).
-// tokenDrag: the token drag in progress, see App.jsx. While it is active, the dragged token shows
+// tokenDrag: the token drag in progress, see drag/useTokenDrag.js. While it is active, the dragged token shows
 // under the pointer (TokenDragPreview) and, for a token from the table, not in its old place.
-// dragPointRef: the preview writes the table point under the pointer there, for App's release.
+// dragPointRef: the preview writes the table point under the pointer there, for the release in drag/useTokenDrag.js.
 // rosters: { host, guest } → null | { code }, the loaded rosters (RosterCards.jsx). onRosterOpen({ team, tab,
 // index }): a click on a roster card. It opens the roster popup on that card (see RosterPopup.jsx).
 // squadEdit: { host, guest } → true: the roster cards of that side have the + / ✓ button, and onSquadToggle(team,

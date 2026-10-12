@@ -14,7 +14,7 @@ import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
 const GAP = 0.02
 
 // The dragged token, real size, TOKEN_DRAG_LIFT above the table or terrain point under the pointer
-// (see App.jsx, the token drag). children: the token, with its bottom at y = 0 and no pointer events: a character
+// (see drag/useTokenDrag.js). children: the token, with its bottom at y = 0 and no pointer events: a character
 // token (TokenFace) or a crisis supply token (SupplyPile.jsx, SupplyToken). The pointer tracking is
 // outside the Suspense, so it works while the token image still loads. pointRef: App reads the last
 // point, { x, y, z } or null, on release.

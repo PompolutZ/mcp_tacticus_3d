@@ -167,7 +167,7 @@ export function useCrisisTokens({
     })
   }
 
-  // A new supply token from the pile of a Source card (handleTokenRelease), with the id of the drag. Released over a
+  // A new supply token from the pile of a Source card (handleTokenRelease in drag/useTokenDrag.js), with the id of the drag. Released over a
   // character: that character holds it, at the default place on its card, the same as
   // handleTokenHold. Otherwise it lies on the table at (x, z).
   function handleSupplyTake(cardKey, x, z, characterId, id) {

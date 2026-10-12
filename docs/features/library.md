@@ -81,7 +81,7 @@ A pile has no physics body. It lies on the table or on the terrain under it, the
 - `libraryOpen`: the panel is open.
 - The search text, the tab, the player and the token mode are state of the panel itself. They stay while the panel is closed, because the panel only hides.
 - `tokenPiles: [{ id, key, x, z, card? }]` in `App.jsx`, the same shape as `looseTokens` plus the optional `card` (see Pile). Old documents have no `card`. All fields are plain JSON, so they fit into a map of the Yjs document in `docs/features/peer-to-peer.md`.
-- The token drag (`tokenDrag` in `App.jsx`) gets two new fields: `pile` (the drag brings a new pile) and `pileId` (the drag moves this pile).
+- The token drag (`tokenDrag` in `src/drag/useTokenDrag.js`) gets two new fields: `pile` (the drag brings a new pile) and `pileId` (the drag moves this pile).
 
 ## Out of scope
 

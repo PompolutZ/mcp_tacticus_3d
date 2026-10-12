@@ -20,7 +20,7 @@ export function SupplyToken({ tokenKey, ...props }) {
 
 // The supply of a Source card (Asset or Civilian), next to its card (crisis/layout.js,
 // supplyPilePosition). It never runs out, the same as a Give source of a tray: a left drag takes a
-// new token from it (App.jsx, handleSupplyDragStart). The pile itself never moves. It lies on the
+// new token from it (drag/useTokenDrag.js, handleSupplyDragStart). The pile itself never moves. It lies on the
 // table, which is flat there, so it does not look for the ground under it.
 // tokenKey: the supply token key (cards.json, supply). position: { x, z }.
 // onDragStart(nativeEvent): a left pointerdown on the pile.

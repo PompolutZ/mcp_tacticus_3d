@@ -49,7 +49,7 @@ const CLICK_MOVE = 4
 // character; the tray has no click target of its own for that.
 // onAttachedOpen(code): a click on a gem chip (TrayControls.jsx).
 // onTokenRemove(key): a click on an "On" token removes one. onTokenDragStart(nativeEvent, key): a
-// left pointerdown on a Give source starts a drag of a new token (App.jsx, handleTokenDragStart).
+// left pointerdown on a Give source starts a drag of a new token (drag/useTokenDrag.js, handleTokenDragStart).
 // A source never runs out. The objective tokens the character holds lie on the card, but they are
 // crisis tokens, so Scene.jsx draws them (see "Hold and drop").
 // position: the tray's table position, from trays.js layoutTrays (Scene.jsx).

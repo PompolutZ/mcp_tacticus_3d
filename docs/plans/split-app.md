@@ -412,6 +412,18 @@ User: a drag from a Give source, the Library (single and pile), a pile, Shift + 
 
 ### Result
 
+New `src/drag/useTokenDrag.js` holds `tokenDrag` (state), `tokenDragRef`, `tokenDragHandleRef`, `dragPointRef`, `handleTokenDragStart`, `handleLibraryTokenDragStart`, `handlePileTakeStart`, `handlePileMoveStart`, `handleSupplyDragStart`, `startTokenDrag`, `endTokenDrag`, `cancelTokenDrag`, `findCharacterAt` and `handleTokenRelease`. Bodies are unchanged, except the release (below). `App` destructures `tokenDrag`, `dragPointRef`, `findCharacterAt`, the five start handlers and `cancelTokenDrag` back into the same names. The call stands after `useGameSetup`, so after the hooks of steps 8-10, and before `useTableKeys`. The hook has no effect and no memo. The drag callbacks keep the closure of the render of the press, as before. The hook takes `table`, `ownership`, `pieceLives`, `controlsRef`, `characterAtRef`, `setLooseTokens`, `setTokenPiles`, `handleCharacterTokenGive`, `handleSupplyTake` and `handleLooseRemove`; all are used.
+
+New `src/drag/tokenDrop.js` (loads in Node): `tokenDropTarget(drag, { characterId, point })` gives `movePile`, `newPile`, `supplyHeld`, `supplyTable`, `give`, `moveLoose`, `newLoose` or null, with the branch order of the old release. The release split cleanly: the `.scene-root` check and `findCharacterAt` stay in `handleTokenRelease`, then it switches on the result and runs the old branch bodies. 5 new tests in `tokenDrop.test.js` cover every result and the branch order.
+
+Pointers fixed in `Scene.jsx`, `Library.jsx`, `SupplyPile.jsx`, `TokenDragPreview.jsx`, `CharacterTray.jsx`, `useCrisisTokens.js` and `library.md`.
+
+Effect order, before and after: E2 and `useWindowKeys` (layout), E1, E3, E4, E5, E6, window listeners, E8, E9, E10. Same. The hook has no effect.
+
+Checks: `pnpm format`, `pnpm lint` (45 warnings before and after), `pnpm test` (593 web tests pass, 5 new), `pnpm --filter web build`, debug grep 0, use-before-define check 0 lines. Removed lines of `App.jsx` all appear in the hook, except the release conditions (now in `tokenDropTarget`) and the imports.
+
+Deviations: the release reads `dragPointRef.current` once before the switch; the old code read it per branch (the ref does not change inside the call). The unused `pile` is no longer destructured in the release. In the old supply branch `supplyPilePosition` ran also when the drop was on the table; now it runs only for `supplyHeld`, where its result is used. `TokenPile.jsx` and `Scene.jsx` pointers that name state staying in `App` are unchanged.
+
 ## Step 15: Roster popup host
 
 Needs step 13.
