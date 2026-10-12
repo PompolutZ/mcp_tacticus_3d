@@ -4,7 +4,7 @@ import { OrbitControls } from '@react-three/drei'
 import { assetUrl } from './assets/index.js'
 import Scene from './components/Scene.jsx'
 import SelectionOutlines from './components/SelectionOutlines.jsx'
-import { COLOR_NAME, DEFAULT_SIDE_COLORS, setSideColors } from './sideColors.js'
+import { DEFAULT_SIDE_COLORS, setSideColors } from './sideColors.js'
 import { Toolbar } from './components/Toolbar.jsx'
 import { Library } from './components/Library.jsx'
 import { LogPanel } from './components/LogPanel.jsx'
@@ -30,20 +30,10 @@ import { startPointerDrag } from './drag/pointerDrag.js'
 import { getCard } from './crisis/cards.js'
 import { newCharacter } from './characters/newCharacter.js'
 import { supplyPilePosition } from './crisis/layout.js'
-import {
-  characterByCode,
-  characterIsGrunt,
-  characterName,
-  characterPowerBonus,
-} from './characters/characters.js'
+import { characterByCode } from './characters/characters.js'
 import { characterOnBoard, modelCharacterId } from './characters/models.js'
-import { powerAfterPhase } from './characters/power.js'
-import { cleanupBlockers, cleanupCharacter } from './characters/cleanup.js'
-import { cleanupCrisisTokens } from './crisis/cleanup.js'
 import { DEFAULT_AFFILIATION, affiliationName, autoAffiliation } from './scoreboard/affiliations.js'
-import { ROUND_POINTS, nextRoundSpot } from './scoreboard/board.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
-import { CLEANUP_KEYS } from './tokens/tokens.js'
 import { firstFreeSlot } from './tactics/layout.js'
 import { formatMctCode, isEmptyRoster } from './rosters/mct.js'
 import { DEFAULT_FILTERS } from './rosters/breakdown.js'
@@ -68,7 +58,6 @@ import {
   chooseEdge,
   chooseThreat,
   newSetup,
-  finishDeploy,
   priorityOf,
   otherTeam,
   otherType,
@@ -92,7 +81,7 @@ import {
   viewOf,
 } from './setup/setup.js'
 import { readRollOff } from './setup/rollOff.js'
-import { gamePriority, priorityAfterCleanup, priorityNote, priorityTitle } from './game/priority.js'
+import { gamePriority, priorityTitle } from './game/priority.js'
 import { FACES } from './dice/faces.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
@@ -110,6 +99,7 @@ import { tableSeat } from './rooms/seat.js'
 import { useCrisisTokens } from './crisis/useCrisisTokens.js'
 import { useCharacterActions } from './characters/useCharacterActions.js'
 import { useTablePieces } from './pieces/useTablePieces.js'
+import { usePhaseActions } from './game/usePhaseActions.js'
 import HudNotice from './components/HudNotice.jsx'
 import { HudWarnings } from './components/HudWarnings.jsx'
 import { useHudMessage } from './components/useHudMessage.js'
@@ -520,119 +510,30 @@ export default function App({
     else if (piece?.kind === 'tactic') handleTacticFlip(piece.id)
   }
 
-  // Power button in the toolbar and the Power Phase buttons on the table (docs/features/round-phases.md). Gives
-  // the Power of the Power Phase to each non-Grunt character of `sides` that has a model on the mat. The
-  // toolbar passes the played sides, a table button its own side. The updater form reads the list
-  // now, not at the last render, so a change the other browser just made is kept. The updater runs
-  // inside setCharacters, so gains is filled when the HUD message is built.
-  function handlePowerPhase(sides) {
-    const gains = []
-    table.transact(() => {
-      // The first Power Phase ends the deployment: the setup is done and Deploy Lock is off
-      const current = table.setup.read()
-      if (setupStep(current) === 'deploy') {
-        setSetup((prev) => finishDeploy(prev))
-        setDeployLine(false)
-        writeLog('deployed', {}, `deployed:${current.id}`)
-      }
-      setCharacters((prev) =>
-        prev.map((ch) => {
-          if (!sides.includes(ch.team) || !characterOnBoard(ch, poses)) return ch
-          if (characterIsGrunt(ch.key)) return ch
-          const power = powerAfterPhase({
-            power: ch.power,
-            bonus: characterPowerBonus(ch.key, ch.side),
-            gems: ch.attached,
-            stun: ch.tokens?.stun ?? 0,
-            poison: ch.tokens?.poison ?? 0,
-            grunt: false,
-          })
-          gains.push({ side: ch.team, name: characterName(ch.key), from: ch.power, to: power })
-          return { ...ch, power }
-        }),
-      )
-      // One entry for each side that gained Power
-      for (const side of sides) {
-        const own = gains.filter((gain) => gain.side === side)
-        if (own.length > 0)
-          writeLog('power', {
-            side,
-            gains: own.map(({ name, from, to }) => ({ name, from, to })),
-          })
-      }
-    })
-    // With one side, the message names it
-    const title =
-      sides.length === 1
-        ? `Power Phase (${COLOR_NAME[colorOf(sides[0], setup, Boolean(room))]})`
-        : 'Power Phase'
-    showHudMessage(
-      gains.length === 0
-        ? `${title}: none of your characters is on the board`
-        : `${title}: ${gains.map((g) => `${g.name} ${g.from} → ${g.to}`).join(', ')}`,
-      8000,
-    )
-  }
-
-  // Cleanup chip state (docs/features/round-phases.md, decision 8): off while a character on the board has
-  // neither Activated nor Dazed, and while no character is on the board.
-  const cleanupBlocked = cleanupBlockers(characters, poses)
-  const cleanupEmpty = !characters.some((ch) => characterOnBoard(ch, poses))
-  const cleanupDisabled = cleanupEmpty || cleanupBlocked.length > 0
-  const cleanupTitle = cleanupEmpty
-    ? 'Cleanup Phase: no character is on the board.'
-    : cleanupBlocked.length > 0
-      ? `Each character on the board needs an Activated or Dazed token: ${cleanupBlocked.map((ch) => characterName(ch.key)).join(', ')}.`
-      : 'Cleanup Phase for both players. Score VP first.'
-
-  // Cleanup button in the toolbar (docs/features/round-phases.md): both sides at once, in one transaction.
-  // It checks the blockers again at the click, and does nothing when blocked. Each write uses the updater
-  // form, which reads the list now and runs inside set, so flipped and the round are filled after the
-  // transaction. flipped lists the Dazed characters, also one that was already Injured.
-  function handleCleanupPhase() {
-    if (cleanupBlockers(characters, poses).length > 0 || cleanupEmpty) return
-    const flipped = []
-    let round = null
-    // Priority passes when its holder activated last (p12). Read now, inside the transaction.
-    const before = gamePriority(table.game.read(), table.setup.read())
-    const after = priorityAfterCleanup(before, table.game.read().lastActivated)
-    table.transact(() => {
-      setCharacters((prev) =>
-        prev.map((ch) => {
-          if ((ch.tokens?.dazed ?? 0) > 0) flipped.push(characterName(ch.key))
-          return cleanupCharacter(ch, CLEANUP_KEYS)
-        }),
-      )
-      setLooseTokens((prev) => prev.filter((t) => !CLEANUP_KEYS.includes(t.key)))
-      setTokens((prev) => cleanupCrisisTokens(prev, getCard))
-      setScoreMarkers((prev) => {
-        const spot = prev?.round ? nextRoundSpot(prev.round) : null
-        if (!spot) return prev
-        round = ROUND_POINTS.indexOf(spot) + 1
-        return { ...prev, round: { x: spot.x, z: spot.z } }
-      })
-      if (after !== before) table.game.setField('priority', after)
-      table.game.setField('lastActivated', null)
-      writeLog('cleanup', { round, flipped, before, after })
-    })
-    const head =
-      round === null
-        ? 'Cleanup Phase: the round marker is not on the round track, so it did not move.'
-        : `Cleanup Phase: round ${round}.`
-    const note = priorityNote(before, after, nameCtx)
-    const text = flipped.length > 0 ? `${head} Flipped: ${flipped.join(', ')}.` : head
-    showHudMessage(note ? `${text} ${note}` : text, 8000)
-  }
-
-  // A click on the Priority marker gives Priority to the other side. Any player can click, also in a
-  // multiplayer room, because cards change Priority.
-  function handlePriorityClick() {
-    if (!priority) return
-    table.transact(() => {
-      setPriorityField(otherTeam(priority))
-      writeLog('priority', { side: otherTeam(priority) })
-    })
-  }
+  const {
+    handlePowerPhase,
+    cleanupDisabled,
+    cleanupTitle,
+    handleCleanupPhase,
+    handlePriorityClick,
+  } = usePhaseActions({
+    table,
+    room,
+    setup,
+    characters,
+    poses,
+    priority,
+    nameCtx,
+    setSetup,
+    setDeployLine,
+    setCharacters,
+    setLooseTokens,
+    setTokens,
+    setScoreMarkers,
+    setPriorityField,
+    writeLog,
+    showHudMessage,
+  })
 
   // Loads the roster text of one team. A text with no known code keeps the old roster. Unknown
   // codes are named in the HUD, the known ones load. The game setup starts again, because it points to

@@ -339,6 +339,16 @@ User: Power (toolbar and table buttons) and its texts; the Cleanup button state 
 
 ### Result
 
+New `src/game/usePhaseActions.js` holds `handlePowerPhase`, `handleCleanupPhase`, `handlePriorityClick`, `cleanupDisabled` and `cleanupTitle`. Bodies are unchanged except the three extractions below. `App` destructures the result into the same names. The call stands where `handlePowerPhase` stood, after `useTablePieces`. The hook has no effect and no memo. `handleCleanupPhase` still reads `cleanupEmpty` of the render (stale closure kept).
+
+New `src/game/phases.js` (loads in Node): `cleanupStatus(characters, poses, nameOf)` gives `{ blocked, empty, disabled, title }` with the old conditions and strings. `powerPhaseText(gains, sides, colorName)` builds the Power HUD message; `colorName(side)` is only called with one side. `cleanupText(round, flipped, note)` builds the Cleanup HUD message. The old call sites call them. `characterName` and the color lookup come in as functions. 5 new tests in `phases.test.js`.
+
+Effect order, before and after: E2 and `useWindowKeys` (layout), E1, E3, E4, E5, E6, window listeners, E8, E9, E10. Same. The hook has no effect.
+
+Checks: `pnpm format`, `pnpm lint` (45 warnings before and after), `pnpm test` (582 web tests pass, 5 new), `pnpm --filter web build`, debug grep 0. The diff of the old block against the hook shows only the three extractions. No pointers needed (the `App.jsx` pointers in `round-phases.md` name things that stay).
+
+Deviations: none. `usePhaseActions` takes `table`, `room`, `setup`, `characters`, `poses`, `priority`, `nameCtx`, the setters, `writeLog` and `showHudMessage`; all are used.
+
 ## Step 12: Roll-off reader
 
 Work:
