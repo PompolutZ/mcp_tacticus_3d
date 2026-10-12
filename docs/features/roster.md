@@ -153,7 +153,7 @@ The app has files for 65 of 233 character codes, 69 of 401 Team Tactic codes and
 - Both links show the Jarvis logo: the Jarvis site icon, 64 px, in `src/assets/jarvis-logo.webp`.
 - Escape, **×** in the top right corner of the screen, or a click on the backdrop closes the popup. A new load or **×** of that roster also closes it.
 
-`App.jsx` stores the open popup as `openRoster: { team, tab, index } | null`. App handles all keys (see `keyboard.js`), so App also owns the shown card. A drag in the carousel reports the new card to App.
+`App.jsx` stores the open popup as `openRoster: { team, tab, index } | null`. `useTableKeys` handles all keys (see `keyAction` in `keyboard.js`), so App also owns the shown card. A drag in the carousel reports the new card to App.
 
 ## State
 

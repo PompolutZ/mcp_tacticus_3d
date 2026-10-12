@@ -222,6 +222,27 @@ User: every key of `docs/features/key-shortcuts.md`, also in a text field, with 
 
 ### Result
 
+`keyAction(e, state)` is in `src/keyboard.js`. It is pure. It returns `{ action, preventDefault?, ... }` or null, with the first match in the order of the old `handleKeyDown`. `PRESS_KEYS` (F, R, L, P → action name) is new there, so the first-press keys have a code table. `useWindowKeys`, the key constants and `isEditing` stay in `keyboard.js`.
+
+`src/hover.js` has `deleteTarget(h)` and `flipTarget(h, selection)`. `deleteTarget` is the same `if` chain, so a falsy id is skipped. `flipTarget` is the same `??` / `&&` chain, so a falsy id other than null or undefined stops it. `handleFlipKey` stays in `App`, its body calls `flipTarget(hoveredNow(), selection)` instead of the inline chain. `hoveredNow` is `current()` of `useHovered`. The seven hover refs that only the key handler read are no longer destructured in `App`.
+
+`src/useTableKeys.js` owns `heldPan`, `heldTurn` and `heldRotate`, the new `handleKeyDown` (run `keyAction`, `preventDefault` if asked, call the handler), and `handleKeyUp` and `handleBlur` unchanged. It calls `useWindowKeys` itself. It handles pan, turn and rotate; `App` gives a table for the other actions, `state()` and `altUp`. The table, `state` and `deleteHandlers` are built in `App` after `useDebugLook`, and `useTableKeys` is the last hook call before `return`. Handler bodies stay in `App` as before. The table is built on every render, no `useCallback`.
+
+Effect order in `App`: E1, layout effect (E2), E3 (inside `useSelection`), `useLogSounds`, `useRemoteDropSounds`, the wait effect (E6), E8, E9, look (E10 inside `useDebugLook`), then the window handler update (layout) and the window listeners (mount only) in `useTableKeys`. Only the last one moved (Decision 4). The layout handler update also moved to the end; it runs before every passive effect in any case.
+
+Tests: `keyboard.test.js` (22) covers Alt peek during drags and popups, drag-only Escape with the token drag over the tool drag, popup rules with arrow keys only for the roster popup, the Escape chain, the modifier and text field guard, Escape skipping it, Delete on repeat, pan and turn on repeat, Space (first press and repeat), Q / E, F R L P on repeat, tool keys, dice keys over the own tray before 6 and 0, and that the code tables PAN, TURN, ROTATE, RESET and PRESS do not overlap. `hover.test.js` (7) covers both target orders and falsy ids. Both load in Node.
+
+Pointers fixed: `keyboard.js` (the header and the Delete comment), `key-shortcuts.md:18`, `roster.md:156`, and three `handleKeyDown` comments in `App.jsx`. `ping.md:25` and the other `keyboard.js` comments (`handleFlipKey`, `handleLockKey`, `handlePingKey`) were already right.
+
+Checks: `pnpm format`, `pnpm lint` (45 warnings before and after), `pnpm test` (568 web tests pass, 29 new), `pnpm --filter web build`, debug grep 0.
+
+Differences of the plan list to the code (the code won, no code change):
+
+- The popup rule holds for any popup: card, tray, roster and settings. The plan names card and tray.
+- The Alt peek passes `blocked` for the same four cases (drag, popup) and calls `preventDefault` first, as the code did.
+
+Deviations: the table keys `pan`, `turn` and `rotate` are handled in `useTableKeys` and not in the `App` table, because the held maps live there. The Space reset action is returned also on repeat (with `first: false`), so `preventDefault` runs on repeat as before. `overlayOpen` (planned for the end) is not part of this step.
+
 ## Step 7: Table tools
 
 Work:

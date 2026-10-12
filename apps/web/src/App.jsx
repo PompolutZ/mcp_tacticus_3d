@@ -11,6 +11,8 @@ import { LogPanel } from './components/LogPanel.jsx'
 import { addEntry, logEntry } from './log/log.js'
 import { logWriter } from './log/writer.js'
 import { useHovered } from './useHovered.js'
+import { deleteTarget, flipTarget } from './hover.js'
+import { useTableKeys } from './useTableKeys.js'
 import { useCardPeek } from './components/useCardPeek.js'
 import { usePing } from './components/usePing.js'
 import { useSelection } from './useSelection.js'
@@ -139,25 +141,6 @@ import {
   selectedId,
   toolSelects,
 } from './selection.js'
-import {
-  ANGLE_KEY,
-  CARD_STEP_KEYS,
-  CLEAR_TOOLS_KEY,
-  DELETE_KEYS,
-  DICE_KEYS,
-  FLIP_KEY,
-  LIFT_KEY,
-  LOCK_KEY,
-  MOVE_KEYS,
-  PAN_KEYS,
-  PING_KEY,
-  RANGE_KEYS,
-  RESET_VIEW_KEY,
-  ROTATE_KEYS,
-  TURN_KEYS,
-  isEditing,
-  useWindowKeys,
-} from './keyboard.js'
 
 // Dice that each player rolls in the roll off
 const ROLL_OFF_DICE = 5
@@ -316,13 +299,6 @@ export default function App({
   // What is under the pointer, for the keys (useHovered.js)
   const {
     hoveredRef,
-    hoveredTerrainRef,
-    hoveredLooseRef,
-    hoveredPileRef,
-    hoveredTacticRef,
-    hoveredHeldRef,
-    hoveredTrayCardRef,
-    diceTrayHoveredRef,
     handlePieceHover,
     handleTerrainHover,
     handleHeldHover,
@@ -331,12 +307,8 @@ export default function App({
     handlePileHover,
     handleTacticHover,
     handleDiceTrayHover,
+    current: hoveredNow,
   } = useHovered()
-  // Pan and turn keys held down: key code → screen direction. KeyboardCamera moves the camera while one is held.
-  const heldPan = useRef(new Map())
-  const heldTurn = useRef(new Map())
-  // Q / E held down: key code → direction. Scene turns the piece on while one is held (see turnPiece).
-  const heldRotate = useRef(new Map())
   const controlsRef = useRef(null)
   const wheelCameraRef = useRef(null)
   // Scene fills it: { atPointer(), atCenter() }, table points for a free tool spawn (ToolPoint.jsx)
@@ -352,7 +324,7 @@ export default function App({
   const [openRoster, setOpenRoster] = useState(null)
   // The open "Change to" menu of a shelf die, at most one across both
   // trays: { trayKey, dieId } | null. Lifted here, not into DiceKeys, so Escape can close it (see
-  // handleKeyDown).
+  // keyAction in keyboard.js).
   const [diceMenu, setDiceMenu] = useState(null)
   // The Library HUD panel (see Library.jsx), toggled by its toolbar button.
   const [libraryOpen, setLibraryOpen] = useState(false)
@@ -597,132 +569,6 @@ export default function App({
     else spawnTool('angle', true, toolbarSpawnAt(target))
   }
 
-  // Every key press of the app is handled here, so that the same key can do different things in
-  // different states. The states now: a card or tray popup is open, or the table is in use.
-  // The keys are in keyboard.js.
-  function handleKeyDown(e) {
-    if (e.key === 'Alt') {
-      // Windows moves the focus to the browser menu on a bare Alt
-      e.preventDefault()
-      altDown(!!(tokenDrag || toolDrag || openCard || openTrayId || openRoster || settingsOpen))
-      return
-    }
-    if (tokenDrag) {
-      // Escape cancels the drag. Other keys do nothing while a token is under the pointer.
-      if (e.key === 'Escape') cancelTokenDrag()
-      return
-    }
-    if (toolDrag) {
-      // The same for a tool dragged from the rack
-      if (e.key === 'Escape') toolDragHandleRef.current?.cancel()
-      return
-    }
-    if (openCard || openTrayId || openRoster || settingsOpen) {
-      // Escape closes only the popup. The left and right arrows show the previous or next roster card.
-      // Other keys do nothing, so nothing changes on the table behind it.
-      if (e.key === 'Escape') {
-        setOpenCard(null)
-        setOpenTrayId(null)
-        setOpenRoster(null)
-        setSettingsOpen(false)
-      } else if (openRoster && CARD_STEP_KEYS[e.code]) handleRosterCardStep(CARD_STEP_KEYS[e.code])
-      return
-    }
-    if (e.key === 'Escape') {
-      // A dice tray die menu closes first, then the Library, before the table's own Escape behavior.
-      if (diceMenu) {
-        setDiceMenu(null)
-        return
-      }
-      if (libraryOpen) {
-        setLibraryOpen(false)
-        return
-      }
-      if (logOpen) {
-        setLogOpen(false)
-        return
-      }
-      handleEscape()
-      return
-    }
-    if (e.metaKey || e.ctrlKey || e.altKey || isEditing(e.target)) return
-    if (DELETE_KEYS.includes(e.key)) {
-      if (hoveredLooseRef.current) handleLooseRemove(hoveredLooseRef.current)
-      else if (hoveredHeldRef.current) handleHeldRemove(hoveredHeldRef.current)
-      else if (hoveredPileRef.current) handlePileRemove(hoveredPileRef.current)
-      else if (hoveredTacticRef.current) handleTacticRemove(hoveredTacticRef.current)
-      else if (hoveredTerrainRef.current) handleTerrainRemove(hoveredTerrainRef.current)
-      else if (hoveredTrayCardRef.current) handleTrayCardDelete(hoveredTrayCardRef.current)
-      return
-    }
-    if (PAN_KEYS[e.code]) {
-      heldPan.current.set(e.code, PAN_KEYS[e.code])
-      return
-    }
-    if (TURN_KEYS[e.code]) {
-      heldTurn.current.set(e.code, TURN_KEYS[e.code])
-      return
-    }
-    if (e.code === RESET_VIEW_KEY) {
-      // Space also presses the focused button, for example the last clicked toolbar button
-      e.preventDefault()
-      if (!e.repeat) resetCamera()
-      return
-    }
-    if (ROTATE_KEYS[e.code]) {
-      heldRotate.current.set(e.code, ROTATE_KEYS[e.code])
-      // Scene turns the piece on while the key is held, at the same speed on every computer. So
-      // the key repeat of the system does not turn it.
-      if (!e.repeat) turnPieceRef.current?.(ROTATE_KEYS[e.code])
-      return
-    }
-    if (e.repeat) return
-    if (e.code === FLIP_KEY) {
-      handleFlipKey()
-      return
-    }
-    if (e.code === LIFT_KEY) {
-      liftPieceRef.current?.()
-      return
-    }
-    if (e.code === LOCK_KEY) {
-      handleLockKey()
-      return
-    }
-    if (e.code === PING_KEY) {
-      handlePingKey()
-      return
-    }
-    // Over an own dice tray, the number keys clear the tray, then add dice, not tools. Over the other tray they spawn tools.
-    if (DICE_KEYS[e.key] && diceTrayHoveredRef.current) {
-      addDiceRef.current[diceTrayHoveredRef.current]?.(DICE_KEYS[e.key])
-      return
-    }
-    if (RANGE_KEYS[e.key]) handleToolKey('range', RANGE_KEYS[e.key])
-    else if (MOVE_KEYS[e.key]) handleToolKey('move', MOVE_KEYS[e.key])
-    else if (e.key === ANGLE_KEY) handleAngleKey()
-    else if (e.key === CLEAR_TOOLS_KEY) clearTools()
-  }
-
-  function handleKeyUp(e) {
-    if (e.key === 'Alt') {
-      altUp()
-    }
-    heldPan.current.delete(e.code)
-    heldTurn.current.delete(e.code)
-    heldRotate.current.delete(e.code)
-  }
-
-  // A key released outside the window sends no keyup
-  function handleBlur() {
-    altUp()
-    heldPan.current.clear()
-    heldTurn.current.clear()
-    heldRotate.current.clear()
-  }
-
-  useWindowKeys(handleKeyDown, handleKeyUp, handleBlur)
-
   // Moves the camera back to the start view at once
   function resetCamera() {
     resetView(controlsRef.current, wheelCameraRef.current, startView(isGuest))
@@ -814,12 +660,7 @@ export default function App({
   // the pointer. With nothing under the pointer, it flips the token or character selected last (the
   // card of a character). A token without a back does not flip (handleTokenFlip).
   function handleFlipKey() {
-    const piece =
-      hoveredRef.current ??
-      (hoveredHeldRef.current && { kind: 'token', id: hoveredHeldRef.current }) ??
-      (hoveredTrayCardRef.current && { kind: 'character', id: hoveredTrayCardRef.current }) ??
-      (hoveredTacticRef.current && { kind: 'tactic', id: hoveredTacticRef.current }) ??
-      selection.findLast(isToolPiece)
+    const piece = flipTarget(hoveredNow(), selection)
     if (piece?.kind === 'token') handleTokenFlip(piece.id)
     // A character piece is a model; a second model has its own id (characters/models.js)
     else if (piece?.kind === 'character') handleCharacterFlip(modelCharacterId(piece.id))
@@ -1887,7 +1728,7 @@ export default function App({
   // e is the DOM event. preventDefault stops the browser's own image drag and text selection. The
   // camera does not move during the drag (startPointerDrag). The drag becomes active after
   // DRAG_THRESHOLD px, and its release drops the token (handleTokenRelease). A release before that
-  // is a click, which does nothing, except on a Give source (giveId). Escape cancels (see handleKeyDown). Any button starts it: the
+  // is a click, which does nothing, except on a Give source (giveId). Escape cancels (see keyAction in keyboard.js). Any button starts it: the
   // Library chips never checked the button.
   // drag: tokenKey and the fields of tokenDrag that are set, the others get their defaults.
   function startTokenDrag(e, drag) {
@@ -1959,7 +1800,7 @@ export default function App({
   // camera does not move during the press (startPointerDrag). After DRAG_THRESHOLD px, the outline of the tool
   // follows the pointer, and the release drops the tool (handleToolDrop). onClick: the release of a press
   // that did not become a drag (chips only; a tool of the 3D scene has its own click). Escape cancels (see
-  // handleKeyDown).
+  // keyAction in keyboard.js).
   function startToolDrag(e, kind, which, onClick) {
     const drag = { kind, which }
     const handle = startPointerDrag(e, {
@@ -2136,6 +1977,64 @@ export default function App({
   // is always false there and the build leaves out the debug code.
   const debug = import.meta.env.DEV && debugOn
   const { mode, panel: debugPanel } = useDebugLook(debug)
+
+  // Delete key: the handler for each kind of deleteTarget (hover.js)
+  const deleteHandlers = {
+    loose: handleLooseRemove,
+    held: handleHeldRemove,
+    pile: handlePileRemove,
+    tactic: handleTacticRemove,
+    terrain: handleTerrainRemove,
+    trayCard: handleTrayCardDelete,
+  }
+  // The keys (keyboard.js, useTableKeys.js). The state is read at every key press. Last hook call: the
+  // table of handlers uses what the hooks above give.
+  const { heldPan, heldTurn, heldRotate } = useTableKeys({
+    state: () => ({
+      tokenDrag,
+      toolDrag,
+      popup: !!(openCard || openTrayId || openRoster || settingsOpen),
+      rosterOpen: !!openRoster,
+      diceMenu,
+      libraryOpen,
+      logOpen,
+      diceTray: hoveredNow().diceTray,
+    }),
+    actions: {
+      peek: (a) => altDown(a.blocked),
+      cancelTokenDrag: () => cancelTokenDrag(),
+      cancelToolDrag: () => toolDragHandleRef.current?.cancel(),
+      closePopups: () => {
+        setOpenCard(null)
+        setOpenTrayId(null)
+        setOpenRoster(null)
+        setSettingsOpen(false)
+      },
+      cardStep: (a) => handleRosterCardStep(a.step),
+      closeDiceMenu: () => setDiceMenu(null),
+      closeLibrary: () => setLibraryOpen(false),
+      closeLog: () => setLogOpen(false),
+      escape: () => handleEscape(),
+      delete: () => {
+        const target = deleteTarget(hoveredNow())
+        if (target) deleteHandlers[target.kind](target.id)
+      },
+      reset: (a) => {
+        if (a.first) resetCamera()
+      },
+      flip: () => handleFlipKey(),
+      lift: () => liftPieceRef.current?.(),
+      lock: () => handleLockKey(),
+      ping: () => handlePingKey(),
+      dice: (a) => addDiceRef.current[a.side]?.(a.count),
+      range: (a) => handleToolKey('range', a.value),
+      move: (a) => handleToolKey('move', a.value),
+      angle: () => handleAngleKey(),
+      clear: () => clearTools(),
+    },
+    turnPiece: (dir) => turnPieceRef.current?.(dir),
+    altUp,
+  })
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>

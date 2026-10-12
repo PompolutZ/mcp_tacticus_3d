@@ -15,7 +15,7 @@ The users of the app are active TTS players. They already know the TTS controls.
 - **TTS bindings.** TTS stores its key bindings (the cInput library) in `~/Library/Preferences/com.berserk-games.tabletop-simulator.plist`. Read them with `defaults read com.berserk-games.tabletop-simulator <key>`. `cInput_descr` has the action names. `cInput_modifierStr` has the main key of each action, at the same index. `cInput_alt_modifierStr` and `cInput_alt_inpStr` have the second binding. `cInput_defaults` has the defaults. Read on 2026-10-02.
 - **TTS knowledge base.** [Basic controls](https://kb.tabletopsimulator.com/player-guides/basic-controls/) and [advanced controls](https://kb.tabletopsimulator.com/player-guides/advanced-controls/). They describe the mouse buttons and the number keys.
 - **The mod.** `onScriptingButtonDown` in the Blue/Red Tool Tray and Blue/Red Dice Tray scripts (`Mods/Workshop/3036795456.json`).
-- **The app.** `src/keyboard.js`, `handleKeyDown` in `src/App.jsx`, `src/components/KeyboardCamera.jsx`, and `OrbitControls` (drei, with the three-stdlib defaults).
+- **The app.** `keyAction` in `src/keyboard.js`, `src/useTableKeys.js`, `src/hover.js`, `src/components/KeyboardCamera.jsx`, and `OrbitControls` (drei, with the three-stdlib defaults).
 
 ## Mouse
 

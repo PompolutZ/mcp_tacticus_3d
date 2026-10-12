@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 
-// Every key the app uses. App.jsx handles all key events (see handleKeyDown there), so that
-// the same key can do different things in different app states.
+// Every key the app uses. keyAction below decides what a key press does, so that the same key can do
+// different things in different app states. useTableKeys.js runs it for every keydown.
 
 // Toolbar tool buttons: key → range number, and key → movement tool type
 export const RANGE_KEYS = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 }
@@ -40,13 +40,78 @@ export const LOCK_KEY = 'KeyL'
 export const PING_KEY = 'KeyP'
 // Camera back to the start view, as in TTS
 export const RESET_VIEW_KEY = 'Space'
+// Keys that act on the first press only, not on key repeat: key code → action name of keyAction
+export const PRESS_KEYS = {
+  [FLIP_KEY]: 'flip',
+  [LIFT_KEY]: 'lift',
+  [LOCK_KEY]: 'lock',
+  [PING_KEY]: 'ping',
+}
 // Deletes the piece under the pointer, as in TTS: a character token on the table, an unlocked
-// terrain piece and others (see handleKeyDown in App.jsx). A Mac keyboard's delete key sends Backspace.
+// terrain piece and others (see deleteTarget in hover.js). A Mac keyboard's delete key sends Backspace.
 export const DELETE_KEYS = ['Delete', 'Backspace']
 
 // Keys in a text field or a select edit it (letters type, arrow keys move the cursor or the option), so the app does not use them
 export function isEditing(target) {
   return Boolean(target.closest?.('input, textarea, select, [contenteditable]'))
+}
+
+// What a key press does. e: the keydown event. s: the app state now, read at the key press:
+// { tokenDrag, toolDrag, popup (a card, tray, roster or settings popup is open), rosterOpen, diceMenu,
+// libraryOpen, logOpen, diceTray (side of the own dice tray under the pointer, or null) }.
+// Returns { action, preventDefault?, ...arguments } or null (the key does nothing). The first match
+// wins, in this order: Alt, a drag, a popup, Escape, the modifier and text field guard, the table keys.
+export function keyAction(e, s) {
+  if (e.key === 'Alt') {
+    // Windows moves the focus to the browser menu on a bare Alt
+    return {
+      action: 'peek',
+      preventDefault: true,
+      blocked: !!(s.tokenDrag || s.toolDrag || s.popup),
+    }
+  }
+  if (s.tokenDrag) {
+    // Escape cancels the drag. Other keys do nothing while a token is under the pointer.
+    return e.key === 'Escape' ? { action: 'cancelTokenDrag' } : null
+  }
+  if (s.toolDrag) {
+    // The same for a tool dragged from the rack
+    return e.key === 'Escape' ? { action: 'cancelToolDrag' } : null
+  }
+  if (s.popup) {
+    // Escape closes only the popup. The left and right arrows show the previous or next roster card.
+    // Other keys do nothing, so nothing changes on the table behind it.
+    if (e.key === 'Escape') return { action: 'closePopups' }
+    if (s.rosterOpen && CARD_STEP_KEYS[e.code])
+      return { action: 'cardStep', step: CARD_STEP_KEYS[e.code] }
+    return null
+  }
+  if (e.key === 'Escape') {
+    // A dice tray die menu closes first, then the Library, before the table's own Escape behavior.
+    if (s.diceMenu) return { action: 'closeDiceMenu' }
+    if (s.libraryOpen) return { action: 'closeLibrary' }
+    if (s.logOpen) return { action: 'closeLog' }
+    return { action: 'escape' }
+  }
+  if (e.metaKey || e.ctrlKey || e.altKey || isEditing(e.target)) return null
+  if (DELETE_KEYS.includes(e.key)) return { action: 'delete' }
+  if (PAN_KEYS[e.code]) return { action: 'pan', code: e.code }
+  if (TURN_KEYS[e.code]) return { action: 'turn', code: e.code }
+  if (e.code === RESET_VIEW_KEY) {
+    // Space also presses the focused button, for example the last clicked toolbar button
+    return { action: 'reset', preventDefault: true, first: !e.repeat }
+  }
+  if (ROTATE_KEYS[e.code]) return { action: 'rotate', code: e.code, first: !e.repeat }
+  if (e.repeat) return null
+  if (PRESS_KEYS[e.code]) return { action: PRESS_KEYS[e.code] }
+  // Over an own dice tray, the number keys clear the tray, then add dice, not tools. Over the other tray they spawn tools.
+  if (DICE_KEYS[e.key] && s.diceTray)
+    return { action: 'dice', side: s.diceTray, count: DICE_KEYS[e.key] }
+  if (RANGE_KEYS[e.key]) return { action: 'range', value: RANGE_KEYS[e.key] }
+  if (MOVE_KEYS[e.key]) return { action: 'move', value: MOVE_KEYS[e.key] }
+  if (e.key === ANGLE_KEY) return { action: 'angle' }
+  if (e.key === CLEAR_TOOLS_KEY) return { action: 'clear' }
+  return null
 }
 
 // Sends every keydown and keyup on the window, and the window blur, to the handlers of the last
