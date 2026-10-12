@@ -21,7 +21,7 @@
     "photos-to-glb": "node scripts/photos-to-glb.mjs",
     "dice-sim": "node scripts/dice-sim.mjs",
     "tts-dice-measure": "node scripts/tts-dice-measure-object.mjs",
-    "test": "node --test \"src/**/*.test.js\""
+    "test": "node --test \"{src,scripts}/**/*.test.js\""
   },
   "dependencies": {
     "@react-three/drei": "^9.115.0",

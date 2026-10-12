@@ -5,6 +5,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { parseArgs } from 'node:util'
 import { imageToWebp } from './lib/convert.mjs'
+import { outputPath, readJson, writeJson } from './lib/files.mjs'
+import { slug, uniqueKeys } from './lib/keys.mjs'
 import { cachedFile, loadTacticCards } from './lib/tts.mjs'
 import { tacticCardBack, tacticCardFace } from '../src/tactics/files.js'
 
@@ -43,7 +45,7 @@ const CARD_SIZE = 1040
 
 // The mod spawns only released cards
 const cards = loadTacticCards().filter((c) => c.released)
-const keys = cardKeys(cards)
+const keys = uniqueKeys(cards)
 // A trial run continues from its own manifest, if an earlier trial run into the same directory wrote it
 const manifest = readJson(MANIFEST_OUT, MANIFEST_FILE)
 // Keys of the tokens that migrate-tokens.mjs migrated
@@ -144,51 +146,6 @@ function migrated(f) {
 // Returns true when the file was converted
 function convert(f) {
   if (migrated(f) && (!opts.force || !cachedFile(f.url))) return false
-  fs.writeFileSync(assetPath(f.file), imageToWebp(cachedFile(f.url), CARD_SIZE))
+  fs.writeFileSync(outputPath(ASSETS, f.file), imageToWebp(cachedFile(f.url), CARD_SIZE))
   return true
-}
-
-// Key of each card: its name as a slug, without apostrophes and dots: "Freyja's Blessing" → freyjas-blessing
-function cardKeys(rows) {
-  const keyMap = new Map(rows.map((r) => [r, slug(r.name)]))
-  const seen = new Map()
-  for (const [row, key] of keyMap) {
-    if (seen.has(key))
-      throw new Error(
-        `The cards "${seen.get(key).name}" and "${row.name}" have the same key ${key}`,
-      )
-    seen.set(key, row)
-  }
-  return keyMap
-}
-
-function slug(text) {
-  return text
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/['‘’.]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-}
-
-function assetPath(file) {
-  const full = path.join(ASSETS, file)
-  fs.mkdirSync(path.dirname(full), { recursive: true })
-  return full
-}
-
-function readJson(file, fallback) {
-  const found = [file, fallback].find((f) => fs.existsSync(f))
-  return found ? JSON.parse(fs.readFileSync(found, 'utf8')) : {}
-}
-
-// Keys in sorted order, so that a new card gives a small diff
-function writeJson(file, data) {
-  const sorted = Object.fromEntries(
-    Object.keys(data)
-      .sort()
-      .map((k) => [k, data[k]]),
-  )
-  fs.mkdirSync(path.dirname(file), { recursive: true })
-  fs.writeFileSync(file, `${JSON.stringify(sorted, null, 2)}\n`)
 }

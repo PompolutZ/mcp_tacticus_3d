@@ -7,6 +7,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { parseArgs } from 'node:util'
 import { imageToWebp } from './lib/convert.mjs'
+import { outputPath, readJson, writeJson } from './lib/files.mjs'
+import { uniqueKeys } from './lib/keys.mjs'
 import { cachedFile, loadCrisisDatabase, loadTacticCards } from './lib/tts.mjs'
 import { characterToken } from '../src/tokens/files.js'
 
@@ -60,7 +62,7 @@ const tacticTokenNames = new Set(
     .map((n) => n.toLowerCase()),
 )
 const rows = tokens.filter(selected)
-const keys = rowKeys(rows)
+const keys = uniqueKeys(rows, { noun: 'tokens' })
 // A trial run continues from its own manifest, if an earlier trial run into the same directory wrote it
 const manifest = readJson(MANIFEST_OUT, MANIFEST_FILE)
 
@@ -184,29 +186,6 @@ function tokenEntry(row) {
   return entry
 }
 
-// Key of each token: its name as a slug, the same way as scripts/migrate-crisis.mjs keys a card
-function rowKeys(list) {
-  const keyMap = new Map(list.map((r) => [r, slug(r.name)]))
-  const seen = new Map()
-  for (const [row, key] of keyMap) {
-    if (seen.has(key))
-      throw new Error(
-        `The tokens "${seen.get(key).name}" and "${row.name}" have the same key ${key}`,
-      )
-    seen.set(key, row)
-  }
-  return keyMap
-}
-
-function slug(text) {
-  return text
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/['‘’.]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-}
-
 // A file can be written when TTS has it in the cache, or when it is already migrated from the same URL
 function available(f) {
   return Boolean(cachedFile(f.url)) || migrated(f)
@@ -219,28 +198,6 @@ function migrated(f) {
 // Returns true when the file was converted
 function convert(f) {
   if (migrated(f) && (!opts.force || !cachedFile(f.url))) return false
-  fs.writeFileSync(assetPath(f.file), imageToWebp(cachedFile(f.url), TOKEN_SIZE))
+  fs.writeFileSync(outputPath(ASSETS, f.file), imageToWebp(cachedFile(f.url), TOKEN_SIZE))
   return true
-}
-
-function assetPath(file) {
-  const full = path.join(ASSETS, file)
-  fs.mkdirSync(path.dirname(full), { recursive: true })
-  return full
-}
-
-function readJson(file, fallback) {
-  const found = [file, fallback].find((f) => fs.existsSync(f))
-  return found ? JSON.parse(fs.readFileSync(found, 'utf8')) : {}
-}
-
-// Keys in sorted order, so that a new token gives a small diff
-function writeJson(file, data) {
-  const sorted = Object.fromEntries(
-    Object.keys(data)
-      .sort()
-      .map((k) => [k, data[k]]),
-  )
-  fs.mkdirSync(path.dirname(file), { recursive: true })
-  fs.writeFileSync(file, `${JSON.stringify(sorted, null, 2)}\n`)
 }

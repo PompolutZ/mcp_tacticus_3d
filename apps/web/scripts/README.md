@@ -15,6 +15,16 @@ The script prints `name` as the mod piece name without the Size, for example "Pa
 
 The script prints the game Size on each placement (`size`). It reads the Size from the name of the mod piece, for example "Size 3 Panther Statue" or "Crystals: Size 1". A piece name without "Size" gets no `size`. The Size is on the placement and not on the piece: two mod pieces with the same files get one app piece, and their Sizes can be different.
 
+## Shared code
+
+Helpers in `scripts/lib/` that several scripts use:
+
+- `lib/files.mjs`: `readJson`, `writeJson` (sorted keys by default) and `outputPath` (asset path, folder created).
+- `lib/keys.mjs`: `slug` (`keepPunctuation` for characters and terrain) and `uniqueKeys` (row to key, throws on a duplicate).
+- `lib/jarvis.mjs`: `JARVIS_HEADERS` and `fetchJarvis(url)` for the `fetch-jarvis-*` scripts.
+
+`keys.test.js` and `files.test.js` run with `pnpm test`.
+
 ## Requirements
 
 - Tabletop Simulator with mod 3036795456. TTS downloads a file to its cache only when an object uses it, so spawn a map once in TTS before you migrate it.

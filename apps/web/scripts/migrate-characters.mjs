@@ -16,6 +16,8 @@ import {
   texturesToWebp,
   writeGlb,
 } from './lib/convert.mjs'
+import { outputPath, readJson, writeJson } from './lib/files.mjs'
+import { slug } from './lib/keys.mjs'
 import { cachedFile, loadCharacterDatabase } from './lib/tts.mjs'
 import {
   BASE_DIAMETER,
@@ -218,11 +220,15 @@ async function migrateCharacter(row, getRipper) {
       continue
     }
     sources[f.file] = f.url
-    if (!opts.force && manifest[key]?.sources[f.file] === f.url && fs.existsSync(assetPath(f.file)))
+    if (
+      !opts.force &&
+      manifest[key]?.sources[f.file] === f.url &&
+      fs.existsSync(outputPath(ASSETS, f.file))
+    )
       continue
     if (f.file.endsWith('.glb'))
       warnings.push(...(await convertModel(source, f, await getRipper())))
-    else fs.writeFileSync(assetPath(f.file), imageToWebp(source, TEXTURE_SIZE))
+    else fs.writeFileSync(outputPath(ASSETS, f.file), imageToWebp(source, TEXTURE_SIZE))
     converted++
   }
   const tokens = tokenKeys(row.cToken, 'cToken', warnings)
@@ -374,7 +380,7 @@ async function convertModel(source, { file, base }, ripper) {
   const { doc, warnings } = await readBundlePrefab(out)
   warnings.push(...markBase(doc, base))
   texturesToWebp(doc, CHARACTER_TEXTURE_SIZE)
-  await writeGlb(assetPath(file), await compressMesh(doc, { singleMaterial: false }))
+  await writeGlb(outputPath(ASSETS, file), await compressMesh(doc, { singleMaterial: false }))
   return warnings.map((w) => `${path.basename(file)}: ${w}`)
 }
 
@@ -429,41 +435,11 @@ function materialBounds(doc, material) {
 // Key of each character row: its name as a slug. Names that give the same slug (grunts in the mod have
 // copies with other ids) get the id added.
 function characterKeys(rows) {
-  const slugs = rows.map((r) => slug(r.cName))
+  const slugs = rows.map((r) => slug(r.cName, { keepPunctuation: true }))
   return new Map(
     rows.map((r, i) => [
       r,
       slugs.indexOf(slugs[i]) === slugs.lastIndexOf(slugs[i]) ? slugs[i] : `${slugs[i]}-${r.ID}`,
     ]),
   )
-}
-
-function slug(text) {
-  return text
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-}
-
-function assetPath(file) {
-  const full = path.join(ASSETS, file)
-  fs.mkdirSync(path.dirname(full), { recursive: true })
-  return full
-}
-
-function readJson(file, fallback) {
-  const found = [file, fallback].find((f) => fs.existsSync(f))
-  return found ? JSON.parse(fs.readFileSync(found, 'utf8')) : {}
-}
-
-// Keys in sorted order, so that a new character gives a small diff
-function writeJson(file, data) {
-  const sorted = Object.fromEntries(
-    Object.keys(data)
-      .sort()
-      .map((k) => [k, data[k]]),
-  )
-  fs.mkdirSync(path.dirname(file), { recursive: true })
-  fs.writeFileSync(file, `${JSON.stringify(sorted, null, 2)}\n`)
 }

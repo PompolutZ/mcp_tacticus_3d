@@ -157,6 +157,15 @@ Checks: as in "Checks", plus:
 
 ### Result
 
+- New: `scripts/lib/files.mjs` (`readJson`, `writeJson`, `outputPath`), `lib/keys.mjs` (`slug`, `uniqueKeys`), `lib/jarvis.mjs` (`fetchJarvis`), tests `lib/files.test.js` and `lib/keys.test.js`. `writeJson` sorts the top level only, like the old copies.
+- Changed: `migrate-characters`, `-crisis`, `-tactics`, `-tokens`, `-terrain`, `-scoreboard`, the three `fetch-jarvis-*` scripts, test glob, `scripts/README.md` ("Shared code").
+- Terrain wraps `slug` as `mapSlug` (`keepPunctuation: true`). Scoreboard uses `writeJson` and the shared `slug`; its own duplicate-key check stays.
+- Difference from plan: `JARVIS_HEADERS` is not exported (only `fetchJarvis` uses it; fallow reported it).
+- Output equality, before vs after the refactor (AssetRipper linked from the main dir `tools/`, TTS cache present): `--list` text and `--out` runs of characters (`asgard`), crisis, tactics, tokens, terrain (map 282). Console output, manifest, data JSON and a sha of all 372 files equal. Scoreboard has no `--out`: ran in place, sha of `affiliations.json` and its assets equal before and after (the committed `affiliations.json` is behind the TTS cache by 2 affiliations, so the files were restored with `git checkout` / `git clean`).
+- Fetch-jarvis: crisis cards, empty diff. Tactics (new cards, codes) and characters (8 changed) have new Jarvis data, with only content lines changed. Files restored with `git checkout`. Byte equality is shown only for crisis; for the other two the diff has no format-only lines.
+- Not verified: `--help`/wrong-argument output (step 4). Terrain bundle path was run with map 282 only.
+- `pnpm test`: the api test `signal.test.ts` failed once and passed on rerun (not related).
+
 ## Step 4: Image store, CLI arguments and dice-sim
 
 Work:

@@ -18,6 +18,8 @@ import {
   texturesToWebp,
   writeGlb,
 } from './lib/convert.mjs'
+import { outputPath, readJson, writeJson } from './lib/files.mjs'
+import { slug } from './lib/keys.mjs'
 import { cachedFile, loadTerrainDatabase, matPlacement, pieceSources } from './lib/tts.mjs'
 import {
   bundleCollider,
@@ -67,9 +69,7 @@ const CARD_SIZE = 1400
 
 const db = loadTerrainDatabase()
 // A trial run continues from its own manifest, if an earlier trial run into the same directory wrote one
-const manifest = JSON.parse(
-  fs.readFileSync(fs.existsSync(MANIFEST_OUT) ? MANIFEST_OUT : MANIFEST_FILE, 'utf8'),
-)
+const manifest = readJson(MANIFEST_OUT, MANIFEST_FILE)
 
 if (opts.list) listMaps()
 else process.exitCode = await migrate(findCard(positionals[0]))
@@ -152,7 +152,7 @@ async function migrate(card) {
               ? await migrateObjPiece(piece, appKey)
               : await migrateBundlePiece(piece, appKey, (ripper ??= await startAssetRipper()))
           manifest.pieces[appKey] = pieceSources(piece)
-          saveManifest()
+          writeJson(MANIFEST_OUT, manifest, { sortKeys: false })
           results.set(key, { appKey, status: 'converted', entry, warnings })
         } catch (err) {
           results.set(key, { status: `failed: ${err.stack}` })
@@ -172,7 +172,7 @@ async function migrate(card) {
 
   const snippet = mapsSnippet(card, mat, matName, results)
   fs.mkdirSync(WORK_DIR, { recursive: true })
-  const snippetFile = path.join(WORK_DIR, `${slug(card.name)}.snippet.js`)
+  const snippetFile = path.join(WORK_DIR, `${mapSlug(card.name)}.snippet.js`)
   fs.writeFileSync(snippetFile, snippet)
   console.log(
     `\nEntries for src/terrain/pieces.js and maps.js (also in ${snippetFile}):\n\n${snippet}`,
@@ -222,19 +222,19 @@ function migrateMat(card, mat) {
   let name = matNameFor(mat)
   if (name && !opts.force) return name
   if (!name) {
-    name = slug(card.name)
-    for (let n = 2; name in manifest.mats; n++) name = `${slug(card.name)}-${n}`
+    name = mapSlug(card.name)
+    for (let n = 2; name in manifest.mats; n++) name = `${mapSlug(card.name)}-${n}`
   }
   const source = cachedFile(url)
   if (!source)
     throw new Error(`The mat image ${url} is not in the TTS cache. Spawn the map once in TTS.`)
-  fs.writeFileSync(assetPath(matImage(name)), imageToWebp(source, MAT_TEXTURE_SIZE))
+  fs.writeFileSync(outputPath(ASSETS, matImage(name)), imageToWebp(source, MAT_TEXTURE_SIZE))
   manifest.mats[name] = url
-  saveManifest()
+  writeJson(MANIFEST_OUT, manifest, { sortKeys: false })
   const [scaleX, , scaleZ] = mat.scale
   if (Math.abs(scaleX - TTS_MAT_SCALE) > 0.01 || Math.abs(scaleZ - TTS_MAT_SCALE) > 0.01)
     console.log(`warning: mat scale is ${mat.scale}, not ${TTS_MAT_SCALE}`)
-  console.log(`Mat: converted to ${assetPath(matImage(name))}\n`)
+  console.log(`Mat: converted to ${outputPath(ASSETS, matImage(name))}\n`)
   return name
 }
 
@@ -242,10 +242,10 @@ function migrateMat(card, mat) {
 // named after the map key that mapsSnippet prints. A file that exists is kept, unless --force.
 function migrateCard(card) {
   for (const [url, file] of [
-    [card.face, mapCard(slug(card.name))],
+    [card.face, mapCard(mapSlug(card.name))],
     [card.back, MAP_CARD_BACK],
   ]) {
-    const out = assetPath(file)
+    const out = outputPath(ASSETS, file)
     if (fs.existsSync(out) && !opts.force) continue
     const source = cachedFile(url)
     if (!source) {
@@ -267,19 +267,19 @@ async function migrateObjPiece(piece, appKey) {
   // convex is the mod's collider flag. true: Unity uses the convex hull of the collider mesh.
   const entry = { name: pieceName(piece), convex: piece.convex === true }
   await writeGlb(
-    assetPath(pieceMesh(appKey)),
+    outputPath(ASSETS, pieceMesh(appKey)),
     await compressMesh(await readObj(cachedFile(src.mesh)), { singleMaterial: true }),
   )
   if (src.diffuse)
     fs.writeFileSync(
-      assetPath(pieceTexture(appKey)),
+      outputPath(ASSETS, pieceTexture(appKey)),
       imageToWebp(cachedFile(src.diffuse), TEXTURE_SIZE),
     )
   else entry.texture = false
   if (src.collider !== src.mesh) {
     entry.collider = true
     await writeGlb(
-      assetPath(pieceCollider(appKey)),
+      outputPath(ASSETS, pieceCollider(appKey)),
       await compressMesh(await readObj(cachedFile(src.collider)), { singleMaterial: true }),
     )
   }
@@ -299,7 +299,10 @@ async function migrateBundlePiece(piece, appKey, ripper) {
 
   const entry = { name: pieceName(piece), bundle: true }
   texturesToWebp(doc)
-  await writeGlb(assetPath(pieceMesh(appKey)), await compressMesh(doc, { singleMaterial: false }))
+  await writeGlb(
+    outputPath(ASSETS, pieceMesh(appKey)),
+    await compressMesh(doc, { singleMaterial: false }),
+  )
 
   // A custom collider mesh gets its own GLB, once per mesh. The entry has its number (bundleCollider in files.js).
   const meshNumbers = new Map()
@@ -323,7 +326,7 @@ async function migrateBundlePiece(piece, appKey, ripper) {
       }
       const n = meshNumbers.size + 1
       await writeGlb(
-        assetPath(bundleCollider(appKey, n)),
+        outputPath(ASSETS, bundleCollider(appKey, n)),
         await compressMesh(await readGlb(glb), { singleMaterial: true }),
       )
       meshNumbers.set(meshGuid, n)
@@ -334,23 +337,9 @@ async function migrateBundlePiece(piece, appKey, ripper) {
   return { entry, warnings }
 }
 
-function assetPath(file) {
-  const full = path.join(ASSETS, file)
-  fs.mkdirSync(path.dirname(full), { recursive: true })
-  return full
-}
-
-function saveManifest() {
-  fs.mkdirSync(path.dirname(MANIFEST_OUT), { recursive: true })
-  fs.writeFileSync(MANIFEST_OUT, `${JSON.stringify(manifest, null, 2)}\n`)
-}
-
-function slug(text) {
-  return text
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
+// Keys of the mod's maps keep the punctuation as a dash: "King T'Challa" → king-t-challa
+function mapSlug(text) {
+  return slug(text, { keepPunctuation: true })
 }
 
 // Entries in the style of src/terrain/pieces.js and maps.js: TTS transforms, positions relative to the mat center
@@ -363,7 +352,7 @@ function mapsSnippet(card, mat, matName, results) {
     '',
     '// src/terrain/maps.js, MAPS',
     `  // "${card.name}" (map ${card.id} in the Terrain Database${card.category ? `, ${card.category}` : ''})`,
-    `  '${slug(card.name)}': {`,
+    `  '${mapSlug(card.name)}': {`,
     `    name: ${js(card.name)},`,
     `    mat: '${matName}',`,
     '    // TTS rotation of the mat around Y. It is 180 for Vibranium Heist, and the app draws that mat with no turn.',
