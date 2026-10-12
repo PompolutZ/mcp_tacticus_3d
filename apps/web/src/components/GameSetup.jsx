@@ -136,7 +136,7 @@ function deckProblem(team, type, parsed, ctx) {
 
 // One row of crisis cards of a roster, next to the scoring board. With row.use, each card has a Choose button
 // next to it. row: see crisisRows in setup/setup.js. A click on a card opens the crisis tab of the roster popup.
-function CrisisRow({ row, parsed, locked, onOpen, onUse }) {
+function CrisisRow({ row, parsed, locked, onOpen, onUse, onCardHover }) {
   const cards = useMemo(
     () => crisisRowLayout(row.team, row.type, row.codes, row.drawn),
     [row.team, row.type, row.codes, row.drawn],
@@ -153,6 +153,7 @@ function CrisisRow({ row, parsed, locked, onOpen, onUse }) {
           card={{ ...card, tab: 'crisis', index: tabIndex(card.code) }}
           info={info}
           onOpen={onOpen}
+          onCardHover={onCardHover}
         />
         {row.use && (
           <OnTable position={[USE_BUTTON_X, TABLE_Y, card.z]}>
@@ -526,7 +527,7 @@ function SquadPanel({ team, setup, parsed, selecting, own, ctx, actions }) {
 // person plays both teams. Only that team's squad panel has buttons. actions: { priority(team), deck(type), pick(code),
 // threat(value), turnMat(direction), edge(), squadSelect(team), ready(team),
 // affiliation(team, key), restart(), browse(step | null), override(step) }, see App.jsx.
-// onRosterOpen({ team, tab, index }): a click on a crisis card.
+// onRosterOpen({ team, tab, index }): a click on a crisis card. onCardHover(card, over): for Alt (App.jsx).
 export default function GameSetup({
   setup,
   rosters,
@@ -535,6 +536,7 @@ export default function GameSetup({
   seatPlayers,
   actions,
   onRosterOpen,
+  onCardHover,
 }) {
   const ctx = useNames(mySide, seatPlayers)
   const parsed = useMemo(
@@ -559,6 +561,7 @@ export default function GameSetup({
           locked={cardLocked}
           onOpen={(tab, index) => onRosterOpen({ team: row.team, tab, index })}
           onUse={actions.pick}
+          onCardHover={onCardHover}
         />
       ))}
       {step === 'deck' && parsed[priorityOf(setup)] && (

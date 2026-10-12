@@ -2,9 +2,9 @@ import { Suspense, useEffect, useRef, useState } from 'react'
 import { Html } from '@react-three/drei'
 import { DoubleSide } from 'three'
 import { assetUrl } from '../assets/index.js'
-import { characterCard, transformCard } from '../characters/files.js'
+import { trayCardFile } from '../characters/files.js'
 import { trayCards } from '../characters/models.js'
-import { characterGiveSources, characterStamina } from '../characters/characters.js'
+import { characterGiveSources, characterName, characterStamina } from '../characters/characters.js'
 import {
   TRAY_BG_WIDTH,
   TRAY_BG_Y,
@@ -54,6 +54,9 @@ const CLICK_MOVE = 4
 // crisis tokens, so Scene.jsx draws them (see "Hold and drop").
 // position: the tray's table position, from trays.js layoutTrays (Scene.jsx).
 // onCardHover(over): the pointer moved onto (true) or off (false) the card, for the F key.
+// onCardImageHover(card, over): the same, with the image under the pointer, { src, alt, by }, for Alt (App.jsx).
+// onTokenDragStart gets the id of the character as the 4th argument: a click on a Give source gives
+// that character one token.
 export default function CharacterTray({
   character,
   position,
@@ -62,6 +65,7 @@ export default function CharacterTray({
   onPower,
   onFlip,
   onCardHover,
+  onCardImageHover,
   onRemove,
   onBoard,
   onAttachedOpen,
@@ -75,8 +79,7 @@ export default function CharacterTray({
   // the URL list.
   const cards = trayCards(character)
   const cardNumbers = cards === 2 ? [1, 2] : [1]
-  const cardFile = (n, side) =>
-    n === 1 ? characterCard(character.key, side) : transformCard(character.key, side)
+  const cardFile = (n, side) => trayCardFile(character.key, side, n)
   const maps = useColorTexture(
     cardNumbers.flatMap((n) => [
       assetUrl(cardFile(n, 'healthy')),
@@ -89,7 +92,9 @@ export default function CharacterTray({
   const yaw = trayYaw(character.teamColor)
   // Group of the cards, the outline target
   const cardRef = useRef()
-  const [cardHovered, setCardHovered] = useState(false)
+  // The number of the card under the pointer (1 or 2), or null
+  const [hoveredCard, setHoveredCard] = useState(null)
+  const cardHovered = hoveredCard !== null
 
   // R3F sends a click to every object that was under the pointer at pointerdown and is under it at
   // pointerup, also after a drag. The card lies under the model and the held tokens on it, so it
@@ -100,8 +105,8 @@ export default function CharacterTray({
     onOpen()
   }
 
-  useOutline(cardRef, outlineMode(selected, false))
-  // A click on the card opens the popup
+  // Selected or under the pointer. A click on the card opens the popup.
+  useOutline(cardRef, outlineMode(selected, cardHovered))
   useHoverCursor(cardHovered, 'pointer')
 
   // onCardHover(true) while the pointer is over the card, onCardHover(false) after. The cleanup also
@@ -112,6 +117,19 @@ export default function CharacterTray({
     onCardHover?.(true)
     return () => onCardHover?.(false)
   }, [cardHovered])
+
+  // The same for Alt: the image of the card under the pointer, the side that faces up. A Flip shows the new side.
+  useEffect(() => {
+    if (hoveredCard === null) return undefined
+    const name = characterName(character.key)
+    const card = {
+      src: assetUrl(cardFile(hoveredCard, character.side)),
+      alt: hoveredCard === 2 ? `${name}, second form` : name,
+      by: `tray:${character.id}:${hoveredCard}`,
+    }
+    onCardImageHover?.(card, true)
+    return () => onCardImageHover?.(card, false)
+  }, [hoveredCard, character.side])
 
   // Tokens on the character, in the order it got them (see App.jsx, handleCharacterTokenGive).
   const onTokens = Object.entries(character.tokens ?? {})
@@ -127,7 +145,7 @@ export default function CharacterTray({
     // Only the left button drags a token. A right or middle drag goes to OrbitControls (the camera).
     if (e.button !== 0) return
     e.stopPropagation()
-    onTokenDragStart(e.nativeEvent, key)
+    onTokenDragStart(e.nativeEvent, key, null, character.id)
   }
 
   return (
@@ -147,9 +165,9 @@ export default function CharacterTray({
             onClick={openPopup}
             onPointerOver={(e) => {
               e.stopPropagation()
-              setCardHovered(true)
+              setHoveredCard(n)
             }}
-            onPointerOut={() => setCardHovered(false)}
+            onPointerOut={() => setHoveredCard((now) => (now === n ? null : now))}
           >
             <planeGeometry args={[TRAY_CARD_WIDTH, TRAY_CARD_HEIGHT]} />
             <FaceMaterial map={sideMap(n)} side={DoubleSide} />

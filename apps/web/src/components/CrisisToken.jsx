@@ -123,6 +123,7 @@ function AffiliationMarker({ affiliation, x, radius }) {
 // onHover(over): called when the pointer moves onto the token (true) and off it (false)
 // rangeMark: 'inRange' or 'outOfRange' while a range tool marks the token (RangeMark in RulerTool.jsx)
 // otherSelected: the side of the other player who has the token selected, or null
+// onSelect(): a click. onDragSelect(): a drag starts, the token is selected and stays selected.
 // onHold(characterId, point): a canHold token (Asset, Civilian, a Source's supply) was dragged and
 // released over a character (model, tray card, or the tray's DOM controls strip). point: the table
 // point { x, z } under the pointer at the release.
@@ -147,6 +148,7 @@ export default function CrisisToken({
   rangeMark,
   otherSelected = null,
   onSelect,
+  onDragSelect,
   onHover,
   onMove,
   onTurn,
@@ -274,9 +276,10 @@ export default function CrisisToken({
       livePose: () => poseRef.current,
       controls,
       canvas: gl.domElement,
-      // A click selects the token. Only a selected token that can move moves by a drag.
-      canStart: () => selected && token.canMove,
+      // A click toggles the selection. A token that can move is dragged at once and selected.
+      canStart: () => token.canMove,
       onStart: () => {
+        onDragSelect?.()
         draggingRef.current = true
         setDragging(true)
       },
@@ -354,8 +357,8 @@ export default function CrisisToken({
   }
 
   useOutline(diskRef, outlineMode(selected, hovered, rangeMark, false, otherSelected))
-  // A click selects the token. Only a selected token that can move moves by a drag.
-  useHoverCursor(hovered, selected && token.canMove ? 'grab' : 'pointer')
+  // A click toggles the selection. A token that can move is dragged at once and selected.
+  useHoverCursor(hovered, token.canMove ? 'grab' : 'pointer')
 
   // onHover(true) while the pointer is over the token, onHover(false) after. The cleanup also runs
   // on unmount, so a removed token does not stay hovered.

@@ -22,7 +22,7 @@ The users of the app are active TTS players. They already know the TTS controls.
 | Input | TTS | App | Same |
 |---|---|---|---|
 | Left click on a piece | Pick up | Select | No |
-| Left drag on a piece | Move it | Move it, only if it is already selected | Partly |
+| Left drag on a piece | Move it | Move it at once and select it. A piece that is already selected stays selected | Yes |
 | Left drag on the empty table | Box select | Turn the camera | No |
 | Right drag on the empty table | Turn the camera | Turn the camera | Yes |
 | Right click on a piece | Context menu. While holding a piece: tap it | Nothing. The piece handlers take only the left button, so a right drag on a piece turns the camera | No |
@@ -41,6 +41,12 @@ Wheel input is smoothed. A wheel event does not move the camera at once. Each fr
 
 The app shows a warning when the browser draws WebGL on the CPU (SwiftShader, llvmpipe, softpipe, Microsoft Basic Render Driver), for example with hardware acceleration off. See `src/renderer.js`.
 
+## Hover
+
+A piece under the pointer shows a white outline when this browser can use it with the pointer: a model, a tool, a crisis token, an unlocked terrain piece, a Team Tactic card, a token (in the On row of a tray, a Give source, on the table, a pile), a tray card, a roster card, a setup crisis card, a crisis card, a VP marker, the round marker, a supply pile, a tool of the own rack, and a die on the shelf of the own tray. A selected piece, a range mark, an overlap and the other player's selection have their own outline, which wins over the white one.
+
+No outline: locked terrain, the table, the mat, the other player's rack and dice tray, dice in the well or in the air, a token that takes no pointer (a drag preview), the turn handle, and the buttons on the table (they have a CSS hover).
+
 ## Keyboard: TTS defaults
 
 Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, which is moved from the number pad to the number row (see the next section).
@@ -57,11 +63,11 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 | Q / E | Rotate the piece | Turns the dragged character or tool, else the one under the pointer, 15° around its center. Q turns counter-clockwise, E clockwise (seen from above). A token has a turn handle, no key | Partly |
 | T | Tap (turn 90°) | Nothing | No |
 | R | Raise | Lifts the model under the pointer 6", or puts it back down. With no model under the pointer: puts every lifted model back down | Partly |
-| L | Lock | Locks or unlocks the terrain piece under the pointer. Only terrain has a lock. Every terrain piece starts locked. A locked piece cannot be selected or deleted | Partly |
+| L | Lock | Locks or unlocks the terrain piece under the pointer. Only terrain has a lock. The terrain label shows the state: "Tree - Size 2 - (L)ocked" or "Un(L)ocked". Every terrain piece starts locked. A locked piece cannot be selected or deleted | Partly |
 | Delete / Backspace | Delete the hovered or selected piece | Deletes the piece under the pointer: a character token on the table, a crisis token that a character holds, a token pile, a Team Tactic card, an unlocked terrain piece, or a character (over its tray card, after a confirm; its models and tray go). Other pieces cannot be deleted with a key | Partly |
 | G | Group | Nothing | No |
 | U | Place under | Nothing | No |
-| Alt (hold, over a piece) | Zoomed preview, works best for cards | Click a card to open it in a popup | Partly |
+| Alt (hold, over a piece) | Zoomed preview, works best for cards | Shows the card under the pointer large, with no backdrop, while Alt is held: a tray card (the side that faces up), a roster card with an image, a setup or scoring board crisis card, a Team Tactic card (the side that faces up), or a model (the card of its character; the second model of a two-card character shows card 2). Moving to another card shows that card, off every card shows nothing. Release Alt, or leave the window, to close it. A click on a card still opens the popup, and Alt does nothing while a popup or a drag is open | Yes |
 | Alt + Shift | Peek at the underside | Nothing | No |
 | M | Magnify | Nothing | No |
 | N | Nudge | Nothing | No |
@@ -104,7 +110,7 @@ The mod handles a key only for the player whose tray it is (Blue or Red).
 | 6, pointer over a character | Long movement tool in "Toward/Away" mode, snapped | The Toward / Away tool (a copy of the long tool, bent 90°), snapped | Yes |
 | 1–5, 7–9, no character under the pointer | Removes that tool from the table | Toggles the tool, the same as its toolbar button | Partly |
 | 0 | Returns every tool to the tray | Removes every tool from the table. The selected pieces stay selected | Yes |
-| 1–9, pointer over an own dice tray (both trays in a single player room, the own seat in a multiplayer room) | Clears the tray and adds that number of dice | Adds that number of dice, 0 adds 10. It does not clear the tray. A tray holds at most 42 dice. Over the other player's tray the keys spawn tools. See `docs/features/dice-rolling.md` | Partly |
+| 1–9, pointer over an own dice tray (both trays in a single player room, the own seat in a multiplayer room) | Clears the tray and adds that number of dice | Clears the tray, then adds that number of dice, 0 adds 10. A tray holds at most 42 dice. Over the other player's tray the keys spawn tools. See `docs/features/dice-rolling.md` | Yes |
 
 The app also snaps a tool, key 6 included, when the pointer is over a crisis token. The mod only checks characters. The piece does not have to be selected first: the key selects it. Over a model of a side this browser does not play (the other side in a multiplayer room), the tool snaps to it and the selection does not change. So Place cannot move that model.
 
@@ -123,8 +129,5 @@ The app also snaps a tool, key 6 included, when the pointer is over a crisis tok
 In order of how often a TTS player will notice them:
 
 1. **Left drag on the empty table.** It turns the camera. In TTS it box-selects, and the app has no box select.
-2. **Left drag on a piece.** In TTS a player drags a piece at once. In the app the piece must be selected first.
-3. **Q / E** to turn a token.
-4. **Alt (hold)** over a card to show it large, as the click popup does.
-5. **Number key with no character under the pointer.** The mod only removes the tool. The app toggles it, so a second press spawns the tool again.
-6. **Number keys over a dice tray.** The mod clears the tray first. The app only adds dice.
+2. **Q / E** to turn a token.
+3. **Number key with no character under the pointer.** The mod only removes the tool. The app toggles it, so a second press spawns the tool again.

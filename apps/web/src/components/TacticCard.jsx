@@ -45,6 +45,7 @@ const flipAngle = (flip) => flip.from + (flip.to - flip.from) * ease(flip.time /
 // onMove(x, z): a drag ended over the table; App puts the card there or into a tray slot.
 // onOpen({ src, alt }): a click opens the side that faces up in the card popup (CardPopup.jsx).
 // onHover(over): the pointer moved onto (true) or off (false) the card, for the F and Delete keys.
+// onCardHover(card, over): the same, with the side that faces up, { src, alt, by }, for Alt (App.jsx).
 // ownership: the claims on pieces (net/ownership.js). A drag claims `tactic:<id>`. A cancelled drag (Escape,
 // or a lost tie) puts the card back to its place in the document.
 // pieceLives: the Map of live pose getters (net/live.js, LiveSync). remote: the other player claims the card.
@@ -56,6 +57,7 @@ export default function TacticCard({
   onMove,
   onOpen,
   onHover,
+  onCardHover,
   ownership = null,
   pieceLives = null,
   remote = false,
@@ -143,6 +145,14 @@ export default function TacticCard({
     return tablePoint(scene, clientX, clientY, { offTable: 'null' })
   }
 
+  // The image of the side that faces up
+  function upImage() {
+    return {
+      src: card.up === 'face' ? faceUrl : backUrl,
+      alt: getTactic(card.key)?.name ?? 'Team Tactic card',
+    }
+  }
+
   // A drag moves the card, a click opens it
   function handlePointerDown(e) {
     // The last point over the table. A release off the table puts the card back.
@@ -178,8 +188,7 @@ export default function TacticCard({
         poseRef.current = { ...placeRef.current }
       },
       onClick: () => {
-        const up = card.up === 'face' ? faceUrl : backUrl
-        onOpen?.({ src: up, alt: getTactic(card.key)?.name ?? 'Team Tactic card' })
+        onOpen?.(upImage())
       },
     })
   }
@@ -195,6 +204,14 @@ export default function TacticCard({
     onHover?.(true)
     return () => onHover?.(false)
   }, [hovered])
+
+  // The same for Alt. A flip while hovered shows the new side.
+  useEffect(() => {
+    if (!hovered) return undefined
+    const image = { ...upImage(), by: `tactic:${card.id}` }
+    onCardHover?.(image, true)
+    return () => onCardHover?.(image, false)
+  }, [hovered, card.up])
 
   // The long side of the card is local z. The footprint angle (cos a, 0, -sin a) of local z is yaw - π/2.
   const footprintShape = () =>

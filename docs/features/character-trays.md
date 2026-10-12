@@ -104,7 +104,7 @@ Changes that follow from this:
 - So every tray of a player moves when that player adds or removes a character. A removed character's tray leaves the row, and the row closes the gap. The same happens in TTS.
 - The card faces the owner and sits on the mat side of the tray; the controls strip sits on the owner's side, away from the mat. For blue, the top of the card image points to −z, the same as a crisis card (`CrisisCard.jsx`). A red tray is turned by 180°.
 - A tray has no collider. Models and dice do not touch it.
-- A newly spawned model stands on the table at the center of its tray's card, not on a separate bench. The model keeps its own rotation from the spawner. The model reads that position only once, when its body mounts. A Rapier `RigidBody` moves its body when its `position` prop changes, so a later tray move must not reach the body through that prop. A model that is still loading when the row shifts mounts on its tray's new place.
+- A newly spawned model stands on the table at the center of its tray's card, not on a separate bench. The model faces the mat, toward the opponent, as in TTS (see "Models face the mat"). The model reads that position only once, when its body mounts. A Rapier `RigidBody` moves its body when its `position` prop changes, so a later tray move must not reach the body through that prop. A model that is still loading when the row shifts mounts on its tray's new place.
 - When a tray moves, a model that still stands on that tray moves with it (`Scene.jsx`). A model that the player moved off its tray, for example onto the mat, stays where it is. TTS does the same (`moveTray` in the tray script). TTS checks "not on the mat"; the app checks "on its own tray plate, or on the table past it, as wide as the plate" (`inTrayArea` in `trays.js`), so a spare model (see [Second forms](#second-forms)) moves too.
 
 The start view (`CAMERA_TARGET` and `CAMERA_POSITION` in `App.jsx`) shows the tactic trays and the character trays of both players. It also shows the rack band of the own side. Its bottom edge is at z = 37.5" (`docs/features/key-shortcuts.md`, "Start view").
@@ -137,6 +137,10 @@ The whole tray is a drop target for tokens. The Give sources are outside the tra
 - Flip: turns the card to the other side and sets Damage to 0, as in TTS. The F key does the same with the pointer over the card or the model, or with the character selected (see `docs/features/key-shortcuts.md`).
 - **On** row, above the card, where TTS shows the tokens on a character: one real-size 3D token per token key, with a count badge when the count is above 1. The tokens start at the owner's left, in the order the character got them. With more than 6 tokens they overlap, so the row stays as wide as the tray. A label above a token under the pointer shows its name and the mod's description (`tDescr`). A click on a token removes one.
 - **Give** sources, on the table below the tray: the tokens that this character gives to others or to itself: Activated, Dazed, and the tokens in its `cToken` list. They are real-size 3D tokens, in rows of 6 from the owner's left. TTS spawns these tokens at the same place, on the table below the tray, in rows from the owner's left. Each source never runs out: a drag takes a new token from it.
+
+### Models face the mat
+
+A model that spawns on its card, and one that goes back to it (Remove), faces the mat. A blue model and a red model start 180 deg apart. The TTS tray turns a model by the tray rotation + 180 + the character's `cModelRot`; a standee gets no `cModelRot`. The tray rotation is 180 for the mod's Red seat (the app's blue side) and 0 for Blue. A TTS Y rotation `r` is `-r` in Three.js. The tray part (tray rotation + 180) is the start turn of the body, so Q / E and the stored pose include it. The `cModelRot` part is the turn of the figure on its body, plus the 180 deg import turn of the mod GLBs (`IMPORT_ROTATION` in `Terrain.jsx`). A stored pose keeps its own turn. The second model has the first model's `cModelRot`. See `src/characters/models.js`. One exception in TTS is not built: Ant-Man, Captain Marvel Cosmic Avenger and Emma Frost (`twoCards` with `newCard`) spawn their models with the tray rotation + 90 and no `cModelRot`.
 
 ## Attached cards
 
@@ -205,12 +209,14 @@ A player gives a token to a character by dragging it onto the model or onto the 
 
 The **Library** HUD panel shows every migrated token, in groups, with a search field (see `docs/features/library.md`). It replaced the old Tokens panel. It has the same purpose as the TTS "Token Tray": a player can give a token that is not among the Give sources of any tray, for example a token from a Team Tactic card. In Pile mode, a drag from the Library puts a pile on the table that never runs out.
 
+A click on a **Give** source (a press with no drag) gives 1 of that token to the character of that tray, with the same limits as a drop on it. A token that cannot be given (an immunity) shows the same HUD message.
+
 A character token can also lie on the table, as in TTS. A player drags it there from a Give source, a pile or the Library, and later drags it on to a character or to another place. The Delete key (or Backspace) removes the token under the pointer.
 
 How the drag works:
 
-- A drag starts on `pointerdown` on a Give source (3D), a token or a pile on the table (3D) or a Library token chip (DOM). App stores it (`tokenDrag`) and turns off the camera controls.
-- The drag becomes active after the pointer moves 4 px. Then `TokenDragPreview` shows the token at real size on the table or terrain point under the pointer. A token from the table is hidden at its old place. A release before 4 px is a click, and nothing happens.
+- A drag starts on `pointerdown` on a Give source (3D, the press also knows the character of the tray), a token or a pile on the table (3D) or a Library token chip (DOM). App stores it (`tokenDrag`) and turns off the camera controls.
+- The drag becomes active after the pointer moves 4 px. Then `TokenDragPreview` shows the token at real size on the table or terrain point under the pointer. A token from the table is hidden at its old place. A release before 4 px is a click. On a Give source, the click gives 1 token to that tray's character (`giveId`, the 4th argument of `onTokenDragStart`); on any other piece, nothing happens.
 - On `pointerup`, App decides:
   1. Over a HUD panel: nothing happens. So a drag back onto the Library cancels it.
   2. Over a character: the character gets the token. DOM first: the nearest element with `data-character-id` under the pointer (the tray controls have it, and a later 2D HUD can use the same attribute). Then 3D: `Scene.jsx` gives App a `characterAt(clientX, clientY)` function through a ref. It casts a ray from the camera and hits the model objects (`charObjects`) and the tray background plates. A token from the table is used up, also when the character is at the limit for that token, the same as TTS. It stays on the table when the character is immune.

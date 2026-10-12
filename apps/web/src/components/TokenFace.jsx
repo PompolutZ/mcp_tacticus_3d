@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Html, useTexture } from '@react-three/drei'
 import { assetUrl } from '../assets/index.js'
 import { TOKEN_SIZE, characterToken } from '../tokens/files.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import { getToken } from '../tokens/tokens.js'
 import TokenSolid from './TokenSolid.jsx'
+import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
 
 // The count badge sits on the token's bottom right corner, as seen by the owner of its tray, just above
@@ -43,7 +44,10 @@ export default function TokenFace({
   const map = useTexture(assetUrl(characterToken(tokenKey)))
   const token = getToken(tokenKey)
   const [hovered, setHovered] = useState(false)
+  const groupRef = useRef()
   useHoverCursor(hovered, cursor)
+  // A token with interactive false is never hovered, so it has no outline
+  useOutline(groupRef, outlineMode(false, hovered))
   // onHover(true) while the pointer is over the token, onHover(false) after. The cleanup also runs
   // on unmount, so a removed token does not stay hovered.
   useEffect(() => {
@@ -65,7 +69,7 @@ export default function TokenFace({
     : { raycast: NO_RAYCAST }
 
   return (
-    <group>
+    <group ref={groupRef}>
       <TokenSolid map={map} size={size} {...events} />
       {count > 1 && (
         <group position={badgePosition(size)} rotation={FLAT}>

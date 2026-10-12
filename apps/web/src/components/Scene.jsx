@@ -48,12 +48,16 @@ import { projectFootprints } from './footprintProjection.js'
 import { matImage } from '../terrain/files.js'
 import { BASE_DIAMETER } from '../characters/files.js'
 import { MAPS } from '../terrain/maps.js'
-import { characterGiveSources, characterStamina } from '../characters/characters.js'
+import { characterGiveSources, characterName, characterStamina } from '../characters/characters.js'
 import {
   characterModels,
   characterOnBoard,
+  modelCardFile,
   modelCharacterId,
+  modelFigureYaw,
+  modelSpawnYaw,
   trayCards,
+  yawQuaternion,
 } from '../characters/models.js'
 import { FRICTION, WORLD_GRAVITY } from '../physics.js'
 import { overlapMarks, overlapsAny } from '../characters/overlap.js'
@@ -202,7 +206,8 @@ const OVERLAP_INTERVAL = 100
 // for the Delete key. terrainAtRef: ref App calls for the L key, the same pattern as characterAtRef.
 // Scene fills it with terrainAt.
 // showColliders: draw every physics collider as lines (the shapes physics uses, not the visible meshes)
-// showLabels: show the piece name and game Size above each terrain piece
+// showLabels: show the label (name, game Size, lock state) above each terrain piece. With labels off, the
+// piece under the pointer shows its label.
 // spectator: show the spectator view above each model (SpectatorBadge.jsx)
 // matTurns: number of 90° counter-clockwise turns of the mat and its terrain
 // crisis: { secure, extract } chosen card keys. tokens: every crisis token on the table (see App.jsx).
@@ -228,8 +233,10 @@ const OVERLAP_INTERVAL = 100
 // for the F key.
 // onCharacterOffBoard(id): the tray's Remove button, enabled while a model of the character is on the mat.
 // onCharacterTokenRemove(id, key): a click on a token in the tray's "On" row.
-// onTokenDragStart(e, key, looseId): pointerdown on a tray's Give source, or on a token on the
-// table (looseId). See App.jsx, handleTokenDragStart.
+// onTokenDragStart(e, key, looseId, giveId): pointerdown on a tray's Give source (giveId: the character of the
+// tray), or on a token on the table (looseId). See App.jsx, handleTokenDragStart.
+// onCardHover(card, over): the pointer moved onto or off a card or a model, card as { src, alt, by }, for Alt
+// (App.jsx).
 // looseTokens: the character tokens that lie on the table, [{ id, key, x, z }] (see App.jsx).
 // onLooseHover(id, over): the pointer moved onto or off one of them, for the Delete key.
 // tokenPiles: the piles of character tokens on the table, [{ id, key, x, z }] (see TokenPile.jsx).
@@ -252,8 +259,8 @@ const OVERLAP_INTERVAL = 100
 // onCardOpen({ src, alt }): a click on a crisis card (see CardPopup.jsx). onTrayOpen(id): a click
 // on a tray card opens the whole tray (see TrayPopup.jsx). onAttachedOpen(code): a click on a gem chip
 // of a tray opens the gem card (App.jsx, handleAttachedOpen).
-// diceMenu: the open face menu of a dice tray, { trayKey, symbol } | null, lifted to App so Escape
-// can close it. onDiceMenuToggle(trayKey, symbol), onDiceMenuClose(): see DiceKeys.jsx.
+// diceMenu: the open "Change to" menu of a shelf die, { trayKey, dieId } | null, lifted to App so
+// Escape can close it. onDiceMenuOpen(trayKey, dieId), onDiceMenuClose(): see DiceTray.jsx.
 // characterAtRef: ref App calls with (clientX, clientY) to find the character under the pointer,
 // the same pattern as bodyRef. Scene fills it with its own characterAt (3D only: the model
 // or the tray's background plate), used by App's findCharacterAt below.
@@ -274,7 +281,7 @@ const OVERLAP_INTERVAL = 100
 // The other tray is only drawn (OtherDiceTray.jsx).
 // onDiceTrayHover(side, over): the pointer moved onto or off an own dice tray, for the number keys.
 // addDiceRef: ref App calls with a side and a count for the number keys over that tray. Each own
-// tray puts its addDice in addDiceRef.current[side] (DiceTray.jsx).
+// tray puts a function there that clears the tray, then adds that many dice (DiceTray.jsx).
 // diceStore: the dice record store of the table; each tray reads and writes its side (DiceTray.jsx).
 // rollsStore: the roll history list. transact(fn): fn writes several stores as one change.
 // onTokenHold(tokenId, characterId, cardPoint): a canHold token was released over a character.
@@ -334,6 +341,7 @@ export default function Scene({
   onCharacterPower,
   onCharacterFlip,
   onTrayCardHover,
+  onCardHover,
   onCharacterOffBoard,
   onCharacterTokenRemove,
   onTokenDragStart,
@@ -354,7 +362,7 @@ export default function Scene({
   onTrayOpen,
   onAttachedOpen,
   diceMenu = null,
-  onDiceMenuToggle,
+  onDiceMenuOpen,
   onDiceMenuClose,
   characterAtRef,
   findCharacterAt,
@@ -413,6 +421,9 @@ export default function Scene({
   // Tool ('move', 'range' or 'angle') → { id, clamp(p) } while its Place is on, else null.
   // A drag of character id keeps its base on that tool (see onPlaceLimit in RulerTool.jsx).
   const placeLimits = useRef({})
+  // The own tool that has Place or Throw on: 'range', 'move' or null. Only one at a time. The other tool turns
+  // its own off (limitTaken in RulerTool.jsx). A tool that turns off clears only its slot in placeLimits.
+  const [limitTool, setLimitTool] = useState(null)
   // The pieces that Q / E can turn (turnPiece): the character or tool under the pointer, and the one
   // that is dragged. { kind: 'character' | 'tool', id } | null. The id of a tool is 'range', 'move' or 'angle'.
   const hoveredPiece = useRef(null)
@@ -553,7 +564,12 @@ export default function Scene({
   // the pointer off the canvas (over the HUD or a tray's controls), it is null.
   function terrainAt() {
     if (!gl.domElement.matches(':hover')) return null
-    raycaster.current.setFromCamera(pointer, camera)
+    return terrainUnder(pointer)
+  }
+
+  // Id of the nearest terrain piece on the ray through ndc, or null
+  function terrainUnder(ndc) {
+    raycaster.current.setFromCamera(ndc, camera)
     let nearestId = null
     let nearestDistance = Infinity
     for (const [id, object] of terrainObjects.current) {
@@ -565,6 +581,47 @@ export default function Scene({
     }
     return nearestId
   }
+
+  // Hover label: with labels off, the piece under the pointer shows its label, locked or not. One ray
+  // per frame at most, only on pointer move, and the state changes only when the id changes.
+  const [hoverLabelId, setHoverLabelId] = useState(null)
+  useEffect(() => {
+    if (showLabels) {
+      setHoverLabelId(null)
+      return undefined
+    }
+    const canvas = gl.domElement
+    let frame = 0
+    let last = null
+    function cast() {
+      frame = 0
+      const rect = canvas.getBoundingClientRect()
+      const ndc = {
+        x: ((last.clientX - rect.left) / rect.width) * 2 - 1,
+        y: -((last.clientY - rect.top) / rect.height) * 2 + 1,
+      }
+      setHoverLabelId(terrainUnder(ndc))
+    }
+    function onMove(e) {
+      last = e
+      if (!frame) frame = requestAnimationFrame(cast)
+    }
+    function onLeave() {
+      cancelAnimationFrame(frame)
+      frame = 0
+      setHoverLabelId(null)
+    }
+    canvas.addEventListener('pointermove', onMove)
+    canvas.addEventListener('pointerleave', onLeave)
+    return () => {
+      canvas.removeEventListener('pointermove', onMove)
+      canvas.removeEventListener('pointerleave', onLeave)
+      cancelAnimationFrame(frame)
+      setHoverLabelId(null)
+    }
+    // terrainUnder only reads refs and the camera
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showLabels, gl, camera])
 
   // Live table position of a character's first model (Hold and drop, "Drop"): the Rapier body when there
   // is one, otherwise the 3D object's own position. Not the spawn position, so a character that moved
@@ -776,7 +833,7 @@ export default function Scene({
       charLifts.current.get(model.id)?.cancel()
       turnsLeft.current.delete(modelKey(model.id))
       const [x, y, z] = trayPlace(model)
-      const pose = poseOf({ x, y, z }, { x: 0, y: 0, z: 0, w: 1 })
+      const pose = poseOf({ x, y, z }, yawQuaternion(modelSpawnYaw(model.character.teamColor)))
       applyPose(model.id, pose)
       onModelRest?.(model.id, pose)
     }
@@ -970,6 +1027,12 @@ export default function Scene({
     return trayPlace(model)
   }
 
+  // The turn a model starts with, no stored pose: it faces the mat (characters/models.js, modelSpawnYaw)
+  function startQuaternion(teamColor) {
+    const { x, y, z, w } = yawQuaternion(modelSpawnYaw(teamColor))
+    return [x, y, z, w]
+  }
+
   // Where a model stands on its tray: on its card, or for a spare model past the Give sources
   function trayPlace(model) {
     const ch = model.character
@@ -1009,6 +1072,11 @@ export default function Scene({
 
   function selectTool(tool) {
     onSelectedToolsChange((prev) => ({ ...prev, [tool]: true }))
+  }
+
+  // A drag selects the piece and keeps it selected, a click toggles (toggleSelect)
+  function dragSelect(kind, id) {
+    onSelectionChange((prev) => selectPiece(prev, { kind, id }))
   }
 
   function toggleSelect(kind, id) {
@@ -1119,6 +1187,7 @@ export default function Scene({
             <Terrain
               placements={terrain}
               showLabels={showLabels}
+              hoverLabelId={hoverLabelId}
               selectedId={selectedTerrainId}
               onSelect={(id) => toggleSelect('terrain', id)}
               onHover={onTerrainHover}
@@ -1141,8 +1210,8 @@ export default function Scene({
               rolls={rollsStore}
               transact={transact}
               diceLives={diceLives}
-              openMenuSymbol={diceMenu?.trayKey === trayKey ? diceMenu.symbol : null}
-              onMenuToggle={(symbol) => onDiceMenuToggle(trayKey, symbol)}
+              openDieId={diceMenu?.trayKey === trayKey ? diceMenu.dieId : null}
+              onDieOpen={(dieId) => onDiceMenuOpen(trayKey, dieId)}
               onMenuClose={onDiceMenuClose}
               onHover={(over) => onDiceTrayHover?.(trayKey, over)}
               addRef={
@@ -1178,6 +1247,7 @@ export default function Scene({
               cardKey={crisis.secure}
               position={[CARD_X, CARD_Y, CARD_Z.secure]}
               onOpen={onCardOpen}
+              onCardHover={onCardHover}
             />
           </Suspense>
         )}
@@ -1187,6 +1257,7 @@ export default function Scene({
               cardKey={crisis.extract}
               position={[CARD_X, CARD_Y, CARD_Z.extract]}
               onOpen={onCardOpen}
+              onCardHover={onCardHover}
             />
           </Suspense>
         )}
@@ -1217,6 +1288,7 @@ export default function Scene({
               rangeMark={rangeMarkOf('token', tok.id)}
               otherSelected={otherSelectedOf('token', tok.id)}
               onSelect={() => toggleSelect('token', tok.id)}
+              onDragSelect={() => dragSelect('token', tok.id)}
               onHover={
                 tok.heldBy
                   ? (over) => onHeldHover?.(tok.id, over)
@@ -1354,6 +1426,7 @@ export default function Scene({
                   code={rosters[team].code}
                   squad={setup.squads[team]}
                   onOpen={(tab, index) => onRosterOpen?.({ team, tab, index })}
+                  onCardHover={onCardHover}
                 />
               ),
           )}
@@ -1365,6 +1438,7 @@ export default function Scene({
           seatPlayers={seatPlayers}
           actions={setupActions}
           onRosterOpen={onRosterOpen}
+          onCardHover={onCardHover}
         />
         {tacticCards.map((card, i) => (
           <Suspense key={card.id} fallback={null}>
@@ -1378,6 +1452,7 @@ export default function Scene({
               getLivePose={getPieceLive}
               onOpen={onCardOpen}
               onHover={(over) => onTacticHover?.(card.id, over)}
+              onCardHover={onCardHover}
             />
           </Suspense>
         ))}
@@ -1396,6 +1471,7 @@ export default function Scene({
               onPower={(power) => onCharacterPower(ch.id, power)}
               onFlip={() => onCharacterFlip(ch.id)}
               onCardHover={(over) => onTrayCardHover?.(ch.id, over)}
+              onCardImageHover={onCardHover}
               onRemove={() => onCharacterOffBoard(ch.id)}
               onBoard={characterOnBoard(ch, poses)}
               onAttachedOpen={onAttachedOpen}
@@ -1415,9 +1491,9 @@ export default function Scene({
           const pose = startPose?.(model.id)
           const props = {
             position: modelSpawnPosition(model),
-            quaternion: pose && [pose.qx, pose.qy, pose.qz, pose.qw],
+            quaternion: pose ? [pose.qx, pose.qy, pose.qz, pose.qw] : startQuaternion(ch.teamColor),
             baseRadius: BASE_DIAMETER[model.base] / 2,
-            rotation: [0, (model.rotation * Math.PI) / 180, 0],
+            rotation: [0, modelFigureYaw(model), 0],
             teamColor: ch.teamColor,
             selected: selectedModelId === model.id,
             rangeMark: rangeMarkOf('character', model.id),
@@ -1426,9 +1502,18 @@ export default function Scene({
             overlapsAt: (x, y, z) =>
               overlapsAny({ x, y, z, radius: BASE_DIAMETER[model.base] / 2 }, modelBases(model.id)),
             onSelect: () => toggleSelect('character', model.id),
+            onDragSelect: () => dragSelect('character', model.id),
             onHover: (over) => {
               onPieceHover?.({ kind: 'character', id: model.id }, over)
               trackPiece(hoveredPiece, { kind: 'character', id: model.id }, over)
+              onCardHover?.(
+                {
+                  src: assetUrl(modelCardFile(model)),
+                  alt: characterName(ch.key),
+                  by: `model:${model.id}`,
+                },
+                over,
+              )
             },
             bodyRef: (rb) =>
               rb ? charBodies.current.set(model.id, rb) : charBodies.current.delete(model.id),
@@ -1496,6 +1581,7 @@ export default function Scene({
               hoverHeight={TOOL_HOVER_HEIGHT}
               selected={selectedTools.move}
               onSelect={() => toggleTool('move')}
+              onDragSelect={() => selectTool('move')}
               // A new tool is selected, so its buttons (Place, Bend) can be used right away
               onSpawn={() => selectTool('move')}
               angleLimit={angleLimit}
@@ -1506,6 +1592,8 @@ export default function Scene({
               onPlaceLimit={(limit) => {
                 placeLimits.current.move = limit
               }}
+              limitTaken={limitTool === 'range'}
+              onLimitOn={() => setLimitTool('move')}
               {...turnProps('move')}
             />
           </Suspense>
@@ -1517,6 +1605,7 @@ export default function Scene({
               hoverHeight={TOOL_HOVER_HEIGHT}
               selected={selectedTools.angle}
               onSelect={() => toggleTool('angle')}
+              onDragSelect={() => selectTool('angle')}
               onSpawn={() => selectTool('angle')}
               target={toolTarget}
               spawnTarget={toolModel(angleSpawn.target)}
@@ -1569,6 +1658,7 @@ export default function Scene({
               hoverHeight={TOOL_HOVER_HEIGHT}
               selected={selectedTools.range}
               onSelect={() => toggleTool('range')}
+              onDragSelect={() => selectTool('range')}
               onSpawn={() => selectTool('range')}
               target={toolTarget}
               placeTarget={placeTarget}
@@ -1577,6 +1667,8 @@ export default function Scene({
               onPlaceLimit={(limit) => {
                 placeLimits.current.range = limit
               }}
+              limitTaken={limitTool === 'move'}
+              onLimitOn={() => setLimitTool('range')}
               onRangeMark={setRangeMark}
               {...turnProps('range')}
             />

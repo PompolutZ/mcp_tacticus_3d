@@ -710,8 +710,8 @@ body {
   border-color: transparent;
 }
 
-/* "Reroll one / Change one to" menu of a face plate. Screen-space Html anchored at the plate, so
-   it opens above the plate at the normal HUD size. */
+/* "Change to" menu of a shelf die. Screen-space Html anchored at the die, so it opens above the
+   die at the normal HUD size. */
 .dice-face-menu {
   transform: translate(-50%, calc(-100% - 12px));
   display: flex;
@@ -956,6 +956,12 @@ body {
   background: rgba(5, 5, 16, 0.8);
   cursor: pointer;
   z-index: 400;
+}
+
+/* Alt over a card: no backdrop, and the pointer goes through to the table (CardPopup.jsx, peek) */
+.card-popup--peek {
+  background: none;
+  pointer-events: none;
 }
 
 .card-popup-content {

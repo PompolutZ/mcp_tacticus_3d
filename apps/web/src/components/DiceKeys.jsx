@@ -33,19 +33,11 @@ function iconUrl(symbol) {
 // The keys of one dice tray, drawn on the tray itself, as in TTS. Must be a child of the tray body
 // (tray space, see tray.js). The lip on the player's side has Clear, -, the count of dice not on
 // the shelf, +, Roll and +N Crits. Each face plate on the rim past the shelf shows how many shelf
-// dice show that face. A click on a plate opens its "Reroll one / Change one to" menu.
+// dice show that face. A click on a plate with dice rerolls one die of that face, as in TTS.
 // state: { well, shelf, critsAvailable }, see DiceTray. actions: the tray's add, remove, roll,
-// clear, addCrits, reroll and change. openMenuSymbol: the symbol whose menu is open on this tray,
-// or null. onMenuToggle/onMenuClose: lifted to App so Escape can close the menu.
-// disabled: the other player's tray. Every button is off, a face plate is not a button, no menu opens.
-export default function DiceKeys({
-  state,
-  actions,
-  openMenuSymbol,
-  onMenuToggle,
-  onMenuClose,
-  disabled = false,
-}) {
+// clear, addCrits and reroll.
+// disabled: the other player's tray. Every button is off, a face plate is not a button.
+export default function DiceKeys({ state, actions, disabled = false }) {
   const { well, shelf, critsAvailable } = state
   return (
     <>
@@ -109,17 +101,7 @@ export default function DiceKeys({
           symbol={symbol}
           count={shelf[symbol]}
           disabled={disabled}
-          menuOpen={!disabled && openMenuSymbol === symbol}
-          onToggle={() => onMenuToggle(symbol)}
-          onReroll={() => {
-            actions.reroll(symbol)
-            onMenuClose()
-          }}
-          onChange={(toSymbol) => {
-            actions.change(symbol, toSymbol)
-            onMenuClose()
-          }}
-          onMenuClose={onMenuClose}
+          onClick={() => actions.reroll(symbol)}
         />
       ))}
     </>
@@ -127,19 +109,9 @@ export default function DiceKeys({
 }
 
 // One face plate: a clear button the size of the plate, with the count on the half that has no
-// icon (TTS shows its count there too). A plate with no dice does nothing, because Reroll and
-// Change need a die with that face. The menu is screen-space Html (not transform), anchored at the
-// plate, so it keeps the normal HUD size at any camera distance.
-function FacePlate({
-  symbol,
-  count,
-  disabled,
-  menuOpen,
-  onToggle,
-  onReroll,
-  onChange,
-  onMenuClose,
-}) {
+// icon (TTS shows its count there too). A plate with no dice does nothing, because Reroll needs a
+// die with that face.
+function FacePlate({ symbol, count, disabled, onClick }) {
   const name = SYMBOL_NAMES[symbol]
   const plateSize = {
     width: FACE_PLATES.width * PX_PER_INCH,
@@ -169,36 +141,28 @@ function FacePlate({
             type="button"
             className="dice-face-button"
             style={plateSize}
-            title={`${name}: reroll one or change one`}
+            title={`${name}: reroll one`}
             disabled={count === 0}
-            onClick={onToggle}
+            onClick={onClick}
           >
             {countBox}
           </button>
         )}
       </Html>
-      {menuOpen && (
-        <Html>
-          <FaceMenu symbol={symbol} onReroll={onReroll} onChange={onChange} onClose={onMenuClose} />
-        </Html>
-      )}
     </group>
   )
 }
 
-// The "Reroll one / Change one to" menu of one face plate. A pointerdown outside the menu closes
-// it (a pointerdown listener on the document). A pointerdown on a face plate does not:
-// the click that follows toggles this menu, or opens the other plate's menu (App keeps one open).
-function FaceMenu({ symbol, onReroll, onChange, onClose }) {
+// The "Change to" menu of one shelf die: the 5 other faces. A pointerdown outside the menu closes
+// it (a pointerdown listener on the document). It is screen-space Html (not transform) in the die's
+// body, so it follows the die when the shelf sorts and keeps the normal HUD size at any camera
+// distance. symbol: the face of the die now. onChange(toSymbol), onClose(): see DiceTray.
+export function DieMenu({ symbol, onChange, onClose }) {
   const menuRef = useRef(null)
 
   useEffect(() => {
     function handlePointerDown(e) {
-      if (
-        menuRef.current?.contains(e.target) ||
-        e.target.closest?.('.dice-face-key, .dice-face-button')
-      )
-        return
+      if (menuRef.current?.contains(e.target)) return
       onClose()
     }
     document.addEventListener('pointerdown', handlePointerDown)
@@ -207,10 +171,7 @@ function FaceMenu({ symbol, onReroll, onChange, onClose }) {
 
   return (
     <div ref={menuRef} className="dice-face-menu">
-      <button type="button" className="chip" onClick={onReroll}>
-        Reroll one
-      </button>
-      <span className="group-label">Change one to</span>
+      <span className="group-label">Change to</span>
       {SYMBOLS.filter((other) => other !== symbol).map((other) => (
         <button
           key={other}

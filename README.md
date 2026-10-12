@@ -177,7 +177,7 @@ In game setup, the player with priority chooses the edge of the mat to deploy fr
 
 ## Selection
 
-Click a piece to select it. Click it again to deselect it. One character, one crisis token, one unlocked terrain piece (see [Terrain lock](#terrain-lock)), the range tool, the movement tool and the Toward / Away tool can be selected at the same time. Selecting another character deselects the old character. The same is true for a token and a terrain piece. A click on the empty table deselects the character, the token and the terrain piece. Escape deselects everything and removes the selected tools from the table.
+Click a piece to select it. Click it again to deselect it. A drag moves a model, a tool or a crisis token that can move at once, and selects it. A piece that is already selected stays selected. One character, one crisis token, one unlocked terrain piece (see [Terrain lock](#terrain-lock)), the range tool, the movement tool and the Toward / Away tool can be selected at the same time. Selecting another character deselects the old character. The same is true for a token and a terrain piece. A click on the empty table deselects the character, the token and the terrain piece. Escape deselects everything and removes the selected tools from the table.
 
 A tool measures against the character or token selected last. A new tool also snaps to it. Place moves the selected character, also when a token was selected after it.
 
@@ -193,7 +193,9 @@ The red shows during a drag, as soon as the base enters another model. A drag th
 
 Every terrain piece is locked when its map is loaded. A locked piece does not react to the pointer: a click on it is a click on the empty table, and a piece behind it can still be clicked. Press **L** with the pointer over a terrain piece to unlock it, as in TTS. Press L again to lock it. A HUD message shows the new state, because a locked piece looks the same as an unlocked one.
 
-An unlocked piece shows a white outline under the pointer. Click it to select it. Press **Delete** with the pointer over it to remove it. A model that stands on a removed piece falls to what is under it. A new map brings its own terrain, all locked again. Unlocked pieces cannot be moved yet.
+The **Labels** chip of the toolbar is on at the start. Each terrain piece then shows a label above it: "Tree - Size 2 - (L)ocked" or "Tree - Size 2 - Un(L)ocked" (a piece with no Size: "Tree - (L)ocked"). The label follows the lock state. With Labels off, only the piece under the pointer shows its label, locked or not. A model that you drag shows a light grey footprint on the table, and a red one over another model.
+
+Every piece that you can use with the pointer shows a white outline under it: a model, a tool, a token, a card, a marker, a supply pile, a tool of your rack, a die on your shelf, an unlocked terrain piece. Locked terrain, the table, the mat and the other player's rack and dice tray have none. Click an unlocked piece to select it. Press **Delete** with the pointer over it to remove it. A model that stands on a removed piece falls to what is under it. A new map brings its own terrain, all locked again. Unlocked pieces cannot be moved yet.
 
 ## Tools
 
@@ -246,6 +248,8 @@ Turning Place on moves the selected character past the far end. Its base then to
 A free tool has no far end, so it shows Place only while Place is on. Then you can still turn it off.
 
 While Place is on, you can drag the selected character only to where its base touches the tool outline, so the outline stays green. When the pointer goes farther, the base stops at the nearest point where it still touches the outline. The deploy line limits a drag in the same way. You can still move and rotate the tool while Place is on.
+
+Only one Place or Throw / Push is on at a time across the own tools. Turning it on on one tool turns it off on the other tool (range or movement), and the selected character now keeps its base on this tool. Place 1 of the R1 tool counts too, except on the snapped model itself, where it does not stay on.
 
 Place does not work for a token: a token has no base to place, only a position that its own drag sets. So Place cannot be turned on while no character is selected. With a character and a token selected, Place moves the character.
 
@@ -329,7 +333,11 @@ While the R1 tool is snapped and another model is selected, the outline is green
 
 The R1 tool is the Range 2 tool, so it has two Place buttons while it is snapped:
 
-- **Place 1** is at the snapped corner, on the half of the tool next to the other long side. It moves the selected character across the tool, so its base touches the other long side at the same corner. Its base edge is then 1" from the snapped base edge. If the selected character is the snapped model, it now touches the other long side, so the tool stays snapped to it. Place 1 does not stay on.
+- **Place 1** is at the snapped corner, on the half of the tool next to the other long side. It moves the selected character across the tool, so its base touches the other long side at the same corner. Its base edge is then 1" from the snapped base edge. Place 1 is a toggle, like Place 2, and shows its on state. Turning it off moves nothing. Place 1 and Place 2 turn each other off.
+  - While it is on, you can drag the selected character only along the line from the center of the snapped piece through its own center. It can come as close as the center of the snapped piece (its base can cover a token or portal), and as far as full range 1. At the center, the line keeps its last direction.
+  - A drag to the side turns that line around the snapped piece, and the tool turns with it: its corner stays on the snapped piece and the character stays on its short side. The tool stays snapped. A drag of the tool itself works as before, and the character does not move with it. The next drag of the character uses the new line.
+  - A drag selects the character, so the movement tool footprint shows if the place is within its reach.
+  - If the selected character is the snapped model, it now touches the other long side, so the tool stays snapped to it. Place 1 does not stay on then.
 - **Place 2** is at the far end. It works the same as [Place](#place) on other tools. If it moves the snapped model, the base is no longer at a corner, so the tool becomes free.
 
 ## Debug mode

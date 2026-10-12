@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { assetUrl } from '../assets/index.js'
 import { pieceCollider, pieceMesh, pieceTexture } from '../terrain/files.js'
 import { TTS_MAT_TOP } from '../terrain/maps.js'
+import { terrainLabel } from '../terrain/label.js'
 import { TERRAIN_PIECES } from '../terrain/pieces.js'
 import { FRICTION } from '../physics.js'
 import { projectFootprints } from './footprintProjection.js'
@@ -69,7 +70,7 @@ export function pieceUrls(key) {
 }
 
 // placement: a terrain piece on the mat, see mapTerrain in rooms/table.js.
-// showLabel: show the piece name and the game Size above the piece
+// showLabel: show the label (name, game Size, lock state) above the piece
 // selected: the piece is selected. onSelect(): a click on the piece. onHover(over): the pointer
 // moved onto (true) or off (false) the piece, for the Delete key.
 // objectRef(obj): the visible mesh of the piece, or null on unmount. Scene finds the piece under the
@@ -183,8 +184,7 @@ function TerrainPiece({ placement, showLabel, selected, onSelect, onHover, objec
           zIndexRange={[100, 0]}
           className="terrain-label"
         >
-          {piece.name}
-          {placement.size && ` · Size ${placement.size}`}
+          {terrainLabel(piece.name, placement.size, locked)}
         </Html>
       )}
     </group>
@@ -192,11 +192,14 @@ function TerrainPiece({ placement, showLabel, selected, onSelect, onHover, objec
 }
 
 // placements: the terrain pieces on the mat, [{ id, locked, ...placement }] (see mapTerrain in rooms/table.js).
+// hoverLabelId: id of the piece under the pointer while labels are off (Scene finds it with a ray, so
+// a locked piece gets it too), or null. That piece shows its label.
 // selectedId: id of the selected piece, or null. onSelect(id), onHover(id, over), objectRef(id, obj):
 // see TerrainPiece.
 export default function Terrain({
   placements,
   showLabels = false,
+  hoverLabelId = null,
   selectedId = null,
   onSelect,
   onHover,
@@ -206,7 +209,7 @@ export default function Terrain({
     <TerrainPiece
       key={placement.id}
       placement={placement}
-      showLabel={showLabels}
+      showLabel={showLabels || hoverLabelId === placement.id}
       selected={selectedId === placement.id}
       onSelect={() => onSelect?.(placement.id)}
       onHover={(over) => onHover?.(placement.id, over)}

@@ -99,22 +99,17 @@ The keys lip has these keys, from the player's left to right:
 
 TTS has the first 5 keys in the same order and in the same colors. TTS has no `+N Crits` key.
 
-Each face plate shows the number of shelf dice with that face. The number is black and is on the half of the plate that has no icon, as in TTS. From the player's left to right the plates are Hit, Crit, Wild, Block, Blank, Skull. A click on a plate opens a menu:
+Each face plate shows the number of shelf dice with that face. The number is black and is on the half of the plate that has no icon, as in TTS. From the player's left to right the plates are Hit, Crit, Wild, Block, Blank, Skull. A click on a plate moves one die with this face from the shelf back into the well, as in TTS. The plate opens no menu. A plate with no dice cannot be clicked.
 
-- **Reroll one**: one die with this face moves from the shelf back into the well.
-- **Change one to**: the 5 other faces.
-
-A plate with no dice cannot be clicked. The menu is screen-space HTML at the plate, so it has the normal HUD size at every camera distance. A click outside the menu or Escape closes it.
+A click on a die on the shelf of the own tray opens the **Change to** menu at that die: the 5 other faces. A pick turns that die to the face and sorts the shelf. The menu is screen-space HTML in the body of the die, so it has the normal HUD size at every camera distance and follows the die when the shelf sorts. A click outside the menu or Escape closes it. It also closes when that die leaves the shelf (reroll, Clear). A camera drag that starts on a die is not a click. Dice in the well and in the air, and the dice of the other player's tray, get no click.
 
 One limit: the keys are HTML on top of the canvas. Therefore dice and models in front of the keys do not hide them.
 
 ## Controls: number keys
 
-With the pointer over an own dice tray, keys 1–9 add that number of dice, and 0 adds 10. Each press adds to the dice that are already in the tray. When the tray would go over 42 dice, the key adds only the dice that are left to 42. In a multiplayer room the player has one own tray, the tray of the own seat. In a single player room and the Sandbox both trays are own, and each takes the keys when the pointer is over it. Over the other player's tray the number keys act as over the table: they spawn a tool. Away from the trays, the number keys spawn tools (see `docs/features/key-shortcuts.md`).
+With the pointer over an own dice tray, keys 1–9 first clear the tray, then add that number of dice, and 0 adds 10, as in TTS. The history gets a Clear entry when the tray had dice. When the tray would go over 42 dice, the key adds only the dice that are left to 42. In a multiplayer room the player has one own tray, the tray of the own seat. In a single player room and the Sandbox both trays are own, and each takes the keys when the pointer is over it. Over the other player's tray the number keys act as over the table: they spawn a tool. Away from the trays, the number keys spawn tools (see `docs/features/key-shortcuts.md`).
 
-In TTS, keys 1–9 over the tray first clear it and then add that number of dice. The app does not clear the tray, so a player can add more dice with a second press.
-
-One side effect: a click on the player's tray does not clear the selection. The tray has pointer handlers for the hover, so R3F counts the click as a hit.
+One side effect: a click on the player's tray or on one of its dice does not clear the selection. They have pointer handlers, so R3F counts the click as a hit.
 
 ## Roll flow
 
@@ -125,16 +120,16 @@ The flow follows the TTS tray script, with three changes (see the list after the
 3. When the player presses Roll while those dice move, they are thrown again from where they are, also in the air. TTS does the same, because its script does not block a second press. A die that is more than 5.6" above its rest height on the well floor is not thrown again (`ROLL_HEIGHT_LIMIT` in `src/dice/tray.js`). It only gets a new random spin (step 4 of [Throw](#throw)), so it is harder to see which face will be up. In TTS, when a player presses Roll many times, each die is thrown again only when it falls back to one height, as if it bounced on an invisible floor above the tray. Each press also changes the spin of the dice above that height. So the dice do not go higher with each press. A new die that falls into the well was not thrown yet, so Roll throws it at any height. 5.6" is the TTS height (see [Measurements](#measurements)).
 4. The app reads the top face of each die when it rests, in the well or outside it. A die that rests tilted waits. It is not thrown again yet (see [Tilted dice](#tilted-dice)).
 5. When every thrown die rests, flat or tilted, each flat die turns flat on its top face and moves to the shelf, all in one change. The dice on the shelf are sorted by face: Crit, Wild, Hit, Block, Blank, Skull. The counts update. When their slide ends, the tilted dice are thrown again from where they are. This repeats until no die is tilted. The history has one entry for the whole throw, written when the last dice reach the shelf.
-6. **Reroll one** moves one die from the shelf back into the well. The player presses Roll to throw it.
+6. A click on a face plate moves one die with that face from the shelf back into the well. The player presses Roll to throw it.
 7. `+N Crits` adds one die for each Crit on the shelf. It works once per roll (p23), until the next Clear. For any other case, `+` still adds dice.
-8. **Change one to** turns one die to the chosen face and moves it to that group on the shelf.
+8. **Change to** (the menu of a die) turns that die to the chosen face and moves it to that group on the shelf.
 9. Clear removes all dice from the tray.
 
 Changes from TTS:
 
 - TTS puts the dice on the shelf in the order they were added. The app sorts them by face, so the counts are easier to read.
 - TTS reads the nearest face, even when a die is tilted. The app lets a tilted die wait until the flat dice are on the shelf. Then it throws the tilted die again.
-- In TTS, a click on a face count rerolls one die with that face. In the app, the click opens the Reroll one / Change one to menu.
+- The app has a menu that TTS does not have: a click on a die on the shelf opens Change to. In TTS, a click on a face count rerolls one die with that face, and the app does the same.
 
 The dice on the shelf are kinematic bodies. As a result, thrown dice bounce off them, but they cannot move them or change their face. The app stores the result of each die, so it does not read the dice on the shelf again.
 
@@ -145,7 +140,7 @@ In TTS, a player can pick up a die from the shelf. In the first version of the a
 The room keeps a roll history, for both sides. It is the list `rolls` in the Yjs document. The roller's browser adds one entry for each event, in the same change as the dice.
 
 - `throw`: when a throw ends. It has the results of the thrown dice by source: `roll` (new dice), `crits` (`+N Crits` dice) and `reroll` (old face → new face). One throw can have all three.
-- `change`: Change one to, from → to.
+- `change`: Change to, from → to.
 - `clear`: Clear. It is a line between two rolls. It does not delete the history. Clear on an empty tray adds nothing.
 
 An entry stores data: `{ side, at, kind, ... }`. Counts are `{ <symbol>: n }` with only the symbols above 0. `src/dice/history.js` makes the text, so a change of the look needs no change of the data.
@@ -324,7 +319,7 @@ Then the spin went back to 0–50 rad/s, because with 7.7–11 the dice did not 
 - `src/components/DiceTray.jsx`: the tray body, the dice bodies and the roll flow of one tray. It is inside `<Physics>` in `Scene.jsx`.
 - `src/components/DiceKeys.jsx`: the keys on the tray. `DiceTray.jsx` renders it inside the tray body, so its positions are in tray space (`KEYS_LIP` and `FACE_PLATES` in `src/dice/tray.js`).
 - `CharacterModel.jsx`: has `dominanceGroup={1}`.
-- State: the state of a tray is in the table document, `dice.<side>` (`dice/stored.js`). Each die has `order`, `place` (`air`, `well` or `shelf`), `face` (on the shelf) and `pose` (in the air and the well). `critsUsed` is stored too. The tray writes its side when a die changes its place or face, never on each frame. At mount the tray builds only its shelf dice from the document, and the dice in the well and in the air go away. The bodies and the roll flow stay in memory (`DiceTray.jsx`). The keys show the counts of the dice in memory, which are the same as `trayCounts` of the document. The open face menu is in `App.jsx`, so Escape can close it.
+- State: the state of a tray is in the table document, `dice.<side>` (`dice/stored.js`). Each die has `order`, `place` (`air`, `well` or `shelf`), `face` (on the shelf) and `pose` (in the air and the well). `critsUsed` is stored too. The tray writes its side when a die changes its place or face, never on each frame. At mount the tray builds only its shelf dice from the document, and the dice in the well and in the air go away. The bodies and the roll flow stay in memory (`DiceTray.jsx`). The keys show the counts of the dice in memory, which are the same as `trayCounts` of the document. The open die menu is in `App.jsx`, so Escape can close it.
 
 ## Other dice libraries
 

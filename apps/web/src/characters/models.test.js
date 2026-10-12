@@ -1,6 +1,14 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { characterOnBoard } from './models.js'
+import {
+  characterModels,
+  characterOnBoard,
+  modelCardFile,
+  modelFigureYaw,
+  modelSpawnYaw,
+  yawQuaternion,
+} from './models.js'
+import { characterCard, transformCard } from './files.js'
 
 const ch = { id: 'c1', key: 'hulk', figure: 'model', base: 'medium', rotation: 0 }
 const two = { ...ch, transform: { figure: 'model', card: true } }
@@ -28,4 +36,38 @@ test('only the second model on the mat is on the board', () => {
   const poses = { c1: pose(0, 25), 'c1:2': pose(5, 5) }
   assert.equal(characterOnBoard(two, poses), true)
   assert.equal(characterOnBoard(ch, poses), false)
+})
+
+test('blue and red models spawn 180 degrees apart', () => {
+  const turn = Math.abs(modelSpawnYaw('red') - modelSpawnYaw('blue'))
+  assert.ok(Math.abs(turn - Math.PI) < 1e-9)
+})
+
+test('a standee has no model part of the turn', () => {
+  assert.equal(modelFigureYaw({ figure: 'standee', rotation: 330 }), 0)
+})
+
+test('the model part is the import turn minus cModelRot', () => {
+  assert.ok(Math.abs(modelFigureYaw({ figure: 'model', rotation: 180 })) < 1e-9)
+  assert.ok(Math.abs(modelFigureYaw({ figure: 'model', rotation: 90 }) - Math.PI / 2) < 1e-9)
+  assert.ok(Math.abs(modelFigureYaw({ figure: 'model', rotation: 0 }) - Math.PI) < 1e-9)
+})
+
+test('the blue body starts with no turn', () => {
+  assert.equal(modelSpawnYaw('blue'), 0)
+  const q = yawQuaternion(modelSpawnYaw('red'))
+  assert.ok(Math.abs(Math.abs(q.y) - 1) < 1e-9 && Math.abs(q.w) < 1e-9)
+})
+
+test('a model shows the card of its character, the side that faces up', () => {
+  const [first] = characterModels({ ...ch, side: 'injured' })
+  assert.equal(modelCardFile(first), characterCard('hulk', 'injured'))
+})
+
+test('the second model with its own card shows that card, a spare model the first card', () => {
+  const [first, second] = characterModels({ ...two, side: 'healthy' })
+  assert.equal(modelCardFile(second), transformCard('hulk', 'healthy'))
+  assert.equal(modelCardFile(first), characterCard('hulk', 'healthy'))
+  const [, spare] = characterModels({ ...ch, side: 'healthy', transform: { figure: 'model' } })
+  assert.equal(modelCardFile(spare), characterCard('hulk', 'healthy'))
 })

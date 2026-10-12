@@ -2,7 +2,13 @@
 // (see docs/features/character-trays.md, "Second forms"). Plain module, the same as trays.js.
 
 import { MAT_SIZE } from '../table.js'
-import { characterModel, characterStandee, transformModel, transformStandee } from './files.js'
+import {
+  characterModel,
+  characterStandee,
+  trayCardFile,
+  transformModel,
+  transformStandee,
+} from './files.js'
 
 // The first model has the character's own id, so code that knows only the character (hold and
 // drop, the tray card) finds that model. The second model's id adds this suffix.
@@ -58,6 +64,39 @@ export function characterModels(ch) {
       card: form.card ? 2 : null,
     },
   ]
+}
+
+// The card file of a model (an entry of characterModels), the side of its character that faces up. A second
+// model with its own card shows that card. A spare model (card null) shows the first card.
+export function modelCardFile(model) {
+  const { key, side } = model.character
+  return trayCardFile(key, side, model.card === 2 ? 2 : 1)
+}
+
+const DEG = Math.PI / 180
+
+// Y rotation in degrees of the character tray of each side after the Tray Spawner snaps it (the mod's
+// Red seat is the app's blue side, see scoreboard/board.js). A tray is 0 or 180, never between.
+const TRAY_ROTATION = { blue: 180, red: 0 }
+
+// Body turn (radians around Y) of a model that spawns on its card: it faces the mat, as in TTS. The TTS
+// tray turns a model by tray rotation + 180 (+ cModelRot, see modelFigureYaw). A TTS Y rotation r is
+// -r in Three.js (Terrain.jsx, toThreeTransform). Used for a standee too, which has no model part.
+// See docs/features/character-trays.md, "Models face the mat".
+export function modelSpawnYaw(teamColor) {
+  return -(((TRAY_ROTATION[teamColor] + 180) % 360) * DEG) + 0
+}
+
+// Turn of the figure on its body (radians around Y), the model part of the TTS spawn turn: cModelRot
+// (model.rotation) as -r, and the 180 deg import turn of a mod GLB (Terrain.jsx, IMPORT_ROTATION; the
+// character GLBs come from the same AssetRipper bundles). A standee has none.
+export function modelFigureYaw(model) {
+  return model.figure === 'standee' ? 0 : Math.PI - model.rotation * DEG
+}
+
+// Quaternion { x, y, z, w } of a turn around Y by `yaw` radians
+export function yawQuaternion(yaw) {
+  return { x: 0, y: Math.sin(yaw / 2), z: 0, w: Math.cos(yaw / 2) }
 }
 
 // True when a model of ch stands on the mat. poses: model id -> { x, z, ... } (the table poses). A model

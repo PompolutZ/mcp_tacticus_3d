@@ -76,9 +76,9 @@ export function TrayBody({ trayKey, keysProps, onHover }) {
         args={[trayVertices, trayIndices, rapier.TriMeshFlags.FIX_INTERNAL_EDGES]}
         friction={FRICTION}
       />
-      {/* A die in the tray does not hide the tray from the pointer: the die has no pointer
-          handlers. A tray with these handlers counts as a hit for R3F, so a click on it does not
-          clear the selection (onPointerMissed in App.jsx). */}
+      {/* A tray with these handlers counts as a hit for R3F, so a click on it does not clear the
+          selection (onPointerMissed in App.jsx). A die of the own tray has its own handlers, and
+          DiceTray counts the over and out events of the tray and its dice. */}
       <group
         scale={TRAY_SCALE}
         onPointerOver={onHover && (() => onHover(true))}
