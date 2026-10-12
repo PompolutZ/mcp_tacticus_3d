@@ -437,6 +437,18 @@ User: the Breakdown threat and filters stay after the popup closes and opens aga
 
 ### Result
 
+`src/components/RosterPopupHost.jsx` is new. It is always mounted, where the popup was in the JSX. It owns `breakdownChoice` (with the `useState` call) and the `breakdownThreats` memo, with the same deps. It also holds the block that builds `popupBreakdown`, `popupSquad` and the tab fallback, because that block reads the choice. The bodies moved unchanged. Only the JSX of `RosterPopup` is indented one level less. It renders `RosterPopup` only while `openRoster` is set and its roster exists, with the same props.
+
+Nothing else in `App` read `breakdownChoice` or `breakdownThreats`, so no state stays in `App`. The host gets `openRoster`, `setOpenRoster`, `rosters`, `setup`, `parsedRosters`, `squadBlock`, `hiddenSquads`, `mySide`, `ownSquad`, `handleBreakdownChoose` and `handleSquadToggle` as props. The handlers are new closures each render, as before.
+
+The host has no effect, so the effect order of `App` is the same. The `useState` and `useMemo` of the choice left `App`; no effect depended on their place.
+
+Pointers: `squad-breakdown.md` ("State") and `roster.md` name `RosterPopupHost`. Other `App.jsx` pointers name names that did not move.
+
+Checks: `pnpm format`, `pnpm lint` (45 warning lines before and after, no errors), `pnpm test` (593 web tests pass), `pnpm --filter web build`, Khronos grep 0, `no-use-before-define` 0.
+
+Deviation: the block that builds `popupBreakdown` moved too (the plan listed only the state, memo and popup).
+
 ## Step 16: Final run
 
 Work:

@@ -128,7 +128,7 @@ In the squad step, a click on a combination chooses its characters for the squad
 ## State
 
 - The breakdown is computed from the roster and the setup. Nothing of it is in the shared document.
-- `App.jsx` keeps the selected threat value and the filters of each roster: `{ host, guest } → { code, threat, filters } | null`. `code` is the roster code that the filters belong to. A different code means a new roster, so the defaults apply. Not saved, the same as `squadSelect`.
+- `RosterPopupHost` (`src/components/RosterPopupHost.jsx`) is always mounted, so the choice stays when the popup closes. It keeps the selected threat value and the filters of each roster: `{ host, guest } → { code, threat, filters } | null`. `code` is the roster code that the filters belong to. A different code means a new roster, so the defaults apply. Not saved, the same as `squadSelect`.
 - Filters store roster places, not codes, the same as a squad (`docs/features/setup-game.md`, "State").
 
 ## Code

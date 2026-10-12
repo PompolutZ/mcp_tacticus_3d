@@ -24,19 +24,12 @@ import { Preload, Ready } from './components/Preload.jsx'
 import { TokenPanel } from './components/TokenPanel.jsx'
 import { CardPopup } from './components/CardPopup.jsx'
 import { TrayPopup } from './components/TrayPopup.jsx'
-import { RosterPopup } from './components/RosterPopup.jsx'
+import { RosterPopupHost } from './components/RosterPopupHost.jsx'
 import { useTokenDrag } from './drag/useTokenDrag.js'
 import { characterOnBoard, modelCharacterId } from './characters/models.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
-import { DEFAULT_FILTERS } from './rosters/breakdown.js'
-import {
-  CRISIS_THREATS,
-  ROSTER_TABS,
-  parseRosterText,
-  rosterCard,
-  rosterTabs,
-} from './rosters/cards.js'
-import { colorOf, placedSides, possibleThreats } from './setup/setup.js'
+import { parseRosterText, rosterCard, rosterTabs } from './rosters/cards.js'
+import { colorOf } from './setup/setup.js'
 import { useRollOffReader } from './setup/useRollOffReader.js'
 import { useGameSetup } from './setup/useGameSetup.js'
 import { gamePriority, priorityTitle } from './game/priority.js'
@@ -143,10 +136,6 @@ export default function App({
     setSideColors({ host: hostColor, guest: hostColor === 'blue' ? 'red' : 'blue' })
     return () => setSideColors(DEFAULT_SIDE_COLORS)
   }, [hostColor])
-  // The selected threat value of the Breakdown tab of each roster: { host, guest } → { code, threat, filters } |
-  // null. code: the roster code it belongs to; null means the first value. Not saved. See
-  // docs/features/squad-breakdown.md, "State".
-  const [breakdownChoice, setBreakdownChoice] = useState({ host: null, guest: null })
   // The names of the players for the setup texts (setup/names.js): the room players and the hello of the peer
   const seatPlayers = useMemo(
     () => (room?.multiplayer ? { players: room.players, peer: connection?.peer ?? null } : null),
@@ -477,12 +466,6 @@ export default function App({
     writeLog,
   })
 
-  // The threat values that the game can still have, or all crisis threats when the rosters have none
-  const breakdownThreats = useMemo(() => {
-    const threats = possibleThreats(setup, parsedRosters, (code) => rosterCard(code)?.threat)
-    return threats.length > 0 ? threats : CRISIS_THREATS
-  }, [setup, parsedRosters])
-
   // A click on a roster card: { team, tab, index }. The popup opens only on a card with an image. For a card
   // without one, the HUD shows what the app is missing. A character without an image also has no model.
   function handleRosterOpen(open) {
@@ -547,60 +530,6 @@ export default function App({
   const selectedTokenId = selectedId(selection, 'token')
   const selectedToken = tokens.find((t) => t.id === selectedTokenId) ?? null
   const openTray = openTrayId ? (characters.find((ch) => ch.id === openTrayId) ?? null) : null
-
-  // The Breakdown tab of the open roster popup, only while the squad of that roster is not placed
-  // (docs/features/squad-breakdown.md). Without it, a popup left on that tab shows the first tab with cards.
-  let popupBreakdown = null
-  let popupSquad = null
-  let rosterPopupTab = openRoster?.tab
-  if (openRoster && rosters[openRoster.team]) {
-    const { team } = openRoster
-    if (!placedSides(setup)[team]) {
-      // A choice of another roster code counts as no choice. A threat that left the list shows the first
-      // value; the filters stay (docs/features/squad-breakdown.md, "State").
-      const stored = breakdownChoice[team]
-      const choice = stored && stored.code === rosters[team].code ? stored : null
-      const store = (change) =>
-        setBreakdownChoice((prev) => {
-          const prevChoice = prev[team]?.code === rosters[team].code ? prev[team] : null
-          return {
-            ...prev,
-            [team]: {
-              code: rosters[team].code,
-              threat: prevChoice?.threat ?? breakdownThreats[0],
-              filters: prevChoice?.filters ?? DEFAULT_FILTERS,
-              ...change,
-            },
-          }
-        })
-      popupBreakdown = {
-        threats: breakdownThreats,
-        threat:
-          choice && breakdownThreats.includes(choice.threat) ? choice.threat : breakdownThreats[0],
-        filters: choice?.filters ?? DEFAULT_FILTERS,
-        onThreatChange: (threat) => store({ threat }),
-        onFiltersChange: (filters) => store({ filters }),
-        // Whether a click chooses a squad, the reason when not, and the squad characters this browser may show
-        chooseBlock: squadBlock(team),
-        squadCharacters:
-          hiddenSquads && team !== mySide
-            ? []
-            : (hiddenSquads ? ownSquad : setup.squads[team]).characters,
-        onChoose: (places) => handleBreakdownChoose(team, places),
-      }
-      // The Add to squad button of the card tabs. Not while the squad is blocked (Ready, other roster).
-      if (!squadBlock(team)) {
-        const current = hiddenSquads ? ownSquad : setup.squads[team]
-        popupSquad = {
-          has: (tab, index) => current[tab]?.includes(index) ?? false,
-          onToggle: (tab, index) => handleSquadToggle(team, tab, index),
-        }
-      }
-    } else if (rosterPopupTab === 'breakdown') {
-      const cards = rosterTabs(parsedRosters[team])
-      rosterPopupTab = ROSTER_TABS.find((t) => cards[t.key].length > 0)?.key ?? 'characters'
-    }
-  }
 
   // The roster cards that have a + / ✓ button: { host, guest } → true, the own roster in the squad step
   const squadEdit = { host: !squadBlock('host'), guest: !squadBlock('guest') }
@@ -915,21 +844,19 @@ export default function App({
           onClose={() => setSettingsOpen(false)}
         />
       )}
-      {openRoster && rosters[openRoster.team] && (
-        <RosterPopup
-          team={openRoster.team}
-          code={rosters[openRoster.team].code}
-          tab={rosterPopupTab}
-          index={openRoster.index}
-          breakdown={popupBreakdown}
-          squad={popupSquad}
-          onTabChange={(tab) => setOpenRoster((prev) => prev && { ...prev, tab, index: 0 })}
-          onIndexChange={(index) =>
-            setOpenRoster((prev) => (!prev || index === prev.index ? prev : { ...prev, index }))
-          }
-          onClose={() => setOpenRoster(null)}
-        />
-      )}
+      <RosterPopupHost
+        openRoster={openRoster}
+        setOpenRoster={setOpenRoster}
+        rosters={rosters}
+        setup={setup}
+        parsedRosters={parsedRosters}
+        squadBlock={squadBlock}
+        hiddenSquads={hiddenSquads}
+        mySide={mySide}
+        ownSquad={ownSquad}
+        handleBreakdownChoose={handleBreakdownChoose}
+        handleSquadToggle={handleSquadToggle}
+      />
       {openTray && (
         <TrayPopup
           character={openTray}
