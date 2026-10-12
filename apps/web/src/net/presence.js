@@ -29,14 +29,10 @@ function cleanMark(mark) {
 }
 
 function cleanPing(ping) {
-  const { id, at, t } = ping ?? {}
+  const { id, at } = ping ?? {}
   const ok =
-    typeof id === 'string' &&
-    typeof t === 'number' &&
-    Array.isArray(at) &&
-    at.length === 3 &&
-    at.every(Number.isFinite)
-  return ok ? { id, at: [...at], t } : null
+    typeof id === 'string' && Array.isArray(at) && at.length === 3 && at.every(Number.isFinite)
+  return ok ? { id, at: [...at] } : null
 }
 
 // The version without a connection, for a single player room and the Sandbox: nobody else to see.
@@ -51,23 +47,31 @@ function createLocalPresence() {
 
 // awareness: the y-protocols Awareness of the table, or none for the local version.
 // Fields: selection (piece keys, the last one is the tool target), tools (kinds), mark ({ key, mode } or null),
-// ping ({ id, at: [x, y, z], t } or null, docs/features/ping.md).
+// ping ({ id, at: [x, y, z] } or null, docs/features/ping.md).
 export function createPresence({ awareness = null } = {}) {
   if (!awareness) return createLocalPresence()
   const ownId = awareness.clientID
   const listeners = new Set()
 
+  // The ping id that each other client had in the first state this browser got from it: that ping is from
+  // before the join and shows nothing. A client that leaves is forgotten (docs/features/ping.md).
+  const firstPing = new Map()
+
   // The same object until a field changes
   let shown = NONE
   function refresh() {
+    const states = awareness.getStates()
+    for (const id of firstPing.keys()) if (!states.get(id)) firstPing.delete(id)
     let found = null
-    for (const [id, state] of awareness.getStates()) {
+    for (const [id, state] of states) {
       if (id !== ownId && state) {
+        if (!firstPing.has(id)) firstPing.set(id, cleanPing(state.ping)?.id ?? null)
+        const ping = cleanPing(state.ping)
         found = {
           selection: cleanList(state.selection),
           tools: cleanList(state.tools),
           mark: cleanMark(state.mark),
-          ping: cleanPing(state.ping),
+          ping: ping?.id === firstPing.get(id) ? null : ping,
         }
         break
       }

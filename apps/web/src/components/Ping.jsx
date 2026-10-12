@@ -21,34 +21,34 @@ const noRaycast = () => {}
 
 // A ping (docs/features/ping.md): a down arrow that bounces above a point and a ring on the surface, in the
 // color of the side that pinged. It plays the ping sound when it mounts, shows for LIFE seconds, then fades and
-// goes. Key it by the id of the ping.
-// ping: { id, at: [x, y, z], t } (net/presence.js). t is the time of the ping, in ms. A ping older than LIFE
-// shows nothing and makes no sound (a table that opens late). side: the side that pinged.
+// goes. Its time starts at the mount, in this browser. Key it by the id of the ping.
+// ping: { id, at: [x, y, z] } (net/presence.js). side: the side that pinged.
 export default function Ping({ ping, side }) {
   const color = useSideColor(side)
-  const [done, setDone] = useState(() => Date.now() - ping.t >= LIFE * 1000)
+  const [done, setDone] = useState(false)
+  const age = useRef(0)
   const arrowRef = useRef()
   const arrowMat = useRef()
   const ringMat = useRef()
   const [x, y, z] = ping.at
 
   useEffect(() => {
-    if (!done) playSound('ping')
+    playSound('ping')
     // Only at the start of the ping
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (done) return
-    const age = (Date.now() - ping.t) / 1000
-    if (age >= LIFE) {
+    age.current += delta
+    if (age.current >= LIFE) {
       setDone(true)
       return
     }
-    const opacity = Math.min(1, (LIFE - age) / FADE) * 0.9
+    const opacity = Math.min(1, (LIFE - age.current) / FADE) * 0.9
     arrowMat.current.opacity = opacity
     ringMat.current.opacity = opacity
-    const bounce = Math.abs(Math.sin(age * BOUNCE_SPEED)) * BOUNCE
+    const bounce = Math.abs(Math.sin(age.current * BOUNCE_SPEED)) * BOUNCE
     arrowRef.current.position.y = y + HOVER + ARROW_HEIGHT / 2 + bounce
   })
 

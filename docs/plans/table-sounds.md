@@ -1,6 +1,6 @@
 # Plan: Table sounds
 
-Requested by the user on 2026-10-12, after the test of `game-flow.md`. Status: OK by the user on 2026-10-12, in progress. Branch `table-sounds`, from main at `21ca644`.
+Requested by the user on 2026-10-12, after the test of `game-flow.md`. Status: all steps done, waiting for the user's test. Branch `table-sounds`, from main at `21ca644`.
 
 Each step makes one commit and writes its **Result** below. Feature docs change in the same step as the code.
 
@@ -248,7 +248,10 @@ User, after this step:
 
 ### Result
 
-(empty)
+- `presence.js`: the ping is `{ id, at }`, no `t`. Presence keeps, for each other client, the ping id of the first state it got. That ping shows nothing. A client whose state goes away is forgotten, so a rejoin with an old ping shows nothing. Tests: first state with a ping, a new id, the same id again, leave and rejoin.
+- `Ping.jsx`: life and fade run from the mount, summed from the frame time. No `Date.now()`. The sound always plays at mount. `App.jsx` no longer sets `t`.
+- Docs: `ping.md`, `peer-to-peer.md`, `sounds.md`. `ping.md` also named the old sound `bong_001`: fixed to `ping-bing`.
+- No deviations. The Sandbox and single player rooms are unchanged.
 
 ## Open questions
 

@@ -952,7 +952,7 @@ export default function App({
   function handlePingKey() {
     const point = toolPointRef.current?.atPointer()
     if (!point) return
-    const next = { id: crypto.randomUUID(), at: [point.x, point.y, point.z], t: Date.now() }
+    const next = { id: crypto.randomUUID(), at: [point.x, point.y, point.z] }
     setOwnPing(next)
     presence?.set({ ping: next })
   }
