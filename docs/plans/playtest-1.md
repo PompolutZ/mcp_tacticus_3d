@@ -10,7 +10,7 @@ Order: plan 1 first, then 2 to 6. Plan 2 starts its rename of `blue` / `red` onl
 | 2 | `setup-round-2.md` | | Roll off, colors, names, texts, history, who can click, panel places, squad buttons, Deploy Lock |
 | 3 | `squad-breakdown.md` | main | Breakdown tab in the roster popup |
 | 4 | `game-flow.md` | | Priority marker, drop of objective tokens, log panel, sounds, ping |
-| 5 | `table-controls.md` | `table-controls`, in test | Drag, Alt, Place, Give click, model facing, labels, footprint, hover, dice tray clicks |
+| 5 | `table-controls.md` | main | Drag, Alt, Place, Give click, model facing, labels, footprint, hover, dice tray clicks |
 | 6 | `table-tools.md` | main | TTS tools on the table, settings menu |
 
 ## Notes from the game
