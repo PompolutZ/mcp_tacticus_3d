@@ -9,7 +9,7 @@ import { newSetup } from '../setup/setup.js'
 // Terrain pieces of a map, as tracked in App state: the placements of terrain/maps.js with an id and
 // a lock. index: the place of the placement in the map data, which the document stores. Every piece starts
 // locked, so a click on terrain does not select it and the Delete key does not remove it by mistake.
-// L unlocks it (App.jsx, handleLockKey).
+// L unlocks it (pieces/useTablePieces.js, handleLockKey).
 export function mapTerrain(mapId) {
   return MAPS[mapId].placements.map((placement, index) => ({
     ...placement,

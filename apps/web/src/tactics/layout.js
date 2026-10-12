@@ -133,3 +133,20 @@ export function freePilePlaces(team, piles, count) {
   }
   return places
 }
+
+// The token piles for new tactic cards ([{ id, key, team }]): one pile per token of each card, in the
+// order of the cards, on the first free places beside the owner's tray. `card` links a pile to its card.
+// piles: the piles on the table now. tokensOf(key): the token keys of the tactic card `key`.
+export function cardPiles(cards, piles, tokensOf) {
+  const result = []
+  for (const team of ['host', 'guest']) {
+    const wanted = cards
+      .filter((card) => card.team === team)
+      .flatMap((card) => tokensOf(card.key).map((key) => ({ card: card.id, key })))
+    const places = freePilePlaces(team, piles, wanted.length)
+    wanted.forEach((pile, i) =>
+      result.push({ id: crypto.randomUUID(), ...pile, x: places[i].x, z: places[i].z }),
+    )
+  }
+  return result
+}

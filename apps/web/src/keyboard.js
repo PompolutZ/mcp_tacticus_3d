@@ -34,7 +34,7 @@ export const FLIP_KEY = 'KeyF'
 // Lift, R as in TTS (Raise): lifts the model under the pointer, or puts it back down. See liftPiece
 // in Scene.jsx.
 export const LIFT_KEY = 'KeyR'
-// Lock, L as in TTS: locks or unlocks the terrain piece under the pointer. See handleLockKey in App.jsx.
+// Lock, L as in TTS: locks or unlocks the terrain piece under the pointer. See handleLockKey in pieces/useTablePieces.js.
 export const LOCK_KEY = 'KeyL'
 // Ping, P (TTS uses it for the camera mode): a ping at the pointer. See handlePingKey in components/usePing.js.
 export const PING_KEY = 'KeyP'

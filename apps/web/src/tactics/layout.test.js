@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
+  cardPiles,
   freePilePlaces,
   tacticPilePlace,
   tacticSlotPosition,
@@ -38,4 +39,42 @@ test('places taken by existing piles are skipped', () => {
   const first = tacticPilePlace('host', 0)
   const places = freePilePlaces('host', [first], 1)
   assert.deepEqual(places[0], tacticPilePlace('host', 1))
+})
+
+test('cardPiles: one pile per token, host cards first, on free places, linked to the card', () => {
+  const tokensOf = (key) => ({ a: ['x', 'y'], b: ['z'], c: [] })[key] ?? []
+  const cards = [
+    { id: 'c1', key: 'a', team: 'guest' },
+    { id: 'c2', key: 'b', team: 'host' },
+    { id: 'c3', key: 'c', team: 'host' },
+    { id: 'c4', key: 'unknown', team: 'host' },
+  ]
+  const piles = cardPiles(cards, [], tokensOf)
+  assert.deepEqual(
+    piles.map((p) => [p.card, p.key]),
+    [
+      ['c2', 'z'],
+      ['c1', 'x'],
+      ['c1', 'y'],
+    ],
+  )
+  assert.equal(new Set(piles.map((p) => p.id)).size, 3)
+  const host = freePilePlaces('host', [], 1)[0]
+  assert.deepEqual([piles[0].x, piles[0].z], [host.x, host.z])
+  const guest = freePilePlaces('guest', [], 2)
+  assert.deepEqual([piles[2].x, piles[2].z], [guest[1].x, guest[1].z])
+})
+
+test('cardPiles: skips places that existing piles take', () => {
+  const first = freePilePlaces('host', [], 1)[0]
+  const [pile] = cardPiles([{ id: 'c', key: 'a', team: 'host' }], [first], () => ['x'])
+  const second = tacticPilePlace('host', 1)
+  assert.deepEqual([pile.x, pile.z], [second.x, second.z])
+})
+
+test('cardPiles: no cards, no piles', () => {
+  assert.deepEqual(
+    cardPiles([], [], () => ['x']),
+    [],
+  )
 })

@@ -44,8 +44,7 @@ import { DEFAULT_AFFILIATION, affiliationName, autoAffiliation } from './scorebo
 import { ROUND_POINTS, nextRoundSpot } from './scoreboard/board.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { CLEANUP_KEYS } from './tokens/tokens.js'
-import { firstFreeSlot, freePilePlaces, nearestFreeSlot, tacticTrayAt } from './tactics/layout.js'
-import { getTactic } from './tactics/cards.js'
+import { firstFreeSlot } from './tactics/layout.js'
 import { formatMctCode, isEmptyRoster } from './rosters/mct.js'
 import { DEFAULT_FILTERS } from './rosters/breakdown.js'
 import {
@@ -97,8 +96,7 @@ import { gamePriority, priorityAfterCleanup, priorityNote, priorityTitle } from 
 import { FACES } from './dice/faces.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
-import { TERRAIN_PIECES } from './terrain/pieces.js'
-import { mapTerrain, withPlacements } from './rooms/table.js'
+import { withPlacements } from './rooms/table.js'
 import { deleteSquad, readSquad, saveSquad } from './rooms/store.js'
 import { tableFiles } from './rooms/preload.js'
 import { useYField, useYList, useYRecord } from './net/useY.js'
@@ -111,6 +109,7 @@ import { canvasEvents } from './components/canvasEvents.js'
 import { tableSeat } from './rooms/seat.js'
 import { useCrisisTokens } from './crisis/useCrisisTokens.js'
 import { useCharacterActions } from './characters/useCharacterActions.js'
+import { useTablePieces } from './pieces/useTablePieces.js'
 import HudNotice from './components/HudNotice.jsx'
 import { HudWarnings } from './components/HudWarnings.jsx'
 import { useHudMessage } from './components/useHudMessage.js'
@@ -118,7 +117,7 @@ import { useDebugLook } from './debug/useDebugLook.js'
 import { useLogSounds } from './log/useLogSounds.js'
 import { useRemoteDropSounds } from './tokens/useRemoteDropSounds.js'
 import { SettingsPopup } from './components/SettingsPopup.jsx'
-import { NO_PIECES, deselectPiece, selectedId } from './selection.js'
+import { NO_PIECES, selectedId } from './selection.js'
 
 // Dice that each player rolls in the roll off
 const ROLL_OFF_DICE = 5
@@ -442,6 +441,32 @@ export default function App({
     removeWaits,
     returnModelsRef,
   })
+  const {
+    handleTurnMat,
+    handleMapChange,
+    handleLockKey,
+    handleTerrainRemove,
+    handleLooseRemove,
+    handlePileRemove,
+    handleTacticSpawn,
+    handleTacticMove,
+    handleTacticFlip,
+    handleTacticRemove,
+    makeCardPiles,
+    removeCardPiles,
+  } = useTablePieces({
+    table,
+    terrain,
+    terrainAtRef,
+    setMatTurns,
+    setMapId,
+    setTerrain,
+    setSelection,
+    setLooseTokens,
+    setTokenPiles,
+    setTacticCards,
+    showHudMessage,
+  })
   const toolsOnTable = (item) => settings.tools[item] === 'table'
   // The own rack is on the table, so a tool dropped on it goes back to it
   const rackShown = toolsOnTable('rack')
@@ -467,40 +492,6 @@ export default function App({
   function handleLobby() {
     if (!room && !window.confirm('Leave the Sandbox? Its table is not saved.')) return
     onExit()
-  }
-
-  // direction: 1 turns the mat 90° counter-clockwise, -1 clockwise
-  function handleTurnMat(direction) {
-    setMatTurns((prev) => (prev + direction + 4) % 4)
-  }
-
-  // A new map brings its own terrain, all locked. The selected terrain piece is gone. One change of the
-  // document, so no render shows the new map with the old terrain.
-  function handleMapChange(id) {
-    table.transact(() => {
-      setMapId(id)
-      setTerrain(mapTerrain(id))
-    })
-    setSelection((prev) => prev.filter((p) => p.kind !== 'terrain'))
-  }
-
-  // L, as in TTS: locks or unlocks the terrain piece under the pointer. A piece that gets locked is
-  // deselected. A locked piece looks the same as an unlocked one, so the HUD message shows the new state.
-  function handleLockKey() {
-    const id = terrainAtRef.current?.()
-    const piece = id && terrain.find((p) => p.id === id)
-    if (!piece) return
-    const locked = !piece.locked
-    setTerrain((prev) => prev.map((p) => (p.id === id ? { ...p, locked } : p)))
-    if (locked) setSelection((prev) => deselectPiece(prev, { kind: 'terrain', id }))
-    showHudMessage(`${TERRAIN_PIECES[piece.piece].name} ${locked ? 'locked' : 'unlocked'}`)
-  }
-
-  // Delete key over an unlocked terrain piece. A locked piece gets no hover (Terrain.jsx), so it
-  // cannot be removed. Models on the piece fall: Rapier wakes the bodies that touched its collider.
-  function handleTerrainRemove(id) {
-    setTerrain((prev) => prev.filter((p) => p.id !== id))
-    setSelection((prev) => deselectPiece(prev, { kind: 'terrain', id }))
   }
 
   // Opens the "Change to" menu of one shelf die. Opening one closes any other.
@@ -961,30 +952,6 @@ export default function App({
     })
   }
 
-  // Token piles for new tactic cards ([{ id, key, team }] as in tacticCards): one pile per token of each card, in the order
-  // of the cards, on the first free places beside the owner's tray. `card` links a pile to its card, so
-  // the pile goes with it (removeCardPiles). Reads the document, not React state.
-  function makeCardPiles(cards) {
-    const piles = []
-    for (const team of ['host', 'guest']) {
-      const wanted = cards
-        .filter((card) => card.team === team)
-        .flatMap((card) =>
-          (getTactic(card.key)?.tokens ?? []).map((key) => ({ card: card.id, key })),
-        )
-      const places = freePilePlaces(team, table.tokenPiles.read(), wanted.length)
-      wanted.forEach((pile, i) =>
-        piles.push({ id: crypto.randomUUID(), ...pile, x: places[i].x, z: places[i].z }),
-      )
-    }
-    return piles
-  }
-
-  // The piles of tactic cards that leave the table go too. A pile without `card` stays.
-  function removeCardPiles(cardIds) {
-    setTokenPiles((prev) => prev.filter((p) => !cardIds.includes(p.card)))
-  }
-
   // The squad of `side` is revealed and goes on the table: the characters get their trays and models, and
   // the Team Tactic cards go into the tactic tray. A character or a Team Tactic card that the player already
   // has on the table is not added again. One transaction: the squad, the cards and `placed`. The new
@@ -1143,11 +1110,6 @@ export default function App({
     })
   }
 
-  // Delete key over a token on the table, as in TTS
-  function handleLooseRemove(id) {
-    setLooseTokens((prev) => prev.filter((t) => t.id !== id))
-  }
-
   // pointerdown on a character token: a tray's Give source (a new token, the source never runs out),
   // or a token on the table (looseId).
   // giveId: the character of the tray, for a Give source: a click gives it one token (startTokenDrag).
@@ -1169,51 +1131,6 @@ export default function App({
 
   function handlePileMoveStart(e, pile) {
     startTokenDrag(e, { tokenKey: pile.key, pileId: pile.id })
-  }
-
-  // Delete key over a pile on the table
-  function handlePileRemove(id) {
-    setTokenPiles((prev) => prev.filter((p) => p.id !== id))
-  }
-
-  // A click on a tactic card in the Library: the card goes into the first free slot of the team's
-  // tactic tray, or next to the tray when its 5 slots are full. It lies face up.
-  function handleTacticSpawn(key, team) {
-    const slot = firstFreeSlot(team, table.tactics.read())
-    const card = { id: crypto.randomUUID(), key, team, x: slot.x, z: slot.z, up: 'face' }
-    const newPiles = makeCardPiles([card])
-    table.transact(() => {
-      setTacticCards((prev) => [...prev, card])
-      setTokenPiles((prev) => [...prev, ...newPiles])
-    })
-  }
-
-  // The end of a tactic card drag at table point (x, z). Over the plate of a tactic tray, the card goes
-  // into the nearest free slot of that tray and faces that tray's player, the same as a TTS snap point.
-  // Otherwise it lies at the point. The card moves to the end of the list, so it lies on top.
-  function handleTacticMove(id, x, z) {
-    setTacticCards((prev) => {
-      const card = prev.find((c) => c.id === id)
-      if (!card) return prev
-      const team = tacticTrayAt({ x, z })
-      const slot = team && nearestFreeSlot(team, { x, z }, prev, id)
-      const moved = slot ? { ...card, team, x: slot.x, z: slot.z } : { ...card, x, z }
-      return [...prev.filter((c) => c.id !== id), moved]
-    })
-  }
-
-  function handleTacticFlip(id) {
-    setTacticCards((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, up: c.up === 'face' ? 'back' : 'face' } : c)),
-    )
-  }
-
-  // Delete key over a tactic card
-  function handleTacticRemove(id) {
-    table.transact(() => {
-      setTacticCards((prev) => prev.filter((c) => c.id !== id))
-      removeCardPiles([id])
-    })
   }
 
   // pointerdown on the supply pile of a Source card: a new supply token. The pile never runs out.

@@ -318,6 +318,16 @@ User: map change, mat turn, L, Delete of terrain, table tokens, piles and tactic
 
 ### Result
 
+New `src/pieces/useTablePieces.js` holds `handleTurnMat`, `handleMapChange`, `handleLockKey`, `handleTerrainRemove`, `handleLooseRemove`, `handlePileRemove`, `handleTacticSpawn`, `handleTacticMove`, `handleTacticFlip`, `handleTacticRemove`, `makeCardPiles` and `removeCardPiles`. Bodies are unchanged, except `makeCardPiles` (below). `App` destructures the result into the same names. The call stands right after `useCharacterActions`. The hook has no effect and no memo.
+
+`tactics/layout.js` gets `cardPiles(cards, piles, tokensOf)`. The old `makeCardPiles` was a plain function in an event path, not a `useMemo`. It now calls `cardPiles(cards, table.tokenPiles.read(), (key) => getTactic(key)?.tokens ?? [])`. The loop, the order and the objects are the same, including `crypto.randomUUID()` per pile. It runs only in handlers, never in render (Risk 7). The `tokensOf` argument keeps `tactics/cards.js` out of `layout.js`, so the file still loads in Node. Three new tests in `layout.test.js`.
+
+Deviations: the path is `src/pieces/useTablePieces.js`, not `src/useTablePieces.js`. `handleTurnMat` and the tactic spawn and move handlers moved too, as the plan range covers them. `handlePileTakeStart` and `handlePileMoveStart` stay in `App` (they call `startTokenDrag`, step 14). `handleFlipKey` stays. Pointers fixed in `keyboard.js` and `rooms/table.js`. Other `App.jsx` pointers name state that stays in `App`.
+
+Effect order, before and after: E2 and `useWindowKeys` (layout), E1, E3, E4, E5, E6, window listeners, E8, E9, E10. Same. The hook has no effect.
+
+Checks: `pnpm format`, `pnpm lint` (45 warnings before and after), `pnpm test` (577 web tests pass, 3 new), `pnpm --filter web build`, debug grep 0.
+
 ## Step 11: Phases
 
 Work:
