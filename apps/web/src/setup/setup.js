@@ -406,7 +406,8 @@ export function overrideRemoval(setup, step) {
   }
 }
 
-// Override: `step` is the current step again, and every later choice is dropped. The id stays. The cards
+// Override: `step` is the current step again, and every later choice is dropped. A step up to `squads` gets a new id, so a squad draft that a browser stored for the old id
+// is dropped (rooms/store.js). The cards
 // that were drawn stay, except for `deck` and `rollOff`, which draw again. The caller removes what
 // overrideRemoval names, and turns Deploy Lock off when it removes the squads.
 export function overrideTo(setup, step) {
@@ -430,8 +431,10 @@ export function overrideTo(setup, step) {
   }
   if (at <= FLOW.indexOf('threat')) next.threat = null
   if (at <= FLOW.indexOf('edge')) next.edge = false
-  if (at <= FLOW.indexOf('squads'))
+  if (at <= FLOW.indexOf('squads')) {
     Object.assign(next, NO_SQUADS, { affiliation: NEW_SETUP.affiliation })
+    next.id = crypto.randomUUID()
+  }
   if (at <= FLOW.indexOf('affiliation')) {
     next.affiliation = NEW_SETUP.affiliation
   }

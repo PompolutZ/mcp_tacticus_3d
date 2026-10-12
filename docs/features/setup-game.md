@@ -141,7 +141,7 @@ z = 12.55   Choose         [drawn 1]
   - roll off: Priority and the read result, and everything after. Deck: the deck, the draws, the picks, and everything after.
   - first card: both picks and everything after. Second card: the second pick and everything after. The drawn cards stay.
   - Maximum Threat: the threat and later. Edge: the edge and later.
-  - squads or earlier: also the squads, Ready, `placed`, the affiliations and `deployed`. Affiliation: the affiliations and `deployed`. Deployment: `deployed`.
+  - squads or earlier: also the squads, Ready, `placed`, the affiliations and `deployed`. The setup gets a new `id`, so the squad that each browser stored in a multiplayer room is dropped too (it counts only for the old id). The yellow frames show only in the squad step, not while browsing. Affiliation: the affiliations and `deployed`. Deployment: `deployed`.
   - What leaves the table is the same code as for a restart: with squads on the table, the characters and Team Tactic cards of the squads leave and Deploy Lock turns off. At the edge or earlier, with the edge chosen, the two crisis cards with their tokens leave the board ends. The crisis rows are then those of the step again. Other pieces stay. The confirm names what is removed.
 
 ## Affiliation

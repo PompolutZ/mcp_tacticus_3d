@@ -247,7 +247,12 @@ Done. Commit "setup round 2 part 7: history, Prev, Next, Override".
 - Table removal: `restartSetup` in `App.jsx` now calls `removeSetupPieces({ squads, crisis })`, and Override calls it with `overrideRemoval(setup, step)`: squads when target is squads or earlier and squads are placed; the crisis cards (as Restart: `handleCrisisChange(type, null)` when the card is still the picked one) when target is edge or earlier and the edge was chosen. The crisis rows come from the state, so they are those of the step again. Restart and an Override that removes squads turn `game.deployLine` off.
 - Panel: **Prev** / **Next** / **Override** row. While browsing, the step buttons are disabled with the title "Browsing an earlier step", and the squad panels are hidden.
 - `affiliation` is listed whenever the field exists, because the state does not say whether the player chose or the app set it.
-- Override keeps the stored squad of a multiplayer browser (same setup id); Restart deletes it.
+- Override keeps the stored squad of a multiplayer browser (same setup id); Restart deletes it. (Changed in the fixes below.)
+
+### Fixes after the user check
+
+- Squad ready did nothing. Cause: step 5 removed the `squadSelect` state but left four `setSquadSelect(...)` calls in `App.jsx`; the Ready click threw a ReferenceError before `toggleReady`. Fix: calls removed. (Not a `setup.js` logic bug, so no unit test; lint does not catch it.)
+- Override back before the squads left yellow frames. Cause: the multiplayer squad draft is in localStorage keyed by `setup.id`, and Override kept the id. Fix: `overrideTo` to `squads` or earlier gives a new `id` (the id is used only for the draft match, `ownSquad` and `revealPlan`), so every browser ignores its old draft; restart already makes a new id. Tests added. Also the roster frames show only when the step is `squads` and the player is not browsing (`Scene.jsx`).
 
 ## Step 8: Sides `host` / `guest` in the web app
 

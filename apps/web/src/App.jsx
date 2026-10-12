@@ -1271,7 +1271,6 @@ export default function App({
   // card that a player changed in the toolbar since then stays. So does the mat turn. Returns true when
   // the setup had started.
   function restartSetup() {
-    setSquadSelect({ blue: false, red: false })
     if (hiddenSquads) {
       deleteSquad(userId, room.id)
       setStoredSquad(null)
@@ -1325,7 +1324,6 @@ export default function App({
       if (removal.squads) setDeployLine(false)
       setSetup(overrideTo(setup, step))
     })
-    setSquadSelect({ blue: false, red: false })
     setOpenRoster(null)
   }
 
@@ -1489,7 +1487,6 @@ export default function App({
         squadThreat(parsedRosters[team], squad.characters) > setup.threat
       )
         return
-      setSquadSelect((prev) => ({ ...prev, [team]: false }))
     }
     setSetup((prev) => toggleReady(prev, team))
   }
@@ -1601,7 +1598,6 @@ export default function App({
         deleteSquad(userId, room.id)
         setStoredSquad(null)
       }
-      setSquadSelect({ blue: false, red: false })
       setOpenRoster(null)
     }
     if (plan.missing.length > 0) {

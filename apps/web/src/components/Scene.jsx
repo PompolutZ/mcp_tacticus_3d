@@ -92,7 +92,7 @@ import {
   toolSelects,
 } from '../selection.js'
 import { poseOf } from '../rooms/table.js'
-import { setupStep } from '../setup/setup.js'
+import { setupStep, viewOf } from '../setup/setup.js'
 import { useSideColors } from '../sideColors.js'
 
 const TABLE_THICKNESS = 0.5
@@ -1426,7 +1426,9 @@ export default function Scene({
                   key={team}
                   team={team}
                   code={rosters[team].code}
-                  squad={setup.squads[team]}
+                  squad={
+                    setupStep(setup) === 'squads' && !viewOf(setup) ? setup.squads[team] : undefined
+                  }
                   onOpen={(tab, index) => onRosterOpen?.({ team, tab, index })}
                   onToggle={
                     squadEdit?.[team]

@@ -464,6 +464,12 @@ test('overrideTo second clears the second pick only and keeps the draws', () => 
   assert.deepEqual(extractFirst.picks, { secure: null, extract: 'b' })
 })
 
+test('overrideTo edge or earlier gives a new id, so stored squad drafts are dropped', () => {
+  const setup = squadsSetup()
+  assert.notEqual(overrideTo(setup, 'edge').id, setup.id)
+  assert.notEqual(overrideTo(setup, 'rollOff').id, setup.id)
+})
+
 test('overrideTo threat and edge clear that choice and later ones', () => {
   const threat = overrideTo(squadsSetup(), 'threat')
   assert.equal(setupStep(threat), 'threat')
@@ -487,12 +493,19 @@ test('overrideTo squads resets squads, Ready, placed, affiliation and deployed',
   assert.deepEqual(next.placed, { blue: null, red: null })
   assert.deepEqual(next.affiliation, { blue: null, red: null })
   assert.equal(next.deployed, false)
-  assert.equal(next.id, setup.id)
+  assert.notEqual(next.id, setup.id)
+  assert.equal(
+    revealPlan(next, ['red'], {
+      red: { setupId: setup.id, squad: { characters: [0], tactics: [] } },
+    }).missing.length,
+    0,
+  )
 })
 
 test('overrideTo affiliation keeps the squads, clears affiliation and deployed', () => {
   const setup = finishDeploy(atDeploy())
   const next = overrideTo(setup, 'affiliation')
+  assert.equal(next.id, setup.id)
   assert.equal(setupStep(next), 'affiliation')
   assert.deepEqual(next.affiliation, { blue: null, red: null })
   assert.equal(next.deployed, false)
