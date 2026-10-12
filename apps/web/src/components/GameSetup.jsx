@@ -425,7 +425,7 @@ function BoardPanel({ setup, step, parsed, mySide, ctx, actions }) {
 }
 
 // The squad buttons of a player, right below their roster rows (squadPanel in tabletools/layout.js), flat and facing them.
-// The roster cards have a + / ✓ button that adds them to the squad or removes them (RosterCards.jsx, App.jsx
+// The roster cards have a + / ✓ button that adds them to the squad or removes them (RosterCards.jsx, setup/useGameSetup.js
 // handleSquadToggle). Squad ready works when the squad has a character and its threat is not above the Maximum
 // Threat. A squad with less threat is fine. While the player is ready, the button is Change squad and the squad
 // does not change. When both players are ready, both squads go on the table.
@@ -504,7 +504,7 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
 // (setup/names.js). mySide: the team of the player in a multiplayer room, or null when one
 // person plays both teams. Only that team's squad panel has buttons. actions: { priority(team), deck(type), pick(code),
 // threat(value), turnMat(direction), edge(), ready(team),
-// affiliation(team, key), restart(), browse(step | null), override(step) }, see App.jsx.
+// affiliation(team, key), restart(), browse(step | null), override(step) }, see setup/useGameSetup.js.
 // onRosterOpen({ team, tab, index }): a click on a crisis card. onCardHover(card, over): for Alt (useCardPeek.js).
 export default function GameSetup({
   setup,

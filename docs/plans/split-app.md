@@ -386,6 +386,18 @@ User: the whole setup in the Sandbox and in two browsers: load and remove a rost
 
 ### Result
 
+New `src/setup/useGameSetup.js` holds `storedSquad`, `ownSquad`, `viewSetup` (same `useMemo` and deps), `parsedRosters` (same `useMemo`), `SETUP_REMOVAL`, the roster load and remove handlers, restart, removal and override, the setup step handlers (priority, deck, pick, threat, edge), the squad toggle, `writeSquad`, `squadBlock`, `handleBreakdownChoose`, `handleSquadReady`, `revealSquad`, `handleSetupAffiliation`, the reveal effect E9 and `setupActions`. Bodies are unchanged. E9 keeps its deps array `[setup]` and its `eslint-disable` comment. `App` destructures `viewSetup`, `ownSquad`, `parsedRosters`, `setupActions`, `handleRosterLoad`, `handleRosterRemove`, `handleSquadToggle`, `squadBlock` and `handleBreakdownChoose` back into the same names.
+
+The call stands right after `useRollOffReader`, so E8 runs before E9. `setupActions` is built inside the hook, after all its values: `handleCharacterRemove`, `handleCrisisChange`, `makeCardPiles`, `removeCardPiles` and `handleTurnMat` come in as arguments. `hiddenSquads` is an argument; "hidden" is not derived from `mySide`. `forEach(handleCharacterRemove)` is as before.
+
+Pointers fixed: `setup-game.md` (`:198`, `:211`), `squad-breakdown.md:142`, `character-trays.md:147`, `setup.js:412`, `GameSetup.jsx` (two) and `Scene.jsx`. `setup-game.md:169` names the `setup` state, which stays in `App`. The other `App.jsx` pointers name things that stay.
+
+Effect order, before and after: E2 and `useWindowKeys` (layout), E1, E3, E4, E5, E6, window listeners, E8, E9, E10. Same, E8 before E9.
+
+Checks: `pnpm format`, `pnpm lint` (45 warnings before and after), `pnpm test` (588 web tests pass), `pnpm --filter web build`, debug grep 0. Removed and added lines match, apart from imports.
+
+Deviations: `breakdownChoice` and the `breakdownThreats` memo stay in `App` (step 15); `breakdownThreats` stays right after the hook call. `handleRosterOpen`, `handleAttachedOpen` and `handleRosterCardStep` stay in `App`. The roster handlers (before E8 in the old order) now come after the `useRollOffReader` call; they are function declarations with no effect, so nothing changes. `storedSquad` (a `useState`) moved from near the top of `App` to the hook call; no state reads it before.
+
 ## Step 14: Token drag
 
 Needs steps 8, 9 and 10.

@@ -144,7 +144,7 @@ A model that spawns on its card, and one that goes back to it (Remove), faces th
 
 ## Attached cards
 
-A character can have cards attached to it. Today these are the Infinity Gems of its roster entry. The field `attached` of the character holds their MCT codes. The setup sets it when the squad goes on the table (`revealSquad` in `App.jsx`). A character with no gem has no field, and an old document has none either. Both mean no attached cards.
+A character can have cards attached to it. Today these are the Infinity Gems of its roster entry. The field `attached` of the character holds their MCT codes. The setup sets it when the squad goes on the table (`revealSquad` in `setup/useGameSetup.js`). A character with no gem has no field, and an old document has none either. Both mean no attached cards.
 
 The gem cards come with the Team Tactic card files: `migrate-tactics.mjs` also takes the released rows with `type = tInf`, and the images go to `src/assets/tactics/` and `src/tactics/cards.json`. The Library and the other lists of Team Tactic cards leave the gems out. They use the Jarvis flag `isInfinityGem`, not the name. The app has the Soul and Mind cards, the two that the TTS cache has. The field is called `attached` and not `gems`, so Horsemen cards and Reserve members can use it later.
 

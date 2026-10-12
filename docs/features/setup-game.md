@@ -195,7 +195,7 @@ setup: {
 - `placed` has the ids of the new characters and Team Tactic cards of each side. The reveal makes them before it changes the state, because React can call a state updater twice, and the ids must be the same in `placed` and on the table. Each browser writes only the sides it plays. A setup saved with the old shape `{ characters, tactics }` reads as the cards of Blue (`placedSides`).
 - `setupStep` has a step `reveal`: both players are Ready, but a side is not placed yet. The step `affiliation` comes after it, while a side has no affiliation. The step `deploy` follows while `deployed` is false. A saved setup with no `deployed` field counts as deployed, so a setup that was done stays done.
 - In a multiplayer room, `setup.squads` stays empty until the reveal.
-- There is no `squadSelect`. The squad buttons come from the step, `setup.ready`, `setup.view` and the side (`squadBlock` in `App.jsx`).
+- There is no `squadSelect`. The squad buttons come from the step, `setup.ready`, `setup.view` and the side (`squadBlock` in `useGameSetup.js`).
 
 ## Code
 
@@ -208,7 +208,7 @@ setup: {
 | `src/scoreboard/affiliations.js` | `affiliationKey`, `squadAffiliations`, `autoAffiliation` |
 | `src/components/RosterCards.jsx` | The squad frame. `RosterCard` is exported for the crisis rows |
 | `src/rooms/store.js` | `readSquad`, `saveSquad`, `deleteSquad`, `listSquadCodes`: the stored squad of a multiplayer room |
-| `src/App.jsx` | The setup handlers, the reveal effect |
+| `src/setup/useGameSetup.js` | The setup handlers, the reveal effect |
 | `src/crisis/matTokens.js` | `buildMatTokens(card, turned)`, `supplyToken` |
 | `src/characters/newCharacter.js` | `newCharacter` |
 

@@ -257,7 +257,7 @@ const OVERLAP_INTERVAL = 100
 // rosters: { host, guest } → null | { code }, the loaded rosters (RosterCards.jsx). onRosterOpen({ team, tab,
 // index }): a click on a roster card. It opens the roster popup on that card (see RosterPopup.jsx).
 // squadEdit: { host, guest } → true: the roster cards of that side have the + / ✓ button, and onSquadToggle(team,
-// tab, index) adds the card to the squad or removes it (App.jsx, handleSquadToggle).
+// tab, index) adds the card to the squad or removes it (setup/useGameSetup.js, handleSquadToggle).
 // setup: the game setup (setup/setup.js). setupActions, mySide, seatPlayers: see GameSetup.jsx. When the squads
 // are on the table, the roster cards are not.
 // onCardOpen({ src, alt }): a click on a crisis card (see CardPopup.jsx). onTrayOpen(id): a click
