@@ -58,6 +58,7 @@ Open `http://localhost:5173`. The app opens on the lobby. Open the Sandbox or a 
 ### Lint and format
 
 - `pnpm lint` runs oxlint on the whole repo. It fails on errors, not on warnings.
+  `no-undef` is on (browser globals in `apps/web/src`, Node elsewhere).
 - `pnpm format` formats the code with oxfmt. `pnpm format:check` only checks it.
 - The Oxc extension adds both to VS Code.
 - To let `git blame` skip the commit of the first format, run once: `git config blame.ignoreRevsFile .git-blame-ignore-revs`.

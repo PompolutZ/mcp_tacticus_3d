@@ -2,7 +2,9 @@
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["eslint", "typescript", "unicorn", "oxc", "react", "import", "vitest"],
   "categories": { "correctness": "error" },
+  "env": { "builtin": true, "es2022": true },
   "rules": {
+    "no-undef": "error",
     "react/immutability": "warn",
     "react-hooks/exhaustive-deps": "warn",
     "react/set-state-in-effect": "warn",
@@ -19,6 +21,18 @@
     "apps/web/scripts/*-manifest.json"
   ],
   "overrides": [
+    { "files": ["apps/web/src/**"], "env": { "browser": true } },
+    {
+      "files": [
+        "apps/api/**",
+        "apps/web/scripts/**",
+        "apps/web/*.config.*",
+        "infra/**",
+        "**/*.test.*",
+        "**/*.spec.*"
+      ],
+      "env": { "node": true }
+    },
     {
       "files": ["infra/test/**"],
       "rules": {
