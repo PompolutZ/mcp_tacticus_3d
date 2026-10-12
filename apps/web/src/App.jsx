@@ -71,6 +71,8 @@ import {
   overrideTo,
   pickCard,
   placeSquad,
+  deployLockDue,
+  lockWasSet,
   placedSides,
   placedIds,
   possibleThreats,
@@ -1562,9 +1564,6 @@ export default function App({
         ),
       )
       if (auto) setAffiliations((prev) => ({ ...prev, [side]: auto }))
-      // Both squads are on the table: Deploy Lock on for the deployment
-      const placed = placedSides(table.setup.read())
-      if (TEAMS.every((team) => team === side || placed[team])) setDeployLine(true)
     })
   }
 
@@ -1588,6 +1587,13 @@ export default function App({
   // not Ready any more and chooses again.
   useEffect(() => {
     const current = table.setup.read()
+    // Both squads are placed, from this browser or the other one: Deploy Lock on, once (lockSet)
+    if (deployLockDue(current)) {
+      table.transact(() => {
+        setSetup((prev) => lockWasSet(prev))
+        setDeployLine(true)
+      })
+    }
     if (setupStep(current) !== 'reveal') return
     const stored = hiddenSquads ? { [mySide]: readSquad(userId, room.id) } : null
     const plan = revealPlan(current, hiddenSquads ? [mySide] : TEAMS, stored)

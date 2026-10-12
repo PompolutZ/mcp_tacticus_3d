@@ -29,7 +29,8 @@ const NO_SQUAD = { characters: [], tactics: [] }
 // squad is placed or while the player still chooses (scoreboard/affiliations.js). A setup saved before
 // the affiliation step has no affiliation field. deployed: the players deployed their models. The first
 // Power Phase after the reveal sets it (finishDeploy). A setup saved before the deploy step has no field,
-// and counts as deployed. view: the step that a player browses with Prev / Next, or null for the current
+// and counts as deployed. lockSet: the setup turned Deploy Lock on once, when both squads were placed
+// (deployLockDue), so a later hand toggle stays. A setup saved before it has no field. view: the step that a player browses with Prev / Next, or null for the current
 // step. It is shared, so both players see it (viewOf, browse). A setup saved before it has no field.
 export const NEW_SETUP = {
   id: null,
@@ -45,6 +46,7 @@ export const NEW_SETUP = {
   placed: { blue: null, red: null },
   affiliation: { blue: null, red: null },
   deployed: false,
+  lockSet: false,
   view: null,
 }
 
@@ -242,6 +244,18 @@ export function placeSquad(setup, side, squad, placed, affiliation = null) {
   }
 }
 
+// Both squads are placed, the deploy step is still ahead and the setup did not turn Deploy Lock on yet.
+// The app then turns it on and calls lockWasSet, once. A setup with no `deployed` field has no deploy step.
+export function deployLockDue(setup) {
+  const placed = placedSides(setup)
+  return Boolean(placed.blue && placed.red) && setup.deployed === false && !setup.lockSet
+}
+
+// The setup turned Deploy Lock on
+export function lockWasSet(setup) {
+  return { ...setup, lockSet: true }
+}
+
 // The player of `side` chose the affiliation of the squad
 export function chooseAffiliation(setup, side, key) {
   return {
@@ -434,6 +448,7 @@ export function overrideTo(setup, step) {
   if (at <= FLOW.indexOf('squads')) {
     Object.assign(next, NO_SQUADS, { affiliation: NEW_SETUP.affiliation })
     next.id = crypto.randomUUID()
+    next.lockSet = false
   }
   if (at <= FLOW.indexOf('affiliation')) {
     next.affiliation = NEW_SETUP.affiliation

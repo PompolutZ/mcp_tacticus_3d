@@ -3,6 +3,8 @@ import assert from 'node:assert/strict'
 import {
   NEW_SETUP,
   chooseAffiliation,
+  deployLockDue,
+  lockWasSet,
   chooseDeck,
   chooserOf,
   browse,
@@ -531,4 +533,19 @@ test('overrideRemoval names what leaves the table', () => {
     squads: false,
     crisis: false,
   })
+})
+
+test('deployLockDue is true once, when both squads are placed', () => {
+  const start = squadsSetup(bothReady)
+  assert.equal(deployLockDue(start), false)
+  const one = placeSquad(start, 'blue', squad, cards)
+  assert.equal(deployLockDue(one), false)
+  const both = placeSquad(one, 'red', squad, cards, 'unaffiliated')
+  assert.equal(deployLockDue(both), true)
+  assert.equal(deployLockDue(lockWasSet(both)), false)
+  assert.equal(deployLockDue(finishDeploy(both)), false)
+  const old = { ...both }
+  delete old.deployed
+  assert.equal(deployLockDue(old), false)
+  assert.equal(overrideTo(lockWasSet(both), 'squads').lockSet, false)
 })

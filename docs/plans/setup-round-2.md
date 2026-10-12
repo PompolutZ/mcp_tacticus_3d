@@ -253,6 +253,7 @@ Done. Commit "setup round 2 part 7: history, Prev, Next, Override".
 
 - Squad ready did nothing. Cause: step 5 removed the `squadSelect` state but left four `setSquadSelect(...)` calls in `App.jsx`; the Ready click threw a ReferenceError before `toggleReady`. Fix: calls removed. (Not a `setup.js` logic bug, so no unit test; lint does not catch it.)
 - Override back before the squads left yellow frames. Cause: the multiplayer squad draft is in localStorage keyed by `setup.id`, and Override kept the id. Fix: `overrideTo` to `squads` or earlier gives a new `id` (the id is used only for the draft match, `ownSquad` and `revealPlan`), so every browser ignores its old draft; restart already makes a new id. Tests added. Also the roster frames show only when the step is `squads` and the player is not browsing (`Scene.jsx`).
+- The deploy step started with Deploy Lock off. Cause: `revealSquad` turned the lock on only if the other side was already placed when it ran. In a multiplayer room each browser reveals only its own side, and the two writes can cross before they sync, so neither sees both placed; a check inside one call is not robust. Fix: no check in `revealSquad`. The reveal effect (every browser, after each setup change) calls `deployLockDue(setup)` (both placed, deploy ahead, `lockSet` false) and then sets `deployLine` and `setup.lockSet` in one transaction. Once only, so a hand toggle stays. `overrideTo` to `squads` or earlier resets `lockSet`. Unit test added.
 
 ## Step 8: Sides `host` / `guest` in the web app
 
