@@ -266,10 +266,8 @@ function runSingle(RAPIER, world, random, target) {
   return stats
 }
 
-// `diceCount` dice thrown together, round after round (like pressing Roll again on a full well),
-// until `target` valid results have been collected in total. Also measures the settle time of
-// each round (time until every die in that round has rested or timed out).
-function runMulti(RAPIER, world, random, diceCount, target) {
+// Creates `diceCount` dice, each at a free drop point above the well, away from the dice before it
+function spawnDice(RAPIER, world, random, diceCount) {
   const bodies = []
   for (let i = 0; i < diceCount; i++) {
     bodies.push(
@@ -284,6 +282,14 @@ function runMulti(RAPIER, world, random, diceCount, target) {
       ),
     )
   }
+  return bodies
+}
+
+// `diceCount` dice thrown together, round after round (like pressing Roll again on a full well),
+// until `target` valid results have been collected in total. Also measures the settle time of
+// each round (time until every die in that round has rested or timed out).
+function runMulti(RAPIER, world, random, diceCount, target) {
+  const bodies = spawnDice(RAPIER, world, random, diceCount)
 
   const stats = newStats()
   const needsRespawn = bodies.map(() => false)
@@ -338,20 +344,7 @@ function runMulti(RAPIER, world, random, diceCount, target) {
 // Throws `diceCount` dice together once and measures wall-clock ms per world.step() while they
 // are all active (the busiest case: a full tray of 42, right after Roll).
 function runPerf(RAPIER, world, random, diceCount) {
-  const bodies = []
-  for (let i = 0; i < diceCount; i++) {
-    bodies.push(
-      createDie(
-        RAPIER,
-        world,
-        freeDropPoint(
-          TRAY_KEY,
-          bodies.map((b) => b.translation()),
-          random,
-        ),
-      ),
-    )
-  }
+  const bodies = spawnDice(RAPIER, world, random, diceCount)
   bodies.forEach((body) => throwDie(body, random))
 
   const steps = 300 // 2.5 s of sim time at 120 Hz, covers the busy landing/settling period

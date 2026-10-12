@@ -1,13 +1,12 @@
 // Migrates the tactic cards (TTC) and the Infinity Gem cards of the TTS mod to src/assets/tactics/: the face and the back of each card.
 // Writes the app data (with the keys of the card's tokens) to src/tactics/cards.json, and the source URLs to scripts/tactic-manifest.json. See scripts/README.md.
 
-import fs from 'node:fs'
 import path from 'node:path'
-import { parseArgs } from 'node:util'
-import { imageToWebp } from './lib/convert.mjs'
-import { outputPath, readJson, writeJson } from './lib/files.mjs'
+import { parseMigrateArgs } from './lib/cli.mjs'
+import { readJson, writeJson } from './lib/files.mjs'
+import { createImageStore } from './lib/manifest.mjs'
 import { slug, uniqueKeys } from './lib/keys.mjs'
-import { cachedFile, loadTacticCards } from './lib/tts.mjs'
+import { loadTacticCards } from './lib/tts.mjs'
 import { tacticCardBack, tacticCardFace } from '../src/tactics/files.js'
 
 const USAGE = `Usage:
@@ -17,19 +16,7 @@ Options:
   --force       convert files again, even if tactic-manifest.json lists them
   --out <dir>   trial run: write assets to <dir>/assets, and the manifest and cards.json to <dir>, not to the repo`
 
-const { values: opts, positionals } = parseArgs({
-  allowPositionals: true,
-  options: {
-    list: { type: 'boolean' },
-    force: { type: 'boolean' },
-    out: { type: 'string' },
-    help: { type: 'boolean', short: 'h' },
-  },
-})
-if (opts.help || positionals.length) {
-  console.log(USAGE)
-  process.exit(opts.help ? 0 : 1)
-}
+const { opts } = parseMigrateArgs(USAGE)
 
 const TOKENS_FILE = path.resolve(import.meta.dirname, '../src/tokens/tokens.json')
 const MANIFEST_FILE = path.join(import.meta.dirname, 'tactic-manifest.json')
@@ -48,6 +35,12 @@ const cards = loadTacticCards().filter((c) => c.released)
 const keys = uniqueKeys(cards)
 // A trial run continues from its own manifest, if an earlier trial run into the same directory wrote it
 const manifest = readJson(MANIFEST_OUT, MANIFEST_FILE)
+const { available, migrated, convert } = createImageStore({
+  assets: ASSETS,
+  manifest,
+  force: opts.force,
+  maxSize: CARD_SIZE,
+})
 // Keys of the tokens that migrate-tokens.mjs migrated
 const tokenKeys = new Set(Object.keys(readJson(TOKENS_FILE, TOKENS_FILE)))
 
@@ -132,20 +125,4 @@ function cardFiles(card) {
     { file: tacticCardFace(key), url: first(card.face), label: 'face' },
     { file: tacticCardBack(key), url: first(card.back), label: 'back' },
   ]
-}
-
-// A file can be written when TTS has it in the cache, or when it is already migrated from the same URL
-function available(f) {
-  return Boolean(cachedFile(f.url)) || migrated(f)
-}
-
-function migrated(f) {
-  return manifest[f.file] === f.url && fs.existsSync(path.join(ASSETS, f.file))
-}
-
-// Returns true when the file was converted
-function convert(f) {
-  if (migrated(f) && (!opts.force || !cachedFile(f.url))) return false
-  fs.writeFileSync(outputPath(ASSETS, f.file), imageToWebp(cachedFile(f.url), CARD_SIZE))
-  return true
 }

@@ -5,7 +5,6 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { parseArgs } from 'node:util'
 import { startAssetRipper } from './lib/assetripper.mjs'
 import { readBundlePrefab } from './lib/bundle.mjs'
 import {
@@ -18,6 +17,7 @@ import {
   texturesToWebp,
   writeGlb,
 } from './lib/convert.mjs'
+import { parseMigrateArgs } from './lib/cli.mjs'
 import { outputPath, readJson, writeJson } from './lib/files.mjs'
 import { slug } from './lib/keys.mjs'
 import { cachedFile, loadTerrainDatabase, matPlacement, pieceSources } from './lib/tts.mjs'
@@ -39,19 +39,10 @@ Options:
   --force       convert pieces, mat and map card again, even if they were migrated before
   --out <dir>   trial run: write assets to <dir>/assets and the manifest to <dir>, not to the repo`
 
-const { values: opts, positionals } = parseArgs({
-  allowPositionals: true,
-  options: {
-    list: { type: 'boolean' },
-    force: { type: 'boolean' },
-    out: { type: 'string' },
-    help: { type: 'boolean', short: 'h' },
-  },
-})
-if (opts.help || (!opts.list && positionals.length !== 1)) {
-  console.log(USAGE)
-  process.exit(opts.help ? 0 : 1)
-}
+const { opts, positionals } = parseMigrateArgs(
+  USAGE,
+  (opts, positionals) => opts.list || positionals.length === 1,
+)
 
 const MANIFEST_FILE = path.join(import.meta.dirname, 'terrain-manifest.json')
 const MANIFEST_OUT = opts.out ? path.resolve(opts.out, 'terrain-manifest.json') : MANIFEST_FILE

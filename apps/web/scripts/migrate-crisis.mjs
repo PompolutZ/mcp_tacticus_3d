@@ -5,9 +5,10 @@
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
-import { parseArgs } from 'node:util'
-import { imageToWebp, TEXTURE_SIZE } from './lib/convert.mjs'
-import { outputPath, readJson, writeJson } from './lib/files.mjs'
+import { TEXTURE_SIZE } from './lib/convert.mjs'
+import { parseMigrateArgs } from './lib/cli.mjs'
+import { readJson, writeJson } from './lib/files.mjs'
+import { createImageStore } from './lib/manifest.mjs'
 import { slug, uniqueKeys } from './lib/keys.mjs'
 import { cachedFile, loadCrisisDatabase } from './lib/tts.mjs'
 import { crisisCardBack, crisisCardFace, crisisMarker, crisisToken } from '../src/crisis/files.js'
@@ -19,19 +20,7 @@ Options:
   --force       convert files again, even if crisis-manifest.json lists them
   --out <dir>   trial run: write assets to <dir>/assets, and the manifest, cards.json and tokens.json to <dir>, not to the repo`
 
-const { values: opts, positionals } = parseArgs({
-  allowPositionals: true,
-  options: {
-    list: { type: 'boolean' },
-    force: { type: 'boolean' },
-    out: { type: 'string' },
-    help: { type: 'boolean', short: 'h' },
-  },
-})
-if (opts.help || positionals.length) {
-  console.log(USAGE)
-  process.exit(opts.help ? 0 : 1)
-}
+const { opts } = parseMigrateArgs(USAGE)
 
 const MANIFEST_FILE = path.join(import.meta.dirname, 'crisis-manifest.json')
 const DATA_DIR = path.resolve(import.meta.dirname, '../src/crisis')
@@ -63,6 +52,12 @@ const cards = db.cards.filter((c) => c.released && !/^test\b/i.test(c.name))
 const keys = uniqueKeys(cards)
 // A trial run continues from its own manifest, if an earlier trial run into the same directory wrote it
 const manifest = readJson(MANIFEST_OUT, MANIFEST_FILE)
+const { available, migrated, convert } = createImageStore({
+  assets: ASSETS,
+  manifest,
+  force: opts.force,
+  maxSize: TEXTURE_SIZE,
+})
 const jarvis = fs.existsSync(JARVIS_FILE)
   ? JSON.parse(fs.readFileSync(JARVIS_FILE, 'utf8')).filter((c) => c.replacedBy === null)
   : null
@@ -317,22 +312,6 @@ function jarvisWarnings(entry) {
   if (found.threatLevel !== entry.threat)
     warnings.push(`Jarvis has the threat ${found.threatLevel}`)
   return warnings
-}
-
-// A file can be written when TTS has it in the cache, or when it is already migrated from the same URL
-function available(f) {
-  return Boolean(cachedFile(f.url)) || migrated(f)
-}
-
-function migrated(f) {
-  return manifest[f.file] === f.url && fs.existsSync(path.join(ASSETS, f.file))
-}
-
-// Returns true when the file was converted
-function convert(f) {
-  if (migrated(f) && (!opts.force || !cachedFile(f.url))) return false
-  fs.writeFileSync(outputPath(ASSETS, f.file), imageToWebp(cachedFile(f.url), TEXTURE_SIZE))
-  return true
 }
 
 // "Strike Team Secures Sheild Relay!" and "Strike Team Secures Sheild Relay" are the same name

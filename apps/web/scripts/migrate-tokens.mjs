@@ -3,13 +3,12 @@
 // source URLs to scripts/token-manifest.json. See scripts/README.md and docs/features/character-trays.md, "Tokens from
 // the TTS mod".
 
-import fs from 'node:fs'
 import path from 'node:path'
-import { parseArgs } from 'node:util'
-import { imageToWebp } from './lib/convert.mjs'
-import { outputPath, readJson, writeJson } from './lib/files.mjs'
+import { parseMigrateArgs } from './lib/cli.mjs'
+import { readJson, writeJson } from './lib/files.mjs'
 import { uniqueKeys } from './lib/keys.mjs'
-import { cachedFile, loadCrisisDatabase, loadTacticCards } from './lib/tts.mjs'
+import { createImageStore } from './lib/manifest.mjs'
+import { loadCrisisDatabase, loadTacticCards } from './lib/tts.mjs'
 import { characterToken } from '../src/tokens/files.js'
 
 const USAGE = `Usage:
@@ -19,19 +18,7 @@ Options:
   --force       convert files again, even if token-manifest.json lists them
   --out <dir>   trial run: write assets to <dir>/assets, and the manifest and tokens.json to <dir>, not to the repo`
 
-const { values: opts, positionals } = parseArgs({
-  allowPositionals: true,
-  options: {
-    list: { type: 'boolean' },
-    force: { type: 'boolean' },
-    out: { type: 'string' },
-    help: { type: 'boolean', short: 'h' },
-  },
-})
-if (opts.help || positionals.length) {
-  console.log(USAGE)
-  process.exit(opts.help ? 0 : 1)
-}
+const { opts } = parseMigrateArgs(USAGE)
 
 // Width of a token on the table that the mod gives no size for, in inches (TOKEN_SIZE of src/tokens/files.js)
 const DEFAULT_SIZE = 0.75
@@ -65,6 +52,12 @@ const rows = tokens.filter(selected)
 const keys = uniqueKeys(rows, { noun: 'tokens' })
 // A trial run continues from its own manifest, if an earlier trial run into the same directory wrote it
 const manifest = readJson(MANIFEST_OUT, MANIFEST_FILE)
+const { available, migrated, convert } = createImageStore({
+  assets: ASSETS,
+  manifest,
+  force: opts.force,
+  maxSize: TOKEN_SIZE,
+})
 
 if (opts.list) listTokens()
 else process.exitCode = migrate()
@@ -184,20 +177,4 @@ function tokenEntry(row) {
   if (row.tDescr) entry.description = row.tDescr
   if (row.cleanup) entry.cleanup = true
   return entry
-}
-
-// A file can be written when TTS has it in the cache, or when it is already migrated from the same URL
-function available(f) {
-  return Boolean(cachedFile(f.url)) || migrated(f)
-}
-
-function migrated(f) {
-  return manifest[f.file] === f.url && fs.existsSync(path.join(ASSETS, f.file))
-}
-
-// Returns true when the file was converted
-function convert(f) {
-  if (migrated(f) && (!opts.force || !cachedFile(f.url))) return false
-  fs.writeFileSync(outputPath(ASSETS, f.file), imageToWebp(cachedFile(f.url), TOKEN_SIZE))
-  return true
 }

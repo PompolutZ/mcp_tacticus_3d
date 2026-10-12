@@ -182,6 +182,15 @@ Checks: as in "Checks", plus:
 
 ### Result
 
+- New: `scripts/lib/manifest.mjs` (`createImageStore`), `lib/cli.mjs` (`parseMigrateArgs`), test `lib/cli.test.js`. README "Shared code" lists both.
+- Changed: `migrate-crisis`, `-tactics`, `-tokens` use the image store (size stays in each script); `migrate-characters` and `-terrain` use `parseMigrateArgs` with their own `isValid` (same conditions as before); `dice-sim.mjs` has `spawnDice`, used by `runMulti` and `runPerf`.
+- Tests: `cli.test.js` covers only the valid path (default `isValid`, and the arguments passed to `isValid`). The `--help` and invalid paths call `process.exit`, so they are checked by running the scripts.
+- Output equality, before vs after (AssetRipper linked from the main dir `tools/`, removed after): `--list` and `--out` runs of crisis, tactics, tokens, characters (`asgard`), terrain (map 282). Console output (with the temp path normalized), manifests, data JSON and sha1 of all 372 output files equal.
+- `--help` of the 5 scripts, and a wrong argument count (extra argument for crisis, tactics, tokens; `--list a b` and no argument for characters and terrain; `a b` for terrain): stdout, stderr and exit code equal.
+- `dice-sim` (seed 1): full output equal except the wall-clock line `42 dice perf` (0.265 vs 0.260 ms/step).
+- Not verified: `--force` path of the image store (not run); `-h` short flag.
+- `apps/api` `signal.test.ts` ("returns only newer messages for x-after") failed in two of three runs, passed on another: flaky, not touched.
+
 ## Step 5: Final run
 
 Work:

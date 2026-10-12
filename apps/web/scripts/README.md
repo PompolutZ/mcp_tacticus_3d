@@ -21,9 +21,11 @@ Helpers in `scripts/lib/` that several scripts use:
 
 - `lib/files.mjs`: `readJson`, `writeJson` (sorted keys by default) and `outputPath` (asset path, folder created).
 - `lib/keys.mjs`: `slug` (`keepPunctuation` for characters and terrain) and `uniqueKeys` (row to key, throws on a duplicate).
-- `lib/jarvis.mjs`: `JARVIS_HEADERS` and `fetchJarvis(url)` for the `fetch-jarvis-*` scripts.
+- `lib/jarvis.mjs`: `fetchJarvis(url)` for the `fetch-jarvis-*` scripts.
+- `lib/manifest.mjs`: `createImageStore` (`available`, `migrated`, `convert` of an image) for `migrate-crisis`, `-tactics` and `-tokens`.
+- `lib/cli.mjs`: `parseMigrateArgs` (`--list`, `--force`, `--out`, `--help`, usage and exit) for the five migrate scripts that take these options.
 
-`keys.test.js` and `files.test.js` run with `pnpm test`.
+`keys.test.js`, `files.test.js` and `cli.test.js` run with `pnpm test`.
 
 ## Requirements
 
