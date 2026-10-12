@@ -361,6 +361,18 @@ User: roll off with 5 and 5 dice: the result, the Priority marker, one Log entry
 
 ### Result
 
+New `src/setup/useRollOffReader.js` holds `seenThrows` and E8 with the same deps `[rolls, table, mySide]`. It takes `{ table, rolls, mySide }`. The call stands where E8 stood, before the reveal effect E9, which stays in `App`. The roll-off constants `ROLL_OFF_DICE` and `ROLL_OFF_FRESH` moved to `setup/rollOff.js` (exported).
+
+`setup/rollOff.js` gets `hasFreshThrow(rolls, seen, now)` and `shelfSymbols(dice)` (null unless both shelves hold 5 dice). E8 uses both in place of the same inline code. The module now imports `dice/faces.js`, which loads in Node. 2 new tests.
+
+`setup/setup.js` gets `EMPTY_SQUAD`, `squadChoiceBlock(setup, team, { hidden, mySide })`, `ownSquadOf(stored, setup, mySide)` and `viewerSetup(setup, { hidden, mySide, ownSquad })`. `App` keeps `ownSquad` (calls `ownSquadOf`), `viewSetup` (the same `useMemo` and deps, calls `viewerSetup`) and `squadBlock(team)` (calls `squadChoiceBlock` with `hidden: hiddenSquads`). "Hidden" is never derived from `mySide`. 4 new tests, with the room with `side: null` (hidden true, mySide null).
+
+Effect order, before and after: E2 and `useWindowKeys` (layout), E1, E3, E4, E5, E6, window listeners, E8, E9, E10. Same, E8 before E9.
+
+Checks: `pnpm format`, `pnpm lint` (45 warnings before and after), `pnpm test` (588 web tests pass, 6 new), `pnpm --filter web build`, debug grep 0. The old E8 body and the new hook differ only in the two helper calls. No pointers needed.
+
+Deviations: `hasFreshThrow` gets one `Date.now()` taken before the call; the old code read `Date.now()` for each entry. The difference is a few microseconds at most.
+
 ## Step 13: Game setup
 
 Needs steps 10 and 12.

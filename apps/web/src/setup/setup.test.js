@@ -9,6 +9,7 @@ import {
   chooserOf,
   browse,
   doneSteps,
+  EMPTY_SQUAD,
   neighbourStep,
   overrideRemoval,
   overrideTo,
@@ -28,6 +29,9 @@ import {
   setSquadCharacters,
   setupPlacedCards,
   setupStep,
+  squadChoiceBlock,
+  ownSquadOf,
+  viewerSetup,
 } from './setup.js'
 
 // A setup at the squads step
@@ -551,4 +555,77 @@ test('deployLockDue is true once, when both squads are placed', () => {
   delete old.deployed
   assert.equal(deployLockDue(old), false)
   assert.equal(overrideTo(lockWasSet(both), 'squads').lockSet, false)
+})
+
+test('EMPTY_SQUAD is an empty squad', () => {
+  assert.deepEqual(EMPTY_SQUAD, { characters: [], tactics: [] })
+})
+
+test('squadChoiceBlock: reasons, and hidden is a flag, not derived from mySide', () => {
+  const setup = squadsSetup()
+  assert.equal(squadChoiceBlock(setup, 'host', { hidden: false, mySide: 'host' }), null)
+  assert.match(
+    squadChoiceBlock(setup, 'guest', { hidden: true, mySide: 'host' }),
+    /other player's roster/,
+  )
+  assert.equal(squadChoiceBlock(setup, 'host', { hidden: true, mySide: 'host' }), null)
+  // multiplayer room with side null: hidden true, mySide null, so both rosters are blocked
+  for (const team of ['host', 'guest'])
+    assert.match(
+      squadChoiceBlock(setup, team, { hidden: true, mySide: null }),
+      /other player's roster/,
+    )
+  // not hidden with mySide null (local game): no block
+  assert.equal(squadChoiceBlock(setup, 'host', { hidden: false, mySide: null }), null)
+  assert.match(
+    squadChoiceBlock(newSetup(), 'host', { hidden: false, mySide: 'host' }),
+    /squad step/,
+  )
+  assert.match(
+    squadChoiceBlock(squadsSetup({ ready: { host: true, guest: false } }), 'host', {
+      hidden: false,
+      mySide: 'host',
+    }),
+    /Squad ready/,
+  )
+  assert.equal(
+    squadChoiceBlock(
+      squadsSetup({ placed: { host: { characters: [], tactics: [] }, guest: null } }),
+      'host',
+      { hidden: false, mySide: 'host' },
+    ),
+    'The squad is on the table.',
+  )
+})
+
+test('ownSquadOf: the stored squad of this setup, else the document, else empty', () => {
+  const squad = { characters: [1], tactics: [] }
+  const doc = { characters: [2], tactics: [] }
+  const setup = { id: 's1', squads: { host: doc } }
+  assert.equal(ownSquadOf({ setupId: 's1', squad }, setup, 'host'), squad)
+  assert.equal(ownSquadOf({ setupId: 's0', squad }, setup, 'host'), doc)
+  assert.equal(ownSquadOf(null, setup, 'host'), doc)
+  assert.equal(ownSquadOf(null, setup, 'guest'), EMPTY_SQUAD)
+  // setup without an id matches a stored squad with setupId null
+  assert.equal(ownSquadOf({ setupId: null, squad }, { squads: {} }, 'host'), squad)
+  // side null (multiplayer room without a side)
+  assert.equal(ownSquadOf(null, setup, null), EMPTY_SQUAD)
+})
+
+test('viewerSetup: hidden shows the own squad, the other one only when placed', () => {
+  const own = { characters: [1], tactics: [] }
+  const other = { characters: [2], tactics: [] }
+  const setup = { squads: { host: EMPTY_SQUAD, guest: other }, placed: { host: null, guest: null } }
+  assert.equal(viewerSetup(setup, { hidden: false, mySide: 'host', ownSquad: own }), setup)
+  const hiddenView = viewerSetup(setup, { hidden: true, mySide: 'host', ownSquad: own })
+  assert.deepEqual(hiddenView.squads, { host: own, guest: EMPTY_SQUAD })
+  const placed = { ...setup, placed: { host: null, guest: { characters: [], tactics: [] } } }
+  assert.deepEqual(viewerSetup(placed, { hidden: true, mySide: 'host', ownSquad: own }).squads, {
+    host: own,
+    guest: other,
+  })
+  // side null: hidden stays true, the squads are keyed by "null" and otherTeam(null) is 'host'
+  const nullSide = viewerSetup(setup, { hidden: true, mySide: null, ownSquad: own })
+  assert.notEqual(nullSide, setup)
+  assert.equal(nullSide.squads.null, own)
 })

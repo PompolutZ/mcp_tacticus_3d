@@ -8,7 +8,6 @@ import { DEFAULT_SIDE_COLORS, setSideColors } from './sideColors.js'
 import { Toolbar } from './components/Toolbar.jsx'
 import { Library } from './components/Library.jsx'
 import { LogPanel } from './components/LogPanel.jsx'
-import { addEntry, logEntry } from './log/log.js'
 import { logWriter } from './log/writer.js'
 import { useHovered } from './useHovered.js'
 import { deleteTarget, flipTarget } from './hover.js'
@@ -65,6 +64,9 @@ import {
   overrideTo,
   pickCard,
   placeSquad,
+  ownSquadOf,
+  squadChoiceBlock,
+  viewerSetup,
   deployLockDue,
   lockWasSet,
   placedSides,
@@ -73,16 +75,13 @@ import {
   revealPlan,
   setupPlacedCards,
   setPriority,
-  setRollOff,
   setupStep,
   setSquadCharacters,
   toggleReady,
   toggleSquadCard,
-  viewOf,
 } from './setup/setup.js'
-import { readRollOff } from './setup/rollOff.js'
+import { useRollOffReader } from './setup/useRollOffReader.js'
 import { gamePriority, priorityTitle } from './game/priority.js'
-import { FACES } from './dice/faces.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
 import { withPlacements } from './rooms/table.js'
@@ -109,14 +108,8 @@ import { useRemoteDropSounds } from './tokens/useRemoteDropSounds.js'
 import { SettingsPopup } from './components/SettingsPopup.jsx'
 import { NO_PIECES, selectedId } from './selection.js'
 
-// Dice that each player rolls in the roll off
-const ROLL_OFF_DICE = 5
-// A throw entry older than this (ms) is not a new throw
-const ROLL_OFF_FRESH = 30000
-
 // A character token drag starts only after the pointer moves this many pixels, so a click on a
 // Give source or a token on the table does not drop a token.
-const EMPTY_SQUAD = { characters: [], tactics: [] }
 
 // What a restart of the game setup removes, for its confirm (restartSetup)
 const SETUP_REMOVAL =
@@ -216,23 +209,9 @@ export default function App({
   )
   // The squad of the own side, and the setup as this player sees it: the other player's squad is empty
   // until it is placed. After the reveal it is in the document, and the affiliation step needs it.
-  const ownSquad =
-    storedSquad && storedSquad.setupId === (setup.id ?? null)
-      ? storedSquad.squad
-      : (setup.squads[mySide] ?? EMPTY_SQUAD)
+  const ownSquad = ownSquadOf(storedSquad, setup, mySide)
   const viewSetup = useMemo(
-    () =>
-      hiddenSquads
-        ? {
-            ...setup,
-            squads: {
-              [mySide]: ownSquad,
-              [otherTeam(mySide)]: placedSides(setup)[otherTeam(mySide)]
-                ? setup.squads[otherTeam(mySide)]
-                : EMPTY_SQUAD,
-            },
-          }
-        : setup,
+    () => viewerSetup(setup, { hidden: hiddenSquads, mySide, ownSquad }),
     [hiddenSquads, setup, mySide, ownSquad],
   )
   // Affiliation token that each player's VP marker shows: { host, guest } → key in scoreboard/affiliations.json.
@@ -671,44 +650,7 @@ export default function App({
     })
   }
 
-  // The roll off is read when a new `throw` entry reaches the history, from this browser or the other one.
-  // The shelf write and the entry are one transaction, so a browser that has the last entry has both full
-  // shelves. Both browsers may write: the result is the same, and the write is skipped when it is already
-  // there. Entries that were there at mount, or older than ROLL_OFF_FRESH ms (a history that syncs late),
-  // are not new, so shelves left from before a restart do not count without a new throw.
-  const seenThrows = useRef(null)
-  useEffect(() => {
-    const seen = seenThrows.current
-    seenThrows.current = new Set(rolls.map((entry) => entry.id))
-    if (!seen) return
-    const fresh = rolls.some(
-      (entry) =>
-        entry.kind === 'throw' && !seen.has(entry.id) && Date.now() - entry.at < ROLL_OFF_FRESH,
-    )
-    if (!fresh) return
-    const current = table.setup.read()
-    if (setupStep(current) !== 'rollOff') return
-    const dice = table.dice.read()
-    const shelves = {}
-    for (const team of TEAMS) {
-      const onShelf = Object.values(dice[team]?.dice ?? {}).filter((die) => die.place === 'shelf')
-      if (onShelf.length !== ROLL_OFF_DICE) return
-      shelves[team] = onShelf.map((die) => FACES[die.face - 1]?.symbol)
-    }
-    const result = readRollOff(shelves)
-    if (JSON.stringify(current.rollOff) === JSON.stringify(result)) return
-    // The marker follows the winner. On a tie it stays as it is. Both browsers may write the entry, so its id
-    // is fixed: the setup and the last throw.
-    const lastThrow = rolls.findLast((entry) => entry.kind === 'throw')
-    table.transact(() => {
-      table.setup.set(setRollOff(current, result))
-      if (result.winner) table.game.setField('priority', result.winner)
-      const id = `rolloff:${current.id}:${lastThrow.id}`
-      table.log.set((list) =>
-        addEntry(list, logEntry('rollOff', mySide, { side: result.winner }, id)),
-      )
-    })
-  }, [rolls, table, mySide])
+  useRollOffReader({ table, rolls, mySide })
 
   // The player with Priority uses their deck of `type`. The draws are random, so they are made here, outside
   // a state updater, which React can call twice.
@@ -802,13 +744,7 @@ export default function App({
   // Why a click on a squad of the Breakdown tab does not work for `team` now, or null when it works
   // (docs/features/squad-breakdown.md, "Choose a squad")
   function squadBlock(team) {
-    if (hiddenSquads && team !== mySide)
-      return "This is the other player's roster, so you cannot choose its squad."
-    if (placedSides(setup)[team]) return 'The squad is on the table.'
-    if (setupStep(setup) !== 'squads') return 'You can choose a squad in the squad step.'
-    if (viewOf(setup)) return 'You are browsing an earlier step.'
-    if (setup.ready[team]) return 'Squad ready is on, so the squad does not change.'
-    return null
+    return squadChoiceBlock(setup, team, { hidden: hiddenSquads, mySide })
   }
 
   // A click on a squad of the Breakdown tab: its characters become the squad, the Team Tactic cards stay.

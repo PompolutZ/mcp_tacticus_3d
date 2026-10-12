@@ -456,3 +456,43 @@ export function overrideTo(setup, step) {
   if (at <= FLOW.indexOf('deploy')) next.deployed = false
   return next
 }
+
+// An empty squad
+export const EMPTY_SQUAD = { characters: [], tactics: [] }
+
+// Why a click on a squad of the Breakdown tab does not work for `team` now, or null when it works
+// (docs/features/squad-breakdown.md, "Choose a squad"). hidden: the squads are hidden (a multiplayer room,
+// also when mySide is null). Never derive it from mySide.
+export function squadChoiceBlock(setup, team, { hidden, mySide }) {
+  if (hidden && team !== mySide)
+    return "This is the other player's roster, so you cannot choose its squad."
+  if (placedSides(setup)[team]) return 'The squad is on the table.'
+  if (setupStep(setup) !== 'squads') return 'You can choose a squad in the squad step.'
+  if (viewOf(setup)) return 'You are browsing an earlier step.'
+  if (setup.ready[team]) return 'Squad ready is on, so the squad does not change.'
+  return null
+}
+
+// The squad of the own side: the one kept in this browser when it is for this setup, else the one in the
+// document, else empty. stored: { setupId, squad } | null.
+export function ownSquadOf(stored, setup, mySide) {
+  return stored && stored.setupId === (setup.id ?? null)
+    ? stored.squad
+    : (setup.squads[mySide] ?? EMPTY_SQUAD)
+}
+
+// The setup as this player sees it: the other player's squad is empty until it is placed. After the reveal
+// it is in the document, and the affiliation step needs it. Not hidden: the setup as it is.
+export function viewerSetup(setup, { hidden, mySide, ownSquad }) {
+  return hidden
+    ? {
+        ...setup,
+        squads: {
+          [mySide]: ownSquad,
+          [otherTeam(mySide)]: placedSides(setup)[otherTeam(mySide)]
+            ? setup.squads[otherTeam(mySide)]
+            : EMPTY_SQUAD,
+        },
+      }
+    : setup
+}
