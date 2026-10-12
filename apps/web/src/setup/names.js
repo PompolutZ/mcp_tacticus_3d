@@ -8,8 +8,8 @@
 // - colors: { host: 'Blue' | 'Red', guest: ... }, the color name of each side (sideColors.js). It follows Priority
 //   in a single player room, so the Sandbox and the single player room name a player by color.
 
-export const FALLBACK_NAME = 'Opponent'
-export const GONE_NAME = 'Deleted player'
+const FALLBACK_NAME = 'Opponent'
+const GONE_NAME = 'Deleted player'
 
 // True when `team` is the user of this browser in a multiplayer room
 export const isYou = (team, ctx) => Boolean(ctx.mySide) && ctx.mySide === team

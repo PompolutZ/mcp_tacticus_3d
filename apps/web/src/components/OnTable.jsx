@@ -7,7 +7,7 @@ const INCHES_PER_PX = 0.04
 
 // Reads like the scoring board and the crisis cards (CrisisCard.jsx, CARD_ROTATION): the top of the HTML faces the
 // table edge (-x), and its right faces -z. For the setup panel and the board strip.
-export const BOARD_READ_ROTATION = [-Math.PI / 2, 0, Math.PI / 2]
+const BOARD_READ_ROTATION = [-Math.PI / 2, 0, Math.PI / 2]
 
 // Faces the owner of a side, the same as the tray controls (CharacterTray.jsx): the top of the HTML faces the
 // mat (-z for host). Rx(-pi/2) lays the HTML flat. Guest turns 180 deg around the vertical axis, which is a

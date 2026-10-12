@@ -12,10 +12,7 @@
 const round3 = (v) => Math.round(v * 1e3) / 1e3
 const round4 = (v) => Math.round(v * 1e4) / 1e4
 
-// The fields that the owner writes at rest
-export const STORED_FIELDS = ['pose', 'turn', 'snap', 'mode']
-
-export function roundPoint({ x, z }) {
+function roundPoint({ x, z }) {
   return { x: round3(x), z: round3(z) }
 }
 
@@ -29,7 +26,7 @@ export function roundTurn({ right, left }) {
 }
 
 // A snap { kind, id, side, across? } or null. A missing across stays missing.
-export function storedSnap(snap) {
+function storedSnap(snap) {
   if (!snap) return null
   const { kind, id, side, across } = snap
   return across === undefined ? { kind, id, side } : { kind, id, side, across }

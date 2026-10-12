@@ -14,7 +14,7 @@ for (const printing of jarvisData) {
 }
 
 // One entry per card, sorted by name. key: the slug in cards.json and in the crisis asset paths.
-export const CARDS = Object.entries(cardsData)
+const CARDS = Object.entries(cardsData)
   .map(([key, card]) => ({
     key,
     id: card.id,

@@ -178,7 +178,7 @@ rosters: {
 |---|---|
 | `src/rosters/mct.js` | `parseRoster(text, kindOf)`, `formatMctCode(parsed)`, `jarvisValidatorCode(parsed)`, `isEmptyRoster(parsed)`. `kindOf(code)` is an argument, so the module has no imports and a Node script can test it |
 | `src/rosters/cards.js` | `cardKind(code)`, `rosterCard(code)` (kind, name, image file or null, model or not, Jarvis page), `parseRosterText(text)`, `jarvisRosterUrl(parsed)` |
-| `src/rosters/layout.js` | `rosterLayout(team, parsed)`, `ROSTER_CARD_Y`, `rosterRowInfo`, and `crisisRowLayout`. Card positions for each side. Plain module, the same as `characters/trays.js` |
+| `src/rosters/layout.js` | `rosterLayout(team, parsed)`, `ROSTER_CARD_Y`, and `crisisRowLayout`. Card positions for each side. Plain module, the same as `characters/trays.js` |
 | `src/components/RosterCards.jsx` | The cards of one roster on the table |
 | `src/components/RosterPopup.jsx` | The roster popup: tabs and a card carousel |
 | `src/components/Toolbar.jsx` | The Roster group |

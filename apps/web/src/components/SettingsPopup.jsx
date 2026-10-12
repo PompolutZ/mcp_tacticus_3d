@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { Overlay } from './Overlay.jsx'
+import { PLACES } from '../settings/settings.js'
 import { KEY_ROWS, MOUSE_ROWS } from '../settings/controls.js'
 
 // What the first section chooses, in the order of the popup (docs/features/table-tools.md, "Settings menu")
@@ -10,10 +11,7 @@ const ITEMS = [
   { item: 'deployLock', label: 'Deploy Lock' },
   { item: 'matTurn', label: 'Mat turn (Sandbox and single player rooms)' },
 ]
-const PLACES = [
-  { place: 'table', label: 'Table' },
-  { place: 'hud', label: 'HUD' },
-]
+const PLACE_LABELS = { table: 'Table', hud: 'HUD' }
 
 function ControlsTable({ title, rows }) {
   return (
@@ -60,7 +58,7 @@ export function SettingsPopup({ settings, onChange, onVolumeChange, onClose }) {
             <div key={item} className="settings-row">
               <span>{label}</span>
               <span className="settings-choice">
-                {PLACES.map(({ place, label: placeLabel }) => (
+                {PLACES.map((place) => (
                   <button
                     key={place}
                     type="button"
@@ -68,7 +66,7 @@ export function SettingsPopup({ settings, onChange, onVolumeChange, onClose }) {
                     aria-pressed={settings.tools[item] === place}
                     onClick={() => onChange(item, place)}
                   >
-                    {placeLabel}
+                    {PLACE_LABELS[place]}
                   </button>
                 ))}
               </span>

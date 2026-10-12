@@ -32,7 +32,7 @@ export function lostKeys(ownId, own, others) {
   })
 }
 
-export function sameSet(a, b) {
+function sameSet(a, b) {
   if (a.size !== b.size) return false
   for (const key of a) if (!b.has(key)) return false
   return true

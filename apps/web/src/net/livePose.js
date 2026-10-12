@@ -6,7 +6,7 @@
 import { roundPiece } from './live.js'
 
 // The time constant of the follow, in seconds (decision 14)
-export const FOLLOW_TIME = 0.05
+const FOLLOW_TIME = 0.05
 
 // The part of the way to the latest pose to go in a frame of dt seconds
 export function followPart(dt) {
@@ -49,7 +49,7 @@ const KINDS = {
   marker: FLAT,
 }
 
-export const kindOf = (key) => key.slice(0, key.indexOf(':'))
+const kindOf = (key) => key.slice(0, key.indexOf(':'))
 
 // True when LiveSync handles this kind of key
 export const isLiveKind = (key) => Object.hasOwn(KINDS, kindOf(key))

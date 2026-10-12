@@ -89,14 +89,6 @@ export function rosterLayout(team, parsed) {
   )
 }
 
-// Sizes of both rows, for the Node check: [{ width, scale }]
-export function rosterRowInfo(parsed) {
-  return [
-    placeRow([parsed.characters.map(() => ({ kind: 'character' }))]),
-    placeRow([parsed.tactics.map(() => ({ kind: 'tactic' }))]),
-  ].map(({ width, scale }) => ({ width, scale }))
-}
-
 // The crisis cards of a roster lie next to the scoring board, on the owner's side, until the game setup
 // puts the two cards of the mission on the board ends. They are turned the same way as the board and the
 // cards on its ends (CrisisCard.jsx): the image top faces the table edge (-x). So each row runs along z,

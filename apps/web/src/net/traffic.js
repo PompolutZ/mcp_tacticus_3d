@@ -31,7 +31,7 @@ export function formatBytes(bytes) {
 }
 
 // Whole minutes of a time in ms
-export const minutesOf = (ms) => Math.round(ms / 60_000)
+const minutesOf = (ms) => Math.round(ms / 60_000)
 
 // The sum of connections { sent, received, ms }
 export function sumTraffic(list) {

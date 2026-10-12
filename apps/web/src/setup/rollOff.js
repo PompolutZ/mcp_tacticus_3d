@@ -4,7 +4,7 @@
 const SUCCESS = new Set(['crit', 'wild', 'hit'])
 
 // The counts of one shelf. symbols: the symbols of its dice ('crit', 'wild', 'hit', 'block', 'blank', 'skull').
-export function shelfCounts(symbols) {
+function shelfCounts(symbols) {
   const counts = { successes: 0, crits: 0, wilds: 0 }
   for (const symbol of symbols) {
     if (SUCCESS.has(symbol)) counts.successes++

@@ -5,7 +5,7 @@
 export const MAX_BREAKDOWN_CHARACTERS = 14
 
 // Alter egos that the alter ego rule skips: the copies of Sentinel MK4 and of Prime Sentinel
-export const SHARED_ALTER_EGOS = ['Sentinel MK4', 'Prime Sentinel']
+const SHARED_ALTER_EGOS = ['Sentinel MK4', 'Prime Sentinel']
 
 // The filters of a roster when none is on. must, mustNot: roster places. affiliation: null, '*' (any) or a
 // token key. dual: at least 2 affiliations. leader: only affiliations with a leader count. minSize, maxSize:

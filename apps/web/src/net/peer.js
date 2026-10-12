@@ -4,7 +4,7 @@
 import { trafficOf } from './traffic.js'
 
 export const POLL_MS = 2000
-export const GATHER_MS = 3000
+const GATHER_MS = 3000
 export const OFFER_MS = 15_000
 export const CONNECT_MS = 15_000
 export const IDLE_MS = 15 * 60_000

@@ -12,7 +12,7 @@ const CLIENT_ID = import.meta.env.VITE_DISCORD_CLIENT_ID
 const FAILED = 'Login failed. Try again.'
 
 // Production without a Discord client id does nothing and makes no API call
-export const AUTH_ON = Boolean(CLIENT_ID) || import.meta.env.DEV
+const AUTH_ON = Boolean(CLIENT_ID) || import.meta.env.DEV
 // The Discord button needs the client id. The dev login needs only a dev build.
 export const DISCORD_ON = Boolean(CLIENT_ID)
 

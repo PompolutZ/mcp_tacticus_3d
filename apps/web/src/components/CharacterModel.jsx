@@ -79,7 +79,7 @@ const LIFT_DONE = 0.001
 const LIFT_MOVED = 0.001
 
 // Base disk dims from angel.glb mesh0: radius≈0.983, height≈0.118
-export const BASE_RADIUS = 0.983
+const BASE_RADIUS = 0.983
 export const BASE_HALF_H = 0.059
 // Red glow of the figure while it shows the overlap mark. Added to the colors of the material, so the
 // textures stay visible.

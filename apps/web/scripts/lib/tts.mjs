@@ -6,7 +6,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { readLuaAssignment, readLuaConstants, readLuaIndexedAssignments } from './lua-table.mjs'
 
-export const TTS_MODS = path.join(os.homedir(), 'Library/Tabletop Simulator/Mods')
+const TTS_MODS = path.join(os.homedir(), 'Library/Tabletop Simulator/Mods')
 const MOD_SAVE = path.join(TTS_MODS, 'Workshop/3036795456.json')
 const CACHE_DIRS = ['Models', 'Images', 'Assetbundles']
 

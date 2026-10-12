@@ -5,9 +5,9 @@
 import * as Y from 'yjs'
 
 // A change waits this long (ms) before it is written
-export const WRITE_DELAY = 60_000
+const WRITE_DELAY = 60_000
 // keepalive allows 64 KB per page, so a hidden-tab write uses it only up to this size
-export const KEEPALIVE_LIMIT = 60 * 1024
+const KEEPALIVE_LIMIT = 60 * 1024
 
 // True when doc has changes that the server bytes do not have, for example from a page that closed before its
 // write. Compares snapshots, because a state vector does not change on a delete. Both docs are rebuilt with

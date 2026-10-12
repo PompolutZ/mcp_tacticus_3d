@@ -17,7 +17,7 @@ export const TRAY_SCALE = 0.8
 export const IMPORT_ROTATION = [0, Math.PI, 0]
 
 // The well: where dice land and rest before a throw. Rectangle and floor height in tray space.
-export const WELL = {
+const WELL = {
   xMin: -6.27,
   xMax: 6.33,
   zMin: -3.42,
@@ -27,7 +27,7 @@ export const WELL = {
 
 // The shelf: where dice with a result stand, in rows. It is on the +z side of tray space
 // (measured in Phase 1), which is why each tray below turns to face its shelf at world z = 0.
-export const SHELF = {
+const SHELF = {
   xMin: -6.37,
   xMax: 6.33,
   zMin: 5.28,
@@ -36,7 +36,7 @@ export const SHELF = {
 }
 
 // How far above the well floor a new or rerolled die appears (design, "Roll flow").
-export const DROP_HEIGHT = 4.8
+const DROP_HEIGHT = 4.8
 
 // One tray per team color. Position is the tray's world origin (tray-space (0, 0, 0)); the tray
 // bottom is on the table, so y = 0. yaw turns the tray so its shelf (tray-space +z) faces the
@@ -55,7 +55,7 @@ function flatHeight() {
   const centroid = a.map((v, n) => (v + b[n] + c[n]) / 3)
   return 2 * Math.hypot(...centroid)
 }
-export const DIE_FLAT_HEIGHT = flatHeight()
+const DIE_FLAT_HEIGHT = flatHeight()
 
 // The shelf holds 42 dice (design, "Roll flow") in rows. 14 columns fit the shelf width with
 // room for the die's 0.665" edge; 3 rows fit its 2.8" depth the same way.
@@ -93,7 +93,7 @@ export function trayToWorld(trayKey, point) {
 }
 
 // World point -> tray-space point, for tray `trayKey`.
-export function worldToTray(trayKey, point) {
+function worldToTray(trayKey, point) {
   const tray = TRAYS[trayKey]
   scratchVec
     .set(point.x - tray.position.x, point.y - tray.position.y, point.z - tray.position.z)
@@ -104,13 +104,6 @@ export function worldToTray(trayKey, point) {
 // Tray-space rotation ({ x, y, z, w }) -> world rotation, for tray `trayKey`.
 export function trayToWorldRotation(trayKey, rotation) {
   scratchQuat.setFromAxisAngle(yAxis, TRAYS[trayKey].yaw)
-  scratchQuat.multiply(new Quaternion(rotation.x, rotation.y, rotation.z, rotation.w))
-  return { x: scratchQuat.x, y: scratchQuat.y, z: scratchQuat.z, w: scratchQuat.w }
-}
-
-// World rotation -> tray-space rotation, for tray `trayKey`.
-export function worldToTrayRotation(trayKey, rotation) {
-  scratchQuat.setFromAxisAngle(yAxis, -TRAYS[trayKey].yaw)
   scratchQuat.multiply(new Quaternion(rotation.x, rotation.y, rotation.z, rotation.w))
   return { x: scratchQuat.x, y: scratchQuat.y, z: scratchQuat.z, w: scratchQuat.w }
 }
@@ -155,7 +148,7 @@ export function inWell(trayKey, worldPoint) {
 // spin of the dice above it. So the dice do not go higher with each press. A die that was not
 // thrown yet (a new die that falls into the well) is thrown at any height. 5.6: the TTS height,
 // measured on 2026-10-01 (scripts/tts-dice-measure.lua, "rapid rolls": 5.57-5.70).
-export const ROLL_HEIGHT_LIMIT = 5.6
+const ROLL_HEIGHT_LIMIT = 5.6
 
 // True when a die center at this world point is higher than ROLL_HEIGHT_LIMIT above a die that
 // rests on the well floor of tray `trayKey`.

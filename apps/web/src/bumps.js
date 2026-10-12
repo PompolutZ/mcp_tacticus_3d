@@ -73,10 +73,10 @@ export function createBumpFinder({
 // The other player's pieces (docs/features/sounds.md): live poses arrive about every 33 ms, so a
 // bump is a smaller change spread over a longer time. Measured with the dice-sim throws sampled
 // every 33 ms (docs/plans/table-sounds.md, Step 3): the minimum stays, the maximum is lower.
-export const REMOTE_DIE_BUMP_MIN = 1
-export const REMOTE_DIE_BUMP_MAX = 12
+const REMOTE_DIE_BUMP_MIN = 1
+const REMOTE_DIE_BUMP_MAX = 12
 // More than this between two arrivals (lost packets) starts fresh, in ms.
-export const REMOTE_GAP_MS = 100
+const REMOTE_GAP_MS = 100
 // A speed above this is a jump, not a move, in/s. A die is at most about 24 in/s in the sim.
 export const REMOTE_DIE_MAX_SPEED = 40
 

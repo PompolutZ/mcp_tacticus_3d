@@ -5,7 +5,7 @@ const KEY = 'mcp-assist-3d/settings'
 
 // Where each item of the table tools shows: on the table, or in the HUD (the toolbar)
 export const PLACES = ['table', 'hud']
-export const TOOL_ITEMS = ['rack', 'power', 'cleanup', 'deployLock', 'matTurn']
+const TOOL_ITEMS = ['rack', 'power', 'cleanup', 'deployLock', 'matTurn']
 
 // Sound volume, 0 (off) to 100 (docs/features/sounds.md)
 export const DEFAULT_VOLUME = 10

@@ -96,12 +96,6 @@ export const CHARACTERS = [
   ...extraRows,
 ].sort((a, b) => a.name.localeCompare(b.name) || a.mctCode.localeCompare(b.mctCode))
 
-export function searchCharacters(query) {
-  const q = query.toLowerCase().trim()
-  if (!q) return []
-  return CHARACTERS.filter((ch) => ch.name.toLowerCase().includes(q) || ch.mctCode.startsWith(q))
-}
-
 const bySlug = new Map(CHARACTERS.map((ch) => [ch.slug, ch]))
 const byCode = new Map(CHARACTERS.map((ch) => [ch.mctCode, ch]))
 

@@ -127,6 +127,10 @@ User, after this step: open the Settings menu. The Table/HUD choice of each tool
 
 ### Result
 
+- 61 findings at start. 55 lost the `export` keyword (by hand, a script; no fallow fix). 5 deleted: `searchCharacters`, `STORED_FIELDS`, `worldToTrayRotation`, `rosterRowInfo`, `AFFILIATIONS`. No helper or import became unused. 1 kept: `PLACES` in `settings.js` stays exported, as `SettingsPopup.jsx` now imports it (labels in `PLACE_LABELS`, decision 5).
+- `docs/features/roster.md`: `rosterRowInfo` removed from the layout.js row. Other docs and comments name symbols that are now module-private (for example `TRAY_WIDTH`, `ROLL_HEIGHT_LIMIT`). They stay correct.
+- `pnpm fallow dead-code` reports nothing.
+
 ## Step 3: Shared files, keys and Jarvis fetch in `scripts/lib/`
 
 Work:

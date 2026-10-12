@@ -41,7 +41,7 @@ export const ROUND_POINTS = X_ROUND.map((x) => boardPoint(x, Z_ROW[2]))
 
 // A marker that is released this close to a spot moves onto it, as on a TTS snap point. Spots are about
 // 2" apart, so a marker released on the track always lands on the nearest spot.
-export const SNAP_RADIUS = 1
+const SNAP_RADIUS = 1
 
 // A VP marker is a round TTS tile (Custom_Tile type 2) with scale 0.6. A tile with scale 1 is 2" wide
 // (scripts/README.md, "TTS crisis cards"), so the marker is 1.2" wide. Its edge has the player tint, its

@@ -115,7 +115,7 @@ for (const row of crisisData) {
 }
 
 // The kind for the roster parser: a gem is not a Team Tactic card, so it stays out of the tactics group
-export function cardKind(code) {
+function cardKind(code) {
   const info = cards.get(code)
   return info?.gem ? 'gem' : (info?.kind ?? null)
 }
@@ -180,7 +180,7 @@ export const CRISIS_THREATS = [
 
 // The units of the characters of a parsed roster for squadCombinations (breakdown.js), in roster order.
 // place: the place in parsed.characters. threat: Threat Level plus attached gems, as in squadThreat.
-export function breakdownUnits(parsed) {
+function breakdownUnits(parsed) {
   return parsed.characters.map((ch, place) => {
     const info = characterByCode(ch.code)
     return {

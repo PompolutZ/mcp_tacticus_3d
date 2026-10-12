@@ -31,14 +31,14 @@ export const DIE_BODY = {
 
 // A die rests when its linear and angular speed stay below these limits for SETTLE_TIME seconds.
 // A die that still moves after SETTLE_TIMEOUT seconds counts as resting tilted (see isTilted).
-export const SETTLE_LINEAR = 0.2 // in/s
-export const SETTLE_ANGULAR = 0.5 // rad/s
+const SETTLE_LINEAR = 0.2 // in/s
+const SETTLE_ANGULAR = 0.5 // rad/s
 export const SETTLE_TIME = 0.25 // s
 export const SETTLE_TIMEOUT = 8 // s
 
 // A die is tilted when its top face is more than this many degrees from flat.
 const TILT_LIMIT_DEG = 15
-export const TILT_LIMIT_DOT = Math.cos((TILT_LIMIT_DEG * Math.PI) / 180)
+const TILT_LIMIT_DOT = Math.cos((TILT_LIMIT_DEG * Math.PI) / 180)
 
 // Gravity of a die, in/s², down: 25, the TTS gravity (Physics.getGravity(), measured on
 // 2026-10-01). The world has WORLD_GRAVITY (-30) for the models, so a die body gets
@@ -48,16 +48,16 @@ export const DIE_GRAVITY_SCALE = DIE_GRAVITY / -WORLD_GRAVITY
 
 // Upward speed at the start of a throw, in/s: the range of TTS roll() (measured on 2026-10-01).
 // Gives a flight top about 2.4-7.6" above the start height (h = v² / (2 * DIE_GRAVITY)).
-export const THROW_UP_MIN = 11
-export const THROW_UP_MAX = 19.5
+const THROW_UP_MIN = 11
+const THROW_UP_MAX = 19.5
 
 // Spin speed at the start of a throw, rad/s: 0-50, chosen by look. 50 is the TTS upper limit.
 // TTS dice spin fast in the air. In TTS, getAngularVelocity() in the first frames after roll()
 // read only 7.7-11 rad/s (2026-10-01), but with 7.7-11 the app's dice only tilted in the air and
 // did not look like TTS (checked in the app, 2026-10-02). Why is not known yet:
 // scripts/tts-dice-measure.lua now also measures the spin during the whole roll.
-export const THROW_SPIN_MIN = 0
-export const THROW_SPIN_MAX = 50
+const THROW_SPIN_MIN = 0
+const THROW_SPIN_MAX = 50
 
 // Extra solver iterations for a die's rigid body only (@react-three/rapier's
 // `additionalSolverIterations` prop), on top of the world's own `numSolverIterations` (4, the

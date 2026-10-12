@@ -13,9 +13,9 @@ import { ROSTER_ROWS_OUTER_Z } from '../rosters/layout.js'
 const sign = (side) => (side === 'host' ? 1 : -1)
 
 // The rack plate: the band past the deepest tray parts (z 33.75), as wide as 5 range tools lying in a row.
-export const RACK_HALF_WIDTH = 15.2
-export const RACK_Z_MIN = 34.2
-export const RACK_Z_MAX = 36.8
+const RACK_HALF_WIDTH = 15.2
+const RACK_Z_MIN = 34.2
+const RACK_Z_MAX = 36.8
 
 // The rack pieces face their owner: for host, the top points to -z (trays.js, trayYaw). Guest is turned 180 deg.
 export const rackYaw = (side) => (side === 'host' ? 0 : Math.PI)
@@ -93,12 +93,12 @@ export function rackSlots(side) {
 // the tray center. Free space there: x -20.6 (the board strip, the setup) to the plate edge -8.65, z 18.3 to
 // 22.4 (the mat edge to the character tray row). width lies along x. See docs/features/table-tools.md,
 // "Automatic Power Phase button".
-export const POWER_GAP = 0.6 // from the left edge of the tactic plate
+const POWER_GAP = 0.6 // from the left edge of the tactic plate
 // Width in px (1 px = 0.04"): icon 22 + gap 6 + padding 2 x 6 + the label "Automatic Power Phase" (21 chars at
 // 12px, estimated 7 px each) = 187 px
 const POWER_WIDTH_PX = 22 + 6 + 12 + 21 * 7
-export const POWER_WIDTH = POWER_WIDTH_PX * 0.04
-export const POWER_DEPTH = 1.2
+const POWER_WIDTH = POWER_WIDTH_PX * 0.04
+const POWER_DEPTH = 1.2
 export function powerButton(side) {
   const s = sign(side)
   const x = -(TACTIC_PLATE_WIDTH / 2 + POWER_GAP + POWER_WIDTH / 2)
@@ -140,13 +140,13 @@ export function boardStrip(side) {
 // edge (z 18) and the tactic plate's outer z (22.4), 4.1" deep, and x from the plate edge on to the dice
 // tray (20.25). width lies along x, depth along z. Two rows: the arrows, then the Choose button below them
 // (toward the table edge). Sizes in inches, 1 CSS px is 0.04".
-export const EDGE_GAP = 0.6 // from the right edge of the tactic plate
+const EDGE_GAP = 0.6 // from the right edge of the tactic plate
 export const EDGE_ARROW_WIDTH = 2.2
 export const EDGE_ARROW_HEIGHT = 1.4
 export const EDGE_CHOOSE_HEIGHT = 1.2
 export const EDGE_ROW_GAP = 0.2
 export const EDGE_ARROW_GAP = 0.8
-export const EDGE_WIDTH = 7.2
+const EDGE_WIDTH = 7.2
 export function edgeControls(side) {
   const s = sign(side)
   const depth = EDGE_ARROW_HEIGHT + EDGE_ROW_GAP + EDGE_CHOOSE_HEIGHT
@@ -160,8 +160,8 @@ export function edgeControls(side) {
 // both sides. width lies along x. See docs/features/setup-game.md, "Buttons".
 // The character trays of a placed squad reach z 31.85, so a placed side (or the other player's panel, one
 // line "Choosing a squad" / "Ready") uses `compact`: a 1.6" band past the trays, z 32.1 to 33.7.
-export const SQUAD_PANEL_MARGIN = 0.25
-export const SQUAD_PANEL_WIDTH = 24
+const SQUAD_PANEL_MARGIN = 0.25
+const SQUAD_PANEL_WIDTH = 24
 const TRAYS_OUTER_Z = 31.85
 const COMPACT_DEPTH = 1.6
 export function squadPanel(side, compact = false) {

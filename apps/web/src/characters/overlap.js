@@ -2,14 +2,14 @@
 // Models pass through models, so two bases can end up in one place. The one that moved last shows the mark.
 
 // Base circles must overlap by more than this (inches), so touching bases have no mark
-export const OVERLAP_MIN = 0.01
+const OVERLAP_MIN = 0.01
 // Bases count as at the same height when their bottoms differ by less than this (inches). A dragged
 // base hovers 0.3" above the table, so it needs more than 0.25". A lifted model (6") or a model on
 // another level of terrain is not under or over the other one.
-export const HEIGHT_TOLERANCE = 1
+const HEIGHT_TOLERANCE = 1
 
 // a, b: { x, y, z, radius }. True when the bases are at about the same height and their circles overlap.
-export function overlaps(a, b) {
+function overlaps(a, b) {
   if (Math.abs(a.y - b.y) >= HEIGHT_TOLERANCE) return false
   return a.radius + b.radius - Math.hypot(a.x - b.x, a.z - b.z) > OVERLAP_MIN
 }

@@ -36,7 +36,7 @@ function write(key, value) {
 }
 
 // The id of the user of this browser, made on the first call. The owner of the rooms it creates.
-export function userId() {
+function userId() {
   const user = read(USER_KEY)
   if (user?.id) return user.id
   const id = crypto.randomUUID()
