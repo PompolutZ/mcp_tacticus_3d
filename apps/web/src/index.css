@@ -2448,6 +2448,12 @@ body {
   flex: none;
 }
 
+.settings-volume {
+  width: 2.5em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 .settings-controls {
   width: 100%;
   border-collapse: collapse;

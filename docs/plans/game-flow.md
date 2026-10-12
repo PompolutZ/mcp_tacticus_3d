@@ -256,7 +256,20 @@ User, after this step:
 
 ### Result
 
-(empty)
+Built, as planned. Checks pass. No browser test was done.
+
+- Files in `src/assets/sounds/`, mono mp3, 44.1 kHz, `-q:a 6`: `dice-throw-1..3` (5.4, 4.0, 5.4 KB), `chip-lay-1..3` (2.3, 2.7, 3.0 KB), `chips-stack-1..3` (2.9, 2.2, 3.8 KB), `bong_001` (1.4 KB), `question_001` (2.7 KB). All files of decision 12 were in the zips. `README.md` there has the sources, CC0 and the `ffmpeg` command.
+- `src/sound.js`: `playSound(group)` and `setVolume`. Groups: `dice`, `token`, `activated`, `ping`, `notice`. The context is made at the first `pointerdown` or `keydown`, and the files are fetched then. A group plays at most once in 80 ms.
+- Settings: `sound: { volume }` (default 60, 0 to 100, rounded) in `settings.js`, the slider in `SettingsPopup.jsx`, tests in `settings.test.js`. `App.jsx` passes the volume to `setVolume`.
+- Dice: `roll()` plays `dice` when a die was thrown. `OtherDiceTray.jsx` (`syncDice`) plays it when a die goes to `air`, not at mount.
+- Tokens: `useLogSounds(log)` in `src/log/useLogSounds.js`, called in `App.jsx`. `soundOf(entry)` in `log.js` (tested): `token` with `on` gives `token`, or `activated` for key `activated`; `held` with `on` gives `token`. Activated wins in a batch.
+- Docs: new `sounds.md`. Changed: `table-tools.md` (Settings), `game-log.md`, `dice-rolling.md`.
+
+Deviations and notes:
+
+- `ASSETS.md` is not changed: it lists the TTS cache and the migrate scripts, and the sounds do not come from TTS.
+- `ping` and `notice` are registered and have files, but nothing plays them until steps 5 and 6.
+- A browser that opens the table late (the log arrives after mount) plays entries younger than 5 s once.
 
 ## Step 5: Ping
 

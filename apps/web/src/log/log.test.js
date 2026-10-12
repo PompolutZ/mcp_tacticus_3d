@@ -9,6 +9,7 @@ import {
   logEntry,
   logText,
   mergeLog,
+  soundOf,
 } from './log.js'
 
 const COLORS = { host: 'Blue', guest: 'Red' }
@@ -215,4 +216,14 @@ test('the text of character entries', () => {
     logText(logEntry('deleted', 'host', { name: 'Hulk' }), SOLO),
     'Hulk is deleted from the table.',
   )
+})
+
+test('sounds: a token put on, Activated, a held token; nothing else', () => {
+  const token = (key, on) => logEntry('token', 'host', { key, on })
+  assert.equal(soundOf(token('dazed', true)), 'token')
+  assert.equal(soundOf(token('activated', true)), 'activated')
+  assert.equal(soundOf(token('activated', false)), null)
+  assert.equal(soundOf(logEntry('held', 'host', { on: true })), 'token')
+  assert.equal(soundOf(logEntry('held', 'host', { on: false })), null)
+  assert.equal(soundOf(logEntry('stat', 'host', { from: 1, to: 2 })), null)
 })

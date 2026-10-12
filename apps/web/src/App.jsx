@@ -104,6 +104,8 @@ import { dragPose, SUPPLY_YAW, tokenDragKey } from './net/livePose.js'
 import { spawnEntry } from './components/storedTool.js'
 import { canDropTool } from './tabletools/dropShape.js'
 import { readSettings, writeSettings } from './settings/settings.js'
+import { setVolume } from './sound.js'
+import { useLogSounds } from './log/useLogSounds.js'
 import { SettingsPopup } from './components/SettingsPopup.jsx'
 import {
   NO_PIECES,
@@ -548,6 +550,14 @@ export default function App({
     setSettings(next)
     writeSettings(next)
   }
+  function handleVolumeChange(volume) {
+    const next = { ...settings, sound: { volume } }
+    setSettings(next)
+    writeSettings(next)
+  }
+  useEffect(() => setVolume(settings.sound.volume / 100), [settings.sound.volume])
+  // A token put on a character sounds in both browsers (log/useLogSounds.js)
+  useLogSounds(log)
   const toolsOnTable = (item) => settings.tools[item] === 'table'
   // The own rack is on the table, so a tool dropped on it goes back to it
   const rackShown = toolsOnTable('rack')
@@ -2475,6 +2485,7 @@ export default function App({
         <SettingsPopup
           settings={settings}
           onChange={handleSettingChange}
+          onVolumeChange={handleVolumeChange}
           onClose={() => setSettingsOpen(false)}
         />
       )}

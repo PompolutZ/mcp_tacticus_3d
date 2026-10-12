@@ -83,7 +83,11 @@ One row for each item, with the choice **Table** or **HUD**. The default is **Ta
 - A board strip with no rows is not drawn. A row with no buttons is not drawn.
 - When the rack is in the HUD, a tool does not go back to the rack. The rack is not on the table.
 - The **Mat** group of the toolbar stays while it has the map select (the Sandbox).
-- The settings are in localStorage, key `mcp-assist-3d/settings`: `{ tools: { rack, power, cleanup, deployLock, matTurn } }`, each `'table'` or `'hud'`. They belong to the browser, not to the user or the room. A missing or unknown value is the default. When localStorage cannot be read, the defaults apply.
+- The settings are in localStorage, key `mcp-assist-3d/settings`: `{ tools: { rack, power, cleanup, deployLock, matTurn }, sound: { volume } }`. Each tool is `'table'` or `'hud'`, the volume a whole number from 0 to 100. They belong to the browser, not to the user or the room. A missing or unknown value is the default. When localStorage cannot be read, the defaults apply.
+
+### Sound
+
+A **Sound** section has a volume slider, 0 to 100, default 60. 0 is off. See `sounds.md`.
 
 ### Keys and mouse
 

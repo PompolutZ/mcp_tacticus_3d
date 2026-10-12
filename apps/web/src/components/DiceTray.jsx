@@ -41,6 +41,7 @@ import { DieMenu } from './DiceKeys.jsx'
 import { TrayBody, useDieLook } from './DiceTrayParts.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
+import { playSound } from '../sound.js'
 
 // A tray holds at most 42 dice, shelf and well together (design, "Roll flow"). SHELF_SLOT_COUNT
 // is also 42 (one shelf place per die), so this reuses it instead of a second magic number.
@@ -465,6 +466,7 @@ export default function DiceTray({
   // Throws every die that is not on the shelf, from where it is. A die of the current throw that is
   // still high in the air only gets a new spin, as in TTS (ROLL_HEIGHT_LIMIT in tray.js).
   function roll() {
+    let thrown = false
     for (const entry of dice.current.values()) {
       if (entry.state === 'shelf') continue
       // Every die that is not on the shelf moves now. A die that is 'air' already keeps its entry.
@@ -478,10 +480,13 @@ export default function DiceTray({
         aboveRollLimit(trayKey, entry.body.translation())
       ) {
         entry.body.setAngvel(randomSpin(), true)
+        thrown = true
         continue
       }
       throwDie(entry)
+      thrown = true
     }
+    if (thrown) playSound('dice')
     onMenuClose?.()
     commit()
   }

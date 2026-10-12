@@ -65,6 +65,15 @@ export function mergeLog(rolls, log) {
     .map(([item]) => item)
 }
 
+// The sound group of an entry (sound.js), or null. Only a token put on a character sounds. Activated has its own
+// sound. A held objective token sounds like a token.
+export function soundOf(entry) {
+  if (!entry.on) return null
+  if (entry.kind === 'token') return entry.key === 'activated' ? 'activated' : 'token'
+  if (entry.kind === 'held') return 'token'
+  return null
+}
+
 // The side of an entry for its color, or null. Dice entries have `side`, log entries `side` or `by`.
 export const entrySide = (entry) => entry.side ?? entry.by ?? null
 

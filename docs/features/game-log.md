@@ -1,6 +1,6 @@
 # Feature: Game log
 
-Status: partly built. The log has the setup, the Power and Cleanup Phases, Priority and the changes of characters. Token sounds and drops are not built.
+Status: partly built. The log has the setup, the Power and Cleanup Phases, Priority and the changes of characters. Drops are not built.
 
 ## Goal
 
@@ -54,7 +54,7 @@ An entry stores data, not text: `{ id, at, by, kind, ... }` (`src/log/log.js`).
 - `by`: the side of the browser that wrote it. It is null in the Sandbox and a single player room.
 - `side`: the side that did the thing (the chooser of a step, the side of a Power Phase).
 - Character entries: `side` is the side of the character, so the border has the color of its owner, and `by` is the player who clicked. Fields: `characterId`, `name`.
-- Token entries are told apart by `kind`. `token`: a token of the tray, with `key` (`activated` or another token key), `tokenName`, `on` (put on or taken off) and `count` (after the change). `held`: an objective token, with `tokenId`, `tokenName` and `on`. Token sounds play from these entries (not built yet).
+- Token entries are told apart by `kind`. `token`: a token of the tray, with `key` (`activated` or another token key), `tokenName`, `on` (put on or taken off) and `count` (after the change). `held`: an objective token, with `tokenId`, `tokenName` and `on`. Token sounds play from these entries (`sounds.md`).
 - Other fields by kind: `type`, `card`, `threat`, `ready`, `affiliation`, `step`, `gains`, `round`, `flipped`, `before`, `after`, `stat`, `from`, `to`.
 
 The text is made when the entry shows, with the names of the viewer (`src/setup/names.js`, `src/setup/useNames.js`). So the same entry reads "You choose ..." in one browser and "Nelly chooses ..." in the other, and "Blue" or "Red" in the Sandbox and a single player room.

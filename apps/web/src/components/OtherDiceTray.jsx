@@ -11,6 +11,7 @@ import { OTHER_DICE_GROUPS } from '../physics.js'
 import { useYField } from '../net/useY.js'
 import { followPart, sameSideQuat } from '../net/livePose.js'
 import { TrayBody, useDieLook } from './DiceTrayParts.jsx'
+import { playSound } from '../sound.js'
 
 // The die's own vertices (faces.js), flattened for ConvexHullCollider's args.
 const dieVertices = Float32Array.from(D8_CORNERS.flat())
@@ -123,8 +124,9 @@ function applyEntry(die, e, slot, trayKey) {
   die.doc = e.d
 }
 
-// Makes `map` (die id -> die) equal to the stored side. Returns true when dice were added or removed.
-function syncDice(map, side, trayKey) {
+// Makes `map` (die id -> die) equal to the stored side. Returns true when dice were added or removed. announce:
+// a die that goes to 'air' (a throw of the other player) plays the dice sound once, however many dice go.
+function syncDice(map, side, trayKey, announce) {
   const list = readDice(side)
   const slots = new Map(sortShelfEntries(list.filter((e) => e.shelf)).map((e, i) => [e.id, i]))
   const keep = new Set(list.map((e) => e.id))
@@ -151,6 +153,7 @@ function syncDice(map, side, trayKey) {
       map.set(e.id, die)
       idsChanged = true
     }
+    if (announce && !e.shelf && e.d.place === 'air' && die.doc?.place !== 'air') playSound('dice')
     applyEntry(die, e, slots.get(e.id), trayKey)
   }
   return idsChanged
@@ -202,14 +205,14 @@ export default function OtherDiceTray({ trayKey, store, liveRef }) {
   // The Map is made once and changed in place; the React state is only the list of ids.
   const [dice] = useState(() => {
     const map = new Map()
-    syncDice(map, side, trayKey)
+    syncDice(map, side, trayKey, false)
     return map
   })
   const [ids, setIds] = useState(() => [...dice.keys()])
 
   // A change of the stored side
   useEffect(() => {
-    if (syncDice(dice, side, trayKey)) setIds([...dice.keys()])
+    if (syncDice(dice, side, trayKey, true)) setIds([...dice.keys()])
   }, [dice, side, trayKey])
 
   // Goes the 1 - e^(-dt / 0.05) part of the way to the latest live pose of an air die. Without a newer pose

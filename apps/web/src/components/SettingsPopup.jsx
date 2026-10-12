@@ -33,10 +33,10 @@ function ControlsTable({ title, rows }) {
   )
 }
 
-// The Settings popup. settings: { tools: { rack, power, ... } } (settings/settings.js). onChange(item, place)
-// applies a choice at once; App stores it. App closes the popup on Escape, as App handles all keys. A click on
+// The Settings popup. settings: { tools: { rack, power, ... }, sound: { volume } } (settings/settings.js).
+// onChange(item, place) and onVolumeChange(volume) apply a choice at once; App stores it. App closes the popup on Escape, as App handles all keys. A click on
 // the backdrop or × calls onClose().
-export function SettingsPopup({ settings, onChange, onClose }) {
+export function SettingsPopup({ settings, onChange, onVolumeChange, onClose }) {
   // A drag that ends on the backdrop (a text selection, a scroll bar) must not close the popup
   const pressedBackdrop = useRef(false)
   return (
@@ -74,6 +74,24 @@ export function SettingsPopup({ settings, onChange, onClose }) {
               </span>
             </div>
           ))}
+        </section>
+        <section className="settings-section">
+          <h3>Sound</h3>
+          <label className="settings-row">
+            <span>Volume (0 is off)</span>
+            <span className="settings-choice">
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value={settings.sound.volume}
+                aria-label="Sound volume"
+                onChange={(e) => onVolumeChange(Number(e.target.value))}
+              />
+              <span className="settings-volume">{settings.sound.volume}</span>
+            </span>
+          </label>
         </section>
         <ControlsTable title="Keys" rows={KEY_ROWS} />
         <ControlsTable title="Mouse" rows={MOUSE_ROWS} />

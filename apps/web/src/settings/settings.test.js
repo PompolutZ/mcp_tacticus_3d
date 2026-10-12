@@ -82,3 +82,20 @@ test('storage that throws: defaults on read, false on write', () => {
     assert.equal(writeSettings(defaultSettings()), false)
   })
 })
+
+test('the volume is 60 by default, is kept, and stays from 0 to 100', () => {
+  assert.equal(defaultSettings().sound.volume, 60)
+  const read = (sound) => {
+    const storage = fakeStorage()
+    storage.setItem(KEY, JSON.stringify({ sound }))
+    let volume
+    withStorage(storage, () => (volume = readSettings().sound.volume))
+    return volume
+  }
+  assert.equal(read({ volume: 0 }), 0)
+  assert.equal(read({ volume: 35 }), 35)
+  assert.equal(read({ volume: 250 }), 100)
+  assert.equal(read({ volume: -4 }), 0)
+  assert.equal(read({ volume: 'loud' }), 60)
+  assert.equal(read(null), 60)
+})
