@@ -1,6 +1,6 @@
 # Plan: Table sounds
 
-Requested by the user on 2026-10-12, after the test of `game-flow.md`. Status: all steps done, waiting for the user's test. Branch `table-sounds`, from main at `21ca644`.
+Requested by the user on 2026-10-12, after the test of `game-flow.md`. Status: steps 1 to 5 done, the user tested them. Steps 6 and 7 were added after the test, in progress. Branch `table-sounds`, from main at `21ca644`.
 
 Each step makes one commit and writes its **Result** below. Feature docs change in the same step as the code.
 
@@ -15,6 +15,9 @@ Checks of every step: `pnpm format`, `pnpm lint` (no new warnings), `pnpm test`,
 - **Ping.** Freesound 220212 "Ping Bing" (https://freesound.org/people/GameAudio/sounds/220212/) replaces the current ping sound.
 - **Ping clock.** The browser that receives a ping measures its 3 s itself, so a clock difference between two computers cannot hide a ping.
 - The token, Activated and notice sounds stay.
+- After the test of steps 1 to 5 (the user liked them):
+  - **Default volume 10**, not 60, because some sounds are loud.
+  - **A token put down on the table** makes a sound: `chip-lay-1`, the user chose it on the listening page. Today only a token put on a character makes a sound.
 
 The user recorded the real dice and a model with an iPhone, listened to cuts on a local page, and chose the files below. The model on the mat will be recorded again later. Until then the mat uses a Freesound file.
 
@@ -86,6 +89,8 @@ How the files were made (for `README.md`):
 9. **Ping.** `ping-bing.mp3` replaces `bong_001`.
 10. **Ping clock.** `t` goes away from the ping. The browser that receives a ping shows it when its id is new, and its 3 s start when it arrives. A ping that is already in the first state that this browser gets from that player (a ping from before the join) shows nothing.
 11. **Groups.** `sound.js` groups after this plan: `shake`, `die`, `modelMat`, `modelTerrain`, `token`, `activated`, `ping`, `notice`. The user's new mat recording later replaces the files of `modelMat`, with the same group name.
+12. **Default volume 10.** A browser that saved its settings before keeps its value.
+13. **Token put down.** A new group `tokenPlace` with `chip-lay-1` only. It plays when a player's drag of a token ends on the table, in the browser that dragged and in the other browser. Tokens: objective tokens (crisis tokens), character tokens that lie on the table, token piles. Tactic cards make no sound. A drag that ends on a character plays nothing new: the log sound plays there today (`held`, `token`), so there is no double sound. A token that the app puts down itself (setup, a drop of held tokens, a crisis card change) plays nothing.
 
 ## Step 1: Files, groups, Roll shake, ping sound
 
@@ -252,6 +257,42 @@ User, after this step:
 - `Ping.jsx`: life and fade run from the mount, summed from the frame time. No `Date.now()`. The sound always plays at mount. `App.jsx` no longer sets `t`.
 - Docs: `ping.md`, `peer-to-peer.md`, `sounds.md`. `ping.md` also named the old sound `bong_001`: fixed to `ping-bing`.
 - No deviations. The Sandbox and single player rooms are unchanged.
+
+## Step 6: Default volume 10
+
+Work:
+
+1. `src/settings/settings.js`: the default volume is 10 (decision 12). Tests in `settings.test.js`.
+2. Docs: `sounds.md`, `table-tools.md` (both say default 60).
+
+Checks: as in "Checks".
+
+User, after this step:
+- A new browser (or a private window): the **Sound** slider is at 10.
+
+### Result
+
+(empty)
+
+## Step 7: Token put down on the table
+
+Work:
+
+1. `src/sound.js`: the group `tokenPlace` (decision 13).
+2. Find where each kind of token ends a drag on the table: `CrisisToken.jsx` (`onEnd`, `handleTokenMove`), the loose token and pile drags in `App.jsx` (`handlePileMoveStart` and the token drag). Play `tokenPlace` there, only when the drop is on the table, not on a character.
+3. The other browser: play `tokenPlace` when the other player's drag of a token ends with a drop on the table. Use what the code has (the drag claim in `net/ownership.js`, or the stored pose change from the other browser) and write the choice in the Result. A pose written by the app makes no sound.
+4. Docs: `sounds.md`.
+
+Checks: as in "Checks".
+
+User, after this step:
+- Drag an objective token, a loose character token and a pile on the table: one chip sound each, in both browsers.
+- Drag a token onto a character: only the sound of today, no second sound.
+- Change the crisis card, or Daze a character that holds a token: no chip sound for the tokens the app moves.
+
+### Result
+
+(empty)
 
 ## Open questions
 
