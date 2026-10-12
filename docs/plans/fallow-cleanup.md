@@ -1,6 +1,6 @@
 # Plan: Fallow cleanup
 
-Requested by the user on 2026-10-12. Status: in progress. The user gave the OK on 2026-10-12. Branch `fallow-cleanup`, from main, after `setup-round-2` and `game-flow` merge into main. No other branch is open while this plan runs, because step 2 changes many files.
+Requested by the user on 2026-10-12. Status: done, waiting for the user's test. The user gave the OK on 2026-10-12. Branch `fallow-cleanup`, from main, after `setup-round-2` and `game-flow` merge into main. No other branch is open while this plan runs, because step 2 changes many files.
 
 Each step makes one commit and writes its **Result** below. Feature docs change in the same step as the code.
 
@@ -202,10 +202,23 @@ Checks: as in "Checks".
 
 ### Result
 
+`pnpm fallow` at the end (exit 1, complexity and duplication only):
+
+- Unused code: none (`pnpm fallow dead-code` clean).
+- Duplication: 7 clone groups, 163 lines (0.5%), 11 files. All left:
+  - Popup frame in `NewRoomDialog`, `RosterPopup`, `SettingsPopup` (3 groups, 10-17 lines). Component copies, "Not in this plan".
+  - `TokenDragPreview` / `ToolDragGhost` (17), `LooseToken` / `TokenPile` (10), `DragFootprint` / `RulerTool` (11). Same reason.
+  - `migrate-crisis` / `migrate-tactics` (2 groups, 12 and 10 lines): status text and missing-file check in `migrate()`. Judged not worth sharing in "Facts".
+- Complexity: 264 functions above thresholds (cyclomatic 20, cognitive 15, CRAP 30); 60 critical, 71 high, 133 moderate. Top 5 by cognitive: `Scene` in `Scene.jsx` (198), `App` in `App.jsx` (180), `Tool` in `RulerTool.jsx` (93), arrow function at `DiceTray.jsx:642` (68), `CharacterFigure` in `CharacterModel.jsx` (65). `App.jsx` also has `handleKeyDown` (52). The split plan reduces `App`.
+- Item 2: `scripts/README.md` "Shared code" already lists every shared file. Nothing to move.
+
 ## Not in this plan
 
 - The small copies in components: the popup frame in `NewRoomDialog`, `RosterPopup` and `SettingsPopup`; `TokenDragPreview` and `ToolDragGhost`; `LooseToken` and `TokenPile`; `DragFootprint` and `RulerTool`. They can be a later plan.
 - Complexity: `docs/plans/split-app.md`.
+- Flaky `apps/api` test `signal.test.ts` "returns only newer messages for x-after" (failed 2 of 3 runs in step 4).
+- Jarvis has new data (new tactics cards, 8 changed characters, see Step 3 Result).
+- `affiliations.json` lacks Intelligencia and Thunderbolts that the TTS cache has.
 
 ## Open questions
 
