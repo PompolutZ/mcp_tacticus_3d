@@ -131,7 +131,25 @@ User, after this step:
 
 ### Result
 
-(empty)
+Built.
+
+- `src/bumps.js`: `createBumpFinder({ gravity, min, max })` gives `feed(velocity, dt)` (strength 0 to 1, or 0) and `reset()`. `dt` is a parameter and the source of the velocity is free, so step 3 feeds live-pose speeds with the same finder. The gap and jump rules of step 3 go in as a check before `feed` or as an option. `DIE_BUMP_MIN`, `DIE_BUMP_MAX`. Tests in `src/bumps.test.js`.
+- `DiceTray.jsx`: `useAfterPhysicsStep` feeds each die while it is dynamic and awake, and plays `die` with the strength as volume and key `<tray>:<die id>`. A kinematic or sleeping die resets its finder each step, so a die that becomes dynamic or wakes starts fresh. `throwDie` resets it too: a throw sets the speed and is no bump.
+- Docs: `sounds.md`, `dice-rolling.md`.
+
+Measured with a scratch copy of `scripts/dice-sim.mjs` (not committed; 5 dice thrown together, 200 rounds, 1000 die throws, 120 Hz, dice gravity 25), the velocity change per step:
+
+- Gravity alone does not work as the "no bump" reference. A die at rest has velocity 0, and every step the gravity-only guess says -0.208 (25/120), so a rest looked like a bump of 0.208. The finder takes the smaller of two distances: to a free fall and to an unchanged velocity. Rest then measures 0.000 (p99 0.001, max 0.105), and a roll 0.005 median, 0.12 at p99.
+- First bump of a throw (peaks above 0.3): p10 4.1, median 18, p90 24, max 31 in/s.
+- Later bumps: p10 0.47, median 2.2, p90 7.8, p99 19, max 27. 26% are under 1.
+- A bump is one step long: 1.04 steps on average, 4 at most. So no smoothing is needed, and the 60 ms key gap of decision 7 handles the rest.
+- With minimum 1: 7.2 bump events per die per throw, the last one at 2.2 s (p50), 2.7 s (p90). With minimum 0.5 it is 8.5, with 2 it is 5.4.
+
+Chosen: minimum 1 in/s (under the soft ticks of a rolling octahedron, above the roll noise by 8 times), maximum 20 in/s (a first bump of a throw at p90 or more is full loudness; later bumps are quieter).
+
+Deviation: the "gravity taken away" of decision 3 became "the smaller distance to free fall and to unchanged velocity", for the reason above.
+
+Not checked in a browser (the user checks).
 
 ## Step 3: The other player's dice
 

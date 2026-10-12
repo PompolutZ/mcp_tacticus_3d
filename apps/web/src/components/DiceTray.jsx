@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
-import { RigidBody, ConvexHullCollider, useRapier } from '@react-three/rapier'
+import { RigidBody, ConvexHullCollider, useAfterPhysicsStep, useRapier } from '@react-three/rapier'
 import { D8_CORNERS, D8_DENSITY, FACES, SYMBOLS } from '../dice/faces.js'
 import {
   DIE_BODY,
+  DIE_GRAVITY,
   DIE_GRAVITY_SCALE,
   DIE_SOLVER_ITERATIONS,
   SETTLE_TIME,
@@ -41,7 +42,8 @@ import { DieMenu } from './DiceKeys.jsx'
 import { TrayBody, useDieLook } from './DiceTrayParts.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
-import { playShake } from '../sound.js'
+import { createBumpFinder } from '../bumps.js'
+import { playShake, playSound } from '../sound.js'
 
 // A tray holds at most 42 dice, shelf and well together (design, "Roll flow"). SHELF_SLOT_COUNT
 // is also 42 (one shelf place per die), so this reuses it instead of a second magic number.
@@ -207,7 +209,7 @@ export default function DiceTray({
   const { rapier } = useRapier()
 
   // Every die lives here: id -> { id, order, source, was, doc, body, state, symbol, face, settling, stillTime,
-  // throwTime, spawn, slot, moveFrom, moveTo, moveElapsed, moving }. source: 'roll' | 'crits' | 'reroll',
+  // throwTime, bump, spawn, slot, moveFrom, moveTo, moveElapsed, moving }. source: 'roll' | 'crits' | 'reroll',
   // where the die came from until its throw ends, and was: the old symbol of a reroll (history). doc: the die entry of the
   // document (dice/stored.js); it changes only when the die's place or face changes, and a write
   // builds the side from these. settling: a new or rerolled die that falls to rest, 'air' in the
@@ -282,6 +284,7 @@ export default function DiceTray({
     const rb = entry.body
     if (!rb) return
     rb.wakeUp() // a sleeping body's pose is not synced to its mesh until it wakes (Pitfalls)
+    entry.bump?.reset() // the throw sets the speed: it is no bump
     if (respawn) {
       // setTranslation moves the body at once, so a later respawn in the same frame sees this die
       rb.setTranslation(freeDropPoint(trayKey, wellOccupiedPoints(entry.id)), true)
@@ -615,6 +618,22 @@ export default function DiceTray({
       delete lives[trayKey]
     }
   }, [diceLives, trayKey])
+
+  // A hit on each bump of a dynamic die (docs/features/sounds.md). A die that is kinematic or
+  // asleep is not fed, so its finder starts fresh when it moves again.
+  useAfterPhysicsStep((world) => {
+    for (const entry of dice.current.values()) {
+      const rb = entry.body
+      if (!rb) continue
+      entry.bump ??= createBumpFinder({ gravity: DIE_GRAVITY })
+      if (!rb.isDynamic() || rb.isSleeping()) {
+        entry.bump.reset()
+        continue
+      }
+      const strength = entry.bump.feed(rb.linvel(), world.timestep)
+      if (strength > 0) playSound('die', { volume: strength, key: `${trayKey}:${entry.id}` })
+    }
+  })
 
   // The roll flow: read faces once a thrown die rests (in the well or outside it, as in TTS),
   // let a tilted die wait, move a lost die (fell off the table, non-finite) back above the well,
