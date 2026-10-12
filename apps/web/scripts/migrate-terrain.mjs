@@ -11,7 +11,7 @@ import { readBundlePrefab } from './lib/bundle.mjs'
 import {
   compressMesh,
   imageToWebp,
-  MAT_SIZE,
+  MAT_TEXTURE_SIZE,
   readGlb,
   readObj,
   TEXTURE_SIZE,
@@ -228,7 +228,7 @@ function migrateMat(card, mat) {
   const source = cachedFile(url)
   if (!source)
     throw new Error(`The mat image ${url} is not in the TTS cache. Spawn the map once in TTS.`)
-  fs.writeFileSync(assetPath(matImage(name)), imageToWebp(source, MAT_SIZE))
+  fs.writeFileSync(assetPath(matImage(name)), imageToWebp(source, MAT_TEXTURE_SIZE))
   manifest.mats[name] = url
   saveManifest()
   const [scaleX, , scaleZ] = mat.scale

@@ -23,7 +23,7 @@ import draco3d from 'draco3dgltf'
 import obj2gltf from 'obj2gltf'
 
 export const TEXTURE_SIZE = 2048
-export const MAT_SIZE = 4096
+export const MAT_TEXTURE_SIZE = 4096
 // A figure is 2–3" tall, so 1024 is about 1 texture pixel per screen pixel at the closest zoom on a retina screen.
 // It also uses a quarter of the GPU memory of 2048 (about 5.6 MB instead of 22 MB per figure).
 export const CHARACTER_TEXTURE_SIZE = 1024

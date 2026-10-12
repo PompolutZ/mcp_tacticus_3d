@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/fallow/schema.json",
+  "entry": ["apps/api/src/lambda.ts", "infra/bin/app.ts"],
+  "ignorePatterns": ["apps/web/public/draco/**"],
+  "ignoreDependencies": ["esbuild"],
+  "ignoreExports": [
+    {
+      "file": "apps/web/src/rooms/serverStore.js",
+      "exports": ["createRoom", "listRooms", "deleteRoom"]
+    }
+  ]
+}

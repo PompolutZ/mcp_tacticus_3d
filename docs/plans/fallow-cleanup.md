@@ -1,6 +1,6 @@
 # Plan: Fallow cleanup
 
-Requested by the user on 2026-10-12. Status: plan written, waiting for the user's OK. Branch `fallow-cleanup`, from main, after `setup-round-2` and `game-flow` merge into main. No other branch is open while this plan runs, because step 2 changes many files.
+Requested by the user on 2026-10-12. Status: in progress. The user gave the OK on 2026-10-12. Branch `fallow-cleanup`, from main, after `setup-round-2` and `game-flow` merge into main. No other branch is open while this plan runs, because step 2 changes many files.
 
 Each step makes one commit and writes its **Result** below. Feature docs change in the same step as the code.
 
@@ -84,6 +84,32 @@ Checks: as in "Checks", plus `pnpm fallow dead-code`. Its only findings must be 
 User, after this step: run `pnpm fallow` once and read the output.
 
 ### Result
+
+- `fallow` 3.33.1 added as exact root dev dependency. No `allowBuilds` entry was needed. Root script `"fallow": "fallow"`.
+- `.fallowrc.json` keys: `$schema`, `entry` (the two CDK files), `ignorePatterns` (`apps/web/public/draco/**`), `ignoreDependencies` (`esbuild`), `ignoreExports` (`serverStore.js`: `createRoom`, `listRooms`, `deleteRoom`). `pnpm fallow config` loads it.
+- `.gitignore`: `.fallow`. `MAT_SIZE` -> `MAT_TEXTURE_SIZE` in `convert.mjs` and `migrate-terrain.mjs`. README item added.
+- `pnpm fallow dead-code`: 61 unused exports, 0 unused files, 0 unused dependencies, 0 duplicate exports. Plan said 60. List at this time, by file:
+  - `scripts/lib/tts.mjs`: TTS_MODS
+  - `auth/session.js`: AUTH_ON
+  - `bumps.js`: REMOTE_DIE_BUMP_MIN, REMOTE_DIE_BUMP_MAX, REMOTE_GAP_MS
+  - `characters/characters.js`: searchCharacters
+  - `characters/overlap.js`: OVERLAP_MIN, HEIGHT_TOLERANCE, overlaps
+  - `characters/trays.js`: TRAY_WIDTH, TRAY_CONTROLS_DEPTH, TRAY_DEPTH
+  - `components/CharacterModel.jsx`: BASE_RADIUS
+  - `components/OnTable.jsx`: BOARD_READ_ROTATION
+  - `components/storedTool.js`: STORED_FIELDS, roundPoint, storedSnap
+  - `crisis/cards.js`: CARDS
+  - `dice/throw.js`: SETTLE_LINEAR, SETTLE_ANGULAR, TILT_LIMIT_DOT, THROW_UP_MIN, THROW_UP_MAX, THROW_SPIN_MIN, THROW_SPIN_MAX
+  - `dice/tray.js`: WELL, SHELF, DROP_HEIGHT, DIE_FLAT_HEIGHT, worldToTray, worldToTrayRotation, ROLL_HEIGHT_LIMIT
+  - `net/livePose.js`: FOLLOW_TIME, kindOf
+  - `net/ownership.js`: sameSet; `net/peer.js`: GATHER_MS; `net/traffic.js`: minutesOf
+  - `rooms/serverTable.js`: WRITE_DELAY, KEEPALIVE_LIMIT; `rooms/store.js`: userId
+  - `rosters/breakdown.js`: SHARED_ALTER_EGOS; `rosters/cards.js`: cardKind, breakdownUnits; `rosters/layout.js`: rosterRowInfo
+  - `scoreboard/affiliations.js`: AFFILIATIONS; `scoreboard/board.js`: SNAP_RADIUS
+  - `settings/settings.js`: PLACES, TOOL_ITEMS
+  - `setup/names.js`: FALLBACK_NAME, GONE_NAME; `setup/rollOff.js`: shelfCounts
+  - `tabletools/layout.js`: RACK_HALF_WIDTH, RACK_Z_MIN, RACK_Z_MAX, POWER_GAP, POWER_WIDTH, POWER_DEPTH, EDGE_GAP, EDGE_WIDTH, SQUAD_PANEL_MARGIN, SQUAD_PANEL_WIDTH
+- Differences: `ignoreExports` used for decision 4, because a per-file `overrides` rule does not work for inter-file `duplicate-exports`. Count is 61 (game-flow merged since the run); the 5 dead ones are all still there.
 
 ## Step 2: Dead exports
 

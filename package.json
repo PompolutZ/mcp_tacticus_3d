@@ -9,10 +9,12 @@
     "typecheck": "pnpm -r typecheck",
     "lint": "oxlint",
     "format": "oxfmt",
-    "format:check": "oxfmt --check"
+    "format:check": "oxfmt --check",
+    "fallow": "fallow"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",
+    "fallow": "3.33.1",
     "oxfmt": "^0.72.0",
     "oxlint": "^1.87.0"
   },
