@@ -1,9 +1,9 @@
-// What the players look at (plan 09, decisions 24 and 25): the selected pieces, the selected tools and the range
-// mark, in the awareness state next to the claims of ownership.js. Each module sets only its own fields with
+// What the players look at (plan 09, decisions 24 and 25): the selected pieces, the selected tools, the range
+// mark and the ping, in the awareness state next to the claims of ownership.js. Each module sets only its own fields with
 // setLocalStateField, so neither overwrites the other. Plain module: no three.js and no import.meta.env, so
 // node --test can load it.
 
-const NONE = Object.freeze({ selection: [], tools: [], mark: null })
+const NONE = Object.freeze({ selection: [], tools: [], mark: null, ping: null })
 
 function sameList(a, b) {
   return a.length === b.length && a.every((item, i) => item === b[i])
@@ -11,6 +11,11 @@ function sameList(a, b) {
 
 function sameMark(a, b) {
   return a?.key === b?.key && a?.mode === b?.mode
+}
+
+// A ping is new when its id is new (a ping replaces the last one)
+function samePing(a, b) {
+  return a?.id === b?.id
 }
 
 function cleanList(list) {
@@ -21,6 +26,17 @@ function cleanMark(mark) {
   return mark && typeof mark.key === 'string' && typeof mark.mode === 'string'
     ? { key: mark.key, mode: mark.mode }
     : null
+}
+
+function cleanPing(ping) {
+  const { id, at, t } = ping ?? {}
+  const ok =
+    typeof id === 'string' &&
+    typeof t === 'number' &&
+    Array.isArray(at) &&
+    at.length === 3 &&
+    at.every(Number.isFinite)
+  return ok ? { id, at: [...at], t } : null
 }
 
 // The version without a connection, for a single player room and the Sandbox: nobody else to see.
@@ -34,7 +50,8 @@ function createLocalPresence() {
 }
 
 // awareness: the y-protocols Awareness of the table, or none for the local version.
-// Fields: selection (piece keys, the last one is the tool target), tools (kinds), mark ({ key, mode } or null).
+// Fields: selection (piece keys, the last one is the tool target), tools (kinds), mark ({ key, mode } or null),
+// ping ({ id, at: [x, y, z], t } or null, docs/features/ping.md).
 export function createPresence({ awareness = null } = {}) {
   if (!awareness) return createLocalPresence()
   const ownId = awareness.clientID
@@ -50,6 +67,7 @@ export function createPresence({ awareness = null } = {}) {
           selection: cleanList(state.selection),
           tools: cleanList(state.tools),
           mark: cleanMark(state.mark),
+          ping: cleanPing(state.ping),
         }
         break
       }
@@ -58,7 +76,8 @@ export function createPresence({ awareness = null } = {}) {
     if (
       sameList(shown.selection, found.selection) &&
       sameList(shown.tools, found.tools) &&
-      sameMark(shown.mark, found.mark)
+      sameMark(shown.mark, found.mark) &&
+      samePing(shown.ping, found.ping)
     )
       return
     shown = found
@@ -70,10 +89,11 @@ export function createPresence({ awareness = null } = {}) {
   if (local?.selection === undefined) awareness.setLocalStateField('selection', [])
   if (local?.tools === undefined) awareness.setLocalStateField('tools', [])
   if (local?.mark === undefined) awareness.setLocalStateField('mark', null)
+  if (local?.ping === undefined) awareness.setLocalStateField('ping', null)
   refresh()
 
   return {
-    // fields: any of { selection, tools, mark }. A field that equals the current one is not sent again.
+    // fields: any of { selection, tools, mark, ping }. A field that equals the current one is not sent again.
     set(fields) {
       const now = awareness.getLocalState() ?? {}
       if (fields.selection !== undefined) {
@@ -88,6 +108,10 @@ export function createPresence({ awareness = null } = {}) {
       if (fields.mark !== undefined) {
         const next = cleanMark(fields.mark)
         if (!sameMark(cleanMark(now.mark), next)) awareness.setLocalStateField('mark', next)
+      }
+      if (fields.ping !== undefined) {
+        const next = cleanPing(fields.ping)
+        if (!samePing(cleanPing(now.ping), next)) awareness.setLocalStateField('ping', next)
       }
     },
     other: () => shown,

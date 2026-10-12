@@ -129,6 +129,7 @@ import {
   LOCK_KEY,
   MOVE_KEYS,
   PAN_KEYS,
+  PING_KEY,
   RANGE_KEYS,
   RESET_VIEW_KEY,
   ROTATE_KEYS,
@@ -431,6 +432,8 @@ export default function App({
       tools: presenceTools(selectedTools),
     })
   }, [presence, selection, selectedTools])
+  // The last ping of this browser, { id, at: [x, y, z], t } | null. Scene shows it (Ping.jsx).
+  const [ownPing, setOwnPing] = useState(null)
   // Character or token under the pointer: { kind, id } | null. Only the tool keys read it, so it is a ref.
   const hoveredRef = useRef(null)
   // Pan and turn keys held down: key code → screen direction. KeyboardCamera moves the camera while one is held.
@@ -823,6 +826,10 @@ export default function App({
       handleLockKey()
       return
     }
+    if (e.code === PING_KEY) {
+      handlePingKey()
+      return
+    }
     // Over an own dice tray, the number keys clear the tray, then add dice, not tools. Over the other tray they spawn tools.
     if (DICE_KEYS[e.key] && diceTrayHoveredRef.current) {
       addDiceRef.current[diceTrayHoveredRef.current]?.(DICE_KEYS[e.key])
@@ -886,6 +893,16 @@ export default function App({
   // snaps the tool to it but does not select it. Else Place could move that model.
   function keySelects(piece) {
     return toolSelects(piece, characters, playedSides)
+  }
+
+  // Key P: a ping at the table point under the pointer, none when the pointer is off the table. It shows
+  // here at once, and in the other browser through presence (docs/features/ping.md).
+  function handlePingKey() {
+    const point = toolPointRef.current?.atPointer()
+    if (!point) return
+    const next = { id: crypto.randomUUID(), at: [point.x, point.y, point.z], t: Date.now() }
+    setOwnPing(next)
+    presence?.set({ ping: next })
   }
 
   // Key 6, the Toward / Away tool: placeAngleTool at the hovered piece and the table point under the pointer.
@@ -2307,6 +2324,7 @@ export default function App({
               onToolReturn={rackShown ? handleToolReturn : undefined}
               ownership={ownership}
               presence={presence}
+              ownPing={ownPing}
               live={live}
               pieceLives={pieceLives}
               angleSpawn={angleSpawn}

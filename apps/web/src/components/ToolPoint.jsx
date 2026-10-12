@@ -7,7 +7,7 @@ import { tablePoint } from '../drag/tablePoint.js'
 // (App, "Tools spawn at the pointer"). It lives inside Physics, because tablePoint needs the world.
 // atPointer: the point under the last pointer position, or null when the pointer is not over the canvas
 // or not over the table. atCenter: the point in the middle of the canvas (the table plane when the
-// middle sees no collider), or null. Both give { x, z }.
+// middle sees no collider), or null. Both give { x, y, z }: y is the top of the table, a board or terrain (the ping needs it).
 export default function ToolPoint({ pointRef }) {
   const { camera, gl, pointer } = useThree()
   const { world, rapier } = useRapier()
@@ -15,7 +15,7 @@ export default function ToolPoint({ pointRef }) {
   useEffect(() => {
     if (!pointRef) return undefined
     const scene = { camera, canvas: gl.domElement, world, rapier }
-    const flat = (point) => (point ? { x: point.x, z: point.z } : null)
+    const flat = (point) => (point ? { x: point.x, y: point.y, z: point.z } : null)
     pointRef.current = {
       atPointer() {
         if (!gl.domElement.matches(':hover')) return null

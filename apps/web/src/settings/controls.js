@@ -14,6 +14,7 @@ export const KEY_ROWS = [
   { keys: 'Q / E', action: 'Turn the piece under the pointer or the dragged piece left or right' },
   { keys: 'F', action: 'Flip the token or card under the pointer' },
   { keys: 'R', action: 'Lift the model under the pointer, or put it down' },
+  { keys: 'P', action: 'Ping: an arrow at the pointer that both players see and hear' },
   { keys: 'L', action: 'Lock or unlock the terrain piece under the pointer' },
   { keys: 'Delete / Backspace', action: 'Delete the piece under the pointer' },
   {

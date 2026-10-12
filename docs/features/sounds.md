@@ -1,6 +1,6 @@
 # Feature: Sounds
 
-Status: partly built. Dice and token sounds and the volume are built. The ping and the drop notice sounds are in the files and the code, and play when those features are built.
+Status: partly built. Dice, token and ping sounds and the volume are built. The drop notice sound is in the files and the code, and plays when that feature is built.
 
 ## Goal
 
@@ -22,6 +22,7 @@ A short sound for the events that a player can miss: a dice throw, a token put o
 
 - A group has a random file for each play. The same group plays at most once in 80 ms.
 - The token sounds come from the Log (`game-log.md`): each browser plays a sound for each new `token` or `held` entry that is put on (`on`). Entries that exist when the table opens, and entries older than 5 s, play nothing. One source, so both players hear the same sound. If the batch has Activated, that sound plays.
+- The ping (`ping.md`): `bong_001` plays when a ping starts, in the browser that pings and in the other one. A ping that is older than 3 s when it arrives makes no sound.
 - A token taken off, damage and Power make no sound.
 
 ## Volume
@@ -34,9 +35,9 @@ A browser blocks sound until the player clicks or presses a key. The app makes i
 
 ## Code
 
-`src/sound.js` (`playSound(group)`, `setVolume`), `src/log/useLogSounds.js`, `soundOf` in `src/log/log.js`.
+`src/sound.js` (`playSound(group)`, `setVolume`), `src/components/Ping.jsx` (the ping sound), `src/log/useLogSounds.js`, `soundOf` in `src/log/log.js`.
 
 ## Not built
 
-- Ping and drop notice sounds (they have their feature).
+- The drop notice sound (it has its feature).
 - Other files. The player listens and asks for others if needed.

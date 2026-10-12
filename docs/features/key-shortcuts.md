@@ -57,7 +57,7 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 | Arrow keys | Turn the camera | Turn the camera around the point it looks at. Left / Right turn the view left / right, Up / Down tilt it up / down | Yes |
 | Space | Reset the camera. In first-person mode: fly up | Moves the camera back to the start view at once. The app has no first-person mode | Yes |
 | Z | Zoom to the pointer, press again to zoom back | Nothing | No |
-| P | Camera mode: third person, first person, top-down | Nothing | No |
+| P | Camera mode: third person, first person, top-down | Ping: an arrow in the color of your side at the pointer, see `ping.md`. The app has no camera modes | No |
 | Ctrl | First-person mode: fly down | Nothing | No |
 | F | Flip | Flips the crisis token under the pointer, the card of the character under the pointer (its model or its tray card), or the Team Tactic card under the pointer. With nothing under the pointer: the piece selected last, a token or the card of a character | Partly |
 | Q / E | Rotate the piece | Turns the dragged character or tool, else the one under the pointer, 15° around its center. Q turns counter-clockwise, E clockwise (seen from above). A token has a turn handle, no key | Partly |

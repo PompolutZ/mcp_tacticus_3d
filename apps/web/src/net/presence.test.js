@@ -32,7 +32,7 @@ function players() {
 test('the other player gets selection, tools and mark', async () => {
   const p = players()
   await settle()
-  assert.deepEqual(p.b.other(), { selection: [], tools: [], mark: null })
+  assert.deepEqual(p.b.other(), { selection: [], tools: [], mark: null, ping: null })
   p.a.set({
     selection: ['character:m1', 'token:t1'],
     tools: ['range'],
@@ -43,6 +43,7 @@ test('the other player gets selection, tools and mark', async () => {
     selection: ['character:m1', 'token:t1'],
     tools: ['range'],
     mark: { key: 'character:m2', mode: 'inRange' },
+    ping: null,
   })
   // The own fields are not the other's
   assert.deepEqual(p.a.other().selection, [])
@@ -69,6 +70,26 @@ test('other() is the same object until a field changes', async () => {
   await settle()
   assert.equal(p.b.other().mark, null)
   assert.equal(calls, 2)
+  p.end()
+})
+
+test('a ping reaches the other player, a new id replaces it', async () => {
+  const p = players()
+  const ping = { id: 'a', at: [1, 0.5, -2], t: 1000 }
+  p.a.set({ ping })
+  await settle()
+  assert.deepEqual(p.b.other().ping, ping)
+  assert.equal(p.a.other().ping, null)
+  const first = p.b.other()
+  p.a.set({ ping: { ...ping } })
+  await settle()
+  assert.equal(p.b.other(), first)
+  p.a.set({ ping: { id: 'b', at: [3, 0, 4], t: 2000 } })
+  await settle()
+  assert.equal(p.b.other().ping.id, 'b')
+  p.a.set({ ping: { id: 'c', at: [1, 2], t: 3 } })
+  await settle()
+  assert.equal(p.b.other().ping, null)
   p.end()
 })
 
@@ -109,7 +130,7 @@ test('presence and ownership share the awareness state', async () => {
 test('the local version does nothing', () => {
   const p = createPresence()
   p.set({ selection: ['character:m1'] })
-  assert.deepEqual(p.other(), { selection: [], tools: [], mark: null })
+  assert.deepEqual(p.other(), { selection: [], tools: [], mark: null, ping: null })
   assert.equal(p.other(), p.other())
   p.subscribe(() => {})()
   p.destroy()

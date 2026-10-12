@@ -34,6 +34,7 @@ import TokenDragPreview, { OtherSpawnPreview } from './TokenDragPreview.jsx'
 import ToolPoint from './ToolPoint.jsx'
 import LiveSync from './LiveSync.jsx'
 import RemoteCursor from './RemoteCursor.jsx'
+import Ping from './Ping.jsx'
 import TokenFace from './TokenFace.jsx'
 import SupplyPile, { SupplyToken } from './SupplyPile.jsx'
 import TokenPile, { PileStack } from './TokenPile.jsx'
@@ -178,7 +179,7 @@ const noSubscribe = () => () => {}
 const noKeys = () => NO_KEYS
 const noDrag = () => null
 const noSpawn = () => null
-const NO_PRESENCE = { selection: [], tools: [], mark: null }
+const NO_PRESENCE = { selection: [], tools: [], mark: null, ping: null }
 const noPresence = () => NO_PRESENCE
 
 // Two stored poses are the same (both rounded the same way, rooms/table.js, poseOf)
@@ -303,6 +304,7 @@ const OVERLAP_INTERVAL = 100
 // selection and mark. ownership: the claims on pieces (net/ownership.js). Pieces without a body pass it to the drag code. Scene
 // claims a model before R, Q / E, Throw, Place and a drag, releases it when the body rests, and writes the rest
 // pose (plan 09, decisions 5 to 9).
+// ownPing: the last ping of this browser (App, key P). The other player's ping comes with presence (ping.md).
 // live: the live hub of a multiplayer room (net/live.js), or null. With it, Scene mounts LiveSync and the cursor.
 // pieceLives: a Map, piece key → getter of the live pose of a dragged piece without a body. The drag code fills it and
 // LiveSync sends it (plan 09, Phase 6). The pieces follow the other player's live poses while they claim them.
@@ -399,6 +401,7 @@ export default function Scene({
   onModelRest,
   ownership = null,
   presence = null,
+  ownPing = null,
   live = null,
   pieceLives = null,
 }) {
@@ -1138,6 +1141,14 @@ export default function Scene({
 
       <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP} debug={showColliders}>
         <ToolPoint pointRef={toolPointRef} />
+        {ownPing && <Ping key={ownPing.id} ping={ownPing} side={ownSide} />}
+        {otherLook.ping && (
+          <Ping
+            key={otherLook.ping.id}
+            ping={otherLook.ping}
+            side={ownSide === 'guest' ? 'host' : 'guest'}
+          />
+        )}
         {live && ownership && (
           <>
             <LiveSync

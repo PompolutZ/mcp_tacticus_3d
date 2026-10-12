@@ -291,7 +291,21 @@ User, after this step:
 
 ### Result
 
-(empty)
+Built, as planned. Checks pass. No browser test was done.
+
+- `ToolPoint.jsx`: `atPointer()` and `atCenter()` now return `{ x, y, z }`. No new function: the old callers read only `x` and `z`.
+- `keyboard.js`: `PING_KEY`. `App.jsx`: `handlePingKey` sits after the repeat check, so it follows the same rules as F and L (not in a text field, not with Ctrl, Cmd or Alt, not in a popup or a drag). It makes `{ id, at, t }`, keeps it in `ownPing` state (passed to `Scene`) and sends it with `presence.set({ ping })`.
+- `components/Ping.jsx`: a cone with its tip down that bounces, and a ring on the surface, in the side color, 3 s, fade in the last 0.5 s. The sound plays at mount. `Scene.jsx` shows the own ping and the other player's (`otherLook.ping`), each keyed by id.
+- `net/presence.js`: the field `ping` (`cleanPing`, same id is not sent again). Tests added in `presence.test.js`.
+- `controls.js`: P row. Docs: new `ping.md`; `key-shortcuts.md` (P row, Same: No), `peer-to-peer.md`, `sounds.md`.
+
+Deviations and notes:
+
+- The own ping shows from `App` state, not from awareness, so the Sandbox and a single player room show it without presence.
+- `t` is the sender's clock (decision 16). With two computers whose clocks differ by seconds, a ping can be hidden. On one Mac there is no difference.
+- The arrow draws on top of models and terrain (`depthTest` off), so it is always visible. The user can ask for the opposite.
+- Size and bounce of the arrow are my guess (arrow 1.4" tall, bounce 0.6"). The user tunes them.
+
 
 ## Step 6: Drop of objective tokens: wait, notice, Remove
 
