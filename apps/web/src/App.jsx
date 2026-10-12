@@ -28,20 +28,16 @@ import { TrayPopup } from './components/TrayPopup.jsx'
 import { RosterPopup } from './components/RosterPopup.jsx'
 import { startPointerDrag } from './drag/pointerDrag.js'
 import { getCard } from './crisis/cards.js'
-import { buildMatTokens, supplyToken } from './crisis/matTokens.js'
 import { newCharacter } from './characters/newCharacter.js'
 import { supplyPilePosition } from './crisis/layout.js'
 import {
   characterByCode,
-  characterDropPlacer,
   characterImmune,
   characterIsGrunt,
   characterName,
   characterPowerBonus,
   characterStamina,
 } from './characters/characters.js'
-import { BASE_DIAMETER } from './characters/files.js'
-import { trayHeldDefault } from './characters/trays.js'
 import { characterOnBoard, modelCharacterId, secondModelId } from './characters/models.js'
 import { powerAfterPhase } from './characters/power.js'
 import { cleanupBlockers, cleanupCharacter } from './characters/cleanup.js'
@@ -112,18 +108,10 @@ import { dragPose, tokenDragKey } from './net/livePose.js'
 import { useTableTools } from './tabletools/useTableTools.js'
 import { useSettings } from './settings/useSettings.js'
 import { playSound } from './sound.js'
-import { CAMERA_MOUSE_BUTTONS, panToPoint, resetView, startView } from './camera.js'
+import { CAMERA_MOUSE_BUTTONS, resetView, startView } from './camera.js'
 import { canvasEvents } from './components/canvasEvents.js'
 import { tableSeat } from './rooms/seat.js'
-import { playerName } from './setup/names.js'
-import {
-  modelsToReturn,
-  placedToken,
-  placerSide,
-  waitGroups,
-  waitText,
-  waitingTokens,
-} from './tokens/dropWait.js'
+import { useCrisisTokens } from './crisis/useCrisisTokens.js'
 import HudNotice from './components/HudNotice.jsx'
 import { HudWarnings } from './components/HudWarnings.jsx'
 import { useHudMessage } from './components/useHudMessage.js'
@@ -138,12 +126,6 @@ const ROLL_OFF_DICE = 5
 // A throw entry older than this (ms) is not a new throw
 const ROLL_OFF_FRESH = 30000
 
-// A crisis token is a 1" circle (CrisisToken.jsx, RADIUS). Drop places it just clear of the base.
-const TOKEN_RADIUS = 0.5
-const DROP_GAP = 0.1
-// Several tokens dropped at once (handleDropCharacterTokens) are spread along a row next to the
-// base, one TOKEN_RADIUS*2 (diameter) apart plus a gap, so they do not overlap.
-const TOKEN_ROW_SPACING = TOKEN_RADIUS * 2 + DROP_GAP * 2
 // A character token drag starts only after the pointer moves this many pixels, so a click on a
 // Give source or a token on the table does not drop a token.
 const EMPTY_SQUAD = { characters: [], tactics: [] }
@@ -387,46 +369,50 @@ export default function App({
   useLogSounds(log)
   // A token that the other player puts down on the table sounds here (tokens/useRemoteDropSounds.js)
   useRemoteDropSounds(table, ownership)
-  // Dropped objective tokens that wait for their place (tokens/dropWait.js): one notice line for each character
-  const waitLines = waitGroups(tokens).map((group) => {
-    const ch = characters.find((c) => c.id === group.characterId)
-    const mine = playedSides.includes(group.placeBy)
-    const tokenNames = group.tokens.map((t) => getToken(t.frontKey)?.name ?? t.frontKey)
-    const name = ch ? characterName(ch.key) : 'A character'
-    const placer = playerName(group.placeBy, nameCtx)
-    return {
-      id: group.characterId ?? group.tokens[0].id,
-      characterId: group.characterId,
-      tokenId: group.tokens[0].id,
-      ids: group.tokens.map((t) => t.id),
-      mine,
-      text: waitText({ mine, name, tokenNames, placer }),
-    }
+  // Scene calls this with a character id and returns its live table position { x, z } (Rapier body
+  // or model object, not the spawn position), or null. Used by handleTokenDrop. See Scene.jsx, modelPosition.
+  const modelPositionRef = useRef(null)
+  // Scene's returnModels: puts the models of a character back on its tray
+  const returnModelsRef = useRef(null)
+  // Dropped objective tokens, the crisis tokens and the notice (crisis/useCrisisTokens.js)
+  const {
+    waitLines,
+    removeWaits,
+    handleCrisisChange,
+    handleTokenMove,
+    handleTokenTurn,
+    handleTokenFlip,
+    handleTokenControl,
+    handleTokenDamage,
+    handleTokenHold,
+    handleSupplyTake,
+    handleHeldRemove,
+    handleDropCharacterTokens,
+    dropWait,
+    placeTokens,
+    handleNoticeShow,
+  } = useCrisisTokens({
+    table,
+    room,
+    ownSide,
+    playedSides,
+    nameCtx,
+    characters,
+    crisis,
+    setCrisis,
+    tokens,
+    setTokens,
+    setup,
+    setSelection,
+    writeLog,
+    characterLogData,
+    writeHeldLog,
+    placeTool,
+    modelPositionRef,
+    returnModelsRef,
+    controlsRef,
+    wheelCameraRef,
   })
-  // Remove is off while a dropped token of the character waits, with the same text as its title
-  const removeWaits = Object.fromEntries(waitLines.map((line) => [line.characterId, line.text]))
-  // The notice sound, once for each new drop that this browser places. The tokens of an open table play nothing.
-  const seenWaiting = useRef(null)
-  const stopPan = useRef(null)
-  const multiplayerRoom = Boolean(room?.multiplayer)
-  useEffect(() => {
-    const sides = multiplayerRoom ? [ownSide] : ['host', 'guest']
-    const ids = new Set(
-      waitingTokens(tokens)
-        .filter((t) => sides.includes(t.placeBy))
-        .map((t) => t.id),
-    )
-    const known = seenWaiting.current
-    seenWaiting.current = ids
-    if (!known) return
-    const fresh = waitingTokens(tokens).filter((t) => ids.has(t.id) && !known.has(t.id))
-    if (!fresh.length) return
-    playSound('notice')
-    // The Range 2 tool snaps to the model once per drop. Only the own tool can be written, so in the Sandbox
-    // and a single player room it is the own tool also for a token of the other side.
-    const characterId = fresh.find((t) => t.placeFrom?.characterId)?.placeFrom.characterId
-    if (characterId) placeTool('range', 2, { kind: 'character', id: characterId }, null)
-  }, [tokens, multiplayerRoom, ownSide])
   const toolsOnTable = (item) => settings.tools[item] === 'table'
   // The own rack is on the table, so a tool dropped on it goes back to it
   const rackShown = toolsOnTable('rack')
@@ -435,17 +421,12 @@ export default function App({
   // Scene calls this with (clientX, clientY) and returns the character id under the point, or
   // null. See Scene.jsx, characterAt.
   const characterAtRef = useRef(null)
-  // Scene calls this with a character id and returns its live table position { x, z } (Rapier body
-  // or model object, not the spawn position), or null. Used by handleTokenDrop. See Scene.jsx, modelPosition.
-  const modelPositionRef = useRef(null)
   // Scene calls this with a direction for Q / E: it turns the dragged character or tool, else the
   // one under the pointer. See Scene.jsx, turnPiece.
   const turnPieceRef = useRef(null)
   // Scene calls this for R: it lifts the character under the pointer or puts it back down. See
   // Scene.jsx, liftPiece.
   const liftPieceRef = useRef(null)
-  // Scene's returnModels: puts the models of a character back on its tray
-  const returnModelsRef = useRef(null)
   const versionMismatch = Boolean(connection?.versionMismatch)
   // The files to load before the table shows: the map and the models (rooms/preload.js). Read once.
   const [preloadFiles] = useState(() => tableFiles({ mapId, terrain, characters, rosters }))
@@ -531,236 +512,6 @@ export default function App({
     // A character piece is a model; a second model has its own id (characters/models.js)
     else if (piece?.kind === 'character') handleCharacterFlip(modelCharacterId(piece.id))
     else if (piece?.kind === 'tactic') handleTacticFlip(piece.id)
-  }
-
-  // type: 'secure' | 'extract'. key: a card key, or null for "None". The old card takes its tokens with it,
-  // also the supply tokens that players took from its pile. The new card's tokens turn with the Priority
-  // of the game setup (buildMatTokens).
-  function handleCrisisChange(type, key) {
-    const oldKey = crisis[type]
-    table.transact(() => {
-      setCrisis((prev) => ({ ...prev, [type]: key }))
-      setTokens((prev) => {
-        const kept = prev.filter((t) => t.cardKey !== oldKey)
-        const card = getCard(key)
-        return card ? [...kept, ...buildMatTokens(card, priorityOf(setup) === 'guest')] : kept
-      })
-    })
-    // The selected token may no longer exist; a selected character is not affected.
-    setSelection((prev) => prev.filter((p) => p.kind !== 'token'))
-  }
-
-  // A held token dragged off its tray card and released on the table is no longer held.
-  function handleTokenMove(id, x, z) {
-    playSound('tokenPlace')
-    // A dropped token that waits for its place is placed where it is released
-    if (table.tokens.read().find((t) => t.id === id)?.placeBy) {
-      placeTokens([id], { [id]: { x, z } })
-      return
-    }
-    const token = tokens.find((t) => t.id === id)
-    table.transact(() => {
-      setTokens((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, x, z, heldBy: null, heldAt: null } : t)),
-      )
-      if (token?.heldBy)
-        writeHeldLog(
-          characters.find((ch) => ch.id === token.heldBy),
-          token,
-          false,
-        )
-    })
-  }
-
-  function handleTokenTurn(id, yaw) {
-    setTokens((prev) => prev.map((t) => (t.id === id ? { ...t, yaw } : t)))
-  }
-
-  function handleTokenFlip(id) {
-    setTokens((prev) =>
-      prev.map((t) =>
-        t.id === id && t.canFlip ? { ...t, up: t.up === 'front' ? 'back' : 'front' } : t,
-      ),
-    )
-  }
-
-  function handleTokenControl(id, control) {
-    setTokens((prev) => prev.map((t) => (t.id === id ? { ...t, control } : t)))
-  }
-
-  function handleTokenDamage(id, damage) {
-    setTokens((prev) => prev.map((t) => (t.id === id ? { ...t, damage } : t)))
-  }
-
-  // A canHold token is released over a character (CrisisToken.jsx reports it, Scene.jsx finds the
-  // character with characterAt): that character now holds it. The token leaves the mat (Scene.jsx
-  // keeps heldBy tokens out of the tool snap list) and lies on its holder's tray card, on the
-  // character art (trays.js, trayHeldDefault). No range check (see docs/features/crisis.md, "Players
-  // apply the rules"). cardPoint: the tray-local [x, z] on the character's card when the release
-  // point is on its tray, otherwise null. It is used only to move a token on its own holder's card:
-  // a token given to a character always goes to the default place.
-  function handleTokenHold(id, characterId, cardPoint) {
-    const held = tokens.find((t) => t.id === id)
-    table.transact(() => {
-      setTokens((prev) => {
-        const token = prev.find((t) => t.id === id)
-        if (!token) return prev
-        if (token.heldBy === characterId) {
-          return cardPoint ? prev.map((t) => (t.id === id ? { ...t, heldAt: cardPoint } : t)) : prev
-        }
-        const heldCount = prev.filter((t) => t.heldBy === characterId).length
-        return prev.map((t) =>
-          t.id === id ? { ...t, heldBy: characterId, heldAt: trayHeldDefault(heldCount) } : t,
-        )
-      })
-      // A move on its own holder's card is no entry
-      if (held && held.heldBy !== characterId)
-        writeHeldLog(
-          characters.find((ch) => ch.id === characterId),
-          held,
-          true,
-        )
-    })
-  }
-
-  // A new supply token from the pile of a Source card (handleTokenRelease), with the id of the drag. Released over a
-  // character: that character holds it, at the default place on its card, the same as
-  // handleTokenHold. Otherwise it lies on the table at (x, z).
-  function handleSupplyTake(cardKey, x, z, characterId, id) {
-    const card = getCard(cardKey)
-    if (!card?.supply) return
-    table.transact(() => {
-      setTokens((prev) => {
-        const token = supplyToken(card, x, z, id)
-        if (!characterId) return [...prev, token]
-        const heldCount = prev.filter((t) => t.heldBy === characterId).length
-        return [...prev, { ...token, heldBy: characterId, heldAt: trayHeldDefault(heldCount) }]
-      })
-      if (characterId)
-        writeHeldLog(
-          characters.find((ch) => ch.id === characterId),
-          supplyToken(card, x, z, id),
-          true,
-        )
-    })
-  }
-
-  // Delete key over a token on a character's card, as in TTS. Players remove a Source's supply
-  // tokens in the Cleanup Phase, and the pile gives new ones. The hover can outlive the hold (a
-  // drag off the card ends on the table before the pointer leaves the token), so only a token that
-  // is still held is removed.
-  function handleHeldRemove(id) {
-    if (!tokens.find((t) => t.id === id)?.heldBy) return
-    setTokens((prev) => prev.filter((t) => t.id !== id))
-    setSelection((prev) => deselectPiece(prev, { kind: 'token', id }))
-  }
-
-  // Drop, when its holder is removed: the token goes back on the table, next to the base of the
-  // model that held it (the live Rapier/object position, not the spawn position, so a moved
-  // character drops it where it stands). rowOffset moves it along the base's edge (+z of the +x drop
-  // direction), so several tokens dropped together (handleDropCharacterTokens) land in a row
-  // instead of stacked on each other. If the holder's position is not available (see Scene.jsx,
-  // modelPosition), the token stays where it last sat on the mat. During the game, a player drops a
-  // token by dragging it from the card to the table (handleTokenMove).
-  // wait: { placeBy, offBoard } or null. The token then waits for its place: only the side placeBy places it, and
-  // placeFrom keeps the base it dropped from (tokens/dropWait.js).
-  function handleTokenDrop(id, rowOffset, wait = null) {
-    setTokens((prev) => {
-      const token = prev.find((t) => t.id === id)
-      if (!token?.heldBy) return prev
-      const holder = characters.find((ch) => ch.id === token.heldBy)
-      const pos = modelPositionRef.current?.(token.heldBy)
-      const baseRadius = holder ? BASE_DIAMETER[holder.base] / 2 : 0
-      const x = (pos?.x ?? token.x) + baseRadius + TOKEN_RADIUS + DROP_GAP
-      const z = (pos?.z ?? token.z) + rowOffset
-      const dropped = { ...token, heldBy: null, heldAt: null, x, z }
-      if (wait) {
-        dropped.placeBy = wait.placeBy
-        dropped.placeFrom = {
-          characterId: token.heldBy,
-          x: pos?.x ?? token.x,
-          z: pos?.z ?? token.z,
-          radius: baseRadius,
-          offBoard: wait.offBoard,
-        }
-      }
-      return prev.map((t) => (t.id === id ? dropped : t))
-    })
-  }
-
-  // Remove calls this for a character it is about to remove, so the character drops every token it
-  // holds first (see docs/features/character-trays.md, "Hold and drop"). Several tokens spread along a row
-  // next to the base (TOKEN_ROW_SPACING apart) instead of landing on the same spot.
-  // wait: { placeBy, offBoard } or null (Dazed and Remove, decision of the plan "game flow"): the tokens then wait
-  // for their place and the log tells it. Call it inside a transaction. A character that already has a Remove
-  // wait keeps it for the new tokens too, so its models go back when the last one is placed.
-  function handleDropCharacterTokens(characterId, wait = null) {
-    const held = tokens.filter((t) => t.heldBy === characterId)
-    const holder = characters.find((ch) => ch.id === characterId)
-    const offBoard =
-      Boolean(wait?.offBoard) ||
-      tokens.some(
-        (t) => t.placeBy && t.placeFrom?.characterId === characterId && t.placeFrom.offBoard,
-      )
-    const mark = wait && { placeBy: wait.placeBy, offBoard }
-    held.forEach((t, i) => {
-      const rowOffset = (i - (held.length - 1) / 2) * TOKEN_ROW_SPACING
-      handleTokenDrop(t.id, rowOffset, mark)
-      if (mark && holder)
-        writeLog('dropped', {
-          ...characterLogData(holder),
-          tokenId: t.id,
-          tokenName: getToken(t.frontKey)?.name ?? t.frontKey,
-          placeBy: mark.placeBy,
-        })
-    })
-  }
-
-  // The side that places what `ch` drops: its opponent, or its controlling player (characters/dropPlacer.js)
-  function dropWait(ch, offBoard) {
-    return {
-      placeBy: placerSide(ch.team, characterDropPlacer(ch.key, ch.side)),
-      offBoard,
-    }
-  }
-
-  // The waiting tokens `ids` are placed: at the points (id → { x, z }) or where they lie (a click on Done). A token
-  // that is not waiting is skipped, so a second call does nothing. Only the browser that clears the last waiting
-  // token of a character that had Remove puts its models back, as Remove did before the wait.
-  function placeTokens(ids, points = {}) {
-    const current = table.tokens.read()
-    const waiting = current.filter((t) => ids.includes(t.id) && t.placeBy)
-    if (waiting.length === 0) return
-    const back = modelsToReturn(current, ids)
-    table.transact(() => {
-      setTokens((prev) =>
-        prev.map((t) =>
-          ids.includes(t.id) && t.placeBy ? placedToken(t, points[t.id] ?? null) : t,
-        ),
-      )
-      for (const t of waiting) {
-        const ch = characters.find((c) => c.id === t.placeFrom?.characterId)
-        if (ch)
-          writeLog('placed', {
-            ...characterLogData(ch),
-            side: t.placeBy,
-            tokenId: t.id,
-            tokenName: getToken(t.frontKey)?.name ?? t.frontKey,
-            placeBy: t.placeBy,
-          })
-      }
-    })
-    back.forEach((id) => returnModelsRef.current?.(id))
-  }
-
-  // Show in the notice: the camera target moves to the first waiting token of the character, smooth
-  function handleNoticeShow(line) {
-    const token = tokens.find((t) => t.id === line.tokenId)
-    const controls = controlsRef.current
-    if (!token || !controls) return
-    wheelCameraRef.current?.stop()
-    stopPan.current?.()
-    stopPan.current = panToPoint(controls, { x: token.x, y: 0, z: token.z })
   }
 
   // Damage never goes below 0 or above the Stamina of the side that faces up (p16).

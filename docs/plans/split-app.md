@@ -275,6 +275,16 @@ User: TokenPanel flip, control, damage; hold and drop on a card; a Dazed token d
 
 ### Result
 
+New `src/crisis/useCrisisTokens.js` holds the wait notice lines, `removeWaits`, E6 (the notice sound and the Range 2 tool), and the handlers `handleCrisisChange`, `handleTokenMove`, `handleTokenTurn`, `handleTokenFlip`, `handleTokenControl`, `handleTokenDamage`, `handleTokenHold`, `handleSupplyTake`, `handleHeldRemove`, `handleTokenDrop`, `handleDropCharacterTokens`, `dropWait`, `placeTokens` and `handleNoticeShow`. Bodies are unchanged. `App` destructures the result into the same names. The call stands where `waitLines` and E6 stood, with the same deps array. The `placeTool` exhaustive-deps warning moved with E6 to `useCrisisTokens.js`.
+
+`src/tokens/dropWait.js` gets `dropRowOffset(i, n)`, `droppedToken(token, { pos, baseRadius, rowOffset, wait })` and `waitLinesOf(tokens, characters, { playedSides, nameCtx, nameOf, tokenNameOf })`. The constants `TOKEN_RADIUS`, `DROP_GAP` and `TOKEN_ROW_SPACING` moved there and are not exported (only the helpers use them). The old call sites call the helpers; the math and the order are the same, and no id is created in a helper. `baseRadius` is still computed at the call site, since `BASE_DIAMETER` is not needed in the pure file. `waitLinesOf` imports `playerName` from `setup/names.js`, which loads in Node. Six new tests in `dropWait.test.js`.
+
+Deviations: `modelPositionRef` and `returnModelsRef` are declared right before the hook call, where they stood after it, so no const is used before its declaration. `stopPan` moved into the hook (only `handleNoticeShow` uses it). `handleCrisisChange` and `handleNoticeShow` moved too, though the plan range may not have named them. `handleFlipKey` stays in `App`. Pointers fixed in `HudNotice.jsx`, `LooseToken.jsx`, `Scene.jsx` and `peer-to-peer.md`.
+
+Effect order, before and after: E2 and `useWindowKeys` (layout), E1, E3, E4, E5, E6, window listeners, E8, E9, E10. Same. The hook has one effect (E6) and it runs at E6's place.
+
+Checks: `pnpm format`, `pnpm lint` (45 warnings before and after), `pnpm test` (574 web tests pass, 6 new), `pnpm --filter web build`, debug grep 0.
+
 ## Step 9: Character actions
 
 Needs step 8.

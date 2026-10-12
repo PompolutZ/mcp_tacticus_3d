@@ -4,11 +4,14 @@ import {
   RANGE_2,
   clampToRange,
   clampWaiting,
+  dropRowOffset,
+  droppedToken,
   joinNames,
   modelsToReturn,
   placedToken,
   placerSide,
   waitGroups,
+  waitLinesOf,
   waitText,
   waitingTokens,
 } from './dropWait.js'
@@ -98,4 +101,80 @@ test('a token that does not wait is not limited', () => {
   const point = { x: 100, z: 2 }
   assert.equal(clampWaiting({ placeBy: null, placeFrom: null }, point, 0.5), point)
   assert.equal(clampWaiting({ placeBy: 'host', placeFrom: null }, point, 0.5), point)
+})
+
+test('dropRowOffset centres a row of tokens on the base', () => {
+  assert.equal(dropRowOffset(0, 1), 0)
+  assert.ok(Math.abs(dropRowOffset(0, 2) + 0.6) < 1e-9)
+  assert.ok(Math.abs(dropRowOffset(1, 2) - 0.6) < 1e-9)
+  assert.equal(dropRowOffset(1, 3), 0)
+  assert.ok(Math.abs(dropRowOffset(2, 3) - 1.2) < 1e-9)
+})
+
+test('droppedToken puts the token next to the base of the live position', () => {
+  const token = { id: 't', heldBy: 'c', heldAt: [1, 1], x: 5, z: 6, up: 'front' }
+  const out = droppedToken(token, {
+    pos: { x: 10, z: 20 },
+    baseRadius: 1,
+    rowOffset: 0.5,
+    wait: null,
+  })
+  assert.deepEqual(out, { ...token, heldBy: null, heldAt: null, x: 10 + 1 + 0.5 + 0.1, z: 20.5 })
+})
+
+test('droppedToken falls back to where the token sat', () => {
+  const token = { id: 't', heldBy: 'c', heldAt: null, x: 5, z: 6 }
+  const out = droppedToken(token, { pos: null, baseRadius: 0, rowOffset: 0, wait: null })
+  assert.equal(out.x, 5 + 0.5 + 0.1)
+  assert.equal(out.z, 6)
+  assert.equal('placeBy' in out, false)
+})
+
+test('droppedToken with a wait keeps the base it dropped from', () => {
+  const token = { id: 't', heldBy: 'c', heldAt: null, x: 5, z: 6 }
+  const out = droppedToken(token, {
+    pos: { x: 2, z: 3 },
+    baseRadius: 0.75,
+    rowOffset: -0.6,
+    wait: { placeBy: 'guest', offBoard: true },
+  })
+  assert.equal(out.placeBy, 'guest')
+  assert.deepEqual(out.placeFrom, { characterId: 'c', x: 2, z: 3, radius: 0.75, offBoard: true })
+  assert.equal(out.heldBy, null)
+})
+
+test('waitLinesOf makes one line for each character that has waiting tokens', () => {
+  const tokens = [
+    { id: 'a', frontKey: 'asset', placeBy: 'guest', placeFrom: from('c1') },
+    { id: 'b', frontKey: 'civilian', placeBy: 'guest', placeFrom: from('c1') },
+    { id: 'c', frontKey: 'asset' },
+  ]
+  const lines = waitLinesOf(tokens, [{ id: 'c1', key: 'edge' }], {
+    playedSides: ['guest'],
+    nameCtx: { mySide: null, colors: { host: 'Blue', guest: 'Red' } },
+    nameOf: (key) => key.toUpperCase(),
+    tokenNameOf: (key) => `<${key}>`,
+  })
+  assert.equal(lines.length, 1)
+  const [line] = lines
+  assert.equal(line.id, 'c1')
+  assert.equal(line.characterId, 'c1')
+  assert.equal(line.tokenId, 'a')
+  assert.deepEqual(line.ids, ['a', 'b'])
+  assert.equal(line.mine, true)
+  assert.equal(line.text, "Place EDGE's <asset> and <civilian> within Range 2")
+})
+
+test('waitLinesOf names an unknown character and a waiting side that is not played', () => {
+  const tokens = [{ id: 'a', frontKey: 'asset', placeBy: 'host', placeFrom: null }]
+  const [line] = waitLinesOf(tokens, [], {
+    playedSides: ['guest'],
+    nameCtx: { mySide: null, colors: { host: 'Blue', guest: 'Red' } },
+    nameOf: (key) => key,
+    tokenNameOf: (key) => key,
+  })
+  assert.equal(line.id, 'a')
+  assert.equal(line.characterId, null)
+  assert.equal(line.mine, false)
+  assert.equal(line.text, "Waiting for Blue to place A character's asset")
 })

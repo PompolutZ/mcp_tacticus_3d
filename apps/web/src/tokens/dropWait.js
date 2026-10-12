@@ -2,6 +2,14 @@
 // has `placeBy` (the side that places it) and `placeFrom` { characterId, x, z, radius, offBoard } while it waits.
 // Plain module, no React.
 import { RANGE_TIP } from '../tabletools/toolTips.js'
+import { playerName } from '../setup/names.js'
+
+// A crisis token is a 1" circle (CrisisToken.jsx, RADIUS). Drop places it just clear of the base.
+const TOKEN_RADIUS = 0.5
+const DROP_GAP = 0.1
+// Several tokens dropped at once (handleDropCharacterTokens) are spread along a row next to the
+// base, one TOKEN_RADIUS*2 (diameter) apart plus a gap, so they do not overlap.
+const TOKEN_ROW_SPACING = TOKEN_RADIUS * 2 + DROP_GAP * 2
 
 // The side that places a token that a character of `team` drops. placer: 'opponent' or 'controller'
 // (characters/dropPlacer.js).
@@ -81,4 +89,47 @@ export function clampWaiting(token, point, tokenRadius) {
   const from = token.placeFrom
   if (!token.placeBy || !from) return point
   return clampToRange(point, from, from.radius + RANGE_2 + tokenRadius)
+}
+
+// The offset along the row of token i of n dropped together (handleDropCharacterTokens): the row is centred on the base.
+export const dropRowOffset = (i, n) => (i - (n - 1) / 2) * TOKEN_ROW_SPACING
+
+// The token after its holder drops it, next to the base of the holder (the live position `pos` { x, z } or null, then
+// where the token last sat). rowOffset moves it along the base's edge. wait: { placeBy, offBoard } or null; the token
+// then waits for its place and placeFrom keeps the base it dropped from.
+export function droppedToken(token, { pos, baseRadius, rowOffset, wait }) {
+  const x = (pos?.x ?? token.x) + baseRadius + TOKEN_RADIUS + DROP_GAP
+  const z = (pos?.z ?? token.z) + rowOffset
+  const dropped = { ...token, heldBy: null, heldAt: null, x, z }
+  if (wait) {
+    dropped.placeBy = wait.placeBy
+    dropped.placeFrom = {
+      characterId: token.heldBy,
+      x: pos?.x ?? token.x,
+      z: pos?.z ?? token.z,
+      radius: baseRadius,
+      offBoard: wait.offBoard,
+    }
+  }
+  return dropped
+}
+
+// The lines of the notice, one for each character that has waiting tokens. nameOf(characterKey) and
+// tokenNameOf(frontKey) give the names. playedSides: the sides this browser plays. nameCtx: see setup/names.js.
+export function waitLinesOf(tokens, characters, { playedSides, nameCtx, nameOf, tokenNameOf }) {
+  return waitGroups(tokens).map((group) => {
+    const ch = characters.find((c) => c.id === group.characterId)
+    const mine = playedSides.includes(group.placeBy)
+    const tokenNames = group.tokens.map((t) => tokenNameOf(t.frontKey))
+    const name = ch ? nameOf(ch.key) : 'A character'
+    const placer = playerName(group.placeBy, nameCtx)
+    return {
+      id: group.characterId ?? group.tokens[0].id,
+      characterId: group.characterId,
+      tokenId: group.tokens[0].id,
+      ids: group.tokens.map((t) => t.id),
+      mine,
+      text: waitText({ mine, name, tokenNames, placer }),
+    }
+  })
 }

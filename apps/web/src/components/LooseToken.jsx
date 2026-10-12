@@ -17,7 +17,7 @@ const GAP = 0.02
 const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 
 // A character token that lies on the table: dropped there from a Give source, a pile or the Library
-// (see App.jsx, handleTokenDrop). It has no physics body. Each frame it sits on the table or on
+// (see crisis/useCrisisTokens.js, handleTokenDrop). It has no physics body. Each frame it sits on the table or on
 // the terrain under it, the same as a crisis token, so a mat turn or a map change keeps it on top.
 // A token lies on the highest crisis token or earlier loose token under its center, else on the table or
 // the terrain (tokens/stack.js). token: { id, key, x, z }, see App.jsx, looseTokens. index: its place in
