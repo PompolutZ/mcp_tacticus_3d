@@ -1,10 +1,10 @@
 # Feature: Sounds
 
-Status: partly built. The Roll shake, token, Activated, ping and notice sounds, the volume, the hit of each bump of a die and the landing sound of a model are built, in both browsers.
+Status: partly built. The Roll shake, token, Activated, ping and notice sounds, the volume, the hit of each bump of a die, the landing sound of a model and the sound of a token put down on the table are built, in both browsers.
 
 ## Goal
 
-A short sound for the events that a player can miss: a dice throw, a token put on a character, a ping and the drop notice. A hit for each bump of a die, and a sound when a model lands, in both browsers.
+A short sound for the events that a player can miss: a dice throw, a token put on a character or down on the table, a ping and the drop notice. A hit for each bump of a die, and a sound when a model lands, in both browsers.
 
 ## Files
 
@@ -12,7 +12,7 @@ A short sound for the events that a player can miss: a dice throw, a token put o
 
 - Own recordings of the user (dice, die hit, model on terrain): `shake`, `die`, `modelTerrain`.
 - Freesound, CC0: `modelMat` (556387 by zachrau, until the user records the mat again), `ping` (220212 "Ping Bing" by GameAudio).
-- Kenney (kenney.nl), CC0: `token`, `activated`, `notice`.
+- Kenney (kenney.nl), CC0: `token`, `tokenPlace`, `activated`, `notice`.
 
 ## Which sound plays when
 
@@ -23,11 +23,12 @@ A short sound for the events that a player can miss: a dice throw, a token put o
 | `modelMat` | `model-mat-1` | A model lands on the table top. The volume is the bump strength. |
 | `modelTerrain` | `model-terrain-1..11` | A model lands on terrain. The volume is the bump strength. |
 | `token` | `chip-lay-1..3` | A token is put on a character, or an objective token is held, by any player |
+| `tokenPlace` | `chip-lay-1` | A token is put down on the table: an objective token (crisis token), a character token that lies on the table, a token pile. In both browsers. Tactic cards make no sound. |
 | `activated` | `chips-stack-1..3` | The Activated token is put on a character, so the other player knows it was activated |
 | `ping` | `ping-bing` | A ping starts |
 | `notice` | `question_001` | A dropped token waits for a side that this browser plays: once for each drop, only for the player that places. Not for the other player. Tokens that wait when the table opens play nothing. |
 
-- A group has a random file for each play. `token`, `activated`, `ping` and `notice` play at most once in 80 ms for the same group.
+- A group has a random file for each play. `token`, `tokenPlace`, `activated`, `ping` and `notice` play at most once in 80 ms for the same group.
 - The shake: 4 random files of `shake` at 0, 260, 430 and 540 ms, with volume 1, 0.55, 0.3 and 0.15 of the setting. Every **Roll** starts a new pattern, so fast clicks sound like shaking. Many dice are one pattern.
 - Bumps (`die`, `modelMat`, `modelTerrain`): `playSound` takes a volume (0 to 1, times the setting) and a key, the piece that bumps. One piece plays at most one bump in 60 ms, and all bumps together at most 6 in 100 ms. The 80 ms group gap does not apply to bumps and to the shake.
 - The bump finder (`src/bumps.js`): it takes the velocity of a piece over time. No bump is a free fall (gravity adds to the velocity) or an unchanged velocity (a support holds the piece). A bump is a velocity far from both: the change is the smaller of the two distances. Under the minimum there is no bump, so a die that rolls, slides or rests is quiet. At the maximum and above the strength is 1, between them it grows in a line. A die: minimum 1 in/s, maximum 20 in/s (measured with `scripts/dice-sim.mjs`: the first bump of a throw is 4 to 24, later bumps 0.5 to 8, a roll or rest under 0.2).
@@ -39,6 +40,7 @@ A short sound for the events that a player can miss: a dice throw, a token put o
 - The other player's models: while the model is in remote mode, each new live pose goes to the pose finder with its arrival time. A model is heavy, so the finder is tuned for it: only the vertical velocity counts; a bump starts only after a free fall (a lift, a lower, a drag and a slide do not fall by gravity, so they make no sound); the changes of the two samples around a stop are added (a stop falls in two samples), and the sound plays about 90 ms after the first one; a piece at rest sends no pose, so after 60 ms with no pose the last position counts as a velocity of zero (the stop). Minimum 1.5 in/s, maximum 5 in/s (the poses show about 0.85 of the change of the body). A pose of a model that the other player drags, and the jump when remote mode ends, make no sound. A pose does not carry its send time, so the jitter of the network moves the velocities: more than a few ms of jitter makes extra small bumps at a high speed of a fall.
 - The token sounds come from the Log (`game-log.md`): each browser plays a sound for each new `token` or `held` entry that is put on (`on`). Entries that exist when the table opens, and entries older than 5 s, play nothing. One source, so both players hear the same sound. If the batch has Activated, that sound plays.
 - The ping (`ping.md`): `ping-bing` plays when a ping starts, in the browser that pings and in the other one. A ping that the other player made before the join makes no sound.
+- A token put down on the table (`tokenPlace`): the browser that drags plays it at the end of the drag, when the drop is on the table: a crisis token or a held token dragged off its card, a new or moved loose token, pile or supply token. A drop on a character plays nothing new, because the Log sound above plays there. A drop that lands off the table, and a cancel (Escape), play nothing. The other browser plays it when the other player's claim on the token key ends (`net/ownership.js`) and the piece in the document is new, moved and not held. A cancel, a hold, a removed piece and a lost claim change nothing, so they are quiet. The app's own moves have no claim (setup, a crisis card change, held tokens that drop, **Remove**, **Done** of a waiting token), so they make no sound. One drop is one sound in each browser.
 - A token taken off, damage and Power make no sound.
 
 ## Volume
@@ -51,7 +53,7 @@ A browser blocks sound until the player clicks or presses a key. The app makes i
 
 ## Code
 
-`src/sound.js` (`playSound(group, { volume, key })`, `playShake`, `setVolume`), `src/bumps.js` (the bump finders), `src/components/OtherDiceTray.jsx` (the other player's dice), `src/components/CharacterModel.jsx` (the landing of a model, own and remote), `LiveSync.jsx` (`poseTime`), `src/soundGate.js` (the bump limits), `src/components/Ping.jsx` (the ping sound), `src/log/useLogSounds.js`, `soundOf` in `src/log/log.js`.
+`src/sound.js` (`playSound(group, { volume, key })`, `playShake`, `setVolume`), `src/bumps.js` (the bump finders), `src/components/OtherDiceTray.jsx` (the other player's dice), `src/components/CharacterModel.jsx` (the landing of a model, own and remote), `LiveSync.jsx` (`poseTime`), `src/soundGate.js` (the bump limits), `src/components/Ping.jsx` (the ping sound), `src/log/useLogSounds.js`, `src/tokens/useRemoteDropSounds.js` and `tableDrop.js` (the other player's token drop), `soundOf` in `src/log/log.js`.
 
 ## Not built
 

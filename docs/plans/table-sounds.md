@@ -1,6 +1,6 @@
 # Plan: Table sounds
 
-Requested by the user on 2026-10-12, after the test of `game-flow.md`. Status: steps 1 to 5 done, the user tested them. Steps 6 and 7 were added after the test, in progress. Branch `table-sounds`, from main at `21ca644`.
+Requested by the user on 2026-10-12, after the test of `game-flow.md`. Status: all steps done, steps 6 and 7 waiting for the user's test. Branch `table-sounds`, from main at `21ca644`.
 
 Each step makes one commit and writes its **Result** below. Feature docs change in the same step as the code.
 
@@ -292,7 +292,13 @@ User, after this step:
 
 ### Result
 
-(empty)
+Group `tokenPlace` with `chip-lay-1`, in `sound.js`. Own drop: `handleTokenMove` (crisis token or held token dropped on the table, also a waiting token that is placed), and in `handleTokenRelease` the pile, the supply token on the table and the loose token. A drop on a character, or off the table, returns before the sound.
+
+Remote signal: the end of the other player's claim on the key (`token:`, `loose:`, `pile:`), in `tokens/useRemoteDropSounds.js`. It keeps the entry of the piece when the claim starts. When the claim ends, `isTableDrop` (`tokens/tableDrop.js`, tests) says yes if the piece exists, is not held and is new or moved. Why: the rest pose is written to the document before the claim ends (same ordered channel), the app never claims for its own writes, and a cancel, a hold or a lost claim leave the entry as it was. A stored pose change alone could not tell a player's drop from the app's writes. A claim that ends after a disconnect changes nothing, so it is quiet. The 80 ms group gap stays on.
+
+Small fix from step 6: `sound.js` starts with `DEFAULT_VOLUME / 100` from `settings.js`, not 0.6.
+
+Deviation: none. Not checked in a browser (not asked).
 
 ## Open questions
 

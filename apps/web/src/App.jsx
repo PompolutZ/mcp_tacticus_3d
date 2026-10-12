@@ -118,6 +118,7 @@ import {
 } from './tokens/dropWait.js'
 import HudNotice from './components/HudNotice.jsx'
 import { useLogSounds } from './log/useLogSounds.js'
+import { useRemoteDropSounds } from './tokens/useRemoteDropSounds.js'
 import { SettingsPopup } from './components/SettingsPopup.jsx'
 import {
   NO_PIECES,
@@ -573,6 +574,8 @@ export default function App({
   useEffect(() => setVolume(settings.sound.volume / 100), [settings.sound.volume])
   // A token put on a character sounds in both browsers (log/useLogSounds.js)
   useLogSounds(log)
+  // A token that the other player puts down on the table sounds here (tokens/useRemoteDropSounds.js)
+  useRemoteDropSounds(table, ownership)
   // Dropped objective tokens that wait for their place (tokens/dropWait.js): one notice line for each character
   const waitLines = waitGroups(tokens).map((group) => {
     const ch = characters.find((c) => c.id === group.characterId)
@@ -1052,6 +1055,7 @@ export default function App({
 
   // A held token dragged off its tray card and released on the table is no longer held.
   function handleTokenMove(id, x, z) {
+    playSound('tokenPlace')
     // A dropped token that waits for its place is placed where it is released
     if (table.tokens.read().find((t) => t.id === id)?.placeBy) {
       placeTokens([id], { [id]: { x, z } })
@@ -2297,6 +2301,7 @@ export default function App({
     if (pile || pileId) {
       const point = dragPointRef.current
       if (characterId || !point) return
+      playSound('tokenPlace')
       if (pileId)
         setTokenPiles((prev) =>
           prev.map((p) => (p.id === pileId ? { ...p, x: point.x, z: point.z } : p)),
@@ -2308,7 +2313,10 @@ export default function App({
       const point = dragPointRef.current
       const pile = supplyPilePosition(getCard(supplyCard).type)
       if (characterId) handleSupplyTake(supplyCard, pile.x, pile.z, characterId, newId)
-      else if (point) handleSupplyTake(supplyCard, point.x, point.z, null, newId)
+      else if (point) {
+        handleSupplyTake(supplyCard, point.x, point.z, null, newId)
+        playSound('tokenPlace')
+      }
       return
     }
     if (characterId) {
@@ -2319,6 +2327,7 @@ export default function App({
     }
     const point = dragPointRef.current
     if (!point) return
+    playSound('tokenPlace')
     // A moved token goes to the end of the list, so it lies on top (tokens/stack.js)
     if (looseId)
       setLooseTokens((prev) => {

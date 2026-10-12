@@ -2,6 +2,7 @@
 // before that, so a sound before it is skipped. No React.
 
 import { assetUrl } from './assets/index.js'
+import { DEFAULT_VOLUME } from './settings/settings.js'
 import { createBumpGate } from './soundGate.js'
 
 const range = (name, count) => Array.from({ length: count }, (_, i) => `${name}-${i + 1}`)
@@ -13,6 +14,7 @@ const GROUPS = {
   modelMat: ['model-mat-1'],
   modelTerrain: range('model-terrain', 11),
   token: ['chip-lay-1', 'chip-lay-2', 'chip-lay-3'],
+  tokenPlace: ['chip-lay-1'],
   activated: ['chips-stack-1', 'chips-stack-2', 'chips-stack-3'],
   ping: ['ping-bing'],
   notice: ['question_001'],
@@ -27,7 +29,7 @@ const SHAKE_TIMES_MS = [0, 260, 430, 540]
 const SHAKE_VOLUMES = [1, 0.55, 0.3, 0.15]
 
 let context = null
-let volume = 0.6
+let volume = DEFAULT_VOLUME / 100
 const buffers = new Map()
 const lastPlayed = new Map()
 const bumpGate = createBumpGate()
