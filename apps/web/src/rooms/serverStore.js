@@ -2,28 +2,27 @@
 
 import { api } from '../api/client.js'
 import { toBase64 } from './base64.js'
-import { API_HOST_SEAT, withSides } from './seats.js'
 
 const path = (code) => `/rooms/${encodeURIComponent(code)}`
 
 // The rooms where the user has a seat, the last changed first
 export async function listRooms() {
-  return (await api('/rooms')).rooms.map(withSides)
+  return (await api('/rooms')).rooms
 }
 
 export async function getRoom(code) {
-  return withSides((await api(path(code))).room)
+  return (await api(path(code))).room
 }
 
-// The host always sits at +z. The API still takes a seat, API_HOST_SEAT (seats.js). roster: { code }. table: the
+// The host always sits at +z. roster: { code }. table: the
 // bytes of the start table.
 export async function createRoom({ mapId, roster, table }) {
-  const json = { mapId, side: API_HOST_SEAT, roster, table: toBase64(table) }
-  return withSides((await api('/rooms', { method: 'POST', json })).room)
+  const json = { mapId, roster, table: toBase64(table) }
+  return (await api('/rooms', { method: 'POST', json })).room
 }
 
 export async function joinRoom(code, roster) {
-  return withSides((await api(`${path(code)}/join`, { method: 'POST', json: { roster } })).room)
+  return (await api(`${path(code)}/join`, { method: 'POST', json: { roster } })).room
 }
 
 export async function deleteRoom(code) {

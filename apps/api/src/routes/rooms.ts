@@ -6,14 +6,7 @@ import { requireUser, type AuthEnv } from '../middleware/user'
 import { validate } from '../middleware/validate'
 import { readRoom as readRoomOf } from '../rooms/read'
 import { isYjsUpdate } from '../rooms/table'
-import {
-  HostingError,
-  publicRoom,
-  userIdsOf,
-  type RoomInfo,
-  type Side,
-  type Store,
-} from '../stores/store'
+import { HostingError, publicRoom, userIdsOf, type RoomInfo, type Store } from '../stores/store'
 import type { Config } from '../config'
 
 const MAX_TABLE = 1024 * 1024
@@ -22,7 +15,6 @@ const LIST_LIMIT = 100
 const rosterSchema = z.object({ code: z.string().check(z.minLength(1), z.maxLength(1000)) })
 const createSchema = z.object({
   mapId: z.string().check(z.regex(/^[a-z0-9-]{1,64}$/)),
-  side: z.enum(['blue', 'red']),
   roster: rosterSchema,
   table: z.string().check(z.minLength(1)),
 })
@@ -70,7 +62,7 @@ export function roomRoutes(deps: { store: Store; config: Config }) {
       if (!isYjsUpdate(table)) throw err(400, 'Invalid table')
       try {
         const room = await store.rooms.create(
-          { host: user._id, side: body.side, mapId: body.mapId, roster: body.roster, table },
+          { host: user._id, mapId: body.mapId, roster: body.roster, table },
           new Date(),
         )
         return c.json({ room: publicRoom(room, new Map([[user._id, user]])) }, 201)
@@ -91,11 +83,10 @@ export function roomRoutes(deps: { store: Store; config: Config }) {
     const userId = c.get('user')._id
     const { roster } = c.req.valid('json')
     const { room } = await readRoom(c.req.param('code'))
-    const seated = room.players.blue === userId || room.players.red === userId
+    const seated = room.players.host === userId || room.players.guest === userId
     if (!seated) {
-      const side: Side | null =
-        room.players.blue === null ? 'blue' : room.players.red === null ? 'red' : null
-      if (!side || !(await store.rooms.join(room._id, side, userId, roster, new Date())))
+      // The host seat is never free, so the free seat is the guest seat.
+      if (!(await store.rooms.join(room._id, 'guest', userId, roster, new Date())))
         throw err(409, 'This room has two players already')
     }
     // Read again: the seat, the roster and the dates changed.

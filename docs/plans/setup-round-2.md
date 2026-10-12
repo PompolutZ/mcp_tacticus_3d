@@ -1,6 +1,6 @@
 # Plan: Setup round 2
 
-Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: steps 1 to 8 done. Step 9 (API seats) not started. Branch `setup-round-2`, from main at `87f9b6e`.
+Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: all 9 steps done, steps 8 and 9 waiting for the user checks. Branch `setup-round-2`, from main at `87f9b6e`.
 
 The feature is `docs/features/setup-game.md`. Each step makes one commit and writes its **Result** below.
 
@@ -301,6 +301,17 @@ Work:
 Checks: as in "Checks", plus `pnpm --filter api test`.
 
 User, after this step: create a multiplayer room, join it from a second browser. Both seats show the right names.
+
+### Result
+
+Done. Commit "setup round 2 part 9: seats host and guest in the API".
+
+- API: `Side = 'host' | 'guest'`; `players: { host, guest }`, `rosters` keyed the same. `NewRoom` has no `side`: the creator takes `host`, join takes `guest`. `POST /rooms` has no `side` in the zod schema. Indexes `players.host` and `players.guest` replace the color ones. `GET /rooms` `$or` on both seats. `seats.ts`, `table.ts`, `signal.ts` read the new keys.
+- Old record (`players.blue` / `players.red`): not read. The Mongo store adds `players.host: { $exists: true }` to `get`, `join` and the list query, so `get` returns null (every route answers 404, the seat cache gets null, the list leaves it out, join cannot fill a seat). `create` first deletes old records of the same host, since they block the unique `host` index. The TTL removes the rest. No crash path: the host-gone cleanup only runs on a record that `get` returned. The memory store only holds new records.
+- Indexes: created in code (`createIndex` on first use, `stores/mongo.ts`), so an existing Atlas collection gets the two new indexes at the next Lambda call. The two old indexes (`players.blue_1`, `players.red_1`) stay unused; drop by hand in Atlas.
+- Web: deleted `rooms/seats.js` and `seats.test.js`. `serverStore.js` returns the API room as is, and `createRoom` sends no `side`.
+- Tests: `apps/api/test` changed to the new keys; new mongo test for an old record.
+- Docs: `docs/features/auth.md` (Seat, record, indexes, old records, routes, lobby text). `rooms.md` names no seats as keys.
 
 
 ## Open questions

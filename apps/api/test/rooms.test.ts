@@ -40,7 +40,6 @@ async function setup() {
     })
   const createBody = (over: object = {}) => ({
     mapId: 'vibranium-heist',
-    side: 'blue',
     roster: { code: 'abc' },
     table: tableB64(),
     ...over,
@@ -67,14 +66,14 @@ describe('room code', () => {
 })
 
 describe('POST /rooms', () => {
-  it('creates a room with the host in the chosen seat', async () => {
+  it('creates a room with the host in the host seat', async () => {
     const { users, create, store } = await setup()
-    const room = await create('alice', { side: 'red' })
+    const room = await create('alice')
     expect(room.code).toMatch(/^[0-9A-Z]{4}-[0-9A-Z]{4}$/)
     expect(room.host).toBe(users.alice?.id)
-    expect(room.players.blue).toBeNull()
-    expect(room.players.red).toMatchObject({ id: users.alice?.id, name: 'alice' })
-    expect(room.rosters).toEqual({ blue: null, red: { code: 'abc' } })
+    expect(room.players.host).toMatchObject({ id: users.alice?.id, name: 'alice' })
+    expect(room.players.guest).toBeNull()
+    expect(room.rosters).toEqual({ host: { code: 'abc' }, guest: null })
     expect(room).not.toHaveProperty('table')
     expect((await store.rooms.getTable(room.code))?.table).toEqual(tableBytes())
   })
@@ -92,7 +91,6 @@ describe('POST /rooms', () => {
       { roster: { code: 'x'.repeat(1001) } },
       { mapId: 'Bad Map' },
       { mapId: 'a'.repeat(65) },
-      { side: 'green' },
       { table: undefined },
     ]
     for (const over of bad) {
@@ -141,7 +139,7 @@ describe('GET /rooms', () => {
   it('lists rooms as host and as guest, last changed first, without table', async () => {
     const { call, create, users, store } = await setup()
     const hosted = await create('alice')
-    const other = await create('bob', { side: 'red' })
+    const other = await create('bob')
     const join = await call('alice', 'POST', `/rooms/${other.code}/join`, { roster: { code: 'z' } })
     expect(join.status).toBe(200)
     // Make the order certain.
@@ -149,8 +147,8 @@ describe('GET /rooms', () => {
     const res = await call('alice', 'GET', '/rooms')
     const { rooms } = (await res.json()) as { rooms: PublicRoom[] }
     expect(rooms.map((r) => r.code)).toEqual([hosted.code, other.code])
-    expect(rooms[1]?.players.red).toMatchObject({ id: users.bob?.id, name: 'bob', avatar: null })
-    expect(rooms[1]?.players.blue).toMatchObject({ id: users.alice?.id, name: 'alice' })
+    expect(rooms[1]?.players.host).toMatchObject({ id: users.bob?.id, name: 'bob', avatar: null })
+    expect(rooms[1]?.players.guest).toMatchObject({ id: users.alice?.id, name: 'alice' })
     expect(JSON.stringify(rooms)).not.toContain('"table"')
     const bob = (await (await call('bob', 'GET', '/rooms')).json()) as { rooms: PublicRoom[] }
     expect(bob.rooms.map((r) => r.code)).toEqual([other.code])
@@ -201,8 +199,8 @@ describe('POST /rooms/{code}/join', () => {
     const res = await call('bob', 'POST', `/rooms/${room.code}/join`, { roster: { code: 'bobs' } })
     expect(res.status).toBe(200)
     const joined = ((await res.json()) as { room: PublicRoom }).room
-    expect(joined.players.red).toMatchObject({ id: users.bob?.id, name: 'bob' })
-    expect(joined.rosters).toEqual({ blue: { code: 'abc' }, red: { code: 'bobs' } })
+    expect(joined.players.guest).toMatchObject({ id: users.bob?.id, name: 'bob' })
+    expect(joined.rosters).toEqual({ host: { code: 'abc' }, guest: { code: 'bobs' } })
   })
 
   it('answers 200 and changes nothing when the user has a seat', async () => {
@@ -215,7 +213,7 @@ describe('POST /rooms/{code}/join', () => {
     const host = await call('alice', 'POST', `/rooms/${room.code}/join`, { roster: { code: 'x' } })
     expect(host.status).toBe(200)
     const body = (await host.json()) as { room: PublicRoom }
-    expect(body.room.rosters.blue).toEqual({ code: 'abc' })
+    expect(body.room.rosters.host).toEqual({ code: 'abc' })
   })
 
   it('answers 409 for a third user', async () => {
@@ -252,7 +250,7 @@ describe('POST /rooms/{code}/join', () => {
         room: PublicRoom
       }
     ).room
-    expect(got.players.red).toEqual({ id: users.bob?.id, gone: true })
+    expect(got.players.guest).toEqual({ id: users.bob?.id, gone: true })
     const res = await call('carol', 'POST', `/rooms/${room.code}/join`, { roster: { code: 'c' } })
     expect(res.status).toBe(409)
   })

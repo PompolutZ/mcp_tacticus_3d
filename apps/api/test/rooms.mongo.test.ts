@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { MongoClient } from 'mongodb'
+import { Binary, MongoClient } from 'mongodb'
 import { afterAll, describe, expect, inject, it, vi } from 'vitest'
 import { createApp } from '../src/app'
 import { createMongoStore } from '../src/stores/mongo'
@@ -20,7 +20,6 @@ afterAll(async () => {
 const table = new Uint8Array([1, 2, 3, 4])
 const room = (host: string, over: Partial<NewRoom> = {}): NewRoom => ({
   host,
-  side: 'blue',
   mapId: 'vibranium-heist',
   roster: { code: 'abc' },
   table,
@@ -36,28 +35,28 @@ describe('mongo rooms store', () => {
     const indexes = await client.db(dbName).collection('rooms').indexes()
     await client.close()
     expect(indexes.find((i) => i.key.host === 1)?.unique).toBe(true)
-    expect(indexes.some((i) => i.key['players.blue'] === 1)).toBe(true)
-    expect(indexes.some((i) => i.key['players.red'] === 1)).toBe(true)
+    expect(indexes.some((i) => i.key['players.host'] === 1)).toBe(true)
+    expect(indexes.some((i) => i.key['players.guest'] === 1)).toBe(true)
     expect(indexes.find((i) => i.key.expiresAt === 1)?.expireAfterSeconds).toBe(0)
   })
 
   it('creates, gets without the table and getTable returns the bytes', async () => {
     const made = await store.rooms.create(room('u_a'), t1)
-    expect(made).toMatchObject({ host: 'u_a', players: { blue: 'u_a', red: null }, tableRev: 0 })
+    expect(made).toMatchObject({ host: 'u_a', players: { host: 'u_a', guest: null }, tableRev: 0 })
     expect(made.expiresAt).toEqual(new Date('2027-01-01T00:00:00Z'))
     const got = await store.rooms.get(made._id)
     expect(got).not.toHaveProperty('table')
-    expect(got?.rosters).toEqual({ blue: { code: 'abc' }, red: null })
+    expect(got?.rosters).toEqual({ host: { code: 'abc' }, guest: null })
     expect(await store.rooms.getTable(made._id)).toEqual({ table, tableRev: 0 })
     expect(await store.rooms.get('AAAA-AAAA')).toBeNull()
     expect(await store.rooms.getTable('AAAA-AAAA')).toBeNull()
   })
 
   it('lists for a user without the table, last changed first, with a limit', async () => {
-    const a = await store.rooms.create(room('u_l1', { side: 'red' }), t1)
+    const a = await store.rooms.create(room('u_l1'), t1)
     const b = await store.rooms.create(room('u_l2'), t2)
-    await store.rooms.join(a._id, 'blue', 'u_l3', { code: 'x' }, t1)
-    await store.rooms.join(b._id, 'red', 'u_l3', { code: 'y' }, t2)
+    await store.rooms.join(a._id, 'guest', 'u_l3', { code: 'x' }, t1)
+    await store.rooms.join(b._id, 'guest', 'u_l3', { code: 'y' }, t2)
     const list = await store.rooms.listForUser('u_l3', 10)
     expect(list.map((r) => r._id)).toEqual([b._id, a._id])
     for (const r of list) expect(r).not.toHaveProperty('table')
@@ -65,14 +64,46 @@ describe('mongo rooms store', () => {
     expect(await store.rooms.listForUser('u_nobody', 10)).toEqual([])
   })
 
+  it('ignores a record of the old shape and clears it when its host creates a room', async () => {
+    const client = new MongoClient(uri)
+    await client
+      .db(dbName)
+      .collection<{ _id: string; [k: string]: unknown }>('rooms')
+      .insertOne({
+        _id: 'OLDD-0001',
+        version: 1,
+        host: 'u_old',
+        players: { blue: 'u_old', red: 'u_old2' },
+        rosters: { blue: null, red: null },
+        mapId: 'm',
+        table: new Binary(table),
+        tableRev: 0,
+        createdAt: t1,
+        updatedAt: t1,
+        expiresAt: new Date('2099-01-01'),
+      })
+    expect(await store.rooms.get('OLDD-0001')).toBeNull()
+    expect(await store.rooms.join('OLDD-0001', 'guest', 'u_x', { code: 'x' }, t2)).toBe(false)
+    expect(await store.rooms.listForUser('u_old', 10)).toEqual([])
+    expect(await store.rooms.listForUser('u_old2', 10)).toEqual([])
+    await store.rooms.create(room('u_old'), t2)
+    expect(
+      await client
+        .db(dbName)
+        .collection<{ _id: string; [k: string]: unknown }>('rooms')
+        .findOne({ _id: 'OLDD-0001' }),
+    ).toBeNull()
+    await client.close()
+  })
+
   it('join on a taken seat writes nothing', async () => {
     const made = await store.rooms.create(room('u_j1'), t1)
-    expect(await store.rooms.join(made._id, 'red', 'u_j2', { code: 'one' }, t2)).toBe(true)
-    expect(await store.rooms.join(made._id, 'red', 'u_j3', { code: 'two' }, t2)).toBe(false)
-    expect(await store.rooms.join(made._id, 'blue', 'u_j3', { code: 'two' }, t2)).toBe(false)
+    expect(await store.rooms.join(made._id, 'guest', 'u_j2', { code: 'one' }, t2)).toBe(true)
+    expect(await store.rooms.join(made._id, 'guest', 'u_j3', { code: 'two' }, t2)).toBe(false)
+    expect(await store.rooms.join(made._id, 'host', 'u_j3', { code: 'two' }, t2)).toBe(false)
     const got = await store.rooms.get(made._id)
-    expect(got?.players).toEqual({ blue: 'u_j1', red: 'u_j2' })
-    expect(got?.rosters.red).toEqual({ code: 'one' })
+    expect(got?.players).toEqual({ host: 'u_j1', guest: 'u_j2' })
+    expect(got?.rosters.guest).toEqual({ code: 'one' })
     expect(got?.updatedAt).toEqual(t2)
     expect(got?.expiresAt).toEqual(new Date('2027-02-01T00:00:00Z'))
   })
@@ -138,7 +169,6 @@ describe('table writes through the app on Mongo', () => {
       headers: { ...alice.headers, ...json },
       body: JSON.stringify({
         mapId: 'vibranium-heist',
-        side: 'blue',
         roster: { code: 'abc' },
         table: Buffer.from(start).toString('base64'),
       }),

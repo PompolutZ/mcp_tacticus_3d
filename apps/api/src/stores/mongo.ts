@@ -16,6 +16,8 @@ import {
 // In Mongo the table is BSON binary.
 type RoomRow = Omit<RoomDoc, 'table'> & { table: Binary }
 
+// A record of the current shape. Old records keep the seats under the old color keys and have no players.host.
+const CURRENT = { 'players.host': { $exists: true } } as const
 const NO_TABLE = { projection: { table: 0 } } as const
 
 export interface MongoOptions {
@@ -50,8 +52,8 @@ export function createMongoStore({
       usersCol.createIndex({ discordId: 1 }, { unique: true }),
       usersCol.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
       roomsCol.createIndex({ host: 1 }, { unique: true }),
-      roomsCol.createIndex({ 'players.blue': 1 }),
-      roomsCol.createIndex({ 'players.red': 1 }),
+      roomsCol.createIndex({ 'players.host': 1 }),
+      roomsCol.createIndex({ 'players.guest': 1 }),
       roomsCol.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
       messagesCol.createIndex({ room: 1, _id: 1 }),
       messagesCol.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
@@ -104,6 +106,8 @@ export function createMongoStore({
     rooms: {
       async create(input, now, makeCode = newRoomCode) {
         await ready()
+        // An old shape record of this host would block the unique host index.
+        await roomsCol.deleteMany({ host: input.host, 'players.host': { $exists: false } })
         for (let i = 0; i < CODE_TRIES; i++) {
           const doc = newRoom(input, makeCode(), now)
           try {
@@ -120,7 +124,7 @@ export function createMongoStore({
       },
       async get(code) {
         await ready()
-        return roomsCol.findOne({ _id: code }, NO_TABLE) as Promise<RoomInfo | null>
+        return roomsCol.findOne({ _id: code, ...CURRENT }, NO_TABLE) as Promise<RoomInfo | null>
       },
       async getTable(code) {
         await ready()
@@ -132,7 +136,7 @@ export function createMongoStore({
       async listForUser(userId, limit) {
         await ready()
         return roomsCol
-          .find({ $or: [{ 'players.blue': userId }, { 'players.red': userId }] }, NO_TABLE)
+          .find({ $or: [{ 'players.host': userId }, { 'players.guest': userId }] }, NO_TABLE)
           .sort({ updatedAt: -1 })
           .limit(limit)
           .toArray() as Promise<RoomInfo[]>
@@ -140,7 +144,7 @@ export function createMongoStore({
       async join(code, side, userId, roster, now) {
         await ready()
         const res = await roomsCol.updateOne(
-          { _id: code, [`players.${side}`]: null },
+          { _id: code, ...CURRENT, [`players.${side}`]: null },
           {
             $set: {
               [`players.${side}`]: userId,

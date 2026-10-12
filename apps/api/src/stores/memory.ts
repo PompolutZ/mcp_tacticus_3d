@@ -82,7 +82,7 @@ export function createMemoryStore(): Store {
       },
       async listForUser(userId, limit) {
         return [...rooms.values()]
-          .filter((r) => r.players.blue === userId || r.players.red === userId)
+          .filter((r) => r.players.host === userId || r.players.guest === userId)
           .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
           .slice(0, limit)
           .map(info)

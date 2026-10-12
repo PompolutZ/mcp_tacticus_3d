@@ -20,7 +20,7 @@ export function tableRoutes(deps: { store: Store; config: Config }) {
   // 404 for an unknown room, 403 for a user with no seat.
   async function seated(code: string, userId: string): Promise<string> {
     const { room } = await readRoom(store, code)
-    if (room.players.blue !== userId && room.players.red !== userId)
+    if (room.players.host !== userId && room.players.guest !== userId)
       throw err(403, 'No seat in this room')
     return room._id
   }

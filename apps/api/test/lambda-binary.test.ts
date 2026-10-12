@@ -55,7 +55,6 @@ it('PUT and GET move binary bodies through the Lambda adapter', async () => {
       new TextEncoder().encode(
         JSON.stringify({
           mapId: 'vibranium-heist',
-          side: 'blue',
           roster: { code: 'abc' },
           table: Buffer.from(start).toString('base64'),
         }),

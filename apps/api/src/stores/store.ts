@@ -40,7 +40,8 @@ export interface UsersStore {
   getMany(ids: string[]): Promise<Map<string, UserDoc>>
 }
 
-export type Side = 'blue' | 'red'
+// A seat. The host sits at +z, the guest at -z. Not a color (docs/features/setup-game.md).
+export type Side = 'host' | 'guest'
 
 export interface Roster {
   code: string
@@ -68,7 +69,6 @@ export type RoomInfo = Omit<RoomDoc, 'table'>
 
 export interface NewRoom {
   host: string
-  side: Side
   mapId: string
   roster: Roster
   table: Uint8Array
@@ -83,13 +83,13 @@ export class HostingError extends Error {
 }
 
 export interface RoomsStore {
-  // Inserts with a new code. A duplicate code tries a new one, at most 5 times.
+  // Inserts with a new code. First deletes old shape records of the same host. A duplicate code tries a new one, at most 5 times.
   // Throws HostingError when the host has a room.
   create(room: NewRoom, now: Date, makeCode?: () => string): Promise<RoomInfo>
-  // Without the table.
+  // Without the table. A record of the old shape (seats under color keys) is not read: null.
   get(code: string): Promise<RoomInfo | null>
   getTable(code: string): Promise<{ table: Uint8Array; tableRev: number } | null>
-  // The rooms where the user has a seat, the last changed first, without the table.
+  // The rooms where the user has a seat, the last changed first, without the table. Old shape records are left out.
   listForUser(userId: string, limit: number): Promise<RoomInfo[]>
   // Sets the seat and the roster only when the seat is free. True when it wrote.
   join(code: string, side: Side, userId: string, roster: Roster, now: Date): Promise<boolean>
@@ -159,14 +159,13 @@ export function publicUser(doc: UserDoc): PublicUser {
 export const CODE_TRIES = 5
 
 export function newRoom(input: NewRoom, code: string, now: Date): RoomDoc {
-  const other: Side = input.side === 'blue' ? 'red' : 'blue'
   return {
     _id: code,
     version: 1,
     host: input.host,
-    players: { [input.side]: input.host, [other]: null } as Record<Side, string | null>,
+    players: { host: input.host, guest: null },
     mapId: input.mapId,
-    rosters: { [input.side]: input.roster, [other]: null } as Record<Side, Roster | null>,
+    rosters: { host: input.roster, guest: null },
     table: input.table,
     tableRev: 0,
     createdAt: now,
@@ -193,8 +192,8 @@ export function userIdsOf(rooms: RoomInfo[]): string[] {
   const ids = new Set<string>()
   for (const r of rooms) {
     ids.add(r.host)
-    if (r.players.blue) ids.add(r.players.blue)
-    if (r.players.red) ids.add(r.players.red)
+    if (r.players.host) ids.add(r.players.host)
+    if (r.players.guest) ids.add(r.players.guest)
   }
   return [...ids]
 }
@@ -209,7 +208,7 @@ export function publicRoom(doc: RoomInfo, users: Map<string, UserDoc>): PublicRo
   return {
     code: doc._id,
     host: doc.host,
-    players: { blue: player(doc.players.blue), red: player(doc.players.red) },
+    players: { host: player(doc.players.host), guest: player(doc.players.guest) },
     mapId: doc.mapId,
     rosters: doc.rosters,
     createdAt: doc.createdAt.toISOString(),

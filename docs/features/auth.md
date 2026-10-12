@@ -37,7 +37,7 @@ In TTS, the Steam account gives each player a name and an avatar. Here, the Disc
 | Multiplayer room | A room in the `rooms` collection. Only a logged-in player can create or join one. Peer-to-peer games happen only in multiplayer rooms. |
 | Host | The user who creates a multiplayer room. Only the host can delete it |
 | Guest | The user who joins a multiplayer room with the link |
-| Seat | The Blue or the Red player of a multiplayer room. A seat holds a user id or is free |
+| Seat | `host` (at +z) or `guest` (at -z) of a multiplayer room. Not a color: the colors come from the Priority roll off (`docs/features/setup-game.md`). A seat holds a user id or is free. The host seat is never free |
 | Session token | The token that our Lambda gives after login. It proves the user id to the Lambda |
 
 ## Options that were checked
@@ -110,9 +110,9 @@ The cost of `localStorage`: a script that runs in the page (XSS) can read the to
   _id: 'K7Q2-M9XD',               // room code, the same format as today
   version: 1,
   host: '<user id>',
-  players: { blue: '<user id>' | null, red: '<user id>' | null },
+  players: { host: '<user id>', guest: '<user id>' | null },
   mapId: 'vibranium-heist',
-  rosters: { blue: null | { code }, red: null | { code } },
+  rosters: { host: { code }, guest: null | { code } },
   table: Binary,                  // Yjs snapshot, always set. See "Table on the server"
   tableRev: 0,                    // +1 on each table write
   createdAt, updatedAt,           // Date
@@ -121,14 +121,15 @@ The cost of `localStorage`: a script that runs in the page (XSS) can read the to
 ```
 
 - The Lambda makes the room code. It inserts the room and tries a new code when the code exists already (at most 5 times).
-- Indexes: unique `{ host: 1 }` (one hosted room per user), `{ 'players.blue': 1 }`, `{ 'players.red': 1 }`, and the TTL index on `expiresAt`. `GET /rooms` finds the rooms of a user with `$or` on both seats. It returns the 100 rooms changed last. The list leaves out `table` (projection), so the list stays small.
+- Indexes: unique `{ host: 1 }` (one hosted room per user), `{ 'players.host': 1 }`, `{ 'players.guest': 1 }`, and the TTL index on `expiresAt`. `GET /rooms` finds the rooms of a user with `$or` on both seats. It returns the 100 rooms changed last. The list leaves out `table` (projection), so the list stays small.
+- **Old records.** A record with the seats under the old color keys (before plan `setup-round-2`) has no `players.host`. It is not migrated and not read: `GET /rooms` leaves it out, `GET /rooms/{code}`, join, the table routes and the signaling routes answer 404 for it, and it cannot be joined. When its host creates a new room, the Lambda deletes the old record first, because it would block the unique `host` index. Otherwise the TTL index removes it. An existing Atlas collection gets the new indexes at the next Lambda start (`createIndex` on first use); the two old color indexes stay unused and can be dropped by hand.
 - A user who no longer exists keeps the seat. The answer shows `{ id, gone: true }`, and the UI shows "Deleted player". A room whose host no longer exists is deleted when it is read next time, and the route answers 404.
 - Limits: the table is at most 1 MB. The roster `code` has 1 to 1000 characters. `mapId` matches `^[a-z0-9-]{1,64}$`. The server does not check that the map exists or that the roster code is valid.
 
 ### Rules
 
 - Only a logged-in player can create or join a multiplayer room.
-- The host creates the room with the map, a side, their own roster and the start table. The other seat is free.
+- The host creates the room with the map, their own roster and the start table. The other seat is free.
 - A user hosts at most one room. `POST /rooms` answers 409 "You host a multiplayer room already. Delete it first." when the user hosts one. A user can be the guest in any number of rooms.
 - Anyone with the link sees the setup of the room: the map, the host's name and avatar, and the host's roster. Only a seated player gets the table.
 - A logged-in player who opens the link of a room with a free seat sees the join page: the map card, the host, the host's roster (the same roster popup as on a lobby tile), a field for their own roster, and **Join**. The roster field is required. **Join** takes the free seat. A user who has a seat already gets 200 and no change, so a second click or a reload does no harm.
@@ -180,8 +181,8 @@ How it works:
 | `GET /me` | yes | Answers 200 `{ user, token? }`, with a new token when the old one is more than 1 day old. 401: no token, bad token, or the user is gone |
 | `DELETE /me` | yes | Deletes the user, the room that the user hosts, with its table, and the user's signaling messages. Answers 204. The user's guest seats keep the user id. See [Privacy](#privacy) |
 | `GET /rooms` | yes | `{ rooms }`: the rooms where the user has a seat, the last changed first, at most 100, with both players' names and avatars. No table. 401 |
-| `POST /rooms` | yes | `{ mapId, side, roster, table }`. `table` is base64. Answers 201 `{ room }`. 400 bad body or bad table, 409 the user hosts a room already, 413 table too large |
-| `GET /rooms/{code}` | no | 200 `{ room }`: map, rosters, players' names and avatars, free seats. No table. 404 |
+| `POST /rooms` | yes | `{ mapId, roster, table }`. The creator takes the `host` seat. `table` is base64. Answers 201 `{ room }`. 400 bad body or bad table, 409 the user hosts a room already, 413 table too large |
+| `GET /rooms/{code}` | no | 200 `{ room }`: map, rosters, players' names and avatars, free seats. No table. 404 (also for an old record) |
 | `POST /rooms/{code}/join` | yes | `{ roster }`, required. Takes the free seat. 200 `{ room }`, also when the user has a seat already. 400 no roster, 409 no free seat, 404 |
 | `GET /rooms/{code}/table` | yes, seat | 200, the table bytes. 403 no seat, 404 |
 | `PUT /rooms/{code}/table` | yes, seat | The table bytes. Merges them into the stored table. 204. 400 not a Yjs update, 409 the merge lost twice, 413 too large, 403, 404. See [Table on the server](#table-on-the-server) |
@@ -189,14 +190,14 @@ How it works:
 | `POST /rooms/{code}/messages` | yes, seat | `{ from, to, type, data }`. Stores a signaling message. 201 `{ id }`. 400, 403, 404, 413, 429 |
 | `GET /rooms/{code}/messages?to={peer}` | yes, seat | The poll. Header `x-after`, optional. 200 `{ messages }`. 400, 403, 404 |
 
-A `room` in an answer is `{ code, host, players: { blue, red }, mapId, rosters: { blue, red }, createdAt, updatedAt }`. A player is `{ id, name, avatar, discordId }`, `{ id, gone: true }` when the user no longer exists, or `null` for a free seat. A room code that is not `XXXX-XXXX` (Crockford base32) answers 404. Errors are `{ error }`.
+A `room` in an answer is `{ code, host, players: { host, guest }, mapId, rosters: { host, guest }, createdAt, updatedAt }`. A player is `{ id, name, avatar, discordId }`, `{ id, gone: true }` when the user no longer exists, or `null` for a free seat. A room code that is not `XXXX-XXXX` (Crockford base32) answers 404. Errors are `{ error }`.
 
 The signaling paths `/rooms/{code}/messages` are under the same `/rooms/{code}` prefix. Their rules are in `docs/features/peer-to-peer.md` ("Endpoints").
 
 ## Identity in peer-to-peer games
 
 - Peer-to-peer games happen only in multiplayer rooms. So every signaling request (`hello`, `offer`, `answer`, `bye`, and the polls) sends the session token.
-- The Lambda accepts signaling requests only from users with a seat in the room. To avoid an Atlas read on every 2-second poll, each Lambda instance keeps the seats of a room in memory for 30 seconds (`rooms/seats.ts`). The cache keeps `{ blue, red }`, or `null` for a room that does not exist. A cached entry is used only when it gives the user a seat. Otherwise the store is read again, so a guest who just joined is not refused.
+- The Lambda accepts signaling requests only from users with a seat in the room. To avoid an Atlas read on every 2-second poll, each Lambda instance keeps the seats of a room in memory for 30 seconds (`rooms/seats.ts`). The cache keeps `{ host, guest }`, or `null` for a room that does not exist. A cached entry is used only when it gives the user a seat. Otherwise the store is read again, so a guest who just joined is not refused.
 - A poll checks only the token (`middleware/session.ts`, `requireSession`) and does not read the user. The other routes use `requireUser`, which reads the user from Mongo on every request, and a poll every 2 s would cost two Atlas reads. `POST` reads the user, because it adds `user` to the message.
 - A deleted user with a valid token can still poll a room where they keep a guest seat. They see only signaling messages. This is accepted.
 - The Lambda adds `user: { id, name, avatar, discordId }` to each message that it stores. It ignores a `user` field that the browser sends.
@@ -211,7 +212,7 @@ The signaling paths `/rooms/{code}/messages` are under the same `/rooms/{code}` 
 - **Room list:** one list with the multiplayer rooms and the single player rooms, the last changed room first. The list loads from the server each time the lobby shows. A multiplayer tile shows the map card, the map name, the code, the last change, and each seat: avatar and name, "Free seat", or "Deleted player". A single player tile shows "Single player".
 - **+ (new room):** with login off, the dialog makes a single player room, as today. With login on, the dialog has a choice at the top: **Single player** or **Multiplayer**.
   - When logged in, **Multiplayer** is the default. When logged out, it is disabled, with "Log in with Discord to play multiplayer". A dev build without `VITE_DISCORD_CLIENT_ID` says "Log in to play multiplayer".
-  - **Multiplayer:** **Blue** or **Red** for the own side, and only the own roster field. It is required.
+  - **Multiplayer:** no side choice, the host sits at +z. Only the own roster field. It is required.
   - **Single player:** both roster fields, as today.
   - When the user hosts a room already, **Multiplayer** shows "You host room K7Q2-M9XD already. Delete it to create a new one." and **Create room** is disabled.
 - **Tile buttons:** **Blue** and **Red** show the roster. **Delete** only for the host, with a browser confirm. **Copy link** while the guest seat is free.

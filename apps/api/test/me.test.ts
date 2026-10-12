@@ -67,20 +67,20 @@ describe('/me', () => {
     const token = await signSession(user._id, testConfig.sessionSecret, new Date())
     const table = new Uint8Array([0, 0])
     const mine = await store.rooms.create(
-      { host: user._id, side: 'blue', mapId: 'm', roster: { code: 'a' }, table },
+      { host: user._id, mapId: 'm', roster: { code: 'a' }, table },
       new Date(),
     )
     const theirs = await store.rooms.create(
-      { host: other._id, side: 'blue', mapId: 'm', roster: { code: 'b' }, table },
+      { host: other._id, mapId: 'm', roster: { code: 'b' }, table },
       new Date(),
     )
-    await store.rooms.join(theirs._id, 'red', user._id, { code: 'a' }, new Date())
+    await store.rooms.join(theirs._id, 'guest', user._id, { code: 'a' }, new Date())
     const res = await app.request('/me', { method: 'DELETE', ...auth(token) })
     expect(res.status).toBe(204)
     expect(await store.rooms.get(mine._id)).toBeNull()
     const got = await app.request(`/rooms/${theirs._id}`)
-    const body = (await got.json()) as { room: { players: { red: unknown } } }
-    expect(body.room.players.red).toEqual({ id: user._id, gone: true })
+    const body = (await got.json()) as { room: { players: { guest: unknown } } }
+    expect(body.room.players.guest).toEqual({ id: user._id, gone: true })
   })
 
   it('DELETE removes the messages of the user and keeps the others', async () => {

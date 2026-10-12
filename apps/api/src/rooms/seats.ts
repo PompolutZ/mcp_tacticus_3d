@@ -27,11 +27,11 @@ export function createSeatCache(
         hit &&
         hit.until > t &&
         hit.seats &&
-        (hit.seats.blue === userId || hit.seats.red === userId)
+        (hit.seats.host === userId || hit.seats.guest === userId)
       )
         return hit.seats
       const room = await store.rooms.get(code)
-      const seats = room ? { blue: room.players.blue, red: room.players.red } : null
+      const seats = room ? { host: room.players.host, guest: room.players.guest } : null
       cache.set(code, { seats, until: t + ttl })
       // Drop expired entries so the map stays small.
       for (const [k, v] of cache) if (v.until <= t) cache.delete(k)

@@ -15,10 +15,10 @@ async function setup() {
   const bob = await addUser(store, 'bob')
   const carol = await addUser(store, 'carol')
   const room = await store.rooms.create(
-    { host: alice.id, side: 'blue', mapId: 'm', roster: { code: 'a' }, table: new Uint8Array([1]) },
+    { host: alice.id, mapId: 'm', roster: { code: 'a' }, table: new Uint8Array([1]) },
     new Date(),
   )
-  await store.rooms.join(room._id, 'red', bob.id, { code: 'b' }, new Date())
+  await store.rooms.join(room._id, 'guest', bob.id, { code: 'b' }, new Date())
   const path = `/rooms/${room._id}/messages`
   const post = (who: { headers: object } | null, body: unknown, code = room._id) =>
     app.request(`/rooms/${code}/messages`, {
@@ -174,7 +174,6 @@ describe('POST and GET /rooms/{code}/messages', () => {
     const guest = await store.rooms.create(
       {
         host: carol.id,
-        side: 'blue',
         mapId: 'm',
         roster: { code: 'c' },
         table: new Uint8Array([1]),
@@ -183,7 +182,7 @@ describe('POST and GET /rooms/{code}/messages', () => {
     )
     expect((await poll(carol, B, undefined, guest._id)).status).toBe(200)
     expect((await post(alice, hello(A), guest._id)).status).toBe(403)
-    await store.rooms.join(guest._id, 'red', alice.id, { code: 'a' }, new Date())
+    await store.rooms.join(guest._id, 'guest', alice.id, { code: 'a' }, new Date())
     expect((await post(alice, hello(A), guest._id)).status).toBe(201)
   })
 

@@ -46,7 +46,7 @@ export function signalRoutes(deps: { store: Store; config: Config; seats: SeatCa
   async function seated(code: string, userId: string): Promise<string> {
     const s = await seats.seats(code, userId)
     if (!s) throw err(404, 'Room not found')
-    if (s.blue !== userId && s.red !== userId) throw err(403, 'No seat in this room')
+    if (s.host !== userId && s.guest !== userId) throw err(403, 'No seat in this room')
     return code
   }
 

@@ -20,7 +20,6 @@ async function setup(store: Store = createMemoryStore()) {
     headers: { ...alice.headers, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       mapId: 'vibranium-heist',
-      side: 'blue',
       roster: { code: 'abc' },
       table: Buffer.from(start).toString('base64'),
     }),
