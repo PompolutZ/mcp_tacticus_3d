@@ -1059,6 +1059,49 @@
       "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0c541e6c245a.obj",
       "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/2e5a82e58fcd.jpg",
       "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0c541e6c245a.obj"
+    },
+    "rusted-van-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/dd470e4ea370.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ecd7baf33074.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/dd470e4ea370.obj"
+    },
+    "scrap-size-2-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7fbc389e1c7e.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/d4e657b85dd6.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7fbc389e1c7e.obj"
+    },
+    "ghost-rider-bike-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/af5211325d3b.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/50731d1ea25c.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/add5a646f214.obj"
+    },
+    "scrap-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/16e97c22d985.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e12068ee0301.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/16e97c22d985.obj"
+    },
+    "large-tank-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7e167e848ea8.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/118278f246a3.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/fe80fd8c5391.obj"
+    },
+    "garbage-bin-size-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a617cd501393.unity3d"
+    },
+    "size-1-bikes-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5b9abde6a278.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0cfa96930146.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5b9abde6a278.obj"
+    },
+    "scavenged-plow-size-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e0246590ed23.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/dea22407a587.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e0246590ed23.obj"
+    },
+    "quad-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1e04cfd5b788.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c27065b3ac6a.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1e04cfd5b788.obj"
     }
   },
   "mats": {
@@ -1080,6 +1123,7 @@
     "sinister-showdown": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/014caf473322.png",
     "oscrop-chemical": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0bba74402702.png",
     "dockyard-destruction-spider-man-to-blame": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0c3ae53102d3.png",
-    "night-time-patrol": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/851db0b0c40d.jpg"
+    "night-time-patrol": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/851db0b0c40d.jpg",
+    "sand-scrap": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/396e5f8da309.png"
   }
 }
