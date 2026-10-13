@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { assetUrl } from './assets/index.js'
+import { tacticCardBack } from './tactics/files.js'
 import Scene from './components/Scene.jsx'
 import SelectionOutlines from './components/SelectionOutlines.jsx'
 import { DEFAULT_SIDE_COLORS, setSideColors } from './sideColors.js'
@@ -485,7 +486,7 @@ export default function App({
     showHudMessage(`${missing} for ${info.name} (${info.code})`)
   }
 
-  // A click on a gem chip of a tray (TrayControls.jsx) or on an attached card in the tray popup: the card
+  // A click on a gem: a chip of a tray (TrayControls.jsx), the Library, or a gem line of a roster card: the card
   // face opens in the card popup. Reading changes nothing, so it works on any player's tray. The tray
   // popup closes, so only one popup is open. A card without an image shows what the app is missing.
   function handleAttachedOpen(code) {
@@ -495,7 +496,11 @@ export default function App({
       return
     }
     setOpenTrayId(null)
-    setOpenCard({ src: assetUrl(info.image), alt: info.name })
+    setOpenCard({
+      src: assetUrl(info.faceKey ? tacticCardBack(info.faceKey) : info.image),
+      alt: info.name,
+      tacticKey: info.faceKey ?? undefined,
+    })
   }
 
   // Shows the card `step` places away in the open tab of the roster popup. The tab is a loop: after the
@@ -831,6 +836,7 @@ export default function App({
         characters={characters}
         onSpawnCharacter={handleSpawn}
         onSpawnTactic={handleTacticSpawn}
+        onGemOpen={handleAttachedOpen}
         onTokenDragStart={handleLibraryTokenDragStart}
       />
       <LogPanel

@@ -48,10 +48,17 @@ const LIBRARY_ROWS = [
 // search, tab, player and token mode stay.
 // characters: the characters on the table (App state). The ones of the chosen player show green.
 // onSpawnCharacter(ch): a click on a character with a 3D model; ch has team set to the chosen player.
-// onSpawnTactic(key, team): a click on a tactic card.
+// onSpawnTactic(key, team): a click on a tactic card. onGemOpen(code): a click on an Infinity Gem opens its card.
 // onTokenDragStart(e, key, mode): a pointerdown on a token chip starts a drag in drag/useTokenDrag.js. mode:
 // 'single' | 'pile'.
-export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onTokenDragStart }) {
+export function Library({
+  open,
+  characters,
+  onSpawnCharacter,
+  onSpawnTactic,
+  onGemOpen,
+  onTokenDragStart,
+}) {
   const [query, setQuery] = useState('')
   const [tab, setTab] = useState('all')
   const colors = useSideColors()
@@ -85,6 +92,15 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
     clearTimeout(messageTimer.current)
     setMessage(text)
     messageTimer.current = setTimeout(() => setMessage(null), 3000)
+  }
+
+  // A gem is not placed: a click opens its card. It goes onto a character from the roster.
+  function handleTactic(card) {
+    if (card.gem) {
+      onGemOpen?.(card.id.padStart(8, '0'))
+      return
+    }
+    onSpawnTactic(card.key, team)
   }
 
   function handleCharacter(ch) {
@@ -195,9 +211,9 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
                 <button
                   key={card.key}
                   type="button"
-                  className="library-tactic"
-                  title={`${card.name} · ${card.id}`}
-                  onClick={() => onSpawnTactic(card.key, team)}
+                  className={`library-tactic${card.gem ? ' library-tactic--gem' : ''}`}
+                  title={`${card.name} · ${card.id}${card.gem ? ' · Infinity Gem' : ''}`}
+                  onClick={() => handleTactic(card)}
                 >
                   <img
                     className="library-tactic-image"
@@ -206,7 +222,10 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
                     loading="lazy"
                     draggable={false}
                   />
-                  <span className="library-tactic-name">{card.name}</span>
+                  <span className="library-tactic-name">
+                    {card.gem ? card.name.replace('Infinity Gem: ', '') : card.name}
+                  </span>
+                  {card.gem && <span className="library-tactic-tag">Infinity Gem</span>}
                 </button>
               ))}
             </div>

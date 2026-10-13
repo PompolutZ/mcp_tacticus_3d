@@ -411,11 +411,14 @@ pnpm --filter web fetch-jarvis-tactics
 
 - The headers are the same as for the characters. The full response is 1 MB with the card text, so the script keeps only these fields: `exportCode`, `slug`, `name`, `isInfinityGem`, `affiliation`, `tags`, and the legality fields `timelines`, `standardTimelineStatus`, `extendedTimelineStatus`, `computedStatus`, `latestComputedStatus`.
 - On 2026-10-07, there were 519 rows, 512 with an `exportCode` (401 different codes), and 14 Infinity Gems. Some cards appear several times with the same code. The app uses the first row of each code.
+- It also writes `src/tactics/jarvis-tactics-text.json`: the text of the card faces, keyed by our card key (`src/tactics/cards.json`). A card matches the first non-gem Jarvis row with its `exportCode` equal to our `id` padded to 8 digits (3 ids lost their leading zero), else the row with its slug equal to our key. The Infinity Gems match by slug only, because their reprints (`-ca10`, `-cp222`) share the code. The script prints the match counts. Real run on 2026-10-13, before the padding fix: 376 by code, 14 by slug, 3 by a slug map. After the fix: 392 by code, 8 by slug (1 card and the 7 gems), 0 missing (real run on 2026-10-13).
+- Fields per card (a field without a value is left out): `type`, `body`, `secondaryBody`, `intermediaryBody`, `affiliation` (the name), `superPowers` (`form`, `type`, `name`, `powerCost`, `body`), `attacks` (`form`, `type`, `name`, `range`, `strength`, `powerCost`, `steps`), `artist`, `biggerIcons`, `threatLevel` (gems only; 0 is kept). The bodies use the Jarvis markup (see the plan `docs/plans/tactic-faces.md`). The app loads the file with a dynamic `import()`.
+- Face icons are in `src/assets/tactic-icons/`, as lossless WebP made from the Jarvis PNGs, named by meaning. `src/tactics/faceIcons.js` maps the Jarvis icon id of `!x` to the file. `range_large`, `movement_large` (the same icon), `threat`, `speed` and `vp` were found in the Jarvis JS bundle (`images/<hash>.png`, listed in its icon table). `!Ulik` (Ulik's token, in one card) has no icon: the face draws the name as plain text.
 - The roster loader (`src/rosters/cards.js`) uses the file to tell Team Tactic cards and Infinity Gems from other codes.
 
 # TTS tactic cards
 
-`migrate-tactics.mjs` copies the tactic cards (Team Tactic Cards, TTC) and the Infinity Gem cards of the TTS mod to `src/assets/tactics/`. It converts the face and the back of each card. It writes the app data to `src/tactics/cards.json`, and the source URLs to `scripts/tactic-manifest.json`. `src/tactics/files.js` names the files after the keys.
+`migrate-tactics.mjs` copies the tactic cards (Team Tactic Cards, TTC) and the Infinity Gem cards of the TTS mod to `src/assets/tactics/`. It converts the back of each card. The faces are drawn by the app (see "Tactic faces"), so the face scans of the mod are not migrated. It writes the app data to `src/tactics/cards.json`, and the source URLs to `scripts/tactic-manifest.json`. `src/tactics/files.js` names the files after the keys.
 
 Requirements: ImageMagick, and the images in the TTS cache. TTS downloads a card image only when the card is out of the "Tactic Cards" bag. On 2026-10-05, the cache had both images of 69 of the 389 released cards. `--download` is the other way to fill the cache (see "Download" in "TTS character migration").
 
@@ -426,16 +429,15 @@ pnpm --filter web migrate-tactics --list          # tactic cards of the mod and 
 pnpm --filter web migrate-tactics                    # migrate every card that has its files in the TTS cache
 pnpm --filter web migrate-tactics --out /tmp/try  # trial run: nothing is written to the repo
 pnpm --filter web migrate-tactics --force         # convert files again that the manifest already lists
-pnpm --filter web migrate-tactics --download      # download the face and back images that the cache lacks, then migrate
+pnpm --filter web migrate-tactics --download      # download the back images that the cache lacks, then migrate
 ```
 
-The script migrates every card that has its face and back in the TTS cache or already migrated. It makes an image smaller when its largest side is more than 1040 px (`CARD_SIZE`), and it does not make small images larger. Most sources are about 720×1040, so the cards have about the same size in the app. The other sources go from 180×252 (the back of Corporate Espionage, which looks blurry) to 2048 px or more (Extinction Event, Know Thy Enemy, Static Arc).
+The script migrates every card that has its back in the TTS cache or already migrated. `--list` also shows per card if its face is drawn (it has Jarvis text) or the card has no Jarvis data (then the back serves as the face). It makes an image smaller when its largest side is more than 1040 px (`CARD_SIZE`), and it does not make small images larger. Most sources are about 720×1040, so the cards have about the same size in the app. The other sources go from 180×252 (the back of Corporate Espionage, which looks blurry) to 2048 px or more (Extinction Event, Know Thy Enemy, Static Arc).
 
 ## Output
 
 | Output | Content |
 |---|---|
-| `src/assets/tactics/<key>-face.webp` | Face of a card: the rules text on pale art |
 | `src/assets/tactics/<key>-back.webp` | Back of a card: the card name on full-colour art |
 | `src/tactics/cards.json` | One entry per card: `id` (MCT code), `name` (with the spelling of the mod) and `tokens` (omitted when the card has none) |
 
@@ -447,7 +449,7 @@ The script migrates every card that has its face and back in the TTS cache or al
 
 These rules were found on 2026-10-05 in the scripts of the "Database" object and Global.
 
-- The Infinity Gems are rows of `cardDatabase` with `type = tInf` and `released = true`. The script migrates them with the tactic cards: same card size, same files (`infinity-gem-soul-face.webp`), same `cards.json`. Their images are `S3_BASE.."infinity-gems/gems/INFINITY_GEM_<NAME>_{face,back}.png"`. On 2026-10-11, the TTS cache had the Soul and Mind cards. The app leaves the gems out of its Team Tactic lists with the Jarvis flag `isInfinityGem` (`src/tactics/cards.js`, `src/rosters/cards.js`).
+- The Infinity Gems are rows of `cardDatabase` with `type = tInf` and `released = true`. The script migrates them with the tactic cards: same card size, same files (`infinity-gem-soul-back.webp`), same `cards.json`. Their images are `S3_BASE.."infinity-gems/gems/INFINITY_GEM_<NAME>_{face,back}.png"`. On 2026-10-11, the TTS cache had the Soul and Mind cards. The app leaves the gems out of its Team Tactic lists with the Jarvis flag `isInfinityGem` (`src/tactics/cards.js`, `src/rosters/cards.js`).
 - The cards are the rows of `cardDatabase` with `type = tTac`. The script leaves out the 13 rows with `released = false`, for example the 6 Ultimate Infinity Gems and Mutant X.
 - `face` and `back` are one URL, or a list with one URL per printed version of the card (42 cards). `recSpawnCard()` in Global spawns the first version, and the "Tactic Cards" bag also has the first version. So the script uses the first version.
 - Every card has its own back image.
@@ -456,8 +458,24 @@ These rules were found on 2026-10-05 in the scripts of the "Database" object and
 
 ## What the app still needs
 
-1. Card text, affiliation and legality.
-2. The images of the other 320 cards. TTS must download them first.
+Legality (Rotated, Restricted, Banned) of the cards. All 400 released cards are migrated.
+
+# Tactic faces
+
+The app draws the face of every Team Tactic card and Infinity Gem (`TacticFace.jsx`). Design: `docs/features/team-tactic-cards.md`, "Generated face". The mod face scans were deleted.
+
+Run order:
+
+```bash
+pnpm --filter web fetch-jarvis-tactics   # Jarvis data: jarvis-tactics-cards.json and jarvis-tactics-text.json
+pnpm --filter web migrate-tactics        # backs of the cards, cards.json
+```
+
+- **Data:** `src/tactics/jarvis-tactics-text.json`, by card key (fields: see "Jarvis Team Tactic cards"). A card with no entry has no drawn face and shows its back instead. The 3 cards whose names differ between the mod and Jarvis (`go-getem-tiger`, `parts-of-a-whole`, `replusor-refraction`) are matched by a map in `fetch-jarvis-tactics.mjs`.
+- **Markup of the bodies** (Jarvis, parser in `src/tactics/faceBody.js`): the body is split on `|`; the first character of a part sets its kind. `\` paragraph break; `!x` icon x; `*` bold; `~` bullet (`&` inside stands for `|`); `-` row; `§slug§Label` and `<token>Label` a condition or token name, as plain text. A part that starts with `.` joins the previous part.
+- **Icons:** `src/assets/tactic-icons/`, lossless WebP from the Jarvis PNGs, named by meaning. `src/tactics/faceIcons.js` maps the Jarvis icon id to the file.
+- **Art:** the back image `<key>-back.webp` at opacity 0.2.
+- `migrate-tactics --list` shows per card if the face is drawn.
 
 The app shows the cards on a tactic tray per player, see `docs/features/team-tactic-cards.md`.
 

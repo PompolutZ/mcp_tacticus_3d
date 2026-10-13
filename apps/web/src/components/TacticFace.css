@@ -1,0 +1,378 @@
+/* A Team Tactic face, see TacticFace.jsx. Everything is under .tactic-face and does not use the page's
+   CSS (no variables, no inherited font): tacticFaceTexture.js puts this file into an SVG image, where
+   the page's CSS does not reach. Layout 457 x 640 px, ported from the face prototype. */
+.tactic-face,
+.tactic-face * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.tactic-face {
+  position: relative;
+  width: 457px;
+  height: 640px;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  color: #000;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: normal;
+  text-align: left;
+  text-transform: none;
+  font-family: 'Noto Sans Variable', sans-serif;
+}
+
+.tactic-face-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.2;
+  z-index: 0;
+}
+
+.tactic-face-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 31px;
+  letter-spacing: 0.06em;
+  text-align: center;
+  /* From the top edge of the card: it covers the name bar of the art completely */
+  margin: 0 0 8px;
+  height: 68px;
+  padding: 20px 0 0;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  background: #fafcfc;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
+  text-transform: uppercase;
+}
+
+.tactic-face-sp1 {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 70%;
+  z-index: 1;
+}
+
+.tactic-face-atks {
+  padding: 6px 16px 0;
+}
+
+.tactic-face-main {
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 60%;
+  z-index: 1;
+  font-size: var(--fs, 19.5px);
+}
+
+.tactic-face-aff {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  text-align: center;
+  font-size: 24px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tactic-face-type {
+  font-family: 'Noto Sans Variable', sans-serif;
+  font-stretch: 75%;
+  font-weight: 700;
+  text-align: center;
+  font-size: 1.05em;
+  line-height: 1.15;
+  margin-top: 0.2em;
+}
+
+.tactic-face-body {
+  font-family: 'Noto Sans Variable', sans-serif;
+  font-stretch: 75%;
+  font-weight: 400;
+  font-size: 1em;
+  line-height: 1.13;
+  padding: 0 48px;
+  margin-top: 0.2em;
+  color: #111;
+}
+
+.tactic-face-body b {
+  font-weight: 700;
+}
+
+.tactic-face-body.tactic-face-mid {
+  margin-top: 0.8em;
+  margin-bottom: 0.4em;
+}
+
+.tactic-face-br {
+  display: flex;
+  margin-bottom: 0.4em;
+}
+
+.tactic-face-nb {
+  white-space: nowrap;
+}
+
+.tactic-face ul {
+  list-style: disc;
+}
+
+.tactic-face-body ul {
+  margin-left: 28px;
+}
+
+.tactic-face-body li {
+  margin-left: -12px;
+}
+
+.tactic-face img.tactic-face-ic {
+  width: 1em;
+  height: 1em;
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  top: -0.04em;
+  margin: 0 0.05em;
+}
+
+.tactic-face-gap {
+  flex: 0 0 14px;
+  z-index: 1;
+}
+
+.tactic-face-foot {
+  display: flex;
+  align-items: flex-end;
+  padding: 0 16px 16px 32px;
+  z-index: 1;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.tactic-face-c {
+  font-family: 'Noto Sans Variable', sans-serif;
+  font-stretch: 75%;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 16px;
+}
+
+.tactic-face-t {
+  font-size: 18px;
+  line-height: 20px;
+  letter-spacing: 0.03em;
+  margin: 0 4px;
+}
+
+.tactic-face-a {
+  font-size: 18px;
+  line-height: 20px;
+  margin-left: 4px;
+  flex-grow: 1;
+  font-weight: 500;
+}
+
+.tactic-face-foot img {
+  width: 30px;
+}
+
+/* Attack and superpower panels */
+.tactic-face-panel {
+  background: rgba(255, 255, 255, 0.88);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(100, 116, 139, 0.7);
+  padding: 8px 14px;
+}
+
+.tactic-face-row {
+  display: flex;
+  align-items: center;
+}
+
+.tactic-face-pill {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  position: relative;
+}
+
+.tactic-face-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #000;
+  z-index: 1;
+  flex: none;
+}
+
+.tactic-face-badge img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: block;
+}
+
+.tactic-face-pname {
+  flex: 1;
+  background: #000;
+  color: #fff;
+  margin-left: -14px;
+  padding: 0 14px 0 20px;
+  height: 34px;
+  border-radius: 0 17px 17px 0;
+  display: flex;
+  align-items: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Names of attacks and superpowers in small caps, as on the real card */
+.tactic-face-pname > span {
+  font-variant-caps: small-caps;
+}
+
+.tactic-face-pname small {
+  font-size: 0.62em;
+  margin-left: 0.4em;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.tactic-face-stat {
+  display: flex;
+  align-items: center;
+  margin-left: 6px;
+  flex: none;
+  font-family: 'Noto Sans Variable', sans-serif;
+  font-stretch: 75%;
+  font-weight: 700;
+  font-size: 22px;
+}
+
+.tactic-face-stat img {
+  width: 32px;
+  height: 32px;
+  margin-right: 1px;
+}
+
+.tactic-face-cost {
+  flex: none;
+  display: flex;
+  align-items: center;
+  background: #000;
+  color: #fff;
+  border-radius: 19px;
+  height: 36px;
+  margin-left: 6px;
+  padding-right: 11px;
+  font-family: 'Noto Sans Variable', sans-serif;
+  font-stretch: 75%;
+  font-weight: 700;
+  font-size: 22px;
+}
+
+.tactic-face-cost img {
+  width: 36px;
+  height: 36px;
+  margin-right: 6px;
+}
+
+.tactic-face-steps {
+  font-family: 'Noto Sans Variable', sans-serif;
+  font-stretch: 75%;
+  font-size: var(--fs, 19.5px);
+  line-height: 1.13;
+  margin-top: 4px;
+}
+
+.tactic-face-steps ul {
+  margin-left: 20px;
+}
+
+.tactic-face-steps li {
+  padding-left: 6px;
+  margin-bottom: 0.15em;
+}
+
+.tactic-face-sp {
+  margin: 8px 16px 0;
+  z-index: 1;
+}
+
+/* The superpower panel is a little see-through, as on the scan */
+.tactic-face-sp .tactic-face-panel {
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.tactic-face-txt {
+  font-family: 'Noto Sans Variable', sans-serif;
+  font-stretch: 75%;
+  font-size: var(--fs, 19.5px);
+  line-height: 1.13;
+  padding: 4px 12px 0;
+}
+
+/* A gem: the text sits at the lower end of the main block, as on Jarvis (justify-end) */
+.tactic-face-main--end {
+  justify-content: flex-end;
+}
+
+.tactic-face-threat {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding-left: 16px;
+}
+
+.tactic-face-threat-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #000;
+  border: 2px solid #000;
+  z-index: 1;
+  flex: none;
+}
+
+.tactic-face-threat-badge img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: block;
+}
+
+.tactic-face-threat-pill {
+  width: 52px;
+  height: 32px;
+  margin-left: -12px;
+  padding-left: 12px;
+  background: #000;
+  color: #fff;
+  border-radius: 0 16px 16px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Noto Sans Variable', sans-serif;
+  font-stretch: 75%;
+  font-weight: 700;
+  font-size: 24px;
+}

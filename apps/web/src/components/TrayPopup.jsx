@@ -16,6 +16,7 @@ import { characterToken } from '../tokens/files.js'
 import { getToken } from '../tokens/tokens.js'
 import { attachedCards } from '../rosters/cards.js'
 import { Overlay } from './Overlay.jsx'
+import TacticFaceScaled from './TacticFaceScaled.jsx'
 import TrayControls from './TrayControls.jsx'
 
 function otherSide(side) {
@@ -115,7 +116,7 @@ export function TrayPopup({
                 title={`${large.name} (click to make it small)`}
                 onClick={() => setLargeCode(null)}
               >
-                <img src={assetUrl(large.image)} alt={large.name} />
+                <AttachedFace card={large} />
               </button>
             )}
           </div>
@@ -129,7 +130,7 @@ export function TrayPopup({
                   title={card.name}
                   onClick={() => setLargeCode((code) => (code === card.code ? null : card.code))}
                 >
-                  <img src={assetUrl(card.image)} alt={card.name} />
+                  <AttachedFace card={card} />
                 </button>
               ))}
             </div>
@@ -169,6 +170,16 @@ function OnToken({ tokenKey, count, onClick }) {
       <img src={assetUrl(characterToken(tokenKey))} alt={name} draggable={false} />
       {count > 1 && <span className="tray-popup-token-count">{count}</span>}
     </button>
+  )
+}
+
+// The face of an attached card: the drawn face of a gem, else its image
+function AttachedFace({ card }) {
+  if (!card.faceKey) return <img src={assetUrl(card.image)} alt={card.name} />
+  return (
+    <span className="tray-popup-face" role="img" aria-label={card.name}>
+      <TacticFaceScaled tacticKey={card.faceKey} />
+    </span>
   )
 }
 

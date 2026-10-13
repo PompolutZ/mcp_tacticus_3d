@@ -249,6 +249,12 @@ importers:
 
   apps/web:
     dependencies:
+      '@fontsource-variable/noto-sans':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/barlow-condensed':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@react-three/drei':
         specifier: ^9.115.0
         version: 9.122.0(@react-three/fiber@8.18.0(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.169.0))(@types/react@18.3.31)(@types/three@0.186.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.169.0)(use-sync-external-store@1.7.0(react@18.3.1))
@@ -1037,6 +1043,12 @@ packages:
     resolution: {integrity: sha512-+Km++qhiUZpIxI+JheZns11ETxikQwBR2mMvrp45a/bzxjIN12EHQaJ2mlUbLLWkwR8b7DQVUH7TjwWe35uOyA==}
     cpu: [x64]
     os: [win32]
+
+  '@fontsource-variable/noto-sans@5.3.0':
+    resolution: {integrity: sha512-e3ZuxzY9AL2psXPZlhwhnYrHUHv6PMoyK9MQ7croF0CUgURLqu9EMjW7q2FgVLwij1tjLsIHQrnwQ8aUcg4BiA==}
+
+  '@fontsource/barlow-condensed@5.3.0':
+    resolution: {integrity: sha512-RA7MmIx0v3eQ6Gcf74qLVLOwLB0GpPOzx+eU9iG/AmCnSJGcIWYeU8y6CEMGZ210MGwGg5CZhzLkkvyZdTTk1g==}
 
   '@gltf-transform/core@4.5.0':
     resolution: {integrity: sha512-JlvShvnB4AtfGZqjnESS/wfPJbpVnyHhTwJBbWN4qXqkB3C5HIoxxpu/orwGBge6Pc0zObeWj70lVf+4gbuu0A==}
@@ -3968,6 +3980,10 @@ snapshots:
 
   '@fallow-cli/win32-x64-msvc@3.33.1':
     optional: true
+
+  '@fontsource-variable/noto-sans@5.3.0': {}
+
+  '@fontsource/barlow-condensed@5.3.0': {}
 
   '@gltf-transform/core@4.5.0':
     dependencies:

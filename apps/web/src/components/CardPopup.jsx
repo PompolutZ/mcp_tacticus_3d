@@ -1,4 +1,25 @@
 import { Overlay } from './Overlay.jsx'
+import { FACE_HEIGHT, FACE_WIDTH } from './TacticFace.jsx'
+import TacticFaceScaled from './TacticFaceScaled.jsx'
+
+// The face component of a Team Tactic card at a scale that fits the window, at most POPUP_SCALE. Set when it opens.
+const POPUP_SCALE = 1.4
+
+function TacticFacePopup({ tacticKey }) {
+  const scale = Math.min(
+    POPUP_SCALE,
+    (window.innerHeight * 0.9) / FACE_HEIGHT,
+    (window.innerWidth * 0.9) / FACE_WIDTH,
+  )
+  return (
+    <div
+      className="card-popup-image tactic-face-popup"
+      style={{ position: 'relative', width: FACE_WIDTH * scale, height: FACE_HEIGHT * scale }}
+    >
+      <TacticFaceScaled tacticKey={tacticKey} />
+    </div>
+  )
+}
 
 // Full-size popup of a crisis card face. Closes on a click outside the image. App also closes it on
 // Escape, as App handles all keys. A dialog, so it renders through Overlay (portal to
@@ -15,7 +36,11 @@ export function CardPopup({ card, onClose, peek = false }) {
       onClick={peek ? undefined : onClose}
     >
       <div className="card-popup-content" onClick={(e) => e.stopPropagation()}>
-        <img className="card-popup-image" src={card.src} alt={card.alt} />
+        {card.tacticKey ? (
+          <TacticFacePopup tacticKey={card.tacticKey} />
+        ) : (
+          <img className="card-popup-image" src={card.src} alt={card.alt} />
+        )}
       </div>
     </Overlay>
   )

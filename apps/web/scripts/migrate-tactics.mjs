@@ -1,4 +1,4 @@
-// Migrates the tactic cards (TTC) and the Infinity Gem cards of the TTS mod to src/assets/tactics/: the face and the back of each card.
+// Migrates the tactic cards (TTC) and the Infinity Gem cards of the TTS mod to src/assets/tactics/: the back of each card. The faces are drawn by the app from Jarvis data, so no face scan is migrated (see "Tactic faces" in scripts/README.md).
 // Writes the app data (with the keys of the card's tokens) to src/tactics/cards.json, and the source URLs to scripts/tactic-manifest.json. See scripts/README.md.
 
 import path from 'node:path'
@@ -7,7 +7,7 @@ import { readJson, writeJson } from './lib/files.mjs'
 import { createImageStore } from './lib/manifest.mjs'
 import { slug, uniqueKeys } from './lib/keys.mjs'
 import { downloadMissing, loadTacticCards } from './lib/tts.mjs'
-import { tacticCardBack, tacticCardFace } from '../src/tactics/files.js'
+import { tacticCardBack } from '../src/tactics/files.js'
 
 const USAGE = `Usage:
   node scripts/migrate-tactics.mjs --list   tactic cards of the mod and their status
@@ -19,6 +19,7 @@ Options:
 
 const { opts } = parseMigrateArgs(USAGE, undefined, { download: true })
 
+const FACE_TEXT_FILE = path.resolve(import.meta.dirname, '../src/tactics/jarvis-tactics-text.json')
 const TOKENS_FILE = path.resolve(import.meta.dirname, '../src/tokens/tokens.json')
 const MANIFEST_FILE = path.join(import.meta.dirname, 'tactic-manifest.json')
 const DATA_DIR = path.resolve(import.meta.dirname, '../src/tactics')
@@ -44,6 +45,8 @@ const { available, migrated, convert } = createImageStore({
 })
 // Keys of the tokens that migrate-tokens.mjs migrated
 const tokenKeys = new Set(Object.keys(readJson(TOKENS_FILE, TOKENS_FILE)))
+// Keys of the cards whose face the app draws from Jarvis data (fetch-jarvis-tactics.mjs)
+const drawnKeys = new Set(Object.keys(readJson(FACE_TEXT_FILE, FACE_TEXT_FILE)))
 
 if (opts.list) listCards()
 else process.exitCode = await migrate()
@@ -58,7 +61,8 @@ function listCards() {
       : files.every(migrated)
         ? 'migrated'
         : 'all files cached'
-    console.log(`${card.ID}  ${card.name.padEnd(48)} ${status}`)
+    const face = drawnKeys.has(keys.get(card)) ? 'face drawn' : 'face: no Jarvis data, back used'
+    console.log(`${card.ID}  ${card.name.padEnd(48)} ${status}; ${face}`)
   }
 }
 
@@ -129,12 +133,9 @@ function cardEntry(card) {
   return entry
 }
 
-// A card with several printed versions has a list of faces and backs. The mod spawns the first one (recSpawnCard() in Global).
+// A card with several printed versions has a list of backs. Only the back is migrated: the face is drawn. The mod spawns the first one (recSpawnCard() in Global).
 function cardFiles(card) {
   const key = keys.get(card)
   const first = (urls) => (Array.isArray(urls) ? urls[0] : urls)
-  return [
-    { file: tacticCardFace(key), url: first(card.face), label: 'face' },
-    { file: tacticCardBack(key), url: first(card.back), label: 'back' },
-  ]
+  return [{ file: tacticCardBack(key), url: first(card.back), label: 'back' }]
 }

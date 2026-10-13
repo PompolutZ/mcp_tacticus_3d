@@ -1508,6 +1508,7 @@ export default function Scene({
                     setupStep(setup) === 'squads' && !viewOf(setup) ? setup.squads[team] : undefined
                   }
                   onOpen={(tab, index) => onRosterOpen?.({ team, tab, index })}
+                  onGemOpen={onAttachedOpen}
                   onToggle={
                     squadEdit?.[team]
                       ? (tab, index) => onSquadToggle?.(team, tab, index)

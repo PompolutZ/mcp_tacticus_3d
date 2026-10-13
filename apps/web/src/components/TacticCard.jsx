@@ -6,7 +6,7 @@ import { startPointerDrag } from '../drag/pointerDrag.js'
 import { tablePoint } from '../drag/tablePoint.js'
 import { assetUrl } from '../assets/index.js'
 import { getTactic } from '../tactics/cards.js'
-import { tacticCardBack, tacticCardFace } from '../tactics/files.js'
+import { tacticCardBack } from '../tactics/files.js'
 import {
   TACTIC_CARD_HEIGHT,
   TACTIC_CARD_WIDTH,
@@ -19,6 +19,8 @@ import FaceMaterial from './FaceMaterial.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import useLiveFollow from './useLiveFollow.js'
 import { useColorTexture } from './useColorTexture.js'
+import { useTacticFaceMap } from './useTacticFaceTexture.js'
+import { isFaceKey } from '../tactics/faceData.js'
 import { useHoverCursor } from './useHoverCursor.js'
 
 // A thin box as large as the card finds the ground under it, the same as LooseToken.jsx
@@ -63,12 +65,14 @@ export default function TacticCard({
   remote = false,
   getLivePose = null,
 }) {
-  // Both sides load when the card mounts, so the first flip does not wait for an image
-  const [faceUrl, backUrl] = [
-    assetUrl(tacticCardFace(card.key)),
-    assetUrl(tacticCardBack(card.key)),
-  ]
-  const [faceMap, backMap] = useColorTexture([faceUrl, backUrl])
+  // A card with Jarvis data draws its face (tacticFaceTexture.js); until it is ready the face is the art at
+  // low opacity. A card with no Jarvis data shows its back on both sides. The back loads when the card
+  // mounts, so the first flip does not wait for an image.
+  const drawn = isFaceKey(card.key)
+  const backUrl = assetUrl(tacticCardBack(card.key))
+  const [backMap] = useColorTexture([backUrl])
+  const drawnMap = useTacticFaceMap(card.key, backMap)
+  const faceMap = drawn ? drawnMap : backMap
   const { camera, gl, controls } = useThree()
   const { world, rapier } = useRapier()
   const shape = useMemo(
@@ -148,8 +152,10 @@ export default function TacticCard({
   // The image of the side that faces up
   function upImage() {
     return {
-      src: card.up === 'face' ? faceUrl : backUrl,
+      src: backUrl,
       alt: getTactic(card.key)?.name ?? 'Team Tactic card',
+      // The popup draws the face component for these cards, see CardPopup.jsx
+      tacticKey: card.up === 'face' && drawn ? card.key : undefined,
     }
   }
 

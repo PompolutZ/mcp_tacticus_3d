@@ -533,6 +533,17 @@ body {
   object-fit: cover;
 }
 
+/* An Infinity Gem is listed only; a click shows a message */
+.library-tactic--gem {
+  cursor: default;
+}
+
+.library-tactic-tag {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1;
+}
+
 .library-tactic-name {
   width: 100%;
   font-size: 11px;
@@ -1240,6 +1251,23 @@ body {
   border-radius: 8px;
 }
 
+/* The drawn face of a gem (TacticFaceScaled fills it), in the 2.5 x 3.5 shape */
+.tray-popup-face {
+  display: block;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tray-popup-large .tray-popup-face {
+  width: auto;
+  height: min(70vh, 520px);
+  max-width: 94vw;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+}
+
 /* The open card's thumbnail */
 .tray-popup-attached-card--open {
   outline: 3px solid var(--accent);
@@ -1593,6 +1621,13 @@ body {
 }
 
 .roster-popup-gem {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
   font-size: 13px;
   line-height: 16px;
   color: var(--text);

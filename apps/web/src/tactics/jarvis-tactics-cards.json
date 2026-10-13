@@ -975,7 +975,7 @@
     "latestComputedStatus": "rotated_standard"
   },
   {
-    "exportCode": null,
+    "exportCode": "30080201",
     "slug": "blood-cursed",
     "name": "Blood Cursed",
     "isInfinityGem": false,
@@ -1749,7 +1749,7 @@
     "latestComputedStatus": "legal"
   },
   {
-    "exportCode": null,
+    "exportCode": "30080202",
     "slug": "confront-the-demon-bear",
     "name": "Confront the Demon Bear",
     "isInfinityGem": false,
@@ -1940,6 +1940,27 @@
       "extended",
       "standard",
       "2025"
+    ],
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "latestComputedStatus": "legal"
+  },
+  {
+    "exportCode": "30080203",
+    "slug": "covert-operations",
+    "name": "Covert Operations",
+    "isInfinityGem": false,
+    "affiliation": {
+      "name": "X-Force",
+      "slug": "x-force"
+    },
+    "tags": [
+      "superStealth"
+    ],
+    "timelines": [
+      "extended",
+      "standard"
     ],
     "standardTimelineStatus": "legal",
     "extendedTimelineStatus": "legal",
@@ -2158,7 +2179,7 @@
     "latestComputedStatus": "legal"
   },
   {
-    "exportCode": null,
+    "exportCode": "30080204",
     "slug": "dangerous-business",
     "name": "Dangerous Business",
     "isInfinityGem": false,
@@ -4541,6 +4562,25 @@
     "latestComputedStatus": "legal"
   },
   {
+    "exportCode": "30170201",
+    "slug": "hostile-witness",
+    "name": "Hostile Witness",
+    "isInfinityGem": false,
+    "affiliation": null,
+    "tags": [
+      "forceDrop",
+      "enemyStill"
+    ],
+    "timelines": [
+      "extended",
+      "standard"
+    ],
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "latestComputedStatus": "legal"
+  },
+  {
     "exportCode": "00690203",
     "slug": "human-weapon",
     "name": "Human Weapon",
@@ -5639,7 +5679,7 @@
     "latestComputedStatus": "legal"
   },
   {
-    "exportCode": null,
+    "exportCode": "30080205",
     "slug": "light-up-the-sky",
     "name": "Light Up the Sky",
     "isInfinityGem": false,
@@ -6213,7 +6253,7 @@
     "latestComputedStatus": "legal"
   },
   {
-    "exportCode": null,
+    "exportCode": "30080206",
     "slug": "multitasking",
     "name": "Multitasking",
     "isInfinityGem": false,
@@ -6277,7 +6317,7 @@
     "latestComputedStatus": "legal"
   },
   {
-    "exportCode": null,
+    "exportCode": "30080207",
     "slug": "mutant-x",
     "name": "Mutant X",
     "isInfinityGem": false,
@@ -6313,6 +6353,24 @@
       "friendlyFire",
       "powerCut",
       "errataed"
+    ],
+    "timelines": [
+      "extended",
+      "standard"
+    ],
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "latestComputedStatus": "legal"
+  },
+  {
+    "exportCode": "30170202",
+    "slug": "my-latest-invention",
+    "name": "My Latest Invention",
+    "isInfinityGem": false,
+    "affiliation": null,
+    "tags": [
+      "slow"
     ],
     "timelines": [
       "extended",
@@ -8384,6 +8442,30 @@
     "latestComputedStatus": "legal"
   },
   {
+    "exportCode": "30170203",
+    "slug": "shadow-brokers",
+    "name": "Shadow Brokers",
+    "isInfinityGem": false,
+    "affiliation": {
+      "name": "Intelligencia",
+      "slug": "intelligencia"
+    },
+    "tags": [
+      "gainSuperpower",
+      "atkReroll",
+      "defReroll",
+      "dodgeReroll"
+    ],
+    "timelines": [
+      "extended",
+      "standard"
+    ],
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "latestComputedStatus": "legal"
+  },
+  {
     "exportCode": "00290203",
     "slug": "shadow-organization",
     "name": "Shadow Organization",
@@ -9403,7 +9485,7 @@
     "latestComputedStatus": "rotated_standard"
   },
   {
-    "exportCode": null,
+    "exportCode": "30080208",
     "slug": "tactical-operation",
     "name": "Tactical Operation",
     "isInfinityGem": false,
@@ -10857,6 +10939,28 @@
     "latestComputedStatus": "legal"
   },
   {
+    "exportCode": "30170204",
+    "slug": "vicious-cycle",
+    "name": "Vicious Cycle",
+    "isInfinityGem": false,
+    "affiliation": {
+      "name": "Thunderbolts",
+      "slug": "thunderbolts"
+    },
+    "tags": [
+      "extraAtk",
+      "extraTTC"
+    ],
+    "timelines": [
+      "extended",
+      "standard"
+    ],
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "latestComputedStatus": "legal"
+  },
+  {
     "exportCode": "00740206",
     "slug": "victory-assured",
     "name": "Victory Assured",
@@ -10946,6 +11050,25 @@
       "extended",
       "standard",
       "2026"
+    ],
+    "standardTimelineStatus": "legal",
+    "extendedTimelineStatus": "legal",
+    "computedStatus": "legal",
+    "latestComputedStatus": "legal"
+  },
+  {
+    "exportCode": "30170205",
+    "slug": "war-of-the-strongest",
+    "name": "War of the Strongest",
+    "isInfinityGem": false,
+    "affiliation": null,
+    "tags": [
+      "atkBuff",
+      "extraAtk"
+    ],
+    "timelines": [
+      "extended",
+      "standard"
     ],
     "standardTimelineStatus": "legal",
     "extendedTimelineStatus": "legal",

@@ -4,6 +4,8 @@ import { assetUrl } from '../assets/index.js'
 import { PLATE_COLORS, TAB_OF_KIND, parseRosterText, rosterCard } from '../rosters/cards.js'
 import { ROSTER_CARD_Y, rosterLayout } from '../rosters/layout.js'
 import { useColorTexture } from './useColorTexture.js'
+import { useTacticFaceMap } from './useTacticFaceTexture.js'
+import { tacticCardBack } from '../tactics/files.js'
 import FaceMaterial from './FaceMaterial.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
@@ -103,8 +105,20 @@ function Plate({ card, info }) {
   )
 }
 
+// A Team Tactic card with a drawn face (useTacticFaceTexture.js)
+function DrawnFace({ card, info }) {
+  const backMap = useColorTexture(assetUrl(tacticCardBack(info.faceKey)))
+  const map = useTacticFaceMap(info.faceKey, backMap)
+  return (
+    <mesh rotation={FLAT}>
+      <planeGeometry args={[card.width, card.height]} />
+      <FaceMaterial map={map} side={DoubleSide} />
+    </mesh>
+  )
+}
+
 // A card with an image
-function Face({ card, info }) {
+function ImageFace({ card, info }) {
   const map = useColorTexture(assetUrl(info.image))
   return (
     <mesh rotation={FLAT}>
@@ -114,9 +128,19 @@ function Face({ card, info }) {
   )
 }
 
-// "+ Infinity Gem: Soul" on the lower edge of a character card. The gem card itself shows on the
-// character's tray after the setup (TrayControls.jsx).
-function GemLine({ card, name, index }) {
+function Face({ card, info }) {
+  return info.faceKey ? (
+    <DrawnFace card={card} info={info} />
+  ) : (
+    <ImageFace card={card} info={info} />
+  )
+}
+
+// "+ Infinity Gem: Soul" on the lower edge of a character card. A click opens the gem card (onGemOpen(code)).
+// The card also shows on the character's tray after the setup (TrayControls.jsx).
+function GemLine({ card, code, name, index, onGemOpen }) {
+  const [hovered, setHovered] = useState(false)
+  useHoverCursor(hovered, 'pointer')
   const draw = useMemo(
     () => (ctx, w, h) => {
       ctx.fillStyle = 'rgba(0,0,0,0.65)'
@@ -134,7 +158,19 @@ function GemLine({ card, name, index }) {
   // Local +z is the lower edge of the card. A second gem lies above the first.
   const z = card.height / 2 - height / 2 - index * height
   return (
-    <mesh position={[0, GEM_LIFT, z]} rotation={FLAT} raycast={NO_RAYCAST}>
+    <mesh
+      position={[0, GEM_LIFT, z]}
+      rotation={FLAT}
+      onClick={(e) => {
+        e.stopPropagation()
+        onGemOpen?.(code)
+      }}
+      onPointerOver={(e) => {
+        e.stopPropagation()
+        setHovered(true)
+      }}
+      onPointerOut={() => setHovered(false)}
+    >
       <planeGeometry args={[card.width, height]} />
       <meshBasicMaterial
         map={map}
@@ -171,7 +207,15 @@ function SquadFrame({ card }) {
 // tab, index }, see rosters/layout.js. selected: the card is in the squad. Also used for the crisis cards
 // next to the scoring board (GameSetup.jsx). onToggle(tab, index): with it, the card has a small + / ✓ button in a
 // corner that adds the card to the squad or removes it, and does not open the card. onCardHover(card, over): the pointer moved onto or off the card, for Alt.
-export function RosterCard({ card, info, selected = false, onOpen, onToggle, onCardHover }) {
+export function RosterCard({
+  card,
+  info,
+  selected = false,
+  onOpen,
+  onGemOpen,
+  onToggle,
+  onCardHover,
+}) {
   const [hovered, setHovered] = useState(false)
   const groupRef = useRef()
   useHoverCursor(hovered, 'pointer')
@@ -182,6 +226,7 @@ export function RosterCard({ card, info, selected = false, onOpen, onToggle, onC
     const image = {
       src: assetUrl(info.image),
       alt: info.name,
+      tacticKey: info.faceKey ?? undefined,
       by: `roster:${card.tab}:${card.index}:${card.code}`,
     }
     onCardHover?.(image, true)
@@ -229,7 +274,18 @@ export function RosterCard({ card, info, selected = false, onOpen, onToggle, onC
       )}
       {card.gems.map((gem, g) => {
         const gemInfo = rosterCard(gem)
-        return gemInfo && <GemLine key={`${g}-${gem}`} card={card} name={gemInfo.name} index={g} />
+        return (
+          gemInfo && (
+            <GemLine
+              key={`${g}-${gem}`}
+              card={card}
+              code={gem}
+              name={gemInfo.name}
+              index={g}
+              onGemOpen={onGemOpen}
+            />
+          )
+        )
       })}
     </group>
   )
@@ -238,11 +294,19 @@ export function RosterCard({ card, info, selected = false, onOpen, onToggle, onC
 // The character and Team Tactic cards of one team's roster: lie flat on the table, locked, with no physics
 // body. See docs/features/roster.md, "On the table". The crisis cards lie next to the scoring board
 // (GameSetup.jsx). code: the stored MCT code (App.jsx, rosters). squad: the places of the cards in the
-// squad, { characters, tactics } (setup/setup.js). onOpen(tab, index): a click on a card, see RosterPopup.jsx.
+// squad, { characters, tactics } (setup/setup.js). onOpen(tab, index): a click on a card, see RosterPopup.jsx. onGemOpen(code): a click on a gem line.
 // onToggle(tab, index): the + / ✓ button of a character or Team Tactic card, or missing: no button.
 // tab: a key of ROSTER_TABS, index: the place of the card in that tab. In the characters and tactics tabs,
 // the place in the tab is the place in the roster list.
-export default function RosterCards({ team, code, squad, onOpen, onToggle, onCardHover }) {
+export default function RosterCards({
+  team,
+  code,
+  squad,
+  onOpen,
+  onGemOpen,
+  onToggle,
+  onCardHover,
+}) {
   const cards = useMemo(() => {
     // rosterLayout keeps the card order of rosterTabs (cards.js), so a count per tab gives the index.
     const next = { characters: 0, tactics: 0 }
@@ -262,6 +326,7 @@ export default function RosterCards({ team, code, squad, onOpen, onToggle, onCar
           info={info}
           selected={selected}
           onOpen={onOpen}
+          onGemOpen={onGemOpen}
           onToggle={card.tab === 'characters' || card.tab === 'tactics' ? onToggle : undefined}
           onCardHover={onCardHover}
         />
