@@ -8,12 +8,3 @@ export const spikeFace = (key) => FACES[key] ?? null
 
 // The art under the face: the back image of the card
 export const spikeFaceArt = (key) => assetUrl(tacticCardBack(key))
-
-// URL of a face icon (assets/tactic-icons/<name>.webp), or null when there is none
-export function faceIconUrl(name) {
-  try {
-    return assetUrl(`tactic-icons/${name}.webp`)
-  } catch {
-    return null
-  }
-}

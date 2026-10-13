@@ -411,6 +411,9 @@ pnpm --filter web fetch-jarvis-tactics
 
 - The headers are the same as for the characters. The full response is 1 MB with the card text, so the script keeps only these fields: `exportCode`, `slug`, `name`, `isInfinityGem`, `affiliation`, `tags`, and the legality fields `timelines`, `standardTimelineStatus`, `extendedTimelineStatus`, `computedStatus`, `latestComputedStatus`.
 - On 2026-10-07, there were 519 rows, 512 with an `exportCode` (401 different codes), and 14 Infinity Gems. Some cards appear several times with the same code. The app uses the first row of each code.
+- It also writes `src/tactics/jarvis-tactics-text.json`: the text of the card faces, keyed by our card key (`src/tactics/cards.json`). A card matches the first non-gem Jarvis row with its `exportCode` equal to our `id`, else the row with its slug equal to our key, else the row named in `SLUG_MAP` in the script (3 cards with spelling differences). The Infinity Gems have no entry: their face stays the TTS scan. The script prints the match counts. On 2026-10-13: 376 by code, 14 by slug, 3 by the map, and the 7 gems.
+- Fields per card (a field without a value is left out): `type`, `body`, `secondaryBody`, `intermediaryBody`, `affiliation` (the name), `superPowers` (`form`, `type`, `name`, `powerCost`, `body`), `attacks` (`form`, `type`, `name`, `range`, `strength`, `powerCost`, `steps`), `artist`, `biggerIcons`. The bodies use the Jarvis markup (see the plan `docs/plans/tactic-faces.md`). The app loads the file with a dynamic `import()`.
+- Face icons are in `src/assets/tactic-icons/`, as lossless WebP made from the Jarvis PNGs, named by meaning. `src/tactics/faceIcons.js` maps the Jarvis icon id of `!x` to the file. Jarvis has no PNG for these ids, so they draw nothing: `range_large`, `movement_large`, `threat`, `speed`, `vp`, `Ulik`.
 - The roster loader (`src/rosters/cards.js`) uses the file to tell Team Tactic cards and Infinity Gems from other codes.
 
 # TTS tactic cards

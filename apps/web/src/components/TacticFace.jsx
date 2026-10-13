@@ -1,6 +1,6 @@
 import { Fragment, useLayoutEffect, useRef } from 'react'
 import { parseBody } from '../tactics/faceBody.js'
-import { faceIconUrl } from '../tactics/spikeFaces.js'
+import { bodyIconUrl, faceIconUrl } from '../tactics/faceIcons.js'
 import { fitFace } from './tacticFaceFit.js'
 import '@fontsource/barlow-condensed/500.css'
 import '@fontsource/barlow-condensed/600.css'
@@ -29,7 +29,7 @@ const TYPE_LABELS = {
 }
 
 function Icon({ name }) {
-  const url = faceIconUrl(name)
+  const url = bodyIconUrl(name)
   return url ? <img className="tactic-face-ic" src={url} alt="" /> : null
 }
 
