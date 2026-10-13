@@ -451,8 +451,8 @@ export default function Scene({
   // charObjects, but a token has no Rapier body (see CrisisToken.jsx).
   const tokenObjects = useRef(new Map())
   const tokenCenters = useRef(new Map())
-  // Tool ('move', 'range' or 'angle') → { id, clamp(p) } while its Place is on, else null.
-  // A drag of character id keeps its base on that tool (see onPlaceLimit in RulerTool.jsx).
+  // Tool ('move' or 'range') → { owns(model, p), clamp(p, model) } while its Place, Place 1 or Throw is on,
+  // else null. A drag of the model that the tool owns is limited by it (see onPlaceLimit in RulerTool.jsx).
   const placeLimits = useRef({})
   // The own tool that has Place or Throw on: 'range', 'move' or null. Only one at a time. The other tool turns
   // its own off (limitTaken in RulerTool.jsx). A tool that turns off clears only its slot in placeLimits.
@@ -1037,7 +1037,6 @@ export default function Scene({
     onStore: (fields) => onToolStore?.(kind, ownTools[kind].spawn, fields),
     onReturn: onToolReturn && (() => onToolReturn(kind)),
   })
-  const placeTarget = toolModel(selection.find((piece) => piece.kind === 'character'))
 
   // Outline mode of the range mark on a piece, or null
   // The own mark wins over the other player's (decision 24)
@@ -1655,7 +1654,7 @@ export default function Scene({
                 else p.z = Math.min(p.z, -limit)
               }
               for (const limit of Object.values(placeLimits.current)) {
-                if (limit?.id === model.id) limit.clamp(p)
+                if (limit?.owns(model, p)) limit.clamp(p, model)
               }
             },
             overlay: spectatorOverlay(model),
@@ -1686,7 +1685,6 @@ export default function Scene({
               onSpawn={() => selectTool('move')}
               angleLimit={angleLimit}
               target={toolTarget}
-              placeTarget={placeTarget}
               models={toolModels}
               onSnap={selectModel}
               onPlaceLimit={(limit) => {
@@ -1761,7 +1759,6 @@ export default function Scene({
               onDragSelect={() => selectTool('range')}
               onSpawn={() => selectTool('range')}
               target={toolTarget}
-              placeTarget={placeTarget}
               models={toolModels}
               onSnap={selectModel}
               onPlaceLimit={(limit) => {
