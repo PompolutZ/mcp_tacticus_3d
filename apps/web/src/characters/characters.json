@@ -387,6 +387,18 @@
       "stun"
     ]
   },
+  "gladiator": {
+    "id": "20130101",
+    "name": "Gladiator",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "confidence",
+      "stagger"
+    ]
+  },
   "gorgon": {
     "id": "01660101",
     "name": "Gorgon",
@@ -450,6 +462,17 @@
     "tokens": [
       "stun",
       "stagger"
+    ]
+  },
+  "iron-lad": {
+    "id": "01540101",
+    "name": "Iron Lad",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "slow",
+      "stun"
     ]
   },
   "iron-monger": {
@@ -887,6 +910,16 @@
       "incinerate",
       "poison",
       "judgement"
+    ]
+  },
+  "sensational-she-hulk": {
+    "id": "30170102",
+    "name": "Sensational She-Hulk",
+    "base": "medium",
+    "figure": "standee",
+    "tokens": [
+      "stun",
+      "stagger"
     ]
   },
   "sentinel-mk4-00510101": {

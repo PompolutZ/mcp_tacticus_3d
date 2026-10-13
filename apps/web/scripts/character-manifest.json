@@ -341,6 +341,15 @@
       "characters/gambit/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GAMBIT_UI.png"
     }
   },
+  "gladiator": {
+    "id": "20130101",
+    "sources": {
+      "characters/gladiator/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GLADIATOR_healthy.jpg",
+      "characters/gladiator/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GLADIATOR_injured.jpg",
+      "characters/gladiator/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/GLADIATOR_MODEL.unity3d",
+      "characters/gladiator/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GLADIATOR_UI.png"
+    }
+  },
   "gorgon": {
     "id": "01660101",
     "sources": {
@@ -395,6 +404,15 @@
       "characters/iron-fist/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/IRON_FIST_injured.jpg",
       "characters/iron-fist/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/IRON_FIST_MODEL.unity3d",
       "characters/iron-fist/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/IRON_FIST_UI.png"
+    }
+  },
+  "iron-lad": {
+    "id": "01540101",
+    "sources": {
+      "characters/iron-lad/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/IRON_LAD_healthy.jpg",
+      "characters/iron-lad/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/IRON_LAD_injured.jpg",
+      "characters/iron-lad/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/IRON_LAD_MODEL.unity3d",
+      "characters/iron-lad/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/IRON_LAD_UI.png"
     }
   },
   "iron-monger": {
@@ -800,6 +818,16 @@
       "characters/scarlet-witch/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SCARLET_WITCH_injured.jpg",
       "characters/scarlet-witch/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SCARLET_WITCH_MODEL.unity3d",
       "characters/scarlet-witch/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SCARLET_WITCH_UI.png"
+    }
+  },
+  "sensational-she-hulk": {
+    "id": "30170102",
+    "sources": {
+      "characters/sensational-she-hulk/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SENSATIONAL_SHE_HULK_healthy.jpg",
+      "characters/sensational-she-hulk/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SENSATIONAL_SHE_HULK_injured.jpg",
+      "characters/sensational-she-hulk/standee-front.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SENSATIONAL_SHE_HULK_STANDEE_A.jpg",
+      "characters/sensational-she-hulk/standee-back.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SENSATIONAL_SHE_HULK_STANDEE_B.jpg",
+      "characters/sensational-she-hulk/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SENSATIONAL_SHE_HULK_UI.png"
     }
   },
   "sentinel-mk4-00510101": {
