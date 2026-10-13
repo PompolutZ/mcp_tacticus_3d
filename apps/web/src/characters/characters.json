@@ -165,6 +165,17 @@
       "stun"
     ]
   },
+  "bishop": {
+    "id": "01120101",
+    "name": "Bishop",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "slow"
+    ]
+  },
   "black-bolt": {
     "id": "00340101",
     "name": "Black Bolt",

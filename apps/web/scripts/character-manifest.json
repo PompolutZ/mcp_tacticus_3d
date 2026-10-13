@@ -139,6 +139,15 @@
       "characters/beta-ray-bill/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BETA_RAY_BILL_UI.png"
     }
   },
+  "bishop": {
+    "id": "01120101",
+    "sources": {
+      "characters/bishop/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BISHOP_healthy.jpg",
+      "characters/bishop/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BISHOP_injured.jpg",
+      "characters/bishop/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/BISHOP_MODEL.unity3d",
+      "characters/bishop/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BISHOP_UI.png"
+    }
+  },
   "black-bolt": {
     "id": "00340101",
     "sources": {
