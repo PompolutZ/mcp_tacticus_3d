@@ -11,6 +11,7 @@ import {
   isModifierCode,
   reservedReason,
   sameBindings,
+  boundElsewhere,
 } from '../input/bindings.js'
 
 const MAC = detectMac()
@@ -191,9 +192,11 @@ export function KeyBindings({ bindings, onChange }) {
                   {list.map((b, i) => {
                     const name = inputName(b, MAC)
                     const where =
-                      b.when !== 'anywhere' && a.when.length > 1
+                      b.when !== 'anywhere'
                         ? ` · ${CONDITION_LABELS[b.when]}`
-                        : ''
+                        : boundElsewhere(bindings, b)
+                          ? ' · elsewhere'
+                          : ''
                     return (
                       <span key={`${name}-${b.when}`} className="key-chip">
                         {name}

@@ -222,6 +222,13 @@ export function sameInput(a, b) {
 }
 const sameBinding = (a, b) => sameInput(a, b) && a.when === b.when
 
+// True when `binding` has the same input (code + modifiers) as a binding with another condition, in any action
+export function boundElsewhere(bindings, binding) {
+  return Object.values(bindings).some((list) =>
+    list.some((b) => sameInput(b, binding) && b.when !== binding.when),
+  )
+}
+
 export function sameBindings(a, b) {
   return a.length === b.length && a.every((x, i) => sameBinding(x, b[i]))
 }

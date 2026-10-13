@@ -90,3 +90,5 @@ Done. `bindings.js`: `WheelUp` / `WheelDown` with `dragging` are default binding
 
 Done. `KeyBindings.jsx` (rows by group, chips, + capture, condition select, Reset, Reset all keys, conflict message) in `SettingsPopup.jsx`. Capture uses window `keydown` / `keyup` listeners in the capture phase with `stopImmediatePropagation`, so App's key handler and the popup Escape do not run. The wheel is read on the capture box. `bindings.js`: `RESERVED` and `reservedReason`, `codeName` / `inputName` (pure, `mac` argument), `detectMac`, `acceptsInput`. `controls.js` keeps only `MOUSE_ROWS`. Tests in `bindings.test.js`.
 - Differs: the wheel is refused for actions other than zoom and turn piece, and zoom takes only the wheel (no key handler for zoom exists). A reserved combo or a refused input keeps the capture on. Reserved check ignores Shift and Alt.
+
+- Fix after test: chips always show the condition except `anywhere`; `anywhere` shows "elsewhere" when the same input has another condition in any action (`boundElsewhere`).
