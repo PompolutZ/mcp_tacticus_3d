@@ -869,6 +869,15 @@
       "devils-deal"
     ]
   },
+  "mirage": {
+    "id": "30080103",
+    "name": "Mirage",
+    "base": "small",
+    "figure": "standee",
+    "tokens": [
+      "neural-connection"
+    ]
+  },
   "mister-sinister": {
     "id": "00460101",
     "name": "Mister Sinister",
@@ -1172,6 +1181,16 @@
       "root"
     ]
   },
+  "shadowcat": {
+    "id": "00960102",
+    "name": "Shadowcat",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate"
+    ]
+  },
   "she-hulk": {
     "id": "00390101",
     "name": "She-Hulk",
@@ -1405,6 +1424,18 @@
       "poison",
       "stun",
       "slow"
+    ]
+  },
+  "warlock": {
+    "id": "01530102",
+    "name": "Warlock",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "shock",
+      "bleed",
+      "poison"
     ]
   },
   "weapon-x-logan": {

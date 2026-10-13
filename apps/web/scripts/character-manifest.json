@@ -769,6 +769,16 @@
       "characters/mephisto/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MEPHISTO_UI.png"
     }
   },
+  "mirage": {
+    "id": "30080103",
+    "sources": {
+      "characters/mirage/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MIRAGE_healthy.jpg",
+      "characters/mirage/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MIRAGE_injured.jpg",
+      "characters/mirage/standee-front.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MIRAGE_STANDEE_A.jpg",
+      "characters/mirage/standee-back.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MIRAGE_STANDEE_B.jpg",
+      "characters/mirage/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MIRAGE_UI.png"
+    }
+  },
   "mister-sinister": {
     "id": "00460101",
     "sources": {
@@ -1045,6 +1055,15 @@
       "characters/shadow-king/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHADOW_KING_UI.png"
     }
   },
+  "shadowcat": {
+    "id": "00960102",
+    "sources": {
+      "characters/shadowcat/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHADOWCAT_healthy.jpg",
+      "characters/shadowcat/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHADOWCAT_injured.jpg",
+      "characters/shadowcat/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SHADOWCAT_MODEL.unity3d",
+      "characters/shadowcat/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHADOWCAT_UI.png"
+    }
+  },
   "she-hulk": {
     "id": "00390101",
     "sources": {
@@ -1251,6 +1270,15 @@
       "characters/viper/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VIPER_injured.jpg",
       "characters/viper/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/VIPER_MODEL.unity3d",
       "characters/viper/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VIPER_UI.png"
+    }
+  },
+  "warlock": {
+    "id": "01530102",
+    "sources": {
+      "characters/warlock/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WARLOCK_healthy.jpg",
+      "characters/warlock/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WARLOCK_injured.jpg",
+      "characters/warlock/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/WARLOCK_MODEL.unity3d",
+      "characters/warlock/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WARLOCK_UI.png"
     }
   },
   "weapon-x-logan": {
