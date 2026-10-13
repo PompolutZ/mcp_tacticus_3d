@@ -119,6 +119,19 @@
       "stun"
     ]
   },
+  "baron-mordo": {
+    "id": "00640102",
+    "name": "Baron Mordo",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 105,
+    "tokens": [
+      "hex",
+      "incinerate",
+      "poison",
+      "slow"
+    ]
+  },
   "bastion": {
     "id": "30090101",
     "name": "Bastion",
@@ -230,6 +243,20 @@
       "slow"
     ]
   },
+  "clea": {
+    "id": "00670101",
+    "name": "Clea",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "judgement",
+      "bleed",
+      "stun",
+      "slow",
+      "stagger"
+    ]
+  },
   "colossus": {
     "id": "00570101",
     "name": "Colossus",
@@ -316,6 +343,26 @@
     "tokens": [
       "hex",
       "stagger"
+    ]
+  },
+  "doctor-strange-sorcerer-supreme": {
+    "id": "00670102",
+    "name": "Doctor Strange, Sorcerer Supreme",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 105,
+    "tokens": [
+      "poison"
+    ]
+  },
+  "doctor-voodoo": {
+    "id": "00650101",
+    "name": "Doctor Voodoo",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 45,
+    "tokens": [
+      "brother-daniel"
     ]
   },
   "dracula": {
@@ -622,6 +669,18 @@
     "base": "small",
     "figure": "model",
     "rotation": 0
+  },
+  "magik": {
+    "id": "00570102",
+    "name": "Magik",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "bleed",
+      "incinerate",
+      "hex"
+    ]
   },
   "magneto": {
     "id": "00420101",
@@ -1220,5 +1279,12 @@
       "shock",
       "stun"
     ]
+  },
+  "wong": {
+    "id": "00230102",
+    "name": "Wong",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0
   }
 }
