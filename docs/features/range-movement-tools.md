@@ -82,7 +82,7 @@ The line ends at the full distance, where the base touches the far end from outs
 - **A terrain piece.** The line is checked at the height where the base starts. So a base on the table passes under an overhang (rules p9), and a base on a roof does not hit lower terrain. Terrain that the base overlaps at the start, for example the roof or the stairs it stands on, does not stop it (rules p14).
 - **The mat edge.** A base never leaves the mat (rules p13).
 
-The stop point is found when Throw turns on. The drag can go anywhere on the line before it, and the character drops where it is released.
+The stop point follows the tool: it is found again at each drag move, so moving or turning the tool while Throw is on moves it too. The drag can go anywhere on the line before it, and the character drops where it is released.
 
 A **lifted** character (key **R**) does not stop the line. A character can throw or push another character through its own base, and the app does not know which character performs the Throw. So the player lifts the thrower before the Throw, and puts it back down after it. The same works for any other character that the move should pass.
 

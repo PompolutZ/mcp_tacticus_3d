@@ -823,12 +823,14 @@ function Tool({
   // Place moves the character to the far end, the end that does not touch the snapped base. A free
   // tool has no far end, so Place is shown there only while it is on, so that it can be turned off.
   const placeButtonSide = placeSide ?? (snap ? OTHER[snap.side] : null)
-  // While Throw is on: { side, target, moved }, the end the Throw started from, the locked character and
-  // how far the line goes (the stop point). The Throw button stays at that end. Off: null. A drag of the
-  // locked character keeps its base center on the middle line of the tool (throwLine), up to moved.
+  // While Throw is on: { side, target }, the end the Throw started from and the locked character.
+  // The stop point is found again at each clamp. The Throw button stays at that end. Off: null. A drag of the
+  // locked character keeps its base center on the middle line of the tool (throwLine), up to the stop point.
   // Place and Throw are never on at the same time: each one hides the other's button.
   const [throwLock, setThrowLock] = useState(null)
   const throwing = selected && throwLock !== null
+  const modelsRef = useRef(models)
+  modelsRef.current = models
   // Model under the pointer at the last move of a body drag, or null. undefined before the first move.
   // The tool snaps when the pointer moves onto a model, not when the drag starts on one.
   const overRef = useRef(undefined)
@@ -1189,7 +1191,7 @@ function Tool({
   // The clamp reads the tool pose at each call, so the tool can move while Throw is on
   useEffect(() => {
     if (!throwing) return undefined
-    const { side, target, moved } = throwLock
+    const { side, target } = throwLock
     onPlaceLimit?.({
       owns: (model) => model.id === target.id,
       clamp(p) {
@@ -1200,7 +1202,16 @@ function Tool({
           tip,
           target.radius,
         )
-        const spot = lineClamp(start, dir, Math.min(moved, distance), p)
+        // The stop point follows the live line: found again at each call (two casts and a few
+        // circle tests), so a moved or turned tool, or a moved other character, counts
+        const { moved } = throwMove(world, rapier, {
+          start,
+          dir,
+          distance,
+          radius: target.radius,
+          others: throwOthers(target),
+        })
+        const spot = lineClamp(start, dir, moved, p)
         p.x = spot.x
         p.z = spot.z
       },
@@ -1294,29 +1305,20 @@ function Tool({
     const far = OTHER[snap.side]
     const straight = { [snap.side]: turn[snap.side], [far]: turn[snap.side] }
     setTurn(straight)
-    const { start, dir, distance } = throwLine(
-      toolShape(toolPose(rb), straight),
-      snap.side,
-      tip,
-      model.radius,
-    )
-    const others = models
+    setThrowLock({ side: snap.side, target: model })
+  }
+
+  // The bases that stop a Throw of target: the other characters on the table, not lifted
+  function throwOthers(target) {
+    return modelsRef.current
       .filter(
         (other) =>
           other.kind === 'character' &&
-          !sameModel(other, model) &&
+          !sameModel(other, target) &&
           other.getBody() &&
           !other.isLifted(),
       )
       .map((other) => ({ center: other.getCenter(), radius: other.radius }))
-    const { moved } = throwMove(world, rapier, {
-      start,
-      dir,
-      distance,
-      radius: model.radius,
-      others,
-    })
-    setThrowLock({ side: snap.side, target: model, moved })
   }
 
   return (
