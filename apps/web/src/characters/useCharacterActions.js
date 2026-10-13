@@ -1,8 +1,8 @@
 import { COLOR_NAME } from '../sideColors.js'
 import { colorOf } from '../setup/setup.js'
-import { newCharacter } from './newCharacter.js'
+import { newCharacters } from './newCharacter.js'
 import { characterImmune, characterName, characterStamina } from './characters.js'
-import { characterModels } from './models.js'
+import { removalOf } from './models.js'
 import { getToken, isCappedToken } from '../tokens/tokens.js'
 import { deselectPiece } from '../selection.js'
 
@@ -39,7 +39,8 @@ export function useCharacterActions({
       )
       return
     }
-    setCharacters((prev) => [...prev, newCharacter(ch, ch.team)])
+    // The host and its grunts (newCharacters)
+    setCharacters((prev) => [...prev, ...newCharacters(ch, ch.team)])
   }
 
   // Damage never goes below 0 or above the Stamina of the side that faces up (p16).
@@ -56,7 +57,7 @@ export function useCharacterActions({
   // Power never goes below 0 or above 10 (p7-8).
   function handleCharacterPower(id, power) {
     const target = table.characters.read().find((ch) => ch.id === id)
-    if (!target) return
+    if (!target || target.host) return
     const to = Math.max(0, Math.min(power, 10))
     table.transact(() => {
       setCharacters((prev) => prev.map((ch) => (ch.id === id ? { ...ch, power: to } : ch)))
@@ -64,10 +65,11 @@ export function useCharacterActions({
     })
   }
 
-  // Flip turns the card to the other side and clears Damage, the same as in TTS.
+  // Flip turns the card to the other side and clears Damage, the same as in TTS. A grunt has no
+  // Injured side: it does not flip.
   function handleCharacterFlip(id) {
     const target = table.characters.read().find((ch) => ch.id === id)
-    if (!target) return
+    if (!target || target.host) return
     const to = target.side === 'healthy' ? 'injured' : 'healthy'
     table.transact(() => {
       setCharacters((prev) =>
@@ -94,25 +96,39 @@ export function useCharacterActions({
   }
 
   // Delete key over a tray card. The confirm names the character, because it takes the tray with it.
+  // A grunt cannot be deleted alone: the key on a grunt card does nothing (docs/features/character-trays.md,
+  // "Grunts").
   function handleTrayCardDelete(id) {
     const ch = characters.find((c) => c.id === id)
     if (!ch) return
-    if (window.confirm(`Remove ${characterName(ch.key)} from the table? Its tray is removed too.`))
+    if (ch.host) {
+      showHudMessage(`${characterName(ch.key)} is removed with its host.`)
+      return
+    }
+    const grunts = characters.some((c) => c.host === id)
+    const also = grunts ? ' Its grunts are removed too.' : ''
+    if (
+      window.confirm(
+        `Remove ${characterName(ch.key)} from the table? Its tray is removed too.${also}`,
+      )
+    )
       handleCharacterRemove(id)
   }
 
-  // Delete key over a tray card (handleTrayCardDelete) removes a character. Drops every token
-  // the character holds first (p10), then removes the character: its model and its tray both come
+  // Delete key over a tray card (handleTrayCardDelete) removes a character with its grunts. Drops every
+  // token the character and its grunts hold first (p10), then removes them: models and trays come
   // from the same characters array (Scene.jsx), so one state update removes all three. The poses of
-  // its models go too. Also clears a selection or popup that still points at it, so nothing keeps the
-  // id or its Rapier body after the model unmounts.
+  // their models go too, constructs included. Also clears a selection or popup that still points at
+  // them, so nothing keeps the id or its Rapier body after the model unmounts. A grunt id removes
+  // nothing: a grunt goes only with its host.
   function handleCharacterRemove(id) {
     const target = characters.find((ch) => ch.id === id)
-    const modelIds = target ? characterModels(target).map((model) => model.id) : [id]
+    const { characters: ids, models: modelIds } = removalOf(characters, id)
+    if (!target || ids.length === 0) return
     table.transact(() => {
-      if (target) writeLog('deleted', characterLogData(target))
-      handleDropCharacterTokens(id)
-      setCharacters((prev) => prev.filter((ch) => ch.id !== id))
+      writeLog('deleted', characterLogData(target))
+      for (const removedId of ids) handleDropCharacterTokens(removedId)
+      setCharacters((prev) => prev.filter((ch) => ch.id !== id && ch.host !== id))
       // Every model of the character: the first, the second form and the constructs
       table.poses.set((poses) =>
         Object.fromEntries(Object.entries(poses).filter(([key]) => !modelIds.includes(key))),
@@ -124,7 +140,7 @@ export function useCharacterActions({
         prev,
       ),
     )
-    setOpenTrayId((prev) => (prev === id ? null : prev))
+    setOpenTrayId((prev) => (ids.includes(prev) ? null : prev))
   }
 
   // Gives one of tokenKey to a character. A character cannot get a condition it is immune to

@@ -102,6 +102,19 @@ export function modelCardFile(model) {
   return trayCardFile(key, side, model.card === 2 ? 2 : 1)
 }
 
+// What the Delete of character `id` removes: the character and its grunts (`host` is its id), and every
+// model of them, constructs included. A grunt id (or an unknown id) removes nothing: a grunt goes only
+// with its host (docs/features/character-trays.md, "Grunts"). Returns { characters: [ids], models: [ids] }.
+export function removalOf(characters, id) {
+  const target = characters.find((ch) => ch.id === id)
+  if (!target || target.host) return { characters: [], models: [] }
+  const removed = characters.filter((ch) => ch.id === id || ch.host === id)
+  return {
+    characters: removed.map((ch) => ch.id),
+    models: removed.flatMap(characterModels).map((model) => model.id),
+  }
+}
+
 const DEG = Math.PI / 180
 
 // Y rotation in degrees of the character tray of each side after the Tray Spawner snaps it (the mod's

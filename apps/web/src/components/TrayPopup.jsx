@@ -125,9 +125,11 @@ export function TrayPopup({
             </div>
           )}
         </div>
-        <button type="button" className="chip" onClick={() => setShowOther((v) => !v)}>
-          {showOther ? 'Show side that faces up' : 'Show other side'}
-        </button>
+        {!character.host && (
+          <button type="button" className="chip" onClick={() => setShowOther((v) => !v)}>
+            {showOther ? 'Show side that faces up' : 'Show other side'}
+          </button>
+        )}
         <TrayControls
           character={character}
           stamina={characterStamina(character.key, character.side)}

@@ -81,3 +81,11 @@ test('cleanupBlockers: on the board without Activated or Dazed', () => {
     ['a'],
   )
 })
+
+test('a Dazed grunt has no Injured side: it keeps side and Damage, loses Dazed and conditions', () => {
+  const grunt = char({ host: 'h1', damage: 1, tokens: { dazed: 1, bleed: 1, activated: 1 } })
+  const out = cleanupCharacter(grunt, cleanupKeys)
+  assert.equal(out.side, 'healthy')
+  assert.equal(out.damage, 1)
+  assert.deepEqual(out.tokens, {})
+})

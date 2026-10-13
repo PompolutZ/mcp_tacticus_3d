@@ -6,10 +6,10 @@ Not built yet:
 
 - Badges above the models: small icons for held tokens, Activated, Dazed, Damage and Power. TTS shows them. Players can then see the board state without looking at the trays.
 - Constructs of Phoenix: the app handles them, but her construct files are not migrated yet (see [Constructs](#constructs)).
-- Grunts, Horsemen cards and Reserve members (see [Out of scope](#out-of-scope)).
+- Room for the grunt block on the table: the tray of a host with grunts reaches into the band of the tool rack (see [Grunts](#grunts)).
+- Horsemen cards and Reserve members (see [Out of scope](#out-of-scope)).
 - Attach or remove a gem by hand. Gems come only from the roster. A character added from the Library has none.
 - Gem cards other than Soul and Mind. They migrate when the TTS cache has them.
-- Trays of different width (a grunt card, characters with 2 forms). Every tray has the same width.
 - A 2D HUD separate from the 3D world.
 
 ## Goal
@@ -330,6 +330,23 @@ Magneto and Phoenix come with 2 constructs each (the mod's `construct` field: tw
 - Ids: construct n of a character has the model id `<character id>:c<n>`, after the first model and the second model (`models.js`). Poses, claims and P2P sync work on model ids, so they treat it like the second model.
 - Data: `characters.json` has `constructs`, the number of construct GLBs. It is missing or 0 for a character without constructs. The character entry in App state copies it.
 
+## Grunts
+
+A grunt is a minion that comes with a host: Hand Ninjas (Elektra, Shadowland Daredevil), Sand Constructs - Twisty and Sand Construct - Fisty (Sandman), and others. The mod has 7 hosts with grunts: Elektra, Multiple Man, Nick Fury, Red Skull Master of Hydra, Sandman, Shadowland Daredevil and Ultron Metal Tyrant. A grunt is its own `Database` row with a card, a model, `cStamH`, tokens and immunities. A host is spawnable once its grunts are migrated (`grunts` in `characters.json`, see `scripts/README.md`).
+
+- **Spawn:** when a host spawns, one character per grunt spawns with it, in the same state update: from the Library, from the roster popup and with a squad reveal. The grunt is a normal entry of `characters` with `host: <host id>` (`newCharacters` in `newCharacter.js`). So Damage, tokens, the model, P2P sync and the room preload work as for any character. The host stays first in the list.
+- **Not in the Library list.** Jarvis gives a grunt no MCT code, so a grunt is not a row of the Library or of a roster. `characters.js` keeps the grunt rows of a host in `grunts`, and finds the stats in the Jarvis row of the same name.
+- **Card on the host tray:** the grunt card lies on the tray of its host, below the host card(s) and the controls strip. It has its own "On" row of tokens above it and its own controls strip below it. The tray grows toward the owner by the depth of a whole tray (5.65"). The grunt has no tray of its own and no place in the row: it has the position of its host (`layoutTrays`).
+- **Sandman:** his 2 grunt cards lie side by side, 4.6" apart. His plate is wider toward the owner's right, and the host card, the "On" row and the Give sources keep their places. The trays after it move on, and the row stays centered (`layoutTrays`).
+- **Model:** the grunt model spawns on its card, and moves with the tray like any model on the tray area.
+- **Controls:** Damage (limit: the grunt Stamina) and Remove. No Power, no Flip and no "Show other side" in the popup. The card has only the Healthy side. F over a grunt does nothing.
+- **Tokens:** a grunt has its own tokens and can get a token by a drag onto its card or model. The Give sources of the host tray are shared: they hold the tokens of the host and of its grunts. A click on a source gives a token to the host, a drag onto the grunt card gives it to the grunt.
+- **Held tokens** lie on the card of the grunt that holds them.
+- **Delete:** the Delete key on the host card removes the host with its grunts and its constructs, after the same confirm (it says so). Tokens that they hold drop first. The Delete key on a grunt card removes nothing and says so. A restart of the setup removes the host and its grunts together.
+- **Rules:** a grunt cannot have Power (p21). The Power Phase skips it. In the Cleanup Phase a Dazed grunt has no Injured side to flip to, so it keeps its Damage and side and only loses Dazed and the special conditions (`cleanupCharacter`). The spectator view shows Damage only for a grunt.
+- **Roster popup:** the grunt cards of a host are in `variants` (see `docs/features/roster.md`).
+- **Space:** a host with grunts, one card and one row of Give sources reaches z 35.5" from the table center. The table edge is at 38", but the tool rack lies at z 34.2" to 36.8". The rack can overlap the grunt block of a tray near x = 0. The table is not changed for it yet.
+
 ## State
 
 New fields on each entry of `characters` in `App.jsx`:
@@ -399,7 +416,7 @@ A token dropped by Dazed or **Remove** waits for its place (`src/tokens/dropWait
 - Horsemen cards and Reserve members attached to a character. Infinity Gems are built (see [Attached cards](#attached-cards)). Facts: in TTS, a gem or Horsemen card attaches to the tray only if the character can have it (`cGem`, `cHorsemen` in the mod; `bearableGems`, `assignableToHorsemen` in Jarvis). The TTS cache has all 5 Horsemen faces, but only the Soul gem card.
 - Rule automation beyond the Power Phase and Cleanup Phase buttons (see `docs/features/round-phases.md`) and the drop of objective tokens: VP scoring, character effects of the Cleanup Phase.
 - A "Spawn Construct" button for more constructs than the host has, and the constructs of Ultimate Encounters (see [Constructs](#constructs)).
-- Grunts. They come next. Facts: 6 mod characters have `grunts` (Elektra, Nick Fury, Red Skull Master of Hydra, Sandman, Shadowland Daredevil, Ultron Metal Tyrant). Each grunt is its own `Database` row (for example Hand Ninjas) with a card, a model, `cStamH`, tokens and immunities. TTS spawns the grunt card with its model below the tray, and a Wounds counter. Sandman has 2 grunts; TTS puts their cards side by side. None of these characters is in the TTS cache yet.
+- The Wounds counter of a grunt in TTS. The Damage counter does its job.
 - The second card version of a character without a second form (`cards` > 1 and no `transform` in `characters.json`, for example Mephisto). The tray uses card 1.
 - Other immunities of a second form (p21), and the mod's `twoModels` and `sideways` flags (Ms. Marvel).
 - Tokens that lie on the table and not on a character (Use Tools, Pile).
@@ -414,12 +431,12 @@ A token dropped by Dazed or **Remove** waits for its place (`src/tokens/dropWait
 4. Immunity blocks a condition.
 5. Attached cards: the Infinity Gems are built. Horsemen cards and Reserve members wait.
 6. Tokens use the new art of the mod (rounded diamond for conditions), not the old round art.
-7. A player has one tray row only. Later, some trays can be wider (a grunt card, characters with 2 forms).
+7. A player has one tray row only. A tray with 2 grunt cards (Sandman) is wider.
 8. Character tokens are real size. A Give source never runs out, and a token can lie anywhere on the table.
 9. The Delete key removes a token on the table, as in TTS. A Tokens panel drag can also place a token on the table.
 10. A Source card has one supply pile that never runs out, below the card text. The Delete key also removes a crisis token that a character holds.
 11. A character with a second form spawns both models, as in TTS.
 12. A second card lies under the first card. Flip turns both. Each model spawns on its own card.
 13. The second model of a `oneCard` character spawns past the Give sources.
-14. The table grows from 66" to 68" deep. Sandman's 2 grunt cards will sit side by side, so only his tray will be wider.
-15. Grunts come later, after a grunt character is in the TTS cache.
+14. The table grows from 66" to 68" deep. Sandman's 2 grunt cards sit side by side, so only his tray is wider.
+15. A grunt is its own character with a link to its host, not a part of the host: it has its own Damage and tokens, and a tray part on the host tray.

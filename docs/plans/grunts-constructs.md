@@ -102,3 +102,21 @@ Built:
 
 Differences from the plan:
 - Phoenix has no construct files yet, so only Magneto shows constructs now.
+
+Phase 3 done.
+
+Built:
+- `characters.js`: each host row has `grunts`, the rows of its grunts. Their stats come from the Jarvis grunt row of the same name (the two Sand Constructs match "Sand Construct"). The grunt rows are not in `CHARACTERS`, so the Library does not list them. `characterGiveSources` of a host also lists the tokens of its grunts. `staminaInjured` is 0 for a row with no `backSide`.
+- `newCharacter.js`: `host` field, and `newCharacters(ch, team)` gives the host and one character per grunt. The Library, the roster popup and the squad reveal use it. The setup stores the grunt ids with the host, so a restart removes them.
+- `trays.js`: a grunt has the tray position of its host and no place in the row. `trayGruntSlot` gives the offset of a grunt card. The plate, the Give sources, the spare model and the constructs take a `grunts` count and move past the grunt block. Sandman's plate is wider toward the owner's right, and `layoutTrays` gives each tray the room of its plate.
+- `CharacterTray.jsx`, `Scene.jsx`: the grunt card, its "On" row and its controls are drawn by a second `CharacterTray` at the slot. The grunt model spawns on its card. Held tokens of a grunt lie on its card.
+- `TrayControls.jsx`, `TrayPopup.jsx`: no Power, no Flip and no "Show other side" for a grunt.
+- `useCharacterActions.js`: Delete on a host removes the host, its grunts and all their models and poses (`removalOf` in `models.js`). Delete on a grunt shows a HUD message. Flip and Power ignore a grunt.
+- `cleanup.js`: a Dazed grunt keeps its side and Damage and loses Dazed and special conditions. The rules text does not say more, so this is the simplest choice.
+- `rosters/cards.js`: the grunt cards of a host are in `variants`. `rooms/preload.js` loads the grunt models. P2P needed no change: the characters sync as whole objects.
+- Feature docs: new section "Grunts" in `character-trays.md`, `roster.md`, `round-phases.md`.
+- Tests: tray layout with grunt cards, Sandman width, row centering, new characters with grunts, delete with the host, Cleanup of a grunt.
+
+Open:
+- A host with grunts reaches z 35.5" from the table center. The tool rack starts at 34.2", so it can overlap the grunt block of a tray near x = 0. The table or the rack is not changed yet.
+- A click on a Give source gives the token to the host, also a token that only a grunt has. Players drag it onto the grunt for the grunt.

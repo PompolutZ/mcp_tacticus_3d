@@ -10,12 +10,13 @@ import { characterByCode } from '../characters/characters.js'
 import { parseRosterText } from '../rosters/cards.js'
 
 // The characters of a roster that have a model, in the form of a character on the table (App.jsx,
-// handleSpawn), so characterModels gives their models. The code is the id: only the files matter here.
+// handleSpawn), so characterModels gives their models. A host brings its grunts, as a spawn does. The code is the id: only the files matter here.
 function rosterCharacters(roster) {
   if (!roster) return []
   return parseRosterText(roster.code)
     .characters.map(({ code }) => characterByCode(code))
     .filter((ch) => ch?.available)
+    .flatMap((ch) => [ch, ...ch.grunts])
     .map((ch) => ({
       id: ch.mctCode,
       key: ch.slug,

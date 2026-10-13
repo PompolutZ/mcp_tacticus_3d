@@ -8,6 +8,7 @@ import {
   modelCardFile,
   modelFigureYaw,
   modelSpawnYaw,
+  removalOf,
   yawQuaternion,
 } from './models.js'
 import { characterCard, characterConstruct, transformCard } from './files.js'
@@ -103,4 +104,21 @@ test('a construct on the mat is not the character on the mat', () => {
   assert.equal(characterOnBoard(magneto, { 'm1:c1': pose(0, 0) }), false)
   assert.equal(characterOnBoard(magneto, { m1: pose(25, 0), 'm1:c1': pose(0, 0) }), false)
   assert.equal(characterOnBoard(magneto, { m1: pose(0, 0) }), true)
+})
+
+test('removalOf: the host with its grunts and every model of them', () => {
+  const host = { ...ch, id: 'h', constructs: 1 }
+  const g1 = { ...ch, id: 'g1', key: 'twisty', host: 'h' }
+  const g2 = { ...ch, id: 'g2', key: 'fisty', host: 'h' }
+  const other = { ...ch, id: 'o' }
+  const out = removalOf([host, other, g1, g2], 'h')
+  assert.deepEqual(out.characters, ['h', 'g1', 'g2'])
+  assert.deepEqual(out.models, ['h', 'h:c1', 'g1', 'g2'])
+})
+
+test('removalOf: a grunt alone, or an unknown id, removes nothing', () => {
+  const host = { ...ch, id: 'h' }
+  const grunt = { ...ch, id: 'g1', host: 'h' }
+  assert.deepEqual(removalOf([host, grunt], 'g1'), { characters: [], models: [] })
+  assert.deepEqual(removalOf([host, grunt], 'zz'), { characters: [], models: [] })
 })

@@ -6,7 +6,6 @@ import { trayCardFile } from '../characters/files.js'
 import { trayCards } from '../characters/models.js'
 import { characterGiveSources, characterName, characterStamina } from '../characters/characters.js'
 import {
-  TRAY_BG_WIDTH,
   TRAY_BG_Y,
   TRAY_CARD_HEIGHT,
   TRAY_CARD_WIDTH,
@@ -57,6 +56,11 @@ const CLICK_MOVE = 4
 // onCardImageHover(card, over): the same, with the image under the pointer, { src, alt, by }, for Alt (useCardPeek.js).
 // onTokenDragStart gets the id of the character as the 4th argument: a click on a Give source gives
 // that character one token.
+// grunts: the number of grunt cards on the tray of a host, 0 for none: the plate and the Give sources
+// follow it (trays.js). A grunt (character.host) has no plate and no Give sources: the host's tray draws
+// its card, On row and controls strip at `slot`, the grunt's offset from the host card (trays.js,
+// trayGruntSlot). A grunt's card has only the Healthy side, and its controls have no Power and no Flip
+// (docs/features/character-trays.md, "Grunts"). The grunt's position is the host's.
 export default function CharacterTray({
   character,
   position,
@@ -74,21 +78,23 @@ export default function CharacterTray({
   onTokenDragStart,
   selected = false,
   objectRef,
+  grunts = 0,
+  slot = [0, 0],
 }) {
   // Both sides of every card load when the tray mounts, so the first Flip does not wait for an image
   // (that wait hides the tray, see Scene.jsx, Suspense). The order is fixed: the loader caches by
   // the URL list.
+  const isGrunt = Boolean(character.host)
   const cards = trayCards(character)
   const cardNumbers = cards === 2 ? [1, 2] : [1]
   const cardFile = (n, side) => trayCardFile(character.key, side, n)
+  const sides = isGrunt ? ['healthy'] : ['healthy', 'injured']
   const maps = useColorTexture(
-    cardNumbers.flatMap((n) => [
-      assetUrl(cardFile(n, 'healthy')),
-      assetUrl(cardFile(n, 'injured')),
-    ]),
+    cardNumbers.flatMap((n) => sides.map((side) => assetUrl(cardFile(n, side)))),
   )
-  const sideMap = (n) => maps[(n - 1) * 2 + (character.side === 'healthy' ? 0 : 1)]
-  const plate = trayPlate(cards)
+  const sideMap = (n) =>
+    maps[(n - 1) * sides.length + (character.side === 'injured' && !isGrunt ? 1 : 0)]
+  const plate = trayPlate(cards, grunts)
   const stamina = characterStamina(character.key, character.side)
   const yaw = trayYaw(character.team)
   // Group of the cards, the outline target
@@ -153,67 +159,86 @@ export default function CharacterTray({
     <group position={position} rotation={[0, yaw, 0]}>
       {/* Background plate under every part, so the tray stands out from the table
           (docs/features/character-trays.md, "One tray"). No collider, no shadow: it is purely visual. */}
-      <mesh position={[0, TRAY_BG_Y, plate.z]} rotation={[-Math.PI / 2, 0, 0]} ref={objectRef}>
-        <planeGeometry args={[TRAY_BG_WIDTH, plate.depth]} />
-        <meshStandardMaterial color="#20242b" roughness={1} />
-      </mesh>
-      <group ref={cardRef}>
-        {cardNumbers.map((n) => (
-          <mesh
-            key={n}
-            position={[0, 0, trayCardLocalZ(n)]}
-            rotation={[-Math.PI / 2, 0, 0]}
-            onClick={openPopup}
-            onPointerOver={(e) => {
-              e.stopPropagation()
-              setHoveredCard(n)
-            }}
-            onPointerOut={() => setHoveredCard((now) => (now === n ? null : now))}
-          >
-            <planeGeometry args={[TRAY_CARD_WIDTH, TRAY_CARD_HEIGHT]} />
-            <FaceMaterial map={sideMap(n)} side={DoubleSide} />
-          </mesh>
-        ))}
-      </group>
-      {/* "On" row above the card, where TTS shows the tokens on a character. Each token has its own
+      {!isGrunt && (
+        <mesh
+          position={[plate.x, TRAY_BG_Y, plate.z]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          ref={objectRef}
+        >
+          <planeGeometry args={[plate.width, plate.depth]} />
+          <meshStandardMaterial color="#20242b" roughness={1} />
+        </mesh>
+      )}
+      <group position={[slot[0], 0, slot[1]]}>
+        <group
+          ref={(obj) => {
+            cardRef.current = obj
+            // A grunt has no plate, so its card is what a dropped token finds (Scene.jsx, characterAt)
+            if (isGrunt) objectRef?.(obj)
+          }}
+        >
+          {cardNumbers.map((n) => (
+            <mesh
+              key={n}
+              position={[0, 0, trayCardLocalZ(n)]}
+              rotation={[-Math.PI / 2, 0, 0]}
+              onClick={openPopup}
+              onPointerOver={(e) => {
+                e.stopPropagation()
+                setHoveredCard(n)
+              }}
+              onPointerOut={() => setHoveredCard((now) => (now === n ? null : now))}
+            >
+              <planeGeometry args={[TRAY_CARD_WIDTH, TRAY_CARD_HEIGHT]} />
+              <FaceMaterial map={sideMap(n)} side={DoubleSide} />
+            </mesh>
+          ))}
+        </group>
+        {/* "On" row above the card, where TTS shows the tokens on a character. Each token has its own
           Suspense: a new token image loads without hiding the tray. */}
-      {onTokens.map(([key, count], i) => {
-        const [x, z] = trayOnTokenPosition(i, onTokens.length)
-        return (
-          <group key={key} position={[x, TOKEN_Y, z]}>
-            <Suspense fallback={null}>
-              <TokenFace tokenKey={key} count={count} onClick={(e) => removeOnToken(e, key)} />
-            </Suspense>
-          </group>
-        )
-      })}
-      {/* Give sources, on the table next to the plate. */}
-      {giveKeys.map((key, i) => {
-        const [x, z] = trayGiveTokenPosition(i, cards)
-        return (
-          <group key={key} position={[x, TOKEN_Y, z]}>
-            <Suspense fallback={null}>
-              <TokenFace tokenKey={key} cursor="grab" onPointerDown={(e) => startGive(e, key)} />
-            </Suspense>
-          </group>
-        )
-      })}
-      {/* Rx(-pi/2) lays the Html flat on the table facing up, with its top to local -Z, the same
+        {onTokens.map(([key, count], i) => {
+          const [x, z] = trayOnTokenPosition(i, onTokens.length)
+          return (
+            <group key={key} position={[x, TOKEN_Y, z]}>
+              <Suspense fallback={null}>
+                <TokenFace tokenKey={key} count={count} onClick={(e) => removeOnToken(e, key)} />
+              </Suspense>
+            </group>
+          )
+        })}
+        {/* Give sources, on the table next to the plate. */}
+        {!isGrunt &&
+          giveKeys.map((key, i) => {
+            const [x, z] = trayGiveTokenPosition(i, cards, grunts)
+            return (
+              <group key={key} position={[x, TOKEN_Y, z]}>
+                <Suspense fallback={null}>
+                  <TokenFace
+                    tokenKey={key}
+                    cursor="grab"
+                    onPointerDown={(e) => startGive(e, key)}
+                  />
+                </Suspense>
+              </group>
+            )
+          })}
+        {/* Rx(-pi/2) lays the Html flat on the table facing up, with its top to local -Z, the same
           as the card. So the owner reads it the right way up. */}
-      <group position={[0, 0.02, trayControlsLocalZ(cards)]} rotation={[-Math.PI / 2, 0, 0]}>
-        <Html center transform>
-          <TrayControls
-            character={character}
-            stamina={stamina}
-            onDamage={onDamage}
-            onPower={onPower}
-            onFlip={onFlip}
-            onRemove={onRemove}
-            onBoard={onBoard}
-            removeWait={removeWait}
-            onAttachedOpen={onAttachedOpen}
-          />
-        </Html>
+        <group position={[0, 0.02, trayControlsLocalZ(cards)]} rotation={[-Math.PI / 2, 0, 0]}>
+          <Html center transform>
+            <TrayControls
+              character={character}
+              stamina={stamina}
+              onDamage={onDamage}
+              onPower={onPower}
+              onFlip={onFlip}
+              onRemove={onRemove}
+              onBoard={onBoard}
+              removeWait={removeWait}
+              onAttachedOpen={onAttachedOpen}
+            />
+          </Html>
+        </group>
       </group>
     </group>
   )

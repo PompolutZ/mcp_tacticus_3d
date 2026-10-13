@@ -9,6 +9,8 @@ import { characterOnBoard } from './models.js'
 // All characters lose Activated and the cleanup tokens. A Dazed character also gets Damage 0, the Injured
 // side (set, not toggled), and loses Dazed and every special condition. A token with count 0 is not in
 // the map, so removing a key deletes it.
+// A grunt (ch.host) has no Injured side: a Dazed grunt keeps its side and its Damage and only loses
+// Dazed and the special conditions (docs/features/round-phases.md, decision 8).
 export function cleanupCharacter(ch, cleanupKeys) {
   const keys = new Set(cleanupKeys)
   keys.add('activated')
@@ -23,7 +25,7 @@ export function cleanupCharacter(ch, cleanupKeys) {
     if (keys.has(key)) changed = true
     else tokens[key] = count
   }
-  const flip = dazed && (ch.damage !== 0 || ch.side !== 'injured')
+  const flip = dazed && !ch.host && (ch.damage !== 0 || ch.side !== 'injured')
   if (!changed && !flip) return ch
   return flip ? { ...ch, tokens, damage: 0, side: 'injured' } : { ...ch, tokens }
 }
