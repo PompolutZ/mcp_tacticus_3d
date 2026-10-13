@@ -200,6 +200,30 @@
       "characters/blue-marvel/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLUE_MARVEL_UI.png"
     }
   },
+  "captain-america-sam-wilson": {
+    "id": "00380101",
+    "sources": {
+      "characters/captain-america-sam-wilson/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_AMERICA_SAM_WILSON_healthy.jpg",
+      "characters/captain-america-sam-wilson/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_AMERICA_SAM_WILSON_injured.jpg",
+      "characters/captain-america-sam-wilson/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/CAPTAIN_AMERICA_SAM_WILSON_MODEL.unity3d",
+      "characters/captain-america-sam-wilson/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_AMERICA_SAM_WILSON_UI.png"
+    }
+  },
+  "captain-marvel-cosmic-avenger": {
+    "id": "01430103",
+    "sources": {
+      "characters/captain-marvel-cosmic-avenger/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_MARVEL_COSMIC_AVENGER_NORMAL_healthy.jpg",
+      "characters/captain-marvel-cosmic-avenger/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_MARVEL_COSMIC_AVENGER_NORMAL_injured.jpg",
+      "characters/captain-marvel-cosmic-avenger/card-2-healthy.webp": "https://steamusercontent-a.akamaihd.net/ugc/2548556315441196389/15035D0B3211760F8C689E1E37217E4421DB7E75/",
+      "characters/captain-marvel-cosmic-avenger/card-2-injured.webp": "https://steamusercontent-a.akamaihd.net/ugc/2548556315441196179/865067D01F9ABDC9CEB618817C2225C6B0FB724C/",
+      "characters/captain-marvel-cosmic-avenger/transform-card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_MARVEL_COSMIC_AVENGER_BINARY_healthy.jpg",
+      "characters/captain-marvel-cosmic-avenger/transform-card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_MARVEL_COSMIC_AVENGER_BINARY_injured.jpg",
+      "characters/captain-marvel-cosmic-avenger/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/CAPTAIN_MARVEL_COSMIC_AVENGER_MODEL.unity3d",
+      "characters/captain-marvel-cosmic-avenger/transform.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/CAPTAIN_MARVEL_COSMIC_AVENGER_MODEL_TRANSFORM.unity3d",
+      "characters/captain-marvel-cosmic-avenger/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_MARVEL_COSMIC_AVENGER_UI.png",
+      "characters/captain-marvel-cosmic-avenger/transform-portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_MARVEL_COSMIC_AVENGER_UI_TRANSFORM.png"
+    }
+  },
   "cassandra-nova": {
     "id": "00530101",
     "sources": {
@@ -496,6 +520,15 @@
       "characters/iron-lad/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/IRON_LAD_UI.png"
     }
   },
+  "iron-man": {
+    "id": "00010107",
+    "sources": {
+      "characters/iron-man/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/IRON_MAN_healthy.jpg",
+      "characters/iron-man/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/IRON_MAN_injured.jpg",
+      "characters/iron-man/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/IRON_MAN_MODEL.unity3d",
+      "characters/iron-man/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/IRON_MAN_UI.png"
+    }
+  },
   "iron-monger": {
     "id": "01540102",
     "sources": {
@@ -620,6 +653,15 @@
       "characters/loki-prince-of-lies/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LOKI_PRINCE_OF_LIES_injured.jpg",
       "characters/loki-prince-of-lies/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/LOKI_PRINCE_OF_LIES_MODEL.unity3d",
       "characters/loki-prince-of-lies/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LOKI_PRINCE_OF_LIES_UI.png"
+    }
+  },
+  "luke-cage": {
+    "id": "00490102",
+    "sources": {
+      "characters/luke-cage/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LUKE_CAGE_healthy.jpg",
+      "characters/luke-cage/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LUKE_CAGE_injured.jpg",
+      "characters/luke-cage/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/LUKE_CAGE_MODEL.unity3d",
+      "characters/luke-cage/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LUKE_CAGE_UI.png"
     }
   },
   "m-baku": {
@@ -983,6 +1025,15 @@
       "characters/shadow-king/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHADOW_KING_UI.png"
     }
   },
+  "she-hulk": {
+    "id": "00390101",
+    "sources": {
+      "characters/she-hulk/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHE_HULK_healthy.jpg",
+      "characters/she-hulk/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHE_HULK_injured.jpg",
+      "characters/she-hulk/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SHE_HULK_MODEL.unity3d",
+      "characters/she-hulk/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHE_HULK_UI.png"
+    }
+  },
   "shuri": {
     "id": "00080102",
     "sources": {
@@ -1019,6 +1070,15 @@
       "characters/spectacular-spider-man/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPECTACULAR_SPIDER_MAN_UI.png"
     }
   },
+  "spectrum": {
+    "id": "01290102",
+    "sources": {
+      "characters/spectrum/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPECTRUM_healthy.jpg",
+      "characters/spectrum/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPECTRUM_injured.jpg",
+      "characters/spectrum/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SPECTRUM_MODEL.unity3d",
+      "characters/spectrum/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPECTRUM_UI.png"
+    }
+  },
   "spider-woman": {
     "id": "01000102",
     "sources": {
@@ -1026,6 +1086,15 @@
       "characters/spider-woman/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_WOMAN_injured.jpg",
       "characters/spider-woman/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SPIDER_WOMAN_MODEL.unity3d",
       "characters/spider-woman/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_WOMAN_UI.png"
+    }
+  },
+  "steve-rogers-captain-america": {
+    "id": "00770101",
+    "sources": {
+      "characters/steve-rogers-captain-america/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/STEVE_ROGERS_CAPTAIN_AMERICA_healthy.jpg",
+      "characters/steve-rogers-captain-america/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/STEVE_ROGERS_CAPTAIN_AMERICA_injured.jpg",
+      "characters/steve-rogers-captain-america/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/STEVE_ROGERS_CAPTAIN_AMERICA_MODEL.unity3d",
+      "characters/steve-rogers-captain-america/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/STEVE_ROGERS_CAPTAIN_AMERICA_UI.png"
     }
   },
   "storm": {

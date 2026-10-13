@@ -232,6 +232,30 @@
       "stun"
     ]
   },
+  "captain-america-sam-wilson": {
+    "id": "00380101",
+    "name": "Captain America (Sam Wilson)",
+    "base": "small",
+    "figure": "model",
+    "rotation": 45
+  },
+  "captain-marvel-cosmic-avenger": {
+    "id": "01430103",
+    "name": "Captain Marvel, Cosmic Avenger",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "cards": 2,
+    "transform": {
+      "figure": "model",
+      "rotation": 0,
+      "card": true,
+      "portrait": true
+    },
+    "tokens": [
+      "incinerate"
+    ]
+  },
   "cassandra-nova": {
     "id": "00530101",
     "name": "Cassandra Nova",
@@ -575,6 +599,13 @@
       "stun"
     ]
   },
+  "iron-man": {
+    "id": "00010107",
+    "name": "Iron Man",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180
+  },
   "iron-monger": {
     "id": "01540102",
     "name": "Iron Monger",
@@ -704,6 +735,18 @@
     "rotation": 180,
     "tokens": [
       "root"
+    ]
+  },
+  "luke-cage": {
+    "id": "00490102",
+    "name": "Luke Cage",
+    "base": "small",
+    "figure": "model",
+    "rotation": 30,
+    "tokens": [
+      "stagger",
+      "slow",
+      "stun"
     ]
   },
   "m-baku": {
@@ -1107,6 +1150,18 @@
       "root"
     ]
   },
+  "she-hulk": {
+    "id": "00390101",
+    "name": "She-Hulk",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "slow",
+      "stun",
+      "stagger"
+    ]
+  },
   "shuri": {
     "id": "00080102",
     "name": "Shuri",
@@ -1142,6 +1197,16 @@
     "figure": "model",
     "rotation": 0
   },
+  "spectrum": {
+    "id": "01290102",
+    "name": "Spectrum",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "stun"
+    ]
+  },
   "spider-woman": {
     "id": "01000102",
     "name": "Spider-Woman",
@@ -1152,6 +1217,17 @@
       "poison",
       "shock",
       "stun"
+    ]
+  },
+  "steve-rogers-captain-america": {
+    "id": "00770101",
+    "name": "Steve Rogers, Captain America",
+    "base": "small",
+    "figure": "model",
+    "rotation": 330,
+    "tokens": [
+      "stun",
+      "slow"
     ]
   },
   "storm": {
