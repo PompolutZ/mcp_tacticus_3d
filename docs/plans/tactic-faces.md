@@ -1,16 +1,22 @@
 # Plan: Generated faces of the Team Tactic cards
 
-Requested on 2026-10-13. The face images from the TTS mod are pale scans, and some have old text. The user wants faces that look like the Jarvis Protocol cards: the card art at low opacity, with clean text from the Jarvis data. Jarvis draws its faces in HTML. A prototype drew 12 cards this way (see "Prototype files" below). The user approved the result.
+Requested on 2026-10-13. The face images from the TTS mod are pale scans, and some have old text. The user wants faces that look like the Jarvis Protocol cards: the card art at low opacity, with clean text from the Jarvis data. Jarvis draws its faces in HTML.
+
+The first version of this plan rendered the faces to WebP files with a script. The user changed the request: the app draws the face with a React component, from the back art, the Jarvis data, our fonts and our icons. A test step (commit `67486e2`) drew 3 cards this way, as DOM in the popup and as a canvas texture on the table. The user checked it in Chrome, Safari and Firefox, and it works.
 
 ## Facts
 
 Checked on 2026-10-13:
-- All 400 released cards are migrated: face and back (`src/assets/tactics/`, 800 files). Faces are mod scans. Backs are the card art with the name bar.
-- Jarvis has no face image. Its page draws the face in HTML: the art (`card_backs/<slug>.png` on its CDN, the same art as our backs) at opacity 0.2, a title bar, affiliation, type, text. Its CSS card size is 446 × 640.
+- All 400 released cards are migrated: face and back (`src/assets/tactics/`, 800 files, 127 MB). Faces are mod scans. Backs are the card art with the name bar.
+- Faces are shown in these places:
+  - 3D, as a texture: `TacticCard.jsx`, `RosterCards.jsx` (`Face`).
+  - HTML, as `<img>`: `CardPopup.jsx`, the Alt peek (`useCardPeek.js`), `RosterPopup.jsx`, `TrayPopup.jsx` (gems only).
+  - `Library.jsx` shows only the back.
+- Jarvis has no face image. Its page draws the face in HTML: the art at opacity 0.2, a title bar, affiliation, type, text. Its CSS card size is 446 × 640. That is not the real card shape (2.5 × 3.5).
 - The list `GET /api/team_tactics_cards` already has the full card data: `type`, `body`, `secondaryBody`, `intermediaryBody`, `superPowers`, `attacks`, `artist`, `affiliation`, `squished`, `biggerIcons`. So one request gets all cards. `fetch-jarvis-tactics.mjs` keeps only a few of these fields now.
 - Match with `src/tactics/cards.json`: 383 cards by `exportCode` = `id`, 14 more by slug = key. 3 match neither: `go-getem-tiger`, `parts-of-a-whole`, `replusor-refraction` (spelling differences).
-- Jarvis uses paid fonts (Agency FB, Avenir Next LT Pro, Minion Pro). The prototype uses free fonts with the SIL Open Font License: Barlow Condensed (title, affiliation, footer, superpower names) and Noto Sans at `font-stretch: 75%` (type line, text).
-- Jarvis icons are PNGs in its JS bundle (`/assets/images/<hash>.png`), mostly 32 × 32, a few 68 × 68. They have no licence notice. They show the AMG game symbols. About 25 icons are in use: range, power, damage, dice results, size, attack types, superpower types, and others.
+- Fonts: Barlow Condensed (`@fontsource/barlow-condensed`) and Noto Sans with the width axis (`@fontsource-variable/noto-sans`, family `Noto Sans Variable`). Both use the SIL Open Font License. Jarvis uses paid fonts.
+- Jarvis icons are PNGs in its JS bundle, mostly 32 × 32, a few 68 × 68. The prototype has 28. They show the AMG game symbols.
 - Jarvis body markup, parser `ZS` in its bundle. The body is split on `|`. The first character of a part sets its kind:
   - `\` is a paragraph break.
   - `!x` is the icon x.
@@ -34,83 +40,74 @@ Checked on 2026-10-13:
   6. `intermediaryBody`
   7. the remaining superpowers
   8. the footer: `© MARVEL © AMG`, feather, artist. With no artist, the feather is left out too.
-- No browser library is in the repo. The prototype used `playwright-core` from the npx cache.
+- Test step results:
+  - The texture method: mount the component off screen, wait for fonts and layout, copy the DOM into an SVG `<foreignObject>` with fonts, art and icons inlined as data URLs, draw the SVG into a canvas, use it as a `CanvasTexture`. Safari needs 2 draws with a frame between.
+  - One card is about 0.6 MB of SVG. Most of it is the art and the fonts.
 
-Prototype files, outside the repo in `/Users/olehlutsenko/_dev/tactic-faces-prototype/`:
-- `template.html`: the card template, with the parser and the fit loop
-- `build.mjs`, `shot2.mjs`, `old.mjs`: build, screenshot and old-face scripts. Their paths still point to the old session scratchpad.
-- `data/`: the Jarvis entries of the test cards
-- `icons/` and `icon_hashes.json`: the Jarvis icons and their bundle hashes
-- `renders/`: the approved renders
-- `compare/`: each render next to the old scan, plus contact sheets
-
-Phase 2 copies what it needs into the repo. The folder is deleted when the plan is done.
+Prototype files, outside the repo in `/Users/olehlutsenko/_dev/tactic-faces-prototype/`: `template.html` (template, parser, fit loop), `data/` (Jarvis entries of 12 test cards, `en.json`), `icons/` and `icon_hashes.json`, `renders/` (approved renders), `compare/`. The folder is deleted when the plan is done.
 
 ## Decisions
 
-1. **A script renders the faces to WebP.** The app does not change: it still loads `<key>-face.webp`. A text update from Jarvis means: fetch, then render again.
-2. **The generated face replaces the mod scan**, same file name. `migrate-tactics.mjs` stops converting faces. It still converts backs and writes `cards.json`. A card without Jarvis data, and the Infinity Gems, keep the mod scan. The script converts those faces only.
-3. **The card text stays out of the app bundle.** `src/tactics/jarvis-tactics-cards.json` keeps its current fields, because the app imports it. The fetch script writes the text fields to a second file, `scripts/jarvis-tactics-text.json`. Only the render script reads it.
-4. **Match:** first `exportCode`, then slug. The 3 cards that match neither go into a small map of key to Jarvis slug in the render script.
+1. **The face is a React component, `TacticFace`.** HTML places render it directly. 3D places use a canvas texture drawn from the same component. There is one layout, so the table and the popup look the same.
+2. **Card shape:** the layout is 457 × 640 CSS px, the real 2.5 × 3.5 shape. The texture is 728 × 1019 px (scale 1.59).
+3. **Data:** `fetch-jarvis-tactics.mjs` writes the text fields to `src/tactics/jarvis-tactics-text.json`. The app loads it with a dynamic `import()`, so it is a separate chunk and the main bundle does not grow. `jarvis-tactics-cards.json` does not change.
+4. **Match:** first `exportCode`, then slug. The 3 cards that match neither go into a small map of key to Jarvis slug in the fetch script.
 5. **Art:** our back image (`<key>-back.webp`) at opacity 0.2. The title bar covers the art's own name bar fully.
-6. **Fonts:** Barlow Condensed and Noto Sans, as `.woff2` files in the repo, with their OFL licence file. No Google Fonts link, so a render works offline and gives the same result on every run.
-7. **Fit:** the text starts at 19.5 px and shrinks in 0.5 px steps until all blocks fit, with at least 14 px above the footer and below the title. The `squished` flag is not used. The script prints the cards that need less than 15 px, so a person can check them.
-8. **Browser:** `playwright-core` as a dev dependency of `apps/web`, with the installed Chrome (`channel: 'chrome'`). No browser download.
-9. **Output size:** the layout is 446 × 640 CSS px. It is rendered at device scale 2.33, and the WebP is about 1040 px high, the same as `CARD_SIZE` today.
-10. **Icons:** the Jarvis PNGs first, stored in the repo. They look a bit soft at the output size, because a 32 px icon is drawn at about 50 px. A later plan replaces them with our own SVGs, one at a time. The user chose this on 2026-10-13.
+6. **Fit:** the text starts at 19.5 px and shrinks in 0.5 px steps until all blocks fit, with at least 14 px above the footer and below the title. The `squished` flag is not used. In dev, the console lists the cards that need less than 15 px.
+7. **Icons:** the Jarvis PNGs, converted to lossless WebP in `src/assets/tactic-icons/`, named by meaning. A later plan can replace them with SVGs one at a time. The component does not change for that.
+8. **Texture life:** a texture is drawn when a card first needs it, and then cached by key. Until it is ready, the face shows the art at opacity 0.2 on the card color, without text.
+9. **The mod face scans go away** for every card with Jarvis data. `migrate-tactics.mjs` stops writing those faces. Cards without Jarvis data (the Infinity Gems) keep the scan, and use the old `<img>` and texture path.
 
-## Phase 1: Jarvis text data
+## Phase 1: Data and icons
 
-Read: this plan, `scripts/fetch-jarvis-tactics.mjs`, `scripts/lib/jarvis.mjs`, `scripts/README.md` ("Jarvis Team Tactic cards").
-
-Work:
-1. `fetch-jarvis-tactics.mjs` also writes `scripts/jarvis-tactics-text.json` (decision 3). Per card: `slug`, `exportCode`, `name`, `type`, `body`, `secondaryBody`, `intermediaryBody`, `superPowers`, `attacks`, `artist`, the affiliation name, `biggerIcons`. Sorted by slug.
-2. The script prints how many cards of `src/tactics/cards.json` match by code, by slug, and not at all.
-3. README: the new file and its fields.
-
-Checks: one real run (one request). `pnpm format`, `pnpm lint`. Commit with the new JSON.
-
-## Phase 2: Render script
-
-Read: this plan, the prototype files, `scripts/migrate-tactics.mjs`, `scripts/lib/manifest.mjs`, `src/tactics/files.js`, `scripts/README.md` ("TTS tactic cards").
+Read: this plan, `scripts/fetch-jarvis-tactics.mjs`, `scripts/lib/jarvis.mjs`, `scripts/README.md` ("Jarvis Team Tactic cards"), `src/tactics/spikeFaces.js`.
 
 Work:
-1. `scripts/tactic-face/`:
-   - `template.html` with its CSS
-   - `body.mjs`: the body parser, a pure function from the Jarvis body string to a list of parts, with a unit test in the style of `lib/*.test.js`
-   - `fonts/` with the `.woff2` files and `OFL.txt`
-   - `icons/`
-2. `scripts/render-tactics.mjs`:
-   - What it renders: all cards with Jarvis data, or the keys given as arguments. `--out <dir>` for a trial run, as in the migrate scripts.
-   - For each card: data, art, page, screenshot, WebP into `src/assets/tactics/<key>-face.webp`. Decisions 4 to 9.
-   - One browser page for all cards.
-   - It prints the cards with small text (decision 7), and the cards without Jarvis data.
-3. Prototype fixes:
-   - The title bar covers the art's name bar (decision 5). Example: Stolen Power of Cyttorak.
+1. `fetch-jarvis-tactics.mjs` also writes `src/tactics/jarvis-tactics-text.json` (decisions 3 and 4). Keyed by our card key. Per card: `type`, `body`, `secondaryBody`, `intermediaryBody`, `superPowers`, `attacks`, `artist`, the affiliation name, `biggerIcons`. Only the fields the face uses.
+2. The script prints how many cards match by code, by slug, by the map, and not at all.
+3. All 28 prototype icons to lossless WebP in `src/assets/tactic-icons/`, named by meaning. A map from the Jarvis icon id (as used in `!x`) to the file. Remove the icons nobody uses after the full data is in.
+4. README: the new file and its fields, and the icons.
+
+Checks: one real run (one request). `pnpm format`, `pnpm lint`. Commit.
+
+## Phase 2: The component everywhere
+
+Read: this plan, the spike files (`TacticFace.jsx`, `TacticFace.css`, `tacticFaceFit.js`, `tacticFaceTexture.js`, `useTacticFaceTexture.js`, `src/tactics/faceBody.js`, `spikeFaces.js`), `TacticCard.jsx`, `RosterCards.jsx`, `CardPopup.jsx`, `useCardPeek.js`, `RosterPopup.jsx`, `docs/features/team-tactic-cards.md`.
+
+Work:
+1. `TacticFace` reads from `jarvis-tactics-text.json` (decision 3). All markup kinds, all type labels, attack panel, superpowers, footer.
+2. Layout 457 × 640, texture 728 × 1019 (decision 2).
+3. Fixes from the prototype review:
+   - The title bar covers the art's name bar. Example: Stolen Power of Cyttorak.
    - Superpower and attack names in small caps, as on the real card.
    - The superpower panel a little see-through, as on the scan.
-4. `migrate-tactics.mjs`: decision 2. Its `--list` shows if a face is generated or a mod scan.
-5. `package.json`: the script `render-tactics`, and the dev dependency `playwright-core`.
-6. README: a new section "Generated tactic faces", covering the facts, the markup and the run order. The run order is `fetch-jarvis-tactics`, then `migrate-tactics` (backs), then `render-tactics`.
+4. Texture: decision 8. One shared module and hook for both 3D places.
+5. Use it in `TacticCard.jsx`, `RosterCards.jsx`, `CardPopup.jsx`, the Alt peek and `RosterPopup.jsx`. Gems keep the image (decision 9).
+6. A dev-only page that shows all faces in a grid, with the font size under each card. It is for the layout check in phase 3. It is not in the production build.
+7. Remove `spikeFaces.js` and `spike-faces.json`.
+8. Feature doc `team-tactic-cards.md`: the face is drawn from Jarvis data; the gems keep the scan; decisions 1, 7, 8, 9.
 
-Checks:
-- Render the 12 prototype cards: `patch-up`, `spirit-of-wakanda`, `foreign-assignment`, `immortal-servants`, `chronal-manipulation`, `clean-up`, `caught-in-a-ham`, `scientific-method`, `venomized`, `mutant-traitor`, `stolen-power-of-cyttorak`, `the-invaders`. Compare them with the prototype PNGs.
-- Run `pnpm format`, `pnpm lint`, the tests, and `pnpm --filter web build`.
-- Commit the script and these 12 faces only.
+Checks: `pnpm format`, `pnpm lint`, the tests, `pnpm --filter web build`. Commit. The user checks the cards in the app.
 
-## Phase 3: All faces
+## Phase 3: Layout check of all cards
 
 Work:
-1. Run `render-tactics` for all cards.
-2. Look at a contact sheet of the cards from the small-text list, and of 20 random cards. Fix the layout problems found. Repeat.
-3. `docs/features/team-tactic-cards.md`:
-   - "Cards": the face is generated from Jarvis data, and the Gems and unmatched cards keep the scan.
-   - "Out of scope": the card text is now in the repo (for the renderer only).
-   - "Decisions": the new decision.
+1. The user opens the dev page and lists the cards that look wrong. (If the user allows it, the coder takes screenshots of the page instead.)
+2. Fix the layout problems. Repeat.
 
-Checks: `pnpm format`, `pnpm lint`, `pnpm --filter web build`. Commit the faces. Then the user checks the cards in the app.
+Checks: `pnpm format`, `pnpm lint`, `pnpm --filter web build`. One commit per round.
+
+## Phase 4: Remove the scans
+
+Work:
+1. `migrate-tactics.mjs`: decision 9. Its `--list` shows if a face is drawn or a mod scan.
+2. Delete the face scans of the cards with Jarvis data.
+3. README: a section "Tactic faces", covering the data, the markup, the icons and the run order (`fetch-jarvis-tactics`, then `migrate-tactics`).
+4. Delete the prototype folder.
+
+Checks: `pnpm format`, `pnpm lint`, `pnpm --filter web build`. Commit.
 
 ## Later
 
-- Icons as SVG, one at a time (decision 10).
-- The same template for character stat cards, or for custom cards, as Jarvis has.
+- Icons as SVG, one at a time.
+- The same component for character stat cards, or for custom cards, as Jarvis has.
