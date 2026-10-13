@@ -365,6 +365,13 @@
     "figure": "model",
     "rotation": 45
   },
+  "captain-america-steve-rogers": {
+    "id": "00010103",
+    "name": "Captain America (Steve Rogers)",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180
+  },
   "captain-marvel": {
     "id": "00010104",
     "name": "Captain Marvel",
@@ -2339,6 +2346,16 @@
       "poison",
       "stun",
       "slow"
+    ]
+  },
+  "vision": {
+    "id": "00130101",
+    "name": "Vision",
+    "base": "small",
+    "figure": "model",
+    "rotation": 75,
+    "tokens": [
+      "phased"
     ]
   },
   "vulture": {

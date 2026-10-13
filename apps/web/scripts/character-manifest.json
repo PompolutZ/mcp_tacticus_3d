@@ -319,6 +319,15 @@
       "characters/captain-america-sam-wilson/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_AMERICA_SAM_WILSON_UI.png"
     }
   },
+  "captain-america-steve-rogers": {
+    "id": "00010103",
+    "sources": {
+      "characters/captain-america-steve-rogers/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_AMERICA_STEVE_ROGERS_healthy.jpg",
+      "characters/captain-america-steve-rogers/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_AMERICA_STEVE_ROGERS_injured.jpg",
+      "characters/captain-america-steve-rogers/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/CAPTAIN_AMERICA_STEVE_ROGERS_MODEL.unity3d",
+      "characters/captain-america-steve-rogers/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_AMERICA_STEVE_ROGERS_UI.png"
+    }
+  },
   "captain-marvel": {
     "id": "00010104",
     "sources": {
@@ -2071,6 +2080,15 @@
       "characters/viper/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VIPER_injured.jpg",
       "characters/viper/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/VIPER_MODEL.unity3d",
       "characters/viper/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VIPER_UI.png"
+    }
+  },
+  "vision": {
+    "id": "00130101",
+    "sources": {
+      "characters/vision/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VISION_healthy.jpg",
+      "characters/vision/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VISION_injured.jpg",
+      "characters/vision/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/VISION_MODEL.unity3d",
+      "characters/vision/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VISION_UI.png"
     }
   },
   "vulture": {
