@@ -240,7 +240,7 @@ From the Jarvis rules reference (rulebook 1.3.0 and 1.4.0):
 - Jarvis lists the affiliations of each character (`affiliations[]` in `src/characters/jarvis-characters.json`): `slug`, `name`, `isLeader`, `isLeaderWithTeamTactics`, `timelines`.
 - 21 characters can get a Leadership ability through a Team Tactic card (`isLeaderWithTeamTactics`), for example Adam Warlock and Doctor Strange. 11 Team Tactic cards have the Jarvis tag `leadership`. So a leader can come from a Team Tactic card.
 - 2 characters have the Jarvis tag `rogueAgent`: Taskmaster and Winter Soldier. Jarvis explains it as "Counts as an affiliated character during squad building".
-- Jarvis has 31 affiliations. The app has 34 affiliation tokens (`src/scoreboard/affiliations.json`). The keys are the same except `uncanny-x-men` (Jarvis) and `uncanny-xmen` (app). The app also has `unaffiliated`, `captain-america-shield` and `vibranium-heist`.
+- Jarvis has 33 affiliations. The app has 36 affiliation tokens (`src/scoreboard/affiliations.json`). The keys are the same except `uncanny-x-men` (Jarvis) and `uncanny-xmen` (app). The app also has `unaffiliated`, `captain-america-shield` and `vibranium-heist`.
 
 ## Decisions
 

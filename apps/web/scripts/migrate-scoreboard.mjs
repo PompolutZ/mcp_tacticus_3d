@@ -1,5 +1,5 @@
 // Migrates the scoring board of the TTS mod to src/assets/: the board mesh and texture, the round marker mesh,
-// the 34 affiliation token images that the VP markers show, and the face of the Priority marker. Writes the affiliation list to
+// the 36 affiliation token images that the VP markers show, and the face of the Priority marker. Writes the affiliation list to
 // src/scoreboard/affiliations.json. See scripts/README.md, "TTS scoring board".
 //
 // All files together are about 1 MB, so the script always converts all of them, the same as migrate-dice.mjs.

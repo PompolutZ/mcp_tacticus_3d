@@ -114,7 +114,7 @@ Named `httpsd37ev18qvj5a3mcloudfrontnetttstokenXXXX.png`, under `token/condition
 
 ### Scoring board and affiliation tokens — cached
 
-The "Tracker" board (mesh and texture), the "Round Tracker" mesh, and all 34 affiliation token images (`token/affiliation/*_AFFILIATION_TOKEN.png`, 225 × 225) are copied to `apps/web/src/assets/scoreboard/` and `apps/web/src/assets/affiliations/` by `apps/web/scripts/migrate-scoreboard.mjs`; see `apps/web/scripts/README.md`.
+The "Tracker" board (mesh and texture), the "Round Tracker" mesh, and all 36 affiliation token images (`token/affiliation/*_AFFILIATION_TOKEN.png`, 225 × 225) are copied to `apps/web/src/assets/scoreboard/` and `apps/web/src/assets/affiliations/` by `apps/web/scripts/migrate-scoreboard.mjs`; see `apps/web/scripts/README.md`.
 
 ### Map card images
 

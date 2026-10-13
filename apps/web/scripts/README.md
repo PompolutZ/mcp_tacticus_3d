@@ -486,7 +486,7 @@ The tray and die source URLs come from the "Blue Dice Tray" object in the mod sa
 
 # TTS scoring board
 
-`migrate-scoreboard.mjs` copies the scoring board of the TTS mod to `src/assets/`: the board, the round marker, the 34 affiliation tokens that the VP markers show, and the face of the Priority marker. It writes the affiliation list to `src/scoreboard/affiliations.json`. `src/scoreboard/files.js` names the files. See `docs/features/crisis.md`, "Scoring board", for how the app uses them.
+`migrate-scoreboard.mjs` copies the scoring board of the TTS mod to `src/assets/`: the board, the round marker, the 36 affiliation tokens that the VP markers show, and the face of the Priority marker. It writes the affiliation list to `src/scoreboard/affiliations.json`. `src/scoreboard/files.js` names the files. See `docs/features/crisis.md`, "Scoring board", for how the app uses them.
 
 ```bash
 pnpm --filter web migrate-scoreboard

@@ -191,7 +191,7 @@ The board comes from the TTS mod. These facts come from the mod:
 - It is at TTS (-23.1, 0) with rotation 90. So it lies next to the mat edge at x = -18, halfway between the two players.
 - The mesh and texture of the board, the Round Tracker, the Priority Token and the two VP trackers are in the TTS cache. The Round Tracker has only a mesh.
 - The Lua script of the board reads the VP and the round from the positions of the tokens on it.
-- Each player has a VP marker ("Red Player VP Tracker", "Blue Player VP tracker"): a round tile, 1.2" wide, with the player tint on its edge. Its faces show the affiliation token that the player chooses on the Tray Spawner (`updateScoreTracker`). The mod has 34 affiliation tokens.
+- Each player has a VP marker ("Red Player VP Tracker", "Blue Player VP tracker"): a round tile, 1.2" wide, with the player tint on its edge. Its faces show the affiliation token that the player chooses on the Tray Spawner (`updateScoreTracker`). The mod has 36 affiliation tokens.
 
 The app has the board (`src/components/ScoreBoard.jsx`, `src/scoreboard/board.js`, files from `scripts/migrate-scoreboard.mjs`):
 

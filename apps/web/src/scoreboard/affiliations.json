@@ -44,6 +44,9 @@
   "inhumans": {
     "name": "Inhumans"
   },
+  "intelligencia": {
+    "name": "Intelligencia"
+  },
   "legion-of-the-lost": {
     "name": "Legion of The Lost"
   },
@@ -73,6 +76,9 @@
   },
   "thralls-of-dracula": {
     "name": "Thralls of Dracula"
+  },
+  "thunderbolts": {
+    "name": "Thunderbolts"
   },
   "unaffiliated": {
     "name": "Unaffiliated"

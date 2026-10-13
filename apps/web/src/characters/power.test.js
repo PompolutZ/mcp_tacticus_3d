@@ -60,8 +60,9 @@ test('parsePowerBonus', () => {
 })
 
 // Valkyrie and Elendil and Warriors Three have the text but not the tag (the text is the source).
-// Magneto has the tag, but his Power depends on Metal Constructs.
-const TAG_WITHOUT_BONUS = ['magneto']
+// Magneto has the tag, but his Power depends on Metal Constructs. Multiple Man has the tag, but his Power
+// goes to allied characters Contesting a Secure objective token, not to himself.
+const TAG_WITHOUT_BONUS = ['magneto', 'multiple-man']
 
 test('every greaterPowerPhase row has extra Power on a side, except the named ones', () => {
   const missing = rows
@@ -71,9 +72,9 @@ test('every greaterPowerPhase row has extra Power on a side, except the named on
   assert.deepEqual(missing, TAG_WITHOUT_BONUS)
 })
 
-test('40 rows have extra Power', () => {
+test('42 rows have extra Power', () => {
   const withBonus = rows.filter((r) => formPowerBonus(r).some((f) => f.healthy || f.injured))
-  assert.equal(withBonus.length, 40)
+  assert.equal(withBonus.length, 42)
 })
 
 test('no row with two stat cards has extra Power', () => {
