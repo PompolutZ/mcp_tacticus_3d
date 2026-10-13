@@ -122,6 +122,16 @@ const Stat = ({ icon, value }) => (
   </span>
 )
 
+// The threat level of a gem: the round badge and a short black pill with the number
+const Threat = ({ value }) => (
+  <div className="tactic-face-threat">
+    <span className="tactic-face-threat-badge">
+      <img src={faceIconUrl('threat-level')} alt="" />
+    </span>
+    <span className="tactic-face-threat-pill">{String(value)}</span>
+  </div>
+)
+
 function AttackPanel({ attack }) {
   return (
     <div className="tactic-face-panel">
@@ -237,6 +247,7 @@ export default function TacticFace({ tacticKey, onReady }) {
 
   const powers = (card.superPowers ?? []).filter((p) => p.form === 'front' || !p.form)
   const attacks = (card.attacks ?? []).filter((a) => a.form === 'normal')
+  const hasThreat = card.threatLevel != null
   const affiliation = card.affiliation ?? 'Unaffiliated'
   const feather = faceIconUrl('feather')
 
@@ -251,9 +262,18 @@ export default function TacticFace({ tacticKey, onReady }) {
           ))}
         </div>
       </div>
-      <div className="tactic-face-main">
-        <div className="tactic-face-aff">{affiliation}</div>
-        {mainBlocks(card, powers)}
+      {/* A card with a threat level (an Infinity Gem) has the threat pill instead of the affiliation, the
+          type and the body, and its text sits at the lower end */}
+      <div className={`tactic-face-main${hasThreat ? ' tactic-face-main--end' : ''}`}>
+        {hasThreat ? (
+          <Threat value={card.threatLevel} />
+        ) : (
+          <>
+            <div className="tactic-face-aff">{affiliation}</div>
+            {mainBlocks(card, powers)}
+          </>
+        )}
+        {hasThreat && powers.map((p, i) => <SuperPowerPanel key={i} power={p} />)}
       </div>
       <div className="tactic-face-gap" />
       <div className="tactic-face-foot">

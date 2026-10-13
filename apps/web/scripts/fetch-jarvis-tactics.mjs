@@ -39,7 +39,7 @@ const compact = (o, fields) =>
   Object.fromEntries(fields.filter((f) => o[f] != null && o[f] !== '').map((f) => [f, o[f]]))
 const byRank = (a, b) => (a.rank ?? 0) - (b.rank ?? 0)
 const faceOf = (c) => ({
-  ...compact(c, ['type', 'body', 'secondaryBody', 'intermediaryBody']),
+  ...compact(c, ['type', 'body', 'secondaryBody', 'intermediaryBody', 'threatLevel']),
   ...(c.affiliation?.name && { affiliation: c.affiliation.name }),
   ...(c.superPowers?.length && {
     superPowers: [...c.superPowers]
@@ -58,8 +58,8 @@ const faceOf = (c) => ({
 const byCode = new Map()
 const bySlug = new Map()
 for (const r of rows) {
-  if (r.isInfinityGem) continue
-  if (r.exportCode && !byCode.has(r.exportCode)) byCode.set(r.exportCode, r)
+  // A gem has reprints (-ca10, -cp222) with the code of the gem, so gems match by slug only
+  if (r.exportCode && !r.isInfinityGem && !byCode.has(r.exportCode)) byCode.set(r.exportCode, r)
   if (!bySlug.has(r.slug)) bySlug.set(r.slug, r)
 }
 const ours = JSON.parse(fs.readFileSync(OUR_CARDS, 'utf8'))

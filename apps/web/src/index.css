@@ -1240,6 +1240,23 @@ body {
   border-radius: 8px;
 }
 
+/* The drawn face of a gem (TacticFaceScaled fills it), in the 2.5 x 3.5 shape */
+.tray-popup-face {
+  display: block;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tray-popup-large .tray-popup-face {
+  width: auto;
+  height: min(70vh, 520px);
+  max-width: 94vw;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+}
+
 /* The open card's thumbnail */
 .tray-popup-attached-card--open {
   outline: 3px solid var(--accent);

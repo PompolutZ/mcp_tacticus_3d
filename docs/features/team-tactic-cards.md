@@ -32,7 +32,7 @@ These facts come from the save of mod 3036795456.
 
 - 73 released cards are migrated, plus the Soul and Mind Infinity Gem cards (see `scripts/README.md`, "TTS tactic cards"). The app knows only their key, MCT code (`id`) and name (`src/tactics/cards.json`).
 - A real card has the size of a poker card: 2.5" × 3.5". The app uses this size for every card. The face images are about 720 × 1040 px, so the image is 3% shorter on the table than in the file. The card size in TTS was not measured.
-- The **face** has the rules text on pale art. The **back** has the card name on full-colour art. The app draws the face of every Team Tactic card itself (see [Generated face](#generated-face)). The Infinity Gems keep the TTS scan.
+- The **face** has the rules text on pale art. The **back** has the card name on full-colour art. The app draws the face of every Team Tactic card and every Infinity Gem itself (see [Generated face](#generated-face)).
 - A new card lies face up, with the rules text showing.
 
 ## Generated face
@@ -46,7 +46,7 @@ The face of a Team Tactic card is drawn by the app from the Jarvis data, not loa
 - **Text fit:** the text starts at 19.5 px and shrinks in 0.5 px steps until all blocks fit. The result is kept per card key, so the DOM face and the texture use the same size. In the dev server, the console lists the cards that need less than 15 px.
 - **Icons:** the Jarvis PNGs as lossless WebP in `src/assets/tactic-icons/`, named by meaning. An unknown icon id (`!Ulik`) is drawn as plain text. A later change can replace a file with an SVG without a change in the component.
 - **Texture life:** a texture is drawn when a card first needs it, and its canvas is kept by key (about 3 MB each, never freed). Until it is ready, the face shows the art at opacity 0.2 on the card color, without text. The texture of a card is freed with the card.
-- **Gems:** the Infinity Gem cards have no Jarvis text and keep the scan (`<img>` and texture).
+- **Gems:** the Infinity Gem cards are drawn the same way, from their Jarvis entry. A card with a `threatLevel` shows a threat pill (round badge and the number) in place of the affiliation, type and body, and its text sits at the lower end. The tray popup draws attached gems with the component.
 - **Dev page:** in the dev server, `#tactic-faces` shows all faces in a grid with the font size under each, and a filter for font < 15 px. It is not in the production build.
 
 ## Tactic tray

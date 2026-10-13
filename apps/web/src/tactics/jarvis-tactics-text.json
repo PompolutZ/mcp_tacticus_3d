@@ -1363,6 +1363,108 @@
     "artist": "Scott Cohn",
     "biggerIcons": true
   },
+  "infinity-gem-bonded-soul": {
+    "type": "active",
+    "threatLevel": 0,
+    "superPowers": [
+      {
+        "form": "front",
+        "type": "innate",
+        "name": "Soul Anchor",
+        "body": "When a non-Grunt character is Dazed or KO'd, this character may gain 1 |!power|, remove up to 1 |!damage| from itself, or remove up to 1 special conditions from itself.|\\|\nAdditionally, this character and other allied characters within |!range| 4 cannot lose |!power| as a result of enemy effects."
+      }
+    ],
+    "artist": "Andrew Cramer",
+    "biggerIcons": true
+  },
+  "infinity-gem-mind": {
+    "type": "active",
+    "threatLevel": 1,
+    "superPowers": [
+      {
+        "form": "front",
+        "type": "active",
+        "name": "Mind Gem",
+        "powerCost": "2",
+        "body": "Choose an enemy character within |!range| 3 and Advance it |!range_small|. This superpower can\nbe used only once per Turn."
+      }
+    ],
+    "artist": "Andrew Cramer",
+    "biggerIcons": true
+  },
+  "infinity-gem-power": {
+    "type": "active",
+    "threatLevel": 1,
+    "superPowers": [
+      {
+        "form": "front",
+        "type": "innate",
+        "name": "Power Gem",
+        "body": "During the |*Power Phase|, this character gains 2 additional |!power| instead of the normal 1 for having this Infinity Gem."
+      }
+    ],
+    "artist": "Andrew Cramer",
+    "biggerIcons": true
+  },
+  "infinity-gem-reality": {
+    "type": "reactive",
+    "threatLevel": 1,
+    "superPowers": [
+      {
+        "form": "front",
+        "type": "reactive",
+        "name": "Reality Gem",
+        "powerCost": "1",
+        "body": "After this character rolls attack, defense, or dodge dice, before the |*Resolve Criticals| step, it may use this superpower. Choose 1 |!failure| result in that roll to treat as a |!critical| result for the remainder of that attack or collision."
+      }
+    ],
+    "artist": "Andrew Cramer",
+    "biggerIcons": true
+  },
+  "infinity-gem-soul": {
+    "type": "active",
+    "threatLevel": 1,
+    "superPowers": [
+      {
+        "form": "front",
+        "type": "innate",
+        "name": "Soul Gem",
+        "body": "When an enemy character within |!range| 4 of this character uses an |!active| or |!reactive| superpower,\nthis character gains 1 |!power| after the effect is resolved."
+      }
+    ],
+    "artist": "Andrew Cramer",
+    "biggerIcons": true
+  },
+  "infinity-gem-space": {
+    "type": "active",
+    "threatLevel": 1,
+    "superPowers": [
+      {
+        "form": "front",
+        "type": "active",
+        "name": "Space Gem",
+        "powerCost": "2",
+        "body": "Choose this character or another allied character within |!range| 3 and Place it within |!range| 2\nof its current position. This superpower can be used only once per Turn."
+      }
+    ],
+    "artist": "Andrew Cramer",
+    "biggerIcons": true
+  },
+  "infinity-gem-time": {
+    "type": "active",
+    "threatLevel": 1,
+    "superPowers": [
+      {
+        "form": "front",
+        "type": "reactive",
+        "name": "Time Gem",
+        "powerCost": "2",
+        "body": "When this character is attacking, at the end of the |*Modify Dice| step, it may use this superpower.\nThe attacking and defending characters reroll all of their attack and defense dice, including |!failure| results."
+      }
+    ],
+    "artist": "Andrew Cramer",
+    "biggerIcons": true
+  },
   "inhomo-supremis": {
     "type": "reactive",
     "body": "During the |*Power Phase|, an |*Inhumans| character may spend 4 |!power| to play this card.|\\|\nThis Round, while an allied |*Inhumans| character is making an attack and is within |!range| 3 of 1 or more other allied |*Inhumans|\ncharacters, when it uses the |*Inhuman| |!innate| superpower to reroll dice, it may reroll 1 additional die in its attack roll.",

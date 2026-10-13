@@ -1,13 +1,12 @@
-import { TACTICS, getTactic } from './cards.js'
+import cardsData from './cards.json'
+import { getTactic } from './cards.js'
 
 // The text of the Team Tactic faces (components/TacticFace.jsx). The data file is big, so it loads on
 // the first need, as its own chunk.
 
-const FACE_KEYS = new Set(TACTICS.map((card) => card.key))
-
-// True for a card whose face is drawn from Jarvis data: every Team Tactic card. The Infinity Gems have no
-// Jarvis text and keep the scan.
-export const isFaceKey = (key) => FACE_KEYS.has(key)
+// True for a card whose face is drawn from Jarvis data: every Team Tactic card and every Infinity Gem
+// (all of cards.json)
+export const isFaceKey = (key) => Object.hasOwn(cardsData, key)
 
 let text = null
 let promise = null

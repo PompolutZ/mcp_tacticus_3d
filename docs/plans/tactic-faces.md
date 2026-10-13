@@ -56,7 +56,7 @@ Prototype files, outside the repo in `/Users/olehlutsenko/_dev/tactic-faces-prot
 6. **Fit:** the text starts at 19.5 px and shrinks in 0.5 px steps until all blocks fit, with at least 14 px above the footer and below the title. The `squished` flag is not used. In dev, the console lists the cards that need less than 15 px.
 7. **Icons:** the Jarvis PNGs, converted to lossless WebP in `src/assets/tactic-icons/`, named by meaning. A later plan can replace them with SVGs one at a time. The component does not change for that.
 8. **Texture life:** a texture is drawn when a card first needs it, and then cached by key. Until it is ready, the face shows the art at opacity 0.2 on the card color, without text.
-9. **The mod face scans go away** for every card with Jarvis data. `migrate-tactics.mjs` stops writing those faces. Cards without Jarvis data (the Infinity Gems) keep the scan, and use the old `<img>` and texture path.
+9. **The mod face scans go away** for every card with Jarvis data. `migrate-tactics.mjs` stops writing those faces. The Infinity Gems are drawn too (changed after Phase 2: Jarvis has full text for them, and draws them with the same template plus a threat pill). A card with no Jarvis data would keep the scan and use the old `<img>` and texture path; today there is none.
 
 ## Phase 1: Data and icons
 
@@ -82,12 +82,14 @@ Work:
    - Superpower and attack names in small caps, as on the real card.
    - The superpower panel a little see-through, as on the scan.
 4. Texture: decision 8. One shared module and hook for both 3D places.
-5. Use it in `TacticCard.jsx`, `RosterCards.jsx`, `CardPopup.jsx`, the Alt peek and `RosterPopup.jsx`. Gems keep the image (decision 9).
+5. Use it in `TacticCard.jsx`, `RosterCards.jsx`, `CardPopup.jsx`, the Alt peek and `RosterPopup.jsx`. The gems were added later, see the note under Phase 2.
 6. A dev-only page that shows all faces in a grid, with the font size under each card. It is for the layout check in phase 3. It is not in the production build.
 7. Remove `spikeFaces.js` and `spike-faces.json`.
-8. Feature doc `team-tactic-cards.md`: the face is drawn from Jarvis data; the gems keep the scan; decisions 1, 7, 8, 9.
+8. Feature doc `team-tactic-cards.md`: the face is drawn from Jarvis data; decisions 1, 7, 8, 9.
 
 Checks: `pnpm format`, `pnpm lint`, the tests, `pnpm --filter web build`. Commit. The user checks the cards in the app.
+
+Result note, gems (commit `tactic faces: Infinity Gems drawn too`): the 7 Infinity Gems are drawn too. Jarvis has their text (`superPowers`, `threatLevel`, `artist`; no `body`, no affiliation) and draws them with the same card template. The one gem part: a card with a `threatLevel` has a threat pill (round badge image `images/02e15e0cacfb89a6849d.png`, saved as `threat-level.webp`, and the number) in place of the affiliation, type and body, and its text sits at the lower end. The fetch script matches gems by slug (the reprints `-ca10` and `-cp222` share the code) and writes `threatLevel`. `TrayPopup.jsx` draws attached gems with `TacticFaceScaled`. No card keeps its scan.
 
 ## Phase 3: Layout check of all cards
 
@@ -101,7 +103,7 @@ Checks: `pnpm format`, `pnpm lint`, `pnpm --filter web build`. One commit per ro
 
 Work:
 1. `migrate-tactics.mjs`: decision 9. Its `--list` shows if a face is drawn or a mod scan.
-2. Delete the face scans of the cards with Jarvis data.
+2. Delete the face scans of all cards that have a drawn face: the Team Tactic cards and the 7 Infinity Gems.
 3. README: a section "Tactic faces", covering the data, the markup, the icons and the run order (`fetch-jarvis-tactics`, then `migrate-tactics`).
 4. Delete the prototype folder.
 

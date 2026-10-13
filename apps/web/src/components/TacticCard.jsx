@@ -66,7 +66,7 @@ export default function TacticCard({
   getLivePose = null,
 }) {
   // A card with Jarvis data draws its face (tacticFaceTexture.js); until it is ready the face is the art at
-  // low opacity. Other cards (the gems) load the scan. The back loads when the card mounts, so the first
+  // low opacity. A card with no Jarvis data would load the scan. The back loads when the card mounts, so the first
   // flip does not wait for an image.
   const drawn = isFaceKey(card.key)
   const faceUrl = drawn ? null : assetUrl(tacticCardFace(card.key))
