@@ -109,7 +109,7 @@ Work:
 
 Checks: as Part 1.
 
-**Result:**
+**Result:** Done. `src/tokens/count.js` (+ `count.test.js`): count, take one, merge, click add, first place, drop. `TokenFace` got `upright` (screen-facing count label, readable from both seats); `LooseToken` shows it. `useTokenDrag.js`: click on a collected pile (`clickPile`, via `onClick`), take one (`takeFrom`, applied at the drop, so Escape changes nothing; Scene shows count - 1 while the drag is active), Shift + drag moves whole, merge at the drop. Loose token gets `count?` and `pile?`. Decisions: the count drops at the drop, not at the press; a taken token dropped on a character is given and the source goes down; a token on a card does not follow the card. Docs updated.
 
 ## Part 4: Two floors
 

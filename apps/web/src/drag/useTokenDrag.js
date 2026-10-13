@@ -5,6 +5,8 @@ import { getCard } from '../crisis/cards.js'
 import { supplyPilePosition } from '../crisis/layout.js'
 import { dragPose, tokenDragKey } from '../net/livePose.js'
 import { playSound } from '../sound.js'
+import { tokenSize, isCollected } from '../tokens/tokens.js'
+import { clickAdd, countOf, dropCollected, firstPlace, takeOne } from '../tokens/count.js'
 
 // The token drag: the drag starts from the Give sources, the Library, the piles, the table tokens and
 // the supply piles, and the release (docs/features/library.md, "Tokens"). Call it after the hooks that
@@ -42,6 +44,12 @@ export function useTokenDrag({
   // or a token on the table (looseId).
   // giveId: the character of the tray, for a Give source: a click gives it one token (startTokenDrag).
   function handleTokenDragStart(e, tokenKey, looseId = null, giveId = null) {
+    // A left drag on a counted token takes one off, Shift + drag moves the whole token
+    const loose = looseId && table.looseTokens.read().find((t) => t.id === looseId)
+    if (loose && countOf(loose) >= 2 && !e.shiftKey) {
+      startTokenDrag(e, { tokenKey, takeFrom: looseId })
+      return
+    }
     startTokenDrag(e, { tokenKey, looseId, giveId })
   }
 
@@ -53,8 +61,21 @@ export function useTokenDrag({
 
   // pointerdown on a pile on the table: a new token, the pile never runs out. With Shift, the drag
   // moves the pile.
+  // A click (no drag) on a pile of a collected token adds one to its counted token (handlePileClick).
   function handlePileTakeStart(e, pile) {
-    startTokenDrag(e, { tokenKey: pile.key })
+    startTokenDrag(e, { tokenKey: pile.key, clickPile: isCollected(pile.key) ? pile : null })
+  }
+
+  // The click on a collected pile: the loose token of the pile gets 1 more. The first one lies on the
+  // pile's card, or next to a pile without a card (tokens/count.js).
+  function handlePileClick(pile) {
+    const card = pile.card ? table.tactics.read().find((c) => c.id === pile.card) : null
+    const size = tokenSize(pile.key)
+    const obstacles = [...table.looseTokens.read(), ...table.tokenPiles.read()]
+    const place = firstPlace(pile, card, obstacles, size)
+    const newId = crypto.randomUUID()
+    playSound('tokenPlace')
+    setLooseTokens((prev) => clickAdd(prev, pile, place, newId))
   }
 
   function handlePileMoveStart(e, pile) {
@@ -80,6 +101,8 @@ export function useTokenDrag({
       pile: false,
       pileId: null,
       giveId: null,
+      takeFrom: null,
+      clickPile: null,
       ...drag,
     }
     // A new piece gets its id and key at the press, so the drag claims it like a piece on the table (decision 22)
@@ -113,6 +136,7 @@ export function useTokenDrag({
       // claimed nothing and set no spawn (onStart), so endTokenDrag only clears the state.
       onClick: () => {
         if (full.giveId) handleCharacterTokenGive(full.giveId, full.tokenKey)
+        if (full.clickPile) handlePileClick(full.clickPile)
         endTokenDrag()
       },
       onCancel: endTokenDrag,
@@ -155,7 +179,7 @@ export function useTokenDrag({
   // follows the same rules, but it is a crisis token: a character holds it (handleSupplyTake). A
   // pile goes only on the table: a new pile lies there, or the moved pile moves there.
   function handleTokenRelease(clientX, clientY) {
-    const { tokenKey, looseId, supplyCard, pileId, newId } = tokenDragRef.current
+    const { tokenKey, looseId, supplyCard, pileId, newId, takeFrom } = tokenDragRef.current
     if (!document.elementFromPoint(clientX, clientY)?.closest('.scene-root')) return
     const characterId = findCharacterAt(clientX, clientY)
     const point = dragPointRef.current
@@ -181,11 +205,21 @@ export function useTokenDrag({
         return
       case 'give':
         table.transact(() => {
-          if (handleCharacterTokenGive(characterId, tokenKey) && looseId) handleLooseRemove(looseId)
+          if (!handleCharacterTokenGive(characterId, tokenKey)) return
+          if (looseId) handleLooseRemove(looseId)
+          if (takeFrom)
+            setLooseTokens((prev) => prev.map((t) => (t.id === takeFrom ? takeOne(t) : t)))
         })
         return
       case 'moveLoose':
         playSound('tokenPlace')
+        if (isCollected(tokenKey)) {
+          setLooseTokens((prev) => {
+            const moved = prev.find((t) => t.id === looseId)
+            return moved ? dropCollected(prev, moved, point, tokenSize(tokenKey) / 2) : prev
+          })
+          return
+        }
         // A moved token goes to the end of the list, so it lies on top (tokens/stack.js)
         setLooseTokens((prev) => {
           const moved = prev.find((t) => t.id === looseId)
@@ -195,6 +229,13 @@ export function useTokenDrag({
         return
       case 'newLoose':
         playSound('tokenPlace')
+        if (isCollected(tokenKey)) {
+          const dragged = { id: newId, key: tokenKey }
+          setLooseTokens((prev) =>
+            dropCollected(prev, dragged, point, tokenSize(tokenKey) / 2, takeFrom),
+          )
+          return
+        }
         setLooseTokens((prev) => [...prev, { id: newId, key: tokenKey, x: point.x, z: point.z }])
         return
       default:

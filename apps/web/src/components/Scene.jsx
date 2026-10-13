@@ -1404,6 +1404,9 @@ export default function Scene({
               key={tok.id}
               token={tok}
               index={index}
+              count={
+                (tok.count ?? 1) - (tokenDrag?.active && tokenDrag.takeFrom === tok.id ? 1 : 0)
+              }
               onDragStart={(e) => onTokenDragStart(e, tok.key, tok.id)}
               onHover={(over) => onLooseHover?.(tok.id, over)}
               remote={otherOwned.has(`loose:${tok.id}`)}

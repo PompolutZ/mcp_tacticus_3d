@@ -20,16 +20,17 @@ const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 // (see crisis/useCrisisTokens.js, handleTokenDrop). It has no physics body. Each frame it sits on the table or on
 // the terrain under it, the same as a crisis token, so a mat turn or a map change keeps it on top.
 // A token lies on the highest crisis token or earlier loose token under its center, else on the table or
-// the terrain (tokens/stack.js). token: { id, key, x, z }, see App.jsx, looseTokens. index: its place in
+// the terrain (tokens/stack.js). token: { id, key, x, z, count?, pile? }, see App.jsx, looseTokens. index: its place in
 // that list; the tokens after it lie on top. onDragStart(nativeEvent): a left
 // pointerdown, App starts the same drag as from a source. onHover(over): for the Delete key.
-// remote: the other player drags the token. getLivePose(key): their latest numbers. The token follows them,
+// count: the number shown on top when 2 or more (token.count, a collected token's pile); Scene lowers it by 1 while a token is taken off by a drag. remote: the other player drags the token. getLivePose(key): their latest numbers. The token follows them,
 // hangs above the table like a dragged token and shows its footprint (this browser has no TokenDragPreview).
 export default function LooseToken({
   token,
   index,
   onDragStart,
   onHover,
+  count = token.count ?? 1,
   remote = false,
   getLivePose = null,
 }) {
@@ -88,6 +89,8 @@ export default function LooseToken({
         <TokenFace
           tokenKey={token.key}
           size={tokenSize(token.key)}
+          count={count}
+          upright
           cursor="grab"
           onPointerDown={handlePointerDown}
           onHover={onHover}

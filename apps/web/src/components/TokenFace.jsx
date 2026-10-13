@@ -27,7 +27,7 @@ const NO_RAYCAST = () => null
 // tokens/solid.js), so the pointer hits only the token and not the transparent corners of its image.
 // Used for the tray's "On" row and Give sources (CharacterTray.jsx), the tokens on the table
 // (LooseToken.jsx), and the token under the pointer during a drag (TokenDragPreview.jsx).
-// size: its width; the trays keep the default, the table passes tokenSize(tokenKey). count: shown on a badge when above 1. cursor: the canvas cursor while the pointer is over the
+// size: its width; the trays keep the default, the table passes tokenSize(tokenKey). count: shown on a badge when above 1. upright: the badge is a screen-facing label on top, readable from both seats (a counted pile on the table), else it is flat on the corner. cursor: the canvas cursor while the pointer is over the
 // token. interactive false: the token gets no pointer events, so it does not hide what is under it.
 // While the pointer is over the token, a label shows its name and the mod's description, as the
 // tooltip of a token chip did before.
@@ -35,6 +35,7 @@ export default function TokenFace({
   tokenKey,
   size = TOKEN_SIZE,
   count = 1,
+  upright = false,
   cursor = 'pointer',
   interactive = true,
   onPointerDown,
@@ -71,7 +72,12 @@ export default function TokenFace({
   return (
     <group ref={groupRef}>
       <TokenSolid map={map} size={size} {...events} />
-      {count > 1 && (
+      {count > 1 && upright && (
+        <Html position={[0, TOKEN_THICKNESS + 0.05, 0]} center style={NO_POINTER}>
+          <span className="token-face-count">{count}</span>
+        </Html>
+      )}
+      {count > 1 && !upright && (
         <group position={badgePosition(size)} rotation={FLAT}>
           <Html center transform pointerEvents="none">
             <span className="token-face-count">{count}</span>

@@ -73,10 +73,20 @@ Some cards bring tokens, for example Mystic Ward (a Mystic Ward token) and Penta
 
 ### Collected tokens
 
-A token with `collect: true` in `tokens.json` (`isCollected(key)` in `src/tokens/tokens.js`) is collected: a card collects it in a number on the card or on the table, not on a character (a character tray counts already). Only such tokens build a counted pile (not built yet). The list is `COLLECT_KEYS` in `migrate-tokens.mjs`. The card must have the token in `tokens`; `EXTRA_TOKENS` in `migrate-tactics.mjs` adds it where the mod row lacks it.
+A token with `collect: true` in `tokens.json` (`isCollected(key)` in `src/tokens/tokens.js`) is collected: a card collects it in a number on the card or on the table, not on a character (a character tray counts already). Only such tokens build a counted pile (see below). The list is `COLLECT_KEYS` in `migrate-tokens.mjs`. The card must have the token in `tokens`; `EXTRA_TOKENS` in `migrate-tactics.mjs` adds it where the mod row lacks it.
 
 - Evidence, Confession (Spider-Sleuth), Memory (Are You Sure You Want To Remember?), Genetic Sample (Cloning Banks), 1 Damage (Steal the Future), 1 Power (The White-Hot Room).
 - Not collected: LMD, Obscuring Mist (shuffled and revealed at random), single markers, tokens held by a character (Devil's Deal, Phoenix, Confidence).
+
+Counted pile (`src/tokens/count.js`, plain rules with tests):
+
+- A loose token of a collected kind has an optional `count` (absent = 1) and `pile`, the id of the pile that made it. With 2 or more, a number shows on top. It faces the screen, so both seats read it.
+- **Click** (no drag) on the pile of a collected token: the loose token with the same key and `pile` gets 1 more. If there is none, the first one lies at the center of the card of the pile. A pile without a card puts it on the first free spot around the pile.
+- **Left drag** on a token with count 2 or more takes one off: the count goes down by 1, the drag carries a new single token. The number goes down while the drag is active; Escape or a drop outside the table changes nothing. **Shift + left drag** moves the whole token, as Shift moves a pile. A token with count 1 moves as any loose token.
+- **Drop** of a collected token on a loose token of the same key on the table: the counts add up and the dragged token is gone. Tray tokens do not count. A taken token dropped back on its source restores the count.
+- **Delete** over a counted token removes it whole.
+- `count` and `pile` are fields of the loose token, so they sync with it. A counted token is not a cleanup token (a collected token has no `cleanup`).
+- A token on a card does not follow the card when the card moves.
 
 How TTS does it (from the `Database` script and the script of each tactic card):
 

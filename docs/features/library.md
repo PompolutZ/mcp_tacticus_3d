@@ -72,6 +72,7 @@ A pile is a source on the table that never runs out, the same as a Give source o
 |---|---|
 | Left drag on the pile | Takes one token. The token then follows the Single rules: it goes to a character, or lies on the table. |
 | Shift + left drag on the pile | Moves the pile |
+| Click on the pile (no drag), collected token only | Adds 1 to the counted token of the pile, or puts the first one (`docs/features/team-tactic-cards.md`, "Collected tokens"). Other piles do nothing on a click. |
 | Delete or Backspace with the pointer over the pile | Removes the pile |
 
 A pile that comes with a Team Tactic card (`docs/features/team-tactic-cards.md`, "Token piles") also has `card`, the id of that card. It goes when the card leaves the table. A pile from the Library has no `card`.
