@@ -3,6 +3,7 @@
 
 import { MAT_SIZE } from '../table.js'
 import {
+  characterConstruct,
   characterModel,
   characterStandee,
   trayCardFile,
@@ -14,9 +15,23 @@ import {
 // drop, the tray card) finds that model. The second model's id adds this suffix.
 const SECOND = ':2'
 
+// A construct's id adds this suffix and its number from 1 (docs/features/character-trays.md, "Constructs").
+const CONSTRUCT = ':c'
+const SUFFIX = /:(2|c\d+)$/
+
 // Character id of a model id
 export function modelCharacterId(modelId) {
-  return modelId.endsWith(SECOND) ? modelId.slice(0, -SECOND.length) : modelId
+  return modelId.replace(SUFFIX, '')
+}
+
+// Id of construct n (from 1) of a character
+export function constructModelId(characterId, n) {
+  return `${characterId}${CONSTRUCT}${n}`
+}
+
+// True when a model id is a construct's
+export function isConstructId(modelId) {
+  return SUFFIX.test(modelId) && !modelId.endsWith(SECOND)
 }
 
 // Id of the second model of a character
@@ -32,10 +47,12 @@ export function trayCards(ch) {
 }
 
 // The models of character ch (an entry of `characters` in App.jsx), in spawn order:
-// [{ id, character, figure: 'model' | 'standee', base, rotation, file, standeeFiles, card }].
+// [{ id, character, figure: 'model' | 'standee', base, rotation, file, standeeFiles, card, construct }].
 // file: the GLB of a 'model'. standeeFiles: [front, back] images of a 'standee'. Both are relative
 // to src/assets (files.js). card: the tray card the model spawns on, or null for a spare model that
-// spawns on the table past the Give sources (trays.js, traySpareModelPosition).
+// spawns on the table past the Give sources (trays.js, traySpareModelPosition). construct: true for a
+// construct, which is a model of the host with no card and no stats of its own (after the other models;
+// trays.js, trayConstructPosition).
 export function characterModels(ch) {
   const first = {
     id: ch.id,
@@ -47,8 +64,19 @@ export function characterModels(ch) {
     standeeFiles: [characterStandee(ch.key, 'front'), characterStandee(ch.key, 'back')],
     card: 1,
   }
+  const constructs = Array.from({ length: ch.constructs ?? 0 }, (_, i) => ({
+    id: constructModelId(ch.id, i + 1),
+    character: ch,
+    figure: 'model',
+    base: 'small',
+    rotation: 0,
+    file: characterConstruct(ch.key, i + 1),
+    standeeFiles: [],
+    card: null,
+    construct: true,
+  }))
   const form = ch.transform
-  if (!form) return [first]
+  if (!form) return [first, ...constructs]
   return [
     first,
     {
@@ -63,6 +91,7 @@ export function characterModels(ch) {
       standeeFiles: [transformStandee(ch.key, 'front'), transformStandee(ch.key, 'back')],
       card: form.card ? 2 : null,
     },
+    ...constructs,
   ]
 }
 
@@ -99,13 +128,15 @@ export function yawQuaternion(yaw) {
   return { x: 0, y: Math.sin(yaw / 2), z: 0, w: Math.cos(yaw / 2) }
 }
 
-// True when a model of ch stands on the mat. poses: model id -> { x, z, ... } (the table poses). A model
+// True when a model of ch stands on the mat. A construct does not count: it is not the character
+// (docs/features/character-trays.md, "Constructs"). poses: model id -> { x, z, ... } (the table poses). A model
 // with no pose has not moved from its tray card, so it is off the mat. The same check as the TTS
 // charOnBoard (|x| and |z| at most half the mat), see docs/features/round-phases.md, decision 4. The mat turns
 // only by 90 degrees and is centered at 0,0, so the check does not depend on the turn.
 export function characterOnBoard(ch, poses) {
   const half = MAT_SIZE / 2
   return characterModels(ch).some((model) => {
+    if (model.construct) return false
     const pose = poses?.[model.id]
     return pose != null && Math.abs(pose.x) <= half && Math.abs(pose.z) <= half
   })

@@ -2,7 +2,7 @@ import { COLOR_NAME } from '../sideColors.js'
 import { colorOf } from '../setup/setup.js'
 import { newCharacter } from './newCharacter.js'
 import { characterImmune, characterName, characterStamina } from './characters.js'
-import { secondModelId } from './models.js'
+import { characterModels } from './models.js'
 import { getToken, isCappedToken } from '../tokens/tokens.js'
 import { deselectPiece } from '../selection.js'
 
@@ -108,17 +108,21 @@ export function useCharacterActions({
   // id or its Rapier body after the model unmounts.
   function handleCharacterRemove(id) {
     const target = characters.find((ch) => ch.id === id)
+    const modelIds = target ? characterModels(target).map((model) => model.id) : [id]
     table.transact(() => {
       if (target) writeLog('deleted', characterLogData(target))
       handleDropCharacterTokens(id)
       setCharacters((prev) => prev.filter((ch) => ch.id !== id))
-      table.poses.set(({ [id]: _first, [secondModelId(id)]: _second, ...rest }) => rest)
+      // Every model of the character: the first, the second form and the constructs
+      table.poses.set((poses) =>
+        Object.fromEntries(Object.entries(poses).filter(([key]) => !modelIds.includes(key))),
+      )
     })
     setSelection((prev) =>
-      deselectPiece(deselectPiece(prev, { kind: 'character', id }), {
-        kind: 'character',
-        id: secondModelId(id),
-      }),
+      modelIds.reduce(
+        (sel, modelId) => deselectPiece(sel, { kind: 'character', id: modelId }),
+        prev,
+      ),
     )
     setOpenTrayId((prev) => (prev === id ? null : prev))
   }

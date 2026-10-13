@@ -71,6 +71,8 @@ function rosterEntry(jch, m, mctCode) {
     // Second form: null, or { figure, rotation, base?, name?, portrait?, card? } from
     // characters.json. See docs/features/character-trays.md, "Second forms", and models.js.
     transform: m?.transform ?? null,
+    // Number of construct models (characters/files.js, characterConstruct), 0 for none. From characters.json.
+    constructs: m?.constructs ?? 0,
     // Jarvis name of the second form, for example 'diamond' for Emma Frost, or null. The roster popup
     // uses it as the label of the second card (rosters/cards.js).
     secondForm: jch.secondFormSlug || null,

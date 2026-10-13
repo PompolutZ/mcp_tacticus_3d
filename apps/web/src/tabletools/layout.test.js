@@ -20,6 +20,7 @@ import {
   trayPlate,
   trayPosition,
   traySpareModelPosition,
+  trayConstructPosition,
 } from '../characters/trays.js'
 import { TOKEN_SIZE } from '../tokens/files.js'
 import {
@@ -111,6 +112,14 @@ test('the rack starts past the deepest tray parts', () => {
   // A spare model after one row of Give sources (Hulkbuster, 1" radius) also ends before the rack
   const spare = traySpareModelPosition('host', trayPos, 1, 6, 1)
   assert.ok(spare[2] + 1 < rackPlate('host').z - rackPlate('host').depth / 2)
+})
+
+test('constructs after a spare model and one row of Give sources end before the rack', () => {
+  const small = 1.37795 / 2
+  for (const index of [0, 1]) {
+    const c = trayConstructPosition('host', trayPos, 1, 6, 1, index, small)
+    assert.ok(c[2] + small < rackPlate('host').z - rackPlate('host').depth / 2)
+  }
 })
 
 test('the row of the character trays can be 12 trays wide without meeting the rack', () => {

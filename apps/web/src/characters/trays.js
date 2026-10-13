@@ -245,3 +245,18 @@ export function traySpareModelPosition(team, trayPos, cards, giveCount, baseRadi
   const [x, z] = trayWorld(team, trayPos, [0, lastRowZ + TOKEN_SIZE / 2 + TRAY_GAP + baseRadius])
   return [x, 0, z]
 }
+
+// Table position of construct `index` (from 0) of the `constructCount` constructs of a character
+// (docs/features/character-trays.md, "Constructs"): a row on the table past the Give sources, and past
+// the spare model when there is one (`spareRadius`, its base radius, or 0 for none). The row starts at
+// the owner's left edge of the tray width and goes to the owner's right. The bases of radius `radius`
+// are TRAY_GAP apart; the row starts TRAY_GAP after the tokens or the spare model.
+export function trayConstructPosition(team, trayPos, cards, giveCount, spareRadius, index, radius) {
+  const rows = Math.max(1, Math.ceil(giveCount / TOKENS_PER_ROW))
+  const [, lastRowZ] = trayGiveTokenPosition((rows - 1) * TOKENS_PER_ROW, cards)
+  const freeZ = lastRowZ + TOKEN_SIZE / 2 + TRAY_GAP
+  const rowZ = spareRadius > 0 ? freeZ + spareRadius * 2 + TRAY_GAP + radius : freeZ + radius
+  const x = -TRAY_WIDTH / 2 + radius + index * (radius * 2 + TRAY_GAP)
+  const [wx, wz] = trayWorld(team, trayPos, [x, rowZ])
+  return [wx, 0, wz]
+}

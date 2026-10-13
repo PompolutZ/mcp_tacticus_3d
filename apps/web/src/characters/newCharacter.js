@@ -10,6 +10,8 @@ export function newCharacter(ch, team, { attached = [] } = {}) {
     // Second form, or null: a second model, and maybe a second card on the tray (see
     // characters/models.js and docs/features/character-trays.md, "Second forms").
     transform: ch.transform,
+    // Number of construct models, 0 for none (characters/models.js, "Constructs" in the feature doc)
+    constructs: ch.constructs ?? 0,
     team,
     // Card side that faces up, and the simple limits players apply by hand (see
     // docs/features/character-trays.md, "Players apply the rules").

@@ -5,6 +5,7 @@ Status: built.
 Not built yet:
 
 - Badges above the models: small icons for held tokens, Activated, Dazed, Damage and Power. TTS shows them. Players can then see the board state without looking at the trays.
+- Constructs of Phoenix: the app handles them, but her construct files are not migrated yet (see [Constructs](#constructs)).
 - Grunts, Horsemen cards and Reserve members (see [Out of scope](#out-of-scope)).
 - Attach or remove a gem by hand. Gems come only from the roster. A character added from the Library has none.
 - Gem cards other than Soul and Mind. They migrate when the TTS cache has them.
@@ -313,6 +314,22 @@ The immunities come from the Jarvis data (`jarvis-characters.json`), not from th
 - A stat card side can be null (7 grunt rows have no `backSide`). It counts as no immunity.
 - `characters.json` has no `immune` field. `tokens` (the Give sources) stays from the mod, because the special tokens of a character (Kill Count, Devil's Deal, ...) exist only there.
 
+## Constructs
+
+Magneto and Phoenix come with 2 constructs each (the mod's `construct` field: two Metal Construct models). In the rules, a construct is a terrain feature, not a character. So the app spawns it as a model of the host, not as a character.
+
+- **Spawn:** the constructs spawn with the host, on the table under the host card: on the owner's side of the tray, past the Give sources. They stand in a row from the owner's left, each 0.3" from the next. A spare model (see [Second forms](#second-forms)) comes first, in the middle of the tray width, and the row lies past it. A Library spawn and a roster spawn do the same.
+- **Look:** the 3D model from `construct-<n>.glb` (`characterConstruct` in `files.js`), small base, the team color of the host.
+- **No tray, no card, no stats.** A construct has no Damage, Power or tokens. Hover shows no card, and F does nothing on it. The spectator badge is not shown on it.
+- **Moves like a model:** a player selects, moves and turns it, and the tools measure against it. It moves with the tray when the row shifts, as long as it stands on the tray area (`inTrayArea`).
+- **Not the host on the mat.** `characterOnBoard` ignores constructs, so a construct on the mat does not make the host count as on the mat in the Power Phase and the Cleanup Phase. The players count Magneto's constructs themselves (see [Players apply the rules](#players-apply-the-rules)).
+- **No tokens.** A token dropped on a construct is a drop on whatever is under it, the table or the mat. It does not go to the host (`characterAt` in `Scene.jsx` skips construct models).
+- **Remove:** the tray's Remove button puts the constructs back to their places with the other models. A construct that is destroyed is put back by Remove, or the player drags it off the mat.
+- **Delete** of the host removes its constructs, with their stored poses.
+- **No "Spawn Construct" button.** Magneto has at most 2 constructs at a time.
+- Ids: construct n of a character has the model id `<character id>:c<n>`, after the first model and the second model (`models.js`). Poses, claims and P2P sync work on model ids, so they treat it like the second model.
+- Data: `characters.json` has `constructs`, the number of construct GLBs. It is missing or 0 for a character without constructs. The character entry in App state copies it.
+
 ## State
 
 New fields on each entry of `characters` in `App.jsx`:
@@ -381,6 +398,7 @@ A token dropped by Dazed or **Remove** waits for its place (`src/tokens/dropWait
 - A 2D HUD separate from the 3D world. This is the next step after this feature.
 - Horsemen cards and Reserve members attached to a character. Infinity Gems are built (see [Attached cards](#attached-cards)). Facts: in TTS, a gem or Horsemen card attaches to the tray only if the character can have it (`cGem`, `cHorsemen` in the mod; `bearableGems`, `assignableToHorsemen` in Jarvis). The TTS cache has all 5 Horsemen faces, but only the Soul gem card.
 - Rule automation beyond the Power Phase and Cleanup Phase buttons (see `docs/features/round-phases.md`) and the drop of objective tokens: VP scoring, character effects of the Cleanup Phase.
+- A "Spawn Construct" button for more constructs than the host has, and the constructs of Ultimate Encounters (see [Constructs](#constructs)).
 - Grunts. They come next. Facts: 6 mod characters have `grunts` (Elektra, Nick Fury, Red Skull Master of Hydra, Sandman, Shadowland Daredevil, Ultron Metal Tyrant). Each grunt is its own `Database` row (for example Hand Ninjas) with a card, a model, `cStamH`, tokens and immunities. TTS spawns the grunt card with its model below the tray, and a Wounds counter. Sandman has 2 grunts; TTS puts their cards side by side. None of these characters is in the TTS cache yet.
 - The second card version of a character without a second form (`cards` > 1 and no `transform` in `characters.json`, for example Mephisto). The tray uses card 1.
 - Other immunities of a second form (p21), and the mod's `twoModels` and `sideways` flags (Ms. Marvel).

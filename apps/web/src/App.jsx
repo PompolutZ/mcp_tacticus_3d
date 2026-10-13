@@ -26,7 +26,7 @@ import { CardPopup } from './components/CardPopup.jsx'
 import { TrayPopup } from './components/TrayPopup.jsx'
 import { RosterPopupHost } from './components/RosterPopupHost.jsx'
 import { useTokenDrag } from './drag/useTokenDrag.js'
-import { characterOnBoard, modelCharacterId } from './characters/models.js'
+import { characterOnBoard, isConstructId, modelCharacterId } from './characters/models.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { parseRosterText, rosterCard, rosterTabs } from './rosters/cards.js'
 import { colorOf } from './setup/setup.js'
@@ -403,7 +403,9 @@ export default function App({
     const piece = flipTarget(hoveredNow(), selection)
     if (piece?.kind === 'token') handleTokenFlip(piece.id)
     // A character piece is a model; a second model has its own id (characters/models.js)
-    else if (piece?.kind === 'character') handleCharacterFlip(modelCharacterId(piece.id))
+    // A construct has no card to flip
+    else if (piece?.kind === 'character' && !isConstructId(piece.id))
+      handleCharacterFlip(modelCharacterId(piece.id))
     else if (piece?.kind === 'tactic') handleTacticFlip(piece.id)
   }
 

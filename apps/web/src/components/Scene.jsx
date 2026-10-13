@@ -79,6 +79,7 @@ import {
   trayHeldWorld,
   trayModelPosition,
   traySpareModelPosition,
+  trayConstructPosition,
   trayYaw,
 } from '../characters/trays.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
@@ -561,7 +562,11 @@ export default function Scene({
     let nearestId = null
     let nearestDistance = Infinity
     const targets = [
-      ...models.map((model) => [model.character.id, charObjects.current.get(model.id)]),
+      // A construct is not a drop target: a token dropped on it lands on whatever is under it, the table
+      // or the mat (docs/features/character-trays.md, "Constructs")
+      ...models
+        .filter((model) => !model.construct)
+        .map((model) => [model.character.id, charObjects.current.get(model.id)]),
       ...characters.map((ch) => [ch.id, trayObjects.current.get(ch.id)]),
     ]
     for (const [id, object] of targets) {
@@ -1054,11 +1059,24 @@ export default function Scene({
     const trayPos = trayPositions.get(ch.id)
     if (model.card) return trayModelPosition(ch.team, trayPos, model.card)
     const giveCount = characterGiveSources(ch.key).length
-    return traySpareModelPosition(
+    if (!model.construct)
+      return traySpareModelPosition(
+        ch.team,
+        trayPos,
+        trayCards(ch),
+        giveCount,
+        BASE_DIAMETER[model.base] / 2,
+      )
+    // The constructs lie in a row past the spare model, when the character has one
+    const all = characterModels(ch)
+    const spare = all.find((m) => m.card === null && !m.construct)
+    return trayConstructPosition(
       ch.team,
       trayPos,
       trayCards(ch),
       giveCount,
+      spare ? BASE_DIAMETER[spare.base] / 2 : 0,
+      all.filter((m) => m.construct).findIndex((m) => m.id === model.id),
       BASE_DIAMETER[model.base] / 2,
     )
   }
@@ -1067,7 +1085,7 @@ export default function Scene({
   // it, so it moves with the model (CharacterModel.jsx, overlay). Both models of a
   // character with a second form show it.
   function spectatorOverlay(model) {
-    if (!spectator) return undefined
+    if (!spectator || model.construct) return undefined
     const ch = model.character
     return (top) => (
       <SpectatorBadge
@@ -1539,14 +1557,16 @@ export default function Scene({
             onHover: (over) => {
               onPieceHover?.({ kind: 'character', id: model.id }, over)
               trackPiece(hoveredPiece, { kind: 'character', id: model.id }, over)
-              onCardHover?.(
-                {
-                  src: assetUrl(modelCardFile(model)),
-                  alt: characterName(ch.key),
-                  by: `model:${model.id}`,
-                },
-                over,
-              )
+              // A construct has no card
+              if (!model.construct)
+                onCardHover?.(
+                  {
+                    src: assetUrl(modelCardFile(model)),
+                    alt: characterName(ch.key),
+                    by: `model:${model.id}`,
+                  },
+                  over,
+                )
             },
             bodyRef: (rb) =>
               rb ? charBodies.current.set(model.id, rb) : charBodies.current.delete(model.id),

@@ -23,6 +23,7 @@ function rosterCharacters(roster) {
       base: ch.base,
       rotation: ch.rotation,
       transform: ch.transform,
+      constructs: ch.constructs,
     }))
 }
 
