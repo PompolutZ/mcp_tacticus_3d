@@ -478,7 +478,7 @@ function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target
 // (spawnTarget in Tool). getBody is only there for a model (a character), with claim(): false when the other
 // player moves the model, so Throw does nothing to it. models: every character and token, in the same form,
 // for the pointer raycast and the snap. onSnap(model): the tool snapped to that model during a drag.
-// onPlaceLimit(limit): called with { owns(model, p), clamp(p, model) } while Place, Place 1 or Throw is on,
+// onPlaceLimit(limit): called with { owns(model, p), clamp(p, model) } (model in the models form above) while Place, Place 1 or Throw is on,
 // and with null after. owns says if this tool limits the drag of that model to point p (table XZ). Place and
 // Place 1 lock the first model that touches the outline or comes within range 1, see docs/features/range-movement-tools.md.
 // clamp moves p, so the base keeps touching the footprint (Place, Place 2) or stays within range 1

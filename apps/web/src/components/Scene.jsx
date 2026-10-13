@@ -1645,8 +1645,10 @@ export default function Scene({
                 if (ch.team === 'host') p.z = Math.max(p.z, limit)
                 else p.z = Math.min(p.z, -limit)
               }
+              // The limits take the tool form (getCenter, radius), not the raw model.
+              const toolModel = toolModels.find((m) => m.kind === 'character' && m.id === model.id)
               for (const limit of Object.values(placeLimits.current)) {
-                if (limit?.owns(model, p)) limit.clamp(p, model)
+                if (toolModel && limit?.owns(toolModel, p)) limit.clamp(p, toolModel)
               }
             },
             overlay: spectatorOverlay(model),
