@@ -3,6 +3,7 @@
 // of the tray's Power counter, see TrayControls.jsx.
 import tokensData from './tokens.json'
 import { TOKEN_SIZE } from './files.js'
+import { isCollectedEntry } from './collect.js'
 
 export const TOKENS = Object.entries(tokensData)
   .map(([key, t]) => ({ key, ...t }))
@@ -25,4 +26,10 @@ export function getToken(key) {
 export function isCappedToken(key) {
   const group = tokensData[key]?.group
   return group === 'condition' || group === 'status'
+}
+
+// A collected token (collect: true): a tactic card collects it in a number on the card or on the table, so a pile of
+// it counts, see docs/features/team-tactic-cards.md, "Collected tokens".
+export function isCollected(key) {
+  return isCollectedEntry(tokensData[key])
 }

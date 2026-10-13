@@ -71,6 +71,13 @@ A slot is free when no card center lies inside the slot area.
 
 Some cards bring tokens, for example Mystic Ward (a Mystic Ward token) and Pentagram of Farallah (a Mystic Portal token). `tokens` in `cards.json` lists the token keys of a card. TTS spawns the tokens in front of the card, on the mat. The app puts a pile of each token instead, so players take tokens from it the same as from a Library pile (`docs/features/library.md`, "Pile"). A pile never runs out, so a card that places two tokens needs no count.
 
+### Collected tokens
+
+A token with `collect: true` in `tokens.json` (`isCollected(key)` in `src/tokens/tokens.js`) is collected: a card collects it in a number on the card or on the table, not on a character (a character tray counts already). Only such tokens build a counted pile (not built yet). The list is `COLLECT_KEYS` in `migrate-tokens.mjs`. The card must have the token in `tokens`; `EXTRA_TOKENS` in `migrate-tactics.mjs` adds it where the mod row lacks it.
+
+- Evidence, Confession (Spider-Sleuth), Memory (Are You Sure You Want To Remember?), Genetic Sample (Cloning Banks), 1 Damage (Steal the Future), 1 Power (The White-Hot Room).
+- Not collected: LMD, Obscuring Mist (shuffled and revealed at random), single markers, tokens held by a character (Devil's Deal, Phoenix, Confidence).
+
 How TTS does it (from the `Database` script and the script of each tactic card):
 
 - A tactic card row has `tokens`: a list of token names, for example Mystic Ward → "Mystic Ward", Pentagram of Farallah → "Mystic Portal", Founding Members → six conditions. 82 rows have it.

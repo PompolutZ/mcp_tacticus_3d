@@ -45,7 +45,10 @@ Branch `playtest-2`, worktree `../mcp_assist_3d-playtest-2`. One coder step and 
    - `sleuthevidence` (Spider-Sleuth: Evidence on the card)
    - `memory` (Are You Sure You Want To Remember?: up to 3 on the card)
    - `genetic-sample` (Cloning Banks: moved onto the card)
-   - The coder lists more candidates from the card texts in Part 2. The user decides.
+   - `sleuthconfession` (Spider-Sleuth: Confession on the card, added by Part 2)
+   - `1-damage` (Steal the Future: damage on the card, up to 5+; added by Part 2)
+   - `1-power` (The White-Hot Room: 2 power on the card, 1 removed per Power Phase; added by Part 2)
+   - Rejected: LMD and Obscuring Mist (random reveal); Cosmic Awareness (1 block token, single, no token); Deeds Worth of Song (Worthy Deeds, no token in `tokens.json`); Devil's Deal, Phoenix, Confidence (on a character).
 3. **Counted pile.** A loose token of a collected kind gets `count` (default 1, no field when 1). A number on the token shows the count when it is 2 or more.
    - **Click on the card pile:** the first click puts one loose token on the card that owns the pile. Each later click adds 1 to that token. A pile without a card (from the Library) puts the token next to the pile.
    - **Drop onto a token:** a dropped collected token on a loose token of the same kind joins it. The counts add up.
@@ -81,7 +84,18 @@ Work:
 
 Checks: as Part 1.
 
-**Result:**
+**Result:** Done. Chosen (card, reason):
+- `sleuthevidence`: Spider-Sleuth, Evidence put on card, remove 3.
+- `sleuthconfession`: Spider-Sleuth, Confession put on card.
+- `memory`: Are You Sure You Want To Remember?, up to 3 on card.
+- `genetic-sample`: Cloning Banks, any number moved onto card. Added to `cards.json` via `EXTRA_TOKENS`.
+- `1-damage`: Steal the Future, damage on card. Already in `cards.json`.
+- `1-power`: The White-Hot Room, 2 power on card. Added via `EXTRA_TOKENS`.
+
+Rejected: LMD, Obscuring Mist (random reveal); Cosmic Awareness (single block token, not in `tokens.json`); Deeds Worth of Song (Worthy Deeds not in `tokens.json`); Devil's Deal, Phoenix, Confidence (on a character).
+
+`COLLECT_KEYS` in `migrate-tokens.mjs` sets `collect: true` (also written in `tokens.json`). `isCollected(key)` in `src/tokens/tokens.js`, tested in `tokens.test.js`. Feature doc: "Collected tokens".
+
 
 ## Part 3: Counted pile
 

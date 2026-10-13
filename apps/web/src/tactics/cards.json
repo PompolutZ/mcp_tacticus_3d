@@ -258,7 +258,10 @@
   },
   "cloning-banks": {
     "id": "00460201",
-    "name": "Cloning Banks"
+    "name": "Cloning Banks",
+    "tokens": [
+      "genetic-sample"
+    ]
   },
   "comrades-keeper": {
     "id": "00890202",
@@ -1600,7 +1603,10 @@
   },
   "the-white-hot-room": {
     "id": "00830203",
-    "name": "The White-Hot Room"
+    "name": "The White-Hot Room",
+    "tokens": [
+      "1-power"
+    ]
   },
   "there-will-be-carnage": {
     "id": "00500203",

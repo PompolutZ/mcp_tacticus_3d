@@ -24,6 +24,16 @@ const { opts } = parseMigrateArgs(USAGE)
 const DEFAULT_SIZE = 0.75
 // Tokens are small icons, not card art: 256 is already larger than the mod's cached originals (225-375 px)
 const TOKEN_SIZE = 256
+// Tokens that a tactic card collects in a number on the card or on the table (not on a character): they get
+// collect: true and build a counted pile, see docs/features/team-tactic-cards.md, "Collected tokens". Keys.
+const COLLECT_KEYS = [
+  'sleuthevidence',
+  'sleuthconfession',
+  'memory',
+  'genetic-sample',
+  '1-damage',
+  '1-power',
+]
 const MANIFEST_FILE = path.join(import.meta.dirname, 'token-manifest.json')
 const DATA_DIR = path.resolve(import.meta.dirname, '../src/tokens')
 const OUT_DIR = opts.out ? path.resolve(opts.out) : null
@@ -138,7 +148,7 @@ function migrate() {
   const newManifest = {}
   for (const { f } of done) newManifest[f.file] = f.url
   writeJson(MANIFEST_OUT, newManifest)
-  writeJson(TOKENS_OUT, Object.fromEntries(done.map(({ key, row }) => [key, tokenEntry(row)])))
+  writeJson(TOKENS_OUT, Object.fromEntries(done.map(({ key, row }) => [key, tokenEntry(row, key)])))
 
   console.log('Tokens:')
   for (const { key, row, status } of results) console.log(`  ${key} (${row.name}): ${status}`)
@@ -169,12 +179,13 @@ function tokenSize(row) {
   return row.tSize * 2
 }
 
-// Entry of src/tokens/tokens.json. size, description and cleanup are left out when the mod row has none (size:
+// Entry of src/tokens/tokens.json. size, description, cleanup and collect are left out when the mod row has none (size:
 // when it is the default), the same way as the optional fields of src/crisis/cards.json.
-function tokenEntry(row) {
+function tokenEntry(row, key) {
   const entry = { name: row.name, group: group(row) }
   if (tokenSize(row) !== DEFAULT_SIZE) entry.size = tokenSize(row)
   if (row.tDescr) entry.description = row.tDescr
   if (row.cleanup) entry.cleanup = true
+  if (COLLECT_KEYS.includes(key)) entry.collect = true
   return entry
 }

@@ -31,6 +31,12 @@ const ASSETS = OUT_DIR
   : path.resolve(import.meta.dirname, '../src/assets')
 // Largest side of a card image. Most sources are about 720×1040, a few are 2048 px high or more.
 const CARD_SIZE = 1040
+// Tokens that the mod row of a card does not name, but that the card collects in a number on it (see COLLECT_KEYS in
+// migrate-tokens.mjs). Card key -> token keys.
+const EXTRA_TOKENS = {
+  'cloning-banks': ['genetic-sample'],
+  'the-white-hot-room': ['1-power'],
+}
 
 // The mod spawns only released cards
 const cards = loadTacticCards().filter((c) => c.released)
@@ -102,7 +108,7 @@ async function migrate() {
     MANIFEST_OUT,
     Object.fromEntries(done.flatMap((d) => d.files).map((f) => [f.file, f.url])),
   )
-  writeJson(CARDS_OUT, Object.fromEntries(done.map(({ key, card }) => [key, cardEntry(card)])))
+  writeJson(CARDS_OUT, Object.fromEntries(done.map(({ key, card }) => [key, cardEntry(card, key)])))
 
   console.log('\nCards:')
   for (const { key, card, status } of results) console.log(`  ${key} (${card.ID}): ${status}`)
@@ -118,7 +124,7 @@ function downloadFailure(failures) {
 
 // Entry of src/tactics/cards.json. tokens is left out when the card has none. The key of a token is its name as a
 // slug, as in migrate-tokens.mjs; a name without a migrated token is left out with a warning.
-function cardEntry(card) {
+function cardEntry(card, key) {
   const entry = { id: card.ID, name: card.name }
   const found = []
   for (const name of card.tokens ?? []) {
@@ -128,6 +134,9 @@ function cardEntry(card) {
         `Warning: the card "${card.name}" names the token "${name}", which is not migrated`,
       )
     } else if (!found.includes(tokenKey)) found.push(tokenKey)
+  }
+  for (const tokenKey of EXTRA_TOKENS[key] ?? []) {
+    if (tokenKeys.has(tokenKey) && !found.includes(tokenKey)) found.push(tokenKey)
   }
   if (found.length) entry.tokens = found
   return entry
