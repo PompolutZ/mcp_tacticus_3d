@@ -21,6 +21,7 @@ import { freeSpawnYaw, storedFields, sameStored } from './storedTool.js'
 import { useSideColor } from '../sideColors.js'
 import { MOVE_TIP, RANGE_TIP, TOOL_TINT } from '../tabletools/toolTips.js'
 import { onRack } from '../tabletools/layout.js'
+import { aimTurn } from './aimTurn.js'
 import { clampRange, rangeReach, withinRange } from './rangeOne.js'
 import { footprintGap, fromLocal, lineClamp, placeClamp, toLocal, touches } from './placeLock.js'
 
@@ -899,12 +900,31 @@ function Tool({
     // The piece under the pointer is the one the tool measures against. Not the snapped one.
     const { target: snapped, side: snappedSide } = snap
     const pivot = snapped.getCenter()
+    const range = !angle && !bendable
+    // Range tool: after aiming at a piece, the plain turn goes on from the aimed pose (d at that move)
+    let rebase = null
     return {
       pivot,
       onTurn(d, pose) {
         // Angle tool over another piece: the line through its center, not a plain turn
         if (angle && measuredRef.current)
           return aimPose(pivot, snapped.radius, halfWidth, measuredRef.current.getCenter(), mode)
+        if (range) {
+          const base = rebase?.pose ?? pose
+          const over = measuredRef.current
+          if (over) {
+            // The direction from the base into the tool: along the tool, or across it on R1
+            const dir = rangeOne
+              ? { x: 0, z: -(snap.across ?? 1) }
+              : { x: snappedSide === 'left' ? 1 : -1, z: 0 }
+            const aimed = turnAround(base, pivot, aimTurn(base.yaw, dir, pivot, over.getCenter()))
+            rebase = { pose: aimed, d }
+            return aimed
+          }
+          return rebase
+            ? turnAround(base, pivot, wrapAngle(d - rebase.d))
+            : turnAround(pose, pivot, d)
+        }
         const open = angleLimit?.(snapped) ?? null
         if (open === null) return turnAround(pose, pivot, d)
         // A movement tool at an angle tool: the turn changes the move direction by d, so cut d

@@ -42,6 +42,8 @@ A free tool also snaps to a model while you drag it: when the pointer moves onto
 
 Dragging a snapped tool rotates it around the center of that model's base. You can grab any part of the tool. The distance between the tool and the base does not change, so the tool keeps touching the base. The TTS mod does the same, but it points the tool at the pointer. The app turns the tool as far as the pointer turns around the base, so the grabbed spot stays under the pointer and the tool does not jump at the start.
 
+A snapped range tool is an exception while the pointer is on another model or token: it then points at the center of that piece, along the line from the center of the snapped base. It keeps touching the base. On R1, the tool width points at the piece. When the pointer leaves the piece, the plain turn goes on from where the tool is, with no jump.
+
 Only a free tool snaps during a drag. A drag that starts on a snapped tool never snaps it to another model, also when the pointer passes over one. So models that stand close together do not take the tool from each other.
 
 The tool stays snapped to the same model when you select another model. It also stays snapped when you drag it with Place on, because the base keeps touching the tool. When the model leaves the table (a removed character, or a token that a character takes), the tool is free.
@@ -119,6 +121,8 @@ A snapped range tool measures against the model or token under the pointer while
 - **Red**: the piece is out of range.
 
 For R2 to R5, a piece is within range when its base touches the tool outline. For R1, a piece is within range when its base is within range 1 of the snapped base, edge to edge, seen from above. See [Range 1](#range-1).
+
+The tool points at the piece while the pointer is on it, so the outline is green exactly when the tool reaches the base.
 
 The outline shows only while the pointer is on that piece during the drag. It goes away when the pointer leaves the piece, or when you release the tool. The snapped model is not measured against itself. The movement tools do not measure against pieces.
 
