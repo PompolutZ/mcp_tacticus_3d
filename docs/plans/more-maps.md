@@ -91,6 +91,18 @@ Checks: `pnpm format`, `pnpm lint`, the tests of `apps/web`. One real run: Oscor
 
 Migrate 298 with `--download` (13 missing pieces). As Phase 3.
 
+## Phase 8: One collider GLB per bundle piece
+
+Added on 2026-10-13 after the user agreed. Found in Phase 4: `total-access-games-size-5` has 395 mesh colliders, each its own GLB (1.6 MB), so the map loads 395 small files.
+
+Work:
+1. `migrate-terrain.mjs`: write all collider meshes of a bundle piece into one GLB, one node or mesh per collider. A `mesh` entry in `colliders` names its mesh in that file. Keep Draco.
+2. `src/terrain/files.js`, `Terrain.jsx`, `src/rooms/preload.js`: load the one file per piece.
+3. Convert the collider files of every migrated bundle piece again (`--force` or a small one-time path in the script). Delete the old `-collider-<n>.glb` files. Check that `pieces.js` gets no duplicate entries.
+4. `scripts/README.md`, `docs/features/maps.md`: the new file layout.
+
+Checks as in Phase 1, and the collider unit tests still pass.
+
 ## Result
 
 Phase 1 (done):
