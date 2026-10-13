@@ -72,23 +72,21 @@ Place needs no selected character. The button works on any snapped tool, also on
 
 **Throw / Push** turns on and off. A selected movement tool that is snapped to a character has the button at the snapped end, as in the mod. The button is hidden while Place is on, and Place is hidden while Throw is on. The button is disabled when the tool is snapped to a token.
 
-Turning Throw on slides the snapped character along the middle line of the tool, from the snapped end toward the far end. The rules (p13–14) move a Thrown and a Pushed character the same way, so one button does both. The app does not apply collision damage. The players resolve it.
+Turning Throw on moves nothing. It locks the snapped character: a drag of it stays on the middle line of the tool, from its start toward the far end. The rules (p13–14) move a Thrown and a Pushed character the same way, so one button does both. The app does not apply collision damage. The players resolve it.
 
 The rules need a straight tool. If the tool is bent, the button first straightens it: the far half turns to line up with the snapped half, so the snapped end still touches the base.
 
-The character moves the full distance, until its base touches the far end from outside, the same as Place. It stops earlier at the first of these:
+The line ends at the full distance, where the base touches the far end from outside, the same as Place. It ends earlier at the first of these:
 
 - **Another character's base.** The app measures bases from above, so the height of the other base does not matter. A base that the move goes away from does not stop it, also when the two touch at the start.
-- **A terrain piece.** The base moves at the height where it starts. So a base on the table passes under an overhang (rules p9), and a base on a roof does not hit lower terrain. Terrain that the base overlaps at the start, for example the roof or the stairs it stands on, does not stop it (rules p14).
+- **A terrain piece.** The line is checked at the height where the base starts. So a base on the table passes under an overhang (rules p9), and a base on a roof does not hit lower terrain. Terrain that the base overlaps at the start, for example the roof or the stairs it stands on, does not stop it (rules p14).
 - **The mat edge.** A base never leaves the mat (rules p13).
 
-The base stops touching what stopped it. It starts fast and slows down, as if friction stops it at the full distance. When it hits something, it stops at once. At the end, the character stands upright on what is under it, below the height where it moved. A character that moved off a roof drops to the table or to the terrain under it.
+The stop point is found when Throw turns on. The drag can go anywhere on the line before it, and the character drops where it is released.
 
-A **lifted** character (key **R**) does not stop the move. A character can throw or push another character through its own base, and the app does not know which character performs the Throw. So the player lifts the thrower before the Throw, and puts it back down after it. The same works for any other character that the move should pass.
+A **lifted** character (key **R**) does not stop the line. A character can throw or push another character through its own base, and the app does not know which character performs the Throw. So the player lifts the thrower before the Throw, and puts it back down after it. The same works for any other character that the move should pass.
 
-While Throw is on, the button stays at the end where the Throw started. You can drag the thrown character only along the middle line of the tool, between its start and the full distance. So you can correct where it stopped. Turning Throw off does not move anything.
-
-After a full move, the base touches the far end, so the tool stays snapped to the character at that end. After a shorter move, the base touches no end, so the tool is free.
+While Throw is on, the button stays at the end where the Throw started. Turning Throw off ends the lock.
 
 ### Toward / Away
 

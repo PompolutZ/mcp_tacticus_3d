@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { footprintGap, nearestTouching, placeClamp, touches } from './placeLock.js'
+import { footprintGap, lineClamp, nearestTouching, placeClamp, touches } from './placeLock.js'
 
 // Straight tool: center at the origin, right half along +X (yaw 0), left half along -X (yaw PI)
 const SHAPE = { x: 0, z: 0, right: 0, left: Math.PI }
@@ -31,4 +31,17 @@ test('a far point is cut to the nearest touching point', () => {
   const e = nearestTouching(SHAPE, TIP, HALF, { x: 9, z: 0 }, R)
   near(e.x, TIP + R)
   near(e.z, 0)
+})
+
+test('a point is cut onto the line, between start and length', () => {
+  const start = { x: 1, z: 1 },
+    dir = { x: 1, z: 0 }
+  const mid = lineClamp(start, dir, 4, { x: 3, z: 5 })
+  near(mid.x, 3)
+  near(mid.z, 1)
+  const before = lineClamp(start, dir, 4, { x: -2, z: 0 })
+  near(before.x, 1)
+  const after = lineClamp(start, dir, 4, { x: 9, z: 0 })
+  near(after.x, 5)
+  near(lineClamp(start, dir, -1, { x: 9, z: 0 }).x, 1)
 })

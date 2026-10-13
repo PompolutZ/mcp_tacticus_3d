@@ -438,9 +438,6 @@ export default function Scene({
   const charObjects = useRef(new Map())
   // Model id → its lift, { toggle(), down() }. See CharacterModel.jsx and liftPiece.
   const charLifts = useRef(new Map())
-  // Model id → its slide, startSlide(path, duration). See CharacterModel.jsx and the
-  // Throw button in RulerTool.jsx.
-  const charSlides = useRef(new Map())
   // Character id → the tray's background plate. characterAt below hits this too, so a drop anywhere
   // on the tray finds the character (see CharacterTray.jsx).
   const trayObjects = useRef(new Map())
@@ -786,7 +783,7 @@ export default function Scene({
     }
   })
 
-  // A lost tie (decision 7): a turn left for that model is removed. The drag, lift and slide stop in the
+  // A lost tie (decision 7): a turn left for that model is removed. The drag and lift stop in the
   // model (CharacterModel.jsx, remote).
   useEffect(() => ownership?.onLost((key) => turnsLeft.current.delete(key)), [ownership])
 
@@ -953,8 +950,7 @@ export default function Scene({
   // Every character and every mat token as the range and movement tools see them. A character has a
   // Rapier body; a token does not, so getCenter (not getBody) is what the tools measure with.
   // getBody is only used where a tool moves a piece (Place, Throw), and both are disabled for a token.
-  // isLifted and slide are for a Throw: a lifted character does not stop it, and slide moves the
-  // thrown character.
+  // isLifted is for a Throw: a lifted character does not stop it.
   // A held token is not in this list: it is off the mat, on its holder's tray (see "Hold and drop").
   const matTokens = useMemo(() => tokens.filter((tok) => !tok.heldBy), [tokens])
   // For the spectator view: the tokens of the Secure card on the mat, and the held tokens of each
@@ -1001,7 +997,6 @@ export default function Scene({
         getObject: () => charObjects.current.get(model.id),
         getCenter: () => charBodies.current.get(model.id)?.translation() ?? { x: 0, y: 0, z: 0 },
         isLifted: () => charLifts.current.get(model.id)?.isUp() ?? false,
-        slide: (path, duration) => charSlides.current.get(model.id)?.(path, duration),
         claim: () => claimModel(model.id),
         moved: () => markMoved(model.id),
         radius: BASE_DIAMETER[model.base] / 2,
@@ -1631,9 +1626,6 @@ export default function Scene({
               obj ? charObjects.current.set(model.id, obj) : charObjects.current.delete(model.id),
             liftRef: (lift) =>
               lift ? charLifts.current.set(model.id, lift) : charLifts.current.delete(model.id),
-            slideRef: (slide) =>
-              slide ? charSlides.current.set(model.id, slide) : charSlides.current.delete(model.id),
-            onSlideStart: () => markMoved(model.id),
             onDragStart: () => {
               markMoved(model.id)
               setDraggingCharId(model.id)

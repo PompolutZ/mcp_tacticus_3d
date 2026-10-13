@@ -234,7 +234,7 @@ function standeeScene(front, back, radius) {
 // bodyRef, objectRef: get the Rapier body and the 3D object of the model (figure and base)
 // onRest(): the body fell asleep, so the model rests. Scene.jsx stores its pose.
 // liftRef: gets { toggle(), down(), cancel() } for the R key (see liftPiece in Scene.jsx), isUp() for a Throw
-// (a lifted model does not stop it), isBusy() (a drag, lift or slide is going on), and restPosition() for the stored pose: the body position before the
+// (a lifted model does not stop it), isBusy() (a drag or lift is going on), and restPosition() for the stored pose: the body position before the
 // lift, or null when the model is not lifted. Gets null on unmount.
 // claimKey, ownership: the piece key `character:<id>` and the claims (net/ownership.js). A drag claims the key and
 // leaves the release to Scene, which releases when the body is at rest (plan 09, decision 5).
@@ -247,13 +247,11 @@ function standeeScene(front, back, radius) {
 // remote mode the model follows it each frame (decision 14) and shows the drag footprint while otherDragging (decision 18).
 // getLiveTime(key): when that pose arrived, in performance.now() ms, or null. The remote model makes the sound of its
 // landing from the poses and their times (docs/features/sounds.md).
-// slideRef: gets startSlide for a Throw or Push (see RulerTool.jsx), and null on unmount
 // baseRadius: radius of the base in the model file, which has the game size
 // onHover(over): called when the pointer moves onto the model (true) and off it (false)
 // overlap: the model shows the overlap mark (overlap.js): a red outline and a red tint
 // overlapsAt(x, y, z): true when a base of this model at that body position overlaps another model.
 // A drag uses it for the mark and for the drop (see freePlace).
-// onSlideStart(): a Throw or Push starts (startSlide). With onDragStart, Scene counts both as a move.
 // rangeMark: 'inRange' or 'outOfRange' while a range tool marks the model (RangeMark in RulerTool.jsx)
 // otherSelected: the side of the other player who has the model selected, or null
 // onSelect(): a click. onDragSelect(): a drag starts, the model is selected and stays selected.
@@ -282,10 +280,8 @@ function CharacterFigure({
   onRest,
   objectRef,
   liftRef,
-  slideRef,
   onDragStart,
   onDragEnd,
-  onSlideStart,
   constrainDrag,
   overlay,
   claimKey,
@@ -319,7 +315,7 @@ function CharacterFigure({
   // goes up (true) or back down (false). landing: the model is back at x, y, z, and becomes a
   // dynamic body again in the next frame.
   const lift = useRef(null)
-  // The remote prop for the closures that are made once (toggleLift, startSlide)
+  // The remote prop for the closures that are made once (toggleLift)
   const remoteRef = useRef(remote)
   const wasRemote = useRef(false)
   // The shown pose while the model follows live poses: { pos, quat }, or null. It is kept here, not read
@@ -327,8 +323,6 @@ function CharacterFigure({
   const follow = useRef(null)
   // The model follows live poses now: mounts the footprint of the base
   const [following, setFollowing] = useState(false)
-  // The slide of a Throw or Push (startSlide): { path, duration, time }, or null
-  const slide = useRef(null)
   // The last pointer position of a drag, in screen pixels
   const pointer = useRef({ x: 0, y: 0 })
   // The bump finder of the landing sound: of the body (own model) or of the live poses (remote
@@ -356,7 +350,7 @@ function CharacterFigure({
   }
 
   // The landing of the other player's model, from its live poses. The finder also gets the poses
-  // of a drag, a lift and a slide, and it ignores them, because no free fall comes before them.
+  // of a drag and a lift, and it ignores them, because no free fall comes before them.
   // A bump that starts in a drag is dropped.
   function listenLanding() {
     const finder = (remoteBump.current ??= createPoseBumpFinder({
@@ -387,7 +381,7 @@ function CharacterFigure({
 
   // A sound for each landing of the own model (docs/features/sounds.md): the bump finder gets the
   // vertical velocity after each physics step, while the body is dynamic and awake. A body that is
-  // kinematic (drag, lift, slide), asleep or the other player's starts fresh when it moves again,
+  // kinematic (drag, lift), asleep or the other player's starts fresh when it moves again,
   // so a drop, a lift, a jump or a set pose is never a bump.
   useAfterPhysicsStep((physics) => {
     const rb = rigidRef.current
@@ -437,7 +431,7 @@ function CharacterFigure({
   // nothing pushes it.
   function toggleLift() {
     const rb = rigidRef.current
-    if (!rb || isDragging.current || slide.current || remoteRef.current) return
+    if (!rb || isDragging.current || remoteRef.current) return
     if (lift.current) {
       lift.current.up = !lift.current.up
       lift.current.landing = false
@@ -498,44 +492,6 @@ function CharacterFigure({
     })
   }
 
-  // Throw / Push (docs/features/range-movement-tools.md, "Throw / Push"): moves the model along path in duration seconds. path(f) is the
-  // body position at the share f (0..1) of the slide, with y null when nothing is under it. The body is
-  // kinematic during the slide, so physics does not move it. A slide ends a lift, and a drag ends a slide.
-  function startSlide(path, duration) {
-    const rb = rigidRef.current
-    if (!rb || isDragging.current || remoteRef.current) return
-    lift.current = null
-    rest.current = null
-    rb.setBodyType(2, true)
-    slide.current = { path, duration, time: 0 }
-    onSlideStart?.()
-  }
-
-  // Moves a sliding model one frame. It stands upright, as during a drag. Its height follows the path,
-  // smoothed the same way as during a drag, so a model that leaves a roof drops quickly but not at
-  // once. At the end the model stands at the last point of the path, and physics moves it again.
-  function moveSlide(rb, dt) {
-    const s = slide.current
-    const t = rb.translation()
-    s.time += dt
-    if (s.time >= s.duration) {
-      const end = s.path(1)
-      slide.current = null
-      rb.setBodyType(0, true)
-      rb.setTranslation({ x: end.x, y: end.y ?? t.y, z: end.z }, true)
-      rb.setRotation(upright(rb.rotation()), true)
-      rb.setLinvel(ZERO, true)
-      rb.setAngvel(ZERO, true)
-      return
-    }
-    const p = s.path(s.time / s.duration)
-    const y = p.y === null ? t.y : t.y + (p.y - t.y) * Math.min(1, dt * HOVER_RATE)
-    // A sleeping body keeps moving but its mesh is not synced, so keep it awake
-    rb.wakeUp()
-    rb.setNextKinematicTranslation({ x: p.x, y, z: p.z })
-    rb.setNextKinematicRotation(upright(rb.rotation()))
-  }
-
   // A model of a saved room starts asleep at its pose, the same as it was when the room saved. So it
   // does not move before the terrain under it has its colliders. A touch, a drag or a removed terrain
   // piece wakes it. RigidBody creates and places the body in its own effects, which run before this one.
@@ -553,14 +509,12 @@ function CharacterFigure({
         lift.current = null
       },
       isUp: () => lift.current?.up === true,
-      isBusy: () => isDragging.current || lift.current !== null || slide.current !== null,
+      isBusy: () => isDragging.current || lift.current !== null,
       restPosition: () =>
         lift.current && { x: lift.current.x, y: lift.current.y, z: lift.current.z },
     })
-    slideRef?.(startSlide)
     return () => {
       liftRef?.(null)
-      slideRef?.(null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -579,8 +533,7 @@ function CharacterFigure({
       return
     }
     if (!isDragging.current) {
-      if (slide.current) moveSlide(rb, dt)
-      else if (lift.current) moveLift(rb, dt)
+      if (lift.current) moveLift(rb, dt)
       else settle(rb, dt)
       return
     }
@@ -633,7 +586,7 @@ function CharacterFigure({
     rb.setNextKinematicRotation(quat)
   }
 
-  // The remote mode (decision 9). A lift, a slide or a drag of this browser stops moving the body, with no drop
+  // The remote mode (decision 9). A lift or a drag of this browser stops moving the body, with no drop
   // and no write. Back from it, Scene sets the body type and the pose, and the contact forces come back here.
   useEffect(() => {
     remoteRef.current = remote
@@ -648,7 +601,6 @@ function CharacterFigure({
     }
     if (remote) {
       lift.current = null
-      slide.current = null
       rest.current = null
       rb.setBodyType(2, true)
     }
@@ -713,9 +665,8 @@ function CharacterFigure({
       releaseAtEnd: false,
       onStart: () => {
         onDragSelect?.()
-        // A drag ends a lift or a slide. The model follows the pointer and drops where it is released.
+        // A drag ends a lift. The model follows the pointer and drops where it is released.
         lift.current = null
-        slide.current = null
         rigidRef.current?.setBodyType(2, true)
         isDragging.current = true
         setDragging(true)

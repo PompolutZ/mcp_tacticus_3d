@@ -76,3 +76,9 @@ export function touches(shape, length, halfWidth, center, radius, eps = 0.01) {
 export function placeClamp(shape, length, halfWidth, p, radius) {
   return nearestTouching(shape, length, halfWidth, p, radius)
 }
+
+// The drag point p cut to the line from start along dir (unit XZ), between 0 and length from start.
+export function lineClamp(start, dir, length, p) {
+  const d = clamp((p.x - start.x) * dir.x + (p.z - start.z) * dir.z, 0, Math.max(0, length))
+  return { x: start.x + dir.x * d, z: start.z + dir.z * d }
+}

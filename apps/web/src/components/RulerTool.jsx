@@ -12,7 +12,7 @@ import {
 } from './footprintProjection.js'
 import { castDown } from '../physics.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
-import { throwMove, throwSlide } from './throwPath.js'
+import { throwMove } from './throwPath.js'
 import { assetUrl } from '../assets/index.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
@@ -22,7 +22,7 @@ import { useSideColor } from '../sideColors.js'
 import { MOVE_TIP, RANGE_TIP, TOOL_TINT } from '../tabletools/toolTips.js'
 import { onRack } from '../tabletools/layout.js'
 import { clampRange, rangeReach, withinRange } from './rangeOne.js'
-import { footprintGap, fromLocal, placeClamp, toLocal, touches } from './placeLock.js'
+import { footprintGap, fromLocal, lineClamp, placeClamp, toLocal, touches } from './placeLock.js'
 
 const TEXTURE = assetUrl('tools/toolbox-02.png')
 // How fast the dragged tool moves to the new hover height, per second (same as models)
@@ -823,9 +823,9 @@ function Tool({
   // Place moves the character to the far end, the end that does not touch the snapped base. A free
   // tool has no far end, so Place is shown there only while it is on, so that it can be turned off.
   const placeButtonSide = placeSide ?? (snap ? OTHER[snap.side] : null)
-  // While Throw is on: { side, target }, the end the Throw started from and the thrown character. The
-  // Throw button stays at that end. Off: null. While Throw is on, a drag of the thrown character keeps
-  // its base center on the middle line of the tool (throwLine), so the player can correct the stop.
+  // While Throw is on: { side, target, moved }, the end the Throw started from, the locked character and
+  // how far the line goes (the stop point). The Throw button stays at that end. Off: null. A drag of the
+  // locked character keeps its base center on the middle line of the tool (throwLine), up to moved.
   // Place and Throw are never on at the same time: each one hides the other's button.
   const [throwLock, setThrowLock] = useState(null)
   const throwing = selected && throwLock !== null
@@ -1189,7 +1189,7 @@ function Tool({
   // The clamp reads the tool pose at each call, so the tool can move while Throw is on
   useEffect(() => {
     if (!throwing) return undefined
-    const { side, target } = throwLock
+    const { side, target, moved } = throwLock
     onPlaceLimit?.({
       owns: (model) => model.id === target.id,
       clamp(p) {
@@ -1200,13 +1200,9 @@ function Tool({
           tip,
           target.radius,
         )
-        const d = THREE.MathUtils.clamp(
-          (p.x - start.x) * dir.x + (p.z - start.z) * dir.z,
-          0,
-          distance,
-        )
-        p.x = start.x + dir.x * d
-        p.z = start.z + dir.z * d
+        const spot = lineClamp(start, dir, Math.min(moved, distance), p)
+        p.x = spot.x
+        p.z = spot.z
       },
     })
     return () => onPlaceLimit?.(null)
@@ -1278,12 +1274,12 @@ function Tool({
     setPlaceOne(true)
   }
 
-  // Throw / Push (docs/features/range-movement-tools.md, "Throw / Push") turns on and off. Turning it on slides the snapped character
-  // along the middle line of the tool, from the snapped end toward the far end. It stops at the first
-  // character base, terrain piece or mat edge on the way (see throwPath.js). A lifted character does
-  // not stop it, so the player lifts a character that the move should pass. The rules use a straight
-  // tool, so a bent tool is straightened first: the far half lines up with the snapped half, and the
-  // snapped end stays on the base. Turning Throw off does not move anything.
+  // Throw / Push (docs/features/range-movement-tools.md, "Throw / Push") turns on and off. It moves
+  // nothing: it locks the snapped character, so its drag stays on the middle line of the tool, from the
+  // snapped end toward the far end. The line stops at the first character base, terrain piece or mat
+  // edge (see throwPath.js). A lifted character does not stop it, so the player lifts a character that
+  // the move should pass. The rules use a straight tool, so a bent tool is straightened first: the far
+  // half lines up with the snapped half, and the snapped end stays on the base.
   function handleThrow(e) {
     e.stopPropagation()
     if (throwLock) {
@@ -1313,19 +1309,14 @@ function Tool({
           !other.isLifted(),
       )
       .map((other) => ({ center: other.getCenter(), radius: other.radius }))
-    const { moved, at } = throwMove(world, rapier, {
+    const { moved } = throwMove(world, rapier, {
       start,
       dir,
       distance,
       radius: model.radius,
       others,
     })
-    const { path, duration } = throwSlide(at, distance, moved)
-    model.slide(path, duration)
-    // After the full move the base touches the far end, so the tool stays snapped to it there.
-    // A base that stopped on the way touches no end, so the tool is free.
-    setSnap(moved >= distance ? { target: model, side: far } : null)
-    setThrowLock({ side: snap.side, target: model })
+    setThrowLock({ side: snap.side, target: model, moved })
   }
 
   return (
