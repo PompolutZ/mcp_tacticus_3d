@@ -129,11 +129,53 @@
       "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/43e2ad402388.obj",
       "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b532a238901a.jpg",
       "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/43e2ad402388.obj"
+    },
+    "untethered-node-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/03c73ca7484e.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f7e0db2235a7.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/03c73ca7484e.obj"
+    },
+    "portal-size-4-delete-all-as-one": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0ea9e7a9e972.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3424ff49c4a7.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0ea9e7a9e972.obj"
+    },
+    "portal-size-4-delete-all-as-one-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8b6ce00a3cf6.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3424ff49c4a7.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8b6ce00a3cf6.obj"
+    },
+    "dimensional-rift-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/bcdc22356d1f.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0ff0d673b508.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/bcdc22356d1f.obj"
+    },
+    "hvac-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f2737e5066bf.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/efb7cd713a9a.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f2737e5066bf.obj"
+    },
+    "pym-storage-container-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/91fa3aa2b42e.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3f68d046a866.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/04ae704abd5a.obj"
+    },
+    "storage-container-size-2-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4eb2c58749d5.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3f68d046a866.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/04ae704abd5a.obj"
+    },
+    "electrical-hut-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/996884497168.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a6b69549f15e.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/996884497168.obj"
     }
   },
   "mats": {
     "wakanda": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/af7a7354a68e.png",
     "battle-for-asgard": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6752d3d43dee.png",
-    "hydra-vs-wakanda": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/702601a131f7.png"
+    "hydra-vs-wakanda": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/702601a131f7.png",
+    "dimensional-assault": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3d32755bee50.png",
+    "dark-dimension-on-mars-base": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/89d8d16ca6ec.png"
   }
 }

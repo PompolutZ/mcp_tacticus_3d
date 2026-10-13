@@ -93,4 +93,12 @@ Migrate 298 with `--download` (13 missing pieces). As Phase 3.
 
 ## Result
 
-Not started.
+Phase 1 (done):
+- `Mat` turns the image by `-(matRotation - 180)` degrees around Y, inside a group. `matTurns` still applies on top.
+- `matRotation` on all maps. Vibranium Heist 180.
+- Migrated 287 (matRotation printed as -180, stored as 180, same angle) and 291 (90). No warnings. 4 new pieces for 287 and 4 for 291. The other pieces were already migrated.
+- Tints: none left out. Crystals (magenta) match the pink bits on the 287 card. Teal, brown and red containers in 291 match the card.
+- `docs/features/maps.md` written. README item 3 removed.
+- Not checked in the browser: the mat turn of 291 against its card.
+
+Phases 2 to 7: not started.

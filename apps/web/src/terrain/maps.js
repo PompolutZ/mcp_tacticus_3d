@@ -6,6 +6,8 @@
 export const TTS_MAT_TOP = 1.06
 
 // mat: the mat name. The image is in src/assets (see matImage in files.js).
+// matRotation: TTS rotation of the mat in degrees. The app turns the image by -(matRotation - 180),
+// see docs/features/maps.md.
 // piece: a key in TERRAIN_PIECES.
 // size: the game Size from the mod piece's name. It is on the placement, because two mod pieces
 // with the same files, but a different Size, get one entry in TERRAIN_PIECES.
@@ -16,6 +18,7 @@ export const MAPS = {
   'vibranium-heist': {
     name: 'Vibranium Heist',
     mat: 'wakanda',
+    matRotation: 180,
     placements: [
       {
         piece: 'crystals',
@@ -182,7 +185,7 @@ export const MAPS = {
   'battle-for-asgard': {
     name: 'Battle For Asgard',
     mat: 'battle-for-asgard',
-    // TTS rotation of the mat around Y. It is 180 for Vibranium Heist, and the app draws that mat with no turn.
+    // TTS rotation of the mat around Y (docs/features/maps.md, "Mat rotation").
     matRotation: 180,
     placements: [
       {
@@ -346,7 +349,7 @@ export const MAPS = {
   'hydra-vs-wakanda': {
     name: 'Hydra Vs Wakanda',
     mat: 'hydra-vs-wakanda',
-    // TTS rotation of the mat around Y. It is 180 for Vibranium Heist, and the app draws that mat with no turn.
+    // TTS rotation of the mat around Y (docs/features/maps.md, "Mat rotation").
     matRotation: 180,
     placements: [
       {
@@ -593,6 +596,366 @@ export const MAPS = {
         position: [15.231, 1.06, 14.989],
         rotation: [0, 90, 0],
         scale: 0.575,
+      },
+    ],
+  },
+  // "Dimensional Assault" (map 287 in the Terrain Database, Strict Maps)
+  'dimensional-assault': {
+    name: 'Dimensional Assault',
+    mat: 'dimensional-assault',
+    // TTS rotation of the mat around Y (docs/features/maps.md, "Mat rotation").
+    matRotation: 180,
+    placements: [
+      {
+        piece: 'untethered-node-size-3',
+        size: 3,
+        position: [-15.207, 1.06, -2.893],
+        rotation: [0, 44.97, -0.01],
+        scale: 0.45,
+      },
+      {
+        piece: 'portal-size-4-delete-all-as-one',
+        size: 4,
+        position: [-8.891, 1.059, 6.417],
+        rotation: [0, 135.52, 0],
+        scale: 1.3,
+      },
+      {
+        piece: 'portal-size-4-delete-all-as-one-2',
+        size: 4,
+        position: [-8.811, 1.06, 6.346],
+        rotation: [0, 136, 0],
+        scale: 1.3,
+      },
+      {
+        piece: 'size-3-hydra-power-station',
+        size: 3,
+        position: [-12.295, 2.822, -10.079],
+        rotation: [0.01, 119.36, -0.01],
+        scale: 2.75,
+      },
+      {
+        piece: 'crystals',
+        size: 1,
+        position: [-13.175, 1.06, 14.67],
+        rotation: [0, -45.01, 0],
+        scale: 0.5,
+        tint: [0.97, 0.01, 0.83],
+      },
+      {
+        piece: 'crystals',
+        size: 1,
+        position: [-12.98, 1.06, -15.173],
+        rotation: [0, -45.01, 0],
+        scale: 0.5,
+        tint: [0.97, 0.01, 0.83],
+      },
+      {
+        piece: 'size-3-hydra-missle-turret',
+        size: 3,
+        position: [-8.464, 2.472, -2.49],
+        rotation: [-0.05, -90.08, -0.08],
+        scale: 2.05,
+      },
+      {
+        piece: 'crystals',
+        size: 1,
+        position: [-7.14, 1.06, -10.478],
+        rotation: [0, -45.01, 0],
+        scale: 0.5,
+        tint: [0.97, 0.01, 0.83],
+      },
+      {
+        piece: 'untethered-node-size-3',
+        size: 3,
+        position: [-5.073, 1.06, -13.639],
+        rotation: [0, -74.98, 0],
+        scale: 0.45,
+      },
+      {
+        piece: 'crystals',
+        size: 1,
+        position: [-5.322, 1.06, -5.25],
+        rotation: [0, -45.01, 0],
+        scale: 0.5,
+        tint: [0.97, 0.01, 0.83],
+      },
+      {
+        piece: 'untethered-node-size-3',
+        size: 3,
+        position: [-2.961, 1.06, 9.414],
+        rotation: [0, -119.98, 0],
+        scale: 0.45,
+      },
+      {
+        piece: 'untethered-node-size-3',
+        size: 3,
+        position: [-2.346, 1.06, 2.03],
+        rotation: [0.02, -59.98, -0.04],
+        scale: 0.45,
+      },
+      {
+        piece: 'crystals',
+        size: 1,
+        position: [-2.024, 1.06, -1.692],
+        rotation: [0, -45.01, 0],
+        scale: 0.5,
+        tint: [0.97, 0.01, 0.83],
+      },
+      {
+        piece: 'size-4-hydra-tank',
+        size: 4,
+        position: [1.287, 4.071, -9.069],
+        rotation: [0.06, -134.98, 0.04],
+        scale: 3.6,
+      },
+      {
+        piece: 'dimensional-rift-size-3',
+        size: 3,
+        position: [2.343, 1.059, 3.607],
+        rotation: [0, 135.2, 0],
+        scale: 1,
+      },
+      {
+        piece: 'untethered-node-size-3',
+        size: 3,
+        position: [0.204, 1.06, 14.132],
+        rotation: [0, 118.91, 0],
+        scale: 0.45,
+      },
+      {
+        piece: 'untethered-node-size-3',
+        size: 3,
+        position: [2.238, 1.06, -3.423],
+        rotation: [0, -0.03, 0],
+        scale: 0.45,
+      },
+      {
+        piece: 'crystals',
+        size: 1,
+        position: [3.769, 1.06, 11.242],
+        rotation: [0, -45.01, 0],
+        scale: 0.5,
+        tint: [0.97, 0.01, 0.83],
+      },
+      {
+        piece: 'crystals',
+        size: 1,
+        position: [5.528, 1.06, -0.298],
+        rotation: [0, -45.01, 0],
+        scale: 0.5,
+        tint: [0.97, 0.01, 0.83],
+      },
+      {
+        piece: 'dimensional-rift-size-3',
+        size: 3,
+        position: [9.086, 1.059, 11.086],
+        rotation: [0, 0, 0],
+        scale: 1,
+      },
+      {
+        piece: 'crystals',
+        size: 1,
+        position: [9.187, 1.06, -11.271],
+        rotation: [0, -45.01, 0],
+        scale: 0.5,
+        tint: [0.97, 0.01, 0.83],
+      },
+      {
+        piece: 'untethered-node-size-3',
+        size: 3,
+        position: [10.716, 1.06, 1.457],
+        rotation: [0.01, -90.3, -0.04],
+        scale: 0.45,
+      },
+      {
+        piece: 'size-3-hydra-turret',
+        size: 3,
+        position: [13.22, 2.554, -3.713],
+        rotation: [-0.01, -120.01, -0.04],
+        scale: 2.65,
+      },
+      {
+        piece: 'crystals',
+        size: 1,
+        position: [13.433, 1.06, -14.144],
+        rotation: [0, -45.01, 0],
+        scale: 0.5,
+        tint: [0.97, 0.01, 0.83],
+      },
+      {
+        piece: 'crystals',
+        size: 1,
+        position: [13.468, 1.06, 3.584],
+        rotation: [0, -45.01, 0],
+        scale: 0.5,
+        tint: [0.97, 0.01, 0.83],
+      },
+    ],
+  },
+  // "Dark Dimension on Mars Base" (map 291 in the Terrain Database, Strict Maps)
+  'dark-dimension-on-mars-base': {
+    name: 'Dark Dimension on Mars Base',
+    mat: 'dark-dimension-on-mars-base',
+    // TTS rotation of the mat around Y (docs/features/maps.md, "Mat rotation").
+    matRotation: 90,
+    placements: [
+      {
+        piece: 'dimensional-rift-size-3',
+        size: 3,
+        position: [-14.287, 1.06, -10.547],
+        rotation: [0, 119.96, 0],
+        scale: 0.4,
+      },
+      {
+        piece: 'untethered-node-size-3',
+        size: 3,
+        position: [-13.93, 1.06, -1.865],
+        rotation: [0, -165, 0],
+        scale: 0.55,
+      },
+      {
+        piece: 'hvac-size-2',
+        size: 2,
+        position: [-10.791, 1.062, 10.767],
+        rotation: [0, 165, 0],
+        scale: 1.65,
+      },
+      {
+        piece: 'cosmic-barricade',
+        size: 2,
+        position: [-10.059, 1.327, -6.535],
+        rotation: [0, -119.99, 109.83],
+        scale: 1,
+      },
+      {
+        piece: 'dimensional-rift-size-3',
+        size: 3,
+        position: [-7.487, 1.059, -13.176],
+        rotation: [0, 165, 0],
+        scale: 0.775,
+      },
+      {
+        piece: 'untethered-node-size-3',
+        size: 3,
+        position: [-8.226, 1.06, -0.293],
+        rotation: [0, 164.98, 0],
+        scale: 0.55,
+      },
+      {
+        piece: 'pym-storage-container-size-3',
+        size: 3,
+        position: [-6.549, 1.95, 6.97],
+        rotation: [89.87, -60.17, 179.99],
+        scale: [1, 1, 0.927],
+        tint: [0.25, 0.61, 0.51],
+      },
+      {
+        piece: 'dimensional-rift-size-3',
+        size: 3,
+        position: [-3.897, 1.025, -5.078],
+        rotation: [0, 75.01, 0],
+        scale: 0.4,
+      },
+      {
+        piece: 'untethered-node-size-3',
+        size: 3,
+        position: [-2.846, 1.125, 2.287],
+        rotation: [-1.2, -131.36, 85.5],
+        scale: 0.55,
+      },
+      {
+        piece: 'dimensional-rift-size-3',
+        size: 3,
+        position: [-0.981, 1.06, -11.549],
+        rotation: [0, 164.05, 0],
+        scale: 0.4,
+      },
+      {
+        piece: 'storage-container-size-2-3',
+        size: 2,
+        position: [1.037, 0.947, 11.612],
+        rotation: [0, 74.98, 0],
+        scale: 1,
+        tint: [0.58, 0, 0],
+      },
+      {
+        piece: 'storage-container-size-2-3',
+        size: 2,
+        position: [1.037, 2.947, 11.614],
+        rotation: [0, -104.99, 0],
+        scale: 1,
+        tint: [0.55, 0.19, 0],
+      },
+      {
+        piece: 'cosmic-barricade',
+        size: 2,
+        position: [1.737, 1.052, -3.322],
+        rotation: [0, -90.01, 0],
+        scale: 1,
+      },
+      {
+        piece: 'untethered-node-size-3',
+        size: 3,
+        position: [3.188, 1.06, 2.558],
+        rotation: [0, -179.99, 0],
+        scale: 0.55,
+      },
+      {
+        piece: 'dimensional-rift-size-3',
+        size: 3,
+        position: [4.108, 1.06, -8.138],
+        rotation: [0, -120, 0],
+        scale: 0.4,
+      },
+      {
+        piece: 'electrical-hut-size-2',
+        size: 2,
+        position: [7.043, 1.056, 12.257],
+        rotation: [0, 75, 0],
+        scale: 0.55,
+      },
+      {
+        piece: 'portal-size-4-delete-all-as-one',
+        size: 4,
+        position: [11.046, 1.059, -11.093],
+        rotation: [0, -45, 0],
+        scale: 0.9,
+      },
+      {
+        piece: 'dimensional-rift-size-3',
+        size: 3,
+        position: [9.04, 1.06, -3.62],
+        rotation: [0, 134.99, 0],
+        scale: 0.4,
+      },
+      {
+        piece: 'untethered-node-size-3',
+        size: 3,
+        position: [9.332, 1.06, 4.531],
+        rotation: [0, 135.02, 0],
+        scale: 0.55,
+      },
+      {
+        piece: 'portal-size-4-delete-all-as-one-2',
+        size: 4,
+        position: [11.027, 1.06, -11.088],
+        rotation: [0, -44.97, 0],
+        scale: 0.9,
+      },
+      {
+        piece: 'hvac-size-2',
+        size: 2,
+        position: [12.674, 1.061, 13.639],
+        rotation: [0, 164.96, 0],
+        scale: 1,
+      },
+      {
+        piece: 'cosmic-barricade',
+        size: 2,
+        position: [13.025, 1.274, 0.385],
+        rotation: [0.41, -141.02, 96.33],
+        scale: 1,
       },
     ],
   },

@@ -33,4 +33,12 @@ export const TERRAIN_PIECES = {
   'size-4-hydra-tank': { name: 'Hydra Tank', convex: true },
   'size-4-talon-fighter': { name: 'Talon Fighter', convex: true },
   'size-3-hydra-missle-turret': { name: 'Hydra Missle Turret', convex: true },
+  'untethered-node-size-3': { name: 'Untethered Node', convex: false },
+  'portal-size-4-delete-all-as-one': { name: 'Portal delete all as one', convex: false },
+  'portal-size-4-delete-all-as-one-2': { name: 'Portal delete all as one', convex: false },
+  'dimensional-rift-size-3': { name: 'Dimensional Rift', convex: false },
+  'hvac-size-2': { name: 'HVAC', convex: true },
+  'pym-storage-container-size-3': { name: 'Pym Storage Container', convex: true, collider: true },
+  'storage-container-size-2-3': { name: 'Storage Container', convex: true, collider: true },
+  'electrical-hut-size-2': { name: 'Electrical Hut', convex: true },
 }
