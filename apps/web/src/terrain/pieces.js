@@ -1,7 +1,7 @@
 // Terrain pieces from the TTS mod's "Terrain Database" object. One entry is one set of files.
 // The key is the file name of the piece in src/assets/terrain (see files.js).
 //
-// name: the mod piece name without its Size. The Size is on each placement in maps.js, because the mod
+// name: the mod piece name without its Size. The Size is on each placement in maps/<id>.json, because the mod
 //   uses the same files for pieces with different Sizes (for example Crystals: Size 1 and Size 2).
 // convex: the mod's collider flag. true: Unity uses the convex hull of the collider mesh.
 //   false: Unity uses the mesh triangles.

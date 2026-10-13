@@ -1,5 +1,5 @@
 // Migrates the mat and terrain of one TTS map to src/assets, and prints the entries to add to
-// src/terrain/pieces.js and src/terrain/maps.js.
+// src/terrain/pieces.js, and writes the map to src/terrain/maps/<id>.json and adds it to maps/index.js.
 // A "map" is a card in the mod's Terrain Database. See scripts/README.md.
 
 import fs from 'node:fs'
@@ -21,6 +21,7 @@ import {
 import { parseMigrateArgs } from './lib/cli.mjs'
 import { outputPath, readJson, writeJson } from './lib/files.mjs'
 import { slug } from './lib/keys.mjs'
+import { addMapToIndex } from './lib/maps-index.mjs'
 import {
   cachedFile,
   downloadMissing,
@@ -44,7 +45,7 @@ import { findAssetByGuid } from './lib/unity-prefab.mjs'
 const USAGE = `Usage:
   node scripts/migrate-terrain.mjs --list          maps whose mat is in the TTS cache, and which files are missing
   node scripts/migrate-terrain.mjs --colliders-only   write the collider GLB of every migrated bundle piece again, from the TTS cache
-  node scripts/migrate-terrain.mjs <map id|name>   convert the map's mat and pieces, print entries for pieces.js and maps.js
+  node scripts/migrate-terrain.mjs <map id|name>   convert the map's mat and pieces, print entries for pieces.js, write the map JSON
 Options:
   --download    first download the missing mat, piece and map card files of the map into the TTS cache, one file at a time
   --colliders-only  see above. It checks the new entries against src/terrain/pieces.js and changes nothing there.
@@ -63,6 +64,7 @@ const ASSETS = opts.out
   ? path.resolve(opts.out, 'assets')
   : path.resolve(import.meta.dirname, '../src/assets')
 // AssetRipper exports stay here after the run, so they can be inspected
+const MAPS_DIR = path.join(import.meta.dirname, '../src/terrain/maps')
 const WORK_DIR = path.join(os.tmpdir(), 'mcp-assist-3d-terrain')
 // Mat tile scale in TTS. At 18 the mat is 36" wide, which the app assumes.
 const TTS_MAT_SCALE = 18
@@ -182,13 +184,12 @@ async function migrate(card) {
   }
   const code = [...results.values()].some((r) => r.status.startsWith('failed')) ? 1 : 0
 
-  const snippet = mapsSnippet(card, mat, matName, results)
+  const snippet = piecesSnippet(results)
   fs.mkdirSync(WORK_DIR, { recursive: true })
   const snippetFile = path.join(WORK_DIR, `${mapSlug(card.name)}.snippet.js`)
   fs.writeFileSync(snippetFile, snippet)
-  console.log(
-    `\nEntries for src/terrain/pieces.js and maps.js (also in ${snippetFile}):\n\n${snippet}`,
-  )
+  console.log(`\nEntries for src/terrain/pieces.js (also in ${snippetFile}):\n\n${snippet}\n`)
+  console.log(`Map written: ${writeMap(mapJson(card, mat, matName, results))}`)
   return code
 }
 
@@ -255,7 +256,7 @@ async function migrateMat(card, mat) {
 }
 
 // The map card (face) and the shared card back, for the lobby (docs/features/rooms.md). The face is
-// named after the map key that mapsSnippet prints. A file that exists is kept, unless --force.
+// named after the map id that mapJson writes. A file that exists is kept, unless --force.
 async function migrateCard(card) {
   for (const [url, file] of [
     [card.face, mapCard(mapSlug(card.name))],
@@ -400,46 +401,64 @@ function mapSlug(text) {
   return slug(text, { keepPunctuation: true })
 }
 
-// Entries in the style of src/terrain/pieces.js and maps.js: TTS transforms, positions relative to the mat center
-function mapsSnippet(card, mat, matName, results) {
+// Entries for src/terrain/pieces.js: new pieces, in the style of that file
+function piecesSnippet(results) {
   const lines = ['// src/terrain/pieces.js, TERRAIN_PIECES: new pieces']
   for (const r of results.values())
     if (r.entry) lines.push(`  '${r.appKey}': ${js(r.entry, '  ')},`)
+  return lines.join('\n')
+}
+
+// The map as in src/terrain/maps/<id>.json (docs/features/maps.md): TTS transforms, positions relative to
+// the mat center. A placement of a piece that was not converted goes to `skipped`, with the reason as `note`
+// (no note when the mod type is not supported).
+function mapJson(card, mat, matName, results) {
   const [matX, , matZ] = mat.position
-  lines.push(
-    '',
-    '// src/terrain/maps.js, MAPS',
-    `  // "${card.name}" (map ${card.id} in the Terrain Database${card.category ? `, ${card.category}` : ''})`,
-    `  '${mapSlug(card.name)}': {`,
-    `    name: ${js(card.name)},`,
-    `    mat: '${matName}',`,
-    '    // TTS rotation of the mat around Y. It is 180 for Vibranium Heist, and the app draws that mat with no turn.',
-    `    matRotation: ${round(angle(mat.rotation[1]), 2)},`,
-    '    placements: [',
-  )
+  const placements = []
+  const skipped = []
   for (const p of card.placements) {
     if (p === mat) continue
     const r = results.get(p.key)
-    const position = [p.position[0] - matX, p.position[1], p.position[2] - matZ].map((v) =>
-      round(v, 3),
-    )
-    const rotation = p.rotation.map((v) => round(angle(v), 2))
+    const size = gameSize(db.pieces.get(p.key))
     const scale = p.scale.every((s) => Math.abs(s - p.scale[0]) < 1e-3)
       ? round(p.scale[0], 3)
-      : `[${p.scale.map((s) => round(s, 3)).join(', ')}]`
-    const tint =
-      p.tint && p.tint.slice(0, 3).some((c) => c < 0.99)
-        ? `, tint: [${p.tint
-            .slice(0, 3)
-            .map((c) => round(c, 2))
-            .join(', ')}]`
-        : ''
-    const size = gameSize(db.pieces.get(p.key))
-    const line = `{ piece: '${r.appKey ?? p.key}',${size ? ` size: ${size},` : ''} position: [${position.join(', ')}], rotation: [${rotation.join(', ')}], scale: ${scale}${tint} },`
-    lines.push(r.appKey ? `      ${line}` : `      // ${r.status.split('\n')[0]}: ${line}`)
+      : p.scale.map((s) => round(s, 3))
+    const placement = { piece: r.appKey ?? p.key }
+    if (size) placement.size = size
+    placement.position = [p.position[0] - matX, p.position[1], p.position[2] - matZ].map((v) =>
+      round(v, 3),
+    )
+    placement.rotation = p.rotation.map((v) => round(angle(v), 2))
+    placement.scale = scale
+    if (p.tint && p.tint.slice(0, 3).some((c) => c < 0.99))
+      placement.tint = p.tint.slice(0, 3).map((c) => round(c, 2))
+    if (r.appKey) placements.push(placement)
+    else {
+      const status = r.status.split('\n')[0]
+      if (!status.startsWith('skipped:')) placement.note = status
+      skipped.push(placement)
+    }
   }
-  lines.push('    ],', '  },', '')
-  return lines.join('\n')
+  const map = { id: mapSlug(card.name), name: card.name }
+  if (card.id != null) map.ttsMap = card.id
+  map.mat = matName
+  map.matRotation = (round(angle(mat.rotation[1]), 2) + 360) % 360 // 0 to 359.99, as stored in the maps
+  map.placements = placements
+  if (skipped.length) map.skipped = skipped
+  return map
+}
+
+// Writes the map JSON, and adds the map to src/terrain/maps/index.js. A trial run (--out) writes the JSON
+// to <dir>/maps and leaves index.js alone. Returns the JSON file.
+function writeMap(map) {
+  const dir = opts.out ? path.resolve(opts.out, 'maps') : MAPS_DIR
+  const file = path.join(dir, `${map.id}.json`)
+  writeJson(file, map, { sortKeys: false })
+  if (!opts.out) {
+    const index = path.join(MAPS_DIR, 'index.js')
+    fs.writeFileSync(index, addMapToIndex(fs.readFileSync(index, 'utf8'), map.id))
+  }
+  return file
 }
 
 // JS source for a TERRAIN_PIECES entry

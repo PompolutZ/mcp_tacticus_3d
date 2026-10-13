@@ -50,7 +50,7 @@ import PriorityMarker from './PriorityMarker.jsx'
 import { projectFootprints } from './footprintProjection.js'
 import { matImage } from '../terrain/files.js'
 import { BASE_DIAMETER } from '../characters/files.js'
-import { MAPS } from '../terrain/maps.js'
+import { MAPS } from '../terrain/maps/index.js'
 import { characterGiveSources, characterName, characterStamina } from '../characters/characters.js'
 import {
   characterModels,

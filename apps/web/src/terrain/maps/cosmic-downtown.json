@@ -1,0 +1,334 @@
+{
+  "id": "cosmic-downtown",
+  "name": "Cosmic Downtown",
+  "ttsMap": 293,
+  "mat": "cosmic-downtown",
+  "matRotation": 270,
+  "placements": [
+    {
+      "piece": "cosmic-sign-size-2-2",
+      "size": 2,
+      "position": [
+        -15.618,
+        1.061,
+        -0.298
+      ],
+      "rotation": [
+        0,
+        -0.01,
+        -0.04
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "street-booth-size-3-2",
+      "size": 3,
+      "position": [
+        -10.794,
+        1.029,
+        2.406
+      ],
+      "rotation": [
+        0,
+        179.99,
+        3.3
+      ],
+      "scale": 1.05,
+      "tint": [
+        0.87,
+        0.83,
+        0.86
+      ]
+    },
+    {
+      "piece": "subway-size-4",
+      "size": 4,
+      "position": [
+        -9.112,
+        1.019,
+        -6.833
+      ],
+      "rotation": [
+        0,
+        -90.02,
+        0
+      ],
+      "scale": 1.025,
+      "tint": [
+        0.87,
+        0.83,
+        0.86
+      ]
+    },
+    {
+      "piece": "cargo-size-3",
+      "size": 3,
+      "position": [
+        -8.113,
+        1.033,
+        8.453
+      ],
+      "rotation": [
+        0,
+        90.02,
+        0
+      ],
+      "scale": 0.975,
+      "tint": [
+        0.87,
+        0.83,
+        0.86
+      ]
+    },
+    {
+      "piece": "cosmic-light-size-1-2",
+      "size": 1,
+      "position": [
+        -6.691,
+        1.062,
+        0.211
+      ],
+      "rotation": [
+        0,
+        -119.97,
+        0.2
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "vendr-stall-size-3",
+      "size": 3,
+      "position": [
+        -2.701,
+        1.029,
+        -5.872
+      ],
+      "rotation": [
+        0,
+        90.01,
+        3.3
+      ],
+      "scale": 1.05,
+      "tint": [
+        0.87,
+        0.83,
+        0.86
+      ]
+    },
+    {
+      "piece": "station-size-3",
+      "size": 3,
+      "position": [
+        -2.594,
+        1,
+        -10.633
+      ],
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "scale": 1,
+      "tint": [
+        0.87,
+        0.83,
+        0.86
+      ]
+    },
+    {
+      "piece": "cosmic-sign-size-2",
+      "size": 2,
+      "position": [
+        -1.839,
+        1.061,
+        1.779
+      ],
+      "rotation": [
+        0,
+        90.01,
+        0
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "cosmic-vendor-shop-size-4",
+      "size": 4,
+      "position": [
+        0.877,
+        1.044,
+        7.618
+      ],
+      "rotation": [
+        0,
+        -0.03,
+        0
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "bus-stop-size-2-3",
+      "size": 2,
+      "position": [
+        2.355,
+        1.047,
+        -7.316
+      ],
+      "rotation": [
+        0,
+        179.99,
+        0
+      ],
+      "scale": 0.825,
+      "tint": [
+        0.87,
+        0.83,
+        0.86
+      ]
+    },
+    {
+      "piece": "cosmic-light-size-1-2",
+      "size": 1,
+      "position": [
+        2.79,
+        1.062,
+        -12.577
+      ],
+      "rotation": [
+        0,
+        -119.97,
+        -0.26
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "cosmic-light-size-1-2",
+      "size": 1,
+      "position": [
+        3.189,
+        1.061,
+        0.104
+      ],
+      "rotation": [
+        0,
+        -120,
+        0.04
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "cosmic-light-size-1",
+      "size": 1,
+      "position": [
+        8.233,
+        1.061,
+        9.216
+      ],
+      "rotation": [
+        -0.02,
+        -135.02,
+        0.15
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "tethered-node-size-3",
+      "size": 3,
+      "position": [
+        9.325,
+        1.06,
+        2.533
+      ],
+      "rotation": [
+        0,
+        -89.98,
+        0
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "vending-machine-size-2",
+      "size": 2,
+      "position": [
+        8.365,
+        1.03,
+        -12.045
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "tint": [
+        0.87,
+        0.83,
+        0.86
+      ]
+    },
+    {
+      "piece": "cosmic-vendor-shop-size-4",
+      "size": 4,
+      "position": [
+        10.837,
+        1.104,
+        -7.236
+      ],
+      "rotation": [
+        1.29,
+        179.97,
+        -0.01
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "tethered-node-size-3",
+      "size": 3,
+      "position": [
+        13.428,
+        1.06,
+        7.771
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "ad-size-1",
+      "size": 1,
+      "position": [
+        13.673,
+        1.044,
+        -12.324
+      ],
+      "rotation": [
+        0,
+        149.99,
+        0
+      ],
+      "scale": 0.575,
+      "tint": [
+        0.87,
+        0.83,
+        0.86
+      ]
+    },
+    {
+      "piece": "cosmic-light-size-1-2",
+      "size": 1,
+      "position": [
+        14.496,
+        1.061,
+        0.131
+      ],
+      "rotation": [
+        0,
+        -119.97,
+        0.01
+      ],
+      "scale": 1
+    }
+  ]
+}

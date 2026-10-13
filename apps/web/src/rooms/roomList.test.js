@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { MAPS } from '../terrain/maps.js'
+import { MAPS } from '../terrain/maps/index.js'
 import { roomList } from './roomList.js'
 
 const mapId = Object.keys(MAPS)[0]

@@ -2,7 +2,7 @@
 
 Status: built.
 
-A map is a mat (the ground image) and a list of terrain pieces. The data is in `src/terrain/maps.js` and `src/terrain/pieces.js`. The map comes from the TTS mod. `scripts/README.md` tells how to add one.
+A map is a mat (the ground image) and a list of terrain pieces. The maps are JSON files in `src/terrain/maps/`, one per map. `src/terrain/maps/index.js` imports them and exports `MAPS`. The pieces are in `src/terrain/pieces.js`. The map comes from the TTS mod. `scripts/README.md` tells how to add one.
 
 ## Maps of the app
 
@@ -33,9 +33,29 @@ A map is a mat (the ground image) and a list of terrain pieces. The data is in `
 
 Survival of the Fittest has the same placements as Hydra Vs Wakanda. It is not in the list.
 
-Sinister Showdown has no token piece: the mod has a `Custom_Token` on the map (the app does not draw tokens as map pieces), and it is left out.
+Sinister Showdown has no token piece: the mod has a `Custom_Token` on the map, and it is in `skipped`.
 
-Oscrop Chemical has no barrels: the mod pieces `barrel-size-1-3` (6 placements) have dead file URLs (a CDN prefix glued to a Steam URL, 404), so they are left out.
+Oscrop Chemical has no barrels: the mod pieces `barrel-size-1-3` (6 placements) have dead file URLs (a CDN prefix glued to a Steam URL, 404), so they are in `skipped`.
+
+## JSON format
+
+A map is `src/terrain/maps/<id>.json`. The fields:
+
+- `id`: the file name without `.json`, and the key in `MAPS`.
+- `name`: the name in the app.
+- `ttsMap`: the id of the map in the mod's Terrain Database. Left out for a map not made from the mod.
+- `note`: optional text about the map.
+- `mat`: the mat name. The image is `src/assets/<mat>-mat.webp` (`matImage` in `files.js`).
+- `matRotation`: see "Mat rotation".
+- `placements`: the pieces. Each has `piece` (a key in `TERRAIN_PIECES`), `position` and `rotation` (degrees), `scale` (a number, or 3 numbers), and optional `size`, `tint` and `note`.
+  - Position and rotation are TTS values, as in the mod, so they can be compared with the source. `Terrain.jsx` converts them to Three.js. Positions are relative to the mat center.
+  - `size` is the game Size from the mod piece name. It is on the placement, because two mod pieces with the same files but another Size get one entry in `TERRAIN_PIECES`.
+  - `tint` multiplies the texture, as in TTS. A tint is left out when the map card shows another color, and the placement has a `note`.
+- `skipped`: optional list of placements that the script did not convert. Each has `piece`, `position`, `rotation`, `scale`, optional `size`, and `note` with the reason. No `note` means the mod type is not supported (`Custom_Token`: the app does not draw tokens as map pieces). These are not drawn.
+
+`index.js` also exports `TTS_MAT_TOP`: the mat tile sits at y = 0.96 in TTS and is 0.1 thick, so the mat top is 1.06.
+
+The order of the imports in `index.js` is the order of the maps in the lists. A new map: `<id>.json` in the folder, and its import in `index.js` (`migrate-terrain.mjs` does both).
 
 ## Map list
 

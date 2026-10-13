@@ -1,0 +1,434 @@
+{
+  "id": "pool-party-at-the-mansion",
+  "name": "Pool Party at the Mansion",
+  "ttsMap": 281,
+  "mat": "pool-party-at-the-mansion",
+  "matRotation": 270,
+  "placements": [
+    {
+      "piece": "tree-size-3",
+      "size": 3,
+      "position": [
+        -12.975,
+        1.014,
+        -12.375
+      ],
+      "rotation": [
+        0.64,
+        75.03,
+        -0.02
+      ],
+      "scale": 0.475
+    },
+    {
+      "piece": "bush-size-1",
+      "size": 1,
+      "position": [
+        -12.741,
+        1.056,
+        -5.23
+      ],
+      "rotation": [
+        0,
+        -180,
+        0
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "bush-size-1",
+      "size": 1,
+      "position": [
+        -12.728,
+        1.056,
+        5.241
+      ],
+      "rotation": [
+        0,
+        -180,
+        0
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "tree-size-3",
+      "size": 3,
+      "position": [
+        -12.784,
+        1.014,
+        9.835
+      ],
+      "rotation": [
+        0.64,
+        -179.97,
+        -0.02
+      ],
+      "scale": 0.475
+    },
+    {
+      "piece": "basketball-hoop-size-2",
+      "size": 2,
+      "position": [
+        -11.334,
+        3.047,
+        14.491
+      ],
+      "rotation": [
+        -0.8,
+        89.99,
+        -0.31
+      ],
+      "scale": 2
+    },
+    {
+      "piece": "patio-chair-size-2",
+      "size": 2,
+      "position": [
+        -9.429,
+        1.708,
+        -15.619
+      ],
+      "rotation": [
+        0,
+        60.01,
+        0
+      ],
+      "scale": 1.25
+    },
+    {
+      "piece": "patio-chair-size-2",
+      "size": 2,
+      "position": [
+        -9.262,
+        1.708,
+        -10.907
+      ],
+      "rotation": [
+        0,
+        134.99,
+        0
+      ],
+      "scale": 1.25
+    },
+    {
+      "piece": "truck-size-3-3",
+      "size": 3,
+      "position": [
+        -7.371,
+        1.004,
+        0.226
+      ],
+      "rotation": [
+        0,
+        -179.99,
+        0
+      ],
+      "scale": 0.975
+    },
+    {
+      "piece": "volleyball-net-size-2",
+      "size": 2,
+      "position": [
+        -7.363,
+        2.67,
+        -6.272
+      ],
+      "rotation": [
+        0,
+        0,
+        0.02
+      ],
+      "scale": 2.3
+    },
+    {
+      "piece": "the-blackbird-size-4-2",
+      "size": 4,
+      "position": [
+        -2.366,
+        3.674,
+        12.734
+      ],
+      "rotation": [
+        1.54,
+        135.25,
+        8.76
+      ],
+      "scale": 4.725
+    },
+    {
+      "piece": "basketball-size-1",
+      "size": 1,
+      "position": [
+        -8.281,
+        1.304,
+        11.413
+      ],
+      "rotation": [
+        14.98,
+        52.79,
+        -28.86
+      ],
+      "scale": 0.25
+    },
+    {
+      "piece": "electrical-hut-size-2",
+      "size": 2,
+      "position": [
+        -6.701,
+        1.057,
+        6.444
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": 0.45
+    },
+    {
+      "piece": "pool-floaty-size-1",
+      "size": 1,
+      "position": [
+        -5.215,
+        1.496,
+        -14.451
+      ],
+      "rotation": [
+        2.23,
+        90.09,
+        1.74
+      ],
+      "scale": 0.625
+    },
+    {
+      "piece": "diving-board-size-2",
+      "size": 2,
+      "position": [
+        -4.734,
+        -1.869,
+        -12.829
+      ],
+      "rotation": [
+        0,
+        179.99,
+        -0.21
+      ],
+      "scale": 3.1
+    },
+    {
+      "piece": "size-3-taco-truck",
+      "size": 3,
+      "position": [
+        0.006,
+        1.062,
+        4.976
+      ],
+      "rotation": [
+        0,
+        0.01,
+        0
+      ],
+      "scale": 0.85
+    },
+    {
+      "piece": "picnic-table-size-2",
+      "size": 2,
+      "position": [
+        0.128,
+        1.625,
+        -7.633
+      ],
+      "rotation": [
+        0,
+        -179.97,
+        0
+      ],
+      "scale": 0.325
+    },
+    {
+      "piece": "grill-size-2",
+      "size": 2,
+      "position": [
+        0.456,
+        2.184,
+        -3.616
+      ],
+      "rotation": [
+        -1.2,
+        -135,
+        0.93
+      ],
+      "scale": 1.2
+    },
+    {
+      "piece": "patio-chair-size-2",
+      "size": 2,
+      "position": [
+        1.296,
+        1.708,
+        -11.28
+      ],
+      "rotation": [
+        0,
+        -120.01,
+        0
+      ],
+      "scale": 1.25
+    },
+    {
+      "piece": "fountain-size-3",
+      "size": 3,
+      "position": [
+        6.531,
+        1.113,
+        -0.015
+      ],
+      "rotation": [
+        0,
+        -157.67,
+        0
+      ],
+      "scale": 1.65,
+      "tint": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    },
+    {
+      "piece": "bush-size-1",
+      "size": 1,
+      "position": [
+        5.384,
+        1.056,
+        -15.643
+      ],
+      "rotation": [
+        0,
+        -180,
+        0
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "basketball-hoop-size-2",
+      "size": 2,
+      "position": [
+        6.512,
+        3.047,
+        14.49
+      ],
+      "rotation": [
+        -0.8,
+        -89.99,
+        -0.31
+      ],
+      "scale": 2
+    },
+    {
+      "piece": "motorcycle-size-1",
+      "size": 1,
+      "position": [
+        6.786,
+        1.351,
+        -8.039
+      ],
+      "rotation": [
+        0.15,
+        0.02,
+        12.13
+      ],
+      "scale": 1.35
+    },
+    {
+      "piece": "size-2-car",
+      "size": 2,
+      "position": [
+        9.499,
+        1.049,
+        2.902
+      ],
+      "rotation": [
+        0,
+        45.01,
+        0
+      ],
+      "scale": 0.193
+    },
+    {
+      "piece": "tree-size-3",
+      "size": 3,
+      "position": [
+        9.215,
+        1.004,
+        -11.921
+      ],
+      "rotation": [
+        0.64,
+        -179.97,
+        -0.02
+      ],
+      "scale": 0.575
+    },
+    {
+      "piece": "size-1-bikes-3",
+      "size": 1,
+      "position": [
+        9.473,
+        1.533,
+        -7.81
+      ],
+      "rotation": [
+        0,
+        180,
+        -11.28
+      ],
+      "scale": 0.625
+    },
+    {
+      "piece": "tree-size-3",
+      "size": 3,
+      "position": [
+        9.828,
+        1.004,
+        12.353
+      ],
+      "rotation": [
+        0.64,
+        -105,
+        -0.02
+      ],
+      "scale": 0.575
+    },
+    {
+      "piece": "bush-size-1",
+      "size": 1,
+      "position": [
+        12.59,
+        1.056,
+        16.582
+      ],
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "x-mansion-size-5",
+      "size": 5,
+      "position": [
+        16.994,
+        3.758,
+        -0.204
+      ],
+      "rotation": [
+        0,
+        -89.99,
+        0
+      ],
+      "scale": 0.9
+    }
+  ]
+}

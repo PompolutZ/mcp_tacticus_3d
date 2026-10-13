@@ -58,7 +58,7 @@ The **+** tile opens a dialog on a blurred backdrop, the same style as the roste
 - **Create room** works when the Blue code has a known card. The Red roster is optional, because the Red field of the toolbar can load it later. A Red text without a known card blocks **Create room**, so a wrong paste does not make a room without Red. **Create room** saves the room and enters it.
 - **Cancel**, Escape, **×** or a click on the backdrop closes the dialog.
 
-The carousel shows only maps that the app has (`apps/web/src/terrain/maps.js`). A map card image comes from the TTS mod. `apps/web/scripts/migrate-terrain.mjs` copies it with the map.
+The carousel shows only maps that the app has (`apps/web/src/terrain/maps/index.js`). A map card image comes from the TTS mod. `apps/web/scripts/migrate-terrain.mjs` copies it with the map.
 
 ## Room
 

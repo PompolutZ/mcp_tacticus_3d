@@ -1,0 +1,358 @@
+{
+  "id": "dark-dimension-on-mars-base",
+  "name": "Dark Dimension on Mars Base",
+  "ttsMap": 291,
+  "mat": "dark-dimension-on-mars-base",
+  "matRotation": 90,
+  "placements": [
+    {
+      "piece": "dimensional-rift-size-3",
+      "size": 3,
+      "position": [
+        -14.287,
+        1.06,
+        -10.547
+      ],
+      "rotation": [
+        0,
+        119.96,
+        0
+      ],
+      "scale": 0.4
+    },
+    {
+      "piece": "untethered-node-size-3",
+      "size": 3,
+      "position": [
+        -13.93,
+        1.06,
+        -1.865
+      ],
+      "rotation": [
+        0,
+        -165,
+        0
+      ],
+      "scale": 0.55
+    },
+    {
+      "piece": "hvac-size-2",
+      "size": 2,
+      "position": [
+        -10.791,
+        1.062,
+        10.767
+      ],
+      "rotation": [
+        0,
+        165,
+        0
+      ],
+      "scale": 1.65
+    },
+    {
+      "piece": "cosmic-barricade",
+      "size": 2,
+      "position": [
+        -10.059,
+        1.327,
+        -6.535
+      ],
+      "rotation": [
+        0,
+        -119.99,
+        109.83
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "dimensional-rift-size-3",
+      "size": 3,
+      "position": [
+        -7.487,
+        1.059,
+        -13.176
+      ],
+      "rotation": [
+        0,
+        165,
+        0
+      ],
+      "scale": 0.775
+    },
+    {
+      "piece": "untethered-node-size-3",
+      "size": 3,
+      "position": [
+        -8.226,
+        1.06,
+        -0.293
+      ],
+      "rotation": [
+        0,
+        164.98,
+        0
+      ],
+      "scale": 0.55
+    },
+    {
+      "piece": "pym-storage-container-size-3",
+      "size": 3,
+      "position": [
+        -6.549,
+        1.95,
+        6.97
+      ],
+      "rotation": [
+        89.87,
+        -60.17,
+        179.99
+      ],
+      "scale": [
+        1,
+        1,
+        0.927
+      ],
+      "tint": [
+        0.25,
+        0.61,
+        0.51
+      ]
+    },
+    {
+      "piece": "dimensional-rift-size-3",
+      "size": 3,
+      "position": [
+        -3.897,
+        1.025,
+        -5.078
+      ],
+      "rotation": [
+        0,
+        75.01,
+        0
+      ],
+      "scale": 0.4
+    },
+    {
+      "piece": "untethered-node-size-3",
+      "size": 3,
+      "position": [
+        -2.846,
+        1.125,
+        2.287
+      ],
+      "rotation": [
+        -1.2,
+        -131.36,
+        85.5
+      ],
+      "scale": 0.55
+    },
+    {
+      "piece": "dimensional-rift-size-3",
+      "size": 3,
+      "position": [
+        -0.981,
+        1.06,
+        -11.549
+      ],
+      "rotation": [
+        0,
+        164.05,
+        0
+      ],
+      "scale": 0.4
+    },
+    {
+      "piece": "storage-container-size-2-3",
+      "size": 2,
+      "position": [
+        1.037,
+        0.947,
+        11.612
+      ],
+      "rotation": [
+        0,
+        74.98,
+        0
+      ],
+      "scale": 1,
+      "tint": [
+        0.58,
+        0,
+        0
+      ]
+    },
+    {
+      "piece": "storage-container-size-2-3",
+      "size": 2,
+      "position": [
+        1.037,
+        2.947,
+        11.614
+      ],
+      "rotation": [
+        0,
+        -104.99,
+        0
+      ],
+      "scale": 1,
+      "tint": [
+        0.55,
+        0.19,
+        0
+      ]
+    },
+    {
+      "piece": "cosmic-barricade",
+      "size": 2,
+      "position": [
+        1.737,
+        1.052,
+        -3.322
+      ],
+      "rotation": [
+        0,
+        -90.01,
+        0
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "untethered-node-size-3",
+      "size": 3,
+      "position": [
+        3.188,
+        1.06,
+        2.558
+      ],
+      "rotation": [
+        0,
+        -179.99,
+        0
+      ],
+      "scale": 0.55
+    },
+    {
+      "piece": "dimensional-rift-size-3",
+      "size": 3,
+      "position": [
+        4.108,
+        1.06,
+        -8.138
+      ],
+      "rotation": [
+        0,
+        -120,
+        0
+      ],
+      "scale": 0.4
+    },
+    {
+      "piece": "electrical-hut-size-2",
+      "size": 2,
+      "position": [
+        7.043,
+        1.056,
+        12.257
+      ],
+      "rotation": [
+        0,
+        75,
+        0
+      ],
+      "scale": 0.55
+    },
+    {
+      "piece": "portal-size-4-delete-all-as-one",
+      "size": 4,
+      "position": [
+        11.046,
+        1.059,
+        -11.093
+      ],
+      "rotation": [
+        0,
+        -45,
+        0
+      ],
+      "scale": 0.9
+    },
+    {
+      "piece": "dimensional-rift-size-3",
+      "size": 3,
+      "position": [
+        9.04,
+        1.06,
+        -3.62
+      ],
+      "rotation": [
+        0,
+        134.99,
+        0
+      ],
+      "scale": 0.4
+    },
+    {
+      "piece": "untethered-node-size-3",
+      "size": 3,
+      "position": [
+        9.332,
+        1.06,
+        4.531
+      ],
+      "rotation": [
+        0,
+        135.02,
+        0
+      ],
+      "scale": 0.55
+    },
+    {
+      "piece": "portal-size-4-delete-all-as-one-2",
+      "size": 4,
+      "position": [
+        11.027,
+        1.06,
+        -11.088
+      ],
+      "rotation": [
+        0,
+        -44.97,
+        0
+      ],
+      "scale": 0.9
+    },
+    {
+      "piece": "hvac-size-2",
+      "size": 2,
+      "position": [
+        12.674,
+        1.061,
+        13.639
+      ],
+      "rotation": [
+        0,
+        164.96,
+        0
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "cosmic-barricade",
+      "size": 2,
+      "position": [
+        13.025,
+        1.274,
+        0.385
+      ],
+      "rotation": [
+        0.41,
+        -141.02,
+        96.33
+      ],
+      "scale": 1
+    }
+  ]
+}

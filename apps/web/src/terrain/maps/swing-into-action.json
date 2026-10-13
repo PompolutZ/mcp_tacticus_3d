@@ -1,0 +1,845 @@
+{
+  "id": "swing-into-action",
+  "name": "Swing Into Action",
+  "ttsMap": 288,
+  "mat": "swing-into-action",
+  "matRotation": 180,
+  "placements": [
+    {
+      "piece": "dumpling-restaurant-size-3",
+      "size": 3,
+      "position": [
+        11.042,
+        1.06,
+        -6.266
+      ],
+      "rotation": [
+        0,
+        0.01,
+        0
+      ],
+      "scale": 0.04,
+      "tint": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    },
+    {
+      "piece": "trash-can-size-1",
+      "size": 1,
+      "position": [
+        10.473,
+        1.05,
+        12.542
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ],
+      "scale": 1.4,
+      "tint": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    },
+    {
+      "piece": "taxi-size-2-2",
+      "size": 2,
+      "position": [
+        12.977,
+        1.767,
+        1.458
+      ],
+      "rotation": [
+        0.13,
+        179.99,
+        -0.26
+      ],
+      "scale": 2.1
+    },
+    {
+      "piece": "tree-size-2-3",
+      "size": 2,
+      "position": [
+        12.58,
+        1.06,
+        -14.121
+      ],
+      "rotation": [
+        0.1,
+        90.02,
+        -0.01
+      ],
+      "scale": 0.95
+    },
+    {
+      "piece": "picnic-table-size-2",
+      "size": 2,
+      "position": [
+        14.958,
+        1.668,
+        14.982
+      ],
+      "rotation": [
+        0,
+        -180,
+        0
+      ],
+      "scale": 0.35
+    },
+    {
+      "piece": "trash-size-1",
+      "size": 1,
+      "position": [
+        15.287,
+        1.094,
+        -9.301
+      ],
+      "rotation": [
+        1.21,
+        14.97,
+        -3.79
+      ],
+      "scale": 0.65,
+      "tint": [
+        0.59,
+        0.59,
+        0.59
+      ]
+    },
+    {
+      "piece": "bench-size-1",
+      "size": 1,
+      "position": [
+        16.313,
+        1.428,
+        -14.748
+      ],
+      "rotation": [
+        0,
+        -135.02,
+        0
+      ],
+      "scale": 0.325,
+      "tint": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    },
+    {
+      "piece": "trash-size-1",
+      "size": 1,
+      "position": [
+        -15.168,
+        1.092,
+        -6.403
+      ],
+      "rotation": [
+        1.21,
+        -150.1,
+        -3.79
+      ],
+      "scale": 0.65,
+      "tint": [
+        0.59,
+        0.59,
+        0.59
+      ]
+    },
+    {
+      "piece": "pagani-s-old-ale-house-size-4",
+      "size": 4,
+      "position": [
+        -13.715,
+        1.01,
+        -0.286
+      ],
+      "rotation": [
+        0,
+        -0.01,
+        0
+      ],
+      "scale": 0.875
+    },
+    {
+      "piece": "trash-size-1",
+      "size": 1,
+      "position": [
+        -14.251,
+        1.093,
+        15.679
+      ],
+      "rotation": [
+        1.21,
+        -120.09,
+        -3.79
+      ],
+      "scale": 0.65,
+      "tint": [
+        0.59,
+        0.59,
+        0.59
+      ]
+    },
+    {
+      "piece": "tree-size-2-3",
+      "size": 2,
+      "position": [
+        -14.409,
+        1.059,
+        -10.981
+      ],
+      "rotation": [
+        -0.05,
+        45,
+        -0.04
+      ],
+      "scale": 0.95
+    },
+    {
+      "piece": "daily-bugle-size-3-2",
+      "size": 3,
+      "position": [
+        -11.191,
+        2.52,
+        11.271
+      ],
+      "rotation": [
+        0.03,
+        -179.96,
+        -0.01
+      ],
+      "scale": 2.75
+    },
+    {
+      "piece": "dumpster-size-2-5",
+      "size": 2,
+      "position": [
+        -10.694,
+        1.736,
+        -1.006
+      ],
+      "rotation": [
+        0.03,
+        89.99,
+        0.04
+      ],
+      "scale": 1.35
+    },
+    {
+      "piece": "apartment-building-size-5",
+      "size": 5,
+      "position": [
+        -7.678,
+        4.596,
+        -9.101
+      ],
+      "rotation": [
+        -90,
+        90.02,
+        0
+      ],
+      "scale": 3.8
+    },
+    {
+      "piece": "tree-size-2-3",
+      "size": 2,
+      "position": [
+        -8.122,
+        1.059,
+        15.753
+      ],
+      "rotation": [
+        0.05,
+        89.96,
+        0.01
+      ],
+      "scale": 0.95
+    },
+    {
+      "piece": "tree-size-2-3",
+      "size": 2,
+      "position": [
+        -7.898,
+        1.061,
+        -16.848
+      ],
+      "rotation": [
+        0.52,
+        90.07,
+        -0.41
+      ],
+      "scale": 0.95
+    },
+    {
+      "piece": "the-daily-grind-size-3",
+      "size": 3,
+      "position": [
+        -5.368,
+        2.66,
+        -0.947
+      ],
+      "rotation": [
+        -0.07,
+        90.01,
+        -0.01
+      ],
+      "scale": 2.5
+    },
+    {
+      "piece": "size-2-car-3",
+      "size": 2,
+      "position": [
+        -3.531,
+        1.06,
+        6.219
+      ],
+      "rotation": [
+        -0.02,
+        -150.03,
+        -0.02
+      ],
+      "scale": 0.3
+    },
+    {
+      "piece": "advertisement-size-2",
+      "size": 2,
+      "position": [
+        -4.709,
+        1.036,
+        13.394
+      ],
+      "rotation": [
+        0,
+        90.01,
+        0
+      ],
+      "scale": 0.55,
+      "tint": [
+        0.28,
+        0.28,
+        0.28
+      ]
+    },
+    {
+      "piece": "traffic-signal-size-1",
+      "size": 1,
+      "position": [
+        -3.364,
+        1.026,
+        9.678
+      ],
+      "rotation": [
+        0.65,
+        0.24,
+        0.02
+      ],
+      "scale": 1.5
+    },
+    {
+      "piece": "size-1-3",
+      "size": 1,
+      "position": [
+        -3.409,
+        1.059,
+        3.115
+      ],
+      "rotation": [
+        0.06,
+        -90.01,
+        0.05
+      ],
+      "scale": 0.475
+    },
+    {
+      "piece": "street-sign-size-1-11",
+      "size": 1,
+      "position": [
+        -3.095,
+        1.057,
+        -15.852
+      ],
+      "rotation": [
+        -0.01,
+        90,
+        -0.08
+      ],
+      "scale": 5.125
+    },
+    {
+      "piece": "getaway-van-size-3",
+      "size": 3,
+      "position": [
+        0.283,
+        1.085,
+        -11.704
+      ],
+      "rotation": [
+        0.03,
+        82.84,
+        -0.23
+      ],
+      "scale": 0.85,
+      "tint": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    },
+    {
+      "piece": "size-2-car-3",
+      "size": 2,
+      "position": [
+        1.426,
+        1.061,
+        11.659
+      ],
+      "rotation": [
+        0,
+        -90,
+        0
+      ],
+      "scale": 0.3
+    },
+    {
+      "piece": "size-2-car-3",
+      "size": 2,
+      "position": [
+        1.752,
+        1.061,
+        -0.657
+      ],
+      "rotation": [
+        0,
+        -90,
+        0
+      ],
+      "scale": 0.3
+    },
+    {
+      "piece": "size-1-3",
+      "size": 1,
+      "position": [
+        3.397,
+        1.06,
+        3.445
+      ],
+      "rotation": [
+        0.04,
+        90.02,
+        -0.02
+      ],
+      "scale": 0.475
+    },
+    {
+      "piece": "hot-dog-stand-size-2",
+      "size": 2,
+      "position": [
+        5.284,
+        1,
+        -4.986
+      ],
+      "rotation": [
+        0,
+        120.01,
+        0.01
+      ],
+      "scale": 0.675
+    },
+    {
+      "piece": "bus-stop-w-base-size-2",
+      "size": 2,
+      "position": [
+        5.73,
+        1.057,
+        -11.441
+      ],
+      "rotation": [
+        0,
+        0.04,
+        0
+      ],
+      "scale": [
+        0.719,
+        0.911,
+        0.843
+      ]
+    },
+    {
+      "piece": "vending-machine-size-1",
+      "size": 1,
+      "position": [
+        6.129,
+        1.023,
+        -8.933
+      ],
+      "rotation": [
+        0,
+        0.68,
+        0
+      ],
+      "scale": 0.85
+    },
+    {
+      "piece": "nyc-bank-size-5",
+      "size": 5,
+      "position": [
+        10.174,
+        1.06,
+        6.851
+      ],
+      "rotation": [
+        0,
+        -179.99,
+        0
+      ],
+      "scale": 0.625
+    },
+    {
+      "piece": "tree-size-2-3",
+      "size": 2,
+      "position": [
+        7.006,
+        1.06,
+        14.281
+      ],
+      "rotation": [
+        -0.04,
+        89.99,
+        -0.09
+      ],
+      "scale": 0.95
+    }
+  ],
+  "skipped": [
+    {
+      "piece": "token-piece-16",
+      "position": [
+        -12.118,
+        1.01,
+        -9.309
+      ],
+      "rotation": [
+        0,
+        150.01,
+        0
+      ],
+      "scale": [
+        0.193,
+        1,
+        0.193
+      ]
+    },
+    {
+      "piece": "token-piece-17",
+      "position": [
+        -5.317,
+        1.01,
+        9.961
+      ],
+      "rotation": [
+        0,
+        -30.02,
+        0
+      ],
+      "scale": [
+        0.227,
+        1,
+        0.227
+      ]
+    },
+    {
+      "piece": "token-piece-13",
+      "position": [
+        -2.204,
+        1.02,
+        -7.074
+      ],
+      "rotation": [
+        0,
+        44.97,
+        -180
+      ],
+      "scale": [
+        0.088,
+        1,
+        0.088
+      ]
+    },
+    {
+      "piece": "token-piece-13",
+      "position": [
+        -2.127,
+        1.02,
+        -7.964
+      ],
+      "rotation": [
+        0,
+        30.01,
+        -180
+      ],
+      "scale": [
+        0.088,
+        1,
+        0.088
+      ]
+    },
+    {
+      "piece": "token-piece-13",
+      "position": [
+        -1.676,
+        1.02,
+        -8.627
+      ],
+      "rotation": [
+        0,
+        44.97,
+        -180
+      ],
+      "scale": [
+        0.088,
+        1,
+        0.088
+      ]
+    },
+    {
+      "piece": "token-piece-13",
+      "position": [
+        -1.463,
+        1.02,
+        -7.584
+      ],
+      "rotation": [
+        0,
+        -143.48,
+        0
+      ],
+      "scale": [
+        0.088,
+        1,
+        0.088
+      ]
+    },
+    {
+      "piece": "token-piece-13",
+      "position": [
+        -1.386,
+        1.02,
+        -6.648
+      ],
+      "rotation": [
+        0,
+        -119.98,
+        0
+      ],
+      "scale": [
+        0.088,
+        1,
+        0.088
+      ]
+    },
+    {
+      "piece": "token-piece-13",
+      "position": [
+        -1.04,
+        1.02,
+        -8.39
+      ],
+      "rotation": [
+        0,
+        44.98,
+        -180
+      ],
+      "scale": [
+        0.088,
+        1,
+        0.088
+      ]
+    },
+    {
+      "piece": "token-piece-13",
+      "position": [
+        -0.616,
+        1.02,
+        -7.245
+      ],
+      "rotation": [
+        0,
+        60.01,
+        -180
+      ],
+      "scale": [
+        0.088,
+        1,
+        0.088
+      ]
+    },
+    {
+      "piece": "token-piece-13",
+      "position": [
+        -0.287,
+        1.02,
+        -6.326
+      ],
+      "rotation": [
+        0,
+        -59.98,
+        0
+      ],
+      "scale": [
+        0.088,
+        1,
+        0.088
+      ]
+    },
+    {
+      "piece": "token-piece-13",
+      "position": [
+        -0.261,
+        1.02,
+        -8.341
+      ],
+      "rotation": [
+        0,
+        75,
+        -180
+      ],
+      "scale": [
+        0.088,
+        1,
+        0.088
+      ]
+    },
+    {
+      "piece": "token-piece-13",
+      "position": [
+        0.215,
+        1.02,
+        -7.049
+      ],
+      "rotation": [
+        0,
+        74.99,
+        -180
+      ],
+      "scale": [
+        0.088,
+        1,
+        0.088
+      ]
+    },
+    {
+      "piece": "token-piece-13",
+      "position": [
+        0.456,
+        1.02,
+        -8.25
+      ],
+      "rotation": [
+        0,
+        104.79,
+        0
+      ],
+      "scale": [
+        0.088,
+        1,
+        0.088
+      ]
+    },
+    {
+      "piece": "token-piece-13",
+      "position": [
+        0.75,
+        1.02,
+        -6.309
+      ],
+      "rotation": [
+        0,
+        105,
+        180
+      ],
+      "scale": [
+        0.088,
+        1,
+        0.088
+      ]
+    },
+    {
+      "piece": "token-piece-13",
+      "position": [
+        1.044,
+        1.02,
+        -7.08
+      ],
+      "rotation": [
+        0,
+        105.02,
+        180
+      ],
+      "scale": [
+        0.088,
+        1,
+        0.088
+      ]
+    },
+    {
+      "piece": "token-piece-13",
+      "position": [
+        1.204,
+        1.02,
+        -8.342
+      ],
+      "rotation": [
+        0,
+        119.99,
+        180
+      ],
+      "scale": [
+        0.088,
+        1,
+        0.088
+      ]
+    },
+    {
+      "piece": "pagani-s-old-ale-house-size-4-2",
+      "size": 4,
+      "position": [
+        6.309,
+        5.291,
+        6.869
+      ],
+      "rotation": [
+        90,
+        -90,
+        0
+      ],
+      "scale": [
+        0.57,
+        1,
+        0.57
+      ]
+    },
+    {
+      "piece": "token-piece-18",
+      "position": [
+        6.996,
+        1.01,
+        -3.736
+      ],
+      "rotation": [
+        0,
+        30.01,
+        0
+      ],
+      "scale": [
+        0.226,
+        1,
+        0.226
+      ]
+    }
+  ]
+}

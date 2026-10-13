@@ -1,0 +1,555 @@
+{
+  "id": "hydra-vs-wakanda",
+  "name": "Hydra Vs Wakanda",
+  "ttsMap": 276,
+  "note": "\"Survival of the Fittest\" (278) has the same mat and placements in the mod, but its card image shows an Egypt map.",
+  "mat": "hydra-vs-wakanda",
+  "matRotation": 180,
+  "placements": [
+    {
+      "piece": "contruction-site-size-4",
+      "size": 4,
+      "position": [
+        -15.309,
+        1.06,
+        3.646
+      ],
+      "rotation": [
+        0,
+        -180,
+        0
+      ],
+      "scale": 0.275
+    },
+    {
+      "piece": "wakanda-tree",
+      "size": 2,
+      "position": [
+        -15.515,
+        2.351,
+        -15.773
+      ],
+      "rotation": [
+        0.02,
+        90,
+        -0.02
+      ],
+      "scale": 1.8
+    },
+    {
+      "piece": "pallet-of-barrels-size-2",
+      "size": 2,
+      "position": [
+        -13.533,
+        1.06,
+        14.89
+      ],
+      "rotation": [
+        0,
+        60,
+        0
+      ],
+      "scale": 0.575
+    },
+    {
+      "piece": "size-1-brazier",
+      "size": 1,
+      "position": [
+        -13.694,
+        1.917,
+        -7.77
+      ],
+      "rotation": [
+        -0.05,
+        0.01,
+        0.02
+      ],
+      "scale": 0.9
+    },
+    {
+      "piece": "size-3-hydra-turret",
+      "size": 3,
+      "position": [
+        -10.946,
+        2.3,
+        9.177
+      ],
+      "rotation": [
+        -0.01,
+        60,
+        -0.04
+      ],
+      "scale": 2.2
+    },
+    {
+      "piece": "size-3-hydra-power-station",
+      "size": 3,
+      "position": [
+        -11.07,
+        2.438,
+        -2.351
+      ],
+      "rotation": [
+        0.01,
+        -89.97,
+        -0.01
+      ],
+      "scale": 2.15
+    },
+    {
+      "piece": "panther-statue",
+      "size": 3,
+      "position": [
+        -10.719,
+        3.44,
+        -13.245
+      ],
+      "rotation": [
+        0.01,
+        0.04,
+        0
+      ],
+      "scale": 2.5
+    },
+    {
+      "piece": "size-1-brazier",
+      "size": 1,
+      "position": [
+        -9.201,
+        1.917,
+        3.206
+      ],
+      "rotation": [
+        -0.05,
+        0.01,
+        0.02
+      ],
+      "scale": 0.9
+    },
+    {
+      "piece": "barrel-stack-size-2",
+      "size": 2,
+      "position": [
+        -6.232,
+        1.06,
+        -1.124
+      ],
+      "rotation": [
+        0,
+        -30,
+        0
+      ],
+      "scale": 0.875
+    },
+    {
+      "piece": "wakandan-street-light",
+      "size": 1,
+      "position": [
+        -5.957,
+        2.726,
+        -11.404
+      ],
+      "rotation": [
+        -0.02,
+        0,
+        -0.03
+      ],
+      "scale": 1.75
+    },
+    {
+      "piece": "wakandan-street-light",
+      "size": 1,
+      "position": [
+        -5.946,
+        2.726,
+        -15.315
+      ],
+      "rotation": [
+        -0.02,
+        0,
+        -0.02
+      ],
+      "scale": 1.75
+    },
+    {
+      "piece": "crystals",
+      "size": 1,
+      "position": [
+        -5.246,
+        1.06,
+        13.535
+      ],
+      "rotation": [
+        0,
+        -44.98,
+        0
+      ],
+      "scale": 0.5,
+      "tint": [
+        0.97,
+        0.01,
+        0.83
+      ]
+    },
+    {
+      "piece": "size-4-hydra-tank",
+      "size": 4,
+      "position": [
+        -2.992,
+        3.485,
+        6.699
+      ],
+      "rotation": [
+        0.06,
+        60,
+        0.04
+      ],
+      "scale": 2.9
+    },
+    {
+      "piece": "crystals",
+      "size": 1,
+      "position": [
+        -4.947,
+        1.06,
+        12.382
+      ],
+      "rotation": [
+        0,
+        -45.01,
+        0
+      ],
+      "scale": 0.5,
+      "tint": [
+        0.97,
+        0.01,
+        0.83
+      ]
+    },
+    {
+      "piece": "crystals",
+      "size": 1,
+      "position": [
+        -4.802,
+        1.06,
+        14.754
+      ],
+      "rotation": [
+        0,
+        44.67,
+        0
+      ],
+      "scale": 0.5,
+      "tint": [
+        0.97,
+        0.01,
+        0.83
+      ]
+    },
+    {
+      "piece": "crystals",
+      "size": 1,
+      "position": [
+        -4.166,
+        1.06,
+        13.786
+      ],
+      "rotation": [
+        0,
+        -44.98,
+        0
+      ],
+      "scale": 0.5,
+      "tint": [
+        0.97,
+        0.01,
+        0.83
+      ]
+    },
+    {
+      "piece": "crystals",
+      "size": 1,
+      "position": [
+        -4.025,
+        1.06,
+        12.861
+      ],
+      "rotation": [
+        0,
+        134.91,
+        0
+      ],
+      "scale": 0.5,
+      "tint": [
+        0.97,
+        0.01,
+        0.83
+      ]
+    },
+    {
+      "piece": "crystals",
+      "size": 1,
+      "position": [
+        -3.239,
+        1.06,
+        14.168
+      ],
+      "rotation": [
+        0,
+        -90,
+        0
+      ],
+      "scale": 0.5,
+      "tint": [
+        0.97,
+        0.01,
+        0.83
+      ]
+    },
+    {
+      "piece": "crystals",
+      "size": 1,
+      "position": [
+        -3.153,
+        1.06,
+        13.218
+      ],
+      "rotation": [
+        0,
+        15,
+        0
+      ],
+      "scale": 0.5,
+      "tint": [
+        0.97,
+        0.01,
+        0.83
+      ]
+    },
+    {
+      "piece": "vibranium-haller",
+      "size": 4,
+      "position": [
+        -0.104,
+        2.709,
+        -14.449
+      ],
+      "rotation": [
+        -0.03,
+        -90,
+        0.2
+      ],
+      "scale": 3.6
+    },
+    {
+      "piece": "vibranium-haller",
+      "size": 4,
+      "position": [
+        0.019,
+        2.709,
+        -4.018
+      ],
+      "rotation": [
+        -0.03,
+        -89.99,
+        0.2
+      ],
+      "scale": 3.6
+    },
+    {
+      "piece": "size-4-talon-fighter",
+      "size": 4,
+      "position": [
+        4.5,
+        1.918,
+        13.16
+      ],
+      "rotation": [
+        -0.24,
+        164.92,
+        18.82
+      ],
+      "scale": 2.95
+    },
+    {
+      "piece": "barrel-stack-size-2",
+      "size": 2,
+      "position": [
+        4.852,
+        1.06,
+        5.926
+      ],
+      "rotation": [
+        0,
+        15,
+        0
+      ],
+      "scale": 0.875
+    },
+    {
+      "piece": "barrel-stack-size-2",
+      "size": 2,
+      "position": [
+        5.742,
+        1.06,
+        -5.816
+      ],
+      "rotation": [
+        0,
+        -75,
+        0
+      ],
+      "scale": 0.875
+    },
+    {
+      "piece": "wakandan-street-light",
+      "size": 1,
+      "position": [
+        5.938,
+        2.726,
+        -11.342
+      ],
+      "rotation": [
+        -0.02,
+        0,
+        -0.03
+      ],
+      "scale": 1.75
+    },
+    {
+      "piece": "wakandan-street-light",
+      "size": 1,
+      "position": [
+        5.978,
+        2.726,
+        -15.169
+      ],
+      "rotation": [
+        -0.02,
+        0,
+        -0.02
+      ],
+      "scale": 1.75
+    },
+    {
+      "piece": "size-1-brazier",
+      "size": 1,
+      "position": [
+        7.933,
+        1.917,
+        2.628
+      ],
+      "rotation": [
+        -0.05,
+        0.01,
+        0.02
+      ],
+      "scale": 0.9
+    },
+    {
+      "piece": "size-3-hydra-missle-turret",
+      "size": 3,
+      "position": [
+        10.927,
+        2.335,
+        9.392
+      ],
+      "rotation": [
+        -0.05,
+        120,
+        -0.08
+      ],
+      "scale": 1.85
+    },
+    {
+      "piece": "size-3-hydra-power-station",
+      "size": 3,
+      "position": [
+        10.776,
+        2.438,
+        -2.303
+      ],
+      "rotation": [
+        0.01,
+        -90.02,
+        -0.01
+      ],
+      "scale": 2.15
+    },
+    {
+      "piece": "panther-statue",
+      "size": 3,
+      "position": [
+        10.944,
+        3.44,
+        -13.334
+      ],
+      "rotation": [
+        0.01,
+        0.04,
+        0
+      ],
+      "scale": 2.5
+    },
+    {
+      "piece": "size-1-brazier",
+      "size": 1,
+      "position": [
+        13.656,
+        1.917,
+        -7.689
+      ],
+      "rotation": [
+        -0.05,
+        0.01,
+        0.02
+      ],
+      "scale": 0.9
+    },
+    {
+      "piece": "barrel-stack-size-2",
+      "size": 2,
+      "position": [
+        14.332,
+        1.06,
+        3.633
+      ],
+      "rotation": [
+        0,
+        -75,
+        0
+      ],
+      "scale": 0.875
+    },
+    {
+      "piece": "wakanda-tree",
+      "size": 2,
+      "position": [
+        16.09,
+        2.351,
+        -15.668
+      ],
+      "rotation": [
+        0,
+        0,
+        0.02
+      ],
+      "scale": 1.8
+    },
+    {
+      "piece": "pallet-of-barrels-size-2",
+      "size": 2,
+      "position": [
+        15.231,
+        1.06,
+        14.989
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ],
+      "scale": 0.575
+    }
+  ]
+}

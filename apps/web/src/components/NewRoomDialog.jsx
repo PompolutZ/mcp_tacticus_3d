@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
-import { MAPS } from '../terrain/maps.js'
+import { MAPS } from '../terrain/maps/index.js'
 import { MAP_CARD_BACK, mapCard } from '../terrain/files.js'
 import { formatMctCode, isEmptyRoster } from '../rosters/mct.js'
 import { parseRosterText } from '../rosters/cards.js'

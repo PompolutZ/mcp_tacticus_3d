@@ -8,7 +8,7 @@ import { useUser } from './auth/useUser.js'
 import { getRoom } from './rooms/serverStore.js'
 import { multiplayerRoom, roomPage } from './rooms/roomPage.js'
 import { openRoom } from './rooms/store.js'
-import { MAPS } from './terrain/maps.js'
+import { MAPS } from './terrain/maps/index.js'
 
 // Dev-only page of all Team Tactic faces (#tactic-faces). import.meta.env.DEV is false in `vite build`, so the
 // build leaves out the page and its chunk.

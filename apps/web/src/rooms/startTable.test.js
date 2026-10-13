@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import * as Y from 'yjs'
 import { createTable, tableSchema, SCHEMA } from '../net/doc.js'
-import { MAPS } from '../terrain/maps.js'
+import { MAPS } from '../terrain/maps/index.js'
 import { startTableBytes } from './startTable.js'
 
 test('the start table has the map, the rosters and the terrain of the map', () => {

@@ -1,6 +1,6 @@
 // One list of the single player and the multiplayer rooms (plan 07, decision 18). No React.
 
-import { MAPS } from '../terrain/maps.js'
+import { MAPS } from '../terrain/maps/index.js'
 
 // single: records of rooms/store.js (updatedAt in ms). multiplayer: rooms of the API (updatedAt is ISO).
 // Returns { kind, id, mapId, rosters, updatedAt (ms), room }, the last changed first. A room of a map that
