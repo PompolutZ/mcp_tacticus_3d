@@ -897,6 +897,82 @@
       "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/da008cc8b33d.obj",
       "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/fd5993aadef5.png",
       "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/515ad971961d.obj"
+    },
+    "army-truck-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/368b74aa092c.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3aafd75390f0.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/368b74aa092c.obj"
+    },
+    "billboard-w-base-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3c5dec528107.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8b1fe22d5e32.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3c5dec528107.obj"
+    },
+    "mailbox-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/07e7e808e9d6.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ecfbc4ad8644.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/07e7e808e9d6.obj"
+    },
+    "building-size-5-5": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/03edc7fd22ac.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/314532cd0f8d.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/45711af4b092.obj"
+    },
+    "dumpster-size-2-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/97d23dddd8a7.unity3d"
+    },
+    "dumpster-size-2-5": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c6a7b24faff8.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f4085bb757e6.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c6a7b24faff8.obj"
+    },
+    "size-5": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/33e4cfa5dcbd.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/d2b009cf3eb9.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/fcee03f253f4.obj"
+    },
+    "vending-machine-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3f535c585be7.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f0554c8120a8.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3f535c585be7.obj"
+    },
+    "hulk-tossed-tank-size-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/171abc33b72e.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9104a7e8dd30.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9e8f20a3e09a.obj"
+    },
+    "buried-car-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/2b80902c8577.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c33c64375069.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/2b80902c8577.obj"
+    },
+    "train-with-no-home-size-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e485e9c21637.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b7b83f0dabff.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9aacffeeddbc.obj"
+    },
+    "tank-size-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0c18c16a73f9.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7e813be80725.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1540d749db5b.obj"
+    },
+    "size-1-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3a2b5abbec9e.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ed6a7e6d5685.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3a2b5abbec9e.obj"
+    },
+    "pickup-truck-size-3-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/68937568f173.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/17fc5d53ac3f.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/68937568f173.obj"
+    },
+    "turret-wreckage-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/72b92cab14d7.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9104a7e8dd30.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b98274d439c5.obj"
+    },
+    "size-2-car-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1c84b16793db.unity3d"
     }
   },
   "mats": {

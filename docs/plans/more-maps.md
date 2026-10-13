@@ -153,4 +153,11 @@ Phase 6 (done):
 - Colliders: no new case. `crate-size-2-4` and `pipes-size-3-2` have one mesh entry with an identity transform; `assetbundle-piece-10` and `-2` one box each, not turned.
 - Not checked in the browser: the mat turn (180), Debug → Colliders for crate and pipes, the tint look. The download itself was not run on a file that is missing but alive: no such file was in this map.
 
-Phase 7: not started.
+
+Phase 7 (done):
+- Migrated 298 with `--download` (printed -180, stored 180). Mat: the same image as Battle For Asgard (`mat: 'battle-for-asgard'`, no new mat file). 16 new pieces, `size-1-bikes-3` and `bench-size-1` were already migrated.
+- Download: 35 files, one at a time (20 OBJ, 8 PNG, 5 JPG, 2 unity3d), 0 failures. Names and extensions in the TTS cache are right (`.obj` in Models, images in Images, `.unity3d` in Assetbundles), no temp files left, `cachedFile` found every file for the conversion. No change in the download code.
+- Tints: none left out. `size-5` dark blue-teal (0.24/0.37/0.42) matches the blue slab on the card, benches grey 0.8 are too small to see.
+- Warnings: none.
+- Colliders: no new case. `dumpster-size-2-3` has one mesh entry with an identity transform and a non-uniform placement scale (exact, vertex bake). `size-2-car-3` has one box turned 90 degrees around X with placement scale 0.325 (uniform, exact). No code change.
+- Not checked in the browser: the mat turn (180), Debug -> Colliders for the dumpster and the car, the tint look.
