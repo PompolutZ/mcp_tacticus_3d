@@ -4,6 +4,7 @@ import { TABLE_DEPTH, TABLE_WIDTH } from '../table.js'
 import { TEAMS } from '../setup/setup.js'
 import {
   boardStrip,
+  cleanupButton,
   edgeControls,
   onRack,
   powerButton,
@@ -261,8 +262,8 @@ test('red is the blue rack mirrored in z (x stays on the dice tray), turned 180 
     assert.ok(Math.abs(red[i].x - centerX + (slot.x - centerX)) < 1e-9)
     assert.ok(Math.abs(red[i].z + slot.z) < 1e-9)
   })
-  assert.equal(powerButton('guest').x, -powerButton('host').x)
-  assert.equal(powerButton('guest').width, powerButton('host').width)
+  assert.equal(powerButton('guest').x, powerButton('host').x)
+  assert.equal(powerButton('guest').length, powerButton('host').length)
   assert.equal(powerButton('guest').z, -powerButton('host').z)
   const strip = boardStrip('guest')
   assert.equal(strip.x, boardStrip('host').x)
@@ -273,16 +274,32 @@ test('red is the blue rack mirrored in z (x stays on the dice tray), turned 180 
 
 const powerRect = (side) => {
   const p = powerButton(side)
-  return rect(p.x, p.z, p.width, p.depth)
+  return rect(p.x, p.z, p.width, p.length)
 }
 
-test('the Power button lies inside the table, left of the tactic tray (host: -x)', () => {
-  for (const side of TEAMS) assert.ok(inside(powerRect(side)), side)
-  const power = powerButton('host')
-  const tray = tacticTrayPosition('host')
-  assert.equal(power.z, tray.z)
-  assert.ok(power.x + power.width / 2 < tray.x - TACTIC_PLATE_WIDTH / 2)
-  assert.ok(powerButton('guest').x > 0)
+test('the Power button lies in row 1 of the board strip of its side, along z', () => {
+  for (const side of TEAMS) {
+    const power = powerButton(side)
+    const strip = boardStrip(side)
+    assert.ok(inside(powerRect(side)), side)
+    assert.equal(power.x, strip.rowX[0])
+    assert.equal(power.z, strip.z)
+    assert.equal(power.length, strip.length)
+    const r = powerRect(side)
+    const sr = rect(strip.x, strip.z, strip.width, strip.length)
+    assert.ok(r.x0 >= sr.x0 && r.x1 <= sr.x1 && r.z0 >= sr.z0 && r.z1 <= sr.z1, side)
+  }
+})
+
+test('the Cleanup button is one, at z 0 in the gap between the scoring board and the mat', () => {
+  const c = cleanupButton()
+  const r = rect(c.x, c.z, c.width, c.length)
+  assert.ok(inside(r))
+  assert.equal(c.z, 0)
+  assert.ok(r.x0 >= BOARD_X + BOARD_HALF_WIDTH)
+  assert.ok(r.x1 <= -18)
+  const strip = boardStrip('host')
+  assert.ok(!overlap(r, rect(strip.x, strip.z, strip.width, strip.length)))
 })
 
 // Everything else that lies near the table edge of `side`, with the setup rows and full rosters: name ->
@@ -333,7 +350,7 @@ test('the Power button does not overlap the rest of the table or the setup', () 
   for (const side of TEAMS) {
     const mine = powerRect(side)
     for (const [name, o] of Object.entries(crowded(side)))
-      assert.ok(!overlap(mine, o), `${side} power overlaps ${name}`)
+      if (name !== 'board strip') assert.ok(!overlap(mine, o), `${side} power overlaps ${name}`)
   }
 })
 

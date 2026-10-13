@@ -2436,13 +2436,23 @@ body {
 }
 
 /* The Automatic Power Phase button: the green of the Power token (src/assets/tokens/1-power.webp), dark text.
-   The size is set inline (tabletools/layout.js). */
+   The size is set inline (tabletools/layout.js). It lies in the 5.4" board strip row, so gap, padding and icon are small. */
 .table-button--power {
   gap: 6px;
   overflow: hidden;
   background: #42b534;
   border-color: #42b534;
   color: #10230d;
+}
+
+.table-button--power {
+  gap: 4px;
+  padding: 0 4px;
+}
+
+.table-button--power .table-button-icon {
+  height: 18px;
+  width: 18px;
 }
 
 .table-button--power:not([aria-disabled='true']):hover {

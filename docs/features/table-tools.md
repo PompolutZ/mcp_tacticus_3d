@@ -8,7 +8,7 @@ The users of the app are TTS players. In the mod, their tools lie on the table: 
 
 - a **tool rack** for each player, in front of their dice tray, with the range and movement tools
 - an **Automatic Power Phase** button for each player, next to their Team Tactic tray (it belongs to the squad, not to the tools)
-- a **board strip** next to the scoring board, with **Cleanup Phase**, **Deploy Lock** and the mat turn **↺** **↻**
+- a **board strip** next to the scoring board, with **Automatic Power Phase**, **Deploy Lock** and the mat turn **↺** **↻**
 
 A **Settings** menu lets each player choose the table or the HUD (the toolbar) for each of these. It also lists the keys and the mouse controls of the app.
 
@@ -34,7 +34,8 @@ z = 38                   ─────────────── table edg
 - **Tool rack**, in front of the dice tray of its player: x 20.6 … 33.4 (12.8" wide, centered on the tray), z 17.32 … 27.92 (10.6" deep, starting 0.3" past the keys lip of the tray, which ends at z 17.02). The tools lie along z, as seen from the player, with 5 columns from the owner's left: (R1 chip, L), (R2, M), (R3, S), (R4, T/A chip), (R5). In a column, the first item is on the mat side and the second below it, with a gap of 0.4". The margin is 0.3". The chips are 2" × 1" with the text toward the owner. The columns are spaced so that a 2" chip fits.
 - A row of 7 character trays ends at x 20.5, so it does not touch the rack. A row of 8 or more reaches under it. The rack draws above the tray plates, so the tools stay visible.
 - The rack is hidden while the roster rows of its side are on the table (the setup, before the squads are shown). A tool that is already on the table stays. The hidden rack takes no pointer, and a tool dropped there does not go back.
-- **Automatic Power Phase button**, 7.48" × 1.2" (the size of the other table buttons: 12px font, icon 22px), in the row of the Team Tactic tray, to the owner's left of the tactic plate (host: −x), with a gap of 0.6" from the plate edge: x −16.73 … −9.25, z 19.75 … 20.95 (center z = the tactic tray center). Free space there is x −20.6 … −8.65, z 18.3 … 22.4. 
+- **Automatic Power Phase button**, 5.4" × 1" (the strip row, along z), in row 1 of the board strip of its side: x −20.5 … −19.5 (center −20), z ±12.6 … ±18.0.
+- **Cleanup Phase button**, one for the table, 5.4" × 1" along z, in the gap between the scoring board (x edge −19.1) and the mat edge (x −18), the gap is 1.1" deep: x −19.05 … −18.05, z −2.7 … 2.7. Its top faces −x, as the strip.
 - **Board strip**, in the corner between the mat and the end of the scoring board on the player's side: x −20.6 … −18.3, z 12.6 … 18.0. Nothing else lies there, also during the setup.
 - The start view shows the own rack (`docs/features/key-shortcuts.md`, "Start view").
 - A setting never moves a piece. It only shows or hides it. So the two browsers of a room have the same table.
@@ -52,8 +53,8 @@ z = 38                   ─────────────── table edg
 
 ## Automatic Power Phase button
 
-- One for each player. It lies flat and faces its owner. Its place is under "Place on the table".
-- Look: the green of the Power token (#42B534) with dark text, the Power token image left of the label **Automatic Power Phase**. A lighter green on hover. No player tint. The other player's button in a room looks disabled.
+- One for each player, in row 1 of the board strip. It lies flat like the strip (its top faces −x). Its place is under "Place on the table".
+- Look: the green of the Power token (#42B534) with dark text, the Power token image left of the label **Auto Power Phase** (short, to fit the 5.4" strip). A lighter green on hover. No player tint. The other player's button in a room looks disabled.
 - A press gives Power to the characters of that side on the board, by the rules of `docs/features/round-phases.md`. The TTS button also gives Power to its own player's trays only. In the Sandbox, a player presses both buttons.
 - The toolbar **Power** (when it is in the HUD) gives Power to all sides that the browser plays.
 - In a multiplayer room, the other player's button is disabled, with the title "Only the Red player presses this." (or Blue).
@@ -61,9 +62,10 @@ z = 38                   ─────────────── table edg
 ## Board strip
 
 - One for each player, both the same. It reads like the scoring board and the setup panel: its top faces the table edge (−x).
-- Row 1: **Cleanup Phase**. The same action, disabled state and title as the toolbar **Cleanup** (`docs/features/round-phases.md`).
+- Row 1: **Automatic Power Phase** (see above). Only its owner presses it in a multiplayer room.
 - Row 2: **Deploy Lock** (on or off, the shared `game.deployLine`), **↺** and **↻** (turn the mat 90°).
-- These buttons change shared state, so any player can press them.
+- Deploy Lock and the mat turn change shared state, so any player can press them.
+- **Cleanup Phase** is not in the strip. It is one button at z 0 between the scoring board and the mat, for both players. The same action, disabled state and title as the toolbar **Cleanup** (`docs/features/round-phases.md`). Any player presses it.
 - **↺** **↻** only show where the toolbar has them: not in a multiplayer room, where the game setup chooses the board edge.
 
 ## Settings menu
@@ -77,8 +79,8 @@ One row for each item, with the choice **Table** or **HUD**. The default is **Ta
 | Item | On the table | In the HUD (toolbar) |
 |---|---|---|
 | Range and movement tools | The tool rack | Groups **Range** (R1–R5) and **Move** (S, M, L, T/A) |
-| Automatic Power Phase | The Automatic Power Phase buttons | **Phase** → **Power** |
-| Cleanup Phase | Row 1 of the board strip | **Phase** → **Cleanup** |
+| Automatic Power Phase | Row 1 of the board strips | **Phase** → **Power** |
+| Cleanup Phase | One button between the scoring board and the mat | **Phase** → **Cleanup** |
 | Deploy Lock | **Deploy Lock** in the board strip | **Deploy** → **Lock** |
 | Mat turn (Sandbox and single player rooms) | **↺** **↻** in the board strip | **Mat** → **↺** **↻**. The map select stays in the toolbar |
 

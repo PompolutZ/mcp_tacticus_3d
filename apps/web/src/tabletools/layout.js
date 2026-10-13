@@ -1,5 +1,5 @@
 // Where the table tools lie: the tool rack of each player, and the board strip next to the scoring board.
-// The Automatic Power Phase button of each player lies in the row of their Team Tactic tray, not on the rack. Plain module, no React, the same as characters/trays.js. See
+// The Automatic Power Phase button of each player lies in row 1 of their board strip, not on the rack. Plain module, no React, the same as characters/trays.js. See
 // docs/features/table-tools.md, "Place on the table".
 //
 // Everything is computed for host (+z) and mirrored for guest: x and z change sign (the rack: z only, because
@@ -121,23 +121,6 @@ export function rackSlots(side) {
   }))
 }
 
-// The Automatic Power Phase button of `side`: { x, z, width, depth }. It belongs to the squad, so it lies on
-// the table in the row of the Team Tactic tray, to the owner's left of the tactic plate (host: -x). Same z as
-// the tray center. Free space there: x -20.6 (the board strip, the setup) to the plate edge -8.65, z 18.3 to
-// 22.4 (the mat edge to the character tray row). width lies along x. See docs/features/table-tools.md,
-// "Automatic Power Phase button".
-const POWER_GAP = 0.6 // from the left edge of the tactic plate
-// Width in px (1 px = 0.04"): icon 22 + gap 6 + padding 2 x 6 + the label "Automatic Power Phase" (21 chars at
-// 12px, estimated 7 px each) = 187 px
-const POWER_WIDTH_PX = 22 + 6 + 12 + 21 * 7
-const POWER_WIDTH = POWER_WIDTH_PX * 0.04
-const POWER_DEPTH = 1.2
-export function powerButton(side) {
-  const s = sign(side)
-  const x = -(TACTIC_PLATE_WIDTH / 2 + POWER_GAP + POWER_WIDTH / 2)
-  return { x: x * s, z: tacticTrayPosition(side).z, width: POWER_WIDTH, depth: POWER_DEPTH }
-}
-
 // True when a table point { x, z } is on the rack plate of `side`
 export function onRack(side, point) {
   const plate = rackPlate(side)
@@ -147,13 +130,14 @@ export function onRack(side, point) {
 }
 
 // The board strip: the corner between the mat and the end of the scoring board, one for each side. It holds
-// two rows. Row 1 is nearer the table edge (-x), as the top row of something that reads like the scoring
+// two rows. Row 1: Automatic Power Phase. Row 2: Deploy Lock and the mat turn buttons. Row 1 is nearer the table edge (-x), as the top row of something that reads like the scoring
 // board. width lies along x, length along z.
 const STRIP_X_MIN = -20.6
 const STRIP_X_MAX = -18.3
 const STRIP_Z_MIN = 12.6
 const STRIP_Z_MAX = 18
 const STRIP_ROW_X = [-20, -18.9]
+const STRIP_ROW_WIDTH = 1
 export function boardStrip(side) {
   const s = sign(side)
   return {
@@ -163,6 +147,29 @@ export function boardStrip(side) {
     length: STRIP_Z_MAX - STRIP_Z_MIN,
     // x of the center of row 1 and row 2
     rowX: STRIP_ROW_X,
+  }
+}
+
+// The Automatic Power Phase button of `side`: { x, z, width, length }. It belongs to the squad, so it lies in
+// row 1 of the board strip of its side, along z like the strip, the top facing -x (it reads like the scoring
+// board). width lies along x (one row), length along z (the strip length, 5.4"). See
+// docs/features/table-tools.md, "Automatic Power Phase button".
+export function powerButton(side) {
+  const strip = boardStrip(side)
+  return { x: strip.rowX[0], z: strip.z, width: STRIP_ROW_WIDTH, length: strip.length }
+}
+
+// The Cleanup Phase button: one for the table, at z 0 in the gap between the scoring board (x edge -19.1) and
+// the mat edge (x -18), turned like the strip. The gap is 1.1" deep, the button 1" (STRIP_ROW_WIDTH), 0.05"
+// free on each side. width lies along x, length along z. See docs/features/round-phases.md.
+const BOARD_EDGE_X = -19.1
+const MAT_EDGE_X = -18
+export function cleanupButton() {
+  return {
+    x: (BOARD_EDGE_X + MAT_EDGE_X) / 2,
+    z: 0,
+    width: STRIP_ROW_WIDTH,
+    length: STRIP_Z_MAX - STRIP_Z_MIN,
   }
 }
 
