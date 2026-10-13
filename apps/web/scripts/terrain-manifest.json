@@ -1021,6 +1021,44 @@
     },
     "truck-size-4-17": {
       "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0819a0786643.unity3d"
+    },
+    "street-sign-size-1-11": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f045c7c23c45.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7cbf6a4d351c.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/68bf75412b76.obj"
+    },
+    "street-light-size-1-20": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/330b950b5816.unity3d"
+    },
+    "size-4-josies-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b31a8fd4067f.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0613a0fabdb2.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b31a8fd4067f.obj"
+    },
+    "size-4-theater-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/dc970f79500d.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/15344b535631.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5397565f850c.obj"
+    },
+    "size-2-statue-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1f1cdca3924c.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3225618c329d.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1f1cdca3924c.obj"
+    },
+    "fogwells-gym-size-5": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/2202affd1305.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/2c01c1c7cfaa.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/2202affd1305.obj"
+    },
+    "size-4-garbage-truck-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e8f93a4dc0a2.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6be66c664028.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e8f93a4dc0a2.obj"
+    },
+    "taxi-size-2-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0c541e6c245a.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/2e5a82e58fcd.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0c541e6c245a.obj"
     }
   },
   "mats": {
@@ -1041,6 +1079,7 @@
     "sunk-ship-sheltering-sinister-secrets": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/53293b439182.jpg",
     "sinister-showdown": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/014caf473322.png",
     "oscrop-chemical": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0bba74402702.png",
-    "dockyard-destruction-spider-man-to-blame": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0c3ae53102d3.png"
+    "dockyard-destruction-spider-man-to-blame": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0c3ae53102d3.png",
+    "night-time-patrol": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/851db0b0c40d.jpg"
   }
 }

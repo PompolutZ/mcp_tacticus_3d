@@ -27,6 +27,7 @@ A map is a mat (the ground image) and a list of terrain pieces. The data is in `
 | Oscrop Chemical | 180 |
 | A Hulk Cornered | 180 |
 | Dockyard Destruction! Spider-Man to Blame! | 0 |
+| Night Time Patrol | 180 |
 
 Survival of the Fittest has the same placements as Hydra Vs Wakanda. It is not in the list.
 
