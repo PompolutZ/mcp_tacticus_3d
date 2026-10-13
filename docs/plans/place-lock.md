@@ -84,3 +84,12 @@ User checks:
 - [ ] Movement tool snapped to a model, Throw on: nothing moves. Drag the model: it stays on the middle line.
 - [ ] A base or terrain on the line: the drag stops before it. A lifted model (R) does not stop it.
 - [ ] Bent tool, Throw on: the tool straightens.
+
+## Results
+
+All three parts are built. The user tested them on 2026-10-13.
+
+- Part 1: `docs/features/range-movement-tools.md`. README "Tools" is a short pointer.
+- Part 2: Place, Place 2 and Place 1 lock and move nothing. Pure helpers in `placeLock.js`, range 1 clamp in `rangeOne.js`. Place 1 never locks the snapped piece: it is always within range 1 of itself.
+- Part 3: Throw locks to the middle line. The slide code is removed. The stop point is found once, when Throw turns on.
+- Fix: `constrainDrag` passed the data form of a model to the limits. They need the tool form (`toolModels`: `getCenter`, `radius`).
