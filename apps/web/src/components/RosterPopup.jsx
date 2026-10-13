@@ -10,7 +10,6 @@ import {
   rosterTabs,
 } from '../rosters/cards.js'
 import { CARD_SIZES } from '../rosters/layout.js'
-import { tacticCardBack } from '../tactics/files.js'
 import { CardPopup } from './CardPopup.jsx'
 import { Overlay } from './Overlay.jsx'
 import { Carousel } from './Carousel.jsx'
@@ -22,7 +21,7 @@ function gemPopupCard(code) {
   const info = rosterCard(code)
   if (!info) return null
   return {
-    src: assetUrl(info.faceKey ? tacticCardBack(info.faceKey) : info.image),
+    src: assetUrl(info.image),
     alt: info.name,
     tacticKey: info.faceKey ?? undefined,
   }

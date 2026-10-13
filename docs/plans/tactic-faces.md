@@ -56,7 +56,7 @@ Prototype files, outside the repo in `/Users/olehlutsenko/_dev/tactic-faces-prot
 6. **Fit:** the text starts at 19.5 px and shrinks in 0.5 px steps until all blocks fit, with at least 14 px above the footer and below the title. The `squished` flag is not used. In dev, the console lists the cards that need less than 15 px.
 7. **Icons:** the Jarvis PNGs, converted to lossless WebP in `src/assets/tactic-icons/`, named by meaning. A later plan can replace them with SVGs one at a time. The component does not change for that.
 8. **Texture life:** a texture is drawn when a card first needs it, and then cached by key. Until it is ready, the face shows the art at opacity 0.2 on the card color, without text.
-9. **The mod face scans go away** for every card with Jarvis data. `migrate-tactics.mjs` stops writing those faces. The Infinity Gems are drawn too (changed after Phase 2: Jarvis has full text for them, and draws them with the same template plus a threat pill). A card with no Jarvis data would keep the scan and use the old `<img>` and texture path; today there is none.
+9. **The mod face scans go away** for every card with Jarvis data. `migrate-tactics.mjs` stops writing those faces. The Infinity Gems are drawn too (changed after Phase 2: Jarvis has full text for them, and draws them with the same template plus a threat pill). A card with no Jarvis data would keep the scan and use the old `<img>` and texture path; today there is none. (Changed in Phase 4: such a card shows its back instead.)
 
 ## Phase 1: Data and icons
 
@@ -99,6 +99,8 @@ Work:
 
 Checks: `pnpm format`, `pnpm lint`, `pnpm --filter web build`. One commit per round.
 
+Result: skipped. The user checked the cards in the app and found them good.
+
 ## Phase 4: Remove the scans
 
 Work:
@@ -108,6 +110,8 @@ Work:
 4. Delete the prototype folder.
 
 Checks: `pnpm format`, `pnpm lint`, `pnpm --filter web build`. Commit.
+
+Result (commit `tactic faces: remove mod face scans`): 400 face scans deleted (41 MB; all Team Tactic cards and the 7 gems). `tacticCardFace` removed from `src/tactics/files.js`. Fallback for a card with no Jarvis data (none today): the back, on both sides (`image` of a tactic card in `rosters/cards.js` is its back; `TacticCard.jsx` uses the back as the face). `migrate-tactics.mjs` migrates only the back; `tactic-manifest.json` lost its 400 face entries; `--list` shows "face drawn" or "no Jarvis data, back used". README section "Tactic faces" added. The prototype folder is deleted.
 
 ## Later
 

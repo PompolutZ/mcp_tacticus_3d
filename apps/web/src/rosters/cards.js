@@ -4,7 +4,7 @@ import { CHARACTERS, characterByCode } from '../characters/characters.js'
 import { characterCard, transformCard } from '../characters/files.js'
 import tacticsData from '../tactics/jarvis-tactics-cards.json'
 import tacticFiles from '../tactics/cards.json'
-import { tacticCardBack, tacticCardFace } from '../tactics/files.js'
+import { tacticCardBack } from '../tactics/files.js'
 import { isFaceKey } from '../tactics/faceData.js'
 import jarvisCharacters from '../characters/jarvis-characters.json'
 import crisisData from '../crisis/jarvis-crisis-cards.json'
@@ -36,8 +36,9 @@ const crisisKeys = idToKey(crisisFiles)
 // bearableGemsWithName; 1 when Jarvis has none), from Jarvis. back: the image
 // of the other side, for the flip in the roster popup. null when the app has no image, or when the other side is the
 // same for every card of the kind: the back of a crisis card shows only its type.
-// faceKey: the key of a Team Tactic card whose face the app draws from Jarvis data (components/TacticFace.jsx), else null;
-// image is then not loaded, the face comes from the component.
+// faceKey: the key of a Team Tactic card whose face the app draws from Jarvis data (components/TacticFace.jsx), else null.
+// The card has no face scan: image of a Team Tactic card is its back (a card without Jarvis data shows the
+// back as its face); with a faceKey, the face comes from the component.
 // variants: the cards that the roster popup can switch between for this character, [{ label, image, back, portrait? }],
 // the character card first. null when the character has one card. A second form with its own card (see
 // docs/features/character-trays.md, "Second forms") and each migrated grunt of a host (see "Grunts").
@@ -99,7 +100,7 @@ for (const row of tacticsData) {
     name: row.name,
     key: key ?? null,
     threat: row.isInfinityGem ? (gemThreats.get(row.exportCode) ?? 1) : null,
-    image: key ? tacticCardFace(key) : null,
+    image: key ? tacticCardBack(key) : null,
     back: key ? tacticCardBack(key) : null,
     faceKey: key && isFaceKey(key) ? key : null,
     model: false,

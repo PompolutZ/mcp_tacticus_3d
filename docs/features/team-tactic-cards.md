@@ -1,12 +1,8 @@
 # Feature: Team Tactic cards
 
-Status: partly built.
+Status: built.
 
 Players take Team Tactic cards (TTC) from the Library (see `docs/features/library.md`). The Library lists the Infinity Gems after the tactic cards, but a click on a gem opens its card and adds nothing (see [Cards](#cards)). A card goes into the player's tactic tray. Players can move, flip, open and delete it. The Team Tactic cards of a squad go on the tray from the game setup (`docs/features/setup-game.md`).
-
-Not built yet:
-
-- Card images for most released cards (see [Out of scope](#out-of-scope)).
 
 ## Goal
 
@@ -32,7 +28,7 @@ These facts come from the save of mod 3036795456.
 
 - 73 released cards are migrated, plus the Soul and Mind Infinity Gem cards (see `scripts/README.md`, "TTS tactic cards"). The app knows only their key, MCT code (`id`) and name (`src/tactics/cards.json`).
 - The Library lists the 7 Infinity Gem cards (`TACTICS` in `src/tactics/cards.js`, `gem: true`) after the Team Tactic cards, with an "Infinity Gem" label. A gem is not played from a tray. It attaches to a character, and only the roster does that today (`docs/features/character-trays.md`, "Attached cards"). A click on a gem opens its card in the card popup, in the Library, on a tray (gem chip), and on a roster card (gem line on the table, gem line in the roster popup). It adds nothing.
-- A real card has the size of a poker card: 2.5" × 3.5". The app uses this size for every card. The face images are about 720 × 1040 px, so the image is 3% shorter on the table than in the file. The card size in TTS was not measured.
+- A real card has the size of a poker card: 2.5" × 3.5". The app uses this size for every card. The back images are about 720 × 1040 px, so the image is 3% shorter on the table than in the file. The card size in TTS was not measured.
 - The **face** has the rules text on pale art. The **back** has the card name on full-colour art. The app draws the face of every Team Tactic card and every Infinity Gem itself (see [Generated face](#generated-face)).
 - A new card lies face up, with the rules text showing.
 
@@ -48,6 +44,7 @@ The face of a Team Tactic card is drawn by the app from the Jarvis data, not loa
 - **Icons:** the Jarvis PNGs as lossless WebP in `src/assets/tactic-icons/`, named by meaning. An unknown icon id (`!Ulik`) is drawn as plain text. A later change can replace a file with an SVG without a change in the component.
 - **Texture life:** a texture is drawn when a card first needs it, and its canvas is kept by key (about 3 MB each, never freed). Until it is ready, the face shows the art at opacity 0.2 on the card color, without text. The texture of a card is freed with the card.
 - **Gems:** the Infinity Gem cards are drawn the same way, from their Jarvis entry. A card with a `threatLevel` shows a threat pill (round badge and the number) in place of the affiliation, type and body, and its text sits at the lower end. The tray popup draws attached gems with the component.
+- **No scans:** the mod's face images are not in the app. `migrate-tactics.mjs` migrates only the back. A card with no Jarvis data (none today) shows its back on both sides.
 - **Dev page:** in the dev server, `#tactic-faces` shows all faces in a grid with the font size under each, and a filter for font < 15 px. It is not in the production build.
 
 ## Tactic tray
@@ -125,7 +122,6 @@ All fields are plain JSON. So they fit into the `tactics` map of the Yjs documen
 ## Out of scope
 
 - Card text, affiliation and legality (Rotated, Restricted, Banned). The mod's data has errors (see `scripts/README.md`), and Jarvis was not checked yet. Then the Library could filter cards by the player's affiliation.
-- The other 320 card images. TTS must download them first.
 - Hidden cards. In TTS, both sides of a card are public.
 - Cards attached to a character: Reserve members, Infinity Gems, Horsemen cards (see `docs/features/character-trays.md`, "Out of scope").
 - A list of the 5 cards per player (the `rosters` map in `docs/features/peer-to-peer.md`). The cards on the tray are the list.

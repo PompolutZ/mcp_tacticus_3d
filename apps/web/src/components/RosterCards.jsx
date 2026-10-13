@@ -224,7 +224,7 @@ export function RosterCard({
   useEffect(() => {
     if (!hovered || !info.image) return undefined
     const image = {
-      src: assetUrl(info.faceKey ? tacticCardBack(info.faceKey) : info.image),
+      src: assetUrl(info.image),
       alt: info.name,
       tacticKey: info.faceKey ?? undefined,
       by: `roster:${card.tab}:${card.index}:${card.code}`,
