@@ -291,6 +291,16 @@
       "stagger"
     ]
   },
+  "black-widow-agent-of-s-h-i-e-l-d": {
+    "id": "00240101",
+    "name": "Black Widow, Agent of S.H.I.E.L.D.",
+    "base": "small",
+    "figure": "model",
+    "rotation": 225,
+    "tokens": [
+      "poison"
+    ]
+  },
   "blade": {
     "id": "00480101",
     "name": "Blade",
@@ -337,6 +347,17 @@
     "base": "small",
     "figure": "model",
     "rotation": 45
+  },
+  "captain-marvel": {
+    "id": "00010104",
+    "name": "Captain Marvel",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "binary-form",
+      "stagger"
+    ]
   },
   "captain-marvel-cosmic-avenger": {
     "id": "01430103",
@@ -697,6 +718,21 @@
     "tokens": [
       "root",
       "stagger"
+    ]
+  },
+  "gwenpool": {
+    "id": "01370101",
+    "name": "Gwenpool",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "bleed",
+      "shock",
+      "incinerate",
+      "poison",
+      "jeff",
+      "stun"
     ]
   },
   "hand-ninjas": {
@@ -1292,6 +1328,16 @@
       "shock"
     ]
   },
+  "rescue": {
+    "id": "01540104",
+    "name": "Rescue",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stun"
+    ]
+  },
   "rocket-raccoon": {
     "id": "00170102",
     "name": "Rocket Raccoon",
@@ -1513,6 +1559,18 @@
       "stun"
     ]
   },
+  "squirrel-girl": {
+    "id": "01370102",
+    "name": "Squirrel Girl",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "bleed",
+      "stun",
+      "tippy-toe"
+    ]
+  },
   "star-lord": {
     "id": "00180101",
     "name": "Star-Lord",
@@ -1589,6 +1647,17 @@
     "rotation": 0,
     "tokens": [
       "slow"
+    ]
+  },
+  "the-black-widow": {
+    "id": "01430109",
+    "name": "The Black Widow",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "stun",
+      "shock"
     ]
   },
   "the-blob": {
@@ -1724,6 +1793,18 @@
       "bleed",
       "poison"
     ]
+  },
+  "wasp": {
+    "id": "00260102",
+    "name": "Wasp",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "transform": {
+      "figure": "model",
+      "rotation": 0,
+      "card": true
+    }
   },
   "weapon-x-logan": {
     "id": "01090102",

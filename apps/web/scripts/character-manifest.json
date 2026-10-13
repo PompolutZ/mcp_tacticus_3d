@@ -247,6 +247,15 @@
       "characters/black-widow/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_WIDOW_UI.png"
     }
   },
+  "black-widow-agent-of-s-h-i-e-l-d": {
+    "id": "00240101",
+    "sources": {
+      "characters/black-widow-agent-of-s-h-i-e-l-d/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_WIDOW_AGENT_OF_SHIELD_healthy.jpg",
+      "characters/black-widow-agent-of-s-h-i-e-l-d/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_WIDOW_AGENT_OF_SHIELD_injured.jpg",
+      "characters/black-widow-agent-of-s-h-i-e-l-d/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/BLACK_WIDOW_AGENT_OF_SHIELD_MODEL.unity3d",
+      "characters/black-widow-agent-of-s-h-i-e-l-d/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_WIDOW_AGENT_OF_SHIELD_UI.png"
+    }
+  },
   "blade": {
     "id": "00480101",
     "sources": {
@@ -290,6 +299,15 @@
       "characters/captain-america-sam-wilson/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_AMERICA_SAM_WILSON_injured.jpg",
       "characters/captain-america-sam-wilson/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/CAPTAIN_AMERICA_SAM_WILSON_MODEL.unity3d",
       "characters/captain-america-sam-wilson/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_AMERICA_SAM_WILSON_UI.png"
+    }
+  },
+  "captain-marvel": {
+    "id": "00010104",
+    "sources": {
+      "characters/captain-marvel/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_MARVEL_healthy.jpg",
+      "characters/captain-marvel/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_MARVEL_injured.jpg",
+      "characters/captain-marvel/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/CAPTAIN_MARVEL_MODEL.unity3d",
+      "characters/captain-marvel/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_MARVEL_UI.png"
     }
   },
   "captain-marvel-cosmic-avenger": {
@@ -602,6 +620,15 @@
       "characters/groot/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GROOT_injured.jpg",
       "characters/groot/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/GROOT_MODEL.unity3d",
       "characters/groot/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GROOT_UI.png"
+    }
+  },
+  "gwenpool": {
+    "id": "01370101",
+    "sources": {
+      "characters/gwenpool/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GWENPOOL_healthy.jpg",
+      "characters/gwenpool/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GWENPOOL_injured.jpg",
+      "characters/gwenpool/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/GWENPOOL_MODEL.unity3d",
+      "characters/gwenpool/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GWENPOOL_UI.png"
     }
   },
   "hand-ninjas": {
@@ -1147,6 +1174,15 @@
       "characters/red-skull-master-of-the-world/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RED_SKULL_MASTER_OF_THE_WORLD_UI.png"
     }
   },
+  "rescue": {
+    "id": "01540104",
+    "sources": {
+      "characters/rescue/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RESCUE_healthy.jpg",
+      "characters/rescue/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RESCUE_injured.jpg",
+      "characters/rescue/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/RESCUE_MODEL.unity3d",
+      "characters/rescue/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RESCUE_UI.png"
+    }
+  },
   "rocket-raccoon": {
     "id": "00170102",
     "sources": {
@@ -1346,6 +1382,15 @@
       "characters/spider-woman/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_WOMAN_UI.png"
     }
   },
+  "squirrel-girl": {
+    "id": "01370102",
+    "sources": {
+      "characters/squirrel-girl/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SQUIRREL_GIRL_healthy.jpg",
+      "characters/squirrel-girl/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SQUIRREL_GIRL_injured.jpg",
+      "characters/squirrel-girl/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SQUIRREL_GIRL_MODEL.unity3d",
+      "characters/squirrel-girl/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SQUIRREL_GIRL_UI.png"
+    }
+  },
   "star-lord": {
     "id": "00180101",
     "sources": {
@@ -1407,6 +1452,15 @@
       "characters/thanos-the-mad-titan/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THANOS_THE_MAD_TITAN_injured.jpg",
       "characters/thanos-the-mad-titan/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/THANOS_THE_MAD_TITAN_MODEL.unity3d",
       "characters/thanos-the-mad-titan/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THANOS_THE_MAD_TITAN_UI.png"
+    }
+  },
+  "the-black-widow": {
+    "id": "01430109",
+    "sources": {
+      "characters/the-black-widow/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_BLACK_WIDOW_healthy.jpg",
+      "characters/the-black-widow/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_BLACK_WIDOW_injured.jpg",
+      "characters/the-black-widow/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/THE_BLACK_WIDOW_MODEL.unity3d",
+      "characters/the-black-widow/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_BLACK_WIDOW_UI.png"
     }
   },
   "the-blob": {
@@ -1525,6 +1579,18 @@
       "characters/warlock/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WARLOCK_injured.jpg",
       "characters/warlock/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/WARLOCK_MODEL.unity3d",
       "characters/warlock/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WARLOCK_UI.png"
+    }
+  },
+  "wasp": {
+    "id": "00260102",
+    "sources": {
+      "characters/wasp/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WASP_NORMAL_healthy.jpg",
+      "characters/wasp/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WASP_NORMAL_injured.jpg",
+      "characters/wasp/transform-card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WASP_TINY_healthy.jpg",
+      "characters/wasp/transform-card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WASP_TINY_injured.jpg",
+      "characters/wasp/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/WASP_MODEL.unity3d",
+      "characters/wasp/transform.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/WASP_MODEL_TRANSFORM.unity3d",
+      "characters/wasp/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WASP_UI.png"
     }
   },
   "weapon-x-logan": {
