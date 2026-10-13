@@ -49,7 +49,7 @@ The rows come from Jarvis (`src/characters/characters.js`), one row per MCT code
 
 Each card shows as a small image of its back (the card name on art), with the name under it. A click puts the card into the first free slot of the chosen player's tactic tray. See `docs/features/team-tactic-cards.md`.
 
-The 7 Infinity Gems are listed after the tactic cards, with an "Infinity Gem" label and the short name ("Soul"). They are listed only. A gem attaches to a character, not to a tray, so a click shows a message and adds nothing. Search finds them by name or MCT code.
+The 7 Infinity Gems are listed after the tactic cards, with an "Infinity Gem" label and the short name ("Soul"). A gem attaches to a character, not to a tray, so a click opens its card in the card popup and adds nothing. Search finds them by name or MCT code.
 
 The images load only when they scroll into view (`loading="lazy"`), so the panel does not load all 69 images at once.
 

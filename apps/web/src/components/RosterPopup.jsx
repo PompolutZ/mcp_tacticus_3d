@@ -10,10 +10,23 @@ import {
   rosterTabs,
 } from '../rosters/cards.js'
 import { CARD_SIZES } from '../rosters/layout.js'
+import { tacticCardBack } from '../tactics/files.js'
+import { CardPopup } from './CardPopup.jsx'
 import { Overlay } from './Overlay.jsx'
 import { Carousel } from './Carousel.jsx'
 import TacticFaceScaled from './TacticFaceScaled.jsx'
 import { BreakdownTab } from './BreakdownTab.jsx'
+
+// The card popup content of a gem: its drawn face, else its image
+function gemPopupCard(code) {
+  const info = rosterCard(code)
+  if (!info) return null
+  return {
+    src: assetUrl(info.faceKey ? tacticCardBack(info.faceKey) : info.image),
+    alt: info.name,
+    tacticKey: info.faceKey ?? undefined,
+  }
+}
 
 // One player's roster in a full-screen popup, opened by a click on a roster card on the table
 // (RosterCards.jsx), or by Roster on a room tile in the lobby (Lobby.jsx). It has a tab for each card group, and each tab shows its cards in a carousel.
@@ -145,12 +158,13 @@ function CardCarousel({ cards, index, onIndexChange, squad }) {
 // card goes to its slide, which moves the card to the middle. Each card keeps its side while the tab is
 // open. A card without an image is a plate with the name and the MCT code, the same as on the table.
 // The footer under the card holds the card switch, the Flip button, the link to the card page on Jarvis
-// and the Infinity Gems of a character as text lines, as the app has no gem images. The card switch, at
+// and the Infinity Gems of a character as lines; a click on a line opens the gem card. The card switch, at
 // the left, shows when the character has more than one card (variants in rosters/cards.js), for example
 // Emma Frost and her Diamond form. The shown card keeps its side.
 function PopupCard({ card, active, inSquad, onSquadToggle }) {
   const [flipped, setFlipped] = useState(false)
   const [variant, setVariant] = useState(0)
+  const [gemCard, setGemCard] = useState(null)
   const info = rosterCard(card.code)
   const shown = info.variants?.[variant] ?? info
   const name = variant > 0 ? `${info.name}, ${shown.label}` : info.name
@@ -274,10 +288,20 @@ function PopupCard({ card, active, inSquad, onSquadToggle }) {
           </JarvisLink>
         </div>
         {card.gems.map((gem, g) => (
-          <div key={`${g}-${gem}`} className="roster-popup-gem">
+          <button
+            key={`${g}-${gem}`}
+            type="button"
+            className="roster-popup-gem"
+            title="Open the gem card"
+            onClick={() => setGemCard(gemPopupCard(gem))}
+          >
             + {rosterCard(gem)?.name ?? gem}
-          </div>
+          </button>
         ))}
+        {/* The wrapper stops the click that closes the gem card from also closing this popup */}
+        <div style={{ display: 'contents' }} onClick={(e) => e.stopPropagation()}>
+          <CardPopup card={gemCard} onClose={() => setGemCard(null)} />
+        </div>
       </div>
     </>
   )
