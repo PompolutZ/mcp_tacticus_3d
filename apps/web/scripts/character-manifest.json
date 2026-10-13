@@ -595,6 +595,15 @@
       "characters/ghost-rider/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GHOST_RIDER_UI.png"
     }
   },
+  "ghost-spider": {
+    "id": "00100101",
+    "sources": {
+      "characters/ghost-spider/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GHOST_SPIDER_healthy.jpg",
+      "characters/ghost-spider/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GHOST_SPIDER_injured.jpg",
+      "characters/ghost-spider/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/GHOST_SPIDER_MODEL.unity3d",
+      "characters/ghost-spider/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GHOST_SPIDER_UI.png"
+    }
+  },
   "gladiator": {
     "id": "20130101",
     "sources": {
@@ -620,6 +629,15 @@
       "characters/groot/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GROOT_injured.jpg",
       "characters/groot/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/GROOT_MODEL.unity3d",
       "characters/groot/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GROOT_UI.png"
+    }
+  },
+  "gwenom": {
+    "id": "01550101",
+    "sources": {
+      "characters/gwenom/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GWENOM_healthy.jpg",
+      "characters/gwenom/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GWENOM_injured.jpg",
+      "characters/gwenom/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/GWENOM_MODEL.unity3d",
+      "characters/gwenom/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GWENOM_UI.png"
     }
   },
   "gwenpool": {
@@ -1255,6 +1273,15 @@
       "characters/sandman/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SANDMAN_UI.png"
     }
   },
+  "scarlet-spider": {
+    "id": "01550102",
+    "sources": {
+      "characters/scarlet-spider/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SCARLET_SPIDER_healthy.jpg",
+      "characters/scarlet-spider/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SCARLET_SPIDER_injured.jpg",
+      "characters/scarlet-spider/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SCARLET_SPIDER_MODEL.unity3d",
+      "characters/scarlet-spider/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SCARLET_SPIDER_UI.png"
+    }
+  },
   "scarlet-witch": {
     "id": "00630102",
     "sources": {
@@ -1337,6 +1364,24 @@
       "characters/shuri/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHURI_UI.png"
     }
   },
+  "silk": {
+    "id": "01700101",
+    "sources": {
+      "characters/silk/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SILK_healthy.jpg",
+      "characters/silk/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SILK_injured.jpg",
+      "characters/silk/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SILK_MODEL.unity3d",
+      "characters/silk/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SILK_UI.png"
+    }
+  },
+  "silver-sable": {
+    "id": "00690102",
+    "sources": {
+      "characters/silver-sable/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SILVER_SABLE_healthy.jpg",
+      "characters/silver-sable/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SILVER_SABLE_injured.jpg",
+      "characters/silver-sable/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SILVER_SABLE_MODEL.unity3d",
+      "characters/silver-sable/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SILVER_SABLE_UI.png"
+    }
+  },
   "sin": {
     "id": "00610101",
     "sources": {
@@ -1371,6 +1416,51 @@
       "characters/spectrum/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPECTRUM_injured.jpg",
       "characters/spectrum/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SPECTRUM_MODEL.unity3d",
       "characters/spectrum/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPECTRUM_UI.png"
+    }
+  },
+  "spider-ham": {
+    "id": "01700102",
+    "sources": {
+      "characters/spider-ham/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_HAM_healthy.jpg",
+      "characters/spider-ham/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_HAM_injured.jpg",
+      "characters/spider-ham/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SPIDER_HAM_MODEL.unity3d",
+      "characters/spider-ham/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_HAM_UI.png"
+    }
+  },
+  "spider-man-2099": {
+    "id": "01690102",
+    "sources": {
+      "characters/spider-man-2099/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_MAN_2099_healthy.jpg",
+      "characters/spider-man-2099/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_MAN_2099_injured.jpg",
+      "characters/spider-man-2099/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SPIDER_MAN_2099_MODEL.unity3d",
+      "characters/spider-man-2099/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_MAN_2099_UI.png"
+    }
+  },
+  "spider-man-miles-morales": {
+    "id": "00100102",
+    "sources": {
+      "characters/spider-man-miles-morales/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_MAN_MILES_MORALES_healthy.jpg",
+      "characters/spider-man-miles-morales/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_MAN_MILES_MORALES_injured.jpg",
+      "characters/spider-man-miles-morales/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SPIDER_MAN_MILES_MORALES_MODEL.unity3d",
+      "characters/spider-man-miles-morales/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_MAN_MILES_MORALES_UI.png"
+    }
+  },
+  "spider-man-noir": {
+    "id": "01700103",
+    "sources": {
+      "characters/spider-man-noir/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_MAN_NOIR_healthy.jpg",
+      "characters/spider-man-noir/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_MAN_NOIR_injured.jpg",
+      "characters/spider-man-noir/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SPIDER_MAN_NOIR_MODEL.unity3d",
+      "characters/spider-man-noir/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_MAN_NOIR_UI.png"
+    }
+  },
+  "spider-man-peter-parker": {
+    "id": "00010109",
+    "sources": {
+      "characters/spider-man-peter-parker/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_MAN_PETER_PARKER_healthy.jpg",
+      "characters/spider-man-peter-parker/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_MAN_PETER_PARKER_injured.jpg",
+      "characters/spider-man-peter-parker/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SPIDER_MAN_PETER_PARKER_MODEL.unity3d",
+      "characters/spider-man-peter-parker/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_MAN_PETER_PARKER_UI.png"
     }
   },
   "spider-woman": {
@@ -1561,6 +1651,15 @@
       "characters/valkyrie-and-elendil/standee-front.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VALKYRIE_AND_ELENDIL_STANDEE_A.jpg",
       "characters/valkyrie-and-elendil/standee-back.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VALKYRIE_AND_ELENDIL_STANDEE_B.jpg",
       "characters/valkyrie-and-elendil/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VALKYRIE_AND_ELENDIL_UI.png"
+    }
+  },
+  "venom": {
+    "id": "00090101",
+    "sources": {
+      "characters/venom/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VENOM_healthy.jpg",
+      "characters/venom/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VENOM_injured.jpg",
+      "characters/venom/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/VENOM_MODEL.unity3d",
+      "characters/venom/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VENOM_UI.png"
     }
   },
   "viper": {

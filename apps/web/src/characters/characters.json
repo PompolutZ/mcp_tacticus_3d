@@ -685,6 +685,13 @@
       "incinerate"
     ]
   },
+  "ghost-spider": {
+    "id": "00100101",
+    "name": "Ghost-Spider",
+    "base": "small",
+    "figure": "model",
+    "rotation": 345
+  },
   "gladiator": {
     "id": "20130101",
     "name": "Gladiator",
@@ -719,6 +726,13 @@
       "root",
       "stagger"
     ]
+  },
+  "gwenom": {
+    "id": "01550101",
+    "name": "Gwenom",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0
   },
   "gwenpool": {
     "id": "01370101",
@@ -1410,6 +1424,13 @@
       "sand-construct-fisty"
     ]
   },
+  "scarlet-spider": {
+    "id": "01550102",
+    "name": "Scarlet Spider",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0
+  },
   "scarlet-witch": {
     "id": "00630102",
     "name": "Scarlet Witch",
@@ -1513,6 +1534,27 @@
       "stagger"
     ]
   },
+  "silk": {
+    "id": "01700101",
+    "name": "Silk",
+    "base": "small",
+    "figure": "model",
+    "rotation": 135,
+    "tokens": [
+      "slow"
+    ]
+  },
+  "silver-sable": {
+    "id": "00690102",
+    "name": "Silver Sable",
+    "base": "small",
+    "figure": "model",
+    "rotation": 135,
+    "tokens": [
+      "root",
+      "stun"
+    ]
+  },
   "sin": {
     "id": "00610101",
     "name": "Sin",
@@ -1543,6 +1585,58 @@
     "base": "small",
     "figure": "model",
     "rotation": 0,
+    "tokens": [
+      "stun"
+    ]
+  },
+  "spider-ham": {
+    "id": "01700102",
+    "name": "Spider-Ham",
+    "base": "small",
+    "figure": "model",
+    "rotation": 240,
+    "tokens": [
+      "stun",
+      "slow",
+      "shock",
+      "stagger"
+    ]
+  },
+  "spider-man-2099": {
+    "id": "01690102",
+    "name": "Spider-Man 2099",
+    "base": "small",
+    "figure": "model",
+    "rotation": 240,
+    "tokens": [
+      "stun",
+      "poison"
+    ]
+  },
+  "spider-man-miles-morales": {
+    "id": "00100102",
+    "name": "Spider-Man (Miles Morales)",
+    "base": "small",
+    "figure": "model",
+    "rotation": 240
+  },
+  "spider-man-noir": {
+    "id": "01700103",
+    "name": "Spider-Man Noir",
+    "base": "small",
+    "figure": "model",
+    "rotation": 240,
+    "tokens": [
+      "slow",
+      "shock"
+    ]
+  },
+  "spider-man-peter-parker": {
+    "id": "00010109",
+    "name": "Spider-Man (Peter Parker)",
+    "base": "small",
+    "figure": "model",
+    "rotation": 300,
     "tokens": [
       "stun"
     ]
@@ -1768,6 +1862,16 @@
     "figure": "standee",
     "tokens": [
       "stagger"
+    ]
+  },
+  "venom": {
+    "id": "00090101",
+    "name": "Venom",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 195,
+    "tokens": [
+      "bleed"
     ]
   },
   "viper": {
