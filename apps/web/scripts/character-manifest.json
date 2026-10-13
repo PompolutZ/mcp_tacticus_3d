@@ -379,6 +379,15 @@
       "characters/dracula/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DRACULA_UI.png"
     }
   },
+  "drax-the-destroyer": {
+    "id": "00200101",
+    "sources": {
+      "characters/drax-the-destroyer/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DRAX_THE_DESTROYER_healthy.jpg",
+      "characters/drax-the-destroyer/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DRAX_THE_DESTROYER_injured.jpg",
+      "characters/drax-the-destroyer/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/DRAX_THE_DESTROYER_MODEL.unity3d",
+      "characters/drax-the-destroyer/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DRAX_THE_DESTROYER_UI.png"
+    }
+  },
   "ebony-maw": {
     "id": "00190102",
     "sources": {
@@ -448,6 +457,15 @@
       "characters/gambit/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GAMBIT_UI.png"
     }
   },
+  "gamora": {
+    "id": "00160101",
+    "sources": {
+      "characters/gamora/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GAMORA_healthy.jpg",
+      "characters/gamora/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GAMORA_injured.jpg",
+      "characters/gamora/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/GAMORA_MODEL.unity3d",
+      "characters/gamora/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GAMORA_UI.png"
+    }
+  },
   "gladiator": {
     "id": "20130101",
     "sources": {
@@ -464,6 +482,15 @@
       "characters/gorgon/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GORGON_injured.jpg",
       "characters/gorgon/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/GORGON_MODEL.unity3d",
       "characters/gorgon/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GORGON_UI.png"
+    }
+  },
+  "groot": {
+    "id": "00170101",
+    "sources": {
+      "characters/groot/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GROOT_healthy.jpg",
+      "characters/groot/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GROOT_injured.jpg",
+      "characters/groot/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/GROOT_MODEL.unity3d",
+      "characters/groot/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GROOT_UI.png"
     }
   },
   "hand-ninjas": {
@@ -836,6 +863,15 @@
       "characters/nebula/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/NEBULA_UI.png"
     }
   },
+  "nova": {
+    "id": "01260101",
+    "sources": {
+      "characters/nova/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/NOVA_healthy.jpg",
+      "characters/nova/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/NOVA_injured.jpg",
+      "characters/nova/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/NOVA_MODEL.unity3d",
+      "characters/nova/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/NOVA_UI.png"
+    }
+  },
   "okoye": {
     "id": "00080101",
     "sources": {
@@ -900,6 +936,15 @@
       "characters/pyro/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/PYRO_UI.png"
     }
   },
+  "quasar": {
+    "id": "01910103",
+    "sources": {
+      "characters/quasar/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/QUASAR_healthy.jpg",
+      "characters/quasar/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/QUASAR_injured.jpg",
+      "characters/quasar/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/QUASAR_MODEL.unity3d",
+      "characters/quasar/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/QUASAR_UI.png"
+    }
+  },
   "quicksilver": {
     "id": "00630101",
     "sources": {
@@ -935,6 +980,15 @@
       "characters/red-skull/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RED_SKULL_injured.jpg",
       "characters/red-skull/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/RED_SKULL_MODEL.unity3d",
       "characters/red-skull/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RED_SKULL_UI.png"
+    }
+  },
+  "rocket-raccoon": {
+    "id": "00170102",
+    "sources": {
+      "characters/rocket-raccoon/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ROCKET_RACCOON_healthy.jpg",
+      "characters/rocket-raccoon/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ROCKET_RACCOON_injured.jpg",
+      "characters/rocket-raccoon/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/ROCKET_RACCOON_MODEL.unity3d",
+      "characters/rocket-raccoon/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ROCKET_RACCOON_UI.png"
     }
   },
   "rogue": {
@@ -1125,6 +1179,15 @@
       "characters/spider-woman/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_WOMAN_injured.jpg",
       "characters/spider-woman/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SPIDER_WOMAN_MODEL.unity3d",
       "characters/spider-woman/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SPIDER_WOMAN_UI.png"
+    }
+  },
+  "star-lord": {
+    "id": "00180101",
+    "sources": {
+      "characters/star-lord/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/STAR_LORD_healthy.jpg",
+      "characters/star-lord/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/STAR_LORD_injured.jpg",
+      "characters/star-lord/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/STAR_LORD_MODEL.unity3d",
+      "characters/star-lord/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/STAR_LORD_UI.png"
     }
   },
   "steve-rogers-captain-america": {
@@ -1333,6 +1396,15 @@
       "characters/x-23/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/X_23_injured.jpg",
       "characters/x-23/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/X_23_MODEL.unity3d",
       "characters/x-23/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/X_23_UI.png"
+    }
+  },
+  "yondu": {
+    "id": "01260102",
+    "sources": {
+      "characters/yondu/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/YONDU_healthy.jpg",
+      "characters/yondu/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/YONDU_injured.jpg",
+      "characters/yondu/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/YONDU_MODEL.unity3d",
+      "characters/yondu/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/YONDU_UI.png"
     }
   }
 }

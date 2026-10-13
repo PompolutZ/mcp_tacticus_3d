@@ -435,6 +435,18 @@
       "hex"
     ]
   },
+  "drax-the-destroyer": {
+    "id": "00200101",
+    "name": "Drax the Destroyer",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "vengeance",
+      "bleed",
+      "stun"
+    ]
+  },
   "ebony-maw": {
     "id": "00190102",
     "name": "Ebony Maw",
@@ -511,6 +523,16 @@
       "stun"
     ]
   },
+  "gamora": {
+    "id": "00160101",
+    "name": "Gamora",
+    "base": "small",
+    "figure": "model",
+    "rotation": 315,
+    "tokens": [
+      "bleed"
+    ]
+  },
   "gladiator": {
     "id": "20130101",
     "name": "Gladiator",
@@ -533,6 +555,17 @@
       "stagger",
       "shock",
       "stun"
+    ]
+  },
+  "groot": {
+    "id": "00170101",
+    "name": "Groot",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 300,
+    "tokens": [
+      "root",
+      "stagger"
     ]
   },
   "hand-ninjas": {
@@ -944,6 +977,16 @@
       "stun"
     ]
   },
+  "nova": {
+    "id": "01260101",
+    "name": "Nova",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "judgement"
+    ]
+  },
   "okoye": {
     "id": "00080101",
     "name": "Okoye",
@@ -1013,6 +1056,16 @@
       "slow"
     ]
   },
+  "quasar": {
+    "id": "01910103",
+    "name": "Quasar",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 285,
+    "tokens": [
+      "incinerate"
+    ]
+  },
   "quicksilver": {
     "id": "00630101",
     "name": "Quicksilver",
@@ -1045,6 +1098,13 @@
     "tokens": [
       "stun"
     ]
+  },
+  "rocket-raccoon": {
+    "id": "00170102",
+    "name": "Rocket Raccoon",
+    "base": "small",
+    "figure": "model",
+    "rotation": 150
   },
   "rogue": {
     "id": "00600102",
@@ -1257,6 +1317,20 @@
     "tokens": [
       "poison",
       "shock",
+      "stun"
+    ]
+  },
+  "star-lord": {
+    "id": "00180101",
+    "name": "Star-Lord",
+    "base": "small",
+    "figure": "model",
+    "rotation": 270,
+    "tokens": [
+      "winging-it",
+      "bleed",
+      "shock",
+      "slow",
       "stun"
     ]
   },
@@ -1494,6 +1568,16 @@
     "rotation": 270,
     "tokens": [
       "bleed"
+    ]
+  },
+  "yondu": {
+    "id": "01260102",
+    "name": "Yondu",
+    "base": "small",
+    "figure": "model",
+    "rotation": 270,
+    "tokens": [
+      "slow"
     ]
   }
 }
