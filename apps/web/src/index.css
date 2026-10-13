@@ -170,6 +170,12 @@ body {
   justify-content: space-between;
 }
 
+/* A grunt has Remove only (no Flip): it is centered under the Damage counter, not pushed to the left
+   by space-between. The strip itself is centered on the grunt card (CharacterTray.jsx). */
+.tray-controls-actions--grunt {
+  justify-content: center;
+}
+
 .tray-controls-flip {
   font-size: 9px;
   padding: 1px 8px;

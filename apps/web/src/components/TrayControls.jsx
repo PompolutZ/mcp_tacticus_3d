@@ -68,7 +68,9 @@ export default function TrayControls({
           ))}
         </div>
       )}
-      <div className="tray-controls-row tray-controls-actions">
+      <div
+        className={`tray-controls-row tray-controls-actions${grunt ? ' tray-controls-actions--grunt' : ''}`}
+      >
         {!grunt && (
           <button
             type="button"
