@@ -103,25 +103,41 @@ export const ACTIONS = [
     first: true,
     preventDefault: true,
   }),
-  // The wheel is wired in the next step (WheelCamera.jsx). No key does this today.
+  // The mouse wheel (WheelCamera.jsx). No key does this today.
   A('zoomIn', 'Zoom in', 'Camera', TABLE, [bind('WheelUp')], { action: 'zoom', dir: 1 }),
   A('zoomOut', 'Zoom out', 'Camera', TABLE, [bind('WheelDown')], { action: 'zoom', dir: -1 }),
 
-  // dir 1 turns the piece counter-clockwise seen from above (turnPiece in Scene.jsx)
-  A('rotateLeft', 'Turn piece left', 'Pieces', WHEN_PIECE, [bind('KeyQ')], {
-    action: 'rotate',
-    dir: 1,
-    held: true,
-    repeats: true,
-    first: true,
-  }),
-  A('rotateRight', 'Turn piece right', 'Pieces', WHEN_PIECE, [bind('KeyE')], {
-    action: 'rotate',
-    dir: -1,
-    held: true,
-    repeats: true,
-    first: true,
-  }),
+  // dir 1 turns the piece counter-clockwise seen from above (turnPiece in Scene.jsx). The wheel turns
+  // a dragged piece, as in TTS. Wheel up = left like Q, wheel down = right like E: picked by look, the
+  // sources do not say which way TTS turns.
+  A(
+    'rotateLeft',
+    'Turn piece left',
+    'Pieces',
+    WHEN_PIECE,
+    [bind('KeyQ'), bind('WheelUp', 'dragging')],
+    {
+      action: 'rotate',
+      dir: 1,
+      held: true,
+      repeats: true,
+      first: true,
+    },
+  ),
+  A(
+    'rotateRight',
+    'Turn piece right',
+    'Pieces',
+    WHEN_PIECE,
+    [bind('KeyE'), bind('WheelDown', 'dragging')],
+    {
+      action: 'rotate',
+      dir: -1,
+      held: true,
+      repeats: true,
+      first: true,
+    },
+  ),
   A('flip', 'Flip', 'Pieces', TABLE, [bind('KeyF')], { action: 'flip' }),
   A('lift', 'Lift', 'Pieces', TABLE, [bind('KeyR')], { action: 'lift' }),
   A('lock', 'Lock', 'Pieces', TABLE, [bind('KeyL')], { action: 'lock' }),

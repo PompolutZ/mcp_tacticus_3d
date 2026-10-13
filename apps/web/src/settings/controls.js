@@ -31,7 +31,10 @@ export const MOUSE_ROWS = [
   { keys: 'Middle drag', action: 'Move the camera' },
   { keys: 'Shift, Ctrl or Cmd + drag', action: 'Move the camera' },
   { keys: 'Two-finger swipe', action: 'Move the camera' },
-  { keys: 'Wheel, pinch, Ctrl + wheel', action: 'Zoom' },
+  {
+    keys: 'Wheel, pinch, Ctrl + wheel',
+    action: 'Zoom. While dragging a piece, the wheel turns it',
+  },
   { keys: 'Click a tool on the rack', action: 'Put the tool on the table, or take it off' },
   {
     keys: 'Drag a tool from the rack',

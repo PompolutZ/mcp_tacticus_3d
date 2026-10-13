@@ -174,3 +174,18 @@ test('the default bindings have no conflict', () => {
       seen.add(k)
     }
 })
+
+test('wheel: dragging turns the piece, anywhere zooms, exact modifiers', () => {
+  assert.equal(at('WheelUp'), 'zoomIn')
+  assert.equal(at('WheelDown'), 'zoomOut')
+  assert.equal(at('WheelUp', { dragging: true }), 'rotateLeft')
+  assert.equal(at('WheelDown', { dragging: true }), 'rotateRight')
+  // over a piece that is not dragged, the wheel zooms
+  assert.equal(at('WheelUp', { overPiece: true }), 'zoomIn')
+  assert.equal(at('WheelUp', {}, { shift: true }), null)
+  assert.equal(at('WheelUp', { dragging: true }, { shift: true }), null)
+  const bindings = defaultBindings()
+  bindings.flip = [{ ...input('WheelDown', { shift: true }), when: 'anywhere' }]
+  assert.equal(at('WheelDown', {}, { shift: true }, bindings), 'flip')
+  assert.equal(at('WheelDown', {}, {}, bindings), 'zoomOut')
+})

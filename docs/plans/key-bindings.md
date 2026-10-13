@@ -80,3 +80,8 @@ No visible change.
 
 Done. `src/input/bindings.js`: actions, defaults (number keys as Digit and Numpad, zoom on WheelUp / WheelDown as data), `match` / `resolve`, `effectiveBindings`, `changedBindings`, `findConflicts`, `cleanBinding`. `keyAction` uses it for every key and now also returns `id` (action id). Held maps in `useTableKeys.js` are by action id, `heldBy` maps the main key code to the action. `settings.bindings` stores only changed actions. `useSettings` gives `bindings` (in use) and `handleBindingsChange`; App passes them and `overPiece` in the key state.
 - Differs: the wheel turn of a dragged piece (decision 8) is not a default yet, step 2 adds it. During a drag only cancel works, as before. Cancel allows `anywhere`, `popup`, `dragging`. A modifier with Escape or Alt is now unbound (exact match).
+
+### Step 2
+
+Done. `bindings.js`: `WheelUp` / `WheelDown` with `dragging` are default bindings of turn piece left / right (up = left, picked by look). `WheelCamera.jsx` takes `wheelState()` (App builds it, same state as the keys) and `onTurn(dir)` (App calls `turnPieceRef`, so Scene's `turnPiece` is reused). A mouse wheel step resolves with the Shift, Alt and Cmd flags; zoom or turn runs. Tests in `bindings.test.js`.
+- Differs: zoom during a drag stays off even when bound (OrbitControls is off and the view stays still). A trackpad swipe and Ctrl + wheel also do nothing during a drag, as before.

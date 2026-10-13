@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { MathUtils, Vector3 } from 'three'
 import { CAMERA_FRAME_PRIORITY, panOnTable } from '../camera.js'
+import { getAction, resolve } from '../input/bindings.js'
 
 // One mouse wheel step zooms by this factor, the same step as OrbitControls (0.95 at zoomSpeed 1).
 // The size of the delta is not used: one wheel step is 100 px on Windows and 4 px on a Mac.
@@ -53,7 +54,10 @@ function framePart(smoothTime, dt) {
 // set (Chrome, Firefox, Safari), so Ctrl + a mouse wheel also zooms. OrbitControls gets no wheel
 // event. It still zooms on a touch screen (two-finger pinch).
 // ref: { stop() } ends the zoom and pan that are left. App calls it when it moves the camera itself.
-export const WheelCamera = forwardRef(function WheelCamera(_, ref) {
+// A mouse wheel step is an input (WheelUp / WheelDown, input/bindings.js). wheelState(): the state for
+// the resolver, { popup, dragging, overDiceTray, overPiece, bindings }. onTurn(dir): one piece turn
+// step. Both are read at the wheel event.
+export const WheelCamera = forwardRef(function WheelCamera({ wheelState, onTurn }, ref) {
   const camera = useThree((state) => state.camera)
   const controls = useThree((state) => state.controls)
   // The same element that OrbitControls listens on
@@ -68,6 +72,12 @@ export const WheelCamera = forwardRef(function WheelCamera(_, ref) {
   }
 
   useImperativeHandle(ref, () => ({ stop }), [])
+
+  // The latest props, so the wheel listener is added once
+  const latest = useRef({ wheelState, onTurn })
+  useEffect(() => {
+    latest.current = { wheelState, onTurn }
+  })
 
   useEffect(() => {
     if (!controls || !element) return undefined
@@ -84,15 +94,37 @@ export const WheelCamera = forwardRef(function WheelCamera(_, ref) {
       // go back a page on a sideways swipe.
       e.preventDefault()
       e.stopPropagation()
-      // OrbitControls is off during a piece drag. The wheel does nothing then.
-      if (!controls.enabled) return
-      if (e.ctrlKey)
-        addZoom(
-          MathUtils.clamp(e.deltaY, -MAX_ZOOM_DELTA, MAX_ZOOM_DELTA) * PINCH_RATE,
-          TRACKPAD_SMOOTH_TIME,
-        )
-      else if (trackpadGesture) addPan(e.deltaX, e.deltaY)
-      else if (e.deltaY !== 0) addZoom(Math.sign(e.deltaY) * WHEEL_ZOOM_STEP, WHEEL_SMOOTH_TIME)
+      if (e.ctrlKey) {
+        if (controls.enabled)
+          addZoom(
+            MathUtils.clamp(e.deltaY, -MAX_ZOOM_DELTA, MAX_ZOOM_DELTA) * PINCH_RATE,
+            TRACKPAD_SMOOTH_TIME,
+          )
+      } else if (trackpadGesture) {
+        // OrbitControls is off during a piece drag. A swipe does nothing then.
+        if (controls.enabled) addPan(e.deltaX, e.deltaY)
+      } else wheelStep(e)
+    }
+
+    // A mouse wheel step: the binding of WheelUp / WheelDown with the modifiers of the event. Shift +
+    // wheel can come as a sideways scroll, so deltaX counts when deltaY is 0. Ctrl never gets here.
+    function wheelStep(e) {
+      const delta = e.deltaY !== 0 ? e.deltaY : e.deltaX
+      if (delta === 0 || !latest.current.wheelState) return
+      const input = {
+        code: delta < 0 ? 'WheelUp' : 'WheelDown',
+        shift: e.shiftKey,
+        ctrl: false,
+        alt: e.altKey,
+        meta: e.metaKey,
+      }
+      const { bindings, ...now } = latest.current.wheelState()
+      const id = resolve(input, now, bindings)
+      const action = id && getAction(id)
+      // The view stays still under a dragged piece: OrbitControls is off then, so no zoom
+      if (action?.action === 'zoom' && controls.enabled)
+        addZoom(-action.dir * WHEEL_ZOOM_STEP, WHEEL_SMOOTH_TIME)
+      else if (action?.action === 'rotate') latest.current.onTurn?.(action.dir)
     }
 
     // The zoom that is left stays within the OrbitControls zoom limits. Otherwise zoom input past a

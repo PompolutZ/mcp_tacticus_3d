@@ -559,6 +559,14 @@ export default function App({
     terrain: handleTerrainRemove,
     trayCard: handleTrayCardDelete,
   }
+  // The state for a mouse wheel step (WheelCamera.jsx): what keyAction reads, as the resolver needs it
+  const wheelState = () => ({
+    popup: !!(openCard || openTrayId || openRoster || settingsOpen),
+    dragging: !!(tokenDrag || toolDrag),
+    overDiceTray: !!hoveredNow().diceTray,
+    overPiece: !!hoveredNow().piece,
+    bindings,
+  })
   // The keys (keyboard.js, useTableKeys.js). The state is read at every key press. Last hook call: the
   // table of handlers uses what the hooks above give.
   const { heldPan, heldTurn, heldRotate } = useTableKeys({
@@ -779,7 +787,11 @@ export default function App({
             mouseButtons={CAMERA_MOUSE_BUTTONS}
           />
           <KeyboardCamera pan={heldPan} turn={heldTurn} />
-          <WheelCamera ref={wheelCameraRef} />
+          <WheelCamera
+            ref={wheelCameraRef}
+            wheelState={wheelState}
+            onTurn={(dir) => turnPieceRef.current?.(dir)}
+          />
           {debug && <FrameStats />}
           <Ready onReady={() => setReady(true)} />
         </Canvas>
