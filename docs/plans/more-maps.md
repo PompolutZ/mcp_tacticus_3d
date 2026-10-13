@@ -108,4 +108,12 @@ Phase 2 (done):
 - Tints: kept the orange tint of the 4 fire effects in 301 (the card does not show them). 299 has no tints.
 - Not checked in the browser: Debug → Colliders for the fire box and the two cars, the mat turn.
 
-Phases 3 to 7: not started.
+Phase 3 (done):
+- Migrated 296 (matRotation 90), 279 and 281 (printed as -90, stored as 270, same angle).
+- Tints: none left out. Cacti green, Logan red, Sabretooth black (statues are too small to see on the card), Gunners Den grey 0.5, Fountain 0.8: the card does not contradict them.
+- Warnings, 279: `barrel-size-1` and `building-size-5-4` depend on other bundles (materials missing in TTS as well), have a `DefaultMaterial` with no Unity material (glTF defaults, metallic 1) and a secondary bundle, which the script ignores. 281: `tree-size-3` and `bush-size-1` use a non-Standard shader (metallic 0, roughness 1). 296: none.
+- Colliders: mesh entries with a non-identity transform: `gunners-den-size-3` (3 meshes, turned, entry scale 14.3, placement 0.25) and `fountain-size-3` (3 meshes, turned 90 degrees around X, placement 1.65). Primitives on turned shapes with a non-uniform placement scale: none (`convenience-store-size-3` has scale [9.056, 8.05, 7.044], but its boxes are not turned, so exact).
+- Fix: collider meshes no longer use `MeshCollider` in the scaled group. In the lib, the child position gets the parent scale a second time, and the args get the world scale of the group twice. `ColliderMesh` in `Terrain.jsx` now bakes the GLB node transform and `transformVertices` (`bundleColliders.js`, tested) into the vertices and puts a `TrimeshCollider` or `ConvexHullCollider` directly under the RigidBody. The OBJ piece collider meshes (`collider: true`) use the same path, so they were changed too (they had the scaled group before, for example Asgard Ruins at scale 4.2).
+- Not checked in the browser: Debug → Colliders for Gunners Den, Fountain, the OBJ collider pieces (Asgard Ruins, Dimetrodon, Bus Stop, Forklift, Blackbird, Motorcycle), the mat turn of the 3 maps.
+
+Phases 4 to 7: not started.

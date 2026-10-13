@@ -323,6 +323,255 @@
       "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f4d333e178af.obj",
       "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/95fd786ea7a4.png",
       "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f4d333e178af.obj"
+    },
+    "horse-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7203e3298d76.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5badfea2a3ab.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7203e3298d76.obj"
+    },
+    "saloon-size-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/df8b298b3787.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/fd6e1ca8dbf4.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/df8b298b3787.obj"
+    },
+    "pawn-shop-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9ef14af7aadb.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/d8fa09aac0b5.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9ef14af7aadb.obj"
+    },
+    "hay-bale-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/00960f6fd05d.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/feb075d7721f.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/00960f6fd05d.obj"
+    },
+    "barrels-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/445e6caafb0d.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b38936bded78.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/445e6caafb0d.obj"
+    },
+    "logan-the-wolverine": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/132594ad4ff8.unity3d"
+    },
+    "trough-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4eaa68232b72.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3f942072be0d.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4eaa68232b72.obj"
+    },
+    "horse-size-2-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7203e3298d76.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/12ff9313bfcb.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7203e3298d76.obj"
+    },
+    "wagon-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/acd678b432ec.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/623ec0caad08.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/acd678b432ec.obj"
+    },
+    "windmill-size-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/cd6e84c3603f.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f83d83ac028c.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/cd6e84c3603f.obj"
+    },
+    "horse-size-2-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7203e3298d76.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6c0f8b80c4a9.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7203e3298d76.obj"
+    },
+    "cactus-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8bd57f7a0880.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/955f5ed121aa.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8bd57f7a0880.obj"
+    },
+    "trailer-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b623ed8fddeb.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/89ce51f31a52.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b623ed8fddeb.obj"
+    },
+    "cart-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/370dee4c38c3.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3b9574677548.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/370dee4c38c3.obj"
+    },
+    "horse-size-2-6": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3d4a67cb8705.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e881d9b9df42.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3d4a67cb8705.obj"
+    },
+    "hewett-size-5": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c4baac444ad2.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8ff28b3cdd05.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c4baac444ad2.obj"
+    },
+    "jail-size-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b17ca85c55fe.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/027ca3ab8a8f.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b17ca85c55fe.obj"
+    },
+    "general-store-size-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3ef99ab20a67.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/930410d2bae2.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3ef99ab20a67.obj"
+    },
+    "model-piece-29": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7fb8e930855a.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/52584154278f.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7fb8e930855a.obj"
+    },
+    "sabretooth-apex-predator": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/60dda5595ea4.unity3d"
+    },
+    "well-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/51218947e227.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c159911e84bd.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/51218947e227.obj"
+    },
+    "water-tower-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/53f60b2de032.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/09465726ff28.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/53f60b2de032.obj"
+    },
+    "livery-stable-size-4-fence-not-part-of-the-terrain": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8c7af691383c.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6aa7ed9d82d4.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8c7af691383c.obj"
+    },
+    "daily-bugle-size-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/41c288804192.unity3d"
+    },
+    "car-size-2-12": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e2a5f693fdf7.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/217bf9f02533.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e2a5f693fdf7.obj"
+    },
+    "barrel-size-1": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/71aa341ac928.unity3d"
+    },
+    "forklift-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/99f76b743ee5.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6f894dcc833a.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a73c1830a087.obj"
+    },
+    "gunners-den-size-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/2f157e9d2468.unity3d"
+    },
+    "fisk-trailer-size-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3d3ca7d0d178.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/872549d2f14f.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3d3ca7d0d178.obj"
+    },
+    "getaway-van-size-3-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/388316985871.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/13c3a4049224.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/388316985871.obj"
+    },
+    "bus-stop-size-2-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0ea39ac96d5f.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/bce39e80c753.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f78b34747f5e.obj"
+    },
+    "convenience-store-size-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9de43fab4097.unity3d"
+    },
+    "green-dumpster-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/209e5c872565.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5febf1a8a091.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/209e5c872565.obj"
+    },
+    "street-light-w-base-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9e249d7ee42b.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6ffddac3de79.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9e249d7ee42b.obj"
+    },
+    "large-pipes-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6f3bcd038384.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/2e493c6ecc73.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6f3bcd038384.obj"
+    },
+    "building-size-5-4": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/957b06eee733.unity3d"
+    },
+    "size-2-car-4": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/cda7003e0c82.unity3d"
+    },
+    "tree-size-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/35f07d653a23.unity3d"
+    },
+    "bush-size-1": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a9d77764d59f.unity3d"
+    },
+    "basketball-hoop-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0c777d990bda.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a998cb393050.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0c777d990bda.obj"
+    },
+    "patio-chair-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/311a5fe6364f.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/46b9863f5b9f.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/311a5fe6364f.obj"
+    },
+    "truck-size-3-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/bd5f5e760336.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/2def34f3b98c.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/bd5f5e760336.obj"
+    },
+    "volleyball-net-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/66eec5440614.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/75f7f1acf141.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/66eec5440614.obj"
+    },
+    "the-blackbird-size-4-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7917824e669c.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8b77125a1314.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f3daf450aa1d.obj"
+    },
+    "basketball-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ae86bacb10b8.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e324e7ead2cd.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ae86bacb10b8.obj"
+    },
+    "pool-floaty-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e83bb0429438.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/2a5bde4a1e20.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e83bb0429438.obj"
+    },
+    "diving-board-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/bed4030812b1.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f5b36464302d.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/bed4030812b1.obj"
+    },
+    "size-3-taco-truck": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/90710d060cc8.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6f98ecdd4c4b.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/90710d060cc8.obj"
+    },
+    "picnic-table-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/fa8012b97c8d.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/081d5b9f6ce5.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/fa8012b97c8d.obj"
+    },
+    "grill-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/255a6acf4d3a.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6212faec7ccc.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/255a6acf4d3a.obj"
+    },
+    "fountain-size-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/66d7104076ed.unity3d"
+    },
+    "motorcycle-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7da24e1444cd.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/333f62927682.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b3b74a60f4e5.obj"
+    },
+    "size-2-car": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/76d6ef792ecf.unity3d"
+    },
+    "size-1-bikes-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8ef795b20bf6.unity3d"
+    },
+    "x-mansion-size-5": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1f2993d4f229.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/760c17430c9f.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1f2993d4f229.obj"
     }
   },
   "mats": {
@@ -332,6 +581,9 @@
     "dimensional-assault": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3d32755bee50.png",
     "dark-dimension-on-mars-base": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/89d8d16ca6ec.png",
     "will-he-get-away-with-it": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0b54c8f8d522.png",
-    "savageland-unleashed": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/406c0ce1beca.png"
+    "savageland-unleashed": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/406c0ce1beca.png",
+    "old-town-road": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9c562202bd3b.png",
+    "hells-kitchen": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/14b7db51b623.jpg",
+    "pool-party-at-the-mansion": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3c6089656bf6.png"
   }
 }

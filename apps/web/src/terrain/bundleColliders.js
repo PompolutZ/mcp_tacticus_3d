@@ -5,7 +5,9 @@
 // see Terrain.jsx) and the placement scale. Terrain.jsx puts these colliders straight under the RigidBody,
 // not in the scaled group: @react-three/rapier 1.5 multiplies the args by the world scale of the collider
 // object, and multiplies its position by the scale of the parent a second time (it expects the scale on
-// the RigidBody itself). With no scale above them, the lib changes nothing, and this file does the scale.
+// the RigidBody itself). A MeshCollider in the scaled group would be scaled twice too, in args and in
+// position. With no scale above them, the lib changes nothing, and this file does the scale: in the size and
+// position of a shape, and in the vertices of a collider mesh (transformVertices).
 
 const IMPORT_QUATERNION = [0, 1, 0, 0] // [x, y, z, w]: 180° around Y
 
@@ -84,4 +86,25 @@ export function primitiveCollider(entry, scale) {
     default:
       return null
   }
+}
+
+// Vertices of a collider mesh under the RigidBody, as a Float32Array [x, y, z, ...]. positions are in the
+// space of the collider GLB (node transforms already applied). entry is the `colliders` entry of a bundle
+// piece (position, quaternion, scale in GLB space), or undefined for the collider mesh of an OBJ piece.
+// Each vertex goes entry scale, entry turn, entry position, IMPORT_ROTATION, placement scale. The result is
+// the final shape, so the collider needs no transform and no scale (see the top of this file). Doing the
+// scale on the vertices is also exact for a non-uniform placement scale on a turned entry.
+export function transformVertices(positions, entry, scale) {
+  const [sx, sy, sz] = scaleVector(scale)
+  const [px, py, pz] = entry?.position ?? [0, 0, 0]
+  const [ex, ey, ez] = entry?.scale ?? [1, 1, 1]
+  const q = entry?.quaternion ?? [0, 0, 0, 1]
+  const out = new Float32Array(positions.length)
+  for (let i = 0; i < positions.length; i += 3) {
+    const [x, y, z] = rotate(q, [positions[i] * ex, positions[i + 1] * ey, positions[i + 2] * ez])
+    out[i] = -(x + px) * sx
+    out[i + 1] = (y + py) * sy
+    out[i + 2] = -(z + pz) * sz
+  }
+  return out
 }

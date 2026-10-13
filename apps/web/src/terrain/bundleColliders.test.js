@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { colliderPose, primitiveCollider } from './bundleColliders.js'
+import { colliderPose, primitiveCollider, transformVertices } from './bundleColliders.js'
 
 const close = (a, b) => a.forEach((v, i) => assert.ok(Math.abs(v - b[i]) < 1e-9, `${a} vs ${b}`))
 const ID = [0, 0, 0, 1]
@@ -62,4 +62,23 @@ test('mesh entry is not a primitive', () => {
 
 test('pose without a quaternion', () => {
   close(colliderPose({ position: [1, 1, 1] }, [1, 1, 1]).position, [-1, 1, -1])
+})
+
+test('transformVertices: identity entry mirrors x and z and scales', () => {
+  const out = transformVertices([1, 2, 3, -1, 0, 4], undefined, [2, 3, 4])
+  close(out, [-2, 6, -12, 2, 0, -16])
+})
+
+test('transformVertices: entry scale, turn and position come before the import turn and the scale', () => {
+  const h = Math.SQRT1_2
+  // entry: scale 2, turned 90 degrees around Y (x -> -z), moved by (1, 0, 0)
+  const entry = { position: [1, 0, 0], quaternion: [0, h, 0, h], scale: [2, 2, 2] }
+  // vertex (1, 0, 0): scaled (2, 0, 0), turned (0, 0, -2), moved (1, 0, -2), import (-1, 0, 2), scale 3
+  close(transformVertices([1, 0, 0], entry, 3), [-3, 0, 6])
+})
+
+test('transformVertices: a vertex agrees with colliderPose for a collider at the entry position', () => {
+  const entry = { position: [1, 2, 3], quaternion: [0, 0, 0, 1] }
+  const pose = colliderPose(entry, [2, 3, 4])
+  close(transformVertices([0, 0, 0], entry, [2, 3, 4]), pose.position)
 })
