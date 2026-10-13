@@ -1,4 +1,4 @@
-// The Crisis Protocol die: a regular octahedron, 6 corners, 8 faces, 6 symbols on 8 faces.
+// The game die: a regular octahedron, 6 corners, 8 faces, 6 symbols on 8 faces.
 // Plain module, no React and no src/assets/index.js import, so scripts/dice-sim.mjs can use it in Node.
 //
 // Face numbers, symbols and corners come from 3 TTS sources, cross-checked against each other:

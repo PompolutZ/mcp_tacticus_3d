@@ -5,8 +5,8 @@ export function LobbyHeader() {
   return (
     <header className="lobby-header">
       <div>
-        <h1 className="lobby-title">MCP Assist 3D</h1>
-        <p className="lobby-subtitle">A game table for Marvel Crisis Protocol</p>
+        <h1 className="lobby-title">Hero Table 3D</h1>
+        <p className="lobby-subtitle">A 3D table to have fun with your favourite superheroes</p>
       </div>
       <UserMenu />
     </header>

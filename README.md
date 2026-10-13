@@ -1,6 +1,6 @@
-# MCP Assist 3D
+# Hero Table 3D
 
-A browser-based 3D game table for **Marvel Crisis Protocol**, built with React and Three.js.
+A browser-based 3D table to have fun with your favourite superheroes, built with React and Three.js.
 
 ## What this project does
 

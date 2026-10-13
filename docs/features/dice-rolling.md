@@ -4,7 +4,7 @@ Status: built.
 
 ## Goal
 
-Players roll the Crisis Protocol die in the app, as in TTS. A player chooses how many dice to roll and presses Roll. The dice jump from the player's tray into the air and spin. Then they fall and bounce on the tray, the table, terrain, models and other dice. The result is the face that points up when a die stops. The app does not choose the result with a random number.
+Players roll the game die in the app, as in TTS. A player chooses how many dice to roll and presses Roll. The dice jump from the player's tray into the air and spin. Then they fall and bounce on the tray, the table, terrain, models and other dice. The result is the face that points up when a die stops. The app does not choose the result with a random number.
 
 When a player presses Roll again, the dice are thrown again from where they are, also while they are in the air. A die that is high in the air is not thrown again, but its spin changes, as in TTS.
 

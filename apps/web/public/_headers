@@ -3,3 +3,7 @@
 # Other files (index.html, /draco/) keep Netlify's default: revalidate with an ETag on every load.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Ask search engines not to index the site. Do not add robots.txt Disallow: it hides this header from crawlers.
+/*
+  X-Robots-Tag: noindex, nofollow
