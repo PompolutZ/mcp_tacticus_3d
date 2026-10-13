@@ -4,7 +4,6 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import { RigidBody, ConvexHullCollider, useRapier } from '@react-three/rapier'
 import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
-import { baseGroundY, upright } from './CharacterModel.jsx'
 import {
   acquireFootprint,
   FOOTPRINT_APART,
@@ -13,7 +12,7 @@ import {
 } from './footprintProjection.js'
 import { castDown } from '../physics.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
-import { throwMove, throwSlide } from './throwPath.js'
+import { throwMove } from './throwPath.js'
 import { assetUrl } from '../assets/index.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
@@ -22,7 +21,8 @@ import { freeSpawnYaw, storedFields, sameStored } from './storedTool.js'
 import { useSideColor } from '../sideColors.js'
 import { MOVE_TIP, RANGE_TIP, TOOL_TINT } from '../tabletools/toolTips.js'
 import { onRack } from '../tabletools/layout.js'
-import { lockPoint, lockYaw } from './rangeOne.js'
+import { clampRange, rangeReach, withinRange } from './rangeOne.js'
+import { footprintGap, fromLocal, lineClamp, placeClamp, toLocal, touches } from './placeLock.js'
 
 const TEXTURE = assetUrl('tools/toolbox-02.png')
 // How fast the dragged tool moves to the new hover height, per second (same as models)
@@ -136,23 +136,7 @@ function turnAround(pose, pivot, d) {
   return { x: pivot.x + ox * c + oz * s, z: pivot.z - ox * s + oz * c, yaw: pose.yaw + d }
 }
 
-// World XZ → local XZ of a pose (inverse of the yaw rotation)
-function toLocal(pose, p) {
-  const dx = p.x - pose.x,
-    dz = p.z - pose.z
-  const c = Math.cos(pose.yaw),
-    s = Math.sin(pose.yaw)
-  return { x: dx * c - dz * s, z: dx * s + dz * c }
-}
-
-// Local XZ of a pose → world XZ (inverse of toLocal)
-function fromLocal(pose, l) {
-  const c = Math.cos(pose.yaw),
-    s = Math.sin(pose.yaw)
-  return { x: pose.x + l.x * c + l.z * s, z: pose.z - l.x * s + l.z * c }
-}
-
-// Range 1 (see README "Tools"): the tool lies across the line from the base, and its width measures
+// Range 1 (see docs/features/range-movement-tools.md, "Tools"): the tool lies across the line from the base, and its width measures
 // range 1. Returns the tool center for this yaw, so that the base (center c) touches the long side
 // `across` (±1: local ±Z) at the corner of the end `end` (±1: local ±X).
 function cornerSnapCenter(c, radius, yaw, tip, halfWidth, end, across) {
@@ -166,53 +150,6 @@ function nearerCorner(pose, c) {
   return { end: l.x >= 0 ? 1 : -1, across: l.z >= 0 ? 1 : -1 }
 }
 
-// Edge-to-edge gap between a round base and the footprint: a rectangle for each half and the
-// round hinge between them. The ends stay flat (not a capsule). Gap ≤ 0 means the base touches it.
-function footprintGap(shape, length, halfWidth, center, radius) {
-  let gap = Math.hypot(center.x - shape.x, center.z - shape.z) - halfWidth
-  for (const side of SIDES) {
-    const l = toLocal({ x: shape.x, z: shape.z, yaw: shape[side] }, center)
-    const ox = l.x - THREE.MathUtils.clamp(l.x, 0, length)
-    const oz = l.z - THREE.MathUtils.clamp(l.z, -halfWidth, halfWidth)
-    gap = Math.min(gap, Math.hypot(ox, oz))
-  }
-  return gap - radius
-}
-
-// Nearest point to p where a round base with its center there touches the footprint (gap ≤ 0 in
-// footprintGap). p itself when the base already touches it. Each piece of the footprint, grown by the
-// radius, is convex, so the nearest point is the nearest of the nearest points on each piece.
-function nearestTouching(shape, length, halfWidth, p, radius) {
-  // The round hinge
-  const reach = halfWidth + radius
-  const d = Math.hypot(p.x - shape.x, p.z - shape.z)
-  if (d <= reach) return p
-  let best = {
-    x: shape.x + ((p.x - shape.x) * reach) / d,
-    z: shape.z + ((p.z - shape.z) * reach) / d,
-  }
-  let bestGap = d - reach
-  // The rectangle of each half
-  for (const side of SIDES) {
-    const pose = { x: shape.x, z: shape.z, yaw: shape[side] }
-    const l = toLocal(pose, p)
-    const q = {
-      x: THREE.MathUtils.clamp(l.x, 0, length),
-      z: THREE.MathUtils.clamp(l.z, -halfWidth, halfWidth),
-    }
-    const out = Math.hypot(l.x - q.x, l.z - q.z)
-    if (out <= radius) return p
-    if (out - radius < bestGap) {
-      bestGap = out - radius
-      best = fromLocal(pose, {
-        x: q.x + ((l.x - q.x) * radius) / out,
-        z: q.z + ((l.z - q.z) * radius) / out,
-      })
-    }
-  }
-  return best
-}
-
 // Tool pose with the end of the left half touching the base edge. The tool points from the base
 // along yaw. Without a yaw, it points toward the mat center, so it stays on the mat.
 function snapPose(center, radius, halfLength, yaw) {
@@ -222,7 +159,7 @@ function snapPose(center, radius, halfLength, yaw) {
   return { x: center.x + along * Math.cos(dir), z: center.z - along * Math.sin(dir), yaw: dir }
 }
 
-// Angle tool (README "Toward / Away"): pose of the tool bent 90° so that both arms touch the base
+// Angle tool (docs/features/range-movement-tools.md, "Toward / Away"): pose of the tool bent 90° so that both arms touch the base
 // (center c). The angle opens along openYaw, from the hinge toward the base. The arm center lines
 // are d / √2 from the base center, and the arm is halfWidth wide, so d = √2 (radius + halfWidth).
 function anglePose(c, radius, halfWidth, openYaw) {
@@ -260,7 +197,7 @@ function snapPoseOne(center, radius, halfLength, halfWidth) {
   return { ...cornerSnapCenter(center, radius, yaw, halfLength, halfWidth, -1, 1), yaw }
 }
 
-// Throw / Push on a straight tool (README "Throw / Push"): the base center moves along the middle line,
+// Throw / Push on a straight tool (docs/features/range-movement-tools.md, "Throw / Push"): the base center moves along the middle line,
 // from touching the end of half `side` from outside to touching the other end from outside, the same
 // as Place. The line follows that half, so it stays straight when the other half is bent.
 // Returns { start, dir, distance }: start point (table XZ), unit XZ direction and full distance.
@@ -539,20 +476,20 @@ function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target
 // target: the piece selected last, a model or a token, as { id, kind, getObject, getCenter, radius,
 // getBody? }, or null. The tool measures against it. By default it also snaps to it when it spawns
 // (spawnTarget in Tool). getBody is only there for a model (a character), with claim(): false when the other
-// player moves the model, so Place, Place 1 and Throw do nothing to it. placeTarget: the selected character in the same form, or null.
-// Place moves it, and is disabled without it. models: every character and token, in the same form,
+// player moves the model, so Throw does nothing to it. models: every character and token, in the same form,
 // for the pointer raycast and the snap. onSnap(model): the tool snapped to that model during a drag.
-// onPlaceLimit(limit): called with { id, clamp(p) } while Place is on and a character is selected,
-// and with null after. clamp moves a drag point p (table XZ) of that character, so its base keeps
-// touching the footprint. On the R1 tool Place 2 does this, and Place 1 while it is on (a lock on the line
-// from the snapped piece, see rangeOne.js). Place 1 on the snapped character itself moves it once.
+// onPlaceLimit(limit): called with { owns(model, p), clamp(p, model) } (model in the models form above) while Place, Place 1 or Throw is on,
+// and with null after. owns says if this tool limits the drag of that model to point p (table XZ). Place and
+// Place 1 lock the first model that touches the outline or comes within range 1, see docs/features/range-movement-tools.md.
+// clamp moves p, so the base keeps touching the footprint (Place, Place 2) or stays within range 1
+// of the snapped piece (Place 1, see rangeOne.js).
 // limitTaken: the other own tool has Place or Throw on, so this tool turns its Place and Throw off. onLimitOn():
 // called when this tool's Place or Throw turns on (the drag limit). Only one own tool has it at a time.
 // onSpawn: called once, when the tool is created
 // team: 'blue' or 'red', the player tint of the tool
 // hoverHeight: how far above the table or terrain the tool hangs while dragged
 // number 1: range 1 has no tool of its own. As with "Snap 1" in the TTS mod, the Range 2 tool lies
-// across the line from the base, and its 1" width measures range 1. See README "Tools".
+// across the line from the base, and its 1" width measures range 1. See docs/features/range-movement-tools.md, "Tools".
 export function RangeRuler({ number = 2, team, ...props }) {
   const rangeOne = number === 1
   const mesh = rangeOne ? 2 : number
@@ -664,7 +601,7 @@ export function MovementRuler({ type = 'short', team, ...props }) {
 }
 
 // Angle tool, for Toward / Away: a copy of the long movement tool, always bent to a right angle.
-// See README "Toward / Away".
+// See docs/features/range-movement-tools.md, "Toward / Away".
 export function AngleRuler({ team, ...props }) {
   const parts = useMovementParts('long', team)
   return <Tool parts={parts} tip={MOVE_TIP.long} halfWidth={MOVE_HALF_WIDTH} angle {...props} />
@@ -786,11 +723,11 @@ function BendButton({ on, onClick }) {
   )
 }
 
-// Tool that measures with its footprint. See README "Tools".
+// Tool that measures with its footprint. See docs/features/range-movement-tools.md, "Tools".
 // parts: [{ obj, side }], the meshes of the tool. A part with a side turns with that half.
 // tip: X of each end (length of each half of the footprint).
 // bendable: a movement tool. Its halves turn around the hinge at the center.
-// rangeOne: the range 1 tool. It snaps with a corner, not an end. See README "Tools", "Range 1".
+// rangeOne: the range 1 tool. It snaps with a corner, not an end. See docs/features/range-movement-tools.md, "Range 1".
 // onRangeMark(mark): the piece that a turn of the snapped tool measures against, see RangeMark. Only
 // the range tools pass it. Without it, the tool marks no pieces.
 // onHover(over): the pointer moved onto (true) or off (false) the tool. onDrag(on): a drag of the
@@ -838,7 +775,6 @@ function Tool({
   onDragSelect,
   target,
   spawnTarget = target,
-  placeTarget,
   models = [],
   onSnap,
   onPlaceLimit,
@@ -868,27 +804,28 @@ function Tool({
   const [bendOn, setBendOn] = useState(false)
   // Snapped: { target, side, across }, the model the tool is snapped to and the half whose end touches
   // its base. across (R1 tool only): the long side (±1: local ±Z) that the base touches.
-  // Free: null. See README "Tools".
+  // Free: null. See docs/features/range-movement-tools.md, "Tools".
   const [snap, setSnap] = useState(() => {
     const stored = restored && start.snap
     const target = stored && models.find((model) => sameModel(model, stored))
     return target ? { target, side: stored.side, across: stored.across } : null
   })
-  // While Place is on: the end where Place put the selected character. The Place button stays there.
-  // Off: null. While Place is on, a drag of the selected character keeps its base touching the footprint.
+  // While Place is on: the far end at the time Place turned on. The Place button stays there.
+  // Off: null. While Place is on, the locked character keeps its base touching the footprint.
   const [placeSide, setPlaceSide] = useState(null)
-  const placing = selected && placeSide !== null && !!placeTarget
-  // R1 tool: Place 1 is on. A drag of the selected character stays on the line from the snapped piece, and
-  // the tool turns with it. Not when the snapped piece is the character itself: Place 1 moves it once.
+  const placing = selected && placeSide !== null
+  // R1 tool: Place 1 is on. The first character that a drag brings within range 1 of the snapped piece is
+  // locked there, until Place 1 turns off. The snapped piece itself is not locked.
   const [placeOne, setPlaceOne] = useState(false)
-  const lockOne =
-    selected && placeOne && !!snap && !!placeTarget && !sameModel(snap.target, placeTarget)
+  const lockOne = selected && placeOne && !!snap
+  // The character locked to this tool (its id), or null before a drag locks one. See ownsDrag below.
+  const lockedRef = useRef(null)
   // Place moves the character to the far end, the end that does not touch the snapped base. A free
   // tool has no far end, so Place is shown there only while it is on, so that it can be turned off.
   const placeButtonSide = placeSide ?? (snap ? OTHER[snap.side] : null)
-  // While Throw is on: { side, target }, the end the Throw started from and the thrown character. The
-  // Throw button stays at that end. Off: null. While Throw is on, a drag of the thrown character keeps
-  // its base center on the middle line of the tool (throwLine), so the player can correct the stop.
+  // While Throw is on: { side, target, moved }, the end the Throw started from, the locked character and
+  // how far the line goes (the stop point). The Throw button stays at that end. Off: null. A drag of the
+  // locked character keeps its base center on the middle line of the tool (throwLine), up to moved.
   // Place and Throw are never on at the same time: each one hides the other's button.
   const [throwLock, setThrowLock] = useState(null)
   const throwing = selected && throwLock !== null
@@ -1184,74 +1121,77 @@ function Tool({
 
   useOutline(partsRef, outlineMode(selected, hovered))
 
-  // The clamp reads the tool pose at each call, so the tool can move while Place is on
+  // Place and Place 1 lock (decision: the first character that touches the outline, or comes within
+  // range 1, during a drag). The lock stays until Place turns off. A change of Place / Place 1 clears it.
+  const lockMode = placing ? 'place' : lockOne ? 'one' : null
+  useEffect(() => {
+    lockedRef.current = null
+  }, [lockMode])
+
+  // A limit: owns(model, p) says if this tool limits the drag of that model to point p (and locks it the
+  // first time), clamp(p) moves p. Both read the tool pose at each call, so the tool can move while on.
   useEffect(() => {
     if (!placing) return undefined
-    const { id, radius } = placeTarget
+    const shape = () => toolShape(toolPose(rigidRef.current), turn)
     onPlaceLimit?.({
-      id,
-      clamp(p) {
-        if (!rigidRef.current) return
-        const spot = nearestTouching(
-          toolShape(toolPose(rigidRef.current), turn),
-          tip,
-          halfWidth,
-          p,
-          radius,
+      owns(model, p) {
+        if (!rigidRef.current) return false
+        if (lockedRef.current !== null) return lockedRef.current === model.id
+        const at = model.getCenter()
+        if (
+          !touches(shape(), tip, halfWidth, p, model.radius) &&
+          !(at && touches(shape(), tip, halfWidth, at, model.radius))
         )
+          return false
+        lockedRef.current = model.id
+        return true
+      },
+      clamp(p, model) {
+        if (!rigidRef.current) return
+        const spot = placeClamp(shape(), tip, halfWidth, p, model.radius)
         p.x = spot.x
         p.z = spot.z
       },
     })
     return () => onPlaceLimit?.(null)
-  }, [placing, placeTarget, turn, tip, halfWidth])
+  }, [placing, turn, tip, halfWidth])
 
-  // Place 1 lock (rangeOne.js). The clamp holds the drag point on the line from the snapped center and
-  // turns the tool around that center, so its corner keeps touching the snapped piece and the character
-  // stays on its short side. Only the pose turns: snap keeps side and across. The tool is kinematic, so
-  // the pose is set as in a turn drag, and the stored and live poses read it from the body.
+  // Place 1 (rangeOne.js): the base edge stays within range 1 of the snapped piece edge, seen from above
   useEffect(() => {
     if (!lockOne) return undefined
-    const { id, radius } = placeTarget
-    const { target, side, across } = snap
-    const end = side === 'right' ? 1 : -1
-    // The direction to keep at the center: toward the character now
-    const from = target.getCenter()
-    const at = placeTarget.getCenter()
-    const gap = Math.hypot(at.x - from.x, at.z - from.z)
-    const yaw = rigidRef.current ? toolPose(rigidRef.current).yaw : 0
-    let dir = gap > 0.01 ? { x: (at.x - from.x) / gap, z: (at.z - from.z) / gap } : null
-    dir ??= { x: -across * Math.sin(yaw), z: -across * Math.cos(yaw) }
+    const { target } = snap
+    const reachOf = (model) => rangeReach(target.radius, halfWidth * 2, model.radius)
     onPlaceLimit?.({
-      id,
-      clamp(p) {
-        const rb = rigidRef.current
+      owns(model, p) {
+        if (sameModel(model, target)) return false
+        if (lockedRef.current !== null) return lockedRef.current === model.id
         const c = target.getCenter()
-        if (!rb || !c) return
-        const spot = lockPoint(c, p, target.radius + halfWidth * 2 + radius, dir)
-        dir = spot.dir
+        const at = model.getCenter()
+        if (
+          !c ||
+          !(withinRange(c, p, reachOf(model)) || (at && withinRange(c, at, reachOf(model))))
+        )
+          return false
+        lockedRef.current = model.id
+        return true
+      },
+      clamp(p, model) {
+        const c = target.getCenter()
+        if (!c) return
+        const spot = clampRange(c, p, reachOf(model))
         p.x = spot.x
         p.z = spot.z
-        if (dragKind.current) return
-        const toolYaw = lockYaw(dir, across)
-        const centre = cornerSnapCenter(c, target.radius, toolYaw, tip, halfWidth, end, across)
-        const ground = groundY(centre.x, centre.z, toolYaw)
-        const y = ground === null ? rb.translation().y : ground + hoverHeight
-        rb.wakeUp()
-        rb.setNextKinematicTranslation({ x: centre.x, y, z: centre.z })
-        rb.setNextKinematicRotation(yawQuat(toolYaw))
       },
     })
     return () => onPlaceLimit?.(null)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lockOne, placeTarget, snap, tip, halfWidth])
+  }, [lockOne, snap, halfWidth])
 
   // The clamp reads the tool pose at each call, so the tool can move while Throw is on
   useEffect(() => {
     if (!throwing) return undefined
-    const { side, target } = throwLock
+    const { side, target, moved } = throwLock
     onPlaceLimit?.({
-      id: target.id,
+      owns: (model) => model.id === target.id,
       clamp(p) {
         if (!rigidRef.current) return
         const { start, dir, distance } = throwLine(
@@ -1260,13 +1200,9 @@ function Tool({
           tip,
           target.radius,
         )
-        const d = THREE.MathUtils.clamp(
-          (p.x - start.x) * dir.x + (p.z - start.z) * dir.z,
-          0,
-          distance,
-        )
-        p.x = start.x + dir.x * d
-        p.z = start.z + dir.z * d
+        const spot = lineClamp(start, dir, Math.min(moved, distance), p)
+        p.x = spot.x
+        p.z = spot.z
       },
     })
     return () => onPlaceLimit?.(null)
@@ -1312,83 +1248,38 @@ function Tool({
     setMode((m) => (m === 'away' ? 'toward' : 'away'))
   }
 
-  // Move a model's base center to spot (table XZ). Returns false when the claim on the model is refused
-  // (the other player moves it): nothing moved then.
-  function moveBase(model, spot) {
-    const body = model.getBody()
-    if (!body) return true
-    if (model.claim && !model.claim()) return false
-    model.moved?.()
-    const t = body.translation()
-    // Put the base on top of the table or terrain at the spot. Keeping the old height
-    // would leave the model inside terrain that is higher than where it started.
-    const ground = baseGroundY(world, rapier, spot.x, spot.z, model.radius)
-    body.setTranslation({ x: spot.x, y: ground ?? t.y, z: spot.z }, true)
-    // Upright, as if picked up and put down there, even when the model had tipped over
-    body.setRotation(upright(body.rotation()), true)
-    body.setLinvel({ x: 0, y: 0, z: 0 }, true)
-    body.setAngvel({ x: 0, y: 0, z: 0 }, true)
-    return true
-  }
-
-  // Turning Place on moves the selected character past the far end, so its base touches that end
-  // from outside. Turning it off does not move anything.
+  // Place (docs/features/range-movement-tools.md, "Place") turns on and off. It moves nothing: the first
+  // character that touches the outline during a drag is locked to it.
   function togglePlace(e) {
     e.stopPropagation()
     if (placeSide) {
       setPlaceSide(null)
       return
     }
-    if (!snap || !placeTarget || !rigidRef.current || throwLock) return
-    const side = OTHER[snap.side]
-    const done = moveBase(
-      placeTarget,
-      alongHalf(toolShape(toolPose(rigidRef.current), turn), side, tip + placeTarget.radius),
-    )
-    if (!done) return
+    if (!snap || throwLock) return
     setPlaceOne(false)
-    // The snapped model now touches the far end, so the tool stays snapped to it at that end.
-    // The R1 tool snaps with a corner. The base is no longer at a corner, so the tool is free.
-    if (sameModel(snap.target, placeTarget))
-      setSnap(rangeOne ? null : { target: snap.target, side })
-    setPlaceSide(side)
+    setPlaceSide(OTHER[snap.side])
   }
 
-  // Range 1 tool, snapped: move the selected character across the tool, so its base touches the other
-  // long side at the same corner. Its base edge is then 1" (the tool width) from the snapped base edge.
-  // If it is the snapped model, it now touches the other long side, so the tool stays snapped to it, and
-  // Place 1 does not stay on. Else it is a toggle: on keeps the character on the line from the snapped
-  // piece (the lock above), and turns Place 2 off. Turning it off does not move anything.
+  // Range 1 tool, snapped: Place 1 turns on and off. It moves nothing: the first character that a drag
+  // brings within range 1 of the snapped piece is locked there. It turns Place 2 off.
   function handlePlaceOne(e) {
     e.stopPropagation()
     if (placeOne) {
       setPlaceOne(false)
       return
     }
-    if (!snap || !placeTarget || !rigidRef.current) return
-    const end = snap.side === 'right' ? 1 : -1
-    const done = moveBase(
-      placeTarget,
-      fromLocal(toolPose(rigidRef.current), {
-        x: end * tip,
-        z: -snap.across * (halfWidth + placeTarget.radius),
-      }),
-    )
-    if (!done) return
-    if (sameModel(snap.target, placeTarget)) {
-      setSnap({ ...snap, across: -snap.across })
-      return
-    }
+    if (!snap) return
     setPlaceSide(null)
     setPlaceOne(true)
   }
 
-  // Throw / Push (README "Throw / Push") turns on and off. Turning it on slides the snapped character
-  // along the middle line of the tool, from the snapped end toward the far end. It stops at the first
-  // character base, terrain piece or mat edge on the way (see throwPath.js). A lifted character does
-  // not stop it, so the player lifts a character that the move should pass. The rules use a straight
-  // tool, so a bent tool is straightened first: the far half lines up with the snapped half, and the
-  // snapped end stays on the base. Turning Throw off does not move anything.
+  // Throw / Push (docs/features/range-movement-tools.md, "Throw / Push") turns on and off. It moves
+  // nothing: it locks the snapped character, so its drag stays on the middle line of the tool, from the
+  // snapped end toward the far end. The line stops at the first character base, terrain piece or mat
+  // edge (see throwPath.js). A lifted character does not stop it, so the player lifts a character that
+  // the move should pass. The rules use a straight tool, so a bent tool is straightened first: the far
+  // half lines up with the snapped half, and the snapped end stays on the base.
   function handleThrow(e) {
     e.stopPropagation()
     if (throwLock) {
@@ -1418,19 +1309,14 @@ function Tool({
           !other.isLifted(),
       )
       .map((other) => ({ center: other.getCenter(), radius: other.radius }))
-    const { moved, at } = throwMove(world, rapier, {
+    const { moved } = throwMove(world, rapier, {
       start,
       dir,
       distance,
       radius: model.radius,
       others,
     })
-    const { path, duration } = throwSlide(at, distance, moved)
-    model.slide(path, duration)
-    // After the full move the base touches the far end, so the tool stays snapped to it there.
-    // A base that stopped on the way touches no end, so the tool is free.
-    setSnap(moved >= distance ? { target: model, side: far } : null)
-    setThrowLock({ side: snap.side, target: model })
+    setThrowLock({ side: snap.side, target: model, moved })
   }
 
   return (
@@ -1487,11 +1373,10 @@ function Tool({
                   toolWidth={halfWidth * 2}
                   along={rangeOne}
                   on={placeSide !== null}
-                  disabled={placeSide === null && !placeTarget}
                   title={
                     placeSide !== null
-                      ? 'Place on: the selected character stays touching the tool'
-                      : 'Move the selected character to this end, and keep it on the tool'
+                      ? 'Place on: the first character that touches the tool stays touching it'
+                      : 'Lock the first character that touches the tool to it'
                   }
                   onClick={togglePlace}
                 />
@@ -1573,11 +1458,10 @@ function Tool({
               toolWidth={halfWidth * 2}
               along
               on={lockOne}
-              disabled={!placeOne && !placeTarget}
               title={
                 lockOne
-                  ? 'Place 1 on: the selected character stays on the line from the snapped model, within range 1'
-                  : 'Move the selected character across the tool, range 1 from the snapped model, and keep it on that line'
+                  ? 'Place 1 on: the first character within range 1 of the snapped model stays within range 1'
+                  : 'Lock the first character that comes within range 1 of the snapped model'
               }
               onClick={handlePlaceOne}
             />

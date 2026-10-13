@@ -30,7 +30,7 @@ const STAND_UP = [Math.PI / 2, 0, 0]
 const ON_TOP = 10
 const NO_RAYCAST = () => null
 const NO_EVENTS = { raycast: NO_RAYCAST }
-// Range 1 is 1", edge to edge seen from above (README "Range 1"). TTS checks the same distance for
+// Range 1 is 1", edge to edge seen from above (docs/features/range-movement-tools.md, "Range 1"). TTS checks the same distance for
 // its "Securing" icon (checkForSecure in the tray script: center distance < base radius + 1 + token
 // radius). Physics can nudge a resting base a little, so a small gap still counts, the same as the
 // R1 tool (RulerTool.jsx, CONTACT_EPS).
