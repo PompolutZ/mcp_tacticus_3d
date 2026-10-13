@@ -40,8 +40,12 @@ Helpers in `scripts/lib/` that several scripts use:
 pnpm --filter web migrate-terrain --list                      # maps whose mat is in the TTS cache, and which pieces are missing
 pnpm --filter web migrate-terrain 282                         # migrate map 282 (a name also works, if it is unique)
 pnpm --filter web migrate-terrain 282 --out /tmp/terrain-try  # trial run: nothing is written to the repo
+pnpm --filter web migrate-terrain 280 --download              # first download the missing files of map 280 into the TTS cache
 pnpm --filter web migrate-terrain 282 --force                 # convert pieces, mat and map card again
+pnpm --filter web migrate-terrain --colliders-only            # write the collider GLB of every migrated bundle piece again, from the TTS cache
 ```
+
+`--download` downloads the files of the chosen map that `cachedFile` does not find: the mat image, the mesh, diffuse, collider or bundle of each piece that is not migrated yet, and the card face and back. One file at a time (the mod CDN gets a gentle load), one line per file, before the conversion. The rules of "Download" in "TTS character migration" apply (cache folder, extension, safe write). A bundle is checked for the `UnityFS` header. A failed mat download stops the run. A failed piece file fails that piece with the URL and the reason (exit code 1), and the run goes on. A failed card image is a warning. `--list` ignores the option.
 
 `--list` reads the TTS cache each time. The cache grows when a map is spawned in TTS, so run `--list` again after that.
 
@@ -49,14 +53,12 @@ Several maps have the same name, for example three "Cosmic Downtown" cards. Maps
 
 ## How to add a map to the app
 
-1. Run `--list` and choose a map id. If the map has "missing" pieces, spawn the map once in TTS and run `--list` again.
-2. Run the script with the id. Read the warnings in the report.
+1. Run `--list` and choose a map id. If the map has "missing" pieces, run step 2 with `--download`, or spawn the map once in TTS and run `--list` again.
+2. Run the script with the id (and `--download` when files are missing). Read the warnings in the report.
 3. Copy the printed entries into `src/terrain/pieces.js` and `src/terrain/maps.js`. The script also saves them in `$TMPDIR/mcp-assist-3d-terrain/<map>.snippet.js`.
 4. Compare tints with the map card image. For example, the mod tints the Vibranium Heist truck black, but the card shows it olive, so `maps.js` leaves that tint out.
 5. Check that the report has no warning about the card image. Without the card, the lobby cannot show the map: take the map card out of its bag once in TTS, and run the script again.
 6. Commit the new files in `src/assets` and `scripts/terrain-manifest.json` together.
-
-The app does not use all the printed data yet. See [What the app still needs](#what-the-app-still-needs).
 
 ## Output
 
@@ -68,7 +70,7 @@ The app does not use all the printed data yet. See [What the app still needs](#w
 | `src/assets/terrain/<key>.glb` | Piece mesh |
 | `src/assets/terrain/<key>.webp` | Texture of an OBJ piece. The entry has `texture: false` when the mod piece has no texture. |
 | `src/assets/terrain/<key>-collider.glb` | Collider mesh of an OBJ piece with `collider: true` |
-| `src/assets/terrain/<key>-collider-<n>.glb` | Custom collider mesh `n` of a bundle piece |
+| `src/assets/terrain/<key>-colliders.glb` | All custom collider meshes of a bundle piece, one node `collider-<n>` each (only if it has any) |
 | `scripts/terrain-manifest.json` | TTS source URLs of every migrated piece and mat |
 | `$TMPDIR/mcp-assist-3d-terrain/<key>/` | AssetRipper exports of a bundle piece (`primary/`, `project/`), kept for inspection |
 
@@ -129,13 +131,16 @@ Format of `colliders`: GLB space, relative to the piece origin, before `IMPORT_R
 { shape: 'cylinder', position, quaternion, radius, halfHeight }   // axis is local Y
 { shape: 'capsule', position, quaternion, radius, halfHeight }    // halfHeight is the straight part, without the round ends
 { shape: 'sphere', position, radius }
-{ shape: 'mesh', convex, position, quaternion, scale, mesh }      // mesh: number n of the collider GLB (<key>-collider-<n>.glb); convex: use the convex hull
+{ shape: 'mesh', convex, position, quaternion, scale, mesh }      // mesh: node n (from 0) of <key>-colliders.glb, the n-th child of its scene; convex: use the convex hull
 ```
+
+The collider meshes of a bundle piece are in one GLB, so a map such as Total Access Games (395 mesh colliders, 1 file) loads one file per piece. Each distinct mesh is one node, named `collider-<n>`, in the order the colliders use them. A node has no transform: the script bakes the node and the Unity transform into the vertices (`compressMesh`), and the app applies the entry transform to the vertices (`transformVertices`), so no transform applies twice. Draco is applied once, to the merged file. `--colliders-only` writes these files again from the bundles in the TTS cache, and checks that the entries it finds are the ones in `pieces.js` (numbers rounded to 4 digits). It changes nothing in `pieces.js` and downloads nothing.
 
 ### Other bundle details
 
 - Each bundle has a manifest at `primary/Assets/AssetBundle/*.json`. Its `m_Container` has the prefab path in lower case, for example `assets/examples/prefabs/container_orange.prefab`. The prefab GLB is at the same path, with the original upper and lower case. `primary/Assets/Mesh/` has every mesh as its own GLB; the script uses it for custom collider meshes. The other folders (Sprite, Shader, and built-in meshes as JSON) are Unity default content.
 - A bundle can have more than one prefab. The script uses the first prefab of `m_Container` and prints a warning. Bastion's bundle has `assets/examples/baston.prefab` and `assets/examples/prefabs/baston.prefab`. The figure of the second one has no mesh, and TTS shows the figure, so TTS uses the first one. This is the only bundle with two prefabs so far, so the rule is not checked for other bundles.
+- Some bundles (`ship-wreck-size-4`, `jellyfish-size-2`) have no `.prefab` key in `m_Container`, only the name of the model file, for example `assets/assetbundles/tlou/jellyfish2.obj`. The prefab is `Jellyfish2.prefab` next to it, so the script takes the `.obj` keys with the extension changed to `.prefab`.
 - Some bundles depend on another bundle. For example, `barrel-size-1` gets its material from `industrial_01_mat_asset`. TTS does not load that bundle, so the barrel has no texture in TTS either. The script prints a warning.
 - Vehicles have many materials. After `dedup` they have up to 9 materials and 9 primitives.
 - The GLB from AssetRipper keeps the color texture of each material but not its values. Every material gets the glTF defaults: metallic 1, roughness 1 and white. So the script reads the Unity materials (`.mat`) of the project export and copies `_Metallic` to metallic, `1 − _Glossiness` to roughness, and `_Color` (sRGB, converted to linear) to the base color. A GLB material is matched to the Unity material with the same name. A material with no Unity material, or with a shader that is not Unity's Standard shader, gets a warning. Found on 2026-10-02: Okoye and Loki use the Standard shader with Metallic 0 and Smoothness 0. With metallic 1 they were full metal in the app, and Okoye looked almost black.
@@ -153,14 +158,6 @@ The AssetRipper UI is a front end for a local HTTP server. `lib/assetripper.mjs`
 
 - **Terrain Database:** the `Terrain Database` object in `~/Library/Tabletop Simulator/Mods/Workshop/3036795456.json`. Its Lua script has `terrainDatabase = { pieces = {...}, cards = {...} }`. `lib/lua-table.mjs` reads the table, so Lua is not needed.
 - **TTS cache:** `~/Library/Tabletop Simulator/Mods/{Models,Images,Assetbundles}`. A cached file is named after its URL, with every character except letters and digits removed, plus the extension. For example, `https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ab12.obj` becomes `httpsd37ev18qvj5a3mcloudfrontnetttsterrainab12obj.obj`.
-
-## What the app still needs
-
-`Terrain.jsx` supports OBJ pieces with a texture, with `convex` and `collider`. The map list in the toolbar shows every entry in `MAPS`. A map with other pieces or another mat rotation needs these changes:
-
-1. **Bundle pieces (`bundle: true`):** use the materials in the GLB, because these pieces have no texture file. Keep `IMPORT_ROTATION`. Decide how to apply `tint` to materials that have their own colors.
-2. **`colliders`:** create one Rapier collider per entry, inside the same group as the mesh, so that `IMPORT_ROTATION` and the placement scale apply to it. Box → `CuboidCollider`, cylinder → `CylinderCollider`, capsule → `CapsuleCollider`, sphere → `BallCollider`, mesh → hull or trimesh of the collider GLB, with its `scale`. Check in the Debug → Colliders view that the colliders are not turned twice (see the note in `Terrain.jsx`).
-3. **`matRotation`:** turn the mat image. The app reads no `matRotation` yet, and it draws every mat as if it had 180. Vibranium Heist, Battle For Asgard and Hydra Vs Wakanda have 180 (the script prints -180 for Hydra Vs Wakanda, which is the same angle). TTS Y rotation `r` is `-r` in Three.js, so the extra turn is probably `-(matRotation - 180)` degrees. This is not checked in the browser yet.
 
 # TTS character migration
 

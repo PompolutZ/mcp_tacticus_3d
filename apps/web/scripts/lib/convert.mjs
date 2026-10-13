@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { Logger, NodeIO } from '@gltf-transform/core'
+import { Document, Logger, NodeIO } from '@gltf-transform/core'
 import { ALL_EXTENSIONS, EXTTextureWebP } from '@gltf-transform/extensions'
 import {
   dedup,
@@ -15,8 +15,10 @@ import {
   draco,
   flatten,
   join,
+  mergeDocuments,
   normals,
   prune,
+  unpartition,
   unweld,
 } from '@gltf-transform/functions'
 import draco3d from 'draco3dgltf'
@@ -54,7 +56,8 @@ export async function readObj(file) {
 
 // singleMaterial: put every primitive on one material, for pieces that get their texture from a separate file.
 // Without it, materials and their textures stay in the GLB.
-export async function compressMesh(doc, { singleMaterial }) {
+// compress: false leaves out Draco, for a document that is merged into another one first (mergeColliderMeshes).
+export async function compressMesh(doc, { singleMaterial, compress = true }) {
   const root = doc.getRoot()
   const prims = root.listMeshes().flatMap((m) => m.listPrimitives())
   if (singleMaterial) {
@@ -78,9 +81,35 @@ export async function compressMesh(doc, { singleMaterial }) {
     dedup(),
     join({ keepNamed: false }),
     prune({ keepAttributes: true }),
-    draco({ quantizeTexcoord: 14 }),
   )
+  if (compress) await doc.transform(draco({ quantizeTexcoord: 14 }))
   return doc
+}
+
+// The collider meshes of a bundle piece in one document, for one GLB. docs[n] becomes the node `collider-n`
+// of the scene, at index n in scene.children. Each mesh is baked and joined on its own (compressMesh), so the
+// nodes have no transform and the meshes stay separate. Draco is applied once, at the end.
+export async function mergeColliderMeshes(docs) {
+  const target = new Document()
+  target.createScene('colliders')
+  const scene = target.getRoot().listScenes()[0]
+  for (const [n, doc] of docs.entries()) {
+    await compressMesh(doc, { singleMaterial: true, compress: false })
+    const before = new Set(target.getRoot().listScenes())
+    mergeDocuments(target, doc)
+    for (const added of target
+      .getRoot()
+      .listScenes()
+      .filter((s) => !before.has(s))) {
+      for (const child of added.listChildren()) {
+        scene.addChild(child)
+        child.setName(`collider-${n}`)
+      }
+      added.dispose()
+    }
+  }
+  await target.transform(unpartition(), draco({ quantizeTexcoord: 14 }))
+  return target
 }
 
 // Converts every texture in the document to WebP (EXT_texture_webp, which three.js GLTFLoader reads)

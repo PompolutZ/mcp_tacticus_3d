@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { cacheTarget } from './tts.mjs'
+import { cacheTarget, sourceDownloads } from './tts.mjs'
 
 const CDN = 'https://d37ev18qvj5a3m.cloudfront.net/tts'
 const PNG = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
@@ -41,4 +41,12 @@ test('cacheTarget with kind model sends a .jpg URL with a Unity bundle to Assetb
 test('cacheTarget with kind model returns null for a file that is not a bundle', () => {
   assert.equal(cacheTarget(`${CDN}/a/x.jpg`, JPEG, 'model'), null)
   assert.equal(cacheTarget(`${CDN}/a/x.jpg`, Buffer.from('<html>'), 'model'), null)
+})
+
+test('sourceDownloads lists the urls of a piece and marks a bundle as a model', () => {
+  assert.deepEqual(sourceDownloads({ mesh: 'a', diffuse: undefined, collider: 'a' }), [
+    { url: 'a' },
+    { url: 'a' },
+  ])
+  assert.deepEqual(sourceDownloads({ bundle: 'b' }), [{ url: 'b', kind: 'model' }])
 })

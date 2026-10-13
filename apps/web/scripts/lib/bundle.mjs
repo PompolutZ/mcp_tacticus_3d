@@ -18,9 +18,14 @@ export async function readBundlePrefab(outDir) {
   const bundleManifests = [...walk(path.join(primary, 'Assets/AssetBundle'))]
     .filter((f) => f.endsWith('.json'))
     .map((f) => JSON.parse(fs.readFileSync(f, 'utf8')))
-  const prefabs = bundleManifests
-    .flatMap((m) => Object.keys(m.m_Container))
-    .filter((p) => p.endsWith('.prefab'))
+  const keys = bundleManifests.flatMap((m) => Object.keys(m.m_Container))
+  let prefabs = keys.filter((p) => p.endsWith('.prefab'))
+  // The bundles of the TLOU pieces (ship wreck, jellyfish) name the prefab with its original model file:
+  // the key is assets/assetbundles/tlou/jellyfish2.obj, and the prefab is Jellyfish2.prefab next to it.
+  if (!prefabs.length)
+    prefabs = [
+      ...new Set(keys.filter((p) => p.endsWith('.obj')).map((p) => p.replace(/\.obj$/, '.prefab'))),
+    ]
   if (!prefabs.length) throw new Error('No prefab in the bundle')
   // Bastion's bundle has a second prefab, prefabs/baston.prefab, whose figure has no mesh. TTS shows the figure,
   // so it uses the first prefab of m_Container. Not checked for other bundles.

@@ -195,6 +195,14 @@ export function pieceSources(piece) {
   }
 }
 
+// Files to download for the sources of a piece (pieceSources), as { url, kind } for downloadMissing.
+// A bundle is a model: the role decides, not the URL extension (see cacheTarget).
+export function sourceDownloads(sources) {
+  return Object.entries(sources)
+    .filter(([, url]) => url)
+    .map(([role, url]) => (role === 'bundle' ? { url, kind: 'model' } : { url }))
+}
+
 // The mat of a card: its first Custom_Tile placement
 export function matPlacement(card, pieces) {
   return card.placements.find((p) => pieces.get(p.key)?.type === 'Custom_Tile') ?? null

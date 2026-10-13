@@ -147,18 +147,22 @@ export function matUrl(mapId) {
 }
 
 // The mat image. Its own component, so a new map's image loads inside the mat's Suspense below.
+// The image turns by -(matRotation - 180) degrees around Y (docs/features/maps.md, "Mat rotation").
 function Mat({ mapId }) {
   const map = useTexture(matUrl(mapId))
+  const turn = (-(MAPS[mapId].matRotation - 180) * Math.PI) / 180
   return (
-    <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-      <planeGeometry args={[MAT_SIZE, MAT_SIZE]} />
-      <meshStandardMaterial
-        map={map}
-        roughness={1}
-        metalness={0}
-        onBeforeCompile={projectFootprints}
-      />
-    </mesh>
+    <group rotation={[0, turn, 0]}>
+      <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[MAT_SIZE, MAT_SIZE]} />
+        <meshStandardMaterial
+          map={map}
+          roughness={1}
+          metalness={0}
+          onBeforeCompile={projectFootprints}
+        />
+      </mesh>
+    </group>
   )
 }
 
