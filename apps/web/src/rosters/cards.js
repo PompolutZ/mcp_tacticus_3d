@@ -35,9 +35,9 @@ const crisisKeys = idToKey(crisisFiles)
 // bearableGemsWithName; 1 when Jarvis has none), from Jarvis. back: the image
 // of the other side, for the flip in the roster popup. null when the app has no image, or when the other side is the
 // same for every card of the kind: the back of a crisis card shows only its type.
-// variants: the cards that the roster popup can switch between for this character, [{ label, image, back }],
-// the character card first. null when the character has one card. Now only a second form with its own card
-// (see docs/features/character-trays.md, "Second forms"). Later also the grunts of a host.
+// variants: the cards that the roster popup can switch between for this character, [{ label, image, back, portrait? }],
+// the character card first. null when the character has one card. A second form with its own card (see
+// docs/features/character-trays.md, "Second forms") and each migrated grunt of a host (see "Grunts").
 // gem: true for an Infinity Gem (isInfinityGem in Jarvis). It has kind 'tactic' and the files of a Team Tactic card.
 // jarvisUrl: the page of the card on Jarvis, for the link in the roster popup. A character with a second
 // form has one page for both cards.
@@ -52,17 +52,26 @@ const formLabel = (slug) =>
 for (const ch of CHARACTERS) {
   const image = ch.available ? characterCard(ch.slug, 'healthy') : null
   const back = ch.available ? characterCard(ch.slug, 'injured') : null
-  const variants =
-    ch.available && ch.transform?.card
+  // The card of the character, its second form, and each grunt (no Injured side, so no back; portrait: the image is 808x1404, not 3:2)
+  const forms = [
+    ...(ch.transform?.card
       ? [
-          { label: ch.name, image, back },
           {
             label: formLabel(ch.secondForm),
             image: transformCard(ch.slug, 'healthy'),
             back: transformCard(ch.slug, 'injured'),
           },
         ]
-      : null
+      : []),
+    ...ch.grunts.map((grunt) => ({
+      label: grunt.name,
+      image: characterCard(grunt.slug, 'healthy'),
+      back: null,
+      portrait: true,
+    })),
+  ]
+  const variants =
+    ch.available && forms.length > 0 ? [{ label: ch.name, image, back }, ...forms] : null
   cards.set(ch.mctCode, {
     code: ch.mctCode,
     kind: 'character',

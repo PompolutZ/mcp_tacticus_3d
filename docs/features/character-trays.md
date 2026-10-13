@@ -5,10 +5,11 @@ Status: built.
 Not built yet:
 
 - Badges above the models: small icons for held tokens, Activated, Dazed, Damage and Power. TTS shows them. Players can then see the board state without looking at the trays.
-- Grunts, Horsemen cards and Reserve members (see [Out of scope](#out-of-scope)).
+- Constructs of Phoenix: the app handles them, but her construct files are not migrated yet (see [Constructs](#constructs)).
+- Room for the grunt block on the table: the tray of a host with grunts needs the last inches before the table edge (see [Grunts](#grunts)).
+- Horsemen cards and Reserve members (see [Out of scope](#out-of-scope)).
 - Attach or remove a gem by hand. Gems come only from the roster. A character added from the Library has none.
 - Gem cards other than Soul and Mind. They migrate when the TTS cache has them.
-- Trays of different width (a grunt card, characters with 2 forms). Every tray has the same width.
 - A 2D HUD separate from the 3D world.
 
 ## Goal
@@ -313,6 +314,41 @@ The immunities come from the Jarvis data (`jarvis-characters.json`), not from th
 - A stat card side can be null (7 grunt rows have no `backSide`). It counts as no immunity.
 - `characters.json` has no `immune` field. `tokens` (the Give sources) stays from the mod, because the special tokens of a character (Kill Count, Devil's Deal, ...) exist only there.
 
+## Constructs
+
+Magneto and Phoenix come with 2 constructs each (the mod's `construct` field: two Metal Construct models). In the rules, a construct is a terrain feature, not a character. So the app spawns it as a model of the host, not as a character.
+
+- **Spawn:** the constructs spawn with the host, on the table under the host card: on the owner's side of the tray, past the Give sources. They stand in a row from the owner's left, each 0.3" from the next. A spare model (see [Second forms](#second-forms)) comes first, in the middle of the tray width, and the row lies past it. A Library spawn and a roster spawn do the same.
+- **Look:** the 3D model from `construct-<n>.glb` (`characterConstruct` in `files.js`), small base, the team color of the host.
+- **No tray, no card, no stats.** A construct has no Damage, Power or tokens. Hover shows no card, and F does nothing on it. The spectator badge is not shown on it.
+- **Moves like a model:** a player selects, moves and turns it, and the tools measure against it. It moves with the tray when the row shifts, as long as it stands on the tray area (`inTrayArea`).
+- **Not the host on the mat.** `characterOnBoard` ignores constructs, so a construct on the mat does not make the host count as on the mat in the Power Phase and the Cleanup Phase. The players count Magneto's constructs themselves (see [Players apply the rules](#players-apply-the-rules)).
+- **No tokens.** A token dropped on a construct is a drop on whatever is under it, the table or the mat. It does not go to the host (`characterAt` in `Scene.jsx` skips construct models).
+- **Remove:** the tray's Remove button puts the constructs back to their places with the other models. A construct that is destroyed is put back by Remove, or the player drags it off the mat.
+- **Delete** of the host removes its constructs, with their stored poses.
+- **No "Spawn Construct" button.** Magneto has at most 2 constructs at a time.
+- Ids: construct n of a character has the model id `<character id>:c<n>`, after the first model and the second model (`models.js`). Poses, claims and P2P sync work on model ids, so they treat it like the second model.
+- Data: `characters.json` has `constructs`, the number of construct GLBs. It is missing or 0 for a character without constructs. The character entry in App state copies it.
+
+## Grunts
+
+A grunt is a minion that comes with a host: Hand Ninjas (Elektra, Shadowland Daredevil), Sand Constructs - Twisty and Sand Construct - Fisty (Sandman), and others. The mod has 7 hosts with grunts: Elektra, Multiple Man, Nick Fury, Red Skull Master of Hydra, Sandman, Shadowland Daredevil and Ultron Metal Tyrant. A grunt is its own `Database` row with a card, a model, `cStamH`, tokens and immunities. A host is spawnable once its grunts are migrated (`grunts` in `characters.json`, see `scripts/README.md`).
+
+- **Spawn:** when a host spawns, one character per grunt spawns with it, in the same state update: from the Library, from the roster popup and with a squad reveal. The grunt is a normal entry of `characters` with `host: <host id>` (`newCharacters` in `newCharacter.js`). So Damage, tokens, the model, P2P sync and the room preload work as for any character. The host stays first in the list.
+- **Not in the Library list.** Jarvis gives a grunt no MCT code, so a grunt is not a row of the Library or of a roster. `characters.js` keeps the grunt rows of a host in `grunts`, and finds the stats in the Jarvis row of the same name.
+- **Card size:** a grunt card image is portrait, 808 × 1404 px, not 3:2 like a character card. It is drawn 2.75" wide and 4.78" high (`GRUNT_CARD_WIDTH` and `GRUNT_CARD_HEIGHT` in `trays.js`), the width of a crisis card, whose image (800 × 1400) is the same shape. TTS spawns it as a custom card with scale 1.5 (`setupGruntOne` in the Red Tray Spawner). The crisis card scale is not recorded in the repo, so the equal size is a choice by image shape, not a measured TTS value.
+- **Card on the host tray:** the grunt card lies on the tray of its host, below the host card(s) and the controls strip. It has its own "On" row above it (as wide as the card) and its own controls strip below it. The tray grows toward the owner by the depth of a grunt unit: On row, card and controls strip, 7.2", and a gap. The grunt has no tray of its own and no place in the row: it has the position of its host (`layoutTrays`).
+- **Sandman:** his 2 grunt cards lie side by side, 2.85" apart (card width and a gap), the first under the host card. His plate is 7.3" wide, wider toward the owner's right, and the host card, the "On" row and the Give sources keep their places. The trays after it move on, and the row stays centered (`layoutTrays`).
+- **Popups:** the tray popup sizes a grunt card by its own aspect and by the viewport height, so the card and the controls stay on the screen. The roster popup shows a grunt variant at the height of a character card, centered in its slide. The card popup of an Alt peek shows the image at its own shape, within the viewport.
+- **Model:** the grunt model spawns on its card, and moves with the tray like any model on the tray area.
+- **Controls:** Damage (limit: the grunt Stamina) and Remove. No Power, no Flip and no "Show other side" in the popup. The card has only the Healthy side. F over a grunt does nothing.
+- **Tokens:** a grunt has its own tokens and can get a token by a drag onto its card or model. The Give sources of the host tray are shared: they hold the tokens of the host and of its grunts. A click on a source gives a token to the host, a drag onto the grunt card gives it to the grunt.
+- **Held tokens** lie on the grunt card, kept inside its edges (`trayGruntHeldClamp`). The tray popup shows them on the grunt card image.
+- **Delete:** the Delete key on the host card removes the host with its grunts and its constructs, after the same confirm (it says so). Tokens that they hold drop first. The Delete key on a grunt card removes nothing and says so. A restart of the setup removes the host and its grunts together.
+- **Rules:** a grunt cannot have Power (p21). The Power Phase skips it. In the Cleanup Phase a Dazed grunt has no Injured side to flip to, so it keeps its Damage and side and only loses Dazed and the special conditions (`cleanupCharacter`). The spectator view shows Damage only for a grunt.
+- **Roster popup:** the grunt cards of a host are in `variants` (see `docs/features/roster.md`).
+- **Space:** a host with one grunt row: the plate ends 36.1" from the table center, and one row of Give sources ends 37.1" (a second row, 38.0"). The table edge is at 38", so a second row of Give sources is at the table edge. The tool rack is in front of the dice tray and does not meet the grunt block.
+
 ## State
 
 New fields on each entry of `characters` in `App.jsx`:
@@ -381,7 +417,8 @@ A token dropped by Dazed or **Remove** waits for its place (`src/tokens/dropWait
 - A 2D HUD separate from the 3D world. This is the next step after this feature.
 - Horsemen cards and Reserve members attached to a character. Infinity Gems are built (see [Attached cards](#attached-cards)). Facts: in TTS, a gem or Horsemen card attaches to the tray only if the character can have it (`cGem`, `cHorsemen` in the mod; `bearableGems`, `assignableToHorsemen` in Jarvis). The TTS cache has all 5 Horsemen faces, but only the Soul gem card.
 - Rule automation beyond the Power Phase and Cleanup Phase buttons (see `docs/features/round-phases.md`) and the drop of objective tokens: VP scoring, character effects of the Cleanup Phase.
-- Grunts. They come next. Facts: 6 mod characters have `grunts` (Elektra, Nick Fury, Red Skull Master of Hydra, Sandman, Shadowland Daredevil, Ultron Metal Tyrant). Each grunt is its own `Database` row (for example Hand Ninjas) with a card, a model, `cStamH`, tokens and immunities. TTS spawns the grunt card with its model below the tray, and a Wounds counter. Sandman has 2 grunts; TTS puts their cards side by side. None of these characters is in the TTS cache yet.
+- A "Spawn Construct" button for more constructs than the host has, and the constructs of Ultimate Encounters (see [Constructs](#constructs)).
+- The Wounds counter of a grunt in TTS. The Damage counter does its job.
 - The second card version of a character without a second form (`cards` > 1 and no `transform` in `characters.json`, for example Mephisto). The tray uses card 1.
 - Other immunities of a second form (p21), and the mod's `twoModels` and `sideways` flags (Ms. Marvel).
 - Tokens that lie on the table and not on a character (Use Tools, Pile).
@@ -396,12 +433,12 @@ A token dropped by Dazed or **Remove** waits for its place (`src/tokens/dropWait
 4. Immunity blocks a condition.
 5. Attached cards: the Infinity Gems are built. Horsemen cards and Reserve members wait.
 6. Tokens use the new art of the mod (rounded diamond for conditions), not the old round art.
-7. A player has one tray row only. Later, some trays can be wider (a grunt card, characters with 2 forms).
+7. A player has one tray row only. A tray with 2 grunt cards (Sandman) is wider.
 8. Character tokens are real size. A Give source never runs out, and a token can lie anywhere on the table.
 9. The Delete key removes a token on the table, as in TTS. A Tokens panel drag can also place a token on the table.
 10. A Source card has one supply pile that never runs out, below the card text. The Delete key also removes a crisis token that a character holds.
 11. A character with a second form spawns both models, as in TTS.
 12. A second card lies under the first card. Flip turns both. Each model spawns on its own card.
 13. The second model of a `oneCard` character spawns past the Give sources.
-14. The table grows from 66" to 68" deep. Sandman's 2 grunt cards will sit side by side, so only his tray will be wider.
-15. Grunts come later, after a grunt character is in the TTS cache.
+14. The table grows from 66" to 68" deep. Sandman's 2 grunt cards sit side by side, so only his tray is wider.
+15. A grunt is its own character with a link to its host, not a part of the host: it has its own Damage and tokens, and a tray part on the host tray.

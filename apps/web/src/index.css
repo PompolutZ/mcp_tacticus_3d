@@ -170,6 +170,12 @@ body {
   justify-content: space-between;
 }
 
+/* A grunt has Remove only (no Flip): it is centered under the Damage counter, not pushed to the left
+   by space-between. The strip itself is centered on the grunt card (CharacterTray.jsx). */
+.tray-controls-actions--grunt {
+  justify-content: center;
+}
+
 .tray-controls-flip {
   font-size: 9px;
   padding: 1px 8px;
@@ -1177,6 +1183,13 @@ body {
 .tray-popup-card {
   position: relative;
   width: min(80vw, 600px, 75vh);
+}
+
+/* A grunt card is portrait (808x1404). Its width follows the viewport height, so the card and the controls
+   fit on the screen, the same as the 3:2 card above. */
+.tray-popup-card--grunt,
+.tray-popup-main--attached .tray-popup-card--grunt {
+  width: min(80vw, 360px, calc((100vh - 280px) * 808 / 1404));
 }
 
 .tray-popup-card > img {

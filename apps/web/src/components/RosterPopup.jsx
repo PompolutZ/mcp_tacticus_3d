@@ -155,7 +155,15 @@ function PopupCard({ card, active, inSquad, onSquadToggle }) {
   const name = variant > 0 ? `${info.name}, ${shown.label}` : info.name
   const [w, h] = CARD_SIZES[card.kind]
   // --card-w comes from CardCarousel
-  const size = { width: 'var(--card-w)', aspectRatio: `${w} / ${h}` }
+  // A grunt card is portrait (808x1404): it has the height of a character card of the slide, centered in it
+  const size = shown.portrait
+    ? {
+        height: `calc(var(--card-w) * ${h / w})`,
+        width: 'auto',
+        aspectRatio: '808 / 1404',
+        margin: '0 auto',
+      }
+    : { width: 'var(--card-w)', aspectRatio: `${w} / ${h}` }
   const flip = () => {
     if (active) setFlipped((v) => !v)
   }

@@ -39,11 +39,18 @@ export function cachedFile(url) {
 // Cache folder and extension for a downloaded file, as { dir, ext }, or null for a file of an unknown type.
 // The URL extension .unity3d goes to Assetbundles and .obj to Models. Any other file must be a PNG, JPEG or WebP
 // image (checked on its first bytes) and goes to Images with the extension of its type. A Steam image URL has no extension.
-export function cacheTarget(url, bytes) {
+// kind 'model' overrides the URL: the field decides, not the extension. A Magneto construct URL ends in .jpg,
+// but the mod loads it as an asset bundle. So a file of this kind is a model (.obj) or a Unity bundle (first bytes
+// "UnityFS"), and goes to Models or Assetbundles. Any other kind is decided by the URL.
+export function cacheTarget(url, bytes, kind) {
+  const ascii = (from, to) => Buffer.from(bytes.subarray(from, to)).toString('latin1')
+  if (kind === 'model') {
+    if (/\.obj$/i.test(new URL(url).pathname)) return { dir: 'Models', ext: 'obj' }
+    return ascii(0, 7) === 'UnityFS' ? { dir: 'Assetbundles', ext: 'unity3d' } : null
+  }
   const ext = /\.(unity3d|obj)$/i.exec(new URL(url).pathname)?.[1].toLowerCase()
   if (ext === 'unity3d') return { dir: 'Assetbundles', ext: 'unity3d' }
   if (ext === 'obj') return { dir: 'Models', ext: 'obj' }
-  const ascii = (from, to) => Buffer.from(bytes.subarray(from, to)).toString('latin1')
   if (ascii(1, 4) === 'PNG' && bytes[0] === 0x89) return { dir: 'Images', ext: 'png' }
   if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff)
     return { dir: 'Images', ext: 'jpg' }
@@ -56,11 +63,12 @@ const DOWNLOAD_TIMEOUT_MS = 120_000
 // Downloads url into the TTS cache, so that cachedFile finds it. Returns the path. Throws when the download fails
 // or the file has an unknown type. The file is written under a temp name and renamed, so a stopped run
 // leaves no half file in the cache.
-export async function downloadToCache(url) {
+// kind: see cacheTarget.
+export async function downloadToCache(url, kind) {
   const res = await fetch(url, { signal: AbortSignal.timeout(DOWNLOAD_TIMEOUT_MS) })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const bytes = new Uint8Array(await res.arrayBuffer())
-  const target = cacheTarget(url, bytes)
+  const target = cacheTarget(url, bytes, kind)
   if (!target) throw new Error('the file is not an image, a bundle or a model')
   const name = cacheName(url)
   const file = path.join(TTS_MODS, target.dir, `${name}.${target.ext}`)
@@ -72,12 +80,17 @@ export async function downloadToCache(url) {
 }
 
 // Downloads the files of urls that the cache does not have, one at a time and with a line per file.
-// Returns the failures as [{ url, reason }].
-export async function downloadMissing(urls) {
+// An item is a URL, or { url, kind } with the kind of cacheTarget. Returns the failures as [{ url, reason }].
+export async function downloadMissing(items) {
   const failures = []
-  for (const url of new Set(urls.filter((u) => u && !cachedFile(u)))) {
+  const wanted = new Map()
+  for (const item of items) {
+    const { url, kind } = typeof item === 'string' ? { url: item } : item
+    if (url && !cachedFile(url) && !wanted.has(url)) wanted.set(url, kind)
+  }
+  for (const [url, kind] of wanted) {
     try {
-      const file = await downloadToCache(url)
+      const file = await downloadToCache(url, kind)
       console.log(`  downloaded ${url} (${fs.statSync(file).size} bytes)`)
     } catch (err) {
       const reason = err.cause?.code ?? err.message

@@ -72,6 +72,7 @@ import { getCard } from '../crisis/cards.js'
 import { TRAYS } from '../dice/tray.js'
 import {
   TRAY_Y,
+  gruntsByHost,
   inTrayArea,
   layoutTrays,
   onTray,
@@ -79,6 +80,11 @@ import {
   trayHeldWorld,
   trayModelPosition,
   traySpareModelPosition,
+  trayConstructPosition,
+  trayGruntHeldClamp,
+  trayGruntHeldLocal,
+  trayGruntModelPosition,
+  trayGruntSlot,
   trayYaw,
 } from '../characters/trays.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
@@ -203,6 +209,19 @@ const SLEEP_AFTER_FRAMES = 2
 
 // How often (ms) Scene looks for overlapping models
 const OVERLAP_INTERVAL = 100
+
+// The tray that character ch is on: the number of host cards, the number of grunt cards on it, and the
+// offset of ch's own card from the host card ([0, 0] for a host). gruntLists: gruntsByHost (trays.js).
+function trayShapeOf(ch, characters, gruntLists) {
+  const host = ch.host ? (characters.find((c) => c.id === ch.host) ?? ch) : ch
+  const list = gruntLists.get(host.id) ?? []
+  return {
+    cards: trayCards(host),
+    grunts: list.length,
+    index: Math.max(0, list.indexOf(ch)),
+    slot: ch.host ? trayGruntSlot(trayCards(host), Math.max(0, list.indexOf(ch))) : [0, 0],
+  }
+}
 
 // mapId: key in MAPS. terrain: the terrain pieces on the mat, [{ id, locked, ...placement }] (see
 // mapTerrain in rooms/table.js). onTerrainHover(id, over): the pointer moved onto or off an unlocked piece,
@@ -561,7 +580,11 @@ export default function Scene({
     let nearestId = null
     let nearestDistance = Infinity
     const targets = [
-      ...models.map((model) => [model.character.id, charObjects.current.get(model.id)]),
+      // A construct is not a drop target: a token dropped on it lands on whatever is under it, the table
+      // or the mat (docs/features/character-trays.md, "Constructs")
+      ...models
+        .filter((model) => !model.construct)
+        .map((model) => [model.character.id, charObjects.current.get(model.id)]),
       ...characters.map((ch) => [ch.id, trayObjects.current.get(ch.id)]),
     ]
     for (const [id, object] of targets) {
@@ -882,6 +905,9 @@ export default function Scene({
   // Tray position of every character (trays.js). A player's row recenters when that player adds
   // or removes a character, so these positions change then.
   const trayPositions = useMemo(() => layoutTrays(characters), [characters])
+  // The grunts of each host (a grunt's card lies on its host's tray)
+  const gruntLists = useMemo(() => gruntsByHost(characters), [characters])
+  const trayShape = (ch) => trayShapeOf(ch, characters, gruntLists)
   // Tray positions of the last layout, to find the trays that moved.
   const lastTrayPositions = useRef(new Map())
   // A model that still stands on its tray moves with the tray, the same as TTS (moveTray in the
@@ -897,7 +923,7 @@ export default function Scene({
       // The other player moves this model: its pose comes from the other browser
       if (ownership?.owner(modelKey(model.id)) === 'other') continue
       const t = body.translation()
-      if (inTrayArea(team, last, t))
+      if (inTrayArea(team, last, t, trayShapeOf(model.character, characters, gruntLists).grunts))
         body.setTranslation({ x: t.x + pos[0] - last[0], y: t.y, z: t.z + pos[2] - last[2] }, true)
     }
     lastTrayPositions.current = trayPositions
@@ -954,7 +980,10 @@ export default function Scene({
       const holder = characters.find((ch) => ch.id === tok.heldBy)
       const trayPos = trayPositions.get(tok.heldBy)
       if (!holder || !trayPos) return { token: tok }
-      const [x, z] = trayHeldWorld(holder.team, trayPos, tok.heldAt)
+      // A grunt's token lies on the grunt card (the default place is on a host card, so it is clamped)
+      const { slot } = trayShapeOf(holder, characters, gruntLists)
+      const local = holder.host ? trayGruntHeldClamp(tok.heldAt) : tok.heldAt
+      const [x, z] = trayHeldWorld(holder.team, trayPos, local, slot)
       const level = stacks.get(tok.heldBy) ?? 0
       stacks.set(tok.heldBy, level + 1)
       return {
@@ -962,7 +991,7 @@ export default function Scene({
         floorY: TRAY_Y + level * HELD_STACK_STEP,
       }
     })
-  }, [tokens, characters, trayPositions])
+  }, [tokens, characters, trayPositions, gruntLists])
   const toolModels = useMemo(
     () => [
       ...models.map((model) => ({
@@ -1052,14 +1081,31 @@ export default function Scene({
   function trayPlace(model) {
     const ch = model.character
     const trayPos = trayPositions.get(ch.id)
+    const { grunts, index } = trayShape(ch)
+    if (ch.host) return trayGruntModelPosition(ch.team, trayPos, trayShape(ch).cards, index)
     if (model.card) return trayModelPosition(ch.team, trayPos, model.card)
     const giveCount = characterGiveSources(ch.key).length
-    return traySpareModelPosition(
+    if (!model.construct)
+      return traySpareModelPosition(
+        ch.team,
+        trayPos,
+        trayCards(ch),
+        giveCount,
+        BASE_DIAMETER[model.base] / 2,
+        grunts,
+      )
+    // The constructs lie in a row past the spare model, when the character has one
+    const all = characterModels(ch)
+    const spare = all.find((m) => m.card === null && !m.construct)
+    return trayConstructPosition(
       ch.team,
       trayPos,
       trayCards(ch),
       giveCount,
+      spare ? BASE_DIAMETER[spare.base] / 2 : 0,
+      all.filter((m) => m.construct).findIndex((m) => m.id === model.id),
       BASE_DIAMETER[model.base] / 2,
+      grunts,
     )
   }
 
@@ -1067,7 +1113,7 @@ export default function Scene({
   // it, so it moves with the model (CharacterModel.jsx, overlay). Both models of a
   // character with a second form show it.
   function spectatorOverlay(model) {
-    if (!spectator) return undefined
+    if (!spectator || model.construct) return undefined
     const ch = model.character
     return (top) => (
       <SpectatorBadge
@@ -1329,12 +1375,19 @@ export default function Scene({
               onHold={(characterId, point) => {
                 const holder = characters.find((ch) => ch.id === characterId)
                 const trayPos = trayPositions.get(characterId)
+                const shape = holder && trayShape(holder)
                 const onCard =
-                  holder && trayPos && onTray(holder.team, trayPos, point, trayCards(holder))
+                  holder &&
+                  trayPos &&
+                  onTray(holder.team, trayPos, point, shape.cards, shape.grunts)
                 onTokenHold(
                   tok.id,
                   characterId,
-                  onCard ? trayHeldLocal(holder.team, trayPos, point) : null,
+                  onCard
+                    ? holder.host
+                      ? trayGruntHeldLocal(holder.team, trayPos, point, shape.slot)
+                      : trayHeldLocal(holder.team, trayPos, point)
+                    : null,
                 )
               }}
               findCharacter={findCharacterAt}
@@ -1500,30 +1553,34 @@ export default function Scene({
             docs/features/character-trays.md, "Tray layout"). The models below spawn standing on the center
             of this tray's cards (modelSpawnPosition). A model reads that position only once, when
             its body mounts, so a later tray move does not teleport it. */}
-        {characters.map((ch) => (
-          <Suspense key={ch.id} fallback={null}>
-            <CharacterTray
-              character={ch}
-              position={trayPositions.get(ch.id)}
-              onOpen={() => onTrayOpen(ch.id)}
-              onDamage={(damage) => onCharacterDamage(ch.id, damage)}
-              onPower={(power) => onCharacterPower(ch.id, power)}
-              onFlip={() => onCharacterFlip(ch.id)}
-              onCardHover={(over) => onTrayCardHover?.(ch.id, over)}
-              onCardImageHover={onCardHover}
-              onRemove={() => onCharacterOffBoard(ch.id)}
-              onBoard={characterOnBoard(ch, poses)}
-              removeWait={removeWaits[ch.id] ?? null}
-              onAttachedOpen={onAttachedOpen}
-              onTokenRemove={(key) => onCharacterTokenRemove(ch.id, key)}
-              onTokenDragStart={onTokenDragStart}
-              selected={selectedCharId === ch.id}
-              objectRef={(obj) =>
-                obj ? trayObjects.current.set(ch.id, obj) : trayObjects.current.delete(ch.id)
-              }
-            />
-          </Suspense>
-        ))}
+        {characters
+          .filter((ch) => trayPositions.has(ch.id))
+          .map((ch) => (
+            <Suspense key={ch.id} fallback={null}>
+              <CharacterTray
+                character={ch}
+                position={trayPositions.get(ch.id)}
+                grunts={ch.host ? 0 : trayShape(ch).grunts}
+                slot={trayShape(ch).slot}
+                onOpen={() => onTrayOpen(ch.id)}
+                onDamage={(damage) => onCharacterDamage(ch.id, damage)}
+                onPower={(power) => onCharacterPower(ch.id, power)}
+                onFlip={() => onCharacterFlip(ch.id)}
+                onCardHover={(over) => onTrayCardHover?.(ch.id, over)}
+                onCardImageHover={onCardHover}
+                onRemove={() => onCharacterOffBoard(ch.id)}
+                onBoard={characterOnBoard(ch, poses)}
+                removeWait={removeWaits[ch.id] ?? null}
+                onAttachedOpen={onAttachedOpen}
+                onTokenRemove={(key) => onCharacterTokenRemove(ch.id, key)}
+                onTokenDragStart={onTokenDragStart}
+                selected={selectedCharId === ch.id}
+                objectRef={(obj) =>
+                  obj ? trayObjects.current.set(ch.id, obj) : trayObjects.current.delete(ch.id)
+                }
+              />
+            </Suspense>
+          ))}
 
         {models.map((model) => {
           const ch = model.character
@@ -1546,14 +1603,16 @@ export default function Scene({
             onHover: (over) => {
               onPieceHover?.({ kind: 'character', id: model.id }, over)
               trackPiece(hoveredPiece, { kind: 'character', id: model.id }, over)
-              onCardHover?.(
-                {
-                  src: assetUrl(modelCardFile(model)),
-                  alt: characterName(ch.key),
-                  by: `model:${model.id}`,
-                },
-                over,
-              )
+              // A construct has no card
+              if (!model.construct)
+                onCardHover?.(
+                  {
+                    src: assetUrl(modelCardFile(model)),
+                    alt: characterName(ch.key),
+                    by: `model:${model.id}`,
+                  },
+                  over,
+                )
             },
             bodyRef: (rb) =>
               rb ? charBodies.current.set(model.id, rb) : charBodies.current.delete(model.id),

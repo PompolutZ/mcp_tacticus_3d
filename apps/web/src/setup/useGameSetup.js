@@ -40,7 +40,7 @@ import { characterByCode } from '../characters/characters.js'
 import { deleteSquad, readSquad, saveSquad } from '../rooms/store.js'
 import { firstFreeSlot } from '../tactics/layout.js'
 import { formatMctCode, isEmptyRoster } from '../rosters/mct.js'
-import { newCharacter } from '../characters/newCharacter.js'
+import { newCharacters as makeCharacters } from '../characters/newCharacter.js'
 import {
   parseRosterText,
   rosterCard,
@@ -379,7 +379,7 @@ export function useGameSetup({
         (c) => c.key === ch?.slug && c.team === side,
       )
       if (ch?.available && !there)
-        newCharacters.push(newCharacter(ch, side, { attached: parsed.characters[place].gems }))
+        newCharacters.push(...makeCharacters(ch, side, { attached: parsed.characters[place].gems }))
     }
     for (const place of squad.tactics) {
       const key = rosterCard(parsed.tactics[place])?.key

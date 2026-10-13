@@ -87,6 +87,7 @@
     "base": "large",
     "figure": "model",
     "rotation": 180,
+    "cards": 2,
     "tokens": [
       "root",
       "shock",
@@ -109,6 +110,19 @@
       "stagger"
     ]
   },
+  "arnim-zola": {
+    "id": "00760101",
+    "name": "Arnim Zola",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "bleed",
+      "shock",
+      "slow",
+      "stun"
+    ]
+  },
   "avalanche": {
     "id": "01730101",
     "name": "Avalanche",
@@ -117,6 +131,52 @@
     "rotation": 180,
     "tokens": [
       "stun"
+    ]
+  },
+  "baron-helmut-zemo": {
+    "id": "01430101",
+    "name": "Baron Helmut Zemo",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "slow",
+      "stun",
+      "stagger"
+    ]
+  },
+  "baron-mordo": {
+    "id": "00640102",
+    "name": "Baron Mordo",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 105,
+    "tokens": [
+      "hex",
+      "incinerate",
+      "poison",
+      "slow"
+    ]
+  },
+  "baron-strucker": {
+    "id": "00760102",
+    "name": "Baron Strucker",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "poison"
+    ]
+  },
+  "baron-zemo": {
+    "id": "00010101",
+    "name": "Baron Zemo",
+    "base": "small",
+    "figure": "model",
+    "rotation": 135,
+    "tokens": [
+      "bleed"
     ]
   },
   "bastion": {
@@ -151,6 +211,17 @@
       "stun"
     ]
   },
+  "bishop": {
+    "id": "01120101",
+    "name": "Bishop",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "slow"
+    ]
+  },
   "black-bolt": {
     "id": "00340101",
     "name": "Black Bolt",
@@ -159,6 +230,17 @@
     "rotation": 165,
     "tokens": [
       "stun",
+      "stagger"
+    ]
+  },
+  "black-cat": {
+    "id": "00370102",
+    "name": "Black Cat",
+    "base": "small",
+    "figure": "model",
+    "rotation": 90,
+    "tokens": [
+      "bleed",
       "stagger"
     ]
   },
@@ -209,6 +291,26 @@
       "stagger"
     ]
   },
+  "black-widow-agent-of-s-h-i-e-l-d": {
+    "id": "00240101",
+    "name": "Black Widow, Agent of S.H.I.E.L.D.",
+    "base": "small",
+    "figure": "model",
+    "rotation": 225,
+    "tokens": [
+      "poison"
+    ]
+  },
+  "blade": {
+    "id": "00480101",
+    "name": "Blade",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "bleed"
+    ]
+  },
   "blue-marvel": {
     "id": "01290101",
     "name": "Blue Marvel",
@@ -217,6 +319,95 @@
     "rotation": 0,
     "tokens": [
       "stun"
+    ]
+  },
+  "bob-agent-of-hydra": {
+    "id": "00450101",
+    "name": "Bob, Agent of Hydra",
+    "base": "small",
+    "figure": "model",
+    "rotation": 105,
+    "tokens": [
+      "loaded"
+    ]
+  },
+  "bullseye": {
+    "id": "00300101",
+    "name": "Bullseye",
+    "base": "small",
+    "figure": "model",
+    "rotation": 355,
+    "tokens": [
+      "bleed"
+    ]
+  },
+  "cable": {
+    "id": "00470101",
+    "name": "Cable",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 120,
+    "tokens": [
+      "incinerate"
+    ]
+  },
+  "captain-america-first-avenger": {
+    "id": "01430102",
+    "name": "Captain America, First Avenger",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180
+  },
+  "captain-america-sam-wilson": {
+    "id": "00380101",
+    "name": "Captain America (Sam Wilson)",
+    "base": "small",
+    "figure": "model",
+    "rotation": 45
+  },
+  "captain-america-steve-rogers": {
+    "id": "00010103",
+    "name": "Captain America (Steve Rogers)",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180
+  },
+  "captain-marvel": {
+    "id": "00010104",
+    "name": "Captain Marvel",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "binary-form",
+      "stagger"
+    ]
+  },
+  "captain-marvel-cosmic-avenger": {
+    "id": "01430103",
+    "name": "Captain Marvel, Cosmic Avenger",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "cards": 2,
+    "transform": {
+      "figure": "model",
+      "rotation": 0,
+      "card": true,
+      "portrait": true
+    },
+    "tokens": [
+      "incinerate"
+    ]
+  },
+  "carnage": {
+    "id": "00500101",
+    "name": "Carnage",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 90,
+    "tokens": [
+      "bleed"
     ]
   },
   "cassandra-nova": {
@@ -228,6 +419,20 @@
     "tokens": [
       "root",
       "slow"
+    ]
+  },
+  "clea": {
+    "id": "00670101",
+    "name": "Clea",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "judgement",
+      "bleed",
+      "stun",
+      "slow",
+      "stagger"
     ]
   },
   "colossus": {
@@ -258,12 +463,31 @@
       "psychosis"
     ]
   },
+  "crimson-dynamo": {
+    "id": "00880101",
+    "name": "Crimson Dynamo",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 195,
+    "tokens": [
+      "shock"
+    ]
+  },
+  "crossbones": {
+    "id": "00010105",
+    "name": "Crossbones",
+    "base": "small",
+    "figure": "model",
+    "rotation": 255
+  },
   "crossbones-merciless-merc": {
     "id": "01430104",
     "name": "Crossbones, Merciless Merc",
     "base": "small",
     "figure": "model",
-    "rotation": 180
+    "rotation": 180,
+    "models": 2,
+    "cards": 2
   },
   "crystal": {
     "id": "00350101",
@@ -277,6 +501,13 @@
       "incinerate"
     ]
   },
+  "cyclops": {
+    "id": "00410101",
+    "name": "Cyclops",
+    "base": "small",
+    "figure": "model",
+    "rotation": 345
+  },
   "daredevil": {
     "id": "00300102",
     "name": "Daredevil",
@@ -287,6 +518,47 @@
       "stun"
     ]
   },
+  "darkstar": {
+    "id": "00880102",
+    "name": "Darkstar",
+    "base": "small",
+    "figure": "model",
+    "rotation": 240,
+    "tokens": [
+      "bleed"
+    ]
+  },
+  "deadpool": {
+    "id": "00450102",
+    "name": "Deadpool",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "bleed",
+      "slow"
+    ]
+  },
+  "doc-ock-sinister-scientist": {
+    "id": "01430105",
+    "name": "Doc Ock, Sinister Scientist",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "bleed",
+      "poison",
+      "shock"
+    ]
+  },
+  "doctor-octopus": {
+    "id": "00010106",
+    "name": "Doctor Octopus",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 60
+  },
   "doctor-strange": {
     "id": "00230101",
     "name": "Doctor Strange",
@@ -296,6 +568,37 @@
     "tokens": [
       "hex",
       "stagger"
+    ]
+  },
+  "doctor-strange-sorcerer-supreme": {
+    "id": "00670102",
+    "name": "Doctor Strange, Sorcerer Supreme",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 105,
+    "tokens": [
+      "poison"
+    ]
+  },
+  "doctor-voodoo": {
+    "id": "00650101",
+    "name": "Doctor Voodoo",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 45,
+    "tokens": [
+      "brother-daniel"
+    ]
+  },
+  "domino": {
+    "id": "00470102",
+    "name": "Domino",
+    "base": "small",
+    "figure": "model",
+    "rotation": 135,
+    "tokens": [
+      "incinerate",
+      "stun"
     ]
   },
   "dracula": {
@@ -311,6 +614,18 @@
       "hex"
     ]
   },
+  "drax-the-destroyer": {
+    "id": "00200101",
+    "name": "Drax the Destroyer",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "vengeance",
+      "bleed",
+      "stun"
+    ]
+  },
   "ebony-maw": {
     "id": "00190102",
     "name": "Ebony Maw",
@@ -324,6 +639,42 @@
     "base": "small",
     "figure": "model",
     "rotation": 210
+  },
+  "electro": {
+    "id": "01560101",
+    "name": "Electro",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 210,
+    "tokens": [
+      "shock"
+    ]
+  },
+  "elektra": {
+    "id": "00790101",
+    "name": "Elektra",
+    "base": "small",
+    "figure": "model",
+    "rotation": 75,
+    "grunts": [
+      "hand-ninjas"
+    ],
+    "tokens": [
+      "bleed"
+    ]
+  },
+  "elsa-bloodstone": {
+    "id": "01860101",
+    "name": "Elsa Bloodstone",
+    "base": "small",
+    "figure": "model",
+    "rotation": 210,
+    "tokens": [
+      "slow",
+      "incinerate",
+      "root",
+      "degeneration"
+    ]
   },
   "emma-frost": {
     "id": "01030101",
@@ -364,6 +715,16 @@
       "incinerate"
     ]
   },
+  "frankenstein-s-monster": {
+    "id": "02450102",
+    "name": "Frankenstein's Monster",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stagger"
+    ]
+  },
   "gambit": {
     "id": "00600101",
     "name": "Gambit",
@@ -372,6 +733,46 @@
     "rotation": 90,
     "tokens": [
       "stun"
+    ]
+  },
+  "gamora": {
+    "id": "00160101",
+    "name": "Gamora",
+    "base": "small",
+    "figure": "model",
+    "rotation": 315,
+    "tokens": [
+      "bleed"
+    ]
+  },
+  "ghost-rider": {
+    "id": "00270101",
+    "name": "Ghost Rider",
+    "base": "large",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "hex",
+      "incinerate"
+    ]
+  },
+  "ghost-spider": {
+    "id": "00100101",
+    "name": "Ghost-Spider",
+    "base": "small",
+    "figure": "model",
+    "rotation": 345
+  },
+  "gladiator": {
+    "id": "20130101",
+    "name": "Gladiator",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "confidence",
+      "stagger"
     ]
   },
   "gorgon": {
@@ -384,6 +785,84 @@
       "stagger",
       "shock",
       "stun"
+    ]
+  },
+  "green-goblin": {
+    "id": "00210101",
+    "name": "Green Goblin",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 165,
+    "tokens": [
+      "bleed",
+      "poison",
+      "incinerate"
+    ]
+  },
+  "groot": {
+    "id": "00170101",
+    "name": "Groot",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 300,
+    "tokens": [
+      "root",
+      "stagger"
+    ]
+  },
+  "gwenom": {
+    "id": "01550101",
+    "name": "Gwenom",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0
+  },
+  "gwenpool": {
+    "id": "01370101",
+    "name": "Gwenpool",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "bleed",
+      "shock",
+      "incinerate",
+      "poison",
+      "jeff",
+      "stun"
+    ]
+  },
+  "hand-ninjas": {
+    "id": "00790103",
+    "name": "Hand Ninjas",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 60,
+    "tokens": [
+      "bleed"
+    ]
+  },
+  "havok": {
+    "id": "30080101",
+    "name": "Havok",
+    "base": "small",
+    "figure": "standee",
+    "tokens": [
+      "incinerate",
+      "x-gene"
+    ]
+  },
+  "hawkeye": {
+    "id": "00240102",
+    "name": "Hawkeye",
+    "base": "small",
+    "figure": "model",
+    "rotation": 90,
+    "tokens": [
+      "bleed",
+      "shock",
+      "slow",
+      "poison"
     ]
   },
   "heimdall-the-all-seeing": {
@@ -404,6 +883,45 @@
       "bleed"
     ]
   },
+  "honey-badger": {
+    "id": "00710101",
+    "name": "Honey Badger",
+    "base": "small",
+    "figure": "model",
+    "rotation": 75,
+    "tokens": [
+      "bleed",
+      "slow"
+    ]
+  },
+  "hood": {
+    "id": "00650102",
+    "name": "Hood",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "cards": 2,
+    "transform": {
+      "figure": "model",
+      "rotation": 0,
+      "card": true,
+      "portrait": true
+    },
+    "tokens": [
+      "bleed",
+      "shock"
+    ]
+  },
+  "hulk": {
+    "id": "00040101",
+    "name": "Hulk",
+    "base": "large",
+    "figure": "model",
+    "rotation": 315,
+    "tokens": [
+      "stagger"
+    ]
+  },
   "hulkbuster": {
     "id": "00520101",
     "name": "Hulkbuster",
@@ -418,6 +936,31 @@
       "portrait": true
     }
   },
+  "hydra-troopers": {
+    "id": "00740102",
+    "name": "Hydra Troopers",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180
+  },
+  "iceman": {
+    "id": "00960101",
+    "name": "Iceman",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "slow",
+      "stagger"
+    ]
+  },
+  "invincible-iron-man": {
+    "id": "01430106",
+    "name": "Invincible Iron Man",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180
+  },
   "iron-fist": {
     "id": "00490101",
     "name": "Iron Fist",
@@ -429,6 +972,24 @@
       "stagger"
     ]
   },
+  "iron-lad": {
+    "id": "01540101",
+    "name": "Iron Lad",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "slow",
+      "stun"
+    ]
+  },
+  "iron-man": {
+    "id": "00010107",
+    "name": "Iron Man",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180
+  },
   "iron-monger": {
     "id": "01540102",
     "name": "Iron Monger",
@@ -436,12 +997,43 @@
     "figure": "model",
     "rotation": 180
   },
+  "jean-grey": {
+    "id": "00530102",
+    "name": "Jean Grey",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0
+  },
+  "jubilee": {
+    "id": "30080102",
+    "name": "Jubilee",
+    "base": "small",
+    "figure": "standee",
+    "tokens": [
+      "stun"
+    ]
+  },
   "juggernaut": {
     "id": "00560101",
     "name": "Juggernaut",
     "base": "large",
     "figure": "model",
     "rotation": 0
+  },
+  "kang-the-conqueror": {
+    "id": "01540103",
+    "name": "Kang The Conqueror",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "bleed",
+      "hex",
+      "slow",
+      "shock",
+      "stun"
+    ]
   },
   "karnak": {
     "id": "01660102",
@@ -499,6 +1091,28 @@
       "stagger"
     ]
   },
+  "klaw": {
+    "id": "01160101",
+    "name": "Klaw",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stun"
+    ]
+  },
+  "kraven-the-hunter": {
+    "id": "00580101",
+    "name": "Kraven the Hunter",
+    "base": "small",
+    "figure": "model",
+    "rotation": 45,
+    "tokens": [
+      "expert-tracker",
+      "corner-the-beast",
+      "bleed"
+    ]
+  },
   "lady-mastermind": {
     "id": "01730103",
     "name": "Lady Mastermind",
@@ -519,6 +1133,17 @@
     "figure": "model",
     "rotation": 180
   },
+  "lizard": {
+    "id": "00580102",
+    "name": "Lizard",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 90,
+    "tokens": [
+      "bleed",
+      "slow"
+    ]
+  },
   "lockjaw": {
     "id": "00350102",
     "name": "Lockjaw",
@@ -528,6 +1153,16 @@
     "tokens": [
       "bleed",
       "interdimensional-bloodhound"
+    ]
+  },
+  "logan-the-wolverine": {
+    "id": "10030101",
+    "name": "Logan, The Wolverine",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "bleed"
     ]
   },
   "loki-god-of-mischief": {
@@ -550,6 +1185,18 @@
       "root"
     ]
   },
+  "luke-cage": {
+    "id": "00490102",
+    "name": "Luke Cage",
+    "base": "small",
+    "figure": "model",
+    "rotation": 30,
+    "tokens": [
+      "stagger",
+      "slow",
+      "stun"
+    ]
+  },
   "m-baku": {
     "id": "01160102",
     "name": "M'Baku",
@@ -557,12 +1204,46 @@
     "figure": "model",
     "rotation": 0
   },
+  "m-o-d-o-k": {
+    "id": "00050101",
+    "name": "M.O.D.O.K.",
+    "base": "large",
+    "figure": "model",
+    "rotation": 240,
+    "tokens": [
+      "bleed"
+    ]
+  },
+  "m-o-d-o-k-scientist-supreme": {
+    "id": "01450101",
+    "name": "M.O.D.O.K. Scientist Supreme",
+    "base": "large",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "stun"
+    ]
+  },
+  "magik": {
+    "id": "00570102",
+    "name": "Magik",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "bleed",
+      "incinerate",
+      "hex"
+    ]
+  },
   "magneto": {
     "id": "00420101",
     "name": "Magneto",
     "base": "medium",
     "figure": "model",
     "rotation": 0,
+    "constructs": 2,
     "tokens": [
       "stun"
     ]
@@ -593,6 +1274,16 @@
       "incinerate"
     ]
   },
+  "maverick": {
+    "id": "01090101",
+    "name": "Maverick",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "bleed"
+    ]
+  },
   "maximus-the-mad": {
     "id": "01660104",
     "name": "Maximus The Mad",
@@ -619,10 +1310,20 @@
     "base": "medium",
     "figure": "model",
     "rotation": 180,
+    "models": 2,
     "cards": 2,
     "tokens": [
       "incinerate",
       "devils-deal"
+    ]
+  },
+  "mirage": {
+    "id": "30080103",
+    "name": "Mirage",
+    "base": "small",
+    "figure": "standee",
+    "tokens": [
+      "neural-connection"
     ]
   },
   "mister-sinister": {
@@ -635,6 +1336,16 @@
       "genetic-sample",
       "genetic-sample-3",
       "root"
+    ]
+  },
+  "moon-knight": {
+    "id": "00480102",
+    "name": "Moon Knight",
+    "base": "small",
+    "figure": "model",
+    "rotation": 120,
+    "tokens": [
+      "stagger"
     ]
   },
   "moondragon": {
@@ -660,6 +1371,37 @@
       "base": "large"
     }
   },
+  "multiple-man": {
+    "id": "30080104",
+    "name": "Multiple Man",
+    "base": "small",
+    "figure": "standee",
+    "grunts": [
+      "multiple-man-duplicates"
+    ],
+    "tokens": [
+      "stagger"
+    ]
+  },
+  "multiple-man-duplicates": {
+    "id": "30080105",
+    "name": "Multiple Man Duplicates",
+    "base": "medium",
+    "figure": "standee",
+    "tokens": [
+      "slow"
+    ]
+  },
+  "mysterio": {
+    "id": "00500102",
+    "name": "Mysterio",
+    "base": "small",
+    "figure": "model",
+    "rotation": 45,
+    "tokens": [
+      "stagger"
+    ]
+  },
   "mystique": {
     "id": "00430102",
     "name": "Mystique",
@@ -668,6 +1410,17 @@
     "rotation": 0,
     "tokens": [
       "stun"
+    ]
+  },
+  "n-kantu-the-living-mummy": {
+    "id": "02450103",
+    "name": "N'Kantu, The Living Mummy",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "mummy-soul",
+      "hex"
     ]
   },
   "namor-the-sub-mariner": {
@@ -689,6 +1442,49 @@
     "tokens": [
       "shock",
       "stun"
+    ]
+  },
+  "nick-fury": {
+    "id": "00550101",
+    "name": "Nick Fury",
+    "base": "small",
+    "figure": "model",
+    "rotation": 30,
+    "grunts": [
+      "s-h-i-e-l-d-agents"
+    ],
+    "tokens": [
+      "bleed"
+    ]
+  },
+  "nick-fury-the-howling-commandos": {
+    "id": "00750101",
+    "name": "Nick Fury & The Howling Commandos",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "incinerate"
+    ]
+  },
+  "nightcrawler": {
+    "id": "01120102",
+    "name": "Nightcrawler",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stun"
+    ]
+  },
+  "nova": {
+    "id": "01260101",
+    "name": "Nova",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "judgement"
     ]
   },
   "okoye": {
@@ -720,6 +1516,48 @@
       "mystic"
     ]
   },
+  "onslaught": {
+    "id": "30070101",
+    "name": "Onslaught",
+    "base": "large",
+    "figure": "standee"
+  },
+  "phoenix": {
+    "id": "00830101",
+    "name": "Phoenix",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "transform": {
+      "figure": "model",
+      "rotation": 180,
+      "name": "Phoenix Unleased",
+      "base": "large",
+      "portrait": true
+    },
+    "constructs": 2,
+    "tokens": [
+      "incinerate",
+      "phoenix-token"
+    ]
+  },
+  "professor-x": {
+    "id": "01510101",
+    "name": "Professor X",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "root"
+    ]
+  },
+  "prowler": {
+    "id": "01690101",
+    "name": "Prowler",
+    "base": "small",
+    "figure": "model",
+    "rotation": 20
+  },
   "proxima-midnight": {
     "id": "00150102",
     "name": "Proxima Midnight",
@@ -730,6 +1568,28 @@
       "bleed",
       "poison",
       "stun"
+    ]
+  },
+  "psylocke": {
+    "id": "01030102",
+    "name": "Psylocke",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stun"
+    ]
+  },
+  "punisher": {
+    "id": "00320101",
+    "name": "Punisher",
+    "base": "small",
+    "figure": "model",
+    "rotation": 205,
+    "tokens": [
+      "punishment",
+      "stun",
+      "slow"
     ]
   },
   "pyro": {
@@ -744,12 +1604,38 @@
       "slow"
     ]
   },
+  "quasar": {
+    "id": "01910103",
+    "name": "Quasar",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 285,
+    "tokens": [
+      "incinerate"
+    ]
+  },
   "quicksilver": {
     "id": "00630101",
     "name": "Quicksilver",
     "base": "small",
     "figure": "model",
     "rotation": 285
+  },
+  "red-guardian": {
+    "id": "00890101",
+    "name": "Red Guardian",
+    "base": "small",
+    "figure": "model",
+    "rotation": 30
+  },
+  "red-hulk": {
+    "id": "30170101",
+    "name": "Red Hulk",
+    "base": "large",
+    "figure": "standee",
+    "tokens": [
+      "incinerate"
+    ]
   },
   "red-skull": {
     "id": "00010108",
@@ -760,6 +1646,53 @@
     "tokens": [
       "stun"
     ]
+  },
+  "red-skull-master-of-hydra": {
+    "id": "00740101",
+    "name": "Red Skull, Master of Hydra",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "grunts": [
+      "hydra-troopers"
+    ],
+    "tokens": [
+      "stagger"
+    ]
+  },
+  "red-skull-master-of-the-world": {
+    "id": "01430107",
+    "name": "Red Skull, Master of The World",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "shock"
+    ]
+  },
+  "rescue": {
+    "id": "01540104",
+    "name": "Rescue",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stun"
+    ]
+  },
+  "rhino": {
+    "id": "00980101",
+    "name": "Rhino",
+    "base": "large",
+    "figure": "model",
+    "rotation": 180
+  },
+  "rocket-raccoon": {
+    "id": "00170102",
+    "name": "Rocket Raccoon",
+    "base": "small",
+    "figure": "model",
+    "rotation": 150
   },
   "rogue": {
     "id": "00600102",
@@ -781,6 +1714,23 @@
       "stagger"
     ]
   },
+  "ronin": {
+    "id": "01680102",
+    "name": "Ronin",
+    "base": "small",
+    "figure": "model",
+    "rotation": 210,
+    "tokens": [
+      "bleed"
+    ]
+  },
+  "s-h-i-e-l-d-agents": {
+    "id": "00550102",
+    "name": "S.H.I.E.L.D. Agents",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 30
+  },
   "sabretooth": {
     "id": "00400101",
     "name": "Sabretooth",
@@ -801,6 +1751,38 @@
       "bleed"
     ]
   },
+  "sand-construct-fisty": {
+    "id": "T01560107",
+    "name": "Sand Construct - Fisty",
+    "base": "small",
+    "figure": "model",
+    "rotation": 30
+  },
+  "sand-constructs-twisty": {
+    "id": "T01560106",
+    "name": "Sand Constructs - Twisty",
+    "base": "small",
+    "figure": "model",
+    "rotation": 30
+  },
+  "sandman": {
+    "id": "01560102",
+    "name": "Sandman",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 0,
+    "grunts": [
+      "sand-constructs-twisty",
+      "sand-construct-fisty"
+    ]
+  },
+  "scarlet-spider": {
+    "id": "01550102",
+    "name": "Scarlet Spider",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0
+  },
   "scarlet-witch": {
     "id": "00630102",
     "name": "Scarlet Witch",
@@ -813,6 +1795,16 @@
       "incinerate",
       "poison",
       "judgement"
+    ]
+  },
+  "sensational-she-hulk": {
+    "id": "30170102",
+    "name": "Sensational She-Hulk",
+    "base": "medium",
+    "figure": "standee",
+    "tokens": [
+      "stun",
+      "stagger"
     ]
   },
   "sentinel-mk4-00510101": {
@@ -861,6 +1853,63 @@
       "root"
     ]
   },
+  "shadowcat": {
+    "id": "00960102",
+    "name": "Shadowcat",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate"
+    ]
+  },
+  "shadowland-daredevil": {
+    "id": "00790102",
+    "name": "Shadowland Daredevil",
+    "base": "small",
+    "figure": "model",
+    "rotation": 45,
+    "grunts": [
+      "hand-ninjas"
+    ],
+    "tokens": [
+      "bleed"
+    ]
+  },
+  "shang-chi": {
+    "id": "00690101",
+    "name": "Shang-Chi",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stagger",
+      "stun"
+    ]
+  },
+  "she-hulk": {
+    "id": "00390101",
+    "name": "She-Hulk",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "slow",
+      "stun",
+      "stagger"
+    ]
+  },
+  "shocker": {
+    "id": "01560103",
+    "name": "Shocker",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 45,
+    "tokens": [
+      "stun",
+      "stagger"
+    ]
+  },
   "shuri": {
     "id": "00080102",
     "name": "Shuri",
@@ -870,6 +1919,27 @@
     "tokens": [
       "stun",
       "stagger"
+    ]
+  },
+  "silk": {
+    "id": "01700101",
+    "name": "Silk",
+    "base": "small",
+    "figure": "model",
+    "rotation": 135,
+    "tokens": [
+      "slow"
+    ]
+  },
+  "silver-sable": {
+    "id": "00690102",
+    "name": "Silver Sable",
+    "base": "small",
+    "figure": "model",
+    "rotation": 135,
+    "tokens": [
+      "root",
+      "stun"
     ]
   },
   "sin": {
@@ -896,6 +1966,68 @@
     "figure": "model",
     "rotation": 0
   },
+  "spectrum": {
+    "id": "01290102",
+    "name": "Spectrum",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "stun"
+    ]
+  },
+  "spider-ham": {
+    "id": "01700102",
+    "name": "Spider-Ham",
+    "base": "small",
+    "figure": "model",
+    "rotation": 240,
+    "tokens": [
+      "stun",
+      "slow",
+      "shock",
+      "stagger"
+    ]
+  },
+  "spider-man-2099": {
+    "id": "01690102",
+    "name": "Spider-Man 2099",
+    "base": "small",
+    "figure": "model",
+    "rotation": 240,
+    "tokens": [
+      "stun",
+      "poison"
+    ]
+  },
+  "spider-man-miles-morales": {
+    "id": "00100102",
+    "name": "Spider-Man (Miles Morales)",
+    "base": "small",
+    "figure": "model",
+    "rotation": 240
+  },
+  "spider-man-noir": {
+    "id": "01700103",
+    "name": "Spider-Man Noir",
+    "base": "small",
+    "figure": "model",
+    "rotation": 240,
+    "tokens": [
+      "slow",
+      "shock"
+    ]
+  },
+  "spider-man-peter-parker": {
+    "id": "00010109",
+    "name": "Spider-Man (Peter Parker)",
+    "base": "small",
+    "figure": "model",
+    "rotation": 300,
+    "tokens": [
+      "stun"
+    ]
+  },
   "spider-woman": {
     "id": "01000102",
     "name": "Spider-Woman",
@@ -906,6 +2038,43 @@
       "poison",
       "shock",
       "stun"
+    ]
+  },
+  "squirrel-girl": {
+    "id": "01370102",
+    "name": "Squirrel Girl",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "bleed",
+      "stun",
+      "tippy-toe"
+    ]
+  },
+  "star-lord": {
+    "id": "00180101",
+    "name": "Star-Lord",
+    "base": "small",
+    "figure": "model",
+    "rotation": 270,
+    "tokens": [
+      "winging-it",
+      "bleed",
+      "shock",
+      "slow",
+      "stun"
+    ]
+  },
+  "steve-rogers-captain-america": {
+    "id": "00770101",
+    "name": "Steve Rogers, Captain America",
+    "base": "small",
+    "figure": "model",
+    "rotation": 330,
+    "tokens": [
+      "stun",
+      "slow"
     ]
   },
   "storm": {
@@ -919,6 +2088,17 @@
       "stun"
     ]
   },
+  "sunspot": {
+    "id": "01530101",
+    "name": "Sunspot",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "flare-sunspot"
+    ]
+  },
   "supergiant": {
     "id": "00810102",
     "name": "Supergiant",
@@ -928,6 +2108,16 @@
     "tokens": [
       "stun",
       "stagger"
+    ]
+  },
+  "taskmaster": {
+    "id": "00320102",
+    "name": "Taskmaster",
+    "base": "small",
+    "figure": "model",
+    "rotation": 75,
+    "tokens": [
+      "bleed"
     ]
   },
   "thanos-the-mad-titan": {
@@ -940,12 +2130,45 @@
       "slow"
     ]
   },
+  "the-black-widow": {
+    "id": "01430109",
+    "name": "The Black Widow",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "stun",
+      "shock"
+    ]
+  },
   "the-blob": {
     "id": "00820102",
     "name": "The Blob",
     "base": "medium",
     "figure": "model",
     "rotation": 180
+  },
+  "the-immortal-hulk": {
+    "id": "01440101",
+    "name": "The Immortal Hulk",
+    "base": "large",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "immortality"
+    ]
+  },
+  "the-leader": {
+    "id": "30170103",
+    "name": "The Leader",
+    "base": "small",
+    "figure": "standee",
+    "tokens": [
+      "bleed",
+      "shock",
+      "slow",
+      "stun"
+    ]
   },
   "the-mighty-thor": {
     "id": "00910103",
@@ -955,6 +2178,16 @@
     "rotation": 180,
     "tokens": [
       "shock"
+    ]
+  },
+  "the-original-human-torch": {
+    "id": "00770102",
+    "name": "The Original Human Torch",
+    "base": "small",
+    "figure": "model",
+    "rotation": 330,
+    "tokens": [
+      "incinerate"
     ]
   },
   "the-warriors-three": {
@@ -967,6 +2200,17 @@
       "bleed",
       "stun",
       "stagger"
+    ]
+  },
+  "the-wrecking-crew": {
+    "id": "01620102",
+    "name": "The Wrecking Crew",
+    "base": "large",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stagger",
+      "stun"
     ]
   },
   "thor-hero-of-midgard": {
@@ -987,6 +2231,17 @@
       "stagger"
     ]
   },
+  "tigra": {
+    "id": "01680103",
+    "name": "Tigra",
+    "base": "small",
+    "figure": "model",
+    "rotation": 210,
+    "tokens": [
+      "hex",
+      "stagger"
+    ]
+  },
   "toad": {
     "id": "00420102",
     "name": "Toad",
@@ -996,6 +2251,16 @@
     "tokens": [
       "incinerate",
       "poison"
+    ]
+  },
+  "ulik": {
+    "id": "01300102",
+    "name": "Ulik",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stagger"
     ]
   },
   "ultimate-spider-man": {
@@ -1008,6 +2273,50 @@
       "stun",
       "shock",
       "slow"
+    ]
+  },
+  "ultron": {
+    "id": "00010110",
+    "name": "Ultron",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 210,
+    "tokens": [
+      "incinerate",
+      "bleed"
+    ]
+  },
+  "ultron-drones": {
+    "id": "01430119",
+    "name": "Ultron Drones",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180
+  },
+  "ultron-metal-tyrant": {
+    "id": "01430110",
+    "name": "Ultron, Metal Tyrant ",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "grunts": [
+      "ultron-drones"
+    ],
+    "tokens": [
+      "poison",
+      "bleed",
+      "stagger"
+    ]
+  },
+  "ursa-major": {
+    "id": "00890102",
+    "name": "Ursa Major",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 330,
+    "tokens": [
+      "bleed",
+      "stagger"
     ]
   },
   "valkyrie": {
@@ -1029,6 +2338,16 @@
       "stagger"
     ]
   },
+  "venom": {
+    "id": "00090101",
+    "name": "Venom",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 195,
+    "tokens": [
+      "bleed"
+    ]
+  },
   "viper": {
     "id": "00610102",
     "name": "Viper",
@@ -1041,6 +2360,67 @@
       "slow"
     ]
   },
+  "vision": {
+    "id": "00130101",
+    "name": "Vision",
+    "base": "small",
+    "figure": "model",
+    "rotation": 75,
+    "tokens": [
+      "phased"
+    ]
+  },
+  "vulture": {
+    "id": "01560104",
+    "name": "Vulture",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "bleed"
+    ]
+  },
+  "war-machine": {
+    "id": "00380102",
+    "name": "War Machine",
+    "base": "small",
+    "figure": "model",
+    "rotation": 90,
+    "tokens": [
+      "bleed"
+    ]
+  },
+  "warlock": {
+    "id": "01530102",
+    "name": "Warlock",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "shock",
+      "bleed",
+      "poison"
+    ]
+  },
+  "wasp": {
+    "id": "00260102",
+    "name": "Wasp",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "transform": {
+      "figure": "model",
+      "rotation": 0,
+      "card": true
+    }
+  },
+  "weapon-x-logan": {
+    "id": "01090102",
+    "name": "Weapon X (Logan)",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180
+  },
   "werewolf-by-night": {
     "id": "02450104",
     "name": "Werewolf By Night",
@@ -1052,6 +2432,64 @@
       "slow",
       "root",
       "hex"
+    ]
+  },
+  "winter-soldier": {
+    "id": "00130102",
+    "name": "Winter Soldier",
+    "base": "small",
+    "figure": "model",
+    "rotation": 105,
+    "tokens": [
+      "bleed"
+    ]
+  },
+  "winter-soldier-operative": {
+    "id": "01430111",
+    "name": "Winter Soldier, Operative",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "shock",
+      "stun"
+    ]
+  },
+  "wolverine": {
+    "id": "00400102",
+    "name": "Wolverine",
+    "base": "small",
+    "figure": "model",
+    "rotation": 240,
+    "tokens": [
+      "bleed"
+    ]
+  },
+  "wong": {
+    "id": "00230102",
+    "name": "Wong",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0
+  },
+  "x-23": {
+    "id": "00710102",
+    "name": "x-23",
+    "base": "small",
+    "figure": "model",
+    "rotation": 270,
+    "tokens": [
+      "bleed"
+    ]
+  },
+  "yondu": {
+    "id": "01260102",
+    "name": "Yondu",
+    "base": "small",
+    "figure": "model",
+    "rotation": 270,
+    "tokens": [
+      "slow"
     ]
   }
 }

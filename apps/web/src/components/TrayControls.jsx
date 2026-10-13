@@ -44,6 +44,8 @@ export default function TrayControls({
   }
 
   const attached = hideAttached ? [] : attachedCards(character)
+  // A grunt has no Power and no Injured side to flip to (docs/features/character-trays.md, "Grunts")
+  const grunt = Boolean(character.host)
 
   return (
     <div className="tray-controls" data-character-id={character.id}>
@@ -66,17 +68,21 @@ export default function TrayControls({
           ))}
         </div>
       )}
-      <div className="tray-controls-row tray-controls-actions">
-        <button
-          type="button"
-          className="chip tray-controls-flip"
-          onClick={(e) => {
-            e.stopPropagation()
-            onFlip()
-          }}
-        >
-          Flip
-        </button>
+      <div
+        className={`tray-controls-row tray-controls-actions${grunt ? ' tray-controls-actions--grunt' : ''}`}
+      >
+        {!grunt && (
+          <button
+            type="button"
+            className="chip tray-controls-flip"
+            onClick={(e) => {
+              e.stopPropagation()
+              onFlip()
+            }}
+          >
+            Flip
+          </button>
+        )}
         <button
           type="button"
           className="chip tray-controls-remove"
@@ -92,7 +98,8 @@ export default function TrayControls({
 }
 
 // The Damage and Power counters in one row. Without onDamage and onPower, the counters only show the
-// values, with no -/+ buttons: the spectator view above a model uses them so (SpectatorBadge.jsx).
+// values, with no -/+ buttons: the spectator view above a model uses them so (SpectatorBadge.jsx). A grunt
+// (character.host) shows no Power counter.
 export function TrayCounters({ character, stamina, onDamage, onPower }) {
   return (
     <div className="tray-controls-row">
@@ -105,14 +112,16 @@ export function TrayCounters({ character, stamina, onDamage, onPower }) {
         onDec={onDamage && (() => onDamage(character.damage - 1))}
         onInc={onDamage && (() => onDamage(character.damage + 1))}
       />
-      <Counter
-        icon={POWER_ICON}
-        alt="Power"
-        value={character.power}
-        max={10}
-        onDec={onPower && (() => onPower(character.power - 1))}
-        onInc={onPower && (() => onPower(character.power + 1))}
-      />
+      {!character.host && (
+        <Counter
+          icon={POWER_ICON}
+          alt="Power"
+          value={character.power}
+          max={10}
+          onDec={onPower && (() => onPower(character.power - 1))}
+          onInc={onPower && (() => onPower(character.power + 1))}
+        />
+      )}
     </div>
   )
 }

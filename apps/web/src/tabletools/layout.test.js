@@ -18,6 +18,9 @@ import {
   TRAY_BG_WIDTH,
   trayGiveTokenPosition,
   trayPlate,
+  trayPosition,
+  traySpareModelPosition,
+  trayConstructPosition,
 } from '../characters/trays.js'
 import { KEYS_LIP, TRAYS } from '../dice/tray.js'
 import { TOKEN_SIZE } from '../tokens/files.js'
@@ -89,6 +92,7 @@ function others() {
   return out
 }
 
+const trayPos = trayPosition('host', 0, 1)
 const plate2 = trayPlate(2)
 
 test('every piece lies inside the table', () => {
@@ -139,6 +143,23 @@ test('a row of 7 character trays does not touch the rack, with the Give sources'
       )
       assert.ok(!overlap(plate, give), `${side} give ${pos[0]}`)
     }
+  }
+})
+
+test('a spare model and constructs after one row of Give sources end before the table edge', () => {
+  const spare = traySpareModelPosition('host', trayPos, 1, 6, 1)
+  assert.ok(spare[2] + 1 < TABLE_DEPTH / 2)
+  const small = 1.37795 / 2
+  for (const index of [0, 1]) {
+    const c = trayConstructPosition('host', trayPos, 1, 6, 1, index, small)
+    assert.ok(c[2] + small < TABLE_DEPTH / 2)
+  }
+})
+
+test('the row of the character trays can be 12 trays wide without passing the table edge', () => {
+  const characters = Array.from({ length: 12 }, (_, i) => ({ id: i, team: 'host' }))
+  for (const pos of layoutTrays(characters).values()) {
+    assert.ok(pos[2] + plate2.z + plate2.depth / 2 < TABLE_DEPTH / 2)
   }
 })
 

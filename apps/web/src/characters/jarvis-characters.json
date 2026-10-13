@@ -9441,7 +9441,7 @@
     "secondStatCard": null
   },
   {
-    "version": 1790430980,
+    "version": 1790683500,
     "template": "2023",
     "template2023Ready": false,
     "id": 422,
@@ -9562,7 +9562,7 @@
         "id": 422,
         "slug": "black-bolt",
         "name": null,
-        "version": 1790430980,
+        "version": 1790683500,
         "thumbnailUrl": null,
         "thumbnailTransform": {
           "xScaleFactor": 1,
@@ -9699,7 +9699,7 @@
             "type": "innate",
             "name": "Focus Power",
             "powerCost": null,
-            "body": "During the |*Power Phase*, this character gains 1 additional |!power|."
+            "body": "During the |*Power Phase|, this character gains 1 additional |!power|."
           },
           {
             "rank": 5,
@@ -9812,7 +9812,7 @@
             "type": "innate",
             "name": "Focus Power",
             "powerCost": null,
-            "body": "During the |*Power Phase*, this character gains 1 additional |!power|."
+            "body": "During the |*Power Phase|, this character gains 1 additional |!power|."
           },
           {
             "rank": 5,
@@ -9840,39 +9840,39 @@
       "biggerIcons": true,
       "erratas": [
         {
-          "createdOn": "2026-09-26",
+          "createdOn": "2026-09-29",
           "body": "King of the Inhumans is now |!range| 5 instead of 3. The character gaining 1 |!power| can now only be the Activating character."
         },
         {
-          "createdOn": "2026-09-26",
+          "createdOn": "2026-09-29",
           "body": "Peerless keyword added."
         },
         {
-          "createdOn": "2026-09-26",
+          "createdOn": "2026-09-29",
           "body": "Mystic defense increased from 2 to 3."
         },
         {
-          "createdOn": "2026-09-26",
+          "createdOn": "2026-09-29",
           "body": "Stamina increased from 5 to 6 on Healthy side."
         },
         {
-          "createdOn": "2026-09-26",
+          "createdOn": "2026-09-29",
           "body": "Strength for \"Energy Bolt\" increased from 5 to 6."
         },
         {
-          "createdOn": "2026-09-26",
+          "createdOn": "2026-09-29",
           "body": "Power cost for \"Master Punch\" decreased from 4 to 3."
         },
         {
-          "createdOn": "2026-09-26",
+          "createdOn": "2026-09-29",
           "body": "Strength for \"Whisper\" increased from 9 to 10."
         },
         {
-          "createdOn": "2026-09-26",
+          "createdOn": "2026-09-29",
           "body": "Superpower \"A King Serves His People\" added on Healthy side, granting a bodyguard capacity."
         },
         {
-          "createdOn": "2026-09-26",
+          "createdOn": "2026-09-29",
           "body": "\"Focus Power\" becomes Innate instead of Active. It gives 1 |!power| during the Power Phase instead of adding 2 dice the attack rolls of the next attack action made this turn."
         }
       ],
@@ -38660,7 +38660,7 @@
     "secondStatCard": null
   },
   {
-    "version": 1790324554,
+    "version": 1791329038,
     "template": "2023",
     "template2023Ready": false,
     "id": 1070,
@@ -38700,7 +38700,7 @@
     ],
     "releaseDate": "2026-10-30",
     "approximateDate": null,
-    "exportCode": "30080102",
+    "exportCode": "30080101",
     "thumbnailUrl": null,
     "thumbnailTransform": {
       "xScaleFactor": 1,
@@ -38757,7 +38757,20 @@
     "bestPhysicalAttack": 0,
     "bestEnergyAttack": 5,
     "bestMysticAttack": 0,
-    "tags": [],
+    "tags": [
+      "leaderNatural",
+      "energyR4",
+      "incinerate",
+      "beam",
+      "pierce",
+      "atkReroll",
+      "defReroll",
+      "rerollSource",
+      "powerGen",
+      "placeSelf",
+      "atkMod",
+      "immuneToIncinerate"
+    ],
     "highlights": [
       {
         "id": "dcd0d0b9-1429-448a-8b2f-ea4290c027db",
@@ -38794,6 +38807,90 @@
           }
         ],
         "interactable": true
+      },
+      {
+        "id": "c3c3d1a7-cca6-4014-826c-cc0c8b68eff9",
+        "customType": "creatorContent",
+        "author": {
+          "id": 5276,
+          "uuid": "05bd7e8b-4819-46f7-b266-20d9a0f7aa97",
+          "pseudonym": "Nate GG",
+          "slug": "nate-gg",
+          "country": "",
+          "region": "",
+          "latitude": "36.0846213",
+          "longitude": "-86.45141602",
+          "contactable": true
+        },
+        "type": "battle_report",
+        "series": "The Gamer's Guild",
+        "name": "MCP Battle Report: X-Factor vs X-Force",
+        "language": "us",
+        "publishedOn": "2026-10-07T17:16:38.000Z",
+        "hotAt": "2026-10-07T17:16:38.000Z",
+        "highlights": [
+          {
+            "id": 432,
+            "slug": "cable",
+            "name": "Cable",
+            "alterEgo": "Nathan Summers"
+          },
+          {
+            "id": 1070,
+            "slug": "havok",
+            "name": "Havok",
+            "alterEgo": "Alexander Summers"
+          },
+          {
+            "id": 1071,
+            "slug": "multiple-man",
+            "name": "Multiple Man",
+            "alterEgo": "Jamie Madrox"
+          }
+        ],
+        "interactable": true
+      },
+      {
+        "id": "647ad1ab-5cd5-4426-95da-aa63631b8eea",
+        "customType": "creatorContent",
+        "author": {
+          "id": 2326,
+          "uuid": "46831f9d-e981-4c93-bc23-08e8aa4f6a2e",
+          "pseudonym": "Aegisbrand Studios",
+          "slug": "aegisbrand-studios",
+          "country": "CA",
+          "region": "ON",
+          "latitude": "42.99068597",
+          "longitude": "-79.24225219",
+          "contactable": true
+        },
+        "type": "battle_report",
+        "series": "Aegisbrand Studios",
+        "name": "X FACTOR vs  X FORCE Marvel Crisis Protocol Battle Report S06E34",
+        "language": "us",
+        "publishedOn": "2026-10-10T16:00:00.000Z",
+        "hotAt": "2026-10-10T16:00:00.000Z",
+        "highlights": [
+          {
+            "id": 1069,
+            "slug": "mirage",
+            "name": "Mirage",
+            "alterEgo": "Danielle \"Dani\" Moonstar"
+          },
+          {
+            "id": 1070,
+            "slug": "havok",
+            "name": "Havok",
+            "alterEgo": "Alexander Summers"
+          },
+          {
+            "id": 1071,
+            "slug": "multiple-man",
+            "name": "Multiple Man",
+            "alterEgo": "Jamie Madrox"
+          }
+        ],
+        "interactable": true
       }
     ],
     "sculpts": [
@@ -38801,7 +38898,7 @@
         "id": 1070,
         "slug": "havok",
         "name": null,
-        "version": 1790324554,
+        "version": 1791329038,
         "thumbnailUrl": null,
         "thumbnailTransform": {
           "xScaleFactor": 1,
@@ -45458,7 +45555,7 @@
     "secondStatCard": null
   },
   {
-    "version": 1780689568,
+    "version": 1791063114,
     "template": "2023",
     "template2023Ready": false,
     "id": 904,
@@ -45498,7 +45595,7 @@
     ],
     "releaseDate": null,
     "approximateDate": null,
-    "exportCode": null,
+    "exportCode": "30080102",
     "thumbnailUrl": null,
     "thumbnailTransform": {
       "xScaleFactor": 1,
@@ -45597,6 +45694,42 @@
           }
         ],
         "interactable": true
+      },
+      {
+        "id": "eb0f3a19-0c26-4d63-9ba2-96ba6c93dd06",
+        "customType": "creatorContent",
+        "author": {
+          "id": 1393,
+          "uuid": "f1d6cb58-64a4-4c9c-9530-fd151191572f",
+          "pseudonym": "SGP Sören",
+          "slug": "sgp-sören",
+          "country": "DE",
+          "region": "NW",
+          "latitude": "51.51207518",
+          "longitude": "6.98771762",
+          "contactable": true
+        },
+        "type": "blog_article",
+        "series": "SG Protocol ",
+        "name": "Hot Takes: Multiple Man and Jubilee ",
+        "language": "us",
+        "publishedOn": "2026-10-06T21:18:03.000Z",
+        "hotAt": "2026-10-06T21:18:03.000Z",
+        "highlights": [
+          {
+            "id": 904,
+            "slug": "jubilee",
+            "name": "Jubilee",
+            "alterEgo": "Jubilation Lee"
+          },
+          {
+            "id": 1071,
+            "slug": "multiple-man",
+            "name": "Multiple Man",
+            "alterEgo": "Jamie Madrox"
+          }
+        ],
+        "interactable": true
       }
     ],
     "sculpts": [
@@ -45604,7 +45737,7 @@
         "id": 904,
         "slug": "jubilee",
         "name": null,
-        "version": 1780689568,
+        "version": 1791063114,
         "thumbnailUrl": null,
         "thumbnailTransform": {
           "xScaleFactor": 1,
@@ -46915,7 +47048,7 @@
     "secondStatCard": null
   },
   {
-    "version": 1753605541,
+    "version": 1791228614,
     "template": "2023",
     "template2023Ready": false,
     "id": 679,
@@ -46997,6 +47130,7 @@
     "bestEnergyAttack": 0,
     "bestMysticAttack": 0,
     "tags": [
+      "digitalUpdate2026August",
       "physicalR3",
       "push",
       "failures",
@@ -47099,7 +47233,7 @@
         "id": 679,
         "slug": "karnak",
         "name": null,
-        "version": 1753605541,
+        "version": 1791228614,
         "thumbnailUrl": null,
         "thumbnailTransform": {
           "xScaleFactor": 1,
@@ -47358,7 +47492,7 @@
       "biggerIcons": true,
       "erratas": [
         {
-          "createdOn": "2026-08-20",
+          "createdOn": "2026-10-05",
           "body": "Analyzing Strike now removes the Weakness token before |!damage| is dealt instead of after the attack is resolved."
         }
       ],
@@ -59043,7 +59177,7 @@
     "secondStatCard": null
   },
   {
-    "version": 1790324553,
+    "version": 1791329038,
     "template": "2023",
     "template2023Ready": false,
     "id": 1069,
@@ -59083,7 +59217,7 @@
     ],
     "releaseDate": "2026-10-30",
     "approximateDate": null,
-    "exportCode": "30080101",
+    "exportCode": "30080103",
     "thumbnailUrl": null,
     "thumbnailTransform": {
       "xScaleFactor": 1,
@@ -59157,7 +59291,18 @@
     "bestPhysicalAttack": 0,
     "bestEnergyAttack": 0,
     "bestMysticAttack": 5,
-    "tags": [],
+    "tags": [
+      "leaderNatural",
+      "mysticR5",
+      "rapidFire",
+      "extraAtk",
+      "powerGen",
+      "defBuff",
+      "dodgeBuff",
+      "forcedMoved",
+      "forceOpposingReroll",
+      "stealth"
+    ],
     "highlights": [
       {
         "id": "dcd0d0b9-1429-448a-8b2f-ea4290c027db",
@@ -59194,6 +59339,84 @@
           }
         ],
         "interactable": true
+      },
+      {
+        "id": "368e25bf-6a99-44fd-9ccb-dd87a1ac005f",
+        "customType": "creatorContent",
+        "author": {
+          "id": 2326,
+          "uuid": "46831f9d-e981-4c93-bc23-08e8aa4f6a2e",
+          "pseudonym": "Aegisbrand Studios",
+          "slug": "aegisbrand-studios",
+          "country": "CA",
+          "region": "ON",
+          "latitude": "42.99068597",
+          "longitude": "-79.24225219",
+          "contactable": true
+        },
+        "type": "battle_report",
+        "series": "Aegisbrand Studios",
+        "name": "NEW MUTANTS vs SENTINELS Marvel Crisis Protocol Battle Report S06E35",
+        "language": "us",
+        "publishedOn": "2026-10-12T01:33:28.000Z",
+        "hotAt": "2026-10-12T01:33:28.000Z",
+        "highlights": [
+          {
+            "id": 1069,
+            "slug": "mirage",
+            "name": "Mirage",
+            "alterEgo": "Danielle \"Dani\" Moonstar"
+          },
+          {
+            "id": 873,
+            "slug": "nimrod",
+            "name": "Nimrod, the Hunter",
+            "alterEgo": "Nimrod"
+          }
+        ],
+        "interactable": true
+      },
+      {
+        "id": "647ad1ab-5cd5-4426-95da-aa63631b8eea",
+        "customType": "creatorContent",
+        "author": {
+          "id": 2326,
+          "uuid": "46831f9d-e981-4c93-bc23-08e8aa4f6a2e",
+          "pseudonym": "Aegisbrand Studios",
+          "slug": "aegisbrand-studios",
+          "country": "CA",
+          "region": "ON",
+          "latitude": "42.99068597",
+          "longitude": "-79.24225219",
+          "contactable": true
+        },
+        "type": "battle_report",
+        "series": "Aegisbrand Studios",
+        "name": "X FACTOR vs  X FORCE Marvel Crisis Protocol Battle Report S06E34",
+        "language": "us",
+        "publishedOn": "2026-10-10T16:00:00.000Z",
+        "hotAt": "2026-10-10T16:00:00.000Z",
+        "highlights": [
+          {
+            "id": 1069,
+            "slug": "mirage",
+            "name": "Mirage",
+            "alterEgo": "Danielle \"Dani\" Moonstar"
+          },
+          {
+            "id": 1070,
+            "slug": "havok",
+            "name": "Havok",
+            "alterEgo": "Alexander Summers"
+          },
+          {
+            "id": 1071,
+            "slug": "multiple-man",
+            "name": "Multiple Man",
+            "alterEgo": "Jamie Madrox"
+          }
+        ],
+        "interactable": true
       }
     ],
     "sculpts": [
@@ -59201,7 +59424,7 @@
         "id": 1069,
         "slug": "mirage",
         "name": null,
-        "version": 1790324553,
+        "version": 1791329038,
         "thumbnailUrl": null,
         "thumbnailTransform": {
           "xScaleFactor": 1,
@@ -62321,7 +62544,7 @@
     }
   },
   {
-    "version": 1788208038,
+    "version": 1791329037,
     "template": "2023",
     "template2023Ready": false,
     "id": 1071,
@@ -62331,16 +62554,21 @@
     "originalName": "Multiple Man",
     "sanitizedName": "Multiple Man",
     "sanitizedOriginalName": "Multiple Man",
-    "alterEgo": null,
+    "alterEgo": "Jamie Madrox",
     "actAs": "multiple-man",
     "ambiguousName": false,
-    "sanitizedAlterEgo": null,
+    "sanitizedAlterEgo": "Jamie Madrox",
     "slug": "multiple-man",
     "isGrunt": false,
-    "relatedGrunts": [],
+    "relatedGrunts": [
+      [
+        "multiple-man-duplicates-grunts",
+        "Multiple Man Duplicates"
+      ]
+    ],
     "bearableGems": [],
     "bearableGemsWithName": [],
-    "threatLevel": null,
+    "threatLevel": 4,
     "baseSize": 35,
     "secondFormSlug": null,
     "originalSecondFormSlug": null,
@@ -62409,23 +62637,157 @@
       }
     ],
     "assignableToHorsemen": [],
-    "size": null,
-    "speed": null,
-    "stamina": null,
-    "physicalDefense": null,
-    "energyDefense": null,
-    "mysticDefense": null,
-    "bestPhysicalAttack": 0,
+    "size": 2,
+    "speed": "M",
+    "stamina": 6,
+    "physicalDefense": 4,
+    "energyDefense": 3,
+    "mysticDefense": 3,
+    "bestPhysicalAttack": 5,
     "bestEnergyAttack": 0,
     "bestMysticAttack": 0,
-    "tags": [],
-    "highlights": [],
+    "tags": [
+      "leaderNatural",
+      "physicalR3",
+      "atkBuff",
+      "stagger",
+      "greaterPowerPhase",
+      "interactsReroll",
+      "rerollSource",
+      "stealToken",
+      "healSelf",
+      "pounce",
+      "gruntsParent",
+      "powerGen"
+    ],
+    "highlights": [
+      {
+        "id": "eb0f3a19-0c26-4d63-9ba2-96ba6c93dd06",
+        "customType": "creatorContent",
+        "author": {
+          "id": 1393,
+          "uuid": "f1d6cb58-64a4-4c9c-9530-fd151191572f",
+          "pseudonym": "SGP Sören",
+          "slug": "sgp-sören",
+          "country": "DE",
+          "region": "NW",
+          "latitude": "51.51207518",
+          "longitude": "6.98771762",
+          "contactable": true
+        },
+        "type": "blog_article",
+        "series": "SG Protocol ",
+        "name": "Hot Takes: Multiple Man and Jubilee ",
+        "language": "us",
+        "publishedOn": "2026-10-06T21:18:03.000Z",
+        "hotAt": "2026-10-06T21:18:03.000Z",
+        "highlights": [
+          {
+            "id": 904,
+            "slug": "jubilee",
+            "name": "Jubilee",
+            "alterEgo": "Jubilation Lee"
+          },
+          {
+            "id": 1071,
+            "slug": "multiple-man",
+            "name": "Multiple Man",
+            "alterEgo": "Jamie Madrox"
+          }
+        ],
+        "interactable": true
+      },
+      {
+        "id": "c3c3d1a7-cca6-4014-826c-cc0c8b68eff9",
+        "customType": "creatorContent",
+        "author": {
+          "id": 5276,
+          "uuid": "05bd7e8b-4819-46f7-b266-20d9a0f7aa97",
+          "pseudonym": "Nate GG",
+          "slug": "nate-gg",
+          "country": "",
+          "region": "",
+          "latitude": "36.0846213",
+          "longitude": "-86.45141602",
+          "contactable": true
+        },
+        "type": "battle_report",
+        "series": "The Gamer's Guild",
+        "name": "MCP Battle Report: X-Factor vs X-Force",
+        "language": "us",
+        "publishedOn": "2026-10-07T17:16:38.000Z",
+        "hotAt": "2026-10-07T17:16:38.000Z",
+        "highlights": [
+          {
+            "id": 432,
+            "slug": "cable",
+            "name": "Cable",
+            "alterEgo": "Nathan Summers"
+          },
+          {
+            "id": 1070,
+            "slug": "havok",
+            "name": "Havok",
+            "alterEgo": "Alexander Summers"
+          },
+          {
+            "id": 1071,
+            "slug": "multiple-man",
+            "name": "Multiple Man",
+            "alterEgo": "Jamie Madrox"
+          }
+        ],
+        "interactable": true
+      },
+      {
+        "id": "647ad1ab-5cd5-4426-95da-aa63631b8eea",
+        "customType": "creatorContent",
+        "author": {
+          "id": 2326,
+          "uuid": "46831f9d-e981-4c93-bc23-08e8aa4f6a2e",
+          "pseudonym": "Aegisbrand Studios",
+          "slug": "aegisbrand-studios",
+          "country": "CA",
+          "region": "ON",
+          "latitude": "42.99068597",
+          "longitude": "-79.24225219",
+          "contactable": true
+        },
+        "type": "battle_report",
+        "series": "Aegisbrand Studios",
+        "name": "X FACTOR vs  X FORCE Marvel Crisis Protocol Battle Report S06E34",
+        "language": "us",
+        "publishedOn": "2026-10-10T16:00:00.000Z",
+        "hotAt": "2026-10-10T16:00:00.000Z",
+        "highlights": [
+          {
+            "id": 1069,
+            "slug": "mirage",
+            "name": "Mirage",
+            "alterEgo": "Danielle \"Dani\" Moonstar"
+          },
+          {
+            "id": 1070,
+            "slug": "havok",
+            "name": "Havok",
+            "alterEgo": "Alexander Summers"
+          },
+          {
+            "id": 1071,
+            "slug": "multiple-man",
+            "name": "Multiple Man",
+            "alterEgo": "Jamie Madrox"
+          }
+        ],
+        "interactable": true
+      }
+    ],
     "sculpts": [
       {
         "id": 1071,
         "slug": "multiple-man",
         "name": null,
-        "version": 1788208038,
+        "version": 1791329037,
         "thumbnailUrl": null,
         "thumbnailTransform": {
           "xScaleFactor": 1,
@@ -62445,23 +62807,23 @@
     "statCard": {
       "slug": "multiple-man",
       "name": "Multiple Man",
-      "alterEgo": null,
+      "alterEgo": "Jamie Madrox",
       "secondFormCard": false,
-      "artist": null,
+      "artist": "Patrick Brown",
       "secondSideArtist": null,
       "frontSide": {
         "type": "healthy",
         "artworkUrl": null,
         "fallbackArtworkUrl": "/artworks/multiple-man_healthy.png",
         "nameOverride": null,
-        "physicalDefense": "?",
-        "energyDefense": "?",
-        "mysticDefense": "?",
-        "stamina": "?",
-        "threatLevel": "?",
-        "size": "?",
+        "physicalDefense": "4",
+        "energyDefense": "3",
+        "mysticDefense": "3",
+        "stamina": "6",
+        "threatLevel": "4",
+        "size": "2",
         "secondFormSize": "?",
-        "speed": "?",
+        "speed": "M",
         "secondFormSpeed": "?",
         "artworkTransform": {
           "xScaleFactor": 1,
@@ -62472,16 +62834,79 @@
           "width": null,
           "height": null
         },
-        "attacks": [],
+        "attacks": [
+          {
+            "rank": 1,
+            "form": "normal",
+            "type": "physical",
+            "name": "Strike",
+            "range": "2",
+            "strength": "5",
+            "powerCost": 0,
+            "steps": [
+              "After this attack is resolved, this character gains |!power| equal to the |!damage| dealt.",
+              "If an allied |*Multiple Man Duplicates| is within |!range| 2 of the defender during the |*Modify Dice| step, this character may reroll up to 2 of its attack dice."
+            ]
+          },
+          {
+            "rank": 2,
+            "form": "normal",
+            "type": "physical",
+            "name": "Madrox Monkey Pile!",
+            "range": "3",
+            "strength": "7",
+            "powerCost": 3,
+            "steps": [
+              "If an allied |*Multiple Man Duplicates| is within |!range| 2 of the defender during the |*Create Attack Dice Pool| step, add 2 dice to this attack roll.",
+              "|!wild| |!hit| |*Stagger|: After this attack is resolved, the defender gains the |§stagger§Stagger| special condition."
+            ]
+          }
+        ],
         "superPowers": [
           {
             "rank": 1,
             "form": "normal",
             "overlapping": false,
-            "type": "innate",
-            "name": "Placeholder",
+            "type": "leadership",
+            "name": "X-Factor Investigations (Affiliation: X-Factor)",
             "powerCost": null,
-            "body": "This card is a placeholder and acts a a teaser for an upcoming character."
+            "body": "During the |*Power Phase|, each allied character Contesting a Secure objective token gains 1 |!power|.|\\|Additionally, when an allied character rolls dice when Interacting with an objective token, it may reroll 1 die."
+          },
+          {
+            "rank": 2,
+            "form": "normal",
+            "overlapping": false,
+            "type": "active",
+            "name": "Duplicate Reabsorption",
+            "powerCost": "2",
+            "body": "Choose an allied |*Multiple Man Duplicates| within |!range| 3 of this character. Move up to 1 Extract objective token being held by the chosen character to this character. This character cannot hold more tokens than the Crisis specifies. Then the chosen character is KO'd and this character removes up to 3 |!damage| from itself. This superpower can be used only once per Turn."
+          },
+          {
+            "rank": 3,
+            "form": "normal",
+            "overlapping": false,
+            "type": "active",
+            "name": "Follow the Leads",
+            "powerCost": "2",
+            "body": "Throw this character |!movement_small|. This superpower can be used only once per Turn."
+          },
+          {
+            "rank": 4,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Kinetic Duplication",
+            "powerCost": null,
+            "body": "When this character suffers |!damage|, after the effect is resolved, if there is not an allied |*Multiple Man Duplicates| in play and this character is not Dazed, Place an allied |*Multiple Man Duplicates| into play within |!range| 2 of this character. It is part of your Squad."
+          },
+          {
+            "rank": 5,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Shared Experiences",
+            "powerCost": null,
+            "body": "When an allied |*Multiple Man Duplicates| within |!range| 3 deals |!damage| or suffers |!damage| from an enemy effect, this character gains 1 |!power|."
           }
         ]
       },
@@ -62490,14 +62915,14 @@
         "artworkUrl": null,
         "fallbackArtworkUrl": "/artworks/multiple-man_healthy.png",
         "nameOverride": null,
-        "physicalDefense": "?",
-        "energyDefense": "?",
-        "mysticDefense": "?",
-        "stamina": "?",
-        "threatLevel": "?",
-        "size": "?",
+        "physicalDefense": "4",
+        "energyDefense": "3",
+        "mysticDefense": "3",
+        "stamina": "7",
+        "threatLevel": "4",
+        "size": "2",
         "secondFormSize": "?",
-        "speed": "?",
+        "speed": "M",
         "secondFormSpeed": "?",
         "artworkTransform": {
           "xScaleFactor": 1,
@@ -62508,32 +62933,95 @@
           "width": null,
           "height": null
         },
-        "attacks": [],
+        "attacks": [
+          {
+            "rank": 1,
+            "form": "normal",
+            "type": "physical",
+            "name": "Strike",
+            "range": "2",
+            "strength": "5",
+            "powerCost": 0,
+            "steps": [
+              "After this attack is resolved, this character gains |!power| equal to the |!damage| dealt.",
+              "If an allied |*Multiple Man Duplicates| is within |!range| 2 of the defender during the |*Modify Dice| step, this character may reroll up to 2 of its attack dice."
+            ]
+          },
+          {
+            "rank": 2,
+            "form": "normal",
+            "type": "physical",
+            "name": "Madrox Monkey Pile!",
+            "range": "3",
+            "strength": "7",
+            "powerCost": 3,
+            "steps": [
+              "If an allied |*Multiple Man Duplicates| is within |!range| 2 of the defender during the |*Create Attack Dice Pool| step, add 2 dice to this attack roll.",
+              "|!wild| |!hit| |*Stagger|: After this attack is resolved, the defender gains the |§stagger§Stagger| special condition."
+            ]
+          }
+        ],
         "superPowers": [
           {
             "rank": 1,
             "form": "normal",
             "overlapping": false,
-            "type": "innate",
-            "name": "Placeholder",
+            "type": "leadership",
+            "name": "X-Factor Investigations (Affiliation: X-Factor)",
             "powerCost": null,
-            "body": "This card is a placeholder and acts a a teaser for an upcoming character."
+            "body": "During the |*Power Phase|, each allied character Contesting a Secure objective token gains 1 |!power|.|\\|Additionally, when an allied character rolls dice when Interacting with an objective token, it may reroll 1 die."
+          },
+          {
+            "rank": 2,
+            "form": "normal",
+            "overlapping": false,
+            "type": "active",
+            "name": "Duplicate Reabsorption",
+            "powerCost": "2",
+            "body": "Choose an allied |*Multiple Man Duplicates| within |!range| 3 of this character. Move up to 1 Extract objective token being held by the chosen character to this character. This character cannot hold more tokens than the Crisis specifies. Then the chosen character is KO'd and this character removes up to 3 |!damage| from itself. This superpower can be used only once per Turn."
+          },
+          {
+            "rank": 3,
+            "form": "normal",
+            "overlapping": false,
+            "type": "active",
+            "name": "Follow the Leads",
+            "powerCost": "2",
+            "body": "Throw this character |!movement_small|. This superpower can be used only once per Turn."
+          },
+          {
+            "rank": 4,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Kinetic Duplication",
+            "powerCost": null,
+            "body": "When this character suffers |!damage|, after the effect is resolved, if there is not an allied |*Multiple Man Duplicates| in play and this character is not Dazed, Place an allied |*Multiple Man Duplicates| into play within |!range| 2 of this character. It is part of your Squad."
+          },
+          {
+            "rank": 5,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Shared Experiences",
+            "powerCost": null,
+            "body": "When an allied |*Multiple Man Duplicates| within |!range| 3 deals |!damage| or suffers |!damage| from an enemy effect, this character gains 1 |!power|."
           }
         ]
       },
-      "squished": false,
+      "squished": true,
       "downgraded": true,
       "artworkVersion": 0,
       "biggerIcons": true,
       "erratas": [],
-      "sidesHaveDifferences": false,
+      "sidesHaveDifferences": true,
       "template": "2023",
       "fanTradBy": null
     },
     "secondStatCard": null
   },
   {
-    "version": 1788628623,
+    "version": 1791590048,
     "template": "2023",
     "template2023Ready": false,
     "id": 1072,
@@ -62549,10 +63037,15 @@
     "sanitizedAlterEgo": null,
     "slug": "multiple-man-duplicates-grunts",
     "isGrunt": true,
-    "relatedGrunts": [],
+    "relatedGrunts": [
+      [
+        "multiple-man",
+        "Multiple Man"
+      ]
+    ],
     "bearableGems": [],
     "bearableGemsWithName": [],
-    "threatLevel": null,
+    "threatLevel": 0,
     "baseSize": 50,
     "secondFormSlug": null,
     "originalSecondFormSlug": null,
@@ -62586,23 +63079,29 @@
     },
     "affiliations": [],
     "assignableToHorsemen": [],
-    "size": null,
-    "speed": null,
-    "stamina": null,
-    "physicalDefense": null,
-    "energyDefense": null,
-    "mysticDefense": null,
+    "size": 2,
+    "speed": "M",
+    "stamina": 2,
+    "physicalDefense": 2,
+    "energyDefense": 2,
+    "mysticDefense": 1,
     "bestPhysicalAttack": 0,
     "bestEnergyAttack": 0,
     "bestMysticAttack": 0,
-    "tags": [],
+    "tags": [
+      "physicalR2",
+      "atkReroll",
+      "slow",
+      "freeInteracts",
+      "grunts"
+    ],
     "highlights": [],
     "sculpts": [
       {
         "id": 1072,
         "slug": "multiple-man-duplicates-grunts",
         "name": null,
-        "version": 1788628623,
+        "version": 1791590048,
         "thumbnailUrl": null,
         "thumbnailTransform": {
           "xScaleFactor": 1,
@@ -62624,21 +63123,21 @@
       "name": "Multiple Man Duplicates",
       "alterEgo": null,
       "secondFormCard": false,
-      "artist": null,
+      "artist": "Patrick Brown",
       "secondSideArtist": null,
       "frontSide": {
         "type": "healthy",
         "artworkUrl": null,
         "fallbackArtworkUrl": "/artworks/multiple-man-duplicates-grunts_healthy.png",
         "nameOverride": null,
-        "physicalDefense": "?",
-        "energyDefense": "?",
-        "mysticDefense": "?",
-        "stamina": "?",
-        "threatLevel": "?",
-        "size": "?",
+        "physicalDefense": "2",
+        "energyDefense": "2",
+        "mysticDefense": "1",
+        "stamina": "2",
+        "threatLevel": "0",
+        "size": "2",
         "secondFormSize": "?",
-        "speed": "?",
+        "speed": "M",
         "secondFormSpeed": "?",
         "artworkTransform": {
           "xScaleFactor": 1,
@@ -62649,16 +63148,48 @@
           "width": null,
           "height": null
         },
-        "attacks": [],
+        "attacks": [
+          {
+            "rank": 1,
+            "form": "normal",
+            "type": "physical",
+            "name": "Dogpile",
+            "range": "2",
+            "strength": "4",
+            "powerCost": 0,
+            "steps": [
+              "If an allied |*Multiple Man| is within |!range| 2 of the defender during the |*Modify Dice| step, this character may reroll up to 2 of its attack dice.",
+              "|!wild| |*Slow|: After this attack is resolved, the defender gains the |§slow§Slow| special condition."
+            ]
+          }
+        ],
         "superPowers": [
           {
             "rank": 1,
             "form": "normal",
             "overlapping": false,
             "type": "innate",
-            "name": "Placeholder",
+            "name": "X-Factor Investigations Workforce",
             "powerCost": null,
-            "body": "This card is a placeholder and acts a a teaser for an upcoming character."
+            "body": "This character does not have to spend |!power| to Interact with objective tokens."
+          },
+          {
+            "rank": 2,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Like Herding Cats",
+            "powerCost": null,
+            "body": "This character cannot Interact with or Contest an objective token unless there is another allied character Contesting that objective token.|\\|Additionally, when this character ends its Activation, if it is not within |!range| 3 of an allied |*Multiple Man|, it drops all objective tokens it is holding."
+          },
+          {
+            "rank": 3,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Grunts [Multiple Man]",
+            "powerCost": null,
+            "body": null
           }
         ]
       },
@@ -74300,6 +74831,366 @@
     "secondStatCard": null
   },
   {
+    "version": 1791841660,
+    "template": "2023",
+    "template2023Ready": false,
+    "id": 1103,
+    "name": "Red Hulk",
+    "sculptName": "Red Hulk",
+    "translatedInCurrentLocale": true,
+    "originalName": "Red Hulk",
+    "sanitizedName": "Red Hulk",
+    "sanitizedOriginalName": "Red Hulk",
+    "alterEgo": "Thaddeus Ross",
+    "actAs": "red-hulk",
+    "ambiguousName": false,
+    "sanitizedAlterEgo": "Thaddeus Ross",
+    "slug": "red-hulk",
+    "isGrunt": false,
+    "relatedGrunts": [],
+    "bearableGems": [],
+    "bearableGemsWithName": [],
+    "threatLevel": 5,
+    "baseSize": 65,
+    "secondFormSlug": null,
+    "originalSecondFormSlug": null,
+    "secondFormBaseSize": null,
+    "boxSets": [
+      "MCP17"
+    ],
+    "inBoxSets": [
+      {
+        "id": 443,
+        "name": "The Leader, Red Hulk & Sensational She-Hulk",
+        "sanitizedName": "The Leader, Red Hulk  Sensational She Hulk",
+        "code": "MCP17",
+        "releaseDate": "2026-11-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "releaseDate": "2026-11-13",
+    "approximateDate": null,
+    "exportCode": "30170101",
+    "thumbnailUrl": null,
+    "thumbnailTransform": {
+      "xScaleFactor": 1,
+      "yScaleFactor": 1,
+      "angle": 0,
+      "originX": 0,
+      "originY": 0,
+      "width": null,
+      "height": null
+    },
+    "affiliations": [
+      {
+        "characterSlug": "red-hulk",
+        "characterName": "Red Hulk",
+        "characterReleaseDate": "2026-11-13",
+        "slug": "thunderbolts",
+        "name": "Thunderbolts",
+        "originalName": "Thunderbolts",
+        "timelines": [
+          "standard",
+          "extended"
+        ],
+        "isLeader": true,
+        "isLeaderWithTeamTactics": null,
+        "isAlternateSculpt": false,
+        "affiliatedSince": "2026-11-13",
+        "unconfirmed": false
+      }
+    ],
+    "assignableToHorsemen": [],
+    "size": 4,
+    "speed": "S",
+    "stamina": 8,
+    "physicalDefense": 4,
+    "energyDefense": 4,
+    "mysticDefense": 3,
+    "bestPhysicalAttack": 6,
+    "bestEnergyAttack": 0,
+    "bestMysticAttack": 0,
+    "tags": [
+      "leaderNatural",
+      "physicalR2",
+      "incinerate",
+      "wilds",
+      "energyR2",
+      "area",
+      "atkBuff",
+      "push",
+      "powerGen",
+      "placeSelf",
+      "propagate",
+      "friendlyFire",
+      "selfHarm",
+      "throwCharacter4",
+      "throwTerrain4",
+      "throwEverything4",
+      "atkMod",
+      "greaterPowerPhase",
+      "immuneToIncinerate",
+      "immuneToPoison"
+    ],
+    "highlights": [],
+    "sculpts": [
+      {
+        "id": 1103,
+        "slug": "red-hulk",
+        "name": null,
+        "version": 1791841660,
+        "thumbnailUrl": null,
+        "thumbnailTransform": {
+          "xScaleFactor": 1,
+          "yScaleFactor": 1,
+          "angle": 0,
+          "originX": 0,
+          "originY": 0,
+          "width": null,
+          "height": null
+        },
+        "isMain": true
+      }
+    ],
+    "isAlternateSculpt": false,
+    "mainCharacterSlug": null,
+    "versions": {},
+    "statCard": {
+      "slug": "red-hulk",
+      "name": "Red Hulk",
+      "alterEgo": "Thaddeus Ross",
+      "secondFormCard": false,
+      "artist": "Patrick Brown",
+      "secondSideArtist": null,
+      "frontSide": {
+        "type": "healthy",
+        "artworkUrl": null,
+        "fallbackArtworkUrl": "/artworks/red-hulk_healthy.png",
+        "nameOverride": null,
+        "physicalDefense": "4",
+        "energyDefense": "4",
+        "mysticDefense": "3",
+        "stamina": "8",
+        "threatLevel": "5",
+        "size": "4",
+        "secondFormSize": "?",
+        "speed": "S",
+        "secondFormSpeed": "?",
+        "artworkTransform": {
+          "xScaleFactor": 1,
+          "yScaleFactor": 1,
+          "angle": 0,
+          "originX": 0,
+          "originY": 0,
+          "width": null,
+          "height": null
+        },
+        "attacks": [
+          {
+            "rank": 1,
+            "form": "normal",
+            "type": "physical",
+            "name": "Blistering Strike",
+            "range": "2",
+            "strength": "6",
+            "powerCost": 0,
+            "steps": [
+              "After this attack is resolved, this character gains |!power| equal to the |!damage| dealt.",
+              "|!wild| |*Incinerate|: After this attack is resolved, the defender gains the |§incinerate§Incinerate| special condition."
+            ]
+          },
+          {
+            "rank": 2,
+            "form": "normal",
+            "type": "energy",
+            "name": "Scorched Earth",
+            "range": "A2",
+            "strength": "7",
+            "powerCost": 4,
+            "steps": [
+              "During the |*Create Attack Dice Pool| step, this character may remove the |§incinerate§Incinerate| special condition from the defender. If it does, add 3 dice to the attack roll.",
+              "After each attack is resolved, Push the defender Away |!range_small|."
+            ]
+          }
+        ],
+        "superPowers": [
+          {
+            "rank": 1,
+            "form": "normal",
+            "overlapping": false,
+            "type": "leadership",
+            "name": "Necessary Measures (Affiliation: Thunderbolts)",
+            "powerCost": null,
+            "body": "Once per Turn, when an allied character deals |!damage| to an enemy character with an attack, after the attack is resolved, choose another allied character. The chosen character gains 1 |!power|."
+          },
+          {
+            "rank": 2,
+            "form": "normal",
+            "overlapping": false,
+            "type": "active",
+            "name": "Burning Drop",
+            "powerCost": "3",
+            "body": "Place this character within |!range| 2 of its current position. Then all other characters within |!range| 2 gain the |§incinerate§Incinerate| special condition and this character suffers 1 |!damage|. This superpower can be used only once per Turn."
+          },
+          {
+            "rank": 3,
+            "form": "normal",
+            "overlapping": false,
+            "type": "active",
+            "name": "Everything Including the Kitchen Sink",
+            "powerCost": "3",
+            "body": "Choose an interactive terrain feature or an enemy character, both of |!size| 4 or less and within |!range| 2, and Throw it |!range_medium|. This superpower can be used only once per Turn."
+          },
+          {
+            "rank": 4,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Energy Absorption",
+            "powerCost": null,
+            "body": "When this character is defending against an |!energy| attack, for each |!wild| in the defense roll, it may change 1 of the attacker's |!critical|, |!wild|, or |!hit| results to a Blank. This character gains 1 |!power| for each die changed in this way."
+          },
+          {
+            "rank": 5,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Gamma Powered",
+            "powerCost": null,
+            "body": "During the |*Power Phase|, this character gains 1 additional |!power|."
+          },
+          {
+            "rank": 6,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Immunity [Incinerate, Poison]",
+            "powerCost": null,
+            "body": null
+          }
+        ]
+      },
+      "backSide": {
+        "type": "injured",
+        "artworkUrl": null,
+        "fallbackArtworkUrl": "/artworks/red-hulk_healthy.png",
+        "nameOverride": null,
+        "physicalDefense": "4",
+        "energyDefense": "4",
+        "mysticDefense": "3",
+        "stamina": "8",
+        "threatLevel": "5",
+        "size": "4",
+        "secondFormSize": "?",
+        "speed": "S",
+        "secondFormSpeed": "?",
+        "artworkTransform": {
+          "xScaleFactor": 1,
+          "yScaleFactor": 1,
+          "angle": 0,
+          "originX": 0,
+          "originY": 0,
+          "width": null,
+          "height": null
+        },
+        "attacks": [
+          {
+            "rank": 1,
+            "form": "normal",
+            "type": "physical",
+            "name": "Blistering Strike",
+            "range": "2",
+            "strength": "6",
+            "powerCost": 0,
+            "steps": [
+              "After this attack is resolved, this character gains |!power| equal to the |!damage| dealt.",
+              "|!wild| |*Incinerate|: After this attack is resolved, the defender gains the |§incinerate§Incinerate| special condition."
+            ]
+          },
+          {
+            "rank": 2,
+            "form": "normal",
+            "type": "energy",
+            "name": "Scorched Earth",
+            "range": "A2",
+            "strength": "7",
+            "powerCost": 4,
+            "steps": [
+              "During the |*Create Attack Dice Pool| step, this character may remove the |§incinerate§Incinerate| special condition from the defender. If it does, add 3 dice to the attack roll.",
+              "After each attack is resolved, Push the defender Away |!range_small|."
+            ]
+          }
+        ],
+        "superPowers": [
+          {
+            "rank": 1,
+            "form": "normal",
+            "overlapping": false,
+            "type": "leadership",
+            "name": "Necessary Measures (Affiliation: Thunderbolts)",
+            "powerCost": null,
+            "body": "Once per Turn, when an allied character deals |!damage| to an enemy character with an attack, after the attack is resolved, choose another allied character. The chosen character gains 1 |!power|."
+          },
+          {
+            "rank": 2,
+            "form": "normal",
+            "overlapping": false,
+            "type": "active",
+            "name": "Burning Drop",
+            "powerCost": "3",
+            "body": "Place this character within |!range| 2 of its current position. Then all other characters within |!range| 2 gain the |§incinerate§Incinerate| special condition and this character suffers 1 |!damage|. This superpower can be used only once per Turn."
+          },
+          {
+            "rank": 3,
+            "form": "normal",
+            "overlapping": false,
+            "type": "active",
+            "name": "Everything Including the Kitchen Sink",
+            "powerCost": "3",
+            "body": "Choose an interactive terrain feature or an enemy character, both of |!size| 4 or less and within |!range| 2, and Throw it |!range_medium|. This superpower can be used only once per Turn."
+          },
+          {
+            "rank": 4,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Energy Absorption",
+            "powerCost": null,
+            "body": "When this character is defending against an |!energy| attack, for each |!wild| in the defense roll, it may change 1 of the attacker's |!critical|, |!wild|, or |!hit| results to a Blank. This character gains 1 |!power| for each die changed in this way."
+          },
+          {
+            "rank": 5,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Gamma Powered",
+            "powerCost": null,
+            "body": "During the |*Power Phase|, this character gains 1 additional |!power|."
+          },
+          {
+            "rank": 6,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Immunity [Incinerate, Poison]",
+            "powerCost": null,
+            "body": null
+          }
+        ]
+      },
+      "squished": false,
+      "downgraded": true,
+      "artworkVersion": 0,
+      "biggerIcons": true,
+      "erratas": [],
+      "sidesHaveDifferences": false,
+      "template": "2023",
+      "fanTradBy": null
+    },
+    "secondStatCard": null
+  },
+  {
     "version": 1786695285,
     "template": "2023",
     "template2023Ready": false,
@@ -81355,7 +82246,7 @@
     "secondStatCard": null
   },
   {
-    "version": 1786725729,
+    "version": 1791228615,
     "template": "2023",
     "template2023Ready": false,
     "id": 515,
@@ -81519,6 +82410,7 @@
     "bestMysticAttack": 6,
     "tags": [
       "digitalUpdate2026August",
+      "leaderTactics",
       "mysticR4",
       "bleed",
       "hex",
@@ -81533,13 +82425,62 @@
       "flight",
       "errataed"
     ],
-    "highlights": [],
+    "highlights": [
+      {
+        "id": "5690d46a-5f13-4087-aa4b-910dde2f2c91",
+        "customType": "creatorContent",
+        "author": {
+          "id": 1599,
+          "uuid": "bb64a80e-80f8-42da-93f2-32a2ce2d5c27",
+          "pseudonym": "Shadow Marvel",
+          "slug": "shadow-marvel",
+          "country": "US",
+          "region": "NY",
+          "latitude": "40.84095691",
+          "longitude": "-73.94236565",
+          "contactable": true
+        },
+        "type": "podcast",
+        "series": "The Gamer's Guild",
+        "name": "Ep. 138: The Grand Council of Mages and Why You Should Play Convocation",
+        "language": "us",
+        "publishedOn": "2026-09-29T20:59:22.000Z",
+        "hotAt": "2026-09-29T20:59:22.000Z",
+        "highlights": [
+          {
+            "id": 515,
+            "slug": "scarlet-witch",
+            "name": "Scarlet Witch",
+            "alterEgo": "Wanda Maximoff"
+          },
+          {
+            "id": 450,
+            "slug": "doctor-strange-sorcerer-supreme",
+            "name": "Doctor Strange, Sorcerer Supreme",
+            "alterEgo": "Stephen Vincent Strange"
+          },
+          {
+            "id": 438,
+            "slug": "clea",
+            "name": "Clea",
+            "alterEgo": "Clea Strange"
+          },
+          {
+            "id": 485,
+            "slug": "magik",
+            "name": "Magik",
+            "alterEgo": "Illyana Rasputin"
+          }
+        ],
+        "interactable": true
+      }
+    ],
     "sculpts": [
       {
         "id": 515,
         "slug": "scarlet-witch",
         "name": null,
-        "version": 1786725729,
+        "version": 1791228615,
         "thumbnailUrl": null,
         "thumbnailTransform": {
           "xScaleFactor": 1,
@@ -81789,14 +82730,335 @@
       "biggerIcons": true,
       "erratas": [
         {
-          "createdOn": "2026-08-14",
+          "createdOn": "2026-10-05",
           "body": "Stamina increased from 6 to 7."
         },
         {
-          "createdOn": "2026-08-14",
+          "createdOn": "2026-10-05",
           "body": "Curse superpower's target was changed from \"The attacking character\" to \"The character that caused the effect\""
         }
       ],
+      "sidesHaveDifferences": false,
+      "template": "2023",
+      "fanTradBy": null
+    },
+    "secondStatCard": null
+  },
+  {
+    "version": 1791841661,
+    "template": "2023",
+    "template2023Ready": false,
+    "id": 1104,
+    "name": "Sensational She-Hulk",
+    "sculptName": "Sensational She-Hulk",
+    "translatedInCurrentLocale": true,
+    "originalName": "Sensational She-Hulk",
+    "sanitizedName": "Sensational She Hulk",
+    "sanitizedOriginalName": "Sensational She Hulk",
+    "alterEgo": "Jennifer Walters",
+    "actAs": "sensational-she-hulk",
+    "ambiguousName": false,
+    "sanitizedAlterEgo": "Jennifer Walters",
+    "slug": "sensational-she-hulk",
+    "isGrunt": false,
+    "relatedGrunts": [],
+    "bearableGems": [],
+    "bearableGemsWithName": [],
+    "threatLevel": 4,
+    "baseSize": 50,
+    "secondFormSlug": null,
+    "originalSecondFormSlug": null,
+    "secondFormBaseSize": null,
+    "boxSets": [
+      "MCP17"
+    ],
+    "inBoxSets": [
+      {
+        "id": 443,
+        "name": "The Leader, Red Hulk & Sensational She-Hulk",
+        "sanitizedName": "The Leader, Red Hulk  Sensational She Hulk",
+        "code": "MCP17",
+        "releaseDate": "2026-11-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "releaseDate": "2026-11-13",
+    "approximateDate": null,
+    "exportCode": "30170102",
+    "thumbnailUrl": null,
+    "thumbnailTransform": {
+      "xScaleFactor": 1,
+      "yScaleFactor": 1,
+      "angle": 0,
+      "originX": 0,
+      "originY": 0,
+      "width": null,
+      "height": null
+    },
+    "affiliations": [],
+    "assignableToHorsemen": [],
+    "size": 3,
+    "speed": "M",
+    "stamina": 7,
+    "physicalDefense": 4,
+    "energyDefense": 4,
+    "mysticDefense": 3,
+    "bestPhysicalAttack": 6,
+    "bestEnergyAttack": 0,
+    "bestMysticAttack": 0,
+    "tags": [
+      "physicalR2",
+      "gainer",
+      "stun",
+      "wilds",
+      "physicalR3",
+      "throwCharacter4",
+      "stagger",
+      "throwTerrain3",
+      "counter",
+      "chipDamage",
+      "criticals",
+      "atkReroll",
+      "defReroll",
+      "blocks",
+      "powerGen",
+      "greaterPowerPhase",
+      "immuneToPoison"
+    ],
+    "highlights": [],
+    "sculpts": [
+      {
+        "id": 1104,
+        "slug": "sensational-she-hulk",
+        "name": null,
+        "version": 1791841661,
+        "thumbnailUrl": null,
+        "thumbnailTransform": {
+          "xScaleFactor": 1,
+          "yScaleFactor": 1,
+          "angle": 0,
+          "originX": 0,
+          "originY": 0,
+          "width": null,
+          "height": null
+        },
+        "isMain": true
+      }
+    ],
+    "isAlternateSculpt": false,
+    "mainCharacterSlug": null,
+    "versions": {},
+    "statCard": {
+      "slug": "sensational-she-hulk",
+      "name": "Sensational She-Hulk",
+      "alterEgo": "Jennifer Walters",
+      "secondFormCard": false,
+      "artist": "Patrick Brown",
+      "secondSideArtist": null,
+      "frontSide": {
+        "type": "healthy",
+        "artworkUrl": null,
+        "fallbackArtworkUrl": "/artworks/sensational-she-hulk_healthy.png",
+        "nameOverride": null,
+        "physicalDefense": "4",
+        "energyDefense": "4",
+        "mysticDefense": "3",
+        "stamina": "7",
+        "threatLevel": "4",
+        "size": "3",
+        "secondFormSize": "?",
+        "speed": "M",
+        "secondFormSpeed": "?",
+        "artworkTransform": {
+          "xScaleFactor": 1,
+          "yScaleFactor": 1,
+          "angle": 0,
+          "originX": 0,
+          "originY": 0,
+          "width": null,
+          "height": null
+        },
+        "attacks": [
+          {
+            "rank": 1,
+            "form": "normal",
+            "type": "physical",
+            "name": "Wall-Shattering Strike",
+            "range": "2",
+            "strength": "6",
+            "powerCost": 0,
+            "steps": [
+              "After this attack is resolved, this character gains 1 |!power|.",
+              "|!wild| |*Stun|: After this attack is resolved, the defender gains the |§stun§Stun| special condition."
+            ]
+          },
+          {
+            "rank": 2,
+            "form": "normal",
+            "type": "physical",
+            "name": "Emerald Objection!",
+            "range": "3",
+            "strength": "8",
+            "powerCost": 4,
+            "steps": [
+              "Before |!damage| is dealt, if the defender is |!size| 4 or less, this character may Throw it |!range_medium|.",
+              "|!wild| |*Stagger|: After this attack is resolved, the defender gains the |§stagger§Stagger| special condition."
+            ]
+          }
+        ],
+        "superPowers": [
+          {
+            "rank": 1,
+            "form": "normal",
+            "overlapping": false,
+            "type": "active",
+            "name": "Approach the Bench!",
+            "powerCost": "3",
+            "body": "Choose an interactive terrain feature of |!size| 3 or less within |!range| 2 and Throw it |!range_large|. This superpower can be used only once per Turn."
+          },
+          {
+            "rank": 2,
+            "form": "normal",
+            "overlapping": false,
+            "type": "reactive",
+            "name": "Cross Examine",
+            "powerCost": "2",
+            "body": "After an attack targeting this character is resolved, this character may use this superpower. If the attacker is within |!range| 3, roll 4 dice. Deal 1 |!damage| to the attacker for each |!critical| and each |!wild| rolled. If the attacker has already targeted this character with an attack this Turn, roll 6 dice instead of 4."
+          },
+          {
+            "rank": 3,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Case Prep",
+            "powerCost": null,
+            "body": "When attacking, if this character rolled no |!hit| results, it may reroll all of its attack dice. When defending, if this character rolled no |!block| results, it may reroll all of its defense dice."
+          },
+          {
+            "rank": 4,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Gamma Powered",
+            "powerCost": null,
+            "body": "During the |*Power Phase|, this character gains 1 additional |!power|."
+          },
+          {
+            "rank": 5,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Immunity [Poison]",
+            "powerCost": null,
+            "body": null
+          }
+        ]
+      },
+      "backSide": {
+        "type": "injured",
+        "artworkUrl": null,
+        "fallbackArtworkUrl": "/artworks/sensational-she-hulk_healthy.png",
+        "nameOverride": null,
+        "physicalDefense": "4",
+        "energyDefense": "4",
+        "mysticDefense": "3",
+        "stamina": "7",
+        "threatLevel": "4",
+        "size": "3",
+        "secondFormSize": "?",
+        "speed": "M",
+        "secondFormSpeed": "?",
+        "artworkTransform": {
+          "xScaleFactor": 1,
+          "yScaleFactor": 1,
+          "angle": 0,
+          "originX": 0,
+          "originY": 0,
+          "width": null,
+          "height": null
+        },
+        "attacks": [
+          {
+            "rank": 1,
+            "form": "normal",
+            "type": "physical",
+            "name": "Wall-Shattering Strike",
+            "range": "2",
+            "strength": "6",
+            "powerCost": 0,
+            "steps": [
+              "After this attack is resolved, this character gains 1 |!power|.",
+              "|!wild| |*Stun|: After this attack is resolved, the defender gains the |§stun§Stun| special condition."
+            ]
+          },
+          {
+            "rank": 2,
+            "form": "normal",
+            "type": "physical",
+            "name": "Emerald Objection!",
+            "range": "3",
+            "strength": "8",
+            "powerCost": 4,
+            "steps": [
+              "Before |!damage| is dealt, if the defender is |!size| 4 or less, this character may Throw it |!range_medium|.",
+              "|!wild| |*Stagger|: After this attack is resolved, the defender gains the |§stagger§Stagger| special condition."
+            ]
+          }
+        ],
+        "superPowers": [
+          {
+            "rank": 1,
+            "form": "normal",
+            "overlapping": false,
+            "type": "active",
+            "name": "Approach the Bench!",
+            "powerCost": "3",
+            "body": "Choose an interactive terrain feature of |!size| 3 or less within |!range| 2 and Throw it |!range_large|. This superpower can be used only once per Turn."
+          },
+          {
+            "rank": 2,
+            "form": "normal",
+            "overlapping": false,
+            "type": "reactive",
+            "name": "Cross Examine",
+            "powerCost": "2",
+            "body": "After an attack targeting this character is resolved, this character may use this superpower. If the attacker is within |!range| 3, roll 4 dice. Deal 1 |!damage| to the attacker for each |!critical| and each |!wild| rolled. If the attacker has already targeted this character with an attack this Turn, roll 6 dice instead of 4."
+          },
+          {
+            "rank": 3,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Case Prep",
+            "powerCost": null,
+            "body": "When attacking, if this character rolled no |!hit| results, it may reroll all of its attack dice. When defending, if this character rolled no |!block| results, it may reroll all of its defense dice."
+          },
+          {
+            "rank": 4,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Gamma Powered",
+            "powerCost": null,
+            "body": "During the |*Power Phase|, this character gains 1 additional |!power|."
+          },
+          {
+            "rank": 5,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Immunity [Poison]",
+            "powerCost": null,
+            "body": null
+          }
+        ]
+      },
+      "squished": false,
+      "downgraded": true,
+      "artworkVersion": 0,
+      "biggerIcons": true,
+      "erratas": [],
       "sidesHaveDifferences": false,
       "template": "2023",
       "fanTradBy": null
@@ -96896,6 +98158,346 @@
       ],
       "sidesHaveDifferences": false,
       "template": "2021",
+      "fanTradBy": null
+    },
+    "secondStatCard": null
+  },
+  {
+    "version": 1791841660,
+    "template": "2023",
+    "template2023Ready": false,
+    "id": 1102,
+    "name": "The Leader",
+    "sculptName": "The Leader",
+    "translatedInCurrentLocale": true,
+    "originalName": "The Leader",
+    "sanitizedName": "The Leader",
+    "sanitizedOriginalName": "The Leader",
+    "alterEgo": "Samuel Sterns",
+    "actAs": "the-leader",
+    "ambiguousName": false,
+    "sanitizedAlterEgo": "Samuel Sterns",
+    "slug": "the-leader",
+    "isGrunt": false,
+    "relatedGrunts": [],
+    "bearableGems": [],
+    "bearableGemsWithName": [],
+    "threatLevel": 3,
+    "baseSize": 35,
+    "secondFormSlug": null,
+    "originalSecondFormSlug": null,
+    "secondFormBaseSize": null,
+    "boxSets": [
+      "MCP17"
+    ],
+    "inBoxSets": [
+      {
+        "id": 443,
+        "name": "The Leader, Red Hulk & Sensational She-Hulk",
+        "sanitizedName": "The Leader, Red Hulk  Sensational She Hulk",
+        "code": "MCP17",
+        "releaseDate": "2026-11-13",
+        "approximateDate": null,
+        "digital": false
+      }
+    ],
+    "releaseDate": "2026-11-13",
+    "approximateDate": null,
+    "exportCode": "30170103",
+    "thumbnailUrl": null,
+    "thumbnailTransform": {
+      "xScaleFactor": 1,
+      "yScaleFactor": 1,
+      "angle": 0,
+      "originX": 0,
+      "originY": 0,
+      "width": null,
+      "height": null
+    },
+    "affiliations": [
+      {
+        "characterSlug": "the-leader",
+        "characterName": "The Leader",
+        "characterReleaseDate": "2026-11-13",
+        "slug": "intelligencia",
+        "name": "Intelligencia",
+        "originalName": "Intelligencia",
+        "timelines": [
+          "standard",
+          "extended"
+        ],
+        "isLeader": true,
+        "isLeaderWithTeamTactics": null,
+        "isAlternateSculpt": false,
+        "affiliatedSince": "2026-11-13",
+        "unconfirmed": false
+      }
+    ],
+    "assignableToHorsemen": [],
+    "size": 3,
+    "speed": "M",
+    "stamina": 6,
+    "physicalDefense": 3,
+    "energyDefense": 4,
+    "mysticDefense": 4,
+    "bestPhysicalAttack": 0,
+    "bestEnergyAttack": 0,
+    "bestMysticAttack": 5,
+    "tags": [
+      "leaderNatural",
+      "mysticR4",
+      "gainer",
+      "powerCut",
+      "powerDrain",
+      "wilds",
+      "physicalR3",
+      "extraMove",
+      "bleed",
+      "shock",
+      "slow",
+      "stun",
+      "powerGen",
+      "advanceOtherAllied",
+      "throwCharacter3",
+      "still",
+      "damping",
+      "immuneToPoison"
+    ],
+    "highlights": [],
+    "sculpts": [
+      {
+        "id": 1102,
+        "slug": "the-leader",
+        "name": null,
+        "version": 1791841660,
+        "thumbnailUrl": null,
+        "thumbnailTransform": {
+          "xScaleFactor": 1,
+          "yScaleFactor": 1,
+          "angle": 0,
+          "originX": 0,
+          "originY": 0,
+          "width": null,
+          "height": null
+        },
+        "isMain": true
+      }
+    ],
+    "isAlternateSculpt": false,
+    "mainCharacterSlug": null,
+    "versions": {},
+    "statCard": {
+      "slug": "the-leader",
+      "name": "The Leader",
+      "alterEgo": "Samuel Sterns",
+      "secondFormCard": false,
+      "artist": "Patrick Brown",
+      "secondSideArtist": null,
+      "frontSide": {
+        "type": "healthy",
+        "artworkUrl": null,
+        "fallbackArtworkUrl": "/artworks/the-leader_healthy.png",
+        "nameOverride": null,
+        "physicalDefense": "3",
+        "energyDefense": "4",
+        "mysticDefense": "4",
+        "stamina": "6",
+        "threatLevel": "3",
+        "size": "3",
+        "secondFormSize": "?",
+        "speed": "M",
+        "secondFormSpeed": "?",
+        "artworkTransform": {
+          "xScaleFactor": 1,
+          "yScaleFactor": 1,
+          "angle": 0,
+          "originX": 0,
+          "originY": 0,
+          "width": null,
+          "height": null
+        },
+        "attacks": [
+          {
+            "rank": 1,
+            "form": "normal",
+            "type": "mystic",
+            "name": "Mental Bolts",
+            "range": "4",
+            "strength": "5",
+            "powerCost": 0,
+            "steps": [
+              "After this attack is resolved, this character gains 1 |!power|.",
+              "|!wild| |*Sap Power|: Before |!damage| is dealt, the defender loses 1 |!power| for each |!wild| in the attack roll, and this character gains that amount of |!power|."
+            ]
+          },
+          {
+            "rank": 2,
+            "form": "normal",
+            "type": "physical",
+            "name": "Engines of Destruction",
+            "range": "3",
+            "strength": "7",
+            "powerCost": 3,
+            "steps": [
+              "After this attack is resolved, this character may Advance |!range_medium|.",
+              "|!wild| |*Scientific Malpractice|: After this attack is resolved, for each |!wild| in the attack roll, the defender gains 1 of the following special conditions: |§bleed§Bleed|, |§shock§Shock|, |§slow§Slow|, or |§stun§Stun|."
+            ]
+          }
+        ],
+        "superPowers": [
+          {
+            "rank": 1,
+            "form": "normal",
+            "overlapping": false,
+            "type": "leadership",
+            "name": "I Have Calculated All Possible Outcomes to Your Defeat (Affiliation: Intelligencia)",
+            "powerCost": null,
+            "body": "When an allied character rolls dice, after the effect is resolved, it gains 1 |!power| if it rolled at least 1 |!critical|. A character can gain only 1 |!power| as a result of this |!leadership| ability per Turn."
+          },
+          {
+            "rank": 2,
+            "form": "normal",
+            "overlapping": false,
+            "type": "active",
+            "name": "You Are Here to Obey",
+            "powerCost": "3",
+            "body": "Choose another allied character within |!range| 4. The chosen character Advances |!range_small|. A character can be Advanced by this superpower only once per Turn."
+          },
+          {
+            "rank": 3,
+            "form": "normal",
+            "overlapping": false,
+            "type": "active",
+            "name": "Psychokinesis",
+            "powerCost": "3",
+            "body": "Choose an enemy character of |!size| 3 or less within |!range| 3 and Throw it |!range_small|."
+          },
+          {
+            "rank": 4,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Mental Monolith",
+            "powerCost": null,
+            "body": "This character cannot be Pushed or Advanced by the special rules of |!mystic| attacks or enemy superpowers. Additionally, when this character would suffer |!damage| from a collision, reduce the amount suffered by 1."
+          },
+          {
+            "rank": 5,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Immunity [Poison]",
+            "powerCost": null,
+            "body": null
+          }
+        ]
+      },
+      "backSide": {
+        "type": "injured",
+        "artworkUrl": null,
+        "fallbackArtworkUrl": "/artworks/the-leader_healthy.png",
+        "nameOverride": null,
+        "physicalDefense": "3",
+        "energyDefense": "4",
+        "mysticDefense": "4",
+        "stamina": "6",
+        "threatLevel": "3",
+        "size": "3",
+        "secondFormSize": "?",
+        "speed": "M",
+        "secondFormSpeed": "?",
+        "artworkTransform": {
+          "xScaleFactor": 1,
+          "yScaleFactor": 1,
+          "angle": 0,
+          "originX": 0,
+          "originY": 0,
+          "width": null,
+          "height": null
+        },
+        "attacks": [
+          {
+            "rank": 1,
+            "form": "normal",
+            "type": "mystic",
+            "name": "Mental Bolts",
+            "range": "4",
+            "strength": "5",
+            "powerCost": 0,
+            "steps": [
+              "After this attack is resolved, this character gains 1 |!power|.",
+              "|!wild| |*Sap Power|: Before |!damage| is dealt, the defender loses 1 |!power| for each |!wild| in the attack roll, and this character gains that amount of |!power|."
+            ]
+          },
+          {
+            "rank": 2,
+            "form": "normal",
+            "type": "physical",
+            "name": "Engines of Destruction",
+            "range": "3",
+            "strength": "7",
+            "powerCost": 3,
+            "steps": [
+              "After this attack is resolved, this character may Advance |!range_medium|.",
+              "|!wild| |*Scientific Malpractice|: After this attack is resolved, for each |!wild| in the attack roll, the defender gains 1 of the following special conditions: |§bleed§Bleed|, |§shock§Shock|, |§slow§Slow|, or |§stun§Stun|."
+            ]
+          }
+        ],
+        "superPowers": [
+          {
+            "rank": 1,
+            "form": "normal",
+            "overlapping": false,
+            "type": "leadership",
+            "name": "I Have Calculated All Possible Outcomes to Your Defeat (Affiliation: Intelligencia)",
+            "powerCost": null,
+            "body": "When an allied character rolls dice, after the effect is resolved, it gains 1 |!power| if it rolled at least 1 |!critical|. A character can gain only 1 |!power| as a result of this |!leadership| ability per Turn."
+          },
+          {
+            "rank": 2,
+            "form": "normal",
+            "overlapping": false,
+            "type": "active",
+            "name": "You Are Here to Obey",
+            "powerCost": "3",
+            "body": "Choose another allied character within |!range| 4. The chosen character Advances |!range_small|. A character can be Advanced by this superpower only once per Turn."
+          },
+          {
+            "rank": 3,
+            "form": "normal",
+            "overlapping": false,
+            "type": "active",
+            "name": "Psychokinesis",
+            "powerCost": "3",
+            "body": "Choose an enemy character of |!size| 3 or less within |!range| 3 and Throw it |!range_small|."
+          },
+          {
+            "rank": 4,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Mental Monolith",
+            "powerCost": null,
+            "body": "This character cannot be Pushed or Advanced by the special rules of |!mystic| attacks or enemy superpowers. Additionally, when this character would suffer |!damage| from a collision, reduce the amount suffered by 1."
+          },
+          {
+            "rank": 5,
+            "form": "normal",
+            "overlapping": false,
+            "type": "innate",
+            "name": "Immunity [Poison]",
+            "powerCost": null,
+            "body": null
+          }
+        ]
+      },
+      "squished": false,
+      "downgraded": true,
+      "artworkVersion": 0,
+      "biggerIcons": true,
+      "erratas": [],
+      "sidesHaveDifferences": false,
+      "template": "2023",
       "fanTradBy": null
     },
     "secondStatCard": null

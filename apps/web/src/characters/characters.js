@@ -32,7 +32,8 @@ function rosterEntry(jch, m, mctCode) {
     // Stamina of each stat card side, for the tray's Damage limit (see TrayControls). Jarvis
     // stores it as a string; "?" (Multiple Man's variable stamina) falls back to 0.
     staminaHealthy: Number(jch.statCard.frontSide.stamina) || 0,
-    staminaInjured: Number(jch.statCard.backSide.stamina) || 0,
+    // A grunt has no Injured side (backSide is null): 0
+    staminaInjured: Number(jch.statCard.backSide?.stamina) || 0,
     // Threat Level, for the squad threat in the game setup (see docs/features/setup-game.md)
     threat: jch.threatLevel ?? 0,
     // Jarvis affiliation slugs, for the squad affiliation in the game setup (scoreboard/affiliations.js)
@@ -71,9 +72,13 @@ function rosterEntry(jch, m, mctCode) {
     // Second form: null, or { figure, rotation, base?, name?, portrait?, card? } from
     // characters.json. See docs/features/character-trays.md, "Second forms", and models.js.
     transform: m?.transform ?? null,
+    // Number of construct models (characters/files.js, characterConstruct), 0 for none. From characters.json.
+    constructs: m?.constructs ?? 0,
     // Jarvis name of the second form, for example 'diamond' for Emma Frost, or null. The roster popup
     // uses it as the label of the second card (rosters/cards.js).
     secondForm: jch.secondFormSlug || null,
+    // Grunt rows of this host, in the order of characters.json (see GRUNT_ROWS below). A grunt has none.
+    grunts: [],
   }
 }
 
@@ -91,12 +96,38 @@ const extraRows = [...migrated.values()]
   .filter((m) => !jarvisCodes.has(m.id) && jarvisByName.has(m.name))
   .map((m) => rosterEntry(jarvisByName.get(m.name), m, m.id))
 
+// The grunts: migrated characters that a host lists in `grunts` of characters.json. Jarvis has no MCT
+// code for them, so they are not in CHARACTERS and the Library does not list them (docs/features/
+// character-trays.md, "Grunts"). Stats come from the Jarvis grunt row of the same name; the mod
+// names the two Sand Constructs "Sand Construct(s) - Fisty" and "... - Twisty", Jarvis "Sand Construct"
+// twice, with the same stats.
+const jarvisGrunts = jarvisData.filter((jch) => jch.isGrunt)
+function gruntRow(m) {
+  const jch =
+    jarvisGrunts.find((j) => j.name === m.name) ??
+    jarvisGrunts.find((j) => m.name.startsWith(j.name))
+  return jch ? rosterEntry(jch, m, m.id) : null
+}
+const GRUNT_ROWS = new Map()
+for (const m of migrated.values()) {
+  for (const key of m.grunts ?? []) {
+    const g = migratedData[key] && migrated.get(migratedData[key].id)
+    const row = g && gruntRow(g)
+    if (row) GRUNT_ROWS.set(key, row)
+  }
+}
+
 export const CHARACTERS = [
   ...jarvisRows.map((jch) => rosterEntry(jch, migrated.get(jch.exportCode), jch.exportCode)),
   ...extraRows,
 ].sort((a, b) => a.name.localeCompare(b.name) || a.mctCode.localeCompare(b.mctCode))
 
-const bySlug = new Map(CHARACTERS.map((ch) => [ch.slug, ch]))
+// The grunts of every host that is a row of CHARACTERS
+for (const ch of CHARACTERS) {
+  ch.grunts = (migratedData[ch.slug]?.grunts ?? []).flatMap((key) => GRUNT_ROWS.get(key) ?? [])
+}
+
+const bySlug = new Map([...CHARACTERS, ...GRUNT_ROWS.values()].map((ch) => [ch.slug, ch]))
 const byCode = new Map(CHARACTERS.map((ch) => [ch.mctCode, ch]))
 
 // The Library row of an MCT code, or null. A roster stores characters by code (rosters/mct.js).
@@ -122,8 +153,12 @@ const ALWAYS_GIVEN = ['activated', 'dazed']
 
 // Token keys of the Give sources next to this character's tray, in order: Activated, Dazed, then
 // the tokens of the character (see docs/features/character-trays.md, "Give tokens by drag and drop").
+// A host also lists the tokens of its grunts: a grunt has no Give sources of its own, so a player drags
+// them from the host's row onto the grunt card (docs/features/character-trays.md, "Grunts").
 export function characterGiveSources(slug) {
-  return [...ALWAYS_GIVEN, ...(bySlug.get(slug)?.tokens ?? [])]
+  const ch = bySlug.get(slug)
+  const ofGrunts = (ch?.grunts ?? []).flatMap((grunt) => grunt.tokens)
+  return [...new Set([...ALWAYS_GIVEN, ...(ch?.tokens ?? []), ...ofGrunts])]
 }
 
 // Token keys this character cannot get on its current side (p21), when every form is immune to

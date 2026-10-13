@@ -22,6 +22,7 @@ import { cachedFile, downloadMissing, loadCharacterDatabase } from './lib/tts.mj
 import {
   BASE_DIAMETER,
   characterCard,
+  characterConstruct,
   characterModel,
   characterPortrait,
   characterStandee,
@@ -63,7 +64,6 @@ const BASE_TOLERANCE = 0.03
 const IGNORED_FIELDS = {
   cModelAlt: 'an alternative model',
   twoModels: 'a second model',
-  construct: 'construct images',
 }
 
 const db = loadCharacterDatabase()
@@ -141,7 +141,23 @@ function selectCharacters(args) {
       )
     rows.add(found[0])
   }
-  return [...rows]
+  // A host brings its grunts, right after it
+  return [...rows].flatMap((row) => [row, ...gruntRows(row).filter((g) => !rows.has(g))])
+}
+
+// Grunt rows of a host row (its `grunts` names), matched by cName. A name that does not match exactly one row
+// is left out with a warning.
+function gruntRows(row) {
+  return (row.grunts ?? [])
+    .map((name) => {
+      const found = characters.filter((r) => sameName(r.cName, name))
+      if (found.length !== 1)
+        console.log(
+          `warning: ${row.cName} has grunt "${name}", which matches ${found.length} characters. It is left out.`,
+        )
+      return found.length === 1 ? found[0] : null
+    })
+    .filter(Boolean)
 }
 
 function affiliationCharacters(affiliation) {
@@ -202,7 +218,7 @@ async function migrateCharacter(row, getRipper) {
   const warnings = []
   if (opts.download) {
     console.log(`${key}: ${row.cName}`)
-    const failed = await downloadMissing(files.map((f) => f.url))
+    const failed = await downloadMissing(files.map(({ url, kind }) => ({ url, kind })))
     const required = failed.filter(({ url }) => files.some((f) => f.required && f.url === url))
     if (required.length)
       return {
@@ -289,8 +305,8 @@ function tokenSlug(text) {
 function characterFiles(row) {
   const key = keys.get(row)
   const files = []
-  const add = (file, url, required, base = row.cBase) =>
-    url && files.push({ file, url, required, base })
+  const add = (file, url, required, base = row.cBase, kind) =>
+    url && files.push({ file, url, required, base, kind })
   // A card list has one card per version (Mephisto). The tray of a twoCards character shows the card of
   // the second form, cTCard, under the first card, so that card is required too. Item 2 of the list is
   // not always that card: Emma Frost has an alternate card there. When the list has the cTCard image
@@ -320,6 +336,11 @@ function characterFiles(row) {
     standee(row.cTFigA, row.cTFigB).forEach(([side, url]) =>
       add(transformStandee(key, side), url, false),
     )
+  // A construct URL ends in .jpg, but it is an asset bundle: the field decides (kind 'model'). A construct
+  // is small, with the team color.
+  urls(row.construct).forEach((url, i) =>
+    add(characterConstruct(key, i + 1), url, false, 'small', 'model'),
+  )
   add(characterPortrait(key), row.UIurl, false)
   add(transformPortrait(key), row.TUIurl, false)
   return files
@@ -379,6 +400,11 @@ function appEntry(row, key, sources, tokens) {
     entry.transform = transform
   }
   if (!has(characterPortrait(key))) entry.portrait = false
+  const constructs = count((n) => has(characterConstruct(key, n)))
+  if (constructs) entry.constructs = constructs
+  // Keys of the grunt characters. A grunt is migrated as a character under its own key.
+  const grunts = gruntRows(row).map((g) => keys.get(g))
+  if (grunts.length) entry.grunts = grunts
   // tokens feed the tray's Give row (TrayControls.jsx). Activated and Dazed are not stored here: every
   // character gets them, so the tray adds them on its own (see docs/features/character-trays.md). Immunities are
   // not stored: they come from Jarvis (src/characters/immunity.js).

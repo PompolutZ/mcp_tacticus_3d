@@ -3,12 +3,15 @@ import assert from 'node:assert/strict'
 import {
   characterModels,
   characterOnBoard,
+  isConstructId,
+  modelCharacterId,
   modelCardFile,
   modelFigureYaw,
   modelSpawnYaw,
+  removalOf,
   yawQuaternion,
 } from './models.js'
-import { characterCard, transformCard } from './files.js'
+import { characterCard, characterConstruct, transformCard } from './files.js'
 
 const ch = { id: 'c1', key: 'hulk', figure: 'model', base: 'medium', rotation: 0 }
 const two = { ...ch, transform: { figure: 'model', card: true } }
@@ -70,4 +73,52 @@ test('the second model with its own card shows that card, a spare model the firs
   assert.equal(modelCardFile(first), characterCard('hulk', 'healthy'))
   const [, spare] = characterModels({ ...ch, side: 'healthy', transform: { figure: 'model' } })
   assert.equal(modelCardFile(spare), characterCard('hulk', 'healthy'))
+})
+
+const magneto = { ...ch, id: 'm1', key: 'magneto', constructs: 2 }
+
+test('constructs are small models after the other models, with their own ids', () => {
+  const models = characterModels({ ...magneto, transform: { figure: 'model' } })
+  assert.deepEqual(
+    models.map((m) => m.id),
+    ['m1', 'm1:2', 'm1:c1', 'm1:c2'],
+  )
+  const [, , c1] = models
+  assert.equal(c1.construct, true)
+  assert.equal(c1.base, 'small')
+  assert.equal(c1.card, null)
+  assert.equal(c1.file, characterConstruct('magneto', 1))
+  assert.equal(modelCharacterId('m1:c2'), 'm1')
+  assert.equal(modelCharacterId('m1:2'), 'm1')
+  assert.equal(isConstructId('m1:c2'), true)
+  assert.equal(isConstructId('m1:2'), false)
+  assert.equal(isConstructId('m1'), false)
+})
+
+test('no constructs field or 0 gives no construct models', () => {
+  assert.equal(characterModels(ch).length, 1)
+  assert.equal(characterModels({ ...ch, constructs: 0 }).length, 1)
+})
+
+test('a construct on the mat is not the character on the mat', () => {
+  assert.equal(characterOnBoard(magneto, { 'm1:c1': pose(0, 0) }), false)
+  assert.equal(characterOnBoard(magneto, { m1: pose(25, 0), 'm1:c1': pose(0, 0) }), false)
+  assert.equal(characterOnBoard(magneto, { m1: pose(0, 0) }), true)
+})
+
+test('removalOf: the host with its grunts and every model of them', () => {
+  const host = { ...ch, id: 'h', constructs: 1 }
+  const g1 = { ...ch, id: 'g1', key: 'twisty', host: 'h' }
+  const g2 = { ...ch, id: 'g2', key: 'fisty', host: 'h' }
+  const other = { ...ch, id: 'o' }
+  const out = removalOf([host, other, g1, g2], 'h')
+  assert.deepEqual(out.characters, ['h', 'g1', 'g2'])
+  assert.deepEqual(out.models, ['h', 'h:c1', 'g1', 'g2'])
+})
+
+test('removalOf: a grunt alone, or an unknown id, removes nothing', () => {
+  const host = { ...ch, id: 'h' }
+  const grunt = { ...ch, id: 'g1', host: 'h' }
+  assert.deepEqual(removalOf([host, grunt], 'g1'), { characters: [], models: [] })
+  assert.deepEqual(removalOf([host, grunt], 'zz'), { characters: [], models: [] })
 })
