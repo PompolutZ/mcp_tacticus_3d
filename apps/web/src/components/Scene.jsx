@@ -2,7 +2,6 @@ import {
   Suspense,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -10,7 +9,7 @@ import {
 } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Raycaster, Vector3 } from 'three'
-import { useTexture, Environment } from '@react-three/drei'
+import { useTexture } from '@react-three/drei'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import {
   MovementRuler,
@@ -48,7 +47,7 @@ import OtherDiceTray from './OtherDiceTray.jsx'
 import ScoreBoard from './ScoreBoard.jsx'
 import PriorityMarker from './PriorityMarker.jsx'
 import { projectFootprints } from './footprintProjection.js'
-import { matImage } from '../terrain/files.js'
+import { Backdrop, Mat, SceneLights, matImageUrl } from './SceneShared.jsx'
 import { BASE_DIAMETER } from '../characters/files.js'
 import { MAPS } from '../terrain/maps/index.js'
 import { characterGiveSources, characterName, characterStamina } from '../characters/characters.js'
@@ -66,7 +65,6 @@ import { FRICTION, WORLD_GRAVITY } from '../physics.js'
 import { overlapMarks, overlapsAny } from '../characters/overlap.js'
 import { claimChanges, claimCheck, modelIdOfKey, modelKey } from '../characters/claims.js'
 import { assetUrl } from '../assets/index.js'
-import { useColorTexture } from './useColorTexture.js'
 import { CARD_X, CARD_Y, CARD_Z, supplyPilePosition } from '../crisis/layout.js'
 import { getCard } from '../crisis/cards.js'
 import { TRAYS } from '../dice/tray.js'
@@ -143,43 +141,7 @@ const ROTATE_DONE = 1e-4
 
 // The mat image of a map. Preload.jsx loads it before a table shows (docs/features/rooms.md, "Loading").
 export function matUrl(mapId) {
-  return assetUrl(matImage(MAPS[mapId].mat))
-}
-
-// The mat image. Its own component, so a new map's image loads inside the mat's Suspense below.
-// The image turns by -(matRotation - 180) degrees around Y (docs/features/maps.md, "Mat rotation").
-function Mat({ mapId }) {
-  const map = useTexture(matUrl(mapId))
-  const turn = (-(MAPS[mapId].matRotation - 180) * Math.PI) / 180
-  return (
-    <group rotation={[0, turn, 0]}>
-      <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[MAT_SIZE, MAT_SIZE]} />
-        <meshStandardMaterial
-          map={map}
-          roughness={1}
-          metalness={0}
-          onBeforeCompile={projectFootprints}
-        />
-      </mesh>
-    </group>
-  )
-}
-
-// The background image: fixed to the screen, "cover" fit (crop, never stretch). three.js draws a
-// texture background as a screen quad that stretches to the canvas, so repeat and offset crop the
-// image to the canvas aspect, centered.
-function Backdrop() {
-  const image = useColorTexture(assetUrl('backgrounds/knowhere.webp'))
-  const aspect = useThree((state) => state.size.width / state.size.height)
-  useLayoutEffect(() => {
-    const imageAspect = image.image.width / image.image.height
-    const sx = Math.min(1, aspect / imageAspect)
-    const sy = Math.min(1, imageAspect / aspect)
-    image.repeat.set(sx, sy)
-    image.offset.set((1 - sx) / 2, (1 - sy) / 2)
-  }, [image, aspect])
-  return <primitive object={image} attach="background" />
+  return matImageUrl(MAPS[mapId].mat)
 }
 
 const NO_TOOLS_RECORD = {}
@@ -513,7 +475,10 @@ export default function Scene({
   )
   useEffect(() => {
     presence?.set({
-      mark: rangeMark && { key: `${rangeMark.kind}:${rangeMark.id}`, mode: rangeMark.mode },
+      mark: rangeMark && {
+        key: `${rangeMark.kind}:${rangeMark.id}`,
+        mode: rangeMark.mode,
+      },
     })
   }, [presence, rangeMark])
   // Piece key → time (s) of the last claim call of this browser, for the 0.2 s that a claim lasts
@@ -554,7 +519,13 @@ export default function Scene({
       const body = charBodies.current.get(model.id)
       if (!body) continue
       const t = body.translation()
-      list.push({ id: model.id, x: t.x, y: t.y, z: t.z, radius: BASE_DIAMETER[model.base] / 2 })
+      list.push({
+        id: model.id,
+        x: t.x,
+        y: t.y,
+        z: t.z,
+        radius: BASE_DIAMETER[model.base] / 2,
+      })
     }
     return list
   }
@@ -562,7 +533,10 @@ export default function Scene({
   // Every 100 ms: which models overlap. State changes only when the set changes.
   useEffect(() => {
     const id = setInterval(() => {
-      const list = modelBases().map((m) => ({ ...m, moved: moved.current.get(m.id) ?? 0 }))
+      const list = modelBases().map((m) => ({
+        ...m,
+        moved: moved.current.get(m.id) ?? 0,
+      }))
       const marks = overlapMarks(list)
       setOverlapIds((prev) =>
         prev.size === marks.size && [...marks].every((m) => prev.has(m)) ? prev : marks,
@@ -1010,7 +984,12 @@ export default function Scene({
         id: model.id,
         getBody: () => charBodies.current.get(model.id),
         getObject: () => charObjects.current.get(model.id),
-        getCenter: () => charBodies.current.get(model.id)?.translation() ?? { x: 0, y: 0, z: 0 },
+        getCenter: () =>
+          charBodies.current.get(model.id)?.translation() ?? {
+            x: 0,
+            y: 0,
+            z: 0,
+          },
         isLifted: () => charLifts.current.get(model.id)?.isUp() ?? false,
         claim: () => claimModel(model.id),
         moved: () => markMoved(model.id),
@@ -1167,37 +1146,7 @@ export default function Scene({
         <Backdrop />
       </Suspense>
 
-      <ambientLight intensity={0.85} />
-      {/* The shadow camera looks from the light to the origin, so its x axis runs along the world
-          diagonal (x − z), not along world x. The bounds are the mat and both dice trays measured in
-          that camera's space: the mat needs x ±25.5, y −23 to 24.7, and the trays reach x = 37.1 and
-          y = −33.5. The map is 3072 so that one shadow pixel is about as small as before
-          (64" / 3072 ≈ 40" / 2048). */}
-      <directionalLight
-        position={[10, 30, 10]}
-        intensity={0.8}
-        castShadow
-        shadow-mapSize={[3072, 3072]}
-        shadow-camera-near={1}
-        shadow-camera-far={80}
-        shadow-camera-left={-26}
-        shadow-camera-right={38}
-        shadow-camera-top={25}
-        shadow-camera-bottom={-34}
-      />
-      {/* Same HDR as drei's "city" preset, served with the app instead of from a CDN.
-          The light multiplies the texture color. Per unit of intensity, a surface that faces up gets:
-          HDR 1.35 (its cos-weighted sky average), directional 0.29, ambient 0.32. A side face gets
-          HDR 0.35–0.66, directional 0–0.14, ambient 0.32. The tone mapping is Neutral and card and token
-          faces are Unlit, so this light does not change them. It applies to the models, terrain, the mat
-          and the dice. With Neutral, a mid tone at a total of 0.91 shows darker than its texture color
-          (about sRGB 110 instead of 134, calculated, see docs/plans/playtest-1-bugs.md). A total of 1.21 (HDR 0.5, directional 1.2, ambient 0.6)
-          looked like a strong lamp. Most HDR light comes from above, so it makes tops much brighter than
-          sides. Ambient is the same from every side, so part of the light moved from the HDR to ambient.
-          Now a face up gets 0.41 + 0.23 + 0.27 = 0.91, and a side face 0.38–0.55. */}
-      {/* The HDR only lights the scene. backgroundIntensity is not set: drei applies it to the scene,
-          and 0 would darken the Backdrop image. */}
-      <Environment files={assetUrl('hdri/potsdamer_platz_1k.hdr')} environmentIntensity={0.3} />
+      <SceneLights />
 
       <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP} debug={showColliders}>
         <ToolPoint pointRef={toolPointRef} />
@@ -1257,7 +1206,7 @@ export default function Scene({
             turns them so that the deployment edge they chose faces their side (GameSetup.jsx). */}
         <group rotation={[0, (matTurns * Math.PI) / 2, 0]}>
           <Suspense fallback={null}>
-            <Mat mapId={mapId} />
+            <Mat mat={MAPS[mapId].mat} rotation={MAPS[mapId].matRotation} />
           </Suspense>
           {/* A fixed body does not follow its parent after it is created. So each turn mounts the terrain again,
               and its colliders are created at the new pose. A new map also mounts it again. */}
