@@ -21,8 +21,13 @@ A map is a mat (the ground image) and a list of terrain pieces. The data is in `
 | Demons Downtown | 270 |
 | Cosmic Downtown | 270 |
 | Busy City Disturbed | 180 |
+| Savage Land Research Site | 270 |
+| Sunk Ship Sheltering Sinister Secrets | 0 |
+| Sinister Showdown | 270 |
 
 Survival of the Fittest has the same placements as Hydra Vs Wakanda. It is not in the list.
+
+Sinister Showdown has no token piece: the mod has a `Custom_Token` on the map (the app does not draw tokens as map pieces), and it is left out.
 
 ## Map list
 

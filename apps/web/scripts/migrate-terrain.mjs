@@ -403,6 +403,7 @@ function gameSize(piece) {
 function pieceName(piece) {
   const name = piece.name
     .replace(new RegExp(`[\\s:,-]*${SIZE_IN_NAME.source}[\\s:,-]*`, 'i'), ' ')
+    .replace(/\(\s*\)/g, ' ') // "Statue (Size 2)" leaves "Statue ( )"
     .trim()
     .replace(/\s+/g, ' ')
   return name ? name[0].toUpperCase() + name.slice(1) : piece.key

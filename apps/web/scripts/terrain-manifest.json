@@ -715,6 +715,141 @@
     },
     "size-4-truck-2": {
       "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/76f39f152a03.unity3d"
+    },
+    "tall-tree-size-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a109fe00753d.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/d89fac01921f.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/90deba048356.obj"
+    },
+    "shrub-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b857b09475d0.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6bfd4d48dae6.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f723ca086359.obj"
+    },
+    "container-size-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/73bf7581bfdb.unity3d"
+    },
+    "stump-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/cfc5c90e66b9.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/d1fa12c9bbdb.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/cfc5c90e66b9.obj"
+    },
+    "cistern-size-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/78e43ccd715e.unity3d"
+    },
+    "supplies-size-2-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5a92f9ce2f69.unity3d"
+    },
+    "loader-size-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f37af387addf.unity3d"
+    },
+    "silo-size-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7c063ec951e7.unity3d"
+    },
+    "cargo-size-2-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0b60281db25c.unity3d"
+    },
+    "crates-size-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/71a5432f9c62.unity3d"
+    },
+    "cargo-size-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/fec57583de1f.unity3d"
+    },
+    "barrels-size-2-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/2ca4f318dad1.unity3d"
+    },
+    "supplies-size-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/d296ad28398f.unity3d"
+    },
+    "cargo-size-2-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e92da47a2045.unity3d"
+    },
+    "statue-size-2-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/81a6dc6ced27.unity3d"
+    },
+    "sea-weed-size-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9da4b77b4f63.unity3d"
+    },
+    "statue-head-size-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c704088f353e.unity3d"
+    },
+    "staghorn-size-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b564ba1eee4d.unity3d"
+    },
+    "sea-sponge-size-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/736c920f79a3.unity3d"
+    },
+    "coral-size-1": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/774053f92697.unity3d"
+    },
+    "totem-sze-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0151bb2b5a2b.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b3bb0106a123.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0151bb2b5a2b.obj"
+    },
+    "rubble-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/cca3deeee5db.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/d5da23ccd7a1.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/cca3deeee5db.obj"
+    },
+    "ship-wreck-size-4": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a086fd684d91.unity3d"
+    },
+    "jellyfish-size-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/87c17a998e22.unity3d"
+    },
+    "dumpster-size-2-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e3369548ca69.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a38f931eab94.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e3369548ca69.obj"
+    },
+    "under-construction-size-5": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/362695b7893c.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/07fa37278554.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/362695b7893c.obj"
+    },
+    "sand-block-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6a0041b45b02.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1caa4246208d.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6a0041b45b02.obj"
+    },
+    "amg-crate-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4f4305241ccd.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/20f9c91de5d5.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/461e4643d2d6.obj"
+    },
+    "electrical-pole-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/56343b648a6b.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/fe8a0c5b2bc0.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4e0fc1ce0a9e.obj"
+    },
+    "street-light-size-1-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a0f31a3a487d.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1e066b035d0d.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a0f31a3a487d.obj"
+    },
+    "bulldozer-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/16e1f8c763e3.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/51c184569e69.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/16e1f8c763e3.obj"
+    },
+    "concrete-barrier-size-1": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/672fdb9d4af0.unity3d"
+    },
+    "oscorp-truck-size-4-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/875fe7846374.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3dd887dd9420.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/875fe7846374.obj"
+    },
+    "sand-hand-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f95af807d35d.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a8a47188405c.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f95af807d35d.obj"
+    },
+    "oscorp-container-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/2ed706bce1ca.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3f68d046a866.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/04ae704abd5a.obj"
     }
   },
   "mats": {
@@ -730,6 +865,9 @@
     "pool-party-at-the-mansion": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3c6089656bf6.png",
     "demons-downtown": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/dbc06320460e.png",
     "cosmic-downtown": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/526323399dae.jpg",
-    "busy-city-disturbed": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/328314384336.png"
+    "busy-city-disturbed": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/328314384336.png",
+    "savage-land-research-site": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/98cee3fc6def.jpg",
+    "sunk-ship-sheltering-sinister-secrets": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/53293b439182.jpg",
+    "sinister-showdown": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/014caf473322.png"
   }
 }

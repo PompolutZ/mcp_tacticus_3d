@@ -4040,4 +4040,371 @@ export const TERRAIN_PIECES = {
       },
     ],
   },
+  'tall-tree-size-4': { name: 'Tall Tree', convex: true, collider: true },
+  'shrub-size-2': { name: 'Shrub', convex: true, collider: true },
+  'container-size-3': {
+    name: 'Container',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'box',
+        position: [0.02, 1.188, 0.028],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [1.16, 1.16, 2.22],
+      },
+    ],
+  },
+  'stump-size-1': { name: 'Stump', convex: true },
+  'cistern-size-3': {
+    name: 'Cistern',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'box',
+        position: [0.02, 1.188, 0.028],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [1.16, 1.16, 2.22],
+      },
+    ],
+  },
+  'supplies-size-2-2': {
+    name: 'Supplies',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'box',
+        position: [-0.012, 0.888, -0.84],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [0.4, 0.85, 0.4],
+      },
+      {
+        shape: 'box',
+        position: [0.024, 0.676, 0.468],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [0.4, 0.6, 0.74],
+      },
+    ],
+  },
+  'loader-size-2': {
+    name: 'Loader',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'box',
+        position: [0.024, 0.528, 1.572],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [0.93, 0.5, 0.84],
+      },
+      {
+        shape: 'box',
+        position: [0.016, 1.244, 0.316],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [1.2, 0.15, 2],
+      },
+    ],
+  },
+  'silo-size-3': {
+    name: 'Silo',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'box',
+        position: [0.02, 2.228, 0.172],
+        quaternion: [-0.7071, 0, 0, 0.7071],
+        halfExtents: [1.02, 1.02, 2.08],
+      },
+    ],
+  },
+  'cargo-size-2-3': {
+    name: 'Cargo',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'box',
+        position: [0.02, 1.188, 0.028],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [1.16, 1.16, 2.22],
+      },
+    ],
+  },
+  'crates-size-2': {
+    name: 'Crates',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'box',
+        position: [-0.784, 0.676, -0.356],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [0.4, 0.6, 0.8],
+      },
+      {
+        shape: 'box',
+        position: [-0.04, 0.888, 0.756],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [0.4, 0.85, 0.4],
+      },
+      {
+        shape: 'cylinder',
+        position: [-0.868, 0.696, 0.924],
+        quaternion: [0, 0, 0, 1],
+        radius: 0.4,
+        halfHeight: 0.64,
+      },
+      {
+        shape: 'box',
+        position: [-0.784, 0.676, -0.356],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [0.4, 0.6, 0.8],
+      },
+    ],
+  },
+  'cargo-size-2': {
+    name: 'Cargo',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'box',
+        position: [0.02, 1.188, 0.028],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [1.16, 1.16, 2.22],
+      },
+    ],
+  },
+  'barrels-size-2-2': {
+    name: 'Barrels',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'cylinder',
+        position: [-0.368, 0.696, -0.496],
+        quaternion: [0, 0, 0, 1],
+        radius: 0.4,
+        halfHeight: 0.64,
+      },
+      {
+        shape: 'cylinder',
+        position: [-0.368, 0.696, 0.356],
+        quaternion: [0, 0, 0, 1],
+        radius: 0.4,
+        halfHeight: 0.64,
+      },
+      {
+        shape: 'cylinder',
+        position: [0.384, 0.696, 0.8],
+        quaternion: [0, 0, 0, 1],
+        radius: 0.4,
+        halfHeight: 0.64,
+      },
+      {
+        shape: 'cylinder',
+        position: [0.404, 0.696, -0.048],
+        quaternion: [0, 0, 0, 1],
+        radius: 0.4,
+        halfHeight: 0.64,
+      },
+      {
+        shape: 'cylinder',
+        position: [0.368, 0.696, -0.928],
+        quaternion: [0, 0, 0, 1],
+        radius: 0.4,
+        halfHeight: 0.64,
+      },
+    ],
+  },
+  'supplies-size-2': {
+    name: 'Supplies',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'cylinder',
+        position: [0.88, 0.696, 1.06],
+        quaternion: [0, 0, 0, 1],
+        radius: 0.4,
+        halfHeight: 0.64,
+      },
+      {
+        shape: 'box',
+        position: [0, 0.888, 1.044],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [0.4, 0.85, 0.4],
+      },
+      {
+        shape: 'box',
+        position: [-0.784, 0.888, 0.068],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [0.4, 0.85, 1.2],
+      },
+    ],
+  },
+  'cargo-size-2-2': {
+    name: 'Cargo',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'box',
+        position: [0.02, 1.188, 0.028],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [1.16, 1.16, 2.22],
+      },
+    ],
+  },
+  'ship-wreck-size-4': {
+    name: 'Ship Wreck',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [0, 0, 0],
+        quaternion: [0, 0, 0, 1],
+        scale: [1, 1, 1],
+        mesh: 1,
+      },
+    ],
+  },
+  'statue-size-2-2': {
+    name: 'Statue',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'mesh',
+        convex: true,
+        position: [0, 0, 0],
+        quaternion: [-0.7071, 0, 0, 0.7071],
+        scale: [1, 1, 1],
+        mesh: 1,
+      },
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [-0.1985, -7.1678, -0.1047],
+        quaternion: [-0.7071, 0, 0, 0.7071],
+        scale: [1, 1, 1],
+        mesh: 2,
+      },
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [1.5897, 1.0268, -0.1002],
+        quaternion: [-0.7071, 0, 0, 0.7071],
+        scale: [1, 1, 1],
+        mesh: 3,
+      },
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [-0.4565, 0.4705, 0.9552],
+        quaternion: [-0.6811, 0.0263, 0.1741, 0.7107],
+        scale: [1, 1, 1],
+        mesh: 4,
+      },
+    ],
+  },
+  'sea-weed-size-2': {
+    name: 'Sea Weed',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'box',
+        position: [0, 0.6, 0],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [0.5, 0.5, 0.5],
+      },
+    ],
+  },
+  'statue-head-size-2': {
+    name: 'Statue Head',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'mesh',
+        convex: true,
+        position: [0, 0, 0],
+        quaternion: [-0.5, 0.5, 0.5, 0.5],
+        scale: [0.25, 0.25, 0.25],
+        mesh: 1,
+      },
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [0, 0, 0],
+        quaternion: [-0.5, 0.5, 0.5, 0.5],
+        scale: [0.25, 0.25, 0.25],
+        mesh: 1,
+      },
+    ],
+  },
+  'staghorn-size-2': {
+    name: 'Staghorn',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'box',
+        position: [-0.0455, 3.5908, 0.014],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [1.0836, 3.5733, 0.8758],
+      },
+    ],
+  },
+  'sea-sponge-size-3': {
+    name: 'Sea Sponge',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [0, 0, 0],
+        quaternion: [0, 0, 0, 1],
+        scale: [1, 1, 1],
+        mesh: 1,
+      },
+    ],
+  },
+  'coral-size-1': {
+    name: 'Coral',
+    bundle: true,
+    colliders: [
+      { shape: 'box', position: [0, 0, 1], quaternion: [0, 0, 0, 1], halfExtents: [0.5, 0.5, 0.5] },
+    ],
+  },
+  'jellyfish-size-2': {
+    name: 'Jellyfish',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [0, 0, 0],
+        quaternion: [0, 0, 0, 1],
+        scale: [1, 1, 1],
+        mesh: 1,
+      },
+    ],
+  },
+  'totem-sze-3': { name: 'Totem (Sze 3)', convex: true },
+  'rubble-size-3': { name: 'Rubble', convex: false },
+  'dumpster-size-2-4': { name: 'Dumpster', convex: true },
+  'under-construction-size-5': { name: 'Under Construction', convex: true },
+  'sand-block-size-2': { name: 'Sand Block', convex: true },
+  'amg-crate-size-2': { name: 'AMG Crate', convex: true, collider: true },
+  'electrical-pole-size-1': { name: 'Electrical Pole', convex: true, collider: true },
+  'street-light-size-1-3': { name: 'Street Light', convex: true },
+  'bulldozer-size-3': { name: 'Bulldozer', convex: true },
+  'concrete-barrier-size-1': {
+    name: 'Concrete Barrier',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [0, 0, 0],
+        quaternion: [0, 0, 0, 1],
+        scale: [0.5, 0.5, 0.5],
+        mesh: 1,
+      },
+    ],
+  },
+  'oscorp-truck-size-4-2': { name: 'Oscorp Truck', convex: true },
+  'sand-hand-size-2': { name: 'Sand Hand', convex: true },
+  'oscorp-container-size-3': { name: 'Oscorp Container', convex: true, collider: true },
 }

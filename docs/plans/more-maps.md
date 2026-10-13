@@ -124,4 +124,13 @@ Phase 4 (done):
 - Colliders: no new case. Mesh entries with a non-uniform placement scale (`total-access-games-size-5`, `dumpster-size-2`, `carpet-barn-size-4`) are exact since Phase 3. Primitives on turned shapes with a non-uniform placement scale: none (the boxes of `convenience-store-size-3` are not turned). No code change.
 - Not checked in the browser: Debug → Colliders for Total Access Games (395 meshes, load time), Dumpster, Carpet Barn, the Dumpling Restaurant (scale 0.04), the mat turn of the 3 maps.
 
-Phases 5 to 7: not started.
+Phase 5 (done):
+- Migrated 282 (printed -90.02, stored 270), 308 (0) and 286 (printed -90, stored 270). The mat of 282 is off center (README); the printed positions are relative to the mat center, so no change.
+- Fix in the script: the bundles of `ship-wreck-size-4` and `jellyfish-size-2` (308) have no `.prefab` key in `m_Container`, only `shipwreck_bow.obj`. `readBundlePrefab` takes the `.obj` keys as prefab names (`.prefab` next to it) when there is no `.prefab` key. `pieceName` also drops an empty `( )`, so "Statue (Size 2)" gives "Statue".
+- Tints: none left out. Cards show only the bare mat in 282 (stumps 0.55 grey), and the pieces in 308 and 286 do not contradict them (jellyfish purple 0.79/0.62/0.85 matches the purple dots, container green 0.16/0.36/0.03 matches the green container, barrier 0.59).
+- Warnings, 282: none. 308: `ship-wreck-size-4`, `staghorn-size-2`, `sea-sponge-size-3`, `jellyfish-size-2` use a non-Standard shader (metallic 0, roughness 1). 286: `barrel-size-1` (already migrated, same warnings as Phase 3), `concrete-barrier-size-1` has a metallic map, which is not converted.
+- Colliders: no new case. `ship-wreck-size-4`, `jellyfish-size-2`, `statue-size-2-2` and `statue-head-size-2` (placement scale 30) have mesh entries, which are exact. The only turned primitive is the box of `silo-size-3` (uniform placement scale). `electrical-pole-size-1` (OBJ collider mesh) and `under-construction-size-5` have a non-uniform placement scale, handled by the vertex bake. No code change in `src/`.
+- The token in 286 stays out (listed in `docs/features/maps.md`).
+- Not checked in the browser: the mat turn of 308 (0), 282 and 286 (270), Debug → Colliders for the ship wreck (31k triangles), jellyfish, statues, the silo and the electrical poles, and the tint look.
+
+Phases 6 and 7: not started.
