@@ -1,6 +1,6 @@
 # Plan: Feedback from the second playtest
 
-Requested by the user on 2026-10-13. Status: plan, Part 1 done.
+Requested by the user on 2026-10-13. Status: all parts done.
 
 Branch `playtest-2`, worktree `../mcp_assist_3d-playtest-2`. One coder step and one commit for each part. Each part writes its **Result** below when it is done.
 
@@ -121,7 +121,7 @@ Work:
 
 Checks: as Part 1. A headless test of the lower floor with a simple overhang collider, if the physics setup allows it (see the memory note on the physics harness).
 
-**Result:**
+**Result:** Done. `physics.js`: `lowerFloor` (cast up from the table, then down from `LOWER_MARGIN` below the underside; returns `{ floor, limit }` or null; only the lowest overhang counts; a down cast that starts touching the overhang hits it at once, hence the margin). `CharacterModel.jsx`: `floorMode` ('top' default, reset at drag start, end, cancel), `toggleFloor` (returns the HUD message), lower floor used each drag frame, hover cut to `limit - floor` so the base top stays under the overhang. New condition `modelDrag` and action `floor` (R) in `bindings.js`; `keyboard.js` reads `s.modelDrag`; App holds `modelDragRef` and `floorPieceRef` (Scene fills them). Live pose already carries y. Tests: `physics.test.js` (headless rapier 0.14 via @react-three/rapier, slab on a post), keyboard and bindings tests. Docs: `key-shortcuts.md` (no separate model drag doc exists, so the behavior is there).
 
 ## User checks
 

@@ -18,6 +18,7 @@ const CONDITION_LABELS = {
   anywhere: 'anywhere',
   popup: 'in a popup',
   dragging: 'while dragging',
+  modelDrag: 'while dragging a model',
   overDiceTray: 'over dice tray',
   overPiece: 'over a piece',
 }

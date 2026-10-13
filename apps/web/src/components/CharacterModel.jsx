@@ -23,6 +23,7 @@ import {
   SOLVER_NONE,
   WORLD_GRAVITY,
   castDown,
+  lowerFloor,
 } from '../physics.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
 import { tablePoint } from '../drag/tablePoint.js'
@@ -233,7 +234,7 @@ function standeeScene(front, back, radius) {
 // and everything a player does with it.
 // bodyRef, objectRef: get the Rapier body and the 3D object of the model (figure and base)
 // onRest(): the body fell asleep, so the model rests. Scene.jsx stores its pose.
-// liftRef: gets { toggle(), down(), cancel() } for the R key (see liftPiece in Scene.jsx), isUp() for a Throw
+// liftRef: gets { toggle(), toggleFloor(), down(), cancel() } for the R key (see liftPiece in Scene.jsx), isUp() for a Throw
 // (a lifted model does not stop it), isBusy() (a drag or lift is going on), and restPosition() for the stored pose: the body position before the
 // lift, or null when the model is not lifted. Gets null on unmount.
 // claimKey, ownership: the piece key `character:<id>` and the claims (net/ownership.js). A drag claims the key and
@@ -333,6 +334,24 @@ function CharacterFigure({
 
   function groundY(x, z) {
     return baseGroundY(world, rapier, x, z, baseRadius)
+  }
+
+  // Which floor the drag uses: 'top' (the top of the terrain, default) or 'lower' (under an overhang, R).
+  // Resets at the start and the end of a drag.
+  const floorMode = useRef('top')
+
+  // The lower floor under the base at (x, z), { floor, limit }, or null (physics.js, lowerFloor)
+  function lowerBaseFloor(x, z, topY) {
+    return lowerFloor(
+      world,
+      rapier,
+      new rapier.Cylinder(BASE_HALF_H, baseRadius),
+      NO_ROTATION,
+      x,
+      z,
+      BASE_HALF_H,
+      topY,
+    )
   }
 
   // Table or terrain point under the pointer, so the model stays under the cursor on raised terrain
@@ -443,6 +462,19 @@ function CharacterFigure({
     rb.setBodyType(2, true)
   }
 
+  // R during a drag: switches between the top floor and the lower floor. Returns the HUD message, or null
+  // when no model is dragged. The message says "No space under" when the lower floor is chosen and the
+  // base has no lower floor at the pointer now (the model stays on top until there is one).
+  function toggleFloor() {
+    if (!isDragging.current || remoteRef.current) return null
+    floorMode.current = floorMode.current === 'top' ? 'lower' : 'top'
+    if (floorMode.current === 'top') return 'Top floor'
+    const p = pointerPoint()
+    const ground = p && groundY(p.x, p.z)
+    const found = ground != null && lowerBaseFloor(p.x, p.z, ground)
+    return found ? 'Lower floor' : 'Lower floor: no space under here'
+  }
+
   function lowerLift() {
     if (lift.current) lift.current.up = false
   }
@@ -503,6 +535,7 @@ function CharacterFigure({
   useEffect(() => {
     liftRef?.({
       toggle: toggleLift,
+      toggleFloor,
       down: lowerLift,
       // Ends the lift without a move: the caller puts the body elsewhere (Scene.jsx, returnModels)
       cancel: () => {
@@ -544,11 +577,20 @@ function CharacterFigure({
     const t = rb.translation()
     // Off the table there is no ground, so keep the current height.
     // Never below the ground: a base released inside terrain can be pushed out through the bottom of it.
-    const ground = groundY(p.x, p.z)
+    let ground = groundY(p.x, p.z)
+    // Lower floor mode (R): the floor under an overhang, where there is one. The hover stays below it.
+    let hover = DRAG_HOVER
+    if (ground !== null && floorMode.current === 'lower') {
+      const low = lowerBaseFloor(p.x, p.z, ground)
+      if (low) {
+        ground = low.floor
+        hover = Math.min(DRAG_HOVER, low.limit - low.floor)
+      }
+    }
     const y =
       ground === null
         ? t.y
-        : Math.max(ground, t.y + (ground + DRAG_HOVER - t.y) * Math.min(1, dt * HOVER_RATE))
+        : Math.max(ground, t.y + (ground + hover - t.y) * Math.min(1, dt * HOVER_RATE))
     // A sleeping body keeps moving but its mesh is not synced, so keep it awake
     rb.wakeUp()
     rb.setNextKinematicTranslation({ x: p.x, y, z: p.z })
@@ -669,6 +711,7 @@ function CharacterFigure({
         lift.current = null
         rigidRef.current?.setBodyType(2, true)
         isDragging.current = true
+        floorMode.current = 'top'
         setDragging(true)
         freePlace.current = { ...rigidRef.current.translation() }
         onDragStart?.()
@@ -678,6 +721,7 @@ function CharacterFigure({
       },
       onEnd: () => {
         isDragging.current = false
+        floorMode.current = 'top'
         // A drop inside a model goes back to the last free place (rotation stays). A jump, as no
         // tween exists for a body.
         const rb = rigidRef.current
@@ -698,6 +742,7 @@ function CharacterFigure({
       // body stays as it is for the remote mode.
       onCancel: () => {
         isDragging.current = false
+        floorMode.current = 'top'
         freePlace.current = null
         setDragOverlap(false)
         setDragging(false)

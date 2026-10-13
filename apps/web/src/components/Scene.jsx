@@ -296,6 +296,8 @@ function trayShapeOf(ch, characters, gruntLists) {
 // same pattern as characterAtRef. See "Hold and drop".
 // turnPieceRef: ref App calls with a direction for Q / E, the same pattern as characterAtRef. Scene
 // fills it with turnPiece. heldRotate: ref to a Map of the Q / E actions held down, action id → direction.
+// floorPieceRef: ref App calls for R during a model drag. Scene fills it with floorPiece. modelDragRef:
+// Scene sets its current to the id of the dragged own model, else null.
 // liftPieceRef: ref App calls for R, the same pattern. Scene fills it with liftPiece.
 // returnModelsRef: ref App calls with a character id for the tray's Remove button, the same pattern.
 // Scene fills it with returnModels: the models of that character go back to their places on the tray.
@@ -396,6 +398,8 @@ export default function Scene({
   modelPositionRef,
   turnPieceRef,
   liftPieceRef,
+  floorPieceRef,
+  modelDragRef,
   returnModelsRef,
   playedSides = ['host', 'guest'],
   removeWaits = {},
@@ -854,6 +858,12 @@ export default function Scene({
     }
   }
 
+  // R press during a model drag: switches the floor of the dragged model. Returns the HUD message.
+  function floorPiece() {
+    const id = modelDragRef?.current
+    return id == null ? null : charLifts.current.get(id)?.toggleFloor?.()
+  }
+
   // Remove button on the tray (docs/features/round-phases.md, decision 16): every model of the character
   // goes back to its place on the tray, upright, so the model turns as it did at its spawn. A model that
   // the other player moves is skipped. y = 0 is the rest height: the card has no collider and the table
@@ -895,6 +905,7 @@ export default function Scene({
     if (modelPositionRef) modelPositionRef.current = modelPosition
     if (turnPieceRef) turnPieceRef.current = turnPiece
     if (liftPieceRef) liftPieceRef.current = liftPiece
+    if (floorPieceRef) floorPieceRef.current = floorPiece
     if (returnModelsRef) returnModelsRef.current = returnModels
     if (terrainAtRef) terrainAtRef.current = terrainAt
   })
@@ -1634,11 +1645,13 @@ export default function Scene({
               markMoved(model.id)
               setDraggingCharId(model.id)
               ownership?.setDrag(modelKey(model.id))
+              if (modelDragRef) modelDragRef.current = model.id
               trackPiece(draggedPiece, { kind: 'character', id: model.id }, true)
             },
             onDragEnd: () => {
               setDraggingCharId(null)
               ownership?.setDrag(null)
+              if (modelDragRef?.current === model.id) modelDragRef.current = null
               trackPiece(draggedPiece, { kind: 'character', id: model.id }, false)
             },
             // A base is within range if any part of it is within range (p8). So the base can

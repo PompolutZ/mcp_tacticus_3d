@@ -7,9 +7,17 @@
 
 // Where a binding works. At an input, the binding whose condition is true now and comes first in this
 // list wins. So Digit1 over the own dice tray adds a die, else it spawns Range 1.
-// popup: a popup is open. dragging: a piece or tool is dragged. overDiceTray: the pointer is over the
+// popup: a popup is open. dragging: a piece or tool is dragged. modelDrag: a model is dragged (it is not
+// `dragging`, so keys such as Q / E and R still work). overDiceTray: the pointer is over the
 // own dice tray. overPiece: the pointer is over a piece. anywhere: always.
-export const CONDITIONS = ['popup', 'dragging', 'overDiceTray', 'overPiece', 'anywhere']
+export const CONDITIONS = [
+  'popup',
+  'dragging',
+  'modelDrag',
+  'overDiceTray',
+  'overPiece',
+  'anywhere',
+]
 
 export const WHEEL_CODES = ['WheelUp', 'WheelDown']
 const MODIFIER_CODES = {
@@ -28,6 +36,7 @@ const TABLE = ['anywhere', 'overPiece', 'overDiceTray']
 const WHEN_PIECE = ['anywhere', 'overPiece', 'dragging']
 const WHEN_DICE = ['overDiceTray']
 const WHEN_CARD = ['popup']
+const WHEN_MODEL_DRAG = ['modelDrag']
 const WHEN_CANCEL = ['anywhere', 'popup', 'dragging']
 
 const bind = (code, when = 'anywhere', mods = {}) => ({
@@ -140,6 +149,10 @@ export const ACTIONS = [
   ),
   A('flip', 'Flip', 'Pieces', TABLE, [bind('KeyF')], { action: 'flip' }),
   A('lift', 'Lift', 'Pieces', TABLE, [bind('KeyR')], { action: 'lift' }),
+  // R during a model drag: top floor or lower floor under an overhang (CharacterModel.jsx, toggleFloor)
+  A('floor', 'Lower floor (model drag)', 'Pieces', WHEN_MODEL_DRAG, [bind('KeyR', 'modelDrag')], {
+    action: 'floor',
+  }),
   A('lock', 'Lock', 'Pieces', TABLE, [bind('KeyL')], { action: 'lock' }),
   A('delete', 'Delete', 'Pieces', TABLE, [bind('Delete'), bind('Backspace')], {
     action: 'delete',
@@ -290,7 +303,7 @@ export function inputFromEvent(e) {
 }
 
 // The action of an input: { id, binding } or null. input: { code, shift, ctrl, alt, meta }. now:
-// which conditions are true now, { popup, dragging, overDiceTray, overPiece } (anywhere always is).
+// which conditions are true now, { popup, dragging, modelDrag, overDiceTray, overPiece } (anywhere always is).
 // bindings: the bindings in use. Modifiers match exactly. Among the bindings of the input that fit,
 // the first condition in CONDITIONS wins; within one condition, the first action in ACTIONS.
 export function match(input, now, bindings = defaultBindings()) {

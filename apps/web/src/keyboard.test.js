@@ -253,3 +253,12 @@ test('number pad keys act as the number row', () => {
   assert.equal(act(key('1', { code: 'Numpad1' })).id, 'range1')
   assert.equal(act(key('0', { code: 'Numpad0' }), { diceTray: 'host' }).id, 'dice10')
 })
+
+test('R: lower floor during a model drag, Lift otherwise', () => {
+  const r = key('r', { code: 'KeyR' })
+  assert.deepEqual(act(r, { modelDrag: true }), { action: 'floor', id: 'floor' })
+  assert.deepEqual(act(r, { modelDrag: false }), { action: 'lift', id: 'lift' })
+  assert.equal(act(key('r', { code: 'KeyR', repeat: true }), { modelDrag: true }), null)
+  // A tool or token drag still blocks every key
+  assert.equal(act(r, { toolDrag: {}, modelDrag: true }), null)
+})

@@ -83,6 +83,39 @@ export function castAlong(world, rapier, shape, rotation, pos, dir, maxDistance,
   return maxDistance
 }
 
+// The lower floor under an overhang at (x, z): { floor, limit }, or null when there is none. floor: height
+// of the shape's bottom on it. limit: the highest height of the shape's bottom that still fits under the
+// overhang (the shape's top touches it). The base cannot stand
+// there when the space under the lowest overhang is not taller than the base plus LOWER_MARGIN.
+// Cast the shape up from the table. The first fixed collider it meets is the underside of the overhang.
+// With a free gap, cast down from LOWER_MARGIN below the highest bottom height that still fits under it
+// (a cast that starts touching the overhang hits it at once). The hit is the
+// floor: the table, or terrain under the overhang. Only the lowest overhang counts (stacked overhangs
+// give no third floor). topY: the top floor at (x, z) (castDown). A floor that is not lower than that
+// is no lower floor, so null.
+// halfHeight: half the shape's height, as in castDown.
+export function lowerFloor(world, rapier, shape, rotation, x, z, halfHeight, topY) {
+  const up = { x: 0, y: 1, z: 0 }
+  const gap = castAlong(
+    world,
+    rapier,
+    shape,
+    rotation,
+    { x, y: halfHeight, z },
+    up,
+    CAST_TOP,
+    () => true,
+  )
+  // No overhang, or no room under it for the base
+  if (gap >= CAST_TOP || gap <= LOWER_MARGIN) return null
+  const floor = castDown(world, rapier, shape, rotation, x, z, halfHeight, gap - LOWER_MARGIN)
+  if (floor === null || floor >= topY - LOWER_MARGIN) return null
+  return { floor, limit: gap }
+}
+
+// Free room above the base under an overhang, in inches, that a lower floor needs
+export const LOWER_MARGIN = 0.05
+
 // Solver groups of a collider: all groups give contact forces, none gives no forces. A model that the
 // other player moves has none, so it pushes nothing (plan 09, decision 9).
 export const SOLVER_ALL = 0xffffffff

@@ -370,6 +370,10 @@ export default function App({
   // Scene calls this for R: it lifts the character under the pointer or puts it back down. See
   // Scene.jsx, liftPiece.
   const liftPieceRef = useRef(null)
+  // Scene calls this for R during a model drag: switches the floor (top or lower), returns a HUD message.
+  // modelDragRef: Scene sets it to the id of the dragged own model, else null. See Scene.jsx, floorPiece.
+  const floorPieceRef = useRef(null)
+  const modelDragRef = useRef(null)
   const versionMismatch = Boolean(connection?.versionMismatch)
   // The files to load before the table shows: the map and the models (rooms/preload.js). Read once.
   const [preloadFiles] = useState(() => tableFiles({ mapId, terrain, characters, rosters }))
@@ -574,6 +578,7 @@ export default function App({
     state: () => ({
       tokenDrag,
       toolDrag,
+      modelDrag: modelDragRef.current !== null,
       popup: !!(openCard || openTrayId || openRoster || settingsOpen),
       rosterOpen: !!openRoster,
       diceMenu,
@@ -607,6 +612,10 @@ export default function App({
       },
       flip: () => handleFlipKey(),
       lift: () => liftPieceRef.current?.(),
+      floor: () => {
+        const message = floorPieceRef.current?.()
+        if (message) showHudMessage(message)
+      },
       lock: () => handleLockKey(),
       ping: () => handlePingKey(),
       dice: (a) => addDiceRef.current[a.side]?.(a.count),
@@ -744,6 +753,8 @@ export default function App({
               modelPositionRef={modelPositionRef}
               turnPieceRef={turnPieceRef}
               liftPieceRef={liftPieceRef}
+              floorPieceRef={floorPieceRef}
+              modelDragRef={modelDragRef}
               returnModelsRef={returnModelsRef}
               playedSides={playedSides}
               removeWaits={removeWaits}

@@ -15,7 +15,13 @@ import {
   resolve,
 } from './bindings.js'
 
-const none = { popup: false, dragging: false, overDiceTray: false, overPiece: false }
+const none = {
+  popup: false,
+  dragging: false,
+  modelDrag: false,
+  overDiceTray: false,
+  overPiece: false,
+}
 const input = (code, mods = {}) => ({
   code,
   shift: false,
@@ -92,7 +98,14 @@ test('the first condition in the order wins', () => {
   assert.equal(at('KeyZ', { overDiceTray: true, overPiece: true }, {}, bindings), 'lock')
   assert.equal(at('KeyZ', { overPiece: true }, {}, bindings), 'flip')
   assert.equal(at('KeyZ', {}, {}, bindings), 'flip')
-  assert.deepEqual(CONDITIONS, ['popup', 'dragging', 'overDiceTray', 'overPiece', 'anywhere'])
+  assert.deepEqual(CONDITIONS, [
+    'popup',
+    'dragging',
+    'modelDrag',
+    'overDiceTray',
+    'overPiece',
+    'anywhere',
+  ])
 })
 
 test('modifiers match exactly', () => {

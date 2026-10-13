@@ -14,7 +14,7 @@ export function isEditing(target) {
 }
 
 // What a key press does. e: the keydown event. s: the app state now, read at the key press:
-// { tokenDrag, toolDrag, popup (a card, tray, roster or settings popup is open), rosterOpen, diceMenu,
+// { tokenDrag, toolDrag, modelDrag (a model is dragged), popup (a card, tray, roster or settings popup is open), rosterOpen, diceMenu,
 // libraryOpen, logOpen, diceTray (side of the own dice tray under the pointer, or null), overPiece,
 // bindings (the bindings in use, input/bindings.js; the defaults when missing) }.
 // Returns { action, id, preventDefault?, ...arguments } or null (the key does nothing). id: the
@@ -25,6 +25,7 @@ export function keyAction(e, s) {
   const now = {
     popup: !!s.popup,
     dragging: !!(s.tokenDrag || s.toolDrag),
+    modelDrag: !!s.modelDrag,
     overDiceTray: !!s.diceTray,
     overPiece: !!s.overPiece,
   }
