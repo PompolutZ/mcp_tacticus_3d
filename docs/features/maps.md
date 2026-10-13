@@ -24,10 +24,13 @@ A map is a mat (the ground image) and a list of terrain pieces. The data is in `
 | Savage Land Research Site | 270 |
 | Sunk Ship Sheltering Sinister Secrets | 0 |
 | Sinister Showdown | 270 |
+| Oscrop Chemical | 180 |
 
 Survival of the Fittest has the same placements as Hydra Vs Wakanda. It is not in the list.
 
 Sinister Showdown has no token piece: the mod has a `Custom_Token` on the map (the app does not draw tokens as map pieces), and it is left out.
+
+Oscrop Chemical has no barrels: the mod pieces `barrel-size-1-3` (6 placements) have dead file URLs (a CDN prefix glued to a Steam URL, 404), so they are left out.
 
 ## Map list
 

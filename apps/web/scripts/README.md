@@ -40,8 +40,11 @@ Helpers in `scripts/lib/` that several scripts use:
 pnpm --filter web migrate-terrain --list                      # maps whose mat is in the TTS cache, and which pieces are missing
 pnpm --filter web migrate-terrain 282                         # migrate map 282 (a name also works, if it is unique)
 pnpm --filter web migrate-terrain 282 --out /tmp/terrain-try  # trial run: nothing is written to the repo
+pnpm --filter web migrate-terrain 280 --download              # first download the missing files of map 280 into the TTS cache
 pnpm --filter web migrate-terrain 282 --force                 # convert pieces, mat and map card again
 ```
+
+`--download` downloads the files of the chosen map that `cachedFile` does not find: the mat image, the mesh, diffuse, collider or bundle of each piece that is not migrated yet, and the card face and back. One file at a time (the mod CDN gets a gentle load), one line per file, before the conversion. The rules of "Download" in "TTS character migration" apply (cache folder, extension, safe write). A bundle is checked for the `UnityFS` header. A failed mat download stops the run. A failed piece file fails that piece with the URL and the reason (exit code 1), and the run goes on. A failed card image is a warning. `--list` ignores the option.
 
 `--list` reads the TTS cache each time. The cache grows when a map is spawned in TTS, so run `--list` again after that.
 
@@ -49,8 +52,8 @@ Several maps have the same name, for example three "Cosmic Downtown" cards. Maps
 
 ## How to add a map to the app
 
-1. Run `--list` and choose a map id. If the map has "missing" pieces, spawn the map once in TTS and run `--list` again.
-2. Run the script with the id. Read the warnings in the report.
+1. Run `--list` and choose a map id. If the map has "missing" pieces, run step 2 with `--download`, or spawn the map once in TTS and run `--list` again.
+2. Run the script with the id (and `--download` when files are missing). Read the warnings in the report.
 3. Copy the printed entries into `src/terrain/pieces.js` and `src/terrain/maps.js`. The script also saves them in `$TMPDIR/mcp-assist-3d-terrain/<map>.snippet.js`.
 4. Compare tints with the map card image. For example, the mod tints the Vibranium Heist truck black, but the card shows it olive, so `maps.js` leaves that tint out.
 5. Check that the report has no warning about the card image. Without the card, the lobby cannot show the map: take the map card out of its bag once in TTS, and run the script again.

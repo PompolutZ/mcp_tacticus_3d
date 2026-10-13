@@ -850,6 +850,53 @@
       "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/2ed706bce1ca.obj",
       "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3f68d046a866.png",
       "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/04ae704abd5a.obj"
+    },
+    "chemical-tanks-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e3d8cd046fbf.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c9cf58c892ca.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e3d8cd046fbf.obj"
+    },
+    "size-3-neogenic-recombinator": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/97a586711e06.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b68b45a3684f.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/97a586711e06.obj"
+    },
+    "crate-size-2-4": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/160c5b50fc2f.unity3d"
+    },
+    "chemical-vat-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1ede5599e890.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/fb0ccd9147e2.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/054f4eb9fbdd.obj"
+    },
+    "size-4-broken-truck": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5b4a4eb71f39.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/77aeb90e1b84.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5b4a4eb71f39.obj"
+    },
+    "assetbundle-piece-10": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1240fc5437e4.unity3d"
+    },
+    "assetbundle-piece-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/71d7a11d4648.unity3d"
+    },
+    "chem-truck-size-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a13382078596.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/73ef532df095.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a13382078596.obj"
+    },
+    "chemical-vat-size-3-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1ede5599e890.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6306a0c87dc4.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/054f4eb9fbdd.obj"
+    },
+    "pipes-size-3-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9e281f7618b0.unity3d"
+    },
+    "acid-vat-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/da008cc8b33d.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/fd5993aadef5.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/515ad971961d.obj"
     }
   },
   "mats": {
@@ -868,6 +915,7 @@
     "busy-city-disturbed": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/328314384336.png",
     "savage-land-research-site": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/98cee3fc6def.jpg",
     "sunk-ship-sheltering-sinister-secrets": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/53293b439182.jpg",
-    "sinister-showdown": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/014caf473322.png"
+    "sinister-showdown": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/014caf473322.png",
+    "oscrop-chemical": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0bba74402702.png"
   }
 }

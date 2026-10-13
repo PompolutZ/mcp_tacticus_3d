@@ -4407,4 +4407,63 @@ export const TERRAIN_PIECES = {
   'oscorp-truck-size-4-2': { name: 'Oscorp Truck', convex: true },
   'sand-hand-size-2': { name: 'Sand Hand', convex: true },
   'oscorp-container-size-3': { name: 'Oscorp Container', convex: true, collider: true },
+  'chemical-tanks-size-2': { name: 'Chemical Tanks', convex: true },
+  'size-3-neogenic-recombinator': { name: 'Neogenic recombinator', convex: true },
+  'crate-size-2-4': {
+    name: 'Crate',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [0, 0, 0],
+        quaternion: [0, 0, 0, 1],
+        scale: [1, 1, 1],
+        mesh: 1,
+      },
+    ],
+  },
+  'chemical-vat-size-3': { name: 'Chemical Vat', convex: true, collider: true },
+  'size-4-broken-truck': { name: 'Broken Truck', convex: true },
+  'assetbundle-piece-10': {
+    name: 'Assetbundle-piece',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'box',
+        position: [-0.0342, -0.044, 0.0626],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [3.6224, 0.01, 1.8156],
+      },
+    ],
+  },
+  'assetbundle-piece-2': {
+    name: 'Smoke',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'box',
+        position: [0, 0, 0],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [0.15, 0.15, 0.15],
+      },
+    ],
+  },
+  'chem-truck-size-4': { name: 'Chem Truck', convex: true },
+  'chemical-vat-size-3-2': { name: 'Chemical Vat', convex: true, collider: true },
+  'pipes-size-3-2': {
+    name: 'Pipes',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [0, 0, 0],
+        quaternion: [0, 0, 0, 1],
+        scale: [1, 1, 1],
+        mesh: 1,
+      },
+    ],
+  },
+  'acid-vat-size-3': { name: 'Acid Vat', convex: true, collider: true },
 }

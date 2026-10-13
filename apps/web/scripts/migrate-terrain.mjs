@@ -20,7 +20,14 @@ import {
 import { parseMigrateArgs } from './lib/cli.mjs'
 import { outputPath, readJson, writeJson } from './lib/files.mjs'
 import { slug } from './lib/keys.mjs'
-import { cachedFile, loadTerrainDatabase, matPlacement, pieceSources } from './lib/tts.mjs'
+import {
+  cachedFile,
+  downloadMissing,
+  loadTerrainDatabase,
+  matPlacement,
+  pieceSources,
+  sourceDownloads,
+} from './lib/tts.mjs'
 import {
   bundleCollider,
   MAP_CARD_BACK,
@@ -36,12 +43,14 @@ const USAGE = `Usage:
   node scripts/migrate-terrain.mjs --list          maps whose mat is in the TTS cache, and which files are missing
   node scripts/migrate-terrain.mjs <map id|name>   convert the map's mat and pieces, print entries for pieces.js and maps.js
 Options:
+  --download    first download the missing mat, piece and map card files of the map into the TTS cache, one file at a time
   --force       convert pieces, mat and map card again, even if they were migrated before
   --out <dir>   trial run: write assets to <dir>/assets and the manifest to <dir>, not to the repo`
 
 const { opts, positionals } = parseMigrateArgs(
   USAGE,
   (opts, positionals) => opts.list || positionals.length === 1,
+  { download: true },
 )
 
 const MANIFEST_FILE = path.join(import.meta.dirname, 'terrain-manifest.json')
@@ -118,8 +127,8 @@ async function migrate(card) {
   console.log(`Map ${card.id}: ${card.name} (${card.category ?? 'no category'})\n`)
   const mat = matPlacement(card, db.pieces)
   if (!mat) throw new Error('The map has no mat (Custom_Tile)')
-  const matName = migrateMat(card, mat)
-  migrateCard(card)
+  const matName = await migrateMat(card, mat)
+  await migrateCard(card)
 
   // mod piece key → { appKey, status, entry, warnings }
   const results = new Map()
@@ -128,9 +137,16 @@ async function migrate(card) {
     for (const key of pieceKeys(card)) {
       const piece = db.pieces.get(key)
       const existing = piece && migratedKey(piece)
+      let downloadFailed = []
+      if (opts.download && piece && !(existing && !opts.force))
+        downloadFailed = await downloadMissing(sourceDownloads(pieceSources(piece)))
       const missing = missingSources(key)
       if (existing && !opts.force)
         results.set(key, { appKey: existing, status: 'already migrated' })
+      else if (downloadFailed.length)
+        results.set(key, {
+          status: `failed: download ${downloadFailed.map((f) => `${f.url} (${f.reason})`).join(', ')}`,
+        })
       else if (missing.length)
         results.set(key, { status: `missing in TTS cache: ${missing.join(', ')}` })
       else if (piece.type !== 'Custom_Model' && piece.type !== 'Custom_Assetbundle')
@@ -208,13 +224,17 @@ function matNameFor(mat) {
 }
 
 // Returns the mat name
-function migrateMat(card, mat) {
+async function migrateMat(card, mat) {
   const url = pieceSources(db.pieces.get(mat.key)).image
   let name = matNameFor(mat)
   if (name && !opts.force) return name
   if (!name) {
     name = mapSlug(card.name)
     for (let n = 2; name in manifest.mats; n++) name = `${mapSlug(card.name)}-${n}`
+  }
+  if (opts.download) {
+    const [failed] = await downloadMissing([url])
+    if (failed) throw new Error(`Download of the mat image ${url} failed (${failed.reason})`)
   }
   const source = cachedFile(url)
   if (!source)
@@ -231,13 +251,14 @@ function migrateMat(card, mat) {
 
 // The map card (face) and the shared card back, for the lobby (docs/features/rooms.md). The face is
 // named after the map key that mapsSnippet prints. A file that exists is kept, unless --force.
-function migrateCard(card) {
+async function migrateCard(card) {
   for (const [url, file] of [
     [card.face, mapCard(mapSlug(card.name))],
     [card.back, MAP_CARD_BACK],
   ]) {
     const out = outputPath(ASSETS, file)
     if (fs.existsSync(out) && !opts.force) continue
+    if (opts.download) await downloadMissing([url]) // a failure is a warning below
     const source = cachedFile(url)
     if (!source) {
       console.log(

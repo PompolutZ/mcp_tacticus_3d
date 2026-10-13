@@ -145,4 +145,12 @@ Phase 5 (done):
 - The token in 286 stays out (listed in `docs/features/maps.md`).
 - Not checked in the browser: the mat turn of 308 (0), 282 and 286 (270), Debug → Colliders for the ship wreck (31k triangles), jellyfish, statues, the silo and the electrical poles, and the tint look.
 
-Phases 6 and 7: not started.
+Phase 6 (done):
+- `migrate-terrain --download`: `sourceDownloads` (`lib/tts.mjs`, tested) lists the piece files (a bundle is kind `model`). Before the conversion, one file at a time: the mat image (a failure stops the run), the files of each piece that is not migrated yet (a failure fails that piece with URL and reason, exit code 1), and the card face and back (a failure is a warning). `--list` ignores the option.
+- Real run, 280 (name in the mod: "Oscrop Chemical", matRotation printed -180, stored 180): the cache had every file but those of one piece, so the run downloaded 0 files for 12 pieces and converted 10 new pieces. `barrel-size-1-3` (mod flag `needsReview`) has mesh, diffuse and collider URLs that are a CDN prefix glued to a Steam URL. The download fails with HTTP 404 (the Steam files are gone too, TTS cannot load them either). Its 6 placements are comments in `maps.js` and the map has no barrels. The exit code is 1.
+- Tints: none left out. Green on the 4 `assetbundle-piece-10` (goo) matches the green goo on the card, grey 0.25 on the smoke.
+- Warnings: `crate-size-2-4` two non-Standard shaders (`AVG_Atlas`, `cargoNet01`). `pipes-size-3-2` depends on another bundle, has a `DefaultMaterial` with no Unity material and a secondary bundle.
+- Colliders: no new case. `crate-size-2-4` and `pipes-size-3-2` have one mesh entry with an identity transform; `assetbundle-piece-10` and `-2` one box each, not turned.
+- Not checked in the browser: the mat turn (180), Debug → Colliders for crate and pipes, the tint look. The download itself was not run on a file that is missing but alive: no such file was in this map.
+
+Phase 7: not started.
