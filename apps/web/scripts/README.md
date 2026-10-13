@@ -42,6 +42,7 @@ pnpm --filter web migrate-terrain 282                         # migrate map 282 
 pnpm --filter web migrate-terrain 282 --out /tmp/terrain-try  # trial run: nothing is written to the repo
 pnpm --filter web migrate-terrain 280 --download              # first download the missing files of map 280 into the TTS cache
 pnpm --filter web migrate-terrain 282 --force                 # convert pieces, mat and map card again
+pnpm --filter web migrate-terrain --colliders-only            # write the collider GLB of every migrated bundle piece again, from the TTS cache
 ```
 
 `--download` downloads the files of the chosen map that `cachedFile` does not find: the mat image, the mesh, diffuse, collider or bundle of each piece that is not migrated yet, and the card face and back. One file at a time (the mod CDN gets a gentle load), one line per file, before the conversion. The rules of "Download" in "TTS character migration" apply (cache folder, extension, safe write). A bundle is checked for the `UnityFS` header. A failed mat download stops the run. A failed piece file fails that piece with the URL and the reason (exit code 1), and the run goes on. A failed card image is a warning. `--list` ignores the option.
@@ -69,7 +70,7 @@ Several maps have the same name, for example three "Cosmic Downtown" cards. Maps
 | `src/assets/terrain/<key>.glb` | Piece mesh |
 | `src/assets/terrain/<key>.webp` | Texture of an OBJ piece. The entry has `texture: false` when the mod piece has no texture. |
 | `src/assets/terrain/<key>-collider.glb` | Collider mesh of an OBJ piece with `collider: true` |
-| `src/assets/terrain/<key>-collider-<n>.glb` | Custom collider mesh `n` of a bundle piece |
+| `src/assets/terrain/<key>-colliders.glb` | All custom collider meshes of a bundle piece, one node `collider-<n>` each (only if it has any) |
 | `scripts/terrain-manifest.json` | TTS source URLs of every migrated piece and mat |
 | `$TMPDIR/mcp-assist-3d-terrain/<key>/` | AssetRipper exports of a bundle piece (`primary/`, `project/`), kept for inspection |
 
@@ -130,8 +131,10 @@ Format of `colliders`: GLB space, relative to the piece origin, before `IMPORT_R
 { shape: 'cylinder', position, quaternion, radius, halfHeight }   // axis is local Y
 { shape: 'capsule', position, quaternion, radius, halfHeight }    // halfHeight is the straight part, without the round ends
 { shape: 'sphere', position, radius }
-{ shape: 'mesh', convex, position, quaternion, scale, mesh }      // mesh: number n of the collider GLB (<key>-collider-<n>.glb); convex: use the convex hull
+{ shape: 'mesh', convex, position, quaternion, scale, mesh }      // mesh: node n (from 0) of <key>-colliders.glb, the n-th child of its scene; convex: use the convex hull
 ```
+
+The collider meshes of a bundle piece are in one GLB, so a map such as Total Access Games (395 mesh colliders, 1 file) loads one file per piece. Each distinct mesh is one node, named `collider-<n>`, in the order the colliders use them. A node has no transform: the script bakes the node and the Unity transform into the vertices (`compressMesh`), and the app applies the entry transform to the vertices (`transformVertices`), so no transform applies twice. Draco is applied once, to the merged file. `--colliders-only` writes these files again from the bundles in the TTS cache, and checks that the entries it finds are the ones in `pieces.js` (numbers rounded to 4 digits). It changes nothing in `pieces.js` and downloads nothing.
 
 ### Other bundle details
 

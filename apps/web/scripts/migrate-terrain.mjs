@@ -10,6 +10,7 @@ import { readBundlePrefab } from './lib/bundle.mjs'
 import {
   compressMesh,
   imageToWebp,
+  mergeColliderMeshes,
   MAT_TEXTURE_SIZE,
   readGlb,
   readObj,
@@ -29,7 +30,7 @@ import {
   sourceDownloads,
 } from './lib/tts.mjs'
 import {
-  bundleCollider,
+  bundleColliders,
   MAP_CARD_BACK,
   mapCard,
   matImage,
@@ -37,20 +38,23 @@ import {
   pieceMesh,
   pieceTexture,
 } from '../src/terrain/files.js'
+import { TERRAIN_PIECES } from '../src/terrain/pieces.js'
 import { findAssetByGuid } from './lib/unity-prefab.mjs'
 
 const USAGE = `Usage:
   node scripts/migrate-terrain.mjs --list          maps whose mat is in the TTS cache, and which files are missing
+  node scripts/migrate-terrain.mjs --colliders-only   write the collider GLB of every migrated bundle piece again, from the TTS cache
   node scripts/migrate-terrain.mjs <map id|name>   convert the map's mat and pieces, print entries for pieces.js and maps.js
 Options:
   --download    first download the missing mat, piece and map card files of the map into the TTS cache, one file at a time
+  --colliders-only  see above. It checks the new entries against src/terrain/pieces.js and changes nothing there.
   --force       convert pieces, mat and map card again, even if they were migrated before
   --out <dir>   trial run: write assets to <dir>/assets and the manifest to <dir>, not to the repo`
 
 const { opts, positionals } = parseMigrateArgs(
   USAGE,
-  (opts, positionals) => opts.list || positionals.length === 1,
-  { download: true },
+  (opts, positionals) => opts.list || opts['colliders-only'] || positionals.length === 1,
+  { download: true, collidersOnly: true },
 )
 
 const MANIFEST_FILE = path.join(import.meta.dirname, 'terrain-manifest.json')
@@ -72,6 +76,7 @@ const db = loadTerrainDatabase()
 const manifest = readJson(MANIFEST_OUT, MANIFEST_FILE)
 
 if (opts.list) listMaps()
+else if (opts['colliders-only']) process.exitCode = await rewriteColliders()
 else process.exitCode = await migrate(findCard(positionals[0]))
 
 function listMaps() {
@@ -316,16 +321,24 @@ async function migrateBundlePiece(piece, appKey, ripper) {
     await compressMesh(doc, { singleMaterial: false }),
   )
 
-  // A custom collider mesh gets its own GLB, once per mesh. The entry has its number (bundleCollider in files.js).
-  const meshNumbers = new Map()
-  entry.colliders = []
+  entry.colliders = await writeBundleColliders(appKey, colliders, primary, project, warnings)
+  if (!entry.colliders.length) warnings.push('has no colliders')
+  return { entry, warnings }
+}
+
+// The collider meshes of a bundle piece go into one GLB, one node each (bundleColliders in files.js). A `mesh` entry
+// has the index of its node. A mesh that several colliders use is in the file once. Returns the `colliders` entries.
+async function writeBundleColliders(appKey, colliders, primary, project, warnings) {
+  const meshIndex = new Map()
+  const docs = []
+  const entries = []
   for (const collider of colliders) {
     if (collider.shape !== 'mesh') {
-      entry.colliders.push(collider)
+      entries.push(collider)
       continue
     }
     const { meshGuid, ...rest } = collider
-    if (!meshNumbers.has(meshGuid)) {
+    if (!meshIndex.has(meshGuid)) {
       // The project has Assets/Mesh/<name>.asset for the mesh, the primary export has Assets/Mesh/<name>.glb
       const asset = findAssetByGuid(project, meshGuid)
       const glb =
@@ -336,17 +349,50 @@ async function migrateBundlePiece(piece, appKey, ripper) {
         )
         continue
       }
-      const n = meshNumbers.size + 1
-      await writeGlb(
-        outputPath(ASSETS, bundleCollider(appKey, n)),
-        await compressMesh(await readGlb(glb), { singleMaterial: true }),
-      )
-      meshNumbers.set(meshGuid, n)
+      meshIndex.set(meshGuid, docs.length)
+      docs.push(await readGlb(glb))
     }
-    entry.colliders.push({ ...rest, mesh: meshNumbers.get(meshGuid) })
+    entries.push({ ...rest, mesh: meshIndex.get(meshGuid) })
   }
-  if (!entry.colliders.length) warnings.push('has no colliders')
-  return { entry, warnings }
+  if (docs.length)
+    await writeGlb(outputPath(ASSETS, bundleColliders(appKey)), await mergeColliderMeshes(docs))
+  return entries
+}
+
+// --colliders-only: the collider GLB of every migrated bundle piece again, from the cached bundles.
+// The entries it finds must be the ones in pieces.js. Returns the exit code.
+async function rewriteColliders() {
+  const ripper = await startAssetRipper()
+  let code = 0
+  try {
+    for (const [appKey, sources] of Object.entries(manifest.pieces)) {
+      if (!sources.bundle) continue
+      const file = cachedFile(sources.bundle)
+      if (!file) {
+        console.log(`${appKey}: bundle is not in the TTS cache`)
+        code = 1
+        continue
+      }
+      const out = path.join(WORK_DIR, appKey)
+      await ripper.exportBundle(file, out)
+      const { colliders, primary, project, warnings } = await readBundlePrefab(out)
+      const entries = await writeBundleColliders(appKey, colliders, primary, project, warnings)
+      const same = sameEntries(entries, TERRAIN_PIECES[appKey]?.colliders)
+      if (!same) code = 1
+      console.log(
+        `${appKey}: ${entries.filter((e) => e.shape === 'mesh').length} mesh colliders, ${same ? 'entries as in pieces.js' : 'ENTRIES DIFFER from pieces.js'}`,
+      )
+    }
+  } finally {
+    ripper.stop()
+  }
+  return code
+}
+
+// pieces.js has the numbers rounded to 4 digits (js() below)
+function sameEntries(a, b) {
+  const rounded = (v) => JSON.stringify(v, (_, x) => (typeof x === 'number' ? round(x, 4) : x))
+  return rounded(a) === rounded(b)
 }
 
 // Keys of the mod's maps keep the punctuation as a dash: "King T'Challa" → king-t-challa

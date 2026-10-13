@@ -108,3 +108,11 @@ export function transformVertices(positions, entry, scale) {
   }
   return out
 }
+
+// The node of collider mesh n in the one collider GLB of a bundle piece: the n-th child of its scene (the
+// script names it `collider-<n>`). The node has no transform, the script baked it into the vertices.
+export function colliderNode(scene, n) {
+  const node = scene.children[n]
+  if (!node) throw new Error(`The collider GLB has no mesh ${n} (${scene.children.length} meshes)`)
+  return node
+}

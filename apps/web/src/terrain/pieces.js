@@ -9,7 +9,7 @@
 // bundle: true for a Unity asset bundle piece. Its GLB has its own materials, so there is no texture file,
 //   and convex and collider do not apply. Terrain.jsx draws it with the GLB materials (docs/features/maps.md).
 // colliders: the colliders of a bundle piece, one entry each, as the script reads them from the prefab. Shapes:
-//   box, cylinder, capsule, sphere and mesh (a collider GLB, see bundleCollider in files.js). The format is in
+//   box, cylinder, capsule, sphere and mesh (`mesh: n` is node n of the one collider GLB, see bundleColliders in files.js). The format is in
 //   scripts/README.md, "Colliders of a bundle". terrain/bundleColliders.js turns the entries into Rapier colliders.
 export const TERRAIN_PIECES = {
   'mech-hangar': { name: 'Building', convex: false },
@@ -84,7 +84,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [0, 0, 0, 1],
         scale: [1, 1, 1],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },
@@ -100,7 +100,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [0, 0, 0, 1],
         scale: [1, 1, 1],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },
@@ -125,7 +125,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [0, 0, 0, 1],
         scale: [1, 1, 1],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },
@@ -152,7 +152,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [0, 0, 0, 1],
         scale: [1, 1, 1],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },
@@ -221,7 +221,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [0, 0, 0, 1],
         scale: [1, 1, 1],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },
@@ -236,7 +236,7 @@ export const TERRAIN_PIECES = {
         position: [-2.6088, 5.5728, -1.2092],
         quaternion: [0.0843, 0.7021, 0.7021, -0.0843],
         scale: [14.3284, 14.3284, 14.3284],
-        mesh: 1,
+        mesh: 0,
       },
       {
         shape: 'mesh',
@@ -244,7 +244,7 @@ export const TERRAIN_PIECES = {
         position: [-1.7074, 12.1617, -1.8403],
         quaternion: [0.0843, 0.7021, 0.7021, -0.0843],
         scale: [14.3284, 14.3284, 14.3284],
-        mesh: 2,
+        mesh: 1,
       },
       {
         shape: 'mesh',
@@ -252,7 +252,7 @@ export const TERRAIN_PIECES = {
         position: [-3.6966, 10.27, -10.0418],
         quaternion: [-0.0008, 0.9928, -0.0064, -0.1193],
         scale: [14.3284, 14.3284, 14.3284],
-        mesh: 3,
+        mesh: 2,
       },
     ],
   },
@@ -314,7 +314,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [0, 0, 0, 1],
         scale: [1, 1, 1],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },
@@ -388,6 +388,14 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [1, 1, 1],
+        mesh: 0,
+      },
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [0, 0, 0],
+        quaternion: [-0.7071, 0, 0, 0.7071],
+        scale: [1, 1, 1],
         mesh: 1,
       },
       {
@@ -397,14 +405,6 @@ export const TERRAIN_PIECES = {
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [1, 1, 1],
         mesh: 2,
-      },
-      {
-        shape: 'mesh',
-        convex: false,
-        position: [0, 0, 0],
-        quaternion: [-0.7071, 0, 0, 0.7071],
-        scale: [1, 1, 1],
-        mesh: 3,
       },
     ],
   },
@@ -444,7 +444,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [1, 1, 1],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },
@@ -486,7 +486,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [1, 0, 0, 0],
         scale: [0.6, 0.6, 0.6],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },
@@ -759,7 +759,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [0, 0, 0, 1],
         scale: [1, 1, 1],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },
@@ -774,7 +774,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [0, 0, 0, 1],
         scale: [0.65, 0.65, 0.65],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },
@@ -828,7 +828,7 @@ export const TERRAIN_PIECES = {
         position: [9.6951, 2.814, 0.601],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 1,
+        mesh: 0,
       },
       {
         shape: 'mesh',
@@ -836,7 +836,7 @@ export const TERRAIN_PIECES = {
         position: [4.0668, 6.2619, -3.3795],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [0.3804, 0.2075, 0.3804],
-        mesh: 2,
+        mesh: 1,
       },
       {
         shape: 'mesh',
@@ -844,7 +844,7 @@ export const TERRAIN_PIECES = {
         position: [4.0668, 6.2539, -3.3795],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [0.3804, 0.2075, 0.3804],
-        mesh: 3,
+        mesh: 2,
       },
       {
         shape: 'mesh',
@@ -852,7 +852,7 @@ export const TERRAIN_PIECES = {
         position: [-2.4234, 6.2619, -3.3795],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [0.3804, 0.2075, 0.3804],
-        mesh: 4,
+        mesh: 3,
       },
       {
         shape: 'mesh',
@@ -860,7 +860,7 @@ export const TERRAIN_PIECES = {
         position: [-2.4234, 6.2539, -3.3795],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [0.3804, 0.2075, 0.3804],
-        mesh: 5,
+        mesh: 4,
       },
       {
         shape: 'mesh',
@@ -868,7 +868,7 @@ export const TERRAIN_PIECES = {
         position: [2.4473, 6.425, 0.1402],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [3.4715, 1.8937, 3.4715],
-        mesh: 6,
+        mesh: 5,
       },
       {
         shape: 'mesh',
@@ -876,7 +876,7 @@ export const TERRAIN_PIECES = {
         position: [2.4473, 6.1346, 0.1402],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [3.4715, 1.8937, 3.4715],
-        mesh: 7,
+        mesh: 6,
       },
       {
         shape: 'mesh',
@@ -884,7 +884,7 @@ export const TERRAIN_PIECES = {
         position: [2.371, 6.3509, 0.1793],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [3.4715, 1.8937, 3.4715],
-        mesh: 8,
+        mesh: 7,
       },
       {
         shape: 'mesh',
@@ -892,7 +892,7 @@ export const TERRAIN_PIECES = {
         position: [2.3756, 6.3404, 0.1793],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [3.4715, 1.8937, 3.4715],
-        mesh: 9,
+        mesh: 8,
       },
       {
         shape: 'mesh',
@@ -900,7 +900,7 @@ export const TERRAIN_PIECES = {
         position: [2.4473, 6.1346, 0.1402],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [3.4715, 1.8937, 3.4715],
-        mesh: 10,
+        mesh: 9,
       },
       {
         shape: 'mesh',
@@ -908,7 +908,7 @@ export const TERRAIN_PIECES = {
         position: [2.4594, 6.5798, 0.126],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [3.4715, 1.8937, 3.4715],
-        mesh: 11,
+        mesh: 10,
       },
       {
         shape: 'mesh',
@@ -916,7 +916,7 @@ export const TERRAIN_PIECES = {
         position: [2.4473, 6.5465, 0.1402],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [3.4715, 1.8937, 3.4715],
-        mesh: 12,
+        mesh: 11,
       },
       {
         shape: 'mesh',
@@ -924,7 +924,7 @@ export const TERRAIN_PIECES = {
         position: [8.6938, 6.5764, -0.1537],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [15.0937, 8.2335, 15.0937],
-        mesh: 13,
+        mesh: 12,
       },
       {
         shape: 'mesh',
@@ -932,7 +932,7 @@ export const TERRAIN_PIECES = {
         position: [8.7203, 7.0508, -0.1619],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [15.0937, 8.2335, 15.0937],
-        mesh: 14,
+        mesh: 13,
       },
       {
         shape: 'mesh',
@@ -940,7 +940,7 @@ export const TERRAIN_PIECES = {
         position: [8.72, 6.2148, -0.1621],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [15.0937, 8.2335, 15.0937],
-        mesh: 15,
+        mesh: 14,
       },
       {
         shape: 'mesh',
@@ -948,7 +948,7 @@ export const TERRAIN_PIECES = {
         position: [8.72, 6.5287, -0.1621],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [15.0937, 8.2335, 15.0937],
-        mesh: 16,
+        mesh: 15,
       },
       {
         shape: 'mesh',
@@ -956,7 +956,7 @@ export const TERRAIN_PIECES = {
         position: [8.7217, 6.6848, -0.1609],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [15.0937, 8.2335, 15.0937],
-        mesh: 17,
+        mesh: 16,
       },
       {
         shape: 'mesh',
@@ -964,7 +964,7 @@ export const TERRAIN_PIECES = {
         position: [8.72, 6.1346, -0.1621],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [15.0937, 8.2335, 15.0937],
-        mesh: 18,
+        mesh: 17,
       },
       {
         shape: 'mesh',
@@ -972,7 +972,7 @@ export const TERRAIN_PIECES = {
         position: [8.72, 6.4864, -0.1621],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [15.0937, 8.2335, 15.0937],
-        mesh: 19,
+        mesh: 18,
       },
       {
         shape: 'mesh',
@@ -980,7 +980,7 @@ export const TERRAIN_PIECES = {
         position: [8.72, 7.0029, -0.1621],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [15.0937, 8.2335, 15.0937],
-        mesh: 20,
+        mesh: 19,
       },
       {
         shape: 'mesh',
@@ -988,7 +988,7 @@ export const TERRAIN_PIECES = {
         position: [-7.3054, 6.5764, -0.1537],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [15.0937, 8.2335, 15.0937],
-        mesh: 21,
+        mesh: 20,
       },
       {
         shape: 'mesh',
@@ -996,7 +996,7 @@ export const TERRAIN_PIECES = {
         position: [-7.279, 7.0508, -0.1619],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [15.0937, 8.2335, 15.0937],
-        mesh: 22,
+        mesh: 21,
       },
       {
         shape: 'mesh',
@@ -1004,7 +1004,7 @@ export const TERRAIN_PIECES = {
         position: [-7.2793, 6.2148, -0.1621],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [15.0937, 8.2335, 15.0937],
-        mesh: 23,
+        mesh: 22,
       },
       {
         shape: 'mesh',
@@ -1012,7 +1012,7 @@ export const TERRAIN_PIECES = {
         position: [-7.2793, 6.5287, -0.1621],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [15.0937, 8.2335, 15.0937],
-        mesh: 24,
+        mesh: 23,
       },
       {
         shape: 'mesh',
@@ -1020,7 +1020,7 @@ export const TERRAIN_PIECES = {
         position: [-7.2776, 6.6848, -0.1609],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [15.0937, 8.2335, 15.0937],
-        mesh: 25,
+        mesh: 24,
       },
       {
         shape: 'mesh',
@@ -1028,7 +1028,7 @@ export const TERRAIN_PIECES = {
         position: [-7.2793, 6.1346, -0.1621],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [15.0937, 8.2335, 15.0937],
-        mesh: 26,
+        mesh: 25,
       },
       {
         shape: 'mesh',
@@ -1036,7 +1036,7 @@ export const TERRAIN_PIECES = {
         position: [-7.2793, 6.4864, -0.1621],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [15.0937, 8.2335, 15.0937],
-        mesh: 27,
+        mesh: 26,
       },
       {
         shape: 'mesh',
@@ -1044,7 +1044,7 @@ export const TERRAIN_PIECES = {
         position: [-7.2793, 7.0029, -0.1621],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [15.0937, 8.2335, 15.0937],
-        mesh: 28,
+        mesh: 27,
       },
       {
         shape: 'mesh',
@@ -1052,7 +1052,7 @@ export const TERRAIN_PIECES = {
         position: [0.2413, 1.567, 5.5381],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 29,
+        mesh: 28,
       },
       {
         shape: 'mesh',
@@ -1060,7 +1060,7 @@ export const TERRAIN_PIECES = {
         position: [0.2447, 1.5647, 5.5413],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 30,
+        mesh: 29,
       },
       {
         shape: 'mesh',
@@ -1068,7 +1068,7 @@ export const TERRAIN_PIECES = {
         position: [0.2413, 2.6374, 5.5381],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 31,
+        mesh: 30,
       },
       {
         shape: 'mesh',
@@ -1076,7 +1076,7 @@ export const TERRAIN_PIECES = {
         position: [0.2447, 2.6352, 5.5413],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 32,
+        mesh: 31,
       },
       {
         shape: 'mesh',
@@ -1084,7 +1084,7 @@ export const TERRAIN_PIECES = {
         position: [1.3385, 2.6374, 5.5381],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 33,
+        mesh: 32,
       },
       {
         shape: 'mesh',
@@ -1092,7 +1092,7 @@ export const TERRAIN_PIECES = {
         position: [1.342, 2.6352, 5.5413],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 34,
+        mesh: 33,
       },
       {
         shape: 'mesh',
@@ -1100,7 +1100,7 @@ export const TERRAIN_PIECES = {
         position: [1.3385, 1.567, 5.5381],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 35,
+        mesh: 34,
       },
       {
         shape: 'mesh',
@@ -1108,7 +1108,7 @@ export const TERRAIN_PIECES = {
         position: [1.342, 1.5647, 5.5413],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 36,
+        mesh: 35,
       },
       {
         shape: 'mesh',
@@ -1116,7 +1116,7 @@ export const TERRAIN_PIECES = {
         position: [-0.182, 4.0835, 5.5449],
         quaternion: [0, 0.7071, 0.7071, 0],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 37,
+        mesh: 36,
       },
       {
         shape: 'mesh',
@@ -1124,7 +1124,7 @@ export const TERRAIN_PIECES = {
         position: [-0.9331, 4.2613, 5.5557],
         quaternion: [0, 0.7071, 0.7071, 0],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 38,
+        mesh: 37,
       },
       {
         shape: 'mesh',
@@ -1132,7 +1132,7 @@ export const TERRAIN_PIECES = {
         position: [-0.5265, 4.3554, 5.5482],
         quaternion: [0, 0.7071, 0.7071, 0],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 39,
+        mesh: 38,
       },
       {
         shape: 'mesh',
@@ -1140,7 +1140,7 @@ export const TERRAIN_PIECES = {
         position: [-0.5565, 4.2117, 5.5713],
         quaternion: [0, 0.7071, 0.7071, 0],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 40,
+        mesh: 39,
       },
       {
         shape: 'mesh',
@@ -1148,7 +1148,7 @@ export const TERRAIN_PIECES = {
         position: [-0.88, 4.209, 5.5362],
         quaternion: [0, 0.7071, 0.7071, 0],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 41,
+        mesh: 40,
       },
       {
         shape: 'mesh',
@@ -1156,7 +1156,7 @@ export const TERRAIN_PIECES = {
         position: [-0.182, 4.1127, 5.5192],
         quaternion: [0, 0.7071, 0.7071, 0],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 42,
+        mesh: 41,
       },
       {
         shape: 'mesh',
@@ -1164,7 +1164,7 @@ export const TERRAIN_PIECES = {
         position: [-0.5545, 4.2545, 5.6126],
         quaternion: [0, 0.7071, 0.7071, 0],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 43,
+        mesh: 42,
       },
       {
         shape: 'mesh',
@@ -1172,7 +1172,7 @@ export const TERRAIN_PIECES = {
         position: [-0.5545, 4.2111, 5.6149],
         quaternion: [0, 0.7071, 0.7071, 0],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 44,
+        mesh: 43,
       },
       {
         shape: 'mesh',
@@ -1180,7 +1180,7 @@ export const TERRAIN_PIECES = {
         position: [-0.5545, 4.1298, 5.6153],
         quaternion: [0, 0.7071, 0.7071, 0],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 45,
+        mesh: 44,
       },
       {
         shape: 'mesh',
@@ -1188,7 +1188,7 @@ export const TERRAIN_PIECES = {
         position: [-0.5545, 4.1711, 5.6126],
         quaternion: [0, 0.7071, 0.7071, 0],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 46,
+        mesh: 45,
       },
       {
         shape: 'mesh',
@@ -1196,7 +1196,7 @@ export const TERRAIN_PIECES = {
         position: [-0.5545, 4.1309, 5.6149],
         quaternion: [0, 0.7071, 0.7071, 0],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 47,
+        mesh: 46,
       },
       {
         shape: 'mesh',
@@ -1204,7 +1204,7 @@ export const TERRAIN_PIECES = {
         position: [-0.5545, 4.0853, 5.6126],
         quaternion: [0, 0.7071, 0.7071, 0],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 48,
+        mesh: 47,
       },
       {
         shape: 'mesh',
@@ -1212,7 +1212,7 @@ export const TERRAIN_PIECES = {
         position: [-0.5545, 4.0395, 5.6149],
         quaternion: [0, 0.7071, 0.7071, 0],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 49,
+        mesh: 48,
       },
       {
         shape: 'mesh',
@@ -1220,7 +1220,7 @@ export const TERRAIN_PIECES = {
         position: [-0.5545, 4.0052, 5.6126],
         quaternion: [0, 0.7071, 0.7071, 0],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 50,
+        mesh: 49,
       },
       {
         shape: 'mesh',
@@ -1228,7 +1228,7 @@ export const TERRAIN_PIECES = {
         position: [-0.5575, 4.1565, 5.3404],
         quaternion: [0, 0.7071, 0.7071, 0],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 51,
+        mesh: 50,
       },
       {
         shape: 'mesh',
@@ -1236,7 +1236,7 @@ export const TERRAIN_PIECES = {
         position: [8.0083, 1.2658, -4.3062],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [8.8314, 4.8175, 8.8314],
-        mesh: 52,
+        mesh: 51,
       },
       {
         shape: 'mesh',
@@ -1244,7 +1244,7 @@ export const TERRAIN_PIECES = {
         position: [7.8527, 1.2647, -4.3007],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [8.8314, 4.8175, 8.8314],
-        mesh: 53,
+        mesh: 52,
       },
       {
         shape: 'mesh',
@@ -1252,7 +1252,7 @@ export const TERRAIN_PIECES = {
         position: [8.1491, 1.3284, -4.3006],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [8.8314, 4.8175, 8.8314],
-        mesh: 54,
+        mesh: 53,
       },
       {
         shape: 'mesh',
@@ -1260,7 +1260,7 @@ export const TERRAIN_PIECES = {
         position: [8.1475, 1.1937, -4.3007],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [8.8314, 4.8175, 8.8314],
-        mesh: 55,
+        mesh: 54,
       },
       {
         shape: 'mesh',
@@ -1268,7 +1268,7 @@ export const TERRAIN_PIECES = {
         position: [8.0591, 1.4159, -4.304],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [8.8314, 4.8175, 8.8314],
-        mesh: 56,
+        mesh: 55,
       },
       {
         shape: 'mesh',
@@ -1276,7 +1276,7 @@ export const TERRAIN_PIECES = {
         position: [8.0411, 1.1111, -4.3007],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [8.8314, 4.8175, 8.8314],
-        mesh: 57,
+        mesh: 56,
       },
       {
         shape: 'mesh',
@@ -1284,7 +1284,7 @@ export const TERRAIN_PIECES = {
         position: [7.9101, 1.1428, -4.3007],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [8.8314, 4.8175, 8.8314],
-        mesh: 58,
+        mesh: 57,
       },
       {
         shape: 'mesh',
@@ -1292,7 +1292,7 @@ export const TERRAIN_PIECES = {
         position: [7.913, 1.3858, -4.3007],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [8.8314, 4.8175, 8.8314],
-        mesh: 59,
+        mesh: 58,
       },
       {
         shape: 'mesh',
@@ -1300,7 +1300,7 @@ export const TERRAIN_PIECES = {
         position: [8.0085, 1.2628, -4.2844],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [8.8314, 4.8175, 8.8314],
-        mesh: 60,
+        mesh: 59,
       },
       {
         shape: 'mesh',
@@ -1308,7 +1308,7 @@ export const TERRAIN_PIECES = {
         position: [8.0085, 1.2628, -4.3128],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [8.8314, 4.8175, 8.8314],
-        mesh: 61,
+        mesh: 60,
       },
       {
         shape: 'mesh',
@@ -1316,7 +1316,7 @@ export const TERRAIN_PIECES = {
         position: [4.2086, 1.2742, -4.3012],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 62,
+        mesh: 61,
       },
       {
         shape: 'mesh',
@@ -1324,7 +1324,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 0.8819, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 63,
+        mesh: 62,
       },
       {
         shape: 'mesh',
@@ -1332,7 +1332,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 1.4436, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 64,
+        mesh: 63,
       },
       {
         shape: 'mesh',
@@ -1340,7 +1340,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 1.2492, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 65,
+        mesh: 64,
       },
       {
         shape: 'mesh',
@@ -1348,7 +1348,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 1.422, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 66,
+        mesh: 65,
       },
       {
         shape: 'mesh',
@@ -1356,7 +1356,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 0.8387, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 67,
+        mesh: 66,
       },
       {
         shape: 'mesh',
@@ -1364,7 +1364,7 @@ export const TERRAIN_PIECES = {
         position: [4.2086, 1.5016, -4.3012],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 68,
+        mesh: 67,
       },
       {
         shape: 'mesh',
@@ -1372,7 +1372,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 1.3788, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 69,
+        mesh: 68,
       },
       {
         shape: 'mesh',
@@ -1380,7 +1380,7 @@ export const TERRAIN_PIECES = {
         position: [4.6816, 1.0187, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 70,
+        mesh: 69,
       },
       {
         shape: 'mesh',
@@ -1388,7 +1388,7 @@ export const TERRAIN_PIECES = {
         position: [4.6816, 1.4076, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 71,
+        mesh: 70,
       },
       {
         shape: 'mesh',
@@ -1396,7 +1396,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 1.1676, -4.3037],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 72,
+        mesh: 71,
       },
       {
         shape: 'mesh',
@@ -1404,7 +1404,7 @@ export const TERRAIN_PIECES = {
         position: [3.9902, 0.9755, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 73,
+        mesh: 72,
       },
       {
         shape: 'mesh',
@@ -1412,7 +1412,7 @@ export const TERRAIN_PIECES = {
         position: [4.2086, 1.1446, -4.3012],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 74,
+        mesh: 73,
       },
       {
         shape: 'mesh',
@@ -1420,7 +1420,7 @@ export const TERRAIN_PIECES = {
         position: [4.6816, 0.9323, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 75,
+        mesh: 74,
       },
       {
         shape: 'mesh',
@@ -1428,7 +1428,7 @@ export const TERRAIN_PIECES = {
         position: [4.2086, 1.1878, -4.3012],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 76,
+        mesh: 75,
       },
       {
         shape: 'mesh',
@@ -1436,7 +1436,7 @@ export const TERRAIN_PIECES = {
         position: [4.2086, 1.4038, -4.3012],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 77,
+        mesh: 76,
       },
       {
         shape: 'mesh',
@@ -1444,7 +1444,7 @@ export const TERRAIN_PIECES = {
         position: [4.2086, 1.231, -4.3012],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 78,
+        mesh: 77,
       },
       {
         shape: 'mesh',
@@ -1452,7 +1452,7 @@ export const TERRAIN_PIECES = {
         position: [4.2086, 1.3174, -4.3012],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 79,
+        mesh: 78,
       },
       {
         shape: 'mesh',
@@ -1460,7 +1460,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 1.4652, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 80,
+        mesh: 79,
       },
       {
         shape: 'mesh',
@@ -1468,7 +1468,7 @@ export const TERRAIN_PIECES = {
         position: [4.6816, 1.1483, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 81,
+        mesh: 80,
       },
       {
         shape: 'mesh',
@@ -1476,7 +1476,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 1.1195, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 82,
+        mesh: 81,
       },
       {
         shape: 'mesh',
@@ -1484,7 +1484,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 1.1628, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 83,
+        mesh: 82,
       },
       {
         shape: 'mesh',
@@ -1492,7 +1492,7 @@ export const TERRAIN_PIECES = {
         position: [4.2356, 1.0805, -4.2999],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 84,
+        mesh: 83,
       },
       {
         shape: 'mesh',
@@ -1500,7 +1500,7 @@ export const TERRAIN_PIECES = {
         position: [4.6816, 1.4508, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 85,
+        mesh: 84,
       },
       {
         shape: 'mesh',
@@ -1508,7 +1508,7 @@ export const TERRAIN_PIECES = {
         position: [4.6816, 0.8891, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 86,
+        mesh: 85,
       },
       {
         shape: 'mesh',
@@ -1516,7 +1516,7 @@ export const TERRAIN_PIECES = {
         position: [3.9902, 0.9323, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 87,
+        mesh: 86,
       },
       {
         shape: 'mesh',
@@ -1524,7 +1524,7 @@ export const TERRAIN_PIECES = {
         position: [3.9902, 1.0187, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 88,
+        mesh: 87,
       },
       {
         shape: 'mesh',
@@ -1532,7 +1532,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 1.1628, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 89,
+        mesh: 88,
       },
       {
         shape: 'mesh',
@@ -1540,7 +1540,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 1.4868, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 90,
+        mesh: 89,
       },
       {
         shape: 'mesh',
@@ -1548,7 +1548,7 @@ export const TERRAIN_PIECES = {
         position: [4.6816, 0.8459, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 91,
+        mesh: 90,
       },
       {
         shape: 'mesh',
@@ -1556,7 +1556,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 0.9467, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 92,
+        mesh: 91,
       },
       {
         shape: 'mesh',
@@ -1564,7 +1564,7 @@ export const TERRAIN_PIECES = {
         position: [4.6816, 1.494, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 93,
+        mesh: 92,
       },
       {
         shape: 'mesh',
@@ -1572,7 +1572,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 1.2924, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 94,
+        mesh: 93,
       },
       {
         shape: 'mesh',
@@ -1580,7 +1580,7 @@ export const TERRAIN_PIECES = {
         position: [3.9902, 1.4508, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 95,
+        mesh: 94,
       },
       {
         shape: 'mesh',
@@ -1588,7 +1588,7 @@ export const TERRAIN_PIECES = {
         position: [3.9902, 0.8459, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 96,
+        mesh: 95,
       },
       {
         shape: 'mesh',
@@ -1596,7 +1596,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 1.0115, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 97,
+        mesh: 96,
       },
       {
         shape: 'mesh',
@@ -1604,7 +1604,7 @@ export const TERRAIN_PIECES = {
         position: [4.6816, 1.2348, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 98,
+        mesh: 97,
       },
       {
         shape: 'mesh',
@@ -1612,7 +1612,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 1.0331, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 99,
+        mesh: 98,
       },
       {
         shape: 'mesh',
@@ -1620,7 +1620,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 0.9899, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 100,
+        mesh: 99,
       },
       {
         shape: 'mesh',
@@ -1628,7 +1628,7 @@ export const TERRAIN_PIECES = {
         position: [4.6816, 1.1916, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 101,
+        mesh: 100,
       },
       {
         shape: 'mesh',
@@ -1636,7 +1636,7 @@ export const TERRAIN_PIECES = {
         position: [3.9902, 0.8891, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 102,
+        mesh: 101,
       },
       {
         shape: 'mesh',
@@ -1644,7 +1644,7 @@ export const TERRAIN_PIECES = {
         position: [4.6816, 1.0871, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 103,
+        mesh: 102,
       },
       {
         shape: 'mesh',
@@ -1652,7 +1652,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 1.206, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 104,
+        mesh: 103,
       },
       {
         shape: 'mesh',
@@ -1660,7 +1660,7 @@ export const TERRAIN_PIECES = {
         position: [4.2086, 1.3606, -4.3012],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 105,
+        mesh: 104,
       },
       {
         shape: 'mesh',
@@ -1668,7 +1668,7 @@ export const TERRAIN_PIECES = {
         position: [4.6816, 1.278, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 106,
+        mesh: 105,
       },
       {
         shape: 'mesh',
@@ -1676,7 +1676,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 1.3356, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 107,
+        mesh: 106,
       },
       {
         shape: 'mesh',
@@ -1684,7 +1684,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 0.9035, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 108,
+        mesh: 107,
       },
       {
         shape: 'mesh',
@@ -1692,7 +1692,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 0.9251, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 109,
+        mesh: 108,
       },
       {
         shape: 'mesh',
@@ -1700,7 +1700,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 0.8603, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 110,
+        mesh: 109,
       },
       {
         shape: 'mesh',
@@ -1708,7 +1708,7 @@ export const TERRAIN_PIECES = {
         position: [4.3359, 0.9683, -4.3008],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 111,
+        mesh: 110,
       },
       {
         shape: 'mesh',
@@ -1716,7 +1716,7 @@ export const TERRAIN_PIECES = {
         position: [4.6816, 1.3644, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 112,
+        mesh: 111,
       },
       {
         shape: 'mesh',
@@ -1724,7 +1724,7 @@ export const TERRAIN_PIECES = {
         position: [4.6816, 0.9755, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 113,
+        mesh: 112,
       },
       {
         shape: 'mesh',
@@ -1732,7 +1732,7 @@ export const TERRAIN_PIECES = {
         position: [4.6816, 1.3212, -4.3018],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 114,
+        mesh: 113,
       },
       {
         shape: 'mesh',
@@ -1740,7 +1740,7 @@ export const TERRAIN_PIECES = {
         position: [5.7259, 0.3962, -4.2832],
         quaternion: [0, 1, 0, 0],
         scale: [15.0937, 15.0937, 5.0224],
-        mesh: 115,
+        mesh: 114,
       },
       {
         shape: 'mesh',
@@ -1748,7 +1748,7 @@ export const TERRAIN_PIECES = {
         position: [5.7265, 0.2744, -4.3148],
         quaternion: [-0.7075, 0.7067, -0.0197, 0.0197],
         scale: [4.6317, 4.6341, 1.8499],
-        mesh: 116,
+        mesh: 115,
       },
       {
         shape: 'mesh',
@@ -1756,7 +1756,7 @@ export const TERRAIN_PIECES = {
         position: [5.7265, 0.2744, -4.2824],
         quaternion: [-0.7075, 0.7067, -0.0197, 0.0197],
         scale: [4.6317, 4.6341, 1.8499],
-        mesh: 117,
+        mesh: 116,
       },
       {
         shape: 'mesh',
@@ -1764,7 +1764,7 @@ export const TERRAIN_PIECES = {
         position: [5.7265, 0.2744, -4.2863],
         quaternion: [-0.7075, 0.7067, -0.0197, 0.0197],
         scale: [4.6317, 4.6341, 1.8499],
-        mesh: 118,
+        mesh: 117,
       },
       {
         shape: 'mesh',
@@ -1772,7 +1772,7 @@ export const TERRAIN_PIECES = {
         position: [1.0924, 0.3965, -4.2832],
         quaternion: [0, 1, 0, 0],
         scale: [15.0937, 15.0937, 5.0224],
-        mesh: 119,
+        mesh: 118,
       },
       {
         shape: 'mesh',
@@ -1780,7 +1780,7 @@ export const TERRAIN_PIECES = {
         position: [1.093, 0.2747, -4.3148],
         quaternion: [-0.7075, 0.7067, -0.0197, 0.0197],
         scale: [4.6317, 4.6341, 1.8499],
-        mesh: 120,
+        mesh: 119,
       },
       {
         shape: 'mesh',
@@ -1788,7 +1788,7 @@ export const TERRAIN_PIECES = {
         position: [1.093, 0.2747, -4.2824],
         quaternion: [-0.7075, 0.7067, -0.0197, 0.0197],
         scale: [4.6317, 4.6341, 1.8499],
-        mesh: 121,
+        mesh: 120,
       },
       {
         shape: 'mesh',
@@ -1796,7 +1796,7 @@ export const TERRAIN_PIECES = {
         position: [1.093, 0.2747, -4.2863],
         quaternion: [-0.7075, 0.7067, -0.0197, 0.0197],
         scale: [4.6317, 4.6341, 1.8499],
-        mesh: 122,
+        mesh: 121,
       },
       {
         shape: 'mesh',
@@ -1804,7 +1804,7 @@ export const TERRAIN_PIECES = {
         position: [-1.3927, 0.3694, -4.2832],
         quaternion: [0, 1, 0, 0],
         scale: [15.0937, 15.0937, 5.0224],
-        mesh: 123,
+        mesh: 122,
       },
       {
         shape: 'mesh',
@@ -1812,7 +1812,7 @@ export const TERRAIN_PIECES = {
         position: [-1.3921, 0.2476, -4.3148],
         quaternion: [-0.7075, 0.7067, -0.0197, 0.0197],
         scale: [4.6317, 4.6341, 1.8499],
-        mesh: 124,
+        mesh: 123,
       },
       {
         shape: 'mesh',
@@ -1820,7 +1820,7 @@ export const TERRAIN_PIECES = {
         position: [-1.3921, 0.2476, -4.2824],
         quaternion: [-0.7075, 0.7067, -0.0197, 0.0197],
         scale: [4.6317, 4.6341, 1.8499],
-        mesh: 125,
+        mesh: 124,
       },
       {
         shape: 'mesh',
@@ -1828,7 +1828,7 @@ export const TERRAIN_PIECES = {
         position: [-1.3921, 0.2476, -4.2863],
         quaternion: [-0.7075, 0.7067, -0.0197, 0.0197],
         scale: [4.6317, 4.6341, 1.8499],
-        mesh: 126,
+        mesh: 125,
       },
       {
         shape: 'mesh',
@@ -1836,7 +1836,7 @@ export const TERRAIN_PIECES = {
         position: [-5.5943, 0.3694, -4.2832],
         quaternion: [0, 1, 0, 0],
         scale: [15.0937, 15.0937, 5.0224],
-        mesh: 127,
+        mesh: 126,
       },
       {
         shape: 'mesh',
@@ -1844,7 +1844,7 @@ export const TERRAIN_PIECES = {
         position: [-5.5937, 0.2476, -4.3148],
         quaternion: [-0.7075, 0.7067, -0.0197, 0.0197],
         scale: [4.6317, 4.6341, 1.8499],
-        mesh: 128,
+        mesh: 127,
       },
       {
         shape: 'mesh',
@@ -1852,7 +1852,7 @@ export const TERRAIN_PIECES = {
         position: [-5.5937, 0.2476, -4.2824],
         quaternion: [-0.7075, 0.7067, -0.0197, 0.0197],
         scale: [4.6317, 4.6341, 1.8499],
-        mesh: 129,
+        mesh: 128,
       },
       {
         shape: 'mesh',
@@ -1860,7 +1860,7 @@ export const TERRAIN_PIECES = {
         position: [-5.5937, 0.2476, -4.2863],
         quaternion: [-0.7075, 0.7067, -0.0197, 0.0197],
         scale: [4.6317, 4.6341, 1.8499],
-        mesh: 130,
+        mesh: 129,
       },
       {
         shape: 'mesh',
@@ -1868,7 +1868,7 @@ export const TERRAIN_PIECES = {
         position: [5.3917, 1.8704, -4.401],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 131,
+        mesh: 130,
       },
       {
         shape: 'mesh',
@@ -1876,7 +1876,7 @@ export const TERRAIN_PIECES = {
         position: [5.3916, 2.1368, -4.3958],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 132,
+        mesh: 131,
       },
       {
         shape: 'mesh',
@@ -1884,7 +1884,7 @@ export const TERRAIN_PIECES = {
         position: [5.3912, 2.238, -4.2979],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 133,
+        mesh: 132,
       },
       {
         shape: 'mesh',
@@ -1892,7 +1892,7 @@ export const TERRAIN_PIECES = {
         position: [5.3917, 2.2514, -4.3991],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 134,
+        mesh: 133,
       },
       {
         shape: 'mesh',
@@ -1900,7 +1900,7 @@ export const TERRAIN_PIECES = {
         position: [-3.0578, 0.5693, -4.2674],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 135,
+        mesh: 134,
       },
       {
         shape: 'mesh',
@@ -1908,7 +1908,7 @@ export const TERRAIN_PIECES = {
         position: [-3.0649, 0.3899, -4.2173],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.8068, 3.3123, 3.3123],
-        mesh: 136,
+        mesh: 135,
       },
       {
         shape: 'mesh',
@@ -1916,7 +1916,7 @@ export const TERRAIN_PIECES = {
         position: [-3.2686, 0.5625, -4.3301],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 137,
+        mesh: 136,
       },
       {
         shape: 'mesh',
@@ -1924,7 +1924,7 @@ export const TERRAIN_PIECES = {
         position: [-3.2686, 0.4894, -4.3286],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 138,
+        mesh: 137,
       },
       {
         shape: 'mesh',
@@ -1932,7 +1932,7 @@ export const TERRAIN_PIECES = {
         position: [-3.2686, 0.5625, -4.3355],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 139,
+        mesh: 138,
       },
       {
         shape: 'mesh',
@@ -1940,7 +1940,7 @@ export const TERRAIN_PIECES = {
         position: [-3.2587, 0.5369, -4.3286],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 140,
+        mesh: 139,
       },
       {
         shape: 'mesh',
@@ -1948,7 +1948,7 @@ export const TERRAIN_PIECES = {
         position: [-3.2785, 0.5369, -4.3286],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 141,
+        mesh: 140,
       },
       {
         shape: 'mesh',
@@ -1956,7 +1956,7 @@ export const TERRAIN_PIECES = {
         position: [-3.2686, 0.5625, -4.3134],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 142,
+        mesh: 141,
       },
       {
         shape: 'mesh',
@@ -1964,7 +1964,7 @@ export const TERRAIN_PIECES = {
         position: [-3.2686, 0.5625, -4.2837],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 143,
+        mesh: 142,
       },
       {
         shape: 'mesh',
@@ -1972,7 +1972,7 @@ export const TERRAIN_PIECES = {
         position: [-3.2686, 0.5625, -4.266],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 144,
+        mesh: 143,
       },
       {
         shape: 'mesh',
@@ -1980,7 +1980,7 @@ export const TERRAIN_PIECES = {
         position: [-3.2686, 0.5625, -4.2364],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 145,
+        mesh: 144,
       },
       {
         shape: 'mesh',
@@ -1988,7 +1988,7 @@ export const TERRAIN_PIECES = {
         position: [-3.1272, 0.5621, -4.2801],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 146,
+        mesh: 145,
       },
       {
         shape: 'mesh',
@@ -1996,7 +1996,7 @@ export const TERRAIN_PIECES = {
         position: [-3.4099, 0.5621, -4.2801],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 147,
+        mesh: 146,
       },
       {
         shape: 'mesh',
@@ -2004,7 +2004,7 @@ export const TERRAIN_PIECES = {
         position: [-2.8604, 0.5625, -4.3301],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 148,
+        mesh: 147,
       },
       {
         shape: 'mesh',
@@ -2012,7 +2012,7 @@ export const TERRAIN_PIECES = {
         position: [-2.8604, 0.4894, -4.3286],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 149,
+        mesh: 148,
       },
       {
         shape: 'mesh',
@@ -2020,7 +2020,7 @@ export const TERRAIN_PIECES = {
         position: [-2.8604, 0.5625, -4.3355],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 150,
+        mesh: 149,
       },
       {
         shape: 'mesh',
@@ -2028,7 +2028,7 @@ export const TERRAIN_PIECES = {
         position: [-2.8504, 0.5369, -4.3286],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 151,
+        mesh: 150,
       },
       {
         shape: 'mesh',
@@ -2036,7 +2036,7 @@ export const TERRAIN_PIECES = {
         position: [-2.8703, 0.5369, -4.3286],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 152,
+        mesh: 151,
       },
       {
         shape: 'mesh',
@@ -2044,7 +2044,7 @@ export const TERRAIN_PIECES = {
         position: [-2.8604, 0.5625, -4.3134],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 153,
+        mesh: 152,
       },
       {
         shape: 'mesh',
@@ -2052,7 +2052,7 @@ export const TERRAIN_PIECES = {
         position: [-2.8604, 0.5625, -4.2837],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 154,
+        mesh: 153,
       },
       {
         shape: 'mesh',
@@ -2060,7 +2060,7 @@ export const TERRAIN_PIECES = {
         position: [-2.8604, 0.5625, -4.266],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 155,
+        mesh: 154,
       },
       {
         shape: 'mesh',
@@ -2068,7 +2068,7 @@ export const TERRAIN_PIECES = {
         position: [-2.8604, 0.5625, -4.2364],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 156,
+        mesh: 155,
       },
       {
         shape: 'mesh',
@@ -2076,7 +2076,7 @@ export const TERRAIN_PIECES = {
         position: [-2.719, 0.5621, -4.2801],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 157,
+        mesh: 156,
       },
       {
         shape: 'mesh',
@@ -2084,7 +2084,7 @@ export const TERRAIN_PIECES = {
         position: [-3.0017, 0.5621, -4.2801],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.0163, 2.4842, 2.4842],
-        mesh: 158,
+        mesh: 157,
       },
       {
         shape: 'mesh',
@@ -2092,7 +2092,7 @@ export const TERRAIN_PIECES = {
         position: [-3.0649, 0.5741, -4.1956],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.8068, 3.3123, 3.3123],
-        mesh: 159,
+        mesh: 158,
       },
       {
         shape: 'mesh',
@@ -2100,7 +2100,7 @@ export const TERRAIN_PIECES = {
         position: [-3.0649, 0.7565, -4.2166],
         quaternion: [0.5, 0.5, 0.5, -0.5],
         scale: [1.8068, 3.3123, 3.3123],
-        mesh: 160,
+        mesh: 159,
       },
       {
         shape: 'mesh',
@@ -2108,7 +2108,7 @@ export const TERRAIN_PIECES = {
         position: [7.2135, -0.3048, -4.3311],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 161,
+        mesh: 160,
       },
       {
         shape: 'mesh',
@@ -2116,7 +2116,7 @@ export const TERRAIN_PIECES = {
         position: [6.6248, -0.3048, -4.3311],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 162,
+        mesh: 161,
       },
       {
         shape: 'mesh',
@@ -2124,7 +2124,7 @@ export const TERRAIN_PIECES = {
         position: [7.6685, -0.3048, -4.3019],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 163,
+        mesh: 162,
       },
       {
         shape: 'mesh',
@@ -2132,7 +2132,7 @@ export const TERRAIN_PIECES = {
         position: [0.6486, 2.0739, 5.4861],
         quaternion: [0, 0, 0, 1],
         scale: [1.4032, 1.4032, 1.4598],
-        mesh: 164,
+        mesh: 163,
       },
       {
         shape: 'mesh',
@@ -2140,7 +2140,7 @@ export const TERRAIN_PIECES = {
         position: [0.7409, 2.0799, 5.4861],
         quaternion: [0, 0, 0, 1],
         scale: [1.4032, 1.4032, 1.4598],
-        mesh: 165,
+        mesh: 164,
       },
       {
         shape: 'mesh',
@@ -2148,7 +2148,7 @@ export const TERRAIN_PIECES = {
         position: [0.8536, 2.0494, 5.4861],
         quaternion: [0, 0, 0, 1],
         scale: [1.4032, 1.4032, 1.4598],
-        mesh: 166,
+        mesh: 165,
       },
       {
         shape: 'mesh',
@@ -2156,7 +2156,7 @@ export const TERRAIN_PIECES = {
         position: [0.9107, 2.0829, 5.4861],
         quaternion: [0, 0, 0, 1],
         scale: [1.4032, 1.4032, 1.4598],
-        mesh: 167,
+        mesh: 166,
       },
       {
         shape: 'mesh',
@@ -2164,7 +2164,7 @@ export const TERRAIN_PIECES = {
         position: [-7.2485, 5.2842, 5.5064],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 168,
+        mesh: 167,
       },
       {
         shape: 'mesh',
@@ -2172,7 +2172,7 @@ export const TERRAIN_PIECES = {
         position: [-7.2497, 4.69, 5.4736],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 169,
+        mesh: 168,
       },
       {
         shape: 'mesh',
@@ -2180,7 +2180,7 @@ export const TERRAIN_PIECES = {
         position: [-6.0308, 5.2842, 5.5064],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 170,
+        mesh: 169,
       },
       {
         shape: 'mesh',
@@ -2188,7 +2188,7 @@ export const TERRAIN_PIECES = {
         position: [-6.032, 4.69, 5.4736],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 171,
+        mesh: 170,
       },
       {
         shape: 'mesh',
@@ -2196,7 +2196,7 @@ export const TERRAIN_PIECES = {
         position: [-4.8131, 5.2842, 5.5064],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 172,
+        mesh: 171,
       },
       {
         shape: 'mesh',
@@ -2204,7 +2204,7 @@ export const TERRAIN_PIECES = {
         position: [-4.8144, 4.69, 5.4736],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 173,
+        mesh: 172,
       },
       {
         shape: 'mesh',
@@ -2212,7 +2212,7 @@ export const TERRAIN_PIECES = {
         position: [3.2823, 5.2842, 5.5064],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 174,
+        mesh: 173,
       },
       {
         shape: 'mesh',
@@ -2220,7 +2220,7 @@ export const TERRAIN_PIECES = {
         position: [3.2811, 4.69, 5.4736],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 175,
+        mesh: 174,
       },
       {
         shape: 'mesh',
@@ -2228,7 +2228,7 @@ export const TERRAIN_PIECES = {
         position: [4.5, 5.2842, 5.5064],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 176,
+        mesh: 175,
       },
       {
         shape: 'mesh',
@@ -2236,7 +2236,7 @@ export const TERRAIN_PIECES = {
         position: [4.4987, 4.69, 5.4736],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 177,
+        mesh: 176,
       },
       {
         shape: 'mesh',
@@ -2244,7 +2244,7 @@ export const TERRAIN_PIECES = {
         position: [2.0646, 5.2842, 5.5064],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 178,
+        mesh: 177,
       },
       {
         shape: 'mesh',
@@ -2252,7 +2252,7 @@ export const TERRAIN_PIECES = {
         position: [2.0634, 4.69, 5.4736],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 179,
+        mesh: 178,
       },
       {
         shape: 'mesh',
@@ -2260,7 +2260,7 @@ export const TERRAIN_PIECES = {
         position: [-1.7757, 5.2842, 5.5064],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 180,
+        mesh: 179,
       },
       {
         shape: 'mesh',
@@ -2268,7 +2268,7 @@ export const TERRAIN_PIECES = {
         position: [-1.7769, 4.69, 5.4736],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 181,
+        mesh: 180,
       },
       {
         shape: 'mesh',
@@ -2276,7 +2276,7 @@ export const TERRAIN_PIECES = {
         position: [-0.558, 5.2842, 5.5064],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 182,
+        mesh: 181,
       },
       {
         shape: 'mesh',
@@ -2284,7 +2284,7 @@ export const TERRAIN_PIECES = {
         position: [-0.5592, 4.5745, 5.4683],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 183,
+        mesh: 182,
       },
       {
         shape: 'mesh',
@@ -2292,7 +2292,7 @@ export const TERRAIN_PIECES = {
         position: [-0.5592, 4.0134, 5.4489],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 184,
+        mesh: 183,
       },
       {
         shape: 'mesh',
@@ -2300,7 +2300,7 @@ export const TERRAIN_PIECES = {
         position: [-2.9933, 5.2842, 5.5064],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 185,
+        mesh: 184,
       },
       {
         shape: 'mesh',
@@ -2308,7 +2308,7 @@ export const TERRAIN_PIECES = {
         position: [-2.9946, 4.69, 5.4736],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 186,
+        mesh: 185,
       },
       {
         shape: 'mesh',
@@ -2316,7 +2316,7 @@ export const TERRAIN_PIECES = {
         position: [7.5107, 5.2842, 5.5064],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 187,
+        mesh: 186,
       },
       {
         shape: 'mesh',
@@ -2324,7 +2324,7 @@ export const TERRAIN_PIECES = {
         position: [7.5095, 4.69, 5.4736],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 188,
+        mesh: 187,
       },
       {
         shape: 'mesh',
@@ -2332,7 +2332,7 @@ export const TERRAIN_PIECES = {
         position: [8.7283, 5.2842, 5.5064],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 189,
+        mesh: 188,
       },
       {
         shape: 'mesh',
@@ -2340,7 +2340,7 @@ export const TERRAIN_PIECES = {
         position: [8.7271, 4.69, 5.4736],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 190,
+        mesh: 189,
       },
       {
         shape: 'mesh',
@@ -2348,7 +2348,7 @@ export const TERRAIN_PIECES = {
         position: [6.293, 5.2842, 5.5064],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 191,
+        mesh: 190,
       },
       {
         shape: 'mesh',
@@ -2356,7 +2356,7 @@ export const TERRAIN_PIECES = {
         position: [6.2918, 4.69, 5.4736],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 192,
+        mesh: 191,
       },
       {
         shape: 'mesh',
@@ -2364,7 +2364,7 @@ export const TERRAIN_PIECES = {
         position: [0.7645, 1.6586, -4.3755],
         quaternion: [-0.5, 0.5, 0.5, 0.5],
         scale: [3.5085, 6.4319, 6.4319],
-        mesh: 193,
+        mesh: 192,
       },
       {
         shape: 'mesh',
@@ -2372,7 +2372,7 @@ export const TERRAIN_PIECES = {
         position: [0.8844, 1.7964, -4.385],
         quaternion: [-0.5, 0.5, 0.5, 0.5],
         scale: [3.5085, 6.4319, 6.4319],
-        mesh: 194,
+        mesh: 193,
       },
       {
         shape: 'mesh',
@@ -2380,7 +2380,7 @@ export const TERRAIN_PIECES = {
         position: [0.8994, 1.7801, -4.4109],
         quaternion: [-0.5, 0.5, 0.5, 0.5],
         scale: [3.5085, 6.4319, 6.4319],
-        mesh: 195,
+        mesh: 194,
       },
       {
         shape: 'mesh',
@@ -2388,7 +2388,7 @@ export const TERRAIN_PIECES = {
         position: [0.5924, 1.7958, -4.398],
         quaternion: [-0.5, 0.5, 0.5, 0.5],
         scale: [3.5085, 6.4319, 6.4319],
-        mesh: 196,
+        mesh: 195,
       },
       {
         shape: 'mesh',
@@ -2396,7 +2396,7 @@ export const TERRAIN_PIECES = {
         position: [0.7621, 1.8289, -4.3378],
         quaternion: [-0.5, 0.5, 0.5, 0.5],
         scale: [3.5085, 6.4319, 6.4319],
-        mesh: 197,
+        mesh: 196,
       },
       {
         shape: 'mesh',
@@ -2404,7 +2404,7 @@ export const TERRAIN_PIECES = {
         position: [0.6224, 1.8093, -4.3757],
         quaternion: [-0.5, 0.5, 0.5, 0.5],
         scale: [3.5085, 6.4319, 6.4319],
-        mesh: 198,
+        mesh: 197,
       },
       {
         shape: 'mesh',
@@ -2412,7 +2412,7 @@ export const TERRAIN_PIECES = {
         position: [0.5549, 1.779, -4.426],
         quaternion: [-0.5, 0.5, 0.5, 0.5],
         scale: [3.5085, 6.4319, 6.4319],
-        mesh: 199,
+        mesh: 198,
       },
       {
         shape: 'mesh',
@@ -2420,7 +2420,7 @@ export const TERRAIN_PIECES = {
         position: [0.7578, 1.8091, -4.358],
         quaternion: [-0.5, 0.5, 0.5, 0.5],
         scale: [3.5085, 6.4319, 6.4319],
-        mesh: 200,
+        mesh: 199,
       },
       {
         shape: 'mesh',
@@ -2428,7 +2428,7 @@ export const TERRAIN_PIECES = {
         position: [0.6201, 1.8083, -4.3774],
         quaternion: [-0.5, 0.5, 0.5, 0.5],
         scale: [3.5085, 6.4319, 6.4319],
-        mesh: 201,
+        mesh: 200,
       },
       {
         shape: 'mesh',
@@ -2436,7 +2436,7 @@ export const TERRAIN_PIECES = {
         position: [0.7667, 1.6839, -4.3316],
         quaternion: [-0.5, 0.5, 0.5, 0.5],
         scale: [3.5085, 6.4319, 6.4319],
-        mesh: 202,
+        mesh: 201,
       },
       {
         shape: 'mesh',
@@ -2444,7 +2444,7 @@ export const TERRAIN_PIECES = {
         position: [0.8856, 1.7952, -4.387],
         quaternion: [-0.5, 0.5, 0.5, 0.5],
         scale: [3.5085, 6.4319, 6.4319],
-        mesh: 203,
+        mesh: 202,
       },
       {
         shape: 'mesh',
@@ -2452,7 +2452,7 @@ export const TERRAIN_PIECES = {
         position: [0.7667, 1.6574, -4.3771],
         quaternion: [-0.5, 0.5, 0.5, 0.5],
         scale: [3.5085, 6.4319, 6.4319],
-        mesh: 204,
+        mesh: 203,
       },
       {
         shape: 'mesh',
@@ -2460,7 +2460,7 @@ export const TERRAIN_PIECES = {
         position: [0.9182, 1.7597, -4.4434],
         quaternion: [-0.5, 0.5, 0.5, 0.5],
         scale: [3.5085, 6.4319, 6.4319],
-        mesh: 205,
+        mesh: 204,
       },
       {
         shape: 'mesh',
@@ -2468,7 +2468,7 @@ export const TERRAIN_PIECES = {
         position: [8.0388, 4.8252, -4.3084],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 206,
+        mesh: 205,
       },
       {
         shape: 'mesh',
@@ -2476,7 +2476,7 @@ export const TERRAIN_PIECES = {
         position: [8.0388, 4.4138, -4.2954],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 207,
+        mesh: 206,
       },
       {
         shape: 'mesh',
@@ -2484,7 +2484,7 @@ export const TERRAIN_PIECES = {
         position: [8.0388, 5.2217, -4.2954],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 208,
+        mesh: 207,
       },
       {
         shape: 'mesh',
@@ -2492,7 +2492,7 @@ export const TERRAIN_PIECES = {
         position: [6.7542, 4.8252, -4.3084],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 209,
+        mesh: 208,
       },
       {
         shape: 'mesh',
@@ -2500,7 +2500,7 @@ export const TERRAIN_PIECES = {
         position: [6.7542, 4.4138, -4.2954],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 210,
+        mesh: 209,
       },
       {
         shape: 'mesh',
@@ -2508,7 +2508,7 @@ export const TERRAIN_PIECES = {
         position: [6.7542, 5.2217, -4.2954],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 211,
+        mesh: 210,
       },
       {
         shape: 'mesh',
@@ -2516,7 +2516,7 @@ export const TERRAIN_PIECES = {
         position: [-1.8095, 4.8252, -4.3084],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 212,
+        mesh: 211,
       },
       {
         shape: 'mesh',
@@ -2524,7 +2524,7 @@ export const TERRAIN_PIECES = {
         position: [-1.8095, 4.4138, -4.2954],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 213,
+        mesh: 212,
       },
       {
         shape: 'mesh',
@@ -2532,7 +2532,7 @@ export const TERRAIN_PIECES = {
         position: [-1.8095, 5.2217, -4.2954],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 214,
+        mesh: 213,
       },
       {
         shape: 'mesh',
@@ -2540,7 +2540,7 @@ export const TERRAIN_PIECES = {
         position: [-3.0406, 4.8252, -4.3084],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 215,
+        mesh: 214,
       },
       {
         shape: 'mesh',
@@ -2548,7 +2548,7 @@ export const TERRAIN_PIECES = {
         position: [-3.0406, 4.4138, -4.2954],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 216,
+        mesh: 215,
       },
       {
         shape: 'mesh',
@@ -2556,7 +2556,7 @@ export const TERRAIN_PIECES = {
         position: [-3.0406, 5.2217, -4.2954],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 217,
+        mesh: 216,
       },
       {
         shape: 'mesh',
@@ -2564,7 +2564,7 @@ export const TERRAIN_PIECES = {
         position: [-5.9844, 4.8252, -4.3084],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 218,
+        mesh: 217,
       },
       {
         shape: 'mesh',
@@ -2572,7 +2572,7 @@ export const TERRAIN_PIECES = {
         position: [-5.9844, 4.4138, -4.2954],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 219,
+        mesh: 218,
       },
       {
         shape: 'mesh',
@@ -2580,7 +2580,7 @@ export const TERRAIN_PIECES = {
         position: [-5.9844, 5.2217, -4.2954],
         quaternion: [0, 1, 0, 0],
         scale: [2.6762, 2.6762, 1.4598],
-        mesh: 220,
+        mesh: 219,
       },
       {
         shape: 'mesh',
@@ -2588,7 +2588,7 @@ export const TERRAIN_PIECES = {
         position: [-8.2347, 2.814, 0.601],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 221,
+        mesh: 220,
       },
       {
         shape: 'mesh',
@@ -2596,7 +2596,7 @@ export const TERRAIN_PIECES = {
         position: [0.757, 6.4365, 0.601],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 222,
+        mesh: 221,
       },
       {
         shape: 'mesh',
@@ -2604,7 +2604,7 @@ export const TERRAIN_PIECES = {
         position: [0.7837, 6.1153, 0.601],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 223,
+        mesh: 222,
       },
       {
         shape: 'mesh',
@@ -2612,7 +2612,7 @@ export const TERRAIN_PIECES = {
         position: [0.7837, 6.2759, 0.601],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 224,
+        mesh: 223,
       },
       {
         shape: 'mesh',
@@ -2620,7 +2620,7 @@ export const TERRAIN_PIECES = {
         position: [-0.5574, 2.1242, 5.4877],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 225,
+        mesh: 224,
       },
       {
         shape: 'mesh',
@@ -2628,7 +2628,7 @@ export const TERRAIN_PIECES = {
         position: [-7.4919, 0.1457, 5.4373],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 226,
+        mesh: 225,
       },
       {
         shape: 'mesh',
@@ -2636,7 +2636,7 @@ export const TERRAIN_PIECES = {
         position: [-7.3575, 0.9279, 5.4416],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 227,
+        mesh: 226,
       },
       {
         shape: 'mesh',
@@ -2644,7 +2644,7 @@ export const TERRAIN_PIECES = {
         position: [-6.8746, 0.3698, 5.4598],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 228,
+        mesh: 227,
       },
       {
         shape: 'mesh',
@@ -2652,7 +2652,7 @@ export const TERRAIN_PIECES = {
         position: [-4.0939, 4.5368, 5.4489],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 229,
+        mesh: 228,
       },
       {
         shape: 'mesh',
@@ -2660,7 +2660,7 @@ export const TERRAIN_PIECES = {
         position: [-7.087, 0.621, 5.4653],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 230,
+        mesh: 229,
       },
       {
         shape: 'mesh',
@@ -2668,7 +2668,7 @@ export const TERRAIN_PIECES = {
         position: [-5.2798, 0.7851, 5.4829],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 231,
+        mesh: 230,
       },
       {
         shape: 'mesh',
@@ -2676,7 +2676,7 @@ export const TERRAIN_PIECES = {
         position: [-6.0211, 2.8993, 5.506],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 232,
+        mesh: 231,
       },
       {
         shape: 'mesh',
@@ -2684,7 +2684,7 @@ export const TERRAIN_PIECES = {
         position: [-1.9334, 2.8143, 5.5096],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 233,
+        mesh: 232,
       },
       {
         shape: 'mesh',
@@ -2692,7 +2692,7 @@ export const TERRAIN_PIECES = {
         position: [-1.7488, 2.8993, 5.506],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 234,
+        mesh: 233,
       },
       {
         shape: 'mesh',
@@ -2700,7 +2700,7 @@ export const TERRAIN_PIECES = {
         position: [-3.1874, 0.6195, 5.4506],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 235,
+        mesh: 234,
       },
       {
         shape: 'mesh',
@@ -2708,7 +2708,7 @@ export const TERRAIN_PIECES = {
         position: [-3.186, 0.5985, 5.4184],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 236,
+        mesh: 235,
       },
       {
         shape: 'mesh',
@@ -2716,7 +2716,7 @@ export const TERRAIN_PIECES = {
         position: [-0.9621, 0.8047, 5.4768],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 237,
+        mesh: 236,
       },
       {
         shape: 'mesh',
@@ -2724,7 +2724,7 @@ export const TERRAIN_PIECES = {
         position: [0.7906, 3.5126, 5.4829],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 238,
+        mesh: 237,
       },
       {
         shape: 'mesh',
@@ -2732,7 +2732,7 @@ export const TERRAIN_PIECES = {
         position: [0.7661, -0.4173, 5.4185],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 239,
+        mesh: 238,
       },
       {
         shape: 'mesh',
@@ -2740,7 +2740,7 @@ export const TERRAIN_PIECES = {
         position: [0.7661, 0.6303, 5.4172],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 240,
+        mesh: 239,
       },
       {
         shape: 'mesh',
@@ -2748,7 +2748,7 @@ export const TERRAIN_PIECES = {
         position: [0.7665, 0.4778, 5.4023],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 241,
+        mesh: 240,
       },
       {
         shape: 'mesh',
@@ -2756,7 +2756,7 @@ export const TERRAIN_PIECES = {
         position: [2.9044, 3.8591, 5.427],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 242,
+        mesh: 241,
       },
       {
         shape: 'mesh',
@@ -2764,7 +2764,7 @@ export const TERRAIN_PIECES = {
         position: [0.3703, 0.2788, 5.4455],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 243,
+        mesh: 242,
       },
       {
         shape: 'mesh',
@@ -2772,7 +2772,7 @@ export const TERRAIN_PIECES = {
         position: [0.6739, 2.2494, 5.5024],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 244,
+        mesh: 243,
       },
       {
         shape: 'mesh',
@@ -2780,7 +2780,7 @@ export const TERRAIN_PIECES = {
         position: [0.7768, 2.1224, 5.5126],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 245,
+        mesh: 244,
       },
       {
         shape: 'mesh',
@@ -2788,7 +2788,7 @@ export const TERRAIN_PIECES = {
         position: [0.7897, 2.5262, 5.526],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 246,
+        mesh: 245,
       },
       {
         shape: 'mesh',
@@ -2796,7 +2796,7 @@ export const TERRAIN_PIECES = {
         position: [0.7786, 1.687, 5.5245],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 247,
+        mesh: 246,
       },
       {
         shape: 'mesh',
@@ -2804,7 +2804,7 @@ export const TERRAIN_PIECES = {
         position: [0.3592, 2.104, 5.522],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 248,
+        mesh: 247,
       },
       {
         shape: 'mesh',
@@ -2812,7 +2812,7 @@ export const TERRAIN_PIECES = {
         position: [1.1927, 2.104, 5.5223],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 249,
+        mesh: 248,
       },
       {
         shape: 'mesh',
@@ -2820,7 +2820,7 @@ export const TERRAIN_PIECES = {
         position: [5.4008, 2.9262, 5.5331],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 250,
+        mesh: 249,
       },
       {
         shape: 'mesh',
@@ -2828,7 +2828,7 @@ export const TERRAIN_PIECES = {
         position: [7.3468, 2.9292, 5.5267],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 251,
+        mesh: 250,
       },
       {
         shape: 'mesh',
@@ -2836,7 +2836,7 @@ export const TERRAIN_PIECES = {
         position: [4.1509, 2.7312, 5.5175],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 252,
+        mesh: 251,
       },
       {
         shape: 'mesh',
@@ -2844,7 +2844,7 @@ export const TERRAIN_PIECES = {
         position: [4.3409, 2.4569, 5.506],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 253,
+        mesh: 252,
       },
       {
         shape: 'mesh',
@@ -2852,7 +2852,7 @@ export const TERRAIN_PIECES = {
         position: [4.373, 2.7618, 5.5056],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 254,
+        mesh: 253,
       },
       {
         shape: 'mesh',
@@ -2860,7 +2860,7 @@ export const TERRAIN_PIECES = {
         position: [3.8046, 5.1457, 5.4854],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 255,
+        mesh: 254,
       },
       {
         shape: 'mesh',
@@ -2868,7 +2868,7 @@ export const TERRAIN_PIECES = {
         position: [0.4484, 2.1138, 5.4776],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 256,
+        mesh: 255,
       },
       {
         shape: 'mesh',
@@ -2876,7 +2876,7 @@ export const TERRAIN_PIECES = {
         position: [2.9046, 5.1399, 5.4854],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 257,
+        mesh: 256,
       },
       {
         shape: 'mesh',
@@ -2884,7 +2884,7 @@ export const TERRAIN_PIECES = {
         position: [0.3356, 2.0832, 5.4854],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 258,
+        mesh: 257,
       },
       {
         shape: 'mesh',
@@ -2892,7 +2892,7 @@ export const TERRAIN_PIECES = {
         position: [0.808, 2.5418, 5.4854],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 259,
+        mesh: 258,
       },
       {
         shape: 'mesh',
@@ -2900,7 +2900,7 @@ export const TERRAIN_PIECES = {
         position: [4.523, 0.4327, 5.4539],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 260,
+        mesh: 259,
       },
       {
         shape: 'mesh',
@@ -2908,7 +2908,7 @@ export const TERRAIN_PIECES = {
         position: [3.5681, 0.4309, 5.4533],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 261,
+        mesh: 260,
       },
       {
         shape: 'mesh',
@@ -2916,7 +2916,7 @@ export const TERRAIN_PIECES = {
         position: [4.0403, 1.7641, 5.4476],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 262,
+        mesh: 261,
       },
       {
         shape: 'mesh',
@@ -2924,7 +2924,7 @@ export const TERRAIN_PIECES = {
         position: [4.1238, 0.2721, 5.4653],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 263,
+        mesh: 262,
       },
       {
         shape: 'mesh',
@@ -2932,7 +2932,7 @@ export const TERRAIN_PIECES = {
         position: [2.2401, 0.7251, 5.4768],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 264,
+        mesh: 263,
       },
       {
         shape: 'mesh',
@@ -2940,7 +2940,7 @@ export const TERRAIN_PIECES = {
         position: [2.2401, 0.7251, 5.4902],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 265,
+        mesh: 264,
       },
       {
         shape: 'mesh',
@@ -2948,7 +2948,7 @@ export const TERRAIN_PIECES = {
         position: [6.7246, 0.7251, 5.4768],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 266,
+        mesh: 265,
       },
       {
         shape: 'mesh',
@@ -2956,7 +2956,7 @@ export const TERRAIN_PIECES = {
         position: [8.4385, 0.7251, 5.4768],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 267,
+        mesh: 266,
       },
       {
         shape: 'mesh',
@@ -2964,7 +2964,7 @@ export const TERRAIN_PIECES = {
         position: [7.537, 0.7251, 5.4894],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 268,
+        mesh: 267,
       },
       {
         shape: 'mesh',
@@ -2972,7 +2972,7 @@ export const TERRAIN_PIECES = {
         position: [-0.5575, 4.1565, 5.5],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 269,
+        mesh: 268,
       },
       {
         shape: 'mesh',
@@ -2980,7 +2980,7 @@ export const TERRAIN_PIECES = {
         position: [2.4541, 1.224, -4.2938],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 270,
+        mesh: 269,
       },
       {
         shape: 'mesh',
@@ -2988,7 +2988,7 @@ export const TERRAIN_PIECES = {
         position: [-5.9459, -0.6916, -4.3169],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 271,
+        mesh: 270,
       },
       {
         shape: 'mesh',
@@ -2996,7 +2996,7 @@ export const TERRAIN_PIECES = {
         position: [-1.7443, -0.6916, -4.3169],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 272,
+        mesh: 271,
       },
       {
         shape: 'mesh',
@@ -3004,7 +3004,7 @@ export const TERRAIN_PIECES = {
         position: [0.7446, -0.6859, -4.3117],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 273,
+        mesh: 272,
       },
       {
         shape: 'mesh',
@@ -3012,7 +3012,7 @@ export const TERRAIN_PIECES = {
         position: [5.3744, -0.6859, -4.3117],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 274,
+        mesh: 273,
       },
       {
         shape: 'mesh',
@@ -3020,7 +3020,7 @@ export const TERRAIN_PIECES = {
         position: [-5.9459, -0.8085, -4.3198],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 275,
+        mesh: 274,
       },
       {
         shape: 'mesh',
@@ -3028,7 +3028,7 @@ export const TERRAIN_PIECES = {
         position: [-1.7443, -0.8085, -4.3198],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 276,
+        mesh: 275,
       },
       {
         shape: 'mesh',
@@ -3036,7 +3036,7 @@ export const TERRAIN_PIECES = {
         position: [0.7446, -0.7596, -4.3297],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 277,
+        mesh: 276,
       },
       {
         shape: 'mesh',
@@ -3044,7 +3044,7 @@ export const TERRAIN_PIECES = {
         position: [5.3744, -0.7189, -4.3417],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 278,
+        mesh: 277,
       },
       {
         shape: 'mesh',
@@ -3052,7 +3052,7 @@ export const TERRAIN_PIECES = {
         position: [5.3744, -0.8085, -4.3198],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 279,
+        mesh: 278,
       },
       {
         shape: 'mesh',
@@ -3060,7 +3060,7 @@ export const TERRAIN_PIECES = {
         position: [7.8793, 1.2861, -4.3111],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 280,
+        mesh: 279,
       },
       {
         shape: 'mesh',
@@ -3068,7 +3068,7 @@ export const TERRAIN_PIECES = {
         position: [7.7949, 1.1375, -4.3193],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 281,
+        mesh: 280,
       },
       {
         shape: 'mesh',
@@ -3076,7 +3076,7 @@ export const TERRAIN_PIECES = {
         position: [7.6181, 1.0635, -4.3125],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 282,
+        mesh: 281,
       },
       {
         shape: 'mesh',
@@ -3084,7 +3084,7 @@ export const TERRAIN_PIECES = {
         position: [8.0072, 1.2623, -4.3125],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 283,
+        mesh: 282,
       },
       {
         shape: 'mesh',
@@ -3092,7 +3092,7 @@ export const TERRAIN_PIECES = {
         position: [8.0072, 1.2623, -4.2541],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 284,
+        mesh: 283,
       },
       {
         shape: 'mesh',
@@ -3100,7 +3100,7 @@ export const TERRAIN_PIECES = {
         position: [8.0072, 1.2623, -4.2833],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 285,
+        mesh: 284,
       },
       {
         shape: 'mesh',
@@ -3108,7 +3108,7 @@ export const TERRAIN_PIECES = {
         position: [5.3826, -0.2004, -4.2541],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 286,
+        mesh: 285,
       },
       {
         shape: 'mesh',
@@ -3116,7 +3116,7 @@ export const TERRAIN_PIECES = {
         position: [7.9627, 2.8412, -4.2614],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 287,
+        mesh: 286,
       },
       {
         shape: 'mesh',
@@ -3124,7 +3124,7 @@ export const TERRAIN_PIECES = {
         position: [5.3779, 1.064, -4.2687],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 288,
+        mesh: 287,
       },
       {
         shape: 'mesh',
@@ -3132,7 +3132,7 @@ export const TERRAIN_PIECES = {
         position: [5.3779, 1.064, -4.2745],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 289,
+        mesh: 288,
       },
       {
         shape: 'mesh',
@@ -3140,7 +3140,7 @@ export const TERRAIN_PIECES = {
         position: [7.958, 4.1056, -4.2716],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 290,
+        mesh: 289,
       },
       {
         shape: 'mesh',
@@ -3148,7 +3148,7 @@ export const TERRAIN_PIECES = {
         position: [5.3779, 1.064, -4.2716],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 291,
+        mesh: 290,
       },
       {
         shape: 'mesh',
@@ -3156,7 +3156,7 @@ export const TERRAIN_PIECES = {
         position: [0.7678, 1.059, -4.2687],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 292,
+        mesh: 291,
       },
       {
         shape: 'mesh',
@@ -3164,7 +3164,7 @@ export const TERRAIN_PIECES = {
         position: [0.7678, 1.059, -4.2745],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 293,
+        mesh: 292,
       },
       {
         shape: 'mesh',
@@ -3172,7 +3172,7 @@ export const TERRAIN_PIECES = {
         position: [3.348, 4.1006, -4.2716],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 294,
+        mesh: 293,
       },
       {
         shape: 'mesh',
@@ -3180,7 +3180,7 @@ export const TERRAIN_PIECES = {
         position: [0.7678, 1.059, -4.2716],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 295,
+        mesh: 294,
       },
       {
         shape: 'mesh',
@@ -3188,7 +3188,7 @@ export const TERRAIN_PIECES = {
         position: [0.7667, 2.1415, -4.3161],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 296,
+        mesh: 295,
       },
       {
         shape: 'mesh',
@@ -3196,7 +3196,7 @@ export const TERRAIN_PIECES = {
         position: [-3.0533, 0.5582, -4.2638],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 297,
+        mesh: 296,
       },
       {
         shape: 'mesh',
@@ -3204,7 +3204,7 @@ export const TERRAIN_PIECES = {
         position: [1.3958, 0.5743, -4.3064],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 298,
+        mesh: 297,
       },
       {
         shape: 'mesh',
@@ -3212,7 +3212,7 @@ export const TERRAIN_PIECES = {
         position: [0.7589, 5.1044, -4.3181],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 299,
+        mesh: 298,
       },
       {
         shape: 'mesh',
@@ -3220,7 +3220,7 @@ export const TERRAIN_PIECES = {
         position: [0.759, 4.822, -4.3158],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 300,
+        mesh: 299,
       },
       {
         shape: 'mesh',
@@ -3228,7 +3228,7 @@ export const TERRAIN_PIECES = {
         position: [0.759, 4.9123, -4.3158],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 301,
+        mesh: 300,
       },
       {
         shape: 'mesh',
@@ -3236,7 +3236,7 @@ export const TERRAIN_PIECES = {
         position: [0.759, 5.0026, -4.3158],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 302,
+        mesh: 301,
       },
       {
         shape: 'mesh',
@@ -3244,7 +3244,7 @@ export const TERRAIN_PIECES = {
         position: [0.759, 5.0929, -4.3158],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 303,
+        mesh: 302,
       },
       {
         shape: 'mesh',
@@ -3252,7 +3252,7 @@ export const TERRAIN_PIECES = {
         position: [0.759, 5.1832, -4.3158],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 304,
+        mesh: 303,
       },
       {
         shape: 'mesh',
@@ -3260,7 +3260,7 @@ export const TERRAIN_PIECES = {
         position: [0.759, 5.2736, -4.3158],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 305,
+        mesh: 304,
       },
       {
         shape: 'mesh',
@@ -3268,7 +3268,7 @@ export const TERRAIN_PIECES = {
         position: [0.759, 5.3639, -4.3158],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 306,
+        mesh: 305,
       },
       {
         shape: 'mesh',
@@ -3276,7 +3276,7 @@ export const TERRAIN_PIECES = {
         position: [0.759, 5.4624, -4.315],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 307,
+        mesh: 306,
       },
       {
         shape: 'mesh',
@@ -3284,7 +3284,7 @@ export const TERRAIN_PIECES = {
         position: [0.759, 5.3986, -4.3125],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 308,
+        mesh: 307,
       },
       {
         shape: 'mesh',
@@ -3292,7 +3292,7 @@ export const TERRAIN_PIECES = {
         position: [0.759, 5.3083, -4.3125],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 309,
+        mesh: 308,
       },
       {
         shape: 'mesh',
@@ -3300,7 +3300,7 @@ export const TERRAIN_PIECES = {
         position: [0.759, 5.218, -4.3125],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 310,
+        mesh: 309,
       },
       {
         shape: 'mesh',
@@ -3308,7 +3308,7 @@ export const TERRAIN_PIECES = {
         position: [0.759, 5.1277, -4.3125],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 311,
+        mesh: 310,
       },
       {
         shape: 'mesh',
@@ -3316,7 +3316,7 @@ export const TERRAIN_PIECES = {
         position: [0.759, 5.0373, -4.3125],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 312,
+        mesh: 311,
       },
       {
         shape: 'mesh',
@@ -3324,7 +3324,7 @@ export const TERRAIN_PIECES = {
         position: [0.759, 4.947, -4.3125],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 313,
+        mesh: 312,
       },
       {
         shape: 'mesh',
@@ -3332,7 +3332,7 @@ export const TERRAIN_PIECES = {
         position: [0.759, 4.8567, -4.3125],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 314,
+        mesh: 313,
       },
       {
         shape: 'mesh',
@@ -3340,7 +3340,7 @@ export const TERRAIN_PIECES = {
         position: [-7.1887, 5.2217, -4.2954],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 315,
+        mesh: 314,
       },
       {
         shape: 'mesh',
@@ -3348,7 +3348,7 @@ export const TERRAIN_PIECES = {
         position: [-7.2012, 4.3069, -4.2806],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 316,
+        mesh: 315,
       },
       {
         shape: 'mesh',
@@ -3356,7 +3356,7 @@ export const TERRAIN_PIECES = {
         position: [-7.1887, 4.8252, -4.3084],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 317,
+        mesh: 316,
       },
       {
         shape: 'mesh',
@@ -3364,7 +3364,7 @@ export const TERRAIN_PIECES = {
         position: [7.6663, 0.5708, -4.3339],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 318,
+        mesh: 317,
       },
       {
         shape: 'mesh',
@@ -3372,7 +3372,7 @@ export const TERRAIN_PIECES = {
         position: [7.7811, 0.3698, -4.3198],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 319,
+        mesh: 318,
       },
       {
         shape: 'mesh',
@@ -3380,7 +3380,7 @@ export const TERRAIN_PIECES = {
         position: [7.6861, -0.3251, -4.309],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 320,
+        mesh: 319,
       },
       {
         shape: 'mesh',
@@ -3388,7 +3388,7 @@ export const TERRAIN_PIECES = {
         position: [7.13, 0.8919, -4.3662],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 321,
+        mesh: 320,
       },
       {
         shape: 'mesh',
@@ -3396,7 +3396,7 @@ export const TERRAIN_PIECES = {
         position: [6.8022, 0.6987, -4.3344],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 322,
+        mesh: 321,
       },
       {
         shape: 'mesh',
@@ -3404,7 +3404,7 @@ export const TERRAIN_PIECES = {
         position: [7.3107, 0.6987, -4.3344],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 323,
+        mesh: 322,
       },
       {
         shape: 'mesh',
@@ -3412,7 +3412,7 @@ export const TERRAIN_PIECES = {
         position: [7.1911, 0.217, -4.3316],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 324,
+        mesh: 323,
       },
       {
         shape: 'mesh',
@@ -3420,7 +3420,7 @@ export const TERRAIN_PIECES = {
         position: [6.5321, 0.8468, -4.3667],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 325,
+        mesh: 324,
       },
       {
         shape: 'mesh',
@@ -3428,7 +3428,7 @@ export const TERRAIN_PIECES = {
         position: [6.4677, 0.217, -4.3344],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 326,
+        mesh: 325,
       },
       {
         shape: 'mesh',
@@ -3436,7 +3436,7 @@ export const TERRAIN_PIECES = {
         position: [6.2134, 0.6987, -4.3344],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 327,
+        mesh: 326,
       },
       {
         shape: 'mesh',
@@ -3444,7 +3444,7 @@ export const TERRAIN_PIECES = {
         position: [6.7219, 0.6987, -4.3344],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 328,
+        mesh: 327,
       },
       {
         shape: 'mesh',
@@ -3452,7 +3452,7 @@ export const TERRAIN_PIECES = {
         position: [7.1525, 0.884, -4.4074],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 329,
+        mesh: 328,
       },
       {
         shape: 'mesh',
@@ -3460,7 +3460,7 @@ export const TERRAIN_PIECES = {
         position: [6.5637, 0.884, -4.4074],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 330,
+        mesh: 329,
       },
       {
         shape: 'mesh',
@@ -3468,7 +3468,7 @@ export const TERRAIN_PIECES = {
         position: [7.6675, 0.4934, -4.3417],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 331,
+        mesh: 330,
       },
       {
         shape: 'mesh',
@@ -3476,7 +3476,7 @@ export const TERRAIN_PIECES = {
         position: [6.4603, 0.4938, -4.3709],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 332,
+        mesh: 331,
       },
       {
         shape: 'mesh',
@@ -3484,7 +3484,7 @@ export const TERRAIN_PIECES = {
         position: [5.3705, 0.7335, -4.2687],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 333,
+        mesh: 332,
       },
       {
         shape: 'mesh',
@@ -3492,7 +3492,7 @@ export const TERRAIN_PIECES = {
         position: [-0.5249, 1.0974, -4.2979],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 334,
+        mesh: 333,
       },
       {
         shape: 'mesh',
@@ -3500,7 +3500,7 @@ export const TERRAIN_PIECES = {
         position: [0.7273, 0.681, -4.2687],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 335,
+        mesh: 334,
       },
       {
         shape: 'mesh',
@@ -3508,7 +3508,7 @@ export const TERRAIN_PIECES = {
         position: [0.7679, 0.0573, 5.3978],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 336,
+        mesh: 335,
       },
       {
         shape: 'mesh',
@@ -3516,7 +3516,7 @@ export const TERRAIN_PIECES = {
         position: [2.8545, 4.209, -4.312],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 337,
+        mesh: 336,
       },
       {
         shape: 'mesh',
@@ -3524,7 +3524,7 @@ export const TERRAIN_PIECES = {
         position: [2.8545, 4.2455, -4.2722],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 338,
+        mesh: 337,
       },
       {
         shape: 'mesh',
@@ -3532,7 +3532,7 @@ export const TERRAIN_PIECES = {
         position: [3.1422, 0.1915, -4.312],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 339,
+        mesh: 338,
       },
       {
         shape: 'mesh',
@@ -3540,7 +3540,7 @@ export const TERRAIN_PIECES = {
         position: [2.8545, 2.2238, -4.312],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 340,
+        mesh: 339,
       },
       {
         shape: 'mesh',
@@ -3548,7 +3548,7 @@ export const TERRAIN_PIECES = {
         position: [3.5823, 0.4263, -4.3586],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.0657, 2.6762],
-        mesh: 341,
+        mesh: 340,
       },
       {
         shape: 'mesh',
@@ -3556,7 +3556,7 @@ export const TERRAIN_PIECES = {
         position: [3.5826, 0.5581, -4.3026],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.0657],
-        mesh: 342,
+        mesh: 341,
       },
       {
         shape: 'mesh',
@@ -3564,7 +3564,7 @@ export const TERRAIN_PIECES = {
         position: [3.5819, 0.5576, -4.2994],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.0657],
-        mesh: 343,
+        mesh: 342,
       },
       {
         shape: 'mesh',
@@ -3572,7 +3572,7 @@ export const TERRAIN_PIECES = {
         position: [3.5823, 0.4017, -4.3058],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.0657, 2.6762],
-        mesh: 344,
+        mesh: 343,
       },
       {
         shape: 'mesh',
@@ -3580,7 +3580,7 @@ export const TERRAIN_PIECES = {
         position: [3.5883, 0.4589, -4.3892],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.0657, 2.6762],
-        mesh: 345,
+        mesh: 344,
       },
       {
         shape: 'mesh',
@@ -3588,7 +3588,7 @@ export const TERRAIN_PIECES = {
         position: [3.5947, 0.5536, -4.3907],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.0657, 2.6762],
-        mesh: 346,
+        mesh: 345,
       },
       {
         shape: 'mesh',
@@ -3596,7 +3596,7 @@ export const TERRAIN_PIECES = {
         position: [3.6421, 0.3776, -4.388],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.0657, 2.6762],
-        mesh: 347,
+        mesh: 346,
       },
       {
         shape: 'mesh',
@@ -3604,7 +3604,7 @@ export const TERRAIN_PIECES = {
         position: [6.1856, 3.5995, -4.393],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.0657, 2.6762],
-        mesh: 348,
+        mesh: 347,
       },
       {
         shape: 'mesh',
@@ -3612,7 +3612,7 @@ export const TERRAIN_PIECES = {
         position: [4.4755, -0.4982, -4.3417],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 349,
+        mesh: 348,
       },
       {
         shape: 'mesh',
@@ -3620,7 +3620,7 @@ export const TERRAIN_PIECES = {
         position: [7.0874, 2.2331, -4.3417],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 350,
+        mesh: 349,
       },
       {
         shape: 'mesh',
@@ -3628,7 +3628,7 @@ export const TERRAIN_PIECES = {
         position: [3.0352, 1.5442, -4.308],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 351,
+        mesh: 350,
       },
       {
         shape: 'mesh',
@@ -3636,7 +3636,7 @@ export const TERRAIN_PIECES = {
         position: [5.6156, 4.6349, -4.3417],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 352,
+        mesh: 351,
       },
       {
         shape: 'mesh',
@@ -3644,7 +3644,7 @@ export const TERRAIN_PIECES = {
         position: [3.0355, 1.6468, -4.1811],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 353,
+        mesh: 352,
       },
       {
         shape: 'mesh',
@@ -3652,7 +3652,7 @@ export const TERRAIN_PIECES = {
         position: [3.6079, 0.5698, -4.3417],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 354,
+        mesh: 353,
       },
       {
         shape: 'mesh',
@@ -3660,7 +3660,7 @@ export const TERRAIN_PIECES = {
         position: [5.6156, 4.2602, -4.3417],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 355,
+        mesh: 354,
       },
       {
         shape: 'mesh',
@@ -3668,7 +3668,7 @@ export const TERRAIN_PIECES = {
         position: [4.4437, -0.1878, -4.3417],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 356,
+        mesh: 355,
       },
       {
         shape: 'mesh',
@@ -3676,7 +3676,7 @@ export const TERRAIN_PIECES = {
         position: [4.1457, 0.1948, -4.3878],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.0657, 2.6762],
-        mesh: 357,
+        mesh: 356,
       },
       {
         shape: 'mesh',
@@ -3684,7 +3684,7 @@ export const TERRAIN_PIECES = {
         position: [4.146, 0.3266, -4.3318],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.0657],
-        mesh: 358,
+        mesh: 357,
       },
       {
         shape: 'mesh',
@@ -3692,7 +3692,7 @@ export const TERRAIN_PIECES = {
         position: [4.1454, 0.3262, -4.3286],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.0657],
-        mesh: 359,
+        mesh: 358,
       },
       {
         shape: 'mesh',
@@ -3700,7 +3700,7 @@ export const TERRAIN_PIECES = {
         position: [4.1458, 0.1702, -4.335],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.0657, 2.6762],
-        mesh: 360,
+        mesh: 359,
       },
       {
         shape: 'mesh',
@@ -3708,7 +3708,7 @@ export const TERRAIN_PIECES = {
         position: [4.1517, 0.2275, -4.4184],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.0657, 2.6762],
-        mesh: 361,
+        mesh: 360,
       },
       {
         shape: 'mesh',
@@ -3716,7 +3716,7 @@ export const TERRAIN_PIECES = {
         position: [4.1581, 0.3221, -4.4199],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.0657, 2.6762],
-        mesh: 362,
+        mesh: 361,
       },
       {
         shape: 'mesh',
@@ -3724,7 +3724,7 @@ export const TERRAIN_PIECES = {
         position: [4.2056, 0.1461, -4.4172],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.0657, 2.6762],
-        mesh: 363,
+        mesh: 362,
       },
       {
         shape: 'mesh',
@@ -3732,7 +3732,7 @@ export const TERRAIN_PIECES = {
         position: [6.7491, 3.368, -4.4222],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.0657, 2.6762],
-        mesh: 364,
+        mesh: 363,
       },
       {
         shape: 'mesh',
@@ -3740,7 +3740,7 @@ export const TERRAIN_PIECES = {
         position: [4.1655, -0.4836, -4.3546],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.0657, 2.6762],
-        mesh: 365,
+        mesh: 364,
       },
       {
         shape: 'mesh',
@@ -3748,7 +3748,7 @@ export const TERRAIN_PIECES = {
         position: [4.1657, -0.3518, -4.2987],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.0657],
-        mesh: 366,
+        mesh: 365,
       },
       {
         shape: 'mesh',
@@ -3756,7 +3756,7 @@ export const TERRAIN_PIECES = {
         position: [4.1651, -0.3523, -4.2955],
         quaternion: [0, 0, 0, 1],
         scale: [2.6762, 2.6762, 1.0657],
-        mesh: 367,
+        mesh: 366,
       },
       {
         shape: 'mesh',
@@ -3764,7 +3764,7 @@ export const TERRAIN_PIECES = {
         position: [4.1655, -0.5082, -4.3019],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.0657, 2.6762],
-        mesh: 368,
+        mesh: 367,
       },
       {
         shape: 'mesh',
@@ -3772,7 +3772,7 @@ export const TERRAIN_PIECES = {
         position: [4.1715, -0.451, -4.3853],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.0657, 2.6762],
-        mesh: 369,
+        mesh: 368,
       },
       {
         shape: 'mesh',
@@ -3780,7 +3780,7 @@ export const TERRAIN_PIECES = {
         position: [4.1779, -0.3563, -4.3867],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.0657, 2.6762],
-        mesh: 370,
+        mesh: 369,
       },
       {
         shape: 'mesh',
@@ -3788,7 +3788,7 @@ export const TERRAIN_PIECES = {
         position: [4.2253, -0.5323, -4.3841],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.0657, 2.6762],
-        mesh: 371,
+        mesh: 370,
       },
       {
         shape: 'mesh',
@@ -3796,7 +3796,7 @@ export const TERRAIN_PIECES = {
         position: [4.1887, -0.352, -4.389],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.0657, 2.6762],
-        mesh: 372,
+        mesh: 371,
       },
       {
         shape: 'mesh',
@@ -3804,7 +3804,7 @@ export const TERRAIN_PIECES = {
         position: [4.6021, -0.248, -4.3399],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [4.0143, 2.1898, 4.0143],
-        mesh: 373,
+        mesh: 372,
       },
       {
         shape: 'mesh',
@@ -3812,7 +3812,7 @@ export const TERRAIN_PIECES = {
         position: [4.6282, -0.2503, -4.3399],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [4.0143, 2.1898, 4.0143],
-        mesh: 374,
+        mesh: 373,
       },
       {
         shape: 'mesh',
@@ -3820,7 +3820,7 @@ export const TERRAIN_PIECES = {
         position: [7.1363, 2.784, -4.3399],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [4.0143, 2.1898, 4.0143],
-        mesh: 375,
+        mesh: 374,
       },
       {
         shape: 'mesh',
@@ -3828,7 +3828,7 @@ export const TERRAIN_PIECES = {
         position: [4.6279, -0.2494, -4.3399],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [4.0143, 2.1898, 4.0143],
-        mesh: 376,
+        mesh: 375,
       },
       {
         shape: 'mesh',
@@ -3836,7 +3836,7 @@ export const TERRAIN_PIECES = {
         position: [7.2744, 2.821, -4.3399],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [4.0143, 2.1898, 4.0143],
-        mesh: 377,
+        mesh: 376,
       },
       {
         shape: 'mesh',
@@ -3844,7 +3844,7 @@ export const TERRAIN_PIECES = {
         position: [7.2237, 2.8209, -4.3399],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [4.0143, 2.1898, 4.0143],
-        mesh: 378,
+        mesh: 377,
       },
       {
         shape: 'mesh',
@@ -3852,7 +3852,7 @@ export const TERRAIN_PIECES = {
         position: [7.1885, 2.8653, -4.3399],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [4.0143, 2.1898, 4.0143],
-        mesh: 379,
+        mesh: 378,
       },
       {
         shape: 'mesh',
@@ -3860,7 +3860,7 @@ export const TERRAIN_PIECES = {
         position: [7.188, 2.8192, -4.3399],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [4.0143, 2.1898, 4.0143],
-        mesh: 380,
+        mesh: 379,
       },
       {
         shape: 'mesh',
@@ -3868,7 +3868,7 @@ export const TERRAIN_PIECES = {
         position: [7.1757, 2.7848, -4.3399],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [4.0143, 2.1898, 4.0143],
-        mesh: 381,
+        mesh: 380,
       },
       {
         shape: 'mesh',
@@ -3876,7 +3876,7 @@ export const TERRAIN_PIECES = {
         position: [7.2122, 2.7599, -4.3399],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [4.0143, 2.1898, 4.0143],
-        mesh: 382,
+        mesh: 381,
       },
       {
         shape: 'mesh',
@@ -3884,7 +3884,7 @@ export const TERRAIN_PIECES = {
         position: [4.3044, -0.1308, -4.3371],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 383,
+        mesh: 382,
       },
       {
         shape: 'mesh',
@@ -3892,7 +3892,7 @@ export const TERRAIN_PIECES = {
         position: [4.258, -0.2415, -4.3371],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 384,
+        mesh: 383,
       },
       {
         shape: 'mesh',
@@ -3900,7 +3900,7 @@ export const TERRAIN_PIECES = {
         position: [4.258, -0.3084, -4.3371],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 385,
+        mesh: 384,
       },
       {
         shape: 'mesh',
@@ -3908,7 +3908,7 @@ export const TERRAIN_PIECES = {
         position: [6.8381, 2.867, -4.3371],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 386,
+        mesh: 385,
       },
       {
         shape: 'mesh',
@@ -3916,7 +3916,7 @@ export const TERRAIN_PIECES = {
         position: [6.866, 2.9216, -4.3371],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 387,
+        mesh: 386,
       },
       {
         shape: 'mesh',
@@ -3924,7 +3924,7 @@ export const TERRAIN_PIECES = {
         position: [4.2078, 0.3945, -4.3438],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 388,
+        mesh: 387,
       },
       {
         shape: 'mesh',
@@ -3932,7 +3932,7 @@ export const TERRAIN_PIECES = {
         position: [6.7879, 3.329, -4.3438],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 389,
+        mesh: 388,
       },
       {
         shape: 'mesh',
@@ -3940,7 +3940,7 @@ export const TERRAIN_PIECES = {
         position: [4.0526, 0.5552, -4.3497],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 390,
+        mesh: 389,
       },
       {
         shape: 'mesh',
@@ -3948,7 +3948,7 @@ export const TERRAIN_PIECES = {
         position: [6.6327, 3.3896, -4.375],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 391,
+        mesh: 390,
       },
       {
         shape: 'mesh',
@@ -3956,7 +3956,7 @@ export const TERRAIN_PIECES = {
         position: [4.0903, -0.0719, -4.3413],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 392,
+        mesh: 391,
       },
       {
         shape: 'mesh',
@@ -3964,7 +3964,7 @@ export const TERRAIN_PIECES = {
         position: [6.6704, 2.7289, -4.3413],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [2.6762, 1.4598, 2.6762],
-        mesh: 393,
+        mesh: 392,
       },
       {
         shape: 'mesh',
@@ -3972,7 +3972,7 @@ export const TERRAIN_PIECES = {
         position: [-3.7224, 0.0721, 5.5216],
         quaternion: [-0.8236, 0, 0, 0.5671],
         scale: [2.6762, 1.6647, 2.5538],
-        mesh: 394,
+        mesh: 393,
       },
       {
         shape: 'mesh',
@@ -3980,7 +3980,7 @@ export const TERRAIN_PIECES = {
         position: [-1.7168, 3.0263, 5.555],
         quaternion: [-0.8236, 0, 0, 0.5671],
         scale: [2.6762, 1.6647, 2.5538],
-        mesh: 395,
+        mesh: 394,
       },
     ],
   },
@@ -4021,7 +4021,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [0, 0, 0, 1],
         scale: [6.9515, 6.9515, 6.9515],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },
@@ -4258,7 +4258,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [0, 0, 0, 1],
         scale: [1, 1, 1],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },
@@ -4272,7 +4272,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [1, 1, 1],
-        mesh: 1,
+        mesh: 0,
       },
       {
         shape: 'mesh',
@@ -4280,7 +4280,7 @@ export const TERRAIN_PIECES = {
         position: [-0.1985, -7.1678, -0.1047],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [1, 1, 1],
-        mesh: 2,
+        mesh: 1,
       },
       {
         shape: 'mesh',
@@ -4288,7 +4288,7 @@ export const TERRAIN_PIECES = {
         position: [1.5897, 1.0268, -0.1002],
         quaternion: [-0.7071, 0, 0, 0.7071],
         scale: [1, 1, 1],
-        mesh: 3,
+        mesh: 2,
       },
       {
         shape: 'mesh',
@@ -4296,7 +4296,7 @@ export const TERRAIN_PIECES = {
         position: [-0.4565, 0.4705, 0.9552],
         quaternion: [-0.6811, 0.0263, 0.1741, 0.7107],
         scale: [1, 1, 1],
-        mesh: 4,
+        mesh: 3,
       },
     ],
   },
@@ -4322,7 +4322,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [-0.5, 0.5, 0.5, 0.5],
         scale: [0.25, 0.25, 0.25],
-        mesh: 1,
+        mesh: 0,
       },
       {
         shape: 'mesh',
@@ -4330,7 +4330,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [-0.5, 0.5, 0.5, 0.5],
         scale: [0.25, 0.25, 0.25],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },
@@ -4356,7 +4356,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [0, 0, 0, 1],
         scale: [1, 1, 1],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },
@@ -4377,7 +4377,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [0, 0, 0, 1],
         scale: [1, 1, 1],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },
@@ -4400,7 +4400,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [0, 0, 0, 1],
         scale: [0.5, 0.5, 0.5],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },
@@ -4419,7 +4419,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [0, 0, 0, 1],
         scale: [1, 1, 1],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },
@@ -4461,7 +4461,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [0, 0, 0, 1],
         scale: [1, 1, 1],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },
@@ -4480,7 +4480,7 @@ export const TERRAIN_PIECES = {
         position: [0, 0, 0],
         quaternion: [0, 0, 0, 1],
         scale: [1, 1, 1],
-        mesh: 1,
+        mesh: 0,
       },
     ],
   },

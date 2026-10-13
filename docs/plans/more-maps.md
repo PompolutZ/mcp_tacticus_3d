@@ -161,3 +161,12 @@ Phase 7 (done):
 - Warnings: none.
 - Colliders: no new case. `dumpster-size-2-3` has one mesh entry with an identity transform and a non-uniform placement scale (exact, vertex bake). `size-2-car-3` has one box turned 90 degrees around X with placement scale 0.325 (uniform, exact). No code change.
 - Not checked in the browser: the mat turn (180), Debug -> Colliders for the dumpster and the car, the tint look.
+
+Phase 8 (done):
+- `<key>-colliders.glb` per bundle piece (`bundleColliders` in `files.js`): one node `collider-<n>` per distinct mesh, no node transform (baked), Draco once on the merged file (`mergeColliderMeshes` in `lib/convert.mjs`). `mesh: n` in a `colliders` entry is node n (from 0) of the scene. Before it was the file number from 1, so every `mesh` in `pieces.js` went down by 1 (425 entries). Nothing else in the entries changed.
+- App: `colliderNode` (`bundleColliders.js`, tested) picks the node. `ColliderMesh` loads the file once (`useGLTF` cache), `pieceUrls().colliders` is one URL or null, `preload.js` loads it.
+- `migrate-terrain --colliders-only`: rewrites the file of every migrated bundle piece from the cached bundles, and checks that the entries are the ones in `pieces.js` (rounded to 4 digits). 63 bundle pieces, 0 differences, `pieces.js` has no new entries. Checked once before deleting the old files: all 424 nodes have the same vertex count as the old file, with an identity transform.
+- Before: 424 files, 2,979,612 bytes. After: 23 files, 2,858,940 bytes. `total-access-games-size-5-colliders.glb`: 531,632 bytes (395 meshes, was 395 files).
+- Not checked in the browser: Debug -> Colliders on a bundle piece with one mesh (crate, jellyfish) and on Total Access Games.
+
+All phases are done.

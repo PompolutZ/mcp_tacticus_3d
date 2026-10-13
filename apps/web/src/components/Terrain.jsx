@@ -11,8 +11,8 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { assetUrl } from '../assets/index.js'
-import { primitiveCollider, transformVertices } from '../terrain/bundleColliders.js'
-import { bundleCollider, pieceCollider, pieceMesh, pieceTexture } from '../terrain/files.js'
+import { colliderNode, primitiveCollider, transformVertices } from '../terrain/bundleColliders.js'
+import { bundleColliders, pieceCollider, pieceMesh, pieceTexture } from '../terrain/files.js'
 import { TTS_MAT_TOP } from '../terrain/maps.js'
 import { terrainLabel } from '../terrain/label.js'
 import { TERRAIN_PIECES } from '../terrain/pieces.js'
@@ -56,13 +56,13 @@ function labelPosition(raw, scale) {
   return [-center.x * sx, box.max.y * sy + LABEL_GAP, -center.z * sz]
 }
 
-// The vertices and triangles of every mesh in a collider GLB, in the space of the GLB (node transforms
-// applied), then through transformVertices.
-function colliderMeshArrays(scene, entry, scale) {
+// The vertices and triangles of every mesh under `root` (a collider GLB scene, or one node of it), in the
+// space of the GLB (node transforms applied), then through transformVertices.
+function colliderMeshArrays(scene, root, entry, scale) {
   scene.updateMatrixWorld(true)
   const parts = []
   let count = 0
-  scene.traverse((child) => {
+  root.traverse((child) => {
     if (!child.isMesh) return
     const position = child.geometry.attributes.position
     const v = new THREE.Vector3()
@@ -95,13 +95,21 @@ function colliderMeshArrays(scene, entry, scale) {
 // in the same way as the visible mesh, so it gets the same turn. It is not drawn.
 // entry: the `colliders` entry of a bundle piece, which places the mesh in the prefab (position,
 // quaternion, scale in GLB space, before the turn). The mesh of an OBJ piece has none.
+// mesh: the number of the collider in the one collider GLB of a bundle piece (its node), see colliderNode.
+// An OBJ piece has no number: its GLB is one collider.
 // The collider sits directly under the RigidBody and has the whole transform in its vertices, see
 // terrain/bundleColliders.js for why it is not in the scaled group (the lib scales it a second time there).
-function ColliderMesh({ url, convex, entry, scale }) {
+function ColliderMesh({ url, mesh, convex, entry, scale }) {
   const { scene } = useGLTF(url)
   const { vertices, indices } = useMemo(
-    () => colliderMeshArrays(scene, entry, scale),
-    [scene, entry, scale],
+    () =>
+      colliderMeshArrays(
+        scene,
+        mesh === undefined ? scene : colliderNode(scene, mesh),
+        entry,
+        scale,
+      ),
+    [scene, mesh, entry, scale],
   )
   return convex ? (
     <ConvexHullCollider args={[vertices]} friction={FRICTION} />
@@ -138,7 +146,8 @@ function PrimitiveColliders({ colliders, scale }) {
 }
 
 // The files of a terrain piece, as TerrainPiece loads them: mesh, texture (null for a bundle piece, whose
-// GLB has its materials), collider mesh of an OBJ piece or null, and the collider meshes of a bundle piece.
+// GLB has its materials), collider mesh of an OBJ piece or null, and the one collider GLB of a bundle piece
+// (null if it has no mesh collider).
 // Preload.jsx loads the same before a table shows (docs/features/rooms.md, "Loading").
 export function pieceUrls(key) {
   const piece = TERRAIN_PIECES[key]
@@ -146,15 +155,13 @@ export function pieceUrls(key) {
     mesh: assetUrl(pieceMesh(key)),
     texture: piece.bundle ? null : assetUrl(pieceTexture(key)),
     collider: piece.collider ? assetUrl(pieceCollider(key)) : null,
-    colliders: bundleColliderMeshes(key).map(({ n }) => assetUrl(bundleCollider(key, n))),
+    colliders: bundleColliderMeshes(key).length ? assetUrl(bundleColliders(key)) : null,
   }
 }
 
-// The `mesh` entries of a bundle piece: [{ n, entry }], n is the number of the collider GLB
+// The `mesh` entries of a bundle piece
 function bundleColliderMeshes(key) {
-  return (TERRAIN_PIECES[key].colliders ?? [])
-    .filter((entry) => entry.shape === 'mesh')
-    .map((entry) => ({ n: entry.mesh, entry }))
+  return (TERRAIN_PIECES[key].colliders ?? []).filter((entry) => entry.shape === 'mesh')
 }
 
 // placement: a terrain piece on the mat, see mapTerrain in rooms/table.js.
@@ -254,10 +261,11 @@ function BundlePiece(props) {
       autoColliders={false}
       shapeColliders={
         <>
-          {meshes.map(({ n, entry }, i) => (
+          {meshes.map((entry, i) => (
             <ColliderMesh
-              key={n}
-              url={urls.colliders[i]}
+              key={i}
+              url={urls.colliders}
+              mesh={entry.mesh}
               convex={entry.convex}
               entry={entry}
               scale={placement.scale}

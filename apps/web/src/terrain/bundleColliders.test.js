@@ -1,6 +1,11 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { colliderPose, primitiveCollider, transformVertices } from './bundleColliders.js'
+import {
+  colliderNode,
+  colliderPose,
+  primitiveCollider,
+  transformVertices,
+} from './bundleColliders.js'
 
 const close = (a, b) => a.forEach((v, i) => assert.ok(Math.abs(v - b[i]) < 1e-9, `${a} vs ${b}`))
 const ID = [0, 0, 0, 1]
@@ -81,4 +86,10 @@ test('transformVertices: a vertex agrees with colliderPose for a collider at the
   const entry = { position: [1, 2, 3], quaternion: [0, 0, 0, 1] }
   const pose = colliderPose(entry, [2, 3, 4])
   close(transformVertices([0, 0, 0], entry, [2, 3, 4]), pose.position)
+})
+
+test('colliderNode: mesh n is child n of the scene', () => {
+  const scene = { children: [{ name: 'collider-0' }, { name: 'collider-1' }] }
+  assert.equal(colliderNode(scene, 1).name, 'collider-1')
+  assert.throws(() => colliderNode(scene, 2), /no mesh 2/)
 })

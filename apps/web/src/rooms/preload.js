@@ -41,7 +41,7 @@ export function tableFiles({ mapId, terrain, characters, rosters }) {
     gltf.add(urls.mesh)
     if (urls.texture) addTexture(urls.texture)
     if (urls.collider) gltf.add(urls.collider)
-    for (const url of urls.colliders) gltf.add(url)
+    if (urls.colliders) gltf.add(urls.colliders)
   }
   const all = [...characters, ...rosterCharacters(rosters.host), ...rosterCharacters(rosters.guest)]
   for (const model of all.flatMap(characterModels)) {
