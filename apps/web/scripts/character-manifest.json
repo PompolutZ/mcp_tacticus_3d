@@ -79,6 +79,8 @@
     "sources": {
       "characters/apocalypse/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/APOCALYPSE_healthy.jpg",
       "characters/apocalypse/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/APOCALYPSE_injured.jpg",
+      "characters/apocalypse/card-2-healthy.webp": "https://steamusercontent-a.akamaihd.net/ugc/2468625490480728211/8855F37271646B17B98CF276805A0F4F7C5415F9/",
+      "characters/apocalypse/card-2-injured.webp": "https://steamusercontent-a.akamaihd.net/ugc/2468625490480728321/88F43BB0DC177450232CFA39AE1509381D8154E4/",
       "characters/apocalypse/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/APOCALYPSE_MODEL.unity3d",
       "characters/apocalypse/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/APOCALYPSE_UI.png"
     }
@@ -198,6 +200,15 @@
       "characters/blue-marvel/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLUE_MARVEL_injured.jpg",
       "characters/blue-marvel/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/BLUE_MARVEL_MODEL.unity3d",
       "characters/blue-marvel/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLUE_MARVEL_UI.png"
+    }
+  },
+  "cable": {
+    "id": "00470101",
+    "sources": {
+      "characters/cable/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CABLE_healthy.jpg",
+      "characters/cable/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CABLE_injured.jpg",
+      "characters/cable/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/CABLE_MODEL.unity3d",
+      "characters/cable/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CABLE_UI.png"
     }
   },
   "captain-america-sam-wilson": {
@@ -500,6 +511,15 @@
       "characters/hulkbuster/transform.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/HULKBUSTER_MODEL_TRANSFORM.unity3d",
       "characters/hulkbuster/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HULKBUSTER_UI.png",
       "characters/hulkbuster/transform-portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HULKBUSTER_UI_TRANSFORM.png"
+    }
+  },
+  "iceman": {
+    "id": "00960101",
+    "sources": {
+      "characters/iceman/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ICEMAN_healthy.jpg",
+      "characters/iceman/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ICEMAN_injured.jpg",
+      "characters/iceman/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/ICEMAN_MODEL.unity3d",
+      "characters/iceman/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ICEMAN_UI.png"
     }
   },
   "iron-fist": {
@@ -1258,6 +1278,15 @@
       "characters/winter-soldier-operative/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WINTER_SOLDIER_OPERATIVE_injured.jpg",
       "characters/winter-soldier-operative/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/WINTER_SOLDIER_OPERATIVE_MODEL.unity3d",
       "characters/winter-soldier-operative/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WINTER_SOLDIER_OPERATIVE_UI.png"
+    }
+  },
+  "wolverine": {
+    "id": "00400102",
+    "sources": {
+      "characters/wolverine/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WOLVERINE_healthy.jpg",
+      "characters/wolverine/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WOLVERINE_injured.jpg",
+      "characters/wolverine/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/WOLVERINE_MODEL.unity3d",
+      "characters/wolverine/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WOLVERINE_UI.png"
     }
   },
   "wong": {

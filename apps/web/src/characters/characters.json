@@ -87,6 +87,7 @@
     "base": "large",
     "figure": "model",
     "rotation": 180,
+    "cards": 2,
     "tokens": [
       "root",
       "shock",
@@ -230,6 +231,16 @@
     "rotation": 0,
     "tokens": [
       "stun"
+    ]
+  },
+  "cable": {
+    "id": "00470101",
+    "name": "Cable",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 120,
+    "tokens": [
+      "incinerate"
     ]
   },
   "captain-america-sam-wilson": {
@@ -576,6 +587,17 @@
       "base": "small",
       "portrait": true
     }
+  },
+  "iceman": {
+    "id": "00960101",
+    "name": "Iceman",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "slow",
+      "stagger"
+    ]
   },
   "iron-fist": {
     "id": "00490101",
@@ -1414,6 +1436,16 @@
     "tokens": [
       "shock",
       "stun"
+    ]
+  },
+  "wolverine": {
+    "id": "00400102",
+    "name": "Wolverine",
+    "base": "small",
+    "figure": "model",
+    "rotation": 240,
+    "tokens": [
+      "bleed"
     ]
   },
   "wong": {
