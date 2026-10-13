@@ -775,6 +775,15 @@
     "figure": "model",
     "rotation": 285
   },
+  "red-hulk": {
+    "id": "30170101",
+    "name": "Red Hulk",
+    "base": "large",
+    "figure": "standee",
+    "tokens": [
+      "incinerate"
+    ]
+  },
   "red-skull": {
     "id": "00010108",
     "name": "Red Skull",

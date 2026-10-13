@@ -692,6 +692,16 @@
       "characters/quicksilver/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/QUICKSILVER_UI.png"
     }
   },
+  "red-hulk": {
+    "id": "30170101",
+    "sources": {
+      "characters/red-hulk/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RED_HULK_healthy.jpg",
+      "characters/red-hulk/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RED_HULK_injured.jpg",
+      "characters/red-hulk/standee-front.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RED_HULK_STANDEE_A.jpg",
+      "characters/red-hulk/standee-back.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RED_HULK_STANDEE_B.jpg",
+      "characters/red-hulk/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RED_HULK_UI.png"
+    }
+  },
   "red-skull": {
     "id": "00010108",
     "sources": {
