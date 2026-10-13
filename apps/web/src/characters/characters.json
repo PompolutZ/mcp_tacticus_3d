@@ -376,6 +376,16 @@
       "incinerate"
     ]
   },
+  "carnage": {
+    "id": "00500101",
+    "name": "Carnage",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 90,
+    "tokens": [
+      "bleed"
+    ]
+  },
   "cassandra-nova": {
     "id": "00530101",
     "name": "Cassandra Nova",
@@ -498,6 +508,26 @@
       "slow"
     ]
   },
+  "doc-ock-sinister-scientist": {
+    "id": "01430105",
+    "name": "Doc Ock, Sinister Scientist",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "bleed",
+      "poison",
+      "shock"
+    ]
+  },
+  "doctor-octopus": {
+    "id": "00010106",
+    "name": "Doctor Octopus",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 60
+  },
   "doctor-strange": {
     "id": "00230101",
     "name": "Doctor Strange",
@@ -578,6 +608,16 @@
     "base": "small",
     "figure": "model",
     "rotation": 210
+  },
+  "electro": {
+    "id": "01560101",
+    "name": "Electro",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 210,
+    "tokens": [
+      "shock"
+    ]
   },
   "elektra": {
     "id": "00790101",
@@ -714,6 +754,18 @@
       "stagger",
       "shock",
       "stun"
+    ]
+  },
+  "green-goblin": {
+    "id": "00210101",
+    "name": "Green Goblin",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 165,
+    "tokens": [
+      "bleed",
+      "poison",
+      "incinerate"
     ]
   },
   "groot": {
@@ -919,6 +971,18 @@
       "stagger"
     ]
   },
+  "kraven-the-hunter": {
+    "id": "00580101",
+    "name": "Kraven the Hunter",
+    "base": "small",
+    "figure": "model",
+    "rotation": 45,
+    "tokens": [
+      "expert-tracker",
+      "corner-the-beast",
+      "bleed"
+    ]
+  },
   "lady-mastermind": {
     "id": "01730103",
     "name": "Lady Mastermind",
@@ -938,6 +1002,17 @@
     "base": "small",
     "figure": "model",
     "rotation": 180
+  },
+  "lizard": {
+    "id": "00580102",
+    "name": "Lizard",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 90,
+    "tokens": [
+      "bleed",
+      "slow"
+    ]
   },
   "lockjaw": {
     "id": "00350102",
@@ -1155,6 +1230,16 @@
       "base": "large"
     }
   },
+  "mysterio": {
+    "id": "00500102",
+    "name": "Mysterio",
+    "base": "small",
+    "figure": "model",
+    "rotation": 45,
+    "tokens": [
+      "stagger"
+    ]
+  },
   "mystique": {
     "id": "00430102",
     "name": "Mystique",
@@ -1241,6 +1326,13 @@
     "name": "Onslaught",
     "base": "large",
     "figure": "standee"
+  },
+  "prowler": {
+    "id": "01690101",
+    "name": "Prowler",
+    "base": "small",
+    "figure": "model",
+    "rotation": 20
   },
   "proxima-midnight": {
     "id": "00150102",
@@ -1351,6 +1443,13 @@
     "tokens": [
       "stun"
     ]
+  },
+  "rhino": {
+    "id": "00980101",
+    "name": "Rhino",
+    "base": "large",
+    "figure": "model",
+    "rotation": 180
   },
   "rocket-raccoon": {
     "id": "00170102",
@@ -1519,6 +1618,17 @@
     "rotation": 0,
     "tokens": [
       "slow",
+      "stun",
+      "stagger"
+    ]
+  },
+  "shocker": {
+    "id": "01560103",
+    "name": "Shocker",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 45,
+    "tokens": [
       "stun",
       "stagger"
     ]
@@ -1884,6 +1994,16 @@
       "poison",
       "stun",
       "slow"
+    ]
+  },
+  "vulture": {
+    "id": "01560104",
+    "name": "Vulture",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "bleed"
     ]
   },
   "warlock": {
