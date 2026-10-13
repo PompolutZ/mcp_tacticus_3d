@@ -35,7 +35,7 @@ import {
 const USAGE = `Usage:
   node scripts/migrate-characters.mjs --list [affiliation]      characters with files in the TTS cache, and their status
   node scripts/migrate-characters.mjs <id|name|affiliation>...  convert the characters, for example: 00280101 "Lady Sif" asgard
-  node scripts/migrate-characters.mjs missing                   every character with a model or standee in the mod and no entry in character-manifest.json
+  node scripts/migrate-characters.mjs missing                   every character with a model or standee in the mod and no entry in character-manifest.json (not Ultimate Encounter)
 Options:
   --download    first download the missing files of each character into the TTS cache, one file at a time
   --force       convert files again, even if character-manifest.json lists them
@@ -99,20 +99,27 @@ function listCharacters(affiliation) {
       : files.some((f) => f.file.endsWith('.glb'))
         ? 'model'
         : 'standee'
-    const status = !hasFigure(files)
-      ? 'no model or standee in the mod'
-      : missing.length
-        ? `missing: ${missing.map((f) => path.basename(f.file)).join(', ')}`
-        : !manifest[keys.get(row)]
-          ? 'all files cached'
-          : pending.length
-            ? `changed: ${pending.map((f) => path.basename(f.file)).join(', ')}`
-            : 'migrated'
+    const status = isUltimateEncounter(row)
+      ? 'skipped: Ultimate Encounter'
+      : !hasFigure(files)
+        ? 'no model or standee in the mod'
+        : missing.length
+          ? `missing: ${missing.map((f) => path.basename(f.file)).join(', ')}`
+          : !manifest[keys.get(row)]
+            ? 'all files cached'
+            : pending.length
+              ? `changed: ${pending.map((f) => path.basename(f.file)).join(', ')}`
+              : 'migrated'
     console.log(
       `${row.ID}  ${row.cName.padEnd(36)} ${String(row.cBase).padEnd(7)} ${figure.padEnd(8)} ${status}`,
     )
   }
 }
+
+// Ultimate Encounter rows: mod ids 9xxxxxxx (also placeholders and rows without the flag). The user does not
+// play Ultimate Encounter, so these are never migrated or downloaded (saves useless downloads from the mod CDN).
+const isUltimateEncounter = (row) =>
+  String(row.ID).startsWith('9') || row.ultimateEncounter === true
 
 // Characters named by the arguments, in order, without duplicates
 function selectCharacters(args) {
@@ -120,7 +127,9 @@ function selectCharacters(args) {
   for (const arg of args) {
     if (arg === 'missing') {
       characters
-        .filter((r) => hasFigure(characterFiles(r)) && !manifest[keys.get(r)])
+        .filter(
+          (r) => !isUltimateEncounter(r) && hasFigure(characterFiles(r)) && !manifest[keys.get(r)],
+        )
         .forEach((r) => rows.add(r))
       continue
     }
@@ -211,6 +220,7 @@ async function migrate(rows) {
 }
 
 async function migrateCharacter(row, getRipper) {
+  if (isUltimateEncounter(row)) return { status: 'skipped: Ultimate Encounter' }
   const key = keys.get(row)
   const files = characterFiles(row)
   if (!hasFigure(files))
