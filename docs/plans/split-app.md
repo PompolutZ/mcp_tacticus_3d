@@ -1,6 +1,6 @@
 # Plan: Split App.jsx
 
-Requested by the user on 2026-10-12. Status: all steps done, waiting for the user test. Branch `split-app`, from main, after `docs/plans/fallow-cleanup.md` merges into main. No other branch that edits `App.jsx` is open while this plan runs.
+Requested by the user on 2026-10-12. Status: done. The user tested it and gave the OK on 2026-10-13. Branch `split-app`, from main, after `docs/plans/fallow-cleanup.md` merges into main. No other branch that edits `App.jsx` is open while this plan runs.
 
 Each step makes one commit and writes its **Result** below. Feature docs change in the same step as the code.
 
