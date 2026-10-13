@@ -684,6 +684,15 @@
       "characters/proxima-midnight/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/PROXIMA_MIDNIGHT_UI.png"
     }
   },
+  "psylocke": {
+    "id": "01030102",
+    "sources": {
+      "characters/psylocke/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/PSYLOCKE_healthy.jpg",
+      "characters/psylocke/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/PSYLOCKE_injured.jpg",
+      "characters/psylocke/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/PSYLOCKE_MODEL.unity3d",
+      "characters/psylocke/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/PSYLOCKE_UI.png"
+    }
+  },
   "pyro": {
     "id": "00820101",
     "sources": {
@@ -881,6 +890,15 @@
       "characters/storm/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/STORM_injured.jpg",
       "characters/storm/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/STORM_MODEL.unity3d",
       "characters/storm/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/STORM_UI.png"
+    }
+  },
+  "sunspot": {
+    "id": "01530101",
+    "sources": {
+      "characters/sunspot/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SUNSPOT_healthy.jpg",
+      "characters/sunspot/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SUNSPOT_injured.jpg",
+      "characters/sunspot/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SUNSPOT_MODEL.unity3d",
+      "characters/sunspot/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SUNSPOT_UI.png"
     }
   },
   "supergiant": {

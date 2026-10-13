@@ -762,6 +762,16 @@
       "stun"
     ]
   },
+  "psylocke": {
+    "id": "01030102",
+    "name": "Psylocke",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stun"
+    ]
+  },
   "pyro": {
     "id": "00820101",
     "name": "Pyro",
@@ -981,6 +991,17 @@
     "tokens": [
       "shock",
       "stun"
+    ]
+  },
+  "sunspot": {
+    "id": "01530101",
+    "name": "Sunspot",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "flare-sunspot"
     ]
   },
   "supergiant": {
