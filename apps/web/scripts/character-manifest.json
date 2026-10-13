@@ -665,6 +665,16 @@
       "characters/omega-sentinel/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/OMEGA_SENTINEL_UI.png"
     }
   },
+  "onslaught": {
+    "id": "30070101",
+    "sources": {
+      "characters/onslaught/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ONSLAUGHT_30070101_healthy.png",
+      "characters/onslaught/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ONSLAUGHT_30070101_injured.png",
+      "characters/onslaught/standee-front.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ONSLAUGHT_STANDEE_A.jpg",
+      "characters/onslaught/standee-back.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ONSLAUGHT_STANDEE_A.jpg",
+      "characters/onslaught/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ONSLAUGHT_UI.png"
+    }
+  },
   "proxima-midnight": {
     "id": "00150102",
     "sources": {

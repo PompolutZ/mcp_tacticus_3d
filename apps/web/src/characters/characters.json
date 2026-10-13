@@ -744,6 +744,12 @@
       "mystic"
     ]
   },
+  "onslaught": {
+    "id": "30070101",
+    "name": "Onslaught",
+    "base": "large",
+    "figure": "standee"
+  },
   "proxima-midnight": {
     "id": "00150102",
     "name": "Proxima Midnight",
