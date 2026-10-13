@@ -128,6 +128,15 @@
       "characters/black-bolt/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_BOLT_UI.png"
     }
   },
+  "black-dwarf": {
+    "id": "00190101",
+    "sources": {
+      "characters/black-dwarf/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_DWARF_healthy.jpg",
+      "characters/black-dwarf/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_DWARF_injured.jpg",
+      "characters/black-dwarf/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/BLACK_DWARF_MODEL.unity3d",
+      "characters/black-dwarf/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_DWARF_UI.png"
+    }
+  },
   "black-panther": {
     "id": "00070101",
     "sources": {
@@ -144,6 +153,15 @@
       "characters/black-panther-chosen-of-bast/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_PANTHER_CHOSEN_OF_BAST_injured.jpg",
       "characters/black-panther-chosen-of-bast/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/BLACK_PANTHER_CHOSEN_OF_BAST_MODEL.unity3d",
       "characters/black-panther-chosen-of-bast/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_PANTHER_CHOSEN_OF_BAST_UI.png"
+    }
+  },
+  "black-swan": {
+    "id": "00810101",
+    "sources": {
+      "characters/black-swan/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_SWAN_healthy.jpg",
+      "characters/black-swan/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_SWAN_injured.jpg",
+      "characters/black-swan/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/BLACK_SWAN_MODEL.unity3d",
+      "characters/black-swan/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLACK_SWAN_UI.png"
     }
   },
   "black-widow": {
@@ -180,6 +198,15 @@
       "characters/corvus-glaive/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CORVUS_GLAIVE_injured.jpg",
       "characters/corvus-glaive/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/CORVUS_GLAIVE_MODEL.unity3d",
       "characters/corvus-glaive/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CORVUS_GLAIVE_UI.png"
+    }
+  },
+  "cosmic-ghost-rider": {
+    "id": "00900101",
+    "sources": {
+      "characters/cosmic-ghost-rider/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/COSMIC_GHOST_RIDER_healthy.jpg",
+      "characters/cosmic-ghost-rider/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/COSMIC_GHOST_RIDER_injured.jpg",
+      "characters/cosmic-ghost-rider/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/COSMIC_GHOST_RIDER_MODEL.unity3d",
+      "characters/cosmic-ghost-rider/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/COSMIC_GHOST_RIDER_UI.png"
     }
   },
   "crossbones-merciless-merc": {
@@ -225,6 +252,15 @@
       "characters/dracula/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DRACULA_injured.jpg",
       "characters/dracula/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/DRACULA_MODEL.unity3d",
       "characters/dracula/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DRACULA_UI.png"
+    }
+  },
+  "ebony-maw": {
+    "id": "00190102",
+    "sources": {
+      "characters/ebony-maw/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/EBONY_MAW_healthy.jpg",
+      "characters/ebony-maw/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/EBONY_MAW_injured.jpg",
+      "characters/ebony-maw/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/EBONY_MAW_MODEL.unity3d",
+      "characters/ebony-maw/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/EBONY_MAW_UI.png"
     }
   },
   "echo": {
@@ -668,6 +704,24 @@
       "characters/storm/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/STORM_injured.jpg",
       "characters/storm/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/STORM_MODEL.unity3d",
       "characters/storm/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/STORM_UI.png"
+    }
+  },
+  "supergiant": {
+    "id": "00810102",
+    "sources": {
+      "characters/supergiant/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SUPERGIANT_healthy.jpg",
+      "characters/supergiant/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SUPERGIANT_injured.jpg",
+      "characters/supergiant/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SUPERGIANT_MODEL.unity3d",
+      "characters/supergiant/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SUPERGIANT_UI.png"
+    }
+  },
+  "thanos-the-mad-titan": {
+    "id": "00250107",
+    "sources": {
+      "characters/thanos-the-mad-titan/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THANOS_THE_MAD_TITAN_healthy.jpg",
+      "characters/thanos-the-mad-titan/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THANOS_THE_MAD_TITAN_injured.jpg",
+      "characters/thanos-the-mad-titan/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/THANOS_THE_MAD_TITAN_MODEL.unity3d",
+      "characters/thanos-the-mad-titan/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THANOS_THE_MAD_TITAN_UI.png"
     }
   },
   "the-mighty-thor": {

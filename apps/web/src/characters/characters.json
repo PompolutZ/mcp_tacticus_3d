@@ -152,6 +152,16 @@
       "stagger"
     ]
   },
+  "black-dwarf": {
+    "id": "00190101",
+    "name": "Black Dwarf",
+    "base": "large",
+    "figure": "model",
+    "rotation": 285,
+    "tokens": [
+      "stagger"
+    ]
+  },
   "black-panther": {
     "id": "00070101",
     "name": "Black Panther",
@@ -167,6 +177,16 @@
     "rotation": 180,
     "tokens": [
       "bleed"
+    ]
+  },
+  "black-swan": {
+    "id": "00810101",
+    "name": "Black Swan",
+    "base": "small",
+    "figure": "model",
+    "rotation": 195,
+    "tokens": [
+      "incinerate"
     ]
   },
   "black-widow": {
@@ -206,6 +226,17 @@
     "base": "medium",
     "figure": "model",
     "rotation": 255
+  },
+  "cosmic-ghost-rider": {
+    "id": "00900101",
+    "name": "Cosmic Ghost Rider",
+    "base": "large",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "psychosis"
+    ]
   },
   "crossbones-merciless-merc": {
     "id": "01430104",
@@ -259,6 +290,13 @@
       "root",
       "hex"
     ]
+  },
+  "ebony-maw": {
+    "id": "00190102",
+    "name": "Ebony Maw",
+    "base": "small",
+    "figure": "model",
+    "rotation": 225
   },
   "echo": {
     "id": "01680101",
@@ -752,6 +790,27 @@
     "tokens": [
       "shock",
       "stun"
+    ]
+  },
+  "supergiant": {
+    "id": "00810102",
+    "name": "Supergiant",
+    "base": "small",
+    "figure": "model",
+    "rotation": 300,
+    "tokens": [
+      "stun",
+      "stagger"
+    ]
+  },
+  "thanos-the-mad-titan": {
+    "id": "00250107",
+    "name": "Thanos, The Mad Titan",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "slow"
     ]
   },
   "the-mighty-thor": {
