@@ -767,6 +767,15 @@
       "characters/honey-badger/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HONEY_BADGER_UI.png"
     }
   },
+  "hulk": {
+    "id": "00040101",
+    "sources": {
+      "characters/hulk/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HULK_healthy.jpg",
+      "characters/hulk/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HULK_injured.jpg",
+      "characters/hulk/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/HULK_MODEL.unity3d",
+      "characters/hulk/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HULK_UI.png"
+    }
+  },
   "hulkbuster": {
     "id": "00520101",
     "sources": {
@@ -1334,6 +1343,15 @@
       "characters/psylocke/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/PSYLOCKE_UI.png"
     }
   },
+  "punisher": {
+    "id": "00320101",
+    "sources": {
+      "characters/punisher/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/PUNISHER_healthy.jpg",
+      "characters/punisher/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/PUNISHER_injured.jpg",
+      "characters/punisher/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/PUNISHER_MODEL.unity3d",
+      "characters/punisher/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/PUNISHER_UI.png"
+    }
+  },
   "pyro": {
     "id": "00820101",
     "sources": {
@@ -1450,6 +1468,15 @@
       "characters/ronan-the-accuser/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RONAN_THE_ACCUSER_injured.jpg",
       "characters/ronan-the-accuser/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/RONAN_THE_ACCUSER_MODEL.unity3d",
       "characters/ronan-the-accuser/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RONAN_THE_ACCUSER_UI.png"
+    }
+  },
+  "ronin": {
+    "id": "01680102",
+    "sources": {
+      "characters/ronin/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RONIN_healthy.jpg",
+      "characters/ronin/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RONIN_injured.jpg",
+      "characters/ronin/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/RONIN_MODEL.unity3d",
+      "characters/ronin/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RONIN_UI.png"
     }
   },
   "s-h-i-e-l-d-agents": {
@@ -1577,6 +1604,15 @@
       "characters/shadowcat/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHADOWCAT_injured.jpg",
       "characters/shadowcat/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SHADOWCAT_MODEL.unity3d",
       "characters/shadowcat/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHADOWCAT_UI.png"
+    }
+  },
+  "shang-chi": {
+    "id": "00690101",
+    "sources": {
+      "characters/shang-chi/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHANG_CHI_healthy.jpg",
+      "characters/shang-chi/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHANG_CHI_injured.jpg",
+      "characters/shang-chi/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SHANG_CHI_MODEL.unity3d",
+      "characters/shang-chi/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHANG_CHI_UI.png"
     }
   },
   "she-hulk": {
@@ -1856,6 +1892,15 @@
       "characters/thor-prince-of-asgard/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THOR_PRINCE_OF_ASGARD_injured.jpg",
       "characters/thor-prince-of-asgard/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/THOR_PRINCE_OF_ASGARD_MODEL.unity3d",
       "characters/thor-prince-of-asgard/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THOR_PRINCE_OF_ASGARD_UI.png"
+    }
+  },
+  "tigra": {
+    "id": "01680103",
+    "sources": {
+      "characters/tigra/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/TIGRA_healthy.jpg",
+      "characters/tigra/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/TIGRA_injured.jpg",
+      "characters/tigra/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/TIGRA_MODEL.unity3d",
+      "characters/tigra/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/TIGRA_UI.png"
     }
   },
   "toad": {

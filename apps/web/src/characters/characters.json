@@ -877,6 +877,16 @@
       "slow"
     ]
   },
+  "hulk": {
+    "id": "00040101",
+    "name": "Hulk",
+    "base": "large",
+    "figure": "model",
+    "rotation": 315,
+    "tokens": [
+      "stagger"
+    ]
+  },
   "hulkbuster": {
     "id": "00520101",
     "name": "Hulkbuster",
@@ -1499,6 +1509,18 @@
       "stun"
     ]
   },
+  "punisher": {
+    "id": "00320101",
+    "name": "Punisher",
+    "base": "small",
+    "figure": "model",
+    "rotation": 205,
+    "tokens": [
+      "punishment",
+      "stun",
+      "slow"
+    ]
+  },
   "pyro": {
     "id": "00820101",
     "name": "Pyro",
@@ -1619,6 +1641,16 @@
       "shock",
       "stun",
       "stagger"
+    ]
+  },
+  "ronin": {
+    "id": "01680102",
+    "name": "Ronin",
+    "base": "small",
+    "figure": "model",
+    "rotation": 210,
+    "tokens": [
+      "bleed"
     ]
   },
   "s-h-i-e-l-d-agents": {
@@ -1758,6 +1790,17 @@
     "rotation": 180,
     "tokens": [
       "incinerate"
+    ]
+  },
+  "shang-chi": {
+    "id": "00690101",
+    "name": "Shang-Chi",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stagger",
+      "stun"
     ]
   },
   "she-hulk": {
@@ -2078,6 +2121,17 @@
     "rotation": 0,
     "tokens": [
       "shock",
+      "stagger"
+    ]
+  },
+  "tigra": {
+    "id": "01680103",
+    "name": "Tigra",
+    "base": "small",
+    "figure": "model",
+    "rotation": 210,
+    "tokens": [
+      "hex",
       "stagger"
     ]
   },
