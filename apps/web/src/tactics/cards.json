@@ -1,27 +1,422 @@
 {
+  "a-better-tomorrow": {
+    "id": "00620201",
+    "name": "A Better Tomorrow"
+  },
+  "a-force-assemble": {
+    "id": "00390201",
+    "name": "A-Force Assemble!"
+  },
+  "a-new-age": {
+    "id": "00770201",
+    "name": "A New Age"
+  },
+  "a-perfect-future": {
+    "id": "30090201",
+    "name": "A Perfect Future"
+  },
+  "acute-senses": {
+    "id": "00300201",
+    "name": "Acute Senses"
+  },
+  "advanced-r-d": {
+    "id": "00080201",
+    "name": "Advanced R&D"
+  },
+  "agents-of-smash": {
+    "id": "00390202",
+    "name": "Agents of S.M.A.S.H."
+  },
+  "aim-lackeys": {
+    "id": "00050201",
+    "name": "A.I.M. Lackeys",
+    "tokens": [
+      "aim-lackeys"
+    ]
+  },
   "all-according-to-plan": {
     "id": "00290201",
     "name": "All According to Plan"
+  },
+  "all-webbed-up": {
+    "id": "00100201",
+    "name": "All Webbed Up",
+    "tokens": [
+      "slow"
+    ]
+  },
+  "all-youve-got": {
+    "id": "00100202",
+    "name": "All You've Got"
+  },
+  "anger-management": {
+    "id": "00040201",
+    "name": "Anger Management"
+  },
+  "are-you-sure-you-want-to-remember": {
+    "id": "10030201",
+    "name": "Are You Sure You Want To Remember?",
+    "tokens": [
+      "memory"
+    ]
+  },
+  "asteroid-m": {
+    "id": "00420201",
+    "name": "Asteroid M"
+  },
+  "astral-plane": {
+    "id": "01510201",
+    "name": "Astral Plane",
+    "tokens": [
+      "astral-incursion"
+    ]
+  },
+  "astral-ring": {
+    "id": "00640201",
+    "name": "Astral Ring",
+    "tokens": [
+      "astral-ring"
+    ]
   },
   "attilan-rising": {
     "id": "00340201",
     "name": "Attilan Rising"
   },
+  "aunt-mays-wheat-cakes": {
+    "id": "00370201",
+    "name": "Aunt May's Wheat Cakes"
+  },
+  "avengers-assemble": {
+    "id": "00010201",
+    "name": "Avengers Assemble"
+  },
+  "bane-of-damballah": {
+    "id": "00640202",
+    "name": "Bane of Damballah",
+    "tokens": [
+      "root"
+    ]
+  },
+  "banishment": {
+    "id": "00480201",
+    "name": "Banishment",
+    "tokens": [
+      "stun"
+    ]
+  },
+  "basts-blessing": {
+    "id": "10040201",
+    "name": "Bast's Blessing"
+  },
+  "bats-the-ghost-hound": {
+    "id": "00480202",
+    "name": "Bats the Ghost Hound"
+  },
+  "battle-bound": {
+    "id": "01520201",
+    "name": "Battle Bound"
+  },
+  "battle-lust": {
+    "id": "00070201",
+    "name": "Battle Lust"
+  },
+  "battle-plan": {
+    "id": "1430201",
+    "name": "Battle Plan"
+  },
+  "battlefield-medicine": {
+    "id": "00550201",
+    "name": "Battlefield Medicine"
+  },
+  "bear-hug": {
+    "id": "00890201",
+    "name": "Bear Hug"
+  },
+  "bird-of-prey": {
+    "id": "00380201",
+    "name": "Bird of Prey"
+  },
+  "bitter-rivals": {
+    "id": "00340202",
+    "name": "Bitter Rivals",
+    "tokens": [
+      "bitter-rivals"
+    ]
+  },
+  "black-onslaught": {
+    "id": "00810201",
+    "name": "Black Onslaught"
+  },
+  "blood-red-and-personal": {
+    "id": "00320201",
+    "name": "Blood Red and Personal"
+  },
+  "blood-to-spare": {
+    "id": "00150201",
+    "name": "Blood to Spare"
+  },
+  "book-of-cagliostro": {
+    "id": "00670201",
+    "name": "Book of Cagliostro"
+  },
+  "bounty-hunters": {
+    "id": "00790201",
+    "name": "Bounty Hunters",
+    "tokens": [
+      "bounty"
+    ]
+  },
   "brace-for-impact": {
     "id": "00010202",
     "name": "Brace for Impact"
+  },
+  "brand-new-day": {
+    "id": "00660201",
+    "name": "Brand New Day"
+  },
+  "brief-reprieve": {
+    "id": "01690201",
+    "name": "Brief Reprieve"
+  },
+  "brothers-in-arms": {
+    "id": "01300201",
+    "name": "Brothers In Arms"
+  },
+  "building-the-mother-mold": {
+    "id": "30090202",
+    "name": "Building the Mother Mold"
+  },
+  "call-for-backup": {
+    "id": "01260201",
+    "name": "Call for Backup"
+  },
+  "call-the-pack": {
+    "id": "10030202",
+    "name": "Call The Pack"
+  },
+  "can-i-borrow-that": {
+    "id": "00630201",
+    "name": "Can I Borrow That"
+  },
+  "carbonadium-synthesizer": {
+    "id": "00540201",
+    "name": "Carbonadium Synthesizer"
+  },
+  "carnage-rules": {
+    "id": "00500201",
+    "name": "Carnage Rules"
+  },
+  "cat-and-mouse": {
+    "id": "00470201",
+    "name": "Cat and Mouse"
+  },
+  "caught-in-a-ham": {
+    "id": "01700201",
+    "name": "Caught in a Ham"
+  },
+  "cerebro": {
+    "id": "01510202",
+    "name": "Cerebro"
+  },
+  "charming-thief": {
+    "id": "00600201",
+    "name": "Charming Thief"
+  },
+  "chi-mastery": {
+    "id": "00690201",
+    "name": "Chi Mastery"
+  },
+  "children-of-the-atom": {
+    "id": "00410201",
+    "name": "Children of the Atom"
+  },
+  "chimichangas": {
+    "id": "00450201",
+    "name": "Chimichangas",
+    "tokens": [
+      "chimichanga"
+    ]
+  },
+  "chronal-manipulation": {
+    "id": "01540201",
+    "name": "Chronal Manipulation",
+    "tokens": [
+      "timestream"
+    ]
+  },
+  "clean-up": {
+    "id": "01000201",
+    "name": "Clean Up"
+  },
+  "climbing-gear": {
+    "id": "00300202",
+    "name": "Climbing Gear"
+  },
+  "clone-saga": {
+    "id": "01550201",
+    "name": "Clone Saga"
+  },
+  "cloning-banks": {
+    "id": "00460201",
+    "name": "Cloning Banks"
+  },
+  "comrades-keeper": {
+    "id": "00890202",
+    "name": "Comrade's Keeper"
   },
   "corporate-espionage": {
     "id": "01540202",
     "name": "Corporate Espionage"
   },
+  "cosmic-awareness": {
+    "id": "01910201",
+    "name": "Cosmic Awareness"
+  },
+  "cosmic-invigoration": {
+    "id": "00010203",
+    "name": "Cosmic Invigoration"
+  },
+  "cosmic-obliteration": {
+    "id": "1430202",
+    "name": "Cosmic Obliteration",
+    "tokens": [
+      "root",
+      "hex",
+      "incinerate"
+    ]
+  },
+  "cover-me": {
+    "id": "00690202",
+    "name": "Cover Me"
+  },
+  "covering-fire": {
+    "id": "01860201",
+    "name": "Covering Fire"
+  },
+  "crew-of-the-milano": {
+    "id": "00180201",
+    "name": "Crew of the Milano",
+    "tokens": [
+      "crew-of-the-milano"
+    ]
+  },
+  "crimson-dawn": {
+    "id": "01030201",
+    "name": "Crimson Dawn"
+  },
+  "cruel-tutelage": {
+    "id": "00790202",
+    "name": "Cruel Tutelage",
+    "tokens": [
+      "stagger"
+    ]
+  },
+  "cruelty": {
+    "id": "00300203",
+    "name": "Cruelty"
+  },
+  "custom-upgrades": {
+    "id": "01560201",
+    "name": "Custom Upgrades"
+  },
+  "danger-managment": {
+    "id": "01540203",
+    "name": "Danger Managment"
+  },
+  "dark-aura-manifestation": {
+    "id": "00880201",
+    "name": "Dark Aura Manifestation"
+  },
+  "dark-empowerment": {
+    "id": "00330201",
+    "name": "Dark Empowerment"
+  },
+  "dark-past": {
+    "id": "00600202",
+    "name": "Dark Past",
+    "tokens": [
+      "dark-past"
+    ]
+  },
+  "dark-reign": {
+    "id": "00010204",
+    "name": "Dark Reign",
+    "tokens": [
+      "dark-reign"
+    ]
+  },
+  "dark-restoration": {
+    "id": "00330202",
+    "name": "Dark Restoration"
+  },
+  "data-backup": {
+    "id": "1540204",
+    "name": "Data Backup"
+  },
+  "daughters-of-thanos": {
+    "id": "00160201",
+    "name": "Daughters of Thanos"
+  },
+  "deadly-duo": {
+    "id": "00170201",
+    "name": "Deadly Duo"
+  },
+  "deal-with-the-devil": {
+    "id": "00270201",
+    "name": "Deal with the Devil",
+    "tokens": [
+      "incinerate"
+    ]
+  },
+  "death-from-above": {
+    "id": "01520202",
+    "name": "Death From Above"
+  },
+  "deception": {
+    "id": "00430201",
+    "name": "Deception"
+  },
   "deeds-worth-of-song": {
     "id": "00940201",
     "name": "Deeds Worth of Song"
   },
+  "defensive-prototype": {
+    "id": "00550202",
+    "name": "Defensive Prototype"
+  },
+  "devils-reckoning": {
+    "id": "00660202",
+    "name": "Devil's Reckoning"
+  },
+  "difficult-to-please": {
+    "id": "00630202",
+    "name": "Difficult to Please"
+  },
+  "dig-in": {
+    "id": "1430203",
+    "name": "Dig in"
+  },
+  "dimensional-quagmire": {
+    "id": "01860202",
+    "name": "Dimensional Quagmire"
+  },
   "directive-one": {
     "id": "00510201",
     "name": "Directive One"
+  },
+  "dirty-work": {
+    "id": "00470202",
+    "name": "Dirty Work",
+    "tokens": [
+      "target"
+    ]
+  },
+  "disarm": {
+    "id": "00010205",
+    "name": "Disarm",
+    "tokens": [
+      "disarm"
+    ]
   },
   "do-you-know-who-i-am": {
     "id": "00560201",
@@ -31,25 +426,185 @@
     "id": "00120201",
     "name": "Doomed Prophecy"
   },
+  "dossier": {
+    "id": "10030203",
+    "name": "Dossier",
+    "tokens": [
+      "dossier"
+    ]
+  },
+  "double-agent": {
+    "id": "01000202",
+    "name": "Double Agent"
+  },
+  "douglas-family": {
+    "id": "01910203",
+    "name": "Douglas Family"
+  },
+  "drop-off": {
+    "id": "00010206",
+    "name": "Drop Off"
+  },
+  "efficient-machines": {
+    "id": "00510202",
+    "name": "Efficient Machines"
+  },
+  "elemental-infusion": {
+    "id": "00350201",
+    "name": "Elemental Infusion"
+  },
+  "embrace-the-inferno": {
+    "id": "00660203",
+    "name": "Embrace The Inferno"
+  },
+  "endless-legions": {
+    "id": "00740201",
+    "name": "Endless Legions"
+  },
+  "escort-to-safety": {
+    "id": "00010207",
+    "name": "Escort to Safety"
+  },
+  "execute": {
+    "id": "00150202",
+    "name": "Execute"
+  },
   "extinction-event": {
     "id": "30090203",
     "name": "Extinction Event"
+  },
+  "extreme-conditioning": {
+    "id": "00320202",
+    "name": "Extreme Conditioning"
+  },
+  "extreme-measures": {
+    "id": "01680201",
+    "name": "Extreme Measures"
+  },
+  "eye-in-the-sky": {
+    "id": "00550203",
+    "name": "Eye in the Sky"
+  },
+  "eyes-on-the-prize": {
+    "id": "00380202",
+    "name": "Eyes on the Prize"
+  },
+  "face-me": {
+    "id": "00250201",
+    "name": "Face Me"
+  },
+  "faithful-companion": {
+    "id": "00960201",
+    "name": "Faithful Companion"
   },
   "fall-back": {
     "id": "00520201",
     "name": "Fall Back"
   },
+  "fallen": {
+    "id": "01520203",
+    "name": "Fallen"
+  },
+  "fan-club": {
+    "id": "00620202",
+    "name": "Fan Club"
+  },
+  "fastball-special": {
+    "id": "00570201",
+    "name": "Fastball Special!"
+  },
+  "fault-line": {
+    "id": "01730201",
+    "name": "Fault Line"
+  },
+  "fearful-symmetry": {
+    "id": "00580201",
+    "name": "Fearful Symmetry"
+  },
+  "field-dressing": {
+    "id": "00130201",
+    "name": "Field Dressing"
+  },
+  "first-class": {
+    "id": "00410202",
+    "name": "First Class",
+    "tokens": [
+      "first-class"
+    ]
+  },
+  "first-of-the-black-order": {
+    "id": "00810202",
+    "name": "First of the Black Order"
+  },
+  "flames-of-life": {
+    "id": "00830201",
+    "name": "Flames of Life"
+  },
+  "follow-me": {
+    "id": "00010208",
+    "name": "Follow Me"
+  },
   "for-a-limited-time-only": {
     "id": "00910201",
     "name": "For A Limited Time Only"
+  },
+  "forced-extraction": {
+    "id": "00460202",
+    "name": "Forced Extraction"
+  },
+  "foreign-assignment": {
+    "id": "01000203",
+    "name": "Foreign Assignment"
+  },
+  "founding-members": {
+    "id": "01560202",
+    "name": "Founding Members",
+    "tokens": [
+      "slow",
+      "bleed",
+      "hex",
+      "stun",
+      "shock",
+      "poison"
+    ]
   },
   "freyjas-blessing": {
     "id": "00910202",
     "name": "Freyja's Blessing"
   },
+  "fusion-caster": {
+    "id": "00880202",
+    "name": "Fusion Caster"
+  },
+  "galaxys-greatest": {
+    "id": "00900201",
+    "name": "Galaxy's Greatest",
+    "tokens": [
+      "big-dumb-hero"
+    ]
+  },
+  "gamma-burst": {
+    "id": "01620201",
+    "name": "Gamma Burst"
+  },
+  "gamma-drain": {
+    "id": "01440201",
+    "name": "Gamma Drain",
+    "tokens": [
+      "gamma-drain"
+    ]
+  },
+  "gamma-launch": {
+    "id": "00040202",
+    "name": "Gamma Launch"
+  },
   "genetic-prophecy": {
     "id": "01660201",
     "name": "Genetic Prophecy"
+  },
+  "genetic-superiority": {
+    "id": "01730202",
+    "name": "Genetic Superiority"
   },
   "giants-blood": {
     "id": "00910203",
@@ -59,29 +614,191 @@
       "root"
     ]
   },
+  "glory-of-ultron": {
+    "id": "1430204",
+    "name": "Glory of Ultron"
+  },
+  "go-getem-tiger": {
+    "id": "1430205",
+    "name": "Go get'em tiger  "
+  },
+  "going-all-out": {
+    "id": "01290201",
+    "name": "Going All Out"
+  },
+  "gotta-get-some-air": {
+    "id": "10030204",
+    "name": "Gotta Get Some Air"
+  },
+  "great-power": {
+    "id": "01690202",
+    "name": "Great Power"
+  },
+  "greater-then-the-sum": {
+    "id": "30090204",
+    "name": "Greater Then The Sum"
+  },
+  "grievous-wounds": {
+    "id": "00280201",
+    "name": "Grievous Wounds",
+    "tokens": [
+      "grievous-wounds"
+    ]
+  },
+  "gunz-blazin": {
+    "id": "01540205",
+    "name": "Gunz Blazin"
+  },
+  "happy-birthday-runt": {
+    "id": "10030205",
+    "name": "Happy Birthday, Runt!"
+  },
+  "hard-reset": {
+    "id": "00550204",
+    "name": "Hard Reset"
+  },
+  "headmistress": {
+    "id": "01030203",
+    "name": "Headmistress"
+  },
   "heart-of-the-worthy": {
     "id": "00910204",
     "name": "Heart of The Worthy"
+  },
+  "heave-ho": {
+    "id": "00010209",
+    "name": "Heave Ho"
+  },
+  "heavy-firepower": {
+    "id": "00240201",
+    "name": "Heavy Firepower"
+  },
+  "heavy-ordnance": {
+    "id": "00320203",
+    "name": "Heavy Ordnance"
+  },
+  "helicarrier-strike": {
+    "id": "00550205",
+    "name": "Helicarrier Strike"
+  },
+  "helios-laser-bombardment": {
+    "id": "00520202",
+    "name": "Helios Laser Bombardment"
   },
   "heroes-for-hire": {
     "id": "00490201",
     "name": "Heroes for Hire"
   },
+  "hideous-monster": {
+    "id": "02450201",
+    "name": "Hideous Monster"
+  },
+  "high-tech-heist": {
+    "id": "01690203",
+    "name": "High-Tech Heist"
+  },
+  "highway-to-hell": {
+    "id": "00270202",
+    "name": "Highway to Hell",
+    "tokens": [
+      "incinerate"
+    ]
+  },
+  "hired-muscle": {
+    "id": "00290202",
+    "name": "Hired Muscle"
+  },
+  "hold-still": {
+    "id": "00960202",
+    "name": "Hold Still"
+  },
+  "hoods-gang": {
+    "id": "00650201",
+    "name": "Hood's Gang"
+  },
+  "human-weapon": {
+    "id": "00690203",
+    "name": "Human Weapon"
+  },
   "i-am-a-baron-after-all": {
     "id": "1430206",
     "name": "I Am a Baron, After All"
+  },
+  "i-am-reborn": {
+    "id": "00830202",
+    "name": "I Am Reborn"
+  },
+  "illicit-tech": {
+    "id": "00610201",
+    "name": "Illicit Tech",
+    "tokens": [
+      "incinerate"
+    ]
+  },
+  "immortal-servants": {
+    "id": "01070201",
+    "name": "Immortal Servants"
+  },
+  "implanted-memories": {
+    "id": "01090201",
+    "name": "Implanted Memories"
   },
   "indomitable": {
     "id": "00570202",
     "name": "Indomitable"
   },
+  "inevitable-betrayal": {
+    "id": "00740202",
+    "name": "Inevitable Betrayal"
+  },
+  "inexplicable-demise": {
+    "id": "01370201",
+    "name": "Inexplicable Demise",
+    "tokens": [
+      "slow",
+      "stagger",
+      "root",
+      "stun"
+    ]
+  },
+  "infiltration": {
+    "id": "00750201",
+    "name": "Infiltration",
+    "tokens": [
+      "flare"
+    ]
+  },
+  "infinity-gem-bonded-soul": {
+    "id": "01910104",
+    "name": "Infinity Gem: Bonded Soul"
+  },
   "infinity-gem-mind": {
     "id": "00250101",
     "name": "Infinity Gem: Mind"
   },
+  "infinity-gem-power": {
+    "id": "00250102",
+    "name": "Infinity Gem: Power"
+  },
+  "infinity-gem-reality": {
+    "id": "00250103",
+    "name": "Infinity Gem: Reality"
+  },
   "infinity-gem-soul": {
     "id": "00250104",
     "name": "Infinity Gem: Soul"
+  },
+  "infinity-gem-space": {
+    "id": "00250105",
+    "name": "Infinity Gem: Space"
+  },
+  "infinity-gem-time": {
+    "id": "00250106",
+    "name": "Infinity Gem: Time"
+  },
+  "inhomo-supremis": {
+    "id": "01660202",
+    "name": "Inhomo Supremis"
   },
   "inhuman-queen": {
     "id": "01660203",
@@ -94,31 +811,161 @@
       "inhuman-royal-family"
     ]
   },
+  "inquiring-minds": {
+    "id": "30070201",
+    "name": "Inquiring Minds"
+  },
+  "inspiring-monologue": {
+    "id": "00010210",
+    "name": "Inspiring Monologue",
+    "tokens": [
+      "inspiring-monologue"
+    ]
+  },
+  "instant-recovery": {
+    "id": "20000201",
+    "name": "Instant Recovery"
+  },
+  "iron-bound-books-of-shuma-gorath": {
+    "id": "00670202",
+    "name": "Iron-Bound Books of Shuma-Gorath"
+  },
+  "its-time-travel-dont-ask": {
+    "id": "00900202",
+    "name": "It's Time Travel... Don't Ask"
+  },
   "jabari-chieftain": {
     "id": "01160201",
     "name": "Jabari Chieftain"
+  },
+  "jean": {
+    "id": "00530201",
+    "name": "Jean!!!"
   },
   "joint-effort": {
     "id": "1430207",
     "name": "Joint effort"
   },
+  "jonathan-the-unstoppable": {
+    "id": "00710201",
+    "name": "Jonathan The Unstoppable",
+    "tokens": [
+      "jonathan"
+    ]
+  },
+  "journey-through-limbo": {
+    "id": "00570203",
+    "name": "Journey Through Limbo",
+    "tokens": [
+      "incinerate"
+    ]
+  },
+  "kick-em-while-theyre-down": {
+    "id": "00490202",
+    "name": "Kick 'Em While They're Down",
+    "tokens": [
+      "kickem"
+    ]
+  },
+  "kings-command": {
+    "id": "01580201",
+    "name": "King's Command"
+  },
+  "klilunas-glory": {
+    "id": "10040202",
+    "name": "K'Liluna's Glory"
+  },
   "know-thy-enemy": {
     "id": "30090205",
     "name": "Know Thy Enemy"
+  },
+  "kun-lun-training": {
+    "id": "00490203",
+    "name": "K'un-Lun Training"
   },
   "last-minute-save": {
     "id": "00350202",
     "name": "Last-Minute Save"
   },
+  "leapfrog": {
+    "id": "00820201",
+    "name": "Leapfrog"
+  },
   "lethal-protector": {
     "id": "00090201",
     "name": "Lethal Protector"
+  },
+  "life-model-decoy": {
+    "id": "00550206",
+    "name": "Life Model Decoy",
+    "tokens": [
+      "lmd"
+    ]
   },
   "lovable-misfits": {
     "id": "00280202",
     "name": "Lovable Misfits",
     "tokens": [
       "stun"
+    ]
+  },
+  "magnetic-crush": {
+    "id": "00420202",
+    "name": "Magnetic Crush"
+  },
+  "magnetic-refraction": {
+    "id": "00420203",
+    "name": "Magnetic Refraction",
+    "tokens": [
+      "magnetic-refraction"
+    ]
+  },
+  "makin-a-ruckus": {
+    "id": "00560202",
+    "name": "Makin' A Ruckus"
+  },
+  "marked-for-death": {
+    "id": "00190201",
+    "name": "Marked for Death",
+    "tokens": [
+      "marked-for-death"
+    ]
+  },
+  "masked-menace": {
+    "id": "01550202",
+    "name": "Masked Menace",
+    "tokens": [
+      "masked-menace"
+    ]
+  },
+  "mass-transit": {
+    "id": "01120201",
+    "name": "Mass Transit",
+    "tokens": [
+      "stagger"
+    ]
+  },
+  "medpack": {
+    "id": "00160202",
+    "name": "Medpack"
+  },
+  "meet-my-executioner": {
+    "id": "01020201",
+    "name": "Meet My Executioner"
+  },
+  "mental-domination": {
+    "id": "00530202",
+    "name": "Mental Domination"
+  },
+  "midnight-phantasmagoria": {
+    "id": "00930201",
+    "name": "Midnight Phantasmagoria"
+  },
+  "mind-games": {
+    "id": "01450201",
+    "name": "Mind Games",
+    "tokens": [
+      "experiment"
     ]
   },
   "mind-if-i-cut-in": {
@@ -128,6 +975,42 @@
       "mind-if-i-cut-in"
     ]
   },
+  "mind-transfer": {
+    "id": "01030204",
+    "name": "Mind Transfer"
+  },
+  "mind-wipe": {
+    "id": "01510203",
+    "name": "Mind Wipe"
+  },
+  "mirage": {
+    "id": "01730203",
+    "name": "Mirage"
+  },
+  "mission-objective": {
+    "id": "00010211",
+    "name": "Mission Objective"
+  },
+  "monkey-brain-is-lizard-home": {
+    "id": "00580202",
+    "name": "Monkey Brain is Lizard Home"
+  },
+  "mothership": {
+    "id": "00190202",
+    "name": "Mothership"
+  },
+  "mutant-traitor": {
+    "id": "01120202",
+    "name": "Mutant Traitor"
+  },
+  "my-hellfire-club": {
+    "id": "01030205",
+    "name": "My Hellfire Club"
+  },
+  "mystic-menace": {
+    "id": "01620202",
+    "name": "Mystic Menace"
+  },
   "mystic-ward": {
     "id": "00690204",
     "name": "Mystic Ward",
@@ -135,17 +1018,81 @@
       "mystic-ward"
     ]
   },
+  "neogenetic-recombinator": {
+    "id": "00580203",
+    "name": "Neogenetic Recombinator"
+  },
+  "new-mutants": {
+    "id": "01530201",
+    "name": "New Mutants"
+  },
+  "night-life": {
+    "id": "01680203",
+    "name": "Night Life"
+  },
+  "no-escape": {
+    "id": "00260201",
+    "name": "No Escape"
+  },
+  "no-matter-the-cost": {
+    "id": "00200201",
+    "name": "No Matter the Cost"
+  },
+  "no-mercy": {
+    "id": "00790203",
+    "name": "No Mercy"
+  },
+  "no-more-mutants": {
+    "id": "00630203",
+    "name": "No More Mutants"
+  },
+  "no-try-this-one": {
+    "id": "01370202",
+    "name": "No, Try This One!"
+  },
+  "occult-research": {
+    "id": "00740203",
+    "name": "Occult Research"
+  },
   "odins-blessing": {
     "id": "00110201",
     "name": "Odin's Blessing"
+  },
+  "on-patrol": {
+    "id": "01000204",
+    "name": "On Patrol"
   },
   "one-below-all": {
     "id": "01440202",
     "name": "One Below All"
   },
+  "one-two-punch": {
+    "id": "00010212",
+    "name": "One-Two Punch"
+  },
   "online-and-operational": {
     "id": "01600201",
     "name": "Online and Operational"
+  },
+  "orb-of-agamotto": {
+    "id": "00640203",
+    "name": "Orb of Agamotto"
+  },
+  "over-the-top": {
+    "id": "00750202",
+    "name": "Over the Top"
+  },
+  "overcharge": {
+    "id": "1430208",
+    "name": "Overcharge"
+  },
+  "pardon-me-sugah": {
+    "id": "00600204",
+    "name": "Pardon Me, Sugah"
+  },
+  "parts-of-a-whole": {
+    "id": "1680202",
+    "name": "Parts of a Whole"
   },
   "patch-up": {
     "id": "00010213",
@@ -157,6 +1104,22 @@
     "tokens": [
       "mystic-portal"
     ]
+  },
+  "phase-manipulation": {
+    "id": "01290202",
+    "name": "Phase Manipulation"
+  },
+  "phases-of-the-moon": {
+    "id": "02450202",
+    "name": "Phases of the Moon"
+  },
+  "plane-of-pohldahk": {
+    "id": "00650202",
+    "name": "Plane of Pohldahk"
+  },
+  "plots-within-plots": {
+    "id": "01660204",
+    "name": "Plots Within Plots"
   },
   "plundered-goods": {
     "id": "01260202",
@@ -170,6 +1133,25 @@
     "id": "00250202",
     "name": "Power of the Cosmos"
   },
+  "practice-round": {
+    "id": "01530202",
+    "name": "Practice Round"
+  },
+  "praetor-of-the-imperial-guard": {
+    "id": "20130201",
+    "name": "Praetor of the Imperial Guard"
+  },
+  "preserve-the-dream": {
+    "id": "01120203",
+    "name": "Preserve the Dream"
+  },
+  "pretty-sneaky-sis": {
+    "id": "00450202",
+    "name": "Pretty Sneaky, Sis",
+    "tokens": [
+      "sneakysis"
+    ]
+  },
   "price-of-failure": {
     "id": "00150203",
     "name": "Price of Failure"
@@ -178,9 +1160,43 @@
     "id": "01580202",
     "name": "Prince's Protection"
   },
+  "professionals": {
+    "id": "00240202",
+    "name": "Professionals"
+  },
   "protector-of-the-empire": {
     "id": "20130202",
     "name": "Protector of the Empire"
+  },
+  "protege": {
+    "id": "01700202",
+    "name": "Protege"
+  },
+  "psionic-constucts": {
+    "id": "01030206",
+    "name": "Psionic Constucts"
+  },
+  "psychic-fortress": {
+    "id": "00050202",
+    "name": "Psychic Fortress",
+    "tokens": [
+      "psychic-fortress"
+    ]
+  },
+  "psychic-shielding-device-psd": {
+    "id": "00130202",
+    "name": "Psychic Shielding Device (P.S.D.)",
+    "tokens": [
+      "psd"
+    ]
+  },
+  "psychic-shockwave": {
+    "id": "00810203",
+    "name": "Psychic Shockwave"
+  },
+  "pym-particles": {
+    "id": "00260202",
+    "name": "Pym Particles"
   },
   "pyrotechnics": {
     "id": "00820202",
@@ -194,13 +1210,54 @@
     "id": "00050203",
     "name": "Recalibration Matrix"
   },
+  "red-room-training": {
+    "id": "00540203",
+    "name": "Red Room Training"
+  },
+  "rejuvenation": {
+    "id": "01560203",
+    "name": "Rejuvenation"
+  },
   "replusor-refraction": {
     "id": "1430209",
     "name": "Replusor Refraction"
   },
+  "reposition": {
+    "id": "00550207",
+    "name": "Reposition"
+  },
+  "reserve-members": {
+    "id": "1430210",
+    "name": "Reserve Members"
+  },
+  "reversal": {
+    "id": "00260203",
+    "name": "Reversal"
+  },
+  "rhino-in-a-china-shop": {
+    "id": "00980201",
+    "name": "Rhino in a China Shop"
+  },
+  "ricochet-blast": {
+    "id": "00010214",
+    "name": "Ricochet Blast"
+  },
   "ride-of-the-valkyries": {
     "id": "00940202",
     "name": "Ride of the Valkyries"
+  },
+  "rock-and-troll": {
+    "id": "01300202",
+    "name": "Rock and Troll"
+  },
+  "rocket-boots": {
+    "id": "00180202",
+    "name": "Rocket Boots?!",
+    "tokens": [
+      "rocket-boots",
+      "stun",
+      "stagger"
+    ]
   },
   "royal-guardians": {
     "id": "01660205",
@@ -210,21 +1267,130 @@
       "stun"
     ]
   },
+  "sable-international": {
+    "id": "00690205",
+    "name": "Sable International"
+  },
   "sacrifice": {
     "id": "00010215",
     "name": "Sacrifice"
+  },
+  "scientific-method": {
+    "id": "00760201",
+    "name": "Scientific Method"
+  },
+  "scrap-metal": {
+    "id": "00510203",
+    "name": "Scrap Metal",
+    "tokens": [
+      "stun"
+    ]
+  },
+  "seance": {
+    "id": "00650203",
+    "name": "Seance",
+    "tokens": [
+      "seance"
+    ]
+  },
+  "second-wind": {
+    "id": "00010216",
+    "name": "Second Wind"
+  },
+  "seeing-red": {
+    "id": "00040203",
+    "name": "Seeing Red"
+  },
+  "self-help": {
+    "id": "01530203",
+    "name": "Self-Help"
+  },
+  "servants-of-the-titan": {
+    "id": "00900203",
+    "name": "Servants of the Titan"
+  },
+  "service-to-anubis": {
+    "id": "02450203",
+    "name": "Service to Anubis",
+    "tokens": [
+      "hex"
+    ]
+  },
+  "seven-suns-of-cinnibus": {
+    "id": "00230202",
+    "name": "Seven Suns of Cinnibus",
+    "tokens": [
+      "incinerate"
+    ]
+  },
+  "shadow-organization": {
+    "id": "00290203",
+    "name": "Shadow Organization",
+    "tokens": [
+      "shadow-organization"
+    ]
+  },
+  "shhh": {
+    "id": "00190203",
+    "name": "SHHH..."
+  },
+  "shuriken-arashi": {
+    "id": "00790204",
+    "name": "Shuriken Arashi"
+  },
+  "sibling-rivalry": {
+    "id": "00120202",
+    "name": "Sibling Rivalry",
+    "tokens": [
+      "stagger"
+    ]
+  },
+  "siege-of-darkness": {
+    "id": "00480203",
+    "name": "Siege of Darkness"
   },
   "simpleton-ill-do-it-myself": {
     "id": "01450202",
     "name": "Simpleton! I'll Do It Myself!"
   },
+  "sinister-traps": {
+    "id": "00580204",
+    "name": "Sinister Traps",
+    "tokens": [
+      "sinister-traps"
+    ]
+  },
   "sitrep": {
     "id": "00550208",
     "name": "Sitrep"
   },
+  "skuttlebutt-on-me": {
+    "id": "01300203",
+    "name": "Skuttlebutt, On Me!"
+  },
+  "sleeper-agent": {
+    "id": "00740204",
+    "name": "Sleeper Agent"
+  },
   "smash": {
     "id": "00010217",
     "name": "Smash"
+  },
+  "soldat-activated": {
+    "id": "1430211",
+    "name": "Soldat Activated"
+  },
+  "sovereign-strike": {
+    "id": "00890203",
+    "name": "Sovereign Strike"
+  },
+  "special-delivery": {
+    "id": "00390203",
+    "name": "Special Delivery"
+  },
+  "spider-men": {
+    "id": "01690204",
+    "name": "Spider-Men"
   },
   "spider-sleuth": {
     "id": "01700204",
@@ -238,6 +1404,10 @@
     "id": "01700203",
     "name": "Spider Totem: The Bride"
   },
+  "spider-tracker": {
+    "id": "00370202",
+    "name": "Spider-Tracker"
+  },
   "spirit-of-wakanda": {
     "id": "01160202",
     "name": "Spirit of Wakanda"
@@ -249,21 +1419,98 @@
       "stalwart-determination"
     ]
   },
+  "stark-armory": {
+    "id": "1430212",
+    "name": "Stark Armory"
+  },
   "static-arc": {
     "id": "01560204",
     "name": "Static Arc"
+  },
+  "steal-the-future": {
+    "id": "01540206",
+    "name": "Steal the Future",
+    "tokens": [
+      "1-damage"
+    ]
+  },
+  "stolen-identity": {
+    "id": "20000202",
+    "name": "Stolen Identity"
+  },
+  "stolen-power-of-cyttorak": {
+    "id": "30070202",
+    "name": "Stolen Power of Cyttorak"
+  },
+  "strange-adventures": {
+    "id": "01290203",
+    "name": "Strange Adventures"
+  },
+  "strategic-retreat": {
+    "id": "01560205",
+    "name": "Strategic Retreat"
+  },
+  "street-smarts": {
+    "id": "00690206",
+    "name": "Street Smarts",
+    "tokens": [
+      "street-smarts"
+    ]
+  },
+  "strength-and-cunning": {
+    "id": "01580203",
+    "name": "Strength and Cunning"
+  },
+  "stronger-together": {
+    "id": "01620203",
+    "name": "Stronger Together"
+  },
+  "sucker": {
+    "id": "00010218",
+    "name": "Sucker"
+  },
+  "supersonic-annihilator": {
+    "id": "01160203",
+    "name": "Supersonic Annihilator"
+  },
+  "surprise-webhead": {
+    "id": "01560206",
+    "name": "Surprise, Webhead"
   },
   "survival": {
     "id": "01070202",
     "name": "Survival"
   },
+  "survive-the-night": {
+    "id": "01530204",
+    "name": "Survive the Night"
+  },
+  "synthetic-heart-shaped-herbs": {
+    "id": "10040203",
+    "name": "Synthetic Heart-Shaped Herbs",
+    "tokens": [
+      "poison"
+    ]
+  },
+  "tactical-analysis": {
+    "id": "00130203",
+    "name": "Tactical Analysis"
+  },
   "tactical-maneuvers": {
     "id": "00380203",
     "name": "Tactical Maneuvers"
   },
+  "technological-jump-start": {
+    "id": "30090206",
+    "name": "Technological Jump-Start"
+  },
   "terrigenesis": {
     "id": "00340204",
     "name": "Terrigenesis"
+  },
+  "the-age-of-ultron": {
+    "id": "00010219",
+    "name": "The Age of Ultron"
   },
   "the-air-force": {
     "id": "00380204",
@@ -273,9 +1520,124 @@
     "id": "00670204",
     "name": "The Bar With No Doors"
   },
+  "the-best-defense": {
+    "id": "01540207",
+    "name": "The Best Defense"
+  },
+  "the-black-bifrost": {
+    "id": "00930202",
+    "name": "The Black Bifrost",
+    "tokens": [
+      "black-bifrost"
+    ]
+  },
+  "the-books-of-truth": {
+    "id": "00430202",
+    "name": "The Books of Truth"
+  },
+  "the-cat-and-the-spider": {
+    "id": "00370203",
+    "name": "The Cat and the Spider"
+  },
+  "the-first-one": {
+    "id": "01070203",
+    "name": "The First One"
+  },
+  "the-grand-illusion": {
+    "id": "00500202",
+    "name": "The Grand Illusion",
+    "tokens": [
+      "the-grand-illusion"
+    ]
+  },
+  "the-great-refuge": {
+    "id": "01660206",
+    "name": "The Great Refuge"
+  },
+  "the-high-council": {
+    "id": "00760202",
+    "name": "The High Council"
+  },
+  "the-initiative": {
+    "id": "00550209",
+    "name": "The Initiative",
+    "tokens": [
+      "gadget"
+    ]
+  },
+  "the-invaders": {
+    "id": "01580204",
+    "name": "The Invaders"
+  },
   "the-magus": {
     "id": "01910204",
     "name": "The Magus"
+  },
+  "the-man-of-marvels": {
+    "id": "01290204",
+    "name": "The Man of Marvels"
+  },
+  "the-pawns-go-first": {
+    "id": "01730204",
+    "name": "The Pawns Go First"
+  },
+  "the-shieldmobile": {
+    "id": "00550210",
+    "name": "The Shieldmobile"
+  },
+  "the-ultimates": {
+    "id": "01290205",
+    "name": "The Ultimates"
+  },
+  "the-whims-of-chaos": {
+    "id": "00630204",
+    "name": "The Whims of Chaos",
+    "tokens": [
+      "root",
+      "hex",
+      "incinerate"
+    ]
+  },
+  "the-white-hot-room": {
+    "id": "00830203",
+    "name": "The White-Hot Room"
+  },
+  "there-will-be-carnage": {
+    "id": "00500203",
+    "name": "There Will Be Carnage",
+    "tokens": [
+      "root"
+    ]
+  },
+  "they-say-keep-your-enemies-close": {
+    "id": "01370203",
+    "name": "They Say Keep Your Enemies Close"
+  },
+  "this-is-a-robbery": {
+    "id": "00980202",
+    "name": "This is a Robbery"
+  },
+  "this-is-our-day": {
+    "id": "1430213",
+    "name": "This is our day"
+  },
+  "thralls-of-dracula": {
+    "id": "02450204",
+    "name": "Thralls of Dracula",
+    "tokens": [
+      "bleed"
+    ]
+  },
+  "thunderwave": {
+    "id": "00110202",
+    "name": "Thunderwave"
+  },
+  "till-the-end-of-the-line": {
+    "id": "00130204",
+    "name": "Till the End of the Line",
+    "tokens": [
+      "till-the-end-of-the-line"
+    ]
   },
   "to-ash-and-cinder": {
     "id": "00610202",
@@ -285,13 +1647,52 @@
       "demolition-charge"
     ]
   },
+  "to-me-my-x-men": {
+    "id": "00410203",
+    "name": "To Me, My X-Men!"
+  },
+  "tomorrows-soldiers": {
+    "id": "01530205",
+    "name": "Tomorrow's Soldiers"
+  },
   "totem-of-the-tiger-god": {
     "id": "01680204",
     "name": "Totem of the Tiger God"
   },
+  "traitor-to-the-cause": {
+    "id": "30070203",
+    "name": "Traitor to the Cause"
+  },
+  "trial-by-combat": {
+    "id": "10040204",
+    "name": "Trial by Combat"
+  },
   "tricksters-boon": {
     "id": "00910205",
     "name": "Trickster's Boon"
+  },
+  "trip-up": {
+    "id": "00010220",
+    "name": "Trip Up",
+    "tokens": [
+      "stun",
+      "stagger"
+    ]
+  },
+  "trust-no-one-but-yourself": {
+    "id": "01540208",
+    "name": "Trust No One But Yourself",
+    "tokens": [
+      "timestream"
+    ]
+  },
+  "two-more-shall-rise": {
+    "id": "00740205",
+    "name": "Two More Shall Rise"
+  },
+  "ultimate-sacrifice": {
+    "id": "01520204",
+    "name": "Ultimate Sacrifice"
   },
   "under-your-skin": {
     "id": "01600202",
@@ -300,9 +1701,55 @@
       "nanite"
     ]
   },
+  "unearthly-rage": {
+    "id": "00200202",
+    "name": "Unearthly Rage"
+  },
+  "uneasy-allies": {
+    "id": "00090202",
+    "name": "Uneasy Allies"
+  },
+  "untapped-potential": {
+    "id": "00960203",
+    "name": "Untapped Potential"
+  },
+  "up-the-ante": {
+    "id": "00660204",
+    "name": "Up the Ante"
+  },
   "usurp-the-throne": {
     "id": "00070202",
     "name": "Usurp the Throne"
+  },
+  "vapors-of-valtorr": {
+    "id": "00230203",
+    "name": "Vapors of Valtorr",
+    "tokens": [
+      "obscuring-mist"
+    ]
+  },
+  "vendetta": {
+    "id": "00790205",
+    "name": "Vendetta",
+    "tokens": [
+      "vendetta"
+    ]
+  },
+  "venomized": {
+    "id": "01550203",
+    "name": "Venomized"
+  },
+  "versatile-strategy": {
+    "id": "00560203",
+    "name": "Versatile Strategy"
+  },
+  "vertical-assistance": {
+    "id": "1430214",
+    "name": "Vertical Assistance"
+  },
+  "veterans-of-the-annihilation-war": {
+    "id": "01260203",
+    "name": "Veterans of the Annihilation War"
   },
   "vibranium-shielding": {
     "id": "00080202",
@@ -311,17 +1758,73 @@
       "vibranium-shielding"
     ]
   },
+  "victory-assured": {
+    "id": "00740206",
+    "name": "Victory Assured"
+  },
   "wakanda-forever": {
     "id": "00070203",
     "name": "Wakanda Forever"
+  },
+  "wand-of-watoomb": {
+    "id": "00670203",
+    "name": "Wand of Watoomb",
+    "tokens": [
+      "wand-of-watoomb",
+      "slow",
+      "shock",
+      "incinerate"
+    ]
   },
   "warpath": {
     "id": "00470203",
     "name": "Warpath"
   },
+  "warriors-frenzy": {
+    "id": "00940203",
+    "name": "Warrior's Frenzy"
+  },
   "warriors-oath": {
     "id": "00940204",
     "name": "Warriors' Oath"
+  },
+  "we-are-groot": {
+    "id": "00170202",
+    "name": "We Are Groot"
+  },
+  "weapon-x-program": {
+    "id": "00400201",
+    "name": "Weapon X Program"
+  },
+  "weapons-of-midgard": {
+    "id": "01020202",
+    "name": "Weapons of Midgard"
+  },
+  "weapons-stash": {
+    "id": "01090202",
+    "name": "Weapons Stash",
+    "tokens": [
+      "stash"
+    ]
+  },
+  "web-barrier": {
+    "id": "00100203",
+    "name": "Web Barrier",
+    "tokens": [
+      "web-barrier"
+    ]
+  },
+  "web-of-the-spider-verse": {
+    "id": "01690205",
+    "name": "Web of the Spider-Verse"
+  },
+  "well-laid-plans": {
+    "id": "00210202",
+    "name": "Well-Laid Plans"
+  },
+  "winter-rush": {
+    "id": "00880203",
+    "name": "Winter Rush"
   },
   "wisdom-of-the-ancestors": {
     "id": "01580205",
@@ -334,12 +1837,28 @@
       "wolverines"
     ]
   },
+  "world-domination": {
+    "id": "00740207",
+    "name": "World Domination"
+  },
   "x-ceptional-healing": {
     "id": "00400202",
     "name": "X-Ceptional Healing"
   },
+  "xavier-protocols": {
+    "id": "30070204",
+    "name": "Xavier Protocols"
+  },
+  "xaviers-dream": {
+    "id": "00960204",
+    "name": "Xavier's Dream"
+  },
   "yoink": {
     "id": "00450203",
     "name": "Yoink"
+  },
+  "you-will-do-as-i-say-monster": {
+    "id": "01620204",
+    "name": "You will do as I say, Monster"
   }
 }
