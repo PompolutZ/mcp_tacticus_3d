@@ -94,6 +94,15 @@
       "characters/archangel/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ARCHANGEL_UI.png"
     }
   },
+  "arnim-zola": {
+    "id": "00760101",
+    "sources": {
+      "characters/arnim-zola/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ARNIM_ZOLA_healthy.jpg",
+      "characters/arnim-zola/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ARNIM_ZOLA_injured.jpg",
+      "characters/arnim-zola/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/ARNIM_ZOLA_MODEL.unity3d",
+      "characters/arnim-zola/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ARNIM_ZOLA_UI.png"
+    }
+  },
   "avalanche": {
     "id": "01730101",
     "sources": {
@@ -103,6 +112,15 @@
       "characters/avalanche/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/AVALANCHE_UI.png"
     }
   },
+  "baron-helmut-zemo": {
+    "id": "01430101",
+    "sources": {
+      "characters/baron-helmut-zemo/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BARON_HELMUT_ZEMO_healthy.jpg",
+      "characters/baron-helmut-zemo/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BARON_HELMUT_ZEMO_injured.jpg",
+      "characters/baron-helmut-zemo/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/BARON_HELMUT_ZEMO_MODEL.unity3d",
+      "characters/baron-helmut-zemo/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BARON_HELMUT_ZEMO_UI.png"
+    }
+  },
   "baron-mordo": {
     "id": "00640102",
     "sources": {
@@ -110,6 +128,24 @@
       "characters/baron-mordo/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BARON_MORDO_injured.jpg",
       "characters/baron-mordo/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/BARON_MORDO_MODEL.unity3d",
       "characters/baron-mordo/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BARON_MORDO_UI.png"
+    }
+  },
+  "baron-strucker": {
+    "id": "00760102",
+    "sources": {
+      "characters/baron-strucker/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BARON_STRUCKER_healthy.jpg",
+      "characters/baron-strucker/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BARON_STRUCKER_injured.jpg",
+      "characters/baron-strucker/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/BARON_STRUCKER_MODEL.unity3d",
+      "characters/baron-strucker/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BARON_STRUCKER_UI.png"
+    }
+  },
+  "baron-zemo": {
+    "id": "00010101",
+    "sources": {
+      "characters/baron-zemo/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BARON_ZEMO_healthy.jpg",
+      "characters/baron-zemo/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BARON_ZEMO_injured.jpg",
+      "characters/baron-zemo/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/BARON_ZEMO_MODEL.unity3d",
+      "characters/baron-zemo/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BARON_ZEMO_UI.png"
     }
   },
   "bastion": {
@@ -229,6 +265,15 @@
       "characters/blue-marvel/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BLUE_MARVEL_UI.png"
     }
   },
+  "bob-agent-of-hydra": {
+    "id": "00450101",
+    "sources": {
+      "characters/bob-agent-of-hydra/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BOB_AGENT_OF_HYDRA_healthy.jpg",
+      "characters/bob-agent-of-hydra/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BOB_AGENT_OF_HYDRA_injured.jpg",
+      "characters/bob-agent-of-hydra/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/BOB_AGENT_OF_HYDRA_MODEL.unity3d",
+      "characters/bob-agent-of-hydra/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BOB_AGENT_OF_HYDRA_UI.png"
+    }
+  },
   "cable": {
     "id": "00470101",
     "sources": {
@@ -316,12 +361,24 @@
       "characters/crimson-dynamo/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CRIMSON_DYNAMO_UI.png"
     }
   },
+  "crossbones": {
+    "id": "00010105",
+    "sources": {
+      "characters/crossbones/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CROSSBONES_healthy.jpg",
+      "characters/crossbones/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CROSSBONES_injured.jpg",
+      "characters/crossbones/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/CROSSBONES_MODEL.unity3d",
+      "characters/crossbones/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CROSSBONES_UI.png"
+    }
+  },
   "crossbones-merciless-merc": {
     "id": "01430104",
     "sources": {
       "characters/crossbones-merciless-merc/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CROSSBONES_MERCILESS_MERC_healthy.jpg",
       "characters/crossbones-merciless-merc/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CROSSBONES_MERCILESS_MERC_injured.jpg",
+      "characters/crossbones-merciless-merc/card-2-healthy.webp": "https://steamusercontent-a.akamaihd.net/ugc/16199726328940357743/6DB6A405698E39EC3A71AD397C0CE9EA7D4CC812/",
+      "characters/crossbones-merciless-merc/card-2-injured.webp": "https://steamusercontent-a.akamaihd.net/ugc/15919776311006940679/07A370A7C477DC4107EDB42F990F691B072F0B00/",
       "characters/crossbones-merciless-merc/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/CROSSBONES_MERCILESS_MERC_MODEL_1.unity3d",
+      "characters/crossbones-merciless-merc/model-2.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/CROSSBONES_MERCILESS_MERC_MODEL_2.unity3d",
       "characters/crossbones-merciless-merc/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CROSSBONES_MERCILESS_MERC_UI.png"
     }
   },
@@ -594,6 +651,15 @@
       "characters/hulkbuster/transform-portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HULKBUSTER_UI_TRANSFORM.png"
     }
   },
+  "hydra-troopers": {
+    "id": "00740102",
+    "sources": {
+      "characters/hydra-troopers/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/HYDRA_TROOPERS_00740102_healthy.png",
+      "characters/hydra-troopers/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/HYDRA_TROOPERS_00740102_injured.png",
+      "characters/hydra-troopers/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/HYDRA_TROOPERS_MODEL.unity3d",
+      "characters/hydra-troopers/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/HYDRA_TROOPERS_UI.png"
+    }
+  },
   "iceman": {
     "id": "00960101",
     "sources": {
@@ -772,6 +838,15 @@
       "characters/m-baku/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MBAKU_injured.jpg",
       "characters/m-baku/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/MBAKU_MODEL.unity3d",
       "characters/m-baku/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MBAKU_UI.png"
+    }
+  },
+  "m-o-d-o-k-scientist-supreme": {
+    "id": "01450101",
+    "sources": {
+      "characters/m-o-d-o-k-scientist-supreme/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MODOK_SCIENTIST_SUPREME_healthy.jpg",
+      "characters/m-o-d-o-k-scientist-supreme/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MODOK_SCIENTIST_SUPREME_injured.jpg",
+      "characters/m-o-d-o-k-scientist-supreme/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/MODOK_SCIENTIST_SUPREME_MODEL.unity3d",
+      "characters/m-o-d-o-k-scientist-supreme/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MODOK_SCIENTIST_SUPREME_UI.png"
     }
   },
   "magik": {
@@ -1054,6 +1129,24 @@
       "characters/red-skull/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RED_SKULL_UI.png"
     }
   },
+  "red-skull-master-of-hydra": {
+    "id": "00740101",
+    "sources": {
+      "characters/red-skull-master-of-hydra/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RED_SKULL_MASTER_OF_HYDRA_healthy.jpg",
+      "characters/red-skull-master-of-hydra/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RED_SKULL_MASTER_OF_HYDRA_injured.jpg",
+      "characters/red-skull-master-of-hydra/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/RED_SKULL_MASTER_OF_HYDRA_MODEL.unity3d",
+      "characters/red-skull-master-of-hydra/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RED_SKULL_MASTER_OF_HYDRA_UI.png"
+    }
+  },
+  "red-skull-master-of-the-world": {
+    "id": "01430107",
+    "sources": {
+      "characters/red-skull-master-of-the-world/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RED_SKULL_MASTER_OF_THE_WORLD_healthy.jpg",
+      "characters/red-skull-master-of-the-world/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RED_SKULL_MASTER_OF_THE_WORLD_injured.jpg",
+      "characters/red-skull-master-of-the-world/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/RED_SKULL_MASTER_OF_THE_WORLD_MODEL.unity3d",
+      "characters/red-skull-master-of-the-world/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RED_SKULL_MASTER_OF_THE_WORLD_UI.png"
+    }
+  },
   "rocket-raccoon": {
     "id": "00170102",
     "sources": {
@@ -1296,6 +1389,15 @@
       "characters/supergiant/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SUPERGIANT_injured.jpg",
       "characters/supergiant/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SUPERGIANT_MODEL.unity3d",
       "characters/supergiant/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SUPERGIANT_UI.png"
+    }
+  },
+  "taskmaster": {
+    "id": "00320102",
+    "sources": {
+      "characters/taskmaster/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/TASKMASTER_healthy.jpg",
+      "characters/taskmaster/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/TASKMASTER_injured.jpg",
+      "characters/taskmaster/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/TASKMASTER_MODEL.unity3d",
+      "characters/taskmaster/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/TASKMASTER_UI.png"
     }
   },
   "thanos-the-mad-titan": {

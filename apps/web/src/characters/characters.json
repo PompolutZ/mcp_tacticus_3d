@@ -110,6 +110,19 @@
       "stagger"
     ]
   },
+  "arnim-zola": {
+    "id": "00760101",
+    "name": "Arnim Zola",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "bleed",
+      "shock",
+      "slow",
+      "stun"
+    ]
+  },
   "avalanche": {
     "id": "01730101",
     "name": "Avalanche",
@@ -118,6 +131,18 @@
     "rotation": 180,
     "tokens": [
       "stun"
+    ]
+  },
+  "baron-helmut-zemo": {
+    "id": "01430101",
+    "name": "Baron Helmut Zemo",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "slow",
+      "stun",
+      "stagger"
     ]
   },
   "baron-mordo": {
@@ -131,6 +156,27 @@
       "incinerate",
       "poison",
       "slow"
+    ]
+  },
+  "baron-strucker": {
+    "id": "00760102",
+    "name": "Baron Strucker",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "poison"
+    ]
+  },
+  "baron-zemo": {
+    "id": "00010101",
+    "name": "Baron Zemo",
+    "base": "small",
+    "figure": "model",
+    "rotation": 135,
+    "tokens": [
+      "bleed"
     ]
   },
   "bastion": {
@@ -265,6 +311,16 @@
       "stun"
     ]
   },
+  "bob-agent-of-hydra": {
+    "id": "00450101",
+    "name": "Bob, Agent of Hydra",
+    "base": "small",
+    "figure": "model",
+    "rotation": 105,
+    "tokens": [
+      "loaded"
+    ]
+  },
   "cable": {
     "id": "00470101",
     "name": "Cable",
@@ -362,12 +418,21 @@
       "shock"
     ]
   },
+  "crossbones": {
+    "id": "00010105",
+    "name": "Crossbones",
+    "base": "small",
+    "figure": "model",
+    "rotation": 255
+  },
   "crossbones-merciless-merc": {
     "id": "01430104",
     "name": "Crossbones, Merciless Merc",
     "base": "small",
     "figure": "model",
-    "rotation": 180
+    "rotation": 180,
+    "models": 2,
+    "cards": 2
   },
   "crystal": {
     "id": "00350101",
@@ -687,6 +752,13 @@
       "portrait": true
     }
   },
+  "hydra-troopers": {
+    "id": "00740102",
+    "name": "Hydra Troopers",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180
+  },
   "iceman": {
     "id": "00960101",
     "name": "Iceman",
@@ -876,6 +948,17 @@
     "base": "small",
     "figure": "model",
     "rotation": 0
+  },
+  "m-o-d-o-k-scientist-supreme": {
+    "id": "01450101",
+    "name": "M.O.D.O.K. Scientist Supreme",
+    "base": "large",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "stun"
+    ]
   },
   "magik": {
     "id": "00570102",
@@ -1186,6 +1269,29 @@
       "stun"
     ]
   },
+  "red-skull-master-of-hydra": {
+    "id": "00740101",
+    "name": "Red Skull, Master of Hydra",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "grunts": [
+      "hydra-troopers"
+    ],
+    "tokens": [
+      "stagger"
+    ]
+  },
+  "red-skull-master-of-the-world": {
+    "id": "01430107",
+    "name": "Red Skull, Master of The World",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "shock"
+    ]
+  },
   "rocket-raccoon": {
     "id": "00170102",
     "name": "Rocket Raccoon",
@@ -1463,6 +1569,16 @@
     "tokens": [
       "stun",
       "stagger"
+    ]
+  },
+  "taskmaster": {
+    "id": "00320102",
+    "name": "Taskmaster",
+    "base": "small",
+    "figure": "model",
+    "rotation": 75,
+    "tokens": [
+      "bleed"
     ]
   },
   "thanos-the-mad-titan": {
