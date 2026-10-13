@@ -572,6 +572,149 @@
       "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1f2993d4f229.obj",
       "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/760c17430c9f.jpg",
       "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1f2993d4f229.obj"
+    },
+    "bench-size-1": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/63c8dc7e068c.unity3d"
+    },
+    "size-3-truck": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7218ba4cf900.unity3d"
+    },
+    "rusted-car-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c0b7f9df672e.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/49137cc9eba5.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c0b7f9df672e.obj"
+    },
+    "pagani-s-old-ale-house-size-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/056577066138.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/456e763143ad.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/056577066138.obj"
+    },
+    "size-4-truck-5": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/66c00ff3102e.unity3d"
+    },
+    "blue-dumpster-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5ced127307d7.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5febf1a8a091.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5ced127307d7.obj"
+    },
+    "traffic-light-w-base-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e235685479b9.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/065b3b2af38a.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e235685479b9.obj"
+    },
+    "bus-stop-size-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/10712dde1ad1.unity3d"
+    },
+    "cosmic-sign-size-2-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5a16570403f6.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/d853b958535e.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5a16570403f6.obj"
+    },
+    "street-booth-size-3-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5cc86aa7a773.unity3d"
+    },
+    "subway-size-4": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f7bffa8ded04.unity3d"
+    },
+    "cargo-size-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/851a2745abeb.unity3d"
+    },
+    "cosmic-light-size-1-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6f7fef22c824.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/109133c6c098.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6f7fef22c824.obj"
+    },
+    "vendr-stall-size-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/dc45f90e2f4f.unity3d"
+    },
+    "station-size-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7946408bed1b.unity3d"
+    },
+    "cosmic-sign-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5a16570403f6.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/109133c6c098.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5a16570403f6.obj"
+    },
+    "cosmic-vendor-shop-size-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/63aa60cccddd.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e87d0c0609dd.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/63aa60cccddd.obj"
+    },
+    "bus-stop-size-2-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/63992300cdd8.unity3d"
+    },
+    "cosmic-light-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6f7fef22c824.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/d853b958535e.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6f7fef22c824.obj"
+    },
+    "tethered-node-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c9b3d9105387.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f7e0db2235a7.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c9b3d9105387.obj"
+    },
+    "vending-machine-size-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9e567e3cb06c.unity3d"
+    },
+    "ad-size-1": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0cbaea8c4f32.unity3d"
+    },
+    "comic-store-size-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/364294efad6b.unity3d"
+    },
+    "dumpling-restaurant-size-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/480564377679.unity3d"
+    },
+    "vending-machine-size-1-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ae7ad0459f8d.unity3d"
+    },
+    "stop-sign-w-base-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9586bb601a92.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b6e70bac9a02.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9586bb601a92.obj"
+    },
+    "dumpster-size-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7279792468e4.unity3d"
+    },
+    "campus-light-size-1": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c5770f858785.unity3d"
+    },
+    "total-access-games-size-5": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a59ae63bdef7.unity3d"
+    },
+    "space-rock-size-2-base": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/df3fadde4961.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3bf59706baa6.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/df3fadde4961.obj"
+    },
+    "tree-size-2-7": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/df98d8721d72.unity3d"
+    },
+    "bench-size-1-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/86564dd6771e.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/436463d24952.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/86564dd6771e.obj"
+    },
+    "carpet-barn-size-4": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/735839ea4fec.unity3d"
+    },
+    "rusty-car-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7bf279618939.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6d1a4832815f.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7bf279618939.obj"
+    },
+    "public-phone-w-base-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4dff9e128257.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3917b69127c0.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4dff9e128257.obj"
+    },
+    "car-size-2-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4676d35b7d99.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e48ef079ebee.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4676d35b7d99.obj"
+    },
+    "size-4-truck-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/76f39f152a03.unity3d"
     }
   },
   "mats": {
@@ -584,6 +727,9 @@
     "savageland-unleashed": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/406c0ce1beca.png",
     "old-town-road": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9c562202bd3b.png",
     "hells-kitchen": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/14b7db51b623.jpg",
-    "pool-party-at-the-mansion": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3c6089656bf6.png"
+    "pool-party-at-the-mansion": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3c6089656bf6.png",
+    "demons-downtown": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/dbc06320460e.png",
+    "cosmic-downtown": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/526323399dae.jpg",
+    "busy-city-disturbed": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/328314384336.png"
   }
 }

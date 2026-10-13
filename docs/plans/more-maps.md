@@ -116,4 +116,12 @@ Phase 3 (done):
 - Fix: collider meshes no longer use `MeshCollider` in the scaled group. In the lib, the child position gets the parent scale a second time, and the args get the world scale of the group twice. `ColliderMesh` in `Terrain.jsx` now bakes the GLB node transform and `transformVertices` (`bundleColliders.js`, tested) into the vertices and puts a `TrimeshCollider` or `ConvexHullCollider` directly under the RigidBody. The OBJ piece collider meshes (`collider: true`) use the same path, so they were changed too (they had the scaled group before, for example Asgard Ruins at scale 4.2).
 - Not checked in the browser: Debug → Colliders for Gunners Den, Fountain, the OBJ collider pieces (Asgard Ruins, Dimetrodon, Bus Stop, Forklift, Blackbird, Motorcycle), the mat turn of the 3 maps.
 
-Phases 4 to 7: not started.
+Phase 4 (done):
+- Migrated 289 (printed -90, stored 270), 293 (printed -90, stored 270) and 294 (printed -180, stored 180).
+- Tints: none left out. The cards show only the bare mat, with no pieces, so they cannot contradict a tint. Kept: grey 0.8 and 0.59 on buildings, vehicles and bins, 0.04 on the campus lights (294), 0.38 on the traffic light and 0.59 on the bus stop (289), 0.87/0.83/0.86 on the 8 bundle pieces of 293.
+- Warnings, 289, 293: none. 294: `dumpster-size-2` has a metallic map, which is not converted. `tree-size-2-7` uses a non-Standard shader (metallic 0, roughness 1). `total-access-games-size-5` has 75 colliders whose mesh has 0 vertices (AssetRipper exports them as JSON, not GLB), so they are left out. There is nothing to collide with, so this is correct.
+- `total-access-games-size-5` has 395 mesh colliders, each its own GLB (1.6 MB in all). It is the largest piece so far.
+- Colliders: no new case. Mesh entries with a non-uniform placement scale (`total-access-games-size-5`, `dumpster-size-2`, `carpet-barn-size-4`) are exact since Phase 3. Primitives on turned shapes with a non-uniform placement scale: none (the boxes of `convenience-store-size-3` are not turned). No code change.
+- Not checked in the browser: Debug → Colliders for Total Access Games (395 meshes, load time), Dumpster, Carpet Barn, the Dumpling Restaurant (scale 0.04), the mat turn of the 3 maps.
+
+Phases 5 to 7: not started.

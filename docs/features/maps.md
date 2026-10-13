@@ -18,6 +18,9 @@ A map is a mat (the ground image) and a list of terrain pieces. The data is in `
 | Old Town Road | 90 |
 | Hells Kitchen | 270 |
 | Pool Party at the Mansion | 270 |
+| Demons Downtown | 270 |
+| Cosmic Downtown | 270 |
+| Busy City Disturbed | 180 |
 
 Survival of the Fittest has the same placements as Hydra Vs Wakanda. It is not in the list.
 
