@@ -334,6 +334,17 @@
       "bleed"
     ]
   },
+  "deadpool": {
+    "id": "00450102",
+    "name": "Deadpool",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "bleed",
+      "slow"
+    ]
+  },
   "doctor-strange": {
     "id": "00230101",
     "name": "Doctor Strange",
@@ -363,6 +374,17 @@
     "rotation": 45,
     "tokens": [
       "brother-daniel"
+    ]
+  },
+  "domino": {
+    "id": "00470102",
+    "name": "Domino",
+    "base": "small",
+    "figure": "model",
+    "rotation": 135,
+    "tokens": [
+      "incinerate",
+      "stun"
     ]
   },
   "dracula": {
@@ -506,6 +528,17 @@
       "bleed"
     ]
   },
+  "honey-badger": {
+    "id": "00710101",
+    "name": "Honey Badger",
+    "base": "small",
+    "figure": "model",
+    "rotation": 75,
+    "tokens": [
+      "bleed",
+      "slow"
+    ]
+  },
   "hulkbuster": {
     "id": "00520101",
     "name": "Hulkbuster",
@@ -643,6 +676,16 @@
       "interdimensional-bloodhound"
     ]
   },
+  "logan-the-wolverine": {
+    "id": "10030101",
+    "name": "Logan, The Wolverine",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "bleed"
+    ]
+  },
   "loki-god-of-mischief": {
     "id": "00120102",
     "name": "Loki, God of Mischief",
@@ -717,6 +760,16 @@
     "tokens": [
       "poison",
       "incinerate"
+    ]
+  },
+  "maverick": {
+    "id": "01090101",
+    "name": "Maverick",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "bleed"
     ]
   },
   "maximus-the-mad": {
@@ -1256,6 +1309,13 @@
       "slow"
     ]
   },
+  "weapon-x-logan": {
+    "id": "01090102",
+    "name": "Weapon X (Logan)",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180
+  },
   "werewolf-by-night": {
     "id": "02450104",
     "name": "Werewolf By Night",
@@ -1286,5 +1346,15 @@
     "base": "small",
     "figure": "model",
     "rotation": 0
+  },
+  "x-23": {
+    "id": "00710102",
+    "name": "x-23",
+    "base": "small",
+    "figure": "model",
+    "rotation": 270,
+    "tokens": [
+      "bleed"
+    ]
   }
 }

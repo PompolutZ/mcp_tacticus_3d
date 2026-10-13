@@ -290,6 +290,15 @@
       "characters/darkstar/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DARKSTAR_UI.png"
     }
   },
+  "deadpool": {
+    "id": "00450102",
+    "sources": {
+      "characters/deadpool/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DEADPOOL_healthy.jpg",
+      "characters/deadpool/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DEADPOOL_injured.jpg",
+      "characters/deadpool/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/DEADPOOL_MODEL.unity3d",
+      "characters/deadpool/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DEADPOOL_UI.png"
+    }
+  },
   "doctor-strange": {
     "id": "00230101",
     "sources": {
@@ -315,6 +324,15 @@
       "characters/doctor-voodoo/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DOCTOR_VOODOO_injured.jpg",
       "characters/doctor-voodoo/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/DOCTOR_VOODOO_MODEL.unity3d",
       "characters/doctor-voodoo/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DOCTOR_VOODOO_UI.png"
+    }
+  },
+  "domino": {
+    "id": "00470102",
+    "sources": {
+      "characters/domino/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DOMINO_healthy.jpg",
+      "characters/domino/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DOMINO_injured.jpg",
+      "characters/domino/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/DOMINO_MODEL.unity3d",
+      "characters/domino/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DOMINO_UI.png"
     }
   },
   "dracula": {
@@ -438,6 +456,15 @@
       "characters/hela-queen-of-hel/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HELA_QUEEN_OF_HEL_injured.jpg",
       "characters/hela-queen-of-hel/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/HELA_QUEEN_OF_HEL_MODEL.unity3d",
       "characters/hela-queen-of-hel/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HELA_QUEEN_OF_HEL_UI.png"
+    }
+  },
+  "honey-badger": {
+    "id": "00710101",
+    "sources": {
+      "characters/honey-badger/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HONEY_BADGER_healthy.jpg",
+      "characters/honey-badger/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HONEY_BADGER_injured.jpg",
+      "characters/honey-badger/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/HONEY_BADGER_MODEL.unity3d",
+      "characters/honey-badger/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HONEY_BADGER_UI.png"
     }
   },
   "hulkbuster": {
@@ -568,6 +595,15 @@
       "characters/lockjaw/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LOCKJAW_UI.png"
     }
   },
+  "logan-the-wolverine": {
+    "id": "10030101",
+    "sources": {
+      "characters/logan-the-wolverine/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LOGAN_THE_WOLVERINE_healthy.jpg",
+      "characters/logan-the-wolverine/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LOGAN_THE_WOLVERINE_injured.jpg",
+      "characters/logan-the-wolverine/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/LOGAN_THE_WOLVERINE_MODEL.unity3d",
+      "characters/logan-the-wolverine/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LOGAN_THE_WOLVERINE_UI.png"
+    }
+  },
   "loki-god-of-mischief": {
     "id": "00120102",
     "sources": {
@@ -631,6 +667,15 @@
       "characters/man-thing/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MAN_THING_injured.jpg",
       "characters/man-thing/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/MAN_THING_MODEL.unity3d",
       "characters/man-thing/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MAN_THING_UI.png"
+    }
+  },
+  "maverick": {
+    "id": "01090101",
+    "sources": {
+      "characters/maverick/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MAVERICK_healthy.jpg",
+      "characters/maverick/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MAVERICK_injured.jpg",
+      "characters/maverick/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/MAVERICK_MODEL.unity3d",
+      "characters/maverick/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MAVERICK_UI.png"
     }
   },
   "maximus-the-mad": {
@@ -1119,6 +1164,15 @@
       "characters/viper/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VIPER_UI.png"
     }
   },
+  "weapon-x-logan": {
+    "id": "01090102",
+    "sources": {
+      "characters/weapon-x-logan/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WEAPON_X_healthy.jpg",
+      "characters/weapon-x-logan/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WEAPON_X_injured.jpg",
+      "characters/weapon-x-logan/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/WEAPON_X_LOGAN_MODEL.unity3d",
+      "characters/weapon-x-logan/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WEAPON_X_LOGAN_UI.png"
+    }
+  },
   "werewolf-by-night": {
     "id": "02450104",
     "sources": {
@@ -1144,6 +1198,15 @@
       "characters/wong/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WONG_injured.jpg",
       "characters/wong/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/WONG_MODEL.unity3d",
       "characters/wong/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WONG_UI.png"
+    }
+  },
+  "x-23": {
+    "id": "00710102",
+    "sources": {
+      "characters/x-23/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/X_23_healthy.jpg",
+      "characters/x-23/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/X_23_injured.jpg",
+      "characters/x-23/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/X_23_MODEL.unity3d",
+      "characters/x-23/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/X_23_UI.png"
     }
   }
 }
