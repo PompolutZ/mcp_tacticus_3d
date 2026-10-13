@@ -249,7 +249,7 @@ export default function App({
   // Each own dice tray puts a function here by side: clears the tray, then adds that many dice. See
   // DiceTray.jsx.
   const addDiceRef = useRef({})
-  const { settings, handleSettingChange, handleVolumeChange } = useSettings()
+  const { settings, bindings, handleSettingChange, handleVolumeChange } = useSettings()
   const [settingsOpen, setSettingsOpen] = useState(false)
   // A token put on a character sounds in both browsers (log/useLogSounds.js)
   useLogSounds(log)
@@ -571,6 +571,8 @@ export default function App({
       libraryOpen,
       logOpen,
       diceTray: hoveredNow().diceTray,
+      overPiece: !!hoveredNow().piece,
+      bindings,
     }),
     actions: {
       peek: (a) => altDown(a.blocked),

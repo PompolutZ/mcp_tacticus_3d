@@ -295,7 +295,7 @@ function trayShapeOf(ch, characters, gruntLists) {
 // (Rapier body or model object, not the spawn position), or null. Used by handleTokenDrop in crisis/useCrisisTokens.js, the
 // same pattern as characterAtRef. See "Hold and drop".
 // turnPieceRef: ref App calls with a direction for Q / E, the same pattern as characterAtRef. Scene
-// fills it with turnPiece. heldRotate: ref to a Map of the Q / E keys held down, key code → direction.
+// fills it with turnPiece. heldRotate: ref to a Map of the Q / E actions held down, action id → direction.
 // liftPieceRef: ref App calls for R, the same pattern. Scene fills it with liftPiece.
 // returnModelsRef: ref App calls with a character id for the tray's Remove button, the same pattern.
 // Scene fills it with returnModels: the models of that character go back to their places on the tray.

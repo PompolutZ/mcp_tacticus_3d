@@ -22,7 +22,7 @@ function heldDirection(held) {
 }
 
 // Moves the camera while a pan key or a turn key is held, as in TTS. App handles the keys (see
-// PAN_KEYS and TURN_KEYS in keyboard.js). pan, turn: refs to a Map of the held keys, key code →
+// input/bindings.js). pan, turn: refs to a Map of the held actions, action id →
 // screen direction [right, up].
 export function KeyboardCamera({ pan, turn }) {
   const camera = useThree((state) => state.camera)

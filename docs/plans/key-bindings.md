@@ -76,4 +76,7 @@ No visible change.
 
 ## Results
 
-Not started.
+### Step 1
+
+Done. `src/input/bindings.js`: actions, defaults (number keys as Digit and Numpad, zoom on WheelUp / WheelDown as data), `match` / `resolve`, `effectiveBindings`, `changedBindings`, `findConflicts`, `cleanBinding`. `keyAction` uses it for every key and now also returns `id` (action id). Held maps in `useTableKeys.js` are by action id, `heldBy` maps the main key code to the action. `settings.bindings` stores only changed actions. `useSettings` gives `bindings` (in use) and `handleBindingsChange`; App passes them and `overPiece` in the key state.
+- Differs: the wheel turn of a dragged piece (decision 8) is not a default yet, step 2 adds it. During a drag only cancel works, as before. Cancel allows `anywhere`, `popup`, `dragging`. A modifier with Escape or Alt is now unbound (exact match).

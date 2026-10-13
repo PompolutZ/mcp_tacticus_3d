@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { setVolume } from '../sound.js'
+import { effectiveBindings } from '../input/bindings.js'
 import { readSettings, writeSettings } from './settings.js'
 
 // The settings of this browser (settings/settings.js), read once. A change is stored at once.
@@ -15,6 +16,14 @@ export function useSettings() {
     setSettings(next)
     writeSettings(next)
   }
+  // changed: the bindings of the actions that differ from the defaults (changedBindings in input/bindings.js)
+  function handleBindingsChange(changed) {
+    const next = { ...settings, bindings: changed }
+    setSettings(next)
+    writeSettings(next)
+  }
+  // The bindings in use: the defaults with the changed actions of the settings
+  const bindings = useMemo(() => effectiveBindings(settings.bindings), [settings.bindings])
   useEffect(() => setVolume(settings.sound.volume / 100), [settings.sound.volume])
-  return { settings, handleSettingChange, handleVolumeChange }
+  return { settings, bindings, handleBindingsChange, handleSettingChange, handleVolumeChange }
 }

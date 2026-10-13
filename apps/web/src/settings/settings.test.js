@@ -99,3 +99,66 @@ test('the volume is 10 by default, is kept, and stays from 0 to 100', () => {
   assert.equal(read({ volume: 'loud' }), 10)
   assert.equal(read(null), 10)
 })
+
+test('bindings: nothing stored means no changed action', () => {
+  assert.deepEqual(defaultSettings().bindings, {})
+  withStorage(fakeStorage(), () => assert.deepEqual(readSettings().bindings, {}))
+})
+
+const bnd = (code, when = 'anywhere', extra = {}) => ({
+  code,
+  shift: false,
+  ctrl: false,
+  alt: false,
+  meta: false,
+  when,
+  ...extra,
+})
+
+test('bindings: a changed action is stored and reads back, a default one is not stored', () => {
+  withStorage(fakeStorage(), () => {
+    const settings = defaultSettings()
+    settings.bindings = {
+      flip: [bnd('KeyG', 'anywhere', { shift: true })],
+      lift: [bnd('KeyR')],
+      ping: [],
+    }
+    assert.equal(writeSettings(settings), true)
+    assert.deepEqual(readSettings().bindings, {
+      flip: [bnd('KeyG', 'anywhere', { shift: true })],
+      ping: [],
+    })
+  })
+})
+
+test('bindings: unknown actions, codes and conditions are dropped', () => {
+  const storage = fakeStorage()
+  storage.setItem(
+    KEY,
+    JSON.stringify({
+      bindings: {
+        nope: [bnd('KeyA')],
+        flip: [bnd('KeyG'), bnd('NotACode'), bnd('KeyH', 'popup'), bnd('KeyJ', 'sometimes'), null],
+        lock: [bnd('Nope')],
+        dice3: [bnd('KeyT', 'anywhere')],
+        cardNext: 'x',
+      },
+    }),
+  )
+  withStorage(storage, () => {
+    assert.deepEqual(readSettings().bindings, { flip: [bnd('KeyG')] })
+  })
+})
+
+test('bindings: stored modifiers that are not true are false', () => {
+  const storage = fakeStorage()
+  storage.setItem(
+    KEY,
+    JSON.stringify({
+      bindings: { flip: [{ code: 'KeyG', shift: 1, ctrl: true, when: 'anywhere' }] },
+    }),
+  )
+  withStorage(storage, () =>
+    assert.deepEqual(readSettings().bindings.flip, [bnd('KeyG', 'anywhere', { ctrl: true })]),
+  )
+})
