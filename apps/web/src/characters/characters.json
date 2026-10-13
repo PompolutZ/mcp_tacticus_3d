@@ -341,6 +341,13 @@
       "incinerate"
     ]
   },
+  "captain-america-first-avenger": {
+    "id": "01430102",
+    "name": "Captain America, First Avenger",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180
+  },
   "captain-america-sam-wilson": {
     "id": "00380101",
     "name": "Captain America (Sam Wilson)",
@@ -811,6 +818,19 @@
       "bleed"
     ]
   },
+  "hawkeye": {
+    "id": "00240102",
+    "name": "Hawkeye",
+    "base": "small",
+    "figure": "model",
+    "rotation": 90,
+    "tokens": [
+      "bleed",
+      "shock",
+      "slow",
+      "poison"
+    ]
+  },
   "heimdall-the-all-seeing": {
     "id": "01020101",
     "name": "Heimdall, The All-Seeing",
@@ -871,6 +891,13 @@
       "slow",
       "stagger"
     ]
+  },
+  "invincible-iron-man": {
+    "id": "01430106",
+    "name": "Invincible Iron Man",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180
   },
   "iron-fist": {
     "id": "00490101",
@@ -1282,6 +1309,29 @@
       "stun"
     ]
   },
+  "nick-fury": {
+    "id": "00550101",
+    "name": "Nick Fury",
+    "base": "small",
+    "figure": "model",
+    "rotation": 30,
+    "grunts": [
+      "s-h-i-e-l-d-agents"
+    ],
+    "tokens": [
+      "bleed"
+    ]
+  },
+  "nick-fury-the-howling-commandos": {
+    "id": "00750101",
+    "name": "Nick Fury & The Howling Commandos",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "incinerate"
+    ]
+  },
   "nova": {
     "id": "01260101",
     "name": "Nova",
@@ -1477,6 +1527,13 @@
       "stun",
       "stagger"
     ]
+  },
+  "s-h-i-e-l-d-agents": {
+    "id": "00550102",
+    "name": "S.H.I.E.L.D. Agents",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 30
   },
   "sabretooth": {
     "id": "00400101",
@@ -1891,6 +1948,16 @@
       "shock"
     ]
   },
+  "the-original-human-torch": {
+    "id": "00770102",
+    "name": "The Original Human Torch",
+    "base": "small",
+    "figure": "model",
+    "rotation": 330,
+    "tokens": [
+      "incinerate"
+    ]
+  },
   "the-warriors-three": {
     "id": "00940102",
     "name": "The Warriors Three",
@@ -2006,6 +2073,16 @@
       "bleed"
     ]
   },
+  "war-machine": {
+    "id": "00380102",
+    "name": "War Machine",
+    "base": "small",
+    "figure": "model",
+    "rotation": 90,
+    "tokens": [
+      "bleed"
+    ]
+  },
   "warlock": {
     "id": "01530102",
     "name": "Warlock",
@@ -2048,6 +2125,16 @@
       "slow",
       "root",
       "hex"
+    ]
+  },
+  "winter-soldier": {
+    "id": "00130102",
+    "name": "Winter Soldier",
+    "base": "small",
+    "figure": "model",
+    "rotation": 105,
+    "tokens": [
+      "bleed"
     ]
   },
   "winter-soldier-operative": {

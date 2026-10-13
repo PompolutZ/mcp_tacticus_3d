@@ -292,6 +292,15 @@
       "characters/cable/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CABLE_UI.png"
     }
   },
+  "captain-america-first-avenger": {
+    "id": "01430102",
+    "sources": {
+      "characters/captain-america-first-avenger/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_AMERICA_FIRST_AVENGER_healthy.jpg",
+      "characters/captain-america-first-avenger/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_AMERICA_FIRST_AVENGER_injured.jpg",
+      "characters/captain-america-first-avenger/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/CAPTAIN_AMERICA_FIRST_AVENGER_MODEL.unity3d",
+      "characters/captain-america-first-avenger/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CAPTAIN_AMERICA_FIRST_AVENGER_UI.png"
+    }
+  },
   "captain-america-sam-wilson": {
     "id": "00380101",
     "sources": {
@@ -703,6 +712,15 @@
       "characters/hand-ninjas/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/HAND_NINJAS_UI.png"
     }
   },
+  "hawkeye": {
+    "id": "00240102",
+    "sources": {
+      "characters/hawkeye/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HAWKEYE_healthy.jpg",
+      "characters/hawkeye/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HAWKEYE_injured.jpg",
+      "characters/hawkeye/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/HAWKEYE_MODEL.unity3d",
+      "characters/hawkeye/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HAWKEYE_UI.png"
+    }
+  },
   "heimdall-the-all-seeing": {
     "id": "01020101",
     "sources": {
@@ -757,6 +775,15 @@
       "characters/iceman/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ICEMAN_injured.jpg",
       "characters/iceman/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/ICEMAN_MODEL.unity3d",
       "characters/iceman/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ICEMAN_UI.png"
+    }
+  },
+  "invincible-iron-man": {
+    "id": "01430106",
+    "sources": {
+      "characters/invincible-iron-man/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/INVINCIBLE_IRON_MAN_healthy.jpg",
+      "characters/invincible-iron-man/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/INVINCIBLE_IRON_MAN_injured.jpg",
+      "characters/invincible-iron-man/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/INVINCIBLE_IRON_MAN_MODEL.unity3d",
+      "characters/invincible-iron-man/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/INVINCIBLE_IRON_MAN_UI.png"
     }
   },
   "iron-fist": {
@@ -1127,6 +1154,24 @@
       "characters/nebula/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/NEBULA_UI.png"
     }
   },
+  "nick-fury": {
+    "id": "00550101",
+    "sources": {
+      "characters/nick-fury/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/NICK_FURY_healthy.jpg",
+      "characters/nick-fury/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/NICK_FURY_injured.jpg",
+      "characters/nick-fury/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/NICK_FURY_MODEL.unity3d",
+      "characters/nick-fury/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/NICK_FURY_UI.png"
+    }
+  },
+  "nick-fury-the-howling-commandos": {
+    "id": "00750101",
+    "sources": {
+      "characters/nick-fury-the-howling-commandos/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/NICK_FURY_THE_HOWLING_COMMANDOS_healthy.jpg",
+      "characters/nick-fury-the-howling-commandos/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/NICK_FURY_THE_HOWLING_COMMANDOS_injured.jpg",
+      "characters/nick-fury-the-howling-commandos/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/NICK_FURY_THE_HOWLING_COMMANDOS_MODEL.unity3d",
+      "characters/nick-fury-the-howling-commandos/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/NICK_FURY_THE_HOWLING_COMMANDOS_UI.png"
+    }
+  },
   "nova": {
     "id": "01260101",
     "sources": {
@@ -1316,6 +1361,15 @@
       "characters/ronan-the-accuser/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RONAN_THE_ACCUSER_injured.jpg",
       "characters/ronan-the-accuser/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/RONAN_THE_ACCUSER_MODEL.unity3d",
       "characters/ronan-the-accuser/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RONAN_THE_ACCUSER_UI.png"
+    }
+  },
+  "s-h-i-e-l-d-agents": {
+    "id": "00550102",
+    "sources": {
+      "characters/s-h-i-e-l-d-agents/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/SHIELD_AGENTS_00550102_healthy.png",
+      "characters/s-h-i-e-l-d-agents/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/SHIELD_AGENTS_00550102_injured.png",
+      "characters/s-h-i-e-l-d-agents/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SHIELD_AGENTS_MODEL.unity3d",
+      "characters/s-h-i-e-l-d-agents/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/SHIELD_AGENTS_UI.png"
     }
   },
   "sabretooth": {
@@ -1679,6 +1733,15 @@
       "characters/the-mighty-thor/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_MIGHTY_THOR_UI.png"
     }
   },
+  "the-original-human-torch": {
+    "id": "00770102",
+    "sources": {
+      "characters/the-original-human-torch/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_ORIGINAL_HUMAN_TORCH_healthy.jpg",
+      "characters/the-original-human-torch/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_ORIGINAL_HUMAN_TORCH_injured.jpg",
+      "characters/the-original-human-torch/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/THE_ORIGINAL_HUMAN_TORCH_MODEL.unity3d",
+      "characters/the-original-human-torch/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_ORIGINAL_HUMAN_TORCH_UI.png"
+    }
+  },
   "the-warriors-three": {
     "id": "00940102",
     "sources": {
@@ -1779,6 +1842,15 @@
       "characters/vulture/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/VULTURE_UI.png"
     }
   },
+  "war-machine": {
+    "id": "00380102",
+    "sources": {
+      "characters/war-machine/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WAR_MACHINE_healthy.jpg",
+      "characters/war-machine/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WAR_MACHINE_injured.jpg",
+      "characters/war-machine/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/WAR_MACHINE_MODEL.unity3d",
+      "characters/war-machine/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WAR_MACHINE_UI.png"
+    }
+  },
   "warlock": {
     "id": "01530102",
     "sources": {
@@ -1816,6 +1888,15 @@
       "characters/werewolf-by-night/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WEREWOLF_BY_NIGHT_injured.jpg",
       "characters/werewolf-by-night/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/WEREWOLF_BY_NIGHT_MODEL.unity3d",
       "characters/werewolf-by-night/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WEREWOLF_BY_NIGHT_UI.png"
+    }
+  },
+  "winter-soldier": {
+    "id": "00130102",
+    "sources": {
+      "characters/winter-soldier/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WINTER_SOLDIER_healthy.jpg",
+      "characters/winter-soldier/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WINTER_SOLDIER_injured.jpg",
+      "characters/winter-soldier/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/WINTER_SOLDIER_MODEL.unity3d",
+      "characters/winter-soldier/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WINTER_SOLDIER_UI.png"
     }
   },
   "winter-soldier-operative": {
