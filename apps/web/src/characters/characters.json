@@ -2158,6 +2158,18 @@
       "immortality"
     ]
   },
+  "the-leader": {
+    "id": "30170103",
+    "name": "The Leader",
+    "base": "small",
+    "figure": "standee",
+    "tokens": [
+      "bleed",
+      "shock",
+      "slow",
+      "stun"
+    ]
+  },
   "the-mighty-thor": {
     "id": "00910103",
     "name": "The Mighty Thor",

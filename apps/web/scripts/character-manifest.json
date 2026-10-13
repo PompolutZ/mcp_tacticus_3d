@@ -1919,6 +1919,16 @@
       "characters/the-immortal-hulk/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_IMMORTAL_HULK_UI.png"
     }
   },
+  "the-leader": {
+    "id": "30170103",
+    "sources": {
+      "characters/the-leader/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_LEADER_healthy.jpg",
+      "characters/the-leader/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_LEADER_injured.jpg",
+      "characters/the-leader/standee-front.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_LEADER_STANDEE_A.jpg",
+      "characters/the-leader/standee-back.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_LEADER_STANDEE_B.jpg",
+      "characters/the-leader/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_LEADER_UI.png"
+    }
+  },
   "the-mighty-thor": {
     "id": "00910103",
     "sources": {
