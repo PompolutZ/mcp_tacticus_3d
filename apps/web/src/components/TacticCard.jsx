@@ -19,6 +19,8 @@ import FaceMaterial from './FaceMaterial.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import useLiveFollow from './useLiveFollow.js'
 import { useColorTexture } from './useColorTexture.js'
+import { useTacticFaceTexture } from './useTacticFaceTexture.js'
+import { spikeFace } from '../tactics/spikeFaces.js'
 import { useHoverCursor } from './useHoverCursor.js'
 
 // A thin box as large as the card finds the ground under it, the same as LooseToken.jsx
@@ -68,7 +70,10 @@ export default function TacticCard({
     assetUrl(tacticCardFace(card.key)),
     assetUrl(tacticCardBack(card.key)),
   ]
-  const [faceMap, backMap] = useColorTexture([faceUrl, backUrl])
+  const [scanMap, backMap] = useColorTexture([faceUrl, backUrl])
+  // Spike: some cards draw their face from Jarvis data. The scan shows until it is ready.
+  const generatedMap = useTacticFaceTexture(card.key)
+  const faceMap = generatedMap ?? scanMap
   const { camera, gl, controls } = useThree()
   const { world, rapier } = useRapier()
   const shape = useMemo(
@@ -150,6 +155,8 @@ export default function TacticCard({
     return {
       src: card.up === 'face' ? faceUrl : backUrl,
       alt: getTactic(card.key)?.name ?? 'Team Tactic card',
+      // Spike: the popup draws the face component for these cards, see CardPopup.jsx
+      tacticKey: card.up === 'face' && spikeFace(card.key) ? card.key : undefined,
     }
   }
 

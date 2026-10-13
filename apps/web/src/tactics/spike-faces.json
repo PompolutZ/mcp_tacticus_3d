@@ -1,0 +1,82 @@
+{
+  "clean-up": {
+    "slug": "clean-up",
+    "name": "Clean Up",
+    "type": "reactive",
+    "body": "An allied |*Agent Venom| and allied |*Peter Parker| may each spend 1 |!power| to play this card during the |*Power Phase|.|\\|\n|*Agent Venom| gains the |*Spider-Sense| |!innate| superpower until the end of the round.|\\|",
+    "secondaryBody": null,
+    "intermediaryBody": "|*Peter Parker| gains the |*Symbiotic Instincts| |!innate| superpower until the end of the round.",
+    "affiliation": null,
+    "artist": "Patrick Brown",
+    "biggerIcons": true,
+    "squished": false,
+    "attacks": [],
+    "superPowers": [
+      {
+        "form": "front",
+        "type": "innate",
+        "name": "Spider-Sense",
+        "powerCost": null,
+        "body": "When this character is defending against a |!physical| or |!energy| attack or making a dodge roll, it may reroll up to 2 of its defense or dodge dice."
+      },
+      {
+        "form": "front",
+        "type": "innate",
+        "name": "Symbiotic Instincts",
+        "powerCost": null,
+        "body": "While this character is attacking, the defending character cannot modify its defense dice."
+      }
+    ]
+  },
+  "stolen-power-of-cyttorak": {
+    "slug": "stolen-power-of-cyttorak",
+    "name": "Stolen Power of Cyttorak",
+    "type": "active",
+    "body": "During |*Onslaught|'s Activation, he may play this card.|\\|\n|*Onslaught| gains the |*Nothing Stops Onslaught| |!active| superpower until the end of this Round.",
+    "secondaryBody": null,
+    "intermediaryBody": null,
+    "affiliation": {
+      "name": "Onslaught's Grip"
+    },
+    "artist": "Eric Guerrero",
+    "biggerIcons": true,
+    "squished": false,
+    "attacks": [],
+    "superPowers": [
+      {
+        "form": "front",
+        "type": "active",
+        "name": "Nothing Stops Onslaught",
+        "powerCost": "3",
+        "body": "Push this character |!movement_small|. It does not stop its movement if it contacts a |!size| 4 or smaller interactive terrain feature. Instead, the contacted terrain feature is destroyed, then this character continues being Pushed. If this character contacts 1 or more other characters, choose 1 contacted character. The chosen character suffers 1 |!damage|. Then this character stops as normal. A character can be damaged by this superpower only once per Turn."
+      }
+    ]
+  },
+  "venomized": {
+    "slug": "venomized",
+    "name": "Venomized",
+    "type": "active_action",
+    "body": "An allied character may spend 3 |!power| to play this card during its Activation.|\\|\nFor the rest of the game, the character that played this card lowers its |!energy| defense stat by 2, to a minimum of 1.|\\|\nFor the rest of the game, the character that played this card gains the attack shown above.",
+    "secondaryBody": null,
+    "intermediaryBody": null,
+    "affiliation": null,
+    "artist": "Néstor Ossandón",
+    "biggerIcons": true,
+    "squished": false,
+    "attacks": [
+      {
+        "rank": 1,
+        "form": "normal",
+        "type": "physical",
+        "name": "We Are Hungry",
+        "range": "3",
+        "strength": "7",
+        "powerCost": 3,
+        "steps": [
+          "After this attack is resolved, this character removes 1 |!damage| from itself for each |!damage| dealt."
+        ]
+      }
+    ],
+    "superPowers": []
+  }
+}
