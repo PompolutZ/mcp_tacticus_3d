@@ -18,7 +18,7 @@ import {
 import { parseMigrateArgs } from './lib/cli.mjs'
 import { outputPath, readJson, writeJson } from './lib/files.mjs'
 import { slug } from './lib/keys.mjs'
-import { cachedFile, loadCharacterDatabase } from './lib/tts.mjs'
+import { cachedFile, downloadMissing, loadCharacterDatabase } from './lib/tts.mjs'
 import {
   BASE_DIAMETER,
   characterCard,
@@ -34,12 +34,16 @@ import {
 const USAGE = `Usage:
   node scripts/migrate-characters.mjs --list [affiliation]      characters with files in the TTS cache, and their status
   node scripts/migrate-characters.mjs <id|name|affiliation>...  convert the characters, for example: 00280101 "Lady Sif" asgard
+  node scripts/migrate-characters.mjs missing                   every character with a model or standee in the mod and no entry in character-manifest.json
 Options:
+  --download    first download the missing files of each character into the TTS cache, one file at a time
   --force       convert files again, even if character-manifest.json lists them
   --out <dir>   trial run: write assets to <dir>/assets, and the manifest and characters.json to <dir>, not to the repo`
 
-const { opts, positionals } = parseMigrateArgs(USAGE, (opts, positionals) =>
-  opts.list ? positionals.length <= 1 : positionals.length > 0,
+const { opts, positionals } = parseMigrateArgs(
+  USAGE,
+  (opts, positionals) => (opts.list ? positionals.length <= 1 : positionals.length > 0),
+  { download: true },
 )
 
 const MANIFEST_FILE = path.join(import.meta.dirname, 'character-manifest.json')
@@ -114,6 +118,12 @@ function listCharacters(affiliation) {
 function selectCharacters(args) {
   const rows = new Set()
   for (const arg of args) {
+    if (arg === 'missing') {
+      characters
+        .filter((r) => hasFigure(characterFiles(r)) && !manifest[keys.get(r)])
+        .forEach((r) => rows.add(r))
+      continue
+    }
     if (arg.toLowerCase() in db.affiliations) {
       affiliationCharacters(arg.toLowerCase()).forEach((r) => rows.add(r))
       continue
@@ -189,16 +199,30 @@ async function migrateCharacter(row, getRipper) {
   const files = characterFiles(row)
   if (!hasFigure(files))
     return { status: 'skipped: the mod has no model or standee for this character' }
+  const warnings = []
+  if (opts.download) {
+    console.log(`${key}: ${row.cName}`)
+    const failed = await downloadMissing(files.map((f) => f.url))
+    const required = failed.filter(({ url }) => files.some((f) => f.required && f.url === url))
+    if (required.length)
+      return {
+        status: `failed: download ${required.map((f) => `${f.url} (${f.reason})`).join(', ')}`,
+      }
+    for (const { url, reason } of failed)
+      warnings.push(`download of ${url} failed (${reason}), so the file is left out`)
+  }
   const missing = files.filter((f) => f.required && !cachedFile(f.url))
   if (missing.length)
     return {
       status: `missing in TTS cache: ${missing.map((f) => path.basename(f.file)).join(', ')}`,
     }
 
-  console.log(`${key}: ${row.cName}`)
-  const warnings = Object.entries(IGNORED_FIELDS)
-    .filter(([field]) => row[field])
-    .map(([field, what]) => `has ${what} (${field}), which the script ignores`)
+  if (!opts.download) console.log(`${key}: ${row.cName}`)
+  warnings.push(
+    ...Object.entries(IGNORED_FIELDS)
+      .filter(([field]) => row[field])
+      .map(([field, what]) => `has ${what} (${field}), which the script ignores`),
+  )
   const sources = {}
   let converted = 0
   for (const f of files) {

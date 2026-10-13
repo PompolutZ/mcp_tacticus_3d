@@ -120,6 +120,17 @@
       "degeneration"
     ]
   },
+  "beta-ray-bill": {
+    "id": "01300101",
+    "name": "Beta Ray Bill",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "shock",
+      "stun"
+    ]
+  },
   "black-bolt": {
     "id": "00340101",
     "name": "Black Bolt",

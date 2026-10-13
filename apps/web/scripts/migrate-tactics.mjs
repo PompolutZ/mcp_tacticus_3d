@@ -6,17 +6,18 @@ import { parseMigrateArgs } from './lib/cli.mjs'
 import { readJson, writeJson } from './lib/files.mjs'
 import { createImageStore } from './lib/manifest.mjs'
 import { slug, uniqueKeys } from './lib/keys.mjs'
-import { loadTacticCards } from './lib/tts.mjs'
+import { downloadMissing, loadTacticCards } from './lib/tts.mjs'
 import { tacticCardBack, tacticCardFace } from '../src/tactics/files.js'
 
 const USAGE = `Usage:
   node scripts/migrate-tactics.mjs --list   tactic cards of the mod and their status
   node scripts/migrate-tactics.mjs          convert every tactic card that has its files in the TTS cache
 Options:
+  --download    first download the missing files of each card into the TTS cache, one file at a time
   --force       convert files again, even if tactic-manifest.json lists them
   --out <dir>   trial run: write assets to <dir>/assets, and the manifest and cards.json to <dir>, not to the repo`
 
-const { opts } = parseMigrateArgs(USAGE)
+const { opts } = parseMigrateArgs(USAGE, undefined, { download: true })
 
 const TOKENS_FILE = path.resolve(import.meta.dirname, '../src/tokens/tokens.json')
 const MANIFEST_FILE = path.join(import.meta.dirname, 'tactic-manifest.json')
@@ -45,7 +46,7 @@ const { available, migrated, convert } = createImageStore({
 const tokenKeys = new Set(Object.keys(readJson(TOKENS_FILE, TOKENS_FILE)))
 
 if (opts.list) listCards()
-else process.exitCode = migrate()
+else process.exitCode = await migrate()
 
 function listCards() {
   console.log('Tactic cards of the mod. Missing: files that TTS has not downloaded.\n')
@@ -62,13 +63,20 @@ function listCards() {
 }
 
 // Returns the process exit code
-function migrate() {
+async function migrate() {
   const results = []
   const done = []
   for (const card of [...cards].sort((a, b) => keys.get(a).localeCompare(keys.get(b)))) {
     const key = keys.get(card)
     try {
       const files = cardFiles(card)
+      if (opts.download) {
+        const failed = await downloadMissing(files.filter((f) => !available(f)).map((f) => f.url))
+        if (failed.length) {
+          results.push({ key, card, status: downloadFailure(failed) })
+          continue
+        }
+      }
       const missing = files.filter((f) => !available(f))
       if (missing.length) {
         results.push({
@@ -98,6 +106,10 @@ function migrate() {
     `\n${done.length} of ${cards.length} cards migrated.\nApp data: ${CARDS_OUT}\nAssets: ${path.join(ASSETS, 'tactics')}`,
   )
   return results.some((r) => r.status.startsWith('failed')) ? 1 : 0
+}
+
+function downloadFailure(failures) {
+  return `failed: download ${failures.map((f) => `${f.url} (${f.reason})`).join(', ')}`
 }
 
 // Entry of src/tactics/cards.json. tokens is left out when the card has none. The key of a token is its name as a

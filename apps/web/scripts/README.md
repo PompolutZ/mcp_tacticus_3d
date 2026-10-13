@@ -168,7 +168,7 @@ The AssetRipper UI is a front end for a local HTTP server. `lib/assetripper.mjs`
 
 The key is the character name as a slug, for example `heimdall-the-all-seeing`. `src/characters/files.js` names the files after the key, so `characters.json` has no paths.
 
-The requirements are the same as for the terrain migration: spawn the characters once in TTS, AssetRipper in `tools/`, ImageMagick.
+The requirements are the same as for the terrain migration: spawn the characters once in TTS, AssetRipper in `tools/`, ImageMagick. `--download` is the other way to fill the TTS cache, see "Download" below.
 
 ## Usage
 
@@ -179,11 +179,24 @@ pnpm --filter web migrate-characters asgard                   # migrate every ch
 pnpm --filter web migrate-characters 00280101 "Lady Sif"      # migrate by MCT id, name or key
 pnpm --filter web migrate-characters asgard --out /tmp/try    # trial run: nothing is written to the repo
 pnpm --filter web migrate-characters asgard --force           # convert files again that the manifest already lists
+pnpm --filter web migrate-characters --download "Lady Sif"    # download the files that the cache lacks, then migrate
+pnpm --filter web migrate-characters --download missing       # the same for every character that has no entry in character-manifest.json
 ```
 
 An affiliation is a key of `allAffiliations` in the mod's Database script, for example `asgard`, `wakanda`, `cabal` or `hydra`. A name matches with or without punctuation: "Loki, Prince of Lies" and "Loki (Prince of Lies)" are the same.
 
 The script converts a file only when the manifest does not have it with the same URL. Therefore, a second run converts only new or changed files. Commit `src/assets/characters/<key>/`, `src/characters/characters.json` and `scripts/character-manifest.json` together.
+
+## Download
+
+`--download` (also in `migrate-crisis` and `migrate-tactics`) downloads the files that the script uses and the TTS cache lacks, so no object has to be spawned in TTS first. The scripts without the option work as before.
+
+- **Facts, checked on 2026-10-13:** 1,021 of the 1,560 character URLs (models, cards, standees, portraits) are not in the cache, and about 180 of 274 characters have no file. 1,013 of the missing URLs are on the mod CDN (`d37ev18qvj5a3m.cloudfront.net`), 8 on `steamusercontent-a.akamaihd.net`. 325 of 402 tactic cards and 19 of 47 crisis cards miss at least one image. A cache file has the same bytes as the download (MD5 checked for `STORM_MODEL.unity3d` and `STORM_healthy.jpg`).
+- **One file at a time, one item at a time:** the CDN belongs to the mod creator, so there are no parallel downloads. For each character or card the script downloads its missing files, converts it, then goes to the next one. A stopped run keeps every finished item. Each file is printed as it downloads.
+- **`missing`:** every character that has a model or a standee in the mod and no entry in `character-manifest.json`. `missing` is a selection like an affiliation, so it also works without `--download`.
+- **Only the files the script uses:** `migrate-crisis` downloads the face and token images of each card. The card backs and the damage marker are in the cache already.
+- **Cache folder:** `.unity3d` goes to `Assetbundles/`, `.obj` to `Models/`, any other file to `Images/`. An image gets the extension of its type, read from its first bytes (PNG, JPEG, WebP), because a Steam image URL has none. A file of another type is not written and counts as a failed download. The file is written under a temp name and renamed, so a stopped run leaves no half file. `cachedFile` finds a downloaded file in the same run and in later runs, also in TTS itself.
+- **Failures:** a file that is not required (see "Output") gives a warning, as a missing cache file does. When a required file fails, the character or card gets the status `failed` with the URL and the reason, and the script goes on with the next one. The exit code is then 1.
 
 ## Output
 
@@ -261,7 +274,7 @@ pnpm --filter web fetch-jarvis-characters --force  # download every character ag
 
 `migrate-crisis.mjs` copies the crisis cards of the TTS mod to `src/assets/crisis/`. It converts the face of each card, one back for the Secure cards and one for the Extract cards, and the tokens that the mod puts on the mat for each card. It writes the app data to `src/crisis/cards.json` and `src/crisis/tokens.json`, and the source URLs to `scripts/crisis-manifest.json`. `src/crisis/files.js` names the files after the keys, so the JSON files have no paths.
 
-Requirements: ImageMagick, and the images in the TTS cache. TTS downloads a card image only when the card is out of its bag, so take a card out of the "Secure Crisis Cards" or "Extract Crisis Cards" bag once before you migrate it. The token images are in the cache after "Setup Crisis" of the "Automatic Crisis Deployment" object places them.
+Requirements: ImageMagick, and the images in the TTS cache. TTS downloads a card image only when the card is out of its bag, so take a card out of the "Secure Crisis Cards" or "Extract Crisis Cards" bag once before you migrate it. The token images are in the cache after "Setup Crisis" of the "Automatic Crisis Deployment" object places them. `--download` is the other way to fill the cache (see "Download" in "TTS character migration").
 
 ## Usage
 
@@ -270,6 +283,7 @@ pnpm --filter web migrate-crisis --list          # crisis cards of the mod and t
 pnpm --filter web migrate-crisis                    # migrate every card that has its files in the TTS cache
 pnpm --filter web migrate-crisis --out /tmp/try  # trial run: nothing is written to the repo
 pnpm --filter web migrate-crisis --force         # convert files again that the manifest already lists
+pnpm --filter web migrate-crisis --download      # download the face and token images that the cache lacks, then migrate
 ```
 
 The script always migrates all cards, because all files together are only about 2 MB. A card gets an entry in `cards.json` when its face and its token images are in the TTS cache or already migrated. On 2026-09-29, the cache had the 24 cards of the 2026 Challenger pool (12 Secure, 12 Extract). The images of the other 21 cards are missing. Commit `src/assets/crisis/`, `src/crisis/cards.json`, `src/crisis/tokens.json` and `scripts/crisis-manifest.json` together.
@@ -394,7 +408,7 @@ pnpm --filter web fetch-jarvis-tactics
 
 `migrate-tactics.mjs` copies the tactic cards (Team Tactic Cards, TTC) and the Infinity Gem cards of the TTS mod to `src/assets/tactics/`. It converts the face and the back of each card. It writes the app data to `src/tactics/cards.json`, and the source URLs to `scripts/tactic-manifest.json`. `src/tactics/files.js` names the files after the keys.
 
-Requirements: ImageMagick, and the images in the TTS cache. TTS downloads a card image only when the card is out of the "Tactic Cards" bag. On 2026-10-05, the cache had both images of 69 of the 389 released cards.
+Requirements: ImageMagick, and the images in the TTS cache. TTS downloads a card image only when the card is out of the "Tactic Cards" bag. On 2026-10-05, the cache had both images of 69 of the 389 released cards. `--download` is the other way to fill the cache (see "Download" in "TTS character migration").
 
 ## Usage
 
@@ -403,6 +417,7 @@ pnpm --filter web migrate-tactics --list          # tactic cards of the mod and 
 pnpm --filter web migrate-tactics                    # migrate every card that has its files in the TTS cache
 pnpm --filter web migrate-tactics --out /tmp/try  # trial run: nothing is written to the repo
 pnpm --filter web migrate-tactics --force         # convert files again that the manifest already lists
+pnpm --filter web migrate-tactics --download      # download the face and back images that the cache lacks, then migrate
 ```
 
 The script migrates every card that has its face and back in the TTS cache or already migrated. It makes an image smaller when its largest side is more than 1040 px (`CARD_SIZE`), and it does not make small images larger. Most sources are about 720×1040, so the cards have about the same size in the app. The other sources go from 180×252 (the back of Corporate Espionage, which looks blurry) to 2048 px or more (Extinction Event, Know Thy Enemy, Static Arc).

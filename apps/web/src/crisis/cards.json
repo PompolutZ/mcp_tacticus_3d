@@ -68,6 +68,115 @@
       }
     ]
   },
+  "cosmic-invasion-black-order-descends-on-earth": {
+    "id": "00250301",
+    "name": "Cosmic Invasion! Black Order Descends on Earth",
+    "type": "secure",
+    "threat": 16,
+    "tokens": [
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          0,
+          8
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          0,
+          -8
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          12,
+          0
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -12,
+          0
+        ],
+        "locked": true
+      }
+    ]
+  },
+  "deadline-to-destruction": {
+    "id": "20130301",
+    "name": "Deadline To Destruction",
+    "type": "secure",
+    "threat": 16,
+    "tokens": [
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          0,
+          8
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          0,
+          -8
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -8,
+          0
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          8,
+          0
+        ],
+        "locked": true
+      }
+    ]
+  },
+  "deadly-legacy-virus-cured": {
+    "id": "00460301",
+    "name": "Deadly Legacy Virus Cured?",
+    "type": "extract",
+    "threat": 19,
+    "tokens": [
+      {
+        "token": "extract-asset",
+        "position": [
+          0,
+          0
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          12,
+          0
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          -12,
+          0
+        ]
+      }
+    ]
+  },
   "deadly-meteors-mutate-civilians": {
     "id": "00010301",
     "name": "Deadly Meteors Mutate Civilians",
@@ -95,6 +204,38 @@
         "position": [
           -8,
           2
+        ],
+        "locked": true
+      }
+    ]
+  },
+  "demons-downtown-has-our-comeuppance-come-due": {
+    "id": "00270301",
+    "name": "Demons Downtown! Has Our Comeuppance Come Due?",
+    "type": "secure",
+    "threat": 19,
+    "tokens": [
+      {
+        "token": "flaming-portal",
+        "position": [
+          0,
+          8
+        ],
+        "locked": true
+      },
+      {
+        "token": "flaming-portal",
+        "position": [
+          0,
+          -8
+        ],
+        "locked": true
+      },
+      {
+        "token": "flaming-portal",
+        "position": [
+          0,
+          0
         ],
         "locked": true
       }
@@ -135,6 +276,74 @@
       }
     ],
     "supply": "extract-source-asset"
+  },
+  "fear-grips-world-as-worthy-terrorize-cities": {
+    "id": "00110301",
+    "name": "Fear Grips World as \"Worthy\" Terrorize Cities",
+    "type": "extract",
+    "threat": 18,
+    "tokens": [
+      {
+        "token": "extract-asset",
+        "position": [
+          0,
+          8
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          0,
+          -8
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          12,
+          0
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          -12,
+          0
+        ]
+      }
+    ]
+  },
+  "gamma-wave-sweeps-across-midwest": {
+    "id": "00040301",
+    "name": "Gamma Wave Sweeps Across Midwest",
+    "type": "secure",
+    "threat": 15,
+    "tokens": [
+      {
+        "token": "gamma-shelter",
+        "position": [
+          0,
+          8
+        ],
+        "locked": true
+      },
+      {
+        "token": "gamma-shelter",
+        "position": [
+          0,
+          -8
+        ],
+        "locked": true
+      },
+      {
+        "token": "gamma-shelter",
+        "position": [
+          0,
+          0
+        ],
+        "locked": true
+      }
+    ]
   },
   "guardians-save-shiar-empress-in-style": {
     "id": "20130302",
@@ -252,6 +461,38 @@
       }
     ]
   },
+  "intrusions-open-across-city-as-seals-collapse": {
+    "id": "00640301",
+    "name": "Intrusions Open Across City as Seals Collapse",
+    "type": "secure",
+    "threat": 19,
+    "tokens": [
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          0,
+          0
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          12,
+          0
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -12,
+          0
+        ],
+        "locked": true
+      }
+    ]
+  },
   "jailbreak-leads-to-mass-mutant-escape": {
     "id": "20230301",
     "name": "Jailbreak Leads to Mass Mutant Escape!",
@@ -332,6 +573,68 @@
         "position": [
           -5,
           -5
+        ],
+        "locked": true
+      }
+    ]
+  },
+  "mayor-fisk-vows-to-find-missing-witnesses": {
+    "id": "00290301",
+    "name": "Mayor Fisk Vows to Find Missing Witnesses",
+    "type": "secure",
+    "threat": 16,
+    "tokens": [
+      {
+        "token": "witness",
+        "position": [
+          5,
+          0
+        ]
+      },
+      {
+        "token": "witness",
+        "position": [
+          -5,
+          0
+        ]
+      }
+    ]
+  },
+  "mkraan-crystal-gets-heroes-home": {
+    "id": "20130304",
+    "name": "M'Kraan Crystal Gets Heroes Home!",
+    "type": "secure",
+    "threat": 19,
+    "tokens": [
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          5,
+          4
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -5,
+          4
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -5,
+          -4
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          5,
+          -4
         ],
         "locked": true
       }
@@ -427,6 +730,160 @@
       }
     ]
   },
+  "mystic-wakandan-herbs-fact-or-fiction": {
+    "id": "00070301",
+    "name": "Mystic Wakandan Herbs: Fact or Fiction?",
+    "type": "extract",
+    "threat": 15,
+    "tokens": [
+      {
+        "token": "vessel",
+        "back": "herb",
+        "position": [
+          -12,
+          5
+        ],
+        "locked": true
+      },
+      {
+        "token": "vessel",
+        "back": "herb",
+        "position": [
+          12,
+          -5
+        ],
+        "locked": true
+      },
+      {
+        "token": "herb",
+        "back": "vessel",
+        "position": [
+          -10,
+          2
+        ]
+      },
+      {
+        "token": "herb",
+        "back": "vessel",
+        "position": [
+          10,
+          -2
+        ]
+      }
+    ]
+  },
+  "panic-grips-city-as-evacuation-efforts-continue": {
+    "id": "00180301",
+    "name": "Panic Grips City as Evacuation Efforts Continue!",
+    "type": "extract",
+    "threat": 19,
+    "tokens": [
+      {
+        "token": "citizen",
+        "position": [
+          10,
+          5
+        ]
+      },
+      {
+        "token": "citizen",
+        "position": [
+          -10,
+          5
+        ]
+      },
+      {
+        "token": "citizen",
+        "position": [
+          -10,
+          -5
+        ]
+      },
+      {
+        "token": "citizen",
+        "position": [
+          10,
+          -5
+        ]
+      }
+    ]
+  },
+  "paranoia-pummels-populace": {
+    "id": "20000313",
+    "name": "Paranoia Pummels Populace!",
+    "type": "extract",
+    "threat": 16,
+    "tokens": [
+      {
+        "token": "disturbance",
+        "position": [
+          2,
+          0
+        ]
+      },
+      {
+        "token": "disturbance",
+        "position": [
+          -2,
+          0
+        ]
+      },
+      {
+        "token": "disturbance",
+        "position": [
+          10,
+          0
+        ]
+      },
+      {
+        "token": "disturbance",
+        "position": [
+          -10,
+          0
+        ]
+      }
+    ]
+  },
+  "portals-overrun-city-with-spider-people": {
+    "id": "00100301",
+    "name": "Portals Overrun City with Spider-People!",
+    "type": "secure",
+    "threat": 18,
+    "tokens": [
+      {
+        "token": "inheritor-portal",
+        "position": [
+          0,
+          8
+        ],
+        "locked": true
+      },
+      {
+        "token": "inheritor-portal",
+        "position": [
+          0,
+          -8
+        ],
+        "locked": true
+      },
+      {
+        "token": "inheritor-portal",
+        "position": [
+          12,
+          0
+        ],
+        "locked": true
+      },
+      {
+        "token": "inheritor-portal",
+        "position": [
+          -12,
+          0
+        ],
+        "locked": true
+      }
+    ]
+  },
   "power-overload-factory-goes-up-in-flames": {
     "id": "20230305",
     "name": "Power Overload! Factory Goes up in Flames",
@@ -462,6 +919,77 @@
         "position": [
           7,
           -2
+        ],
+        "locked": true
+      }
+    ]
+  },
+  "research-station-attacked": {
+    "id": "00630301",
+    "name": "Research Station Attacked!",
+    "type": "extract",
+    "threat": 15,
+    "tokens": [
+      {
+        "token": "evac-point",
+        "position": [
+          0,
+          8
+        ],
+        "locked": true
+      },
+      {
+        "token": "evac-point",
+        "position": [
+          0,
+          -8
+        ],
+        "locked": true
+      },
+      {
+        "token": "researcher",
+        "position": [
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  "riots-spark-over-extremis-30": {
+    "id": "00010303",
+    "name": "Riots Spark Over Extremis 3.0",
+    "type": "secure",
+    "threat": 17,
+    "tokens": [
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          0,
+          8
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          0,
+          -8
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          12,
+          0
+        ],
+        "locked": true
+      },
+      {
+        "token": "secure-point-of-interest",
+        "position": [
+          -12,
+          0
         ],
         "locked": true
       }
@@ -569,6 +1097,42 @@
       }
     ],
     "supply": "extract-source-asset"
+  },
+  "ship-secuirty-breached-in-royal-rescue": {
+    "id": "20130306",
+    "name": "Ship Secuirty Breached in Royal Rescue",
+    "type": "extract",
+    "threat": 20,
+    "tokens": [
+      {
+        "token": "extract-asset",
+        "position": [
+          0,
+          2
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          0,
+          -2
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          12,
+          0
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          -12,
+          0
+        ]
+      }
+    ]
   },
   "skrulls-infiltrate-world-leadership": {
     "id": "00010304",
@@ -686,6 +1250,49 @@
           0
         ],
         "locked": true
+      }
+    ]
+  },
+  "struggle-for-the-cube-continues": {
+    "id": "00010306",
+    "name": "Struggle for the Cube Continues",
+    "type": "extract",
+    "threat": 17,
+    "tokens": [
+      {
+        "token": "extract-asset",
+        "position": [
+          0,
+          0
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          8,
+          5
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          -8,
+          5
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          8,
+          -5
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          -8,
+          -5
+        ]
       }
     ]
   },
@@ -811,6 +1418,140 @@
           5
         ],
         "locked": true
+      }
+    ]
+  },
+  "sword-establishes-base-on-moons-blue-area": {
+    "id": "00470301",
+    "name": "S.W.O.R.D. Establishes Base on Moon's Blue Area",
+    "type": "secure",
+    "threat": 15,
+    "tokens": [
+      {
+        "token": "console",
+        "position": [
+          5,
+          4
+        ],
+        "locked": true
+      },
+      {
+        "token": "console",
+        "position": [
+          -5,
+          4
+        ],
+        "locked": true
+      },
+      {
+        "token": "console",
+        "position": [
+          -5,
+          -4
+        ],
+        "locked": true
+      },
+      {
+        "token": "console",
+        "position": [
+          5,
+          -4
+        ],
+        "locked": true
+      }
+    ]
+  },
+  "terrigen-canisters-fuel-doomsday-device": {
+    "id": "20130308",
+    "name": "Terrigen Canisters Fuel Doomsday Device",
+    "type": "extract",
+    "threat": 17,
+    "tokens": [
+      {
+        "token": "extract-asset",
+        "position": [
+          0,
+          0
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          8,
+          5
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          -8,
+          5
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          8,
+          -5
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          -8,
+          -5
+        ]
+      }
+    ]
+  },
+  "terrigen-clouds-sweep-over-city": {
+    "id": "00340301",
+    "name": "Terrigen Clouds Sweep Over City",
+    "type": "secure",
+    "threat": 20,
+    "tokens": [
+      {
+        "token": "mist-cloud",
+        "position": [
+          12,
+          0
+        ]
+      },
+      {
+        "token": "mist-cloud",
+        "position": [
+          -12,
+          0
+        ]
+      }
+    ]
+  },
+  "the-montesi-formula-found": {
+    "id": "00230301",
+    "name": "The Montesi Formula Found",
+    "type": "extract",
+    "threat": 18,
+    "tokens": [
+      {
+        "token": "extract-asset",
+        "position": [
+          0,
+          8
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          0,
+          -8
+        ]
+      },
+      {
+        "token": "extract-asset",
+        "position": [
+          0,
+          0
+        ]
       }
     ]
   },

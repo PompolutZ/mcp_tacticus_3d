@@ -10,17 +10,18 @@ import { parseMigrateArgs } from './lib/cli.mjs'
 import { readJson, writeJson } from './lib/files.mjs'
 import { createImageStore } from './lib/manifest.mjs'
 import { slug, uniqueKeys } from './lib/keys.mjs'
-import { cachedFile, loadCrisisDatabase } from './lib/tts.mjs'
+import { cachedFile, downloadMissing, loadCrisisDatabase } from './lib/tts.mjs'
 import { crisisCardBack, crisisCardFace, crisisMarker, crisisToken } from '../src/crisis/files.js'
 
 const USAGE = `Usage:
   node scripts/migrate-crisis.mjs --list   crisis cards of the mod and their status
   node scripts/migrate-crisis.mjs          convert every crisis card that has its files in the TTS cache
 Options:
+  --download    first download the missing face and token files of each card into the TTS cache, one file at a time
   --force       convert files again, even if crisis-manifest.json lists them
   --out <dir>   trial run: write assets to <dir>/assets, and the manifest, cards.json and tokens.json to <dir>, not to the repo`
 
-const { opts } = parseMigrateArgs(USAGE)
+const { opts } = parseMigrateArgs(USAGE, undefined, { download: true })
 
 const MANIFEST_FILE = path.join(import.meta.dirname, 'crisis-manifest.json')
 const DATA_DIR = path.resolve(import.meta.dirname, '../src/crisis')
@@ -63,7 +64,7 @@ const jarvis = fs.existsSync(JARVIS_FILE)
   : null
 
 if (opts.list) listCards()
-else process.exitCode = migrate()
+else process.exitCode = await migrate()
 
 function listCards() {
   console.log('Crisis cards of the mod. Missing: files that TTS has not downloaded.\n')
@@ -88,13 +89,26 @@ function listCards() {
 }
 
 // Returns the process exit code
-function migrate() {
+async function migrate() {
   const results = []
   const done = []
   for (const card of [...cards].sort((a, b) => keys.get(a).localeCompare(keys.get(b)))) {
     const key = keys.get(card)
     try {
       const plan = planCard(card)
+      if (opts.download) {
+        const failed = await downloadMissing(
+          plan.files.filter((f) => !available(f)).map((f) => f.url),
+        )
+        if (failed.length) {
+          results.push({
+            key,
+            card,
+            status: `failed: download ${failed.map((f) => `${f.url} (${f.reason})`).join(', ')}`,
+          })
+          continue
+        }
+      }
       const missing = plan.files.filter((f) => !available(f))
       if (missing.length) {
         results.push({

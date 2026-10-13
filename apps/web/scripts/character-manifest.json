@@ -101,6 +101,15 @@
       "characters/bastion/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BASTION_UI.png"
     }
   },
+  "beta-ray-bill": {
+    "id": "01300101",
+    "sources": {
+      "characters/beta-ray-bill/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BETA_RAY_BILL_healthy.jpg",
+      "characters/beta-ray-bill/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BETA_RAY_BILL_injured.jpg",
+      "characters/beta-ray-bill/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/BETA_RAY_BILL_MODEL.unity3d",
+      "characters/beta-ray-bill/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BETA_RAY_BILL_UI.png"
+    }
+  },
   "black-bolt": {
     "id": "00340101",
     "sources": {

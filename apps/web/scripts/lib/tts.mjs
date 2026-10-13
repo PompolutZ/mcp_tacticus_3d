@@ -12,11 +12,7 @@ const CACHE_DIRS = ['Models', 'Images', 'Assetbundles']
 
 let cache
 
-// Path of the file that TTS cached for url, or null when TTS has not downloaded it.
-// TTS names the file after the URL without its non-alphanumeric characters, plus an extension:
-// https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ab12.obj → httpsd37ev18qvj5a3mcloudfrontnetttsterrainab12obj.obj
-export function cachedFile(url) {
-  if (!url) return null
+function cacheMap() {
   if (!cache) {
     cache = new Map()
     for (const dir of CACHE_DIRS) {
@@ -25,7 +21,71 @@ export function cachedFile(url) {
       }
     }
   }
-  return cache.get(url.replace(/[^A-Za-z0-9]/g, '')) ?? null
+  return cache
+}
+
+function cacheName(url) {
+  return url.replace(/[^A-Za-z0-9]/g, '')
+}
+
+// Path of the file that TTS cached for url, or null when TTS has not downloaded it.
+// TTS names the file after the URL without its non-alphanumeric characters, plus an extension:
+// https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ab12.obj → httpsd37ev18qvj5a3mcloudfrontnetttsterrainab12obj.obj
+export function cachedFile(url) {
+  if (!url) return null
+  return cacheMap().get(cacheName(url)) ?? null
+}
+
+// Cache folder and extension for a downloaded file, as { dir, ext }, or null for a file of an unknown type.
+// The URL extension .unity3d goes to Assetbundles and .obj to Models. Any other file must be a PNG, JPEG or WebP
+// image (checked on its first bytes) and goes to Images with the extension of its type. A Steam image URL has no extension.
+export function cacheTarget(url, bytes) {
+  const ext = /\.(unity3d|obj)$/i.exec(new URL(url).pathname)?.[1].toLowerCase()
+  if (ext === 'unity3d') return { dir: 'Assetbundles', ext: 'unity3d' }
+  if (ext === 'obj') return { dir: 'Models', ext: 'obj' }
+  const ascii = (from, to) => Buffer.from(bytes.subarray(from, to)).toString('latin1')
+  if (ascii(1, 4) === 'PNG' && bytes[0] === 0x89) return { dir: 'Images', ext: 'png' }
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff)
+    return { dir: 'Images', ext: 'jpg' }
+  if (ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP') return { dir: 'Images', ext: 'webp' }
+  return null
+}
+
+const DOWNLOAD_TIMEOUT_MS = 120_000
+
+// Downloads url into the TTS cache, so that cachedFile finds it. Returns the path. Throws when the download fails
+// or the file has an unknown type. The file is written under a temp name and renamed, so a stopped run
+// leaves no half file in the cache.
+export async function downloadToCache(url) {
+  const res = await fetch(url, { signal: AbortSignal.timeout(DOWNLOAD_TIMEOUT_MS) })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const bytes = new Uint8Array(await res.arrayBuffer())
+  const target = cacheTarget(url, bytes)
+  if (!target) throw new Error('the file is not an image, a bundle or a model')
+  const name = cacheName(url)
+  const file = path.join(TTS_MODS, target.dir, `${name}.${target.ext}`)
+  const temp = path.join(TTS_MODS, target.dir, `.${name}.part`)
+  fs.writeFileSync(temp, bytes)
+  fs.renameSync(temp, file)
+  cacheMap().set(name, file)
+  return file
+}
+
+// Downloads the files of urls that the cache does not have, one at a time and with a line per file.
+// Returns the failures as [{ url, reason }].
+export async function downloadMissing(urls) {
+  const failures = []
+  for (const url of new Set(urls.filter((u) => u && !cachedFile(u)))) {
+    try {
+      const file = await downloadToCache(url)
+      console.log(`  downloaded ${url} (${fs.statSync(file).size} bytes)`)
+    } catch (err) {
+      const reason = err.cause?.code ?? err.message
+      console.log(`  download failed ${url}: ${reason}`)
+      failures.push({ url, reason })
+    }
+  }
+  return failures
 }
 
 // pieces: key → piece definition. cards: map layouts, each with placements of piece keys.
