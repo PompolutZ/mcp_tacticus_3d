@@ -427,6 +427,15 @@
       "characters/crystal/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CRYSTAL_UI.png"
     }
   },
+  "cyclops": {
+    "id": "00410101",
+    "sources": {
+      "characters/cyclops/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CYCLOPS_healthy.jpg",
+      "characters/cyclops/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CYCLOPS_injured.jpg",
+      "characters/cyclops/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/CYCLOPS_MODEL.unity3d",
+      "characters/cyclops/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CYCLOPS_UI.png"
+    }
+  },
   "daredevil": {
     "id": "00300102",
     "sources": {
@@ -712,6 +721,16 @@
       "characters/hand-ninjas/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/HAND_NINJAS_UI.png"
     }
   },
+  "havok": {
+    "id": "30080101",
+    "sources": {
+      "characters/havok/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HAVOK_healthy.jpg",
+      "characters/havok/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HAVOK_injured.jpg",
+      "characters/havok/standee-front.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HAVOK_STANDEE_A.jpg",
+      "characters/havok/standee-back.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HAVOK_STANDEE_B.jpg",
+      "characters/havok/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HAVOK_UI.png"
+    }
+  },
   "hawkeye": {
     "id": "00240102",
     "sources": {
@@ -820,6 +839,25 @@
       "characters/iron-monger/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/IRON_MONGER_injured.jpg",
       "characters/iron-monger/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/IRON_MONGER_MODEL.unity3d",
       "characters/iron-monger/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/IRON_MONGER_UI.png"
+    }
+  },
+  "jean-grey": {
+    "id": "00530102",
+    "sources": {
+      "characters/jean-grey/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/JEAN_GREY_healthy.jpg",
+      "characters/jean-grey/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/JEAN_GREY_injured.jpg",
+      "characters/jean-grey/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/JEAN_GREY_MODEL.unity3d",
+      "characters/jean-grey/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/JEAN_GREY_UI.png"
+    }
+  },
+  "jubilee": {
+    "id": "30080102",
+    "sources": {
+      "characters/jubilee/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/JUBILEE_healthy.jpg",
+      "characters/jubilee/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/JUBILEE_injured.jpg",
+      "characters/jubilee/standee-front.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/JUBILEE_STANDEE_A.jpg",
+      "characters/jubilee/standee-back.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/JUBILEE_STANDEE_B.jpg",
+      "characters/jubilee/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/JUBILEE_UI.png"
     }
   },
   "juggernaut": {
@@ -1109,6 +1147,26 @@
       "characters/ms-marvel/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MS_MARVEL_UI.png"
     }
   },
+  "multiple-man": {
+    "id": "30080104",
+    "sources": {
+      "characters/multiple-man/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MULTIPLE_MAN_healthy.jpg",
+      "characters/multiple-man/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MULTIPLE_MAN_injured.jpg",
+      "characters/multiple-man/standee-front.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MULTIPLE_MAN_STANDEE_A.jpg",
+      "characters/multiple-man/standee-back.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MULTIPLE_MAN_STANDEE_B.jpg",
+      "characters/multiple-man/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MULTIPLE_MAN_UI.png"
+    }
+  },
+  "multiple-man-duplicates": {
+    "id": "30080105",
+    "sources": {
+      "characters/multiple-man-duplicates/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/MULTIPLE_MAN_DUPLICATES_30080105_healthy.png",
+      "characters/multiple-man-duplicates/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/MULTIPLE_MAN_DUPLICATES_30080105_injured.png",
+      "characters/multiple-man-duplicates/standee-front.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/MULTIPLE_MAN_DUPLICATES_STANDEE_A.jpg",
+      "characters/multiple-man-duplicates/standee-back.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/MULTIPLE_MAN_DUPLICATES_STANDEE_B.jpg",
+      "characters/multiple-man-duplicates/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/MULTIPLE_MAN_DUPLICATES_UI.png"
+    }
+  },
   "mysterio": {
     "id": "00500102",
     "sources": {
@@ -1172,6 +1230,15 @@
       "characters/nick-fury-the-howling-commandos/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/NICK_FURY_THE_HOWLING_COMMANDOS_UI.png"
     }
   },
+  "nightcrawler": {
+    "id": "01120102",
+    "sources": {
+      "characters/nightcrawler/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/NIGHTCRAWLER_healthy.jpg",
+      "characters/nightcrawler/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/NIGHTCRAWLER_injured.jpg",
+      "characters/nightcrawler/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/NIGHTCRAWLER_MODEL.unity3d",
+      "characters/nightcrawler/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/NIGHTCRAWLER_UI.png"
+    }
+  },
   "nova": {
     "id": "01260101",
     "sources": {
@@ -1216,6 +1283,28 @@
       "characters/onslaught/standee-front.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ONSLAUGHT_STANDEE_A.jpg",
       "characters/onslaught/standee-back.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ONSLAUGHT_STANDEE_A.jpg",
       "characters/onslaught/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ONSLAUGHT_UI.png"
+    }
+  },
+  "phoenix": {
+    "id": "00830101",
+    "sources": {
+      "characters/phoenix/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/PHOENIX_healthy.jpg",
+      "characters/phoenix/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/PHOENIX_injured.jpg",
+      "characters/phoenix/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/PHOENIX_MODEL.unity3d",
+      "characters/phoenix/transform.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/PHOENIX_MODEL_TRANSFORM.unity3d",
+      "characters/phoenix/construct-1.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/PHOENIX_CONSTRUCT_1.jpg",
+      "characters/phoenix/construct-2.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/PHOENIX_CONSTRUCT_2.jpg",
+      "characters/phoenix/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/PHOENIX_UI.png",
+      "characters/phoenix/transform-portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/PHOENIX_UI_TRANSFORM.png"
+    }
+  },
+  "professor-x": {
+    "id": "01510101",
+    "sources": {
+      "characters/professor-x/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/PROFESSOR_X_healthy.jpg",
+      "characters/professor-x/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/PROFESSOR_X_injured.jpg",
+      "characters/professor-x/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/PROFESSOR_X_MODEL.unity3d",
+      "characters/professor-x/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/PROFESSOR_X_UI.png"
     }
   },
   "prowler": {

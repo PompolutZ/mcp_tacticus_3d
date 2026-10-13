@@ -484,6 +484,13 @@
       "incinerate"
     ]
   },
+  "cyclops": {
+    "id": "00410101",
+    "name": "Cyclops",
+    "base": "small",
+    "figure": "model",
+    "rotation": 345
+  },
   "daredevil": {
     "id": "00300102",
     "name": "Daredevil",
@@ -818,6 +825,16 @@
       "bleed"
     ]
   },
+  "havok": {
+    "id": "30080101",
+    "name": "Havok",
+    "base": "small",
+    "figure": "standee",
+    "tokens": [
+      "incinerate",
+      "x-gene"
+    ]
+  },
   "hawkeye": {
     "id": "00240102",
     "name": "Hawkeye",
@@ -934,6 +951,22 @@
     "base": "large",
     "figure": "model",
     "rotation": 180
+  },
+  "jean-grey": {
+    "id": "00530102",
+    "name": "Jean Grey",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0
+  },
+  "jubilee": {
+    "id": "30080102",
+    "name": "Jubilee",
+    "base": "small",
+    "figure": "standee",
+    "tokens": [
+      "stun"
+    ]
   },
   "juggernaut": {
     "id": "00560101",
@@ -1257,6 +1290,27 @@
       "base": "large"
     }
   },
+  "multiple-man": {
+    "id": "30080104",
+    "name": "Multiple Man",
+    "base": "small",
+    "figure": "standee",
+    "grunts": [
+      "multiple-man-duplicates"
+    ],
+    "tokens": [
+      "stagger"
+    ]
+  },
+  "multiple-man-duplicates": {
+    "id": "30080105",
+    "name": "Multiple Man Duplicates",
+    "base": "medium",
+    "figure": "standee",
+    "tokens": [
+      "slow"
+    ]
+  },
   "mysterio": {
     "id": "00500102",
     "name": "Mysterio",
@@ -1332,6 +1386,16 @@
       "incinerate"
     ]
   },
+  "nightcrawler": {
+    "id": "01120102",
+    "name": "Nightcrawler",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stun"
+    ]
+  },
   "nova": {
     "id": "01260101",
     "name": "Nova",
@@ -1376,6 +1440,35 @@
     "name": "Onslaught",
     "base": "large",
     "figure": "standee"
+  },
+  "phoenix": {
+    "id": "00830101",
+    "name": "Phoenix",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "transform": {
+      "figure": "model",
+      "rotation": 180,
+      "name": "Phoenix Unleased",
+      "base": "large",
+      "portrait": true
+    },
+    "constructs": 2,
+    "tokens": [
+      "incinerate",
+      "phoenix-token"
+    ]
+  },
+  "professor-x": {
+    "id": "01510101",
+    "name": "Professor X",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "root"
+    ]
   },
   "prowler": {
     "id": "01690101",
