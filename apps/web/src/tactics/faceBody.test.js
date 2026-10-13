@@ -42,3 +42,22 @@ test('a token parses its label', () => {
     { t: 'token', children: [{ t: 'bold', children: [{ t: 'text', text: 'Bomb' }] }] },
   ])
 })
+
+test('an unknown icon id is plain text, also in a bullet', () => {
+  const known = (id) => id === 'power'
+  assert.deepEqual(parseBody('place |!Ulik| and |!power|', known), [
+    { t: 'text', text: 'place ' },
+    { t: 'text', text: 'Ulik' },
+    { t: 'text', text: ' and ' },
+    { t: 'icon', name: 'power' },
+  ])
+  assert.deepEqual(parseBody('~ Move &!Ulik&', known), [
+    {
+      t: 'bullet',
+      children: [
+        { t: 'text', text: 'Move ' },
+        { t: 'text', text: 'Ulik' },
+      ],
+    },
+  ])
+})

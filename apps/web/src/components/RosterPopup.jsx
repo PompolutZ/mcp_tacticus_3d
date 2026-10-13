@@ -12,6 +12,7 @@ import {
 import { CARD_SIZES } from '../rosters/layout.js'
 import { Overlay } from './Overlay.jsx'
 import { Carousel } from './Carousel.jsx'
+import TacticFaceScaled from './TacticFaceScaled.jsx'
 import { BreakdownTab } from './BreakdownTab.jsx'
 
 // One player's roster in a full-screen popup, opened by a click on a roster card on the table
@@ -168,6 +169,8 @@ function PopupCard({ card, active, inSquad, onSquadToggle }) {
     if (active) setFlipped((v) => !v)
   }
 
+  // A Team Tactic card with a drawn face: the front is the face component, not an image
+  const drawn = shown.faceKey ?? null
   let face
   if (shown.image && shown.back) {
     face = (
@@ -181,12 +184,18 @@ function PopupCard({ card, active, inSquad, onSquadToggle }) {
         onClick={flip}
       >
         <div className="roster-popup-flip-inner">
-          <img
-            className="roster-popup-card roster-popup-side"
-            src={assetUrl(shown.image)}
-            alt={name}
-            draggable={false}
-          />
+          {drawn ? (
+            <div className="roster-popup-card roster-popup-side" role="img" aria-label={name}>
+              <TacticFaceScaled tacticKey={drawn} />
+            </div>
+          ) : (
+            <img
+              className="roster-popup-card roster-popup-side"
+              src={assetUrl(shown.image)}
+              alt={name}
+              draggable={false}
+            />
+          )}
           <img
             className="roster-popup-card roster-popup-side roster-popup-side--back"
             src={assetUrl(shown.back)}

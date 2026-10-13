@@ -4,7 +4,7 @@
 // The body is split on "|". The first character of a part sets its kind:
 //   \        paragraph break
 //   -        row (a flex box, empty)
-//   !x       icon x
+//   !x       icon x. An id that isIcon rejects (an unknown one, for example "!Ulik") is plain text "x".
 //   *text    bold (the text is parsed again)
 //   ~text    bullet; inside it "&" stands for "|"
 //   §slug§Label  a condition name, drawn as the label with a capital
@@ -18,7 +18,8 @@
 
 const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1)
 
-export function parseBody(source) {
+// isIcon(id): true when the face has an icon for the id. Default: every id is an icon.
+export function parseBody(source, isIcon = () => true) {
   const parts = source.split('|')
   const out = []
   let glued = false
@@ -29,14 +30,14 @@ export function parseBody(source) {
       part = part.slice(1)
     }
     if (i + 1 < parts.length && parts[i + 1][0] === '.') glued = true
-    const node = parsePart(part)
+    const node = parsePart(part, isIcon)
     if (!node) return
     out.push(glued ? { t: 'nobreak', children: [node] } : node)
   })
   return out
 }
 
-function parsePart(part) {
+function parsePart(part, isIcon) {
   if (!part) return null
   switch (part[0]) {
     case '\\':
@@ -44,13 +45,15 @@ function parsePart(part) {
     case '-':
       return { t: 'row' }
     case '!':
-      return { t: 'icon', name: part.slice(1) }
+      return isIcon(part.slice(1))
+        ? { t: 'icon', name: part.slice(1) }
+        : { t: 'text', text: part.slice(1) }
     case '*':
-      return { t: 'bold', children: parseBody(part.slice(1)) }
+      return { t: 'bold', children: parseBody(part.slice(1), isIcon) }
     case '~':
       return {
         t: 'bullet',
-        children: parseBody(part.replace(/^~\s?/, '').replaceAll('&', '|')),
+        children: parseBody(part.replace(/^~\s?/, '').replaceAll('&', '|'), isIcon),
       }
     case '§': {
       const m = part.match(/§([^§]+)§(.+)/)
@@ -59,7 +62,7 @@ function parsePart(part) {
     case '<': {
       const m = part.match(/<([^>]+)>(.+)/)
       return m
-        ? { t: 'token', children: parseBody(m[2].replaceAll('&', '|')) }
+        ? { t: 'token', children: parseBody(m[2].replaceAll('&', '|'), isIcon) }
         : { t: 'text', text: part }
     }
     default:

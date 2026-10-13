@@ -2,14 +2,28 @@
 // where the title, the attack panel, the text and the footer fit in the card with at least GAP px
 // above the footer and below the title. Sets --fs on the card element, returns the size.
 // card: the .tactic-face element. It must be in the document, with its fonts loaded.
+// The size is kept per card key: the DOM face and the texture of one card get the same size, and the loop
+// runs once per key.
 const START = 19.5
 const MIN = 12
 const STEP = 0.5
 const GAP = 14
-// Space between the title and the attack panel, and the sum of the other fixed margins
-const TITLE_MARGIN = 28
+// Space between the title and the attack panel
+const TITLE_MARGIN = 8
+// Cards with a smaller font than this are listed in the dev console
+const SMALL = 15
 
-export function fitFace(card) {
+const sizes = new Map()
+
+// The fitted size of a key, or undefined when the key has not been fitted
+export const cachedFaceSize = (key) => sizes.get(key)
+
+export function fitFace(card, key) {
+  const known = sizes.get(key)
+  if (known) {
+    card.style.setProperty('--fs', `${known}px`)
+    return known
+  }
   const main = card.querySelector('.tactic-face-main')
   const title = card.querySelector('.tactic-face-title')
   const atks = card.querySelector('.tactic-face-atks')
@@ -38,5 +52,7 @@ export function fitFace(card) {
     size -= STEP
     card.style.setProperty('--fs', `${size}px`)
   }
+  if (key) sizes.set(key, size)
+  if (import.meta.env.DEV && size < SMALL) console.info(`tactic face ${key}: font ${size} px`)
   return size
 }

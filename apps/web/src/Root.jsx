@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import Table from './Table.jsx'
 import { Lobby } from './components/Lobby.jsx'
 import { JoinRoom } from './components/JoinRoom.jsx'
@@ -10,12 +10,17 @@ import { multiplayerRoom, roomPage } from './rooms/roomPage.js'
 import { openRoom } from './rooms/store.js'
 import { MAPS } from './terrain/maps.js'
 
+// Dev-only page of all Team Tactic faces (#tactic-faces). import.meta.env.DEV is false in `vite build`, so the
+// build leaves out the page and its chunk.
+const TacticFaces = import.meta.env.DEV ? lazy(() => import('./debug/TacticFaces.jsx')) : null
+
 // The page of the URL hash (docs/features/rooms.md, "Pages"): none → Lobby, #room=<code> → Room,
 // #sandbox → Sandbox. #room=<code> is the room link format of docs/features/peer-to-peer.md.
 function pageOf(hash) {
   const params = new URLSearchParams(hash.slice(1))
   if (params.has('room')) return { page: 'room', id: params.get('room') }
   if (params.has('sandbox')) return { page: 'sandbox' }
+  if (import.meta.env.DEV && params.has('tactic-faces')) return { page: 'tactic-faces' }
   return { page: 'lobby' }
 }
 
@@ -127,6 +132,13 @@ export default function Root() {
     go('')
   }
 
+  if (page.page === 'tactic-faces') {
+    return (
+      <Suspense fallback={null}>
+        <TacticFaces />
+      </Suspense>
+    )
+  }
   if (page.page === 'sandbox') return <Table key="sandbox" onExit={handleExit} />
   if (page.page === 'room') {
     if (route.page === 'single')

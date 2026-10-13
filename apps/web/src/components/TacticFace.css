@@ -1,6 +1,6 @@
 /* A Team Tactic face, see TacticFace.jsx. Everything is under .tactic-face and does not use the page's
    CSS (no variables, no inherited font): tacticFaceTexture.js puts this file into an SVG image, where
-   the page's CSS does not reach. Layout 446 x 640 px, ported from the face prototype. */
+   the page's CSS does not reach. Layout 457 x 640 px, ported from the face prototype. */
 .tactic-face,
 .tactic-face * {
   box-sizing: border-box;
@@ -10,7 +10,7 @@
 
 .tactic-face {
   position: relative;
-  width: 446px;
+  width: 457px;
   height: 640px;
   overflow: hidden;
   border-radius: 24px;
@@ -43,14 +43,16 @@
   font-size: 31px;
   letter-spacing: 0.06em;
   text-align: center;
-  margin: 20px 0 8px;
-  height: 48px;
+  /* From the top edge of the card: it covers the name bar of the art completely */
+  margin: 0 0 8px;
+  height: 68px;
+  padding: 20px 0 0;
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1;
   background: #fafcfc;
-  padding: 4px 0;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
   text-transform: uppercase;
 }
@@ -243,6 +245,11 @@
   min-width: 0;
 }
 
+/* Names of attacks and superpowers in small caps, as on the real card */
+.tactic-face-pname > span {
+  font-variant-caps: small-caps;
+}
+
 .tactic-face-pname small {
   font-size: 0.62em;
   margin-left: 0.4em;
@@ -309,6 +316,11 @@
 .tactic-face-sp {
   margin: 8px 16px 0;
   z-index: 1;
+}
+
+/* The superpower panel is a little see-through, as on the scan */
+.tactic-face-sp .tactic-face-panel {
+  background: rgba(255, 255, 255, 0.74);
 }
 
 .tactic-face-txt {

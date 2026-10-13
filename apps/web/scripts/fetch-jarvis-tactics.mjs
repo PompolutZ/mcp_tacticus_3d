@@ -10,12 +10,6 @@ const API = 'https://www.jarvis-protocol.com/api/team_tactics_cards'
 const OUT_FILE = path.resolve(import.meta.dirname, '../src/tactics/jarvis-tactics-cards.json')
 const TEXT_FILE = path.resolve(import.meta.dirname, '../src/tactics/jarvis-tactics-text.json')
 const OUR_CARDS = path.resolve(import.meta.dirname, '../src/tactics/cards.json')
-// Our cards whose key and id match no Jarvis row (spelling differences): our key -> Jarvis slug
-const SLUG_MAP = {
-  'go-getem-tiger': 'go-get-em-tiger',
-  'parts-of-a-whole': 'parts-of-a-hole',
-  'replusor-refraction': 'repulsor-refraction',
-}
 // The full response is 1 MB with the card text. The app needs only these fields.
 const FIELDS = [
   'exportCode',
@@ -53,12 +47,10 @@ const faceOf = (c) => ({
       .map((p) => compact(p, ['form', 'type', 'name', 'powerCost', 'body'])),
   }),
   ...(c.attacks?.length && {
-    attacks: [...c.attacks]
-      .sort(byRank)
-      .map((a) => ({
-        ...compact(a, ['form', 'type', 'name', 'range', 'strength', 'powerCost']),
-        steps: a.steps ?? [],
-      })),
+    attacks: [...c.attacks].sort(byRank).map((a) => ({
+      ...compact(a, ['form', 'type', 'name', 'range', 'strength', 'powerCost']),
+      steps: a.steps ?? [],
+    })),
   }),
   ...compact(c, ['artist']),
   ...(c.biggerIcons && { biggerIcons: true }),
@@ -72,18 +64,18 @@ for (const r of rows) {
 }
 const ours = JSON.parse(fs.readFileSync(OUR_CARDS, 'utf8'))
 const text = {}
-const n = { code: 0, slug: 0, map: 0 }
+const n = { code: 0, slug: 0 }
 const missing = []
 for (const [key, { id }] of Object.entries(ours)) {
-  let row = byCode.get(id)
+  // 3 of our ids lost their leading zero (1430205 for 01430205)
+  let row = byCode.get(id.padStart(8, '0'))
   if (row) n.code++
   else if ((row = bySlug.get(key))) n.slug++
-  else if ((row = bySlug.get(SLUG_MAP[key]))) n.map++
   if (row) text[key] = faceOf(row)
   else missing.push(key)
 }
 writeJson(TEXT_FILE, text)
 console.log(
-  `Face text: ${n.code} by code, ${n.slug} by slug, ${n.map} by the map, ${missing.length} not at all${missing.length ? ` (${missing.join(', ')})` : ''}`,
+  `Face text: ${n.code} by code, ${n.slug} by slug, ${missing.length} not at all${missing.length ? ` (${missing.join(', ')})` : ''}`,
 )
 console.log(`Wrote ${path.relative(process.cwd(), TEXT_FILE)}`)

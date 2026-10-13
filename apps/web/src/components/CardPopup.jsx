@@ -1,8 +1,8 @@
 import { Overlay } from './Overlay.jsx'
-import TacticFace, { FACE_HEIGHT, FACE_WIDTH } from './TacticFace.jsx'
-import { spikeFace, spikeFaceArt } from '../tactics/spikeFaces.js'
+import { FACE_HEIGHT, FACE_WIDTH } from './TacticFace.jsx'
+import TacticFaceScaled from './TacticFaceScaled.jsx'
 
-// Spike: the face component at a scale that fits the window, at most POPUP_SCALE. Set when it opens.
+// The face component of a Team Tactic card at a scale that fits the window, at most POPUP_SCALE. Set when it opens.
 const POPUP_SCALE = 1.4
 
 function TacticFacePopup({ tacticKey }) {
@@ -14,11 +14,9 @@ function TacticFacePopup({ tacticKey }) {
   return (
     <div
       className="card-popup-image tactic-face-popup"
-      style={{ width: FACE_WIDTH * scale, height: FACE_HEIGHT * scale }}
+      style={{ position: 'relative', width: FACE_WIDTH * scale, height: FACE_HEIGHT * scale }}
     >
-      <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
-        <TacticFace art={spikeFaceArt(tacticKey)} card={spikeFace(tacticKey)} />
-      </div>
+      <TacticFaceScaled tacticKey={tacticKey} />
     </div>
   )
 }

@@ -2,26 +2,27 @@ import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import TacticFace, { FACE_HEIGHT, FACE_WIDTH } from './TacticFace.jsx'
 import faceCss from './TacticFace.css?raw'
-import { spikeFace, spikeFaceArt } from '../tactics/spikeFaces.js'
+import { faceCard, loadFaceText } from '../tactics/faceData.js'
 import barlow500 from '@fontsource/barlow-condensed/files/barlow-condensed-latin-500-normal.woff2?url'
 import barlow600 from '@fontsource/barlow-condensed/files/barlow-condensed-latin-600-normal.woff2?url'
 import barlow800 from '@fontsource/barlow-condensed/files/barlow-condensed-latin-800-normal.woff2?url'
 import notoWdth from '@fontsource-variable/noto-sans/files/noto-sans-latin-wdth-normal.woff2?url'
 
 // Draws a TacticFace into a canvas, for the texture of the 3D card. The canvas is FACE x SCALE:
-// 446 x 640 CSS px at 1.63 gives 728 x 1045 px.
+// 457 x 640 CSS px at 1.59 gives 728 x 1019 px.
 //
 // Method: the face is mounted off screen so that the text can be measured and fitted. Then its DOM is
 // serialized into an SVG <foreignObject> and drawn into the canvas as an image. An SVG that is loaded
 // as an image cannot fetch files, so the fonts, the art and the icons are inlined as data URLs.
 // The result is the same face that the page shows, with the same fonts and the same text fit.
-export const FACE_SCALE = 1.63
 export const CANVAS_WIDTH = 728
-export const CANVAS_HEIGHT = 1045
+export const CANVAS_HEIGHT = 1019
 
 const XHTML = 'http://www.w3.org/1999/xhtml'
 
-// Latin subsets only, the same as the face needs for English text. Order: font-family, weight, url.
+// Latin subsets only. The text of the cards (checked on 2026-10-13: ASCII, ñ é ó and ’ ‘ in the
+// card text and the names) is all in the latin subset. A new character outside it needs the latin-ext
+// files here. Order: font-family, weight, url.
 const FONT_FILES = [
   ['Barlow Condensed', '500', barlow500],
   ['Barlow Condensed', '600', barlow600],
@@ -70,14 +71,14 @@ function fontCss() {
 }
 
 // Mounts the face off screen, waits for the fit, returns the card element and a function that cleans up
-function mountFace(art, card) {
+function mountFace(key) {
   const host = document.createElement('div')
   host.setAttribute('aria-hidden', 'true')
   host.style.cssText = `position:fixed;left:-10000px;top:0;width:${FACE_WIDTH}px;height:${FACE_HEIGHT}px;pointer-events:none;`
   document.body.appendChild(host)
   const root = createRoot(host)
   const ready = new Promise((resolve) => {
-    root.render(createElement(TacticFace, { art, card, onReady: resolve }))
+    root.render(createElement(TacticFace, { tacticKey: key, onReady: resolve }))
   })
   const cleanup = () => {
     root.unmount()
@@ -87,8 +88,8 @@ function mountFace(art, card) {
 }
 
 // The SVG text of the face. The DOM is copied, its images get data: URLs.
-async function faceSvg(art, card) {
-  const { host, ready, cleanup } = mountFace(art, card)
+async function faceSvg(key) {
+  const { host, ready, cleanup } = mountFace(key)
   let faceNode
   try {
     await ready
@@ -125,8 +126,9 @@ const nextFrame = () => new Promise((resolve) => requestAnimationFrame(() => res
 
 const canvases = new Map()
 
-// The canvas of the face of the card with this key (a spike key, see tactics/spikeFaces.js). One canvas
-// per key, made once: the promise is cached.
+// The canvas of the face of the card with this key (isFaceKey in tactics/faceData.js). One canvas per key,
+// made once: the promise is cached. The cache is never emptied: a canvas is about 3 MB, and a game uses
+// a few dozen cards at most.
 export function tacticFaceCanvas(key) {
   let promise = canvases.get(key)
   if (!promise) {
@@ -139,9 +141,9 @@ export function tacticFaceCanvas(key) {
 }
 
 async function drawFace(key) {
-  const card = spikeFace(key)
-  if (!card) throw new Error(`No face data for ${key}`)
-  const svg = await faceSvg(spikeFaceArt(key), card)
+  await loadFaceText()
+  if (!faceCard(key)) throw new Error(`No face data for ${key}`)
+  const svg = await faceSvg(key)
   // A data: URL, not a blob: URL. Safari taints a canvas that gets a blob: SVG image.
   const img = await loadImage(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`)
   const canvas = document.createElement('canvas')

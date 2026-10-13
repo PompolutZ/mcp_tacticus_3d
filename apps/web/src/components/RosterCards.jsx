@@ -4,6 +4,8 @@ import { assetUrl } from '../assets/index.js'
 import { PLATE_COLORS, TAB_OF_KIND, parseRosterText, rosterCard } from '../rosters/cards.js'
 import { ROSTER_CARD_Y, rosterLayout } from '../rosters/layout.js'
 import { useColorTexture } from './useColorTexture.js'
+import { useTacticFaceMap } from './useTacticFaceTexture.js'
+import { tacticCardBack } from '../tactics/files.js'
 import FaceMaterial from './FaceMaterial.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
@@ -103,14 +105,34 @@ function Plate({ card, info }) {
   )
 }
 
+// A Team Tactic card with a drawn face (useTacticFaceTexture.js)
+function DrawnFace({ card, info }) {
+  const backMap = useColorTexture(assetUrl(tacticCardBack(info.faceKey)))
+  const map = useTacticFaceMap(info.faceKey, backMap)
+  return (
+    <mesh rotation={FLAT}>
+      <planeGeometry args={[card.width, card.height]} />
+      <FaceMaterial map={map} side={DoubleSide} />
+    </mesh>
+  )
+}
+
 // A card with an image
-function Face({ card, info }) {
+function ImageFace({ card, info }) {
   const map = useColorTexture(assetUrl(info.image))
   return (
     <mesh rotation={FLAT}>
       <planeGeometry args={[card.width, card.height]} />
       <FaceMaterial map={map} side={DoubleSide} />
     </mesh>
+  )
+}
+
+function Face({ card, info }) {
+  return info.faceKey ? (
+    <DrawnFace card={card} info={info} />
+  ) : (
+    <ImageFace card={card} info={info} />
   )
 }
 
@@ -180,8 +202,9 @@ export function RosterCard({ card, info, selected = false, onOpen, onToggle, onC
   useEffect(() => {
     if (!hovered || !info.image) return undefined
     const image = {
-      src: assetUrl(info.image),
+      src: assetUrl(info.faceKey ? tacticCardBack(info.faceKey) : info.image),
       alt: info.name,
+      tacticKey: info.faceKey ?? undefined,
       by: `roster:${card.tab}:${card.index}:${card.code}`,
     }
     onCardHover?.(image, true)

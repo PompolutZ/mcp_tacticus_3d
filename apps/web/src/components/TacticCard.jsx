@@ -19,8 +19,8 @@ import FaceMaterial from './FaceMaterial.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import useLiveFollow from './useLiveFollow.js'
 import { useColorTexture } from './useColorTexture.js'
-import { useTacticFaceTexture } from './useTacticFaceTexture.js'
-import { spikeFace } from '../tactics/spikeFaces.js'
+import { useTacticFaceMap } from './useTacticFaceTexture.js'
+import { isFaceKey } from '../tactics/faceData.js'
 import { useHoverCursor } from './useHoverCursor.js'
 
 // A thin box as large as the card finds the ground under it, the same as LooseToken.jsx
@@ -65,15 +65,16 @@ export default function TacticCard({
   remote = false,
   getLivePose = null,
 }) {
-  // Both sides load when the card mounts, so the first flip does not wait for an image
-  const [faceUrl, backUrl] = [
-    assetUrl(tacticCardFace(card.key)),
-    assetUrl(tacticCardBack(card.key)),
-  ]
-  const [scanMap, backMap] = useColorTexture([faceUrl, backUrl])
-  // Spike: some cards draw their face from Jarvis data. The scan shows until it is ready.
-  const generatedMap = useTacticFaceTexture(card.key)
-  const faceMap = generatedMap ?? scanMap
+  // A card with Jarvis data draws its face (tacticFaceTexture.js); until it is ready the face is the art at
+  // low opacity. Other cards (the gems) load the scan. The back loads when the card mounts, so the first
+  // flip does not wait for an image.
+  const drawn = isFaceKey(card.key)
+  const faceUrl = drawn ? null : assetUrl(tacticCardFace(card.key))
+  const backUrl = assetUrl(tacticCardBack(card.key))
+  const maps = useColorTexture(drawn ? [backUrl] : [faceUrl, backUrl])
+  const backMap = maps[maps.length - 1]
+  const drawnMap = useTacticFaceMap(card.key, backMap)
+  const faceMap = drawn ? drawnMap : maps[0]
   const { camera, gl, controls } = useThree()
   const { world, rapier } = useRapier()
   const shape = useMemo(
@@ -153,10 +154,10 @@ export default function TacticCard({
   // The image of the side that faces up
   function upImage() {
     return {
-      src: card.up === 'face' ? faceUrl : backUrl,
+      src: card.up === 'face' && !drawn ? faceUrl : backUrl,
       alt: getTactic(card.key)?.name ?? 'Team Tactic card',
-      // Spike: the popup draws the face component for these cards, see CardPopup.jsx
-      tacticKey: card.up === 'face' && spikeFace(card.key) ? card.key : undefined,
+      // The popup draws the face component for these cards, see CardPopup.jsx
+      tacticKey: card.up === 'face' && drawn ? card.key : undefined,
     }
   }
 
