@@ -152,7 +152,7 @@ function fromLocal(pose, l) {
   return { x: pose.x + l.x * c + l.z * s, z: pose.z - l.x * s + l.z * c }
 }
 
-// Range 1 (see README "Tools"): the tool lies across the line from the base, and its width measures
+// Range 1 (see docs/features/range-movement-tools.md, "Tools"): the tool lies across the line from the base, and its width measures
 // range 1. Returns the tool center for this yaw, so that the base (center c) touches the long side
 // `across` (±1: local ±Z) at the corner of the end `end` (±1: local ±X).
 function cornerSnapCenter(c, radius, yaw, tip, halfWidth, end, across) {
@@ -222,7 +222,7 @@ function snapPose(center, radius, halfLength, yaw) {
   return { x: center.x + along * Math.cos(dir), z: center.z - along * Math.sin(dir), yaw: dir }
 }
 
-// Angle tool (README "Toward / Away"): pose of the tool bent 90° so that both arms touch the base
+// Angle tool (docs/features/range-movement-tools.md, "Toward / Away"): pose of the tool bent 90° so that both arms touch the base
 // (center c). The angle opens along openYaw, from the hinge toward the base. The arm center lines
 // are d / √2 from the base center, and the arm is halfWidth wide, so d = √2 (radius + halfWidth).
 function anglePose(c, radius, halfWidth, openYaw) {
@@ -260,7 +260,7 @@ function snapPoseOne(center, radius, halfLength, halfWidth) {
   return { ...cornerSnapCenter(center, radius, yaw, halfLength, halfWidth, -1, 1), yaw }
 }
 
-// Throw / Push on a straight tool (README "Throw / Push"): the base center moves along the middle line,
+// Throw / Push on a straight tool (docs/features/range-movement-tools.md, "Throw / Push"): the base center moves along the middle line,
 // from touching the end of half `side` from outside to touching the other end from outside, the same
 // as Place. The line follows that half, so it stays straight when the other half is bent.
 // Returns { start, dir, distance }: start point (table XZ), unit XZ direction and full distance.
@@ -552,7 +552,7 @@ function ToolFootprint({ rigidRef, turn, halfLength, halfWidth, selected, target
 // team: 'blue' or 'red', the player tint of the tool
 // hoverHeight: how far above the table or terrain the tool hangs while dragged
 // number 1: range 1 has no tool of its own. As with "Snap 1" in the TTS mod, the Range 2 tool lies
-// across the line from the base, and its 1" width measures range 1. See README "Tools".
+// across the line from the base, and its 1" width measures range 1. See docs/features/range-movement-tools.md, "Tools".
 export function RangeRuler({ number = 2, team, ...props }) {
   const rangeOne = number === 1
   const mesh = rangeOne ? 2 : number
@@ -664,7 +664,7 @@ export function MovementRuler({ type = 'short', team, ...props }) {
 }
 
 // Angle tool, for Toward / Away: a copy of the long movement tool, always bent to a right angle.
-// See README "Toward / Away".
+// See docs/features/range-movement-tools.md, "Toward / Away".
 export function AngleRuler({ team, ...props }) {
   const parts = useMovementParts('long', team)
   return <Tool parts={parts} tip={MOVE_TIP.long} halfWidth={MOVE_HALF_WIDTH} angle {...props} />
@@ -786,11 +786,11 @@ function BendButton({ on, onClick }) {
   )
 }
 
-// Tool that measures with its footprint. See README "Tools".
+// Tool that measures with its footprint. See docs/features/range-movement-tools.md, "Tools".
 // parts: [{ obj, side }], the meshes of the tool. A part with a side turns with that half.
 // tip: X of each end (length of each half of the footprint).
 // bendable: a movement tool. Its halves turn around the hinge at the center.
-// rangeOne: the range 1 tool. It snaps with a corner, not an end. See README "Tools", "Range 1".
+// rangeOne: the range 1 tool. It snaps with a corner, not an end. See docs/features/range-movement-tools.md, "Range 1".
 // onRangeMark(mark): the piece that a turn of the snapped tool measures against, see RangeMark. Only
 // the range tools pass it. Without it, the tool marks no pieces.
 // onHover(over): the pointer moved onto (true) or off (false) the tool. onDrag(on): a drag of the
@@ -868,7 +868,7 @@ function Tool({
   const [bendOn, setBendOn] = useState(false)
   // Snapped: { target, side, across }, the model the tool is snapped to and the half whose end touches
   // its base. across (R1 tool only): the long side (±1: local ±Z) that the base touches.
-  // Free: null. See README "Tools".
+  // Free: null. See docs/features/range-movement-tools.md, "Tools".
   const [snap, setSnap] = useState(() => {
     const stored = restored && start.snap
     const target = stored && models.find((model) => sameModel(model, stored))
@@ -1383,7 +1383,7 @@ function Tool({
     setPlaceOne(true)
   }
 
-  // Throw / Push (README "Throw / Push") turns on and off. Turning it on slides the snapped character
+  // Throw / Push (docs/features/range-movement-tools.md, "Throw / Push") turns on and off. Turning it on slides the snapped character
   // along the middle line of the tool, from the snapped end toward the far end. It stops at the first
   // character base, terrain piece or mat edge on the way (see throwPath.js). A lifted character does
   // not stop it, so the player lifts a character that the move should pass. The rules use a straight

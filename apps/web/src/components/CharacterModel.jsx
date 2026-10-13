@@ -66,7 +66,7 @@ const SETTLE_MOVE = 0.05
 const SETTLE_TURN = (2 * Math.PI) / 180
 // The R key lifts a model straight up by LIFT_HEIGHT (inches), and a second press puts it back at the
 // same place. So a player can see and select a token under it, and a Throw or Push can move a model
-// under it (README "Throw / Push"). The tallest model measured, Sentinel Prime MK4 (5.28", on
+// under it (docs/features/range-movement-tools.md, "Throw / Push"). The tallest model measured, Sentinel Prime MK4 (5.28", on
 // 2026-10-06), fits under a lifted model. Onslaught was not in the TTS cache, so it is not measured.
 // From the start view (45°), a token under a large base already shows below a model lifted 2".
 const LIFT_HEIGHT = 6
@@ -498,7 +498,7 @@ function CharacterFigure({
     })
   }
 
-  // Throw / Push (README "Throw / Push"): moves the model along path in duration seconds. path(f) is the
+  // Throw / Push (docs/features/range-movement-tools.md, "Throw / Push"): moves the model along path in duration seconds. path(f) is the
   // body position at the share f (0..1) of the slide, with y null when nothing is under it. The body is
   // kinematic during the slide, so physics does not move it. A slide ends a lift, and a drag ends a slide.
   function startSlide(path, duration) {

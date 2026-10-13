@@ -1,4 +1,4 @@
-// Place 1 lock of the R1 tool (README "Range 1"): while it is on, the center of the dragged character
+// Place 1 lock of the R1 tool (docs/features/range-movement-tools.md, "Range 1"): while it is on, the center of the dragged character
 // stays on the line through the snapped piece's center c, from c out to full range 1.
 
 // Below this center distance the direction from c is not known, so the last one is kept

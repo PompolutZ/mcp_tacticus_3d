@@ -1,4 +1,4 @@
-// Throw and Push (README "Throw / Push"): how far a base moves along a straight movement tool.
+// Throw and Push (docs/features/range-movement-tools.md, "Throw / Push"): how far a base moves along a straight movement tool.
 // The rules (p13–14) move a Thrown and a Pushed character the same way. The base stays centered on
 // the tool, and it stops when it touches another character's base or a terrain piece. Only a Throw
 // causes collision damage, and the players resolve that themselves.
