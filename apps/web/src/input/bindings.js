@@ -314,3 +314,109 @@ export function match(input, now, bindings = defaultBindings()) {
 export function resolve(input, now, bindings) {
   return match(input, now, bindings)?.id ?? null
 }
+
+// Whether an action can take an input. The wheel only zooms or turns a dragged piece (WheelCamera.jsx),
+// and zoom has no key handler, so zoom takes the wheel only and only the turn takes both.
+export function acceptsInput(id, code) {
+  const action = BY_ID.get(id)
+  if (!action) return false
+  const wheel = WHEEL_CODES.includes(code)
+  if (action.action === 'zoom') return wheel
+  if (wheel) return action.action === 'rotate'
+  return true
+}
+
+// Combos that the browser or the system keeps: the page never gets them. Shift and Alt do not matter.
+export const RESERVED = [
+  ...['KeyW', 'KeyQ', 'KeyT', 'KeyN', 'Tab', 'KeyH', 'KeyM'].map((code) => ({ code, meta: true })),
+  ...['KeyW', 'KeyT', 'KeyN', 'Tab'].map((code) => ({ code, ctrl: true })),
+]
+
+// The reason why an input cannot be bound, or null. Ctrl + wheel is the pinch zoom (decision 9).
+export function reservedReason(input, mac = false) {
+  const wheel = WHEEL_CODES.includes(input.code)
+  if (wheel && input.ctrl) return 'Ctrl + wheel is the pinch zoom of the browser.'
+  const hit = RESERVED.some(
+    (r) => r.code === input.code && !!r.meta === input.meta && !!r.ctrl === input.ctrl,
+  )
+  return hit ? `${inputName(input, mac)} is kept by the browser or the system.` : null
+}
+
+const NAMED_CODES = {
+  ArrowUp: '↑',
+  ArrowDown: '↓',
+  ArrowLeft: '←',
+  ArrowRight: '→',
+  Space: 'Space',
+  Escape: 'Esc',
+  Backspace: 'Backspace',
+  Delete: 'Delete',
+  Enter: 'Enter',
+  Tab: 'Tab',
+  Insert: 'Insert',
+  Home: 'Home',
+  End: 'End',
+  PageUp: 'Page up',
+  PageDown: 'Page down',
+  CapsLock: 'Caps lock',
+  Minus: '-',
+  Equal: '=',
+  BracketLeft: '[',
+  BracketRight: ']',
+  Backslash: '\\',
+  IntlBackslash: '\\',
+  Semicolon: ';',
+  Quote: "'",
+  Backquote: '`',
+  Comma: ',',
+  Period: '.',
+  Slash: '/',
+  NumpadAdd: 'Num +',
+  NumpadSubtract: 'Num -',
+  NumpadMultiply: 'Num *',
+  NumpadDivide: 'Num /',
+  NumpadDecimal: 'Num .',
+  NumpadEnter: 'Num Enter',
+  NumpadEqual: 'Num =',
+  WheelUp: 'Wheel up',
+  WheelDown: 'Wheel down',
+}
+
+const MOD_NAMES = {
+  mac: { shift: '⇧', ctrl: '⌃', alt: '⌥', meta: '⌘' },
+  other: { shift: 'Shift', ctrl: 'Ctrl', alt: 'Alt', meta: 'Win' },
+}
+
+// Whether this is a Mac (the modifier symbols). Read once by the caller.
+export function detectMac() {
+  return typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform ?? '')
+}
+
+// The name of a key code, for a chip: KeyQ → Q, Digit1 → 1, Numpad1 → Num 1, AltLeft → Left Alt
+export function codeName(code, mac = false) {
+  if (NAMED_CODES[code]) return NAMED_CODES[code]
+  let m = /^Key([A-Z])$/.exec(code) ?? /^Digit(\d)$/.exec(code)
+  if (m) return m[1]
+  m = /^Numpad(\d)$/.exec(code)
+  if (m) return `Num ${m[1]}`
+  m = /^(Shift|Control|Alt|Meta)(Left|Right)$/.exec(code)
+  if (m) {
+    const mod = { Shift: 'shift', Control: 'ctrl', Alt: 'alt', Meta: 'meta' }[m[1]]
+    return `${m[2] === 'Left' ? 'Left' : 'Right'} ${MOD_NAMES[mac ? 'mac' : 'other'][mod]}`
+  }
+  return code
+}
+
+// The name of an input with its modifiers: ⌘W on a Mac, Ctrl+W elsewhere
+export function inputName(input, mac = false) {
+  const names = MOD_NAMES[mac ? 'mac' : 'other']
+  const order = ['ctrl', 'alt', 'shift', 'meta']
+  const mods = order.filter((m) => input[m]).map((m) => names[m])
+  const key = codeName(input.code, mac)
+  return mac ? mods.join('') + key : [...mods, key].join('+')
+}
+
+// A modifier key on its own is an input too (AltLeft). True for the codes of the modifier keys.
+export function isModifierCode(code) {
+  return code in MODIFIER_CODES
+}

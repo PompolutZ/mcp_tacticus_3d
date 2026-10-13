@@ -86,7 +86,7 @@ One row for each item, with the choice **Table** or **HUD**. The default is **Ta
 - A board strip with no rows is not drawn. A row with no buttons is not drawn.
 - When the rack is in the HUD, a tool does not go back to the rack. The rack is not on the table.
 - The **Mat** group of the toolbar stays while it has the map select (the Sandbox).
-- The settings are in localStorage, key `mcp-assist-3d/settings`: `{ tools: { rack, power, cleanup, deployLock, matTurn }, sound: { volume } }`. Each tool is `'table'` or `'hud'`, the volume a whole number from 0 to 100. They belong to the browser, not to the user or the room. A missing or unknown value is the default. When localStorage cannot be read, the defaults apply.
+- The settings are in localStorage, key `mcp-assist-3d/settings`: `{ tools: { rack, power, cleanup, deployLock, matTurn }, sound: { volume }, bindings }`. Each tool is `'table'` or `'hud'`, the volume a whole number from 0 to 100. `bindings` is `{ [actionId]: [{ code, shift, ctrl, alt, meta, when }] }` with only the actions that differ from the defaults (`{}` is all defaults; an empty list is an action with no key). An unknown action, code or condition is dropped. They belong to the browser, not to the user or the room. A missing or unknown value is the default. When localStorage cannot be read, the defaults apply.
 
 ### Sound
 
@@ -94,7 +94,7 @@ A **Sound** section has a volume slider, 0 to 100, default 10. 0 is off. See `so
 
 ### Keys and mouse
 
-Two tables: the keys of the app and what each key does, and the mouse controls. They come from `src/settings/controls.js`, a plain list (`KEY_ROWS`, `MOUSE_ROWS`). The source is `docs/features/key-shortcuts.md`. A change of a key changes that list in the same step. Changing the keys in the menu comes later.
+**Keys:** one row for each action, in the groups Camera, Pieces, Tools, Dice and Other. A row has the bindings as chips (× removes one), **+** to add one, and **Reset** when it differs from the defaults. **Reset all keys** restores every default. The rules are in `docs/features/key-shortcuts.md`, "Changing the keys". **Mouse:** a read-only table from `src/settings/controls.js` (`MOUSE_ROWS`). The source is `docs/features/key-shortcuts.md`.
 
 ## Not on the table
 

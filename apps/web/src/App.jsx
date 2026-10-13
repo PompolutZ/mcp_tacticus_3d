@@ -249,7 +249,8 @@ export default function App({
   // Each own dice tray puts a function here by side: clears the tray, then adds that many dice. See
   // DiceTray.jsx.
   const addDiceRef = useRef({})
-  const { settings, bindings, handleSettingChange, handleVolumeChange } = useSettings()
+  const { settings, bindings, handleBindingsChange, handleSettingChange, handleVolumeChange } =
+    useSettings()
   const [settingsOpen, setSettingsOpen] = useState(false)
   // A token put on a character sounds in both browsers (log/useLogSounds.js)
   useLogSounds(log)
@@ -869,8 +870,10 @@ export default function App({
       {settingsOpen && (
         <SettingsPopup
           settings={settings}
+          bindings={bindings}
           onChange={handleSettingChange}
           onVolumeChange={handleVolumeChange}
+          onBindingsChange={handleBindingsChange}
           onClose={() => setSettingsOpen(false)}
         />
       )}

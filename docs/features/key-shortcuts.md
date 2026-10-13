@@ -116,9 +116,27 @@ The mod handles a key only for the player whose tray it is (Blue or Red).
 
 The app also snaps a tool, key 6 included, when the pointer is over a crisis token. The mod only checks characters. The piece does not have to be selected first: the key selects it. Over a model of a side this browser does not play (the other side in a multiplayer room), the tool snaps to it and the selection does not change. So Place cannot move that model.
 
+## Changing the keys
+
+The keys of the tables above are the defaults. The user can change them in **Settings**. The actions are fixed in code (`ACTIONS` in `src/input/bindings.js`). The user changes only their bindings.
+
+- **A binding** is an input, modifiers and a condition. The input is a key (`KeyQ`, `Digit1`, `Numpad1`, a modifier key such as `AltLeft`) or a mouse wheel step (`WheelUp`, `WheelDown`). The modifiers are any of Shift, Ctrl, Alt and Cmd.
+- **Exact modifiers.** `Shift+Q` does not trigger the `Q` binding, and `Q` does not trigger `Shift+Q`.
+- **Conditions.** `anywhere`, `overPiece`, `dragging`, `overDiceTray`, `popup`. Each action allows only the ones that make sense. Add dice allows only `overDiceTray`. Next card allows only `popup`.
+- **Order.** One input can have several bindings. The one whose condition is true now and comes first in this order wins: `popup`, `dragging`, `overDiceTray`, `overPiece`, `anywhere`. So `1` over the own dice tray adds a die, else it spawns Range 1.
+- **One action, several inputs.** The action list shows each as a chip. The number keys are two bindings, the number row and the number pad.
+- **Conflict.** Two actions cannot have the same input, modifiers and condition. When the user binds a taken one, the old binding is removed and the popup says "Removed from <action>".
+- **Wheel.** Only zoom and "Turn piece left / right" take a wheel step, and zoom takes nothing else. Shift + wheel can be bound. A trackpad swipe, a pinch and Ctrl + wheel cannot.
+- **Held actions** (pan, turn the camera, turn a piece, card peek) end at the keyup of the main key. A modifier released earlier does not end them.
+- **Reserved combos.** The browser or the system keeps Cmd+W, Cmd+Q, Cmd+T, Cmd+N, Cmd+Tab, Cmd+H, Cmd+M, Ctrl+W, Ctrl+T, Ctrl+N and Ctrl+Tab (`RESERVED` in `bindings.js`; Shift and Alt do not matter). The page never gets them, so the capture refuses them and says why. Ctrl + wheel is refused too. Any other Cmd or Ctrl combo that is bound calls `preventDefault`.
+- **Capture.** **+** on a row starts it. The next key press with its modifiers, or the next wheel step over the capture box, is the input. A modifier key alone counts when it is released with no other key pressed meanwhile. Any key can be captured, Escape too. While it runs, the table keys and the Escape of the popup do nothing. **Cancel** ends it. Then a select picks the condition (the first allowed one, `anywhere` when allowed). With one allowed condition there is no select.
+- **Names.** `KeyQ` shows Q, `Digit1` shows 1, `Numpad1` shows Num 1, the arrows show ← → ↑ ↓, `Escape` shows Esc, `WheelUp` shows Wheel up. A modifier shows `⇧ ⌃ ⌥ ⌘` on a Mac, else `Shift Ctrl Alt Win`. A chip shows its condition when the action allows more than one.
+- **Reset.** A row with changed bindings has **Reset**. **Reset all keys** restores every default. A user who removed Escape can still close the popup with its close button.
+- **Storage.** Only the actions that differ from the defaults are stored (`docs/features/table-tools.md`, "Settings menu"). An action that is not stored uses its defaults, so a new action in a later version gets its default keys.
+
 ## Settings popup
 
-**Settings** in the toolbar opens a popup that lists the keys and the mouse controls of the app, from `src/settings/controls.js` (`docs/features/table-tools.md`, "Settings menu"). A change of a key or a mouse control in this document changes that list in the same step. While the popup is open, the keys of the table do nothing, and Escape closes it.
+**Settings** in the toolbar opens a popup. Its **Keys** section lists every action with its bindings and edits them (see [Changing the keys](#changing-the-keys)). Its **Mouse** section lists the mouse controls, from `src/settings/controls.js` (`MOUSE_ROWS`, not editable). A change of a mouse control in this document changes that list in the same step. While the popup is open, the keys of the table do nothing, and Escape closes it, except during a key capture.
 
 ## Keys only in the app
 

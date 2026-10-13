@@ -2546,3 +2546,94 @@ body {
   font-weight: 600;
   color: #fff;
 }
+
+/* The key table of the Settings popup (KeyBindings.jsx) */
+.key-bindings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.key-bindings-message {
+  min-height: 1.4em;
+  margin: 4px 0;
+  font-size: 13px;
+  color: #f0b955;
+}
+
+.key-group h4 {
+  margin: 12px 0 2px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.key-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  font-size: 13px;
+  border-bottom: 1px solid var(--line);
+}
+
+.key-label {
+  flex: none;
+  width: 34%;
+  padding-top: 3px;
+}
+
+.key-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.key-chip,
+.key-capture {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px 2px 8px;
+  color: #fff;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+
+.key-capture {
+  padding-right: 6px;
+  color: var(--text);
+  border-style: dashed;
+}
+
+.key-chip button,
+.key-add {
+  font: inherit;
+  line-height: 1;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  border-radius: 4px;
+  padding: 2px 5px;
+  cursor: pointer;
+}
+
+.key-chip button:hover,
+.key-add:hover {
+  color: #fff;
+  background: var(--line);
+}
+
+.key-capture select {
+  font: inherit;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}

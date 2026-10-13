@@ -1,7 +1,8 @@
 import { useRef } from 'react'
 import { Overlay } from './Overlay.jsx'
 import { PLACES } from '../settings/settings.js'
-import { KEY_ROWS, MOUSE_ROWS } from '../settings/controls.js'
+import { MOUSE_ROWS } from '../settings/controls.js'
+import { KeyBindings } from './KeyBindings.jsx'
 
 // What the first section chooses, in the order of the popup (docs/features/table-tools.md, "Settings menu")
 const ITEMS = [
@@ -31,10 +32,17 @@ function ControlsTable({ title, rows }) {
   )
 }
 
-// The Settings popup. settings: { tools: { rack, power, ... }, sound: { volume } } (settings/settings.js).
-// onChange(item, place) and onVolumeChange(volume) apply a choice at once; App stores it. App closes the popup on Escape, as App handles all keys. A click on
+// The Settings popup. settings: { tools: { rack, power, ... }, sound: { volume } } (settings/settings.js). bindings: the key
+// bindings in use. onChange(item, place), onVolumeChange(volume) and onBindingsChange(changed) apply a choice at once; App stores it. App closes the popup on Escape, as App handles all keys. A click on
 // the backdrop or × calls onClose().
-export function SettingsPopup({ settings, onChange, onVolumeChange, onClose }) {
+export function SettingsPopup({
+  settings,
+  bindings,
+  onChange,
+  onVolumeChange,
+  onBindingsChange,
+  onClose,
+}) {
   // A drag that ends on the backdrop (a text selection, a scroll bar) must not close the popup
   const pressedBackdrop = useRef(false)
   return (
@@ -91,7 +99,7 @@ export function SettingsPopup({ settings, onChange, onVolumeChange, onClose }) {
             </span>
           </label>
         </section>
-        <ControlsTable title="Keys" rows={KEY_ROWS} />
+        <KeyBindings bindings={bindings} onChange={onBindingsChange} />
         <ControlsTable title="Mouse" rows={MOUSE_ROWS} />
       </div>
     </Overlay>

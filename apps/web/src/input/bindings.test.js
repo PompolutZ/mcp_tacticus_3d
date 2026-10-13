@@ -2,6 +2,10 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   ACTIONS,
+  acceptsInput,
+  codeName,
+  inputName,
+  reservedReason,
   CONDITIONS,
   changedBindings,
   defaultBindings,
@@ -188,4 +192,40 @@ test('wheel: dragging turns the piece, anywhere zooms, exact modifiers', () => {
   bindings.flip = [{ ...input('WheelDown', { shift: true }), when: 'anywhere' }]
   assert.equal(at('WheelDown', {}, { shift: true }, bindings), 'flip')
   assert.equal(at('WheelDown', {}, {}, bindings), 'zoomOut')
+})
+
+test('names of inputs', () => {
+  assert.equal(codeName('KeyQ'), 'Q')
+  assert.equal(codeName('Digit7'), '7')
+  assert.equal(codeName('Numpad7'), 'Num 7')
+  assert.equal(codeName('ArrowLeft'), '←')
+  assert.equal(codeName('Escape'), 'Esc')
+  assert.equal(codeName('WheelUp'), 'Wheel up')
+  assert.equal(codeName('AltLeft'), 'Left Alt')
+  assert.equal(codeName('AltRight', true), 'Right ⌥')
+  assert.equal(inputName(input('KeyW', { meta: true, shift: true }), true), '⇧⌘W')
+  assert.equal(inputName(input('KeyW', { ctrl: true, shift: true })), 'Ctrl+Shift+W')
+  assert.equal(inputName(input('KeyW', { meta: true })), 'Win+W')
+})
+
+test('reserved combos', () => {
+  for (const code of ['KeyW', 'KeyQ', 'KeyT', 'KeyN', 'Tab', 'KeyH', 'KeyM'])
+    assert.ok(reservedReason(input(code, { meta: true }), true), `meta ${code}`)
+  for (const code of ['KeyW', 'KeyT', 'KeyN', 'Tab'])
+    assert.ok(reservedReason(input(code, { ctrl: true })), `ctrl ${code}`)
+  assert.ok(reservedReason(input('KeyW', { meta: true, shift: true })))
+  assert.match(reservedReason(input('KeyW', { meta: true }), true), /⌘W/)
+  assert.ok(reservedReason(input('WheelUp', { ctrl: true })))
+  assert.equal(reservedReason(input('KeyW')), null)
+  assert.equal(reservedReason(input('KeyQ', { ctrl: true })), null)
+  assert.equal(reservedReason(input('WheelUp', { shift: true })), null)
+})
+
+test('which actions take the wheel', () => {
+  assert.ok(acceptsInput('zoomIn', 'WheelUp'))
+  assert.ok(!acceptsInput('zoomIn', 'KeyZ'))
+  assert.ok(acceptsInput('rotateLeft', 'WheelUp'))
+  assert.ok(acceptsInput('rotateLeft', 'KeyQ'))
+  assert.ok(!acceptsInput('flip', 'WheelUp'))
+  assert.ok(acceptsInput('flip', 'KeyG'))
 })
