@@ -11,10 +11,13 @@ import { useHoverCursor } from './useHoverCursor.js'
 // T/A chips. See docs/features/table-tools.md, "Tool rack". The tools have no physics body. A click is the
 // same as the toolbar button of that tool. A drag takes the tool to the table (tabletools/useTableTools.js, startToolDrag).
 
-// The plate is a little above the table, like the tray plates (CharacterTray.jsx); the tools lie on it
-const PLATE_Y = 0.01
-const TOOL_Y = 0.02
-const CHIP_Y = 0.05
+// The plate is a little above the table. It is above the tray plates and their cards (trays.js, TRAY_Y 0.02),
+// because a row of 8 or more trays reaches under the rack and the tools must show. The tools lie on it.
+const PLATE_Y = 0.03
+const TOOL_Y = 0.04
+const CHIP_Y = 0.07
+// The tool meshes lie along x; on the rack they lie along z
+const TOOL_TURN = Math.PI / 2
 const INCHES_PER_PX = 0.04
 // A press that moved the pointer this many px or more is not a click: it is a drag (pointerDrag.js,
 // DRAG_THRESHOLD) or a drag of the camera
@@ -58,7 +61,7 @@ function useFaintParts(parts) {
   return faint
 }
 
-// One tool on the rack, lying along x at its slot. out: the tool is on the table, so a faint copy shows.
+// One tool on the rack, lying along z at its slot. out: the tool is on the table, so a faint copy shows.
 // onClick undefined: the rack of the other player, with no pointer handlers. onDragStart(e): a press, which
 // may become a drag.
 function RackTool({ parts, slot, side, out, label, onClick, onDragStart }) {
@@ -88,7 +91,7 @@ function RackTool({ parts, slot, side, out, label, onClick, onDragStart }) {
 
   return (
     <group position={[slot.x, TOOL_Y, slot.z]}>
-      <group ref={toolRef} rotation-y={rackYaw(side)} {...events}>
+      <group ref={toolRef} rotation-y={rackYaw(side) + TOOL_TURN} {...events}>
         {(out ? faint : parts).map((part) => (
           <primitive key={part.obj.uuid} object={part.obj} />
         ))}
@@ -218,6 +221,8 @@ function Rack({ side, tools, handlers }) {
 
 // The racks. A multiplayer room shows both, and only the own one reacts to the pointer. Else only the rack of
 // the own side shows, because this browser has only its own tools. The handlers are the toolbar handlers.
+// hiddenSides: the sides whose rack does not show, because the roster rows lie there (setup.js, rosterRowsShown).
+// A hidden rack is not mounted, so it takes no pointer.
 // onDragStart(e, kind, which, onClick): a press on an own tool or chip (tabletools/useTableTools.js, startToolDrag).
 export default function ToolRack({
   ownSide,
@@ -227,9 +232,11 @@ export default function ToolRack({
   onMoveClick,
   onAngleClick,
   onDragStart,
+  hiddenSides = [],
 }) {
   const handlers = { onRangeClick, onMoveClick, onAngleClick, onDragStart }
-  return (multiplayer ? TEAMS : [ownSide]).map((side) => (
+  const sides = (multiplayer ? TEAMS : [ownSide]).filter((side) => !hiddenSides.includes(side))
+  return sides.map((side) => (
     <Rack key={side} side={side} tools={tools} handlers={side === ownSide ? handlers : undefined} />
   ))
 }

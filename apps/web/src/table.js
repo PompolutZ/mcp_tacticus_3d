@@ -8,8 +8,8 @@ export const MAT_SIZE = 36
 // each player gets a tactic tray and a row of character trays between the mat edge and the table edge
 // (see docs/features/character-trays.md, "Place on the table", and docs/features/team-tactic-cards.md). 68" fit
 // a tray with two cards and two rows of Give sources (docs/features/character-trays.md, "Second forms").
-// The last 8" are the rack band: 4" at each end, past the deepest tray parts, hold the tool rack and the
-// Power Phase button of a player (docs/features/table-tools.md, "Place on the table").
+// The last 4" at each end, past the deepest tray parts (z 33.75), hold nothing now: the tool rack lies in
+// front of the dice tray (docs/features/table-tools.md, "Place on the table").
 export const TABLE_WIDTH = 72
 export const TABLE_DEPTH = 76
 // The table collider is much thicker than the visible table, so fast bodies cannot pass through it. Its top is at y = 0.

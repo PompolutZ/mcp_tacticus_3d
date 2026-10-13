@@ -64,8 +64,8 @@ export function panToPoint(
 // Start view, the seat of the host player. The host sits at +z (see
 // characters/trays.js). The camera stands behind the host table edge and looks down at 45° at a
 // point 16.8" from the mat center toward host, 46" away. Then a 16:10 view shows the whole mat, the
-// tactic trays and the character trays of both players, and the rack band of the own side (z up to
-// 36.8", see tabletools/layout.js). The bottom edge of the view meets the table at z = 37.5". The top
+// tactic trays and the character trays of both players, and the own tool rack in front of the dice tray (z up
+// to 27.9", see tabletools/layout.js). The bottom edge of the view meets the table at z = 37.5". The top
 // edge is past the guest trays (z = -40, the table ends at -38). Space returns to this view (see
 // resetView).
 const CAMERA_TARGET = [0, 0, 16.8]

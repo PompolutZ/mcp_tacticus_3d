@@ -18,9 +18,8 @@ import {
   TRAY_BG_WIDTH,
   trayGiveTokenPosition,
   trayPlate,
-  trayPosition,
-  traySpareModelPosition,
 } from '../characters/trays.js'
+import { KEYS_LIP, TRAYS } from '../dice/tray.js'
 import { TOKEN_SIZE } from '../tokens/files.js'
 import {
   CARD_HEIGHT,
@@ -63,15 +62,16 @@ function pieces(side) {
     'board strip': rect(strip.x, strip.z, strip.width, strip.length),
   }
   for (const slot of rackSlots(side))
-    out[`slot ${slot.key}`] = rect(slot.x, slot.z, slot.length, slot.width)
+    out[`slot ${slot.key}`] = rect(slot.x, slot.z, slot.sizeX, slot.sizeZ)
   return out
 }
 
 // What lies elsewhere on the table, for both sides: name -> rectangle
 function others() {
   const out = {
-    'blue dice tray': { x0: 20.25, x1: 33.75, z0: 1.7, z1: 18.5 },
-    'red dice tray': { x0: 20.25, x1: 33.75, z0: -18.5, z1: -1.7 },
+    // Up to the outer edge of the keys lip (z 17.02)
+    'blue dice tray': { x0: 20.25, x1: 33.75, z0: 1.7, z1: 17.02 },
+    'red dice tray': { x0: 20.25, x1: 33.75, z0: -17.02, z1: -1.7 },
     'scoring board': rect(BOARD_X, 0, BOARD_HALF_WIDTH * 2, BOARD_HALF_LENGTH * 2),
     // The drawn crisis cards and the deck rows of the setup: from the card place on to the far end
     'setup blue': { x0: -35, x1: -20.7, z0: 12.55, z1: 27.5 },
@@ -89,12 +89,7 @@ function others() {
   return out
 }
 
-// The z of the deepest tray part of host: the plate of a tray with two cards plus the Give sources
-// in two rows
-const trayPos = trayPosition('host', 0, 1)
 const plate2 = trayPlate(2)
-const PLATE_END = trayPos[2] + plate2.z + plate2.depth / 2
-const GIVE_END = trayPos[2] + trayGiveTokenPosition(6, 2)[1] + TOKEN_SIZE / 2
 
 test('every piece lies inside the table', () => {
   for (const side of TEAMS) {
@@ -102,24 +97,64 @@ test('every piece lies inside the table', () => {
   }
 })
 
-test('the rack starts past the deepest tray parts', () => {
-  assert.ok(PLATE_END < GIVE_END)
-  for (const [name, r] of Object.entries(pieces('host'))) {
-    if (name === 'board strip') continue
-    assert.ok(r.z0 > GIVE_END, `${name}: ${r.z0} <= ${GIVE_END}`)
+// The keys lip low edge of the host dice tray in world z
+const KEYS_LIP_Z = TRAYS.host.position.z - KEYS_LIP.low.z
+
+test('the rack lies in front of the dice tray keys lip, centered on the tray', () => {
+  for (const side of TEAMS) {
+    const k = side === 'host' ? 1 : -1
+    const plate = rackPlate(side)
+    const tray = TRAYS[side].position
+    assert.equal(plate.x, tray.x)
+    const near = k * plate.z - plate.depth / 2
+    assert.ok(Math.abs(near - (KEYS_LIP_Z + 0.3)) < 1e-9, `${side} ${near}`)
+    assert.ok(plate.width <= KEYS_LIP.width)
   }
-  // A spare model after one row of Give sources (Hulkbuster, 1" radius) also ends before the rack
-  const spare = traySpareModelPosition('host', trayPos, 1, 6, 1)
-  assert.ok(spare[2] + 1 < rackPlate('host').z - rackPlate('host').depth / 2)
+  assert.ok(Math.abs(KEYS_LIP_Z - 17.02) < 1e-9)
 })
 
-test('the row of the character trays can be 12 trays wide without meeting the rack', () => {
-  const characters = Array.from({ length: 12 }, (_, i) => ({ id: i, team: 'host' }))
-  for (const pos of layoutTrays(characters).values()) {
-    assert.ok(
-      pos[2] + plate2.z + plate2.depth / 2 < rackPlate('host').z - rackPlate('host').depth / 2,
+test('a row of 7 character trays does not touch the rack, with the Give sources', () => {
+  for (const side of TEAMS) {
+    const plate = rect(
+      rackPlate(side).x,
+      rackPlate(side).z,
+      rackPlate(side).width,
+      rackPlate(side).depth,
     )
+    const characters = Array.from({ length: 7 }, (_, i) => ({ id: i, team: side }))
+    for (const pos of layoutTrays(characters).values()) {
+      const tray = rect(
+        pos[0],
+        pos[2] + plate2.z * (side === 'host' ? 1 : -1),
+        TRAY_BG_WIDTH,
+        plate2.depth,
+      )
+      assert.ok(!overlap(plate, tray), `${side} tray ${pos[0]}`)
+      // Give sources lie in two rows past the plate
+      const give = rect(
+        pos[0],
+        pos[2] + (side === 'host' ? 1 : -1) * (trayGiveTokenPosition(6, 2)[1] - 1),
+        TRAY_BG_WIDTH,
+        TOKEN_SIZE * 2,
+      )
+      assert.ok(!overlap(plate, give), `${side} give ${pos[0]}`)
+    }
   }
+})
+
+test('a row of 8 trays reaches under the rack plate (the rack draws above it)', () => {
+  // The plate is the only part of the rack that meets trays; 8 trays do overlap it, as the request accepts
+  const characters = Array.from({ length: 8 }, (_, i) => ({ id: i, team: 'host' }))
+  const plate = rect(
+    rackPlate('host').x,
+    rackPlate('host').z,
+    rackPlate('host').width,
+    rackPlate('host').depth,
+  )
+  const reaches = [...layoutTrays(characters).values()].some((pos) =>
+    overlap(plate, rect(pos[0], pos[2] + plate2.z, TRAY_BG_WIDTH, plate2.depth)),
+  )
+  assert.ok(reaches)
 })
 
 test('no piece overlaps another part of the table', () => {
@@ -138,13 +173,13 @@ test('the slots of a rack lie on the plate and do not overlap each other ', () =
     const plate = pieces(side)['rack plate']
     const slots = rackSlots(side)
     for (const slot of slots) {
-      const r = rect(slot.x, slot.z, slot.length, slot.width)
+      const r = rect(slot.x, slot.z, slot.sizeX, slot.sizeZ)
       assert.ok(
         r.x0 >= plate.x0 && r.x1 <= plate.x1 && r.z0 >= plate.z0 && r.z1 <= plate.z1,
         slot.key,
       )
     }
-    const all = slots.map((s) => [s.key, rect(s.x, s.z, s.length, s.width)])
+    const all = slots.map((s) => [s.key, rect(s.x, s.z, s.sizeX, s.sizeZ)])
     for (let i = 0; i < all.length; i++) {
       for (let j = i + 1; j < all.length; j++) {
         assert.ok(!overlap(all[i][1], all[j][1]), `${side} ${all[i][0]} overlaps ${all[j][0]}`)
@@ -153,26 +188,56 @@ test('the slots of a rack lie on the plate and do not overlap each other ', () =
   }
 })
 
-test('blue row 1 reads R1, R2..R5 from the owner left (-x), row 2 S, M, L, T/A', () => {
+test('blue columns read (R1, L), (R2, M), (R3, S), (R4, T/A), (R5) from the owner left (-x), mat side first', () => {
   const slots = rackSlots('host')
-  const row1 = slots.filter((s) => s.z < 35.5).sort((a, b) => a.x - b.x)
+  const columns = []
+  for (const slot of [...slots].sort((a, b) => a.x - b.x || a.z - b.z)) {
+    const last = columns.at(-1)
+    if (last && Math.abs(last[0].x - slot.x) < 1e-9) last.push(slot)
+    else columns.push([slot])
+  }
   assert.deepEqual(
-    row1.map((s) => s.key),
-    ['r1', 'r2', 'r3', 'r4', 'r5'],
-  )
-  const row2 = slots.filter((s) => s.z > 35.5).sort((a, b) => a.x - b.x)
-  assert.deepEqual(
-    row2.map((s) => s.key),
-    ['s', 'm', 'l', 'ta'],
+    columns.map((column) => column.map((s) => s.key)),
+    [['r1', 'l'], ['r2', 'm'], ['r3', 's'], ['r4', 'ta'], ['r5']],
   )
 })
 
-test('red is the mirror of blue, turned 180 deg', () => {
+test('the tools lie along z, the chips are 2" x 1" with the long side along x', () => {
+  for (const slot of rackSlots('host')) {
+    if (slot.kind === 'chip') {
+      assert.equal(slot.sizeX, 2)
+      assert.equal(slot.sizeZ, 1)
+    } else {
+      assert.equal(slot.sizeZ, slot.length)
+      assert.equal(slot.sizeX, slot.width)
+    }
+  }
+})
+
+test('the gap in a column is 0.4" and the margin 0.3"', () => {
+  const plate = rect(
+    rackPlate('host').x,
+    rackPlate('host').z,
+    rackPlate('host').width,
+    rackPlate('host').depth,
+  )
+  const slots = rackSlots('host')
+  const r1 = slots.find((s) => s.key === 'r1')
+  const l = slots.find((s) => s.key === 'l')
+  assert.ok(Math.abs(r1.z - r1.sizeZ / 2 - (plate.z0 + 0.3)) < 1e-9)
+  assert.ok(Math.abs(l.z - l.sizeZ / 2 - (r1.z + r1.sizeZ / 2 + 0.4)) < 1e-9)
+  const r5 = slots.find((s) => s.key === 'r5')
+  assert.ok(Math.abs(r5.z + r5.sizeZ / 2 + 0.3 - plate.z1) < 1e-9)
+})
+
+test('red is the blue rack mirrored in z (x stays on the dice tray), turned 180 deg', () => {
   const blue = rackSlots('host')
   const red = rackSlots('guest')
+  const centerX = rackPlate('host').x
+  assert.equal(rackPlate('guest').x, centerX)
   blue.forEach((slot, i) => {
     assert.equal(red[i].key, slot.key)
-    assert.ok(Math.abs(red[i].x + slot.x) < 1e-9)
+    assert.ok(Math.abs(red[i].x - centerX + (slot.x - centerX)) < 1e-9)
     assert.ok(Math.abs(red[i].z + slot.z) < 1e-9)
   })
   assert.equal(powerButton('guest').x, -powerButton('host').x)
@@ -295,12 +360,12 @@ test('the edge controls do not overlap the rest of the table, the Power button o
 })
 
 test('onRack: a point on the plate of a side is on that rack only', () => {
-  assert.ok(onRack('host', { x: 0, z: 35 }))
-  assert.ok(!onRack('guest', { x: 0, z: 35 }))
-  assert.ok(onRack('guest', { x: 5, z: -36 }))
-  assert.ok(!onRack('host', { x: 16, z: 35 }))
-  assert.ok(!onRack('host', { x: 0, z: 33.9 }))
-  assert.ok(!onRack('host', { x: 0, z: 37 }))
+  assert.ok(onRack('host', { x: 27, z: 22 }))
+  assert.ok(!onRack('guest', { x: 27, z: 22 }))
+  assert.ok(onRack('guest', { x: 30, z: -25 }))
+  assert.ok(!onRack('host', { x: 0, z: 22 }))
+  assert.ok(!onRack('host', { x: 27, z: 17 }))
+  assert.ok(!onRack('host', { x: 27, z: 28.5 }))
 })
 
 const squadRect = (side, compact = false) => {

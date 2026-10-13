@@ -95,7 +95,7 @@ import {
   toolSelects,
 } from '../selection.js'
 import { poseOf } from '../rooms/table.js'
-import { setupStep, viewOf } from '../setup/setup.js'
+import { rackHiddenSides, rosterRowsShown, setupStep, viewOf } from '../setup/setup.js'
 import { useSideColors } from '../sideColors.js'
 
 const TABLE_THICKNESS = 0.5
@@ -1426,7 +1426,14 @@ export default function Scene({
         {/* Power Phase and the board strip of each player (docs/features/table-tools.md) */}
         <TableButtons ownSide={ownSide} {...tableButtons} />
         {/* The tool rack of each player (docs/features/table-tools.md, "Tool rack") */}
-        {toolRack && <ToolRack ownSide={ownSide} tools={tools} {...toolRack} />}
+        {toolRack && (
+          <ToolRack
+            ownSide={ownSide}
+            tools={tools}
+            hiddenSides={rackHiddenSides(setup, rosters)}
+            {...toolRack}
+          />
+        )}
         {toolDrag?.active && (
           <ToolDragGhost
             pointRef={toolDragPointRef}
@@ -1442,7 +1449,7 @@ export default function Scene({
             go on the table (the steps before 'affiliation'). Locked cards, no physics body, so a tool or a
             model passes over them. The crisis cards of the rosters and the setup buttons are in
             GameSetup. */}
-        {!['affiliation', 'deploy', 'done'].includes(setupStep(setup)) &&
+        {rosterRowsShown(setup) &&
           ['host', 'guest'].map(
             (team) =>
               rosters[team] && (

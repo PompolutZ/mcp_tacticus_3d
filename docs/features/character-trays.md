@@ -82,7 +82,7 @@ These facts were found in the scripts of the "Red Tray Spawner" object (`trayScr
 
 ### Place on the table
 
-The table is 72" × 76" (`src/table.js`). The last 4" at each end are the rack band of a player, past the Give sources (`docs/features/table-tools.md`). The mat is 36" × 36" (`MAT_SIZE` in `Scene.jsx`), centered on the table, so its edge is 18" from the table center on every side.
+The table is 72" × 76" (`src/table.js`). The last 4" at each end, past the Give sources, hold nothing. The tool rack lies in front of the dice tray (`docs/features/table-tools.md`). The mat is 36" × 36" (`MAT_SIZE` in `Scene.jsx`), centered on the table, so its edge is 18" from the table center on every side.
 
 Each player's trays sit in one row on that player's side (host at +z, guest at −z), past the player's tactic tray. So the order from the mat is the same as in TTS: mat, tactic tray, character trays. The tactic tray plate ends 22.4" from the table center (see `docs/features/team-tactic-cards.md`, "Tactic tray"). A player never has a second row. The row is centered on the middle line of the table (x = 0), the same as TTS (`arrangeTrays` in the Red Tray Spawner). 12 trays fit in the table width. A row of more than 6 trays is wider than the mat, so it goes past the mat corners. See `src/characters/trays.js`.
 
@@ -107,7 +107,7 @@ Changes that follow from this:
 - A newly spawned model stands on the table at the center of its tray's card, not on a separate bench. The model faces the mat, toward the opponent, as in TTS (see "Models face the mat"). The model reads that position only once, when its body mounts. A Rapier `RigidBody` moves its body when its `position` prop changes, so a later tray move must not reach the body through that prop. A model that is still loading when the row shifts mounts on its tray's new place.
 - When a tray moves, a model that still stands on that tray moves with it (`Scene.jsx`). A model that the player moved off its tray, for example onto the mat, stays where it is. TTS does the same (`moveTray` in the tray script). TTS checks "not on the mat"; the app checks "on its own tray plate, or on the table past it, as wide as the plate" (`inTrayArea` in `trays.js`), so a spare model (see [Second forms](#second-forms)) moves too.
 
-The start view (`CAMERA_TARGET` and `CAMERA_POSITION` in `src/camera.js`) shows the tactic trays and the character trays of both players. It also shows the rack band of the own side. Its bottom edge is at z = 37.5" (`docs/features/key-shortcuts.md`, "Start view").
+The start view (`CAMERA_TARGET` and `CAMERA_POSITION` in `src/camera.js`) shows the tactic trays and the character trays of both players. It also shows the own tool rack, in front of the dice tray. Its bottom edge is at z = 37.5" (`docs/features/key-shortcuts.md`, "Start view").
 
 ### Controls
 

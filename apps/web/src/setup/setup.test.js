@@ -28,6 +28,7 @@ import {
   setRollOff,
   setSquadCharacters,
   setupPlacedCards,
+  rackHiddenSides,
   setupStep,
   squadChoiceBlock,
   ownSquadOf,
@@ -51,6 +52,15 @@ const cards = { characters: ['c1'], tactics: ['t1'] }
 test('newSetup makes a random id', () => {
   assert.notEqual(newSetup().id, newSetup().id)
   assert.equal(NEW_SETUP.id, null)
+})
+
+test('rackHiddenSides: the sides with a roster, until the squads are on the table', () => {
+  const rosters = { host: { code: 'a' }, guest: null }
+  assert.deepEqual(rackHiddenSides(squadsSetup(), rosters), ['host'])
+  assert.deepEqual(rackHiddenSides(squadsSetup(), { host: null, guest: null }), [])
+  const oneSide = placeSquad(squadsSetup(bothReady), 'host', squad, cards)
+  const both = placeSquad(oneSide, 'guest', squad, { characters: [], tactics: [] }, 'unaffiliated')
+  assert.deepEqual(rackHiddenSides(both, { host: { code: 'a' }, guest: { code: 'b' } }), [])
 })
 
 test('setupStep: squads, reveal and done', () => {

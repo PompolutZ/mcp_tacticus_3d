@@ -29,7 +29,7 @@ import { useTokenDrag } from './drag/useTokenDrag.js'
 import { characterOnBoard, modelCharacterId } from './characters/models.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { parseRosterText, rosterCard, rosterTabs } from './rosters/cards.js'
-import { colorOf } from './setup/setup.js'
+import { colorOf, rackHiddenSides } from './setup/setup.js'
 import { useRollOffReader } from './setup/useRollOffReader.js'
 import { useGameSetup } from './setup/useGameSetup.js'
 import { gamePriority, priorityTitle } from './game/priority.js'
@@ -664,7 +664,11 @@ export default function App({
               tools={tools}
               ownSide={ownSide}
               onToolStore={handleToolStore}
-              onToolReturn={rackShown ? handleToolReturn : undefined}
+              onToolReturn={
+                rackShown && !rackHiddenSides(setup, rosters).includes(ownSide)
+                  ? handleToolReturn
+                  : undefined
+              }
               ownership={ownership}
               presence={presence}
               ownPing={ownPing}

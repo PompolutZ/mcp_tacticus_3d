@@ -2,90 +2,123 @@
 // The Automatic Power Phase button of each player lies in the row of their Team Tactic tray, not on the rack. Plain module, no React, the same as characters/trays.js. See
 // docs/features/table-tools.md, "Place on the table".
 //
-// Everything is computed for host (+z) and mirrored for guest: x and z change sign, and a piece turns
-// 180 deg to face its owner (rackYaw), the same as the trays. The board strip does not turn: it reads like
+// Everything is computed for host (+z) and mirrored for guest: x and z change sign (the rack: z only, because
+// the dice trays are not mirrored in x), and a piece turns 180 deg to face its owner (rackYaw), the same as
+// the trays. The board strip does not turn: it reads like
 // the scoring board for both players.
 
 import { MOVE_TIP, RANGE_TIP } from './toolTips.js'
 import { TACTIC_PLATE_WIDTH, tacticTrayPosition } from '../tactics/layout.js'
 import { ROSTER_ROWS_OUTER_Z } from '../rosters/layout.js'
+import { KEYS_LIP, TRAYS } from '../dice/tray.js'
 
 const sign = (side) => (side === 'host' ? 1 : -1)
 
-// The rack plate: the band past the deepest tray parts (z 33.75), as wide as 5 range tools lying in a row.
-const RACK_HALF_WIDTH = 15.2
-const RACK_Z_MIN = 34.2
-const RACK_Z_MAX = 36.8
+// The rack lies in front of the dice tray of its player: centered in x on the tray, as wide as the keys lip,
+// starting past the keys lip (the outer edge of the tray on the player's side). The tray is at the same x for
+// both players, so the guest rack is the host rack mirrored in z only, turned 180 deg.
+const TRAY_HOST = TRAYS.host
+const RACK_X = TRAY_HOST.position.x
+// Narrower than the tray (x 20.4 to 33.6) by 0.2": a row of 7 character trays ends at x 20.5 and must not touch it
+const RACK_HALF_WIDTH = 6.4
+const KEYS_LIP_GAP = 0.3
+// World z of the keys lip low edge of the host tray (tray-space z turns with the tray yaw)
+const KEYS_LIP_Z = TRAY_HOST.position.z + KEYS_LIP.low.z * Math.cos(TRAY_HOST.yaw)
+const RACK_Z_MIN = KEYS_LIP_Z + KEYS_LIP_GAP
 
 // The rack pieces face their owner: for host, the top points to -z (trays.js, trayYaw). Guest is turned 180 deg.
 export const rackYaw = (side) => (side === 'host' ? 0 : Math.PI)
 
-// Two rows lie along x. Row 1 is on the mat side.
-const ROW_1_Z = 34.9
-const ROW_2_Z = 36.1
 const RANGE_WIDTH = 1
 const MOVE_WIDTH = 0.56
 const CHIP_WIDTH = 2
 const CHIP_HEIGHT = 1
 const RACK_MARGIN = 0.3
-const ROW_2_GAP = 0.4
+const COLUMN_GAP = 0.4
 
-// Slots in local x, from the owner's left. Row 1 fills the plate width: the gaps are what is left.
+// The items of a column. A tool lies along z (its length), a chip is CHIP_WIDTH along x and CHIP_HEIGHT along z
+// (the text faces the owner). sizeX, sizeZ: the footprint on the table.
 const rangeLength = (mesh) => RANGE_TIP[mesh] * 2
 const moveLength = (type) => MOVE_TIP[type] * 2
+const chip = (key) => ({
+  key,
+  kind: 'chip',
+  length: CHIP_WIDTH,
+  width: CHIP_HEIGHT,
+  sizeX: CHIP_WIDTH,
+  sizeZ: CHIP_HEIGHT,
+})
+const range = (n) => ({
+  key: `r${n}`,
+  kind: 'range',
+  length: rangeLength(n),
+  width: RANGE_WIDTH,
+  sizeX: RANGE_WIDTH,
+  sizeZ: rangeLength(n),
+})
+const move = (type) => ({
+  key: type[0],
+  kind: 'move',
+  length: moveLength(type),
+  width: MOVE_WIDTH,
+  sizeX: MOVE_WIDTH,
+  sizeZ: moveLength(type),
+})
 
-const ROW_1 = [
-  { key: 'r1', kind: 'chip', length: CHIP_WIDTH, width: CHIP_HEIGHT },
-  ...[2, 3, 4, 5].map((n) => ({
-    key: `r${n}`,
-    kind: 'range',
-    length: rangeLength(n),
-    width: RANGE_WIDTH,
-  })),
+// The columns from the owner's left. Item 1 is on the mat side, item 2 below it (toward the table edge).
+const COLUMNS = [
+  [chip('r1'), move('long')],
+  [range(2), move('medium')],
+  [range(3), move('short')],
+  [range(4), chip('ta')],
+  [range(5)],
 ]
-const ROW_2 = [
-  ...['short', 'medium', 'long'].map((type) => ({
-    key: type[0],
-    kind: 'move',
-    length: moveLength(type),
-    width: MOVE_WIDTH,
-  })),
-  { key: 'ta', kind: 'chip', length: CHIP_WIDTH, width: CHIP_HEIGHT },
-]
+const columnWidth = (column) => Math.max(...column.map((item) => item.sizeX))
+const columnDepth = (column) =>
+  column.reduce((sum, item) => sum + item.sizeZ, 0) + COLUMN_GAP * (column.length - 1)
 
-// Local x of the center of each slot of a row, from the left end of the row at `left`
-function placeRow(slots, left, gap) {
-  let x = left
-  return slots.map((slot) => {
-    const placed = { ...slot, x: x + slot.length / 2 }
-    x += slot.length + gap
+const COLUMNS_WIDTH = COLUMNS.reduce((sum, column) => sum + columnWidth(column), 0)
+// The gap between columns is what is left of the plate width
+const COLUMN_SPACE = (RACK_HALF_WIDTH * 2 - RACK_MARGIN * 2 - COLUMNS_WIDTH) / (COLUMNS.length - 1)
+const RACK_DEPTH = Math.max(...COLUMNS.map(columnDepth)) + RACK_MARGIN * 2
+const RACK_Z_MAX = RACK_Z_MIN + RACK_DEPTH
+
+// Slots of the host rack: x is from the plate center, to the owner's left (-x), z in the table
+let columnLeft = -RACK_HALF_WIDTH + RACK_MARGIN
+const LOCAL_SLOTS = COLUMNS.flatMap((column) => {
+  const width = columnWidth(column)
+  const x = RACK_X + columnLeft + width / 2
+  columnLeft += width + COLUMN_SPACE
+  let z = RACK_Z_MIN + RACK_MARGIN
+  return column.map((item) => {
+    const placed = { ...item, x, z: z + item.sizeZ / 2 }
+    z += item.sizeZ + COLUMN_GAP
     return placed
   })
-}
-
-const ROW_1_LENGTH = ROW_1.reduce((sum, slot) => sum + slot.length, 0)
-const ROW_1_GAP = (RACK_HALF_WIDTH * 2 - RACK_MARGIN * 2 - ROW_1_LENGTH) / (ROW_1.length - 1)
-const LOCAL_SLOTS = [
-  ...placeRow(ROW_1, -RACK_HALF_WIDTH + RACK_MARGIN, ROW_1_GAP).map((s) => ({ ...s, z: ROW_1_Z })),
-  ...placeRow(ROW_2, -RACK_HALF_WIDTH + RACK_MARGIN, ROW_2_GAP).map((s) => ({ ...s, z: ROW_2_Z })),
-]
+})
 
 // The rack plate of `side`: { x, z, width, depth } (center and size)
 export function rackPlate(side) {
   return {
-    x: 0,
+    x: RACK_X,
     z: ((RACK_Z_MIN + RACK_Z_MAX) / 2) * sign(side),
     width: RACK_HALF_WIDTH * 2,
-    depth: RACK_Z_MAX - RACK_Z_MIN,
+    depth: RACK_DEPTH,
   }
 }
 
-// The slots of the rack of `side`: [{ key, kind, x, z, length, width }], center place and size on the table.
-// key: r1 (chip), r2..r5, s, m, l, ta (chip). kind: 'chip', 'range' or 'move'. length lies along x. Row 1
-// (mat side), from the owner's left: R1, R2..R5. Row 2: S, M, L, T/A. For guest, the owner's left is +x.
+// The slots of the rack of `side`: [{ key, kind, x, z, length, width, sizeX, sizeZ }], center place and size on
+// the table. key: r1 (chip), r2..r5, s, m, l, ta (chip). kind: 'chip', 'range' or 'move'. length and width are
+// the sizes of the item itself (a tool lies along z). sizeX, sizeZ: its footprint on the table. Columns, from
+// the owner's left: (R1, L), (R2, M), (R3, S), (R4, T/A), (R5). Mat side first. For guest, the owner's left is
+// +x, and z changes sign, but x stays on the dice tray.
 export function rackSlots(side) {
   const s = sign(side)
-  return LOCAL_SLOTS.map((slot) => ({ ...slot, x: slot.x * s, z: slot.z * s }))
+  return LOCAL_SLOTS.map((slot) => ({
+    ...slot,
+    x: RACK_X + (slot.x - RACK_X) * s,
+    z: slot.z * s,
+  }))
 }
 
 // The Automatic Power Phase button of `side`: { x, z, width, depth }. It belongs to the squad, so it lies on
@@ -156,16 +189,19 @@ export function edgeControls(side) {
 
 // The squad panel of the setup (Threat, Tactics, Squad ready, hint, problem) lies flat and facing its owner,
 // right below the roster rows (past the Team Tactic cards, row 2), centered in x. The free band is between the
-// far edge of row 2 (z 29.5) and the rack plate (RACK_Z_MIN 34.2), 4.7" deep; the panel keeps 0.25" free on
-// both sides. width lies along x. See docs/features/setup-game.md, "Buttons".
+// far edge of row 2 (z 29.5) and SQUAD_PANEL_Z_MAX (33.95), 4.45" deep; the panel keeps 0.25" free on
+// the roster side. width lies along x. See docs/features/setup-game.md, "Buttons".
 // The character trays of a placed squad reach z 31.85, so a placed side (or the other player's panel, one
 // line "Choosing a squad" / "Ready") uses `compact`: a 1.6" band past the trays, z 32.1 to 33.7.
+// The far edge of the panel (z 33.95), 0.2" past the deepest tray parts (z 33.75). It was the rack plate edge
+// (34.2) less the margin, before the rack moved to the dice tray.
+const SQUAD_PANEL_Z_MAX = 33.95
 const SQUAD_PANEL_MARGIN = 0.25
 const SQUAD_PANEL_WIDTH = 24
 const TRAYS_OUTER_Z = 31.85
 const COMPACT_DEPTH = 1.6
 export function squadPanel(side, compact = false) {
   const z0 = (compact ? TRAYS_OUTER_Z : ROSTER_ROWS_OUTER_Z) + SQUAD_PANEL_MARGIN
-  const z1 = compact ? z0 + COMPACT_DEPTH : RACK_Z_MIN - SQUAD_PANEL_MARGIN
+  const z1 = compact ? z0 + COMPACT_DEPTH : SQUAD_PANEL_Z_MAX
   return { x: 0, z: ((z0 + z1) / 2) * sign(side), width: SQUAD_PANEL_WIDTH, depth: z1 - z0 }
 }

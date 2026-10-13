@@ -94,7 +94,7 @@ R is a toggle. In TTS, a player lifts a model by holding it with the mouse. In t
 
 ## Start view
 
-The host sits at +z. The start view stands behind the host table edge and looks down at 45°, at a point 16.8" from the mat center toward the host, from 46" away. In a 16:10 window it shows the whole mat, the host trays, the host rack band (z up to 36.8") and the guest trays. Its bottom edge meets the table at z = 37.5". Space returns to it. The values are `CAMERA_TARGET` and `CAMERA_POSITION` in `src/camera.js` (`startView`).
+The host sits at +z. The start view stands behind the host table edge and looks down at 45°, at a point 16.8" from the mat center toward the host, from 46" away. In a 16:10 window it shows the whole mat, the host trays, the host tool rack in front of the dice tray (z up to 27.9") and the guest trays. Its bottom edge meets the table at z = 37.5". Space returns to it. The values are `CAMERA_TARGET` and `CAMERA_POSITION` in `src/camera.js` (`startView`).
 
 ## Keyboard: keys of the mod
 

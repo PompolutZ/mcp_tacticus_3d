@@ -379,6 +379,18 @@ export function doneSteps(setup) {
   })
 }
 
+// True while the roster rows lie on the table: the steps before the squads go on the table (affiliation). The
+// tool rack of a side with a loaded roster is hidden then (components/ToolRack.jsx).
+export function rosterRowsShown(setup) {
+  return !['affiliation', 'deploy', 'done'].includes(setupStep(setup))
+}
+
+// The sides whose tool rack is hidden: the roster rows of the side lie on the table, where the rack lies.
+// rosters: { host, guest } → null | { code }. A tool that is already on the table stays.
+export function rackHiddenSides(setup, rosters) {
+  return rosterRowsShown(setup) ? TEAMS.filter((team) => rosters?.[team]) : []
+}
+
 // The step that a player browses, or null for the current step. A step that is not done any more is null.
 export function viewOf(setup) {
   const view = setup.view ?? null

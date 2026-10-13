@@ -42,5 +42,6 @@ test('canDropTool: false off the table and over the own rack', () => {
 
 test('canDropTool: true on the table, also over the other rack', () => {
   assert.equal(canDropTool('host', { x: 0, z: 0 }), true)
-  assert.equal(canDropTool('host', { x: 0, z: rackPlate('guest').z }), true)
+  assert.equal(canDropTool('host', { x: rackPlate('guest').x, z: rackPlate('guest').z }), true)
+  assert.equal(canDropTool('host', { x: 27, z: 10 }), true)
 })
