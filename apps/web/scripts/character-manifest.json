@@ -276,6 +276,15 @@
       "characters/heimdall-the-all-seeing/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HEIMDALL_THE_ALL_SEEING_UI.png"
     }
   },
+  "hela-queen-of-hel": {
+    "id": "00120101",
+    "sources": {
+      "characters/hela-queen-of-hel/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HELA_QUEEN_OF_HEL_healthy.jpg",
+      "characters/hela-queen-of-hel/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HELA_QUEEN_OF_HEL_injured.jpg",
+      "characters/hela-queen-of-hel/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/HELA_QUEEN_OF_HEL_MODEL.unity3d",
+      "characters/hela-queen-of-hel/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HELA_QUEEN_OF_HEL_UI.png"
+    }
+  },
   "hulkbuster": {
     "id": "00520101",
     "sources": {
@@ -384,6 +393,15 @@
       "characters/lockjaw/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LOCKJAW_injured.jpg",
       "characters/lockjaw/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/LOCKJAW_MODEL.unity3d",
       "characters/lockjaw/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LOCKJAW_UI.png"
+    }
+  },
+  "loki-god-of-mischief": {
+    "id": "00120102",
+    "sources": {
+      "characters/loki-god-of-mischief/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LOKI_GOD_OF_MISCHIEF_healthy.jpg",
+      "characters/loki-god-of-mischief/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LOKI_GOD_OF_MISCHIEF_injured.jpg",
+      "characters/loki-god-of-mischief/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/LOKI_GOD_OF_MISCHIEF_MODEL.unity3d",
+      "characters/loki-god-of-mischief/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/LOKI_GOD_OF_MISCHIEF_UI.png"
     }
   },
   "loki-prince-of-lies": {
@@ -614,6 +632,15 @@
       "characters/sin/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SIN_injured.jpg",
       "characters/sin/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SIN_MODEL.unity3d",
       "characters/sin/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SIN_UI.png"
+    }
+  },
+  "skurge-the-executioner": {
+    "id": "01020102",
+    "sources": {
+      "characters/skurge-the-executioner/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SKURGE_THE_EXECUTIONER_healthy.jpg",
+      "characters/skurge-the-executioner/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SKURGE_THE_EXECUTIONER_injured.jpg",
+      "characters/skurge-the-executioner/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SKURGE_THE_EXECUTIONER_MODEL.unity3d",
+      "characters/skurge-the-executioner/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SKURGE_THE_EXECUTIONER_UI.png"
     }
   },
   "spectacular-spider-man": {

@@ -314,6 +314,17 @@
     "figure": "model",
     "rotation": 330
   },
+  "hela-queen-of-hel": {
+    "id": "00120101",
+    "name": "Hela, Queen of Hel",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 90,
+    "tokens": [
+      "hela-soul",
+      "bleed"
+    ]
+  },
   "hulkbuster": {
     "id": "00520101",
     "name": "Hulkbuster",
@@ -425,6 +436,16 @@
     "tokens": [
       "bleed",
       "interdimensional-bloodhound"
+    ]
+  },
+  "loki-god-of-mischief": {
+    "id": "00120102",
+    "name": "Loki, God of Mischief",
+    "base": "small",
+    "figure": "model",
+    "rotation": 255,
+    "tokens": [
+      "slow"
     ]
   },
   "loki-prince-of-lies": {
@@ -692,6 +713,16 @@
     "base": "small",
     "figure": "model",
     "rotation": 135
+  },
+  "skurge-the-executioner": {
+    "id": "01020102",
+    "name": "Skurge, The Executioner",
+    "base": "small",
+    "figure": "model",
+    "rotation": 285,
+    "tokens": [
+      "bleed"
+    ]
   },
   "spectacular-spider-man": {
     "id": "01430108",
