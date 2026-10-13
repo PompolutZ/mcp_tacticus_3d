@@ -1179,6 +1179,13 @@ body {
   width: min(80vw, 600px, 75vh);
 }
 
+/* A grunt card is portrait (808x1404). Its width follows the viewport height, so the card and the controls
+   fit on the screen, the same as the 3:2 card above. */
+.tray-popup-card--grunt,
+.tray-popup-main--attached .tray-popup-card--grunt {
+  width: min(80vw, 360px, calc((100vh - 280px) * 808 / 1404));
+}
+
 .tray-popup-card > img {
   display: block;
   width: 100%;

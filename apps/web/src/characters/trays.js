@@ -4,6 +4,7 @@
 
 import { TACTIC_TRAY_OUTER_Z } from '../tactics/layout.js'
 import { TOKEN_SIZE } from '../tokens/files.js'
+import { CARD_WIDTH as CRISIS_CARD_WIDTH } from '../crisis/layout.js'
 
 // Card face images are 1800x1200 px
 export const TRAY_CARD_WIDTH = 4.5
@@ -44,23 +45,36 @@ const TRAY_CONTROLS_LOCAL_Z = MAT_SIDE_Z + ON_DEPTH + TRAY_CARD_HEIGHT + TRAY_CO
 // trays. `cards` below is the number of cards on the tray, 1 or 2.
 const TRAY_CARD_PITCH = TRAY_CARD_HEIGHT + TOKEN_GAP
 // A host with grunts (docs/features/character-trays.md, "Grunts") has the grunt cards below its own
-// card(s) and controls strip: a block of the depth of a whole tray (On row, card, controls strip) plus a
-// gap. `grunts` below is the number of grunt cards on the tray, 0 for none. The block moves every part
-// after the host's controls strip toward the owner, the same way a second card does.
-const GRUNT_BLOCK_DEPTH = TRAY_DEPTH + TOKEN_GAP
+// card(s) and controls strip. A grunt card image is portrait, 808x1404 px, like a crisis card (800x1400).
+// TTS spawns it as a CardCustom with scale 1.5 (Red Tray Spawner, setupGruntOne). The app draws it at the
+// width of a crisis card, which is the size of the same kind of image (crisis/layout.js). The grunt block
+// has the depth of a grunt unit (On row, card, controls strip), a gap past the host. `grunts` below is the
+// number of grunt cards on the tray, 0 for none. The block moves every part after the host's controls
+// strip toward the owner, the same way a second card does.
+export const GRUNT_CARD_WIDTH = CRISIS_CARD_WIDTH
+export const GRUNT_CARD_HEIGHT = GRUNT_CARD_WIDTH * (1404 / 808)
+const GRUNT_DEPTH = ON_DEPTH + GRUNT_CARD_HEIGHT + TRAY_CONTROLS_DEPTH
+const GRUNT_BLOCK_DEPTH = TOKEN_GAP + GRUNT_DEPTH
 const extraDepth = (cards, grunts = 0) =>
   (cards - 1) * TRAY_CARD_PITCH + (grunts > 0 ? GRUNT_BLOCK_DEPTH : 0)
-// The grunt cards lie side by side (Sandman has 2): the tray gets wider toward the owner's right, by
-// one card width and gap for each grunt after the first. The first grunt lies under the host card.
-const GRUNT_PITCH_X = TRAY_CARD_WIDTH + TOKEN_GAP
-const extraWidth = (grunts) => Math.max(0, grunts - 1) * GRUNT_PITCH_X
+// The grunt cards lie side by side (Sandman has 2): the first under the host card, each next one a card
+// width and a gap to the owner's right. The plate grows toward the owner's right as far as the last card
+// needs; the host's own parts keep their places.
+const GRUNT_PITCH_X = GRUNT_CARD_WIDTH + TOKEN_GAP
+const extraWidth = (grunts) =>
+  grunts < 2 ? 0 : Math.max(0, (grunts - 1) * GRUNT_PITCH_X + GRUNT_CARD_WIDTH / 2 - TRAY_WIDTH / 2)
 
-// Local [x, z] offset of grunt `index` (from 0) of a tray with `cards` host cards: the grunt's On row, card
-// and controls strip are at the host's local z and x plus this. Used by CharacterTray.jsx and for the grunt
-// model (trayModelPosition).
+// Local [x, z] offset of grunt `index` (from 0) of a tray with `cards` host cards: the start of the grunt's
+// unit (its On row, card and controls strip) from the host's. The parts inside the unit are at the
+// grunt functions below. Used by CharacterTray.jsx.
 export function trayGruntSlot(cards, index) {
-  return [index * GRUNT_PITCH_X, extraDepth(cards, 1)]
+  return [index * GRUNT_PITCH_X, (cards - 1) * TRAY_CARD_PITCH + TRAY_DEPTH + TOKEN_GAP]
 }
+
+// Local z, inside the grunt's unit, of the center of the grunt card and of its controls strip
+export const GRUNT_CARD_LOCAL_Z = MAT_SIDE_Z + ON_DEPTH + GRUNT_CARD_HEIGHT / 2
+export const GRUNT_CONTROLS_LOCAL_Z =
+  MAT_SIDE_Z + ON_DEPTH + GRUNT_CARD_HEIGHT + TRAY_CONTROLS_DEPTH / 2
 
 // Local z of the center of card `card` (from 1)
 export function trayCardLocalZ(card) {
@@ -79,9 +93,16 @@ const FIRST_TOKEN_X = -TRAY_WIDTH / 2 + TOKEN_SIZE / 2
 // Local [x, z] of token `index` of the `count` tokens in the "On" row. A new token goes at the end,
 // so the others do not move. A character rarely has more than 6 tokens; when it has, the tokens
 // move closer and overlap, so the row stays as wide as the tray.
-export function trayOnTokenPosition(index, count) {
-  const pitch = count > TOKENS_PER_ROW ? (TRAY_WIDTH - TOKEN_SIZE) / (count - 1) : TOKEN_PITCH
-  return [FIRST_TOKEN_X + index * pitch, ON_Z]
+// `width`: the width of the row, the tray width or a grunt card's (trayGruntOnTokenPosition).
+export function trayOnTokenPosition(index, count, width = TRAY_WIDTH) {
+  const perRow = Math.floor((width + TOKEN_GAP) / TOKEN_PITCH)
+  const pitch = count > perRow ? (width - TOKEN_SIZE) / (count - 1) : TOKEN_PITCH
+  return [-width / 2 + TOKEN_SIZE / 2 + index * pitch, ON_Z]
+}
+
+// The same for the On row of a grunt, inside its unit: as wide as the grunt card
+export function trayGruntOnTokenPosition(index, count) {
+  return trayOnTokenPosition(index, count, GRUNT_CARD_WIDTH)
 }
 
 // An objective token that the character holds (an Extract token, see docs/features/character-trays.md, "Hold
@@ -125,11 +146,45 @@ function trayLocal(team, trayPos, point) {
 }
 
 // Tray-local [x, z] of the table point { x, z } on the tray at `trayPos`, moved onto the first
-// card. A held token always lies on the first card, also on a tray with two cards. A grunt's token lies on
-// the grunt card: `slot` is trayGruntSlot, and the result is local to the grunt's card.
-export function trayHeldLocal(team, trayPos, point, slot = [0, 0]) {
+// card. A held token always lies on the first card, also on a tray with two cards.
+export function trayHeldLocal(team, trayPos, point) {
+  return clampToCard(trayLocal(team, trayPos, point))
+}
+
+// Held tokens of a grunt lie on the grunt card, in the coordinates of its unit (trayGruntSlot is the
+// offset). Clamps a unit-local [x, z] so that the whole token lies on the grunt card.
+export function trayGruntHeldClamp([x, z]) {
+  const maxX = GRUNT_CARD_WIDTH / 2 - HELD_RADIUS
+  const maxZ = GRUNT_CARD_HEIGHT / 2 - HELD_RADIUS
+  return [
+    Math.max(-maxX, Math.min(x, maxX)),
+    GRUNT_CARD_LOCAL_Z + Math.max(-maxZ, Math.min(z - GRUNT_CARD_LOCAL_Z, maxZ)),
+  ]
+}
+
+// Unit-local [x, z] of the table point on the grunt card of the tray at `trayPos`, moved onto the card
+export function trayGruntHeldLocal(team, trayPos, point, slot) {
   const [x, z] = trayLocal(team, trayPos, point)
-  return clampToCard([x - slot[0], z - slot[1]])
+  return trayGruntHeldClamp([x - slot[0], z - slot[1]])
+}
+
+// Card point (u, v) of a unit-local place on the grunt card, for the tray popup
+export function trayGruntHeldCardPoint(local) {
+  return {
+    u: local[0] / GRUNT_CARD_WIDTH + 0.5,
+    v: (local[1] - GRUNT_CARD_LOCAL_Z) / GRUNT_CARD_HEIGHT + 0.5,
+  }
+}
+
+// Token diameter as a fraction of the grunt card width
+export const GRUNT_HELD_SIZE_U = (HELD_RADIUS * 2) / GRUNT_CARD_WIDTH
+
+// Table [x, y, z] of the center of the grunt card of grunt `index` on the tray at `trayPos` (the grunt
+// model stands there, as on the host card)
+export function trayGruntModelPosition(team, trayPos, cards, index) {
+  const [sx, sz] = trayGruntSlot(cards, index)
+  const [x, z] = trayWorld(team, trayPos, [sx, GRUNT_CARD_LOCAL_Z + sz])
+  return [x, 0, z]
 }
 
 // Table [x, z] of tray-local `local` on the tray at `trayPos`. The inverse of trayLocal.
@@ -286,8 +341,8 @@ export function trayYaw(team) {
 // `trayPos` (from trayPosition; see docs/features/character-trays.md, "Spawn on the card"). y = 0, the table
 // top: the tray card is a flat plane with no collider, so the model stands on the table itself
 // (CharacterModel.jsx's body origin is the base bottom).
-export function trayModelPosition(team, trayPos, card = 1, slot = [0, 0]) {
-  const [x, z] = trayWorld(team, trayPos, [slot[0], trayCardLocalZ(card) + slot[1]])
+export function trayModelPosition(team, trayPos, card = 1) {
+  const [x, z] = trayWorld(team, trayPos, [0, trayCardLocalZ(card)])
   return [x, 0, z]
 }
 

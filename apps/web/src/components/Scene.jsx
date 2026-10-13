@@ -81,6 +81,9 @@ import {
   trayModelPosition,
   traySpareModelPosition,
   trayConstructPosition,
+  trayGruntHeldClamp,
+  trayGruntHeldLocal,
+  trayGruntModelPosition,
   trayGruntSlot,
   trayYaw,
 } from '../characters/trays.js'
@@ -215,6 +218,7 @@ function trayShapeOf(ch, characters, gruntLists) {
   return {
     cards: trayCards(host),
     grunts: list.length,
+    index: Math.max(0, list.indexOf(ch)),
     slot: ch.host ? trayGruntSlot(trayCards(host), Math.max(0, list.indexOf(ch))) : [0, 0],
   }
 }
@@ -976,12 +980,10 @@ export default function Scene({
       const holder = characters.find((ch) => ch.id === tok.heldBy)
       const trayPos = trayPositions.get(tok.heldBy)
       if (!holder || !trayPos) return { token: tok }
-      const [x, z] = trayHeldWorld(
-        holder.team,
-        trayPos,
-        tok.heldAt,
-        trayShapeOf(holder, characters, gruntLists).slot,
-      )
+      // A grunt's token lies on the grunt card (the default place is on a host card, so it is clamped)
+      const { slot } = trayShapeOf(holder, characters, gruntLists)
+      const local = holder.host ? trayGruntHeldClamp(tok.heldAt) : tok.heldAt
+      const [x, z] = trayHeldWorld(holder.team, trayPos, local, slot)
       const level = stacks.get(tok.heldBy) ?? 0
       stacks.set(tok.heldBy, level + 1)
       return {
@@ -1079,8 +1081,9 @@ export default function Scene({
   function trayPlace(model) {
     const ch = model.character
     const trayPos = trayPositions.get(ch.id)
-    const { grunts, slot } = trayShape(ch)
-    if (model.card) return trayModelPosition(ch.team, trayPos, model.card, slot)
+    const { grunts, index } = trayShape(ch)
+    if (ch.host) return trayGruntModelPosition(ch.team, trayPos, trayShape(ch).cards, index)
+    if (model.card) return trayModelPosition(ch.team, trayPos, model.card)
     const giveCount = characterGiveSources(ch.key).length
     if (!model.construct)
       return traySpareModelPosition(
@@ -1380,7 +1383,11 @@ export default function Scene({
                 onTokenHold(
                   tok.id,
                   characterId,
-                  onCard ? trayHeldLocal(holder.team, trayPos, point, shape.slot) : null,
+                  onCard
+                    ? holder.host
+                      ? trayGruntHeldLocal(holder.team, trayPos, point, shape.slot)
+                      : trayHeldLocal(holder.team, trayPos, point)
+                    : null,
                 )
               }}
               findCharacter={findCharacterAt}

@@ -6,12 +6,17 @@ import { trayCardFile } from '../characters/files.js'
 import { trayCards } from '../characters/models.js'
 import { characterGiveSources, characterName, characterStamina } from '../characters/characters.js'
 import {
+  GRUNT_CARD_HEIGHT,
+  GRUNT_CARD_LOCAL_Z,
+  GRUNT_CARD_WIDTH,
+  GRUNT_CONTROLS_LOCAL_Z,
   TRAY_BG_Y,
   TRAY_CARD_HEIGHT,
   TRAY_CARD_WIDTH,
   trayCardLocalZ,
   trayControlsLocalZ,
   trayGiveTokenPosition,
+  trayGruntOnTokenPosition,
   trayOnTokenPosition,
   trayPlate,
   trayYaw,
@@ -58,8 +63,8 @@ const CLICK_MOVE = 4
 // that character one token.
 // grunts: the number of grunt cards on the tray of a host, 0 for none: the plate and the Give sources
 // follow it (trays.js). A grunt (character.host) has no plate and no Give sources: the host's tray draws
-// its card, On row and controls strip at `slot`, the grunt's offset from the host card (trays.js,
-// trayGruntSlot). A grunt's card has only the Healthy side, and its controls have no Power and no Flip
+// its card, On row and controls strip at `slot`, the start of its unit on the host tray (trays.js,
+// trayGruntSlot). The grunt card is portrait (trays.js, GRUNT_CARD_WIDTH). A grunt's card has only the Healthy side, and its controls have no Power and no Flip
 // (docs/features/character-trays.md, "Grunts"). The grunt's position is the host's.
 export default function CharacterTray({
   character,
@@ -180,7 +185,7 @@ export default function CharacterTray({
           {cardNumbers.map((n) => (
             <mesh
               key={n}
-              position={[0, 0, trayCardLocalZ(n)]}
+              position={[0, 0, isGrunt ? GRUNT_CARD_LOCAL_Z : trayCardLocalZ(n)]}
               rotation={[-Math.PI / 2, 0, 0]}
               onClick={openPopup}
               onPointerOver={(e) => {
@@ -189,7 +194,13 @@ export default function CharacterTray({
               }}
               onPointerOut={() => setHoveredCard((now) => (now === n ? null : now))}
             >
-              <planeGeometry args={[TRAY_CARD_WIDTH, TRAY_CARD_HEIGHT]} />
+              <planeGeometry
+                args={
+                  isGrunt
+                    ? [GRUNT_CARD_WIDTH, GRUNT_CARD_HEIGHT]
+                    : [TRAY_CARD_WIDTH, TRAY_CARD_HEIGHT]
+                }
+              />
               <FaceMaterial map={sideMap(n)} side={DoubleSide} />
             </mesh>
           ))}
@@ -197,7 +208,9 @@ export default function CharacterTray({
         {/* "On" row above the card, where TTS shows the tokens on a character. Each token has its own
           Suspense: a new token image loads without hiding the tray. */}
         {onTokens.map(([key, count], i) => {
-          const [x, z] = trayOnTokenPosition(i, onTokens.length)
+          const [x, z] = isGrunt
+            ? trayGruntOnTokenPosition(i, onTokens.length)
+            : trayOnTokenPosition(i, onTokens.length)
           return (
             <group key={key} position={[x, TOKEN_Y, z]}>
               <Suspense fallback={null}>
@@ -224,7 +237,10 @@ export default function CharacterTray({
           })}
         {/* Rx(-pi/2) lays the Html flat on the table facing up, with its top to local -Z, the same
           as the card. So the owner reads it the right way up. */}
-        <group position={[0, 0.02, trayControlsLocalZ(cards)]} rotation={[-Math.PI / 2, 0, 0]}>
+        <group
+          position={[0, 0.02, isGrunt ? GRUNT_CONTROLS_LOCAL_Z : trayControlsLocalZ(cards)]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        >
           <Html center transform>
             <TrayControls
               character={character}

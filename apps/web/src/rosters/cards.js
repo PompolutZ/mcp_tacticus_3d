@@ -35,7 +35,7 @@ const crisisKeys = idToKey(crisisFiles)
 // bearableGemsWithName; 1 when Jarvis has none), from Jarvis. back: the image
 // of the other side, for the flip in the roster popup. null when the app has no image, or when the other side is the
 // same for every card of the kind: the back of a crisis card shows only its type.
-// variants: the cards that the roster popup can switch between for this character, [{ label, image, back }],
+// variants: the cards that the roster popup can switch between for this character, [{ label, image, back, portrait? }],
 // the character card first. null when the character has one card. A second form with its own card (see
 // docs/features/character-trays.md, "Second forms") and each migrated grunt of a host (see "Grunts").
 // gem: true for an Infinity Gem (isInfinityGem in Jarvis). It has kind 'tactic' and the files of a Team Tactic card.
@@ -52,7 +52,7 @@ const formLabel = (slug) =>
 for (const ch of CHARACTERS) {
   const image = ch.available ? characterCard(ch.slug, 'healthy') : null
   const back = ch.available ? characterCard(ch.slug, 'injured') : null
-  // The card of the character, its second form, and each grunt (no Injured side, so no back)
+  // The card of the character, its second form, and each grunt (no Injured side, so no back; portrait: the image is 808x1404, not 3:2)
   const forms = [
     ...(ch.transform?.card
       ? [
@@ -67,6 +67,7 @@ for (const ch of CHARACTERS) {
       label: grunt.name,
       image: characterCard(grunt.slug, 'healthy'),
       back: null,
+      portrait: true,
     })),
   ]
   const variants =

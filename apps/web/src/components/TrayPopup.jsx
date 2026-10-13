@@ -3,7 +3,13 @@ import { assetUrl } from '../assets/index.js'
 import { characterCard, transformCard } from '../characters/files.js'
 import { trayCards } from '../characters/models.js'
 import { characterName, characterStamina } from '../characters/characters.js'
-import { HELD_SIZE_U, trayHeldCardPoint } from '../characters/trays.js'
+import {
+  GRUNT_HELD_SIZE_U,
+  HELD_SIZE_U,
+  trayGruntHeldCardPoint,
+  trayGruntHeldClamp,
+  trayHeldCardPoint,
+} from '../characters/trays.js'
 import { tokenInfo } from '../crisis/cards.js'
 import { crisisToken } from '../crisis/files.js'
 import { characterToken } from '../tokens/files.js'
@@ -84,10 +90,14 @@ export function TrayPopup({
           className={`tray-popup-main${attached.length > 0 ? ' tray-popup-main--attached' : ''}`}
         >
           <div className="tray-popup-cards">
-            <div className="tray-popup-card">
+            <div
+              className={
+                character.host ? 'tray-popup-card tray-popup-card--grunt' : 'tray-popup-card'
+              }
+            >
               <img src={assetUrl(characterCard(character.key, shownSide))} alt={name} />
               {heldTokens.map((token) => (
-                <HeldToken key={token.id} token={token} />
+                <HeldToken key={token.id} token={token} grunt={Boolean(character.host)} />
               ))}
             </div>
             {trayCards(character) === 2 && (
@@ -164,11 +174,15 @@ function OnToken({ tokenKey, count, onClick }) {
 
 // A crisis token the character holds, on the card image, the face that is up. Its place on the
 // image is its place on the 3D card (trays.js, heldAt), as a percentage of the image size.
-function HeldToken({ token }) {
+function HeldToken({ token, grunt }) {
   const key = token.up === 'front' ? token.frontKey : (token.backKey ?? token.frontKey)
   const name = tokenInfo(key)?.name ?? key
-  const { u, v } = trayHeldCardPoint(token.heldAt)
-  const style = { left: `${u * 100}%`, top: `${v * 100}%`, width: `${HELD_SIZE_U * 100}%` }
+  // A grunt's token lies on the portrait grunt card (trays.js)
+  const { u, v } = grunt
+    ? trayGruntHeldCardPoint(trayGruntHeldClamp(token.heldAt))
+    : trayHeldCardPoint(token.heldAt)
+  const size = grunt ? GRUNT_HELD_SIZE_U : HELD_SIZE_U
+  const style = { left: `${u * 100}%`, top: `${v * 100}%`, width: `${size * 100}%` }
   return (
     <img
       className="tray-popup-held"

@@ -1,19 +1,24 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
+  GRUNT_CARD_HEIGHT,
+  GRUNT_CARD_LOCAL_Z,
+  GRUNT_CARD_WIDTH,
+  GRUNT_CONTROLS_LOCAL_Z,
   TRAY_BG_WIDTH,
-  TRAY_CARD_HEIGHT,
   gruntsByHost,
   inTrayArea,
   layoutTrays,
   onTray,
-  trayCardLocalZ,
   trayControlsLocalZ,
   trayGiveTokenPosition,
+  trayGruntHeldCardPoint,
+  trayGruntHeldClamp,
+  trayGruntHeldLocal,
+  trayGruntModelPosition,
+  trayGruntOnTokenPosition,
   trayGruntSlot,
-  trayHeldLocal,
   trayHeldWorld,
-  trayModelPosition,
   trayPlate,
   trayPosition,
 } from './trays.js'
@@ -41,20 +46,29 @@ test('gruntsByHost: grunts in spawn order; a grunt without its host is left out'
   assert.equal(map.has('gone'), false)
 })
 
-test('a grunt card lies below the host card and controls strip, toward the owner', () => {
-  const [x, z] = trayGruntSlot(1, 0)
-  assert.equal(x, 0)
-  // The grunt card is past the host controls strip
-  assert.ok(trayCardLocalZ(1) + z > trayControlsLocalZ(1))
-  // Two host cards push the grunt block on by one card
-  assert.ok(trayGruntSlot(2, 0)[1] > z)
+test('the grunt card is portrait, the aspect of its 808x1404 image, at the width of a crisis card', () => {
+  assert.equal(GRUNT_CARD_WIDTH, 2.75)
+  assert.ok(Math.abs(GRUNT_CARD_WIDTH / GRUNT_CARD_HEIGHT - 808 / 1404) < 1e-9)
+  assert.ok(GRUNT_CARD_HEIGHT > GRUNT_CARD_WIDTH)
 })
 
-test('Sandman: two grunt cards side by side, the second to the owner right', () => {
+test('a grunt unit lies below the host card and controls strip, toward the owner', () => {
+  const [x, z] = trayGruntSlot(1, 0)
+  assert.equal(x, 0)
+  // The grunt card starts past the host controls strip
+  const hostEnd = trayControlsLocalZ(1) + 0.75
+  assert.ok(GRUNT_CARD_LOCAL_Z + z - GRUNT_CARD_HEIGHT / 2 > hostEnd)
+  // Two host cards push the grunt block on by one card
+  assert.ok(trayGruntSlot(2, 0)[1] > z)
+  // The unit has the grunt card, then its controls strip
+  assert.ok(GRUNT_CONTROLS_LOCAL_Z > GRUNT_CARD_LOCAL_Z + GRUNT_CARD_HEIGHT / 2)
+})
+
+test('Sandman: two portrait grunt cards side by side, with a gap', () => {
   const [x0, z0] = trayGruntSlot(1, 0)
   const [x1, z1] = trayGruntSlot(1, 1)
   assert.equal(z0, z1)
-  assert.ok(x1 - x0 > 4.5)
+  assert.ok(x1 - x0 > GRUNT_CARD_WIDTH)
 })
 
 test('the plate grows toward the owner with a grunt; only two grunts make it wider', () => {
@@ -63,54 +77,72 @@ test('the plate grows toward the owner with a grunt; only two grunts make it wid
   const two = trayPlate(1, 2)
   assert.equal(none.width, TRAY_BG_WIDTH)
   assert.equal(none.x, 0)
-  assert.ok(one.depth > none.depth + TRAY_CARD_HEIGHT)
+  assert.ok(one.depth > none.depth + GRUNT_CARD_HEIGHT)
   assert.equal(one.width, TRAY_BG_WIDTH)
   assert.equal(one.x, 0)
-  assert.ok(two.width > TRAY_BG_WIDTH + 4.5)
+  assert.ok(two.width > TRAY_BG_WIDTH)
   assert.ok(two.x > 0)
   // The host's left edge stays at the same place
-  assert.equal(two.x - two.width / 2, -TRAY_BG_WIDTH / 2)
+  assert.ok(Math.abs(two.x - two.width / 2 + TRAY_BG_WIDTH / 2) < 1e-9)
+  // The second grunt card lies on the plate
+  const [x1] = trayGruntSlot(1, 1)
+  assert.ok(x1 + GRUNT_CARD_WIDTH / 2 <= two.x + two.width / 2)
 })
 
-test('the Give sources move past the grunt cards', () => {
+test('the Give sources move past the grunt block', () => {
   const plain = trayGiveTokenPosition(0, 1)
   const withGrunt = trayGiveTokenPosition(0, 1, 1)
   assert.equal(withGrunt[0], plain[0])
-  assert.ok(withGrunt[1] > plain[1] + TRAY_CARD_HEIGHT)
+  assert.ok(withGrunt[1] > plain[1] + GRUNT_CARD_HEIGHT)
   // Past the last grunt controls strip, so not on the plate
   const plate = trayPlate(1, 1)
   assert.ok(withGrunt[1] > plate.z + plate.depth / 2)
 })
 
-test('the grunt model spawns on its card', () => {
+test('the grunt model spawns on the center of its card', () => {
   const pos = trayPosition('host', 0, 1)
   const [slotX, slotZ] = trayGruntSlot(1, 1)
-  const [x, , z] = trayModelPosition('host', pos, 1, [slotX, slotZ])
-  near([x, z], [pos[0] + slotX, pos[2] + trayCardLocalZ(1) + slotZ])
+  const [x, , z] = trayGruntModelPosition('host', pos, 1, 1)
+  near([x, z], [pos[0] + slotX, pos[2] + GRUNT_CARD_LOCAL_Z + slotZ])
   // Guest tray is turned by 180 degrees
   const guest = trayPosition('guest', 0, 1)
-  const [gx, , gz] = trayModelPosition('guest', guest, 1, [slotX, slotZ])
-  near([gx, gz], [guest[0] - slotX, guest[2] - (trayCardLocalZ(1) + slotZ)])
+  const [gx, , gz] = trayGruntModelPosition('guest', guest, 1, 1)
+  near([gx, gz], [guest[0] - slotX, guest[2] - (GRUNT_CARD_LOCAL_Z + slotZ)])
 })
 
 test('onTray and inTrayArea cover the grunt cards', () => {
   const pos = trayPosition('host', 0, 1)
-  const [slotX, slotZ] = trayGruntSlot(1, 1)
-  const onGrunt2 = { x: pos[0] + slotX, z: pos[2] + trayCardLocalZ(1) + slotZ }
+  const [x, , z] = trayGruntModelPosition('host', pos, 1, 1)
+  const onGrunt2 = { x, z }
   assert.equal(onTray('host', pos, onGrunt2, 1, 0), false)
   assert.equal(onTray('host', pos, onGrunt2, 1, 2), true)
   assert.equal(inTrayArea('host', pos, onGrunt2, 0), false)
   assert.equal(inTrayArea('host', pos, onGrunt2, 2), true)
+  // The edge of the second card is on the plate too
+  assert.equal(onTray('host', pos, { x: x + GRUNT_CARD_WIDTH / 2 - 0.01, z }, 1, 2), true)
 })
 
-test('a token held by a grunt lies on the grunt card', () => {
+test('a token held by a grunt is clamped to the portrait grunt card', () => {
   const pos = trayPosition('host', 0, 1)
   const slot = trayGruntSlot(1, 0)
-  const point = { x: pos[0] + slot[0], z: pos[2] + trayCardLocalZ(1) + slot[1] }
-  const local = trayHeldLocal('host', pos, point, slot)
-  assert.ok(Math.abs(local[0]) < 0.01)
+  const center = trayGruntModelPosition('host', pos, 1, 0)
+  const local = trayGruntHeldLocal('host', pos, { x: center[0], z: center[2] }, slot)
+  near(local, [0, GRUNT_CARD_LOCAL_Z])
   const [wx, wz] = trayHeldWorld('host', pos, local, slot)
-  assert.ok(Math.abs(wx - point.x) < 0.01 && Math.abs(wz - point.z) < 0.01)
+  near([wx, wz], [center[0], center[2]])
+  // Far off the card: inside the card edges, with the radius of the token
+  const far = trayGruntHeldClamp([50, GRUNT_CARD_LOCAL_Z + 50])
+  near(far, [GRUNT_CARD_WIDTH / 2 - 0.5, GRUNT_CARD_LOCAL_Z + GRUNT_CARD_HEIGHT / 2 - 0.5])
+  // The card point of the center is the middle of the image
+  const { u, v } = trayGruntHeldCardPoint(local)
+  near([u, v], [0.5, 0.5])
+})
+
+test('the On row of a grunt is as wide as its card', () => {
+  const [x0] = trayGruntOnTokenPosition(0, 1)
+  assert.ok(Math.abs(x0 + GRUNT_CARD_WIDTH / 2 - 0.375) < 1e-9)
+  const [last] = trayGruntOnTokenPosition(5, 6)
+  assert.ok(last + 0.375 <= GRUNT_CARD_WIDTH / 2 + 1e-9)
 })
 
 test('layoutTrays: a grunt has the position of its host and takes no place in the row', () => {

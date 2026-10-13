@@ -117,6 +117,8 @@ Built:
 - Feature docs: new section "Grunts" in `character-trays.md`, `roster.md`, `round-phases.md`.
 - Tests: tray layout with grunt cards, Sandman width, row centering, new characters with grunts, delete with the host, Cleanup of a grunt.
 
+- Grunt card aspect: the grunt image is portrait (808x1404). It is drawn 2.75" x 4.78" on the table (the width of a crisis card), with its own sizing in the tray popup and the roster popup variants. `trays.js` has grunt functions for the card, the On row, the controls, the model place and held tokens.
+
 Open:
-- A host with grunts reaches z 35.5" from the table center. The tool rack starts at 34.2", so it can overlap the grunt block of a tray near x = 0. The table or the rack is not changed yet.
+- A host with grunts reaches z 36.1" (plate) and 37.1" (Give sources) from the table center, after the grunt card aspect fix. The tool rack starts at 34.2", so it can overlap the grunt block of a tray near x = 0. The table or the rack is not changed yet.
 - A click on a Give source gives the token to the host, also a token that only a grunt has. Players drag it onto the grunt for the grunt.
