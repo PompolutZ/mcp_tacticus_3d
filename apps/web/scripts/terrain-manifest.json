@@ -1102,6 +1102,54 @@
       "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1e04cfd5b788.obj",
       "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c27065b3ac6a.png",
       "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1e04cfd5b788.obj"
+    },
+    "trash-can-size-1": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6ac4cae5ceed.unity3d"
+    },
+    "tree-size-2-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/cf5918dc17df.unity3d"
+    },
+    "trash-size-1": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/18d03a28b955.unity3d"
+    },
+    "daily-bugle-size-3-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/d4b471a17952.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4c5f6c1c9f30.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/2fbc2d24aaf6.obj"
+    },
+    "apartment-building-size-5": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7847f29edcb0.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/35299515e708.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/2ef30e6b156e.obj"
+    },
+    "the-daily-grind-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/dbfb5bb08ced.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a866daca94b9.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5fa339bc16ac.obj"
+    },
+    "advertisement-size-2": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9a67c962177a.unity3d"
+    },
+    "traffic-signal-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3265c9384531.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/634fb1bd5cbf.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3265c9384531.obj"
+    },
+    "getaway-van-size-3": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/029dae116a97.unity3d"
+    },
+    "hot-dog-stand-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/848e6f629c22.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0dfada24a489.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/848e6f629c22.obj"
+    },
+    "bus-stop-w-base-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/570180430481.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/bce39e80c753.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/570180430481.obj"
+    },
+    "nyc-bank-size-5": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/666331ca271e.unity3d"
     }
   },
   "mats": {
@@ -1124,6 +1172,7 @@
     "oscrop-chemical": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0bba74402702.png",
     "dockyard-destruction-spider-man-to-blame": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0c3ae53102d3.png",
     "night-time-patrol": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/851db0b0c40d.jpg",
-    "sand-scrap": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/396e5f8da309.png"
+    "sand-scrap": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/396e5f8da309.png",
+    "swing-into-action": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/67b66dd519e3.jpg"
   }
 }

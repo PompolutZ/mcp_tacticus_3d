@@ -29,6 +29,7 @@ A map is a mat (the ground image) and a list of terrain pieces. The data is in `
 | Dockyard Destruction! Spider-Man to Blame! | 0 |
 | Night Time Patrol | 180 |
 | Sand Scrap | 270 |
+| Swing Into Action | 180 |
 
 Survival of the Fittest has the same placements as Hydra Vs Wakanda. It is not in the list.
 

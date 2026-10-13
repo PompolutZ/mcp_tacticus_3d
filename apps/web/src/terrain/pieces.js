@@ -4600,4 +4600,110 @@ export const TERRAIN_PIECES = {
   'size-1-bikes-2': { name: 'Bikes', convex: true },
   'scavenged-plow-size-4': { name: 'Scavenged Plow', convex: false },
   'quad-size-1': { name: 'Quad', convex: true },
+  'trash-can-size-1': {
+    name: 'Trash Can',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [0, 0, 0],
+        quaternion: [0, 0, 0, 1],
+        scale: [1, 1, 1],
+        mesh: 0,
+      },
+    ],
+  },
+  'tree-size-2-3': {
+    name: 'Tree',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'mesh',
+        convex: true,
+        position: [0, 0, 0],
+        quaternion: [0, 0, 0, 1],
+        scale: [1, 1, 1],
+        mesh: 0,
+      },
+    ],
+  },
+  'trash-size-1': {
+    name: 'Trash',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [0, 0, 0],
+        quaternion: [-0.5792, -0.4056, -0.4056, 0.5792],
+        scale: [0.75, 0.75, 0.75],
+        mesh: 0,
+      },
+    ],
+  },
+  'daily-bugle-size-3-2': { name: 'Daily Bugle', convex: false, collider: true },
+  'apartment-building-size-5': { name: 'Apartment Building', convex: false, collider: true },
+  'the-daily-grind-size-3': { name: 'The Daily Grind', convex: false, collider: true },
+  'advertisement-size-2': {
+    name: 'Advertisement',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [0, 1.1968, 0.0012],
+        quaternion: [-0.7071, 0, 0, 0.7071],
+        scale: [123.8287, 21.2996, 197.9055],
+        mesh: 0,
+      },
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [0, 2.3636, -0.2127],
+        quaternion: [-0.0026, 1, -0.0002, 0],
+        scale: [113.1805, 153.9024, 113.1825],
+        mesh: 1,
+      },
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [0, 2.3636, 0.2184],
+        quaternion: [-0.0001, -0.0002, 0.0008, 1],
+        scale: [113.1805, 153.9024, 113.1825],
+        mesh: 2,
+      },
+    ],
+  },
+  'traffic-signal-size-1': { name: 'Traffic Signal', convex: true },
+  'getaway-van-size-3': {
+    name: 'Getaway Van',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [0, 0, 0],
+        quaternion: [0, 0, 0, 1],
+        scale: [1, 1, 1],
+        mesh: 0,
+      },
+    ],
+  },
+  'hot-dog-stand-size-2': { name: 'Hot Dog Stand', convex: true },
+  'bus-stop-w-base-size-2': { name: 'Bus Stop w/ Base', convex: true },
+  'nyc-bank-size-5': {
+    name: 'NYC Bank',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [0, 0, 0],
+        quaternion: [0, 0, 0, 1],
+        scale: [1, 1, 1],
+        mesh: 0,
+      },
+    ],
+  },
 }
