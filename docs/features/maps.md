@@ -1,6 +1,6 @@
 # Maps
 
-Status: partly built. OBJ pieces work. Bundle pieces are not built yet.
+Status: built.
 
 A map is a mat (the ground image) and a list of terrain pieces. The data is in `src/terrain/maps.js` and `src/terrain/pieces.js`. The map comes from the TTS mod. `scripts/README.md` tells how to add one.
 
@@ -13,6 +13,8 @@ A map is a mat (the ground image) and a list of terrain pieces. The data is in `
 | Hydra Vs Wakanda | 180 |
 | Dimensional Assault | 180 |
 | Dark Dimension on Mars Base | 90 |
+| Will He get away with it | 180 |
+| Savageland Unleashed | 180 |
 
 Survival of the Fittest has the same placements as Hydra Vs Wakanda. It is not in the list.
 
@@ -31,5 +33,7 @@ Survival of the Fittest has the same placements as Hydra Vs Wakanda. It is not i
 ## Pieces
 
 - An OBJ piece has a mesh and one texture. It has a collider from the mesh, or from one collider mesh.
-- A bundle piece has a GLB with its own materials and a list of colliders. The app does not draw bundle pieces yet. A map with a bundle piece is not in the app.
-- `tint` on a placement multiplies the texture, as in TTS. A tint is left out when the map card shows another color. The tints of the app maps were compared with the cards.
+- A bundle piece (`bundle: true`) has a GLB with its own materials, no texture file, and a list of `colliders`. The app keeps the GLB materials (a copy for each placement). The footprint shader, shadows, outline, label and pointer handling are the same as for an OBJ piece.
+- `tint` on a bundle piece multiplies the color of each material, as TTS does. The tint is sRGB, as for an OBJ piece.
+- A bundle piece has no collider from its visible mesh. Each `colliders` entry is one Rapier collider: box, cylinder, capsule and sphere are Rapier shapes, and a mesh entry is the hull or the triangles of a collider GLB. The entries are in GLB space, so the same turn of 180° around Y as for the mesh applies, and then the placement scale. The size of a box, cylinder, capsule or sphere follows the scale. A non-uniform scale on a turned shape is only approximate, because a Rapier shape cannot skew. The maps so far have uniform scales only.
+- `tint` on an OBJ piece multiplies the texture, as in TTS. A tint is left out when the map card shows another color. The tints of the app maps were compared with the cards.

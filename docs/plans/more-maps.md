@@ -101,4 +101,11 @@ Phase 1 (done):
 - `docs/features/maps.md` written. README item 3 removed.
 - Not checked in the browser: the mat turn of 291 against its card.
 
-Phases 2 to 7: not started.
+Phase 2 (done):
+- `Terrain.jsx`: `ObjPiece` and `BundlePiece` share `PieceBody`. A bundle piece clones the GLB materials per placement, multiplies each color by the tint and gets `projectFootprints`. `pieceUrls` gives `texture: null` and `colliders` (collider mesh URLs) for a bundle piece. `rooms/preload.js` loads the same.
+- Colliders: @react-three/rapier 1.5 scales the args of an explicit collider by its world scale, and scales its position by the parent scale a second time (it expects the scale on the RigidBody). So box, cylinder, capsule and sphere sit directly under the RigidBody with the scale already in size and position (`terrain/bundleColliders.js`, tested). Mesh entries sit in the scaled group, under `IMPORT_ROTATION` and the entry transform.
+- Migrated 301 and 299. Warning: `car-size-2-14` has a secondary bundle, which the script ignores (known, as for Bastion). 301 has one bundle piece (`fire-effect-small`, one box), 299 two (`car-size-2-14`, `car-size-2-15`, one mesh collider each).
+- Tints: kept the orange tint of the 4 fire effects in 301 (the card does not show them). 299 has no tints.
+- Not checked in the browser: Debug → Colliders for the fire box and the two cars, the mat turn.
+
+Phases 3 to 7: not started.

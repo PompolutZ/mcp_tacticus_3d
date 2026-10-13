@@ -6,6 +6,11 @@
 // convex: the mod's collider flag. true: Unity uses the convex hull of the collider mesh.
 //   false: Unity uses the mesh triangles.
 // collider: true when the mod has a separate collider mesh. Otherwise the collider mesh is the visible mesh.
+// bundle: true for a Unity asset bundle piece. Its GLB has its own materials, so there is no texture file,
+//   and convex and collider do not apply. Terrain.jsx draws it with the GLB materials (docs/features/maps.md).
+// colliders: the colliders of a bundle piece, one entry each, as the script reads them from the prefab. Shapes:
+//   box, cylinder, capsule, sphere and mesh (a collider GLB, see bundleCollider in files.js). The format is in
+//   scripts/README.md, "Colliders of a bundle". terrain/bundleColliders.js turns the entries into Rapier colliders.
 export const TERRAIN_PIECES = {
   'mech-hangar': { name: 'Building', convex: false },
   'cosmic-barricade': { name: 'Cosmic Barricade', convex: true },
@@ -41,4 +46,68 @@ export const TERRAIN_PIECES = {
   'pym-storage-container-size-3': { name: 'Pym Storage Container', convex: true, collider: true },
   'storage-container-size-2-3': { name: 'Storage Container', convex: true, collider: true },
   'electrical-hut-size-2': { name: 'Electrical Hut', convex: true },
+  'size-5-apartments': { name: 'Apartments', convex: false, collider: true },
+  'size-2-police-car': { name: 'Police Car', convex: false, collider: true },
+  'size-1-rake': { name: 'Rake', convex: false },
+  'size-4-bank': { name: 'Bank', convex: false, collider: true },
+  'size-2-dumpster': { name: 'Dumpster', convex: false, collider: true },
+  'size-2-crashed-police-car': { name: 'Crashed Police Car', convex: false, collider: true },
+  'size-3-armored-truck': { name: 'Armored Truck', convex: false, collider: true },
+  'size-2-k9-unit': { name: 'K-9 Unit', convex: false, collider: true },
+  'size-1-suitcase-full-of-money': { name: 'Suitcase Full of Money', convex: false },
+  'size-2-lil-bandit': { name: "Lil' Bandit", convex: false, collider: true },
+  'size-1-money-bag': { name: 'Money Bag', convex: false, collider: true },
+  'size-2-pink-car': { name: 'Pink Car', convex: false, collider: true },
+  'size-2-street-chunk': { name: 'Street Chunk', convex: true },
+  'size-3-androids-dungeon': { name: "Android's Dungeon", convex: false, collider: true },
+  'size-1-trash-can': { name: 'Trash Can', convex: false },
+  'size-3-king-toots': { name: 'King Toots', convex: false, collider: true },
+  'size-4-tier-fire': { name: 'Tier Fire', convex: false, collider: true },
+  'fire-effect-small': {
+    name: 'Fire Effect (small)',
+    bundle: true,
+    colliders: [
+      { shape: 'box', position: [0, 0, 0], quaternion: [0, 0, 0, 1], halfExtents: [0.5, 0.5, 0.5] },
+    ],
+  },
+  'fence-size-3': { name: 'Fence', convex: true },
+  'cage-size-4': { name: 'Cage', convex: false },
+  'pteranodon-size-1': { name: 'Pteranodon', convex: true, collider: true },
+  'ankylosaurus-size-3': { name: 'Ankylosaurus', convex: true },
+  'car-size-2-14': {
+    name: 'Car',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [0, 0, 0],
+        quaternion: [0, 0, 0, 1],
+        scale: [1, 1, 1],
+        mesh: 1,
+      },
+    ],
+  },
+  'eggs-size-2': { name: 'Eggs', convex: false },
+  'tree-size-3-3': { name: 'Tree', convex: true, collider: true },
+  'car-size-2-15': {
+    name: 'Car',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'mesh',
+        convex: false,
+        position: [0, 0, 0],
+        quaternion: [0, 0, 0, 1],
+        scale: [1, 1, 1],
+        mesh: 1,
+      },
+    ],
+  },
+  'triceratops-size-3': { name: 'Triceratops', convex: true },
+  'dinosaur-poo-size-1': { name: 'Dinosaur Poo', convex: true },
+  'stegosarus-size-3': { name: 'Stegosarus', convex: true },
+  'dimetrodon-size-1': { name: 'Dimetrodon', convex: true, collider: true },
+  'car-ball-size-2': { name: 'Car ball', convex: false },
+  'skull-size-2': { name: 'Skull', convex: false },
 }

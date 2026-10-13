@@ -1,9 +1,17 @@
 import { Html, useGLTF, useTexture } from '@react-three/drei'
-import { MeshCollider, RigidBody } from '@react-three/rapier'
+import {
+  BallCollider,
+  CapsuleCollider,
+  CuboidCollider,
+  CylinderCollider,
+  MeshCollider,
+  RigidBody,
+} from '@react-three/rapier'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { assetUrl } from '../assets/index.js'
-import { pieceCollider, pieceMesh, pieceTexture } from '../terrain/files.js'
+import { primitiveCollider } from '../terrain/bundleColliders.js'
+import { bundleCollider, pieceCollider, pieceMesh, pieceTexture } from '../terrain/files.js'
 import { TTS_MAT_TOP } from '../terrain/maps.js'
 import { terrainLabel } from '../terrain/label.js'
 import { TERRAIN_PIECES } from '../terrain/pieces.js'
@@ -49,24 +57,68 @@ function labelPosition(raw, scale) {
 
 // The mod's collider mesh of a piece, when it is not the visible mesh. It is converted from OBJ
 // in the same way as the visible mesh, so it gets the same turn. It is not drawn.
-function ColliderMesh({ url, convex }) {
+// entry: the `colliders` entry of a bundle piece, which places the mesh in the prefab (position,
+// quaternion, scale in GLB space, before the turn). The mesh of an OBJ piece has none. Checked only with
+// the identity entries of the maps so far.
+function ColliderMesh({ url, convex, entry }) {
   const { scene } = useGLTF(url)
   const obj = useMemo(() => scene.clone(), [scene])
   return (
-    <MeshCollider type={convex ? 'hull' : 'trimesh'}>
-      <primitive object={obj} rotation={IMPORT_ROTATION} visible={false} />
-    </MeshCollider>
+    <group rotation={IMPORT_ROTATION}>
+      <group position={entry?.position} quaternion={entry?.quaternion} scale={entry?.scale}>
+        <MeshCollider type={convex ? 'hull' : 'trimesh'}>
+          <primitive object={obj} visible={false} />
+        </MeshCollider>
+      </group>
+    </group>
   )
 }
 
-// The files of a terrain piece, as TerrainPiece loads them: mesh, texture, and collider mesh or null.
+const PRIMITIVE_COLLIDERS = {
+  cuboid: CuboidCollider,
+  cylinder: CylinderCollider,
+  capsule: CapsuleCollider,
+  ball: BallCollider,
+}
+
+// The box, cylinder, capsule and sphere colliders of a bundle piece. They sit directly under the
+// RigidBody, with the placement scale already in their size and position, see terrain/bundleColliders.js
+// for why they are not in the scaled group.
+function PrimitiveColliders({ colliders, scale }) {
+  return colliders.map((entry, i) => {
+    const c = primitiveCollider(entry, scale)
+    if (!c) return null
+    const Collider = PRIMITIVE_COLLIDERS[c.shape]
+    return (
+      <Collider
+        key={i}
+        args={c.args}
+        position={c.position}
+        quaternion={c.quaternion}
+        friction={FRICTION}
+      />
+    )
+  })
+}
+
+// The files of a terrain piece, as TerrainPiece loads them: mesh, texture (null for a bundle piece, whose
+// GLB has its materials), collider mesh of an OBJ piece or null, and the collider meshes of a bundle piece.
 // Preload.jsx loads the same before a table shows (docs/features/rooms.md, "Loading").
 export function pieceUrls(key) {
+  const piece = TERRAIN_PIECES[key]
   return {
     mesh: assetUrl(pieceMesh(key)),
-    texture: assetUrl(pieceTexture(key)),
-    collider: TERRAIN_PIECES[key].collider ? assetUrl(pieceCollider(key)) : null,
+    texture: piece.bundle ? null : assetUrl(pieceTexture(key)),
+    collider: piece.collider ? assetUrl(pieceCollider(key)) : null,
+    colliders: bundleColliderMeshes(key).map(({ n }) => assetUrl(bundleCollider(key, n))),
   }
+}
+
+// The `mesh` entries of a bundle piece: [{ n, entry }], n is the number of the collider GLB
+function bundleColliderMeshes(key) {
+  return (TERRAIN_PIECES[key].colliders ?? [])
+    .filter((entry) => entry.shape === 'mesh')
+    .map((entry) => ({ n: entry.mesh, entry }))
 }
 
 // placement: a terrain piece on the mat, see mapTerrain in rooms/table.js.
@@ -75,11 +127,18 @@ export function pieceUrls(key) {
 // moved onto (true) or off (false) the piece, for the Delete key.
 // objectRef(obj): the visible mesh of the piece, or null on unmount. Scene finds the piece under the
 // pointer with it, for the L key.
-function TerrainPiece({ placement, showLabel, selected, onSelect, onHover, objectRef }) {
+function TerrainPiece(props) {
+  return TERRAIN_PIECES[props.placement.piece].bundle ? (
+    <BundlePiece {...props} />
+  ) : (
+    <ObjPiece {...props} />
+  )
+}
+
+// An OBJ piece: one mesh, one texture, one material.
+function ObjPiece(props) {
+  const { placement } = props
   const piece = TERRAIN_PIECES[placement.piece]
-  const { locked } = placement
-  const meshRef = useRef(null)
-  const [hovered, setHovered] = useState(false)
   const urls = pieceUrls(placement.piece)
   const { scene: raw } = useGLTF(urls.mesh)
   const map = useTexture(urls.texture)
@@ -101,6 +160,87 @@ function TerrainPiece({ placement, showLabel, selected, onSelect, onHover, objec
     })
     return clone
   }, [raw, map, placement.tint])
+  return (
+    <PieceBody
+      {...props}
+      raw={raw}
+      obj={obj}
+      autoColliders={piece.collider ? false : piece.convex ? 'hull' : 'trimesh'}
+      meshColliders={urls.collider && <ColliderMesh url={urls.collider} convex={piece.convex} />}
+    />
+  )
+}
+
+// A bundle piece: the GLB has its own materials, so the piece keeps them (a copy for each placement)
+// and gets the tint on top. The colliders are the `colliders` entries, not the visible mesh.
+function BundlePiece(props) {
+  const { placement } = props
+  const piece = TERRAIN_PIECES[placement.piece]
+  const urls = pieceUrls(placement.piece)
+  const { scene: raw } = useGLTF(urls.mesh)
+  const obj = useMemo(() => {
+    // TTS multiplies the model colors by the tint. The color is sRGB, as for an OBJ piece.
+    const tint = new THREE.Color().setRGB(...(placement.tint ?? WHITE), THREE.SRGBColorSpace)
+    const clone = raw.clone()
+    clone.traverse((child) => {
+      if (!child.isMesh) return
+      const copy = (material) => {
+        const m = material.clone()
+        m.color?.multiply(tint)
+        m.onBeforeCompile = projectFootprints
+        return m
+      }
+      child.material = Array.isArray(child.material)
+        ? child.material.map(copy)
+        : copy(child.material)
+      child.castShadow = true
+      child.receiveShadow = true
+    })
+    return clone
+  }, [raw, placement.tint])
+  useEffect(
+    () => () =>
+      obj.traverse((child) => {
+        if (child.isMesh) [child.material].flat().forEach((m) => m.dispose())
+      }),
+    [obj],
+  )
+  const meshes = bundleColliderMeshes(placement.piece)
+  return (
+    <PieceBody
+      {...props}
+      raw={raw}
+      obj={obj}
+      autoColliders={false}
+      meshColliders={meshes.map(({ n, entry }, i) => (
+        <ColliderMesh key={n} url={urls.colliders[i]} convex={entry.convex} entry={entry} />
+      ))}
+      shapeColliders={<PrimitiveColliders colliders={piece.colliders} scale={placement.scale} />}
+    />
+  )
+}
+
+// The part that both kinds share: transform, RigidBody, pointer handling, outline and label.
+// obj: the visible mesh. raw: the loaded GLB scene, for the label position.
+// autoColliders: the RigidBody colliders option. meshColliders: collider meshes, in the scaled group.
+// shapeColliders: primitive colliders with the scale already in them, directly under the RigidBody.
+function PieceBody({
+  placement,
+  showLabel,
+  selected,
+  onSelect,
+  onHover,
+  objectRef,
+  raw,
+  obj,
+  autoColliders,
+  meshColliders,
+  shapeColliders,
+}) {
+  const piece = TERRAIN_PIECES[placement.piece]
+  const { locked } = placement
+  const meshRef = useRef(null)
+  const [hovered, setHovered] = useState(false)
   const { position, quaternion } = useMemo(() => toThreeTransform(placement), [placement])
   const labelPos = useMemo(() => labelPosition(raw, placement.scale), [raw, placement.scale])
 
@@ -143,8 +283,10 @@ function TerrainPiece({ placement, showLabel, selected, onSelect, onHover, objec
   // Fixed collider of the same kind as in the mod, so models stand and tip as they do in TTS.
   // The placement transform is on a group, not on RigidBody: @react-three/rapier 1.5 copies a RigidBody's
   // quaternion prop onto the colliders it builds from the meshes, so every collider would be turned twice.
-  // A piece with a collider mesh gets no colliders from the visible mesh. includeInvisible lets
-  // MeshCollider read the collider mesh, which is hidden.
+  // A piece with a collider mesh, and a bundle piece, get no colliders from the visible mesh.
+  // includeInvisible lets MeshCollider read the collider mesh, which is hidden.
+  // A bundle piece has its colliders from the `colliders` entries: the meshes in the scaled group (with
+  // IMPORT_ROTATION), the shapes under the RigidBody, see terrain/bundleColliders.js.
   // A locked piece has no pointer handlers, so R3F does not see it: a click on it is a click on the
   // empty table, and a piece behind it gets the pointer events. Only an unlocked piece can be hovered,
   // selected and deleted.
@@ -152,8 +294,8 @@ function TerrainPiece({ placement, showLabel, selected, onSelect, onHover, objec
     <group position={position} quaternion={quaternion}>
       <RigidBody
         type="fixed"
-        colliders={piece.collider ? false : piece.convex ? 'hull' : 'trimesh'}
-        includeInvisible={Boolean(piece.collider)}
+        colliders={autoColliders}
+        includeInvisible={autoColliders === false}
         friction={FRICTION}
       >
         <group scale={placement.scale}>
@@ -173,8 +315,9 @@ function TerrainPiece({ placement, showLabel, selected, onSelect, onHover, objec
             onPointerDown={locked ? undefined : handlePointerDown}
             onClick={locked ? undefined : handleClick}
           />
-          {urls.collider && <ColliderMesh url={urls.collider} convex={piece.convex} />}
+          {meshColliders}
         </group>
+        {shapeColliders}
       </RigidBody>
       {showLabel && (
         <Html

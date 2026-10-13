@@ -169,6 +169,160 @@
       "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/996884497168.obj",
       "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a6b69549f15e.png",
       "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/996884497168.obj"
+    },
+    "size-5-apartments": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b8fe3cb333f2.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/32f2e7927de8.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f1d7d439e296.obj"
+    },
+    "size-2-police-car": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8708688e92b9.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a272324d7ac7.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/fa174afb7437.obj"
+    },
+    "size-1-rake": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/cee1ced8befb.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6f62572f37b7.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/cee1ced8befb.obj"
+    },
+    "size-4-bank": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/dcddadc0a2e8.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/01910ddc5146.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/214e6d9e62b2.obj"
+    },
+    "size-2-dumpster": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4d9f1f7f57f6.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8745d1eb8ad4.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0b02228106f5.obj"
+    },
+    "size-2-crashed-police-car": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e12648c3a25b.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0fc6ea8736e3.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/fa174afb7437.obj"
+    },
+    "size-3-armored-truck": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4eee2dfac37e.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/86ba34c0acbc.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6f2272d4011f.obj"
+    },
+    "size-2-k9-unit": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/570ac8aaeaab.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0f9a8b28a73a.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9f9fcf5ab201.obj"
+    },
+    "size-1-suitcase-full-of-money": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1a773131f1dd.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/aa4fb1829b0e.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1a773131f1dd.obj"
+    },
+    "size-2-lil-bandit": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ef50c53d208d.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0ab020b397ae.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/754d445fa5ac.obj"
+    },
+    "size-1-money-bag": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/dfcd75cf89da.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/09526872fa5d.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/498213d3bad6.obj"
+    },
+    "size-2-pink-car": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8ee509c1e656.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/d64f4ab3bdac.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/abde8894d2de.obj"
+    },
+    "size-2-street-chunk": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b54d132ea6bd.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/7be1b08b9856.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b54d132ea6bd.obj"
+    },
+    "size-3-androids-dungeon": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/12f3a92683df.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/56129210d58b.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/d1fd6a26aca9.obj"
+    },
+    "size-1-trash-can": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b017c2966e5a.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/5287395a9573.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b017c2966e5a.obj"
+    },
+    "size-3-king-toots": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ed38e182133c.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/81178b524c4f.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c53491671413.obj"
+    },
+    "size-4-tier-fire": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1979cf579e23.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3f85ef96a673.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/87d5717213a9.obj"
+    },
+    "fire-effect-small": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/06ef91f55dcb.unity3d"
+    },
+    "fence-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/691b8a4a4148.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e31ea1acdce1.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/691b8a4a4148.obj"
+    },
+    "cage-size-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/485f1514d205.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e4a2f1d096e7.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/485f1514d205.obj"
+    },
+    "pteranodon-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/b6eb9224eb47.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/13c4eedc17ed.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/06bd81512880.obj"
+    },
+    "ankylosaurus-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0272ba5ed43c.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/923fcbe68a96.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0272ba5ed43c.obj"
+    },
+    "car-size-2-14": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/d28da08335e8.unity3d"
+    },
+    "eggs-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0933ae6df5af.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/51829e6227ca.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0933ae6df5af.obj"
+    },
+    "tree-size-3-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/61e9ef45a37e.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ba61a5813607.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c163f08cb6c7.obj"
+    },
+    "car-size-2-15": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/837ed5c0acd6.unity3d"
+    },
+    "triceratops-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/54f66a103d3c.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/a6e31a02a44b.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/54f66a103d3c.obj"
+    },
+    "dinosaur-poo-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/290d6deba596.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/eb84c7203c52.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/290d6deba596.obj"
+    },
+    "stegosarus-size-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/92cade976601.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1e0a02a3ae76.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/92cade976601.obj"
+    },
+    "dimetrodon-size-1": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/05dd92874e01.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/4b4599eb26d9.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1d4048016e1e.obj"
+    },
+    "car-ball-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/02c574d60885.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3f56dbd4658e.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/02c574d60885.obj"
+    },
+    "skull-size-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f4d333e178af.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/95fd786ea7a4.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f4d333e178af.obj"
     }
   },
   "mats": {
@@ -176,6 +330,8 @@
     "battle-for-asgard": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6752d3d43dee.png",
     "hydra-vs-wakanda": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/702601a131f7.png",
     "dimensional-assault": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3d32755bee50.png",
-    "dark-dimension-on-mars-base": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/89d8d16ca6ec.png"
+    "dark-dimension-on-mars-base": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/89d8d16ca6ec.png",
+    "will-he-get-away-with-it": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0b54c8f8d522.png",
+    "savageland-unleashed": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/406c0ce1beca.png"
   }
 }

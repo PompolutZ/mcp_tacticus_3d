@@ -56,8 +56,6 @@ Several maps have the same name, for example three "Cosmic Downtown" cards. Maps
 5. Check that the report has no warning about the card image. Without the card, the lobby cannot show the map: take the map card out of its bag once in TTS, and run the script again.
 6. Commit the new files in `src/assets` and `scripts/terrain-manifest.json` together.
 
-The app does not use all the printed data yet. See [What the app still needs](#what-the-app-still-needs).
-
 ## Output
 
 | Output | Content |
@@ -153,13 +151,6 @@ The AssetRipper UI is a front end for a local HTTP server. `lib/assetripper.mjs`
 
 - **Terrain Database:** the `Terrain Database` object in `~/Library/Tabletop Simulator/Mods/Workshop/3036795456.json`. Its Lua script has `terrainDatabase = { pieces = {...}, cards = {...} }`. `lib/lua-table.mjs` reads the table, so Lua is not needed.
 - **TTS cache:** `~/Library/Tabletop Simulator/Mods/{Models,Images,Assetbundles}`. A cached file is named after its URL, with every character except letters and digits removed, plus the extension. For example, `https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/ab12.obj` becomes `httpsd37ev18qvj5a3mcloudfrontnetttsterrainab12obj.obj`.
-
-## What the app still needs
-
-`Terrain.jsx` supports OBJ pieces with a texture, with `convex` and `collider`. The map list in the toolbar shows every entry in `MAPS`. A map with bundle pieces needs these changes (`docs/features/maps.md`):
-
-1. **Bundle pieces (`bundle: true`):** use the materials in the GLB, because these pieces have no texture file. Keep `IMPORT_ROTATION`. Decide how to apply `tint` to materials that have their own colors.
-2. **`colliders`:** create one Rapier collider per entry, inside the same group as the mesh, so that `IMPORT_ROTATION` and the placement scale apply to it. Box → `CuboidCollider`, cylinder → `CylinderCollider`, capsule → `CapsuleCollider`, sphere → `BallCollider`, mesh → hull or trimesh of the collider GLB, with its `scale`. Check in the Debug → Colliders view that the colliders are not turned twice (see the note in `Terrain.jsx`).
 
 # TTS character migration
 
