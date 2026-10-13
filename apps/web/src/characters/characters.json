@@ -1856,6 +1856,19 @@
       "incinerate"
     ]
   },
+  "shadowland-daredevil": {
+    "id": "00790102",
+    "name": "Shadowland Daredevil",
+    "base": "small",
+    "figure": "model",
+    "rotation": 45,
+    "grunts": [
+      "hand-ninjas"
+    ],
+    "tokens": [
+      "bleed"
+    ]
+  },
   "shang-chi": {
     "id": "00690101",
     "name": "Shang-Chi",
@@ -2168,6 +2181,17 @@
       "bleed",
       "stun",
       "stagger"
+    ]
+  },
+  "the-wrecking-crew": {
+    "id": "01620102",
+    "name": "The Wrecking Crew",
+    "base": "large",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stagger",
+      "stun"
     ]
   },
   "thor-hero-of-midgard": {

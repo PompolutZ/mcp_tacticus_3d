@@ -1658,6 +1658,15 @@
       "characters/shadowcat/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHADOWCAT_UI.png"
     }
   },
+  "shadowland-daredevil": {
+    "id": "00790102",
+    "sources": {
+      "characters/shadowland-daredevil/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHADOWLAND_DAREDEVIL_healthy.jpg",
+      "characters/shadowland-daredevil/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHADOWLAND_DAREDEVIL_injured.jpg",
+      "characters/shadowland-daredevil/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SHADOWLAND_DAREDEVIL_MODEL.unity3d",
+      "characters/shadowland-daredevil/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SHADOWLAND_DAREDEVIL_UI.png"
+    }
+  },
   "shang-chi": {
     "id": "00690101",
     "sources": {
@@ -1926,6 +1935,15 @@
       "characters/the-warriors-three/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WARRIORS_THREE_injured.jpg",
       "characters/the-warriors-three/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/THE_WARRIORS_THREE_MODEL.unity3d",
       "characters/the-warriors-three/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_WARRIORS_THREE_UI.png"
+    }
+  },
+  "the-wrecking-crew": {
+    "id": "01620102",
+    "sources": {
+      "characters/the-wrecking-crew/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_WRECKING_CREW_healthy.jpg",
+      "characters/the-wrecking-crew/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_WRECKING_CREW_injured.jpg",
+      "characters/the-wrecking-crew/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/THE_WRECKING_CREW_MODEL.unity3d",
+      "characters/the-wrecking-crew/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/THE_WRECKING_CREW_UI.png"
     }
   },
   "thor-hero-of-midgard": {
