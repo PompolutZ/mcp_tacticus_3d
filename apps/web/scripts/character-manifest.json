@@ -283,6 +283,15 @@
       "characters/bob-agent-of-hydra/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BOB_AGENT_OF_HYDRA_UI.png"
     }
   },
+  "bullseye": {
+    "id": "00300101",
+    "sources": {
+      "characters/bullseye/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BULLSEYE_healthy.jpg",
+      "characters/bullseye/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BULLSEYE_injured.jpg",
+      "characters/bullseye/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/BULLSEYE_MODEL.unity3d",
+      "characters/bullseye/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/BULLSEYE_UI.png"
+    }
+  },
   "cable": {
     "id": "00470101",
     "sources": {
@@ -767,6 +776,21 @@
       "characters/honey-badger/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HONEY_BADGER_UI.png"
     }
   },
+  "hood": {
+    "id": "00650102",
+    "sources": {
+      "characters/hood/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HOOD_NORMAL_healthy.jpg",
+      "characters/hood/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HOOD_NORMAL_injured.jpg",
+      "characters/hood/card-2-healthy.webp": "https://steamusercontent-a.akamaihd.net/ugc/15102141671778223636/244DA54FF26D96B111C246F69F731E5A44109A22/",
+      "characters/hood/card-2-injured.webp": "https://steamusercontent-a.akamaihd.net/ugc/17095918785657311116/8173E7942E7FD499972B6845A4D1FE615A1E348B/",
+      "characters/hood/transform-card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HOOD_POSSESSED_healthy.jpg",
+      "characters/hood/transform-card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HOOD_POSSESSED_injured.jpg",
+      "characters/hood/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/HOOD_MODEL.unity3d",
+      "characters/hood/transform.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/HOOD_MODEL_TRANSFORM.unity3d",
+      "characters/hood/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HOOD_UI.png",
+      "characters/hood/transform-portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/HOOD_UI_TRANSFORM.png"
+    }
+  },
   "hulk": {
     "id": "00040101",
     "sources": {
@@ -878,6 +902,15 @@
       "characters/juggernaut/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/JUGGERNAUT_UI.png"
     }
   },
+  "kang-the-conqueror": {
+    "id": "01540103",
+    "sources": {
+      "characters/kang-the-conqueror/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/KANG_THE_CONQUEROR_healthy.jpg",
+      "characters/kang-the-conqueror/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/KANG_THE_CONQUEROR_injured.jpg",
+      "characters/kang-the-conqueror/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/KANG_THE_CONQUEROR_MODEL.unity3d",
+      "characters/kang-the-conqueror/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/KANG_THE_CONQUEROR_UI.png"
+    }
+  },
   "karnak": {
     "id": "01660102",
     "sources": {
@@ -930,6 +963,15 @@
       "characters/kingpin/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/KINGPIN_injured.jpg",
       "characters/kingpin/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/KINGPIN_MODEL.unity3d",
       "characters/kingpin/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/KINGPIN_UI.png"
+    }
+  },
+  "klaw": {
+    "id": "01160101",
+    "sources": {
+      "characters/klaw/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/KLAW_healthy.jpg",
+      "characters/klaw/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/KLAW_injured.jpg",
+      "characters/klaw/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/KLAW_MODEL.unity3d",
+      "characters/klaw/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/KLAW_UI.png"
     }
   },
   "kraven-the-hunter": {
@@ -1022,6 +1064,15 @@
       "characters/m-baku/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MBAKU_UI.png"
     }
   },
+  "m-o-d-o-k": {
+    "id": "00050101",
+    "sources": {
+      "characters/m-o-d-o-k/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MODOK_healthy.jpg",
+      "characters/m-o-d-o-k/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MODOK_injured.jpg",
+      "characters/m-o-d-o-k/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/MODOK_MODEL.unity3d",
+      "characters/m-o-d-o-k/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MODOK_UI.png"
+    }
+  },
   "m-o-d-o-k-scientist-supreme": {
     "id": "01450101",
     "sources": {
@@ -1104,6 +1155,7 @@
       "characters/mephisto/card-2-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MEPHISTO_LORD_OF_TEMPTATION_healthy.jpg",
       "characters/mephisto/card-2-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MEPHISTO_LORD_OF_TEMPTATION_injured.jpg",
       "characters/mephisto/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/MEPHISTO_MODEL_1.unity3d",
+      "characters/mephisto/model-2.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/MEPHISTO_MODEL_2.unity3d",
       "characters/mephisto/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MEPHISTO_UI.png"
     }
   },
@@ -1912,6 +1964,15 @@
       "characters/toad/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/TOAD_UI.png"
     }
   },
+  "ulik": {
+    "id": "01300102",
+    "sources": {
+      "characters/ulik/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ULIK_healthy.jpg",
+      "characters/ulik/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ULIK_injured.jpg",
+      "characters/ulik/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/ULIK_MODEL.unity3d",
+      "characters/ulik/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ULIK_UI.png"
+    }
+  },
   "ultimate-spider-man": {
     "id": "01690103",
     "sources": {
@@ -1919,6 +1980,33 @@
       "characters/ultimate-spider-man/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ULTIMATE_SPIDER_MAN_injured.jpg",
       "characters/ultimate-spider-man/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/ULTIMATE_SPIDER_MAN_MODEL.unity3d",
       "characters/ultimate-spider-man/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ULTIMATE_SPIDER_MAN_UI.png"
+    }
+  },
+  "ultron": {
+    "id": "00010110",
+    "sources": {
+      "characters/ultron/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ULTRON_healthy.jpg",
+      "characters/ultron/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ULTRON_injured.jpg",
+      "characters/ultron/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/ULTRON_MODEL.unity3d",
+      "characters/ultron/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ULTRON_UI.png"
+    }
+  },
+  "ultron-drones": {
+    "id": "01430119",
+    "sources": {
+      "characters/ultron-drones/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/ULTRON_DRONES_01430119_healthy.png",
+      "characters/ultron-drones/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/ULTRON_DRONES_01430119_injured.png",
+      "characters/ultron-drones/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/ULTRON_DRONES_MODEL.unity3d",
+      "characters/ultron-drones/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/ULTRON_DRONES_UI.png"
+    }
+  },
+  "ultron-metal-tyrant": {
+    "id": "01430110",
+    "sources": {
+      "characters/ultron-metal-tyrant/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ULTRON_METAL_TYRANT_healthy.jpg",
+      "characters/ultron-metal-tyrant/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ULTRON_METAL_TYRANT_injured.jpg",
+      "characters/ultron-metal-tyrant/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/ULTRON_METAL_TYRANT_MODEL.unity3d",
+      "characters/ultron-metal-tyrant/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ULTRON_METAL_TYRANT_UI.png"
     }
   },
   "ursa-major": {

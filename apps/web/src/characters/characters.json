@@ -331,6 +331,16 @@
       "loaded"
     ]
   },
+  "bullseye": {
+    "id": "00300101",
+    "name": "Bullseye",
+    "base": "small",
+    "figure": "model",
+    "rotation": 355,
+    "tokens": [
+      "bleed"
+    ]
+  },
   "cable": {
     "id": "00470101",
     "name": "Cable",
@@ -877,6 +887,24 @@
       "slow"
     ]
   },
+  "hood": {
+    "id": "00650102",
+    "name": "Hood",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "cards": 2,
+    "transform": {
+      "figure": "model",
+      "rotation": 0,
+      "card": true,
+      "portrait": true
+    },
+    "tokens": [
+      "bleed",
+      "shock"
+    ]
+  },
   "hulk": {
     "id": "00040101",
     "name": "Hulk",
@@ -985,6 +1013,21 @@
     "figure": "model",
     "rotation": 0
   },
+  "kang-the-conqueror": {
+    "id": "01540103",
+    "name": "Kang The Conqueror",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "bleed",
+      "hex",
+      "slow",
+      "shock",
+      "stun"
+    ]
+  },
   "karnak": {
     "id": "01660102",
     "name": "Karnak",
@@ -1039,6 +1082,16 @@
     "tokens": [
       "stun",
       "stagger"
+    ]
+  },
+  "klaw": {
+    "id": "01160101",
+    "name": "Klaw",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stun"
     ]
   },
   "kraven-the-hunter": {
@@ -1144,6 +1197,16 @@
     "figure": "model",
     "rotation": 0
   },
+  "m-o-d-o-k": {
+    "id": "00050101",
+    "name": "M.O.D.O.K.",
+    "base": "large",
+    "figure": "model",
+    "rotation": 240,
+    "tokens": [
+      "bleed"
+    ]
+  },
   "m-o-d-o-k-scientist-supreme": {
     "id": "01450101",
     "name": "M.O.D.O.K. Scientist Supreme",
@@ -1240,6 +1303,7 @@
     "base": "medium",
     "figure": "model",
     "rotation": 180,
+    "models": 2,
     "cards": 2,
     "tokens": [
       "incinerate",
@@ -2146,6 +2210,16 @@
       "poison"
     ]
   },
+  "ulik": {
+    "id": "01300102",
+    "name": "Ulik",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stagger"
+    ]
+  },
   "ultimate-spider-man": {
     "id": "01690103",
     "name": "Ultimate Spider-Man",
@@ -2156,6 +2230,39 @@
       "stun",
       "shock",
       "slow"
+    ]
+  },
+  "ultron": {
+    "id": "00010110",
+    "name": "Ultron",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 210,
+    "tokens": [
+      "incinerate",
+      "bleed"
+    ]
+  },
+  "ultron-drones": {
+    "id": "01430119",
+    "name": "Ultron Drones",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180
+  },
+  "ultron-metal-tyrant": {
+    "id": "01430110",
+    "name": "Ultron, Metal Tyrant ",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "grunts": [
+      "ultron-drones"
+    ],
+    "tokens": [
+      "poison",
+      "bleed",
+      "stagger"
     ]
   },
   "ursa-major": {
