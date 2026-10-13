@@ -2,7 +2,7 @@
 
 Status: partly built.
 
-Players take Team Tactic cards (TTC) from the Library (see `docs/features/library.md`). A card goes into the player's tactic tray. Players can move, flip, open and delete it. The Team Tactic cards of a squad go on the tray from the game setup (`docs/features/setup-game.md`).
+Players take Team Tactic cards (TTC) from the Library (see `docs/features/library.md`). The Library lists the Infinity Gems after the tactic cards, but a gem cannot be added from it (see [Cards](#cards)). A card goes into the player's tactic tray. Players can move, flip, open and delete it. The Team Tactic cards of a squad go on the tray from the game setup (`docs/features/setup-game.md`).
 
 Not built yet:
 
@@ -31,6 +31,7 @@ These facts come from the save of mod 3036795456.
 ## Cards
 
 - 73 released cards are migrated, plus the Soul and Mind Infinity Gem cards (see `scripts/README.md`, "TTS tactic cards"). The app knows only their key, MCT code (`id`) and name (`src/tactics/cards.json`).
+- The Library lists the 7 Infinity Gem cards (`TACTICS` in `src/tactics/cards.js`, `gem: true`) after the Team Tactic cards, with an "Infinity Gem" label. A gem is not played from a tray. It attaches to a character, and only the roster does that today (`docs/features/character-trays.md`, "Attached cards"). A click on a gem in the Library shows a HUD message and adds nothing.
 - A real card has the size of a poker card: 2.5" × 3.5". The app uses this size for every card. The face images are about 720 × 1040 px, so the image is 3% shorter on the table than in the file. The card size in TTS was not measured.
 - The **face** has the rules text on pale art. The **back** has the card name on full-colour art. The app draws the face of every Team Tactic card and every Infinity Gem itself (see [Generated face](#generated-face)).
 - A new card lies face up, with the rules text showing.

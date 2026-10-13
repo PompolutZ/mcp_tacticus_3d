@@ -533,6 +533,17 @@ body {
   object-fit: cover;
 }
 
+/* An Infinity Gem is listed only; a click shows a message */
+.library-tactic--gem {
+  cursor: default;
+}
+
+.library-tactic-tag {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1;
+}
+
 .library-tactic-name {
   width: 100%;
   font-size: 11px;

@@ -87,6 +87,17 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
     messageTimer.current = setTimeout(() => setMessage(null), 3000)
   }
 
+  // A gem is listed only: it goes onto a character from the roster, not onto a tactic tray
+  function handleTactic(card) {
+    if (card.gem) {
+      showMessage(
+        `${card.name} is attached to a character by the roster, not placed from the Library`,
+      )
+      return
+    }
+    onSpawnTactic(card.key, team)
+  }
+
   function handleCharacter(ch) {
     if (!ch.available) {
       showMessage(`${ch.name} doesn't have a 3D model in the app yet`)
@@ -195,9 +206,9 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
                 <button
                   key={card.key}
                   type="button"
-                  className="library-tactic"
-                  title={`${card.name} · ${card.id}`}
-                  onClick={() => onSpawnTactic(card.key, team)}
+                  className={`library-tactic${card.gem ? ' library-tactic--gem' : ''}`}
+                  title={`${card.name} · ${card.id}${card.gem ? ' · Infinity Gem' : ''}`}
+                  onClick={() => handleTactic(card)}
                 >
                   <img
                     className="library-tactic-image"
@@ -206,7 +217,10 @@ export function Library({ open, characters, onSpawnCharacter, onSpawnTactic, onT
                     loading="lazy"
                     draggable={false}
                   />
-                  <span className="library-tactic-name">{card.name}</span>
+                  <span className="library-tactic-name">
+                    {card.gem ? card.name.replace('Infinity Gem: ', '') : card.name}
+                  </span>
+                  {card.gem && <span className="library-tactic-tag">Infinity Gem</span>}
                 </button>
               ))}
             </div>
