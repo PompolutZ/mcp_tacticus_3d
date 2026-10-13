@@ -258,6 +258,16 @@
       "psychosis"
     ]
   },
+  "crimson-dynamo": {
+    "id": "00880101",
+    "name": "Crimson Dynamo",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 195,
+    "tokens": [
+      "shock"
+    ]
+  },
   "crossbones-merciless-merc": {
     "id": "01430104",
     "name": "Crossbones, Merciless Merc",
@@ -285,6 +295,16 @@
     "rotation": 0,
     "tokens": [
       "stun"
+    ]
+  },
+  "darkstar": {
+    "id": "00880102",
+    "name": "Darkstar",
+    "base": "small",
+    "figure": "model",
+    "rotation": 240,
+    "tokens": [
+      "bleed"
     ]
   },
   "doctor-strange": {
@@ -814,6 +834,13 @@
     "figure": "model",
     "rotation": 285
   },
+  "red-guardian": {
+    "id": "00890101",
+    "name": "Red Guardian",
+    "base": "small",
+    "figure": "model",
+    "rotation": 30
+  },
   "red-hulk": {
     "id": "30170101",
     "name": "Red Hulk",
@@ -1128,6 +1155,17 @@
       "slow"
     ]
   },
+  "ursa-major": {
+    "id": "00890102",
+    "name": "Ursa Major",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 330,
+    "tokens": [
+      "bleed",
+      "stagger"
+    ]
+  },
   "valkyrie": {
     "id": "00110102",
     "name": "Valkyrie",
@@ -1170,6 +1208,17 @@
       "slow",
       "root",
       "hex"
+    ]
+  },
+  "winter-soldier-operative": {
+    "id": "01430111",
+    "name": "Winter Soldier, Operative",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "shock",
+      "stun"
     ]
   }
 }

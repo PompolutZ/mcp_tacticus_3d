@@ -227,6 +227,15 @@
       "characters/cosmic-ghost-rider/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/COSMIC_GHOST_RIDER_UI.png"
     }
   },
+  "crimson-dynamo": {
+    "id": "00880101",
+    "sources": {
+      "characters/crimson-dynamo/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CRIMSON_DYNAMO_healthy.jpg",
+      "characters/crimson-dynamo/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CRIMSON_DYNAMO_injured.jpg",
+      "characters/crimson-dynamo/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/CRIMSON_DYNAMO_MODEL.unity3d",
+      "characters/crimson-dynamo/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/CRIMSON_DYNAMO_UI.png"
+    }
+  },
   "crossbones-merciless-merc": {
     "id": "01430104",
     "sources": {
@@ -252,6 +261,15 @@
       "characters/daredevil/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DAREDEVIL_injured.jpg",
       "characters/daredevil/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/DAREDEVIL_MODEL.unity3d",
       "characters/daredevil/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DAREDEVIL_UI.png"
+    }
+  },
+  "darkstar": {
+    "id": "00880102",
+    "sources": {
+      "characters/darkstar/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DARKSTAR_healthy.jpg",
+      "characters/darkstar/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DARKSTAR_injured.jpg",
+      "characters/darkstar/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/DARKSTAR_MODEL.unity3d",
+      "characters/darkstar/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/DARKSTAR_UI.png"
     }
   },
   "doctor-strange": {
@@ -729,6 +747,15 @@
       "characters/quicksilver/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/QUICKSILVER_UI.png"
     }
   },
+  "red-guardian": {
+    "id": "00890101",
+    "sources": {
+      "characters/red-guardian/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RED_GUARDIAN_healthy.jpg",
+      "characters/red-guardian/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RED_GUARDIAN_injured.jpg",
+      "characters/red-guardian/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/RED_GUARDIAN_MODEL.unity3d",
+      "characters/red-guardian/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/RED_GUARDIAN_UI.png"
+    }
+  },
   "red-hulk": {
     "id": "30170101",
     "sources": {
@@ -1010,6 +1037,15 @@
       "characters/ultimate-spider-man/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ULTIMATE_SPIDER_MAN_UI.png"
     }
   },
+  "ursa-major": {
+    "id": "00890102",
+    "sources": {
+      "characters/ursa-major/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/URSA_MAJOR_healthy.jpg",
+      "characters/ursa-major/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/URSA_MAJOR_injured.jpg",
+      "characters/ursa-major/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/URSA_MAJOR_MODEL.unity3d",
+      "characters/ursa-major/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/URSA_MAJOR_UI.png"
+    }
+  },
   "valkyrie": {
     "id": "00110102",
     "sources": {
@@ -1045,6 +1081,15 @@
       "characters/werewolf-by-night/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WEREWOLF_BY_NIGHT_injured.jpg",
       "characters/werewolf-by-night/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/WEREWOLF_BY_NIGHT_MODEL.unity3d",
       "characters/werewolf-by-night/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WEREWOLF_BY_NIGHT_UI.png"
+    }
+  },
+  "winter-soldier-operative": {
+    "id": "01430111",
+    "sources": {
+      "characters/winter-soldier-operative/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WINTER_SOLDIER_OPERATIVE_healthy.jpg",
+      "characters/winter-soldier-operative/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WINTER_SOLDIER_OPERATIVE_injured.jpg",
+      "characters/winter-soldier-operative/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/WINTER_SOLDIER_OPERATIVE_MODEL.unity3d",
+      "characters/winter-soldier-operative/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/WINTER_SOLDIER_OPERATIVE_UI.png"
     }
   }
 }
