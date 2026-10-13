@@ -109,6 +109,16 @@
       "stagger"
     ]
   },
+  "avalanche": {
+    "id": "01730101",
+    "name": "Avalanche",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stun"
+    ]
+  },
   "bastion": {
     "id": "30090101",
     "name": "Bastion",
@@ -220,6 +230,16 @@
       "slow"
     ]
   },
+  "colossus": {
+    "id": "00570101",
+    "name": "Colossus",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "stun"
+    ]
+  },
   "corvus-glaive": {
     "id": "00150101",
     "name": "Corvus Glaive",
@@ -311,6 +331,7 @@
     "base": "small",
     "figure": "model",
     "rotation": 180,
+    "cards": 2,
     "transform": {
       "figure": "model",
       "rotation": 0,
@@ -331,6 +352,26 @@
       "slow",
       "stun",
       "stagger"
+    ]
+  },
+  "exodus": {
+    "id": "01730102",
+    "name": "Exodus",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate"
+    ]
+  },
+  "gambit": {
+    "id": "00600101",
+    "name": "Gambit",
+    "base": "small",
+    "figure": "model",
+    "rotation": 90,
+    "tokens": [
+      "stun"
     ]
   },
   "gorgon": {
@@ -458,6 +499,19 @@
       "stagger"
     ]
   },
+  "lady-mastermind": {
+    "id": "01730103",
+    "name": "Lady Mastermind",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "bleed",
+      "poison",
+      "shock",
+      "incinerate"
+    ]
+  },
   "lady-sif": {
     "id": "00910101",
     "name": "Lady Sif",
@@ -502,6 +556,16 @@
     "base": "small",
     "figure": "model",
     "rotation": 0
+  },
+  "magneto": {
+    "id": "00420101",
+    "name": "Magneto",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "stun"
+    ]
   },
   "malekith-the-accursed": {
     "id": "00930101",
@@ -596,6 +660,16 @@
       "base": "large"
     }
   },
+  "mystique": {
+    "id": "00430102",
+    "name": "Mystique",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "stun"
+    ]
+  },
   "namor-the-sub-mariner": {
     "id": "01580102",
     "name": "Namor, the Sub-Mariner",
@@ -658,6 +732,18 @@
       "stun"
     ]
   },
+  "pyro": {
+    "id": "00820101",
+    "name": "Pyro",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "incinerate",
+      "root",
+      "slow"
+    ]
+  },
   "quicksilver": {
     "id": "00630101",
     "name": "Quicksilver",
@@ -674,6 +760,13 @@
     "tokens": [
       "stun"
     ]
+  },
+  "rogue": {
+    "id": "00600102",
+    "name": "Rogue",
+    "base": "small",
+    "figure": "model",
+    "rotation": 30
   },
   "ronan-the-accuser": {
     "id": "00200102",
@@ -696,6 +789,30 @@
     "rotation": 330,
     "tokens": [
       "bleed"
+    ]
+  },
+  "sabretooth-apex-predator": {
+    "id": "10030102",
+    "name": "Sabretooth, Apex Predator",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "bleed"
+    ]
+  },
+  "scarlet-witch": {
+    "id": "00630102",
+    "name": "Scarlet Witch",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "bleed",
+      "hex",
+      "incinerate",
+      "poison",
+      "judgement"
     ]
   },
   "sentinel-mk4-00510101": {
@@ -732,6 +849,16 @@
       "incinerate",
       "shock",
       "slow"
+    ]
+  },
+  "shadow-king": {
+    "id": "01510102",
+    "name": "Shadow King",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "root"
     ]
   },
   "shuri": {
@@ -813,6 +940,13 @@
       "slow"
     ]
   },
+  "the-blob": {
+    "id": "00820102",
+    "name": "The Blob",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180
+  },
   "the-mighty-thor": {
     "id": "00910103",
     "name": "The Mighty Thor",
@@ -851,6 +985,17 @@
     "tokens": [
       "shock",
       "stagger"
+    ]
+  },
+  "toad": {
+    "id": "00420102",
+    "name": "Toad",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "incinerate",
+      "poison"
     ]
   },
   "ultimate-spider-man": {
