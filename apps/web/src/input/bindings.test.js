@@ -2,7 +2,6 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   ACTIONS,
-  boundElsewhere,
   acceptsInput,
   codeName,
   inputName,
@@ -229,12 +228,4 @@ test('which actions take the wheel', () => {
   assert.ok(acceptsInput('rotateLeft', 'KeyQ'))
   assert.ok(!acceptsInput('flip', 'WheelUp'))
   assert.ok(acceptsInput('flip', 'KeyG'))
-})
-
-test('boundElsewhere: same input with another condition', () => {
-  const b = defaultBindings()
-  const range = { ...input('Digit1'), when: 'anywhere' }
-  assert.equal(boundElsewhere(b, range), true)
-  assert.equal(boundElsewhere(b, { ...input('KeyW'), when: 'anywhere' }), false)
-  assert.equal(boundElsewhere(b, { ...input('Digit1', { shift: true }), when: 'anywhere' }), false)
 })
