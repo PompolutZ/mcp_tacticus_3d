@@ -120,6 +120,16 @@
       "degeneration"
     ]
   },
+  "beast": {
+    "id": "00430101",
+    "name": "Beast",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 15,
+    "tokens": [
+      "bleed"
+    ]
+  },
   "beta-ray-bill": {
     "id": "01300101",
     "name": "Beta Ray Bill",
@@ -203,6 +213,18 @@
     "base": "small",
     "figure": "model",
     "rotation": 180
+  },
+  "crystal": {
+    "id": "00350101",
+    "name": "Crystal",
+    "base": "small",
+    "figure": "model",
+    "rotation": 30,
+    "tokens": [
+      "stun",
+      "slow",
+      "incinerate"
+    ]
   },
   "daredevil": {
     "id": "00300102",
@@ -362,6 +384,13 @@
       "starherb"
     ]
   },
+  "king-black-bolt": {
+    "id": "01660103",
+    "name": "King Black Bolt",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180
+  },
   "king-t-challa": {
     "id": "10040102",
     "name": "King T'Challa",
@@ -441,6 +470,16 @@
       "incinerate"
     ]
   },
+  "maximus-the-mad": {
+    "id": "01660104",
+    "name": "Maximus The Mad",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stagger"
+    ]
+  },
   "medusa": {
     "id": "00340102",
     "name": "Medusa",
@@ -484,6 +523,19 @@
     "tokens": [
       "hex"
     ]
+  },
+  "ms-marvel": {
+    "id": "00620101",
+    "name": "Ms. Marvel",
+    "base": "small",
+    "figure": "model",
+    "rotation": 90,
+    "transform": {
+      "figure": "model",
+      "rotation": 90,
+      "card": true,
+      "base": "large"
+    }
   },
   "namor-the-sub-mariner": {
     "id": "01580102",
@@ -547,6 +599,13 @@
       "stun"
     ]
   },
+  "quicksilver": {
+    "id": "00630101",
+    "name": "Quicksilver",
+    "base": "small",
+    "figure": "model",
+    "rotation": 285
+  },
   "red-skull": {
     "id": "00010108",
     "name": "Red Skull",
@@ -555,6 +614,19 @@
     "rotation": 285,
     "tokens": [
       "stun"
+    ]
+  },
+  "ronan-the-accuser": {
+    "id": "00200102",
+    "name": "Ronan the Accuser",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 285,
+    "tokens": [
+      "judgement",
+      "shock",
+      "stun",
+      "stagger"
     ]
   },
   "sabretooth": {
