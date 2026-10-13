@@ -176,6 +176,17 @@
       "stagger"
     ]
   },
+  "black-cat": {
+    "id": "00370102",
+    "name": "Black Cat",
+    "base": "small",
+    "figure": "model",
+    "rotation": 90,
+    "tokens": [
+      "bleed",
+      "stagger"
+    ]
+  },
   "black-dwarf": {
     "id": "00190101",
     "name": "Black Dwarf",
@@ -221,6 +232,16 @@
     "rotation": 180,
     "tokens": [
       "stagger"
+    ]
+  },
+  "blade": {
+    "id": "00480101",
+    "name": "Blade",
+    "base": "small",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "bleed"
     ]
   },
   "blue-marvel": {
@@ -474,6 +495,19 @@
       "bleed"
     ]
   },
+  "elsa-bloodstone": {
+    "id": "01860101",
+    "name": "Elsa Bloodstone",
+    "base": "small",
+    "figure": "model",
+    "rotation": 210,
+    "tokens": [
+      "slow",
+      "incinerate",
+      "root",
+      "degeneration"
+    ]
+  },
   "emma-frost": {
     "id": "01030101",
     "name": "Emma Frost",
@@ -513,6 +547,16 @@
       "incinerate"
     ]
   },
+  "frankenstein-s-monster": {
+    "id": "02450102",
+    "name": "Frankenstein's Monster",
+    "base": "medium",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "stagger"
+    ]
+  },
   "gambit": {
     "id": "00600101",
     "name": "Gambit",
@@ -531,6 +575,17 @@
     "rotation": 315,
     "tokens": [
       "bleed"
+    ]
+  },
+  "ghost-rider": {
+    "id": "00270101",
+    "name": "Ghost Rider",
+    "base": "large",
+    "figure": "model",
+    "rotation": 0,
+    "tokens": [
+      "hex",
+      "incinerate"
     ]
   },
   "gladiator": {
@@ -923,6 +978,16 @@
       "root"
     ]
   },
+  "moon-knight": {
+    "id": "00480102",
+    "name": "Moon Knight",
+    "base": "small",
+    "figure": "model",
+    "rotation": 120,
+    "tokens": [
+      "stagger"
+    ]
+  },
   "moondragon": {
     "id": "01910102",
     "name": "Moondragon",
@@ -954,6 +1019,17 @@
     "rotation": 0,
     "tokens": [
       "stun"
+    ]
+  },
+  "n-kantu-the-living-mummy": {
+    "id": "02450103",
+    "name": "N'Kantu, The Living Mummy",
+    "base": "small",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "mummy-soul",
+      "hex"
     ]
   },
   "namor-the-sub-mariner": {
@@ -1394,6 +1470,16 @@
     "base": "medium",
     "figure": "model",
     "rotation": 180
+  },
+  "the-immortal-hulk": {
+    "id": "01440101",
+    "name": "The Immortal Hulk",
+    "base": "large",
+    "figure": "model",
+    "rotation": 180,
+    "tokens": [
+      "immortality"
+    ]
   },
   "the-mighty-thor": {
     "id": "00910103",
