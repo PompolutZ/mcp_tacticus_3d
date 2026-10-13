@@ -4506,4 +4506,33 @@ export const TERRAIN_PIECES = {
       },
     ],
   },
+  'crane-size-4': { name: 'Crane', convex: true, collider: true },
+  'hammer-storage-size-3-4': { name: 'Hammer Storage', convex: true },
+  'crate-size-2-17': { name: 'Crate', convex: true, collider: true },
+  'amg-size-3-2': { name: 'AMG', convex: true, collider: true },
+  'stacked-crates-size-4': { name: 'Stacked Crates', convex: true, collider: true },
+  'stacked-crates-size-4-2': { name: 'Stacked Crates', convex: true, collider: true },
+  'alchemax-size-2-3': { name: 'Alchemax', convex: true, collider: true },
+  'rand-storage-container-size-3-3': {
+    name: 'Rand Storage Container',
+    convex: true,
+    collider: true,
+  },
+  'roxxon-storage-container-size-3-2': {
+    name: 'Roxxon Storage Container',
+    convex: true,
+    collider: true,
+  },
+  'truck-size-4-17': {
+    name: 'Truck',
+    bundle: true,
+    colliders: [
+      {
+        shape: 'box',
+        position: [0.0152, 1.0951, -0.0639],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [2.8836, 1.1197, 1.0543],
+      },
+    ],
+  },
 }

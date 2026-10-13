@@ -973,6 +973,54 @@
     },
     "size-2-car-3": {
       "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1c84b16793db.unity3d"
+    },
+    "crane-size-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/68b0507224d2.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e28331b46d47.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/46c41de57d45.obj"
+    },
+    "hammer-storage-size-3-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8f30facc2878.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3f68d046a866.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8f30facc2878.obj"
+    },
+    "crate-size-2-17": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/68a1ab49e868.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8cbca6efa656.jpg",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c58ca91d1d50.obj"
+    },
+    "amg-size-3-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/68a1ab49e868.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/d8cb8865cb8f.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c58ca91d1d50.obj"
+    },
+    "stacked-crates-size-4": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/8f30facc2878.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3f68d046a866.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/04ae704abd5a.obj"
+    },
+    "stacked-crates-size-4-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/14e8fcd79cb7.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3f68d046a866.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/04ae704abd5a.obj"
+    },
+    "alchemax-size-2-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/68a1ab49e868.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/fc4d6fc8e985.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/c58ca91d1d50.obj"
+    },
+    "rand-storage-container-size-3-3": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f140e7129965.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3f68d046a866.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/04ae704abd5a.obj"
+    },
+    "roxxon-storage-container-size-3-2": {
+      "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/1e6927f7c9d2.obj",
+      "diffuse": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/3f68d046a866.png",
+      "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/04ae704abd5a.obj"
+    },
+    "truck-size-4-17": {
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0819a0786643.unity3d"
     }
   },
   "mats": {
@@ -992,6 +1040,7 @@
     "savage-land-research-site": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/98cee3fc6def.jpg",
     "sunk-ship-sheltering-sinister-secrets": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/53293b439182.jpg",
     "sinister-showdown": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/014caf473322.png",
-    "oscrop-chemical": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0bba74402702.png"
+    "oscrop-chemical": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0bba74402702.png",
+    "dockyard-destruction-spider-man-to-blame": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/0c3ae53102d3.png"
   }
 }
