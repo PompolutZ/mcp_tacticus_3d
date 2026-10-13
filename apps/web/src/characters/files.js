@@ -8,6 +8,8 @@ const version = (n) => (n > 1 ? `-${n}` : '')
 
 // 3D model n (from 1): GLB
 export const characterModel = (key, n = 1) => `${dir(key)}/model${version(n)}.glb`
+// Construct model n (from 1) of a character: GLB. Magneto and Phoenix have 2. A construct is a terrain feature, not a character.
+export const characterConstruct = (key, n = 1) => `${dir(key)}/construct-${n}.glb`
 // Standee image of a character without a 3D model. side: 'front' | 'back'
 export const characterStandee = (key, side) => `${dir(key)}/standee-${side}.webp`
 // Stat card n (from 1). side: 'healthy' | 'injured'

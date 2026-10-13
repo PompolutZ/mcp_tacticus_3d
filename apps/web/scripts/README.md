@@ -195,7 +195,7 @@ The script converts a file only when the manifest does not have it with the same
 - **One file at a time, one item at a time:** the CDN belongs to the mod creator, so there are no parallel downloads. For each character or card the script downloads its missing files, converts it, then goes to the next one. A stopped run keeps every finished item. Each file is printed as it downloads.
 - **`missing`:** every character that has a model or a standee in the mod and no entry in `character-manifest.json`. `missing` is a selection like an affiliation, so it also works without `--download`.
 - **Only the files the script uses:** `migrate-crisis` downloads the face and token images of each card. The card backs and the damage marker are in the cache already.
-- **Cache folder:** `.unity3d` goes to `Assetbundles/`, `.obj` to `Models/`, any other file to `Images/`. An image gets the extension of its type, read from its first bytes (PNG, JPEG, WebP), because a Steam image URL has none. A file of another type is not written and counts as a failed download. The file is written under a temp name and renamed, so a stopped run leaves no half file. `cachedFile` finds a downloaded file in the same run and in later runs, also in TTS itself.
+- **Cache folder:** `.unity3d` goes to `Assetbundles/`, `.obj` to `Models/`, any other file to `Images/`. The exception is a file that the script knows is a model, such as a construct: the field decides, not the URL (see "Constructs and grunts"). Its first bytes must be `UnityFS`, else the download fails. An image gets the extension of its type, read from its first bytes (PNG, JPEG, WebP), because a Steam image URL has none. A file of another type is not written and counts as a failed download. The file is written under a temp name and renamed, so a stopped run leaves no half file. `cachedFile` finds a downloaded file in the same run and in later runs, also in TTS itself.
 - **Failures:** a file that is not required (see "Output") gives a warning, as a missing cache file does. When a required file fails, the character or card gets the status `failed` with the URL and the reason, and the script goes on with the next one. The exit code is then 1.
 
 ## Output
@@ -206,6 +206,7 @@ The script converts a file only when the manifest does not have it with the same
 | `standee-front.webp`, `standee-back.webp` | `cFigA`, `cFigB` | yes, if the mod has no model |
 | `card-healthy.webp`, `card-injured.webp` | `cCard.face`, `cCard.back` | yes |
 | `portrait.webp` | `UIurl` | no |
+| `construct-1.glb`, `construct-2.glb`, ... | `construct` (a list of URLs) | no |
 | `model-2.glb`, `card-2-healthy.webp`, ... | list items 2, 3, ... of `cModel` and `cCard`, without the `cTCard` image | no |
 | `transform-card-healthy.webp`, `transform-card-injured.webp` | `cTCard.face`, `cTCard.back` | yes, if the row has `twoCards` |
 | `transform.glb` or `transform-standee-*.webp` | `cTModel`, or `cTFigA` and `cTFigB` | no |
@@ -225,9 +226,17 @@ Entry in `characters.json`:
 }
 ```
 
-Optional fields: `models` and `cards` (number of versions, when more than 1), `transform` (`figure`, `rotation`, and `name`, `base`, `portrait` when the mod has them, and `card: true` when the second form has its own card, `transform-card-*.webp`), `portrait: false` when the portrait is not in the cache, and `tokens` (`cToken`, as `src/tokens/tokens.json` keys, for the tray's Give row; left out when the mod row has none). There is no `immune` field: the immunities come from Jarvis (`src/characters/immunity.js`). A mod token name maps to a key with the same slug `migrate-tokens.mjs` gave it; a name that does not match a migrated token (a dice result, an affiliation token, a mod data typo, ...) is left out and printed as a warning, not guessed.
+Optional fields: `constructs` (number of construct GLBs), `grunts` (keys of the grunt characters), `models` and `cards` (number of versions, when more than 1), `transform` (`figure`, `rotation`, and `name`, `base`, `portrait` when the mod has them, and `card: true` when the second form has its own card, `transform-card-*.webp`), `portrait: false` when the portrait is not in the cache, and `tokens` (`cToken`, as `src/tokens/tokens.json` keys, for the tray's Give row; left out when the mod row has none). There is no `immune` field: the immunities come from Jarvis (`src/characters/immunity.js`). A mod token name maps to a key with the same slug `migrate-tokens.mjs` gave it; a name that does not match a migrated token (a dice result, an affiliation token, a mod data typo, ...) is left out and printed as a warning, not guessed.
 
 `$TMPDIR/mcp-assist-3d-characters/<key>/` has the AssetRipper exports, for inspection.
+
+## Constructs and grunts
+
+Checked on 2026-10-13. See `docs/plans/grunts-constructs.md`.
+
+- **Constructs** (Magneto and Phoenix, 2 each): the `construct` field is a list of URLs that end in `.jpg`, but the mod loads them as asset bundles (`Custom_Assetbundle`). So the script treats them as models: they go to `Assetbundles/` and are converted like a character model, to `construct-<n>.glb` of the host. The construct is small, so the base check uses a small base. A construct is not a character: it has no entry of its own in `characters.json`, only the host's `constructs` count.
+- **Grunts** (the `grunts` field of a host, a list of names): a grunt is a character row with its own card, model or standee, and tokens. It is migrated as a character under its own key. Naming a host (or its affiliation, or `missing`) also migrates its grunts, after the host. The grunt rows are matched by `cName`, as an affiliation is. A name that does not match exactly one row is left out with a warning. The host entry in `characters.json` gets `grunts`: the keys of its grunt characters. A host that two characters share (Hand Ninjas: Elektra and Shadowland Daredevil) is migrated once.
+- The `daddy` of a grunt row is not used. It does not always match the host name (Hand Ninjas says "Shadowlands Daredevil").
 
 ## Conversion settings
 
@@ -245,7 +254,7 @@ These rules were found on 2026-09-28 in the mod scripts ("Red Tray Spawner" and 
 - Every row with a second form has one of two flags (checked on 2026-10-07). `twoCards` (Ant-Man, Captain Marvel Cosmic Avenger, Emma Frost, Hood, Ms. Marvel, Wasp): the second form has its own card, `cTCard`, and the tray shows both cards. `oneCard` (Hulkbuster, Phoenix): the second form is the Injured side of the only card, and the tray spawns the second model 5" from the first. The tray spawns both models in both cases. See `docs/features/character-trays.md`, "Second forms".
 - The tray spawns a standee as a `Figurine_Custom` with `image = cFigA` and `image_secondary = cFigB`, turned by 180 without `cModelRot`. The figurine scale is 0.75 for a small base, 1.1 for medium and 1.4 for large. The mod spawns a standee only when `cFigA` is set; when `cFigB` is empty, it uses `cFigA` on both sides.
 - When `cModel` is a list, the tray spawns the model with the same position in the list as the card face on the table (Mephisto, Crossbones, Merciless Merc).
-- The script ignores `cModelAlt` (Captain Marvel, Vision), `twoModels` (Ms. Marvel) and `construct` (Magneto, Phoenix), and prints a warning for them.
+- The script ignores `cModelAlt` (Captain Marvel, Vision) and `twoModels` (Ms. Marvel), and prints a warning for them.
 - The tray takes the second card of a `twoCards` character from `cTCard` (`spawnSecondCard`). Item 2 of the `cCard` list is often a different card: an alternate card (Emma Frost), a Steam copy (Captain Marvel Cosmic Avenger, Hood) or the other small form (Ms. Marvel: TINY, while `cTCard` is EMBIGGENED). So the script writes `cTCard` as `transform-card-*.webp`. When the `cCard` list has the `cTCard` image too (Ant-Man, Wasp), the script leaves it out of the versions.
 
 ## What the app still needs

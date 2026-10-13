@@ -28,3 +28,17 @@ test('cacheTarget returns null for a file of an unknown type', () => {
   assert.equal(cacheTarget(`${CDN}/a/x.png`, Buffer.from('<html>')), null)
   assert.equal(cacheTarget(`${CDN}/a/x.png`, new Uint8Array()), null)
 })
+
+test('cacheTarget with kind model sends a .jpg URL with a Unity bundle to Assetbundles', () => {
+  const bundle = Uint8Array.from(Buffer.from('UnityFS\0\0\0', 'latin1'))
+  assert.deepEqual(cacheTarget(`${CDN}/a/MAGNETO_CONSTRUCT_1.jpg`, bundle, 'model'), {
+    dir: 'Assetbundles',
+    ext: 'unity3d',
+  })
+  assert.deepEqual(cacheTarget(`${CDN}/a/m.obj`, JPEG, 'model'), { dir: 'Models', ext: 'obj' })
+})
+
+test('cacheTarget with kind model returns null for a file that is not a bundle', () => {
+  assert.equal(cacheTarget(`${CDN}/a/x.jpg`, JPEG, 'model'), null)
+  assert.equal(cacheTarget(`${CDN}/a/x.jpg`, Buffer.from('<html>'), 'model'), null)
+})

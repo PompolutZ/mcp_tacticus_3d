@@ -65,3 +65,25 @@ Work:
 Checks: format, lint, tests, build.
 
 If the coder finds phase 3 too large, split it after item 3.
+
+## Result
+
+Phase 1 done.
+
+Built:
+- `scripts/lib/tts.mjs`: `cacheTarget(url, bytes, kind)` and `downloadToCache(url, kind)` take the kind of the file. Kind `model` ignores the URL extension: `.obj` goes to `Models/`, a file that starts with `UnityFS` goes to `Assetbundles/`, anything else fails. `downloadMissing` takes URLs or `{ url, kind }`. Two new tests in `lib/tts.test.js`.
+- `src/characters/files.js`: `characterConstruct(key, n)` gives `characters/<key>/construct-<n>.glb`.
+- `migrate-characters.mjs`: `construct` is no longer ignored. The construct files are optional model files with a small base. A host selection adds its grunts right after it (matched by `cName`, a name that does not match one row gets a warning). `characters.json` gets `constructs` and `grunts`.
+- README: construct and grunt rules in a new section "Constructs and grunts", the output table, the download rule for kind `model`.
+
+Runs (one file at a time, no failures, no warnings):
+- `--download Magneto`: 2 construct bundles downloaded, 2 files converted (`construct-1.glb` 332 KB, `construct-2.glb` 275 KB). No `--force` needed: the manifest skip works per file, so only the new files were converted. `characters.json`: `constructs: 2`.
+- `--download Elektra`: 3 files downloaded for Elektra, 3 for Hand Ninjas. Both converted 4 of 4.
+- `--download Sandman`: 3 files each for Sandman, Sand Constructs - Twisty and Sand Construct - Fisty. All converted 4 of 4.
+- `--list` shows all of them as migrated.
+- `pnpm format`, `pnpm lint` (only old warnings), 598 tests pass, `pnpm --filter web build` ok.
+
+Differences from the plan:
+- `characters.json` lists `grunts` by the matched rows, not by what is migrated. The host is migrated before its grunts, so a failed grunt would still be listed.
+- The `daddy` field of the grunt rows is not used: Hand Ninjas says "Shadowlands Daredevil", the host row is "Shadowland Daredevil". The host `grunts` names match.
+- `apps/web/tools/` (AssetRipper) was linked from the main dir for the runs and the link was removed before the commit.

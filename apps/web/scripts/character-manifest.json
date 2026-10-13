@@ -290,6 +290,15 @@
       "characters/echo/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ECHO_UI.png"
     }
   },
+  "elektra": {
+    "id": "00790101",
+    "sources": {
+      "characters/elektra/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ELEKTRA_healthy.jpg",
+      "characters/elektra/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ELEKTRA_injured.jpg",
+      "characters/elektra/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/ELEKTRA_MODEL.unity3d",
+      "characters/elektra/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/ELEKTRA_UI.png"
+    }
+  },
   "emma-frost": {
     "id": "01030101",
     "sources": {
@@ -339,6 +348,15 @@
       "characters/gorgon/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GORGON_injured.jpg",
       "characters/gorgon/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/GORGON_MODEL.unity3d",
       "characters/gorgon/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/GORGON_UI.png"
+    }
+  },
+  "hand-ninjas": {
+    "id": "00790103",
+    "sources": {
+      "characters/hand-ninjas/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/HAND_NINJAS_00790103_healthy.png",
+      "characters/hand-ninjas/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/HAND_NINJAS_00790103_injured.png",
+      "characters/hand-ninjas/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/HAND_NINJAS_MODEL.unity3d",
+      "characters/hand-ninjas/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/HAND_NINJAS_UI.png"
     }
   },
   "heimdall-the-all-seeing": {
@@ -511,6 +529,8 @@
       "characters/magneto/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MAGNETO_healthy.jpg",
       "characters/magneto/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MAGNETO_injured.jpg",
       "characters/magneto/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/MAGNETO_MODEL.unity3d",
+      "characters/magneto/construct-1.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MAGNETO_CONSTRUCT_1.jpg",
+      "characters/magneto/construct-2.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MAGNETO_CONSTRUCT_2.jpg",
       "characters/magneto/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/MAGNETO_UI.png"
     }
   },
@@ -715,6 +735,33 @@
       "characters/sabretooth-apex-predator/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SABRETOOTH_APEX_PREDATOR_injured.jpg",
       "characters/sabretooth-apex-predator/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SABRETOOTH_APEX_PREDATOR_MODEL.unity3d",
       "characters/sabretooth-apex-predator/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SABRETOOTH_APEX_PREDATOR_UI.png"
+    }
+  },
+  "sand-construct-fisty": {
+    "id": "T01560107",
+    "sources": {
+      "characters/sand-construct-fisty/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/SAND_CONSTRUCT_FISTY_T01560107_healthy.png",
+      "characters/sand-construct-fisty/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/SAND_CONSTRUCT_FISTY_T01560107_injured.png",
+      "characters/sand-construct-fisty/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SAND_CONSTRUCT_FISTY_MODEL.unity3d",
+      "characters/sand-construct-fisty/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/SAND_CONSTRUCT_FISTY_UI.png"
+    }
+  },
+  "sand-constructs-twisty": {
+    "id": "T01560106",
+    "sources": {
+      "characters/sand-constructs-twisty/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/SAND_CONSTRUCTS_TWISTY_T01560106_healthy.png",
+      "characters/sand-constructs-twisty/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/SAND_CONSTRUCTS_TWISTY_T01560106_injured.png",
+      "characters/sand-constructs-twisty/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SAND_CONSTRUCTS_TWISTY_MODEL.unity3d",
+      "characters/sand-constructs-twisty/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/grunts/SAND_CONSTRUCTS_TWISTY_UI.png"
+    }
+  },
+  "sandman": {
+    "id": "01560102",
+    "sources": {
+      "characters/sandman/card-healthy.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SANDMAN_healthy.jpg",
+      "characters/sandman/card-injured.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SANDMAN_injured.jpg",
+      "characters/sandman/model.glb": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/models/SANDMAN_MODEL.unity3d",
+      "characters/sandman/portrait.webp": "https://d37ev18qvj5a3m.cloudfront.net/tts/characters/SANDMAN_UI.png"
     }
   },
   "scarlet-witch": {
