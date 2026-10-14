@@ -17,17 +17,14 @@ import { Overlay } from './Overlay.jsx'
 // Extracts"): same action, same locks and titles (setup/deckButton.js). A click closes the overlay.
 // The popup frame, close button and backdrop are those of RosterPopup.jsx. The parent (App.jsx) owns the open
 // state and the Esc key.
-// open: { team, type, code }, the clicked card (code null: the first card of the type). setup: the viewed
+// open: { team, type, code }, the clicked card (only its team and type are used). setup: the viewed
 // setup. parsed: { host, guest } → parsed roster | null. ctx: names (setup/useNames.js). stepRef: the overlay
 // puts a function there that moves the top carousel (the arrow keys). onChoose(type): setupActions.deck.
 export function CrisisCompare({ open, setup, parsed, ctx, mySide, stepRef, onChoose, onClose }) {
   const colors = useSideColors()
   const [tab, setTab] = useState(open.type)
-  // The shown card of each carousel: { 'host-secure': 3, ... }. The clicked card starts as the shown one.
-  const [indices, setIndices] = useState(() => {
-    const index = open.code ? parsed[open.team]?.[open.type].indexOf(open.code) : -1
-    return index > 0 ? { [`${open.team}-${open.type}`]: index } : {}
-  })
+  // The shown card of each carousel: { 'host-secure': 3, ... }. Missing: the middle card, so 5 cards all show.
+  const [indices, setIndices] = useState({})
   // A drag can end on the backdrop: it closes the overlay only when the press also started there
   const pressedBackdrop = useRef(false)
   const top = mySide ?? open.team
@@ -43,7 +40,7 @@ export function CrisisCompare({ open, setup, parsed, ctx, mySide, stepRef, onCho
       if (topCount < 2) return
       setIndices((prev) => ({
         ...prev,
-        [topKey]: ((prev[topKey] ?? 0) + step + topCount) % topCount,
+        [topKey]: ((prev[topKey] ?? Math.floor(topCount / 2)) + step + topCount) % topCount,
       }))
     }
     return () => {
@@ -120,13 +117,14 @@ export function CrisisCompare({ open, setup, parsed, ctx, mySide, stepRef, onCho
                 <Carousel
                   key={key}
                   count={codes.length}
-                  index={Math.min(indices[key] ?? 0, codes.length - 1)}
+                  index={Math.min(indices[key] ?? Math.floor(codes.length / 2), codes.length - 1)}
                   onIndexChange={(index) =>
                     setIndices((prev) => (prev[key] === index ? prev : { ...prev, [key]: index }))
                   }
                   itemName={TYPE[tab]}
                   style={{
-                    '--card-w': `calc(var(--card-h) * ${CARD_SIZES[tab][0] / CARD_SIZES[tab][1]})`,
+                    '--card-ratio': CARD_SIZES[tab][0] / CARD_SIZES[tab][1],
+                    '--card-w': 'calc(var(--card-h) * var(--card-ratio))',
                   }}
                   renderSlide={(i) => <CrisisFace code={codes[i]} kind={tab} />}
                 />
