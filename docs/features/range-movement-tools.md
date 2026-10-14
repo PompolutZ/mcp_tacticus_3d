@@ -56,7 +56,7 @@ Dragging a free tool moves it.
 
 A drag that starts on a button of the tool (Place, Throw / Push, Toward / Away, Bend) moves the tool the same as a drag of the half under it. A click on the button presses it. A drag does not press it. A disabled button does not start a drag.
 
-**Q** and **E** act on the tool under the pointer, or the tool you drag, 15° per press, as in TTS. Hold the key to keep going. Q turns counter-clockwise and E clockwise, seen from above. What a step does depends on the tool state: see "Input rules". A free tool turns around its center. The center of a movement tool is its hinge, and the tool keeps its bend. Q and E turn characters the same way.
+**Q** and **E** act on the tool under the pointer, or the tool you drag, one turn step per press (15° by default, as in TTS; see Settings). Hold the key to keep going. Q turns counter-clockwise and E clockwise, seen from above. What a step does depends on the tool state: see "Input rules". A free tool turns around its center. The center of a movement tool is its hinge, and the tool keeps its bend. Q and E turn characters the same way.
 
 ### Place
 

@@ -22,6 +22,11 @@ export const DEFAULT_SPECTATOR_SIZE = 100
 export const MIN_SPECTATOR_SIZE = 60
 export const MAX_SPECTATOR_SIZE = 150
 
+// Step of a Q / E press and a wheel step, in degrees (docs/features/key-shortcuts.md, "Q / E")
+export const DEFAULT_TURN_STEP = 15
+export const MIN_TURN_STEP = 5
+export const MAX_TURN_STEP = 15
+
 export function defaultSettings() {
   return {
     version: VERSION,
@@ -30,6 +35,7 @@ export function defaultSettings() {
     ),
     sound: { volume: DEFAULT_VOLUME },
     spectator: { size: DEFAULT_SPECTATOR_SIZE },
+    turn: { step: DEFAULT_TURN_STEP },
     // Terrain labels (piece name and game Size) above every piece. The piece under the pointer always has one.
     labels: false,
     // Only the actions the user changed: action id → [{ code, shift, ctrl, alt, meta, when }]. The others use
@@ -72,6 +78,9 @@ function normalize(raw) {
     settings.spectator.size = Math.round(
       Math.min(MAX_SPECTATOR_SIZE, Math.max(MIN_SPECTATOR_SIZE, size)),
     )
+  const step = raw?.turn?.step
+  if (Number.isFinite(step))
+    settings.turn.step = Math.round(Math.min(MAX_TURN_STEP, Math.max(MIN_TURN_STEP, step)))
   settings.labels = raw?.labels === true
   settings.bindings = normalizeBindings(raw?.bindings)
   return settings

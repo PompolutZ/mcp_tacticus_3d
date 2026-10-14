@@ -282,6 +282,7 @@ export default function App({
     handleLabelsChange,
     handleSettingChange,
     handleSpectatorSizeChange,
+    handleTurnStepChange,
     handleVolumeChange,
   } = useSettings()
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -819,6 +820,7 @@ export default function App({
                 toolSpawn={toolSpawn}
                 showColliders={debug}
                 showLabels={settings.labels}
+                turnStep={settings.turn.step}
                 spectator={spectator}
                 matTurns={matTurns}
                 deployLine={deployLine}
@@ -1019,6 +1021,7 @@ export default function App({
           onChange={handleSettingChange}
           onVolumeChange={handleVolumeChange}
           onSpectatorSizeChange={handleSpectatorSizeChange}
+          onTurnStepChange={handleTurnStepChange}
           debug={debug}
           onDebugClick={() => setDebugOn((prev) => !prev)}
           showLabels={settings.labels}

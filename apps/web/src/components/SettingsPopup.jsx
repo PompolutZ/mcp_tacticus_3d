@@ -1,6 +1,12 @@
 import { useRef } from 'react'
 import { Overlay } from './Overlay.jsx'
-import { MAX_SPECTATOR_SIZE, MIN_SPECTATOR_SIZE, PLACES } from '../settings/settings.js'
+import {
+  MAX_SPECTATOR_SIZE,
+  MAX_TURN_STEP,
+  MIN_SPECTATOR_SIZE,
+  MIN_TURN_STEP,
+  PLACES,
+} from '../settings/settings.js'
 import { MOUSE_ROWS } from '../settings/controls.js'
 import { KeyBindings } from './KeyBindings.jsx'
 
@@ -33,7 +39,7 @@ function ControlsTable({ title, rows }) {
 }
 
 // The Settings popup. settings: { tools: { rack, power, ... }, sound: { volume } } (settings/settings.js). bindings: the key
-// bindings in use. onChange(item, place), onVolumeChange(volume), onSpectatorSizeChange(size) and onBindingsChange(changed) apply a choice at once; App stores it. App closes the popup on Escape, as App handles all keys. A click on
+// bindings in use. onChange(item, place), onVolumeChange(volume), onSpectatorSizeChange(size), onTurnStepChange(step) and onBindingsChange(changed) apply a choice at once; App stores it. App closes the popup on Escape, as App handles all keys. A click on
 // the backdrop or × calls onClose().
 export function SettingsPopup({
   settings,
@@ -41,6 +47,7 @@ export function SettingsPopup({
   onChange,
   onVolumeChange,
   onSpectatorSizeChange,
+  onTurnStepChange,
   onBindingsChange,
   debug,
   onDebugClick,
@@ -153,6 +160,24 @@ export function SettingsPopup({
               </button>
             </span>
           </div>
+        </section>
+        <section className="settings-section">
+          <h3>Turn</h3>
+          <label className="settings-row">
+            <span>Turn step of Q / E and the wheel (°)</span>
+            <span className="settings-choice">
+              <input
+                type="range"
+                min={MIN_TURN_STEP}
+                max={MAX_TURN_STEP}
+                step="1"
+                value={settings.turn.step}
+                aria-label="Turn step"
+                onChange={(e) => onTurnStepChange(Number(e.target.value))}
+              />
+              <span className="settings-volume">{settings.turn.step}°</span>
+            </span>
+          </label>
         </section>
         <KeyBindings bindings={bindings} onChange={onBindingsChange} />
         <ControlsTable title="Mouse" rows={MOUSE_ROWS} />

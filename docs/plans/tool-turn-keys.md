@@ -1,6 +1,6 @@
 # Plan: Q / E and the wheel turn and bend a snapped tool
 
-Requested by the user on 2026-10-14. Status: Parts 1 and 2 done.
+Requested by the user on 2026-10-14. Status: Done.
 
 Three coder steps, one commit each. Branch `tool-turn-keys`, worktree `../mcp_assist_3d-tool-turn-keys`.
 
@@ -108,6 +108,8 @@ Work:
    - `range-movement-tools.md`: "15°" becomes "one turn step".
 
 Checks: as in Part 1.
+
+Result: `settings.turn.step` (`DEFAULT_TURN_STEP`, `MIN_TURN_STEP`, `MAX_TURN_STEP`; whole 5 to 15, else 15; test in `settings.test.js`). `SettingsPopup` has a "Turn" section with a "Turn step" slider before the key table. `useSettings` has `handleTurnStepChange`. `App.jsx` passes `turnStep` to `Scene.jsx`, where `ROTATE_STEP` is gone and `turnPiece` uses the prop. Docs: `table-tools.md`, `key-shortcuts.md`, `range-movement-tools.md`.
 
 User, after this part:
 1. Settings shows "Turn step" at 15°. Set it to 5°: Q / E and the wheel turn a character and a tool 5° per step, and bend 5° per step.

@@ -21,6 +21,11 @@ export function useSettings() {
     setSettings(next)
     writeSettings(next)
   }
+  function handleTurnStepChange(step) {
+    const next = { ...settings, turn: { step } }
+    setSettings(next)
+    writeSettings(next)
+  }
   function handleLabelsChange(labels) {
     const next = { ...settings, labels }
     setSettings(next)
@@ -42,6 +47,7 @@ export function useSettings() {
     handleLabelsChange,
     handleSettingChange,
     handleSpectatorSizeChange,
+    handleTurnStepChange,
     handleVolumeChange,
   }
 }

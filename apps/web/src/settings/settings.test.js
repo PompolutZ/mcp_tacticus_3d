@@ -232,3 +232,21 @@ test('spectator size: default 100, clamped to 60-150, rounded, junk is the defau
   assert.equal(read({ size: 'big' }), 100)
   assert.equal(read(undefined), 100)
 })
+
+test('turn step: default 15, clamped to 5-15, rounded, junk is the default', () => {
+  assert.equal(defaultSettings().turn.step, 15)
+  const read = (turn) => {
+    const storage = fakeStorage()
+    storage.setItem(KEY, JSON.stringify({ version: VERSION, turn }))
+    let step
+    withStorage(storage, () => {
+      step = readSettings().turn.step
+    })
+    return step
+  }
+  assert.equal(read({ step: 1 }), 5)
+  assert.equal(read({ step: 40 }), 15)
+  assert.equal(read({ step: 7.6 }), 8)
+  assert.equal(read({ step: 'big' }), 15)
+  assert.equal(read(undefined), 15)
+})

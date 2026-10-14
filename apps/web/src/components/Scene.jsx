@@ -123,8 +123,6 @@ const TIME_STEP = 1 / 120
 const HELD_STACK_STEP = TOKEN_THICKNESS + 0.01
 // The dragged token gets no pointer events, so it does not hide what is under it
 const NO_RAYCAST = () => null
-// One Q / E press turns a piece this much. The TTS default (PointerRotationSnap in the TTS settings, read on 2026-10-05).
-const ROTATE_STEP = (15 * Math.PI) / 180
 // A Q / E key held longer than this (s) turns the piece on at ROTATE_RATE (rad/s), 90° per second,
 // the same as the arrow keys turn the camera. Picked by look, not measured in TTS.
 const ROTATE_HOLD_DELAY = 0.3
@@ -197,6 +195,7 @@ function trayShapeOf(ch, characters, gruntLists) {
 // for the Delete key. terrainAtRef: ref App calls for the L key, the same pattern as characterAtRef.
 // Scene fills it with terrainAt. terrainDropRef: ref App calls when it deletes a terrain piece (planFall below).
 // showColliders: draw every physics collider as lines (the shapes physics uses, not the visible meshes)
+// turnStep: degrees of one Q / E press and wheel step (settings.turn.step; TTS default 15, PointerRotationSnap).
 // showLabels: show the label (name, game Size, lock state) above each terrain piece. With labels off, the
 // piece under the pointer shows its label.
 // spectator: show the spectator view above each model (SpectatorBadge.jsx)
@@ -323,6 +322,7 @@ export default function Scene({
   toolSpawn = { range: null, move: null },
   showColliders = false,
   showLabels = false,
+  turnStep = 15,
   spectator = false,
   matTurns = 0,
   deployLine = false,
@@ -690,13 +690,13 @@ export default function Scene({
   }
 
   // Q / E press, as in TTS: turns the dragged character or tool, else the one under the pointer, by
-  // ROTATE_STEP around its center. direction: 1 counter-clockwise seen from above, -1 clockwise.
+  // turnStep (degrees, the setting) around its center. direction: 1 counter-clockwise seen from above, -1 clockwise.
   // The dragged piece comes first, so a turn during a drag does not go to a piece that the
   // pointer passes over. A held key keeps turning the same piece, even when the pointer leaves it.
   function turnPiece(direction) {
     const piece = draggedPiece.current ?? hoveredPiece.current
     turnHold.current = { piece, time: 0 }
-    if (piece) addTurn(piece, direction * ROTATE_STEP)
+    if (piece) addTurn(piece, direction * ((turnStep * Math.PI) / 180))
   }
 
   // Adds angle to the turn of the piece that is not done yet
