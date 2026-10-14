@@ -22,6 +22,7 @@ import { freeSpawnYaw, storedFields, sameStored } from './storedTool.js'
 import { useSideColor } from '../sideColors.js'
 import { MOVE_TIP, RANGE_TIP, TOOL_TINT } from '../tabletools/toolTips.js'
 import { onRack } from '../tabletools/layout.js'
+import { flipTool } from './toolFlip.js'
 import { aimTurn } from './aimTurn.js'
 import { clampRange, rangeReach, withinRange } from './rangeOne.js'
 import { footprintGap, fromLocal, lineClamp, placeClamp, toLocal, touches } from './placeLock.js'
@@ -153,13 +154,20 @@ function nearerCorner(pose, c) {
   return { end: l.x >= 0 ? 1 : -1, across: l.z >= 0 ? 1 : -1 }
 }
 
-// Tool pose with the end of the left half touching the base edge. The tool points from the base
+// Tool pose touching the base edge with the end of one half. The tool points from the base
 // along yaw. Without a yaw, it points toward the mat center, so it stays on the mat.
-function snapPose(center, radius, halfLength, yaw) {
+// side 'left' (range tools): the left end touches the base, the tool yaw is the pointing direction.
+// side 'right' (movement tools): the right (indented) end touches the base, so the tool is turned
+// half a turn. The move direction (shape[side] + PI) is the same.
+function snapPose(center, radius, halfLength, yaw, side = 'left') {
   const len = Math.hypot(center.x, center.z)
   const dir = yaw ?? (len > 0.01 ? yawTo(center, { x: 0, z: 0 }) : 0)
   const along = radius + halfLength
-  return { x: center.x + along * Math.cos(dir), z: center.z - along * Math.sin(dir), yaw: dir }
+  return {
+    x: center.x + along * Math.cos(dir),
+    z: center.z - along * Math.sin(dir),
+    yaw: side === 'right' ? dir + Math.PI : dir,
+  }
 }
 
 // Angle tool (docs/features/range-movement-tools.md, "Toward / Away"): pose of the tool bent 90° so that both arms touch the base
@@ -1121,7 +1129,8 @@ function Tool({
     const c = model.getCenter()
     const rb = liveRb()
     if (!c || !rb) return false
-    const pose = toolPose(rb)
+    let pose = toolPose(rb)
+    let snapTurn = turn
     if (angle) {
       // Same direction, moved so that both arms touch the base
       const { x, z } = anglePose(c, model.radius, halfWidth, pose.yaw + Math.PI / 2)
@@ -1140,8 +1149,18 @@ function Tool({
       center = cornerSnapCenter(c, model.radius, pose.yaw, tip, halfWidth, corner.end, across)
       side = corner.end > 0 ? 'right' : 'left'
     } else {
-      const shape = toolShape(pose, turn)
+      let shape = toolShape(pose, snapTurn)
       side = nearerHalf(shape, tip, c)
+      if (bendable && side === 'left') {
+        // A movement tool snaps with its right (indented) end: flip it, the outline stays in place
+        const flipped = flipTool(pose, snapTurn)
+        pose = flipped.pose
+        snapTurn = flipped.turn
+        rb.setRotation(yawQuat(pose.yaw), true)
+        setTurn(snapTurn)
+        shape = toolShape(pose, snapTurn)
+        side = 'right'
+      }
       // The base center is past the end of that half, so the tool center is that far back from it
       const back = tip + model.radius
       center = { x: c.x - back * Math.cos(shape[side]), z: c.z + back * Math.sin(shape[side]) }
@@ -1150,7 +1169,7 @@ function Tool({
     // At an angle tool, the move direction (away from the base) stays in range: turn the tool around the base
     const open = angleLimit?.(model) ?? null
     if (open !== null && !rangeOne) {
-      const moveYaw = toolShape(pose, turn)[side] + Math.PI
+      const moveYaw = toolShape(pose, snapTurn)[side] + Math.PI
       placed = turnAround(placed, c, limitTurn(moveYaw, open, 0))
     }
     const { x, z } = placed
@@ -1159,7 +1178,7 @@ function Tool({
       { x, y: ground === null ? rb.translation().y : ground + hoverHeight, z },
       true,
     )
-    if (placed.yaw !== pose.yaw) rb.setRotation(yawQuat(placed.yaw), true)
+    rb.setRotation(yawQuat(placed.yaw), true)
     setSnap({ target: model, side, across })
     return true
   }
@@ -1181,14 +1200,15 @@ function Tool({
     }
     const center = spawnTarget?.getCenter()
     if (!center || !rb) return
-    // snapPoseOne puts the base on the +Z long side
-    setSnap({ target: spawnTarget, side: 'left', across: 1 })
+    // snapPoseOne puts the base on the +Z long side. A movement tool snaps with its right (indented) end.
+    const spawnSide = bendable ? 'right' : 'left'
+    setSnap({ target: spawnTarget, side: spawnSide, across: 1 })
     // The angle tool aims at the aim piece, or at the mat center. A movement tool at an angle tool points along it.
     const pose = angle
       ? aimPose(center, spawnTarget.radius, halfWidth, aim?.getCenter() ?? { x: 0, z: 0 }, 'away')
       : rangeOne
         ? snapPoseOne(center, spawnTarget.radius, tip, halfWidth)
-        : snapPose(center, spawnTarget.radius, tip, angleLimit?.(spawnTarget))
+        : snapPose(center, spawnTarget.radius, tip, angleLimit?.(spawnTarget), spawnSide)
     const ground = groundY(pose.x, pose.z, pose.yaw) ?? 0
     rb.setTranslation({ x: pose.x, y: ground + hoverHeight, z: pose.z }, true)
     rb.setRotation(yawQuat(pose.yaw), true)
