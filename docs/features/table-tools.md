@@ -56,7 +56,7 @@ z = 38                   ─────────────── table edg
 - One for each player, in row 1 of the board strip. It lies flat like the strip (its top faces −x). Its place is under "Place on the table".
 - Look: the green of the Power token (#42B534) with dark text, the Power token image left of the label **Auto Power Phase** (short, to fit the 5.4" strip). A lighter green on hover. No player tint. The other player's button in a room looks disabled.
 - A press gives Power to the characters of that side on the board, by the rules of `docs/features/round-phases.md`. The TTS button also gives Power to its own player's trays only. In the Sandbox, a player presses both buttons.
-- The toolbar **Power** (when it is in the HUD) gives Power to all sides that the browser plays.
+- The HUD **Power** (when it is in the HUD) gives Power to all sides that the browser plays.
 - In a multiplayer room, the other player's button is disabled, with the title "Only the Red player presses this." (or Blue).
 
 ## Board strip
@@ -73,7 +73,7 @@ z = 38                   ─────────────── table edg
 One row at the top, never wrapped. The height is the CSS variable `--hud-top` on the HUD root (`src/useHudTop.js`, a ResizeObserver). The Library, the Log and the notice start under it.
 
 - **Left:** **← Lobby**, the room code or **Sandbox**, **Copy link** (room with a free seat), the players (multiplayer room), and in the Sandbox and single player rooms a **Setup** chip.
-- **Middle:** the table controls that the settings put in the HUD: **Mat**, **Range** and **Move**, **Deploy**, **Phase**. On a narrow window this part scrolls sideways.
+- **Middle:** the table controls that the settings put in the HUD: **Mat**, **Range** and **Move**, **Deploy**. On a narrow window this part scrolls sideways.
 - **Right**, always in this order: **Library**, **Log**, **Spectator**, **Settings**. This group never shrinks, so nothing covers it.
 - **Setup** (not in a multiplayer room) toggles a panel under the chip with the **Crisis** selects and the **Roster** fields. Escape and a click outside close it.
 
@@ -83,13 +83,13 @@ One row at the top, never wrapped. The height is the CSS variable `--hud-top` on
 
 ### On the table or in the HUD
 
-One row for each item, with the choice **Table** or **HUD**. The default is **Table**.
+One row for each item, with the choice **Table** or **HUD**. The default is **HUD** for Automatic Power Phase and Cleanup Phase, **Table** for the rest. Saved settings from before the `version` field get Power and Cleanup in the HUD once; after that the saved choice stays.
 
-| Item | On the table | In the HUD (toolbar) |
+| Item | On the table | In the HUD |
 |---|---|---|
 | Range and movement tools | The tool rack | Groups **Range** (R1–R5) and **Move** (S, M, L, T/A) |
-| Automatic Power Phase | Row 1 of the board strips | **Phase** → **Power** |
-| Cleanup Phase | One button between the scoring board and the mat | **Phase** → **Cleanup** |
+| Automatic Power Phase | Row 1 of the board strips | Bottom right corner: **Power** (first) |
+| Cleanup Phase | One button between the scoring board and the mat | Bottom right corner: **Cleanup** (after Power) |
 | Deploy Lock | **Deploy Lock** in the board strip | **Deploy** → **Lock** |
 | Mat turn (Sandbox and single player rooms) | **↺** **↻** in the board strip | **Mat** → **↺** **↻**. The map select stays in the toolbar |
 
@@ -97,7 +97,7 @@ One row for each item, with the choice **Table** or **HUD**. The default is **Ta
 - A board strip with no rows is not drawn. A row with no buttons is not drawn.
 - When the rack is in the HUD, a tool does not go back to the rack. The rack is not on the table.
 - The **Mat** group of the toolbar stays while it has the map select (the Sandbox).
-- The settings are in localStorage, key `mcp-assist-3d/settings`: `{ tools: { rack, power, cleanup, deployLock, matTurn }, sound: { volume }, bindings }`. Each tool is `'table'` or `'hud'`, the volume a whole number from 0 to 100. `bindings` is `{ [actionId]: [{ code, shift, ctrl, alt, meta, when }] }` with only the actions that differ from the defaults (`{}` is all defaults; an empty list is an action with no key). An unknown action, code or condition is dropped. They belong to the browser, not to the user or the room. A missing or unknown value is the default. When localStorage cannot be read, the defaults apply.
+- The settings are in localStorage, key `mcp-assist-3d/settings`: `{ version, tools: { rack, power, cleanup, deployLock, matTurn }, sound: { volume }, bindings }`. Each tool is `'table'` or `'hud'`, the volume a whole number from 0 to 100. `bindings` is `{ [actionId]: [{ code, shift, ctrl, alt, meta, when }] }` with only the actions that differ from the defaults (`{}` is all defaults; an empty list is an action with no key). An unknown action, code or condition is dropped. They belong to the browser, not to the user or the room. A missing or unknown value is the default. When localStorage cannot be read, the defaults apply.
 
 ### Debug
 

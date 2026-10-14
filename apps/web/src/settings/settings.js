@@ -8,12 +8,21 @@ const KEY = 'mcp-assist-3d/settings'
 export const PLACES = ['table', 'hud']
 const TOOL_ITEMS = ['rack', 'power', 'cleanup', 'deployLock', 'matTurn']
 
+// The version of the saved settings. Saved settings without it (or with an older one) get power and cleanup
+// set to 'hud' once, when the default moved to the HUD (docs/plans/playtest/playtest-3.md, decision 3).
+export const VERSION = 2
+// The items that default to the HUD, the others to the table
+const HUD_DEFAULT = ['power', 'cleanup']
+
 // Sound volume, 0 (off) to 100 (docs/features/sounds.md)
 export const DEFAULT_VOLUME = 10
 
 export function defaultSettings() {
   return {
-    tools: Object.fromEntries(TOOL_ITEMS.map((item) => [item, 'table'])),
+    version: VERSION,
+    tools: Object.fromEntries(
+      TOOL_ITEMS.map((item) => [item, HUD_DEFAULT.includes(item) ? 'hud' : 'table']),
+    ),
     sound: { volume: DEFAULT_VOLUME },
     // Only the actions the user changed: action id → [{ code, shift, ctrl, alt, meta, when }]. The others use
     // their default keys (input/bindings.js, docs/features/key-shortcuts.md).
@@ -45,6 +54,8 @@ function normalize(raw) {
     const place = raw?.tools?.[item]
     if (PLACES.includes(place)) settings.tools[item] = place
   }
+  // Saved before the version: the new HUD default wins once, then the saved value is respected
+  if (raw && raw.version !== VERSION) for (const item of HUD_DEFAULT) settings.tools[item] = 'hud'
   const volume = raw?.sound?.volume
   if (Number.isFinite(volume))
     settings.sound.volume = Math.round(Math.min(100, Math.max(0, volume)))

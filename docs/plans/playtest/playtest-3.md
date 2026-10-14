@@ -166,3 +166,13 @@ Done. Files (under `apps/web/src/`): `components/Toolbar.jsx`, `components/Setti
 - Debug (Mode dev only, Labels in every build, as before) is a section of `SettingsPopup`.
 - `--hud-top`: `useHudTop(rootRef)` measures `.hud-top` with a ResizeObserver and sets the variable on the HUD root (top + height + 8). `:root` default 56px. `.library`, `.log` (and `.log-bar`) and `.hud-notice` use it.
 - Checks: format, lint (46 warnings, same), test, build ok. Not run in a browser (user rule).
+
+### Step 4: Phase buttons
+
+Done. Files (under `apps/web/src/`): new `components/PhaseButtons.jsx`, `components/Toolbar.jsx`, `components/HudWarnings.jsx`, `App.jsx`, `index.css`, `settings/settings.js`, `settings/settings.test.js`. Docs: `docs/features/round-phases.md`, `table-tools.md`.
+
+- `PhaseButtons` renders the Power and Cleanup buttons that the settings put in the HUD, a fixed group bottom right (`.phase-buttons`, buttons 60 px tall, 17 px text). Same handlers, `aria-disabled`, titles as before; Power calls `handlePowerPhase(playedSides)`, so it gives Power to the sides this browser plays. The toolbar Phase group and its 4 props are removed, not copied.
+- `HudWarnings` has a `lifted` prop (a phase button is in the HUD): `.hud-warnings--lifted` sits at bottom 84 px, above the group.
+- Settings: `version: 2`. Defaults `power` and `cleanup` are `'hud'`. A read of saved settings with another version sets both to `'hud'` once; the next write stores the version and the saved value is respected.
+- Checks: format, lint (46 warnings, same), test (696 pass), build ok. Not run in a browser (user rule).
+

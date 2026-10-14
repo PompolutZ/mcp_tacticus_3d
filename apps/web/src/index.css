@@ -1726,6 +1726,46 @@ body {
   z-index: 600;
 }
 
+.hud-warnings--lifted {
+  bottom: 84px;
+}
+
+/* Power and Cleanup in the HUD: fixed in the bottom right corner (components/PhaseButtons.jsx) */
+.phase-buttons {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  gap: 10px;
+  z-index: 600;
+}
+
+.phase-button {
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  min-width: 112px;
+  height: 60px;
+  padding: 0 20px;
+  cursor: pointer;
+  transition:
+    border-color 0.1s,
+    background 0.1s;
+}
+
+.phase-button:hover {
+  border-color: #414a61;
+}
+
+.phase-button[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .hud-warning {
   display: flex;
   align-items: flex-start;

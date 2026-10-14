@@ -51,6 +51,7 @@ import { useCharacterActions } from './characters/useCharacterActions.js'
 import { useTablePieces } from './pieces/useTablePieces.js'
 import { usePhaseActions } from './game/usePhaseActions.js'
 import HudNotice from './components/HudNotice.jsx'
+import { PhaseButtons } from './components/PhaseButtons.jsx'
 import { HudWarnings } from './components/HudWarnings.jsx'
 import { useHudMessage } from './components/useHudMessage.js'
 import { useDebugLook } from './debug/useDebugLook.js'
@@ -836,10 +837,6 @@ export default function App({
           settings={settings}
           settingsOpen={settingsOpen}
           onSettingsClick={() => setSettingsOpen((prev) => !prev)}
-          onPowerPhase={() => handlePowerPhase(playedSides)}
-          onCleanupPhase={handleCleanupPhase}
-          cleanupDisabled={cleanupDisabled}
-          cleanupTitle={cleanupTitle}
           deployLine={deployLine}
           onDeployLineClick={() => setDeployLine((prev) => !prev)}
           crisis={crisis}
@@ -935,7 +932,15 @@ export default function App({
         onShow={handleNoticeShow}
         onDone={(line) => placeTokens(line.ids)}
       />
+      <PhaseButtons
+        settings={settings}
+        onPowerPhase={() => handlePowerPhase(playedSides)}
+        onCleanupPhase={handleCleanupPhase}
+        cleanupDisabled={cleanupDisabled}
+        cleanupTitle={cleanupTitle}
+      />
       <HudWarnings
+        lifted={settings.tools.power === 'hud' || settings.tools.cleanup === 'hud'}
         storageFailed={storageFailed}
         serverWarning={serverWarning}
         versionMismatch={versionMismatch}

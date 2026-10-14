@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { defaultSettings, readSettings, writeSettings } from './settings.js'
+import { VERSION, defaultSettings, readSettings, writeSettings } from './settings.js'
 
 const KEY = 'mcp-assist-3d/settings'
 
@@ -33,11 +33,18 @@ function withStorage(storage, fn) {
   }
 }
 
-test('nothing stored: every item is on the table', () => {
+test('nothing stored: power and cleanup are in the HUD, the rest on the table', () => {
   withStorage(fakeStorage(), () => {
     const settings = readSettings()
     assert.deepEqual(settings, defaultSettings())
-    assert.ok(Object.values(settings.tools).every((place) => place === 'table'))
+    assert.deepEqual(settings.tools, {
+      rack: 'table',
+      power: 'hud',
+      cleanup: 'hud',
+      deployLock: 'table',
+      matTurn: 'table',
+    })
+    assert.equal(settings.version, VERSION)
     assert.deepEqual(Object.keys(settings.tools), [
       'rack',
       'power',
@@ -51,22 +58,49 @@ test('nothing stored: every item is on the table', () => {
 test('a written setting reads back', () => {
   withStorage(fakeStorage(), () => {
     const settings = defaultSettings()
-    settings.tools.power = 'hud'
+    settings.tools.power = 'table'
+    settings.tools.rack = 'hud'
     assert.equal(writeSettings(settings), true)
-    assert.equal(readSettings().tools.power, 'hud')
-    assert.equal(readSettings().tools.rack, 'table')
+    assert.equal(readSettings().tools.power, 'table')
+    assert.equal(readSettings().tools.rack, 'hud')
+    assert.equal(readSettings().tools.cleanup, 'hud')
+    assert.equal(readSettings().tools.deployLock, 'table')
   })
 })
 
 test('a missing or unknown value is the default, other values stay', () => {
   const storage = fakeStorage()
-  storage.setItem(KEY, JSON.stringify({ tools: { rack: 'hud', power: 'left', cleanup: 3 } }))
+  storage.setItem(
+    KEY,
+    JSON.stringify({
+      version: VERSION,
+      tools: { rack: 'hud', power: 'left', cleanup: 3, matTurn: 'hud' },
+    }),
+  )
   withStorage(storage, () => {
     const { tools } = readSettings()
     assert.equal(tools.rack, 'hud')
-    assert.equal(tools.power, 'table')
-    assert.equal(tools.cleanup, 'table')
-    assert.equal(tools.matTurn, 'table')
+    assert.equal(tools.power, 'hud')
+    assert.equal(tools.cleanup, 'hud')
+    assert.equal(tools.deployLock, 'table')
+    assert.equal(tools.matTurn, 'hud')
+  })
+})
+
+test('saved without a version: power and cleanup go to the HUD once, then the saved value stays', () => {
+  const storage = fakeStorage()
+  storage.setItem(KEY, JSON.stringify({ tools: { rack: 'hud', power: 'table', cleanup: 'table' } }))
+  withStorage(storage, () => {
+    const { tools } = readSettings()
+    assert.equal(tools.power, 'hud')
+    assert.equal(tools.cleanup, 'hud')
+    assert.equal(tools.rack, 'hud')
+    const settings = readSettings()
+    settings.tools.power = 'table'
+    assert.equal(writeSettings(settings), true)
+    assert.equal(readSettings().version, VERSION)
+    assert.equal(readSettings().tools.power, 'table')
+    assert.equal(readSettings().tools.cleanup, 'hud')
   })
 })
 

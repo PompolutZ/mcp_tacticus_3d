@@ -48,10 +48,6 @@ export function Toolbar({
   settings,
   settingsOpen,
   onSettingsClick,
-  onPowerPhase,
-  onCleanupPhase,
-  cleanupDisabled,
-  cleanupTitle,
   deployLine,
   onDeployLineClick,
   crisis,
@@ -72,8 +68,6 @@ export function Toolbar({
   // "Settings menu"). The Mat group stays for the map select, also when the mat turn is on the table.
   const hud = (item) => settings.tools[item] === 'hud'
   const rackHud = hud('rack')
-  const powerHud = hud('power')
-  const cleanupHud = hud('cleanup')
   const deployHud = hud('deployLock')
   const matTurnHud = hud('matTurn')
   const showMat = !multiplayer && (matTurnHud || !roomCode)
@@ -268,33 +262,6 @@ export function Toolbar({
             >
               Lock
             </button>
-          </div>
-        )}
-        {(powerHud || cleanupHud) && (
-          <div className="group">
-            <span className="group-label">Phase</span>
-            {powerHud && (
-              <button
-                type="button"
-                className="chip"
-                title="Automatic Power Phase: each of your characters gains Power"
-                onClick={onPowerPhase}
-              >
-                Power
-              </button>
-            )}
-            {/* aria-disabled, not disabled: some browsers show no title on a disabled button */}
-            {cleanupHud && (
-              <button
-                type="button"
-                className="chip"
-                aria-disabled={cleanupDisabled}
-                title={cleanupTitle}
-                onClick={cleanupDisabled ? undefined : onCleanupPhase}
-              >
-                Cleanup
-              </button>
-            )}
           </div>
         )}
       </div>

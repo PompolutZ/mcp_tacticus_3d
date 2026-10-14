@@ -2,8 +2,10 @@ import { useState } from 'react'
 
 // Warnings that stay until the player closes them. storageFailed: the room could not use IndexedDB.
 // serverWarning: the text of the server warning, or null. versionMismatch: the other player uses another
-// version. softwareRenderer: the name of the WebGL renderer when it runs on the CPU, or null.
+// version. lifted: the phase buttons are in the bottom right corner, so the warnings stack above them.
+// softwareRenderer: the name of the WebGL renderer when it runs on the CPU, or null.
 export function HudWarnings({
+  lifted = false,
   storageFailed,
   serverWarning,
   versionMismatch,
@@ -18,7 +20,7 @@ export function HudWarnings({
   const [versionClosed, setVersionClosed] = useState(false)
   if (!versionMismatch && versionClosed) setVersionClosed(false)
   return (
-    <div className="hud-warnings">
+    <div className={`hud-warnings${lifted ? ' hud-warnings--lifted' : ''}`}>
       {storageWarning && (
         <div className="hud-warning" role="alert">
           <span>
