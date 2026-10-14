@@ -40,6 +40,7 @@ import {
   pieceTexture,
 } from '../src/terrain/files.js'
 import { TERRAIN_PIECES } from '../src/terrain/pieces.js'
+import { mapJsonText } from '../src/terrain/exportMap.js'
 import { findAssetByGuid } from './lib/unity-prefab.mjs'
 
 const USAGE = `Usage:
@@ -453,7 +454,8 @@ function mapJson(card, mat, matName, results) {
 function writeMap(map) {
   const dir = opts.out ? path.resolve(opts.out, 'maps') : MAPS_DIR
   const file = path.join(dir, `${map.id}.json`)
-  writeJson(file, map, { sortKeys: false })
+  fs.mkdirSync(dir, { recursive: true })
+  fs.writeFileSync(file, mapJsonText(map))
   if (!opts.out) {
     const index = path.join(MAPS_DIR, 'index.js')
     fs.writeFileSync(index, addMapToIndex(fs.readFileSync(index, 'utf8'), map.id))

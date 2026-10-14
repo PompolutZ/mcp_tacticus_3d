@@ -108,3 +108,9 @@ Step 4 done.
 - `EditableTerrain` in `TerrainPage.jsx`: drag with `startPointerDrag` (camera controls off). The drag point is the plane of the mat top (`tablePoint` with a world that never hits), so a piece does not jump onto a piece below it. The group moves during the drag. The drop writes the TTS position and bumps `rev` of the placement, which is in the key in `Terrain`, so the piece remounts.
 - Q / E: `terrain/placementMove.js` (`toThreeTransform` moved there from `Terrain.jsx`, `movedPosition`, `turnedRotation`, tested). Q is -15° in TTS Y (counter-clockwise seen from above, as in the game). Delete, Backspace and the "Clear" button remove.
 - Keys are ignored with a focused input or a Ctrl, Cmd or Alt key.
+
+Step 5 done. The plan is done.
+
+- `terrain/exportMap.js`: `mapToState`, `exportMap`, `exportMapText`, `mapJsonText`, `MAP_ID_PATTERN`. The migrate script writes its map file with `mapJsonText` (one writer). Test `exportMap.test.js`: load then export of all 22 maps equals the file byte for byte.
+- Page: "Map" block (load list, `id`, `name`, Export). A mat click sets the catalog rotation, a loaded map keeps its own.
+- Card: `assets/index.js` has `hasAsset`; `NewRoomDialog` uses `MAP_CARD_BACK` when `maps/<id>.webp` is missing (`assetUrl` throws on a missing file).

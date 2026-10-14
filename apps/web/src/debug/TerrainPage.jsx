@@ -15,7 +15,8 @@ import { startPointerDrag } from '../drag/pointerDrag.js'
 import { tablePoint } from '../drag/tablePoint.js'
 import { movedPosition, turnedRotation } from '../terrain/placementMove.js'
 import { MATS, PIECES_BY_SIZE } from '../terrain/catalog.js'
-import { TTS_MAT_TOP } from '../terrain/maps/index.js'
+import { MAPS, TTS_MAT_TOP } from '../terrain/maps/index.js'
+import { MAP_ID_PATTERN, exportMapText, mapToState } from '../terrain/exportMap.js'
 
 // Dev-only page (#terrain, see Root.jsx): the mats and the terrain pieces of all maps. A click on a mat shows it,
 // a click on a piece adds it at the mat center. See docs/features/maps.md, "Terrain page". It is not in the
@@ -120,9 +121,15 @@ export default function TerrainPage() {
   // [{ id, piece, size, position, rotation, scale, tint, locked }], relative to the mat center (TTS coords)
   const [placements, setPlacements] = useState([])
   const [selectedId, setSelectedId] = useState(null)
+  // The fields of the loaded map that the page does not edit, kept for export
+  const [meta, setMeta] = useState({})
+  const [mapId, setMapId] = useState('')
+  const [mapName, setMapName] = useState('')
+  const [matRotation, setMatRotation] = useState(SORTED_MATS[0].rotation)
   const heldPan = useRef(new Map())
   const heldTurn = useRef(new Map())
   const mat = SORTED_MATS.find((m) => m.name === matName)
+  const idValid = MAP_ID_PATTERN.test(mapId)
 
   // The camera keys. Not while a field has the focus.
   useEffect(() => {
@@ -218,12 +225,82 @@ export default function TerrainPage() {
 
   // The mat turns the image only. The placements stay where they are.
   function pickMat(name) {
-    startTransition(() => setMatName(name))
+    startTransition(() => {
+      setMatName(name)
+      setMatRotation(SORTED_MATS.find((m) => m.name === name).rotation)
+    })
+  }
+
+  // Replaces the mat, its rotation and the placements. id, name, ttsMap, note and skipped are kept for export.
+  function loadMap(id) {
+    const map = MAPS[id]
+    if (!map) return
+    const state = mapToState(map, () => crypto.randomUUID())
+    startTransition(() => {
+      setMatName(state.mat)
+      setMatRotation(state.matRotation)
+      setPlacements(state.placements)
+      setSelectedId(null)
+      setMapId(state.id)
+      setMapName(state.name)
+      setMeta({ ttsMap: state.ttsMap, note: state.note, skipped: state.skipped })
+    })
+  }
+
+  // Downloads <id>.json, the file format of the maps (src/terrain/exportMap.js)
+  function exportFile() {
+    const text = exportMapText({
+      ...meta,
+      id: mapId,
+      name: mapName,
+      mat: matName,
+      matRotation,
+      placements,
+    })
+    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${mapId}.json`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   return (
     <div className="terrain-page">
       <aside className="terrain-panel">
+        <h2 className="terrain-heading">Map</h2>
+        <select
+          className="chip terrain-select"
+          value=""
+          aria-label="Load map"
+          onChange={(e) => loadMap(e.target.value)}
+        >
+          <option value="">Load map...</option>
+          {Object.values(MAPS).map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.name}
+            </option>
+          ))}
+        </select>
+        <input
+          type="text"
+          className="chip chip--text terrain-filter"
+          placeholder="id (kebab-case)"
+          aria-label="Map id"
+          value={mapId}
+          onChange={(e) => setMapId(e.target.value)}
+        />
+        <input
+          type="text"
+          className="chip chip--text terrain-filter"
+          placeholder="Name"
+          aria-label="Map name"
+          value={mapName}
+          onChange={(e) => setMapName(e.target.value)}
+        />
+        <button type="button" className="terrain-row" disabled={!idValid} onClick={exportFile}>
+          Export
+        </button>
         <h2 className="terrain-heading">Mats</h2>
         <ul className="terrain-list terrain-mats">
           {SORTED_MATS.map((m) => (
@@ -291,7 +368,7 @@ export default function TerrainPage() {
               <SelectionOutlines>
                 <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP}>
                   <TableSurface />
-                  <Mat mat={mat.name} rotation={mat.rotation} />
+                  <Mat mat={mat.name} rotation={matRotation} />
                   <EditableTerrain
                     placements={placements}
                     setPlacements={setPlacements}
