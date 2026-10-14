@@ -60,6 +60,12 @@ export function castDown(world, rapier, shape, rotation, x, z, halfHeight, from 
 // In steps of CAST_STEP, for the same reason as castDown. A collider that the shape already overlaps at
 // the start does not stop it while the shape moves out of it.
 export function castAlong(world, rapier, shape, rotation, pos, dir, maxDistance, keep) {
+  return castAlongHit(world, rapier, shape, rotation, pos, dir, maxDistance, keep).distance
+}
+
+// castAlong that also gives the collider it stopped at: { distance, collider }. collider is null when
+// the shape touches none.
+export function castAlongHit(world, rapier, shape, rotation, pos, dir, maxDistance, keep) {
   const filter = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
   for (let done = 0; done < maxDistance; done += CAST_STEP) {
     const from = { x: pos.x + dir.x * done, y: pos.y + dir.y * done, z: pos.z + dir.z * done }
@@ -78,9 +84,9 @@ export function castAlong(world, rapier, shape, rotation, pos, dir, maxDistance,
       undefined,
       keep,
     )
-    if (hit) return done + hit.time_of_impact
+    if (hit) return { distance: done + hit.time_of_impact, collider: hit.collider }
   }
-  return maxDistance
+  return { distance: maxDistance, collider: null }
 }
 
 // The lower floor under an overhang at (x, z): { floor, limit }, or null when there is none. floor: height

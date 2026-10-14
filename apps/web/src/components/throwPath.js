@@ -5,15 +5,13 @@
 
 import { BASE_HALF_H, baseGroundY } from './CharacterModel.jsx'
 import { castAlong } from '../physics.js'
-import { MAT_SIZE } from '../table.js'
+import { matEdgeDistance, standingColliders } from './terrainUnder.js'
 
 const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 // The base moves this far (inches) above the ground where it starts, so the terrain cast does not hit
 // the surface that the base stands on
 const CAST_LIFT = 0.05
-// Terrain that the base overlaps at the start does not stop it (rules p14). The test shape is the
-// base, reaching STAND_DEPTH below it, so the piece that the base stands on counts.
-const STAND_DEPTH = 0.05
+// Terrain that the base overlaps at the start does not stop it (rules p14), see standingColliders.
 // The ground at the start and the start overlap test use a base this much narrower. So a wall that
 // the base only touches is not under it, and the base does not start on top of that wall.
 const TOUCH_MARGIN = 0.02
@@ -38,18 +36,6 @@ export function throwMove(world, rapier, { start, dir, distance, radius, others 
   return { moved }
 }
 
-// A base never leaves the mat (rules p13). Distance along dir until the base edge reaches the mat edge.
-// The mat turns only by 90° around its center, so its edges stay at ±MAT_SIZE / 2.
-function matEdgeDistance(start, dir, radius) {
-  const limit = MAT_SIZE / 2 - radius
-  let d = Infinity
-  for (const axis of ['x', 'z']) {
-    if (dir[axis] === 0) continue
-    d = Math.min(d, ((dir[axis] > 0 ? limit : -limit) - start[axis]) / dir[axis])
-  }
-  return Math.max(0, d)
-}
-
 // Distance along dir until the moving base (radius) touches the other base, edge to edge seen from
 // above, or Infinity when it does not. The rules measure bases from above, so the height of the
 // other base does not matter. A base that the move goes away from is not hit, also when the two
@@ -70,19 +56,13 @@ function baseHitDistance(start, dir, radius, other) {
 // table passes under an overhang, as the rules allow (p9), and a base on a roof does not hit the
 // lower terrain under it.
 function terrainHitDistance(world, rapier, start, dir, distance, radius, ground, startBottom) {
-  const started = new Set()
-  const stand = new rapier.Cylinder(BASE_HALF_H + STAND_DEPTH / 2, radius - TOUCH_MARGIN)
-  const standPos = { x: start.x, y: ground + BASE_HALF_H - STAND_DEPTH / 2, z: start.z }
-  const filter = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
-  world.intersectionsWithShape(
-    standPos,
-    NO_ROTATION,
-    stand,
-    (collider) => {
-      started.add(collider.handle)
-      return true
-    },
-    filter,
+  const started = standingColliders(
+    world,
+    rapier,
+    start,
+    ground,
+    radius - TOUCH_MARGIN,
+    BASE_HALF_H,
   )
   const base = new rapier.Cylinder(BASE_HALF_H, radius)
   const pos = { x: start.x, y: startBottom + BASE_HALF_H, z: start.z }

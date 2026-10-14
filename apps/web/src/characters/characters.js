@@ -2,6 +2,7 @@ import jarvisData from './jarvis-characters.json'
 import migratedData from './characters.json'
 import { sharedImmunities } from './immunity.js'
 import { sharedPowerBonus } from './power.js'
+import { cardSizes, sideSize } from './size.js'
 import { dropPlacer } from './dropPlacer.js'
 
 function baseName(mm) {
@@ -34,6 +35,8 @@ function rosterEntry(jch, m, mctCode) {
     staminaHealthy: Number(jch.statCard.frontSide.stamina) || 0,
     // A grunt has no Injured side (backSide is null): 0
     staminaInjured: Number(jch.statCard.backSide?.stamina) || 0,
+    // Size of each stat card side, for the Line of Sight tool (see size.js)
+    sizes: cardSizes(jch.statCard),
     // Threat Level, for the squad threat in the game setup (see docs/features/setup-game.md)
     threat: jch.threatLevel ?? 0,
     // Jarvis affiliation slugs, for the squad affiliation in the game setup (scoreboard/affiliations.js)
@@ -145,6 +148,12 @@ export function characterStamina(slug, side) {
   const ch = bySlug.get(slug)
   if (!ch) return 0
   return side === 'injured' ? ch.staminaInjured : ch.staminaHealthy
+}
+
+// Size of a spawned character's current side, or 0 when unknown: the Line of Sight block Size.
+export function characterSize(slug, side) {
+  const ch = bySlug.get(slug)
+  return ch ? sideSize(ch.sizes, side) : 0
 }
 
 // Every character's Give sources start with Activated and Dazed. characters.json does not list them:

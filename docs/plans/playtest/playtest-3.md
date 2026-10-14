@@ -1,6 +1,6 @@
 # Plan: Feedback from the third playtest
 
-Requested by the user on 2026-10-14. Status: steps 1 to 9 done. Steps 10 and 11 (Line of Sight, added by the user on 2026-10-14 before the test) wait for the user's OK. The user decides more on the overlays (decisions 6 and 7) after a test run.
+Requested by the user on 2026-10-14. Status: steps 1 to 10 done. Step 11 (the LOS tool, added by the user on 2026-10-14 before the test) waits for the user's OK. The user decides more on the overlays (decisions 6 and 7) after a test run.
 
 Branch `playtest-3`, worktree `../mcp_assist_3d-playtest-3`, from main at `5d071a9`. One coder step and one commit for each step. Each step writes its **Result** below when it is done. Feature docs change in the same step as the code.
 
@@ -262,3 +262,13 @@ Done. Files (under `apps/web/src/`): new `components/SpectatorColumns.jsx`, new 
 - Settings: `spectator: { size }`, slider step 5.
 - The portrait is always `characterPortrait`; no state says a character is transformed (a second form is a second model), so `transformPortrait` is not used.
 - Checks: format, lint, test, build ok. Not run in a browser (user rule).
+
+### Step 10: LOS data and rule
+
+Done. Files (under `apps/web/src/`): new `characters/size.js`, `components/losLength.js`, `components/terrainUnder.js` (+ tests), `characters/characters.js`, `components/Terrain.jsx`, `components/throwPath.js`, `physics.js`. Docs: new `docs/features/line-of-sight.md`. `roster.md` lists no character fields, so no change.
+
+- `characterSize(slug, side)` (like `characterStamina`) from `rosterEntry.sizes` (`cardSizes`, `sideSize` in `size.js`). A grunt has its front size on both sides.
+- Terrain `RigidBody` has `userData: { id, size }`. `terrainSize(collider)` reads it through `collider.parent()`; null for the table.
+- `losLength({ start, yaw, width, blockSize, skipped, cast })` gives `{ distance, blocker }`, `blocker` is `{ collider, size }` or null. `losCast(world, rapier)` is the real cast (tall thin box, `castAlongHit` in `physics.js`). `castAlong` uses `castAlongHit`.
+- `terrainUnder.js`: `standingColliders(world, rapier, start, ground, radius, halfH)` (handles of the colliders under a base) and `matEdgeDistance`. `throwPath.js` uses both.
+- Checks: format, lint (no new warnings), test, build ok. Not run in a browser (user rule).
