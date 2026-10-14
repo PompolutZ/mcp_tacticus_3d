@@ -49,6 +49,7 @@ import TacticTray from './TacticTray.jsx'
 import TacticCard from './TacticCard.jsx'
 import RosterCards from './RosterCards.jsx'
 import GameSetup from './GameSetup.jsx'
+import { OnTable } from './OnTable.jsx'
 import DiceTray from './DiceTray.jsx'
 import OtherDiceTray from './OtherDiceTray.jsx'
 import ScoreBoard from './ScoreBoard.jsx'
@@ -139,6 +140,9 @@ const ROTATE_DONE = 1e-4
 // Suspense that React Three Fiber puts around the Canvas content), and the screen flashes black.
 // The map and the models of a new table are loaded before the scene mounts (Preload.jsx), so they show
 // in the first frame.
+
+// Height of the random map note above the table, as in GameSetup.jsx (TABLE_Y).
+const WAIT_NOTE_Y = 0.05
 
 // The mat image of a map. Preload.jsx loads it before a table shows (docs/features/rooms.md, "Loading").
 export function matUrl(mapId) {
@@ -1263,6 +1267,15 @@ export default function Scene({
 
           {/* The mat and its terrain turn together around the mat center. In game setup, the player with priority
             turns them so that the deployment edge they chose faces their side (GameSetup.jsx). */}
+          {mapId == null && tableButtons.multiplayer && (
+            <OnTable position={[0, WAIT_NOTE_Y, 0]}>
+              <div className="setup-panel">
+                <div className="setup-note">
+                  Random map: it spawns automatically when the second player joins the room.
+                </div>
+              </div>
+            </OnTable>
+          )}
           <group rotation={[0, (matTurns * Math.PI) / 2, 0]}>
             {/* mapId null: a random room waits for its map. The mat and the terrain load here, in their own
               Suspense, when the map comes. */}

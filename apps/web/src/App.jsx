@@ -1079,11 +1079,6 @@ export default function App({
         />
       )}
       {hudMessage && <div className="hud-message">{hudMessage}</div>}
-      {mapId == null && room?.multiplayer && (
-        <div className="hud-wait">
-          Random map: it spawns automatically when the second player joins the room.
-        </div>
-      )}
       <HudNotice
         lines={waitLines}
         onShow={handleNoticeShow}

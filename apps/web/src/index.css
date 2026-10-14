@@ -684,23 +684,6 @@ body {
   z-index: 600;
 }
 
-/* Note in the middle of the screen while a random room has no map yet (App.jsx) */
-.hud-wait {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 10px 16px;
-  font-size: 14px;
-  color: var(--text);
-  text-align: center;
-  pointer-events: none;
-  z-index: 600;
-}
-
 /* Dropped objective tokens that wait for their place (HudNotice.jsx), below the HUD message */
 .hud-notice {
   position: absolute;
