@@ -183,8 +183,8 @@ The upward speed was measured in TTS (see [Measurements](#measurements)). The sp
 | Size | 0.94" tip to tip | 0.94" tip to tip | Same die. |
 | Mass | 0.95 | 1, from the density and the volume | Mass matters only between dice, and all dice have the same mass. The app sets speeds directly, and models are dominant (see [Collisions](#collisions)). |
 | Friction | Die 0.6. The tray's friction was not measured. | Die 0.6 with combine rule Min: 0.6 on the table, tray and terrain | Table, tray and terrain have friction 1 (`FRICTION` in `src/physics.js`). With Average, the die would get 0.8. |
-| Restitution (bounce) | Die 0.8, others 0, Average: 0.4 | Die 0.8, Average: 0.4 | Table, tray and terrain have restitution 0 in the app too. So the result is the same as in TTS. |
-| Damping | Drag 0.1, angular drag 0.1 | Start value: linear 0.1, angular 0.1 | Unity drag and Rapier damping use similar formulas, but not the same one. |
+| Restitution (bounce) | Die 0.8, others 0, Average: 0.4 | Die 0.3, Average: 0.15 on the table, 0.3 die to die | Die to die was 0.8 with Average, the main cause of long rolls (playtest 4). Table, tray and terrain have restitution 0. Measured: 8 dice settle 3.2 s -> 2.5 s. |
+| Damping | Drag 0.1, angular drag 0.1 | Linear 0.1, angular 1.0 (playtest 4; barely changes the rest time, the user checks the look) | Unity drag and Rapier damping use similar formulas, but not the same one. |
 | Gravity | -25 in/s² (`Physics.getGravity()`; a free fall gave 24.3, and drag explains the difference) | World: -30 in/s². Dice: `gravityScale` 25/30, so -25 (`DIE_GRAVITY` in `src/dice/throw.js`) | Models use -30 (`WORLD_GRAVITY` in `src/physics.js`). |
 | Step | 90 Hz, 14 solver iterations | 120 Hz, 4 solver iterations (the whole world) | If dice shake when they touch each other, raise `numSolverIterations`, and measure the cost. |
 | CCD | Not known | On | The tray walls are a thin trimesh, and a fast die can pass through a thin wall. CCD (continuous collision detection) checks the path between two steps. |
@@ -196,6 +196,7 @@ The upward speed was measured in TTS (see [Measurements](#measurements)). The sp
 | Table, tray, terrain | The die bounces. |
 | Table edge | The die bounces off an invisible wall. The walls are one kinematic body, so pointer and ground casts (only fixed bodies) pass through them. A dragged model is kinematic too and passes through them. A model that falls or tips at the edge stops at them. |
 | Another die | Both dice bounce and push each other. |
+| A rested die (symbol read, not yet on the shelf) | Kinematic like a shelf die: the thrown die bounces, the rested die stays and keeps its symbol. A throw makes it dynamic again. |
 | A die on the shelf | The thrown die bounces. The die on the shelf is kinematic, so it does not move. |
 | A model base | The die bounces. The model does not move. |
 | A figure | The die passes through. Only the base of a model has a collider (README, "Collider view"). |

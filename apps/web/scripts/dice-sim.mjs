@@ -11,6 +11,8 @@
 //   --seed <n>          RNG seed (default 1)
 //   --throws <n>        valid throws for the single-die fairness test (default 8000)
 //   --multi-throws <n>  valid throws (summed over 10 dice) for the multi-die test (default 2000)
+//   --dice <n>          dice in the multi-die test (default 10)
+//   --restitution, --ang-damping, --lin-damping <x>  override DIE_BODY, to compare values
 //   --quick             small throw counts, for tuning (300 / 300)
 
 import { createRequire } from 'node:module'
@@ -65,6 +67,11 @@ function parseArgs(argv) {
     if (argv[i] === '--seed') opts.seed = Number(argv[++i])
     else if (argv[i] === '--throws') opts.throws = Number(argv[++i])
     else if (argv[i] === '--multi-throws') opts.multiThrows = Number(argv[++i])
+    else if (argv[i] === '--dice') opts.multiDice = Number(argv[++i])
+    // Body overrides to compare values without editing throw.js (mutates the imported DIE_BODY)
+    else if (argv[i] === '--restitution') DIE_BODY.restitution = Number(argv[++i])
+    else if (argv[i] === '--ang-damping') DIE_BODY.angularDamping = Number(argv[++i])
+    else if (argv[i] === '--lin-damping') DIE_BODY.linearDamping = Number(argv[++i])
     else if (argv[i] === '--quick') {
       opts.throws = 300
       opts.multiThrows = 300

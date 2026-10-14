@@ -23,10 +23,10 @@ function cryptoRandom() {
 export const DIE_BODY = {
   friction: 0.6,
   frictionCombineRule: 1,
-  restitution: 0.8,
+  restitution: 0.3,
   restitutionCombineRule: 0,
   linearDamping: 0.1,
-  angularDamping: 0.1,
+  angularDamping: 1.0,
 }
 
 // A die rests when its linear and angular speed stay below these limits for SETTLE_TIME seconds.

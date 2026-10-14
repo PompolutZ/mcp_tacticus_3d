@@ -201,3 +201,19 @@ Done.
 - `Toolbar.jsx`: class `toolbar-setup-panel`; `index.css`: `pointer-events: auto`. Open and close code unchanged.
 - Tests in `settings.test.js`. Docs: `table-tools.md` (Debug "Labels", settings JSON). "Toolbar" section was right.
 - Not tried in a browser.
+
+### Step 8: Dice
+
+Done.
+
+- `throw.js`: restitution 0.3, angular damping 1.0, linear damping 0.1 kept.
+- `DiceTray.jsx`: a die that rests with a symbol is zeroed and made kinematic (`liveBody` guard). `throwDie` makes a non-shelf, non-dynamic die dynamic again. Reroll, shelf move (`startShelfMove` sets the type again, harmless) and `diceLives` (reads `translation()`, works for kinematic) unchanged.
+- `dice-sim.mjs`: new args `--dice`, `--restitution`, `--ang-damping`, `--lin-damping`. The sim has no rested-die case (all dice throw each round).
+- Measured, 8 dice at once, seeds 1-3, 1000 results each (settle time per round, avg / worst):
+  - Before (0.8, 0.1): 3.2 s / 4.6 s; tilted 0.8-1.4%; out of well 0.9-2.7%.
+  - Restitution 0.3, angular 0.1: 2.5 s / 3.6 s; tilted 1.7-2.2%; out of well 0.5-0.9%.
+  - Restitution 0.3, angular 1.0: 2.5 s / 3.3 s; tilted 2.1-2.3%; out of well 0.6-0.9%.
+  - Angular 2.0: 2.4 s / 3.2 s; tilted 1.3-2.5%.
+  - Restitution does the work. Angular damping barely changes the rest time, so 1.0 is kept as decided. Flat share about 98% before and after. Dice stay in the tray (single die: 0% out of well, before 0.3-0.5%).
+- Tilted rate rose from about 1% to 2%; the app throws such a die again. Chi-squared failed on 1 of 15 runs (chance level).
+- Not tried in a browser: the user checks the look (spin fades to about 40% in a 1 s flight).

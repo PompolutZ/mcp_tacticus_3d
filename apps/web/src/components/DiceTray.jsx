@@ -294,6 +294,9 @@ export default function DiceTray({
     const rb = entry.body
     if (!rb) return
     rb.wakeUp() // a sleeping body's pose is not synced to its mesh until it wakes (Pitfalls)
+    // A rested die (kinematic, see the rest code in useFrame) moves again. A shelf die is never thrown.
+    if (entry.slot === undefined && liveBody(world, rb) && !rb.isDynamic())
+      rb.setBodyType(rapier.RigidBodyType.Dynamic, true)
     entry.bump?.reset() // the throw sets the speed: it is no bump
     if (respawn) {
       // setTranslation moves the body at once, so a later respawn in the same frame sees this die
@@ -695,6 +698,13 @@ export default function DiceTray({
         } else {
           entry.symbol = FACES[face - 1].symbol
           entry.face = face
+          // Rested with a symbol: kinematic, so another die cannot knock it over and leave the
+          // symbol stale. A rolling die bounces off it. throwDie makes it dynamic again.
+          if (liveBody(world, rb)) {
+            rb.setLinvel(ZERO, true)
+            rb.setAngvel(ZERO, true)
+            rb.setBodyType(rapier.RigidBodyType.KinematicPositionBased, true)
+          }
           entry.state = 'well'
           entry.stillTime = 0
           entry.throwTime = 0
