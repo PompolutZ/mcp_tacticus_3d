@@ -1,6 +1,6 @@
 # Plan: Bugs from the fourth playtest
 
-Requested by the user on 2026-10-14. Status: steps 1 to 6 done, user test pending.
+Requested by the user on 2026-10-14. Status: steps 1 to 6 done and tested, steps 7 to 9 added after the test.
 
 Branch `playtest-4`, worktree `../mcp_assist_3d-playtest-4`, from main at `7b708f7`. One coder step and one commit for each step. Each step writes its **Result** below when it is done. Feature docs change in the same step as the code.
 
@@ -17,6 +17,13 @@ Rule of every step (from the user): reuse existing hooks and functions. Extend a
 5. Major. Joel dazed Daredevil. The app dropped Daredevil's Extract token, and the screen of Daredevil's owner turned black. The console shows Rapier errors: `null pointer passed to rust` (`removeRigidBody`, `setBodyType`) and `expected instance of Og` (`removeCollider`).
 6. Joel dropped an Extract token on the table under Juggernaut. The app made Juggernaut hold it, so he held 2.
 7. Request: players do not send their console logs. The app must send errors to the API by itself.
+
+From the user test of steps 1 to 6 (2026-10-14):
+
+8. Terrain labels must be off by default.
+9. The dice feel light. They take long to rest, and a die at rest is knocked over by dice still rolling. Rolls must end faster, because rerolls add up.
+10. HTML labels show through terrain that is in front of them.
+11. Sandbox: the Setup popup of the toolbar overlaps the Crisis group and the map select.
 
 ## Facts
 
@@ -96,6 +103,14 @@ Paths are under `apps/web/src/`.
    - Read: `infra/scripts/errors.ts` (`pnpm --filter infra errors`) prints the latest reports. It reads `MONGODB_URI` the same way as `delete-test-data.ts`. It removes control characters and terminal escape codes before it prints.
    - The privacy page gets one paragraph: what an error report contains, and that it has no account data.
    - The reports are untrusted text. A person can send a false report. They are hints only.
+8. **Labels.** `showLabels` (`App.jsx:112`) is React state, on at start, not stored. It moves into the settings (`settings/settings.js`, `labels: false` by default, `normalize` reads a boolean). The Settings chip changes it. Stored settings with no `labels` key get `false`. The piece under the pointer still shows its label.
+9. **Dice** (`dice/throw.js`, `components/DiceTray.jsx`):
+   - Restitution 0.8 → 0.3. Die to die was 0.8 (Average rule), the main cause of long rolls.
+   - Angular damping 0.1 → about 1.0. The coder measures with `scripts/dice-sim.mjs` and may pick a near value. The user checks the look against TTS.
+   - A die that rests with a symbol becomes kinematic, like a shelf die. Rolling dice bounce off it. A throw makes it dynamic again. This also fixes a bug: a rested die that was knocked over kept its old symbol.
+   - Mass and gravity do not change. All dice have one mass, and the throw sets velocities, not impulses.
+10. **Labels behind terrain.** No `<Html>` checks depth. drei `occlude` raycasts the three.js scene for each label, and `occlude="blending"` changes the canvas pointer events, so neither is used. One shared hook (for example `useLabelOcclusion`): each label registers its anchor and a hide function. About every 100 ms, and only when the camera or terrain changed, a Rapier `castRay` from the camera to each anchor, fixed colliders only, the label's own terrain collider skipped. A hit hides the label with a style change, not React state. For all labels in the scene: terrain, LOS, token, tool rack, die menu where it makes sense. Labels that lie flat on a surface (`transform`) are checked and left out when they are not affected.
+11. **Setup popup.** `Toolbar.jsx:114` uses the class `setup-panel` (the setup board on the table) instead of `toolbar-setup-panel` (`index.css:105`), since commit `339dafa`. Fix the class and add `pointer-events: auto` to `.toolbar-setup-panel`. No grid layout: the table stays full screen under a transparent toolbar.
 
 ## Steps
 
@@ -105,6 +120,9 @@ Paths are under `apps/web/src/`.
 4. **LOS timing** (bug 2, decision 2). Files: `components/LosTool.jsx`, `components/losLength.js`, `components/losLength.test.js`. Tests: key change plus turn in one frame, then still frames, runs the sight test once; a turn before rest keeps the pending test; a turn after rest does not run it again.
 5. **Setup panel** (bug 1, decision 1). Files: `components/GameSetup.jsx`. Docs: `docs/features/setup-game.md`.
 6. **Fall on terrain delete** (bug 4, decision 4). Files: `pieces/useTablePieces.js`, `rooms/table.js` (`y`), `components/Terrain.jsx`, `components/Scene.jsx` (model move). The coder checks first how the throw deletes terrain, and reports if it uses another path. Tests: the pure part that finds what stands on a piece and the new height. Docs: `docs/features/maps.md` or `rooms.md` (the `y` field), `key-shortcuts.md` if the Delete row describes the fall.
+7. **Labels off and setup popup** (requests 8 and 11, decisions 8 and 11). Files: `App.jsx`, `settings/settings.js`, `components/SettingsPopup.jsx`, `components/Toolbar.jsx`, `index.css`. Tests: settings default and `normalize`. Docs: `docs/features/table-tools.md` ("Labels" and "Toolbar").
+8. **Dice** (request 9, decision 9). Files: `dice/throw.js`, `components/DiceTray.jsx`, `scripts/dice-sim.mjs` if it needs the new values. Measure rest time before and after. Docs: `docs/features/dice-rolling.md` (Values table, the rested die).
+9. **Labels behind terrain** (request 10, decision 10). Files: the new hook, `components/Scene.jsx`, `Terrain.jsx`, `LosTool.jsx`, `TokenFace.jsx`, `ToolRack.jsx`, `DiceTray.jsx`. Tests: the pure part (which labels to check, when to run). Docs: `docs/features/table-tools.md` ("Labels").
 
 **User:** turn off the Netlify badge (decision 3). After the merge and push to main, CI deploys the API with `POST /errors`.
 
