@@ -189,3 +189,27 @@ test('losFrame: a turn runs the length at once; still frames do nothing', () => 
   assert.equal(losFrame(st, 'a', 0.2, DT).run, true)
   assert.equal(losFrame(st, 'a', 0.2, DT).run, false)
 })
+
+// Bases of different size: both edges use one point count, so the parallel pairs do not read past the end
+for (const [fromRadius, toRadius] of [
+  [1, 0.5],
+  [0.5, 1],
+]) {
+  test(`sight: bases ${fromRadius} and ${toRadius}, one pair clear, no throw`, () => {
+    const near = (a, b) => Math.abs(a - b) < 1e-9
+    // Only the last edge pair (angle pi/2 on both bases) is clear
+    const { result } = sight(
+      (seg) => {
+        const end = { z: seg.start.z - Math.sin(seg.yaw) * seg.maxDistance }
+        return !(near(seg.start.z, fromRadius) && near(end.z, toRadius))
+      },
+      { fromRadius, toRadius },
+    )
+    assert.ok(result)
+    assert.ok(near(result.a.z, fromRadius) && near(result.b.z, toRadius))
+  })
+
+  test(`sight: bases ${fromRadius} and ${toRadius}, all blocked gives null`, () => {
+    assert.equal(sight(() => true, { fromRadius, toRadius }).result, null)
+  })
+}

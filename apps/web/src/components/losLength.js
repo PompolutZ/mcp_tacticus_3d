@@ -78,8 +78,12 @@ export function clearSight({ from, fromRadius, to, toRadius, blocked }) {
   if (gap === 0) return { a: { ...from }, b: { ...to } }
   const u = { x: dx / gap, z: dz / gap }
   const n = { x: -u.z, z: u.x }
+  // One point count for both edges (from the larger base), so index i has the same angle on both
+  const count = Math.max(
+    SIGHT_MIN_POINTS,
+    Math.ceil((Math.PI * Math.max(fromRadius, toRadius)) / SIGHT_SPACING),
+  )
   const edge = (center, radius, sign) => {
-    const count = Math.max(SIGHT_MIN_POINTS, Math.ceil((Math.PI * radius) / SIGHT_SPACING))
     const points = []
     for (let i = 0; i <= count; i++) {
       const t = -Math.PI / 2 + (Math.PI * i) / count

@@ -153,6 +153,7 @@ Done.
 - `useLosLine` uses `losFrame`. `OtherLos` uses the same hook, so it is fixed too.
 - Tests in `losLength.test.js`: key change plus turn then still frames (sight once), turn before rest, turn after rest, turn runs at once.
 - No feature doc change.
+- User test: clearSight crashed with bases of different size; fixed, same point count on both.
 
 ### Step 5: Setup panel
 
