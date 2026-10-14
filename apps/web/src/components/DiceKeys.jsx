@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Html } from '@react-three/drei'
+import { OccludedHtml } from './LabelOcclusion.jsx'
 import { assetUrl } from '../assets/index.js'
 import { SYMBOLS, SYMBOL_NAMES } from '../dice/faces.js'
 import { FACE_PLATES, KEYS_LIP } from '../dice/tray.js'
@@ -37,12 +37,12 @@ function iconUrl(symbol) {
 // state: { well, shelf, critsAvailable }, see DiceTray. actions: the tray's add, remove, roll,
 // clear, addCrits and reroll.
 // disabled: the other player's tray. Every button is off, a face plate is not a button.
-export default function DiceKeys({ state, actions, disabled = false }) {
+export default function DiceKeys({ state, actions, disabled = false, skip }) {
   const { well, shelf, critsAvailable } = state
   return (
     <>
       <group position={LIP_CENTER} rotation={LIP_ROTATION}>
-        <Html center transform>
+        <OccludedHtml center transform skip={skip}>
           <div className="dice-keys">
             <button
               type="button"
@@ -93,7 +93,7 @@ export default function DiceKeys({ state, actions, disabled = false }) {
               +{critsAvailable} Crits
             </button>
           </div>
-        </Html>
+        </OccludedHtml>
       </group>
       {SYMBOLS.map((symbol) => (
         <FacePlate
@@ -101,6 +101,7 @@ export default function DiceKeys({ state, actions, disabled = false }) {
           symbol={symbol}
           count={shelf[symbol]}
           disabled={disabled}
+          skip={skip}
           onClick={() => actions.reroll(symbol)}
         />
       ))}
@@ -111,7 +112,7 @@ export default function DiceKeys({ state, actions, disabled = false }) {
 // One face plate: a clear button the size of the plate, with the count on the half that has no
 // icon (TTS shows its count there too). A plate with no dice does nothing, because Reroll needs a
 // die with that face.
-function FacePlate({ symbol, count, disabled, onClick }) {
+function FacePlate({ symbol, count, disabled, skip, onClick }) {
   const name = SYMBOL_NAMES[symbol]
   const plateSize = {
     width: FACE_PLATES.width * PX_PER_INCH,
@@ -133,7 +134,7 @@ function FacePlate({ symbol, count, disabled, onClick }) {
       position={[FACE_PLATES.x[symbol], FACE_PLATES.y, FACE_PLATES.z]}
       rotation={PLATE_ROTATION}
     >
-      <Html center transform>
+      <OccludedHtml center transform skip={skip}>
         {disabled ? (
           countBox
         ) : (
@@ -148,7 +149,7 @@ function FacePlate({ symbol, count, disabled, onClick }) {
             {countBox}
           </button>
         )}
-      </Html>
+      </OccludedHtml>
     </group>
   )
 }

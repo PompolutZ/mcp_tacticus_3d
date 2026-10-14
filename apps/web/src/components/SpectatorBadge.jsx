@@ -1,6 +1,6 @@
 import { Suspense, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Html } from '@react-three/drei'
+import { OccludedHtml } from './LabelOcclusion.jsx'
 import { Quaternion, Vector3 } from 'three'
 import { TOKEN_SIZE } from '../tokens/files.js'
 import { TOKEN_RADIUS, TokenDisk, useTokenMaps } from './CrisisToken.jsx'
@@ -153,9 +153,9 @@ export default function SpectatorBadge({
           </group>
         ))}
         <group position={[0, countersY, 0]}>
-          <Html center transform pointerEvents="none">
+          <OccludedHtml center transform pointerEvents="none">
             <TrayCounters character={character} stamina={stamina} />
-          </Html>
+          </OccludedHtml>
         </group>
         {onTokens.map(([key, count], i) => {
           const row = Math.floor(i / TOKENS_PER_ROW)

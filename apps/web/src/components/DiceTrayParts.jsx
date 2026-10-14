@@ -28,8 +28,9 @@ export function useDieLook() {
 }
 
 // The tray body: a fixed RigidBody with the tray collider, the tinted visual and the keys.
+// bodyRef: gets the RigidBody; the tray does not hide its own keys or die menu (OccludedHtml skip).
 // keysProps: the props of DiceKeys. onHover(over): the pointer moved onto (true) or off (false) the tray.
-export function TrayBody({ trayKey, keysProps, onHover }) {
+export function TrayBody({ trayKey, keysProps, onHover, bodyRef }) {
   const tray = TRAYS[trayKey]
   // The tray has the color of its side (sideColors.js), not the color of its key
   const playerColor = useSideColor(trayKey) ?? trayKey
@@ -67,6 +68,7 @@ export function TrayBody({ trayKey, keysProps, onHover }) {
 
   return (
     <RigidBody
+      ref={bodyRef}
       type="fixed"
       position={[tray.position.x, tray.position.y, tray.position.z]}
       rotation={[0, tray.yaw, 0]}
@@ -86,7 +88,7 @@ export function TrayBody({ trayKey, keysProps, onHover }) {
       >
         <primitive object={trayVisual} rotation={IMPORT_ROTATION} />
       </group>
-      <DiceKeys {...keysProps} />
+      <DiceKeys {...keysProps} skip={() => bodyRef?.current ?? undefined} />
     </RigidBody>
   )
 }

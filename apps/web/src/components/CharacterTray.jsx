@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useRef, useState } from 'react'
-import { Html } from '@react-three/drei'
+import { OccludedHtml } from './LabelOcclusion.jsx'
 import { DoubleSide } from 'three'
 import { assetUrl } from '../assets/index.js'
 import { trayCardFile } from '../characters/files.js'
@@ -241,7 +241,7 @@ export default function CharacterTray({
           position={[0, 0.02, isGrunt ? GRUNT_CONTROLS_LOCAL_Z : trayControlsLocalZ(cards)]}
           rotation={[-Math.PI / 2, 0, 0]}
         >
-          <Html center transform>
+          <OccludedHtml center transform>
             <TrayControls
               character={character}
               stamina={stamina}
@@ -253,7 +253,7 @@ export default function CharacterTray({
               removeWait={removeWait}
               onAttachedOpen={onAttachedOpen}
             />
-          </Html>
+          </OccludedHtml>
         </group>
       </group>
     </group>

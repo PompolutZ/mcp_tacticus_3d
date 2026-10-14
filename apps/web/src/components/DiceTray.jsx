@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Html } from '@react-three/drei'
+import { OccludedHtml } from './LabelOcclusion.jsx'
 import { RigidBody, ConvexHullCollider, useAfterPhysicsStep, useRapier } from '@react-three/rapier'
 import { liveBody } from '../physics.js'
 import { D8_CORNERS, D8_DENSITY, FACES, SYMBOLS } from '../dice/faces.js'
@@ -98,7 +98,18 @@ function shelfFromDocument(trayKey, side) {
 // DiceTray), not kept as React state, so a physics step never has to re-render this component.
 // A click on a die on the shelf calls onOpen(id). menuOpen: this die's "Change to" menu is open.
 // onChange(id, toSymbol), onMenuClose(), onHover(over): see DiceTray.
-function Die({ id, dice, geometry, material, menuOpen, onOpen, onChange, onMenuClose, onHover }) {
+function Die({
+  id,
+  dice,
+  geometry,
+  material,
+  menuOpen,
+  onOpen,
+  onChange,
+  onMenuClose,
+  onHover,
+  trayBodyRef,
+}) {
   const entry = dice.current.get(id)
   // Read once: a body type that changes with a re-render would fight startShelfMove
   const [type] = useState(() => (entry.slot === undefined ? 'dynamic' : 'kinematicPosition'))
@@ -178,13 +189,13 @@ function Die({ id, dice, geometry, material, menuOpen, onOpen, onChange, onMenuC
         onPointerOut={handleOut}
       />
       {menuOpen && entry.symbol && (
-        <Html>
+        <OccludedHtml skip={() => trayBodyRef?.current ?? undefined}>
           <DieMenu
             symbol={entry.symbol}
             onChange={(toSymbol) => onChange(id, toSymbol)}
             onClose={onMenuClose}
           />
-        </Html>
+        </OccludedHtml>
       )}
     </RigidBody>
   )
@@ -233,6 +244,7 @@ export default function DiceTray({
   // At mount only the shelf dice come back from the document (decision 3 of the step 10 plan);
   // dice in the well and in the air are temporary.
   const [initial] = useState(() => shelfFromDocument(trayKey, store.get(trayKey)))
+  const trayBodyRef = useRef(null)
   const dice = useRef(initial.dice)
   const idsRef = useRef(initial.ids)
   const [ids, setIds] = useState(initial.ids)
@@ -775,6 +787,7 @@ export default function DiceTray({
   return (
     <>
       <TrayBody
+        bodyRef={trayBodyRef}
         trayKey={trayKey}
         onHover={hover}
         keysProps={{
@@ -794,6 +807,7 @@ export default function DiceTray({
           onChange={change}
           onMenuClose={onMenuClose}
           onHover={hover}
+          trayBodyRef={trayBodyRef}
         />
       ))}
     </>

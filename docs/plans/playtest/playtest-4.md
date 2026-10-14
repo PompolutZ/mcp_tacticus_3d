@@ -226,4 +226,5 @@ Done.
 - Loop: every 0.1 s, if the camera, an anchor or the dirty flag changed, one `castRay` per label (fixed colliders only, no sensors, own terrain body excluded, stops 0.1 before the anchor). A hit sets `visibility: hidden` on the label element. No React state. Ray, vectors and out object are reused.
 - Covered: terrain label (own piece skipped; each piece sets dirty when it appears, moves or goes), LOS label, token count (both) and name, tool rack label, ruler `FlatHtml` (Place buttons, labels on the mat).
 - Not covered: `OnTable` boards, DiceKeys, CharacterTray, SpectatorBadge (trays and boards off the mat), die menu (own tray at the table edge, camera sits behind it).
+- User test: all Html labels now use the check (boards, dice tray keys and die menu, character tray, spectator badge). Anchor is the center of the Html. A tray skips its own body.
 - Not tried in a browser.

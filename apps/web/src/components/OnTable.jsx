@@ -1,4 +1,4 @@
-import { Html } from '@react-three/drei'
+import { OccludedHtml } from './LabelOcclusion.jsx'
 
 // HTML that lies flat on the table, just above it. `rotation` is one of the two below.
 // 1 CSS px of the HTML is this many inches on the table. drei Html with transform makes 1 CSS px
@@ -21,9 +21,9 @@ export const OWNER_FACING_ROTATION = {
 export function OnTable({ position, rotation = BOARD_READ_ROTATION, children }) {
   return (
     <group position={position} rotation={rotation}>
-      <Html center transform distanceFactor={INCHES_PER_PX * 400}>
+      <OccludedHtml center transform distanceFactor={INCHES_PER_PX * 400}>
         {children}
-      </Html>
+      </OccludedHtml>
     </group>
   )
 }
