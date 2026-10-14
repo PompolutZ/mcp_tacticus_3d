@@ -9,7 +9,9 @@ import {
   losCast,
   losKeep,
   losLength,
+  losFrame,
   losSegmentBlocked,
+  newLosSchedule,
   terrainSize,
 } from './losLength.js'
 import { losBlock, standingTerrainSize } from './losBlock.js'
@@ -35,8 +37,6 @@ import { onRack } from '../tabletools/layout.js'
 // the hit surface of the pointer and the label. Both players work out its length from their own physics, so
 // the entry holds only the looker, the target and the pose.
 
-// The models must stand still this long (s) before the length is worked out again. A turn is worked out at once.
-const LOS_REST = 0.15
 // The footprint of the line: light grey (the free tool color), half transparent
 const LOS_OPACITY = 0.5
 // The pointer surface lies this far (inches) above the base bottom
@@ -67,7 +67,7 @@ function useLosLine(rigidRef, looker, target) {
   useEffect(() => {
     latest.current = { looker, target }
   })
-  const seen = useRef({ key: null, time: 0, yaw: null, dirty: true, stale: true, sight: null })
+  const seen = useRef({ ...newLosSchedule(), sight: null })
 
   useFrame((_, dt) => {
     const rb = rigidRef.current
@@ -80,21 +80,9 @@ function useLosLine(rigidRef, looker, target) {
       .map((v) => (typeof v === 'number' ? round3(v) : v))
       .join()
     const st = seen.current
-    if (st.key === null) {
-      st.time = LOS_REST
-      st.key = key
-    } else if (key !== st.key) {
-      st.key = key
-      st.time = 0
-      st.dirty = true
-      st.stale = true
-      st.sight = null
-    } else st.time += dt
-    const turned = st.yaw !== null && yaw !== st.yaw
-    st.yaw = yaw
-    if (turned) st.dirty = true
-    if (!st.dirty || (st.time < LOS_REST && !turned)) return
-    st.dirty = false
+    const frame = losFrame(st, key, yaw, dt)
+    if (frame.reset) st.sight = null
+    if (!frame.run) return
 
     const stand = (model) => {
       const at = model.getCenter()
@@ -110,8 +98,7 @@ function useLosLine(rigidRef, looker, target) {
       own: !target,
     })
     const keep = losKeep(skipped, block.size)
-    if (target && st.stale && st.time >= LOS_REST) {
-      st.stale = false
+    if (target && frame.sight) {
       st.sight = clearSight({
         from: { x: c.x, z: c.z },
         fromRadius: looker.radius,

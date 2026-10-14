@@ -1,6 +1,13 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { clearSight, losLength, terrainSize } from './losLength.js'
+import {
+  LOS_REST,
+  clearSight,
+  losFrame,
+  losLength,
+  newLosSchedule,
+  terrainSize,
+} from './losLength.js'
 
 // A fake terrain collider: handle, and the Size on its parent body. size undefined: not terrain.
 const piece = (handle, size, distance) => ({
@@ -133,4 +140,52 @@ test('sight: cast count for 1 inch bases 3 inches apart, all blocked', () => {
   const { calls } = sight(() => true)
   // 17 points per base: 1 center + 17 parallel + 17 * 16 others
   assert.equal(calls.length, 1 + 17 + 17 * 16)
+})
+
+// Frames of 0.05 s: the first frame sets the key, so the schedule starts at rest.
+const DT = 0.05
+const settled = () => {
+  const st = newLosSchedule()
+  losFrame(st, 'a', 0, DT)
+  return st
+}
+
+test('losFrame: key change and turn in one frame, then still frames: sight runs once after rest', () => {
+  const st = settled()
+  const first = losFrame(st, 'b', 1, DT)
+  assert.deepEqual(first, { run: true, sight: false, reset: true })
+  let sights = 0
+  let runs = 0
+  for (let t = DT; t < LOS_REST * 3; t += DT) {
+    const f = losFrame(st, 'b', 1, DT)
+    if (f.run) runs++
+    if (f.sight) sights++
+  }
+  assert.equal(sights, 1)
+  assert.equal(runs, 1)
+})
+
+test('losFrame: a turn before rest keeps the pending sight test', () => {
+  const st = settled()
+  losFrame(st, 'b', 0, DT)
+  assert.equal(losFrame(st, 'b', 0.5, DT).sight, false)
+  assert.equal(losFrame(st, 'b', 0.7, DT).sight, false)
+  let sights = 0
+  for (let i = 0; i < 6; i++) if (losFrame(st, 'b', 0.7, DT).sight) sights++
+  assert.equal(sights, 1)
+})
+
+test('losFrame: a turn after rest works out the length but not the sight again', () => {
+  const st = settled()
+  losFrame(st, 'b', 0, DT)
+  for (let i = 0; i < 6; i++) losFrame(st, 'b', 0, DT)
+  const f = losFrame(st, 'b', 0.3, DT)
+  assert.deepEqual(f, { run: true, sight: false, reset: false })
+})
+
+test('losFrame: a turn runs the length at once; still frames do nothing', () => {
+  const st = settled()
+  for (let i = 0; i < 8; i++) losFrame(st, 'a', 0, DT)
+  assert.equal(losFrame(st, 'a', 0.2, DT).run, true)
+  assert.equal(losFrame(st, 'a', 0.2, DT).run, false)
 })

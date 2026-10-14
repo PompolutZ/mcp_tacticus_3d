@@ -144,3 +144,12 @@ Done.
 - Supply pile take (`handleTokenRelease`): lookup uses `models: !supplyCard`, so over a model it gives `supplyTable`. Character tokens keep the model target.
 - Docs: `character-trays.md` (Give table, ray hit, Hold, decision 3), `crisis.md` (supply).
 - No new test: no pure part (the ray cast and DOM lookup); `tokenDropTarget` unchanged.
+
+### Step 4: LOS timing
+
+Done.
+
+- `losLength.js`: `LOS_REST`, `newLosSchedule`, `losFrame(st, key, yaw, dt)` -> `{ run, sight, reset }`. `dirty` is cleared only when rested; the sight test runs once, on the first run after rest.
+- `useLosLine` uses `losFrame`. `OtherLos` uses the same hook, so it is fixed too.
+- Tests in `losLength.test.js`: key change plus turn then still frames (sight once), turn before rest, turn after rest, turn runs at once.
+- No feature doc change.

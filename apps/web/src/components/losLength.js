@@ -113,3 +113,36 @@ export function losSegmentBlocked(world, rapier, keep) {
   return ({ start, yaw, width, maxDistance }) =>
     cast({ start, yaw, width, maxDistance, keep }).collider !== null
 }
+
+// The rest time (s) the models must stand still before the sight test runs again. A turn updates the length at once.
+export const LOS_REST = 0.15
+
+export const newLosSchedule = () => ({ key: null, time: 0, yaw: null, dirty: true, stale: true })
+
+// What useLosLine does in one frame. st: the schedule (newLosSchedule), changed in place. key: string of
+// the positions and Sizes. yaw: the line yaw. dt: frame time (s).
+// Returns { run, sight, reset }. run: work out the length. sight: also run the sight test (clearSight).
+// reset: the key changed, drop the old sight. dirty is cleared only when the rest work ran, so a turn
+// in the frame of a key change does not lose the pending sight test.
+export function losFrame(st, key, yaw, dt) {
+  let reset = false
+  if (st.key === null) {
+    st.time = LOS_REST
+    st.key = key
+  } else if (key !== st.key) {
+    st.key = key
+    st.time = 0
+    st.dirty = true
+    st.stale = true
+    reset = true
+  } else st.time += dt
+  const turned = st.yaw !== null && yaw !== st.yaw
+  st.yaw = yaw
+  if (turned) st.dirty = true
+  const rested = st.time >= LOS_REST
+  if (!turned && !(st.dirty && rested)) return { run: false, sight: false, reset }
+  if (rested) st.dirty = false
+  const sight = rested && st.stale
+  if (sight) st.stale = false
+  return { run: true, sight, reset }
+}
