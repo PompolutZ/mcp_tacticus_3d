@@ -105,6 +105,10 @@ One row for each item, with the choice **Table** or **HUD**. The default is **HU
 
 A **Debug** section has **Mode** (dev server only) and **Labels** (the piece name and game Size above each terrain piece). Labels shows in every build. Labels is off by default and stored with the settings. The piece under the pointer shows its label with Labels off.
 
+### Labels
+
+A label hides while terrain is between the camera and the label. This covers the terrain labels, the LOS label, the token name and count, the tool rack label, and the ruler tool buttons and labels. A hidden label takes no pointer events. A terrain piece does not hide its own label. The check runs about 10 times a second, and only when the camera, a label or the terrain changed. It uses one physics ray from the camera to each label (`components/LabelOcclusion.jsx`). Labels on the trays, the toolbar-like boards and the dice menu are not checked: they are not behind terrain.
+
 ### Sound
 
 A **Sound** section has a volume slider, 0 to 100, default 10. 0 is off. See `sounds.md`.

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Html, useTexture } from '@react-three/drei'
+import { useTexture } from '@react-three/drei'
 import { assetUrl } from '../assets/index.js'
 import { TOKEN_SIZE, characterToken } from '../tokens/files.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
@@ -7,6 +7,7 @@ import { getToken } from '../tokens/tokens.js'
 import TokenSolid from './TokenSolid.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
+import { OccludedHtml } from './LabelOcclusion.jsx'
 
 // The count badge sits on the token's bottom right corner, as seen by the owner of its tray, just above
 // the token's top
@@ -73,24 +74,24 @@ export default function TokenFace({
     <group ref={groupRef}>
       <TokenSolid map={map} size={size} {...events} />
       {count > 1 && upright && (
-        <Html position={[0, TOKEN_THICKNESS + 0.05, 0]} center style={NO_POINTER}>
+        <OccludedHtml position={[0, TOKEN_THICKNESS + 0.05, 0]} center style={NO_POINTER}>
           <span className="token-face-count">{count}</span>
-        </Html>
+        </OccludedHtml>
       )}
       {count > 1 && !upright && (
         <group position={badgePosition(size)} rotation={FLAT}>
-          <Html center transform pointerEvents="none">
+          <OccludedHtml center transform pointerEvents="none">
             <span className="token-face-count">{count}</span>
-          </Html>
+          </OccludedHtml>
         </group>
       )}
       {hovered && token && (
-        <Html position={labelPosition(size)} center style={NO_POINTER}>
+        <OccludedHtml position={labelPosition(size)} center style={NO_POINTER}>
           <div className="token-face-label">
             <strong>{token.name}</strong>
             {token.description && <span>{token.description}</span>}
           </div>
-        </Html>
+        </OccludedHtml>
       )}
     </group>
   )

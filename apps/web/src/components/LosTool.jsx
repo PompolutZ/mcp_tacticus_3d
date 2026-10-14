@@ -1,5 +1,5 @@
 import { useFrame } from '@react-three/fiber'
-import { Html, Line } from '@react-three/drei'
+import { Line } from '@react-three/drei'
 import { RigidBody, useRapier } from '@react-three/rapier'
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
@@ -30,6 +30,7 @@ import { useHoverCursor } from './useHoverCursor.js'
 import { followPart, lerpAngle } from '../net/livePose.js'
 import { losFields, sameLos } from './storedTool.js'
 import { onRack } from '../tabletools/layout.js'
+import { OccludedHtml } from './LabelOcclusion.jsx'
 
 // The Line of Sight tool (docs/features/line-of-sight.md): a line as wide as the base of the looking character,
 // from its base center along a yaw, painted on the table and terrain by the footprint of the tool. The line is
@@ -156,11 +157,11 @@ function LosView({ rigidRef, line, radius, selected, position, yaw, children }) 
       >
         {children}
         {line.label && (
-          <Html position={[line.distance, LABEL_Y, 0]} center style={NO_POINTER}>
+          <OccludedHtml position={[line.distance, LABEL_Y, 0]} center style={NO_POINTER}>
             <div className="token-face-label">
               <strong>{line.label}</strong>
             </div>
-          </Html>
+          </OccludedHtml>
         )}
       </RigidBody>
       <ToolFootprint

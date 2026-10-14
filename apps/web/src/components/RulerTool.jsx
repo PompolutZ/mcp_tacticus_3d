@@ -1,5 +1,5 @@
 import { useLoader, useFrame, useThree } from '@react-three/fiber'
-import { useTexture, Html } from '@react-three/drei'
+import { useTexture } from '@react-three/drei'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import { RigidBody, ConvexHullCollider, useRapier } from '@react-three/rapier'
 import { useMemo, useRef, useState, useEffect } from 'react'
@@ -25,6 +25,7 @@ import { onRack } from '../tabletools/layout.js'
 import { aimTurn } from './aimTurn.js'
 import { clampRange, rangeReach, withinRange } from './rangeOne.js'
 import { footprintGap, fromLocal, lineClamp, placeClamp, toLocal, touches } from './placeLock.js'
+import { OccludedHtml } from './LabelOcclusion.jsx'
 
 const TEXTURE = assetUrl('tools/toolbox-02.png')
 // How fast the dragged tool moves to the new hover height, per second (same as models)
@@ -686,9 +687,9 @@ function FlatHtml({ x = 0, z = 0, children }) {
     // Rx(π/2) lays the Html element flat on the tool's XZ surface facing up.
     // Without this the element stands perpendicular to the table.
     <group position={[x, 0.25, z]} rotation={[Math.PI / 2, Math.PI, 0]}>
-      <Html center transform>
+      <OccludedHtml center transform>
         {children}
-      </Html>
+      </OccludedHtml>
     </group>
   )
 }

@@ -1,11 +1,11 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
-import { Html } from '@react-three/drei'
 import { TEAMS } from '../setup/setup.js'
 import { rackPlate, rackSlots, rackYaw } from '../tabletools/layout.js'
 import { OnTable, OWNER_FACING_ROTATION } from './OnTable.jsx'
 import { useMovementParts, useRangeParts } from './RulerTool.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
+import { OccludedHtml } from './LabelOcclusion.jsx'
 
 // The tool rack of each player: a plate with the range and movement tools in the player tint, and the R1, T/A and
 // LOS chips. See docs/features/table-tools.md, "Tool rack". The tools have no physics body. A click is the
@@ -99,11 +99,11 @@ function RackTool({ parts, slot, side, out, label, onClick, onDragStart }) {
         ))}
       </group>
       {hovered && (
-        <Html position={[0, 0.4, 0]} center style={NO_POINTER}>
+        <OccludedHtml position={[0, 0.4, 0]} center style={NO_POINTER}>
           <div className="token-face-label">
             <strong>{label}</strong>
           </div>
-        </Html>
+        </OccludedHtml>
       )}
     </group>
   )

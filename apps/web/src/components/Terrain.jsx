@@ -1,4 +1,4 @@
-import { Html, useGLTF, useTexture } from '@react-three/drei'
+import { useGLTF, useTexture } from '@react-three/drei'
 import {
   BallCollider,
   CapsuleCollider,
@@ -17,6 +17,7 @@ import { toThreeTransform } from '../terrain/placementMove.js'
 import { terrainLabel } from '../terrain/label.js'
 import { TERRAIN_PIECES } from '../terrain/pieces.js'
 import { FRICTION } from '../physics.js'
+import { OccludedHtml, useLabelsDirty } from './LabelOcclusion.jsx'
 import { projectFootprints } from './footprintProjection.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
@@ -290,6 +291,9 @@ function PieceBody({
   const piece = TERRAIN_PIECES[placement.piece]
   const { locked } = placement
   const meshRef = useRef(null)
+  const bodyRef = useRef(null)
+  // Other labels check again when this piece appears, moves or goes
+  useLabelsDirty(placement)
   const [hovered, setHovered] = useState(false)
   const { position, quaternion } = useMemo(() => toThreeTransform(placement), [placement])
   const labelPos = useMemo(() => labelPosition(raw, placement.scale), [raw, placement.scale])
@@ -346,6 +350,7 @@ function PieceBody({
   return (
     <group ref={groupRef} position={position} quaternion={quaternion}>
       <RigidBody
+        ref={bodyRef}
         type="fixed"
         colliders={autoColliders}
         friction={FRICTION}
@@ -372,7 +377,8 @@ function PieceBody({
         {shapeColliders}
       </RigidBody>
       {showLabel && (
-        <Html
+        <OccludedHtml
+          skip={() => bodyRef.current ?? undefined}
           position={labelPos}
           center
           style={NO_POINTER}
@@ -380,7 +386,7 @@ function PieceBody({
           className="terrain-label"
         >
           {terrainLabel(piece.name, placement.size, locked)}
-        </Html>
+        </OccludedHtml>
       )}
     </group>
   )

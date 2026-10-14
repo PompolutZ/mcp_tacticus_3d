@@ -34,6 +34,11 @@ import LooseToken from './LooseToken.jsx'
 import TokenDragPreview, { OtherSpawnPreview } from './TokenDragPreview.jsx'
 import ToolPoint from './ToolPoint.jsx'
 import WorldRef from './WorldRef.jsx'
+import {
+  LabelOcclusionLoop,
+  LabelOcclusionProvider,
+  createLabelRegistry,
+} from './LabelOcclusion.jsx'
 import LiveSync from './LiveSync.jsx'
 import RemoteCursor from './RemoteCursor.jsx'
 import Ping from './Ping.jsx'
@@ -409,6 +414,8 @@ export default function Scene({
   // The Rapier world, set by WorldRef inside <Physics>. liveBody checks a body against it.
   const worldRef = useRef(null)
   const rapierRef = useRef(null)
+  // Labels that hide behind terrain (LabelOcclusion.jsx)
+  const labelRegistry = useMemo(createLabelRegistry, [])
   // The body of a model if it is still in the world, else undefined. For listeners, effects and peer data.
   function liveCharBody(id) {
     const body = charBodies.current.get(id)
@@ -1204,626 +1211,637 @@ export default function Scene({
 
       <SceneLights />
 
-      <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP} debug={showColliders}>
-        <WorldRef worldRef={worldRef} rapierRef={rapierRef} />
-        <ToolPoint pointRef={toolPointRef} />
-        {ownPing && <Ping key={ownPing.id} ping={ownPing} side={ownSide} />}
-        {otherLook.ping && (
-          <Ping
-            key={otherLook.ping.id}
-            ping={otherLook.ping}
-            side={ownSide === 'guest' ? 'host' : 'guest'}
-          />
-        )}
-        {live && ownership && (
-          <>
-            <LiveSync
-              live={live}
-              ownership={ownership}
-              getBody={(id) => liveCharBody(id)}
-              toolLives={toolLives}
-              diceLives={diceLives}
-              pieceLives={pieceLives}
-              liveRef={received}
-              hideCursor={Boolean(squadEdit?.[ownSide])}
-            />
-            <RemoteCursor
-              liveRef={received}
-              ownership={ownership}
+      <LabelOcclusionProvider registry={labelRegistry}>
+        <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP} debug={showColliders}>
+          <WorldRef worldRef={worldRef} rapierRef={rapierRef} />
+          <LabelOcclusionLoop registry={labelRegistry} />
+          <ToolPoint pointRef={toolPointRef} />
+          {ownPing && <Ping key={ownPing.id} ping={ownPing} side={ownSide} />}
+          {otherLook.ping && (
+            <Ping
+              key={otherLook.ping.id}
+              ping={otherLook.ping}
               side={ownSide === 'guest' ? 'host' : 'guest'}
             />
-          </>
-        )}
-        <TableSurface />
-        {/* Invisible walls at the table edge, so dice cannot fall off the table. Kinematic, see table.js. */}
-        <RigidBody type="kinematicPosition" colliders={false}>
-          {TABLE_WALLS.map(({ halfExtents, position }, i) => (
-            <CuboidCollider key={i} args={halfExtents} position={position} friction={FRICTION} />
-          ))}
-        </RigidBody>
+          )}
+          {live && ownership && (
+            <>
+              <LiveSync
+                live={live}
+                ownership={ownership}
+                getBody={(id) => liveCharBody(id)}
+                toolLives={toolLives}
+                diceLives={diceLives}
+                pieceLives={pieceLives}
+                liveRef={received}
+                hideCursor={Boolean(squadEdit?.[ownSide])}
+              />
+              <RemoteCursor
+                liveRef={received}
+                ownership={ownership}
+                side={ownSide === 'guest' ? 'host' : 'guest'}
+              />
+            </>
+          )}
+          <TableSurface />
+          {/* Invisible walls at the table edge, so dice cannot fall off the table. Kinematic, see table.js. */}
+          <RigidBody type="kinematicPosition" colliders={false}>
+            {TABLE_WALLS.map(({ halfExtents, position }, i) => (
+              <CuboidCollider key={i} args={halfExtents} position={position} friction={FRICTION} />
+            ))}
+          </RigidBody>
 
-        {/* The mat and its terrain turn together around the mat center. In game setup, the player with priority
+          {/* The mat and its terrain turn together around the mat center. In game setup, the player with priority
             turns them so that the deployment edge they chose faces their side (GameSetup.jsx). */}
-        <group rotation={[0, (matTurns * Math.PI) / 2, 0]}>
-          <Suspense fallback={null}>
-            <Mat mat={MAPS[mapId].mat} rotation={MAPS[mapId].matRotation} />
-          </Suspense>
-          {/* A fixed body does not follow its parent after it is created. So each turn mounts the terrain again,
+          <group rotation={[0, (matTurns * Math.PI) / 2, 0]}>
+            <Suspense fallback={null}>
+              <Mat mat={MAPS[mapId].mat} rotation={MAPS[mapId].matRotation} />
+            </Suspense>
+            {/* A fixed body does not follow its parent after it is created. So each turn mounts the terrain again,
               and its colliders are created at the new pose. A new map also mounts it again. */}
-          <Suspense key={`${mapId}-${matTurns}`} fallback={null}>
-            <Terrain
-              placements={terrain}
-              showLabels={showLabels}
-              hoverLabelId={hoverLabelId}
-              selectedId={selectedTerrainId}
-              onSelect={(id) => toggleSelect('terrain', id)}
-              onHover={onTerrainHover}
-              objectRef={(id, obj) =>
-                obj ? terrainObjects.current.set(id, obj) : terrainObjects.current.delete(id)
-              }
-            />
-          </Suspense>
-        </group>
+            <Suspense key={`${mapId}-${matTurns}`} fallback={null}>
+              <Terrain
+                placements={terrain}
+                showLabels={showLabels}
+                hoverLabelId={hoverLabelId}
+                selectedId={selectedTerrainId}
+                onSelect={(id) => toggleSelect('terrain', id)}
+                onHover={onTerrainHover}
+                objectRef={(id, obj) =>
+                  obj ? terrainObjects.current.set(id, obj) : terrainObjects.current.delete(id)
+                }
+              />
+            </Suspense>
+          </group>
 
-        {/* Dice trays are relative to the table, not the mat: not keyed by mapId or matTurns, so a
+          {/* Dice trays are relative to the table, not the mat: not keyed by mapId or matTurns, so a
             map change or a mat turn (which remounts Terrain above) never remounts them and their
             dice keep their state. See docs/plans/dice-rolling.md, Phase 4. */}
-        {Object.keys(TRAYS).map((trayKey) =>
-          playedSides.includes(trayKey) ? (
-            <DiceTray
-              key={trayKey}
-              trayKey={trayKey}
-              store={diceStore}
-              rolls={rollsStore}
-              transact={transact}
-              diceLives={diceLives}
-              openDieId={diceMenu?.trayKey === trayKey ? diceMenu.dieId : null}
-              onDieOpen={(dieId) => onDiceMenuOpen(trayKey, dieId)}
-              onMenuClose={onDiceMenuClose}
-              onHover={(over) => onDiceTrayHover?.(trayKey, over)}
-              addRef={
-                addDiceRef
-                  ? (add) => {
-                      if (add) addDiceRef.current[trayKey] = add
-                      else delete addDiceRef.current[trayKey]
-                    }
-                  : undefined
-              }
-            />
-          ) : (
-            <OtherDiceTray key={trayKey} trayKey={trayKey} store={diceStore} liveRef={received} />
-          ),
-        )}
-
-        {/* The scoring board is relative to the table, the same as the dice trays */}
-        <ScoreBoard
-          markers={scoreMarkers}
-          affiliations={affiliations}
-          onMarkerMove={onScoreMarkerMove}
-          ownership={ownership}
-          pieceLives={pieceLives}
-          otherOwned={otherOwned}
-          getLivePose={getPieceLive}
-        />
-        <PriorityMarker priority={priority} title={priorityTitle} onClick={onPriorityClick} />
-
-        {/* Crisis cards and tokens are relative to the player sides, not the mat, so they stay
-            outside the rotating group above: a mat turn must not turn them. See docs/features/crisis.md. */}
-        {crisis.secure && (
-          <Suspense fallback={null}>
-            <CrisisCard
-              cardKey={crisis.secure}
-              position={[CARD_X, CARD_Y, CARD_Z.secure]}
-              onOpen={onCardOpen}
-              onCardHover={onCardHover}
-            />
-          </Suspense>
-        )}
-        {crisis.extract && (
-          <Suspense fallback={null}>
-            <CrisisCard
-              cardKey={crisis.extract}
-              position={[CARD_X, CARD_Y, CARD_Z.extract]}
-              onOpen={onCardOpen}
-              onCardHover={onCardHover}
-            />
-          </Suspense>
-        )}
-        {/* The supply pile of a Source card (only Extract cards have one now) */}
-        {Object.entries(crisis).map(([type, key]) => {
-          const supply = getCard(key)?.supply
-          return (
-            supply && (
-              <SupplyPile
-                key={type}
-                tokenKey={supply}
-                position={supplyPilePosition(type)}
-                onDragStart={(e) => onSupplyDragStart(e, key)}
+          {Object.keys(TRAYS).map((trayKey) =>
+            playedSides.includes(trayKey) ? (
+              <DiceTray
+                key={trayKey}
+                trayKey={trayKey}
+                store={diceStore}
+                rolls={rollsStore}
+                transact={transact}
+                diceLives={diceLives}
+                openDieId={diceMenu?.trayKey === trayKey ? diceMenu.dieId : null}
+                onDieOpen={(dieId) => onDiceMenuOpen(trayKey, dieId)}
+                onMenuClose={onDiceMenuClose}
+                onHover={(over) => onDiceTrayHover?.(trayKey, over)}
+                addRef={
+                  addDiceRef
+                    ? (add) => {
+                        if (add) addDiceRef.current[trayKey] = add
+                        else delete addDiceRef.current[trayKey]
+                      }
+                    : undefined
+                }
               />
+            ) : (
+              <OtherDiceTray key={trayKey} trayKey={trayKey} store={diceStore} liveRef={received} />
+            ),
+          )}
+
+          {/* The scoring board is relative to the table, the same as the dice trays */}
+          <ScoreBoard
+            markers={scoreMarkers}
+            affiliations={affiliations}
+            onMarkerMove={onScoreMarkerMove}
+            ownership={ownership}
+            pieceLives={pieceLives}
+            otherOwned={otherOwned}
+            getLivePose={getPieceLive}
+          />
+          <PriorityMarker priority={priority} title={priorityTitle} onClick={onPriorityClick} />
+
+          {/* Crisis cards and tokens are relative to the player sides, not the mat, so they stay
+            outside the rotating group above: a mat turn must not turn them. See docs/features/crisis.md. */}
+          {crisis.secure && (
+            <Suspense fallback={null}>
+              <CrisisCard
+                cardKey={crisis.secure}
+                position={[CARD_X, CARD_Y, CARD_Z.secure]}
+                onOpen={onCardOpen}
+                onCardHover={onCardHover}
+              />
+            </Suspense>
+          )}
+          {crisis.extract && (
+            <Suspense fallback={null}>
+              <CrisisCard
+                cardKey={crisis.extract}
+                position={[CARD_X, CARD_Y, CARD_Z.extract]}
+                onOpen={onCardOpen}
+                onCardHover={onCardHover}
+              />
+            </Suspense>
+          )}
+          {/* The supply pile of a Source card (only Extract cards have one now) */}
+          {Object.entries(crisis).map(([type, key]) => {
+            const supply = getCard(key)?.supply
+            return (
+              supply && (
+                <SupplyPile
+                  key={type}
+                  tokenKey={supply}
+                  position={supplyPilePosition(type)}
+                  onDragStart={(e) => onSupplyDragStart(e, key)}
+                />
+              )
             )
-          )
-        })}
-        {/* A held token lies on its holder's tray card (Hold and drop). A drag off the card puts
+          })}
+          {/* A held token lies on its holder's tray card (Hold and drop). A drag off the card puts
             it back on the mat (onMove). It is not a piece for the tools, so its hover goes to
             onHeldHover, not onPieceHover: a tool key over it does not snap a tool to it (App.jsx,
             handleToolKey), and the Delete key removes it. */}
-        {tokenViews.map(({ token: tok, floorY }) => (
-          <Suspense key={tok.id} fallback={null}>
-            <CrisisToken
-              token={tok}
-              floorY={floorY}
-              selected={selectedTokenId === tok.id}
-              rangeMark={rangeMarkOf('token', tok.id)}
-              otherSelected={otherSelectedOf('token', tok.id)}
-              onSelect={() => toggleSelect('token', tok.id)}
-              onDragSelect={() => dragSelect('token', tok.id)}
-              onHover={
-                tok.heldBy
-                  ? (over) => onHeldHover?.(tok.id, over)
-                  : (over) => onPieceHover?.({ kind: 'token', id: tok.id }, over)
-              }
-              canDrag={!tok.placeBy || playedSides.includes(tok.placeBy)}
-              constrainDrag={tok.placeBy ? (p) => clampWaiting(tok, p, TOKEN_RADIUS) : null}
-              onMove={(x, z) => onTokenMove(tok.id, x, z)}
-              onTurn={(yaw) => onTokenTurn(tok.id, yaw)}
-              ownership={ownership}
-              pieceLives={pieceLives}
-              remote={otherOwned.has(`token:${tok.id}`)}
-              getLivePose={getPieceLive}
-              onHold={(characterId, point) => {
-                const holder = characters.find((ch) => ch.id === characterId)
-                const trayPos = trayPositions.get(characterId)
-                const shape = holder && trayShape(holder)
-                const onCard =
-                  holder &&
-                  trayPos &&
-                  onTray(holder.team, trayPos, point, shape.cards, shape.grunts)
-                onTokenHold(
-                  tok.id,
-                  characterId,
-                  onCard
-                    ? holder.host
-                      ? trayGruntHeldLocal(holder.team, trayPos, point, shape.slot)
-                      : trayHeldLocal(holder.team, trayPos, point)
-                    : null,
-                )
-              }}
-              findCharacter={findCharacterAt}
-              controlAffiliation={tok.control ? affiliations[tok.control] : null}
-              objectRef={(obj) =>
-                obj ? tokenObjects.current.set(tok.id, obj) : tokenObjects.current.delete(tok.id)
-              }
-              centerRef={(fn) =>
-                fn ? tokenCenters.current.set(tok.id, fn) : tokenCenters.current.delete(tok.id)
-              }
-            />
-          </Suspense>
-        ))}
-
-        {/* Character tokens on the table. Relative to the table, not the mat, the same as the crisis
-            tokens above. A token that is being dragged shows under the pointer instead. */}
-        {looseTokens.map((tok, index) =>
-          tokenDrag?.active && tokenDrag.looseId === tok.id ? null : (
-            <LooseToken
-              key={tok.id}
-              token={tok}
-              index={index}
-              count={
-                (tok.count ?? 1) - (tokenDrag?.active && tokenDrag.takeFrom === tok.id ? 1 : 0)
-              }
-              onDragStart={(e) => onTokenDragStart(e, tok.key, tok.id)}
-              onHover={(over) => onLooseHover?.(tok.id, over)}
-              remote={otherOwned.has(`loose:${tok.id}`)}
-              getLivePose={getPieceLive}
-            />
-          ),
-        )}
-        {/* Piles of character tokens on the table (Library, Pile mode). A pile that is moved shows
-            under the pointer instead. */}
-        {tokenPiles
-          .filter((pile) => !(tokenDrag?.active && tokenDrag.pileId === pile.id))
-          .map((pile) => (
-            <TokenPile
-              key={pile.id}
-              pile={pile}
-              onTakeStart={(e) => onPileTakeStart(e, pile)}
-              onMoveStart={(e) => onPileMoveStart(e, pile)}
-              onHover={(over) => onPileHover?.(pile.id, over)}
-              remote={otherOwned.has(`pile:${pile.id}`)}
-              getLivePose={getPieceLive}
-            />
-          ))}
-        {tokenDrag?.active && (
-          <TokenDragPreview
-            pointRef={dragPointRef}
-            start={tokenDrag.start}
-            stacks={!tokenDrag.supplyCard && !tokenDrag.pile && !tokenDrag.pileId}
-          >
-            {tokenDrag.supplyCard ? (
-              <SupplyToken tokenKey={tokenDrag.tokenKey} raycast={NO_RAYCAST} />
-            ) : tokenDrag.pile || tokenDrag.pileId ? (
-              <PileStack tokenKey={tokenDrag.tokenKey} interactive={false} />
-            ) : (
-              <TokenFace
-                tokenKey={tokenDrag.tokenKey}
-                size={tokenSize(tokenDrag.tokenKey)}
-                interactive={false}
-              />
-            )}
-          </TokenDragPreview>
-        )}
-        {/* The new piece that the other player drags: the kind comes from the key (decision 22) */}
-        {otherSpawn && (
-          <OtherSpawnPreview
-            key={otherSpawn.key}
-            spawnKey={otherSpawn.key}
-            tokenKey={otherSpawn.tokenKey}
-            getLivePose={getPieceLive}
-            stacks={otherSpawn.key.startsWith('loose:')}
-          >
-            {otherSpawn.key.startsWith('token:') ? (
-              <SupplyToken tokenKey={otherSpawn.tokenKey} raycast={NO_RAYCAST} />
-            ) : otherSpawn.key.startsWith('pile:') ? (
-              <PileStack tokenKey={otherSpawn.tokenKey} interactive={false} />
-            ) : (
-              <TokenFace
-                tokenKey={otherSpawn.tokenKey}
-                size={tokenSize(otherSpawn.tokenKey)}
-                interactive={false}
-              />
-            )}
-          </OtherSpawnPreview>
-        )}
-
-        {/* The tactic tray of each player, between the mat and the character trays, and the Team
-            Tactic cards. Relative to the table, not the mat. See docs/features/team-tactic-cards.md. */}
-        {/* Power Phase and the board strip of each player (docs/features/table-tools.md) */}
-        <TableButtons ownSide={ownSide} {...tableButtons} />
-        {/* The tool rack of each player (docs/features/table-tools.md, "Tool rack") */}
-        {toolRack && (
-          <ToolRack
-            ownSide={ownSide}
-            tools={tools}
-            hiddenSides={rackHiddenSides(setup, rosters)}
-            {...toolRack}
-          />
-        )}
-        {toolDrag?.active && (
-          <ToolDragGhost
-            pointRef={toolDragPointRef}
-            start={toolDrag.start}
-            kind={toolDrag.kind}
-            which={toolDrag.which}
-            side={ownSide}
-          />
-        )}
-        <TacticTray team="host" />
-        <TacticTray team="guest" />
-        {/* The loaded rosters, in the area of the character trays (docs/features/roster.md), until the squads
-            go on the table (the steps before 'affiliation'). Locked cards, no physics body, so a tool or a
-            model passes over them. The crisis cards of the rosters and the setup buttons are in
-            GameSetup. */}
-        {rosterRowsShown(setup) &&
-          ['host', 'guest'].map(
-            (team) =>
-              rosters[team] && (
-                <RosterCards
-                  key={team}
-                  team={team}
-                  code={rosters[team].code}
-                  squad={
-                    setupStep(setup) === 'squads' && !viewOf(setup) ? setup.squads[team] : undefined
-                  }
-                  onOpen={(tab, index) => onRosterOpen?.({ team, tab, index })}
-                  onGemOpen={onAttachedOpen}
-                  onToggle={
-                    squadEdit?.[team]
-                      ? (tab, index) => onSquadToggle?.(team, tab, index)
-                      : undefined
-                  }
-                  onCardHover={onCardHover}
-                />
-              ),
-          )}
-        <GameSetup
-          setup={setup}
-          rosters={rosters}
-          mySide={mySide}
-          seatPlayers={seatPlayers}
-          actions={setupActions}
-          powerOnTable={tableButtons.show.power}
-          onStartRound={() => tableButtons.onPowerPhase(playedSides)}
-          onCrisisOpen={onCrisisOpen}
-          onCardHover={onCardHover}
-        />
-        {tacticCards.map((card, i) => (
-          <Suspense key={card.id} fallback={null}>
-            <TacticCard
-              card={card}
-              stackIndex={i}
-              onMove={(x, z) => onTacticMove(card.id, x, z)}
-              ownership={ownership}
-              pieceLives={pieceLives}
-              remote={otherOwned.has(`tactic:${card.id}`)}
-              getLivePose={getPieceLive}
-              onOpen={onCardOpen}
-              onHover={(over) => onTacticHover?.(card.id, over)}
-              onCardHover={onCardHover}
-            />
-          </Suspense>
-        ))}
-
-        {/* One tray per spawned character, next to the mat edge (see trays.js and
-            docs/features/character-trays.md, "Tray layout"). The models below spawn standing on the center
-            of this tray's cards (modelSpawnPosition). A model reads that position only once, when
-            its body mounts, so a later tray move does not teleport it. */}
-        {characters
-          .filter((ch) => trayPositions.has(ch.id))
-          .map((ch) => (
-            <Suspense key={ch.id} fallback={null}>
-              <CharacterTray
-                character={ch}
-                position={trayPositions.get(ch.id)}
-                grunts={ch.host ? 0 : trayShape(ch).grunts}
-                slot={trayShape(ch).slot}
-                onOpen={() => onTrayOpen(ch.id)}
-                onDamage={(damage) => onCharacterDamage(ch.id, damage)}
-                onPower={(power) => onCharacterPower(ch.id, power)}
-                onFlip={() => onCharacterFlip(ch.id)}
-                onCardHover={(over) => onTrayCardHover?.(ch.id, over)}
-                onCardImageHover={onCardHover}
-                onRemove={() => onCharacterOffBoard(ch.id)}
-                onBoard={characterOnBoard(ch, poses)}
-                removeWait={removeWaits[ch.id] ?? null}
-                onAttachedOpen={onAttachedOpen}
-                onTokenRemove={(key) => onCharacterTokenRemove(ch.id, key)}
-                onTokenDragStart={onTokenDragStart}
-                selected={selectedCharId === ch.id}
+          {tokenViews.map(({ token: tok, floorY }) => (
+            <Suspense key={tok.id} fallback={null}>
+              <CrisisToken
+                token={tok}
+                floorY={floorY}
+                selected={selectedTokenId === tok.id}
+                rangeMark={rangeMarkOf('token', tok.id)}
+                otherSelected={otherSelectedOf('token', tok.id)}
+                onSelect={() => toggleSelect('token', tok.id)}
+                onDragSelect={() => dragSelect('token', tok.id)}
+                onHover={
+                  tok.heldBy
+                    ? (over) => onHeldHover?.(tok.id, over)
+                    : (over) => onPieceHover?.({ kind: 'token', id: tok.id }, over)
+                }
+                canDrag={!tok.placeBy || playedSides.includes(tok.placeBy)}
+                constrainDrag={tok.placeBy ? (p) => clampWaiting(tok, p, TOKEN_RADIUS) : null}
+                onMove={(x, z) => onTokenMove(tok.id, x, z)}
+                onTurn={(yaw) => onTokenTurn(tok.id, yaw)}
+                ownership={ownership}
+                pieceLives={pieceLives}
+                remote={otherOwned.has(`token:${tok.id}`)}
+                getLivePose={getPieceLive}
+                onHold={(characterId, point) => {
+                  const holder = characters.find((ch) => ch.id === characterId)
+                  const trayPos = trayPositions.get(characterId)
+                  const shape = holder && trayShape(holder)
+                  const onCard =
+                    holder &&
+                    trayPos &&
+                    onTray(holder.team, trayPos, point, shape.cards, shape.grunts)
+                  onTokenHold(
+                    tok.id,
+                    characterId,
+                    onCard
+                      ? holder.host
+                        ? trayGruntHeldLocal(holder.team, trayPos, point, shape.slot)
+                        : trayHeldLocal(holder.team, trayPos, point)
+                      : null,
+                  )
+                }}
+                findCharacter={findCharacterAt}
+                controlAffiliation={tok.control ? affiliations[tok.control] : null}
                 objectRef={(obj) =>
-                  obj ? trayObjects.current.set(ch.id, obj) : trayObjects.current.delete(ch.id)
+                  obj ? tokenObjects.current.set(tok.id, obj) : tokenObjects.current.delete(tok.id)
+                }
+                centerRef={(fn) =>
+                  fn ? tokenCenters.current.set(tok.id, fn) : tokenCenters.current.delete(tok.id)
                 }
               />
             </Suspense>
           ))}
 
-        {models.map((model) => {
-          const ch = model.character
-          // The same props for a 3D model and a standee (CharacterModel.jsx)
-          const pose = startPose?.(model.id)
-          const props = {
-            position: modelSpawnPosition(model),
-            quaternion: pose ? [pose.qx, pose.qy, pose.qz, pose.qw] : startQuaternion(ch.team),
-            baseRadius: BASE_DIAMETER[model.base] / 2,
-            rotation: [0, modelFigureYaw(model), 0],
-            team: ch.team,
-            selected: selectedModelId === model.id,
-            rangeMark: rangeMarkOf('character', model.id),
-            otherSelected: otherSelectedOf('character', model.id),
-            overlap: overlapIds.has(model.id),
-            overlapsAt: (x, y, z) =>
-              overlapsAny({ x, y, z, radius: BASE_DIAMETER[model.base] / 2 }, modelBases(model.id)),
-            onSelect: () => toggleSelect('character', model.id),
-            onDragSelect: () => dragSelect('character', model.id),
-            onHover: (over) => {
-              onPieceHover?.({ kind: 'character', id: model.id }, over)
-              trackPiece(hoveredPiece, { kind: 'character', id: model.id }, over)
-              // A construct has no card
-              if (!model.construct)
-                onCardHover?.(
-                  {
-                    src: assetUrl(modelCardFile(model)),
-                    alt: characterName(ch.key),
-                    by: `model:${model.id}`,
-                  },
-                  over,
-                )
-            },
-            bodyRef: (rb) =>
-              rb ? charBodies.current.set(model.id, rb) : charBodies.current.delete(model.id),
-            claimKey: modelKey(model.id),
-            ownership: claims,
-            remote: otherOwned.has(modelKey(model.id)),
-            otherDragging: otherDragKey === modelKey(model.id),
-            getLivePose: getPieceLive,
-            getLiveTime: getPieceLiveTime,
-            onRest: () => {
-              // One writer for each rest pose (decision 6)
-              if (ownership && !ownership.writes(modelKey(model.id))) return
-              const rest = restPose(model.id)
-              if (rest) onModelRest?.(model.id, rest)
-            },
-            objectRef: (obj) =>
-              obj ? charObjects.current.set(model.id, obj) : charObjects.current.delete(model.id),
-            liftRef: (lift) =>
-              lift ? charLifts.current.set(model.id, lift) : charLifts.current.delete(model.id),
-            onDragStart: () => {
-              markMoved(model.id)
-              setDraggingCharId(model.id)
-              ownership?.setDrag(modelKey(model.id))
-              if (modelDragRef) modelDragRef.current = model.id
-              trackPiece(draggedPiece, { kind: 'character', id: model.id }, true)
-            },
-            // cancelled: Esc put the body back, so a Q / E turn that is not done yet is dropped
-            onDragEnd: (cancelled) => {
-              if (cancelled) turnsLeft.current.delete(modelKey(model.id))
-              setDraggingCharId(null)
-              ownership?.setDrag(null)
-              if (modelDragRef?.current === model.id) modelDragRef.current = null
-              trackPiece(draggedPiece, { kind: 'character', id: model.id }, false)
-            },
-            // A base is within range if any part of it is within range (p8). So the base can
-            // go as far as touching the far end of the tool: its center is one radius past it.
-            constrainDrag: (p) => {
-              if (deployLine) {
-                const limit = MAT_SIZE / 2 - deployDepth - BASE_DIAMETER[model.base] / 2
-                if (ch.team === 'host') p.z = Math.max(p.z, limit)
-                else p.z = Math.min(p.z, -limit)
-              }
-              // The limits take the tool form (getCenter, radius), not the raw model.
-              const toolModel = toolModels.find((m) => m.kind === 'character' && m.id === model.id)
-              for (const limit of Object.values(placeLimits.current)) {
-                if (toolModel && limit?.owns(toolModel, p)) limit.clamp(p, toolModel)
-              }
-            },
-            overlay: spectatorOverlay(model),
-          }
-          const urls = modelUrls(model)
-          return (
-            <Suspense key={model.id} fallback={null}>
-              {urls.standee ? (
-                <StandeeModel urls={urls.standee} {...props} />
+          {/* Character tokens on the table. Relative to the table, not the mat, the same as the crisis
+            tokens above. A token that is being dragged shows under the pointer instead. */}
+          {looseTokens.map((tok, index) =>
+            tokenDrag?.active && tokenDrag.looseId === tok.id ? null : (
+              <LooseToken
+                key={tok.id}
+                token={tok}
+                index={index}
+                count={
+                  (tok.count ?? 1) - (tokenDrag?.active && tokenDrag.takeFrom === tok.id ? 1 : 0)
+                }
+                onDragStart={(e) => onTokenDragStart(e, tok.key, tok.id)}
+                onHover={(over) => onLooseHover?.(tok.id, over)}
+                remote={otherOwned.has(`loose:${tok.id}`)}
+                getLivePose={getPieceLive}
+              />
+            ),
+          )}
+          {/* Piles of character tokens on the table (Library, Pile mode). A pile that is moved shows
+            under the pointer instead. */}
+          {tokenPiles
+            .filter((pile) => !(tokenDrag?.active && tokenDrag.pileId === pile.id))
+            .map((pile) => (
+              <TokenPile
+                key={pile.id}
+                pile={pile}
+                onTakeStart={(e) => onPileTakeStart(e, pile)}
+                onMoveStart={(e) => onPileMoveStart(e, pile)}
+                onHover={(over) => onPileHover?.(pile.id, over)}
+                remote={otherOwned.has(`pile:${pile.id}`)}
+                getLivePose={getPieceLive}
+              />
+            ))}
+          {tokenDrag?.active && (
+            <TokenDragPreview
+              pointRef={dragPointRef}
+              start={tokenDrag.start}
+              stacks={!tokenDrag.supplyCard && !tokenDrag.pile && !tokenDrag.pileId}
+            >
+              {tokenDrag.supplyCard ? (
+                <SupplyToken tokenKey={tokenDrag.tokenKey} raycast={NO_RAYCAST} />
+              ) : tokenDrag.pile || tokenDrag.pileId ? (
+                <PileStack tokenKey={tokenDrag.tokenKey} interactive={false} />
               ) : (
-                <CharacterModel url={urls.gltf} {...props} />
-              )}
-            </Suspense>
-          )
-        })}
-
-        {ownTools.move && (
-          <Suspense key={toolKey('move', ownTools.move)} fallback={null}>
-            <MovementRuler
-              type={ownTools.move.which}
-              spawnTarget={spawnModel(toolSpawn.move)}
-              {...toolEntry('move')}
-              hoverHeight={TOOL_HOVER_HEIGHT}
-              selected={selectedTools.move}
-              onSelect={() => toggleTool('move')}
-              onDragSelect={() => selectTool('move')}
-              // A new tool is selected, so its buttons (Place, Bend) can be used right away
-              onSpawn={() => selectTool('move')}
-              angleLimit={angleLimit}
-              target={toolTarget}
-              models={toolModels}
-              onSnap={selectModel}
-              onPlaceLimit={(limit) => {
-                placeLimits.current.move = limit
-              }}
-              limitTaken={limitTool === 'range'}
-              onLimitOn={() => setLimitTool('move')}
-              {...turnProps('move')}
-            />
-          </Suspense>
-        )}
-        {ownTools.angle && (
-          <Suspense key={toolKey('angle', ownTools.angle)} fallback={null}>
-            <AngleRuler
-              {...toolEntry('angle')}
-              hoverHeight={TOOL_HOVER_HEIGHT}
-              selected={selectedTools.angle}
-              onSelect={() => toggleTool('angle')}
-              onDragSelect={() => selectTool('angle')}
-              onSpawn={() => selectTool('angle')}
-              target={toolTarget}
-              spawnTarget={toolModel(angleSpawn.target)}
-              aim={toolModel(angleSpawn.aim)}
-              models={toolModels}
-              onSnap={selectModel}
-              angleRef={(get) => {
-                angleTool.current = get
-              }}
-              {...turnProps('angle')}
-            />
-          </Suspense>
-        )}
-        {ownTools.los && (
-          <LosTool
-            key={toolKey('los', ownTools.los)}
-            {...toolEntry('los')}
-            selected={selectedTools.los}
-            onSelect={() => toggleTool('los')}
-            onDragSelect={() => selectTool('los')}
-            onSpawn={() => selectTool('los')}
-            onRemove={() => onToolRemove?.('los')}
-            models={toolModels}
-            {...turnProps('los')}
-          />
-        )}
-        {draggingChar && (
-          <Suspense fallback={null}>
-            <DeployRangeTool
-              getBody={() => liveCharBody(draggingCharId)}
-              centerZ={
-                draggingChar.team === 'host'
-                  ? MAT_SIZE / 2 - deployTip
-                  : -(MAT_SIZE / 2 - deployTip)
-              }
-              yaw={draggingChar.team === 'host' ? -Math.PI / 2 : Math.PI / 2}
-              team={draggingChar.team}
-              hoverHeight={TOOL_HOVER_HEIGHT}
-            />
-          </Suspense>
-        )}
-        {otherDragChar && (
-          <Suspense fallback={null}>
-            <DeployRangeTool
-              getBody={() => liveCharBody(otherDragId)}
-              centerZ={
-                otherDragChar.team === 'host'
-                  ? MAT_SIZE / 2 - deployTip
-                  : -(MAT_SIZE / 2 - deployTip)
-              }
-              yaw={otherDragChar.team === 'host' ? -Math.PI / 2 : Math.PI / 2}
-              team={otherDragChar.team}
-              hoverHeight={TOOL_HOVER_HEIGHT}
-            />
-          </Suspense>
-        )}
-        {ownTools.range && (
-          <Suspense key={toolKey('range', ownTools.range)} fallback={null}>
-            <RangeRuler
-              number={ownTools.range.which}
-              spawnTarget={spawnModel(toolSpawn.range)}
-              {...toolEntry('range')}
-              hoverHeight={TOOL_HOVER_HEIGHT}
-              selected={selectedTools.range}
-              onSelect={() => toggleTool('range')}
-              onDragSelect={() => selectTool('range')}
-              onSpawn={() => selectTool('range')}
-              target={toolTarget}
-              models={toolModels}
-              onSnap={selectModel}
-              onPlaceLimit={(limit) => {
-                placeLimits.current.range = limit
-              }}
-              limitTaken={limitTool === 'move'}
-              onLimitOn={() => setLimitTool('range')}
-              onRangeMark={setRangeMark}
-              {...turnProps('range')}
-            />
-          </Suspense>
-        )}
-        {Object.entries(otherTools).map(([kind, entry]) =>
-          kind === 'los'
-            ? entry.pose && (
-                <OtherLos
-                  key={toolKey(kind, entry)}
-                  entry={entry}
-                  models={toolModels}
-                  selected={otherLook.tools.includes(kind)}
-                  getLive={() => received.current?.tool(kind) ?? null}
+                <TokenFace
+                  tokenKey={tokenDrag.tokenKey}
+                  size={tokenSize(tokenDrag.tokenKey)}
+                  interactive={false}
                 />
-              )
-            : entry.pose && (
-                <Suspense key={toolKey(kind, entry)} fallback={null}>
-                  <OtherTool
-                    kind={kind}
-                    entry={entry}
-                    team={otherSide}
-                    selected={otherLook.tools.includes(kind)}
-                    target={otherTarget}
-                    rangeFrom={
-                      kind === 'range' && entry.which === 1 && entry.snap
-                        ? (toolModels.find(
-                            (model) => model.kind === entry.snap.kind && model.id === entry.snap.id,
-                          ) ?? null)
-                        : null
+              )}
+            </TokenDragPreview>
+          )}
+          {/* The new piece that the other player drags: the kind comes from the key (decision 22) */}
+          {otherSpawn && (
+            <OtherSpawnPreview
+              key={otherSpawn.key}
+              spawnKey={otherSpawn.key}
+              tokenKey={otherSpawn.tokenKey}
+              getLivePose={getPieceLive}
+              stacks={otherSpawn.key.startsWith('loose:')}
+            >
+              {otherSpawn.key.startsWith('token:') ? (
+                <SupplyToken tokenKey={otherSpawn.tokenKey} raycast={NO_RAYCAST} />
+              ) : otherSpawn.key.startsWith('pile:') ? (
+                <PileStack tokenKey={otherSpawn.tokenKey} interactive={false} />
+              ) : (
+                <TokenFace
+                  tokenKey={otherSpawn.tokenKey}
+                  size={tokenSize(otherSpawn.tokenKey)}
+                  interactive={false}
+                />
+              )}
+            </OtherSpawnPreview>
+          )}
+
+          {/* The tactic tray of each player, between the mat and the character trays, and the Team
+            Tactic cards. Relative to the table, not the mat. See docs/features/team-tactic-cards.md. */}
+          {/* Power Phase and the board strip of each player (docs/features/table-tools.md) */}
+          <TableButtons ownSide={ownSide} {...tableButtons} />
+          {/* The tool rack of each player (docs/features/table-tools.md, "Tool rack") */}
+          {toolRack && (
+            <ToolRack
+              ownSide={ownSide}
+              tools={tools}
+              hiddenSides={rackHiddenSides(setup, rosters)}
+              {...toolRack}
+            />
+          )}
+          {toolDrag?.active && (
+            <ToolDragGhost
+              pointRef={toolDragPointRef}
+              start={toolDrag.start}
+              kind={toolDrag.kind}
+              which={toolDrag.which}
+              side={ownSide}
+            />
+          )}
+          <TacticTray team="host" />
+          <TacticTray team="guest" />
+          {/* The loaded rosters, in the area of the character trays (docs/features/roster.md), until the squads
+            go on the table (the steps before 'affiliation'). Locked cards, no physics body, so a tool or a
+            model passes over them. The crisis cards of the rosters and the setup buttons are in
+            GameSetup. */}
+          {rosterRowsShown(setup) &&
+            ['host', 'guest'].map(
+              (team) =>
+                rosters[team] && (
+                  <RosterCards
+                    key={team}
+                    team={team}
+                    code={rosters[team].code}
+                    squad={
+                      setupStep(setup) === 'squads' && !viewOf(setup)
+                        ? setup.squads[team]
+                        : undefined
                     }
+                    onOpen={(tab, index) => onRosterOpen?.({ team, tab, index })}
+                    onGemOpen={onAttachedOpen}
+                    onToggle={
+                      squadEdit?.[team]
+                        ? (tab, index) => onSquadToggle?.(team, tab, index)
+                        : undefined
+                    }
+                    onCardHover={onCardHover}
+                  />
+                ),
+            )}
+          <GameSetup
+            setup={setup}
+            rosters={rosters}
+            mySide={mySide}
+            seatPlayers={seatPlayers}
+            actions={setupActions}
+            powerOnTable={tableButtons.show.power}
+            onStartRound={() => tableButtons.onPowerPhase(playedSides)}
+            onCrisisOpen={onCrisisOpen}
+            onCardHover={onCardHover}
+          />
+          {tacticCards.map((card, i) => (
+            <Suspense key={card.id} fallback={null}>
+              <TacticCard
+                card={card}
+                stackIndex={i}
+                onMove={(x, z) => onTacticMove(card.id, x, z)}
+                ownership={ownership}
+                pieceLives={pieceLives}
+                remote={otherOwned.has(`tactic:${card.id}`)}
+                getLivePose={getPieceLive}
+                onOpen={onCardOpen}
+                onHover={(over) => onTacticHover?.(card.id, over)}
+                onCardHover={onCardHover}
+              />
+            </Suspense>
+          ))}
+
+          {/* One tray per spawned character, next to the mat edge (see trays.js and
+            docs/features/character-trays.md, "Tray layout"). The models below spawn standing on the center
+            of this tray's cards (modelSpawnPosition). A model reads that position only once, when
+            its body mounts, so a later tray move does not teleport it. */}
+          {characters
+            .filter((ch) => trayPositions.has(ch.id))
+            .map((ch) => (
+              <Suspense key={ch.id} fallback={null}>
+                <CharacterTray
+                  character={ch}
+                  position={trayPositions.get(ch.id)}
+                  grunts={ch.host ? 0 : trayShape(ch).grunts}
+                  slot={trayShape(ch).slot}
+                  onOpen={() => onTrayOpen(ch.id)}
+                  onDamage={(damage) => onCharacterDamage(ch.id, damage)}
+                  onPower={(power) => onCharacterPower(ch.id, power)}
+                  onFlip={() => onCharacterFlip(ch.id)}
+                  onCardHover={(over) => onTrayCardHover?.(ch.id, over)}
+                  onCardImageHover={onCardHover}
+                  onRemove={() => onCharacterOffBoard(ch.id)}
+                  onBoard={characterOnBoard(ch, poses)}
+                  removeWait={removeWaits[ch.id] ?? null}
+                  onAttachedOpen={onAttachedOpen}
+                  onTokenRemove={(key) => onCharacterTokenRemove(ch.id, key)}
+                  onTokenDragStart={onTokenDragStart}
+                  selected={selectedCharId === ch.id}
+                  objectRef={(obj) =>
+                    obj ? trayObjects.current.set(ch.id, obj) : trayObjects.current.delete(ch.id)
+                  }
+                />
+              </Suspense>
+            ))}
+
+          {models.map((model) => {
+            const ch = model.character
+            // The same props for a 3D model and a standee (CharacterModel.jsx)
+            const pose = startPose?.(model.id)
+            const props = {
+              position: modelSpawnPosition(model),
+              quaternion: pose ? [pose.qx, pose.qy, pose.qz, pose.qw] : startQuaternion(ch.team),
+              baseRadius: BASE_DIAMETER[model.base] / 2,
+              rotation: [0, modelFigureYaw(model), 0],
+              team: ch.team,
+              selected: selectedModelId === model.id,
+              rangeMark: rangeMarkOf('character', model.id),
+              otherSelected: otherSelectedOf('character', model.id),
+              overlap: overlapIds.has(model.id),
+              overlapsAt: (x, y, z) =>
+                overlapsAny(
+                  { x, y, z, radius: BASE_DIAMETER[model.base] / 2 },
+                  modelBases(model.id),
+                ),
+              onSelect: () => toggleSelect('character', model.id),
+              onDragSelect: () => dragSelect('character', model.id),
+              onHover: (over) => {
+                onPieceHover?.({ kind: 'character', id: model.id }, over)
+                trackPiece(hoveredPiece, { kind: 'character', id: model.id }, over)
+                // A construct has no card
+                if (!model.construct)
+                  onCardHover?.(
+                    {
+                      src: assetUrl(modelCardFile(model)),
+                      alt: characterName(ch.key),
+                      by: `model:${model.id}`,
+                    },
+                    over,
+                  )
+              },
+              bodyRef: (rb) =>
+                rb ? charBodies.current.set(model.id, rb) : charBodies.current.delete(model.id),
+              claimKey: modelKey(model.id),
+              ownership: claims,
+              remote: otherOwned.has(modelKey(model.id)),
+              otherDragging: otherDragKey === modelKey(model.id),
+              getLivePose: getPieceLive,
+              getLiveTime: getPieceLiveTime,
+              onRest: () => {
+                // One writer for each rest pose (decision 6)
+                if (ownership && !ownership.writes(modelKey(model.id))) return
+                const rest = restPose(model.id)
+                if (rest) onModelRest?.(model.id, rest)
+              },
+              objectRef: (obj) =>
+                obj ? charObjects.current.set(model.id, obj) : charObjects.current.delete(model.id),
+              liftRef: (lift) =>
+                lift ? charLifts.current.set(model.id, lift) : charLifts.current.delete(model.id),
+              onDragStart: () => {
+                markMoved(model.id)
+                setDraggingCharId(model.id)
+                ownership?.setDrag(modelKey(model.id))
+                if (modelDragRef) modelDragRef.current = model.id
+                trackPiece(draggedPiece, { kind: 'character', id: model.id }, true)
+              },
+              // cancelled: Esc put the body back, so a Q / E turn that is not done yet is dropped
+              onDragEnd: (cancelled) => {
+                if (cancelled) turnsLeft.current.delete(modelKey(model.id))
+                setDraggingCharId(null)
+                ownership?.setDrag(null)
+                if (modelDragRef?.current === model.id) modelDragRef.current = null
+                trackPiece(draggedPiece, { kind: 'character', id: model.id }, false)
+              },
+              // A base is within range if any part of it is within range (p8). So the base can
+              // go as far as touching the far end of the tool: its center is one radius past it.
+              constrainDrag: (p) => {
+                if (deployLine) {
+                  const limit = MAT_SIZE / 2 - deployDepth - BASE_DIAMETER[model.base] / 2
+                  if (ch.team === 'host') p.z = Math.max(p.z, limit)
+                  else p.z = Math.min(p.z, -limit)
+                }
+                // The limits take the tool form (getCenter, radius), not the raw model.
+                const toolModel = toolModels.find(
+                  (m) => m.kind === 'character' && m.id === model.id,
+                )
+                for (const limit of Object.values(placeLimits.current)) {
+                  if (toolModel && limit?.owns(toolModel, p)) limit.clamp(p, toolModel)
+                }
+              },
+              overlay: spectatorOverlay(model),
+            }
+            const urls = modelUrls(model)
+            return (
+              <Suspense key={model.id} fallback={null}>
+                {urls.standee ? (
+                  <StandeeModel urls={urls.standee} {...props} />
+                ) : (
+                  <CharacterModel url={urls.gltf} {...props} />
+                )}
+              </Suspense>
+            )
+          })}
+
+          {ownTools.move && (
+            <Suspense key={toolKey('move', ownTools.move)} fallback={null}>
+              <MovementRuler
+                type={ownTools.move.which}
+                spawnTarget={spawnModel(toolSpawn.move)}
+                {...toolEntry('move')}
+                hoverHeight={TOOL_HOVER_HEIGHT}
+                selected={selectedTools.move}
+                onSelect={() => toggleTool('move')}
+                onDragSelect={() => selectTool('move')}
+                // A new tool is selected, so its buttons (Place, Bend) can be used right away
+                onSpawn={() => selectTool('move')}
+                angleLimit={angleLimit}
+                target={toolTarget}
+                models={toolModels}
+                onSnap={selectModel}
+                onPlaceLimit={(limit) => {
+                  placeLimits.current.move = limit
+                }}
+                limitTaken={limitTool === 'range'}
+                onLimitOn={() => setLimitTool('move')}
+                {...turnProps('move')}
+              />
+            </Suspense>
+          )}
+          {ownTools.angle && (
+            <Suspense key={toolKey('angle', ownTools.angle)} fallback={null}>
+              <AngleRuler
+                {...toolEntry('angle')}
+                hoverHeight={TOOL_HOVER_HEIGHT}
+                selected={selectedTools.angle}
+                onSelect={() => toggleTool('angle')}
+                onDragSelect={() => selectTool('angle')}
+                onSpawn={() => selectTool('angle')}
+                target={toolTarget}
+                spawnTarget={toolModel(angleSpawn.target)}
+                aim={toolModel(angleSpawn.aim)}
+                models={toolModels}
+                onSnap={selectModel}
+                angleRef={(get) => {
+                  angleTool.current = get
+                }}
+                {...turnProps('angle')}
+              />
+            </Suspense>
+          )}
+          {ownTools.los && (
+            <LosTool
+              key={toolKey('los', ownTools.los)}
+              {...toolEntry('los')}
+              selected={selectedTools.los}
+              onSelect={() => toggleTool('los')}
+              onDragSelect={() => selectTool('los')}
+              onSpawn={() => selectTool('los')}
+              onRemove={() => onToolRemove?.('los')}
+              models={toolModels}
+              {...turnProps('los')}
+            />
+          )}
+          {draggingChar && (
+            <Suspense fallback={null}>
+              <DeployRangeTool
+                getBody={() => liveCharBody(draggingCharId)}
+                centerZ={
+                  draggingChar.team === 'host'
+                    ? MAT_SIZE / 2 - deployTip
+                    : -(MAT_SIZE / 2 - deployTip)
+                }
+                yaw={draggingChar.team === 'host' ? -Math.PI / 2 : Math.PI / 2}
+                team={draggingChar.team}
+                hoverHeight={TOOL_HOVER_HEIGHT}
+              />
+            </Suspense>
+          )}
+          {otherDragChar && (
+            <Suspense fallback={null}>
+              <DeployRangeTool
+                getBody={() => liveCharBody(otherDragId)}
+                centerZ={
+                  otherDragChar.team === 'host'
+                    ? MAT_SIZE / 2 - deployTip
+                    : -(MAT_SIZE / 2 - deployTip)
+                }
+                yaw={otherDragChar.team === 'host' ? -Math.PI / 2 : Math.PI / 2}
+                team={otherDragChar.team}
+                hoverHeight={TOOL_HOVER_HEIGHT}
+              />
+            </Suspense>
+          )}
+          {ownTools.range && (
+            <Suspense key={toolKey('range', ownTools.range)} fallback={null}>
+              <RangeRuler
+                number={ownTools.range.which}
+                spawnTarget={spawnModel(toolSpawn.range)}
+                {...toolEntry('range')}
+                hoverHeight={TOOL_HOVER_HEIGHT}
+                selected={selectedTools.range}
+                onSelect={() => toggleTool('range')}
+                onDragSelect={() => selectTool('range')}
+                onSpawn={() => selectTool('range')}
+                target={toolTarget}
+                models={toolModels}
+                onSnap={selectModel}
+                onPlaceLimit={(limit) => {
+                  placeLimits.current.range = limit
+                }}
+                limitTaken={limitTool === 'move'}
+                onLimitOn={() => setLimitTool('range')}
+                onRangeMark={setRangeMark}
+                {...turnProps('range')}
+              />
+            </Suspense>
+          )}
+          {Object.entries(otherTools).map(([kind, entry]) =>
+            kind === 'los'
+              ? entry.pose && (
+                  <OtherLos
+                    key={toolKey(kind, entry)}
+                    entry={entry}
+                    models={toolModels}
+                    selected={otherLook.tools.includes(kind)}
                     getLive={() => received.current?.tool(kind) ?? null}
                   />
-                </Suspense>
-              ),
-        )}
-      </Physics>
+                )
+              : entry.pose && (
+                  <Suspense key={toolKey(kind, entry)} fallback={null}>
+                    <OtherTool
+                      kind={kind}
+                      entry={entry}
+                      team={otherSide}
+                      selected={otherLook.tools.includes(kind)}
+                      target={otherTarget}
+                      rangeFrom={
+                        kind === 'range' && entry.which === 1 && entry.snap
+                          ? (toolModels.find(
+                              (model) =>
+                                model.kind === entry.snap.kind && model.id === entry.snap.id,
+                            ) ?? null)
+                          : null
+                      }
+                      getLive={() => received.current?.tool(kind) ?? null}
+                    />
+                  </Suspense>
+                ),
+          )}
+        </Physics>
+      </LabelOcclusionProvider>
     </>
   )
 }

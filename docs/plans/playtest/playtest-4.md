@@ -1,6 +1,6 @@
 # Plan: Bugs from the fourth playtest
 
-Requested by the user on 2026-10-14. Status: steps 1 to 6 done and tested, steps 7 to 9 added after the test.
+Requested by the user on 2026-10-14. Status: steps 1 to 9 done, user test of steps 7 to 9 pending.
 
 Branch `playtest-4`, worktree `../mcp_assist_3d-playtest-4`, from main at `7b708f7`. One coder step and one commit for each step. Each step writes its **Result** below when it is done. Feature docs change in the same step as the code.
 
@@ -217,3 +217,13 @@ Done.
   - Restitution does the work. Angular damping barely changes the rest time, so 1.0 is kept as decided. Flat share about 98% before and after. Dice stay in the tray (single die: 0% out of well, before 0.3-0.5%).
 - Tilted rate rose from about 1% to 2%; the app throws such a die again. Chi-squared failed on 1 of 15 runs (chance level).
 - Not tried in a browser: the user checks the look (spin fades to about 40% in a 1 s flight).
+
+### Step 9: Labels behind terrain
+
+Done.
+
+- New `components/LabelOcclusion.jsx`: registry, `LabelOcclusionProvider` (Scene, around `<Physics>`), `LabelOcclusionLoop` (inside `<Physics>`, `useFrame`), `OccludedHtml` (a group anchor plus drei `<Html>`; drops to a plain label outside a provider), `useLabelsDirty`. Pure part in `labelOcclusion.js` (due check, move tests, ray) with tests.
+- Loop: every 0.1 s, if the camera, an anchor or the dirty flag changed, one `castRay` per label (fixed colliders only, no sensors, own terrain body excluded, stops 0.1 before the anchor). A hit sets `visibility: hidden` on the label element. No React state. Ray, vectors and out object are reused.
+- Covered: terrain label (own piece skipped; each piece sets dirty when it appears, moves or goes), LOS label, token count (both) and name, tool rack label, ruler `FlatHtml` (Place buttons, labels on the mat).
+- Not covered: `OnTable` boards, DiceKeys, CharacterTray, SpectatorBadge (trays and boards off the mat), die menu (own tray at the table edge, camera sits behind it).
+- Not tried in a browser.
