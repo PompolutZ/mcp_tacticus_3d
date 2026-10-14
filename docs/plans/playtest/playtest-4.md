@@ -134,3 +134,13 @@ Done.
 - CORS: no change needed.
 - Tests: `apps/api/test/errors.test.ts`, the capped collection in `mongo.mongo.test.ts`, `crash/reporter.test.js`.
 - Deploy: the API must be deployed for the route to exist. Until then the browser gets 404 and ignores it.
+
+### Step 3: Token hold on the card only
+
+Done.
+
+- `Scene.jsx` `characterAt(x, y, { models })`: `models: false` skips model objects (plates only). `findCharacterAt` in `useTokenDrag.js` passes the option through (DOM `data-character-id` still counts).
+- `CrisisToken.jsx` `onEnd`: `canHold` lookup uses `{ models: false }`; a release on a model moves the token to the release point.
+- Supply pile take (`handleTokenRelease`): lookup uses `models: !supplyCard`, so over a model it gives `supplyTable`. Character tokens keep the model target.
+- Docs: `character-trays.md` (Give table, ray hit, Hold, decision 3), `crisis.md` (supply).
+- No new test: no pure part (the ray cast and DOM lookup); `tokenDropTarget` unchanged.

@@ -129,9 +129,9 @@ function AffiliationMarker({ affiliation, x, radius }) {
 // point { x, z } under the pointer at the release.
 // floorY: the height the token lies on while it is not dragged, instead of the ground under it. A
 // held token lies on its holder's tray card, which has no collider (see CharacterTray.jsx).
-// findCharacter(clientX, clientY): App's findCharacterAt (DOM data-character-id first, then
+// findCharacter(clientX, clientY, { models: false }): App's findCharacterAt (DOM data-character-id first, then
 // Scene's characterAt), called on release to look for one, the same lookup App's own token drag
-// uses. See docs/features/character-trays.md, "Hold and drop" and "Give tokens by drag and drop".
+// uses. A crisis token passes models: false, so only a card holds it. See docs/features/character-trays.md, "Hold and drop" and "Give tokens by drag and drop".
 // objectRef: standard ref callback for the token's 3D object, for the ruler tools' pointer raycast.
 // centerRef(getter): registers a function that returns the token's live { x, y, z }, for the ruler
 // tools. Called with undefined on unmount, the same pattern as bodyRef/objectRef in CharacterModel.
@@ -299,10 +299,13 @@ export default function CrisisToken({
       onEnd: (ev) => {
         draggingRef.current = false
         setDragging(false)
-        // A canHold token dropped on a character is held, not placed on the mat (see "Hold and
+        // A canHold token dropped on a tray card (not on a model) is held, not placed on the mat (see "Hold
+        // and
         // drop"). Any other token, or no character under the release point, just moves as usual.
         const holder =
-          token.canHold && !token.placeBy ? findCharacter?.(ev.clientX, ev.clientY) : null
+          token.canHold && !token.placeBy
+            ? findCharacter?.(ev.clientX, ev.clientY, { models: false })
+            : null
         if (holder) {
           const point = { x: poseRef.current.x, z: poseRef.current.z }
           // The pose goes back to the token's last place. If the hold changes the place, the token

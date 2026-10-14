@@ -206,7 +206,7 @@ A player gives a token to a character by dragging it onto the model or onto the 
 | Token | Drag from | Result |
 |---|---|---|
 | Character token (condition, Activated, Dazed, superpower or Team Tactic token) | A **Give** source of any tray, the **Library**, a pile, or the table | The token count on the target goes up by 1, with the limits in [Players apply the rules](#players-apply-the-rules) |
-| Extract objective token (Asset, Civilian, supply token) | The table, or the supply pile of a Source card | The target holds the token, see [Hold and drop](#hold-and-drop) |
+| Extract objective token (Asset, Civilian, supply token) | The table, or the supply pile of a Source card | The tray card holds the token, see [Hold and drop](#hold-and-drop) |
 
 The **Library** HUD panel shows every migrated token, in groups, with a search field (see `docs/features/library.md`). It replaced the old Tokens panel. It has the same purpose as the TTS "Token Tray": a player can give a token that is not among the Give sources of any tray, for example a token from a Team Tactic card. In Pile mode, a drag from the Library puts a pile on the table that never runs out.
 
@@ -220,7 +220,7 @@ How the drag works:
 - The drag becomes active after the pointer moves 4 px. Then `TokenDragPreview` shows the token at real size on the table or terrain point under the pointer. A token from the table is hidden at its old place. A release before 4 px is a click. On a Give source, the click gives 1 token to that tray's character (`giveId`, the 4th argument of `onTokenDragStart`); on any other piece, nothing happens.
 - On `pointerup`, App decides:
   1. Over a HUD panel: nothing happens. So a drag back onto the Library cancels it.
-  2. Over a character: the character gets the token. DOM first: the nearest element with `data-character-id` under the pointer (the tray controls have it, and a later 2D HUD can use the same attribute). Then 3D: `Scene.jsx` gives App a `characterAt(clientX, clientY)` function through a ref. It casts a ray from the camera and hits the model objects (`charObjects`) and the tray background plates. A token from the table is used up, also when the character is at the limit for that token, the same as TTS. It stays on the table when the character is immune.
+  2. Over a character: the character gets the token. An Extract token is held only when the release is on a tray card (the plate or a `data-character-id` element); over a model on the table it goes to the table (step 3). DOM first: the nearest element with `data-character-id` under the pointer (the tray controls have it, and a later 2D HUD can use the same attribute). Then 3D: `Scene.jsx` gives App a `characterAt(clientX, clientY)` function through a ref. It casts a ray from the camera and hits the model objects (`charObjects`) and the tray background plates. `{ models: false }` hits only the plates; a crisis token (Extract, below) uses it. A token from the table is used up, also when the character is at the limit for that token, the same as TTS. It stays on the table when the character is immune.
   3. Over the table or terrain: a new token lies there, or the token from the table moves there.
   4. Over the space around the table: nothing happens.
 - Escape cancels the drag.
@@ -388,7 +388,7 @@ A token on the table lies on the highest token under its center (`src/tokens/sta
 
 Only tokens of an Extract card that players can move can be held: Asset, Civilian and the supply tokens of Source cards. `buildMatTokens` and `supplyToken` set a new `canHold` flag.
 
-- **Hold:** a player drags the token and releases it over a model or a tray (see [Give tokens by drag and drop](#give-tokens-by-drag-and-drop)). That character now holds the token. The token leaves the mat and lies on the tray card as a 3D token, as in TTS. Its default place is the character art, in the left column of the card (`trays.js`, `trayHeldDefault`). A second token goes a little higher on the art and lies on top of the first. The app does not check the range: players apply the rules.
+- **Hold:** a player drags the token and releases it over a tray card (see [Give tokens by drag and drop](#give-tokens-by-drag-and-drop)). That character now holds the token. As in TTS, only the card holds: a release on a model on the table leaves the token on the table at the release point. A character has no limit of held tokens. The token leaves the mat and lies on the tray card as a 3D token, as in TTS. Its default place is the character art, in the left column of the card (`trays.js`, `trayHeldDefault`). A second token goes a little higher on the art and lies on top of the first. The app does not check the range: players apply the rules.
 - **Move on the card:** a player drags the held token and releases it on the same tray. The token stays held and lies at the release point, moved so that the whole token is on the card.
 - **Drop:** a player drags the held token from the card and releases it on the table. It is no longer held. The opponent then moves it to a place within Range 2. This drag has no wait and no notice: the players do it by hand.
 - **Dazed:** a new Dazed token on a character that holds tokens makes it drop them (p10). The tokens go on the table next to the base of the model, in a row, and wait for their place (see "Wait for the place").
@@ -429,7 +429,7 @@ A token dropped by Dazed or **Remove** waits for its place (`src/tokens/dropWait
 
 1. The table grows to 72" × 60" for the tray rows.
 2. Damage and Power use `−` and `+` buttons.
-3. Players give tokens by dragging them onto a model or a tray. This is the same for character tokens and Extract tokens.
+3. Players give character tokens by dragging them onto a model or a tray. Extract tokens are held only on a tray card.
 4. Immunity blocks a condition.
 5. Attached cards: the Infinity Gems are built. Horsemen cards and Reserve members wait.
 6. Tokens use the new art of the mod (rounded diamond for conditions), not the old round art.

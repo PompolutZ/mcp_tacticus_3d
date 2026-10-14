@@ -157,10 +157,12 @@ export function useTokenDrag({
   // TrayControls.jsx), then the 3D scene (Scene.jsx, characterAt). Usable outside a drag too: it is
   // passed down to Scene, which gives it to CrisisToken.jsx for an Extract token's release (Phase
   // 7), so a release over the tray's DOM controls strip counts, not only the model or the tray plate.
-  function findCharacterAt(clientX, clientY) {
+  // { models: false }: the DOM tray controls and the tray plates only, not the models. A crisis
+  // token is held by the card only ("Hold and drop").
+  function findCharacterAt(clientX, clientY, options) {
     const el = document.elementFromPoint(clientX, clientY)?.closest('[data-character-id]')
     if (el) return el.dataset.characterId
-    return characterAtRef.current?.(clientX, clientY) ?? null
+    return characterAtRef.current?.(clientX, clientY, options) ?? null
   }
 
   // Release of an active token drag at (clientX, clientY). Over a HUD panel: nothing changes, so a
@@ -168,12 +170,13 @@ export function useTokenDrag({
   // tray): the character gets the token, the same as before. A table token is used up then, unless
   // the character is immune. Over the table or terrain: a new token lies there, or the dragged table
   // token moves there. Elsewhere (the space around the table): nothing changes. A supply token
-  // follows the same rules, but it is a crisis token: a character holds it (handleSupplyTake). A
+  // follows the same rules, but it is a crisis token: a character holds it only when released on its tray card (handleSupplyTake); over a model it lies on the table. A
   // pile goes only on the table: a new pile lies there, or the moved pile moves there.
   function handleTokenRelease(clientX, clientY) {
     const { tokenKey, looseId, supplyCard, pileId, newId, takeFrom } = tokenDragRef.current
     if (!document.elementFromPoint(clientX, clientY)?.closest('.scene-root')) return
-    const characterId = findCharacterAt(clientX, clientY)
+    // A supply token is a crisis token: only a card holds it, a model on the table does not
+    const characterId = findCharacterAt(clientX, clientY, { models: !supplyCard })
     const point = dragPointRef.current
     switch (tokenDropTarget(tokenDragRef.current, { characterId, point })) {
       case 'movePile':

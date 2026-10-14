@@ -61,7 +61,7 @@ All current tokens are 1" circles. There are two groups: Extract tokens (red) an
 - The supply is next to the card. The card says how many supply tokens to set aside. On all 4 current Source cards, this is one per Source.
 - The supply images are the same as the normal Asset and Civilian images.
 
-In the app, the supply is one pile below the text of the card, between the card and the mat edge (`crisis/layout.js`, `supplyPilePosition`). The pile never runs out, the same as a Give source of a tray. A player drags a new token from it onto a character, who then holds it, or onto the table. In the Cleanup Phase, the **Cleanup** button removes the supply tokens, held and on the table. The app does not count the supply tokens. Players check the limit on the card.
+In the app, the supply is one pile below the text of the card, between the card and the mat edge (`crisis/layout.js`, `supplyPilePosition`). The pile never runs out, the same as a Give source of a tray. A player drags a new token from it onto a tray card, and that character holds it, or onto the table (also onto a model: only the card holds). In the Cleanup Phase, the **Cleanup** button removes the supply tokens, held and on the table. The app does not count the supply tokens. Players check the limit on the card.
 
 Source cards: Evidence, Jailbreak, Sentinel Schematics, Surprise Assault.
 

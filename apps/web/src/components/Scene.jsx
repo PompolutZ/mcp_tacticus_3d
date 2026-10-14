@@ -555,8 +555,9 @@ export default function Scene({
   }, [models])
 
   // Nearest character whose model (either one) or tray is under the client point (DOM pixels), or
-  // null. Returns the character id.
-  function characterAt(clientX, clientY) {
+  // null. Returns the character id. { models: false }: only the tray plates count (a crisis token is
+  // held by the card only, "Hold and drop").
+  function characterAt(clientX, clientY, { models: useModels = true } = {}) {
     const rect = gl.domElement.getBoundingClientRect()
     const ndc = {
       x: ((clientX - rect.left) / rect.width) * 2 - 1,
@@ -569,7 +570,7 @@ export default function Scene({
       // A construct is not a drop target: a token dropped on it lands on whatever is under it, the table
       // or the mat (docs/features/character-trays.md, "Constructs")
       ...models
-        .filter((model) => !model.construct)
+        .filter((model) => useModels && !model.construct)
         .map((model) => [model.character.id, charObjects.current.get(model.id)]),
       ...characters.map((ch) => [ch.id, trayObjects.current.get(ch.id)]),
     ]
