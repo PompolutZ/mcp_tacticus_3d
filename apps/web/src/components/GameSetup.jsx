@@ -13,7 +13,6 @@ import {
 import {
   CRISIS_TYPES,
   TEAMS,
-  chooserOf,
   crisisRows,
   doneSteps,
   neighbourStep,
@@ -24,7 +23,8 @@ import {
   setupStep,
   viewOf,
 } from '../setup/setup.js'
-import { capital, chose, isYou, playerName, possessive, says, their } from '../setup/names.js'
+import { chose, isYou, playerName, possessive, says, their } from '../setup/names.js'
+import { TYPE, deckButton, lockedTitle } from '../setup/deckButton.js'
 import { useSideColors } from '../sideColors.js'
 import { useNames } from '../setup/useNames.js'
 import { RosterCard } from './RosterCards.jsx'
@@ -39,7 +39,6 @@ import {
   squadPanel,
 } from '../tabletools/layout.js'
 
-const TYPE = { secure: 'Secure', extract: 'Extract' }
 // Players select up to 5 Team Tactic cards (p11). The app shows the count and does not stop a 6th card.
 const TACTIC_LIMIT = 5
 // The buttons lie flat on the table, just above it (OnTable).
@@ -96,16 +95,6 @@ function stepChoice(setup, step, ctx) {
   }
 }
 
-// In a multiplayer room, only the chooser of the current step clicks (chooserOf, setup/setup.js). Returns
-// null when this browser may click, else the title for the disabled button: "Nelly chooses the Maximum
-// Threat". The Sandbox and a single player room (no mySide) let anyone click.
-function lockedTitle(setup, what, ctx) {
-  if (viewOf(setup)) return 'Browsing an earlier step'
-  const chooser = chooserOf(setup)
-  if (!ctx.mySide || !chooser || chooser === ctx.mySide) return null
-  return `${says(chooser, ctx, 'choose')} ${what}`
-}
-
 // What `team` does in a step that one player chooses. The own side in a multiplayer room gets "You choose the
 // board edge", the other player "Waiting for Nelly to choose the board edge." What: "a deck", "the Maximum
 // Threat". With imperative, the own side gets "Choose …" ("Choose from Nelly's Secures.").
@@ -126,36 +115,22 @@ function decides(team, ctx) {
   return isYou(team, ctx) ? `Decide ${rest}` : `${says(team, ctx, 'decide')} ${rest}`
 }
 
-// The reason why the deck of `type` of `team` cannot start the mission, or null
-function deckProblem(team, type, parsed, ctx) {
-  const other = otherTeam(team)
-  if (!parsed[other]) return `Load ${possessive(other, ctx)} roster first`
-  if (parsed[team][type].length === 0)
-    return `${capital(possessive(team, ctx))} roster has no ${TYPE[type]} cards`
-  if (parsed[other][otherType(type)].length === 0)
-    return `${capital(possessive(other, ctx))} roster has no ${TYPE[otherType(type)]} cards`
-  return null
-}
-
 // One row of crisis cards of a roster, next to the scoring board. With row.use, each card has a Choose button
-// next to it. row: see crisisRows in setup/setup.js. A click on a card opens the crisis tab of the roster popup.
-function CrisisRow({ row, parsed, locked, onOpen, onUse, onCardHover }) {
+// next to it. row: see crisisRows in setup/setup.js. A click on a card opens the crisis compare overlay (onOpen(code)).
+function CrisisRow({ row, locked, onOpen, onUse, onCardHover }) {
   const cards = useMemo(
     () => crisisRowLayout(row.team, row.type, row.codes, row.drawn, row.facing),
     [row.team, row.type, row.codes, row.drawn, row.facing],
   )
-  // The crisis tab holds the Secure cards, then the Extract cards (rosters/cards.js, rosterTabs)
-  const tabIndex = (code) =>
-    (row.type === 'secure' ? 0 : parsed.secure.length) + parsed[row.type].indexOf(code)
   return cards.map((card, i) => {
     const info = rosterCard(card.code)
     if (!info) return null
     return (
       <group key={`${i}-${card.code}`}>
         <RosterCard
-          card={{ ...card, tab: 'crisis', index: tabIndex(card.code) }}
+          card={{ ...card, tab: 'crisis', index: 0 }}
           info={info}
-          onOpen={onOpen}
+          onOpen={() => onOpen(card.code)}
           onCardHover={onCardHover}
         />
         {row.use && (
@@ -178,24 +153,20 @@ function CrisisRow({ row, parsed, locked, onOpen, onUse, onCardHover }) {
 
 // The 2 deck buttons of the player with Priority, between their Secure and Extract rows. They have no color:
 // the color of a button does not tell the crisis type.
-function DeckButtons({ team, parsed, ctx, locked, onChoose }) {
+function DeckButtons({ setup, team, parsed, ctx, onChoose }) {
   return (
     <OnTable position={[CRISIS_GAP_X, TABLE_Y, crisisCenterZ(team)]}>
       <div className="setup-buttons">
         {CRISIS_TYPES.map((type) => {
-          const problem = deckProblem(team, type, parsed, ctx)
+          const { locked, disabled, title } = deckButton(setup, team, type, parsed, ctx)
           return (
             <button
               key={type}
               type="button"
               className="chip"
-              disabled={locked === null && problem !== null}
+              disabled={disabled}
               aria-disabled={locked !== null}
-              title={
-                locked ??
-                problem ??
-                `Play on ${their(team, ctx)} ${TYPE[type]} crises: draw 2 of them`
-              }
+              title={title}
               onClick={locked === null ? () => onChoose(type) : undefined}
             >
               Choose {TYPE[type]}s
@@ -524,14 +495,16 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
 // person plays both teams. Only that team's squad panel has buttons. actions: { priority(team), deck(type), pick(code),
 // threat(value), turnMat(direction), edge(), ready(team),
 // affiliation(team, key), restart(), browse(step | null), override(step) }, see setup/useGameSetup.js.
-// onRosterOpen({ team, tab, index }): a click on a crisis card. onCardHover(card, over): for Alt (useCardPeek.js).
+// onCrisisOpen({ team, type, code, drawn }): a click on a crisis card. drawn: the card is one of the 2 drawn
+// cards with a Choose button (App.jsx opens the compare overlay for it; the Choose 1 overlay will take it over).
+// onCardHover(card, over): for Alt (useCardPeek.js).
 export default function GameSetup({
   setup,
   rosters,
   mySide,
   seatPlayers,
   actions,
-  onRosterOpen,
+  onCrisisOpen,
   onCardHover,
 }) {
   const ctx = useNames(mySide, seatPlayers)
@@ -553,19 +526,18 @@ export default function GameSetup({
         <CrisisRow
           key={`${row.team}-${row.type}`}
           row={row}
-          parsed={parsed[row.team]}
           locked={cardLocked}
-          onOpen={(tab, index) => onRosterOpen({ team: row.team, tab, index })}
+          onOpen={(code) => onCrisisOpen({ team: row.team, type: row.type, code, drawn: row.use })}
           onUse={actions.pick}
           onCardHover={onCardHover}
         />
       ))}
       {step === 'deck' && parsed[priorityOf(setup)] && (
         <DeckButtons
+          setup={setup}
           team={priorityOf(setup)}
           parsed={parsed}
           ctx={ctx}
-          locked={lockedTitle(setup, 'a deck', ctx)}
           onChoose={actions.deck}
         />
       )}

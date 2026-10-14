@@ -194,3 +194,14 @@ Done. Files (under `apps/web/src/`): `rosters/layout.js`, `setup/setup.js`, `com
 - Spacing: turned card is 2.66-2.75" in x, 4.81" in z. Row still along z, pitch height + 0.3, scaled so it ends at z 37 (5 cards: 0.968, z 14.9 ... 34.7). Columns keep x (Secure -32.6, Extract -26.6, drawn -23.1). Gap center for deck buttons unchanged. 2 drawn cards: z 14.96, 20.1, end 22.37. `USE_BUTTON_X_TURNED` = -25.1 (was -26.1).
 - Tests: yaw per chooser and step, no overlap in a row and between deck rows, end before the table edge; `crowded()` now also holds the turned rows (no overlap with the rest of the table).
 - Checks: format, lint (no new warnings), test (701 pass), build ok. Not run in a browser (user rule).
+
+### Step 7: Compare overlay
+
+Done. Files (under `apps/web/src/`): new `components/CrisisCompare.jsx`, new `setup/deckButton.js`, `components/GameSetup.jsx`, `components/Scene.jsx`, `App.jsx`, `index.css`. Docs: `docs/features/setup-game.md`, `roster.md`.
+
+- `deckButton.js` holds `lockedTitle`, `deckProblem`, `deckButton(setup, team, type, parsed, ctx)` (lock, disabled, title) and `TYPE`. The table `DeckButtons` and the overlay use it.
+- `CrisisRow` calls `onOpen(code)`; `GameSetup` calls `onCrisisOpen({ team, type, code, drawn: row.use })` (prop through `Scene`). `App.handleCrisisOpen` sets `openCrisis` `{ team, type, code }`. Hook for step 8: route `drawn` there (first/second step) to the Choose 1 overlay. Today `drawn` cards open the compare overlay too.
+- `openCrisis` is in the popup key state and in `closePopups` (Esc). Shown only in rollOff/deck/first/second (`crisisShown`). Arrows: `rosterOpen` is true for it, `handleRosterCardStep` calls `crisisStepRef` that the overlay sets, and that steps the top carousel.
+- Auto-open: effect in `App`, real setup at step `deck`, no `view`, both rosters, Priority player (or no `mySide`); `autoOpenedRef` holds `"<setup id>:deck"`. Tab Secure, first card. A page reload in the deck step opens it again (the ref is not saved).
+- Overlay: `.roster-popup` frame and backdrop, `Carousel` (key per side and tab), card `--card-h` min(24vh, 230px). Empty deck shows "No Secure cards".
+- Checks: format, lint (46 warnings, same), test (701 pass), build ok. Not run in a browser (user rule).

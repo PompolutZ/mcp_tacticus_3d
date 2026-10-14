@@ -138,6 +138,7 @@ The app has files for 65 of 233 character codes, 69 of 401 Team Tactic codes and
 
 - The popup has no panel. The title, the tabs, the cards and the buttons lie on a dark backdrop that blurs the table, the same as the single card popup (`CardPopup.jsx`). Only the cards and the buttons take clicks. A click anywhere else goes to the backdrop.
 - The title says whose roster it is: "Blue player roster" or "Red player roster", in the player color.
+- The setup crisis cards next to the scoring board do not open this popup; they open the compare overlay (`docs/features/setup-game.md`, "Crisis cards"). The Crisis tab opens from a character or Team Tactic card.
 - The popup has 3 tabs: **Characters**, **Tactic cards** and **Crisis cards**. The Crisis tab has the Secure cards, then the Extract cards. A tab without cards is disabled.
 - During the setup, the popup on the table has a fourth tab, **Breakdown**: the squads that the roster can build. See `docs/features/squad-breakdown.md`.
 - Each tab shows its cards in a carousel, in the order of the table. The shown card is in the middle. The other cards show at the sides, smaller and darker: half of the previous and the next character card, more of the narrower Team Tactic and crisis cards. A click on a side card moves it to the middle. The Flip button and the gem lines show only under the card in the middle.

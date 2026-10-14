@@ -26,12 +26,13 @@ import { TokenPanel } from './components/TokenPanel.jsx'
 import { CardPopup } from './components/CardPopup.jsx'
 import { TrayPopup } from './components/TrayPopup.jsx'
 import { RosterPopupHost } from './components/RosterPopupHost.jsx'
+import { CrisisCompare } from './components/CrisisCompare.jsx'
 import { useTokenDrag } from './drag/useTokenDrag.js'
 import { cancelActiveDrag, isDragActive } from './drag/pointerDrag.js'
 import { characterOnBoard, isConstructId, modelCharacterId } from './characters/models.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { parseRosterText, rosterCard, rosterTabs } from './rosters/cards.js'
-import { colorOf, rackHiddenSides } from './setup/setup.js'
+import { colorOf, priorityOf, rackHiddenSides, setupStep, viewOf } from './setup/setup.js'
 import { useRollOffReader } from './setup/useRollOffReader.js'
 import { useGameSetup } from './setup/useGameSetup.js'
 import { gamePriority, priorityTitle } from './game/priority.js'
@@ -219,6 +220,14 @@ export default function App({
   // Roster open in the full-screen popup, see RosterPopup.jsx: { team, tab, index } | null. tab: a key
   // of ROSTER_TABS (rosters/cards.js), index: the card shown in that tab.
   const [openRoster, setOpenRoster] = useState(null)
+  // The crisis compare overlay of the setup, see CrisisCompare.jsx: { team, type, code } | null. team, type,
+  // code: the card that gives the first tab and the first slide (code null: the first card). Also one of the
+  // popups: each covers the table.
+  const [openCrisis, setOpenCrisis] = useState(null)
+  // The id and step of the setup whose compare overlay opened by itself: "<setup id>:deck" | null
+  const autoOpenedRef = useRef(null)
+  // The function that the open compare overlay puts here: shows the card `step` places away in the top carousel
+  const crisisStepRef = useRef(null)
   // The open "Change to" menu of a shelf die, at most one across both
   // trays: { trayKey, dieId } | null. Lifted here, not into DiceKeys, so Escape can close it (see
   // keyAction in keyboard.js).
@@ -497,6 +506,39 @@ export default function App({
     showHudMessage(`${missing} for ${info.name} (${info.code})`)
   }
 
+  // The compare overlay shows in the steps that have crisis cards on the table. After them it is gone.
+  const crisisShown =
+    openCrisis && ['rollOff', 'deck', 'first', 'second'].includes(setupStep(viewSetup))
+      ? openCrisis
+      : null
+
+  // A click on a crisis card of the setup: { team, type, code, drawn }. drawn: one of the 2 drawn cards that
+  // the chooser picks from (first and second step). Step 8 gives those cards the Choose 1 overlay; until then
+  // they open the compare overlay too. This is the one place that decides what a crisis card click opens.
+  function handleCrisisOpen({ team, type, code }) {
+    setOpenCard(null)
+    setOpenTrayId(null)
+    setOpenRoster(null)
+    setOpenCrisis({ team, type, code })
+  }
+
+  // The deck step starts: the compare overlay opens by itself, once, on the screen of the Priority player (the
+  // Sandbox and a single player room: always). Browsing (setup.view) and a close do not open it again; a new
+  // setup id does.
+  useEffect(() => {
+    if (setupStep(setup) !== 'deck' || viewOf(setup)) return
+    const winner = priorityOf(setup)
+    if (!winner || !parsedRosters.host || !parsedRosters.guest) return
+    if (mySide && mySide !== winner) return
+    const key = `${setup.id}:deck`
+    if (autoOpenedRef.current === key) return
+    autoOpenedRef.current = key
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    handleCrisisOpen({ team: winner, type: 'secure', code: null })
+    // handleCrisisOpen only sets state
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setup, parsedRosters, mySide])
+
   // A click on a gem: a chip of a tray (TrayControls.jsx), the Library, or a gem line of a roster card: the card
   // face opens in the card popup. Reading changes nothing, so it works on any player's tray. The tray
   // popup closes, so only one popup is open. A card without an image shows what the app is missing.
@@ -517,6 +559,10 @@ export default function App({
   // Shows the card `step` places away in the open tab of the roster popup. The tab is a loop: after the
   // last card comes the first.
   function handleRosterCardStep(step) {
+    if (crisisShown) {
+      crisisStepRef.current?.(step)
+      return
+    }
     setOpenRoster((prev) => {
       if (!prev || prev.tab === 'breakdown' || !rosters[prev.team]) return prev
       const count = rosterTabs(parseRosterText(rosters[prev.team].code))[prev.tab].length
@@ -571,7 +617,7 @@ export default function App({
   }
   // The state for a mouse wheel step (WheelCamera.jsx): what keyAction reads, as the resolver needs it
   const wheelState = () => ({
-    popup: !!(openCard || openTrayId || openRoster || settingsOpen || setupOpen),
+    popup: !!(openCard || openTrayId || openRoster || crisisShown || settingsOpen || setupOpen),
     dragging: !!(tokenDrag || toolDrag),
     overDiceTray: !!hoveredNow().diceTray,
     overPiece: !!hoveredNow().piece,
@@ -585,8 +631,8 @@ export default function App({
       toolDrag,
       modelDrag: modelDragRef.current !== null,
       drag: isDragActive(),
-      popup: !!(openCard || openTrayId || openRoster || settingsOpen || setupOpen),
-      rosterOpen: !!openRoster,
+      popup: !!(openCard || openTrayId || openRoster || crisisShown || settingsOpen || setupOpen),
+      rosterOpen: !!(openRoster || crisisShown),
       diceMenu,
       libraryOpen,
       logOpen,
@@ -601,6 +647,7 @@ export default function App({
         setOpenCard(null)
         setOpenTrayId(null)
         setOpenRoster(null)
+        setOpenCrisis(null)
         setSettingsOpen(false)
         setSetupOpen(false)
       },
@@ -774,6 +821,7 @@ export default function App({
               affiliations={affiliations}
               rosters={rosters}
               onRosterOpen={handleRosterOpen}
+              onCrisisOpen={handleCrisisOpen}
               setup={viewSetup}
               mySide={mySide}
               seatPlayers={seatPlayers}
@@ -882,6 +930,7 @@ export default function App({
         openCard ||
         openTrayId ||
         openRoster ||
+        crisisShown ||
         settingsOpen ||
         setupOpen
       ) && <CardPopup card={peekCard} peek />}
@@ -897,6 +946,18 @@ export default function App({
           onLabelsClick={() => setShowLabels((prev) => !prev)}
           onBindingsChange={handleBindingsChange}
           onClose={() => setSettingsOpen(false)}
+        />
+      )}
+      {crisisShown && (
+        <CrisisCompare
+          open={crisisShown}
+          setup={viewSetup}
+          parsed={parsedRosters}
+          ctx={nameCtx}
+          mySide={mySide}
+          stepRef={crisisStepRef}
+          onChoose={setupActions.deck}
+          onClose={() => setOpenCrisis(null)}
         />
       )}
       <RosterPopupHost

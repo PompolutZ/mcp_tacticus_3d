@@ -279,6 +279,7 @@ function trayShapeOf(ch, characters, gruntLists) {
 // dragPointRef: the preview writes the table point under the pointer there, for the release in drag/useTokenDrag.js.
 // rosters: { host, guest } → null | { code }, the loaded rosters (RosterCards.jsx). onRosterOpen({ team, tab,
 // index }): a click on a roster card. It opens the roster popup on that card (see RosterPopup.jsx).
+// onCrisisOpen({ team, type, code, drawn }): a click on a crisis card of the setup (GameSetup.jsx).
 // squadEdit: { host, guest } → true: the roster cards of that side have the + / ✓ button, and onSquadToggle(team,
 // tab, index) adds the card to the squad or removes it (setup/useGameSetup.js, handleSquadToggle).
 // setup: the game setup (setup/setup.js). setupActions, mySide, seatPlayers: see GameSetup.jsx. When the squads
@@ -417,6 +418,7 @@ export default function Scene({
   affiliations,
   rosters = { host: null, guest: null },
   onRosterOpen,
+  onCrisisOpen,
   setup,
   squadEdit,
   onSquadToggle,
@@ -1542,7 +1544,7 @@ export default function Scene({
           mySide={mySide}
           seatPlayers={seatPlayers}
           actions={setupActions}
-          onRosterOpen={onRosterOpen}
+          onCrisisOpen={onCrisisOpen}
           onCardHover={onCardHover}
         />
         {tacticCards.map((card, i) => (
