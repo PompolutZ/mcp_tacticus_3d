@@ -1,7 +1,7 @@
 // Where the roster cards lie on the table. Plain module, no React, the same as characters/trays.js.
 // See docs/features/roster.md, "On the table", and docs/features/setup-game.md, "On the table".
 
-import { TABLE_WIDTH } from '../table.js'
+import { TABLE_DEPTH, TABLE_WIDTH } from '../table.js'
 import { TRAY_CARD_HEIGHT, TRAY_CARD_WIDTH } from '../characters/trays.js'
 import { TACTIC_CARD_HEIGHT, TACTIC_CARD_WIDTH, TACTIC_TRAY_OUTER_Z } from '../tactics/layout.js'
 import {
@@ -117,8 +117,12 @@ const DRAWN_ROW_X = BOARD_X
 
 // x of the middle of the gap between the 2 deck rows, the same for both players
 export const CRISIS_GAP_X = SECURE_ROW_X + CRISIS_CARD_HEIGHT / 2 + BUTTON_GAP / 2
-// x of the Use buttons of the drawn cards: next to the cards, on the table-edge side
+// x of the Use buttons of the drawn cards: next to the cards, on the table-edge side. A turned card
+// (crisisRowLayout, facing) is narrower in x, so its button is closer to the board.
 export const USE_BUTTON_X = DRAWN_ROW_X - CRISIS_CARD_HEIGHT / 2 - BUTTON_GAP / 2
+export const USE_BUTTON_X_TURNED = DRAWN_ROW_X - CRISIS_CARD_WIDTH / 2 - BUTTON_GAP / 2
+// A turned row runs along z until this z, 1" from the table edge
+const CRISIS_END_Z = TABLE_DEPTH / 2 - TABLE_MARGIN
 
 // z of the middle of the deck area of `team`
 export function crisisCenterZ(team) {
@@ -128,12 +132,32 @@ export function crisisCenterZ(team) {
 // The crisis cards `codes` of `type` ('secure' | 'extract') of `team`, in one row:
 // [{ code, kind, gems, x, z, width, height, yaw }]. drawn: the cards were drawn from the deck (setup/setup.js,
 // crisisRows), so the row lies in line with the board.
-export function crisisRowLayout(team, type, codes, drawn = false) {
+// facing: the side that chooses from these cards, or null. A facing row is turned to read upright for that
+// side (the same yaw as its roster cards: host 0, guest pi), docs/features/setup-game.md, "Crisis cards". The
+// row still runs along z, so the cards are 4.8" long in z, not 2.75". The row is scaled down so that it ends
+// before CRISIS_END_Z. x of the row does not change.
+export function crisisRowLayout(team, type, codes, drawn = false, facing = null) {
+  const x = drawn ? DRAWN_ROW_X : CRISIS_ROW_X[type]
+  if (facing) {
+    const natural = codes.length * CRISIS_CARD_HEIGHT + Math.max(0, codes.length - 1) * CARD_GAP
+    const scale = Math.min(1, (CRISIS_END_Z - CRISIS_START_Z) / natural)
+    const width = CRISIS_CARD_WIDTH * scale
+    const height = CRISIS_CARD_HEIGHT * scale
+    return codes.map((code, i) => ({
+      code,
+      kind: type,
+      gems: [],
+      x,
+      z: (CRISIS_START_Z + height / 2 + i * (height + CARD_GAP * scale)) * side(team),
+      width,
+      height,
+      yaw: cardYaw(facing),
+    }))
+  }
   const { placed, width } = placeRow(
     [codes.map((code) => ({ code, kind: type, gems: [] }))],
     CRISIS_ROW_LENGTH,
   )
-  const x = drawn ? DRAWN_ROW_X : CRISIS_ROW_X[type]
   return placed.map((card) => ({
     ...card,
     x,

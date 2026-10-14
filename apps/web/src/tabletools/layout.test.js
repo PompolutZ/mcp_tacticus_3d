@@ -319,15 +319,17 @@ function crowded(side) {
   })()
   for (const card of rosterLayout(side, parsed))
     rest[`roster ${card.code}`] = rect(card.x, card.z, card.width, card.height)
+  // Each row as laid out unturned, and turned toward its chooser
   for (const type of ['secure', 'extract'])
     for (const drawn of [false, true])
-      for (const card of crisisRowLayout(side, type, codes, drawn))
-        rest[`crisis ${type} ${drawn} ${card.code}`] = rect(
-          card.x,
-          card.z,
-          Math.abs(Math.cos(card.yaw)) > 0.5 ? card.width : card.height,
-          Math.abs(Math.cos(card.yaw)) > 0.5 ? card.height : card.width,
-        )
+      for (const facing of [null, 'host'])
+        for (const card of crisisRowLayout(side, type, codes, drawn, facing))
+          rest[`crisis ${type} ${drawn} ${facing} ${card.code}`] = rect(
+            card.x,
+            card.z,
+            Math.abs(Math.cos(card.yaw)) > 0.5 ? card.width : card.height,
+            Math.abs(Math.cos(card.yaw)) > 0.5 ? card.height : card.width,
+          )
   const strip = boardStrip(side)
   rest['board strip'] = rect(strip.x, strip.z, strip.width, strip.length)
   const plate = rackPlate(side)

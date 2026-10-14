@@ -3,7 +3,13 @@ import { TABLE_WIDTH } from '../table.js'
 import { BOARD_HALF_WIDTH, BOARD_X } from '../scoreboard/board.js'
 import { DEFAULT_AFFILIATION, affiliationName } from '../scoreboard/affiliations.js'
 import { parseRosterText, rosterCard, squadAffiliationKeys, squadThreat } from '../rosters/cards.js'
-import { CRISIS_GAP_X, USE_BUTTON_X, crisisCenterZ, crisisRowLayout } from '../rosters/layout.js'
+import {
+  CRISIS_GAP_X,
+  USE_BUTTON_X,
+  USE_BUTTON_X_TURNED,
+  crisisCenterZ,
+  crisisRowLayout,
+} from '../rosters/layout.js'
 import {
   CRISIS_TYPES,
   TEAMS,
@@ -135,8 +141,8 @@ function deckProblem(team, type, parsed, ctx) {
 // next to it. row: see crisisRows in setup/setup.js. A click on a card opens the crisis tab of the roster popup.
 function CrisisRow({ row, parsed, locked, onOpen, onUse, onCardHover }) {
   const cards = useMemo(
-    () => crisisRowLayout(row.team, row.type, row.codes, row.drawn),
-    [row.team, row.type, row.codes, row.drawn],
+    () => crisisRowLayout(row.team, row.type, row.codes, row.drawn, row.facing),
+    [row.team, row.type, row.codes, row.drawn, row.facing],
   )
   // The crisis tab holds the Secure cards, then the Extract cards (rosters/cards.js, rosterTabs)
   const tabIndex = (code) =>
@@ -153,7 +159,7 @@ function CrisisRow({ row, parsed, locked, onOpen, onUse, onCardHover }) {
           onCardHover={onCardHover}
         />
         {row.use && (
-          <OnTable position={[USE_BUTTON_X, TABLE_Y, card.z]}>
+          <OnTable position={[row.facing ? USE_BUTTON_X_TURNED : USE_BUTTON_X, TABLE_Y, card.z]}>
             <button
               type="button"
               className="chip setup-use"

@@ -290,6 +290,7 @@ export function setupPlacedCards(setup) {
 // (rosters/layout.js, crisisRowLayout).
 export function crisisRows(setup, parsed) {
   const step = setupStep(setup)
+  const chooser = chooserOf(setup)
   if (step === 'rollOff' || step === 'deck') {
     return TEAMS.flatMap((team) =>
       parsed[team]
@@ -299,6 +300,7 @@ export function crisisRows(setup, parsed) {
             codes: parsed[team][type],
             use: false,
             drawn: false,
+            facing: team === chooser ? chooser : null,
           }))
         : [],
     )
@@ -315,7 +317,14 @@ export function crisisRows(setup, parsed) {
   const first = setup.deck.type
   const other = otherTeam(winner)
   const second = otherType(first)
-  const row = (team, type, codes, use, drawn) => ({ team, type, codes, use, drawn })
+  const row = (team, type, codes, use, drawn) => ({
+    team,
+    type,
+    codes,
+    use,
+    drawn,
+    facing: use ? chooser : null,
+  })
   const winnerRow = setup.picks[first]
     ? row(winner, first, [setup.picks[first]], false, true)
     : row(winner, first, setup.draws[first], true, true)

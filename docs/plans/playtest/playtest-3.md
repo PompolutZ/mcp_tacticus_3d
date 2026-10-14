@@ -184,3 +184,13 @@ Done. Files (under `apps/web/src/`): `setup/names.js` (new `their`), `components
 - Hint: "Decide if you want to play on your Secure or Extract crises." / "Waiting for Nelly to decide if they want to ..." / "Blue decides if they want to ...". Browse back and log: `says(side, 'play')` + "on your/their X crises." Button title "Play on your Secure crises: draw 2 of them".
 - `chooses` unchanged (other steps use it); `decides` is a sibling. `chose` still used by other steps.
 - Checks: format, lint, test, build.
+
+### Step 6: Cards turn toward the chooser
+
+Done. Files (under `apps/web/src/`): `rosters/layout.js`, `setup/setup.js`, `components/GameSetup.jsx`, new `rosters/layout.test.js`, `tabletools/layout.test.js`. Docs: `docs/features/setup-game.md`.
+
+- Sign: card top is local -z, yaw y turns it to (-sin y, -cos y). Chooser host (+z, camera from +z, up = -z): yaw 0. Guest (-z): yaw π. Same as `cardYaw` of the roster cards. Other cards keep π/2.
+- `crisisRows` adds `facing`: deck step, the Priority player's two rows; first/second step, the `use` row; else null. `crisisRowLayout(team, type, codes, drawn, facing)`.
+- Spacing: turned card is 2.66-2.75" in x, 4.81" in z. Row still along z, pitch height + 0.3, scaled so it ends at z 37 (5 cards: 0.968, z 14.9 ... 34.7). Columns keep x (Secure -32.6, Extract -26.6, drawn -23.1). Gap center for deck buttons unchanged. 2 drawn cards: z 14.96, 20.1, end 22.37. `USE_BUTTON_X_TURNED` = -25.1 (was -26.1).
+- Tests: yaw per chooser and step, no overlap in a row and between deck rows, end before the table edge; `crowded()` now also holds the turned rows (no overlap with the rest of the table).
+- Checks: format, lint (no new warnings), test (701 pass), build ok. Not run in a browser (user rule).
