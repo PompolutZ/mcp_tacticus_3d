@@ -2,7 +2,7 @@
 // The dice have their own list, `rolls` (dice/history.js). The panel merges both (mergeLog). An entry stores
 // data, not text, so "You" is right in each browser. See docs/features/game-log.md.
 
-import { isYou, playerName, says } from '../setup/names.js'
+import { isYou, playerName, says, their } from '../setup/names.js'
 import { priorityNote } from '../game/priority.js'
 
 // The log keeps the newest entries only. A write that goes over removes the oldest ones.
@@ -112,7 +112,7 @@ export function logText(entry, ctx) {
         ? `Roll off: ${says(side, ctx, 'have')} Priority${entry.manual ? ' (set by hand)' : ''}.`
         : 'Roll off: a tie.'
     case 'deck':
-      return `${says(side, ctx, 'choose')} the ${DECK_NAMES[entry.type]} deck.`
+      return `${says(side, ctx, 'play')} on ${their(side, ctx)} ${DECK_NAMES[entry.type]} crises.`
     case 'pick':
       return `${says(side, ctx, 'choose')} ${entry.card} (${DECK_NAMES[entry.type]}).`
     case 'threat':

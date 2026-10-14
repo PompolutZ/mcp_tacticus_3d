@@ -70,9 +70,9 @@ test('the color side is the side of the entry, else the writer', () => {
 
 test('the text uses the names of the viewer', () => {
   const entry = logEntry('deck', 'guest', { side: 'guest', type: 'secure' })
-  assert.equal(logText(entry, ROOM), 'Nelly chooses the Secure deck.')
-  assert.equal(logText(entry, { ...ROOM, mySide: 'guest' }), 'You choose the Secure deck.')
-  assert.equal(logText(entry, SOLO), 'Red chooses the Secure deck.')
+  assert.equal(logText(entry, ROOM), 'Nelly plays on their Secure crises.')
+  assert.equal(logText(entry, { ...ROOM, mySide: 'guest' }), 'You play on your Secure crises.')
+  assert.equal(logText(entry, SOLO), 'Red plays on their Secure crises.')
 })
 
 test('roll off, with a tie and by hand', () => {

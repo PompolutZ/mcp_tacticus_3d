@@ -29,6 +29,9 @@ export function possessive(team, ctx) {
   return isYou(team, ctx) ? 'my' : `${playerName(team, ctx)}'s`
 }
 
+// "your" for the own side in a multiplayer room, else "their"
+export const their = (team, ctx) => (isYou(team, ctx) ? 'your' : 'their')
+
 // The verb for the name: "choose" → "You choose" / "Nelly chooses". The own side takes the base form.
 export function verbFor(team, ctx, base) {
   if (isYou(team, ctx)) return base

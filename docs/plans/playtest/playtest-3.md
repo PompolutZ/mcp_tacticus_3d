@@ -176,3 +176,11 @@ Done. Files (under `apps/web/src/`): new `components/PhaseButtons.jsx`, `compone
 - Settings: `version: 2`. Defaults `power` and `cleanup` are `'hud'`. A read of saved settings with another version sets both to `'hud'` once; the next write stores the version and the saved value is respected.
 - Checks: format, lint (46 warnings, same), test (696 pass), build ok. Not run in a browser (user rule).
 
+
+### Step 5: Deck text
+
+Done. Files (under `apps/web/src/`): `setup/names.js` (new `their`), `components/GameSetup.jsx` (new `decides`, `stepChoice`, button title), `log/log.js`, `log/log.test.js`. Docs: `docs/features/setup-game.md`, `game-log.md`.
+
+- Hint: "Decide if you want to play on your Secure or Extract crises." / "Waiting for Nelly to decide if they want to ..." / "Blue decides if they want to ...". Browse back and log: `says(side, 'play')` + "on your/their X crises." Button title "Play on your Secure crises: draw 2 of them".
+- `chooses` unchanged (other steps use it); `decides` is a sibling. `chose` still used by other steps.
+- Checks: format, lint, test, build.

@@ -21,7 +21,7 @@ The panel merges two lists by time: `rolls` (the dice, `docs/features/dice-rolli
 | Entry | Text (for Nelly, seen by Oleh) |
 |---|---|
 | Roll off | "Roll off: Nelly has Priority." or "Roll off: a tie." Set by hand: "... (set by hand)." |
-| Deck | "Nelly chooses the Secure deck." |
+| Deck | "Nelly plays on their Secure crises." |
 | First and second card | "Oleh chooses Hostage (Extract)." |
 | Maximum Threat | "Nelly chooses Maximum Threat 18." |
 | Edge | "Oleh chooses this board edge." |

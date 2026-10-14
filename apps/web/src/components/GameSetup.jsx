@@ -18,7 +18,7 @@ import {
   setupStep,
   viewOf,
 } from '../setup/setup.js'
-import { capital, chose, isYou, playerName, possessive, says } from '../setup/names.js'
+import { capital, chose, isYou, playerName, possessive, says, their } from '../setup/names.js'
 import { useSideColors } from '../sideColors.js'
 import { useNames } from '../setup/useNames.js'
 import { RosterCard } from './RosterCards.jsx'
@@ -67,7 +67,7 @@ function stepChoice(setup, step, ctx) {
     case 'rollOff':
       return `${says(winner, ctx, 'have')} Priority`
     case 'deck':
-      return `${chose(winner, ctx)} ${TYPE[first]}s`
+      return `${says(winner, ctx, 'play')} on ${their(winner, ctx)} ${TYPE[first]} crises.`
     case 'first':
       return `${chose(other, ctx)} ${card(setup.picks[first])}`
     case 'second':
@@ -109,6 +109,15 @@ function chooses(team, what, ctx, imperative = false) {
   return imperative && isYou(team, ctx)
     ? `Choose ${what}.`
     : `${says(team, ctx, 'choose')} ${what}.`
+}
+
+// The deck step text for `team`, the Priority player: "Decide if you want to play on your Secure or Extract
+// crises.", "Waiting for Nelly to decide if they want to ...", "Blue decides if they want to ..."
+function decides(team, ctx) {
+  const rest = `if ${isYou(team, ctx) ? 'you' : 'they'} want to play on ${their(team, ctx)} Secure or Extract crises.`
+  if (ctx.mySide && !isYou(team, ctx))
+    return `Waiting for ${playerName(team, ctx)} to decide ${rest}`
+  return isYou(team, ctx) ? `Decide ${rest}` : `${says(team, ctx, 'decide')} ${rest}`
 }
 
 // The reason why the deck of `type` of `team` cannot start the mission, or null
@@ -176,7 +185,11 @@ function DeckButtons({ team, parsed, ctx, locked, onChoose }) {
               className="chip"
               disabled={locked === null && problem !== null}
               aria-disabled={locked !== null}
-              title={locked ?? problem ?? `Draw 2 of ${possessive(team, ctx)} ${TYPE[type]} cards`}
+              title={
+                locked ??
+                problem ??
+                `Play on ${their(team, ctx)} ${TYPE[type]} crises: draw 2 of them`
+              }
               onClick={locked === null ? () => onChoose(type) : undefined}
             >
               Choose {TYPE[type]}s
@@ -288,7 +301,7 @@ function BoardPanel({ setup, step, parsed, mySide, ctx, actions }) {
       </button>
     ))
   } else if (step === 'deck') {
-    hint = chooses(winner, 'a deck', ctx)
+    hint = decides(winner, ctx)
   } else if (step === 'first') {
     hint = chooses(other, `from ${possessive(winner, ctx)} ${TYPE[first]}s`, ctx, true)
   } else if (step === 'second') {
