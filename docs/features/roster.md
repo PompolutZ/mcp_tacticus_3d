@@ -88,7 +88,7 @@ Toolbar: … | Setup (Crisis …, Roster [Blue: MCT code] [x] [Red: MCT code] [x
 
 The toolbar has no **VP** group. Setup game chooses the token of each VP marker from the squad (see `docs/features/setup-game.md`).
 
-Both VP markers start with the Unaffiliated token (`DEFAULT_AFFILIATION`). The game setup sets each one when the squads are on the table (step Affiliation, see `docs/features/setup-game.md`, "Affiliation"). The Control markers on the Secure tokens use the same affiliation (see `docs/features/crisis.md`, "Data"), so they show it too. The ring in the player color still shows which player controls a token.
+Both VP markers start with the Unaffiliated token (`DEFAULT_AFFILIATION`), in the top-left corner of the scoring board (see `docs/features/crisis.md`, "Scoring board"). The game setup sets each one when the squads are on the table (step Affiliation, see `docs/features/setup-game.md`, "Affiliation"). The Control markers on the Secure tokens use the same affiliation (see `docs/features/crisis.md`, "Data"), so they show it too. The ring in the player color still shows which player controls a token.
 
 The `affiliations` state in `App.jsx` is `game.affiliations`. Setup game writes it.
 

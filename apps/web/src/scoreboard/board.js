@@ -68,12 +68,22 @@ export function priorityMarkerSpot(side) {
 // Tint of each player color, the mod's tint (the tint of the VP marker edge). Keyed by color, not by side.
 export const COLOR_TINT = { blue: [0.118, 0.53, 1], red: [0.856, 0.1, 0.094] }
 
-// Start place of each VP marker, by side. The markers
-// start next to the board, where the mod puts them. Because of z → -z, the app host marker starts at the
-// place of the mod's Red Player VP Tracker, and the app guest marker at the place of its Blue one.
+// The VP markers start on the board, in the empty top-left corner: above the "1" box and left of the logo (the
+// board.webp texture is 113.8 px per board unit, the board edge is at board z -2, the "1" box starts at board z
+// -0.97 and the logo at board x 3.7 - (340 - 94) / 113.8 = 1.5). The corner strip is 2" high, so a 1.2" marker
+// sits in its middle (board z -1.5). Side by side along z: host at the +z end (the host sits at +z), guest
+// next to it. A margin of 0.5" from the end of the board and 0.2" between the markers keep them clear of the
+// logo, the "1" box and the VP spots (no spot is within SNAP_RADIUS, so the start reads 0 VP).
+const MARKER_START_MARGIN = 0.5
+const MARKER_START_GAP = 0.2
+const MARKER_START_X = boardPoint(0, -1.5).x
+const HOST_MARKER_START_Z = BOARD_HALF_LENGTH - MARKER_START_MARGIN - VP_MARKER_SIZE / 2
+const GUEST_MARKER_START_Z = HOST_MARKER_START_Z - VP_MARKER_SIZE - MARKER_START_GAP
+
+// Start place of each VP marker, by side
 export const VP_MARKERS = {
-  host: { start: { x: -32.68, z: 10.82 } },
-  guest: { start: { x: -32.28, z: -10.81 } },
+  host: { start: { x: MARKER_START_X, z: HOST_MARKER_START_Z } },
+  guest: { start: { x: MARKER_START_X, z: GUEST_MARKER_START_Z } },
 }
 
 // Where every marker is when the app starts: { host, guest, round } → { x, z }

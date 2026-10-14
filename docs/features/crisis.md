@@ -196,7 +196,7 @@ The board comes from the TTS mod. These facts come from the mod:
 The app has the board (`src/components/ScoreBoard.jsx`, `src/scoreboard/board.js`, files from `scripts/migrate-scoreboard.mjs`):
 
 - The board is at its TTS position, with z → -z. The VP 1 spot is on the host side (+z). A card lies at each end of the board.
-- Each player has a VP marker. The token it shows comes from the game setup, for each player (`docs/features/setup-game.md`, "Affiliation"). The toolbar has no VP group. The markers start next to the board, where the mod puts them.
+- Each player has a VP marker. The token it shows comes from the game setup, for each player (`docs/features/setup-game.md`, "Affiliation"). The toolbar has no VP group. The markers start on the board, in the empty top-left corner (above the "1" box, left of the logo), side by side: host at the +z end, guest next to it. The mod puts them next to the board; the app does not, so they are on the board and easy to see (the user asked for it).
 - The round marker starts on round 1.
 - Players drag a marker with the left button. A marker released less than 1" from a spot moves onto it, as on a TTS snap point. A marker released elsewhere stays there.
 - When both VP markers are on the same spot, the marker that was dropped last lies on top. Both edges show, so both colors can be seen.
