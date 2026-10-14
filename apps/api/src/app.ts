@@ -4,6 +4,7 @@ import type { Config } from './config'
 import { notFound, onError } from './middleware/errors'
 import { log } from './middleware/log'
 import { authRoutes } from './routes/auth'
+import { errorRoutes } from './routes/errors'
 import { healthRoutes } from './routes/health'
 import { meRoutes } from './routes/me'
 import { createSeatCache } from './rooms/seats'
@@ -23,6 +24,7 @@ export function createApp(deps: Deps) {
   const app = new Hono()
   app.use(log)
   app.route('/', healthRoutes(deps))
+  app.route('/', errorRoutes(deps))
   app.route('/', authRoutes(deps))
   app.route('/', meRoutes(deps))
   app.route('/', roomRoutes(deps))

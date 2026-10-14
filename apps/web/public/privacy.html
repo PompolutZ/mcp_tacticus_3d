@@ -84,6 +84,13 @@
         tokens. The server deletes them after 1 week.
       </p>
       <p>
+        When the app has an error, the browser sends a short report to the server: the error text,
+        where in the code it happened, the app version, your browser name and version, and the room
+        code and your seat when you are in a multiplayer room. It has no account data, and the
+        server does not store your IP address. Reports are kept in a small list and the oldest
+        are deleted first.
+      </p>
+      <p>
         Your browser keeps the login token, your single player rooms, and a copy of each
         multiplayer table. The login token goes only to the server of the app, with each request.
         Single player rooms stay in the browser. The copy of a multiplayer table syncs with the
@@ -119,6 +126,7 @@
         <li>A room with no change for 12 months is deleted, with its table.</li>
         <li>Connection messages are deleted after 1 hour.</li>
         <li>Server logs are deleted after 1 week.</li>
+        <li>Error reports are deleted when the list is full (about 10 MB), the oldest first.</li>
       </ul>
 
       <h2>Your choices</h2>

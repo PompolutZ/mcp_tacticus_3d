@@ -29,3 +29,34 @@ describe('mongo store with a real server', () => {
     expect(await res.json()).toEqual({ ok: true, version: 'test', db: 'ok' })
   })
 })
+
+describe('errors collection', () => {
+  it('is capped, and the newest report comes first', async () => {
+    await store.errors.add({
+      time: new Date(1),
+      message: 'one',
+      stack: 's',
+      version: 'v',
+      agent: 'a',
+    })
+    await store.errors.add({
+      time: new Date(2),
+      message: 'two',
+      stack: 's',
+      version: 'v',
+      agent: 'a',
+      side: 'guest',
+    })
+    expect((await store.errors.latest(5)).map((r) => r.message)).toEqual(['two', 'one'])
+    const client = new MongoClient(uri)
+    const info = await client.db(dbName).collection('errors').options()
+    await client.close()
+    expect(info).toMatchObject({ capped: true, size: 10 * 1024 * 1024 })
+  })
+
+  it('a second store on the same database starts when the collection exists', async () => {
+    const other = createMongoStore({ uri, dbName })
+    expect(await other.errors.latest(1)).toHaveLength(1)
+    await other.close()
+  })
+})

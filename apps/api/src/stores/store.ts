@@ -128,10 +128,37 @@ export interface MessagesStore {
   deleteUser(userId: string): Promise<void>
 }
 
+// Where the report came from. 'none': a multiplayer room with no seat.
+export const REPORT_SIDES = ['host', 'guest', 'none'] as const
+export type ReportSide = (typeof REPORT_SIDES)[number]
+
+// A client error report. Built field by field by the route (routes/errors.ts).
+export interface ErrorReport {
+  // Set by the server.
+  time: Date
+  message: string
+  stack: string
+  version: string
+  agent: string
+  room?: string
+  side?: ReportSide
+}
+
+export interface ErrorsStore {
+  add(report: ErrorReport): Promise<void>
+  // The newest first.
+  latest(limit: number): Promise<ErrorReport[]>
+}
+
+export const ERRORS_KEEP = 200
+// The Mongo collection is capped at this size.
+export const ERRORS_MAX_BYTES = 10 * 1024 * 1024
+
 export interface Store {
   users: UsersStore
   rooms: RoomsStore
   messages: MessagesStore
+  errors: ErrorsStore
   ping(): Promise<DbStatus>
   close(): Promise<void>
 }

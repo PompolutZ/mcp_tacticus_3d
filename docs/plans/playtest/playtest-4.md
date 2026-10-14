@@ -122,3 +122,15 @@ Done.
 - `DiceTray`: `startShelfMove` and `reroll` check `liveBody`; `Die` clears `entry.body` on unmount.
 - Doc: `features/table-tools.md` "Recovery".
 - Not done: the Rapier calls inside `useFrame` and physics step callbacks are not wrapped (the body is in the world there). The boundary cannot catch an error thrown in `useFrame`: it reaches the `window` listener only. Lint: 3 new `exhaustive-deps` warnings in `RulerTool.jsx` (`liveRb`), same kind as the old ones.
+
+### Step 2: Error reports
+
+Done.
+
+- API: new `routes/errors.ts` (`POST /errors`, zod strict object, `bodyLimit` 16 KB gives 413, per-IP 20 a minute in memory gives 429, 204 on success). IP from `requestContext.http.sourceIp` (Lambda) or the socket (Node), else `unknown`. The map is bounded to 2000 entries. Mounted in `app.ts`.
+- Store: `errors` (`add`, `latest`) in the interface, memory (last 200) and Mongo (capped 10 MB collection, created in `ready()` with the indexes, code 48 ignored).
+- Web: new `crash/reporter.js` (5 per page, dedupe, query strings cut, failed send ignored) subscribed in `main.jsx`. Version is `VITE_BUILD_ID`. `Table.jsx` sets room and side (multiplayer only; side `none` with no seat).
+- `infra/scripts/errors.ts` and the `errors` script. `privacy.html` and `docs/features/backend.md` updated.
+- CORS: no change needed.
+- Tests: `apps/api/test/errors.test.ts`, the capped collection in `mongo.mongo.test.ts`, `crash/reporter.test.js`.
+- Deploy: the API must be deployed for the route to exist. Until then the browser gets 404 and ignores it.

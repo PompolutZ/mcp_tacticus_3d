@@ -81,7 +81,7 @@ apps/api/src/
   local.ts        Node entry for dev: @hono/node-server, memory or Mongo store, the dev login route
   config.ts       the config type. Read from SSM (Lambda) or from process.env (local)
   auth/           token (session token), discord (Discord client)
-  routes/         health, auth, devAuth (local only), me, rooms (room and seat routes), table (GET and PUT of the snapshot), signal (POST and GET of the messages)
+  routes/         health, errors (POST of client error reports), auth, devAuth (local only), me, rooms (room and seat routes), table (GET and PUT of the snapshot), signal (POST and GET of the messages)
   rooms/          code (room code), table (Yjs check and merge), read (room read, 404, host-gone cleanup), seats (seat cache, 30 s per room)
   middleware/     user (token check and user read), session (token check only, for polls), validate (body check), errors, log
   stores/         store interfaces, and a memory and a Mongo version of each
@@ -95,6 +95,7 @@ apps/api/test/    Vitest: routes through app.request(), with the memory store
 
 - The function URL serves the app at its root, so the routes have no prefix. In dev, Vite forwards `/api/*` to the API and removes `/api`.
 - `GET /health` returns `{ ok, version, db }`. `version` is the git commit of the deploy. `db` is the result of a Mongo `ping`. This is the first route, and it checks every deploy.
+- `POST /errors` takes an error report from the browser. No login. See "Error reports".
 - The other routes are in the auth doc ("Endpoints") and the peer-to-peer doc ("Endpoints").
 
 ### Binary bodies
@@ -175,6 +176,16 @@ CDK needs `cdk bootstrap` once per account and region, with admin rights. It cre
 - A new `session-secret` logs out every user (auth doc, "Session").
 - Local dev reads the same values from `apps/api/.env` (git ignores it).
 
+### Error reports
+
+- The browser sends a report on an uncaught error, an unhandled rejection or a scene error (`apps/web/src/crash/reporter.js`). At most 5 per page load, the same message once, query strings cut from the text. A failed send is ignored.
+- `POST /errors` has no login. The body has only these fields, all strings: `message` (max 500), `stack` (max 8000), `version` (max 64), `agent` (max 300), and optional `room` (max 16) and `side` (`host`, `guest` or `none`). An unknown field or a wrong type gives 400. A body over 16 KB gives 413, checked before parsing. A good report gives 204.
+- The route builds the stored document field by field and sets `time` itself. The request body is never stored as it is, so no `$` operator or nested object reaches Mongo.
+- Limit: 20 reports a minute for each IP address, in the memory of the Lambda instance. More gives 429. The address is the key of the limit only and is never stored. The map holds at most 2000 addresses. A cold instance starts empty, so this is a brake and not a wall. Reserved concurrency and the budget alert cover the rest.
+- No CORS change: the function URL already allows `POST` and the `content-type` header.
+- Store: `errors.add` and `errors.latest`. Memory keeps the last 200. Mongo uses the collection `errors`, capped at 10 MB, so Mongo deletes the oldest reports when it is full. No TTL. The store creates it with the indexes, before the first call, when it is missing.
+- Read the reports with `pnpm --filter infra errors [count]` (default 20, newest first). It reads the Mongo URI from the infra env file, like `delete-test-data`. It strips control characters and terminal escape codes before it prints, because a browser can send any text.
+
 ## Database
 
 - An Atlas Free cluster (the old name is M0) in its own Atlas project, on AWS `eu-central-1`. It was created in the Atlas UI. Atlas allows one Free cluster per project, so the second project can have its own.
@@ -183,7 +194,7 @@ CDK needs `cdk bootstrap` once per account and region, with admin rights. It cre
   - Database user `mcptacticus-api` with `readWrite@assist3d`.
   - IP access list `0.0.0.0/0`. The Lambda has no fixed IP address. A fixed address needs a NAT gateway, and a NAT gateway costs money.
 - Atlas is not in CDK. The Atlas CloudFormation resources need the Atlas API key in Secrets Manager ($0.40 per month), and third-party extensions that are activated in the account.
-- Collections: `users`, `rooms` and `messages`. `messages` holds the signaling messages: `{ _id, room, from, to, type, data, user, expiresAt }`. The `_id` is 13 digits of the server time in ms, `-`, and 8 random characters, so it sorts by time. Indexes: `{ room: 1, _id: 1 }` and the TTL index `{ expiresAt: 1 }` with `expireAfterSeconds: 0`. `expiresAt` is 1 hour after the write. `DELETE /rooms/{code}` and `DELETE /me` delete the messages too.
+- Collections: `users`, `rooms`, `messages` and `errors` (see "Error reports"). `messages` holds the signaling messages: `{ _id, room, from, to, type, data, user, expiresAt }`. The `_id` is 13 digits of the server time in ms, `-`, and 8 random characters, so it sorts by time. Indexes: `{ room: 1, _id: 1 }` and the TTL index `{ expiresAt: 1 }` with `expireAfterSeconds: 0`. `expiresAt` is 1 hour after the write. `DELETE /rooms/{code}` and `DELETE /me` delete the messages too.
 - The connection rules of the peer-to-peer doc stay: one client per Lambda instance, `maxPoolSize: 2`, `serverSelectionTimeoutMS: 5000`, indexes created at cold start.
 
 ### Free cluster limits
@@ -287,6 +298,7 @@ The site is `https://mcptacticus3d.netlify.app`. Netlify builds the web app from
 - Secrets are never in git, in Lambda env vars or in logs.
 - The CI role works only for `main` through the environment `prod`, and it can only assume the CDK bootstrap roles.
 - The bootstrap CloudFormation role has admin rights by default. So a deploy from CI can change any resource in the account, wuclub included. This is accepted for now, because only the user pushes to `main`. `cdk bootstrap --cloudformation-execution-policies` can narrow it later.
+- `POST /errors` has no login. Its body is small and strict, it has a per-IP limit, and it is capped in size (see "Error reports").
 - Reserved concurrency and the budget alert limit the cost of abuse. To stop all traffic at once, set reserved concurrency to 0.
 - The rest is in the security sections of the auth doc and the peer-to-peer doc.
 

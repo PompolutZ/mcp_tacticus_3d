@@ -1,10 +1,12 @@
 import { newRoomCode } from '../rooms/code'
 import {
   CODE_TRIES,
+  ERRORS_KEEP,
   HostingError,
   newRoom,
   newUserId,
   userExpiry,
+  type ErrorReport,
   type MessageDoc,
   type RoomDoc,
   type RoomInfo,
@@ -21,6 +23,7 @@ export function createMemoryStore(): Store {
   const byDiscordId = new Map<string, string>()
   const rooms = new Map<string, RoomDoc>()
   const messages = new Map<string, MessageDoc>()
+  const errors: ErrorReport[] = []
   return {
     users: {
       async upsertDiscord(profile, now) {
@@ -141,6 +144,18 @@ export function createMemoryStore(): Store {
       },
       async deleteUser(userId) {
         for (const [id, m] of messages) if (m.user.id === userId) messages.delete(id)
+      },
+    },
+    errors: {
+      async add(report) {
+        errors.push({ ...report })
+        if (errors.length > ERRORS_KEEP) errors.splice(0, errors.length - ERRORS_KEEP)
+      },
+      async latest(limit) {
+        return errors
+          .slice(-limit)
+          .reverse()
+          .map((r) => ({ ...r }))
       },
     },
     // No database, so there is nothing to ping.

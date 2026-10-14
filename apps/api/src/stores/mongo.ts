@@ -2,10 +2,12 @@ import { Binary, MongoClient, MongoServerError } from 'mongodb'
 import { newRoomCode } from '../rooms/code'
 import {
   CODE_TRIES,
+  ERRORS_MAX_BYTES,
   HostingError,
   newRoom,
   newUserId,
   userExpiry,
+  type ErrorReport,
   type MessageDoc,
   type RoomDoc,
   type RoomInfo,
@@ -43,12 +45,24 @@ export function createMongoStore({
   const usersCol = db.collection<UserDoc>('users')
   const roomsCol = db.collection<RoomRow>('rooms')
   const messagesCol = db.collection<MessageDoc>('messages')
+  const errorsCol = db.collection<ErrorReport>('errors')
+
+  // A capped collection: Mongo deletes the oldest reports when it is full. It must be created
+  // before the first insert, or Mongo makes a normal one. Two instances can race: code 48 is fine.
+  async function ensureErrorsCollection() {
+    try {
+      await db.createCollection('errors', { capped: true, size: ERRORS_MAX_BYTES })
+    } catch (err) {
+      if (!(err instanceof MongoServerError) || err.code !== 48) throw err
+    }
+  }
 
   // Created before the first users call, not at start, so /health still answers
   // 503 when the database is down. A failure clears the promise: the next call retries.
   let indexes: Promise<unknown> | undefined
   const ready = () => {
     indexes ??= Promise.all([
+      ensureErrorsCollection(),
       usersCol.createIndex({ discordId: 1 }, { unique: true }),
       usersCol.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
       roomsCol.createIndex({ host: 1 }, { unique: true }),
@@ -209,6 +223,21 @@ export function createMongoStore({
       async deleteUser(userId) {
         await ready()
         await messagesCol.deleteMany({ 'user.id': userId })
+      },
+    },
+    errors: {
+      async add(report) {
+        await ready()
+        await errorsCol.insertOne({ ...report })
+      },
+      async latest(limit) {
+        await ready()
+        const docs = await errorsCol
+          .find({}, { projection: { _id: 0 } })
+          .sort({ $natural: -1 })
+          .limit(limit)
+          .toArray()
+        return docs
       },
     },
     async ping() {

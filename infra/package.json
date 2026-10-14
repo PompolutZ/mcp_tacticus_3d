@@ -8,6 +8,7 @@
     "cdk:deploy:account": "cdk deploy McpTacticusAccount --profile fxdx_admin",
     "put-secrets": "tsx scripts/put-secrets.ts",
     "delete-test-data": "tsx scripts/delete-test-data.ts",
+    "errors": "tsx scripts/errors.ts",
     "typecheck": "tsc",
     "test": "vitest run"
   },

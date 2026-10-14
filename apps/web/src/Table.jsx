@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import * as Y from 'yjs'
 import { Awareness } from 'y-protocols/awareness'
 import App from './App.jsx'
+import { setReportContext } from './crash/reporter.js'
 import { LoadingOverlay } from './components/LoadingOverlay.jsx'
 import { useUser } from './auth/useUser.js'
 import { buildOverride, delayFlag, dropFlag, relayFlag } from './net/debugFlags.js'
@@ -71,6 +72,14 @@ export default function Table({ room = null, onExit }) {
   useEffect(() => {
     exit.current = onExit
   })
+
+  // Error reports (crash/reporter.js) say which room and seat. A single player room stays local.
+  const reportRoom = room?.multiplayer ? room.id : null
+  const reportSide = room?.side ?? 'none'
+  useEffect(() => {
+    setReportContext(reportRoom ? { room: reportRoom, side: reportSide } : {})
+    return () => setReportContext({})
+  }, [reportRoom, reportSide])
 
   useEffect(() => {
     // React StrictMode runs this effect twice in dev. The first run ends before its document opens, so
