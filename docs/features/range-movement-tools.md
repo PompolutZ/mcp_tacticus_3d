@@ -54,6 +54,8 @@ The tool is free when it spawns while no model is selected and the pointer is no
 
 Dragging a free tool moves it.
 
+A drag that starts on a button of the tool (Place, Throw / Push, Toward / Away, Bend) moves the tool the same as a drag of the half under it. A click on the button presses it. A drag does not press it. A disabled button does not start a drag.
+
 **Q** and **E** turn the tool under the pointer, or the tool you drag, 15° around its center, as in TTS. Hold the key to keep turning. Q turns it counter-clockwise and E clockwise, seen from above. The center of a movement tool is its hinge, and the tool keeps its bend. While a drag turns a snapped tool or bends a tool, Q and E do nothing. They turn characters the same way.
 
 ### Place

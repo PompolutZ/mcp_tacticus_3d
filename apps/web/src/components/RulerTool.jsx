@@ -251,7 +251,9 @@ function useFootprintGround(halfLength, halfWidth, turn) {
 }
 
 // Whole-body drag: a click toggles the selection, a drag moves the tool at once and selects it.
-// onPointerDown(e, onSelect, onDragSelect, plan): plan() is called once when a drag starts (not on a
+// onPointerDown(e, onSelect, onDragSelect, plan): e is an R3F event of the tool mesh, or a DOM pointerdown of a
+// button on the tool (the grab point is then the pointer ray on the plane of the button). onSelect is the click
+// handler: the selection for the mesh, the button action for a button. plan() is called once when a drag starts (not on a
 // plain click). It returns null for a move, or { pivot, onTurn, onPointer } for a turn:
 // - Move: the tool follows the pointer. onDragMove(raycaster) is called on each pointer move, with a
 //   raycaster set to the pointer ray. When it returns true, the drag ends there and the rest of that
@@ -320,7 +322,28 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
   })
 
   return function onPointerDown(e, onSelect, onDragSelect, plan) {
-    const grab = { x: e.point.x, z: e.point.z }
+    let point = e.point
+    if (!point) {
+      // A DOM event (a button): the pointer ray, on the horizontal plane of the button
+      const rect = gl.domElement.getBoundingClientRect()
+      raycaster.current.setFromCamera(
+        new THREE.Vector2(
+          ((e.clientX - rect.left) / rect.width) * 2 - 1,
+          -((e.clientY - rect.top) / rect.height) * 2 + 1,
+        ),
+        camera,
+      )
+      const y = (rigidRef.current?.translation().y ?? 0) + FLAT_HTML_Y
+      point = new THREE.Vector3()
+      if (
+        !raycaster.current.ray.intersectPlane(
+          new THREE.Plane(new THREE.Vector3(0, 1, 0), -y),
+          point,
+        )
+      )
+        return
+    }
+    const grab = { x: point.x, z: point.z }
     function endDrag() {
       isDragging.current = false
       turning.current?.onPointer?.(null)
@@ -376,12 +399,14 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
         if (isDragging.current) endDrag()
       },
       onClick: () => onSelect?.(),
+      // A DOM press: no default, so the browser does not select text or focus
+      preventDefault: true,
     })
     dragHandle.current = pressed || null
     if (pressed && rigidRef.current) {
       const t = rigidRef.current.translation()
-      dragPlane.current.constant = -e.point.y
-      grabOffset.current = { x: e.point.x - t.x, z: e.point.z - t.z }
+      dragPlane.current.constant = -point.y
+      grabOffset.current = { x: point.x - t.x, z: point.z - t.z }
     }
   }
 }
@@ -687,11 +712,14 @@ const BUTTON_STYLE = {
 // Html element flat on the tool at local x, facing up. Html stays inside RigidBody,
 // so it follows the body's transform automatically.
 // Without a CSS rotation, the element reads toward local −X, with its top toward local +Z.
+// Height of a FlatHtml above the body center
+const FLAT_HTML_Y = 0.25
+
 function FlatHtml({ x = 0, z = 0, children }) {
   return (
     // Rx(π/2) lays the Html element flat on the tool's XZ surface facing up.
     // Without this the element stands perpendicular to the table.
-    <group position={[x, 0.25, z]} rotation={[Math.PI / 2, Math.PI, 0]}>
+    <group position={[x, FLAT_HTML_Y, z]} rotation={[Math.PI / 2, Math.PI, 0]}>
       {/* The wrapper div keeps the unscaled button size and would block the tool drag around a
           scaled button. Only the button itself takes the pointer (BUTTON_STYLE). */}
       <OccludedHtml center transform pointerEvents="none">
@@ -705,6 +733,12 @@ function FlatHtml({ x = 0, z = 0, children }) {
 const PX_PER_INCH = 40
 // Share of the tool width that Place covers
 const PLACE_FILL = 0.85
+
+// A pointer press on a button goes through onPointerDown (a click presses the button, a drag moves the tool),
+// so a native click runs the action only for the keyboard (detail 0).
+function clickByKey(e, onClick) {
+  if (e.detail === 0) onClick?.(e)
+}
 
 // Place, Place 1, Place 2, Throw and Toward / Away.
 // toolWidth: width of the tool in inches. The button is 1" long before the scale, so the scale is the
@@ -723,6 +757,7 @@ function ToolButton({
   disabledTitle = 'Select a character',
   title,
   onClick,
+  onPointerDown,
 }) {
   return (
     <button
@@ -747,7 +782,8 @@ function ToolButton({
       }}
       disabled={disabled}
       title={disabled ? disabledTitle : title}
-      onClick={onClick}
+      onClick={(e) => clickByKey(e, onClick)}
+      onPointerDown={onPointerDown}
     >
       {label}
     </button>
@@ -755,7 +791,7 @@ function ToolButton({
 }
 
 // Round toggle with a half circle that has an arrow at each end. About as big as the hinge.
-function BendButton({ on, onClick }) {
+function BendButton({ on, onClick, onPointerDown }) {
   return (
     <button
       type="button"
@@ -774,7 +810,8 @@ function BendButton({ on, onClick }) {
         alignItems: 'center',
         justifyContent: 'center',
       }}
-      onClick={onClick}
+      onClick={(e) => clickByKey(e, onClick)}
+      onPointerDown={onPointerDown}
     >
       <svg
         width="14"
@@ -1388,6 +1425,23 @@ function Tool({
     setThrowLock({ side: snap.side, target: model })
   }
 
+  function toggleBend(e) {
+    e.stopPropagation()
+    setBendOn((on) => !on)
+  }
+
+  // onPointerDown of a button: a drag from it moves the tool like a drag of the half on side (none: the middle),
+  // a click runs action.
+  function grab(action, side) {
+    return (e) =>
+      onPointerDown(
+        e,
+        () => action(e),
+        onDragSelect,
+        () => dragPlan(side),
+      )
+  }
+
   // The bases that stop a Throw of target: the other characters on the table, not lifted
   function throwOthers(target) {
     return modelsRef.current
@@ -1460,6 +1514,7 @@ function Tool({
                       : 'Lock the first character that touches the tool to it'
                   }
                   onClick={togglePlace}
+                  onPointerDown={grab(togglePlace, side)}
                 />
               </FlatHtml>
             )}
@@ -1491,6 +1546,7 @@ function Tool({
                         : 'Throw or push the snapped character along the middle of the tool. It stops at the first character or terrain on the way.'
                     }
                     onClick={handleThrow}
+                    onPointerDown={grab(handleThrow, side)}
                   />
                 </FlatHtml>
               )}
@@ -1512,18 +1568,13 @@ function Tool({
               rotation={mode === 'away' ? 0 : 180}
               title="Move the tool to the other side of the base, to switch between Toward and Away"
               onClick={handleMirror}
+              onPointerDown={grab(handleMirror)}
             />
           </FlatHtml>
         )}
         {selected && bendable && (
           <FlatHtml>
-            <BendButton
-              on={bendOn}
-              onClick={(e) => {
-                e.stopPropagation()
-                setBendOn((on) => !on)
-              }}
-            />
+            <BendButton on={bendOn} onClick={toggleBend} onPointerDown={grab(toggleBend)} />
           </FlatHtml>
         )}
         {/* R1 tool: Place 1 is at the snapped end, on the half of the long side where it moves the
@@ -1545,6 +1596,7 @@ function Tool({
                   : 'Lock the first character that comes within range 1 of the snapped model'
               }
               onClick={handlePlaceOne}
+              onPointerDown={grab(handlePlaceOne, snap.side)}
             />
           </FlatHtml>
         )}
