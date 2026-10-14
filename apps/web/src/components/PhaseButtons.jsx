@@ -1,11 +1,12 @@
 // The Power and Cleanup buttons when the settings put them in the HUD: a group fixed in the bottom right
 // corner, Power first (docs/features/round-phases.md, docs/features/table-tools.md). The handlers, the
 // disabled state and the titles are the same as on the table; App passes them.
-// onPowerPhase(): gives Power to the sides this browser plays. cleanupDisabled, cleanupTitle: the Cleanup
+// onPowerPhase(): gives Power to the sides this browser plays. powerBlock: the reason Power is off, or null. cleanupDisabled, cleanupTitle: the Cleanup
 // lock and its reason.
 export function PhaseButtons({
   settings,
   onPowerPhase,
+  powerBlock,
   onCleanupPhase,
   cleanupDisabled,
   cleanupTitle,
@@ -19,8 +20,9 @@ export function PhaseButtons({
         <button
           type="button"
           className="phase-button"
-          title="Automatic Power Phase: each of your characters gains Power"
-          onClick={onPowerPhase}
+          aria-disabled={Boolean(powerBlock)}
+          title={powerBlock ?? 'Automatic Power Phase: each of your characters gains Power'}
+          onClick={powerBlock ? undefined : onPowerPhase}
         >
           Power
         </button>

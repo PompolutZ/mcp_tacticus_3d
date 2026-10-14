@@ -168,6 +168,7 @@ Rule p11: a squad uses an affiliation when more than half of its characters have
 - A row that the app set can also change while the step is open.
 - In a multiplayer room, each player clicks only their own row. The other row is disabled. After the reveal, both squads are in the document, so both rows show their choices.
 - A choice writes `setup.affiliation` and `game.affiliations` together. The VP marker and the Control markers show the token.
+- Power waits for the affiliation, for each side on its own (`needsAffiliation` in `src/setup/setup.js`). While a placed side has none, its Power controls are disabled with the title "Choose the affiliation of your squad first." (the Sandbox names the color: "Blue's squad"): the HUD Power button, the table Auto Power Phase button of that side and the Start round 1 chip. A control that acts for both sides is disabled while any of them has none. A side that has its affiliation keeps its Power.
 - The step `deploy` follows when both sides have an affiliation. When both squads have no choice, the step does not open.
 - **Restart setup** clears `setup.affiliation`. The VP markers keep their token until the next squads choose.
 - A saved setup with no `affiliation` field skips this step.
@@ -212,7 +213,7 @@ setup: {
 
 | File | Content |
 |---|---|
-| `src/setup/setup.js` | `NEW_SETUP`, `newSetup`, `setupStep`, the step changes (`chooseDeck`, `pickCard`, `chooseThreat`, `chooseEdge`, `toggleSquadCard`, `setSquadCharacters`, `toggleReady`, `placeSquad`, `chooseAffiliation`, `finishDeploy`), `placedSides`, `revealPlan`, `crisisRows`. No imports, so a Node script can check it |
+| `src/setup/setup.js` | `NEW_SETUP`, `newSetup`, `setupStep`, the step changes (`chooseDeck`, `pickCard`, `chooseThreat`, `chooseEdge`, `toggleSquadCard`, `setSquadCharacters`, `toggleReady`, `placeSquad`, `chooseAffiliation`, `finishDeploy`), `placedSides`, `needsAffiliation`, `revealPlan`, `crisisRows`. No imports, so a Node script can check it |
 | `src/components/GameSetup.jsx` | The crisis rows and all setup buttons |
 | `src/components/CrisisCompare.jsx` | The crisis compare overlay |
 | `src/components/CrisisChoose.jsx` | The Choose 1 overlay |

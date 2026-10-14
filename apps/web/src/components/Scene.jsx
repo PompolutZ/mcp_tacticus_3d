@@ -1574,6 +1574,7 @@ export default function Scene({
             actions={setupActions}
             powerOnTable={tableButtons.show.power}
             onStartRound={() => tableButtons.onPowerPhase(playedSides)}
+            startRoundBlock={tableButtons.powerBlockTitle(playedSides)}
             onCrisisOpen={onCrisisOpen}
             onCardHover={onCardHover}
           />

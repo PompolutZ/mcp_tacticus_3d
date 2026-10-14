@@ -456,6 +456,7 @@ export default function App({
 
   const {
     handlePowerPhase,
+    powerBlockTitle,
     cleanupDisabled,
     cleanupTitle,
     handleCleanupPhase,
@@ -778,6 +779,7 @@ export default function App({
                     matTurn: toolsOnTable('matTurn'),
                   },
                   onPowerPhase: handlePowerPhase,
+                  powerBlockTitle,
                   onCleanupPhase: handleCleanupPhase,
                   cleanupDisabled,
                   cleanupTitle,
@@ -1087,6 +1089,7 @@ export default function App({
       <PhaseButtons
         settings={settings}
         onPowerPhase={() => handlePowerPhase(playedSides)}
+        powerBlock={powerBlockTitle(playedSides)}
         onCleanupPhase={handleCleanupPhase}
         cleanupDisabled={cleanupDisabled}
         cleanupTitle={cleanupTitle}

@@ -264,6 +264,12 @@ export function chooseAffiliation(setup, side, key) {
   }
 }
 
+// True while the squad of `side` is on the table but its player has not chosen the affiliation yet (the step
+// `affiliation` is open for that side). Power waits for it. A setup with no `affiliation` field never waits.
+export function needsAffiliation(setup, side) {
+  return Boolean(setup.affiliation) && Boolean(placedSides(setup)[side]) && !setup.affiliation[side]
+}
+
 // The first Power Phase ends the deployment: the setup is done
 export function finishDeploy(setup) {
   return { ...setup, deployed: true }

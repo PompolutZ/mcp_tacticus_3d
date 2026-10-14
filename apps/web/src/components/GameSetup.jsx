@@ -246,7 +246,17 @@ function EdgeControls({ team, locked, actions }) {
 
 // The panel next to the scoring board: what to do in this step, the buttons of the steps that are not about one
 // card, and Restart. The text names the player who chooses (setup/names.js).
-function BoardPanel({ setup, step, parsed, mySide, ctx, actions, powerOnTable, onStartRound }) {
+function BoardPanel({
+  setup,
+  step,
+  parsed,
+  mySide,
+  ctx,
+  actions,
+  powerOnTable,
+  onStartRound,
+  startRoundBlock,
+}) {
   const view = viewOf(setup)
   const threatLocked = lockedTitle(setup, 'the Maximum Threat', ctx)
   const colors = useSideColors()
@@ -355,7 +365,13 @@ function BoardPanel({ setup, step, parsed, mySide, ctx, actions, powerOnTable, o
       ? 'Press Auto Power Phase to start round 1 when both squads are deployed.'
       : 'Press Power (bottom right) to start round 1 when both squads are deployed.'
     controls = (
-      <button type="button" className="chip" onClick={onStartRound}>
+      <button
+        type="button"
+        className="chip"
+        disabled={Boolean(startRoundBlock)}
+        title={startRoundBlock ?? undefined}
+        onClick={onStartRound}
+      >
         Start round 1
       </button>
     )
@@ -504,7 +520,7 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
 // threat(value), turnMat(direction), edge(), ready(team),
 // affiliation(team, key), restart(), browse(step | null), override(step) }, see setup/useGameSetup.js.
 // powerOnTable: the Power button is on the table (the note names it). onStartRound(): the Power button's action,
-// for Start round 1 in the deploy step.
+// for Start round 1 in the deploy step. startRoundBlock: the reason that button is off (a side has no affiliation), or null.
 // onCrisisOpen({ team, type, code, drawn }): a click on a crisis card. drawn: the card is one of the 2 drawn
 // cards with a Choose button (App.jsx opens the Choose 1 overlay for it).
 // onCardHover(card, over): for Alt (useCardPeek.js).
@@ -516,6 +532,7 @@ export default function GameSetup({
   actions,
   powerOnTable,
   onStartRound,
+  startRoundBlock,
   onCrisisOpen,
   onCardHover,
 }) {
@@ -569,6 +586,7 @@ export default function GameSetup({
         actions={actions}
         powerOnTable={powerOnTable}
         onStartRound={onStartRound}
+        startRoundBlock={startRoundBlock}
       />
       {step === 'squads' &&
         !browsing &&

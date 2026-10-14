@@ -17,6 +17,7 @@ import {
   finishDeploy,
   colorOf,
   crisisRows,
+  needsAffiliation,
   newSetup,
   placeSquad,
   placedIds,
@@ -638,4 +639,21 @@ test('viewerSetup: hidden shows the own squad, the other one only when placed', 
   const nullSide = viewerSetup(setup, { hidden: true, mySide: null, ownSquad: own })
   assert.notEqual(nullSide, setup)
   assert.equal(nullSide.squads.null, own)
+})
+
+test('needsAffiliation: a placed side with no affiliation waits, each side on its own', () => {
+  const one = placeSquad(squadsSetup(bothReady), 'host', squad, cards, null)
+  assert.equal(needsAffiliation(one, 'host'), true)
+  // The guest squad is not placed yet
+  assert.equal(needsAffiliation(one, 'guest'), false)
+  const both = placeSquad(one, 'guest', squad, cards, 'avengers')
+  assert.equal(needsAffiliation(both, 'host'), true)
+  assert.equal(needsAffiliation(both, 'guest'), false)
+  assert.equal(needsAffiliation(chooseAffiliation(both, 'host', 'asgard'), 'host'), false)
+})
+
+test('needsAffiliation: a setup with no affiliation field never waits', () => {
+  const old = placeSquad(squadsSetup(bothReady), 'host', squad, cards, null)
+  delete old.affiliation
+  assert.equal(needsAffiliation(old, 'host'), false)
 })

@@ -18,7 +18,7 @@ const px = (inches) => Math.round(inches / INCHES_PER_PX)
 // Automatic Power Phase of `side`, in row 1 of its board strip (the place is in tabletools/layout.js,
 // docs/features/table-tools.md, "Automatic Power Phase button"). It gives Power to the characters of its own
 // side only. In a multiplayer room, only the owner presses it.
-function PowerPhaseButton({ side, ownSide, multiplayer, onPowerPhase }) {
+function PowerPhaseButton({ side, ownSide, multiplayer, onPowerPhase, powerBlock }) {
   const place = powerButton(side)
   const locked = multiplayer && side !== ownSide
   const otherName = useSideName(otherSide(ownSide))
@@ -29,13 +29,13 @@ function PowerPhaseButton({ side, ownSide, multiplayer, onPowerPhase }) {
         type="button"
         className="chip table-button table-button--power"
         style={{ width: px(place.length), height: px(place.width) }}
-        aria-disabled={locked}
+        aria-disabled={locked || Boolean(powerBlock)}
         title={
           locked
             ? `Only the ${otherName} player presses this.`
-            : 'Automatic Power Phase: each of your characters gains Power'
+            : (powerBlock ?? 'Automatic Power Phase: each of your characters gains Power')
         }
-        onClick={locked ? undefined : () => onPowerPhase([side])}
+        onClick={locked || powerBlock ? undefined : () => onPowerPhase([side])}
       >
         <img className="table-button-icon" src={POWER_ICON} alt="" />
         Auto Power Phase
@@ -76,6 +76,7 @@ function BoardStrip({
   show,
   ownSide,
   onPowerPhase,
+  powerBlockTitle,
   onTurnMat,
   deployLine,
   onDeployLineClick,
@@ -91,6 +92,7 @@ function BoardStrip({
           ownSide={ownSide}
           multiplayer={multiplayer}
           onPowerPhase={onPowerPhase}
+          powerBlock={powerBlockTitle([side])}
         />
       )}
       {(show.deployLock || showTurn) && (

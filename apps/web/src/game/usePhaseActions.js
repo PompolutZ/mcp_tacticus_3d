@@ -7,7 +7,8 @@ import { cleanupBlockers, cleanupCharacter } from '../characters/cleanup.js'
 import { cleanupCrisisTokens } from '../crisis/cleanup.js'
 import { ROUND_POINTS, scoreFromMarkers } from '../scoreboard/board.js'
 import { CLEANUP_KEYS } from '../tokens/tokens.js'
-import { colorOf, finishDeploy, otherTeam, setupStep } from '../setup/setup.js'
+import { colorOf, finishDeploy, needsAffiliation, otherTeam, setupStep } from '../setup/setup.js'
+import { isYou, playerName } from '../setup/names.js'
 import { gamePriority, priorityAfterCleanup, priorityNote } from './priority.js'
 import { cleanupStatus, cleanupText, powerPhaseText } from './phases.js'
 
@@ -31,12 +32,22 @@ export function usePhaseActions({
   writeLog,
   showHudMessage,
 }) {
+  // The reason Power is off for `sides`, or null. Power waits until each side it acts for has its affiliation
+  // (docs/features/setup-game.md, "Affiliation"). Used by the HUD button, the table buttons and the setup chip.
+  function powerBlockTitle(sides) {
+    const side = sides.find((s) => needsAffiliation(setup, s))
+    if (!side) return null
+    const whose = isYou(side, nameCtx) ? 'your' : `${playerName(side, nameCtx)}'s`
+    return `Choose the affiliation of ${whose} squad first.`
+  }
+
   // Power button in the toolbar and the Power Phase buttons on the table (docs/features/round-phases.md). Gives
   // the Power of the Power Phase to each non-Grunt character of `sides` that has a model on the mat. The
   // toolbar passes the played sides, a table button its own side. The updater form reads the list
   // now, not at the last render, so a change the other browser just made is kept. The updater runs
   // inside setCharacters, so gains is filled when the HUD message is built.
   function handlePowerPhase(sides) {
+    if (powerBlockTitle(sides)) return
     const gains = []
     table.transact(() => {
       // The first Power Phase ends the deployment: the setup is done and Deploy Lock is off
@@ -136,6 +147,7 @@ export function usePhaseActions({
 
   return {
     handlePowerPhase,
+    powerBlockTitle,
     cleanupDisabled,
     cleanupTitle,
     handleCleanupPhase,
