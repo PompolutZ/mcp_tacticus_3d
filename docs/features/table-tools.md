@@ -117,6 +117,14 @@ A **Spectator** section has a "Spectator columns size" slider, 60 to 150 percent
 
 **Keys:** one row for each action, in the groups Camera, Pieces, Tools, Dice and Other. A row has the bindings as chips (× removes one), **+** to add one, and **Reset** when it differs from the defaults. **Reset all keys** restores every default. The rules are in `docs/features/key-shortcuts.md`, "Changing the keys". **Mouse:** a read-only table from `src/settings/controls.js` (`MOUSE_ROWS`). The source is `docs/features/key-shortcuts.md`.
 
+## Recovery
+
+- The 3D view sits in an error boundary (`src/crash/SceneBoundary.jsx`). An error in the scene is logged as `[scene error]`, and the view mounts again with a new Physics world. The table state is read again from the document. The page does not turn black.
+- Three errors within 10 seconds show a "Reload" button instead of a loop.
+- The first uncaught error, unhandled rejection or scene error is logged as `[first error]` (`src/crash/errors.js`). After the first Rapier fault every call fails, so the first error shows the trigger.
+- A body call from a listener, an effect or peer data first checks `liveBody(world, body)` (`src/physics.js`). A removed body is skipped.
+- A component clears its body refs on unmount, and cancels its running drag.
+
 ## Not on the table
 
 These stay in the toolbar: the room and the players, **Library**, **Log**, the map select, **Setup** (**Crisis**, **Roster**), **Spectator**, **Settings**. In TTS, some of them are objects on the table (card bags, the Roster Maker, the Automatic Crisis Deployment buttons). The Library, the roster field and the game setup replace them.

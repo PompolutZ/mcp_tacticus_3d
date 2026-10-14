@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
+import { SceneBoundary } from './crash/SceneBoundary.jsx'
 import { OrbitControls } from '@react-three/drei'
 import { assetUrl } from './assets/index.js'
 import { tacticCardBack } from './tactics/files.js'
@@ -739,182 +740,185 @@ export default function App({
           mounts (terrain labels, the ruler tool, the tray controls) from ever drawing over the
           HUD below, no matter its z-index. See index.css, .scene-root. */}
       <div className="scene-root">
-        <Canvas
-          shadows
-          camera={{ position: cameraPosition, fov: 50 }}
-          // The EffectComposer in SelectionOutlines renders the scene with its own antialiasing (multisampling)
-          gl={{ antialias: false }}
-          events={canvasEvents}
-          // A click with no piece under the pointer (table, terrain, background) clears the selected
-          // pieces. The selected tools stay selected.
-          // R3F does not count a camera drag as a click. A right click is a 'contextmenu' event, and it also
-          // starts a camera turn, so it does not clear. Clicks on tool buttons (Html) are not on the canvas.
-          onPointerMissed={(e) => {
-            if (e.type === 'click' && e.target instanceof HTMLCanvasElement) setSelection(NO_PIECES)
-          }}
-          onCreated={({ gl }) => {
-            const name = rendererName(gl.getContext())
-            if (isSoftwareRenderer(name)) setSoftwareRenderer(name)
-          }}
-        >
-          {/* The scene mounts when these files are in, see Preload.jsx */}
-          <Preload files={preloadFiles} />
-          <SelectionOutlines composer={mode !== 'no-composer'} outlines={mode === 'full'}>
-            <Scene
-              mapId={mapId}
-              tableButtons={{
-                multiplayer: Boolean(room?.multiplayer),
-                show: {
-                  power: toolsOnTable('power'),
-                  cleanup: toolsOnTable('cleanup'),
-                  deployLock: toolsOnTable('deployLock'),
-                  matTurn: toolsOnTable('matTurn'),
-                },
-                onPowerPhase: handlePowerPhase,
-                onCleanupPhase: handleCleanupPhase,
-                cleanupDisabled,
-                cleanupTitle,
-                deployLine,
-                onDeployLineClick: () => setDeployLine((prev) => !prev),
-                onTurnMat: handleTurnMat,
-              }}
-              toolRack={
-                rackShown
-                  ? {
-                      multiplayer: Boolean(room?.multiplayer),
-                      onRangeClick: handleRangeClick,
-                      onMoveClick: handleMoveClick,
-                      onAngleClick: handleAngleClick,
-                      onLosClick: handleLosClick,
-                      onDragStart: startToolDrag,
-                    }
-                  : null
-              }
-              terrain={terrain}
-              onTerrainHover={handleTerrainHover}
-              terrainAtRef={terrainAtRef}
-              characters={characters}
-              tools={tools}
-              ownSide={ownSide}
-              onToolStore={handleToolStore}
-              onToolRemove={handleToolReturn}
-              onToolReturn={
-                rackShown && !rackHiddenSides(setup, rosters).includes(ownSide)
-                  ? handleToolReturn
-                  : undefined
-              }
-              ownership={ownership}
-              presence={presence}
-              ownPing={ownPing}
-              live={live}
-              pieceLives={pieceLives}
-              angleSpawn={angleSpawn}
-              toolSpawn={toolSpawn}
-              showColliders={debug}
-              showLabels={showLabels}
-              spectator={spectator}
-              matTurns={matTurns}
-              deployLine={deployLine}
-              crisis={crisis}
-              tokens={tokens}
-              selection={selection}
-              onSelectionChange={setSelection}
-              selectedTools={selectedTools}
-              onSelectedToolsChange={setSelectedTools}
-              onPieceHover={handlePieceHover}
-              toolPointRef={toolPointRef}
-              onTokenMove={handleTokenMove}
-              onTokenTurn={handleTokenTurn}
-              onTokenHold={handleTokenHold}
-              onHeldHover={handleHeldHover}
-              onSupplyDragStart={handleSupplyDragStart}
-              onCharacterDamage={handleCharacterDamage}
-              onCharacterPower={handleCharacterPower}
-              onCharacterFlip={handleCharacterFlip}
-              onTrayCardHover={handleTrayCardHover}
-              onCardHover={handleCardHover}
-              onCharacterOffBoard={handleCharacterOffBoard}
-              onCharacterTokenRemove={handleCharacterTokenRemove}
-              onTokenDragStart={handleTokenDragStart}
-              looseTokens={looseTokens}
-              onLooseHover={handleLooseHover}
-              tokenPiles={tokenPiles}
-              onPileTakeStart={handlePileTakeStart}
-              onPileMoveStart={handlePileMoveStart}
-              onPileHover={handlePileHover}
-              tacticCards={tacticCards}
-              onTacticMove={handleTacticMove}
-              onTacticHover={handleTacticHover}
-              tokenDrag={tokenDrag}
-              dragPointRef={dragPointRef}
-              toolDrag={toolDrag}
-              toolDragPointRef={toolDragPointRef}
-              onCardOpen={setOpenCard}
-              onTrayOpen={setOpenTrayId}
-              onAttachedOpen={handleAttachedOpen}
-              diceMenu={diceMenu}
-              onDiceMenuOpen={handleDiceMenuOpen}
-              onDiceMenuClose={handleDiceMenuClose}
-              characterAtRef={characterAtRef}
-              findCharacterAt={findCharacterAt}
-              modelPositionRef={modelPositionRef}
-              turnPieceRef={turnPieceRef}
-              liftPieceRef={liftPieceRef}
-              floorPieceRef={floorPieceRef}
-              modelDragRef={modelDragRef}
-              returnModelsRef={returnModelsRef}
-              playedSides={playedSides}
-              removeWaits={removeWaits}
-              onDiceTrayHover={handleDiceTrayHover}
-              addDiceRef={addDiceRef}
-              heldRotate={heldRotate}
-              scoreMarkers={scoreMarkers}
-              priority={priority}
-              priorityTitle={priority ? priorityTitle(priority, nameCtx) : ''}
-              onPriorityClick={handlePriorityClick}
-              affiliations={affiliations}
-              rosters={rosters}
-              onRosterOpen={handleRosterOpen}
-              onCrisisOpen={handleCrisisOpen}
-              setup={viewSetup}
-              mySide={mySide}
-              seatPlayers={seatPlayers}
-              squadEdit={squadEdit}
-              onSquadToggle={handleSquadToggle}
-              setupActions={setupActions}
-              onScoreMarkerMove={(marker, x, z) =>
-                setScoreMarkers((prev) => ({ ...prev, [marker]: { x, z } }))
-              }
-              poses={poses}
-              startPose={table.poses.get}
-              diceStore={table.dice}
-              rollsStore={table.rolls}
-              transact={table.transact}
-              onModelRest={table.poses.setField}
+        <SceneBoundary>
+          <Canvas
+            shadows
+            camera={{ position: cameraPosition, fov: 50 }}
+            // The EffectComposer in SelectionOutlines renders the scene with its own antialiasing (multisampling)
+            gl={{ antialias: false }}
+            events={canvasEvents}
+            // A click with no piece under the pointer (table, terrain, background) clears the selected
+            // pieces. The selected tools stay selected.
+            // R3F does not count a camera drag as a click. A right click is a 'contextmenu' event, and it also
+            // starts a camera turn, so it does not clear. Clicks on tool buttons (Html) are not on the canvas.
+            onPointerMissed={(e) => {
+              if (e.type === 'click' && e.target instanceof HTMLCanvasElement)
+                setSelection(NO_PIECES)
+            }}
+            onCreated={({ gl }) => {
+              const name = rendererName(gl.getContext())
+              if (isSoftwareRenderer(name)) setSoftwareRenderer(name)
+            }}
+          >
+            {/* The scene mounts when these files are in, see Preload.jsx */}
+            <Preload files={preloadFiles} />
+            <SelectionOutlines composer={mode !== 'no-composer'} outlines={mode === 'full'}>
+              <Scene
+                mapId={mapId}
+                tableButtons={{
+                  multiplayer: Boolean(room?.multiplayer),
+                  show: {
+                    power: toolsOnTable('power'),
+                    cleanup: toolsOnTable('cleanup'),
+                    deployLock: toolsOnTable('deployLock'),
+                    matTurn: toolsOnTable('matTurn'),
+                  },
+                  onPowerPhase: handlePowerPhase,
+                  onCleanupPhase: handleCleanupPhase,
+                  cleanupDisabled,
+                  cleanupTitle,
+                  deployLine,
+                  onDeployLineClick: () => setDeployLine((prev) => !prev),
+                  onTurnMat: handleTurnMat,
+                }}
+                toolRack={
+                  rackShown
+                    ? {
+                        multiplayer: Boolean(room?.multiplayer),
+                        onRangeClick: handleRangeClick,
+                        onMoveClick: handleMoveClick,
+                        onAngleClick: handleAngleClick,
+                        onLosClick: handleLosClick,
+                        onDragStart: startToolDrag,
+                      }
+                    : null
+                }
+                terrain={terrain}
+                onTerrainHover={handleTerrainHover}
+                terrainAtRef={terrainAtRef}
+                characters={characters}
+                tools={tools}
+                ownSide={ownSide}
+                onToolStore={handleToolStore}
+                onToolRemove={handleToolReturn}
+                onToolReturn={
+                  rackShown && !rackHiddenSides(setup, rosters).includes(ownSide)
+                    ? handleToolReturn
+                    : undefined
+                }
+                ownership={ownership}
+                presence={presence}
+                ownPing={ownPing}
+                live={live}
+                pieceLives={pieceLives}
+                angleSpawn={angleSpawn}
+                toolSpawn={toolSpawn}
+                showColliders={debug}
+                showLabels={showLabels}
+                spectator={spectator}
+                matTurns={matTurns}
+                deployLine={deployLine}
+                crisis={crisis}
+                tokens={tokens}
+                selection={selection}
+                onSelectionChange={setSelection}
+                selectedTools={selectedTools}
+                onSelectedToolsChange={setSelectedTools}
+                onPieceHover={handlePieceHover}
+                toolPointRef={toolPointRef}
+                onTokenMove={handleTokenMove}
+                onTokenTurn={handleTokenTurn}
+                onTokenHold={handleTokenHold}
+                onHeldHover={handleHeldHover}
+                onSupplyDragStart={handleSupplyDragStart}
+                onCharacterDamage={handleCharacterDamage}
+                onCharacterPower={handleCharacterPower}
+                onCharacterFlip={handleCharacterFlip}
+                onTrayCardHover={handleTrayCardHover}
+                onCardHover={handleCardHover}
+                onCharacterOffBoard={handleCharacterOffBoard}
+                onCharacterTokenRemove={handleCharacterTokenRemove}
+                onTokenDragStart={handleTokenDragStart}
+                looseTokens={looseTokens}
+                onLooseHover={handleLooseHover}
+                tokenPiles={tokenPiles}
+                onPileTakeStart={handlePileTakeStart}
+                onPileMoveStart={handlePileMoveStart}
+                onPileHover={handlePileHover}
+                tacticCards={tacticCards}
+                onTacticMove={handleTacticMove}
+                onTacticHover={handleTacticHover}
+                tokenDrag={tokenDrag}
+                dragPointRef={dragPointRef}
+                toolDrag={toolDrag}
+                toolDragPointRef={toolDragPointRef}
+                onCardOpen={setOpenCard}
+                onTrayOpen={setOpenTrayId}
+                onAttachedOpen={handleAttachedOpen}
+                diceMenu={diceMenu}
+                onDiceMenuOpen={handleDiceMenuOpen}
+                onDiceMenuClose={handleDiceMenuClose}
+                characterAtRef={characterAtRef}
+                findCharacterAt={findCharacterAt}
+                modelPositionRef={modelPositionRef}
+                turnPieceRef={turnPieceRef}
+                liftPieceRef={liftPieceRef}
+                floorPieceRef={floorPieceRef}
+                modelDragRef={modelDragRef}
+                returnModelsRef={returnModelsRef}
+                playedSides={playedSides}
+                removeWaits={removeWaits}
+                onDiceTrayHover={handleDiceTrayHover}
+                addDiceRef={addDiceRef}
+                heldRotate={heldRotate}
+                scoreMarkers={scoreMarkers}
+                priority={priority}
+                priorityTitle={priority ? priorityTitle(priority, nameCtx) : ''}
+                onPriorityClick={handlePriorityClick}
+                affiliations={affiliations}
+                rosters={rosters}
+                onRosterOpen={handleRosterOpen}
+                onCrisisOpen={handleCrisisOpen}
+                setup={viewSetup}
+                mySide={mySide}
+                seatPlayers={seatPlayers}
+                squadEdit={squadEdit}
+                onSquadToggle={handleSquadToggle}
+                setupActions={setupActions}
+                onScoreMarkerMove={(marker, x, z) =>
+                  setScoreMarkers((prev) => ({ ...prev, [marker]: { x, z } }))
+                }
+                poses={poses}
+                startPose={table.poses.get}
+                diceStore={table.dice}
+                rollsStore={table.rolls}
+                transact={table.transact}
+                onModelRest={table.poses.setField}
+              />
+            </SelectionOutlines>
+            <OrbitControls
+              ref={controlsRef}
+              makeDefault
+              target={cameraTarget}
+              enablePan={true}
+              // WheelCamera takes every wheel event, so this is only the pinch on a touch screen
+              enableZoom={true}
+              enableRotate={true}
+              minDistance={5}
+              maxDistance={50}
+              maxPolarAngle={85 * (Math.PI / 180)}
+              mouseButtons={CAMERA_MOUSE_BUTTONS}
             />
-          </SelectionOutlines>
-          <OrbitControls
-            ref={controlsRef}
-            makeDefault
-            target={cameraTarget}
-            enablePan={true}
-            // WheelCamera takes every wheel event, so this is only the pinch on a touch screen
-            enableZoom={true}
-            enableRotate={true}
-            minDistance={5}
-            maxDistance={50}
-            maxPolarAngle={85 * (Math.PI / 180)}
-            mouseButtons={CAMERA_MOUSE_BUTTONS}
-          />
-          <KeyboardCamera pan={heldPan} turn={heldTurn} />
-          <WheelCamera
-            ref={wheelCameraRef}
-            wheelState={wheelState}
-            onTurn={(dir) => turnPieceRef.current?.(dir)}
-          />
-          {debug && <FrameStats />}
-          <Ready onReady={() => setReady(true)} />
-        </Canvas>
+            <KeyboardCamera pan={heldPan} turn={heldTurn} />
+            <WheelCamera
+              ref={wheelCameraRef}
+              wheelState={wheelState}
+              onTurn={(dir) => turnPieceRef.current?.(dir)}
+            />
+            {debug && <FrameStats />}
+            <Ready onReady={() => setReady(true)} />
+          </Canvas>
+        </SceneBoundary>
       </div>
       <div className="hud-top">
         <Toolbar

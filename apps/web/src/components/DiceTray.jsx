@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import { RigidBody, ConvexHullCollider, useAfterPhysicsStep, useRapier } from '@react-three/rapier'
+import { liveBody } from '../physics.js'
 import { D8_CORNERS, D8_DENSITY, FACES, SYMBOLS } from '../dice/faces.js'
 import {
   DIE_BODY,
@@ -110,6 +111,15 @@ function Die({ id, dice, geometry, material, menuOpen, onOpen, onChange, onMenuC
     const e = dice.current.get(id)
     if (e) e.body = rb ?? null
   }
+  // RigidBody never passes null when it removes the body, so forget it here
+  useEffect(
+    () => () => {
+      const e = dice.current.get(id)
+      if (e) e.body = null
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  )
   // A die in the well or in the air gets no click. A camera drag that starts on the die is not a
   // click.
   function handleClick(e) {
@@ -206,7 +216,7 @@ export default function DiceTray({
   addRef,
   diceLives,
 }) {
-  const { rapier } = useRapier()
+  const { world, rapier } = useRapier()
 
   // Every die lives here: id -> { id, order, source, was, doc, body, state, symbol, face, settling, stillTime,
   // throwTime, bump, spawn, slot, moveFrom, moveTo, moveElapsed, moving }. source: 'roll' | 'crits' | 'reroll',
@@ -345,7 +355,7 @@ export default function DiceTray({
   // thrown dice bounce off it but cannot move it or change its face (design, "Roll flow").
   function startShelfMove(entry, index) {
     const rb = entry.body
-    if (!rb) return
+    if (!liveBody(world, rb)) return
     rb.wakeUp()
     if (entry.slot === undefined) rb.setBodyType(rapier.RigidBodyType.KinematicPositionBased, true)
     entry.slot = index
@@ -523,7 +533,7 @@ export default function DiceTray({
     const entry = shelfEntries().find((e) => e.symbol === symbol)
     if (!entry) return
     const rb = entry.body
-    if (!rb) return
+    if (!liveBody(world, rb)) return
     rb.wakeUp()
     rb.setBodyType(rapier.RigidBodyType.Dynamic, true)
     const point = freeDropPoint(trayKey, wellOccupiedPoints())

@@ -126,3 +126,11 @@ export const LOWER_MARGIN = 0.05
 // other player moves has none, so it pushes nothing (plan 09, decision 9).
 export const SOLVER_ALL = 0xffffffff
 export const SOLVER_NONE = 0
+
+// True when rb is still a body of the world. A body that the world removed (its component unmounted, or
+// the Physics world was made again) throws on every call and breaks Rapier for good. Check before a body
+// call from a listener, an effect or peer data. world: from useRapier(). rb may be null or undefined.
+export function liveBody(world, rb) {
+  if (!rb || !world) return false
+  return world.getRigidBody(rb.handle) === rb
+}

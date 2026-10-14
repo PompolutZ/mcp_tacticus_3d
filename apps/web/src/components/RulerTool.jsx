@@ -10,7 +10,8 @@ import {
   FOOTPRINT_COLOR,
   FOOTPRINT_TOUCH,
 } from './footprintProjection.js'
-import { castDown } from '../physics.js'
+import { castDown, liveBody } from '../physics.js'
+import { useBodyRef } from '../useBodyRef.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
 import { throwMove } from './throwPath.js'
 import { assetUrl } from '../assets/index.js'
@@ -263,6 +264,16 @@ function useFootprintGround(halfLength, halfWidth, turn) {
 // onDragEnd: called once when a drag ends, also when onDragMove ends it.
 export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove, onDragEnd) {
   const { camera, gl, controls } = useThree()
+  const { world } = useRapier()
+  // The running pointer drag, so an unmount can cancel it
+  const dragHandle = useRef(null)
+  useEffect(
+    () => () => {
+      dragHandle.current?.cancel('unmount')
+      dragHandle.current = null
+    },
+    [],
+  )
   const isDragging = useRef(false)
   const mouseNDC = useRef({ x: 0, y: 0 })
   const restType = useRef(0)
@@ -313,14 +324,14 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
       isDragging.current = false
       turning.current?.onPointer?.(null)
       turning.current = null
-      rigidRef.current?.setBodyType(restType.current, true)
+      if (liveBody(world, rigidRef.current)) rigidRef.current.setBodyType(restType.current, true)
       onDragEnd?.()
     }
 
     const pressed = startPointerDrag(e, {
       controls,
       canvas: gl.domElement,
-      canStart: () => Boolean(rigidRef.current),
+      canStart: () => liveBody(world, rigidRef.current),
       onStart: () => {
         onDragSelect?.()
         const rb = rigidRef.current
@@ -365,6 +376,7 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
       },
       onClick: () => onSelect?.(),
     })
+    dragHandle.current = pressed || null
     if (pressed && rigidRef.current) {
       const t = rigidRef.current.translation()
       dragPlane.current.constant = -e.point.y
@@ -843,7 +855,7 @@ function Tool({
   const restored = Boolean(start.pose)
   const spawnAt = restored ? null : (start.at ?? null)
   const spawnYaw = freeSpawnYaw(ownSide)
-  const rigidRef = useRef()
+  const { rigidRef, liveRb, world } = useBodyRef()
   // The tool meshes, for the outline
   const partsRef = useRef()
   // Stays STRAIGHT on a tool that is not bendable, and ANGLE_TURN on the angle tool
@@ -904,13 +916,13 @@ function Tool({
       dragChange(null)
       // Read on use: the closure is from the render of the press
       const giveBack = latest.current?.onReturn
-      const rb = rigidRef.current
+      const rb = liveRb()
       if (kind !== 'move' || !giveBack || !rb) return
       const { x, z } = rb.translation()
       if (onRack(ownSide, { x, z })) giveBack()
     },
   )
-  const { world, rapier } = useRapier()
+  const { rapier } = useRapier()
   const hulls = useMemo(() => parts.map((part) => hullPoints(part.obj)), [parts])
 
   function partTurn(part) {
@@ -929,7 +941,7 @@ function Tool({
   // the tool keeps touching the base. A free tool moves. Only a move snaps the tool (onDragMove), so
   // a drag that starts snapped never snaps to another piece, also when the pointer passes over one.
   function dragPlan(side) {
-    const rb = rigidRef.current
+    const rb = liveRb()
     if (!rb) return null
     if (bendable && bendOn && side && side !== snap?.side) {
       const { x, z } = toolPose(rb)
@@ -996,7 +1008,7 @@ function Tool({
   // above the ground under its new outline (a move drag already does this on every frame). A turn
   // drag sets the pose on every frame, so a turn during it does nothing.
   function turnAroundCenter(angle) {
-    const rb = rigidRef.current
+    const rb = liveRb()
     if (!rb || dragKind.current === 'turn') return
     const { x, z, yaw } = toolPose(rb)
     if (!dragKind.current) {
@@ -1016,7 +1028,7 @@ function Tool({
   useEffect(() => {
     if (!angle) return undefined
     angleRef?.(() => {
-      const rb = rigidRef.current
+      const rb = liveRb()
       return snap && rb ? { target: snap.target, openYaw: toolPose(rb).yaw + Math.PI / 2 } : null
     })
     return () => angleRef?.(null)
@@ -1062,7 +1074,7 @@ function Tool({
   // Range 1: the corner nearer to the base touches it instead.
   function snapTo(model) {
     const c = model.getCenter()
-    const rb = rigidRef.current
+    const rb = liveRb()
     if (!c || !rb) return false
     const pose = toolPose(rb)
     if (angle) {
@@ -1112,7 +1124,7 @@ function Tool({
   useEffect(() => {
     if (restored) return
     onSpawn?.()
-    const rb = rigidRef.current
+    const rb = liveRb()
     if (spawnAt) {
       // Free: no snap
       if (rb) {
@@ -1147,7 +1159,7 @@ function Tool({
   // The live pose for LiveSync: the body and the bend, read when asked
   useEffect(() => {
     liveRef?.(() => {
-      const rb = rigidRef.current
+      const rb = liveRb()
       if (!rb || !latest.current) return null
       const t = rb.translation()
       const { right, left } = latest.current.turn
@@ -1157,7 +1169,7 @@ function Tool({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   useRestStore(() => {
-    const rb = rigidRef.current
+    const rb = liveRb()
     if (!rb || !latest.current) return null
     const { turn, snap, mode, entry, onStore } = latest.current
     if (!onStore) return null
@@ -1301,7 +1313,7 @@ function Tool({
   // around. Toward becomes Away and Away becomes Toward.
   function handleMirror(e) {
     e.stopPropagation()
-    const rb = rigidRef.current
+    const rb = liveRb()
     if (!snap || !rb) return
     const c = snap.target.getCenter()
     const pose = anglePose(
@@ -1358,7 +1370,7 @@ function Tool({
       return
     }
     const model = snap?.target
-    const rb = rigidRef.current
+    const rb = liveRb()
     if (!model?.getBody?.() || !rb || placeSide) return
     // The other player moves this model: no Throw
     if (model.claim && !model.claim()) return
@@ -1576,7 +1588,9 @@ function OtherToolBody({
   target = null,
   rangeFrom = null,
 }) {
-  const rigidRef = useRef()
+  const groups = useRef([])
+  const colliders = useRef([])
+  const { rigidRef, liveRb } = useBodyRef(groups, colliders)
   const { pose } = entry
   const entryTurn = entry.turn ?? defaultTurn
   const hulls = useMemo(() => parts.map((part) => hullPoints(part.obj)), [parts])
@@ -1590,8 +1604,6 @@ function OtherToolBody({
     yaw: pose.yaw,
     turn: { right: entryTurn.right, left: entryTurn.left },
   })
-  const groups = useRef([])
-  const colliders = useRef([])
   // When the entry came (performance.now() ms), set on mount and after each change
   const entryTime = useRef(0)
   const latest = useRef(null)
@@ -1608,7 +1620,7 @@ function OtherToolBody({
   }, [pose.x, pose.y, pose.z, pose.yaw, entryTurn.right, entryTurn.left])
 
   useFrame((_, dt) => {
-    const rb = rigidRef.current
+    const rb = liveRb()
     const now = latest.current
     if (!rb || !now) return
     const live = now.getLive?.()

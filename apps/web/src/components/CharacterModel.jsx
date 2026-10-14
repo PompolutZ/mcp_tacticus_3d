@@ -23,6 +23,7 @@ import {
   SOLVER_NONE,
   WORLD_GRAVITY,
   castDown,
+  liveBody,
   lowerFloor,
 } from '../physics.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
@@ -299,6 +300,14 @@ function CharacterFigure({
   const { world, rapier } = useRapier()
   const [hovered, setHovered] = useState(false)
   const rigidRef = useRef()
+  // The body if it is still in the world, else null. For listeners, effects and drag callbacks, which can
+  // run after the body is removed (physics.js, liveBody).
+  function liveRb() {
+    const rb = rigidRef.current
+    return liveBody(world, rb) ? rb : null
+  }
+  // The handle of the running pointer drag, so an unmount can cancel it
+  const dragHandle = useRef(null)
   const figureRef = useRef()
   const isDragging = useRef(false)
   // Last body position of this drag where the base overlapped no model: { x, y, z }. Starts at the
@@ -451,7 +460,7 @@ function CharacterFigure({
   // The body is kinematic during the lift, so physics does not move it: it does not fall, and
   // nothing pushes it.
   function toggleLift() {
-    const rb = rigidRef.current
+    const rb = liveRb()
     if (!rb || isDragging.current || remoteRef.current) return
     if (lift.current) {
       lift.current.up = !lift.current.up
@@ -634,7 +643,7 @@ function CharacterFigure({
   // and no write. Back from it, Scene sets the body type and the pose, and the contact forces come back here.
   useEffect(() => {
     remoteRef.current = remote
-    const rb = rigidRef.current
+    const rb = liveRb()
     if (!rb || remote === wasRemote.current) return
     wasRemote.current = remote
     // The pose set when the remote mode ends is a jump, and no bump
@@ -701,9 +710,10 @@ function CharacterFigure({
   }, [hovered])
 
   function onPointerDown(e) {
-    startPointerDrag(e, {
+    dragHandle.current = startPointerDrag(e, {
       controls,
       canvas: gl.domElement,
+      canStart: () => Boolean(liveRb()),
       key: claimKey,
       ownership,
       releaseAtEnd: false,
@@ -711,14 +721,16 @@ function CharacterFigure({
         onDragSelect?.()
         // A drag ends a lift. The model follows the pointer and drops where it is released.
         lift.current = null
-        rigidRef.current?.setBodyType(2, true)
+        liveRb()?.setBodyType(2, true)
         isDragging.current = true
         floorMode.current = 'top'
         setDragging(true)
-        freePlace.current = { ...rigidRef.current.translation() }
+        const rb = liveRb()
+        if (!rb) return
+        freePlace.current = { ...rb.translation() }
         startPose.current = {
-          t: { ...rigidRef.current.translation() },
-          r: { ...rigidRef.current.rotation() },
+          t: { ...rb.translation() },
+          r: { ...rb.rotation() },
         }
         onDragStart?.()
       },
@@ -730,7 +742,7 @@ function CharacterFigure({
         floorMode.current = 'top'
         // A drop inside a model goes back to the last free place (rotation stays). A jump, as no
         // tween exists for a body.
-        const rb = rigidRef.current
+        const rb = liveRb()
         const back = freePlace.current
         if (rb && back) {
           const t = rb.translation()
@@ -740,9 +752,9 @@ function CharacterFigure({
         startPose.current = null
         setDragOverlap(false)
         setDragging(false)
-        rigidRef.current?.setBodyType(0, true)
-        rigidRef.current?.setLinvel(ZERO, true)
-        rigidRef.current?.setAngvel(ZERO, true)
+        liveRb()?.setBodyType(0, true)
+        liveRb()?.setLinvel(ZERO, true)
+        liveRb()?.setAngvel(ZERO, true)
         onDragEnd?.()
       },
       // Esc: the body goes back to the pose of the drag start, with no velocity and dynamic again. A turn (Q / E)
@@ -752,7 +764,7 @@ function CharacterFigure({
       // A lost tie (reason 'lost'): the other player moves the model now. The body stays as it is for the
       // remote mode, and there is no put back, which would fight their drag.
       onCancel: (reason) => {
-        const rb = rigidRef.current
+        const rb = liveRb()
         const from = startPose.current
         isDragging.current = false
         floorMode.current = 'top'
@@ -760,14 +772,14 @@ function CharacterFigure({
         startPose.current = null
         setDragOverlap(false)
         setDragging(false)
-        if (reason !== 'lost' && rb && from) {
+        if (reason !== 'lost' && reason !== 'unmount' && rb && from) {
           rb.setBodyType(0, true)
           rb.setTranslation(from.t, true)
           rb.setRotation(from.r, true)
           rb.setLinvel(ZERO, true)
           rb.setAngvel(ZERO, true)
         }
-        onDragEnd?.(reason !== 'lost' && Boolean(from))
+        onDragEnd?.(reason !== 'lost' && reason !== 'unmount' && Boolean(from))
       },
       onClick: () => onSelect?.(),
     })
@@ -783,7 +795,14 @@ function CharacterFigure({
   // So the parent forgets the body here, on unmount. A call on a removed body makes Rapier fail, and
   // after that every call into the physics world fails (the room save read the removed body).
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => () => setBody(null), [])
+  useEffect(
+    () => () => {
+      dragHandle.current?.cancel('unmount')
+      dragHandle.current = null
+      setBody(null)
+    },
+    [],
+  )
 
   // Also hand the 3D object to the parent, so tools can find the model under the pointer
   function setFigure(obj) {

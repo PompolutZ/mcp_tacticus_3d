@@ -109,3 +109,16 @@ Paths are under `apps/web/src/`.
 **User:** turn off the Netlify badge (decision 3). After the merge and push to main, CI deploys the API with `POST /errors`.
 
 ## Results
+
+### Step 1: Crash safety
+
+Done.
+
+- New `src/crash/errors.js`: `reportError`, `subscribeErrors` (hook for step 2), `installErrorListeners` (window `error`, `unhandledrejection`; first error logged as `[first error]`). Installed in `main.jsx`.
+- New `src/crash/SceneBoundary.jsx` around `<Canvas>` in `App.jsx`: logs `[scene error]`, mounts again with a new key, 3 errors in 10 s give a Reload fallback (`restartCount.js`, tested).
+- `physics.js`: `liveBody(world, rb)`; test `physics.live.test.js` with a fake world.
+- New `useBodyRef.js` (shared hook: `rigidRef`, `liveRb()`, clears refs on unmount) used in `Tool` and `OtherToolBody` (also `groups`, `colliders`). New `WorldRef.jsx` gives `Scene` the Rapier world (`Scene` renders `<Physics>`, so it has no `useRapier`). All `Scene` reads of `charBodies` go through `liveCharBody` (`applyPose`, `otherOwned` effect, `modelPosition`).
+- `useDragTool` and `CharacterFigure` keep the `startPointerDrag` handle and call `cancel('unmount')` on unmount. `endDrag`, `canStart` and the drag callbacks check `liveBody`. A cancel with reason `unmount` does not put the body back, as `lost`.
+- `DiceTray`: `startShelfMove` and `reroll` check `liveBody`; `Die` clears `entry.body` on unmount.
+- Doc: `features/table-tools.md` "Recovery".
+- Not done: the Rapier calls inside `useFrame` and physics step callbacks are not wrapped (the body is in the world there). The boundary cannot catch an error thrown in `useFrame`: it reaches the `window` listener only. Lint: 3 new `exhaustive-deps` warnings in `RulerTool.jsx` (`liveRb`), same kind as the old ones.

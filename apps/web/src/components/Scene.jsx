@@ -33,6 +33,7 @@ import { clampWaiting } from '../tokens/dropWait.js'
 import LooseToken from './LooseToken.jsx'
 import TokenDragPreview, { OtherSpawnPreview } from './TokenDragPreview.jsx'
 import ToolPoint from './ToolPoint.jsx'
+import WorldRef from './WorldRef.jsx'
 import LiveSync from './LiveSync.jsx'
 import RemoteCursor from './RemoteCursor.jsx'
 import Ping from './Ping.jsx'
@@ -66,7 +67,7 @@ import {
   trayCards,
   yawQuaternion,
 } from '../characters/models.js'
-import { FRICTION, WORLD_GRAVITY } from '../physics.js'
+import { FRICTION, WORLD_GRAVITY, liveBody } from '../physics.js'
 import { overlapMarks, overlapsAny } from '../characters/overlap.js'
 import { claimChanges, claimCheck, modelIdOfKey, modelKey } from '../characters/claims.js'
 import { assetUrl } from '../assets/index.js'
@@ -403,6 +404,13 @@ export default function Scene({
   // characters/models.js). The first model has the character's own id.
   // Model id → Rapier body. Tools read and move characters through it.
   const charBodies = useRef(new Map())
+  // The Rapier world, set by WorldRef inside <Physics>. liveBody checks a body against it.
+  const worldRef = useRef(null)
+  // The body of a model if it is still in the world, else undefined. For listeners, effects and peer data.
+  function liveCharBody(id) {
+    const body = charBodies.current.get(id)
+    return liveBody(worldRef.current, body) ? body : undefined
+  }
   // Model id → 3D object. Tools find the character under the pointer with it.
   const charObjects = useRef(new Map())
   // Model id → its lift, { toggle(), down() }. See CharacterModel.jsx and liftPiece.
@@ -515,7 +523,7 @@ export default function Scene({
     const list = []
     for (const model of models) {
       if (model.id === skip) continue
-      const body = charBodies.current.get(model.id)
+      const body = liveCharBody(model.id)
       if (!body) continue
       const t = body.translation()
       list.push({
@@ -643,7 +651,7 @@ export default function Scene({
   // is one, otherwise the 3D object's own position. Not the spawn position, so a character that moved
   // drops its token where it now stands. Returns null if neither is mounted yet.
   function modelPosition(id) {
-    const body = charBodies.current.get(id)
+    const body = liveCharBody(id)
     if (body) {
       const t = body.translation()
       return { x: t.x, z: t.z }
@@ -659,7 +667,7 @@ export default function Scene({
   // The pose of a mounted model to store: its body position and rotation, or null. A lifted model (R) gives
   // the place under the lift, so it stands there when the table opens again.
   function restPose(id) {
-    const body = charBodies.current.get(id)
+    const body = liveCharBody(id)
     if (!body) return null
     return poseOf(charLifts.current.get(id)?.restPosition() ?? body.translation(), body.rotation())
   }
@@ -694,7 +702,7 @@ export default function Scene({
   function applyTurn(piece, angle) {
     if (piece.kind === 'tool') toolTurns.current[piece.id]?.(angle)
     if (piece.kind === 'character') {
-      const body = charBodies.current.get(piece.id)
+      const body = liveCharBody(piece.id)
       if (body) turnBody(body, angle)
     }
   }
@@ -718,7 +726,7 @@ export default function Scene({
 
   // Puts a model body at a stored pose: dynamic, exact, and asleep a few frames later (decision 8)
   function applyPose(id, pose) {
-    const body = charBodies.current.get(id)
+    const body = liveCharBody(id)
     if (!body) return
     body.setBodyType(0, true)
     body.setTranslation({ x: pose.x, y: pose.y, z: pose.z }, true)
@@ -738,7 +746,7 @@ export default function Scene({
         continue
       }
       sleepLater.current.delete(id)
-      const body = charBodies.current.get(id)
+      const body = liveCharBody(id)
       if (body?.isDynamic() && ownership?.owner(modelKey(id)) !== 'other') body.sleep()
     }
     if (!ownership) return
@@ -746,7 +754,7 @@ export default function Scene({
     for (const key of ownership.mine()) {
       const id = modelIdOfKey(key)
       if (id === null) continue
-      const body = charBodies.current.get(id)
+      const body = liveCharBody(id)
       const action = claimCheck({
         age: now - (claimTimes.current.get(key) ?? -Infinity),
         dynamic: body?.isDynamic() ?? false,
@@ -783,7 +791,7 @@ export default function Scene({
       const entry = poses[model.id]
       if (!entry || samePose(entry, prev[model.id])) continue
       if (ownership?.owner(modelKey(model.id)) != null) continue
-      const body = charBodies.current.get(model.id)
+      const body = liveCharBody(model.id)
       if (!body || samePose(poseOf(body.translation(), body.rotation()), entry)) continue
       applyPose(model.id, entry)
     }
@@ -805,12 +813,12 @@ export default function Scene({
       if (id === null || ownership.owner(key) === 'me') continue
       const pose = posesRef.current[id]
       if (pose) applyPose(id, pose)
-      else charBodies.current.get(id)?.setBodyType(0, true)
+      else liveCharBody(id)?.setBodyType(0, true)
     }
     // The other player is gone: the body stays where it is and awake. This browser writes its rest pose.
     for (const key of gone) {
       const id = modelIdOfKey(key)
-      const body = id === null ? null : charBodies.current.get(id)
+      const body = id === null ? null : liveCharBody(id)
       if (body && ownership.owner(key) !== 'me') {
         body.setBodyType(0, true)
         body.wakeUp()
@@ -903,7 +911,7 @@ export default function Scene({
       const { id: characterId, team } = model.character
       const pos = trayPositions.get(characterId)
       const last = lastTrayPositions.current.get(characterId)
-      const body = charBodies.current.get(model.id)
+      const body = liveCharBody(model.id)
       if (!pos || !last || !body || (last[0] === pos[0] && last[2] === pos[2])) continue
       // The other player moves this model: its pose comes from the other browser
       if (ownership?.owner(modelKey(model.id)) === 'other') continue
@@ -975,10 +983,10 @@ export default function Scene({
       ...models.map((model) => ({
         kind: 'character',
         id: model.id,
-        getBody: () => charBodies.current.get(model.id),
+        getBody: () => liveCharBody(model.id),
         getObject: () => charObjects.current.get(model.id),
         getCenter: () =>
-          charBodies.current.get(model.id)?.translation() ?? {
+          liveCharBody(model.id)?.translation() ?? {
             x: 0,
             y: 0,
             z: 0,
@@ -1145,6 +1153,7 @@ export default function Scene({
       <SceneLights />
 
       <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP} debug={showColliders}>
+        <WorldRef worldRef={worldRef} />
         <ToolPoint pointRef={toolPointRef} />
         {ownPing && <Ping key={ownPing.id} ping={ownPing} side={ownSide} />}
         {otherLook.ping && (
@@ -1159,7 +1168,7 @@ export default function Scene({
             <LiveSync
               live={live}
               ownership={ownership}
-              getBody={(id) => charBodies.current.get(id)}
+              getBody={(id) => liveCharBody(id)}
               toolLives={toolLives}
               diceLives={diceLives}
               pieceLives={pieceLives}
@@ -1678,7 +1687,7 @@ export default function Scene({
         {draggingChar && (
           <Suspense fallback={null}>
             <DeployRangeTool
-              getBody={() => charBodies.current.get(draggingCharId)}
+              getBody={() => liveCharBody(draggingCharId)}
               centerZ={
                 draggingChar.team === 'host'
                   ? MAT_SIZE / 2 - deployTip
@@ -1693,7 +1702,7 @@ export default function Scene({
         {otherDragChar && (
           <Suspense fallback={null}>
             <DeployRangeTool
-              getBody={() => charBodies.current.get(otherDragId)}
+              getBody={() => liveCharBody(otherDragId)}
               centerZ={
                 otherDragChar.team === 'host'
                   ? MAT_SIZE / 2 - deployTip
