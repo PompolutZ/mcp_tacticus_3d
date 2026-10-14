@@ -24,6 +24,7 @@ import { MOVE_TIP, RANGE_TIP, TOOL_TINT } from '../tabletools/toolTips.js'
 import { onRack } from '../tabletools/layout.js'
 import { flipTool } from './toolFlip.js'
 import { aimTurn } from './aimTurn.js'
+import { toolAction } from './toolInput.js'
 import { clampRange, rangeReach, withinRange } from './rangeOne.js'
 import { footprintGap, fromLocal, lineClamp, placeClamp, toLocal, touches } from './placeLock.js'
 import { OccludedHtml } from './LabelOcclusion.jsx'
@@ -996,7 +997,11 @@ function Tool({
   function dragPlan(side) {
     const rb = liveRb()
     if (!rb) return null
-    if (bendable && bendOn && side && side !== snap?.side) {
+    const action = toolAction(
+      { snapped: !!snap, snappedSide: snap?.side, bendable, bendOn, side, drag: null },
+      'drag',
+    )
+    if (action.kind === 'bend') {
       const { x, z } = toolPose(rb)
       const other = turn[OTHER[side]]
       return {
@@ -1010,7 +1015,7 @@ function Tool({
         },
       }
     }
-    if (!snap) return null
+    if (action.kind !== 'turnBase') return null
     // The piece under the pointer is the one the tool measures against. Not the snapped one.
     const { target: snapped, side: snappedSide } = snap
     const pivot = snapped.getCenter()

@@ -138,6 +138,20 @@ While bending is off, a drag moves or turns the whole tool, as described above. 
 
 The outline of a bent tool is one rectangle for each half, plus the round hinge between them.
 
+### Input rules
+
+What a drag does depends on the state of the tool and on the half you grab. `src/components/toolInput.js` holds the rules.
+
+| Tool state | Drag a half |
+|---|---|
+| Free, Bend off | moves the tool |
+| Free, Bend on | bends that half |
+| Snapped, Bend off | turns the tool around the base |
+| Snapped, Bend on, far half | bends the far half |
+| Snapped, Bend on, half on the base | turns the tool around the base |
+
+A range tool has no halves and no Bend, so the rows with Bend off apply. Place, Place 1 and Throw / Push only limit a drag of a model, so they are not in the table.
+
 ### Range 1
 
 Range 1 has no tool of its own. The short side of every range tool is 1", so the width of a range tool measures range 1. **R1** (the chip of the rack, or the toolbar button) spawns the Range 2 tool, the shortest range tool, and uses it this way. The TTS mod does the same with its "Snap 1" button.

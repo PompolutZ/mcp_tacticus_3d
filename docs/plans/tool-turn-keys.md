@@ -1,6 +1,6 @@
 # Plan: Q / E and the wheel turn and bend a snapped tool
 
-Requested by the user on 2026-10-14. Status: not started.
+Requested by the user on 2026-10-14. Status: Part 1 done.
 
 Three coder steps, one commit each. Branch `tool-turn-keys`, worktree `../mcp_assist_3d-tool-turn-keys`.
 
@@ -60,6 +60,8 @@ Work:
 4. Docs: `range-movement-tools.md`, new section "Input rules" with the "Drag a half" column only. The Q / E column comes in Part 2.
 
 Checks: `pnpm --filter web build`, `pnpm format`, `pnpm lint`, the web tests.
+
+Result: `src/components/toolInput.js` has `toolAction(state, input)` for `'drag'` and `'step'`. `toolInput.test.js` covers every table row for both inputs, a range tool, and a drag in progress. `RulerTool.jsx` `dragPlan` takes move / bend / turn around base from `toolAction(state, 'drag')`; the pose math is unchanged, and `turnAroundCenter` is untouched. `range-movement-tools.md` has "Input rules" with the "Drag a half" column.
 
 User, after this part: drag works as before on each tool. Free move, snapped turn around the base, bend of each half, and a snapped tool with Bend on.
 
