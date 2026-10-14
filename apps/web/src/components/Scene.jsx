@@ -9,7 +9,6 @@ import {
 } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Raycaster, Vector3 } from 'three'
-import { useTexture } from '@react-three/drei'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import {
   MovementRuler,
@@ -46,8 +45,7 @@ import DiceTray from './DiceTray.jsx'
 import OtherDiceTray from './OtherDiceTray.jsx'
 import ScoreBoard from './ScoreBoard.jsx'
 import PriorityMarker from './PriorityMarker.jsx'
-import { projectFootprints } from './footprintProjection.js'
-import { Backdrop, Mat, SceneLights, matImageUrl } from './SceneShared.jsx'
+import { Backdrop, Mat, SceneLights, TableSurface, matImageUrl } from './SceneShared.jsx'
 import { BASE_DIAMETER } from '../characters/files.js'
 import { MAPS } from '../terrain/maps/index.js'
 import { characterGiveSources, characterName, characterStamina } from '../characters/characters.js'
@@ -87,7 +85,7 @@ import {
 } from '../characters/trays.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import { tokenSize } from '../tokens/tokens.js'
-import { MAT_SIZE, TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WALLS, TABLE_WIDTH } from '../table.js'
+import { MAT_SIZE, TABLE_WALLS } from '../table.js'
 import { RANGE_TIP } from '../tabletools/toolTips.js'
 import {
   NO_PIECES,
@@ -102,15 +100,6 @@ import { poseOf } from '../rooms/table.js'
 import { rackHiddenSides, rosterRowsShown, setupStep, viewOf } from '../setup/setup.js'
 import { useSideColors } from '../sideColors.js'
 
-const TABLE_THICKNESS = 0.5
-// The table image of the TTS mod (its TableURL). The image is 3:2, the same as the TTS table. The app table is
-// deeper (table.js), so the image fills the table depth and its left and right ends are cut off. The planks
-// keep their shape.
-function fitTableTexture(texture) {
-  const repeatX = TABLE_WIDTH / TABLE_DEPTH / (texture.image.width / texture.image.height)
-  texture.repeat.set(repeatX, 1)
-  texture.offset.set((1 - repeatX) / 2, 0)
-}
 // Tools hang this far above the table and measure by the outline cast below them
 const TOOL_HOVER_HEIGHT = 1
 // Two physics steps per frame. With one, a model dropped from high up sometimes gets stuck in terrain.
@@ -398,7 +387,6 @@ export default function Scene({
   live = null,
   pieceLives = null,
 }) {
-  const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
   const { camera, gl, pointer } = useThree()
   // The maps below are keyed by model id: a character with a second form has two models (see
   // characters/models.js). The first model has the character's own id.
@@ -1177,24 +1165,7 @@ export default function Scene({
             />
           </>
         )}
-        {/* Table surface — fixed collider so models land on it */}
-        <RigidBody type="fixed" colliders={false}>
-          {/* Collider much thicker than the visual so fast bodies can't tunnel through; top stays at y=0 */}
-          <CuboidCollider
-            args={[TABLE_WIDTH / 2, TABLE_COLLIDER_HALF_H, TABLE_DEPTH / 2]}
-            position={[0, -TABLE_COLLIDER_HALF_H, 0]}
-            friction={FRICTION}
-          />
-          <mesh position={[0, -TABLE_THICKNESS / 2, 0]} receiveShadow>
-            <boxGeometry args={[TABLE_WIDTH, TABLE_THICKNESS, TABLE_DEPTH]} />
-            <meshStandardMaterial
-              map={tableTexture}
-              roughness={0.8}
-              metalness={0.05}
-              onBeforeCompile={projectFootprints}
-            />
-          </mesh>
-        </RigidBody>
+        <TableSurface />
         {/* Invisible walls at the table edge, so dice cannot fall off the table. Kinematic, see table.js. */}
         <RigidBody type="kinematicPosition" colliders={false}>
           {TABLE_WALLS.map(({ halfExtents, position }, i) => (

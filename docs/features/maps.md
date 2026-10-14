@@ -77,3 +77,14 @@ The order of the imports in `index.js` is the order of the maps in the lists. A 
 - A bundle piece has no collider from its visible mesh. Each `colliders` entry is one Rapier collider: box, cylinder, capsule and sphere are Rapier shapes, and a mesh entry is the hull or the triangles of one mesh (`mesh: n`, node n) in the one collider GLB of the piece. The entries are in GLB space, so the same turn of 180° around Y as for the mesh applies, and then the placement scale. The size of a box, cylinder, capsule or sphere follows the scale. A non-uniform scale on a turned shape is only approximate, because a Rapier shape cannot skew. A collider mesh is exact for any scale, because the transform (entry scale, turn and position, the import turn, the placement scale) is applied to its vertices. The maps so far have uniform scales on turned shapes only.
 - All explicit colliders (also the collider mesh of an OBJ piece) sit directly under the RigidBody, never in the scaled group, because @react-three/rapier 1.5 scales them a second time there. See `src/terrain/bundleColliders.js`.
 - `tint` on an OBJ piece multiplies the texture, as in TTS. A tint is left out when the map card shows another color. The tints of the app maps were compared with the cards.
+
+## Terrain page
+
+Status: partly built. The mat and the piece list are built. Move, turn, remove, load and export are not.
+
+- Dev only, at `#terrain` (`src/debug/TerrainPage.jsx`). The production build does not have it, and the lobby has no link to it. A reload clears the placed pieces.
+- Its own small scene: table, mat, backdrop, lights, `Terrain` and physics, with the camera of the game (mouse, W A S D, arrows, wheel). No characters, dice, tools or room.
+- The side panel has the mat list (one row per mat, by name, 21). A click shows the mat, turned by the `matRotation` of the first map that uses it. A new mat keeps the placed pieces, and the pieces do not turn with the mat (the placements are relative to the mat center).
+- Below it, a filter field (by piece name) and the piece list in groups: size 1 to 5, then "No size". A group header shows the number of pieces. A piece with two sizes is in both groups.
+- A click on a piece row adds the piece at the mat center, on the mat top, turned 0°, with the scale and tint that its placements at that size use most often (`src/terrain/catalog.js`). The new piece is selected. A click on a placed piece selects it, a click on the empty table clears the selection.
+

@@ -97,3 +97,9 @@ Step 1 done.
 - `MAPS` before and after are equal (keys, order, values), except the new fields. 32 commented-out placements are in `skipped` (26 tokens, 6 barrels with `note`). The truck tint exception is a `note` on its placement. Header comments went to `docs/features/maps.md`.
 - `migrate-terrain.mjs` writes the map JSON and adds the import to `index.js` (`scripts/lib/maps-index.mjs`, tested). Trial runs with `--out` of 3 migrated maps gave the same JSON as the files. `matRotation` is now written as 0 to 359.99.
 - Tests: `maps/maps.test.js`, `scripts/lib/maps-index.test.js`.
+
+Step 3 done.
+
+- `debug/TerrainPage.jsx`, `#terrain` in `Root.jsx` (dev only, lazy). Panel: mat list, filter, piece list by size. A row click adds the piece and selects it. `TableSurface` (table collider and mesh) moved from `Scene.jsx` to `SceneShared.jsx`, the game uses it too. Styles `.terrain-*` in `index.css`.
+- Adding a piece or a mat runs in `startTransition`, so the placed pieces stay while new files load.
+

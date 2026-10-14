@@ -5,7 +5,9 @@ import { projectFootprints } from './footprintProjection.js'
 import { useColorTexture } from './useColorTexture.js'
 import { matImage } from '../terrain/files.js'
 import { assetUrl } from '../assets/index.js'
-import { MAT_SIZE } from '../table.js'
+import { RigidBody, CuboidCollider } from '@react-three/rapier'
+import { FRICTION } from '../physics.js'
+import { MAT_SIZE, TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WIDTH } from '../table.js'
 
 // Parts of the scene that the game (Scene.jsx) and the terrain page (debug/TerrainPage.jsx) share.
 
@@ -86,5 +88,39 @@ export function SceneLights() {
           and 0 would darken the Backdrop image. */}
       <Environment files={assetUrl('hdri/potsdamer_platz_1k.hdr')} environmentIntensity={0.3} />
     </>
+  )
+}
+
+const TABLE_THICKNESS = 0.5
+// The table image of the TTS mod (its TableURL). The image is 3:2, the same as the TTS table. The app table is
+// deeper (table.js), so the image fills the table depth and its left and right ends are cut off. The planks
+// keep their shape.
+function fitTableTexture(texture) {
+  const repeatX = TABLE_WIDTH / TABLE_DEPTH / (texture.image.width / texture.image.height)
+  texture.repeat.set(repeatX, 1)
+  texture.offset.set((1 - repeatX) / 2, 0)
+}
+
+// The table surface: a fixed collider so bodies land on it, and the table mesh. Goes inside <Physics>.
+export function TableSurface() {
+  const tableTexture = useTexture(assetUrl('table.webp'), fitTableTexture)
+  return (
+    <RigidBody type="fixed" colliders={false}>
+      {/* Collider much thicker than the visual so fast bodies can't tunnel through; top stays at y=0 */}
+      <CuboidCollider
+        args={[TABLE_WIDTH / 2, TABLE_COLLIDER_HALF_H, TABLE_DEPTH / 2]}
+        position={[0, -TABLE_COLLIDER_HALF_H, 0]}
+        friction={FRICTION}
+      />
+      <mesh position={[0, -TABLE_THICKNESS / 2, 0]} receiveShadow>
+        <boxGeometry args={[TABLE_WIDTH, TABLE_THICKNESS, TABLE_DEPTH]} />
+        <meshStandardMaterial
+          map={tableTexture}
+          roughness={0.8}
+          metalness={0.05}
+          onBeforeCompile={projectFootprints}
+        />
+      </mesh>
+    </RigidBody>
   )
 }
