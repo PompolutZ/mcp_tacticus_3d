@@ -24,7 +24,7 @@ import {
   viewOf,
 } from '../setup/setup.js'
 import { chose, isYou, playerName, possessive, says, their } from '../setup/names.js'
-import { TYPE, deckButton, lockedTitle } from '../setup/deckButton.js'
+import { TYPE, deckButton, lockedTitle, pickButton } from '../setup/deckButton.js'
 import { useSideColors } from '../sideColors.js'
 import { useNames } from '../setup/useNames.js'
 import { RosterCard } from './RosterCards.jsx'
@@ -117,7 +117,7 @@ function decides(team, ctx) {
 
 // One row of crisis cards of a roster, next to the scoring board. With row.use, each card has a Choose button
 // next to it. row: see crisisRows in setup/setup.js. A click on a card opens the crisis compare overlay (onOpen(code)).
-function CrisisRow({ row, locked, onOpen, onUse, onCardHover }) {
+function CrisisRow({ row, setup, ctx, onOpen, onUse, onCardHover }) {
   const cards = useMemo(
     () => crisisRowLayout(row.team, row.type, row.codes, row.drawn, row.facing),
     [row.team, row.type, row.codes, row.drawn, row.facing],
@@ -125,6 +125,7 @@ function CrisisRow({ row, locked, onOpen, onUse, onCardHover }) {
   return cards.map((card, i) => {
     const info = rosterCard(card.code)
     if (!info) return null
+    const { locked, title } = pickButton(setup, info.name, ctx)
     return (
       <group key={`${i}-${card.code}`}>
         <RosterCard
@@ -139,7 +140,7 @@ function CrisisRow({ row, locked, onOpen, onUse, onCardHover }) {
               type="button"
               className="chip setup-use"
               aria-disabled={locked !== null}
-              title={locked ?? `Choose ${info.name}`}
+              title={title}
               onClick={locked === null ? () => onUse(card.code) : undefined}
             >
               Choose
@@ -496,7 +497,7 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
 // threat(value), turnMat(direction), edge(), ready(team),
 // affiliation(team, key), restart(), browse(step | null), override(step) }, see setup/useGameSetup.js.
 // onCrisisOpen({ team, type, code, drawn }): a click on a crisis card. drawn: the card is one of the 2 drawn
-// cards with a Choose button (App.jsx opens the compare overlay for it; the Choose 1 overlay will take it over).
+// cards with a Choose button (App.jsx opens the Choose 1 overlay for it).
 // onCardHover(card, over): for Alt (useCardPeek.js).
 export default function GameSetup({
   setup,
@@ -518,7 +519,6 @@ export default function GameSetup({
   const rows = useMemo(() => crisisRows(setup, parsed), [setup, parsed])
   const step = setupStep(setup)
   const browsing = viewOf(setup) !== null
-  const cardLocked = lockedTitle(setup, 'a card', ctx)
   if (step === 'done' || (!parsed.host && !parsed.guest)) return null
   return (
     <>
@@ -526,7 +526,8 @@ export default function GameSetup({
         <CrisisRow
           key={`${row.team}-${row.type}`}
           row={row}
-          locked={cardLocked}
+          setup={setup}
+          ctx={ctx}
           onOpen={(code) => onCrisisOpen({ team: row.team, type: row.type, code, drawn: row.use })}
           onUse={actions.pick}
           onCardHover={onCardHover}

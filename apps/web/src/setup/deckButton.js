@@ -38,3 +38,10 @@ export function deckButton(setup, team, type, parsed, ctx) {
     title: locked ?? problem ?? `Play on ${their(team, ctx)} ${TYPE[type]} crises: draw 2 of them`,
   }
 }
+
+// The state of the Choose button of a drawn crisis card (first and second step): { locked, title }. Shared by
+// the Choose chip on the table (GameSetup.jsx) and the Choose 1 overlay (CrisisChoose.jsx).
+export function pickButton(setup, name, ctx) {
+  const locked = lockedTitle(setup, 'a card', ctx)
+  return { locked, title: locked ?? `Choose ${name}` }
+}

@@ -2756,3 +2756,55 @@ body {
   margin: 20px 0;
   color: var(--muted);
 }
+
+/* The Choose 1 overlay (CrisisChoose.jsx): the 2 drawn cards side by side, a button under each. The frame is
+   .roster-popup. */
+.crisis-choose {
+  --card-h: min(52vh, 480px);
+  align-items: center;
+  gap: 14px;
+}
+
+.crisis-choose-title {
+  font-size: 18px;
+}
+
+.crisis-choose-cards {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  max-width: 100vw;
+}
+
+.crisis-choose-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+/* The Choose 1 overlay (CrisisChoose.jsx): the 2 drawn cards side by side, a button under each. The frame is
+   .roster-popup. */
+.crisis-choose {
+  --card-h: min(52vh, 480px);
+  align-items: center;
+  gap: 14px;
+}
+
+.crisis-choose-title {
+  font-size: 18px;
+}
+
+.crisis-choose-cards {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  max-width: 100vw;
+}
+
+.crisis-choose-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}

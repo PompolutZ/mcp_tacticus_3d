@@ -27,12 +27,21 @@ import { CardPopup } from './components/CardPopup.jsx'
 import { TrayPopup } from './components/TrayPopup.jsx'
 import { RosterPopupHost } from './components/RosterPopupHost.jsx'
 import { CrisisCompare } from './components/CrisisCompare.jsx'
+import { CrisisChoose } from './components/CrisisChoose.jsx'
+import { useAutoOpen } from './setup/useAutoOpen.js'
 import { useTokenDrag } from './drag/useTokenDrag.js'
 import { cancelActiveDrag, isDragActive } from './drag/pointerDrag.js'
 import { characterOnBoard, isConstructId, modelCharacterId } from './characters/models.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { parseRosterText, rosterCard, rosterTabs } from './rosters/cards.js'
-import { colorOf, priorityOf, rackHiddenSides, setupStep, viewOf } from './setup/setup.js'
+import {
+  chooserOf,
+  colorOf,
+  priorityOf,
+  rackHiddenSides,
+  setupStep,
+  viewOf,
+} from './setup/setup.js'
 import { useRollOffReader } from './setup/useRollOffReader.js'
 import { useGameSetup } from './setup/useGameSetup.js'
 import { gamePriority, priorityTitle } from './game/priority.js'
@@ -224,8 +233,9 @@ export default function App({
   // code: the card that gives the first tab and the first slide (code null: the first card). Also one of the
   // popups: each covers the table.
   const [openCrisis, setOpenCrisis] = useState(null)
-  // The id and step of the setup whose compare overlay opened by itself: "<setup id>:deck" | null
-  const autoOpenedRef = useRef(null)
+  // The Choose 1 overlay: the key "<setup id>:<step>" of the step it is open for, or null. It shows only
+  // while the setup is at that step, so a step change closes it. See CrisisChoose.jsx.
+  const [openChoose, setOpenChoose] = useState(null)
   // The function that the open compare overlay puts here: shows the card `step` places away in the top carousel
   const crisisStepRef = useRef(null)
   // The open "Change to" menu of a shelf die, at most one across both
@@ -512,32 +522,47 @@ export default function App({
       ? openCrisis
       : null
 
-  // A click on a crisis card of the setup: { team, type, code, drawn }. drawn: one of the 2 drawn cards that
-  // the chooser picks from (first and second step). Step 8 gives those cards the Choose 1 overlay; until then
-  // they open the compare overlay too. This is the one place that decides what a crisis card click opens.
-  function handleCrisisOpen({ team, type, code }) {
+  // The Choose 1 overlay shows in the first and second step, for the step it was opened in
+  const chooseKey = ['first', 'second'].includes(setupStep(setup))
+    ? `${setup.id}:${setupStep(setup)}`
+    : null
+  const chooseShown = !!chooseKey && openChoose === chooseKey && !viewOf(setup)
+
+  function openChooseOverlay() {
     setOpenCard(null)
     setOpenTrayId(null)
     setOpenRoster(null)
+    setOpenCrisis(null)
+    setOpenChoose(chooseKey)
+  }
+
+  // A click on a crisis card of the setup: { team, type, code, drawn }. drawn: one of the 2 drawn cards that
+  // the chooser picks from (first and second step): it opens the Choose 1 overlay, any other card the compare
+  // overlay. This is the one place that decides what a crisis card click opens.
+  function handleCrisisOpen({ team, type, code, drawn }) {
+    if (drawn && chooseKey) {
+      openChooseOverlay()
+      return
+    }
+    setOpenCard(null)
+    setOpenTrayId(null)
+    setOpenRoster(null)
+    setOpenChoose(null)
     setOpenCrisis({ team, type, code })
   }
 
-  // The deck step starts: the compare overlay opens by itself, once, on the screen of the Priority player (the
-  // Sandbox and a single player room: always). Browsing (setup.view) and a close do not open it again; a new
-  // setup id does.
-  useEffect(() => {
-    if (setupStep(setup) !== 'deck' || viewOf(setup)) return
-    const winner = priorityOf(setup)
-    if (!winner || !parsedRosters.host || !parsedRosters.guest) return
-    if (mySide && mySide !== winner) return
-    const key = `${setup.id}:deck`
-    if (autoOpenedRef.current === key) return
-    autoOpenedRef.current = key
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    handleCrisisOpen({ team: winner, type: 'secure', code: null })
-    // handleCrisisOpen only sets state
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setup, parsedRosters, mySide])
+  // Each overlay opens by itself once per step, on the screen of the chooser (the Sandbox and a single player
+  // room: always). Browsing (setup.view) and a close do not open it again; a new setup id does.
+  const bothRosters = !!parsedRosters.host && !!parsedRosters.guest
+  const chooser = chooserOf(setup)
+  const mine = !mySide || mySide === chooser
+  const free = bothRosters && !viewOf(setup) && mine
+  // Compare: the deck step, the Priority player (the chooser of that step)
+  useAutoOpen(setupStep(setup) === 'deck' && free ? `${setup.id}:deck` : null, () =>
+    handleCrisisOpen({ team: priorityOf(setup), type: 'secure', code: null }),
+  )
+  // Choose 1: the first and second step, the chooser
+  useAutoOpen(free ? chooseKey : null, openChooseOverlay)
 
   // A click on a gem: a chip of a tray (TrayControls.jsx), the Library, or a gem line of a roster card: the card
   // face opens in the card popup. Reading changes nothing, so it works on any player's tray. The tray
@@ -617,7 +642,15 @@ export default function App({
   }
   // The state for a mouse wheel step (WheelCamera.jsx): what keyAction reads, as the resolver needs it
   const wheelState = () => ({
-    popup: !!(openCard || openTrayId || openRoster || crisisShown || settingsOpen || setupOpen),
+    popup: !!(
+      openCard ||
+      openTrayId ||
+      openRoster ||
+      crisisShown ||
+      chooseShown ||
+      settingsOpen ||
+      setupOpen
+    ),
     dragging: !!(tokenDrag || toolDrag),
     overDiceTray: !!hoveredNow().diceTray,
     overPiece: !!hoveredNow().piece,
@@ -631,7 +664,15 @@ export default function App({
       toolDrag,
       modelDrag: modelDragRef.current !== null,
       drag: isDragActive(),
-      popup: !!(openCard || openTrayId || openRoster || crisisShown || settingsOpen || setupOpen),
+      popup: !!(
+        openCard ||
+        openTrayId ||
+        openRoster ||
+        crisisShown ||
+        chooseShown ||
+        settingsOpen ||
+        setupOpen
+      ),
       rosterOpen: !!(openRoster || crisisShown),
       diceMenu,
       libraryOpen,
@@ -648,6 +689,7 @@ export default function App({
         setOpenTrayId(null)
         setOpenRoster(null)
         setOpenCrisis(null)
+        setOpenChoose(null)
         setSettingsOpen(false)
         setSetupOpen(false)
       },
@@ -931,6 +973,7 @@ export default function App({
         openTrayId ||
         openRoster ||
         crisisShown ||
+        chooseShown ||
         settingsOpen ||
         setupOpen
       ) && <CardPopup card={peekCard} peek />}
@@ -958,6 +1001,15 @@ export default function App({
           stepRef={crisisStepRef}
           onChoose={setupActions.deck}
           onClose={() => setOpenCrisis(null)}
+        />
+      )}
+      {chooseShown && (
+        <CrisisChoose
+          setup={setup}
+          parsed={parsedRosters}
+          ctx={nameCtx}
+          onPick={setupActions.pick}
+          onClose={() => setOpenChoose(null)}
         />
       )}
       <RosterPopupHost

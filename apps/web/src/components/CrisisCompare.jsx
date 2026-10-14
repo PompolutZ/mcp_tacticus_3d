@@ -141,7 +141,7 @@ export function CrisisCompare({ open, setup, parsed, ctx, mySide, stepRef, onCho
 
 // One crisis card at popup size, the image of the roster crisis tab (RosterPopup.jsx). A card without an
 // image is a plate with the name and the MCT code.
-function CrisisFace({ code, kind }) {
+export function CrisisFace({ code, kind }) {
   const info = rosterCard(code)
   const [w, h] = CARD_SIZES[kind]
   const size = { width: 'var(--card-w)', aspectRatio: `${w} / ${h}` }

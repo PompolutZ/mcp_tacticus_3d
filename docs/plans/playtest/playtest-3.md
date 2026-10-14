@@ -205,3 +205,14 @@ Done. Files (under `apps/web/src/`): new `components/CrisisCompare.jsx`, new `se
 - Auto-open: effect in `App`, real setup at step `deck`, no `view`, both rosters, Priority player (or no `mySide`); `autoOpenedRef` holds `"<setup id>:deck"`. Tab Secure, first card. A page reload in the deck step opens it again (the ref is not saved).
 - Overlay: `.roster-popup` frame and backdrop, `Carousel` (key per side and tab), card `--card-h` min(24vh, 230px). Empty deck shows "No Secure cards".
 - Checks: format, lint (46 warnings, same), test (701 pass), build ok. Not run in a browser (user rule).
+
+### Step 8: Choose 1 overlay
+
+Done. Files (under `apps/web/src/`): new `components/CrisisChoose.jsx`, new `setup/useAutoOpen.js`, `setup/deckButton.js`, `components/CrisisCompare.jsx` (exports `CrisisFace`), `components/GameSetup.jsx`, `App.jsx`, `index.css`. Docs: `docs/features/setup-game.md`.
+
+- `pickButton(setup, name, ctx)` in `deckButton.js` gives lock and title; the table Choose chip and the overlay button both use it.
+- `useAutoOpen(key, onOpen)`: one hook, one ref each, for both overlays. Key `"<setup id>:deck"` (compare) or `"<setup id>:<step>"` (Choose 1); null when this screen is not the chooser's, a step is browsed or a roster is missing.
+- `openChoose` in App holds the step key it was opened for; it shows only while the setup is at that key, so a step change closes it. Not in `crisisShown`, so arrows do not route to it. It is in the popup key state and `closePopups`.
+- `handleCrisisOpen` with `drawn` opens Choose 1 (and closes the compare overlay); other cards close Choose 1.
+- Non-chooser: cards with no button and "Waiting for X to choose a card."
+- Checks: format, lint (no new warnings), test (701 pass), build ok. Not run in a browser (user rule).

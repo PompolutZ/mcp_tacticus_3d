@@ -100,12 +100,16 @@ z = 12.55   Choose         [drawn 1]
 - A **Choose** button is next to each drawn card, on the table-edge side (x = −26.1).
 - The steps: after **Choose Secures**, the host shows its 2 drawn Secure cards in line with the board. The guest shows its Extract row. After **Choose**, the host shows the chosen card, and the guest shows its 2 drawn Extract cards in line with the board. After the second **Choose**, each player shows their chosen card.
 - A click on a card opens the **crisis compare overlay** (below), not the roster popup. The roster popup still has its Crisis tab, opened from a character or Team Tactic card.
-- **Crisis compare overlay** (`CrisisCompare.jsx`), in the roll off, deck, first and second steps, from a click on a crisis card of either side. Until the Choose 1 overlay exists, the 2 drawn cards (with **Choose**) open it too: `App.jsx` `handleCrisisOpen({ team, type, code, drawn })` is the one place to change.
+- **Crisis compare overlay** (`CrisisCompare.jsx`), in the roll off, deck, first and second steps, from a click on a crisis card of either side. The 2 drawn cards (with **Choose**) open the Choose 1 overlay instead: `App.jsx` `handleCrisisOpen({ team, type, code, drawn })` is the one place that decides.
   - Two tabs, **Compare Secures** and **Compare Extracts**. The tab of the clicked card opens first.
   - Top half: a carousel of my Secure (or Extract) cards, the whole deck of the roster. Bottom half: the opponent's. Each half has the player name (`playerName`) in the player color. In the Sandbox and a single player room, the side of the clicked card is on top. The clicked card is the shown card of its carousel. The cards are the images of the roster Crisis tab.
   - Under the tabs, in the deck step only: **Choose Secures** / **Choose Extracts** for the active tab. Same action, locks and titles as the table button (`src/setup/deckButton.js`). A click closes the overlay.
   - It opens by itself when the deck step starts, once for each setup id, on the screen of the player with Priority (the Sandbox and a single player room: always), on the Secure tab. Closing it, or browsing Prev / Next, does not open it again; a card click does. The other player does not get it.
   - Esc and **×** close it. The left and right arrows move the top carousel. It is the roster popup frame, backdrop and `Carousel.jsx`. It closes when the step is past the second card.
+- **Choose 1 overlay** (`CrisisChoose.jsx`), in the first and second steps: the 2 drawn cards side by side, large, with **Choose this card** under each. Title "Choose 1 of Nelly's Secures" ("Blue's" in the Sandbox, "your" for own cards). The button is the table **Choose** chip: same action (`setupActions.pick`), same lock and title (`pickButton` in `src/setup/deckButton.js`).
+  - It opens by itself once for each `<setup id>:<step>`, on the screen of the chooser (`chooserOf`; the Sandbox and a single player room: always). Same helper as the compare overlay (`src/setup/useAutoOpen.js`). Browsing Prev / Next does not open it.
+  - A click on a drawn card opens it again. The other player sees the cards without buttons and "Waiting for Nelly to choose a card."
+  - A pick, Esc and **×** close it. It also closes when the step changes (the other player picked from another screen).
 - **Choose this edge** removes the rows. The two chosen cards then lie on the board ends, the same as a card from the toolbar (Secure at +z, Extract at −z).
 - A chosen card without files in the app has no image and no tokens. The HUD message says so.
 
@@ -211,7 +215,9 @@ setup: {
 | `src/setup/setup.js` | `NEW_SETUP`, `newSetup`, `setupStep`, the step changes (`chooseDeck`, `pickCard`, `chooseThreat`, `chooseEdge`, `toggleSquadCard`, `setSquadCharacters`, `toggleReady`, `placeSquad`, `chooseAffiliation`, `finishDeploy`), `placedSides`, `revealPlan`, `crisisRows`. No imports, so a Node script can check it |
 | `src/components/GameSetup.jsx` | The crisis rows and all setup buttons |
 | `src/components/CrisisCompare.jsx` | The crisis compare overlay |
-| `src/setup/deckButton.js` | `lockedTitle`, `deckProblem`, `deckButton`: the lock and title of the deck buttons, for the table and the overlay |
+| `src/components/CrisisChoose.jsx` | The Choose 1 overlay |
+| `src/setup/useAutoOpen.js` | Opens an overlay by itself once for each key |
+| `src/setup/deckButton.js` | `lockedTitle`, `deckProblem`, `deckButton`, `pickButton`: the lock and title of the deck and card buttons, for the table and the overlay |
 | `src/rosters/layout.js` | `crisisRowLayout`, `crisisCenterZ`, `CRISIS_GAP_X`. Row 2 of the roster has only the Team Tactic cards now |
 | `src/rosters/cards.js` | `threat` and `key` of each card, `squadThreat`, `squadAffiliationKeys` |
 | `src/scoreboard/affiliations.js` | `affiliationKey`, `squadAffiliations`, `autoAffiliation` |
