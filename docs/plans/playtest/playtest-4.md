@@ -1,6 +1,6 @@
 # Plan: Bugs from the fourth playtest
 
-Requested by the user on 2026-10-14. Status: steps 1 to 9 done, user test of steps 7 to 9 pending.
+Requested by the user on 2026-10-14. Status: done. The user tested all steps and asked to merge on 2026-10-14.
 
 Branch `playtest-4`, worktree `../mcp_assist_3d-playtest-4`, from main at `7b708f7`. One coder step and one commit for each step. Each step writes its **Result** below when it is done. Feature docs change in the same step as the code.
 
