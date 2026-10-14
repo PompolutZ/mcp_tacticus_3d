@@ -692,7 +692,9 @@ function FlatHtml({ x = 0, z = 0, children }) {
     // Rx(π/2) lays the Html element flat on the tool's XZ surface facing up.
     // Without this the element stands perpendicular to the table.
     <group position={[x, 0.25, z]} rotation={[Math.PI / 2, Math.PI, 0]}>
-      <OccludedHtml center transform>
+      {/* The wrapper div keeps the unscaled button size and would block the tool drag around a
+          scaled button. Only the button itself takes the pointer (BUTTON_STYLE). */}
+      <OccludedHtml center transform pointerEvents="none">
         {children}
       </OccludedHtml>
     </group>
