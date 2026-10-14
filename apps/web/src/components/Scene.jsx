@@ -49,7 +49,7 @@ import TacticTray from './TacticTray.jsx'
 import TacticCard from './TacticCard.jsx'
 import RosterCards from './RosterCards.jsx'
 import GameSetup from './GameSetup.jsx'
-import { OnTable } from './OnTable.jsx'
+import { OnTable, OWNER_FACING_ROTATION } from './OnTable.jsx'
 import DiceTray from './DiceTray.jsx'
 import OtherDiceTray from './OtherDiceTray.jsx'
 import ScoreBoard from './ScoreBoard.jsx'
@@ -1268,7 +1268,7 @@ export default function Scene({
           {/* The mat and its terrain turn together around the mat center. In game setup, the player with priority
             turns them so that the deployment edge they chose faces their side (GameSetup.jsx). */}
           {mapId == null && tableButtons.multiplayer && (
-            <OnTable position={[0, WAIT_NOTE_Y, 0]}>
+            <OnTable position={[0, WAIT_NOTE_Y, 0]} rotation={OWNER_FACING_ROTATION.host}>
               <div className="setup-panel">
                 <div className="setup-note">
                   Random map: it spawns automatically when the second player joins the room.
