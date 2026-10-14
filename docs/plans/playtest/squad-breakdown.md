@@ -1,6 +1,6 @@
 # Plan: Squad breakdown
 
-Requested by the user on 2026-10-11. Plan 3 of `docs/plans/playtest-1.md`. Status: done. Parts 1 to 5 and the fixes from the user checks, checked by the user on 2026-10-11.
+Requested by the user on 2026-10-11. Plan 3 of `docs/plans/playtest/playtest-1.md`. Status: done. Parts 1 to 5 and the fixes from the user checks, checked by the user on 2026-10-11.
 
 The user asked for the plan and the coder work in one go, on the branch `squad-breakdown`, in the worktree `../mcp_assist_3d-squad-breakdown`. The user checks the branch after all parts are done.
 
@@ -10,7 +10,7 @@ The feature: `docs/features/squad-breakdown.md`. It is the authority for the beh
 
 ## Request
 
-From the answers in `docs/plans/playtest-1.md`, "Plan 3: Squad breakdown":
+From the answers in `docs/plans/playtest/playtest-1.md`, "Plan 3: Squad breakdown":
 
 - A **Breakdown** tab in the roster popup during the setup, similar to the Breakdown tab of Jarvis.
 - One combination: the total threat is at most the threat value, no other character of the roster still fits, and no two characters share an alter ego.

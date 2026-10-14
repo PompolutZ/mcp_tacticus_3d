@@ -1,6 +1,6 @@
 # Plan: Game flow
 
-Requested by the user on 2026-10-12. Plan 4 of `docs/plans/playtest-1.md`. Status: done. The user tested it on 2026-10-12. Branch `game-flow`, from `setup-round-2` at `2c8f5d0`.
+Requested by the user on 2026-10-12. Plan 4 of `docs/plans/playtest/playtest-1.md`. Status: done. The user tested it on 2026-10-12. Branch `game-flow`, from `setup-round-2` at `2c8f5d0`.
 
 The branch starts from `setup-round-2`, not from main, because this plan needs its roll off, `setup.priority` and the side keys `host` / `guest`. `setup-round-2` merges into main first. Then this branch merges main.
 
@@ -10,7 +10,7 @@ Checks of every step: `pnpm format`, `pnpm lint`, `pnpm test`, `pnpm --filter we
 
 ## Request
 
-The answers of the user are in `docs/plans/playtest-1.md`, "Plan 4: Game flow". In short:
+The answers of the user are in `docs/plans/playtest/playtest-1.md`, "Plan 4: Game flow". In short:
 
 - **Priority marker** [7]. A marker shows who has Priority. The roll off sets it. In the Cleanup Phase it passes when the player who activated the last character has it (p12). A click changes it.
 - **Drop of objective tokens** [32]. A Dazed or KO'd character drops its objective tokens. The other player places them within Range 2. S.H.I.E.L.D. Agents and The Black Widow: the controlling player places them. Trigger: the Dazed token, or **Remove**. A Range 2 tool snaps to the base, and the drag stays within Range 2. With **Remove**, the model stays until the token is placed. A HUD notice with **Show**, and a sound. The user tests how it feels before keeping it.

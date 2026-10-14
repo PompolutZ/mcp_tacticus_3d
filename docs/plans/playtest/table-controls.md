@@ -1,14 +1,14 @@
 # Plan: Table controls
 
-Requested by the user on 2026-10-11. Plan 5 of `docs/plans/playtest-1.md`. Status: steps 1 to 6 done and checked by the user on 2026-10-11. Step 7 (Place 1 toggle, from the user check) done on 2026-10-11, checked by the user on 2026-10-12. Merged into `main`. Branch `table-controls`, from `playtest-1-test`, because it builds on the table tools (Place, drag).
+Requested by the user on 2026-10-11. Plan 5 of `docs/plans/playtest/playtest-1.md`. Status: steps 1 to 6 done and checked by the user on 2026-10-11. Step 7 (Place 1 toggle, from the user check) done on 2026-10-11, checked by the user on 2026-10-12. Merged into `main`. Branch `table-controls`, from `playtest-1-test`, because it builds on the table tools (Place, drag).
 
 There is no new feature doc. Each step changes the feature docs of its area: `docs/features/key-shortcuts.md`, `docs/features/character-trays.md`, `docs/features/dice-rolling.md`, `README.md` and `apps/web/scripts/README.md`. Each step makes one commit and writes its **Result** below.
 
 ## Request
 
-Notes from the first game: 2, 16, 18, 19, 24, 25, 26, 27, 28, 31 (see `docs/plans/playtest-1.md`).
+Notes from the first game: 2, 16, 18, 19, 24, 25, 26, 27, 28, 31 (see `docs/plans/playtest/playtest-1.md`).
 
-Answers of the user, from `docs/plans/playtest-1.md`, plan 5:
+Answers of the user, from `docs/plans/playtest/playtest-1.md`, plan 5:
 
 - **Drag** [18]. A drag moves a piece without selecting it first, and the drag selects it. For all pieces. The user tries it first.
 - **Alt** [2]. Hold Alt over a card to show it large. Release Alt to close it. The click popup stays.

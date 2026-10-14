@@ -12,7 +12,7 @@ The users of the app are TTS players. In the mod, their tools lie on the table: 
 
 A **Settings** menu lets each player choose the table or the HUD (the toolbar) for each of these. It also lists the keys and the mouse controls of the app.
 
-The list of every TTS tool and button, and what the app has for each, is in `docs/plans/table-tools.md`, "TTS tools and buttons".
+The list of every TTS tool and button, and what the app has for each, is in `docs/plans/playtest/table-tools.md`, "TTS tools and buttons".
 
 ## Place on the table
 

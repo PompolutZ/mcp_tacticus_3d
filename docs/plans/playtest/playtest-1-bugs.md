@@ -1,6 +1,6 @@
 # Plan: Bugs from the first playtest
 
-Requested by the user on 2026-10-11. Plan 1 of `docs/plans/playtest-1.md`. Status: All parts done.
+Requested by the user on 2026-10-11. Plan 1 of `docs/plans/playtest/playtest-1.md`. Status: All parts done.
 
 One coder step and one commit for each part. Each part writes its **Result** below when it is done.
 

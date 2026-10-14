@@ -1191,7 +1191,7 @@ export default function Scene({
           HDR 0.35–0.66, directional 0–0.14, ambient 0.32. The tone mapping is Neutral and card and token
           faces are Unlit, so this light does not change them. It applies to the models, terrain, the mat
           and the dice. With Neutral, a mid tone at a total of 0.91 shows darker than its texture color
-          (about sRGB 110 instead of 134, calculated, see docs/plans/playtest-1-bugs.md). A total of 1.21 (HDR 0.5, directional 1.2, ambient 0.6)
+          (about sRGB 110 instead of 134, calculated, see docs/plans/playtest/playtest-1-bugs.md). A total of 1.21 (HDR 0.5, directional 1.2, ambient 0.6)
           looked like a strong lamp. Most HDR light comes from above, so it makes tops much brighter than
           sides. Ambient is the same from every side, so part of the light moved from the HDR to ambient.
           Now a face up gets 0.41 + 0.23 + 0.27 = 0.91, and a side face 0.38–0.55. */}

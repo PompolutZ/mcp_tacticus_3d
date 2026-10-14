@@ -1,6 +1,6 @@
 # Plan: Setup round 2
 
-Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest-1.md`. Status: done. The user tested it on 2026-10-12. Branch `setup-round-2`, from main at `87f9b6e`.
+Requested by the user on 2026-10-11. Plan 2 of `docs/plans/playtest/playtest-1.md`. Status: done. The user tested it on 2026-10-12. Branch `setup-round-2`, from main at `87f9b6e`.
 
 The feature is `docs/features/setup-game.md`. Each step makes one commit and writes its **Result** below.
 
@@ -10,7 +10,7 @@ Checks of every step: `pnpm format`, `pnpm lint`, `pnpm test`, `pnpm --filter we
 
 ## Request
 
-The answers of the user for plan 2 are in `docs/plans/playtest-1.md`, "Plan 2: Setup round 2". In short:
+The answers of the user for plan 2 are in `docs/plans/playtest/playtest-1.md`, "Plan 2: Setup round 2". In short:
 
 - **Roll off** [9]. The app reads the roll off from the dice trays. The manual "X has Priority" stays.
 - **Colors** [9]. Blue is the player with Priority, Red is the other player. The side keys `blue` / `red` become `host` / `guest`. The host sits at +z. The new room dialog has no side choice. Saved rooms are not migrated.

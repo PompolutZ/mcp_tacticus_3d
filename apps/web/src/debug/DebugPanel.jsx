@@ -11,7 +11,7 @@ const RENDER_MODES = [
   },
 ]
 
-// Look options of cards and tokens, temporary until the look is chosen (docs/plans/playtest-1-bugs.md)
+// Look options of cards and tokens, temporary until the look is chosen (docs/plans/playtest/playtest-1-bugs.md)
 const TONE_MAPPINGS = [
   { id: 'aces', label: 'ACES Filmic', title: 'As in the normal app' },
   { id: 'neutral', label: 'Neutral', title: 'Khronos PBR Neutral: shows base colors as they are' },

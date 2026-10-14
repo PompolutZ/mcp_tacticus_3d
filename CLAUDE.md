@@ -44,4 +44,5 @@ Two kinds of docs, each in its own folder.
   - When the behavior changes, the feature changes in the same step.
 - Plan (`docs/plans/`): the request, the steps and their results. A done plan does not change, except for paths.
   - A new request gets a new plan. Its lasting decisions go into the feature in the same step.
+- Plans made from a user test are in `docs/plans/playtest/`. Other plans stay in `docs/plans/`.
 - A code comment points to the feature for lasting behavior. It points to a plan only for a shortcut, or for a fact that only the plan has.

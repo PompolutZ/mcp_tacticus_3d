@@ -1,6 +1,6 @@
 # Plan: A tool snap does not select an enemy model
 
-Requested by the user on 2026-10-11. It follows Part 1 of `docs/plans/playtest-1-bugs.md`. Status: Part 1 done.
+Requested by the user on 2026-10-11. It follows Part 1 of `docs/plans/playtest/playtest-1-bugs.md`. Status: Part 1 done.
 
 One coder step and one commit.
 

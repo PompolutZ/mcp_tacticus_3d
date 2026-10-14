@@ -370,7 +370,7 @@ test('the edge controls lie inside the table, on the owner side, and mirror for 
 })
 
 test('the edge controls lie in the start view, right of the tactic tray (host: +x)', () => {
-  // The start view meets the table at z 37.47 with half width 23.4" (docs/plans/table-tools.md)
+  // The start view meets the table at z 37.47 with half width 23.4" (docs/plans/playtest/table-tools.md)
   for (const side of TEAMS) {
     const r = edgeRect(side)
     const k = side === 'host' ? 1 : -1
@@ -422,7 +422,7 @@ test('the squad panel lies under the roster rows, in the start view, and mirrors
       const r = squadRect(side, compact)
       const k = side === 'host' ? 1 : -1
       assert.ok(inside(r), side)
-      // Start view: bottom edge at z 37.47, half width 23.4 (docs/plans/table-tools.md)
+      // Start view: bottom edge at z 37.47, half width 23.4 (docs/plans/playtest/table-tools.md)
       assert.ok(Math.max(Math.abs(r.z0), Math.abs(r.z1)) <= 37.4, side)
       assert.ok(Math.abs(r.x0) <= 23 && Math.abs(r.x1) <= 23, side)
       // Past the Team Tactic row (host: larger z)

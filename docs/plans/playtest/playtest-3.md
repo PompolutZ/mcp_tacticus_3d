@@ -140,3 +140,7 @@ Paths are under `apps/web/src/`.
 9. **Spectator columns.** Decision 8. Files: a new `components/SpectatorColumns.jsx`, `App.jsx`, `index.css`, `settings/settings.js`, `settings/useSettings.js`, `components/SettingsPopup.jsx`, `settings/settings.test.js`. Docs: `docs/features/spectator-view.md`, `docs/features/table-tools.md`.
 
 ## Results
+
+### Step 1: Plans
+
+Done. 9 plans moved with `git mv` into `docs/plans/playtest/`.       20 path refs fixed in 13 files (plans, `docs/features/table-tools.md`, 5 code comments under `apps/`). `CLAUDE.md` "Docs" has the new line. No old path is left, except the example in Facts of this plan.

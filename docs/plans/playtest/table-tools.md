@@ -1,6 +1,6 @@
 # Plan: Tools on the table, settings menu
 
-Requested by the user on 2026-10-11. Plan 6 of `docs/plans/playtest-1.md`. Status: done. Steps 1 to 5, checked by the user on 2026-10-11. (Plan written on 2026-10-11.) The user asked to run all coder steps and to check the result after the last step, so the plan was not shown for an OK first.
+Requested by the user on 2026-10-11. Plan 6 of `docs/plans/playtest/playtest-1.md`. Status: done. Steps 1 to 5, checked by the user on 2026-10-11. (Plan written on 2026-10-11.) The user asked to run all coder steps and to check the result after the last step, so the plan was not shown for an OK first.
 
 The feature is `docs/features/table-tools.md`. Each step makes one commit and writes its **Result** below.
 
@@ -8,7 +8,7 @@ The feature is `docs/features/table-tools.md`. Each step makes one commit and wr
 
 Notes from the first game: "More buttons on the table" (21), "The Power button on the table, facing each player, near their roster" (22), "The Cleanup button near the scoring board" (23).
 
-Answers of the user, from `docs/plans/playtest-1.md`, plan 6:
+Answers of the user, from `docs/plans/playtest/playtest-1.md`, plan 6:
 
 - TTS players expect every tool of the TTS table on the table, for example below their character trays. The table can be larger if needed. The Power button lies near each roster, facing its owner. The Cleanup button lies near the scoring board.
 - The plan starts with a list of every button and tool that the mod has on the TTS table.
