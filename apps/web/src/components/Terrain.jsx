@@ -13,7 +13,7 @@ import * as THREE from 'three'
 import { assetUrl } from '../assets/index.js'
 import { colliderNode, primitiveCollider, transformVertices } from '../terrain/bundleColliders.js'
 import { bundleColliders, pieceCollider, pieceMesh, pieceTexture } from '../terrain/files.js'
-import { TTS_MAT_TOP } from '../terrain/maps/index.js'
+import { toThreeTransform } from '../terrain/placementMove.js'
 import { terrainLabel } from '../terrain/label.js'
 import { TERRAIN_PIECES } from '../terrain/pieces.js'
 import { FRICTION } from '../physics.js'
@@ -21,21 +21,10 @@ import { projectFootprints } from './footprintProjection.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
 
-const DEG = Math.PI / 180
 const WHITE = [1, 1, 1]
 // A press that moves the pointer more than this (px) before the release is a camera drag, not a click.
 // The same limit as R3F uses for a click on the empty table (onPointerMissed in App.jsx).
 const CLICK_SLOP = 2
-
-// TTS (Unity) is left-handed and Three.js is right-handed. Mirroring Z converts one to the other:
-// z changes sign, and so do rotations around X and Y. Unity applies Euler angles
-// in Z, X, Y order, which is Three.js order 'YXZ'.
-function toThreeTransform({ position: [x, y, z], rotation: [rx, ry, rz] }) {
-  const quaternion = new THREE.Quaternion().setFromEuler(
-    new THREE.Euler(-rx * DEG, -ry * DEG, rz * DEG, 'YXZ'),
-  )
-  return { position: [x, y - TTS_MAT_TOP, -z], quaternion }
-}
 
 // TTS mirrors X when it imports an OBJ. Combined with the Z mirror above,
 // this is a 180° turn around Y, so each mesh gets that turn.
@@ -168,6 +157,8 @@ function bundleColliderMeshes(key) {
 // showLabel: show the label (name, game Size, lock state) above the piece
 // selected: the piece is selected. onSelect(): a click on the piece. onHover(over): the pointer
 // moved onto (true) or off (false) the piece, for the Delete key.
+// groupRef(group): the placement group, which a drag moves (a fixed body does not follow it, so the
+// piece must remount after the drop, see Terrain). onPointerDown(e): a press on the piece.
 // objectRef(obj): the visible mesh of the piece, or null on unmount. Scene finds the piece under the
 // pointer with it, for the L key.
 function TerrainPiece(props) {
@@ -289,6 +280,8 @@ function PieceBody({
   onSelect,
   onHover,
   objectRef,
+  groupRef,
+  onPointerDown,
   raw,
   obj,
   autoColliders,
@@ -308,7 +301,7 @@ function PieceBody({
     if (locked) setHovered(false)
   }, [locked])
 
-  // A click selects the piece. It cannot be dragged.
+  // A click selects the piece. A drag moves it when the page gives onPointerDown.
   useHoverCursor(hovered, 'pointer')
 
   // onHover(true) while the pointer is over the piece, onHover(false) after. The cleanup also runs on
@@ -326,8 +319,10 @@ function PieceBody({
 
   // pointerdown stops here, so a piece behind this one does not start its own select or drag.
   // The camera still turns on a drag, because OrbitControls does not get R3F events.
+  // onPointerDown(e) is the press of a drag (TerrainPage). Without it the press only stops here.
   function handlePointerDown(e) {
     e.stopPropagation()
+    onPointerDown?.(e)
   }
 
   // A camera drag that starts on the piece is not a click
@@ -347,7 +342,7 @@ function PieceBody({
   // empty table, and a piece behind it gets the pointer events. Only an unlocked piece can be hovered,
   // selected and deleted.
   return (
-    <group position={position} quaternion={quaternion}>
+    <group ref={groupRef} position={position} quaternion={quaternion}>
       <RigidBody type="fixed" colliders={autoColliders} friction={FRICTION}>
         <group scale={placement.scale}>
           <primitive
@@ -388,7 +383,8 @@ function PieceBody({
 // hoverLabelId: id of the piece under the pointer while labels are off (Scene finds it with a ray, so
 // a locked piece gets it too), or null. That piece shows its label.
 // selectedId: id of the selected piece, or null. onSelect(id), onHover(id, over), objectRef(id, obj):
-// see TerrainPiece.
+// see TerrainPiece. groupRef(id, group), onPointerDown(id, e): see TerrainPiece.
+// A placement with `rev` remounts the piece when rev changes, so its fixed body gets the new transform.
 export default function Terrain({
   placements,
   showLabels = false,
@@ -397,16 +393,20 @@ export default function Terrain({
   onSelect,
   onHover,
   objectRef,
+  groupRef,
+  onPointerDown,
 }) {
   return placements.map((placement) => (
     <TerrainPiece
-      key={placement.id}
+      key={`${placement.id}:${placement.rev ?? 0}`}
       placement={placement}
       showLabel={showLabels || hoverLabelId === placement.id}
       selected={selectedId === placement.id}
       onSelect={() => onSelect?.(placement.id)}
       onHover={(over) => onHover?.(placement.id, over)}
       objectRef={(obj) => objectRef?.(placement.id, obj)}
+      groupRef={(group) => groupRef?.(placement.id, group)}
+      onPointerDown={onPointerDown && ((e) => onPointerDown(placement.id, e))}
     />
   ))
 }

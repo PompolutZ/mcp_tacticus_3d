@@ -1,7 +1,7 @@
 import { Suspense, startTransition, useEffect, useMemo, useRef, useState } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
-import { Physics } from '@react-three/rapier'
+import { Physics, useRapier } from '@react-three/rapier'
 import { KeyboardCamera } from '../components/KeyboardCamera.jsx'
 import { WheelCamera } from '../components/WheelCamera.jsx'
 import { Backdrop, Mat, SceneLights, TableSurface } from '../components/SceneShared.jsx'
@@ -11,6 +11,9 @@ import { canvasEvents } from '../components/canvasEvents.js'
 import { CAMERA_MOUSE_BUTTONS, startView } from '../camera.js'
 import { defaultBindings } from '../input/bindings.js'
 import { WORLD_GRAVITY } from '../physics.js'
+import { startPointerDrag } from '../drag/pointerDrag.js'
+import { tablePoint } from '../drag/tablePoint.js'
+import { movedPosition, turnedRotation } from '../terrain/placementMove.js'
 import { MATS, PIECES_BY_SIZE } from '../terrain/catalog.js'
 import { TTS_MAT_TOP } from '../terrain/maps/index.js'
 
@@ -44,6 +47,72 @@ const SORTED_MATS = [...MATS].sort((a, b) => a.name.localeCompare(b.name))
 // The held camera keys of KeyboardCamera: W A S D pan, the arrows turn (input/bindings.js)
 const PAN_KEYS = { KeyW: [0, 1], KeyS: [0, -1], KeyA: [-1, 0], KeyD: [1, 0] }
 const TURN_KEYS = { ArrowUp: [0, 1], ArrowDown: [0, -1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }
+
+// The ground of a drag is the plane of the mat top, not the colliders: the piece itself and the pieces
+// under it would give a point on their tops. A world with no hit makes tablePoint use the table plane
+// (y 0 in Three coords, which is the mat top).
+const NO_HIT_WORLD = { castRay: () => null }
+
+// The terrain of the page, with the drag of a placed piece. Inside Physics (needs Rapier for tablePoint).
+// A drag moves only the placement group (the body is fixed and does not follow). The drop writes the
+// new TTS position and bumps rev, so the piece remounts with its body.
+function EditableTerrain({ placements, setPlacements, selectedId, setSelectedId }) {
+  const { camera, gl } = useThree()
+  const controls = useThree((state) => state.controls)
+  const { rapier } = useRapier()
+  const groups = useRef(new Map())
+
+  const groundPoint = (clientX, clientY) =>
+    tablePoint({ camera, canvas: gl.domElement, world: NO_HIT_WORLD, rapier }, clientX, clientY)
+
+  function handlePointerDown(id, e) {
+    const group = groups.current.get(id)
+    const start = groundPoint(e.clientX, e.clientY)
+    if (!group || !start) return
+    // The piece keeps its place under the pointer: the move is the pointer move from the press
+    const origin = group.position.clone()
+    let move = { dx: 0, dz: 0 }
+    startPointerDrag(e, {
+      controls,
+      canvas: gl.domElement,
+      onStart: () => setSelectedId(id),
+      onMove: (ev) => {
+        const point = groundPoint(ev.clientX, ev.clientY)
+        if (!point) return false
+        move = { dx: point.x - start.x, dz: point.z - start.z }
+        group.position.set(origin.x + move.dx, origin.y, origin.z + move.dz)
+        return false
+      },
+      onEnd: () => {
+        startTransition(() =>
+          setPlacements((list) =>
+            list.map((p) =>
+              p.id === id
+                ? {
+                    ...p,
+                    position: movedPosition(p.position, move.dx, move.dz),
+                    rev: (p.rev ?? 0) + 1,
+                  }
+                : p,
+            ),
+          ),
+        )
+      },
+      // A cancel puts the group back
+      onCancel: () => group.position.copy(origin),
+    })
+  }
+
+  return (
+    <Terrain
+      placements={placements}
+      selectedId={selectedId}
+      onSelect={setSelectedId}
+      onPointerDown={handlePointerDown}
+      groupRef={(id, group) => (group ? groups.current.set(id, group) : groups.current.delete(id))}
+    />
+  )
+}
 
 export default function TerrainPage() {
   const [matName, setMatName] = useState(SORTED_MATS[0].name)
@@ -84,6 +153,39 @@ export default function TerrainPage() {
       window.removeEventListener('blur', clear)
     }
   }, [])
+
+  // Q / E turn the selected piece by 15° (Q counter-clockwise seen from above), Delete or Backspace removes it.
+  // Not while a field has the focus, and not with a modifier (Ctrl+Q, Cmd+Backspace are the browser's).
+  useEffect(() => {
+    function onKey(e) {
+      if (e.target instanceof HTMLInputElement || e.metaKey || e.ctrlKey || e.altKey) return
+      if (!selectedId) return
+      const dir = e.code === 'KeyQ' ? 1 : e.code === 'KeyE' ? -1 : 0
+      if (dir) {
+        e.preventDefault()
+        startTransition(() =>
+          setPlacements((list) =>
+            list.map((p) =>
+              p.id === selectedId
+                ? { ...p, rotation: turnedRotation(p.rotation, dir), rev: (p.rev ?? 0) + 1 }
+                : p,
+            ),
+          ),
+        )
+      } else if (e.code === 'Delete' || e.code === 'Backspace') {
+        e.preventDefault()
+        setPlacements((list) => list.filter((p) => p.id !== selectedId))
+        setSelectedId(null)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [selectedId])
+
+  function clearPieces() {
+    setPlacements([])
+    setSelectedId(null)
+  }
 
   const groups = useMemo(() => {
     const needle = filter.trim().toLowerCase()
@@ -137,6 +239,14 @@ export default function TerrainPage() {
           ))}
         </ul>
         <h2 className="terrain-heading">Pieces</h2>
+        <button
+          type="button"
+          className="terrain-row"
+          disabled={placements.length === 0}
+          onClick={clearPieces}
+        >
+          Clear ({placements.length})
+        </button>
         <input
           type="search"
           className="chip chip--text terrain-filter"
@@ -182,10 +292,11 @@ export default function TerrainPage() {
                 <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP}>
                   <TableSurface />
                   <Mat mat={mat.name} rotation={mat.rotation} />
-                  <Terrain
+                  <EditableTerrain
                     placements={placements}
+                    setPlacements={setPlacements}
                     selectedId={selectedId}
-                    onSelect={setSelectedId}
+                    setSelectedId={setSelectedId}
                   />
                 </Physics>
               </SelectionOutlines>

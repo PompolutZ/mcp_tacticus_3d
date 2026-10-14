@@ -103,3 +103,8 @@ Step 3 done.
 - `debug/TerrainPage.jsx`, `#terrain` in `Root.jsx` (dev only, lazy). Panel: mat list, filter, piece list by size. A row click adds the piece and selects it. `TableSurface` (table collider and mesh) moved from `Scene.jsx` to `SceneShared.jsx`, the game uses it too. Styles `.terrain-*` in `index.css`.
 - Adding a piece or a mat runs in `startTransition`, so the placed pieces stay while new files load.
 
+Step 4 done.
+
+- `EditableTerrain` in `TerrainPage.jsx`: drag with `startPointerDrag` (camera controls off). The drag point is the plane of the mat top (`tablePoint` with a world that never hits), so a piece does not jump onto a piece below it. The group moves during the drag. The drop writes the TTS position and bumps `rev` of the placement, which is in the key in `Terrain`, so the piece remounts.
+- Q / E: `terrain/placementMove.js` (`toThreeTransform` moved there from `Terrain.jsx`, `movedPosition`, `turnedRotation`, tested). Q is -15° in TTS Y (counter-clockwise seen from above, as in the game). Delete, Backspace and the "Clear" button remove.
+- Keys are ignored with a focused input or a Ctrl, Cmd or Alt key.

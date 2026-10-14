@@ -80,11 +80,13 @@ The order of the imports in `index.js` is the order of the maps in the lists. A 
 
 ## Terrain page
 
-Status: partly built. The mat and the piece list are built. Move, turn, remove, load and export are not.
+Status: partly built. The mat, the piece list, move, turn and remove are built. Load and export are not.
 
 - Dev only, at `#terrain` (`src/debug/TerrainPage.jsx`). The production build does not have it, and the lobby has no link to it. A reload clears the placed pieces.
 - Its own small scene: table, mat, backdrop, lights, `Terrain` and physics, with the camera of the game (mouse, W A S D, arrows, wheel). No characters, dice, tools or room.
 - The side panel has the mat list (one row per mat, by name, 21). A click shows the mat, turned by the `matRotation` of the first map that uses it. A new mat keeps the placed pieces, and the pieces do not turn with the mat (the placements are relative to the mat center).
 - Below it, a filter field (by piece name) and the piece list in groups: size 1 to 5, then "No size". A group header shows the number of pieces. A piece with two sizes is in both groups.
 - A click on a piece row adds the piece at the mat center, on the mat top, turned 0°, with the scale and tint that its placements at that size use most often (`src/terrain/catalog.js`). The new piece is selected. A click on a placed piece selects it, a click on the empty table clears the selection.
+- A drag moves a placed piece on the mat (left button, after 4 px, the camera does not turn). The piece keeps its place under the pointer, and follows the plane of the mat top, so it does not climb on other pieces. Pieces do not push each other. The drop writes the new position (the height stays), and the piece is mounted again with its fixed body.
+- Q and E turn the selected piece by 15° around Y (Q counter-clockwise seen from above). Delete or Backspace removes it. The keys do nothing while the filter field has the focus. The "Clear" button above the piece list removes all placed pieces.
 
