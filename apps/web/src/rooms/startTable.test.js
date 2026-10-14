@@ -27,3 +27,30 @@ test('the start table has no tools', () => {
   Y.applyUpdate(doc, startTableBytes(Object.keys(MAPS)[0], { host: null, guest: null }))
   assert.deepEqual(createTable(doc).tools.read(), {})
 })
+
+test('the start table with mapId null has no map and no terrain', () => {
+  const doc = new Y.Doc()
+  Y.applyUpdate(doc, startTableBytes(null, { host: null, guest: null }))
+  const table = createTable(doc)
+  assert.equal(tableSchema(table), SCHEMA)
+  assert.equal(table.game.get('mapId'), null)
+  assert.deepEqual(table.terrain.read(), [])
+})
+
+test('terrain ids are fixed per map, so two fills merge into one set', () => {
+  const mapId = Object.keys(MAPS)[0]
+  const a = new Y.Doc()
+  const b = new Y.Doc()
+  Y.applyUpdate(a, startTableBytes(mapId, { host: null, guest: null }))
+  Y.applyUpdate(b, startTableBytes(mapId, { host: null, guest: null }))
+  const ids = createTable(a)
+    .terrain.read()
+    .map((p) => p.id)
+  assert.equal(ids[0], `${mapId}:${createTable(a).terrain.read()[0].index}`)
+  assert.deepEqual(
+    ids,
+    createTable(b)
+      .terrain.read()
+      .map((p) => p.id),
+  )
+})

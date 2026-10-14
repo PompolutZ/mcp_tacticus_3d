@@ -12,6 +12,7 @@ import { startTableBytes } from '../rooms/startTable.js'
 import { CARD_STEP_KEYS, isEditing } from '../keyboard.js'
 import { Carousel } from './Carousel.jsx'
 import { Overlay } from './Overlay.jsx'
+import { Switch } from './Switch.jsx'
 import { RosterField } from './RosterField.jsx'
 
 const MAP_IDS = Object.keys(MAPS)
@@ -25,7 +26,8 @@ function unavailableText(status) {
 }
 
 // The dialog that creates a room (docs/features/rooms.md, "New room"): the map and the rosters of both
-// players. With Random map on, the card back shows and the map is picked at creation. With it off, the map
+// players. With Random map on, the card back shows. Single player: the app picks the map at creation. Multiplayer: the server picks it when the
+// guest joins. With it off, the map
 // card in the middle of the carousel is the map. Create room needs a Blue roster. The Red roster is
 // optional, because the Red field of the toolbar can load it later. Create room saves the room and calls
 // onCreate(room). Escape, Cancel, × or a click on the backdrop calls onClose(). The left and right arrows
@@ -75,6 +77,7 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
   async function handleCreate(e) {
     e.preventDefault()
     if (!canCreate) return
+    // Multiplayer and random: the server picks the map when the guest joins, so the table has no map
     const mapId = random ? MAP_IDS[Math.floor(Math.random() * MAP_IDS.length)] : MAP_IDS[mapIndex]
     const roster = (team) =>
       isEmptyRoster(parsed[team]) ? null : { code: formatMctCode(parsed[team]) }
@@ -84,9 +87,9 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
       setBusy(true)
       try {
         const created = await createServerRoom({
-          mapId,
+          ...(random ? { maps: MAP_IDS } : { mapId }),
           roster: own,
-          table: startTableBytes(mapId, rosters),
+          table: startTableBytes(random ? null : mapId, rosters),
         })
         onCreate({ id: created.code })
       } catch (err) {
@@ -156,15 +159,16 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
             )}
           </div>
         )}
-        <button
-          type="button"
-          className={random ? 'chip chip--active' : 'chip'}
-          aria-pressed={random}
-          title="On: the app picks the map when it creates the room. Off: choose the map below."
-          onClick={() => setRandom((v) => !v)}
-        >
-          Random map
-        </button>
+        <Switch
+          checked={random}
+          onChange={setRandom}
+          label="Random map"
+          title={
+            multiplayer
+              ? 'On: the server picks the map when the second player joins. Off: choose the map below.'
+              : 'On: the app picks the map when it creates the room. Off: choose the map below.'
+          }
+        />
         {random ? (
           <div className="new-room-random">
             <img
@@ -173,7 +177,11 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
               alt="Random map"
               draggable={false}
             />
-            <span className="new-room-hint">The app picks the map when it creates the room</span>
+            <span className="new-room-hint">
+              {multiplayer
+                ? 'The map spawns when the second player joins the room'
+                : 'The app picks the map when it creates the room'}
+            </span>
           </div>
         ) : (
           <Carousel

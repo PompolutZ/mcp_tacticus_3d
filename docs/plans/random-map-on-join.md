@@ -86,3 +86,4 @@ Checks: `pnpm format`, `pnpm lint`, web tests, `pnpm --filter web build`.
 ## Results
 
 - Step 1: done. `mapId` null + `maps` in the store, `join` sets the map in the seat write, create takes `mapId` or `maps`, tests and `auth.md` updated. API unit tests pass; Mongo tests not run (need Docker).
+- Step 2: done. `Switch.jsx`, multiplayer random sends `maps` and a start table with no map, `mapTerrain` ids `<mapId>:<index>`, `mapFace` helper (`terrain/mapFace.js`) for card back and "Random map" in lobby and join page, `roomList` keeps `mapId` null. `rooms.md` updated.

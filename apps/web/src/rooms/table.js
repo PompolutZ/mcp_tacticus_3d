@@ -6,7 +6,8 @@ import { START_MARKERS } from '../scoreboard/board.js'
 import { DEFAULT_AFFILIATION } from '../scoreboard/affiliations.js'
 import { newSetup } from '../setup/setup.js'
 
-// Terrain pieces of a map, as tracked in App state: the placements of terrain/maps/<id>.json with an id and
+// Terrain pieces of a map, as tracked in App state (the id is fixed per piece, so two browsers that fill the
+// same map write the same keys and the pieces merge, docs/features/rooms.md, "Room"): the placements of terrain/maps/<id>.json with an id and
 // a lock. index: the place of the placement in the map data, which the document stores. Every piece starts
 // locked, so a click on terrain does not select it and the Delete key does not remove it by mistake.
 // L unlocks it (pieces/useTablePieces.js, handleLockKey).
@@ -14,7 +15,7 @@ export function mapTerrain(mapId) {
   return MAPS[mapId].placements.map((placement, index) => ({
     ...placement,
     index,
-    id: crypto.randomUUID(),
+    id: `${mapId}:${index}`,
     locked: true,
   }))
 }
@@ -50,7 +51,8 @@ export function droppedY(position, delta) {
   return Math.round((position[1] - delta) * 1e3) / 1e3
 }
 
-// The state of a new table on the map mapId: the fields of fillTable in net/doc.js, without the rosters
+// The state of a new table on the map mapId: the fields of fillTable in net/doc.js, without the rosters.
+// mapId null: a random multiplayer room, the map comes when the guest joins. No map, no terrain.
 export function startTable(mapId) {
   return {
     mapId,
@@ -63,7 +65,7 @@ export function startTable(mapId) {
     priority: null,
     lastActivated: null,
     setup: newSetup(),
-    terrain: mapTerrain(mapId),
+    terrain: mapId == null ? [] : mapTerrain(mapId),
     characters: [],
     tokens: [],
     tactics: [],

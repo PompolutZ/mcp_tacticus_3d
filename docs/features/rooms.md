@@ -41,7 +41,7 @@ The URL hash selects the page. So the browser back button works, and a reload st
 
 ## Lobby
 
-- **Rooms:** a **+** tile, then one list with a tile for each single player room and each multiplayer room, the last changed room first. A single player tile shows "Single player". A multiplayer tile shows the seats, **Copy link** and **Delete** for the host (`docs/features/auth.md`, "Lobby and room UI"). With login off, the list has only single player rooms and makes no API call. A tile shows the map card, the map name, the room code and the time of the last change. A click on the tile enters the room.
+- **Rooms:** a **+** tile, then one list with a tile for each single player room and each multiplayer room, the last changed room first. A single player tile shows "Single player". A multiplayer tile shows the seats, **Copy link** and **Delete** for the host (`docs/features/auth.md`, "Lobby and room UI"). With login off, the list has only single player rooms and makes no API call. A tile shows the map card, the map name, the room code and the time of the last change. A random multiplayer room shows the card back and "Random map" until the guest joins. A click on the tile enters the room.
 - **Blue** and **Red** on a tile show that roster of the room in the roster popup of the table (`docs/features/roster.md`). A button shows only when the room has that roster. The popup opens on the first tab with cards, usually Characters. Escape, **×** or a click on the backdrop closes it. The left and right arrows show the previous or next card.
 - On a narrow tile, **Delete** goes to a second line.
 - **Delete** on a tile removes the room. It shows only on rooms that this user owns. In a multiplayer room, that is the host. A browser confirm asks first, the same as **Remove** on a character tray.
@@ -52,7 +52,7 @@ The URL hash selects the page. So the browser back button works, and a reload st
 The **+** tile opens a dialog on a blurred backdrop, the same style as the roster popup.
 
 - With login on, a choice at the top: **Single player** or **Multiplayer** (`docs/features/auth.md`, "Lobby and room UI"). With login off, the dialog makes a single player room. The rest of this list describes **Single player**.
-- **Random map** switch, on by default. While it is on, the dialog shows the back of a map card. The app picks the map when the player creates the room.
+- **Random map** is a switch, on by default. While it is on, the dialog shows the back of a map card. Single player: the app picks the map when the player creates the room. Multiplayer: the hint says "The map spawns when the second player joins the room". The server picks the map when the guest joins, so nobody knows it before.
 - With the switch off, a carousel shows the map cards. The card in the middle is the map of the room. It is the same carousel as in the roster popup.
 - **Blue roster** and **Red roster:** a text field for the MCT code of each player. Under each field, the dialog shows what it found, for example "10 characters · 10 tactic cards · 5 Secure · 5 Extract", and the unknown codes. The parse rules are the ones of `docs/features/roster.md`. The game setup (`docs/features/setup-game.md`) needs both rosters.
 - When the app has no 3D model for a character or no image for a Team Tactic card of a roster, a warning box under its summary names these cards, for example "No 3D model for 2 characters: Angela, Bishop". On the table, these cards show as plates, and a character without a model cannot be spawned. The box is only a warning: **Create room** still works.
@@ -172,6 +172,7 @@ In a single player room, the user id in `localStorage` is the owner of every roo
 | `apps/web/src/components/Lobby.jsx` | The lobby page: one list of single player and multiplayer rooms |
 | `apps/web/src/components/RoomRosterPopup.jsx` | The roster popup of a room. The lobby and the join page use it |
 | `apps/web/src/components/NewRoomDialog.jsx` | The new room dialog: map switch, map carousel, Blue and Red roster fields |
+| `apps/web/src/components/Switch.jsx` | An on/off switch with a label. The new room dialog uses it for **Random map** |
 | `apps/web/src/components/Carousel.jsx` | The Embla carousel, taken out of `RosterPopup.jsx`. The roster popup and the map picker use it |
 | `apps/web/src/components/Preload.jsx` | `Preload` and `Ready`, see [Loading](#loading) |
 | `apps/web/src/terrain/files.js` | `mapCard(id)` and `MAP_CARD_BACK` |
@@ -187,7 +188,7 @@ In a single player room, the user id in `localStorage` is the owner of every roo
 6. The poses come from the physics bodies at save time. A saved model starts at its pose.
 7. A new room has no name. Its tile shows the map, the code and the time of the last change.
 8. **Create room** enters the new room at once.
-9. With **Random map** on, the dialog shows a card back, and the map is picked at creation.
+9. With **Random map** on, the dialog shows a card back. Single player: the map is picked at creation. Multiplayer: the server picks it when the guest joins (`docs/features/auth.md`).
 10. The carousel of the roster popup became a shared component.
 11. A file list for the loading screen comes from helpers next to the components that load the files.
 12. The new room dialog takes both rosters, until players join a room from a server. Red is optional. The lobby tile shows each roster.

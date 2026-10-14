@@ -16,8 +16,9 @@ export async function getRoom(code) {
 
 // The host always sits at +z. roster: { code }. table: the
 // bytes of the start table.
-export async function createRoom({ mapId, roster, table }) {
-  const json = { mapId, roster, table: toBase64(table) }
+// A room has a mapId, or a list maps for a random room: the server picks one when the guest joins.
+export async function createRoom({ mapId, maps, roster, table }) {
+  const json = { ...(maps ? { maps } : { mapId }), roster, table: toBase64(table) }
   return (await api('/rooms', { method: 'POST', json })).room
 }
 

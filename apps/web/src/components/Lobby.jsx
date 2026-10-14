@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
-import { MAPS } from '../terrain/maps/index.js'
-import { mapCard } from '../terrain/files.js'
+import { mapFace } from '../terrain/mapFace.js'
 import { avatarUrl } from '../auth/avatar.js'
 import { useUser } from '../auth/useUser.js'
 import { deleteDoc, deleteRoom, listRooms, multiplayerDocName, ownsRoom } from '../rooms/store.js'
@@ -91,7 +90,7 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
 
   // A browser confirm, the same as Remove on a character tray
   async function handleDelete(item) {
-    if (!window.confirm(`Delete room ${item.id} (${MAPS[item.mapId].name})? Its table is lost.`))
+    if (!window.confirm(`Delete room ${item.id} (${mapFace(item.mapId).name})? Its table is lost.`))
       return
     if (item.kind === 'single') {
       deleteRoom(item.id)
@@ -153,11 +152,11 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
                 >
                   <img
                     className="lobby-room-card"
-                    src={assetUrl(mapCard(item.mapId))}
+                    src={assetUrl(mapFace(item.mapId).src)}
                     alt=""
                     draggable={false}
                   />
-                  <span className="lobby-room-name">{MAPS[item.mapId].name}</span>
+                  <span className="lobby-room-name">{mapFace(item.mapId).name}</span>
                   <span className="lobby-room-code">{item.id}</span>
                   <span className="lobby-room-time">Last change {TIME.format(item.updatedAt)}</span>
                   {isMulti ? (

@@ -39,3 +39,11 @@ test('a room of an unknown map is left out', () => {
   )
   assert.deepEqual(list, [])
 })
+
+test('a multiplayer room with mapId null stays, a single room without a map does not', () => {
+  const list = roomList([single('S1', 1, null)], [multi('M1', '2026-01-01T00:00:00.000Z', null)])
+  assert.deepEqual(
+    list.map((item) => item.id),
+    ['M1'],
+  )
+})

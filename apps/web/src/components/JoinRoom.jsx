@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
-import { MAPS } from '../terrain/maps/index.js'
-import { mapCard } from '../terrain/files.js'
+import { mapFace } from '../terrain/mapFace.js'
 import { avatarUrl } from '../auth/avatar.js'
 import { DISCORD_ON, login } from '../auth/session.js'
 import { useUser } from '../auth/useUser.js'
@@ -22,6 +21,7 @@ export function JoinRoom({ room, onJoined, onExit }) {
   const loggedIn = status === 'in'
   // The free side is the guest's. The host sits at +z.
   const side = 'guest'
+  const face = mapFace(room.mapId)
   const host = room.players.host
   const hostRoster = room.rosters.host
   const [text, setText] = useState('')
@@ -48,15 +48,13 @@ export function JoinRoom({ room, onJoined, onExit }) {
     <div className="lobby">
       <LobbyHeader />
       <form className="join-room" onSubmit={handleJoin}>
-        <img
-          className="join-room-card"
-          src={assetUrl(mapCard(room.mapId))}
-          alt=""
-          draggable={false}
-        />
+        <img className="join-room-card" src={assetUrl(face.src)} alt="" draggable={false} />
         <div className="join-room-body">
           <h2 className="join-room-title">Join room</h2>
-          <span className="join-room-map">{MAPS[room.mapId].name}</span>
+          <span className="join-room-map">{face.name}</span>
+          {room.mapId === null && (
+            <span className="new-room-hint">The map spawns when you join.</span>
+          )}
           <span className="join-room-code">{room.code}</span>
           <div className="join-room-host">
             <span className="group-label">Host</span>

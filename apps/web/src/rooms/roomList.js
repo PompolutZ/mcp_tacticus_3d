@@ -4,7 +4,8 @@ import { MAPS } from '../terrain/maps/index.js'
 
 // single: records of rooms/store.js (updatedAt in ms). multiplayer: rooms of the API (updatedAt is ISO).
 // Returns { kind, id, mapId, rosters, updatedAt (ms), room }, the last changed first. A room of a map that
-// the app does not have cannot open, so it is left out.
+// the app does not have cannot open, so it is left out. A multiplayer room with mapId null (random, the
+// guest has not joined) stays.
 export function roomList(single, multiplayer) {
   const items = [
     ...single.map((room) => ({
@@ -24,5 +25,7 @@ export function roomList(single, multiplayer) {
       room,
     })),
   ]
-  return items.filter((item) => MAPS[item.mapId]).sort((a, b) => b.updatedAt - a.updatedAt)
+  return items
+    .filter((item) => (item.kind === 'multiplayer' && item.mapId === null) || MAPS[item.mapId])
+    .sort((a, b) => b.updatedAt - a.updatedAt)
 }
