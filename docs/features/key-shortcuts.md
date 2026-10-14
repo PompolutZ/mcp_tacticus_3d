@@ -28,7 +28,7 @@ The users of the app are active TTS players. They already know the TTS controls.
 | Right click on a piece | Context menu. While holding a piece: tap it | Nothing. The piece handlers take only the left button, so a right drag on a piece turns the camera | No |
 | Middle drag | Pan | Pan | Yes |
 | Middle click | Zoom to the pointer, click again to zoom back. On a piece: flip | Nothing | No |
-| Scroll wheel | Zoom. While holding a piece: rotate it | Zoom. While dragging a piece: turn it 15° per step (wheel up left, wheel down right, picked by look) | Yes |
+| Scroll wheel | Zoom. While holding a piece: rotate it | Zoom. While dragging a piece: turn it 15° per step, as Q / E do (wheel up left, wheel down right, picked by look) | Yes |
 | Shift, Ctrl or Cmd + left or right drag | Not in the sources | Pan | — |
 | Two-finger swipe on a trackpad | Not in the sources | Pan | — |
 | Pinch on a trackpad, or Ctrl + scroll | Not in the sources | Zoom | — |
@@ -62,7 +62,7 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 | P | Camera mode: third person, first person, top-down | Ping: an arrow in the color of your side at the pointer, see `ping.md`. The app has no camera modes | No |
 | Ctrl | First-person mode: fly down | Nothing | No |
 | F | Flip | Flips the crisis token under the pointer, the card of the character under the pointer (its model or its tray card), or the Team Tactic card under the pointer. With nothing under the pointer: the piece selected last, a token or the card of a character | Partly |
-| Q / E | Rotate the piece | Turns the dragged character or tool, else the one under the pointer, 15° around its center. Q turns counter-clockwise, E clockwise (seen from above). A token has a turn handle, no key | Partly |
+| Q / E | Rotate the piece | Turns the dragged character or tool, else the one under the pointer, 15°. A character and a free tool turn around the center. A snapped tool turns around its base and stays snapped. With Bend on, a tool bends one half (`range-movement-tools.md`, "Input rules"). Q turns counter-clockwise, E clockwise (seen from above). A token has a turn handle, no key | Partly |
 | T | Tap (turn 90°) | Nothing | No |
 | R | Raise | Lifts the model under the pointer 6", or puts it back down. With no model under the pointer: puts every lifted model back down. While dragging a model: switches between the top floor and the lower floor under an overhang | Partly |
 | L | Lock | Locks or unlocks the terrain piece under the pointer. Only terrain has a lock. The terrain label shows the state: "Tree - Size 2 - (L)ocked" or "Un(L)ocked". Every terrain piece starts locked. A locked piece cannot be selected or deleted | Partly |
@@ -88,7 +88,7 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 
 The direction and the speed of the arrow keys (90° per second) are picked by look. They are not compared with TTS yet.
 
-Q / E turn a piece 15° per press. 15° is `PointerRotationSnap` in the same plist, the TTS default. A key held for more than 0.3 s turns the piece on at 90° per second, the speed of the arrow keys. The app does not use the key repeat of the system, so the speed is the same on every computer. A held key keeps turning the piece of the press, also when the pointer leaves it. Each turn is smoothed in the same way as the wheel zoom: each frame, the piece does `1 − e^(−dt / 0.06 s)` of the turn that is left. The delay, the speed and the smoothing time are picked by look. The center of a character is its base center. The center of a movement tool is its hinge. A turn moves both ends of a tool, so a snapped tool is free after it. While a drag turns a snapped tool or bends a tool, Q / E do nothing.
+Q / E turn a piece 15° per press. 15° is `PointerRotationSnap` in the same plist, the TTS default. A key held for more than 0.3 s turns the piece on at 90° per second, the speed of the arrow keys. The app does not use the key repeat of the system, so the speed is the same on every computer. A held key keeps turning the piece of the press, also when the pointer leaves it. Each turn is smoothed in the same way as the wheel zoom: each frame, the piece does `1 − e^(−dt / 0.06 s)` of the turn that is left. The delay, the speed and the smoothing time are picked by look. The center of a character is its base center. The center of a movement tool is its hinge. A free tool turns around its center. A snapped tool turns around its base and stays snapped. During a turn or bend drag, a step adds to the turn of the drag, and the drag goes on from there.
 
 F flips the piece under the pointer first. A crisis token without a back does not flip. F over it does nothing, also when another token is selected. F over a model flips the character card, not the model. In TTS, F over a figurine turns the figurine upside down, which players do not need.
 

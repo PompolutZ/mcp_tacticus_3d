@@ -50,13 +50,13 @@ The tool stays snapped to the same model when you select another model. It also 
 
 ### Free
 
-The tool is free when it spawns while no model is selected and the pointer is not over a model. Turning a snapped tool with Q / E makes it free. The TTS mod has a Snap / Unsnap button on the tool for this, and no key.
+The tool is free when it spawns while no model is selected and the pointer is not over a model. Turning a free tool around its center with Q / E keeps it free. A snapped tool stays snapped when it turns with Q / E (see "Input rules"). The TTS mod has a Snap / Unsnap button on the tool for this, and no key.
 
 Dragging a free tool moves it.
 
 A drag that starts on a button of the tool (Place, Throw / Push, Toward / Away, Bend) moves the tool the same as a drag of the half under it. A click on the button presses it. A drag does not press it. A disabled button does not start a drag.
 
-**Q** and **E** turn the tool under the pointer, or the tool you drag, 15° around its center, as in TTS. Hold the key to keep turning. Q turns it counter-clockwise and E clockwise, seen from above. The center of a movement tool is its hinge, and the tool keeps its bend. While a drag turns a snapped tool or bends a tool, Q and E do nothing. They turn characters the same way.
+**Q** and **E** act on the tool under the pointer, or the tool you drag, 15° per press, as in TTS. Hold the key to keep going. Q turns counter-clockwise and E clockwise, seen from above. What a step does depends on the tool state: see "Input rules". A free tool turns around its center. The center of a movement tool is its hinge, and the tool keeps its bend. Q and E turn characters the same way.
 
 ### Place
 
@@ -134,6 +134,8 @@ A movement tool has a hinge in the middle. The round button on the hinge turns b
 
 While bending is on, dragging a half turns it around the hinge. The other half does not move. A half turns at most 90° from straight, the same as the plastic tool. On a snapped tool, only the far half bends. A drag on the half that touches the base turns the whole tool around the base, so the tool stays snapped. The TTS mod works the same way: its Bend button splits the tool, and one half turns around the hinge while the other half stays.
 
+Q / E and the wheel bend too: over a half, or during a bend drag, they bend that half one step (see "Input rules").
+
 While bending is off, a drag moves or turns the whole tool, as described above. The tool keeps its bend.
 
 The outline of a bent tool is one rectangle for each half, plus the round hinge between them.
@@ -142,15 +144,15 @@ The outline of a bent tool is one rectangle for each half, plus the round hinge 
 
 What a drag does depends on the state of the tool and on the half you grab. `src/components/toolInput.js` holds the rules.
 
-| Tool state | Drag a half |
-|---|---|
-| Free, Bend off | moves the tool |
-| Free, Bend on | bends that half |
-| Snapped, Bend off | turns the tool around the base |
-| Snapped, Bend on, far half | bends the far half |
-| Snapped, Bend on, half on the base | turns the tool around the base |
+| Tool state | Drag a half | Q / E, wheel |
+|---|---|---|
+| Free, Bend off | moves the tool | turn the tool around its center |
+| Free, Bend on | bends that half | bend that half one step |
+| Snapped, Bend off | turns the tool around the base | turn the tool around the base one step |
+| Snapped, Bend on, far half | bends the far half | bend the far half one step |
+| Snapped, Bend on, half on the base | turns the tool around the base | turn the tool around the base one step |
 
-A range tool has no halves and no Bend, so the rows with Bend off apply. Place, Place 1 and Throw / Push only limit a drag of a model, so they are not in the table.
+Q / E act on the half under the pointer. During a drag they act as the drag does: a turn or bend drag goes on from the new angle, and a move drag turns the tool around its center. The wheel turns only during a drag. Without a drag it zooms. A turn around the base keeps the tool snapped, and a tool next to an angle tool keeps its ±45° limit. A bend stops at 90° from straight. When a range, R1 or angle tool aims at a piece under the pointer during a drag, the aim sets the pose, so a step shows nothing. A range tool has no halves and no Bend, so the rows with Bend off apply. Place, Place 1 and Throw / Push only limit a drag of a model, so they are not in the table.
 
 ### Range 1
 

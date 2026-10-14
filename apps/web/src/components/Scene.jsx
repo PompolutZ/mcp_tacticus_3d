@@ -445,7 +445,7 @@ export default function Scene({
   // that is dragged. { kind: 'character' | 'tool', id } | null. The id of a tool is 'range', 'move', 'angle' or 'los'.
   const hoveredPiece = useRef(null)
   const draggedPiece = useRef(null)
-  // Tool ('move', 'range', 'angle' or 'los') → its turn(angle), see turnAroundCenter in RulerTool.jsx
+  // Tool ('move', 'range', 'angle' or 'los') → its turn(angle), see stepTool in RulerTool.jsx
   const toolTurns = useRef({})
   // The own tools' live poses for LiveSync: kind → a getter that Tool registers (like toolTurns)
   const toolLives = useRef({})

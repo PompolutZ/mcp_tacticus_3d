@@ -272,7 +272,10 @@ function useFootprintGround(halfLength, halfWidth, turn) {
 //   onPointer(raycaster) is called on each pointer
 //   move with a raycaster set to the pointer ray, and with null when the drag ends.
 // In both, the tool stays hoverHeight above the table or terrain under its footprint (from groundY),
-// as a dragged model does. onDragStart(kind): called once when a drag starts, with 'move' or 'turn'.
+// as a dragged model does. onDragStart(kind): called once when a drag starts, with 'move', 'turn' or the
+// plan's own kind (RulerTool: 'bend').
+// The returned onPointerDown has stepTurn(angle): during a turn drag it adds angle to the turn (extra), so
+// onTurn gets d + extra and the next pointer move goes on from there. It returns false when no turn drag is on.
 // onDragEnd: called once when a drag ends, also when onDragMove ends it.
 export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove, onDragEnd) {
   const { camera, gl, controls } = useThree()
@@ -294,9 +297,13 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
   const dragPlane = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0))
   // Grabbed point minus body center (XZ), so the tool does not jump to center on the pointer
   const grabOffset = useRef({ x: 0, z: 0 })
-  // Turn drag: the plan, with startPose, startAngle (yaw from the pivot to the grabbed point) and
-  // pose, the next kinematic pose { x, z, yaw }. Y follows the ground. null for a move drag.
+  // Turn drag: the plan, with startPose, startAngle (yaw from the pivot to the grabbed point), extra (turn added
+  // by stepTurn) and pose, the next kinematic pose { x, z, yaw }. Y follows the ground. null for a move drag.
   const turning = useRef(null)
+
+  function turnOf(turn) {
+    return wrapAngle((turn.d ?? 0) + turn.extra)
+  }
 
   useFrame((_, dt) => {
     const rb = rigidRef.current
@@ -305,7 +312,7 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
     // A plan with refresh gets its pose again on every frame, not only at a pointer move, so a change that is
     // not a pointer move (Q / E during a turn) shows at once
     const turn = turning.current
-    if (turn?.refresh && turn.d !== undefined) turn.pose = turn.onTurn(turn.d, turn.startPose)
+    if (turn?.refresh && turn.d !== undefined) turn.pose = turn.onTurn(turnOf(turn), turn.startPose)
     let pose = turning.current?.pose
     if (!pose) {
       // The plane stays at the grab height. If it followed the tool, raising the tool would move
@@ -330,7 +337,15 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
     if (turning.current) rb.setNextKinematicRotation(yawQuat(yaw))
   })
 
-  return function onPointerDown(e, onSelect, onDragSelect, plan) {
+  function stepTurn(angle) {
+    const turn = turning.current
+    if (!turn) return false
+    turn.extra += angle
+    turn.pose = turn.onTurn(turnOf(turn), turn.startPose)
+    return true
+  }
+
+  function onPointerDown(e, onSelect, onDragSelect, plan) {
     let point = e.point
     if (!point) {
       // A DOM event (a button): the pointer ray, on the horizontal plane of the button
@@ -378,10 +393,11 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
             ...turn,
             startPose,
             startAngle: yawTo(turn.pivot, grab),
+            extra: 0,
             pose: startPose,
           }
         }
-        onDragStart?.(turn ? 'turn' : 'move')
+        onDragStart?.(turn ? (turn.kind ?? 'turn') : 'move')
       },
       // true: onDragMove ended the drag, and the rest of that press does nothing
       onMove: (ev) => {
@@ -397,7 +413,7 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
           const hit = raycaster.current.ray.intersectPlane(dragPlane.current, new THREE.Vector3())
           if (!hit || Math.hypot(hit.x - turn.pivot.x, hit.z - turn.pivot.z) < 0.01) return false
           turn.d = wrapAngle(yawTo(turn.pivot, hit) - turn.startAngle)
-          turn.pose = turn.onTurn(turn.d, turn.startPose)
+          turn.pose = turn.onTurn(turnOf(turn), turn.startPose)
           return false
         }
         return Boolean(onDragMove?.(raycaster.current))
@@ -418,6 +434,8 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
       grabOffset.current = { x: point.x - t.x, z: point.z - t.z }
     }
   }
+  onPointerDown.stepTurn = stepTurn
+  return onPointerDown
 }
 
 // Writes the stored fields of a tool once none of them changed for REST_TIME. read() runs on every frame, because
@@ -848,7 +866,7 @@ function BendButton({ on, onClick, onPointerDown }) {
 // the range tools pass it. Without it, the tool marks no pieces.
 // onHover(over): the pointer moved onto (true) or off (false) the tool. onDrag(on): a drag of the
 // tool started (true) or ended (false). Both are also called with false on unmount.
-// turnRef(turn): gets turnAroundCenter, for Q / E (see turnPiece in Scene.jsx), and null on unmount.
+// turnRef(turn): gets stepTool, for Q / E (see turnPiece in Scene.jsx), and null on unmount.
 // liveRef(get): gets a function that returns the live pose { x, y, z, yaw, right, left } of the tool (LiveSync.jsx
 // sends it to the other player), and null on unmount.
 // spawnTarget: the piece the tool snaps to when it spawns, target by default. Without one it spawns
@@ -952,8 +970,11 @@ function Tool({
   const overRef = useRef(undefined)
   // Model under the pointer while a drag turns the snapped tool around the base, else null. See RangeMark.
   const measuredRef = useRef(null)
-  // The drag in progress: 'move', 'turn' or null. See useDragTool.
+  // The drag in progress: 'move', 'turn', 'bend' or null. See useDragTool.
   const dragKind = useRef(null)
+  // The half grabbed by a bend drag, and the half under the pointer (null: none, or a range tool)
+  const bendSide = useRef(null)
+  const hoverSide = useRef(null)
   const groundY = useFootprintGround(tip, halfWidth, turn)
   const onPointerDown = useDragTool(
     rigidRef,
@@ -1004,7 +1025,9 @@ function Tool({
     if (action.kind === 'bend') {
       const { x, z } = toolPose(rb)
       const other = turn[OTHER[side]]
+      bendSide.current = side
       return {
+        kind: 'bend',
         pivot: { x, z },
         onTurn(d, pose) {
           setTurn({
@@ -1060,26 +1083,75 @@ function Tool({
     }
   }
 
-  // Q / E: turns the whole tool by angle (yaw) around its center, the hinge on a movement tool.
-  // Scene.jsx calls it on every frame of a smoothed turn. The tool keeps its bend. Both ends move,
-  // so a snapped tool is free after the turn. A tool that is not dragged then hangs hoverHeight
-  // above the ground under its new outline (a move drag already does this on every frame). A turn
-  // drag sets the pose on every frame, so a turn during it does nothing.
-  function turnAroundCenter(angle) {
+  // Q / E and the wheel: a step of angle (yaw), as toolAction says (docs/features/range-movement-tools.md,
+  // "Input rules"). Scene.jsx calls it on every frame of a smoothed turn.
+  // - During a turn or bend drag the step goes to the drag (useDragTool), which sets the pose.
+  // - Turn around the tool center (the hinge on a movement tool): the tool keeps its bend. Both ends move,
+  //   so a snapped tool is free after it. A tool that is not dragged then hangs hoverHeight above the ground
+  //   under its new outline (a move drag already does this on every frame).
+  // - Turn around the base: the snap stays, and an angle tool limits it (limitTurn).
+  // - Bend: the same clamp as a bend drag.
+  function stepTool(angle) {
     const rb = liveRb()
-    if (!rb || dragKind.current === 'turn') return
-    const { x, z, yaw } = toolPose(rb)
-    if (!dragKind.current) {
-      const ground = groundY(x, z, yaw + angle)
-      if (ground !== null) rb.setTranslation({ x, y: ground + hoverHeight, z }, true)
+    if (!rb) return
+    const drag = dragKind.current
+    const action = toolAction(
+      {
+        snapped: !!snap,
+        snappedSide: snap?.side,
+        bendable,
+        bendOn,
+        side: drag === 'bend' ? bendSide.current : hoverSide.current,
+        drag,
+      },
+      'step',
+    )
+    if (action.kind === 'none') return
+    if ((drag === 'turn' || drag === 'bend') && onPointerDown.stepTurn(angle)) return
+    if (action.kind === 'bend') {
+      const { side } = action
+      setTurn((prev) => ({
+        ...prev,
+        [side]: THREE.MathUtils.clamp(
+          prev[side] + angle,
+          prev[OTHER[side]] - MAX_BEND,
+          prev[OTHER[side]] + MAX_BEND,
+        ),
+      }))
+      return
     }
-    rb.setRotation(yawQuat(yaw + angle), true)
+    const pose = toolPose(rb)
+    if (action.kind === 'turnBase' && snap) {
+      const pivot = snap.target.getCenter()
+      const open = angleLimit?.(snap.target) ?? null
+      const d =
+        open === null ? angle : limitTurn(toolShape(pose, turn)[snap.side] + Math.PI, open, angle)
+      const placed = turnAround(pose, pivot, d)
+      const ground = groundY(placed.x, placed.z, placed.yaw)
+      rb.setTranslation(
+        {
+          x: placed.x,
+          y: ground === null ? rb.translation().y : ground + hoverHeight,
+          z: placed.z,
+        },
+        true,
+      )
+      rb.setRotation(yawQuat(placed.yaw), true)
+      return
+    }
+    if (action.kind !== 'turnCenter') return
+    if (!drag) {
+      const ground = groundY(pose.x, pose.z, pose.yaw + angle)
+      if (ground !== null)
+        rb.setTranslation({ x: pose.x, y: ground + hoverHeight, z: pose.z }, true)
+    }
+    rb.setRotation(yawQuat(pose.yaw + angle), true)
     setSnap(null)
   }
 
   // Registered on every render, so the turn reads the current state
   useEffect(() => {
-    turnRef?.(turnAroundCenter)
+    turnRef?.(stepTool)
     return () => turnRef?.(null)
   })
 
@@ -1505,9 +1577,14 @@ function Tool({
                 object={part.obj}
                 onPointerOver={(e) => {
                   e.stopPropagation()
+                  hoverSide.current = part.side ?? null
                   setHovered(true)
                 }}
-                onPointerOut={() => setHovered(false)}
+                onPointerOut={() => {
+                  // The over of the next half may come first
+                  if (hoverSide.current === (part.side ?? null)) hoverSide.current = null
+                  setHovered(false)
+                }}
                 onPointerDown={(e) =>
                   onPointerDown(e, onSelect, onDragSelect, () => dragPlan(part.side))
                 }

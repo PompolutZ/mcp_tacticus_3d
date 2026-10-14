@@ -1,6 +1,6 @@
 # Plan: Q / E and the wheel turn and bend a snapped tool
 
-Requested by the user on 2026-10-14. Status: Part 1 done.
+Requested by the user on 2026-10-14. Status: Parts 1 and 2 done.
 
 Three coder steps, one commit each. Branch `tool-turn-keys`, worktree `../mcp_assist_3d-tool-turn-keys`.
 
@@ -81,6 +81,8 @@ Work:
    - `key-shortcuts.md`: the Q / E row and the paragraph under the table ("A turn moves both ends of a tool, so a snapped tool is free after it" and "Q / E do nothing" are no longer true). The wheel row.
 
 Checks: as in Part 1, and new tests in `toolInput.test.js` if Part 1 did not cover `'step'`.
+
+Result: `turnAroundCenter` is now `stepTool` in `RulerTool.jsx`. It reads `toolAction(state, 'step')`: turn around the center (as before), turn around the base (`turnAround`, `limitTurn` at an angle tool, snap stays), bend (`MAX_BEND` clamp, `setTurn` with the previous state). The half under the pointer is in `hoverSide`, set from the part pointer events. A bend drag now reports `'bend'` as `dragKind` (the bend plan has `kind: 'bend'`; `bendSide` keeps the grabbed half). `useDragTool` has `extra` in `turning.current` and `onPointerDown.stepTurn(angle)`; `onTurn` gets `d + extra`. `Scene.jsx` needed no change. Docs: `range-movement-tools.md` (Input rules column, Q / E text, Bending) and `key-shortcuts.md`. `toolInput.test.js` already covered `'step'`.
 
 User, after this part:
 1. Snapped movement tool, pointer over it, Q and E: it turns around the base, it stays snapped and keeps touching the base.
