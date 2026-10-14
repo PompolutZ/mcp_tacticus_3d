@@ -246,7 +246,7 @@ function EdgeControls({ team, locked, actions }) {
 
 // The panel next to the scoring board: what to do in this step, the buttons of the steps that are not about one
 // card, and Restart. The text names the player who chooses (setup/names.js).
-function BoardPanel({ setup, step, parsed, mySide, ctx, actions }) {
+function BoardPanel({ setup, step, parsed, mySide, ctx, actions, powerOnTable, onStartRound }) {
   const view = viewOf(setup)
   const threatLocked = lockedTitle(setup, 'the Maximum Threat', ctx)
   const colors = useSideColors()
@@ -351,7 +351,14 @@ function BoardPanel({ setup, step, parsed, mySide, ctx, actions }) {
   } else if (step === 'deploy') {
     // The players deploy one model at a time (p11). The player with Priority goes first.
     hint = `Deploy one model at a time, taking turns. ${says(winner, ctx, 'deploy')} first.`
-    note = 'Press Power Phase when both squads are deployed.'
+    note = powerOnTable
+      ? 'Press Auto Power Phase to start round 1 when both squads are deployed.'
+      : 'Press Power (bottom right) to start round 1 when both squads are deployed.'
+    controls = (
+      <button type="button" className="chip" onClick={onStartRound}>
+        Start round 1
+      </button>
+    )
   }
   // What the app read from the dice trays, until the deck is chosen
   const read =
@@ -496,6 +503,8 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
 // person plays both teams. Only that team's squad panel has buttons. actions: { priority(team), deck(type), pick(code),
 // threat(value), turnMat(direction), edge(), ready(team),
 // affiliation(team, key), restart(), browse(step | null), override(step) }, see setup/useGameSetup.js.
+// powerOnTable: the Power button is on the table (the note names it). onStartRound(): the Power button's action,
+// for Start round 1 in the deploy step.
 // onCrisisOpen({ team, type, code, drawn }): a click on a crisis card. drawn: the card is one of the 2 drawn
 // cards with a Choose button (App.jsx opens the Choose 1 overlay for it).
 // onCardHover(card, over): for Alt (useCardPeek.js).
@@ -505,6 +514,8 @@ export default function GameSetup({
   mySide,
   seatPlayers,
   actions,
+  powerOnTable,
+  onStartRound,
   onCrisisOpen,
   onCardHover,
 }) {
@@ -556,6 +567,8 @@ export default function GameSetup({
         mySide={mySide}
         ctx={ctx}
         actions={actions}
+        powerOnTable={powerOnTable}
+        onStartRound={onStartRound}
       />
       {step === 'squads' &&
         !browsing &&

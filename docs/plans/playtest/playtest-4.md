@@ -153,3 +153,11 @@ Done.
 - `useLosLine` uses `losFrame`. `OtherLos` uses the same hook, so it is fixed too.
 - Tests in `losLength.test.js`: key change plus turn then still frames (sight once), turn before rest, turn after rest, turn runs at once.
 - No feature doc change.
+
+### Step 5: Setup panel
+
+Done.
+
+- `GameSetup.jsx`: deploy note names Power (bottom right) or Auto Power Phase by setting; **Start round 1** chip in the deploy step. New props `powerOnTable`, `onStartRound`.
+- `Scene.jsx`: passes `tableButtons.show.power` and `() => tableButtons.onPowerPhase(playedSides)` (same `handlePowerPhase` and sides as the HUD Power button). The HUD button has no side limit or disabled state, so none here.
+- Docs: `setup-game.md` deploy row. `round-phases.md` did not repeat the text.

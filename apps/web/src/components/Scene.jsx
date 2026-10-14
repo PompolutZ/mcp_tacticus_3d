@@ -1480,6 +1480,8 @@ export default function Scene({
           mySide={mySide}
           seatPlayers={seatPlayers}
           actions={setupActions}
+          powerOnTable={tableButtons.show.power}
+          onStartRound={() => tableButtons.onPowerPhase(playedSides)}
           onCrisisOpen={onCrisisOpen}
           onCardHover={onCardHover}
         />
