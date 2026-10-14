@@ -1652,7 +1652,9 @@ export default function Scene({
               if (modelDragRef) modelDragRef.current = model.id
               trackPiece(draggedPiece, { kind: 'character', id: model.id }, true)
             },
-            onDragEnd: () => {
+            // cancelled: Esc put the body back, so a Q / E turn that is not done yet is dropped
+            onDragEnd: (cancelled) => {
+              if (cancelled) turnsLeft.current.delete(modelKey(model.id))
               setDraggingCharId(null)
               ownership?.setDrag(null)
               if (modelDragRef?.current === model.id) modelDragRef.current = null

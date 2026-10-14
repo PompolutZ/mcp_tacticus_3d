@@ -14,7 +14,7 @@ export function isEditing(target) {
 }
 
 // What a key press does. e: the keydown event. s: the app state now, read at the key press:
-// { tokenDrag, toolDrag, modelDrag (a model is dragged), popup (a card, tray, roster or settings popup is open), rosterOpen, diceMenu,
+// { tokenDrag, toolDrag (a token or tool is dragged), modelDrag (a model is dragged), drag (any pointer drag is in progress: Esc cancels it), popup (a card, tray, roster or settings popup is open), rosterOpen, diceMenu,
 // libraryOpen, logOpen, diceTray (side of the own dice tray under the pointer, or null), overPiece,
 // bindings (the bindings in use, input/bindings.js; the defaults when missing) }.
 // Returns { action, id, preventDefault?, ...arguments } or null (the key does nothing). id: the
@@ -38,10 +38,9 @@ export function keyAction(e, s) {
   const result = (extra) => ({ ...extra, id: def.id, ...(prevent && { preventDefault: true }) })
   if (def.action === 'peek') return result({ action: 'peek', blocked: now.dragging || now.popup })
   if (def.action === 'cancel') {
-    // Escape cancels the drag, else closes only the popup. Other keys do nothing while a token or tool
-    // is under the pointer.
-    if (s.tokenDrag) return result({ action: 'cancelTokenDrag' })
-    if (s.toolDrag) return result({ action: 'cancelToolDrag' })
+    // Escape cancels the drag in progress (any piece, token or tool: drag/pointerDrag.js), else closes
+    // only the popup. A model drag is one of them: Esc puts the model back, and clears no selection.
+    if (s.drag) return result({ action: 'cancelDrag' })
     if (s.popup) return result({ action: 'closePopups' })
     // A dice tray die menu closes first, then the Library, before the table's own Escape behavior.
     if (s.diceMenu) return result({ action: 'closeDiceMenu' })

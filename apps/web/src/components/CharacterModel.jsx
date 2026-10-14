@@ -304,6 +304,8 @@ function CharacterFigure({
   // Last body position of this drag where the base overlapped no model: { x, y, z }. Starts at the
   // position of the drag start. A drop inside a model goes back here.
   const freePlace = useRef(null)
+  // The pose of the body when this drag started: { t: {x, y, z}, r: {x, y, z, w} }. Esc puts the body back to it.
+  const startPose = useRef(null)
   // The dragged base overlaps a model now. Shows the mark without the 100 ms delay of Scene.
   const [dragOverlap, setDragOverlap] = useState(false)
   const showOverlap = overlap || dragOverlap
@@ -714,6 +716,10 @@ function CharacterFigure({
         floorMode.current = 'top'
         setDragging(true)
         freePlace.current = { ...rigidRef.current.translation() }
+        startPose.current = {
+          t: { ...rigidRef.current.translation() },
+          r: { ...rigidRef.current.rotation() },
+        }
         onDragStart?.()
       },
       onMove: (ev) => {
@@ -731,6 +737,7 @@ function CharacterFigure({
           if (overlapsAt?.(t.x, t.y, t.z)) rb.setTranslation(back, true)
         }
         freePlace.current = null
+        startPose.current = null
         setDragOverlap(false)
         setDragging(false)
         rigidRef.current?.setBodyType(0, true)
@@ -738,15 +745,29 @@ function CharacterFigure({
         rigidRef.current?.setAngvel(ZERO, true)
         onDragEnd?.()
       },
-      // A lost tie (the other player moves the model now): the drag ends with no drop and no write. The
-      // body stays as it is for the remote mode.
-      onCancel: () => {
+      // Esc: the body goes back to the pose of the drag start, with no velocity and dynamic again. A turn (Q / E)
+      // and a floor switch (R) of the drag are undone with it. No write here: the body falls asleep at the
+      // start pose, and then the rest write and the claim release run as after any drag. The peers follow
+      // the live pose until then.
+      // A lost tie (reason 'lost'): the other player moves the model now. The body stays as it is for the
+      // remote mode, and there is no put back, which would fight their drag.
+      onCancel: (reason) => {
+        const rb = rigidRef.current
+        const from = startPose.current
         isDragging.current = false
         floorMode.current = 'top'
         freePlace.current = null
+        startPose.current = null
         setDragOverlap(false)
         setDragging(false)
-        onDragEnd?.()
+        if (reason !== 'lost' && rb && from) {
+          rb.setBodyType(0, true)
+          rb.setTranslation(from.t, true)
+          rb.setRotation(from.r, true)
+          rb.setLinvel(ZERO, true)
+          rb.setAngvel(ZERO, true)
+        }
+        onDragEnd?.(reason !== 'lost' && Boolean(from))
       },
       onClick: () => onSelect?.(),
     })

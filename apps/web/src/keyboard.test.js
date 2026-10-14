@@ -15,6 +15,8 @@ function key(k, extra = {}) {
 const idle = {
   tokenDrag: null,
   toolDrag: null,
+  modelDrag: false,
+  drag: false,
   popup: false,
   rosterOpen: false,
   diceMenu: null,
@@ -41,30 +43,36 @@ test('Alt peeks with repeat and in a text field, also with its own altKey flag',
   assert.equal(act(key('Alt', { code: 'AltLeft', altKey: true, metaKey: true })), null)
 })
 
-test('a token drag: only Escape, which cancels it', () => {
-  const s = { tokenDrag: {} }
-  assert.deepEqual(act(key('Escape'), s), { action: 'cancelTokenDrag', id: 'cancel' })
+test('a token drag: only Escape, which cancels the drag', () => {
+  const s = { tokenDrag: {}, drag: true }
+  assert.deepEqual(act(key('Escape'), s), { action: 'cancelDrag', id: 'cancel' })
   assert.equal(act(key('f', { code: 'KeyF' }), s), null)
   assert.equal(act(key('Delete'), s), null)
   assert.equal(act(key('1'), s), null)
   assert.equal(act(key('ArrowLeft'), s), null)
 })
 
-test('a tool drag: only Escape, which cancels it', () => {
-  const s = { toolDrag: {} }
-  assert.deepEqual(act(key('Escape'), s), { action: 'cancelToolDrag', id: 'cancel' })
+test('a tool drag: only Escape, which cancels the drag', () => {
+  const s = { toolDrag: {}, drag: true }
+  assert.deepEqual(act(key('Escape'), s), { action: 'cancelDrag', id: 'cancel' })
   assert.equal(act(key('w', { code: 'KeyW' }), s), null)
   assert.equal(act(key(' ', { code: 'Space' }), s), null)
 })
 
-test('a token drag wins over a tool drag', () => {
-  const s = { tokenDrag: {}, toolDrag: {} }
-  assert.deepEqual(act(key('Escape'), s), { action: 'cancelTokenDrag', id: 'cancel' })
+test('a model drag: Escape cancels the drag, Q / E and R still work', () => {
+  const s = { modelDrag: true, drag: true }
+  assert.deepEqual(act(key('Escape'), s), { action: 'cancelDrag', id: 'cancel' })
+  assert.equal(act(key('q', { code: 'KeyQ' }), s).action, 'rotate')
+  assert.equal(act(key('r', { code: 'KeyR' }), s).action, 'floor')
+})
+
+test('a tactic, crisis token or marker drag: Escape cancels the drag, not the selection', () => {
+  assert.equal(act(key('Escape'), { drag: true }).action, 'cancelDrag')
+  assert.equal(act(key('Escape'), { drag: false }).action, 'escape')
 })
 
 test('drags win over popups and Escape closes no popup then', () => {
-  assert.equal(act(key('Escape'), { tokenDrag: {}, popup: true }).action, 'cancelTokenDrag')
-  assert.equal(act(key('Escape'), { toolDrag: {}, popup: true }).action, 'cancelToolDrag')
+  assert.equal(act(key('Escape'), { drag: true, popup: true }).action, 'cancelDrag')
 })
 
 test('a popup: Escape closes the popups, also with a modifier or in a text field', () => {

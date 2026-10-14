@@ -5,6 +5,22 @@
 // Pixels the pointer must move before a press is a drag
 export const DRAG_THRESHOLD = 4
 
+// The drag that is in progress, from the press to the release or the cancel. One pointer drags at a
+// time. Esc reaches it through cancelActiveDrag, so no piece keeps its own handle for the key.
+let activeDrag = null
+
+// True while a pointer drag is in progress
+export function isDragActive() {
+  return activeDrag !== null
+}
+
+// Ends the drag in progress with no drop (its onCancel runs). Returns true when there was one.
+export function cancelActiveDrag() {
+  if (!activeDrag) return false
+  activeDrag.cancel()
+  return true
+}
+
 // True for a DOM event of an element that is not the canvas. An R3F event has nativeEvent.
 function isHudEvent(event) {
   return !event.nativeEvent && event.target?.tagName !== 'CANVAS'
@@ -18,7 +34,8 @@ function isHudEvent(event) {
 //   onEnd runs at once and the release does nothing more.
 // - onEnd(ev): the release of a drag (the drop).
 // - onClick(ev): the release of a press that did not become a drag.
-// - onCancel(): cancel() ended a drag or a press. No drop.
+// - onCancel(reason): cancel() ended a drag or a press. No drop. reason: 'cancel' (Esc, cancelActiveDrag), or
+//   'lost' (a lost tie for key: the other player owns the piece now, so it must not be put back).
 // - canStart(ev): called at the press when immediate, else at each move past the threshold.
 //   False: no drag yet (a piece that cannot move now: a token that cannot move, a tool with no body).
 // - immediate: the press is a drag at once, with no threshold and no click.
@@ -109,12 +126,13 @@ export function startPointerDrag(event, options = {}) {
 
   function listenLost() {
     stopLost = ownership.onLost((lostKey) => {
-      if (lostKey === key) cancel()
+      if (lostKey === key) cancel('lost')
     })
   }
 
   function finish() {
     closed = true
+    if (activeDrag === handle) activeDrag = null
     if (controls) controls.enabled = true
     target.removeEventListener('pointermove', handleMove)
     target.removeEventListener('pointerup', handleUp)
@@ -159,18 +177,20 @@ export function startPointerDrag(event, options = {}) {
   }
 
   // Ends the drag with no drop. Does nothing after the release.
-  function cancel() {
+  function cancel(reason = 'cancel') {
     if (closed) return
     const wasOver = over
     over = true
     finish()
     try {
-      if (!wasOver) onCancel?.()
+      if (!wasOver) onCancel?.(reason)
     } finally {
       endClaim()
     }
   }
 
+  const handle = { cancel }
+  activeDrag = handle
   target.addEventListener('pointermove', handleMove)
   target.addEventListener('pointerup', handleUp)
   if (immediate) {
@@ -178,5 +198,5 @@ export function startPointerDrag(event, options = {}) {
     dragging = true
     onStart?.(event)
   }
-  return { cancel }
+  return handle
 }

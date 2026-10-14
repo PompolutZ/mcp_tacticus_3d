@@ -36,8 +36,6 @@ export function useTokenDrag({
   const [tokenDrag, setTokenDrag] = useState(null)
   // The same drag without the active and start fields, for handleTokenRelease
   const tokenDragRef = useRef(null)
-  // The drag code of the token drag: { cancel }, or null
-  const tokenDragHandleRef = useRef(null)
   // The table point under the pointer, written by TokenDragPreview: { x, y, z } | null
   const dragPointRef = useRef(null)
   // pointerdown on a character token: a tray's Give source (a new token, the source never runs out),
@@ -91,7 +89,7 @@ export function useTokenDrag({
   // e is the DOM event. preventDefault stops the browser's own image drag and text selection. The
   // camera does not move during the drag (startPointerDrag). The drag becomes active after
   // DRAG_THRESHOLD px, and its release drops the token (handleTokenRelease). A release before that
-  // is a click, which does nothing, except on a Give source (giveId). Escape cancels (see keyAction in keyboard.js). Any button starts it: the
+  // is a click, which does nothing, except on a Give source (giveId). Esc cancels (cancelActiveDrag in drag/pointerDrag.js). Any button starts it: the
   // Library chips never checked the button.
   // drag: tokenKey and the fields of tokenDrag that are set, the others get their defaults.
   function startTokenDrag(e, drag) {
@@ -144,7 +142,6 @@ export function useTokenDrag({
       onRefused: endTokenDrag,
     })
     if (!handle) return
-    tokenDragHandleRef.current = handle
     tokenDragRef.current = full
     setTokenDrag({ ...full, active: false, start: null })
   }
@@ -152,13 +149,8 @@ export function useTokenDrag({
   // The document write of a drop comes before this, and the release of the claim after it
   function endTokenDrag() {
     ownership?.setSpawn(null)
-    tokenDragHandleRef.current = null
     tokenDragRef.current = null
     setTokenDrag(null)
-  }
-
-  function cancelTokenDrag() {
-    tokenDragHandleRef.current?.cancel()
   }
 
   // Character under (clientX, clientY): the DOM tray controls first (data-character-id, see
@@ -251,6 +243,5 @@ export function useTokenDrag({
     handlePileTakeStart,
     handlePileMoveStart,
     handleSupplyDragStart,
-    cancelTokenDrag,
   }
 }

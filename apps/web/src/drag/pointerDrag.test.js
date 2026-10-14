@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { DRAG_THRESHOLD, startPointerDrag } from './pointerDrag.js'
+import { DRAG_THRESHOLD, cancelActiveDrag, isDragActive, startPointerDrag } from './pointerDrag.js'
 
 // EventTarget that counts its listeners
 function fakeWindow() {
@@ -377,4 +377,32 @@ test('preventDefault runs on a HUD DOM event, not on a canvas or R3F event', () 
   setup({ preventDefault: true }, props({ nativeEvent: {}, target: {} }))
   setup({ preventDefault: false }, props({ target: { tagName: 'DIV' } }))
   assert.deepEqual(calls, ['prevent'])
+})
+
+test('the active drag: set at the press, cancelActiveDrag cancels it, cleared at the end', () => {
+  cancelActiveDrag() // a drag that an earlier test left open
+  assert.equal(isDragActive(), false)
+  const a = setup()
+  assert.equal(isDragActive(), true)
+  a.win.dispatchEvent(move(200))
+  assert.equal(cancelActiveDrag(), true)
+  assert.deepEqual(a.log, ['start', 'move', 'cancel'])
+  assert.equal(isDragActive(), false)
+  assert.equal(cancelActiveDrag(), false)
+  const b = setup()
+  b.win.dispatchEvent(move(200))
+  b.win.dispatchEvent(up())
+  assert.equal(isDragActive(), false)
+  assert.equal(cancelActiveDrag(), false)
+})
+
+test('onCancel gets the reason: cancel for Esc, lost for a lost tie', () => {
+  const reasons = []
+  const first = setup({ onCancel: (r) => reasons.push(r) })
+  first.win.dispatchEvent(move(200))
+  cancelActiveDrag()
+  const { win, ownership } = claimSetup({ onCancel: (r) => reasons.push(r) })
+  win.dispatchEvent(move(200))
+  ownership.lost('tactic:a')
+  assert.deepEqual(reasons, ['cancel', 'lost'])
 })

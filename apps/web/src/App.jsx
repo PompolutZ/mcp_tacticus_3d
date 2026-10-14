@@ -27,6 +27,7 @@ import { CardPopup } from './components/CardPopup.jsx'
 import { TrayPopup } from './components/TrayPopup.jsx'
 import { RosterPopupHost } from './components/RosterPopupHost.jsx'
 import { useTokenDrag } from './drag/useTokenDrag.js'
+import { cancelActiveDrag, isDragActive } from './drag/pointerDrag.js'
 import { characterOnBoard, isConstructId, modelCharacterId } from './characters/models.js'
 import { isSoftwareRenderer, rendererName } from './renderer.js'
 import { parseRosterText, rosterCard, rosterTabs } from './rosters/cards.js'
@@ -183,7 +184,6 @@ export default function App({
     angleSpawn,
     toolSpawn,
     toolDrag,
-    toolDragHandleRef,
     toolDragPointRef,
     handleToolStore,
     handleRangeClick,
@@ -529,7 +529,6 @@ export default function App({
     handlePileTakeStart,
     handlePileMoveStart,
     handleSupplyDragStart,
-    cancelTokenDrag,
   } = useTokenDrag({
     table,
     ownership,
@@ -579,6 +578,7 @@ export default function App({
       tokenDrag,
       toolDrag,
       modelDrag: modelDragRef.current !== null,
+      drag: isDragActive(),
       popup: !!(openCard || openTrayId || openRoster || settingsOpen),
       rosterOpen: !!openRoster,
       diceMenu,
@@ -590,8 +590,7 @@ export default function App({
     }),
     actions: {
       peek: (a) => altDown(a.blocked),
-      cancelTokenDrag: () => cancelTokenDrag(),
-      cancelToolDrag: () => toolDragHandleRef.current?.cancel(),
+      cancelDrag: () => cancelActiveDrag(),
       closePopups: () => {
         setOpenCard(null)
         setOpenTrayId(null)

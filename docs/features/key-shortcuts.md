@@ -144,7 +144,7 @@ The keys of the tables above are the defaults. The user can change them in **Set
 
 | Key | App |
 |---|---|
-| Escape | Cancels a token drag, or closes the card, tray or settings popup, or closes the dice menu, or collapses the Log. Otherwise it clears the selection and removes the selected tools |
+| Escape | Cancels a drag in progress: a model, tactic card, crisis token, priority marker, token, or tool goes back to where it was before the drag (a model also loses the Q / E turn and the R floor switch of the drag), and the selection stays. Otherwise closes the card, tray or settings popup, or closes the dice menu, or collapses the Log. Otherwise it clears the selection and removes the selected tools |
 
 ## Differences to decide
 

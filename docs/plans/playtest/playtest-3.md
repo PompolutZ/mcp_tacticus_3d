@@ -144,3 +144,15 @@ Paths are under `apps/web/src/`.
 ### Step 1: Plans
 
 Done. 9 plans moved with `git mv` into `docs/plans/playtest/`.       20 path refs fixed in 13 files (plans, `docs/features/table-tools.md`, 5 code comments under `apps/`). `CLAUDE.md` "Docs" has the new line. No old path is left, except the example in Facts of this plan.
+
+### Step 2: Esc cancels a drag
+
+Done. Files (under `apps/web/src/`): `drag/pointerDrag.js`, `drag/pointerDrag.test.js`, `drag/useTokenDrag.js`, `tabletools/useTableTools.js`, `components/CharacterModel.jsx`, `components/Scene.jsx`, `components/RulerTool.jsx`, `keyboard.js`, `keyboard.test.js`, `App.jsx`. Docs: `docs/features/key-shortcuts.md`, `table-tools.md`.
+
+- One path: `pointerDrag.js` keeps a module-level active drag, set at the press and cleared at the end. Exports `isDragActive()` and `cancelActiveDrag()`. App key state has `drag: isDragActive()`, `keyAction` Esc → `cancelDrag` (before popups and the generic `cancel`, so the selection stays). Every `startPointerDrag` drag is covered, with no per-component handle: tactic card, crisis token and its turn handle, priority marker, model, token, HUD tool chip, ruler tool.
+- Token and tool drags migrated: `tokenDragHandleRef`, `cancelTokenDrag`, `toolDragHandleRef` and the actions `cancelTokenDrag` / `cancelToolDrag` are removed. `tokenDrag` / `toolDrag` stay in the key state only for `dragging` (blocks other keys, wheel turns).
+- `onCancel(reason)`: `'cancel'` (Esc) or `'lost'` (lost tie). Model: Esc restores the start pose (position + rotation stored in `onStart`), zero velocities, dynamic; clears floor mode and drag flags; Scene drops a pending Q / E turn (`onDragEnd(cancelled)`). Lost tie keeps the old behavior (body stays for the remote mode): the other player owns the model, a put back would fight their drag. Tactic card, token, marker `onCancel` unchanged (they restore on both reasons, as before).
+- Rest path: `releaseAtEnd` is false for models, so the claim is released by the Scene loop when the dynamic body sleeps. After the cancel the body is dynamic at a resting pose, so it falls asleep, `onRest` writes the start pose and the claim ends as after any drag. Not run in a browser (user rule).
+- RulerTool drag (not listed): got an `onCancel` that ends the drag, so Esc leaves the tool where it is. No put back.
+- Checks: format, lint (46 warnings, same as before), test (695 pass), build ok.
+- Open: Esc on a press that has not passed the threshold also cancels it (no click). A model that is cancelled before `onStart` has no start pose and is not moved.

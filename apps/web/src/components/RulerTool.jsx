@@ -356,6 +356,10 @@ function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove, on
         return Boolean(onDragMove?.(raycaster.current))
       },
       onEnd: endDrag,
+      // Esc: the tool stays where it is. A press that did not start has nothing to end.
+      onCancel: () => {
+        if (isDragging.current) endDrag()
+      },
       onClick: () => onSelect?.(),
     })
     if (pressed && rigidRef.current) {

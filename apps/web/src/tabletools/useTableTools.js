@@ -41,8 +41,6 @@ export function useTableTools({
   // moved DRAG_THRESHOLD px, so the outline of the tool shows (Scene.jsx, ToolDragGhost). start: the pointer
   // position at that moment. Like the token drag, the state changes only at start and when the drag becomes active.
   const [toolDrag, setToolDrag] = useState(null)
-  // The drag code of the tool drag: { cancel }, or null
-  const toolDragHandleRef = useRef(null)
   // The table point under the pointer, written by ToolDragGhost: { x, y, z } | null
   const toolDragPointRef = useRef(null)
 
@@ -187,8 +185,8 @@ export function useTableTools({
   // event of a chip. kind: 'range' | 'move' | 'angle'. which: the range number, the movement type, or true. The
   // camera does not move during the press (startPointerDrag). After DRAG_THRESHOLD px, the outline of the tool
   // follows the pointer, and the release drops the tool (handleToolDrop). onClick: the release of a press
-  // that did not become a drag (chips only; a tool of the 3D scene has its own click). Escape cancels (see
-  // keyAction in keyboard.js).
+  // that did not become a drag (chips only; a tool of the 3D scene has its own click). Esc cancels (cancelActiveDrag
+  // in drag/pointerDrag.js).
   function startToolDrag(e, kind, which, onClick) {
     const drag = { kind, which }
     const handle = startPointerDrag(e, {
@@ -211,12 +209,10 @@ export function useTableTools({
       onCancel: endToolDrag,
     })
     if (!handle) return
-    toolDragHandleRef.current = handle
     setToolDrag({ ...drag, active: false, start: null })
   }
 
   function endToolDrag() {
-    toolDragHandleRef.current = null
     setToolDrag(null)
   }
 
@@ -247,7 +243,6 @@ export function useTableTools({
     angleSpawn,
     toolSpawn,
     toolDrag,
-    toolDragHandleRef,
     toolDragPointRef,
     handleToolStore,
     handleRangeClick,
