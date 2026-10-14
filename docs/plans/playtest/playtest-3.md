@@ -1,6 +1,6 @@
 # Plan: Feedback from the third playtest
 
-Requested by the user on 2026-10-14. Status: all steps done, waiting for the user's test. The user decides more on the overlays (decisions 6 and 7) after a test run.
+Requested by the user on 2026-10-14. Status: steps 1 to 9 done. Steps 10 and 11 (Line of Sight, added by the user on 2026-10-14 before the test) wait for the user's OK. The user decides more on the overlays (decisions 6 and 7) after a test run.
 
 Branch `playtest-3`, worktree `../mcp_assist_3d-playtest-3`, from main at `5d071a9`. One coder step and one commit for each step. Each step writes its **Result** below when it is done. Feature docs change in the same step as the code.
 
@@ -18,6 +18,11 @@ Rule of every step (from the user): reuse existing hooks and functions. Extend a
 6. In the setup, a click on a crisis card opens a compare overlay instead of the roster. Tabs: Compare Secures, Compare Extracts. My cards in the top half, the opponent's cards in the bottom half. The overlay has the Choose my Secures / Choose my Extracts button. When a player must choose 1 of 2 cards, an overlay opens on their screen by itself. The roster keeps its crisis tab, opened from a character or tactic card.
 7. The spectator view shows each squad in a column, one on the left, one on the right: portrait, Damage and Power bars, tokens, KO. A header with the player name, VP and the round. A size setting.
 8. Rework the top toolbar. Today its buttons wrap to a second row, and the Log bar covers Settings in the Sandbox.
+9. Line of Sight tool. The game has no real tool for it. A line as wide as the base, from the base center, that turns around the base. A footprint of a neutral color. It goes to the board edge, or to the first terrain with a larger Size. Terrain of the same or smaller Size does not stop it. Spawn from the tool rack, or with Shift + 1 over a model. Rules (from the user):
+   - A character has LOS to another character or an object if a straight, unobstructed line can be drawn from any part of its base to the other base or the object. The line can pass through characters, but not through terrain with a larger Size than the other character or the object.
+   - A character on top of terrain: add the Size of the character and the Size of the terrain.
+   - A character on top of terrain ignores that terrain for LOS.
+   - User answer: the Size that blocks is the Size of a target model that the player picks. LOS is checked after the models are placed; the player looks at the line and decides.
 
 ## Facts
 
@@ -75,6 +80,16 @@ Paths are under `apps/web/src/`.
 - Library, Log, the notice start at a fixed `top: 56px`. That assumes one toolbar row. In the Sandbox the toolbar has 2 rows, so the Log bar covers Settings, and open panels cover row 2.
 - The Log bar (`LogPanel.jsx`) is always shown at the top right and shows the newest entry.
 
+### Line of Sight
+
+- Tools: range, move and T/A, one entry of each kind per side in Yjs `table.tools` (`net/doc.js:39`, `components/storedTool.js`). Rack: `tabletools/layout.js:39-73`, `ToolRack.jsx`. Spawn by key over a piece or by a drag from the rack: `tabletools/useTableTools.js` (`placeTool`, `handleToolDrop`). Live pose during a drag: `net/livePose.js`. Other player's tools: `OtherTool` (`RulerTool.jsx`).
+- Snap and turn around a base: `snapPose`, `turnAround` (`RulerTool.jsx:132-156`). Footprint on table and terrain: `ToolFootprint` (`RulerTool.jsx:449`, `footprintProjection.js`).
+- Key 1 is `range1`: the R2 tool in Snap 1 mode. No default binding uses Shift. Modifiers must match exactly (`input/bindings.js:233`), so Shift + 1 is free. `overPiece` is the hover condition.
+- Character Size: Jarvis `size`, and `statCard.frontSide.size` / `backSide.size` (`characters/jarvis-characters.json`). Hulkbuster 4 → 2 and Phoenix 2 → 4 between sides. Not loaded: `rosterEntry` (`characters/characters.js:20-60`) has no size. Face-up side: `character.side`.
+- Base diameter: `BASE_DIAMETER` (`characters/files.js:31`), `toolModels[].radius` (`Scene.jsx:1014`).
+- Terrain Size: per placement, `MAPS[id].placements[i].size` (`terrain/maps.js`), merged by `withPlacements` (`rooms/table.js`). Used only for the label (`Terrain.jsx:380`). The terrain `RigidBody` has no `userData`, so a collider does not know its Size.
+- Physics: `castAlong(..., keep)` (`physics.js:62`) casts a shape along a direction with a collider filter, fixed colliders only (no models, no tools). `throwPath.js` already finds the terrain under a base (`intersectionsWithShape`, `:72-86`) and the distance to the mat edge (`matEdgeDistance`, `:43`, not exported). The mat is 36" for all maps, edges at ±18.
+
 ## Decisions
 
 1. **Plans.** `git mv` the 9 plans above into `docs/plans/playtest/`, and fix every path that points to them, in docs and code comments. Add one line to `CLAUDE.md` "Docs": plans from a user test are in `docs/plans/playtest/`.
@@ -127,6 +142,22 @@ Paths are under `apps/web/src/`.
    - The toolbar height is set as a CSS variable `--hud-top`. The Library, the Log, the notice and the spectator columns start at that variable, not at 56 px.
    - The Log bar stays: a collapsed bar with the newest entry, at the top right under the toolbar.
 
+10. **Line of Sight tool.**
+   - New tool kind `los`, one per side, as the other kinds. The other player sees it (Yjs entry and live pose, as the other tools).
+   - **Looker:** the line starts at the base center of a looking character, along a direction (yaw). Width: the base diameter. Color: a light neutral grey, half transparent, painted on table and terrain as the other footprints.
+   - **Spawn:**
+     - Shift + 1 over a character: line from that character, pointed at the mat center (as `snapPose`).
+     - Drag the LOS chip from the rack onto a character: the same. A drop on empty table does nothing, because the line needs a character.
+     - Shift + 1 over a second character while my line exists: that character becomes the **target**. The line turns to point from the looker's base center to the target's base center.
+     - Shift + 1 over the looker again, or over the target: no change. Esc (selected), key 0 and a drop on the rack remove the line, as the other tools.
+   - **Turn:** a drag on the line turns it around the looker's base center (`turnAround`). Q / E and the wheel during that drag turn it the same way.
+   - **Block Size:** Size of the target (its face-up side), plus the Size of the terrain the target stands on. Without a target, the looker's own Size (plus its terrain), until a target is picked. A small label at the line's end shows it, for example "Size 3 · Hulk" or "Size 2 · own".
+   - **Length:** from the looker's base center to the mat edge, or to the first terrain whose Size is larger than the block Size. The terrain the looker stands on is skipped. Terrain of the same or smaller Size does not stop it. Characters do not stop it. Height does not matter: the cast box is tall, so an overhang above the line also blocks.
+   - **Models move:** the line belongs to the looker and the target by id. It stays on the looker's base center, keeps its direction, and is computed again when a model comes to rest. A removed model removes the line (looker) or clears the target.
+   - The app does not decide LOS. The player reads the line and decides (`docs/features/character-trays.md`, "Players apply the rules").
+   - Reuse: `castAlong`, the stand-on test and `matEdgeDistance` from `throwPath.js` (move them to a shared module), `turnAround`, `ToolFootprint`, the tool lifecycle of `useTableTools`.
+   - New feature doc `docs/features/line-of-sight.md`.
+
 ## Steps
 
 1. **Plans.** Decision 1. Files: `docs/plans/*.md` (9 files), every doc and comment that points to them, `CLAUDE.md`. Check: `grep -rn "docs/plans/<name>"` finds only new paths.
@@ -138,6 +169,9 @@ Paths are under `apps/web/src/`.
 7. **Compare overlay.** Decision 6. Files: a new `components/CrisisCompare.jsx`, `components/GameSetup.jsx`, `App.jsx`, `index.css`. Docs: `docs/features/setup-game.md`, `docs/features/roster.md`.
 8. **Choose 1 overlay.** Decision 7. Files: a new `components/CrisisChoose.jsx`, `App.jsx`, `components/GameSetup.jsx`, `index.css`. Docs: `docs/features/setup-game.md`.
 9. **Spectator columns.** Decision 8. Files: a new `components/SpectatorColumns.jsx`, `App.jsx`, `index.css`, `settings/settings.js`, `settings/useSettings.js`, `components/SettingsPopup.jsx`, `settings/settings.test.js`. Docs: `docs/features/spectator-view.md`, `docs/features/table-tools.md`.
+
+10. **LOS data and rule.** Decision 10, without UI. Character Size per side in `rosterEntry` from Jarvis (and a lookup like `characterStamina`). Terrain Size on the terrain collider (`userData` on the `RigidBody`, read through `collider.parent()`). A pure LOS length function: start, yaw, base width, block Size, terrain skipped → distance and the blocking terrain. Shared module for the stand-on test and `matEdgeDistance` (`throwPath.js` uses it too). Tests for the size lookup and the length rule (with a fake cast). Docs: `docs/features/line-of-sight.md` (Status: partly built), `docs/features/roster.md` if it lists character fields.
+11. **LOS tool.** Decision 10, the tool. Files: `tabletools/useTableTools.js`, `tabletools/layout.js`, `components/ToolRack.jsx`, a new `components/LosTool.jsx` (or a kind in `RulerTool.jsx` if the code fits), `components/Scene.jsx`, `selection.js`, `net/livePose.js`, `components/storedTool.js`, `input/bindings.js`, `App.jsx`, `toolTips.js`. Docs: `docs/features/line-of-sight.md` (Status: built), `docs/features/key-shortcuts.md`, `docs/features/range-movement-tools.md`, `docs/features/table-tools.md`.
 
 ## Results
 
