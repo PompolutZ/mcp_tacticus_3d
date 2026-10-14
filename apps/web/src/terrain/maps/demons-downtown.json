@@ -1,0 +1,239 @@
+{
+  "id": "demons-downtown",
+  "name": "Demons Downtown",
+  "ttsMap": 289,
+  "mat": "demons-downtown",
+  "matRotation": 270,
+  "placements": [
+    {
+      "piece": "bench-size-1",
+      "size": 1,
+      "position": [
+        -13.484,
+        1.424,
+        9.365
+      ],
+      "rotation": [
+        0.01,
+        89.99,
+        -0.01
+      ],
+      "scale": 0.325,
+      "tint": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    },
+    {
+      "piece": "size-3-truck",
+      "size": 3,
+      "position": [
+        -9.659,
+        1.185,
+        -4.88
+      ],
+      "rotation": [
+        1.95,
+        105.01,
+        1.39
+      ],
+      "scale": 0.3
+    },
+    {
+      "piece": "rusted-car-size-2",
+      "size": 2,
+      "position": [
+        -8.548,
+        0.967,
+        11.267
+      ],
+      "rotation": [
+        -0.01,
+        -14.98,
+        -0.01
+      ],
+      "scale": 0.75
+    },
+    {
+      "piece": "size-2-car-4",
+      "size": 2,
+      "position": [
+        -7.61,
+        1.051,
+        -12.823
+      ],
+      "rotation": [
+        0.01,
+        89.99,
+        -0.01
+      ],
+      "scale": 0.25
+    },
+    {
+      "piece": "green-dumpster-size-2",
+      "size": 2,
+      "position": [
+        -2.072,
+        1.052,
+        7.21
+      ],
+      "rotation": [
+        -0.01,
+        -120,
+        0.01
+      ],
+      "scale": 0.75
+    },
+    {
+      "piece": "size-2-car-4",
+      "size": 2,
+      "position": [
+        -0.86,
+        1.051,
+        -2.109
+      ],
+      "rotation": [
+        0.01,
+        165,
+        0.01
+      ],
+      "scale": 0.25
+    },
+    {
+      "piece": "pagani-s-old-ale-house-size-4",
+      "size": 4,
+      "position": [
+        -0.294,
+        0.993,
+        -9.915
+      ],
+      "rotation": [
+        -0.01,
+        0,
+        -0.01
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "daily-bugle-size-3",
+      "size": 3,
+      "position": [
+        6.735,
+        1.045,
+        4.148
+      ],
+      "rotation": [
+        -0.01,
+        -0.04,
+        -0.01
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "size-4-truck-5",
+      "size": 4,
+      "position": [
+        11.344,
+        1.04,
+        -2.647
+      ],
+      "rotation": [
+        0.01,
+        -180,
+        0.01
+      ],
+      "scale": 1.05,
+      "tint": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    },
+    {
+      "piece": "blue-dumpster-size-2",
+      "size": 2,
+      "position": [
+        12.072,
+        1.053,
+        -8.536
+      ],
+      "rotation": [
+        -0.01,
+        -0.02,
+        -0.01
+      ],
+      "scale": 0.75
+    },
+    {
+      "piece": "green-dumpster-size-2",
+      "size": 2,
+      "position": [
+        12.462,
+        1.054,
+        10.335
+      ],
+      "rotation": [
+        0.01,
+        104.99,
+        0
+      ],
+      "scale": 0.75
+    },
+    {
+      "piece": "traffic-light-w-base-size-1",
+      "size": 1,
+      "position": [
+        14.705,
+        1.187,
+        2.928
+      ],
+      "rotation": [
+        0.01,
+        90.01,
+        -0.01
+      ],
+      "scale": 1,
+      "tint": [
+        0.38,
+        0.38,
+        0.38
+      ]
+    },
+    {
+      "piece": "bus-stop-size-2",
+      "size": 2,
+      "position": [
+        -14.902,
+        1.993,
+        -1.194
+      ],
+      "rotation": [
+        0,
+        -0.01,
+        -0.01
+      ],
+      "scale": 0.875,
+      "tint": [
+        0.59,
+        0.59,
+        0.59
+      ]
+    },
+    {
+      "piece": "size-2-car",
+      "size": 2,
+      "position": [
+        -12.001,
+        2.293,
+        6.38
+      ],
+      "rotation": [
+        0.01,
+        60,
+        179.99
+      ],
+      "scale": 0.193
+    }
+  ]
+}

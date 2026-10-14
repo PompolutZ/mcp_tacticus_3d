@@ -109,7 +109,7 @@ These parts are missing or different for terrain:
    - An OBJ piece is a mesh and a texture file, with a collider from the mesh. The script writes a GLB, so it does not fit this kind.
    - A bundle piece (`bundle: true`) is a GLB, so it fits. But a bundle piece gets no collider from its visible mesh. It needs a `colliders` list: shapes written by hand (box, cylinder and so on) or a separate collider GLB. Without colliders, models and dice fall through the piece.
 2. **The front of the piece is random.** Object Capture does not know which side is the front, so the piece can be turned (about 90° in the test). For a figure this matters little. On a map, the placement must match the mat. `--turn` is not built.
-3. **The center is the center of the bounding box.** This is correct for terrain, because the placements in `maps.js` are relative to the piece center.
+3. **The center is the center of the bounding box.** This is correct for terrain, because the placements in `maps/<id>.json` are relative to the piece center.
 4. **The camera cannot see some parts.** Undersides, overhangs, the inside of buildings and very thin parts (railings, antennas) come out bad or closed. Many terrain pieces have these parts, for example the Mech Hangar or the Apartments.
 5. **Big pieces need more detail.** The defaults (30k triangles, 2048 texture) are set for a figure. A large building may need `--triangles 60000 --texture 4096`. The photo rules are the same, and the piece must still fill most of each photo.
 
@@ -117,7 +117,7 @@ To support scanned terrain, the app needs:
 
 - a `--turn` option
 - colliders for the scan, for example one convex hull or mesh collider made from the scan
-- an entry in `pieces.js` and a placement in `maps.js`
+- an entry in `pieces.js` and a placement in a map JSON file
 
 ## Out of scope
 

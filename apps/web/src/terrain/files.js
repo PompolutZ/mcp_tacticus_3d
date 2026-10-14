@@ -1,5 +1,5 @@
 // Names of the terrain files in src/assets. The files are named after the piece key or the mat name,
-// so pieces.js and maps.js have no paths. scripts/migrate-terrain.mjs writes the files with these names.
+// so pieces.js and the map JSON files have no paths. scripts/migrate-terrain.mjs writes the files with these names.
 // Plain functions without Vite imports, so that the script can use them too.
 
 // Mesh of a piece: GLB

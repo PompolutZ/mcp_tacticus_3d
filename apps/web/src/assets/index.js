@@ -12,3 +12,6 @@ export function assetUrl(path) {
   if (!url) throw new Error(`No asset at src/assets/${path}`)
   return url
 }
+
+// Whether src/assets has the file (a new map may have no card image yet)
+export const hasAsset = (path) => `./${path}` in URLS

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { COLOR_NAME, useSideColors } from '../sideColors.js'
-import { MAPS } from '../terrain/maps.js'
+import { MAPS } from '../terrain/maps/index.js'
 import { cardsOfType } from '../crisis/cards.js'
 import { CopyLinkButton } from './CopyLinkButton.jsx'
 import { RoomPlayers } from './RoomPlayers.jsx'

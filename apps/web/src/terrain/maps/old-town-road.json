@@ -1,0 +1,498 @@
+{
+  "id": "old-town-road",
+  "name": "Old Town Road",
+  "ttsMap": 296,
+  "mat": "old-town-road",
+  "matRotation": 90,
+  "placements": [
+    {
+      "piece": "horse-size-2",
+      "size": 2,
+      "position": [
+        -15.59,
+        1.077,
+        10.761
+      ],
+      "rotation": [
+        -0.08,
+        59.92,
+        0
+      ],
+      "scale": 0.675
+    },
+    {
+      "piece": "saloon-size-4",
+      "size": 4,
+      "position": [
+        -12.043,
+        1.085,
+        -3.488
+      ],
+      "rotation": [
+        -0.81,
+        89.99,
+        0.05
+      ],
+      "scale": [
+        0.292,
+        0.317,
+        0.292
+      ]
+    },
+    {
+      "piece": "pawn-shop-size-3",
+      "size": 3,
+      "position": [
+        -14.7,
+        1.059,
+        -13.065
+      ],
+      "rotation": [
+        0,
+        90.01,
+        0
+      ],
+      "scale": 0.7
+    },
+    {
+      "piece": "hay-bale-size-1",
+      "size": 1,
+      "position": [
+        -12.839,
+        1.091,
+        15.581
+      ],
+      "rotation": [
+        -0.35,
+        -45.02,
+        0.66
+      ],
+      "scale": 1.65
+    },
+    {
+      "piece": "barrels-size-2",
+      "size": 2,
+      "position": [
+        -12.246,
+        1.058,
+        -6.708
+      ],
+      "rotation": [
+        0.03,
+        -134.47,
+        -0.03
+      ],
+      "scale": 0.375
+    },
+    {
+      "piece": "logan-the-wolverine",
+      "position": [
+        -9.708,
+        1.059,
+        -3.311
+      ],
+      "rotation": [
+        0,
+        -90,
+        0
+      ],
+      "scale": 0.75,
+      "tint": [
+        0.86,
+        0.1,
+        0.09
+      ]
+    },
+    {
+      "piece": "trough-size-1",
+      "size": 1,
+      "position": [
+        -9.632,
+        1.059,
+        9.659
+      ],
+      "rotation": [
+        0,
+        90.01,
+        0
+      ],
+      "scale": 1.35
+    },
+    {
+      "piece": "horse-size-2-4",
+      "size": 2,
+      "position": [
+        -4.825,
+        1.076,
+        4.426
+      ],
+      "rotation": [
+        -0.07,
+        -60.01,
+        0
+      ],
+      "scale": 0.625
+    },
+    {
+      "piece": "wagon-size-2",
+      "size": 2,
+      "position": [
+        -4.845,
+        1.066,
+        -3.615
+      ],
+      "rotation": [
+        0,
+        89.99,
+        0
+      ],
+      "scale": 0.575
+    },
+    {
+      "piece": "windmill-size-4",
+      "size": 4,
+      "position": [
+        -4.612,
+        1.535,
+        14.65
+      ],
+      "rotation": [
+        -1.3,
+        149.99,
+        0.1
+      ],
+      "scale": 1.35
+    },
+    {
+      "piece": "horse-size-2-2",
+      "size": 2,
+      "position": [
+        -4.38,
+        1.078,
+        -7.113
+      ],
+      "rotation": [
+        -0.08,
+        -179.97,
+        0
+      ],
+      "scale": 0.7
+    },
+    {
+      "piece": "cactus-size-1",
+      "size": 1,
+      "position": [
+        -3.966,
+        1.059,
+        -12.689
+      ],
+      "rotation": [
+        -0.11,
+        -30,
+        -0.02
+      ],
+      "scale": 0.425,
+      "tint": [
+        0.19,
+        0.7,
+        0.17
+      ]
+    },
+    {
+      "piece": "cactus-size-1",
+      "size": 1,
+      "position": [
+        -2.094,
+        1.059,
+        10.66
+      ],
+      "rotation": [
+        -0.02,
+        -59.99,
+        -0.04
+      ],
+      "scale": 0.425,
+      "tint": [
+        0.19,
+        0.7,
+        0.17
+      ]
+    },
+    {
+      "piece": "trailer-size-2",
+      "size": 2,
+      "position": [
+        0.006,
+        1.141,
+        0.734
+      ],
+      "rotation": [
+        9.05,
+        179.75,
+        -0.02
+      ],
+      "scale": 1.05
+    },
+    {
+      "piece": "cart-size-2",
+      "size": 2,
+      "position": [
+        -0.043,
+        1.054,
+        4.68
+      ],
+      "rotation": [
+        0,
+        90.01,
+        0
+      ],
+      "scale": 0.325
+    },
+    {
+      "piece": "wagon-size-2",
+      "size": 2,
+      "position": [
+        0.151,
+        1.066,
+        -14.192
+      ],
+      "rotation": [
+        0,
+        -90.4,
+        0
+      ],
+      "scale": 0.575
+    },
+    {
+      "piece": "horse-size-2-6",
+      "size": 2,
+      "position": [
+        0.189,
+        1.044,
+        -10.524
+      ],
+      "rotation": [
+        -0.38,
+        0.03,
+        0
+      ],
+      "scale": 1.35
+    },
+    {
+      "piece": "cactus-size-1",
+      "size": 1,
+      "position": [
+        1.936,
+        1.059,
+        -5.135
+      ],
+      "rotation": [
+        0.02,
+        -60.01,
+        0.02
+      ],
+      "scale": 0.425,
+      "tint": [
+        0.19,
+        0.7,
+        0.17
+      ]
+    },
+    {
+      "piece": "hewett-size-5",
+      "size": 5,
+      "position": [
+        8.785,
+        1.059,
+        11.314
+      ],
+      "rotation": [
+        0,
+        89.99,
+        0
+      ],
+      "scale": [
+        0.598,
+        0.672,
+        0.598
+      ]
+    },
+    {
+      "piece": "jail-size-4",
+      "size": 4,
+      "position": [
+        8.865,
+        0.83,
+        -0.028
+      ],
+      "rotation": [
+        1.11,
+        89.99,
+        0.95
+      ],
+      "scale": 0.6
+    },
+    {
+      "piece": "general-store-size-4",
+      "size": 4,
+      "position": [
+        7.574,
+        1.022,
+        -14.576
+      ],
+      "rotation": [
+        0.02,
+        -0.02,
+        0
+      ],
+      "scale": 0.55
+    },
+    {
+      "piece": "model-piece-29",
+      "position": [
+        5.439,
+        3.32,
+        -0.052
+      ],
+      "rotation": [
+        -81.85,
+        -83.18,
+        -6.94
+      ],
+      "scale": 1.157
+    },
+    {
+      "piece": "trough-size-1",
+      "size": 1,
+      "position": [
+        6.624,
+        1.059,
+        9.223
+      ],
+      "rotation": [
+        0,
+        -90.01,
+        0
+      ],
+      "scale": 1.35
+    },
+    {
+      "piece": "sabretooth-apex-predator",
+      "position": [
+        6.957,
+        1.059,
+        -1.807
+      ],
+      "rotation": [
+        0,
+        89.99,
+        0
+      ],
+      "scale": 0.75,
+      "tint": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "piece": "well-size-2",
+      "size": 2,
+      "position": [
+        7.614,
+        1.228,
+        -7.355
+      ],
+      "rotation": [
+        0,
+        90.01,
+        0
+      ],
+      "scale": 3.25
+    },
+    {
+      "piece": "hay-bale-size-1",
+      "size": 1,
+      "position": [
+        11.004,
+        1.092,
+        2.26
+      ],
+      "rotation": [
+        -0.35,
+        0,
+        0.67
+      ],
+      "scale": 1.65
+    },
+    {
+      "piece": "horse-size-2",
+      "size": 2,
+      "position": [
+        13.278,
+        1.078,
+        1.719
+      ],
+      "rotation": [
+        -0.08,
+        -90,
+        0
+      ],
+      "scale": 0.675
+    },
+    {
+      "piece": "water-tower-size-3",
+      "size": 3,
+      "position": [
+        14.856,
+        1.043,
+        -9.091
+      ],
+      "rotation": [
+        -0.02,
+        45.01,
+        0.03
+      ],
+      "scale": [
+        0.543,
+        0.428,
+        0.543
+      ]
+    },
+    {
+      "piece": "cactus-size-1",
+      "size": 1,
+      "position": [
+        15.311,
+        1.059,
+        9.68
+      ],
+      "rotation": [
+        -0.07,
+        -60.01,
+        -0.04
+      ],
+      "scale": 0.425,
+      "tint": [
+        0.19,
+        0.7,
+        0.17
+      ]
+    },
+    {
+      "piece": "livery-stable-size-4-fence-not-part-of-the-terrain",
+      "size": 4,
+      "position": [
+        -13.814,
+        1.051,
+        11.399
+      ],
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "scale": 0.4
+    }
+  ]
+}

@@ -1,0 +1,366 @@
+{
+  "id": "vibranium-heist",
+  "name": "Vibranium Heist",
+  "ttsMap": 285,
+  "note": "\"Survival of the Fittest\" (306) has the same layout.",
+  "mat": "wakanda",
+  "matRotation": 180,
+  "placements": [
+    {
+      "piece": "crystals",
+      "size": 1,
+      "position": [
+        -16.723,
+        1.06,
+        12.843
+      ],
+      "rotation": [
+        0,
+        -45.01,
+        0
+      ],
+      "scale": 0.5,
+      "tint": [
+        0.97,
+        0.01,
+        0.83
+      ]
+    },
+    {
+      "piece": "crystals",
+      "size": 1,
+      "position": [
+        -15.284,
+        1.06,
+        6.679
+      ],
+      "rotation": [
+        0,
+        -45.01,
+        0
+      ],
+      "scale": 0.5,
+      "tint": [
+        0.97,
+        0.01,
+        0.83
+      ]
+    },
+    {
+      "piece": "vibranium-haller",
+      "size": 4,
+      "position": [
+        -12.794,
+        2.595,
+        0.73
+      ],
+      "rotation": [
+        -0.02,
+        -49.13,
+        0.2
+      ],
+      "scale": 3.35
+    },
+    {
+      "piece": "panther-statue",
+      "size": 3,
+      "position": [
+        -11.807,
+        3.916,
+        11.856
+      ],
+      "rotation": [
+        0.01,
+        123.26,
+        0
+      ],
+      "scale": 3
+    },
+    {
+      "piece": "panther-statue",
+      "size": 3,
+      "position": [
+        -12.728,
+        2.488,
+        -6.334
+      ],
+      "rotation": [
+        0.01,
+        39.1,
+        0
+      ],
+      "scale": 1.5
+    },
+    {
+      "piece": "crystals",
+      "size": 1,
+      "position": [
+        -10.215,
+        1.06,
+        16.651
+      ],
+      "rotation": [
+        0,
+        -45.01,
+        0
+      ],
+      "scale": 0.5,
+      "tint": [
+        0.97,
+        0.01,
+        0.83
+      ]
+    },
+    {
+      "piece": "wakandan-street-light",
+      "size": 1,
+      "position": [
+        -9.878,
+        3.154,
+        -14.787
+      ],
+      "rotation": [
+        -0.02,
+        -59.99,
+        -0.03
+      ],
+      "scale": 2.2
+    },
+    {
+      "piece": "crystals",
+      "size": 1,
+      "position": [
+        -7.588,
+        1.06,
+        13.713
+      ],
+      "rotation": [
+        0,
+        -45.01,
+        0
+      ],
+      "scale": 0.5,
+      "tint": [
+        0.97,
+        0.01,
+        0.83
+      ]
+    },
+    {
+      "piece": "panther-fountain",
+      "size": 3,
+      "position": [
+        -5.953,
+        2.392,
+        -10.683
+      ],
+      "rotation": [
+        0.01,
+        -135.01,
+        -0.01
+      ],
+      "scale": 2.9
+    },
+    {
+      "piece": "wakanda-tree",
+      "size": 2,
+      "position": [
+        -4.763,
+        2.746,
+        -3.64
+      ],
+      "rotation": [
+        0,
+        45.06,
+        0
+      ],
+      "scale": 2.35
+    },
+    {
+      "piece": "cosmic-barricade",
+      "size": 2,
+      "position": [
+        -3.744,
+        1.052,
+        10.633
+      ],
+      "rotation": [
+        0,
+        -60.01,
+        0
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "crystals",
+      "size": 1,
+      "position": [
+        -3.335,
+        1.06,
+        15.64
+      ],
+      "rotation": [
+        0,
+        -45.03,
+        0
+      ],
+      "scale": 0.5,
+      "tint": [
+        0.97,
+        0.01,
+        0.83
+      ]
+    },
+    {
+      "piece": "wakandan-street-light",
+      "size": 1,
+      "position": [
+        -3.29,
+        3.154,
+        3.474
+      ],
+      "rotation": [
+        -0.02,
+        -59.99,
+        0
+      ],
+      "scale": 2.2
+    },
+    {
+      "piece": "mech-hangar",
+      "size": 5,
+      "position": [
+        4.558,
+        1.06,
+        -10.384
+      ],
+      "rotation": [
+        0,
+        -164.98,
+        0
+      ],
+      "scale": 0.775
+    },
+    {
+      "piece": "wakandan-street-light",
+      "size": 1,
+      "position": [
+        1.149,
+        3.154,
+        9.419
+      ],
+      "rotation": [
+        0,
+        0.03,
+        0
+      ],
+      "scale": 2.2
+    },
+    {
+      "piece": "wakanda-tree",
+      "size": 2,
+      "position": [
+        5.006,
+        2.746,
+        0.039
+      ],
+      "rotation": [
+        0.04,
+        -132.15,
+        0
+      ],
+      "scale": 2.35
+    },
+    {
+      "piece": "wakanda-tree",
+      "size": 2,
+      "position": [
+        7.924,
+        2.746,
+        9.883
+      ],
+      "rotation": [
+        0.02,
+        -78.07,
+        -0.02
+      ],
+      "scale": 2.35
+    },
+    {
+      "piece": "panther-statue",
+      "size": 3,
+      "position": [
+        7.777,
+        2.488,
+        15.972
+      ],
+      "rotation": [
+        0.01,
+        -134.97,
+        0
+      ],
+      "scale": 1.5
+    },
+    {
+      "piece": "truck",
+      "size": 3,
+      "position": [
+        11.968,
+        1.063,
+        4.13
+      ],
+      "rotation": [
+        0,
+        102.22,
+        0
+      ],
+      "scale": 1.4,
+      "note": "The mod tints the truck black (0, 0, 0), but the map card shows it olive, so the tint is left out."
+    },
+    {
+      "piece": "panther-fountain",
+      "size": 3,
+      "position": [
+        13.004,
+        2.392,
+        -2.38
+      ],
+      "rotation": [
+        0.01,
+        -29.98,
+        0.01
+      ],
+      "scale": 2.9
+    },
+    {
+      "piece": "panther-statue",
+      "size": 3,
+      "position": [
+        14.515,
+        3.916,
+        -9.351
+      ],
+      "rotation": [
+        0.01,
+        -44.99,
+        0
+      ],
+      "scale": 3
+    },
+    {
+      "piece": "wakandan-street-light",
+      "size": 1,
+      "position": [
+        13.171,
+        3.154,
+        12.518
+      ],
+      "rotation": [
+        -0.03,
+        0.03,
+        -0.04
+      ],
+      "scale": 2.2
+    }
+  ]
+}

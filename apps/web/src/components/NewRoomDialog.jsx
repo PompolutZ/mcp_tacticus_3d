@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { assetUrl } from '../assets/index.js'
-import { MAPS } from '../terrain/maps.js'
+import { assetUrl, hasAsset } from '../assets/index.js'
+import { MAPS } from '../terrain/maps/index.js'
 import { MAP_CARD_BACK, mapCard } from '../terrain/files.js'
 import { formatMctCode, isEmptyRoster } from '../rosters/mct.js'
 import { parseRosterText } from '../rosters/cards.js'
@@ -184,7 +184,7 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
             renderSlide={(i) => (
               <img
                 className="carousel-card new-room-card"
-                src={assetUrl(mapCard(MAP_IDS[i]))}
+                src={assetUrl(hasAsset(mapCard(MAP_IDS[i])) ? mapCard(MAP_IDS[i]) : MAP_CARD_BACK)}
                 alt={MAPS[MAP_IDS[i]].name}
                 draggable={false}
               />

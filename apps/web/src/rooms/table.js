@@ -1,12 +1,12 @@
 // The start state of a table, and the terrain as App shows it. The table itself is a Yjs document (net/doc.js).
 // See docs/features/rooms.md, "Storage". Plain module, the same as characters/trays.js.
 
-import { MAPS } from '../terrain/maps.js'
+import { MAPS } from '../terrain/maps/index.js'
 import { START_MARKERS } from '../scoreboard/board.js'
 import { DEFAULT_AFFILIATION } from '../scoreboard/affiliations.js'
 import { newSetup } from '../setup/setup.js'
 
-// Terrain pieces of a map, as tracked in App state: the placements of terrain/maps.js with an id and
+// Terrain pieces of a map, as tracked in App state: the placements of terrain/maps/<id>.json with an id and
 // a lock. index: the place of the placement in the map data, which the document stores. Every piece starts
 // locked, so a click on terrain does not select it and the Delete key does not remove it by mistake.
 // L unlocks it (pieces/useTablePieces.js, handleLockKey).

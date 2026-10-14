@@ -1,0 +1,400 @@
+{
+  "id": "will-he-get-away-with-it",
+  "name": "Will He get away with it",
+  "ttsMap": 301,
+  "mat": "will-he-get-away-with-it",
+  "matRotation": 180,
+  "placements": [
+    {
+      "piece": "size-5-apartments",
+      "size": 5,
+      "position": [
+        -12.887,
+        4.947,
+        11.732
+      ],
+      "rotation": [
+        -1.66,
+        -179.26,
+        -0.23
+      ],
+      "scale": 4.75
+    },
+    {
+      "piece": "size-2-police-car",
+      "size": 2,
+      "position": [
+        -13.763,
+        2.013,
+        -1.858
+      ],
+      "rotation": [
+        1.5,
+        -14.15,
+        0.01
+      ],
+      "scale": 2.55
+    },
+    {
+      "piece": "size-1-rake",
+      "size": 1,
+      "position": [
+        -13.056,
+        1.145,
+        4.403
+      ],
+      "rotation": [
+        -2.77,
+        59.99,
+        0.44
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "size-4-bank",
+      "size": 4,
+      "position": [
+        -10.512,
+        3.057,
+        -11.488
+      ],
+      "rotation": [
+        -0.45,
+        -0.02,
+        0
+      ],
+      "scale": 3.6
+    },
+    {
+      "piece": "size-2-dumpster",
+      "size": 2,
+      "position": [
+        -7.588,
+        1.822,
+        11.935
+      ],
+      "rotation": [
+        0.34,
+        89.98,
+        -0.74
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "size-1-rake",
+      "size": 1,
+      "position": [
+        -7.568,
+        1.26,
+        -5.192
+      ],
+      "rotation": [
+        1.02,
+        -72.71,
+        -0.33
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "size-2-dumpster",
+      "size": 2,
+      "position": [
+        -7.32,
+        1.822,
+        -9.87
+      ],
+      "rotation": [
+        0.34,
+        90.01,
+        -0.74
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "size-2-crashed-police-car",
+      "size": 2,
+      "position": [
+        -5.6,
+        1.994,
+        4.199
+      ],
+      "rotation": [
+        1.51,
+        -120.04,
+        0.01
+      ],
+      "scale": 2.5
+    },
+    {
+      "piece": "size-3-armored-truck",
+      "size": 3,
+      "position": [
+        -2.557,
+        2.362,
+        -7.524
+      ],
+      "rotation": [
+        2.44,
+        74.97,
+        -0.12
+      ],
+      "scale": 3.25
+    },
+    {
+      "piece": "size-2-k9-unit",
+      "size": 2,
+      "position": [
+        -1.521,
+        2.011,
+        11.195
+      ],
+      "rotation": [
+        -1.76,
+        75,
+        -0.34
+      ],
+      "scale": 2.55
+    },
+    {
+      "piece": "size-1-suitcase-full-of-money",
+      "size": 1,
+      "position": [
+        -1.197,
+        1.61,
+        -4.377
+      ],
+      "rotation": [
+        -0.12,
+        14.99,
+        -0.08
+      ],
+      "scale": 0.775
+    },
+    {
+      "piece": "size-2-lil-bandit",
+      "size": 2,
+      "position": [
+        1.791,
+        1.986,
+        5.219
+      ],
+      "rotation": [
+        -0.51,
+        -44.81,
+        0.74
+      ],
+      "scale": 2.55
+    },
+    {
+      "piece": "size-1-money-bag",
+      "size": 1,
+      "position": [
+        0.4,
+        2.774,
+        3.821
+      ],
+      "rotation": [
+        14.41,
+        -118.65,
+        3.69
+      ],
+      "scale": 0.725
+    },
+    {
+      "piece": "size-2-pink-car",
+      "size": 2,
+      "position": [
+        4.06,
+        1.884,
+        -9.197
+      ],
+      "rotation": [
+        2.77,
+        -74.82,
+        1.41
+      ],
+      "scale": 2.6
+    },
+    {
+      "piece": "size-2-street-chunk",
+      "size": 2,
+      "position": [
+        4.777,
+        1.436,
+        -0.465
+      ],
+      "rotation": [
+        -87.88,
+        53.28,
+        -54.89
+      ],
+      "scale": 3
+    },
+    {
+      "piece": "size-3-androids-dungeon",
+      "size": 3,
+      "position": [
+        9.986,
+        3.175,
+        9.419
+      ],
+      "rotation": [
+        0.3,
+        -90.02,
+        0.04
+      ],
+      "scale": 3.15
+    },
+    {
+      "piece": "size-1-trash-can",
+      "size": 1,
+      "position": [
+        8.22,
+        1.585,
+        -8.335
+      ],
+      "rotation": [
+        0.07,
+        134.88,
+        0.12
+      ],
+      "scale": 0.525
+    },
+    {
+      "piece": "size-3-king-toots",
+      "size": 3,
+      "position": [
+        9.721,
+        3.361,
+        -11.554
+      ],
+      "rotation": [
+        0,
+        -89.93,
+        0
+      ],
+      "scale": 2.75
+    },
+    {
+      "piece": "size-1-rake",
+      "size": 1,
+      "position": [
+        10.024,
+        1.157,
+        -3.53
+      ],
+      "rotation": [
+        -1.14,
+        180,
+        0.43
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "size-4-tier-fire",
+      "size": 4,
+      "position": [
+        14.402,
+        2.97,
+        -0.138
+      ],
+      "rotation": [
+        0.04,
+        -179.87,
+        -0.03
+      ],
+      "scale": 3.25
+    },
+    {
+      "piece": "fire-effect-small",
+      "position": [
+        13.465,
+        2.811,
+        -1.118
+      ],
+      "rotation": [
+        0,
+        -0.35,
+        0
+      ],
+      "scale": 0.25,
+      "tint": [
+        0.96,
+        0.39,
+        0.11
+      ]
+    },
+    {
+      "piece": "fire-effect-small",
+      "position": [
+        14.403,
+        2.698,
+        1.169
+      ],
+      "rotation": [
+        0,
+        0.03,
+        0
+      ],
+      "scale": 0.25,
+      "tint": [
+        0.96,
+        0.39,
+        0.11
+      ]
+    },
+    {
+      "piece": "size-1-rake",
+      "size": 1,
+      "position": [
+        15.088,
+        1.159,
+        9.298
+      ],
+      "rotation": [
+        -2.72,
+        -120.14,
+        0.42
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "fire-effect-small",
+      "position": [
+        15.541,
+        1.186,
+        1.908
+      ],
+      "rotation": [
+        0,
+        175.83,
+        179.97
+      ],
+      "scale": 0.25,
+      "tint": [
+        0.96,
+        0.39,
+        0.11
+      ]
+    },
+    {
+      "piece": "fire-effect-small",
+      "position": [
+        15.753,
+        3.125,
+        -0.55
+      ],
+      "rotation": [
+        0,
+        0.03,
+        0
+      ],
+      "scale": 0.25,
+      "tint": [
+        0.96,
+        0.39,
+        0.11
+      ]
+    }
+  ]
+}

@@ -33,6 +33,7 @@ The URL hash selects the page. So the browser back button works, and a reload st
 | none | Lobby |
 | `#room=K7Q2-M9XD` | Room |
 | `#sandbox` | Sandbox |
+| `#terrain` | Terrain page (dev only, `docs/features/maps.md`). The production build does not have it. |
 
 - `#room=<code>` is the link format of the peer-to-peer doc ("Connect flow"). So the same link invites the second player.
 - A room code that is not in this browser opens the lobby with the message "Room K7Q2-M9XD is not in this browser". With login on, the app asks the server first: a multiplayer room opens, or the join page shows (`docs/features/auth.md`, "Identity in peer-to-peer games").
@@ -58,7 +59,7 @@ The **+** tile opens a dialog on a blurred backdrop, the same style as the roste
 - **Create room** works when the Blue code has a known card. The Red roster is optional, because the Red field of the toolbar can load it later. A Red text without a known card blocks **Create room**, so a wrong paste does not make a room without Red. **Create room** saves the room and enters it.
 - **Cancel**, Escape, **×** or a click on the backdrop closes the dialog.
 
-The carousel shows only maps that the app has (`apps/web/src/terrain/maps.js`). A map card image comes from the TTS mod. `apps/web/scripts/migrate-terrain.mjs` copies it with the map.
+The carousel shows only maps that the app has (`apps/web/src/terrain/maps/index.js`). A map card image comes from the TTS mod. `apps/web/scripts/migrate-terrain.mjs` copies it with the map.
 
 ## Room
 

@@ -1,0 +1,352 @@
+{
+  "id": "a-hulk-cornered",
+  "name": "A Hulk Cornered",
+  "ttsMap": 298,
+  "mat": "battle-for-asgard",
+  "matRotation": 180,
+  "placements": [
+    {
+      "piece": "army-truck-size-3",
+      "size": 3,
+      "position": [
+        8.289,
+        3.905,
+        6.47
+      ],
+      "rotation": [
+        -90,
+        99.15,
+        0
+      ],
+      "scale": 0.865
+    },
+    {
+      "piece": "billboard-w-base-size-3",
+      "size": 3,
+      "position": [
+        15.093,
+        2.715,
+        -13.481
+      ],
+      "rotation": [
+        77.24,
+        -71.58,
+        36.56
+      ],
+      "scale": 1.35
+    },
+    {
+      "piece": "mailbox-size-1",
+      "size": 1,
+      "position": [
+        7.328,
+        1.043,
+        13.704
+      ],
+      "rotation": [
+        0,
+        -14.99,
+        0
+      ],
+      "scale": 0.45
+    },
+    {
+      "piece": "building-size-5-5",
+      "size": 5,
+      "position": [
+        11.349,
+        0.915,
+        10.559
+      ],
+      "rotation": [
+        0.08,
+        75.14,
+        0
+      ],
+      "scale": 0.95
+    },
+    {
+      "piece": "size-1-bikes-3",
+      "size": 1,
+      "position": [
+        10.023,
+        1.299,
+        -3.272
+      ],
+      "rotation": [
+        0,
+        -83.14,
+        90
+      ],
+      "scale": 0.625
+    },
+    {
+      "piece": "dumpster-size-2-3",
+      "size": 2,
+      "position": [
+        13.125,
+        1.541,
+        5.863
+      ],
+      "rotation": [
+        0,
+        164.97,
+        0
+      ],
+      "scale": [
+        2.6,
+        2.65,
+        2.7
+      ]
+    },
+    {
+      "piece": "dumpster-size-2-5",
+      "size": 2,
+      "position": [
+        14.659,
+        11.34,
+        9.663
+      ],
+      "rotation": [
+        4.05,
+        135.67,
+        -176.76
+      ],
+      "scale": 1.9
+    },
+    {
+      "piece": "mailbox-size-1",
+      "size": 1,
+      "position": [
+        14.125,
+        1.043,
+        -5.619
+      ],
+      "rotation": [
+        0,
+        -15.13,
+        0
+      ],
+      "scale": 0.45
+    },
+    {
+      "piece": "size-5",
+      "size": 5,
+      "position": [
+        -10.148,
+        1.06,
+        -9.502
+      ],
+      "rotation": [
+        0,
+        -120,
+        0
+      ],
+      "scale": 0.3,
+      "tint": [
+        0.24,
+        0.37,
+        0.42
+      ]
+    },
+    {
+      "piece": "vending-machine-size-1",
+      "size": 1,
+      "position": [
+        -16.284,
+        1.439,
+        3.163
+      ],
+      "rotation": [
+        90,
+        90.11,
+        0
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "hulk-tossed-tank-size-4",
+      "size": 4,
+      "position": [
+        -11.254,
+        4.932,
+        -6.616
+      ],
+      "rotation": [
+        -20.63,
+        146.21,
+        8.93
+      ],
+      "scale": 1
+    },
+    {
+      "piece": "buried-car-size-2",
+      "size": 2,
+      "position": [
+        -10.641,
+        2.013,
+        8.379
+      ],
+      "rotation": [
+        -0.01,
+        -119.95,
+        -0.03
+      ],
+      "scale": 2.25
+    },
+    {
+      "piece": "train-with-no-home-size-4",
+      "size": 4,
+      "position": [
+        -4.5,
+        1.09,
+        13.16
+      ],
+      "rotation": [
+        0,
+        -75,
+        0
+      ],
+      "scale": 2.1
+    },
+    {
+      "piece": "bench-size-1",
+      "size": 1,
+      "position": [
+        -6.384,
+        1.208,
+        0.17
+      ],
+      "rotation": [
+        38.92,
+        105.02,
+        -180
+      ],
+      "scale": 0.325,
+      "tint": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    },
+    {
+      "piece": "tank-size-4",
+      "size": 4,
+      "position": [
+        -2.488,
+        1.06,
+        4.49
+      ],
+      "rotation": [
+        0,
+        -164.91,
+        0
+      ],
+      "scale": 0.8
+    },
+    {
+      "piece": "size-1-3",
+      "size": 1,
+      "position": [
+        -2.794,
+        1.231,
+        -4.705
+      ],
+      "rotation": [
+        -90,
+        -165.42,
+        0
+      ],
+      "scale": 0.475
+    },
+    {
+      "piece": "pickup-truck-size-3-2",
+      "size": 3,
+      "position": [
+        1.609,
+        1.834,
+        -8.689
+      ],
+      "rotation": [
+        -87.05,
+        1.12,
+        -1.18
+      ],
+      "scale": [
+        1,
+        1.15,
+        1
+      ]
+    },
+    {
+      "piece": "bench-size-1",
+      "size": 1,
+      "position": [
+        0.456,
+        1.428,
+        10.94
+      ],
+      "rotation": [
+        0,
+        59.99,
+        0
+      ],
+      "scale": 0.325,
+      "tint": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    },
+    {
+      "piece": "turret-wreckage-size-2",
+      "size": 2,
+      "position": [
+        2.094,
+        -0.096,
+        -1.99
+      ],
+      "rotation": [
+        0,
+        119.98,
+        0
+      ],
+      "scale": 0.95
+    },
+    {
+      "piece": "bench-size-1",
+      "size": 1,
+      "position": [
+        2.463,
+        1.428,
+        5.159
+      ],
+      "rotation": [
+        0,
+        44.92,
+        0
+      ],
+      "scale": 0.325,
+      "tint": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    },
+    {
+      "piece": "size-2-car-3",
+      "size": 2,
+      "position": [
+        5.639,
+        1.062,
+        -10.122
+      ],
+      "rotation": [
+        -0.04,
+        -45.22,
+        -0.01
+      ],
+      "scale": 0.325
+    }
+  ]
+}

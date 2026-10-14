@@ -2,18 +2,18 @@
 
 Paths in this file are relative to `apps/web/`, unless they start with `docs/`. Run the scripts from any folder with `pnpm --filter web <script> <args>`. pnpm runs a script in `apps/web/`, so a relative path argument is relative to `apps/web/` too.
 
-`migrate-terrain.mjs` copies the mat and terrain of one map from the TTS mod to `src/assets`. It converts the files for the web in the same way as the Vibranium Heist pieces. Then it prints the entries to add to `src/terrain/pieces.js` and `src/terrain/maps.js`.
+`migrate-terrain.mjs` copies the mat and terrain of one map from the TTS mod to `src/assets`. It converts the files for the web in the same way as the Vibranium Heist pieces. Then it prints the entries to add to `src/terrain/pieces.js`, writes the map to `src/terrain/maps/<id>.json`, and adds the map to `src/terrain/maps/index.js`.
 
 A "map" is a card in the mod's Terrain Database. It has an id, a name, and a list of placements (piece key, position, rotation, scale, tint). The first `Custom_Tile` placement is the mat.
 
 The app data has no file paths. `src/terrain/files.js` names each file after the piece key or the mat name, and the script writes the files with the same functions:
 
 - `pieces.js`: one entry per set of files, with `name`, `convex` and `collider`.
-- `maps.js`: one entry per map, with `name`, `mat` and `placements`.
+- `maps/<id>.json`: one file per map. The format is in `docs/features/maps.md`. `maps/index.js` imports the files.
 
-The script prints `name` as the mod piece name without the Size, for example "Panther Statue" for "Size 3 Panther Statue". The name is only shown in the app, so you can change it in `pieces.js`.
+The script prints the `pieces.js` entries, and writes the map file. It prints `name` as the mod piece name without the Size, for example "Panther Statue" for "Size 3 Panther Statue". The name is only shown in the app, so you can change it in `pieces.js`.
 
-The script prints the game Size on each placement (`size`). It reads the Size from the name of the mod piece, for example "Size 3 Panther Statue" or "Crystals: Size 1". A piece name without "Size" gets no `size`. The Size is on the placement and not on the piece: two mod pieces with the same files get one app piece, and their Sizes can be different.
+The script writes the game Size on each placement (`size`). It reads the Size from the name of the mod piece, for example "Size 3 Panther Statue" or "Crystals: Size 1". A piece name without "Size" gets no `size`. The Size is on the placement and not on the piece: two mod pieces with the same files get one app piece, and their Sizes can be different.
 
 ## Shared code
 
@@ -55,8 +55,8 @@ Several maps have the same name, for example three "Cosmic Downtown" cards. Maps
 
 1. Run `--list` and choose a map id. If the map has "missing" pieces, run step 2 with `--download`, or spawn the map once in TTS and run `--list` again.
 2. Run the script with the id (and `--download` when files are missing). Read the warnings in the report.
-3. Copy the printed entries into `src/terrain/pieces.js` and `src/terrain/maps.js`. The script also saves them in `$TMPDIR/mcp-assist-3d-terrain/<map>.snippet.js`.
-4. Compare tints with the map card image. For example, the mod tints the Vibranium Heist truck black, but the card shows it olive, so `maps.js` leaves that tint out.
+3. Copy the printed `pieces.js` entries into `src/terrain/pieces.js`. The script also saves them in `$TMPDIR/mcp-assist-3d-terrain/<map>.snippet.js`. The script has written `src/terrain/maps/<id>.json` and added its import to the end of `src/terrain/maps/index.js` (once, also when you run it again). Move the import if the map should be elsewhere in the list. A placement of a piece that was not converted is in `skipped` with the reason in `note`. `matRotation` is written as 0 to 359.99.
+4. Compare tints with the map card image. For example, the mod tints the Vibranium Heist truck black, but the card shows it olive, so the map file leaves that tint out, with a `note` on the placement.
 5. Check that the report has no warning about the card image. Without the card, the lobby cannot show the map: take the map card out of its bag once in TTS, and run the script again.
 6. Commit the new files in `src/assets` and `scripts/terrain-manifest.json` together.
 
@@ -71,10 +71,11 @@ Several maps have the same name, for example three "Cosmic Downtown" cards. Maps
 | `src/assets/terrain/<key>.webp` | Texture of an OBJ piece. The entry has `texture: false` when the mod piece has no texture. |
 | `src/assets/terrain/<key>-collider.glb` | Collider mesh of an OBJ piece with `collider: true` |
 | `src/assets/terrain/<key>-colliders.glb` | All custom collider meshes of a bundle piece, one node `collider-<n>` each (only if it has any) |
+| `src/terrain/maps/<map>.json` | Map: mat, placements, skipped placements. The script adds the import to `src/terrain/maps/index.js` |
 | `scripts/terrain-manifest.json` | TTS source URLs of every migrated piece and mat |
 | `$TMPDIR/mcp-assist-3d-terrain/<key>/` | AssetRipper exports of a bundle piece (`primary/`, `project/`), kept for inspection |
 
-`<key>` is the piece key in the mod, for example `cargo-size-2`. `<mat>` is the map name in lower case, for example `battle-for-asgard`. `<map>` is the key of the map in `maps.js`, the map name as a slug. The card images are the `face` and `back` of the map in the Terrain Database. They are 800 × 1400 and keep that size. TTS downloads them when the map card is out of its bag. On 2026-10-07, the cache had the cards of 27 maps. The manifest stores the source URLs of each piece (`mesh`, `diffuse`, `collider`, or `bundle`) and the image URL of each mat. A piece with the same source URLs as a migrated piece gets that piece's key. For example, `size-2-wakanda-tree` in Hydra Vs Wakanda is `wakanda-tree` from Vibranium Heist. As a result, a piece is converted only once. The first 9 entries of the manifest were written by hand for the Vibranium Heist pieces.
+`<key>` is the piece key in the mod, for example `cargo-size-2`. `<mat>` is the map name in lower case, for example `battle-for-asgard`. `<map>` is the `id` of the map (its JSON file name), the map name as a slug. The card images are the `face` and `back` of the map in the Terrain Database. They are 800 × 1400 and keep that size. TTS downloads them when the map card is out of its bag. On 2026-10-07, the cache had the cards of 27 maps. The manifest stores the source URLs of each piece (`mesh`, `diffuse`, `collider`, or `bundle`) and the image URL of each mat. A piece with the same source URLs as a migrated piece gets that piece's key. For example, `size-2-wakanda-tree` in Hydra Vs Wakanda is `wakanda-tree` from Vibranium Heist. As a result, a piece is converted only once. The first 9 entries of the manifest were written by hand for the Vibranium Heist pieces.
 
 ## Piece types
 

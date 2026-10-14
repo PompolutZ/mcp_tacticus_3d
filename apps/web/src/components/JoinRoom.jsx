@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
-import { MAPS } from '../terrain/maps.js'
+import { MAPS } from '../terrain/maps/index.js'
 import { mapCard } from '../terrain/files.js'
 import { avatarUrl } from '../auth/avatar.js'
 import { DISCORD_ON, login } from '../auth/session.js'
