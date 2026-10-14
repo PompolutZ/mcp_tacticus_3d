@@ -109,7 +109,6 @@ export default function App({
   // The rest poses of the models, live: Scene applies a pose that the other browser wrote
   const [poses] = useYRecord(table.poses)
   const [debugOn, setDebugOn] = useState(false)
-  const [showLabels, setShowLabels] = useState(true)
   // The spectator view above each model (SpectatorBadge.jsx)
   const [spectator, setSpectator] = useState(false)
   const [matTurns, setMatTurns] = useYField(table.game, 'matTurns')
@@ -280,6 +279,7 @@ export default function App({
     settings,
     bindings,
     handleBindingsChange,
+    handleLabelsChange,
     handleSettingChange,
     handleSpectatorSizeChange,
     handleVolumeChange,
@@ -818,7 +818,7 @@ export default function App({
                 angleSpawn={angleSpawn}
                 toolSpawn={toolSpawn}
                 showColliders={debug}
-                showLabels={showLabels}
+                showLabels={settings.labels}
                 spectator={spectator}
                 matTurns={matTurns}
                 deployLine={deployLine}
@@ -1021,8 +1021,8 @@ export default function App({
           onSpectatorSizeChange={handleSpectatorSizeChange}
           debug={debug}
           onDebugClick={() => setDebugOn((prev) => !prev)}
-          showLabels={showLabels}
-          onLabelsClick={() => setShowLabels((prev) => !prev)}
+          showLabels={settings.labels}
+          onLabelsClick={() => handleLabelsChange(!settings.labels)}
           onBindingsChange={handleBindingsChange}
           onClose={() => setSettingsOpen(false)}
         />

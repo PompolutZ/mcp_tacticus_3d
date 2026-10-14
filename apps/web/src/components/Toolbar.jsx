@@ -111,7 +111,7 @@ export function Toolbar({
               Setup
             </button>
             {setupOpen && (
-              <div className="setup-panel">
+              <div className="toolbar-setup-panel">
                 <div className="group">
                   <span className="group-label">Crisis</span>
                   {CRISIS_TYPES.map(({ type, label }) => (

@@ -30,6 +30,8 @@ export function defaultSettings() {
     ),
     sound: { volume: DEFAULT_VOLUME },
     spectator: { size: DEFAULT_SPECTATOR_SIZE },
+    // Terrain labels (piece name and game Size) above every piece. The piece under the pointer always has one.
+    labels: false,
     // Only the actions the user changed: action id → [{ code, shift, ctrl, alt, meta, when }]. The others use
     // their default keys (input/bindings.js, docs/features/key-shortcuts.md).
     bindings: {},
@@ -70,6 +72,7 @@ function normalize(raw) {
     settings.spectator.size = Math.round(
       Math.min(MAX_SPECTATOR_SIZE, Math.max(MIN_SPECTATOR_SIZE, size)),
     )
+  settings.labels = raw?.labels === true
   settings.bindings = normalizeBindings(raw?.bindings)
   return settings
 }

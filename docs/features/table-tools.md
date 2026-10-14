@@ -99,11 +99,11 @@ One row for each item, with the choice **Table** or **HUD**. The default is **HU
 - A board strip with no rows is not drawn. A row with no buttons is not drawn.
 - When the rack is in the HUD, a tool does not go back to the rack. The rack is not on the table.
 - The **Mat** group of the toolbar stays while it has the map select (the Sandbox).
-- The settings are in localStorage, key `mcp-assist-3d/settings`: `{ version, tools: { rack, power, cleanup, deployLock, matTurn }, sound: { volume }, spectator: { size }, bindings }`. Each tool is `'table'` or `'hud'`, the volume a whole number from 0 to 100, the spectator size a whole number from 60 to 150 (percent, default 100). `bindings` is `{ [actionId]: [{ code, shift, ctrl, alt, meta, when }] }` with only the actions that differ from the defaults (`{}` is all defaults; an empty list is an action with no key). An unknown action, code or condition is dropped. They belong to the browser, not to the user or the room. A missing or unknown value is the default. When localStorage cannot be read, the defaults apply.
+- The settings are in localStorage, key `mcp-assist-3d/settings`: `{ version, tools: { rack, power, cleanup, deployLock, matTurn }, sound: { volume }, spectator: { size }, labels, bindings }`. Each tool is `'table'` or `'hud'`, the volume a whole number from 0 to 100, the spectator size a whole number from 60 to 150 (percent, default 100), `labels` a boolean (default `false`). `bindings` is `{ [actionId]: [{ code, shift, ctrl, alt, meta, when }] }` with only the actions that differ from the defaults (`{}` is all defaults; an empty list is an action with no key). An unknown action, code or condition is dropped. They belong to the browser, not to the user or the room. A missing or unknown value is the default. When localStorage cannot be read, the defaults apply.
 
 ### Debug
 
-A **Debug** section has **Mode** (dev server only) and **Labels** (the piece name and game Size above each terrain piece). Labels shows in every build.
+A **Debug** section has **Mode** (dev server only) and **Labels** (the piece name and game Size above each terrain piece). Labels shows in every build. Labels is off by default and stored with the settings. The piece under the pointer shows its label with Labels off.
 
 ### Sound
 

@@ -21,6 +21,11 @@ export function useSettings() {
     setSettings(next)
     writeSettings(next)
   }
+  function handleLabelsChange(labels) {
+    const next = { ...settings, labels }
+    setSettings(next)
+    writeSettings(next)
+  }
   // changed: the bindings of the actions that differ from the defaults (changedBindings in input/bindings.js)
   function handleBindingsChange(changed) {
     const next = { ...settings, bindings: changed }
@@ -34,6 +39,7 @@ export function useSettings() {
     settings,
     bindings,
     handleBindingsChange,
+    handleLabelsChange,
     handleSettingChange,
     handleSpectatorSizeChange,
     handleVolumeChange,

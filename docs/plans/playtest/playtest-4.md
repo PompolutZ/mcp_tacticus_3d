@@ -192,3 +192,12 @@ Done.
 - `WorldRef` also gives `rapier`. Tests in `rooms/tableDrop.test.js`.
 - Docs: `maps.md` "Delete", `rooms.md` (`y`), `key-shortcuts.md` Delete row.
 - Not done: a thing standing on the deleted piece and on a second falling piece (edge case). Tokens do not move. Not tried in a browser.
+
+### Step 7: Labels off and setup popup
+
+Done.
+
+- `settings.js`: `labels: false` default, `normalize` reads a boolean (only `true` counts). `useSettings.js`: `handleLabelsChange`. `App.jsx`: `showLabels` state removed, `settings.labels` used; the Settings chip calls `handleLabelsChange`. Hover label unchanged (`Terrain.jsx`).
+- `Toolbar.jsx`: class `toolbar-setup-panel`; `index.css`: `pointer-events: auto`. Open and close code unchanged.
+- Tests in `settings.test.js`. Docs: `table-tools.md` (Debug "Labels", settings JSON). "Toolbar" section was right.
+- Not tried in a browser.

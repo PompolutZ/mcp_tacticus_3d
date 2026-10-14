@@ -197,6 +197,24 @@ test('bindings: stored modifiers that are not true are false', () => {
   )
 })
 
+test('labels: off by default, only true turns them on', () => {
+  assert.equal(defaultSettings().labels, false)
+  const read = (labels) => {
+    const storage = fakeStorage()
+    storage.setItem(KEY, JSON.stringify({ version: VERSION, labels }))
+    let value
+    withStorage(storage, () => {
+      value = readSettings().labels
+    })
+    return value
+  }
+  assert.equal(read(true), true)
+  assert.equal(read(false), false)
+  assert.equal(read('yes'), false)
+  assert.equal(read(1), false)
+  assert.equal(read(undefined), false)
+})
+
 test('spectator size: default 100, clamped to 60-150, rounded, junk is the default', () => {
   assert.equal(defaultSettings().spectator.size, 100)
   const read = (spectator) => {

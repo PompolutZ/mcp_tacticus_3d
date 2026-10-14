@@ -103,6 +103,7 @@ body {
 }
 
 .toolbar-setup-panel {
+  pointer-events: auto;
   position: absolute;
   top: 100%;
   left: 0;
