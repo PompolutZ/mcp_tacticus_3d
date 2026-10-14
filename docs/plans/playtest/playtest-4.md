@@ -217,6 +217,7 @@ Done.
   - Restitution does the work. Angular damping barely changes the rest time, so 1.0 is kept as decided. Flat share about 98% before and after. Dice stay in the tray (single die: 0% out of well, before 0.3-0.5%).
 - Tilted rate rose from about 1% to 2%; the app throws such a die again. Chi-squared failed on 1 of 15 runs (chance level).
 - Not tried in a browser: the user checks the look (spin fades to about 40% in a 1 s flight).
+- User test: the spin faded fast and the die tilted and fell. Now angular damping 0.1, spin 15-50 rad/s, restitution 0.45. 8 dice, seeds 1-3 (avg / worst settle, tilted, out of well): 2.7 s / 3.7-4.4 s, 1.6-2.3%, 1.4-1.6%; single die tilted 1.6-1.9%, out of well 0-0.1%; chi-squared passes on all 6 runs. Restitution 0.4 tried: 2.6 s / 3.3-3.6 s, out of well 1.1-1.6%; kept 0.45. Before step 8: 3.2 s. The rested-die freeze is unchanged.
 
 ### Step 9: Labels behind terrain
 

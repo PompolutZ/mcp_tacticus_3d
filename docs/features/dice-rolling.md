@@ -164,7 +164,7 @@ For each die, the app does the same steps as TTS `roll()`:
 1. Set a random rotation with a uniform distribution (Shoemake's method). Three random Euler angles do not give a uniform distribution, so the app does not use them.
 2. Set a random upward speed of 11–19.5 in/s (`THROW_UP_MIN`, `THROW_UP_MAX`), the TTS range. The die goes up 2.4–7.6".
 3. Set a small sideways speed toward a random point in the well, at least half a die from the walls. The app computes this speed from the flight time, so most dice land in the well. Walls and other dice then change their path.
-4. Set a spin around a random axis, with a random speed of 0–50 rad/s (`THROW_SPIN_MIN`, `THROW_SPIN_MAX`). 50 is the TTS upper limit. The range is chosen by look, because TTS dice spin fast in the air. A spin of 7.7–11 rad/s, the TTS reading after `roll()`, made the dice only tilt in the air, and the app did not look like TTS. Faster spin makes more dice bounce out of the well (see [Headless](#headless)).
+4. Set a spin around a random axis, with a random speed of 15–50 rad/s (`THROW_SPIN_MIN`, `THROW_SPIN_MAX`). 50 is the TTS upper limit. The range is chosen by look, because TTS dice spin fast in the air. The minimum is 15 so that every throw tumbles: with a low spin the die only tilted and fell (user test, playtest 4). A spin of 7.7–11 rad/s, the TTS reading after `roll()`, made the dice only tilt in the air, and the app did not look like TTS. Faster spin makes more dice bounce out of the well (see [Headless](#headless)).
 
 The new speeds replace the old ones. So a die that falls goes up again, and a die in the air changes direction from where it is.
 
@@ -183,8 +183,8 @@ The upward speed was measured in TTS (see [Measurements](#measurements)). The sp
 | Size | 0.94" tip to tip | 0.94" tip to tip | Same die. |
 | Mass | 0.95 | 1, from the density and the volume | Mass matters only between dice, and all dice have the same mass. The app sets speeds directly, and models are dominant (see [Collisions](#collisions)). |
 | Friction | Die 0.6. The tray's friction was not measured. | Die 0.6 with combine rule Min: 0.6 on the table, tray and terrain | Table, tray and terrain have friction 1 (`FRICTION` in `src/physics.js`). With Average, the die would get 0.8. |
-| Restitution (bounce) | Die 0.8, others 0, Average: 0.4 | Die 0.3, Average: 0.15 on the table, 0.3 die to die | Die to die was 0.8 with Average, the main cause of long rolls (playtest 4). Table, tray and terrain have restitution 0. Measured: 8 dice settle 3.2 s -> 2.5 s. |
-| Damping | Drag 0.1, angular drag 0.1 | Linear 0.1, angular 1.0 (playtest 4; barely changes the rest time, the user checks the look) | Unity drag and Rapier damping use similar formulas, but not the same one. |
+| Restitution (bounce) | Die 0.8, others 0, Average: 0.4 | Die 0.45, Average: 0.225 on the table, 0.45 die to die | Die to die was 0.8 with Average, the main cause of long rolls (playtest 4). Table, tray and terrain have restitution 0. Measured: 8 dice settle 3.2 s -> 2.7 s (0.45, spin 15–50, angular 0.1). |
+| Damping | Drag 0.1, angular drag 0.1 | Linear 0.1, angular 0.1 (playtest 4: 1.0 faded the spin in about 1 s, so the die tilted and fell) | Unity drag and Rapier damping use similar formulas, but not the same one. |
 | Gravity | -25 in/s² (`Physics.getGravity()`; a free fall gave 24.3, and drag explains the difference) | World: -30 in/s². Dice: `gravityScale` 25/30, so -25 (`DIE_GRAVITY` in `src/dice/throw.js`) | Models use -30 (`WORLD_GRAVITY` in `src/physics.js`). |
 | Step | 90 Hz, 14 solver iterations | 120 Hz, 4 solver iterations (the whole world) | If dice shake when they touch each other, raise `numSolverIterations`, and measure the cost. |
 | CCD | Not known | On | The tray walls are a thin trimesh, and a fast die can pass through a thin wall. CCD (continuous collision detection) checks the path between two steps. |
@@ -276,7 +276,7 @@ To run it: `pnpm --filter web tts-dice-measure` writes the TTS Saved Object "Dic
 | Rapid rolls: height of the next throw | Rises at first, then stays at 5.57–5.70" above the rest height |
 | Rapid rolls: spin changes | About 85 per second at 90 `roll()` calls per second, so almost every call changes the spin |
 
-The app takes the gravity, the upward speed, the friction and `ROLL_HEIGHT_LIMIT` (5.6") from these results. The spin stays 0–50 rad/s (see [Throw](#throw)).
+The app takes the gravity, the upward speed, the friction and `ROLL_HEIGHT_LIMIT` (5.6") from these results. The spin is 15–50 rad/s (see [Throw](#throw)).
 
 The script now also measures the spin during the whole roll, in the flight and in the bounces. It reads the spin in two ways: from `getAngularVelocity()`, and from the change of the die's rotation between two frames. If `roll()` turns the die without physics, only the second way sees it. The script also reports the tray's friction and bounciness. These numbers come from the next run.
 

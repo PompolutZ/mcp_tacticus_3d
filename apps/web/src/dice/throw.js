@@ -23,10 +23,10 @@ function cryptoRandom() {
 export const DIE_BODY = {
   friction: 0.6,
   frictionCombineRule: 1,
-  restitution: 0.3,
+  restitution: 0.45,
   restitutionCombineRule: 0,
   linearDamping: 0.1,
-  angularDamping: 1.0,
+  angularDamping: 0.1,
 }
 
 // A die rests when its linear and angular speed stay below these limits for SETTLE_TIME seconds.
@@ -51,12 +51,12 @@ export const DIE_GRAVITY_SCALE = DIE_GRAVITY / -WORLD_GRAVITY
 const THROW_UP_MIN = 11
 const THROW_UP_MAX = 19.5
 
-// Spin speed at the start of a throw, rad/s: 0-50, chosen by look. 50 is the TTS upper limit.
+// Spin speed at the start of a throw, rad/s: 15-50, chosen by look (a spin below 15 only tilts the die, user test of playtest 4). 50 is the TTS upper limit.
 // TTS dice spin fast in the air. In TTS, getAngularVelocity() in the first frames after roll()
 // read only 7.7-11 rad/s (2026-10-01), but with 7.7-11 the app's dice only tilted in the air and
 // did not look like TTS (checked in the app, 2026-10-02). Why is not known yet:
 // scripts/tts-dice-measure.lua now also measures the spin during the whole roll.
-const THROW_SPIN_MIN = 0
+const THROW_SPIN_MIN = 15
 const THROW_SPIN_MAX = 50
 
 // Extra solver iterations for a die's rigid body only (@react-three/rapier's
