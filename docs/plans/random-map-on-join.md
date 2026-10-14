@@ -1,6 +1,6 @@
 # Plan: random map of a multiplayer room spawns when the guest joins
 
-Requested by the user on 2026-10-14. Status: In progress.
+Requested by the user on 2026-10-14. Status: Done.
 
 Three coder steps, one commit each. Branch `random-map-on-join`, worktree `../mcp_assist_3d-random-map-on-join`.
 
@@ -87,3 +87,4 @@ Checks: `pnpm format`, `pnpm lint`, web tests, `pnpm --filter web build`.
 
 - Step 1: done. `mapId` null + `maps` in the store, `join` sets the map in the seat write, create takes `mapId` or `maps`, tests and `auth.md` updated. API unit tests pass; Mongo tests not run (need Docker).
 - Step 2: done. `Switch.jsx`, multiplayer random sends `maps` and a start table with no map, `mapTerrain` ids `<mapId>:<index>`, `mapFace` helper (`terrain/mapFace.js`) for card back and "Random map" in lobby and join page, `roomList` keeps `mapId` null. `rooms.md` updated.
+- Step 3: done. `fillMap(table, mapId)` in `rooms/table.js` (one transact, fixed ids), called in `Table.jsx` for a multiplayer room after the schema check. `mapId` null: `withPlacements` gives `[]`, `tableFiles` skips the mat, Scene skips the mat inside its Suspense, HUD note `.hud-wait` in App. The join answer's room reaches the table (Root `onJoined` sets it). Tests in `rooms/mapTerrain.test.js`. `rooms.md` updated; `peer-to-peer.md` has no start table rule.

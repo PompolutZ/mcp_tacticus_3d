@@ -1264,9 +1264,13 @@ export default function Scene({
           {/* The mat and its terrain turn together around the mat center. In game setup, the player with priority
             turns them so that the deployment edge they chose faces their side (GameSetup.jsx). */}
           <group rotation={[0, (matTurns * Math.PI) / 2, 0]}>
-            <Suspense fallback={null}>
-              <Mat mat={MAPS[mapId].mat} rotation={MAPS[mapId].matRotation} />
-            </Suspense>
+            {/* mapId null: a random room waits for its map. The mat and the terrain load here, in their own
+              Suspense, when the map comes. */}
+            {mapId != null && (
+              <Suspense fallback={null}>
+                <Mat mat={MAPS[mapId].mat} rotation={MAPS[mapId].matRotation} />
+              </Suspense>
+            )}
             {/* A fixed body does not follow its parent after it is created. So each turn mounts the terrain again,
               and its colliders are created at the new pose. A new map also mounts it again. */}
             <Suspense key={`${mapId}-${matTurns}`} fallback={null}>

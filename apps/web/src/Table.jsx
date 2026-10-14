@@ -19,7 +19,7 @@ import { sumTraffic, trafficLine } from './net/traffic.js'
 import { getMessages, getTable, postMessage, putTable } from './rooms/serverStore.js'
 import { hasLocalChanges, watchServerTable } from './rooms/serverTable.js'
 import { deleteDoc, multiplayerDocName, roomDocName } from './rooms/store.js'
-import { startTable } from './rooms/table.js'
+import { fillMap, startTable } from './rooms/table.js'
 import { openTableDoc, watchRoomRecord } from './rooms/tableDoc.js'
 
 // Traffic: read every 60 s, logged every 10 min (plan 09, decision 17)
@@ -226,6 +226,8 @@ export default function Table({ room = null, onExit }) {
         const rosters = room?.rosters ?? { host: null, guest: null }
         fillTable(table, { ...startTable(room?.mapId ?? START_MAP), rosters })
       }
+      // A random room: the map comes from the room (the guest joined). A table that already has one stays.
+      if (room?.multiplayer) fillMap(table, room.mapId)
       const role = room?.host === userId ? 'host' : 'guest'
       if (room?.multiplayer) {
         awareness = new Awareness(doc)

@@ -35,7 +35,7 @@ export function tableFiles({ mapId, terrain, characters, rosters }) {
   const gltf = new Set()
   const textures = new Map()
   const addTexture = (input) => textures.set(JSON.stringify(input), input)
-  addTexture(matUrl(mapId))
+  if (mapId != null) addTexture(matUrl(mapId))
   for (const key of new Set(terrain.map((p) => p.piece))) {
     const urls = pieceUrls(key)
     gltf.add(urls.mesh)

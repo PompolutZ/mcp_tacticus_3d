@@ -30,6 +30,7 @@ const placed = new WeakMap()
 // The terrain of the document with the placements of the map. A piece whose index the map data no longer
 // has is left out. A piece with `y` gets it as the height of its position.
 export function withPlacements(mapId, terrain) {
+  if (mapId == null) return []
   const placements = MAPS[mapId].placements
   return terrain
     .filter(({ index }) => placements[index])
@@ -43,6 +44,18 @@ export function withPlacements(mapId, terrain) {
       }
       return placed.get(piece)
     })
+}
+
+// The map fill of a random multiplayer room (docs/features/rooms.md, "Room"): when the table has no map
+// and the room has one, writes game.mapId and the terrain of that map in one change. Returns true when it
+// wrote. The terrain ids are fixed, so two browsers that fill the same map merge into one set of pieces.
+export function fillMap(table, mapId) {
+  if (table.game.get('mapId') != null || !mapId || !MAPS[mapId]) return false
+  table.transact(() => {
+    table.game.setField('mapId', mapId)
+    table.terrain.set(mapTerrain(mapId))
+  })
+  return true
 }
 
 // The stored height `y` of a piece (TTS position y, as in the map data) after it falls by `delta` inches
