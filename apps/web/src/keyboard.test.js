@@ -236,6 +236,10 @@ test('tool keys act once: range 1-5, move 7-9, angle 6, clear 0', () => {
   assert.deepEqual(act(key('9')), { action: 'move', id: 'moveLong', value: 'long' })
   assert.deepEqual(act(key('6')), { action: 'angle', id: 'angle' })
   assert.deepEqual(act(key('0')), { action: 'clear', id: 'clearTools' })
+  assert.deepEqual(act(key('1', { shiftKey: true }), { overPiece: true }), {
+    action: 'los',
+    id: 'los',
+  })
   for (const k of ['1', '5', '7', '9', '6', '0'])
     assert.equal(act(key(k, { repeat: true })), null, k)
 })

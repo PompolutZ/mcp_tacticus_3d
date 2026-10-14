@@ -8,9 +8,9 @@ import * as THREE from 'three'
 // - sector: a quarter circle, corner at the center, out to a radius. Used by the Zone Arc outline.
 // The shader paints every surface under a shape that faces up enough.
 
-// Own tools (3), the other player's tools (3), two deploy tools (own and other, decision 20), one zone arc
-// (only the selected token has one), and two drags: 11 at most (decisions 11, 18, 20)
-const MAX_FOOTPRINTS = 12
+// Own tools (4), the other player's tools (4), two deploy tools (own and other, decision 20), one zone arc
+// (only the selected token has one), and two drags: 13 at most (decisions 11, 18, 20)
+const MAX_FOOTPRINTS = 14
 // Colors shared by every user of a slot
 // FOOTPRINT_COLOR: light grey, a dragged piece (DragFootprint.jsx) and a tool with no target.
 export const FOOTPRINT_COLOR = '#c8c8c8'

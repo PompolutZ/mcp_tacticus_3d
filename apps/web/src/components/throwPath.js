@@ -5,16 +5,14 @@
 
 import { BASE_HALF_H, baseGroundY } from './CharacterModel.jsx'
 import { castAlong } from '../physics.js'
-import { matEdgeDistance, standingColliders } from './terrainUnder.js'
+import { TOUCH_MARGIN, matEdgeDistance, standingColliders } from './terrainUnder.js'
 
 const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 // The base moves this far (inches) above the ground where it starts, so the terrain cast does not hit
 // the surface that the base stands on
 const CAST_LIFT = 0.05
 // Terrain that the base overlaps at the start does not stop it (rules p14), see standingColliders.
-// The ground at the start and the start overlap test use a base this much narrower. So a wall that
-// the base only touches is not under it, and the base does not start on top of that wall.
-const TOUCH_MARGIN = 0.02
+// The ground at the start and the start overlap test use a base TOUCH_MARGIN narrower (terrainUnder.js).
 // A base that hits something stops this far (inches) before it, so physics does not push the two apart
 const STOP_GAP = 0.005
 

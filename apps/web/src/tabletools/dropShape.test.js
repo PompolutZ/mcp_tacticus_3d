@@ -45,3 +45,9 @@ test('canDropTool: true on the table, also over the other rack', () => {
   assert.equal(canDropTool('host', { x: rackPlate('guest').x, z: rackPlate('guest').z }), true)
   assert.equal(canDropTool('host', { x: 27, z: 10 }), true)
 })
+
+test('Line of Sight: one arm along the tool direction', () => {
+  const arms = toolArms('los', true)
+  assert.equal(arms.length, 1)
+  assert.equal(arms[0].angle, 0)
+})

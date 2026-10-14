@@ -2,9 +2,12 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   freeSpawnYaw,
+  losEntry,
+  losFields,
   newSpawnId,
   roundPose,
   roundTurn,
+  sameLos,
   sameStored,
   spawnEntry,
   storedFields,
@@ -82,4 +85,18 @@ test('a spawn entry has no pose, and a free one has a rounded at', () => {
   const free = spawnEntry(true, { x: 1.23456, z: -2 }, () => 0.5)
   assert.deepEqual(free.at, { x: 1.235, z: -2 })
   assert.equal('pose' in free, false)
+})
+
+test('a Line of Sight entry has a looker, no target and no pose', () => {
+  const entry = losEntry('c1', () => 0.5)
+  assert.deepEqual(entry, { which: true, spawn: newSpawnId(() => 0.5), looker: 'c1', target: null })
+})
+
+test('sameLos compares the rounded pose', () => {
+  const a = losFields({ pose: LIVE.pose })
+  assert.deepEqual(a, { pose: { x: 1.235, y: 0, z: -3, yaw: 1.2346 } })
+  assert.equal(sameLos(a, losFields({ pose: { ...LIVE.pose, x: LIVE.pose.x + 0.0001 } })), true)
+  assert.equal(sameLos(a, losFields({ pose: { ...LIVE.pose, yaw: LIVE.pose.yaw + 0.01 } })), false)
+  // An entry that has not rested has no pose
+  assert.equal(sameLos(a, { which: true, spawn: 'x', looker: 'c1', target: null }), false)
 })

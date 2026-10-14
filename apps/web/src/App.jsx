@@ -168,7 +168,7 @@ export default function App({
   // docs/features/setup-game.md).
   const [affiliations, setAffiliations] = useYField(table.game, 'affiliations')
   // Selected pieces and tools, see selection.js. One character, one token, the range tool, the
-  // movement tool and the Toward / Away tool can all be selected at the same time.
+  // movement tool, the Toward / Away tool and the Line of Sight tool can all be selected at the same time.
   const { selection, setSelection, selectedTools, setSelectedTools } = useSelection(presence)
   // What is under the pointer, for the keys (useHovered.js)
   const {
@@ -205,6 +205,8 @@ export default function App({
     handleEscape,
     clearTools,
     handleAngleKey,
+    handleLosKey,
+    handleLosClick,
     handleToolKey,
     placeTool,
     startToolDrag,
@@ -724,6 +726,7 @@ export default function App({
       range: (a) => handleToolKey('range', a.value),
       move: (a) => handleToolKey('move', a.value),
       angle: () => handleAngleKey(),
+      los: () => handleLosKey(),
       clear: () => clearTools(),
     },
     turnPiece: (dir) => turnPieceRef.current?.(dir),
@@ -782,6 +785,7 @@ export default function App({
                       onRangeClick: handleRangeClick,
                       onMoveClick: handleMoveClick,
                       onAngleClick: handleAngleClick,
+                      onLosClick: handleLosClick,
                       onDragStart: startToolDrag,
                     }
                   : null
@@ -793,6 +797,7 @@ export default function App({
               tools={tools}
               ownSide={ownSide}
               onToolStore={handleToolStore}
+              onToolRemove={handleToolReturn}
               onToolReturn={
                 rackShown && !rackHiddenSides(setup, rosters).includes(ownSide)
                   ? handleToolReturn

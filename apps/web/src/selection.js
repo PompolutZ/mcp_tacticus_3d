@@ -24,9 +24,9 @@ export function toolSelects(piece, characters, playedSides) {
   return playedSides.includes(side)
 }
 
-// Selected tools: { range, move, angle }, true when that tool is selected. There is at most one tool of
-// each kind on the table, so all three tools can be selected at the same time.
-export const NO_TOOLS = { range: false, move: false, angle: false }
+// Selected tools: { range, move, angle, los }, true when that tool is selected. There is at most one tool of
+// each kind on the table, so all four tools can be selected at the same time.
+export const NO_TOOLS = { range: false, move: false, angle: false, los: false }
 
 function samePiece(a, b) {
   return a.kind === b.kind && a.id === b.id
@@ -62,5 +62,5 @@ export function presenceSelection(selection) {
 
 // The kinds of the selected tools, in a fixed order
 export function presenceTools(tools) {
-  return ['range', 'move', 'angle'].filter((kind) => tools[kind])
+  return ['range', 'move', 'angle', 'los'].filter((kind) => tools[kind])
 }

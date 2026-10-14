@@ -23,6 +23,7 @@ import {
 import CharacterModel, { StandeeModel, modelUrls, turnBody } from './CharacterModel.jsx'
 import CharacterTray from './CharacterTray.jsx'
 import TableButtons from './TableButtons.jsx'
+import { LosTool, OtherLos } from './LosTool.jsx'
 import ToolRack from './ToolRack.jsx'
 import ToolDragGhost from './ToolDragGhost.jsx'
 import SpectatorBadge from './SpectatorBadge.jsx'
@@ -52,7 +53,12 @@ import { projectFootprints } from './footprintProjection.js'
 import { matImage } from '../terrain/files.js'
 import { BASE_DIAMETER } from '../characters/files.js'
 import { MAPS } from '../terrain/maps.js'
-import { characterGiveSources, characterName, characterStamina } from '../characters/characters.js'
+import {
+  characterGiveSources,
+  characterName,
+  characterSize,
+  characterStamina,
+} from '../characters/characters.js'
 import {
   characterModels,
   characterOnBoard,
@@ -246,7 +252,8 @@ function trayShapeOf(ch, characters, gruntLists) {
 // its `which` and `spawn`, so a new spawn mounts it again. The entry of the other side that has a pose
 // becomes an OtherTool. onToolStore(kind, spawn, fields): a tool of the own side rests, App writes the
 // fields into its entry. onToolReturn(kind): a move drag of an own tool ended on the own rack, App removes the tool
-// (RulerTool.jsx, onReturn). Undefined: the tools do not return. toolPointRef: ref App calls, filled by ToolPoint with { atPointer(), atCenter() }.
+// (RulerTool.jsx, onReturn). Undefined: the tools do not return. onToolRemove(kind): a tool is removed for
+// another reason (the Line of Sight looker left the table), always set. toolPointRef: ref App calls, filled by ToolPoint with { atPointer(), atCenter() }.
 // selectedTools: { range, move, angle } (see selection.js), lifted to App with its setter onSelectedToolsChange.
 // angleSpawn: { target, aim }, each { kind, id } | null, for the Toward / Away tool:
 // the piece it snaps to when it spawns (free without one), and the piece it aims at (the mat center
@@ -352,6 +359,7 @@ export default function Scene({
   ownSide = 'host',
   onToolStore,
   onToolReturn,
+  onToolRemove,
   angleSpawn = { target: null, aim: null },
   toolSpawn = { range: null, move: null },
   showColliders = false,
@@ -466,10 +474,10 @@ export default function Scene({
   // its own off (limitTaken in RulerTool.jsx). A tool that turns off clears only its slot in placeLimits.
   const [limitTool, setLimitTool] = useState(null)
   // The pieces that Q / E can turn (turnPiece): the character or tool under the pointer, and the one
-  // that is dragged. { kind: 'character' | 'tool', id } | null. The id of a tool is 'range', 'move' or 'angle'.
+  // that is dragged. { kind: 'character' | 'tool', id } | null. The id of a tool is 'range', 'move', 'angle' or 'los'.
   const hoveredPiece = useRef(null)
   const draggedPiece = useRef(null)
-  // Tool ('move', 'range' or 'angle') → its turn(angle), see turnAroundCenter in RulerTool.jsx
+  // Tool ('move', 'range', 'angle' or 'los') → its turn(angle), see turnAroundCenter in RulerTool.jsx
   const toolTurns = useRef({})
   // The own tools' live poses for LiveSync: kind → a getter that Tool registers (like toolTurns)
   const toolLives = useRef({})
@@ -891,7 +899,7 @@ export default function Scene({
     }
   }
 
-  // Props of a tool ('range', 'move' or 'angle') for turnPiece
+  // Props of a tool ('range', 'move', 'angle' or 'los') for turnPiece
   function turnProps(tool) {
     const piece = { kind: 'tool', id: tool }
     return {
@@ -1009,6 +1017,9 @@ export default function Scene({
         getObject: () => charObjects.current.get(model.id),
         getCenter: () => charBodies.current.get(model.id)?.translation() ?? { x: 0, y: 0, z: 0 },
         isLifted: () => charLifts.current.get(model.id)?.isUp() ?? false,
+        // For the Line of Sight tool: the name, and the Size of the side that faces up
+        name: characterName(model.character.key),
+        size: () => characterSize(model.character.key, model.character.side),
         claim: () => claimModel(model.id),
         moved: () => markMoved(model.id),
         radius: BASE_DIAMETER[model.base] / 2,
@@ -1731,6 +1742,19 @@ export default function Scene({
             />
           </Suspense>
         )}
+        {ownTools.los && (
+          <LosTool
+            key={toolKey('los', ownTools.los)}
+            {...toolEntry('los')}
+            selected={selectedTools.los}
+            onSelect={() => toggleTool('los')}
+            onDragSelect={() => selectTool('los')}
+            onSpawn={() => selectTool('los')}
+            onRemove={() => onToolRemove?.('los')}
+            models={toolModels}
+            {...turnProps('los')}
+          />
+        )}
         {draggingChar && (
           <Suspense fallback={null}>
             <DeployRangeTool
@@ -1785,27 +1809,36 @@ export default function Scene({
             />
           </Suspense>
         )}
-        {Object.entries(otherTools).map(
-          ([kind, entry]) =>
-            entry.pose && (
-              <Suspense key={toolKey(kind, entry)} fallback={null}>
-                <OtherTool
-                  kind={kind}
+        {Object.entries(otherTools).map(([kind, entry]) =>
+          kind === 'los'
+            ? entry.pose && (
+                <OtherLos
+                  key={toolKey(kind, entry)}
                   entry={entry}
-                  team={otherSide}
+                  models={toolModels}
                   selected={otherLook.tools.includes(kind)}
-                  target={otherTarget}
-                  rangeFrom={
-                    kind === 'range' && entry.which === 1 && entry.snap
-                      ? (toolModels.find(
-                          (model) => model.kind === entry.snap.kind && model.id === entry.snap.id,
-                        ) ?? null)
-                      : null
-                  }
                   getLive={() => received.current?.tool(kind) ?? null}
                 />
-              </Suspense>
-            ),
+              )
+            : entry.pose && (
+                <Suspense key={toolKey(kind, entry)} fallback={null}>
+                  <OtherTool
+                    kind={kind}
+                    entry={entry}
+                    team={otherSide}
+                    selected={otherLook.tools.includes(kind)}
+                    target={otherTarget}
+                    rangeFrom={
+                      kind === 'range' && entry.which === 1 && entry.snap
+                        ? (toolModels.find(
+                            (model) => model.kind === entry.snap.kind && model.id === entry.snap.id,
+                          ) ?? null)
+                        : null
+                    }
+                    getLive={() => received.current?.tool(kind) ?? null}
+                  />
+                </Suspense>
+              ),
         )}
       </Physics>
     </>

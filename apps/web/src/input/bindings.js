@@ -175,6 +175,15 @@ export const ACTIONS = [
   A('moveShort', 'Short move', 'Tools', TABLE, digit(7), { action: 'move', value: 'short' }),
   A('moveMedium', 'Medium move', 'Tools', TABLE, digit(8), { action: 'move', value: 'medium' }),
   A('moveLong', 'Long move', 'Tools', TABLE, digit(9), { action: 'move', value: 'long' }),
+  // Line of Sight: Shift + 1 over a character. The first one is the looker, a second one is the target.
+  A(
+    'los',
+    'Line of Sight',
+    'Tools',
+    ['anywhere', 'overPiece'],
+    [bind('Digit1', 'overPiece', { shift: true }), bind('Numpad1', 'overPiece', { shift: true })],
+    { action: 'los' },
+  ),
   A('clearTools', 'Clear tools', 'Tools', TABLE, digit(0), { action: 'clear' }),
 
   // Over the own dice tray, the number keys add dice. See addDice in DiceTray.jsx.

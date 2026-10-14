@@ -7,6 +7,9 @@
 // - at: { x, z }, the point of a free spawn
 // - pose: { x, y, z, yaw }. turn: { right, left }. snap: { kind, id, side, across? } | null.
 //   mode: 'away' | 'toward'
+// The Line of Sight tool (kind `los`) has its own entry: { which: true, spawn, looker, target, pose? }
+// - looker: the model id of the looking character. target: the model id of the target, or null.
+// - pose: { x, y, z, yaw }, the looker base center and the direction of the line.
 
 // Positions to 3 decimals (0.001"), yaw and bend to 4 decimals, as the live packets (plan, "Names")
 const round3 = (v) => Math.round(v * 1e3) / 1e3
@@ -69,4 +72,20 @@ export function newSpawnId(random = Math.random) {
 export function spawnEntry(which, at, random) {
   const entry = { which, spawn: newSpawnId(random) }
   return at ? { ...entry, at: roundPoint(at) } : entry
+}
+
+// A new entry of the Line of Sight tool. looker: the model id of the looking character. It has no pose, so
+// a spawn replaces an old entry whole.
+export function losEntry(looker, random) {
+  return { which: true, spawn: newSpawnId(random), looker, target: null }
+}
+
+// The stored fields from the live pose of a Line of Sight tool
+export function losFields({ pose }) {
+  return { pose: roundPose(pose) }
+}
+
+// True when the stored poses of a and b are equal. b may be an entry with no pose.
+export function sameLos(a, b) {
+  return Boolean(a.pose && b.pose) && samePair(a.pose, b.pose, ['x', 'y', 'z', 'yaw'])
 }

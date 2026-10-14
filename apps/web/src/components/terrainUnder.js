@@ -6,6 +6,9 @@ import { MAT_SIZE } from '../table.js'
 const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 // The test shape is the base, reaching STAND_DEPTH below it, so the piece that the base stands on counts.
 const STAND_DEPTH = 0.05
+// Callers that must not count a wall that the base only touches use a base this much narrower (throwPath.js,
+// the Line of Sight tool). So a wall that the base only touches is not under it.
+export const TOUCH_MARGIN = 0.02
 
 // Handles of the fixed colliders that a base standing at start (table XZ) overlaps: the terrain it
 // stands on, or touches inside its radius. ground: height of the base bottom there (baseGroundY).

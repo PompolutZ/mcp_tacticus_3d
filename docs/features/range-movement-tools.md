@@ -18,7 +18,7 @@ Range tools and movement tools work the same way, except for bending and [Throw 
 
 A tool hangs 1" above the table. It measures with its outline, which is drawn straight below it on the table and on the tops of terrain. Walls and steep sides (more than about 60°) are not painted. While you drag or rotate the tool, it stays 1" above the table or above any terrain under its outline. Terrain within 0.5" of the outline already raises the tool.
 
-Key **0** removes every tool from the table, as in the mod. Key **6** is the [Toward / Away](#toward--away) tool.
+Key **0** removes every tool from the table, as in the mod. Key **6** is the [Toward / Away](#toward--away) tool. **Shift + 1** over a character is the Line of Sight tool, which is not a ruler: see [Line of Sight](line-of-sight.md).
 
 **Where a tool spawns.**
 - A tool key (**1** to **5**, the movement keys, **6**) with the pointer over a character or a token selects that piece. The tool spawns snapped to it.

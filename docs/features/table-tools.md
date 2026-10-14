@@ -27,11 +27,12 @@ z = 18.3 … 22.4          [Automatic Power  ]      tactic tray
                          [Phase            ]
 z = 17.3 … 27.9                                                            [R1][R2][R3][R4][R5]
                                                                            [L ][M ][S ][T/A]
+                                                                           [LOS]
 z = 22.7 … 33.75                                  character trays, Give sources
 z = 38                   ─────────────── table edge ─────────────
 ```
 
-- **Tool rack**, in front of the dice tray of its player: x 20.6 … 33.4 (12.8" wide, centered on the tray), z 17.32 … 27.92 (10.6" deep, starting 0.3" past the keys lip of the tray, which ends at z 17.02). The tools lie along z, as seen from the player, with 5 columns from the owner's left: (R1 chip, L), (R2, M), (R3, S), (R4, T/A chip), (R5). In a column, the first item is on the mat side and the second below it, with a gap of 0.4". The margin is 0.3". The chips are 2" × 1" with the text toward the owner. The columns are spaced so that a 2" chip fits.
+- **Tool rack**, in front of the dice tray of its player: x 20.6 … 33.4 (12.8" wide, centered on the tray), z 17.32 … 27.92 (10.6" deep, starting 0.3" past the keys lip of the tray, which ends at z 17.02). The tools lie along z, as seen from the player, with 5 columns from the owner's left: (R1 chip, L, LOS chip), (R2, M), (R3, S), (R4, T/A chip), (R5). In a column, the first item is on the mat side and the second below it, with a gap of 0.4". The margin is 0.3". The chips are 2" × 1" with the text toward the owner. The columns are spaced so that a 2" chip fits.
 - A row of 7 character trays ends at x 20.5, so it does not touch the rack. A row of 8 or more reaches under it. The rack draws above the tray plates, so the tools stay visible.
 - The rack is hidden while the roster rows of its side are on the table (the setup, before the squads are shown). A tool that is already on the table stays. The hidden rack takes no pointer, and a tool dropped there does not go back.
 - **Automatic Power Phase button**, 5.4" × 1" (the strip row, along z), in row 1 of the board strip of its side: x −20.5 … −19.5 (center −20), z ±12.6 … ±18.0.
@@ -43,11 +44,12 @@ z = 38                   ─────────────── table edg
 ## Tool rack
 
 - A plate like the tray plates. On it, the real-size tool meshes in the player tint, lying along z. They have no physics body.
-- Columns from the owner's left: **R1** chip and L, R2 and M, R3 and S, R4 and a **T/A** chip, R5. The first item of a column is on the mat side. Range 1 uses the R2 tool, and Toward / Away is a copy of the long tool, so they have chips, not tools of their own.
-- A tool that is on the table is a faint copy on the rack, the same as an empty place on the TTS tray. When R1 is on the table, R2 is faint and the R1 chip is on. When the Toward / Away tool is on the table, its chip is on.
+- Columns from the owner's left: **R1** chip and L, R2 and M, R3 and S, R4 and a **T/A** chip, R5. A **LOS** chip is under L. The first item of a column is on the mat side. Range 1 uses the R2 tool, and Toward / Away is a copy of the long tool, so they have chips, not tools of their own.
+- A tool that is on the table is a faint copy on the rack, the same as an empty place on the TTS tray. When R1 is on the table, R2 is faint and the R1 chip is on. When the Toward / Away tool is on the table, its chip is on. The same for the LOS chip and the Line of Sight line.
 - Hover over a tool: a label with its name and key, for example "Range 3 · key 3".
 - **Click**: the same as the toolbar button of that tool. It turns the tool on or off. A new tool snaps to the selected piece, else it spawns free at the table point in the middle of the screen.
-- **Drag**: a flat outline of the tool follows the pointer on the table. The release works the same as the tool key at that point. Over a character or a crisis token, the tool snaps to it. Over the table or terrain, the tool spawns free there. Over the rack or off the table, nothing happens. Escape cancels the drag (key-shortcuts.md). The outline has the footprint of the tool (the Toward / Away outline is the L shape of its two arms), in the player tint, turned as the tool spawns free. It is dimmed over the own rack, as a hint that a release does nothing, and hidden off the table.
+- **Drag**: a flat outline of the tool follows the pointer on the table. The release works the same as the tool key at that point. Over a character or a crisis token, the tool snaps to it. Over the table or terrain, the tool spawns free there. Over the rack or off the table, nothing happens. The LOS chip is different: the release works only over a character (the looker, see `line-of-sight.md`), and over the table or terrain nothing happens. Escape cancels the drag (key-shortcuts.md). The outline has the footprint of the tool (the Toward / Away outline is the L shape of its two arms), in the player tint, turned as the tool spawns free. It is dimmed over the own rack, as a hint that a release does nothing, and hidden off the table.
+- **Return**: when a turn drag of the Line of Sight line ends with the pointer over the own rack, the line is removed. The line never moves by a drag.
 - **Return**: when a move drag of an own tool (not a turn or a bend) ends with the tool center over the own rack, the tool goes back to the rack (it is removed from the table). TTS has this as the tool tray setting "Cleanup", on by default.
 - **Which racks.** A multiplayer room shows both racks. A player uses only their own rack. The other rack shows the other player's tools on the table as faint copies, and does not react to the pointer. The Sandbox and a single player room show only the host rack, because that browser has only the host's tools (`ownSide` in `App.jsx`).
 

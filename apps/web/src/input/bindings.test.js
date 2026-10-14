@@ -242,3 +242,11 @@ test('which actions take the wheel', () => {
   assert.ok(!acceptsInput('flip', 'WheelUp'))
   assert.ok(acceptsInput('flip', 'KeyG'))
 })
+
+test('Shift + 1 over a piece is Line of Sight, and plain 1 is still Range 1', () => {
+  for (const code of ['Digit1', 'Numpad1']) {
+    assert.equal(at(code, { overPiece: true }, { shift: true }), 'los', code)
+    assert.equal(at(code, { overPiece: true }), 'range1', code)
+    assert.equal(at(code, {}, { shift: true }), null, code)
+  }
+})

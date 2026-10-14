@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useYRecord } from '../net/useY.js'
-import { spawnEntry } from '../components/storedTool.js'
+import { losEntry, spawnEntry } from '../components/storedTool.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
 import { canDropTool } from './dropShape.js'
 import { NO_PIECES, NO_TOOLS, isToolPiece, selectPiece, toolSelects } from '../selection.js'
@@ -29,6 +29,7 @@ export function useTableTools({
   const activeRange = ownTools?.range?.which ?? null
   const activeMove = ownTools?.move?.which ?? null
   const angleOn = Boolean(ownTools?.angle)
+  const losOn = Boolean(ownTools?.los)
   // Where the Toward / Away tool spawns: { target, aim }, the piece it snaps to and the piece it aims at,
   // each { kind, id } | null. Used once, at the spawn, in this browser only.
   const [angleSpawn, setAngleSpawn] = useState({ target: null, aim: null })
@@ -106,6 +107,7 @@ export function useTableTools({
     if (selectedTools.range) setOwnTool('range', null)
     if (selectedTools.move) setOwnTool('move', null)
     if (selectedTools.angle) setOwnTool('angle', null)
+    if (selectedTools.los) setOwnTool('los', null)
     setSelectedTools(NO_TOOLS)
     setSelection(NO_PIECES)
   }
@@ -120,6 +122,28 @@ export function useTableTools({
   // snaps the tool to it but does not select it. Else Place could move that model.
   function keySelects(piece) {
     return toolSelects(piece, characters, playedSides)
+  }
+
+  // The Line of Sight tool at a character (key Shift + 1, and the drop of a drag from the rack). piece: { kind, id } |
+  // null, the piece under the pointer. Only a character counts: over anything else, nothing happens. With no line,
+  // the character is the looker. With a line, a character that is not its looker or target becomes the target (the
+  // line turns to it). The looker and the target again: no change. See docs/features/line-of-sight.md, "Spawn".
+  function placeLos(piece) {
+    if (piece?.kind !== 'character') return
+    const entry = ownTools?.los
+    if (!entry) setOwnTool('los', losEntry(piece.id))
+    else if (piece.id !== entry.looker && piece.id !== entry.target)
+      setOwnTool('los', { ...entry, target: piece.id })
+  }
+
+  function handleLosKey() {
+    placeLos(hoveredRef.current)
+  }
+
+  // The LOS chip of the rack, clicked: it takes the line away, or starts it at the selected character
+  function handleLosClick() {
+    if (losOn) setOwnTool('los', null)
+    else placeLos(selection.find((p) => p.kind === 'character') ?? null)
   }
 
   // Key 6, the Toward / Away tool: placeAngleTool at the hovered piece and the table point under the pointer.
@@ -182,7 +206,7 @@ export function useTableTools({
   }
 
   // A press on an own tool or chip of the rack (ToolRack.jsx). e is the pointer event of the 3D scene or the DOM
-  // event of a chip. kind: 'range' | 'move' | 'angle'. which: the range number, the movement type, or true. The
+  // event of a chip. kind: 'range' | 'move' | 'angle' | 'los'. which: the range number, the movement type, or true. The
   // camera does not move during the press (startPointerDrag). After DRAG_THRESHOLD px, the outline of the tool
   // follows the pointer, and the release drops the tool (handleToolDrop). onClick: the release of a press
   // that did not become a drag (chips only; a tool of the 3D scene has its own click). Esc cancels (cancelActiveDrag
@@ -227,6 +251,7 @@ export function useTableTools({
     if (!canDropTool(ownSide, point)) return
     const at = { x: point.x, z: point.z }
     if (kind === 'angle') placeAngleTool(hoveredRef.current, at)
+    else if (kind === 'los') placeLos(hoveredRef.current)
     else placeTool(kind, which, hoveredRef.current, at)
   }
 
@@ -240,6 +265,7 @@ export function useTableTools({
     activeRange,
     activeMove,
     angleOn,
+    losOn,
     angleSpawn,
     toolSpawn,
     toolDrag,
@@ -251,6 +277,8 @@ export function useTableTools({
     handleEscape,
     clearTools,
     handleAngleKey,
+    handleLosKey,
+    handleLosClick,
     handleToolKey,
     placeTool,
     startToolDrag,

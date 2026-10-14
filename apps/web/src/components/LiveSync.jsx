@@ -18,7 +18,7 @@ const round3 = (v) => Math.round(v * 1e3) / 1e3
 // Physics, because it reads the bodies and the world. It renders nothing. Never log a packet.
 // live: the hub (net/live.js). ownership: net/ownership.js.
 // getBody(id): the Rapier body of a model id, or undefined.
-// toolLives: a ref to { range, move, angle }, each a function that gives the pose of the own tool
+// toolLives: a ref to { range, move, angle, los }, each a function that gives the pose of the own tool
 // { x, y, z, yaw, right, left }, or null (Tool in RulerTool.jsx registers it, the same way as turnRef).
 // diceLives: a ref to { <tray side>: getter }. A getter gives [{ key: 'die:<id>', pose }] of the own dice that
 // are not on the shelf (DiceTray registers it). Dice need no claim.
@@ -166,7 +166,7 @@ export default function LiveSync({
       const r = body.rotation()
       add(key, poseToNumbers(key, { x: t.x, y: t.y, z: t.z, qx: r.x, qy: r.y, qz: r.z, qw: r.w }))
     }
-    for (const kind of ['range', 'move', 'angle']) {
+    for (const kind of ['range', 'move', 'angle', 'los']) {
       const key = `tool:${kind}`
       const pose = toolLives.current?.[kind]?.()
       add(key, pose && poseToNumbers(key, pose))

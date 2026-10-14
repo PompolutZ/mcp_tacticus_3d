@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { NO_PIECES, NO_TOOLS, presenceSelection, presenceTools } from './selection.js'
 
 // Selected pieces and tools, see selection.js. One character, one token, the range tool, the
-// movement tool and the Toward / Away tool can all be selected at the same time.
+// movement tool, the Toward / Away tool and the Line of Sight tool can all be selected at the same time.
 // presence: net/presence.js, or null
 export function useSelection(presence) {
   const [selection, setSelection] = useState(NO_PIECES)

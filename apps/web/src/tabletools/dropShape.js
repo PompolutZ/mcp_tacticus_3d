@@ -9,10 +9,13 @@ const RANGE_WIDTH = 1
 const MOVE_WIDTH = 0.56
 // The Toward / Away tool spawns bent to a right angle: each arm 45 deg off the straight tool
 const ANGLE_BEND = Math.PI / 4
+// The Line of Sight ghost: as wide as a medium base (about 1 inch radius)
+const LOS_GHOST_LENGTH = 3
+const LOS_GHOST_WIDTH = 2
 
 // The arms of the footprint of a tool, in the local frame of the tool: [{ angle, length, width }]. Each arm
 // starts at the tool center and points along (cos angle, 0, -sin angle), the same as the tool halves.
-// kind: 'range' | 'move' | 'angle'. which: the range number (1 uses the R2 tool) or the movement type.
+// kind: 'range' | 'move' | 'angle' | 'los'. which: the range number (1 uses the R2 tool) or the movement type.
 export function toolArms(kind, which) {
   if (kind === 'range') {
     const tip = RANGE_TIP[which === 1 ? 2 : which]
@@ -28,6 +31,8 @@ export function toolArms(kind, which) {
       { angle: Math.PI, length: tip, width: MOVE_WIDTH },
     ]
   }
+  // The Line of Sight tool lies on a character, so the ghost is a short, base-wide line
+  if (kind === 'los') return [{ angle: 0, length: LOS_GHOST_LENGTH, width: LOS_GHOST_WIDTH }]
   const tip = MOVE_TIP.long
   return [
     { angle: ANGLE_BEND, length: tip, width: MOVE_WIDTH },

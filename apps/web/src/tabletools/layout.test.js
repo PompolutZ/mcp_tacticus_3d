@@ -210,7 +210,7 @@ test('the slots of a rack lie on the plate and do not overlap each other ', () =
   }
 })
 
-test('blue columns read (R1, L), (R2, M), (R3, S), (R4, T/A), (R5) from the owner left (-x), mat side first', () => {
+test('blue columns read (R1, L, LOS), (R2, M), (R3, S), (R4, T/A), (R5) from the owner left (-x), mat side first', () => {
   const slots = rackSlots('host')
   const columns = []
   for (const slot of [...slots].sort((a, b) => a.x - b.x || a.z - b.z)) {
@@ -220,7 +220,7 @@ test('blue columns read (R1, L), (R2, M), (R3, S), (R4, T/A), (R5) from the owne
   }
   assert.deepEqual(
     columns.map((column) => column.map((s) => s.key)),
-    [['r1', 'l'], ['r2', 'm'], ['r3', 's'], ['r4', 'ta'], ['r5']],
+    [['r1', 'l', 'los'], ['r2', 'm'], ['r3', 's'], ['r4', 'ta'], ['r5']],
   )
 })
 

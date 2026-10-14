@@ -7,8 +7,8 @@ import { useMovementParts, useRangeParts } from './RulerTool.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
 
-// The tool rack of each player: a plate with the range and movement tools in the player tint, and the R1 and
-// T/A chips. See docs/features/table-tools.md, "Tool rack". The tools have no physics body. A click is the
+// The tool rack of each player: a plate with the range and movement tools in the player tint, and the R1, T/A and
+// LOS chips. See docs/features/table-tools.md, "Tool rack". The tools have no physics body. A click is the
 // same as the toolbar button of that tool. A drag takes the tool to the table (tabletools/useTableTools.js, startToolDrag).
 
 // The plate is a little above the table. It is above the tray plates and their cards (trays.js, TRAY_Y 0.02),
@@ -30,6 +30,8 @@ const NO_POINTER = { pointerEvents: 'none' }
 const MOVE_TYPES = { s: 'short', m: 'medium', l: 'long' }
 const MOVE_NAMES = { short: 'Short move', medium: 'Medium move', long: 'Long move' }
 const MOVE_KEYS = { short: 7, medium: 8, long: 9 }
+
+const CHIP_LABELS = { r1: 'R1', ta: 'T/A', los: 'LOS' }
 
 const px = (inches) => Math.round(inches / INCHES_PER_PX)
 
@@ -118,7 +120,7 @@ function RackMove({ slot, ...props }) {
   return <RackTool parts={parts} slot={slot} {...props} />
 }
 
-// A chip of the rack (R1, T/A). It lies flat and faces the owner. on: its tool is on the table. A press starts
+// A chip of the rack (R1, T/A, LOS). It lies flat and faces the owner. on: its tool is on the table. A press starts
 // the drag, and a release without a drag is the click. The keyboard click (detail 0) works as well.
 function RackChip({ slot, side, on, title, onClick, onDragStart }) {
   return (
@@ -131,7 +133,7 @@ function RackChip({ slot, side, on, title, onClick, onDragStart }) {
         onPointerDown={onDragStart}
         onClick={onClick && ((e) => e.detail === 0 && onClick())}
       >
-        {slot.key === 'r1' ? 'R1' : 'T/A'}
+        {CHIP_LABELS[slot.key]}
       </button>
     </OnTable>
   )
@@ -145,6 +147,7 @@ function Rack({ side, tools, handlers }) {
   const rangeOn = entry.range?.which ?? null
   const moveOn = entry.move?.which ?? null
   const angleOn = Boolean(entry.angle)
+  const losOn = Boolean(entry.los)
   const click = (fn) => handlers && (() => fn())
   // The press of a tool or chip: it may become a drag. clickFn: the click of a chip, which has no click event
   // of its own after a press (a tool uses the click event of the 3D scene).
@@ -168,6 +171,19 @@ function Rack({ side, tools, handlers }) {
               title="Range 1 · key 1"
               onClick={click(() => handlers.onRangeClick(1))}
               onDragStart={press('range', 1, () => handlers.onRangeClick(1))}
+            />
+          )
+        }
+        if (slot.key === 'los') {
+          return (
+            <RackChip
+              key={slot.key}
+              slot={slot}
+              side={side}
+              on={losOn}
+              title="Line of Sight · Shift + 1 over a character, or drag onto one"
+              onClick={click(() => handlers.onLosClick())}
+              onDragStart={press('los', true, () => handlers.onLosClick())}
             />
           )
         }
@@ -231,10 +247,11 @@ export default function ToolRack({
   onRangeClick,
   onMoveClick,
   onAngleClick,
+  onLosClick,
   onDragStart,
   hiddenSides = [],
 }) {
-  const handlers = { onRangeClick, onMoveClick, onAngleClick, onDragStart }
+  const handlers = { onRangeClick, onMoveClick, onAngleClick, onLosClick, onDragStart }
   const sides = (multiplayer ? TEAMS : [ownSide]).filter((side) => !hiddenSides.includes(side))
   return sides.map((side) => (
     <Rack key={side} side={side} tools={tools} handlers={side === ownSide ? handlers : undefined} />

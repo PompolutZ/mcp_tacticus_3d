@@ -1,6 +1,6 @@
 # Feature: Line of Sight
 
-Status: partly built. The Size data and the length rule are built. The tool (spawn, turn, label, the other player's view) is not.
+Status: built.
 
 ## Goal
 
@@ -16,14 +16,15 @@ The game has no real tool for Line of Sight. This tool is a line from a looking 
 ## Spawn
 
 - Shift + 1 over a character: the line starts at that character and points at the mat center.
-- A drag of the LOS chip from the rack onto a character: the same. A drop on empty table does nothing.
+- A drag of the LOS chip from the rack onto a character: the same. A drop on empty table does nothing. A click on the chip removes the line, or, with no line, starts it at the selected character.
 - Shift + 1 over a second character while the line exists: that character is the **target**. The line turns from the looker's base center to the target's base center.
 - Shift + 1 over the looker or the target again: no change.
-- Esc (selected), key 0 and a drop on the rack remove the line.
+- Esc (selected) and key 0 remove the line. A turn drag that ends with the pointer over the own rack removes it too.
+- Only a character counts. Over a token or the table, Shift + 1 does nothing.
 
 ## Turn
 
-A drag on the line turns it around the looker's base center. Q / E and the wheel during that drag turn it the same way.
+A drag on the line turns it around the looker's base center (`turnAround`). Q / E and the wheel during that drag turn it the same way, at once. The line never moves by a drag. Q / E over the line, with no drag, turn it too.
 
 ## Block Size
 
@@ -43,5 +44,12 @@ A drag on the line turns it around the looker's base center. Q / E and the wheel
 
 ## When models move
 
-- The line belongs to the looker and the target by id. It stays on the looker's base center and keeps its direction. It is computed again when a model comes to rest.
+- The line belongs to the looker and the target by id. It stays on the looker's base center and keeps its direction. It is computed again when a model comes to rest (it does not move for 0.15 s), when the line turns, and when a Size changes.
 - A removed looker removes the line. A removed target clears the target.
+
+## The other player
+
+- The entry in `table.tools` is `{ which, spawn, looker, target, pose }`. `looker` and `target` are model ids. `pose` is the looker base center and the yaw, written when the line rests.
+- While the line turns, the yaw goes over the live channel (`tool:los`). The other browser follows the looker's model and the yaw, and works out the length and the label with its own physics. Both players see the same label.
+- The tool is `LosTool` and `OtherLos` in `src/components/LosTool.jsx`. The line is painted by `ToolFootprint` (`RulerTool.jsx`) with one half and a fixed half-transparent fill.
+

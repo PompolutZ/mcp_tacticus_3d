@@ -67,7 +67,7 @@ const move = (type) => ({
 
 // The columns from the owner's left. Item 1 is on the mat side, item 2 below it (toward the table edge).
 const COLUMNS = [
-  [chip('r1'), move('long')],
+  [chip('r1'), move('long'), chip('los')],
   [range(2), move('medium')],
   [range(3), move('short')],
   [range(4), chip('ta')],

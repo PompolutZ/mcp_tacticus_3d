@@ -1,6 +1,6 @@
 # Plan: Feedback from the third playtest
 
-Requested by the user on 2026-10-14. Status: steps 1 to 10 done. Step 11 (the LOS tool, added by the user on 2026-10-14 before the test) waits for the user's OK. The user decides more on the overlays (decisions 6 and 7) after a test run.
+Requested by the user on 2026-10-14. Status: steps 1 to 11 done (step 11, the LOS tool, was added by the user on 2026-10-14 before the test). The user decides more on the overlays (decisions 6 and 7) after a test run.
 
 Branch `playtest-3`, worktree `../mcp_assist_3d-playtest-3`, from main at `5d071a9`. One coder step and one commit for each step. Each step writes its **Result** below when it is done. Feature docs change in the same step as the code.
 
@@ -271,4 +271,16 @@ Done. Files (under `apps/web/src/`): new `characters/size.js`, `components/losLe
 - Terrain `RigidBody` has `userData: { id, size }`. `terrainSize(collider)` reads it through `collider.parent()`; null for the table.
 - `losLength({ start, yaw, width, blockSize, skipped, cast })` gives `{ distance, blocker }`, `blocker` is `{ collider, size }` or null. `losCast(world, rapier)` is the real cast (tall thin box, `castAlongHit` in `physics.js`). `castAlong` uses `castAlongHit`.
 - `terrainUnder.js`: `standingColliders(world, rapier, start, ground, radius, halfH)` (handles of the colliders under a base) and `matEdgeDistance`. `throwPath.js` uses both.
+- Checks: format, lint (no new warnings), test, build ok. Not run in a browser (user rule).
+
+### Step 11: LOS tool
+
+Done. Files (under `apps/web/src/`): new `components/LosTool.jsx` (`LosTool`, `OtherLos`), `components/losBlock.js` (+ test); changed `components/RulerTool.jsx`, `Scene.jsx`, `ToolRack.jsx`, `storedTool.js`, `terrainUnder.js`, `throwPath.js`, `footprintProjection.js`, `LiveSync.jsx`, `tabletools/useTableTools.js`, `layout.js`, `dropShape.js`, `selection.js`, `useSelection.js`, `input/bindings.js`, `App.jsx` (+ tests). Docs: `line-of-sight.md` (Status: built), `key-shortcuts.md`, `range-movement-tools.md`, `table-tools.md`.
+
+- Entry of kind `los`: `{ which: true, spawn, looker, target, pose }` (`losEntry`, `losFields`, `sameLos`). Shift + 1 is the action `los` (`overPiece`). It spawns the line, or sets the target (`placeLos`). The rack drag uses the same function. LOS chip in column 1 under L (the column is not deeper than R5, so the rack size is the same).
+- The line is a kinematic body with no collider at the looker base center. It reuses `useDragTool` (always a turn, `turnAround`), `ToolFootprint` (new props `oneSided`, `opacity`), and a shared `useRestStore` (taken out of `Tool`). `useDragTool` plans can set `refresh`, so Q / E and the wheel show during a turn drag at once.
+- `useLosLine` works out the length: `standingColliders` under the looker (skipped) and the target, `losBlock` (block Size and label), `losLength`. The footprint slots are 14 (two more tools).
+- The other player follows the looker model and the live yaw (`tool:los`), and works out the same length with its own physics.
+- Removed looker: `onToolRemove` removes the line. Removed target: `target: null`.
+- Differs from decision 10: the length is worked out when a model has not moved for 0.15 s (not on a rest event of the body). A turn is worked out at once. A click on the LOS chip removes the line, or starts it at the selected character. A "drop on the rack" is a turn drag that ends with the pointer over the own rack (the line never moves).
 - Checks: format, lint (no new warnings), test, build ok. Not run in a browser (user rule).
