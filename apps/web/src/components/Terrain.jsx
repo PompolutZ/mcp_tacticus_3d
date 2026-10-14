@@ -392,6 +392,7 @@ function PieceBody({
 // selectedId: id of the selected piece, or null. onSelect(id), onHover(id, over), objectRef(id, obj):
 // see TerrainPiece. groupRef(id, group), onPointerDown(id, e): see TerrainPiece.
 // A placement with `rev` remounts the piece when rev changes, so its fixed body gets the new transform.
+// A new height (position y) does the same: a piece that falls when what it stood on is deleted.
 export default function Terrain({
   placements,
   showLabels = false,
@@ -405,7 +406,7 @@ export default function Terrain({
 }) {
   return placements.map((placement) => (
     <TerrainPiece
-      key={`${placement.id}:${placement.rev ?? 0}`}
+      key={`${placement.id}:${placement.rev ?? 0}:${placement.position[1]}`}
       placement={placement}
       showLabel={showLabels || hoverLabelId === placement.id}
       selected={selectedId === placement.id}

@@ -121,6 +121,8 @@ export default function App({
   // Scene calls this and returns the id of the terrain piece under the pointer, locked or not, or
   // null. See Scene.jsx, terrainAt.
   const terrainAtRef = useRef(null)
+  // Scene fills this: the plan of what falls when a terrain piece is deleted. See Scene.jsx, planFall.
+  const terrainDropRef = useRef(null)
   const [deployLine, setDeployLine] = useYField(table.game, 'deployLine')
   const [characters, setCharacters] = useYList(table.characters)
   // The chosen Secure and Extract card, by key. null = none.
@@ -382,6 +384,7 @@ export default function App({
     table,
     terrain,
     terrainAtRef,
+    terrainDropRef,
     setMatTurns,
     setMapId,
     setTerrain,
@@ -796,6 +799,7 @@ export default function App({
                 terrain={terrain}
                 onTerrainHover={handleTerrainHover}
                 terrainAtRef={terrainAtRef}
+                terrainDropRef={terrainDropRef}
                 characters={characters}
                 tools={tools}
                 ownSide={ownSide}

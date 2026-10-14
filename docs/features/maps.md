@@ -78,6 +78,15 @@ The order of the imports in `index.js` is the order of the maps in the lists. A 
 - All explicit colliders (also the collider mesh of an OBJ piece) sit directly under the RigidBody, never in the scaled group, because @react-three/rapier 1.5 scales them a second time there. See `src/terrain/bundleColliders.js`.
 - `tint` on an OBJ piece multiplies the texture, as in TTS. A tint is left out when the map card shows another color. The tints of the app maps were compared with the cards.
 
+## Delete
+
+- The Delete key over an unlocked piece is the only way a piece leaves the table. It is the same for a Throw, the player deletes the piece.
+- What stood on the piece goes straight down to the next surface (another piece, or the mat). Nothing is pushed: a model gets its new place at once, with no speed, and keeps its heading. So nothing is bumped.
+- A piece that stood on it gets a new height, stored as `y` in the document (`rooms.md`). Both players see it. A piece or model that stands on a piece that falls goes down with it by the same distance.
+- What stands on a piece: a surface of it within 0.2 in under the bottom of the thing (casts down from several points under a piece, and from the base of a model).
+- Only the browser that deletes plans it. The other one gets the document and the model poses. A model that the other player moves, lifts or drags is not moved. Tokens are not moved.
+- Not covered: a thing that stands on the deleted piece and on a second piece that falls too. Such a thing may stay in the air.
+
 ## Terrain page
 
 Status: built.

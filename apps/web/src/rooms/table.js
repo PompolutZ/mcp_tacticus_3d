@@ -19,22 +19,35 @@ export function mapTerrain(mapId) {
   }))
 }
 
-// Stored piece { id, index, locked } → the piece with its placement. The document stores only the index
+// Stored piece { id, index, locked, y? } → the piece with its placement. y: the height of the piece after
+// what stood under it was deleted (droppedY); without it the piece stands at the height of the map. The document stores only the index
 // (net/doc.js), so a fix of the map data reaches old tables. The snapshot of the document keeps an unchanged
 // piece as the same object, so the cache gives it the same placed object, and Terrain.jsx does not place
 // its body again.
 const placed = new WeakMap()
 
 // The terrain of the document with the placements of the map. A piece whose index the map data no longer
-// has is left out.
+// has is left out. A piece with `y` gets it as the height of its position.
 export function withPlacements(mapId, terrain) {
   const placements = MAPS[mapId].placements
   return terrain
     .filter(({ index }) => placements[index])
     .map((piece) => {
-      if (!placed.has(piece)) placed.set(piece, { ...placements[piece.index], ...piece })
+      if (!placed.has(piece)) {
+        const { y, ...rest } = piece
+        const placement = placements[piece.index]
+        const position =
+          y === undefined ? placement.position : [placement.position[0], y, placement.position[2]]
+        placed.set(piece, { ...placement, ...rest, position })
+      }
       return placed.get(piece)
     })
+}
+
+// The stored height `y` of a piece (TTS position y, as in the map data) after it falls by `delta` inches
+// from its current position `position`
+export function droppedY(position, delta) {
+  return Math.round((position[1] - delta) * 1e3) / 1e3
 }
 
 // The state of a new table on the map mapId: the fields of fillTable in net/doc.js, without the rosters

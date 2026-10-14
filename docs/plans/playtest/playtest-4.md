@@ -1,6 +1,6 @@
 # Plan: Bugs from the fourth playtest
 
-Requested by the user on 2026-10-14. Status: not started.
+Requested by the user on 2026-10-14. Status: steps 1 to 6 done, user test pending.
 
 Branch `playtest-4`, worktree `../mcp_assist_3d-playtest-4`, from main at `7b708f7`. One coder step and one commit for each step. Each step writes its **Result** below when it is done. Feature docs change in the same step as the code.
 
@@ -161,3 +161,15 @@ Done.
 - `GameSetup.jsx`: deploy note names Power (bottom right) or Auto Power Phase by setting; **Start round 1** chip in the deploy step. New props `powerOnTable`, `onStartRound`.
 - `Scene.jsx`: passes `tableButtons.show.power` and `() => tableButtons.onPowerPhase(playedSides)` (same `handlePowerPhase` and sides as the HUD Power button). The HUD button has no side limit or disabled state, so none here.
 - Docs: `setup-game.md` deploy row. `round-phases.md` did not repeat the text.
+
+### Step 6: Fall on terrain delete
+
+Done.
+
+- One removal path only: `handleTerrainRemove` (Delete key). A throw has no code path in the app: the player deletes the piece.
+- New `terrain/dropDown.js` (pure: `sampleGrid`, `standsOnIds`, `fallDelta`, `dropPlan` with the chain) and `dropDown.test.js`. New `terrain/dropQuery.js` (`planTerrainDrop`: Rapier rays from sample points under each piece, a base cast for each model, both without the removed piece).
+- `handleTerrainRemove` calls `terrainDropRef` (filled by `Scene.planFall`) inside one `table.transact`, then stores `y` for each piece that falls (`droppedY`). `net/doc.js` terrain fields have `y`; `withPlacements` sets the height of `position` from it; `Terrain.jsx` key has the height, so the fixed body is made again at the new height on both peers.
+- Models: `Scene` effect after the render that removed the piece: `applyPose` (upright, zero speed) and `onModelRest`, as `returnModels`. Skipped: models of the other player, lifted or dragged ones (`claimModel` false).
+- `WorldRef` also gives `rapier`. Tests in `rooms/tableDrop.test.js`.
+- Docs: `maps.md` "Delete", `rooms.md` (`y`), `key-shortcuts.md` Delete row.
+- Not done: a thing standing on the deleted piece and on a second falling piece (edge case). Tokens do not move. Not tried in a browser.

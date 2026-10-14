@@ -120,7 +120,7 @@ The lobby finds the rooms by the key prefix. One key per room, so a room cannot 
 
 - The record keeps only the setup and the dates. `mapId` and `rosters` are a copy of the document, for the lobby tile. The lobby does not open the documents.
 - The table is in the document. Its layout is in `docs/features/peer-to-peer.md` ("Yjs document"). The document has the map, the rosters, the characters, the tokens, the cards, the terrain pieces, the model poses and the tools.
-- `terrain` stores the place of each piece in the map data (`index`, `locked`), not the whole placement. So a fix of the map data reaches old rooms. A deleted piece is not in the list.
+- `terrain` stores the place of each piece in the map data (`index`, `locked`), not the whole placement. So a fix of the map data reaches old rooms. A deleted piece is not in the list. A piece that fell when what it stood on was deleted has `y`: the height of its position, as in the map data. Without `y` the piece is at the map height (an older document has none).
 - A model writes its pose to `poses` when its body falls asleep. A lifted model (R) writes the place under the lift. A model that moves when the page closes keeps its last rest pose.
 - A saved model starts at its pose, asleep. So it does not move before the terrain under it has its colliders. A touch, a drag or a removed terrain piece wakes it.
 - A record of version 1 opens with a new table, with its map and rosters. Its old `table` is not read. A document with another `game.schema` gets a new start table. The schema is 2 since the sides are `host` / `guest`, so a room of schema 1 starts with a new table. A single player record of version 2 or older is not listed or opened (saved rooms are not migrated).

@@ -1,5 +1,5 @@
 import { TERRAIN_PIECES } from '../terrain/pieces.js'
-import { mapTerrain } from '../rooms/table.js'
+import { droppedY, mapTerrain } from '../rooms/table.js'
 import { deselectPiece } from '../selection.js'
 import { cardPiles, firstFreeSlot, nearestFreeSlot, tacticTrayAt } from '../tactics/layout.js'
 import { getTactic } from '../tactics/cards.js'
@@ -11,6 +11,7 @@ export function useTablePieces({
   table,
   terrain,
   terrainAtRef,
+  terrainDropRef,
   setMatTurns,
   setMapId,
   setTerrain,
@@ -47,10 +48,23 @@ export function useTablePieces({
     showHudMessage(`${TERRAIN_PIECES[piece.piece].name} ${locked ? 'locked' : 'unlocked'}`)
   }
 
-  // Delete key over an unlocked terrain piece. A locked piece gets no hover (Terrain.jsx), so it
-  // cannot be removed. Models on the piece fall: Rapier wakes the bodies that touched its collider.
+  // Delete key over an unlocked terrain piece, the only way a piece leaves the table. A locked piece gets
+  // no hover (Terrain.jsx), so it cannot be removed. What stood on it goes down to the next surface, with
+  // no push (docs/features/maps.md, "Delete"). Scene plans it before the piece is gone: the pieces that
+  // fall get a new `y` in the document, and Scene moves the models after the piece left the world.
+  // Only this browser plans it. The other one gets the document and the poses.
   function handleTerrainRemove(id) {
-    setTerrain((prev) => prev.filter((p) => p.id !== id))
+    table.transact(() => {
+      const fall = terrainDropRef?.current?.(id)?.terrain ?? {}
+      setTerrain((prev) =>
+        prev
+          .filter((p) => p.id !== id)
+          .map((p) => {
+            const placed = fall[p.id] && terrain.find((t) => t.id === p.id)
+            return placed ? { ...p, y: droppedY(placed.position, fall[p.id]) } : p
+          }),
+      )
+    })
     setSelection((prev) => deselectPiece(prev, { kind: 'terrain', id }))
   }
 

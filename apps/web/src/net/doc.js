@@ -31,7 +31,7 @@ export function createTable(doc = new Y.Doc()) {
     rosters: createRecord(doc.getMap('rosters')),
     setup: createRecord(doc.getMap('setup'), { depth: 1 }),
     // Only the place in the map data and the lock. App adds the placement (rooms/table.js).
-    terrain: createList(doc.getMap('terrain'), { fields: ['index', 'locked'] }),
+    terrain: createList(doc.getMap('terrain'), { fields: ['index', 'locked', 'y'] }),
     characters: createList(doc.getMap('characters')),
     // Model id → rest pose. Written when a body falls asleep, read when a model mounts.
     poses: createRecord(doc.getMap('poses')),

@@ -18,7 +18,7 @@ import {
   OtherTool,
   sameModel,
 } from './RulerTool.jsx'
-import CharacterModel, { StandeeModel, modelUrls, turnBody } from './CharacterModel.jsx'
+import CharacterModel, { StandeeModel, modelUrls, turnBody, upright } from './CharacterModel.jsx'
 import CharacterTray from './CharacterTray.jsx'
 import TableButtons from './TableButtons.jsx'
 import { LosTool, OtherLos } from './LosTool.jsx'
@@ -51,6 +51,7 @@ import PriorityMarker from './PriorityMarker.jsx'
 import { Backdrop, Mat, SceneLights, TableSurface, matImageUrl } from './SceneShared.jsx'
 import { BASE_DIAMETER } from '../characters/files.js'
 import { MAPS } from '../terrain/maps/index.js'
+import { planTerrainDrop } from '../terrain/dropQuery.js'
 import {
   characterGiveSources,
   characterName,
@@ -189,7 +190,7 @@ function trayShapeOf(ch, characters, gruntLists) {
 // mapId: key in MAPS. terrain: the terrain pieces on the mat, [{ id, locked, ...placement }] (see
 // mapTerrain in rooms/table.js). onTerrainHover(id, over): the pointer moved onto or off an unlocked piece,
 // for the Delete key. terrainAtRef: ref App calls for the L key, the same pattern as characterAtRef.
-// Scene fills it with terrainAt.
+// Scene fills it with terrainAt. terrainDropRef: ref App calls when it deletes a terrain piece (planFall below).
 // showColliders: draw every physics collider as lines (the shapes physics uses, not the visible meshes)
 // showLabels: show the label (name, game Size, lock state) above each terrain piece. With labels off, the
 // piece under the pointer shows its label.
@@ -306,6 +307,7 @@ export default function Scene({
   terrain = [],
   onTerrainHover,
   terrainAtRef,
+  terrainDropRef,
   characters = [],
   tools = NO_TOOLS_RECORD,
   ownSide = 'host',
@@ -406,6 +408,7 @@ export default function Scene({
   const charBodies = useRef(new Map())
   // The Rapier world, set by WorldRef inside <Physics>. liveBody checks a body against it.
   const worldRef = useRef(null)
+  const rapierRef = useRef(null)
   // The body of a model if it is still in the world, else undefined. For listeners, effects and peer data.
   function liveCharBody(id) {
     const body = charBodies.current.get(id)
@@ -870,6 +873,53 @@ export default function Scene({
     }
   }
 
+  // A terrain piece is about to be deleted (App, handleTerrainRemove): plans what stood on it. Returns
+  // { terrain: { id: delta } } for App to store, and keeps the model falls for the effect below, which
+  // runs after the piece left the world. A model that the other player moves, a lifted one and one that
+  // is dragged here is not planned. Delta: inches straight down.
+  const pendingDrops = useRef({})
+  function planFall(removedId) {
+    const world = worldRef.current
+    const rapier = rapierRef.current
+    pendingDrops.current = {}
+    if (!world || !rapier) return { terrain: {} }
+    const list = []
+    for (const model of models) {
+      const body = liveCharBody(model.id)
+      if (!body || ownership?.owner(modelKey(model.id)) === 'other') continue
+      if (charLifts.current.get(model.id)?.isBusy()) continue
+      const t = body.translation()
+      list.push({ id: model.id, x: t.x, y: t.y, z: t.z, radius: BASE_DIAMETER[model.base] / 2 })
+    }
+    const plan = planTerrainDrop({
+      world,
+      rapier,
+      removedId,
+      terrainObjects: terrainObjects.current,
+      models: list,
+    })
+    pendingDrops.current = plan.models
+    return plan
+  }
+
+  // The models of the plan go straight down to the next surface, upright, with no speed, so nothing is
+  // pushed. The pose is stored as at a rest (returnModels), so the other browser gets it. Runs after the
+  // render that removed the piece, when its colliders are gone.
+  useEffect(() => {
+    const drops = pendingDrops.current
+    pendingDrops.current = {}
+    for (const [id, delta] of Object.entries(drops)) {
+      const body = liveCharBody(id)
+      if (!body || !claimModel(id)) continue
+      const t = body.translation()
+      const pose = poseOf({ x: t.x, y: t.y - delta, z: t.z }, upright(body.rotation()))
+      applyPose(id, pose)
+      onModelRest?.(id, pose)
+    }
+    // applyPose and claimModel only read refs and the render's models
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [terrain])
+
   // Props of a tool ('range', 'move', 'angle' or 'los') for turnPiece
   function turnProps(tool) {
     const piece = { kind: 'tool', id: tool }
@@ -894,6 +944,7 @@ export default function Scene({
     if (floorPieceRef) floorPieceRef.current = floorPiece
     if (returnModelsRef) returnModelsRef.current = returnModels
     if (terrainAtRef) terrainAtRef.current = terrainAt
+    if (terrainDropRef) terrainDropRef.current = planFall
   })
 
   // Tray position of every character (trays.js). A player's row recenters when that player adds
@@ -1154,7 +1205,7 @@ export default function Scene({
       <SceneLights />
 
       <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP} debug={showColliders}>
-        <WorldRef worldRef={worldRef} />
+        <WorldRef worldRef={worldRef} rapierRef={rapierRef} />
         <ToolPoint pointRef={toolPointRef} />
         {ownPing && <Ping key={ownPing.id} ping={ownPing} side={ownSide} />}
         {otherLook.ping && (
