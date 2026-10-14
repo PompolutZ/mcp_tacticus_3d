@@ -1,11 +1,19 @@
 import { useFrame } from '@react-three/fiber'
-import { Html } from '@react-three/drei'
+import { Html, Line } from '@react-three/drei'
 import { RigidBody, useRapier } from '@react-three/rapier'
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { BASE_HALF_H } from './CharacterModel.jsx'
-import { losCast, losLength, terrainSize } from './losLength.js'
+import {
+  clearSight,
+  losCast,
+  losKeep,
+  losLength,
+  losSegmentBlocked,
+  terrainSize,
+} from './losLength.js'
 import { losBlock, standingTerrainSize } from './losBlock.js'
+import { FOOTPRINT_COLOR } from './footprintProjection.js'
 import { TOUCH_MARGIN, standingColliders } from './terrainUnder.js'
 import {
   ToolFootprint,
@@ -33,6 +41,9 @@ const LOS_REST = 0.15
 const LOS_OPACITY = 0.5
 // The pointer surface lies this far (inches) above the base bottom
 const HIT_Y = 0.08
+// The clear sight segment is drawn this far (inches) above the base bottom, 2 px wide
+const SIGHT_Y = 0.1
+const SIGHT_WIDTH_PX = 2
 // The label hangs this far above the end of the line
 const LABEL_Y = 0.3
 const NO_TURN = { right: 0, left: 0 }
@@ -43,17 +54,20 @@ const round3 = (v) => Math.round(v * 1e3) / 1e3
 const findCharacter = (models, id) =>
   (id && models.find((model) => model.kind === 'character' && model.id === id)) || null
 
-// { distance, label } of the line of the body in rigidRef, from the physics: the looker's base center, the yaw
+// { distance, label, sight } of the line of the body in rigidRef, from the physics: the looker's base center, the yaw
 // of the body, and the block Size of the target (or of the looker when there is no target). It is worked out
 // again when the yaw changes at once, and when a model has not moved for LOS_REST, or when a Size changes.
+// sight: the clear segment { a, b } from any part of the looker base to the target base (clearSight), or null.
+// It is worked out only when a model rests or a Size changes, not on each turn. A turn applies it only while
+// the line passes through the target base, and then the line runs at least to the far edge of the target.
 function useLosLine(rigidRef, looker, target) {
   const { world, rapier } = useRapier()
-  const [line, setLine] = useState({ distance: 0, label: '' })
+  const [line, setLine] = useState({ distance: 0, label: '', sight: null })
   const latest = useRef({ looker, target })
   useEffect(() => {
     latest.current = { looker, target }
   })
-  const seen = useRef({ key: null, time: 0, yaw: null, dirty: true })
+  const seen = useRef({ key: null, time: 0, yaw: null, dirty: true, stale: true, sight: null })
 
   useFrame((_, dt) => {
     const rb = rigidRef.current
@@ -73,6 +87,8 @@ function useLosLine(rigidRef, looker, target) {
       st.key = key
       st.time = 0
       st.dirty = true
+      st.stale = true
+      st.sight = null
     } else st.time += dt
     const turned = st.yaw !== null && yaw !== st.yaw
     st.yaw = yaw
@@ -93,7 +109,18 @@ function useLosLine(rigidRef, looker, target) {
       name: lead.name,
       own: !target,
     })
-    const { distance } = losLength({
+    const keep = losKeep(skipped, block.size)
+    if (target && st.stale && st.time >= LOS_REST) {
+      st.stale = false
+      st.sight = clearSight({
+        from: { x: c.x, z: c.z },
+        fromRadius: looker.radius,
+        to: { x: t.x, z: t.z },
+        toRadius: target.radius,
+        blocked: losSegmentBlocked(world, rapier, keep),
+      })
+    }
+    const { distance: cast } = losLength({
       start: { x: c.x, z: c.z },
       yaw,
       width: looker.radius * 2,
@@ -101,8 +128,28 @@ function useLosLine(rigidRef, looker, target) {
       skipped,
       cast: losCast(world, rapier),
     })
-    const next = { distance: round3(distance), label: block.label }
-    setLine((prev) => (prev.distance === next.distance && prev.label === next.label ? prev : next))
+    // The line must pass through the target base for the sight to count
+    const dir = { x: Math.cos(yaw), z: -Math.sin(yaw) }
+    const along = t ? (t.x - c.x) * dir.x + (t.z - c.z) * dir.z : 0
+    const off = t ? Math.abs((t.x - c.x) * dir.z - (t.z - c.z) * dir.x) : Infinity
+    const passes = target && st.sight && along > 0 && off <= target.radius
+    const sight = passes ? st.sight : null
+    const distance = sight ? Math.max(cast, Math.hypot(t.x - c.x, t.z - c.z) + target.radius) : cast
+    const next = {
+      distance: round3(distance),
+      label: block.label,
+      sight: sight && [
+        [round3(sight.a.x), c.y + SIGHT_Y, round3(sight.a.z)],
+        [round3(sight.b.x), c.y + SIGHT_Y, round3(sight.b.z)],
+      ],
+    }
+    setLine((prev) =>
+      prev.distance === next.distance &&
+      prev.label === next.label &&
+      JSON.stringify(prev.sight) === JSON.stringify(next.sight)
+        ? prev
+        : next,
+    )
   })
 
   return line
@@ -139,6 +186,9 @@ function LosView({ rigidRef, line, radius, selected, position, yaw, children }) 
         oneSided
         opacity={LOS_OPACITY}
       />
+      {line.sight && (
+        <Line points={line.sight} color={FOOTPRINT_COLOR} lineWidth={SIGHT_WIDTH_PX} />
+      )}
     </>
   )
 }

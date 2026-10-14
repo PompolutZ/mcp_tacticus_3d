@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { losLength, terrainSize } from './losLength.js'
+import { clearSight, losLength, terrainSize } from './losLength.js'
 
 // A fake terrain collider: handle, and the Size on its parent body. size undefined: not terrain.
 const piece = (handle, size, distance) => ({
@@ -74,4 +74,63 @@ test('terrain the looker stands on is skipped', () => {
 
 test('the table is not terrain', () => {
   assert.equal(run([piece(1, undefined, 3)]).blocker, null)
+})
+
+// clearSight with a fake: blocked(seg) comes from a rule on the segment. Counts the calls.
+const sight = (rule, over = {}) => {
+  const calls = []
+  const result = clearSight({
+    from: { x: 0, z: 0 },
+    fromRadius: 0.5,
+    to: { x: 3, z: 0 },
+    toRadius: 0.5,
+    blocked: (seg) => {
+      calls.push(seg)
+      return rule(seg)
+    },
+    ...over,
+  })
+  return { result, calls }
+}
+// The z at which a segment crosses x = 1.5
+const zAt = ({ start, yaw, maxDistance }) => {
+  const dx = Math.cos(yaw)
+  return start.z - Math.sin(yaw) * ((1.5 - start.x) / dx) * (maxDistance > 0 ? 1 : 0)
+}
+
+test('sight: a clear center line is found first, with one cast', () => {
+  const { result, calls } = sight(() => false)
+  assert.deepEqual(result, { a: { x: 0, z: 0 }, b: { x: 3, z: 0 } })
+  assert.equal(calls.length, 1)
+})
+
+test('sight: center blocked, an edge line clear gives that segment', () => {
+  // A wall at x = 1.5 covering z from -1 to 0.2: only lines crossing it at z > 0.2 pass
+  const { result } = sight((seg) => zAt(seg) <= 0.2)
+  assert.ok(result)
+  assert.ok(
+    zAt({
+      start: result.a,
+      yaw: Math.atan2(-(result.b.z - result.a.z), result.b.x - result.a.x),
+      maxDistance: 1,
+    }) > 0.2,
+  )
+  assert.ok(Math.abs(result.a.x) <= 0.5 && Math.abs(result.b.x - 3) <= 0.5)
+})
+
+test('sight: every line blocked gives null', () => {
+  assert.equal(sight(() => true).result, null)
+})
+
+test('sight: stops at the first clear pair', () => {
+  let n = 0
+  const { result, calls } = sight(() => ++n < 4)
+  assert.ok(result)
+  assert.equal(calls.length, 4)
+})
+
+test('sight: cast count for 1 inch bases 3 inches apart, all blocked', () => {
+  const { calls } = sight(() => true)
+  // 17 points per base: 1 center + 17 parallel + 17 * 16 others
+  assert.equal(calls.length, 1 + 17 + 17 * 16)
 })

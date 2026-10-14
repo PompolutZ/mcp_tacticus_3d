@@ -12,12 +12,24 @@ const LOS_HALF_H = 25
 const LOS_BOX_Y = 20
 // The box is this thin (half length) along the line
 const LOS_HALF_LEN = 0.01
+// The sight segment test (clearSight): base edge points this far apart (inches), at least this many per
+// half edge, and the width of the cast box along a segment
+const SIGHT_SPACING = 0.1
+const SIGHT_MIN_POINTS = 16
+const SIGHT_WIDTH = 0.01
 
 // Size of the terrain that a collider belongs to (the userData of its RigidBody, see Terrain.jsx), or
 // null when the collider is not terrain (the table).
 export function terrainSize(collider) {
   const size = collider.parent()?.userData?.size
   return typeof size === 'number' ? size : null
+}
+
+// The collider filter: terrain with Size > blockSize that is not in skipped (a Set of collider handles)
+export const losKeep = (skipped, blockSize) => (collider) => {
+  if (skipped.has(collider.handle)) return false
+  const size = terrainSize(collider)
+  return size !== null && size > blockSize
 }
 
 // start: looker base center (table XZ). yaw: direction as for tools (dir = cos yaw, -sin yaw). width: line
@@ -30,11 +42,7 @@ export function terrainSize(collider) {
 export function losLength({ start, yaw, width, blockSize, skipped, cast }) {
   const dir = { x: Math.cos(yaw), z: -Math.sin(yaw) }
   const edge = matEdgeDistance(start, dir, 0)
-  const keep = (collider) => {
-    if (skipped.has(collider.handle)) return false
-    const size = terrainSize(collider)
-    return size !== null && size > blockSize
-  }
+  const keep = losKeep(skipped, blockSize)
   const hit = cast({ start, yaw, width, maxDistance: edge, keep })
   if (!hit.collider) return { distance: edge, blocker: null }
   return {
@@ -52,4 +60,56 @@ export function losCast(world, rapier) {
     const pos = { x: start.x, y: LOS_BOX_Y, z: start.z }
     return castAlongHit(world, rapier, shape, rotation, pos, dir, maxDistance, keep)
   }
+}
+
+// Sight from any part of the base (docs/features/line-of-sight.md, "The line"). Finds a straight segment
+// from a point of the looker base to a point of the target base that no blocking terrain crosses.
+// from, to: base centers (table XZ). fromRadius, toRadius: base radii.
+// blocked({ start, yaw, width, maxDistance }): true when blocking terrain touches a thin tall box moved
+// along that segment (losSegmentBlocked, or a fake in tests).
+// Points: the two centers, and points on the edge of each base, only on the half that faces the other
+// base, about SIGHT_SPACING apart. Order: center to center, then pairs on parallel lines (same side of the
+// line between the centers), then the rest. The first clear pair ends the test.
+// Returns { a, b } (table XZ points), or null when every pair is blocked.
+export function clearSight({ from, fromRadius, to, toRadius, blocked }) {
+  const dx = to.x - from.x
+  const dz = to.z - from.z
+  const gap = Math.hypot(dx, dz)
+  if (gap === 0) return { a: { ...from }, b: { ...to } }
+  const u = { x: dx / gap, z: dz / gap }
+  const n = { x: -u.z, z: u.x }
+  const edge = (center, radius, sign) => {
+    const count = Math.max(SIGHT_MIN_POINTS, Math.ceil((Math.PI * radius) / SIGHT_SPACING))
+    const points = []
+    for (let i = 0; i <= count; i++) {
+      const t = -Math.PI / 2 + (Math.PI * i) / count
+      const along = Math.cos(t) * sign
+      const side = Math.sin(t)
+      points.push({
+        x: center.x + radius * (u.x * along + n.x * side),
+        z: center.z + radius * (u.z * along + n.z * side),
+      })
+    }
+    return points
+  }
+  const as = edge(from, fromRadius, 1)
+  const bs = edge(to, toRadius, -1)
+  const clear = (a, b) => {
+    const len = Math.hypot(b.x - a.x, b.z - a.z)
+    const yaw = Math.atan2(-(b.z - a.z), b.x - a.x)
+    return !blocked({ start: a, yaw, width: SIGHT_WIDTH, maxDistance: len })
+  }
+  if (clear(from, to)) return { a: { ...from }, b: { ...to } }
+  for (let i = 0; i < as.length; i++) if (clear(as[i], bs[i])) return { a: as[i], b: bs[i] }
+  for (let i = 0; i < as.length; i++)
+    for (let j = 0; j < bs.length; j++)
+      if (i !== j && clear(as[i], bs[j])) return { a: as[i], b: bs[j] }
+  return null
+}
+
+// The Rapier test for clearSight: losCast along a segment with the keep filter of losKeep.
+export function losSegmentBlocked(world, rapier, keep) {
+  const cast = losCast(world, rapier)
+  return ({ start, yaw, width, maxDistance }) =>
+    cast({ start, yaw, width, maxDistance, keep }).collider !== null
 }
