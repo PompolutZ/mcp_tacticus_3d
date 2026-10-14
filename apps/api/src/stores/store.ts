@@ -52,7 +52,9 @@ export interface RoomDoc {
   version: 1
   host: string
   players: Record<Side, string | null>
-  mapId: string
+  // null: a random room. The server picks one of `maps` at the guest's join.
+  mapId: string | null
+  maps?: string[]
   rosters: Record<Side, Roster | null>
   // A Yjs update. Always set.
   table: Uint8Array
@@ -69,7 +71,8 @@ export type RoomInfo = Omit<RoomDoc, 'table'>
 
 export interface NewRoom {
   host: string
-  mapId: string
+  mapId: string | null
+  maps?: string[]
   roster: Roster
   table: Uint8Array
 }
@@ -92,7 +95,15 @@ export interface RoomsStore {
   // The rooms where the user has a seat, the last changed first, without the table. Old shape records are left out.
   listForUser(userId: string, limit: number): Promise<RoomInfo[]>
   // Sets the seat and the roster only when the seat is free. True when it wrote.
-  join(code: string, side: Side, userId: string, roster: Roster, now: Date): Promise<boolean>
+  // With mapId, it sets the map in the same write.
+  join(
+    code: string,
+    side: Side,
+    userId: string,
+    roster: Roster,
+    now: Date,
+    mapId?: string,
+  ): Promise<boolean>
   // Writes only when tableRev is still expectedRev. True when it wrote.
   replaceTable(code: string, expectedRev: number, table: Uint8Array, now: Date): Promise<boolean>
   delete(code: string): Promise<void>
@@ -192,6 +203,7 @@ export function newRoom(input: NewRoom, code: string, now: Date): RoomDoc {
     host: input.host,
     players: { host: input.host, guest: null },
     mapId: input.mapId,
+    ...(input.maps ? { maps: input.maps } : {}),
     rosters: { host: input.roster, guest: null },
     table: input.table,
     tableRev: 0,
@@ -209,7 +221,7 @@ export interface PublicRoom {
   code: string
   host: string
   players: Record<Side, RoomPlayer | null>
-  mapId: string
+  mapId: string | null
   rosters: Record<Side, Roster | null>
   createdAt: string
   updatedAt: string

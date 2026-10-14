@@ -90,11 +90,12 @@ export function createMemoryStore(): Store {
           .slice(0, limit)
           .map(info)
       },
-      async join(code, side, userId, roster, now) {
+      async join(code, side, userId, roster, now, mapId) {
         const doc = rooms.get(code)
         if (!doc || doc.players[side] !== null) return false
         doc.players[side] = userId
         doc.rosters[side] = roster
+        if (mapId !== undefined) doc.mapId = mapId
         doc.updatedAt = now
         doc.expiresAt = userExpiry(now)
         return true

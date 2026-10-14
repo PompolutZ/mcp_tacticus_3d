@@ -155,7 +155,7 @@ export function createMongoStore({
           .limit(limit)
           .toArray() as Promise<RoomInfo[]>
       },
-      async join(code, side, userId, roster, now) {
+      async join(code, side, userId, roster, now, mapId) {
         await ready()
         const res = await roomsCol.updateOne(
           { _id: code, ...CURRENT, [`players.${side}`]: null },
@@ -163,6 +163,7 @@ export function createMongoStore({
             $set: {
               [`players.${side}`]: userId,
               [`rosters.${side}`]: roster,
+              ...(mapId === undefined ? {} : { mapId }),
               updatedAt: now,
               expiresAt: userExpiry(now),
             },

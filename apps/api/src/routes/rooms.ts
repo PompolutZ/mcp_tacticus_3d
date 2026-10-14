@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
 import { HTTPException } from 'hono/http-exception'
+import { randomInt } from 'node:crypto'
 import * as z from 'zod/mini'
 import { requireUser, type AuthEnv } from '../middleware/user'
 import { validate } from '../middleware/validate'
@@ -13,11 +14,16 @@ const MAX_TABLE = 1024 * 1024
 const LIST_LIMIT = 100
 
 const rosterSchema = z.object({ code: z.string().check(z.minLength(1), z.maxLength(1000)) })
-const createSchema = z.object({
-  mapId: z.string().check(z.regex(/^[a-z0-9-]{1,64}$/)),
-  roster: rosterSchema,
-  table: z.string().check(z.minLength(1)),
-})
+const mapIdSchema = z.string().check(z.regex(/^[a-z0-9-]{1,64}$/))
+// Either a chosen map or the list to pick from at join. Exactly one.
+const createSchema = z
+  .object({
+    mapId: z.optional(mapIdSchema),
+    maps: z.optional(z.array(mapIdSchema).check(z.minLength(1), z.maxLength(50))),
+    roster: rosterSchema,
+    table: z.string().check(z.minLength(1)),
+  })
+  .check(z.refine((b) => (b.mapId === undefined) !== (b.maps === undefined)))
 const joinSchema = z.object({ roster: rosterSchema })
 
 const base64Re = /^[A-Za-z0-9+/]*={0,2}$/
@@ -62,7 +68,13 @@ export function roomRoutes(deps: { store: Store; config: Config }) {
       if (!isYjsUpdate(table)) throw err(400, 'Invalid table')
       try {
         const room = await store.rooms.create(
-          { host: user._id, mapId: body.mapId, roster: body.roster, table },
+          {
+            host: user._id,
+            mapId: body.mapId ?? null,
+            ...(body.maps ? { maps: body.maps } : {}),
+            roster: body.roster,
+            table,
+          },
           new Date(),
         )
         return c.json({ room: publicRoom(room, new Map([[user._id, user]])) }, 201)
@@ -86,7 +98,12 @@ export function roomRoutes(deps: { store: Store; config: Config }) {
     const seated = room.players.host === userId || room.players.guest === userId
     if (!seated) {
       // The host seat is never free, so the free seat is the guest seat.
-      if (!(await store.rooms.join(room._id, 'guest', userId, roster, new Date())))
+      // A random room has no map yet: pick one with the seat, in one write.
+      const pick =
+        room.mapId === null && room.maps?.length
+          ? room.maps[randomInt(room.maps.length)]
+          : undefined
+      if (!(await store.rooms.join(room._id, 'guest', userId, roster, new Date(), pick)))
         throw err(409, 'This room has two players already')
     }
     // Read again: the seat, the roster and the dates changed.

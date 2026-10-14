@@ -111,7 +111,8 @@ The cost of `localStorage`: a script that runs in the page (XSS) can read the to
   version: 1,
   host: '<user id>',
   players: { host: '<user id>', guest: '<user id>' | null },
-  mapId: 'vibranium-heist',
+  mapId: 'vibranium-heist' | null, // null: a random room, until the guest joins
+  maps: ['vibranium-heist', ...],  // only when mapId is null at creation. Never sent to clients
   rosters: { host: { code }, guest: null | { code } },
   table: Binary,                  // Yjs snapshot, always set. See "Table on the server"
   tableRev: 0,                    // +1 on each table write
@@ -124,7 +125,7 @@ The cost of `localStorage`: a script that runs in the page (XSS) can read the to
 - Indexes: unique `{ host: 1 }` (one hosted room per user), `{ 'players.host': 1 }`, `{ 'players.guest': 1 }`, and the TTL index on `expiresAt`. `GET /rooms` finds the rooms of a user with `$or` on both seats. It returns the 100 rooms changed last. The list leaves out `table` (projection), so the list stays small.
 - **Old records.** A record with the seats under the old color keys (before plan `setup-round-2`) has no `players.host`. It is not migrated and not read: `GET /rooms` leaves it out, `GET /rooms/{code}`, join, the table routes and the signaling routes answer 404 for it, and it cannot be joined. When its host creates a new room, the Lambda deletes the old record first, because it would block the unique `host` index. Otherwise the TTL index removes it. An existing Atlas collection gets the new indexes at the next Lambda start (`createIndex` on first use); the two old color indexes stay unused and can be dropped by hand.
 - A user who no longer exists keeps the seat. The answer shows `{ id, gone: true }`, and the UI shows "Deleted player". A room whose host no longer exists is deleted when it is read next time, and the route answers 404.
-- Limits: the table is at most 1 MB. The roster `code` has 1 to 1000 characters. `mapId` matches `^[a-z0-9-]{1,64}$`. The server does not check that the map exists or that the roster code is valid.
+- Limits: the table is at most 1 MB. The roster `code` has 1 to 1000 characters. `mapId` and each id in `maps` match `^[a-z0-9-]{1,64}$`. The server does not check that the map exists or that the roster code is valid.
 
 ### Rules
 
@@ -157,7 +158,7 @@ The setup (map and rosters) is fixed when the room is created and when a player 
 How it works:
 
 - The table is a Yjs document, saved in IndexedDB per room. The snapshot is this document as one Yjs update (`Y.encodeStateAsUpdate`). The body is `application/octet-stream`.
-- **Start table:** the host's browser builds it at creation and sends it with `POST /rooms` (base64). So a room always has a table. Only the host's browser builds it, because each terrain piece gets a random id, and two start tables would merge into two sets of pieces.
+- **Start table:** the host's browser builds it at creation and sends it with `POST /rooms` (base64). So a room always has a table. A random room starts with no map (`game.mapId` null, no terrain). The server picks the map at the guest's join. Terrain ids are `<mapId>:<index>`, so two fills of the same map merge into one set of pieces.
 - **Read:** when a seated player opens the room, the browser gets `GET /rooms/{code}/table` and applies it to the local document (`Y.applyUpdate`, origin `'server'`). Yjs merges it with the IndexedDB copy. A table of another schema gets a new start table. When the server does not answer, the room does not open: the lobby shows "Could not load room K7Q2-M9XD. Try again." For 403 and 404, the browser deletes its local copy. Then the connection starts (`docs/features/peer-to-peer.md`, "Connect flow"), and the Yjs sync with the other player runs over it.
 - **Write:** `PUT /rooms/{code}/table` with the full update.
   - The first change starts a 60-second timer. When it ends, the browser sends the write. A change during a write starts the next timer.
@@ -181,16 +182,16 @@ How it works:
 | `GET /me` | yes | Answers 200 `{ user, token? }`, with a new token when the old one is more than 1 day old. 401: no token, bad token, or the user is gone |
 | `DELETE /me` | yes | Deletes the user, the room that the user hosts, with its table, and the user's signaling messages. Answers 204. The user's guest seats keep the user id. See [Privacy](#privacy) |
 | `GET /rooms` | yes | `{ rooms }`: the rooms where the user has a seat, the last changed first, at most 100, with both players' names and avatars. No table. 401 |
-| `POST /rooms` | yes | `{ mapId, roster, table }`. The creator takes the `host` seat. `table` is base64. Answers 201 `{ room }`. 400 bad body or bad table, 409 the user hosts a room already, 413 table too large |
+| `POST /rooms` | yes | `{ mapId, roster, table }` or `{ maps, roster, table }`: exactly one of `mapId` and `maps`. `maps` is 1 to 50 map ids, each like `mapId`, for a random room. The room then has `mapId` null. The creator takes the `host` seat. `table` is base64. Answers 201 `{ room }`. 400 bad body or bad table, 409 the user hosts a room already, 413 table too large |
 | `GET /rooms/{code}` | no | 200 `{ room }`: map, rosters, players' names and avatars, free seats. No table. 404 (also for an old record) |
-| `POST /rooms/{code}/join` | yes | `{ roster }`, required. Takes the free seat. 200 `{ room }`, also when the user has a seat already. 400 no roster, 409 no free seat, 404 |
+| `POST /rooms/{code}/join` | yes | `{ roster }`, required. Takes the free seat. When the room `mapId` is null, the server picks one id from `maps` at random and sets it in the same write. 200 `{ room }`, also when the user has a seat already (no change). 400 no roster, 409 no free seat, 404 |
 | `GET /rooms/{code}/table` | yes, seat | 200, the table bytes. 403 no seat, 404 |
 | `PUT /rooms/{code}/table` | yes, seat | The table bytes. Merges them into the stored table. 204. 400 not a Yjs update, 409 the merge lost twice, 413 too large, 403, 404. See [Table on the server](#table-on-the-server) |
 | `DELETE /rooms/{code}` | yes, host | Deletes the room, its table and its signaling messages. 204. 403 not the host, 404 |
 | `POST /rooms/{code}/messages` | yes, seat | `{ from, to, type, data }`. Stores a signaling message. 201 `{ id }`. 400, 403, 404, 413, 429 |
 | `GET /rooms/{code}/messages?to={peer}` | yes, seat | The poll. Header `x-after`, optional. 200 `{ messages }`. 400, 403, 404 |
 
-A `room` in an answer is `{ code, host, players: { host, guest }, mapId, rosters: { host, guest }, createdAt, updatedAt }`. A player is `{ id, name, avatar, discordId }`, `{ id, gone: true }` when the user no longer exists, or `null` for a free seat. A room code that is not `XXXX-XXXX` (Crockford base32) answers 404. Errors are `{ error }`.
+A `room` in an answer is `{ code, host, players: { host, guest }, mapId (null in a random room before the join), rosters: { host, guest }, createdAt, updatedAt }`. A player is `{ id, name, avatar, discordId }`, `{ id, gone: true }` when the user no longer exists, or `null` for a free seat. A room code that is not `XXXX-XXXX` (Crockford base32) answers 404. Errors are `{ error }`.
 
 The signaling paths `/rooms/{code}/messages` are under the same `/rooms/{code}` prefix. Their rules are in `docs/features/peer-to-peer.md` ("Endpoints").
 

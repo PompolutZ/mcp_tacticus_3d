@@ -1,6 +1,6 @@
 # Plan: random map of a multiplayer room spawns when the guest joins
 
-Requested by the user on 2026-10-14. Status: Not started.
+Requested by the user on 2026-10-14. Status: In progress.
 
 Three coder steps, one commit each. Branch `random-map-on-join`, worktree `../mcp_assist_3d-random-map-on-join`.
 
@@ -85,4 +85,4 @@ Checks: `pnpm format`, `pnpm lint`, web tests, `pnpm --filter web build`.
 
 ## Results
 
-Not started.
+- Step 1: done. `mapId` null + `maps` in the store, `join` sets the map in the seat write, create takes `mapId` or `maps`, tests and `auth.md` updated. API unit tests pass; Mongo tests not run (need Docker).

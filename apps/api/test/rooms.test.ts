@@ -293,3 +293,54 @@ describe('DELETE /rooms/{code}', () => {
     expect((await call('alice', 'GET', '/rooms')).status).toBe(200)
   })
 })
+
+describe('random map room', () => {
+  const maps = ['a-map', 'b-map', 'c-map']
+
+  it('creates with maps, and GET answers mapId null without maps', async () => {
+    const { call, createBody } = await setup()
+    const res = await call('alice', 'POST', '/rooms', createBody({ mapId: undefined, maps }))
+    expect(res.status).toBe(201)
+    const room = ((await res.json()) as { room: PublicRoom }).room
+    expect(room.mapId).toBeNull()
+    expect('maps' in room).toBe(false)
+    const got = await call(null, 'GET', `/rooms/${room.code}`)
+    const body = (await got.json()) as { room: PublicRoom }
+    expect(body.room.mapId).toBeNull()
+    expect('maps' in body.room).toBe(false)
+  })
+
+  it('answers 400 for both or none of mapId and maps', async () => {
+    const { call, createBody } = await setup()
+    const both = await call('alice', 'POST', '/rooms', createBody({ maps }))
+    expect(both.status).toBe(400)
+    const none = await call('alice', 'POST', '/rooms', createBody({ mapId: undefined }))
+    expect(none.status).toBe(400)
+    for (const bad of [[], ['Bad Id'], Array.from({ length: 51 }, () => 'm')]) {
+      const res = await call('alice', 'POST', '/rooms', createBody({ mapId: undefined, maps: bad }))
+      expect(res.status).toBe(400)
+    }
+  })
+
+  it('join sets mapId from the list, and a second join does not change it', async () => {
+    const { call, createBody } = await setup()
+    const made = await call('alice', 'POST', '/rooms', createBody({ mapId: undefined, maps }))
+    const code = ((await made.json()) as { room: PublicRoom }).room.code
+    const res = await call('bob', 'POST', `/rooms/${code}/join`, { roster: { code: 'b' } })
+    expect(res.status).toBe(200)
+    const joined = ((await res.json()) as { room: PublicRoom }).room
+    expect(maps).toContain(joined.mapId)
+    expect('maps' in joined).toBe(false)
+    const again = await call('bob', 'POST', `/rooms/${code}/join`, { roster: { code: 'b2' } })
+    expect(((await again.json()) as { room: PublicRoom }).room.mapId).toBe(joined.mapId)
+    const host = await call('alice', 'POST', `/rooms/${code}/join`, { roster: { code: 'x' } })
+    expect(((await host.json()) as { room: PublicRoom }).room.mapId).toBe(joined.mapId)
+  })
+
+  it('join leaves a chosen map as it is', async () => {
+    const { call, create } = await setup()
+    const room = await create('alice')
+    const res = await call('bob', 'POST', `/rooms/${room.code}/join`, { roster: { code: 'b' } })
+    expect(((await res.json()) as { room: PublicRoom }).room.mapId).toBe('vibranium-heist')
+  })
+})
