@@ -156,3 +156,13 @@ Done. Files (under `apps/web/src/`): `drag/pointerDrag.js`, `drag/pointerDrag.te
 - RulerTool drag (not listed): got an `onCancel` that ends the drag, so Esc leaves the tool where it is. No put back.
 - Checks: format, lint (46 warnings, same as before), test (695 pass), build ok.
 - Open: Esc on a press that has not passed the threshold also cancels it (no click). A model that is cancelled before `onStart` has no start pose and is not moved.
+
+### Step 3: Toolbar
+
+Done. Files (under `apps/web/src/`): `components/Toolbar.jsx`, `components/SettingsPopup.jsx`, `App.jsx`, `index.css`, new `useHudTop.js`. Docs: `docs/features/table-tools.md` (new "Toolbar" section, Debug section), `game-log.md`, `roster.md`, `rooms.md`, `spectator-view.md`.
+
+- One row, `flex-wrap: nowrap`. Left (`.toolbar-left`): Lobby, room code, Copy link, players, Setup chip. Middle (`.toolbar-middle`): Mat, Range, Move, Deploy, Phase; scrolls sideways, no scrollbar. Right (`.toolbar-right`, `flex: none`): Library, Log, Spectator, Settings.
+- Setup chip (Sandbox, not multiplayer): `setupOpen` state in `App`, panel `.toolbar-setup-panel` holds the Crisis selects and Roster fields. Counts as a popup in the key state, so Esc closes it through `closePopups`. Outside click: a `pointerdown` listener, as `DieMenu` in `DiceKeys.jsx`. No new component file (the chip is in `Toolbar.jsx`).
+- Debug (Mode dev only, Labels in every build, as before) is a section of `SettingsPopup`.
+- `--hud-top`: `useHudTop(rootRef)` measures `.hud-top` with a ResizeObserver and sets the variable on the HUD root (top + height + 8). `:root` default 56px. `.library`, `.log` (and `.log-bar`) and `.hud-notice` use it.
+- Checks: format, lint (46 warnings, same), test, build ok. Not run in a browser (user rule).

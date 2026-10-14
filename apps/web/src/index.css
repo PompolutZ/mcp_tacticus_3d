@@ -8,6 +8,8 @@
   --accent: #4f8ef7;
   --warn: #e2574c;
   --ok: #5fd068;
+  /* Top of the panels under the toolbar. useHudTop.js sets it from the toolbar height. */
+  --hud-top: 56px;
 
   color-scheme: dark;
   font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -44,7 +46,7 @@ body {
   isolation: isolate;
 }
 
-/* The toolbar row. The toolbar wraps to more rows when it does not fit. */
+/* The toolbar row. One row, no wrap: the left and right groups keep their size, the middle scrolls. */
 .hud-top {
   position: absolute;
   top: 12px;
@@ -64,11 +66,55 @@ body {
 .toolbar {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
   align-items: center;
   min-width: 0;
   pointer-events: none;
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The table controls. On a narrow window they scroll sideways, the right group stays visible. */
+.toolbar-middle {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.toolbar-middle > .group {
+  flex: none;
+}
+
+/* The Sandbox Setup chip and its panel under it */
+.setup-chip {
+  position: relative;
+  pointer-events: all;
+}
+
+.toolbar-setup-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  z-index: 10;
 }
 
 .group {
@@ -83,13 +129,9 @@ body {
   pointer-events: all;
 }
 
-/* The Settings chip, at the right end of the last toolbar row (the toolbar fills the width of .hud-top) */
+/* The toolbar fills the width of .hud-top, so the right group is at the right end */
 .hud-top > .toolbar {
   flex: 1;
-}
-
-.toolbar-settings {
-  margin-left: auto;
 }
 
 .group-label {
@@ -271,7 +313,7 @@ body {
    tokens. See docs/features/library.md. */
 .library {
   position: absolute;
-  top: 56px;
+  top: var(--hud-top);
   left: 12px;
   bottom: 12px;
   display: flex;
@@ -288,7 +330,7 @@ body {
 
 .log {
   position: absolute;
-  top: 56px;
+  top: var(--hud-top);
   right: 12px;
   bottom: 12px;
   display: flex;
@@ -644,7 +686,7 @@ body {
 /* Dropped objective tokens that wait for their place (HudNotice.jsx), below the HUD message */
 .hud-notice {
   position: absolute;
-  top: 56px;
+  top: var(--hud-top);
   left: 50%;
   transform: translateX(-50%);
   display: flex;

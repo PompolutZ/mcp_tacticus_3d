@@ -41,6 +41,10 @@ export function SettingsPopup({
   onChange,
   onVolumeChange,
   onBindingsChange,
+  debug,
+  onDebugClick,
+  showLabels,
+  onLabelsClick,
   onClose,
 }) {
   // A drag that ends on the backdrop (a text selection, a scroll bar) must not close the popup
@@ -98,6 +102,38 @@ export function SettingsPopup({
               <span className="settings-volume">{settings.sound.volume}</span>
             </span>
           </label>
+        </section>
+        <section className="settings-section">
+          <h3>Debug</h3>
+          {/* Mode only in the dev server (App passes the handlers either way) */}
+          {import.meta.env.DEV && (
+            <div className="settings-row">
+              <span>Debug mode: frame numbers, render switch and collider lines</span>
+              <span className="settings-choice">
+                <button
+                  type="button"
+                  className={`chip${debug ? ' chip--active' : ''}`}
+                  aria-pressed={!!debug}
+                  onClick={onDebugClick}
+                >
+                  Mode
+                </button>
+              </span>
+            </div>
+          )}
+          <div className="settings-row">
+            <span>Piece name and game Size above each terrain piece</span>
+            <span className="settings-choice">
+              <button
+                type="button"
+                className={`chip${showLabels ? ' chip--active' : ''}`}
+                aria-pressed={!!showLabels}
+                onClick={onLabelsClick}
+              >
+                Labels
+              </button>
+            </span>
+          </div>
         </section>
         <KeyBindings bindings={bindings} onChange={onBindingsChange} />
         <ControlsTable title="Mouse" rows={MOUSE_ROWS} />

@@ -68,6 +68,15 @@ z = 38                   ─────────────── table edg
 - **Cleanup Phase** is not in the strip. It is one button at z 0 between the scoring board and the mat, for both players. The same action, disabled state and title as the toolbar **Cleanup** (`docs/features/round-phases.md`). Any player presses it.
 - **↺** **↻** only show where the toolbar has them: not in a multiplayer room, where the game setup chooses the board edge.
 
+## Toolbar
+
+One row at the top, never wrapped. The height is the CSS variable `--hud-top` on the HUD root (`src/useHudTop.js`, a ResizeObserver). The Library, the Log and the notice start under it.
+
+- **Left:** **← Lobby**, the room code or **Sandbox**, **Copy link** (room with a free seat), the players (multiplayer room), and in the Sandbox and single player rooms a **Setup** chip.
+- **Middle:** the table controls that the settings put in the HUD: **Mat**, **Range** and **Move**, **Deploy**, **Phase**. On a narrow window this part scrolls sideways.
+- **Right**, always in this order: **Library**, **Log**, **Spectator**, **Settings**. This group never shrinks, so nothing covers it.
+- **Setup** (not in a multiplayer room) toggles a panel under the chip with the **Crisis** selects and the **Roster** fields. Escape and a click outside close it.
+
 ## Settings menu
 
 **Settings** at the right end of the toolbar opens a popup. ✕ or Escape closes it. While it is open, the keys of the table do nothing.
@@ -90,6 +99,10 @@ One row for each item, with the choice **Table** or **HUD**. The default is **Ta
 - The **Mat** group of the toolbar stays while it has the map select (the Sandbox).
 - The settings are in localStorage, key `mcp-assist-3d/settings`: `{ tools: { rack, power, cleanup, deployLock, matTurn }, sound: { volume }, bindings }`. Each tool is `'table'` or `'hud'`, the volume a whole number from 0 to 100. `bindings` is `{ [actionId]: [{ code, shift, ctrl, alt, meta, when }] }` with only the actions that differ from the defaults (`{}` is all defaults; an empty list is an action with no key). An unknown action, code or condition is dropped. They belong to the browser, not to the user or the room. A missing or unknown value is the default. When localStorage cannot be read, the defaults apply.
 
+### Debug
+
+A **Debug** section has **Mode** (dev server only) and **Labels** (the piece name and game Size above each terrain piece). Labels shows in every build.
+
 ### Sound
 
 A **Sound** section has a volume slider, 0 to 100, default 10. 0 is off. See `sounds.md`.
@@ -100,7 +113,7 @@ A **Sound** section has a volume slider, 0 to 100, default 10. 0 is off. See `so
 
 ## Not on the table
 
-These stay in the toolbar: the room and the players, **Library**, **Rolls**, the map select, **Crisis**, **Roster**, **View**, **Debug**, **Settings**. In TTS, some of them are objects on the table (card bags, the Roster Maker, the Automatic Crisis Deployment buttons). The Library, the roster field and the game setup replace them.
+These stay in the toolbar: the room and the players, **Library**, **Log**, the map select, **Setup** (**Crisis**, **Roster**), **Spectator**, **Settings**. In TTS, some of them are objects on the table (card bags, the Roster Maker, the Automatic Crisis Deployment buttons). The Library, the roster field and the game setup replace them.
 
 ## How TTS does it
 

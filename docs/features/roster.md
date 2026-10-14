@@ -74,10 +74,10 @@ Setup game also needs this file: 11 Team Tactic cards give a Leadership ability 
 ## Input
 
 ```
-Toolbar: … | Crisis … | Roster [Blue: MCT code] [x] [Red: MCT code] [x] | Deploy … |
+Toolbar: … | Setup (Crisis …, Roster [Blue: MCT code] [x] [Red: MCT code] [x]) | … Deploy … |
 ```
 
-- The toolbar gets a **Roster** group with one text field per player. The placeholder is "MCT code".
+- The **Setup** panel of the toolbar has a **Roster** group with one text field per player. The placeholder is "MCT code".
 - In a room, the rosters come from the new room dialog, and only the Red field shows. It replaces or removes the Red roster of the room (see `docs/features/rooms.md`).
 - Enter loads the roster.
 - A new load replaces the old roster of that player.

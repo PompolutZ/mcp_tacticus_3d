@@ -4,7 +4,7 @@ Status: built.
 
 ## Goal
 
-A viewer reads the state of each character from the model, without looking at the trays. **View → Spectator** in the toolbar shows a badge above every model. A second click hides the badges.
+A viewer reads the state of each character from the model, without looking at the trays. **Spectator** in the toolbar shows a badge above every model. A second click hides the badges.
 
 The badge is made of the same pieces as the character tray, so it looks the same. From top to bottom, a badge shows:
 

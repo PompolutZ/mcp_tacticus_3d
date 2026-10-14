@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { COLOR_NAME, useSideColors } from '../sideColors.js'
 import { MAPS } from '../terrain/maps.js'
 import { cardsOfType } from '../crisis/cards.js'
@@ -42,10 +42,6 @@ export function Toolbar({
   onRangeClick,
   onMoveClick,
   onAngleClick,
-  debug,
-  onDebugClick,
-  showLabels,
-  onLabelsClick,
   spectator,
   onSpectatorClick,
   onTurnMat,
@@ -66,6 +62,9 @@ export function Toolbar({
   onLibraryClick,
   logOpen,
   onLogClick,
+  setupOpen,
+  onSetupClick,
+  onSetupClose,
 }) {
   // The typed text stays in the field after Enter (x clears it)
   const [rosterText, setRosterText] = useState({ host: '', guest: '' })
@@ -79,23 +78,227 @@ export function Toolbar({
   const matTurnHud = hud('matTurn')
   const showMat = !multiplayer && (matTurnHud || !roomCode)
   const colors = useSideColors()
+  // A pointerdown outside the chip and its panel closes the panel (as DieMenu in DiceKeys.jsx)
+  const setupRef = useRef(null)
+  useEffect(() => {
+    if (!setupOpen) return undefined
+    function handlePointerDown(e) {
+      if (setupRef.current?.contains(e.target)) return
+      onSetupClose()
+    }
+    document.addEventListener('pointerdown', handlePointerDown)
+    return () => document.removeEventListener('pointerdown', handlePointerDown)
+  }, [setupOpen, onSetupClose])
   const rosterTeams = roomCode ? TEAMS.filter(({ team }) => team === 'guest') : TEAMS
   return (
     <div className="toolbar">
-      <div className="group">
-        <button type="button" className="chip" title="Back to the lobby" onClick={onLobby}>
-          ← Lobby
-        </button>
-        <span
-          className="group-label toolbar-room"
-          title={roomCode ? 'Room code' : 'Nothing on this table is saved'}
-        >
-          {roomCode ?? 'Sandbox'}
-        </span>
-        {multiplayer && guestSeatFree && !connection?.peer && <CopyLinkButton code={roomCode} />}
+      <div className="toolbar-left">
+        <div className="group">
+          <button type="button" className="chip" title="Back to the lobby" onClick={onLobby}>
+            ← Lobby
+          </button>
+          <span
+            className="group-label toolbar-room"
+            title={roomCode ? 'Room code' : 'Nothing on this table is saved'}
+          >
+            {roomCode ?? 'Sandbox'}
+          </span>
+          {multiplayer && guestSeatFree && !connection?.peer && <CopyLinkButton code={roomCode} />}
+        </div>
+        {multiplayer && <RoomPlayers side={side} players={players} connection={connection} />}
+        {!multiplayer && (
+          <div className="setup-chip" ref={setupRef}>
+            <button
+              type="button"
+              className={`chip${setupOpen ? ' chip--active' : ''}`}
+              title="Sandbox setup: crisis cards and rosters"
+              onClick={onSetupClick}
+            >
+              Setup
+            </button>
+            {setupOpen && (
+              <div className="setup-panel">
+                <div className="group">
+                  <span className="group-label">Crisis</span>
+                  {CRISIS_TYPES.map(({ type, label }) => (
+                    <select
+                      key={type}
+                      className="chip"
+                      title={`${label} card`}
+                      value={crisis[type] ?? ''}
+                      onChange={(e) => onCrisisChange(type, e.target.value || null)}
+                    >
+                      <option value="">None</option>
+                      {cardsOfType(type).map((card) => (
+                        <option key={card.key} value={card.key}>
+                          {card.name} · {card.threat}
+                        </option>
+                      ))}
+                    </select>
+                  ))}
+                </div>
+                <div className="group">
+                  <span className="group-label">Roster</span>
+                  {rosterTeams.map(({ team }) => {
+                    const label = COLOR_NAME[colors[team]]
+                    return (
+                      <span key={team} className="roster-field">
+                        <input
+                          type="text"
+                          className={`chip chip--player-${colors[team]} chip--text`}
+                          placeholder="MCT code"
+                          title={`${label} roster: paste an MCT code and press Enter`}
+                          value={rosterText[team]}
+                          onChange={(e) =>
+                            setRosterText((prev) => ({
+                              ...prev,
+                              [team]: e.target.value,
+                            }))
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') onRosterLoad(team, rosterText[team])
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="chip"
+                          title={`Remove the ${label} roster from the table`}
+                          onClick={() => {
+                            setRosterText((prev) => ({ ...prev, [team]: '' }))
+                            onRosterRemove(team)
+                          }}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
-      {multiplayer && <RoomPlayers side={side} players={players} connection={connection} />}
-      <div className="group">
+      <div className="toolbar-middle">
+        {showMat && (
+          <div className="group">
+            <span className="group-label">Mat</span>
+            {!roomCode && (
+              <select
+                className="chip"
+                title="Map"
+                value={mapId}
+                onChange={(e) => onMapChange(e.target.value)}
+              >
+                {Object.entries(MAPS).map(([id, map]) => (
+                  <option key={id} value={id}>
+                    {map.name}
+                  </option>
+                ))}
+              </select>
+            )}
+            {matTurnHud && (
+              <>
+                <button
+                  type="button"
+                  className="chip"
+                  title="Turn mat 90° counter-clockwise"
+                  onClick={() => onTurnMat(1)}
+                >
+                  ↺
+                </button>
+                <button
+                  type="button"
+                  className="chip"
+                  title="Turn mat 90° clockwise"
+                  onClick={() => onTurnMat(-1)}
+                >
+                  ↻
+                </button>
+              </>
+            )}
+          </div>
+        )}
+        {rackHud && (
+          <>
+            <div className="group">
+              <span className="group-label">Range</span>
+              {RANGES.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  className={`chip${activeRange === r ? ' chip--active' : ''}`}
+                  onClick={() => onRangeClick(r)}
+                >
+                  R{r}
+                </button>
+              ))}
+            </div>
+            <div className="group">
+              <span className="group-label">Move</span>
+              {MOVES.map((m) => (
+                <button
+                  key={m.type}
+                  type="button"
+                  className={`chip${activeMove === m.type ? ' chip--active' : ''}`}
+                  onClick={() => onMoveClick(m.type)}
+                >
+                  {m.label}
+                </button>
+              ))}
+              <button
+                type="button"
+                className={`chip${angleOn ? ' chip--active' : ''}`}
+                title="Toward / Away: L tool bent 90° (key 6)"
+                onClick={onAngleClick}
+              >
+                T/A
+              </button>
+            </div>
+          </>
+        )}
+        {deployHud && (
+          <div className="group">
+            <span className="group-label">Deploy</span>
+            <button
+              type="button"
+              className={`chip${deployLine ? ' chip--active' : ''}`}
+              title="Lock models to within Range 3 of their deployment edge"
+              onClick={onDeployLineClick}
+            >
+              Lock
+            </button>
+          </div>
+        )}
+        {(powerHud || cleanupHud) && (
+          <div className="group">
+            <span className="group-label">Phase</span>
+            {powerHud && (
+              <button
+                type="button"
+                className="chip"
+                title="Automatic Power Phase: each of your characters gains Power"
+                onClick={onPowerPhase}
+              >
+                Power
+              </button>
+            )}
+            {/* aria-disabled, not disabled: some browsers show no title on a disabled button */}
+            {cleanupHud && (
+              <button
+                type="button"
+                className="chip"
+                aria-disabled={cleanupDisabled}
+                title={cleanupTitle}
+                onClick={cleanupDisabled ? undefined : onCleanupPhase}
+              >
+                Cleanup
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+      <div className="group toolbar-right">
         <button
           type="button"
           className={`chip${libraryOpen ? ' chip--active' : ''}`}
@@ -112,181 +315,6 @@ export function Toolbar({
         >
           Log
         </button>
-      </div>
-      {showMat && (
-        <div className="group">
-          <span className="group-label">Mat</span>
-          {!roomCode && (
-            <select
-              className="chip"
-              title="Map"
-              value={mapId}
-              onChange={(e) => onMapChange(e.target.value)}
-            >
-              {Object.entries(MAPS).map(([id, map]) => (
-                <option key={id} value={id}>
-                  {map.name}
-                </option>
-              ))}
-            </select>
-          )}
-          {matTurnHud && (
-            <>
-              <button
-                type="button"
-                className="chip"
-                title="Turn mat 90° counter-clockwise"
-                onClick={() => onTurnMat(1)}
-              >
-                ↺
-              </button>
-              <button
-                type="button"
-                className="chip"
-                title="Turn mat 90° clockwise"
-                onClick={() => onTurnMat(-1)}
-              >
-                ↻
-              </button>
-            </>
-          )}
-        </div>
-      )}
-      {rackHud && (
-        <>
-          <div className="group">
-            <span className="group-label">Range</span>
-            {RANGES.map((r) => (
-              <button
-                key={r}
-                type="button"
-                className={`chip${activeRange === r ? ' chip--active' : ''}`}
-                onClick={() => onRangeClick(r)}
-              >
-                R{r}
-              </button>
-            ))}
-          </div>
-          <div className="group">
-            <span className="group-label">Move</span>
-            {MOVES.map((m) => (
-              <button
-                key={m.type}
-                type="button"
-                className={`chip${activeMove === m.type ? ' chip--active' : ''}`}
-                onClick={() => onMoveClick(m.type)}
-              >
-                {m.label}
-              </button>
-            ))}
-            <button
-              type="button"
-              className={`chip${angleOn ? ' chip--active' : ''}`}
-              title="Toward / Away: L tool bent 90° (key 6)"
-              onClick={onAngleClick}
-            >
-              T/A
-            </button>
-          </div>
-        </>
-      )}
-      {!multiplayer && (
-        <div className="group">
-          <span className="group-label">Crisis</span>
-          {CRISIS_TYPES.map(({ type, label }) => (
-            <select
-              key={type}
-              className="chip"
-              title={`${label} card`}
-              value={crisis[type] ?? ''}
-              onChange={(e) => onCrisisChange(type, e.target.value || null)}
-            >
-              <option value="">None</option>
-              {cardsOfType(type).map((card) => (
-                <option key={card.key} value={card.key}>
-                  {card.name} · {card.threat}
-                </option>
-              ))}
-            </select>
-          ))}
-        </div>
-      )}
-      {!multiplayer && (
-        <div className="group">
-          <span className="group-label">Roster</span>
-          {rosterTeams.map(({ team }) => {
-            const label = COLOR_NAME[colors[team]]
-            return (
-              <span key={team} className="roster-field">
-                <input
-                  type="text"
-                  className={`chip chip--player-${colors[team]} chip--text`}
-                  placeholder="MCT code"
-                  title={`${label} roster: paste an MCT code and press Enter`}
-                  value={rosterText[team]}
-                  onChange={(e) => setRosterText((prev) => ({ ...prev, [team]: e.target.value }))}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') onRosterLoad(team, rosterText[team])
-                  }}
-                />
-                <button
-                  type="button"
-                  className="chip"
-                  title={`Remove the ${label} roster from the table`}
-                  onClick={() => {
-                    setRosterText((prev) => ({ ...prev, [team]: '' }))
-                    onRosterRemove(team)
-                  }}
-                >
-                  ×
-                </button>
-              </span>
-            )
-          })}
-        </div>
-      )}
-      {deployHud && (
-        <div className="group">
-          <span className="group-label">Deploy</span>
-          <button
-            type="button"
-            className={`chip${deployLine ? ' chip--active' : ''}`}
-            title="Lock models to within Range 3 of their deployment edge"
-            onClick={onDeployLineClick}
-          >
-            Lock
-          </button>
-        </div>
-      )}
-      {(powerHud || cleanupHud) && (
-        <div className="group">
-          <span className="group-label">Phase</span>
-          {powerHud && (
-            <button
-              type="button"
-              className="chip"
-              title="Automatic Power Phase: each of your characters gains Power"
-              onClick={onPowerPhase}
-            >
-              Power
-            </button>
-          )}
-          {/* aria-disabled, not disabled: some browsers show no title on a disabled button */}
-          {cleanupHud && (
-            <button
-              type="button"
-              className="chip"
-              aria-disabled={cleanupDisabled}
-              title={cleanupTitle}
-              onClick={cleanupDisabled ? undefined : onCleanupPhase}
-            >
-              Cleanup
-            </button>
-          )}
-        </div>
-      )}
-      <div className="group">
-        <span className="group-label">View</span>
         <button
           type="button"
           className={`chip${spectator ? ' chip--active' : ''}`}
@@ -295,34 +323,10 @@ export function Toolbar({
         >
           Spectator
         </button>
-      </div>
-      <div className="group">
-        <span className="group-label">Debug</span>
-        {/* Only in the dev server, see App */}
-        {import.meta.env.DEV && (
-          <button
-            type="button"
-            className={`chip${debug ? ' chip--active' : ''}`}
-            title="Debug mode: frame numbers, render switch and collider lines. Only in the dev server."
-            onClick={onDebugClick}
-          >
-            Mode
-          </button>
-        )}
-        <button
-          type="button"
-          className={`chip${showLabels ? ' chip--active' : ''}`}
-          title="Show the piece name and game Size above each terrain piece"
-          onClick={onLabelsClick}
-        >
-          Labels
-        </button>
-      </div>
-      <div className="group toolbar-settings">
         <button
           type="button"
           className={`chip${settingsOpen ? ' chip--active' : ''}`}
-          title="Where the tools are, and the keys and mouse controls"
+          title="Where the tools are, the keys and mouse controls, and the table labels"
           onClick={onSettingsClick}
         >
           Settings

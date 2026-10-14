@@ -35,6 +35,7 @@ import { colorOf, rackHiddenSides } from './setup/setup.js'
 import { useRollOffReader } from './setup/useRollOffReader.js'
 import { useGameSetup } from './setup/useGameSetup.js'
 import { gamePriority, priorityTitle } from './game/priority.js'
+import { useHudTop } from './useHudTop.js'
 import FrameStats from './debug/FrameStats.jsx'
 import { DebugPanel } from './debug/DebugPanel.jsx'
 import { withPlacements } from './rooms/table.js'
@@ -252,6 +253,10 @@ export default function App({
   const { settings, bindings, handleBindingsChange, handleSettingChange, handleVolumeChange } =
     useSettings()
   const [settingsOpen, setSettingsOpen] = useState(false)
+  // The Sandbox Setup panel under the toolbar (Toolbar.jsx). Esc closes it as a popup.
+  const [setupOpen, setSetupOpen] = useState(false)
+  const hudRootRef = useRef(null)
+  useHudTop(hudRootRef)
   // A token put on a character sounds in both browsers (log/useLogSounds.js)
   useLogSounds(log)
   // A token that the other player puts down on the table sounds here (tokens/useRemoteDropSounds.js)
@@ -565,7 +570,7 @@ export default function App({
   }
   // The state for a mouse wheel step (WheelCamera.jsx): what keyAction reads, as the resolver needs it
   const wheelState = () => ({
-    popup: !!(openCard || openTrayId || openRoster || settingsOpen),
+    popup: !!(openCard || openTrayId || openRoster || settingsOpen || setupOpen),
     dragging: !!(tokenDrag || toolDrag),
     overDiceTray: !!hoveredNow().diceTray,
     overPiece: !!hoveredNow().piece,
@@ -579,7 +584,7 @@ export default function App({
       toolDrag,
       modelDrag: modelDragRef.current !== null,
       drag: isDragActive(),
-      popup: !!(openCard || openTrayId || openRoster || settingsOpen),
+      popup: !!(openCard || openTrayId || openRoster || settingsOpen || setupOpen),
       rosterOpen: !!openRoster,
       diceMenu,
       libraryOpen,
@@ -596,6 +601,7 @@ export default function App({
         setOpenTrayId(null)
         setOpenRoster(null)
         setSettingsOpen(false)
+        setSetupOpen(false)
       },
       cardStep: (a) => handleRosterCardStep(a.step),
       closeDiceMenu: () => setDiceMenu(null),
@@ -628,7 +634,7 @@ export default function App({
   })
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <div ref={hudRootRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
       {/* Holds the Canvas only: isolation: isolate (index.css) keeps every drei <Html> wrapper it
           mounts (terrain labels, the ruler tool, the tray controls) from ever drawing over the
           HUD below, no matter its z-index. See index.css, .scene-root. */}
@@ -824,10 +830,6 @@ export default function App({
           onRangeClick={handleRangeClick}
           onMoveClick={handleMoveClick}
           onAngleClick={handleAngleClick}
-          debug={debug}
-          onDebugClick={() => setDebugOn((prev) => !prev)}
-          showLabels={showLabels}
-          onLabelsClick={() => setShowLabels((prev) => !prev)}
           spectator={spectator}
           onSpectatorClick={() => setSpectator((prev) => !prev)}
           onTurnMat={handleTurnMat}
@@ -848,6 +850,9 @@ export default function App({
           onLibraryClick={() => setLibraryOpen((prev) => !prev)}
           logOpen={logOpen}
           onLogClick={() => setLogOpen(!logOpen)}
+          setupOpen={setupOpen}
+          onSetupClick={() => setSetupOpen((prev) => !prev)}
+          onSetupClose={() => setSetupOpen(false)}
         />
       </div>
       <TokenPanel
@@ -874,15 +879,25 @@ export default function App({
         seatPlayers={seatPlayers}
       />
       <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
-      {!(tokenDrag || toolDrag || openCard || openTrayId || openRoster || settingsOpen) && (
-        <CardPopup card={peekCard} peek />
-      )}
+      {!(
+        tokenDrag ||
+        toolDrag ||
+        openCard ||
+        openTrayId ||
+        openRoster ||
+        settingsOpen ||
+        setupOpen
+      ) && <CardPopup card={peekCard} peek />}
       {settingsOpen && (
         <SettingsPopup
           settings={settings}
           bindings={bindings}
           onChange={handleSettingChange}
           onVolumeChange={handleVolumeChange}
+          debug={debug}
+          onDebugClick={() => setDebugOn((prev) => !prev)}
+          showLabels={showLabels}
+          onLabelsClick={() => setShowLabels((prev) => !prev)}
           onBindingsChange={handleBindingsChange}
           onClose={() => setSettingsOpen(false)}
         />
