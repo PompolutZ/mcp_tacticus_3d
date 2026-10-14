@@ -418,6 +418,11 @@ export function sameModel(a, b) {
   return a.kind === b.kind && a.id === b.id
 }
 
+// The key of a locked model. A character and a token can have the same id.
+function lockKey(model) {
+  return `${model.kind}:${model.id}`
+}
+
 // Range 1, edge to edge seen from above, between the bases of models a and b. The tool width
 // (2 * halfWidth) is range 1.
 function withinRangeOne(a, b, halfWidth) {
@@ -881,7 +886,7 @@ function Tool({
   // locked there, until Place 1 turns off. The snapped piece itself is not locked.
   const [placeOne, setPlaceOne] = useState(false)
   const lockOne = selected && placeOne && !!snap
-  // The character locked to this tool (its id), or null before a drag locks one. See ownsDrag below.
+  // The model locked to this tool (`kind:id`), or null before a drag locks one. See ownsDrag below.
   const lockedRef = useRef(null)
   // Place moves the character to the far end, the end that does not touch the snapped base. A free
   // tool has no far end, so Place is shown there only while it is on, so that it can be turned off.
@@ -1211,14 +1216,14 @@ function Tool({
     onPlaceLimit?.({
       owns(model, p) {
         if (!rigidRef.current) return false
-        if (lockedRef.current !== null) return lockedRef.current === model.id
+        if (lockedRef.current !== null) return lockedRef.current === lockKey(model)
         const at = model.getCenter()
         if (
           !touches(shape(), tip, halfWidth, p, model.radius) &&
           !(at && touches(shape(), tip, halfWidth, at, model.radius))
         )
           return false
-        lockedRef.current = model.id
+        lockedRef.current = lockKey(model)
         return true
       },
       clamp(p, model) {
@@ -1239,7 +1244,7 @@ function Tool({
     onPlaceLimit?.({
       owns(model, p) {
         if (sameModel(model, target)) return false
-        if (lockedRef.current !== null) return lockedRef.current === model.id
+        if (lockedRef.current !== null) return lockedRef.current === lockKey(model)
         const c = target.getCenter()
         const at = model.getCenter()
         if (
@@ -1247,7 +1252,7 @@ function Tool({
           !(withinRange(c, p, reachOf(model)) || (at && withinRange(c, at, reachOf(model))))
         )
           return false
-        lockedRef.current = model.id
+        lockedRef.current = lockKey(model)
         return true
       },
       clamp(p, model) {
@@ -1266,7 +1271,7 @@ function Tool({
     if (!throwing) return undefined
     const { side, target } = throwLock
     onPlaceLimit?.({
-      owns: (model) => model.id === target.id,
+      owns: (model) => sameModel(model, target),
       clamp(p) {
         if (!rigidRef.current) return
         const { start, dir, distance } = throwLine(
@@ -1439,8 +1444,7 @@ function Tool({
         ))}
         {SIDES.map((side) => (
           <group key={side} rotation-y={turn[side]}>
-            {/* Place toggle, Place 2 on the R1 tool. It cannot be turned on for a token: a token
-                has no body, so there is no base to keep on the tool. */}
+            {/* Place toggle, Place 2 on the R1 tool. It locks a character or a token to the tool. */}
             {selected && !angle && side === placeButtonSide && !throwLock && (
               <FlatHtml x={side === 'right' ? tip - PLACE_INSET : PLACE_INSET - tip}>
                 <ToolButton

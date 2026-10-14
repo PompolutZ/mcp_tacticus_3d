@@ -1068,6 +1068,16 @@ export default function Scene({
     ],
     [models, matTokens, claimModel],
   )
+  // Limits a drag of a character or token with the Place, Place 1 and Throw limits of the tools. Moves p, returns it.
+  // The limits take the tool form (getCenter, radius), not the raw model.
+  const applyPlaceLimits = (kind, id, p) => {
+    const model = toolModels.find((m) => m.kind === kind && m.id === id)
+    if (!model) return p
+    for (const limit of Object.values(placeLimits.current)) {
+      if (limit?.owns(model, p)) limit.clamp(p, model)
+    }
+    return p
+  }
   const toolModel = (piece) =>
     toolModels.find((model) => piece && model.kind === piece.kind && model.id === piece.id) ?? null
   // The spawn target of the range and movement tools. undefined without one, so that RulerTool falls back
@@ -1372,7 +1382,10 @@ export default function Scene({
                     : (over) => onPieceHover?.({ kind: 'token', id: tok.id }, over)
                 }
                 canDrag={!tok.placeBy || playedSides.includes(tok.placeBy)}
-                constrainDrag={tok.placeBy ? (p) => clampWaiting(tok, p, TOKEN_RADIUS) : null}
+                constrainDrag={(raw) => {
+                  const p = tok.placeBy ? clampWaiting(tok, raw, TOKEN_RADIUS) : raw
+                  return applyPlaceLimits('token', tok.id, p)
+                }}
                 onMove={(x, z) => onTokenMove(tok.id, x, z)}
                 onTurn={(yaw) => onTokenTurn(tok.id, yaw)}
                 ownership={ownership}
@@ -1673,13 +1686,7 @@ export default function Scene({
                   if (ch.team === 'host') p.z = Math.max(p.z, limit)
                   else p.z = Math.min(p.z, -limit)
                 }
-                // The limits take the tool form (getCenter, radius), not the raw model.
-                const toolModel = toolModels.find(
-                  (m) => m.kind === 'character' && m.id === model.id,
-                )
-                for (const limit of Object.values(placeLimits.current)) {
-                  if (toolModel && limit?.owns(toolModel, p)) limit.clamp(p, toolModel)
-                }
+                applyPlaceLimits('character', model.id, p)
               },
               overlay: spectatorOverlay(model),
             }

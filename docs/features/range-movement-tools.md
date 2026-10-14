@@ -60,15 +60,15 @@ Dragging a free tool moves it.
 
 **Place** turns on and off. A selected range or movement tool has one Place button while it is snapped. The button is at the far end: the end that does not touch the snapped base.
 
-Place moves nothing. It locks a character to the tool. While Place is on, the first character whose base touches the tool outline during a drag is locked. The snapped character already touches the tool, so its first drag locks it. Another character, an ally or an enemy, locks when a drag brings its base onto the outline. Before the lock, a drag is free. The lock stays with that character until Place turns off.
+Place moves nothing. It locks a character or token to the tool. While Place is on, the first character or token whose base touches the tool outline during a drag is locked. The snapped model already touches the tool, so its first drag locks it. Another character, an ally or an enemy, or a token, locks when a drag brings its base onto the outline. Before the lock, a drag is free. The lock stays with that model until Place turns off.
 
-A locked character can be dragged only to where its base touches the outline, so the outline stays green. When the pointer goes farther, the base stops at the nearest point where it still touches the outline. The deploy line limits a drag in the same way. You can still move and rotate the tool while Place is on. The tool does not move while the locked character is dragged.
+A locked character or token can be dragged only to where its base touches the outline, so the outline stays green. When the pointer goes farther, the base stops at the nearest point where it still touches the outline. The deploy line limits a drag in the same way. You can still move and rotate the tool while Place is on. The tool does not move while the locked character is dragged.
 
 While Place is on, the button stays at the end where it was when Place turned on. Place is on for a free tool too, and shows only while it is on.
 
-Only one Place, Place 1 or Throw / Push is on at a time across the own tools. Turning it on on one tool turns it off on the other tool (range or movement). Each player has one range tool and one movement tool, so a character is locked to one tool only.
+Only one Place, Place 1 or Throw / Push is on at a time across the own tools. Turning it on on one tool turns it off on the other tool (range or movement). Each player has one range tool and one movement tool, so a model is locked to one tool only.
 
-Place needs no selected character. The button works on any snapped tool, also on a tool snapped to a token. A lock is local, like the tool state: it limits only drags in this browser.
+Place needs no selected character. The button works on any snapped tool, also on a tool snapped to a token. A locked token keeps its waiting limit (Range 2 of its base) too. A lock is local, like the tool state: it limits only drags in this browser.
 
 ### Throw / Push
 
@@ -151,7 +151,7 @@ While the R1 tool is snapped and another model is selected, the outline is green
 The R1 tool is the Range 2 tool, so it has two Place buttons while it is snapped:
 
 - **Place 1** is at the snapped corner, on the half of the tool next to the other long side. It moves nothing. It is a toggle, like Place 2, and shows its on state. Place 1 and Place 2 turn each other off.
-  - While it is on, the first character whose base comes within range 1 of the snapped piece, edge to edge and seen from above, is locked. The snapped piece itself is not locked. Before the lock, a drag is free. The lock stays until Place 1 turns off.
+  - While it is on, the first character or token whose base comes within range 1 of the snapped piece, edge to edge and seen from above, is locked. The snapped piece itself is not locked. Before the lock, a drag is free. The lock stays until Place 1 turns off.
   - A locked character can be dragged anywhere within range 1: as close as the center of the snapped piece (its base can cover a token or portal), and as far as the base edge 1" from the snapped base edge. When the pointer goes farther, the base stops at the range 1 limit, on the line from the snapped center to the pointer.
   - The tool does not turn or move with the character. A drag selects the character, so the movement tool footprint shows if the place is within its reach.
 - **Place 2** is at the far end. It works the same as [Place](#place) on other tools.
