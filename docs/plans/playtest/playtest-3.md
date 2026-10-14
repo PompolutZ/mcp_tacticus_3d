@@ -1,6 +1,6 @@
 # Plan: Feedback from the third playtest
 
-Requested by the user on 2026-10-14. Status: plan approved by the user on 2026-10-14. The user decides more on the overlays (decisions 6 and 7) after a test run.
+Requested by the user on 2026-10-14. Status: all steps done, waiting for the user's test. The user decides more on the overlays (decisions 6 and 7) after a test run.
 
 Branch `playtest-3`, worktree `../mcp_assist_3d-playtest-3`, from main at `5d071a9`. One coder step and one commit for each step. Each step writes its **Result** below when it is done. Feature docs change in the same step as the code.
 
@@ -216,3 +216,15 @@ Done. Files (under `apps/web/src/`): new `components/CrisisChoose.jsx`, new `set
 - `handleCrisisOpen` with `drawn` opens Choose 1 (and closes the compare overlay); other cards close Choose 1.
 - Non-chooser: cards with no button and "Waiting for X to choose a card."
 - Checks: format, lint (no new warnings), test (701 pass), build ok. Not run in a browser (user rule).
+
+### Step 9: Spectator columns
+
+Done. Files (under `apps/web/src/`): new `components/SpectatorColumns.jsx`, new `game/heldTokens.js`, `scoreboard/board.js` (+ test), `game/usePhaseActions.js`, `components/TrayPopup.jsx`, `components/Scene.jsx`, `components/SettingsPopup.jsx`, `settings/settings.js` (+ test), `settings/useSettings.js`, `App.jsx`, `index.css`. Docs: `docs/features/spectator-view.md`, `table-tools.md`.
+
+- `scoreFromMarkers(markers)` gives `{ host, guest, round }`; the Cleanup Phase and the columns both use it. `nextRoundSpot` stays (tests), no longer used by the app.
+- `heldTokensByCharacter(tokens)` is shared by `Scene` (badges) and the columns. `OnToken` is exported from `TrayPopup`; with no `onClick` it is a static span.
+- Columns: `.spectator-col`, size by `--spectator-size`. Right column sits 44 px under `--hud-top` (below the Log bar) unless the Log is open. Both end 84 px above the bottom on the right (phase buttons); max-height + inner scroll.
+- Hidden squad: `hiddenSquads && team !== mySide && !placedSides(setup)[team]`.
+- Settings: `spectator: { size }`, slider step 5.
+- The portrait is always `characterPortrait`; no state says a character is transformed (a second form is a second model), so `transformPortrait` is not used.
+- Checks: format, lint, test, build ok. Not run in a browser (user rule).

@@ -106,3 +106,18 @@ export function nextRoundSpot(position) {
   const i = ROUND_POINTS.indexOf(spot)
   return ROUND_POINTS[Math.min(i + 1, ROUND_POINTS.length - 1)]
 }
+
+// The score the markers show: { host, guest, round }. host and guest: VP, 0 when that marker is on no VP
+// spot (it still waits at its start place). round: the round number (1 to 6), or null when the round
+// marker is on no spot. markers: the scoreMarkers game field, { host, guest, round } → { x, z }, or null.
+export function scoreFromMarkers(markers) {
+  const at = (points, marker) => {
+    const spot = marker ? snapPoint(points, marker.x, marker.z) : null
+    return spot ? points.indexOf(spot) + 1 : 0
+  }
+  return {
+    host: at(VP_POINTS, markers?.host),
+    guest: at(VP_POINTS, markers?.guest),
+    round: at(ROUND_POINTS, markers?.round) || null,
+  }
+}

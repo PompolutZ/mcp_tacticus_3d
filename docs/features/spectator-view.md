@@ -12,6 +12,18 @@ The badge is made of the same pieces as the character tray, so it looks the same
 - the Damage and Power counters of the tray (`TrayCounters` in `TrayControls.jsx`), without the − and + buttons
 - the tokens on the character (conditions, Activated, Dazed, character and tactic tokens), as the same 3D tokens as in the tray's "On" row (`TokenFace.jsx`), with the count when it is above 1
 
+## Squad columns
+
+**Spectator** also shows two HUD columns, one per squad, read-only (`SpectatorColumns.jsx`). My squad is on the left and the opponent's on the right. In the Sandbox and a single player room, Blue (the host) is on the left.
+
+- Header: the player name (`playerName`), VP and "Round N". VP and the round come from the score markers (`scoreFromMarkers` in `scoreboard/board.js`, the same read as the Cleanup Phase). A VP marker on no spot counts 0 VP. The round is not shown when its marker is on no spot.
+- One row per character and grunt, in squad order. Constructs have no row. A row has: the portrait, the Damage bar (`damage / stamina`, orange on the Healthy side, red on the Injured side), the Power bar (`power / 10`, green; a grunt has none), the tokens on the character with counts (the tray's `OnToken`, name as the title) and the crisis tokens it holds.
+- A character off the mat (`characterOnBoard` is false) has a grey row. It gets the label "KO" once the deploy is over (`setup.deployed`, or a setup with no deploy step). Before that it has no label, because every character is off the mat before the deploy.
+- A squad that is still hidden (multiplayer, the opponent's squad before the reveal) shows only its header.
+- Layout: the columns start at `--hud-top`. The right column is below the Log bar. They stay clear of the phase buttons at the bottom right and the token panel at the bottom center. A tall squad scrolls inside its column. An open Library pushes the left column inward, an open Log pushes the right column inward.
+- Size: Settings → "Spectator columns size", 60% to 150%, default 100% (a row about 56 px tall). See `table-tools.md`.
+- The portrait is always the character's own portrait; the second form has no separate state to read.
+
 ## How TTS does it
 
 These facts come from mod 3036795456: the `modelUI` XML in the "Scripts" object, the model script inside the "Red Tray Spawner" and "Blue Tray Spawner" (`checkForSecure`, `updateObjective`, `updateStats`, `updateVisible`), and the "UI Controller" object.

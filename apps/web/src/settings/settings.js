@@ -17,6 +17,11 @@ const HUD_DEFAULT = ['power', 'cleanup']
 // Sound volume, 0 (off) to 100 (docs/features/sounds.md)
 export const DEFAULT_VOLUME = 10
 
+// Size of the spectator columns in percent (docs/features/spectator-view.md, "Squad columns")
+export const DEFAULT_SPECTATOR_SIZE = 100
+export const MIN_SPECTATOR_SIZE = 60
+export const MAX_SPECTATOR_SIZE = 150
+
 export function defaultSettings() {
   return {
     version: VERSION,
@@ -24,6 +29,7 @@ export function defaultSettings() {
       TOOL_ITEMS.map((item) => [item, HUD_DEFAULT.includes(item) ? 'hud' : 'table']),
     ),
     sound: { volume: DEFAULT_VOLUME },
+    spectator: { size: DEFAULT_SPECTATOR_SIZE },
     // Only the actions the user changed: action id → [{ code, shift, ctrl, alt, meta, when }]. The others use
     // their default keys (input/bindings.js, docs/features/key-shortcuts.md).
     bindings: {},
@@ -59,6 +65,11 @@ function normalize(raw) {
   const volume = raw?.sound?.volume
   if (Number.isFinite(volume))
     settings.sound.volume = Math.round(Math.min(100, Math.max(0, volume)))
+  const size = raw?.spectator?.size
+  if (Number.isFinite(size))
+    settings.spectator.size = Math.round(
+      Math.min(MAX_SPECTATOR_SIZE, Math.max(MIN_SPECTATOR_SIZE, size)),
+    )
   settings.bindings = normalizeBindings(raw?.bindings)
   return settings
 }

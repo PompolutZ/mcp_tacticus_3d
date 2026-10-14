@@ -16,6 +16,11 @@ export function useSettings() {
     setSettings(next)
     writeSettings(next)
   }
+  function handleSpectatorSizeChange(size) {
+    const next = { ...settings, spectator: { size } }
+    setSettings(next)
+    writeSettings(next)
+  }
   // changed: the bindings of the actions that differ from the defaults (changedBindings in input/bindings.js)
   function handleBindingsChange(changed) {
     const next = { ...settings, bindings: changed }
@@ -25,5 +30,12 @@ export function useSettings() {
   // The bindings in use: the defaults with the changed actions of the settings
   const bindings = useMemo(() => effectiveBindings(settings.bindings), [settings.bindings])
   useEffect(() => setVolume(settings.sound.volume / 100), [settings.sound.volume])
-  return { settings, bindings, handleBindingsChange, handleSettingChange, handleVolumeChange }
+  return {
+    settings,
+    bindings,
+    handleBindingsChange,
+    handleSettingChange,
+    handleSpectatorSizeChange,
+    handleVolumeChange,
+  }
 }

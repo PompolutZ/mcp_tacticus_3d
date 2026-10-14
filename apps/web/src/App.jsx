@@ -60,6 +60,7 @@ import { useCrisisTokens } from './crisis/useCrisisTokens.js'
 import { useCharacterActions } from './characters/useCharacterActions.js'
 import { useTablePieces } from './pieces/useTablePieces.js'
 import { usePhaseActions } from './game/usePhaseActions.js'
+import SpectatorColumns from './components/SpectatorColumns.jsx'
 import HudNotice from './components/HudNotice.jsx'
 import { PhaseButtons } from './components/PhaseButtons.jsx'
 import { HudWarnings } from './components/HudWarnings.jsx'
@@ -270,8 +271,14 @@ export default function App({
   // Each own dice tray puts a function here by side: clears the tray, then adds that many dice. See
   // DiceTray.jsx.
   const addDiceRef = useRef({})
-  const { settings, bindings, handleBindingsChange, handleSettingChange, handleVolumeChange } =
-    useSettings()
+  const {
+    settings,
+    bindings,
+    handleBindingsChange,
+    handleSettingChange,
+    handleSpectatorSizeChange,
+    handleVolumeChange,
+  } = useSettings()
   const [settingsOpen, setSettingsOpen] = useState(false)
   // The Sandbox Setup panel under the toolbar (Toolbar.jsx). Esc closes it as a popup.
   const [setupOpen, setSetupOpen] = useState(false)
@@ -965,6 +972,21 @@ export default function App({
         mySide={mySide}
         seatPlayers={seatPlayers}
       />
+      {spectator && (
+        <SpectatorColumns
+          characters={characters}
+          tokens={tokens}
+          poses={poses}
+          setup={viewSetup}
+          scoreMarkers={scoreMarkers}
+          nameCtx={nameCtx}
+          mySide={mySide}
+          hiddenSquads={hiddenSquads}
+          size={settings.spectator.size}
+          libraryOpen={libraryOpen}
+          logOpen={logOpen}
+        />
+      )}
       <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
       {!(
         tokenDrag ||
@@ -983,6 +1005,7 @@ export default function App({
           bindings={bindings}
           onChange={handleSettingChange}
           onVolumeChange={handleVolumeChange}
+          onSpectatorSizeChange={handleSpectatorSizeChange}
           debug={debug}
           onDebugClick={() => setDebugOn((prev) => !prev)}
           showLabels={showLabels}

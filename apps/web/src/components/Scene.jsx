@@ -26,6 +26,7 @@ import TableButtons from './TableButtons.jsx'
 import ToolRack from './ToolRack.jsx'
 import ToolDragGhost from './ToolDragGhost.jsx'
 import SpectatorBadge from './SpectatorBadge.jsx'
+import { heldTokensByCharacter } from '../game/heldTokens.js'
 import Terrain from './Terrain.jsx'
 import CrisisCard from './CrisisCard.jsx'
 import CrisisToken, { TOKEN_RADIUS } from './CrisisToken.jsx'
@@ -976,13 +977,7 @@ export default function Scene({
     () => matTokens.filter((tok) => tok.cardKey === crisis.secure),
     [matTokens, crisis.secure],
   )
-  const heldTokens = useMemo(() => {
-    const held = new Map()
-    for (const tok of tokens) {
-      if (tok.heldBy) held.set(tok.heldBy, [...(held.get(tok.heldBy) ?? []), tok])
-    }
-    return held
-  }, [tokens])
+  const heldTokens = useMemo(() => heldTokensByCharacter(tokens), [tokens])
   // Every crisis token as it is drawn. A held token lies on its holder's card: its tray-local place
   // (heldAt) moves to the table with the tray position, and it faces the holder's player, the same
   // as the card (see trays.js, "An objective token that the character holds").

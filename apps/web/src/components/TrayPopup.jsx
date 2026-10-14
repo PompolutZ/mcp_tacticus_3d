@@ -159,16 +159,28 @@ export function TrayPopup({
 
 // A token on the character, with a count badge when the count is above 1. The tooltip shows its
 // name and the mod's description, the same as the label of a 3D token (TokenFace.jsx).
-function OnToken({ tokenKey, count, onClick }) {
+// A token on the character, with its count. onClick: removes one; without it the token is only shown
+// (the spectator columns).
+export function OnToken({ tokenKey, count, onClick }) {
   const token = getToken(tokenKey)
   const name = token?.name ?? tokenKey
-  const title = token?.description
-    ? `${name}: ${token.description} (click to remove one)`
-    : `${name} (click to remove one)`
-  return (
-    <button type="button" className="tray-popup-token" title={title} onClick={onClick}>
+  const hint = onClick ? ' (click to remove one)' : ''
+  const title = token?.description ? `${name}: ${token.description}${hint}` : `${name}${hint}`
+  const face = (
+    <>
       <img src={assetUrl(characterToken(tokenKey))} alt={name} draggable={false} />
       {count > 1 && <span className="tray-popup-token-count">{count}</span>}
+    </>
+  )
+  if (!onClick)
+    return (
+      <span className="tray-popup-token tray-popup-token--static" title={title}>
+        {face}
+      </span>
+    )
+  return (
+    <button type="button" className="tray-popup-token" title={title} onClick={onClick}>
+      {face}
     </button>
   )
 }

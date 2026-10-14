@@ -196,3 +196,21 @@ test('bindings: stored modifiers that are not true are false', () => {
     assert.deepEqual(readSettings().bindings.flip, [bnd('KeyG', 'anywhere', { ctrl: true })]),
   )
 })
+
+test('spectator size: default 100, clamped to 60-150, rounded, junk is the default', () => {
+  assert.equal(defaultSettings().spectator.size, 100)
+  const read = (spectator) => {
+    const storage = fakeStorage()
+    storage.setItem(KEY, JSON.stringify({ version: VERSION, spectator }))
+    let size
+    withStorage(storage, () => {
+      size = readSettings().spectator.size
+    })
+    return size
+  }
+  assert.equal(read({ size: 20 }), 60)
+  assert.equal(read({ size: 400 }), 150)
+  assert.equal(read({ size: 80.4 }), 80)
+  assert.equal(read({ size: 'big' }), 100)
+  assert.equal(read(undefined), 100)
+})

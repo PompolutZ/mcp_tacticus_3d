@@ -5,7 +5,7 @@ import { characterOnBoard } from '../characters/models.js'
 import { powerAfterPhase } from '../characters/power.js'
 import { cleanupBlockers, cleanupCharacter } from '../characters/cleanup.js'
 import { cleanupCrisisTokens } from '../crisis/cleanup.js'
-import { ROUND_POINTS, nextRoundSpot } from '../scoreboard/board.js'
+import { ROUND_POINTS, scoreFromMarkers } from '../scoreboard/board.js'
 import { CLEANUP_KEYS } from '../tokens/tokens.js'
 import { colorOf, finishDeploy, otherTeam, setupStep } from '../setup/setup.js'
 import { gamePriority, priorityAfterCleanup, priorityNote } from './priority.js'
@@ -108,9 +108,12 @@ export function usePhaseActions({
       setLooseTokens((prev) => prev.filter((t) => !CLEANUP_KEYS.includes(t.key)))
       setTokens((prev) => cleanupCrisisTokens(prev, getCard))
       setScoreMarkers((prev) => {
-        const spot = prev?.round ? nextRoundSpot(prev.round) : null
-        if (!spot) return prev
-        round = ROUND_POINTS.indexOf(spot) + 1
+        // The round after the one under the marker, the same on the last round. Null: the marker is on no
+        // spot (a player moved it off the track), so the Cleanup Phase leaves it.
+        const current = scoreFromMarkers(prev).round
+        if (!current) return prev
+        round = Math.min(current + 1, ROUND_POINTS.length)
+        const spot = ROUND_POINTS[round - 1]
         return { ...prev, round: { x: spot.x, z: spot.z } }
       })
       if (after !== before) table.game.setField('priority', after)

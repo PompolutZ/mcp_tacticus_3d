@@ -2808,3 +2808,180 @@ body {
   align-items: center;
   gap: 10px;
 }
+
+/* Spectator view, HUD columns (SpectatorColumns.jsx). --spectator-size is the setting as a factor
+   (1 = 100%, a row about 56px tall). Left column at the left edge, right column at the right edge below
+   the Log bar. Neither goes under the bottom-right phase buttons (60px + 12px + gap), and a tall squad
+   scrolls inside its column. An open Library or Log pushes its column inward. */
+.spectator-col {
+  --s: var(--spectator-size, 1);
+  position: absolute;
+  top: var(--hud-top);
+  display: flex;
+  flex-direction: column;
+  width: calc(270px * var(--s));
+  max-height: calc(100% - var(--hud-top) - 84px);
+  font-size: calc(12px * var(--s));
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  pointer-events: auto;
+  z-index: 150;
+}
+
+.spectator-col--left {
+  left: 12px;
+}
+
+.spectator-col--left.spectator-col--pushed {
+  left: calc(12px + 340px + 8px);
+}
+
+.spectator-col--right {
+  right: 12px;
+  top: calc(var(--hud-top) + 44px);
+  max-height: calc(100% - var(--hud-top) - 44px - 84px);
+}
+
+.spectator-col--right.spectator-col--pushed {
+  right: calc(12px + 300px + 8px);
+  top: var(--hud-top);
+  max-height: calc(100% - var(--hud-top) - 84px);
+}
+
+.spectator-head {
+  display: flex;
+  align-items: baseline;
+  gap: calc(10px * var(--s));
+  flex: none;
+  padding: calc(6px * var(--s)) calc(8px * var(--s));
+  font-size: calc(13px * var(--s));
+  font-weight: 600;
+  border-bottom: 1px solid var(--line);
+}
+
+.spectator-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spectator-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+}
+
+.spectator-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: calc(6px * var(--s));
+  min-height: calc(56px * var(--s));
+  padding: calc(4px * var(--s)) calc(8px * var(--s));
+  border-bottom: 1px solid var(--line);
+}
+
+.spectator-row:last-child {
+  border-bottom: none;
+}
+
+.spectator-row--off {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+
+.spectator-portrait {
+  flex: none;
+  width: calc(46px * var(--s));
+  height: calc(46px * var(--s));
+  border-radius: 4px;
+  background: var(--panel-2);
+  object-fit: cover;
+}
+
+.spectator-bars {
+  display: flex;
+  flex-direction: column;
+  gap: calc(4px * var(--s));
+  flex: 1;
+  min-width: 0;
+}
+
+.spectator-bar {
+  position: relative;
+  height: calc(16px * var(--s));
+  background: var(--panel-2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.spectator-bar-fill {
+  height: 100%;
+}
+
+.spectator-bar--healthy .spectator-bar-fill {
+  background: #ff9d00;
+}
+
+.spectator-bar--injured .spectator-bar-fill {
+  background: #ff0000;
+}
+
+.spectator-bar--power .spectator-bar-fill {
+  background: #31b32b;
+}
+
+.spectator-bar-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 0 2px #000;
+}
+
+.spectator-tokens {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: calc(2px * var(--s));
+  flex: none;
+  max-width: calc(84px * var(--s));
+}
+
+.spectator-tokens .tray-popup-token,
+.spectator-held {
+  width: calc(26px * var(--s));
+  height: calc(26px * var(--s));
+}
+
+.spectator-tokens .tray-popup-token--static {
+  cursor: default;
+}
+
+.spectator-tokens .tray-popup-token-count {
+  min-width: calc(14px * var(--s));
+  font-size: calc(10px * var(--s));
+  line-height: calc(14px * var(--s));
+  border-radius: calc(7px * var(--s));
+}
+
+.spectator-ko {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(22px * var(--s));
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #fff;
+  text-shadow: 0 0 4px #000;
+  pointer-events: none;
+}

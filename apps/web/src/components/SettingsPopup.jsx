@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { Overlay } from './Overlay.jsx'
-import { PLACES } from '../settings/settings.js'
+import { MAX_SPECTATOR_SIZE, MIN_SPECTATOR_SIZE, PLACES } from '../settings/settings.js'
 import { MOUSE_ROWS } from '../settings/controls.js'
 import { KeyBindings } from './KeyBindings.jsx'
 
@@ -33,13 +33,14 @@ function ControlsTable({ title, rows }) {
 }
 
 // The Settings popup. settings: { tools: { rack, power, ... }, sound: { volume } } (settings/settings.js). bindings: the key
-// bindings in use. onChange(item, place), onVolumeChange(volume) and onBindingsChange(changed) apply a choice at once; App stores it. App closes the popup on Escape, as App handles all keys. A click on
+// bindings in use. onChange(item, place), onVolumeChange(volume), onSpectatorSizeChange(size) and onBindingsChange(changed) apply a choice at once; App stores it. App closes the popup on Escape, as App handles all keys. A click on
 // the backdrop or × calls onClose().
 export function SettingsPopup({
   settings,
   bindings,
   onChange,
   onVolumeChange,
+  onSpectatorSizeChange,
   onBindingsChange,
   debug,
   onDebugClick,
@@ -100,6 +101,24 @@ export function SettingsPopup({
                 onChange={(e) => onVolumeChange(Number(e.target.value))}
               />
               <span className="settings-volume">{settings.sound.volume}</span>
+            </span>
+          </label>
+        </section>
+        <section className="settings-section">
+          <h3>Spectator</h3>
+          <label className="settings-row">
+            <span>Spectator columns size (%)</span>
+            <span className="settings-choice">
+              <input
+                type="range"
+                min={MIN_SPECTATOR_SIZE}
+                max={MAX_SPECTATOR_SIZE}
+                step="5"
+                value={settings.spectator.size}
+                aria-label="Spectator columns size"
+                onChange={(e) => onSpectatorSizeChange(Number(e.target.value))}
+              />
+              <span className="settings-volume">{settings.spectator.size}</span>
             </span>
           </label>
         </section>
