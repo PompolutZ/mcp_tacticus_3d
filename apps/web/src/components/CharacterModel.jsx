@@ -1,11 +1,9 @@
 import { useGLTF } from '@react-three/drei'
-import { COLOR_HEX, useSideColor } from '../sideColors.js'
-import { RigidBody, CylinderCollider, useAfterPhysicsStep, useRapier } from '@react-three/rapier'
+import { RigidBody, CylinderCollider, useRapier } from '@react-three/rapier'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
 import {
   Box3,
-  Color,
   CylinderGeometry,
   FrontSide,
   Group,
@@ -21,7 +19,6 @@ import {
   MODEL_GROUPS,
   SOLVER_ALL,
   SOLVER_NONE,
-  WORLD_GRAVITY,
   castDown,
   liveBody,
   lowerFloor,
@@ -30,62 +27,29 @@ import { startPointerDrag } from '../drag/pointerDrag.js'
 import { tablePoint } from '../drag/tablePoint.js'
 import DragFootprint from './DragFootprint.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
-import { followPart } from '../net/livePose.js'
 import { useColorTexture } from './useColorTexture.js'
 import { assetUrl } from '../assets/index.js'
 import { useHoverCursor } from './useHoverCursor.js'
-import {
-  MODEL_BUMP_MAX,
-  MODEL_BUMP_MIN,
-  REMOTE_MODEL_BUMP_MAX,
-  REMOTE_MODEL_BUMP_MIN,
-  REMOTE_MODEL_MAX_SPEED,
-  REMOTE_MODEL_MERGE_MS,
-  REMOTE_MODEL_REST_MS,
-  createBumpFinder,
-  createPoseBumpFinder,
-} from '../bumps.js'
-import { playSound } from '../sound.js'
+import { useModelLift } from './useModelLift.js'
+import { useLandingSound } from './useLandingSound.js'
+import { useModelFollow } from './useModelFollow.js'
+import { useFigureMaterials } from './useFigureMaterials.js'
 
-// Scratch values of the follow
-const followTarget = { pos: new Vector3(), quat: new Quaternion() }
 // While dragged, the base hangs this far above the table or terrain below it
 const DRAG_HOVER = 0.3
 // How fast the dragged model moves to the new hover height, per second
 const HOVER_RATE = 25
 const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 const ZERO = { x: 0, y: 0, z: 0 }
-// A model lands on terrain, not on the table top, when what is under its base is higher than this
-// (inches). The table top is y = 0 (docs/features/sounds.md).
-const TERRAIN_MIN_TOP = 0.05
-// The cast for the support of a landed model starts this far (inches) above its base bottom
-const SUPPORT_LIFT = 0.1
 // A model that stays within SETTLE_MOVE inches and SETTLE_TURN of one pose for SETTLE_TIME seconds is put
 // to sleep, as PhysX does in TTS. Without it, a model resting on a curved hull (made of many small faces)
 // shakes and creeps down it, and Rapier never puts it to sleep because of the shaking.
 const SETTLE_TIME = 0.5
 const SETTLE_MOVE = 0.05
 const SETTLE_TURN = (2 * Math.PI) / 180
-// The R key lifts a model straight up by LIFT_HEIGHT (inches), and a second press puts it back at the
-// same place. So a player can see and select a token under it, and a Throw or Push can move a model
-// under it (docs/features/range-movement-tools.md, "Throw / Push"). The tallest model measured, Sentinel Prime MK4 (5.28", on
-// 2026-10-06), fits under a lifted model. Onslaught was not in the TTS cache, so it is not measured.
-// From the start view (45°), a token under a large base already shows below a model lifted 2".
-const LIFT_HEIGHT = 6
-// The lift is smoothed the same way as a Q / E turn (Scene.jsx): each frame the model does
-// 1 − e^(−dt / time) of the move that is left. When less than LIFT_DONE (inches) is left, the move is done.
-const LIFT_SMOOTH_TIME = 0.06
-const LIFT_DONE = 0.001
-// Something else moved a lifted model (for example Place, see RulerTool.jsx) when its x or z is this
-// far (inches) from the place of the lift
-const LIFT_MOVED = 0.001
-
 // Base disk dims from angel.glb mesh0: radius≈0.983, height≈0.118
 const BASE_RADIUS = 0.983
 export const BASE_HALF_H = 0.059
-// Red glow of the figure while it shows the overlap mark. Added to the colors of the material, so the
-// textures stay visible.
-const OVERLAP_TINT = 0xaa1111
 // Same density for every model, so the mass follows the base size
 const BASE_DENSITY = 5
 // TTS drag of every object
@@ -322,26 +286,21 @@ function CharacterFigure({
   const [dragging, setDragging] = useState(false)
   // Pose the model has stayed close to, and for how long: { t, r, time }. See SETTLE_TIME.
   const rest = useRef(null)
-  // The lift (R key): { x, y, z, sleeping, up, landing }, or null. x, y, z: the body position before
-  // the lift. The model goes back there exactly. sleeping: the body was asleep then. up: the model
-  // goes up (true) or back down (false). landing: the model is back at x, y, z, and becomes a
-  // dynamic body again in the next frame.
-  const lift = useRef(null)
   // The remote prop for the closures that are made once (toggleLift)
   const remoteRef = useRef(remote)
+  const { lift, toggleLift, lowerLift, moveLift } = useModelLift({
+    liveRb,
+    groundY,
+    isDragging,
+    remoteRef,
+    clearRest: () => {
+      rest.current = null
+    },
+  })
   const wasRemote = useRef(false)
-  // The shown pose while the model follows live poses: { pos, quat }, or null. It is kept here, not read
-  // from the body, because a kinematic body shows the new pose only after the next physics step.
-  const follow = useRef(null)
-  // The model follows live poses now: mounts the footprint of the base
-  const [following, setFollowing] = useState(false)
+  const { follow, following, setFollowing, followLive } = useModelFollow({ getLivePose, claimKey })
   // The last pointer position of a drag, in screen pixels
   const pointer = useRef({ x: 0, y: 0 })
-  // The bump finder of the landing sound: of the body (own model) or of the live poses (remote
-  // model), and the last live position. See landed.
-  const bump = useRef(null)
-  const remoteBump = useRef(null)
-  const livePlace = useRef(null)
 
   function groundY(x, z) {
     return baseGroundY(world, rapier, x, z, baseRadius)
@@ -371,65 +330,14 @@ function CharacterFigure({
     return tablePoint(scene, pointer.current.x, pointer.current.y)
   }
 
-  // The sound of a landing at body position (x, y, z): the terrain sound when the base rests on
-  // terrain, the mat sound on the table top. strength: 0 to 1, from the bump finder.
-  function landed(x, y, z, strength) {
-    const top = baseGroundY(world, rapier, x, z, baseRadius, y + SUPPORT_LIFT)
-    const group = top !== null && top > TERRAIN_MIN_TOP ? 'modelTerrain' : 'modelMat'
-    playSound(group, { volume: strength, key: claimKey })
-  }
-
-  // The landing of the other player's model, from its live poses. The finder also gets the poses
-  // of a drag and a lift, and it ignores them, because no free fall comes before them.
-  // A bump that starts in a drag is dropped.
-  function listenLanding() {
-    const finder = (remoteBump.current ??= createPoseBumpFinder({
-      gravity: -WORLD_GRAVITY,
-      min: REMOTE_MODEL_BUMP_MIN,
-      max: REMOTE_MODEL_BUMP_MAX,
-      maxSpeed: REMOTE_MODEL_MAX_SPEED,
-      gapMs: Infinity,
-      mergeMs: REMOTE_MODEL_MERGE_MS,
-      restMs: REMOTE_MODEL_REST_MS,
-      vertical: true,
-      afterFall: true,
-    }))
-    const n = getLivePose?.(claimKey)
-    const time = getLiveTime?.(claimKey)
-    let strength = 0
-    if (n && time != null) {
-      livePlace.current = { x: n[0], y: n[1], z: n[2] }
-      strength = finder.feed(livePlace.current, time)
-    }
-    strength = Math.max(strength, finder.poll(performance.now()))
-    if (otherDragging) finder.discard()
-    else if (strength > 0 && livePlace.current) {
-      const { x, y, z } = livePlace.current
-      landed(x, y, z, strength)
-    }
-  }
-
-  // A sound for each landing of the own model (docs/features/sounds.md): the bump finder gets the
-  // vertical velocity after each physics step, while the body is dynamic and awake. A body that is
-  // kinematic (drag, lift), asleep or the other player's starts fresh when it moves again,
-  // so a drop, a lift, a jump or a set pose is never a bump.
-  useAfterPhysicsStep((physics) => {
-    const rb = rigidRef.current
-    if (!rb) return
-    if (remoteRef.current || !rb.isDynamic() || rb.isSleeping()) {
-      bump.current?.reset()
-      return
-    }
-    bump.current ??= createBumpFinder({
-      gravity: -WORLD_GRAVITY,
-      min: MODEL_BUMP_MIN,
-      max: MODEL_BUMP_MAX,
-      vertical: true,
-    })
-    const strength = bump.current.feed(rb.linvel(), physics.timestep)
-    if (strength <= 0) return
-    const t = rb.translation()
-    landed(t.x, t.y, t.z, strength)
+  const { listenLanding, remoteBump, livePlace } = useLandingSound({
+    groundBelow: (x, z, from) => baseGroundY(world, rapier, x, z, baseRadius, from),
+    rigidRef,
+    remoteRef,
+    claimKey,
+    otherDragging,
+    getLivePose,
+    getLiveTime,
   })
 
   // Puts the body to sleep once it has stayed close to one pose for SETTLE_TIME
@@ -456,23 +364,6 @@ function CharacterFigure({
     rest.current = { t, r, time: 0 }
   }
 
-  // R: lifts the model, or puts it back down if it is up. During a drag it does nothing.
-  // The body is kinematic during the lift, so physics does not move it: it does not fall, and
-  // nothing pushes it.
-  function toggleLift() {
-    const rb = liveRb()
-    if (!rb || isDragging.current || remoteRef.current) return
-    if (lift.current) {
-      lift.current.up = !lift.current.up
-      lift.current.landing = false
-      return
-    }
-    const t = rb.translation()
-    lift.current = { x: t.x, y: t.y, z: t.z, sleeping: rb.isSleeping(), up: true, landing: false }
-    rest.current = null
-    rb.setBodyType(2, true)
-  }
-
   // R during a drag: switches between the top floor and the lower floor. Returns the HUD message, or null
   // when no model is dragged. The message says "No space under" when the lower floor is chosen and the
   // base has no lower floor at the pointer now (the model stays on top until there is one).
@@ -484,55 +375,6 @@ function CharacterFigure({
     const ground = p && groundY(p.x, p.z)
     const found = ground != null && lowerBaseFloor(p.x, p.z, ground)
     return found ? 'Lower floor' : 'Lower floor: no space under here'
-  }
-
-  function lowerLift() {
-    if (lift.current) lift.current.up = false
-  }
-
-  function endLift(rb) {
-    lift.current = null
-    rb.setBodyType(0, true)
-    rb.setLinvel(ZERO, true)
-    rb.setAngvel(ZERO, true)
-  }
-
-  // Moves a lifted model one frame up or down. The heading stays as it is now, so a Q / E turn
-  // during the lift stays after it. Back down, the model is at the same place as before the lift,
-  // and a model that was asleep sleeps again. So physics does not move it from that place.
-  function moveLift(rb, dt) {
-    const from = lift.current
-    const t = rb.translation()
-    if (Math.abs(t.x - from.x) > LIFT_MOVED || Math.abs(t.z - from.z) > LIFT_MOVED) {
-      // Something else moved the model during the lift: Place, or its tray moved and took the model
-      // with it (Scene.jsx). The lift ends, and the model stands on the table or terrain there.
-      const ground = groundY(t.x, t.z)
-      if (ground !== null && t.y > ground) rb.setTranslation({ x: t.x, y: ground, z: t.z }, true)
-      endLift(rb)
-      return
-    }
-    const place = { x: from.x, y: from.y, z: from.z }
-    if (from.landing) {
-      // The kinematic move of the frame before put the body and its mesh at the place. The model
-      // sleeps only now, because the mesh of a sleeping body does not follow the body.
-      rb.setTranslation(place, true)
-      endLift(rb)
-      if (from.sleeping) rb.sleep()
-      return
-    }
-    const left = (from.up ? from.y + LIFT_HEIGHT : from.y) - t.y
-    if (Math.abs(left) < LIFT_DONE) {
-      if (from.up) return
-      from.landing = true
-      rb.setNextKinematicTranslation(place)
-      return
-    }
-    // A sleeping body keeps moving but its mesh is not synced, so keep it awake
-    rb.wakeUp()
-    rb.setNextKinematicTranslation({
-      ...place,
-      y: t.y + left * (1 - Math.exp(-dt / LIFT_SMOOTH_TIME)),
-    })
   }
 
   // A model of a saved room starts asleep at its pose, the same as it was when the room saved. So it
@@ -612,33 +454,6 @@ function CharacterFigure({
     rb.setNextKinematicRotation(upright(rb.rotation()))
   })
 
-  // Goes the 1 − e^(−dt / 0.05) part of the way to the latest live pose (decision 14). Without a live pose
-  // the model stays where it is.
-  function followLive(rb, dt) {
-    const numbers = getLivePose?.(claimKey)
-    if (!numbers) {
-      if (follow.current) {
-        follow.current = null
-        setFollowing(false)
-      }
-      return
-    }
-    if (!follow.current) {
-      const t = rb.translation()
-      const r = rb.rotation()
-      follow.current = { pos: new Vector3(t.x, t.y, t.z), quat: new Quaternion(r.x, r.y, r.z, r.w) }
-      setFollowing(true)
-    }
-    const part = followPart(dt)
-    const { pos, quat } = follow.current
-    pos.lerp(followTarget.pos.set(numbers[0], numbers[1], numbers[2]), part)
-    quat.slerp(followTarget.quat.set(numbers[3], numbers[4], numbers[5], numbers[6]), part)
-    // A sleeping body moves but its mesh is not synced, so keep it awake (as in the drag)
-    rb.wakeUp()
-    rb.setNextKinematicTranslation(pos)
-    rb.setNextKinematicRotation(quat)
-  }
-
   // The remote mode (decision 9). A lift or a drag of this browser stops moving the body, with no drop
   // and no write. Back from it, Scene sets the body type and the pose, and the contact forces come back here.
   useEffect(() => {
@@ -659,43 +474,7 @@ function CharacterFigure({
     }
   }, [remote])
 
-  // team is a side. The base has the color of that side (sideColors.js).
-  const playerColor = useSideColor(team)
-  useEffect(() => {
-    const color = new Color(COLOR_HEX[playerColor] ?? team)
-    scene.traverse((obj) => {
-      if (!obj.isMesh) return
-      obj.castShadow = true
-      obj.receiveShadow = true
-      if (obj.material?.name === 'defaultMat') {
-        obj.material = obj.material.clone()
-        obj.material.color = color
-      }
-    })
-  }, [scene, team, playerColor])
-
-  // Red tint while the overlap mark is on. Each mesh gets its own copy of the material, because the
-  // materials of a GLB are shared with the other models made from the same file.
-  useEffect(() => {
-    if (!showOverlap) return undefined
-    const saved = []
-    scene.traverse((obj) => {
-      if (!obj.isMesh) return
-      const tint = (m) => {
-        const copy = m.clone()
-        if (copy.emissive) copy.emissive.set(OVERLAP_TINT)
-        return copy
-      }
-      saved.push([obj, obj.material])
-      obj.material = Array.isArray(obj.material) ? obj.material.map(tint) : tint(obj.material)
-    })
-    return () => {
-      for (const [obj, material] of saved) {
-        for (const m of Array.isArray(obj.material) ? obj.material : [obj.material]) m.dispose()
-        obj.material = material
-      }
-    }
-  }, [scene, showOverlap])
+  useFigureMaterials(scene, team, showOverlap)
 
   useOutline(figureRef, outlineMode(selected, hovered, rangeMark, showOverlap, otherSelected))
   // A click toggles the selection. A drag moves the model at once and selects it.

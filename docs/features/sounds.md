@@ -53,7 +53,7 @@ A browser blocks sound until the player clicks or presses a key. The app makes i
 
 ## Code
 
-`src/sound.js` (`playSound(group, { volume, key })`, `playShake`, `setVolume`), `src/bumps.js` (the bump finders), `src/components/OtherDiceTray.jsx` (the other player's dice), `src/components/CharacterModel.jsx` (the landing of a model, own and remote), `LiveSync.jsx` (`poseTime`), `src/soundGate.js` (the bump limits), `src/components/Ping.jsx` (the ping sound), `src/log/useLogSounds.js`, `src/tokens/useRemoteDropSounds.js` and `tableDrop.js` (the other player's token drop), `soundOf` in `src/log/log.js`.
+`src/sound.js` (`playSound(group, { volume, key })`, `playShake`, `setVolume`), `src/bumps.js` (the bump finders), `src/components/OtherDiceTray.jsx` (the other player's dice), `src/components/CharacterModel.jsx` and `useLandingSound.js` (the landing of a model, own and remote), `LiveSync.jsx` (`poseTime`), `src/soundGate.js` (the bump limits), `src/components/Ping.jsx` (the ping sound), `src/log/useLogSounds.js`, `src/tokens/useRemoteDropSounds.js` and `tableDrop.js` (the other player's token drop), `soundOf` in `src/log/log.js`.
 
 ## Not built
 

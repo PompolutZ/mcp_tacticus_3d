@@ -409,6 +409,11 @@ User: R lifts and lowers a model, also a sleeping one; a lift ends when Place mo
 
 ### Result
 
+Done. Four hooks in `components/`, moved as they are: `useModelLift.js` (`useModelLift`, the `LIFT_*` constants, no effect), `useLandingSound.js` (`useLandingSound`, `TERRAIN_MIN_TOP`, `SUPPORT_LIFT`, the `useAfterPhysicsStep` call), `useModelFollow.js` (`useModelFollow`, `followTarget`, no effect), `useFigureMaterials.js` (`useFigureMaterials(scene, team, showOverlap)`, `OVERLAP_TINT`, the color and tint effects). `CharacterModel.jsx` 862 to 639 lines; `CharacterFigure` cognitive 65 to 59, 597 to 410 lines. Hook and effect order unchanged. Feature doc: `sounds.md` names `useLandingSound.js`.
+
+- Checks: format, lint 58 warnings (same, 3 still in `CharacterModel.jsx`), test 877 web, api and infra pass (api flaky signal test failed once, passed on rerun), build ok, fallow 315 above threshold (319 at `4698e42`). Moved-code diff: only the arguments below.
+- Deviations: `useLiveFollow.js` exists (pieces without a body), so the follow hook is `useModelFollow.js`. `useModelLift` takes `clearRest()` instead of the `rest` ref: writing to a ref argument gave a new `immutability` warning. `useLandingSound` takes `groundBelow(x, z, from)` and many refs and props, so it does not import `baseGroundY` from `CharacterModel.jsx` (a circle).
+
 ## Step 12: Dice tray helpers
 
 Work:
