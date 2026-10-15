@@ -107,7 +107,7 @@ Details of the routes:
 - Both routes need a valid token and a seat in the room. A user without a seat gets 403. An unknown room gets 404.
 - `to` of an `offer` or an `answer` is a peer id. Only `hello` and `bye` may use `*`.
 - A message in an answer is `{ id, from, to, type, data, user }`. The server sets `user` to `{ id, name, avatar, discordId }` and ignores a `user` in the body.
-- The message id is 13 digits of the server time in ms, `-`, and 8 random characters. A poll returns at most 50 messages, the oldest first, and not the messages of the asking peer.
+- The message id is 13 digits of the server time in ms, `-`, and 8 random characters. The time part never repeats or goes back within one server process (at least the last one + 1), so ids sort in post order. A poll returns at most 50 messages, the oldest first, and not the messages of the asking peer.
 - Errors: 400 for a bad body, `to` or `x-after`. 413 above 16 KB. 429 for the 51st message of a room.
 - Before the server stores a `hello` or a `bye`, it deletes the older messages of the same user in the room. So a reload leaves no old `hello`, and a room keeps few messages.
 - A poll checks only the token. It does not read the user (`docs/features/auth.md`, "Identity in peer-to-peer games"). The seat comes from a cache of 30 s per API instance.

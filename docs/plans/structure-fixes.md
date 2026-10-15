@@ -354,3 +354,9 @@ Added after the plan started. A test in `apps/api/test/signal.test.ts` (signal /
 3. Checks: the loop passes 30 times in a row. The checks of every step.
 
 ### Result
+
+Ran now, before step 4.
+
+- Cause: code. `newMessageId` used the ms time plus 8 random characters. Two posts in one ms sorted by the random part, so the order and the `x-after` cursor could be wrong (client could miss or reorder messages). Reproduced: ~2 of 10 runs.
+- Fix: `apps/api/src/routes/signal.ts`: the time part is `max(now, last + 1)` per process, so ids strictly increase. Test `makes increasing message ids within one ms and after a clock step back` in `apps/api/test/signal.test.ts`. Feature doc `peer-to-peer.md` states the rule.
+- Checks: vitest loop 30/30 passes, plus the standard checks.

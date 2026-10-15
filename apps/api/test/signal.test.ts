@@ -90,6 +90,12 @@ describe('POST and GET /rooms/{code}/messages', () => {
     expect(await list(bob, B, next[1]?.id)).toEqual([])
   })
 
+  it('makes increasing message ids within one ms and after a clock step back', () => {
+    const ids = [5000, 5000, 5000, 4000].map((t) => newMessageId(t + 1_700_000_000_000))
+    expect(ids).toEqual([...ids].sort())
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
   it('replaces the older messages of the same user on hello and on bye only', async () => {
     const { alice, bob, post, list, store, room } = await setup()
     await post(alice, hello(A))

@@ -18,8 +18,12 @@ const PEER_RE = /^[A-Za-z0-9_-]{8,64}$/
 const MESSAGE_ID_RE = /^\d{13}-[A-Za-z0-9_-]{8}$/
 
 // 13 digits of the time in ms, so ids sort by time, and 8 random characters.
+// Two ids in one ms (or a clock step back) would sort by the random part, so the
+// time part never repeats or goes back within one process: it is at least last + 1.
+let lastIdTime = 0
 export function newMessageId(now: number = Date.now()): string {
-  return `${String(now).padStart(13, '0')}-${randomBytes(6).toString('base64url')}`
+  lastIdTime = Math.max(now, lastIdTime + 1)
+  return `${String(lastIdTime).padStart(13, '0')}-${randomBytes(6).toString('base64url')}`
 }
 
 export function isMessageId(text: string): boolean {
