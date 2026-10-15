@@ -51,15 +51,15 @@ export const DIE_GRAVITY_SCALE = DIE_GRAVITY / -WORLD_GRAVITY
 const THROW_UP_MIN = 11
 const THROW_UP_MAX = 19.5
 
-// Spin speed at the start of a first throw, rad/s: 15-25, chosen by look (a spin below 15 only
-// tilts the die, user test of playtest 4; a calmer first throw than 15-50). A repeat Roll adds
+// Spin speed at the start of a first throw, rad/s: 15-35, chosen by look (a spin below 15 only
+// tilts the die, user test of playtest 4; livelier start, still room for 2-3 repeat clicks of +5-10 before SPIN_LIMIT 50). A repeat Roll adds
 // spin (addedSpin), up to SPIN_LIMIT.
 // TTS dice spin fast in the air. In TTS, getAngularVelocity() in the first frames after roll()
 // read only 7.7-11 rad/s (2026-10-01), but with 7.7-11 the app's dice only tilted in the air and
 // did not look like TTS (checked in the app, 2026-10-02). Why is not known yet:
 // scripts/tts-dice-measure.lua now also measures the spin during the whole roll.
 const THROW_SPIN_MIN = 15
-const THROW_SPIN_MAX = 25
+const THROW_SPIN_MAX = 35
 // Upper limit of a die's spin speed, rad/s: the TTS upper limit.
 export const SPIN_LIMIT = 50
 // Spin a repeat Roll adds to a die, rad/s.

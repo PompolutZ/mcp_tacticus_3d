@@ -167,7 +167,7 @@ For each die, the app does the same steps as TTS `roll()`:
 1. Set a random rotation with a uniform distribution (Shoemake's method). Three random Euler angles do not give a uniform distribution, so the app does not use them.
 2. Set a random upward speed of 11–19.5 in/s (`THROW_UP_MIN`, `THROW_UP_MAX`), the TTS range. The die goes up 2.4–7.6".
 3. Set a small sideways speed toward a random point in the well, at least half a die from the walls. The app computes this speed from the flight time, so most dice land in the well. Walls and other dice then change their path.
-4. Set a spin around a random axis, with a random speed of 15–25 rad/s (`THROW_SPIN_MIN`, `THROW_SPIN_MAX`). The first throw is calmer than the TTS upper limit of 50 rad/s (`SPIN_LIMIT`); repeat clicks add spin up to that limit. The range is chosen by look, because TTS dice spin fast in the air. The minimum is 15 so that every throw tumbles: with a low spin the die only tilted and fell (user test, playtest 4). A spin of 7.7–11 rad/s, the TTS reading after `roll()`, made the dice only tilt in the air, and the app did not look like TTS. Faster spin makes more dice bounce out of the well (see [Headless](#headless)).
+4. Set a spin around a random axis, with a random speed of 15–35 rad/s (`THROW_SPIN_MIN`, `THROW_SPIN_MAX`). The first throw leaves room below the TTS upper limit of 50 rad/s (`SPIN_LIMIT`) for 2–3 repeat clicks; repeat clicks add spin up to that limit. The range is chosen by look, because TTS dice spin fast in the air. The minimum is 15 so that every throw tumbles: with a low spin the die only tilted and fell (user test, playtest 4). A spin of 7.7–11 rad/s, the TTS reading after `roll()`, made the dice only tilt in the air, and the app did not look like TTS. Faster spin makes more dice bounce out of the well (see [Headless](#headless)).
 
 These steps are a first throw. A repeat Roll on a die of the current throw is different: no step 1 (the rotation stays), steps 2 and 3 only below 5.6", and step 4 adds spin instead of setting it (`addedSpin` in `src/dice/throw.js`). The new speeds replace the old ones, so a die that falls goes up again, and a die in the air changes direction from where it is.
 
@@ -280,7 +280,7 @@ To run it: `pnpm --filter web tts-dice-measure` writes the TTS Saved Object "Dic
 | Rapid rolls: height of the next throw | Rises at first, then stays at 5.57–5.70" above the rest height |
 | Rapid rolls: spin changes | About 85 per second at 90 `roll()` calls per second, so almost every call changes the spin |
 
-The app takes the gravity, the upward speed, the friction and `ROLL_HEIGHT_LIMIT` (5.6") from these results. The first throw spin is 15–25 rad/s, and a repeat Roll adds 5–10 rad/s up to 50 (see [Throw](#throw)).
+The app takes the gravity, the upward speed, the friction and `ROLL_HEIGHT_LIMIT` (5.6") from these results. The first throw spin is 15–35 rad/s, and a repeat Roll adds 5–10 rad/s up to 50 (see [Throw](#throw)).
 
 The script now also measures the spin during the whole roll, in the flight and in the bounces. It reads the spin in two ways: from `getAngularVelocity()`, and from the change of the die's rotation between two frames. If `roll()` turns the die without physics, only the second way sees it. The script also reports the tray's friction and bounciness. These numbers come from the next run.
 

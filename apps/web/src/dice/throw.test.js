@@ -15,11 +15,11 @@ function seeded(seed) {
 
 const len = (v) => Math.hypot(v.x, v.y, v.z)
 
-test('first throw spin is 15-25 rad/s', () => {
+test('first throw spin is 15-35 rad/s', () => {
   const random = seeded(1)
   for (let i = 0; i < 500; i++) {
     const l = len(randomSpin(random))
-    assert.ok(l >= 15 - 1e-9 && l <= 25 + 1e-9, `spin ${l}`)
+    assert.ok(l >= 15 - 1e-9 && l <= 35 + 1e-9, `spin ${l}`)
   }
 })
 
