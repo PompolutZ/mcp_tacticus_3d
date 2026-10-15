@@ -111,7 +111,7 @@ The lobby finds the rooms by the key prefix. One key per room, so a room cannot 
 
 ```js
 {
-  version: 2,
+  version: 3,
   id: 'K7Q2-M9XD',
   owner: '<user id>',
   createdAt, updatedAt,           // ms since 1970
@@ -125,7 +125,7 @@ The lobby finds the rooms by the key prefix. One key per room, so a room cannot 
 - `terrain` stores the place of each piece in the map data (`index`, `locked`), not the whole placement. So a fix of the map data reaches old rooms. A deleted piece is not in the list. A piece that fell when what it stood on was deleted has `y`: the height of its position, as in the map data. Without `y` the piece is at the map height (an older document has none).
 - A model writes its pose to `poses` when its body falls asleep. A lifted model (R) writes the place under the lift. A model that moves when the page closes keeps its last rest pose.
 - A saved model starts at its pose, asleep. So it does not move before the terrain under it has its colliders. A touch, a drag or a removed terrain piece wakes it.
-- A record of version 1 opens with a new table, with its map and rosters. Its old `table` is not read. A document with another `game.schema` gets a new start table. The schema is 2 since the sides are `host` / `guest`, so a room of schema 1 starts with a new table. A single player record of version 2 or older is not listed or opened (saved rooms are not migrated).
+- A record of version 1 opens with a new table, with its map and rosters. Its old `table` is not read. A document opens by its `game.schema`: empty gets the start table, an older one is migrated (a missing step gets the start table, so a room of schema 1 starts with a new table), a newer one is not opened and not written (the lobby asks to reload the page; decision 18). A single player record of version 2 or older is not listed or opened (saved rooms are not migrated).
 
 - The tools (range, movement, Toward / Away) are in `tools`, per side (`tools.host`, `tools.guest`). An entry has the pose, the bend, the snap target and the mode. A tool writes it after it rested for 0.3 s. A saved tool comes back where it was. Place, Throw, the Bend button and the selection of a tool are not saved.
 
@@ -200,6 +200,7 @@ In a single player room, the user id in `localStorage` is the owner of every roo
 15. The room record is written at most every 2 seconds after a change of the document, on `pagehide`, and when the table unmounts.
 16. IndexedDB gets 5 seconds to load. After that, or after an error, the table opens in memory, with a warning that stays until the player closes it. Reason: a database that cannot open never answers, and the room must still open.
 17. There is no Save game and no Load game: the app does not need a game file. A single player room keeps its table in IndexedDB. A multiplayer room keeps it on the server.
+18. A table with a newer `game.schema` than the app does not open, and nothing is written, locally or to the server. A table of an older schema is migrated, not reset, when a step exists. Reasons: an old tab must not reset a newer room and sync the reset to the server and the peer. A reset loses the game; before the first release that is accepted only for schemas with no step (the chain is empty).
 
 ## Out of scope
 

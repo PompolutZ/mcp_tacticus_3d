@@ -151,6 +151,8 @@ User: a single player room, a multiplayer room and the Sandbox open with their t
 
 ### Result
 
+`net/doc.js` has `openAction`, `MIGRATIONS` (empty), `OLDEST_MIGRATED` and `migrate`. `Table.jsx` switches on `openAction`: a newer table closes and exits to the lobby with the reload message, no `deleteDoc`, no write; an older one is migrated, or reset when a step is missing. `migrate` sets the schema with `game.setField`, so other game fields stay. 5 new tests in `doc.test.js`. Docs: `peer-to-peer.md` (game fields, schema rule), `rooms.md` (`version: 3`, open rule, decision 18). Web tests: 813 pass, 0 fail. Lint: 58 warnings, same as before. Build passes. Facts matched the code, no deviation. The `apps/api` tests did not fail this time.
+
 ## Step 3: Schema in hello
 
 Needs step 2.

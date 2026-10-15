@@ -6,7 +6,7 @@ import { setReportContext } from './crash/reporter.js'
 import { LoadingOverlay } from './components/LoadingOverlay.jsx'
 import { useUser } from './auth/useUser.js'
 import { buildOverride, delayFlag, dropFlag, relayFlag } from './net/debugFlags.js'
-import { SCHEMA, createTable, fillTable, tableSchema } from './net/doc.js'
+import { createTable, fillTable, migrate, openAction, tableSchema } from './net/doc.js'
 import { iceConfig } from './net/ice.js'
 import { tableFingerprint } from './net/fingerprint.js'
 import { createLiveHub } from './net/live.js'
@@ -221,8 +221,18 @@ export default function Table({ room = null, onExit }) {
         Y.applyUpdate(doc, serverBytes, 'server')
       }
       const table = createTable(doc)
-      // A new table, or one of an older layout: before the first release all data is test data (decision 11)
-      if (tableSchema(table) !== SCHEMA) {
+      // An empty table gets the start table. An older one is migrated; with no step it gets the start
+      // table too (before the first release all data is test data). A newer one stays as it is.
+      const schema = tableSchema(table)
+      const action = openAction(schema)
+      if (action === 'newer') {
+        close()
+        exit.current(
+          'This table was saved by a newer version of the app. Reload the page to update.',
+        )
+        return
+      }
+      if (action === 'fill' || (action === 'migrate' && !migrate(table, schema))) {
         const rosters = room?.rosters ?? { host: null, guest: null }
         fillTable(table, { ...startTable(room?.mapId ?? START_MAP), rosters })
       }

@@ -1,7 +1,17 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import * as Y from 'yjs'
-import { SCHEMA, createTable, encodeTable, fillTable, tableSchema } from './doc.js'
+import {
+  MIGRATIONS,
+  OLDEST_MIGRATED,
+  SCHEMA,
+  createTable,
+  encodeTable,
+  fillTable,
+  migrate,
+  openAction,
+  tableSchema,
+} from './doc.js'
 
 const STATE = {
   mapId: 'vibranium-heist',
@@ -140,4 +150,53 @@ test('writing a side deletes the dice it no longer has', () => {
   })
   table.dice.setField('host', { critsUsed: false, dice: { aaaaaaaa: SHELF_DIE } })
   assert.deepEqual(table.dice.get('host'), { critsUsed: false, dice: { aaaaaaaa: SHELF_DIE } })
+})
+
+test('openAction: empty fills, equal opens, older migrates, newer stays', () => {
+  assert.equal(openAction(null), 'fill')
+  assert.equal(openAction(2, 2), 'open')
+  assert.equal(openAction(1, 2), 'migrate')
+  assert.equal(openAction(3, 2), 'newer')
+  assert.equal(openAction(SCHEMA), 'open')
+})
+
+test('migrate runs the steps, sets the schema, one update', () => {
+  const table = createTable()
+  fillTable(table, STATE)
+  table.game.setField('schema', 2)
+  let updates = 0
+  table.doc.on('update', () => updates++)
+  const ok = migrate(table, 2, {
+    to: 3,
+    steps: { 2: (t) => t.game.setField('matTurns', 9) },
+  })
+  assert.equal(ok, true)
+  assert.equal(table.game.get('matTurns'), 9)
+  assert.equal(tableSchema(table), 3)
+  assert.equal(updates, 1)
+})
+
+test('migrate with a missing step changes nothing', () => {
+  const table = createTable()
+  fillTable(table, STATE)
+  const before = snapshot(table)
+  assert.equal(migrate(table, 2, { to: 4, steps: { 2: () => {} } }), false)
+  assert.equal(tableSchema(table), SCHEMA)
+  assert.deepEqual(snapshot(table), before)
+})
+
+test('migrate of a schema below OLDEST_MIGRATED returns false', () => {
+  const table = createTable()
+  fillTable(table, STATE)
+  assert.equal(
+    migrate(table, OLDEST_MIGRATED - 1, { steps: { [OLDEST_MIGRATED - 1]: () => {} } }),
+    false,
+  )
+  assert.equal(tableSchema(table), SCHEMA)
+})
+
+test('MIGRATIONS has a step for every schema below SCHEMA, from OLDEST_MIGRATED', () => {
+  for (let n = OLDEST_MIGRATED; n < SCHEMA; n++) {
+    assert.equal(typeof MIGRATIONS[n], 'function', `no migration from schema ${n}`)
+  }
 })

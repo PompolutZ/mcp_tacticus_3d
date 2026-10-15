@@ -290,7 +290,7 @@ Each name is a top-level `Y.Map` of the `Y.Doc`.
 
 | Name | Kind | Content |
 |---|---|---|
-| `game` | record, depth 1 | `schema`, `mapId`, `matTurns`, `deployLine`, `crisis { secure, extract }`, `scoreMarkers`, `affiliations` |
+| `game` | record, depth 1 | `schema`, `mapId`, `matTurns`, `deployLine`, `crisis { secure, extract }`, `scoreMarkers`, `affiliations`, `priority`, `lastActivated` |
 | `rosters` | record | `host` and `guest`: `null` or `{ code }` (`docs/features/roster.md`, "State") |
 | `setup` | record, depth 1 | the game setup: the fields of `NEW_SETUP` (`docs/features/setup-game.md`) |
 | `terrain` | list | the pieces on the mat: `index` in the map data, `locked` |
@@ -327,7 +327,11 @@ How the data is stored:
 - **Record.** A `Y.Map` of fields. With depth 0, each value is one plain value. With depth 1, a value that is a plain object becomes a nested `Y.Map` of its fields. `game` and `setup` have depth 1, so each player's squad and Ready in `setup` (`setup.squads.host`, `setup.ready.guest`) merge. `rosters` and `poses` have depth 0. `tools` has depth 1, so each side's entries merge. A score marker position stays one value.
 - **Poses by model id.** A character with a second form has two models (`characters/models.js`), so `poses` is a record by model id, not a field of the character. A removed character deletes the poses of its models.
 - **Terrain.** `terrain` stores only `index` and `locked`. App adds the placement from the map data (`withPlacements`), so a fix of the map data reaches old rooms.
-- **Schema.** `game.schema` is `SCHEMA` (1). A document or a game file with another schema is not used. Before the first release, all data is test data.
+- **Schema.** `game.schema` is `SCHEMA` (2). A table opens by its schema:
+  - empty: the start table is written.
+  - equal: it opens.
+  - newer: it does not open and nothing is written. The lobby shows "This table was saved by a newer version of the app. Reload the page to update." The local copy stays. So an old tab cannot reset a newer room, locally or on the server.
+  - older: `migrate` runs the steps of `MIGRATIONS` (`net/doc.js`), one per schema `n` to `n + 1`, and sets the schema, in one change. A step sets values by key and adds no list entries with new random ids, so two browsers that migrate their own copies merge to one result. A schema below `OLDEST_MIGRATED` (2), or a missing step, gets the start table. Before the first release the chain is empty, so a table of schema 1 is reset. A test fails when `SCHEMA` has no step.
 
 `rosters` holds the loaded roster of each player. The order of `tactics` is the stack order of the cards.
 
