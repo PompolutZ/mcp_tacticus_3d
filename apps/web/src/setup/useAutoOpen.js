@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useLatest } from '../components/useLatest.js'
+import { useLatest } from '../scene/useLatest.js'
 
 // An overlay that opens by itself once per `key`. key: "<setup id>:<step>" while this screen should see the
 // overlay, else null. onOpen() runs the first time a key shows up; a close and a rerender do not run it again,

@@ -107,8 +107,8 @@ apps/web/
   src/net/syncChannel.js      Yjs sync over the sync channel, 16 KB frames
   src/Table.jsx               starts the connection in a multiplayer room, pauses the guest's writer, 404 of a poll
   src/App.jsx                 camera for Red, connection props, version warning
-  src/components/RoomPlayers.jsx   avatars, names, status, Try again
-  src/components/Toolbar.jsx  shows RoomPlayers in a multiplayer room. Copy link hides when the guest is seen
+  src/rooms/RoomPlayers.jsx   avatars, names, status, Try again
+  src/ui/Toolbar.jsx  shows RoomPlayers in a multiplayer room. Copy link hides when the guest is seen
   src/index.css               styles of RoomPlayers
 ```
 
@@ -288,7 +288,7 @@ Deviations: none.
 
 ## Phase 3: The room connects
 
-Read: decisions 11, 12, 14 and 16 to 18. `apps/web/src/Table.jsx`, `App.jsx` (camera, `resetCamera`, `serverWarning`), `components/Toolbar.jsx`, `components/CopyLinkButton.jsx`, `components/Lobby.jsx` (the seats of a tile), `auth/avatar.js`, `vite.config.js`.
+Read: decisions 11, 12, 14 and 16 to 18. `apps/web/src/Table.jsx`, `App.jsx` (camera, `resetCamera`, `serverWarning`), `ui/Toolbar.jsx`, `rooms/CopyLinkButton.jsx`, `rooms/Lobby.jsx` (the seats of a tile), `auth/avatar.js`, `vite.config.js`.
 
 Work:
 1. `vite.config.js`: `VITE_BUILD_ID` (decision 14). `net/debugFlags.js`: `?build`, only when `import.meta.env.DEV`.
@@ -300,7 +300,7 @@ Work:
 3. `App.jsx`:
    - The start view of decision 17, for `CAMERA_POSITION`, `CAMERA_TARGET` and `resetCamera`.
    - The connection prop goes to the toolbar. The version warning shows like `serverWarning`.
-4. `components/RoomPlayers.jsx` (decision 16) and its styles in `index.css`. `Toolbar.jsx` shows it in a multiplayer room, and hides **Copy link** when the guest is seen.
+4. `rooms/RoomPlayers.jsx` (decision 16) and its styles in `index.css`. `Toolbar.jsx` shows it in a multiplayer room, and hides **Copy link** when the guest is seen.
 5. The list of decision 18: search for document writes that run in an effect, a timer or a physics callback. Put the list in the **Result**.
 
 Checks:
@@ -315,7 +315,7 @@ Added in `apps/web`:
 - `net/debugFlags.js`: `buildOverride()` returns `?build=<text>` in a dev build, else `null`. `Table.jsx` sends `buildOverride() ?? VITE_BUILD_ID`.
 - `Table.jsx`: in a multiplayer room, after the writer starts, a new peer id, `createSignaling` with `postMessage` and `getMessages`, `connectRoom` with the role from `room.host === userId`. `onChannel` calls `syncOverChannel` and stops it on the channel `close` event. `close()` stops the sync and the connection. `pagehide` calls `stop({ keepalive: true })`. The guest's writer pauses on `connected` and resumes on the other states. `gone` does what the writer's `onGone` does. App gets a `connection` prop: `{ state, peer, versionMismatch, retry }`, or `null`.
 - `App.jsx`: Red start view (decision 17) for the Canvas camera, the OrbitControls target and `resetCamera`, when `room?.multiplayer && room.side === 'red'`. The version warning (decision 14 text) is a closable `hud-warning`. It shows again after the mismatch ends and comes back. `side`, `players` and `connection` go to the toolbar.
-- `components/RoomPlayers.jsx` and styles in `index.css` (`.room-player*`). `Toolbar.jsx` shows it in a multiplayer room.
+- `rooms/RoomPlayers.jsx` and styles in `index.css` (`.room-player*`). `Toolbar.jsx` shows it in a multiplayer room.
 
 UI choices:
 - One row, two seats: team name in the side color, avatar, name. The own seat ends with "You". The other seat ends with the status text, and **Try again** (a chip) for `failed` and `stopped`. The "Could not connect" title has the design text.
@@ -326,7 +326,7 @@ UI choices:
 No signaling call outside a multiplayer room: `createSignaling` and `connectRoom` are called only inside the `if (room?.multiplayer)` block of the open effect in `Table.jsx`. The Sandbox has `room = null` and a single player room has `multiplayer` false, so neither reaches it. `pagehide` and the cleanup use `link.current?.`, which stays `null` there.
 
 Decision 18, writes outside a player action (none is fixed):
-1. `components/Scene.jsx:947` (`onRest`, the Rapier `onSleep` of a model body) calls `onModelRest`, which is `table.poses.setField` (`App.jsx:1443`). Writes the rest pose of the model. No random id. Runs in both browsers.
+1. `scene/Scene.jsx:947` (`onRest`, the Rapier `onSleep` of a model body) calls `onModelRest`, which is `table.poses.setField` (`App.jsx:1443`). Writes the rest pose of the model. No random id. Runs in both browsers.
 2. `App.jsx:274`, in an effect on open: `table.rosters.setField(room.side, roster)`, only when the own key is empty. Writes the own roster once. No random id. Each browser writes only its own side, so it does not repeat on the other.
 3. `Table.jsx` `fillTable(table, startTable(...))` when the stored table has no schema: writes the whole start table, with random ids (`rooms/table.js:17`). It runs at open, before the connection. A multiplayer room gets its table from the server, so it only runs for a single player room or the Sandbox.
 
@@ -455,7 +455,7 @@ Today the second **Ready** click puts both squads on the table (`putSquadsOnTabl
 
 ### Work
 
-Read: decisions 25 to 34. `docs/features/setup-game.md` ("Squads", "State"). `apps/web/src/setup/setup.js`, the setup parts of `App.jsx` (`restartSetup`, `handleRosterClick`, `handleSquadReady`, `putSquadsOnTable`, the setup panel props), `components/GameSetup.jsx`, `components/RosterCards.jsx` (the squad frame), `Scene.jsx` (when the roster cards leave), `rooms/store.js`, `rooms/localDocs.js`, `components/Lobby.jsx` (the cleanup), `rooms/table.js` (`startTable`).
+Read: decisions 25 to 34. `docs/features/setup-game.md` ("Squads", "State"). `apps/web/src/setup/setup.js`, the setup parts of `App.jsx` (`restartSetup`, `handleRosterClick`, `handleSquadReady`, `putSquadsOnTable`, the setup panel props), `setup/GameSetup.jsx`, `rosters/RosterCards.jsx` (the squad frame), `Scene.jsx` (when the roster cards leave), `rooms/store.js`, `rooms/localDocs.js`, `rooms/Lobby.jsx` (the cleanup), `rooms/table.js` (`startTable`).
 
 1. `setup/setup.js`: `setup.id` in the new setup (a function, because `NEW_SETUP` is a constant and the id is random), `placed` per side, the reading of the old `placed` shape, `reveal` in `setupStep`, a pure function that says which sides this browser reveals now and with which squad (decisions 27, 31, 32).
 2. `rooms/store.js`: read, save and delete the stored squad (decision 25). `rooms/localDocs.js` and `Lobby.jsx`: the cleanup of decision 33.

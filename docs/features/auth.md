@@ -324,12 +324,12 @@ apps/web/src/rooms/
   startTable.js    the bytes of the start table
   base64.js        bytes to base64 and back
   localDocs.js     the IndexedDB names of multiplayer rooms and their cleanup
-apps/web/src/components/
-  RoomPlayers.jsx  the seats and the connection status in the room toolbar
-  UserMenu.jsx     login button, avatar, menu, dev login
-  JoinRoom.jsx     the join page of a multiplayer room
-  CopyLinkButton.jsx  Copy link
-  RoomRosterPopup.jsx  the roster popup of a tile and of the join page
+apps/web/src/
+  rooms/RoomPlayers.jsx  the seats and the connection status in the room toolbar
+  auth/UserMenu.jsx      login button, avatar, menu, dev login
+  rooms/JoinRoom.jsx     the join page of a multiplayer room
+  rooms/CopyLinkButton.jsx  Copy link
+  rosters/RoomRosterPopup.jsx  the roster popup of a tile and of the join page
 apps/api/src/
   auth/            token (sign and verify the session token), discord (the Discord client)
   routes/          auth (Discord code exchange), devAuth (local only), me, rooms (seat rules), table (merge), signal (messages)

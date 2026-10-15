@@ -43,7 +43,7 @@ Checked on 2026-10-13 with `migrate-terrain --list` and the Terrain Database:
 
 ## Phase 1: Mat rotation, the two OBJ-only maps
 
-Read: this plan, `scripts/README.md` (terrain part), `src/terrain/maps.js`, `src/terrain/files.js`, `src/components/Scene.jsx` (`Mat`, mat turns), `docs/features/rooms.md`.
+Read: this plan, `scripts/README.md` (terrain part), `src/terrain/maps.js`, `src/terrain/files.js`, `src/scene/Scene.jsx` (`Mat`, mat turns), `docs/features/rooms.md`.
 
 Work:
 1. `Scene.jsx`: `Mat` turns the image by decision 2. The user turn of the mat (`matTurns`) still applies on top.
@@ -55,7 +55,7 @@ Checks: `pnpm format`, `pnpm lint`, the tests of `apps/web`, `pnpm --filter web 
 
 ## Phase 2: Bundle pieces, two small bundle maps
 
-Read: this plan, `docs/features/maps.md`, `scripts/README.md` (terrain part, "Colliders of a bundle"), `src/components/Terrain.jsx`, `src/components/Preload.jsx`, `src/terrain/pieces.js`, `src/terrain/files.js`.
+Read: this plan, `docs/features/maps.md`, `scripts/README.md` (terrain part, "Colliders of a bundle"), `src/terrain/Terrain.jsx`, `src/scene/Preload.jsx`, `src/terrain/pieces.js`, `src/terrain/files.js`.
 
 Work:
 1. `Terrain.jsx`: bundle pieces by decisions 3 to 5. `pieceUrls` gives no texture for a bundle piece and the list of collider mesh URLs (`bundleCollider`). `Preload.jsx` loads the same.

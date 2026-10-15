@@ -107,7 +107,7 @@ A **Debug** section has **Mode** (dev server only) and **Labels** (the piece nam
 
 ### Labels
 
-A label hides while terrain is between the camera and the label. This covers every label and control drawn in the 3D scene: the terrain labels, the LOS label, the token name and count, the tool rack label, the ruler tool buttons and labels, the boards on the table (setup, Deploy Lock), the dice tray keys and die menu, the character tray controls and counters, and the spectator badge. A hidden label takes no pointer events. A terrain piece does not hide its own label. The check runs about 10 times a second, and only when the camera, a label or the terrain changed. It uses one physics ray from the camera to each label (`components/LabelOcclusion.jsx`). A board or tray control is checked at its center. A tray does not hide its own keys or die menu.
+A label hides while terrain is between the camera and the label. This covers every label and control drawn in the 3D scene: the terrain labels, the LOS label, the token name and count, the tool rack label, the ruler tool buttons and labels, the boards on the table (setup, Deploy Lock), the dice tray keys and die menu, the character tray controls and counters, and the spectator badge. A hidden label takes no pointer events. A terrain piece does not hide its own label. The check runs about 10 times a second, and only when the camera, a label or the terrain changed. It uses one physics ray from the camera to each label (`scene/LabelOcclusion.jsx`). A board or tray control is checked at its center. A tray does not hide its own keys or die menu.
 
 ### Sound
 

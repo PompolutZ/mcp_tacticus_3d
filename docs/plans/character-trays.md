@@ -27,9 +27,9 @@ Done when the trays show in a row for each player and a click on a card opens th
 
 #### Result
 
-Files: `src/table.js` (table depth), `src/characters/trays.js` (new), `src/components/CharacterTray.jsx`
-(new), `src/components/CrisisCard.jsx`, `src/components/CardPopup.jsx`, `src/App.jsx`,
-`src/components/Scene.jsx`, `src/characters/characters.js` (`characterName` helper), `src/index.css`
+Files: `src/table.js` (table depth), `src/characters/trays.js` (new), `src/characters/CharacterTray.jsx`
+(new), `src/crisis/CrisisCard.jsx`, `src/rosters/CardPopup.jsx`, `src/App.jsx`,
+`src/scene/Scene.jsx`, `src/characters/characters.js` (`characterName` helper), `src/index.css`
 (`tray-label`).
 
 `npm run dice-sim`, seed 1, default throw counts:
@@ -76,9 +76,9 @@ Open issues:
 
 Files: `src/characters/characters.js` (`staminaHealthy`/`staminaInjured`, `characterStamina`),
 `src/App.jsx` (`side`/`damage`/`power` on spawn, `handleCharacterDamage`/`Power`/`Flip`),
-`src/components/Scene.jsx` (forwards the three handlers to each tray), `src/components/CharacterTray.jsx`
-(card shows `character.side`, mounts the controls, builds the popup's `altSrc`), `src/components/TrayControls.jsx`
-(new), `src/components/CardPopup.jsx` (`altSrc` + "Show other side" button), `src/index.css`
+`src/scene/Scene.jsx` (forwards the three handlers to each tray), `src/characters/CharacterTray.jsx`
+(card shows `character.side`, mounts the controls, builds the popup's `altSrc`), `src/characters/TrayControls.jsx`
+(new), `src/rosters/CardPopup.jsx` (`altSrc` + "Show other side" button), `src/index.css`
 (`--warn`, `.tray-controls*`, `.tray-counter*`, `.card-popup-content`).
 
 Measured: Jarvis stores `statCard.frontSide.stamina` / `backSide.stamina` as strings, not numbers
@@ -124,7 +124,7 @@ Open issues:
 Files: `scripts/migrate-tokens.mjs` (new), `src/tokens/files.js` (new, `characterToken(key)`),
 `src/tokens/tokens.json` (new, 88 entries), `scripts/token-manifest.json` (new), `src/assets/tokens/*.webp`
 (new, 88 files), `package.json` (`migrate-tokens` script), `scripts/README.md`, `ASSETS.md`,
-`src/components/TrayControls.jsx` (Power icon).
+`src/characters/TrayControls.jsx` (Power icon).
 
 Measured, 2026-10-01: `tokenDatabase` has 310 rows, all cached. 88 rows match the "yes" rows of the
 table (condition 10, status 3, character 34, tactic 41), converted to WebP, max 256×256, quality 85,
@@ -177,9 +177,9 @@ Open issues:
 #### Result
 
 Files: `src/tokens/tokens.js` (new, the token list and `isCappedToken`), `src/components/TokensPanel.jsx`
-(new), `src/components/TrayControls.jsx` (the **On** row and `TokenChip`), `src/components/CharacterTray.jsx`
-(`objectRef` on the card mesh, forwards `onTokenRemove`), `src/components/Scene.jsx` (`characterAt`,
-`characterAtRef`, `trayObjects`), `src/components/Toolbar.jsx` (Tokens button), `src/App.jsx`
+(new), `src/characters/TrayControls.jsx` (the **On** row and `TokenChip`), `src/characters/CharacterTray.jsx`
+(`objectRef` on the card mesh, forwards `onTokenRemove`), `src/scene/Scene.jsx` (`characterAt`,
+`characterAtRef`, `trayObjects`), `src/ui/Toolbar.jsx` (Tokens button), `src/App.jsx`
 (`tokens: {}` on spawn, give/remove handlers, the drag state and ghost, `findCharacterAt`),
 `src/index.css` (`.tokens-panel*`, `.token-chip*`, `.token-drag-ghost`, `.tray-controls-on`),
 `scripts/migrate-tokens.mjs` (`1-power` → group `counter`), `src/tokens/tokens.json` (re-migrated,
@@ -234,8 +234,8 @@ Open issues:
 
 Files: `scripts/migrate-characters.mjs` (`tokens`/`immune` fields, mapped from `cToken`/`cImmune`),
 `src/characters/characters.json` (re-migrated, same 21 characters, only `tokens`/`immune` added),
-`src/characters/characters.js` (`characterGiveTokens`, `characterImmune`), `src/components/TrayControls.jsx`
-(the **Give** row, `GiveChip`), `src/components/CharacterTray.jsx`, `src/components/Scene.jsx`
+`src/characters/characters.js` (`characterGiveTokens`, `characterImmune`), `src/characters/TrayControls.jsx`
+(the **Give** row, `GiveChip`), `src/characters/CharacterTray.jsx`, `src/scene/Scene.jsx`
 (forward `onTokenDragStart`), `src/App.jsx` (`handleCharacterTokenGive` checks immunity, `hudMessage`
 state and `showHudMessage`), `src/index.css` (`.tray-controls-row-label`, `.tray-controls-give`,
 `.token-chip--give`, `.hud-message`), `scripts/README.md`.
@@ -314,11 +314,11 @@ As in [Hold and drop](../features/character-trays.md#hold-and-drop). `CrisisToke
 #### Result
 
 Files: `src/App.jsx` (`canHold`/`heldBy` in `buildMatTokens`/`buildSupplyTokens`, `handleTokenHold`,
-`handleTokenDrop`, `handleDropCharacterTokens`, `modelPositionRef`), `src/components/Scene.jsx`
+`handleTokenDrop`, `handleDropCharacterTokens`, `modelPositionRef`), `src/scene/Scene.jsx`
 (`modelPosition`, `matTokens`, `onTokenHold`/`onTokenDrop`/`modelPositionRef` props, filters held
-tokens out of the 3D render and `toolModels`), `src/components/CrisisToken.jsx` (`onHold`,
-`findCharacter` props, the drop-on-a-character check in `onPointerUp`), `src/components/CharacterTray.jsx`
-(`heldTokens`, `onTokenDrop` passthrough), `src/components/TrayControls.jsx` (the **Held** row,
+tokens out of the 3D render and `toolModels`), `src/crisis/CrisisToken.jsx` (`onHold`,
+`findCharacter` props, the drop-on-a-character check in `onPointerUp`), `src/characters/CharacterTray.jsx`
+(`heldTokens`, `onTokenDrop` passthrough), `src/characters/TrayControls.jsx` (the **Held** row,
 `HeldChip`), `src/index.css` (`.tray-controls-held`, `.token-chip--held`), `docs/features/crisis.md`
 (status line).
 
@@ -404,12 +404,12 @@ Open issues:
 #### Result
 
 Files: `src/App.jsx` (`lowestFreeSlot`, `handleCharacterRemove`, `handleTokenDrop`/
-`handleDropCharacterTokens` reworked, `findCharacterAt` passed to `Scene`), `src/components/Scene.jsx`
+`handleDropCharacterTokens` reworked, `findCharacterAt` passed to `Scene`), `src/scene/Scene.jsx`
 (`onCharacterRemove`, `findCharacterAt` props, `CrisisToken`'s `findCharacter` now `findCharacterAt`,
-`CharacterTray` gets `onRemove`/`selected`/`onSelect`), `src/components/CharacterTray.jsx` (`selected`,
+`CharacterTray` gets `onRemove`/`selected`/`onSelect`), `src/characters/CharacterTray.jsx` (`selected`,
 `onSelect`, `onRemove` props, the name `<Html>` is clickable, `useOutline` on the card mesh,
-`characterId` added to the popup's `openCard`), `src/components/TrayControls.jsx` (Remove button,
-`window.confirm`), `src/components/CrisisToken.jsx` (doc comment only, no logic change), `src/index.css`
+`characterId` added to the popup's `openCard`), `src/characters/TrayControls.jsx` (Remove button,
+`window.confirm`), `src/crisis/CrisisToken.jsx` (doc comment only, no logic change), `src/index.css`
 (`.tray-label` cursor, `.tray-controls-actions`, `.tray-controls-remove`).
 
 Remove: `handleCharacterRemove` calls `handleDropCharacterTokens` (reads the character while it is
@@ -496,7 +496,7 @@ Asked on 2026-10-02: the tokens a character gives and the tokens on a character 
 
 #### Result
 
-Files: `src/tokens/files.js` (`TOKEN_SIZE`), `src/characters/trays.js` (new tray parts and token positions, one row), `src/components/TokenFace.jsx` (new), `src/components/LooseToken.jsx` (new), `src/components/TokenDragPreview.jsx` (new), `src/components/CharacterTray.jsx` (On row and Give sources in 3D, the plate is the drop target), `src/components/TrayControls.jsx` (On and Give rows removed), `src/components/Scene.jsx`, `src/App.jsx` (`looseTokens`, the new drag, Delete key), `src/keyboard.js` (`DELETE_KEYS`), `src/index.css`.
+Files: `src/tokens/files.js` (`TOKEN_SIZE`), `src/characters/trays.js` (new tray parts and token positions, one row), `src/tokens/TokenFace.jsx` (new), `src/tokens/LooseToken.jsx` (new), `src/tokens/TokenDragPreview.jsx` (new), `src/characters/CharacterTray.jsx` (On row and Give sources in 3D, the plate is the drop target), `src/characters/TrayControls.jsx` (On and Give rows removed), `src/scene/Scene.jsx`, `src/App.jsx` (`looseTokens`, the new drag, Delete key), `src/keyboard.js` (`DELETE_KEYS`), `src/index.css`.
 
 Changes:
 

@@ -39,9 +39,9 @@ All findings were checked in the code at `4698e42`.
 
 ### 3. Memory
 
-- `ObjPiece` in `components/Terrain.jsx` makes a new `MeshStandardMaterial` per piece and never disposes it. `BundlePiece` in the same file disposes its materials in an effect cleanup. The terrain mounts again on every map change and every mat turn (`<Suspense key={`${mapId}-${matTurns}`}>` in `Scene.jsx`).
-- `textured()` in `components/RulerTool.jsx` makes a new material on each call. It is called by `useRangeParts`, `DeployRangeTool` and `useMovementParts` in a `useMemo`. Nothing disposes it. `DeployRangeTool` mounts again on every model drag with Deploy Lock on.
-- Same pattern, smaller: `Board` and `RoundMarkerMesh` in `components/ScoreBoard.jsx`, `useDieLook` and `trayMaterial` in `components/DiceTrayParts.jsx`. They mount once per table or change with the side color.
+- `ObjPiece` in `terrain/Terrain.jsx` makes a new `MeshStandardMaterial` per piece and never disposes it. `BundlePiece` in the same file disposes its materials in an effect cleanup. The terrain mounts again on every map change and every mat turn (`<Suspense key={`${mapId}-${matTurns}`}>` in `Scene.jsx`).
+- `textured()` in `tabletools/RulerTool.jsx` makes a new material on each call. It is called by `useRangeParts`, `DeployRangeTool` and `useMovementParts` in a `useMemo`. Nothing disposes it. `DeployRangeTool` mounts again on every model drag with Deploy Lock on.
+- Same pattern, smaller: `Board` and `RoundMarkerMesh` in `scoreboard/ScoreBoard.jsx`, `useDieLook` and `trayMaterial` in `dice/DiceTrayParts.jsx`. They mount once per table or change with the side color.
 - No other leak was found. The scan: files with `new ...Material(`, `...Geometry(`, `...Texture(` against `dispose`; `addEventListener` against `removeEventListener`; `requestAnimationFrame` and `setInterval` against their cancel. The unbalanced listeners (`sound.js`, `net/peer.js`, `crash/errors.js`) are `once`, app-wide, or on objects that are dropped together with the listener.
 - `useDragTool` in `RulerTool.jsx` makes a new `THREE.Vector3` on every drag frame (`const target = new THREE.Vector3()` in `useFrame`) and on every pointer move of a turn drag (`intersectPlane(dragPlane.current, new THREE.Vector3())`).
 
@@ -51,13 +51,13 @@ Four `.js` files have six imports from `.jsx` files (`git grep -nE "from ['\"][^
 
 | File | Imports |
 |---|---|
-| `components/throwPath.js` | `BASE_HALF_H`, `baseGroundY` from `CharacterModel.jsx` |
-| `terrain/dropQuery.js` | `BASE_HALF_H` from `components/CharacterModel.jsx` |
+| `characters/throwPath.js` | `BASE_HALF_H`, `baseGroundY` from `CharacterModel.jsx` |
+| `terrain/dropQuery.js` | `BASE_HALF_H` from `characters/CharacterModel.jsx` |
 | `rooms/preload.js` | `matUrl` from `Scene.jsx`, `pieceUrls` from `Terrain.jsx`, `modelUrls` from `CharacterModel.jsx` |
-| `components/tacticFaceTexture.js` | `TacticFace` from `TacticFace.jsx` |
+| `tactics/tacticFaceTexture.js` | `TacticFace` from `TacticFace.jsx` |
 
 - `tacticFaceTexture.js` renders the React component into a canvas. That import is correct and stays.
-- `baseGroundY` needs only `castDown` (`physics.js`), `BASE_HALF_H`, `BASE_RADIUS` and `NO_ROTATION`. `physics.js` and `components/terrainUnder.js` load in Node. So `throwPath.js` and `dropQuery.js` load in Node once `CharacterModel.jsx` is out of their imports.
+- `baseGroundY` needs only `castDown` (`physics.js`), `BASE_HALF_H`, `BASE_RADIUS` and `NO_ROTATION`. `physics.js` and `characters/terrainUnder.js` load in Node. So `throwPath.js` and `dropQuery.js` load in Node once `CharacterModel.jsx` is out of their imports.
 - `modelUrls`, `pieceUrls` and `matUrl` use `assetUrl` (`assets/index.js`, `import.meta.glob`), so their new modules do not load in Node.
 - Lint is oxlint, not eslint. oxlint 1.87 supports `no-restricted-imports` with `patterns`. A test config with `{ "group": ["**/*.jsx", "*.jsx"] }` on `apps/web/src`, `.jsx` files ignored, reports exactly the 6 imports above.
 
@@ -93,7 +93,7 @@ Four `.js` files have six imports from `.jsx` files (`git grep -nE "from ['\"][^
 
 ### 9. Unused exports
 
-`pnpm fallow dead-code` reports 27 unused exports and one unlisted dependency (`@dimforge/rapier3d-compat`). Most of the 27 are used inside their own file (for example `useTacticFaceTexture`, called by `useTacticFaceMap`), so only the `export` keyword goes. The list: `scripts/lib/tts.mjs` `downloadToCache`; `characters/models.js` `constructModelId`, `secondModelId`; `characters/trays.js` `TRAY_ON_LOCAL_Z`; `components/TacticFace.jsx` `FACE_FONTS`; `components/labelOcclusion.js` `MOVE_EPSILON`, `TURN_EPSILON`, `RAY_END_MARGIN`; `components/tacticFaceTexture.js` `CANVAS_WIDTH`, `CANVAS_HEIGHT`; `components/useTacticFaceTexture.js` `useTacticFaceTexture`; `crash/errors.js` `resetErrorsForTest`; `crash/reporter.js` `MAX_PER_PAGE`; `input/bindings.js` `WHEEL_CODES`, `sameInput`, `isKnownCode`, `RESERVED`; `physics.js` `LOWER_MARGIN`; `settings/settings.js` `DEFAULT_SPECTATOR_SIZE`, `DEFAULT_TURN_STEP`; `setup/deckButton.js` `deckProblem`; `tactics/faceIcons.js` `BODY_ICONS`, `PILL_ICONS`; `terrain/bundleColliders.js` `scaleVector`; `terrain/dropDown.js` `MIN_FALL`; `terrain/mapFace.js` `RANDOM_MAP_NAME`; `tokens/count.js` `pileToken`.
+`pnpm fallow dead-code` reports 27 unused exports and one unlisted dependency (`@dimforge/rapier3d-compat`). Most of the 27 are used inside their own file (for example `useTacticFaceTexture`, called by `useTacticFaceMap`), so only the `export` keyword goes. The list: `scripts/lib/tts.mjs` `downloadToCache`; `characters/models.js` `constructModelId`, `secondModelId`; `characters/trays.js` `TRAY_ON_LOCAL_Z`; `tactics/TacticFace.jsx` `FACE_FONTS`; `scene/labelOcclusion.js` `MOVE_EPSILON`, `TURN_EPSILON`, `RAY_END_MARGIN`; `tactics/tacticFaceTexture.js` `CANVAS_WIDTH`, `CANVAS_HEIGHT`; `tactics/useTacticFaceTexture.js` `useTacticFaceTexture`; `crash/errors.js` `resetErrorsForTest`; `crash/reporter.js` `MAX_PER_PAGE`; `input/bindings.js` `WHEEL_CODES`, `sameInput`, `isKnownCode`, `RESERVED`; `physics.js` `LOWER_MARGIN`; `settings/settings.js` `DEFAULT_SPECTATOR_SIZE`, `DEFAULT_TURN_STEP`; `setup/deckButton.js` `deckProblem`; `tactics/faceIcons.js` `BODY_ICONS`, `PILL_ICONS`; `terrain/bundleColliders.js` `scaleVector`; `terrain/dropDown.js` `MIN_FALL`; `terrain/mapFace.js` `RANDOM_MAP_NAME`; `tokens/count.js` `pileToken`.
 
 ### 10. `components/`
 
@@ -110,8 +110,8 @@ Four `.js` files have six imports from `.jsx` files (`git grep -nE "from ['\"][^
 
 1. **A bad live pose is dropped by key, not by packet.** `parse` keeps the good keys of a packet. A peer with a newer layout of one kind still moves the other pieces.
 2. **The server table is a compact `Y.Doc` encoding.** `mergeTables` applies the stored table and the update to a new `Y.Doc` and returns `Y.encodeStateAsUpdate`. A stored table becomes compact on its next write, because the stored bytes go through the same function. No migration script is needed.
-3. **A material that a component makes is disposed by the component.** One shared hook, `useDisposeMaterials(obj)` (new `components/useDisposeMaterials.js`), disposes the materials of `obj` in an effect cleanup. `BundlePiece` uses it too. Tool materials are cached, one per player color (`toolMaterial(map, playerColor)`), because tools mount often and have only three looks (blue, red, no tint). A cached material is never disposed.
-4. **Layering rule**: a `.js` file under `apps/web/src` does not import a `.jsx` file. oxlint `no-restricted-imports` checks it in an `overrides` entry for `apps/web/src/**/*.js`. `components/tacticFaceTexture.js` is the one exception, with a comment that says why. Fallow `architecture` boundaries were also possible, but `pnpm lint` runs after every change, and fallow does not.
+3. **A material that a component makes is disposed by the component.** One shared hook, `useDisposeMaterials(obj)` (new `scene/useDisposeMaterials.js`), disposes the materials of `obj` in an effect cleanup. `BundlePiece` uses it too. Tool materials are cached, one per player color (`toolMaterial(map, playerColor)`), because tools mount often and have only three looks (blue, red, no tint). A cached material is never disposed.
+4. **Layering rule**: a `.js` file under `apps/web/src` does not import a `.jsx` file. oxlint `no-restricted-imports` checks it in an `overrides` entry for `apps/web/src/**/*.js`. `tactics/tacticFaceTexture.js` is the one exception, with a comment that says why. Fallow `architecture` boundaries were also possible, but `pnpm lint` runs after every change, and fallow does not.
 5. **Names move to plain modules**: `BASE_RADIUS`, `BASE_HALF_H`, `baseGroundY` and `upright` to `characters/base.js`. `modelUrls` to `characters/files.js`. `pieceUrls` to `terrain/files.js`. `matUrl`, and `matImageUrl` from `SceneShared.jsx` that it needs, to `terrain/maps/index.js` next to `MAPS`. The components import them from there.
 6. **Feature actions are plain modules.** One `create<Feature>Actions(table, env)` per feature. It writes only the document, each action in one `table.transact`, and reads the document (`table.X.read()`), not render state. `env` has the seat (`mySide`, `hiddenSquads`) and the lookups that do not load in Node (`rosterCard`, `parseRosterText`, `characterByCode`). An action returns what the UI needs to say (`{ restarted, unknown }`). It does not call `window.confirm`, the HUD or React setters. The thin hook keeps the confirm, the HUD message, local UI state (`openRoster`, the stored squad) and the effects.
 7. **The actions reach the components through a module store**, as in `sideColors.js`: new `table/actions.js` with `setTableActions(actions)` and `useTableActions()`. React context does not reach inside the Canvas. `App` creates the actions once per table and seat (`useMemo` on `table`, `mySide`, `hiddenSquads`) and sets them. The props that only pass actions through `Scene` to `GameSetup` go away.
@@ -168,8 +168,8 @@ Done. `mergeTables` in `apps/api/src/rooms/table.ts` applies both inputs to a ne
 
 Work:
 
-1. New `components/useDisposeMaterials.js`: `useDisposeMaterials(obj)`, an effect with cleanup that disposes each mesh material of `obj` (also material lists). Decision 3.
-2. `components/Terrain.jsx`: `ObjPiece` and `BundlePiece` call it. `BundlePiece` loses its own effect.
+1. New `scene/useDisposeMaterials.js`: `useDisposeMaterials(obj)`, an effect with cleanup that disposes each mesh material of `obj` (also material lists). Decision 3.
+2. `terrain/Terrain.jsx`: `ObjPiece` and `BundlePiece` call it. `BundlePiece` loses its own effect.
 3. `ScoreBoard.jsx` (`Board`, `RoundMarkerMesh`) and `DiceTrayParts.jsx` (`trayVisual`): call it. `useDieLook` returns a material without a mesh: dispose it in a `useEffect` cleanup on `[material]`.
 4. `RulerTool.jsx` (or `toolGeometry.js` after `split-large-files.md`): `textured(obj, map, playerColor)` takes a cached material from a new `toolMaterial(map, playerColor)`, a `Map` keyed by map uuid and color. No dispose (decision 3).
 5. `useDragTool`: one `Vector3` in a ref (or a module constant) for the frame target and one for the turn hit, reused.
@@ -179,7 +179,7 @@ User: turn the mat 10 times and change the map 5 times; the terrain looks as bef
 
 ### Result
 
-Done. New `components/useDisposeMaterials.js`; used by `ObjPiece` and `BundlePiece` (`Terrain.jsx`), `Board` and `RoundMarkerMesh` (`ScoreBoard.jsx`), `trayVisual` (`DiceTrayParts.jsx`). `useDieLook` disposes its material in an effect cleanup. `textured` is in `components/ToolParts.jsx`: it takes a cached `toolMaterial(map, playerColor)`. `useDragTool` (`tabletools/useDragTool.js`) reuses two `Vector3` refs. Checks: format, lint (52 warnings, same), web build pass. `pnpm test`: `apps/api/test/signal.test.ts` fails 1 test (the flaky test of step 15, not touched by this step); all else passes.
+Done. New `scene/useDisposeMaterials.js`; used by `ObjPiece` and `BundlePiece` (`Terrain.jsx`), `Board` and `RoundMarkerMesh` (`ScoreBoard.jsx`), `trayVisual` (`DiceTrayParts.jsx`). `useDieLook` disposes its material in an effect cleanup. `textured` is in `tabletools/ToolParts.jsx`: it takes a cached `toolMaterial(map, playerColor)`. `useDragTool` (`tabletools/useDragTool.js`) reuses two `Vector3` refs. Checks: format, lint (52 warnings, same), web build pass. `pnpm test`: `apps/api/test/signal.test.ts` fails 1 test (the flaky test of step 15, not touched by this step); all else passes.
 
 ## Step 4: Plain modules do not import components
 
@@ -187,9 +187,9 @@ Work:
 
 1. New `characters/base.js`: `BASE_RADIUS`, `BASE_HALF_H`, `NO_ROTATION` (if `CharacterModel.jsx` keeps using it, import it from here), `upright`, `baseGroundY`. `CharacterModel.jsx` imports them. Decision 5.
 2. `modelUrls` to `characters/files.js`, `pieceUrls` to `terrain/files.js`, `matUrl` and `matImageUrl` (now in `SceneShared.jsx`) to `terrain/maps/index.js`. Components and `rooms/preload.js` import from the new places. Fix the comments that name the old file (`Preload.jsx`, `docs/features/rooms.md`, "Loading").
-3. `components/throwPath.js` and `terrain/dropQuery.js` import from `characters/base.js`.
-4. Tests: `components/throwPath.test.js` and `terrain/dropQuery.test.js` with a fake `world` and `rapier` (the cast functions take them as arguments; follow `physics.test.js`). `characters/base.test.js` for `upright`. If a module still does not load in Node, write why in the Result and leave its test out.
-5. `.oxlintrc.json`: an `overrides` entry for `apps/web/src/**/*.js` with `"no-restricted-imports": ["error", { "patterns": [{ "group": ["**/*.jsx", "*.jsx"], "message": "A plain module does not import a component. Move the shared name to a .js module." }] }]`. A second entry turns the rule off for `apps/web/src/components/tacticFaceTexture.js`, with a comment in that file. Decision 4. Risk 7.
+3. `characters/throwPath.js` and `terrain/dropQuery.js` import from `characters/base.js`.
+4. Tests: `characters/throwPath.test.js` and `terrain/dropQuery.test.js` with a fake `world` and `rapier` (the cast functions take them as arguments; follow `physics.test.js`). `characters/base.test.js` for `upright`. If a module still does not load in Node, write why in the Result and leave its test out.
+5. `.oxlintrc.json`: an `overrides` entry for `apps/web/src/**/*.js` with `"no-restricted-imports": ["error", { "patterns": [{ "group": ["**/*.jsx", "*.jsx"], "message": "A plain module does not import a component. Move the shared name to a .js module." }] }]`. A second entry turns the rule off for `apps/web/src/tactics/tacticFaceTexture.js`, with a comment in that file. Decision 4. Risk 7.
 6. Add the rule to `docs/features/` where the code layout is described (`peer-to-peer.md`, "Code layout", or the file that the earlier plans use for it).
 
 User: throw and push a model onto terrain; drop a model on terrain; open a room with a map and characters (preload shows the mat and models in the first frame).
@@ -200,7 +200,7 @@ Done. Deviations:
 
 - `characters/base.js` also has `turnBody` (`usePieceTurns.js` imported it from `CharacterModel.jsx`; a 7th `.js` to `.jsx` import that the plan did not list). `useTerrainFall.js` and `LosTool.jsx` import from `base.js` too. `NO_ROTATION` of `throwPath.js`, `dropQuery.js` and `terrainUnder.js` now comes from `base.js`.
 - `modelUrls`, `pieceUrls`, `matUrl`, `matImageUrl` did not go to `files.js` and `maps/index.js`: `files.js` is loaded in Node by the migrate scripts, and `maps/index.js` by many node tests, and `assetUrl` needs Vite (`import.meta.glob`). New plain-of-React modules `characters/modelUrls.js` and `terrain/urls.js` (with `bundleColliderMeshes`, which `Terrain.jsx` also uses).
-- Tests: `characters/base.test.js`, `components/throwPath.test.js`, `terrain/dropQuery.test.js`, with a real headless Rapier world (as `physics.test.js`), not fakes. All load in Node.
+- Tests: `characters/base.test.js`, `characters/throwPath.test.js`, `terrain/dropQuery.test.js`, with a real headless Rapier world (as `physics.test.js`), not fakes. All load in Node.
 - `.oxlintrc.json`: `no-restricted-imports` for `apps/web/src/**/*.js`, off for `tacticFaceTexture.js` (comment there). Checked: a test `.js` that imports a `.jsx` is reported. `docs/features/peer-to-peer.md` ("Code layout") and `rooms.md` ("Loading") updated.
 - Checks: format, lint 52 warnings (baseline 52), `pnpm test` 928 web tests pass, `pnpm --filter web build` ok. No `.js` imports a `.jsx` except `tacticFaceTexture.js`.
 
@@ -341,7 +341,7 @@ User: drag, turn and bend each tool; LOS tool on terrain and models; dice rolls 
 
 ### Result
 
-Done. New `components/useLatest.js`: `useLatest(value)` (ref of the last render, set in a layout effect) and `useOnMount(fn)` (fn of the first render, runs once). All 15 `exhaustive-deps` disables of the step files are gone, none added; no disable stays. Per place:
+Done. New `scene/useLatest.js`: `useLatest(value)` (ref of the last render, set in a layout effect) and `useOnMount(fn)` (fn of the first render, runs once). All 15 `exhaustive-deps` disables of the step files are gone, none added; no disable stays. Per place:
 - `LosTool.jsx` (4): spawn, `useOnMount`; target turn, deps `[entry.target, looker, target]` (guard makes extra runs no-ops); looker/target removal, models, entry and callbacks read from `latest`; `liveRef` registered once from `latest`.
 - `DiceTray.jsx` (3): body cleanup deps `[dice, id]`; hover cleanup reads `onHover` from `useLatest`; mount `commit` via `useOnMount`.
 - `CharacterModel.jsx` (3): sleep, `liftRef` and unmount cleanup via `useOnMount` (first-render closures, as before); `[remote]` effect gets its ref deps (the `remote === wasRemote` guard keeps a rerun a no-op).
@@ -407,6 +407,17 @@ Work:
 User: open the Sandbox and a two-browser room, play the setup and one round, use each tool, the Library, the Log and Settings.
 
 ### Result
+
+Done. 139 files `git mv`ed out of `components/` (removed); imports and path pointers rewritten by script. Not in the default list, placed by feature:
+- `scene/`: `sceneApi.js`, `useLatest.js`, `useModelClaims/Follow/Lift/Registry/Sync.js`, `usePieceTurns.js`.
+- `characters/`: `useLandingSound.js`, `useFigureMaterials.js`.
+- `tabletools/`: `OtherTool.jsx`, `OtherTools.jsx`, `OwnTools.jsx`, `ToolButtons.jsx`, `ToolFootprint.jsx`, `ToolParts.jsx`, `toolGeometry.js`.
+- `terrain/`: `useTerrainFall.js`, `useTerrainHoverLabel.js`. `tokens/`: `TokenLayer.jsx`. `rooms/`: `LoadingScreen.jsx`. `ui/`: `Dialog.jsx`, `libraryTeam.js`.
+- Tests moved with their module.
+
+Pointers updated: imports, `docs/features` (also the file lists of `auth.md`, `peer-to-peer.md`), `README.md`, `ASSETS.md`, `.oxlintrc.json` (`tacticFaceTexture.js` exception), code and CSS comments, `split-large-files.md` (paths). `jsconfig.json`, `vite.config.js` (manualChunks) and scripts needed no change. `git grep "components/"` left: tree listings and names of deleted files in old plans (`implement-backend/05..10`, `dice-rolling.md`, `character-trays.md`, `playtest/los-any-base.md`, `playtest/playtest-3.md`) and this plan's text; no live path. Diff: renames plus import and path lines (prettier re-wrapped a few import lists).
+
+Checks: format, lint 39 warnings (baseline 39, 0 errors), `pnpm test` all pass (web 964, api 128, infra 16), `pnpm typecheck`, `pnpm --filter web build` pass.
 
 ## Step 15: Flaky signal test
 

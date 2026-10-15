@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import App from './App.jsx'
 import { setReportContext } from './crash/reporter.js'
-import { LoadingOverlay } from './components/LoadingOverlay.jsx'
+import { LoadingOverlay } from './rooms/LoadingOverlay.jsx'
 import { useUser } from './auth/useUser.js'
 import { buildOverride, delayFlag, dropFlag, relayFlag, schemaOverride } from './net/debugFlags.js'
 import { SCHEMA } from './net/doc.js'

@@ -280,7 +280,7 @@ Open issues: none.
 
 ## Phase 3: Web login
 
-Read: auth doc "Login flow", "Session", "Lobby and room UI" (header only), "Users" (avatar). `apps/web/src/Root.jsx`, `components/Lobby.jsx`, `index.css` (lobby styles), `net/useY.js` (the `useSyncExternalStore` pattern).
+Read: auth doc "Login flow", "Session", "Lobby and room UI" (header only), "Users" (avatar). `apps/web/src/Root.jsx`, `rooms/Lobby.jsx`, `index.css` (lobby styles), `net/useY.js` (the `useSyncExternalStore` pattern).
 
 Work:
 1. `.gitignore`: `.env.local`, `.env.*.local`. `apps/web/.env.development`: a comment that names `VITE_DISCORD_CLIENT_ID` and `.env.local`.
@@ -288,7 +288,7 @@ Work:
 3. `auth/oauth.js`: `randomState()`, `authorizeUrl({ clientId, redirectUri, state })`, `readCallback(search, saved)` (decision 13).
 4. `auth/avatar.js` (decision 14).
 5. `auth/session.js` (decisions 10, 12, 13), `auth/useUser.js`.
-6. `components/UserMenu.jsx` (decision 15). `Lobby.jsx`: the header gets it. `index.css`: the styles.
+6. `auth/UserMenu.jsx` (decision 15). `Lobby.jsx`: the header gets it. `index.css`: the styles.
 7. `Root.jsx`: calls `startSession()` once. After it resolves: `error` → `setNotice`. `returnHash` → `go(returnHash, true)`.
 8. Tests (`node --test`):
     - `oauth.test.js`: the authorize URL has `response_type=code`, `scope=identify`, `prompt=none`, `redirect_uri`, `state`. `readCallback`: no query → `null`. Code with the right state → code and `returnHash`. Wrong state → error. `access_denied` → "Login cancelled.". No saved state → error.
@@ -306,9 +306,9 @@ Checks:
 Status: done. Not committed.
 
 Files changed:
-- New: `apps/web/src/api/client.js`, `auth/oauth.js`, `auth/avatar.js`, `auth/session.js`, `auth/useUser.js`, `components/UserMenu.jsx`.
+- New: `apps/web/src/api/client.js`, `auth/oauth.js`, `auth/avatar.js`, `auth/session.js`, `auth/useUser.js`, `auth/UserMenu.jsx`.
 - New tests: `auth/oauth.test.js` (8), `auth/avatar.test.js` (4).
-- Changed: `.gitignore`, `apps/web/.env.development`, `components/Lobby.jsx`, `Root.jsx`, `index.css`.
+- Changed: `.gitignore`, `apps/web/.env.development`, `rooms/Lobby.jsx`, `Root.jsx`, `index.css`.
 
 Facts:
 - `session.js` exports `AUTH_ON`, `DISCORD_ON` (client id set), `startSession`, `login`, `devLogin`, `logout`, `subscribe`, `getSnapshot`. It is the only file with `localStorage` and `sessionStorage`.

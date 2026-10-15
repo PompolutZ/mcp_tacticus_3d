@@ -43,7 +43,7 @@ A drag on the line turns it around the looker's base center (`turnAround`). Q / 
 - With a clear sight segment (see The line) and the line through the target base, the line runs at least to the far edge of the target base (center distance + target radius), or further when the normal cast goes further. With no clear segment, or with the line turned away from the target, the length is as above.
 - Sight test: points on the base edges (about 0.1 inch apart, at least 16 per half edge, only the half that faces the other base) and the two centers. Each pair is a thin tall box cast along the segment. Order: center to center, parallel lines, the rest. A gap narrower than the spacing can be missed. It runs when a model rests or a Size changes, not on each turn frame.
 - Height does not matter. The cast box is tall, so an overhang above the line also blocks.
-- Terrain Size is per placement in the map. It sits in the `userData` of the terrain body (`size`, `id`). A piece with no Size has Size 0 and never stops the line. Built (`losLength` in `src/components/losLength.js`).
+- Terrain Size is per placement in the map. It sits in the `userData` of the terrain body (`size`, `id`). A piece with no Size has Size 0 and never stops the line. Built (`losLength` in `src/tabletools/losLength.js`).
 
 ## When models move
 
@@ -54,5 +54,5 @@ A drag on the line turns it around the looker's base center (`turnAround`). Q / 
 
 - The entry in `table.tools` is `{ which, spawn, looker, target, pose }`. `looker` and `target` are model ids. `pose` is the looker base center and the yaw, written when the line rests.
 - While the line turns, the yaw goes over the live channel (`tool:los`). The other browser follows the looker's model and the yaw, and works out the length and the label with its own physics. Both players see the same label.
-- The tool is `LosTool` and `OtherLos` in `src/components/LosTool.jsx`. The line is painted by `ToolFootprint` (`ToolFootprint.jsx`) with one half and a fixed half-transparent fill.
+- The tool is `LosTool` and `OtherLos` in `src/tabletools/LosTool.jsx`. The line is painted by `ToolFootprint` (`ToolFootprint.jsx`) with one half and a fixed half-transparent fill.
 

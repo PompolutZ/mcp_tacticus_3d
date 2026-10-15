@@ -305,7 +305,7 @@ Notes, no change of decisions:
 
 ## Phase 3: Lobby list and new multiplayer room
 
-Read: decisions 1, 2, 12, 18, 19, 21, 23. Auth doc "Lobby and room UI". `apps/web/src/api/client.js`, `auth/session.js`, `auth/useUser.js`, `auth/avatar.js`, `components/Lobby.jsx`, `components/NewRoomDialog.jsx`, `components/UserMenu.jsx`, `rooms/store.js`, `rooms/table.js`, `net/doc.js`, `index.css` (lobby styles).
+Read: decisions 1, 2, 12, 18, 19, 21, 23. Auth doc "Lobby and room UI". `apps/web/src/api/client.js`, `auth/session.js`, `auth/useUser.js`, `auth/avatar.js`, `rooms/Lobby.jsx`, `rooms/NewRoomDialog.jsx`, `auth/UserMenu.jsx`, `rooms/store.js`, `rooms/table.js`, `net/doc.js`, `index.css` (lobby styles).
 
 Work:
 1. `api/client.js`: `bytes`, `binary`, `keepalive` (decision 21).
@@ -315,9 +315,9 @@ Work:
 5. `rooms/store.js`: `multiplayerDocName(userId, code)`, `deleteDoc(name)`. `deleteRoom` uses `deleteDoc`.
 6. `rooms/localDocs.js`: `staleDocNames(names, userId, codes)` (pure), and `deleteStaleDocs(userId, codes)` with `indexedDB.databases()` (decision 12).
 7. `rooms/roomList.js`: `roomList(single, multiplayer)`. One list, the last changed first. Multiplayer `updatedAt` is an ISO string, single player is ms. Rooms of a map that the app does not have are left out, as today.
-8. `components/RoomRosterPopup.jsx`: moved out of `Lobby.jsx`, no change.
-9. `components/CopyLinkButton.jsx` (decision 23). `components/Lobby.jsx`: one list, the multiplayer tile, **Delete**, **Copy link**, the error message, the cleanup after each list load (decisions 12, 18). It reads `useUser()` and loads `GET /rooms` when the user is logged in.
-10. `components/NewRoomDialog.jsx`: the choice, the side chips, the one roster field, the hosted-room message, the multiplayer create (decision 19).
+8. `rosters/RoomRosterPopup.jsx`: moved out of `Lobby.jsx`, no change.
+9. `rooms/CopyLinkButton.jsx` (decision 23). `rooms/Lobby.jsx`: one list, the multiplayer tile, **Delete**, **Copy link**, the error message, the cleanup after each list load (decisions 12, 18). It reads `useUser()` and loads `GET /rooms` when the user is logged in.
+10. `rooms/NewRoomDialog.jsx`: the choice, the side chips, the one roster field, the hosted-room message, the multiplayer create (decision 19).
 11. `index.css`: the styles of the multiplayer tile, the seats, the choice and the side chips.
 12. Tests (`node --test`): `base64.test.js` (round trip, empty, 100 KB). `startTable.test.js` (a new document with the bytes applied has the map, the rosters, and the terrain of the map. Not `readGame`, which goes in Phase 5). `roomList.test.js` (order across both kinds, unknown map left out). `localDocs.test.js` (only this user's multiplayer names whose code is not in the list. Never single player names, never another user's names).
 
@@ -345,7 +345,7 @@ Choices where the plan was open:
 
 ## Phase 4: Open a multiplayer room, join, write the table
 
-Read: decisions 14 to 17, 20, 22, 23. `apps/web/src/Root.jsx`, `Table.jsx`, `rooms/tableDoc.js`, `rooms/store.js`, `components/LoadingOverlay.jsx`, the storage warning in `App.jsx` (`storageFailed`). Yjs docs for `snapshot`, `equalSnapshots`. Node docs for `mock.timers`.
+Read: decisions 14 to 17, 20, 22, 23. `apps/web/src/Root.jsx`, `Table.jsx`, `rooms/tableDoc.js`, `rooms/store.js`, `rooms/LoadingOverlay.jsx`, the storage warning in `App.jsx` (`storageFailed`). Yjs docs for `snapshot`, `equalSnapshots`. Node docs for `mock.timers`.
 
 Work:
 1. `rooms/tableDoc.js`: `openTableDoc(name)` takes the database name (`null` for the Sandbox). The `game` argument goes in Phase 5.
@@ -354,8 +354,8 @@ Work:
 4. `Root.jsx`: the room link (decision 17). The multiplayer room gets the `room` of decision 22. The writer's 404 opens the lobby with the notice of decision 15.
 5. `Table.jsx`: open a multiplayer room (decision 14). Start and stop the writer. `flush()` before `onExit`. A writer stop gives App a `serverWarning` text.
 6. `App.jsx`: `serverWarning` shows like the storage warning.
-7. `components/Toolbar.jsx`: a multiplayer room has no Roster group (decision 13), and **Copy link** next to the room code while the guest seat is free (decision 23). Single player rooms and the Sandbox as today.
-8. `components/JoinRoom.jsx` (decision 20). `index.css`: its styles.
+7. `ui/Toolbar.jsx`: a multiplayer room has no Roster group (decision 13), and **Copy link** next to the room code while the guest seat is free (decision 23). Single player rooms and the Sandbox as today.
+8. `rooms/JoinRoom.jsx` (decision 20). `index.css`: its styles.
 9. Tests (`node --test`):
    - `roomPage.test.js`: each case of decision 17.
    - `serverTable.test.js`: no write without a change. One write 60 s after the first change, not before. `flush()` writes at once, and not again without a new change. A change during a write gives one more write later. A failure tries again after 60 s. 404 calls `onGone`. 403 and 413 stop the writer and report the error. `keepalive` only for bodies of at most 60 KB. `hasLocalChanges`: false for the same bytes, true after a local insert, true after a local delete only.
@@ -367,7 +367,7 @@ Checks:
 
 ### Result
 
-Added `rooms/serverTable.js` (`hasLocalChanges`, `watchServerTable`), `rooms/roomPage.js` (`roomPage`, `seatOf`, `multiplayerRoom`), `components/JoinRoom.jsx` and its styles, `components/LobbyHeader.jsx` and `components/RosterField.jsx` (both moved out of `Lobby.jsx` and `NewRoomDialog.jsx`, so the join page shares them). `openTableDoc(name, game)` takes the database name. `Root.jsx` finds the page of a room link and fetches `GET /rooms/{code}`. `Table.jsx` opens a multiplayer room and runs the writer. `App.jsx` shows `serverWarning`. `Toolbar.jsx` has no Roster group in a multiplayer room, and **Copy link** while the guest seat is free.
+Added `rooms/serverTable.js` (`hasLocalChanges`, `watchServerTable`), `rooms/roomPage.js` (`roomPage`, `seatOf`, `multiplayerRoom`), `rooms/JoinRoom.jsx` and its styles, `rooms/LobbyHeader.jsx` and `rosters/RosterField.jsx` (both moved out of `Lobby.jsx` and `NewRoomDialog.jsx`, so the join page shares them). `openTableDoc(name, game)` takes the database name. `Root.jsx` finds the page of a room link and fetches `GET /rooms/{code}`. `Table.jsx` opens a multiplayer room and runs the writer. `App.jsx` shows `serverWarning`. `Toolbar.jsx` has no Roster group in a multiplayer room, and **Copy link** while the guest seat is free.
 
 Tests: `pnpm --filter web test` 62 pass (37 before; new: `roomPage` 10, `serverTable` 15). `pnpm --filter web build` passes. Lint: 44 warnings before and after, none new. The `localStorage` grep shows only `rooms/store.js`.
 
@@ -381,7 +381,7 @@ Notes:
 
 ## Phase 5: The guest's roster, no game file
 
-Read: decisions 10 and 13. `apps/web/src/App.jsx` (`rosters`, `handleRosterLoad`, `handleSaveGame`, `handleLoadGame`), `Table.jsx`, `rooms/tableDoc.js`, `components/Toolbar.jsx`, `net/doc.js`, `net/doc.test.js`, `scripts/yjs-size.mjs`.
+Read: decisions 10 and 13. `apps/web/src/App.jsx` (`rosters`, `handleRosterLoad`, `handleSaveGame`, `handleLoadGame`), `Table.jsx`, `rooms/tableDoc.js`, `ui/Toolbar.jsx`, `net/doc.js`, `net/doc.test.js`, `scripts/yjs-size.mjs`.
 
 Work:
 1. `App.jsx`: at mount of a multiplayer room, when the key of `room.side` in the table is empty and the server record has a roster for that side, write it into that key only. No setup restart, no confirm, no HUD message.

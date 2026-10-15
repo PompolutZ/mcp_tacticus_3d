@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import TacticFaceScaled from '../components/TacticFaceScaled.jsx'
+import TacticFaceScaled from '../tactics/TacticFaceScaled.jsx'
 import { faceKeys, loadFaceText } from '../tactics/faceData.js'
 
 // Dev-only page (#tactic-faces, see Root.jsx): the drawn faces of all Team Tactic cards in a grid, with the

@@ -107,7 +107,7 @@ For Phase 2:
 
 ## Phase 2: Gem on the tray, docs
 
-Read: decisions 3 and 4. The **Result** of Phase 1. `components/TrayControls.jsx`, `components/CharacterTray.jsx`, `components/TrayPopup.jsx`, `components/CardPopup.jsx`, `App.jsx` (`openCard`, the HUD message), `components/RosterCards.jsx` (the gem line text), `index.css` (the tray styles).
+Read: decisions 3 and 4. The **Result** of Phase 1. `characters/TrayControls.jsx`, `characters/CharacterTray.jsx`, `characters/TrayPopup.jsx`, `rosters/CardPopup.jsx`, `App.jsx` (`openCard`, the HUD message), `rosters/RosterCards.jsx` (the gem line text), `index.css` (the tray styles).
 
 Work:
 1. `TrayControls.jsx`: the gem chips (decision 3). The 3D tray and the tray popup use the same component, so both get them.

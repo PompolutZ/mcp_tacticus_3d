@@ -27,7 +27,7 @@ src/
   Table.jsx        — opens the table document of a room or the Sandbox, then mounts App
   net/             — the Yjs document of a table: layout, stores, React hooks
   rooms/           — room records in localStorage, the table document in IndexedDB, the files to load first
-  components/
+  scene/
     Scene.jsx      — 3D scene: space, table, mat, lights
   assets/          — models and textures. Load them with assetUrl('path') from assets/index.js
     wakanda-mat.webp — Wakanda Kingdom game mat (2592×2592 px, from TTS mod cache)

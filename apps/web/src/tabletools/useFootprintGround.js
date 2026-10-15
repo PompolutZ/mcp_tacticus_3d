@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useRapier } from '@react-three/rapier'
 import { castDown } from '../physics.js'
-import { SIDES, yawQuat, toolShape, alongHalf } from '../components/toolGeometry.js'
+import { SIDES, yawQuat, toolShape, alongHalf } from './toolGeometry.js'
 
 // Half height of the flat box cast down to find the ground under a footprint
 const FOOTPRINT_CAST_HALF_H = 0.01

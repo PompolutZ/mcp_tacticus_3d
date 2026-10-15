@@ -9,7 +9,7 @@ Checked on 2026-10-13:
 - Held keys (pan, turn, Q / E) are kept in `heldPan`, `heldTurn`, `heldRotate` in `useTableKeys.js`. Keyup and window blur clear them.
 - Number keys use `e.key`, so the number row and the number pad both work. The other keys use `e.code`.
 - Over the own dice tray, 1–9 and 0 add dice. Elsewhere they spawn tools. `useHovered.js` keeps `diceTray`, `piece`, `held` and more as refs.
-- The wheel is in `src/components/WheelCamera.jsx`: mouse wheel zooms, trackpad swipe pans, pinch and Ctrl + wheel zoom. The device is a guess from the deltas. During a piece drag the wheel does nothing.
+- The wheel is in `src/scene/WheelCamera.jsx`: mouse wheel zooms, trackpad swipe pans, pinch and Ctrl + wheel zoom. The device is a guess from the deltas. During a piece drag the wheel does nothing.
 - Settings: `src/settings/settings.js`, key `mcp-assist-3d/settings`, `normalize()` fills defaults. The Settings popup (`SettingsPopup.jsx`) shows a read-only list from `src/settings/controls.js`.
 
 ## Decisions

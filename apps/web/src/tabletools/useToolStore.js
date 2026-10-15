@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
-import { useLatest } from '../components/useLatest.js'
-import { storedFields, sameStored } from '../components/storedTool.js'
-import { toolPose } from '../components/toolGeometry.js'
+import { useLatest } from '../scene/useLatest.js'
+import { storedFields, sameStored } from './storedTool.js'
+import { toolPose } from './toolGeometry.js'
 import { useRestStore } from './useRestStore.js'
 
 // The tool state that is written to the document and read for the live pose and the drop on the rack.

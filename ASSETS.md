@@ -60,7 +60,7 @@ The web files are converted from the cached originals, so they load faster. `app
 TTS transform notes:
 - TTS units are inches. The mat tile has scale 18, so it is 36" wide and centered at the origin. Its top is at y = 1.06.
 - A placement position is the mesh origin.
-- TTS is left-handed. TTS also mirrors X when it imports an OBJ. See `apps/web/src/components/Terrain.jsx` for the conversion.
+- TTS is left-handed. TTS also mirrors X when it imports an OBJ. See `apps/web/src/terrain/Terrain.jsx` for the conversion.
 
 ### Character and token models — ~25 cached (pastebin/gist hosted)
 

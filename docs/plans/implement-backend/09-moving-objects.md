@@ -88,7 +88,7 @@ apps/web/src/
   drag/pointerDrag.js           startPointerDrag: the gesture of every drag (decision 3)
   drag/tablePoint.js            tablePoint: the table, board or terrain point under a screen point
   characters/overlap.js         overlapMarks: which models show the overlap mark (decision 1)
-  components/storedTool.js      the tool entry: rounding, equality, free spawn per side (decisions 10, 12)
+  tabletools/storedTool.js      the tool entry: rounding, equality, free spawn per side (decisions 10, 12)
   net/doc.js                    + tools
   net/syncChannel.js            + awareness messages (type 1)
   net/ownership.js              claims, owner, writer (decisions 5 to 7)
@@ -100,15 +100,15 @@ apps/web/src/
   rooms/table.js                + tools in startTable
   Table.jsx                     awareness, ownership, live hub, traffic log
   App.jsx                       tools from the document, poses and ownership to Scene, the token drag
-  components/Scene.jsx          claims, rest writes, rest poses from the other browser, LiveSync, the other player's tools
-  components/CharacterModel.jsx collision group, overlap mark, claim before an action, remote mode
-  components/RulerTool.jsx      stored tools, rest writes, OtherTool, claims for Place and Throw
-  components/CrisisToken.jsx, TacticCard.jsx, ScoreBoard.jsx, LooseToken.jsx, TokenPile.jsx, TokenDragPreview.jsx
+  scene/Scene.jsx          claims, rest writes, rest poses from the other browser, LiveSync, the other player's tools
+  characters/CharacterModel.jsx collision group, overlap mark, claim before an action, remote mode
+  tabletools/RulerTool.jsx      stored tools, rest writes, OtherTool, claims for Place and Throw
+  crisis/CrisisToken.jsx, TacticCard.jsx, ScoreBoard.jsx, LooseToken.jsx, TokenPile.jsx, TokenDragPreview.jsx
                                 the drag code, claims, the other player's live pose
-  components/RemoteCursor.jsx   the other player's cursor
-  components/SelectionOutlines.jsx  + overlap mode
-  components/footprintProjection.js  MAX_FOOTPRINTS 12, setCircle, the footprint colors
-  components/DragFootprint.jsx  the footprint of a dragged piece (decision 18)
+  scene/RemoteCursor.jsx   the other player's cursor
+  scene/SelectionOutlines.jsx  + overlap mode
+  scene/footprintProjection.js  MAX_FOOTPRINTS 12, setCircle, the footprint colors
+  scene/DragFootprint.jsx  the footprint of a dragged piece (decision 18)
 ```
 
 ## Decisions that fill gaps in the design
@@ -227,7 +227,7 @@ apps/web/src/
 
 ## Phase 1: Models pass through models
 
-Read: decision 1. `README.md` ("Known bugs", and the parts about dragging a model). `docs/features/dice-rolling.md` ("Collisions"). `src/physics.js`, `components/CharacterModel.jsx`, `components/Scene.jsx` (models, `toolModels`), `components/SelectionOutlines.jsx`, `components/RulerTool.jsx` (`moveBase`, `handleThrow`, only to see where a model moves).
+Read: decision 1. `README.md` ("Known bugs", and the parts about dragging a model). `docs/features/dice-rolling.md` ("Collisions"). `src/physics.js`, `characters/CharacterModel.jsx`, `scene/Scene.jsx` (models, `toolModels`), `scene/SelectionOutlines.jsx`, `tabletools/RulerTool.jsx` (`moveBase`, `handleThrow`, only to see where a model moves).
 
 Work:
 1. `physics.js`: `MODEL_GROUPS`. `CharacterModel.jsx`: the base collider gets it as `collisionGroups`.
@@ -265,7 +265,7 @@ The user asked for this on 2026-10-10, after Phase 1 (decision 1).
 
 Why the mark did not show during a drag: a dragged base hovers `DRAG_HOVER` (0.3") above the table or terrain. `HEIGHT_TOLERANCE` was 0.25". So the dragged model was at "another height" until the drop.
 
-Read: decision 1. `characters/overlap.js` (+ test), `components/CharacterModel.jsx` (the drag: `useFrame`, `onPointerDown`, `DRAG_HOVER`), `components/Scene.jsx` (`charBodies`, the overlap interval, the `CharacterModel` props).
+Read: decision 1. `characters/overlap.js` (+ test), `characters/CharacterModel.jsx` (the drag: `useFrame`, `onPointerDown`, `DRAG_HOVER`), `scene/Scene.jsx` (`charBodies`, the overlap interval, the `CharacterModel` props).
 
 Work:
 1. `overlap.js`: `HEIGHT_TOLERANCE` 0.25 → 1. The comment says why: the dragged base hovers 0.3", and a lifted model is 6" up. A shared `overlaps(a, b)` (the distance and height rules, no `moved`). `overlapMarks` uses it. New `overlapsAny(model, others)`: true when `model` overlaps one of `others`.
@@ -300,7 +300,7 @@ User, after this phase, in a single player room: checks 1 to 3 (new text below).
 
 ## Phase 2: One drag code
 
-Read: decision 3. The drag code of `components/CharacterModel.jsx`, `components/RulerTool.jsx` (`useDragTool`), `components/CrisisToken.jsx` (`onPointerDown`, `onHandleDown`, `pointerPoint`), `components/TacticCard.jsx`, `components/ScoreBoard.jsx`, `components/TokenDragPreview.jsx`, and the token drag of `App.jsx` (`handleTokenDragStart` and the window listeners after it, `cancelTokenDrag`).
+Read: decision 3. The drag code of `characters/CharacterModel.jsx`, `tabletools/RulerTool.jsx` (`useDragTool`), `crisis/CrisisToken.jsx` (`onPointerDown`, `onHandleDown`, `pointerPoint`), `tactics/TacticCard.jsx`, `scoreboard/ScoreBoard.jsx`, `tokens/TokenDragPreview.jsx`, and the token drag of `App.jsx` (`handleTokenDragStart` and the window listeners after it, `cancelTokenDrag`).
 
 Work:
 1. `drag/pointerDrag.js`: `startPointerDrag(event, options)` and `DRAG_THRESHOLD`. The window, the canvas and the controls come in as options, so a test can pass fakes.
@@ -349,12 +349,12 @@ Done.
 
 ## Phase 2b: Drag footprints
 
-Read: decision 18. `components/footprintProjection.js`, `components/RulerTool.jsx` (`ToolFootprint`, the footprint colors), `components/CharacterModel.jsx` (the drag, `dragOverlap`), `components/CrisisToken.jsx` (the drag, the Zone Arc slot), `components/TokenDragPreview.jsx`, `components/TacticCard.jsx` (the drag), `components/Scene.jsx` (where `TokenDragPreview` is drawn).
+Read: decision 18. `scene/footprintProjection.js`, `tabletools/RulerTool.jsx` (`ToolFootprint`, the footprint colors), `characters/CharacterModel.jsx` (the drag, `dragOverlap`), `crisis/CrisisToken.jsx` (the drag, the Zone Arc slot), `tokens/TokenDragPreview.jsx`, `tactics/TacticCard.jsx` (the drag), `scene/Scene.jsx` (where `TokenDragPreview` is drawn).
 
 Work:
 1. `footprintProjection.js`: `MAX_FOOTPRINTS` 6 → 7. A slot gets `setCircle(x, z, radius, fill, opacity, line)`: the rect shape with half length 0. The shader does not change.
 2. The footprint colors move from `RulerTool.jsx` to `footprintProjection.js` as exports, so every piece uses the same values.
-3. `components/DragFootprint.jsx`: a component that takes a slot on mount and gives it back on unmount. Each frame it reads the shape from a function prop (`{ x, z, radius }` for a circle, or `{ x, z, yaw, halfLength, halfWidth }` for a card) and an `apart` flag, and writes the slot. A null shape hides it (the pointer is off the table).
+3. `scene/DragFootprint.jsx`: a component that takes a slot on mount and gives it back on unmount. Each frame it reads the shape from a function prop (`{ x, z, radius }` for a circle, or `{ x, z, yaw, halfLength, halfWidth }` for a card) and an `apart` flag, and writes the slot. A null shape hides it (the pointer is off the table).
 4. The pieces mount it only during their drag:
    - `CharacterModel.jsx`: the body XZ and the base radius. `apart` while `dragOverlap`.
    - `CrisisToken.jsx`: the drag pose and the token radius. Not during a turn with the handle, because the token does not lift then.
@@ -374,7 +374,7 @@ Done.
 
 - `footprintProjection.js`: `MAX_FOOTPRINTS` is 7. New `setCircle(x, z, radius, fill, opacity, line)`. New `hide()` on a slot: it clears the fill and keeps the slot. The shader did not change.
 - `FOOTPRINT_COLOR`, `FOOTPRINT_TOUCH` and `FOOTPRINT_APART` are exports of `footprintProjection.js`. `RulerTool.jsx` imports them.
-- New `components/DragFootprint.jsx`. It takes a slot on mount and gives it back on unmount. Props: `getShape` and `getApart`, both functions that run each frame. A null shape hides the slot. Look: `FOOTPRINT_COLOR` fill at 0.35, white line, `FOOTPRINT_APART` fill when `getApart` is true.
+- New `scene/DragFootprint.jsx`. It takes a slot on mount and gives it back on unmount. Props: `getShape` and `getApart`, both functions that run each frame. A null shape hides the slot. Look: `FOOTPRINT_COLOR` fill at 0.35, white line, `FOOTPRINT_APART` fill when `getApart` is true.
 - `CharacterModel.jsx`: a `dragging` state, set in `onStart` and `onEnd`. The shape is the body XZ and `baseRadius`. `apart` is `dragOverlap`.
 - `CrisisToken.jsx`: a `dragging` state, set in the token drag only. The turn with the handle does not set it. The shape is `poseRef` and the token radius.
 - `TokenDragPreview.jsx`: it mounts with the drag, so the footprint lives as long as the preview. The shape is `pointRef` and `TOKEN_RADIUS` (imported from `CrisisToken.jsx`). Null when the point is null.
@@ -399,7 +399,7 @@ Checks:
 
 ## Phase 2c: Tools spawn at the pointer
 
-Read: decision 19. `App.jsx` (`handleRangeClick`, `handleMoveClick`, `handleAngleClick`, `handleAngleKey`, `handleToolKey`, `toolSpawns`, `angleSpawn`, `hoveredRef`, `characterAtRef`). `components/Scene.jsx` (the tools, `toolTarget`, `toolModel`, `characterAtRef`). `components/RulerTool.jsx` (`Tool`: `position`, `spawnTarget`, the spawn effect). `drag/tablePoint.js`. `README.md` ("Tools").
+Read: decision 19. `App.jsx` (`handleRangeClick`, `handleMoveClick`, `handleAngleClick`, `handleAngleKey`, `handleToolKey`, `toolSpawns`, `angleSpawn`, `hoveredRef`, `characterAtRef`). `scene/Scene.jsx` (the tools, `toolTarget`, `toolModel`, `characterAtRef`). `tabletools/RulerTool.jsx` (`Tool`: `position`, `spawnTarget`, the spawn effect). `drag/tablePoint.js`. `README.md` ("Tools").
 
 Work:
 1. `Scene.jsx`: a ref for App, the same pattern as `characterAtRef`. It returns the table or terrain point under the last pointer position over the canvas, or `null` when the pointer is not over the canvas or not over the table (`tablePoint` with `null` off the table). A second function gives the table point in the middle of the canvas.
@@ -421,7 +421,7 @@ User, after this phase, in a single player room: check 4c.
 
 Done.
 
-- New `components/ToolPoint.jsx`. It sits inside `Physics`, because `tablePoint` needs the Rapier world. It fills `toolPointRef` with `{ atPointer(), atCenter() }`. Scene passes the ref up, as it does for `characterAtRef`.
+- New `tabletools/ToolPoint.jsx`. It sits inside `Physics`, because `tablePoint` needs the Rapier world. It fills `toolPointRef` with `{ atPointer(), atCenter() }`. Scene passes the ref up, as it does for `characterAtRef`.
 - `atPointer()` reads the last pointer position of R3F. It gives `{ x, z }`, or `null` when the pointer is not over the canvas (`:hover`, as in `terrainAt`) or not over the table (`offTable: 'null'`).
 - `atCenter()` is the table point in the middle of the canvas. If the middle sees no collider, it uses the table plane.
 - `App.jsx`: new state `toolAt` (`{ range, move, angle }`, each `{ x, z }` or `null`). `handleToolKey` and `handleAngleKey`: piece under the pointer sets `null` and works as before. A point under the pointer sets it, turns the tool on and bumps `toolSpawns`, so an out tool mounts again. Else the toolbar rule.
@@ -448,16 +448,16 @@ Checks:
 
 ## Phase 3: Tools in the document
 
-Read: decisions 10 to 12. `App.jsx` (tool state, `handleRangeClick`, `handleMoveClick`, `handleAngleClick`, `handleAngleKey`, `handleToolKey`, `handleEscape`, `clearTools`, the Scene and Toolbar props). `components/Scene.jsx` (the tools, `PLAYER_TEAM`, `turnProps`). `components/RulerTool.jsx` (`Tool`, its spawn effect, `snapTo`, `turnAroundCenter`, `handleMirror`, `ToolFootprint`). `components/Toolbar.jsx` (the tool buttons). `components/footprintProjection.js`. `net/doc.js`, `net/collections.js`, `net/useY.js`, `rooms/table.js`.
+Read: decisions 10 to 12. `App.jsx` (tool state, `handleRangeClick`, `handleMoveClick`, `handleAngleClick`, `handleAngleKey`, `handleToolKey`, `handleEscape`, `clearTools`, the Scene and Toolbar props). `scene/Scene.jsx` (the tools, `PLAYER_TEAM`, `turnProps`). `tabletools/RulerTool.jsx` (`Tool`, its spawn effect, `snapTo`, `turnAroundCenter`, `handleMirror`, `ToolFootprint`). `ui/Toolbar.jsx` (the tool buttons). `scene/footprintProjection.js`. `net/doc.js`, `net/collections.js`, `net/useY.js`, `rooms/table.js`.
 
 Work:
 1. `net/doc.js`: `tools`, a record of depth 1. `fillTable` writes `state.tools ?? {}`. `rooms/table.js`: `startTable` has `tools: {}`.
-2. `components/storedTool.js`: the rounded stored fields of a tool, their equality, and the free spawn yaw of a tool kind for a side (decision 12).
+2. `tabletools/storedTool.js`: the rounded stored fields of a tool, their equality, and the free spawn yaw of a tool kind for a side (decision 12).
 3. `App.jsx`: `useYRecord(table.tools)`. The own side's entries give the toolbar state and the Scene props. The handlers write the own entries. A respawn writes a new `spawn`. A free spawn writes `at` (decision 19). Escape and key 0 delete the own entries. `toolSpawns`, `activeRange`, `activeMove` and `angleOn` go away.
 4. `Scene.jsx`: the own tools from the own entries, keyed by `which` and `spawn`, in the own side's color, with the entry and a write function. `OtherTool` for each entry of the other side that has a `pose`. `PLAYER_TEAM` stays only for the dice (step 10), with a comment.
 5. `RulerTool.jsx`: `Tool` starts from a stored entry (decision 10) and writes on rest. `OtherTool` (decision 11).
 6. `footprintProjection.js`: `MAX_FOOTPRINTS` 12.
-7. Tests: `net/doc.test.js` (a new table has `tools`, an entry of one side does not change the other side). `components/storedTool.test.js` (rounding, equality, the Red yaw is the Blue yaw + π).
+7. Tests: `net/doc.test.js` (a new table has `tools`, an entry of one side does not change the other side). `tabletools/storedTool.test.js` (rounding, equality, the Red yaw is the Blue yaw + π).
 
 Checks:
 - `pnpm --filter web test`, `pnpm --filter web build` pass.
@@ -470,7 +470,7 @@ User, after this phase: checks 5 to 7.
 Done.
 
 - `net/doc.js`: `tools`, `createRecord(doc.getMap('tools'), { depth: 1 })`. `fillTable` writes `state.tools ?? {}`. `rooms/table.js`: `startTable` has `tools: {}`. No new `SCHEMA`.
-- New `components/storedTool.js` (plain module): `roundPose`, `roundTurn`, `roundPoint`, `storedFields`, `sameStored`, `freeSpawnYaw(side)`, `newSpawnId(random)`, `spawnEntry(which, at, random)`. Positions have 3 decimals. Yaw and bend have 4.
+- New `tabletools/storedTool.js` (plain module): `roundPose`, `roundTurn`, `roundPoint`, `storedFields`, `sameStored`, `freeSpawnYaw(side)`, `newSpawnId(random)`, `spawnEntry(which, at, random)`. Positions have 3 decimals. Yaw and bend have 4.
 - `App.jsx`: `useYRecord(table.tools)`. `ownSide` is `red` for the Red seat of a multiplayer room (as the Red camera), else `blue`. `activeRange`, `activeMove` and `angleOn` are now read from the own entries. `toolSpawns`, `toolAt` and the state setters are gone. `angleSpawn` and `selectedTools` stay React state.
 - `App.jsx` writes: a spawn writes a new entry `{ which, spawn, at? }` (`spawnTool`). The toolbar off, a repeated toolbar click, Escape (selected tools) and key 0 delete only own entries. `handleToolStore(kind, spawn, fields)` merges the rest fields into the own entry, and only when the entry still has that `spawn`.
 - `Scene.jsx`: props `tools`, `ownSide`, `onToolStore`. Own tools come from the own entries, with the React key `kind-which-spawn` and the own side color. `OtherTool` is drawn for each entry of the other side that has a `pose`. `PLAYER_TEAM` stays for the dice only, with a comment.
@@ -478,7 +478,7 @@ Done.
 - `Tool` rest write: a `useFrame` reads pose, bend, snap and mode each frame. After 0.3 s (`REST_TIME`) without a change, and when the rounded values differ from the entry, it calls `onStore` once.
 - `RulerTool.jsx`, `OtherTool`: other side color, plain footprint (`ToolFootprint` with no target and not selected), no buttons, hover or outline, no range mark. Raycast is off on its meshes. A kinematic sensor body. It jumps to the entry pose. The mesh loading is shared with `Tool` (`useRangeParts`, `useMovementParts`, `ToolFootprint`).
 - `footprintProjection.js`: `MAX_FOOTPRINTS` is 12.
-- Tests: `net/doc.test.js` (a new table has `tools`, an entry of one side does not change the other, the two sides merge), `rooms/startTable.test.js` (no tools), `components/storedTool.test.js` (rounding, equality, Red yaw is Blue yaw + π, ids, spawn entry).
+- Tests: `net/doc.test.js` (a new table has `tools`, an entry of one side does not change the other, the two sides merge), `rooms/startTable.test.js` (no tools), `tabletools/storedTool.test.js` (rounding, equality, Red yaw is Blue yaw + π, ids, spawn entry).
 
 Choices that the plan did not fix:
 - `freeSpawnYaw` takes only the side, because the free yaw is the same for every kind.
@@ -504,7 +504,7 @@ Checks:
 
 ## Phase 4: Claims and one writer
 
-Read: decisions 4 to 9. The y-protocols sources: `awareness.js`. `net/syncChannel.js` (+ test), `Table.jsx`, `App.jsx` (the Scene props, `startPose`, `onModelRest`, the token drag), `drag/pointerDrag.js`, `components/Scene.jsx` (`restPose`, `onRest`, `turnPiece`, `applyTurn`, `liftPiece`, `toolModels`, the tray move effect), `components/CharacterModel.jsx`, `components/RulerTool.jsx` (`moveBase`, `handleThrow`, `handlePlaceOne`), and the drags of `CrisisToken.jsx`, `TacticCard.jsx`, `ScoreBoard.jsx`.
+Read: decisions 4 to 9. The y-protocols sources: `awareness.js`. `net/syncChannel.js` (+ test), `Table.jsx`, `App.jsx` (the Scene props, `startPose`, `onModelRest`, the token drag), `drag/pointerDrag.js`, `scene/Scene.jsx` (`restPose`, `onRest`, `turnPiece`, `applyTurn`, `liftPiece`, `toolModels`, the tray move effect), `characters/CharacterModel.jsx`, `tabletools/RulerTool.jsx` (`moveBase`, `handleThrow`, `handlePlaceOne`), and the drags of `CrisisToken.jsx`, `TacticCard.jsx`, `ScoreBoard.jsx`.
 
 Work:
 1. `net/syncChannel.js`: `syncOverChannel(doc, channel, awareness)`. When the channel opens, it sends the own awareness state. It sends each awareness change whose origin is not the channel, as type 1. It applies type 1 with the channel as origin. `stop()` removes the awareness states that came from the channel. Without `awareness`, it works as today.
@@ -638,14 +638,14 @@ Checks:
 
 ## Phase 5: The live channel: models, tools and the cursor
 
-Read: decisions 9 and 13 to 16. `net/peer.js` (+ test), `Table.jsx`, `components/Scene.jsx`, `components/CharacterModel.jsx` (the remote mode), `components/RulerTool.jsx` (`OtherTool`, `Tool`), `drag/tablePoint.js`, `net/debugFlags.js`. MDN for unordered data channels.
+Read: decisions 9 and 13 to 16. `net/peer.js` (+ test), `Table.jsx`, `scene/Scene.jsx`, `characters/CharacterModel.jsx` (the remote mode), `tabletools/RulerTool.jsx` (`OtherTool`, `Tool`), `drag/tablePoint.js`, `net/debugFlags.js`. MDN for unordered data channels.
 
 Work:
 1. `net/peer.js`: the `live` channel, and `onChannels({ sync, live })` (decision 13). `peer.test.js` follows.
 2. `net/live.js`: `createLiveHub({ timers, random, drop, delay })`: `attach(channel)`, `detach(channel)`, `send(packet)`, `subscribe(fn)`. It sets `s`, rounds the numbers, sends JSON only on an open channel, and ignores a bad packet. On the receiving side it applies `drop` and `delay`. A pure `newer(seqs, key, s)` keeps the last sequence number per key.
 3. `net/debugFlags.js`: `dropFlag()` and `delayFlag()`.
 4. `Table.jsx`: one hub per table. `onChannels` attaches `live`, and its close detaches it. The hub goes to App and Scene.
-5. `Scene.jsx`: `LiveSync`. It sends the own claimed models that moved, the own tools that moved or bent, and the cursor (decision 15). It keeps the latest received pose per piece key and of the cursor. `CharacterModel` in the remote mode and `OtherTool` follow them (decision 14). A model that follows live poses shows its drag footprint (decision 18). `components/RemoteCursor.jsx`.
+5. `Scene.jsx`: `LiveSync`. It sends the own claimed models that moved, the own tools that moved or bent, and the cursor (decision 15). It keeps the latest received pose per piece key and of the cursor. `CharacterModel` in the remote mode and `OtherTool` follow them (decision 14). A model that follows live poses shows its drag footprint (decision 18). `scene/RemoteCursor.jsx`.
 6. Tests: `live.test.js` (sequence per key, rounding, no send on a closed channel, a bad packet, `drop`, `delay` with `mock.timers`, attach and detach). `peer.test.js`: both channels in each attempt, `onChannels` once per open.
 
 Checks:
@@ -690,7 +690,7 @@ Done. Work items 1 to 6 of the plan for Phase 5, the last part of Phase 5. The t
 
 What changed:
 - New `net/livePose.js` (plain, with `livePose.test.js`): `followPart(dt)`, `lerpAngle`, `poseToNumbers(key, pose)` (rounded as a packet), `numbersToPose`, `sameNumbers`, `isLiveKind`, `kindOf`, `sameSideQuat`. A table `KINDS` maps a key kind to its number layout. Phase 6 adds the other kinds there and in `LAYOUTS` of `live.js`. `live.js` now exports `roundPiece`.
-- New `components/LiveSync.jsx`, inside `Physics`. Scene mounts it only when `live` and `ownership` are set.
+- New `scene/LiveSync.jsx`, inside `Physics`. Scene mounts it only when `live` and `ownership` are set.
   - Sending: a packet at most every 33 ms, with the parts whose rounded numbers changed since the last sent value. Models: each `ownership.mine()` key `character:`, from the body (a lifted model sends the lifted pose). Tools: `tool:range`, `tool:move`, `tool:angle`, from getters.
   - The cursor: at most every 100 ms, only when the pointer moved, `c` = `tablePoint` under the last pointer position with `offTable: 'null'`. `c: null` once when the pointer leaves the canvas or the table.
   - Receiving: latest numbers per key in a ref Map with the time they came. A `character:` pose counts only while `otherOwned` has the key. When the key leaves the set, the pose is removed. `tool:` poses always count. Latest cursor in a ref.
@@ -698,7 +698,7 @@ What changed:
 - `RulerTool.jsx`, `Tool`: new prop `liveRef(get)`, the same pattern as `turnRef`. The getter gives `{ x, y, z, yaw, right, left }`. Scene keeps the getters in `toolLives`.
 - `CharacterModel.jsx`, remote mode: prop `getLivePose(key)`. Each frame the model keeps its own shown pose and goes `followPart(dt)` of the way to the latest live pose: position by lerp, rotation by slerp, then `setNextKinematicTranslation` and `setNextKinematicRotation`. Without a live pose it stays. While it follows it shows `DragFootprint`. The follow ends when `remote` goes false or the pose goes. The rules of 4c for the end of a claim did not change.
 - `RulerTool.jsx`, `OtherTool`: prop `getLive`. The target is the live pose if it came after the tool mounted and after the last change of the entry, else the entry pose. The body follows with `followPart(dt)`: position, yaw (shortest turn) and bend. The part groups and the colliders turn with the bend. The footprint reads the shown bend.
-- New `components/RemoteCursor.jsx`: a flat ring (0.2" to 0.25" radius, so 0.5" across) in the color of the other side, 0.04" above the point. No raycast. It follows the point with the same `followPart`. Hidden before the first cursor, after `null`, and when `otherPresent()` is false.
+- New `scene/RemoteCursor.jsx`: a flat ring (0.2" to 0.25" radius, so 0.5" across) in the color of the other side, 0.04" above the point. No raycast. It follows the point with the same `followPart`. Hidden before the first cursor, after `null`, and when `otherPresent()` is false.
 - `Scene.jsx`: `live` replaces `_live`. A single player room and the Sandbox pass no `live`, so they have no LiveSync and no cursor.
 
 Choices that the plan did not fix:
@@ -724,7 +724,7 @@ Checks:
 
 ## Phase 6: Live drags of tokens, cards and markers
 
-Read: decisions 2, 3, 9 and 14. `drag/pointerDrag.js`, `components/Scene.jsx` (`LiveSync`), `components/CrisisToken.jsx`, `components/TacticCard.jsx`, `components/ScoreBoard.jsx`, `components/LooseToken.jsx`, `components/TokenPile.jsx`, `components/TokenDragPreview.jsx`, and the token drag of `App.jsx`.
+Read: decisions 2, 3, 9 and 14. `drag/pointerDrag.js`, `scene/Scene.jsx` (`LiveSync`), `crisis/CrisisToken.jsx`, `tactics/TacticCard.jsx`, `scoreboard/ScoreBoard.jsx`, `tokens/LooseToken.jsx`, `tokens/TokenPile.jsx`, `tokens/TokenDragPreview.jsx`, and the token drag of `App.jsx`.
 
 Work:
 1. A dragged piece without a body gives its live pose to `LiveSync` through one function, in the form of the live packet ("Names"). The crisis token also gives its yaw during a turn with its handle. A loose token and a pile give the point of `TokenDragPreview`.
@@ -748,7 +748,7 @@ What changed:
 - `App.jsx`: makes the Map (`pieceLives`) and passes it to `Scene`. The token drag passes it with the point of `TokenDragPreview` (`dragPointRef`) as `livePose`. A new token has no key, so it sends nothing.
 - `Scene.jsx`: passes `pieceLives` to `LiveSync` and to `CrisisToken`, `TacticCard` and `ScoreBoard`. It gives each piece `remote` (the key is in `otherOwned`) and `getLivePose` (`received.pose`). `LooseToken` and `TokenPile` get the same two props.
 - `LiveSync.jsx`: each send also reads every getter in `pieceLives`. Receiving: every kind except `tool:` counts only while the other player claims the key, and is removed when the key leaves the set.
-- New `components/useLiveFollow.js`: the follow of a piece without a body. Each frame the drawn pose goes `followPart(dt)` of the way to the live pose (yaw by `lerpAngle`). With no live pose it does nothing. When the live pose goes, the pose goes back to the place in the document at once.
+- New `scene/useLiveFollow.js`: the follow of a piece without a body. Each frame the drawn pose goes `followPart(dt)` of the way to the live pose (yaw by `lerpAngle`). With no live pose it does nothing. When the live pose goes, the pose goes back to the place in the document at once.
 - `CrisisToken.jsx`, `TacticCard.jsx`, `ScoreBoard.jsx` (markers), `LooseToken.jsx`, `TokenPile.jsx`: use the hook. The drags of the token (and its turn handle), the card and the markers pass `live` and `livePose`.
 
 Choices that the plan did not fix:
@@ -849,7 +849,7 @@ The user found these on 2026-10-10, in a pair (alice on Blue, dylan on Red):
 
 Cause of the first one: `OtherToolBody` in `RulerTool.jsx` calls `colliders.current[i]?.setRotationWithParent(...)` every frame. The Rapier 0.14 collider has no such method. The name is `setRotationWrtParent`. The call runs only for a part with a `side`, so only for the other player's movement tool (S, M, L, T/A). Range tools have no sides. The error is thrown inside the R3F frame loop, so every later frame callback and `gl.render` stop on every frame: no physics, no LiveSync, no claim checks, no drawing. drei `<Html>` elements still follow the camera, because their callbacks run before the error. So the labels moved over a still image.
 
-Read: decisions 20 and 21. `components/RulerTool.jsx` (`OtherToolBody`, `DeployRangeTool`), `net/ownership.js` (+ test), `components/Scene.jsx` (the model drag, the deploy tool, LiveSync), `components/LiveSync.jsx`, `App.jsx` (`squadSelect`).
+Read: decisions 20 and 21. `tabletools/RulerTool.jsx` (`OtherToolBody`, `DeployRangeTool`), `net/ownership.js` (+ test), `scene/Scene.jsx` (the model drag, the deploy tool, LiveSync), `scene/LiveSync.jsx`, `App.jsx` (`squadSelect`).
 
 Work:
 1. `RulerTool.jsx`: `setRotationWithParent` → `setRotationWrtParent`. Search `apps/web/src` for other Rapier calls with a wrong name.
@@ -886,7 +886,7 @@ Checks:
 
 ## Phase 9: New tokens are live, the footprint of the other player's model
 
-Read: decisions 18, 20, 22 and 23. `App.jsx` (`startTokenDrag`, `handleTokenRelease`, `handleSupplyTake`), `drag/pointerDrag.js`, `net/ownership.js` (+ test), `net/livePose.js`, `components/Scene.jsx` (`TokenDragPreview` and its children, LiveSync), `components/TokenDragPreview.jsx`, `components/CharacterModel.jsx` (the remote mode and its footprint), `components/LiveSync.jsx`.
+Read: decisions 18, 20, 22 and 23. `App.jsx` (`startTokenDrag`, `handleTokenRelease`, `handleSupplyTake`), `drag/pointerDrag.js`, `net/ownership.js` (+ test), `net/livePose.js`, `scene/Scene.jsx` (`TokenDragPreview` and its children, LiveSync), `tokens/TokenDragPreview.jsx`, `characters/CharacterModel.jsx` (the remote mode and its footprint), `scene/LiveSync.jsx`.
 
 Work:
 1. `net/ownership.js`: `setSpawn(spawn | null)` and `otherSpawn()`, the same way as `setDrag` and `otherDrag`. `subscribe` also runs on a change of it. The local version does nothing and gives `null`. Tests.
@@ -929,7 +929,7 @@ Checks:
 
 ## Phase 10: The other player's selection and range marks
 
-Read: decisions 24 and 25. `selection.js`, `App.jsx` (selection, selected tools), `components/Scene.jsx` (`rangeMark`, `toolTarget`, `OtherTool`), `components/SelectionOutlines.jsx`, `components/CharacterModel.jsx`, `components/CrisisToken.jsx`, `components/RulerTool.jsx` (`RangeMark`, `ToolFootprint`, `OtherToolBody`), `components/RemoteCursor.jsx` (side colors), `net/ownership.js`.
+Read: decisions 24 and 25. `selection.js`, `App.jsx` (selection, selected tools), `scene/Scene.jsx` (`rangeMark`, `toolTarget`, `OtherTool`), `scene/SelectionOutlines.jsx`, `characters/CharacterModel.jsx`, `crisis/CrisisToken.jsx`, `tabletools/RulerTool.jsx` (`RangeMark`, `ToolFootprint`, `OtherToolBody`), `scene/RemoteCursor.jsx` (side colors), `net/ownership.js`.
 
 Work:
 1. `net/presence.js`, new plain module: the fields `selection`, `tools` and `mark` of the own awareness state, and those of the other player. `set(fields)`, `other()` gives `{ selection, tools, mark }` (the same object until a field changes), `subscribe`, `destroy`. A version without awareness for a single player room. Tests. It is separate from `ownership.js`, because it is about what a player looks at, not about who moves a piece.

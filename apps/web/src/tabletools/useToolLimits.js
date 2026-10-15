@@ -1,16 +1,9 @@
 import { useRef, useState, useEffect } from 'react'
-import { useLatest } from '../components/useLatest.js'
-import { throwMove } from '../components/throwPath.js'
-import { lineClamp, placeClamp, touches } from '../components/placeLock.js'
-import { clampRange, rangeReach, withinRange } from '../components/rangeOne.js'
-import {
-  OTHER,
-  toolPose,
-  toolShape,
-  throwLine,
-  sameModel,
-  lockKey,
-} from '../components/toolGeometry.js'
+import { useLatest } from '../scene/useLatest.js'
+import { throwMove } from '../characters/throwPath.js'
+import { lineClamp, placeClamp, touches } from './placeLock.js'
+import { clampRange, rangeReach, withinRange } from './rangeOne.js'
+import { OTHER, toolPose, toolShape, throwLine, sameModel, lockKey } from './toolGeometry.js'
 
 // Place, Place 1 and Throw of a tool: what they limit during a drag of a model (onPlaceLimit), and their
 // buttons' handlers (docs/features/range-movement-tools.md). Takes the state of the tool and gives the state

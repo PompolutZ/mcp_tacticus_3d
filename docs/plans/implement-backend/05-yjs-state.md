@@ -205,7 +205,7 @@ Status: done. Code in commit `038a257`. The user checked the app in the browser 
 
 Files changed:
 - New: `apps/web/src/Table.jsx`, `net/useY.js`, `rooms/tableDoc.js`.
-- Changed: `App.jsx`, `Root.jsx`, `rooms/store.js`, `rooms/table.js`, `components/Scene.jsx`, `components/CharacterModel.jsx`, `index.css`, `setup/setup.js`.
+- Changed: `App.jsx`, `Root.jsx`, `rooms/store.js`, `rooms/table.js`, `scene/Scene.jsx`, `characters/CharacterModel.jsx`, `index.css`, `setup/setup.js`.
 - The same commit also has the Phase 3 code, this plan, the "Work split" of `CLAUDE.md`, and one rule line of `docs/plans/implement-backend.md`.
 
 Facts:
@@ -263,7 +263,7 @@ Checks:
 Status: done. Code in commit `038a257`. The user checked the app in the browser on 2026-10-09.
 
 Files changed:
-- `apps/web/src/components/Toolbar.jsx`, `App.jsx`, `Table.jsx`, `net/doc.test.js`. All in commit `038a257` with Phase 2.
+- `apps/web/src/ui/Toolbar.jsx`, `App.jsx`, `Table.jsx`, `net/doc.test.js`. All in commit `038a257` with Phase 2.
 
 Facts:
 - `Toolbar.jsx`: **Save game** and **Load game** are in the first group, after the room code. Load uses a hidden `<input type="file" accept=".yjs">`. The input value is cleared after a pick, so the same file can be chosen again.

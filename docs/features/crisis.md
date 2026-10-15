@@ -194,7 +194,7 @@ The board comes from the TTS mod. These facts come from the mod:
 - The Lua script of the board reads the VP and the round from the positions of the tokens on it.
 - Each player has a VP marker ("Red Player VP Tracker", "Blue Player VP tracker"): a round tile, 1.2" wide, with the player tint on its edge. Its faces show the affiliation token that the player chooses on the Tray Spawner (`updateScoreTracker`). The mod has 36 affiliation tokens.
 
-The app has the board (`src/components/ScoreBoard.jsx`, `src/scoreboard/board.js`, files from `scripts/migrate-scoreboard.mjs`):
+The app has the board (`src/scoreboard/ScoreBoard.jsx`, `src/scoreboard/board.js`, files from `scripts/migrate-scoreboard.mjs`):
 
 - The board is at its TTS position, with z → -z. The VP 1 spot is on the host side (+z). A card lies at each end of the board.
 - Each player has a VP marker. The token it shows comes from the game setup, for each player (`docs/features/setup-game.md`, "Affiliation"). The toolbar has no VP group. The markers start on the board, in the empty top-left corner (above the "1" box, left of the logo), side by side: host at the +z end, guest next to it. The mod puts them next to the board; the app does not, so they are on the board and easy to see (the user asked for it).

@@ -1,4 +1,4 @@
-// Parser of the Jarvis card body markup, for the Team Tactic face (components/TacticFace.jsx).
+// Parser of the Jarvis card body markup, for the Team Tactic face (tactics/TacticFace.jsx).
 // Port of Jarvis' own parser. A pure function: string in, node tree out.
 //
 // The body is split on "|". The first character of a part sets its kind:

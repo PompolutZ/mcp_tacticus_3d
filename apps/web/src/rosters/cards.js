@@ -32,7 +32,7 @@ for (const row of jarvisCharacters) {
 // bearableGemsWithName; 1 when Jarvis has none), from Jarvis. back: the image
 // of the other side, for the flip in the roster popup. null when the app has no image, or when the other side is the
 // same for every card of the kind: the back of a crisis card shows only its type.
-// faceKey: the key of a Team Tactic card whose face the app draws from Jarvis data (components/TacticFace.jsx), else null.
+// faceKey: the key of a Team Tactic card whose face the app draws from Jarvis data (tactics/TacticFace.jsx), else null.
 // The card has no face scan: image of a Team Tactic card is its back (a card without Jarvis data shows the
 // back as its face); with a faceKey, the face comes from the component.
 // variants: the cards that the roster popup can switch between for this character, [{ label, image, back, portrait? }],

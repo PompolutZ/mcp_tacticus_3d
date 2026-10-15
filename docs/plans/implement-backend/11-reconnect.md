@@ -64,7 +64,7 @@ apps/web/src/
   net/peer.test.js            + tests of the rules of decisions 2 to 5
   net/fingerprint.js          new: tableFingerprint (phase 2)
   net/fingerprint.test.js     new (phase 2)
-  components/RoomPlayers.jsx  + "Reconnecting"
+  rooms/RoomPlayers.jsx  + "Reconnecting"
   index.css                   + .room-player-status--reconnecting
   Table.jsx                   traffic per connection; the fingerprint line (phase 2)
 apps/api/
@@ -125,7 +125,7 @@ apps/api/
 
 ## Phase 1: Reconnect
 
-Read: decisions 1 to 7 and 10. `net/peer.js`, `net/peer.test.js` (the fake connection and timers), `Table.jsx` (`connectRoom`, `onChannels`, `onState`, the traffic functions), `components/RoomPlayers.jsx`, `index.css` (`.room-player-status`), `apps/api/package.json`, `README.md` (the `turn:up` line).
+Read: decisions 1 to 7 and 10. `net/peer.js`, `net/peer.test.js` (the fake connection and timers), `Table.jsx` (`connectRoom`, `onChannels`, `onState`, the traffic functions), `rooms/RoomPlayers.jsx`, `index.css` (`.room-player-status`), `apps/api/package.json`, `README.md` (the `turn:up` line).
 
 Work:
 1. `net/peer.js`: decisions 2 to 5.
@@ -146,7 +146,7 @@ Work:
    - `bye` during `reconnecting`: `waiting`. 15 minutes with no message: `stopped`.
    - `stop()` during the `hello` repeats: no more posts.
    - The existing tests still pass, also the closed and reloaded page of step 8.
-3. `components/RoomPlayers.jsx`: `reconnecting: 'Reconnecting'`. No **Try again** for it. `index.css`: `.room-player-status--reconnecting` with the color of `--failed`.
+3. `rooms/RoomPlayers.jsx`: `reconnecting: 'Reconnecting'`. No **Try again** for it. `index.css`: `.room-player-status--reconnecting` with the color of `--failed`.
 4. `Table.jsx`: decision 7. The traffic count starts in `onChannels` and ends when that `sync` channel closes. A closing table still ends it with no line, as today.
 5. `apps/api/package.json`: `turn:pause` (`docker compose pause coturn`) and `turn:resume` (`docker compose unpause coturn`). The root `README.md` documents them, in Phase 2 (`apps/api/README.md` does not exist).
 

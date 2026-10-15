@@ -58,7 +58,7 @@ The user: "code duplication without any reason is a design smell". Every rule, c
 - Same try/catch read and write of JSON: `rooms/store.js:19-36`, `settings/settings.js:90-106`, `log/open.js` (stores `'1'` / `'0'`).
 - `auth/session.js:2` says it is the only file that touches `localStorage` and `sessionStorage`. That is false. Its calls at lines 37, 42, 76, 103, 120 have no try/catch. With storage turned off, they throw.
 - `settings/useSettings.js:9-39`: six handlers, each `next = { ...settings, X }`, `setSettings`, `writeSettings`.
-- `Library.jsx:89-95` copies the timer of `components/useHudMessage.js`. The hook's comment says so.
+- `Library.jsx:89-95` copies the timer of `ui/useHudMessage.js`. The hook's comment says so.
 
 ### 3D code
 
@@ -189,7 +189,7 @@ User: drop a crisis token on a character (model and tray). Hover a locked terrai
 
 Done. Lint 58 warnings (same, no new `eslint-disable`; the hook keeps the one for `start`, the two copies are gone), tests 896 pass, build ok, fallow 299 lines / 11 groups (the ghost group is gone; the rest are dialogs, Scene/RulerTool and the migrate scripts, later steps).
 
-- `drag/screenRay.js` (`ndcFromClient`, `nearestHit`) + test. Used in `tablePoint.js`, `characterAt` and `terrainUnder` (`components/useModelRegistry.js`), `useTerrainHoverLabel.js`, `tabletools/useDragTool.js` (2 places, it took the RulerTool ones), `modelUnder` in `RulerTool.jsx`.
+- `drag/screenRay.js` (`ndcFromClient`, `nearestHit`) + test. Used in `tablePoint.js`, `characterAt` and `terrainUnder` (`scene/useModelRegistry.js`), `useTerrainHoverLabel.js`, `tabletools/useDragTool.js` (2 places, it took the RulerTool ones), `modelUnder` in `RulerTool.jsx`.
 - `drag/usePointerTablePoint.js`; `TokenDragPreview` and `ToolDragGhost` use it. The hook takes the `onPoint` closure and a `deps` list; group visibility stays in `onPoint` of each.
 - Docs: file list in `peer-to-peer.md`.
 
@@ -205,8 +205,8 @@ Work:
 4. New `src/pieces/heights.js`: `SURFACE_GAP = 0.02`, `MARKER_LIFT = 0.04`, `HOVER_RATE = 25`, each with the comment of its first copy. The files in "Facts" import them. A file whose comment gives the constant another meaning keeps its own, and the Result says which.
 5. `DEG`: one export in `camera.js` (or the file the earlier plans made for angles), used by the three files. `camera.js` gets `MAX_POLAR_ANGLE = 85 * DEG`, used by `App.jsx` and `debug/TerrainPage.jsx`.
 6. `OnTable.jsx` exports `INCHES_PER_PX`, `px(inches)` and `TABLE_Y`. `GameSetup.jsx` (or `setup/setupText.js`), `TableButtons.jsx` and `ToolRack.jsx` import them.
-7. `components/useHoverCursor.js` gets `useHoverReport(hovered, onHover)`. The 8 components use it. `LosTool.jsx` and the RulerTool tool code share `useDragEndOnUnmount(onDrag)` in the same file, or the Result says why it stays.
-8. `components/footprintProjection.js` gets `useFootprintSlot()` → the slot ref, acquired on mount and released on unmount. `DragFootprint.jsx` and the two RulerTool places use it. `CrisisToken.jsx:225` acquires on a condition, so it stays.
+7. `scene/useHoverCursor.js` gets `useHoverReport(hovered, onHover)`. The 8 components use it. `LosTool.jsx` and the RulerTool tool code share `useDragEndOnUnmount(onDrag)` in the same file, or the Result says why it stays.
+8. `scene/footprintProjection.js` gets `useFootprintSlot()` → the slot ref, acquired on mount and released on unmount. `DragFootprint.jsx` and the two RulerTool places use it. `CrisisToken.jsx:225` acquires on a condition, so it stays.
 9. `LooseToken.jsx` and `TokenPile.jsx`: one `tokenFootprint(follow, poseRef)` in `drag/tokenDrop.js`, with a test.
 
 Checks: as in "Checks". Fallow groups `dup:64950102`, `dup:49103c37` and the DragFootprint group are gone.
@@ -259,7 +259,7 @@ Done. Behavior and messages are the same.
 Work:
 
 1. `pnpm --filter web add @react-aria/focus` (decision 5).
-2. New `components/Dialog.jsx`: `Dialog({ label, className, backdropClassName, onClose, as = 'div', ...rest, children })`. It renders `Overlay` with the backdrop press-and-click rule, the `×` button, and `FocusScope contain restoreFocus` around the element with `role="dialog"`, `aria-modal="true"`, `aria-label={label}`, `tabIndex={-1}`. It focuses that element on mount. Escape on it calls `onClose` and stops the event (decision 6). `as="form"` with `onSubmit` in `rest` serves `NewRoomDialog`.
+2. New `ui/Dialog.jsx`: `Dialog({ label, className, backdropClassName, onClose, as = 'div', ...rest, children })`. It renders `Overlay` with the backdrop press-and-click rule, the `×` button, and `FocusScope contain restoreFocus` around the element with `role="dialog"`, `aria-modal="true"`, `aria-label={label}`, `tabIndex={-1}`. It focuses that element on mount. Escape on it calls `onClose` and stops the event (decision 6). `as="form"` with `onSubmit` in `rest` serves `NewRoomDialog`.
 3. `CrisisChoose`, `CrisisCompare`, `NewRoomDialog`, `RosterPopup`, `SettingsPopup`, `TrayPopup` use it. Their class names and DOM order stay, so the CSS still applies. `TrayPopup` keeps its close button in its top row: Dialog gets a `closeButton={false}` prop for it, and its backdrop click uses Dialog's rule. That rule is a fix: today a drag that ends on the backdrop closes the tray.
 4. `RoomRosterPopup` and `NewRoomDialog` remove Escape from their listeners (decision 6).
 5. `Overlay.jsx` comment: Dialog is the shell for dialogs; Overlay stays for `CardPopup` and `LoadingOverlay`.
@@ -281,7 +281,7 @@ User: open each dialog: Settings, a roster popup (table and lobby), the crisis c
 Done. Not tried in a browser (project rule); the user list is open.
 
 - `@react-aria/focus` 3.22.1 (React 18 is in its peer range).
-- New `components/Dialog.jsx`: `Overlay` + backdrop press rule + `×` + `FocusScope contain restoreFocus` around the `×` and the dialog element (`tabIndex={-1}`, focused on mount). `closeButton`, `restoreFocus`, `as` props.
+- New `ui/Dialog.jsx`: `Overlay` + backdrop press rule + `×` + `FocusScope contain restoreFocus` around the `×` and the dialog element (`tabIndex={-1}`, focused on mount). `closeButton`, `restoreFocus`, `as` props.
 - `CrisisChoose`, `CrisisCompare`, `NewRoomDialog` (`as="form"`), `RosterPopup`, `SettingsPopup`, `TrayPopup` (`closeButton={false}`) use it. The tray backdrop now follows the press rule (fix).
 - Escape: a `document` keydown listener in Dialog (not a React handler, so it works with the focus on body). It runs before the table's window listener and stops the event. The Settings key capture is a window capture listener with `stopImmediatePropagation`, so it still takes Escape. `NewRoomDialog` and `RoomRosterPopup` lost the Escape part; arrows stay.
 - `restoreFocus` is on in all dialogs. Space (reset view) has `preventDefault` on the table; Enter has no table binding. Risk 3 is untested: if a key presses the opener, set `restoreFocus={false}` for table dialogs.
@@ -299,7 +299,7 @@ Work:
 6. `rosters/cards.js` builds its tactic and crisis entries from `TACTIC_ROWS` and `CRISIS_ROWS`, and drops its imports of the four tactic and crisis JSON files and `idToKey` (decision 14).
 7. A Node test cannot load these files (Facts). Add a check to `scripts/` or a test that reads the JSON with `with { type: 'json' }`: every tactic id has 8 digits; each crisis `cards.json` id has one current Jarvis printing.
 
-Checks: as in "Checks", plus: the roster popup counts of a test roster are the same before and after (log `rosterTabs` counts of one MCT code in the Result). `grep -rn "padStart(8" apps/web/src apps/web/scripts` gives only `net/fingerprint.js`, `components/storedTool.js` and the migrate script.
+Checks: as in "Checks", plus: the roster popup counts of a test roster are the same before and after (log `rosterTabs` counts of one MCT code in the Result). `grep -rn "padStart(8" apps/web/src apps/web/scripts` gives only `net/fingerprint.js`, `tabletools/storedTool.js` and the migrate script.
 
 User: open a roster with Team Tactic cards, an Infinity Gem and crisis cards: same cards, names, threats and images as before. In the Library, search one of the 16 cards by its 8-digit code (for example `01430206`): it shows. Spawn a Team Tactic card and open a gem from the Library. Game setup crisis step: the threat and the Maximum Threat are the same as before. The Toolbar crisis list shows the threat.
 
@@ -314,7 +314,7 @@ Done. Lint 52 warnings (same), tests 904 pass, build ok, fallow 143 lines / same
 - `rosters/cards.js` builds tactic and crisis entries from the two row lists; no tactic or crisis JSON import left.
 - Test `scripts/lib/card-data.test.js` (reads the JSON): all tactic ids have 8 digits; a search by `01430206` finds its card (the bug); each crisis id has one current Jarvis printing; crisis `cards.json` has no `threat`.
 - Before/after check with a Node loader: for the test roster `01620101-01910104,01910101,01000101,01430206,00620201,00300201,00050301,20230310,20130301` the `rosterTabs` counts are characters 3, tactics 3, crisis 3 both times, unknown none. The full `rosterCard` of every Jarvis code, `CRISIS_THREATS`, `squadThreat`, and the crisis and tactic lists (with ids padded) are byte-equal before and after.
-- `grep padStart(8`: only `net/fingerprint.js`, `components/storedTool.js`, `migrate-tactics.mjs`.
+- `grep padStart(8`: only `net/fingerprint.js`, `tabletools/storedTool.js`, `migrate-tactics.mjs`.
 
 
 ## Step 8: Script and infra helpers, last fallow run
@@ -360,7 +360,7 @@ User: in a multiplayer room, as host and as guest, the Library has no For choice
 
 ### Result
 
-Done. `components/libraryTeam.js` `libraryTeam(seat, chosen)`: single player and Sandbox give `chosen`; multiplayer gives `ownSide`, or null when `mySide` is null. `Library` gets a `seat` prop (App passes the `tableSeat(room)` result), hides the For group in multiplayer, and disables character rows and tactic cards when the team is null (title: "You have no side at this table"). Gems stay clickable (they only open a card). Test `libraryTeam.test.js` (3 tests). Doc `library.md` updated.
+Done. `ui/libraryTeam.js` `libraryTeam(seat, chosen)`: single player and Sandbox give `chosen`; multiplayer gives `ownSide`, or null when `mySide` is null. `Library` gets a `seat` prop (App passes the `tableSeat(room)` result), hides the For group in multiplayer, and disables character rows and tactic cards when the team is null (title: "You have no side at this table"). Gems stay clickable (they only open a card). Test `libraryTeam.test.js` (3 tests). Doc `library.md` updated.
 
 - Deviation: the plan said "a spectator". The only spectator in the app is the debug view toggle (`spectator` state in App), not a seat, so only `side: null` is blocked.
 
@@ -370,7 +370,7 @@ Step 8 found copies that steps 1–7 did not cover. The user asked for no copies
 
 Work:
 
-1. `sideSign(team)` and `sideYaw(team)` in `setup/setup.js`, with tests. Use them in `rosters/layout.js`, `tactics/layout.js`, `tabletools/layout.js`, `characters/trays.js`, `components/storedTool.js` and the two drag yaws in `Scene.jsx`, where the expression means "the side of the table". Leave an expression with another meaning as it is, and say which.
+1. `sideSign(team)` and `sideYaw(team)` in `setup/setup.js`, with tests. Use them in `rosters/layout.js`, `tactics/layout.js`, `tabletools/layout.js`, `characters/trays.js`, `tabletools/storedTool.js` and the two drag yaws in `Scene.jsx`, where the expression means "the side of the table". Leave an expression with another meaning as it is, and say which.
 2. UI colors in one place: the hex values repeated in JS and CSS (`#20242b`, `#f5a623`, `#e8b04a`, `#ffd34d`, `#414a61`, `#3a7de0`) become named constants in one module (e.g. `src/uiColors.js`) and CSS variables on `:root` set from it, the same way as `--player-blue` in step 1. Same colors, same look.
 3. The 36 props that `Scene.jsx` passes through to `TokenLayer.jsx`: pass one object built once in Scene (or read it from a context, if that is simpler). No change in what `TokenLayer` gets.
 4. The two `runCardLoop` calls with the same options: one shared options object, or accept the 10 lines and write why in the Result.

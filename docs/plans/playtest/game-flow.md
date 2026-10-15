@@ -161,7 +161,7 @@ Work:
 1. Yjs: `log: createList(doc.getMap('log'))` in `src/net/doc.js`, `fillTable`, `startTable`.
 2. New plain module `src/log/log.js`: entry builders, `logText(entry, names)`, the 300 limit (decision 10), fixed ids (decision 9). Tests.
 3. Move `useNames` from `GameSetup.jsx` to a shared place (for example `src/setup/useNames.js`), so the Log can use it.
-4. New `components/LogPanel.jsx` replaces `RollsPanel.jsx`: `rolls` and `log` merged by `at`, newest first; dice entries keep `entryText` and the side color border; collapse (decision 6). Toolbar chip **Rolls** becomes **Log**. CSS in `index.css`.
+4. New `log/LogPanel.jsx` replaces `RollsPanel.jsx`: `rolls` and `log` merged by `at`, newest first; dice entries keep `entryText` and the side color border; collapse (decision 6). Toolbar chip **Rolls** becomes **Log**. CSS in `index.css`.
 5. Entries in `App.jsx`, each in the same `table.transact` as its change:
    - Setup: the roll-off result, manual Priority, deck, first card, second card, Maximum Threat, edge, squad ready, squads revealed, affiliation, deployment done, Override, Restart.
    - Power Phase: one entry per side with the gains ("Power Phase (Nelly): Hulk 4 → 7, Angela 2 → 4").
@@ -188,7 +188,7 @@ Built, as planned. Checks pass. No browser test was done.
 - `src/log/log.js`: `logEntry`, `addEntry` (fixed id, the 300 limit), `mergeLog`, `entrySide`, `logText`. Tests in `log.test.js`. An unknown kind has the text "", so step 3 adds a `case` and a builder, and the merge works on the same list (`addEntry`) without a new shape.
 - `src/log/open.js`: the collapse state in localStorage.
 - `src/setup/useNames.js`: `useNames`, moved from `GameSetup.jsx`. `App.jsx` uses it for `nameCtx` too, instead of its own copy.
-- `src/components/LogPanel.jsx` replaces `RollsPanel.jsx` (renamed, CSS classes `rolls-` are now `log-`). Toolbar chip is **Log**. Escape collapses.
+- `src/log/LogPanel.jsx` replaces `RollsPanel.jsx` (renamed, CSS classes `rolls-` are now `log-`). Toolbar chip is **Log**. Escape collapses.
 - `App.jsx`: `writeLog(kind, data, id)`, called in the same transaction as each change. Entries: roll off (result and manual), deck, first and second card, Maximum Threat, edge, ready, squads revealed, affiliation (manual and automatic), deployment done, Override, Restart, Power Phase (one per side), Cleanup, Priority click.
 - Docs: new `game-log.md`. Changed: `dice-rolling.md`, `peer-to-peer.md`, `key-shortcuts.md`, `round-phases.md`, `setup-game.md`.
 
@@ -277,7 +277,7 @@ Work:
 
 1. `ToolPoint.jsx`: a way to get the point under the pointer with `y` (terrain top).
 2. Key **P** in `handleKeyDown` (`App.jsx`), not on repeat: a ping at that point, in the color of the own side (`ownSide`).
-3. New `components/Ping.jsx`, used in `Scene.jsx`: a down arrow above the point that bounces, and a ring on the surface, for 3 s, then fades. Color from `useSideColor`. The ping sound plays at the start.
+3. New `scene/Ping.jsx`, used in `Scene.jsx`: a down arrow above the point that bounces, and a ring on the surface, for 3 s, then fades. Color from `useSideColor`. The ping sound plays at the start.
 4. Network: the awareness field `ping` (decision 16) in `src/net/presence.js`, sent on P, shown by the other browser.
 5. `src/settings/controls.js` `KEY_ROWS`: P.
 6. Docs: new `docs/features/ping.md`. `key-shortcuts.md`: P row ("Ping", Same: No). `peer-to-peer.md`: the awareness field. `sounds.md`: the ping sound.
@@ -295,7 +295,7 @@ Built, as planned. Checks pass. No browser test was done.
 
 - `ToolPoint.jsx`: `atPointer()` and `atCenter()` now return `{ x, y, z }`. No new function: the old callers read only `x` and `z`.
 - `keyboard.js`: `PING_KEY`. `App.jsx`: `handlePingKey` sits after the repeat check, so it follows the same rules as F and L (not in a text field, not with Ctrl, Cmd or Alt, not in a popup or a drag). It makes `{ id, at, t }`, keeps it in `ownPing` state (passed to `Scene`) and sends it with `presence.set({ ping })`.
-- `components/Ping.jsx`: a cone with its tip down that bounces, and a ring on the surface, in the side color, 3 s, fade in the last 0.5 s. The sound plays at mount. `Scene.jsx` shows the own ping and the other player's (`otherLook.ping`), each keyed by id.
+- `scene/Ping.jsx`: a cone with its tip down that bounces, and a ring on the surface, in the side color, 3 s, fade in the last 0.5 s. The sound plays at mount. `Scene.jsx` shows the own ping and the other player's (`otherLook.ping`), each keyed by id.
 - `net/presence.js`: the field `ping` (`cleanPing`, same id is not sent again). Tests added in `presence.test.js`.
 - `controls.js`: P row. Docs: new `ping.md`; `key-shortcuts.md` (P row, Same: No), `peer-to-peer.md`, `sounds.md`.
 
@@ -316,7 +316,7 @@ Work:
 3. Triggers (decision 19) in `handleCharacterTokenGive` (Dazed) and `handleCharacterOffBoard` (**Remove**), each in one transaction with the drop.
 4. `CrisisToken.jsx`: while `placeBy` is set, only a browser that plays `placeBy` can start a drag. A release lies on the table and clears `placeBy`.
 5. **Remove** waits (decision 20): the models stay; when the last waiting token of the character is placed, the models go back to the tray (`returnModels`). The **Remove** button is disabled with the title.
-6. New `components/HudNotice.jsx` (decision 21), in `App.jsx`. **Show** uses a new camera function in `src/camera.js` (target to a point, smooth, same angle and distance). **Done** clears `placeBy`.
+6. New `ui/HudNotice.jsx` (decision 21), in `App.jsx`. **Show** uses a new camera function in `src/camera.js` (target to a point, smooth, same angle and distance). **Done** clears `placeBy`.
 7. Notice sound (decision 12) for the placing player, once per drop.
 8. Log: "Hulk dropped the Asset. Nelly places it." and "Nelly placed Hulk's Asset."
 9. Docs:
@@ -342,7 +342,7 @@ Built, as planned. Checks pass. No browser test was done.
 - Race: `placeTokens` reads `table.tokens.read()`, skips a token that is not waiting any more, and only the browser that clears the last token calls `returnModels`. In a multiplayer room only the browser of `placeBy` can drag or press **Done**, so one browser does it.
 - `CrisisToken.jsx`: props `canDrag` (`Scene.jsx` gives false when this browser does not play `placeBy`) and `constrainDrag(point)` (called in the drag move, not passed yet: the place for step 7). A waiting token is never held on release.
 - **Remove** is off while a token waits: `removeWaits` goes `App` > `Scene` > `CharacterTray` > `TrayControls`, and to `TrayPopup`. The text is the title.
-- `components/HudNotice.jsx` and `.hud-notice` in `index.css`: one line per character, **Show**, **Done** (only for the placing player).
+- `ui/HudNotice.jsx` and `.hud-notice` in `index.css`: one line per character, **Show**, **Done** (only for the placing player).
 - `panToPoint(controls, point)` in `src/camera.js` (smooth, same angle and distance, returns a stop function). Tests in `camera.test.js`.
 - Sound: `notice` plays once per new drop for the placing player (an effect in `App.jsx`). Nothing plays for tokens that wait when the table opens.
 - Log: kinds `dropped` and `placed` in `log.js`, with tests.

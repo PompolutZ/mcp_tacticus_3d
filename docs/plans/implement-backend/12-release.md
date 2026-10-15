@@ -59,8 +59,8 @@ Files:
 ```
 apps/web/
   public/privacy.html          new: the privacy page
-  src/components/UserMenu.jsx  + Delete account, + Privacy link in the login note
-  src/components/Lobby.jsx     + footer with the Privacy link
+  src/auth/UserMenu.jsx  + Delete account, + Privacy link in the login note
+  src/rooms/Lobby.jsx     + footer with the Privacy link
   src/auth/session.js          + deleteAccount
   src/rooms/store.js           + delete the local multiplayer data of one user
   src/index.css                + footer, Delete account
@@ -120,7 +120,7 @@ infra/
 
 ## Phase 1: Privacy page and Delete account
 
-Read: decisions 2 to 4. `components/UserMenu.jsx`, `components/Lobby.jsx`, `auth/session.js`, `rooms/store.js` (`multiplayerDocName`, the squad keys, the cleanup of the lobby), `rooms/localDocs.js`, `api/client.js`, `apps/web/public/_headers`, `net/ice.js`, `index.css` (the lobby and `.user-menu` styles). In the API, only to see what `DELETE /me` does: `apps/api/src/routes/me.ts`.
+Read: decisions 2 to 4. `auth/UserMenu.jsx`, `rooms/Lobby.jsx`, `auth/session.js`, `rooms/store.js` (`multiplayerDocName`, the squad keys, the cleanup of the lobby), `rooms/localDocs.js`, `api/client.js`, `apps/web/public/_headers`, `net/ice.js`, `index.css` (the lobby and `.user-menu` styles). In the API, only to see what `DELETE /me` does: `apps/api/src/routes/me.ts`.
 
 Work:
 1. `apps/web/public/privacy.html`: decisions 2 and 3. Where the controller and the contact go, use the text that the main model gives in this prompt (open question 1).

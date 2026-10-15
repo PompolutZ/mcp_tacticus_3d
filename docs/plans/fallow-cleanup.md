@@ -23,12 +23,12 @@ From a run of fallow 3.33.1 at `895496b` (`game-flow`). Fallow is a Rust binary 
 
 - 5 exports are not used anywhere:
   - `searchCharacters` (`src/characters/characters.js`)
-  - `STORED_FIELDS` (`src/components/storedTool.js`)
+  - `STORED_FIELDS` (`src/tabletools/storedTool.js`)
   - `worldToTrayRotation` (`src/dice/tray.js`)
   - `rosterRowInfo` (`src/rosters/layout.js`)
   - `AFFILIATIONS` (`src/scoreboard/affiliations.js`)
 - 55 exports are used only in their own file. Most are constants in `src/tabletools/layout.js` (10), `src/dice/throw.js` (8) and `src/dice/tray.js` (7). A `git grep` of each name found no other use. Some names show up in comments of other files, for example "ROLL_HEIGHT_LIMIT in tray.js". Those comments stay correct.
-- `src/settings/settings.js` exports `PLACES = ['table', 'hud']`, and nothing imports it. `src/components/SettingsPopup.jsx` has its own `PLACES` with the same two places and their labels.
+- `src/settings/settings.js` exports `PLACES = ['table', 'hud']`, and nothing imports it. `src/settings/SettingsPopup.jsx` has its own `PLACES` with the same two places and their labels.
 
 ### False findings
 
@@ -95,9 +95,9 @@ User, after this step: run `pnpm fallow` once and read the output.
   - `characters/characters.js`: searchCharacters
   - `characters/overlap.js`: OVERLAP_MIN, HEIGHT_TOLERANCE, overlaps
   - `characters/trays.js`: TRAY_WIDTH, TRAY_CONTROLS_DEPTH, TRAY_DEPTH
-  - `components/CharacterModel.jsx`: BASE_RADIUS
-  - `components/OnTable.jsx`: BOARD_READ_ROTATION
-  - `components/storedTool.js`: STORED_FIELDS, roundPoint, storedSnap
+  - `characters/CharacterModel.jsx`: BASE_RADIUS
+  - `scene/OnTable.jsx`: BOARD_READ_ROTATION
+  - `tabletools/storedTool.js`: STORED_FIELDS, roundPoint, storedSnap
   - `crisis/cards.js`: CARDS
   - `dice/throw.js`: SETTLE_LINEAR, SETTLE_ANGULAR, TILT_LIMIT_DOT, THROW_UP_MIN, THROW_UP_MAX, THROW_SPIN_MIN, THROW_SPIN_MAX
   - `dice/tray.js`: WELL, SHELF, DROP_HEIGHT, DIE_FLAT_HEIGHT, worldToTray, worldToTrayRotation, ROLL_HEIGHT_LIMIT

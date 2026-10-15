@@ -17,12 +17,12 @@ Line numbers are at `4698e42`. They move after `review-fixes` merges. Find the c
 
 A code review found very large files. The user asked to split them. The behavior must not change.
 
-1. `components/Scene.jsx`: `Scene` takes 100 props and has 29 refs and 63 hook calls. It owns the model registry, the claim and pose sync between browsers, the Q / E turns, the terrain fall plan, and it renders every piece.
+1. `scene/Scene.jsx`: `Scene` takes 100 props and has 29 refs and 63 hook calls. It owns the model registry, the claim and pose sync between browsers, the Q / E turns, the terrain fall plan, and it renders every piece.
 2. App and Scene talk through 11 refs that App makes and Scene fills. Hooks such as `useCrisisTokens` call Scene through them.
-3. `components/RulerTool.jsx`: `Tool` has 9 states and 15 effects. The file also has pure geometry, two shared hooks that `LosTool.jsx` imports from a component, the buttons and the other player's tools.
+3. `tabletools/RulerTool.jsx`: `Tool` has 9 states and 15 effects. The file also has pure geometry, two shared hooks that `LosTool.jsx` imports from a component, the buttons and the other player's tools.
 4. `Table.jsx`: one effect of 232 lines opens the table. The "host deleted the room" exit is written twice. `openTableDoc(name).then(...)` has no `.catch`, so an error leaves the loading screen on forever.
 5. `App.jsx` is 1,109 lines again. Check if a split is worth it.
-6. `components/CharacterModel.jsx`, `components/GameSetup.jsx`, `components/DiceTray.jsx`: split where they mix concerns.
+6. `characters/CharacterModel.jsx`, `setup/GameSetup.jsx`, `dice/DiceTray.jsx`: split where they mix concerns.
 7. `setup/useGameSetup.js` (26 params) and `useCrisisTokens` (20 params): the plan `structure-fixes` changes them. This plan does not make them worse.
 
 Removing duplicated code is the later plan `remove-duplicates`. This plan removes a duplicate only where a move makes it free. The others are in "Left for remove-duplicates".
@@ -32,8 +32,8 @@ Removing duplicated code is the later plan `remove-duplicates`. This plan remove
 ### Tests, lint, numbers
 
 - Web tests use `node:test` and `node:assert/strict`: `node --test "{src,scripts}/**/*.test.js"`. 806 tests pass at `4698e42`.
-- `node --test` cannot load `.jsx`, a module that reads `import.meta.env`, or a module that imports `.json` without `with { type: 'json' }`. These do not load: `rooms/serverStore.js`, `rosters/cards.js`, `components/throwPath.js`, and the list in `split-app.md`, "Tests". A pure helper takes such lookups as arguments, as `cleanupCrisisTokens(tokens, cardOf)` does.
-- These load in Node (checked): `three`, `yjs`, `y-protocols/awareness`, `net/{doc,live,ownership,presence,syncChannel,peer,signaling,traffic,fingerprint,debugFlags,ice}.js`, `rooms/{table,serverTable,store,tableDoc}.js`, `crash/reporter.js`, `dice/{tray,shelf,throw,stored,faces}.js`, `scoreboard/affiliations.js`, `setup/{setup,names,deckButton}.js`, `rosters/layout.js`, `components/storedTool.js`, `tabletools/layout.js`, `physics.js`, `net/livePose.js`.
+- `node --test` cannot load `.jsx`, a module that reads `import.meta.env`, or a module that imports `.json` without `with { type: 'json' }`. These do not load: `rooms/serverStore.js`, `rosters/cards.js`, `characters/throwPath.js`, and the list in `split-app.md`, "Tests". A pure helper takes such lookups as arguments, as `cleanupCrisisTokens(tokens, cardOf)` does.
+- These load in Node (checked): `three`, `yjs`, `y-protocols/awareness`, `net/{doc,live,ownership,presence,syncChannel,peer,signaling,traffic,fingerprint,debugFlags,ice}.js`, `rooms/{table,serverTable,store,tableDoc}.js`, `crash/reporter.js`, `dice/{tray,shelf,throw,stored,faces}.js`, `scoreboard/affiliations.js`, `setup/{setup,names,deckButton}.js`, `rosters/layout.js`, `tabletools/storedTool.js`, `tabletools/layout.js`, `physics.js`, `net/livePose.js`.
 - `pnpm lint`: 58 warnings at `4698e42`. In the files of this plan: `RulerTool.jsx` 8 (7 `exhaustive-deps`, 1 `refs`), `CharacterModel.jsx` 3, `Scene.jsx` 1 (the tray follow effect). A warning moves with its code.
 - `pnpm fallow` (`health`): 319 functions above the thresholds (cyclomatic 20, cognitive 15, CRAP 30).
 
@@ -96,7 +96,7 @@ App makes them (App.jsx 122–415). Scene or its children fill them:
 | `terrainDropRef` | Scene E9 (`planFall`) | `useTablePieces.js` (terrain delete) |
 | `modelDragRef` | Scene, model drag start and end (a value, not a function) | App key state |
 | `addDiceRef` | `DiceTray` through `addRef` | App keys |
-| `toolPointRef` | `ToolPoint` effect, null on unmount | `components/usePing.js`, `tabletools/useTableTools.js` |
+| `toolPointRef` | `ToolPoint` effect, null on unmount | `scene/usePing.js`, `tabletools/useTableTools.js` |
 
 No feature doc names these refs.
 
@@ -143,9 +143,9 @@ Importers: `Scene.jsx` (the three rulers, `DeployRangeTool`, `OtherTool`, `sameM
 2. **No new `useCallback`, `useMemo` or `memo`.** Moved ones stay as they are (`claimModel` keeps its `useCallback`, `toolModels` its `useMemo`). Handlers are made again on every render, as today.
 3. **Every builder that runs during render and holds a hook gets a `use*` name**, so the rules-of-hooks lint keeps the call order fixed.
 4. **Each moved effect and `useFrame` keeps its place in the call order, its deps array and its `eslint-disable` comment.** A hook that holds an effect is called where the effect is now. Refs and state can move earlier or later; they have no order rule.
-5. **One `sceneApi` ref, made in App, set by Scene in one place.** App makes `sceneApi = useRef(null)` at the top of `App` and passes it to Scene as `apiRef`. Scene sets `apiRef.current` in one effect on every render (the place of E9). The shape is built by `createSceneApi(parts)` in the new `components/sceneApi.js`, with the documented keys. No module-level registry: a module object lives longer than one table, so after a table change it can hold functions of an unmounted Scene; StrictMode mounts twice; and tests would share state. The ref lives as long as App, and App is mounted again for each table.
+5. **One `sceneApi` ref, made in App, set by Scene in one place.** App makes `sceneApi = useRef(null)` at the top of `App` and passes it to Scene as `apiRef`. Scene sets `apiRef.current` in one effect on every render (the place of E9). The shape is built by `createSceneApi(parts)` in the new `scene/sceneApi.js`, with the documented keys. No module-level registry: a module object lives longer than one table, so after a table change it can hold functions of an unmounted Scene; StrictMode mounts twice; and tests would share state. The ref lives as long as App, and App is mounted again for each table.
 6. **Pure logic goes in `.js` files with `node:test` tests next to them.** A lookup that does not load in Node comes in as an argument (`cardOf`).
-7. **Places.** Pure tool geometry goes to `components/toolGeometry.js`, next to `aimTurn.js`, `placeLock.js` and `rangeOne.js`. The tool hooks go to `tabletools/`. New Scene hooks go to `components/`, next to `Scene.jsx`. The open session goes to `rooms/openTableSession.js`.
+7. **Places.** Pure tool geometry goes to `tabletools/toolGeometry.js`, next to `aimTurn.js`, `placeLock.js` and `rangeOne.js`. The tool hooks go to `tabletools/`. New Scene hooks go to `scene/`, next to `Scene.jsx`. The open session goes to `rooms/openTableSession.js`.
 8. **App gets no split other than `sceneApi`.** `split-app.md` decision 8 still holds: the Canvas/Scene and Toolbar JSX pass 100 and 40 props, so a wrapper only moves lines. The rest of `App` is hook wiring. The two hook signatures belong to `structure-fixes`. Step 5 removes 11 refs and 11 Scene props from App.
 9. **Scene props stay one flat list** (minus the 11 refs, plus `apiRef`). Grouping them into objects only moves lines.
 10. **The model JSX (1631–1721) stays in Scene.** It uses the registry, the claims, the turns, the deploy line and the place limits; a component would need about 30 props.
@@ -169,15 +169,15 @@ Importers: `Scene.jsx` (the three rulers, `DeployRangeTool`, `OtherTool`, `sameM
 
 Work:
 
-1. New `components/toolGeometry.js`: `ANGLE_LIMIT`, `SIDES`, `OTHER`, `STRAIGHT`, `ANGLE_TURN`, `RANGE_HALF_WIDTH`, `MOVE_HALF_WIDTH`, `CONTACT_EPS`, `yawQuat`, `yawTo`, `wrapAngle`, `toolPose`, `toolShape`, `alongHalf`, `nearerHalf`, `turnAround`, `cornerSnapCenter`, `nearerCorner`, `snapPose`, `anglePose`, `aimPose`, `limitTurn`, `snapPoseOne`, `throwLine`, `sameModel`, `lockKey`, `withinRangeOne`, `sameMark` (RulerTool.jsx 41, 51–60, 84–223, 463–489). It imports `three` and `placeLock.js`, both load in Node.
+1. New `tabletools/toolGeometry.js`: `ANGLE_LIMIT`, `SIDES`, `OTHER`, `STRAIGHT`, `ANGLE_TURN`, `RANGE_HALF_WIDTH`, `MOVE_HALF_WIDTH`, `CONTACT_EPS`, `yawQuat`, `yawTo`, `wrapAngle`, `toolPose`, `toolShape`, `alongHalf`, `nearerHalf`, `turnAround`, `cornerSnapCenter`, `nearerCorner`, `snapPose`, `anglePose`, `aimPose`, `limitTurn`, `snapPoseOne`, `throwLine`, `sameModel`, `lockKey`, `withinRangeOne`, `sameMark` (RulerTool.jsx 41, 51–60, 84–223, 463–489). It imports `three` and `placeLock.js`, both load in Node.
 2. `RulerTool.jsx`, `LosTool.jsx` and `Scene.jsx` import these names from the new file.
-3. Test `components/toolGeometry.test.js`: `turnAround` keeps the distance to the pivot; `snapPose` for both sides and with no yaw (points to the mat center); `anglePose` puts both arm lines at `radius + halfWidth`; `aimPose` away and toward; `limitTurn` clamps to ±45° around `openYaw`; `snapPoseOne` at the mat center and off it; `throwLine` start, direction and distance; `nearerCorner` for four points; `withinRangeOne` at the edge with `CONTACT_EPS`; `sameMark` with null.
+3. Test `tabletools/toolGeometry.test.js`: `turnAround` keeps the distance to the pivot; `snapPose` for both sides and with no yaw (points to the mat center); `anglePose` puts both arm lines at `radius + halfWidth`; `aimPose` away and toward; `limitTurn` clamps to ±45° around `openYaw`; `snapPoseOne` at the mat center and off it; `throwLine` start, direction and distance; `nearerCorner` for four points; `withinRangeOne` at the edge with `CONTACT_EPS`; `sameMark` with null.
 
 User: snap the range, movement and angle tools to a model; Range 1 snaps with a corner; Toward / Away aims at a model; a movement tool at an angle tool stays within 45°; Throw.
 
 ### Result
 
-Done. New `components/toolGeometry.js` (constants, geometry, `sameModel`, `lockKey`, `withinRangeOne`, `sameMark`; each name exported, code unchanged). `RulerTool.jsx`, `LosTool.jsx`, `Scene.jsx` import from it. Test `toolGeometry.test.js` (12 tests). Pointer comments to moved names (`toolShape`, `alongHalf`, `snapPose`, `CONTACT_EPS`) now name `toolGeometry.js`.
+Done. New `tabletools/toolGeometry.js` (constants, geometry, `sameModel`, `lockKey`, `withinRangeOne`, `sameMark`; each name exported, code unchanged). `RulerTool.jsx`, `LosTool.jsx`, `Scene.jsx` import from it. Test `toolGeometry.test.js` (12 tests). Pointer comments to moved names (`toolShape`, `alongHalf`, `snapPose`, `CONTACT_EPS`) now name `toolGeometry.js`.
 
 - Checks: format, lint 58 warnings (same), test 841 pass (806 + review-fixes + 12 new), build ok.
 - Fallow: `Tool` 838 lines before and after (its numbers do not change; the moved functions were below the thresholds). `RulerTool.jsx` 1,910 to 1,758 lines.
@@ -193,14 +193,14 @@ Work:
 1. New `tabletools/useDragTool.js`: `useDragTool`, with `HOVER_RATE` and `FLAT_HTML_Y` exported (`DeployRangeTool` uses the first, `FlatHtml` the second).
 2. New `tabletools/useRestStore.js`: `useRestStore` with `REST_TIME`.
 3. New `tabletools/useFootprintGround.js`: `useFootprintGround` with `HOVER_MARGIN` and `FOOTPRINT_CAST_HALF_H`.
-4. New `components/ToolFootprint.jsx`: `ToolFootprint` and `RangeMark`.
+4. New `tabletools/ToolFootprint.jsx`: `ToolFootprint` and `RangeMark`.
 5. `LosTool.jsx` imports from these files and from `toolGeometry.js`. It no longer imports `RulerTool.jsx`.
 
 User: drag, turn and drop each tool and the Line of Sight tool; a tool hovers over terrain; reload and the tools stay where they were; the footprint turns green or red against the selected model; the range mark outline during a turn.
 
 ### Result
 
-Done. New `tabletools/useDragTool.js` (`HOVER_RATE`, `FLAT_HTML_Y`), `tabletools/useRestStore.js` (`REST_TIME`), `tabletools/useFootprintGround.js` (`HOVER_MARGIN`, `FOOTPRINT_CAST_HALF_H`), `components/ToolFootprint.jsx` (`ToolFootprint`, `RangeMark`). Code moved as it is. `LosTool.jsx` no longer imports `RulerTool.jsx`. `RulerTool.jsx` imports the new files (and `HOVER_RATE`, `FLAT_HTML_Y` from `useDragTool.js`). Pointers `RangeMark in RulerTool.jsx` (CharacterModel, CrisisToken, SelectionOutlines, Scene) and `line-of-sight.md` now name `ToolFootprint.jsx`.
+Done. New `tabletools/useDragTool.js` (`HOVER_RATE`, `FLAT_HTML_Y`), `tabletools/useRestStore.js` (`REST_TIME`), `tabletools/useFootprintGround.js` (`HOVER_MARGIN`, `FOOTPRINT_CAST_HALF_H`), `tabletools/ToolFootprint.jsx` (`ToolFootprint`, `RangeMark`). Code moved as it is. `LosTool.jsx` no longer imports `RulerTool.jsx`. `RulerTool.jsx` imports the new files (and `HOVER_RATE`, `FLAT_HTML_Y` from `useDragTool.js`). Pointers `RangeMark in RulerTool.jsx` (CharacterModel, CrisisToken, SelectionOutlines, Scene) and `line-of-sight.md` now name `ToolFootprint.jsx`.
 
 - Checks: format, lint 58 warnings (same), test 841 pass, build ok.
 - Fallow: `Tool` 37 / 98 / 838 lines before and after. `RulerTool.jsx` 1,758 to 1,396 lines.
@@ -213,16 +213,16 @@ Needs step 2.
 
 Work:
 
-1. New `components/ToolButtons.jsx`: `BUTTON_STYLE`, `FlatHtml`, `PX_PER_INCH`, `PLACE_FILL`, `clickByKey`, `ToolButton`, `BendButton`.
-2. New `components/ToolParts.jsx`: `TEXTURE`, `textured`, `hullPoints`, `useRangeParts`, `useMovementParts`, `DeployRangeTool`.
-3. New `components/OtherTool.jsx`: `noRaycast`, `OtherToolBody`, `OtherRange`, `OtherMovement`, `OtherAngle`, `OtherTool`. Its `refs` lint warning moves with it.
+1. New `tabletools/ToolButtons.jsx`: `BUTTON_STYLE`, `FlatHtml`, `PX_PER_INCH`, `PLACE_FILL`, `clickByKey`, `ToolButton`, `BendButton`.
+2. New `tabletools/ToolParts.jsx`: `TEXTURE`, `textured`, `hullPoints`, `useRangeParts`, `useMovementParts`, `DeployRangeTool`.
+3. New `tabletools/OtherTool.jsx`: `noRaycast`, `OtherToolBody`, `OtherRange`, `OtherMovement`, `OtherAngle`, `OtherTool`. Its `refs` lint warning moves with it.
 4. `RulerTool.jsx` keeps `Tool`, `RangeRuler`, `MovementRuler`, `AngleRuler`. `Scene.jsx` and `ToolRack.jsx` import from the new files.
 
 User: the tool rack shows the tools in the player color; Deploy Lock shows the R3 tool along the edge during a model drag; in two browsers, the other player's tools move, bend and show their footprint; Place, Throw, Bend and Toward / Away buttons by click and by keyboard.
 
 ### Result
 
-Done. New `components/ToolButtons.jsx` (`BUTTON_STYLE`, `FlatHtml`, `PX_PER_INCH`, `PLACE_FILL`, `clickByKey`, `ToolButton`, `BendButton`), `components/ToolParts.jsx` (`TEXTURE`, `textured`, `hullPoints`, `useRangeParts`, `useMovementParts`, `DeployRangeTool`), `components/OtherTool.jsx` (`noRaycast`, `OtherToolBody`, `OtherRange`, `OtherMovement`, `OtherAngle`, `OtherTool`; its `refs` warning moved with it). `RulerTool.jsx` keeps `Tool`, `RangeRuler`, `MovementRuler`, `AngleRuler`. `Scene.jsx` and `ToolRack.jsx` import from the new files. Pointers to `OtherToolBody` (LosTool.jsx) and `FlatHtml` (character-trays.md) name the new files.
+Done. New `tabletools/ToolButtons.jsx` (`BUTTON_STYLE`, `FlatHtml`, `PX_PER_INCH`, `PLACE_FILL`, `clickByKey`, `ToolButton`, `BendButton`), `tabletools/ToolParts.jsx` (`TEXTURE`, `textured`, `hullPoints`, `useRangeParts`, `useMovementParts`, `DeployRangeTool`), `tabletools/OtherTool.jsx` (`noRaycast`, `OtherToolBody`, `OtherRange`, `OtherMovement`, `OtherAngle`, `OtherTool`; its `refs` warning moved with it). `RulerTool.jsx` keeps `Tool`, `RangeRuler`, `MovementRuler`, `AngleRuler`. `Scene.jsx` and `ToolRack.jsx` import from the new files. Pointers to `OtherToolBody` (LosTool.jsx) and `FlatHtml` (character-trays.md) name the new files.
 
 - Checks: format, lint 58 warnings (same), test pass, build ok.
 - Fallow: `Tool` 37 / 98 / 838 lines before and after. `RulerTool.jsx` 1,396 to 976 lines.
@@ -261,7 +261,7 @@ Done. New `tabletools/useToolLimits.js` (Place, Place 1, Throw: state, effects T
 
 Work:
 
-1. New `components/sceneApi.js`: `createSceneApi(parts)`, which returns the object below with exactly these keys. The comment at its top is the documented shape.
+1. New `scene/sceneApi.js`: `createSceneApi(parts)`, which returns the object below with exactly these keys. The comment at its top is the documented shape.
    - `characterAt(clientX, clientY, options)` → character id or null
    - `modelPosition(characterId)` → `{ x, z }` or null
    - `returnModels(characterId)`
@@ -272,14 +272,14 @@ Work:
    - `pointAtPointer()`, `pointAtCenter()` (`ToolPoint.jsx`)
 2. Scene: new prop `apiRef`. Scene keeps its own `modelDrag`, `addDice` and `toolPoint` refs and passes them where the App refs went (`ToolPoint`, `DiceTray addRef`, model drag start and end, `floorPiece`). E9 becomes one line: `apiRef.current = createSceneApi({...})`. The wrappers read the refs at the call.
 3. App: `const sceneApi = useRef(null)` at the top. The 11 refs and their 11 Scene props go away. Callers use `sceneApi.current?.x(...)`: the key table, the key state (`modelDrag`), Toolbar `onTurn`, `useTokenDrag`, `useCrisisTokens`, `useCharacterActions`, `useTablePieces`, `useTableTools`, `usePing`. Each hook takes `sceneApi` in place of its refs.
-4. Test `components/sceneApi.test.js`: the key list; each wrapper calls its part with the same arguments; `pointAtPointer` with no tool point gives undefined, as `toolPointRef.current?.atPointer()` does.
+4. Test `scene/sceneApi.test.js`: the key list; each wrapper calls its part with the same arguments; `pointAtPointer` with no tool point gives undefined, as `toolPointRef.current?.atPointer()` does.
 5. Update the props comment of Scene and the ref comments in App and in the hooks.
 
 User: L over terrain; Delete of terrain with a model on it (the model falls); R lifts and lowers; R during a model drag switches the floor; Q / E on a model and a tool, by key and by the toolbar; number keys over the own dice tray; P; tool keys at the pointer and with nothing under it; a token drag onto a model and onto a tray; Dazed drop; the tray Remove button.
 
 ### Result
 
-Done. New `components/sceneApi.js` (`createSceneApi(parts)`, `SCENE_API_KEYS`, shape documented at the top; a missing part throws) and `sceneApi.test.js` (5 tests). Scene has the prop `apiRef` and its own `modelDrag`, `addDice`, `toolPoint` refs; E9 is one `apiRef.current = createSceneApi({...})`. App makes `sceneApi = useRef(null)` at the top of `App`; the 11 refs and 11 Scene props are gone. `useTokenDrag`, `useCrisisTokens`, `useCharacterActions`, `useTablePieces`, `useTableTools`, `usePing`, the key table and Toolbar `onTurn` call `sceneApi.current?.x(...)`. Props comments in Scene, App and the hooks updated.
+Done. New `scene/sceneApi.js` (`createSceneApi(parts)`, `SCENE_API_KEYS`, shape documented at the top; a missing part throws) and `sceneApi.test.js` (5 tests). Scene has the prop `apiRef` and its own `modelDrag`, `addDice`, `toolPoint` refs; E9 is one `apiRef.current = createSceneApi({...})`. App makes `sceneApi = useRef(null)` at the top of `App`; the 11 refs and 11 Scene props are gone. `useTokenDrag`, `useCrisisTokens`, `useCharacterActions`, `useTablePieces`, `useTableTools`, `usePing`, the key table and Toolbar `onTurn` call `sceneApi.current?.x(...)`. Props comments in Scene, App and the hooks updated.
 
 - Checks: format, lint 58 warnings (same), test 852 pass (847 + 5), build ok. Pointer grep: no old ref name left in `apps` or `docs/features`.
 - Fallow: `Scene` 68 / 204 / 1,562 lines, 90 props (was 68 / 211, 100 props); `App` 55 / 106 / 984 lines (was 54 / 116, 1,019).
@@ -292,15 +292,15 @@ Needs step 5.
 
 Work:
 
-1. New `components/useModelRegistry.js`: `useModelRegistry({ models, characters })`. Owns `charBodies`, `worldRef`, `rapierRef`, `charObjects`, `charLifts`, `trayObjects`, `terrainObjects`, `raycaster`, `tokenObjects`, `tokenCenters`, and `liveCharBody`, `modelBases`, `characterAt`, `terrainAt`, `terrainUnder`, `modelPosition`, `restPose`. Calls `useThree` itself. No effect inside. The `models` memo moves up, before the call.
-2. New `components/useTerrainHoverLabel.js`: `hoverLabelId` and E3, with its deps and its `eslint-disable`. Called at E3's place.
-3. New `components/useTerrainFall.js`: `pendingDrops`, `planFall`, E8. Takes `models`, `liveCharBody`, `charLifts`, `ownership`, `worldRef`, `rapierRef`, `terrainObjects`, `terrain`, `claimModel`, `applyPose`, `onModelRest`. Returns `planFall`. Called at E8's place.
+1. New `scene/useModelRegistry.js`: `useModelRegistry({ models, characters })`. Owns `charBodies`, `worldRef`, `rapierRef`, `charObjects`, `charLifts`, `trayObjects`, `terrainObjects`, `raycaster`, `tokenObjects`, `tokenCenters`, and `liveCharBody`, `modelBases`, `characterAt`, `terrainAt`, `terrainUnder`, `modelPosition`, `restPose`. Calls `useThree` itself. No effect inside. The `models` memo moves up, before the call.
+2. New `terrain/useTerrainHoverLabel.js`: `hoverLabelId` and E3, with its deps and its `eslint-disable`. Called at E3's place.
+3. New `terrain/useTerrainFall.js`: `pendingDrops`, `planFall`, E8. Takes `models`, `liveCharBody`, `charLifts`, `ownership`, `worldRef`, `rapierRef`, `terrainObjects`, `terrain`, `claimModel`, `applyPose`, `onModelRest`. Returns `planFall`. Called at E8's place.
 
 User: everything of step 5 again; the hover label of terrain with labels off; a token drop onto a model and onto the tray plate; the overlap mark of two models; Delete of terrain under a model, also in two browsers.
 
 ### Result
 
-Done. New `components/useModelRegistry.js` (refs, `liveCharBody`, `modelBases`, `characterAt`, `terrainAt`, `terrainUnder`, `modelPosition`, `restPose`; calls `useThree`, no effect), `components/useTerrainHoverLabel.js` (`hoverLabelId`, E3 with its deps and disable), `components/useTerrainFall.js` (`pendingDrops`, `planFall`, E8; returns `planFall`). The `models` memo is now before the registry call. Hooks are called at the old places of their code. `raycaster` is used only inside the registry, so Scene does not get it. Pointers to `characterAt` (useCrisisTokens, useTokenDrag, CharacterTray, character-trays.md) and `modelPosition` (useCrisisTokens) name `useModelRegistry.js`.
+Done. New `scene/useModelRegistry.js` (refs, `liveCharBody`, `modelBases`, `characterAt`, `terrainAt`, `terrainUnder`, `modelPosition`, `restPose`; calls `useThree`, no effect), `terrain/useTerrainHoverLabel.js` (`hoverLabelId`, E3 with its deps and disable), `terrain/useTerrainFall.js` (`pendingDrops`, `planFall`, E8; returns `planFall`). The `models` memo is now before the registry call. Hooks are called at the old places of their code. `raycaster` is used only inside the registry, so Scene does not get it. Pointers to `characterAt` (useCrisisTokens, useTokenDrag, CharacterTray, character-trays.md) and `modelPosition` (useCrisisTokens) name `useModelRegistry.js`.
 
 - Checks: format, test pass, build ok. Move diff: only moved code, imports, and the destructure and hook calls in `Scene`.
 - Lint 59 warnings (was 58). New: `exhaustive-deps` on the `toolModels` memo in `Scene.jsx`. `liveCharBody` and the `.current` of the maps now come from a custom hook, so the rule no longer counts them as stable. The memo is unchanged. No `eslint-disable` added. The tray follow warning stays 1, with a longer list of names.
@@ -314,16 +314,16 @@ Needs step 6.
 
 Work:
 
-1. New `components/useModelClaims.js`: `claimTimes`, `claims`, `claimModel`. Called where `claims` is now.
-2. New `components/usePieceTurns.js`: `hoveredPiece`, `draggedPiece`, `toolTurns`, `turnsLeft`, `turnHold`, `trackPiece`, `turnPiece`, `addTurn`, `applyTurn`, F1. Takes `heldRotate`, `turnStep`, `claimModel`, `liveCharBody`. Called at F1's place.
-3. New `components/useModelSync.js`: `sleepLater`, `posesRef`, `prevPoses`, `prevOther`, `applyPose`, F2, E4, E5, E6, E7. Takes `ownership`, `poses`, `otherOwned`, `models`, `liveCharBody`, `charLifts`, `turnsLeft`, `claimTimes`, `restPose`, `onModelRest`, `markMoved`. Returns `applyPose`. Called right after `usePieceTurns`. Risk 3 and 4.
+1. New `scene/useModelClaims.js`: `claimTimes`, `claims`, `claimModel`. Called where `claims` is now.
+2. New `scene/usePieceTurns.js`: `hoveredPiece`, `draggedPiece`, `toolTurns`, `turnsLeft`, `turnHold`, `trackPiece`, `turnPiece`, `addTurn`, `applyTurn`, F1. Takes `heldRotate`, `turnStep`, `claimModel`, `liveCharBody`. Called at F1's place.
+3. New `scene/useModelSync.js`: `sleepLater`, `posesRef`, `prevPoses`, `prevOther`, `applyPose`, F2, E4, E5, E6, E7. Takes `ownership`, `poses`, `otherOwned`, `models`, `liveCharBody`, `charLifts`, `turnsLeft`, `claimTimes`, `restPose`, `onModelRest`, `markMoved`. Returns `applyPose`. Called right after `usePieceTurns`. Risk 3 and 4.
 4. `samePose` and `SLEEP_AFTER_FRAMES` move to `useModelSync.js`. The turn constants move to `usePieceTurns.js`.
 
 User, two browsers: drag a model in one, it follows in the other and rests at the same place; both grab the same model (one wins, the other stops); Q / E held on a model and a tool; a turn during a drag; Escape during a drag drops the turn; reload: models start at their rest poses; a browser leaves during a drag, the other writes the rest pose.
 
 ### Result
 
-Done. New `components/useModelClaims.js` (`claimTimes`, `claims`, `claimModel`), `components/usePieceTurns.js` (turn refs, `trackPiece`, `turnPiece`, `addTurn`, `applyTurn`, F1, turn constants), `components/useModelSync.js` (`sleepLater`, `posesRef`, `prevPoses`, `prevOther`, `applyPose`, F2, E4-E7, `samePose`, `SLEEP_AFTER_FRAMES`; returns `applyPose`). Calls in today's order: claims, overlap effect, hover label, turns, sync. Pointers to `turnPiece` (bindings.js, RulerTool.jsx) and `applyPose` (round-phases.md) name the new files.
+Done. New `scene/useModelClaims.js` (`claimTimes`, `claims`, `claimModel`), `scene/usePieceTurns.js` (turn refs, `trackPiece`, `turnPiece`, `addTurn`, `applyTurn`, F1, turn constants), `scene/useModelSync.js` (`sleepLater`, `posesRef`, `prevPoses`, `prevOther`, `applyPose`, F2, E4-E7, `samePose`, `SLEEP_AFTER_FRAMES`; returns `applyPose`). Calls in today's order: claims, overlap effect, hover label, turns, sync. Pointers to `turnPiece` (bindings.js, RulerTool.jsx) and `applyPose` (round-phases.md) name the new files.
 
 - Checks: format, test pass (api `signal.test.ts` failed once, passed on rerun), build ok. Move diff: only moved code, imports, destructures and hook calls.
 - Lint 58 warnings (was 59). Fix of the `toolModels` warning: `liveCharBody` is now a `useCallback` with `[]` in `useModelRegistry` (it reads only refs), and the memo lists `liveCharBody` and the `.current` of the four maps it reads. These never change, so the memo recomputes as before. E4 got `turnsLeft` in its deps (was `[ownership]`) for the same reason; the ref never changes. No `eslint-disable` added.
@@ -338,16 +338,16 @@ Needs step 7.
 Work:
 
 1. `characters/trays.js`: `trayShapeOf(ch, characters, gruntLists)`, moved from Scene. Test in `trays.test.js`: a host, a grunt (slot and index), a grunt whose host is gone.
-2. New `components/TokenLayer.jsx` (Scene 1382–1515): crisis tokens, loose tokens, piles, the drag preview, the other spawn preview. The `tokenViews` memo moves in (only the tokens use it). `NO_RAYCAST` and `HELD_STACK_STEP` move in.
-3. New `components/OwnTools.jsx` (1723–1781, 1812–1835): move, angle, LOS and range tools. `limitTool` and `angleTool` move in; `angleLimit` moves in. Props: `ownTools`, `ownSide`, `onToolStore`, `onToolReturn`, `onToolRemove`, `toolSpawn`, `angleSpawn`, `selectedTools`, `onSelectedToolsChange`, `toolTarget`, `toolModels`, `toolModel`, `onSnap`, `placeLimits`, `setRangeMark`, `turnProps`. The two deploy tools stay in Scene.
-4. New `components/OtherTools.jsx` (1836–1867): `otherTarget` moves in. Props: `otherTools`, `otherSide`, `otherLook`, `toolModels`, `received`.
+2. New `tokens/TokenLayer.jsx` (Scene 1382–1515): crisis tokens, loose tokens, piles, the drag preview, the other spawn preview. The `tokenViews` memo moves in (only the tokens use it). `NO_RAYCAST` and `HELD_STACK_STEP` move in.
+3. New `tabletools/OwnTools.jsx` (1723–1781, 1812–1835): move, angle, LOS and range tools. `limitTool` and `angleTool` move in; `angleLimit` moves in. Props: `ownTools`, `ownSide`, `onToolStore`, `onToolReturn`, `onToolRemove`, `toolSpawn`, `angleSpawn`, `selectedTools`, `onSelectedToolsChange`, `toolTarget`, `toolModels`, `toolModel`, `onSnap`, `placeLimits`, `setRangeMark`, `turnProps`. The two deploy tools stay in Scene.
+4. New `tabletools/OtherTools.jsx` (1836–1867): `otherTarget` moves in. Props: `otherTools`, `otherSide`, `otherLook`, `toolModels`, `received`.
 5. `toolKey` goes where it is used: both tool files. It is one line.
 
 User: crisis tokens (select, drag, turn, hold on a card, held on a grunt card), loose tokens and piles (drag, Shift move, Delete), the drag preview of each source, the other player's spawn preview; every own tool; the other player's tools and their target outline; Range 1 of the other player measures from its snapped model.
 
 ### Result
 
-Done. `trayShapeOf` moved to `characters/trays.js` (imports `trayCards` from `models.js`) with a test for a host, grunts (slot, index) and a grunt whose host is gone. New `components/TokenLayer.jsx` (crisis tokens, loose tokens, piles, drag preview, other spawn preview; `tokenViews` memo, `NO_RAYCAST`, `HELD_STACK_STEP`), `components/OwnTools.jsx` (move, angle, LOS, range; `limitTool`, `angleTool`, `angleLimit`, `toolEntry`, `spawnModel`, `toggleTool`, `selectTool`), `components/OtherTools.jsx` (`otherTarget`). `toolKey` is one line in each tool file. Two deploy tools stay in Scene.
+Done. `trayShapeOf` moved to `characters/trays.js` (imports `trayCards` from `models.js`) with a test for a host, grunts (slot, index) and a grunt whose host is gone. New `tokens/TokenLayer.jsx` (crisis tokens, loose tokens, piles, drag preview, other spawn preview; `tokenViews` memo, `NO_RAYCAST`, `HELD_STACK_STEP`), `tabletools/OwnTools.jsx` (move, angle, LOS, range; `limitTool`, `angleTool`, `angleLimit`, `toolEntry`, `spawnModel`, `toggleTool`, `selectTool`), `tabletools/OtherTools.jsx` (`otherTarget`). `toolKey` is one line in each tool file. Two deploy tools stay in Scene.
 
 - Checks: format, test pass (853 web tests), build ok. Move diff: only moved code, imports, props and hook calls.
 - Lint 58 warnings (same). The tray follow warning in Scene stays 1.
@@ -399,17 +399,17 @@ Done. New `setup/setupText.js` (`STEP_NAME`, `stepChoice(setup, step, ctx, cardO
 
 Work:
 
-1. New `components/useModelLift.js`: `useModelLift({ liveRb, groundY, isDragging, remoteRef, rest })` → `{ lift, toggleLift, lowerLift, moveLift }` (`endLift` inside). No effect. Called after `remoteRef`.
-2. New `components/useLandingSound.js`: `landed`, `listenLanding`, `bump`, `remoteBump`, `livePlace` and the `useAfterPhysicsStep` call. Returns `{ listenLanding, remoteBump, livePlace }`, so the remote mode effect keeps its two reset lines. Called before the start-asleep effect.
-3. New `components/useLiveFollow.js`: `follow`, `following`, `setFollowing`, `followLive`. No effect.
-4. New `components/useFigureMaterials.js`: `useFigureMaterials(scene, team, showOverlap)`: `useSideColor`, the base color effect and the tint effect. Called at the base color effect's place.
+1. New `scene/useModelLift.js`: `useModelLift({ liveRb, groundY, isDragging, remoteRef, rest })` → `{ lift, toggleLift, lowerLift, moveLift }` (`endLift` inside). No effect. Called after `remoteRef`.
+2. New `characters/useLandingSound.js`: `landed`, `listenLanding`, `bump`, `remoteBump`, `livePlace` and the `useAfterPhysicsStep` call. Returns `{ listenLanding, remoteBump, livePlace }`, so the remote mode effect keeps its two reset lines. Called before the start-asleep effect.
+3. New `scene/useLiveFollow.js`: `follow`, `following`, `setFollowing`, `followLive`. No effect.
+4. New `characters/useFigureMaterials.js`: `useFigureMaterials(scene, team, showOverlap)`: `useSideColor`, the base color effect and the tint effect. Called at the base color effect's place.
 5. The drag, the frame, the remote mode effect and the JSX stay in `CharacterFigure`. The 3 lint warnings stay where their effects stay.
 
 User: R lifts and lowers a model, also a sleeping one; a lift ends when Place moves the model; the landing sound on the mat and on terrain, also of the other player's model; in two browsers a model follows the other player's drag; the overlap tint; base colors after a side color change.
 
 ### Result
 
-Done. Four hooks in `components/`, moved as they are: `useModelLift.js` (`useModelLift`, the `LIFT_*` constants, no effect), `useLandingSound.js` (`useLandingSound`, `TERRAIN_MIN_TOP`, `SUPPORT_LIFT`, the `useAfterPhysicsStep` call), `useModelFollow.js` (`useModelFollow`, `followTarget`, no effect), `useFigureMaterials.js` (`useFigureMaterials(scene, team, showOverlap)`, `OVERLAP_TINT`, the color and tint effects). `CharacterModel.jsx` 862 to 639 lines; `CharacterFigure` cognitive 65 to 59, 597 to 410 lines. Hook and effect order unchanged. Feature doc: `sounds.md` names `useLandingSound.js`.
+Done. Four hooks in `scene/` and `characters/`, moved as they are: `useModelLift.js` (`useModelLift`, the `LIFT_*` constants, no effect), `useLandingSound.js` (`useLandingSound`, `TERRAIN_MIN_TOP`, `SUPPORT_LIFT`, the `useAfterPhysicsStep` call), `useModelFollow.js` (`useModelFollow`, `followTarget`, no effect), `useFigureMaterials.js` (`useFigureMaterials(scene, team, showOverlap)`, `OVERLAP_TINT`, the color and tint effects). `CharacterModel.jsx` 862 to 639 lines; `CharacterFigure` cognitive 65 to 59, 597 to 410 lines. Hook and effect order unchanged. Feature doc: `sounds.md` names `useLandingSound.js`.
 
 - Checks: format, lint 58 warnings (same, 3 still in `CharacterModel.jsx`), test 877 web, api and infra pass (api flaky signal test failed once, passed on rerun), build ok, fallow 315 above threshold (319 at `4698e42`). Moved-code diff: only the arguments below.
 - Deviations: `useLiveFollow.js` exists (pieces without a body), so the follow hook is `useModelFollow.js`. `useModelLift` takes `clearRest()` instead of the `rest` ref: writing to a ref argument gave a new `immutability` warning. `useLandingSound` takes `groundBelow(x, z, from)` and many refs and props, so it does not import `baseGroundY` from `CharacterModel.jsx` (a circle).

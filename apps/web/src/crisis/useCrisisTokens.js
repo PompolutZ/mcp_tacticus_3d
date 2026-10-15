@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useLatest } from '../components/useLatest.js'
+import { useLatest } from '../scene/useLatest.js'
 import { getCard } from './cards.js'
 import { buildMatTokens, supplyToken } from './matTokens.js'
 import { createCrisisActions } from './actions.js'

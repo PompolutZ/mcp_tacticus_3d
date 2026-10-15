@@ -31,7 +31,7 @@ Today `migrate-characters.mjs` copies `cImmune` of the mod row into `characters.
 
 ## Phase 1: Immunities from Jarvis
 
-Read: this plan. `src/characters/characters.js`, `src/characters/jarvis-characters.json` (one row, for example Blue Marvel, Apocalypse, Emma Frost), `App.jsx` (`handleCharacterTokenGive`, and every other caller of `characterImmune`), `components/TrayControls.jsx` if it uses immunities, `scripts/migrate-characters.mjs` (`cImmune`), `scripts/README.md` ("TTS character migration": `tokens`/`immune`), `docs/features/character-trays.md` (immunity).
+Read: this plan. `src/characters/characters.js`, `src/characters/jarvis-characters.json` (one row, for example Blue Marvel, Apocalypse, Emma Frost), `App.jsx` (`handleCharacterTokenGive`, and every other caller of `characterImmune`), `characters/TrayControls.jsx` if it uses immunities, `scripts/migrate-characters.mjs` (`cImmune`), `scripts/README.md` ("TTS character migration": `tokens`/`immune`), `docs/features/character-trays.md` (immunity).
 
 Work:
 1. `src/characters/immunity.js`, new plain module: the immunities of a Jarvis row per form and side, from the superpower names (decisions 1 to 4). Tests in `immunity.test.js`: Blue Marvel (both sides), Apocalypse (Healthy 3, Injured all), Emma Frost (none on form 1, four on form 2), a character with none, and a check over all rows that every name maps to a token key.

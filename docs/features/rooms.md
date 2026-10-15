@@ -185,12 +185,12 @@ In a single player room, the user id in `localStorage` is the owner of every roo
 | `apps/web/src/net/collections.js` | The list and record stores over a `Y.Map`. No React |
 | `apps/web/src/net/useY.js` | `useYList`, `useYRecord`, `useYField`: React hooks over the stores |
 | `apps/web/src/rooms/preload.js` | The files to load before a table shows |
-| `apps/web/src/components/Lobby.jsx` | The lobby page: one list of single player and multiplayer rooms |
-| `apps/web/src/components/RoomRosterPopup.jsx` | The roster popup of a room. The lobby and the join page use it |
-| `apps/web/src/components/NewRoomDialog.jsx` | The new room dialog: map switch, map carousel, Blue and Red roster fields |
-| `apps/web/src/components/Switch.jsx` | An on/off switch with a label. The new room dialog uses it for **Random map** |
-| `apps/web/src/components/Carousel.jsx` | The Embla carousel, taken out of `RosterPopup.jsx`. The roster popup and the map picker use it |
-| `apps/web/src/components/Preload.jsx` | `Preload` and `Ready`, see [Loading](#loading) |
+| `apps/web/src/rooms/Lobby.jsx` | The lobby page: one list of single player and multiplayer rooms |
+| `apps/web/src/rosters/RoomRosterPopup.jsx` | The roster popup of a room. The lobby and the join page use it |
+| `apps/web/src/rooms/NewRoomDialog.jsx` | The new room dialog: map switch, map carousel, Blue and Red roster fields |
+| `apps/web/src/ui/Switch.jsx` | An on/off switch with a label. The new room dialog uses it for **Random map** |
+| `apps/web/src/ui/Carousel.jsx` | The Embla carousel, taken out of `RosterPopup.jsx`. The roster popup and the map picker use it |
+| `apps/web/src/scene/Preload.jsx` | `Preload` and `Ready`, see [Loading](#loading) |
 | `apps/web/src/terrain/files.js` | `mapCard(id)` and `MAP_CARD_BACK` |
 | `apps/web/scripts/migrate-terrain.mjs` | Copies the map card (face and back) with the map |
 

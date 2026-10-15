@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useYRecord } from '../net/useY.js'
-import { losEntry, spawnEntry } from '../components/storedTool.js'
+import { losEntry, spawnEntry } from './storedTool.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
 import { canDropTool } from './dropShape.js'
 import { NO_PIECES, NO_TOOLS, isToolPiece, selectPiece, toolSelects } from '../selection.js'

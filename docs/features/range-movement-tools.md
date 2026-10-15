@@ -142,7 +142,7 @@ The outline of a bent tool is one rectangle for each half, plus the round hinge 
 
 ### Input rules
 
-What a drag does depends on the state of the tool and on the half you grab. `src/components/toolInput.js` holds the rules.
+What a drag does depends on the state of the tool and on the half you grab. `src/tabletools/toolInput.js` holds the rules.
 
 | Tool state | Drag a half | Q / E, wheel |
 |---|---|---|

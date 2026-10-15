@@ -532,13 +532,13 @@ apps/web/src/drag/
   tablePoint.js   the table, board or terrain point under a screen point
   screenRay.js    ndcFromClient (pixel to NDC), nearestHit (nearest object on a ray)
   usePointerTablePoint.js  the pointer follow of a drag ghost or preview
-apps/web/src/components/
-  RoomPlayers.jsx  the seats and the connection status in the room toolbar
-  LiveSync.jsx     sends the own live poses and the cursor, keeps the received ones
-  RemoteCursor.jsx the other player's cursor
-  DragFootprint.jsx the footprint of a dragged piece
-  storedTool.js    the tool entry: rounding, equality, free spawn per side
-  useLiveFollow.js the follow of a piece without a body
+apps/web/src/
+  rooms/RoomPlayers.jsx  the seats and the connection status in the room toolbar
+  scene/LiveSync.jsx     sends the own live poses and the cursor, keeps the received ones
+  scene/RemoteCursor.jsx the other player's cursor
+  scene/DragFootprint.jsx the footprint of a dragged piece
+  tabletools/storedTool.js  the tool entry: rounding, equality, free spawn per side
+  scene/useLiveFollow.js the follow of a piece without a body
 apps/web/src/characters/
   overlap.js       which models show the overlap mark
   claims.js        when a model claim keeps, rests or ends
@@ -553,7 +553,7 @@ infra/
   README.md             deploy steps, Atlas CLI commands for the database user and the access list
 ```
 
-A `.js` file under `apps/web/src` does not import a `.jsx` file (oxlint `no-restricted-imports`, `.oxlintrc.json`). A name that both need goes to a `.js` module, such as `characters/base.js`. The one exception is `components/tacticFaceTexture.js`, which renders `TacticFace.jsx` into a canvas. Asset URL helpers (`terrain/urls.js`, `characters/modelUrls.js`) are apart from the `files.js` modules, because the migrate scripts load those in Node and `assetUrl` needs Vite.
+A `.js` file under `apps/web/src` does not import a `.jsx` file (oxlint `no-restricted-imports`, `.oxlintrc.json`). A name that both need goes to a `.js` module, such as `characters/base.js`. The one exception is `tactics/tacticFaceTexture.js`, which renders `TacticFace.jsx` into a canvas. Asset URL helpers (`terrain/urls.js`, `characters/modelUrls.js`) are apart from the `files.js` modules, because the migrate scripts load those in Node and `assetUrl` needs Vite.
 
 The rest of `apps/api` and `infra/` is in the backend doc ("Code", "Infrastructure").
 

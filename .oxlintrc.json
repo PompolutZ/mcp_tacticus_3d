@@ -40,7 +40,7 @@
       }
     },
     {
-      "files": ["apps/web/src/components/tacticFaceTexture.js"],
+      "files": ["apps/web/src/tactics/tacticFaceTexture.js"],
       "rules": { "no-restricted-imports": "off" }
     },
     {

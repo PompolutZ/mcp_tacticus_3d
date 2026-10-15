@@ -37,21 +37,21 @@ Paths are under `apps/web/src/`.
 ### Drag
 
 - All drags use `startPointerDrag` (`drag/pointerDrag.js:42`). It returns `{ cancel }`, which ends the drag with `onCancel` and no drop.
-- Model drag: `components/CharacterModel.jsx:701-753`. The `cancel` handle is not kept. The start pose is not stored: `freePlace` is the last free point, and the turn is set by `upright(...)` every frame. `onCancel` runs only on a lost ownership tie and leaves the body where it is.
+- Model drag: `characters/CharacterModel.jsx:701-753`. The `cancel` handle is not kept. The start pose is not stored: `freePlace` is the last free point, and the turn is set by `upright(...)` every frame. `onCancel` runs only on a lost ownership tie and leaves the body where it is.
 - Esc during a model drag goes to `cancel` → `handleEscape` (`tabletools/useTableTools.js:107`). That clears the selection and removes selected tools. The drag goes on. `keyAction` (`keyboard.js:40-50`) checks only `tokenDrag` and `toolDrag`. `modelDrag` is in the key state (`App.jsx:581`).
-- Peers see the drag live (`components/LiveSync.jsx`). The table document is written when the body rests (`onModelRest`, `Scene.jsx:1558`). So a cancel only has to put the body back. The live sync and the rest write do the rest.
+- Peers see the drag live (`scene/LiveSync.jsx`). The table document is written when the body rests (`onModelRest`, `Scene.jsx:1558`). So a cancel only has to put the body back. The live sync and the rest write do the rest.
 - Tactic card (`TacticCard.jsx:167`), crisis token (`CrisisToken.jsx:277, :340`) and priority marker (`ScoreBoard.jsx:136`) drags have an `onCancel` that restores the place, and comments that say "Escape". The handle is not kept, so Esc does nothing there.
 - Token drags and HUD tool chip drags already cancel on Esc.
 
 ### Phase buttons
 
 - Setting: `settings/settings.js:8-16`, `PLACES = ['table','hud']`, every item defaults to `'table'`. Stored in localStorage `mcp-assist-3d/settings`.
-- HUD place: a "Phase" group in the toolbar (`components/Toolbar.jsx:261-287`).
+- HUD place: a "Phase" group in the toolbar (`ui/Toolbar.jsx:261-287`).
 - Bottom right: `.hud-warnings` (`index.css:1676`) when a warning exists.
 
 ### Deck text
 
-- `components/GameSetup.jsx:290-295`: "You choose a deck.", "Waiting for Nelly to choose a deck.", "Blue chooses a deck.". Browsing back: "Deck: Nelly chose Secures" (`:69-70`).
+- `setup/GameSetup.jsx:290-295`: "You choose a deck.", "Waiting for Nelly to choose a deck.", "Blue chooses a deck.". Browsing back: "Deck: Nelly chose Secures" (`:69-70`).
 - Buttons `DeckButtons` (`:166-189`): "Choose Secures", "Choose Extracts", title "Draw 2 of Nelly's Secure cards".
 
 ### Crisis cards in the setup
@@ -60,9 +60,9 @@ Paths are under `apps/web/src/`.
 - Every card has `yaw: CRISIS_CARD_YAW = π/2` (`rosters/layout.js:101`). The top faces the table edge (−x), as the scoring board.
 - Chooser: `chooserOf(setup)` (`setup.js:116-129`). Deck and second steps: the Priority player. First step: the other player. In the first and second steps, the chooser picks from cards on the opponent's side.
 - Viewer: `tableSeat(room).mySide` (`rooms/seat.js`). It is null in the Sandbox and in a single player room.
-- Rotations that face a side: `OWNER_FACING_ROTATION` (`components/OnTable.jsx:15`).
+- Rotations that face a side: `OWNER_FACING_ROTATION` (`scene/OnTable.jsx:15`).
 - A crisis card click opens the roster on the crisis tab: `CrisisRow` → `onRosterOpen({ team, tab: 'crisis', index })` (`GameSetup.jsx:133-141, :539`).
-- Roster popup: `components/RosterPopup.jsx`, host `RosterPopupHost.jsx`, carousel `components/Carousel.jsx` (Embla). Character and tactic roster cards open it too (`Scene.jsx:1448`).
+- Roster popup: `rosters/RosterPopup.jsx`, host `RosterPopupHost.jsx`, carousel `ui/Carousel.jsx` (Embla). Character and tactic roster cards open it too (`Scene.jsx:1448`).
 - No popup opens by itself today. Every popup opens from a click.
 
 ### Spectator
@@ -82,7 +82,7 @@ Paths are under `apps/web/src/`.
 
 ### Line of Sight
 
-- Tools: range, move and T/A, one entry of each kind per side in Yjs `table.tools` (`net/doc.js:39`, `components/storedTool.js`). Rack: `tabletools/layout.js:39-73`, `ToolRack.jsx`. Spawn by key over a piece or by a drag from the rack: `tabletools/useTableTools.js` (`placeTool`, `handleToolDrop`). Live pose during a drag: `net/livePose.js`. Other player's tools: `OtherTool` (`RulerTool.jsx`).
+- Tools: range, move and T/A, one entry of each kind per side in Yjs `table.tools` (`net/doc.js:39`, `tabletools/storedTool.js`). Rack: `tabletools/layout.js:39-73`, `ToolRack.jsx`. Spawn by key over a piece or by a drag from the rack: `tabletools/useTableTools.js` (`placeTool`, `handleToolDrop`). Live pose during a drag: `net/livePose.js`. Other player's tools: `OtherTool` (`RulerTool.jsx`).
 - Snap and turn around a base: `snapPose`, `turnAround` (`RulerTool.jsx:132-156`). Footprint on table and terrain: `ToolFootprint` (`RulerTool.jsx:449`, `footprintProjection.js`).
 - Key 1 is `range1`: the R2 tool in Snap 1 mode. No default binding uses Shift. Modifiers must match exactly (`input/bindings.js:233`), so Shift + 1 is free. `overPiece` is the hover condition.
 - Character Size: Jarvis `size`, and `statCard.frontSide.size` / `backSide.size` (`characters/jarvis-characters.json`). Hulkbuster 4 → 2 and Phoenix 2 → 4 between sides. Not loaded: `rosterEntry` (`characters/characters.js:20-60`) has no size. Face-up side: `character.side`.
@@ -161,17 +161,17 @@ Paths are under `apps/web/src/`.
 ## Steps
 
 1. **Plans.** Decision 1. Files: `docs/plans/*.md` (9 files), every doc and comment that points to them, `CLAUDE.md`. Check: `grep -rn "docs/plans/<name>"` finds only new paths.
-2. **Esc cancels a drag.** Decision 2. Files: `components/CharacterModel.jsx`, `components/Scene.jsx`, `keyboard.js`, `App.jsx`, `input/bindings.js` if needed, tests for `keyboard.js`. Docs: `docs/features/key-shortcuts.md` (Esc row), `docs/features/table-tools.md` if it describes the drag.
-3. **Toolbar.** Decision 9. Files: `components/Toolbar.jsx`, `App.jsx`, `index.css`, `components/SettingsPopup.jsx`, `components/LogPanel.jsx`, a new `components/SetupChip.jsx` or similar. Docs: `docs/features/table-tools.md`, `docs/features/game-log.md`.
-4. **Phase buttons.** Decision 3. Files: `components/Toolbar.jsx`, a new `components/PhaseButtons.jsx`, `App.jsx`, `index.css`, `settings/settings.js`, `settings/settings.test.js`. Docs: `docs/features/round-phases.md`, `docs/features/table-tools.md`.
-5. **Deck text.** Decision 4. Files: `components/GameSetup.jsx`, the log text of the deck entry. Docs: `docs/features/setup-game.md`.
-6. **Cards turn toward the chooser.** Decision 5. Files: `rosters/layout.js`, `setup/setup.js`, `components/GameSetup.jsx`, tests of the layout. Docs: `docs/features/setup-game.md`.
-7. **Compare overlay.** Decision 6. Files: a new `components/CrisisCompare.jsx`, `components/GameSetup.jsx`, `App.jsx`, `index.css`. Docs: `docs/features/setup-game.md`, `docs/features/roster.md`.
-8. **Choose 1 overlay.** Decision 7. Files: a new `components/CrisisChoose.jsx`, `App.jsx`, `components/GameSetup.jsx`, `index.css`. Docs: `docs/features/setup-game.md`.
-9. **Spectator columns.** Decision 8. Files: a new `components/SpectatorColumns.jsx`, `App.jsx`, `index.css`, `settings/settings.js`, `settings/useSettings.js`, `components/SettingsPopup.jsx`, `settings/settings.test.js`. Docs: `docs/features/spectator-view.md`, `docs/features/table-tools.md`.
+2. **Esc cancels a drag.** Decision 2. Files: `characters/CharacterModel.jsx`, `scene/Scene.jsx`, `keyboard.js`, `App.jsx`, `input/bindings.js` if needed, tests for `keyboard.js`. Docs: `docs/features/key-shortcuts.md` (Esc row), `docs/features/table-tools.md` if it describes the drag.
+3. **Toolbar.** Decision 9. Files: `ui/Toolbar.jsx`, `App.jsx`, `index.css`, `settings/SettingsPopup.jsx`, `log/LogPanel.jsx`, a new `components/SetupChip.jsx` or similar. Docs: `docs/features/table-tools.md`, `docs/features/game-log.md`.
+4. **Phase buttons.** Decision 3. Files: `ui/Toolbar.jsx`, a new `game/PhaseButtons.jsx`, `App.jsx`, `index.css`, `settings/settings.js`, `settings/settings.test.js`. Docs: `docs/features/round-phases.md`, `docs/features/table-tools.md`.
+5. **Deck text.** Decision 4. Files: `setup/GameSetup.jsx`, the log text of the deck entry. Docs: `docs/features/setup-game.md`.
+6. **Cards turn toward the chooser.** Decision 5. Files: `rosters/layout.js`, `setup/setup.js`, `setup/GameSetup.jsx`, tests of the layout. Docs: `docs/features/setup-game.md`.
+7. **Compare overlay.** Decision 6. Files: a new `crisis/CrisisCompare.jsx`, `setup/GameSetup.jsx`, `App.jsx`, `index.css`. Docs: `docs/features/setup-game.md`, `docs/features/roster.md`.
+8. **Choose 1 overlay.** Decision 7. Files: a new `crisis/CrisisChoose.jsx`, `App.jsx`, `setup/GameSetup.jsx`, `index.css`. Docs: `docs/features/setup-game.md`.
+9. **Spectator columns.** Decision 8. Files: a new `ui/SpectatorColumns.jsx`, `App.jsx`, `index.css`, `settings/settings.js`, `settings/useSettings.js`, `settings/SettingsPopup.jsx`, `settings/settings.test.js`. Docs: `docs/features/spectator-view.md`, `docs/features/table-tools.md`.
 
 10. **LOS data and rule.** Decision 10, without UI. Character Size per side in `rosterEntry` from Jarvis (and a lookup like `characterStamina`). Terrain Size on the terrain collider (`userData` on the `RigidBody`, read through `collider.parent()`). A pure LOS length function: start, yaw, base width, block Size, terrain skipped → distance and the blocking terrain. Shared module for the stand-on test and `matEdgeDistance` (`throwPath.js` uses it too). Tests for the size lookup and the length rule (with a fake cast). Docs: `docs/features/line-of-sight.md` (Status: partly built), `docs/features/roster.md` if it lists character fields.
-11. **LOS tool.** Decision 10, the tool. Files: `tabletools/useTableTools.js`, `tabletools/layout.js`, `components/ToolRack.jsx`, a new `components/LosTool.jsx` (or a kind in `RulerTool.jsx` if the code fits), `components/Scene.jsx`, `selection.js`, `net/livePose.js`, `components/storedTool.js`, `input/bindings.js`, `App.jsx`, `toolTips.js`. Docs: `docs/features/line-of-sight.md` (Status: built), `docs/features/key-shortcuts.md`, `docs/features/range-movement-tools.md`, `docs/features/table-tools.md`.
+11. **LOS tool.** Decision 10, the tool. Files: `tabletools/useTableTools.js`, `tabletools/layout.js`, `tabletools/ToolRack.jsx`, a new `tabletools/LosTool.jsx` (or a kind in `RulerTool.jsx` if the code fits), `scene/Scene.jsx`, `selection.js`, `net/livePose.js`, `tabletools/storedTool.js`, `input/bindings.js`, `App.jsx`, `toolTips.js`. Docs: `docs/features/line-of-sight.md` (Status: built), `docs/features/key-shortcuts.md`, `docs/features/range-movement-tools.md`, `docs/features/table-tools.md`.
 
 ## Results
 
@@ -181,7 +181,7 @@ Done. 9 plans moved with `git mv` into `docs/plans/playtest/`.       20 path ref
 
 ### Step 2: Esc cancels a drag
 
-Done. Files (under `apps/web/src/`): `drag/pointerDrag.js`, `drag/pointerDrag.test.js`, `drag/useTokenDrag.js`, `tabletools/useTableTools.js`, `components/CharacterModel.jsx`, `components/Scene.jsx`, `components/RulerTool.jsx`, `keyboard.js`, `keyboard.test.js`, `App.jsx`. Docs: `docs/features/key-shortcuts.md`, `table-tools.md`.
+Done. Files (under `apps/web/src/`): `drag/pointerDrag.js`, `drag/pointerDrag.test.js`, `drag/useTokenDrag.js`, `tabletools/useTableTools.js`, `characters/CharacterModel.jsx`, `scene/Scene.jsx`, `tabletools/RulerTool.jsx`, `keyboard.js`, `keyboard.test.js`, `App.jsx`. Docs: `docs/features/key-shortcuts.md`, `table-tools.md`.
 
 - One path: `pointerDrag.js` keeps a module-level active drag, set at the press and cleared at the end. Exports `isDragActive()` and `cancelActiveDrag()`. App key state has `drag: isDragActive()`, `keyAction` Esc → `cancelDrag` (before popups and the generic `cancel`, so the selection stays). Every `startPointerDrag` drag is covered, with no per-component handle: tactic card, crisis token and its turn handle, priority marker, model, token, HUD tool chip, ruler tool.
 - Token and tool drags migrated: `tokenDragHandleRef`, `cancelTokenDrag`, `toolDragHandleRef` and the actions `cancelTokenDrag` / `cancelToolDrag` are removed. `tokenDrag` / `toolDrag` stay in the key state only for `dragging` (blocks other keys, wheel turns).
@@ -193,7 +193,7 @@ Done. Files (under `apps/web/src/`): `drag/pointerDrag.js`, `drag/pointerDrag.te
 
 ### Step 3: Toolbar
 
-Done. Files (under `apps/web/src/`): `components/Toolbar.jsx`, `components/SettingsPopup.jsx`, `App.jsx`, `index.css`, new `useHudTop.js`. Docs: `docs/features/table-tools.md` (new "Toolbar" section, Debug section), `game-log.md`, `roster.md`, `rooms.md`, `spectator-view.md`.
+Done. Files (under `apps/web/src/`): `ui/Toolbar.jsx`, `settings/SettingsPopup.jsx`, `App.jsx`, `index.css`, new `useHudTop.js`. Docs: `docs/features/table-tools.md` (new "Toolbar" section, Debug section), `game-log.md`, `roster.md`, `rooms.md`, `spectator-view.md`.
 
 - One row, `flex-wrap: nowrap`. Left (`.toolbar-left`): Lobby, room code, Copy link, players, Setup chip. Middle (`.toolbar-middle`): Mat, Range, Move, Deploy, Phase; scrolls sideways, no scrollbar. Right (`.toolbar-right`, `flex: none`): Library, Log, Spectator, Settings.
 - Setup chip (Sandbox, not multiplayer): `setupOpen` state in `App`, panel `.toolbar-setup-panel` holds the Crisis selects and Roster fields. Counts as a popup in the key state, so Esc closes it through `closePopups`. Outside click: a `pointerdown` listener, as `DieMenu` in `DiceKeys.jsx`. No new component file (the chip is in `Toolbar.jsx`).
@@ -203,7 +203,7 @@ Done. Files (under `apps/web/src/`): `components/Toolbar.jsx`, `components/Setti
 
 ### Step 4: Phase buttons
 
-Done. Files (under `apps/web/src/`): new `components/PhaseButtons.jsx`, `components/Toolbar.jsx`, `components/HudWarnings.jsx`, `App.jsx`, `index.css`, `settings/settings.js`, `settings/settings.test.js`. Docs: `docs/features/round-phases.md`, `table-tools.md`.
+Done. Files (under `apps/web/src/`): new `game/PhaseButtons.jsx`, `ui/Toolbar.jsx`, `ui/HudWarnings.jsx`, `App.jsx`, `index.css`, `settings/settings.js`, `settings/settings.test.js`. Docs: `docs/features/round-phases.md`, `table-tools.md`.
 
 - `PhaseButtons` renders the Power and Cleanup buttons that the settings put in the HUD, a fixed group bottom right (`.phase-buttons`, buttons 60 px tall, 17 px text). Same handlers, `aria-disabled`, titles as before; Power calls `handlePowerPhase(playedSides)`, so it gives Power to the sides this browser plays. The toolbar Phase group and its 4 props are removed, not copied.
 - `HudWarnings` has a `lifted` prop (a phase button is in the HUD): `.hud-warnings--lifted` sits at bottom 84 px, above the group.
@@ -213,7 +213,7 @@ Done. Files (under `apps/web/src/`): new `components/PhaseButtons.jsx`, `compone
 
 ### Step 5: Deck text
 
-Done. Files (under `apps/web/src/`): `setup/names.js` (new `their`), `components/GameSetup.jsx` (new `decides`, `stepChoice`, button title), `log/log.js`, `log/log.test.js`. Docs: `docs/features/setup-game.md`, `game-log.md`.
+Done. Files (under `apps/web/src/`): `setup/names.js` (new `their`), `setup/GameSetup.jsx` (new `decides`, `stepChoice`, button title), `log/log.js`, `log/log.test.js`. Docs: `docs/features/setup-game.md`, `game-log.md`.
 
 - Hint: "Decide if you want to play on your Secure or Extract crises." / "Waiting for Nelly to decide if they want to ..." / "Blue decides if they want to ...". Browse back and log: `says(side, 'play')` + "on your/their X crises." Button title "Play on your Secure crises: draw 2 of them".
 - `chooses` unchanged (other steps use it); `decides` is a sibling. `chose` still used by other steps.
@@ -221,7 +221,7 @@ Done. Files (under `apps/web/src/`): `setup/names.js` (new `their`), `components
 
 ### Step 6: Cards turn toward the chooser
 
-Done. Files (under `apps/web/src/`): `rosters/layout.js`, `setup/setup.js`, `components/GameSetup.jsx`, new `rosters/layout.test.js`, `tabletools/layout.test.js`. Docs: `docs/features/setup-game.md`.
+Done. Files (under `apps/web/src/`): `rosters/layout.js`, `setup/setup.js`, `setup/GameSetup.jsx`, new `rosters/layout.test.js`, `tabletools/layout.test.js`. Docs: `docs/features/setup-game.md`.
 
 - Sign: card top is local -z, yaw y turns it to (-sin y, -cos y). Chooser host (+z, camera from +z, up = -z): yaw 0. Guest (-z): yaw π. Same as `cardYaw` of the roster cards. Other cards keep π/2.
 - `crisisRows` adds `facing`: deck step, the Priority player's two rows; first/second step, the `use` row; else null. `crisisRowLayout(team, type, codes, drawn, facing)`.
@@ -231,7 +231,7 @@ Done. Files (under `apps/web/src/`): `rosters/layout.js`, `setup/setup.js`, `com
 
 ### Step 7: Compare overlay
 
-Done. Files (under `apps/web/src/`): new `components/CrisisCompare.jsx`, new `setup/deckButton.js`, `components/GameSetup.jsx`, `components/Scene.jsx`, `App.jsx`, `index.css`. Docs: `docs/features/setup-game.md`, `roster.md`.
+Done. Files (under `apps/web/src/`): new `crisis/CrisisCompare.jsx`, new `setup/deckButton.js`, `setup/GameSetup.jsx`, `scene/Scene.jsx`, `App.jsx`, `index.css`. Docs: `docs/features/setup-game.md`, `roster.md`.
 
 - `deckButton.js` holds `lockedTitle`, `deckProblem`, `deckButton(setup, team, type, parsed, ctx)` (lock, disabled, title) and `TYPE`. The table `DeckButtons` and the overlay use it.
 - `CrisisRow` calls `onOpen(code)`; `GameSetup` calls `onCrisisOpen({ team, type, code, drawn: row.use })` (prop through `Scene`). `App.handleCrisisOpen` sets `openCrisis` `{ team, type, code }`. Hook for step 8: route `drawn` there (first/second step) to the Choose 1 overlay. Today `drawn` cards open the compare overlay too.
@@ -242,7 +242,7 @@ Done. Files (under `apps/web/src/`): new `components/CrisisCompare.jsx`, new `se
 
 ### Step 8: Choose 1 overlay
 
-Done. Files (under `apps/web/src/`): new `components/CrisisChoose.jsx`, new `setup/useAutoOpen.js`, `setup/deckButton.js`, `components/CrisisCompare.jsx` (exports `CrisisFace`), `components/GameSetup.jsx`, `App.jsx`, `index.css`. Docs: `docs/features/setup-game.md`.
+Done. Files (under `apps/web/src/`): new `crisis/CrisisChoose.jsx`, new `setup/useAutoOpen.js`, `setup/deckButton.js`, `crisis/CrisisCompare.jsx` (exports `CrisisFace`), `setup/GameSetup.jsx`, `App.jsx`, `index.css`. Docs: `docs/features/setup-game.md`.
 
 - `pickButton(setup, name, ctx)` in `deckButton.js` gives lock and title; the table Choose chip and the overlay button both use it.
 - `useAutoOpen(key, onOpen)`: one hook, one ref each, for both overlays. Key `"<setup id>:deck"` (compare) or `"<setup id>:<step>"` (Choose 1); null when this screen is not the chooser's, a step is browsed or a roster is missing.
@@ -253,7 +253,7 @@ Done. Files (under `apps/web/src/`): new `components/CrisisChoose.jsx`, new `set
 
 ### Step 9: Spectator columns
 
-Done. Files (under `apps/web/src/`): new `components/SpectatorColumns.jsx`, new `game/heldTokens.js`, `scoreboard/board.js` (+ test), `game/usePhaseActions.js`, `components/TrayPopup.jsx`, `components/Scene.jsx`, `components/SettingsPopup.jsx`, `settings/settings.js` (+ test), `settings/useSettings.js`, `App.jsx`, `index.css`. Docs: `docs/features/spectator-view.md`, `table-tools.md`.
+Done. Files (under `apps/web/src/`): new `ui/SpectatorColumns.jsx`, new `game/heldTokens.js`, `scoreboard/board.js` (+ test), `game/usePhaseActions.js`, `characters/TrayPopup.jsx`, `scene/Scene.jsx`, `settings/SettingsPopup.jsx`, `settings/settings.js` (+ test), `settings/useSettings.js`, `App.jsx`, `index.css`. Docs: `docs/features/spectator-view.md`, `table-tools.md`.
 
 - `scoreFromMarkers(markers)` gives `{ host, guest, round }`; the Cleanup Phase and the columns both use it. `nextRoundSpot` stays (tests), no longer used by the app.
 - `heldTokensByCharacter(tokens)` is shared by `Scene` (badges) and the columns. `OnToken` is exported from `TrayPopup`; with no `onClick` it is a static span.
@@ -265,7 +265,7 @@ Done. Files (under `apps/web/src/`): new `components/SpectatorColumns.jsx`, new 
 
 ### Step 10: LOS data and rule
 
-Done. Files (under `apps/web/src/`): new `characters/size.js`, `components/losLength.js`, `components/terrainUnder.js` (+ tests), `characters/characters.js`, `components/Terrain.jsx`, `components/throwPath.js`, `physics.js`. Docs: new `docs/features/line-of-sight.md`. `roster.md` lists no character fields, so no change.
+Done. Files (under `apps/web/src/`): new `characters/size.js`, `tabletools/losLength.js`, `characters/terrainUnder.js` (+ tests), `characters/characters.js`, `terrain/Terrain.jsx`, `characters/throwPath.js`, `physics.js`. Docs: new `docs/features/line-of-sight.md`. `roster.md` lists no character fields, so no change.
 
 - `characterSize(slug, side)` (like `characterStamina`) from `rosterEntry.sizes` (`cardSizes`, `sideSize` in `size.js`). A grunt has its front size on both sides.
 - Terrain `RigidBody` has `userData: { id, size }`. `terrainSize(collider)` reads it through `collider.parent()`; null for the table.
@@ -275,7 +275,7 @@ Done. Files (under `apps/web/src/`): new `characters/size.js`, `components/losLe
 
 ### Step 11: LOS tool
 
-Done. Files (under `apps/web/src/`): new `components/LosTool.jsx` (`LosTool`, `OtherLos`), `components/losBlock.js` (+ test); changed `components/RulerTool.jsx`, `Scene.jsx`, `ToolRack.jsx`, `storedTool.js`, `terrainUnder.js`, `throwPath.js`, `footprintProjection.js`, `LiveSync.jsx`, `tabletools/useTableTools.js`, `layout.js`, `dropShape.js`, `selection.js`, `useSelection.js`, `input/bindings.js`, `App.jsx` (+ tests). Docs: `line-of-sight.md` (Status: built), `key-shortcuts.md`, `range-movement-tools.md`, `table-tools.md`.
+Done. Files (under `apps/web/src/`): new `tabletools/LosTool.jsx` (`LosTool`, `OtherLos`), `tabletools/losBlock.js` (+ test); changed `tabletools/RulerTool.jsx`, `Scene.jsx`, `ToolRack.jsx`, `storedTool.js`, `terrainUnder.js`, `throwPath.js`, `footprintProjection.js`, `LiveSync.jsx`, `tabletools/useTableTools.js`, `layout.js`, `dropShape.js`, `selection.js`, `useSelection.js`, `input/bindings.js`, `App.jsx` (+ tests). Docs: `line-of-sight.md` (Status: built), `key-shortcuts.md`, `range-movement-tools.md`, `table-tools.md`.
 
 - Entry of kind `los`: `{ which: true, spawn, looker, target, pose }` (`losEntry`, `losFields`, `sameLos`). Shift + 1 is the action `los` (`overPiece`). It spawns the line, or sets the target (`placeLos`). The rack drag uses the same function. LOS chip in column 1 under L (the column is not deeper than R5, so the rack size is the same).
 - The line is a kinematic body with no collider at the looker base center. It reuses `useDragTool` (always a turn, `turnAround`), `ToolFootprint` (new props `oneSided`, `opacity`), and a shared `useRestStore` (taken out of `Tool`). `useDragTool` plans can set `refresh`, so Q / E and the wheel show during a turn drag at once.

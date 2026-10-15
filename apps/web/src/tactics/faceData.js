@@ -1,7 +1,7 @@
 import cardsData from './cards.json'
 import { getTactic } from './cards.js'
 
-// The text of the Team Tactic faces (components/TacticFace.jsx). The data file is big, so it loads on
+// The text of the Team Tactic faces (tactics/TacticFace.jsx). The data file is big, so it loads on
 // the first need, as its own chunk.
 
 // True for a card whose face is drawn from Jarvis data: every Team Tactic card and every Infinity Gem

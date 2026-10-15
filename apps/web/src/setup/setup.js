@@ -411,7 +411,7 @@ export function doneSteps(setup) {
 }
 
 // True while the roster rows lie on the table: the steps before the squads go on the table (affiliation). The
-// tool rack of a side with a loaded roster is hidden then (components/ToolRack.jsx).
+// tool rack of a side with a loaded roster is hidden then (tabletools/ToolRack.jsx).
 export function rosterRowsShown(setup) {
   return !['affiliation', 'deploy', 'done'].includes(setupStep(setup))
 }

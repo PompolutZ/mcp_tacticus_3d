@@ -36,7 +36,7 @@ These facts come from the save of mod 3036795456.
 
 The face of a Team Tactic card is drawn by the app from the Jarvis data, not loaded as an image. The look follows the Jarvis Protocol card: the back art at opacity 0.2, a title bar, the attack panel, the affiliation and type, the text, the superpower panels and the footer.
 
-- **One React component, `TacticFace`.** HTML places render it (the card popup, the Alt peek, the roster popup). 3D places (a card on the table, a roster card) draw the same component into a canvas and use it as a texture, so the table and the popup look the same. The method is in `src/components/tacticFaceTexture.js`.
+- **One React component, `TacticFace`.** HTML places render it (the card popup, the Alt peek, the roster popup). 3D places (a card on the table, a roster card) draw the same component into a canvas and use it as a texture, so the table and the popup look the same. The method is in `src/tactics/tacticFaceTexture.js`.
 - **Data:** `src/tactics/jarvis-tactics-text.json`, by card key, made by `fetch-jarvis-tactics.mjs`. It is loaded with a dynamic `import()` on the first need, so it is its own chunk.
 - **Shape:** 457 × 640 CSS px (2.5 × 3.5). The texture is 728 × 1019 px.
 - **Fonts:** Barlow Condensed and Noto Sans (width axis), both open licence. Jarvis uses paid fonts, so the letters differ a little. The texture embeds the latin subsets, which hold all characters of the card text.

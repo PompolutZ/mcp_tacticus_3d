@@ -128,7 +128,7 @@ In the squad step, a click on a combination chooses its characters for the squad
 ## State
 
 - The breakdown is computed from the roster and the setup. Nothing of it is in the shared document.
-- `RosterPopupHost` (`src/components/RosterPopupHost.jsx`) is always mounted, so the choice stays when the popup closes. It keeps the selected threat value and the filters of each roster: `{ host, guest } → { code, threat, filters } | null`. `code` is the roster code that the filters belong to. A different code means a new roster, so the defaults apply. Not saved, the same as `squadSelect`.
+- `RosterPopupHost` (`src/rosters/RosterPopupHost.jsx`) is always mounted, so the choice stays when the popup closes. It keeps the selected threat value and the filters of each roster: `{ host, guest } → { code, threat, filters } | null`. `code` is the roster code that the filters belong to. A different code means a new roster, so the defaults apply. Not saved, the same as `squadSelect`.
 - Filters store roster places, not codes, the same as a squad (`docs/features/setup-game.md`, "State").
 
 ## Code
@@ -140,8 +140,8 @@ In the squad step, a click on a combination chooses its characters for the squad
 | `src/characters/characters.js` | `alterEgo`, `peerless`, `rogue` and `leads` of each character, from Jarvis |
 | `src/setup/setup.js` | `possibleThreats(setup, parsed, threatOf)`: the threat values of the current step. `setSquadCharacters(setup, team, places)`: the squad characters of a click |
 | `src/setup/useGameSetup.js` | `handleBreakdownChoose`: the checks, the write and the close of the popup, shared with `handleRosterClick` (`writeSquad`) |
-| `src/components/BreakdownTab.jsx` | The Breakdown tab: threat chips, filters, the list |
-| `src/components/CharacterPortrait.jsx` | The portrait of a character, shared with the Library |
+| `src/rosters/BreakdownTab.jsx` | The Breakdown tab: threat chips, filters, the list |
+| `src/characters/CharacterPortrait.jsx` | The portrait of a character, shared with the Library |
 
 ## Out of scope
 

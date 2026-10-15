@@ -218,16 +218,16 @@ setup: {
 | File | Content |
 |---|---|
 | `src/setup/setup.js` | `NEW_SETUP`, `newSetup`, `setupStep`, the step changes (`chooseDeck`, `pickCard`, `chooseThreat`, `chooseEdge`, `toggleSquadCard`, `setSquadCharacters`, `toggleReady`, `placeSquad`, `chooseAffiliation`, `finishDeploy`), `placedSides`, `needsAffiliation`, `revealPlan`, `crisisRows`, `squadProblem` (why Squad ready is refused). No imports, so a Node script can check it |
-| `src/components/GameSetup.jsx` | The crisis rows and all setup buttons. It gets the parsed rosters from App (`parsedRosters` of `useGameSetup`) and does not parse. It reads the actions from `useTableActions().setup` |
-| `src/components/CrisisCompare.jsx` | The crisis compare overlay |
-| `src/components/CrisisChoose.jsx` | The Choose 1 overlay |
+| `src/setup/GameSetup.jsx` | The crisis rows and all setup buttons. It gets the parsed rosters from App (`parsedRosters` of `useGameSetup`) and does not parse. It reads the actions from `useTableActions().setup` |
+| `src/crisis/CrisisCompare.jsx` | The crisis compare overlay |
+| `src/crisis/CrisisChoose.jsx` | The Choose 1 overlay |
 | `src/setup/useAutoOpen.js` | Opens an overlay by itself once for each key |
 | `src/setup/setupText.js` | `STEP_NAME`, `stepChoice`, `chooses`, `decides`, `rollOffText`: the step names, the choice of a done step, the hints and the roll off text. `stepChoice` gets the card lookup as an argument, so a Node test can run it |
 | `src/setup/deckButton.js` | `lockedTitle`, `deckProblem`, `deckButton`, `pickButton`: the lock and title of the deck and card buttons, for the table and the overlay |
 | `src/rosters/layout.js` | `crisisRowLayout`, `crisisCenterZ`, `CRISIS_GAP_X`. Row 2 of the roster has only the Team Tactic cards now |
 | `src/rosters/cards.js` | `threat` and `key` of each card, `squadThreat`, `squadAffiliationKeys`, `squadAffiliationChoices` |
 | `src/scoreboard/affiliations.js` | `affiliationKey`, `squadAffiliations`, `affiliationChoices`, `autoAffiliation` |
-| `src/components/RosterCards.jsx` | The squad frame. `RosterCard` is exported for the crisis rows |
+| `src/rosters/RosterCards.jsx` | The squad frame. `RosterCard` is exported for the crisis rows |
 | `src/rooms/store.js` | `readSquad`, `saveSquad`, `deleteSquad`, `listSquadCodes`: the stored squad of a multiplayer room |
 | `src/setup/actions.js` | `createSetupActions(table, context)`: the document writes (rosters, restart, override, browse, Priority, deck, pick, threat, edge, affiliation). Plain module; each action reads the document and writes in one transaction |
 | `src/setup/useGameSetup.js` | The confirms and HUD messages, the stored squad, the Ready and squad handlers, the reveal effect. Its `setupActions` object is what the panels call |

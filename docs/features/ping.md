@@ -23,4 +23,4 @@ A player points at a place on the table. The other player sees and hears it, so 
 
 ## Code
 
-`handlePingKey` in `src/components/usePing.js`, `PING_KEY` in `src/keyboard.js`, `atPointer` of `src/components/ToolPoint.jsx` (the point with `y`), `src/components/Ping.jsx`, the `ping` field in `src/net/presence.js`.
+`handlePingKey` in `src/scene/usePing.js`, `PING_KEY` in `src/keyboard.js`, `atPointer` of `src/tabletools/ToolPoint.jsx` (the point with `y`), `src/scene/Ping.jsx`, the `ping` field in `src/net/presence.js`.

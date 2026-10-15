@@ -18,19 +18,19 @@ Branch `playtest-2`, worktree `../mcp_assist_3d-playtest-2`. One coder step and 
 - Tactic token piles: `tacticPilePlace` in `src/tactics/layout.js`. Row 0 for host: x -9.45 to -15.45, z 20.35. That is inside the footprint of the power button, so the button covers them.
 - Board strip: `boardStrip(side)` in `src/tabletools/layout.js`, x -20.6 to -18.3, z ±12.6 to ±18, length 5.4" along z. Row 1 (x -20, nearer the table edge): Cleanup Phase. Row 2 (x -18.9): Deploy Lock and the mat turn buttons. The strip reads like the scoring board: its top faces -x.
 - Scoring board: `src/scoreboard/board.js`, x -27.1 to -19.1, z -9 to 9. Its top faces -x, so "under the board" is its mat side. The gap between the board and the mat edge (x -18) is 1.1".
-- Buttons are drawn in `src/components/TableButtons.jsx`.
+- Buttons are drawn in `src/ui/TableButtons.jsx`.
 
 ### Token piles
 
-- A pile is `{ id, key, x, z, card? }` (`tokenPiles`). It never runs out. A left drag takes a new loose token. Shift + drag moves the pile (`src/components/TokenPile.jsx`). A click does nothing.
-- A loose token has no count (`looseTokens`, `src/components/LooseToken.jsx`). Loose tokens can lie on top of each other in height (`src/tokens/stack.js`).
+- A pile is `{ id, key, x, z, card? }` (`tokenPiles`). It never runs out. A left drag takes a new loose token. Shift + drag moves the pile (`src/tokens/TokenPile.jsx`). A click does nothing.
+- A loose token has no count (`looseTokens`, `src/tokens/LooseToken.jsx`). Loose tokens can lie on top of each other in height (`src/tokens/stack.js`).
 - Card tokens come from the TTS mod: `scripts/migrate-tactics.mjs` writes `tokens` of each card into `src/tactics/cards.json`. Token data: `src/tokens/tokens.json` (`migrate-tokens.mjs`).
 - Tokens on a character already have a count: a token dropped on a character tray joins the same tokens there and shows a number, and the player removes them one by one (`docs/features/character-trays.md`, "Give tokens by drag and drop"). Devil's Deal and Captured Soul are character tokens from the Give sources of Mephisto and N'Kantu, so they work already (user test, 2026-10-13).
 - So a counted pile is missing only for tokens that lie on a tactic card or on the table.
 
 ### Drag height
 
-- Model drag: `src/components/CharacterModel.jsx`. Each frame, `baseGroundY` (`src/characters/base.js`) casts the base cylinder down from y = 100 (`castDown` in `src/physics.js`). The first hit is the top surface, so the base never goes under an overhang.
+- Model drag: `src/characters/CharacterModel.jsx`. Each frame, `baseGroundY` (`src/characters/base.js`) casts the base cylinder down from y = 100 (`castDown` in `src/physics.js`). The first hit is the top surface, so the base never goes under an overhang.
 - `castAlong` (`physics.js`) casts a shape in any direction. `castDown` takes a start height `from`.
 - Terrain colliders: most pieces, `wakanda-tree` too, are one convex hull (`src/terrain/pieces.js`, `Terrain.jsx`). A hull is solid. The space under an overhang exists only outside the hull, for example under the slanted underside of the canopy.
 - R is `lift` (`src/input/bindings.js`). During a model drag, Lift returns at once (`CharacterModel.jsx`, `toggleLift`), so R does nothing there now. A model drag does not count as `dragging` in the key resolver (`src/keyboard.js`).
@@ -67,7 +67,7 @@ Branch `playtest-2`, worktree `../mcp_assist_3d-playtest-2`. One coder step and 
 
 Work:
 1. `src/tabletools/layout.js`: `powerButton(side)` goes to row 1 of `boardStrip(side)`, length along z. New `cleanupButton()`: one place at z 0, between the board and the mat. Update the comments.
-2. `src/components/TableButtons.jsx`: the power button in row 1 of the strip, with the new label. Cleanup Phase at the new middle place, turned like the strip.
+2. `src/ui/TableButtons.jsx`: the power button in row 1 of the strip, with the new label. Cleanup Phase at the new middle place, turned like the strip.
 3. `src/tabletools/layout.test.js`: update the places.
 4. Docs: `docs/features/table-tools.md` (Automatic Power Phase button, board strip), `docs/features/round-phases.md` (Cleanup Phase button place).
 

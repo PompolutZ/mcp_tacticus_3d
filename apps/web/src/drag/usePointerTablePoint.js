@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useThree } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
-import { useLatest } from '../components/useLatest.js'
+import { useLatest } from '../scene/useLatest.js'
 import { tablePoint } from './tablePoint.js'
 
 // Follows the pointer for a drag ghost or preview. On every window pointermove (and once at mount, from

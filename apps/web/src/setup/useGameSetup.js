@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useLatest } from '../components/useLatest.js'
+import { useLatest } from '../scene/useLatest.js'
 import { createSetupActions, deployLockWrite } from './actions.js'
 import {
   overrideRemoval,

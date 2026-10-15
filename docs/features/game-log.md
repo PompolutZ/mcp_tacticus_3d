@@ -8,7 +8,7 @@ One shared list that tells what happened at the table, for both players: the dic
 
 ## Panel
 
-The Log is a HUD panel in the right column (`src/components/LogPanel.jsx`). It replaces the Rolls panel. The toolbar chip is **Log**.
+The Log is a HUD panel in the right column (`src/log/LogPanel.jsx`). It replaces the Rolls panel. The toolbar chip is **Log**.
 
 - Collapsed: one bar at the top of the right column with the newest entry. The bar is under the toolbar (`--hud-top`). A click on the bar, or the toolbar chip, expands it.
 - Expanded: the whole list, the newest entry first. Each entry has its time (hours and minutes) and a border in the color of its side. **Collapse** or Escape collapses it.

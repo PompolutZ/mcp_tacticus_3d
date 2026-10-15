@@ -108,7 +108,7 @@ Work:
 
 1. New `src/rooms/seat.js`: `tableSeat(room)` → `{ multiplayer, isGuest, ownSide, playedSides, hiddenSquads, mySide }` (311–318, 398–399, 597). Test, with a multiplayer room with `side: null`.
 2. `src/camera.js`: the camera constants (165–176, and the comment at 153–159 that belongs to them), `startView(isGuest)`, `resetView(controls, wheelCamera, view)` (917–926). Tests with a fake `controls` object.
-3. New `src/components/canvasEvents.js`: `canvasEvents` (272–284).
+3. New `src/scene/canvasEvents.js`: `canvasEvents` (272–284).
 4. `App` keeps its local names.
 5. Pointers: `key-shortcuts.md:36`, `:97`, `character-trays.md:110`.
 
@@ -120,7 +120,7 @@ User: the start view as Blue, and as the Red seat of a multiplayer room; Space d
 
 `src/camera.js` got the camera constants with their comments, `startView(isGuest)`, `CAMERA_MOUSE_BUTTONS` and `resetView(controls, wheelCamera, view)`. `startView` returns one of two module objects `{ position, target }`, so the references stay stable (Risk 6). `App` destructures it into `cameraPosition` and `cameraTarget`, and `resetCamera` calls `resetView`. 6 tests with a fake `controls`.
 
-`canvasEvents` moved unchanged to `src/components/canvasEvents.js`. It imports `@react-three/fiber`, so it has no test. `App.jsx` no longer imports `MOUSE` or `pointerEvents`.
+`canvasEvents` moved unchanged to `src/scene/canvasEvents.js`. It imports `@react-three/fiber`, so it has no test. `App.jsx` no longer imports `MOUSE` or `pointerEvents`.
 
 Pointers fixed: `key-shortcuts.md` (two), `character-trays.md:110`.
 
@@ -134,8 +134,8 @@ Work:
 
 1. `src/settings/useSettings.js` (560–573): `{ settings, handleSettingChange, handleVolumeChange }`. Called where E4 is now.
 2. `src/log/useLogOpen.js` (474–479): `[logOpen, setLogOpen]`.
-3. `src/components/useHudMessage.js` (497–500, 1492–1498): `{ hudMessage, showHudMessage }`.
-4. `src/components/HudWarnings.jsx` (635–642, 2686–2732): owns `storageWarning`, `closedServerWarning`, `versionClosed`. Props: `storageFailed`, `serverWarning`, `versionMismatch`, `softwareRenderer`, `onSoftwareRendererClose`. Risk 8.
+3. `src/ui/useHudMessage.js` (497–500, 1492–1498): `{ hudMessage, showHudMessage }`.
+4. `src/ui/HudWarnings.jsx` (635–642, 2686–2732): owns `storageWarning`, `closedServerWarning`, `versionClosed`. Props: `storageFailed`, `serverWarning`, `versionMismatch`, `softwareRenderer`, `onSoftwareRendererClose`. Risk 8.
 5. `src/debug/useDebugLook.js` (337–341, 2396–2399): `(debug)` → `{ mode, panel props }`. Decision 5.
 6. Pointer: `index.css:609`.
 
@@ -145,11 +145,11 @@ User: tool places and volume stay after a reload; the Log chip state stays after
 
 ### Result
 
-`useSettings` is in `src/settings/useSettings.js`: the settings state, the two change handlers and the volume effect (E4), called where E4 was. `settingsOpen` stays in `App`. `useLogOpen` is in `src/log/useLogOpen.js` and returns `[logOpen, setLogOpen]`. `useHudMessage` is in `src/components/useHudMessage.js`; `showHudMessage` moved with it (it was a function declaration further down, now a destructured const that comes earlier, so it is never used before it exists).
+`useSettings` is in `src/settings/useSettings.js`: the settings state, the two change handlers and the volume effect (E4), called where E4 was. `settingsOpen` stays in `App`. `useLogOpen` is in `src/log/useLogOpen.js` and returns `[logOpen, setLogOpen]`. `useHudMessage` is in `src/ui/useHudMessage.js`; `showHudMessage` moved with it (it was a function declaration further down, now a destructured const that comes earlier, so it is never used before it exists).
 
-`HudWarnings` is in `src/components/HudWarnings.jsx`. It owns `storageWarning`, `closedServerWarning` and `versionClosed`, with the reset of `versionClosed` during render. It renders the same `.hud-warnings` div, in the same place, with the same markup. `softwareRenderer` and `versionMismatch` stay in `App` (Scene sets the first). `useDebugLook(debug)` is in `src/debug/useDebugLook.js`. It owns `renderMode`, `toneMapping`, `surface` and the look effect (E10), and returns `{ mode, panel }`. `debug` and `debugOn` stay in `App`, and `{debug && <DebugPanel {...debugPanel} />}` stays in the JSX.
+`HudWarnings` is in `src/ui/HudWarnings.jsx`. It owns `storageWarning`, `closedServerWarning` and `versionClosed`, with the reset of `versionClosed` during render. It renders the same `.hud-warnings` div, in the same place, with the same markup. `softwareRenderer` and `versionMismatch` stay in `App` (Scene sets the first). `useDebugLook(debug)` is in `src/debug/useDebugLook.js`. It owns `renderMode`, `toneMapping`, `surface` and the look effect (E10), and returns `{ mode, panel }`. `debug` and `debugOn` stay in `App`, and `{debug && <DebugPanel {...debugPanel} />}` stays in the JSX.
 
-Pointers fixed in `index.css` (two comments) and `components/look.js`.
+Pointers fixed in `index.css` (two comments) and `scene/look.js`.
 
 Effect order in `App` is the same as before: E-top (259), layout effect, 320, settings (E4, now inside `useSettings`), 479, window keys, E8, E9, look (E10, now inside `useDebugLook`).
 
@@ -181,8 +181,8 @@ Deviations: no `writer.test.js`. `writer.js` imports `characters/characters.js` 
 Work:
 
 1. New `src/useHovered.js`: the 8 hover refs and their handlers, as they are (351, 450, 509–532, 682–685, 774–778, 1148–1157, 2056–2059, 2089–2092, 2139–2142, the inline handler at 2525–2528). It also returns `current()`, a snapshot of all hovers.
-2. New `src/components/useCardPeek.js` (524–530, 781–785): `{ peekCard, handleCardHover, altDown(blocked), altUp() }`. The key handlers call `altDown` and `altUp`.
-3. New `src/components/usePing.js` (447–448, 950–958): takes `presence`, `toolPointRef`.
+2. New `src/rosters/useCardPeek.js` (524–530, 781–785): `{ peekCard, handleCardHover, altDown(blocked), altUp() }`. The key handlers call `altDown` and `altUp`.
+3. New `src/scene/usePing.js` (447–448, 950–958): takes `presence`, `toolPointRef`.
 
 User: Delete over each of the 6 kinds (table token, held token, pile, tactic card, terrain, tray card); F over a token, a held token, a model, a tray card, a tactic card, and over nothing (the last selected); Alt peek on each card kind; Cmd+Tab while holding Alt closes the peek; P; number keys over the own and the other dice tray.
 
@@ -190,7 +190,7 @@ User: Delete over each of the 6 kinds (table token, held token, pile, tactic car
 
 `useHovered` is in `src/useHovered.js`. It owns the 8 hover refs and their 8 handlers (`handlePieceHover`, `handleTerrainHover`, `handleHeldHover`, `handleTrayCardHover`, `handleLooseHover`, `handlePileHover`, `handleTacticHover`, `handleDiceTrayHover`), with the bodies unchanged. The inline dice tray handler in the JSX became `handleDiceTrayHover`, same body. It also returns `current()`, a snapshot `{ piece, terrain, loose, pile, tactic, held, trayCard, diceTray }` read from the refs at the call. `current()` is not used yet (step 6). `App` destructures everything back into the same names, where `hoveredRef` was.
 
-`useCardPeek` is in `src/components/useCardPeek.js`: `hoveredCardRef`, `altHeldRef`, `peekCard`, `handleCardHover`, `altDown(blocked)`, `altUp()`. In `handleKeyDown`, `e.preventDefault()` stays in `App`, then `altDown(blocked)` with the same condition, then `return`. `handleKeyUp` and `handleBlur` call `altUp()` (the Cmd+Tab and window blur path goes through `handleBlur`, same two lines as before). `usePing(presence, toolPointRef)` is in `src/components/usePing.js`: `ownPing` and `handlePingKey`.
+`useCardPeek` is in `src/rosters/useCardPeek.js`: `hoveredCardRef`, `altHeldRef`, `peekCard`, `handleCardHover`, `altDown(blocked)`, `altUp()`. In `handleKeyDown`, `e.preventDefault()` stays in `App`, then `altDown(blocked)` with the same condition, then `return`. `handleKeyUp` and `handleBlur` call `altUp()` (the Cmd+Tab and window blur path goes through `handleBlur`, same two lines as before). `usePing(presence, toolPointRef)` is in `src/scene/usePing.js`: `ownPing` and `handlePingKey`.
 
 Effect order in `App` is the same as before: E1, layout effect (E2), E3 (inside `useSelection`), `useLogSounds`, `useRemoteDropSounds`, the wait effect (E6), the window keys, E8, E9, look (E10 inside `useDebugLook`). The three new hooks have refs and state only, no effect.
 
@@ -430,14 +430,14 @@ Needs step 13.
 
 Work:
 
-1. New `src/components/RosterPopupHost.jsx` (391–394, 1540–1544, 2336–2388, 2651–2665): `breakdownChoice`, the `breakdownThreats` memo, the popup. Decision 6.
+1. New `src/rosters/RosterPopupHost.jsx` (391–394, 1540–1544, 2336–2388, 2651–2665): `breakdownChoice`, the `breakdownThreats` memo, the popup. Decision 6.
 2. Pointers: `squad-breakdown.md:131`, `roster.md:156`, `:160`.
 
 User: the Breakdown threat and filters stay after the popup closes and opens again, and reset with a new roster code; the tab falls back after the squad is placed; Add to squad; arrow keys; Escape.
 
 ### Result
 
-`src/components/RosterPopupHost.jsx` is new. It is always mounted, where the popup was in the JSX. It owns `breakdownChoice` (with the `useState` call) and the `breakdownThreats` memo, with the same deps. It also holds the block that builds `popupBreakdown`, `popupSquad` and the tab fallback, because that block reads the choice. The bodies moved unchanged. Only the JSX of `RosterPopup` is indented one level less. It renders `RosterPopup` only while `openRoster` is set and its roster exists, with the same props.
+`src/rosters/RosterPopupHost.jsx` is new. It is always mounted, where the popup was in the JSX. It owns `breakdownChoice` (with the `useState` call) and the `breakdownThreats` memo, with the same deps. It also holds the block that builds `popupBreakdown`, `popupSquad` and the tab fallback, because that block reads the choice. The bodies moved unchanged. Only the JSX of `RosterPopup` is indented one level less. It renders `RosterPopup` only while `openRoster` is set and its roster exists, with the same props.
 
 Nothing else in `App` read `breakdownChoice` or `breakdownThreats`, so no state stays in `App`. The host gets `openRoster`, `setOpenRoster`, `rosters`, `setup`, `parsedRosters`, `squadBlock`, `hiddenSquads`, `mySide`, `ownSquad`, `handleBreakdownChoose` and `handleSquadToggle` as props. The handlers are new closures each render, as before.
 

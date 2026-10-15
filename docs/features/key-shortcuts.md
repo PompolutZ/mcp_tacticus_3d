@@ -15,7 +15,7 @@ The users of the app are active TTS players. They already know the TTS controls.
 - **TTS bindings.** TTS stores its key bindings (the cInput library) in `~/Library/Preferences/com.berserk-games.tabletop-simulator.plist`. Read them with `defaults read com.berserk-games.tabletop-simulator <key>`. `cInput_descr` has the action names. `cInput_modifierStr` has the main key of each action, at the same index. `cInput_alt_modifierStr` and `cInput_alt_inpStr` have the second binding. `cInput_defaults` has the defaults. Read on 2026-10-02.
 - **TTS knowledge base.** [Basic controls](https://kb.tabletopsimulator.com/player-guides/basic-controls/) and [advanced controls](https://kb.tabletopsimulator.com/player-guides/advanced-controls/). They describe the mouse buttons and the number keys.
 - **The mod.** `onScriptingButtonDown` in the Blue/Red Tool Tray and Blue/Red Dice Tray scripts (`Mods/Workshop/3036795456.json`).
-- **The app.** `keyAction` in `src/keyboard.js`, `src/useTableKeys.js`, `src/hover.js`, `src/components/KeyboardCamera.jsx`, and `OrbitControls` (drei, with the three-stdlib defaults).
+- **The app.** `keyAction` in `src/keyboard.js`, `src/useTableKeys.js`, `src/hover.js`, `src/scene/KeyboardCamera.jsx`, and `OrbitControls` (drei, with the three-stdlib defaults).
 
 ## Mouse
 
@@ -35,7 +35,7 @@ The users of the app are active TTS players. They already know the TTS controls.
 
 The camera buttons are in `CAMERA_MOUSE_BUTTONS` in `src/camera.js`. Left drag still turns the camera, because the app has no box select and a trackpad has no easy right drag.
 
-The mouse wheel and the trackpad gestures are in `src/components/WheelCamera.jsx`. OrbitControls gets no wheel event. It still zooms on a touch screen. The browser reports a mouse wheel and a two-finger swipe as the same wheel event, with no flag for the device. Therefore the app guesses from the deltas. The rules are for a Mac. A Mac trackpad sends whole pixels and starts a swipe with small steps. A Mac mouse wheel sends steps of 4.000244 px or more. A mouse that scrolls smoothly (the Magic Mouse, some Logitech mice) can count as a trackpad, so it pans. Then Ctrl + scroll zooms. A pinch is a wheel event with `ctrlKey` set in Chrome, Firefox and Safari.
+The mouse wheel and the trackpad gestures are in `src/scene/WheelCamera.jsx`. OrbitControls gets no wheel event. It still zooms on a touch screen. The browser reports a mouse wheel and a two-finger swipe as the same wheel event, with no flag for the device. Therefore the app guesses from the deltas. The rules are for a Mac. A Mac trackpad sends whole pixels and starts a swipe with small steps. A Mac mouse wheel sends steps of 4.000244 px or more. A mouse that scrolls smoothly (the Magic Mouse, some Logitech mice) can count as a trackpad, so it pans. Then Ctrl + scroll zooms. A pinch is a wheel event with `ctrlKey` set in Chrome, Firefox and Safari.
 
 A mouse wheel step is a bindable input, `WheelUp` or `WheelDown`, with the Shift, Alt and Cmd flags of the event. Shift + wheel reads `deltaX` when `deltaY` is 0. A trackpad swipe, a pinch and Ctrl + wheel are not bindable. The defaults: `anywhere` zooms; `dragging` turns the dragged piece, as Q / E do. During a drag the camera is still, so a zoom binding does nothing then.
 
@@ -143,7 +143,7 @@ The keys of the tables above are the defaults. The user can change them in **Set
 
 ## Dialogs
 
-Settings, the roster popup (table and lobby), the crisis compare and choose popups, the tray popup and New room share one component, `Dialog` (`src/components/Dialog.jsx`).
+Settings, the roster popup (table and lobby), the crisis compare and choose popups, the tray popup and New room share one component, `Dialog` (`src/ui/Dialog.jsx`).
 
 - **Focus.** The dialog takes the focus when it opens, on the dialog itself, not on a button, so Enter or Space does not press the close button. Tab and Shift+Tab stay inside it. On close, the focus goes back to the control that opened it.
 - **Escape always closes a dialog**, on the table and in the lobby, also when Escape is removed from the Cancel binding. The key does not reach the table keys, so the popups are not closed twice. The exception is a key capture in Settings: it takes Escape as the input.

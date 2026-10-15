@@ -14,9 +14,9 @@ Example from the test: Bizzie looks at Moondragon next to the Armored Truck (Siz
 
 Paths are under `apps/web/src/`.
 
-- `components/losLength.js`: `losLength` casts one tall box of the full base width along the yaw (`losCast`, `castAlongHit` in `physics.js`). The first terrain with Size > block Size stops the whole line. One corner of the box on a truck corner is enough.
-- `components/LosTool.jsx`, `useLosLine`: works out `{ distance, label }` when a model rests (0.15 s), when the yaw changes, and when a Size changes. Both players run it with their own physics.
-- `components/terrainUnder.js`: `standingColliders` (the terrain under the looker is skipped), `matEdgeDistance`.
+- `tabletools/losLength.js`: `losLength` casts one tall box of the full base width along the yaw (`losCast`, `castAlongHit` in `physics.js`). The first terrain with Size > block Size stops the whole line. One corner of the box on a truck corner is enough.
+- `tabletools/LosTool.jsx`, `useLosLine`: works out `{ distance, label }` when a model rests (0.15 s), when the yaw changes, and when a Size changes. Both players run it with their own physics.
+- `characters/terrainUnder.js`: `standingColliders` (the terrain under the looker is skipped), `matEdgeDistance`.
 
 ## Decisions
 
@@ -32,8 +32,8 @@ Paths are under `apps/web/src/`.
 
 ## Steps
 
-1. **Clear sight.** Files: `components/losLength.js` (or a new `components/losSight.js`): `clearSight({ from, fromRadius, to, toRadius, cast })` returns the clear segment `{ a, b }` or null; a Rapier cast for a segment, from the same code as `losCast`. `components/LosTool.jsx`, `useLosLine`: run `clearSight` with the rest key, store the result, apply decisions 4, 5 and 8 (the thin line in `LosView`). Tests with a fake cast: the center line blocked but an edge line clear gives that segment; every line blocked gives null; the test stops at the first clear pair. Docs: `docs/features/line-of-sight.md` ("Length", and "The line": the app checks sight from any part of the base to the target, and draws the clear segment).
+1. **Clear sight.** Files: `tabletools/losLength.js` (or a new `components/losSight.js`): `clearSight({ from, fromRadius, to, toRadius, cast })` returns the clear segment `{ a, b }` or null; a Rapier cast for a segment, from the same code as `losCast`. `tabletools/LosTool.jsx`, `useLosLine`: run `clearSight` with the rest key, store the result, apply decisions 4, 5 and 8 (the thin line in `LosView`). Tests with a fake cast: the center line blocked but an edge line clear gives that segment; every line blocked gives null; the test stops at the first clear pair. Docs: `docs/features/line-of-sight.md` ("Length", and "The line": the app checks sight from any part of the base to the target, and draws the clear segment).
 
 ## Results
 
-Step 1 done. Files: `components/losLength.js` (`losKeep`, `clearSight`, `losSegmentBlocked`), `components/losLength.test.js`, `components/LosTool.jsx` (`useLosLine` sight, `Line` in `LosView`), `docs/features/line-of-sight.md`. Cast count for 1 inch bases 3 inches apart: 1 at best, 1 + 17 + 17 * 16 = 290 when every pair is blocked (17 points per half edge). The sight test runs only in the rest path. A turn re-checks only decision 4. Sight is dropped when a model moves, until it rests again.
+Step 1 done. Files: `tabletools/losLength.js` (`losKeep`, `clearSight`, `losSegmentBlocked`), `tabletools/losLength.test.js`, `tabletools/LosTool.jsx` (`useLosLine` sight, `Line` in `LosView`), `docs/features/line-of-sight.md`. Cast count for 1 inch bases 3 inches apart: 1 at best, 1 + 17 + 17 * 16 = 290 when every pair is blocked (17 points per half edge). The sight test runs only in the rest path. A turn re-checks only decision 4. Sight is dropped when a model moves, until it rests again.

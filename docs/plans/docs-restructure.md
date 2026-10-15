@@ -148,7 +148,7 @@ Files: new `features/round-phases.md`, `features/character-trays.md`, `features/
 - Decision map: Power 1 to 6 stay 1 to 6. Cleanup 1 to 10 became 7 to 16 (old N is new N+6): 2 is 8, 3 is 9, 4 is 10, 6 is 12, 7 is 13, 10 is 16.
 - `features/character-trays.md`: "Players apply the rules", "Power Phase", "Cleanup Phase", the Remove bullet, the gem bullet, the TTS Auto buttons bullet and "Out of scope" point to `round-phases.md`. The two sections were already short summaries, so they stay as summary plus pointer.
 - `features/crisis.md`: Source bullet points to `round-phases.md`, decision 12.
-- Code comments now point to `round-phases.md`: `App.jsx`, `characters/cleanup.js`, `characters/models.js`, `characters/characters.js`, `characters/power.js`, `crisis/cleanup.js`, `components/TrayControls.jsx`, `components/Scene.jsx`, `scoreboard/board.js`. No plan pointer is left.
+- Code comments now point to `round-phases.md`: `App.jsx`, `characters/cleanup.js`, `characters/models.js`, `characters/characters.js`, `characters/power.js`, `crisis/cleanup.js`, `characters/TrayControls.jsx`, `scene/Scene.jsx`, `scoreboard/board.js`. No plan pointer is left.
 - The two plans did not change.
 - Open issues: none.
 

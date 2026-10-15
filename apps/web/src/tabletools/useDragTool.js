@@ -6,7 +6,7 @@ import { BODY_DYNAMIC, BODY_KINEMATIC_POSITION, liveBody } from '../physics.js'
 import { HOVER_RATE } from '../pieces/heights.js'
 import { ndcFromClient } from '../drag/screenRay.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
-import { wrapAngle, toolPose, yawQuat, yawTo } from '../components/toolGeometry.js'
+import { wrapAngle, toolPose, yawQuat, yawTo } from './toolGeometry.js'
 
 // Height of a FlatHtml above the body center
 export const FLAT_HTML_Y = 0.25

@@ -26,7 +26,7 @@ Three coder steps, one commit each. Branch `tool-turn-keys`, worktree `../mcp_as
 
 ## Decisions
 
-1. A new pure module `src/components/toolInput.js` holds the rules. `toolAction(state, input)` returns one action:
+1. A new pure module `src/tabletools/toolInput.js` holds the rules. `toolAction(state, input)` returns one action:
    - state: `{ snapped, snappedSide, bendable, bendOn, side, drag }`. `side` is the half under the pointer or the grabbed half (`'left'`, `'right'` or null on a range tool). `drag` is `'move'`, `'turn'`, `'bend'` or null.
    - input: `'drag'` (drag start) or `'step'` (Q / E press, held key, wheel step).
    - action: `{ kind: 'move' }`, `{ kind: 'turnCenter' }`, `{ kind: 'turnBase' }`, `{ kind: 'bend', side }` or `{ kind: 'none' }`.
@@ -54,14 +54,14 @@ Three coder steps, one commit each. Branch `tool-turn-keys`, worktree `../mcp_as
 ## Part 1: The rules module, no change in behavior
 
 Work:
-1. `src/components/toolInput.js`: `toolAction(state, input)` as in decisions 1 and 2. Tests in `toolInput.test.js`: every row of the table, for both inputs, plus a range tool (no half) and a drag that is on.
+1. `src/tabletools/toolInput.js`: `toolAction(state, input)` as in decisions 1 and 2. Tests in `toolInput.test.js`: every row of the table, for both inputs, plus a range tool (no half) and a drag that is on.
 2. `RulerTool.jsx`: `dragPlan` gets its choice (move, turn around base, bend which half) from `toolAction(state, 'drag')`. The pose math stays in `RulerTool.jsx`.
 3. `turnAroundCenter` stays as it is in this part.
 4. Docs: `range-movement-tools.md`, new section "Input rules" with the "Drag a half" column only. The Q / E column comes in Part 2.
 
 Checks: `pnpm --filter web build`, `pnpm format`, `pnpm lint`, the web tests.
 
-Result: `src/components/toolInput.js` has `toolAction(state, input)` for `'drag'` and `'step'`. `toolInput.test.js` covers every table row for both inputs, a range tool, and a drag in progress. `RulerTool.jsx` `dragPlan` takes move / bend / turn around base from `toolAction(state, 'drag')`; the pose math is unchanged, and `turnAroundCenter` is untouched. `range-movement-tools.md` has "Input rules" with the "Drag a half" column.
+Result: `src/tabletools/toolInput.js` has `toolAction(state, input)` for `'drag'` and `'step'`. `toolInput.test.js` covers every table row for both inputs, a range tool, and a drag in progress. `RulerTool.jsx` `dragPlan` takes move / bend / turn around base from `toolAction(state, 'drag')`; the pose math is unchanged, and `turnAroundCenter` is untouched. `range-movement-tools.md` has "Input rules" with the "Drag a half" column.
 
 User, after this part: drag works as before on each tool. Free move, snapped turn around the base, bend of each half, and a snapped tool with Bend on.
 

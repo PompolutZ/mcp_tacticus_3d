@@ -1,0 +1,426 @@
+import { useTexture } from '@react-three/drei'
+import { useFrame, useThree } from '@react-three/fiber'
+import { useRapier } from '@react-three/rapier'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { DoubleSide } from 'three'
+import { castDown } from '../physics.js'
+import { startPointerDrag } from '../drag/pointerDrag.js'
+import { tablePoint } from '../drag/tablePoint.js'
+import { crisisMarker, crisisToken } from './files.js'
+import { assetUrl } from '../assets/index.js'
+import { affiliationToken } from '../scoreboard/files.js'
+import { COLOR_HEX, useSideColor } from '../sideColors.js'
+import DragFootprint from '../scene/DragFootprint.jsx'
+import FaceMaterial from '../scene/FaceMaterial.jsx'
+import { acquireFootprint } from '../scene/footprintProjection.js'
+import { TOKEN_DRAG_LIFT, TOKEN_EDGE_COLOR, TOKEN_THICKNESS } from '../tokens/solid.js'
+import { tokenStack } from '../tokens/stack.js'
+import { outlineMode, useOutline } from '../scene/SelectionOutlines.jsx'
+import { useColorTexture } from '../scene/useColorTexture.js'
+import { useHoverCursor, useHoverReport } from '../scene/useHoverCursor.js'
+import { useOnMount } from '../scene/useLatest.js'
+import TurnHandle from '../tabletools/TurnHandle.jsx'
+import useLiveFollow from '../scene/useLiveFollow.js'
+import { SURFACE_GAP } from '../pieces/heights.js'
+import { NO_ROTATION } from '../characters/base.js'
+
+// A token is a 1" circle, TOKEN_THICKNESS thick (tokens.json size is used for the shape, not the exact
+// dims of the current tokens, which are all 1" circles)
+const RADIUS = 0.5
+// For the range 1 check and the layout of the spectator view (SpectatorBadge.jsx)
+export const TOKEN_RADIUS = RADIUS
+const HALF_H = TOKEN_THICKNESS / 2
+// Segments of the face disks and the edge, so the outline looks round at close zoom
+const SEGMENTS = 64
+// The token images are disks that fill the whole square, with transparent corners and a soft
+// (half-transparent) rim. A circle face already cuts off the corners. alphaTest also drops the
+// most transparent rim pixels, so no light fringe shows around the edge.
+const FACE_ALPHA_TEST = 0.5
+// Range 3 (6") from the token edge, for the Zone Arc outline
+const ARC_RADIUS = RADIUS + 6
+const ARC_FILL = '#f5c542'
+const ARC_LINE = '#f5c542'
+const ARC_OPACITY = 0.22
+// Turn handle for a Zone token, on the Arc bisector just past the token edge
+const HANDLE_RADIUS = 0.12
+const HANDLE_DIST = RADIUS + 0.35
+const HANDLE_Y = 0.12
+// Control marker: a ring in the player color just outside the token edge, and the player's
+// affiliation token on top of the token. The ring shows the player also when both players have the
+// same affiliation.
+const CONTROL_INNER = 0.52
+const CONTROL_OUTER = 0.62
+// The affiliation token and the damage marker: a smaller disk on top of the token. With both on the
+// token, they are smaller and lie side by side: the affiliation token on the left, damage on the right.
+const MARKER_RADIUS = 0.3
+const PAIR_RADIUS = 0.25
+const PAIR_X = 0.25
+const MARKER_Y = HALF_H + 0.002
+// A marker on the token raises what lies on it a little
+const MARKER_TOP = 0.002
+
+// Angle (as used by RulerTool/footprintProjection: direction of angle a is (cos a, 0, −sin a))
+// from pivot to p, in the table's XZ plane.
+function angleTo(pivot, p) {
+  return Math.atan2(pivot.z - p.z, p.x - pivot.x)
+}
+
+// The textures of a token: the face that is up, the other face, and the damage marker. One URL list
+// for every user, so CrisisToken and the spectator view (SpectatorBadge.jsx) share the loaded textures.
+export function useTokenMaps(token) {
+  const backKey = token.backKey ?? token.frontKey
+  const [frontMap, backMap, damageMap] = useColorTexture([
+    assetUrl(crisisToken(token.frontKey)),
+    assetUrl(crisisToken(backKey)),
+    assetUrl(crisisMarker('damage')),
+  ])
+  return token.up === 'front' ? [frontMap, backMap, damageMap] : [backMap, frontMap, damageMap]
+}
+
+// The token disk: the face that is up, the other face and the edge, centered on y = 0. Used by
+// CrisisToken and the spectator view (SpectatorBadge.jsx). diskRef: the group, for the outline.
+// events: pointer props of the top face and the edge.
+export function TokenDisk({ topMap, bottomMap, diskRef, events }) {
+  return (
+    <group ref={diskRef}>
+      {/* Top face: the up side. Rotated like the mat and the crisis cards, so local +Y of the image
+          (its top) is local -Z, and local +X (its right) stays local +X. See CrisisCard.jsx.
+          circleGeometry maps UVs the same way as a plane of size 2 * RADIUS, so the image disk
+          fills the circle exactly. */}
+      <mesh position={[0, HALF_H, 0]} rotation={[-Math.PI / 2, 0, 0]} {...events}>
+        <circleGeometry args={[RADIUS, SEGMENTS]} />
+        <FaceMaterial map={topMap} alphaTest={FACE_ALPHA_TEST} />
+      </mesh>
+      {/* Bottom face: the other side */}
+      <mesh position={[0, -HALF_H, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[RADIUS, SEGMENTS]} />
+        <FaceMaterial map={bottomMap} alphaTest={FACE_ALPHA_TEST} />
+      </mesh>
+      {/* Edge: open-ended, because a cylinder's own top and bottom caps have turned UVs (see the
+          note in the design), so the two disks above draw the faces instead. */}
+      <mesh {...events}>
+        <cylinderGeometry args={[RADIUS, RADIUS, HALF_H * 2, SEGMENTS, 1, true]} />
+        <meshStandardMaterial color={TOKEN_EDGE_COLOR} roughness={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+// The affiliation token of the controlling player, the same image as their VP marker (ScoreBoard.jsx).
+// The image is a disk, so a circle shows it the same way as the token faces.
+function AffiliationMarker({ affiliation, x, radius }) {
+  const map = useTexture(assetUrl(affiliationToken(affiliation)))
+  return (
+    <mesh position={[x, MARKER_Y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <circleGeometry args={[radius, SEGMENTS]} />
+      <FaceMaterial map={map} alphaTest={FACE_ALPHA_TEST} />
+    </mesh>
+  )
+}
+
+// token: one entry of the tokens array in App.jsx (see buildMatTokens in crisis/matTokens.js). onMove(x, z) and
+// onTurn(yaw): called once, when a drag ends, to commit the new pose to App state.
+// onHover(over): called when the pointer moves onto the token (true) and off it (false)
+// rangeMark: 'inRange' or 'outOfRange' while a range tool marks the token (RangeMark in ToolFootprint.jsx)
+// otherSelected: the side of the other player who has the token selected, or null
+// onSelect(): a click. onDragSelect(): a drag starts, the token is selected and stays selected.
+// onHold(characterId, point): a canHold token (Asset, Civilian, a Source's supply) was dragged and
+// released over a character (model, tray card, or the tray's DOM controls strip). point: the table
+// point { x, z } under the pointer at the release.
+// floorY: the height the token lies on while it is not dragged, instead of the ground under it. A
+// held token lies on its holder's tray card, which has no collider (see CharacterTray.jsx).
+// findCharacter(clientX, clientY, { models: false }): App's findCharacterAt (DOM data-character-id first, then
+// Scene's characterAt), called on release to look for one, the same lookup App's own token drag
+// uses. A crisis token passes models: false, so only a card holds it. See docs/features/character-trays.md, "Hold and drop" and "Give tokens by drag and drop".
+// objectRef: standard ref callback for the token's 3D object, for the ruler tools' pointer raycast.
+// centerRef(getter): registers a function that returns the token's live { x, y, z }, for the ruler
+// tools. Called with undefined on unmount, the same pattern as bodyRef/objectRef in CharacterModel.
+// controlAffiliation: the affiliation key of the player in token.control (see App.jsx,
+// affiliations), or null when no player controls the token.
+// ownership: the claims on pieces (net/ownership.js). A drag and a turn claim `token:<id>`; a cancelled
+// one (Escape, or a lost tie) puts the token back to its place in the document.
+// pieceLives: the Map of live pose getters (net/live.js, LiveSync). remote: the other player claims the token.
+// getLivePose(key): their latest numbers. While remote, the token follows them. It hangs above the table and shows
+// its footprint when it moved, not during a turn alone.
+// canDrag: false while the token waits for the other side to place it (token.placeBy, see tokens/dropWait.js). A
+// waiting token is never held: a release lies on the table.
+// constrainDrag(point): returns the point where the dragged token may be, for a limit on the drag (null: none).
+export default function CrisisToken({
+  token,
+  selected,
+  rangeMark,
+  otherSelected = null,
+  onSelect,
+  onDragSelect,
+  onHover,
+  onMove,
+  onTurn,
+  onHold,
+  findCharacter,
+  floorY,
+  objectRef,
+  centerRef,
+  controlAffiliation = null,
+  ownership = null,
+  pieceLives = null,
+  remote = false,
+  getLivePose = null,
+  canDrag = true,
+  constrainDrag = null,
+}) {
+  const [topMap, bottomMap, damageMap] = useTokenMaps(token)
+
+  const { camera, gl, controls } = useThree()
+  const { world, rapier } = useRapier()
+  const shape = useMemo(() => new rapier.Cylinder(HALF_H, RADIUS), [rapier])
+
+  const groupRef = useRef()
+  // The token disk (faces and edge), without the markers and the turn handle, for the outline
+  const diskRef = useRef()
+  const [hovered, setHovered] = useState(false)
+  // Live pose during a drag, in table XZ and yaw. Synced from the token prop when not dragging.
+  const poseRef = useRef({ x: token.x, z: token.z, yaw: token.yaw })
+  const draggingRef = useRef(false)
+  // Mounts the footprint during a drag of the token. Not during a turn with the handle: it does not lift.
+  const [dragging, setDragging] = useState(false)
+  const arcSlot = useRef(null)
+
+  // The place in the document, for a cancelled drag or turn
+  const placeRef = useRef({ x: token.x, z: token.z, yaw: token.yaw })
+
+  useEffect(() => {
+    placeRef.current = { x: token.x, z: token.z, yaw: token.yaw }
+    if (!draggingRef.current) poseRef.current = { ...placeRef.current }
+  }, [token.x, token.z, token.yaw])
+
+  // The other player's drag or turn (docs/features/peer-to-peer.md, "The follow")
+  const follow = useLiveFollow({
+    pieceKey: `token:${token.id}`,
+    remote,
+    getLivePose,
+    poseRef,
+    placeRef,
+  })
+
+  // Registers a live getter, not a ref object, because the pose changes on every pointer move of a
+  // drag, not only once per frame.
+  useOnMount(() => {
+    centerRef?.(() => ({
+      x: poseRef.current.x,
+      y: groupRef.current?.position.y ?? 0,
+      z: poseRef.current.z,
+    }))
+    return () => centerRef?.(undefined)
+  })
+
+  useEffect(() => () => tokenStack.removeCrisis(token.id), [token.id])
+
+  // token.control is a side. The ring has the color of that side.
+  const controlColor = useSideColor(token.control)
+  const showArc = selected && token.hasArc
+  const markerPair = Boolean(token.control && token.damage)
+  const markerRadius = markerPair ? PAIR_RADIUS : MARKER_RADIUS
+  useEffect(() => {
+    if (showArc && !arcSlot.current) arcSlot.current = acquireFootprint()
+    if (!showArc && arcSlot.current) {
+      arcSlot.current.release()
+      arcSlot.current = null
+    }
+    return () => {
+      if (arcSlot.current) {
+        arcSlot.current.release()
+        arcSlot.current = null
+      }
+    }
+  }, [showArc])
+
+  useFrame(() => {
+    const { x, z, yaw } = poseRef.current
+    // ONLY_FIXED + EXCLUDE_SENSORS inside castDown, so models and tools are ignored
+    const lifted = draggingRef.current || follow.current.moved
+    const ground =
+      floorY !== undefined && !lifted
+        ? floorY
+        : castDown(world, rapier, shape, NO_ROTATION, x, z, HALF_H)
+    const y = (ground ?? 0) + SURFACE_GAP + HALF_H + (lifted ? TOKEN_DRAG_LIFT : 0)
+    // Loose tokens lie on this token (tokens/stack.js). Not while it is lifted or held on a tray card.
+    if (lifted || floorY !== undefined) tokenStack.removeCrisis(token.id)
+    else {
+      const top = y + HALF_H + (token.control || token.damage ? MARKER_TOP : 0)
+      tokenStack.putCrisis(token.id, x, z, RADIUS, top)
+    }
+    if (groupRef.current) {
+      groupRef.current.position.set(x, y, z)
+      groupRef.current.rotation.y = yaw
+    }
+    if (arcSlot.current)
+      arcSlot.current.setSector(
+        x,
+        z,
+        yaw,
+        yaw + Math.PI / 2,
+        ARC_RADIUS,
+        ARC_FILL,
+        ARC_OPACITY,
+        ARC_LINE,
+      )
+  })
+
+  // Table or terrain point under the pointer, so a dragged token stays under the cursor on raised
+  // terrain
+  function pointerPoint(clientX, clientY) {
+    return tablePoint({ camera, canvas: gl.domElement, world, rapier }, clientX, clientY)
+  }
+
+  function onPointerDown(e) {
+    startPointerDrag(e, {
+      key: `token:${token.id}`,
+      ownership,
+      live: pieceLives,
+      livePose: () => poseRef.current,
+      controls,
+      canvas: gl.domElement,
+      // A click toggles the selection. A token that can move is dragged at once and selected.
+      canStart: () => token.canMove && canDrag,
+      onStart: () => {
+        onDragSelect?.()
+        draggingRef.current = true
+        setDragging(true)
+      },
+      onMove: (ev) => {
+        const raw = pointerPoint(ev.clientX, ev.clientY)
+        const p = raw && (constrainDrag?.(raw) ?? raw)
+        if (p) {
+          poseRef.current.x = p.x
+          poseRef.current.z = p.z
+        }
+      },
+      onEnd: (ev) => {
+        draggingRef.current = false
+        setDragging(false)
+        // A canHold token dropped on a tray card (not on a model) is held, not placed on the mat (see "Hold
+        // and
+        // drop"). Any other token, or no character under the release point, just moves as usual.
+        const holder =
+          token.canHold && !token.placeBy
+            ? findCharacter?.(ev.clientX, ev.clientY, { models: false })
+            : null
+        if (holder) {
+          const point = { x: poseRef.current.x, z: poseRef.current.z }
+          // The pose goes back to the token's last place. If the hold changes the place, the token
+          // prop changes and the effect above sets the new pose. If not (for example, a held token
+          // dropped on its own holder's model), the token goes back to its place on the card.
+          poseRef.current = { x: token.x, z: token.z, yaw: token.yaw }
+          onHold?.(holder, point)
+        } else {
+          onMove?.(poseRef.current.x, poseRef.current.z)
+        }
+      },
+      onClick: () => onSelect?.(),
+      onCancel: () => {
+        draggingRef.current = false
+        setDragging(false)
+        poseRef.current = { ...placeRef.current }
+      },
+    })
+  }
+
+  // Turn handle: drags the token's yaw around its own center. The pivot is the token's current
+  // center, read every move so the turn stays correct even if the token is also being repositioned.
+  function onHandleDown(e) {
+    // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
+    if (e.button !== 0) return
+    const pivot = { x: poseRef.current.x, z: poseRef.current.z }
+    const start = pointerPoint(e.clientX, e.clientY)
+    if (!start) {
+      e.stopPropagation()
+      return
+    }
+    const startAngle = angleTo(pivot, start)
+    const startYaw = poseRef.current.yaw
+
+    startPointerDrag(e, {
+      key: `token:${token.id}`,
+      ownership,
+      live: pieceLives,
+      livePose: () => poseRef.current,
+      controls,
+      // The handle never released the pointer capture
+      releaseCapture: false,
+      immediate: true,
+      onMove: (ev) => {
+        const p = pointerPoint(ev.clientX, ev.clientY)
+        if (!p || Math.hypot(p.x - pivot.x, p.z - pivot.z) < 0.01) return
+        poseRef.current.yaw = startYaw + (angleTo(pivot, p) - startAngle)
+      },
+      onEnd: () => onTurn?.(poseRef.current.yaw),
+      onCancel: () => {
+        poseRef.current.yaw = placeRef.current.yaw
+      },
+    })
+  }
+
+  function setGroupRef(obj) {
+    groupRef.current = obj
+    objectRef?.(obj)
+  }
+
+  useOutline(diskRef, outlineMode(selected, hovered, rangeMark, false, otherSelected))
+  // A click toggles the selection. A token that can move is dragged at once and selected.
+  useHoverCursor(hovered, token.canMove && canDrag ? 'grab' : 'pointer')
+
+  // onHover(true) while the pointer is over the token, onHover(false) after. The cleanup also runs
+  // on unmount, so a removed token does not stay hovered.
+  useHoverReport(hovered, onHover)
+
+  const over = (e) => {
+    e.stopPropagation()
+    setHovered(true)
+  }
+  const out = () => setHovered(false)
+
+  const footprintShape = () =>
+    draggingRef.current || follow.current.moved ? { ...poseRef.current, radius: RADIUS } : null
+
+  return (
+    <group ref={setGroupRef} position={[token.x, 0, token.z]} rotation={[0, token.yaw, 0]}>
+      <TokenDisk
+        topMap={topMap}
+        bottomMap={bottomMap}
+        diskRef={diskRef}
+        events={{ onPointerDown, onPointerOver: over, onPointerOut: out }}
+      />
+      {token.control && (
+        <mesh position={[0, HALF_H + 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[CONTROL_INNER, CONTROL_OUTER, 32]} />
+          <meshStandardMaterial color={COLOR_HEX[controlColor]} roughness={0.5} side={DoubleSide} />
+        </mesh>
+      )}
+      {/* Its own Suspense: while a new affiliation image loads, only the marker is missing, not
+          the whole token */}
+      {token.control && controlAffiliation && (
+        <Suspense fallback={null}>
+          <AffiliationMarker
+            affiliation={controlAffiliation}
+            x={markerPair ? -PAIR_X : 0}
+            radius={markerRadius}
+          />
+        </Suspense>
+      )}
+      {token.damage && (
+        <mesh position={[markerPair ? PAIR_X : 0, MARKER_Y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[markerRadius * 2, markerRadius * 2]} />
+          <FaceMaterial map={damageMap} transparent />
+        </mesh>
+      )}
+      {(dragging || remote) && <DragFootprint getShape={footprintShape} />}
+      {selected && token.hasArc && (
+        <TurnHandle
+          position={[HANDLE_DIST * Math.SQRT1_2, HANDLE_Y, -HANDLE_DIST * Math.SQRT1_2]}
+          radius={HANDLE_RADIUS}
+          onPointerDown={onHandleDown}
+        />
+      )}
+    </group>
+  )
+}

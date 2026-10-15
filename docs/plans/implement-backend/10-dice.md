@@ -71,13 +71,13 @@ apps/web/src/
   net/live.js                   + die layout
   net/livePose.js               + die kind
   physics.js                    + OTHER_DICE_GROUPS
-  components/DiceTray.jsx       the own tray: from the document, writes, history entries, live poses
-  components/OtherDiceTray.jsx  new: the other player's tray
-  components/DiceKeys.jsx       + disabled
+  dice/DiceTray.jsx       the own tray: from the document, writes, history entries, live poses
+  dice/OtherDiceTray.jsx  new: the other player's tray
+  dice/DiceKeys.jsx       + disabled
   components/RollsPanel.jsx     new: the roll history
-  components/Toolbar.jsx        + Rolls button
-  components/LiveSync.jsx       + die keys
-  components/Scene.jsx          own and other trays, PLAYER_TEAM goes away
+  ui/Toolbar.jsx        + Rolls button
+  scene/LiveSync.jsx       + die keys
+  scene/Scene.jsx          own and other trays, PLAYER_TEAM goes away
   App.jsx                       the dice and rolls stores, the Rolls panel, number keys to the own tray under the pointer
 ```
 
@@ -128,7 +128,7 @@ apps/web/src/
 
 ## Phase 1: Dice in the document
 
-Read: decisions 1 to 3 and 9. `components/DiceTray.jsx`, `dice/shelf.js`, `dice/tray.js` (`freeDropPoint`), `dice/throw.js` (the settle rule), `net/doc.js`, `net/collections.js` (`createRecord`), `net/useY.js`, `rooms/table.js`, `components/storedTool.js` (how a tool entry is rounded and compared), `components/Scene.jsx` (where `DiceTray` is drawn), `App.jsx` (the props of Scene).
+Read: decisions 1 to 3 and 9. `dice/DiceTray.jsx`, `dice/shelf.js`, `dice/tray.js` (`freeDropPoint`), `dice/throw.js` (the settle rule), `net/doc.js`, `net/collections.js` (`createRecord`), `net/useY.js`, `rooms/table.js`, `tabletools/storedTool.js` (how a tool entry is rounded and compared), `scene/Scene.jsx` (where `DiceTray` is drawn), `App.jsx` (the props of Scene).
 
 Work:
 1. `dice/stored.js`, new plain module: the die id (decision 1), the die entry from a die in memory, the rounding of a pose, and `trayCounts(entries, critsUsed)`, which gives `{ well, shelf, critsAvailable }` in the form that `DiceKeys` reads. Tests in `dice/stored.test.js`.
@@ -172,7 +172,7 @@ For next phases:
 
 ## Phase 2: The roll history
 
-Read: decision 4. The **Result** of Phase 1. `components/DiceTray.jsx` (`finalizeThrow`, `addCrits`, `reroll`, `change`, `clear`), `net/doc.js`, `net/collections.js` (`createList`), `components/Library.jsx`, `components/Toolbar.jsx`, `App.jsx` (`libraryOpen`, Escape), `index.css` (`.library`). In git: `src/dice/history.js` and `src/components/DicePanel.jsx` before commit `c965bf4`, for the old text and look.
+Read: decision 4. The **Result** of Phase 1. `dice/DiceTray.jsx` (`finalizeThrow`, `addCrits`, `reroll`, `change`, `clear`), `net/doc.js`, `net/collections.js` (`createList`), `ui/Library.jsx`, `ui/Toolbar.jsx`, `App.jsx` (`libraryOpen`, Escape), `index.css` (`.library`). In git: `src/dice/history.js` and `src/components/DicePanel.jsx` before commit `c965bf4`, for the old text and look.
 
 Work:
 1. `dice/history.js`, new plain module: the roll entry of a throw, a change and a clear, and the text of an entry. Tests in `dice/history.test.js`.
@@ -205,13 +205,13 @@ For next phases:
 
 ## Phase 3: The other player's tray
 
-Read: decisions 5, 6 and 8. The **Result** of Phases 1 and 2. `components/DiceTray.jsx`, `components/DiceKeys.jsx`, `components/Scene.jsx` (`PLAYER_TEAM`, the trays, `ownSide`), `App.jsx` (`diceTrayHoveredRef`, `addDiceRef`, the number keys, `diceMenu`), `physics.js`, `components/CharacterModel.jsx` (only to see how a remote model turns off its contact forces).
+Read: decisions 5, 6 and 8. The **Result** of Phases 1 and 2. `dice/DiceTray.jsx`, `dice/DiceKeys.jsx`, `scene/Scene.jsx` (`PLAYER_TEAM`, the trays, `ownSide`), `App.jsx` (`diceTrayHoveredRef`, `addDiceRef`, the number keys, `diceMenu`), `physics.js`, `characters/CharacterModel.jsx` (only to see how a remote model turns off its contact forces).
 
 Work:
 1. `Scene.jsx`: the own trays from `ownSide` and the room kind (decision 5). `PLAYER_TEAM` goes away. An own tray is a `DiceTray`, the other tray is an `OtherDiceTray`.
 2. `App.jsx`: `diceTrayHoveredRef` holds the side of the own tray under the pointer, or null. `addDiceRef` holds the add function of each own tray. A number key adds dice to the tray under the pointer. The face menu opens only on an own tray.
 3. Shared parts: the tray body with its keys, and the look of a die (the loaded die, its material), used by both trays.
-4. `components/OtherDiceTray.jsx`: decision 6. The dice are kinematic bodies with `OTHER_DICE_GROUPS`.
+4. `dice/OtherDiceTray.jsx`: decision 6. The dice are kinematic bodies with `OTHER_DICE_GROUPS`.
 5. `DiceKeys.jsx`: `disabled`. The buttons are disabled, a face plate is not a button, and no menu opens.
 6. `physics.js`: `OTHER_DICE_GROUPS` (decision 8).
 7. Docs: `docs/features/dice-rolling.md` ("Controls: number keys": any own tray; the other player's tray). `docs/features/key-shortcuts.md` (the number keys row). `docs/features/peer-to-peer.md` ("What each player controls": the other tray shows its dice and counts, and its keys do nothing; the history is in the Rolls panel. "Bodies moved by the other browser", item 3: the other dice pass through models).
@@ -226,9 +226,9 @@ User, after this phase: checks 8 to 12.
 
 Done. Web tests 254 pass, 0 fail. Build passes. Lint: no new errors. One new warning (`set-state-in-effect` in `OtherDiceTray`, see below).
 
-- `components/DiceTrayParts.jsx` (new): `useDieLook()` (d8 geometry and material) and `TrayBody({ trayKey, keysProps, onHover })` (fixed body, trimesh, tinted visual, `DiceKeys`). `DiceTray.jsx` uses both and keeps the roll flow only.
-- `components/OtherDiceTray.jsx` (new): props `trayKey`, `store`. No `commit`, no `rolls`. Reads its side with `useYField(store, trayKey)`.
-- `components/DiceKeys.jsx`: `disabled` prop. Buttons disabled, a face plate is a `div.dice-face-key--static` (css in `index.css`), no menu.
+- `dice/DiceTrayParts.jsx` (new): `useDieLook()` (d8 geometry and material) and `TrayBody({ trayKey, keysProps, onHover })` (fixed body, trimesh, tinted visual, `DiceKeys`). `DiceTray.jsx` uses both and keeps the roll flow only.
+- `dice/OtherDiceTray.jsx` (new): props `trayKey`, `store`. No `commit`, no `rolls`. Reads its side with `useYField(store, trayKey)`.
+- `dice/DiceKeys.jsx`: `disabled` prop. Buttons disabled, a face plate is a `div.dice-face-key--static` (css in `index.css`), no menu.
 - `physics.js`: `OTHER_DICE_GROUPS` (group 2, filter every group but 1).
 - `Scene.jsx`: `PLAYER_TEAM` removed. New prop `ownTraySides` (default both). Own side: `DiceTray`, else `OtherDiceTray`. `onDiceTrayHover(side, over)`. `addDiceRef.current[side]` holds each own tray's add.
 - `App.jsx`: `ownTraySides={room?.multiplayer ? [ownSide] : ['blue','red']}`. `diceTrayHoveredRef` is the side or null (out clears only the same side). `addDiceRef` is `{}` by side. Number key adds to the tray under the pointer.
@@ -243,7 +243,7 @@ For Phase 4:
 
 ## Phase 4: Dice in flight
 
-Read: decisions 7 and 8. The **Result** of Phases 1 to 3. `net/live.js` (+ test), `net/livePose.js` (+ test), `components/LiveSync.jsx`, `components/useLiveFollow.js` (the follow), `components/CharacterModel.jsx` (how a remote model follows a live pose), `components/Scene.jsx` (LiveSync, `toolLives`), `components/DiceTray.jsx`, `components/OtherDiceTray.jsx`.
+Read: decisions 7 and 8. The **Result** of Phases 1 to 3. `net/live.js` (+ test), `net/livePose.js` (+ test), `scene/LiveSync.jsx`, `scene/useLiveFollow.js` (the follow), `characters/CharacterModel.jsx` (how a remote model follows a live pose), `scene/Scene.jsx` (LiveSync, `toolLives`), `dice/DiceTray.jsx`, `dice/OtherDiceTray.jsx`.
 
 Work:
 1. `net/live.js`: the `die` layout (3 positions, 7 numbers). `net/livePose.js`: the `die` kind, the same numbers as `character`. Tests.

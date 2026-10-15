@@ -54,7 +54,7 @@ Left for later steps:
 5. **The 5 findings of the default rules** are fixed in phase 1. Each fix keeps the behavior:
    - `apps/web/src/App.jsx`: the unused `setAffiliations`.
    - `apps/web/scripts/lib/unity-prefab.mjs`: the unused `GAME_OBJECT`.
-   - `apps/web/src/components/footprintProjection.js`: two `new Array(n)`. Keep the same array contents and the same speed (this code may run per frame). Explain the change in the **Result**.
+   - `apps/web/src/scene/footprintProjection.js`: two `new Array(n)`. Keep the same array contents and the same speed (this code may run per frame). Explain the change in the **Result**.
    - `apps/api/test/config.test.ts`: a fifth finding, `vitest/no-conditional-expect`. It was found after this plan was written, in the code of step 3. The test "names the missing parameter and shows no value" had an `expect` in a `catch`. The try/catch goes. The first check becomes `toThrow(new Error('Missing SSM parameter /mcptacticus/prod/mongodb-uri'))`. An `Error` instance makes vitest compare the whole message, so the message cannot contain the value `topsecret`. The rule stays at `error`.
 6. **The format commit is separate.** It contains only the output of `pnpm format`. So `git blame` can skip it with `.git-blame-ignore-revs`. GitHub reads this file on its own. Local git needs `git config blame.ignoreRevsFile .git-blame-ignore-revs` once.
 7. **Proof that the format changes no code.** The production build must give the same files before and after the format. The minifier removes whitespace and comments, so formatting cannot change the output. A different file means a real code change.

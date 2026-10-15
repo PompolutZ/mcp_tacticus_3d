@@ -104,7 +104,7 @@ Paths are under `apps/web/src/`.
    - The privacy page gets one paragraph: what an error report contains, and that it has no account data.
    - The reports are untrusted text. A person can send a false report. They are hints only.
 8. **Labels.** `showLabels` (`App.jsx:112`) is React state, on at start, not stored. It moves into the settings (`settings/settings.js`, `labels: false` by default, `normalize` reads a boolean). The Settings chip changes it. Stored settings with no `labels` key get `false`. The piece under the pointer still shows its label.
-9. **Dice** (`dice/throw.js`, `components/DiceTray.jsx`):
+9. **Dice** (`dice/throw.js`, `dice/DiceTray.jsx`):
    - Restitution 0.8 → 0.3. Die to die was 0.8 (Average rule), the main cause of long rolls.
    - Angular damping 0.1 → about 1.0. The coder measures with `scripts/dice-sim.mjs` and may pick a near value. The user checks the look against TTS.
    - A die that rests with a symbol becomes kinematic, like a shelf die. Rolling dice bounce off it. A throw makes it dynamic again. This also fixes a bug: a rested die that was knocked over kept its old symbol.
@@ -114,15 +114,15 @@ Paths are under `apps/web/src/`.
 
 ## Steps
 
-1. **Crash safety** (bug 5, decision 5). Files: new error boundary component next to `App.jsx` `<Canvas>`, `components/RulerTool.jsx`, `components/DiceTray.jsx`, `components/CharacterModel.jsx`, `components/Scene.jsx`, `drag/pointerDrag.js` or a physics helper file for `liveBody`. Tests: `liveBody` with a fake world. Docs: the feature doc that covers the 3D table, a short note on recovery.
+1. **Crash safety** (bug 5, decision 5). Files: new error boundary component next to `App.jsx` `<Canvas>`, `tabletools/RulerTool.jsx`, `dice/DiceTray.jsx`, `characters/CharacterModel.jsx`, `scene/Scene.jsx`, `drag/pointerDrag.js` or a physics helper file for `liveBody`. Tests: `liveBody` with a fake world. Docs: the feature doc that covers the 3D table, a short note on recovery.
 2. **Error reports** (request 7, decision 7). Files: new `apps/api/src/routes/errors.ts`, the store (memory and Mongo, capped collection created at start when missing), the app setup that mounts routes, the web API client, the error boundary and global listeners from step 1, `infra/scripts/errors.ts` and its `package.json` script, `apps/web/public/privacy.html`. Tests: API tests for a good body, an unknown field, a wrong type, a too long body, the rate limit, and that a `$` key never reaches the store. A web test for the per-page limits and the dedupe. Docs: `docs/features/backend.md` (route, collection, script, security).
-3. **Token hold on the card only** (bug 6, decision 6). Files: `components/CrisisToken.jsx`, `drag/useTokenDrag.js`, `components/Scene.jsx` (`characterAt` callers for crisis tokens; character tokens keep the model target). Docs: `docs/features/character-trays.md`.
-4. **LOS timing** (bug 2, decision 2). Files: `components/LosTool.jsx`, `components/losLength.js`, `components/losLength.test.js`. Tests: key change plus turn in one frame, then still frames, runs the sight test once; a turn before rest keeps the pending test; a turn after rest does not run it again.
-5. **Setup panel** (bug 1, decision 1). Files: `components/GameSetup.jsx`. Docs: `docs/features/setup-game.md`.
-6. **Fall on terrain delete** (bug 4, decision 4). Files: `pieces/useTablePieces.js`, `rooms/table.js` (`y`), `components/Terrain.jsx`, `components/Scene.jsx` (model move). The coder checks first how the throw deletes terrain, and reports if it uses another path. Tests: the pure part that finds what stands on a piece and the new height. Docs: `docs/features/maps.md` or `rooms.md` (the `y` field), `key-shortcuts.md` if the Delete row describes the fall.
-7. **Labels off and setup popup** (requests 8 and 11, decisions 8 and 11). Files: `App.jsx`, `settings/settings.js`, `components/SettingsPopup.jsx`, `components/Toolbar.jsx`, `index.css`. Tests: settings default and `normalize`. Docs: `docs/features/table-tools.md` ("Labels" and "Toolbar").
-8. **Dice** (request 9, decision 9). Files: `dice/throw.js`, `components/DiceTray.jsx`, `scripts/dice-sim.mjs` if it needs the new values. Measure rest time before and after. Docs: `docs/features/dice-rolling.md` (Values table, the rested die).
-9. **Labels behind terrain** (request 10, decision 10). Files: the new hook, `components/Scene.jsx`, `Terrain.jsx`, `LosTool.jsx`, `TokenFace.jsx`, `ToolRack.jsx`, `DiceTray.jsx`. Tests: the pure part (which labels to check, when to run). Docs: `docs/features/table-tools.md` ("Labels").
+3. **Token hold on the card only** (bug 6, decision 6). Files: `crisis/CrisisToken.jsx`, `drag/useTokenDrag.js`, `scene/Scene.jsx` (`characterAt` callers for crisis tokens; character tokens keep the model target). Docs: `docs/features/character-trays.md`.
+4. **LOS timing** (bug 2, decision 2). Files: `tabletools/LosTool.jsx`, `tabletools/losLength.js`, `tabletools/losLength.test.js`. Tests: key change plus turn in one frame, then still frames, runs the sight test once; a turn before rest keeps the pending test; a turn after rest does not run it again.
+5. **Setup panel** (bug 1, decision 1). Files: `setup/GameSetup.jsx`. Docs: `docs/features/setup-game.md`.
+6. **Fall on terrain delete** (bug 4, decision 4). Files: `pieces/useTablePieces.js`, `rooms/table.js` (`y`), `terrain/Terrain.jsx`, `scene/Scene.jsx` (model move). The coder checks first how the throw deletes terrain, and reports if it uses another path. Tests: the pure part that finds what stands on a piece and the new height. Docs: `docs/features/maps.md` or `rooms.md` (the `y` field), `key-shortcuts.md` if the Delete row describes the fall.
+7. **Labels off and setup popup** (requests 8 and 11, decisions 8 and 11). Files: `App.jsx`, `settings/settings.js`, `settings/SettingsPopup.jsx`, `ui/Toolbar.jsx`, `index.css`. Tests: settings default and `normalize`. Docs: `docs/features/table-tools.md` ("Labels" and "Toolbar").
+8. **Dice** (request 9, decision 9). Files: `dice/throw.js`, `dice/DiceTray.jsx`, `scripts/dice-sim.mjs` if it needs the new values. Measure rest time before and after. Docs: `docs/features/dice-rolling.md` (Values table, the rested die).
+9. **Labels behind terrain** (request 10, decision 10). Files: the new hook, `scene/Scene.jsx`, `Terrain.jsx`, `LosTool.jsx`, `TokenFace.jsx`, `ToolRack.jsx`, `DiceTray.jsx`. Tests: the pure part (which labels to check, when to run). Docs: `docs/features/table-tools.md` ("Labels").
 
 **User:** turn off the Netlify badge (decision 3). After the merge and push to main, CI deploys the API with `POST /errors`.
 
@@ -223,7 +223,7 @@ Done.
 
 Done.
 
-- New `components/LabelOcclusion.jsx`: registry, `LabelOcclusionProvider` (Scene, around `<Physics>`), `LabelOcclusionLoop` (inside `<Physics>`, `useFrame`), `OccludedHtml` (a group anchor plus drei `<Html>`; drops to a plain label outside a provider), `useLabelsDirty`. Pure part in `labelOcclusion.js` (due check, move tests, ray) with tests.
+- New `scene/LabelOcclusion.jsx`: registry, `LabelOcclusionProvider` (Scene, around `<Physics>`), `LabelOcclusionLoop` (inside `<Physics>`, `useFrame`), `OccludedHtml` (a group anchor plus drei `<Html>`; drops to a plain label outside a provider), `useLabelsDirty`. Pure part in `labelOcclusion.js` (due check, move tests, ray) with tests.
 - Loop: every 0.1 s, if the camera, an anchor or the dirty flag changed, one `castRay` per label (fixed colliders only, no sensors, own terrain body excluded, stops 0.1 before the anchor). A hit sets `visibility: hidden` on the label element. No React state. Ray, vectors and out object are reused.
 - Covered: terrain label (own piece skipped; each piece sets dirty when it appears, moves or goes), LOS label, token count (both) and name, tool rack label, ruler `FlatHtml` (Place buttons, labels on the mat).
 - Not covered: `OnTable` boards, DiceKeys, CharacterTray, SpectatorBadge (trays and boards off the mat), die menu (own tray at the table edge, camera sits behind it).

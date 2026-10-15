@@ -1,5 +1,5 @@
 // The footprint of a tool as flat arms, for the outline that follows the pointer during a drag from the rack
-// (components/ToolDragGhost.jsx), and the rule for where a drop works. Plain module, no React. See
+// (tabletools/ToolDragGhost.jsx), and the rule for where a drop works. Plain module, no React. See
 // docs/features/table-tools.md, "Tool rack".
 
 import { MOVE_TIP, RANGE_TIP } from './toolTips.js'

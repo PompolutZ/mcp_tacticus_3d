@@ -1,7 +1,7 @@
 // The mouse controls that the Settings popup lists (docs/features/table-tools.md, "Settings menu"). Plain
 // words for what the app does, not for TTS. The source is docs/features/key-shortcuts.md: a change of a
 // mouse control changes this list in the same step. The keys are not here: the popup builds the key table
-// from the bindings (components/KeyBindings.jsx, input/bindings.js). No React.
+// from the bindings (settings/KeyBindings.jsx, input/bindings.js). No React.
 
 export const MOUSE_ROWS = [
   { keys: 'Left click', action: 'Select a piece' },

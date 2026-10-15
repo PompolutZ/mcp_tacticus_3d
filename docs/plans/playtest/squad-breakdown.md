@@ -102,8 +102,8 @@ Commit: `squad breakdown part 1: combinations and threat values`.
 ## Part 2: Breakdown tab, read only
 
 Work:
-1. New `src/components/CharacterPortrait.jsx`: the portrait image of a character, or a grey circle when it has none. The Library uses it instead of `portraitUrl`, with the same look as now (28 px, rounded square). The Breakdown tab uses it round.
-2. New `src/components/BreakdownTab.jsx`: the threat chips with counts, the line with the number of squads, the list of rows. See the feature, "Breakdown tab". Above 14 characters, the message from the feature.
+1. New `src/characters/CharacterPortrait.jsx`: the portrait image of a character, or a grey circle when it has none. The Library uses it instead of `portraitUrl`, with the same look as now (28 px, rounded square). The Breakdown tab uses it round.
+2. New `src/rosters/BreakdownTab.jsx`: the threat chips with counts, the line with the number of squads, the list of rows. See the feature, "Breakdown tab". Above 14 characters, the message from the feature.
 3. `RosterPopup.jsx`: an optional prop `breakdown` (null or missing in the lobby). With it, the tab **Breakdown** after **Crisis cards**. It shows `BreakdownTab` instead of the carousel. Disabled when the roster has no characters.
 4. `App.jsx`:
    - Pass `breakdown` while the squad of `openRoster.team` is not placed (`placedSides(setup)`).
@@ -171,7 +171,7 @@ Work:
 2. `src/characters/characters.js`, `rosterEntry`: `rogue` (Jarvis tag `rogueAgent`), with a comment like the other fields.
 3. `src/scoreboard/affiliations.js`, `squadAffiliations(members)`: `members` is `[{ affiliations: [slug], rogue }]`. A key counts the members that have it, plus 1 when a rogue member does not have it. Kept when the count is more than half. Comment: p11 and the card text.
 4. `src/rosters/cards.js`, `squadAffiliationKeys`: pass `{ affiliations, rogue }` of each character.
-5. `src/components/BreakdownTab.jsx`: "No squad has threat N with these filters." and "No squad has threat N."
+5. `src/rosters/BreakdownTab.jsx`: "No squad has threat N with these filters." and "No squad has threat N."
 6. Tests:
    - `breakdown.test.js`: replace the two rule 4 tests: only the exact total shows, a set under the value is left out, no set gives an empty list. Fix the sort test.
    - `affiliations.test.js`: the new input. A Rogue Agent adds 1 for an affiliation it does not have. Two Rogue Agents add only 1. A Rogue Agent with the affiliation counts once. The Jarvis data has the tag `rogueAgent` on Taskmaster and Winter Soldier only.

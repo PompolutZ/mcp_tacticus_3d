@@ -118,7 +118,7 @@ Open issues: `src/tactics/cards.json` still has the 7-digit ids. Setup game must
 
 ## Phase 3: State and toolbar
 
-Read in the design: "Input", "VP picker", "State". Read `src/components/Toolbar.jsx`, the `.toolbar` and `.chip` rules in `src/index.css`, and in `src/App.jsx`: the state block (lines ~115–220), `showHudMessage`, and the `<Toolbar>` props.
+Read in the design: "Input", "VP picker", "State". Read `src/ui/Toolbar.jsx`, the `.toolbar` and `.chip` rules in `src/index.css`, and in `src/App.jsx`: the state block (lines ~115–220), `showHudMessage`, and the `<Toolbar>` props.
 
 1. `App.jsx`: add the `rosters` state. `handleRosterLoad(team, text)`:
    - Parse with `parseRosterText`. When `isEmptyRoster`, show "No known MCT code in the text" and keep the old roster.
@@ -128,11 +128,11 @@ Read in the design: "Input", "VP picker", "State". Read `src/components/Toolbar.
 3. Remove the **VP** group, its `AFFILIATIONS` import and the `onAffiliationChange` prop. In `App.jsx`, keep the `affiliations` state and add a comment: Setup game sets it (see `docs/features/setup-game.md`).
 4. CSS for the text input in `index.css`, so that it looks like the other chips. Keys typed in the input must not start tools; `isEditing` in `src/keyboard.js` already handles inputs, so check that it covers this one.
 
-Checks: `npx vite build`. `grep -n "affiliation" src/components/Toolbar.jsx` is empty.
+Checks: `npx vite build`. `grep -n "affiliation" src/ui/Toolbar.jsx` is empty.
 
 ### Result
 
-Files: `src/App.jsx`, `src/components/Toolbar.jsx`, `src/index.css`, `src/rosters/cards.js`.
+Files: `src/App.jsx`, `src/ui/Toolbar.jsx`, `src/index.css`, `src/rosters/cards.js`.
 
 - `cards.js`: added `.js` to the 4 local imports. JSON imports keep `.json`.
 - `App.jsx`: new state `rosters`, `handleRosterLoad(team, text)`, `handleRosterRemove(team)`. Messages as in the plan (max 5 codes, then "…"). `affiliations` state stays, with a comment that Setup game sets it.
@@ -146,7 +146,7 @@ Open issues: `rosters` is not used until Phase 4. `setAffiliations` is unused un
 
 ## Phase 4: Cards on the table
 
-Read in the design: "On the table", "Cards without files", "Card actions". Read `src/table.js`, `src/tactics/layout.js`, `src/crisis/layout.js`, the top of `src/characters/trays.js` (sizes, `trayYaw`), `src/components/CrisisCard.jsx`, `src/components/TacticCard.jsx`, and in `src/components/Scene.jsx`: the props, `characterAt`, `terrainAt`, the crisis card and tactic tray blocks (lines ~575–720).
+Read in the design: "On the table", "Cards without files", "Card actions". Read `src/table.js`, `src/tactics/layout.js`, `src/crisis/layout.js`, the top of `src/characters/trays.js` (sizes, `trayYaw`), `src/crisis/CrisisCard.jsx`, `src/tactics/TacticCard.jsx`, and in `src/scene/Scene.jsx`: the props, `characterAt`, `terrainAt`, the crisis card and tactic tray blocks (lines ~575–720).
 
 1. `src/rosters/layout.js`, plain module (no React, no `assets/index.js`):
    - Use the size constants of the other layout modules: `TRAY_CARD_WIDTH`/`HEIGHT`, `TACTIC_CARD_WIDTH`/`HEIGHT`, crisis `CARD_WIDTH`/`HEIGHT`, `TACTIC_TRAY_OUTER_Z`, `TABLE_WIDTH`.
@@ -154,7 +154,7 @@ Read in the design: "On the table", "Cards without files", "Card actions". Read 
    - Order from the owner's left. Compute in the owner's local space, then mirror for red, the same as `trays.js`.
    - A row that is wider than the table (keep a small margin) gets one scale factor for its cards and gaps.
    - `rosterLayout(team, parsed)` returns `[{ code, kind, gems, x, z, width, height, yaw }]`. Export `ROSTER_CARD_Y = 0.01` (decision 7).
-2. `src/components/RosterCards.jsx`: the cards of one roster. Props: `team`, `code`, `onOpen`. Parse with `parseRosterText(code)` in a `useMemo`, then lay out.
+2. `src/rosters/RosterCards.jsx`: the cards of one roster. Props: `team`, `code`, `onOpen`. Parse with `parseRosterText(code)` in a `useMemo`, then lay out.
    - A card with an image: a textured plane, the image top toward the mat, the same as a tray card. Left click calls `onOpen({ src, alt })` with `stopPropagation`. Hover shows the pointer cursor (`useHoverCursor`). Wrap each textured card in its own `Suspense`.
    - A card without an image: a plain plate with a canvas texture: name, MCT code, and "No model" for a character without a model (decisions 5 and 6). Dispose the texture on unmount.
    - A gem: a text line "+ <gem name>" on the lower edge of its character card (canvas texture).
@@ -166,7 +166,7 @@ Checks: `npx vite build`. A Node script that prints the layout for a full roster
 
 ### Result
 
-Files: new `src/rosters/layout.js` (`rosterLayout`, `ROSTER_CARD_Y`, plus `rosterRowInfo` for the Node check) and `src/components/RosterCards.jsx`. Changed: `Scene.jsx` (prop `rosters`, renders `RosterCards` per team before the tactic cards), `App.jsx` (passes `rosters`).
+Files: new `src/rosters/layout.js` (`rosterLayout`, `ROSTER_CARD_Y`, plus `rosterRowInfo` for the Node check) and `src/rosters/RosterCards.jsx`. Changed: `Scene.jsx` (prop `rosters`, renders `RosterCards` per team before the tactic cards), `App.jsx` (passes `rosters`).
 
 Layout check (scratchpad `check4.mjs`, real `layout.js`). Full roster 10 / 10 + 5 + 5, both teams:
 - Row 1 |z| = 22.70 to 25.70, width 47.7", x = -23.9 to 23.9.
@@ -192,7 +192,7 @@ Open issues: not checked in a browser. Canvas text size and plate colors are by 
 
 ### Result
 
-Files: `README.md` (new section "Roster" before "Roadmap"), `docs/features/roster.md` (status done, "Data", "Code", "Cards without files", Decisions 6 to 13), `src/components/RosterCards.jsx`.
+Files: `README.md` (new section "Roster" before "Roadmap"), `docs/features/roster.md` (status done, "Data", "Code", "Cards without files", Decisions 6 to 13), `src/rosters/RosterCards.jsx`.
 
 Code fixes in `RosterCards.jsx`: the gem material has `polygonOffset` with factor and units -2, so it draws on top of its card. `NO_RAYCAST` is a module constant.
 

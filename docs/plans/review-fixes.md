@@ -168,7 +168,7 @@ Work:
 2. `src/net/signaling.js:14`: rename the argument of `hello` to `data`. Update `signaling.test.js` if it names it.
 3. `src/net/debugFlags.js`: `schemaOverride()` for `?schema=<n>`, dev only, a number or null.
 4. `src/Table.jsx:260-266`: pass `schema: schemaOverride() ?? SCHEMA`.
-5. `src/components/HudWarnings.jsx`: new prop `schemaMismatch`, the text of decision 5, no Close button, shown instead of the build warning. `App.jsx` passes `connection?.schemaMismatch`.
+5. `src/ui/HudWarnings.jsx`: new prop `schemaMismatch`, the text of decision 5, no Close button, shown instead of the build warning. `App.jsx` passes `connection?.schemaMismatch`.
 6. `src/net/peer.test.js`: `readHello` of JSON and of a plain string; same schema and build connects as before; another schema: the guest makes no offer, the host does not answer, `onState` has `schemaMismatch: true`; another build with the same schema still connects with `versionMismatch: true`.
 7. Docs, `peer-to-peer.md`: line 94 (`hello` data), the paragraph at 170, the flag table at 499 (`?schema=<n>`), a new decision.
 
@@ -187,7 +187,7 @@ Work:
    - `orphanRoomDocNames(names, ids)`: database names with the prefix `mcp-assist-3d/room/` whose id is not in `ids`.
    - `deleteStaleRooms()`: reads all room keys of `localStorage` (a raw read, not `listRooms`), deletes the stale ones with `deleteRoom`, then the orphan databases (with `indexedDB.databases()`, skipped when the browser does not have it).
 2. `src/rooms/store.js`: export what item 1 needs (`VERSION`, a raw list of room records) without changing `listRooms` or `openRoom`.
-3. `src/components/Lobby.jsx`: call `deleteStaleRooms()` in a mount effect. It does not need a login.
+3. `src/rooms/Lobby.jsx`: call `deleteStaleRooms()` in a mount effect. It does not need a login.
 4. `src/rooms/localDocs.test.js`: version 1, 2, missing and 3 records; a newer version stays; an orphan name is found; a multiplayer name and another prefix are never found.
 5. `docs/features/rooms.md`, "Storage": the cleanup rule, and a decision with the reasons of decision 7.
 
@@ -266,7 +266,7 @@ Needs step 6.
 Work:
 
 1. `apps/web/vite.config.js`: `build.rollupOptions.output.manualChunks` puts the files of decision 11 into `game-data`.
-2. New `src/components/LoadingScreen.jsx`: the markup of `LoadingOverlay` without `useProgress`. `LoadingOverlay` uses it.
+2. New `src/rooms/LoadingScreen.jsx`: the markup of `LoadingOverlay` without `useProgress`. `LoadingOverlay` uses it.
 3. `src/Root.jsx`: `loadTable`, `const Table = lazy(loadTable)`, `<Suspense fallback={<LoadingScreen />}>` around the three `Table` routes (153-158); line 169 uses `LoadingScreen`; a mount effect calls `loadTable()` (decision 12).
 4. `src/main.jsx:13` → module scope of `src/App.jsx` (decision 13). `main.jsx` no longer imports drei.
 5. `pnpm --filter web build`: list the chunks in the Result as "after step 7", with a before/after table of the entry chunk, the table chunk and `game-data`. Check: `grep -c "WebGLRenderer" <entry chunk>` gives 0 and the table chunk has it; the same for a Rapier string. If the entry chunk still has three.js, find the import and fix it.

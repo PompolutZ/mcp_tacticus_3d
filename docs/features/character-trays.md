@@ -323,7 +323,7 @@ Magneto and Phoenix come with 2 constructs each (the mod's `construct` field: tw
 - **No tray, no card, no stats.** A construct has no Damage, Power or tokens. Hover shows no card, and F does nothing on it. The spectator badge is not shown on it.
 - **Moves like a model:** a player selects, moves and turns it, and the tools measure against it. It moves with the tray when the row shifts, as long as it stands on the tray area (`inTrayArea`).
 - **Not the host on the mat.** `characterOnBoard` ignores constructs, so a construct on the mat does not make the host count as on the mat in the Power Phase and the Cleanup Phase. The players count Magneto's constructs themselves (see [Players apply the rules](#players-apply-the-rules)).
-- **No tokens.** A token dropped on a construct is a drop on whatever is under it, the table or the mat. It does not go to the host (`characterAt` in `components/useModelRegistry.js` skips construct models).
+- **No tokens.** A token dropped on a construct is a drop on whatever is under it, the table or the mat. It does not go to the host (`characterAt` in `scene/useModelRegistry.js` skips construct models).
 - **Remove:** the tray's Remove button puts the constructs back to their places with the other models. A construct that is destroyed is put back by Remove, or the player drags it off the mat.
 - **Delete** of the host removes its constructs, with their stored poses.
 - **No "Spawn Construct" button.** Magneto has at most 2 constructs at a time.

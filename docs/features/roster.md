@@ -154,7 +154,7 @@ The app has files for 65 of 233 character codes, 69 of 401 Team Tactic codes and
 - Both links show the Jarvis logo: the Jarvis site icon, 64 px, in `src/assets/jarvis-logo.webp`.
 - Escape, **×** in the top right corner of the screen, or a click on the backdrop closes the popup. A new load or **×** of that roster also closes it.
 
-`App.jsx` stores the open popup as `openRoster: { team, tab, index } | null`. `useTableKeys` handles all keys (see `keyAction` in `keyboard.js`), so App also owns the shown card. A drag in the carousel reports the new card to App. `RosterPopupHost` (`src/components/RosterPopupHost.jsx`) renders the popup.
+`App.jsx` stores the open popup as `openRoster: { team, tab, index } | null`. `useTableKeys` handles all keys (see `keyAction` in `keyboard.js`), so App also owns the shown card. A drag in the carousel reports the new card to App. `RosterPopupHost` (`src/rosters/RosterPopupHost.jsx`) renders the popup.
 
 ## State
 
@@ -180,9 +180,9 @@ rosters: {
 | `src/rosters/mct.js` | `parseRoster(text, kindOf)`, `formatMctCode(parsed)`, `jarvisValidatorCode(parsed)`, `isEmptyRoster(parsed)`. `kindOf(code)` is an argument, so the module has no imports and a Node script can test it |
 | `src/rosters/cards.js` | `cardKind(code)`, `rosterCard(code)` (kind, name, image file or null, model or not, Jarvis page), `parseRosterText(text)`, `jarvisRosterUrl(parsed)` |
 | `src/rosters/layout.js` | `rosterLayout(team, parsed)`, `ROSTER_CARD_Y`, and `crisisRowLayout`. Card positions for each side. Plain module, the same as `characters/trays.js` |
-| `src/components/RosterCards.jsx` | The cards of one roster on the table |
-| `src/components/RosterPopup.jsx` | The roster popup: tabs and a card carousel |
-| `src/components/Toolbar.jsx` | The Roster group |
+| `src/rosters/RosterCards.jsx` | The cards of one roster on the table |
+| `src/rosters/RosterPopup.jsx` | The roster popup: tabs and a card carousel |
+| `src/ui/Toolbar.jsx` | The Roster group |
 | `scripts/fetch-jarvis-tactics.mjs` | The Team Tactic data, with a section in `scripts/README.md` |
 
 `src/characters/characters.js` is the list of all characters for the Library, not a player roster. Its export is `CHARACTERS`. So "roster" in the code means only a player's roster.

@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { useLatest, useOnMount } from './components/useLatest.js'
+import { useLatest, useOnMount } from './scene/useLatest.js'
 import { useRapier } from '@react-three/rapier'
 import { liveBody } from './physics.js'
 

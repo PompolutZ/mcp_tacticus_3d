@@ -47,7 +47,7 @@ export function createTable(doc = new Y.Doc()) {
     characters: createList(doc.getMap('characters')),
     // Model id → rest pose. Written when a body falls asleep, read when a model mounts.
     poses: createRecord(doc.getMap('poses')),
-    // Side → tool kind → tool entry (components/storedTool.js). Depth 1, so the sides merge.
+    // Side → tool kind → tool entry (tabletools/storedTool.js). Depth 1, so the sides merge.
     tools: createRecord(doc.getMap('tools'), { depth: 1 }),
     // Side → { critsUsed, dice: { die id → die entry } } (dice/stored.js). Depth 2, so the sides merge.
     dice: createRecord(doc.getMap('dice'), { depth: 2 }),

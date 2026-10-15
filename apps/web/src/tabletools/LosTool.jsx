@@ -1,0 +1,409 @@
+import { useFrame } from '@react-three/fiber'
+import { Line } from '@react-three/drei'
+import { RigidBody, useRapier } from '@react-three/rapier'
+import { useEffect, useRef, useState } from 'react'
+import { useLatest, useOnMount } from '../scene/useLatest.js'
+import * as THREE from 'three'
+import { BASE_HALF_H } from '../characters/base.js'
+import {
+  clearSight,
+  losCast,
+  losKeep,
+  losLength,
+  losFrame,
+  losSegmentBlocked,
+  newLosSchedule,
+  terrainSize,
+} from './losLength.js'
+import { losBlock, standingTerrainSize } from './losBlock.js'
+import { FOOTPRINT_COLOR } from '../scene/footprintProjection.js'
+import { TOUCH_MARGIN, standingColliders } from '../characters/terrainUnder.js'
+import { ToolFootprint } from './ToolFootprint.jsx'
+import { useDragTool } from './useDragTool.js'
+import { useRestStore } from './useRestStore.js'
+import { toolPose, turnAround, yawQuat, yawTo } from './toolGeometry.js'
+import { useHoverCursor, useHoverReport, useDragEndOnUnmount } from '../scene/useHoverCursor.js'
+import { followPart, lerpAngle } from '../net/livePose.js'
+import { losFields, sameLos } from './storedTool.js'
+import { onRack } from './layout.js'
+import { OccludedHtml } from '../scene/LabelOcclusion.jsx'
+
+// The Line of Sight tool (docs/features/line-of-sight.md): a line as wide as the base of the looking character,
+// from its base center along a yaw, painted on the table and terrain by the footprint of the tool. The line is
+// a kinematic body at the base center of the looker with no collider: its yaw is the direction, and it carries
+// the hit surface of the pointer and the label. Both players work out its length from their own physics, so
+// the entry holds only the looker, the target and the pose.
+
+// The footprint of the line: light grey (the free tool color), half transparent
+const LOS_OPACITY = 0.5
+// The pointer surface lies this far (inches) above the base bottom
+const HIT_Y = 0.08
+// The clear sight segment is drawn this far (inches) above the base bottom, 2 px wide
+const SIGHT_Y = 0.1
+const SIGHT_WIDTH_PX = 2
+// The label hangs this far above the end of the line
+const LABEL_Y = 0.3
+const NO_TURN = { right: 0, left: 0 }
+const NO_POINTER = { pointerEvents: 'none' }
+const round3 = (v) => Math.round(v * 1e3) / 1e3
+
+// The model of a character with this model id, or null. models: the tool models (Scene.jsx).
+const findCharacter = (models, id) =>
+  (id && models.find((model) => model.kind === 'character' && model.id === id)) || null
+
+// { distance, label, sight } of the line of the body in rigidRef, from the physics: the looker's base center, the yaw
+// of the body, and the block Size of the target (or of the looker when there is no target). It is worked out
+// again when the yaw changes at once, and when a model has not moved for LOS_REST, or when a Size changes.
+// sight: the clear segment { a, b } from any part of the looker base to the target base (clearSight), or null.
+// It is worked out only when a model rests or a Size changes, not on each turn. A turn applies it only while
+// the line passes through the target base, and then the line runs at least to the far edge of the target.
+function useLosLine(rigidRef, looker, target) {
+  const { world, rapier } = useRapier()
+  const [line, setLine] = useState({ distance: 0, label: '', sight: null })
+  const latest = useRef({ looker, target })
+  useEffect(() => {
+    latest.current = { looker, target }
+  })
+  const seen = useRef({ ...newLosSchedule(), sight: null })
+
+  useFrame((_, dt) => {
+    const rb = rigidRef.current
+    const { looker, target } = latest.current
+    if (!rb || !looker) return
+    const c = looker.getCenter()
+    const t = target?.getCenter()
+    const yaw = toolPose(rb).yaw
+    const key = [c.x, c.y, c.z, t?.x, t?.y, t?.z, looker.size(), target?.size()]
+      .map((v) => (typeof v === 'number' ? round3(v) : v))
+      .join()
+    const st = seen.current
+    const frame = losFrame(st, key, yaw, dt)
+    if (frame.reset) st.sight = null
+    if (!frame.run) return
+
+    const stand = (model) => {
+      const at = model.getCenter()
+      return standingColliders(world, rapier, at, at.y, model.radius - TOUCH_MARGIN, BASE_HALF_H)
+    }
+    const skipped = stand(looker)
+    const lead = target ?? looker
+    const under = target ? stand(target) : skipped
+    const block = losBlock({
+      size: lead.size(),
+      terrain: standingTerrainSize([...under].map((h) => terrainSize(world.getCollider(h)))),
+      name: lead.name,
+      own: !target,
+    })
+    const keep = losKeep(skipped, block.size)
+    if (target && frame.sight) {
+      st.sight = clearSight({
+        from: { x: c.x, z: c.z },
+        fromRadius: looker.radius,
+        to: { x: t.x, z: t.z },
+        toRadius: target.radius,
+        blocked: losSegmentBlocked(world, rapier, keep),
+      })
+    }
+    const { distance: cast } = losLength({
+      start: { x: c.x, z: c.z },
+      yaw,
+      width: looker.radius * 2,
+      blockSize: block.size,
+      skipped,
+      cast: losCast(world, rapier),
+    })
+    // The line must pass through the target base for the sight to count
+    const dir = { x: Math.cos(yaw), z: -Math.sin(yaw) }
+    const along = t ? (t.x - c.x) * dir.x + (t.z - c.z) * dir.z : 0
+    const off = t ? Math.abs((t.x - c.x) * dir.z - (t.z - c.z) * dir.x) : Infinity
+    const passes = target && st.sight && along > 0 && off <= target.radius
+    const sight = passes ? st.sight : null
+    const distance = sight ? Math.max(cast, Math.hypot(t.x - c.x, t.z - c.z) + target.radius) : cast
+    const next = {
+      distance: round3(distance),
+      label: block.label,
+      sight: sight && [
+        [round3(sight.a.x), c.y + SIGHT_Y, round3(sight.a.z)],
+        [round3(sight.b.x), c.y + SIGHT_Y, round3(sight.b.z)],
+      ],
+    }
+    setLine((prev) =>
+      prev.distance === next.distance &&
+      prev.label === next.label &&
+      JSON.stringify(prev.sight) === JSON.stringify(next.sight)
+        ? prev
+        : next,
+    )
+  })
+
+  return line
+}
+
+// The body, the label and the footprint of a line. position: where the body starts. yaw: its first direction.
+// children: what the own tool adds in the body (the pointer surface).
+function LosView({ rigidRef, line, radius, selected, position, yaw, children }) {
+  return (
+    <>
+      <RigidBody
+        ref={rigidRef}
+        type="kinematicPosition"
+        position={position}
+        rotation={[0, yaw, 0]}
+        colliders={false}
+      >
+        {children}
+        {line.label && (
+          <OccludedHtml position={[line.distance, LABEL_Y, 0]} center style={NO_POINTER}>
+            <div className="token-face-label">
+              <strong>{line.label}</strong>
+            </div>
+          </OccludedHtml>
+        )}
+      </RigidBody>
+      <ToolFootprint
+        rigidRef={rigidRef}
+        turn={NO_TURN}
+        halfLength={line.distance}
+        halfWidth={radius}
+        selected={selected}
+        target={null}
+        oneSided
+        opacity={LOS_OPACITY}
+      />
+      {line.sight && (
+        <Line points={line.sight} color={FOOTPRINT_COLOR} lineWidth={SIGHT_WIDTH_PX} />
+      )}
+    </>
+  )
+}
+
+// The own Line of Sight tool. entry: { looker, target, pose? } (storedTool.js, losEntry). models: the tool models of
+// Scene.jsx. side: the own side. onStore(fields): writes into the entry (the pose when it rests, target: null when the
+// target is gone). onReturn(): a turn drag ended on the own rack, the tool goes back (undefined: it does not).
+// onRemove(): the looker is gone, the tool is removed.
+// selected, onSelect, onDragSelect, onSpawn, onHover, onDrag, turnRef, liveRef: as in Tool (RulerTool.jsx).
+export function LosTool({
+  entry,
+  side: ownSide,
+  models,
+  selected = false,
+  onSelect,
+  onDragSelect,
+  onSpawn,
+  onStore,
+  onReturn,
+  onRemove,
+  onHover,
+  onDrag,
+  turnRef,
+  liveRef,
+}) {
+  const looker = findCharacter(models, entry.looker)
+  const target = findCharacter(models, entry.target)
+  const [start] = useState(entry)
+  const restored = Boolean(start.pose)
+  const [first] = useState(() => {
+    const c = looker?.getCenter()
+    return restored ? start.pose : { x: c?.x ?? 0, y: c?.y ?? 0, z: c?.z ?? 0, yaw: 0 }
+  })
+  const rigidRef = useRef()
+  const [hovered, setHovered] = useState(false)
+  // The drag in progress: 'turn' or null
+  const dragKind = useRef(null)
+  // The turn that Q / E, or the wheel, added during a turn drag
+  const extraYaw = useRef(0)
+  // The last point of the pointer on the table during a turn drag, for a release on the own rack
+  const dragPoint = useRef(null)
+  const line = useLosLine(rigidRef, looker, target)
+  const latest = useLatest({ entry, onStore, onReturn, looker, models, onRemove, liveRef })
+
+  const onPointerDown = useDragTool(
+    rigidRef,
+    () => null,
+    0,
+    (kind) => {
+      dragKind.current = kind
+      onDrag?.(true)
+    },
+    undefined,
+    () => {
+      dragKind.current = null
+      onDrag?.(false)
+      const point = dragPoint.current
+      dragPoint.current = null
+      if (point && onRack(ownSide, point)) latest.current?.onReturn?.()
+    },
+  )
+
+  // A drag always turns the line around the base center of the looker (turnAround). Never a move.
+  function plan() {
+    const rb = rigidRef.current
+    const c = latest.current?.looker?.getCenter() ?? rb.translation()
+    const pivot = { x: c.x, z: c.z }
+    const y = rb.translation().y
+    const ground = new THREE.Plane(new THREE.Vector3(0, 1, 0), -y)
+    const hit = new THREE.Vector3()
+    extraYaw.current = 0
+    return {
+      pivot,
+      refresh: true,
+      onTurn(d, pose) {
+        const turned = turnAround(pose, pivot, d)
+        return { ...turned, yaw: turned.yaw + extraYaw.current }
+      },
+      onPointer(raycaster) {
+        dragPoint.current =
+          raycaster && raycaster.ray.intersectPlane(ground, hit) ? { x: hit.x, z: hit.z } : null
+      },
+    }
+  }
+
+  // Q / E and the wheel: turn the line around the base center, also during a turn drag
+  function turnBy(angle) {
+    const rb = rigidRef.current
+    if (!rb) return
+    if (dragKind.current === 'turn') extraYaw.current += angle
+    else rb.setRotation(yawQuat(toolPose(rb).yaw + angle), true)
+  }
+  useEffect(() => {
+    turnRef?.(turnBy)
+    return () => turnRef?.(null)
+  })
+
+  // The line stays on the base center of the looker. A turn drag sets the pose itself (useDragTool).
+  useFrame(() => {
+    const rb = rigidRef.current
+    const c = looker?.getCenter()
+    if (!rb || !c || dragKind.current) return
+    rb.setTranslation({ x: c.x, y: c.y, z: c.z }, true)
+  })
+
+  // A new line points at the mat center, as a free tool does
+  useOnMount(() => {
+    if (restored) return
+    onSpawn?.()
+    const rb = rigidRef.current
+    const c = looker?.getCenter()
+    if (rb && c && Math.hypot(c.x, c.z) > 0.01)
+      rb.setRotation(yawQuat(yawTo(c, { x: 0, z: 0 })), true)
+  })
+
+  // A new target turns the line to point at it. The first value (a restored line) does not.
+  const lastTarget = useRef(entry.target)
+  useEffect(() => {
+    if (entry.target && entry.target !== lastTarget.current) {
+      const rb = rigidRef.current
+      const c = looker?.getCenter()
+      const t = target?.getCenter()
+      if (rb && c && t) rb.setRotation(yawQuat(yawTo(c, t)), true)
+    }
+    lastTarget.current = entry.target
+    // A new looker or target with the same entry.target changes nothing here: the check above is false
+  }, [entry.target, looker, target])
+
+  // A removed looker removes the line, a removed target clears the target. models is empty before the
+  // characters load: a model that was never seen counts as gone only when there are models.
+  const seenModels = useRef({ looker: false, target: false })
+  useEffect(() => {
+    const seen = seenModels.current
+    const now = latest.current
+    if (looker) seen.looker = true
+    else if (seen.looker || now.models.length > 0) now.onRemove?.()
+    if (target) seen.target = true
+    else if (now.entry.target && (seen.target || now.models.length > 0))
+      now.onStore?.({ target: null })
+    // Only a change of looker or target runs it, not a change of the models or the entry
+  }, [looker, target, latest])
+
+  useHoverReport(hovered, onHover)
+  useDragEndOnUnmount(onDrag)
+  useHoverCursor(hovered, 'grab')
+
+  useEffect(() => {
+    const register = latest.current.liveRef
+    register?.(() => {
+      const rb = rigidRef.current
+      if (!rb) return null
+      const t = rb.translation()
+      return { x: t.x, y: t.y, z: t.z, yaw: toolPose(rb).yaw, right: 0, left: 0 }
+    })
+    return () => register?.(null)
+  }, [latest])
+
+  useRestStore(() => {
+    const rb = rigidRef.current
+    const now = latest.current
+    if (!rb || !now?.onStore) return null
+    const pose = { ...toolPose(rb), y: rb.translation().y }
+    return { cur: losFields({ pose }), entry: now.entry, onStore: now.onStore }
+  }, sameLos)
+
+  return (
+    <LosView
+      rigidRef={rigidRef}
+      line={line}
+      radius={looker?.radius ?? 0.5}
+      selected={selected}
+      position={[first.x, first.y, first.z]}
+      yaw={first.yaw}
+    >
+      <mesh
+        position={[line.distance / 2, HIT_Y, 0]}
+        rotation-x={-Math.PI / 2}
+        onPointerDown={(e) => onPointerDown(e, onSelect, onDragSelect, plan)}
+        onPointerOver={(e) => {
+          e.stopPropagation()
+          setHovered(true)
+        }}
+        onPointerOut={() => setHovered(false)}
+      >
+        <planeGeometry args={[Math.max(line.distance, 0.01), (looker?.radius ?? 0.5) * 2]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
+    </LosView>
+  )
+}
+
+// The other player's Line of Sight tool: the line follows their looker, and turns to their yaw, from the live
+// channel or from the entry, whichever came last (as OtherToolBody in OtherTool.jsx). No pointer.
+// entry: { looker, target, pose }. getLive(): { pose: [x, y, z, yaw, right, left], time } or null.
+export function OtherLos({ entry, models, getLive, selected = false }) {
+  const looker = findCharacter(models, entry.looker)
+  const target = findCharacter(models, entry.target)
+  const rigidRef = useRef()
+  const line = useLosLine(rigidRef, looker, target)
+  const { pose } = entry
+  const [start] = useState(() => pose)
+  const shownYaw = useRef(pose.yaw)
+  const entryTime = useRef(0)
+  const latest = useRef(null)
+  useEffect(() => {
+    latest.current = { yaw: pose.yaw, getLive, looker }
+  })
+  useEffect(() => {
+    entryTime.current = performance.now()
+  }, [pose.yaw])
+
+  useFrame((_, dt) => {
+    const rb = rigidRef.current
+    const now = latest.current
+    const c = now?.looker?.getCenter()
+    if (!rb || !c) return
+    const live = now.getLive?.()
+    const goal = live && live.time > entryTime.current ? live.pose[3] : now.yaw
+    shownYaw.current = lerpAngle(shownYaw.current, goal, followPart(dt))
+    rb.setTranslation({ x: c.x, y: c.y, z: c.z }, true)
+    rb.setRotation(yawQuat(shownYaw.current), true)
+  })
+
+  return (
+    <LosView
+      rigidRef={rigidRef}
+      line={line}
+      radius={looker?.radius ?? 0.5}
+      selected={selected}
+      position={[start.x, start.y, start.z]}
+      yaw={start.yaw}
+    />
+  )
+}

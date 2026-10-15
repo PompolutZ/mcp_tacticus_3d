@@ -54,7 +54,7 @@ Checks: `pnpm format`, `pnpm lint`, API tests.
 ## Step 2: New room dialog, join page, lobby
 
 Work:
-1. `components/Switch.jsx` + CSS (decision 7). `NewRoomDialog.jsx` uses it for **Random map**.
+1. `ui/Switch.jsx` + CSS (decision 7). `NewRoomDialog.jsx` uses it for **Random map**.
 2. `NewRoomDialog.jsx`, multiplayer and random: `createServerRoom({ maps: MAP_IDS, roster, table })`. The start table has no map (decision 3): `startTable(null)` gives `mapId: null` and `terrain: []`. `serverStore.createRoom` sends `maps` instead of `mapId`.
 3. `rooms/table.js`: `mapTerrain` ids `<mapId>:<index>` (decision 2). Update the comment in `startTable.js`.
 4. `JoinRoom.jsx`, `Lobby.jsx`, `rooms/roomList.js`, `Root.jsx`: `mapId` null per decision 6. The lobby keeps a multiplayer tile with `mapId` null in the list. The delete confirm says "Random map".
