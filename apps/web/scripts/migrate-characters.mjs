@@ -118,8 +118,9 @@ function listCharacters(affiliation) {
 
 // Ultimate Encounter rows: mod ids 9xxxxxxx (also placeholders and rows without the flag). The user does not
 // play Ultimate Encounter, so these are never migrated or downloaded (saves useless downloads from the mod CDN).
-const isUltimateEncounter = (row) =>
-  String(row.ID).startsWith('9') || row.ultimateEncounter === true
+function isUltimateEncounter(row) {
+  return String(row.ID).startsWith('9') || row.ultimateEncounter === true
+}
 
 // Characters named by the arguments, in order, without duplicates
 function selectCharacters(args) {
@@ -285,7 +286,7 @@ async function migrateCharacter(row, getRipper) {
 }
 
 // Mod token names (row.cToken) as tokens.json keys, the same slug as migrate-tokens.mjs
-// gives each token. A name that is not a migrated token (dice results, affiliation tokens, mod typos,
+// gives each token. A name that is not a migrated token (affiliation tokens, mod typos,
 // tokens phase 3 skipped, ...) is left out and gets a warning instead of a guessed key.
 function tokenKeys(names, field, warnings) {
   const keys = []
