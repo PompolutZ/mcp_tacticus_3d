@@ -1,6 +1,6 @@
 # Plan: Review fixes
 
-Requested by the user on 2026-10-15. Status: done, waiting for the user test. Branch `review-fixes`, worktree `../mcp_assist_3d-review-fixes`, from main.
+Requested by the user on 2026-10-15. Status: done. The user tested it and gave the OK on 2026-10-15. Branch `review-fixes`, worktree `../mcp_assist_3d-review-fixes`, from main.
 
 Each step makes one commit and writes its **Result** below. Feature docs change in the same step as the code.
 
