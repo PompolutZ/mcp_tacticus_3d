@@ -428,6 +428,11 @@ User: roll, reroll, add Crits, change a die, clear; a die that falls off the tab
 
 ### Result
 
+Done. `dice/shelfStart.js` (`MAX_DICE`, `shelfFromDocument`, moved as is) and `dice/rollFlow.js` (`restOutcome`, `flowStage`), with tests next to them. The frame calls `restOutcome` after its one `topFace` call (same place, same condition) and `flowStage` for the loop before the shelf move; `sliding` stays a `let` in the frame. `DiceTray.jsx` 815 to 774 lines; the unused `SHELF_SLOT_COUNT` import is removed.
+
+- Checks: format, lint 58 warnings (same), test 884 web pass (877 + 7), build ok, fallow 315 above threshold. Moved-code diff: only the `if` conditions on `outcome` and the `flowStage` destructure. No stale pointer in src or docs.
+- Deviations: none. `topFace` runs also for a lost die, as before (it is not skipped).
+
 ## Step 13: Final run
 
 Work:

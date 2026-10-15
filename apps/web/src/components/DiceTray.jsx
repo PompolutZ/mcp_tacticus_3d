@@ -21,7 +21,6 @@ import {
   topFace,
 } from '../dice/throw.js'
 import {
-  SHELF_SLOT_COUNT,
   aboveRollLimit,
   freeDropPoint,
   randomWellPoint,
@@ -37,6 +36,8 @@ import {
   sortShelfEntries,
 } from '../dice/shelf.js'
 import { changeEntry, clearEntry, throwEntry } from '../dice/history.js'
+import { MAX_DICE, shelfFromDocument } from '../dice/shelfStart.js'
+import { flowStage, restOutcome } from '../dice/rollFlow.js'
 import { dieEntry, dieId, nextOrder, roundPose, trayCounts } from '../dice/stored.js'
 import { FALL_LIMIT_Y } from '../table.js'
 import { DieMenu } from './DiceKeys.jsx'
@@ -46,10 +47,6 @@ import { useHoverCursor } from './useHoverCursor.js'
 import { createBumpFinder } from '../bumps.js'
 import { playShake, playSound } from '../sound.js'
 
-// A tray holds at most 42 dice, shelf and well together (design, "Roll flow"). SHELF_SLOT_COUNT
-// is also 42 (one shelf place per die), so this reuses it instead of a second magic number.
-const MAX_DICE = SHELF_SLOT_COUNT
-
 // A pointer that moved more than this many pixels between down and up was a camera drag, not a
 // click on a die.
 const CLICK_MOVE = 4
@@ -58,38 +55,6 @@ const ZERO = { x: 0, y: 0, z: 0 }
 
 // The die's own vertices (faces.js), flattened for ConvexHullCollider's args.
 const dieVertices = Float32Array.from(D8_CORNERS.flat())
-
-// The dice of a tray at mount: the shelf dice of its side of the document, each at its slot, so they
-// start kinematic with no slide. side: the stored side, or undefined. docDice: the stored entries,
-// for the first counts of the keys.
-function shelfFromDocument(trayKey, side) {
-  const docDice = side?.dice ?? {}
-  const shelf = Object.entries(docDice)
-    .filter(([, d]) => d.place === 'shelf' && FACES[d.face - 1] && Number.isFinite(d.order))
-    .slice(0, MAX_DICE)
-    .map(([id, d]) => ({ id, order: d.order, face: d.face, symbol: FACES[d.face - 1].symbol }))
-  const dice = new Map()
-  const ids = []
-  sortShelfEntries(shelf).forEach((d, index) => {
-    const q = trayToWorldRotation(trayKey, flatRotation(d.face))
-    const p = trayToWorld(trayKey, shelfSlot(index))
-    dice.set(d.id, {
-      ...d,
-      doc: dieEntry(d.order, 'shelf', { face: d.face }),
-      body: null,
-      state: 'shelf',
-      waiting: false,
-      settling: false,
-      stillTime: 0,
-      throwTime: 0,
-      slot: index,
-      moving: false,
-      spawn: { position: [p.x, p.y, p.z], quaternion: [q.x, q.y, q.z, q.w] },
-    })
-    ids.push(d.id)
-  })
-  return { dice, ids, docDice, critsUsed: side?.critsUsed === true }
-}
 
 // One die: a RigidBody with a convex hull collider (the die shape) and a shared mesh. A new die
 // starts dynamic; startShelfMove below switches it to kinematicPosition the first time it reaches
@@ -697,9 +662,10 @@ export default function DiceTray({
         // the well or outside it (design, "Tilted dice").
         const lost = !finite || t.y < FALL_LIMIT_Y
         const { face, dot } = topFace(rot)
-        if (lost) {
+        const outcome = restOutcome({ lost, timedOut, tilted: isTilted(dot) })
+        if (outcome === 'lost') {
           rethrows.push({ entry, respawn: true })
-        } else if (timedOut || isTilted(dot)) {
+        } else if (outcome === 'wait') {
           entry.state = 'well'
           entry.waiting = true
           entry.rested = settled
@@ -756,16 +722,9 @@ export default function DiceTray({
     // Nothing left in the air? Move the flat dice onto the shelf (design, "Roll flow" step 5) — a
     // die stays in 'well' with its symbol set until then. When their slide ends, the waiting dice
     // are thrown again. When none waits, the throw is over.
-    let rolling = false
-    let sliding = false
-    const flat = []
-    const waiting = []
-    for (const entry of dice.current.values()) {
-      if (entry.state === 'thrown') rolling = true
-      else if (entry.state === 'well' && entry.symbol != null) flat.push(entry)
-      else if (entry.state === 'well' && entry.waiting) waiting.push(entry)
-      else if (entry.state === 'shelf' && entry.moving) sliding = true
-    }
+    const stage = flowStage(dice.current.values())
+    const { rolling, flat, waiting } = stage
+    let sliding = stage.sliding
     if (!rolling) {
       if (flat.length > 0) {
         moveToShelf(flat)
