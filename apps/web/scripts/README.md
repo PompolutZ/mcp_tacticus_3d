@@ -587,3 +587,17 @@ pnpm --filter web yjs-size --pose-writes 0     # the size without pose writes
 Options: `--url` (default `http://localhost:5173/#sandbox&dicetest`), `--scenarios 5d-1c,1d-burst`, `--throws 1000`, `--out`, `--resume`.
 
 Output: `apps/web/dice-runs/<YYYY-MM-DD>/<scenario>.jsonl` (git-ignored), and `errors.log` with page errors and reloads. A throw that timed out is a line with `error`. A started scenario file without `--resume` stops the script.
+
+## Dice night run: report
+
+`dice-night-report.mjs` reads a run folder and writes `report.md` in it, and prints it.
+
+`pnpm --filter web dice-night-report` (newest folder in `apps/web/dice-runs/`), or `pnpm --filter web dice-night-report apps/web/dice-runs/<date>`. `--no-sim` skips the `dice-sim.mjs` run (about 10 s; its result lines go into the report as text; if it fails, the report prints the command to run yourself).
+
+How to read it:
+
+- The header explains chi-squared in plain words. PASS = faces (7 df) or symbols (5 df) are as even as a fair die gives, at 5%. FAIL = too uneven for luck. 1 FAIL in 16 tests is expected by chance; look for the same face high in several scenarios.
+- 1000 throws of 1 die: each face expects 125, +-11 is noise, a bias under 3-4% per face is not visible. 5 dice give 5 times more results.
+- Dice of one throw hit each other, so they are not fully independent. The test ignores this.
+- Per scenario: face and symbol tables (count, expected, diff), tilted / timed out / out of well as % of dice, lost per throw, rest time and throw time in seconds, clicks per throw. The first table has all scenarios side by side.
+- Error lines (a throw that timed out or lost the page) are counted but not in the face counts.

@@ -22,6 +22,7 @@
     "photos-to-glb": "node scripts/photos-to-glb.mjs",
     "dice-sim": "node scripts/dice-sim.mjs",
     "dice-night-run": "node scripts/dice-night-run.mjs",
+    "dice-night-report": "node scripts/dice-night-report.mjs",
     "tts-dice-measure": "node scripts/tts-dice-measure-object.mjs",
     "test": "node --test \"{src,scripts}/**/*.test.js\""
   },

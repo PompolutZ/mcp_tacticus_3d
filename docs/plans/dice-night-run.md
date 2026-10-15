@@ -1,6 +1,6 @@
 # Plan: dice test run overnight in the Sandbox
 
-Requested by the user on 2026-10-16. Status: In progress.
+Requested by the user on 2026-10-16. Status: Done.
 
 Three coder steps, one commit each. Branch `dice-night-run`, worktree `../mcp_assist_3d-dice-night-run`.
 
@@ -83,3 +83,9 @@ Done. `src/dice/runRecord.js` (`buildRunRecord`) with 3 tests in `runRecord.test
 Done. `playwright` 1.64 (dev dependency of `apps/web`, Chromium installed), `scripts/dice-night-run.mjs`, script entry `dice-night-run`, `.gitignore` `apps/web/dice-runs/`, README section "Dice night run". The runner checks the dev server first, runs headed Chromium (1600x1000, 3 flags) with `caffeinate -dis -w <pid>`, reloads the page on crash or lost hook, logs page errors to `errors.log`, stops cleanly on Ctrl+C. A scenario file that exists without `--resume` stops the script. The Step 1 hook needed no change.
 
 Smoke run (`--throws 3`, all 8 scenarios, then `--throws 4 --resume`): each file 3 records, then 4. 5d files have 5 dice entries, faces 1-8, clicksActed + clicksBlocked = clicksSent (one 5d-burst throw: 1 acted, 9 blocked). One 404 console error per page load (a missing static file, no effect). Seconds per throw (3-throw average): 5d-1c 4.5, 5d-2c 4.7, 5d-3c 5.2, 5d-burst 6.0, 1d-1c 3.5, 1d-2c 3.7, 1d-3c 4.5, 1d-burst 6.1. Estimate for 8 x 1000: about 38 s x 1000 = 10.6 hours.
+
+### Step 3
+
+Done. `scripts/lib/diceStats.mjs` (face and symbol counts, expected shares from `faces.js`, chi-squared, p-value via incomplete gamma, percentile, average, max) with 5 tests in `diceStats.test.js`. `scripts/dice-night-report.mjs` and script entry `dice-night-report`: arg = run folder (default newest in `dice-runs/`), writes `report.md` and prints it; header in plain words, side-by-side table first, then a section per scenario. The dice-sim numbers come from a child process (`dice-sim.mjs --throws 1000 --multi-throws 1000 --dice 5`, about 10 s), its result lines pasted as text, no parsing; on failure the report prints the command. `--no-sim` skips it. README section "Dice night run: report". The overnight run itself is the user's.
+
+The smoke folder in the worktree was empty, so the report was checked on synthetic JSONL (3 scenarios, 40 lines each, 1 error line).
