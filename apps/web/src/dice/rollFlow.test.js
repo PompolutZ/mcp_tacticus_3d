@@ -2,11 +2,21 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { flowStage, restOutcome } from './rollFlow.js'
 
-test('restOutcome: lost wins, then timed out or tilted waits, else flat', () => {
-  assert.equal(restOutcome({ lost: true, timedOut: true, tilted: true }), 'lost')
-  assert.equal(restOutcome({ lost: false, timedOut: true, tilted: false }), 'wait')
-  assert.equal(restOutcome({ lost: false, timedOut: false, tilted: true }), 'wait')
-  assert.equal(restOutcome({ lost: false, timedOut: false, tilted: false }), 'flat')
+test('restOutcome, throw tilted again: lost wins, then timed out or tilted waits, else flat', () => {
+  const r = { rethrowTilted: true }
+  assert.equal(restOutcome({ lost: true, timedOut: true, tilted: true, ...r }), 'lost')
+  assert.equal(restOutcome({ lost: false, timedOut: true, tilted: false, ...r }), 'wait')
+  assert.equal(restOutcome({ lost: false, timedOut: false, tilted: true, ...r }), 'wait')
+  assert.equal(restOutcome({ lost: false, timedOut: false, tilted: false, ...r }), 'flat')
+})
+
+test('restOutcome, default: only a lost die is thrown again, tilted or timed out is flat', () => {
+  for (const r of [{}, { rethrowTilted: false }]) {
+    assert.equal(restOutcome({ lost: true, timedOut: true, tilted: true, ...r }), 'lost')
+    assert.equal(restOutcome({ lost: false, timedOut: true, tilted: false, ...r }), 'flat')
+    assert.equal(restOutcome({ lost: false, timedOut: false, tilted: true, ...r }), 'flat')
+    assert.equal(restOutcome({ lost: false, timedOut: false, tilted: false, ...r }), 'flat')
+  }
 })
 
 test('flowStage sorts the entries into rolling, sliding, flat and waiting', () => {

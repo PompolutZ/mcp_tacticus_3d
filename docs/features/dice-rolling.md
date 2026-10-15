@@ -20,7 +20,7 @@ The app has the tools that the rules need. The rules come from the [Jarvis rules
 | Add dice for Crits | Players roll additional dice for Crits once per roll, not for each Crit that is rolled. (p23) |
 | Change a die to another face | A defender that has cover can change one defense die to a Block. (p18) |
 
-The rulebook has no rule for a die that rests tilted. The app throws such a die again, after the other dice are on the shelf (see [Tilted dice](#tilted-dice)).
+The rulebook has no rule for a die that rests tilted. Players decide what to do with it, so the app has a setting. By default the die reads the face nearest to up. With **Throw tilted dice again** on, the app throws it again, after the other dice are on the shelf (see [Tilted dice](#tilted-dice)).
 
 ## Terms
 
@@ -118,8 +118,8 @@ The flow follows the TTS tray script, with three changes (see the list after the
 1. `+` adds one die. The die appears above the well at a random point, 4.8" above the floor, with a random rotation, and falls into the well. `−` removes the last added die that is not on the shelf. A tray holds at most 42 dice. This is the TTS limit, and the shelf has 42 places.
 2. Roll throws every die that is not on the shelf, from where it is (see [Throw](#throw)). Dice on the shelf do not move.
 3. When the player presses Roll while those dice move, they are thrown again from where they are, also in the air. TTS does the same, because its script does not block a second press. A die that is more than 5.6" above its rest height on the well floor is not thrown again (`ROLL_HEIGHT_LIMIT` in `src/dice/tray.js`). It only gets a new random spin (step 4 of [Throw](#throw)), so it is harder to see which face will be up. In TTS, when a player presses Roll many times, each die is thrown again only when it falls back to one height, as if it bounced on an invisible floor above the tray. Each press also changes the spin of the dice above that height. So the dice do not go higher with each press. A new die that falls into the well was not thrown yet, so Roll throws it at any height. 5.6" is the TTS height (see [Measurements](#measurements)).
-4. The app reads the top face of each die when it rests, in the well or outside it. A die that rests tilted waits. It is not thrown again yet (see [Tilted dice](#tilted-dice)).
-5. When every thrown die rests, flat or tilted, each flat die turns flat on its top face and moves to the shelf, all in one change. The dice on the shelf are sorted by face: Crit, Wild, Hit, Block, Blank, Skull. The counts update. When their slide ends, the tilted dice are thrown again from where they are. This repeats until no die is tilted. The history has one entry for the whole throw, written when the last dice reach the shelf.
+4. The app reads the top face of each die when it rests, in the well or outside it. A die that rests tilted reads its nearest face and counts as flat. With the setting **Throw tilted dice again** on, it waits instead and is not thrown again yet (see [Tilted dice](#tilted-dice)).
+5. When every thrown die rests, each die turns flat on its top face and moves to the shelf, all in one change. The dice on the shelf are sorted by face: Crit, Wild, Hit, Block, Blank, Skull. The counts update. With **Throw tilted dice again** on, only the flat dice go: when their slide ends, the tilted dice are thrown again from where they are. This repeats until no die is tilted. The history has one entry for the whole throw, written when the last dice reach the shelf.
 6. A click on a face plate moves one die with that face from the shelf back into the well. The player presses Roll to throw it.
 7. `+N Crits` adds one die for each Crit on the shelf. It works once per roll (p23), until the next Clear. For any other case, `+` still adds dice.
 8. **Change to** (the menu of a die) turns that die to the chosen face and moves it to that group on the shelf.
@@ -128,7 +128,7 @@ The flow follows the TTS tray script, with three changes (see the list after the
 Changes from TTS:
 
 - TTS puts the dice on the shelf in the order they were added. The app sorts them by face, so the counts are easier to read.
-- TTS reads the nearest face, even when a die is tilted. The app lets a tilted die wait until the flat dice are on the shelf. Then it throws the tilted die again.
+- TTS reads the nearest face, even when a die is tilted. The app does the same by default. With **Throw tilted dice again** on, the app lets a tilted die wait until the flat dice are on the shelf. Then it throws the tilted die again.
 - The app has a menu that TTS does not have: a click on a die on the shelf opens Change to. In TTS, a click on a face count rerolls one die with that face, and the app does the same.
 
 The dice on the shelf are kinematic bodies. As a result, thrown dice bounce off them, but they cannot move them or change their face. The app stores the result of each die, so it does not read the dice on the shelf again.
@@ -213,15 +213,16 @@ Model bases are in their own collision group (`MODEL_GROUPS` in `src/physics.js`
 
 Rapier 0.14 does not let the app set the thresholds for sleep, and Rapier can take seconds to put a body to sleep. So the app uses its own rule, like the settle rule of the models in `CharacterModel.jsx`. A die rests when its linear speed and its angular speed stay below a limit for a short time. The headless test decides the limits.
 
-A die that still moves after 8 s counts as tilted: it waits.
+A die that still moves after 8 s reads its top face at once and counts as flat: it is stopped (zero speed, kinematic) like a rested die. With **Throw tilted dice again** on, it counts as tilted: it waits.
 
 ### Tilted dice
 
 - To find the top face, the app turns each face direction by the rotation of the die. The top face is the face whose direction is closest to up (the largest dot product with up).
 - A die that lies flat on a face gives a dot product of 1. A die balanced on an edge gives 0.82.
-- A die is tilted when the dot product is below 0.966 (15°). A tilted die waits. It stays in the well, and in the document it is still in the air. The flat dice of the throw move to the shelf first. When their slide ends (`SHELF_MOVE_TIME`), the tilted dice are thrown again from where they are. This repeats until no die is tilted. So a thrown die does not hit a die that has a result.
+- A die is tilted when the dot product is below 0.966 (15°). By default a tilted die counts as flat: it gets the symbol of its top face, becomes kinematic like any rested die, and goes to the shelf with the others. The rest of this list is for the setting **Throw tilted dice again** (Settings, Dice; per browser, off by default; the client that runs the tray physics reads its own setting). With it on, a tilted die waits. It stays in the well, and in the document it is still in the air. The flat dice of the throw move to the shelf first. When their slide ends (`SHELF_MOVE_TIME`), the tilted dice are thrown again from where they are. This repeats until no die is tilted. So a thrown die does not hit a die that has a result.
 - A waiting die that moves again, for example because another die hits it, is a moving die of the throw again. The app checks its rest again.
-- A die that does not rest by 8 s waits in the same way.
+- A die that does not rest by 8 s waits in the same way. By default it reads its top face at 8 s instead.
+- A lost die (not finite, or below the table) is thrown again from above the well in both modes.
 - Roll while dice wait throws them with the other dice.
 - The history has one `throw` entry for the throw, with the results of all its dice. The app writes it with the last dice that reach the shelf. Clear drops the results that wait for it.
 - A die that rests flat outside the well counts, and moves to the shelf with the other dice. Outside the well means on the shelf, on the rim, on the table, on terrain or on a model base. TTS does the same: the tray script reads every die wherever it rests.
@@ -304,7 +305,7 @@ Tuning found a real bug, not just numbers to adjust: two dice that collide can o
 
 - Fairness passes on every test except one: seed 3, one die, 8000 throws (17.34). The same seed passes with 32000 throws (7.38). A fair die fails 1 test in 20 by chance.
 - A die leaves the well 0.2–0.3% of the time alone, and 0.3–0.9% with 10 dice at once (before: 2.0–2.5%).
-- A die rests tilted 1.2–1.8% of the time alone, and 0.7–2.3% with 10 dice (before: 0.4–0.7%). The app throws such a die again.
+- A die rests tilted 1.2–1.8% of the time alone, and 0.7–2.3% with 10 dice (before: 0.4–0.7%). With the default setting the die reads the nearest face. With **Throw tilted dice again** on, the app throws it again.
 - 10 dice at once settle in 3.1 s on average, 4.3 s at the worst seen. TTS gives 2.8 s on average.
 - 42 dice cost about 0.2 ms per physics step.
 

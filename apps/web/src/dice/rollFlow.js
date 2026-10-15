@@ -1,11 +1,12 @@
 // Two pure parts of the dice tray roll flow frame. Plain module, so node --test can load it.
 
 // What a thrown die that stopped (or timed out, or is lost) becomes: 'lost' (thrown again from
-// above the well), 'wait' (tilted or did not rest in time: waits for the other dice) or 'flat'
-// (reads its symbol and goes to the shelf).
-export function restOutcome({ lost, timedOut, tilted }) {
+// above the well), 'wait' (tilted or did not rest in time, with rethrowTilted: waits for the other
+// dice, then is thrown again) or 'flat' (reads its top face, nearest to up, and goes to the shelf).
+// Without rethrowTilted a tilted or timed out die is 'flat'.
+export function restOutcome({ lost, timedOut, tilted, rethrowTilted = false }) {
   if (lost) return 'lost'
-  if (timedOut || tilted) return 'wait'
+  if (rethrowTilted && (timedOut || tilted)) return 'wait'
   return 'flat'
 }
 

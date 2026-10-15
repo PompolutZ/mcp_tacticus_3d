@@ -191,8 +191,12 @@ export default function DiceTray({
   onHover,
   addRef,
   diceLives,
+  rethrowTilted = false,
 }) {
   const { world, rapier } = useRapier()
+  // The setting as the frame loop reads it: a change needs no new subscription
+  const rethrowTiltedRef = useRef(rethrowTilted)
+  rethrowTiltedRef.current = rethrowTilted
 
   // Every die lives here: id -> { id, order, source, was, doc, body, state, symbol, face, settling, stillTime,
   // throwTime, bump, spawn, slot, moveFrom, moveTo, moveElapsed, moving }. source: 'roll' | 'crits' | 'reroll',
@@ -657,12 +661,18 @@ export default function DiceTray({
       const settled = entry.stillTime >= SETTLE_TIME
       const timedOut = entry.throwTime >= SETTLE_TIMEOUT
       if (!finite || settled || timedOut) {
-        // A lost die (non-finite, or below the table) is thrown again from above the well. A tilted
-        // die, or one that did not rest in time, waits for the other dice. A flat die counts, in
-        // the well or outside it (design, "Tilted dice").
+        // A lost die (non-finite, or below the table) is thrown again from above the well. With
+        // the setting "Throw tilted dice again", a tilted die, or one that did not rest in time,
+        // waits for the other dice. Otherwise it reads its top face now and counts like a flat die.
+        // A flat die counts, in the well or outside it (design, "Tilted dice").
         const lost = !finite || t.y < FALL_LIMIT_Y
         const { face, dot } = topFace(rot)
-        const outcome = restOutcome({ lost, timedOut, tilted: isTilted(dot) })
+        const outcome = restOutcome({
+          lost,
+          timedOut,
+          tilted: isTilted(dot),
+          rethrowTilted: rethrowTiltedRef.current,
+        })
         if (outcome === 'lost') {
           rethrows.push({ entry, respawn: true })
         } else if (outcome === 'wait') {

@@ -139,6 +139,7 @@ const OVERLAP_INTERVAL = 100
 // into Scene, see sceneApi.js.
 // showColliders: draw every physics collider as lines (the shapes physics uses, not the visible meshes)
 // turnStep: degrees of one Q / E press and wheel step (settings.turn.step; TTS default 15, PointerRotationSnap).
+// rethrowTilted: settings.rethrowTilted, a tilted die is thrown again (DiceTray.jsx)
 // showLabels: show the label (name, game Size, lock state) above each terrain piece. With labels off, the
 // piece under the pointer shows its label.
 // spectator: show the spectator view above each model (SpectatorBadge.jsx)
@@ -261,6 +262,7 @@ export default function Scene({
   showColliders = false,
   showLabels = false,
   turnStep = 15,
+  rethrowTilted = false,
   spectator = false,
   matTurns = 0,
   deployLine = false,
@@ -866,6 +868,7 @@ export default function Scene({
                 rolls={rollsStore}
                 transact={transact}
                 diceLives={diceLives}
+                rethrowTilted={rethrowTilted}
                 openDieId={diceMenu?.trayKey === trayKey ? diceMenu.dieId : null}
                 onDieOpen={(dieId) => onDiceMenuOpen(trayKey, dieId)}
                 onMenuClose={onDiceMenuClose}

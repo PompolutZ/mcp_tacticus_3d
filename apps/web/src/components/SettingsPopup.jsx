@@ -148,6 +148,22 @@ export function SettingsPopup({
         </div>
       </section>
       <section className="settings-section">
+        <h3>Dice</h3>
+        <div className="settings-row">
+          <span>A die that rests tilted is thrown again. Off: it reads the face nearest to up</span>
+          <span className="settings-choice">
+            <button
+              type="button"
+              className={`chip${settings.rethrowTilted ? ' chip--active' : ''}`}
+              aria-pressed={!!settings.rethrowTilted}
+              onClick={() => onSettingsChange({ rethrowTilted: !settings.rethrowTilted })}
+            >
+              Throw tilted dice again
+            </button>
+          </span>
+        </div>
+      </section>
+      <section className="settings-section">
         <h3>Turn</h3>
         <label className="settings-row">
           <span>Turn step of Q / E and the wheel (°)</span>

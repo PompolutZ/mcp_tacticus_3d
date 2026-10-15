@@ -215,6 +215,23 @@ test('labels: off by default, only true turns them on', () => {
   assert.equal(read(undefined), false)
 })
 
+test('rethrowTilted: off by default, only true turns it on', () => {
+  assert.equal(defaultSettings().rethrowTilted, false)
+  const read = (rethrowTilted) => {
+    const storage = fakeStorage()
+    storage.setItem(KEY, JSON.stringify({ version: VERSION, rethrowTilted }))
+    let value
+    withStorage(storage, () => {
+      value = readSettings().rethrowTilted
+    })
+    return value
+  }
+  assert.equal(read(true), true)
+  assert.equal(read(false), false)
+  assert.equal(read('yes'), false)
+  assert.equal(read(undefined), false)
+})
+
 test('spectator size: default 100, clamped to 60-150, rounded, junk is the default', () => {
   assert.equal(defaultSettings().spectator.size, 100)
   const read = (spectator) => {
