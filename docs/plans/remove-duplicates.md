@@ -305,6 +305,18 @@ User: open a roster with Team Tactic cards, an Infinity Gem and crisis cards: sa
 
 ### Result
 
+Done. Lint 52 warnings (same), tests 904 pass, build ok, fallow 143 lines / same groups (no dup group in this step).
+
+- Data after `review-fixes`: the app reads `src/{tactics,crisis}/jarvis-rows.json` (trimmed; the trim test still passes, trimmed files not changed). The crisis rows are already current printings only; `CRISIS_ROWS` keeps the `replacedBy === null` filter, so the rule has one place in app code.
+- Tactic ids: `migrate-tactics.mjs` `cardEntry` pads to 8 digits (the generator of `cards.json`; the trim script does not write ids). 16 ids padded in `tactics/cards.json` (diff: 16 lines, only `id`). Padding removed in `rosters/cards.js`, `tactics/cards.js`, `Library.jsx`, `fetch-jarvis-tactics.mjs`. Docs fixed to 16 ids (`roster.md`, `scripts/README.md`).
+- `crisis/cards.js` exports `CRISIS_ROWS` ({ code, key, name, type, threat, slug }; `type` is `secure`/`extract`, not the Jarvis word). `CARDS` is built from the rows with a key. `threat` removed from `crisis/cards.json` (45 entries) and no longer written by `migrate-crisis.mjs`; its warning compares Jarvis with the mod's `card.threat`. Readers (`getCard`, `cardsOfType`, Toolbar, setup) get `threat` from `CARDS`, unchanged.
+- `tactics/cards.js` exports `TACTIC_ROWS` ({ code, key, name, slug, gem }, first row per code) and `tacticSlugsOf(code)` (all slugs of a code, for the leader check in `rosters/cards.js`). `TACTICS` takes `gem` from the rows.
+- `rosters/cards.js` builds tactic and crisis entries from the two row lists; no tactic or crisis JSON import left.
+- Test `scripts/lib/card-data.test.js` (reads the JSON): all tactic ids have 8 digits; a search by `01430206` finds its card (the bug); each crisis id has one current Jarvis printing; crisis `cards.json` has no `threat`.
+- Before/after check with a Node loader: for the test roster `01620101-01910104,01910101,01000101,01430206,00620201,00300201,00050301,20230310,20130301` the `rosterTabs` counts are characters 3, tactics 3, crisis 3 both times, unknown none. The full `rosterCard` of every Jarvis code, `CRISIS_THREATS`, `squadThreat`, and the crisis and tactic lists (with ids padded) are byte-equal before and after.
+- `grep padStart(8`: only `net/fingerprint.js`, `components/storedTool.js`, `migrate-tactics.mjs`.
+
+
 ## Step 8: Script and infra helpers, last fallow run
 
 Work:

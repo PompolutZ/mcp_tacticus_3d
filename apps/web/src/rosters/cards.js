@@ -2,13 +2,11 @@
 // See docs/features/roster.md, "Data" and "Cards without files".
 import { CHARACTERS, characterByCode } from '../characters/characters.js'
 import { characterCard, transformCard } from '../characters/files.js'
-import tacticsData from '../tactics/jarvis-rows.json'
-import tacticFiles from '../tactics/cards.json'
+import { TACTIC_ROWS, tacticSlugsOf } from '../tactics/cards.js'
 import { tacticCardBack } from '../tactics/files.js'
 import { isFaceKey } from '../tactics/faceData.js'
 import jarvisCharacters from '../characters/jarvis-rows.json'
-import crisisData from '../crisis/jarvis-rows.json'
-import crisisFiles from '../crisis/cards.json'
+import { CRISIS_ROWS } from '../crisis/cards.js'
 import { crisisCardFace } from '../crisis/files.js'
 import {
   affiliationChoices,
@@ -27,12 +25,6 @@ for (const row of jarvisCharacters) {
     }
   }
 }
-
-// Three tactic ids in cards.json lost their leading zero (1430206), so pad them to 8 digits.
-const idToKey = (files) =>
-  new Map(Object.entries(files).map(([key, card]) => [card.id.padStart(8, '0'), key]))
-const tacticKeys = idToKey(tacticFiles)
-const crisisKeys = idToKey(crisisFiles)
 
 // code -> { code, kind, name, key, threat, image, back, model, variants, jarvisUrl }. Each code once. key: the
 // key of a Team Tactic or crisis card in its cards.json, or null when the app has no files for it. threat: the
@@ -94,36 +86,34 @@ for (const ch of CHARACTERS) {
   })
 }
 
-// Jarvis lists some codes twice (reprints). The first row is the card.
-for (const row of tacticsData) {
-  if (!row.exportCode || cards.has(row.exportCode)) continue
-  const key = tacticKeys.get(row.exportCode)
-  cards.set(row.exportCode, {
-    code: row.exportCode,
+// The rows come from tactics/cards.js (the first Jarvis row of a code) and crisis/cards.js (current printings).
+for (const row of TACTIC_ROWS) {
+  const key = row.key
+  cards.set(row.code, {
+    code: row.code,
     kind: 'tactic',
     name: row.name,
-    key: key ?? null,
-    threat: row.isInfinityGem ? (gemThreats.get(row.exportCode) ?? 1) : null,
+    key,
+    threat: row.gem ? (gemThreats.get(row.code) ?? 1) : null,
     image: key ? tacticCardBack(key) : null,
     back: key ? tacticCardBack(key) : null,
     faceKey: key && isFaceKey(key) ? key : null,
     model: false,
     variants: null,
-    gem: Boolean(row.isInfinityGem),
+    gem: row.gem,
     jarvisUrl: `${JARVIS}/team-tactics-cards/${row.slug}`,
   })
 }
 
-// The current printing of a crisis card has replacedBy: null.
-for (const row of crisisData) {
-  if (!row.exportCode || row.replacedBy !== null || cards.has(row.exportCode)) continue
-  const key = crisisKeys.get(row.exportCode)
-  cards.set(row.exportCode, {
-    code: row.exportCode,
-    kind: row.type === 'Secure' ? 'secure' : 'extract',
+for (const row of CRISIS_ROWS) {
+  if (cards.has(row.code)) continue
+  const key = row.key
+  cards.set(row.code, {
+    code: row.code,
+    kind: row.type,
     name: row.name,
-    key: key ?? null,
-    threat: row.threatLevel,
+    key,
+    threat: row.threat,
     image: key ? crisisCardFace(key) : null,
     back: null,
     model: false,
@@ -219,8 +209,7 @@ function breakdownUnits(parsed) {
 
 // The Jarvis slugs of the Team Tactic cards of a roster. A code with two Jarvis rows gives both slugs.
 function tacticSlugs(parsed) {
-  const codes = new Set(parsed.tactics)
-  return new Set(tacticsData.filter((row) => codes.has(row.exportCode)).map((row) => row.slug))
+  return new Set(parsed.tactics.flatMap(tacticSlugsOf))
 }
 
 // The combinations of a parsed roster for the threat value `threat` (see docs/features/squad-breakdown.md,

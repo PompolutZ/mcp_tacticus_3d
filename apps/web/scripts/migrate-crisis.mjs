@@ -123,7 +123,7 @@ async function migrate() {
         key,
         card,
         status: convert(face) ? 'converted' : 'already migrated',
-        warnings: jarvisWarnings(plan.entry),
+        warnings: jarvisWarnings(plan.entry, card),
       })
       done.push(plan)
     } catch (err) {
@@ -195,7 +195,6 @@ function planCard(card) {
     id: card.ID,
     name: card.name,
     type,
-    threat: card.threat,
     tokens: map.tokenPos.map((_, i) => placement(crisis, map, i, useToken)),
   }
   const supply = supplyToken(card)
@@ -316,15 +315,15 @@ function migrateMarker() {
 }
 
 // Jarvis has the text and the legality of the cards. The app joins it by id, so the script checks the ids here.
-function jarvisWarnings(entry) {
+// The threat is not stored: the app reads it from Jarvis. The warning compares it with the mod's value.
+function jarvisWarnings(entry, card) {
   if (!jarvis) return []
   const found = jarvis.find((c) => c.exportCode === entry.id)
   if (!found) return [`Jarvis has no current card with the id ${entry.id}`]
   const warnings = []
   if ((found.type === 'Extraction' ? 'extract' : 'secure') !== entry.type)
     warnings.push(`Jarvis has the type ${found.type}`)
-  if (found.threatLevel !== entry.threat)
-    warnings.push(`Jarvis has the threat ${found.threatLevel}`)
+  if (found.threatLevel !== card.threat) warnings.push(`Jarvis has the threat ${found.threatLevel}`)
   return warnings
 }
 

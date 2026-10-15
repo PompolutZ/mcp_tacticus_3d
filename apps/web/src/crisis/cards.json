@@ -3,7 +3,6 @@
     "id": "00050301",
     "name": "Alien Ship Crashes in Downtown!",
     "type": "extract",
-    "threat": 17,
     "tokens": [
       {
         "token": "extract-asset",
@@ -32,7 +31,6 @@
     "id": "20230303",
     "name": "Assault Ships Make Sweeping Search!",
     "type": "secure",
-    "threat": 16,
     "tokens": [
       {
         "token": "secure-point-of-interest",
@@ -72,7 +70,6 @@
     "id": "00250301",
     "name": "Cosmic Invasion! Black Order Descends on Earth",
     "type": "secure",
-    "threat": 16,
     "tokens": [
       {
         "token": "secure-point-of-interest",
@@ -112,7 +109,6 @@
     "id": "20130301",
     "name": "Deadline To Destruction",
     "type": "secure",
-    "threat": 16,
     "tokens": [
       {
         "token": "secure-point-of-interest",
@@ -152,7 +148,6 @@
     "id": "00460301",
     "name": "Deadly Legacy Virus Cured?",
     "type": "extract",
-    "threat": 19,
     "tokens": [
       {
         "token": "extract-asset",
@@ -181,7 +176,6 @@
     "id": "00010301",
     "name": "Deadly Meteors Mutate Civilians",
     "type": "secure",
-    "threat": 17,
     "tokens": [
       {
         "token": "secure-point-of-interest",
@@ -213,7 +207,6 @@
     "id": "00270301",
     "name": "Demons Downtown! Has Our Comeuppance Come Due?",
     "type": "secure",
-    "threat": 19,
     "tokens": [
       {
         "token": "flaming-portal",
@@ -245,7 +238,6 @@
     "id": "20230304",
     "name": "Evidence Of Experimental Soldiers Exposed",
     "type": "extract",
-    "threat": 19,
     "tokens": [
       {
         "token": "extract-unexhausted-source",
@@ -281,7 +273,6 @@
     "id": "00110301",
     "name": "Fear Grips World as \"Worthy\" Terrorize Cities",
     "type": "extract",
-    "threat": 18,
     "tokens": [
       {
         "token": "extract-asset",
@@ -317,7 +308,6 @@
     "id": "00040301",
     "name": "Gamma Wave Sweeps Across Midwest",
     "type": "secure",
-    "threat": 15,
     "tokens": [
       {
         "token": "gamma-shelter",
@@ -349,7 +339,6 @@
     "id": "20130302",
     "name": "Guardians Save Shi'ar Empress in Style",
     "type": "secure",
-    "threat": 17,
     "tokens": [
       {
         "token": "secure-point-of-interest",
@@ -389,7 +378,6 @@
     "id": "00010302",
     "name": "Infinity Formula Goes Missing!",
     "type": "secure",
-    "threat": 17,
     "tokens": [
       {
         "token": "secure-point-of-interest",
@@ -429,7 +417,6 @@
     "id": "20130303",
     "name": "Inhumans Deploy Advanced Weaponry",
     "type": "extract",
-    "threat": 18,
     "tokens": [
       {
         "token": "extract-asset",
@@ -465,7 +452,6 @@
     "id": "00640301",
     "name": "Intrusions Open Across City as Seals Collapse",
     "type": "secure",
-    "threat": 19,
     "tokens": [
       {
         "token": "secure-point-of-interest",
@@ -497,7 +483,6 @@
     "id": "20230301",
     "name": "Jailbreak Leads to Mass Mutant Escape!",
     "type": "extract",
-    "threat": 20,
     "tokens": [
       {
         "token": "extract-unexhausted-source",
@@ -542,7 +527,6 @@
     "id": "20230302",
     "name": "Lockdown! Security Systems Stymie Breakout",
     "type": "secure",
-    "threat": 18,
     "tokens": [
       {
         "token": "secure-point-of-interest",
@@ -582,7 +566,6 @@
     "id": "00290301",
     "name": "Mayor Fisk Vows to Find Missing Witnesses",
     "type": "secure",
-    "threat": 16,
     "tokens": [
       {
         "token": "witness",
@@ -604,7 +587,6 @@
     "id": "20130304",
     "name": "M'Kraan Crystal Gets Heroes Home!",
     "type": "secure",
-    "threat": 19,
     "tokens": [
       {
         "token": "secure-point-of-interest",
@@ -644,7 +626,6 @@
     "id": "00420301",
     "name": "Mutant Extremists Target U.S. Senators!",
     "type": "extract",
-    "threat": 19,
     "tokens": [
       {
         "token": "extract-civilian",
@@ -694,7 +675,6 @@
     "id": "00410301",
     "name": "Mutant Madman Turns City Center into Lethal Amusement Park",
     "type": "secure",
-    "threat": 18,
     "tokens": [
       {
         "token": "secure-point-of-interest",
@@ -734,7 +714,6 @@
     "id": "00070301",
     "name": "Mystic Wakandan Herbs: Fact or Fiction?",
     "type": "extract",
-    "threat": 15,
     "tokens": [
       {
         "token": "vessel",
@@ -776,7 +755,6 @@
     "id": "00180301",
     "name": "Panic Grips City as Evacuation Efforts Continue!",
     "type": "extract",
-    "threat": 19,
     "tokens": [
       {
         "token": "citizen",
@@ -812,7 +790,6 @@
     "id": "20000313",
     "name": "Paranoia Pummels Populace!",
     "type": "extract",
-    "threat": 16,
     "tokens": [
       {
         "token": "disturbance",
@@ -848,7 +825,6 @@
     "id": "00100301",
     "name": "Portals Overrun City with Spider-People!",
     "type": "secure",
-    "threat": 18,
     "tokens": [
       {
         "token": "inheritor-portal",
@@ -888,7 +864,6 @@
     "id": "20230305",
     "name": "Power Overload! Factory Goes up in Flames",
     "type": "secure",
-    "threat": 19,
     "tokens": [
       {
         "token": "secure-point-of-interest",
@@ -928,7 +903,6 @@
     "id": "00630301",
     "name": "Research Station Attacked!",
     "type": "extract",
-    "threat": 15,
     "tokens": [
       {
         "token": "evac-point",
@@ -959,7 +933,6 @@
     "id": "00010303",
     "name": "Riots Spark Over Extremis 3.0",
     "type": "secure",
-    "threat": 17,
     "tokens": [
       {
         "token": "secure-point-of-interest",
@@ -999,7 +972,6 @@
     "id": "20230306",
     "name": "Salvaged Supplies Fuel Resistance Efforts",
     "type": "extract",
-    "threat": 18,
     "tokens": [
       {
         "token": "extract-asset",
@@ -1021,7 +993,6 @@
     "id": "20130305",
     "name": "Scientific Samples Found in Discovered Universe",
     "type": "extract",
-    "threat": 17,
     "tokens": [
       {
         "token": "extract-asset",
@@ -1057,7 +1028,6 @@
     "id": "20230307",
     "name": "Sentinel Schematics Sabotaged!",
     "type": "extract",
-    "threat": 17,
     "tokens": [
       {
         "token": "extract-unexhausted-source",
@@ -1102,7 +1072,6 @@
     "id": "20130306",
     "name": "Ship Secuirty Breached in Royal Rescue",
     "type": "extract",
-    "threat": 20,
     "tokens": [
       {
         "token": "extract-asset",
@@ -1138,7 +1107,6 @@
     "id": "00010304",
     "name": "Skrulls Infiltrate World Leadership",
     "type": "extract",
-    "threat": 20,
     "tokens": [
       {
         "token": "extract-civilian",
@@ -1174,7 +1142,6 @@
     "id": "00010305",
     "name": "Spider-Infected Invade Manhattan",
     "type": "extract",
-    "threat": 17,
     "tokens": [
       {
         "token": "extract-civilian",
@@ -1217,7 +1184,6 @@
     "id": "20130307",
     "name": "Strike Team Secures Sheild Relay!",
     "type": "secure",
-    "threat": 17,
     "tokens": [
       {
         "token": "secure-point-of-interest",
@@ -1257,7 +1223,6 @@
     "id": "00010306",
     "name": "Struggle for the Cube Continues",
     "type": "extract",
-    "threat": 17,
     "tokens": [
       {
         "token": "extract-asset",
@@ -1300,7 +1265,6 @@
     "id": "00600301",
     "name": "Super-Powered Scoundrels Form Sinister Syndicate!",
     "type": "secure",
-    "threat": 20,
     "tokens": [
       {
         "token": "secure-point-of-interest",
@@ -1348,7 +1312,6 @@
     "id": "20230308",
     "name": "Surprise Assault! Mutant Homes Destroyed",
     "type": "extract",
-    "threat": 16,
     "tokens": [
       {
         "token": "extract-unexhausted-source",
@@ -1393,7 +1356,6 @@
     "id": "20230309",
     "name": "Survivors Search for Safe Shelter",
     "type": "secure",
-    "threat": 20,
     "tokens": [
       {
         "token": "secure-point-of-interest",
@@ -1425,7 +1387,6 @@
     "id": "00470301",
     "name": "S.W.O.R.D. Establishes Base on Moon's Blue Area",
     "type": "secure",
-    "threat": 15,
     "tokens": [
       {
         "token": "console",
@@ -1465,7 +1426,6 @@
     "id": "20130308",
     "name": "Terrigen Canisters Fuel Doomsday Device",
     "type": "extract",
-    "threat": 17,
     "tokens": [
       {
         "token": "extract-asset",
@@ -1508,7 +1468,6 @@
     "id": "00340301",
     "name": "Terrigen Clouds Sweep Over City",
     "type": "secure",
-    "threat": 20,
     "tokens": [
       {
         "token": "mist-cloud",
@@ -1530,7 +1489,6 @@
     "id": "00230301",
     "name": "The Montesi Formula Found",
     "type": "extract",
-    "threat": 18,
     "tokens": [
       {
         "token": "extract-asset",
@@ -1559,7 +1517,6 @@
     "id": "20130309",
     "name": "Unexpected Guests Crash Royal Wedding",
     "type": "extract",
-    "threat": 17,
     "tokens": [
       {
         "token": "extract-civilian",
@@ -1595,7 +1552,6 @@
     "id": "20130310",
     "name": "Wedding Party Targeted In Terrible Attack!",
     "type": "secure",
-    "threat": 20,
     "tokens": [
       {
         "token": "secure-target-of-opportunity",
@@ -1617,7 +1573,6 @@
     "id": "20230310",
     "name": "X-MEN Infiltrate Secret Weapons Facility",
     "type": "secure",
-    "threat": 17,
     "tokens": [
       {
         "token": "secure-zone",

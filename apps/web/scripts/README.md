@@ -329,8 +329,7 @@ Entry in `cards.json`:
 "jailbreak-leads-to-mass-mutant-escape": {
   "id": "20230301",        // MCT code, the same id as in Jarvis
   "name": "Jailbreak Leads to Mass Mutant Escape!",
-  "type": "extract",       // secure or extract
-  "threat": 20,
+  "type": "extract",       // secure or extract. The threat is not stored: the app reads it from Jarvis
   "tokens": [              // one entry per token on the mat
     {
       "token": "extract-unexhausted-source",  // key in tokens.json: the side that faces up
@@ -424,7 +423,7 @@ pnpm --filter web fetch-jarvis-tactics
 
 - The headers are the same as for the characters. The full response is 1 MB with the card text, so the script keeps only these fields: `exportCode`, `slug`, `name`, `isInfinityGem`, `affiliation`, `tags`, and the legality fields `timelines`, `standardTimelineStatus`, `extendedTimelineStatus`, `computedStatus`, `latestComputedStatus`.
 - On 2026-10-07, there were 519 rows, 512 with an `exportCode` (401 different codes), and 14 Infinity Gems. Some cards appear several times with the same code. The app uses the first row of each code.
-- It also writes `src/tactics/jarvis-tactics-text.json`: the text of the card faces, keyed by our card key (`src/tactics/cards.json`). A card matches the first non-gem Jarvis row with its `exportCode` equal to our `id` padded to 8 digits (3 ids lost their leading zero), else the row with its slug equal to our key. The Infinity Gems match by slug only, because their reprints (`-ca10`, `-cp222`) share the code. The script prints the match counts. Real run on 2026-10-13, before the padding fix: 376 by code, 14 by slug, 3 by a slug map. After the fix: 392 by code, 8 by slug (1 card and the 7 gems), 0 missing (real run on 2026-10-13).
+- It also writes `src/tactics/jarvis-tactics-text.json`: the text of the card faces, keyed by our card key (`src/tactics/cards.json`). A card matches the first non-gem Jarvis row with its `exportCode` equal to our `id` (8 digits since `migrate-tactics.mjs` pads it), else the row with its slug equal to our key. The Infinity Gems match by slug only, because their reprints (`-ca10`, `-cp222`) share the code. The script prints the match counts. Real run on 2026-10-13, before the padding fix: 376 by code, 14 by slug, 3 by a slug map. After the fix: 392 by code, 8 by slug (1 card and the 7 gems), 0 missing (real run on 2026-10-13).
 - Fields per card (a field without a value is left out): `type`, `body`, `secondaryBody`, `intermediaryBody`, `affiliation` (the name), `superPowers` (`form`, `type`, `name`, `powerCost`, `body`), `attacks` (`form`, `type`, `name`, `range`, `strength`, `powerCost`, `steps`), `artist`, `biggerIcons`, `threatLevel` (gems only; 0 is kept). The bodies use the Jarvis markup (see the plan `docs/plans/tactic-faces.md`). The app loads the file with a dynamic `import()`.
 - Face icons are in `src/assets/tactic-icons/`, as lossless WebP made from the Jarvis PNGs, named by meaning. `src/tactics/faceIcons.js` maps the Jarvis icon id of `!x` to the file. `range_large`, `movement_large` (the same icon), `threat`, `speed` and `vp` were found in the Jarvis JS bundle (`images/<hash>.png`, listed in its icon table). `!Ulik` (Ulik's token, in one card) has no icon: the face draws the name as plain text.
 - The roster loader (`src/rosters/cards.js`) uses the file to tell Team Tactic cards and Infinity Gems from other codes.

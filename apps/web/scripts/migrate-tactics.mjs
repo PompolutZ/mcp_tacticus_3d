@@ -127,7 +127,8 @@ function downloadFailure(failures) {
 // Entry of src/tactics/cards.json. tokens is left out when the card has none. The key of a token is its name as a
 // slug, as in migrate-tokens.mjs; a name without a migrated token is left out with a warning.
 function cardEntry(card, key) {
-  const entry = { id: card.ID, name: card.name }
+  // Some mod ids lost the leading zero (1430205 for 01430205); the MCT code has 8 digits
+  const entry = { id: String(card.ID).padStart(8, '0'), name: card.name }
   const found = []
   for (const name of card.tokens ?? []) {
     const tokenKey = slug(name)

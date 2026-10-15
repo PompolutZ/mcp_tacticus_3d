@@ -72,8 +72,7 @@ const text = {}
 const n = { code: 0, slug: 0 }
 const missing = []
 for (const [key, { id }] of Object.entries(ours)) {
-  // 3 of our ids lost their leading zero (1430205 for 01430205)
-  let row = byCode.get(id.padStart(8, '0'))
+  let row = byCode.get(id)
   if (row) n.code++
   else if ((row = bySlug.get(key))) n.slug++
   if (row) text[key] = faceOf(row)

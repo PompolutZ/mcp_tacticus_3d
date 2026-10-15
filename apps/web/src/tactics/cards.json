@@ -121,7 +121,7 @@
     "name": "Battle Lust"
   },
   "battle-plan": {
-    "id": "1430201",
+    "id": "01430201",
     "name": "Battle Plan"
   },
   "battlefield-medicine": {
@@ -288,7 +288,7 @@
     "name": "Cosmic Invigoration"
   },
   "cosmic-obliteration": {
-    "id": "1430202",
+    "id": "01430202",
     "name": "Cosmic Obliteration",
     "tokens": [
       "root",
@@ -361,7 +361,7 @@
     "name": "Dark Restoration"
   },
   "data-backup": {
-    "id": "1540204",
+    "id": "01540204",
     "name": "Data Backup"
   },
   "daughters-of-thanos": {
@@ -404,7 +404,7 @@
     "name": "Difficult to Please"
   },
   "dig-in": {
-    "id": "1430203",
+    "id": "01430203",
     "name": "Dig in"
   },
   "dimensional-quagmire": {
@@ -626,11 +626,11 @@
     ]
   },
   "glory-of-ultron": {
-    "id": "1430204",
+    "id": "01430204",
     "name": "Glory of Ultron"
   },
   "go-getem-tiger": {
-    "id": "1430205",
+    "id": "01430205",
     "name": "Go get'em tiger  "
   },
   "going-all-out": {
@@ -732,7 +732,7 @@
     "name": "Human Weapon"
   },
   "i-am-a-baron-after-all": {
-    "id": "1430206",
+    "id": "01430206",
     "name": "I Am a Baron, After All"
   },
   "i-am-reborn": {
@@ -854,7 +854,7 @@
     "name": "Jean!!!"
   },
   "joint-effort": {
-    "id": "1430207",
+    "id": "01430207",
     "name": "Joint effort"
   },
   "jonathan-the-unstoppable": {
@@ -1094,7 +1094,7 @@
     "name": "Over the Top"
   },
   "overcharge": {
-    "id": "1430208",
+    "id": "01430208",
     "name": "Overcharge"
   },
   "pardon-me-sugah": {
@@ -1102,7 +1102,7 @@
     "name": "Pardon Me, Sugah"
   },
   "parts-of-a-whole": {
-    "id": "1680202",
+    "id": "01680202",
     "name": "Parts of a Whole"
   },
   "patch-up": {
@@ -1230,7 +1230,7 @@
     "name": "Rejuvenation"
   },
   "replusor-refraction": {
-    "id": "1430209",
+    "id": "01430209",
     "name": "Replusor Refraction"
   },
   "reposition": {
@@ -1238,7 +1238,7 @@
     "name": "Reposition"
   },
   "reserve-members": {
-    "id": "1430210",
+    "id": "01430210",
     "name": "Reserve Members"
   },
   "reversal": {
@@ -1388,7 +1388,7 @@
     "name": "Smash"
   },
   "soldat-activated": {
-    "id": "1430211",
+    "id": "01430211",
     "name": "Soldat Activated"
   },
   "sovereign-strike": {
@@ -1431,7 +1431,7 @@
     ]
   },
   "stark-armory": {
-    "id": "1430212",
+    "id": "01430212",
     "name": "Stark Armory"
   },
   "static-arc": {
@@ -1632,7 +1632,7 @@
     "name": "This is a Robbery"
   },
   "this-is-our-day": {
-    "id": "1430213",
+    "id": "01430213",
     "name": "This is our day"
   },
   "thralls-of-dracula": {
@@ -1758,7 +1758,7 @@
     "name": "Versatile Strategy"
   },
   "vertical-assistance": {
-    "id": "1430214",
+    "id": "01430214",
     "name": "Vertical Assistance"
   },
   "veterans-of-the-annihilation-war": {

@@ -85,7 +85,7 @@ export function Library({
   // A gem is not placed: a click opens its card. It goes onto a character from the roster.
   function handleTactic(card) {
     if (card.gem) {
-      onGemOpen?.(card.id.padStart(8, '0'))
+      onGemOpen?.(card.id)
       return
     }
     onSpawnTactic(card.key, team)

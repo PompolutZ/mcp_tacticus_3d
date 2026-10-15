@@ -6,24 +6,38 @@ import cardsData from './cards.json'
 import jarvisData from './jarvis-rows.json'
 import tokensData from './tokens.json'
 
-// Jarvis has several printings of a card. The current one has replacedBy: null. cards.json keys a
-// card by its mod id (the MCT export code), so this maps that id to the current Jarvis printing.
-const jarvisById = new Map()
-for (const printing of jarvisData) {
-  if (printing.replacedBy === null) jarvisById.set(printing.exportCode, printing)
-}
+// Jarvis has several printings of a card. The current one has replacedBy: null. This is the only place in the
+// app with that rule. cards.json keys a card by its mod id (the MCT export code).
+const keyOfCode = new Map(Object.entries(cardsData).map(([key, card]) => [card.id, key]))
 
-// One entry per card, sorted by name. key: the slug in cards.json and in the crisis asset paths.
-const CARDS = Object.entries(cardsData)
-  .map(([key, card]) => ({
-    key,
-    id: card.id,
-    name: jarvisById.get(card.id)?.name ?? card.name,
-    type: card.type,
-    threat: card.threat,
-    tokens: card.tokens,
-    supply: card.supply ?? null,
+// Every current Jarvis crisis card with a code: [{ code, key, name, type, threat, slug }]. type: 'secure' or
+// 'extract'. key: the key in cards.json, or null when the app has no files for the card. threat: Jarvis
+// threatLevel, the one source of the Maximum Threat.
+export const CRISIS_ROWS = jarvisData
+  .filter((row) => row.exportCode && row.replacedBy === null)
+  .map((row) => ({
+    code: row.exportCode,
+    key: keyOfCode.get(row.exportCode) ?? null,
+    name: row.name,
+    type: row.type === 'Secure' ? 'secure' : 'extract',
+    threat: row.threatLevel,
+    slug: row.slug,
   }))
+
+// One entry per migrated card, sorted by name. key: the slug in cards.json and in the crisis asset paths.
+const CARDS = CRISIS_ROWS.filter((row) => row.key)
+  .map((row) => {
+    const card = cardsData[row.key]
+    return {
+      key: row.key,
+      id: row.code,
+      name: row.name,
+      type: row.type,
+      threat: row.threat,
+      tokens: card.tokens,
+      supply: card.supply ?? null,
+    }
+  })
   .sort((a, b) => a.name.localeCompare(b.name))
 
 const cardByKey = new Map(CARDS.map((c) => [c.key, c]))

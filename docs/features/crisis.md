@@ -173,7 +173,7 @@ A player can choose another card at any time. The app then removes the tokens of
 
 What exists (see `scripts/README.md`, section "TTS crisis cards"):
 
-- `src/crisis/cards.json`: card id, name, type, threat, tokens (position, image, back image, flags, rotation), supply token.
+- `src/crisis/cards.json`: card id, name, type (the threat comes from Jarvis, `CRISIS_ROWS` in `src/crisis/cards.js`), tokens (position, image, back image, flags, rotation), supply token.
 - `src/crisis/tokens.json`: token images, shape and size.
 - `scripts/jarvis/crisis-cards.json` (the app reads the trimmed `src/crisis/jarvis-rows.json`): official names, card text, setup map letter, `payToFlip`, legality.
 - Positions are TTS x and z in inches from the mat center. `Terrain.jsx` converts them to Three.js with `z` → `-z`.
