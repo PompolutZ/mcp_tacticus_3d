@@ -218,6 +218,7 @@ setup: {
 | `src/components/CrisisCompare.jsx` | The crisis compare overlay |
 | `src/components/CrisisChoose.jsx` | The Choose 1 overlay |
 | `src/setup/useAutoOpen.js` | Opens an overlay by itself once for each key |
+| `src/setup/setupText.js` | `STEP_NAME`, `stepChoice`, `chooses`, `decides`, `rollOffText`: the step names, the choice of a done step, the hints and the roll off text. `stepChoice` gets the card lookup as an argument, so a Node test can run it |
 | `src/setup/deckButton.js` | `lockedTitle`, `deckProblem`, `deckButton`, `pickButton`: the lock and title of the deck and card buttons, for the table and the overlay |
 | `src/rosters/layout.js` | `crisisRowLayout`, `crisisCenterZ`, `CRISIS_GAP_X`. Row 2 of the roster has only the Team Tactic cards now |
 | `src/rosters/cards.js` | `threat` and `key` of each card, `squadThreat`, `squadAffiliationKeys` |

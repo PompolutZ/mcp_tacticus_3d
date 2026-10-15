@@ -23,7 +23,8 @@ import {
   setupStep,
   viewOf,
 } from '../setup/setup.js'
-import { chose, isYou, playerName, possessive, says, their } from '../setup/names.js'
+import { isYou, playerName, possessive, says } from '../setup/names.js'
+import { STEP_NAME, chooses, decides, rollOffText, stepChoice } from '../setup/setupText.js'
 import { TYPE, deckButton, lockedTitle, pickButton } from '../setup/deckButton.js'
 import { useSideColors } from '../sideColors.js'
 import { useNames } from '../setup/useNames.js'
@@ -47,73 +48,6 @@ const TABLE_Y = 0.05
 const PANEL_X = (-TABLE_WIDTH / 2 + BOARD_X - BOARD_HALF_WIDTH) / 2
 const INCHES_PER_PX = 0.04
 const px = (inches) => Math.round(inches / INCHES_PER_PX)
-
-// The names of the done steps (Prev / Next, Override)
-const STEP_NAME = {
-  rollOff: 'Roll off',
-  deck: 'Deck',
-  first: 'First card',
-  second: 'Second card',
-  threat: 'Maximum Threat',
-  edge: 'Deployment edge',
-  squads: 'Squads',
-  affiliation: 'Affiliation',
-  deploy: 'Deployment',
-}
-
-// The choice of a done step in words: "Nelly chose Extract · 18"
-function stepChoice(setup, step, ctx) {
-  const winner = priorityOf(setup)
-  const other = winner && otherTeam(winner)
-  const first = setup.deck?.type
-  const second = first && otherType(first)
-  const card = (code) => rosterCard(code)?.name ?? code
-  switch (step) {
-    case 'rollOff':
-      return `${says(winner, ctx, 'have')} Priority`
-    case 'deck':
-      return `${says(winner, ctx, 'play')} on ${their(winner, ctx)} ${TYPE[first]} crises.`
-    case 'first':
-      return `${chose(other, ctx)} ${card(setup.picks[first])}`
-    case 'second':
-      return `${chose(winner, ctx)} ${card(setup.picks[second])}`
-    case 'threat': {
-      const type = CRISIS_TYPES.find((t) => rosterCard(setup.picks[t])?.threat === setup.threat)
-      return `${chose(other, ctx)} ${type ? `${TYPE[type]} · ` : ''}${setup.threat}`
-    }
-    case 'edge':
-      return `${chose(winner, ctx)} the board edge`
-    case 'squads':
-      return 'Both squads are Ready'
-    case 'affiliation':
-      return TEAMS.map(
-        (team) =>
-          `${playerName(team, ctx)}: ${affiliationName(setup.affiliation?.[team] ?? DEFAULT_AFFILIATION)}`,
-      ).join(' · ')
-    default:
-      return 'Both squads deployed'
-  }
-}
-
-// What `team` does in a step that one player chooses. The own side in a multiplayer room gets "You choose the
-// board edge", the other player "Waiting for Nelly to choose the board edge." What: "a deck", "the Maximum
-// Threat". With imperative, the own side gets "Choose …" ("Choose from Nelly's Secures.").
-function chooses(team, what, ctx, imperative = false) {
-  if (ctx.mySide && !isYou(team, ctx))
-    return `Waiting for ${playerName(team, ctx)} to choose ${what}.`
-  return imperative && isYou(team, ctx)
-    ? `Choose ${what}.`
-    : `${says(team, ctx, 'choose')} ${what}.`
-}
-
-// The deck step text for `team`, the Priority player: "Decide if you want to play on your Secure or Extract
-// crises.", "Waiting for Nelly to decide if they want to ...", "Blue decides if they want to ..."
-function decides(team, ctx) {
-  const rest = `if ${isYou(team, ctx) ? 'you' : 'they'} want to play on ${their(team, ctx)} Secure or Extract crises.`
-  if (ctx.mySide && !isYou(team, ctx))
-    return `Waiting for ${playerName(team, ctx)} to decide ${rest}`
-  return isYou(team, ctx) ? `Decide ${rest}` : `${says(team, ctx, 'decide')} ${rest}`
-}
 
 // One row of crisis cards of a roster, next to the scoring board. With row.use, each card has a Choose button
 // next to it. row: see crisisRows in setup/setup.js. A click on a card opens the crisis compare overlay (onOpen(code)).
@@ -177,18 +111,6 @@ function DeckButtons({ setup, team, parsed, ctx, onChoose }) {
       </div>
     </OnTable>
   )
-}
-
-// The text of a roll off that the app read: "Nelly wins the roll off: 4 successes against 3." On equal
-// successes the Crits or the Wilds decided. result: { winner, counts } (rollOff.js).
-function rollOffText({ winner, counts }, ctx) {
-  if (!winner) return 'Tie: roll again.'
-  const a = counts[winner]
-  const b = counts[otherTeam(winner)]
-  const base = `${says(winner, ctx, 'win')} the roll off: ${a.successes} successes against ${b.successes}`
-  if (a.successes !== b.successes) return `${base}.`
-  if (a.crits !== b.crits) return `${base}, with more Crits (${a.crits} against ${b.crits}).`
-  return `${base}, with more Wilds (${a.wilds} against ${b.wilds}).`
 }
 
 // ↺ Choose this edge ↻ on the side of the player with Priority, lying flat and facing them (OWNER_FACING_ROTATION).
@@ -270,7 +192,7 @@ function BoardPanel({
   let teamRows = null
   if (view) {
     // A done step that a player browses: its name and choice, read only (Override goes back to it)
-    hint = `${STEP_NAME[view]}: ${stepChoice(setup, view, ctx)}`
+    hint = `${STEP_NAME[view]}: ${stepChoice(setup, view, ctx, rosterCard)}`
     note = 'You are looking at an earlier step. Override makes it the current step again.'
   } else if ((step === 'rollOff' || step === 'deck') && (!parsed.host || !parsed.guest)) {
     hint = 'Load both rosters to set up the game.'

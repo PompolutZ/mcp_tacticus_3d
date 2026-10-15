@@ -388,6 +388,13 @@ User: the whole setup, Sandbox and two browsers: the hint of each step, Prev / N
 
 ### Result
 
+### Result
+
+Done. New `setup/setupText.js` (`STEP_NAME`, `stepChoice(setup, step, ctx, cardOf)`, `chooses`, `decides`, `rollOffText`), moved as they are; only `rosterCard` became `cardOf`. `GameSetup.jsx` 606 to about 525 lines, imports them, `BoardPanel` passes `rosterCard`. Test `setupText.test.js` (7 tests). Feature doc: `setup-game.md` file table.
+
+- Checks: format, lint 58 warnings (same), test 877 web pass, build ok. `setupText.js` has no function above the fallow thresholds (the moved functions were not in the above-threshold table before). Moved-code diff: only the `cardOf` change. No pointer to a moved name in src or docs.
+- Deviations: none.
+
 ## Step 11: Character model hooks
 
 Work:
