@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { flowStage, restOutcome } from './rollFlow.js'
+import { contactStep, flowStage, restOutcome, rollBlocked } from './rollFlow.js'
 
 test('restOutcome, throw tilted again: lost wins, then timed out or tilted waits, else flat', () => {
   const r = { rethrowTilted: true }
@@ -35,4 +35,30 @@ test('flowStage sorts the entries into rolling, sliding, flat and waiting', () =
 
 test('flowStage of no dice is quiet', () => {
   assert.deepEqual(flowStage([]), { rolling: false, sliding: false, flat: [], waiting: [] })
+})
+
+test('contactStep: a touch counts only after the die was off every contact', () => {
+  assert.deepEqual(contactStep({ airborne: false, touching: true }), {
+    airborne: false,
+    contact: false,
+  })
+  assert.deepEqual(contactStep({ airborne: false, touching: false }), {
+    airborne: true,
+    contact: false,
+  })
+  assert.deepEqual(contactStep({ airborne: true, touching: false }), {
+    airborne: true,
+    contact: false,
+  })
+  assert.deepEqual(contactStep({ airborne: true, touching: true }), {
+    airborne: true,
+    contact: true,
+  })
+})
+
+test('rollBlocked: only after a contact, while a die is thrown or waits', () => {
+  assert.equal(rollBlocked({ contacted: false, rolling: true, waiting: true }), false)
+  assert.equal(rollBlocked({ contacted: true, rolling: true, waiting: false }), true)
+  assert.equal(rollBlocked({ contacted: true, rolling: false, waiting: true }), true)
+  assert.equal(rollBlocked({ contacted: true, rolling: false, waiting: false }), false)
 })

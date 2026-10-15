@@ -37,7 +37,7 @@ import {
 } from '../dice/shelf.js'
 import { changeEntry, clearEntry, throwEntry } from '../dice/history.js'
 import { MAX_DICE, shelfFromDocument } from '../dice/shelfStart.js'
-import { flowStage, restOutcome } from '../dice/rollFlow.js'
+import { contactStep, flowStage, restOutcome, rollBlocked } from '../dice/rollFlow.js'
 import { dieEntry, dieId, nextOrder, roundPose, trayCounts } from '../dice/stored.js'
 import { FALL_LIMIT_Y } from '../table.js'
 import { DieMenu } from './DiceKeys.jsx'
@@ -166,6 +166,20 @@ function Die({
   )
 }
 
+// Does the body touch any other collider now (a contact manifold with a point, also a gentle touch)?
+function touchesAny(world, rb) {
+  let touching = false
+  for (let i = 0; i < rb.numColliders() && !touching; i++) {
+    world.contactPairsWith(rb.collider(i), (other) => {
+      if (touching) return
+      world.contactPair(rb.collider(i), other, (manifold) => {
+        if (manifold.numContacts() > 0) touching = true
+      })
+    })
+  }
+  return touching
+}
+
 // One dice tray: the tray body, the dice bodies, the roll flow, and the keys on the tray (see
 // DiceKeys.jsx). trayKey: 'host' | 'guest'. openDieId, onDieOpen(dieId), onMenuClose: the "Change to"
 // menu of a shelf die of this tray, lifted to App so Escape can close it. It closes when its die
@@ -217,9 +231,12 @@ export default function DiceTray({
   const dice = useRef(initial.dice)
   const idsRef = useRef(initial.ids)
   const [ids, setIds] = useState(initial.ids)
-  // What the keys show: { well, shelf, critsAvailable }, see reportChange.
+  // What the keys show: { well, shelf, critsAvailable, rollBlocked }, see reportChange.
   const [keys, setKeys] = useState(() => trayCounts(initial.docDice, initial.critsUsed))
   const lastReported = useRef(null)
+  // True once a thrown die of the running throw touched something (docs/features/dice-rolling.md,
+  // "Roll flow" step 3). While it is true and the throw runs, roll() does nothing.
+  const contactedRef = useRef(false)
 
   // The pointer is over the tray body or over a die: onHover(true) at the first, onHover(false) at
   // the last, whatever the order of the over and out events.
@@ -279,6 +296,7 @@ export default function DiceTray({
     if (entry.slot === undefined && liveBody(world, rb) && !rb.isDynamic())
       rb.setBodyType(rapier.RigidBodyType.Dynamic, true)
     entry.bump?.reset() // the throw sets the speed: it is no bump
+    entry.airborne = false // a touch counts once the die was off every contact (contactStep)
     if (respawn) {
       // setTranslation moves the body at once, so a later respawn in the same frame sees this die
       rb.setTranslation(freeDropPoint(trayKey, wellOccupiedPoints(entry.id)), true)
@@ -463,6 +481,10 @@ export default function DiceTray({
   // Throws every die that is not on the shelf, from where it is. A die of the current throw that is
   // still high in the air only gets a new spin, as in TTS (ROLL_HEIGHT_LIMIT in tray.js).
   function roll() {
+    const { rolling, waiting } = flowStage(dice.current.values())
+    if (rollBlocked({ contacted: contactedRef.current, rolling, waiting: waiting.length > 0 }))
+      return
+    contactedRef.current = false
     let thrown = false
     for (const entry of dice.current.values()) {
       if (entry.state === 'shelf') continue
@@ -494,6 +516,7 @@ export default function DiceTray({
     idsRef.current = []
     dice.current.clear()
     throwFrom.current = { roll: [], crits: [], reroll: [] }
+    contactedRef.current = false
     setIds([])
     critsUsedRef.current = false
     onMenuClose?.()
@@ -562,19 +585,20 @@ export default function DiceTray({
     addDice(count)
   }
 
-  // Sets what the keys show, { well, shelf, critsAvailable }, only when a value changed since the
+  // Sets what the keys show, { well, shelf, critsAvailable, rollBlocked }, only when a value changed since the
   // last frame, so a rolling or moving tray does not re-render this component every frame.
-  function reportChange(well) {
+  function reportChange(well, rollIsBlocked) {
     const shelf = shelfCounts()
     const critsAvailable = critsUsedRef.current ? 0 : shelf.crit
     const last = lastReported.current
     const changed =
       !last ||
       last.well !== well ||
+      last.rollBlocked !== rollIsBlocked ||
       last.critsAvailable !== critsAvailable ||
       SYMBOLS.some((symbol) => last.shelf[symbol] !== shelf[symbol])
     if (!changed) return
-    lastReported.current = { well, critsAvailable, shelf }
+    lastReported.current = { well, critsAvailable, shelf, rollBlocked: rollIsBlocked }
     setKeys(lastReported.current)
   }
 
@@ -625,6 +649,13 @@ export default function DiceTray({
         continue
       }
       const strength = entry.bump.feed(rb.linvel(), world.timestep)
+      if (entry.state === 'thrown' && !contactedRef.current) {
+        // The first touch of the throw blocks Roll. Contact pairs see a gentle touch; the bump
+        // finder has a minimum strength, so it only backs them up.
+        const step = contactStep({ airborne: entry.airborne, touching: touchesAny(world, rb) })
+        entry.airborne = step.airborne
+        if (step.contact || strength > 0) contactedRef.current = true
+      }
       if (strength > 0) playSound('die', { volume: strength, key: `${trayKey}:${entry.id}` })
     }
   })
@@ -746,11 +777,19 @@ export default function DiceTray({
       } else {
         const from = throwFrom.current
         if (from.roll.length + from.crits.length + from.reroll.length > 0) endThrow()
+        contactedRef.current = false // the throw is over: Roll works again
       }
     }
     if (dirtyRef.current) commit()
 
-    reportChange(well)
+    reportChange(
+      well,
+      rollBlocked({
+        contacted: contactedRef.current,
+        rolling: stage.rolling,
+        waiting: waiting.length > 0,
+      }),
+    )
   })
 
   return (

@@ -6,7 +6,7 @@ Status: built.
 
 Players roll the game die in the app, as in TTS. A player chooses how many dice to roll and presses Roll. The dice jump from the player's tray into the air and spin. Then they fall and bounce on the tray, the table, terrain, models and other dice. The result is the face that points up when a die stops. The app does not choose the result with a random number.
 
-When a player presses Roll again, the dice are thrown again from where they are, also while they are in the air. A die that is high in the air is not thrown again, but its spin changes, as in TTS.
+When a player presses Roll again before any die of the throw touched anything, the dice are thrown again from where they are, also while they are in the air. A die that is high in the air is not thrown again, but its spin changes, as in TTS. After the first touch, Roll does nothing until the throw ends, so a player cannot wait for a bad face and roll again.
 
 ## Players apply the rules
 
@@ -117,7 +117,7 @@ The flow follows the TTS tray script, with three changes (see the list after the
 
 1. `+` adds one die. The die appears above the well at a random point, 4.8" above the floor, with a random rotation, and falls into the well. `−` removes the last added die that is not on the shelf. A tray holds at most 42 dice. This is the TTS limit, and the shelf has 42 places.
 2. Roll throws every die that is not on the shelf, from where it is (see [Throw](#throw)). Dice on the shelf do not move.
-3. When the player presses Roll while those dice move, they are thrown again from where they are, also in the air. TTS does the same, because its script does not block a second press. A die that is more than 5.6" above its rest height on the well floor is not thrown again (`ROLL_HEIGHT_LIMIT` in `src/dice/tray.js`). It only gets a new random spin (step 4 of [Throw](#throw)), so it is harder to see which face will be up. In TTS, when a player presses Roll many times, each die is thrown again only when it falls back to one height, as if it bounced on an invisible floor above the tray. Each press also changes the spin of the dice above that height. So the dice do not go higher with each press. A new die that falls into the well was not thrown yet, so Roll throws it at any height. 5.6" is the TTS height (see [Measurements](#measurements)).
+3. When the player presses Roll while those dice move and no die has touched anything yet, they are thrown again from where they are, also in the air. TTS does the same, because its script does not block a second press. A die that is more than 5.6" above its rest height on the well floor is not thrown again (`ROLL_HEIGHT_LIMIT` in `src/dice/tray.js`). It only gets a new random spin (step 4 of [Throw](#throw)), so it is harder to see which face will be up. In TTS, when a player presses Roll many times, each die is thrown again only when it falls back to one height, as if it bounced on an invisible floor above the tray. Each press also changes the spin of the dice above that height. So the dice do not go higher with each press. A new die that falls into the well was not thrown yet, so Roll throws it at any height. 5.6" is the TTS height (see [Measurements](#measurements)). Once any thrown die of the throw touches anything (tray, table, terrain, a model base, another die, a die on the shelf), Roll does nothing, no throw, no new spin and no shake sound, until the throw ends: every die of it is on the shelf, none is thrown and none waits. The Roll button is disabled in that time. The tray owner's client runs the physics and the check; the other player's tray keys are off. Dice added meanwhile (`+`, number keys) wait; the next Roll after the throw ends throws them. The rethrow of tilted dice and of a lost die does not need Roll, and still happens. A die from a face plate click or `+N Crits` falls to rest and is thrown by Roll; that Roll is the start of the next throw.
 4. The app reads the top face of each die when it rests, in the well or outside it. A die that rests tilted reads its nearest face and counts as flat. With the setting **Throw tilted dice again** on, it waits instead and is not thrown again yet (see [Tilted dice](#tilted-dice)).
 5. When every thrown die rests, each die turns flat on its top face and moves to the shelf, all in one change. The dice on the shelf are sorted by face: Crit, Wild, Hit, Block, Blank, Skull. The counts update. With **Throw tilted dice again** on, only the flat dice go: when their slide ends, the tilted dice are thrown again from where they are. This repeats until no die is tilted. The history has one entry for the whole throw, written when the last dice reach the shelf.
 6. A click on a face plate moves one die with that face from the shelf back into the well. The player presses Roll to throw it.
@@ -127,6 +127,7 @@ The flow follows the TTS tray script, with three changes (see the list after the
 
 Changes from TTS:
 
+- TTS lets a second Roll throw dice again after they landed. The app blocks Roll after the first touch of the throw until it ends, to stop timed re-rolls.
 - TTS puts the dice on the shelf in the order they were added. The app sorts them by face, so the counts are easier to read.
 - TTS reads the nearest face, even when a die is tilted. The app does the same by default. With **Throw tilted dice again** on, the app lets a tilted die wait until the flat dice are on the shelf. Then it throws the tilted die again.
 - The app has a menu that TTS does not have: a click on a die on the shelf opens Change to. In TTS, a click on a face count rerolls one die with that face, and the app does the same.
@@ -223,7 +224,7 @@ A die that still moves after 8 s reads its top face at once and counts as flat: 
 - A waiting die that moves again, for example because another die hits it, is a moving die of the throw again. The app checks its rest again.
 - A die that does not rest by 8 s waits in the same way. By default it reads its top face at 8 s instead.
 - A lost die (not finite, or below the table) is thrown again from above the well in both modes.
-- Roll while dice wait throws them with the other dice.
+- Roll is blocked while dice wait (the throw is not over, and a touch has happened). The waiting dice are thrown again by the app, not by Roll.
 - The history has one `throw` entry for the throw, with the results of all its dice. The app writes it with the last dice that reach the shelf. Clear drops the results that wait for it.
 - A die that rests flat outside the well counts, and moves to the shelf with the other dice. Outside the well means on the shelf, on the rim, on the table, on terrain or on a model base. TTS does the same: the tray script reads every die wherever it rests.
 - The table has invisible walls at its edge (`src/table.js`), so a die cannot fall off the table. In TTS, a die can also leave the tray but not the table.

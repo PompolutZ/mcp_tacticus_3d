@@ -34,11 +34,11 @@ function iconUrl(symbol) {
 // (tray space, see tray.js). The lip on the player's side has Clear, -, the count of dice not on
 // the shelf, +, Roll and +N Crits. Each face plate on the rim past the shelf shows how many shelf
 // dice show that face. A click on a plate with dice rerolls one die of that face, as in TTS.
-// state: { well, shelf, critsAvailable }, see DiceTray. actions: the tray's add, remove, roll,
+// state: { well, shelf, critsAvailable, rollBlocked }, see DiceTray. actions: the tray's add, remove, roll,
 // clear, addCrits and reroll.
 // disabled: the other player's tray. Every button is off, a face plate is not a button.
 export default function DiceKeys({ state, actions, disabled = false, skip }) {
-  const { well, shelf, critsAvailable } = state
+  const { well, shelf, critsAvailable, rollBlocked = false } = state
   return (
     <>
       <group position={LIP_CENTER} rotation={LIP_ROTATION}>
@@ -77,8 +77,8 @@ export default function DiceKeys({ state, actions, disabled = false, skip }) {
             <button
               type="button"
               className="dice-key dice-key--roll"
-              title="Roll the dice"
-              disabled={disabled}
+              title={rollBlocked ? 'Wait until the dice stop' : 'Roll the dice'}
+              disabled={disabled || rollBlocked}
               onClick={actions.roll}
             >
               Roll

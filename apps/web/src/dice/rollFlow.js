@@ -25,3 +25,17 @@ export function flowStage(entries) {
   }
   return { rolling, sliding, flat, waiting }
 }
+
+// One physics step of one thrown die: did it touch something for the first time since the throw?
+// A die thrown from a rest sits on the floor in the first step, so only a touch after it was off
+// every contact (airborne) counts. Returns the new airborne and whether this step is a contact.
+export function contactStep({ airborne, touching }) {
+  if (!touching) return { airborne: true, contact: false }
+  return { airborne, contact: airborne }
+}
+
+// Can Roll not throw now? After the first contact of a die of the throw, until the throw ends
+// (no die thrown and none waiting): a player cannot wait for a bad face and throw again.
+export function rollBlocked({ contacted, rolling, waiting }) {
+  return contacted && (rolling || waiting)
+}
