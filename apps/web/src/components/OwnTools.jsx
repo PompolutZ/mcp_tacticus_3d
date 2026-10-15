@@ -27,7 +27,7 @@ export default function OwnTools({
   turnProps,
 }) {
   // The own tool that has Place or Throw on: 'range', 'move' or null. Only one at a time. The other tool turns
-  // its own off (limitTaken in RulerTool.jsx). A tool that turns off clears only its slot in placeLimits.
+  // its own off (limitTaken in useToolLimits.js). A tool that turns off clears only its slot in placeLimits.
   const [limitTool, setLimitTool] = useState(null)
   // Function of the angle tool that returns { target, openYaw } while it is snapped, else null. See AngleRuler.
   const angleTool = useRef(null)

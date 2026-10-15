@@ -1,6 +1,6 @@
 # Plan: Split large files
 
-Requested by the user on 2026-10-15. Status: not started. Branch `split-large-files`, worktree `../mcp_assist_3d-split-large-files`, from main after `docs/plans/review-fixes.md` merges into main. This plan touches many files, so no other branch is open while it runs.
+Requested by the user on 2026-10-15. Status: done, waiting for the user test. Branch `split-large-files`, worktree `../mcp_assist_3d-split-large-files`, from main after `docs/plans/review-fixes.md` merges into main. This plan touches many files, so no other branch is open while it runs.
 
 Each step makes one commit and writes its **Result** below. Feature docs change in the same step as the code.
 
@@ -444,6 +444,28 @@ Work:
 User: the full test, all the "User" lists above.
 
 ### Result
+
+Done. `git merge main`: already up to date. One leftover pointer fixed: `OwnTools.jsx` named `limitTaken in RulerTool.jsx`, now `useToolLimits.js`. Other `*.jsx` pointers (Scene, App, Table, GameSetup, DiceTray, CharacterModel) still name the file that holds the thing.
+
+Lines (at `4698e42` to now): `Scene.jsx` 1,872 to 1,216; `RulerTool.jsx` 1,910 to 749; `App.jsx` 1,109 to 1,078; `Table.jsx` 342 to 112; `CharacterModel.jsx` 862 to 641; `DiceTray.jsx` 815 to 774; `GameSetup.jsx` 606 to 528.
+
+Fallow (cyclomatic / cognitive / lines):
+
+| Function | Before | After |
+|---|---|---|
+| `Scene` | 68 / 211 / 1,562 | 52 / 159 / 982 |
+| `App` | 54 / 116 / 1,019 | 55 / 106 / 984 |
+| `Tool` | 37 / 98 / 838 | 27 / 75 / 619 |
+| roll flow frame (DiceTray) | 47 / 72 / 119 | 38 / 62 / 113 |
+| `BoardPanel` | 42 / 51 / 191 | 42 / 51 / 191 |
+| `CharacterFigure` | 6 / 65 / 597 | 6 / 59 / 412 |
+| open table (now `openTableSession.js`) | 27 / 25 / 109 | 29 / 27 / 115 |
+| `Table` | 9 / 17 / 290 | 9 / 14 / 68 |
+| `LosTool` | 5 / 35 / 191 | 5 / 35 / 191 |
+
+Functions above the thresholds: 319 to 315. New above threshold: the open table function in `openTableSession.js` (moved, plus the new `.catch`). `BoardPanel` and `LosTool` not split.
+
+- Checks: format, lint 58 warnings (same), test 884 web pass; api signal test failed once, passed on rerun; build ok.
 
 ## Left for remove-duplicates
 
