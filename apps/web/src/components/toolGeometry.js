@@ -2,6 +2,8 @@ import * as THREE from 'three'
 import { fromLocal, toLocal } from './placeLock.js'
 import { flipTool } from './toolFlip.js'
 
+// Tools hang this far above the table and measure by the outline cast below them
+export const TOOL_HOVER_HEIGHT = 1
 // Movement tools are about 0.56" wide (mesh-a spans z = ±0.279)
 export const MOVE_HALF_WIDTH = 0.279
 // Range tools are 1" wide (mesh spans z = ±0.5)

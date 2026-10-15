@@ -5,6 +5,7 @@
 import { TACTIC_TRAY_OUTER_Z } from '../tactics/layout.js'
 import { TOKEN_SIZE } from '../tokens/files.js'
 import { CARD_WIDTH as CRISIS_CARD_WIDTH } from '../crisis/layout.js'
+import { trayCards } from './models.js'
 
 // Card face images are 1800x1200 px
 export const TRAY_CARD_WIDTH = 4.5
@@ -280,6 +281,19 @@ export function gruntsByHost(characters) {
     if (ch.host && ids.has(ch.host)) grunts.set(ch.host, [...(grunts.get(ch.host) ?? []), ch])
   }
   return grunts
+}
+
+// The tray that character ch is on: the number of host cards, the number of grunt cards on it, and the
+// offset of ch's own card from the host card ([0, 0] for a host). gruntLists: gruntsByHost (trays.js).
+export function trayShapeOf(ch, characters, gruntLists) {
+  const host = ch.host ? (characters.find((c) => c.id === ch.host) ?? ch) : ch
+  const list = gruntLists.get(host.id) ?? []
+  return {
+    cards: trayCards(host),
+    grunts: list.length,
+    index: Math.max(0, list.indexOf(ch)),
+    slot: ch.host ? trayGruntSlot(trayCards(host), Math.max(0, list.indexOf(ch))) : [0, 0],
+  }
 }
 
 // Tray position of every character: character id -> [x, y, z]. A grunt has no tray of its own: its card

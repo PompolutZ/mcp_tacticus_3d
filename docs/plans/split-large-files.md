@@ -347,6 +347,13 @@ User: crisis tokens (select, drag, turn, hold on a card, held on a grunt card), 
 
 ### Result
 
+Done. `trayShapeOf` moved to `characters/trays.js` (imports `trayCards` from `models.js`) with a test for a host, grunts (slot, index) and a grunt whose host is gone. New `components/TokenLayer.jsx` (crisis tokens, loose tokens, piles, drag preview, other spawn preview; `tokenViews` memo, `NO_RAYCAST`, `HELD_STACK_STEP`), `components/OwnTools.jsx` (move, angle, LOS, range; `limitTool`, `angleTool`, `angleLimit`, `toolEntry`, `spawnModel`, `toggleTool`, `selectTool`), `components/OtherTools.jsx` (`otherTarget`). `toolKey` is one line in each tool file. Two deploy tools stay in Scene.
+
+- Checks: format, test pass (853 web tests), build ok. Move diff: only moved code, imports, props and hook calls.
+- Lint 58 warnings (same). The tray follow warning in Scene stays 1.
+- Fallow: `Scene` 68 / 177 / 1,227 lines before; 52 / 159 / 982 lines after. `Scene.jsx` 1,497 to 1,216 lines.
+- Deviations: `OwnTools` takes `onPlaceLimit(kind, limit)` instead of the `placeLimits` ref. Writing `ref.current` of a prop gave 2 new `immutability` warnings; Scene sets the slot, same effect. `spawnModel`, `toggleTool` and `selectTool` moved into `OwnTools` (only the tools used them); `toolModel` and `selectModel` (as `onSnap`) stay in Scene. `TOOL_HOVER_HEIGHT` moved to `toolGeometry.js` (Scene's deploy tools and `OwnTools` both use it). `TokenLayer` takes 35 props (values and handlers from Scene, incl. `trayShape` and `getPieceLive`). The range tool now mounts before the two deploy tools instead of after; they are independent.
+
 ## Step 9: Open table session
 
 Work:

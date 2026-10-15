@@ -1,9 +1,10 @@
 import { Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
-import { MovementRuler, AngleRuler, RangeRuler } from './RulerTool.jsx'
+import TokenLayer from './TokenLayer.jsx'
+import OwnTools from './OwnTools.jsx'
+import OtherTools from './OtherTools.jsx'
 import { DeployRangeTool } from './ToolParts.jsx'
-import { OtherTool } from './OtherTool.jsx'
-import { sameModel } from './toolGeometry.js'
+import { TOOL_HOVER_HEIGHT } from './toolGeometry.js'
 import { createSceneApi } from './sceneApi.js'
 import { useModelRegistry } from './useModelRegistry.js'
 import { useTerrainHoverLabel } from './useTerrainHoverLabel.js'
@@ -14,17 +15,12 @@ import { useModelSync } from './useModelSync.js'
 import CharacterModel, { StandeeModel, modelUrls } from './CharacterModel.jsx'
 import CharacterTray from './CharacterTray.jsx'
 import TableButtons from './TableButtons.jsx'
-import { LosTool, OtherLos } from './LosTool.jsx'
 import ToolRack from './ToolRack.jsx'
 import ToolDragGhost from './ToolDragGhost.jsx'
 import SpectatorBadge from './SpectatorBadge.jsx'
 import { heldTokensByCharacter } from '../game/heldTokens.js'
 import Terrain from './Terrain.jsx'
 import CrisisCard from './CrisisCard.jsx'
-import CrisisToken, { TOKEN_RADIUS } from './CrisisToken.jsx'
-import { clampWaiting } from '../tokens/dropWait.js'
-import LooseToken from './LooseToken.jsx'
-import TokenDragPreview, { OtherSpawnPreview } from './TokenDragPreview.jsx'
 import ToolPoint from './ToolPoint.jsx'
 import WorldRef from './WorldRef.jsx'
 import {
@@ -35,9 +31,7 @@ import {
 import LiveSync from './LiveSync.jsx'
 import RemoteCursor from './RemoteCursor.jsx'
 import Ping from './Ping.jsx'
-import TokenFace from './TokenFace.jsx'
-import SupplyPile, { SupplyToken } from './SupplyPile.jsx'
-import TokenPile, { PileStack } from './TokenPile.jsx'
+import SupplyPile from './SupplyPile.jsx'
 import TacticTray from './TacticTray.jsx'
 import TacticCard from './TacticCard.jsx'
 import RosterCards from './RosterCards.jsx'
@@ -74,24 +68,15 @@ import { CARD_X, CARD_Y, CARD_Z, supplyPilePosition } from '../crisis/layout.js'
 import { getCard } from '../crisis/cards.js'
 import { TRAYS } from '../dice/tray.js'
 import {
-  TRAY_Y,
   gruntsByHost,
   inTrayArea,
   layoutTrays,
-  onTray,
-  trayHeldLocal,
-  trayHeldWorld,
   trayModelPosition,
   traySpareModelPosition,
   trayConstructPosition,
-  trayGruntHeldClamp,
-  trayGruntHeldLocal,
   trayGruntModelPosition,
-  trayGruntSlot,
-  trayYaw,
+  trayShapeOf,
 } from '../characters/trays.js'
-import { TOKEN_THICKNESS } from '../tokens/solid.js'
-import { tokenSize } from '../tokens/tokens.js'
 import { MAT_SIZE, TABLE_WALLS } from '../table.js'
 import { RANGE_TIP } from '../tabletools/toolTips.js'
 import {
@@ -107,16 +92,8 @@ import { poseOf } from '../rooms/table.js'
 import { rackHiddenSides, rosterRowsShown, setupStep, viewOf } from '../setup/setup.js'
 import { useSideColors } from '../sideColors.js'
 
-// Tools hang this far above the table and measure by the outline cast below them
-const TOOL_HOVER_HEIGHT = 1
 // Two physics steps per frame. With one, a model dropped from high up sometimes gets stuck in terrain.
 const TIME_STEP = 1 / 120
-// Tokens held by one character lie on its card in a stack, in the order they were taken, so two
-// tokens that overlap do not z-fight. Each one is this much higher than the one before it.
-const HELD_STACK_STEP = TOKEN_THICKNESS + 0.01
-// The dragged token gets no pointer events, so it does not hide what is under it
-const NO_RAYCAST = () => null
-
 // Every piece that loads a file after the first scene load (the mat of a new map, terrain, crisis
 // cards and tokens, character trays and models, tactic cards, tools) is in its own Suspense below. While its file
 // loads, only that piece is not drawn. Without its own Suspense, the load hides the whole scene (the
@@ -145,19 +122,6 @@ const noPresence = () => NO_PRESENCE
 
 // How often (ms) Scene looks for overlapping models
 const OVERLAP_INTERVAL = 100
-
-// The tray that character ch is on: the number of host cards, the number of grunt cards on it, and the
-// offset of ch's own card from the host card ([0, 0] for a host). gruntLists: gruntsByHost (trays.js).
-function trayShapeOf(ch, characters, gruntLists) {
-  const host = ch.host ? (characters.find((c) => c.id === ch.host) ?? ch) : ch
-  const list = gruntLists.get(host.id) ?? []
-  return {
-    cards: trayCards(host),
-    grunts: list.length,
-    index: Math.max(0, list.indexOf(ch)),
-    slot: ch.host ? trayGruntSlot(trayCards(host), Math.max(0, list.indexOf(ch))) : [0, 0],
-  }
-}
 
 // mapId: key in MAPS. terrain: the terrain pieces on the mat, [{ id, locked, ...placement }] (see
 // mapTerrain in rooms/table.js). onTerrainHover(id, over): the pointer moved onto or off an unlocked piece,
@@ -393,9 +357,6 @@ export default function Scene({
   // Tool ('move' or 'range') → { owns(model, p), clamp(p, model) } while its Place, Place 1 or Throw is on,
   // else null. A drag of the model that the tool owns is limited by it (see onPlaceLimit in RulerTool.jsx).
   const placeLimits = useRef({})
-  // The own tool that has Place or Throw on: 'range', 'move' or null. Only one at a time. The other tool turns
-  // its own off (limitTaken in RulerTool.jsx). A tool that turns off clears only its slot in placeLimits.
-  const [limitTool, setLimitTool] = useState(null)
   // The own tools' live poses for LiveSync: kind → a getter that Tool registers (like toolTurns)
   const toolLives = useRef({})
   // The own dice's live poses for LiveSync: tray side → a getter that DiceTray registers
@@ -405,8 +366,6 @@ export default function Scene({
   // The latest live numbers of a piece key, for the pieces that follow
   const getPieceLive = (key) => received.current?.pose(key) ?? null
   const getPieceLiveTime = (key) => received.current?.poseTime(key) ?? null
-  // Function of the angle tool that returns { target, openYaw } while it is snapped, else null. See AngleRuler.
-  const angleTool = useRef(null)
   const [draggingCharId, setDraggingCharId] = useState(null)
   // The piece that a range tool measures against, { kind, id, mode: 'inRange' | 'outOfRange' } or null.
   // See RangeMark in ToolFootprint.jsx.
@@ -639,28 +598,6 @@ export default function Scene({
     [matTokens, crisis.secure],
   )
   const heldTokens = useMemo(() => heldTokensByCharacter(tokens), [tokens])
-  // Every crisis token as it is drawn. A held token lies on its holder's card: its tray-local place
-  // (heldAt) moves to the table with the tray position, and it faces the holder's player, the same
-  // as the card (see trays.js, "An objective token that the character holds").
-  const tokenViews = useMemo(() => {
-    const stacks = new Map()
-    return tokens.map((tok) => {
-      if (!tok.heldBy) return { token: tok }
-      const holder = characters.find((ch) => ch.id === tok.heldBy)
-      const trayPos = trayPositions.get(tok.heldBy)
-      if (!holder || !trayPos) return { token: tok }
-      // A grunt's token lies on the grunt card (the default place is on a host card, so it is clamped)
-      const { slot } = trayShapeOf(holder, characters, gruntLists)
-      const local = holder.host ? trayGruntHeldClamp(tok.heldAt) : tok.heldAt
-      const [x, z] = trayHeldWorld(holder.team, trayPos, local, slot)
-      const level = stacks.get(tok.heldBy) ?? 0
-      stacks.set(tok.heldBy, level + 1)
-      return {
-        token: { ...tok, x, z, yaw: trayYaw(holder.team) },
-        floorY: TRAY_Y + level * HELD_STACK_STEP,
-      }
-    })
-  }, [tokens, characters, trayPositions, gruntLists])
   const toolModels = useMemo(
     () => [
       ...models.map((model) => ({
@@ -711,11 +648,11 @@ export default function Scene({
     }
     return p
   }
+  const setPlaceLimit = (kind, limit) => {
+    placeLimits.current[kind] = limit
+  }
   const toolModel = (piece) =>
     toolModels.find((model) => piece && model.kind === piece.kind && model.id === piece.id) ?? null
-  // The spawn target of the range and movement tools. undefined without one, so that RulerTool falls back
-  // to target (null would mean "spawn free").
-  const spawnModel = (piece) => (piece ? toolModel(piece) : undefined)
   // The tools measure against the character or token selected last, and a new tool snaps to it.
   // Place moves the selected character, also when a token was selected after it.
   const toolTarget = toolModel(selection.findLast(isToolPiece))
@@ -723,16 +660,6 @@ export default function Scene({
   const sideColors = useSideColors()
   const ownTools = tools[ownSide] ?? {}
   const otherTools = tools[otherSide] ?? {}
-  // Props that every own tool gets from its entry
-  const toolKey = (kind, entry) => `${kind}-${entry.which}-${entry.spawn}`
-  const toolEntry = (kind) => ({
-    team: ownSide,
-    side: ownSide,
-    entry: ownTools[kind],
-    onStore: (fields) => onToolStore?.(kind, ownTools[kind].spawn, fields),
-    onReturn: onToolReturn && (() => onToolReturn(kind)),
-  })
-
   // Outline mode of the range mark on a piece, or null
   // The own mark wins over the other player's (decision 24)
   function rangeMarkOf(kind, id) {
@@ -743,19 +670,6 @@ export default function Scene({
   function otherSelectedOf(kind, id) {
     return otherLook.selection.includes(`${kind}:${id}`) ? sideColors[otherSide] : null
   }
-  // The other player's tool target: the last key of their selection, as a tool model
-  const otherKey = otherLook.selection.at(-1)
-  const otherTarget = otherKey
-    ? (toolModels.find((model) => `${model.kind}:${model.id}` === otherKey) ?? null)
-    : null
-
-  // The open direction of the angle tool when it is snapped to model, else null. A movement tool snapped
-  // to the same character points within 45° of it.
-  function angleLimit(model) {
-    const angle = angleTool.current?.()
-    return angle && sameModel(angle.target, model) ? angle.openYaw : null
-  }
-
   // Table position where a model spawns: its saved pose in a room, else on its card on the tray, or for
   // a spare model (a second form without its own card), past the Give sources (trays.js). The model
   // reads it only once, when its body mounts.
@@ -819,14 +733,6 @@ export default function Scene({
         secureTokens={secureTokens}
       />
     )
-  }
-
-  function toggleTool(tool) {
-    onSelectedToolsChange((prev) => ({ ...prev, [tool]: !prev[tool] }))
-  }
-
-  function selectTool(tool) {
-    onSelectedToolsChange((prev) => ({ ...prev, [tool]: true }))
   }
 
   // A drag selects the piece and keeps it selected, a click toggles (toggleSelect)
@@ -1004,140 +910,43 @@ export default function Scene({
               )
             )
           })}
-          {/* A held token lies on its holder's tray card (Hold and drop). A drag off the card puts
-            it back on the mat (onMove). It is not a piece for the tools, so its hover goes to
-            onHeldHover, not onPieceHover: a tool key over it does not snap a tool to it (App.jsx,
-            handleToolKey), and the Delete key removes it. */}
-          {tokenViews.map(({ token: tok, floorY }) => (
-            <Suspense key={tok.id} fallback={null}>
-              <CrisisToken
-                token={tok}
-                floorY={floorY}
-                selected={selectedTokenId === tok.id}
-                rangeMark={rangeMarkOf('token', tok.id)}
-                otherSelected={otherSelectedOf('token', tok.id)}
-                onSelect={() => toggleSelect('token', tok.id)}
-                onDragSelect={() => dragSelect('token', tok.id)}
-                onHover={
-                  tok.heldBy
-                    ? (over) => onHeldHover?.(tok.id, over)
-                    : (over) => onPieceHover?.({ kind: 'token', id: tok.id }, over)
-                }
-                canDrag={!tok.placeBy || playedSides.includes(tok.placeBy)}
-                constrainDrag={(raw) => {
-                  const p = tok.placeBy ? clampWaiting(tok, raw, TOKEN_RADIUS) : raw
-                  return applyPlaceLimits('token', tok.id, p)
-                }}
-                onMove={(x, z) => onTokenMove(tok.id, x, z)}
-                onTurn={(yaw) => onTokenTurn(tok.id, yaw)}
-                ownership={ownership}
-                pieceLives={pieceLives}
-                remote={otherOwned.has(`token:${tok.id}`)}
-                getLivePose={getPieceLive}
-                onHold={(characterId, point) => {
-                  const holder = characters.find((ch) => ch.id === characterId)
-                  const trayPos = trayPositions.get(characterId)
-                  const shape = holder && trayShape(holder)
-                  const onCard =
-                    holder &&
-                    trayPos &&
-                    onTray(holder.team, trayPos, point, shape.cards, shape.grunts)
-                  onTokenHold(
-                    tok.id,
-                    characterId,
-                    onCard
-                      ? holder.host
-                        ? trayGruntHeldLocal(holder.team, trayPos, point, shape.slot)
-                        : trayHeldLocal(holder.team, trayPos, point)
-                      : null,
-                  )
-                }}
-                findCharacter={findCharacterAt}
-                controlAffiliation={tok.control ? affiliations[tok.control] : null}
-                objectRef={(obj) =>
-                  obj ? tokenObjects.current.set(tok.id, obj) : tokenObjects.current.delete(tok.id)
-                }
-                centerRef={(fn) =>
-                  fn ? tokenCenters.current.set(tok.id, fn) : tokenCenters.current.delete(tok.id)
-                }
-              />
-            </Suspense>
-          ))}
-
-          {/* Character tokens on the table. Relative to the table, not the mat, the same as the crisis
-            tokens above. A token that is being dragged shows under the pointer instead. */}
-          {looseTokens.map((tok, index) =>
-            tokenDrag?.active && tokenDrag.looseId === tok.id ? null : (
-              <LooseToken
-                key={tok.id}
-                token={tok}
-                index={index}
-                count={
-                  (tok.count ?? 1) - (tokenDrag?.active && tokenDrag.takeFrom === tok.id ? 1 : 0)
-                }
-                onDragStart={(e) => onTokenDragStart(e, tok.key, tok.id)}
-                onHover={(over) => onLooseHover?.(tok.id, over)}
-                remote={otherOwned.has(`loose:${tok.id}`)}
-                getLivePose={getPieceLive}
-              />
-            ),
-          )}
-          {/* Piles of character tokens on the table (Library, Pile mode). A pile that is moved shows
-            under the pointer instead. */}
-          {tokenPiles
-            .filter((pile) => !(tokenDrag?.active && tokenDrag.pileId === pile.id))
-            .map((pile) => (
-              <TokenPile
-                key={pile.id}
-                pile={pile}
-                onTakeStart={(e) => onPileTakeStart(e, pile)}
-                onMoveStart={(e) => onPileMoveStart(e, pile)}
-                onHover={(over) => onPileHover?.(pile.id, over)}
-                remote={otherOwned.has(`pile:${pile.id}`)}
-                getLivePose={getPieceLive}
-              />
-            ))}
-          {tokenDrag?.active && (
-            <TokenDragPreview
-              pointRef={dragPointRef}
-              start={tokenDrag.start}
-              stacks={!tokenDrag.supplyCard && !tokenDrag.pile && !tokenDrag.pileId}
-            >
-              {tokenDrag.supplyCard ? (
-                <SupplyToken tokenKey={tokenDrag.tokenKey} raycast={NO_RAYCAST} />
-              ) : tokenDrag.pile || tokenDrag.pileId ? (
-                <PileStack tokenKey={tokenDrag.tokenKey} interactive={false} />
-              ) : (
-                <TokenFace
-                  tokenKey={tokenDrag.tokenKey}
-                  size={tokenSize(tokenDrag.tokenKey)}
-                  interactive={false}
-                />
-              )}
-            </TokenDragPreview>
-          )}
-          {/* The new piece that the other player drags: the kind comes from the key (decision 22) */}
-          {otherSpawn && (
-            <OtherSpawnPreview
-              key={otherSpawn.key}
-              spawnKey={otherSpawn.key}
-              tokenKey={otherSpawn.tokenKey}
-              getLivePose={getPieceLive}
-              stacks={otherSpawn.key.startsWith('loose:')}
-            >
-              {otherSpawn.key.startsWith('token:') ? (
-                <SupplyToken tokenKey={otherSpawn.tokenKey} raycast={NO_RAYCAST} />
-              ) : otherSpawn.key.startsWith('pile:') ? (
-                <PileStack tokenKey={otherSpawn.tokenKey} interactive={false} />
-              ) : (
-                <TokenFace
-                  tokenKey={otherSpawn.tokenKey}
-                  size={tokenSize(otherSpawn.tokenKey)}
-                  interactive={false}
-                />
-              )}
-            </OtherSpawnPreview>
-          )}
+          <TokenLayer
+            tokens={tokens}
+            characters={characters}
+            trayPositions={trayPositions}
+            gruntLists={gruntLists}
+            trayShape={trayShape}
+            selectedTokenId={selectedTokenId}
+            rangeMarkOf={rangeMarkOf}
+            otherSelectedOf={otherSelectedOf}
+            toggleSelect={toggleSelect}
+            dragSelect={dragSelect}
+            onHeldHover={onHeldHover}
+            onPieceHover={onPieceHover}
+            playedSides={playedSides}
+            applyPlaceLimits={applyPlaceLimits}
+            onTokenMove={onTokenMove}
+            onTokenTurn={onTokenTurn}
+            ownership={ownership}
+            pieceLives={pieceLives}
+            otherOwned={otherOwned}
+            getPieceLive={getPieceLive}
+            onTokenHold={onTokenHold}
+            findCharacterAt={findCharacterAt}
+            affiliations={affiliations}
+            tokenObjects={tokenObjects}
+            tokenCenters={tokenCenters}
+            looseTokens={looseTokens}
+            tokenDrag={tokenDrag}
+            onTokenDragStart={onTokenDragStart}
+            onLooseHover={onLooseHover}
+            tokenPiles={tokenPiles}
+            onPileTakeStart={onPileTakeStart}
+            onPileMoveStart={onPileMoveStart}
+            onPileHover={onPileHover}
+            dragPointRef={dragPointRef}
+            otherSpawn={otherSpawn}
+          />
 
           {/* The tactic tray of each player, between the mat and the character trays, and the Team
             Tactic cards. Relative to the table, not the mat. See docs/features/team-tactic-cards.md. */}
@@ -1345,65 +1154,24 @@ export default function Scene({
             )
           })}
 
-          {ownTools.move && (
-            <Suspense key={toolKey('move', ownTools.move)} fallback={null}>
-              <MovementRuler
-                type={ownTools.move.which}
-                spawnTarget={spawnModel(toolSpawn.move)}
-                {...toolEntry('move')}
-                hoverHeight={TOOL_HOVER_HEIGHT}
-                selected={selectedTools.move}
-                onSelect={() => toggleTool('move')}
-                onDragSelect={() => selectTool('move')}
-                // A new tool is selected, so its buttons (Place, Bend) can be used right away
-                onSpawn={() => selectTool('move')}
-                angleLimit={angleLimit}
-                target={toolTarget}
-                models={toolModels}
-                onSnap={selectModel}
-                onPlaceLimit={(limit) => {
-                  placeLimits.current.move = limit
-                }}
-                limitTaken={limitTool === 'range'}
-                onLimitOn={() => setLimitTool('move')}
-                {...turnProps('move')}
-              />
-            </Suspense>
-          )}
-          {ownTools.angle && (
-            <Suspense key={toolKey('angle', ownTools.angle)} fallback={null}>
-              <AngleRuler
-                {...toolEntry('angle')}
-                hoverHeight={TOOL_HOVER_HEIGHT}
-                selected={selectedTools.angle}
-                onSelect={() => toggleTool('angle')}
-                onDragSelect={() => selectTool('angle')}
-                onSpawn={() => selectTool('angle')}
-                target={toolTarget}
-                spawnTarget={toolModel(angleSpawn.target)}
-                aim={toolModel(angleSpawn.aim)}
-                models={toolModels}
-                onSnap={selectModel}
-                angleRef={(get) => {
-                  angleTool.current = get
-                }}
-                {...turnProps('angle')}
-              />
-            </Suspense>
-          )}
-          {ownTools.los && (
-            <LosTool
-              key={toolKey('los', ownTools.los)}
-              {...toolEntry('los')}
-              selected={selectedTools.los}
-              onSelect={() => toggleTool('los')}
-              onDragSelect={() => selectTool('los')}
-              onSpawn={() => selectTool('los')}
-              onRemove={() => onToolRemove?.('los')}
-              models={toolModels}
-              {...turnProps('los')}
-            />
-          )}
+          <OwnTools
+            ownTools={ownTools}
+            ownSide={ownSide}
+            onToolStore={onToolStore}
+            onToolReturn={onToolReturn}
+            onToolRemove={onToolRemove}
+            toolSpawn={toolSpawn}
+            angleSpawn={angleSpawn}
+            selectedTools={selectedTools}
+            onSelectedToolsChange={onSelectedToolsChange}
+            toolTarget={toolTarget}
+            toolModels={toolModels}
+            toolModel={toolModel}
+            onSnap={selectModel}
+            onPlaceLimit={setPlaceLimit}
+            setRangeMark={setRangeMark}
+            turnProps={turnProps}
+          />
           {draggingChar && (
             <Suspense fallback={null}>
               <DeployRangeTool
@@ -1434,62 +1202,13 @@ export default function Scene({
               />
             </Suspense>
           )}
-          {ownTools.range && (
-            <Suspense key={toolKey('range', ownTools.range)} fallback={null}>
-              <RangeRuler
-                number={ownTools.range.which}
-                spawnTarget={spawnModel(toolSpawn.range)}
-                {...toolEntry('range')}
-                hoverHeight={TOOL_HOVER_HEIGHT}
-                selected={selectedTools.range}
-                onSelect={() => toggleTool('range')}
-                onDragSelect={() => selectTool('range')}
-                onSpawn={() => selectTool('range')}
-                target={toolTarget}
-                models={toolModels}
-                onSnap={selectModel}
-                onPlaceLimit={(limit) => {
-                  placeLimits.current.range = limit
-                }}
-                limitTaken={limitTool === 'move'}
-                onLimitOn={() => setLimitTool('range')}
-                onRangeMark={setRangeMark}
-                {...turnProps('range')}
-              />
-            </Suspense>
-          )}
-          {Object.entries(otherTools).map(([kind, entry]) =>
-            kind === 'los'
-              ? entry.pose && (
-                  <OtherLos
-                    key={toolKey(kind, entry)}
-                    entry={entry}
-                    models={toolModels}
-                    selected={otherLook.tools.includes(kind)}
-                    getLive={() => received.current?.tool(kind) ?? null}
-                  />
-                )
-              : entry.pose && (
-                  <Suspense key={toolKey(kind, entry)} fallback={null}>
-                    <OtherTool
-                      kind={kind}
-                      entry={entry}
-                      team={otherSide}
-                      selected={otherLook.tools.includes(kind)}
-                      target={otherTarget}
-                      rangeFrom={
-                        kind === 'range' && entry.which === 1 && entry.snap
-                          ? (toolModels.find(
-                              (model) =>
-                                model.kind === entry.snap.kind && model.id === entry.snap.id,
-                            ) ?? null)
-                          : null
-                      }
-                      getLive={() => received.current?.tool(kind) ?? null}
-                    />
-                  </Suspense>
-                ),
-          )}
+          <OtherTools
+            otherTools={otherTools}
+            otherSide={otherSide}
+            otherLook={otherLook}
+            toolModels={toolModels}
+            received={received}
+          />
         </Physics>
       </LabelOcclusionProvider>
     </>

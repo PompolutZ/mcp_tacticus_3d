@@ -21,6 +21,7 @@ import {
   trayHeldWorld,
   trayPlate,
   trayPosition,
+  trayShapeOf,
 } from './trays.js'
 
 const near = (actual, expected) =>
@@ -188,4 +189,33 @@ test('layoutTrays: trays without grunts are unchanged', () => {
   near(pos.get('a'), trayPosition('host', 0, 3))
   near(pos.get('c'), trayPosition('host', 2, 3))
   near(pos.get('d'), trayPosition('guest', 0, 1))
+})
+
+test('trayShapeOf: a host, a grunt (slot and index), a grunt whose host is gone', () => {
+  const h = { ...char('h'), transform: { card: true } }
+  const a = char('a', 'host', 'h')
+  const b = char('b', 'host', 'h')
+  const x = char('x', 'host', 'gone')
+  const list = [h, a, b, x]
+  const grunts = gruntsByHost(list)
+  assert.deepEqual(trayShapeOf(h, list, grunts), { cards: 2, grunts: 2, index: 0, slot: [0, 0] })
+  assert.deepEqual(trayShapeOf(a, list, grunts), {
+    cards: 2,
+    grunts: 2,
+    index: 0,
+    slot: trayGruntSlot(2, 0),
+  })
+  assert.deepEqual(trayShapeOf(b, list, grunts), {
+    cards: 2,
+    grunts: 2,
+    index: 1,
+    slot: trayGruntSlot(2, 1),
+  })
+  // The host is not in the list: the grunt is taken as its own host, with no grunt list
+  assert.deepEqual(trayShapeOf(x, list, grunts), {
+    cards: 1,
+    grunts: 0,
+    index: 0,
+    slot: trayGruntSlot(1, 0),
+  })
 })
