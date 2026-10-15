@@ -357,3 +357,17 @@ Work:
 4. Docs: `docs/features/library.md`.
 
 User: in a multiplayer room, as host and as guest, the Library has no For choice and adds to the own side; in a single player room and the Sandbox, For is there and works as before.
+
+## Step 10: Leftovers of the last fallow run
+
+Step 8 found copies that steps 1–7 did not cover. The user asked for no copies without a reason.
+
+Work:
+
+1. `sideSign(team)` and `sideYaw(team)` in `setup/setup.js`, with tests. Use them in `rosters/layout.js`, `tactics/layout.js`, `tabletools/layout.js`, `characters/trays.js`, `components/storedTool.js` and the two drag yaws in `Scene.jsx`, where the expression means "the side of the table". Leave an expression with another meaning as it is, and say which.
+2. UI colors in one place: the hex values repeated in JS and CSS (`#20242b`, `#f5a623`, `#e8b04a`, `#ffd34d`, `#414a61`, `#3a7de0`) become named constants in one module (e.g. `src/uiColors.js`) and CSS variables on `:root` set from it, the same way as `--player-blue` in step 1. Same colors, same look.
+3. The 36 props that `Scene.jsx` passes through to `TokenLayer.jsx`: pass one object built once in Scene (or read it from a context, if that is simpler). No change in what `TokenLayer` gets.
+4. The two `runCardLoop` calls with the same options: one shared options object, or accept the 10 lines and write why in the Result.
+5. Final `pnpm fallow dupes`. Every group left has a reason in the Result.
+
+User: nothing new to see; the table, trays, tool rack, tokens and colors look as before.
