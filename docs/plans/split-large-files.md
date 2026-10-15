@@ -200,6 +200,13 @@ User: drag, turn and drop each tool and the Line of Sight tool; a tool hovers ov
 
 ### Result
 
+Done. New `tabletools/useDragTool.js` (`HOVER_RATE`, `FLAT_HTML_Y`), `tabletools/useRestStore.js` (`REST_TIME`), `tabletools/useFootprintGround.js` (`HOVER_MARGIN`, `FOOTPRINT_CAST_HALF_H`), `components/ToolFootprint.jsx` (`ToolFootprint`, `RangeMark`). Code moved as it is. `LosTool.jsx` no longer imports `RulerTool.jsx`. `RulerTool.jsx` imports the new files (and `HOVER_RATE`, `FLAT_HTML_Y` from `useDragTool.js`). Pointers `RangeMark in RulerTool.jsx` (CharacterModel, CrisisToken, SelectionOutlines, Scene) and `line-of-sight.md` now name `ToolFootprint.jsx`.
+
+- Checks: format, lint 58 warnings (same), test 841 pass, build ok.
+- Fallow: `Tool` 37 / 98 / 838 lines before and after. `RulerTool.jsx` 1,758 to 1,396 lines.
+- Move diff: only `export` and imports added or dropped.
+- Deviation: `useThree`, `castDown`, `liveBody`, `startPointerDrag`, `footprintGap` and other imports unused after the move dropped from `RulerTool.jsx`. No tests added (hooks and `.jsx` do not load in Node).
+
 ## Step 3: RulerTool file split
 
 Needs step 2.

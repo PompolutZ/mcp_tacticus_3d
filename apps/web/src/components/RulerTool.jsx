@@ -1,18 +1,11 @@
-import { useLoader, useFrame, useThree } from '@react-three/fiber'
+import { useLoader, useFrame } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import { RigidBody, ConvexHullCollider, useRapier } from '@react-three/rapier'
 import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
-import {
-  acquireFootprint,
-  FOOTPRINT_APART,
-  FOOTPRINT_COLOR,
-  FOOTPRINT_TOUCH,
-} from './footprintProjection.js'
-import { castDown, liveBody } from '../physics.js'
+import { acquireFootprint, FOOTPRINT_COLOR } from './footprintProjection.js'
 import { useBodyRef } from '../useBodyRef.js'
-import { startPointerDrag } from '../drag/pointerDrag.js'
 import { throwMove } from './throwPath.js'
 import { assetUrl } from '../assets/index.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
@@ -22,11 +15,15 @@ import { freeSpawnYaw, storedFields, sameStored } from './storedTool.js'
 import { useSideColor } from '../sideColors.js'
 import { MOVE_TIP, RANGE_TIP, TOOL_TINT } from '../tabletools/toolTips.js'
 import { onRack } from '../tabletools/layout.js'
+import { useDragTool, HOVER_RATE, FLAT_HTML_Y } from '../tabletools/useDragTool.js'
+import { useRestStore } from '../tabletools/useRestStore.js'
+import { useFootprintGround } from '../tabletools/useFootprintGround.js'
+import { ToolFootprint, RangeMark } from './ToolFootprint.jsx'
 import { flipTool } from './toolFlip.js'
 import { aimTurn } from './aimTurn.js'
 import { toolAction } from './toolInput.js'
 import { clampRange, rangeReach, withinRange } from './rangeOne.js'
-import { footprintGap, lineClamp, placeClamp, touches } from './placeLock.js'
+import { lineClamp, placeClamp, touches } from './placeLock.js'
 import { OccludedHtml } from './LabelOcclusion.jsx'
 import {
   SIDES,
@@ -35,13 +32,10 @@ import {
   ANGLE_TURN,
   RANGE_HALF_WIDTH,
   MOVE_HALF_WIDTH,
-  CONTACT_EPS,
   yawQuat,
-  yawTo,
   wrapAngle,
   toolPose,
   toolShape,
-  alongHalf,
   nearerHalf,
   turnAround,
   cornerSnapCenter,
@@ -54,17 +48,9 @@ import {
   throwLine,
   sameModel,
   lockKey,
-  withinRangeOne,
-  sameMark,
 } from './toolGeometry.js'
 
 const TEXTURE = assetUrl('tools/toolbox-02.png')
-// How fast the dragged tool moves to the new hover height, per second (same as models)
-const HOVER_RATE = 25
-// Half height of the flat box cast down to find the ground under a footprint
-const FOOTPRINT_CAST_HALF_H = 0.01
-// Extra distance around the footprint where terrain already raises the dragged tool
-const HOVER_MARGIN = 0.5
 
 // A movement tool bends at its hinge, but never past a right angle, the same as the plastic one
 const MAX_BEND = Math.PI / 2
@@ -72,9 +58,6 @@ const MAX_BEND = Math.PI / 2
 // buttons are turned across the tool, so along the tool they take only their height, about 0.27" for
 // Place and 0.4" for Throw.
 const PLACE_INSET = 0.75
-
-// A tool rests this long (no change of pose, bend, snap or mode) before it is written to the document
-const REST_TIME = 0.3
 
 // color: 'blue' or 'red', the player color (not the side). Without it, the texture keeps its own colors.
 function textured(obj, map, playerColor) {
@@ -96,349 +79,6 @@ function hullPoints(obj) {
     if (child.isMesh && !points) points = child.geometry.attributes.position.array
   })
   return points
-}
-
-// Returns groundY(x, z, yaw): top of the table or terrain under the whole footprint of the tool
-// with its center at (x, z), or null when nothing is under it.
-// halfLength: length of each half. turn: how far each half is turned from straight.
-function useFootprintGround(halfLength, halfWidth, turn) {
-  const { world, rapier } = useRapier()
-  // One box for each half. Larger than the half, so the tool rises before it reaches terrain
-  // and a tiny overlap at the edge does not switch it between heights
-  const halfShape = useMemo(
-    () =>
-      new rapier.Cuboid(
-        halfLength / 2 + HOVER_MARGIN,
-        FOOTPRINT_CAST_HALF_H,
-        halfWidth + HOVER_MARGIN,
-      ),
-    [rapier, halfLength, halfWidth],
-  )
-
-  return function groundY(x, z, yaw) {
-    const shape = toolShape({ x, z, yaw }, turn)
-    let top = null
-    for (const side of SIDES) {
-      const c = alongHalf(shape, side, halfLength / 2)
-      const y = castDown(
-        world,
-        rapier,
-        halfShape,
-        yawQuat(shape[side]),
-        c.x,
-        c.z,
-        FOOTPRINT_CAST_HALF_H,
-      )
-      if (y !== null && (top === null || y > top)) top = y
-    }
-    return top
-  }
-}
-
-// Whole-body drag: a click toggles the selection, a drag moves the tool at once and selects it.
-// onPointerDown(e, onSelect, onDragSelect, plan): e is an R3F event of the tool mesh, or a DOM pointerdown of a
-// button on the tool (the grab point is then the pointer ray on the plane of the button). onSelect is the click
-// handler: the selection for the mesh, the button action for a button. plan() is called once when a drag starts (not on a
-// plain click). It returns null for a move, or { pivot, onTurn, onPointer } for a turn:
-// - Move: the tool follows the pointer. onDragMove(raycaster) is called on each pointer move, with a
-//   raycaster set to the pointer ray. When it returns true, the drag ends there and the rest of that
-//   press does nothing.
-// - Turn: the pointer turns around pivot (table XZ), and onTurn(d, startPose) returns the tool pose
-//   for a turn of d (yaw) since the drag started. refresh (optional): onTurn is also called on every frame, with the last d.
-//   onPointer(raycaster) is called on each pointer
-//   move with a raycaster set to the pointer ray, and with null when the drag ends.
-// In both, the tool stays hoverHeight above the table or terrain under its footprint (from groundY),
-// as a dragged model does. onDragStart(kind): called once when a drag starts, with 'move', 'turn' or the
-// plan's own kind (RulerTool: 'bend').
-// The returned onPointerDown has stepTurn(angle): during a turn drag it adds angle to the turn (extra), so
-// onTurn gets d + extra and the next pointer move goes on from there. It returns false when no turn drag is on.
-// onDragEnd: called once when a drag ends, also when onDragMove ends it.
-export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragMove, onDragEnd) {
-  const { camera, gl, controls } = useThree()
-  const { world } = useRapier()
-  // The running pointer drag, so an unmount can cancel it
-  const dragHandle = useRef(null)
-  useEffect(
-    () => () => {
-      dragHandle.current?.cancel('unmount')
-      dragHandle.current = null
-    },
-    [],
-  )
-  const isDragging = useRef(false)
-  const mouseNDC = useRef({ x: 0, y: 0 })
-  const restType = useRef(0)
-  const raycaster = useRef(new THREE.Raycaster())
-  // Horizontal plane through the grabbed point, so the pointer stays on the same spot of the tool
-  const dragPlane = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0))
-  // Grabbed point minus body center (XZ), so the tool does not jump to center on the pointer
-  const grabOffset = useRef({ x: 0, z: 0 })
-  // Turn drag: the plan, with startPose, startAngle (yaw from the pivot to the grabbed point), extra (turn added
-  // by stepTurn) and pose, the next kinematic pose { x, z, yaw }. Y follows the ground. null for a move drag.
-  const turning = useRef(null)
-
-  function turnOf(turn) {
-    return wrapAngle((turn.d ?? 0) + turn.extra)
-  }
-
-  useFrame((_, dt) => {
-    const rb = rigidRef.current
-    if (!isDragging.current || !rb) return
-    const t = rb.translation()
-    // A plan with refresh gets its pose again on every frame, not only at a pointer move, so a change that is
-    // not a pointer move (Q / E during a turn) shows at once
-    const turn = turning.current
-    if (turn?.refresh && turn.d !== undefined) turn.pose = turn.onTurn(turnOf(turn), turn.startPose)
-    let pose = turning.current?.pose
-    if (!pose) {
-      // The plane stays at the grab height. If it followed the tool, raising the tool would move
-      // the pointer hit off the terrain, the tool would drop, and it would shake between heights.
-      raycaster.current.setFromCamera(mouseNDC.current, camera)
-      const target = new THREE.Vector3()
-      if (!raycaster.current.ray.intersectPlane(dragPlane.current, target)) return
-      pose = {
-        x: target.x - grabOffset.current.x,
-        z: target.z - grabOffset.current.z,
-        yaw: toolPose(rb).yaw,
-      }
-    }
-    const { x, z, yaw } = pose
-    // Off the table there is no ground, so keep the current height
-    const ground = groundY(x, z, yaw)
-    const y =
-      ground === null ? t.y : t.y + (ground + hoverHeight - t.y) * Math.min(1, dt * HOVER_RATE)
-    // A sleeping body keeps moving but its mesh is not synced, so keep it awake
-    rb.wakeUp()
-    rb.setNextKinematicTranslation({ x, y, z })
-    if (turning.current) rb.setNextKinematicRotation(yawQuat(yaw))
-  })
-
-  function stepTurn(angle) {
-    const turn = turning.current
-    if (!turn) return false
-    turn.extra += angle
-    turn.pose = turn.onTurn(turnOf(turn), turn.startPose)
-    return true
-  }
-
-  function onPointerDown(e, onSelect, onDragSelect, plan) {
-    let point = e.point
-    if (!point) {
-      // A DOM event (a button): the pointer ray, on the horizontal plane of the button
-      const rect = gl.domElement.getBoundingClientRect()
-      raycaster.current.setFromCamera(
-        new THREE.Vector2(
-          ((e.clientX - rect.left) / rect.width) * 2 - 1,
-          -((e.clientY - rect.top) / rect.height) * 2 + 1,
-        ),
-        camera,
-      )
-      const y = (rigidRef.current?.translation().y ?? 0) + FLAT_HTML_Y
-      point = new THREE.Vector3()
-      if (
-        !raycaster.current.ray.intersectPlane(
-          new THREE.Plane(new THREE.Vector3(0, 1, 0), -y),
-          point,
-        )
-      )
-        return
-    }
-    const grab = { x: point.x, z: point.z }
-    function endDrag() {
-      isDragging.current = false
-      turning.current?.onPointer?.(null)
-      turning.current = null
-      if (liveBody(world, rigidRef.current)) rigidRef.current.setBodyType(restType.current, true)
-      onDragEnd?.()
-    }
-
-    const pressed = startPointerDrag(e, {
-      controls,
-      canvas: gl.domElement,
-      canStart: () => liveBody(world, rigidRef.current),
-      onStart: () => {
-        onDragSelect?.()
-        const rb = rigidRef.current
-        restType.current = rb.bodyType()
-        rb.setBodyType(2, true)
-        isDragging.current = true
-        const turn = plan?.() ?? null
-        if (turn) {
-          const startPose = toolPose(rb)
-          turning.current = {
-            ...turn,
-            startPose,
-            startAngle: yawTo(turn.pivot, grab),
-            extra: 0,
-            pose: startPose,
-          }
-        }
-        onDragStart?.(turn ? (turn.kind ?? 'turn') : 'move')
-      },
-      // true: onDragMove ended the drag, and the rest of that press does nothing
-      onMove: (ev) => {
-        const rect = gl.domElement.getBoundingClientRect()
-        mouseNDC.current = {
-          x: ((ev.clientX - rect.left) / rect.width) * 2 - 1,
-          y: -((ev.clientY - rect.top) / rect.height) * 2 + 1,
-        }
-        raycaster.current.setFromCamera(mouseNDC.current, camera)
-        const turn = turning.current
-        if (turn) {
-          turn.onPointer?.(raycaster.current)
-          const hit = raycaster.current.ray.intersectPlane(dragPlane.current, new THREE.Vector3())
-          if (!hit || Math.hypot(hit.x - turn.pivot.x, hit.z - turn.pivot.z) < 0.01) return false
-          turn.d = wrapAngle(yawTo(turn.pivot, hit) - turn.startAngle)
-          turn.pose = turn.onTurn(turnOf(turn), turn.startPose)
-          return false
-        }
-        return Boolean(onDragMove?.(raycaster.current))
-      },
-      onEnd: endDrag,
-      // Esc: the tool stays where it is. A press that did not start has nothing to end.
-      onCancel: () => {
-        if (isDragging.current) endDrag()
-      },
-      onClick: () => onSelect?.(),
-      // A DOM press: no default, so the browser does not select text or focus
-      preventDefault: true,
-    })
-    dragHandle.current = pressed || null
-    if (pressed && rigidRef.current) {
-      const t = rigidRef.current.translation()
-      dragPlane.current.constant = -point.y
-      grabOffset.current = { x: point.x - t.x, z: point.z - t.z }
-    }
-  }
-  onPointerDown.stepTurn = stepTurn
-  return onPointerDown
-}
-
-// Writes the stored fields of a tool once none of them changed for REST_TIME. read() runs on every frame, because
-// the pose is in the body, not in React state. It gives { cur, entry, onStore }: the fields now, the entry in the
-// document and the writer, or null while there is nothing to write. same(a, b): true when two sets of fields are
-// equal (entry may have missing fields).
-export function useRestStore(read, same) {
-  const rest = useRef({ seen: null, time: 0, written: false })
-  useFrame((_, dt) => {
-    const now = read()
-    if (!now) return
-    const { cur, entry, onStore } = now
-    const r = rest.current
-    if (!r.seen || !same(cur, r.seen)) {
-      rest.current = { seen: cur, time: 0, written: false }
-      return
-    }
-    r.time += dt
-    if (r.written || r.time < REST_TIME || same(cur, entry)) return
-    r.written = true
-    onStore(cur)
-  })
-}
-
-// Range tool: the piece that a turn of the snapped tool measures against gets a green or red outline
-// (see SelectionOutlines.jsx). measuredRef: the piece under the pointer while a drag turns the snapped
-// tool around the base, else null (set in Tool). In range:
-// - Range 2 to 5: the measured base touches the footprint.
-// - R1 (rangeOne): the measured base is within range 1 of the snapped base.
-// onChange(mark): called when the mark changes, with { kind, id, mode: 'inRange' | 'outOfRange' },
-// or with null. The tool turns on every frame of a drag, so the mark is found on every frame.
-function RangeMark({
-  rigidRef,
-  turn,
-  halfLength,
-  halfWidth,
-  rangeOne,
-  snap,
-  measuredRef,
-  onChange,
-}) {
-  // The mark of the last onChange call
-  const last = useRef(null)
-
-  // A removed tool marks nothing. Scene passes a state setter, so onChange stays the same function.
-  useEffect(() => () => onChange(null), [])
-
-  useFrame(() => {
-    const model = measuredRef.current
-    let mark = null
-    if (model && snap && rigidRef.current) {
-      const reached = rangeOne
-        ? withinRangeOne(snap.target, model, halfWidth)
-        : footprintGap(
-            toolShape(toolPose(rigidRef.current), turn),
-            halfLength,
-            halfWidth,
-            model.getCenter(),
-            model.radius,
-          ) <= CONTACT_EPS
-      mark = { kind: model.kind, id: model.id, mode: reached ? 'inRange' : 'outOfRange' }
-    }
-    if (sameMark(mark, last.current)) return
-    last.current = mark
-    onChange(mark)
-  })
-
-  return null
-}
-
-// The tool's footprint straight below the tool, painted by the table and terrain
-// materials on every surface under it that faces up (see footprintProjection.js).
-// Follows the body's XZ position and yaw, and the turn of each half. With a target base
-// it turns green when the base touches it and red when it does not.
-// rangeFrom: on the range 1 tool while snapped, the snapped model, else null. Then, for another
-// target, green means the target base is within range 1 of the snapped base (edge to edge, seen
-// from above). Touching is not enough there, because the long sides go across the line.
-// oneSided: only the right half (the line of the Line of Sight tool, from the center along the yaw). opacity: the
-// fill opacity, instead of the default for a selected or free tool.
-export function ToolFootprint({
-  rigidRef,
-  turn,
-  halfLength,
-  halfWidth,
-  selected,
-  target,
-  rangeFrom,
-  oneSided = false,
-  opacity,
-}) {
-  const slotRef = useRef(null)
-
-  useEffect(() => {
-    slotRef.current = acquireFootprint()
-    return () => {
-      slotRef.current?.release()
-      slotRef.current = null
-    }
-  }, [])
-
-  useFrame(() => {
-    if (!rigidRef.current || !slotRef.current) return
-    const shape = toolShape(toolPose(rigidRef.current), turn)
-    if (oneSided) shape.left = shape.right
-
-    // Set colors here, not through React state, because contact changes every frame during a drag
-    const center = selected && target?.getCenter()
-    let fill = FOOTPRINT_COLOR
-    if (center) {
-      const reached =
-        rangeFrom && !sameModel(rangeFrom, target)
-          ? withinRangeOne(rangeFrom, target, halfWidth)
-          : footprintGap(shape, halfLength, halfWidth, center, target.radius) <= CONTACT_EPS
-      fill = reached ? FOOTPRINT_TOUCH : FOOTPRINT_APART
-    }
-    const line = center ? fill : selected ? '#ffffff' : FOOTPRINT_COLOR
-    slotRef.current.set(
-      shape,
-      halfLength,
-      halfWidth,
-      fill,
-      opacity ?? (selected ? 0.35 : 0.2),
-      line,
-    )
-  })
-
-  return null
 }
 
 // target: the piece selected last, a model or a token, as { id, kind, getObject, getCenter, radius,
@@ -587,8 +227,6 @@ const BUTTON_STYLE = {
 // Html element flat on the tool at local x, facing up. Html stays inside RigidBody,
 // so it follows the body's transform automatically.
 // Without a CSS rotation, the element reads toward local −X, with its top toward local +Z.
-// Height of a FlatHtml above the body center
-const FLAT_HTML_Y = 0.25
 
 function FlatHtml({ x = 0, z = 0, children }) {
   return (

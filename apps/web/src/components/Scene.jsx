@@ -462,7 +462,7 @@ export default function Scene({
   const turnHold = useRef({ piece: null, time: 0 })
   const [draggingCharId, setDraggingCharId] = useState(null)
   // The piece that a range tool measures against, { kind, id, mode: 'inRange' | 'outOfRange' } or null.
-  // See RangeMark in RulerTool.jsx.
+  // See RangeMark in ToolFootprint.jsx.
   const [rangeMark, setRangeMark] = useState(null)
   // Model id → number that grows with each move of the model (overlap.js). A model that never moved has none.
   const moved = useRef(new Map())

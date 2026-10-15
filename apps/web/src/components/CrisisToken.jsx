@@ -121,7 +121,7 @@ function AffiliationMarker({ affiliation, x, radius }) {
 // token: one entry of the tokens array in App.jsx (see buildMatTokens in crisis/matTokens.js). onMove(x, z) and
 // onTurn(yaw): called once, when a drag ends, to commit the new pose to App state.
 // onHover(over): called when the pointer moves onto the token (true) and off it (false)
-// rangeMark: 'inRange' or 'outOfRange' while a range tool marks the token (RangeMark in RulerTool.jsx)
+// rangeMark: 'inRange' or 'outOfRange' while a range tool marks the token (RangeMark in ToolFootprint.jsx)
 // otherSelected: the side of the other player who has the token selected, or null
 // onSelect(): a click. onDragSelect(): a drag starts, the token is selected and stays selected.
 // onHold(characterId, point): a canHold token (Asset, Civilian, a Source's supply) was dragged and

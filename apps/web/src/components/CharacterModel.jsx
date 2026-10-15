@@ -254,7 +254,7 @@ function standeeScene(front, back, radius) {
 // overlap: the model shows the overlap mark (overlap.js): a red outline and a red tint
 // overlapsAt(x, y, z): true when a base of this model at that body position overlaps another model.
 // A drag uses it for the mark and for the drop (see freePlace).
-// rangeMark: 'inRange' or 'outOfRange' while a range tool marks the model (RangeMark in RulerTool.jsx)
+// rangeMark: 'inRange' or 'outOfRange' while a range tool marks the model (RangeMark in ToolFootprint.jsx)
 // otherSelected: the side of the other player who has the model selected, or null
 // onSelect(): a click. onDragSelect(): a drag starts, the model is selected and stays selected.
 // position: where the body starts. Read only on mount: RigidBody moves its body when its position

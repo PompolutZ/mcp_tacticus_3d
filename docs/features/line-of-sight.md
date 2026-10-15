@@ -54,5 +54,5 @@ A drag on the line turns it around the looker's base center (`turnAround`). Q / 
 
 - The entry in `table.tools` is `{ which, spawn, looker, target, pose }`. `looker` and `target` are model ids. `pose` is the looker base center and the yaw, written when the line rests.
 - While the line turns, the yaw goes over the live channel (`tool:los`). The other browser follows the looker's model and the yaw, and works out the length and the label with its own physics. Both players see the same label.
-- The tool is `LosTool` and `OtherLos` in `src/components/LosTool.jsx`. The line is painted by `ToolFootprint` (`RulerTool.jsx`) with one half and a fixed half-transparent fill.
+- The tool is `LosTool` and `OtherLos` in `src/components/LosTool.jsx`. The line is painted by `ToolFootprint` (`ToolFootprint.jsx`) with one half and a fixed half-transparent fill.
 
