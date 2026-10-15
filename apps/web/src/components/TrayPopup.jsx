@@ -15,7 +15,7 @@ import { crisisToken } from '../crisis/files.js'
 import { characterToken } from '../tokens/files.js'
 import { getToken } from '../tokens/tokens.js'
 import { attachedCards } from '../rosters/cards.js'
-import { Overlay } from './Overlay.jsx'
+import { Dialog } from './Dialog.jsx'
 import TacticFaceScaled from './TacticFaceScaled.jsx'
 import TrayControls from './TrayControls.jsx'
 
@@ -29,8 +29,7 @@ function otherSide(side) {
 // on the 3D tray shows in both. The Give sources are not part of the tray (see trays.js), so they
 // are not here. The objective tokens the character holds show on the card image, at the same place
 // as on the 3D card. They only show here: a player moves or drops them on the 3D card. Closes with
-// the cross button or a click outside the tray. App also closes it on
-// Escape, as App handles all keys. A dialog, so it renders through Overlay (see CardPopup.jsx).
+// the cross button, a click outside the tray or Escape. A dialog, so it uses Dialog.jsx.
 // App mounts it only while a tray is open. onTokenRemove(key): a click on an "On" token removes
 // one, the same as on the 3D tray. heldTokens: the crisis tokens this character holds. A character
 // whose second form has its own card shows that card under the first, as on the 3D tray; the held
@@ -69,91 +68,87 @@ export function TrayPopup({
   const onTokens = Object.entries(character.tokens ?? {})
 
   return (
-    <Overlay className="card-popup" onClick={onClose}>
-      <div
-        className="tray-popup"
-        role="dialog"
-        aria-modal="true"
-        aria-label={name}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="tray-popup-top">
-          <div className="tray-popup-on">
-            {onTokens.map(([key, count]) => (
-              <OnToken key={key} tokenKey={key} count={count} onClick={() => onTokenRemove(key)} />
+    <Dialog
+      backdropClassName="card-popup"
+      className="tray-popup"
+      label={name}
+      closeButton={false}
+      onClose={onClose}
+    >
+      <div className="tray-popup-top">
+        <div className="tray-popup-on">
+          {onTokens.map(([key, count]) => (
+            <OnToken key={key} tokenKey={key} count={count} onClick={() => onTokenRemove(key)} />
+          ))}
+        </div>
+        <button type="button" className="tray-popup-close" aria-label="Close" onClick={onClose}>
+          ×
+        </button>
+      </div>
+      <div className={`tray-popup-main${attached.length > 0 ? ' tray-popup-main--attached' : ''}`}>
+        <div className="tray-popup-cards">
+          <div
+            className={
+              character.host ? 'tray-popup-card tray-popup-card--grunt' : 'tray-popup-card'
+            }
+          >
+            <img src={assetUrl(characterCard(character.key, shownSide))} alt={name} />
+            {heldTokens.map((token) => (
+              <HeldToken key={token.id} token={token} grunt={Boolean(character.host)} />
             ))}
           </div>
-          <button type="button" className="tray-popup-close" aria-label="Close" onClick={onClose}>
-            ×
-          </button>
-        </div>
-        <div
-          className={`tray-popup-main${attached.length > 0 ? ' tray-popup-main--attached' : ''}`}
-        >
-          <div className="tray-popup-cards">
-            <div
-              className={
-                character.host ? 'tray-popup-card tray-popup-card--grunt' : 'tray-popup-card'
-              }
-            >
-              <img src={assetUrl(characterCard(character.key, shownSide))} alt={name} />
-              {heldTokens.map((token) => (
-                <HeldToken key={token.id} token={token} grunt={Boolean(character.host)} />
-              ))}
-            </div>
-            {trayCards(character) === 2 && (
-              <div className="tray-popup-card">
-                <img
-                  src={assetUrl(transformCard(character.key, shownSide))}
-                  alt={`${name}, second form`}
-                />
-              </div>
-            )}
-            {large && (
-              <button
-                type="button"
-                className="tray-popup-large"
-                title={`${large.name} (click to make it small)`}
-                onClick={() => setLargeCode(null)}
-              >
-                <AttachedFace card={large} />
-              </button>
-            )}
-          </div>
-          {attached.length > 0 && (
-            <div className="tray-popup-attached">
-              {attached.map((card) => (
-                <button
-                  key={card.code}
-                  type="button"
-                  className={`tray-popup-attached-card${card.code === largeCode ? ' tray-popup-attached-card--open' : ''}`}
-                  title={card.name}
-                  onClick={() => setLargeCode((code) => (code === card.code ? null : card.code))}
-                >
-                  <AttachedFace card={card} />
-                </button>
-              ))}
+          {trayCards(character) === 2 && (
+            <div className="tray-popup-card">
+              <img
+                src={assetUrl(transformCard(character.key, shownSide))}
+                alt={`${name}, second form`}
+              />
             </div>
           )}
+          {large && (
+            <button
+              type="button"
+              className="tray-popup-large"
+              title={`${large.name} (click to make it small)`}
+              onClick={() => setLargeCode(null)}
+            >
+              <AttachedFace card={large} />
+            </button>
+          )}
         </div>
-        {!character.host && (
-          <button type="button" className="chip" onClick={() => setShowOther((v) => !v)}>
-            {showOther ? 'Show side that faces up' : 'Show other side'}
-          </button>
+        {attached.length > 0 && (
+          <div className="tray-popup-attached">
+            {attached.map((card) => (
+              <button
+                key={card.code}
+                type="button"
+                className={`tray-popup-attached-card${card.code === largeCode ? ' tray-popup-attached-card--open' : ''}`}
+                title={card.name}
+                onClick={() => setLargeCode((code) => (code === card.code ? null : card.code))}
+              >
+                <AttachedFace card={card} />
+              </button>
+            ))}
+          </div>
         )}
-        <TrayControls
-          character={character}
-          stamina={characterStamina(character.key, character.side)}
-          onDamage={onDamage}
-          onPower={onPower}
-          onFlip={onFlip}
-          onRemove={onRemove}
-          onBoard={onBoard}
-          removeWait={removeWait}
-          hideAttached
-        />
       </div>
-    </Overlay>
+      {!character.host && (
+        <button type="button" className="chip" onClick={() => setShowOther((v) => !v)}>
+          {showOther ? 'Show side that faces up' : 'Show other side'}
+        </button>
+      )}
+      <TrayControls
+        character={character}
+        stamina={characterStamina(character.key, character.side)}
+        onDamage={onDamage}
+        onPower={onPower}
+        onFlip={onFlip}
+        onRemove={onRemove}
+        onBoard={onBoard}
+        removeWait={removeWait}
+        hideAttached
+      />
+    </Dialog>
   )
 }
 

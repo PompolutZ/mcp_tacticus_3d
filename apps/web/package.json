@@ -27,6 +27,7 @@
   "dependencies": {
     "@fontsource-variable/noto-sans": "^5.3.0",
     "@fontsource/barlow-condensed": "^5.3.0",
+    "@react-aria/focus": "^3.22.1",
     "@react-three/drei": "^9.115.0",
     "@react-three/fiber": "^8.17.10",
     "@react-three/postprocessing": "^2.19.1",

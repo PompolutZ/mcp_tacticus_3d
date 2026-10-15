@@ -5,7 +5,7 @@ import { RosterPopup } from './RosterPopup.jsx'
 
 // The roster popup of the table (RosterPopup.jsx) for a roster of a room. It opens on the first tab with
 // cards. On the table, App owns the tab and the card, because App handles all keys there. The
-// lobby has no key handler, so this component owns them: Escape closes the popup, and the left and right
+// lobby has no key handler, so this component owns them: the left and right
 // arrows show the previous or next card. The tab is a loop, the same as on the table.
 // title, color: for RosterPopup. code: the stored MCT code of the roster.
 export function RoomRosterPopup({ title, color, code, onClose }) {
@@ -16,12 +16,11 @@ export function RoomRosterPopup({ title, color, code, onClose }) {
 
   useEffect(() => {
     function handleKeyDown(e) {
-      if (e.key === 'Escape') onClose()
-      else if (CARD_STEP_KEYS[e.code]) setIndex((i) => (i + CARD_STEP_KEYS[e.code] + count) % count)
+      if (CARD_STEP_KEYS[e.code]) setIndex((i) => (i + CARD_STEP_KEYS[e.code] + count) % count)
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [count, onClose])
+  }, [count])
 
   return (
     <RosterPopup

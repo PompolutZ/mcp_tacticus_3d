@@ -134,12 +134,21 @@ The keys of the tables above are the defaults. The user can change them in **Set
 - **Reserved combos.** The browser or the system keeps Cmd+W, Cmd+Q, Cmd+T, Cmd+N, Cmd+Tab, Cmd+H, Cmd+M, Ctrl+W, Ctrl+T, Ctrl+N and Ctrl+Tab (`RESERVED` in `bindings.js`; Shift and Alt do not matter). The page never gets them, so the capture refuses them and says why. Ctrl + wheel is refused too. Any other Cmd or Ctrl combo that is bound calls `preventDefault`.
 - **Capture.** **+** on a row starts it. The next key press with its modifiers, or the next wheel step over the capture box, is the input. A modifier key alone counts when it is released with no other key pressed meanwhile. Any key can be captured, Escape too. While it runs, the table keys and the Escape of the popup do nothing. **Cancel** ends it. Then a select picks the condition (the first allowed one, `anywhere` when allowed). With one allowed condition there is no select.
 - **Names.** `KeyQ` shows Q, `Digit1` shows 1, `Numpad1` shows Num 1, the arrows show ← → ↑ ↓, `Escape` shows Esc, `WheelUp` shows Wheel up. A modifier shows `⇧ ⌃ ⌥ ⌘` on a Mac, else `Shift Ctrl Alt Win`. A chip shows its condition unless it is `anywhere`, which has no label.
-- **Reset.** A row with changed bindings has **Reset**. **Reset all keys** restores every default. A user who removed Escape can still close the popup with its close button.
+- **Reset.** A row with changed bindings has **Reset**. **Reset all keys** restores every default. Escape closes a dialog also when it is removed from Cancel (see [Dialogs](#dialogs)).
 - **Storage.** Only the actions that differ from the defaults are stored (`docs/features/table-tools.md`, "Settings menu"). An action that is not stored uses its defaults, so a new action in a later version gets its default keys.
 
 ## Settings popup
 
 **Settings** in the toolbar opens a popup. Its **Keys** section lists every action with its bindings and edits them (see [Changing the keys](#changing-the-keys)). Its **Mouse** section lists the mouse controls, from `src/settings/controls.js` (`MOUSE_ROWS`, not editable). A change of a mouse control in this document changes that list in the same step. While the popup is open, the keys of the table do nothing, and Escape closes it, except during a key capture.
+
+## Dialogs
+
+Settings, the roster popup (table and lobby), the crisis compare and choose popups, the tray popup and New room share one component, `Dialog` (`src/components/Dialog.jsx`).
+
+- **Focus.** The dialog takes the focus when it opens, on the dialog itself, not on a button, so Enter or Space does not press the close button. Tab and Shift+Tab stay inside it. On close, the focus goes back to the control that opened it.
+- **Escape always closes a dialog**, on the table and in the lobby, also when Escape is removed from the Cancel binding. The key does not reach the table keys, so the popups are not closed twice. The exception is a key capture in Settings: it takes Escape as the input.
+- **Backdrop.** A click on the backdrop closes the dialog only when the press also started on the backdrop. A drag that ends there does not close it.
+- The HUD messages still show above a dialog.
 
 ## Keys only in the app
 

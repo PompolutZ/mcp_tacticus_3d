@@ -278,6 +278,15 @@ User: open each dialog: Settings, a roster popup (table and lobby), the crisis c
 
 ### Result
 
+Done. Not tried in a browser (project rule); the user list is open.
+
+- `@react-aria/focus` 3.22.1 (React 18 is in its peer range).
+- New `components/Dialog.jsx`: `Overlay` + backdrop press rule + `×` + `FocusScope contain restoreFocus` around the `×` and the dialog element (`tabIndex={-1}`, focused on mount). `closeButton`, `restoreFocus`, `as` props.
+- `CrisisChoose`, `CrisisCompare`, `NewRoomDialog` (`as="form"`), `RosterPopup`, `SettingsPopup`, `TrayPopup` (`closeButton={false}`) use it. The tray backdrop now follows the press rule (fix).
+- Escape: a `document` keydown listener in Dialog (not a React handler, so it works with the focus on body). It runs before the table's window listener and stops the event. The Settings key capture is a window capture listener with `stopImmediatePropagation`, so it still takes Escape. `NewRoomDialog` and `RoomRosterPopup` lost the Escape part; arrows stay.
+- `restoreFocus` is on in all dialogs. Space (reset view) has `preventDefault` on the table; Enter has no table binding. Risk 3 is untested: if a key presses the opener, set `restoreFocus={false}` for table dialogs.
+- Docs: `key-shortcuts.md` (new "Dialogs", Reset line). `Overlay.jsx` comment.
+
 ## Step 7: Card data with one source
 
 Work:

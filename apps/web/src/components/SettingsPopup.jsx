@@ -1,5 +1,4 @@
-import { useRef } from 'react'
-import { Overlay } from './Overlay.jsx'
+import { Dialog } from './Dialog.jsx'
 import {
   MAX_SPECTATOR_SIZE,
   MAX_TURN_STEP,
@@ -39,8 +38,8 @@ function ControlsTable({ title, rows }) {
 }
 
 // The Settings popup. settings: { tools: { rack, power, ... }, sound: { volume } } (settings/settings.js). bindings: the key
-// bindings in use. onSettingsChange(patch) applies a choice at once, for example { sound: { volume } }; App stores it. App closes the popup on Escape, as App handles all keys. A click on
-// the backdrop or × calls onClose().
+// bindings in use. onSettingsChange(patch) applies a choice at once, for example { sound: { volume } }; App stores it. A click on
+// the backdrop, × or Escape calls onClose() (Dialog.jsx).
 export function SettingsPopup({
   settings,
   bindings,
@@ -51,138 +50,126 @@ export function SettingsPopup({
   onLabelsClick,
   onClose,
 }) {
-  // A drag that ends on the backdrop (a text selection, a scroll bar) must not close the popup
-  const pressedBackdrop = useRef(false)
   return (
-    <Overlay
-      className="card-popup roster-popup-backdrop"
-      onPointerDown={(e) => {
-        pressedBackdrop.current = e.target === e.currentTarget
-      }}
-      onClick={(e) => {
-        if (pressedBackdrop.current && e.target === e.currentTarget) onClose()
-      }}
+    <Dialog
+      backdropClassName="card-popup roster-popup-backdrop"
+      className="settings-popup"
+      label="Settings"
+      onClose={onClose}
     >
-      <button type="button" className="popup-close" aria-label="Close" onClick={onClose}>
-        ×
-      </button>
-      <div className="settings-popup" role="dialog" aria-modal="true" aria-label="Settings">
-        <h2>Settings</h2>
-        <section className="settings-section">
-          <h3>On the table or in the HUD</h3>
-          {ITEMS.map(({ item, label }) => (
-            <div key={item} className="settings-row">
-              <span>{label}</span>
-              <span className="settings-choice">
-                {PLACES.map((place) => (
-                  <button
-                    key={place}
-                    type="button"
-                    className={`chip${settings.tools[item] === place ? ' chip--active' : ''}`}
-                    aria-pressed={settings.tools[item] === place}
-                    onClick={() =>
-                      onSettingsChange({ tools: { ...settings.tools, [item]: place } })
-                    }
-                  >
-                    {PLACE_LABELS[place]}
-                  </button>
-                ))}
-              </span>
-            </div>
-          ))}
-        </section>
-        <section className="settings-section">
-          <h3>Sound</h3>
-          <label className="settings-row">
-            <span>Volume (0 is off)</span>
+      <h2>Settings</h2>
+      <section className="settings-section">
+        <h3>On the table or in the HUD</h3>
+        {ITEMS.map(({ item, label }) => (
+          <div key={item} className="settings-row">
+            <span>{label}</span>
             <span className="settings-choice">
-              <input
-                type="range"
-                min="0"
-                max="100"
-                step="1"
-                value={settings.sound.volume}
-                aria-label="Sound volume"
-                onChange={(e) => onSettingsChange({ sound: { volume: Number(e.target.value) } })}
-              />
-              <span className="settings-volume">{settings.sound.volume}</span>
-            </span>
-          </label>
-        </section>
-        <section className="settings-section">
-          <h3>Spectator</h3>
-          <label className="settings-row">
-            <span>Spectator columns size (%)</span>
-            <span className="settings-choice">
-              <input
-                type="range"
-                min={MIN_SPECTATOR_SIZE}
-                max={MAX_SPECTATOR_SIZE}
-                step="5"
-                value={settings.spectator.size}
-                aria-label="Spectator columns size"
-                onChange={(e) => onSettingsChange({ spectator: { size: Number(e.target.value) } })}
-              />
-              <span className="settings-volume">{settings.spectator.size}</span>
-            </span>
-          </label>
-        </section>
-        <section className="settings-section">
-          <h3>Debug</h3>
-          {/* Mode only in the dev server (App passes the handlers either way) */}
-          {import.meta.env.DEV && (
-            <div className="settings-row">
-              <span>Debug mode: frame numbers, render switch and collider lines</span>
-              <span className="settings-choice">
+              {PLACES.map((place) => (
                 <button
+                  key={place}
                   type="button"
-                  className={`chip${debug ? ' chip--active' : ''}`}
-                  aria-pressed={!!debug}
-                  onClick={onDebugClick}
+                  className={`chip${settings.tools[item] === place ? ' chip--active' : ''}`}
+                  aria-pressed={settings.tools[item] === place}
+                  onClick={() => onSettingsChange({ tools: { ...settings.tools, [item]: place } })}
                 >
-                  Mode
+                  {PLACE_LABELS[place]}
                 </button>
-              </span>
-            </div>
-          )}
+              ))}
+            </span>
+          </div>
+        ))}
+      </section>
+      <section className="settings-section">
+        <h3>Sound</h3>
+        <label className="settings-row">
+          <span>Volume (0 is off)</span>
+          <span className="settings-choice">
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={settings.sound.volume}
+              aria-label="Sound volume"
+              onChange={(e) => onSettingsChange({ sound: { volume: Number(e.target.value) } })}
+            />
+            <span className="settings-volume">{settings.sound.volume}</span>
+          </span>
+        </label>
+      </section>
+      <section className="settings-section">
+        <h3>Spectator</h3>
+        <label className="settings-row">
+          <span>Spectator columns size (%)</span>
+          <span className="settings-choice">
+            <input
+              type="range"
+              min={MIN_SPECTATOR_SIZE}
+              max={MAX_SPECTATOR_SIZE}
+              step="5"
+              value={settings.spectator.size}
+              aria-label="Spectator columns size"
+              onChange={(e) => onSettingsChange({ spectator: { size: Number(e.target.value) } })}
+            />
+            <span className="settings-volume">{settings.spectator.size}</span>
+          </span>
+        </label>
+      </section>
+      <section className="settings-section">
+        <h3>Debug</h3>
+        {/* Mode only in the dev server (App passes the handlers either way) */}
+        {import.meta.env.DEV && (
           <div className="settings-row">
-            <span>Piece name and game Size above each terrain piece</span>
+            <span>Debug mode: frame numbers, render switch and collider lines</span>
             <span className="settings-choice">
               <button
                 type="button"
-                className={`chip${showLabels ? ' chip--active' : ''}`}
-                aria-pressed={!!showLabels}
-                onClick={onLabelsClick}
+                className={`chip${debug ? ' chip--active' : ''}`}
+                aria-pressed={!!debug}
+                onClick={onDebugClick}
               >
-                Labels
+                Mode
               </button>
             </span>
           </div>
-        </section>
-        <section className="settings-section">
-          <h3>Turn</h3>
-          <label className="settings-row">
-            <span>Turn step of Q / E and the wheel (°)</span>
-            <span className="settings-choice">
-              <input
-                type="range"
-                min={MIN_TURN_STEP}
-                max={MAX_TURN_STEP}
-                step="1"
-                value={settings.turn.step}
-                aria-label="Turn step"
-                onChange={(e) => onSettingsChange({ turn: { step: Number(e.target.value) } })}
-              />
-              <span className="settings-volume">{settings.turn.step}°</span>
-            </span>
-          </label>
-        </section>
-        <KeyBindings
-          bindings={bindings}
-          onChange={(changed) => onSettingsChange({ bindings: changed })}
-        />
-        <ControlsTable title="Mouse" rows={MOUSE_ROWS} />
-      </div>
-    </Overlay>
+        )}
+        <div className="settings-row">
+          <span>Piece name and game Size above each terrain piece</span>
+          <span className="settings-choice">
+            <button
+              type="button"
+              className={`chip${showLabels ? ' chip--active' : ''}`}
+              aria-pressed={!!showLabels}
+              onClick={onLabelsClick}
+            >
+              Labels
+            </button>
+          </span>
+        </div>
+      </section>
+      <section className="settings-section">
+        <h3>Turn</h3>
+        <label className="settings-row">
+          <span>Turn step of Q / E and the wheel (°)</span>
+          <span className="settings-choice">
+            <input
+              type="range"
+              min={MIN_TURN_STEP}
+              max={MAX_TURN_STEP}
+              step="1"
+              value={settings.turn.step}
+              aria-label="Turn step"
+              onChange={(e) => onSettingsChange({ turn: { step: Number(e.target.value) } })}
+            />
+            <span className="settings-volume">{settings.turn.step}°</span>
+          </span>
+        </label>
+      </section>
+      <KeyBindings
+        bindings={bindings}
+        onChange={(changed) => onSettingsChange({ bindings: changed })}
+      />
+      <ControlsTable title="Mouse" rows={MOUSE_ROWS} />
+    </Dialog>
   )
 }

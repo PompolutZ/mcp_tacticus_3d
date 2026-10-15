@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
 import { PLATE_COLORS, rosterCard } from '../rosters/cards.js'
 import { CARD_SIZES } from '../rosters/layout.js'
@@ -7,7 +7,7 @@ import { TYPE, deckButton } from '../setup/deckButton.js'
 import { playerName } from '../setup/names.js'
 import { useSideColors } from '../sideColors.js'
 import { Carousel } from './Carousel.jsx'
-import { Overlay } from './Overlay.jsx'
+import { Dialog } from './Dialog.jsx'
 
 // The crisis compare overlay of the game setup, in the roll off, deck, first and second steps (docs/features/
 // setup-game.md, "Crisis cards"). Two tabs, Compare Secures and Compare Extracts. Each tab shows my cards of
@@ -15,8 +15,8 @@ import { Overlay } from './Overlay.jsx'
 // player name. In the Sandbox and a single player room (no mySide) the side of the clicked card is on top.
 // In the deck step, the button under the tabs is the deck button of the table ("Choose Secures" / "Choose
 // Extracts"): same action, same locks and titles (setup/deckButton.js). A click closes the overlay.
-// The popup frame, close button and backdrop are those of RosterPopup.jsx. The parent (App.jsx) owns the open
-// state and the Esc key.
+// The popup frame, close button and backdrop are those of Dialog.jsx. The parent (App.jsx) owns the open
+// state.
 // open: { team, type, code }, the clicked card (only its team and type are used). setup: the viewed
 // setup. parsed: { host, guest } → parsed roster | null. ctx: names (setup/useNames.js). stepRef: the overlay
 // puts a function there that moves the top carousel (the arrow keys). onChoose(type): setupActions.deck.
@@ -25,8 +25,6 @@ export function CrisisCompare({ open, setup, parsed, ctx, mySide, stepRef, onCho
   const [tab, setTab] = useState(open.type)
   // The shown card of each carousel: { 'host-secure': 3, ... }. Missing: the middle card, so 5 cards all show.
   const [indices, setIndices] = useState({})
-  // A drag can end on the backdrop: it closes the overlay only when the press also started there
-  const pressedBackdrop = useRef(false)
   const top = mySide ?? open.team
   const sides = [top, otherTeam(top)]
   const deck = setupStep(setup) === 'deck'
@@ -52,88 +50,75 @@ export function CrisisCompare({ open, setup, parsed, ctx, mySide, stepRef, onCho
     deck && priority && parsed[priority] ? deckButton(setup, priority, tab, parsed, ctx) : null
 
   return (
-    <Overlay
-      className="card-popup roster-popup-backdrop"
-      onPointerDown={(e) => {
-        pressedBackdrop.current = e.target === e.currentTarget
-      }}
-      onClick={(e) => {
-        if (pressedBackdrop.current && e.target === e.currentTarget) onClose()
-      }}
+    <Dialog
+      backdropClassName="card-popup roster-popup-backdrop"
+      className="roster-popup crisis-compare"
+      label="Compare crisis cards"
+      onClose={onClose}
     >
-      <button type="button" className="popup-close" aria-label="Close" onClick={onClose}>
-        ×
-      </button>
-      <div
-        className="roster-popup crisis-compare"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Compare crisis cards"
-      >
-        <div className="roster-popup-tabs" role="tablist">
-          {CRISIS_TYPES.map((type) => (
-            <button
-              key={type}
-              type="button"
-              role="tab"
-              aria-selected={type === tab}
-              className={type === tab ? 'chip chip--active' : 'chip'}
-              onClick={() => setTab(type)}
-            >
-              Compare {TYPE[type]}s
-            </button>
-          ))}
-        </div>
-        {button && (
+      <div className="roster-popup-tabs" role="tablist">
+        {CRISIS_TYPES.map((type) => (
           <button
+            key={type}
             type="button"
-            className="chip chip--primary"
-            disabled={button.disabled}
-            aria-disabled={button.locked !== null}
-            title={button.title}
-            onClick={
-              button.locked === null
-                ? () => {
-                    onChoose(tab)
-                    onClose()
-                  }
-                : undefined
-            }
+            role="tab"
+            aria-selected={type === tab}
+            className={type === tab ? 'chip chip--active' : 'chip'}
+            onClick={() => setTab(type)}
           >
-            Choose {TYPE[tab]}s
+            Compare {TYPE[type]}s
           </button>
-        )}
-        {sides.map((team) => {
-          const codes = parsed[team]?.[tab] ?? []
-          const key = `${team}-${tab}`
-          return (
-            <section key={team} className="crisis-compare-half">
-              <h2 className={`roster-popup-title roster-popup-title--${colors[team]}`}>
-                {playerName(team, ctx)}
-              </h2>
-              {codes.length === 0 ? (
-                <p className="crisis-compare-empty">No {TYPE[tab]} cards</p>
-              ) : (
-                <Carousel
-                  key={key}
-                  count={codes.length}
-                  index={Math.min(indices[key] ?? Math.floor(codes.length / 2), codes.length - 1)}
-                  onIndexChange={(index) =>
-                    setIndices((prev) => (prev[key] === index ? prev : { ...prev, [key]: index }))
-                  }
-                  itemName={TYPE[tab]}
-                  style={{
-                    '--card-ratio': CARD_SIZES[tab][0] / CARD_SIZES[tab][1],
-                    '--card-w': 'calc(var(--card-h) * var(--card-ratio))',
-                  }}
-                  renderSlide={(i) => <CrisisFace code={codes[i]} kind={tab} />}
-                />
-              )}
-            </section>
-          )
-        })}
+        ))}
       </div>
-    </Overlay>
+      {button && (
+        <button
+          type="button"
+          className="chip chip--primary"
+          disabled={button.disabled}
+          aria-disabled={button.locked !== null}
+          title={button.title}
+          onClick={
+            button.locked === null
+              ? () => {
+                  onChoose(tab)
+                  onClose()
+                }
+              : undefined
+          }
+        >
+          Choose {TYPE[tab]}s
+        </button>
+      )}
+      {sides.map((team) => {
+        const codes = parsed[team]?.[tab] ?? []
+        const key = `${team}-${tab}`
+        return (
+          <section key={team} className="crisis-compare-half">
+            <h2 className={`roster-popup-title roster-popup-title--${colors[team]}`}>
+              {playerName(team, ctx)}
+            </h2>
+            {codes.length === 0 ? (
+              <p className="crisis-compare-empty">No {TYPE[tab]} cards</p>
+            ) : (
+              <Carousel
+                key={key}
+                count={codes.length}
+                index={Math.min(indices[key] ?? Math.floor(codes.length / 2), codes.length - 1)}
+                onIndexChange={(index) =>
+                  setIndices((prev) => (prev[key] === index ? prev : { ...prev, [key]: index }))
+                }
+                itemName={TYPE[tab]}
+                style={{
+                  '--card-ratio': CARD_SIZES[tab][0] / CARD_SIZES[tab][1],
+                  '--card-w': 'calc(var(--card-h) * var(--card-ratio))',
+                }}
+                renderSlide={(i) => <CrisisFace code={codes[i]} kind={tab} />}
+              />
+            )}
+          </section>
+        )
+      })}
+    </Dialog>
   )
 }
 

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
 import {
   PLATE_COLORS,
@@ -10,7 +10,7 @@ import {
 } from '../rosters/cards.js'
 import { CARD_SIZES } from '../rosters/layout.js'
 import { CardPopup } from './CardPopup.jsx'
-import { Overlay } from './Overlay.jsx'
+import { Dialog } from './Dialog.jsx'
 import { Carousel } from './Carousel.jsx'
 import TacticFaceScaled from './TacticFaceScaled.jsx'
 import { BreakdownTab } from './BreakdownTab.jsx'
@@ -35,7 +35,7 @@ function gemPopupCard(code) {
 // validator, in a new browser tab.
 // The parent owns the open tab and card: App (openRoster) on the table, because App handles all keys,
 // and RoomRosterPopup in the lobby. Escape closes the popup, and the left and right arrows move the
-// carousel. A dialog, so it renders through Overlay.
+// carousel. A dialog, so it uses Dialog.
 // title: the heading. color: 'blue' | 'red' for the heading, or missing: no color (the caller knows them,
 // not the side color store, which belongs to the open table). code: the stored MCT code of the roster. tab: a key of ROSTER_TABS, or 'breakdown'. index: the shown card of
 // that tab.
@@ -58,77 +58,64 @@ export function RosterPopup({
 }) {
   const parsed = useMemo(() => parseRosterText(code), [code])
   const tabs = useMemo(() => rosterTabs(parsed), [parsed])
-  // A carousel drag can end on the backdrop. The click then goes to the backdrop. So the backdrop
-  // closes the popup only when the press also started on the backdrop.
-  const pressedBackdrop = useRef(false)
 
   return (
-    <Overlay
-      className="card-popup roster-popup-backdrop"
-      onPointerDown={(e) => {
-        pressedBackdrop.current = e.target === e.currentTarget
-      }}
-      onClick={(e) => {
-        if (pressedBackdrop.current && e.target === e.currentTarget) onClose()
-      }}
+    <Dialog
+      backdropClassName="card-popup roster-popup-backdrop"
+      className="roster-popup"
+      label={title}
+      onClose={onClose}
     >
-      <button type="button" className="popup-close" aria-label="Close" onClick={onClose}>
-        ×
-      </button>
-      <div className="roster-popup" role="dialog" aria-modal="true" aria-label={title}>
-        <h2
-          className={
-            color ? `roster-popup-title roster-popup-title--${color}` : 'roster-popup-title'
-          }
-        >
-          {title}
-        </h2>
-        <JarvisLink href={jarvisRosterUrl(parsed)}>Open this roster on Jarvis</JarvisLink>
-        <div className="roster-popup-tabs" role="tablist">
-          {ROSTER_TABS.map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              role="tab"
-              aria-selected={t.key === tab}
-              className={t.key === tab ? 'chip chip--active' : 'chip'}
-              disabled={tabs[t.key].length === 0}
-              onClick={() => {
-                if (t.key !== tab) onTabChange(t.key)
-              }}
-            >
-              {t.label}
-            </button>
-          ))}
-          {breakdown && (
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'breakdown'}
-              className={tab === 'breakdown' ? 'chip chip--active' : 'chip'}
-              disabled={parsed.characters.length === 0}
-              onClick={() => {
-                if (tab !== 'breakdown') onTabChange('breakdown')
-              }}
-            >
-              Breakdown
-            </button>
-          )}
-        </div>
-        {tab === 'breakdown' && breakdown ? (
-          <BreakdownTab parsed={parsed} breakdown={breakdown} />
-        ) : (
-          // A new tab gets a new carousel, which starts at the index that App gives
-          <CardCarousel
-            key={tab}
-            cards={tabs[tab]}
-            index={index}
-            onIndexChange={onIndexChange}
-            squad={squad && (tab === 'characters' || tab === 'tactics') ? { ...squad, tab } : null}
-          />
+      <h2
+        className={color ? `roster-popup-title roster-popup-title--${color}` : 'roster-popup-title'}
+      >
+        {title}
+      </h2>
+      <JarvisLink href={jarvisRosterUrl(parsed)}>Open this roster on Jarvis</JarvisLink>
+      <div className="roster-popup-tabs" role="tablist">
+        {ROSTER_TABS.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            role="tab"
+            aria-selected={t.key === tab}
+            className={t.key === tab ? 'chip chip--active' : 'chip'}
+            disabled={tabs[t.key].length === 0}
+            onClick={() => {
+              if (t.key !== tab) onTabChange(t.key)
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+        {breakdown && (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'breakdown'}
+            className={tab === 'breakdown' ? 'chip chip--active' : 'chip'}
+            disabled={parsed.characters.length === 0}
+            onClick={() => {
+              if (tab !== 'breakdown') onTabChange('breakdown')
+            }}
+          >
+            Breakdown
+          </button>
         )}
       </div>
-    </Overlay>
+      {tab === 'breakdown' && breakdown ? (
+        <BreakdownTab parsed={parsed} breakdown={breakdown} />
+      ) : (
+        // A new tab gets a new carousel, which starts at the index that App gives
+        <CardCarousel
+          key={tab}
+          cards={tabs[tab]}
+          index={index}
+          onIndexChange={onIndexChange}
+          squad={squad && (tab === 'characters' || tab === 'tactics') ? { ...squad, tab } : null}
+        />
+      )}
+    </Dialog>
   )
 }
 

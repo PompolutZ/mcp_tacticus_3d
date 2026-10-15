@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { assetUrl, hasAsset } from '../assets/index.js'
 import { MAPS } from '../terrain/maps/index.js'
 import { MAP_CARD_BACK, mapCard } from '../terrain/files.js'
@@ -11,7 +11,7 @@ import { createRoom as createServerRoom } from '../rooms/serverStore.js'
 import { startTableBytes } from '../rooms/startTable.js'
 import { CARD_STEP_KEYS, isEditing } from '../keyboard.js'
 import { Carousel } from './Carousel.jsx'
-import { Overlay } from './Overlay.jsx'
+import { Dialog } from './Dialog.jsx'
 import { Switch } from './Switch.jsx'
 import { COLOR_NAME, DEFAULT_SIDE_COLORS as START_COLORS } from '../sideColors.js'
 import { TEAMS } from '../setup/setup.js'
@@ -31,7 +31,7 @@ function unavailableText(status) {
 // guest joins. With it off, the map
 // card in the middle of the carousel is the map. Create room needs a Blue roster. The Red roster is
 // optional, because the Red field of the toolbar can load it later. Create room saves the room and calls
-// onCreate(room). Escape, Cancel, × or a click on the backdrop calls onClose(). The left and right arrows
+// onCreate(room). Escape (Dialog.jsx), Cancel, × or a click on the backdrop calls onClose(). The left and right arrows
 // move the carousel, the same as in the roster popup, but not while a roster field has the focus.
 //
 // Plan 07, decision 19: with login on, a choice at the top: Single player or Multiplayer. A multiplayer room
@@ -60,20 +60,16 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
   const canCreate = multiplayer
     ? !isEmptyRoster(parsed.host) && !hostedCode && !busy
     : !isEmptyRoster(parsed.host) && (!text.guest.trim() || !isEmptyRoster(parsed.guest))
-  // A carousel drag can end on the backdrop. The click then goes to the backdrop. So the backdrop
-  // closes the dialog only when the press also started on the backdrop, the same as in RosterPopup.jsx.
-  const pressedBackdrop = useRef(false)
 
   useEffect(() => {
     function handleKeyDown(e) {
-      if (e.key === 'Escape') onClose()
-      else if (!random && CARD_STEP_KEYS[e.code] && !isEditing(e.target)) {
+      if (!random && CARD_STEP_KEYS[e.code] && !isEditing(e.target)) {
         setMapIndex((i) => (i + CARD_STEP_KEYS[e.code] + MAP_IDS.length) % MAP_IDS.length)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [random, onClose])
+  }, [random])
 
   async function handleCreate(e) {
     e.preventDefault()
@@ -111,134 +107,122 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
   }
 
   return (
-    <Overlay
-      className="new-room-backdrop"
-      onPointerDown={(e) => {
-        pressedBackdrop.current = e.target === e.currentTarget
-      }}
-      onClick={(e) => {
-        if (pressedBackdrop.current && e.target === e.currentTarget) onClose()
-      }}
+    <Dialog
+      as="form"
+      backdropClassName="new-room-backdrop"
+      className="new-room"
+      label="New room"
+      onClose={onClose}
+      onSubmit={handleCreate}
     >
-      <button type="button" className="popup-close" aria-label="Close" onClick={onClose}>
-        ×
-      </button>
-      <form
-        className="new-room"
-        role="dialog"
-        aria-modal="true"
-        aria-label="New room"
-        onSubmit={handleCreate}
-      >
-        <h2 className="new-room-title">New room</h2>
-        {authOn && (
-          <div className="new-room-choice">
-            <div className="new-room-kinds" role="group" aria-label="Kind of room">
-              <button
-                type="button"
-                className={multiplayer ? 'chip' : 'chip chip--active'}
-                aria-pressed={!multiplayer}
-                onClick={() => setChoice('single')}
-              >
-                Single player
-              </button>
-              <button
-                type="button"
-                className={multiplayer ? 'chip chip--active' : 'chip'}
-                aria-pressed={multiplayer}
-                disabled={!loggedIn}
-                onClick={() => setChoice('multiplayer')}
-              >
-                Multiplayer
-              </button>
-            </div>
-            {!loggedIn && <span className="new-room-hint">{unavailableText(status)}</span>}
-            {multiplayer && hostedCode && (
-              <span className="new-room-error">
-                You host room {hostedCode} already. Delete it to create a new one.
-              </span>
-            )}
+      <h2 className="new-room-title">New room</h2>
+      {authOn && (
+        <div className="new-room-choice">
+          <div className="new-room-kinds" role="group" aria-label="Kind of room">
+            <button
+              type="button"
+              className={multiplayer ? 'chip' : 'chip chip--active'}
+              aria-pressed={!multiplayer}
+              onClick={() => setChoice('single')}
+            >
+              Single player
+            </button>
+            <button
+              type="button"
+              className={multiplayer ? 'chip chip--active' : 'chip'}
+              aria-pressed={multiplayer}
+              disabled={!loggedIn}
+              onClick={() => setChoice('multiplayer')}
+            >
+              Multiplayer
+            </button>
           </div>
-        )}
-        <Switch
-          checked={random}
-          onChange={setRandom}
-          label="Random map"
-          title={
-            multiplayer
-              ? 'On: the server picks the map when the second player joins. Off: choose the map below.'
-              : 'On: the app picks the map when it creates the room. Off: choose the map below.'
-          }
-        />
-        {random ? (
-          <div className="new-room-random">
+          {!loggedIn && <span className="new-room-hint">{unavailableText(status)}</span>}
+          {multiplayer && hostedCode && (
+            <span className="new-room-error">
+              You host room {hostedCode} already. Delete it to create a new one.
+            </span>
+          )}
+        </div>
+      )}
+      <Switch
+        checked={random}
+        onChange={setRandom}
+        label="Random map"
+        title={
+          multiplayer
+            ? 'On: the server picks the map when the second player joins. Off: choose the map below.'
+            : 'On: the app picks the map when it creates the room. Off: choose the map below.'
+        }
+      />
+      {random ? (
+        <div className="new-room-random">
+          <img
+            className="new-room-card"
+            src={assetUrl(MAP_CARD_BACK)}
+            alt="Random map"
+            draggable={false}
+          />
+          <span className="new-room-hint">
+            {multiplayer
+              ? 'The map spawns when the second player joins the room'
+              : 'The app picks the map when it creates the room'}
+          </span>
+        </div>
+      ) : (
+        <Carousel
+          count={MAP_IDS.length}
+          index={mapIndex}
+          onIndexChange={setMapIndex}
+          itemName="Map"
+          renderSlide={(i) => (
             <img
-              className="new-room-card"
-              src={assetUrl(MAP_CARD_BACK)}
-              alt="Random map"
+              className="carousel-card new-room-card"
+              src={assetUrl(hasAsset(mapCard(MAP_IDS[i])) ? mapCard(MAP_IDS[i]) : MAP_CARD_BACK)}
+              alt={MAPS[MAP_IDS[i]].name}
               draggable={false}
             />
-            <span className="new-room-hint">
-              {multiplayer
-                ? 'The map spawns when the second player joins the room'
-                : 'The app picks the map when it creates the room'}
-            </span>
-          </div>
-        ) : (
-          <Carousel
-            count={MAP_IDS.length}
-            index={mapIndex}
-            onIndexChange={setMapIndex}
-            itemName="Map"
-            renderSlide={(i) => (
-              <img
-                className="carousel-card new-room-card"
-                src={assetUrl(hasAsset(mapCard(MAP_IDS[i])) ? mapCard(MAP_IDS[i]) : MAP_CARD_BACK)}
-                alt={MAPS[MAP_IDS[i]].name}
-                draggable={false}
-              />
-            )}
-          />
-        )}
-        {multiplayer ? (
+          )}
+        />
+      )}
+      {multiplayer ? (
+        <RosterField
+          label="Your roster"
+          text={text.host}
+          parsed={parsed.host}
+          onChange={(value) => handleTextChange('host', value)}
+        />
+      ) : (
+        TEAMS.map((team) => (
           <RosterField
-            label="Your roster"
-            text={text.host}
-            parsed={parsed.host}
-            onChange={(value) => handleTextChange('host', value)}
+            key={team}
+            label={`${COLOR_NAME[START_COLORS[team]]} roster`}
+            color={START_COLORS[team]}
+            text={text[team]}
+            parsed={parsed[team]}
+            optional={team !== 'host'}
+            onChange={(value) => handleTextChange(team, value)}
           />
-        ) : (
-          TEAMS.map((team) => (
-            <RosterField
-              key={team}
-              label={`${COLOR_NAME[START_COLORS[team]]} roster`}
-              color={START_COLORS[team]}
-              text={text[team]}
-              parsed={parsed[team]}
-              optional={team !== 'host'}
-              onChange={(value) => handleTextChange(team, value)}
-            />
-          ))
-        )}
-        {createError && (
-          <span className="new-room-error" role="alert">
-            {createError}
-          </span>
-        )}
-        {failed && (
-          <span className="new-room-error" role="alert">
-            The browser did not store the room. Its storage is full or turned off.
-          </span>
-        )}
-        <div className="new-room-actions">
-          <button type="button" className="chip" onClick={onClose}>
-            Cancel
-          </button>
-          <button type="submit" className="chip chip--active" disabled={!canCreate}>
-            Create room
-          </button>
-        </div>
-      </form>
-    </Overlay>
+        ))
+      )}
+      {createError && (
+        <span className="new-room-error" role="alert">
+          {createError}
+        </span>
+      )}
+      {failed && (
+        <span className="new-room-error" role="alert">
+          The browser did not store the room. Its storage is full or turned off.
+        </span>
+      )}
+      <div className="new-room-actions">
+        <button type="button" className="chip" onClick={onClose}>
+          Cancel
+        </button>
+        <button type="submit" className="chip chip--active" disabled={!canCreate}>
+          Create room
+        </button>
+      </div>
+    </Dialog>
   )
 }
