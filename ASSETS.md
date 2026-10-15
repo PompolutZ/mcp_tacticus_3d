@@ -110,7 +110,7 @@ Named `httpsd37ev18qvj5a3mcloudfrontnetttstokenobjectiveXXXX.png`, 300 × 300. T
 
 ### Character token images — 310 cached (full `tokenDatabase`)
 
-Named `httpsd37ev18qvj5a3mcloudfrontnetttstokenXXXX.png`, under `token/condition/`, `token/dice/`, `token/character/`, `token/tactic/` and `token/misc/`. 225 to 375 px. 88 of them (conditions, Activated/Dazed, personal tokens, Team Tactic tokens and "1 Power") are copied to `apps/web/src/assets/tokens/` by `apps/web/scripts/migrate-tokens.mjs`; see `apps/web/scripts/README.md`.
+Named `httpsd37ev18qvj5a3mcloudfrontnetttstokenXXXX.png`, under `token/condition/`, `token/dice/`, `token/character/`, `token/tactic/` and `token/misc/`. 225 to 375 px. 94 of them (conditions, dice results, Activated/Dazed, personal tokens, Team Tactic tokens and "1 Power") are copied to `apps/web/src/assets/tokens/` by `apps/web/scripts/migrate-tokens.mjs`; see `apps/web/scripts/README.md`.
 
 ### Scoring board and affiliation tokens — cached
 

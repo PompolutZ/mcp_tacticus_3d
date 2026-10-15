@@ -273,7 +273,15 @@
   },
   "cosmic-awareness": {
     "id": "01910201",
-    "name": "Cosmic Awareness"
+    "name": "Cosmic Awareness",
+    "tokens": [
+      "fail",
+      "shield",
+      "hit",
+      "blank",
+      "crit",
+      "wild"
+    ]
   },
   "cosmic-invigoration": {
     "id": "00010203",

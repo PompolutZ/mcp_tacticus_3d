@@ -262,7 +262,7 @@ The mod's `tokenDatabase` (in the `Database` script) has 310 rows. The TTS cache
 | Mod type (`tType`) | Rows | Examples | Migrate |
 |---|---|---|---|
 | Condition, `token/condition/` | 10 + 10 | Bleed, Incinerate, Poison | yes, without the second art (see below) |
-| Condition, `token/dice/` | 6 | Hit, Crit, Wild | no: dice results that players put on cards |
+| Condition, `token/dice/` | 6 | Hit, Crit, Wild | yes, group `dice`, collected: Cosmic Awareness holds them |
 | Status | 35 | Activated, Dazed, Winging It, Bounty, Gadget | yes |
 | Personal | 21 | Loaded, Genetic Sample, Devil's Deal, Evolution | yes |
 | Only Status | 26 | Disarm, Marked for Death, Crew of the Milano | yes, except 3 rows in `token/misc/` (Master of Metal, Antimatter Core, Suppression): AI mode and Infinity Gauntlet event |

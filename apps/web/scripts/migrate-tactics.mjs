@@ -36,6 +36,8 @@ const CARD_SIZE = 1040
 const EXTRA_TOKENS = {
   'cloning-banks': ['genetic-sample'],
   'the-white-hot-room': ['1-power'],
+  // Block is the die face named Shield in the token rows. Order of the die faces.
+  'cosmic-awareness': ['fail', 'shield', 'hit', 'blank', 'crit', 'wild'],
 }
 
 // The mod spawns only released cards

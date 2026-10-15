@@ -33,6 +33,13 @@ const COLLECT_KEYS = [
   'genetic-sample',
   '1-damage',
   '1-power',
+  // The 6 dice results: Cosmic Awareness holds a token of each result
+  'hit',
+  'crit',
+  'fail',
+  'wild',
+  'shield',
+  'blank',
 ]
 const MANIFEST_FILE = path.join(import.meta.dirname, 'token-manifest.json')
 const DATA_DIR = path.resolve(import.meta.dirname, '../src/tokens')
@@ -81,7 +88,7 @@ function selected(row) {
   if (tacticTokenNames.has(row.name.toLowerCase())) return true
   switch (row.tType) {
     case 'Condition':
-      return groupPath(row) === 'condition' // not the dice results in token/dice/
+      return ['condition', 'dice'].includes(groupPath(row)) // dice: the 6 results, token/dice/
     case 'Status':
       return true
     case 'Personal':
@@ -95,7 +102,7 @@ function selected(row) {
   }
 }
 
-// group: condition, status (Activated, Dazed, 1 Power), character or tactic, from the folder of the mod's url,
+// group: condition, dice (Hit, Crit, ...), status (Activated, Dazed, 1 Power), character or tactic, from the folder of the mod's url,
 // see docs/features/character-trays.md, "Tokens from the TTS mod"
 function groupPath(row) {
   return row.url.split('/token/')[1].replace(/\/[^/]+$/, '')
@@ -105,6 +112,7 @@ function group(row) {
   if (COUNTER_ROWS.includes(row.name)) return 'counter'
   const g = {
     condition: 'condition',
+    dice: 'dice',
     'misc/tracker': 'status',
     character: 'character',
     tactic: 'tactic',

@@ -374,7 +374,7 @@ The app now has crisis card and token display (see `docs/features/crisis.md`). S
 
 # TTS character tokens
 
-`migrate-tokens.mjs` copies the character tokens of the TTS mod (conditions, Activated/Dazed, personal tokens, Team Tactic tokens, the "1 Power" counter icon, and the tokens of Team Tactic cards) to `src/assets/tokens/`. It writes the app data to `src/tokens/tokens.json`, and the source URLs to `scripts/token-manifest.json`. `src/tokens/files.js` names the files after the keys. See `docs/features/character-trays.md`, "Tokens from the TTS mod", for which rows of the mod's `tokenDatabase` it migrates and why.
+`migrate-tokens.mjs` copies the character tokens of the TTS mod (conditions, Activated/Dazed, personal tokens, Team Tactic tokens, the "1 Power" counter icon, the 6 dice results in `token/dice/` (group `dice`, collected, for Cosmic Awareness), and the tokens of Team Tactic cards) to `src/assets/tokens/`. It writes the app data to `src/tokens/tokens.json`, and the source URLs to `scripts/token-manifest.json`. `src/tokens/files.js` names the files after the keys. See `docs/features/character-trays.md`, "Tokens from the TTS mod", for which rows of the mod's `tokenDatabase` it migrates and why.
 
 Requirements: ImageMagick, and the images in the TTS cache. On 2026-10-01 the cache had all 310 `tokenDatabase` images, so no object needs to be spawned first.
 
