@@ -7,8 +7,8 @@ import { RosterPopup } from './RosterPopup.jsx'
 // cards. On the table, App owns the tab and the card, because App handles all keys there. The
 // lobby has no key handler, so this component owns them: Escape closes the popup, and the left and right
 // arrows show the previous or next card. The tab is a loop, the same as on the table.
-// team: 'host' | 'guest'. code: the stored MCT code of the roster.
-export function RoomRosterPopup({ team, code, onClose }) {
+// title, color: for RosterPopup. code: the stored MCT code of the roster.
+export function RoomRosterPopup({ title, color, code, onClose }) {
   const tabs = useMemo(() => rosterTabs(parseRosterText(code)), [code])
   const [tab, setTab] = useState(() => ROSTER_TABS.find((t) => tabs[t.key].length > 0).key)
   const [index, setIndex] = useState(0)
@@ -25,7 +25,8 @@ export function RoomRosterPopup({ team, code, onClose }) {
 
   return (
     <RosterPopup
-      team={team}
+      title={title}
+      color={color}
       code={code}
       tab={tab}
       index={index}

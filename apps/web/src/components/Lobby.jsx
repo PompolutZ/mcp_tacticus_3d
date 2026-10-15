@@ -6,19 +6,18 @@ import { useUser } from '../auth/useUser.js'
 import { deleteDoc, deleteRoom, listRooms, multiplayerDocName, ownsRoom } from '../rooms/store.js'
 import * as server from '../rooms/serverStore.js'
 import { deleteStaleDocs, deleteStaleRooms, deleteStaleSquads } from '../rooms/localDocs.js'
-import { roomList } from '../rooms/roomList.js'
+import { roomList, rosterLinks } from '../rooms/roomList.js'
 import { LobbyHeader } from './LobbyHeader.jsx'
 import { NewRoomDialog } from './NewRoomDialog.jsx'
 import { RoomRosterPopup } from './RoomRosterPopup.jsx'
 import { CopyLinkButton } from './CopyLinkButton.jsx'
-import { DEFAULT_SIDE_COLORS } from '../sideColors.js'
+import { COLOR_NAME } from '../sideColors.js'
 
 const TIME = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 const TEAMS = ['host', 'guest']
-const TEAM_NAMES = { host: 'Blue', guest: 'Red' }
 
 // A seat of a multiplayer tile: avatar and name, "Free seat", or "Deleted player"
-function Seat({ team, player }) {
+function Seat({ player }) {
   let content = <span className="lobby-seat-name">Free seat</span>
   if (player?.gone) content = <span className="lobby-seat-name">Deleted player</span>
   else if (player)
@@ -28,17 +27,12 @@ function Seat({ team, player }) {
         <span className="lobby-seat-name">{player.name}</span>
       </>
     )
-  return (
-    <div className={`lobby-seat lobby-seat--${DEFAULT_SIDE_COLORS[team]}`}>
-      <span className="lobby-seat-team">{TEAM_NAMES[team]}</span>
-      {content}
-    </div>
-  )
+  return <div className="lobby-seat">{content}</div>
 }
 
 // The start page (docs/features/rooms.md, "Lobby"): the single player and the multiplayer rooms in one list,
-// the last changed first, a tile that creates a room, and the Sandbox. Blue and Red on a tile show that
-// roster of the room. notice: a message to show at the top, or null. onOpenRoom(id), onOpenSandbox(): open
+// the last changed first, a tile that creates a room, and the Sandbox. A roster link on a tile shows that
+// roster of the room (rosterLinks). notice: a message to show at the top, or null. onOpenRoom(id), onOpenSandbox(): open
 // that page.
 export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
   const { status, user } = useUser()
@@ -167,7 +161,7 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
                   {isMulti ? (
                     <span className="lobby-seats">
                       {TEAMS.map((team) => (
-                        <Seat key={team} team={team} player={room.players[team]} />
+                        <Seat key={team} player={room.players[team]} />
                       ))}
                     </span>
                   ) : (
@@ -175,22 +169,19 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
                   )}
                 </button>
                 <div className="lobby-room-actions">
-                  {TEAMS.map(
-                    (team) =>
-                      item.rosters?.[team] && (
-                        <button
-                          key={team}
-                          type="button"
-                          className={`chip chip--player-${DEFAULT_SIDE_COLORS[team]}`}
-                          title={`Show the ${TEAM_NAMES[team]} roster of room ${item.id}`}
-                          onClick={() =>
-                            setRosterView({ id: item.id, team, rosters: item.rosters })
-                          }
-                        >
-                          {TEAM_NAMES[team]}
-                        </button>
-                      ),
-                  )}
+                  {rosterLinks(item).map(({ team, color, label }) => (
+                    <button
+                      key={team}
+                      type="button"
+                      className={color ? `chip chip--player-${color}` : 'chip'}
+                      title={`Show the ${label} of room ${item.id}`}
+                      onClick={() =>
+                        setRosterView({ id: item.id, team, rosters: item.rosters, color, label })
+                      }
+                    >
+                      {label}
+                    </button>
+                  ))}
                   {isMulti && (!room.players.host || !room.players.guest) && (
                     <CopyLinkButton code={item.id} />
                   )}
@@ -232,7 +223,10 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
       {rosterView && (
         <RoomRosterPopup
           key={`${rosterView.id}-${rosterView.team}`}
-          team={rosterView.team}
+          title={
+            rosterView.color ? `${COLOR_NAME[rosterView.color]} player roster` : rosterView.label
+          }
+          color={rosterView.color}
           code={rosterView.rosters[rosterView.team].code}
           onClose={() => setRosterView(null)}
         />

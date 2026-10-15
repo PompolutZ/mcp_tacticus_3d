@@ -320,3 +320,10 @@ User: a multiplayer tile shows the two names with roster links and no colors; th
 From the user test on 2026-10-15. While the table code downloads, the loading screen says "0 / 0 files". When the count is 0, `LoadingScreen` shows no count, only the loading animation. The count shows once there are files.
 
 User: a cold load of a room shows no "0 / 0", then the file count.
+
+### Result (step 8)
+
+- Single player colors: not read from the table in the lobby (opening each IndexedDB table there is heavy). Instead the room record got `colors` { host, guest }, a copy like `mapId` and `rosters`. `watchRoomRecord` writes it from the table (`sideColorsOf(setup)`, new in `setup/setup.js`, test added), `createRoom` writes the start colors. A record from before has none: the lobby shows "Roster 1" / "Roster 2" with no color until the room is opened once.
+- `rosterLinks(item)` in `rooms/roomList.js` (tests) gives the lobby links: multiplayer "<name> roster" with no color, single "Blue roster" / "Red roster" or the numbered fallback.
+- `RosterPopup` takes `title` and `color` from the caller (`RosterPopupHost` reads the side store, the lobby and join page pass their own). `RosterField` takes `label` and `color`. Join page: "<host name> roster" link, field "Your roster". New room: "Your roster" (multiplayer), "Blue roster" / "Red roster" (single). Seat color labels and their CSS removed.
+- Docs: `rooms.md`, `roster.md`.

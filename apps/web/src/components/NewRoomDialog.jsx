@@ -13,6 +13,7 @@ import { CARD_STEP_KEYS, isEditing } from '../keyboard.js'
 import { Carousel } from './Carousel.jsx'
 import { Overlay } from './Overlay.jsx'
 import { Switch } from './Switch.jsx'
+import { COLOR_NAME, DEFAULT_SIDE_COLORS as START_COLORS } from '../sideColors.js'
 import { RosterField } from './RosterField.jsx'
 
 const MAP_IDS = Object.keys(MAPS)
@@ -201,7 +202,7 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
         )}
         {multiplayer ? (
           <RosterField
-            team="host"
+            label="Your roster"
             text={text.host}
             parsed={parsed.host}
             onChange={(value) => handleTextChange('host', value)}
@@ -210,7 +211,8 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
           TEAMS.map((team) => (
             <RosterField
               key={team}
-              team={team}
+              label={`${COLOR_NAME[START_COLORS[team]]} roster`}
+              color={START_COLORS[team]}
               text={text[team]}
               parsed={parsed[team]}
               optional={team !== 'host'}

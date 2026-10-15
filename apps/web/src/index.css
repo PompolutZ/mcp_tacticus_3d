@@ -2090,19 +2090,6 @@ body {
   font-size: 12px;
 }
 
-.lobby-seat-team {
-  width: 30px;
-  font-weight: 600;
-}
-
-.lobby-seat--blue .lobby-seat-team {
-  color: #5dade2;
-}
-
-.lobby-seat--red .lobby-seat-team {
-  color: #ec7063;
-}
-
 .lobby-seat-avatar {
   width: 20px;
   height: 20px;

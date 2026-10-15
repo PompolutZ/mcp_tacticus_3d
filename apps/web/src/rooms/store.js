@@ -4,6 +4,8 @@
 import { clearDocument } from 'y-indexeddb'
 import { equal } from '../net/collections.js'
 
+// The colors before the roll off, the same as sideColorsOf of a new setup (setup/setup.js)
+const START_COLORS = { host: 'blue', guest: 'red' }
 const PREFIX = 'mcp-assist-3d/'
 const ROOM_PREFIX = `${PREFIX}room/`
 const USER_KEY = `${PREFIX}user`
@@ -155,18 +157,24 @@ export function createRoom(mapId, rosters) {
     updatedAt: now,
     mapId,
     rosters,
+    colors: START_COLORS,
   }
   return write(ROOM_PREFIX + id, room) ? room : null
 }
 
-// Writes the map and the rosters of the table of a room into its record, for the lobby tile. The table is the
+// Writes the map, the rosters and the side colors of the table of a room into its record, for the lobby tile.
+// A record of a room that was not opened since colors came has none: the lobby shows no color. The table is the
 // source, the record has a copy. changed: the table changed, so updatedAt changes too. Without a change, it
 // writes only a different map or rosters, or an old version.
-export function saveRoomRecord(id, { mapId, rosters }, changed) {
+export function saveRoomRecord(id, { mapId, rosters, colors }, changed) {
   const room = read(ROOM_PREFIX + id)
   // Deleted in another tab
   if (!room) return
-  const same = room.version === VERSION && room.mapId === mapId && equal(room.rosters, rosters)
+  const same =
+    room.version === VERSION &&
+    room.mapId === mapId &&
+    equal(room.rosters, rosters) &&
+    equal(room.colors, colors)
   if (same && !changed) return
   const { table: _oldTable, ...record } = room
   write(ROOM_PREFIX + id, {
@@ -174,6 +182,7 @@ export function saveRoomRecord(id, { mapId, rosters }, changed) {
     version: VERSION,
     mapId,
     rosters,
+    colors,
     updatedAt: changed ? Date.now() : room.updatedAt,
   })
 }

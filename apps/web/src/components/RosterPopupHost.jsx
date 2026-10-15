@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { RosterPopup } from './RosterPopup.jsx'
 import { DEFAULT_FILTERS } from '../rosters/breakdown.js'
 import { CRISIS_THREATS, ROSTER_TABS, rosterCard, rosterTabs } from '../rosters/cards.js'
+import { COLOR_NAME, useSideColors } from '../sideColors.js'
 import { placedSides, possibleThreats } from '../setup/setup.js'
 
 // The roster popup of the table (RosterPopup.jsx) with the state that must outlive it. It is always
@@ -22,6 +23,7 @@ export function RosterPopupHost({
   handleBreakdownChoose,
   handleSquadToggle,
 }) {
+  const sideColors = useSideColors()
   // The selected threat value of the Breakdown tab of each roster: { host, guest } → { code, threat, filters } |
   // null. code: the roster code it belongs to; null means the first value. Not saved. See
   // docs/features/squad-breakdown.md, "State".
@@ -87,9 +89,11 @@ export function RosterPopupHost({
   }
 
   if (!(openRoster && rosters[openRoster.team])) return null
+  const color = sideColors[openRoster.team]
   return (
     <RosterPopup
-      team={openRoster.team}
+      title={`${COLOR_NAME[color]} player roster`}
+      color={color}
       code={rosters[openRoster.team].code}
       tab={rosterPopupTab}
       index={openRoster.index}

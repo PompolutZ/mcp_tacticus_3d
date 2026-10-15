@@ -1,9 +1,6 @@
 import { useMemo } from 'react'
 import { isEmptyRoster } from '../rosters/mct.js'
 import { missingFiles, unknownCodesMessage } from '../rosters/cards.js'
-import { DEFAULT_SIDE_COLORS } from '../sideColors.js'
-
-const TEAM_NAMES = { host: 'Blue', guest: 'Red' }
 
 // "1 character", "10 characters"
 const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
@@ -42,10 +39,11 @@ function MissingFiles({ parsed }) {
   )
 }
 
-// A roster field of the dialog, and what the app found in its text under it. text: the field text.
+// A roster field of the dialog, and what the app found in its text under it. label: the field name.
+// color: 'blue' | 'red' for the input, or missing. text: the field text.
 // parsed: the parsed text. optional: the field can stay empty. onChange(text). The first field has the focus
 // when the dialog opens.
-export function RosterField({ team, text, parsed, optional, onChange }) {
+export function RosterField({ label, color, text, parsed, optional, onChange }) {
   let status = null
   if (text.trim() && isEmptyRoster(parsed))
     status = <span className="new-room-error">No known MCT code in the text</span>
@@ -63,10 +61,10 @@ export function RosterField({ team, text, parsed, optional, onChange }) {
   return (
     <>
       <label className="new-room-roster">
-        <span className="group-label">{TEAM_NAMES[team]} roster</span>
+        <span className="group-label">{label}</span>
         <input
           type="text"
-          className={`chip chip--player-${DEFAULT_SIDE_COLORS[team]} chip--text new-room-input`}
+          className={`chip ${color ? `chip--player-${color}` : ''} chip--text new-room-input`}
           placeholder={optional ? 'Optional: paste an MCT code' : 'Paste an MCT code'}
           value={text}
           onChange={(e) => onChange(e.target.value)}

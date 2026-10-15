@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { MAPS } from '../terrain/maps/index.js'
-import { roomList } from './roomList.js'
+import { roomList, rosterLinks } from './roomList.js'
 
 const mapId = Object.keys(MAPS)[0]
 const single = (id, updatedAt, map = mapId) => ({ id, mapId: map, rosters: {}, updatedAt })
@@ -45,5 +45,24 @@ test('a multiplayer room with mapId null stays, a single room without a map does
   assert.deepEqual(
     list.map((item) => item.id),
     ['M1'],
+  )
+})
+
+test('rosterLinks: multiplayer shows names without colors', () => {
+  const room = { players: { host: { name: 'James' }, guest: null } }
+  const item = { kind: 'multiplayer', rosters: { host: { code: 'a' }, guest: null }, room }
+  assert.deepEqual(rosterLinks(item), [{ team: 'host', color: null, label: 'James roster' }])
+})
+
+test('rosterLinks: single player shows the colors of the record, or numbers', () => {
+  const rosters = { host: { code: 'a' }, guest: { code: 'b' } }
+  const colors = { host: 'red', guest: 'blue' }
+  assert.deepEqual(rosterLinks({ kind: 'single', rosters, colors }), [
+    { team: 'host', color: 'red', label: 'Red roster' },
+    { team: 'guest', color: 'blue', label: 'Blue roster' },
+  ])
+  assert.deepEqual(
+    rosterLinks({ kind: 'single', rosters, colors: undefined }).map((l) => l.label),
+    ['Roster 1', 'Roster 2'],
   )
 })

@@ -137,7 +137,7 @@ The app has files for 65 of 233 character codes, 69 of 401 Team Tactic codes and
 `RosterPopup.jsx` shows the roster of one player in a full-screen popup.
 
 - The popup has no panel. The title, the tabs, the cards and the buttons lie on a dark backdrop that blurs the table, the same as the single card popup (`CardPopup.jsx`). Only the cards and the buttons take clicks. A click anywhere else goes to the backdrop.
-- The title says whose roster it is: "Blue player roster" or "Red player roster", in the player color.
+- The title says whose roster it is: "Blue player roster" or "Red player roster", in the player color. The caller gives the title and the color. From the lobby a multiplayer roster has the title "<player name> roster" and no color, and a single player room with no known colors has "Roster 1" or "Roster 2".
 - The setup crisis cards next to the scoring board do not open this popup; they open the compare overlay (`docs/features/setup-game.md`, "Crisis cards"). The Crisis tab opens from a character or Team Tactic card.
 - The popup has 3 tabs: **Characters**, **Tactic cards** and **Crisis cards**. The Crisis tab has the Secure cards, then the Extract cards. A tab without cards is disabled.
 - During the setup, the popup on the table has a fourth tab, **Breakdown**: the squads that the roster can build. See `docs/features/squad-breakdown.md`.

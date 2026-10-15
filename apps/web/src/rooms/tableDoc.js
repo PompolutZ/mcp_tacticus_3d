@@ -3,6 +3,7 @@
 
 import * as Y from 'yjs'
 import { IndexeddbPersistence } from 'y-indexeddb'
+import { sideColorsOf } from '../setup/setup.js'
 import { saveRoomRecord } from './store.js'
 
 // IndexedDB loads a table in far less time. A database that cannot open never answers, so this ends the wait.
@@ -36,7 +37,11 @@ export function watchRoomRecord(roomId, table) {
   const save = (tableChanged) =>
     saveRoomRecord(
       roomId,
-      { mapId: table.game.get('mapId'), rosters: table.rosters.read() },
+      {
+        mapId: table.game.get('mapId'),
+        rosters: table.rosters.read(),
+        colors: sideColorsOf(table.setup.read()),
+      },
       tableChanged,
     )
   let timer = null

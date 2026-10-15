@@ -73,6 +73,11 @@ export function colorOf(team, setup, followPriority) {
   return team === priority ? 'blue' : 'red'
 }
 
+// The colors of both sides in a room, { host, guest }, for the room record (rooms/store.js)
+export function sideColorsOf(setup) {
+  return { host: colorOf('host', setup, true), guest: colorOf('guest', setup, true) }
+}
+
 // setup.placed as { host, guest }, each null | { characters, tactics }. The old shape { characters, tactics }
 // belongs to Blue, and Red gets an empty list, but only when both players are Ready: then the old setup
 // was done. Before that the old lists are empty.

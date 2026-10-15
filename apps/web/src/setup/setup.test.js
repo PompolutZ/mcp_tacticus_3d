@@ -16,6 +16,7 @@ import {
   viewOf,
   finishDeploy,
   colorOf,
+  sideColorsOf,
   crisisRows,
   needsAffiliation,
   newSetup,
@@ -656,4 +657,13 @@ test('needsAffiliation: a setup with no affiliation field never waits', () => {
   const old = placeSquad(squadsSetup(bothReady), 'host', squad, cards, null)
   delete old.affiliation
   assert.equal(needsAffiliation(old, 'host'), false)
+})
+
+test('sideColorsOf: start colors before the roll off, swapped when guest has Priority', () => {
+  assert.deepEqual(sideColorsOf(newSetup()), { host: 'blue', guest: 'red' })
+  assert.deepEqual(sideColorsOf(null), { host: 'blue', guest: 'red' })
+  assert.deepEqual(sideColorsOf({ ...newSetup(), priority: 'guest' }), {
+    host: 'red',
+    guest: 'blue',
+  })
 })

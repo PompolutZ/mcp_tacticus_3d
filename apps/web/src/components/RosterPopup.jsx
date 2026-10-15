@@ -1,6 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
-import { COLOR_NAME, useSideColor } from '../sideColors.js'
 import {
   PLATE_COLORS,
   ROSTER_TABS,
@@ -37,7 +36,8 @@ function gemPopupCard(code) {
 // The parent owns the open tab and card: App (openRoster) on the table, because App handles all keys,
 // and RoomRosterPopup in the lobby. Escape closes the popup, and the left and right arrows move the
 // carousel. A dialog, so it renders through Overlay.
-// code: the stored MCT code of the roster. tab: a key of ROSTER_TABS, or 'breakdown'. index: the shown card of
+// title: the heading. color: 'blue' | 'red' for the heading, or missing: no color (the caller knows them,
+// not the side color store, which belongs to the open table). code: the stored MCT code of the roster. tab: a key of ROSTER_TABS, or 'breakdown'. index: the shown card of
 // that tab.
 // breakdown: { threats, threat, filters, onThreatChange, onFiltersChange, chooseBlock, squadCharacters,
 // onChoose } for the Breakdown tab after the card tabs (see
@@ -45,7 +45,8 @@ function gemPopupCard(code) {
 // squad: { has(tab, index), onToggle(tab, index) }, or missing. With it, a character and Team Tactic card has
 // an Add to squad / Remove from squad button (docs/features/setup-game.md, "Squads").
 export function RosterPopup({
-  team,
+  title,
+  color,
   code,
   tab,
   index,
@@ -60,8 +61,6 @@ export function RosterPopup({
   // A carousel drag can end on the backdrop. The click then goes to the backdrop. So the backdrop
   // closes the popup only when the press also started on the backdrop.
   const pressedBackdrop = useRef(false)
-  const color = useSideColor(team)
-  const title = `${COLOR_NAME[color]} player roster`
 
   return (
     <Overlay
@@ -77,7 +76,13 @@ export function RosterPopup({
         ×
       </button>
       <div className="roster-popup" role="dialog" aria-modal="true" aria-label={title}>
-        <h2 className={`roster-popup-title roster-popup-title--${color}`}>{title}</h2>
+        <h2
+          className={
+            color ? `roster-popup-title roster-popup-title--${color}` : 'roster-popup-title'
+          }
+        >
+          {title}
+        </h2>
         <JarvisLink href={jarvisRosterUrl(parsed)}>Open this roster on Jarvis</JarvisLink>
         <div className="roster-popup-tabs" role="tablist">
           {ROSTER_TABS.map((t) => (

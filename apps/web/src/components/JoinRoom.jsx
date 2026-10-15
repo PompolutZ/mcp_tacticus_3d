@@ -7,23 +7,19 @@ import { useUser } from '../auth/useUser.js'
 import { formatMctCode, isEmptyRoster } from '../rosters/mct.js'
 import { parseRosterText } from '../rosters/cards.js'
 import { joinRoom } from '../rooms/serverStore.js'
-import { DEFAULT_SIDE_COLORS } from '../sideColors.js'
 import { LobbyHeader } from './LobbyHeader.jsx'
 import { RosterField } from './RosterField.jsx'
 import { RoomRosterPopup } from './RoomRosterPopup.jsx'
-
-const TEAM_NAMES = { host: 'Blue', guest: 'Red' }
 
 // The join page of a multiplayer room with a free seat (plan 07, decision 20). room: the API room.
 // onJoined(room): the user has the seat, and the room opens. onExit(): back to the lobby without joining.
 export function JoinRoom({ room, onJoined, onExit }) {
   const { status } = useUser()
   const loggedIn = status === 'in'
-  // The free side is the guest's. The host sits at +z.
-  const side = 'guest'
   const face = mapFace(room.mapId)
   const host = room.players.host
   const hostRoster = room.rosters.host
+  const hostLabel = `${host?.gone ? 'Deleted player' : (host?.name ?? 'Host')} roster`
   const [text, setText] = useState('')
   const parsed = useMemo(() => parseRosterText(text), [text])
   const [busy, setBusy] = useState(false)
@@ -73,18 +69,18 @@ export function JoinRoom({ room, onJoined, onExit }) {
             {hostRoster && (
               <button
                 type="button"
-                className={`chip chip--player-${DEFAULT_SIDE_COLORS.host}`}
-                title={`Show the ${TEAM_NAMES.host} roster of room ${room.code}`}
+                className="chip"
+                title={`Show the ${hostLabel} of room ${room.code}`}
                 onClick={() => setRosterOpen(true)}
               >
-                {TEAM_NAMES.host} roster
+                {hostLabel}
               </button>
             )}
           </div>
           {loggedIn ? (
             <>
               <RosterField
-                team={side}
+                label="Your roster"
                 text={text}
                 parsed={parsed}
                 onChange={(value) => {
@@ -121,7 +117,11 @@ export function JoinRoom({ room, onJoined, onExit }) {
         </div>
       </form>
       {rosterOpen && (
-        <RoomRosterPopup team="host" code={hostRoster.code} onClose={() => setRosterOpen(false)} />
+        <RoomRosterPopup
+          title={hostLabel}
+          code={hostRoster.code}
+          onClose={() => setRosterOpen(false)}
+        />
       )}
     </div>
   )
