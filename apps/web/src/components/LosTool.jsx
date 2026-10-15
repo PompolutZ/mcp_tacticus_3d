@@ -17,15 +17,8 @@ import {
 import { losBlock, standingTerrainSize } from './losBlock.js'
 import { FOOTPRINT_COLOR } from './footprintProjection.js'
 import { TOUCH_MARGIN, standingColliders } from './terrainUnder.js'
-import {
-  ToolFootprint,
-  toolPose,
-  turnAround,
-  useDragTool,
-  useRestStore,
-  yawQuat,
-  yawTo,
-} from './RulerTool.jsx'
+import { ToolFootprint, useDragTool, useRestStore } from './RulerTool.jsx'
+import { toolPose, turnAround, yawQuat, yawTo } from './toolGeometry.js'
 import { useHoverCursor } from './useHoverCursor.js'
 import { followPart, lerpAngle } from '../net/livePose.js'
 import { losFields, sameLos } from './storedTool.js'

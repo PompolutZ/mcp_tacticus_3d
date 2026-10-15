@@ -1,6 +1,6 @@
 // Footprint geometry of a range or movement tool, on the table (XZ). A footprint is a rectangle for each
 // half and the round hinge between them. shape: { x, z, right, left }, the tool center and the yaw of
-// each half (toolShape in RulerTool.jsx).
+// each half (toolShape in toolGeometry.js).
 const SIDES = ['right', 'left']
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
 

@@ -10,14 +10,8 @@ import {
 import { useFrame, useThree } from '@react-three/fiber'
 import { Raycaster, Vector3 } from 'three'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
-import {
-  MovementRuler,
-  AngleRuler,
-  RangeRuler,
-  DeployRangeTool,
-  OtherTool,
-  sameModel,
-} from './RulerTool.jsx'
+import { MovementRuler, AngleRuler, RangeRuler, DeployRangeTool, OtherTool } from './RulerTool.jsx'
+import { sameModel } from './toolGeometry.js'
 import CharacterModel, { StandeeModel, modelUrls, turnBody, upright } from './CharacterModel.jsx'
 import CharacterTray from './CharacterTray.jsx'
 import TableButtons from './TableButtons.jsx'

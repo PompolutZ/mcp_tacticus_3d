@@ -70,7 +70,7 @@ export function placedToken(token, point) {
 }
 
 // Reach of the Range 2 tool from the base edge, in inches. The tool snaps with its end on the base edge
-// (snapPose in RulerTool.jsx), so its far end is a whole tool length (2 × RANGE_TIP[2]) from the edge.
+// (snapPose in toolGeometry.js), so its far end is a whole tool length (2 × RANGE_TIP[2]) from the edge.
 export const RANGE_2 = 2 * RANGE_TIP[2]
 
 // The point nearest to `point` that is at most `maxDistance` from `centre`. Both are { x, z }.

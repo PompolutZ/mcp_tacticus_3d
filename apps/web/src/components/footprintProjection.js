@@ -55,7 +55,7 @@ uniform vec3 uFpLine[FP_MAX];
 uniform int uFpKind[FP_MAX];
 
 // Distance from d (offset from the tool center) to the edge of one half, positive inside.
-// World XZ to half-local XZ, the same as toLocal() in RulerTool. The half spans local x = 0..len.
+// World XZ to half-local XZ, the same as toLocal() in placeLock.js. The half spans local x = 0..len.
 float fpHalf(vec2 d, vec2 cs, float len, float halfWidth) {
   vec2 l = vec2(d.x * cs.x - d.y * cs.y, d.x * cs.y + d.y * cs.x);
   return min(min(l.x, len - l.x), halfWidth - abs(l.y));
@@ -63,7 +63,7 @@ float fpHalf(vec2 d, vec2 cs, float len, float halfWidth) {
 
 // Distance from d (offset from the token center) to the nearest edge of a quarter circle, positive
 // inside. cs1, cs2: cos/sin of the two straight edges, cs2 being 90° further than cs1 (see
-// alongHalf() in RulerTool: the direction of an angle a is (cos a, 0, −sin a), so d.y here is the
+// alongHalf() in toolGeometry.js: the direction of an angle a is (cos a, 0, −sin a), so d.y here is the
 // world z offset). The sector is the intersection of the two half-planes and the disc, so the
 // nearest edge is the smallest of the three distances.
 float fpSector(vec2 d, vec2 cs1, vec2 cs2, float radius) {
@@ -123,7 +123,7 @@ export function acquireFootprint() {
   if (i < 0) return null
   used[i] = true
   return {
-    // Rectangle shape, for a tool. shape: { x, z, right, left } as from toolShape() in RulerTool.
+    // Rectangle shape, for a tool. shape: { x, z, right, left } as from toolShape() in toolGeometry.js.
     // length: length of each half.
     set(shape, length, halfWidth, fill, opacity, line) {
       uniforms.uFpKind.value[i] = KIND_RECT

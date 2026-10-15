@@ -177,6 +177,13 @@ User: snap the range, movement and angle tools to a model; Range 1 snaps with a 
 
 ### Result
 
+Done. New `components/toolGeometry.js` (constants, geometry, `sameModel`, `lockKey`, `withinRangeOne`, `sameMark`; each name exported, code unchanged). `RulerTool.jsx`, `LosTool.jsx`, `Scene.jsx` import from it. Test `toolGeometry.test.js` (12 tests). Pointer comments to moved names (`toolShape`, `alongHalf`, `snapPose`, `CONTACT_EPS`) now name `toolGeometry.js`.
+
+- Checks: format, lint 58 warnings (same), test 841 pass (806 + review-fixes + 12 new), build ok.
+- Fallow: `Tool` 838 lines before and after (its numbers do not change; the moved functions were below the thresholds). `RulerTool.jsx` 1,910 to 1,711 lines.
+- Move diff: only `export` added to moved declarations.
+- Deviation: `fromLocal` and `toLocal` imports dropped from `RulerTool.jsx` (only the geometry used them).
+
 ## Step 2: Shared tool hooks and footprint
 
 Needs step 1.
