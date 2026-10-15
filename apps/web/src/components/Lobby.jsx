@@ -16,18 +16,34 @@ import { COLOR_NAME } from '../sideColors.js'
 const TIME = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 const TEAMS = ['host', 'guest']
 
-// A seat of a multiplayer tile: avatar and name, "Free seat", or "Deleted player"
-function Seat({ player }) {
+// A seat of a multiplayer tile: avatar, name and the link "roster" (onRoster, or null when the seat has no
+// roster), "Free seat", or "Deleted player"
+function Seat({ player, onRoster }) {
   let content = <span className="lobby-seat-name">Free seat</span>
-  if (player?.gone) content = <span className="lobby-seat-name">Deleted player</span>
+  if (player?.gone)
+    content = (
+      <>
+        <span className="lobby-seat-name">Deleted player</span>
+        {onRoster && <RosterLink onClick={onRoster} />}
+      </>
+    )
   else if (player)
     content = (
       <>
         <img className="lobby-seat-avatar" src={avatarUrl(player, 40)} alt="" draggable={false} />
         <span className="lobby-seat-name">{player.name}</span>
+        {onRoster && <RosterLink onClick={onRoster} />}
       </>
     )
   return <div className="lobby-seat">{content}</div>
+}
+
+function RosterLink({ onClick, children = 'roster' }) {
+  return (
+    <button type="button" className="link-button" onClick={onClick}>
+      {children}
+    </button>
+  )
 }
 
 // The start page (docs/features/rooms.md, "Lobby"): the single player and the multiplayer rooms in one list,
@@ -110,6 +126,10 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
     setLoaded((prev) => prev && { ...prev, list: prev.list.filter((r) => r.code !== item.id) })
   }
 
+  function openRoster(item, { team, color, label }) {
+    setRosterView({ id: item.id, team, rosters: item.rosters, color, label })
+  }
+
   return (
     <div className="lobby">
       <LobbyHeader />
@@ -140,6 +160,7 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
           {items.map((item) => {
             const room = item.room
             const isMulti = item.kind === 'multiplayer'
+            const links = new Map(rosterLinks(item).map((link) => [link.team, link]))
             const isHost = isMulti ? room.host === userId : ownsRoom(room)
             return (
               <div key={`${item.kind}-${item.id}`} className="lobby-tile lobby-room">
@@ -158,30 +179,38 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
                   <span className="lobby-room-name">{mapFace(item.mapId).name}</span>
                   <span className="lobby-room-code">{item.id}</span>
                   <span className="lobby-room-time">Last change {TIME.format(item.updatedAt)}</span>
-                  {isMulti ? (
-                    <span className="lobby-seats">
-                      {TEAMS.map((team) => (
-                        <Seat key={team} player={room.players[team]} />
-                      ))}
-                    </span>
-                  ) : (
-                    <span className="lobby-room-kind">Single player</span>
-                  )}
                 </button>
+                <div className="lobby-seats">
+                  {isMulti
+                    ? TEAMS.map((team) => (
+                        <Seat
+                          key={team}
+                          player={room.players[team]}
+                          onRoster={
+                            item.rosters?.[team] ? () => openRoster(item, links.get(team)) : null
+                          }
+                        />
+                      ))
+                    : links.size === 0 && <span className="lobby-room-kind">Single player</span>}
+                  {!isMulti &&
+                    [...links].map(([team, link]) => (
+                      <div key={team} className="lobby-seat">
+                        {link.color ? (
+                          <>
+                            <span className={`lobby-side-color lobby-side-color--${link.color}`}>
+                              {COLOR_NAME[link.color]}
+                            </span>
+                            <RosterLink onClick={() => openRoster(item, link)} />
+                          </>
+                        ) : (
+                          <RosterLink onClick={() => openRoster(item, link)}>
+                            {link.label}
+                          </RosterLink>
+                        )}
+                      </div>
+                    ))}
+                </div>
                 <div className="lobby-room-actions">
-                  {rosterLinks(item).map(({ team, color, label }) => (
-                    <button
-                      key={team}
-                      type="button"
-                      className={color ? `chip chip--player-${color}` : 'chip'}
-                      title={`Show the ${label} of room ${item.id}`}
-                      onClick={() =>
-                        setRosterView({ id: item.id, team, rosters: item.rosters, color, label })
-                      }
-                    >
-                      {label}
-                    </button>
-                  ))}
                   {isMulti && (!room.players.host || !room.players.guest) && (
                     <CopyLinkButton code={item.id} />
                   )}

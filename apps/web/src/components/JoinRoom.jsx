@@ -69,11 +69,11 @@ export function JoinRoom({ room, onJoined, onExit }) {
             {hostRoster && (
               <button
                 type="button"
-                className="chip"
+                className="link-button"
                 title={`Show the ${hostLabel} of room ${room.code}`}
                 onClick={() => setRosterOpen(true)}
               >
-                {hostLabel}
+                roster
               </button>
             )}
           </div>

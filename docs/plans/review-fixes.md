@@ -327,6 +327,7 @@ User: a cold load of a room shows no "0 / 0", then the file count.
 - `rosterLinks(item)` in `rooms/roomList.js` (tests) gives the lobby links: multiplayer "<name> roster" with no color, single "Blue roster" / "Red roster" or the numbered fallback.
 - `RosterPopup` takes `title` and `color` from the caller (`RosterPopupHost` reads the side store, the lobby and join page pass their own). `RosterField` takes `label` and `color`. Join page: "<host name> roster" link, field "Your roster". New room: "Your roster" (multiplayer), "Blue roster" / "Red roster" (single). Seat color labels and their CSS removed.
 - Docs: `rooms.md`, `roster.md`.
+- Fix after the user test: roster is a text link in the seat line, not a chip.
 
 ### Result (step 9)
 

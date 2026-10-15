@@ -1877,7 +1877,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 0 0 10px;
+  padding: 0;
   font: inherit;
   color: inherit;
   text-align: left;
@@ -1915,7 +1915,7 @@ body {
   color: var(--muted);
 }
 
-/* Blue, Red and Delete. margin-top: auto keeps them at the bottom of a tile that is taller than its
+/* Copy link and Delete. margin-top: auto keeps them at the bottom of a tile that is taller than its
    content. A narrow tile puts Delete on a second line. */
 .lobby-room-actions {
   display: flex;
@@ -2080,7 +2080,36 @@ body {
   flex-direction: column;
   gap: 4px;
   margin-top: 6px;
-  padding: 0 12px;
+  padding: 0 12px 10px;
+}
+
+/* A button that looks like a text link and opens a popup (the word "roster" of a seat line) */
+.link-button {
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  text-decoration: underline;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  color: #7aa9fa;
+}
+
+.link-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.lobby-side-color--blue {
+  color: #5aa9e6;
+}
+
+.lobby-side-color--red {
+  color: #e8695b;
 }
 
 .lobby-seat {
@@ -2104,8 +2133,6 @@ body {
 }
 
 .lobby-room-kind {
-  margin-top: 6px;
-  padding: 0 12px;
   font-size: 12px;
   color: var(--muted);
 }
