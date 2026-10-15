@@ -20,9 +20,11 @@ function setupTable(patch = {}, context = {}) {
     rosterCard: (code) => (code ? { key: `key-${code}`, name: `Name ${code}` } : null),
     parseRosterText: () => DECKS,
     affiliationChoices: () => ['avengers'],
-    removeCharacter: (id) => {
-      calls.push(['removeCharacter', id])
-      table.characters.set((list) => list.filter((c) => c.id !== id))
+    characters: {
+      remove: (id) => {
+        calls.push(['removeCharacter', id])
+        table.characters.set((list) => list.filter((c) => c.id !== id))
+      },
     },
     crisis: {
       changeCrisis: (type, key) => {

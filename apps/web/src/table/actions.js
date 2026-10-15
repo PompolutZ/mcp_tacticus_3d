@@ -1,9 +1,9 @@
 import { useSyncExternalStore } from 'react'
 
-// The actions that components call to change the table, by feature: { setup }. App sets them every render,
-// and a component reads them with useTableActions. React context does not cross the <Canvas> boundary, so
-// the store is a module, the same as sideColors.js. Before the first set the store is empty.
-const NONE = {}
+// The actions that components call to change the table, by feature: { setup, characters, phases }. App sets
+// them every render, and a component reads them with useTableActions. React context does not cross the <Canvas> boundary, so
+// the store is a module, the same as sideColors.js. Before the first set each feature is empty.
+const NONE = { setup: {}, characters: {}, phases: {} }
 let actions = NONE
 const listeners = new Set()
 

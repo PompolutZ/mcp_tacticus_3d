@@ -365,6 +365,8 @@ New fields on each entry of `characters` in `App.jsx`:
 
 Character tokens on the table are a separate list in `App.jsx`: `looseTokens: [{ id, key, x, z }]`.
 
+Code: `src/characters/actions.js` has `createCharacterActions(table, lookups)`, the document writes of the characters (spawn, Damage, Power, flip, off board, remove, give and remove a token). It is a plain module; each action reads the document and writes in one transaction. `src/characters/useCharacterActions.js` keeps the HUD messages, the delete confirm, the selection and the model returns, and `App` puts the actions that components call in the store `src/table/actions.js`.
+
 A held crisis token stays in the `tokens` list of `App.jsx` and gets two new fields: `heldBy: characterId | null` and `heldAt: [x, z] | null`, its place on the holder's card in tray-local coordinates. So each token is in one place only, and a change of crisis card still removes the held tokens of the old card.
 
 All fields are plain JSON. So they fit into the `characters` and `tokens` maps of the Yjs document in `docs/features/peer-to-peer.md`. `looseTokens` needs its own map there.

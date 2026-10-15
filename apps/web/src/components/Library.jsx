@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useHudMessage } from './useHudMessage.js'
 import { assetUrl } from '../assets/index.js'
 import { COLOR_NAME, useSideColors } from '../sideColors.js'
+import { useTableActions } from '../table/actions.js'
 import { TEAMS } from '../setup/setup.js'
 import { libraryTeam } from './libraryTeam.js'
 import { CHARACTERS } from '../characters/characters.js'
@@ -45,22 +46,16 @@ const LIBRARY_ROWS = [
 // characters: the characters on the table (App state). The ones of the chosen player show green.
 // seat: { multiplayer, ownSide, mySide } (rooms/seat.js). A multiplayer room adds for the own side only, with no
 // "For" choice; a seat without a side adds nothing (libraryTeam.js).
-// onSpawnCharacter(ch): a click on a character with a 3D model; ch has team set to the chosen player.
+// A click on a character with a 3D model calls the table action characters.spawn(ch) (table/actions.js); ch has
+// team set to the chosen player.
 // onSpawnTactic(key, team): a click on a tactic card. onGemOpen(code): a click on an Infinity Gem opens its card.
 // onTokenDragStart(e, key, mode): a pointerdown on a token chip starts a drag in drag/useTokenDrag.js. mode:
 // 'single' | 'pile'.
-export function Library({
-  open,
-  characters,
-  seat,
-  onSpawnCharacter,
-  onSpawnTactic,
-  onGemOpen,
-  onTokenDragStart,
-}) {
+export function Library({ open, characters, seat, onSpawnTactic, onGemOpen, onTokenDragStart }) {
   const [query, setQuery] = useState('')
   const [tab, setTab] = useState('all')
   const colors = useSideColors()
+  const { spawn: spawnCharacter } = useTableActions().characters
   const [chosen, setChosen] = useState('host')
   const team = libraryTeam(seat, chosen)
   const noSide = team === null
@@ -81,7 +76,7 @@ export function Library({
     }),
     [q],
   )
-  // Slugs of the chosen player's characters on the table. App blocks a second copy (handleSpawn).
+  // Slugs of the chosen player's characters on the table. The spawn action blocks a second copy (characters/actions.js).
   const spawned = useMemo(
     () => new Set(characters.filter((c) => team && c.team === team).map((c) => c.key)),
     [characters, team],
@@ -105,7 +100,7 @@ export function Library({
       return
     }
     if (noSide) return
-    onSpawnCharacter({ ...ch, team: team })
+    spawnCharacter({ ...ch, team: team })
   }
 
   // In the All tab, a section shows its first items and a "More" button that opens its own tab

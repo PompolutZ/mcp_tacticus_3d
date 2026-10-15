@@ -33,7 +33,7 @@ const SETUP_REMOVAL =
 // called after useRollOffReader: effect E8 must run before the reveal effect E9 below.
 export function useGameSetup({
   crisisActions,
-  handleCharacterRemove,
+  characterActions,
   handleTurnMat,
   hiddenSquads,
   makeCardPiles,
@@ -41,6 +41,7 @@ export function useGameSetup({
   room,
   rosters,
   setOpenRoster,
+  setSelection,
   setup,
   showHudMessage,
   table,
@@ -64,7 +65,7 @@ export function useGameSetup({
     rosterCard,
     parseRosterText,
     affiliationChoices: squadAffiliationChoices,
-    removeCharacter: handleCharacterRemove,
+    characters: characterActions,
     crisis: crisisActions,
     squadThreat,
     squadAffiliationKeys,
@@ -72,6 +73,12 @@ export function useGameSetup({
     newCharacters: makeCharacters,
     makeCardPiles,
   })
+
+  // The crisis tokens of the setup are replaced by a restart, an Override and the Edge step, so a selected token
+  // may be gone (it used to clear with the crisis change). A selected character is not affected.
+  function clearTokenSelection() {
+    setSelection((prev) => prev.filter((p) => p.kind !== 'token'))
+  }
 
   // Loads the roster text of one team. A text with no known code keeps the old roster. Unknown
   // codes are named in the HUD, the known ones load. The game setup starts again, because it points to
@@ -86,6 +93,7 @@ export function useGameSetup({
     if (!confirmSetupRemoval('Load this roster')) return
     const { restarted, unknown } = actions.loadRoster(team, parsed)
     afterRestart()
+    if (restarted) clearTokenSelection()
     // The open card may not be in the new roster
     setOpenRoster((prev) => (prev?.team === team ? null : prev))
     if (unknown.length > 0) showHudMessage(unknownCodesMessage(unknown))
@@ -96,6 +104,7 @@ export function useGameSetup({
     if (!confirmSetupRemoval('Remove this roster')) return
     const { restarted } = actions.removeRoster(team)
     afterRestart()
+    if (restarted) clearTokenSelection()
     setOpenRoster((prev) => (prev?.team === team ? null : prev))
     if (restarted) showHudMessage('Game setup started again')
   }
@@ -130,6 +139,7 @@ export function useGameSetup({
     if (!window.confirm(`Start the game setup again? ${SETUP_REMOVAL}`)) return
     actions.restart()
     afterRestart()
+    clearTokenSelection()
   }
 
   // The Override button of a browsed step, after a confirm (actions.override)
@@ -138,12 +148,14 @@ export function useGameSetup({
     const text = removal.squads || removal.crisis ? ` ${SETUP_REMOVAL}` : ''
     if (!window.confirm(`Go back to this step and drop the later choices?${text}`)) return
     actions.override(step)
+    clearTokenSelection()
     setOpenRoster(null)
   }
 
   // The deployment edge: the HUD names a crisis card that has no files in the app
   function handleSetupEdge() {
     const { missing } = actions.edge()
+    clearTokenSelection()
     if (missing.length > 0)
       showHudMessage(
         `The app has no files for ${missing.join(' and ')}, so ${missing.length === 1 ? 'its' : 'their'} tokens are not on the mat`,

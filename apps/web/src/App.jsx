@@ -127,17 +127,17 @@ export default function App({
   const [storedTerrain, setTerrain] = useYList(table.terrain)
   const terrain = useMemo(() => withPlacements(mapId, storedTerrain), [mapId, storedTerrain])
   const [deployLine, setDeployLine] = useYField(table.game, 'deployLine')
-  const [characters, setCharacters] = useYList(table.characters)
+  const [characters] = useYList(table.characters)
   // The chosen Secure and Extract card, by key. null = none.
   const [crisis] = useYField(table.game, 'crisis')
   // Every crisis token on the table: the mat tokens of the cards (buildMatTokens) and the supply
   // tokens that players took from a pile (supplyToken).
-  const [tokens, setTokens] = useYList(table.tokens)
+  const [tokens] = useYList(table.tokens)
   // Scoring board markers: { host, guest, round } → { x, z } on the table (see ScoreBoard.jsx)
   const [scoreMarkers, setScoreMarkers] = useYField(table.game, 'scoreMarkers')
   // The Priority marker (game/priority.js): the raw field, null | side. A document from before the marker
   // has none, and gamePriority reads the roll-off winner then (after setup below).
-  const [storedPriority, setPriorityField] = useYField(table.game, 'priority')
+  const [storedPriority] = useYField(table.game, 'priority')
   // Loaded rosters: { host, guest } → null | { code }, code in Jarvis format (see rosters/mct.js). A room
   // starts with its rosters: Blue, and Red when the room has it.
   const [rosters] = useYRecord(table.rosters)
@@ -152,7 +152,7 @@ export default function App({
   }, [table, room])
   // The game setup: crisis cards, threat, deployment edge and squads (setup/setup.js, GameSetup.jsx). A new
   // roster starts it again.
-  const [setup, setSetup] = useYRecord(table.setup)
+  const [setup] = useYRecord(table.setup)
   // The colors of the sides (setup/setup.js, colorOf). The Sandbox (no room) keeps +z Blue. The store gives
   // them to every component that shows a color (sideColors.js).
   const followPriority = Boolean(room)
@@ -298,7 +298,6 @@ export default function App({
     handleTokenHold,
     handleSupplyTake,
     handleHeldRemove,
-    handleDropCharacterTokens,
     dropWait,
     placeTokens,
     handleNoticeShow,
@@ -333,8 +332,7 @@ export default function App({
     room,
     setup,
     characters,
-    setCharacters,
-    tokens,
+    crisisActions,
     setSelection,
     setOpenTrayId,
     showHudMessage,
@@ -342,7 +340,6 @@ export default function App({
     writeStatLog,
     characterLogData,
     tokenEntryData,
-    handleDropCharacterTokens,
     dropWait,
     removeWaits,
     sceneApi,
@@ -432,15 +429,7 @@ export default function App({
     setup,
     characters,
     poses,
-    priority,
     nameCtx,
-    setSetup,
-    setDeployLine,
-    setCharacters,
-    setLooseTokens,
-    setTokens,
-    setScoreMarkers,
-    setPriorityField,
     writeLog,
     showHudMessage,
   })
@@ -458,7 +447,7 @@ export default function App({
     handleBreakdownChoose,
   } = useGameSetup({
     crisisActions,
-    handleCharacterRemove,
+    characterActions: { remove: handleCharacterRemove },
     handleTurnMat,
     hiddenSquads,
     makeCardPiles,
@@ -466,14 +455,30 @@ export default function App({
     room,
     rosters,
     setOpenRoster,
+    setSelection,
     setup,
     showHudMessage,
     table,
     userId,
   })
-  // The panels on the table read the setup actions from the store (table/actions.js)
+  // The panels on the table read the actions from the store (table/actions.js)
   useLayoutEffect(() => {
-    setTableActions({ setup: setupActions })
+    setTableActions({
+      setup: setupActions,
+      characters: {
+        spawn: handleSpawn,
+        damage: handleCharacterDamage,
+        power: handleCharacterPower,
+        flip: handleCharacterFlip,
+        offBoard: handleCharacterOffBoard,
+        removeToken: handleCharacterTokenRemove,
+      },
+      phases: {
+        power: handlePowerPhase,
+        cleanup: handleCleanupPhase,
+        priorityClick: handlePriorityClick,
+      },
+    })
     return () => setTableActions(null)
   })
 
@@ -726,9 +731,7 @@ export default function App({
                     deployLock: toolsOnTable('deployLock'),
                     matTurn: toolsOnTable('matTurn'),
                   },
-                  onPowerPhase: handlePowerPhase,
                   powerBlockTitle,
-                  onCleanupPhase: handleCleanupPhase,
                   cleanupDisabled,
                   cleanupTitle,
                   deployLine,
@@ -784,13 +787,8 @@ export default function App({
                 onTokenHold={handleTokenHold}
                 onHeldHover={handleHeldHover}
                 onSupplyDragStart={handleSupplyDragStart}
-                onCharacterDamage={handleCharacterDamage}
-                onCharacterPower={handleCharacterPower}
-                onCharacterFlip={handleCharacterFlip}
                 onTrayCardHover={handleTrayCardHover}
                 onCardHover={handleCardHover}
-                onCharacterOffBoard={handleCharacterOffBoard}
-                onCharacterTokenRemove={handleCharacterTokenRemove}
                 onTokenDragStart={handleTokenDragStart}
                 looseTokens={looseTokens}
                 onLooseHover={handleLooseHover}
@@ -819,7 +817,6 @@ export default function App({
                 scoreMarkers={scoreMarkers}
                 priority={priority}
                 priorityTitle={priority ? priorityTitle(priority, nameCtx) : ''}
-                onPriorityClick={handlePriorityClick}
                 affiliations={affiliations}
                 rosters={rosters}
                 parsedRosters={parsedRosters}
@@ -913,7 +910,6 @@ export default function App({
         open={libraryOpen}
         characters={characters}
         seat={seat}
-        onSpawnCharacter={handleSpawn}
         onSpawnTactic={handleTacticSpawn}
         onGemOpen={handleAttachedOpen}
         onTokenDragStart={handleLibraryTokenDragStart}

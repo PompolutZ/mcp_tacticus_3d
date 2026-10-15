@@ -1,6 +1,7 @@
 import { OnTable, TABLE_Y, px } from './OnTable.jsx'
 import { TEAMS, otherTeam } from '../setup/setup.js'
 import { useSideName } from '../sideColors.js'
+import { useTableActions } from '../table/actions.js'
 import { boardStrip, cleanupButton, powerButton } from '../tabletools/layout.js'
 import { assetUrl } from '../assets/index.js'
 import { characterToken } from '../tokens/files.js'
@@ -13,7 +14,8 @@ const POWER_ICON = assetUrl(characterToken('1-power'))
 // Automatic Power Phase of `side`, in row 1 of its board strip (the place is in tabletools/layout.js,
 // docs/features/table-tools.md, "Automatic Power Phase button"). It gives Power to the characters of its own
 // side only. In a multiplayer room, only the owner presses it.
-function PowerPhaseButton({ side, ownSide, multiplayer, onPowerPhase, powerBlock }) {
+function PowerPhaseButton({ side, ownSide, multiplayer, powerBlock }) {
+  const { power: onPowerPhase } = useTableActions().phases
   const place = powerButton(side)
   const locked = multiplayer && side !== ownSide
   const otherName = useSideName(otherTeam(ownSide))
@@ -41,7 +43,8 @@ function PowerPhaseButton({ side, ownSide, multiplayer, onPowerPhase, powerBlock
 
 // Cleanup Phase: one button for the table, between the scoring board and the mat, turned like the strip. It
 // changes shared state, so any player presses it.
-function CleanupButton({ onCleanupPhase, cleanupDisabled, cleanupTitle }) {
+function CleanupButton({ cleanupDisabled, cleanupTitle }) {
+  const { cleanup: onCleanupPhase } = useTableActions().phases
   const place = cleanupButton()
   return (
     <OnTable position={[place.x, TABLE_Y, place.z]}>
@@ -70,7 +73,6 @@ function BoardStrip({
   multiplayer,
   show,
   ownSide,
-  onPowerPhase,
   powerBlockTitle,
   onTurnMat,
   deployLine,
@@ -86,7 +88,6 @@ function BoardStrip({
           side={side}
           ownSide={ownSide}
           multiplayer={multiplayer}
-          onPowerPhase={onPowerPhase}
           powerBlock={powerBlockTitle([side])}
         />
       )}
@@ -133,16 +134,12 @@ function BoardStrip({
 // All the table buttons. `ownSide` and `multiplayer` tell which Power Phase button is the player's own. The
 // other props are the handlers and states of the toolbar buttons, which these repeat.
 // show: { power, cleanup, deployLock, matTurn }, true where the settings put the button on the table.
-export default function TableButtons({ ownSide, multiplayer, show, onPowerPhase, ...rest }) {
-  const { onCleanupPhase, cleanupDisabled, cleanupTitle, ...strip } = rest
+export default function TableButtons({ ownSide, multiplayer, show, ...rest }) {
+  const { cleanupDisabled, cleanupTitle, ...strip } = rest
   return (
     <>
       {show.cleanup && (
-        <CleanupButton
-          onCleanupPhase={onCleanupPhase}
-          cleanupDisabled={cleanupDisabled}
-          cleanupTitle={cleanupTitle}
-        />
+        <CleanupButton cleanupDisabled={cleanupDisabled} cleanupTitle={cleanupTitle} />
       )}
       {TEAMS.map(
         (side) =>
@@ -153,7 +150,6 @@ export default function TableButtons({ ownSide, multiplayer, show, onPowerPhase,
               ownSide={ownSide}
               multiplayer={multiplayer}
               show={show}
-              onPowerPhase={onPowerPhase}
               {...strip}
             />
           ),

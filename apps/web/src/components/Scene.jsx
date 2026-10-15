@@ -38,6 +38,7 @@ import TacticTray from './TacticTray.jsx'
 import TacticCard from './TacticCard.jsx'
 import RosterCards from './RosterCards.jsx'
 import GameSetup from './GameSetup.jsx'
+import { useTableActions } from '../table/actions.js'
 import { OnTable, OWNER_FACING_ROTATION } from './OnTable.jsx'
 import DiceTray from './DiceTray.jsx'
 import OtherDiceTray from './OtherDiceTray.jsx'
@@ -157,12 +158,10 @@ const OVERLAP_INTERVAL = 100
 // toolSpawn: { range, move }, each { kind, id } | null: the piece the range or movement tool snaps to when
 // it spawns. Set by a tool key over a piece, which may be a model that the key does not select. Without
 // one, the tool snaps to the selected piece (target).
-// onCharacterDamage(id, damage), onCharacterPower(id, power), onCharacterFlip(id): the tray's
-// controls, lifted to App the same way as the token handlers above (see TrayControls.jsx).
+// The tray's controls (Damage, Power, flip, Remove, a click on a token of the "On" row) and the Priority click call
+// the table actions from useTableActions() (table/actions.js).
 // onTrayCardHover(id, over): the pointer moved onto (true) or off (false) a character's tray card,
 // for the F key.
-// onCharacterOffBoard(id): the tray's Remove button, enabled while a model of the character is on the mat.
-// onCharacterTokenRemove(id, key): a click on a token in the tray's "On" row.
 // onTokenDragStart(e, key, looseId, giveId): pointerdown on a tray's Give source (giveId: the character of the
 // tray), or on a token on the table (looseId). See drag/useTokenDrag.js, handleTokenDragStart.
 // onCardHover(card, over): the pointer moved onto or off a card or a model, card as { src, alt, by }, for Alt
@@ -224,7 +223,7 @@ const OVERLAP_INTERVAL = 100
 // onSupplyDragStart(e, cardKey): pointerdown on the supply pile of a Source card (SupplyPile.jsx).
 // scoreMarkers, affiliations, onScoreMarkerMove(marker, x, z): the scoring board markers, see
 // ScoreBoard.jsx.
-// priority, priorityTitle, onPriorityClick: the Priority marker (PriorityMarker.jsx). priority: the side, or null.
+// priority, priorityTitle: the Priority marker (PriorityMarker.jsx). priority: the side, or null.
 // startPose(modelId): the stored pose { x, y, z, qx, qy, qz, qw } of a model (rooms/table.js, poseOf), or
 // undefined. A model with a pose starts there instead of on its tray. Read when the model mounts.
 // onModelRest(modelId, pose): the body of a model fell asleep. App stores the pose in the table document, so
@@ -272,13 +271,8 @@ export default function Scene({
   onTokenHold,
   onHeldHover,
   onSupplyDragStart,
-  onCharacterDamage,
-  onCharacterPower,
-  onCharacterFlip,
   onTrayCardHover,
   onCardHover,
-  onCharacterOffBoard,
-  onCharacterTokenRemove,
   onTokenDragStart,
   looseTokens = [],
   onLooseHover,
@@ -321,7 +315,6 @@ export default function Scene({
   onScoreMarkerMove,
   priority,
   priorityTitle,
-  onPriorityClick,
   poses = NO_POSES,
   startPose,
   onModelRest,
@@ -679,6 +672,7 @@ export default function Scene({
   const toolTarget = toolModel(selection.findLast(isToolPiece))
   const otherSide = otherTeam(ownSide)
   const sideColors = useSideColors()
+  const { characters: characterActions, phases: phaseActions } = useTableActions()
   const ownTools = tools[ownSide] ?? {}
   const otherTools = tools[otherSide] ?? {}
   // Outline mode of the range mark on a piece, or null
@@ -885,7 +879,11 @@ export default function Scene({
             otherOwned={otherOwned}
             getLivePose={getPieceLive}
           />
-          <PriorityMarker priority={priority} title={priorityTitle} onClick={onPriorityClick} />
+          <PriorityMarker
+            priority={priority}
+            title={priorityTitle}
+            onClick={phaseActions.priorityClick}
+          />
 
           {/* Crisis cards and tokens are relative to the player sides, not the mat, so they stay
             outside the rotating group above: a mat turn must not turn them. See docs/features/crisis.md. */}
@@ -1022,7 +1020,7 @@ export default function Scene({
             mySide={mySide}
             seatPlayers={seatPlayers}
             powerOnTable={tableButtons.show.power}
-            onStartRound={() => tableButtons.onPowerPhase(playedSides)}
+            onStartRound={() => phaseActions.power(playedSides)}
             startRoundBlock={tableButtons.powerBlockTitle(playedSides)}
             onCrisisOpen={onCrisisOpen}
             onCardHover={onCardHover}
@@ -1058,16 +1056,16 @@ export default function Scene({
                   grunts={ch.host ? 0 : trayShape(ch).grunts}
                   slot={trayShape(ch).slot}
                   onOpen={() => onTrayOpen(ch.id)}
-                  onDamage={(damage) => onCharacterDamage(ch.id, damage)}
-                  onPower={(power) => onCharacterPower(ch.id, power)}
-                  onFlip={() => onCharacterFlip(ch.id)}
+                  onDamage={(damage) => characterActions.damage(ch.id, damage)}
+                  onPower={(power) => characterActions.power(ch.id, power)}
+                  onFlip={() => characterActions.flip(ch.id)}
                   onCardHover={(over) => onTrayCardHover?.(ch.id, over)}
                   onCardImageHover={onCardHover}
-                  onRemove={() => onCharacterOffBoard(ch.id)}
+                  onRemove={() => characterActions.offBoard(ch.id)}
                   onBoard={characterOnBoard(ch, poses)}
                   removeWait={removeWaits[ch.id] ?? null}
                   onAttachedOpen={onAttachedOpen}
-                  onTokenRemove={(key) => onCharacterTokenRemove(ch.id, key)}
+                  onTokenRemove={(key) => characterActions.removeToken(ch.id, key)}
                   onTokenDragStart={onTokenDragStart}
                   selected={selectedCharId === ch.id}
                   objectRef={(obj) =>

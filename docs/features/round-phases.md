@@ -107,7 +107,8 @@ Found in the mod scripts (`autoCleanup` in "Red Tray Spawner", "UI Controller", 
 - Loose tokens on the table are `looseTokens` (`{ id, key, x, z }`). Piles are separate and never run out.
 - Crisis tokens are `tokens` in `App.jsx`. A Source has `flipOnly` in `src/crisis/cards.json`, front `extract-unexhausted-source`, back `extract-exhausted-source`. A supply token has the `supply` key of its card as `frontKey` (`extract-source-asset` or `extract-source-civilian`). A character holds a token when `heldBy` is its id.
 - The round marker is `scoreMarkers.round`. `ROUND_POINTS` in `src/scoreboard/board.js` has the 6 round spots, and `snapPoint` finds the spot under a marker.
-- `handleCharacterFlip` toggles the side and sets Damage to 0.
+- `flip` (`src/characters/actions.js`) toggles the side and sets Damage to 0.
+- Code: `src/game/actions.js` has `createPhaseActions(table, lookups)`, the document writes of the Power Phase, the Cleanup Phase and the Priority click. It is a plain module; each action reads the document and writes in one transaction. `src/game/usePhaseActions.js` keeps the blocker text, the Cleanup chip state and the HUD messages.
 - A model on its tray stands on the card at `trayModelPosition` (card 1 or 2), and a spare model at `traySpareModelPosition` (`src/characters/trays.js`, `modelSpawnPosition` in `Scene.jsx`).
 - The rest pose of each model is in the table document (`poses`). Scene moves a model that nobody claims when its stored pose changes (`applyPose` in `src/components/useModelSync.js`), in both browsers.
 - The Delete key deletes the piece under the pointer: a token on the table, a held crisis token, a pile, a Team Tactic card, an unlocked terrain piece, and a character when the pointer is over its tray card (`docs/features/key-shortcuts.md`).

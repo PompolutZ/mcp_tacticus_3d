@@ -77,7 +77,7 @@ export function deployLockWrite(table) {
 // player and does not show messages: useGameSetup does, with what an action returns.
 // context: { mySide, hiddenSquads } the seat, and the lookups and calls that do not load in Node:
 // rosterCard(code), parseRosterText(text), affiliationChoices(parsed, places) of a squad,
-// removeCharacter(id) (the character action of the table), crisis (the crisis actions, crisis/actions.js), and for
+// characters (the character actions, characters/actions.js; only remove(id) is used), crisis (the crisis actions, crisis/actions.js), and for
 // the squads: squadThreat(parsed, places), squadAffiliationKeys(parsed, places), characterByCode(code),
 // newCharacters(character, side, { attached }) and makeCardPiles(cards).
 export function createSetupActions(table, context) {
@@ -102,7 +102,7 @@ export function createSetupActions(table, context) {
     table.transact(() => {
       if (squads) {
         const placed = placedIds(setup)
-        placed.characters.forEach(context.removeCharacter)
+        placed.characters.forEach(context.characters.remove)
         table.tactics.set((prev) => prev.filter((card) => !placed.tactics.includes(card.id)))
         table.tokenPiles.set((prev) => prev.filter((p) => !placed.tactics.includes(p.card)))
       }

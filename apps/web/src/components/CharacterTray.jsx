@@ -144,7 +144,7 @@ export default function CharacterTray({
     return () => onCardImageHover?.(card, false)
   }, [hoveredCard, character.side])
 
-  // Tokens on the character, in the order it got them (see characters/useCharacterActions.js, handleCharacterTokenGive).
+  // Tokens on the character, in the order it got them (see characters/actions.js, giveToken).
   const onTokens = Object.entries(character.tokens ?? {})
   const giveKeys = characterGiveSources(character.key)
 
