@@ -2,7 +2,7 @@
 // React, the same as characters/trays.js. See docs/features/team-tactic-cards.md, "Tactic tray".
 
 import { MAT_SIZE } from '../table.js'
-import { TEAMS } from '../setup/setup.js'
+import { TEAMS, sideSign, sideYaw } from '../setup/setup.js'
 
 const MAT_HALF = MAT_SIZE / 2
 
@@ -34,7 +34,7 @@ export const TACTIC_TRAY_OUTER_Z = TRAY_CENTER_Z + TACTIC_PLATE_DEPTH / 2
 export const TACTIC_CARD_Y = 0.02
 export const TACTIC_PLATE_Y = 0.01
 
-const side = (team) => (team === 'host' ? 1 : -1)
+const side = sideSign
 
 // Table position { x, z } of the tactic tray of `team`
 export function tacticTrayPosition(team) {
@@ -44,7 +44,7 @@ export function tacticTrayPosition(team) {
 // A card faces its owner: for host, the top of the image points to -z, the same as a character tray
 // card (trays.js, trayYaw). A guest card is turned 180 deg.
 export function tacticCardYaw(team) {
-  return team === 'host' ? 0 : Math.PI
+  return sideYaw(team)
 }
 
 // Table position { x, z } of slot `index` of the tray of `team`, numbered from the owner's left, the

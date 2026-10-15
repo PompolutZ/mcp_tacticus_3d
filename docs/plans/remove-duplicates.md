@@ -1,6 +1,6 @@
 # Plan: Remove duplicates
 
-Requested by the user on 2026-10-15. Status: in progress. Branch `remove-duplicates`, worktree `../mcp_assist_3d-remove-duplicates`, from main after `docs/plans/review-fixes.md` and `docs/plans/split-large-files.md` merge into main. The plan touches many files, so no other branch is open while it runs.
+Requested by the user on 2026-10-15. Status: done, waiting for the user test. Branch `remove-duplicates`, worktree `../mcp_assist_3d-remove-duplicates`, from main after `docs/plans/review-fixes.md` and `docs/plans/split-large-files.md` merge into main. The plan touches many files, so no other branch is open while it runs.
 
 Each step makes one commit and writes its **Result** below. Feature docs change in the same step as the code.
 
@@ -377,3 +377,13 @@ Work:
 5. Final `pnpm fallow dupes`. Every group left has a reason in the Result.
 
 User: nothing new to see; the table, trays, tool rack, tokens and colors look as before.
+
+### Result
+
+Done. Lint 52 warnings (same, no new `eslint-disable`), tests pass (web 914), typecheck ok, build ok. `--list` of both migrate scripts runs.
+
+- `sideSign(team)` and `sideYaw(team)` in `setup/setup.js`, test in `setup.test.js`. Used in `rosters/layout.js`, `tactics/layout.js`, `tabletools/layout.js`, `characters/trays.js` (5 places) and the two deploy range tools in `Scene.jsx` (`centerZ = sideSign * ...`, `yaw = sideYaw - PI/2`; same values as before). Left as is: `freeSpawnYaw` in `storedTool.js`, because `side` can be null there (spectator) and gives yaw 0, while `sideYaw(null)` gives PI.
+- `src/uiColors.js` `UI_COLORS` (tray plate, orange, gold, bright gold, border, accent) with `uiColorVars()`; `main.jsx` sets the `--ui-*` variables before the first render; `index.css` uses `var(--ui-*)`; the six JS files use `UI_COLORS`. Test `uiColors.test.js`. Feature doc `setup-game.md` points to it. Not touched: `#1a1a1a` (one file) and other hex values used once.
+- `runCardLoop` takes `keys` (Map) and sorts `cards` inside, so the two scripts no longer repeat the sort and key lines. Test for the order added.
+- Deviation, 35 props `Scene` to `TokenLayer`: tried one `layer` object (built in Scene, destructured in TokenLayer). Fallow still flags it, because the name list stays on both sides, so it only moved the list and made `TokenLayer` read `layer`. Reverted to the plain props. Reason it stays: the list is the interface of the component split from `split-large-files`; the values come from Scene's hooks and cannot be built anywhere else.
+- `pnpm fallow dupes` final: 72 lines, 1 group: `Scene.jsx:916` and `TokenLayer.jsx:31` (36 lines), the prop pass-through above. The two migrate script calls are no longer a group.

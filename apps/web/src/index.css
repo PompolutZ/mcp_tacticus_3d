@@ -165,7 +165,7 @@ body {
 }
 
 .chip:hover {
-  border-color: #414a61;
+  border-color: var(--ui-border);
 }
 
 .chip--active {
@@ -175,8 +175,8 @@ body {
 }
 
 .chip--active:hover {
-  background: #3a7de0;
-  border-color: #3a7de0;
+  background: var(--ui-accent);
+  border-color: var(--ui-accent);
 }
 
 .chip:disabled,
@@ -268,7 +268,7 @@ body {
 }
 
 .tray-counter-btn:hover {
-  border-color: #414a61;
+  border-color: var(--ui-border);
 }
 
 .tray-counter-icon {
@@ -951,7 +951,7 @@ body {
 }
 
 .chip--primary:hover {
-  background: #3a7de0;
+  background: var(--ui-accent);
   border-color: #fff;
 }
 
@@ -1163,7 +1163,7 @@ body {
   gap: 12px;
   max-height: 96vh;
   overflow-y: auto;
-  background: #20242b;
+  background: var(--ui-tray-plate);
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 12px 16px 16px;
@@ -1235,7 +1235,7 @@ body {
 }
 
 .tray-popup-close:hover {
-  border-color: #414a61;
+  border-color: var(--ui-border);
 }
 
 /* The card image is 3:2. The width also follows the viewport height, so the controls below it
@@ -1666,7 +1666,7 @@ body {
 .roster-popup-plate-mark {
   font-size: 14px;
   font-weight: 600;
-  color: #e8b04a;
+  color: var(--ui-gold);
 }
 
 .roster-popup-gem {
@@ -1765,7 +1765,7 @@ body {
 }
 
 .phase-button:hover {
-  border-color: #414a61;
+  border-color: var(--ui-border);
 }
 
 .phase-button[aria-disabled='true'] {
@@ -1876,7 +1876,7 @@ body {
 }
 
 .lobby-room:hover {
-  border-color: #414a61;
+  border-color: var(--ui-border);
 }
 
 .lobby-room-open {
@@ -2052,7 +2052,7 @@ body {
 }
 
 .new-room-warning {
-  color: #e8b04a;
+  color: var(--ui-gold);
 }
 
 /* The cards without files (MissingFiles in NewRoomDialog.jsx): a box in the warning color, as wide as
@@ -2064,7 +2064,7 @@ body {
   max-width: min(460px, calc(100vw - 32px));
   margin-top: 6px;
   padding: 8px 12px;
-  border: 1px solid #e8b04a;
+  border: 1px solid var(--ui-gold);
   border-radius: 8px;
   background: rgba(232, 176, 74, 0.12);
   text-align: left;
@@ -2072,7 +2072,7 @@ body {
 
 .new-room-missing-title {
   font-weight: 600;
-  color: #e8b04a;
+  color: var(--ui-gold);
 }
 
 .new-room-actions {
@@ -2468,8 +2468,8 @@ body {
 
 /* The yellow of the squad frame on the table (RosterCards.jsx, FRAME_COLOR) */
 .breakdown-row--squad {
-  border-color: #ffd34d;
-  box-shadow: 0 0 0 1px #ffd34d;
+  border-color: var(--ui-gold-bright);
+  box-shadow: 0 0 0 1px var(--ui-gold-bright);
 }
 
 .breakdown-total {
@@ -3125,7 +3125,7 @@ body {
 }
 
 .switch:hover .switch-track {
-  border-color: #414a61;
+  border-color: var(--ui-border);
 }
 
 .switch-knob {
@@ -3147,8 +3147,8 @@ body {
 }
 
 .switch--on:hover .switch-track {
-  background: #3a7de0;
-  border-color: #3a7de0;
+  background: var(--ui-accent);
+  border-color: var(--ui-accent);
 }
 
 .switch--on .switch-knob {

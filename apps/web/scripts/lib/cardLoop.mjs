@@ -1,8 +1,8 @@
 // The loop of migrate-crisis.mjs and migrate-tactics.mjs: for each card, plan, download the missing files (with
 // --download), check the cache, convert. A failed card gets a result row and the loop goes on.
 //
-// - cards: the rows to migrate, already in the order to run
-// - keyOf(card): the card key
+// - cards: the rows to migrate; they run in the order of their keys
+// - keys: Map from a card to its key
 // - planCard(card): returns a plan `{ files: [{ file, url, label }], ... }`; may throw
 // - available(file): true when the source file is in the cache
 // - download: false, or `downloadMissing(urls)` that returns the failures `[{ url, reason }]`
@@ -17,11 +17,11 @@ export function missingStatus(missing) {
   return `missing in TTS cache: ${missing.map((f) => f.label).join(', ')}`
 }
 
-export async function runCardLoop({ cards, keyOf, planCard, available, download, convertPlan }) {
+export async function runCardLoop({ cards, keys, planCard, available, download, convertPlan }) {
   const results = []
   const done = []
-  for (const card of cards) {
-    const key = keyOf(card)
+  for (const card of [...cards].sort((a, b) => keys.get(a).localeCompare(keys.get(b)))) {
+    const key = keys.get(card)
     try {
       const plan = planCard(card)
       if (download) {

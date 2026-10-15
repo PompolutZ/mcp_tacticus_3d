@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { UI_COLORS } from '../uiColors.js'
 import { useHoverCursor, useHoverReport } from './useHoverCursor.js'
 
 // The orange ball that turns a piece by a drag, on a selected crisis token with an arc (CrisisToken.jsx). The cursor is an open hand over it.
@@ -20,7 +21,7 @@ export default function TurnHandle({ position, radius, onPointerDown, onHover })
       onPointerOut={() => setHovered(false)}
     >
       <sphereGeometry args={[radius, 16, 12]} />
-      <meshStandardMaterial color="#f5a623" roughness={0.3} metalness={0.5} />
+      <meshStandardMaterial color={UI_COLORS.orange} roughness={0.3} metalness={0.5} />
     </mesh>
   )
 }

@@ -78,11 +78,11 @@ function listCards() {
 // Returns the process exit code
 async function migrate() {
   const { results, done } = await runCardLoop({
-    cards: [...cards].sort((a, b) => keys.get(a).localeCompare(keys.get(b))),
-    keyOf: (card) => keys.get(card),
-    planCard: (card) => ({ key: keys.get(card), card, files: cardFiles(card) }),
+    cards,
+    keys,
     available,
     download: opts.download && downloadMissing,
+    planCard: (card) => ({ key: keys.get(card), card, files: cardFiles(card) }),
     convertPlan: (plan) => ({
       status: plan.files.filter(convert).length ? 'converted' : 'already migrated',
     }),

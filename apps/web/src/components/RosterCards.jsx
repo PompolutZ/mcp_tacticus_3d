@@ -1,4 +1,5 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { UI_COLORS } from '../uiColors.js'
 import { CanvasTexture, DoubleSide, SRGBColorSpace } from 'three'
 import { assetUrl } from '../assets/index.js'
 import { PLATE_COLORS, TAB_OF_KIND, parseRosterText, rosterCard } from '../rosters/cards.js'
@@ -24,7 +25,7 @@ const TOGGLE_LIFT = 0.06
 // A card in the squad gets a frame around it (see docs/features/setup-game.md, "Squads"). The frame lies
 // next to the card, not under it, so the two do not z-fight.
 const FRAME_WIDTH = 0.18
-const FRAME_COLOR = '#ffd34d'
+const FRAME_COLOR = UI_COLORS.goldBright
 
 // A CanvasTexture that draws on a canvas of width x height inches. draw(ctx, w, h) gets pixel sizes.
 // The texture is freed when the component goes away.
@@ -90,7 +91,7 @@ function Plate({ card, info }) {
       ctx.fillText(info.code, w / 2, y + size * 0.2)
       if (info.kind === 'character' && !info.model) {
         ctx.font = `bold ${size * 0.7}px sans-serif`
-        ctx.fillStyle = '#e8b04a'
+        ctx.fillStyle = UI_COLORS.gold
         ctx.fillText('No model', w / 2, y + size * 1.1)
       }
     },

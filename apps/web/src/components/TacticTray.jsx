@@ -1,3 +1,4 @@
+import { UI_COLORS } from '../uiColors.js'
 import {
   TACTIC_CARD_HEIGHT,
   TACTIC_CARD_WIDTH,
@@ -11,7 +12,7 @@ import {
 } from '../tactics/layout.js'
 
 // Same color as a character tray's plate (CharacterTray.jsx). A slot is a little lighter.
-const PLATE_COLOR = '#20242b'
+const PLATE_COLOR = UI_COLORS.trayPlate
 const SLOT_COLOR = '#2f3540'
 // Between the plate and the cards, so a card in the slot hides it
 const SLOT_Y = (TACTIC_PLATE_Y + TACTIC_CARD_Y) / 2

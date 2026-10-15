@@ -2,6 +2,8 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   NEW_SETUP,
+  sideSign,
+  sideYaw,
   chooseAffiliation,
   deployLockDue,
   lockWasSet,
@@ -675,4 +677,11 @@ test('squadProblem: over first, then empty, else null', () => {
   assert.equal(squadProblem({ threat: 19, count: 0, maxThreat: 18 }), 'over')
   assert.equal(squadProblem({ threat: 18, count: 3, maxThreat: 18 }), null)
   assert.equal(squadProblem({ threat: 10, count: 1, maxThreat: 18 }), null)
+})
+
+test('sideSign and sideYaw: host +z and yaw 0, guest -z and yaw PI', () => {
+  assert.equal(sideSign('host'), 1)
+  assert.equal(sideSign('guest'), -1)
+  assert.equal(sideYaw('host'), 0)
+  assert.equal(sideYaw('guest'), Math.PI)
 })

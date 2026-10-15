@@ -2,6 +2,7 @@
 // React, the same as table.js and dice/tray.js, so a future headless sim could use it too.
 // See docs/features/character-trays.md, "Tray layout".
 
+import { sideSign, sideYaw } from '../setup/setup.js'
 import { TACTIC_TRAY_OUTER_Z } from '../tactics/layout.js'
 import { TOKEN_SIZE } from '../tokens/files.js'
 import { CARD_WIDTH as CRISIS_CARD_WIDTH } from '../crisis/layout.js'
@@ -142,7 +143,7 @@ export function trayHeldDefault(heldCount) {
 // Tray-local [x, z] of the table point { x, z } on the tray at `trayPos`. A guest tray is turned
 // 180 deg (trayYaw), so its local axes point the other way in world x and z.
 function trayLocal(team, trayPos, point) {
-  const side = team === 'host' ? 1 : -1
+  const side = sideSign(team)
   return [(point.x - trayPos[0]) * side, (point.z - trayPos[2]) * side]
 }
 
@@ -190,7 +191,7 @@ export function trayGruntModelPosition(team, trayPos, cards, index) {
 
 // Table [x, z] of tray-local `local` on the tray at `trayPos`. The inverse of trayLocal.
 function trayWorld(team, trayPos, local) {
-  const side = team === 'host' ? 1 : -1
+  const side = sideSign(team)
   return [trayPos[0] + local[0] * side, trayPos[2] + local[1] * side]
 }
 
@@ -268,7 +269,7 @@ export function trayPosition(team, index, count) {
   const x = (index - (count - 1) / 2) * TRAY_SPACING
   // Host sits at +z, guest at -z. Mirroring x and z the same way gives guest the same "owner's left"
   // order from its own seat.
-  const side = team === 'host' ? 1 : -1
+  const side = sideSign(team)
   return [x * side, TRAY_Y, ROW_CENTER_Z * side]
 }
 
@@ -317,7 +318,7 @@ export function layoutTrays(characters) {
     // Local x, before mirroring: grows toward the owner's right. The tray origin is the middle of the
     // host's own 5.6" plate, at the left of the cell.
     const x = left + TRAY_SPACING / 2
-    const side = ch.team === 'host' ? 1 : -1
+    const side = sideSign(ch.team)
     positions.set(ch.id, [x * side, TRAY_Y, ROW_CENTER_Z * side])
   }
   for (const [hostId, list] of grunts) {
@@ -348,7 +349,7 @@ export function inTrayArea(team, trayPos, point, grunts = 0) {
 // The card faces its owner: for host, the top of the image points to -z, the same as a crisis
 // card (see CrisisCard.jsx). A guest tray is turned by 180 deg around the vertical axis.
 export function trayYaw(team) {
-  return team === 'host' ? 0 : Math.PI
+  return sideYaw(team)
 }
 
 // Table position for a newly spawned model: standing on the center of card `card` of its tray at

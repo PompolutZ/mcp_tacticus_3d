@@ -6,6 +6,10 @@ export const TEAMS = ['host', 'guest']
 export const CRISIS_TYPES = ['secure', 'extract']
 
 export const otherTeam = (team) => (team === 'host' ? 'guest' : 'host')
+// The side of the table of a team: host sits at +z, guest at -z. sideSign is the z (and mirrored x) factor,
+// sideYaw turns a piece so its top points away from its owner (host 0, guest 180 deg).
+export const sideSign = (team) => (team === 'host' ? 1 : -1)
+export const sideYaw = (team) => (team === 'host' ? 0 : Math.PI)
 export const otherType = (type) => (type === 'secure' ? 'extract' : 'secure')
 
 // Why a squad cannot be Ready: 'over' (its threat is above the Maximum Threat), 'empty' (no character), or

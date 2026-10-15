@@ -4,7 +4,7 @@ import { runCardLoop } from './cardLoop.mjs'
 
 const cache = new Set()
 const base = {
-  keyOf: (c) => c.name,
+  keys: { get: (c) => c.name },
   available: (f) => cache.has(f.file),
   convertPlan: () => ({ status: 'converted', warnings: ['w'] }),
 }
@@ -78,4 +78,19 @@ test('a thrown error fails that card only', async () => {
   assert.equal(results[0].status, 'failed: no type')
   assert.equal(results[1].status, 'converted')
   assert.equal(done.length, 1)
+})
+
+test('cards run in the order of their keys', async () => {
+  cache.clear()
+  cache.add('a')
+  const { results } = await runCardLoop({
+    ...base,
+    cards: [{ name: 'b' }, { name: 'a' }],
+    planCard: () => plans.ok,
+    download: false,
+  })
+  assert.deepEqual(
+    results.map((r) => r.key),
+    ['a', 'b'],
+  )
 })

@@ -1,10 +1,11 @@
+import { UI_COLORS } from '../uiColors.js'
 import { OccludedHtml } from './LabelOcclusion.jsx'
 import { FLAT_HTML_Y } from '../tabletools/useDragTool.js'
 
 const BUTTON_STYLE = {
   background: '#1a1a1a',
-  border: '1px solid #f5a623',
-  color: '#f5a623',
+  border: `1px solid ${UI_COLORS.orange}`,
+  color: UI_COLORS.orange,
   cursor: 'pointer',
   fontFamily: 'sans-serif',
   pointerEvents: 'auto',
@@ -64,8 +65,8 @@ export function ToolButton({
       aria-pressed={on}
       style={{
         ...BUTTON_STYLE,
-        background: on ? '#f5a623' : '#1a1a1a',
-        color: on ? '#1a1a1a' : '#f5a623',
+        background: on ? UI_COLORS.orange : '#1a1a1a',
+        color: on ? '#1a1a1a' : UI_COLORS.orange,
         width: PX_PER_INCH,
         padding: '4px 0',
         borderRadius: '4px',
@@ -99,8 +100,8 @@ export function BendButton({ on, onClick, onPointerDown }) {
       title={on ? 'Bend on: dragging a half turns it around the hinge' : 'Bend'}
       style={{
         ...BUTTON_STYLE,
-        background: on ? '#f5a623' : '#1a1a1a',
-        color: on ? '#1a1a1a' : '#f5a623',
+        background: on ? UI_COLORS.orange : '#1a1a1a',
+        color: on ? '#1a1a1a' : UI_COLORS.orange,
         width: '22px',
         height: '22px',
         padding: 0,

@@ -1,6 +1,7 @@
 // Where the roster cards lie on the table. Plain module, no React, the same as characters/trays.js.
 // See docs/features/roster.md, "On the table", and docs/features/setup-game.md, "On the table".
 
+import { sideSign, sideYaw } from '../setup/setup.js'
 import { TABLE_DEPTH, TABLE_WIDTH } from '../table.js'
 import { TRAY_CARD_HEIGHT, TRAY_CARD_WIDTH } from '../characters/trays.js'
 import { TACTIC_CARD_HEIGHT, TACTIC_CARD_WIDTH, TACTIC_TRAY_OUTER_Z } from '../tactics/layout.js'
@@ -58,9 +59,9 @@ function placeRow(groups, maxWidth = TABLE_WIDTH - TABLE_MARGIN * 2) {
 export const ROSTER_ROWS_OUTER_Z =
   TACTIC_TRAY_OUTER_Z + ROW_GAP + TRAY_CARD_HEIGHT + ROW_GAP + TACTIC_CARD_HEIGHT
 
-const side = (team) => (team === 'host' ? 1 : -1)
+const side = sideSign
 // A card faces its owner, the same as a tray card: for host, the image top points to -z
-const cardYaw = (team) => (team === 'host' ? 0 : Math.PI)
+const cardYaw = sideYaw
 
 // The cards of `parsed` (mct.js) for `team`: [{ code, kind, gems, x, z, width, height, yaw }]. Row 1 holds the
 // characters, row 2 the Team Tactic cards. The crisis cards lie next to the scoring board (crisisRowLayout).

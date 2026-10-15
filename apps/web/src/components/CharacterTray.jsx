@@ -1,4 +1,5 @@
 import { Suspense, useEffect, useRef, useState } from 'react'
+import { UI_COLORS } from '../uiColors.js'
 import { OccludedHtml } from './LabelOcclusion.jsx'
 import { DoubleSide } from 'three'
 import { assetUrl } from '../assets/index.js'
@@ -171,7 +172,7 @@ export default function CharacterTray({
           ref={objectRef}
         >
           <planeGeometry args={[plate.width, plate.depth]} />
-          <meshStandardMaterial color="#20242b" roughness={1} />
+          <meshStandardMaterial color={UI_COLORS.trayPlate} roughness={1} />
         </mesh>
       )}
       <group position={[slot[0], 0, slot[1]]}>

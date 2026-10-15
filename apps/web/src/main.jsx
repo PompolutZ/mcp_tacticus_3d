@@ -5,10 +5,11 @@ import Root from './Root.jsx'
 import { installErrorListeners } from './crash/errors.js'
 import { startErrorReporter } from './crash/reporter.js'
 import { playerColorVars } from './sideColors.js'
+import { uiColorVars } from './uiColors.js'
 
 installErrorListeners()
 startErrorReporter()
-for (const [name, value] of Object.entries(playerColorVars())) {
+for (const [name, value] of Object.entries({ ...playerColorVars(), ...uiColorVars() })) {
   document.documentElement.style.setProperty(name, value)
 }
 

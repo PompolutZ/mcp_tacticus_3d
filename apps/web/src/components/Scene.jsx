@@ -95,6 +95,8 @@ import {
   rackHiddenSides,
   rosterRowsShown,
   setupStep,
+  sideSign,
+  sideYaw,
   viewOf,
 } from '../setup/setup.js'
 import { useSideColors } from '../sideColors.js'
@@ -1177,12 +1179,8 @@ export default function Scene({
             <Suspense fallback={null}>
               <DeployRangeTool
                 getBody={() => liveCharBody(draggingCharId)}
-                centerZ={
-                  draggingChar.team === 'host'
-                    ? MAT_SIZE / 2 - deployTip
-                    : -(MAT_SIZE / 2 - deployTip)
-                }
-                yaw={draggingChar.team === 'host' ? -Math.PI / 2 : Math.PI / 2}
+                centerZ={sideSign(draggingChar.team) * (MAT_SIZE / 2 - deployTip)}
+                yaw={sideYaw(draggingChar.team) - Math.PI / 2}
                 team={draggingChar.team}
                 hoverHeight={TOOL_HOVER_HEIGHT}
               />
@@ -1192,12 +1190,8 @@ export default function Scene({
             <Suspense fallback={null}>
               <DeployRangeTool
                 getBody={() => liveCharBody(otherDragId)}
-                centerZ={
-                  otherDragChar.team === 'host'
-                    ? MAT_SIZE / 2 - deployTip
-                    : -(MAT_SIZE / 2 - deployTip)
-                }
-                yaw={otherDragChar.team === 'host' ? -Math.PI / 2 : Math.PI / 2}
+                centerZ={sideSign(otherDragChar.team) * (MAT_SIZE / 2 - deployTip)}
+                yaw={sideYaw(otherDragChar.team) - Math.PI / 2}
                 team={otherDragChar.team}
                 hoverHeight={TOOL_HOVER_HEIGHT}
               />

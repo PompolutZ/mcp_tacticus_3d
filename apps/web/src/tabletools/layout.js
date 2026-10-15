@@ -11,8 +11,9 @@ import { MOVE_TIP, RANGE_TIP } from './toolTips.js'
 import { TACTIC_PLATE_WIDTH, tacticTrayPosition } from '../tactics/layout.js'
 import { ROSTER_ROWS_OUTER_Z } from '../rosters/layout.js'
 import { KEYS_LIP, TRAYS } from '../dice/tray.js'
+import { sideSign, sideYaw } from '../setup/setup.js'
 
-const sign = (side) => (side === 'host' ? 1 : -1)
+const sign = sideSign
 
 // The rack lies in front of the dice tray of its player: centered in x on the tray, as wide as the keys lip,
 // starting past the keys lip (the outer edge of the tray on the player's side). The tray is at the same x for
@@ -27,7 +28,7 @@ const KEYS_LIP_Z = TRAY_HOST.position.z + KEYS_LIP.low.z * Math.cos(TRAY_HOST.ya
 const RACK_Z_MIN = KEYS_LIP_Z + KEYS_LIP_GAP
 
 // The rack pieces face their owner: for host, the top points to -z (trays.js, trayYaw). Guest is turned 180 deg.
-export const rackYaw = (side) => (side === 'host' ? 0 : Math.PI)
+export const rackYaw = sideYaw
 
 const RANGE_WIDTH = 1
 const MOVE_WIDTH = 0.56

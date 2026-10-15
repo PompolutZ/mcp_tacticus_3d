@@ -1,4 +1,5 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { UI_COLORS } from '../uiColors.js'
 import { TEAMS } from '../setup/setup.js'
 import { rackPlate, rackSlots, rackYaw } from '../tabletools/layout.js'
 import { OnTable, OWNER_FACING_ROTATION, px } from './OnTable.jsx'
@@ -155,7 +156,7 @@ function Rack({ side, tools, handlers }) {
     <group>
       <mesh position={[plate.x, PLATE_Y, plate.z]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[plate.width, plate.depth]} />
-        <meshStandardMaterial color="#20242b" roughness={1} />
+        <meshStandardMaterial color={UI_COLORS.trayPlate} roughness={1} />
       </mesh>
       {rackSlots(side).map((slot) => {
         if (slot.key === 'r1') {

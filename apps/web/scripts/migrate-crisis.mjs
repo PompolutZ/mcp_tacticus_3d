@@ -92,9 +92,9 @@ function listCards() {
 // Returns the process exit code
 async function migrate() {
   const { results, done } = await runCardLoop({
-    cards: [...cards].sort((a, b) => keys.get(a).localeCompare(keys.get(b))),
-    keyOf: (card) => keys.get(card),
     planCard,
+    cards,
+    keys,
     available,
     download: opts.download && downloadMissing,
     convertPlan: (plan, card) => ({
