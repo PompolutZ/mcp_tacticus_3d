@@ -327,3 +327,7 @@ User: a cold load of a room shows no "0 / 0", then the file count.
 - `rosterLinks(item)` in `rooms/roomList.js` (tests) gives the lobby links: multiplayer "<name> roster" with no color, single "Blue roster" / "Red roster" or the numbered fallback.
 - `RosterPopup` takes `title` and `color` from the caller (`RosterPopupHost` reads the side store, the lobby and join page pass their own). `RosterField` takes `label` and `color`. Join page: "<host name> roster" link, field "Your roster". New room: "Your roster" (multiplayer), "Blue roster" / "Red roster" (single). Seat color labels and their CSS removed.
 - Docs: `rooms.md`, `roster.md`.
+
+### Result (step 9)
+
+`LoadingScreen` shows the detail line only when `count > 0`. With count 0 it shows the title and the empty bar. `rooms.md` says so. No deviations.
