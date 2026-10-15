@@ -1,9 +1,6 @@
-import jarvisData from './jarvis-characters.json'
+import jarvisData from './jarvis-rows.json'
 import migratedData from './characters.json'
-import { sharedImmunities } from './immunity.js'
-import { sharedPowerBonus } from './power.js'
-import { cardSizes, sideSize } from './size.js'
-import { dropPlacer } from './dropPlacer.js'
+import { sideSize } from './size.js'
 
 function baseName(mm) {
   if (mm <= 35) return 'small'
@@ -32,11 +29,11 @@ function rosterEntry(jch, m, mctCode) {
     rotation: m?.rotation || 0,
     // Stamina of each stat card side, for the tray's Damage limit (see TrayControls). Jarvis
     // stores it as a string; "?" (Multiple Man's variable stamina) falls back to 0.
-    staminaHealthy: Number(jch.statCard.frontSide.stamina) || 0,
+    staminaHealthy: jch.staminaHealthy,
     // A grunt has no Injured side (backSide is null): 0
-    staminaInjured: Number(jch.statCard.backSide?.stamina) || 0,
+    staminaInjured: jch.staminaInjured,
     // Size of each stat card side, for the Line of Sight tool (see size.js)
-    sizes: cardSizes(jch.statCard),
+    sizes: jch.sizes,
     // Threat Level, for the squad threat in the game setup (see docs/features/setup-game.md)
     threat: jch.threatLevel ?? 0,
     // Jarvis affiliation slugs, for the squad affiliation in the game setup (scoreboard/affiliations.js)
@@ -45,10 +42,10 @@ function rosterEntry(jch, m, mctCode) {
     // rosters/breakdown.js.
     alterEgo: jch.alterEgo ?? null,
     // The Jarvis tag peerless: at most one such character per squad (p21), see rosters/breakdown.js.
-    peerless: (jch.tags ?? []).includes('peerless'),
+    peerless: jch.peerless,
     // The Jarvis tag rogueAgent (Taskmaster, Winter Soldier): counts as affiliated in Squad building, see
     // scoreboard/affiliations.js.
-    rogue: (jch.tags ?? []).includes('rogueAgent'),
+    rogue: jch.rogue,
     // Where the character is a leader, for the leader star of the breakdown: [{ affiliation, tactic }].
     // affiliation: the Jarvis slug. tactic: null (always a leader), or the slug of the Team Tactic card that
     // the roster needs (isLeaderWithTeamTactics).
@@ -62,16 +59,13 @@ function rosterEntry(jch, m, mctCode) {
     // See docs/features/character-trays.md, "Give tokens by drag and drop", and TrayControls.jsx.
     tokens: m?.tokens || [],
     // Conditions the character is immune to, per side, in every form (immunity.js). From Jarvis.
-    immune: sharedImmunities(jch),
+    immune: jch.immune,
     // Who places a token that the character drops, per side: 'opponent' or 'controller' (dropPlacer.js). From Jarvis.
-    dropPlacer: {
-      healthy: dropPlacer({ side: 'healthy' }, jch),
-      injured: dropPlacer({ side: 'injured' }, jch),
-    },
+    dropPlacer: jch.dropPlacer,
     // Fixed extra Power of the Power Phase, per side, smallest of the forms (power.js). From Jarvis.
-    powerBonus: sharedPowerBonus(jch),
+    powerBonus: jch.powerBonus,
     // Grunts cannot have Power, so the Power Phase skips them (power.js).
-    grunt: !!jch.isGrunt,
+    grunt: jch.isGrunt,
     // Second form: null, or { figure, rotation, base?, name?, portrait?, card? } from
     // characters.json. See docs/features/character-trays.md, "Second forms", and models.js.
     transform: m?.transform ?? null,

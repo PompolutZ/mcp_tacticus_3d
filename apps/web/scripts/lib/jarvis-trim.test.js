@@ -3,20 +3,19 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { trimCharacters, trimCrisis, trimTactics } from './jarvis-trim.mjs'
 
-const read = (file) =>
-  JSON.parse(readFileSync(new URL(`../../src/${file}`, import.meta.url), 'utf8'))
+const read = (file) => JSON.parse(readFileSync(new URL(`../../${file}`, import.meta.url), 'utf8'))
 
-const characters = read('characters/jarvis-characters.json')
-const crisis = read('crisis/jarvis-crisis-cards.json')
+const characters = read('scripts/jarvis/characters.json')
+const crisis = read('scripts/jarvis/crisis-cards.json')
 
 // A stale trimmed file means trim-jarvis was not run after a change to the raw data or to a parser.
 test('the committed trimmed files match a fresh trim', () => {
-  assert.deepEqual(read('characters/jarvis-rows.json'), trimCharacters(characters))
+  assert.deepEqual(read('src/characters/jarvis-rows.json'), trimCharacters(characters))
   assert.deepEqual(
-    read('tactics/jarvis-rows.json'),
-    trimTactics(read('tactics/jarvis-tactics-cards.json')),
+    read('src/tactics/jarvis-rows.json'),
+    trimTactics(read('scripts/jarvis/tactics-cards.json')),
   )
-  assert.deepEqual(read('crisis/jarvis-rows.json'), trimCrisis(crisis))
+  assert.deepEqual(read('src/crisis/jarvis-rows.json'), trimCrisis(crisis))
 })
 
 test('a variable stamina ("?") gives 0', () => {

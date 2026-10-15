@@ -295,7 +295,7 @@ Output, in the same style as the crisis migration:
 
 | Data | Source | Where |
 |---|---|---|
-| Stamina, Healthy and Injured | Jarvis `statCard.frontSide.stamina`, `backSide.stamina` | `characters.js`, which already loads `jarvis-characters.json` |
+| Stamina, Healthy and Injured | Jarvis `statCard.frontSide.stamina`, `backSide.stamina` | `characters.js`, which loads the trimmed `jarvis-rows.json` (`staminaHealthy`, `staminaInjured`) |
 | Tokens the character uses (Give sources) | Mod `cToken` | `characters.json`, written by `migrate-characters.mjs` |
 | Immunities, per side and form | Jarvis, the superpower names of the stat card sides | `immunity.js`, used by `characters.js` |
 
@@ -303,7 +303,7 @@ Jarvis has the current official values, so the stats come from Jarvis. Only the 
 
 ### Immunities
 
-The immunities come from the Jarvis data (`jarvis-characters.json`), not from the mod. The TTS mod gives only assets: models, card images, token images. The mod `cImmune` was wrong for three cases: Blue Marvel ("Incinerate, Stun" is one name there, so no token matched), Emma Frost (immune only in Diamond form) and Apocalypse (3 for both sides). The other characters had the same immunities in both sources. The text is in the superpower names of a stat card side, for example "Flight, Immunity [Incinerate, Stun]". `immunity.js` reads it.
+The immunities come from the Jarvis data (`scripts/jarvis/characters.json`), not from the mod. The TTS mod gives only assets: models, card images, token images. The mod `cImmune` was wrong for three cases: Blue Marvel ("Incinerate, Stun" is one name there, so no token matched), Emma Frost (immune only in Diamond form) and Apocalypse (3 for both sides). The other characters had the same immunities in both sources. The text is in the superpower names of a stat card side, for example "Flight, Immunity [Incinerate, Stun]". `immunity.js` reads it.
 
 - Per side. `frontSide` is Healthy, `backSide` is Injured. The tray uses the side that faces up (`characterImmune(slug, side)`). Apocalypse: Bleed, Incinerate, Stun when Healthy, every special condition when Injured.
 - Two forms. A character with a second form that has its own card has `secondStatCard`. The app does not know which form is in use (players move the model by hand), so a give is refused only when every form is immune on that side. A refused give that the rules allow is worse than a give that players undo. Emma Frost is immune only as Diamond, so the app never refuses her, and players apply it by hand.

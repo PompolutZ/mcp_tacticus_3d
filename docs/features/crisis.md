@@ -175,7 +175,7 @@ What exists (see `scripts/README.md`, section "TTS crisis cards"):
 
 - `src/crisis/cards.json`: card id, name, type, threat, tokens (position, image, back image, flags, rotation), supply token.
 - `src/crisis/tokens.json`: token images, shape and size.
-- `src/crisis/jarvis-crisis-cards.json`: official names, card text, setup map letter, `payToFlip`, legality.
+- `scripts/jarvis/crisis-cards.json` (the app reads the trimmed `src/crisis/jarvis-rows.json`): official names, card text, setup map letter, `payToFlip`, legality.
 - Positions are TTS x and z in inches from the mat center. `Terrain.jsx` converts them to Three.js with `z` → `-z`.
 
 The Control marker is the affiliation token that the player's squad has from the game setup (`src/assets/affiliations/`, see "Scoring board"), on top of the token. The app also draws a ring in the player color around the token, because both players can choose the same affiliation. With both markers on a token, they are smaller and lie side by side. The damage marker uses the mod's "1 Damage" token image, migrated by `migrate-crisis.mjs` to `src/assets/crisis/markers/damage.webp`. Character damage tokens will need the same image later.

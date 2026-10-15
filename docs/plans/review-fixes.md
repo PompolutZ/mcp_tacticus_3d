@@ -245,6 +245,20 @@ User: Library lists and search; spawn a character and a grunt host; Damage limit
 
 ### Result
 
+The app reads the three `jarvis-rows.json` files. Raw files moved with `git mv` to `scripts/jarvis/characters.json`, `tactics-cards.json`, `crisis-cards.json`. Paths changed in the three fetch scripts, `migrate-crisis.mjs`, `trim-jarvis.mjs`, `jarvis-trim.test.js`, and the five tests (the four character tests and `affiliations.test.js`). Comment at `immunity.js:6` fixed. Docs: `roster.md`, `crisis.md`, `setup-game.md`, `character-trays.md`, `round-phases.md`, `scripts/README.md`.
+
+Dump diff: 604,445 bytes (237 `CHARACTERS`, 695 `rosterCard` codes, 400 `TACTICS`, 23 secure cards, 244 slugs with all per-side values); `cmp` of before and after is empty. `dump-rows.js` is not in the repo. `trim-jarvis` run again gives no change.
+
+Build after step 6 (JS): `index` 4,931.64 kB (gzip 1,635.44 kB), was 7,180.95 kB (gzip 1,895.32 kB); `jarvis-tactics-text` 199.40 kB (gzip 42.44 kB), same. `grep -c "frontSide\|statCard"` gives 0 in both JS files.
+
+Checks: web tests 826 pass, 0 fail. Lint 58 warnings, same. `pnpm fallow dead-code`: 27 unused exports, 1 unlisted dependency, same as before the step (no unused file added).
+
+Deviations:
+
+- Raw file names are short (`characters.json`, not `jarvis-characters.json`), since the folder says `jarvis`.
+- `.oxfmtrc.json` and `.oxlintrc.json` ignore `apps/web/scripts/jarvis/*.json` (the old ignore was `apps/web/src/**/*.json`, so the moved raw files would be formatted).
+- `trim-jarvis.mjs` now resolves all paths from `scripts/`.
+
 ## Step 7: Data chunk and table route split
 
 Needs step 6.

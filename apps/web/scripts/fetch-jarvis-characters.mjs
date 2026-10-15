@@ -1,4 +1,4 @@
-// Downloads the character data from Jarvis Protocol to src/characters/jarvis-characters.json.
+// Downloads the character data from Jarvis Protocol to scripts/jarvis/characters.json.
 // A character is downloaded again only when its `version` changed. See scripts/README.md.
 
 import fs from 'node:fs'
@@ -22,7 +22,7 @@ if (opts.help) {
 }
 
 const API = 'https://www.jarvis-protocol.com/api/characters'
-const OUT_FILE = path.resolve(import.meta.dirname, '../src/characters/jarvis-characters.json')
+const OUT_FILE = path.resolve(import.meta.dirname, 'jarvis/characters.json')
 // Jarvis sets no Crawl-delay. The earlier crawl in mcp_assist used 3 s.
 const TRIMMED_FILE = path.resolve(import.meta.dirname, '../src/characters/jarvis-rows.json')
 const DELAY_MS = 3000

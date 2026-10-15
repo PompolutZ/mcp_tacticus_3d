@@ -3,7 +3,9 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { cardSizes, sideSize } from './size.js'
 
-const rows = JSON.parse(readFileSync(new URL('./jarvis-characters.json', import.meta.url), 'utf8'))
+const rows = JSON.parse(
+  readFileSync(new URL('../../scripts/jarvis/characters.json', import.meta.url), 'utf8'),
+)
 const sizes = (slug) => cardSizes(rows.find((c) => c.slug === slug).statCard)
 
 test('size follows the face-up side', () => {

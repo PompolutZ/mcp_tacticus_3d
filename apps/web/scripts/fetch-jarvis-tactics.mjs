@@ -1,4 +1,4 @@
-// Downloads the Team Tactic cards from Jarvis Protocol to src/tactics/jarvis-tactics-cards.json and
+// Downloads the Team Tactic cards from Jarvis Protocol to scripts/jarvis/tactics-cards.json and
 // src/tactics/jarvis-tactics-text.json. See scripts/README.md.
 
 import fs from 'node:fs'
@@ -8,7 +8,7 @@ import { fetchJarvis } from './lib/jarvis.mjs'
 import { trimTactics } from './lib/jarvis-trim.mjs'
 
 const API = 'https://www.jarvis-protocol.com/api/team_tactics_cards'
-const OUT_FILE = path.resolve(import.meta.dirname, '../src/tactics/jarvis-tactics-cards.json')
+const OUT_FILE = path.resolve(import.meta.dirname, 'jarvis/tactics-cards.json')
 const TRIMMED_FILE = path.resolve(import.meta.dirname, '../src/tactics/jarvis-rows.json')
 const TEXT_FILE = path.resolve(import.meta.dirname, '../src/tactics/jarvis-tactics-text.json')
 const OUR_CARDS = path.resolve(import.meta.dirname, '../src/tactics/cards.json')

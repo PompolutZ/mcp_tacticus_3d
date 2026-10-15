@@ -25,7 +25,7 @@ const { opts } = parseMigrateArgs(USAGE, undefined, { download: true })
 
 const MANIFEST_FILE = path.join(import.meta.dirname, 'crisis-manifest.json')
 const DATA_DIR = path.resolve(import.meta.dirname, '../src/crisis')
-const JARVIS_FILE = path.join(DATA_DIR, 'jarvis-crisis-cards.json')
+const JARVIS_FILE = path.join(import.meta.dirname, 'jarvis/crisis-cards.json')
 const OUT_DIR = opts.out ? path.resolve(opts.out) : null
 const MANIFEST_OUT = OUT_DIR ? path.join(OUT_DIR, 'crisis-manifest.json') : MANIFEST_FILE
 const CARDS_OUT = path.join(OUT_DIR ?? DATA_DIR, 'cards.json')

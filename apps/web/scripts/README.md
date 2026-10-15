@@ -266,7 +266,7 @@ These rules were found on 2026-09-28 in the mod scripts ("Red Tray Spawner" and 
 
 # Jarvis character data
 
-`fetch-jarvis-characters.mjs` downloads the stats and the stat card text of every character from [Jarvis Protocol](https://www.jarvis-protocol.com) to `src/characters/jarvis-characters.json`. The file is an array of the `/api/characters/<slug>` responses, sorted by slug.
+`fetch-jarvis-characters.mjs` downloads the stats and the stat card text of every character from [Jarvis Protocol](https://www.jarvis-protocol.com) to `scripts/jarvis/characters.json`. The file is an array of the `/api/characters/<slug>` responses, sorted by slug.
 
 ```bash
 pnpm --filter web fetch-jarvis-characters             # download new and changed characters
@@ -281,7 +281,7 @@ pnpm --filter web fetch-jarvis-characters --force  # download every character ag
 
 # Trimmed Jarvis files
 
-The app does not import the raw Jarvis files. It imports trimmed files with only the fields that it reads: `src/characters/jarvis-rows.json`, `src/tactics/jarvis-rows.json` and `src/crisis/jarvis-rows.json`. `lib/jarvis-trim.mjs` makes them (`trimCharacters`, `trimTactics`, `trimCrisis`):
+The raw Jarvis files are `scripts/jarvis/characters.json`, `tactics-cards.json` and `crisis-cards.json`. Nothing in `src/` imports them. The app imports trimmed files with only the fields that it reads: `src/characters/jarvis-rows.json`, `src/tactics/jarvis-rows.json` and `src/crisis/jarvis-rows.json`. `lib/jarvis-trim.mjs` makes them (`trimCharacters`, `trimTactics`, `trimCrisis`):
 
 - Copied fields keep their Jarvis names. Derived fields have the names of the app: `staminaHealthy`, `staminaInjured`, `sizes`, `immune`, `dropPlacer`, `powerBonus`, `peerless`, `rogue`. The derived fields come from the stat card text, with `src/characters/{immunity,power,size,dropPlacer}.js`, so the stat card text is not in the app.
 - All character and tactic rows stay. Crisis keeps only the current printings (`replacedBy: null`).
@@ -402,7 +402,7 @@ The script also migrates every token that a released tactic card names in its `t
 
 # Jarvis crisis cards
 
-`fetch-jarvis-crisis-cards.mjs` downloads every crisis card from [Jarvis Protocol](https://www.jarvis-protocol.com) to `src/crisis/jarvis-crisis-cards.json`. The file is the response of `GET /api/crisis_cards`, sorted by slug.
+`fetch-jarvis-crisis-cards.mjs` downloads every crisis card from [Jarvis Protocol](https://www.jarvis-protocol.com) to `scripts/jarvis/crisis-cards.json`. The file is the response of `GET /api/crisis_cards`, sorted by slug.
 
 ```bash
 pnpm --filter web fetch-jarvis-crisis-cards
@@ -416,7 +416,7 @@ pnpm --filter web fetch-jarvis-crisis-cards
 
 # Jarvis Team Tactic cards
 
-`fetch-jarvis-tactics.mjs` downloads the Team Tactic cards from [Jarvis Protocol](https://www.jarvis-protocol.com) to `src/tactics/jarvis-tactics-cards.json`. The file is the response of `GET /api/team_tactics_cards`, sorted by slug.
+`fetch-jarvis-tactics.mjs` downloads the Team Tactic cards from [Jarvis Protocol](https://www.jarvis-protocol.com) to `scripts/jarvis/tactics-cards.json`. The file is the response of `GET /api/team_tactics_cards`, sorted by slug.
 
 ```bash
 pnpm --filter web fetch-jarvis-tactics
@@ -480,7 +480,7 @@ The app draws the face of every Team Tactic card and Infinity Gem (`TacticFace.j
 Run order:
 
 ```bash
-pnpm --filter web fetch-jarvis-tactics   # Jarvis data: jarvis-tactics-cards.json and jarvis-tactics-text.json
+pnpm --filter web fetch-jarvis-tactics   # Jarvis data: jarvis/tactics-cards.json and jarvis-tactics-text.json
 pnpm --filter web migrate-tactics        # backs of the cards, cards.json
 ```
 

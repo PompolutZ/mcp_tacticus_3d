@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import { SPECIAL_CONDITIONS, formImmunities, parseImmunity, sharedImmunities } from './immunity.js'
 
 const read = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'))
-const rows = read('./jarvis-characters.json')
+const rows = read('../../scripts/jarvis/characters.json')
 const tokens = read('../tokens/tokens.json')
 const row = (slug) => rows.find((r) => r.slug === slug)
 const sorted = (list) => [...list].sort()

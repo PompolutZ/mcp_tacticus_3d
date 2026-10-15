@@ -5,17 +5,19 @@ import path from 'node:path'
 import { readJson, writeJson } from './lib/files.mjs'
 import { trimCharacters, trimCrisis, trimTactics } from './lib/jarvis-trim.mjs'
 
-const src = path.resolve(import.meta.dirname, '../src')
+const here = import.meta.dirname
 
-// [raw file, trimmed file, trim function]. The raw files move in the next step.
+// [raw file, trimmed file, trim function].
 const JARVIS_FILES = [
-  ['characters/jarvis-characters.json', 'characters/jarvis-rows.json', trimCharacters],
-  ['tactics/jarvis-tactics-cards.json', 'tactics/jarvis-rows.json', trimTactics],
-  ['crisis/jarvis-crisis-cards.json', 'crisis/jarvis-rows.json', trimCrisis],
+  ['jarvis/characters.json', '../src/characters/jarvis-rows.json', trimCharacters],
+  ['jarvis/tactics-cards.json', '../src/tactics/jarvis-rows.json', trimTactics],
+  ['jarvis/crisis-cards.json', '../src/crisis/jarvis-rows.json', trimCrisis],
 ]
 
 for (const [raw, out, trim] of JARVIS_FILES) {
-  const rows = trim(readJson(path.join(src, raw), []))
-  writeJson(path.join(src, out), rows, { sortKeys: false })
-  console.log(`${out}: ${rows.length} rows`)
+  const rows = trim(readJson(path.join(here, raw), []))
+  writeJson(path.join(here, out), rows, { sortKeys: false })
+  console.log(
+    `${path.relative(path.resolve(here, '..'), path.join(here, out))}: ${rows.length} rows`,
+  )
 }

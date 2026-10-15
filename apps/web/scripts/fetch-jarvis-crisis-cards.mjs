@@ -1,4 +1,4 @@
-// Downloads the crisis cards from Jarvis Protocol to src/crisis/jarvis-crisis-cards.json. See scripts/README.md.
+// Downloads the crisis cards from Jarvis Protocol to scripts/jarvis/crisis-cards.json. See scripts/README.md.
 
 import path from 'node:path'
 import { writeJson } from './lib/files.mjs'
@@ -6,7 +6,7 @@ import { fetchJarvis } from './lib/jarvis.mjs'
 import { trimCrisis } from './lib/jarvis-trim.mjs'
 
 const API = 'https://www.jarvis-protocol.com/api/crisis_cards'
-const OUT_FILE = path.resolve(import.meta.dirname, '../src/crisis/jarvis-crisis-cards.json')
+const OUT_FILE = path.resolve(import.meta.dirname, 'jarvis/crisis-cards.json')
 const TRIMMED_FILE = path.resolve(import.meta.dirname, '../src/crisis/jarvis-rows.json')
 
 // One request returns every printing of every card, with the text

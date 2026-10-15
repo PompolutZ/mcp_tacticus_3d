@@ -11,6 +11,7 @@
     "pnpm-lock.yaml",
     "**/*.md",
     "apps/web/src/**/*.json",
-    "apps/web/scripts/*-manifest.json"
+    "apps/web/scripts/*-manifest.json",
+    "apps/web/scripts/jarvis/*.json"
   ]
 }

@@ -3,7 +3,7 @@
 // hard-code these per card, so a new migrated card gets the same rules for free.
 
 import cardsData from './cards.json'
-import jarvisData from './jarvis-crisis-cards.json'
+import jarvisData from './jarvis-rows.json'
 import tokensData from './tokens.json'
 
 // Jarvis has several printings of a card. The current one has replacedBy: null. cards.json keys a

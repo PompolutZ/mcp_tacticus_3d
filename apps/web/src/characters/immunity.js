@@ -3,7 +3,7 @@
 
 // "Special Conditions" in an immunity means every special condition (rulebook p17, p21). These are
 // the condition tokens of tokens.json; the immuneTo* tags of Apocalypse (Immunity [Special Conditions]
-// when Injured) in jarvis-characters.json list the same ten. immunity.test.js checks both.
+// when Injured) in scripts/jarvis/characters.json list the same ten. immunity.test.js checks both.
 export const SPECIAL_CONDITIONS = [
   'bleed',
   'hex',

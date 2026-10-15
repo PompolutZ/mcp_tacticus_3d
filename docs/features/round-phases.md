@@ -65,7 +65,7 @@ Found in the mod scripts (`autoPower` in "Red Tray Spawner", "UI Controller", Gl
 
 ### Facts from Jarvis
 
-`jarvis-characters.json` has the superpower text per stat card side (`frontSide` = Healthy, `backSide` = Injured). A fixed extra Power has this text: "During the Power Phase, this character gains N additional Power."
+`scripts/jarvis/characters.json` has the superpower text per stat card side (`frontSide` = Healthy, `backSide` = Injured). A fixed extra Power has this text: "During the Power Phase, this character gains N additional Power."
 
 - 40 of 232 rows have a fixed extra Power. Most get 1. Doctor Strange (Sorcerer Supreme), Ebony Maw, Hulk, The Immortal Hulk, Jean Grey and Onslaught get 2.
 - The text varies: "Power Phase|," "Power Phase*," "Power Phase," and "Power Phase| this" (Ulik). The French rows (Les Démolisseurs, Thor Héros de Midgard) say "Pendant la Phase de Pouvoir, ce personnage gagne 1 Power supplémentaire."
@@ -173,7 +173,7 @@ Cleanup step 4 (p12): if the player who activated the last character has Priorit
 
 ## Later: variable Power
 
-A separate feature, to discuss later. TTS does not handle these characters either. The list comes from the superpower text of `jarvis-characters.json` (every row, both sides):
+A separate feature, to discuss later. TTS does not handle these characters either. The list comes from the superpower text of `scripts/jarvis/characters.json` (every row, both sides):
 
 | Character | Side | Superpower | Power it gives |
 |---|---|---|---|

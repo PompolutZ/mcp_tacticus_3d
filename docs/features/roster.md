@@ -63,9 +63,9 @@ The app needs a name for every code, also for cards without files in the app.
 
 | Kind | Source | Rows |
 |---|---|---|
-| Characters | `src/characters/jarvis-characters.json` (exists) | 248 |
-| Crisis cards | `src/crisis/jarvis-crisis-cards.json` (exists) | 72, 45 different codes. Each code has one current printing |
-| Team Tactic cards and Infinity Gems | New: `src/tactics/jarvis-tactics-cards.json` from `GET /api/team_tactics_cards` | 519, 512 with a code, 401 different codes, 14 gems |
+| Characters | `scripts/jarvis/characters.json` (trimmed to `src/characters/jarvis-rows.json`) | 248 |
+| Crisis cards | `scripts/jarvis/crisis-cards.json` (trimmed to `src/crisis/jarvis-rows.json`) | 72, 45 different codes. Each code has one current printing |
+| Team Tactic cards and Infinity Gems | New: `scripts/jarvis/tactics-cards.json` from `GET /api/team_tactics_cards` (trimmed to `src/tactics/jarvis-rows.json`) | 519, 512 with a code, 401 different codes, 14 gems |
 
 The Team Tactic file is new. A new script `scripts/fetch-jarvis-tactics.mjs` downloads it, the same as the other Jarvis scripts. The full response is 1 MB. The script keeps only the fields that the app uses: `exportCode`, `slug`, `name`, `isInfinityGem`, `affiliation`, `tags`, the legality fields. Some cards appear twice with the same code (for example "Infinity Gem: Mind"). The app uses the first row of each code. Three ids in `src/tactics/cards.json` have 7 digits, and `src/rosters/cards.js` pads them to 8.
 

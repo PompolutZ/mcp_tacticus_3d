@@ -1,6 +1,6 @@
 // Team Tactic card list built from cards.json, the same pattern as tokens/tokens.js.
 import cardsData from './cards.json'
-import jarvisData from './jarvis-tactics-cards.json'
+import jarvisData from './jarvis-rows.json'
 
 // cards.json also holds the Infinity Gem cards (same files). A gem is not played from a tray: it is
 // attached to a character (docs/features/character-trays.md, "Attached cards").

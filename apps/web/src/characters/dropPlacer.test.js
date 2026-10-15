@@ -3,7 +3,9 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { dropPlacer } from './dropPlacer.js'
 
-const rows = JSON.parse(readFileSync(new URL('./jarvis-characters.json', import.meta.url), 'utf8'))
+const rows = JSON.parse(
+  readFileSync(new URL('../../scripts/jarvis/characters.json', import.meta.url), 'utf8'),
+)
 const row = (slug) => rows.find((r) => r.slug === slug)
 
 test('The Black Widow: the controlling player places, on both sides', () => {

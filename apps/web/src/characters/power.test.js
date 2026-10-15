@@ -9,7 +9,9 @@ import {
   sharedPowerBonus,
 } from './power.js'
 
-const rows = JSON.parse(readFileSync(new URL('./jarvis-characters.json', import.meta.url), 'utf8'))
+const rows = JSON.parse(
+  readFileSync(new URL('../../scripts/jarvis/characters.json', import.meta.url), 'utf8'),
+)
 const row = (slug) => {
   const found = rows.find((r) => r.slug === slug)
   assert.ok(found, `no Jarvis row ${slug}`)

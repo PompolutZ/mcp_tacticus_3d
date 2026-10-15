@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import jarvis from '../characters/jarvis-characters.json' with { type: 'json' }
+import jarvis from '../../scripts/jarvis/characters.json' with { type: 'json' }
 import {
   DEFAULT_AFFILIATION,
   affiliationKey,
@@ -75,7 +75,7 @@ test('autoAffiliation: 0, 1 and 2 keys', () => {
   assert.equal(autoAffiliation(['asgard', 'avengers']), null)
 })
 
-test('every affiliation slug in jarvis-characters.json has a token', () => {
+test('every affiliation slug in scripts/jarvis/characters.json has a token', () => {
   const missing = new Set()
   for (const row of jarvis) {
     for (const a of row.affiliations ?? []) if (!affiliationKey(a.slug)) missing.add(a.slug)
