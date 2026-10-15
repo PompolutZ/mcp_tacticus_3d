@@ -28,6 +28,7 @@ import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import TokenSolid from './TokenSolid.jsx'
 import useLiveFollow from './useLiveFollow.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
+import { useDisposeMaterials } from './useDisposeMaterials.js'
 import { useHoverCursor } from './useHoverCursor.js'
 import { SURFACE_GAP } from '../pieces/heights.js'
 
@@ -61,6 +62,7 @@ function Board() {
     })
     return clone
   }, [scene, map])
+  useDisposeMaterials(obj)
 
   // The transform is on a group, not on RigidBody, for the same reason as in Terrain.jsx
   return (
@@ -207,6 +209,7 @@ function RoundMarkerMesh() {
     })
     return clone
   }, [scene])
+  useDisposeMaterials(obj)
   return (
     <primitive
       object={obj}

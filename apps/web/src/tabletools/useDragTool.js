@@ -46,6 +46,9 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
   const restType = useRef(BODY_DYNAMIC)
   const raycaster = useRef(new THREE.Raycaster())
   // Horizontal plane through the grabbed point, so the pointer stays on the same spot of the tool
+  // Reused vectors: the pointer hit of a frame and of a turn pointer move
+  const frameTarget = useRef(new THREE.Vector3())
+  const turnHit = useRef(new THREE.Vector3())
   const dragPlane = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0))
   // Grabbed point minus body center (XZ), so the tool does not jump to center on the pointer
   const grabOffset = useRef({ x: 0, z: 0 })
@@ -70,7 +73,7 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
       // The plane stays at the grab height. If it followed the tool, raising the tool would move
       // the pointer hit off the terrain, the tool would drop, and it would shake between heights.
       raycaster.current.setFromCamera(mouseNDC.current, camera)
-      const target = new THREE.Vector3()
+      const target = frameTarget.current
       if (!raycaster.current.ray.intersectPlane(dragPlane.current, target)) return
       pose = {
         x: target.x - grabOffset.current.x,
@@ -152,7 +155,7 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
         const turn = turning.current
         if (turn) {
           turn.onPointer?.(raycaster.current)
-          const hit = raycaster.current.ray.intersectPlane(dragPlane.current, new THREE.Vector3())
+          const hit = raycaster.current.ray.intersectPlane(dragPlane.current, turnHit.current)
           if (!hit || Math.hypot(hit.x - turn.pivot.x, hit.z - turn.pivot.z) < 0.01) return false
           turn.d = wrapAngle(yawTo(turn.pivot, hit) - turn.startAngle)
           turn.pose = turn.onTurn(turnOf(turn), turn.startPose)

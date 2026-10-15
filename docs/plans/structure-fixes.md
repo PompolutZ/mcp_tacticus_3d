@@ -179,6 +179,8 @@ User: turn the mat 10 times and change the map 5 times; the terrain looks as bef
 
 ### Result
 
+Done. New `components/useDisposeMaterials.js`; used by `ObjPiece` and `BundlePiece` (`Terrain.jsx`), `Board` and `RoundMarkerMesh` (`ScoreBoard.jsx`), `trayVisual` (`DiceTrayParts.jsx`). `useDieLook` disposes its material in an effect cleanup. `textured` is in `components/ToolParts.jsx`: it takes a cached `toolMaterial(map, playerColor)`. `useDragTool` (`tabletools/useDragTool.js`) reuses two `Vector3` refs. Checks: format, lint (52 warnings, same), web build pass. `pnpm test`: `apps/api/test/signal.test.ts` fails 1 test (the flaky test of step 15, not touched by this step); all else passes.
+
 ## Step 4: Plain modules do not import components
 
 Work:

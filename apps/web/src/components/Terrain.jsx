@@ -20,6 +20,7 @@ import { FRICTION } from '../physics.js'
 import { OccludedHtml, useLabelsDirty } from './LabelOcclusion.jsx'
 import { projectFootprints } from './footprintProjection.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
+import { useDisposeMaterials } from './useDisposeMaterials.js'
 import { useHoverCursor, useHoverReport } from './useHoverCursor.js'
 
 const WHITE = [1, 1, 1]
@@ -195,6 +196,7 @@ function ObjPiece(props) {
     })
     return clone
   }, [raw, map, placement.tint])
+  useDisposeMaterials(obj)
   return (
     <PieceBody
       {...props}
@@ -237,13 +239,7 @@ function BundlePiece(props) {
     })
     return clone
   }, [raw, placement.tint])
-  useEffect(
-    () => () =>
-      obj.traverse((child) => {
-        if (child.isMesh) [child.material].flat().forEach((m) => m.dispose())
-      }),
-    [obj],
-  )
+  useDisposeMaterials(obj)
   const meshes = bundleColliderMeshes(placement.piece)
   return (
     <PieceBody

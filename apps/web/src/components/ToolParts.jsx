@@ -13,13 +13,26 @@ import { RANGE_HALF_WIDTH, STRAIGHT } from './toolGeometry.js'
 
 const TEXTURE = assetUrl('tools/toolbox-02.png')
 
-// color: 'blue' or 'red', the player color (not the side). Without it, the texture keeps its own colors.
+// One material per texture and player color (blue, red, none). Tools mount often, so the materials are cached
+// and never disposed.
+const toolMaterials = new Map()
+function toolMaterial(map, playerColor) {
+  const key = `${map.uuid}:${playerColor}`
+  let material = toolMaterials.get(key)
+  if (!material) {
+    const color = new THREE.Color().setRGB(
+      ...(TOOL_TINT[playerColor] ?? [1, 1, 1]),
+      THREE.SRGBColorSpace,
+    )
+    material = new THREE.MeshStandardMaterial({ map, color, roughness: 0.5, metalness: 0.1 })
+    toolMaterials.set(key, material)
+  }
+  return material
+}
+
+// playerColor: 'blue' or 'red', the player color (not the side). Without it, the texture keeps its own colors.
 function textured(obj, map, playerColor) {
-  const color = new THREE.Color().setRGB(
-    ...(TOOL_TINT[playerColor] ?? [1, 1, 1]),
-    THREE.SRGBColorSpace,
-  )
-  const mat = new THREE.MeshStandardMaterial({ map, color, roughness: 0.5, metalness: 0.1 })
+  const mat = toolMaterial(map, playerColor)
   obj.traverse((child) => {
     if (child.isMesh) child.material = mat
   })

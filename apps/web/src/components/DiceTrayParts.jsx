@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useGLTF, useTexture } from '@react-three/drei'
 import { RigidBody, TrimeshCollider, useRapier } from '@react-three/rapier'
 import { Color, MeshStandardMaterial, SRGBColorSpace } from 'three'
@@ -8,6 +8,7 @@ import { TOOL_TINT } from '../tabletools/toolTips.js'
 import { IMPORT_ROTATION, TRAYS, TRAY_SCALE, trayColliderArrays } from '../dice/tray.js'
 import { FRICTION } from '../physics.js'
 import DiceKeys from './DiceKeys.jsx'
+import { useDisposeMaterials } from './useDisposeMaterials.js'
 
 // Parts that the own tray (DiceTray.jsx) and the other player's tray (OtherDiceTray.jsx) share.
 
@@ -20,6 +21,7 @@ export function useDieLook() {
     dieTexture.flipY = false
     return new MeshStandardMaterial({ map: dieTexture, roughness: 0.5, metalness: 0 })
   }, [dieTexture])
+  useEffect(() => () => material.dispose(), [material])
   const geometry = useMemo(
     () => dieGltf.scene.getObjectByProperty('type', 'Mesh').geometry,
     [dieGltf.scene],
@@ -65,6 +67,7 @@ export function TrayBody({ trayKey, keysProps, onHover, bodyRef }) {
     })
     return clone
   }, [trayGltf.scene, trayMaterial])
+  useDisposeMaterials(trayVisual)
 
   return (
     <RigidBody
