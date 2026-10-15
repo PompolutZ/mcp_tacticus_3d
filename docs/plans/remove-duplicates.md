@@ -1,6 +1,6 @@
 # Plan: Remove duplicates
 
-Requested by the user on 2026-10-15. Status: done, waiting for the user test. Branch `remove-duplicates`, worktree `../mcp_assist_3d-remove-duplicates`, from main after `docs/plans/review-fixes.md` and `docs/plans/split-large-files.md` merge into main. The plan touches many files, so no other branch is open while it runs.
+Requested by the user on 2026-10-15. Status: done. The user tested it and gave the OK on 2026-10-15. Branch `remove-duplicates`, worktree `../mcp_assist_3d-remove-duplicates`, from main after `docs/plans/review-fixes.md` and `docs/plans/split-large-files.md` merge into main. The plan touches many files, so no other branch is open while it runs.
 
 Each step makes one commit and writes its **Result** below. Feature docs change in the same step as the code.
 
