@@ -9,6 +9,10 @@ import { roundPiece } from './live.js'
 const FOLLOW_TIME = 0.05
 
 // The part of the way to the latest pose to go in a frame of dt seconds
+/**
+ * @param {number} dt
+ * @returns {number}
+ */
 export function followPart(dt) {
   return 1 - Math.exp(-dt / FOLLOW_TIME)
 }
@@ -55,12 +59,22 @@ const kindOf = (key) => key.slice(0, key.indexOf(':'))
 export const isLiveKind = (key) => Object.hasOwn(KINDS, kindOf(key))
 
 // The numbers of a pose object for key, rounded as in a packet, or null for an unknown kind
+/**
+ * @param {string} key
+ * @param {Record<string, number>} pose
+ * @returns {number[] | null}
+ */
 export function poseToNumbers(key, pose) {
   const kind = KINDS[kindOf(key)]
   return kind ? roundPiece(key, kind.toNumbers(pose)) : null
 }
 
 // The pose object of the numbers of key, or null
+/**
+ * @param {string} key
+ * @param {number[]} numbers
+ * @returns {Record<string, number> | null}
+ */
 export function numbersToPose(key, numbers) {
   const kind = KINDS[kindOf(key)]
   return kind && Array.isArray(numbers) ? kind.fromNumbers(numbers) : null
@@ -68,6 +82,11 @@ export function numbersToPose(key, numbers) {
 
 // True when two number arrays are equal. Round both first (poseToNumbers), so "moved" means
 // "changed after rounding".
+/**
+ * @param {number[] | null} a
+ * @param {number[] | null} b
+ * @returns {boolean}
+ */
 export function sameNumbers(a, b) {
   if (!a || !b || a.length !== b.length) return false
   return a.every((v, i) => v === b[i])

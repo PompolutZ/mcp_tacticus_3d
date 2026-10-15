@@ -4,6 +4,13 @@
 
 // Who owns key. ownId: the own client id. own: the own keys. others: Map client id → keys of the other
 // clients. Both own it (a tie): the lower client id keeps it (decision 7).
+/**
+ * @param {string} key
+ * @param {number} ownId
+ * @param {string[]} own
+ * @param {Map<number, string[]>} others
+ * @returns {"me" | "other" | null}
+ */
 export function resolveOwner(key, ownId, own, others) {
   const mine = own.includes(key)
   let lowest = null
@@ -16,6 +23,12 @@ export function resolveOwner(key, ownId, own, others) {
 }
 
 // The keys that the other clients own, after the tie rule
+/**
+ * @param {number} ownId
+ * @param {string[]} own
+ * @param {Map<number, string[]>} others
+ * @returns {Set<string>}
+ */
 export function otherOwnedKeys(ownId, own, others) {
   const keys = new Set()
   for (const list of others.values()) {
@@ -25,6 +38,12 @@ export function otherOwnedKeys(ownId, own, others) {
 }
 
 // The own keys that lost a tie
+/**
+ * @param {number} ownId
+ * @param {string[]} own
+ * @param {Map<number, string[]>} others
+ * @returns {string[]}
+ */
 export function lostKeys(ownId, own, others) {
   return own.filter((key) => {
     for (const [id, keys] of others) if (id < ownId && keys.includes(key)) return true
@@ -80,6 +99,11 @@ function createLocalOwnership() {
 }
 
 // awareness: the y-protocols Awareness of the table, or none for the local version. role: 'host' or 'guest'.
+/**
+ * @param {object} [options]
+ * @param {import("y-protocols/awareness").Awareness | null} [options.awareness]
+ * @param {"host" | "guest"} [options.role]
+ */
 export function createOwnership({ awareness = null, role = 'guest' } = {}) {
   if (!awareness) return createLocalOwnership()
   const lost = listeners()

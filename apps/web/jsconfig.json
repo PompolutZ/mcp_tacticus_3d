@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": false,
+    "module": "Preserve",
+    "target": "ES2024",
+    "lib": ["ES2024", "DOM"],
+    "skipLibCheck": true,
+    "types": ["vite/client"]
+  },
+  "include": ["src/net/**/*.js"],
+  "exclude": ["**/*.test.js", "src/net/linkedChannels.js"]
+}

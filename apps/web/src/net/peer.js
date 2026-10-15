@@ -14,12 +14,20 @@ export const DROP_MS = 10_000
 export const RECONNECT_TRIES = 3
 
 // The data of a hello: the build id and the table schema (docs/features/peer-to-peer.md, "Connect flow").
+/**
+ * @param {{ build: string, schema: number }} hello
+ * @returns {string}
+ */
 export function helloData({ build, schema }) {
   return JSON.stringify({ build, schema })
 }
 
 // { build, schema } of a hello. A plain string is the hello of an older build: schema null, which never
 // equals the own schema.
+/**
+ * @param {string} data
+ * @returns {import("./types.js").Hello}
+ */
 export function readHello(data) {
   try {
     const value = JSON.parse(data)
@@ -212,7 +220,7 @@ export function connectRoom({
       const finish = () => {
         cancel(timer)
         pc.removeEventListener('icegatheringstatechange', onChange)
-        resolve()
+        resolve(undefined)
       }
       const onChange = () => {
         if (pc.iceGatheringState === 'complete') finish()
@@ -472,6 +480,7 @@ export function connectRoom({
       if (role === 'guest' && latestHello && hellos.has(latestHello.from)) makeOffer(latestHello)
     },
     // keepalive: for the page close, the request outlives the page. Resolves when bye is sent (best effort).
+    /** @param {{ keepalive?: boolean }} [options] */
     stop({ keepalive } = {}) {
       if (done) return Promise.resolve()
       done = true

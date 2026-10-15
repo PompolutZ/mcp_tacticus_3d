@@ -45,6 +45,11 @@ function withHeader(header, bytes) {
 // origin, so they are not sent back. awareness (y-protocols Awareness of doc) is optional: with it, the own
 // state goes out when the channel opens and on each update, and the states of the other end come in. stop()
 // removes those states. Returns { stop }.
+/**
+ * @param {import("yjs").Doc} doc
+ * @param {RTCDataChannel} channel
+ * @param {import("y-protocols/awareness").Awareness | null} [awareness]
+ */
 export function syncOverChannel(doc, channel, awareness = null) {
   channel.binaryType = 'arraybuffer'
   let parts = []

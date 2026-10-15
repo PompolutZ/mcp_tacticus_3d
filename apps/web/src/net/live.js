@@ -27,6 +27,11 @@ const round = (value, decimals) => {
 }
 
 // The numbers of a piece key, rounded by its kind, or null for an unknown kind or a wrong count
+/**
+ * @param {string} key
+ * @param {number[]} numbers
+ * @returns {number[] | null}
+ */
 export function roundPiece(key, numbers) {
   const layout = LAYOUTS[key.slice(0, key.indexOf(':'))]
   if (!layout || !Array.isArray(numbers) || numbers.length !== layout.total) return null
@@ -35,6 +40,12 @@ export function roundPiece(key, numbers) {
 
 // True and stores s when s is higher than the stored sequence number of key, or there is none.
 // seqs: a Map, key → the last sequence number.
+/**
+ * @param {Map<string, number>} seqs
+ * @param {string} key
+ * @param {number} s
+ * @returns {boolean}
+ */
 export function newer(seqs, key, s) {
   const last = seqs.get(key)
   if (last !== undefined && s <= last) return false
@@ -75,6 +86,13 @@ function parse(data) {
 // timers: { setTimeout, clearTimeout }. random: a function like Math.random. drop: the percent of received
 // packets to drop, 0 to 100. delay: ms to hand on each received packet later.
 // Returns { attach, detach, send, subscribe }.
+/**
+ * @param {object} [options]
+ * @param {{ setTimeout: typeof setTimeout, clearTimeout: typeof clearTimeout }} [options.timers]
+ * @param {() => number} [options.random]
+ * @param {number} [options.drop]
+ * @param {number} [options.delay]
+ */
 export function createLiveHub({
   timers = { setTimeout, clearTimeout },
   random = Math.random,

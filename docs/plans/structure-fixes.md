@@ -239,6 +239,14 @@ User: no visible change. Two browsers join one room and move pieces.
 
 ### Result
 
+Done.
+
+- `typescript` `^7.0.2` and script `typecheck` in `apps/web`; new `apps/web/jsconfig.json` (checkJs, not strict, `vite/client` types, excludes tests and the test helper `net/linkedChannels.js`).
+- New `net/types.js` with typedefs (`LivePacket`, `LiveUpdate`, `PieceKey`, `Hello`, `SignalMessage`, `PresenceState`, `OwnershipState`, `RecordStore`, `ListStore`, `Table`); JSDoc `@param`/`@returns` on the exported functions of `doc`, `live`, `livePose`, `peer`, `ownership`, `presence`, `signaling`, `syncChannel`.
+- Errors found: 3 real type notes only (`keepalive` options type in `peer.js` and `signaling.js`, `resolve()` in `peer.js` is now `resolve(undefined)`). No behavior change.
+- Feature: `peer-to-peer.md` "Code layout" names `net/types.js` and the check.
+- Checks: `pnpm typecheck` 0 errors, format, lint 52 warnings (baseline 52), `pnpm test` pass, `pnpm --filter web build` ok.
+
 ## Step 7: Setup actions
 
 Work:

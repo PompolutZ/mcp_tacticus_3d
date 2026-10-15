@@ -32,6 +32,10 @@ const LISTS = ['terrain', 'characters', 'tokens', 'tactics', 'looseTokens', 'tok
 
 // The stores of the table, one per top-level map of the document. App reads and writes them with the
 // hooks of useY.js. transact(fn): fn writes several stores as one change.
+/**
+ * @param {import("yjs").Doc} [doc]
+ * @returns {import("./types.js").Table}
+ */
 export function createTable(doc = new Y.Doc()) {
   return {
     doc,
@@ -61,6 +65,10 @@ export function createTable(doc = new Y.Doc()) {
 
 // Writes a start table as one change. state: the fields of GAME_FIELDS and LISTS, rosters, setup, and
 // poses, tools, dice, rolls and log (optional).
+/**
+ * @param {import("./types.js").Table} table
+ * @param {Record<string, any>} state
+ */
 export function fillTable(table, state) {
   table.transact(() => {
     const game = Object.fromEntries(GAME_FIELDS.map((key) => [key, state[key]]))
@@ -77,6 +85,9 @@ export function fillTable(table, state) {
 }
 
 // The schema of the stored table, or null when the document is empty
+/**
+ * @param {import("./types.js").Table} table
+ */
 export function tableSchema(table) {
   return table.game.get('schema') ?? null
 }
@@ -103,6 +114,10 @@ export function migrate(table, from, { steps = MIGRATIONS, to = SCHEMA } = {}) {
 
 // The bytes of the table: the whole document as one Yjs update. It is the table snapshot of a multiplayer
 // room (docs/features/auth.md, "Table on the server").
+/**
+ * @param {import("./types.js").Table} table
+ * @returns {Uint8Array}
+ */
 export function encodeTable(table) {
   return Y.encodeStateAsUpdate(table.doc)
 }

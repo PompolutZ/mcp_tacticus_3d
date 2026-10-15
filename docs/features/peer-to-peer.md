@@ -525,6 +525,7 @@ apps/web/src/net/
   live.js         the live hub: packets, sequence per key, rounding, ?drop, ?delay
   livePose.js     the number layout of each piece kind, the follow step
   traffic.js      bytes of the selected candidate pair from getStats
+  types.js        JSDoc typedefs of the live packet, hello, awareness states and the table stores. `pnpm typecheck` checks `net/` (apps/web/jsconfig.json, checkJs, not strict)
   fingerprint.js  tableFingerprint: a short hash of the document's changes
 apps/web/src/drag/
   pointerDrag.js  startPointerDrag: the gesture of every drag, claims, cancel

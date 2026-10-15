@@ -22,7 +22,8 @@
     "photos-to-glb": "node scripts/photos-to-glb.mjs",
     "dice-sim": "node scripts/dice-sim.mjs",
     "tts-dice-measure": "node scripts/tts-dice-measure-object.mjs",
-    "test": "node --test \"{src,scripts}/**/*.test.js\""
+    "test": "node --test \"{src,scripts}/**/*.test.js\"",
+    "typecheck": "tsc -p jsconfig.json"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.14.0",
@@ -52,6 +53,7 @@
     "@vitejs/plugin-react": "^4.3.3",
     "draco3dgltf": "^1.5.7",
     "obj2gltf": "^3.2.0",
+    "typescript": "^7.0.2",
     "vite": "^5.4.10"
   }
 }

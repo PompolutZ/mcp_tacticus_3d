@@ -48,6 +48,10 @@ function createLocalPresence() {
 // awareness: the y-protocols Awareness of the table, or none for the local version.
 // Fields: selection (piece keys, the last one is the tool target), tools (kinds), mark ({ key, mode } or null),
 // ping ({ id, at: [x, y, z] } or null, docs/features/ping.md).
+/**
+ * @param {object} [options]
+ * @param {import("y-protocols/awareness").Awareness | null} [options.awareness]
+ */
 export function createPresence({ awareness = null } = {}) {
   if (!awareness) return createLocalPresence()
   const ownId = awareness.clientID

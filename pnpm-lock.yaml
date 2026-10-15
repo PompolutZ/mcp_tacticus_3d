@@ -325,6 +325,9 @@ importers:
       obj2gltf:
         specifier: ^3.2.0
         version: 3.2.0
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
       vite:
         specifier: ^5.4.10
         version: 5.4.21(@types/node@24.19.1)
