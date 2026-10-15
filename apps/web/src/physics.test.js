@@ -1,7 +1,7 @@
 import { test, before } from 'node:test'
 import assert from 'node:assert/strict'
 import { createRequire } from 'node:module'
-import { castDown, lowerFloor } from './physics.js'
+import { castDown, lowerFloor, BODY_DYNAMIC, BODY_KINEMATIC_POSITION } from './physics.js'
 
 // Headless Rapier world (the same version as the app, nested under @react-three/rapier). Fixed boxes
 // stand for terrain. world.step() runs once before the casts, or castShape finds nothing.
@@ -45,4 +45,9 @@ test('no overhang: no lower floor', () => {
 
 test('too little room under the overhang: no lower floor', () => {
   assert.equal(lower(10, 0), null)
+})
+
+test('body type constants match Rapier RigidBodyType', () => {
+  assert.equal(BODY_DYNAMIC, rapier.RigidBodyType.Dynamic)
+  assert.equal(BODY_KINEMATIC_POSITION, rapier.RigidBodyType.KinematicPositionBased)
 })

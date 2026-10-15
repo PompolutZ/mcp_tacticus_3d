@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 
 // Tool and token footprints painted onto the table and terrain by their materials.
@@ -166,4 +167,19 @@ export function acquireFootprint() {
       used[i] = false
     },
   }
+}
+
+// The slot of a component that has a footprint while it is mounted: taken on mount, given back on
+// unmount. Returns the ref. Its current is the slot (see acquireFootprint), or null when all slots are
+// used. Read it in a frame callback.
+export function useFootprintSlot() {
+  const slotRef = useRef(null)
+  useEffect(() => {
+    slotRef.current = acquireFootprint()
+    return () => {
+      slotRef.current?.release()
+      slotRef.current = null
+    }
+  }, [])
+  return slotRef
 }

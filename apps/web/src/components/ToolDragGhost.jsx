@@ -5,6 +5,7 @@ import { canDropTool, toolArms } from '../tabletools/dropShape.js'
 import { useSideColor } from '../sideColors.js'
 import { TOOL_TINT } from '../tabletools/toolTips.js'
 import { freeSpawnYaw } from './storedTool.js'
+import { MARKER_LIFT } from '../pieces/heights.js'
 
 // The tool that is dragged from the rack: a flat, semi-transparent outline of its footprint in the player tint,
 // at the table or terrain point under the pointer, turned as the tool spawns free (docs/features/table-tools.md,
@@ -13,8 +14,6 @@ import { freeSpawnYaw } from './storedTool.js'
 // when the ghost mounts, so it shows before the next pointermove. kind, which: the tool (dropShape.js, toolArms).
 // side: the own side.
 
-// Just above the table or terrain point, so the outline does not fight with the surface
-const LIFT = 0.04
 const OPACITY = 0.45
 const DIMMED_OPACITY = 0.12
 
@@ -33,7 +32,7 @@ export default function ToolDragGhost({ pointRef, start, kind, which, side }) {
       if (!group) return
       group.visible = Boolean(point)
       if (!point) return
-      group.position.set(point.x, point.y + LIFT, point.z)
+      group.position.set(point.x, point.y + MARKER_LIFT, point.z)
       const opacity = canDropTool(side, point) ? OPACITY : DIMMED_OPACITY
       for (const material of materials.current) if (material) material.opacity = opacity
     },

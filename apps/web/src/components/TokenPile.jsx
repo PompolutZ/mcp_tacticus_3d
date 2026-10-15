@@ -10,14 +10,14 @@ import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import TokenFace from './TokenFace.jsx'
 import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
 import { TOKEN_RADIUS } from './CrisisToken.jsx'
+import { tokenFootprint } from '../drag/tokenDrop.js'
 import DragFootprint from './DragFootprint.jsx'
 import TokenSolid from './TokenSolid.jsx'
 import useLiveFollow from './useLiveFollow.js'
+import { SURFACE_GAP } from '../pieces/heights.js'
 
 // A thin cylinder as wide as the token finds the ground under it, the same as LooseToken.jsx
 const HALF_H = 0.02
-// Gap between the ground and the pile, the same as LooseToken.jsx
-const GAP = 0.02
 const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 const NO_RAYCAST = () => null
 // The two tokens under the top one are a little off center, so the stack looks like a pile. Picked by look.
@@ -97,11 +97,10 @@ export default function TokenPile({
     // ONLY_FIXED + EXCLUDE_SENSORS inside castDown, so models and tools are ignored
     const ground = castDown(world, rapier, shape, NO_ROTATION, x, z, HALF_H)
     const lift = follow.current.moved ? TOKEN_DRAG_LIFT : 0
-    groupRef.current?.position.set(x, (ground ?? 0) + GAP + lift, z)
+    groupRef.current?.position.set(x, (ground ?? 0) + SURFACE_GAP + lift, z)
   })
 
-  const footprintShape = () =>
-    follow.current.moved ? { ...poseRef.current, radius: TOKEN_RADIUS } : null
+  const footprintShape = () => tokenFootprint(follow, poseRef, TOKEN_RADIUS)
 
   function handlePointerDown(e) {
     // Only the left button takes a token. A right or middle drag goes to OrbitControls (the camera).
@@ -112,7 +111,7 @@ export default function TokenPile({
   }
 
   return (
-    <group ref={groupRef} position={[pile.x, GAP, pile.z]}>
+    <group ref={groupRef} position={[pile.x, SURFACE_GAP, pile.z]}>
       <Suspense fallback={null}>
         <PileStack tokenKey={pile.key} onPointerDown={handlePointerDown} onHover={onHover} />
       </Suspense>

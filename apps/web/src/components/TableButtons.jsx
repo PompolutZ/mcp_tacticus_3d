@@ -1,4 +1,4 @@
-import { OnTable } from './OnTable.jsx'
+import { OnTable, TABLE_Y, px } from './OnTable.jsx'
 import { TEAMS, otherTeam } from '../setup/setup.js'
 import { useSideName } from '../sideColors.js'
 import { boardStrip, cleanupButton, powerButton } from '../tabletools/layout.js'
@@ -7,12 +7,8 @@ import { characterToken } from '../tokens/files.js'
 
 // The buttons that lie on the table: a board strip for each player (Power Phase in row 1) and one Cleanup Phase button.
 // See docs/features/table-tools.md. They lie flat just above the table (OnTable), 1 CSS px is 0.04".
-const TABLE_Y = 0.05
-const INCHES_PER_PX = 0.04
 // The same image as the Power counter of a tray (TrayControls.jsx)
 const POWER_ICON = assetUrl(characterToken('1-power'))
-
-const px = (inches) => Math.round(inches / INCHES_PER_PX)
 
 // Automatic Power Phase of `side`, in row 1 of its board strip (the place is in tabletools/layout.js,
 // docs/features/table-tools.md, "Automatic Power Phase button"). It gives Power to the characters of its own

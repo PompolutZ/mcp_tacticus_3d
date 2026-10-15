@@ -1,7 +1,6 @@
 import * as THREE from 'three'
+import { DEG } from '../camera.js'
 import { TTS_MAT_TOP } from './maps/index.js'
-
-const DEG = Math.PI / 180
 
 // TTS (Unity) is left-handed and Three.js is right-handed. Mirroring Z converts one to the other:
 // z changes sign, and so do rotations around X and Y. Unity applies Euler angles

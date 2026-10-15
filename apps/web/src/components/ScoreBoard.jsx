@@ -29,12 +29,11 @@ import TokenSolid from './TokenSolid.jsx'
 import useLiveFollow from './useLiveFollow.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
+import { SURFACE_GAP } from '../pieces/heights.js'
 
 // TTS mirrors X when it imports an OBJ. With the z → -z conversion, this is a 180° turn around Y (see
 // Terrain.jsx).
 const IMPORT_ROTATION = [0, Math.PI, 0]
-// Gap between the ground and a marker, so the marker never z-fights with the surface (CrisisToken.jsx)
-const GAP = 0.02
 const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 // Each VP marker faces its owner: the image top points away from the player's side
 const VP_MARKER_YAW = { host: 0, guest: Math.PI }
@@ -121,7 +120,7 @@ function DraggableMarker({
     const { x, z } = poseRef.current
     // ONLY_FIXED + EXCLUDE_SENSORS inside castDown, so models and tools are ignored
     const ground = castDown(world, rapier, shape, NO_ROTATION, x, z, halfHeight)
-    groupRef.current?.position.set(x, (ground ?? 0) + GAP + lift, z)
+    groupRef.current?.position.set(x, (ground ?? 0) + SURFACE_GAP + lift, z)
   })
 
   useHoverCursor(hovered, 'grab')

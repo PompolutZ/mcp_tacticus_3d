@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { playSound } from '../sound.js'
 import { COLOR_HEX, useSideColor } from '../sideColors.js'
+import { MARKER_LIFT } from '../pieces/heights.js'
 
 // Seconds that a ping shows, and the last part of it that fades out
 const LIFE = 3
@@ -15,7 +16,6 @@ const BOUNCE_SPEED = 7
 // The ring on the surface, and its lift above it, so it does not sink into the table or terrain
 const RING_OUTER = 0.9
 const RING_INNER = 0.75
-const LIFT = 0.04
 
 const noRaycast = () => {}
 
@@ -71,7 +71,12 @@ export default function Ping({ ping, side }) {
           depthTest={false}
         />
       </mesh>
-      <mesh position-y={y + LIFT} rotation-x={-Math.PI / 2} raycast={noRaycast} renderOrder={10}>
+      <mesh
+        position-y={y + MARKER_LIFT}
+        rotation-x={-Math.PI / 2}
+        raycast={noRaycast}
+        renderOrder={10}
+      >
         <ringGeometry args={[RING_INNER, RING_OUTER, 32]} />
         <meshBasicMaterial
           ref={ringMat}

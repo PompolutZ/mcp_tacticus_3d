@@ -1,6 +1,5 @@
 import { useFrame } from '@react-three/fiber'
-import { useEffect, useRef } from 'react'
-import { acquireFootprint, FOOTPRINT_APART, FOOTPRINT_COLOR } from './footprintProjection.js'
+import { useFootprintSlot, FOOTPRINT_APART, FOOTPRINT_COLOR } from './footprintProjection.js'
 
 const FILL_OPACITY = 0.35
 const LINE = '#ffffff'
@@ -12,15 +11,7 @@ const LINE = '#ffffff'
 // getApart(): optional, true shows the red color (a model over another model).
 // Both are functions, not values, because the pose changes every frame, outside React state.
 export default function DragFootprint({ getShape, getApart }) {
-  const slotRef = useRef(null)
-
-  useEffect(() => {
-    slotRef.current = acquireFootprint()
-    return () => {
-      slotRef.current?.release()
-      slotRef.current = null
-    }
-  }, [])
+  const slotRef = useFootprintSlot()
 
   useFrame(() => {
     const slot = slotRef.current

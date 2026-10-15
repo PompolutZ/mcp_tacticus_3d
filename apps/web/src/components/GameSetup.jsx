@@ -29,7 +29,7 @@ import { TYPE, deckButton, lockedTitle, pickButton } from '../setup/deckButton.j
 import { useSideColors } from '../sideColors.js'
 import { useNames } from '../setup/useNames.js'
 import { RosterCard } from './RosterCards.jsx'
-import { OnTable, OWNER_FACING_ROTATION } from './OnTable.jsx'
+import { OnTable, OWNER_FACING_ROTATION, TABLE_Y, px } from './OnTable.jsx'
 import {
   EDGE_ARROW_GAP,
   EDGE_ARROW_HEIGHT,
@@ -42,12 +42,8 @@ import {
 
 // Players select up to 5 Team Tactic cards (p11). The app shows the count and does not stop a 6th card.
 const TACTIC_LIMIT = 5
-// The buttons lie flat on the table, just above it (OnTable).
-const TABLE_Y = 0.05
 // The panel lies between the table edge and the scoring board, at the middle of the board
 const PANEL_X = (-TABLE_WIDTH / 2 + BOARD_X - BOARD_HALF_WIDTH) / 2
-const INCHES_PER_PX = 0.04
-const px = (inches) => Math.round(inches / INCHES_PER_PX)
 
 // One row of crisis cards of a roster, next to the scoring board. With row.use, each card has a Choose button
 // next to it. row: see crisisRows in setup/setup.js. A click on a card opens the crisis compare overlay (onOpen(code)).

@@ -1,13 +1,13 @@
 import { useLoader, useFrame } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
-import { useMemo, useRef, useEffect } from 'react'
+import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { acquireFootprint, FOOTPRINT_COLOR } from './footprintProjection.js'
+import { useFootprintSlot, FOOTPRINT_COLOR } from './footprintProjection.js'
 import { assetUrl } from '../assets/index.js'
 import { useSideColor } from '../sideColors.js'
 import { TOOL_TINT, RANGE_TIP } from '../tabletools/toolTips.js'
-import { HOVER_RATE } from '../tabletools/useDragTool.js'
+import { HOVER_RATE } from '../pieces/heights.js'
 import { useFootprintGround } from '../tabletools/useFootprintGround.js'
 import { RANGE_HALF_WIDTH, STRAIGHT } from './toolGeometry.js'
 
@@ -62,23 +62,12 @@ export function useMovementParts(type, team) {
 // Visible only while a model is being dragged with the deploy-line toggle on.
 // team: the dragged model's team, so the tool has that player's tint.
 export function DeployRangeTool({ getBody, centerZ, yaw, team, hoverHeight = 1 }) {
-  const playerColor = useSideColor(team)
-  const raw = useLoader(OBJLoader, assetUrl('tools/range-3-mesh.obj'))
-  const map = useTexture(TEXTURE)
-  const obj = useMemo(() => textured(raw.clone(), map, playerColor), [raw, map, playerColor])
+  const [{ obj }] = useRangeParts(3, team)
   const groupRef = useRef()
-  const slotRef = useRef(null)
+  const slotRef = useFootprintSlot()
   const groundY = useFootprintGround(RANGE_TIP[3], RANGE_HALF_WIDTH, STRAIGHT)
   // Height of the tool, or null before the first frame
   const yRef = useRef(null)
-
-  useEffect(() => {
-    slotRef.current = acquireFootprint()
-    return () => {
-      slotRef.current?.release()
-      slotRef.current = null
-    }
-  }, [])
 
   useFrame((_, dt) => {
     const body = getBody()

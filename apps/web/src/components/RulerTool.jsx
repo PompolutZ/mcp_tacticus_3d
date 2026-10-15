@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { useBodyRef } from '../useBodyRef.js'
 import { nearestHit } from '../drag/screenRay.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
-import { useHoverCursor } from './useHoverCursor.js'
+import { useHoverCursor, useHoverReport, useDragEndOnUnmount } from './useHoverCursor.js'
 import { freeSpawnYaw } from './storedTool.js'
 import { MOVE_TIP, RANGE_TIP } from '../tabletools/toolTips.js'
 import { onRack } from '../tabletools/layout.js'
@@ -389,12 +389,8 @@ function Tool({
 
   // The cleanups also run on unmount, so a removed tool does not stay hovered or dragged. Escape
   // removes the selected tool, also during its drag.
-  useEffect(() => {
-    if (!hovered) return undefined
-    onHover?.(true)
-    return () => onHover?.(false)
-  }, [hovered])
-  useEffect(() => () => onDrag?.(false), [])
+  useHoverReport(hovered, onHover)
+  useDragEndOnUnmount(onDrag)
   // A click toggles the selection. A drag moves the tool at once and selects it.
   useHoverCursor(hovered, 'grab')
 

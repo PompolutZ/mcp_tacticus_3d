@@ -1,7 +1,7 @@
 import { useFrame } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import {
-  acquireFootprint,
+  useFootprintSlot,
   FOOTPRINT_APART,
   FOOTPRINT_COLOR,
   FOOTPRINT_TOUCH,
@@ -82,15 +82,7 @@ export function ToolFootprint({
   oneSided = false,
   opacity,
 }) {
-  const slotRef = useRef(null)
-
-  useEffect(() => {
-    slotRef.current = acquireFootprint()
-    return () => {
-      slotRef.current?.release()
-      slotRef.current = null
-    }
-  }, [])
+  const slotRef = useFootprintSlot()
 
   useFrame(() => {
     if (!rigidRef.current || !slotRef.current) return

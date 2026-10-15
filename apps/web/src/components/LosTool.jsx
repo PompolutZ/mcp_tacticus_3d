@@ -21,7 +21,7 @@ import { ToolFootprint } from './ToolFootprint.jsx'
 import { useDragTool } from '../tabletools/useDragTool.js'
 import { useRestStore } from '../tabletools/useRestStore.js'
 import { toolPose, turnAround, yawQuat, yawTo } from './toolGeometry.js'
-import { useHoverCursor } from './useHoverCursor.js'
+import { useHoverCursor, useHoverReport, useDragEndOnUnmount } from './useHoverCursor.js'
 import { followPart, lerpAngle } from '../net/livePose.js'
 import { losFields, sameLos } from './storedTool.js'
 import { onRack } from '../tabletools/layout.js'
@@ -317,15 +317,8 @@ export function LosTool({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [looker, target])
 
-  useEffect(() => {
-    if (!hovered) return undefined
-    onHover?.(true)
-    return () => onHover?.(false)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hovered])
-  // A removed line does not stay dragged
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => () => onDrag?.(false), [])
+  useHoverReport(hovered, onHover)
+  useDragEndOnUnmount(onDrag)
   useHoverCursor(hovered, 'grab')
 
   useEffect(() => {

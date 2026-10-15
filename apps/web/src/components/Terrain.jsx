@@ -20,7 +20,7 @@ import { FRICTION } from '../physics.js'
 import { OccludedHtml, useLabelsDirty } from './LabelOcclusion.jsx'
 import { projectFootprints } from './footprintProjection.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
-import { useHoverCursor } from './useHoverCursor.js'
+import { useHoverCursor, useHoverReport } from './useHoverCursor.js'
 
 const WHITE = [1, 1, 1]
 // A press that moves the pointer more than this (px) before the release is a camera drag, not a click.
@@ -310,11 +310,7 @@ function PieceBody({
 
   // onHover(true) while the pointer is over the piece, onHover(false) after. The cleanup also runs on
   // unmount, so a deleted piece does not stay hovered.
-  useEffect(() => {
-    if (!hovered) return undefined
-    onHover?.(true)
-    return () => onHover?.(false)
-  }, [hovered])
+  useHoverReport(hovered, onHover)
 
   function setMesh(obj) {
     meshRef.current = obj

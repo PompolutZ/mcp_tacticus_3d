@@ -21,7 +21,7 @@ import useLiveFollow from './useLiveFollow.js'
 import { useColorTexture } from './useColorTexture.js'
 import { useTacticFaceMap } from './useTacticFaceTexture.js'
 import { isFaceKey } from '../tactics/faceData.js'
-import { useHoverCursor } from './useHoverCursor.js'
+import { useHoverCursor, useHoverReport } from './useHoverCursor.js'
 
 // A thin box as large as the card finds the ground under it, the same as LooseToken.jsx
 const HALF_H = 0.01
@@ -205,11 +205,7 @@ export default function TacticCard({
 
   // onHover(true) while the pointer is over the card, onHover(false) after. The cleanup also runs on
   // unmount, so a removed card does not stay hovered.
-  useEffect(() => {
-    if (!hovered) return undefined
-    onHover?.(true)
-    return () => onHover?.(false)
-  }, [hovered])
+  useHoverReport(hovered, onHover)
 
   // The same for Alt. A flip while hovered shows the new side.
   useEffect(() => {

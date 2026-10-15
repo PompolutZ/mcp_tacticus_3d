@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { claimChanges, claimCheck, modelIdOfKey, modelKey } from '../characters/claims.js'
+import { BODY_DYNAMIC } from '../physics.js'
 import { poseOf } from '../rooms/table.js'
 
 // Two stored poses are the same (both rounded the same way, rooms/table.js, poseOf)
@@ -48,7 +49,7 @@ export function useModelSync({
   function applyPose(id, pose) {
     const body = liveCharBody(id)
     if (!body) return
-    body.setBodyType(0, true)
+    body.setBodyType(BODY_DYNAMIC, true)
     body.setTranslation({ x: pose.x, y: pose.y, z: pose.z }, true)
     body.setRotation({ x: pose.qx, y: pose.qy, z: pose.qz, w: pose.qw }, true)
     body.setLinvel({ x: 0, y: 0, z: 0 }, true)
@@ -133,14 +134,14 @@ export function useModelSync({
       if (id === null || ownership.owner(key) === 'me') continue
       const pose = posesRef.current[id]
       if (pose) applyPose(id, pose)
-      else liveCharBody(id)?.setBodyType(0, true)
+      else liveCharBody(id)?.setBodyType(BODY_DYNAMIC, true)
     }
     // The other player is gone: the body stays where it is and awake. This browser writes its rest pose.
     for (const key of gone) {
       const id = modelIdOfKey(key)
       const body = id === null ? null : liveCharBody(id)
       if (body && ownership.owner(key) !== 'me') {
-        body.setBodyType(0, true)
+        body.setBodyType(BODY_DYNAMIC, true)
         body.wakeUp()
       }
     }

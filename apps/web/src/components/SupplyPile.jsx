@@ -6,9 +6,7 @@ import { CRISIS_TOKEN_SIZE } from '../crisis/layout.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import TokenSolid from './TokenSolid.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
-
-// Gap between the table and the pile, the same as LooseToken.jsx
-const GAP = 0.02
+import { SURFACE_GAP } from '../pieces/heights.js'
 
 // One crisis token as a solid, CRISIS_TOKEN_SIZE wide, with its bottom at y = 0. Used for the supply
 // pile below and for the token under the pointer while it is dragged from the pile (Scene.jsx,
@@ -38,7 +36,7 @@ export default function SupplyPile({ tokenKey, position, onDragStart }) {
   }
 
   return (
-    <group ref={groupRef} position={[position.x, GAP, position.z]}>
+    <group ref={groupRef} position={[position.x, SURFACE_GAP, position.z]}>
       <Suspense fallback={null}>
         <SupplyToken
           tokenKey={tokenKey}

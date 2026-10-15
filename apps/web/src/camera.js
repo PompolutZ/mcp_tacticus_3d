@@ -8,6 +8,12 @@ import { MOUSE, Vector3 } from 'three'
 // behind the 3D view while the camera moves. OrbitControls updates at -1 too (drei).
 export const CAMERA_FRAME_PRIORITY = -1
 
+// One degree in radians
+export const DEG = Math.PI / 180
+
+// The orbit camera does not go lower than 5° above the table
+export const MAX_POLAR_ANGLE = 85 * DEG
+
 const up = new Vector3()
 const right = new Vector3()
 const move = new Vector3()

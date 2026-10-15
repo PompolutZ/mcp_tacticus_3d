@@ -17,9 +17,10 @@ import { TOKEN_DRAG_LIFT, TOKEN_EDGE_COLOR, TOKEN_THICKNESS } from '../tokens/so
 import { tokenStack } from '../tokens/stack.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useColorTexture } from './useColorTexture.js'
-import { useHoverCursor } from './useHoverCursor.js'
+import { useHoverCursor, useHoverReport } from './useHoverCursor.js'
 import TurnHandle from './TurnHandle.jsx'
 import useLiveFollow from './useLiveFollow.js'
+import { SURFACE_GAP } from '../pieces/heights.js'
 
 // A token is a 1" circle, TOKEN_THICKNESS thick (tokens.json size is used for the shape, not the exact
 // dims of the current tokens, which are all 1" circles)
@@ -33,8 +34,6 @@ const SEGMENTS = 64
 // (half-transparent) rim. A circle face already cuts off the corners. alphaTest also drops the
 // most transparent rim pixels, so no light fringe shows around the edge.
 const FACE_ALPHA_TEST = 0.5
-// Gap between the ground and the token bottom, so the token never z-fights with the surface
-const GAP = 0.02
 const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 // Range 3 (6") from the token edge, for the Zone Arc outline
 const ARC_RADIUS = RADIUS + 6
@@ -243,7 +242,7 @@ export default function CrisisToken({
       floorY !== undefined && !lifted
         ? floorY
         : castDown(world, rapier, shape, NO_ROTATION, x, z, HALF_H)
-    const y = (ground ?? 0) + GAP + HALF_H + (lifted ? TOKEN_DRAG_LIFT : 0)
+    const y = (ground ?? 0) + SURFACE_GAP + HALF_H + (lifted ? TOKEN_DRAG_LIFT : 0)
     // Loose tokens lie on this token (tokens/stack.js). Not while it is lifted or held on a tray card.
     if (lifted || floorY !== undefined) tokenStack.removeCrisis(token.id)
     else {
@@ -372,11 +371,7 @@ export default function CrisisToken({
 
   // onHover(true) while the pointer is over the token, onHover(false) after. The cleanup also runs
   // on unmount, so a removed token does not stay hovered.
-  useEffect(() => {
-    if (!hovered) return undefined
-    onHover?.(true)
-    return () => onHover?.(false)
-  }, [hovered])
+  useHoverReport(hovered, onHover)
 
   const over = (e) => {
     e.stopPropagation()

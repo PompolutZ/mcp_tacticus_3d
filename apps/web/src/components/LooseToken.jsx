@@ -6,14 +6,14 @@ import { tokenSize } from '../tokens/tokens.js'
 import { TOKEN_DRAG_LIFT, TOKEN_THICKNESS } from '../tokens/solid.js'
 import { tokenStack } from '../tokens/stack.js'
 import { TOKEN_RADIUS } from './CrisisToken.jsx'
+import { tokenFootprint } from '../drag/tokenDrop.js'
 import DragFootprint from './DragFootprint.jsx'
 import TokenFace from './TokenFace.jsx'
 import useLiveFollow from './useLiveFollow.js'
+import { SURFACE_GAP } from '../pieces/heights.js'
 
 // A thin cylinder as wide as the token finds the ground under it, the same as CrisisToken.jsx.
 const HALF_H = 0.02
-// Gap between the ground and the token, so the token never z-fights with the surface
-const GAP = 0.02
 const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 
 // A character token that lies on the table: dropped there from a Give source, a pile or the Library
@@ -66,15 +66,14 @@ export default function LooseToken({
     const lifted = follow.current.moved
     // Never below the table or terrain, also when the token below is low
     const rest = lifted ? ground : Math.max(ground, tokenStack.topAt(x, z, index) ?? ground)
-    const y = rest + GAP + (lifted ? TOKEN_DRAG_LIFT : 0)
+    const y = rest + SURFACE_GAP + (lifted ? TOKEN_DRAG_LIFT : 0)
     groupRef.current?.position.set(x, y, z)
     // A lifted token (the other player drags it) holds nothing, so the token on top goes down
     if (lifted) tokenStack.removeLoose(token.id)
     else tokenStack.putLoose(token.id, x, z, tokenSize(token.key) / 2, y + TOKEN_THICKNESS, index)
   })
 
-  const footprintShape = () =>
-    follow.current.moved ? { ...poseRef.current, radius: TOKEN_RADIUS } : null
+  const footprintShape = () => tokenFootprint(follow, poseRef, TOKEN_RADIUS)
 
   function handlePointerDown(e) {
     // Only the left button moves a piece. A right or middle drag goes to OrbitControls (the camera).
@@ -84,7 +83,7 @@ export default function LooseToken({
   }
 
   return (
-    <group ref={groupRef} position={[token.x, GAP, token.z]}>
+    <group ref={groupRef} position={[token.x, SURFACE_GAP, token.z]}>
       <Suspense fallback={null}>
         <TokenFace
           tokenKey={token.key}

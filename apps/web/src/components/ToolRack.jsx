@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { TEAMS } from '../setup/setup.js'
 import { rackPlate, rackSlots, rackYaw } from '../tabletools/layout.js'
-import { OnTable, OWNER_FACING_ROTATION } from './OnTable.jsx'
+import { OnTable, OWNER_FACING_ROTATION, px } from './OnTable.jsx'
 import { useMovementParts, useRangeParts } from './ToolParts.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
@@ -18,7 +18,6 @@ const TOOL_Y = 0.04
 const CHIP_Y = 0.07
 // The tool meshes lie along x; on the rack they lie along z
 const TOOL_TURN = Math.PI / 2
-const INCHES_PER_PX = 0.04
 // A press that moved the pointer this many px or more is not a click: it is a drag (pointerDrag.js,
 // DRAG_THRESHOLD) or a drag of the camera
 const CLICK_MOVE = 4
@@ -32,8 +31,6 @@ const MOVE_NAMES = { short: 'Short move', medium: 'Medium move', long: 'Long mov
 const MOVE_KEYS = { short: 7, medium: 8, long: 9 }
 
 const CHIP_LABELS = { r1: 'R1', ta: 'T/A', los: 'LOS' }
-
-const px = (inches) => Math.round(inches / INCHES_PER_PX)
 
 // A faint copy of the parts: a clone with its own transparent material. The materials of `parts` are shared
 // with nothing else here, but the clone keeps them as they are.

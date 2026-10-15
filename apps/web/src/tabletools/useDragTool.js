@@ -2,13 +2,12 @@ import { useEffect, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
 import * as THREE from 'three'
-import { liveBody } from '../physics.js'
+import { BODY_DYNAMIC, BODY_KINEMATIC_POSITION, liveBody } from '../physics.js'
+import { HOVER_RATE } from '../pieces/heights.js'
 import { ndcFromClient } from '../drag/screenRay.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
 import { wrapAngle, toolPose, yawQuat, yawTo } from '../components/toolGeometry.js'
 
-// How fast the dragged tool moves to the new hover height, per second (same as models)
-export const HOVER_RATE = 25
 // Height of a FlatHtml above the body center
 export const FLAT_HTML_Y = 0.25
 
@@ -44,7 +43,7 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
   )
   const isDragging = useRef(false)
   const mouseNDC = useRef({ x: 0, y: 0 })
-  const restType = useRef(0)
+  const restType = useRef(BODY_DYNAMIC)
   const raycaster = useRef(new THREE.Raycaster())
   // Horizontal plane through the grabbed point, so the pointer stays on the same spot of the tool
   const dragPlane = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0))
@@ -131,7 +130,7 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
         onDragSelect?.()
         const rb = rigidRef.current
         restType.current = rb.bodyType()
-        rb.setBodyType(2, true)
+        rb.setBodyType(BODY_KINEMATIC_POSITION, true)
         isDragging.current = true
         const turn = plan?.() ?? null
         if (turn) {

@@ -9,9 +9,7 @@ import { tokenStack } from '../tokens/stack.js'
 import { TOKEN_RADIUS } from './CrisisToken.jsx'
 import DragFootprint from './DragFootprint.jsx'
 import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
-
-// Gap between the ground and the token, the same as LooseToken.jsx
-const GAP = 0.02
+import { SURFACE_GAP } from '../pieces/heights.js'
 
 // The dragged token, real size, TOKEN_DRAG_LIFT above the table or terrain point under the pointer
 // (see drag/useTokenDrag.js). children: the token, with its bottom at y = 0 and no pointer events: a character
@@ -38,7 +36,7 @@ export default function TokenDragPreview({ pointRef, start, stacks = false, chil
         // A dropped token goes to the end of the list, so it lies on every loose token
         const top = stacks ? tokenStack.topAt(point.x, point.z) : null
         const rest = Math.max(point.y, top ?? point.y)
-        group.position.set(point.x, rest + GAP + TOKEN_DRAG_LIFT, point.z)
+        group.position.set(point.x, rest + SURFACE_GAP + TOKEN_DRAG_LIFT, point.z)
       }
     },
     [stacks],
@@ -102,7 +100,7 @@ export function OtherSpawnPreview({ spawnKey, tokenKey, getLivePose, stacks = fa
     if (!group) return
     group.visible = true
     const top = stacks ? tokenStack.topAt(x, z) : null
-    group.position.set(x, Math.max(ground, top ?? ground) + GAP + TOKEN_DRAG_LIFT, z)
+    group.position.set(x, Math.max(ground, top ?? ground) + SURFACE_GAP + TOKEN_DRAG_LIFT, z)
   })
 
   const footprintShape = () => {

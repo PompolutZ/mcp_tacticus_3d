@@ -18,9 +18,10 @@ import {
   FRICTION,
   MODEL_GROUPS,
   SOLVER_ALL,
+  BODY_DYNAMIC,
+  BODY_KINEMATIC_POSITION,
   SOLVER_NONE,
   castDown,
-  liveBody,
   lowerFloor,
 } from '../physics.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
@@ -29,7 +30,9 @@ import DragFootprint from './DragFootprint.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useColorTexture } from './useColorTexture.js'
 import { assetUrl } from '../assets/index.js'
-import { useHoverCursor } from './useHoverCursor.js'
+import { HOVER_RATE } from '../pieces/heights.js'
+import { useBodyRef } from '../useBodyRef.js'
+import { useHoverCursor, useHoverReport } from './useHoverCursor.js'
 import { useModelLift } from './useModelLift.js'
 import { useLandingSound } from './useLandingSound.js'
 import { useModelFollow } from './useModelFollow.js'
@@ -37,8 +40,6 @@ import { useFigureMaterials } from './useFigureMaterials.js'
 
 // While dragged, the base hangs this far above the table or terrain below it
 const DRAG_HOVER = 0.3
-// How fast the dragged model moves to the new hover height, per second
-const HOVER_RATE = 25
 const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 const ZERO = { x: 0, y: 0, z: 0 }
 // A model that stays within SETTLE_MOVE inches and SETTLE_TURN of one pose for SETTLE_TIME seconds is put
@@ -261,15 +262,11 @@ function CharacterFigure({
   const [startQuaternion] = useState(quaternion)
   const top = useMemo(() => modelTop(scene), [scene])
   const { camera, gl, controls } = useThree()
-  const { world, rapier } = useRapier()
+  const { rapier } = useRapier()
   const [hovered, setHovered] = useState(false)
-  const rigidRef = useRef()
-  // The body if it is still in the world, else null. For listeners, effects and drag callbacks, which can
-  // run after the body is removed (physics.js, liveBody).
-  function liveRb() {
-    const rb = rigidRef.current
-    return liveBody(world, rb) ? rb : null
-  }
+  // liveRb() is the body if it is still in the world, else null. For listeners, effects and drag
+  // callbacks, which can run after the body is removed (physics.js, liveBody).
+  const { rigidRef, liveRb, world } = useBodyRef()
   // The handle of the running pointer drag, so an unmount can cancel it
   const dragHandle = useRef(null)
   const figureRef = useRef()
@@ -470,7 +467,7 @@ function CharacterFigure({
     if (remote) {
       lift.current = null
       rest.current = null
-      rb.setBodyType(2, true)
+      rb.setBodyType(BODY_KINEMATIC_POSITION, true)
     }
   }, [remote])
 
@@ -482,11 +479,7 @@ function CharacterFigure({
 
   // onHover(true) while the pointer is over the model, onHover(false) after. The cleanup also runs
   // on unmount, so a removed model does not stay hovered.
-  useEffect(() => {
-    if (!hovered) return undefined
-    onHover?.(true)
-    return () => onHover?.(false)
-  }, [hovered])
+  useHoverReport(hovered, onHover)
 
   function onPointerDown(e) {
     dragHandle.current = startPointerDrag(e, {
@@ -500,7 +493,7 @@ function CharacterFigure({
         onDragSelect?.()
         // A drag ends a lift. The model follows the pointer and drops where it is released.
         lift.current = null
-        liveRb()?.setBodyType(2, true)
+        liveRb()?.setBodyType(BODY_KINEMATIC_POSITION, true)
         isDragging.current = true
         floorMode.current = 'top'
         setDragging(true)
@@ -531,7 +524,7 @@ function CharacterFigure({
         startPose.current = null
         setDragOverlap(false)
         setDragging(false)
-        liveRb()?.setBodyType(0, true)
+        liveRb()?.setBodyType(BODY_DYNAMIC, true)
         liveRb()?.setLinvel(ZERO, true)
         liveRb()?.setAngvel(ZERO, true)
         onDragEnd?.()
@@ -552,7 +545,7 @@ function CharacterFigure({
         setDragOverlap(false)
         setDragging(false)
         if (reason !== 'lost' && reason !== 'unmount' && rb && from) {
-          rb.setBodyType(0, true)
+          rb.setBodyType(BODY_DYNAMIC, true)
           rb.setTranslation(from.t, true)
           rb.setRotation(from.r, true)
           rb.setLinvel(ZERO, true)

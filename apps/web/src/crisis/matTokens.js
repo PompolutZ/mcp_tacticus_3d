@@ -1,7 +1,6 @@
 import { canFlip, canMove, hasArc, hasMarkers } from './cards.js'
+import { DEG } from '../camera.js'
 import { SUPPLY_YAW } from '../net/livePose.js'
-
-const DEG = Math.PI / 180
 
 // Mat token entries of a card, as tracked in App state. Position and rotation come from cards.json
 // (TTS x, z from the mat center, and TTS Y rotation), converted the same way as terrain: z -> -z.

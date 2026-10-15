@@ -215,6 +215,21 @@ User: drag a model: it hovers and settles, Esc puts it back. Drag a range tool a
 
 ### Result
 
+Done. Lint 52 warnings (was 58), no new `eslint-disable` (32 to 30), tests 898 pass (api: one flaky fail, passed on rerun), build ok, fallow 233 lines / 11 groups. Groups `dup:64950102`, `dup:49103c37` and the DragFootprint group are gone.
+
+- `physics.js`: `BODY_DYNAMIC`, `BODY_KINEMATIC_POSITION`, used at all `setBodyType` calls (CharacterModel, `useModelLift`, `useModelSync`, `tabletools/useDragTool`, and `restType` start). Test compares them with Rapier's `RigidBodyType` (headless world). `DiceTray` keeps `rapier.RigidBodyType`.
+- `CharacterModel` uses `useBodyRef()`. Cleanup order: the hook's unmount clear now runs before `dragHandle.cancel('unmount')`. That cancel does not use the body for reason `unmount`, so nothing changes.
+- `DeployRangeTool` uses `useRangeParts(3, team)`.
+- `pieces/heights.js`: `SURFACE_GAP` (7 files), `MARKER_LIFT` (ToolDragGhost, Ping, RemoteCursor), `HOVER_RATE` (CharacterModel, `useDragTool`, ToolParts). No file kept its own copy.
+- `camera.js`: `DEG`, `MAX_POLAR_ANGLE`; used by `matTokens.js`, `placementMove.js`, `characters/models.js`, App, TerrainPage.
+- `OnTable.jsx` exports `INCHES_PER_PX`, `px`, `TABLE_Y`; GameSetup, TableButtons, ToolRack import them.
+- `useHoverCursor.js`: `useHoverReport` (8 components) and `useDragEndOnUnmount` (LosTool, RulerTool). They have no `eslint-disable`; the missing-deps warnings stay as in the old effects, but the two old disables in LosTool are gone.
+- `footprintProjection.js`: `useFootprintSlot()` for DragFootprint, `ToolFootprint` (was in RulerTool) and `DeployRangeTool`. CrisisToken stays.
+- `drag/tokenDrop.js`: `tokenFootprint(follow, poseRef, radius)` + test. It takes the radius, because `TOKEN_RADIUS` lives in `CrisisToken.jsx`, which Node cannot load.
+
+Deviation: `DEG` import adds `three` to `characters/models.js` and `crisis/matTokens.js` (loads in Node; tests pass).
+
+
 ## Step 5: Setup rules and the popup check
 
 Work:

@@ -2,12 +2,11 @@ import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { followPart } from '../net/livePose.js'
 import { COLOR_HEX, useSideColor } from '../sideColors.js'
+import { MARKER_LIFT } from '../pieces/heights.js'
 
 // The ring, in inches: about 0.5" across, thin
 const OUTER = 0.25
 const INNER = 0.2
-// Above the table or terrain, so the ring does not sink into it
-const LIFT = 0.04
 
 const noRaycast = () => {}
 
@@ -40,7 +39,7 @@ export default function RemoteCursor({ liveRef, ownership, side }) {
       now.y += (y - now.y) * part
       now.z += (z - now.z) * part
     }
-    ring.position.set(shown.current.x, shown.current.y + LIFT, shown.current.z)
+    ring.position.set(shown.current.x, shown.current.y + MARKER_LIFT, shown.current.z)
     ring.visible = true
   })
 

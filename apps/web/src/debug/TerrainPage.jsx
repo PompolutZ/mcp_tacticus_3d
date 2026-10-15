@@ -8,7 +8,7 @@ import { Backdrop, Mat, SceneLights, TableSurface } from '../components/SceneSha
 import SelectionOutlines from '../components/SelectionOutlines.jsx'
 import Terrain from '../components/Terrain.jsx'
 import { canvasEvents } from '../components/canvasEvents.js'
-import { CAMERA_MOUSE_BUTTONS, startView } from '../camera.js'
+import { CAMERA_MOUSE_BUTTONS, MAX_POLAR_ANGLE, startView } from '../camera.js'
 import { defaultBindings } from '../input/bindings.js'
 import { WORLD_GRAVITY } from '../physics.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
@@ -383,7 +383,7 @@ export default function TerrainPage() {
               target={VIEW.target}
               minDistance={5}
               maxDistance={50}
-              maxPolarAngle={85 * (Math.PI / 180)}
+              maxPolarAngle={MAX_POLAR_ANGLE}
               mouseButtons={CAMERA_MOUSE_BUTTONS}
             />
             <KeyboardCamera pan={heldPan} turn={heldTurn} />

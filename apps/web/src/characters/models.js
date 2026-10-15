@@ -10,6 +10,7 @@ import {
   transformModel,
   transformStandee,
 } from './files.js'
+import { DEG } from '../camera.js'
 
 // The first model has the character's own id, so code that knows only the character (hold and
 // drop, the tray card) finds that model. The second model's id adds this suffix.
@@ -114,8 +115,6 @@ export function removalOf(characters, id) {
     models: removed.flatMap(characterModels).map((model) => model.id),
   }
 }
-
-const DEG = Math.PI / 180
 
 // Y rotation in degrees of the character tray of each side after the Tray Spawner snaps it (the mod's
 // Red seat is the app's host side, see scoreboard/board.js). A tray is 0 or 180, never between.

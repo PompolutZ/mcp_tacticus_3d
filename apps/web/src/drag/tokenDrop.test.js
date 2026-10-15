@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { tokenDropTarget } from './tokenDrop.js'
+import { tokenDropTarget, tokenFootprint } from './tokenDrop.js'
 
 const point = { x: 1, y: 0, z: 2 }
 const base = { looseId: null, supplyCard: null, pile: false, pileId: null }
@@ -57,4 +57,14 @@ test('branch order: pile and supply win over a character and over looseId', () =
     tokenDropTarget({ ...base, pileId: 'p1', pile: true }, { characterId: null, point }),
     'movePile',
   )
+})
+
+test('tokenFootprint gives the circle only after the token moved', () => {
+  const poseRef = { current: { x: 1, z: 2 } }
+  assert.equal(tokenFootprint({ current: { moved: false } }, poseRef, 0.5), null)
+  assert.deepEqual(tokenFootprint({ current: { moved: true } }, poseRef, 0.5), {
+    x: 1,
+    z: 2,
+    radius: 0.5,
+  })
 })

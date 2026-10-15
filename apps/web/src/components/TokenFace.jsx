@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTexture } from '@react-three/drei'
 import { assetUrl } from '../assets/index.js'
 import { TOKEN_SIZE, characterToken } from '../tokens/files.js'
@@ -6,7 +6,7 @@ import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import { getToken } from '../tokens/tokens.js'
 import TokenSolid from './TokenSolid.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
-import { useHoverCursor } from './useHoverCursor.js'
+import { useHoverCursor, useHoverReport } from './useHoverCursor.js'
 import { OccludedHtml } from './LabelOcclusion.jsx'
 
 // The count badge sits on the token's bottom right corner, as seen by the owner of its tray, just above
@@ -52,11 +52,7 @@ export default function TokenFace({
   useOutline(groupRef, outlineMode(false, hovered))
   // onHover(true) while the pointer is over the token, onHover(false) after. The cleanup also runs
   // on unmount, so a removed token does not stay hovered.
-  useEffect(() => {
-    if (!hovered) return undefined
-    onHover?.(true)
-    return () => onHover?.(false)
-  }, [hovered])
+  useHoverReport(hovered, onHover)
 
   const events = interactive
     ? {

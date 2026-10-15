@@ -15,3 +15,19 @@ export function useHoverCursor(hovered, cursor) {
     }
   }, [hovered, cursor, gl])
 }
+
+// Tells onHover(true) while the piece is hovered, and onHover(false) when the hover ends. The cleanup also
+// runs on unmount, so a removed piece does not stay hovered. onHover is optional. The effect runs only
+// when hovered changes, so the callback of that render is the one that gets the false.
+export function useHoverReport(hovered, onHover) {
+  useEffect(() => {
+    if (!hovered) return undefined
+    onHover?.(true)
+    return () => onHover?.(false)
+  }, [hovered])
+}
+
+// A removed tool does not stay dragged: tells onDrag(false) on unmount. onDrag is optional.
+export function useDragEndOnUnmount(onDrag) {
+  useEffect(() => () => onDrag?.(false), [])
+}

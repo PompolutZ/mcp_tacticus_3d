@@ -17,3 +17,11 @@ export function tokenDropTarget(drag, { characterId, point }) {
   if (!point) return null
   return looseId ? 'moveLoose' : 'newLoose'
 }
+
+// The footprint circle of a token that follows the pointer (or a peer's drag): { x, z, radius } at the
+// current pose, or null while it has not moved. follow: ref of the follower, its current.moved is true
+// once the token moved. poseRef: ref of the pose, { x, z }. radius: the token radius (the caller has it,
+// as this file loads in Node).
+export function tokenFootprint(follow, poseRef, radius) {
+  return follow.current.moved ? { ...poseRef.current, radius } : null
+}

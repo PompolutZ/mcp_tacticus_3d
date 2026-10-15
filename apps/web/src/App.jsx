@@ -54,7 +54,7 @@ import { tableFiles } from './rooms/preload.js'
 import { useYField, useYList, useYRecord } from './net/useY.js'
 import { useTableTools } from './tabletools/useTableTools.js'
 import { useSettings } from './settings/useSettings.js'
-import { CAMERA_MOUSE_BUTTONS, resetView, startView } from './camera.js'
+import { CAMERA_MOUSE_BUTTONS, MAX_POLAR_ANGLE, resetView, startView } from './camera.js'
 import { canvasEvents } from './components/canvasEvents.js'
 import { tableSeat } from './rooms/seat.js'
 import { useCrisisTokens } from './crisis/useCrisisTokens.js'
@@ -871,7 +871,7 @@ export default function App({
               enableRotate={true}
               minDistance={5}
               maxDistance={50}
-              maxPolarAngle={85 * (Math.PI / 180)}
+              maxPolarAngle={MAX_POLAR_ANGLE}
               mouseButtons={CAMERA_MOUSE_BUTTONS}
             />
             <KeyboardCamera pan={heldPan} turn={heldTurn} />

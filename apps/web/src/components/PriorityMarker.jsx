@@ -9,9 +9,8 @@ import { useSideColor } from '../sideColors.js'
 import TokenSolid from './TokenSolid.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
+import { SURFACE_GAP } from '../pieces/heights.js'
 
-// Gap between the table and the marker, the same as the markers of the scoring board
-const GAP = 0.02
 // The marker closes the distance to its spot with 1 - e^(-dt / SLIDE_TIME) of what is left per frame, so
 // the slide takes about 0.4 s (4 × SLIDE_TIME leaves 2%)
 const SLIDE_TIME = 0.1
@@ -48,7 +47,7 @@ export default function PriorityMarker({ priority, title, onClick }) {
     const pose = poseRef.current ?? spot
     const k = poseRef.current ? 1 - Math.exp(-dt / SLIDE_TIME) : 1
     poseRef.current = { x: pose.x + (spot.x - pose.x) * k, z: pose.z + (spot.z - pose.z) * k }
-    group.position.set(poseRef.current.x, GAP, poseRef.current.z)
+    group.position.set(poseRef.current.x, SURFACE_GAP, poseRef.current.z)
   })
 
   useHoverCursor(hovered && Boolean(priority), 'pointer')
@@ -71,7 +70,7 @@ export default function PriorityMarker({ priority, title, onClick }) {
   return (
     <group
       ref={groupRef}
-      position={[spot.x, GAP, spot.z]}
+      position={[spot.x, SURFACE_GAP, spot.z]}
       onClick={(e) => {
         e.stopPropagation()
         onClick()

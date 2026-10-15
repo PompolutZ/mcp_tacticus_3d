@@ -26,6 +26,11 @@ export const OTHER_DICE_GROUPS = interactionGroups(
   [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
 )
 
+// Rigid body types as numbers, the values of Rapier's RigidBodyType (physics.test.js checks them).
+// BODY_DYNAMIC: moved by forces. BODY_KINEMATIC_POSITION: moved by code; it pushes dynamic bodies.
+export const BODY_DYNAMIC = 0
+export const BODY_KINEMATIC_POSITION = 2
+
 // Ground casts go straight down from this height, in steps of CAST_STEP.
 // One long cast can pass through a terrain hull without a hit (Rapier loses precision over a long
 // distance), so a model or tool would end up inside that piece. Short casts do not miss.
