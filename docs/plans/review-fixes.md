@@ -1,6 +1,6 @@
 # Plan: Review fixes
 
-Requested by the user on 2026-10-15. Status: not started. Branch `review-fixes`, worktree `../mcp_assist_3d-review-fixes`, from main.
+Requested by the user on 2026-10-15. Status: done, waiting for the user test. Branch `review-fixes`, worktree `../mcp_assist_3d-review-fixes`, from main.
 
 Each step makes one commit and writes its **Result** below. Feature docs change in the same step as the code.
 
@@ -275,6 +275,23 @@ Work:
 User: a cold load of the lobby (DevTools, Network, "Disable cache") shows the lobby and loads `game-data` in parallel; opening a single player room, a multiplayer room, a join link and the Sandbox show the loading screen, then the table; models with Draco load; a reload inside a room opens it directly.
 
 ### Result
+
+`game-data` is its own chunk (`manualChunks` in `vite.config.js`, the three `jarvis-rows.json` and the three `cards`/`characters.json` files). Table route loads with `lazy(loadTable)`; `Root` calls `loadTable()` in a mount effect. New `LoadingScreen.jsx` (props `done`, `count`, default 0); `LoadingOverlay` renders it; the Suspense fallback of the three Table routes and the wait page use it. `useGLTF.setDecoderPath` moved from `main.jsx` to module scope of `App.jsx`. `rooms.md` "Loading" describes the chunks, prefetch, fallback and reasons.
+
+Chunks after step 7 (JS, raw / gzip):
+
+| Chunk | Before (after step 6) | After |
+|---|---|---|
+| `index` (entry) | 4,931.64 kB / 1,635.44 kB | 1,101.61 kB / 401.65 kB |
+| `Table` | none | 3,569.16 kB / 1,196.46 kB |
+| `game-data` | none | 259.24 kB / 38.29 kB |
+| `jarvis-tactics-text` | 199.40 kB / 42.44 kB | 199.40 kB / 42.44 kB |
+
+Greps: `WebGLRenderer` and `RigidBody|rapier` give 0 in `index` and `game-data`, and match in `Table`. `statCard` gives 0 in all JS. `index.html` has a `modulepreload` for `game-data`, and the entry imports it statically.
+
+Checks: web tests 826 pass, 0 fail (api tests passed, no rerun needed). Lint 58 warnings, same. Format clean.
+
+Deviations: none. `LoadingScreen` shows "0 / 0 files" while the table chunk loads (same markup as the overlay).
 
 ## Open questions
 

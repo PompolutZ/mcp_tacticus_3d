@@ -8,6 +8,18 @@ export default defineConfig({
     // sets COMMIT_REF to the git commit.
     'import.meta.env.VITE_BUILD_ID': JSON.stringify(process.env.COMMIT_REF || 'dev'),
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Game data in one cached file that changes only when the data changes (plan review-fixes, decision 11)
+        manualChunks(id) {
+          if (/\/src\/(characters|tactics|crisis)\/jarvis-rows\.json$/.test(id)) return 'game-data'
+          if (/\/src\/(characters\/characters|tactics\/cards|crisis\/cards)\.json$/.test(id))
+            return 'game-data'
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       // The API listens on 8787. Its routes have no /api prefix.

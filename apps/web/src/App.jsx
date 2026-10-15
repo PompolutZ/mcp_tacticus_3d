@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { SceneBoundary } from './crash/SceneBoundary.jsx'
-import { OrbitControls } from '@react-three/drei'
+import { OrbitControls, useGLTF } from '@react-three/drei'
 import { assetUrl } from './assets/index.js'
 import { tacticCardBack } from './tactics/files.js'
 import Scene from './components/Scene.jsx'
@@ -71,6 +71,10 @@ import { useLogSounds } from './log/useLogSounds.js'
 import { useRemoteDropSounds } from './tokens/useRemoteDropSounds.js'
 import { SettingsPopup } from './components/SettingsPopup.jsx'
 import { NO_PIECES, selectedId } from './selection.js'
+
+// Draco decoder is served from public/draco, not from the default Google CDN. Module scope of the table
+// chunk, so it runs before any model loads.
+useGLTF.setDecoderPath('/draco/')
 
 // A character token drag starts only after the pointer moves this many pixels, so a click on a
 // Give source or a token on the table does not drop a token.

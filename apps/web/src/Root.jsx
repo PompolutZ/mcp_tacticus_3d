@@ -1,14 +1,18 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
-import Table from './Table.jsx'
 import { Lobby } from './components/Lobby.jsx'
 import { JoinRoom } from './components/JoinRoom.jsx'
-import { LoadingOverlay } from './components/LoadingOverlay.jsx'
+import { LoadingScreen } from './components/LoadingScreen.jsx'
 import { startSession } from './auth/session.js'
 import { useUser } from './auth/useUser.js'
 import { getRoom } from './rooms/serverStore.js'
 import { multiplayerRoom, roomPage } from './rooms/roomPage.js'
 import { openRoom } from './rooms/store.js'
 import { MAPS } from './terrain/maps/index.js'
+
+// The table page (three.js, Rapier, models) is its own chunk. The prefetch in Root starts it once the lobby
+// shows (docs/features/rooms.md, "Loading").
+const loadTable = () => import('./Table.jsx')
+const Table = lazy(loadTable)
 
 // Dev-only page of all Team Tactic faces (#tactic-faces). import.meta.env.DEV is false in `vite build`, so the
 // build leaves out the page and its chunk.
@@ -70,6 +74,11 @@ export default function Root() {
     () => (route?.page === 'multiplayer' ? multiplayerRoom(apiRoom, userId) : null),
     [route?.page, apiRoom, userId],
   )
+
+  // Starts the table chunk while the player is in the lobby
+  useEffect(() => {
+    loadTable()
+  }, [])
 
   // The back and forward buttons, and a hash typed into the address bar
   useEffect(() => {
@@ -150,12 +159,25 @@ export default function Root() {
       </Suspense>
     )
   }
-  if (page.page === 'sandbox') return <Table key="sandbox" onExit={handleExit} />
+  if (page.page === 'sandbox')
+    return (
+      <Suspense fallback={<LoadingScreen />}>
+        <Table key="sandbox" onExit={handleExit} />
+      </Suspense>
+    )
   if (page.page === 'room') {
     if (route.page === 'single')
-      return <Table key={singleRoom.id} room={singleRoom} onExit={handleExit} />
+      return (
+        <Suspense fallback={<LoadingScreen />}>
+          <Table key={singleRoom.id} room={singleRoom} onExit={handleExit} />
+        </Suspense>
+      )
     if (route.page === 'multiplayer')
-      return <Table key={tableRoom.id} room={tableRoom} onExit={handleExit} />
+      return (
+        <Suspense fallback={<LoadingScreen />}>
+          <Table key={tableRoom.id} room={tableRoom} onExit={handleExit} />
+        </Suspense>
+      )
     if (route.page === 'join')
       return (
         <JoinRoom
@@ -166,7 +188,7 @@ export default function Root() {
         />
       )
     // wait, fetch, or the lobby while its message opens
-    return <LoadingOverlay ready={false} />
+    return <LoadingScreen />
   }
   return (
     <Lobby

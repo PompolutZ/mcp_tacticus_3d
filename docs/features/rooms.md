@@ -79,7 +79,15 @@ The carousel shows only maps that the app has (`apps/web/src/terrain/maps/index.
 
 ## Loading
 
-The loading screen stays until the files of the map and the models are loaded:
+The app has three JS chunks:
+
+- Lobby (the entry chunk): Root, Lobby, JoinRoom. No three.js and no Rapier.
+- Table (`Table.jsx` with `App`): three.js, Rapier, the Draco decoder setup. Root loads it with `lazy()`, and starts the download once the lobby shows. So opening a room usually does not wait for it. Until it is in, Root shows the loading screen (the same look, with 0 / 0 files, no three.js). It also shows while a multiplayer room is fetched.
+- Game data (`game-data`): the Jarvis rows and the character, tactic and crisis files. Its own file through Vite `manualChunks`, so the browser caches it and it changes only when the data changes.
+
+Why `manualChunks` and not `import()` for the data: the lobby needs the data at once, and a static import gets a `modulepreload` link, so the data and the main chunk download in parallel. About 30 modules read the data synchronously at module level, so `import()` would need a ready gate in each. Why `lazy()` for the table: three.js and Rapier are most of the app, and the lobby does not need them.
+
+The loading screen of the table stays until the files of the map and the models are loaded:
 
 - the mat image, and the mesh, texture and collider of each terrain piece,
 - the models of every character in both rosters, and of the characters on the stored table,

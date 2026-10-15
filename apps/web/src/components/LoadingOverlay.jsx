@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useProgress } from '@react-three/drei'
-import { Overlay } from './Overlay.jsx'
+import { LoadingScreen } from './LoadingScreen.jsx'
 
 // Covers the table until it is ready: ready turns true when the scene and the preloaded files (map and
 // models, see Preload.jsx) are in. Files that load later (a tool on click, a new map in the Sandbox) do not
@@ -17,20 +17,5 @@ export function LoadingOverlay({ ready }) {
 
   if (ready) return null
 
-  const done = loaded - start.loaded
-  const count = total - start.total
-  const progress = count > 0 ? (done / count) * 100 : 0
-  return (
-    <Overlay className="loading">
-      <div className="loading-panel">
-        <div className="loading-title">Loading assets…</div>
-        <div className="loading-bar">
-          <div className="loading-bar-fill" style={{ width: `${progress}%` }} />
-        </div>
-        <div className="loading-detail">
-          {done} / {count} files · {Math.round(progress)}%
-        </div>
-      </div>
-    </Overlay>
-  )
+  return <LoadingScreen done={loaded - start.loaded} count={total - start.total} />
 }
