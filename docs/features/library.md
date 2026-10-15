@@ -16,7 +16,7 @@ The panel stays open after a pick. So a player can add 5 characters, then 5 tact
 +----------------------------------+
 | [Search name or MCT code       ] |
 | [All] [Characters] [Tactics] [Tokens]
-| For: [Blue] [Red]                |   player who gets characters and tactic cards
+| For: [Blue] [Red]                |   single player and Sandbox only
 +----------------------------------+
 | CHARACTERS                       |
 | (portrait) Angela         MCP01  |   click: spawn with its tray
@@ -30,7 +30,7 @@ The panel stays open after a pick. So a player can add 5 characters, then 5 tact
 
 - **Search:** one field for all kinds. A character matches by name or MCT code. A tactic card matches by name or MCT code. A token matches by name.
 - **Tabs:** All, Characters, Tactics, Tokens. All shows a section for each kind. The other tabs show one kind.
-- **For:** Blue or Red. The player who gets the characters and the tactic cards. Tokens belong to no player.
+- **For:** Blue or Red. The player who gets the characters and the tactic cards. Tokens belong to no player. Only in a single player room and the Sandbox, where one person plays both sides. In a multiplayer room there is no For group: the Library adds for the own side only (`src/components/libraryTeam.js`). A seat without a side adds nothing: character rows and tactic cards are disabled, with the reason in the title.
 
 ## Characters
 

@@ -358,6 +358,12 @@ Work:
 
 User: in a multiplayer room, as host and as guest, the Library has no For choice and adds to the own side; in a single player room and the Sandbox, For is there and works as before.
 
+### Result
+
+Done. `components/libraryTeam.js` `libraryTeam(seat, chosen)`: single player and Sandbox give `chosen`; multiplayer gives `ownSide`, or null when `mySide` is null. `Library` gets a `seat` prop (App passes the `tableSeat(room)` result), hides the For group in multiplayer, and disables character rows and tactic cards when the team is null (title: "You have no side at this table"). Gems stay clickable (they only open a card). Test `libraryTeam.test.js` (3 tests). Doc `library.md` updated.
+
+- Deviation: the plan said "a spectator". The only spectator in the app is the debug view toggle (`spectator` state in App), not a seat, so only `side: null` is blocked.
+
 ## Step 10: Leftovers of the last fallow run
 
 Step 8 found copies that steps 1–7 did not cover. The user asked for no copies without a reason.

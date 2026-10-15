@@ -3,6 +3,7 @@ import { useHudMessage } from './useHudMessage.js'
 import { assetUrl } from '../assets/index.js'
 import { COLOR_NAME, useSideColors } from '../sideColors.js'
 import { TEAMS } from '../setup/setup.js'
+import { libraryTeam } from './libraryTeam.js'
 import { CHARACTERS } from '../characters/characters.js'
 import { CharacterPortrait } from './CharacterPortrait.jsx'
 import { TACTICS } from '../tactics/cards.js'
@@ -42,6 +43,8 @@ const LIBRARY_ROWS = [
 // one search field. See docs/features/library.md. The panel only hides when it is closed, so its
 // search, tab, player and token mode stay.
 // characters: the characters on the table (App state). The ones of the chosen player show green.
+// seat: { multiplayer, ownSide, mySide } (rooms/seat.js). A multiplayer room adds for the own side only, with no
+// "For" choice; a seat without a side adds nothing (libraryTeam.js).
 // onSpawnCharacter(ch): a click on a character with a 3D model; ch has team set to the chosen player.
 // onSpawnTactic(key, team): a click on a tactic card. onGemOpen(code): a click on an Infinity Gem opens its card.
 // onTokenDragStart(e, key, mode): a pointerdown on a token chip starts a drag in drag/useTokenDrag.js. mode:
@@ -49,6 +52,7 @@ const LIBRARY_ROWS = [
 export function Library({
   open,
   characters,
+  seat,
   onSpawnCharacter,
   onSpawnTactic,
   onGemOpen,
@@ -57,7 +61,10 @@ export function Library({
   const [query, setQuery] = useState('')
   const [tab, setTab] = useState('all')
   const colors = useSideColors()
-  const [team, setTeam] = useState('host')
+  const [chosen, setChosen] = useState('host')
+  const team = libraryTeam(seat, chosen)
+  const noSide = team === null
+  const noSideReason = 'You have no side at this table'
   const [tokenMode, setTokenMode] = useState('single')
   const { hudMessage: message, showHudMessage: showMessage } = useHudMessage()
 
@@ -76,7 +83,7 @@ export function Library({
   )
   // Slugs of the chosen player's characters on the table. App blocks a second copy (handleSpawn).
   const spawned = useMemo(
-    () => new Set(characters.filter((c) => c.team === team).map((c) => c.key)),
+    () => new Set(characters.filter((c) => team && c.team === team).map((c) => c.key)),
     [characters, team],
   )
 
@@ -88,6 +95,7 @@ export function Library({
       onGemOpen?.(card.id)
       return
     }
+    if (noSide) return
     onSpawnTactic(card.key, team)
   }
 
@@ -96,6 +104,7 @@ export function Library({
       showMessage(`${ch.name} doesn't have a 3D model in the app yet`)
       return
     }
+    if (noSide) return
     onSpawnCharacter({ ...ch, team: team })
   }
 
@@ -145,20 +154,22 @@ export function Library({
           </button>
         ))}
       </div>
-      <div className="library-row">
-        <span className="group-label">For</span>
-        {TEAMS.map((t) => (
-          <button
-            key={t}
-            type="button"
-            className={`chip${team === t ? ` chip--player-${colors[t]}` : ''}`}
-            title={`${COLOR_NAME[colors[t]]} player gets the characters and tactic cards`}
-            onClick={() => setTeam(t)}
-          >
-            {COLOR_NAME[colors[t]]}
-          </button>
-        ))}
-      </div>
+      {!seat.multiplayer && (
+        <div className="library-row">
+          <span className="group-label">For</span>
+          {TEAMS.map((t) => (
+            <button
+              key={t}
+              type="button"
+              className={`chip${team === t ? ` chip--player-${colors[t]}` : ''}`}
+              title={`${COLOR_NAME[colors[t]]} player gets the characters and tactic cards`}
+              onClick={() => setChosen(t)}
+            >
+              {COLOR_NAME[colors[t]]}
+            </button>
+          ))}
+        </div>
+      )}
       {message && <div className="library-message">{message}</div>}
       <div className="library-results">
         {showKind('characters') && (
@@ -176,10 +187,13 @@ export function Library({
                   key={ch.mctCode}
                   type="button"
                   className={`library-character${state}`}
+                  disabled={noSide && ch.available}
                   title={
-                    onTable
-                      ? `${COLOR_NAME[colors[team]]} player has this character on the table`
-                      : undefined
+                    noSide
+                      ? noSideReason
+                      : onTable
+                        ? `${COLOR_NAME[colors[team]]} player has this character on the table`
+                        : undefined
                   }
                   onClick={() => handleCharacter(ch)}
                 >
@@ -200,7 +214,12 @@ export function Library({
                   key={card.key}
                   type="button"
                   className={`library-tactic${card.gem ? ' library-tactic--gem' : ''}`}
-                  title={`${card.name} · ${card.id}${card.gem ? ' · Infinity Gem' : ''}`}
+                  disabled={noSide && !card.gem}
+                  title={
+                    noSide && !card.gem
+                      ? noSideReason
+                      : `${card.name} · ${card.id}${card.gem ? ' · Infinity Gem' : ''}`
+                  }
                   onClick={() => handleTactic(card)}
                 >
                   <img
