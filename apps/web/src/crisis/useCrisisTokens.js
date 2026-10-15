@@ -1,23 +1,14 @@
 import { useEffect, useRef } from 'react'
 import { getCard } from './cards.js'
 import { buildMatTokens, supplyToken } from './matTokens.js'
-import { priorityOf } from '../setup/setup.js'
+import { createCrisisActions } from './actions.js'
 import { characterDropPlacer, characterName } from '../characters/characters.js'
-import { BASE_DIAMETER } from '../characters/files.js'
 import { trayHeldDefault } from '../characters/trays.js'
 import { getToken } from '../tokens/tokens.js'
 import { deselectPiece } from '../selection.js'
 import { panToPoint } from '../camera.js'
 import { playSound } from '../sound.js'
-import {
-  droppedToken,
-  dropRowOffset,
-  modelsToReturn,
-  placedToken,
-  placerSide,
-  waitLinesOf,
-  waitingTokens,
-} from '../tokens/dropWait.js'
+import { placerSide, waitLinesOf, waitingTokens } from '../tokens/dropWait.js'
 
 // The crisis tokens on the table and the dropped objective tokens that wait for their place: the notice lines,
 // the sound of a new wait, the token handlers, the drop and the placing (docs/features/crisis.md,
@@ -28,11 +19,7 @@ export function useCrisisTokens({
   playedSides,
   nameCtx,
   characters,
-  crisis,
-  setCrisis,
   tokens,
-  setTokens,
-  setup,
   setSelection,
   writeLog,
   characterLogData,
@@ -72,175 +59,41 @@ export function useCrisisTokens({
     if (characterId) placeTool('range', 2, { kind: 'character', id: characterId }, null)
   }, [tokens, playedSides])
 
-  // type: 'secure' | 'extract'. key: a card key, or null for "None". The old card takes its tokens with it,
-  // also the supply tokens that players took from its pile. The new card's tokens turn with the Priority
-  // of the game setup (buildMatTokens).
+  // The document writes (crisis/actions.js). Made every render: the lookups are new functions each time.
+  const actions = createCrisisActions(table, {
+    getCard,
+    buildMatTokens,
+    supplyToken,
+    trayHeldDefault,
+    tokenName: (key) => getToken(key)?.name ?? key,
+    modelPosition: (id) => sceneApi.current?.modelPosition(id),
+    writeLog,
+    writeHeldLog,
+    characterLogData,
+  })
+
+  // The selected token may no longer exist; a selected character is not affected.
   function handleCrisisChange(type, key) {
-    const oldKey = crisis[type]
-    table.transact(() => {
-      setCrisis((prev) => ({ ...prev, [type]: key }))
-      setTokens((prev) => {
-        const kept = prev.filter((t) => t.cardKey !== oldKey)
-        const card = getCard(key)
-        return card ? [...kept, ...buildMatTokens(card, priorityOf(setup) === 'guest')] : kept
-      })
-    })
-    // The selected token may no longer exist; a selected character is not affected.
+    actions.changeCrisis(type, key)
     setSelection((prev) => prev.filter((p) => p.kind !== 'token'))
   }
 
-  // A held token dragged off its tray card and released on the table is no longer held.
+  // The models of a character that had Remove go back on their cards when its last waiting token is placed
+  function returnModels(ids) {
+    ids.forEach((id) => sceneApi.current?.returnModels(id))
+  }
+
+  function placeTokens(ids, points) {
+    returnModels(actions.placeTokens(ids, points))
+  }
+
   function handleTokenMove(id, x, z) {
     playSound('tokenPlace')
-    // A dropped token that waits for its place is placed where it is released
-    if (table.tokens.read().find((t) => t.id === id)?.placeBy) {
-      placeTokens([id], { [id]: { x, z } })
-      return
-    }
-    const token = tokens.find((t) => t.id === id)
-    table.transact(() => {
-      setTokens((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, x, z, heldBy: null, heldAt: null } : t)),
-      )
-      if (token?.heldBy)
-        writeHeldLog(
-          characters.find((ch) => ch.id === token.heldBy),
-          token,
-          false,
-        )
-    })
+    returnModels(actions.moveToken(id, x, z))
   }
 
-  function handleTokenTurn(id, yaw) {
-    setTokens((prev) => prev.map((t) => (t.id === id ? { ...t, yaw } : t)))
-  }
-
-  function handleTokenFlip(id) {
-    setTokens((prev) =>
-      prev.map((t) =>
-        t.id === id && t.canFlip ? { ...t, up: t.up === 'front' ? 'back' : 'front' } : t,
-      ),
-    )
-  }
-
-  function handleTokenControl(id, control) {
-    setTokens((prev) => prev.map((t) => (t.id === id ? { ...t, control } : t)))
-  }
-
-  function handleTokenDamage(id, damage) {
-    setTokens((prev) => prev.map((t) => (t.id === id ? { ...t, damage } : t)))
-  }
-
-  // A canHold token is released over a character (CrisisToken.jsx reports it, Scene.jsx finds the
-  // character with characterAt in useModelRegistry.js): that character now holds it. The token leaves the mat (Scene.jsx
-  // keeps heldBy tokens out of the tool snap list) and lies on its holder's tray card, on the
-  // character art (trays.js, trayHeldDefault). No range check (see docs/features/crisis.md, "Players
-  // apply the rules"). cardPoint: the tray-local [x, z] on the character's card when the release
-  // point is on its tray, otherwise null. It is used only to move a token on its own holder's card:
-  // a token given to a character always goes to the default place.
-  function handleTokenHold(id, characterId, cardPoint) {
-    const held = tokens.find((t) => t.id === id)
-    table.transact(() => {
-      setTokens((prev) => {
-        const token = prev.find((t) => t.id === id)
-        if (!token) return prev
-        if (token.heldBy === characterId) {
-          return cardPoint ? prev.map((t) => (t.id === id ? { ...t, heldAt: cardPoint } : t)) : prev
-        }
-        const heldCount = prev.filter((t) => t.heldBy === characterId).length
-        return prev.map((t) =>
-          t.id === id ? { ...t, heldBy: characterId, heldAt: trayHeldDefault(heldCount) } : t,
-        )
-      })
-      // A move on its own holder's card is no entry
-      if (held && held.heldBy !== characterId)
-        writeHeldLog(
-          characters.find((ch) => ch.id === characterId),
-          held,
-          true,
-        )
-    })
-  }
-
-  // A new supply token from the pile of a Source card (handleTokenRelease in drag/useTokenDrag.js), with the id of the drag. Released over a
-  // character: that character holds it, at the default place on its card, the same as
-  // handleTokenHold. Otherwise it lies on the table at (x, z).
-  function handleSupplyTake(cardKey, x, z, characterId, id) {
-    const card = getCard(cardKey)
-    if (!card?.supply) return
-    table.transact(() => {
-      setTokens((prev) => {
-        const token = supplyToken(card, x, z, id)
-        if (!characterId) return [...prev, token]
-        const heldCount = prev.filter((t) => t.heldBy === characterId).length
-        return [...prev, { ...token, heldBy: characterId, heldAt: trayHeldDefault(heldCount) }]
-      })
-      if (characterId)
-        writeHeldLog(
-          characters.find((ch) => ch.id === characterId),
-          supplyToken(card, x, z, id),
-          true,
-        )
-    })
-  }
-
-  // Delete key over a token on a character's card, as in TTS. Players remove a Source's supply
-  // tokens in the Cleanup Phase, and the pile gives new ones. The hover can outlive the hold (a
-  // drag off the card ends on the table before the pointer leaves the token), so only a token that
-  // is still held is removed.
   function handleHeldRemove(id) {
-    if (!tokens.find((t) => t.id === id)?.heldBy) return
-    setTokens((prev) => prev.filter((t) => t.id !== id))
-    setSelection((prev) => deselectPiece(prev, { kind: 'token', id }))
-  }
-
-  // Drop, when its holder is removed: the token goes back on the table, next to the base of the
-  // model that held it (the live Rapier/object position, not the spawn position, so a moved
-  // character drops it where it stands). rowOffset moves it along the base's edge (+z of the +x drop
-  // direction), so several tokens dropped together (handleDropCharacterTokens) land in a row
-  // instead of stacked on each other. If the holder's position is not available (see useModelRegistry.js,
-  // modelPosition), the token stays where it last sat on the mat. During the game, a player drops a
-  // token by dragging it from the card to the table (handleTokenMove).
-  // wait: { placeBy, offBoard } or null. The token then waits for its place: only the side placeBy places it, and
-  // placeFrom keeps the base it dropped from (tokens/dropWait.js).
-  function handleTokenDrop(id, rowOffset, wait = null) {
-    setTokens((prev) => {
-      const token = prev.find((t) => t.id === id)
-      if (!token?.heldBy) return prev
-      const holder = characters.find((ch) => ch.id === token.heldBy)
-      const pos = sceneApi.current?.modelPosition(token.heldBy)
-      const baseRadius = holder ? BASE_DIAMETER[holder.base] / 2 : 0
-      const dropped = droppedToken(token, { pos, baseRadius, rowOffset, wait })
-      return prev.map((t) => (t.id === id ? dropped : t))
-    })
-  }
-
-  // Remove calls this for a character it is about to remove, so the character drops every token it
-  // holds first (see docs/features/character-trays.md, "Hold and drop"). Several tokens spread along a row
-  // next to the base (a row spacing apart, dropWait.js) instead of landing on the same spot.
-  // wait: { placeBy, offBoard } or null (Dazed and Remove, decision of the plan "game flow"): the tokens then wait
-  // for their place and the log tells it. Call it inside a transaction. A character that already has a Remove
-  // wait keeps it for the new tokens too, so its models go back when the last one is placed.
-  function handleDropCharacterTokens(characterId, wait = null) {
-    const held = tokens.filter((t) => t.heldBy === characterId)
-    const holder = characters.find((ch) => ch.id === characterId)
-    const offBoard =
-      Boolean(wait?.offBoard) ||
-      tokens.some(
-        (t) => t.placeBy && t.placeFrom?.characterId === characterId && t.placeFrom.offBoard,
-      )
-    const mark = wait && { placeBy: wait.placeBy, offBoard }
-    held.forEach((t, i) => {
-      const rowOffset = dropRowOffset(i, held.length)
-      handleTokenDrop(t.id, rowOffset, mark)
-      if (mark && holder)
-        writeLog('dropped', {
-          ...characterLogData(holder),
-          tokenId: t.id,
-          tokenName: getToken(t.frontKey)?.name ?? t.frontKey,
-          placeBy: mark.placeBy,
-        })
-    })
+    if (actions.removeHeld(id)) setSelection((prev) => deselectPiece(prev, { kind: 'token', id }))
   }
 
   // The side that places what `ch` drops: its opponent, or its controlling player (characters/dropPlacer.js)
@@ -249,35 +102,6 @@ export function useCrisisTokens({
       placeBy: placerSide(ch.team, characterDropPlacer(ch.key, ch.side)),
       offBoard,
     }
-  }
-
-  // The waiting tokens `ids` are placed: at the points (id → { x, z }) or where they lie (a click on Done). A token
-  // that is not waiting is skipped, so a second call does nothing. Only the browser that clears the last waiting
-  // token of a character that had Remove puts its models back, as Remove did before the wait.
-  function placeTokens(ids, points = {}) {
-    const current = table.tokens.read()
-    const waiting = current.filter((t) => ids.includes(t.id) && t.placeBy)
-    if (waiting.length === 0) return
-    const back = modelsToReturn(current, ids)
-    table.transact(() => {
-      setTokens((prev) =>
-        prev.map((t) =>
-          ids.includes(t.id) && t.placeBy ? placedToken(t, points[t.id] ?? null) : t,
-        ),
-      )
-      for (const t of waiting) {
-        const ch = characters.find((c) => c.id === t.placeFrom?.characterId)
-        if (ch)
-          writeLog('placed', {
-            ...characterLogData(ch),
-            side: t.placeBy,
-            tokenId: t.id,
-            tokenName: getToken(t.frontKey)?.name ?? t.frontKey,
-            placeBy: t.placeBy,
-          })
-      }
-    })
-    back.forEach((id) => sceneApi.current?.returnModels(id))
   }
 
   // Show in the notice: the camera target moves to the first waiting token of the character, smooth
@@ -291,18 +115,19 @@ export function useCrisisTokens({
   }
 
   return {
+    crisisActions: actions,
     waitLines,
     removeWaits,
     handleCrisisChange,
     handleTokenMove,
-    handleTokenTurn,
-    handleTokenFlip,
-    handleTokenControl,
-    handleTokenDamage,
-    handleTokenHold,
-    handleSupplyTake,
+    handleTokenTurn: actions.turnToken,
+    handleTokenFlip: actions.flipToken,
+    handleTokenControl: actions.controlToken,
+    handleTokenDamage: actions.damageToken,
+    handleTokenHold: actions.holdToken,
+    handleSupplyTake: actions.supplyTake,
     handleHeldRemove,
-    handleDropCharacterTokens,
+    handleDropCharacterTokens: actions.dropCharacterTokens,
     dropWait,
     placeTokens,
     handleNoticeShow,

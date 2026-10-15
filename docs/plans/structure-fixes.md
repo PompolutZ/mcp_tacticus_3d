@@ -295,6 +295,8 @@ User: change a crisis card in the toolbar; Edge places the mission cards and tok
 
 ### Result
 
+Done. New `crisis/actions.js` (`createCrisisActions`: changeCrisis, moveToken, turnToken, flipToken, controlToken, damageToken, holdToken, supplyTake, removeHeld, dropToken, dropCharacterTokens, placeTokens; all read the document; lookups and log writers in the second argument) and `crisis/actions.test.js` (9 tests). `useCrisisTokens` keeps the wait lines, notice sound, selection, camera pan, `returnModels` (actions return the character ids) and `dropWait`; it lost the params `crisis`, `setCrisis`, `setTokens`, `setup` and returns `crisisActions`. `createSetupActions` takes `context.crisis` (the crisis actions) and calls `crisis.changeCrisis`; `useGameSetup` takes `crisisActions` instead of `handleCrisisChange`. Change: a setup restart or override no longer clears the token selection (the toolbar change still does; a stale selection finds no token). `docs/features/crisis.md` and `peer-to-peer.md` pointers updated.
+
 ## Step 10: Character and phase actions
 
 Work:

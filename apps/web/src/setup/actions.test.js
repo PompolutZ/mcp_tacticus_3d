@@ -24,9 +24,11 @@ function setupTable(patch = {}, context = {}) {
       calls.push(['removeCharacter', id])
       table.characters.set((list) => list.filter((c) => c.id !== id))
     },
-    changeCrisis: (type, key) => {
-      calls.push(['changeCrisis', type, key])
-      table.game.setField('crisis', (prev) => ({ ...prev, [type]: key }))
+    crisis: {
+      changeCrisis: (type, key) => {
+        calls.push(['changeCrisis', type, key])
+        table.game.setField('crisis', (prev) => ({ ...prev, [type]: key }))
+      },
     },
     ...context,
   })

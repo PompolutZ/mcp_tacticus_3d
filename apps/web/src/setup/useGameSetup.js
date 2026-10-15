@@ -32,8 +32,8 @@ const SETUP_REMOVAL =
 // The game setup: rosters, the setup steps, squads and the reveal (see docs/features/setup-game.md). It is
 // called after useRollOffReader: effect E8 must run before the reveal effect E9 below.
 export function useGameSetup({
+  crisisActions,
   handleCharacterRemove,
-  handleCrisisChange,
   handleTurnMat,
   hiddenSquads,
   makeCardPiles,
@@ -65,7 +65,7 @@ export function useGameSetup({
     parseRosterText,
     affiliationChoices: squadAffiliationChoices,
     removeCharacter: handleCharacterRemove,
-    changeCrisis: handleCrisisChange,
+    crisis: crisisActions,
     squadThreat,
     squadAffiliationKeys,
     characterByCode,

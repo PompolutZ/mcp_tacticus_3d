@@ -77,7 +77,7 @@ export function deployLockWrite(table) {
 // player and does not show messages: useGameSetup does, with what an action returns.
 // context: { mySide, hiddenSquads } the seat, and the lookups and calls that do not load in Node:
 // rosterCard(code), parseRosterText(text), affiliationChoices(parsed, places) of a squad,
-// removeCharacter(id) and changeCrisis(type, key) (the character and crisis actions of the table), and for
+// removeCharacter(id) (the character action of the table), crisis (the crisis actions, crisis/actions.js), and for
 // the squads: squadThreat(parsed, places), squadAffiliationKeys(parsed, places), characterByCode(code),
 // newCharacters(character, side, { attached }) and makeCardPiles(cards).
 export function createSetupActions(table, context) {
@@ -110,7 +110,7 @@ export function createSetupActions(table, context) {
         const current = table.game.get('crisis')
         for (const type of CRISIS_TYPES) {
           const key = context.rosterCard(setup.picks[type])?.key
-          if (key && current?.[type] === key) context.changeCrisis(type, null)
+          if (key && current?.[type] === key) context.crisis.changeCrisis(type, null)
         }
       }
     })
@@ -331,7 +331,7 @@ export function createSetupActions(table, context) {
         for (const type of CRISIS_TYPES) {
           const info = context.rosterCard(setup.picks[type])
           if (!info?.key) missing.push(info?.name ?? setup.picks[type])
-          context.changeCrisis(type, info?.key ?? null)
+          context.crisis.changeCrisis(type, info?.key ?? null)
         }
         table.setup.set(chooseEdge(setup))
         writeLog('edge', { side: chooserOf(setup) })

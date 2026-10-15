@@ -129,7 +129,7 @@ export default function App({
   const [deployLine, setDeployLine] = useYField(table.game, 'deployLine')
   const [characters, setCharacters] = useYList(table.characters)
   // The chosen Secure and Extract card, by key. null = none.
-  const [crisis, setCrisis] = useYField(table.game, 'crisis')
+  const [crisis] = useYField(table.game, 'crisis')
   // Every crisis token on the table: the mat tokens of the cards (buildMatTokens) and the supply
   // tokens that players took from a pile (supplyToken).
   const [tokens, setTokens] = useYList(table.tokens)
@@ -286,6 +286,7 @@ export default function App({
   useRemoteDropSounds(table, ownership)
   // Dropped objective tokens, the crisis tokens and the notice (crisis/useCrisisTokens.js)
   const {
+    crisisActions,
     waitLines,
     removeWaits,
     handleCrisisChange,
@@ -306,11 +307,7 @@ export default function App({
     playedSides,
     nameCtx,
     characters,
-    crisis,
-    setCrisis,
     tokens,
-    setTokens,
-    setup,
     setSelection,
     writeLog,
     characterLogData,
@@ -460,8 +457,8 @@ export default function App({
     squadBlock,
     handleBreakdownChoose,
   } = useGameSetup({
+    crisisActions,
     handleCharacterRemove,
-    handleCrisisChange,
     handleTurnMat,
     hiddenSquads,
     makeCardPiles,
