@@ -2,13 +2,14 @@ import { useState } from 'react'
 
 // Warnings that stay until the player closes them. storageFailed: the room could not use IndexedDB.
 // serverWarning: the text of the server warning, or null. versionMismatch: the other player uses another
-// version. lifted: the phase buttons are in the bottom right corner, so the warnings stack above them.
+// version. schemaMismatch: the other player's table data version differs, so the table does not sync. lifted: the phase buttons are in the bottom right corner, so the warnings stack above them.
 // softwareRenderer: the name of the WebGL renderer when it runs on the CPU, or null.
 export function HudWarnings({
   lifted = false,
   storageFailed,
   serverWarning,
   versionMismatch,
+  schemaMismatch,
   softwareRenderer,
   onSoftwareRendererClose,
 }) {
@@ -44,7 +45,15 @@ export function HudWarnings({
           </button>
         </div>
       )}
-      {versionMismatch && !versionClosed && (
+      {schemaMismatch && (
+        <div className="hud-warning" role="alert">
+          <span>
+            Your opponent uses a different version of the table data. The table does not sync. Both
+            players should reload the page.
+          </span>
+        </div>
+      )}
+      {versionMismatch && !schemaMismatch && !versionClosed && (
         <div className="hud-warning" role="alert">
           <span>
             Your opponent uses a different version of the app. Both players should reload the page.

@@ -4,14 +4,19 @@ import {
   connectRoom,
   CONNECT_MS,
   DROP_MS,
+  helloData,
   IDLE_MS,
   OFFER_MS,
   POLL_MS,
+  readHello,
   RECONNECT_TRIES,
 } from './peer.js'
 import { createSignaling } from './signaling.js'
 
 afterEach(() => mock.timers.reset())
+
+// The data of a hello of a raw peer; the players of `player` use schema 2
+const hd = (build, schema = 2) => helloData({ build, schema })
 
 const settle = () => new Promise((resolve) => setImmediate(resolve))
 const CODE = 'K7Q2-M9XD'
@@ -142,7 +147,12 @@ const HOST = { id: 'u-host', name: 'Host', avatar: null, discordId: null }
 const GUEST = { id: 'u-guest', name: 'Guest', avatar: null, discordId: null }
 
 // A started player. Its peer connections are in `pcs`.
-async function player(server, role, user, { build = 'b1', gather = 'auto', peerId } = {}) {
+async function player(
+  server,
+  role,
+  user,
+  { build = 'b1', schema = 2, gather = 'auto', peerId } = {},
+) {
   const { post, get } = server.client(user)
   const peerIdValue = peerId ?? `${role}-${Math.random().toString(36).slice(2, 10)}`
   const signaling = createSignaling({ code: CODE, peerId: peerIdValue, post, get })
@@ -155,6 +165,7 @@ async function player(server, role, user, { build = 'b1', gather = 'auto', peerI
     userId: user.id,
     peerId: peerIdValue,
     build,
+    schema,
     signaling,
     iceConfig: { iceServers: [] },
     createPeerConnection: () => {
@@ -277,7 +288,7 @@ test('the ICE wait ends at 3 s or when gathering completes', async () => {
 test('a hello of the own user is ignored', async () => {
   const server = setup()
   const guest = await player(server, 'guest', GUEST)
-  await raw(server, GUEST, 'othertab-1').hello('b1')
+  await raw(server, GUEST, 'othertab-1').hello(hd('b1'))
   await run(POLL_MS * 2)
   assert.equal(guest.pcs.length, 0)
   assert.equal(guest.state.peer, null)
@@ -286,7 +297,7 @@ test('a hello of the own user is ignored', async () => {
 test('an offer from another user than its hello is ignored', async () => {
   const server = setup()
   const host = await player(server, 'host', HOST)
-  await raw(server, GUEST, 'guestpeer-1').hello('b1')
+  await raw(server, GUEST, 'guestpeer-1').hello(hd('b1'))
   // Another user sends an offer with the peer id of the guest's hello
   const other = server.client({ id: 'u-evil', name: 'Evil', avatar: null, discordId: null })
   await other.post(CODE, { from: 'guestpeer-1', to: host.peerId, type: 'offer', data: 'sdp' })
@@ -301,10 +312,10 @@ test('an offer from another user than its hello is ignored', async () => {
 test('a newer hello of the host makes a new offer and closes the old connection', async () => {
   const server = setup()
   const hostSide = raw(server, HOST, 'hostpeer-1')
-  await hostSide.hello('b1')
+  await hostSide.hello(hd('b1'))
   const guest = await player(server, 'guest', GUEST)
   assert.equal(guest.pcs.length, 1)
-  await hostSide.hello('b1')
+  await hostSide.hello(hd('b1'))
   await run(POLL_MS)
   assert.equal(guest.pcs.length, 2)
   assert.equal(guest.pcs[0].closed, true)
@@ -314,7 +325,7 @@ test('a newer hello of the host makes a new offer and closes the old connection'
 
 test('no answer in 15 s: waiting, and no new offer to that hello', async () => {
   const server = setup()
-  await raw(server, HOST, 'hostpeer-1').hello('b1')
+  await raw(server, HOST, 'hostpeer-1').hello(hd('b1'))
   const guest = await player(server, 'guest', GUEST)
   assert.equal(guest.state.state, 'connecting')
   await run(OFFER_MS - 1)
@@ -402,14 +413,14 @@ test('a message of the other player starts the 15 min again', async () => {
   const server = setup()
   const guest = await player(server, 'guest', GUEST)
   await run(IDLE_MS / 2)
-  await raw(server, HOST, 'hostpeer-1').hello('b1')
+  await raw(server, HOST, 'hostpeer-1').hello(hd('b1'))
   await run(IDLE_MS / 2 + 20_000)
   assert.notEqual(guest.state.state, 'stopped')
 })
 
 test('Try again: a new hello, and the guest offers again', async () => {
   const server = setup()
-  await raw(server, HOST, 'hostpeer-1').hello('b1')
+  await raw(server, HOST, 'hostpeer-1').hello(hd('b1'))
   const guest = await player(server, 'guest', GUEST)
   await run(IDLE_MS)
   assert.equal(guest.state.state, 'stopped')
@@ -468,10 +479,10 @@ test('another build id gives versionMismatch', async () => {
   const server = setup()
   const guest = await player(server, 'guest', GUEST, { build: 'b1' })
   assert.equal(guest.state.versionMismatch, false)
-  await raw(server, HOST, 'hostpeer-1').hello('b1')
+  await raw(server, HOST, 'hostpeer-1').hello(hd('b1'))
   await run(POLL_MS)
   assert.equal(guest.state.versionMismatch, false)
-  await raw(server, HOST, 'hostpeer-1').hello('b2')
+  await raw(server, HOST, 'hostpeer-1').hello(hd('b2'))
   await run(POLL_MS)
   assert.equal(guest.state.versionMismatch, true)
   assert.equal(guest.state.peer.id, HOST.id)
@@ -518,7 +529,7 @@ test('stop posts bye, ends the polls and closes the connection', async () => {
 test('a bye of the other player gives waiting', async () => {
   const server = setup()
   const hostSide = raw(server, HOST, 'hostpeer-1')
-  await hostSide.hello('b1')
+  await hostSide.hello(hd('b1'))
   const guest = await player(server, 'guest', GUEST)
   assert.equal(guest.state.state, 'connecting')
   await hostSide.bye()
@@ -676,14 +687,14 @@ test('attempts that get an answer and fail: a new hello each, then failed', asyn
 test('offers with no answer do not count', async () => {
   const server = setup()
   const hostSide = raw(server, HOST, 'hostpeer-1')
-  await hostSide.hello('b1')
+  await hostSide.hello(hd('b1'))
   const guest = await player(server, 'guest', GUEST)
   guest.pcs[0].connect()
   await settle()
   assert.equal(guest.state.state, 'connected')
   guest.pcs[0].channel.close()
   for (let i = 0; i <= RECONNECT_TRIES; i++) {
-    await hostSide.hello('b1')
+    await hostSide.hello(hd('b1'))
     await run(OFFER_MS + POLL_MS * 2)
     assert.equal(guest.pcs.length, 2 + i)
     assert.equal(guest.state.state, 'reconnecting')
@@ -699,7 +710,7 @@ test('a hello of the guest new page does not end reconnecting of the host', asyn
   const start = host.states.length
   host.pcs[0].channel.close()
   await settle()
-  await raw(server, GUEST, 'newpage-1').hello('b1')
+  await raw(server, GUEST, 'newpage-1').hello(hd('b1'))
   await run(POLL_MS * 3)
   assert.ok(host.states.slice(start).every((s) => s.state === 'reconnecting'))
   assert.equal(host.state.state, 'reconnecting')
@@ -805,7 +816,7 @@ test('onChannelsEnd: not for an attempt that never opened', async () => {
 test('the hello post fails with 429 in a round: polls start, the guest still offers', async () => {
   const server = setup()
   const hostSide = raw(server, HOST, 'hostpeer-1')
-  await hostSide.hello('b1')
+  await hostSide.hello(hd('b1'))
   const guest = await player(server, 'guest', GUEST)
   guest.pcs[0].connect()
   await settle()
@@ -816,10 +827,68 @@ test('the hello post fails with 429 in a round: polls start, the guest still off
   assert.equal(helloCount(server, GUEST), hellos + 1)
   server.failHello(null)
   const gets = server.stats.byPeer[guest.peerId]
-  await hostSide.hello('b1')
+  await hostSide.hello(hd('b1'))
   await run(POLL_MS * 2)
   assert.ok(server.stats.byPeer[guest.peerId] > gets)
   assert.equal(guest.pcs.length, 2)
   // No repeat of the hello
   assert.equal(helloCount(server, GUEST), hellos + 1)
+})
+
+test('readHello reads JSON, and a plain string as schema null', () => {
+  assert.deepEqual(readHello(helloData({ build: 'b1', schema: 2 })), { build: 'b1', schema: 2 })
+  assert.deepEqual(readHello('abc123'), { build: 'abc123', schema: null })
+  assert.deepEqual(readHello('42'), { build: '42', schema: null })
+})
+
+test('same schema and build: no mismatch, and both connect', async () => {
+  const server = setup()
+  const host = await player(server, 'host', HOST)
+  const guest = await player(server, 'guest', GUEST)
+  await connectBoth(host, guest)
+  assert.equal(guest.state.state, 'connected')
+  assert.equal(guest.state.schemaMismatch, false)
+  assert.equal(host.state.schemaMismatch, false)
+})
+
+test('another schema: no offer, no answer, schemaMismatch', async () => {
+  const server = setup()
+  const guest = await player(server, 'guest', GUEST)
+  await raw(server, HOST, 'hostpeer-1').hello(hd('b1', 3))
+  await run(POLL_MS * 2)
+  assert.equal(guest.state.schemaMismatch, true)
+  assert.equal(guest.pcs.length, 0)
+  assert.equal(server.stats.posts.filter((p) => p.type === 'offer').length, 0)
+})
+
+test('the host does not answer an offer of another schema', async () => {
+  const server = setup()
+  const host = await player(server, 'host', HOST)
+  const other = raw(server, GUEST, 'guestpeer-1')
+  await other.hello(hd('b1', 3))
+  await run(POLL_MS)
+  assert.equal(host.state.schemaMismatch, true)
+  await other.offer(host.peerId, 'sdp')
+  await run(POLL_MS * 2)
+  assert.equal(host.pcs.length, 0)
+  assert.equal(server.stats.posts.filter((p) => p.type === 'answer').length, 0)
+})
+
+test('another build with the same schema still connects, with versionMismatch', async () => {
+  const server = setup()
+  const host = await player(server, 'host', HOST, { build: 'b2' })
+  const guest = await player(server, 'guest', GUEST, { build: 'b1' })
+  await connectBoth(host, guest)
+  assert.equal(guest.state.state, 'connected')
+  assert.equal(guest.state.versionMismatch, true)
+  assert.equal(guest.state.schemaMismatch, false)
+})
+
+test('a plain string hello of an older build: schemaMismatch, no offer', async () => {
+  const server = setup()
+  const guest = await player(server, 'guest', GUEST)
+  await raw(server, HOST, 'hostpeer-1').hello('b1')
+  await run(POLL_MS * 2)
+  assert.equal(guest.state.schemaMismatch, true)
+  assert.equal(guest.pcs.length, 0)
 })

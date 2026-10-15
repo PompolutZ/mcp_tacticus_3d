@@ -176,6 +176,8 @@ User: two browsers on the same build connect as before; `?build=test` in one sho
 
 ### Result
 
+`hello` data is now `helloData({ build, schema })` (JSON); `readHello` reads it, and a plain string gives schema null. `connectRoom` takes `schema`, sets `schemaMismatch`; the guest makes no offer and the host answers no offer of a peer with another schema. `onState` and the `emit` key carry `schemaMismatch`. `signaling.hello` argument renamed `data`. New `schemaOverride()` (`?schema=<n>`, dev only), passed by `Table.jsx`. `HudWarnings` shows the schema warning with no Close button, instead of the version warning; `App.jsx` passes it. `peer.test.js`: raw hellos and `player` use JSON now; 6 new tests. `peer-to-peer.md`: `hello` data, schema paragraph (it has no decision list, so the reasons are in the paragraph), `?schema=<n>` flag. Deviation: no decision list in that doc.
+
 ## Step 4: Delete stale single player rooms
 
 Work:

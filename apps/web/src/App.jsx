@@ -81,7 +81,7 @@ import { NO_PIECES, selectedId } from './selection.js'
 // IndexedDB, the Sandbox keeps it in memory. room: the room record (rooms/store.js), or null for the
 // Sandbox. A room has a fixed map. storageFailed: the room could not use IndexedDB, so it is not saved.
 // serverWarning: the text of the warning when a multiplayer room is no longer saved on the server, or null.
-// connection: { state, peer, versionMismatch, retry } of a multiplayer room (net/peer.js, Table.jsx), or null.
+// connection: { state, peer, versionMismatch, schemaMismatch, retry } of a multiplayer room (net/peer.js, Table.jsx), or null.
 // userId: the id of the signed-in user, who owns the stored squad of a multiplayer room.
 // ownership: the claims on pieces (net/ownership.js). The drags claim their piece through it.
 // presence: what the players look at (net/presence.js). Scene writes the range mark; this writes the selection.
@@ -414,6 +414,7 @@ export default function App({
   const floorPieceRef = useRef(null)
   const modelDragRef = useRef(null)
   const versionMismatch = Boolean(connection?.versionMismatch)
+  const schemaMismatch = Boolean(connection?.schemaMismatch)
   // The files to load before the table shows: the map and the models (rooms/preload.js). Read once.
   const [preloadFiles] = useState(() => tableFiles({ mapId, terrain, characters, rosters }))
   // The scene and the preloaded files are in, so the loading screen hides (Preload.jsx, Ready)
@@ -1099,6 +1100,7 @@ export default function App({
         storageFailed={storageFailed}
         serverWarning={serverWarning}
         versionMismatch={versionMismatch}
+        schemaMismatch={schemaMismatch}
         softwareRenderer={softwareRenderer}
         onSoftwareRendererClose={() => setSoftwareRenderer(null)}
       />

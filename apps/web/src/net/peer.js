@@ -13,12 +13,31 @@ export const DROP_MS = 10_000
 // Failed attempts in a row after a drop, before the state is failed (plan 11, decision 5)
 export const RECONNECT_TRIES = 3
 
+// The data of a hello: the build id and the table schema (docs/features/peer-to-peer.md, "Connect flow").
+export function helloData({ build, schema }) {
+  return JSON.stringify({ build, schema })
+}
+
+// { build, schema } of a hello. A plain string is the hello of an older build: schema null, which never
+// equals the own schema.
+export function readHello(data) {
+  try {
+    const value = JSON.parse(data)
+    if (value && typeof value === 'object' && !Array.isArray(value))
+      return { build: String(value.build ?? ''), schema: value.schema ?? null }
+  } catch {
+    // A plain string
+  }
+  return { build: data, schema: null }
+}
+
 // role: 'host' answers, 'guest' offers. userId: the own user id. peerId: the id of this table open.
-// build: the build id for hello. signaling: createSignaling(...). createPeerConnection(iceConfig), iceConfig: { iceServers, iceTransportPolicy? }.
+// build, schema: the build id and the table schema for hello. signaling: createSignaling(...). createPeerConnection(iceConfig), iceConfig: { iceServers, iceTransportPolicy? }.
 // timers: { setTimeout, clearTimeout }.
-// onState({ state, peer, versionMismatch }): state is waiting, connecting, connected, reconnecting, failed,
+// onState({ state, peer, versionMismatch, schemaMismatch }): state is waiting, connecting, connected, reconnecting, failed,
 // stopped or gone. peer: the `user` of the other player's latest hello, or null. onChannels({ sync, live }):
-// the sync channel is open, once per open. The live channel may open a moment later (plan 09, decision 13).
+// the sync channel is open, once per open. schemaMismatch: the other player's table schema differs, so the guest
+// makes no offer and the host answers none. The live channel may open a moment later (plan 09, decision 13).
 // reconnecting (plan 11): the connection was open and dropped. It starts when connectionState is
 // `disconnected`, and ends with `connected` again within DROP_MS, with no new onChannels. After DROP_MS, or on
 // `failed`, or when the sync channel closes, the attempt ends and both roles post a new hello and poll, like
@@ -36,6 +55,7 @@ export function connectRoom({
   userId,
   peerId,
   build,
+  schema,
   signaling,
   createPeerConnection,
   iceConfig,
@@ -48,6 +68,7 @@ export function connectRoom({
   let state = 'waiting'
   let peer = null
   let versionMismatch = false
+  let schemaMismatch = false
   let lastEmit = ''
   // done: stop() or gone, nothing runs after it
   let done = false
@@ -69,10 +90,10 @@ export function connectRoom({
     // After a drop, the waiting and connecting of the attempts show as reconnecting
     const shown =
       reconnecting && (state === 'waiting' || state === 'connecting') ? 'reconnecting' : state
-    const key = JSON.stringify([shown, peer, versionMismatch])
+    const key = JSON.stringify([shown, peer, versionMismatch, schemaMismatch])
     if (key === lastEmit) return
     lastEmit = key
-    onState({ state: shown, peer, versionMismatch })
+    onState({ state: shown, peer, versionMismatch, schemaMismatch })
   }
 
   function setState(next) {
@@ -282,7 +303,7 @@ export function connectRoom({
     helloPending = true
     stopPolling()
     try {
-      await signaling.hello(build)
+      await signaling.hello(helloData({ build, schema }))
     } catch (err) {
       if (done || !helloPending) return
       if (err?.status === 404) return gone()
@@ -380,9 +401,11 @@ export function connectRoom({
       hellos.set(message.from, message)
       latestHello = message
       peer = message.user
-      versionMismatch = message.data !== build
+      const theirs = readHello(message.data)
+      versionMismatch = theirs.build !== build
+      schemaMismatch = theirs.schema !== schema
       if (attempt && attempt.peer !== message.from) endAttempt()
-      if (role === 'guest') makeOffer(message)
+      if (role === 'guest' && !schemaMismatch) makeOffer(message)
       else if (!attempt) setState('waiting')
       emit()
     } else if (message.type === 'bye') {
@@ -392,7 +415,8 @@ export function connectRoom({
         backToWaiting()
       }
     } else if (message.type === 'offer' && role === 'host') {
-      if (message.to === peerId && knownUser(message)) makeAnswer(message)
+      if (message.to === peerId && knownUser(message) && sameSchema(message.from))
+        makeAnswer(message)
     } else if (message.type === 'answer' && role === 'guest') {
       if (
         attempt?.phase === 'offered' &&
@@ -404,6 +428,9 @@ export function connectRoom({
     }
   }
 
+  // The hello of this peer id has the own schema
+  const sameSchema = (from) => readHello(hellos.get(from)?.data).schema === schema
+
   // An offer or an answer counts only when its user is the user of the hello with the same `from`
   const knownUser = (message) => hellos.get(message.from)?.user.id === message.user.id
 
@@ -411,7 +438,7 @@ export function connectRoom({
 
   async function postHello() {
     try {
-      await signaling.hello(build)
+      await signaling.hello(helloData({ build, schema }))
     } catch (err) {
       if (err?.status === 404) gone()
     }

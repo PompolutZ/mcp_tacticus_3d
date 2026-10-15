@@ -91,7 +91,7 @@ The collection is a mailbox per room. One document per message. The index `{ roo
 | `id` | Message id, sorts by time |
 | `from`, `to` | Peer ids. `to` is `*` for a message to every peer in the room |
 | `type` | `hello`, `offer`, `answer`, `bye` |
-| `data` | The SDP text, or the app version in `hello`. At most 8 KB |
+| `data` | The SDP text, or in `hello` the JSON `{ "build": <app version>, "schema": <table schema> }`. A plain string is the `hello` of an older build. At most 8 KB |
 | `expiresAt` | `Date`, 1 hour from now. The TTL index deletes the document after this time |
 
 ### Endpoints
@@ -168,6 +168,8 @@ A dropped network or a sleeping laptop. There is no ICE restart: a drop makes a 
 When the host deletes a room, the host is in the lobby, where its room is not open and has no connection. So the host's browser cannot tell the guest over the connection. The guest learns from its poll. While the guest waits, it polls. After the delete, a poll gets 404 within about 32 s (the seat cache of 30 s plus one poll). The guest's browser then opens the lobby with "The host deleted room K7Q2-M9XD." and deletes its local copy. A guest whose polls stopped finds out at its next table write, which gets 404 (`docs/features/auth.md`, "Rules").
 
 Both `hello` messages carry the app version (the build id). The build id is `import.meta.env.VITE_BUILD_ID`: the Netlify `COMMIT_REF`, or `dev`. If the two versions are different, both players see a warning: "Your opponent uses a different version of the app. Both players should reload the page." The connection still runs. The reason is in [State](#state), category 1.
+
+Both `hello` messages also carry the table schema (`SCHEMA` of `net/doc.js`, `game.schema`). A table document of another schema has other fields, so two browsers must not sync it. When the schemas differ (a `hello` that is a plain string from an older build has schema null, so it counts as different), the guest makes no offer and the host answers no offer. Both players see: "Your opponent uses a different version of the table data. The table does not sync. Both players should reload the page." This warning has no Close button, because the table does not sync while it shows. It replaces the version warning when both apply. The build id can differ with the same schema: then the connection runs, with the version warning only. Reasons: a build with no schema change can still connect, and the check does not depend on a build id compare that is true for every deploy.
 
 While the two browsers are connected, only the host writes the table to the server. The guest's writer pauses, and it still writes on **← Lobby** and when its tab is hidden (`docs/features/auth.md`, "Table on the server").
 
@@ -501,6 +503,7 @@ Flags in the page URL. They work only in dev builds (`import.meta.env.DEV`), so 
 | `?drop=<percent>` | Drops that percent of the packets on the `live` channel. The receiving browser drops them, so the browser with the flag shows the effect. Localhost loses no packets, so without this flag the follow and the rest pose rules are not tested |
 | `?delay=<ms>` | Delays each packet of the `live` channel by that many ms, in the receiving browser. The delay can reorder packets as the network would. `?drop=10&delay=100` is a usual pair |
 | `?build=test` | Sends a fake app version in `hello`, to test the version warning |
+| `?schema=<n>` | Sends the schema `<n>` in `hello`, to test the schema warning. The open check of the table does not change, so no table is reset |
 
 ## Code layout
 

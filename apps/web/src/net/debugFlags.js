@@ -7,6 +7,14 @@ export function buildOverride() {
   return new URLSearchParams(window.location.search).get('build') || null
 }
 
+// The number of ?schema=<n>, or null. It replaces the table schema in hello only, to try the schema warning
+// with one browser pair. The open check of the table does not change.
+export function schemaOverride() {
+  if (!import.meta.env.DEV) return null
+  const value = new URLSearchParams(window.location.search).get('schema')
+  return value !== null && value !== '' && Number.isFinite(Number(value)) ? Number(value) : null
+}
+
 // True with ?relay: all data goes through the TURN server (iceTransportPolicy 'relay').
 export function relayFlag() {
   if (!import.meta.env.DEV) return false

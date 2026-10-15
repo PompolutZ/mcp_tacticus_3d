@@ -11,7 +11,7 @@ export function createSignaling({ code, peerId, post, get }) {
     post(code, { from: peerId, to, type, data }, options)
 
   return {
-    hello: (build) => send('*', 'hello', build),
+    hello: (data) => send('*', 'hello', data),
     offer: (to, sdp) => send(to, 'offer', sdp),
     answer: (to, sdp) => send(to, 'answer', sdp),
     bye: ({ keepalive } = {}) => send('*', 'bye', '', { keepalive }),

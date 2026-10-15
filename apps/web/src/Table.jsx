@@ -5,8 +5,8 @@ import App from './App.jsx'
 import { setReportContext } from './crash/reporter.js'
 import { LoadingOverlay } from './components/LoadingOverlay.jsx'
 import { useUser } from './auth/useUser.js'
-import { buildOverride, delayFlag, dropFlag, relayFlag } from './net/debugFlags.js'
-import { createTable, fillTable, migrate, openAction, tableSchema } from './net/doc.js'
+import { buildOverride, delayFlag, dropFlag, relayFlag, schemaOverride } from './net/debugFlags.js'
+import { createTable, fillTable, migrate, openAction, SCHEMA, tableSchema } from './net/doc.js'
 import { iceConfig } from './net/ice.js'
 import { tableFingerprint } from './net/fingerprint.js'
 import { createLiveHub } from './net/live.js'
@@ -57,7 +57,7 @@ export default function Table({ room = null, onExit }) {
   const [opened, setOpened] = useState(null)
   // The text of the warning when the writer of a multiplayer room stopped, or null
   const [serverWarning, setServerWarning] = useState(null)
-  // The connection to the other player, { state, peer, versionMismatch }, or null outside a multiplayer room
+  // The connection to the other player, { state, peer, versionMismatch, schemaMismatch }, or null outside a multiplayer room
   const [connection, setConnection] = useState(null)
   // The retry() of the connection (net/peer.js), or null
   const link = useRef(null)
@@ -272,6 +272,7 @@ export default function Table({ room = null, onExit }) {
           userId,
           peerId,
           build: buildOverride() ?? import.meta.env.VITE_BUILD_ID,
+          schema: schemaOverride() ?? SCHEMA,
           signaling: createSignaling({ code, peerId, post: postMessage, get: getMessages }),
           createPeerConnection: (config) => new RTCPeerConnection(config),
           iceConfig: iceConfig({ dev: import.meta.env.DEV, relay: relayFlag() }),
