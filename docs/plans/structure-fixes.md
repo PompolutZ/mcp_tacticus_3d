@@ -279,6 +279,8 @@ User: in two browsers: both players throw the roll-off dice at the same moment (
 
 ### Result
 
+Done. `setup/actions.js` got `toggleSquad`, `chooseBreakdown`, `ready(team, squad?)`, `revealSquad` (document part, lookups through the context: `squadThreat`, `squadAffiliationKeys`, `characterByCode`, `newCharacters`, `makeCardPiles`) and the plain functions `readRollOffWrite(table, { mySide, throwId })` and `deployLockWrite(table)`; both return whether they wrote and skip when the document is already in the target state. `useRollOffReader` keeps the fresh-throw check and calls `readRollOffWrite`. The reveal effect in `useGameSetup` calls `deployLockWrite` and `actions.revealSquad`; its `eslint-disable` stays with a `// Safe:` reason. The multiplayer stored squad stays in the hook (`storeSquad`). `useGameSetup` lost the params `setAffiliations`, `setCharacters`, `setDeployLine`, `setSetup`, `setTacticCards`, `setTokenPiles`, `writeLog`. New `setup/derivedWrites.test.js` (4 tests, two synced `Y.Doc`s: throws in both orders and at the same time, Deploy Lock from two browsers, hand toggle stays). `docs/features/setup-game.md`: Roll off and Deploy Lock say both browsers may write, and why. Checks: format, lint 52 warnings (baseline), `pnpm test` 942 web tests pass (api 128, infra 16), typecheck, web build pass.
+
 ## Step 9: Crisis token actions
 
 Work:

@@ -172,7 +172,7 @@ export default function App({
   // Affiliation token that each player's VP marker shows: { host, guest } → key in scoreboard/affiliations.json.
   // No toolbar control: the game setup sets it, when a squad is placed and at the step affiliation (see
   // docs/features/setup-game.md).
-  const [affiliations, setAffiliations] = useYField(table.game, 'affiliations')
+  const [affiliations] = useYField(table.game, 'affiliations')
   // Selected pieces and tools, see selection.js. One character, one token, the range tool, the
   // movement tool, the Toward / Away tool and the Line of Sight tool can all be selected at the same time.
   const { selection, setSelection, selectedTools, setSelectedTools } = useSelection(presence)
@@ -468,18 +468,11 @@ export default function App({
     mySide,
     room,
     rosters,
-    setAffiliations,
-    setCharacters,
-    setDeployLine,
     setOpenRoster,
-    setSetup,
-    setTacticCards,
-    setTokenPiles,
     setup,
     showHudMessage,
     table,
     userId,
-    writeLog,
   })
   // The panels on the table read the setup actions from the store (table/actions.js)
   useLayoutEffect(() => {
