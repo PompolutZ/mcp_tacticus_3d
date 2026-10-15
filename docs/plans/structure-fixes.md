@@ -341,6 +341,20 @@ User: drag, turn and bend each tool; LOS tool on terrain and models; dice rolls 
 
 ### Result
 
+Done. New `components/useLatest.js`: `useLatest(value)` (ref of the last render, set in a layout effect) and `useOnMount(fn)` (fn of the first render, runs once). All 15 `exhaustive-deps` disables of the step files are gone, none added; no disable stays. Per place:
+- `LosTool.jsx` (4): spawn, `useOnMount`; target turn, deps `[entry.target, looker, target]` (guard makes extra runs no-ops); looker/target removal, models, entry and callbacks read from `latest`; `liveRef` registered once from `latest`.
+- `DiceTray.jsx` (3): body cleanup deps `[dice, id]`; hover cleanup reads `onHover` from `useLatest`; mount `commit` via `useOnMount`.
+- `CharacterModel.jsx` (3): sleep, `liftRef` and unmount cleanup via `useOnMount` (first-render closures, as before); `[remote]` effect gets its ref deps (the `remote === wasRemote` guard keeps a rerun a no-op).
+- `Scene.jsx` (1 disable, 1 warning): overlap interval reads `modelBases` from `useLatest` (no restart on `models`); tray-move effect reads models, ownership, characters, gruntLists, liveCharBody from `useLatest`. `useMemo(createLabelRegistry)` made inline (lint error).
+- `useTerrainFall.js`, `useTerrainHoverLabel.js` (1 each): handlers read from `useLatest`.
+- `tabletools/useToolStore.js` (1): `liveRef`, `liveRb` through `latest` (now `useLatest`).
+- `tabletools/useToolLimits.js` (1 disable, 3 warnings): `onPlaceLimit`, `rigidRef`, `world`, `rapier`, `models`, `onLimitOn` through `useLatest`; `throwOthers` is a module function. The `limitTaken` and `snap` resets are set during render, not in effects.
+- `RulerTool.jsx` (1 warning): spawn effect via `useOnMount`. The `immutability` and `set-state-in-effect` disables there are not `exhaustive-deps` and stay (decision 11).
+- `Terrain.jsx`: no `exhaustive-deps` warning left, only `immutability` ones (not in this plan).
+
+Without the disables, the React compiler lint now also checks `CharacterModel.jsx`, `Scene.jsx` (new `immutability` warnings: 5 and 1, hook-returned refs and `trayPlace` read before its declaration). Left for a later plan. Lint: 52 before, 51 after (0 errors). `pnpm test` all pass (web 964, api 128, infra 16), `pnpm typecheck`, `pnpm --filter web build`, `pnpm format` pass.
+
+
 ## Step 13: Hook deps, the rest
 
 Work:

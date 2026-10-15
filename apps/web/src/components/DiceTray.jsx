@@ -44,6 +44,7 @@ import { DieMenu } from './DiceKeys.jsx'
 import { TrayBody, useDieLook } from './DiceTrayParts.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
+import { useLatest, useOnMount } from './useLatest.js'
 import { createBumpFinder } from '../bumps.js'
 import { playShake, playSound } from '../sound.js'
 
@@ -93,8 +94,7 @@ function Die({
       const e = dice.current.get(id)
       if (e) e.body = null
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [dice, id],
   )
   // A die in the well or in the air gets no click. A camera drag that starts on the die is not a
   // click.
@@ -105,12 +105,12 @@ function Die({
   }
   // Whether the pointer is over this die, so the tray hover ends when the die goes away
   const over = useRef(false)
+  const hoverRef = useLatest(onHover)
   useEffect(
     () => () => {
-      if (over.current) onHover(false)
+      if (over.current) hoverRef.current(false)
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [hoverRef],
   )
   function handleOver() {
     over.current = true
@@ -575,10 +575,7 @@ export default function DiceTray({
   }
 
   // At mount, writes the side: the dice in the well and in the air go away from the document
-  useEffect(() => {
-    commit()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  useOnMount(commit)
 
   // Registered on every render, the same as the turn of a tool (RulerTool.jsx)
   useEffect(() => {

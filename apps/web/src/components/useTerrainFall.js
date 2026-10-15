@@ -4,6 +4,7 @@ import { modelKey } from '../characters/claims.js'
 import { upright } from '../characters/base.js'
 import { planTerrainDrop } from '../terrain/dropQuery.js'
 import { poseOf } from '../rooms/table.js'
+import { useLatest } from './useLatest.js'
 
 // The model falls when a terrain piece is deleted: the plan (planFall, called through sceneApi) and
 // the effect that applies it after the piece left the world.
@@ -52,7 +53,9 @@ export function useTerrainFall({
   // The models of the plan go straight down to the next surface, upright, with no speed, so nothing is
   // pushed. The pose is stored as at a rest (returnModels), so the other browser gets it. Runs after the
   // render that removed the piece, when its colliders are gone.
+  const dropNow = useLatest({ liveCharBody, claimModel, applyPose, onModelRest })
   useEffect(() => {
+    const { liveCharBody, claimModel, applyPose, onModelRest } = dropNow.current
     const drops = pendingDrops.current
     pendingDrops.current = {}
     for (const [id, delta] of Object.entries(drops)) {
@@ -63,9 +66,7 @@ export function useTerrainFall({
       applyPose(id, pose)
       onModelRest?.(id, pose)
     }
-    // applyPose and claimModel only read refs and the render's models
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [terrain])
+  }, [terrain, dropNow])
 
   return planFall
 }

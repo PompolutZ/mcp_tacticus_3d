@@ -29,6 +29,7 @@ import { useColorTexture } from './useColorTexture.js'
 import { HOVER_RATE } from '../pieces/heights.js'
 import { useBodyRef } from '../useBodyRef.js'
 import { useHoverCursor, useHoverReport } from './useHoverCursor.js'
+import { useOnMount } from './useLatest.js'
 import { BASE_HALF_H, BASE_RADIUS, NO_ROTATION, baseGroundY, upright } from '../characters/base.js'
 import { useModelLift } from './useModelLift.js'
 import { useLandingSound } from './useLandingSound.js'
@@ -324,12 +325,11 @@ function CharacterFigure({
   // A model of a saved room starts asleep at its pose, the same as it was when the room saved. So it
   // does not move before the terrain under it has its colliders. A touch, a drag or a removed terrain
   // piece wakes it. RigidBody creates and places the body in its own effects, which run before this one.
-  useEffect(() => {
+  useOnMount(() => {
     if (startQuaternion) rigidRef.current?.sleep()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  })
 
-  useEffect(() => {
+  useOnMount(() => {
     liftRef?.({
       toggle: toggleLift,
       toggleFloor,
@@ -346,8 +346,7 @@ function CharacterFigure({
     return () => {
       liftRef?.(null)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  })
 
   useFrame((_, dt) => {
     const rb = rigidRef.current
@@ -416,7 +415,7 @@ function CharacterFigure({
       rest.current = null
       rb.setBodyType(BODY_KINEMATIC_POSITION, true)
     }
-  }, [remote])
+  }, [remote, remoteBump, lift, livePlace, liveRb])
 
   useFigureMaterials(scene, team, showOverlap)
 
@@ -513,15 +512,11 @@ function CharacterFigure({
   // RigidBody passes the new body to a function ref, but never passes null when it removes the body.
   // So the parent forgets the body here, on unmount. A call on a removed body makes Rapier fail, and
   // after that every call into the physics world fails (the room save read the removed body).
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(
-    () => () => {
-      dragHandle.current?.cancel('unmount')
-      dragHandle.current = null
-      setBody(null)
-    },
-    [],
-  )
+  useOnMount(() => () => {
+    dragHandle.current?.cancel('unmount')
+    dragHandle.current = null
+    setBody(null)
+  })
 
   // Also hand the 3D object to the parent, so tools can find the model under the pointer
   function setFigure(obj) {

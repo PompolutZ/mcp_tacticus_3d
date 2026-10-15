@@ -1,5 +1,6 @@
 import { tokenSize } from '../tokens/tokens.js'
 import { Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { useLatest } from './useLatest.js'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import TokenLayer from './TokenLayer.jsx'
 import OwnTools from './OwnTools.jsx'
@@ -349,7 +350,7 @@ export default function Scene({
     restPose,
   } = useModelRegistry({ models, characters })
   // Labels that hide behind terrain (LabelOcclusion.jsx)
-  const labelRegistry = useMemo(createLabelRegistry, [])
+  const labelRegistry = useMemo(() => createLabelRegistry(), [])
   // The id of the dragged own model, else null (sceneApi.modelDragId)
   const modelDrag = useRef(null)
   // Side -> function of the own dice tray that clears it and adds dice (sceneApi.addDice). DiceTray fills it.
@@ -409,9 +410,10 @@ export default function Scene({
   const [overlapIds, setOverlapIds] = useState(() => new Set())
 
   // Every 100 ms: which models overlap. State changes only when the set changes.
+  const basesNow = useLatest(modelBases)
   useEffect(() => {
     const id = setInterval(() => {
-      const list = modelBases().map((m) => ({
+      const list = basesNow.current().map((m) => ({
         ...m,
         moved: moved.current.get(m.id) ?? 0,
       }))
@@ -421,9 +423,7 @@ export default function Scene({
       )
     }, OVERLAP_INTERVAL)
     return () => clearInterval(id)
-    // modelBases only reads `models` and refs
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [models])
+  }, [basesNow])
 
   const hoverLabelId = useTerrainHoverLabel({ showLabels, terrainUnder })
 
@@ -550,7 +550,9 @@ export default function Scene({
   // A model that still stands on its tray moves with the tray, the same as TTS (moveTray in the
   // tray script). A model that the player moved off its tray, for example onto the mat, stays. A
   // spare model past the Give sources (Hulkbuster's Iron Man) counts as on the tray (inTrayArea).
+  const trayNow = useLatest({ models, ownership, characters, gruntLists, liveCharBody })
   useEffect(() => {
+    const { models, ownership, characters, gruntLists, liveCharBody } = trayNow.current
     for (const model of models) {
       const { id: characterId, team } = model.character
       const pos = trayPositions.get(characterId)
@@ -564,7 +566,7 @@ export default function Scene({
         body.setTranslation({ x: t.x + pos[0] - last[0], y: t.y, z: t.z + pos[2] - last[2] }, true)
     }
     lastTrayPositions.current = trayPositions
-  }, [trayPositions])
+  }, [trayPositions, trayNow])
 
   // Model id of the selected model. Its character's tray card shows the selection too.
   const selectedModelId = selectedId(selection, 'character')

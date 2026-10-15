@@ -1,5 +1,6 @@
 import { RigidBody, ConvexHullCollider, useRapier } from '@react-three/rapier'
 import { useMemo, useRef, useState, useEffect } from 'react'
+import { useOnMount } from './useLatest.js'
 import * as THREE from 'three'
 import { useBodyRef } from '../useBodyRef.js'
 import { nearestHit } from '../drag/screenRay.js'
@@ -449,7 +450,7 @@ function Tool({
 
   // Mounted with a pose: the RigidBody starts there, nothing to do. Spawned with a spawnAt: start free at
   // that point. Spawned with a spawnTarget: start snapped to it.
-  useEffect(() => {
+  useOnMount(() => {
     if (restored) return
     onSpawn?.()
     const rb = liveRb()
@@ -484,7 +485,7 @@ function Tool({
     rb.setTranslation({ x: pose.x, y: ground + hoverHeight, z: pose.z }, true)
     rb.setRotation(yawQuat(pose.yaw), true)
     // Only at spawn. Selecting another character later must not move the tool.
-  }, [])
+  })
 
   const latest = useToolStore({ liveRb, liveRef, turn, snap, mode, entry, onStore, onReturn })
 

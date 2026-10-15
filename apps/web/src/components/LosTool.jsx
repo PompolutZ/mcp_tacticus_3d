@@ -2,6 +2,7 @@ import { useFrame } from '@react-three/fiber'
 import { Line } from '@react-three/drei'
 import { RigidBody, useRapier } from '@react-three/rapier'
 import { useEffect, useRef, useState } from 'react'
+import { useLatest, useOnMount } from './useLatest.js'
 import * as THREE from 'three'
 import { BASE_HALF_H } from '../characters/base.js'
 import {
@@ -214,10 +215,7 @@ export function LosTool({
   // The last point of the pointer on the table during a turn drag, for a release on the own rack
   const dragPoint = useRef(null)
   const line = useLosLine(rigidRef, looker, target)
-  const latest = useRef(null)
-  useEffect(() => {
-    latest.current = { entry, onStore, onReturn, looker, onSpawn }
-  })
+  const latest = useLatest({ entry, onStore, onReturn, looker, models, onRemove, liveRef })
 
   const onPointerDown = useDragTool(
     rigidRef,
@@ -281,16 +279,14 @@ export function LosTool({
   })
 
   // A new line points at the mat center, as a free tool does
-  useEffect(() => {
+  useOnMount(() => {
     if (restored) return
     onSpawn?.()
     const rb = rigidRef.current
     const c = looker?.getCenter()
     if (rb && c && Math.hypot(c.x, c.z) > 0.01)
       rb.setRotation(yawQuat(yawTo(c, { x: 0, z: 0 })), true)
-    // Only at spawn
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  })
 
   // A new target turns the line to point at it. The first value (a restored line) does not.
   const lastTarget = useRef(entry.target)
@@ -302,35 +298,37 @@ export function LosTool({
       if (rb && c && t) rb.setRotation(yawQuat(yawTo(c, t)), true)
     }
     lastTarget.current = entry.target
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entry.target])
+    // A new looker or target with the same entry.target changes nothing here: the check above is false
+  }, [entry.target, looker, target])
 
   // A removed looker removes the line, a removed target clears the target. models is empty before the
   // characters load: a model that was never seen counts as gone only when there are models.
   const seenModels = useRef({ looker: false, target: false })
   useEffect(() => {
     const seen = seenModels.current
+    const now = latest.current
     if (looker) seen.looker = true
-    else if (seen.looker || models.length > 0) onRemove?.()
+    else if (seen.looker || now.models.length > 0) now.onRemove?.()
     if (target) seen.target = true
-    else if (entry.target && (seen.target || models.length > 0)) onStore?.({ target: null })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [looker, target])
+    else if (now.entry.target && (seen.target || now.models.length > 0))
+      now.onStore?.({ target: null })
+    // Only a change of looker or target runs it, not a change of the models or the entry
+  }, [looker, target, latest])
 
   useHoverReport(hovered, onHover)
   useDragEndOnUnmount(onDrag)
   useHoverCursor(hovered, 'grab')
 
   useEffect(() => {
-    liveRef?.(() => {
+    const register = latest.current.liveRef
+    register?.(() => {
       const rb = rigidRef.current
       if (!rb) return null
       const t = rb.translation()
       return { x: t.x, y: t.y, z: t.z, yaw: toolPose(rb).yaw, right: 0, left: 0 }
     })
-    return () => liveRef?.(null)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    return () => register?.(null)
+  }, [latest])
 
   useRestStore(() => {
     const rb = rigidRef.current

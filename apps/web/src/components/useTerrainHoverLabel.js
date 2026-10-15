@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useThree } from '@react-three/fiber'
 import { ndcFromClient } from '../drag/screenRay.js'
+import { useLatest } from './useLatest.js'
 
 // The terrain piece under the pointer while labels are off, or null.
 export function useTerrainHoverLabel({ showLabels, terrainUnder }) {
@@ -8,17 +9,15 @@ export function useTerrainHoverLabel({ showLabels, terrainUnder }) {
   // Hover label: with labels off, the piece under the pointer shows its label, locked or not. One ray
   // per frame at most, only on pointer move, and the state changes only when the id changes.
   const [hoverLabelId, setHoverLabelId] = useState(null)
+  const underNow = useLatest(terrainUnder)
   useEffect(() => {
-    if (showLabels) {
-      setHoverLabelId(null)
-      return undefined
-    }
+    if (showLabels) return undefined
     const canvas = gl.domElement
     let frame = 0
     let last = null
     function cast() {
       frame = 0
-      setHoverLabelId(terrainUnder(ndcFromClient(canvas, last.clientX, last.clientY)))
+      setHoverLabelId(underNow.current(ndcFromClient(canvas, last.clientX, last.clientY)))
     }
     function onMove(e) {
       last = e
@@ -37,8 +36,7 @@ export function useTerrainHoverLabel({ showLabels, terrainUnder }) {
       cancelAnimationFrame(frame)
       setHoverLabelId(null)
     }
-    // terrainUnder only reads refs and the camera
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showLabels, gl, camera])
-  return hoverLabelId
+  }, [showLabels, gl, camera, underNow])
+  // The effect cleanup clears the label when labels turn on, but a render in between must not show it
+  return showLabels ? null : hoverLabelId
 }

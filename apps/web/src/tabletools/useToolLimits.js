@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
+import { useLatest } from '../components/useLatest.js'
 import { throwMove } from '../components/throwPath.js'
 import { lineClamp, placeClamp, touches } from '../components/placeLock.js'
 import { clampRange, rangeReach, withinRange } from '../components/rangeOne.js'
@@ -51,8 +52,8 @@ export function useToolLimits({
   // Place and Throw are never on at the same time: each one hides the other's button.
   const [throwLock, setThrowLock] = useState(null)
   const throwing = selected && throwLock !== null
-  const modelsRef = useRef(models)
-  modelsRef.current = models
+  // The handlers the effects below call, and the models: read when asked, they do not restart a limit
+  const now = useLatest({ models, onPlaceLimit, onLimitOn, rigidRef, world, rapier })
 
   // Place and Place 1 lock (decision: the first character that touches the outline, or comes within
   // range 1, during a drag). The lock stays until Place turns off. A change of Place / Place 1 clears it.
@@ -65,6 +66,7 @@ export function useToolLimits({
   // first time), clamp(p) moves p. Both read the tool pose at each call, so the tool can move while on.
   useEffect(() => {
     if (!placing) return undefined
+    const { onPlaceLimit, rigidRef } = now.current
     const shape = () => toolShape(toolPose(rigidRef.current), turn)
     onPlaceLimit?.({
       owns(model, p) {
@@ -87,11 +89,12 @@ export function useToolLimits({
       },
     })
     return () => onPlaceLimit?.(null)
-  }, [placing, turn, tip, halfWidth])
+  }, [placing, turn, tip, halfWidth, now])
 
   // Place 1 (rangeOne.js): the base edge stays within range 1 of the snapped piece edge, seen from above
   useEffect(() => {
     if (!lockOne) return undefined
+    const { onPlaceLimit } = now.current
     const { target } = snap
     const reachOf = (model) => rangeReach(target.radius, halfWidth * 2, model.radius)
     onPlaceLimit?.({
@@ -117,11 +120,12 @@ export function useToolLimits({
       },
     })
     return () => onPlaceLimit?.(null)
-  }, [lockOne, snap, halfWidth])
+  }, [lockOne, snap, halfWidth, now])
 
   // The clamp reads the tool pose at each call, so the tool can move while Throw is on
   useEffect(() => {
     if (!throwing) return undefined
+    const { models, onPlaceLimit, rigidRef, world, rapier } = now.current
     const { side, target } = throwLock
     onPlaceLimit?.({
       owns: (model) => sameModel(model, target),
@@ -140,7 +144,7 @@ export function useToolLimits({
           dir,
           distance,
           radius: target.radius,
-          others: throwOthers(target),
+          others: throwOthers(models, target),
         })
         const spot = lineClamp(start, dir, moved, p)
         p.x = spot.x
@@ -148,25 +152,26 @@ export function useToolLimits({
       },
     })
     return () => onPlaceLimit?.(null)
-  }, [throwing, throwLock, turn, tip])
+  }, [throwing, throwLock, turn, tip, now])
 
   // One Place or Throw at a time across the own tools: this tool takes the drag limit, and turns its own
   // off when the other tool takes it. Each tool clears only its own slot (onPlaceLimit in Scene.jsx).
   const limiting = placing || throwing || lockOne
   useEffect(() => {
-    if (limiting) onLimitOn?.()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [limiting])
-  useEffect(() => {
-    if (!limitTaken) return
-    setPlaceSide(null)
-    setThrowLock(null)
-    setPlaceOne(false)
-  }, [limitTaken])
+    if (limiting) now.current.onLimitOn?.()
+  }, [limiting, now])
+  // Both are state that follows a prop, so they are set during the render, not in an effect
+  const [wasTaken, setWasTaken] = useState(limitTaken)
+  if (limitTaken !== wasTaken) {
+    setWasTaken(limitTaken)
+    if (limitTaken) {
+      setPlaceSide(null)
+      setThrowLock(null)
+      setPlaceOne(false)
+    }
+  }
   // A free tool has no snapped piece to lock to
-  useEffect(() => {
-    if (!snap) setPlaceOne(false)
-  }, [snap])
+  if (!snap && placeOne) setPlaceOne(false)
 
   // Place (docs/features/range-movement-tools.md, "Place") turns on and off. It moves nothing: the first
   // character that touches the outline during a drag is locked to it.
@@ -217,19 +222,6 @@ export function useToolLimits({
     setThrowLock({ side: snap.side, target: model })
   }
 
-  // The bases that stop a Throw of target: the other characters on the table, not lifted
-  function throwOthers(target) {
-    return modelsRef.current
-      .filter(
-        (other) =>
-          other.kind === 'character' &&
-          !sameModel(other, target) &&
-          other.getBody() &&
-          !other.isLifted(),
-      )
-      .map((other) => ({ center: other.getCenter(), radius: other.radius }))
-  }
-
   return {
     placeSide,
     placeOne,
@@ -244,4 +236,17 @@ export function useToolLimits({
     handlePlaceOne,
     handleThrow,
   }
+}
+
+// The bases that stop a Throw of target: the other characters on the table, not lifted
+function throwOthers(models, target) {
+  return models
+    .filter(
+      (other) =>
+        other.kind === 'character' &&
+        !sameModel(other, target) &&
+        other.getBody() &&
+        !other.isLifted(),
+    )
+    .map((other) => ({ center: other.getCenter(), radius: other.radius }))
 }
