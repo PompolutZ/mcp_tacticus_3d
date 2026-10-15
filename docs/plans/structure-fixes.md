@@ -148,6 +148,8 @@ User: in two browsers, drag a model, a tool, a crisis token and a tactic card. T
 
 ### Result
 
+Done. `parse` in `net/live.js` runs `roundPiece` per key and drops keys with a wrong count or unknown kind; a non-finite value still drops the packet. 2 new tests in `net/live.test.js`. `docs/features/peer-to-peer.md` "Pose message" updated. Checks: format, lint (52 warnings, same), test, web build all pass.
+
 ## Step 2: Compact server table
 
 Work:

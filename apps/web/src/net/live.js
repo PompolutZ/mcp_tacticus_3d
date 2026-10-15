@@ -45,7 +45,8 @@ export function newer(seqs, key, s) {
 const isNumbers = (list) => Array.isArray(list) && list.every((v) => Number.isFinite(v))
 const isObject = (value) => typeof value === 'object' && value !== null && !Array.isArray(value)
 
-// The parsed packet, or null when it is bad
+// The parsed packet, or null when it is bad. A peer with another layout sends lists of another length or kind,
+// and those keys are dropped, the rest of the packet is used (docs/features/peer-to-peer.md, "Pose message").
 function parse(data) {
   if (typeof data !== 'string') return null
   let packet
@@ -55,10 +56,17 @@ function parse(data) {
     return null
   }
   if (!isObject(packet) || !Number.isFinite(packet.s)) return null
-  const { p, c } = packet
+  const { c } = packet
+  let p = packet.p
   if (p !== undefined) {
     if (!isObject(p)) return null
-    for (const key of Object.keys(p)) if (key === '__proto__' || !isNumbers(p[key])) return null
+    const good = {}
+    for (const key of Object.keys(p)) {
+      if (key === '__proto__' || !isNumbers(p[key])) return null
+      const numbers = roundPiece(key, p[key])
+      if (numbers) good[key] = numbers
+    }
+    p = good
   }
   if (c !== undefined && c !== null && !(isNumbers(c) && c.length === 3)) return null
   return { s: packet.s, p, c }

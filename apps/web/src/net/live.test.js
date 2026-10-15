@@ -148,6 +148,29 @@ test('a bad packet is ignored', () => {
   assert.equal(got.length, 1)
 })
 
+test('a key with a wrong count or an unknown kind is dropped, the good keys stay', () => {
+  const { channel, got } = setup()
+  channel.receivePacket({
+    s: 5,
+    p: {
+      'tool:a': [1, 2, 3],
+      'tool:b': [1, 2, 3, 4, 5, 6, 7],
+      'ghost:c': [1, 2],
+      'loose:d': [1, 2],
+    },
+  })
+  assert.deepEqual(got, [{ p: { 'loose:d': [1, 2] } }])
+  // A dropped key does not take its sequence number
+  channel.receivePacket({ s: 1, p: { 'tool:a': [1, 2, 3, 4, 5, 6] } })
+  assert.deepEqual(got[1], { p: { 'tool:a': [1, 2, 3, 4, 5, 6] } })
+})
+
+test('a packet with only dropped keys and no cursor hands nothing on', () => {
+  const { channel, got } = setup()
+  channel.receivePacket({ s: 1, p: { 'tool:a': [1] } })
+  assert.equal(got.length, 0)
+})
+
 test('drop: a packet goes when random * 100 is under the percent', () => {
   const values = [0.2, 0.6, 0.49]
   const { channel, got } = setup({ drop: 50, random: () => values.shift() })

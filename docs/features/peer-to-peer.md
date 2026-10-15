@@ -407,7 +407,7 @@ The live packet is JSON, sent on the `live` channel, at most every 33 ms (about 
 | `p` | Piece key → numbers. A model (`character:<model id>`): `[x, y, z, qx, qy, qz, qw]`. A die (`die:<die id>`): the same numbers as a model. A tool (`tool:<kind>`): `[x, y, z, yaw, right, left]`. A crisis token (`token:<id>`): `[x, z, yaw]`. A character token on the table (`loose:<id>`), a pile (`pile:<id>`), a tactic card (`tactic:<id>`), a marker (`marker:<blue, red or round>`): `[x, z]` |
 | `c` | The cursor, see below |
 
-Positions have 3 decimals (0.001"). Rotations, yaw and bend have 4. A model pose is about 70 bytes, not the 170 of the first design. The receiver keeps the last sequence number per piece key and per cursor, and drops an older pose. A bad packet is ignored. It is not logged. The dice use the same channel (see Dice).
+Positions have 3 decimals (0.001"). Rotations, yaw and bend have 4. A model pose is about 70 bytes, not the 170 of the first design. The receiver keeps the last sequence number per piece key and per cursor, and drops an older pose. A bad packet is ignored. It is not logged. A key with the wrong count of numbers or an unknown kind is dropped, and the rest of the packet is used. The dice use the same channel (see Dice).
 
 ### Cursor message
 
