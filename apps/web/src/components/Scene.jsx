@@ -7,15 +7,17 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react'
-import { useFrame, useThree } from '@react-three/fiber'
-import { Raycaster, Vector3 } from 'three'
+import { useFrame } from '@react-three/fiber'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import { MovementRuler, AngleRuler, RangeRuler } from './RulerTool.jsx'
 import { DeployRangeTool } from './ToolParts.jsx'
 import { OtherTool } from './OtherTool.jsx'
 import { sameModel } from './toolGeometry.js'
 import { createSceneApi } from './sceneApi.js'
-import CharacterModel, { StandeeModel, modelUrls, turnBody, upright } from './CharacterModel.jsx'
+import { useModelRegistry } from './useModelRegistry.js'
+import { useTerrainHoverLabel } from './useTerrainHoverLabel.js'
+import { useTerrainFall } from './useTerrainFall.js'
+import CharacterModel, { StandeeModel, modelUrls, turnBody } from './CharacterModel.jsx'
 import CharacterTray from './CharacterTray.jsx'
 import TableButtons from './TableButtons.jsx'
 import { LosTool, OtherLos } from './LosTool.jsx'
@@ -54,7 +56,6 @@ import PriorityMarker from './PriorityMarker.jsx'
 import { Backdrop, Mat, SceneLights, TableSurface, matImageUrl } from './SceneShared.jsx'
 import { BASE_DIAMETER } from '../characters/files.js'
 import { MAPS } from '../terrain/maps/index.js'
-import { planTerrainDrop } from '../terrain/dropQuery.js'
 import {
   characterGiveSources,
   characterName,
@@ -71,7 +72,7 @@ import {
   trayCards,
   yawQuaternion,
 } from '../characters/models.js'
-import { FRICTION, WORLD_GRAVITY, liveBody } from '../physics.js'
+import { FRICTION, WORLD_GRAVITY } from '../physics.js'
 import { overlapMarks, overlapsAny } from '../characters/overlap.js'
 import { claimChanges, claimCheck, modelIdOfKey, modelKey } from '../characters/claims.js'
 import { assetUrl } from '../assets/index.js'
@@ -392,41 +393,36 @@ export default function Scene({
   live = null,
   pieceLives = null,
 }) {
-  const { camera, gl, pointer } = useThree()
+  // Every model of every character, in spawn order (characters/models.js)
+  const models = useMemo(() => characters.flatMap(characterModels), [characters])
   // The maps below are keyed by model id: a character with a second form has two models (see
-  // characters/models.js). The first model has the character's own id.
-  // Model id → Rapier body. Tools read and move characters through it.
-  const charBodies = useRef(new Map())
-  // The Rapier world, set by WorldRef inside <Physics>. liveBody checks a body against it.
-  const worldRef = useRef(null)
-  const rapierRef = useRef(null)
+  // characters/models.js). The first model has the character's own id. See useModelRegistry.js.
+  const {
+    charBodies,
+    worldRef,
+    rapierRef,
+    charObjects,
+    charLifts,
+    trayObjects,
+    terrainObjects,
+    tokenObjects,
+    tokenCenters,
+    liveCharBody,
+    modelBases,
+    characterAt,
+    terrainAt,
+    terrainUnder,
+    modelPosition,
+    restPose,
+  } = useModelRegistry({ models, characters })
   // Labels that hide behind terrain (LabelOcclusion.jsx)
   const labelRegistry = useMemo(createLabelRegistry, [])
-  // The body of a model if it is still in the world, else undefined. For listeners, effects and peer data.
-  function liveCharBody(id) {
-    const body = charBodies.current.get(id)
-    return liveBody(worldRef.current, body) ? body : undefined
-  }
-  // Model id → 3D object. Tools find the character under the pointer with it.
-  const charObjects = useRef(new Map())
-  // Model id → its lift, { toggle(), down() }. See CharacterModel.jsx and liftPiece.
-  const charLifts = useRef(new Map())
   // The id of the dragged own model, else null (sceneApi.modelDragId)
   const modelDrag = useRef(null)
   // Side -> function of the own dice tray that clears it and adds dice (sceneApi.addDice). DiceTray fills it.
   const addDice = useRef({})
   // { atPointer(), atCenter() }, filled by ToolPoint (sceneApi.pointAtPointer, pointAtCenter)
   const toolPoint = useRef(null)
-  // Character id → the tray's background plate. characterAt below hits this too, so a drop anywhere
-  // on the tray finds the character (see CharacterTray.jsx).
-  const trayObjects = useRef(new Map())
-  // Terrain piece id → its visible mesh, for terrainAt
-  const terrainObjects = useRef(new Map())
-  const raycaster = useRef(new Raycaster())
-  // Token id → 3D object, and token id → live center getter. The same purpose as charBodies and
-  // charObjects, but a token has no Rapier body (see CrisisToken.jsx).
-  const tokenObjects = useRef(new Map())
-  const tokenCenters = useRef(new Map())
   // Tool ('move' or 'range') → { owns(model, p), clamp(p, model) } while its Place, Place 1 or Throw is on,
   // else null. A drag of the model that the tool owns is limited by it (see onPlaceLimit in RulerTool.jsx).
   const placeLimits = useRef({})
@@ -517,28 +513,6 @@ export default function Scene({
   // Ids of the models that show the overlap mark
   const [overlapIds, setOverlapIds] = useState(() => new Set())
 
-  // Every model of every character, in spawn order (characters/models.js)
-  const models = useMemo(() => characters.flatMap(characterModels), [characters])
-
-  // Body position and base radius of every model with a body, except the one with id `skip`
-  function modelBases(skip) {
-    const list = []
-    for (const model of models) {
-      if (model.id === skip) continue
-      const body = liveCharBody(model.id)
-      if (!body) continue
-      const t = body.translation()
-      list.push({
-        id: model.id,
-        x: t.x,
-        y: t.y,
-        z: t.z,
-        radius: BASE_DIAMETER[model.base] / 2,
-      })
-    }
-    return list
-  }
-
   // Every 100 ms: which models overlap. State changes only when the set changes.
   useEffect(() => {
     const id = setInterval(() => {
@@ -556,124 +530,7 @@ export default function Scene({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [models])
 
-  // Nearest character whose model (either one) or tray is under the client point (DOM pixels), or
-  // null. Returns the character id. { models: false }: only the tray plates count (a crisis token is
-  // held by the card only, "Hold and drop").
-  function characterAt(clientX, clientY, { models: useModels = true } = {}) {
-    const rect = gl.domElement.getBoundingClientRect()
-    const ndc = {
-      x: ((clientX - rect.left) / rect.width) * 2 - 1,
-      y: -((clientY - rect.top) / rect.height) * 2 + 1,
-    }
-    raycaster.current.setFromCamera(ndc, camera)
-    let nearestId = null
-    let nearestDistance = Infinity
-    const targets = [
-      // A construct is not a drop target: a token dropped on it lands on whatever is under it, the table
-      // or the mat (docs/features/character-trays.md, "Constructs")
-      ...models
-        .filter((model) => useModels && !model.construct)
-        .map((model) => [model.character.id, charObjects.current.get(model.id)]),
-      ...characters.map((ch) => [ch.id, trayObjects.current.get(ch.id)]),
-    ]
-    for (const [id, object] of targets) {
-      const hit = object && raycaster.current.intersectObject(object, true)[0]
-      if (hit && hit.distance < nearestDistance) {
-        nearestId = id
-        nearestDistance = hit.distance
-      }
-    }
-    return nearestId
-  }
-
-  // Id of the nearest terrain piece under the pointer, locked or not, or null. A locked piece gets no
-  // pointer events (see Terrain.jsx), so this casts its own ray from the last pointer position. With
-  // the pointer off the canvas (over the HUD or a tray's controls), it is null.
-  function terrainAt() {
-    if (!gl.domElement.matches(':hover')) return null
-    return terrainUnder(pointer)
-  }
-
-  // Id of the nearest terrain piece on the ray through ndc, or null
-  function terrainUnder(ndc) {
-    raycaster.current.setFromCamera(ndc, camera)
-    let nearestId = null
-    let nearestDistance = Infinity
-    for (const [id, object] of terrainObjects.current) {
-      const hit = raycaster.current.intersectObject(object, true)[0]
-      if (hit && hit.distance < nearestDistance) {
-        nearestId = id
-        nearestDistance = hit.distance
-      }
-    }
-    return nearestId
-  }
-
-  // Hover label: with labels off, the piece under the pointer shows its label, locked or not. One ray
-  // per frame at most, only on pointer move, and the state changes only when the id changes.
-  const [hoverLabelId, setHoverLabelId] = useState(null)
-  useEffect(() => {
-    if (showLabels) {
-      setHoverLabelId(null)
-      return undefined
-    }
-    const canvas = gl.domElement
-    let frame = 0
-    let last = null
-    function cast() {
-      frame = 0
-      const rect = canvas.getBoundingClientRect()
-      const ndc = {
-        x: ((last.clientX - rect.left) / rect.width) * 2 - 1,
-        y: -((last.clientY - rect.top) / rect.height) * 2 + 1,
-      }
-      setHoverLabelId(terrainUnder(ndc))
-    }
-    function onMove(e) {
-      last = e
-      if (!frame) frame = requestAnimationFrame(cast)
-    }
-    function onLeave() {
-      cancelAnimationFrame(frame)
-      frame = 0
-      setHoverLabelId(null)
-    }
-    canvas.addEventListener('pointermove', onMove)
-    canvas.addEventListener('pointerleave', onLeave)
-    return () => {
-      canvas.removeEventListener('pointermove', onMove)
-      canvas.removeEventListener('pointerleave', onLeave)
-      cancelAnimationFrame(frame)
-      setHoverLabelId(null)
-    }
-    // terrainUnder only reads refs and the camera
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showLabels, gl, camera])
-
-  // Live table position of a character's first model (Hold and drop, "Drop"): the Rapier body when there
-  // is one, otherwise the 3D object's own position. Not the spawn position, so a character that moved
-  // drops its token where it now stands. Returns null if neither is mounted yet.
-  function modelPosition(id) {
-    const body = liveCharBody(id)
-    if (body) {
-      const t = body.translation()
-      return { x: t.x, z: t.z }
-    }
-    const object = charObjects.current.get(id)
-    if (object) {
-      const p = object.getWorldPosition(new Vector3())
-      return { x: p.x, z: p.z }
-    }
-    return null
-  }
-
-  // The pose of a mounted model to store: its body position and rotation, or null. A lifted model (R) gives
-  // the place under the lift, so it stands there when the table opens again.
-  function restPose(id) {
-    const body = liveCharBody(id)
-    if (!body) return null
-    return poseOf(charLifts.current.get(id)?.restPosition() ?? body.translation(), body.rotation())
-  }
+  const hoverLabelId = useTerrainHoverLabel({ showLabels, terrainUnder })
 
   // on: the piece is now the hovered or dragged one (true), or no longer (false)
   function trackPiece(ref, piece, on) {
@@ -872,52 +729,19 @@ export default function Scene({
     }
   }
 
-  // A terrain piece is about to be deleted (App, handleTerrainRemove): plans what stood on it. Returns
-  // { terrain: { id: delta } } for App to store, and keeps the model falls for the effect below, which
-  // runs after the piece left the world. A model that the other player moves, a lifted one and one that
-  // is dragged here is not planned. Delta: inches straight down.
-  const pendingDrops = useRef({})
-  function planFall(removedId) {
-    const world = worldRef.current
-    const rapier = rapierRef.current
-    pendingDrops.current = {}
-    if (!world || !rapier) return { terrain: {} }
-    const list = []
-    for (const model of models) {
-      const body = liveCharBody(model.id)
-      if (!body || ownership?.owner(modelKey(model.id)) === 'other') continue
-      if (charLifts.current.get(model.id)?.isBusy()) continue
-      const t = body.translation()
-      list.push({ id: model.id, x: t.x, y: t.y, z: t.z, radius: BASE_DIAMETER[model.base] / 2 })
-    }
-    const plan = planTerrainDrop({
-      world,
-      rapier,
-      removedId,
-      terrainObjects: terrainObjects.current,
-      models: list,
-    })
-    pendingDrops.current = plan.models
-    return plan
-  }
-
-  // The models of the plan go straight down to the next surface, upright, with no speed, so nothing is
-  // pushed. The pose is stored as at a rest (returnModels), so the other browser gets it. Runs after the
-  // render that removed the piece, when its colliders are gone.
-  useEffect(() => {
-    const drops = pendingDrops.current
-    pendingDrops.current = {}
-    for (const [id, delta] of Object.entries(drops)) {
-      const body = liveCharBody(id)
-      if (!body || !claimModel(id)) continue
-      const t = body.translation()
-      const pose = poseOf({ x: t.x, y: t.y - delta, z: t.z }, upright(body.rotation()))
-      applyPose(id, pose)
-      onModelRest?.(id, pose)
-    }
-    // applyPose and claimModel only read refs and the render's models
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [terrain])
+  const planFall = useTerrainFall({
+    models,
+    liveCharBody,
+    charLifts,
+    ownership,
+    worldRef,
+    rapierRef,
+    terrainObjects,
+    terrain,
+    claimModel,
+    applyPose,
+    onModelRest,
+  })
 
   // Props of a tool ('range', 'move', 'angle' or 'los') for turnPiece
   function turnProps(tool) {

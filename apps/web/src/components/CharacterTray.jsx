@@ -178,7 +178,7 @@ export default function CharacterTray({
         <group
           ref={(obj) => {
             cardRef.current = obj
-            // A grunt has no plate, so its card is what a dropped token finds (Scene.jsx, characterAt)
+            // A grunt has no plate, so its card is what a dropped token finds (useModelRegistry.js, characterAt)
             if (isGrunt) objectRef?.(obj)
           }}
         >

@@ -300,6 +300,14 @@ User: everything of step 5 again; the hover label of terrain with labels off; a 
 
 ### Result
 
+Done. New `components/useModelRegistry.js` (refs, `liveCharBody`, `modelBases`, `characterAt`, `terrainAt`, `terrainUnder`, `modelPosition`, `restPose`; calls `useThree`, no effect), `components/useTerrainHoverLabel.js` (`hoverLabelId`, E3 with its deps and disable), `components/useTerrainFall.js` (`pendingDrops`, `planFall`, E8; returns `planFall`). The `models` memo is now before the registry call. Hooks are called at the old places of their code. `raycaster` is used only inside the registry, so Scene does not get it. Pointers to `characterAt` (useCrisisTokens, useTokenDrag, CharacterTray, character-trays.md) and `modelPosition` (useCrisisTokens) name `useModelRegistry.js`.
+
+- Checks: format, test pass, build ok. Move diff: only moved code, imports, and the destructure and hook calls in `Scene`.
+- Lint 59 warnings (was 58). New: `exhaustive-deps` on the `toolModels` memo in `Scene.jsx`. `liveCharBody` and the `.current` of the maps now come from a custom hook, so the rule no longer counts them as stable. The memo is unchanged. No `eslint-disable` added. The tray follow warning stays 1, with a longer list of names.
+- Fallow: `Scene` 68 / 204 / 1,562 lines before; 68 / 192 / 1,385 lines after. `Scene.jsx` 1,872 to 1,688 lines.
+- Deviation: none in the code split. `Scene` has no pointer to `terrainUnder` outside the hover hook.
+
+
 ## Step 7: Scene claims, turns, pose sync
 
 Needs step 6.

@@ -154,7 +154,7 @@ export function useTokenDrag({
   }
 
   // Character under (clientX, clientY): the DOM tray controls first (data-character-id, see
-  // TrayControls.jsx), then the 3D scene (Scene.jsx, characterAt). Usable outside a drag too: it is
+  // TrayControls.jsx), then the 3D scene (useModelRegistry.js, characterAt). Usable outside a drag too: it is
   // passed down to Scene, which gives it to CrisisToken.jsx for an Extract token's release (Phase
   // 7), so a release over the tray's DOM controls strip counts, not only the model or the tray plate.
   // { models: false }: the DOM tray controls and the tray plates only, not the models. A crisis

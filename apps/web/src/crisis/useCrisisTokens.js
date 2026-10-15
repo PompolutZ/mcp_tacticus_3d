@@ -136,7 +136,7 @@ export function useCrisisTokens({
   }
 
   // A canHold token is released over a character (CrisisToken.jsx reports it, Scene.jsx finds the
-  // character with characterAt): that character now holds it. The token leaves the mat (Scene.jsx
+  // character with characterAt in useModelRegistry.js): that character now holds it. The token leaves the mat (Scene.jsx
   // keeps heldBy tokens out of the tool snap list) and lies on its holder's tray card, on the
   // character art (trays.js, trayHeldDefault). No range check (see docs/features/crisis.md, "Players
   // apply the rules"). cardPoint: the tray-local [x, z] on the character's card when the release
@@ -202,7 +202,7 @@ export function useCrisisTokens({
   // model that held it (the live Rapier/object position, not the spawn position, so a moved
   // character drops it where it stands). rowOffset moves it along the base's edge (+z of the +x drop
   // direction), so several tokens dropped together (handleDropCharacterTokens) land in a row
-  // instead of stacked on each other. If the holder's position is not available (see Scene.jsx,
+  // instead of stacked on each other. If the holder's position is not available (see useModelRegistry.js,
   // modelPosition), the token stays where it last sat on the mat. During the game, a player drops a
   // token by dragging it from the card to the table (handleTokenMove).
   // wait: { placeBy, offBoard } or null. The token then waits for its place: only the side placeBy places it, and
