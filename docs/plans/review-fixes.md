@@ -296,3 +296,27 @@ Deviations: none. `LoadingScreen` shows "0 / 0 files" while the table chunk load
 ## Open questions
 
 None.
+
+## Step 8: Lobby without fixed colors
+
+From the user test on 2026-10-15. The lobby, the join page and the New room dialog show `host` as Blue and `guest` as Red. After the roll off, Priority can swap the colors (`colorOf` in `setup/setup.js`). Then the room shows a player as Blue and the lobby shows the same player as Red.
+
+Decisions (user, 2026-10-15):
+
+1. Multiplayer: no colors before the table. A tile shows each seat as the player's name and a "roster" link that opens the roster popup: "James roster", "Alice roster". A free seat shows "Free seat" and no roster link. The join page shows "<host name> roster". The New room dialog of a multiplayer room asks for "Your roster".
+2. Single player: the roster links show the real color of each side, read from the saved table of the room (`colorOf` with that table's setup). Before the roll off this gives the start colors. When the table cannot be read, the link has no color and says "Roster 1" / "Roster 2". The New room dialog of a single player room shows "Blue roster" / "Red roster" (the start colors; the table does not exist yet).
+3. The roster popup from the lobby takes its title and color from the caller, not from the side color store (that store belongs to the open table).
+
+Work:
+
+1. Find how the lobby can read a single player room's saved table (IndexedDB doc `mcp-assist-3d/room/<id>`, `net/doc.js`, `rooms/`) without opening the whole table. A pure `sideColorsOf(setup)` (or the existing helper) with a test.
+2. `Lobby.jsx`, `JoinRoom.jsx`, `RosterField.jsx`, `NewRoomDialog.jsx`, `RosterPopup.jsx`, `RoomRosterPopup.jsx`: as in the decisions. Remove the local `TEAM_NAMES = { host: 'Blue', guest: 'Red' }` copies that are no longer needed.
+3. Feature docs: `rooms.md` (lobby tile, join page), `roster.md` if it describes the lobby popup.
+
+User: a multiplayer tile shows the two names with roster links and no colors; the join page link says "<host> roster"; a single player room before the roll off shows Blue and Red links; after a roll off where Priority swaps colors, back in the lobby the links show the swapped colors.
+
+## Step 9: Loading screen without a file count
+
+From the user test on 2026-10-15. While the table code downloads, the loading screen says "0 / 0 files". When the count is 0, `LoadingScreen` shows no count, only the loading animation. The count shows once there are files.
+
+User: a cold load of a room shows no "0 / 0", then the file count.
