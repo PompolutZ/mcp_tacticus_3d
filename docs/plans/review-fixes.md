@@ -129,6 +129,8 @@ User: the lobby tile chips and the seat names show Blue and Red colors; the join
 
 ### Result
 
+`DEFAULT_SIDE_COLORS` is now `{ host: 'blue', guest: 'red' }`. New `sideColors.test.js` with 2 tests (default keys and values; each `TEAMS` side has a name and a hex). Web tests: 808 pass, 0 fail. Lint: 58 warning lines before and after. Build passes. Facts matched the code, no deviation. One run of the `apps/api` tests failed once in a message list test and passed on another run; it is flaky and unrelated.
+
 ## Step 2: Schema check on open
 
 Work:
