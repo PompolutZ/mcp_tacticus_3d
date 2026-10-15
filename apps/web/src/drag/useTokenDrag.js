@@ -17,7 +17,7 @@ export function useTokenDrag({
   ownership,
   pieceLives,
   controlsRef,
-  characterAtRef,
+  sceneApi,
   setLooseTokens,
   setTokenPiles,
   handleCharacterTokenGive,
@@ -162,7 +162,7 @@ export function useTokenDrag({
   function findCharacterAt(clientX, clientY, options) {
     const el = document.elementFromPoint(clientX, clientY)?.closest('[data-character-id]')
     if (el) return el.dataset.characterId
-    return characterAtRef.current?.(clientX, clientY, options) ?? null
+    return sceneApi.current?.characterAt(clientX, clientY, options) ?? null
   }
 
   // Release of an active token drag at (clientX, clientY). Over a HUD panel: nothing changes, so a

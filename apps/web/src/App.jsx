@@ -104,6 +104,9 @@ export default function App({
   live = null,
   onExit,
 }) {
+  // The calls into Scene, set by Scene on every render, null before its first effect. See
+  // components/sceneApi.js for the shape.
+  const sceneApi = useRef(null)
   // The order of the hook calls matters, because the effects run in this order. The layout effects come
   // first. useRollOffReader (E8) comes before useGameSetup (E9): a remote update can carry a throw and a
   // setup change together, and E9 reads what E8 wrote. useTableKeys is last: its table of actions uses
@@ -121,11 +124,6 @@ export default function App({
   // stores each piece's index in the map data and its lock. setTerrain writes only these.
   const [storedTerrain, setTerrain] = useYList(table.terrain)
   const terrain = useMemo(() => withPlacements(mapId, storedTerrain), [mapId, storedTerrain])
-  // Scene calls this and returns the id of the terrain piece under the pointer, locked or not, or
-  // null. See Scene.jsx, terrainAt.
-  const terrainAtRef = useRef(null)
-  // Scene fills this: the plan of what falls when a terrain piece is deleted. See Scene.jsx, planFall.
-  const terrainDropRef = useRef(null)
   const [deployLine, setDeployLine] = useYField(table.game, 'deployLine')
   const [characters, setCharacters] = useYList(table.characters)
   // The chosen Secure and Extract card, by key. null = none.
@@ -191,9 +189,7 @@ export default function App({
   } = useHovered()
   const controlsRef = useRef(null)
   const wheelCameraRef = useRef(null)
-  // Scene fills it: { atPointer(), atCenter() }, table points for a free tool spawn (ToolPoint.jsx)
-  const toolPointRef = useRef(null)
-  const { ownPing, handlePingKey } = usePing(presence, toolPointRef)
+  const { ownPing, handlePingKey } = usePing(presence, sceneApi)
   // The tools on the table (tabletools/useTableTools.js)
   const {
     tools,
@@ -227,7 +223,7 @@ export default function App({
     selectedTools,
     setSelectedTools,
     hoveredRef,
-    toolPointRef,
+    sceneApi,
     controlsRef,
   })
   // Crisis card image open in the full-screen popup: { src, alt } | null, see CardPopup.jsx.
@@ -276,9 +272,6 @@ export default function App({
   // last card lies on top. See docs/features/team-tactic-cards.md, "State".
   const [tacticCards, setTacticCards] = useYList(table.tactics)
   const { peekCard, handleCardHover, altDown, altUp } = useCardPeek()
-  // Each own dice tray puts a function here by side: clears the tray, then adds that many dice. See
-  // DiceTray.jsx.
-  const addDiceRef = useRef({})
   const {
     settings,
     bindings,
@@ -298,11 +291,6 @@ export default function App({
   useLogSounds(log)
   // A token that the other player puts down on the table sounds here (tokens/useRemoteDropSounds.js)
   useRemoteDropSounds(table, ownership)
-  // Scene calls this with a character id and returns its live table position { x, z } (Rapier body
-  // or model object, not the spawn position), or null. Used by handleTokenDrop. See Scene.jsx, modelPosition.
-  const modelPositionRef = useRef(null)
-  // Scene's returnModels: puts the models of a character back on its tray
-  const returnModelsRef = useRef(null)
   // Dropped objective tokens, the crisis tokens and the notice (crisis/useCrisisTokens.js)
   const {
     waitLines,
@@ -337,8 +325,7 @@ export default function App({
     characterLogData,
     writeHeldLog,
     placeTool,
-    modelPositionRef,
-    returnModelsRef,
+    sceneApi,
     controlsRef,
     wheelCameraRef,
   })
@@ -370,7 +357,7 @@ export default function App({
     handleDropCharacterTokens,
     dropWait,
     removeWaits,
-    returnModelsRef,
+    sceneApi,
   })
   const {
     handleTurnMat,
@@ -388,8 +375,7 @@ export default function App({
   } = useTablePieces({
     table,
     terrain,
-    terrainAtRef,
-    terrainDropRef,
+    sceneApi,
     setMatTurns,
     setMapId,
     setTerrain,
@@ -404,19 +390,6 @@ export default function App({
   const rackShown = toolsOnTable('rack')
   // Live pose getters of the dragged pieces without a body, piece key → getter. Drag code fills it, LiveSync reads it.
   const [pieceLives] = useState(() => new Map())
-  // Scene calls this with (clientX, clientY) and returns the character id under the point, or
-  // null. See Scene.jsx, characterAt.
-  const characterAtRef = useRef(null)
-  // Scene calls this with a direction for Q / E: it turns the dragged character or tool, else the
-  // one under the pointer. See Scene.jsx, turnPiece.
-  const turnPieceRef = useRef(null)
-  // Scene calls this for R: it lifts the character under the pointer or puts it back down. See
-  // Scene.jsx, liftPiece.
-  const liftPieceRef = useRef(null)
-  // Scene calls this for R during a model drag: switches the floor (top or lower), returns a HUD message.
-  // modelDragRef: Scene sets it to the id of the dragged own model, else null. See Scene.jsx, floorPiece.
-  const floorPieceRef = useRef(null)
-  const modelDragRef = useRef(null)
   const versionMismatch = Boolean(connection?.versionMismatch)
   const schemaMismatch = Boolean(connection?.schemaMismatch)
   // The files to load before the table shows: the map and the models (rooms/preload.js). Read once.
@@ -631,7 +604,7 @@ export default function App({
     ownership,
     pieceLives,
     controlsRef,
-    characterAtRef,
+    sceneApi,
     setLooseTokens,
     setTokenPiles,
     handleCharacterTokenGive,
@@ -682,7 +655,7 @@ export default function App({
     state: () => ({
       tokenDrag,
       toolDrag,
-      modelDrag: modelDragRef.current !== null,
+      modelDrag: (sceneApi.current?.modelDragId() ?? null) !== null,
       drag: isDragActive(),
       popup: !!(
         openCard ||
@@ -726,21 +699,21 @@ export default function App({
         if (a.first) resetCamera()
       },
       flip: () => handleFlipKey(),
-      lift: () => liftPieceRef.current?.(),
+      lift: () => sceneApi.current?.liftPiece(),
       floor: () => {
-        const message = floorPieceRef.current?.()
+        const message = sceneApi.current?.floorPiece()
         if (message) showHudMessage(message)
       },
       lock: () => handleLockKey(),
       ping: () => handlePingKey(),
-      dice: (a) => addDiceRef.current[a.side]?.(a.count),
+      dice: (a) => sceneApi.current?.addDice(a.side, a.count),
       range: (a) => handleToolKey('range', a.value),
       move: (a) => handleToolKey('move', a.value),
       angle: () => handleAngleKey(),
       los: () => handleLosKey(),
       clear: () => clearTools(),
     },
-    turnPiece: (dir) => turnPieceRef.current?.(dir),
+    turnPiece: (dir) => sceneApi.current?.turnPiece(dir),
     altUp,
   })
 
@@ -774,6 +747,7 @@ export default function App({
             <Preload files={preloadFiles} />
             <SelectionOutlines composer={mode !== 'no-composer'} outlines={mode === 'full'}>
               <Scene
+                apiRef={sceneApi}
                 mapId={mapId}
                 tableButtons={{
                   multiplayer: Boolean(room?.multiplayer),
@@ -806,8 +780,6 @@ export default function App({
                 }
                 terrain={terrain}
                 onTerrainHover={handleTerrainHover}
-                terrainAtRef={terrainAtRef}
-                terrainDropRef={terrainDropRef}
                 characters={characters}
                 tools={tools}
                 ownSide={ownSide}
@@ -838,7 +810,6 @@ export default function App({
                 selectedTools={selectedTools}
                 onSelectedToolsChange={setSelectedTools}
                 onPieceHover={handlePieceHover}
-                toolPointRef={toolPointRef}
                 onTokenMove={handleTokenMove}
                 onTokenTurn={handleTokenTurn}
                 onTokenHold={handleTokenHold}
@@ -871,18 +842,10 @@ export default function App({
                 diceMenu={diceMenu}
                 onDiceMenuOpen={handleDiceMenuOpen}
                 onDiceMenuClose={handleDiceMenuClose}
-                characterAtRef={characterAtRef}
                 findCharacterAt={findCharacterAt}
-                modelPositionRef={modelPositionRef}
-                turnPieceRef={turnPieceRef}
-                liftPieceRef={liftPieceRef}
-                floorPieceRef={floorPieceRef}
-                modelDragRef={modelDragRef}
-                returnModelsRef={returnModelsRef}
                 playedSides={playedSides}
                 removeWaits={removeWaits}
                 onDiceTrayHover={handleDiceTrayHover}
-                addDiceRef={addDiceRef}
                 heldRotate={heldRotate}
                 scoreMarkers={scoreMarkers}
                 priority={priority}
@@ -926,7 +889,7 @@ export default function App({
             <WheelCamera
               ref={wheelCameraRef}
               wheelState={wheelState}
-              onTurn={(dir) => turnPieceRef.current?.(dir)}
+              onTurn={(dir) => sceneApi.current?.turnPiece(dir)}
             />
             {debug && <FrameStats />}
             <Ready onReady={() => setReady(true)} />

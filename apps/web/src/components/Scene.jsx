@@ -14,6 +14,7 @@ import { MovementRuler, AngleRuler, RangeRuler } from './RulerTool.jsx'
 import { DeployRangeTool } from './ToolParts.jsx'
 import { OtherTool } from './OtherTool.jsx'
 import { sameModel } from './toolGeometry.js'
+import { createSceneApi } from './sceneApi.js'
 import CharacterModel, { StandeeModel, modelUrls, turnBody, upright } from './CharacterModel.jsx'
 import CharacterTray from './CharacterTray.jsx'
 import TableButtons from './TableButtons.jsx'
@@ -192,8 +193,8 @@ function trayShapeOf(ch, characters, gruntLists) {
 
 // mapId: key in MAPS. terrain: the terrain pieces on the mat, [{ id, locked, ...placement }] (see
 // mapTerrain in rooms/table.js). onTerrainHover(id, over): the pointer moved onto or off an unlocked piece,
-// for the Delete key. terrainAtRef: ref App calls for the L key, the same pattern as characterAtRef.
-// Scene fills it with terrainAt. terrainDropRef: ref App calls when it deletes a terrain piece (planFall below).
+// for the Delete key. apiRef: the ref App makes (sceneApi); Scene sets its current to the calls App makes
+// into Scene, see sceneApi.js.
 // showColliders: draw every physics collider as lines (the shapes physics uses, not the visible meshes)
 // turnStep: degrees of one Q / E press and wheel step (settings.turn.step; TTS default 15, PointerRotationSnap).
 // showLabels: show the label (name, game Size, lock state) above each terrain piece. With labels off, the
@@ -210,7 +211,7 @@ function trayShapeOf(ch, characters, gruntLists) {
 // becomes an OtherTool. onToolStore(kind, spawn, fields): a tool of the own side rests, App writes the
 // fields into its entry. onToolReturn(kind): a move drag of an own tool ended on the own rack, App removes the tool
 // (RulerTool.jsx, onReturn). Undefined: the tools do not return. onToolRemove(kind): a tool is removed for
-// another reason (the Line of Sight looker left the table), always set. toolPointRef: ref App calls, filled by ToolPoint with { atPointer(), atCenter() }.
+// another reason (the Line of Sight looker left the table), always set.
 // selectedTools: { range, move, angle } (see selection.js), lifted to App with its setter onSelectedToolsChange.
 // angleSpawn: { target, aim }, each { kind, id } | null, for the Toward / Away tool:
 // the piece it snaps to when it spawns (free without one), and the piece it aims at (the mat center
@@ -254,31 +255,26 @@ function trayShapeOf(ch, characters, gruntLists) {
 // of a tray opens the gem card (App.jsx, handleAttachedOpen).
 // diceMenu: the open "Change to" menu of a shelf die, { trayKey, dieId } | null, lifted to App so
 // Escape can close it. onDiceMenuOpen(trayKey, dieId), onDiceMenuClose(): see DiceTray.jsx.
-// characterAtRef: ref App calls with (clientX, clientY) to find the character under the pointer,
-// the same pattern as bodyRef. Scene fills it with its own characterAt (3D only: the model
-// or the tray's background plate), used by App's findCharacterAt below.
+// sceneApi.characterAt is Scene's own characterAt (3D only: the model or the tray's background plate),
+// used by App's findCharacterAt below.
 // findCharacterAt(clientX, clientY): App's own lookup, the DOM tray controls (data-character-id)
-// first, then characterAtRef's characterAt. Passed back down so CrisisToken.jsx's Extract-token
+// first, then sceneApi's characterAt. Passed back down so CrisisToken.jsx's Extract-token
 // release uses the same lookup as App's token drag, instead of 3D-only characterAt, so a
 // release over the tray's controls strip (DOM) counts too.
-// modelPositionRef: ref App calls with a character id to get its live table position { x, z }
-// (Rapier body or model object, not the spawn position), or null. Used by handleTokenDrop in crisis/useCrisisTokens.js, the
-// same pattern as characterAtRef. See "Hold and drop".
-// turnPieceRef: ref App calls with a direction for Q / E, the same pattern as characterAtRef. Scene
-// fills it with turnPiece. heldRotate: ref to a Map of the Q / E actions held down, action id → direction.
-// floorPieceRef: ref App calls for R during a model drag. Scene fills it with floorPiece. modelDragRef:
-// Scene sets its current to the id of the dragged own model, else null.
-// liftPieceRef: ref App calls for R, the same pattern. Scene fills it with liftPiece.
-// returnModelsRef: ref App calls with a character id for the tray's Remove button, the same pattern.
-// Scene fills it with returnModels: the models of that character go back to their places on the tray.
+// sceneApi.modelPosition gives the live table position { x, z } of a character (Rapier body or model
+// object, not the spawn position), or null. Used by handleTokenDrop in crisis/useCrisisTokens.js. See "Hold and drop".
+// sceneApi.turnPiece is the Q / E turn. heldRotate: ref to a Map of the Q / E actions held down, action id → direction.
+// sceneApi.floorPiece is R during a model drag (modelDrag: the id of the dragged own model, else null).
+// sceneApi.liftPiece is R. sceneApi.returnModels is the tray's Remove button: the models of that character
+// go back to their places on the tray.
 // playedSides: the sides this browser plays (dice tray, tool snap selection), one in a multiplayer
 // room, both otherwise.
 // A token with placeBy can be dragged only by a browser that plays that side (tokens/dropWait.js).
 // removeWaits: character id → the text that disables its Remove button while a dropped token waits, or no entry.
 // The other tray is only drawn (OtherDiceTray.jsx).
 // onDiceTrayHover(side, over): the pointer moved onto or off an own dice tray, for the number keys.
-// addDiceRef: ref App calls with a side and a count for the number keys over that tray. Each own
-// tray puts a function there that clears the tray, then adds that many dice (DiceTray.jsx).
+// sceneApi.addDice is for the number keys over that tray. Each own tray puts a function in the addDice
+// ref that clears the tray, then adds that many dice (DiceTray.jsx).
 // diceStore: the dice record store of the table; each tray reads and writes its side (DiceTray.jsx).
 // rollsStore: the roll history list. transact(fn): fn writes several stores as one change.
 // onTokenHold(tokenId, characterId, cardPoint): a canHold token was released over a character.
@@ -305,13 +301,12 @@ function trayShapeOf(ch, characters, gruntLists) {
 // poses: the live rest poses of the models, model id → pose (the table document). A pose that the other browser
 // wrote moves the body (decision 8). startPose is the pose at mount.
 export default function Scene({
+  apiRef,
   mapId,
   tableButtons,
   toolRack,
   terrain = [],
   onTerrainHover,
-  terrainAtRef,
-  terrainDropRef,
   characters = [],
   tools = NO_TOOLS_RECORD,
   ownSide = 'host',
@@ -333,7 +328,6 @@ export default function Scene({
   selectedTools = NO_TOOLS,
   onSelectedToolsChange,
   onPieceHover,
-  toolPointRef,
   onTokenMove,
   onTokenTurn,
   onTokenHold,
@@ -366,18 +360,10 @@ export default function Scene({
   diceMenu = null,
   onDiceMenuOpen,
   onDiceMenuClose,
-  characterAtRef,
   findCharacterAt,
-  modelPositionRef,
-  turnPieceRef,
-  liftPieceRef,
-  floorPieceRef,
-  modelDragRef,
-  returnModelsRef,
   playedSides = ['host', 'guest'],
   removeWaits = {},
   onDiceTrayHover,
-  addDiceRef,
   diceStore,
   rollsStore,
   transact,
@@ -425,6 +411,12 @@ export default function Scene({
   const charObjects = useRef(new Map())
   // Model id → its lift, { toggle(), down() }. See CharacterModel.jsx and liftPiece.
   const charLifts = useRef(new Map())
+  // The id of the dragged own model, else null (sceneApi.modelDragId)
+  const modelDrag = useRef(null)
+  // Side -> function of the own dice tray that clears it and adds dice (sceneApi.addDice). DiceTray fills it.
+  const addDice = useRef({})
+  // { atPointer(), atCenter() }, filled by ToolPoint (sceneApi.pointAtPointer, pointAtCenter)
+  const toolPoint = useRef(null)
   // Character id → the tray's background plate. characterAt below hits this too, so a drop anywhere
   // on the tray finds the character (see CharacterTray.jsx).
   const trayObjects = useRef(new Map())
@@ -856,7 +848,7 @@ export default function Scene({
 
   // R press during a model drag: switches the floor of the dragged model. Returns the HUD message.
   function floorPiece() {
-    const id = modelDragRef?.current
+    const id = modelDrag.current
     return id == null ? null : charLifts.current.get(id)?.toggleFloor?.()
   }
 
@@ -943,15 +935,23 @@ export default function Scene({
   }
 
   // Registered on every render, so the closures above always see the latest characters/objects.
+  // The shape is documented in sceneApi.js.
   useEffect(() => {
-    if (characterAtRef) characterAtRef.current = characterAt
-    if (modelPositionRef) modelPositionRef.current = modelPosition
-    if (turnPieceRef) turnPieceRef.current = turnPiece
-    if (liftPieceRef) liftPieceRef.current = liftPiece
-    if (floorPieceRef) floorPieceRef.current = floorPiece
-    if (returnModelsRef) returnModelsRef.current = returnModels
-    if (terrainAtRef) terrainAtRef.current = terrainAt
-    if (terrainDropRef) terrainDropRef.current = planFall
+    if (apiRef) {
+      apiRef.current = createSceneApi({
+        characterAt,
+        modelPosition,
+        returnModels,
+        turnPiece,
+        liftPiece,
+        floorPiece,
+        terrainAt,
+        planFall,
+        modelDrag,
+        addDice,
+        toolPoint,
+      })
+    }
   })
 
   // Tray position of every character (trays.js). A player's row recenters when that player adds
@@ -1225,7 +1225,7 @@ export default function Scene({
         <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP} debug={showColliders}>
           <WorldRef worldRef={worldRef} rapierRef={rapierRef} />
           <LabelOcclusionLoop registry={labelRegistry} />
-          <ToolPoint pointRef={toolPointRef} />
+          <ToolPoint pointRef={toolPoint} />
           {ownPing && <Ping key={ownPing.id} ping={ownPing} side={ownSide} />}
           {otherLook.ping && (
             <Ping
@@ -1313,14 +1313,10 @@ export default function Scene({
                 onDieOpen={(dieId) => onDiceMenuOpen(trayKey, dieId)}
                 onMenuClose={onDiceMenuClose}
                 onHover={(over) => onDiceTrayHover?.(trayKey, over)}
-                addRef={
-                  addDiceRef
-                    ? (add) => {
-                        if (add) addDiceRef.current[trayKey] = add
-                        else delete addDiceRef.current[trayKey]
-                      }
-                    : undefined
-                }
+                addRef={(add) => {
+                  if (add) addDice.current[trayKey] = add
+                  else delete addDice.current[trayKey]
+                }}
               />
             ) : (
               <OtherDiceTray key={trayKey} trayKey={trayKey} store={diceStore} liveRef={received} />
@@ -1681,7 +1677,7 @@ export default function Scene({
                 markMoved(model.id)
                 setDraggingCharId(model.id)
                 ownership?.setDrag(modelKey(model.id))
-                if (modelDragRef) modelDragRef.current = model.id
+                modelDrag.current = model.id
                 trackPiece(draggedPiece, { kind: 'character', id: model.id }, true)
               },
               // cancelled: Esc put the body back, so a Q / E turn that is not done yet is dropped
@@ -1689,7 +1685,7 @@ export default function Scene({
                 if (cancelled) turnsLeft.current.delete(modelKey(model.id))
                 setDraggingCharId(null)
                 ownership?.setDrag(null)
-                if (modelDragRef?.current === model.id) modelDragRef.current = null
+                if (modelDrag.current === model.id) modelDrag.current = null
                 trackPiece(draggedPiece, { kind: 'character', id: model.id }, false)
               },
               // A base is within range if any part of it is within range (p8). So the base can

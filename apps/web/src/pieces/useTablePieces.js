@@ -10,8 +10,7 @@ import { getTactic } from '../tactics/cards.js'
 export function useTablePieces({
   table,
   terrain,
-  terrainAtRef,
-  terrainDropRef,
+  sceneApi,
   setMatTurns,
   setMapId,
   setTerrain,
@@ -39,7 +38,7 @@ export function useTablePieces({
   // L, as in TTS: locks or unlocks the terrain piece under the pointer. A piece that gets locked is
   // deselected. A locked piece looks the same as an unlocked one, so the HUD message shows the new state.
   function handleLockKey() {
-    const id = terrainAtRef.current?.()
+    const id = sceneApi.current?.terrainAt()
     const piece = id && terrain.find((p) => p.id === id)
     if (!piece) return
     const locked = !piece.locked
@@ -55,7 +54,7 @@ export function useTablePieces({
   // Only this browser plans it. The other one gets the document and the poses.
   function handleTerrainRemove(id) {
     table.transact(() => {
-      const fall = terrainDropRef?.current?.(id)?.terrain ?? {}
+      const fall = sceneApi.current?.planFall(id)?.terrain ?? {}
       setTerrain((prev) =>
         prev
           .filter((p) => p.id !== id)

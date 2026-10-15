@@ -40,8 +40,7 @@ export function useCrisisTokens({
   characterLogData,
   writeHeldLog,
   placeTool,
-  modelPositionRef,
-  returnModelsRef,
+  sceneApi,
   controlsRef,
   wheelCameraRef,
 }) {
@@ -213,7 +212,7 @@ export function useCrisisTokens({
       const token = prev.find((t) => t.id === id)
       if (!token?.heldBy) return prev
       const holder = characters.find((ch) => ch.id === token.heldBy)
-      const pos = modelPositionRef.current?.(token.heldBy)
+      const pos = sceneApi.current?.modelPosition(token.heldBy)
       const baseRadius = holder ? BASE_DIAMETER[holder.base] / 2 : 0
       const dropped = droppedToken(token, { pos, baseRadius, rowOffset, wait })
       return prev.map((t) => (t.id === id ? dropped : t))
@@ -282,7 +281,7 @@ export function useCrisisTokens({
           })
       }
     })
-    back.forEach((id) => returnModelsRef.current?.(id))
+    back.forEach((id) => sceneApi.current?.returnModels(id))
   }
 
   // Show in the notice: the camera target moves to the first waiting token of the character, smooth

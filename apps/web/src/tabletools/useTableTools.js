@@ -18,7 +18,7 @@ export function useTableTools({
   selectedTools,
   setSelectedTools,
   hoveredRef,
-  toolPointRef,
+  sceneApi,
   controlsRef,
 }) {
   const [tools] = useYRecord(table.tools)
@@ -49,7 +49,7 @@ export function useTableTools({
   // (it snaps to the piece). Else the table point in the middle of the screen.
   function toolbarSpawnAt(snapPiece) {
     if (snapPiece) return null
-    return toolPointRef.current?.atCenter() ?? { x: 0, z: 0 }
+    return sceneApi.current?.pointAtCenter() ?? { x: 0, z: 0 }
   }
 
   // Writes the own entry of a tool kind, or deletes it with null. Only the own side is written.
@@ -148,13 +148,13 @@ export function useTableTools({
 
   // Key 6, the Toward / Away tool: placeAngleTool at the hovered piece and the table point under the pointer.
   function handleAngleKey() {
-    placeAngleTool(hoveredRef.current, toolPointRef.current?.atPointer())
+    placeAngleTool(hoveredRef.current, sceneApi.current?.pointAtPointer())
   }
 
   // The tool keys 1 to 5 and 7 to 9: placeTool at the hovered piece and the table point under the pointer.
   // tool: 'range' | 'move'. value: the range number or the movement tool type.
   function handleToolKey(tool, value) {
-    placeTool(tool, value, hoveredRef.current, toolPointRef.current?.atPointer())
+    placeTool(tool, value, hoveredRef.current, sceneApi.current?.pointAtPointer())
   }
 
   // The Toward / Away tool at a piece or a table point (key 6, and the drop of a drag from the rack). Over a

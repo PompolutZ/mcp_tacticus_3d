@@ -279,6 +279,13 @@ User: L over terrain; Delete of terrain with a model on it (the model falls); R 
 
 ### Result
 
+Done. New `components/sceneApi.js` (`createSceneApi(parts)`, `SCENE_API_KEYS`, shape documented at the top; a missing part throws) and `sceneApi.test.js` (5 tests). Scene has the prop `apiRef` and its own `modelDrag`, `addDice`, `toolPoint` refs; E9 is one `apiRef.current = createSceneApi({...})`. App makes `sceneApi = useRef(null)` at the top of `App`; the 11 refs and 11 Scene props are gone. `useTokenDrag`, `useCrisisTokens`, `useCharacterActions`, `useTablePieces`, `useTableTools`, `usePing`, the key table and Toolbar `onTurn` call `sceneApi.current?.x(...)`. Props comments in Scene, App and the hooks updated.
+
+- Checks: format, lint 58 warnings (same), test 852 pass (847 + 5), build ok. Pointer grep: no old ref name left in `apps` or `docs/features`.
+- Fallow: `Scene` 68 / 204 / 1,562 lines, 90 props (was 68 / 211, 100 props); `App` 55 / 106 / 984 lines (was 54 / 116, 1,019).
+- Deviation: the key state `modelDrag` reads `(sceneApi.current?.modelDragId() ?? null) !== null`, so a null `sceneApi` gives false, as the old ref (null) did.
+- Deviation: `addRef` of `DiceTray` and `ToolPoint` are always passed (Scene always has the refs); App passes no refs now.
+
 ## Step 6: Scene registry and terrain fall
 
 Needs step 5.

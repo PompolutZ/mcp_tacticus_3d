@@ -26,7 +26,7 @@ export function useCharacterActions({
   handleDropCharacterTokens,
   dropWait,
   removeWaits,
-  returnModelsRef,
+  sceneApi,
 }) {
   // The new character's tray goes at the end of its player's row, and the row recenters (see
   // trays.js, layoutTrays). A player has at most one copy of each character (slug): every spawn comes
@@ -92,7 +92,7 @@ export function useCharacterActions({
       if (target) writeLog('offBoard', characterLogData(target))
       handleDropCharacterTokens(id, holds ? dropWait(target, true) : null)
     })
-    if (!holds) returnModelsRef.current?.(id)
+    if (!holds) sceneApi.current?.returnModels(id)
   }
 
   // Delete key over a tray card. The confirm names the character, because it takes the tray with it.
