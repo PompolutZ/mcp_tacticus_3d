@@ -7,7 +7,7 @@ import { DIE_BODY, DIE_GRAVITY } from '../dice/throw.js'
 import { SHELF_SLOT_COUNT, shelfSlot, trayToWorld, trayToWorldRotation } from '../dice/tray.js'
 import { SHELF_MOVE_TIME, flatRotation, shelfMovePose, sortShelfEntries } from '../dice/shelf.js'
 import { trayCounts } from '../dice/stored.js'
-import { OTHER_DICE_GROUPS } from '../physics.js'
+import { DIE_USER_DATA, OTHER_DICE_GROUPS } from '../physics.js'
 import { useYField } from '../net/useY.js'
 import { followPart, sameSideQuat } from '../net/livePose.js'
 import { TrayBody, useDieLook } from './DiceTrayParts.jsx'
@@ -174,6 +174,7 @@ function OtherDie({ id, dice, geometry, material }) {
     <RigidBody
       ref={setBody}
       type="kinematicPosition"
+      userData={DIE_USER_DATA}
       position={entry.spawn.position}
       quaternion={entry.spawn.quaternion}
       colliders={false}

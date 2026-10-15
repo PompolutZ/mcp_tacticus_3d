@@ -139,3 +139,6 @@ export function liveBody(world, rb) {
   if (!rb || !world) return false
   return world.getRigidBody(rb.handle) === rb
 }
+
+// The userData of every die body (both trays): a collider whose body has it belongs to a die.
+export const DIE_USER_DATA = { die: true }

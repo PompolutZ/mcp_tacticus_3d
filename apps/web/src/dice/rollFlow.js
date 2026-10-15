@@ -26,9 +26,9 @@ export function flowStage(entries) {
   return { rolling, sliding, flat, waiting }
 }
 
-// One physics step of one thrown die: did it touch something for the first time since the throw?
+// One physics step of one thrown die: did it touch a non-die for the first time since the throw?
 // A die thrown from a rest sits on the floor in the first step, so only a touch after it was off
-// every contact (airborne) counts. Returns the new airborne and whether this step is a contact.
+// every non-die contact (airborne) counts. Touches between dice are not passed as touching. Returns the new airborne and whether this step is a contact.
 export function contactStep({ airborne, touching }) {
   if (!touching) return { airborne: true, contact: false }
   return { airborne, contact: airborne }

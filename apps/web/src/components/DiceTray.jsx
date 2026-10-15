@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { OccludedHtml } from './LabelOcclusion.jsx'
 import { RigidBody, ConvexHullCollider, useAfterPhysicsStep, useRapier } from '@react-three/rapier'
-import { liveBody } from '../physics.js'
+import { DIE_USER_DATA, liveBody } from '../physics.js'
 import { D8_CORNERS, D8_DENSITY, FACES, SYMBOLS } from '../dice/faces.js'
 import {
   DIE_BODY,
@@ -129,6 +129,7 @@ function Die({
       position={entry.spawn.position}
       quaternion={entry.spawn.quaternion}
       colliders={false}
+      userData={DIE_USER_DATA}
       ccd
       additionalSolverIterations={DIE_SOLVER_ITERATIONS}
       gravityScale={DIE_GRAVITY_SCALE}
@@ -166,12 +167,16 @@ function Die({
   )
 }
 
-// Does the body touch any other collider now (a contact manifold with a point, also a gentle touch)?
-function touchesAny(world, rb) {
+// A die body has DIE_USER_DATA (physics.js), own and the other tray's: a contact with it is a die-to-die touch.
+const isDie = (collider) => collider.parent()?.userData?.die === true
+
+// Does the body touch a collider that is not a die now (a contact manifold with a point, also a
+// gentle touch)? Touches between dice do not count.
+function touchesNonDie(world, rb) {
   let touching = false
   for (let i = 0; i < rb.numColliders() && !touching; i++) {
     world.contactPairsWith(rb.collider(i), (other) => {
-      if (touching) return
+      if (touching || isDie(other)) return
       world.contactPair(rb.collider(i), other, (manifold) => {
         if (manifold.numContacts() > 0) touching = true
       })
@@ -650,11 +655,11 @@ export default function DiceTray({
       }
       const strength = entry.bump.feed(rb.linvel(), world.timestep)
       if (entry.state === 'thrown' && !contactedRef.current) {
-        // The first touch of the throw blocks Roll. Contact pairs see a gentle touch; the bump
-        // finder has a minimum strength, so it only backs them up.
-        const step = contactStep({ airborne: entry.airborne, touching: touchesAny(world, rb) })
+        // The first touch of a non-die blocks Roll. Only contact pairs tell the source (the bump
+        // finder cannot), so it is not a trigger here.
+        const step = contactStep({ airborne: entry.airborne, touching: touchesNonDie(world, rb) })
         entry.airborne = step.airborne
-        if (step.contact || strength > 0) contactedRef.current = true
+        if (step.contact) contactedRef.current = true
       }
       if (strength > 0) playSound('die', { volume: strength, key: `${trayKey}:${entry.id}` })
     }
