@@ -73,3 +73,7 @@ A script that rolls dice in the real app on localhost for a whole night, while n
 ## Results
 
 (Filled in as the steps are done.)
+
+### Step 1
+
+Done. `src/dice/runRecord.js` (`buildRunRecord`) with 3 tests in `runRecord.test.js`. `DiceTray.jsx` collects the record and `window.__diceTest` (`add`, `roll`, `clear`, `isIdle`, `takeRecords`, `clicks`) behind `import.meta.env.DEV`, `#sandbox&dicetest` and the new `testHook` prop (Scene passes it for the own tray). `roll()` now returns acted true/false. 933 tests pass, lint 52 warnings (no new), `__diceTest` is not in `dist`. Commit: see git log "dice night run 1".

@@ -869,6 +869,7 @@ export default function Scene({
                 transact={transact}
                 diceLives={diceLives}
                 rethrowTilted={rethrowTilted}
+                testHook={trayKey === ownSide}
                 openDieId={diceMenu?.trayKey === trayKey ? diceMenu.dieId : null}
                 onDieOpen={(dieId) => onDiceMenuOpen(trayKey, dieId)}
                 onMenuClose={onDiceMenuClose}
