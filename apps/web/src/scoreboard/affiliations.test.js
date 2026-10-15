@@ -4,6 +4,7 @@ import jarvis from '../../scripts/jarvis/characters.json' with { type: 'json' }
 import {
   DEFAULT_AFFILIATION,
   affiliationKey,
+  affiliationChoices,
   autoAffiliation,
   squadAffiliations,
 } from './affiliations.js'
@@ -86,4 +87,13 @@ test('every affiliation slug in scripts/jarvis/characters.json has a token', () 
 test('only Taskmaster and Winter Soldier have the tag rogueAgent', () => {
   const rogues = jarvis.filter((row) => (row.tags ?? []).includes('rogueAgent')).map((r) => r.slug)
   assert.deepEqual(rogues.sort(), ['taskmaster', 'winter-soldier'])
+})
+
+test('affiliationChoices: the squad keys, then Unaffiliated', () => {
+  assert.deepEqual(affiliationChoices([]), [DEFAULT_AFFILIATION])
+  assert.deepEqual(affiliationChoices(['avengers', 'x-men']), [
+    'avengers',
+    'x-men',
+    DEFAULT_AFFILIATION,
+  ])
 })

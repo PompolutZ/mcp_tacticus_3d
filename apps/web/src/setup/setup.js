@@ -8,6 +8,13 @@ export const CRISIS_TYPES = ['secure', 'extract']
 export const otherTeam = (team) => (team === 'host' ? 'guest' : 'host')
 export const otherType = (type) => (type === 'secure' ? 'extract' : 'secure')
 
+// Why a squad cannot be Ready: 'over' (its threat is above the Maximum Threat), 'empty' (no character), or
+// null. Over comes first. A squad with less threat is fine.
+export function squadProblem({ threat, count, maxThreat }) {
+  if (threat > maxThreat) return 'over'
+  return count === 0 ? 'empty' : null
+}
+
 // The cards that a player chose for the squad: places in the `characters` and `tactics` lists of the
 // parsed roster (rosters/mct.js, parseRoster), in roster order. A place and not a code, because a roster
 // can list a code twice.

@@ -35,6 +35,7 @@ import {
   squadChoiceBlock,
   ownSquadOf,
   viewerSetup,
+  squadProblem,
 } from './setup.js'
 
 // A setup at the squads step
@@ -666,4 +667,12 @@ test('sideColorsOf: start colors before the roll off, swapped when guest has Pri
     host: 'red',
     guest: 'blue',
   })
+})
+
+test('squadProblem: over first, then empty, else null', () => {
+  assert.equal(squadProblem({ threat: 0, count: 0, maxThreat: 18 }), 'empty')
+  assert.equal(squadProblem({ threat: 19, count: 3, maxThreat: 18 }), 'over')
+  assert.equal(squadProblem({ threat: 19, count: 0, maxThreat: 18 }), 'over')
+  assert.equal(squadProblem({ threat: 18, count: 3, maxThreat: 18 }), null)
+  assert.equal(squadProblem({ threat: 10, count: 1, maxThreat: 18 }), null)
 })

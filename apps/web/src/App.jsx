@@ -622,17 +622,13 @@ export default function App({
     terrain: handleTerrainRemove,
     trayCard: handleTrayCardDelete,
   }
+  // A popup covers the table: the wheel, the table keys and the peek card stop
+  const popupOpen = Boolean(
+    openCard || openTrayId || openRoster || crisisShown || chooseShown || settingsOpen || setupOpen,
+  )
   // The state for a mouse wheel step (WheelCamera.jsx): what keyAction reads, as the resolver needs it
   const wheelState = () => ({
-    popup: !!(
-      openCard ||
-      openTrayId ||
-      openRoster ||
-      crisisShown ||
-      chooseShown ||
-      settingsOpen ||
-      setupOpen
-    ),
+    popup: popupOpen,
     dragging: !!(tokenDrag || toolDrag),
     overDiceTray: !!hoveredNow().diceTray,
     overPiece: !!hoveredNow().piece,
@@ -646,15 +642,7 @@ export default function App({
       toolDrag,
       modelDrag: (sceneApi.current?.modelDragId() ?? null) !== null,
       drag: isDragActive(),
-      popup: !!(
-        openCard ||
-        openTrayId ||
-        openRoster ||
-        crisisShown ||
-        chooseShown ||
-        settingsOpen ||
-        setupOpen
-      ),
+      popup: popupOpen,
       rosterOpen: !!(openRoster || crisisShown),
       diceMenu,
       libraryOpen,
@@ -842,6 +830,7 @@ export default function App({
                 onPriorityClick={handlePriorityClick}
                 affiliations={affiliations}
                 rosters={rosters}
+                parsedRosters={parsedRosters}
                 onRosterOpen={handleRosterOpen}
                 onCrisisOpen={handleCrisisOpen}
                 setup={viewSetup}
@@ -962,17 +951,7 @@ export default function App({
         />
       )}
       <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
-      {!(
-        tokenDrag ||
-        toolDrag ||
-        openCard ||
-        openTrayId ||
-        openRoster ||
-        crisisShown ||
-        chooseShown ||
-        settingsOpen ||
-        setupOpen
-      ) && <CardPopup card={peekCard} peek />}
+      {!(tokenDrag || toolDrag || popupOpen) && <CardPopup card={peekCard} peek />}
       {settingsOpen && (
         <SettingsPopup
           settings={settings}

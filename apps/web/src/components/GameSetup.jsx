@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import { TABLE_WIDTH } from '../table.js'
 import { BOARD_HALF_WIDTH, BOARD_X } from '../scoreboard/board.js'
-import { DEFAULT_AFFILIATION, affiliationName } from '../scoreboard/affiliations.js'
-import { parseRosterText, rosterCard, squadAffiliationKeys, squadThreat } from '../rosters/cards.js'
+import { affiliationName } from '../scoreboard/affiliations.js'
+import { rosterCard, squadAffiliationChoices, squadThreat } from '../rosters/cards.js'
 import {
   CRISIS_GAP_X,
   USE_BUTTON_X,
@@ -21,6 +21,7 @@ import {
   placedSides,
   priorityOf,
   setupStep,
+  squadProblem,
   viewOf,
 } from '../setup/setup.js'
 import { isYou, playerName, possessive, says } from '../setup/names.js'
@@ -247,12 +248,7 @@ function BoardPanel({
       : 'Choose the affiliation of each squad.'
     // One row for each team: the affiliations that more than half of the squad have, then Unaffiliated
     teamRows = TEAMS.map((team) => {
-      const keys = parsed[team]
-        ? [
-            ...squadAffiliationKeys(parsed[team], setup.squads[team].characters),
-            DEFAULT_AFFILIATION,
-          ]
-        : [DEFAULT_AFFILIATION]
+      const keys = squadAffiliationChoices(parsed[team], setup.squads[team].characters)
       const locked = Boolean(mySide) && mySide !== team
       return (
         <div key={team} className="setup-row">
@@ -377,10 +373,11 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
     )
   }
   const threat = squadThreat(parsed, squad.characters)
-  const over = threat > setup.threat
+  const kind = squadProblem({ threat, count: squad.characters.length, maxThreat: setup.threat })
+  const over = kind === 'over'
   const problem = over
     ? `The squad threat ${threat} is above the Maximum Threat ${setup.threat}`
-    : squad.characters.length === 0
+    : kind === 'empty'
       ? 'Choose at least 1 character'
       : null
   return (
@@ -432,7 +429,7 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
 
 // The game setup on the table: the crisis cards of the rosters next to the scoring board, and the buttons
 // of each step. The buttons lie flat on the table (OnTable). See docs/features/setup-game.md.
-// setup: see setup/setup.js. rosters: { host, guest } → null | { code }. seatPlayers: { players, peer } of a multiplayer room, for the names
+// setup: see setup/setup.js. parsed: { host, guest } → parsed roster | null (useGameSetup). seatPlayers: { players, peer } of a multiplayer room, for the names
 // (setup/names.js). mySide: the team of the player in a multiplayer room, or null when one
 // person plays both teams. Only that team's squad panel has buttons. actions: { priority(team), deck(type), pick(code),
 // threat(value), turnMat(direction), edge(), ready(team),
@@ -444,7 +441,7 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
 // onCardHover(card, over): for Alt (useCardPeek.js).
 export default function GameSetup({
   setup,
-  rosters,
+  parsed,
   mySide,
   seatPlayers,
   actions,
@@ -455,13 +452,6 @@ export default function GameSetup({
   onCardHover,
 }) {
   const ctx = useNames(mySide, seatPlayers)
-  const parsed = useMemo(
-    () => ({
-      host: rosters.host && parseRosterText(rosters.host.code),
-      guest: rosters.guest && parseRosterText(rosters.guest.code),
-    }),
-    [rosters.host, rosters.guest],
-  )
   const rows = useMemo(() => crisisRows(setup, parsed), [setup, parsed])
   const step = setupStep(setup)
   const browsing = viewOf(setup) !== null

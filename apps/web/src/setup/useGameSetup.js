@@ -31,6 +31,7 @@ import {
   setupPlacedCards,
   setupStep,
   squadChoiceBlock,
+  squadProblem,
   TEAMS,
   toggleReady,
   toggleSquadCard,
@@ -44,6 +45,7 @@ import { newCharacters as makeCharacters } from '../characters/newCharacter.js'
 import {
   parseRosterText,
   rosterCard,
+  squadAffiliationChoices,
   squadAffiliationKeys,
   squadThreat,
   unknownCodesMessage,
@@ -348,11 +350,12 @@ export function useGameSetup({
     if (placedSides(setup)[team]) return
     if (!setup.ready[team]) {
       const squad = hiddenSquads ? ownSquad : setup.squads[team]
-      if (
-        squad.characters.length === 0 ||
-        squadThreat(parsedRosters[team], squad.characters) > setup.threat
-      )
-        return
+      const problem = squadProblem({
+        threat: squadThreat(parsedRosters[team], squad.characters),
+        count: squad.characters.length,
+        maxThreat: setup.threat,
+      })
+      if (problem) return
     }
     table.transact(() => {
       setSetup((prev) => toggleReady(prev, team))
@@ -424,8 +427,7 @@ export function useGameSetup({
   function handleSetupAffiliation(side, key) {
     if (setupStep(setup) !== 'affiliation') return
     if (hiddenSquads && side !== mySide) return
-    const parsed = parsedRosters[side]
-    const choices = parsed ? squadAffiliationKeys(parsed, setup.squads[side].characters) : []
+    const choices = squadAffiliationChoices(parsedRosters[side], setup.squads[side].characters)
     if (key !== DEFAULT_AFFILIATION && !choices.includes(key)) return
     table.transact(() => {
       setSetup((prev) => chooseAffiliation(prev, side, key))

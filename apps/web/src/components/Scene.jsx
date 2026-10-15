@@ -182,7 +182,8 @@ const OVERLAP_INTERVAL = 100
 // tokenDrag: the token drag in progress, see drag/useTokenDrag.js. While it is active, the dragged token shows
 // under the pointer (TokenDragPreview) and, for a token from the table, not in its old place.
 // dragPointRef: the preview writes the table point under the pointer there, for the release in drag/useTokenDrag.js.
-// rosters: { host, guest } → null | { code }, the loaded rosters (RosterCards.jsx). onRosterOpen({ team, tab,
+// rosters: { host, guest } → null | { code }, the loaded rosters (RosterCards.jsx). parsedRosters: the same, parsed
+// (setup/useGameSetup.js). onRosterOpen({ team, tab,
 // index }): a click on a roster card. It opens the roster popup on that card (see RosterPopup.jsx).
 // onCrisisOpen({ team, type, code, drawn }): a click on a crisis card of the setup (GameSetup.jsx).
 // squadEdit: { host, guest } → true: the roster cards of that side have the + / ✓ button, and onSquadToggle(team,
@@ -310,6 +311,7 @@ export default function Scene({
   scoreMarkers,
   affiliations,
   rosters = { host: null, guest: null },
+  parsedRosters,
   onRosterOpen,
   onCrisisOpen,
   setup,
@@ -1001,7 +1003,7 @@ export default function Scene({
             )}
           <GameSetup
             setup={setup}
-            rosters={rosters}
+            parsed={parsedRosters}
             mySide={mySide}
             seatPlayers={seatPlayers}
             actions={setupActions}

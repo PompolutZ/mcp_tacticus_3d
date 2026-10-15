@@ -10,7 +10,11 @@ import jarvisCharacters from '../characters/jarvis-rows.json'
 import crisisData from '../crisis/jarvis-rows.json'
 import crisisFiles from '../crisis/cards.json'
 import { crisisCardFace } from '../crisis/files.js'
-import { affiliationKey, squadAffiliations } from '../scoreboard/affiliations.js'
+import {
+  affiliationChoices,
+  affiliationKey,
+  squadAffiliations,
+} from '../scoreboard/affiliations.js'
 import { MAX_BREAKDOWN_CHARACTERS, matchesFilters, squadCombinations } from './breakdown.js'
 import { jarvisValidatorCode, parseRoster } from './mct.js'
 
@@ -180,6 +184,12 @@ export function squadAffiliationKeys(parsed, places) {
       return { affiliations: ch?.affiliations ?? [], rogue: ch?.rogue ?? false }
     }),
   )
+}
+
+// The affiliations that a player can choose for a squad: squadAffiliationKeys, then Unaffiliated. A side with
+// no loaded roster has only Unaffiliated.
+export function squadAffiliationChoices(parsed, places) {
+  return affiliationChoices(parsed ? squadAffiliationKeys(parsed, places) : [])
 }
 
 // The threat values of all current crisis cards, sorted, each once (15 to 20 now). The breakdown shows them

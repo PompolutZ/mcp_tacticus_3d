@@ -32,6 +32,9 @@ export function squadAffiliations(members) {
   return result.sort((a, b) => affiliationsData[a].name.localeCompare(affiliationsData[b].name))
 }
 
+// The affiliations that a player can choose for a squad: its keys, then Unaffiliated
+export const affiliationChoices = (squadKeys) => [...squadKeys, DEFAULT_AFFILIATION]
+
 // The affiliation that the app sets with no click: Unaffiliated with no choice, the one choice, or null
 // when the player must choose (2 or more)
 export function autoAffiliation(keys) {

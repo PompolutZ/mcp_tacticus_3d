@@ -246,6 +246,14 @@ User: game setup to the squad step. Ready with no character: refused, with the m
 
 ### Result
 
+Done. Behavior and messages are the same.
+
+- `setup.js`: `squadProblem({ threat, count, maxThreat })` (`'over'` first, `'empty'`, `null`). `affiliations.js`: `affiliationChoices`. `rosters/cards.js`: `squadAffiliationChoices`. Tests for the first two.
+- `handleSquadReady` and `handleSetupAffiliation` (`useGameSetup.js`) and the GameSetup squad panel and affiliation rows use them. Message text stays in `GameSetup.jsx`.
+- `GameSetup` takes `parsed` and no longer parses. App passes `parsedRosters` through Scene (new `parsedRosters` prop; `rosters` stays in Scene for the roster cards and `rackHiddenSides`).
+- App: `popupOpen` once, used by `wheelState`, the `useTableKeys` state and the peek card.
+- Docs: `setup-game.md` code table.
+
 ## Step 6: One Dialog
 
 Work:
