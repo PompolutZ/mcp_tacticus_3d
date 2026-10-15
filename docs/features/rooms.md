@@ -103,6 +103,8 @@ How it works:
 - three.js counts loaded files for the whole page life. The loading screen shows the files since it mounted.
 - The Sandbox uses the same screen, with the files of its start map.
 
+If the table cannot open (opening the document or filling the table throws), the session closes what it opened, reports the error (`reportError('promise', error)`), and leaves for the lobby with "Could not open the table. Try again." The other exits to the lobby are: the server has no table for the player (404, 403, other), the table is of a newer version, and the host deleted the room. One function ends the last one, for both ways to learn it.
+
 Character trays, crisis cards, tokens and tactic cards are not in the list. They are small, and each has its own Suspense, so each shows when its image is in.
 
 ## Storage
@@ -173,7 +175,8 @@ In a single player room, the user id in `localStorage` is the owner of every roo
 | File | Content |
 |---|---|
 | `apps/web/src/Root.jsx` | The page of the URL hash: Lobby, Room or Sandbox |
-| `apps/web/src/Table.jsx` | Opens the document of a room or the Sandbox, shows the loading screen, mounts `App`. Opens a multiplayer room from the server and runs the table writer |
+| `apps/web/src/Table.jsx` | Shows the loading screen, mounts `App` when the session has opened the table. Gives the session its page and server functions |
+| `apps/web/src/rooms/openTableSession.js` | `openTableSession`: opens the document of a room or the Sandbox. Multiplayer: reads the table from the server, runs the table writer and the connection, logs the traffic. Plain module, tested with fakes |
 | `apps/web/src/rooms/localDocs.js` | Cleanup: `deleteStaleRooms` (single player), stale multiplayer copies and squads |
 | `apps/web/src/rooms/store.js` | `localStorage`: user id, room code, list, read, create. `saveRoomRecord`, `roomDocName`, `deleteRoom` (also deletes the IndexedDB database). `createRoom` takes both rosters |
 | `apps/web/src/rooms/tableDoc.js` | `openTableDoc`: the document with IndexedDB, the 5-second timeout and the in-memory fallback. `watchRoomRecord`: writes the room record |

@@ -370,6 +370,12 @@ User: open the Sandbox, a single player room, a multiplayer room as host and as 
 
 ### Result
 
+Done. New `rooms/openTableSession.js` (the open effect body, 328 lines) with `openTableSession({ room, userId, deps, onOpen, onServerWarning, onConnection, onExit })` giving `{ close, flush, retry }`. `Table.jsx` 353 to 112 lines: `TABLE_DEPS`, one effect, `sessionRef`. One `roomGone()` for both host-deleted paths. New `.catch`: closes, `reportError('promise', err)`, exit "Could not open the table. Try again."; a cancelled open ignores it. The `newer` exit and the schema in the hello stay. Test `openTableSession.test.js` (17 tests, fakes). Feature docs: `rooms.md` (Loading error behavior, file table), `peer-to-peer.md` (line 166 and code layout).
+
+- Checks: format, lint 58 warnings (same), test 870 web pass (api and infra pass), build ok. Moved code differs only by `link.current` to `link` (and the same for `record`, `writer`), `exit.current` to `onExit`, `deps.*` calls, `setX` to callbacks.
+- Deviations: `deps` also has `schema()` (`schemaOverride() ?? SCHEMA`, since debug flags read the page). `close()` sets `cancelled` and shuts down; the internal exits call `shutdown()` only. The multiplayer test uses a fake `connectRoom`; traffic logging is not tested.
+
+
 ## Step 10: Setup texts
 
 Work:

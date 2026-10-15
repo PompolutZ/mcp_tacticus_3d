@@ -163,7 +163,7 @@ A dropped network or a sleeping laptop. There is no ICE restart: a drop makes a 
 - A `bye` of the other player gives `waiting`. 15 minutes with no message gives `stopped`. A 404 gives `gone`. A `hello` of the other player does not end `reconnecting`.
 - There are no `online` and `offline` events. The repeats find the network within 2 s.
 
-`connectRoom` calls `onChannelsEnd()` once for each opened attempt when it ends. A browser fires no `close` event on a channel when its own `pc.close()` runs, so `Table.jsx` uses this call to end the traffic count, stop the Yjs sync and detach the live channel.
+`connectRoom` calls `onChannelsEnd()` once for each opened attempt when it ends. A browser fires no `close` event on a channel when its own `pc.close()` runs, so `rooms/openTableSession.js` uses this call to end the traffic count, stop the Yjs sync and detach the live channel.
 
 When the host deletes a room, the host is in the lobby, where its room is not open and has no connection. So the host's browser cannot tell the guest over the connection. The guest learns from its poll. While the guest waits, it polls. After the delete, a poll gets 404 within about 32 s (the seat cache of 30 s plus one poll). The guest's browser then opens the lobby with "The host deleted room K7Q2-M9XD." and deletes its local copy. A guest whose polls stopped finds out at its next table write, which gets 404 (`docs/features/auth.md`, "Rules").
 
@@ -509,7 +509,8 @@ Flags in the page URL. They work only in dev builds (`import.meta.env.DEV`), so 
 
 ```
 apps/web/src/
-  Table.jsx       opens the document of a room or the Sandbox, then mounts App. Multiplayer rooms: reads the table from the server, runs the table writer, starts the connection, pauses the guest's writer while connected
+  Table.jsx       mounts App when the session has opened the table of a room or the Sandbox
+  rooms/openTableSession.js  the open session. Multiplayer rooms: reads the table from the server, runs the table writer, starts the connection, pauses the guest's writer while connected
   rooms/tableDoc.js  openTableDoc (IndexedDB, timeout, memory fallback), watchRoomRecord
 apps/web/src/net/
   doc.js          the layout of the Y.Doc, SCHEMA, createTable, fillTable, encodeTable. No React
