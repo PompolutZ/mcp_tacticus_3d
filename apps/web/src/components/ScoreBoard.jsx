@@ -31,11 +31,11 @@ import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useDisposeMaterials } from './useDisposeMaterials.js'
 import { useHoverCursor } from './useHoverCursor.js'
 import { SURFACE_GAP } from '../pieces/heights.js'
+import { NO_ROTATION } from '../characters/base.js'
 
 // TTS mirrors X when it imports an OBJ. With the z → -z conversion, this is a 180° turn around Y (see
 // Terrain.jsx).
 const IMPORT_ROTATION = [0, Math.PI, 0]
-const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 // Each VP marker faces its owner: the image top points away from the player's side
 const VP_MARKER_YAW = { host: 0, guest: Math.PI }
 // Two markers closer than this are on the same spot. Snapped markers have the same position exactly.

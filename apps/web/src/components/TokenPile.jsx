@@ -15,10 +15,10 @@ import DragFootprint from './DragFootprint.jsx'
 import TokenSolid from './TokenSolid.jsx'
 import useLiveFollow from './useLiveFollow.js'
 import { SURFACE_GAP } from '../pieces/heights.js'
+import { NO_ROTATION } from '../characters/base.js'
 
 // A thin cylinder as wide as the token finds the ground under it, the same as LooseToken.jsx
 const HALF_H = 0.02
-const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 const NO_RAYCAST = () => null
 // The two tokens under the top one are a little off center, so the stack looks like a pile. Picked by look.
 const LOWER_OFFSETS = [

@@ -1,12 +1,12 @@
 import { test, before } from 'node:test'
 import assert from 'node:assert/strict'
 import { createRequire } from 'node:module'
+import { NO_ROTATION } from './characters/base.js'
 import { castDown, lowerFloor, BODY_DYNAMIC, BODY_KINEMATIC_POSITION } from './physics.js'
 
 // Headless Rapier world (the same version as the app, nested under @react-three/rapier). Fixed boxes
 // stand for terrain. world.step() runs once before the casts, or castShape finds nothing.
 const require = createRequire(import.meta.resolve('@react-three/rapier'))
-const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 const HALF_H = 0.059
 let rapier
 let world

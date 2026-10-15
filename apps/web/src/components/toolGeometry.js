@@ -65,7 +65,7 @@ export function alongHalf(shape, side, dist) {
 }
 
 // The half whose end (length from the tool center) is nearer to point p
-export function nearerHalf(shape, length, p) {
+function nearerHalf(shape, length, p) {
   const [rightEnd, leftEnd] = SIDES.map((side) => alongHalf(shape, side, length))
   return Math.hypot(rightEnd.x - p.x, rightEnd.z - p.z) <=
     Math.hypot(leftEnd.x - p.x, leftEnd.z - p.z)
@@ -85,7 +85,7 @@ export function turnAround(pose, pivot, d) {
 // Range 1 (see docs/features/range-movement-tools.md, "Tools"): the tool lies across the line from the base, and its width measures
 // range 1. Returns the tool center for this yaw, so that the base (center c) touches the long side
 // `across` (±1: local ±Z) at the corner of the end `end` (±1: local ±X).
-export function cornerSnapCenter(c, radius, yaw, tip, halfWidth, end, across) {
+function cornerSnapCenter(c, radius, yaw, tip, halfWidth, end, across) {
   const o = fromLocal({ x: 0, z: 0, yaw }, { x: end * tip, z: across * (halfWidth + radius) })
   return { x: c.x - o.x, z: c.z - o.z }
 }

@@ -87,8 +87,6 @@ export function trayControlsLocalZ(cards) {
   return TRAY_CONTROLS_LOCAL_Z + extraDepth(cards)
 }
 
-// Local z of the On row (the same for every tray, the host's and a grunt's)
-export const TRAY_ON_LOCAL_Z = ON_Z
 // Token rows start at the owner's left, as in TTS. That is local -x for both players (see trayYaw).
 const FIRST_TOKEN_X = -TRAY_WIDTH / 2 + TOKEN_SIZE / 2
 

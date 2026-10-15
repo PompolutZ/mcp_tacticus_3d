@@ -17,7 +17,7 @@ export function lockedTitle(setup, what, ctx) {
 }
 
 // The reason why the deck of `type` of `team` cannot start the mission, or null
-export function deckProblem(team, type, parsed, ctx) {
+function deckProblem(team, type, parsed, ctx) {
   const other = otherTeam(team)
   if (!parsed[other]) return `Load ${possessive(other, ctx)} roster first`
   if (parsed[team][type].length === 0)

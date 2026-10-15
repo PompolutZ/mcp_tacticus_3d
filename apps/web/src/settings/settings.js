@@ -19,12 +19,12 @@ const HUD_DEFAULT = ['power', 'cleanup']
 export const DEFAULT_VOLUME = 10
 
 // Size of the spectator columns in percent (docs/features/spectator-view.md, "Squad columns")
-export const DEFAULT_SPECTATOR_SIZE = 100
+const DEFAULT_SPECTATOR_SIZE = 100
 export const MIN_SPECTATOR_SIZE = 60
 export const MAX_SPECTATOR_SIZE = 150
 
 // Step of a Q / E press and a wheel step, in degrees (docs/features/key-shortcuts.md, "Q / E")
-export const DEFAULT_TURN_STEP = 15
+const DEFAULT_TURN_STEP = 15
 export const MIN_TURN_STEP = 5
 export const MAX_TURN_STEP = 15
 

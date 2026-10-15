@@ -19,7 +19,7 @@ export const CONDITIONS = [
   'anywhere',
 ]
 
-export const WHEEL_CODES = ['WheelUp', 'WheelDown']
+const WHEEL_CODES = ['WheelUp', 'WheelDown']
 const MODIFIER_CODES = {
   ShiftLeft: 'shift',
   ShiftRight: 'shift',
@@ -239,7 +239,7 @@ export function effectiveBindings(overrides) {
 
 const MODS = ['shift', 'ctrl', 'alt', 'meta']
 
-export function sameInput(a, b) {
+function sameInput(a, b) {
   return a.code === b.code && MODS.every((m) => !!a[m] === !!b[m])
 }
 const sameBinding = (a, b) => sameInput(a, b) && a.when === b.when
@@ -274,7 +274,7 @@ export function findConflicts(bindings, binding, exceptId) {
 // Whether the code is one that a keyboard or the wheel sends
 const CODE_PATTERN =
   /^(Key[A-Z]|Digit\d|Numpad(\d|Add|Subtract|Multiply|Divide|Decimal|Enter|Equal)|F([1-9]|1\d|2[0-4])|Arrow(Up|Down|Left|Right)|Space|Enter|Escape|Tab|Backspace|Delete|Insert|Home|End|PageUp|PageDown|Minus|Equal|Bracket(Left|Right)|Backslash|Semicolon|Quote|Backquote|Comma|Period|Slash|IntlBackslash|CapsLock)$/
-export function isKnownCode(code) {
+function isKnownCode(code) {
   return (
     typeof code === 'string' &&
     (CODE_PATTERN.test(code) || code in MODIFIER_CODES || WHEEL_CODES.includes(code))
@@ -349,7 +349,7 @@ export function acceptsInput(id, code) {
 }
 
 // Combos that the browser or the system keeps: the page never gets them. Shift and Alt do not matter.
-export const RESERVED = [
+const RESERVED = [
   ...['KeyW', 'KeyQ', 'KeyT', 'KeyN', 'Tab', 'KeyH', 'KeyM'].map((code) => ({ code, meta: true })),
   ...['KeyW', 'KeyT', 'KeyN', 'Tab'].map((code) => ({ code, ctrl: true })),
 ]

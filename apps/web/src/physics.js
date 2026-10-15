@@ -125,7 +125,7 @@ export function lowerFloor(world, rapier, shape, rotation, x, z, halfHeight, top
 }
 
 // Free room above the base under an overhang, in inches, that a lower floor needs
-export const LOWER_MARGIN = 0.05
+const LOWER_MARGIN = 0.05
 
 // Solver groups of a collider: all groups give contact forces, none gives no forces. A model that the
 // other player moves has none, so it pushes nothing (plan 09, decision 9).

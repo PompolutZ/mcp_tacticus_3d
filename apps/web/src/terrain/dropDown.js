@@ -6,7 +6,7 @@ export const STAND_GAP = 0.2
 // Queries start this far above the bottom, so a piece that sinks a little into its support still hits it
 export const STAND_LIFT = 0.3
 // A fall shorter than this (inches) is no fall
-export const MIN_FALL = 0.02
+const MIN_FALL = 0.02
 
 // The centers of an n x n grid of cells over the box { minX, maxX, minZ, maxZ }, as [{ x, z }]
 export function sampleGrid({ minX, maxX, minZ, maxZ }, n = 4) {

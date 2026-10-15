@@ -4,7 +4,7 @@
 import { MAPS } from './maps/index.js'
 import { MAP_CARD_BACK, mapCard } from './files.js'
 
-export const RANDOM_MAP_NAME = 'Random map'
+const RANDOM_MAP_NAME = 'Random map'
 
 export function mapFace(mapId) {
   if (mapId == null) return { src: MAP_CARD_BACK, name: RANDOM_MAP_NAME }

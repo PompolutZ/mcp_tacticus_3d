@@ -3,7 +3,7 @@ import { OccludedHtml } from './LabelOcclusion.jsx'
 // HTML that lies flat on the table, just above it. `rotation` is one of the two below.
 // 1 CSS px of the HTML is this many inches on the table. drei Html with transform makes 1 CSS px
 // distanceFactor / 400 world units.
-export const INCHES_PER_PX = 0.04
+const INCHES_PER_PX = 0.04
 
 // Round CSS px of a length in inches
 export const px = (inches) => Math.round(inches / INCHES_PER_PX)

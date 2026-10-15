@@ -3,7 +3,7 @@
 // query strings. The first error is always sent. A failed send is ignored and never reported again.
 import { subscribeErrors } from './errors.js'
 
-export const MAX_PER_PAGE = 5
+const MAX_PER_PAGE = 5
 // The server refuses more than these
 const MAX = { message: 500, stack: 8000, version: 64, agent: 300 }
 

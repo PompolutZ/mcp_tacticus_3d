@@ -26,7 +26,7 @@ export function modelCharacterId(modelId) {
 }
 
 // Id of construct n (from 1) of a character
-export function constructModelId(characterId, n) {
+function constructModelId(characterId, n) {
   return `${characterId}${CONSTRUCT}${n}`
 }
 
@@ -36,7 +36,7 @@ export function isConstructId(modelId) {
 }
 
 // Id of the second model of a character
-export function secondModelId(characterId) {
+function secondModelId(characterId) {
   return characterId + SECOND
 }
 

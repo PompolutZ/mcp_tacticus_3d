@@ -217,6 +217,14 @@ User: no visible change. Open the Sandbox and play one round.
 
 ### Result
 
+Done. Deviations:
+
+- Fallow listed 35 unused exports (earlier plans added 8: `downloadFailure`, `missingStatus` in `scripts/lib/cardLoop.mjs`, `INCHES_PER_PX`, `nearerHalf`, `cornerSnapCenter`, `FOOTPRINT_CAST_HALF_H`, `HOVER_MARGIN`, `REST_TIME`). All 35 handled.
+- Deleted (nothing used them): `TRAY_ON_LOCAL_Z`, `resetErrorsForTest`, `PILL_ICONS`. The other 32 only lost `export`.
+- `@dimforge/rapier3d-compat` added to `apps/web` dependencies as `^0.14.0` (the version under `@react-three/rapier`); `pnpm-lock.yaml` updated.
+- Extra: the local copies of `NO_ROTATION` in `ScoreBoard`, `CrisisToken`, `TacticCard`, `LooseToken`, `TokenPile`, `TokenDragPreview` and `physics.test.js` are gone; they import it from `characters/base.js`.
+- Checks: `pnpm fallow dead-code` clean, format, lint 52 warnings (baseline 52), `pnpm test` 928 pass, `pnpm --filter web build` ok.
+
 ## Step 6: Type check of `net/`
 
 Work:

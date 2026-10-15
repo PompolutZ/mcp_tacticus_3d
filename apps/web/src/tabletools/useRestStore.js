@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 
 // A tool rests this long (no change of pose, bend, snap or mode) before it is written to the document
-export const REST_TIME = 0.3
+const REST_TIME = 0.3
 
 // Writes the stored fields of a tool once none of them changed for REST_TIME. read() runs on every frame, because
 // the pose is in the body, not in React state. It gives { cur, entry, onStore }: the fields now, the entry in the

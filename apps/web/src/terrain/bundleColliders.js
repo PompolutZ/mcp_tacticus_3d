@@ -12,7 +12,7 @@
 const IMPORT_QUATERNION = [0, 1, 0, 0] // [x, y, z, w]: 180° around Y
 
 // Placement scale as [sx, sy, sz]. A number is a uniform scale.
-export function scaleVector(scale) {
+function scaleVector(scale) {
   return Array.isArray(scale) ? scale : [scale, scale, scale]
 }
 

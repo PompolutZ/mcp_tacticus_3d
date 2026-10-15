@@ -11,10 +11,10 @@ import DragFootprint from './DragFootprint.jsx'
 import TokenFace from './TokenFace.jsx'
 import useLiveFollow from './useLiveFollow.js'
 import { SURFACE_GAP } from '../pieces/heights.js'
+import { NO_ROTATION } from '../characters/base.js'
 
 // A thin cylinder as wide as the token finds the ground under it, the same as CrisisToken.jsx.
 const HALF_H = 0.02
-const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 
 // A character token that lies on the table: dropped there from a Give source, a pile or the Library
 // (see crisis/useCrisisTokens.js, handleTokenDrop). It has no physics body. Each frame it sits on the table or on

@@ -21,6 +21,7 @@ import { useHoverCursor, useHoverReport } from './useHoverCursor.js'
 import TurnHandle from './TurnHandle.jsx'
 import useLiveFollow from './useLiveFollow.js'
 import { SURFACE_GAP } from '../pieces/heights.js'
+import { NO_ROTATION } from '../characters/base.js'
 
 // A token is a 1" circle, TOKEN_THICKNESS thick (tokens.json size is used for the shape, not the exact
 // dims of the current tokens, which are all 1" circles)
@@ -34,7 +35,6 @@ const SEGMENTS = 64
 // (half-transparent) rim. A circle face already cuts off the corners. alphaTest also drops the
 // most transparent rim pixels, so no light fringe shows around the edge.
 const FACE_ALPHA_TEST = 0.5
-const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 // Range 3 (6") from the token edge, for the Zone Arc outline
 const ARC_RADIUS = RADIUS + 6
 const ARC_FILL = '#f5c542'

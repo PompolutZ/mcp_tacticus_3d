@@ -21,8 +21,7 @@ export const mergeCounts = (target, dragged) =>
   withCount(target, countOf(target) + countOf(dragged))
 
 // The loose token of `pile` (the same key and `pile` link), or undefined
-export const pileToken = (loose, pile) =>
-  loose.find((t) => t.key === pile.key && t.pile === pile.id)
+const pileToken = (loose, pile) => loose.find((t) => t.key === pile.key && t.pile === pile.id)
 
 // The loose token of the same key that a token dropped at `point` ({ x, z }) joins: the last one in the
 // list (the one on top) whose circle holds the point. radius: half the token size. excludeId: the dragged token.

@@ -64,7 +64,7 @@ const DOWNLOAD_TIMEOUT_MS = 120_000
 // or the file has an unknown type. The file is written under a temp name and renamed, so a stopped run
 // leaves no half file in the cache.
 // kind: see cacheTarget.
-export async function downloadToCache(url, kind) {
+async function downloadToCache(url, kind) {
   const res = await fetch(url, { signal: AbortSignal.timeout(DOWNLOAD_TIMEOUT_MS) })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const bytes = new Uint8Array(await res.arrayBuffer())

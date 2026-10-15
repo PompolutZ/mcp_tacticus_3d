@@ -9,11 +9,11 @@
 // - convertPlan(plan, card): converts the files of a plan, returns `{ status, warnings? }`
 // Returns `{ results, done }`: `results` is `{ key, card, status, warnings? }` per card, `done` the plans that are ready.
 
-export function downloadFailure(failures) {
+function downloadFailure(failures) {
   return `failed: download ${failures.map((f) => `${f.url} (${f.reason})`).join(', ')}`
 }
 
-export function missingStatus(missing) {
+function missingStatus(missing) {
   return `missing in TTS cache: ${missing.map((f) => f.label).join(', ')}`
 }
 

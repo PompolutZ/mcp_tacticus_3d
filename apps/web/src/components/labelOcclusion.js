@@ -1,9 +1,9 @@
 // The pure part of label occlusion (LabelOcclusion.jsx): when to check, and the ray of one label.
 
 export const CHECK_INTERVAL = 0.1 // seconds between checks
-export const MOVE_EPSILON = 0.001 // world units: a camera or anchor move below this is no move
-export const TURN_EPSILON = 0.0001 // 1 - |dot| of two quaternions: a turn below this is no turn
-export const RAY_END_MARGIN = 0.1 // the ray stops this far before the anchor, so a surface under it does not hide it
+const MOVE_EPSILON = 0.001 // world units: a camera or anchor move below this is no move
+const TURN_EPSILON = 0.0001 // 1 - |dot| of two quaternions: a turn below this is no turn
+const RAY_END_MARGIN = 0.1 // the ray stops this far before the anchor, so a surface under it does not hide it
 
 // True when the point a = {x, y, z} is more than eps from b
 export function pointMoved(a, b, eps = MOVE_EPSILON) {

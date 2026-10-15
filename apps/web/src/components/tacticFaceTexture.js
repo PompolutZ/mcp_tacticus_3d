@@ -16,8 +16,8 @@ import notoWdth from '@fontsource-variable/noto-sans/files/noto-sans-latin-wdth-
 // serialized into an SVG <foreignObject> and drawn into the canvas as an image. An SVG that is loaded
 // as an image cannot fetch files, so the fonts, the art and the icons are inlined as data URLs.
 // The result is the same face that the page shows, with the same fonts and the same text fit.
-export const CANVAS_WIDTH = 728
-export const CANVAS_HEIGHT = 1019
+const CANVAS_WIDTH = 728
+const CANVAS_HEIGHT = 1019
 
 const XHTML = 'http://www.w3.org/1999/xhtml'
 

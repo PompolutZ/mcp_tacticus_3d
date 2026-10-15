@@ -5,7 +5,7 @@ import { assetUrl } from '../assets/index.js'
 
 // Jarvis icon id (the x of `!x` in a body text) -> file name. Jarvis draws the movement icons
 // with the range icons. An id that is not here ("Ulik") draws as text, see faceBody.js.
-export const BODY_ICONS = {
+const BODY_ICONS = {
   active: 'active',
   block: 'block',
   critical: 'critical',
@@ -31,17 +31,6 @@ export const BODY_ICONS = {
   threat: 'threat',
   vp: 'vp',
   wild: 'wild',
-}
-
-// Card type of an attack or superpower (Jarvis `type`) -> file of its pill badge
-export const PILL_ICONS = {
-  active: 'pill-active',
-  energy: 'pill-energy',
-  innate: 'pill-innate',
-  leadership: 'pill-leadership',
-  mystic: 'pill-mystic',
-  physical: 'pill-physical',
-  reactive: 'pill-reactive',
 }
 
 // Other icons of the template, by file name: range, stat-strength, stat-cost, feather.

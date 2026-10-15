@@ -21,11 +21,11 @@ import useLiveFollow from './useLiveFollow.js'
 import { useColorTexture } from './useColorTexture.js'
 import { useTacticFaceMap } from './useTacticFaceTexture.js'
 import { isFaceKey } from '../tactics/faceData.js'
+import { NO_ROTATION } from '../characters/base.js'
 import { useHoverCursor, useHoverReport } from './useHoverCursor.js'
 
 // A thin box as large as the card finds the ground under it, the same as LooseToken.jsx
 const HALF_H = 0.01
-const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 // Cards that overlap lie in the order of the tacticCards list (App.jsx): each card is this much
 // higher than the card before it, so two cards do not z-fight
 const STACK_STEP = 0.005

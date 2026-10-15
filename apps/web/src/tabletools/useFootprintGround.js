@@ -4,9 +4,9 @@ import { castDown } from '../physics.js'
 import { SIDES, yawQuat, toolShape, alongHalf } from '../components/toolGeometry.js'
 
 // Half height of the flat box cast down to find the ground under a footprint
-export const FOOTPRINT_CAST_HALF_H = 0.01
+const FOOTPRINT_CAST_HALF_H = 0.01
 // Extra distance around the footprint where terrain already raises the dragged tool
-export const HOVER_MARGIN = 0.5
+const HOVER_MARGIN = 0.5
 
 // Returns groundY(x, z, yaw): top of the table or terrain under the whole footprint of the tool
 // with its center at (x, z), or null when nothing is under it.

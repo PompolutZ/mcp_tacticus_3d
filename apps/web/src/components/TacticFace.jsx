@@ -18,7 +18,7 @@ export const FACE_HEIGHT = 640
 
 // Fonts the face uses, to wait for before the text is measured. fontsource files are loaded by their
 // unicode range, so the text is a latin letter.
-export const FACE_FONTS = [
+const FACE_FONTS = [
   '500 14px "Barlow Condensed"',
   '600 20px "Barlow Condensed"',
   '800 31px "Barlow Condensed"',

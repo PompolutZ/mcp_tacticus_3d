@@ -10,6 +10,7 @@ import { TOKEN_RADIUS } from './CrisisToken.jsx'
 import DragFootprint from './DragFootprint.jsx'
 import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
 import { SURFACE_GAP } from '../pieces/heights.js'
+import { NO_ROTATION } from '../characters/base.js'
 
 // The dragged token, real size, TOKEN_DRAG_LIFT above the table or terrain point under the pointer
 // (see drag/useTokenDrag.js). children: the token, with its bottom at y = 0 and no pointer events: a character
@@ -61,7 +62,6 @@ export default function TokenDragPreview({ pointRef, start, stacks = false, chil
 
 // A thin cylinder as wide as the token finds the ground under it, the same as LooseToken.jsx
 const HALF_H = 0.02
-const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 
 // The preview of a new piece that the other player drags (plan 09, decision 22): the same look, height and
 // footprint as TokenDragPreview, at the live pose of spawnKey. It is hidden until the first pose. The

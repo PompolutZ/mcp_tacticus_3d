@@ -6,7 +6,7 @@ import { tacticFaceCanvas } from './tacticFaceTexture.js'
 // The drawn face of a Team Tactic card as a texture, or null for a card that has none (isFaceKey)
 // and while the face is being drawn. The canvas is shared by all cards with this key (tacticFaceTexture.js),
 // the texture is the card's own and is freed with it.
-export function useTacticFaceTexture(key) {
+function useTacticFaceTexture(key) {
   const [texture, setTexture] = useState(null)
   useEffect(() => {
     if (!isFaceKey(key)) return undefined
