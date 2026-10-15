@@ -162,6 +162,8 @@ User: open a multiplayer room, move pieces, reload. The table is the same after 
 
 ### Result
 
+Done. `mergeTables` in `apps/api/src/rooms/table.ts` applies both inputs to a new `Y.Doc` and returns `Y.encodeStateAsUpdate`. New `apps/api/test/merge-tables.test.ts` (smaller than `mergeUpdates`, same content, old stored table becomes compact). `docs/features/auth.md` "Table on the server" updated. Checks: format, lint (52 warnings, same), test, api typecheck, web build all pass.
+
 ## Step 3: Material leaks, drag vectors
 
 Work:
