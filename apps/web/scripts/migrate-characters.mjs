@@ -288,10 +288,13 @@ async function migrateCharacter(row, getRipper) {
 // Mod token names (row.cToken) as tokens.json keys, the same slug as migrate-tokens.mjs
 // gives each token. A name that is not a migrated token (affiliation tokens, mod typos,
 // tokens phase 3 skipped, ...) is left out and gets a warning instead of a guessed key.
+// Dice result tokens (group "dice") are left out on purpose, without a warning: they come from the
+// Cosmic Awareness card piles (docs/features/team-tactic-cards.md), not from a character's Give row.
 function tokenKeys(names, field, warnings) {
   const keys = []
   for (const name of (names ?? []).filter(Boolean)) {
     const key = tokenSlug(name)
+    if (tokensData[key]?.group === 'dice') continue
     if (key in tokensData) keys.push(key)
     else
       warnings.push(

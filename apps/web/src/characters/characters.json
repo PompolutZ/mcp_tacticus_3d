@@ -14,15 +14,7 @@
     "name": "Adam Warlock",
     "base": "small",
     "figure": "model",
-    "rotation": 0,
-    "tokens": [
-      "fail",
-      "crit",
-      "hit",
-      "shield",
-      "wild",
-      "blank"
-    ]
+    "rotation": 0
   },
   "agent-venom": {
     "id": "01000101",
