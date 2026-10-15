@@ -2,21 +2,18 @@ import { RigidBody, ConvexHullCollider, useRapier } from '@react-three/rapier'
 import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 import { useBodyRef } from '../useBodyRef.js'
-import { throwMove } from './throwPath.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
-import { freeSpawnYaw, storedFields, sameStored } from './storedTool.js'
+import { freeSpawnYaw } from './storedTool.js'
 import { MOVE_TIP, RANGE_TIP } from '../tabletools/toolTips.js'
 import { onRack } from '../tabletools/layout.js'
 import { useDragTool } from '../tabletools/useDragTool.js'
-import { useRestStore } from '../tabletools/useRestStore.js'
+import { useToolLimits } from '../tabletools/useToolLimits.js'
+import { useToolStore } from '../tabletools/useToolStore.js'
 import { useFootprintGround } from '../tabletools/useFootprintGround.js'
 import { ToolFootprint, RangeMark } from './ToolFootprint.jsx'
-import { flipTool } from './toolFlip.js'
 import { aimTurn } from './aimTurn.js'
 import { toolAction } from './toolInput.js'
-import { clampRange, rangeReach, withinRange } from './rangeOne.js'
-import { lineClamp, placeClamp, touches } from './placeLock.js'
 import { useRangeParts, useMovementParts, hullPoints } from './ToolParts.jsx'
 import { FlatHtml, ToolButton, BendButton } from './ToolButtons.jsx'
 import {
@@ -30,18 +27,13 @@ import {
   wrapAngle,
   toolPose,
   toolShape,
-  nearerHalf,
   turnAround,
-  cornerSnapCenter,
-  nearerCorner,
-  snapPose,
   anglePose,
   aimPose,
   limitTurn,
-  snapPoseOne,
-  throwLine,
   sameModel,
-  lockKey,
+  spawnPose,
+  snapPlacement,
 } from './toolGeometry.js'
 
 // A movement tool bends at its hinge, but never past a right angle, the same as the plastic one
@@ -191,27 +183,6 @@ function Tool({
     const target = stored && models.find((model) => sameModel(model, stored))
     return target ? { target, side: stored.side, across: stored.across } : null
   })
-  // While Place is on: the far end at the time Place turned on. The Place button stays there.
-  // Off: null. While Place is on, the locked character keeps its base touching the footprint.
-  const [placeSide, setPlaceSide] = useState(null)
-  const placing = selected && placeSide !== null
-  // R1 tool: Place 1 is on. The first character that a drag brings within range 1 of the snapped piece is
-  // locked there, until Place 1 turns off. The snapped piece itself is not locked.
-  const [placeOne, setPlaceOne] = useState(false)
-  const lockOne = selected && placeOne && !!snap
-  // The model locked to this tool (`kind:id`), or null before a drag locks one. See ownsDrag below.
-  const lockedRef = useRef(null)
-  // Place moves the character to the far end, the end that does not touch the snapped base. A free
-  // tool has no far end, so Place is shown there only while it is on, so that it can be turned off.
-  const placeButtonSide = placeSide ?? (snap ? OTHER[snap.side] : null)
-  // While Throw is on: { side, target }, the end the Throw started from and the locked character.
-  // The stop point is found again at each clamp. The Throw button stays at that end. Off: null. A drag of the
-  // locked character keeps its base center on the middle line of the tool (throwLine), up to the stop point.
-  // Place and Throw are never on at the same time: each one hides the other's button.
-  const [throwLock, setThrowLock] = useState(null)
-  const throwing = selected && throwLock !== null
-  const modelsRef = useRef(models)
-  modelsRef.current = models
   // Model under the pointer at the last move of a body drag, or null. undefined before the first move.
   // The tool snaps when the pointer moves onto a model, not when the drag starts on one.
   const overRef = useRef(undefined)
@@ -230,13 +201,17 @@ function Tool({
     (kind) => {
       // Only a free tool moves (see dragPlan)
       if (kind === 'move') overRef.current = undefined
+      // Runs after the render, so the later function is set
+      // eslint-disable-next-line react-hooks/immutability
       dragChange(kind)
     },
     onDragMove,
     () => {
       const kind = dragKind.current
+      // eslint-disable-next-line react-hooks/immutability
       dragChange(null)
       // Read on use: the closure is from the render of the press
+      // eslint-disable-next-line react-hooks/immutability
       const giveBack = latest.current?.onReturn
       const rb = liveRb()
       if (kind !== 'move' || !giveBack || !rb) return
@@ -453,48 +428,18 @@ function Tool({
     const c = model.getCenter()
     const rb = liveRb()
     if (!c || !rb) return false
-    let pose = toolPose(rb)
-    let snapTurn = turn
-    if (angle) {
-      // Same direction, moved so that both arms touch the base
-      const { x, z } = anglePose(c, model.radius, halfWidth, pose.yaw + Math.PI / 2)
-      const ground = groundY(x, z, pose.yaw)
-      rb.setTranslation(
-        { x, y: ground === null ? rb.translation().y : ground + hoverHeight, z },
-        true,
-      )
-      setSnap({ target: model, side: 'left' })
-      return true
-    }
-    let center, side, across
-    if (rangeOne) {
-      const corner = nearerCorner(pose, c)
-      across = corner.across
-      center = cornerSnapCenter(c, model.radius, pose.yaw, tip, halfWidth, corner.end, across)
-      side = corner.end > 0 ? 'right' : 'left'
-    } else {
-      let shape = toolShape(pose, snapTurn)
-      side = nearerHalf(shape, tip, c)
-      if (bendable && side === 'left') {
-        // A movement tool snaps with its right (indented) end: flip it, the outline stays in place
-        const flipped = flipTool(pose, snapTurn)
-        pose = flipped.pose
-        snapTurn = flipped.turn
-        rb.setRotation(yawQuat(pose.yaw), true)
-        setTurn(snapTurn)
-        shape = toolShape(pose, snapTurn)
-        side = 'right'
-      }
-      // The base center is past the end of that half, so the tool center is that far back from it
-      const back = tip + model.radius
-      center = { x: c.x - back * Math.cos(shape[side]), z: c.z + back * Math.sin(shape[side]) }
-    }
-    let placed = { x: center.x, z: center.z, yaw: pose.yaw }
-    // At an angle tool, the move direction (away from the base) stays in range: turn the tool around the base
-    const open = angleLimit?.(model) ?? null
-    if (open !== null && !rangeOne) {
-      const moveYaw = toolShape(pose, snapTurn)[side] + Math.PI
-      placed = turnAround(placed, c, limitTurn(moveYaw, open, 0))
+    const open = angle ? null : (angleLimit?.(model) ?? null)
+    const placed = snapPlacement(toolPose(rb), turn, c, model.radius, {
+      angle,
+      rangeOne,
+      bendable,
+      tip,
+      halfWidth,
+      open,
+    })
+    if (placed.flipped) {
+      rb.setRotation(yawQuat(placed.flipped.pose.yaw), true)
+      setTurn(placed.flipped.turn)
     }
     const { x, z } = placed
     const ground = groundY(x, z, placed.yaw)
@@ -502,8 +447,13 @@ function Tool({
       { x, y: ground === null ? rb.translation().y : ground + hoverHeight, z },
       true,
     )
-    rb.setRotation(yawQuat(placed.yaw), true)
-    setSnap({ target: model, side, across })
+    // The angle tool keeps its yaw
+    if (!angle) rb.setRotation(yawQuat(placed.yaw), true)
+    setSnap(
+      angle
+        ? { target: model, side: placed.side }
+        : { target: model, side: placed.side, across: placed.across },
+    )
     return true
   }
 
@@ -526,177 +476,62 @@ function Tool({
     if (!center || !rb) return
     // snapPoseOne puts the base on the +Z long side. A movement tool snaps with its right (indented) end.
     const spawnSide = bendable ? 'right' : 'left'
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSnap({ target: spawnTarget, side: spawnSide, across: 1 })
     // The angle tool aims at the aim piece, or at the mat center. A movement tool at an angle tool points along it.
-    const pose = angle
-      ? aimPose(center, spawnTarget.radius, halfWidth, aim?.getCenter() ?? { x: 0, z: 0 }, 'away')
-      : rangeOne
-        ? snapPoseOne(center, spawnTarget.radius, tip, halfWidth)
-        : snapPose(center, spawnTarget.radius, tip, angleLimit?.(spawnTarget), spawnSide)
+    const pose = spawnPose({
+      center,
+      radius: spawnTarget.radius,
+      angle,
+      rangeOne,
+      bendable,
+      aimPoint: angle ? aim?.getCenter() : undefined,
+      tip,
+      halfWidth,
+      open: angle || rangeOne ? undefined : angleLimit?.(spawnTarget),
+    })
     const ground = groundY(pose.x, pose.z, pose.yaw) ?? 0
     rb.setTranslation({ x: pose.x, y: ground + hoverHeight, z: pose.z }, true)
     rb.setRotation(yawQuat(pose.yaw), true)
     // Only at spawn. Selecting another character later must not move the tool.
   }, [])
 
-  // Writes the stored fields once none of them changed for REST_TIME. The values are read on every frame,
-  // because the pose is in the body, not in React state.
-  const latest = useRef(null)
-  useEffect(() => {
-    latest.current = { turn, snap, mode, entry, onStore, onReturn }
-  })
-  // The live pose for LiveSync: the body and the bend, read when asked
-  useEffect(() => {
-    liveRef?.(() => {
-      const rb = liveRb()
-      if (!rb || !latest.current) return null
-      const t = rb.translation()
-      const { right, left } = latest.current.turn
-      return { x: t.x, y: t.y, z: t.z, yaw: toolPose(rb).yaw, right, left }
-    })
-    return () => liveRef?.(null)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-  useRestStore(() => {
-    const rb = liveRb()
-    if (!rb || !latest.current) return null
-    const { turn, snap, mode, entry, onStore } = latest.current
-    if (!onStore) return null
-    const cur = storedFields({
-      pose: { ...toolPose(rb), y: rb.translation().y },
-      turn,
-      snap: snap && {
-        kind: snap.target.kind,
-        id: snap.target.id,
-        side: snap.side,
-        across: snap.across,
-      },
-      mode,
-    })
-    return { cur, entry, onStore }
-  }, sameStored)
+  const latest = useToolStore({ liveRb, liveRef, turn, snap, mode, entry, onStore, onReturn })
 
   // The snapped piece left the table (a removed character, a token that a character took), so the
   // tool is free. Else a drag would turn the tool around a point where the piece is no longer.
   useEffect(() => {
-    if (snap && !models.some((model) => sameModel(model, snap.target))) setSnap(null)
+    if (snap && !models.some((model) => sameModel(model, snap.target)))
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSnap(null)
   }, [snap, models])
 
   useOutline(partsRef, outlineMode(selected, hovered))
 
-  // Place and Place 1 lock (decision: the first character that touches the outline, or comes within
-  // range 1, during a drag). The lock stays until Place turns off. A change of Place / Place 1 clears it.
-  const lockMode = placing ? 'place' : lockOne ? 'one' : null
-  useEffect(() => {
-    lockedRef.current = null
-  }, [lockMode])
-
-  // A limit: owns(model, p) says if this tool limits the drag of that model to point p (and locks it the
-  // first time), clamp(p) moves p. Both read the tool pose at each call, so the tool can move while on.
-  useEffect(() => {
-    if (!placing) return undefined
-    const shape = () => toolShape(toolPose(rigidRef.current), turn)
-    onPlaceLimit?.({
-      owns(model, p) {
-        if (!rigidRef.current) return false
-        if (lockedRef.current !== null) return lockedRef.current === lockKey(model)
-        const at = model.getCenter()
-        if (
-          !touches(shape(), tip, halfWidth, p, model.radius) &&
-          !(at && touches(shape(), tip, halfWidth, at, model.radius))
-        )
-          return false
-        lockedRef.current = lockKey(model)
-        return true
-      },
-      clamp(p, model) {
-        if (!rigidRef.current) return
-        const spot = placeClamp(shape(), tip, halfWidth, p, model.radius)
-        p.x = spot.x
-        p.z = spot.z
-      },
-    })
-    return () => onPlaceLimit?.(null)
-  }, [placing, turn, tip, halfWidth])
-
-  // Place 1 (rangeOne.js): the base edge stays within range 1 of the snapped piece edge, seen from above
-  useEffect(() => {
-    if (!lockOne) return undefined
-    const { target } = snap
-    const reachOf = (model) => rangeReach(target.radius, halfWidth * 2, model.radius)
-    onPlaceLimit?.({
-      owns(model, p) {
-        if (sameModel(model, target)) return false
-        if (lockedRef.current !== null) return lockedRef.current === lockKey(model)
-        const c = target.getCenter()
-        const at = model.getCenter()
-        if (
-          !c ||
-          !(withinRange(c, p, reachOf(model)) || (at && withinRange(c, at, reachOf(model))))
-        )
-          return false
-        lockedRef.current = lockKey(model)
-        return true
-      },
-      clamp(p, model) {
-        const c = target.getCenter()
-        if (!c) return
-        const spot = clampRange(c, p, reachOf(model))
-        p.x = spot.x
-        p.z = spot.z
-      },
-    })
-    return () => onPlaceLimit?.(null)
-  }, [lockOne, snap, halfWidth])
-
-  // The clamp reads the tool pose at each call, so the tool can move while Throw is on
-  useEffect(() => {
-    if (!throwing) return undefined
-    const { side, target } = throwLock
-    onPlaceLimit?.({
-      owns: (model) => sameModel(model, target),
-      clamp(p) {
-        if (!rigidRef.current) return
-        const { start, dir, distance } = throwLine(
-          toolShape(toolPose(rigidRef.current), turn),
-          side,
-          tip,
-          target.radius,
-        )
-        // The stop point follows the live line: found again at each call (two casts and a few
-        // circle tests), so a moved or turned tool, or a moved other character, counts
-        const { moved } = throwMove(world, rapier, {
-          start,
-          dir,
-          distance,
-          radius: target.radius,
-          others: throwOthers(target),
-        })
-        const spot = lineClamp(start, dir, moved, p)
-        p.x = spot.x
-        p.z = spot.z
-      },
-    })
-    return () => onPlaceLimit?.(null)
-  }, [throwing, throwLock, turn, tip])
-
-  // One Place or Throw at a time across the own tools: this tool takes the drag limit, and turns its own
-  // off when the other tool takes it. Each tool clears only its own slot (onPlaceLimit in Scene.jsx).
-  const limiting = placing || throwing || lockOne
-  useEffect(() => {
-    if (limiting) onLimitOn?.()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [limiting])
-  useEffect(() => {
-    if (!limitTaken) return
-    setPlaceSide(null)
-    setThrowLock(null)
-    setPlaceOne(false)
-  }, [limitTaken])
-  // A free tool has no snapped piece to lock to
-  useEffect(() => {
-    if (!snap) setPlaceOne(false)
-  }, [snap])
+  const {
+    placeSide,
+    throwLock,
+    lockOne,
+    placeButtonSide,
+    togglePlace,
+    handlePlaceOne,
+    handleThrow,
+  } = useToolLimits({
+    selected,
+    snap,
+    turn,
+    setTurn,
+    tip,
+    halfWidth,
+    rigidRef,
+    liveRb,
+    world,
+    rapier,
+    models,
+    onPlaceLimit,
+    limitTaken,
+    onLimitOn,
+  })
 
   // Angle tool, snapped: move the tool to the other side of the base, the same angle turned half
   // around. Toward becomes Away and Away becomes Toward.
@@ -720,55 +555,6 @@ function Tool({
     setMode((m) => (m === 'away' ? 'toward' : 'away'))
   }
 
-  // Place (docs/features/range-movement-tools.md, "Place") turns on and off. It moves nothing: the first
-  // character that touches the outline during a drag is locked to it.
-  function togglePlace(e) {
-    e.stopPropagation()
-    if (placeSide) {
-      setPlaceSide(null)
-      return
-    }
-    if (!snap || throwLock) return
-    setPlaceOne(false)
-    setPlaceSide(OTHER[snap.side])
-  }
-
-  // Range 1 tool, snapped: Place 1 turns on and off. It moves nothing: the first character that a drag
-  // brings within range 1 of the snapped piece is locked there. It turns Place 2 off.
-  function handlePlaceOne(e) {
-    e.stopPropagation()
-    if (placeOne) {
-      setPlaceOne(false)
-      return
-    }
-    if (!snap) return
-    setPlaceSide(null)
-    setPlaceOne(true)
-  }
-
-  // Throw / Push (docs/features/range-movement-tools.md, "Throw / Push") turns on and off. It moves
-  // nothing: it locks the snapped character, so its drag stays on the middle line of the tool, from the
-  // snapped end toward the far end. The line stops at the first character base, terrain piece or mat
-  // edge (see throwPath.js). A lifted character does not stop it, so the player lifts a character that
-  // the move should pass. The rules use a straight tool, so a bent tool is straightened first: the far
-  // half lines up with the snapped half, and the snapped end stays on the base.
-  function handleThrow(e) {
-    e.stopPropagation()
-    if (throwLock) {
-      setThrowLock(null)
-      return
-    }
-    const model = snap?.target
-    const rb = liveRb()
-    if (!model?.getBody?.() || !rb || placeSide) return
-    // The other player moves this model: no Throw
-    if (model.claim && !model.claim()) return
-    const far = OTHER[snap.side]
-    const straight = { [snap.side]: turn[snap.side], [far]: turn[snap.side] }
-    setTurn(straight)
-    setThrowLock({ side: snap.side, target: model })
-  }
-
   function toggleBend(e) {
     e.stopPropagation()
     setBendOn((on) => !on)
@@ -784,19 +570,6 @@ function Tool({
         onDragSelect,
         () => dragPlan(side),
       )
-  }
-
-  // The bases that stop a Throw of target: the other characters on the table, not lifted
-  function throwOthers(target) {
-    return modelsRef.current
-      .filter(
-        (other) =>
-          other.kind === 'character' &&
-          !sameModel(other, target) &&
-          other.getBody() &&
-          !other.isLifted(),
-      )
-      .map((other) => ({ center: other.getCenter(), radius: other.radius }))
   }
 
   return (

@@ -249,6 +249,14 @@ User: Place, Place 2, Place 1 and Throw lock and limit a model drag; only one ow
 
 ### Result
 
+Done. New `tabletools/useToolLimits.js` (Place, Place 1, Throw: state, effects T9-T15, handlers, `throwOthers`; called after `useOutline`), `tabletools/useToolStore.js` (`latest`, T6, T7, `useRestStore`; called at T6's place; returns `latest`). `toolGeometry.js` has `spawnPose` and `snapPlacement`; `Tool` applies their result with the same body calls. 6 tests added to `toolGeometry.test.js` (each branch). `RulerTool.jsx` 976 to 749 lines.
+
+- Checks: format, lint 58 warnings (same), test 847 pass, build ok.
+- Fallow: `Tool` 37 / 98 / 838 lines before; 27 / 75 / 619 lines after.
+- Move diff: effects and handlers moved as they are; only the `snapTo` and spawn pose math became calls.
+- Deviation: `snapTo` calls `angleLimit` before the flip body calls (it is a pure read of another tool). The angle branch skips `setRotation` and `across`, as before.
+- Deviation: with the 3 warnings of T10-T12 moved out, the React compiler lint now reads `Tool` and reports 4 warnings it did not before (2 `immutability` on `dragChange` and `latest` in the drag callbacks, 2 `set-state-in-effect` in T5 and T8). The code is the same as before. Each has an `eslint-disable-next-line`, so the count stays 58.
+
 ## Step 5: One `sceneApi` ref
 
 Work:

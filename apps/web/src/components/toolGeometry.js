@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { fromLocal, toLocal } from './placeLock.js'
+import { flipTool } from './toolFlip.js'
 
 // Movement tools are about 0.56" wide (mesh-a spans z = ±0.279)
 export const MOVE_HALF_WIDTH = 0.279
@@ -181,4 +182,74 @@ export function withinRangeOne(a, b, halfWidth) {
 // The same mark: both null, or the same piece with the same mode
 export function sameMark(a, b) {
   return a?.kind === b?.kind && a?.id === b?.id && a?.mode === b?.mode
+}
+
+// The pose a tool spawns in, snapped to a piece at center. The angle tool aims at aimPoint (default: the
+// mat center). A movement tool snaps with its right (indented) end, a range tool with its left end.
+// open: the open direction of the angle tool that a movement tool snaps to (null or undefined: none).
+export function spawnPose({
+  center,
+  radius,
+  angle,
+  rangeOne,
+  bendable,
+  aimPoint,
+  tip,
+  halfWidth,
+  open,
+}) {
+  const side = bendable ? 'right' : 'left'
+  return angle
+    ? aimPose(center, radius, halfWidth, aimPoint ?? { x: 0, z: 0 }, 'away')
+    : rangeOne
+      ? snapPoseOne(center, radius, tip, halfWidth)
+      : snapPose(center, radius, tip, open, side)
+}
+
+// Where a tool goes when it snaps to a model (center c, radius). The tool does not turn, except that a
+// movement tool flips to snap with its right end, and an angle tool at another angle tool turns around the
+// base. Returns { x, z, yaw, side, across, flipped }. flipped: { pose, turn } of the flipped tool, or null.
+// The angle tool keeps its yaw, snaps on side 'left' and has no across.
+export function snapPlacement(
+  pose,
+  turn,
+  c,
+  radius,
+  { angle, rangeOne, bendable, tip, halfWidth, open },
+) {
+  if (angle) {
+    // Same direction, moved so that both arms touch the base
+    const { x, z } = anglePose(c, radius, halfWidth, pose.yaw + Math.PI / 2)
+    return { x, z, yaw: pose.yaw, side: 'left', flipped: null }
+  }
+  let snapTurn = turn
+  let flipped = null
+  let center, side, across
+  if (rangeOne) {
+    const corner = nearerCorner(pose, c)
+    across = corner.across
+    center = cornerSnapCenter(c, radius, pose.yaw, tip, halfWidth, corner.end, across)
+    side = corner.end > 0 ? 'right' : 'left'
+  } else {
+    let shape = toolShape(pose, snapTurn)
+    side = nearerHalf(shape, tip, c)
+    if (bendable && side === 'left') {
+      // A movement tool snaps with its right (indented) end: flip it, the outline stays in place
+      flipped = flipTool(pose, snapTurn)
+      pose = flipped.pose
+      snapTurn = flipped.turn
+      shape = toolShape(pose, snapTurn)
+      side = 'right'
+    }
+    // The base center is past the end of that half, so the tool center is that far back from it
+    const back = tip + radius
+    center = { x: c.x - back * Math.cos(shape[side]), z: c.z + back * Math.sin(shape[side]) }
+  }
+  let placed = { x: center.x, z: center.z, yaw: pose.yaw }
+  // At an angle tool, the move direction (away from the base) stays in range: turn the tool around the base
+  if (open !== null && open !== undefined && !rangeOne) {
+    const moveYaw = toolShape(pose, snapTurn)[side] + Math.PI
+    placed = turnAround(placed, c, limitTurn(moveYaw, open, 0))
+  }
+  return { x: placed.x, z: placed.z, yaw: placed.yaw, side, across, flipped }
 }

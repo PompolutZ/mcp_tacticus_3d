@@ -8,8 +8,10 @@ import {
   limitTurn,
   nearerCorner,
   sameMark,
+  snapPlacement,
   snapPose,
   snapPoseOne,
+  spawnPose,
   throwLine,
   toolShape,
   turnAround,
@@ -130,4 +132,105 @@ test('sameMark: null, same piece and mode', () => {
   assert.ok(
     !sameMark({ kind: 'c', id: 1, mode: 'inRange' }, { kind: 'c', id: 1, mode: 'outOfRange' }),
   )
+})
+
+const spawnBase = { center: { x: 4, z: 0 }, radius: 0.6, tip: 3, halfWidth: 0.5 }
+
+test('spawnPose: range tool left end, movement tool right end, angle tool aims', () => {
+  const range = spawnPose({ ...spawnBase, angle: false, rangeOne: false, bendable: false })
+  assert.deepEqual(range, snapPose(spawnBase.center, 0.6, 3, undefined, 'left'))
+  const move = spawnPose({ ...spawnBase, angle: false, rangeOne: false, bendable: true, open: 0.5 })
+  assert.deepEqual(move, snapPose(spawnBase.center, 0.6, 3, 0.5, 'right'))
+  const one = spawnPose({ ...spawnBase, angle: false, rangeOne: true, bendable: false })
+  assert.deepEqual(one, snapPoseOne(spawnBase.center, 0.6, 3, 0.5))
+  const aimed = spawnPose({
+    ...spawnBase,
+    angle: true,
+    rangeOne: false,
+    bendable: false,
+    aimPoint: { x: 4, z: 5 },
+  })
+  assert.deepEqual(aimed, aimPose(spawnBase.center, 0.6, 0.5, { x: 4, z: 5 }, 'away'))
+  const mat = spawnPose({ ...spawnBase, angle: true, rangeOne: false, bendable: false })
+  assert.deepEqual(mat, aimPose(spawnBase.center, 0.6, 0.5, { x: 0, z: 0 }, 'away'))
+})
+
+const place = { tip: 3, halfWidth: 0.5, open: null }
+const straight = { right: 0, left: 0 }
+
+test('snapPlacement: range tool snaps the nearer end, no flip', () => {
+  const r = snapPlacement({ x: 0, z: 0, yaw: 0 }, straight, { x: 6, z: 0 }, 0.6, {
+    ...place,
+    angle: false,
+    rangeOne: false,
+    bendable: false,
+  })
+  assert.equal(r.side, 'right')
+  assert.equal(r.flipped, null)
+  assert.equal(r.across, undefined)
+  near(r.x, 6 - 3.6)
+  near(r.z, 0)
+  near(r.yaw, 0)
+})
+
+test('snapPlacement: movement tool flips to snap with its right end', () => {
+  const r = snapPlacement({ x: 0, z: 0, yaw: 0 }, straight, { x: -6, z: 0 }, 0.6, {
+    ...place,
+    angle: false,
+    rangeOne: false,
+    bendable: true,
+  })
+  assert.equal(r.side, 'right')
+  assert.ok(r.flipped)
+  near(r.flipped.pose.yaw, Math.PI)
+  near(r.yaw, Math.PI)
+  near(r.x, -6 + 3.6)
+})
+
+test('snapPlacement: movement tool at an angle tool keeps within the open angle', () => {
+  const free = snapPlacement({ x: 0, z: 0, yaw: 0 }, straight, { x: 6, z: 0 }, 0.6, {
+    ...place,
+    angle: false,
+    rangeOne: false,
+    bendable: true,
+  })
+  const cut = snapPlacement({ x: 0, z: 0, yaw: 0 }, straight, { x: 6, z: 0 }, 0.6, {
+    ...place,
+    angle: false,
+    rangeOne: false,
+    bendable: true,
+    open: Math.PI / 2,
+  })
+  assert.ok(Math.abs(cut.yaw - free.yaw) > 0.1 || Math.abs(cut.z - free.z) > 0.1)
+  near(dist(cut, { x: 6, z: 0 }), dist(free, { x: 6, z: 0 }))
+})
+
+test('snapPlacement: range 1 snaps with the nearer corner and gives across', () => {
+  const pose = { x: 0, z: 0, yaw: 0 }
+  const r = snapPlacement(pose, straight, { x: 6, z: 1 }, 0.6, {
+    ...place,
+    angle: false,
+    rangeOne: true,
+    bendable: false,
+  })
+  const corner = nearerCorner(pose, { x: 6, z: 1 })
+  assert.equal(r.across, corner.across)
+  assert.equal(r.side, corner.end > 0 ? 'right' : 'left')
+  assert.equal(r.yaw, 0)
+})
+
+test('snapPlacement: angle tool keeps its yaw, side left, no across', () => {
+  const r = snapPlacement({ x: 0, z: 0, yaw: 0.4 }, straight, { x: 6, z: 0 }, 0.6, {
+    ...place,
+    angle: true,
+    rangeOne: false,
+    bendable: false,
+  })
+  const arms = anglePose({ x: 6, z: 0 }, 0.6, 0.5, 0.4 + Math.PI / 2)
+  near(r.x, arms.x)
+  near(r.z, arms.z)
+  near(r.yaw, 0.4)
+  assert.equal(r.side, 'left')
+  assert.equal(r.flipped, null)
+  assert.equal('across' in r, false)
 })
