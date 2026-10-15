@@ -1,6 +1,6 @@
 # Plan: Remove duplicates
 
-Requested by the user on 2026-10-15. Status: not started. Branch `remove-duplicates`, worktree `../mcp_assist_3d-remove-duplicates`, from main after `docs/plans/review-fixes.md` and `docs/plans/split-large-files.md` merge into main. The plan touches many files, so no other branch is open while it runs.
+Requested by the user on 2026-10-15. Status: in progress. Branch `remove-duplicates`, worktree `../mcp_assist_3d-remove-duplicates`, from main after `docs/plans/review-fixes.md` and `docs/plans/split-large-files.md` merge into main. The plan touches many files, so no other branch is open while it runs.
 
 Each step makes one commit and writes its **Result** below. Feature docs change in the same step as the code.
 
@@ -259,3 +259,16 @@ Checks: as in "Checks". `node scripts/migrate-tactics.mjs --list` and `node scri
 User: none in the browser. Optional: `pnpm migrate-crisis --list` shows the same lines as before.
 
 ### Result
+
+## Step 9: Library adds to the own side in multiplayer
+
+From the user test on 2026-10-15. In a multiplayer room the Library shows the "For" choice (Blue / Red, `Library.jsx`, `team` state). A player who does not look can add characters and tactic cards for the opponent. In a multiplayer room a player only adds pieces for their own side.
+
+Work:
+
+1. `Library.jsx`: in a multiplayer room (the seat from `rooms/seat.js`, `tableSeat(room)`: `multiplayer`, `ownSide`), hide the "For" group and use `ownSide` as the team. A spectator or a seat with `side: null` (see split-app risk 4) adds nothing: the add buttons are disabled with a short reason in the title.
+2. Single player and the Sandbox keep the Blue / Red choice: one person plays both sides.
+3. Use the shared `TEAMS` from step 1. Pure choice in a plain module with a test, e.g. `libraryTeam({ multiplayer, ownSide }, chosen)`.
+4. Docs: `docs/features/library.md`.
+
+User: in a multiplayer room, as host and as guest, the Library has no For choice and adds to the own side; in a single player room and the Sandbox, For is there and works as before.
