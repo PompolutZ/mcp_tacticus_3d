@@ -39,16 +39,12 @@ function ControlsTable({ title, rows }) {
 }
 
 // The Settings popup. settings: { tools: { rack, power, ... }, sound: { volume } } (settings/settings.js). bindings: the key
-// bindings in use. onChange(item, place), onVolumeChange(volume), onSpectatorSizeChange(size), onTurnStepChange(step) and onBindingsChange(changed) apply a choice at once; App stores it. App closes the popup on Escape, as App handles all keys. A click on
+// bindings in use. onSettingsChange(patch) applies a choice at once, for example { sound: { volume } }; App stores it. App closes the popup on Escape, as App handles all keys. A click on
 // the backdrop or × calls onClose().
 export function SettingsPopup({
   settings,
   bindings,
-  onChange,
-  onVolumeChange,
-  onSpectatorSizeChange,
-  onTurnStepChange,
-  onBindingsChange,
+  onSettingsChange,
   debug,
   onDebugClick,
   showLabels,
@@ -84,7 +80,9 @@ export function SettingsPopup({
                     type="button"
                     className={`chip${settings.tools[item] === place ? ' chip--active' : ''}`}
                     aria-pressed={settings.tools[item] === place}
-                    onClick={() => onChange(item, place)}
+                    onClick={() =>
+                      onSettingsChange({ tools: { ...settings.tools, [item]: place } })
+                    }
                   >
                     {PLACE_LABELS[place]}
                   </button>
@@ -105,7 +103,7 @@ export function SettingsPopup({
                 step="1"
                 value={settings.sound.volume}
                 aria-label="Sound volume"
-                onChange={(e) => onVolumeChange(Number(e.target.value))}
+                onChange={(e) => onSettingsChange({ sound: { volume: Number(e.target.value) } })}
               />
               <span className="settings-volume">{settings.sound.volume}</span>
             </span>
@@ -123,7 +121,7 @@ export function SettingsPopup({
                 step="5"
                 value={settings.spectator.size}
                 aria-label="Spectator columns size"
-                onChange={(e) => onSpectatorSizeChange(Number(e.target.value))}
+                onChange={(e) => onSettingsChange({ spectator: { size: Number(e.target.value) } })}
               />
               <span className="settings-volume">{settings.spectator.size}</span>
             </span>
@@ -173,13 +171,16 @@ export function SettingsPopup({
                 step="1"
                 value={settings.turn.step}
                 aria-label="Turn step"
-                onChange={(e) => onTurnStepChange(Number(e.target.value))}
+                onChange={(e) => onSettingsChange({ turn: { step: Number(e.target.value) } })}
               />
               <span className="settings-volume">{settings.turn.step}°</span>
             </span>
           </label>
         </section>
-        <KeyBindings bindings={bindings} onChange={onBindingsChange} />
+        <KeyBindings
+          bindings={bindings}
+          onChange={(changed) => onSettingsChange({ bindings: changed })}
+        />
         <ControlsTable title="Mouse" rows={MOUSE_ROWS} />
       </div>
     </Overlay>

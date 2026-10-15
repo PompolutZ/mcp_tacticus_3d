@@ -272,16 +272,7 @@ export default function App({
   // last card lies on top. See docs/features/team-tactic-cards.md, "State".
   const [tacticCards, setTacticCards] = useYList(table.tactics)
   const { peekCard, handleCardHover, altDown, altUp } = useCardPeek()
-  const {
-    settings,
-    bindings,
-    handleBindingsChange,
-    handleLabelsChange,
-    handleSettingChange,
-    handleSpectatorSizeChange,
-    handleTurnStepChange,
-    handleVolumeChange,
-  } = useSettings()
+  const { settings, bindings, updateSettings } = useSettings()
   const [settingsOpen, setSettingsOpen] = useState(false)
   // The Sandbox Setup panel under the toolbar (Toolbar.jsx). Esc closes it as a popup.
   const [setupOpen, setSetupOpen] = useState(false)
@@ -986,15 +977,11 @@ export default function App({
         <SettingsPopup
           settings={settings}
           bindings={bindings}
-          onChange={handleSettingChange}
-          onVolumeChange={handleVolumeChange}
-          onSpectatorSizeChange={handleSpectatorSizeChange}
-          onTurnStepChange={handleTurnStepChange}
+          onSettingsChange={updateSettings}
           debug={debug}
           onDebugClick={() => setDebugOn((prev) => !prev)}
           showLabels={settings.labels}
-          onLabelsClick={() => handleLabelsChange(!settings.labels)}
-          onBindingsChange={handleBindingsChange}
+          onLabelsClick={() => updateSettings({ labels: !settings.labels })}
           onClose={() => setSettingsOpen(false)}
         />
       )}

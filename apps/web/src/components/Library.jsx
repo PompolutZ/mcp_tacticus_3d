@@ -1,4 +1,5 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useHudMessage } from './useHudMessage.js'
 import { assetUrl } from '../assets/index.js'
 import { COLOR_NAME, useSideColors } from '../sideColors.js'
 import { TEAMS } from '../setup/setup.js'
@@ -58,8 +59,7 @@ export function Library({
   const colors = useSideColors()
   const [team, setTeam] = useState('host')
   const [tokenMode, setTokenMode] = useState('single')
-  const [message, setMessage] = useState(null)
-  const messageTimer = useRef()
+  const { hudMessage: message, showHudMessage: showMessage } = useHudMessage()
 
   const q = query.trim().toLowerCase()
   const found = useMemo(
@@ -81,12 +81,6 @@ export function Library({
   )
 
   if (!open) return null
-
-  function showMessage(text) {
-    clearTimeout(messageTimer.current)
-    setMessage(text)
-    messageTimer.current = setTimeout(() => setMessage(null), 3000)
-  }
 
   // A gem is not placed: a click opens its card. It goes onto a character from the roster.
   function handleTactic(card) {

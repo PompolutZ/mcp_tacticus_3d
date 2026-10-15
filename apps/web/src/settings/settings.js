@@ -1,6 +1,7 @@
 // The settings of this browser, in localStorage (docs/features/table-tools.md, "Settings menu"). They belong
 // to the browser, not to the user or the room. No React.
 import { ACTIONS, cleanBinding, sameBindings } from '../input/bindings.js'
+import { readJson, writeJson } from '../storage.js'
 
 const KEY = 'mcp-assist-3d/settings'
 
@@ -86,11 +87,10 @@ function normalize(raw) {
   return settings
 }
 
-// localStorage can throw: storage turned off, or full. A read then gives the defaults.
+// Storage turned off, or a broken record, gives the defaults
 export function readSettings() {
   try {
-    const text = localStorage.getItem(KEY)
-    return normalize(text ? JSON.parse(text) : null)
+    return normalize(readJson(KEY))
   } catch {
     return defaultSettings()
   }
@@ -98,10 +98,5 @@ export function readSettings() {
 
 // Returns false when the browser did not store it
 export function writeSettings(settings) {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(normalize(settings)))
-    return true
-  } catch {
-    return false
-  }
+  return writeJson(KEY, normalize(settings))
 }

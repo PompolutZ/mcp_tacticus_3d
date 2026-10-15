@@ -1,9 +1,9 @@
-// The login session (docs/features/auth.md, "Login flow" and "Session"; plan decisions 10, 12, 13). This is
-// the only file that touches localStorage and sessionStorage. status: off (login is not on), loading, out,
-// in, error (the server does not answer).
+// The login session (docs/features/auth.md, "Login flow" and "Session"; plan decisions 10, 12, 13).
+// status: off (login is not on), loading, out, in, error (the server does not answer).
 
 import { ApiError, api, onUnauthorized, setToken } from '../api/client.js'
 import { deleteUserData } from '../rooms/localDocs.js'
+import { SESSION, readJson, readText, removeKey, writeJson, writeText } from '../storage.js'
 import { authorizeUrl, randomState, readCallback } from './oauth.js'
 
 const TOKEN_KEY = 'mcp-assist-3d/session'
@@ -34,21 +34,17 @@ export function getSnapshot() {
 }
 
 function saveToken(token) {
-  localStorage.setItem(TOKEN_KEY, token)
+  writeText(TOKEN_KEY, token)
   setToken(token)
 }
 
 function clearToken() {
-  localStorage.removeItem(TOKEN_KEY)
+  removeKey(TOKEN_KEY)
   setToken(null)
 }
 
 function readSaved() {
-  try {
-    return JSON.parse(sessionStorage.getItem(LOGIN_KEY))
-  } catch {
-    return null
-  }
+  return readJson(LOGIN_KEY, SESSION)
 }
 
 // A 401 on a request with a token: the token is bad or the user is gone
@@ -73,7 +69,7 @@ async function run() {
   if (callback) {
     // Remove the query and the saved state first, so a reload does not post the code again
     window.history.replaceState(null, '', window.location.pathname + window.location.hash)
-    sessionStorage.removeItem(LOGIN_KEY)
+    removeKey(LOGIN_KEY, SESSION)
     if (callback.error) result.error = callback.error
     else {
       try {
@@ -100,7 +96,7 @@ function redirectUri() {
 
 // With a stored token: GET /me
 async function loadUser() {
-  const token = localStorage.getItem(TOKEN_KEY)
+  const token = readText(TOKEN_KEY)
   if (!token) return setState({ status: 'out', user: null })
   setToken(token)
   try {
@@ -117,10 +113,7 @@ async function loadUser() {
 export function login() {
   if (!CLIENT_ID) return
   const oauthState = randomState()
-  sessionStorage.setItem(
-    LOGIN_KEY,
-    JSON.stringify({ state: oauthState, returnHash: window.location.hash }),
-  )
+  writeJson(LOGIN_KEY, { state: oauthState, returnHash: window.location.hash }, SESSION)
   window.location.assign(
     authorizeUrl({ clientId: CLIENT_ID, redirectUri: redirectUri(), state: oauthState }),
   )

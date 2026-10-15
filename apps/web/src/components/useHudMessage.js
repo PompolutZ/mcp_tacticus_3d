@@ -1,12 +1,11 @@
 import { useRef, useState } from 'react'
 
-// A short HUD message, for example an immunity block. Same pattern as the Library's own
-// message (a timeout clears it), but global: a drag can end over any tray.
+// A short message that a timeout clears. The HUD one (App) is global: a drag can end over any tray. The
+// Library uses its own instance for the "no 3D model" message.
 export function useHudMessage() {
   const [hudMessage, setHudMessage] = useState(null)
   const hudMessageTimer = useRef(null)
-  // A short message in the HUD, for a few seconds (the immunity block below; the Library has its
-  // own copy of this pattern for the "no 3D model" message).
+  // A short message for a few seconds, for example the immunity block
   function showHudMessage(text, ms = 3000) {
     clearTimeout(hudMessageTimer.current)
     setHudMessage(text)

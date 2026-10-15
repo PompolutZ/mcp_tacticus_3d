@@ -3,6 +3,7 @@
 
 import { clearDocument } from 'y-indexeddb'
 import { equal } from '../net/collections.js'
+import { readJson as read, removeKey, storageKeys, writeJson as write } from '../storage.js'
 
 // The colors before the roll off, the same as sideColorsOf of a new setup (setup/setup.js)
 const START_COLORS = { host: 'blue', guest: 'red' }
@@ -16,26 +17,6 @@ export const VERSION = 3
 // Crockford base32: no I, L, O, U, so a code read aloud or typed is not mistaken. 8 characters are 40 bits,
 // the room code of docs/features/peer-to-peer.md, "Security and abuse".
 const CODE_CHARS = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
-
-// localStorage can throw: storage turned off, or full. A read then finds nothing.
-function read(key) {
-  try {
-    const text = localStorage.getItem(key)
-    return text ? JSON.parse(text) : null
-  } catch {
-    return null
-  }
-}
-
-// Returns false when the browser did not store it
-function write(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value))
-    return true
-  } catch {
-    return false
-  }
-}
 
 // The id of the user of this browser, made on the first call. The owner of the rooms it creates.
 function userId() {
@@ -56,15 +37,7 @@ function newRoomCode() {
 // Every room record of this browser, of any version, in key order. A record that is not an object has no
 // id and is left out. Only the cleanup of stale rooms reads this.
 export function listRawRoomRecords() {
-  let keys = []
-  try {
-    keys = Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i))
-  } catch {
-    // Storage turned off: no rooms
-  }
-  return keys
-    .filter((key) => key?.startsWith(ROOM_PREFIX))
-    .map((key) => ({ key, record: read(key) }))
+  return storageKeys(ROOM_PREFIX).map((key) => ({ key, record: read(key) }))
 }
 
 // Every room of this browser, the last changed first
@@ -104,23 +77,13 @@ export function saveSquad(userId, code, record) {
 }
 
 export function deleteSquad(userId, code) {
-  try {
-    localStorage.removeItem(squadKey(userId, code))
-  } catch {
-    // Storage turned off: there is nothing to delete
-  }
+  removeKey(squadKey(userId, code))
 }
 
 // The room codes of the stored squads of this user
 export function listSquadCodes(userId) {
   const start = `${SQUAD_PREFIX}${userId}/`
-  try {
-    return Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i))
-      .filter((key) => key?.startsWith(start))
-      .map((key) => key.slice(start.length))
-  } catch {
-    return []
-  }
+  return storageKeys(start).map((key) => key.slice(start.length))
 }
 
 // Deletes an IndexedDB database with a table. IndexedDB can throw or fail when it is turned off. Then there
@@ -189,11 +152,7 @@ export function saveRoomRecord(id, { mapId, rosters, colors }, changed) {
 
 // Deletes the record and the table of a room
 export function deleteRoom(id) {
-  try {
-    localStorage.removeItem(ROOM_PREFIX + id)
-  } catch {
-    // Storage turned off: there is nothing to delete
-  }
+  removeKey(ROOM_PREFIX + id)
   deleteDoc(roomDocName(id))
 }
 

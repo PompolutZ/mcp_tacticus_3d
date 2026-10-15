@@ -160,6 +160,15 @@ User: change each setting (tool places, volume, spectator size, turn step, label
 
 ### Result
 
+Done. Lint 58 warnings (same), tests 893 pass, build ok, fallow 328 lines (same; no storage clone group was in it). `grep localStorage|sessionStorage` gives only `storage.js`, tests and comments.
+
+- New `storage.js` + `storage.test.js`: `readJson`, `writeJson`, `readText`, `writeText`, `removeKey`, `storageKeys`. Area argument is a Storage object, default localStorage, or `SESSION` (a name, so the `sessionStorage` global is looked up inside the try; passing the global itself would throw outside it).
+- `rooms/store.js`, `settings/settings.js`, `log/open.js` use it. `readSettings` keeps a try around `normalize`. Log stores `1` / `0`; the old `'1'` reads the same.
+- `auth/session.js` uses it for token and login state; false comment removed. Calls no longer throw with storage off.
+- `useSettings` returns `{ settings, bindings, updateSettings }`. `SettingsPopup` has one `onSettingsChange(patch)`; App passes `updateSettings`. Label toggle in App: `updateSettings({ labels: !settings.labels })`.
+- `Library.jsx` uses `useHudMessage`; comment in `useHudMessage.js` fixed.
+- Item 6 (`roomGone()`): already done by split-large-files in `rooms/openTableSession.js`; skipped.
+
 ## Step 3: Pointer math and the drag ghost
 
 Work:
