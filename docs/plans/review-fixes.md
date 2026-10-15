@@ -195,6 +195,8 @@ User: the lobby lists the same rooms as before; in DevTools, Application, the `l
 
 ### Result
 
+`localDocs.js` has `staleRoomIds`, `orphanRoomDocNames` and `deleteStaleRooms`; `store.js` exports `VERSION` and `listRawRoomRecords` (`listRooms` uses it, same output). `Lobby.jsx` calls `deleteStaleRooms()` in a mount effect, with no login needed. 2 new tests. Docs: `rooms.md` has the cleanup rule, decision 19, the `localDocs.js` code row. Decision 14 now says version 3, `host` / `guest`; the stale "version 1 opens with a new table" line is gone. Web tests: 821 pass, 0 fail. Lint: 58 warnings, same. Build passes. Facts matched the code. The `apps/api` `signal.test.ts` failed once and passed on rerun (flaky).
+
 ## Step 5: Trimmed Jarvis files
 
 No runtime change. The raw files stay in `src/` in this step.

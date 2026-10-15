@@ -1,7 +1,14 @@
 // The IndexedDB copies of multiplayer rooms (plan 07, decision 12) and the stored squads of this browser (plan
 // 08, decision 33). No React.
 
-import { deleteDoc, deleteSquad, listSquadCodes } from './store.js'
+import {
+  VERSION,
+  deleteDoc,
+  deleteRoom,
+  deleteSquad,
+  listRawRoomRecords,
+  listSquadCodes,
+} from './store.js'
 
 // The user id has no '/', and a room code has none either, so a prefix match is exact
 const prefix = (userId) => `mcp-assist-3d/multiplayer/${userId}/`
@@ -41,4 +48,39 @@ export function deleteStaleSquads(userId, codes) {
 export async function deleteUserData(userId) {
   deleteStaleSquads(userId, [])
   await deleteStaleDocs(userId, [])
+}
+
+const ROOM_DOC_PREFIX = 'mcp-assist-3d/room/'
+
+// The ids of the records with no version or an older one than version. A newer one stays: another tab runs a
+// newer build (docs/features/rooms.md, decision 19).
+export function staleRoomIds(records, version) {
+  return records
+    .filter((room) => room?.id && !(Number.isInteger(room.version) && room.version >= version))
+    .map((room) => room.id)
+}
+
+// The single player database names whose id is not in ids. Never a multiplayer name or another prefix.
+export function orphanRoomDocNames(names, ids) {
+  const keep = new Set(ids)
+  return names.filter(
+    (name) => name.startsWith(ROOM_DOC_PREFIX) && !keep.has(name.slice(ROOM_DOC_PREFIX.length)),
+  )
+}
+
+// Deletes the single player rooms that this build cannot list or open, and the databases that have no
+// record. A browser without indexedDB.databases() keeps the databases.
+export async function deleteStaleRooms() {
+  const records = listRawRoomRecords().map(({ record }) => record)
+  for (const id of staleRoomIds(records, VERSION)) deleteRoom(id)
+  if (typeof indexedDB === 'undefined' || !indexedDB.databases) return
+  try {
+    const dbs = await indexedDB.databases()
+    const names = dbs.map((db) => db.name).filter(Boolean)
+    // Read the records again: the ids that are left (version VERSION or newer) are in use
+    const ids = listRawRoomRecords().flatMap(({ record }) => (record?.id ? [record.id] : []))
+    for (const name of orphanRoomDocNames(names, ids)) deleteDoc(name)
+  } catch {
+    // The databases stay. The next lobby tries again.
+  }
 }

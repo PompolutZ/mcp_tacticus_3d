@@ -5,7 +5,7 @@ import { avatarUrl } from '../auth/avatar.js'
 import { useUser } from '../auth/useUser.js'
 import { deleteDoc, deleteRoom, listRooms, multiplayerDocName, ownsRoom } from '../rooms/store.js'
 import * as server from '../rooms/serverStore.js'
-import { deleteStaleDocs, deleteStaleSquads } from '../rooms/localDocs.js'
+import { deleteStaleDocs, deleteStaleRooms, deleteStaleSquads } from '../rooms/localDocs.js'
 import { roomList } from '../rooms/roomList.js'
 import { LobbyHeader } from './LobbyHeader.jsx'
 import { NewRoomDialog } from './NewRoomDialog.jsx'
@@ -55,6 +55,11 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
   const [creating, setCreating] = useState(false)
   // The roster in the roster popup: { room, team }, or null
   const [rosterView, setRosterView] = useState(null)
+
+  // Single player rooms of an older record version cannot be listed or opened (rooms.md, decision 19)
+  useEffect(() => {
+    deleteStaleRooms()
+  }, [])
 
   // Each time the lobby shows, and when the user changes
   useEffect(() => {

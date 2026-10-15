@@ -10,7 +10,7 @@ const USER_KEY = `${PREFIX}user`
 // The record format. Version 3 keys the rosters by side, host / guest. An older record is not read: saved
 // rooms are not migrated (docs/features/setup-game.md, "Colors"). Version 1 had the table in the record,
 // version 2 had the rosters keyed blue / red.
-const VERSION = 3
+export const VERSION = 3
 // Crockford base32: no I, L, O, U, so a code read aloud or typed is not mistaken. 8 characters are 40 bits,
 // the room code of docs/features/peer-to-peer.md, "Security and abuse".
 const CODE_CHARS = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
@@ -51,8 +51,9 @@ function newRoomCode() {
   return `${chars.slice(0, 4).join('')}-${chars.slice(4).join('')}`
 }
 
-// Every room of this browser, the last changed first
-export function listRooms() {
+// Every room record of this browser, of any version, in key order. A record that is not an object has no
+// id and is left out. Only the cleanup of stale rooms reads this.
+export function listRawRoomRecords() {
   let keys = []
   try {
     keys = Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i))
@@ -61,7 +62,13 @@ export function listRooms() {
   }
   return keys
     .filter((key) => key?.startsWith(ROOM_PREFIX))
-    .map(read)
+    .map((key) => ({ key, record: read(key) }))
+}
+
+// Every room of this browser, the last changed first
+export function listRooms() {
+  return listRawRoomRecords()
+    .map(({ record }) => record)
     .filter((room) => room?.id && room.mapId && room.version === VERSION)
     .sort((a, b) => b.updatedAt - a.updatedAt)
 }
