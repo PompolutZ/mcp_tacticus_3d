@@ -15,7 +15,8 @@ import {
   isFiniteQuat,
   isTilted,
   randomRotation,
-  randomSpin,
+  addedSpin,
+  throwLinvel,
   stillTime,
   throwVelocities,
   topFace,
@@ -483,8 +484,8 @@ export default function DiceTray({
     }
   }
 
-  // Throws every die that is not on the shelf, from where it is. A die of the current throw that is
-  // still high in the air only gets a new spin, as in TTS (ROLL_HEIGHT_LIMIT in tray.js).
+  // Throws every die that is not on the shelf, from where it is. A die of the current throw gets
+  // more spin, and below ROLL_HEIGHT_LIMIT (tray.js) a new up and sideways speed, but keeps its rotation.
   function roll() {
     const { rolling, waiting } = flowStage(dice.current.values())
     if (rollBlocked({ contacted: contactedRef.current, rolling, waiting: waiting.length > 0 }))
@@ -498,12 +499,20 @@ export default function DiceTray({
         const pose = bodyPose(entry)
         if (pose) entry.doc = dieEntry(entry.order, 'air', { pose })
       }
-      if (
-        entry.state === 'thrown' &&
-        entry.body &&
-        aboveRollLimit(trayKey, entry.body.translation())
-      ) {
-        entry.body.setAngvel(randomSpin(), true)
+      if (entry.state === 'thrown' && entry.body) {
+        // Repeat click on a die of the current throw: keeps its rotation, adds spin; below the
+        // roll limit it also gets a new upward and sideways speed.
+        const rb = entry.body
+        if (!aboveRollLimit(trayKey, rb.translation())) {
+          rb.wakeUp()
+          entry.bump?.reset() // the new speed is no bump
+          entry.airborne = false // a touch counts once the die was off every contact (contactStep)
+          entry.settling = false
+          entry.stillTime = 0
+          entry.throwTime = 0
+          rb.setLinvel(throwLinvel(rb.translation(), randomWellPoint(trayKey)), true)
+        }
+        rb.setAngvel(addedSpin(rb.angvel()), true)
         thrown = true
         continue
       }
