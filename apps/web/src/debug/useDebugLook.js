@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { DEFAULT_LOOK, DEFAULT_TRAY_LOOK, setLook, setTrayLook } from '../components/look.js'
+import { DEFAULT_LOOK, setLook } from '../components/look.js'
 
 // The state of the Debug panel and the look effect. debug: the constant of App (dev server and the Debug
 // chip), so a build leaves the debug code out. mode: the render mode when debug is on, else 'full'.
@@ -13,11 +13,6 @@ export function useDebugLook(debug) {
   useEffect(() => {
     setLook(debug ? { toneMapping, surface } : DEFAULT_LOOK)
   }, [debug, toneMapping, surface])
-  // TEMPORARY dice tray tuning, see components/look.js
-  const [tray, setTray] = useState(DEFAULT_TRAY_LOOK)
-  useEffect(() => {
-    setTrayLook(debug ? tray : DEFAULT_TRAY_LOOK)
-  }, [debug, tray])
   const mode = debug ? renderMode : 'full'
   const panel = {
     renderMode,
@@ -26,9 +21,6 @@ export function useDebugLook(debug) {
     onToneMappingChange: setToneMapping,
     surface,
     onSurfaceChange: setSurface,
-    tray,
-    onTrayChange: (patch) => setTray((prev) => ({ ...prev, ...patch })),
-    onTrayReset: () => setTray(DEFAULT_TRAY_LOOK),
   }
   return { mode, panel }
 }

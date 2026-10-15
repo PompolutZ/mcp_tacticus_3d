@@ -28,30 +28,3 @@ export function setLook(next) {
 export function useLook() {
   return useSyncExternalStore(subscribe, getSnapshot)
 }
-
-// TEMPORARY, until the tray look is chosen: tuning of the dice tray material (DiceTrayParts.jsx), set by
-// the Debug panel. lift: the texture black becomes this grey before the tint. The defaults are the normal look.
-export const DEFAULT_TRAY_LOOK = { lift: 0, roughness: 0.8, metalness: 0 }
-
-let trayLook = DEFAULT_TRAY_LOOK
-const trayListeners = new Set()
-
-function subscribeTray(listener) {
-  trayListeners.add(listener)
-  return () => trayListeners.delete(listener)
-}
-
-export function setTrayLook(next) {
-  if (
-    next.lift === trayLook.lift &&
-    next.roughness === trayLook.roughness &&
-    next.metalness === trayLook.metalness
-  )
-    return
-  trayLook = { lift: next.lift, roughness: next.roughness, metalness: next.metalness }
-  trayListeners.forEach((l) => l())
-}
-
-export function useTrayLook() {
-  return useSyncExternalStore(subscribeTray, () => trayLook)
-}

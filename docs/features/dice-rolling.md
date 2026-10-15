@@ -61,7 +61,7 @@ So one roll gives a Hit with a chance of 1/4, a Blank with 1/4, and each other f
 
 ## Tray
 
-Each player has a tray on their half of the table, next to the mat, on the +x side. The model is the TTS Dice Tray (an OBJ file and a texture, both in the TTS cache). The tray has the TTS color of its side: Red `{0.86, 0.10, 0.09}`, Blue `{0.12, 0.53, 1}`.
+Each player has a tray on their half of the table, next to the mat, on the +x side. The model is the TTS Dice Tray (an OBJ file and a texture, both in the TTS cache). The tray has the TTS color of its side: Red `{0.86, 0.10, 0.09}`, Blue `{0.12, 0.53, 1}`. The texture is black except the face plates, so the app lifts black to 0.03 grey and uses metalness 0.5 (roughness 0.8), chosen by look, so the shape of the tray shows. TTS uses the Cardboard material, SpecularIntensity 0.05.
 
 Sizes at the TTS tray scale 0.8, measured from the mesh:
 
@@ -127,6 +127,7 @@ The flow follows the TTS tray script, with three changes (see the list after the
 
 Changes from TTS:
 
+- The tray look differs: black lift 0.03 and metalness 0.5, because the TTS texture is black and the tray showed no shape.
 - TTS lets a second Roll throw dice again after they landed. The app blocks Roll after the first touch of a non-die in the throw until it ends; a touch between dice does not count, to stop timed re-rolls.
 - TTS puts the dice on the shelf in the order they were added. The app sorts them by face, so the counts are easier to read.
 - TTS reads the nearest face, even when a die is tilted. The app does the same by default. With **Throw tilted dice again** on, the app lets a tilted die wait until the flat dice are on the shelf. Then it throws the tilted die again.
