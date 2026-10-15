@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useGLTF, useTexture } from '@react-three/drei'
 import { RigidBody, TrimeshCollider, useRapier } from '@react-three/rapier'
 import { Color, MeshStandardMaterial, SRGBColorSpace } from 'three'
@@ -8,6 +8,17 @@ import { TOOL_TINT } from '../tabletools/toolTips.js'
 import { IMPORT_ROTATION, TRAYS, TRAY_SCALE, trayColliderArrays } from '../dice/tray.js'
 import { FRICTION } from '../physics.js'
 import DiceKeys from './DiceKeys.jsx'
+import { DEFAULT_TRAY_LOOK, useTrayLook } from './look.js'
+
+// TEMPORARY until the tray look is chosen: shared uniform for the black lift (look.js setTrayLook).
+// albedo = tint * mix(lift, 1, texel); lift 0 is the plain map * color.
+const trayLift = { value: 0 }
+
+function applyTrayLook(material, look) {
+  trayLift.value = look.lift
+  material.roughness = look.roughness
+  material.metalness = look.metalness
+}
 
 // Parts that the own tray (DiceTray.jsx) and the other player's tray (OtherDiceTray.jsx) share.
 
@@ -49,8 +60,30 @@ export function TrayBody({ trayKey, keysProps, onHover, bodyRef }) {
     trayTexture.colorSpace = SRGBColorSpace
     trayTexture.flipY = false
     const color = new Color().setRGB(...TOOL_TINT[playerColor], SRGBColorSpace)
-    return new MeshStandardMaterial({ map: trayTexture, color, roughness: 0.8, metalness: 0 })
+    const material = new MeshStandardMaterial({
+      map: trayTexture,
+      color,
+      roughness: DEFAULT_TRAY_LOOK.roughness,
+      metalness: DEFAULT_TRAY_LOOK.metalness,
+    })
+    material.onBeforeCompile = (shader) => {
+      shader.uniforms.uTrayLift = trayLift
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nuniform float uTrayLift;')
+        .replace(
+          '#include <map_fragment>',
+          `#include <map_fragment>
+  diffuseColor.rgb = diffuse * (vec3(uTrayLift) + (1.0 - uTrayLift) * sampledDiffuseColor.rgb);`,
+        )
+    }
+    return material
   }, [trayTexture, playerColor])
+
+  // TEMPORARY tray tuning from the Debug panel; the uniform is shared, so no material is recreated
+  const trayLook = useTrayLook()
+  useEffect(() => {
+    applyTrayLook(trayMaterial, trayLook)
+  }, [trayLook, trayMaterial])
 
   // Visible tray mesh: a clone of the loaded scene with the tinted material, IMPORT_ROTATION and
   // TRAY_SCALE (same mirror-and-scale fix as Terrain.jsx; the collider above already bakes both

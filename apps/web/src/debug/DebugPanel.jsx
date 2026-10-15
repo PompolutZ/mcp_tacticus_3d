@@ -48,6 +48,43 @@ function Row({ label, title, children }) {
   )
 }
 
+// TEMPORARY until the tray look is chosen (components/look.js, DiceTrayParts.jsx)
+const TRAY_SLIDERS = [
+  {
+    id: 'lift',
+    label: 'Black lift',
+    max: 0.6,
+    title: 'Texture black becomes this grey before the tint',
+  },
+  { id: 'roughness', label: 'Roughness', max: 1, title: 'Tray material roughness' },
+  { id: 'metalness', label: 'Metalness', max: 1, title: 'Tray material metalness' },
+]
+
+function TraySection({ tray, onChange, onReset }) {
+  return (
+    <div className="debug-stats">
+      <span className="debug-label">Dice tray</span>
+      <button type="button" className="chip" onClick={onReset}>
+        Reset
+      </button>
+      {TRAY_SLIDERS.map((s) => (
+        <Row key={s.id} label={s.label} title={s.title}>
+          <input
+            type="range"
+            min={0}
+            max={s.max}
+            step={0.01}
+            value={tray[s.id]}
+            aria-label={`Tray ${s.label}`}
+            onChange={(e) => onChange({ [s.id]: Number(e.target.value) })}
+          />{' '}
+          {tray[s.id].toFixed(2)}
+        </Row>
+      ))}
+    </div>
+  )
+}
+
 function ModeButtons({ options, value, onChange }) {
   return (
     <div className="debug-modes">
@@ -74,6 +111,9 @@ export function DebugPanel({
   onToneMappingChange,
   surface,
   onSurfaceChange,
+  tray,
+  onTrayChange,
+  onTrayReset,
 }) {
   const stats = useFrameStats()
   return (
@@ -120,6 +160,7 @@ export function DebugPanel({
       <ModeButtons options={RENDER_MODES} value={renderMode} onChange={onRenderModeChange} />
       <ModeButtons options={TONE_MAPPINGS} value={toneMapping} onChange={onToneMappingChange} />
       <ModeButtons options={SURFACES} value={surface} onChange={onSurfaceChange} />
+      <TraySection tray={tray} onChange={onTrayChange} onReset={onTrayReset} />
     </div>
   )
 }
