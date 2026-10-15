@@ -30,7 +30,7 @@ Branch `playtest-2`, worktree `../mcp_assist_3d-playtest-2`. One coder step and 
 
 ### Drag height
 
-- Model drag: `src/components/CharacterModel.jsx`. Each frame, `baseGroundY` casts the base cylinder down from y = 100 (`castDown` in `src/physics.js`). The first hit is the top surface, so the base never goes under an overhang.
+- Model drag: `src/components/CharacterModel.jsx`. Each frame, `baseGroundY` (`src/characters/base.js`) casts the base cylinder down from y = 100 (`castDown` in `src/physics.js`). The first hit is the top surface, so the base never goes under an overhang.
 - `castAlong` (`physics.js`) casts a shape in any direction. `castDown` takes a start height `from`.
 - Terrain colliders: most pieces, `wakanda-tree` too, are one convex hull (`src/terrain/pieces.js`, `Terrain.jsx`). A hull is solid. The space under an overhang exists only outside the hull, for example under the slanted underside of the canopy.
 - R is `lift` (`src/input/bindings.js`). During a model drag, Lift returns at once (`CharacterModel.jsx`, `toggleLift`), so R does nothing there now. A model drag does not count as `dragging` in the key resolver (`src/keyboard.js`).

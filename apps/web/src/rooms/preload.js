@@ -2,9 +2,8 @@
 // Each file comes from the helper of the component that loads it, so Preload.jsx loads the same input
 // and the component then gets the file from the cache.
 
-import { matUrl } from '../components/Scene.jsx'
-import { pieceUrls } from '../components/Terrain.jsx'
-import { modelUrls } from '../components/CharacterModel.jsx'
+import { matUrl, pieceUrls } from '../terrain/urls.js'
+import { modelUrls } from '../characters/modelUrls.js'
 import { characterModels } from '../characters/models.js'
 import { characterByCode } from '../characters/characters.js'
 import { parseRosterText } from '../rosters/cards.js'

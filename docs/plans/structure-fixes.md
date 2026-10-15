@@ -196,6 +196,15 @@ User: throw and push a model onto terrain; drop a model on terrain; open a room 
 
 ### Result
 
+Done. Deviations:
+
+- `characters/base.js` also has `turnBody` (`usePieceTurns.js` imported it from `CharacterModel.jsx`; a 7th `.js` to `.jsx` import that the plan did not list). `useTerrainFall.js` and `LosTool.jsx` import from `base.js` too. `NO_ROTATION` of `throwPath.js`, `dropQuery.js` and `terrainUnder.js` now comes from `base.js`.
+- `modelUrls`, `pieceUrls`, `matUrl`, `matImageUrl` did not go to `files.js` and `maps/index.js`: `files.js` is loaded in Node by the migrate scripts, and `maps/index.js` by many node tests, and `assetUrl` needs Vite (`import.meta.glob`). New plain-of-React modules `characters/modelUrls.js` and `terrain/urls.js` (with `bundleColliderMeshes`, which `Terrain.jsx` also uses).
+- Tests: `characters/base.test.js`, `components/throwPath.test.js`, `terrain/dropQuery.test.js`, with a real headless Rapier world (as `physics.test.js`), not fakes. All load in Node.
+- `.oxlintrc.json`: `no-restricted-imports` for `apps/web/src/**/*.js`, off for `tacticFaceTexture.js` (comment there). Checked: a test `.js` that imports a `.jsx` is reported. `docs/features/peer-to-peer.md` ("Code layout") and `rooms.md` ("Loading") updated.
+- Checks: format, lint 52 warnings (baseline 52), `pnpm test` 928 web tests pass, `pnpm --filter web build` ok. No `.js` imports a `.jsx` except `tacticFaceTexture.js`.
+
+
 ## Step 5: Unused exports
 
 Work:

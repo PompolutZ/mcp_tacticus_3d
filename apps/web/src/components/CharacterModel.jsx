@@ -11,8 +11,6 @@ import {
   Mesh,
   MeshStandardMaterial,
   PlaneGeometry,
-  Quaternion,
-  Vector3,
 } from 'three'
 import {
   FRICTION,
@@ -21,7 +19,6 @@ import {
   BODY_DYNAMIC,
   BODY_KINEMATIC_POSITION,
   SOLVER_NONE,
-  castDown,
   lowerFloor,
 } from '../physics.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
@@ -29,10 +26,10 @@ import { tablePoint } from '../drag/tablePoint.js'
 import DragFootprint from './DragFootprint.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useColorTexture } from './useColorTexture.js'
-import { assetUrl } from '../assets/index.js'
 import { HOVER_RATE } from '../pieces/heights.js'
 import { useBodyRef } from '../useBodyRef.js'
 import { useHoverCursor, useHoverReport } from './useHoverCursor.js'
+import { BASE_HALF_H, BASE_RADIUS, NO_ROTATION, baseGroundY, upright } from '../characters/base.js'
 import { useModelLift } from './useModelLift.js'
 import { useLandingSound } from './useLandingSound.js'
 import { useModelFollow } from './useModelFollow.js'
@@ -40,7 +37,6 @@ import { useFigureMaterials } from './useFigureMaterials.js'
 
 // While dragged, the base hangs this far above the table or terrain below it
 const DRAG_HOVER = 0.3
-const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 const ZERO = { x: 0, y: 0, z: 0 }
 // A model that stays within SETTLE_MOVE inches and SETTLE_TURN of one pose for SETTLE_TIME seconds is put
 // to sleep, as PhysX does in TTS. Without it, a model resting on a curved hull (made of many small faces)
@@ -48,9 +44,6 @@ const ZERO = { x: 0, y: 0, z: 0 }
 const SETTLE_TIME = 0.5
 const SETTLE_MOVE = 0.05
 const SETTLE_TURN = (2 * Math.PI) / 180
-// Base disk dims from angel.glb mesh0: radius≈0.983, height≈0.118
-const BASE_RADIUS = 0.983
-export const BASE_HALF_H = 0.059
 // Same density for every model, so the mass follows the base size
 const BASE_DENSITY = 5
 // TTS drag of every object
@@ -60,43 +53,6 @@ const LINEAR_DAMPING = 0.1
 // so a model that leans on terrain rocks for a long time. The higher damping stops that.
 // A 32-sided hull like the TTS base is not used because in Rapier it sinks into terrain hulls.
 const ANGULAR_DAMPING = 5
-
-// Same heading, but standing upright: keeps only the turn around the vertical axis
-export function upright({ y, w }) {
-  const len = Math.hypot(y, w)
-  return len < 1e-6 ? NO_ROTATION : { x: 0, y: y / len, z: 0, w: w / len }
-}
-
-const UP = new Vector3(0, 1, 0)
-const turnQuat = new Quaternion()
-const bodyQuat = new Quaternion()
-
-// Turns the body by angle (yaw) around the vertical line through its origin, the base center, as
-// Q / E do in TTS. Scene.jsx calls it on every frame of a smoothed turn. The base is round, so the
-// turn does not push an upright model into anything.
-// While the model is dragged, the drag keeps the new heading (see upright).
-export function turnBody(body, angle) {
-  const r = body.rotation()
-  turnQuat.setFromAxisAngle(UP, angle).multiply(bodyQuat.set(r.x, r.y, r.z, r.w))
-  body.setRotation(turnQuat, true)
-}
-
-// Top of the table or terrain under the whole base at (x, z), or null when nothing is under it.
-// A cast of the base shape, not a ray, so terrain under any part of the base counts.
-// The body origin is the base bottom, so this is also the body Y that puts the base on the ground.
-// from: height of the base bottom where the cast starts, when it is not above everything.
-export function baseGroundY(world, rapier, x, z, radius = BASE_RADIUS, from = undefined) {
-  return castDown(
-    world,
-    rapier,
-    new rapier.Cylinder(BASE_HALF_H, radius),
-    NO_ROTATION,
-    x,
-    z,
-    BASE_HALF_H,
-    from,
-  )
-}
 
 // Height of the model top above its origin (the base bottom), in inches. Measured in the model's own
 // space, so it does not depend on where the model stands.
@@ -122,15 +78,6 @@ function modelTop(scene) {
 function turnBetween(a, b) {
   const dot = Math.abs(a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w)
   return 2 * Math.acos(Math.min(1, dot))
-}
-
-// The files of a model (characters/models.js), as its component loads them: the GLB of a 3D model, or the
-// front and back images of a standee, in this order. Scene passes them to the component, and Preload.jsx
-// loads the same before a table shows (docs/features/rooms.md, "Loading").
-export function modelUrls(model) {
-  return model.figure === 'standee'
-    ? { standee: [assetUrl(model.standeeFiles[0]), assetUrl(model.standeeFiles[1])] }
-    : { gltf: assetUrl(model.file) }
 }
 
 // url: the GLB of the model. The other props: see CharacterFigure below.

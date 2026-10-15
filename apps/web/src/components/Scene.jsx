@@ -13,7 +13,8 @@ import { useTerrainFall } from './useTerrainFall.js'
 import { useModelClaims } from './useModelClaims.js'
 import { usePieceTurns } from './usePieceTurns.js'
 import { useModelSync } from './useModelSync.js'
-import CharacterModel, { StandeeModel, modelUrls } from './CharacterModel.jsx'
+import CharacterModel, { StandeeModel } from './CharacterModel.jsx'
+import { modelUrls } from '../characters/modelUrls.js'
 import CharacterTray from './CharacterTray.jsx'
 import TableButtons from './TableButtons.jsx'
 import ToolRack from './ToolRack.jsx'
@@ -42,7 +43,7 @@ import DiceTray from './DiceTray.jsx'
 import OtherDiceTray from './OtherDiceTray.jsx'
 import ScoreBoard from './ScoreBoard.jsx'
 import PriorityMarker from './PriorityMarker.jsx'
-import { Backdrop, Mat, SceneLights, TableSurface, matImageUrl } from './SceneShared.jsx'
+import { Backdrop, Mat, SceneLights, TableSurface } from './SceneShared.jsx'
 import { BASE_DIAMETER } from '../characters/files.js'
 import { MAPS } from '../terrain/maps/index.js'
 import {
@@ -113,11 +114,6 @@ const TIME_STEP = 1 / 120
 
 // Height of the random map note above the table, as in GameSetup.jsx (TABLE_Y).
 const WAIT_NOTE_Y = 0.05
-
-// The mat image of a map. Preload.jsx loads it before a table shows (docs/features/rooms.md, "Loading").
-export function matUrl(mapId) {
-  return matImageUrl(MAPS[mapId].mat)
-}
 
 const NO_TOOLS_RECORD = {}
 const NO_POSES = {}

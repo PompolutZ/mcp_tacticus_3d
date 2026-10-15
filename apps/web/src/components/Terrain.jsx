@@ -10,9 +10,8 @@ import {
 } from '@react-three/rapier'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { assetUrl } from '../assets/index.js'
 import { colliderNode, primitiveCollider, transformVertices } from '../terrain/bundleColliders.js'
-import { bundleColliders, pieceCollider, pieceMesh, pieceTexture } from '../terrain/files.js'
+import { bundleColliderMeshes, pieceUrls } from '../terrain/urls.js'
 import { toThreeTransform } from '../terrain/placementMove.js'
 import { terrainLabel } from '../terrain/label.js'
 import { TERRAIN_PIECES } from '../terrain/pieces.js'
@@ -134,25 +133,6 @@ function PrimitiveColliders({ colliders, scale }) {
       />
     )
   })
-}
-
-// The files of a terrain piece, as TerrainPiece loads them: mesh, texture (null for a bundle piece, whose
-// GLB has its materials), collider mesh of an OBJ piece or null, and the one collider GLB of a bundle piece
-// (null if it has no mesh collider).
-// Preload.jsx loads the same before a table shows (docs/features/rooms.md, "Loading").
-export function pieceUrls(key) {
-  const piece = TERRAIN_PIECES[key]
-  return {
-    mesh: assetUrl(pieceMesh(key)),
-    texture: piece.bundle ? null : assetUrl(pieceTexture(key)),
-    collider: piece.collider ? assetUrl(pieceCollider(key)) : null,
-    colliders: bundleColliderMeshes(key).length ? assetUrl(bundleColliders(key)) : null,
-  }
-}
-
-// The `mesh` entries of a bundle piece
-function bundleColliderMeshes(key) {
-  return (TERRAIN_PIECES[key].colliders ?? []).filter((entry) => entry.shape === 'mesh')
 }
 
 // placement: a terrain piece on the mat, see mapTerrain in rooms/table.js.

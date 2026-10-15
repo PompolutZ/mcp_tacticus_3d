@@ -1,10 +1,9 @@
 import { Box3 } from 'three'
 import { castAlongHit } from '../physics.js'
-import { BASE_HALF_H } from '../components/CharacterModel.jsx'
+import { BASE_HALF_H, NO_ROTATION } from '../characters/base.js'
 import { STAND_GAP, STAND_LIFT, dropPlan, fallDelta, sampleGrid, standsOnIds } from './dropDown.js'
 
 const DOWN = { x: 0, y: -1, z: 0 }
-const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 const RAY_ROOM = 50
 
 // Id of the terrain piece that a collider belongs to (the userData of its RigidBody, see Terrain.jsx), or

@@ -98,7 +98,7 @@ The table mounts after that, in one commit. So the terrain colliders and the sav
 How it works:
 
 - `Preload.jsx` sits in the Canvas next to the scene. It loads each file with the same loader and the same input as the component that uses the file. R3F caches a load by the loader and the input, so the component then gets the file at once. A component that loads a list of files (a standee loads its 2 images) uses the same list here.
-- The input of each file comes from one helper next to its component: `pieceUrls` in `Terrain.jsx`, `modelUrls` in `CharacterModel.jsx`, `matUrl` in `Scene.jsx`. So the two lists cannot disagree.
+- The input of each file comes from one helper next to its component: `pieceUrls` and `matUrl` in `terrain/urls.js`, `modelUrls` in `characters/modelUrls.js`. So the two lists cannot disagree.
 - `Ready` comes after the scene in the Canvas. Its effect runs when the scene commits, and the loading screen hides then.
 - three.js counts loaded files for the whole page life. The loading screen shows the files since it mounted.
 - The Sandbox uses the same screen, with the files of its start map.

@@ -22,7 +22,7 @@ const SUPPORT_LIFT = 0.1
 
 // The landing sounds of a model: its own landings and the other player's. Has the effect of
 // useAfterPhysicsStep.
-// groundBelow(x, z, from): baseGroundY of the base (CharacterModel.jsx). rigidRef, remoteRef: refs of
+// groundBelow(x, z, from): baseGroundY of the base (characters/base.js). rigidRef, remoteRef: refs of
 // CharacterFigure. Returns the refs the remote mode effect resets, and listenLanding for the frame.
 export function useLandingSound({
   groundBelow,

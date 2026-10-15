@@ -3,7 +3,7 @@ import { Line } from '@react-three/drei'
 import { RigidBody, useRapier } from '@react-three/rapier'
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { BASE_HALF_H } from './CharacterModel.jsx'
+import { BASE_HALF_H } from '../characters/base.js'
 import {
   clearSight,
   losCast,

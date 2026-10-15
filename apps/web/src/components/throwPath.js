@@ -3,11 +3,10 @@
 // the tool, and it stops when it touches another character's base or a terrain piece. Only a Throw
 // causes collision damage, and the players resolve that themselves.
 
-import { BASE_HALF_H, baseGroundY } from './CharacterModel.jsx'
+import { BASE_HALF_H, NO_ROTATION, baseGroundY } from '../characters/base.js'
 import { castAlong } from '../physics.js'
 import { TOUCH_MARGIN, matEdgeDistance, standingColliders } from './terrainUnder.js'
 
-const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 // The base moves this far (inches) above the ground where it starts, so the terrain cast does not hit
 // the surface that the base stands on
 const CAST_LIFT = 0.05

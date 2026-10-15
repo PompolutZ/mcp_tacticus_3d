@@ -541,6 +541,7 @@ apps/web/src/components/
 apps/web/src/characters/
   overlap.js       which models show the overlap mark
   claims.js        when a model claim keeps, rests or ends
+  base.js          the base size, baseGroundY, upright, turnBody. No React, loads in Node
 apps/api/
   src/routes/signal.ts  signaling routes: messages. ICE servers: not built yet
   src/middleware/session.ts  requireSession: checks the token, reads no user
@@ -550,6 +551,8 @@ apps/api/
 infra/
   README.md             deploy steps, Atlas CLI commands for the database user and the access list
 ```
+
+A `.js` file under `apps/web/src` does not import a `.jsx` file (oxlint `no-restricted-imports`, `.oxlintrc.json`). A name that both need goes to a `.js` module, such as `characters/base.js`. The one exception is `components/tacticFaceTexture.js`, which renders `TacticFace.jsx` into a canvas. Asset URL helpers (`terrain/urls.js`, `characters/modelUrls.js`) are apart from the `files.js` modules, because the migrate scripts load those in Node and `assetUrl` needs Vite.
 
 The rest of `apps/api` and `infra/` is in the backend doc ("Code", "Infrastructure").
 

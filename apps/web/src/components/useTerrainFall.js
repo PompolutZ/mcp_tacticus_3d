@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { BASE_DIAMETER } from '../characters/files.js'
 import { modelKey } from '../characters/claims.js'
-import { upright } from './CharacterModel.jsx'
+import { upright } from '../characters/base.js'
 import { planTerrainDrop } from '../terrain/dropQuery.js'
 import { poseOf } from '../rooms/table.js'
 

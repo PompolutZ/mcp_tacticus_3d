@@ -2,8 +2,8 @@
 // a base, and the distance to the mat edge.
 
 import { MAT_SIZE } from '../table.js'
+import { NO_ROTATION } from '../characters/base.js'
 
-const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 // The test shape is the base, reaching STAND_DEPTH below it, so the piece that the base stands on counts.
 const STAND_DEPTH = 0.05
 // Callers that must not count a wall that the base only touches use a base this much narrower (throwPath.js,

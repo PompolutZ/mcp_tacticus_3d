@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { turnBody } from './CharacterModel.jsx'
+import { turnBody } from '../characters/base.js'
 
 // A Q / E key held longer than this (s) turns the piece on at ROTATE_RATE (rad/s), 90° per second,
 // the same as the arrow keys turn the camera. Picked by look, not measured in TTS.

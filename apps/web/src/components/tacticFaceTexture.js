@@ -1,5 +1,6 @@
 import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
+// The one plain module that imports a component: it renders TacticFace into a canvas (docs/features/peer-to-peer.md, "Code layout").
 import TacticFace, { FACE_HEIGHT, FACE_WIDTH } from './TacticFace.jsx'
 import faceCss from './TacticFace.css?raw'
 import { faceCard, loadFaceText } from '../tactics/faceData.js'

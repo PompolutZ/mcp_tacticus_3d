@@ -24,6 +24,26 @@
   "overrides": [
     { "files": ["apps/web/src/**"], "env": { "browser": true } },
     {
+      "files": ["apps/web/src/**/*.js"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/*.jsx", "*.jsx"],
+                "message": "A plain module does not import a component. Move the shared name to a .js module."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["apps/web/src/components/tacticFaceTexture.js"],
+      "rules": { "no-restricted-imports": "off" }
+    },
+    {
       "files": [
         "apps/api/**",
         "apps/web/scripts/**",

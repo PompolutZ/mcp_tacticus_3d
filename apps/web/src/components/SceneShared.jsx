@@ -3,18 +3,13 @@ import { useThree } from '@react-three/fiber'
 import { useTexture, Environment } from '@react-three/drei'
 import { projectFootprints } from './footprintProjection.js'
 import { useColorTexture } from './useColorTexture.js'
-import { matImage } from '../terrain/files.js'
+import { matImageUrl } from '../terrain/urls.js'
 import { assetUrl } from '../assets/index.js'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { FRICTION } from '../physics.js'
 import { MAT_SIZE, TABLE_COLLIDER_HALF_H, TABLE_DEPTH, TABLE_WIDTH } from '../table.js'
 
 // Parts of the scene that the game (Scene.jsx) and the terrain page (debug/TerrainPage.jsx) share.
-
-// The mat image of a mat name
-export function matImageUrl(mat) {
-  return assetUrl(matImage(mat))
-}
 
 // The mat image. Its own component, so a new mat's image loads inside the mat's Suspense below.
 // The image turns by -(matRotation - 180) degrees around Y (docs/features/maps.md, "Mat rotation").
