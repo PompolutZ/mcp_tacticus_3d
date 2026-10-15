@@ -1,8 +1,6 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { Color, SRGBColorSpace } from 'three'
-import { useThree } from '@react-three/fiber'
-import { useRapier } from '@react-three/rapier'
-import { tablePoint } from '../drag/tablePoint.js'
+import { usePointerTablePoint } from '../drag/usePointerTablePoint.js'
 import { canDropTool, toolArms } from '../tabletools/dropShape.js'
 import { useSideColor } from '../sideColors.js'
 import { TOOL_TINT } from '../tabletools/toolTips.js'
@@ -21,20 +19,16 @@ const OPACITY = 0.45
 const DIMMED_OPACITY = 0.12
 
 export default function ToolDragGhost({ pointRef, start, kind, which, side }) {
-  const { camera, gl } = useThree()
-  const { world, rapier } = useRapier()
   const groupRef = useRef()
   const arms = useMemo(() => toolArms(kind, which), [kind, which])
   const materials = useRef([])
   const color = useSideColor(side)
   const tint = useMemo(() => new Color().setRGB(...TOOL_TINT[color], SRGBColorSpace), [color])
 
-  useEffect(() => {
-    const scene = { camera, canvas: gl.domElement, world, rapier }
-
-    function handleMove(e) {
-      const point = tablePoint(scene, e.clientX, e.clientY, { offTable: 'null' })
-      pointRef.current = point
+  usePointerTablePoint(
+    pointRef,
+    start,
+    (point) => {
       const group = groupRef.current
       if (!group) return
       group.visible = Boolean(point)
@@ -42,17 +36,9 @@ export default function ToolDragGhost({ pointRef, start, kind, which, side }) {
       group.position.set(point.x, point.y + LIFT, point.z)
       const opacity = canDropTool(side, point) ? OPACITY : DIMMED_OPACITY
       for (const material of materials.current) if (material) material.opacity = opacity
-    }
-
-    handleMove(start)
-    window.addEventListener('pointermove', handleMove)
-    return () => {
-      window.removeEventListener('pointermove', handleMove)
-      pointRef.current = null
-    }
-    // start is read only on mount: the pointermove listener follows the pointer after that
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [camera, gl, world, rapier, pointRef, side])
+    },
+    [side],
+  )
 
   // Hidden until handleMove gives it a point
   return (

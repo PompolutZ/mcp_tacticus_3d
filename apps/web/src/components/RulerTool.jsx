@@ -2,6 +2,7 @@ import { RigidBody, ConvexHullCollider, useRapier } from '@react-three/rapier'
 import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 import { useBodyRef } from '../useBodyRef.js'
+import { nearestHit } from '../drag/screenRay.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
 import { freeSpawnYaw } from './storedTool.js'
@@ -399,17 +400,10 @@ function Tool({
 
   // Nearest of the models (default: all of them) under the pointer ray (figure or base), or null
   function modelUnder(raycaster, list = models) {
-    let nearest = null
-    let nearestDistance = Infinity
-    for (const model of list) {
-      const object = model.getObject()
-      const hit = object && raycaster.intersectObject(object, true)[0]
-      if (hit && hit.distance < nearestDistance) {
-        nearest = model
-        nearestDistance = hit.distance
-      }
-    }
-    return nearest
+    return nearestHit(
+      raycaster,
+      list.map((m) => [m, m.getObject()]),
+    )
   }
 
   // Body drag: when the pointer moves onto a model, snap to it and end the drag

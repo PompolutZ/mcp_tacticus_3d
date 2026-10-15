@@ -1,7 +1,7 @@
-import { Suspense, useEffect, useMemo, useRef } from 'react'
-import { useFrame, useThree } from '@react-three/fiber'
+import { Suspense, useMemo, useRef } from 'react'
+import { useFrame } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
-import { tablePoint } from '../drag/tablePoint.js'
+import { usePointerTablePoint } from '../drag/usePointerTablePoint.js'
 import { followPart, numbersToPose } from '../net/livePose.js'
 import { castDown } from '../physics.js'
 import { tokenSize } from '../tokens/tokens.js'
@@ -25,16 +25,12 @@ const GAP = 0.02
 // stacks: the token lands on top of the tokens under it (a character token, tokens/stack.js), so it
 // shows that height. A crisis supply token and a pile do not stack.
 export default function TokenDragPreview({ pointRef, start, stacks = false, children }) {
-  const { camera, gl } = useThree()
-  const { world, rapier } = useRapier()
   const groupRef = useRef()
 
-  useEffect(() => {
-    const scene = { camera, canvas: gl.domElement, world, rapier }
-
-    function handleMove(e) {
-      const point = tablePoint(scene, e.clientX, e.clientY, { offTable: 'null' })
-      pointRef.current = point
+  usePointerTablePoint(
+    pointRef,
+    start,
+    (point) => {
       const group = groupRef.current
       if (!group) return
       group.visible = Boolean(point)
@@ -44,17 +40,9 @@ export default function TokenDragPreview({ pointRef, start, stacks = false, chil
         const rest = Math.max(point.y, top ?? point.y)
         group.position.set(point.x, rest + GAP + TOKEN_DRAG_LIFT, point.z)
       }
-    }
-
-    handleMove(start)
-    window.addEventListener('pointermove', handleMove)
-    return () => {
-      window.removeEventListener('pointermove', handleMove)
-      pointRef.current = null
-    }
-    // start is read only on mount: the pointermove listener follows the pointer after that
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [camera, gl, world, rapier, pointRef, stacks])
+    },
+    [stacks],
+  )
 
   // The footprint is the token radius under the point. It hides when the point is null.
   const footprintShape = () => {

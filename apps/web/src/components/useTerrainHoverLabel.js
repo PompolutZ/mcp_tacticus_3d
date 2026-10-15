@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useThree } from '@react-three/fiber'
+import { ndcFromClient } from '../drag/screenRay.js'
 
 // The terrain piece under the pointer while labels are off, or null.
 export function useTerrainHoverLabel({ showLabels, terrainUnder }) {
@@ -17,12 +18,7 @@ export function useTerrainHoverLabel({ showLabels, terrainUnder }) {
     let last = null
     function cast() {
       frame = 0
-      const rect = canvas.getBoundingClientRect()
-      const ndc = {
-        x: ((last.clientX - rect.left) / rect.width) * 2 - 1,
-        y: -((last.clientY - rect.top) / rect.height) * 2 + 1,
-      }
-      setHoverLabelId(terrainUnder(ndc))
+      setHoverLabelId(terrainUnder(ndcFromClient(canvas, last.clientX, last.clientY)))
     }
     function onMove(e) {
       last = e

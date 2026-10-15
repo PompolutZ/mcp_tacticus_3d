@@ -4,6 +4,7 @@ import { Raycaster, Vector3 } from 'three'
 import { BASE_DIAMETER } from '../characters/files.js'
 import { poseOf } from '../rooms/table.js'
 import { liveBody } from '../physics.js'
+import { ndcFromClient, nearestHit } from '../drag/screenRay.js'
 
 // The model registry of Scene: the maps from model id to body, object and lift, the Rapier world refs,
 // and the lookups over them. No effect inside; Scene fills the maps through the children.
@@ -60,30 +61,15 @@ export function useModelRegistry({ models, characters }) {
   // null. Returns the character id. { models: false }: only the tray plates count (a crisis token is
   // held by the card only, "Hold and drop").
   function characterAt(clientX, clientY, { models: useModels = true } = {}) {
-    const rect = gl.domElement.getBoundingClientRect()
-    const ndc = {
-      x: ((clientX - rect.left) / rect.width) * 2 - 1,
-      y: -((clientY - rect.top) / rect.height) * 2 + 1,
-    }
-    raycaster.current.setFromCamera(ndc, camera)
-    let nearestId = null
-    let nearestDistance = Infinity
-    const targets = [
+    raycaster.current.setFromCamera(ndcFromClient(gl.domElement, clientX, clientY), camera)
+    return nearestHit(raycaster.current, [
       // A construct is not a drop target: a token dropped on it lands on whatever is under it, the table
       // or the mat (docs/features/character-trays.md, "Constructs")
       ...models
         .filter((model) => useModels && !model.construct)
         .map((model) => [model.character.id, charObjects.current.get(model.id)]),
       ...characters.map((ch) => [ch.id, trayObjects.current.get(ch.id)]),
-    ]
-    for (const [id, object] of targets) {
-      const hit = object && raycaster.current.intersectObject(object, true)[0]
-      if (hit && hit.distance < nearestDistance) {
-        nearestId = id
-        nearestDistance = hit.distance
-      }
-    }
-    return nearestId
+    ])
   }
 
   // Id of the nearest terrain piece under the pointer, locked or not, or null. A locked piece gets no
@@ -97,16 +83,7 @@ export function useModelRegistry({ models, characters }) {
   // Id of the nearest terrain piece on the ray through ndc, or null
   function terrainUnder(ndc) {
     raycaster.current.setFromCamera(ndc, camera)
-    let nearestId = null
-    let nearestDistance = Infinity
-    for (const [id, object] of terrainObjects.current) {
-      const hit = raycaster.current.intersectObject(object, true)[0]
-      if (hit && hit.distance < nearestDistance) {
-        nearestId = id
-        nearestDistance = hit.distance
-      }
-    }
-    return nearestId
+    return nearestHit(raycaster.current, terrainObjects.current)
   }
 
   // Live table position of a character's first model (Hold and drop, "Drop"): the Rapier body when there

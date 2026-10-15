@@ -529,6 +529,8 @@ apps/web/src/net/
 apps/web/src/drag/
   pointerDrag.js  startPointerDrag: the gesture of every drag, claims, cancel
   tablePoint.js   the table, board or terrain point under a screen point
+  screenRay.js    ndcFromClient (pixel to NDC), nearestHit (nearest object on a ray)
+  usePointerTablePoint.js  the pointer follow of a drag ghost or preview
 apps/web/src/components/
   RoomPlayers.jsx  the seats and the connection status in the room toolbar
   LiveSync.jsx     sends the own live poses and the cursor, keeps the received ones

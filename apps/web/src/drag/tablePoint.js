@@ -1,4 +1,5 @@
 import { Plane, Raycaster, Vector3 } from 'three'
+import { ndcFromClient } from './screenRay.js'
 
 const TABLE_PLANE = new Plane(new Vector3(0, 1, 0), 0)
 const raycaster = new Raycaster()
@@ -9,12 +10,7 @@ const raycaster = new Raycaster()
 // scene: { camera, canvas, world, rapier }. Returns a new Vector3.
 export function tablePoint(scene, clientX, clientY, { offTable = 'plane' } = {}) {
   const { camera, canvas, world, rapier } = scene
-  const rect = canvas.getBoundingClientRect()
-  const ndc = {
-    x: ((clientX - rect.left) / rect.width) * 2 - 1,
-    y: -((clientY - rect.top) / rect.height) * 2 + 1,
-  }
-  raycaster.setFromCamera(ndc, camera)
+  raycaster.setFromCamera(ndcFromClient(canvas, clientX, clientY), camera)
   const { origin, direction } = raycaster.ray
   const filter = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
   const hit = world.castRay(new rapier.Ray(origin, direction), 1000, true, filter)

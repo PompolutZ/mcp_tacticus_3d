@@ -3,6 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
 import * as THREE from 'three'
 import { liveBody } from '../physics.js'
+import { ndcFromClient } from '../drag/screenRay.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
 import { wrapAngle, toolPose, yawQuat, yawTo } from '../components/toolGeometry.js'
 
@@ -101,14 +102,8 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
     let point = e.point
     if (!point) {
       // A DOM event (a button): the pointer ray, on the horizontal plane of the button
-      const rect = gl.domElement.getBoundingClientRect()
-      raycaster.current.setFromCamera(
-        new THREE.Vector2(
-          ((e.clientX - rect.left) / rect.width) * 2 - 1,
-          -((e.clientY - rect.top) / rect.height) * 2 + 1,
-        ),
-        camera,
-      )
+      const ndc = ndcFromClient(gl.domElement, e.clientX, e.clientY)
+      raycaster.current.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), camera)
       const y = (rigidRef.current?.translation().y ?? 0) + FLAT_HTML_Y
       point = new THREE.Vector3()
       if (
@@ -153,11 +148,7 @@ export function useDragTool(rigidRef, groundY, hoverHeight, onDragStart, onDragM
       },
       // true: onDragMove ended the drag, and the rest of that press does nothing
       onMove: (ev) => {
-        const rect = gl.domElement.getBoundingClientRect()
-        mouseNDC.current = {
-          x: ((ev.clientX - rect.left) / rect.width) * 2 - 1,
-          y: -((ev.clientY - rect.top) / rect.height) * 2 + 1,
-        }
+        mouseNDC.current = ndcFromClient(gl.domElement, ev.clientX, ev.clientY)
         raycaster.current.setFromCamera(mouseNDC.current, camera)
         const turn = turning.current
         if (turn) {

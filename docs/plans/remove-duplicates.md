@@ -187,6 +187,14 @@ User: drop a crisis token on a character (model and tray). Hover a locked terrai
 
 ### Result
 
+Done. Lint 58 warnings (same, no new `eslint-disable`; the hook keeps the one for `start`, the two copies are gone), tests 896 pass, build ok, fallow 299 lines / 11 groups (the ghost group is gone; the rest are dialogs, Scene/RulerTool and the migrate scripts, later steps).
+
+- `drag/screenRay.js` (`ndcFromClient`, `nearestHit`) + test. Used in `tablePoint.js`, `characterAt` and `terrainUnder` (`components/useModelRegistry.js`), `useTerrainHoverLabel.js`, `tabletools/useDragTool.js` (2 places, it took the RulerTool ones), `modelUnder` in `RulerTool.jsx`.
+- `drag/usePointerTablePoint.js`; `TokenDragPreview` and `ToolDragGhost` use it. The hook takes the `onPoint` closure and a `deps` list; group visibility stays in `onPoint` of each.
+- Docs: file list in `peer-to-peer.md`.
+
+Deviations: `ToolPoint.jsx` does the inverse (NDC to pixel); left as is.
+
 ## Step 4: 3D constants and small hooks
 
 Work:
