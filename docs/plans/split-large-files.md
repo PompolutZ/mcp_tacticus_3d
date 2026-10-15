@@ -222,6 +222,13 @@ User: the tool rack shows the tools in the player color; Deploy Lock shows the R
 
 ### Result
 
+Done. New `components/ToolButtons.jsx` (`BUTTON_STYLE`, `FlatHtml`, `PX_PER_INCH`, `PLACE_FILL`, `clickByKey`, `ToolButton`, `BendButton`), `components/ToolParts.jsx` (`TEXTURE`, `textured`, `hullPoints`, `useRangeParts`, `useMovementParts`, `DeployRangeTool`), `components/OtherTool.jsx` (`noRaycast`, `OtherToolBody`, `OtherRange`, `OtherMovement`, `OtherAngle`, `OtherTool`; its `refs` warning moved with it). `RulerTool.jsx` keeps `Tool`, `RangeRuler`, `MovementRuler`, `AngleRuler`. `Scene.jsx` and `ToolRack.jsx` import from the new files. Pointers to `OtherToolBody` (LosTool.jsx) and `FlatHtml` (character-trays.md) name the new files.
+
+- Checks: format, lint 58 warnings (same), test pass, build ok.
+- Fallow: `Tool` 37 / 98 / 838 lines before and after. `RulerTool.jsx` 1,396 to 976 lines.
+- Move diff: only `export` added to `FlatHtml`, `ToolButton`, `BendButton`, `hullPoints`, plus imports.
+- Deviation: `hullPoints` exported (used by `Tool` and `OtherToolBody`). Other `RulerTool.jsx` pointers still name `Tool`, `RangeRuler`, which stay there.
+
 ## Step 4: Tool hooks
 
 Needs step 3.

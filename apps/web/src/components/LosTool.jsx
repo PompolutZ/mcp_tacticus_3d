@@ -374,7 +374,7 @@ export function LosTool({
 }
 
 // The other player's Line of Sight tool: the line follows their looker, and turns to their yaw, from the live
-// channel or from the entry, whichever came last (as OtherToolBody in RulerTool.jsx). No pointer.
+// channel or from the entry, whichever came last (as OtherToolBody in OtherTool.jsx). No pointer.
 // entry: { looker, target, pose }. getLive(): { pose: [x, y, z, yaw, right, left], time } or null.
 export function OtherLos({ entry, models, getLive, selected = false }) {
   const looker = findCharacter(models, entry.looker)

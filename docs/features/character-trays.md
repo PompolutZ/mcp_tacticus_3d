@@ -33,7 +33,7 @@ Later, the app should get a 2D HUD that is separate from the 3D world. For the f
 To make the later move to a 2D HUD cheap:
 
 - All tray state lives in `App.jsx`, the same as the crisis tokens. The 3D tray only shows it.
-- The tray controls are plain DOM React components (`TrayControls`). The 3D tray mounts them in a drei `<Html transform>` element, the same way as `FlatHtml` in `RulerTool.jsx`. A 2D HUD can later mount the same components in a normal HUD panel.
+- The tray controls are plain DOM React components (`TrayControls`). The 3D tray mounts them in a drei `<Html transform>` element, the same way as `FlatHtml` in `ToolButtons.jsx`. A 2D HUD can later mount the same components in a normal HUD panel.
 
 ## Players apply the rules
 

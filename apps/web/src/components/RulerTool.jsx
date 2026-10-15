@@ -1,21 +1,14 @@
-import { useLoader, useFrame } from '@react-three/fiber'
-import { useTexture } from '@react-three/drei'
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import { RigidBody, ConvexHullCollider, useRapier } from '@react-three/rapier'
 import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
-import { acquireFootprint, FOOTPRINT_COLOR } from './footprintProjection.js'
 import { useBodyRef } from '../useBodyRef.js'
 import { throwMove } from './throwPath.js'
-import { assetUrl } from '../assets/index.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useHoverCursor } from './useHoverCursor.js'
-import { followPart, lerpAngle } from '../net/livePose.js'
 import { freeSpawnYaw, storedFields, sameStored } from './storedTool.js'
-import { useSideColor } from '../sideColors.js'
-import { MOVE_TIP, RANGE_TIP, TOOL_TINT } from '../tabletools/toolTips.js'
+import { MOVE_TIP, RANGE_TIP } from '../tabletools/toolTips.js'
 import { onRack } from '../tabletools/layout.js'
-import { useDragTool, HOVER_RATE, FLAT_HTML_Y } from '../tabletools/useDragTool.js'
+import { useDragTool } from '../tabletools/useDragTool.js'
 import { useRestStore } from '../tabletools/useRestStore.js'
 import { useFootprintGround } from '../tabletools/useFootprintGround.js'
 import { ToolFootprint, RangeMark } from './ToolFootprint.jsx'
@@ -24,7 +17,8 @@ import { aimTurn } from './aimTurn.js'
 import { toolAction } from './toolInput.js'
 import { clampRange, rangeReach, withinRange } from './rangeOne.js'
 import { lineClamp, placeClamp, touches } from './placeLock.js'
-import { OccludedHtml } from './LabelOcclusion.jsx'
+import { useRangeParts, useMovementParts, hullPoints } from './ToolParts.jsx'
+import { FlatHtml, ToolButton, BendButton } from './ToolButtons.jsx'
 import {
   SIDES,
   OTHER,
@@ -50,36 +44,12 @@ import {
   lockKey,
 } from './toolGeometry.js'
 
-const TEXTURE = assetUrl('tools/toolbox-02.png')
-
 // A movement tool bends at its hinge, but never past a right angle, the same as the plastic one
 const MAX_BEND = Math.PI / 2
 // Place sits this far in from the tip, and so does Throw at the other end. On a movement tool, these
 // buttons are turned across the tool, so along the tool they take only their height, about 0.27" for
 // Place and 0.4" for Throw.
 const PLACE_INSET = 0.75
-
-// color: 'blue' or 'red', the player color (not the side). Without it, the texture keeps its own colors.
-function textured(obj, map, playerColor) {
-  const color = new THREE.Color().setRGB(
-    ...(TOOL_TINT[playerColor] ?? [1, 1, 1]),
-    THREE.SRGBColorSpace,
-  )
-  const mat = new THREE.MeshStandardMaterial({ map, color, roughness: 0.5, metalness: 0.1 })
-  obj.traverse((child) => {
-    if (child.isMesh) child.material = mat
-  })
-  return obj
-}
-
-// Vertex positions of the mesh in obj, for a convex hull collider
-function hullPoints(obj) {
-  let points = null
-  obj.traverse((child) => {
-    if (child.isMesh && !points) points = child.geometry.attributes.position.array
-  })
-  return points
-}
 
 // target: the piece selected last, a model or a token, as { id, kind, getObject, getCenter, radius,
 // getBody? }, or null. The tool measures against it. By default it also snaps to it when it spawns
@@ -113,87 +83,6 @@ export function RangeRuler({ number = 2, team, ...props }) {
   )
 }
 
-// The mesh of a range tool (2 to 5)
-export function useRangeParts(mesh, team) {
-  const playerColor = useSideColor(team)
-  const raw = useLoader(OBJLoader, assetUrl(`tools/range-${mesh}-mesh.obj`))
-  const map = useTexture(TEXTURE)
-  return useMemo(() => [{ obj: textured(raw.clone(), map, playerColor) }], [raw, map, playerColor])
-}
-
-// Non-interactive R3 tool that follows a dragged model along the deployment edge.
-// Visible only while a model is being dragged with the deploy-line toggle on.
-// team: the dragged model's team, so the tool has that player's tint.
-export function DeployRangeTool({ getBody, centerZ, yaw, team, hoverHeight = 1 }) {
-  const playerColor = useSideColor(team)
-  const raw = useLoader(OBJLoader, assetUrl('tools/range-3-mesh.obj'))
-  const map = useTexture(TEXTURE)
-  const obj = useMemo(() => textured(raw.clone(), map, playerColor), [raw, map, playerColor])
-  const groupRef = useRef()
-  const slotRef = useRef(null)
-  const groundY = useFootprintGround(RANGE_TIP[3], RANGE_HALF_WIDTH, STRAIGHT)
-  // Height of the tool, or null before the first frame
-  const yRef = useRef(null)
-
-  useEffect(() => {
-    slotRef.current = acquireFootprint()
-    return () => {
-      slotRef.current?.release()
-      slotRef.current = null
-    }
-  }, [])
-
-  useFrame((_, dt) => {
-    const body = getBody()
-    if (!body || !groupRef.current) return
-    const { x } = body.translation()
-    // hoverHeight above the table or terrain under the footprint, the same as a dragged tool.
-    // Off the table there is no ground, so keep the current height.
-    const ground = groundY(x, centerZ, yaw)
-    if (ground !== null) {
-      const goal = ground + hoverHeight
-      yRef.current =
-        yRef.current === null
-          ? goal
-          : yRef.current + (goal - yRef.current) * Math.min(1, dt * HOVER_RATE)
-    }
-    groupRef.current.position.set(x, yRef.current ?? hoverHeight, centerZ)
-    groupRef.current.rotation.y = yaw
-    if (slotRef.current) {
-      const shape = { x, z: centerZ, right: yaw, left: yaw + Math.PI }
-      slotRef.current.set(
-        shape,
-        RANGE_TIP[3],
-        RANGE_HALF_WIDTH,
-        FOOTPRINT_COLOR,
-        0.25,
-        FOOTPRINT_COLOR,
-      )
-    }
-  })
-
-  return (
-    <group ref={groupRef}>
-      <primitive object={obj} />
-    </group>
-  )
-}
-
-// The meshes of a movement tool: mesh-a is the right half with the round hinge, mesh-b is the left half
-export function useMovementParts(type, team) {
-  const playerColor = useSideColor(team)
-  const rawA = useLoader(OBJLoader, assetUrl(`tools/${type}-movement-mesh-a.obj`))
-  const rawB = useLoader(OBJLoader, assetUrl(`tools/${type}-movement-mesh-b.obj`))
-  const map = useTexture(TEXTURE)
-  return useMemo(
-    () => [
-      { obj: textured(rawA.clone(), map, playerColor), side: 'right' },
-      { obj: textured(rawB.clone(), map, playerColor), side: 'left' },
-    ],
-    [rawA, rawB, map, playerColor],
-  )
-}
-
 // Movement tool: mesh-a is the right half with the round hinge, mesh-b is the left half
 export function MovementRuler({ type = 'short', team, ...props }) {
   const parts = useMovementParts(type, team)
@@ -213,134 +102,6 @@ export function MovementRuler({ type = 'short', team, ...props }) {
 export function AngleRuler({ team, ...props }) {
   const parts = useMovementParts('long', team)
   return <Tool parts={parts} tip={MOVE_TIP.long} halfWidth={MOVE_HALF_WIDTH} angle {...props} />
-}
-
-const BUTTON_STYLE = {
-  background: '#1a1a1a',
-  border: '1px solid #f5a623',
-  color: '#f5a623',
-  cursor: 'pointer',
-  fontFamily: 'sans-serif',
-  pointerEvents: 'auto',
-}
-
-// Html element flat on the tool at local x, facing up. Html stays inside RigidBody,
-// so it follows the body's transform automatically.
-// Without a CSS rotation, the element reads toward local −X, with its top toward local +Z.
-
-function FlatHtml({ x = 0, z = 0, children }) {
-  return (
-    // Rx(π/2) lays the Html element flat on the tool's XZ surface facing up.
-    // Without this the element stands perpendicular to the table.
-    <group position={[x, FLAT_HTML_Y, z]} rotation={[Math.PI / 2, Math.PI, 0]}>
-      {/* The wrapper div keeps the unscaled button size and would block the tool drag around a
-          scaled button. Only the button itself takes the pointer (BUTTON_STYLE). */}
-      <OccludedHtml center transform pointerEvents="none">
-        {children}
-      </OccludedHtml>
-    </group>
-  )
-}
-
-// drei's Html transform draws 1 CSS px as 1/40 world unit (see DiceKeys.jsx)
-const PX_PER_INCH = 40
-// Share of the tool width that Place covers
-const PLACE_FILL = 0.85
-
-// A pointer press on a button goes through onPointerDown (a click presses the button, a drag moves the tool),
-// so a native click runs the action only for the keyboard (detail 0).
-function clickByKey(e, onClick) {
-  if (e.detail === 0) onClick?.(e)
-}
-
-// Place, Place 1, Place 2, Throw and Toward / Away.
-// toolWidth: width of the tool in inches. The button is 1" long before the scale, so the scale is the
-// length in inches: 0.47" on a movement tool, 0.85" on a range tool.
-// on: the toggle state, or undefined for the one-shot Place 1 on the R1 tool
-// along: on the R1 tool, Place lies along the tool instead of across it. See the transform below.
-// rotation: the CSS rotation in degrees, for a button that is not across or along. Reads toward local
-// −X with 0, and toward local +X with 180.
-function ToolButton({
-  label = 'Place',
-  toolWidth,
-  on,
-  along = false,
-  rotation,
-  disabled = false,
-  disabledTitle = 'Select a character',
-  title,
-  onClick,
-  onPointerDown,
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={on}
-      style={{
-        ...BUTTON_STYLE,
-        background: on ? '#f5a623' : '#1a1a1a',
-        color: on ? '#1a1a1a' : '#f5a623',
-        width: PX_PER_INCH,
-        padding: '4px 0',
-        borderRadius: '4px',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.4 : 1,
-        fontSize: '11px',
-        whiteSpace: 'nowrap',
-        // Across the tool, reading toward the tool's local +Z. A tool snapped to a model on the
-        // player's half points to the mat center (snapPose), so the label reads from the player's side.
-        // Along: reading toward local +X, with its top toward local −Z. The R1 tool snapped to a model
-        // on the player's half has local +Z away from the mat center (snapPoseOne), so the same holds.
-        transform: `rotate(${rotation ?? (along ? 180 : -90)}deg) scale(${PLACE_FILL * toolWidth})`,
-      }}
-      disabled={disabled}
-      title={disabled ? disabledTitle : title}
-      onClick={(e) => clickByKey(e, onClick)}
-      onPointerDown={onPointerDown}
-    >
-      {label}
-    </button>
-  )
-}
-
-// Round toggle with a half circle that has an arrow at each end. About as big as the hinge.
-function BendButton({ on, onClick, onPointerDown }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={on}
-      aria-label="Bend"
-      title={on ? 'Bend on: dragging a half turns it around the hinge' : 'Bend'}
-      style={{
-        ...BUTTON_STYLE,
-        background: on ? '#f5a623' : '#1a1a1a',
-        color: on ? '#1a1a1a' : '#f5a623',
-        width: '22px',
-        height: '22px',
-        padding: 0,
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-      onClick={(e) => clickByKey(e, onClick)}
-      onPointerDown={onPointerDown}
-    >
-      <svg
-        width="14"
-        height="14"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M5 15 A7 7 0 0 1 19 15" />
-        <path d="M2 12 L5 15.5 L8 12 M16 12 L19 15.5 L22 12" />
-      </svg>
-    </button>
-  )
 }
 
 // Tool that measures with its footprint. See docs/features/range-movement-tools.md, "Tools".
@@ -1212,185 +973,4 @@ function Tool({
       )}
     </>
   )
-}
-
-const noRaycast = () => {}
-
-// The other player's tool (plan 09, decisions 11 and 14): the shape of Tool without its controls. The side's
-// tint, the footprint with the other player's target (selected, target, rangeFrom), no buttons, no hover, no outline, no range mark. The pointer does
-// not hit it, so a click goes to the piece below. A kinematic sensor, the same as Tool.
-// It goes to its latest pose, from the live channel or from the entry, whichever came last: the part
-// 1 − e^(−dt / 0.05) of the way each frame, for the position, the yaw and the bend. A live pose that came
-// before the tool mounted or before the last change of the entry does not count.
-// parts, tip, halfWidth: as in Tool. defaultTurn: the bend when the entry has none.
-// getLive(): { pose: [x, y, z, yaw, right, left], time } of the tool from LiveSync, or null. time: performance.now() ms.
-function OtherToolBody({
-  parts,
-  tip,
-  halfWidth,
-  defaultTurn,
-  entry,
-  getLive,
-  selected = false,
-  target = null,
-  rangeFrom = null,
-}) {
-  const groups = useRef([])
-  const colliders = useRef([])
-  const { rigidRef, liveRb } = useBodyRef(groups, colliders)
-  const { pose } = entry
-  const entryTurn = entry.turn ?? defaultTurn
-  const hulls = useMemo(() => parts.map((part) => hullPoints(part.obj)), [parts])
-  // The start values. The body, the groups and the colliders are moved by the follow after that.
-  const [start] = useState(() => ({ pose, turn: entryTurn }))
-  // The shown pose and bend. The footprint reads turn each frame, so the object stays the same.
-  const shown = useRef({
-    x: pose.x,
-    y: pose.y,
-    z: pose.z,
-    yaw: pose.yaw,
-    turn: { right: entryTurn.right, left: entryTurn.left },
-  })
-  // When the entry came (performance.now() ms), set on mount and after each change
-  const entryTime = useRef(0)
-  const latest = useRef(null)
-  useEffect(() => {
-    latest.current = { pose, turn: entryTurn, getLive }
-  })
-
-  useEffect(() => {
-    for (const part of parts) part.obj.traverse((child) => (child.raycast = noRaycast))
-  }, [parts])
-
-  useEffect(() => {
-    entryTime.current = performance.now()
-  }, [pose.x, pose.y, pose.z, pose.yaw, entryTurn.right, entryTurn.left])
-
-  useFrame((_, dt) => {
-    const rb = liveRb()
-    const now = latest.current
-    if (!rb || !now) return
-    const live = now.getLive?.()
-    const target =
-      live && live.time > entryTime.current
-        ? live.pose
-        : [now.pose.x, now.pose.y, now.pose.z, now.pose.yaw, now.turn.right, now.turn.left]
-    const part = followPart(dt)
-    const cur = shown.current
-    cur.x += (target[0] - cur.x) * part
-    cur.y += (target[1] - cur.y) * part
-    cur.z += (target[2] - cur.z) * part
-    cur.yaw = lerpAngle(cur.yaw, target[3], part)
-    cur.turn.right += (target[4] - cur.turn.right) * part
-    cur.turn.left += (target[5] - cur.turn.left) * part
-    rb.setTranslation({ x: cur.x, y: cur.y, z: cur.z }, true)
-    rb.setRotation(yawQuat(cur.yaw), true)
-    parts.forEach((p, i) => {
-      if (!p.side) return
-      const angle = cur.turn[p.side]
-      if (groups.current[i]) groups.current[i].rotation.y = angle
-      colliders.current[i]?.setRotationWrtParent(yawQuat(angle))
-    })
-  })
-
-  return (
-    <>
-      <RigidBody
-        ref={rigidRef}
-        type="kinematicPosition"
-        position={[start.pose.x, start.pose.y, start.pose.z]}
-        rotation={[0, start.pose.yaw, 0]}
-        colliders={false}
-        sensor
-      >
-        {parts.map((part, i) => (
-          <group
-            key={part.obj.uuid}
-            ref={(g) => (groups.current[i] = g)}
-            rotation-y={part.side ? start.turn[part.side] : 0}
-          >
-            <primitive object={part.obj} />
-          </group>
-        ))}
-        {parts.map((part, i) => (
-          <ConvexHullCollider
-            key={part.obj.uuid}
-            ref={(c) => (colliders.current[i] = c)}
-            args={[hulls[i]]}
-            rotation={[0, part.side ? start.turn[part.side] : 0, 0]}
-          />
-        ))}
-      </RigidBody>
-      <ToolFootprint
-        rigidRef={rigidRef}
-        turn={shown.current.turn}
-        halfLength={tip}
-        halfWidth={halfWidth}
-        selected={selected}
-        target={target}
-        rangeFrom={rangeFrom}
-      />
-    </>
-  )
-}
-
-function OtherRange({ number, team, entry, getLive, ...look }) {
-  const mesh = number === 1 ? 2 : number
-  const parts = useRangeParts(mesh, team)
-  return (
-    <OtherToolBody
-      parts={parts}
-      tip={RANGE_TIP[mesh] ?? 1.501}
-      halfWidth={RANGE_HALF_WIDTH}
-      defaultTurn={STRAIGHT}
-      entry={entry}
-      getLive={getLive}
-      {...look}
-    />
-  )
-}
-
-function OtherMovement({ type, team, entry, getLive, ...look }) {
-  const parts = useMovementParts(type, team)
-  return (
-    <OtherToolBody
-      parts={parts}
-      tip={MOVE_TIP[type] ?? 1.574}
-      halfWidth={MOVE_HALF_WIDTH}
-      defaultTurn={STRAIGHT}
-      entry={entry}
-      getLive={getLive}
-      {...look}
-    />
-  )
-}
-
-function OtherAngle({ team, entry, getLive, ...look }) {
-  const parts = useMovementParts('long', team)
-  return (
-    <OtherToolBody
-      parts={parts}
-      tip={MOVE_TIP.long}
-      halfWidth={MOVE_HALF_WIDTH}
-      defaultTurn={ANGLE_TURN}
-      entry={entry}
-      getLive={getLive}
-      {...look}
-    />
-  )
-}
-
-// kind: 'range', 'move' or 'angle'. entry: a tool entry of the other side that has a pose.
-// team: the other side, for the tint. Scene keys it by kind, which, and spawn.
-// getLive(): the live pose of this tool from LiveSync (see OtherToolBody), or null.
-// selected: the other player has this tool selected. target: their tool target (a tool model), or null.
-// rangeFrom: on their range 1 tool while snapped, the snapped model, else null (see ToolFootprint).
-export function OtherTool({ kind, entry, team, getLive, ...look }) {
-  if (kind === 'range')
-    return <OtherRange number={entry.which} team={team} entry={entry} getLive={getLive} {...look} />
-  if (kind === 'move')
-    return (
-      <OtherMovement type={entry.which} team={team} entry={entry} getLive={getLive} {...look} />
-    )
-  return <OtherAngle team={team} entry={entry} getLive={getLive} {...look} />
 }
