@@ -215,6 +215,16 @@ User: nothing to test.
 
 ### Result
 
+Build before (JS): `index` 7,180.95 kB (gzip 1,895.32 kB); `jarvis-tactics-text` 199.40 kB (gzip 42.44 kB).
+
+Added `scripts/lib/jarvis-trim.mjs`, `scripts/trim-jarvis.mjs` (`pnpm --filter web trim-jarvis`), the three `jarvis-rows.json` files (rows: 251, 525, 51; 235 KB, 68 KB, 11 KB on disk, pretty-printed; characters 13 KB gzip). The three fetch scripts write their trimmed file after the raw file. `scripts/README.md` has a section on it. New `jarvis-trim.test.js` with 5 tests. Web tests: 826 pass, 0 fail. Lint: 58 warnings, same. Build passes, bundle unchanged (nothing imports the new files yet). `apps/api` tests passed.
+
+Deviations from the facts:
+
+- No raw character row has stamina `"?"` now (Multiple Man has 6 and 7). The test checks the `"?"` rule with a synthetic row.
+- The raw tactics file is already trimmed by `fetch-jarvis-tactics.mjs` (11 fields), so `trimTactics` cuts it to 4 more.
+- The trimmed characters file is larger than the 162 KB measured: `writeJson` indents it.
+
 ## Step 6: Runtime reads the trimmed files
 
 Needs step 5.

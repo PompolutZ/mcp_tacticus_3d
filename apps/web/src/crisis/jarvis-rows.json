@@ -1,0 +1,410 @@
+[
+  {
+    "exportCode": "00050301",
+    "slug": "alien-ship-crashes-in-downtown-ca09",
+    "name": "Alien Ship Crashes In Downtown!",
+    "type": "Extraction",
+    "threatLevel": 17,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20230303",
+    "slug": "assault-ships-make-sweeping-search",
+    "name": "Assault Ships Make Sweeping Search!",
+    "type": "Secure",
+    "threatLevel": 16,
+    "replacedBy": null
+  },
+  {
+    "exportCode": null,
+    "slug": "black-bird-crash-retrieve-exotic-wildlife",
+    "name": "Black Bird Crash: Retrieve Exotic Wildlife!",
+    "type": "Extraction",
+    "threatLevel": 19,
+    "replacedBy": null
+  },
+  {
+    "exportCode": null,
+    "slug": "black-bird-crash-secure-cargo",
+    "name": "Black Bird Crash: Secure Cargo!",
+    "type": "Secure",
+    "threatLevel": 17,
+    "replacedBy": null
+  },
+  {
+    "exportCode": null,
+    "slug": "cerero-locates-dangerous-mutants",
+    "name": "Cerebro Locates Dangerous Mutants!",
+    "type": "Extraction",
+    "threatLevel": 20,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00250301",
+    "slug": "cosmic-invasion-black-order-descends-on-earth-ca09",
+    "name": "Cosmic Invasion! Black Order Descends on Earth",
+    "type": "Secure",
+    "threatLevel": 16,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20130301",
+    "slug": "deadline-to-destruction",
+    "name": "Deadline to Destruction",
+    "type": "Secure",
+    "threatLevel": 16,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00460301",
+    "slug": "deadly-legacy-virus-cured-ca09",
+    "name": "Deadly Legacy Virus Cured?",
+    "type": "Extraction",
+    "threatLevel": 19,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00010301",
+    "slug": "deadly-meteors-mutate-civilians-ca09",
+    "name": "Deadly Meteors Mutate Civilians",
+    "type": "Secure",
+    "threatLevel": 17,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00270301",
+    "slug": "demons-downtown-has-our-comeuppance-come-due-ca09",
+    "name": "Demons Downtown! Has Our Comeuppance Come Due?",
+    "type": "Secure",
+    "threatLevel": 19,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20230304",
+    "slug": "evidence-of-experimental-soldiers-exposed",
+    "name": "Evidence of Experimental Soldiers Exposed!",
+    "type": "Extraction",
+    "threatLevel": 19,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00110301",
+    "slug": "fear-grips-world-as-worthy-terrorize-cities-ca09",
+    "name": "Fear Grips World As “Worthy“ Terrorize Cities",
+    "type": "Extraction",
+    "threatLevel": 18,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00040301",
+    "slug": "gamma-wave-sweeps-across-midwest-ca09",
+    "name": "Gamma Wave Sweeps Across Midwest",
+    "type": "Secure",
+    "threatLevel": 15,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20130302",
+    "slug": "guardians-save-shiar-empress-in-style",
+    "name": "Guardians Save Shi‘ar Empress in Style",
+    "type": "Secure",
+    "threatLevel": 17,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00010302",
+    "slug": "infinity-formula-goes-missing-ca09",
+    "name": "Infinity Formula Goes Missing!",
+    "type": "Secure",
+    "threatLevel": 17,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20130303",
+    "slug": "inhumans-deploy-advanced-weaponry",
+    "name": "Inhumans Deploy Advanced Weaponry",
+    "type": "Extraction",
+    "threatLevel": 18,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00640301",
+    "slug": "intrusions-open-across-city-as-seals-collapse-ca09",
+    "name": "Intrusions Open Across City As Seals Collapse",
+    "type": "Secure",
+    "threatLevel": 19,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20230301",
+    "slug": "jailbreak-leads-to-mass-mutant-escape",
+    "name": "Jailbreak Leads to Mass Mutant Escape!",
+    "type": "Extraction",
+    "threatLevel": 20,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20230302",
+    "slug": "lockdown-security-systems-stymie-breakout",
+    "name": "Lockdown! Security Systems Stymie Breakout",
+    "type": "Secure",
+    "threatLevel": 18,
+    "replacedBy": null
+  },
+  {
+    "exportCode": null,
+    "slug": "malfunction-simulation-gone-wrong",
+    "name": "Malfunction- Simulation Gone Wrong!",
+    "type": "Secure",
+    "threatLevel": 18,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00290301",
+    "slug": "mayor-fisk-vows-to-find-missing-witnesses-ca09",
+    "name": "Mayor Fisk Vows To Find Missing Witnesses",
+    "type": "Secure",
+    "threatLevel": 16,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20130304",
+    "slug": "mkraan-crystal-gets-heroes-home",
+    "name": "M‘Kraan Crystal Gets Heroes Home!",
+    "type": "Secure",
+    "threatLevel": 19,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00420301",
+    "slug": "mutant-extremists-target-us-senators-ca09",
+    "name": "Mutant Extremists Target U.S. Senators!",
+    "type": "Extraction",
+    "threatLevel": 19,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00410301",
+    "slug": "mutant-madman-turns-city-into-lethal-amusement-park-ca09",
+    "name": "Mutant Madman Turns City Into Lethal Amusement Park",
+    "type": "Secure",
+    "threatLevel": 18,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00070301",
+    "slug": "mystic-wakandan-herb-fact-or-fiction",
+    "name": "Mystic Wakandan Herb: Fact or Fiction?",
+    "type": "Extraction",
+    "threatLevel": 15,
+    "replacedBy": null
+  },
+  {
+    "exportCode": null,
+    "slug": "new-tech-from-the-armory",
+    "name": "New Tech From the Armory",
+    "type": "Extraction",
+    "threatLevel": 17,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00180301",
+    "slug": "panic-grips-city-as-evacuation-efforts-continue",
+    "name": "Panic Grips City As Evacuation Efforts Continue!",
+    "type": "Extraction",
+    "threatLevel": 19,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20000313",
+    "slug": "paranoia-pummels-populace",
+    "name": "Paranoia Pummels Populace!",
+    "type": "Extraction",
+    "threatLevel": 16,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00100301",
+    "slug": "portals-overrun-city-with-spider-people-ca09",
+    "name": "Portals Overrun City With Spider-People!",
+    "type": "Secure",
+    "threatLevel": 18,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20230305",
+    "slug": "power-overload-factory-goes-up-in-flames",
+    "name": "Power Overload! Factory Goes Up in Flames",
+    "type": "Secure",
+    "threatLevel": 19,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00630301",
+    "slug": "research-station-attacked-ca09",
+    "name": "Research Station Attacked!",
+    "type": "Extraction",
+    "threatLevel": 15,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00010303",
+    "slug": "riots-spark-over-extremis-30-ca09",
+    "name": "Riots Spark Over Extremis 3.0",
+    "type": "Secure",
+    "threatLevel": 17,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20230306",
+    "slug": "salvaged-supplies-fuel-resistance-efforts",
+    "name": "Salvaged Supplies Fuel Resistance Efforts",
+    "type": "Extraction",
+    "threatLevel": 18,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20130305",
+    "slug": "scientific-samples-found-in-discovered-universe",
+    "name": "Scientific Samples Found in Discovered Universe",
+    "type": "Extraction",
+    "threatLevel": 17,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20230307",
+    "slug": "sentinel-schematics-sabotaged",
+    "name": "Sentinel Schematics Sabotaged!",
+    "type": "Extraction",
+    "threatLevel": 17,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20130306",
+    "slug": "ship-security-breached-in-royal-rescue",
+    "name": "Ship Security Breached in Royal Rescue",
+    "type": "Extraction",
+    "threatLevel": 20,
+    "replacedBy": null
+  },
+  {
+    "exportCode": null,
+    "slug": "sinkholes-open-across-city",
+    "name": "Sinkholes Open Across City!",
+    "type": "Secure",
+    "threatLevel": 19,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00010304",
+    "slug": "skrulls-infiltrate-world-leadership-ca09",
+    "name": "Skrulls Infiltrate World Leadership",
+    "type": "Extraction",
+    "threatLevel": 20,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00010305",
+    "slug": "spider-infected-invade-manhattan-ca09",
+    "name": "Spider-Infected Invade Manhattan",
+    "type": "Extraction",
+    "threatLevel": 17,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20130307",
+    "slug": "strike-team-secures-shield-relay",
+    "name": "Strike Team Secures Shield Relay!",
+    "type": "Secure",
+    "threatLevel": 17,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00010306",
+    "slug": "struggle-for-the-cube-continues-ca09",
+    "name": "Struggle For The Cube Continues",
+    "type": "Extraction",
+    "threatLevel": 17,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00600301",
+    "slug": "super-powered-scoundrels-form-sinister-syndicate-ca09",
+    "name": "Super-Powered Scoundrels Form Sinister Syndicate",
+    "type": "Secure",
+    "threatLevel": 20,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20230308",
+    "slug": "surprise-assault-mutant-homes-destroyed",
+    "name": "Surprise Assault! Mutant Homes Destroyed",
+    "type": "Extraction",
+    "threatLevel": 16,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20230309",
+    "slug": "survivors-search-for-safe-shelters",
+    "name": "Survivors Search for Safe Shelters",
+    "type": "Secure",
+    "threatLevel": 20,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00470301",
+    "slug": "sword-establishes-base-on-moons-blue-area-ca09",
+    "name": "S.W.O.R.D. Establishes Base on Moon‘s Blue Area",
+    "type": "Secure",
+    "threatLevel": 15,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20130308",
+    "slug": "terrigen-canisters-fuel-doomsday-device",
+    "name": "Terrigen Canisters Fuel Doomsday Device",
+    "type": "Extraction",
+    "threatLevel": 17,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00340301",
+    "slug": "terrigen-clouds-sweep-over-city",
+    "name": "Terrigen Clouds Sweep Over City",
+    "type": "Secure",
+    "threatLevel": 20,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "00230301",
+    "slug": "the-montesi-formula-found-ca09",
+    "name": "The Montesi Formula Found",
+    "type": "Extraction",
+    "threatLevel": 18,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20130309",
+    "slug": "unexpected-guests-crash-royal-wedding",
+    "name": "Unexpected Guests Crash Royal Wedding",
+    "type": "Extraction",
+    "threatLevel": 17,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20130310",
+    "slug": "wedding-party-targeted-in-terrible-attack",
+    "name": "Wedding Party Targeted in Terrible Attack!",
+    "type": "Secure",
+    "threatLevel": 20,
+    "replacedBy": null
+  },
+  {
+    "exportCode": "20230310",
+    "slug": "x-men-infiltrate-secret-weapons-facility",
+    "name": "X-Men Infiltrate Secret Weapons Facility",
+    "type": "Secure",
+    "threatLevel": 17,
+    "replacedBy": null
+  }
+]

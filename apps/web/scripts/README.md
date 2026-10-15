@@ -279,6 +279,19 @@ pnpm --filter web fetch-jarvis-characters --force  # download every character ag
 - `statCard.frontSide` is the healthy side and `statCard.backSide` is the injured side. `secondStatCard` is the card of a second form (for example Emma Frost and Diamond Form). Rules text has markup such as `|!power|` (icon), `|*Stun|` (bold) and `|§stun§Stun|` (special condition).
 - `exportCode` is the MCT code. The TTS mod uses the same code as `ID` in its character database.
 
+# Trimmed Jarvis files
+
+The app does not import the raw Jarvis files. It imports trimmed files with only the fields that it reads: `src/characters/jarvis-rows.json`, `src/tactics/jarvis-rows.json` and `src/crisis/jarvis-rows.json`. `lib/jarvis-trim.mjs` makes them (`trimCharacters`, `trimTactics`, `trimCrisis`):
+
+- Copied fields keep their Jarvis names. Derived fields have the names of the app: `staminaHealthy`, `staminaInjured`, `sizes`, `immune`, `dropPlacer`, `powerBonus`, `peerless`, `rogue`. The derived fields come from the stat card text, with `src/characters/{immunity,power,size,dropPlacer}.js`, so the stat card text is not in the app.
+- All character and tactic rows stay. Crisis keeps only the current printings (`replacedBy: null`).
+
+```bash
+pnpm --filter web trim-jarvis   # write the three files from the raw files, no network
+```
+
+Each `fetch-jarvis-*` script also writes its trimmed file after the raw file. Run `trim-jarvis` after a change to `immunity.js`, `power.js`, `size.js` or `dropPlacer.js`. `scripts/lib/jarvis-trim.test.js` fails when a committed trimmed file differs from a fresh trim.
+
 # TTS crisis cards
 
 `migrate-crisis.mjs` copies the crisis cards of the TTS mod to `src/assets/crisis/`. It converts the face of each card, one back for the Secure cards and one for the Extract cards, and the tokens that the mod puts on the mat for each card. It writes the app data to `src/crisis/cards.json` and `src/crisis/tokens.json`, and the source URLs to `scripts/crisis-manifest.json`. `src/crisis/files.js` names the files after the keys, so the JSON files have no paths.
