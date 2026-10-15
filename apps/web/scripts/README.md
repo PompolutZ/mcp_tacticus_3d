@@ -574,3 +574,16 @@ pnpm --filter web yjs-size
 pnpm --filter web yjs-size --rounds 10 --seed 2
 pnpm --filter web yjs-size --pose-writes 0     # the size without pose writes
 ```
+
+# Dice night run
+
+`dice-night-run.mjs` rolls dice in the real app (Sandbox, dev server) for a whole night and writes one JSON line per throw. 8 scenarios in order: 5 dice, then 1 die, each with 1, 2, 3 clicks and a burst of 10 clicks at 200 ms. Design: `docs/plans/dice-night-run.md`.
+
+1. In the main dir, start the dev server: `pnpm --filter web dev` (port 5173).
+2. Mac on power. Do not use the Mac during the run.
+3. In a second terminal: `pnpm --filter web dice-night-run`. A Chromium window opens. Keep it visible and uncovered (no other window over it, display on). The script runs `caffeinate -dis` for its own run time.
+4. After a stop (Ctrl+C stops after the current throw, or a crash): `pnpm --filter web dice-night-run --resume --out <same folder>`. It counts the lines of each file and continues.
+
+Options: `--url` (default `http://localhost:5173/#sandbox&dicetest`), `--scenarios 5d-1c,1d-burst`, `--throws 1000`, `--out`, `--resume`.
+
+Output: `apps/web/dice-runs/<YYYY-MM-DD>/<scenario>.jsonl` (git-ignored), and `errors.log` with page errors and reloads. A throw that timed out is a line with `error`. A started scenario file without `--resume` stops the script.

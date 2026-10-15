@@ -8,3 +8,4 @@ playwright-cli
 .env.local
 .env.*.local
 .fallow
+/apps/web/dice-runs/

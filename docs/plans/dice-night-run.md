@@ -77,3 +77,9 @@ A script that rolls dice in the real app on localhost for a whole night, while n
 ### Step 1
 
 Done. `src/dice/runRecord.js` (`buildRunRecord`) with 3 tests in `runRecord.test.js`. `DiceTray.jsx` collects the record and `window.__diceTest` (`add`, `roll`, `clear`, `isIdle`, `takeRecords`, `clicks`) behind `import.meta.env.DEV`, `#sandbox&dicetest` and the new `testHook` prop (Scene passes it for the own tray). `roll()` now returns acted true/false. 933 tests pass, lint 52 warnings (no new), `__diceTest` is not in `dist`. Commit: see git log "dice night run 1".
+
+### Step 2
+
+Done. `playwright` 1.64 (dev dependency of `apps/web`, Chromium installed), `scripts/dice-night-run.mjs`, script entry `dice-night-run`, `.gitignore` `apps/web/dice-runs/`, README section "Dice night run". The runner checks the dev server first, runs headed Chromium (1600x1000, 3 flags) with `caffeinate -dis -w <pid>`, reloads the page on crash or lost hook, logs page errors to `errors.log`, stops cleanly on Ctrl+C. A scenario file that exists without `--resume` stops the script. The Step 1 hook needed no change.
+
+Smoke run (`--throws 3`, all 8 scenarios, then `--throws 4 --resume`): each file 3 records, then 4. 5d files have 5 dice entries, faces 1-8, clicksActed + clicksBlocked = clicksSent (one 5d-burst throw: 1 acted, 9 blocked). One 404 console error per page load (a missing static file, no effect). Seconds per throw (3-throw average): 5d-1c 4.5, 5d-2c 4.7, 5d-3c 5.2, 5d-burst 6.0, 1d-1c 3.5, 1d-2c 3.7, 1d-3c 4.5, 1d-burst 6.1. Estimate for 8 x 1000: about 38 s x 1000 = 10.6 hours.
