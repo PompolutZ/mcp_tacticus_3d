@@ -1,20 +1,11 @@
-import { existsSync } from 'node:fs'
 import { createInterface } from 'node:readline/promises'
-import { MongoClient } from 'mongodb'
+import { mongoClient } from './mongo'
 
 const DB_NAME = 'assist3d'
 // deleteMany, not drop, so the indexes stay.
 const COLLECTIONS = ['users', 'rooms', 'messages']
 
-if (existsSync('.env')) process.loadEnvFile('.env')
-
-const uri = process.env.MONGODB_URI
-if (!uri) throw new Error('MONGODB_URI is not set in infra/.env')
-if (!/^mongodb(\+srv)?:\/\//.test(uri)) {
-  throw new Error('MONGODB_URI must start with mongodb+srv:// or mongodb://')
-}
-
-const client = new MongoClient(uri)
+const client = mongoClient()
 // The host name only. The URI holds the password.
 const { srvHost, hosts } = client.options
 console.log(`Atlas host: ${srvHost ?? hosts.map((h) => h.host).join(', ')}`)

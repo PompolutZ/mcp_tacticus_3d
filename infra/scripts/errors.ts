@@ -1,5 +1,4 @@
-import { existsSync } from 'node:fs'
-import { MongoClient } from 'mongodb'
+import { mongoClient } from './mongo'
 
 const DB_NAME = '[REDACTED:DB_NAME]'
 const DEFAULT_COUNT = 20
@@ -24,14 +23,7 @@ async function main() {
     throw new Error(`Usage: pnpm errors [count 1-${MAX_COUNT}]`)
   }
 
-  if (existsSync('.env')) process.loadEnvFile('.env')
-  const uri = process.env.MONGODB_URI
-  if (!uri) throw new Error('MONGODB_URI is not set in infra/.env')
-  if (!/^mongodb(\+srv)?:\/\//.test(uri)) {
-    throw new Error('MONGODB_URI must start with mongodb+srv:// or mongodb://')
-  }
-
-  const client = new MongoClient(uri)
+  const client = mongoClient()
   try {
     const docs = await client
       .db(DB_NAME)

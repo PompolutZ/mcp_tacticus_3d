@@ -332,6 +332,19 @@ User: none in the browser. Optional: `pnpm migrate-crisis --list` shows the same
 
 ### Result
 
+Done. Lint 52 warnings (same, no new `eslint-disable`), tests pass (web 908), typecheck ok (api, infra), build ok.
+
+- `scripts/lib/cardLoop.mjs` `runCardLoop` is the card loop of `migrate-crisis.mjs` and `migrate-tactics.mjs` (plan, download missing, missing in cache, convert, result row; a throw fails that card only). Each script passes `planCard` and a `convertPlan` step. Test `scripts/lib/cardLoop.test.js` with fake plans. `--list` output of both scripts is byte-equal to main (TTS cache exists on this machine; both `--list` runs were done, read-only).
+- `infra/scripts/mongo.ts` `mongoClient()` (`.env` load, URI check) is used by `delete-test-data.ts` and `errors.ts`. Not run against Atlas; `errors.ts 1` without a URI gives the same error as before.
+- `pnpm fallow dupes`: before this step 8 groups (measured with the step changes stashed), now 92 lines / 2 groups. Left:
+  - `migrate-crisis.mjs:88` and `migrate-tactics.mjs:74` (10 lines): the call of `runCardLoop` with the same options. The loop body is shared; what is left is argument wiring, and each script passes its own `planCard` and convert step.
+  - `Scene.jsx:914` and `TokenLayer.jsx:31` (36 lines): the same list of 36 props passed through. This is the prop pass-through of the Scene split from `split-large-files`, not a rule. Proposal: Scene passes one `layerProps` object, or TokenLayer reads a context.
+- Grep for missed copies (proposals, not fixed here):
+  - Side sign and yaw by team: `team === 'host' ? 1 : -1` in `rosters/layout.js`, `tactics/layout.js`, `tabletools/layout.js`, `characters/trays.js` (4x); yaw `host ? 0 : Math.PI` in the same files and `storedTool.js`; `Scene.jsx` two drag yaws `host ? -PI/2 : PI/2`. One `sideSign(team)` and `sideYaw(team)` in `setup/setup.js` would cover them.
+  - Hex colors used in more than one file: tray plate `#20242b` (`CharacterTray`, `ToolRack`, `TacticTray`), orange `#f5a623` (`ToolButtons` 6x, `TurnHandle`), gold `#e8b04a` (`index.css` 4x, `RosterCards`), `#ffd34d` (`index.css`, `RosterCards`), `#414a61` and `#3a7de0` (`index.css`, 5x and 4x). Proposal: CSS variables and a `colors.js` for the 3D ones.
+  - `padStart`, `localStorage`, `role="dialog"`: only the intended places (`storage.js`, the three padStart users, `Dialog.jsx`).
+
+
 ## Step 9: Library adds to the own side in multiplayer
 
 From the user test on 2026-10-15. In a multiplayer room the Library shows the "For" choice (Blue / Red, `Library.jsx`, `team` state). A player who does not look can add characters and tactic cards for the opponent. In a multiplayer room a player only adds pieces for their own side.

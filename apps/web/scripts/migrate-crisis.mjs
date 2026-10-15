@@ -8,6 +8,7 @@ import path from 'node:path'
 import { TEXTURE_SIZE } from './lib/convert.mjs'
 import { parseMigrateArgs } from './lib/cli.mjs'
 import { readJson, writeJson } from './lib/files.mjs'
+import { runCardLoop } from './lib/cardLoop.mjs'
 import { createImageStore } from './lib/manifest.mjs'
 import { slug, uniqueKeys } from './lib/keys.mjs'
 import { cachedFile, downloadMissing, loadCrisisDatabase } from './lib/tts.mjs'
@@ -90,46 +91,17 @@ function listCards() {
 
 // Returns the process exit code
 async function migrate() {
-  const results = []
-  const done = []
-  for (const card of [...cards].sort((a, b) => keys.get(a).localeCompare(keys.get(b)))) {
-    const key = keys.get(card)
-    try {
-      const plan = planCard(card)
-      if (opts.download) {
-        const failed = await downloadMissing(
-          plan.files.filter((f) => !available(f)).map((f) => f.url),
-        )
-        if (failed.length) {
-          results.push({
-            key,
-            card,
-            status: `failed: download ${failed.map((f) => `${f.url} (${f.reason})`).join(', ')}`,
-          })
-          continue
-        }
-      }
-      const missing = plan.files.filter((f) => !available(f))
-      if (missing.length) {
-        results.push({
-          key,
-          card,
-          status: `missing in TTS cache: ${missing.map((f) => f.label).join(', ')}`,
-        })
-        continue
-      }
-      const face = plan.files[0]
-      results.push({
-        key,
-        card,
-        status: convert(face) ? 'converted' : 'already migrated',
-        warnings: jarvisWarnings(plan.entry, card),
-      })
-      done.push(plan)
-    } catch (err) {
-      results.push({ key, card, status: `failed: ${err.message}` })
-    }
-  }
+  const { results, done } = await runCardLoop({
+    cards: [...cards].sort((a, b) => keys.get(a).localeCompare(keys.get(b))),
+    keyOf: (card) => keys.get(card),
+    planCard,
+    available,
+    download: opts.download && downloadMissing,
+    convertPlan: (plan, card) => ({
+      status: convert(plan.files[0]) ? 'converted' : 'already migrated',
+      warnings: jarvisWarnings(plan.entry, card),
+    }),
+  })
 
   // Tokens are shared by cards, so each one is converted once
   const tokenFiles = new Map(done.flatMap((p) => p.files.slice(1)).map((f) => [f.file, f]))

@@ -5,6 +5,7 @@ import path from 'node:path'
 import { parseMigrateArgs } from './lib/cli.mjs'
 import { readJson, writeJson } from './lib/files.mjs'
 import { createImageStore } from './lib/manifest.mjs'
+import { runCardLoop } from './lib/cardLoop.mjs'
 import { slug, uniqueKeys } from './lib/keys.mjs'
 import { downloadMissing, loadTacticCards } from './lib/tts.mjs'
 import { tacticCardBack } from '../src/tactics/files.js'
@@ -76,35 +77,16 @@ function listCards() {
 
 // Returns the process exit code
 async function migrate() {
-  const results = []
-  const done = []
-  for (const card of [...cards].sort((a, b) => keys.get(a).localeCompare(keys.get(b)))) {
-    const key = keys.get(card)
-    try {
-      const files = cardFiles(card)
-      if (opts.download) {
-        const failed = await downloadMissing(files.filter((f) => !available(f)).map((f) => f.url))
-        if (failed.length) {
-          results.push({ key, card, status: downloadFailure(failed) })
-          continue
-        }
-      }
-      const missing = files.filter((f) => !available(f))
-      if (missing.length) {
-        results.push({
-          key,
-          card,
-          status: `missing in TTS cache: ${missing.map((f) => f.label).join(', ')}`,
-        })
-        continue
-      }
-      const converted = files.filter(convert).length
-      results.push({ key, card, status: converted ? 'converted' : 'already migrated' })
-      done.push({ key, card, files })
-    } catch (err) {
-      results.push({ key, card, status: `failed: ${err.message}` })
-    }
-  }
+  const { results, done } = await runCardLoop({
+    cards: [...cards].sort((a, b) => keys.get(a).localeCompare(keys.get(b))),
+    keyOf: (card) => keys.get(card),
+    planCard: (card) => ({ key: keys.get(card), card, files: cardFiles(card) }),
+    available,
+    download: opts.download && downloadMissing,
+    convertPlan: (plan) => ({
+      status: plan.files.filter(convert).length ? 'converted' : 'already migrated',
+    }),
+  })
 
   writeJson(
     MANIFEST_OUT,
@@ -118,10 +100,6 @@ async function migrate() {
     `\n${done.length} of ${cards.length} cards migrated.\nApp data: ${CARDS_OUT}\nAssets: ${path.join(ASSETS, 'tactics')}`,
   )
   return results.some((r) => r.status.startsWith('failed')) ? 1 : 0
-}
-
-function downloadFailure(failures) {
-  return `failed: download ${failures.map((f) => `${f.url} (${f.reason})`).join(', ')}`
 }
 
 // Entry of src/tactics/cards.json. tokens is left out when the card has none. The key of a token is its name as a
