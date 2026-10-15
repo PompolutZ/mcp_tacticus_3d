@@ -1,5 +1,6 @@
 import { useFrame } from '@react-three/fiber'
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
+import { useLatest, useOnMount } from './useLatest.js'
 import {
   useFootprintSlot,
   FOOTPRINT_APART,
@@ -37,7 +38,8 @@ export function RangeMark({
   const last = useRef(null)
 
   // A removed tool marks nothing. Scene passes a state setter, so onChange stays the same function.
-  useEffect(() => () => onChange(null), [])
+  const latestOnChange = useLatest(onChange)
+  useOnMount(() => () => latestOnChange.current(null))
 
   useFrame(() => {
     const model = measuredRef.current

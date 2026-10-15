@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTexture } from '@react-three/drei'
 import { DoubleSide } from 'three'
 import { assetUrl } from '../assets/index.js'
 import { crisisCardFace } from '../crisis/files.js'
 import { CARD_WIDTH, CARD_HEIGHT } from '../crisis/layout.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
-import { useHoverCursor } from './useHoverCursor.js'
+import { useHoverCursor, useHoverPeek } from './useHoverCursor.js'
 import FaceMaterial from './FaceMaterial.jsx'
 
 // The card reads the same way as the scoring board (see crisis/layout.js): the image top faces world
@@ -24,12 +24,11 @@ export default function CrisisCard({ cardKey, position, onOpen, onCardHover }) {
   const meshRef = useRef()
   useHoverCursor(hovered, 'pointer')
   useOutline(meshRef, outlineMode(false, hovered))
-  useEffect(() => {
-    if (!hovered) return undefined
-    const card = { src: cardUrl, alt: 'Crisis card', by: `crisis:${cardKey}` }
-    onCardHover?.(card, true)
-    return () => onCardHover?.(card, false)
-  }, [hovered])
+  useHoverPeek(
+    hovered,
+    () => ({ src: cardUrl, alt: 'Crisis card', by: `crisis:${cardKey}` }),
+    onCardHover,
+  )
   return (
     <mesh
       ref={meshRef}

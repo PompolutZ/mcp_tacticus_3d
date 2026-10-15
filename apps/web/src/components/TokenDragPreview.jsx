@@ -26,22 +26,17 @@ import { NO_ROTATION } from '../characters/base.js'
 export default function TokenDragPreview({ pointRef, start, stacks = false, children }) {
   const groupRef = useRef()
 
-  usePointerTablePoint(
-    pointRef,
-    start,
-    (point) => {
-      const group = groupRef.current
-      if (!group) return
-      group.visible = Boolean(point)
-      if (point) {
-        // A dropped token goes to the end of the list, so it lies on every loose token
-        const top = stacks ? tokenStack.topAt(point.x, point.z) : null
-        const rest = Math.max(point.y, top ?? point.y)
-        group.position.set(point.x, rest + SURFACE_GAP + TOKEN_DRAG_LIFT, point.z)
-      }
-    },
-    [stacks],
-  )
+  usePointerTablePoint(pointRef, start, (point) => {
+    const group = groupRef.current
+    if (!group) return
+    group.visible = Boolean(point)
+    if (point) {
+      // A dropped token goes to the end of the list, so it lies on every loose token
+      const top = stacks ? tokenStack.topAt(point.x, point.z) : null
+      const rest = Math.max(point.y, top ?? point.y)
+      group.position.set(point.x, rest + SURFACE_GAP + TOKEN_DRAG_LIFT, point.z)
+    }
+  })
 
   // The footprint is the token radius under the point. It hides when the point is null.
   const footprintShape = () => {

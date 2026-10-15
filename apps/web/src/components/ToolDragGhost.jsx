@@ -24,20 +24,15 @@ export default function ToolDragGhost({ pointRef, start, kind, which, side }) {
   const color = useSideColor(side)
   const tint = useMemo(() => new Color().setRGB(...TOOL_TINT[color], SRGBColorSpace), [color])
 
-  usePointerTablePoint(
-    pointRef,
-    start,
-    (point) => {
-      const group = groupRef.current
-      if (!group) return
-      group.visible = Boolean(point)
-      if (!point) return
-      group.position.set(point.x, point.y + MARKER_LIFT, point.z)
-      const opacity = canDropTool(side, point) ? OPACITY : DIMMED_OPACITY
-      for (const material of materials.current) if (material) material.opacity = opacity
-    },
-    [side],
-  )
+  usePointerTablePoint(pointRef, start, (point) => {
+    const group = groupRef.current
+    if (!group) return
+    group.visible = Boolean(point)
+    if (!point) return
+    group.position.set(point.x, point.y + MARKER_LIFT, point.z)
+    const opacity = canDropTool(side, point) ? OPACITY : DIMMED_OPACITY
+    for (const material of materials.current) if (material) material.opacity = opacity
+  })
 
   // Hidden until handleMove gives it a point
   return (

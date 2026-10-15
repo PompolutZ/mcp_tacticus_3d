@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
+import { useLatest, useOnMount } from './components/useLatest.js'
 import { useRapier } from '@react-three/rapier'
 import { liveBody } from './physics.js'
 
@@ -10,15 +11,11 @@ import { liveBody } from './physics.js'
 export function useBodyRef(...extraRefs) {
   const { world } = useRapier()
   const rigidRef = useRef()
-  useEffect(
-    () => () => {
-      rigidRef.current = undefined
-      for (const ref of extraRefs) ref.current = Array.isArray(ref.current) ? [] : undefined
-    },
-    // The refs are stable
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
+  const extra = useLatest(extraRefs)
+  useOnMount(() => () => {
+    rigidRef.current = undefined
+    for (const ref of extra.current) ref.current = Array.isArray(ref.current) ? [] : undefined
+  })
   function liveRb() {
     const rb = rigidRef.current
     return liveBody(world, rb) ? rb : null

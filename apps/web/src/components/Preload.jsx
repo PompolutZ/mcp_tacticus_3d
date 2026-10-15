@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useOnMount } from './useLatest.js'
 import { useLoader } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import { TextureLoader } from 'three'
@@ -21,8 +21,8 @@ export function Preload({ files }) {
 // Calls onReady once, when the content of its Suspense boundary commits. It sits after the scene in the
 // Canvas, so that is when the scene and Preload have their files.
 export function Ready({ onReady }) {
-  useEffect(() => {
+  useOnMount(() => {
     onReady()
-  }, [])
+  })
   return null
 }

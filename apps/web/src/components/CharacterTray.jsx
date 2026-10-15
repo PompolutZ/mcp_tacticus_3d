@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef, useState } from 'react'
+import { Suspense, useRef, useState } from 'react'
 import { UI_COLORS } from '../uiColors.js'
 import { OccludedHtml } from './LabelOcclusion.jsx'
 import { DoubleSide } from 'three'
@@ -27,7 +27,7 @@ import FaceMaterial from './FaceMaterial.jsx'
 import TokenFace from './TokenFace.jsx'
 import TrayControls from './TrayControls.jsx'
 import { useColorTexture } from './useColorTexture.js'
-import { useHoverCursor } from './useHoverCursor.js'
+import { useHoverCursor, useHoverPeek, useHoverReport } from './useHoverCursor.js'
 
 // Tokens lie at the tray's own height (TRAY_Y): the "On" row just above the background plate (see
 // trays.js, TRAY_BG_Y), the Give sources just above the table, the same height as a token on the
@@ -125,24 +125,22 @@ export default function CharacterTray({
   // onCardHover(true) while the pointer is over the card, onCardHover(false) after. The cleanup also
   // runs on unmount, so a removed tray does not stay hovered. The model and the held tokens on the
   // card stop their own pointerover, so the card is not hovered while the pointer is over them.
-  useEffect(() => {
-    if (!cardHovered) return undefined
-    onCardHover?.(true)
-    return () => onCardHover?.(false)
-  }, [cardHovered])
+  useHoverReport(cardHovered, onCardHover)
 
   // The same for Alt: the image of the card under the pointer, the side that faces up. A Flip shows the new side.
-  useEffect(() => {
-    if (hoveredCard === null) return undefined
-    const name = characterName(character.key)
-    const card = {
-      src: assetUrl(cardFile(hoveredCard, character.side)),
-      alt: hoveredCard === 2 ? `${name}, second form` : name,
-      by: `tray:${character.id}:${hoveredCard}`,
-    }
-    onCardImageHover?.(card, true)
-    return () => onCardImageHover?.(card, false)
-  }, [hoveredCard, character.side])
+  useHoverPeek(
+    hoveredCard !== null,
+    () => {
+      const name = characterName(character.key)
+      return {
+        src: assetUrl(cardFile(hoveredCard, character.side)),
+        alt: hoveredCard === 2 ? `${name}, second form` : name,
+        by: `tray:${character.id}:${hoveredCard}`,
+      }
+    },
+    onCardImageHover,
+    `${hoveredCard}:${character.side}`,
+  )
 
   // Tokens on the character, in the order it got them (see characters/actions.js, giveToken).
   const onTokens = Object.entries(character.tokens ?? {})

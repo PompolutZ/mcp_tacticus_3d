@@ -56,7 +56,10 @@ export default function Root() {
   const userId = session.user?.id
   const page = pageOf(hash)
   // Read from storage each time the room page opens, so it has the map and rosters of the last save
-  const singleRoom = useMemo(() => (page.page === 'room' ? findRoom(page.id) : null), [hash])
+  const singleRoom = useMemo(
+    () => (page.page === 'room' ? findRoom(page.id) : null),
+    [page.page, page.id],
+  )
   // Which page the room link opens (docs/features/rooms.md, "Pages"). It is found again when the user changes.
   const route =
     page.page === 'room'

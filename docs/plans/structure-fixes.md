@@ -367,6 +367,19 @@ User: open a room from the lobby and from a link; tactic cards (flip, peek); cha
 
 ### Result
 
+Done. 0 `exhaustive-deps` warnings; 1 `exhaustive-deps` disable stays (`RosterCards.jsx`, `useCanvasTexture`, reason `// Safe:` written). 9 disables removed, none added. `TurnHandle.jsx`, `TokenFace.jsx`, `ToolDragGhost.jsx`, `TokenDragPreview.jsx` had no warning left; the last two lost their `deps` argument. Reuse of `useLatest` / `useOnMount`. Per place:
+- `useHoverCursor.js`: `useHoverReport` and `useDragEndOnUnmount` read the callback from `useLatest` (a new callback does not restart the hover; the false call goes to the newest one). New shared `useHoverPeek(active, makeImage, onCardHover, key)` for the Alt peek, used by `RosterCards.jsx`, `CrisisCard.jsx`, `TacticCard.jsx` (key `card.up`) and `CharacterTray.jsx` (key hovered card + side). `CharacterTray.jsx` card hover uses `useHoverReport`.
+- `ToolFootprint.jsx`: unmount `onChange(null)` via `useOnMount` + `useLatest`.
+- `CrisisToken.jsx` (`centerRef`), `Ping.jsx` (sound), `Preload.jsx` (`Ready`): `useOnMount`.
+- `useModelSync.js` (2): `ownership`, `models`, `liveCharBody`, `applyPose`, `markMoved` from one `useLatest`; deps `[poses]` and `[otherOwned]` as before.
+- `usePointerTablePoint.js`: `start` and `onPoint` from `useLatest`. Change: a change of `stacks` or `side` mid-drag no longer re-runs the effect (it re-placed the ghost at the start point); the newest `onPoint` runs at the next pointer move.
+- `useAutoOpen.js`, `useBodyRef.js`: `useLatest` / `useOnMount`.
+- `useGameSetup.js`: the reveal effect body is `revealWhenReady`, called from `useLatest`; effect deps `[setup]`.
+- `useCrisisTokens.js`: `placeTool` via `useLatest`.
+- `Root.jsx`: render-time `useMemo` for `singleRoom` has deps `[page.page, page.id]` instead of `[hash]` (same, `page` derives from `hash`; a hash that differs only outside the page id no longer re-reads the room).
+
+Remaining `exhaustive-deps` warnings are none. Lint: 51 before, 39 after (0 errors). `pnpm test` all pass (web 964, api 128, infra 16), `pnpm typecheck`, `pnpm --filter web build`, `pnpm format` pass.
+
 ## Step 14: Feature folders
 
 Runs alone, when no other plan branch is open (Risk 8). Only moves and import path changes.

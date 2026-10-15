@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { useOnMount } from './useLatest.js'
 import { playSound } from '../sound.js'
 import { COLOR_HEX, useSideColor } from '../sideColors.js'
 import { MARKER_LIFT } from '../pieces/heights.js'
@@ -32,11 +33,10 @@ export default function Ping({ ping, side }) {
   const ringMat = useRef()
   const [x, y, z] = ping.at
 
-  useEffect(() => {
+  // Only at the start of the ping
+  useOnMount(() => {
     playSound('ping')
-    // Only at the start of the ping
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  })
 
   useFrame((_, delta) => {
     if (done) return

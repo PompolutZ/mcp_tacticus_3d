@@ -9,7 +9,7 @@ import { useTacticFaceMap } from './useTacticFaceTexture.js'
 import { tacticCardBack } from '../tactics/files.js'
 import FaceMaterial from './FaceMaterial.jsx'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
-import { useHoverCursor } from './useHoverCursor.js'
+import { useHoverCursor, useHoverPeek } from './useHoverCursor.js'
 import { OnTable } from './OnTable.jsx'
 
 const FLAT = [-Math.PI / 2, 0, 0] // the image top faces local -z, toward the mat, the same as a tray card
@@ -38,7 +38,7 @@ function useCanvasTexture(width, height, draw) {
     const t = new CanvasTexture(canvas)
     t.colorSpace = SRGBColorSpace
     return t
-    // draw only reads the other values
+    // Safe: draw only reads the other values, a new draw function must not redraw the texture
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [width, height, draw])
   useEffect(() => () => texture.dispose(), [texture])
@@ -222,17 +222,16 @@ export function RosterCard({
   useHoverCursor(hovered, 'pointer')
   useOutline(groupRef, outlineMode(false, hovered))
   // Alt shows the image large (useCardPeek.js). A card without an image has nothing to show.
-  useEffect(() => {
-    if (!hovered || !info.image) return undefined
-    const image = {
+  useHoverPeek(
+    hovered && !!info.image,
+    () => ({
       src: assetUrl(info.image),
       alt: info.name,
       tacticKey: info.faceKey ?? undefined,
       by: `roster:${card.tab}:${card.index}:${card.code}`,
-    }
-    onCardHover?.(image, true)
-    return () => onCardHover?.(image, false)
-  }, [hovered])
+    }),
+    onCardHover,
+  )
   return (
     <group
       ref={groupRef}

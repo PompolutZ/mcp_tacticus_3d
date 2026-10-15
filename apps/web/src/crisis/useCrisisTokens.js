@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useLatest } from '../components/useLatest.js'
 import { getCard } from './cards.js'
 import { buildMatTokens, supplyToken } from './matTokens.js'
 import { createCrisisActions } from './actions.js'
@@ -40,6 +41,7 @@ export function useCrisisTokens({
   const removeWaits = Object.fromEntries(waitLines.map((line) => [line.characterId, line.text]))
   // The notice sound, once for each new drop that this browser places. The tokens of an open table play nothing.
   const seenWaiting = useRef(null)
+  const latestPlaceTool = useLatest(placeTool)
   const stopPan = useRef(null)
   useEffect(() => {
     const ids = new Set(
@@ -56,8 +58,9 @@ export function useCrisisTokens({
     // The Range 2 tool snaps to the model once per drop. Only the own tool can be written, so in the Sandbox
     // and a single player room it is the own tool also for a token of the other side.
     const characterId = fresh.find((t) => t.placeFrom?.characterId)?.placeFrom.characterId
-    if (characterId) placeTool('range', 2, { kind: 'character', id: characterId }, null)
-  }, [tokens, playedSides])
+    if (characterId)
+      latestPlaceTool.current('range', 2, { kind: 'character', id: characterId }, null)
+  }, [tokens, playedSides, latestPlaceTool])
 
   // The document writes (crisis/actions.js). Made every render: the lookups are new functions each time.
   const actions = createCrisisActions(table, {

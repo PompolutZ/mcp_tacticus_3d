@@ -18,6 +18,7 @@ import { tokenStack } from '../tokens/stack.js'
 import { outlineMode, useOutline } from './SelectionOutlines.jsx'
 import { useColorTexture } from './useColorTexture.js'
 import { useHoverCursor, useHoverReport } from './useHoverCursor.js'
+import { useOnMount } from './useLatest.js'
 import TurnHandle from './TurnHandle.jsx'
 import useLiveFollow from './useLiveFollow.js'
 import { SURFACE_GAP } from '../pieces/heights.js'
@@ -203,15 +204,14 @@ export default function CrisisToken({
 
   // Registers a live getter, not a ref object, because the pose changes on every pointer move of a
   // drag, not only once per frame.
-  useEffect(() => {
+  useOnMount(() => {
     centerRef?.(() => ({
       x: poseRef.current.x,
       y: groupRef.current?.position.y ?? 0,
       z: poseRef.current.z,
     }))
     return () => centerRef?.(undefined)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  })
 
   useEffect(() => () => tokenStack.removeCrisis(token.id), [token.id])
 

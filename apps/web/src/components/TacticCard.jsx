@@ -22,7 +22,7 @@ import { useColorTexture } from './useColorTexture.js'
 import { useTacticFaceMap } from './useTacticFaceTexture.js'
 import { isFaceKey } from '../tactics/faceData.js'
 import { NO_ROTATION } from '../characters/base.js'
-import { useHoverCursor, useHoverReport } from './useHoverCursor.js'
+import { useHoverCursor, useHoverPeek, useHoverReport } from './useHoverCursor.js'
 
 // A thin box as large as the card finds the ground under it, the same as LooseToken.jsx
 const HALF_H = 0.01
@@ -208,12 +208,7 @@ export default function TacticCard({
   useHoverReport(hovered, onHover)
 
   // The same for Alt. A flip while hovered shows the new side.
-  useEffect(() => {
-    if (!hovered) return undefined
-    const image = { ...upImage(), by: `tactic:${card.id}` }
-    onCardHover?.(image, true)
-    return () => onCardHover?.(image, false)
-  }, [hovered, card.up])
+  useHoverPeek(hovered, () => ({ ...upImage(), by: `tactic:${card.id}` }), onCardHover, card.up)
 
   // The long side of the card is local z. The footprint angle (cos a, 0, -sin a) of local z is yaw - π/2.
   const footprintShape = () =>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLatest } from '../components/useLatest.js'
 import { createSetupActions, deployLockWrite } from './actions.js'
 import {
   overrideRemoval,
@@ -241,7 +242,7 @@ export function useGameSetup({
   // from the other browser, so an effect does it. It reads the document and skips a placed side, so a second
   // run does nothing. With no stored squad of this setup (another device, cleared storage), the player is
   // not Ready any more and chooses again.
-  useEffect(() => {
+  function revealWhenReady() {
     // Both squads are placed, from this browser or the other one: Deploy Lock on, once (lockSet)
     deployLockWrite(table)
     const current = table.setup.read()
@@ -261,9 +262,12 @@ export function useGameSetup({
       table.setup.set((prev) => ({ ...prev, ready: { ...prev.ready, [mySide]: false } }))
       showHudMessage('Your squad choice is not in this browser. Choose it again.')
     }
-    // Safe: the effect reads the table, not render state, and only the setup changes can make it do something
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setup])
+  }
+  const latestReveal = useLatest(revealWhenReady)
+  // Runs on a change of the setup only. It is the newest revealWhenReady: it reads the table, not render state.
+  useEffect(() => {
+    latestReveal.current()
+  }, [setup, latestReveal])
 
   // What the panel on the table calls (GameSetup.jsx): the document actions, and the ones with a confirm, a
   // message or local state

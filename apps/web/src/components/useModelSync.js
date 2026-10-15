@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { useLatest } from './useLatest.js'
 import { claimChanges, claimCheck, modelIdOfKey, modelKey } from '../characters/claims.js'
 import { BODY_DYNAMIC } from '../physics.js'
 import { poseOf } from '../rooms/table.js'
@@ -100,11 +101,14 @@ export function useModelSync({
   useEffect(() => {
     posesRef.current = poses
   })
+  // The models and functions of the newest render, for the effects below that run only on a change of poses or claims
+  const latest = useLatest({ ownership, models, liveCharBody, applyPose, markMoved })
 
   // Rest poses from the other browser ("Rules", end). A model that nobody claims, with a changed pose that
   // the body does not stand at: the body goes there. A pose that this browser wrote equals the body.
   // A model that this browser claims ignores it. A model that the other player claims waits (below).
   useEffect(() => {
+    const { ownership, models, liveCharBody } = latest.current
     const prev = prevPoses.current
     prevPoses.current = poses
     if (prev === poses) return
@@ -114,26 +118,25 @@ export function useModelSync({
       if (ownership?.owner(modelKey(model.id)) != null) continue
       const body = liveCharBody(model.id)
       if (!body || samePose(poseOf(body.translation(), body.rotation()), entry)) continue
-      applyPose(model.id, entry)
+      latest.current.applyPose(model.id, entry)
     }
-    // applyPose and models only read refs and the models of this render
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [poses])
+  }, [poses, latest])
 
   // The other player's claims start and end ("Rules")
   useEffect(() => {
+    const { ownership, liveCharBody } = latest.current
     const present = ownership?.otherPresent() ?? false
     const { started, ended, gone } = claimChanges(prevOther.current, otherOwned, present)
     prevOther.current = otherOwned
     for (const key of started) {
       const id = modelIdOfKey(key)
-      if (id !== null) markMoved(id)
+      if (id !== null) latest.current.markMoved(id)
     }
     for (const key of ended) {
       const id = modelIdOfKey(key)
       if (id === null || ownership.owner(key) === 'me') continue
       const pose = posesRef.current[id]
-      if (pose) applyPose(id, pose)
+      if (pose) latest.current.applyPose(id, pose)
       else liveCharBody(id)?.setBodyType(BODY_DYNAMIC, true)
     }
     // The other player is gone: the body stays where it is and awake. This browser writes its rest pose.
@@ -145,9 +148,7 @@ export function useModelSync({
         body.wakeUp()
       }
     }
-    // applyPose and markMoved only read refs
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [otherOwned])
+  }, [otherOwned, latest])
 
   return { applyPose }
 }
