@@ -7,6 +7,7 @@ import { TACTICS } from '../tactics/cards.js'
 import { tacticCardBack } from '../tactics/files.js'
 import { characterToken } from '../tokens/files.js'
 import { TOKENS } from '../tokens/tokens.js'
+import { TOKEN_GROUPS } from '../tokens/groups.js'
 
 const TABS = [
   { tab: 'all', label: 'All' },
@@ -27,13 +28,6 @@ const TOKEN_MODES = [
     title: 'A drag puts a pile on the table. The pile never runs out.',
   },
 ]
-const TOKEN_GROUPS = {
-  condition: 'Conditions',
-  status: 'Status',
-  character: 'Character',
-  tactic: 'Tactic',
-  counter: 'Counters',
-}
 // The All tab shows this many characters and tactic cards. "More" opens their own tab with all of them.
 const ALL_TAB_LIMIT = { characters: 8, tactics: 6 }
 

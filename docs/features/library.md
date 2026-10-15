@@ -55,7 +55,7 @@ The images load only when they scroll into view (`loading="lazy"`), so the panel
 
 ## Tokens
 
-The tokens are in groups, the same as the old Tokens panel: Conditions, Status, Character, Tactic, Counters. Counters are "1 Damage" and "1 Power", so a player can make a pile of them. A token is drawn on the table at its real size (0.75" or 1"), see `docs/features/character-trays.md`, "Real-size tokens". A label under the pointer shows the name and the description.
+The tokens are in groups, the same as the old Tokens panel: Conditions, Status, Character, Tactic, Dice, Counters. Counters are "1 Damage" and "1 Power", so a player can make a pile of them. A token is drawn on the table at its real size (0.75" or 1"), see `docs/features/character-trays.md`, "Real-size tokens". A label under the pointer shows the name and the description.
 
 The **Single / Pile** switch in the Tokens section header changes what a drag from the panel brings:
 
