@@ -1,32 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
+import { affiliationName, autoAffiliation } from '../scoreboard/affiliations.js'
+import { createSetupActions } from './actions.js'
 import {
-  affiliationName,
-  autoAffiliation,
-  DEFAULT_AFFILIATION,
-} from '../scoreboard/affiliations.js'
-import {
-  browse,
-  chooseAffiliation,
-  chooseDeck,
-  chooseEdge,
-  chooserOf,
-  chooseThreat,
-  CRISIS_TYPES,
   deployLockDue,
   lockWasSet,
-  newSetup,
-  otherTeam,
-  otherType,
   overrideRemoval,
-  overrideTo,
   ownSquadOf,
-  pickCard,
-  placedIds,
   placedSides,
   placeSquad,
-  priorityOf,
   revealPlan,
-  setPriority,
   setSquadCharacters,
   setupPlacedCards,
   setupStep,
@@ -40,7 +22,7 @@ import {
 import { characterByCode } from '../characters/characters.js'
 import { deleteSquad, readSquad, saveSquad } from '../rooms/store.js'
 import { firstFreeSlot } from '../tactics/layout.js'
-import { formatMctCode, isEmptyRoster } from '../rosters/mct.js'
+import { isEmptyRoster } from '../rosters/mct.js'
 import { newCharacters as makeCharacters } from '../characters/newCharacter.js'
 import {
   parseRosterText,
@@ -51,29 +33,25 @@ import {
   unknownCodesMessage,
 } from '../rosters/cards.js'
 
-// What a restart of the game setup removes, for its confirm (restartSetup)
+// What a restart of the game setup removes, for its confirm
 const SETUP_REMOVAL =
   'The squads and the crisis cards that the game setup put on the table are removed.'
 
 // The game setup: rosters, the setup steps, squads and the reveal (see docs/features/setup-game.md). It is
 // called after useRollOffReader: effect E8 must run before the reveal effect E9 below.
 export function useGameSetup({
-  crisis,
   handleCharacterRemove,
   handleCrisisChange,
   handleTurnMat,
   hiddenSquads,
   makeCardPiles,
   mySide,
-  removeCardPiles,
   room,
   rosters,
   setAffiliations,
   setCharacters,
   setDeployLine,
   setOpenRoster,
-  setPriorityField,
-  setRosters,
   setSetup,
   setTacticCards,
   setTokenPiles,
@@ -93,6 +71,17 @@ export function useGameSetup({
     () => viewerSetup(setup, { hidden: hiddenSquads, mySide, ownSquad }),
     [hiddenSquads, setup, mySide, ownSquad],
   )
+  // The document writes (setup/actions.js). Made every render: the character and crisis calls are new
+  // functions each time.
+  const actions = createSetupActions(table, {
+    mySide,
+    hiddenSquads,
+    rosterCard,
+    parseRosterText,
+    affiliationChoices: squadAffiliationChoices,
+    removeCharacter: handleCharacterRemove,
+    changeCrisis: handleCrisisChange,
+  })
 
   // Loads the roster text of one team. A text with no known code keeps the old roster. Unknown
   // codes are named in the HUD, the known ones load. The game setup starts again, because it points to
@@ -105,24 +94,27 @@ export function useGameSetup({
       return
     }
     if (!confirmSetupRemoval('Load this roster')) return
-    const restarted = table.transact(() => {
-      setRosters((prev) => ({ ...prev, [team]: { code: formatMctCode(parsed) } }))
-      return restartSetup()
-    })
+    const { restarted, unknown } = actions.loadRoster(team, parsed)
+    afterRestart()
     // The open card may not be in the new roster
     setOpenRoster((prev) => (prev?.team === team ? null : prev))
-    if (parsed.unknown.length > 0) showHudMessage(unknownCodesMessage(parsed.unknown))
+    if (unknown.length > 0) showHudMessage(unknownCodesMessage(unknown))
     else if (restarted) showHudMessage('Game setup started again')
   }
 
   function handleRosterRemove(team) {
     if (!confirmSetupRemoval('Remove this roster')) return
-    const restarted = table.transact(() => {
-      setRosters((prev) => ({ ...prev, [team]: null }))
-      return restartSetup()
-    })
+    const { restarted } = actions.removeRoster(team)
+    afterRestart()
     setOpenRoster((prev) => (prev?.team === team ? null : prev))
     if (restarted) showHudMessage('Game setup started again')
+  }
+
+  // After a restart of the setup, the squad that this browser stored for it is gone
+  function afterRestart() {
+    if (!hiddenSquads) return
+    deleteSquad(userId, room.id)
+    setStoredSquad(null)
   }
 
   // The rosters as parsed by rosters/mct.js: { host, guest } → parsed roster or null
@@ -143,134 +135,25 @@ export function useGameSetup({
     )
   }
 
-  // Starts the game setup again. It removes what the setup put on the table: the characters and Team
-  // Tactic cards of the activated squads, and the crisis cards of the mission with their tokens. A crisis
-  // card that a player changed in the toolbar since then stays. So does the mat turn. Returns true when
-  // the setup had started.
-  function restartSetup() {
-    if (hiddenSquads) {
-      deleteSquad(userId, room.id)
-      setStoredSquad(null)
-    }
-    if (setupStep(setup) === 'deck') return false
-    table.transact(() => {
-      removeSetupPieces({ squads: true, crisis: true })
-      setDeployLine(false)
-      setSetup(newSetup())
-      clearPriorityMarker()
-      writeLog('restart', {})
-    })
-    return true
-  }
-
-  // The marker and the last activation go with the roll off
-  function clearPriorityMarker() {
-    table.game.setField('priority', null)
-    table.game.setField('lastActivated', null)
-  }
-
-  // Takes what the setup put on the table off it: squads (the characters and Team Tactic cards of the
-  // activated squads) and crisis (the two crisis cards of the mission with their tokens). A crisis card that
-  // a player changed in the toolbar since then stays. Restart setup and Override use it.
-  function removeSetupPieces({ squads, crisis: crisisCards }) {
-    if (squads) {
-      const placed = placedIds(setup)
-      placed.characters.forEach(handleCharacterRemove)
-      setTacticCards((prev) => prev.filter((card) => !placed.tactics.includes(card.id)))
-      removeCardPiles(placed.tactics)
-    }
-    if (crisisCards && setup.edge) {
-      for (const type of CRISIS_TYPES) {
-        const key = rosterCard(setup.picks[type])?.key
-        if (key && crisis[type] === key) handleCrisisChange(type, null)
-      }
-    }
-  }
-
   // The Restart setup button (GameSetup.jsx)
   function handleSetupRestart() {
-    if (window.confirm(`Start the game setup again? ${SETUP_REMOVAL}`)) restartSetup()
+    if (!window.confirm(`Start the game setup again? ${SETUP_REMOVAL}`)) return
+    actions.restart()
+    afterRestart()
   }
 
-  // Prev / Next of the panel: the step that both players browse, or null for the current step
-  function handleSetupBrowse(step) {
-    setSetup((prev) => browse(prev, step))
-  }
-
-  // The Override button of a browsed step, after a confirm. `step` becomes the current step for both players
-  // and the later choices are dropped (overrideTo). What the setup put on the table after that step leaves it
-  // the same way as for Restart setup (removeSetupPieces). Deploy Lock goes off with the squads.
+  // The Override button of a browsed step, after a confirm (actions.override)
   function handleSetupOverride(step) {
-    const removal = overrideRemoval(setup, step)
+    const removal = overrideRemoval(table.setup.read(), step)
     const text = removal.squads || removal.crisis ? ` ${SETUP_REMOVAL}` : ''
     if (!window.confirm(`Go back to this step and drop the later choices?${text}`)) return
-    table.transact(() => {
-      removeSetupPieces(removal)
-      if (removal.squads) setDeployLine(false)
-      setSetup(overrideTo(setup, step))
-      if (step === 'rollOff') clearPriorityMarker()
-      writeLog('override', { step })
-    })
+    actions.override(step)
     setOpenRoster(null)
   }
 
-  // The roll off is over: `team` has Priority. Both players can press it in a multiplayer room, because
-  // players can agree on a roll off with real dice.
-  function handleSetupPriority(team) {
-    if (setupStep(setup) !== 'rollOff') return
-    table.transact(() => {
-      setSetup(setPriority(setup, team))
-      setPriorityField(team)
-      writeLog('rollOff', { side: team, manual: true })
-    })
-  }
-
-  // The player with Priority uses their deck of `type`. The draws are random, so they are made here, outside
-  // a state updater, which React can call twice.
-  function handleSetupDeck(type) {
-    const team = priorityOf(setup)
-    if (setupStep(setup) !== 'deck' || !parsedRosters[team]) return
-    table.transact(() => {
-      setSetup(chooseDeck(setup, type, parsedRosters[team][type]))
-      writeLog('deck', { side: team, type })
-    })
-  }
-
-  // A Use button on a drawn crisis card. After the first card, 2 cards are drawn from the other deck of
-  // the other player.
-  function handleSetupPick(code) {
-    const step = setupStep(setup)
-    if (step !== 'first' && step !== 'second') return
-    const other = parsedRosters[otherTeam(priorityOf(setup))]
-    const type = step === 'first' ? setup.deck.type : otherType(setup.deck.type)
-    table.transact(() => {
-      setSetup(pickCard(setup, code, other?.[otherType(setup.deck.type)] ?? []))
-      writeLog('pick', { side: chooserOf(setup), type, card: rosterCard(code)?.name ?? code })
-    })
-  }
-
-  function handleSetupThreat(threat) {
-    if (setupStep(setup) !== 'threat') return
-    table.transact(() => {
-      setSetup(chooseThreat(setup, threat))
-      writeLog('threat', { side: chooserOf(setup), threat })
-    })
-  }
-
-  // Choose this edge: the mat stays as it is now. The two crisis cards of the mission go to the ends of
-  // the scoring board, and their tokens to the mat. A card without files in the app has no tokens.
+  // The deployment edge: the HUD names a crisis card that has no files in the app
   function handleSetupEdge() {
-    if (setupStep(setup) !== 'edge') return
-    const missing = []
-    table.transact(() => {
-      for (const type of CRISIS_TYPES) {
-        const info = rosterCard(setup.picks[type])
-        if (!info?.key) missing.push(info?.name ?? setup.picks[type])
-        handleCrisisChange(type, info?.key ?? null)
-      }
-      setSetup(chooseEdge(setup))
-      writeLog('edge', { side: chooserOf(setup) })
-    })
+    const { missing } = actions.edge()
     if (missing.length > 0)
       showHudMessage(
         `The app has no files for ${missing.join(' and ')}, so ${missing.length === 1 ? 'its' : 'their'} tokens are not on the mat`,
@@ -422,20 +305,6 @@ export function useGameSetup({
     })
   }
 
-  // The player of `side` chooses the affiliation of the squad at the step affiliation: the setup and the
-  // VP marker, in one transaction. In a multiplayer room, only the own side.
-  function handleSetupAffiliation(side, key) {
-    if (setupStep(setup) !== 'affiliation') return
-    if (hiddenSquads && side !== mySide) return
-    const choices = squadAffiliationChoices(parsedRosters[side], setup.squads[side].characters)
-    if (key !== DEFAULT_AFFILIATION && !choices.includes(key)) return
-    table.transact(() => {
-      setSetup((prev) => chooseAffiliation(prev, side, key))
-      setAffiliations((prev) => ({ ...prev, [side]: key }))
-      writeLog('affiliation', { side, affiliation: affiliationName(key) })
-    })
-  }
-
   // Both players are Ready: this browser reveals the squads of the sides it plays. The second Ready can come
   // from the other browser, so an effect does it. It reads the document and skips a placed side, so a second
   // run does nothing. With no stored squad of this setup (another device, cleared storage), the player is
@@ -469,17 +338,19 @@ export function useGameSetup({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setup])
 
+  // What the panel on the table calls (GameSetup.jsx): the document actions, and the ones with a confirm, a
+  // message or local state
   const setupActions = {
-    priority: handleSetupPriority,
-    deck: handleSetupDeck,
-    pick: handleSetupPick,
-    threat: handleSetupThreat,
+    priority: actions.priority,
+    deck: actions.deck,
+    pick: actions.pick,
+    threat: actions.threat,
     turnMat: handleTurnMat,
     edge: handleSetupEdge,
     ready: handleSquadReady,
-    affiliation: handleSetupAffiliation,
+    affiliation: actions.affiliation,
     restart: handleSetupRestart,
-    browse: handleSetupBrowse,
+    browse: actions.browse,
     override: handleSetupOverride,
   }
 

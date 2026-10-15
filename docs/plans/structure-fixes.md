@@ -262,6 +262,8 @@ User: the whole game setup in the Sandbox: load and remove rosters, roll off by 
 
 ### Result
 
+Done. New `table/actions.js` (store), `setup/actions.js` (`createSetupActions`: loadRoster, removeRoster, restart, browse, override, priority, deck, pick, threat, edge, affiliation, removeSetupPieces, clearPriorityMarker; all read the document), `setup/actions.test.js` (10 tests). `useGameSetup` creates the actions each render (the character and crisis calls in `context` are new functions each time) and keeps the confirms, HUD messages, stored squad, ready, squad toggle and reveal. `App` sets the store in a layout effect with `setupActions` of the hook (confirm and HUD wrappers around the actions). `GameSetup` reads `useTableActions().setup`; `Scene` lost the `setupActions` prop. `useGameSetup` lost the params `crisis`, `removeCardPiles`, `setPriorityField`, `setRosters`; `useTablePieces` no longer returns `removeCardPiles`. Not moved: `ready`, squad toggle and reveal (step 8). Checks: format, lint 52 warnings (baseline), `pnpm test` 938 pass, typecheck, web build pass.
+
 ## Step 8: Squads, reveal and derived writes
 
 Needs step 7.

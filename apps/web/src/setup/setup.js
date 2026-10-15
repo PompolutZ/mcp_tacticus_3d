@@ -452,7 +452,7 @@ const NO_SQUADS = {
 // What an Override to `step` takes off the table: { squads, crisis }. squads: the characters and Team Tactic
 // cards that the squads put on the table (placedIds), when the step is `squads` or earlier. crisis: the two
 // crisis cards of the mission with their tokens, when the step is `edge` or earlier and the edge was chosen.
-// The caller removes them the same way as Restart setup (setup/useGameSetup.js, removeSetupPieces).
+// The caller removes them the same way as Restart setup (setup/actions.js, removeSetupPieces).
 export function overrideRemoval(setup, step) {
   const at = FLOW.indexOf(step)
   const placed = placedIds(setup)

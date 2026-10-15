@@ -28,6 +28,7 @@ import { isYou, playerName, possessive, says } from '../setup/names.js'
 import { STEP_NAME, chooses, decides, rollOffText, stepChoice } from '../setup/setupText.js'
 import { TYPE, deckButton, lockedTitle, pickButton } from '../setup/deckButton.js'
 import { useSideColors } from '../sideColors.js'
+import { useTableActions } from '../table/actions.js'
 import { useNames } from '../setup/useNames.js'
 import { RosterCard } from './RosterCards.jsx'
 import { OnTable, OWNER_FACING_ROTATION, TABLE_Y, px } from './OnTable.jsx'
@@ -431,9 +432,9 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
 // of each step. The buttons lie flat on the table (OnTable). See docs/features/setup-game.md.
 // setup: see setup/setup.js. parsed: { host, guest } → parsed roster | null (useGameSetup). seatPlayers: { players, peer } of a multiplayer room, for the names
 // (setup/names.js). mySide: the team of the player in a multiplayer room, or null when one
-// person plays both teams. Only that team's squad panel has buttons. actions: { priority(team), deck(type), pick(code),
+// person plays both teams. Only that team's squad panel has buttons. The actions come from useTableActions().setup: { priority(team), deck(type), pick(code),
 // threat(value), turnMat(direction), edge(), ready(team),
-// affiliation(team, key), restart(), browse(step | null), override(step) }, see setup/useGameSetup.js.
+// affiliation(team, key), restart(), browse(step | null), override(step) }, see setup/useGameSetup.js (setupActions).
 // powerOnTable: the Power button is on the table (the note names it). onStartRound(): the Power button's action,
 // for Start round 1 in the deploy step. startRoundBlock: the reason that button is off (a side has no affiliation), or null.
 // onCrisisOpen({ team, type, code, drawn }): a click on a crisis card. drawn: the card is one of the 2 drawn
@@ -444,7 +445,6 @@ export default function GameSetup({
   parsed,
   mySide,
   seatPlayers,
-  actions,
   powerOnTable,
   onStartRound,
   startRoundBlock,
@@ -452,10 +452,11 @@ export default function GameSetup({
   onCardHover,
 }) {
   const ctx = useNames(mySide, seatPlayers)
+  const { setup: actions } = useTableActions()
   const rows = useMemo(() => crisisRows(setup, parsed), [setup, parsed])
   const step = setupStep(setup)
   const browsing = viewOf(setup) !== null
-  if (step === 'done' || (!parsed.host && !parsed.guest)) return null
+  if (!actions || step === 'done' || (!parsed.host && !parsed.guest)) return null
   return (
     <>
       {rows.map((row) => (

@@ -187,7 +187,7 @@ const OVERLAP_INTERVAL = 100
 // onCrisisOpen({ team, type, code, drawn }): a click on a crisis card of the setup (GameSetup.jsx).
 // squadEdit: { host, guest } → true: the roster cards of that side have the + / ✓ button, and onSquadToggle(team,
 // tab, index) adds the card to the squad or removes it (setup/useGameSetup.js, handleSquadToggle).
-// setup: the game setup (setup/setup.js). setupActions, mySide, seatPlayers: see GameSetup.jsx. When the squads
+// setup: the game setup (setup/setup.js). mySide, seatPlayers: see GameSetup.jsx. When the squads
 // are on the table, the roster cards are not.
 // onCardOpen({ src, alt }): a click on a crisis card (see CardPopup.jsx). onTrayOpen(id): a click
 // on a tray card opens the whole tray (see TrayPopup.jsx). onAttachedOpen(code): a click on a gem chip
@@ -316,7 +316,6 @@ export default function Scene({
   setup,
   squadEdit,
   onSquadToggle,
-  setupActions,
   mySide = null,
   seatPlayers = null,
   onScoreMarkerMove,
@@ -1022,7 +1021,6 @@ export default function Scene({
             parsed={parsedRosters}
             mySide={mySide}
             seatPlayers={seatPlayers}
-            actions={setupActions}
             powerOnTable={tableButtons.show.power}
             onStartRound={() => tableButtons.onPowerPhase(playedSides)}
             startRoundBlock={tableButtons.powerBlockTitle(playedSides)}

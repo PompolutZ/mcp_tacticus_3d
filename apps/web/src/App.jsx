@@ -45,6 +45,7 @@ import {
 } from './setup/setup.js'
 import { useRollOffReader } from './setup/useRollOffReader.js'
 import { useGameSetup } from './setup/useGameSetup.js'
+import { setTableActions } from './table/actions.js'
 import { gamePriority, priorityTitle } from './game/priority.js'
 import { useHudTop } from './useHudTop.js'
 import FrameStats from './debug/FrameStats.jsx'
@@ -139,7 +140,7 @@ export default function App({
   const [storedPriority, setPriorityField] = useYField(table.game, 'priority')
   // Loaded rosters: { host, guest } → null | { code }, code in Jarvis format (see rosters/mct.js). A room
   // starts with its rosters: Blue, and Red when the room has it.
-  const [rosters, setRosters] = useYRecord(table.rosters)
+  const [rosters] = useYRecord(table.rosters)
   // The guest's roster comes from the server record (decision 10 of plan 07). At the first open, the key of
   // the own seat is empty, so it gets the roster. Only that key is written. Nothing restarts the setup: it
   // restarts only in handleRosterLoad and handleRosterRemove, and a roster that appears in an empty key
@@ -361,7 +362,6 @@ export default function App({
     handleTacticFlip,
     handleTacticRemove,
     makeCardPiles,
-    removeCardPiles,
   } = useTablePieces({
     table,
     terrain,
@@ -460,22 +460,18 @@ export default function App({
     squadBlock,
     handleBreakdownChoose,
   } = useGameSetup({
-    crisis,
     handleCharacterRemove,
     handleCrisisChange,
     handleTurnMat,
     hiddenSquads,
     makeCardPiles,
     mySide,
-    removeCardPiles,
     room,
     rosters,
     setAffiliations,
     setCharacters,
     setDeployLine,
     setOpenRoster,
-    setPriorityField,
-    setRosters,
     setSetup,
     setTacticCards,
     setTokenPiles,
@@ -484,6 +480,11 @@ export default function App({
     table,
     userId,
     writeLog,
+  })
+  // The panels on the table read the setup actions from the store (table/actions.js)
+  useLayoutEffect(() => {
+    setTableActions({ setup: setupActions })
+    return () => setTableActions(null)
   })
 
   // A click on a roster card: { team, tab, index }. The popup opens only on a card with an image. For a card
@@ -839,7 +840,6 @@ export default function App({
                 seatPlayers={seatPlayers}
                 squadEdit={squadEdit}
                 onSquadToggle={handleSquadToggle}
-                setupActions={setupActions}
                 onScoreMarkerMove={(marker, x, z) =>
                   setScoreMarkers((prev) => ({ ...prev, [marker]: { x, z } }))
                 }

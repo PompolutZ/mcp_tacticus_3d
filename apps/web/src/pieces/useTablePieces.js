@@ -6,7 +6,7 @@ import { getTactic } from '../tactics/cards.js'
 
 // The handlers of the pieces on the table: mat turn, map, terrain lock and remove, loose tokens, token
 // piles and Team Tactic cards (docs/features/team-tactic-cards.md). Call it after the selection and the HUD
-// message. makeCardPiles and removeCardPiles are also used by the game setup.
+// message. makeCardPiles is also used by the game setup.
 export function useTablePieces({
   table,
   terrain,
@@ -141,6 +141,5 @@ export function useTablePieces({
     handleTacticFlip,
     handleTacticRemove,
     makeCardPiles,
-    removeCardPiles,
   }
 }
