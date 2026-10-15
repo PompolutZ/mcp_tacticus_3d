@@ -340,3 +340,13 @@ Work:
 User: open the Sandbox and a two-browser room, play the setup and one round, use each tool, the Library, the Log and Settings.
 
 ### Result
+
+## Step 15: Flaky signal test
+
+Added after the plan started. A test in `apps/api/test/signal.test.ts` (signal / message) fails sometimes and passes on a rerun. Runs after step 14.
+
+1. Run `pnpm --filter api test` in a loop (at least 30 runs) to reproduce it. Find the cause: timing, shared state between tests, order of messages, a clock.
+2. Fix the cause in the test or in the code. No retries and no longer timeouts as the fix.
+3. Checks: the loop passes 30 times in a row. The checks of every step.
+
+### Result
