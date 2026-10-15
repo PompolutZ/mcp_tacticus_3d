@@ -1,4 +1,4 @@
-// The messages of a connection start (plan 08, "Names"). It imports no module that reads import.meta.env, so
+// The messages of a connection start (docs/features/peer-to-peer.md, "Signaling service"). It imports no module that reads import.meta.env, so
 // node --test can load it. The API calls are arguments:
 //   post(code, { from, to, type, data }, { keepalive }), get(code, peer, after) -> messages.
 // Errors from post and get keep their `status`.

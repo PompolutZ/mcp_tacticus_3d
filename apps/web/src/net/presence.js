@@ -1,4 +1,4 @@
-// What the players look at (plan 09, decisions 24 and 25): the selected pieces, the selected tools, the range
+// What the players look at (docs/features/peer-to-peer.md, "What each player controls"): the selected pieces, the selected tools, the range
 // mark and the ping, in the awareness state next to the claims of ownership.js. Each module sets only its own fields with
 // setLocalStateField, so neither overwrites the other. Plain module: no three.js and no import.meta.env, so
 // node --test can load it.

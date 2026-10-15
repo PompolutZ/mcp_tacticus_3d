@@ -1,4 +1,4 @@
-// The multiplayer rooms API (plan 07, "Names"). One function per route. The only caller of api() for rooms.
+// The multiplayer rooms API (docs/features/auth.md, "Endpoints"). One function per route. The only caller of api() for rooms.
 
 import { api } from '../api/client.js'
 import { toBase64 } from './base64.js'
@@ -39,7 +39,7 @@ export async function putTable(code, bytes, { keepalive } = {}) {
   await api(`${path(code)}/table`, { method: 'PUT', bytes, keepalive })
 }
 
-// Signaling (plan 08). message: { from, to, type, data }. Answers { id }.
+// Signaling (docs/features/peer-to-peer.md, "Endpoints"). message: { from, to, type, data }. Answers { id }.
 export function postMessage(code, message, { keepalive } = {}) {
   return api(`${path(code)}/messages`, { method: 'POST', json: message, keepalive })
 }

@@ -151,14 +151,14 @@ function standeeScene(front, back, radius) {
 // (a lifted model does not stop it), isBusy() (a drag or lift is going on), and restPosition() for the stored pose: the body position before the
 // lift, or null when the model is not lifted. Gets null on unmount.
 // claimKey, ownership: the piece key `character:<id>` and the claims (net/ownership.js). A drag claims the key and
-// leaves the release to Scene, which releases when the body is at rest (plan 09, decision 5).
+// leaves the release to Scene, which releases when the body is at rest (docs/features/peer-to-peer.md, "Rules").
 // otherDragging: the other player drags this model now (ownership.otherDrag). Only then the remote model shows the
-// drag footprint, not during their lift, turn, Throw or Place (decision 23).
-// remote: the other player moves this model (decision 9). The body is kinematic and its colliders give no
+// drag footprint, not during their lift, turn, Throw or Place (docs/features/peer-to-peer.md, "The follow").
+// remote: the other player moves this model (docs/features/peer-to-peer.md, "Bodies moved by the other browser"). The body is kinematic and its colliders give no
 // contact forces, so it pushes nothing. It stays where it is. A click still selects it. Scene sets the pose
-// when this goes false (decision 8), and this puts the contact forces back.
+// when this goes false (rule 5), and this puts the contact forces back.
 // getLivePose(key): the latest live pose [x, y, z, qx, qy, qz, qw] of the model, or null (LiveSync.jsx). In the
-// remote mode the model follows it each frame (decision 14) and shows the drag footprint while otherDragging (decision 18).
+// remote mode the model follows it each frame ("The follow") and shows the drag footprint while otherDragging.
 // getLiveTime(key): when that pose arrived, in performance.now() ms, or null. The remote model makes the sound of its
 // landing from the poses and their times (docs/features/sounds.md).
 // baseRadius: radius of the base in the model file, which has the game size
@@ -398,7 +398,7 @@ function CharacterFigure({
     rb.setNextKinematicRotation(upright(rb.rotation()))
   })
 
-  // The remote mode (decision 9). A lift or a drag of this browser stops moving the body, with no drop
+  // The remote mode ("Bodies moved by the other browser"). A lift or a drag of this browser stops moving the body, with no drop
   // and no write. Back from it, Scene sets the body type and the pose, and the contact forces come back here.
   useEffect(() => {
     remoteRef.current = remote

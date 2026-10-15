@@ -1,5 +1,5 @@
 // The tool entry of the table document (net/doc.js, `tools.<side>.<kind>`). Plain module: no three.js.
-// docs/plans/implement-backend/09-moving-objects.md, decisions 10 and 12.
+// docs/features/peer-to-peer.md, "Yjs document" (tool entry) and docs/features/range-movement-tools.md.
 //
 // Entry: { which, spawn, at?, pose?, turn?, snap?, mode? }
 // - which: the range number, the movement type, or true for the angle tool
@@ -11,7 +11,7 @@
 // - looker: the model id of the looking character. target: the model id of the target, or null.
 // - pose: { x, y, z, yaw }, the looker base center and the direction of the line.
 
-// Positions to 3 decimals (0.001"), yaw and bend to 4 decimals, as the live packets (plan, "Names")
+// Positions to 3 decimals (0.001"), yaw and bend to 4 decimals, as the live packets
 const round3 = (v) => Math.round(v * 1e3) / 1e3
 const round4 = (v) => Math.round(v * 1e4) / 1e4
 
@@ -55,7 +55,7 @@ export function sameStored(a, b) {
 }
 
 // The yaw of a free spawn. Blue's tools have yaw 0. Red's have Blue + π, so the buttons read from
-// Red's side (decision 12).
+// Red's side: a free Red tool faces Red (docs/features/peer-to-peer.md, "Yjs document").
 export function freeSpawnYaw(side) {
   return side === 'guest' ? Math.PI : 0
 }

@@ -1,6 +1,6 @@
 // React hooks that read and write the stores of the table document (net/doc.js). Each returns the state and a
 // setter in the form of useState, so the handlers of App keep their code. The setter writes the document at
-// once (docs/plans/implement-backend/05-yjs-state.md, decision 7).
+// once (docs/features/peer-to-peer.md, "Yjs document").
 
 import { useCallback, useSyncExternalStore } from 'react'
 

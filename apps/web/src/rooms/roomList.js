@@ -1,4 +1,4 @@
-// One list of the single player and the multiplayer rooms (plan 07, decision 18). No React.
+// One list of the single player and the multiplayer rooms (docs/features/rooms.md, "Lobby"). No React.
 
 import { MAPS } from '../terrain/maps/index.js'
 import { TEAMS } from '../setup/setup.js'

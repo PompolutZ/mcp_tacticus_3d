@@ -12,10 +12,10 @@ import { hasLocalChanges } from './serverTable.js'
 import { multiplayerDocName, roomDocName } from './store.js'
 import { fillMap, startTable } from './table.js'
 
-// Traffic: read every 60 s, logged every 10 min (plan 09, decision 17)
+// Traffic: read every 60 s, logged every 10 min (docs/features/peer-to-peer.md, "Traffic per game")
 const TRAFFIC_READ_MS = 60_000
 const TRAFFIC_LOG_MS = 10 * 60_000
-// The table fingerprint is logged after this long with no change (plan 11, decision 9)
+// The table fingerprint is logged after this long with no change (docs/features/peer-to-peer.md, "Local testing")
 const FINGERPRINT_QUIET_MS = 2000
 
 // The map on the mat when the Sandbox starts, a key in MAPS
@@ -73,7 +73,7 @@ export function openTableSession({
     if (document.visibilityState === 'hidden') writer?.flush({ hidden: true })
   }
 
-  // The page closes or reloads: tell the other player (decision 20)
+  // The page closes or reloads: tell the other player
   const onPageHide = () => link?.stop({ keepalive: true })
   // Yjs sync over the open channel, or null
   let sync = null
@@ -131,7 +131,7 @@ export function openTableSession({
   }
 
   // Logs the table fingerprint once per connection, when the document had no change for 2 s after the
-  // sync channel opened (plan 11, decision 9). A change inside the 2 s starts the 2 s again.
+  // sync channel opened (docs/features/peer-to-peer.md, "Local testing"). A change inside the 2 s starts the 2 s again.
   let fingerprintTimer = null
   function onFingerprintUpdate() {
     clearTimeout(fingerprintTimer)
@@ -179,7 +179,7 @@ export function openTableSession({
     doc = null
   }
 
-  // The host deleted the room (decisions 12 and 15): the local copy is of no use
+  // The host deleted the room (docs/features/peer-to-peer.md, "Connect flow"): the local copy is of no use
   function roomGone() {
     shutdown()
     deps.deleteDoc(name)
@@ -231,7 +231,7 @@ export function openTableSession({
         awareness.setLocalState({ owns: [] })
         ownership = createOwnership({ awareness, role })
         presence = createPresence({ awareness })
-        // The flags act on the packets that this browser receives (plan 09, decision 16)
+        // The flags act on the packets that this browser receives ("Debug flags")
         const { drop, delay } = deps.liveFlags()
         live = createLiveHub({ drop, delay })
       }
@@ -265,7 +265,7 @@ export function openTableSession({
           iceConfig: deps.iceConfig(),
           // The open sync channel is synced at once. The live channel goes to the hub. A traffic count is one
           // connection. onChannelsEnd ends all three, also when the connection closes with no close event
-          // (plan 11, decision 7).
+          // ("Connect flow").
           onChannels({ sync: channel, live: liveSide }) {
             startTraffic()
             startFingerprint()
@@ -282,7 +282,7 @@ export function openTableSession({
             liveChannel = null
           },
           onState(next) {
-            // Both browsers have the same document while connected, so only the host writes (decision 11)
+            // Both browsers have the same document while connected, so only the host writes (docs/features/auth.md, "Table on the server")
             if (role === 'guest') writer?.pause(next.state === 'connected')
             if (next.state === 'gone') {
               roomGone()

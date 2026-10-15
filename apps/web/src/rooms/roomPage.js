@@ -1,4 +1,4 @@
-// Which page a room link opens (docs/plans/implement-backend/07-multiplayer-rooms.md, decision 17). Pure:
+// Which page a room link opens (docs/features/rooms.md, "Pages"). Pure:
 // Root.jsx makes the calls and passes the results in.
 
 // The side where this user has a seat, or null
@@ -9,7 +9,7 @@ export function seatOf(room, userId) {
   return null
 }
 
-// The room prop of App and Table for a multiplayer room (decision 22). room: the API room.
+// The room prop of App and Table for a multiplayer room . room: the API room.
 export function multiplayerRoom(room, userId) {
   return {
     id: room.code,

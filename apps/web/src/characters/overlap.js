@@ -1,4 +1,4 @@
-// Which models show the overlap mark (docs/plans/implement-backend/09-moving-objects.md, decision 1).
+// Which models show the overlap mark (docs/features/peer-to-peer.md, "Moving objects (physics)").
 // Models pass through models, so two bases can end up in one place. The one that moved last shows the mark.
 
 // Base circles must overlap by more than this (inches), so touching bases have no mark

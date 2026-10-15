@@ -51,7 +51,7 @@ function isHudEvent(event) {
 // - onRefused(): the claim was refused. For a piece that set up state at the press.
 // - releaseAtEnd: release key after onEnd returned, and after onCancel, true by default. False: the piece
 //   releases its claim later (a model, when its body is at rest).
-// - live, livePose: the live poses of pieces without a body (plan 09, Phase 6). live: a Map, piece key →
+// - live, livePose: the live poses of pieces without a body (docs/features/peer-to-peer.md, "Pose message"). live: a Map, piece key →
 //   getter, which LiveSync reads at each send. livePose(): the pose of the piece ({ x, z, yaw? }), or null.
 //   The getter is in the Map from the claim to the end of the drag. Needs key and ownership.
 // - controls: the camera controls, off from the press to the end.

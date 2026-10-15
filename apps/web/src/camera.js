@@ -76,7 +76,7 @@ export function panToPoint(
 // resetView).
 const CAMERA_TARGET = [0, 0, 16.8]
 const CAMERA_POSITION = [0, 32.5, 49.3]
-// The Red view: the Blue view turned 180° around the mat center (plan 08, decision 17). Only for the Red seat
+// The Red view: the Blue view turned 180° around the mat center (docs/features/peer-to-peer.md, "Room and players"). Only for the Red seat
 // of a multiplayer room. A single player room and the Sandbox keep the Blue view, because one player plays both
 // sides there.
 const CAMERA_TARGET_GUEST = [0, 0, -16.8]

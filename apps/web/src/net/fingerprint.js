@@ -1,6 +1,6 @@
 import * as Y from 'yjs'
 
-// A short hash of the changes that a document holds (plan 11, decision 9). Two documents with the same
+// A short hash of the changes that a document holds (docs/features/peer-to-peer.md, "Local testing"). Two documents with the same
 // changes have the same state vector and delete set, and Yjs writes both sorted. So the hash is the same.
 // Plain function, no browser calls, so node --test can load it.
 export function tableFingerprint(doc) {

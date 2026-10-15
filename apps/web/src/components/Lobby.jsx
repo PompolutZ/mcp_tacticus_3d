@@ -66,7 +66,7 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
   // The roster in the roster popup: { room, team }, or null
   const [rosterView, setRosterView] = useState(null)
 
-  // Single player rooms of an older record version cannot be listed or opened (rooms.md, decision 19)
+  // Single player rooms of an older record version cannot be listed or opened (docs/features/rooms.md, "Storage")
   useEffect(() => {
     deleteStaleRooms()
   }, [])
@@ -81,7 +81,7 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
         if (cancelled) return
         setLoaded({ userId, list })
         setFailed(null)
-        // A room that the host deleted leaves no copy in this browser (plan 07, decision 12)
+        // A room that the host deleted leaves no copy in this browser (docs/features/rooms.md, "Storage")
         const codes = list.map((room) => room.code)
         deleteStaleDocs(userId, codes)
         deleteStaleSquads(userId, codes)

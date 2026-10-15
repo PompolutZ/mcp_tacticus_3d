@@ -5,7 +5,7 @@ import { followPart, lerpAngle, numbersToPose } from '../net/livePose.js'
 // A piece MOVED when its live pose is farther than this from its place in the document (inches)
 const MOVED = 0.05
 
-// The follow of a piece without a body that the other player claims (plan 09, decisions 9, 14 and 18). Each
+// The follow of a piece without a body that the other player claims (docs/features/peer-to-peer.md, "The follow"). Each
 // frame it moves poseRef.current a part of the way to the latest live pose of pieceKey (followPart). Until
 // the first live pose it does nothing: the piece stays where it is. When the live pose goes (the claim ended),
 // poseRef goes back to placeRef at once. Call it before the piece's own useFrame, so the piece draws the new pose.

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-// Copies the link of a multiplayer room (plan 07, decision 23). The button shows the result for 2 s.
+// Copies the link of a multiplayer room (docs/features/rooms.md, "Room"). The button shows the result for 2 s.
 // The caller shows it only while the guest seat is free.
 export function CopyLinkButton({ code }) {
   const [result, setResult] = useState(null)

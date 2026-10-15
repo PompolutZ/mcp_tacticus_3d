@@ -209,7 +209,7 @@ export default function TokenLayer({
           )}
         </TokenDragPreview>
       )}
-      {/* The new piece that the other player drags: the kind comes from the key (decision 22) */}
+      {/* The new piece that the other player drags: the kind comes from the key */}
       {otherSpawn && (
         <OtherSpawnPreview
           key={otherSpawn.key}

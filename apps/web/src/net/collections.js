@@ -1,6 +1,6 @@
 // Table state as plain JSON in Yjs maps, read and written in the form of React state. No React.
 // A list is a Y.Map from id to a Y.Map of the entity's fields. A record is a Y.Map of fields. See
-// docs/plans/implement-backend/05-yjs-state.md, decisions 4 to 7 and 10.
+// docs/features/peer-to-peer.md, "Yjs document".
 
 import * as Y from 'yjs'
 
@@ -102,7 +102,7 @@ function compareIds(a, b) {
 }
 
 // A list of entities [{ id, ...fields }], in the order of the array. fields: when set, only these
-// fields are stored. The order is a hidden `order` field of each entity (decision 5).
+// fields are stored. The order is a hidden `order` field of each entity.
 export function createList(ymap, { fields = null } = {}) {
   function read() {
     const entries = []
@@ -145,7 +145,7 @@ export function createList(ymap, { fields = null } = {}) {
 }
 
 // A record of fields { key: value }. depth: how many levels of plain objects are nested Y.Maps, so
-// that changes of different keys in them merge (decision 6).
+// that changes of different keys in them merge.
 export function createRecord(ymap, { depth = 0 } = {}) {
   const read = () => ymap.toJSON()
 

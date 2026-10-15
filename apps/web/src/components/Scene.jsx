@@ -227,17 +227,17 @@ const OVERLAP_INTERVAL = 100
 // startPose(modelId): the stored pose { x, y, z, qx, qy, qz, qw } of a model (rooms/table.js, poseOf), or
 // undefined. A model with a pose starts there instead of on its tray. Read when the model mounts.
 // onModelRest(modelId, pose): the body of a model fell asleep. App stores the pose in the table document, so
-// the model starts there when the table opens again (docs/plans/implement-backend/05-yjs-state.md, decision 8).
+// the model starts there when the table opens again (docs/features/peer-to-peer.md, "Yjs document").
 // presence: what the other player looks at (net/presence.js). Scene writes the own range mark and reads the other's
 // selection and mark. ownership: the claims on pieces (net/ownership.js). Pieces without a body pass it to the drag code. Scene
 // claims a model before R, Q / E, Throw, Place and a drag, releases it when the body rests, and writes the rest
-// pose (plan 09, decisions 5 to 9).
+// pose (docs/features/peer-to-peer.md, "Rules").
 // ownPing: the last ping of this browser (App, key P). The other player's ping comes with presence (ping.md).
 // live: the live hub of a multiplayer room (net/live.js), or null. With it, Scene mounts LiveSync and the cursor.
 // pieceLives: a Map, piece key → getter of the live pose of a dragged piece without a body. The drag code fills it and
-// LiveSync sends it (plan 09, Phase 6). The pieces follow the other player's live poses while they claim them.
+// LiveSync sends it. The pieces follow the other player's live poses while they claim them.
 // poses: the live rest poses of the models, model id → pose (the table document). A pose that the other browser
-// wrote moves the body (decision 8). startPose is the pose at mount.
+// wrote moves the body ("Rules"). startPose is the pose at mount.
 export default function Scene({
   apiRef,
   mapId,
@@ -381,17 +381,17 @@ export default function Scene({
     ownership?.subscribe ?? noSubscribe,
     ownership?.otherOwned ?? noKeys,
   )
-  // The piece key of the model that the other player drags now (decision 20)
+  // The piece key of the model that the other player drags now ("Room and players")
   const otherDragKey = useSyncExternalStore(
     ownership?.subscribe ?? noSubscribe,
     ownership?.otherDrag ?? noDrag,
   )
-  // The new piece that the other player drags now, { key, tokenKey }, or null (decision 22)
+  // The new piece that the other player drags now, { key, tokenKey }, or null ("Moving objects (physics)")
   const otherSpawn = useSyncExternalStore(
     ownership?.subscribe ?? noSubscribe,
     ownership?.otherSpawn ?? noSpawn,
   )
-  // What the other player has selected and which piece their range tool marks (decisions 24 and 25)
+  // What the other player has selected and which piece their range tool marks ("What each player controls")
   const otherLook = useSyncExternalStore(
     presence?.subscribe ?? noSubscribe,
     presence?.other ?? noPresence,
@@ -676,7 +676,7 @@ export default function Scene({
   const ownTools = tools[ownSide] ?? {}
   const otherTools = tools[otherSide] ?? {}
   // Outline mode of the range mark on a piece, or null
-  // The own mark wins over the other player's (decision 24)
+  // The own mark wins over the other player's
   function rangeMarkOf(kind, id) {
     if (rangeMark?.kind === kind && rangeMark.id === id) return rangeMark.mode
     return otherLook.mark?.key === `${kind}:${id}` ? otherLook.mark.mode : null
@@ -845,7 +845,7 @@ export default function Scene({
 
           {/* Dice trays are relative to the table, not the mat: not keyed by mapId or matTurns, so a
             map change or a mat turn (which remounts Terrain above) never remounts them and their
-            dice keep their state. See docs/plans/dice-rolling.md, Phase 4. */}
+            dice keep their state. See docs/features/dice-rolling.md. */}
           {Object.keys(TRAYS).map((trayKey) =>
             playedSides.includes(trayKey) ? (
               <DiceTray
@@ -1119,7 +1119,7 @@ export default function Scene({
               getLivePose: getPieceLive,
               getLiveTime: getPieceLiveTime,
               onRest: () => {
-                // One writer for each rest pose (decision 6)
+                // One writer for each rest pose ("Rules" 5)
                 if (ownership && !ownership.writes(modelKey(model.id))) return
                 const rest = restPose(model.id)
                 if (rest) onModelRest?.(model.id, rest)

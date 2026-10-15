@@ -1,6 +1,6 @@
-// Yjs sync over the `sync` data channel (plan 08, decisions 9 and 10). The message layout is the one of
+// Yjs sync over the `sync` data channel (docs/features/peer-to-peer.md, "Data channels"). The message layout is the one of
 // y-websocket: a varUint type (0: sync, then a y-protocols/sync message; 1: awareness, then the bytes of
-// encodeAwarenessUpdate as a varUint8Array). Awareness carries the claims (plan 09, decision 13).
+// encodeAwarenessUpdate as a varUint8Array). Awareness carries the claims ("Data channels").
 // It imports no module that reads import.meta.env, so node --test can load it.
 
 import * as encoding from 'lib0/encoding'

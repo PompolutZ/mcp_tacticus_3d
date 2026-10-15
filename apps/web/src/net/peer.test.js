@@ -541,7 +541,7 @@ test('a bye of the other player gives waiting', async () => {
   assert.equal(guest.pcs.length, 1)
 })
 
-// Reconnect (plan 11)
+// Reconnect (docs/features/peer-to-peer.md, "Connect flow")
 
 const helloCount = (server, user) =>
   server.stats.posts.filter((p) => p.type === 'hello' && p.user === user.id).length

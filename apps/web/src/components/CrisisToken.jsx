@@ -192,7 +192,7 @@ export default function CrisisToken({
     if (!draggingRef.current) poseRef.current = { ...placeRef.current }
   }, [token.x, token.z, token.yaw])
 
-  // The other player's drag or turn (Phase 6)
+  // The other player's drag or turn (docs/features/peer-to-peer.md, "The follow")
   const follow = useLiveFollow({
     pieceKey: `token:${token.id}`,
     remote,

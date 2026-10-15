@@ -15,7 +15,7 @@ export function useModelFollow({ getLivePose, claimKey }) {
   // The model follows live poses now: mounts the footprint of the base
   const [following, setFollowing] = useState(false)
 
-  // Goes the 1 − e^(−dt / 0.05) part of the way to the latest live pose (decision 14). Without a live pose
+  // Goes the 1 − e^(−dt / 0.05) part of the way to the latest live pose ("The follow"). Without a live pose
   // the model stays where it is.
   function followLive(rb, dt) {
     const numbers = getLivePose?.(claimKey)

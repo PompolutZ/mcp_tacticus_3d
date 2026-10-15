@@ -11,7 +11,7 @@ import { LobbyHeader } from './LobbyHeader.jsx'
 import { RosterField } from './RosterField.jsx'
 import { RoomRosterPopup } from './RoomRosterPopup.jsx'
 
-// The join page of a multiplayer room with a free seat (plan 07, decision 20). room: the API room.
+// The join page of a multiplayer room with a free seat (docs/features/rooms.md, "Pages"). room: the API room.
 // onJoined(room): the user has the seat, and the room opens. onExit(): back to the lobby without joining.
 export function JoinRoom({ room, onJoined, onExit }) {
   const { status } = useUser()

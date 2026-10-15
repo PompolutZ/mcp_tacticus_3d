@@ -1,5 +1,4 @@
-// The dice of a tray as the table document stores them (docs/plans/implement-backend/10-dice.md,
-// "Names"). Plain module, no React and no scene, so node --test can load it.
+// The dice of a tray as the table document stores them (docs/features/peer-to-peer.md, "Yjs document"). Plain module, no React and no scene, so node --test can load it.
 //
 // Die entry: { order, place, face?, pose? }. place: 'air' | 'well' | 'shelf'. face: 1 to 8, only on
 // the shelf. pose: { x, y, z, qx, qy, qz, qw }, only in the air and the well.

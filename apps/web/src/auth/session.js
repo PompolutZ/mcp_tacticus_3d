@@ -1,4 +1,4 @@
-// The login session (docs/features/auth.md, "Login flow" and "Session"; plan decisions 10, 12, 13).
+// The login session (docs/features/auth.md, "Login flow" and "Session").
 // status: off (login is not on), loading, out, in, error (the server does not answer).
 
 import { ApiError, api, onUnauthorized, setToken } from '../api/client.js'

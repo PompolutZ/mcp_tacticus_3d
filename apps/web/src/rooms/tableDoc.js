@@ -1,5 +1,5 @@
 // The Yjs document of a table: in IndexedDB for a room, in memory for the Sandbox. Also keeps the room record
-// in step with the document. See docs/plans/implement-backend/05-yjs-state.md, decisions 12, 13 and 16.
+// in step with the document. See docs/features/peer-to-peer.md, "Yjs document".
 
 import * as Y from 'yjs'
 import { IndexeddbPersistence } from 'y-indexeddb'

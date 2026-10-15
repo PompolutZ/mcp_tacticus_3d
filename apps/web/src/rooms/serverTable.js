@@ -1,4 +1,4 @@
-// The table writer of a multiplayer room (docs/plans/implement-backend/07-multiplayer-rooms.md, decision 16).
+// The table writer of a multiplayer room (docs/features/auth.md, "Table on the server").
 // It imports no module that reads import.meta.env, so node --test can load it. The API call and the timers
 // are arguments.
 
@@ -29,7 +29,7 @@ export function hasLocalChanges(doc, serverBytes) {
 // ends, put(bytes, { keepalive }) writes the whole document. put rejects with an error that has a `status`
 // (0: no answer). changed: the document has changes already (hasLocalChanges), so flush() writes them.
 // Returns { flush({ hidden }), pause(paused), stop }. flush: writes at once when the table changed. pause: while
-// paused, a change starts no timer (the other browser writes the same document, plan 08 decision 11); flush still
+// paused, a change starts no timer (the other browser writes the same document); flush still
 // writes. stop: ends the writer.
 // onGone(): the server has no room (404). onStop(text): the writer stopped (403 or 413).
 export function watchServerTable({

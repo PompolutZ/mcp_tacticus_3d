@@ -34,7 +34,7 @@ function unavailableText(status) {
 // onCreate(room). Escape (Dialog.jsx), Cancel, × or a click on the backdrop calls onClose(). The left and right arrows
 // move the carousel, the same as in the roster popup, but not while a roster field has the focus.
 //
-// Plan 07, decision 19: with login on, a choice at the top: Single player or Multiplayer. A multiplayer room
+// With login on (docs/features/rooms.md, "New room"): a choice at the top: Single player or Multiplayer. A multiplayer room
 // has one roster field, for the own side: the host always sits at +z. Create room builds the start table, posts the room to
 // the server, and calls onCreate({ id: code }). hostedCode: the code of the multiplayer room that the user
 // hosts already, or null. The server allows one hosted room per user.

@@ -10,7 +10,7 @@ const INNER = 0.2
 
 const noRaycast = () => {}
 
-// The other player's cursor (plan 09, decision 15): a flat ring in their side color at the point under their
+// The other player's cursor (docs/features/peer-to-peer.md, "Cursor message"): a flat ring in their side color at the point under their
 // pointer. Hidden before the first cursor, after null, and when the other player is gone. It lives in the
 // scene, inside Physics or not. The pointer does not hit it.
 // liveRef: LiveSync's ref ({ cursor() }). ownership: net/ownership.js. side: the other player's side.

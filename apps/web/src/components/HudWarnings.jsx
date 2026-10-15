@@ -17,7 +17,7 @@ export function HudWarnings({
   const [storageWarning, setStorageWarning] = useState(storageFailed)
   // The server warning text that the player closed. A new text shows again.
   const [closedServerWarning, setClosedServerWarning] = useState(null)
-  // The player closed the version warning (decision 14). It shows again after the next mismatch.
+  // The player closed the version warning (docs/features/peer-to-peer.md, "Connect flow"). It shows again after the next mismatch.
   const [versionClosed, setVersionClosed] = useState(false)
   if (!versionMismatch && versionClosed) setVersionClosed(false)
   return (

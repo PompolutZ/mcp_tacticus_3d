@@ -128,7 +128,7 @@ export function lowerFloor(world, rapier, shape, rotation, x, z, halfHeight, top
 const LOWER_MARGIN = 0.05
 
 // Solver groups of a collider: all groups give contact forces, none gives no forces. A model that the
-// other player moves has none, so it pushes nothing (plan 09, decision 9).
+// other player moves has none, so it pushes nothing (docs/features/peer-to-peer.md, "Bodies moved by the other browser").
 export const SOLVER_ALL = 0xffffffff
 export const SOLVER_NONE = 0
 

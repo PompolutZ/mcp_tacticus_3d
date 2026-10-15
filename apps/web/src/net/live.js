@@ -1,4 +1,4 @@
-// The live hub: packets on the `live` data channel (plan 09, decisions 13, 14 and 16). The channel is unordered
+// The live hub: packets on the `live` data channel (docs/features/peer-to-peer.md, "Data channels"). The channel is unordered
 // and may lose packets, so each piece and the cursor keep the sequence number of their last pose, and an older
 // pose is dropped. It imports no module that reads import.meta.env, so node --test can load it. The timers, the
 // random function and the flags are arguments.

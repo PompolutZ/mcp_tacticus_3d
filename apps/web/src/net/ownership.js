@@ -1,9 +1,9 @@
-// Claims on pieces (plan 09, decisions 5 to 7). A claim is a piece key in `owns` of the own awareness state.
+// Claims on pieces (docs/features/peer-to-peer.md, "Rules"). A claim is a piece key in `owns` of the own awareness state.
 // The other player's claims come in over the awareness of syncChannel.js. Plain module: no three.js and no
 // import.meta.env, so node --test can load it.
 
 // Who owns key. ownId: the own client id. own: the own keys. others: Map client id → keys of the other
-// clients. Both own it (a tie): the lower client id keeps it (decision 7).
+// clients. Both own it (a tie): the lower client id keeps it (rule 8).
 /**
  * @param {string} key
  * @param {number} ownId
@@ -121,7 +121,7 @@ export function createOwnership({ awareness = null, role = 'guest' } = {}) {
     return map
   }
 
-  // The piece key that the other player drags now, or null (decision 20)
+  // The piece key that the other player drags now, or null
   function otherDragKey() {
     for (const [id, state] of awareness.getStates()) {
       if (id !== ownId && typeof state?.drag === 'string') return state.drag
@@ -129,7 +129,7 @@ export function createOwnership({ awareness = null, role = 'guest' } = {}) {
     return null
   }
 
-  // The new piece that the other player drags now, { key, tokenKey }, or null (decision 22)
+  // The new piece that the other player drags now, { key, tokenKey }, or null
   function otherSpawnState() {
     for (const [id, state] of awareness.getStates()) {
       const s = state?.spawn

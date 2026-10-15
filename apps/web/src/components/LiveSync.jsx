@@ -5,7 +5,7 @@ import { tablePoint } from '../drag/tablePoint.js'
 import { modelIdOfKey } from '../characters/claims.js'
 import { cursorStep, isLiveKind, poseToNumbers, sameNumbers } from '../net/livePose.js'
 
-// Packets at most every 33 ms, the cursor at most every 100 ms (plan 09, "Names", decisions 14 and 15)
+// Packets at most every 33 ms, the cursor at most every 100 ms (docs/features/peer-to-peer.md, "Pose message")
 const SEND_MS = 33
 const CURSOR_MS = 100
 
@@ -23,8 +23,8 @@ const round3 = (v) => Math.round(v * 1e3) / 1e3
 // diceLives: a ref to { <tray side>: getter }. A getter gives [{ key: 'die:<id>', pose }] of the own dice that
 // are not on the shelf (DiceTray registers it). Dice need no claim.
 // pieceLives: a Map, piece key → getter of the live pose { x, z, yaw? } of a dragged piece without a body, or
-// null. The drag code fills it from the claim to the end of the drag (drag/pointerDrag.js, Phase 6).
-// hideCursor: true while the own side's Select squad is on; no cursor point is sent (decision 21).
+// null. The drag code fills it from the claim to the end of the drag (drag/pointerDrag.js).
+// hideCursor: true while the own side's Select squad is on; no cursor point is sent ("Cursor message").
 // liveRef: filled with { pose(key), poseTime(key), tool(kind), die(key), cursor() }, for the pieces that follow. State is in refs,
 // because it changes every frame. pose(key): the numbers of a piece while the other player claims it, else
 // null. poseTime(key): when that pose arrived, in performance.now() ms, or null. tool(kind): { pose, time } of the other player's tool, time in performance.now() ms. die(key):
@@ -76,7 +76,7 @@ export default function LiveSync({
     }
   }, [gl])
 
-  // Receiving (decision 9): the pose of a piece counts only while the other player claims the key. A tool
+  // Receiving ("Rules" 4): the pose of a piece counts only while the other player claims the key. A tool
   // pose and a die pose always count.
   useEffect(() => {
     const store = received.current
@@ -119,7 +119,7 @@ export default function LiveSync({
     }
   }, [live, ownership, liveRef])
 
-  // The cursor (decision 15): the point under the last pointer position, when it moved. null once when the
+  // The cursor ("Cursor message"): the point under the last pointer position, when it moved. null once when the
   // pointer leaves the canvas or the table. undefined: send nothing.
   function cursorUpdate(now) {
     if (now - last.current.cursor < CURSOR_MS) return undefined

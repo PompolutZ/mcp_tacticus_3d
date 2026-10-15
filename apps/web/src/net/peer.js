@@ -1,4 +1,4 @@
-// The WebRTC connection of a multiplayer room (plan 08, decisions 1, 6, 7, 8, 15 and 20). It imports no module
+// The WebRTC connection of a multiplayer room (docs/features/peer-to-peer.md, "Connect flow"). It imports no module
 // that reads import.meta.env, so node --test can load it. Everything outside is an argument.
 
 import { trafficOf } from './traffic.js'
@@ -8,9 +8,9 @@ const GATHER_MS = 3000
 export const OFFER_MS = 15_000
 export const CONNECT_MS = 15_000
 export const IDLE_MS = 15 * 60_000
-// How long connectionState can stay `disconnected` before the attempt ends (plan 11, decision 2)
+// How long connectionState can stay `disconnected` before the attempt ends ("Connect flow")
 export const DROP_MS = 10_000
-// Failed attempts in a row after a drop, before the state is failed (plan 11, decision 5)
+// Failed attempts in a row after a drop, before the state is failed ("Connect flow")
 export const RECONNECT_TRIES = 3
 
 // The data of a hello: the build id and the table schema (docs/features/peer-to-peer.md, "Connect flow").
@@ -45,8 +45,8 @@ export function readHello(data) {
 // onState({ state, peer, versionMismatch, schemaMismatch }): state is waiting, connecting, connected, reconnecting, failed,
 // stopped or gone. peer: the `user` of the other player's latest hello, or null. onChannels({ sync, live }):
 // the sync channel is open, once per open. schemaMismatch: the other player's table schema differs, so the guest
-// makes no offer and the host answers none. The live channel may open a moment later (plan 09, decision 13).
-// reconnecting (plan 11): the connection was open and dropped. It starts when connectionState is
+// makes no offer and the host answers none. The live channel may open a moment later ("Data channels").
+// reconnecting ("Connect flow"): the connection was open and dropped. It starts when connectionState is
 // `disconnected`, and ends with `connected` again within DROP_MS, with no new onChannels. After DROP_MS, or on
 // `failed`, or when the sync channel closes, the attempt ends and both roles post a new hello and poll, like
 // a table open. The state stays reconnecting through the new offers and answers until connected, a bye of the
@@ -57,7 +57,7 @@ export function readHello(data) {
 // ends here (drop timer, failed, a new attempt, bye, idle stop, retry, stop, gone), whichever comes first. A
 // browser fires no close event when its own pc.close() runs, so the caller cannot rely on the channel close.
 // Returns { retry, stop, traffic }. traffic(): a promise of trafficOf(getStats()) of the open connection, or
-// null when none is open (plan 09, decision 17).
+// null when none is open ("Traffic per game").
 export function connectRoom({
   role,
   userId,
@@ -234,7 +234,7 @@ export function connectRoom({
     endAttempt()
     const pc = createPeerConnection(iceConfig)
     // Negotiated: both sides create them, so there is no ondatachannel race. sync is reliable and ordered.
-    // live may lose and reorder packets: the next packet replaces a lost one (plan 09, decision 13).
+    // live may lose and reorder packets: the next packet replaces a lost one ("Data channels").
     const channel = pc.createDataChannel('sync', { negotiated: true, id: 0 })
     const live = pc.createDataChannel('live', {
       negotiated: true,
@@ -293,7 +293,7 @@ export function connectRoom({
     return att
   }
 
-  // The open connection dropped for good: a new round with a new hello (plan 11, decision 3)
+  // The open connection dropped for good: a new round with a new hello ("Connect flow")
   function dropped() {
     endAttempt()
     reconnecting = true

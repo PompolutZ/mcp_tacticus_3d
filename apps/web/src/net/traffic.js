@@ -1,4 +1,4 @@
-// Bytes on the WebRTC connection, from getStats() (plan 09, decision 17). Plain functions, no browser calls,
+// Bytes on the WebRTC connection, from getStats() (docs/features/peer-to-peer.md, "Traffic per game"). Plain functions, no browser calls,
 // so node --test can load them. A log line holds only numbers and words, never an SDP or a packet.
 
 // The stats of a report as an array. report: an RTCStatsReport or a Map.

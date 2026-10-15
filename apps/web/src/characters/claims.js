@@ -1,4 +1,4 @@
-// Rules for the claims on models (docs/plans/implement-backend/09-moving-objects.md, decisions 5 and 8).
+// Rules for the claims on models (docs/features/peer-to-peer.md, "Rules").
 // Plain module: no three.js and no import.meta.env, so node --test can load it.
 
 // A model claim lasts at least this long (s). So an action that wakes the body in the next frame (Q / E,

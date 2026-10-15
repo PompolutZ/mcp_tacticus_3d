@@ -1,11 +1,11 @@
-// The pure parts of the live follow (plan 09, decisions 9 and 14): the numbers of a piece pose, their
+// The pure parts of the live follow (docs/features/peer-to-peer.md, "The follow"): the numbers of a piece pose, their
 // rounding and equality, and the follow step. No three.js and no import.meta.env, so node --test can load it.
 //
-// Numbers by kind of piece key (plan, "Names"). A model or a die: [x, y, z, qx, qy, qz, qw]. A tool: [x, y, z, yaw,
+// Numbers by kind of piece key ("Pose message"). A model or a die: [x, y, z, qx, qy, qz, qw]. A tool: [x, y, z, yaw,
 // right, left]. A crisis token: [x, z, yaw]. A loose token, a pile, a tactic card, a marker: [x, z].
 import { roundPiece } from './live.js'
 
-// The time constant of the follow, in seconds (decision 14)
+// The time constant of the follow, in seconds
 const FOLLOW_TIME = 0.05
 
 // The part of the way to the latest pose to go in a frame of dt seconds
@@ -99,7 +99,7 @@ export function sameSideQuat(q, ref) {
   return dot < 0 ? q.map((v) => -v) : q
 }
 
-// What the cursor step does (decision 21): 'null' while the cursor is hidden (Select squad), without the
+// What the cursor step does ("Cursor message"): 'null' while the cursor is hidden (Select squad), without the
 // moved check, so the compare with the last sent point sends null once. 'read' when the pointer moved.
 // 'skip' otherwise.
 export function cursorStep({ hide, moved }) {
@@ -107,7 +107,7 @@ export function cursorStep({ hide, moved }) {
   return moved ? 'read' : 'skip'
 }
 
-// The piece key of a token drag (plan 09, decision 22). drag: { looseId, pileId, supplyCard, pile }. newId: the id
+// The piece key of a token drag ("Moving objects (physics)"). drag: { looseId, pileId, supplyCard, pile }. newId: the id
 // of the new piece, or null for a piece on the table (looseId or pileId).
 export function tokenDragKey({ looseId, pileId, supplyCard, pile }, newId) {
   if (looseId) return `loose:${looseId}`

@@ -1,4 +1,4 @@
-// The ICE servers of a connection (plan 08, decisions 13 and 22). STUN only in production, free.
+// The ICE servers of a connection (docs/features/peer-to-peer.md, "STUN and TURN"). STUN only in production, free.
 // Cloudflare TURN comes in step 13.
 export const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },

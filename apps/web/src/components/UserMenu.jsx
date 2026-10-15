@@ -3,7 +3,7 @@ import { avatarUrl } from '../auth/avatar.js'
 import { DISCORD_ON, deleteAccount, devLogin, login, logout } from '../auth/session.js'
 import { useUser } from '../auth/useUser.js'
 
-// The login part of the lobby header (docs/plans/implement-backend/06-login.md, decision 15). Renders
+// The login part of the lobby header (docs/features/auth.md, "Lobby and room UI"). Renders
 // nothing when login is off.
 export function UserMenu() {
   const { status, user } = useUser()

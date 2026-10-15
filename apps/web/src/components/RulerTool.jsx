@@ -307,7 +307,7 @@ function Tool({
   }
 
   // Q / E and the wheel: a step of angle (yaw), as toolAction says (docs/features/range-movement-tools.md,
-  // "Input rules"). Scene.jsx calls it on every frame of a smoothed turn.
+  // "Input rules"). usePieceTurns.js (turnPiece) calls it on every frame of a smoothed turn.
   // - During a turn or bend drag the step goes to the drag (useDragTool), which sets the pose.
   // - Turn around the tool center (the hinge on a movement tool): the tool keeps its bend. Both ends move,
   //   so a snapped tool is free after it. A tool that is not dragged then hangs hoverHeight above the ground

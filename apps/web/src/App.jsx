@@ -92,7 +92,7 @@ useGLTF.setDecoderPath('/draco/')
 // presence: what the players look at (net/presence.js). Scene writes the range mark; this writes the selection.
 // live: the live hub of a multiplayer room (net/live.js), or null. It goes to Scene.
 // onExit(): opens the lobby. See
-// docs/features/rooms.md and docs/plans/implement-backend/05-yjs-state.md.
+// docs/features/rooms.md and docs/features/peer-to-peer.md, "Yjs document".
 export default function App({
   table,
   room = null,
@@ -141,7 +141,7 @@ export default function App({
   // Loaded rosters: { host, guest } → null | { code }, code in Jarvis format (see rosters/mct.js). A room
   // starts with its rosters: Blue, and Red when the room has it.
   const [rosters] = useYRecord(table.rosters)
-  // The guest's roster comes from the server record (decision 10 of plan 07). At the first open, the key of
+  // The guest's roster comes from the server record (docs/features/auth.md, "Rosters"). At the first open, the key of
   // the own seat is empty, so it gets the roster. Only that key is written. Nothing restarts the setup: it
   // restarts only in handleRosterLoad and handleRosterRemove, and a roster that appears in an empty key
   // changes no card that the setup chose.

@@ -259,7 +259,7 @@ export function changedBindings(bindings) {
 }
 
 // Other actions that already use the input of `binding` with the same condition: [{ id, index }]. The
-// Settings popup removes these and says which action lost the input (decision 6 of the plan).
+// Settings popup removes these and says which action lost the input .
 export function findConflicts(bindings, binding, exceptId) {
   const found = []
   for (const [id, list] of Object.entries(bindings)) {
@@ -354,7 +354,7 @@ const RESERVED = [
   ...['KeyW', 'KeyT', 'KeyN', 'Tab'].map((code) => ({ code, ctrl: true })),
 ]
 
-// The reason why an input cannot be bound, or null. Ctrl + wheel is the pinch zoom (decision 9).
+// The reason why an input cannot be bound, or null. Ctrl + wheel is the pinch zoom.
 export function reservedReason(input, mac = false) {
   const wheel = WHEEL_CODES.includes(input.code)
   if (wheel && input.ctrl) return 'Ctrl + wheel is the pinch zoom of the browser.'

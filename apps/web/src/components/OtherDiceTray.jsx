@@ -111,7 +111,7 @@ function applyEntry(die, e, slot, trayKey) {
     die.slot = undefined
     die.face = null
     die.moving = false
-    // Live poses count only when they arrive after this time (decision 7). A jump ends the follow.
+    // Live poses count only when they arrive after this time (docs/features/peer-to-peer.md, "Dice"). A jump ends the follow.
     die.airSince = place === 'air' ? performance.now() : null
     die.follow = null
     die.bump?.reset() // a jump is no bump

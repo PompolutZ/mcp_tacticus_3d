@@ -326,6 +326,9 @@ User: no app change. Read the new parts of `docs/features/peer-to-peer.md`.
 
 ### Result
 
+Done. Pointer lines (the step grep) 159 before, 35 after. Comments in `net/`, `rooms/`, `components/`, `drag/`, `physics.js`, `camera.js` and others now point to sections of `docs/features/peer-to-peer.md`, `rooms.md`, `auth.md`, `dice-rolling.md`, `setup-game.md` (bare "decision N" of plan 09 removed or turned into a section name). All facts were already in the features except one: a free Red tool faces Red, added to the tool entry text of `peer-to-peer.md`. The 35 left: pointers to features ("decision N" of `round-phases.md`), and plan-only facts (measured sound and dice numbers in `table-sounds.md`, `dice-rolling.md`; look numbers and table-tools sizes in `playtest/`; `terrain-page.md` decision 9). Stale handler pointers: `RulerTool.jsx` now names `usePieceTurns.js` (`turnPiece`); other names in comments (`handleCrisisChange`, `setupActions`, `handleCharacter*`) still exist, so they stay. Checks: format, lint 52 warnings (baseline), `pnpm test` 964 web tests pass (api 128, infra 16), typecheck, web build pass.
+
+
 ## Step 12: Hook deps, tools and 3D
 
 Work:

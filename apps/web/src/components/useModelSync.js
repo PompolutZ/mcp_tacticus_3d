@@ -45,7 +45,7 @@ export function useModelSync({
   // The set of the other player's claims of the last render
   const prevOther = useRef(otherOwned)
 
-  // Puts a model body at a stored pose: dynamic, exact, and asleep a few frames later (decision 8)
+  // Puts a model body at a stored pose: dynamic, exact, and asleep a few frames later ("Rules" 6)
   function applyPose(id, pose) {
     const body = liveCharBody(id)
     if (!body) return
@@ -57,7 +57,7 @@ export function useModelSync({
     sleepLater.current.set(id, SLEEP_AFTER_FRAMES)
   }
 
-  // The claim check of the own model claims (decision 5), and the bodies that wait to sleep. A claim ends
+  // The claim check of the own model claims ("Rules" 2, 6), and the bodies that wait to sleep. A claim ends
   // when the body is dynamic and asleep and nothing of this browser moves the model. The rest pose goes
   // to the document first, then the release, so the other browser gets the pose first.
   useFrame(() => {
@@ -93,7 +93,7 @@ export function useModelSync({
     }
   })
 
-  // A lost tie (decision 7): a turn left for that model is removed. The drag and lift stop in the
+  // A lost tie ("Rules" 8): a turn left for that model is removed. The drag and lift stop in the
   // model (CharacterModel.jsx, remote).
   useEffect(() => ownership?.onLost((key) => turnsLeft.current.delete(key)), [ownership, turnsLeft])
 
@@ -101,7 +101,7 @@ export function useModelSync({
     posesRef.current = poses
   })
 
-  // Rest poses from the other browser (decision 8). A model that nobody claims, with a changed pose that
+  // Rest poses from the other browser ("Rules", end). A model that nobody claims, with a changed pose that
   // the body does not stand at: the body goes there. A pose that this browser wrote equals the body.
   // A model that this browser claims ignores it. A model that the other player claims waits (below).
   useEffect(() => {
@@ -120,7 +120,7 @@ export function useModelSync({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [poses])
 
-  // The other player's claims start and end (decisions 1, 8, 9)
+  // The other player's claims start and end ("Rules")
   useEffect(() => {
     const present = ownership?.otherPresent() ?? false
     const { started, ended, gone } = claimChanges(prevOther.current, otherOwned, present)

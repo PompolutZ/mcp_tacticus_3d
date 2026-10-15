@@ -13,7 +13,7 @@ const STATUS = {
 const FAILED_TITLE =
   'Could not connect directly. One of the networks blocks peer-to-peer connections.'
 
-// The two players of a multiplayer room in the toolbar (plan 08, decision 16): avatar and name in the side
+// The two players of a multiplayer room in the toolbar (docs/features/peer-to-peer.md, "Room and players"): avatar and name in the side
 // color, and the connection to the other player. side: the seat of this user. players: { host, guest } of the room,
 // each a user, { gone: true } or null. connection: { state, peer, versionMismatch, retry } (net/peer.js). A free
 // seat shows the player from the hello (connection.peer) once it arrives.

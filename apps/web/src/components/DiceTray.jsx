@@ -206,7 +206,7 @@ export default function DiceTray({
   // it landed on) once it settles, even while it still sits in 'well' waiting for the rest of the
   // throw to finish. React state holds only the ordered list of ids (`ids`) and what the keys show
   // (`keys`); the roll flow itself lives in this ref.
-  // At mount only the shelf dice come back from the document (decision 3 of the step 10 plan);
+  // At mount only the shelf dice come back from the document (docs/features/dice-rolling.md);
   // dice in the well and in the air are temporary.
   const [initial] = useState(() => shelfFromDocument(trayKey, store.get(trayKey)))
   const trayBodyRef = useRef(null)

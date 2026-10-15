@@ -10,7 +10,7 @@ import { RANGE_HALF_WIDTH, MOVE_HALF_WIDTH, STRAIGHT, ANGLE_TURN, yawQuat } from
 
 const noRaycast = () => {}
 
-// The other player's tool (plan 09, decisions 11 and 14): the shape of Tool without its controls. The side's
+// The other player's tool (docs/features/peer-to-peer.md, "What each player controls"): the shape of Tool without its controls. The side's
 // tint, the footprint with the other player's target (selected, target, rangeFrom), no buttons, no hover, no outline, no range mark. The pointer does
 // not hit it, so a click goes to the piece below. A kinematic sensor, the same as Tool.
 // It goes to its latest pose, from the live channel or from the entry, whichever came last: the part

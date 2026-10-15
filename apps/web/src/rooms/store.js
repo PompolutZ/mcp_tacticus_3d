@@ -62,7 +62,7 @@ const SQUAD_PREFIX = `${PREFIX}squad/`
 const MULTIPLAYER_PREFIX = `${PREFIX}multiplayer/`
 
 // The key of the squad that a user chose in a multiplayer room. It stays in this browser until both players
-// are Ready (docs/plans/implement-backend/08-two-browsers.md, decision 25).
+// are Ready (docs/features/setup-game.md).
 const squadKey = (userId, code) => `${SQUAD_PREFIX}${userId}/${code}`
 
 // The stored squad { setupId, squad: { characters, tactics } }, or null

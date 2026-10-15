@@ -26,7 +26,7 @@ export function useTokenDrag({
 }) {
   // A token drag in progress: { tokenKey, looseId, giveId, supplyCard, pile, pileId, newId, key, active, start } | null.
   // newId: the id of the new piece of the drag (a new token, pile or supply token), else null. key: the piece
-  // key of the dragged piece, `loose:`, `pile:` or `token:` (decision 22). looseId: the table token that is dragged, or null for a new token from a source. giveId: the character of the tray, when the press is on its Give source (a click gives it one token), else null. supplyCard: the
+  // key of the dragged piece, `loose:`, `pile:` or `token:` (docs/features/peer-to-peer.md, "Moving objects (physics)"). looseId: the table token that is dragged, or null for a new token from a source. giveId: the character of the tray, when the press is on its Give source (a click gives it one token), else null. supplyCard: the
   // card key when the new token comes from the supply pile of a Source card (tokenKey is then a
   // crisis token key), otherwise null. pile: the drag brings a new pile from the Library. pileId: the
   // drag moves that pile (Shift + drag). active: the pointer has moved DRAG_THRESHOLD px, so the dragged token
@@ -103,7 +103,7 @@ export function useTokenDrag({
       clickPile: null,
       ...drag,
     }
-    // A new piece gets its id and key at the press, so the drag claims it like a piece on the table (decision 22)
+    // A new piece gets its id and key at the press, so the drag claims it like a piece on the table
     const newId = base.looseId || base.pileId ? null : crypto.randomUUID()
     const key = tokenDragKey(base, newId)
     const full = { ...base, newId, key }

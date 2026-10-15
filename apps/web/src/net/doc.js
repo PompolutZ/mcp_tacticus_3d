@@ -1,12 +1,11 @@
 // The Yjs document of one table: its maps, and the start table. No React. The layout is
-// in docs/features/peer-to-peer.md, "Yjs document", and docs/plans/implement-backend/05-yjs-state.md.
+// in docs/features/peer-to-peer.md, "Yjs document".
 
 import * as Y from 'yjs'
 import { createList, createRecord } from './collections.js'
 
 // The layout version of the document. A document of an older one is migrated (MIGRATIONS) or, when no
-// step exists, reset, because before the first release all data is test data (05-yjs-state.md,
-// decision 11). A newer one is never opened (docs/features/rooms.md, "Storage").
+// step exists, reset, because before the first release all data is test data (docs/features/peer-to-peer.md, "Yjs document"). A newer one is never opened (docs/features/rooms.md, "Storage").
 export const SCHEMA = 2
 
 // Schema n → a function that changes a table from n to n + 1. It must give the same result when two

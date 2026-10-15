@@ -7,7 +7,7 @@ import { NO_PIECES, NO_TOOLS, presenceSelection, presenceTools } from './selecti
 export function useSelection(presence) {
   const [selection, setSelection] = useState(NO_PIECES)
   const [selectedTools, setSelectedTools] = useState(NO_TOOLS)
-  // The other player sees the selection and the selected tools (decision 24)
+  // The other player sees the selection and the selected tools (docs/features/peer-to-peer.md, "What each player controls")
   useEffect(() => {
     presence?.set({
       selection: presenceSelection(selection),

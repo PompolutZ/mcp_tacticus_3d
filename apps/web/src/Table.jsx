@@ -40,8 +40,7 @@ const TABLE_DEPS = {
 // mounts a new Table for each room and the Sandbox. room: the room record (rooms/store.js) of a single player
 // room, the room of rooms/roomPage.js (multiplayerRoom) for a multiplayer room, or null for the Sandbox.
 // onExit(notice): opens the lobby, with a message when notice is set. See
-// docs/plans/implement-backend/05-yjs-state.md, decisions 12 to 16, and 07-multiplayer-rooms.md, decisions
-// 14 and 16, and 08-two-browsers.md, decisions 11, 12 and 20.
+// docs/features/peer-to-peer.md ("Yjs document", "Connect flow") and docs/features/rooms.md.
 export default function Table({ room = null, onExit }) {
   const { user } = useUser()
   const userId = user?.id

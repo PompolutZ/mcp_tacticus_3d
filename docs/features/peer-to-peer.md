@@ -320,7 +320,7 @@ A tool entry is `{ which, spawn, at?, pose?, turn?, snap?, mode? }`:
 | `snap` | `{ kind, id, side, across }` or `null`: the model or token that the tool touches |
 | `mode` | `away` or `toward` (the Toward / Away tool) |
 
-Only the owner of a side writes it, so the two players never write the same entry. The owner writes `pose`, `turn`, `snap` and `mode` when none of them changed for 0.3 s. Positions have 3 decimals, yaw and bend 4. Escape and key 0 delete the own entries. Place, Throw, the Bend button and the selection are not stored. An old document has no tools, which is a valid state, so `SCHEMA` did not change.
+A free spawn of a Red tool has the Blue yaw + π, so the buttons of Red's tools read from Red's side. Only the owner of a side writes it, so the two players never write the same entry. The owner writes `pose`, `turn`, `snap` and `mode` when none of them changed for 0.3 s. Positions have 3 decimals, yaw and bend 4. Escape and key 0 delete the own entries. Place, Throw, the Bend button and the selection are not stored. An old document has no tools, which is a valid state, so `SCHEMA` did not change.
 
 How the data is stored:
 

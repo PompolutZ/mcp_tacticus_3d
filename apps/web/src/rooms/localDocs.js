@@ -1,5 +1,4 @@
-// The IndexedDB copies of multiplayer rooms (plan 07, decision 12) and the stored squads of this browser (plan
-// 08, decision 33). No React.
+// The IndexedDB copies of multiplayer rooms (docs/features/rooms.md, "Storage") and the stored squads of this browser. No React.
 
 import {
   VERSION,
@@ -53,7 +52,7 @@ export async function deleteUserData(userId) {
 const ROOM_DOC_PREFIX = 'mcp-assist-3d/room/'
 
 // The ids of the records with no version or an older one than version. A newer one stays: another tab runs a
-// newer build (docs/features/rooms.md, decision 19).
+// newer build (docs/features/rooms.md, "Storage").
 export function staleRoomIds(records, version) {
   return records
     .filter((room) => room?.id && !(Number.isInteger(room.version) && room.version >= version))

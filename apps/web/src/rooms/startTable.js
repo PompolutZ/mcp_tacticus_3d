@@ -1,5 +1,4 @@
-// The bytes of the start table of a multiplayer room (docs/plans/implement-backend/07-multiplayer-rooms.md,
-// decision 1). The host's browser builds it. The terrain ids are fixed per map (mapTerrain), so a later fill of
+// The bytes of the start table of a multiplayer room (docs/features/rooms.md, "Room"). The host's browser builds it. The terrain ids are fixed per map (mapTerrain), so a later fill of
 // the map by another browser does not double the pieces (docs/features/rooms.md, "Room").
 // It imports no module that reads import.meta.env, so node --test can load it.
 

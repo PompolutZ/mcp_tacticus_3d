@@ -4,7 +4,7 @@ import { useFootprintSlot, FOOTPRINT_APART, FOOTPRINT_COLOR } from './footprintP
 const FILL_OPACITY = 0.35
 const LINE = '#ffffff'
 
-// The footprint of a dragged piece on the table or terrain under it (decision 18). Mount it only
+// The footprint of a dragged piece on the table or terrain under it (docs/features/peer-to-peer.md, "The follow"). Mount it only
 // during the drag: it takes a slot on mount and gives it back on unmount.
 // getShape(): read each frame. A circle { x, z, radius }, a long rectangle { x, z, angle, halfLength,
 // halfWidth }, or null (the pointer is off the table): the footprint is hidden then.

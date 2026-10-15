@@ -4,7 +4,7 @@
 import { cleanupBlockers } from '../characters/cleanup.js'
 import { characterOnBoard } from '../characters/models.js'
 
-// Cleanup chip state (decision 8): off while a character on the board has neither Activated nor Dazed, and
+// Cleanup chip state (docs/features/round-phases.md, decision 8): off while a character on the board has neither Activated nor Dazed, and
 // while no character is on the board. nameOf(key): the name of a character. Returns { blocked, empty, disabled, title }.
 export function cleanupStatus(characters, poses, nameOf) {
   const blocked = cleanupBlockers(characters, poses)
