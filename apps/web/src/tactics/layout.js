@@ -2,6 +2,7 @@
 // React, the same as characters/trays.js. See docs/features/team-tactic-cards.md, "Tactic tray".
 
 import { MAT_SIZE } from '../table.js'
+import { TEAMS } from '../setup/setup.js'
 
 const MAT_HALF = MAT_SIZE / 2
 
@@ -55,7 +56,7 @@ export function tacticSlotPosition(team, index) {
 
 // The team whose plate is under the table point { x, z }, or null
 export function tacticTrayAt(point) {
-  for (const team of ['host', 'guest']) {
+  for (const team of TEAMS) {
     const tray = tacticTrayPosition(team)
     if (
       Math.abs(point.x - tray.x) <= TACTIC_PLATE_WIDTH / 2 &&
@@ -139,7 +140,7 @@ export function freePilePlaces(team, piles, count) {
 // piles: the piles on the table now. tokensOf(key): the token keys of the tactic card `key`.
 export function cardPiles(cards, piles, tokensOf) {
   const result = []
-  for (const team of ['host', 'guest']) {
+  for (const team of TEAMS) {
     const wanted = cards
       .filter((card) => card.team === team)
       .flatMap((card) => tokensOf(card.key).map((key) => ({ card: card.id, key })))

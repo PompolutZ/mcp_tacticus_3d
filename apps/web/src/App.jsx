@@ -310,8 +310,6 @@ export default function App({
     handleNoticeShow,
   } = useCrisisTokens({
     table,
-    room,
-    ownSide,
     playedSides,
     nameCtx,
     characters,

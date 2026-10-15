@@ -1,5 +1,6 @@
 import { tokenInfo } from '../crisis/cards.js'
 import { COLOR_NAME, useSideColors } from '../sideColors.js'
+import { TEAMS } from '../setup/setup.js'
 
 // Bottom HUD for the selected crisis token. Shows only the actions the token allows (see
 // docs/features/crisis.md, "Token actions"). Hold/drop is not built yet.
@@ -28,7 +29,7 @@ export function TokenPanel({ token, onFlip, onControl, onDamage }) {
           >
             None
           </button>
-          {['host', 'guest'].map((side) => (
+          {TEAMS.map((side) => (
             <button
               key={side}
               type="button"

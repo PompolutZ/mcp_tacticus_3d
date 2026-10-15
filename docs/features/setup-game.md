@@ -56,6 +56,8 @@ A side is a seat at the table: the key `host` is at +z and the key `guest` is at
 
 `App.jsx` computes the color of both sides and gives it to `src/sideColors.js`, a small store that the DOM and the Canvas read (`useSideColor(side)`). It tints the tools, the rack, the dice trays, the model bases, the VP markers, the Control rings of crisis tokens, the remote cursor, the outlines of the other player's selection, the dice history, the chips and the "Blue player" / "Red player" texts. The lobby, the new room dialog and the join page have no setup, so they show the colors before the roll off.
 
+`COLOR_HEX` in `src/sideColors.js` is the one source of the two hex colors. `main.jsx` sets them as the CSS variables `--player-blue` and `--player-red` before the first render, and `index.css` reads the variables.
+
 ### Priority
 
 The bottom edge of the map on a crisis card is the deployment edge of the player with Priority (p9). The app knows who has Priority: `setup.priority`, the side that won the roll off. The player with Priority chooses the deck, so the deck step has no team to pick. When the −z side (the key `guest`) has Priority, the tokens of both cards turn a half turn around the mat center (`buildMatTokens` in `src/crisis/matTokens.js`, `turned`). A crisis card that a player chooses in the toolbar later turns the same way.

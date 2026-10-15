@@ -22,6 +22,7 @@ import {
   snapPoint,
 } from '../scoreboard/board.js'
 import { useSideColor } from '../sideColors.js'
+import { TEAMS } from '../setup/setup.js'
 import { affiliationToken, BOARD_MESH, BOARD_TEXTURE, ROUND_MESH } from '../scoreboard/files.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'
 import TokenSolid from './TokenSolid.jsx'
@@ -252,7 +253,7 @@ export default function ScoreBoard({
       <Suspense fallback={null}>
         <Board />
       </Suspense>
-      {['host', 'guest'].map((team) => (
+      {TEAMS.map((team) => (
         <DraggableMarker
           key={team}
           pieceKey={`marker:${team}`}

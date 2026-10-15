@@ -89,7 +89,14 @@ import {
   toolSelects,
 } from '../selection.js'
 import { poseOf } from '../rooms/table.js'
-import { rackHiddenSides, rosterRowsShown, setupStep, viewOf } from '../setup/setup.js'
+import {
+  TEAMS,
+  otherTeam,
+  rackHiddenSides,
+  rosterRowsShown,
+  setupStep,
+  viewOf,
+} from '../setup/setup.js'
 import { useSideColors } from '../sideColors.js'
 
 // Two physics steps per frame. With one, a model dropped from high up sometimes gets stuck in terrain.
@@ -293,7 +300,7 @@ export default function Scene({
   onDiceMenuOpen,
   onDiceMenuClose,
   findCharacterAt,
-  playedSides = ['host', 'guest'],
+  playedSides = TEAMS,
   removeWaits = {},
   onDiceTrayHover,
   diceStore,
@@ -656,7 +663,7 @@ export default function Scene({
   // The tools measure against the character or token selected last, and a new tool snaps to it.
   // Place moves the selected character, also when a token was selected after it.
   const toolTarget = toolModel(selection.findLast(isToolPiece))
-  const otherSide = ownSide === 'guest' ? 'host' : 'guest'
+  const otherSide = otherTeam(ownSide)
   const sideColors = useSideColors()
   const ownTools = tools[ownSide] ?? {}
   const otherTools = tools[otherSide] ?? {}
@@ -767,11 +774,7 @@ export default function Scene({
           <ToolPoint pointRef={toolPoint} />
           {ownPing && <Ping key={ownPing.id} ping={ownPing} side={ownSide} />}
           {otherLook.ping && (
-            <Ping
-              key={otherLook.ping.id}
-              ping={otherLook.ping}
-              side={ownSide === 'guest' ? 'host' : 'guest'}
-            />
+            <Ping key={otherLook.ping.id} ping={otherLook.ping} side={otherTeam(ownSide)} />
           )}
           {live && ownership && (
             <>
@@ -785,11 +788,7 @@ export default function Scene({
                 liveRef={received}
                 hideCursor={Boolean(squadEdit?.[ownSide])}
               />
-              <RemoteCursor
-                liveRef={received}
-                ownership={ownership}
-                side={ownSide === 'guest' ? 'host' : 'guest'}
-              />
+              <RemoteCursor liveRef={received} ownership={ownership} side={otherTeam(ownSide)} />
             </>
           )}
           <TableSurface />
@@ -977,7 +976,7 @@ export default function Scene({
             model passes over them. The crisis cards of the rosters and the setup buttons are in
             GameSetup. */}
           {rosterRowsShown(setup) &&
-            ['host', 'guest'].map(
+            TEAMS.map(
               (team) =>
                 rosters[team] && (
                   <RosterCards

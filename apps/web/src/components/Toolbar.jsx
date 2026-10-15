@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { COLOR_NAME, useSideColors } from '../sideColors.js'
+import { TEAMS } from '../setup/setup.js'
 import { MAPS } from '../terrain/maps/index.js'
 import { cardsOfType } from '../crisis/cards.js'
 import { CopyLinkButton } from './CopyLinkButton.jsx'
@@ -11,7 +12,6 @@ const MOVES = [
   { label: 'M', type: 'medium' },
   { label: 'L', type: 'long' },
 ]
-const TEAMS = [{ team: 'host' }, { team: 'guest' }]
 const CRISIS_TYPES = [
   { type: 'secure', label: 'Secure' },
   { type: 'extract', label: 'Extract' },
@@ -83,7 +83,7 @@ export function Toolbar({
     document.addEventListener('pointerdown', handlePointerDown)
     return () => document.removeEventListener('pointerdown', handlePointerDown)
   }, [setupOpen, onSetupClose])
-  const rosterTeams = roomCode ? TEAMS.filter(({ team }) => team === 'guest') : TEAMS
+  const rosterTeams = roomCode ? ['guest'] : TEAMS
   return (
     <div className="toolbar">
       <div className="toolbar-left">
@@ -133,7 +133,7 @@ export function Toolbar({
                 </div>
                 <div className="group">
                   <span className="group-label">Roster</span>
-                  {rosterTeams.map(({ team }) => {
+                  {rosterTeams.map((team) => {
                     const label = COLOR_NAME[colors[team]]
                     return (
                       <span key={team} className="roster-field">

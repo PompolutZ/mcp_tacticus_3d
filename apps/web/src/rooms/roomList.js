@@ -1,6 +1,7 @@
 // One list of the single player and the multiplayer rooms (plan 07, decision 18). No React.
 
 import { MAPS } from '../terrain/maps/index.js'
+import { TEAMS } from '../setup/setup.js'
 
 // single: records of rooms/store.js (updatedAt in ms). multiplayer: rooms of the API (updatedAt is ISO).
 // Returns { kind, id, mapId, rosters, colors, updatedAt (ms), room }
@@ -32,7 +33,6 @@ export function roomList(single, multiplayer) {
     .sort((a, b) => b.updatedAt - a.updatedAt)
 }
 
-const TEAMS = ['host', 'guest']
 const COLOR_LABEL = { blue: 'Blue', red: 'Red' }
 
 // The roster links of a lobby tile (docs/features/rooms.md, "Lobby"): [{ team, color, label }] for each side

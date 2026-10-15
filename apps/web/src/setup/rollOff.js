@@ -2,6 +2,7 @@
 // loads in Node. See docs/features/setup-game.md, "Roll off".
 
 import { FACES } from '../dice/faces.js'
+import { TEAMS } from './setup.js'
 
 // Dice that each player rolls in the roll off
 const ROLL_OFF_DICE = 5
@@ -48,7 +49,7 @@ export function hasFreshThrow(rolls, seen, now) {
 // { place, face } } } }.
 export function shelfSymbols(dice) {
   const shelves = {}
-  for (const team of ['host', 'guest']) {
+  for (const team of TEAMS) {
     const onShelf = Object.values(dice[team]?.dice ?? {}).filter((die) => die.place === 'shelf')
     if (onShelf.length !== ROLL_OFF_DICE) return null
     shelves[team] = onShelf.map((die) => FACES[die.face - 1]?.symbol)

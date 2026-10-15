@@ -8,6 +8,12 @@
   --accent: #4f8ef7;
   --warn: #e2574c;
   --ok: #5fd068;
+  /* The base colors --player-blue and --player-red are set by main.jsx from COLOR_HEX in sideColors.js. These
+     are the shades that only CSS uses. */
+  --player-blue-hover: #2471a3;
+  --player-red-hover: #a93226;
+  --player-blue-light: #5dade2;
+  --player-red-light: #ec7063;
   /* Top of the panels under the toolbar. useHudTop.js sets it from the toolbar height. */
   --hud-top: 56px;
 
@@ -403,11 +409,11 @@ body {
 }
 
 .log-entry--blue {
-  border-left-color: #2980b9;
+  border-left-color: var(--player-blue);
 }
 
 .log-entry--red {
-  border-left-color: #c0392b;
+  border-left-color: var(--player-red);
 }
 
 .log-entry--clear {
@@ -855,25 +861,25 @@ body {
 }
 
 .chip--player-blue {
-  background: #2980b9;
-  border-color: #2980b9;
+  background: var(--player-blue);
+  border-color: var(--player-blue);
   color: #fff;
 }
 
 .chip--player-blue:hover {
-  background: #2471a3;
-  border-color: #2471a3;
+  background: var(--player-blue-hover);
+  border-color: var(--player-blue-hover);
 }
 
 .chip--player-red {
-  background: #c0392b;
-  border-color: #c0392b;
+  background: var(--player-red);
+  border-color: var(--player-red);
   color: #fff;
 }
 
 .chip--player-red:hover {
-  background: #a93226;
-  border-color: #a93226;
+  background: var(--player-red-hover);
+  border-color: var(--player-red-hover);
 }
 
 /* Game setup buttons on the table (GameSetup.jsx). They lie flat on the table, and 1 px is 0.04". So a
@@ -1445,11 +1451,11 @@ body {
 }
 
 .roster-popup-title--blue {
-  background: #2980b9;
+  background: var(--player-blue);
 }
 
 .roster-popup-title--red {
-  background: #c0392b;
+  background: var(--player-red);
 }
 
 .roster-popup-tabs {
@@ -2306,11 +2312,11 @@ body {
 }
 
 .room-player--blue .room-player-team {
-  color: #5dade2;
+  color: var(--player-blue-light);
 }
 
 .room-player--red .room-player-team {
-  color: #ec7063;
+  color: var(--player-red-light);
 }
 
 .room-player-avatar {

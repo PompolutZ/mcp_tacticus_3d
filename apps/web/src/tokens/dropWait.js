@@ -3,6 +3,7 @@
 // Plain module, no React.
 import { RANGE_TIP } from '../tabletools/toolTips.js'
 import { playerName } from '../setup/names.js'
+import { otherTeam } from '../setup/setup.js'
 
 // A crisis token is a 1" circle (CrisisToken.jsx, RADIUS). Drop places it just clear of the base.
 const TOKEN_RADIUS = 0.5
@@ -14,7 +15,7 @@ const TOKEN_ROW_SPACING = TOKEN_RADIUS * 2 + DROP_GAP * 2
 // The side that places a token that a character of `team` drops. placer: 'opponent' or 'controller'
 // (characters/dropPlacer.js).
 export function placerSide(team, placer) {
-  return placer === 'controller' ? team : team === 'host' ? 'guest' : 'host'
+  return placer === 'controller' ? team : otherTeam(team)
 }
 
 // The tokens that wait for their place

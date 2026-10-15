@@ -6,7 +6,7 @@ import { tokenInfo } from '../crisis/cards.js'
 import { crisisToken } from '../crisis/files.js'
 import { heldTokensByCharacter } from '../game/heldTokens.js'
 import { scoreFromMarkers } from '../scoreboard/board.js'
-import { placedSides } from '../setup/setup.js'
+import { otherTeam, placedSides } from '../setup/setup.js'
 import { playerName } from '../setup/names.js'
 import { OnToken } from './TrayPopup.jsx'
 
@@ -113,7 +113,7 @@ export default function SpectatorColumns({
   // A setup with no `deployed` field has no deploy step (setup/setup.js, setupStep)
   const afterDeploy = setup.deployed !== false
   const left = mySide ?? 'host'
-  const sides = [left, left === 'host' ? 'guest' : 'host']
+  const sides = [left, otherTeam(left)]
   return (
     <>
       {sides.map((team, i) => {

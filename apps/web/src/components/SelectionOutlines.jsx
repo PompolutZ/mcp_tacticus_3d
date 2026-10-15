@@ -4,6 +4,7 @@ import { EffectComposer, Outline, ToneMapping } from '@react-three/postprocessin
 import { BlendFunction, ToneMappingMode } from 'postprocessing'
 import { ACESFilmicToneMapping, AgXToneMapping, NeutralToneMapping } from 'three'
 import { DEFAULT_LOOK, useLook } from './look.js'
+import { COLOR_HEX, hexNumber } from '../sideColors.js'
 
 // Line around a selected or hovered piece, drawn after the scene render, as TTS highlights a piece.
 // ALPHA draws the line in its exact color. The default (SCREEN) mixes it with the color under it,
@@ -43,14 +44,14 @@ const OUTLINES = {
   // each side, because an Outline has one color.
   otherBlue: {
     ...LINE,
-    visibleEdgeColor: 0x2980b9,
+    visibleEdgeColor: hexNumber(COLOR_HEX.blue),
     hiddenEdgeColor: 0x15405c,
     xRay: true,
     selectionLayer: 15,
   },
   otherRed: {
     ...LINE,
-    visibleEdgeColor: 0xc0392b,
+    visibleEdgeColor: hexNumber(COLOR_HEX.red),
     hiddenEdgeColor: 0x601c15,
     xRay: true,
     selectionLayer: 16,

@@ -1,7 +1,7 @@
 import { avatarUrl } from '../auth/avatar.js'
 import { COLOR_NAME, useSideColors } from '../sideColors.js'
+import { TEAMS } from '../setup/setup.js'
 
-const TEAMS = ['host', 'guest']
 const STATUS = {
   waiting: 'Waiting',
   connecting: 'Connecting',

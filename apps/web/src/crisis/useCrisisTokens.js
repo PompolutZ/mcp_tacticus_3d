@@ -25,8 +25,6 @@ import {
 // at the place of the effect: the effect runs among the passive effects in this order.
 export function useCrisisTokens({
   table,
-  room,
-  ownSide,
   playedSides,
   nameCtx,
   characters,
@@ -56,12 +54,10 @@ export function useCrisisTokens({
   // The notice sound, once for each new drop that this browser places. The tokens of an open table play nothing.
   const seenWaiting = useRef(null)
   const stopPan = useRef(null)
-  const multiplayerRoom = Boolean(room?.multiplayer)
   useEffect(() => {
-    const sides = multiplayerRoom ? [ownSide] : ['host', 'guest']
     const ids = new Set(
       waitingTokens(tokens)
-        .filter((t) => sides.includes(t.placeBy))
+        .filter((t) => playedSides.includes(t.placeBy))
         .map((t) => t.id),
     )
     const known = seenWaiting.current
@@ -74,7 +70,7 @@ export function useCrisisTokens({
     // and a single player room it is the own tool also for a token of the other side.
     const characterId = fresh.find((t) => t.placeFrom?.characterId)?.placeFrom.characterId
     if (characterId) placeTool('range', 2, { kind: 'character', id: characterId }, null)
-  }, [tokens, multiplayerRoom, ownSide])
+  }, [tokens, playedSides])
 
   // type: 'secure' | 'extract'. key: a card key, or null for "None". The old card takes its tokens with it,
   // also the supply tokens that players took from its pile. The new card's tokens turn with the Priority

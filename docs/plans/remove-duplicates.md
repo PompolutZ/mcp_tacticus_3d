@@ -132,6 +132,17 @@ User: Lobby seats and room players show the blue and red team names in the same 
 
 ### Result
 
+Done. Lint 58 warnings (same), tests 887 pass, build ok, fallow 328 lines / 12 groups (same as before; no dialog or pointer group touched yet).
+
+- All local `TEAMS` lists (Library, Lobby, NewRoomDialog, RoomPlayers, Toolbar, `rooms/roomList.js`) and inline `['host', 'guest']` (tactics/layout, rollOff, TokenPanel, ScoreBoard, Scene, seat) use `TEAMS` from `setup/setup.js`. Toolbar uses plain strings.
+- Inline opponent expressions use `otherTeam`: SpectatorColumns, Scene (3), TableButtons (local `otherSide` removed), `tokens/dropWait.js`.
+- `useCrisisTokens` takes `playedSides` only (`room`, `ownSide` params removed from it and App). `tableSeat` returns fixed arrays (`OWN_ONLY`), so `playedSides` is a stable effect dependency (before, the effect depended on primitives).
+- `sideColors.js`: `playerColorVars()`, `hexNumber()`; tests added. `main.jsx` sets `--player-blue/red` before render. `index.css` uses the variables; the four shades are `:root` variables. `SelectionOutlines.jsx` uses `hexNumber(COLOR_HEX.x)` (same number as before, not `new Color`, so the outline color stays exact).
+- Docs: `setup-game.md` "Colors".
+
+Deviations: `roomList.js` and `Lobby/JoinRoom` copies found by grep: `roomList.js` had a local `TEAMS`, now imported. Lobby/JoinRoom no longer use color hex (earlier plans). `TrayPopup.jsx` `otherSide` is healthy/injured, not a side; kept. Lines 1093/1238/1256 of Scene are now in other files; all `ownSide === 'guest' ? ...` copies replaced.
+
+
 ## Step 2: Storage, settings, timed message, room exit
 
 Work:

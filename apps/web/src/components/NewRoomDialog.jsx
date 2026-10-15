@@ -14,10 +14,10 @@ import { Carousel } from './Carousel.jsx'
 import { Overlay } from './Overlay.jsx'
 import { Switch } from './Switch.jsx'
 import { COLOR_NAME, DEFAULT_SIDE_COLORS as START_COLORS } from '../sideColors.js'
+import { TEAMS } from '../setup/setup.js'
 import { RosterField } from './RosterField.jsx'
 
 const MAP_IDS = Object.keys(MAPS)
-const TEAMS = ['host', 'guest']
 
 // Why Multiplayer is disabled, by the session status
 function unavailableText(status) {

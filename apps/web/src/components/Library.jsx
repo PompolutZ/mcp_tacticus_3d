@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
 import { COLOR_NAME, useSideColors } from '../sideColors.js'
+import { TEAMS } from '../setup/setup.js'
 import { CHARACTERS } from '../characters/characters.js'
 import { CharacterPortrait } from './CharacterPortrait.jsx'
 import { TACTICS } from '../tactics/cards.js'
@@ -15,7 +16,6 @@ const TABS = [
   { tab: 'tactics', label: 'Tactics' },
   { tab: 'tokens', label: 'Tokens' },
 ]
-const TEAMS = ['host', 'guest']
 const TOKEN_MODES = [
   {
     mode: 'single',

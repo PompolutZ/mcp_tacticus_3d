@@ -12,9 +12,9 @@ import { NewRoomDialog } from './NewRoomDialog.jsx'
 import { RoomRosterPopup } from './RoomRosterPopup.jsx'
 import { CopyLinkButton } from './CopyLinkButton.jsx'
 import { COLOR_NAME } from '../sideColors.js'
+import { TEAMS } from '../setup/setup.js'
 
 const TIME = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
-const TEAMS = ['host', 'guest']
 
 // A seat of a multiplayer tile: avatar, name and the link "roster" (onRoster, or null when the seat has no
 // roster), "Free seat", or "Deleted player"

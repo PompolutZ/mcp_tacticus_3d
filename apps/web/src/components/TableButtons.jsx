@@ -1,5 +1,5 @@
 import { OnTable } from './OnTable.jsx'
-import { TEAMS } from '../setup/setup.js'
+import { TEAMS, otherTeam } from '../setup/setup.js'
 import { useSideName } from '../sideColors.js'
 import { boardStrip, cleanupButton, powerButton } from '../tabletools/layout.js'
 import { assetUrl } from '../assets/index.js'
@@ -11,7 +11,6 @@ const TABLE_Y = 0.05
 const INCHES_PER_PX = 0.04
 // The same image as the Power counter of a tray (TrayControls.jsx)
 const POWER_ICON = assetUrl(characterToken('1-power'))
-const otherSide = (side) => (side === 'host' ? 'guest' : 'host')
 
 const px = (inches) => Math.round(inches / INCHES_PER_PX)
 
@@ -21,7 +20,7 @@ const px = (inches) => Math.round(inches / INCHES_PER_PX)
 function PowerPhaseButton({ side, ownSide, multiplayer, onPowerPhase, powerBlock }) {
   const place = powerButton(side)
   const locked = multiplayer && side !== ownSide
-  const otherName = useSideName(otherSide(ownSide))
+  const otherName = useSideName(otherTeam(ownSide))
   return (
     <OnTable position={[place.x, TABLE_Y, place.z]}>
       {/* aria-disabled, not disabled: some browsers show no title on a disabled button */}

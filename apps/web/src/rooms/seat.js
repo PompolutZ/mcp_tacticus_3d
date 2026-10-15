@@ -12,11 +12,16 @@
 //   the squads in the document. See docs/features/setup-game.md, "Squads". Never derive it from mySide: a
 //   multiplayer room with `side: null` has hiddenSquads true and mySide null.
 // - mySide: the side in a multiplayer room (can be null), null in the Sandbox and a single player room.
+import { TEAMS } from '../setup/setup.js'
+
+// Fixed arrays, so playedSides keeps its identity between renders (it is an effect dependency)
+const OWN_ONLY = { host: ['host'], guest: ['guest'] }
+
 export function tableSeat(room) {
   const multiplayer = Boolean(room?.multiplayer)
   const isGuest = Boolean(room?.multiplayer && room.side === 'guest')
   const ownSide = isGuest ? 'guest' : 'host'
-  const playedSides = room?.multiplayer ? [ownSide] : ['host', 'guest']
+  const playedSides = room?.multiplayer ? OWN_ONLY[ownSide] : TEAMS
   const hiddenSquads = Boolean(room?.multiplayer)
   const mySide = hiddenSquads ? room.side : null
   return { multiplayer, isGuest, ownSide, playedSides, hiddenSquads, mySide }
