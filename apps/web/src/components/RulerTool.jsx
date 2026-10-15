@@ -105,7 +105,7 @@ export function AngleRuler({ team, ...props }) {
 // the range tools pass it. Without it, the tool marks no pieces.
 // onHover(over): the pointer moved onto (true) or off (false) the tool. onDrag(on): a drag of the
 // tool started (true) or ended (false). Both are also called with false on unmount.
-// turnRef(turn): gets stepTool, for Q / E (see turnPiece in Scene.jsx), and null on unmount.
+// turnRef(turn): gets stepTool, for Q / E (see turnPiece in usePieceTurns.js), and null on unmount.
 // liveRef(get): gets a function that returns the live pose { x, y, z, yaw, right, left } of the tool (LiveSync.jsx
 // sends it to the other player), and null on unmount.
 // spawnTarget: the piece the tool snaps to when it spawns, target by default. Without one it spawns

@@ -1,13 +1,4 @@
-import {
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from 'react'
-import { useFrame } from '@react-three/fiber'
+import { Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import { MovementRuler, AngleRuler, RangeRuler } from './RulerTool.jsx'
 import { DeployRangeTool } from './ToolParts.jsx'
@@ -17,7 +8,10 @@ import { createSceneApi } from './sceneApi.js'
 import { useModelRegistry } from './useModelRegistry.js'
 import { useTerrainHoverLabel } from './useTerrainHoverLabel.js'
 import { useTerrainFall } from './useTerrainFall.js'
-import CharacterModel, { StandeeModel, modelUrls, turnBody } from './CharacterModel.jsx'
+import { useModelClaims } from './useModelClaims.js'
+import { usePieceTurns } from './usePieceTurns.js'
+import { useModelSync } from './useModelSync.js'
+import CharacterModel, { StandeeModel, modelUrls } from './CharacterModel.jsx'
 import CharacterTray from './CharacterTray.jsx'
 import TableButtons from './TableButtons.jsx'
 import { LosTool, OtherLos } from './LosTool.jsx'
@@ -74,7 +68,7 @@ import {
 } from '../characters/models.js'
 import { FRICTION, WORLD_GRAVITY } from '../physics.js'
 import { overlapMarks, overlapsAny } from '../characters/overlap.js'
-import { claimChanges, claimCheck, modelIdOfKey, modelKey } from '../characters/claims.js'
+import { modelIdOfKey, modelKey } from '../characters/claims.js'
 import { assetUrl } from '../assets/index.js'
 import { CARD_X, CARD_Y, CARD_Z, supplyPilePosition } from '../crisis/layout.js'
 import { getCard } from '../crisis/cards.js'
@@ -122,15 +116,6 @@ const TIME_STEP = 1 / 120
 const HELD_STACK_STEP = TOKEN_THICKNESS + 0.01
 // The dragged token gets no pointer events, so it does not hide what is under it
 const NO_RAYCAST = () => null
-// A Q / E key held longer than this (s) turns the piece on at ROTATE_RATE (rad/s), 90° per second,
-// the same as the arrow keys turn the camera. Picked by look, not measured in TTS.
-const ROTATE_HOLD_DELAY = 0.3
-const ROTATE_RATE = Math.PI / 2
-// A turn is smoothed, the same way as the wheel zoom (WheelCamera.jsx). Each frame the piece does
-// 1 − e^(−dt / time) of the turn that is left, so 95% of a step is done after three times this (s).
-// Picked by look. When less than ROTATE_DONE (rad) is left, the rest is done in the same frame.
-const ROTATE_SMOOTH_TIME = 0.06
-const ROTATE_DONE = 1e-4
 
 // Every piece that loads a file after the first scene load (the mat of a new map, terrain, crisis
 // cards and tokens, character trays and models, tactic cards, tools) is in its own Suspense below. While its file
@@ -157,24 +142,6 @@ const noDrag = () => null
 const noSpawn = () => null
 const NO_PRESENCE = { selection: [], tools: [], mark: null, ping: null }
 const noPresence = () => NO_PRESENCE
-
-// Two stored poses are the same (both rounded the same way, rooms/table.js, poseOf)
-function samePose(a, b) {
-  return (
-    Boolean(a && b) &&
-    a.x === b.x &&
-    a.y === b.y &&
-    a.z === b.z &&
-    a.qx === b.qx &&
-    a.qy === b.qy &&
-    a.qz === b.qz &&
-    a.qw === b.qw
-  )
-}
-
-// Frames a body waits after a pose is set, before it is put to sleep. A sleeping body is not synced to its
-// mesh, so the mesh must follow the new pose first.
-const SLEEP_AFTER_FRAMES = 2
 
 // How often (ms) Scene looks for overlapping models
 const OVERLAP_INTERVAL = 100
@@ -429,12 +396,6 @@ export default function Scene({
   // The own tool that has Place or Throw on: 'range', 'move' or null. Only one at a time. The other tool turns
   // its own off (limitTaken in RulerTool.jsx). A tool that turns off clears only its slot in placeLimits.
   const [limitTool, setLimitTool] = useState(null)
-  // The pieces that Q / E can turn (turnPiece): the character or tool under the pointer, and the one
-  // that is dragged. { kind: 'character' | 'tool', id } | null. The id of a tool is 'range', 'move', 'angle' or 'los'.
-  const hoveredPiece = useRef(null)
-  const draggedPiece = useRef(null)
-  // Tool ('move', 'range', 'angle' or 'los') → its turn(angle), see stepTool in RulerTool.jsx
-  const toolTurns = useRef({})
   // The own tools' live poses for LiveSync: kind → a getter that Tool registers (like toolTurns)
   const toolLives = useRef({})
   // The own dice's live poses for LiveSync: tray side → a getter that DiceTray registers
@@ -444,12 +405,8 @@ export default function Scene({
   // The latest live numbers of a piece key, for the pieces that follow
   const getPieceLive = (key) => received.current?.pose(key) ?? null
   const getPieceLiveTime = (key) => received.current?.poseTime(key) ?? null
-  // Turns that are not done yet: piece key → { piece, left }, left in radians. See the useFrame below.
-  const turnsLeft = useRef(new Map())
   // Function of the angle tool that returns { target, openYaw } while it is snapped, else null. See AngleRuler.
   const angleTool = useRef(null)
-  // The piece of the last Q / E press, which a held key turns on, and the time since that press (s)
-  const turnHold = useRef({ piece: null, time: 0 })
   const [draggingCharId, setDraggingCharId] = useState(null)
   // The piece that a range tool measures against, { kind, id, mode: 'inRange' | 'outOfRange' } or null.
   // See RangeMark in ToolFootprint.jsx.
@@ -486,30 +443,7 @@ export default function Scene({
       },
     })
   }, [presence, rangeMark])
-  // Piece key → time (s) of the last claim call of this browser, for the 0.2 s that a claim lasts
-  const claimTimes = useRef(new Map())
-  // The ownership that the models get: each claim sets the time of the claim
-  const claims = useMemo(
-    () =>
-      ownership && {
-        ...ownership,
-        claim(key) {
-          if (!ownership.claim(key)) return false
-          claimTimes.current.set(key, performance.now() / 1000)
-          return true
-        },
-      },
-    [ownership],
-  )
-  // Claims the model before an action. False: the other player moves it, so the action does nothing.
-  const claimModel = useCallback((id) => (claims ? claims.claim(modelKey(id)) : true), [claims])
-  // Model id → frames until its body is put to sleep after a pose
-  const sleepLater = useRef(new Map())
-  // The newest poses, and the poses of the last render
-  const posesRef = useRef(poses)
-  const prevPoses = useRef(poses)
-  // The set of the other player's claims of the last render
-  const prevOther = useRef(otherOwned)
+  const { claimTimes, claims, claimModel } = useModelClaims({ ownership })
   // Ids of the models that show the overlap mark
   const [overlapIds, setOverlapIds] = useState(() => new Set())
 
@@ -532,161 +466,27 @@ export default function Scene({
 
   const hoverLabelId = useTerrainHoverLabel({ showLabels, terrainUnder })
 
-  // on: the piece is now the hovered or dragged one (true), or no longer (false)
-  function trackPiece(ref, piece, on) {
-    if (on) ref.current = piece
-    else if (ref.current?.kind === piece.kind && ref.current.id === piece.id) ref.current = null
-  }
-
-  // Q / E press, as in TTS: turns the dragged character or tool, else the one under the pointer, by
-  // turnStep (degrees, the setting) around its center. direction: 1 counter-clockwise seen from above, -1 clockwise.
-  // The dragged piece comes first, so a turn during a drag does not go to a piece that the
-  // pointer passes over. A held key keeps turning the same piece, even when the pointer leaves it.
-  function turnPiece(direction) {
-    const piece = draggedPiece.current ?? hoveredPiece.current
-    turnHold.current = { piece, time: 0 }
-    if (piece) addTurn(piece, direction * ((turnStep * Math.PI) / 180))
-  }
-
-  // Adds angle to the turn of the piece that is not done yet
-  function addTurn(piece, angle) {
-    // A model turn claims the model. A tool turn claims nothing.
-    if (piece.kind === 'character' && !claimModel(piece.id)) return
-    const key = `${piece.kind}:${piece.id}`
-    const turn = turnsLeft.current.get(key)
-    if (turn) turn.left += angle
-    else turnsLeft.current.set(key, { piece, left: angle })
-  }
-
-  // Turns the piece by angle at once. Does nothing for a piece that is gone.
-  function applyTurn(piece, angle) {
-    if (piece.kind === 'tool') toolTurns.current[piece.id]?.(angle)
-    if (piece.kind === 'character') {
-      const body = liveCharBody(piece.id)
-      if (body) turnBody(body, angle)
-    }
-  }
-
-  // A held Q / E adds to the turn of its piece. Then every piece with a turn left does a part of it.
-  useFrame((_, dt) => {
-    let direction = 0
-    for (const d of heldRotate.current.values()) direction += d
-    const hold = turnHold.current
-    hold.time += dt
-    if (hold.piece && direction !== 0 && hold.time > ROTATE_HOLD_DELAY)
-      addTurn(hold.piece, direction * ROTATE_RATE * dt)
-    const part = 1 - Math.exp(-dt / ROTATE_SMOOTH_TIME)
-    for (const [key, turn] of turnsLeft.current) {
-      const angle = Math.abs(turn.left) < ROTATE_DONE ? turn.left : turn.left * part
-      turn.left -= angle
-      applyTurn(turn.piece, angle)
-      if (turn.left === 0) turnsLeft.current.delete(key)
-    }
+  const { hoveredPiece, draggedPiece, toolTurns, turnsLeft, trackPiece, turnPiece } = usePieceTurns(
+    {
+      heldRotate,
+      turnStep,
+      claimModel,
+      liveCharBody,
+    },
+  )
+  const { applyPose } = useModelSync({
+    ownership,
+    poses,
+    otherOwned,
+    models,
+    liveCharBody,
+    charLifts,
+    turnsLeft,
+    claimTimes,
+    restPose,
+    onModelRest,
+    markMoved,
   })
-
-  // Puts a model body at a stored pose: dynamic, exact, and asleep a few frames later (decision 8)
-  function applyPose(id, pose) {
-    const body = liveCharBody(id)
-    if (!body) return
-    body.setBodyType(0, true)
-    body.setTranslation({ x: pose.x, y: pose.y, z: pose.z }, true)
-    body.setRotation({ x: pose.qx, y: pose.qy, z: pose.qz, w: pose.qw }, true)
-    body.setLinvel({ x: 0, y: 0, z: 0 }, true)
-    body.setAngvel({ x: 0, y: 0, z: 0 }, true)
-    sleepLater.current.set(id, SLEEP_AFTER_FRAMES)
-  }
-
-  // The claim check of the own model claims (decision 5), and the bodies that wait to sleep. A claim ends
-  // when the body is dynamic and asleep and nothing of this browser moves the model. The rest pose goes
-  // to the document first, then the release, so the other browser gets the pose first.
-  useFrame(() => {
-    for (const [id, frames] of sleepLater.current) {
-      if (frames > 1) {
-        sleepLater.current.set(id, frames - 1)
-        continue
-      }
-      sleepLater.current.delete(id)
-      const body = liveCharBody(id)
-      if (body?.isDynamic() && ownership?.owner(modelKey(id)) !== 'other') body.sleep()
-    }
-    if (!ownership) return
-    const now = performance.now() / 1000
-    for (const key of ownership.mine()) {
-      const id = modelIdOfKey(key)
-      if (id === null) continue
-      const body = liveCharBody(id)
-      const action = claimCheck({
-        age: now - (claimTimes.current.get(key) ?? -Infinity),
-        dynamic: body?.isDynamic() ?? false,
-        asleep: body?.isSleeping() ?? false,
-        busy: Boolean(charLifts.current.get(id)?.isBusy()) || turnsLeft.current.has(key),
-        gone: !body || !models.some((model) => model.id === id),
-      })
-      if (action === 'keep') continue
-      if (action === 'rest') {
-        const rest = restPose(id)
-        if (rest) onModelRest?.(id, rest)
-      }
-      claimTimes.current.delete(key)
-      ownership.release(key)
-    }
-  })
-
-  // A lost tie (decision 7): a turn left for that model is removed. The drag and lift stop in the
-  // model (CharacterModel.jsx, remote).
-  useEffect(() => ownership?.onLost((key) => turnsLeft.current.delete(key)), [ownership])
-
-  useEffect(() => {
-    posesRef.current = poses
-  })
-
-  // Rest poses from the other browser (decision 8). A model that nobody claims, with a changed pose that
-  // the body does not stand at: the body goes there. A pose that this browser wrote equals the body.
-  // A model that this browser claims ignores it. A model that the other player claims waits (below).
-  useEffect(() => {
-    const prev = prevPoses.current
-    prevPoses.current = poses
-    if (prev === poses) return
-    for (const model of models) {
-      const entry = poses[model.id]
-      if (!entry || samePose(entry, prev[model.id])) continue
-      if (ownership?.owner(modelKey(model.id)) != null) continue
-      const body = liveCharBody(model.id)
-      if (!body || samePose(poseOf(body.translation(), body.rotation()), entry)) continue
-      applyPose(model.id, entry)
-    }
-    // applyPose and models only read refs and the models of this render
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [poses])
-
-  // The other player's claims start and end (decisions 1, 8, 9)
-  useEffect(() => {
-    const present = ownership?.otherPresent() ?? false
-    const { started, ended, gone } = claimChanges(prevOther.current, otherOwned, present)
-    prevOther.current = otherOwned
-    for (const key of started) {
-      const id = modelIdOfKey(key)
-      if (id !== null) markMoved(id)
-    }
-    for (const key of ended) {
-      const id = modelIdOfKey(key)
-      if (id === null || ownership.owner(key) === 'me') continue
-      const pose = posesRef.current[id]
-      if (pose) applyPose(id, pose)
-      else liveCharBody(id)?.setBodyType(0, true)
-    }
-    // The other player is gone: the body stays where it is and awake. This browser writes its rest pose.
-    for (const key of gone) {
-      const id = modelIdOfKey(key)
-      const body = id === null ? null : liveCharBody(id)
-      if (body && ownership.owner(key) !== 'me') {
-        body.setBodyType(0, true)
-        body.wakeUp()
-      }
-    }
-    // applyPose and markMoved only read refs
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [otherOwned])
 
   // R press: lifts the character under the pointer, or puts it back down if it is up. With no
   // character under the pointer, every lifted character goes back down. A player lifts a model to
@@ -890,7 +690,16 @@ export default function Scene({
         radius: 0.5,
       })),
     ],
-    [models, matTokens, claimModel],
+    [
+      models,
+      matTokens,
+      claimModel,
+      liveCharBody,
+      charObjects.current,
+      charLifts.current,
+      tokenObjects.current,
+      tokenCenters.current,
+    ],
   )
   // Limits a drag of a character or token with the Place, Place 1 and Throw limits of the tools. Moves p, returns it.
   // The limits take the tool form (getCenter, radius), not the raw model.

@@ -323,6 +323,14 @@ User, two browsers: drag a model in one, it follows in the other and rests at th
 
 ### Result
 
+Done. New `components/useModelClaims.js` (`claimTimes`, `claims`, `claimModel`), `components/usePieceTurns.js` (turn refs, `trackPiece`, `turnPiece`, `addTurn`, `applyTurn`, F1, turn constants), `components/useModelSync.js` (`sleepLater`, `posesRef`, `prevPoses`, `prevOther`, `applyPose`, F2, E4-E7, `samePose`, `SLEEP_AFTER_FRAMES`; returns `applyPose`). Calls in today's order: claims, overlap effect, hover label, turns, sync. Pointers to `turnPiece` (bindings.js, RulerTool.jsx) and `applyPose` (round-phases.md) name the new files.
+
+- Checks: format, test pass (api `signal.test.ts` failed once, passed on rerun), build ok. Move diff: only moved code, imports, destructures and hook calls.
+- Lint 58 warnings (was 59). Fix of the `toolModels` warning: `liveCharBody` is now a `useCallback` with `[]` in `useModelRegistry` (it reads only refs), and the memo lists `liveCharBody` and the `.current` of the four maps it reads. These never change, so the memo recomputes as before. E4 got `turnsLeft` in its deps (was `[ownership]`) for the same reason; the ref never changes. No `eslint-disable` added.
+- Fallow: `Scene` 68 / 192 / 1,385 lines before; 68 / 177 / 1,227 lines after. `Scene.jsx` 1,688 to 1,497 lines.
+- Deviation: `usePieceTurns` returns `hoveredPiece`, `draggedPiece`, `toolTurns`, `turnsLeft`, `trackPiece`, `turnPiece`. `turnHold`, `addTurn` and `applyTurn` stay inside; Scene does not use them.
+
+
 ## Step 8: Scene layers
 
 Needs step 7.

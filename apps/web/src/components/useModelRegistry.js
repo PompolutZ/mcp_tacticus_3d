@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import { useThree } from '@react-three/fiber'
 import { Raycaster, Vector3 } from 'three'
 import { BASE_DIAMETER } from '../characters/files.js'
@@ -17,10 +17,11 @@ export function useModelRegistry({ models, characters }) {
   const worldRef = useRef(null)
   const rapierRef = useRef(null)
   // The body of a model if it is still in the world, else undefined. For listeners, effects and peer data.
-  function liveCharBody(id) {
+  // Only reads refs, so it is the same function on every render.
+  const liveCharBody = useCallback((id) => {
     const body = charBodies.current.get(id)
     return liveBody(worldRef.current, body) ? body : undefined
-  }
+  }, [])
   // Model id → 3D object. Tools find the character under the pointer with it.
   const charObjects = useRef(new Map())
   // Model id → its lift, { toggle(), down() }. See CharacterModel.jsx and liftPiece.

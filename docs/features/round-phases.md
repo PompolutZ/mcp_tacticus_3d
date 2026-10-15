@@ -109,7 +109,7 @@ Found in the mod scripts (`autoCleanup` in "Red Tray Spawner", "UI Controller", 
 - The round marker is `scoreMarkers.round`. `ROUND_POINTS` in `src/scoreboard/board.js` has the 6 round spots, and `snapPoint` finds the spot under a marker.
 - `handleCharacterFlip` toggles the side and sets Damage to 0.
 - A model on its tray stands on the card at `trayModelPosition` (card 1 or 2), and a spare model at `traySpareModelPosition` (`src/characters/trays.js`, `modelSpawnPosition` in `Scene.jsx`).
-- The rest pose of each model is in the table document (`poses`). Scene moves a model that nobody claims when its stored pose changes (`applyPose`), in both browsers.
+- The rest pose of each model is in the table document (`poses`). Scene moves a model that nobody claims when its stored pose changes (`applyPose` in `src/components/useModelSync.js`), in both browsers.
 - The Delete key deletes the piece under the pointer: a token on the table, a held crisis token, a pile, a Team Tactic card, an unlocked terrain piece, and a character when the pointer is over its tray card (`docs/features/key-shortcuts.md`).
 
 ## Decisions

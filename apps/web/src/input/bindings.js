@@ -116,7 +116,7 @@ export const ACTIONS = [
   A('zoomIn', 'Zoom in', 'Camera', TABLE, [bind('WheelUp')], { action: 'zoom', dir: 1 }),
   A('zoomOut', 'Zoom out', 'Camera', TABLE, [bind('WheelDown')], { action: 'zoom', dir: -1 }),
 
-  // dir 1 turns the piece counter-clockwise seen from above (turnPiece in Scene.jsx). The wheel turns
+  // dir 1 turns the piece counter-clockwise seen from above (turnPiece in usePieceTurns.js). The wheel turns
   // a dragged piece, as in TTS. Wheel up = left like Q, wheel down = right like E: picked by look, the
   // sources do not say which way TTS turns.
   A(
