@@ -19,7 +19,7 @@ export function isEditing(target) {
 // bindings (the bindings in use, input/bindings.js; the defaults when missing) }.
 // Returns { action, id, preventDefault?, ...arguments } or null (the key does nothing). id: the
 // action of the binding. The binding that fits comes from match (input/bindings.js). Then, in this
-// order: the card peek always works; during a drag only cancel works; in a popup only cancel and the
+// order: the card peek always works; during a token or tool drag only cancel and the camera keys (pan, turn) work; in a popup only cancel and the
 // bindings for a popup work; the text field guard; the key repeat guard.
 export function keyAction(e, s) {
   const now = {
@@ -48,7 +48,8 @@ export function keyAction(e, s) {
     if (s.logOpen) return result({ action: 'closeLog' })
     return result({ action: 'escape' })
   }
-  if (now.dragging) return null
+  // A token or tool drag blocks every key but the camera ones (pan, turn): the camera moves while dragging, as in TTS
+  if (now.dragging && def.action !== 'pan' && def.action !== 'turn') return null
   if (now.popup) {
     // The left and right arrows show the previous or next roster card. Other keys do nothing, so
     // nothing changes on the table behind it.

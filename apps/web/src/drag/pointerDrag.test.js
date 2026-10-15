@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { DRAG_THRESHOLD, cancelActiveDrag, isDragActive, startPointerDrag } from './pointerDrag.js'
+import {
+  DRAG_THRESHOLD,
+  cancelActiveDrag,
+  isDragActive,
+  onDragRefresh,
+  refreshActiveDrag,
+  startPointerDrag,
+} from './pointerDrag.js'
 
 // EventTarget that counts its listeners
 function fakeWindow() {
@@ -405,4 +412,50 @@ test('onCancel gets the reason: cancel for Esc, lost for a lost tie', () => {
   win.dispatchEvent(move(200))
   ownership.lost('tactic:a')
   assert.deepEqual(reasons, ['cancel', 'lost'])
+})
+
+test('refreshActiveDrag runs onMove again with the last pointer event, once the drag started', () => {
+  const seen = []
+  const { win } = setup({
+    onMove: (ev) => {
+      seen.push(ev.clientX)
+    },
+  })
+  refreshActiveDrag()
+  assert.deepEqual(seen, [])
+  win.dispatchEvent(move(100 + DRAG_THRESHOLD - 1))
+  refreshActiveDrag()
+  assert.deepEqual(seen, [])
+  win.dispatchEvent(move(150))
+  refreshActiveDrag()
+  assert.deepEqual(seen, [150, 150])
+  win.dispatchEvent(up())
+  refreshActiveDrag()
+  assert.deepEqual(seen, [150, 150])
+})
+
+test('refreshActiveDrag on an immediate drag uses the press, and ends a drag when onMove says so', () => {
+  const seen = []
+  const { log } = setup({
+    immediate: true,
+    onMove: (ev) => {
+      seen.push(ev.clientX)
+      return seen.length === 2
+    },
+  })
+  refreshActiveDrag()
+  assert.deepEqual(seen, [100])
+  refreshActiveDrag()
+  refreshActiveDrag()
+  assert.deepEqual(seen, [100, 100])
+  assert.deepEqual(log.slice(-1), ['end'])
+})
+
+test('refresh listeners run on refreshActiveDrag until unsubscribed', () => {
+  let n = 0
+  const stop = onDragRefresh(() => n++)
+  refreshActiveDrag()
+  stop()
+  refreshActiveDrag()
+  assert.equal(n, 1)
 })

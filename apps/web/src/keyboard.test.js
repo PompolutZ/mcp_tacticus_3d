@@ -43,19 +43,22 @@ test('Alt peeks with repeat and in a text field, also with its own altKey flag',
   assert.equal(act(key('Alt', { code: 'AltLeft', altKey: true, metaKey: true })), null)
 })
 
-test('a token drag: only Escape, which cancels the drag', () => {
+test('a token drag: Escape cancels the drag, the camera keys work, others do nothing', () => {
   const s = { tokenDrag: {}, drag: true }
   assert.deepEqual(act(key('Escape'), s), { action: 'cancelDrag', id: 'cancel' })
   assert.equal(act(key('f', { code: 'KeyF' }), s), null)
   assert.equal(act(key('Delete'), s), null)
   assert.equal(act(key('1'), s), null)
-  assert.equal(act(key('ArrowLeft'), s), null)
+  assert.equal(act(key('w', { code: 'KeyW' }), s).action, 'pan')
+  assert.equal(act(key('ArrowLeft'), s).action, 'turn')
 })
 
-test('a tool drag: only Escape, which cancels the drag', () => {
+test('a tool drag: Escape cancels the drag, the camera keys work, others do nothing', () => {
   const s = { toolDrag: {}, drag: true }
   assert.deepEqual(act(key('Escape'), s), { action: 'cancelDrag', id: 'cancel' })
-  assert.equal(act(key('w', { code: 'KeyW' }), s), null)
+  assert.equal(act(key('w', { code: 'KeyW' }), s).action, 'pan')
+  assert.equal(act(key('ArrowRight'), s).action, 'turn')
+  assert.equal(act(key('1'), s), null)
   assert.equal(act(key(' ', { code: 'Space' }), s), null)
 })
 

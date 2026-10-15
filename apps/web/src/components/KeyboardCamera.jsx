@@ -1,5 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { MathUtils, Spherical, Vector3 } from 'three'
+import { refreshActiveDrag } from '../drag/pointerDrag.js'
 import { CAMERA_FRAME_PRIORITY, panOnTable } from '../camera.js'
 
 // Pan speed as a part of the camera distance per second, so it feels the same at every zoom
@@ -23,7 +24,8 @@ function heldDirection(held) {
 
 // Moves the camera while a pan key or a turn key is held, as in TTS. App handles the keys (see
 // input/bindings.js). pan, turn: refs to a Map of the held actions, action id →
-// screen direction [right, up].
+// screen direction [right, up]. While a pointer drag is in progress, it is moved again after each camera move
+// (drag/pointerDrag.js, refreshActiveDrag), so the piece stays under the pointer.
 export function KeyboardCamera({ pan, turn }) {
   const camera = useThree((state) => state.camera)
   const controls = useThree((state) => state.controls)
@@ -32,6 +34,8 @@ export function KeyboardCamera({ pan, turn }) {
     if (!controls) return
     if (pan.current.size > 0) panCamera(heldDirection(pan.current), dt)
     if (turn.current.size > 0) turnCamera(heldDirection(turn.current), dt)
+    // The pointer stands still under a moving camera: a drag follows it to the new table point
+    if (pan.current.size > 0 || turn.current.size > 0) refreshActiveDrag()
   }, CAMERA_FRAME_PRIORITY)
 
   function panCamera([dx, dy], dt) {
