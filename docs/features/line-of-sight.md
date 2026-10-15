@@ -21,7 +21,7 @@ The game has no real tool for Line of Sight. This tool is a line from a looking 
 - Shift + 1 over a second character while the line exists: that character is the **target**. The line turns from the looker's base center to the target's base center.
 - Shift + 1 over the looker or the target again: no change.
 - Esc (selected) and key 0 remove the line. A turn drag that ends with the pointer over the own rack removes it too.
-- Only a character counts. Over a token or the table, Shift + 1 does nothing.
+- Only a character counts. Over a token (also one on the table) or the table, Shift + 1 does nothing.
 
 ## Turn
 

@@ -35,6 +35,7 @@ export default function TokenLayer({
   gruntLists,
   trayShape,
   selectedTokenId,
+  selectedLooseId,
   rangeMarkOf,
   otherSelectedOf,
   toggleSelect,
@@ -54,6 +55,8 @@ export default function TokenLayer({
   affiliations,
   tokenObjects,
   tokenCenters,
+  looseObjects,
+  looseCenters,
   looseTokens,
   tokenDrag,
   onTokenDragStart,
@@ -158,7 +161,15 @@ export default function TokenLayer({
             index={index}
             count={(tok.count ?? 1) - (tokenDrag?.active && tokenDrag.takeFrom === tok.id ? 1 : 0)}
             onDragStart={(e) => onTokenDragStart(e, tok.key, tok.id)}
-            onHover={(over) => onLooseHover?.(tok.id, over)}
+            selected={selectedLooseId === tok.id}
+            rangeMark={rangeMarkOf('loose', tok.id)}
+            otherSelected={otherSelectedOf('loose', tok.id)}
+            onHover={(over) => {
+              onLooseHover?.(tok.id, over)
+              onPieceHover?.({ kind: 'loose', id: tok.id }, over)
+            }}
+            objects={looseObjects.current}
+            centers={looseCenters.current}
             remote={otherOwned.has(`loose:${tok.id}`)}
             getLivePose={getPieceLive}
           />

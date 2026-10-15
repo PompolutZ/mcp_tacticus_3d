@@ -37,6 +37,8 @@ export function useModelRegistry({ models, characters }) {
   // charObjects, but a token has no Rapier body (see CrisisToken.jsx).
   const tokenObjects = useRef(new Map())
   const tokenCenters = useRef(new Map())
+  const looseObjects = useRef(new Map())
+  const looseCenters = useRef(new Map())
 
   // Body position and base radius of every model with a body, except the one with id `skip`
   function modelBases(skip) {
@@ -122,6 +124,8 @@ export function useModelRegistry({ models, characters }) {
     raycaster,
     tokenObjects,
     tokenCenters,
+    looseObjects,
+    looseCenters,
     liveCharBody,
     modelBases,
     characterAt,

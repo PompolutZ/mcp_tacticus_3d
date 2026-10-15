@@ -30,7 +30,7 @@ const NO_RAYCAST = () => null
 // (LooseToken.jsx), and the token under the pointer during a drag (TokenDragPreview.jsx).
 // size: its width; the trays keep the default, the table passes tokenSize(tokenKey). count: shown on a badge when above 1. upright: the badge is a screen-facing label on top, readable from both seats (a counted pile on the table), else it is flat on the corner. cursor: the canvas cursor while the pointer is over the
 // token. interactive false: the token gets no pointer events, so it does not hide what is under it.
-// While the pointer is over the token, a label shows its name and the mod's description, as the
+// selected, rangeMark, otherSelected: the outline of a selected token (a loose token on the table), as for a crisis token. While the pointer is over the token, a label shows its name and the mod's description, as the
 // tooltip of a token chip did before.
 export default function TokenFace({
   tokenKey,
@@ -42,6 +42,9 @@ export default function TokenFace({
   onPointerDown,
   onClick,
   onHover,
+  selected = false,
+  rangeMark = null,
+  otherSelected = null,
 }) {
   const map = useTexture(assetUrl(characterToken(tokenKey)))
   const token = getToken(tokenKey)
@@ -49,7 +52,7 @@ export default function TokenFace({
   const groupRef = useRef()
   useHoverCursor(hovered, cursor)
   // A token with interactive false is never hovered, so it has no outline
-  useOutline(groupRef, outlineMode(false, hovered))
+  useOutline(groupRef, outlineMode(selected, hovered, rangeMark, false, otherSelected))
   // onHover(true) while the pointer is over the token, onHover(false) after. The cleanup also runs
   // on unmount, so a removed token does not stay hovered.
   useHoverReport(hovered, onHover)

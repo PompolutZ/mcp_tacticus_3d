@@ -21,7 +21,7 @@ A tool hangs 1" above the table. It measures with its outline, which is drawn st
 Key **0** removes every tool from the table, as in the mod. Key **6** is the [Toward / Away](#toward--away) tool. **Shift + 1** over a character is the Line of Sight tool, which is not a ruler: see [Line of Sight](line-of-sight.md).
 
 **Where a tool spawns.**
-- A tool key (**1** to **5**, the movement keys, **6**) with the pointer over a character or a token selects that piece. The tool spawns snapped to it.
+- A tool key (**1** to **5**, the movement keys, **6**) with the pointer over a character or a token (also one on the table) selects that piece. The tool spawns snapped to it.
 - A tool key with the pointer over the table or terrain, not over a piece, spawns the tool free. Its center is at the point under the pointer. If the tool is already out, it spawns again there. A selected piece does not change this. The key no longer removes the tool.
 - A toolbar button (when the tools are set to the HUD in **Settings**), or a tool key with the pointer off the table, turns the tool on or off. A new tool snaps to the selected piece. With no selected piece, it spawns free at the table point in the middle of the screen.
 - A click on a tool or a chip of the tool rack on the table is the same as its toolbar button.
@@ -34,7 +34,7 @@ The tool has two states: **snapped** and **free**.
 
 ### Snapped
 
-A tool snaps to a model or to a crisis token the same way. "Model" below also means a token.
+A tool snaps to a model, to a crisis token or to a token that lies on the table (Black Bifrost, Mystic Portal and the like) the same way. "Model" below also means a token. A token on the table has its own size (`tokens/tokens.js`), so the base edge, the range and the in/out outline use its real radius, not the 0.5" of a crisis token. It shows the selection outline too. Place, Place 1 and Throw do not move or lock it, as for a crisis token.
 
 The tool is snapped to a model when it spawns while that model is selected. With a character and a token selected, it snaps to the one selected last. A tool key with the pointer over a model selects that model and spawns the tool snapped to it, so the model does not have to be selected first. The tool spawns with one end of its outline touching the edge of the model's base, and it points toward the center of the mat. A movement tool snaps with its indented end, the end of the right half (the half with the hinge mesh). A range tool snaps with its flat end.
 

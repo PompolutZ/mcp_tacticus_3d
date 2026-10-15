@@ -22,7 +22,9 @@ const NO_ROTATION = { x: 0, y: 0, z: 0, w: 1 }
 // A token lies on the highest crisis token or earlier loose token under its center, else on the table or
 // the terrain (tokens/stack.js). token: { id, key, x, z, count?, pile? }, see App.jsx, looseTokens. index: its place in
 // that list; the tokens after it lie on top. onDragStart(nativeEvent): a left
-// pointerdown, App starts the same drag as from a source. onHover(over): for the Delete key.
+// pointerdown, App starts the same drag as from a source. onHover(over): for the Delete key and the tool keys.
+// selected, rangeMark, otherSelected: the outline, as for a crisis token. objects, centers: the Scene's Maps by token id for the
+// tools (docs/features/range-movement-tools.md).
 // count: the number shown on top when 2 or more (token.count, a collected token's pile); Scene lowers it by 1 while a token is taken off by a drag. remote: the other player drags the token. getLivePose(key): their latest numbers. The token follows them,
 // hangs above the table like a dragged token and shows its footprint (this browser has no TokenDragPreview).
 export default function LooseToken({
@@ -33,6 +35,11 @@ export default function LooseToken({
   count = token.count ?? 1,
   remote = false,
   getLivePose = null,
+  selected = false,
+  rangeMark = null,
+  otherSelected = null,
+  objects,
+  centers,
 }) {
   const { world, rapier } = useRapier()
   const shape = useMemo(
@@ -56,6 +63,23 @@ export default function LooseToken({
     placeRef.current = { x: token.x, z: token.z }
     poseRef.current = { ...placeRef.current }
   }, [token.x, token.z])
+
+  // Registers the object (the tools' pointer raycast) and a live center getter for the tools, in the
+  // Scene's maps, by token id (see Scene.jsx, toolModels)
+  useEffect(() => {
+    centers.set(token.id, () => ({
+      x: poseRef.current.x,
+      y: groupRef.current?.position.y ?? 0,
+      z: poseRef.current.z,
+    }))
+    return () => centers.delete(token.id)
+  }, [centers, token.id])
+
+  function setGroupRef(obj) {
+    groupRef.current = obj
+    if (obj) objects.set(token.id, obj)
+    else objects.delete(token.id)
+  }
 
   useEffect(() => () => tokenStack.removeLoose(token.id), [token.id])
 
@@ -83,7 +107,7 @@ export default function LooseToken({
   }
 
   return (
-    <group ref={groupRef} position={[token.x, SURFACE_GAP, token.z]}>
+    <group ref={setGroupRef} position={[token.x, SURFACE_GAP, token.z]}>
       <Suspense fallback={null}>
         <TokenFace
           tokenKey={token.key}
@@ -93,6 +117,9 @@ export default function LooseToken({
           cursor="grab"
           onPointerDown={handlePointerDown}
           onHover={onHover}
+          selected={selected}
+          rangeMark={rangeMark}
+          otherSelected={otherSelected}
         />
       </Suspense>
       {remote && <DragFootprint getShape={footprintShape} />}

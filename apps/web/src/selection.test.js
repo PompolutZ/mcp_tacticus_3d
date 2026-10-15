@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { toolSelects } from './selection.js'
+import { isToolPiece, presenceSelection, selectPiece, toolSelects } from './selection.js'
 
 const characters = [
   { id: 'c1', team: 'host' },
@@ -27,4 +27,19 @@ test('a tool selects a crisis token', () => {
 
 test('in single player both sides are played', () => {
   assert.equal(toolSelects(model('c2'), characters, ['host', 'guest']), true)
+})
+
+test('a loose token is a tool piece, terrain is not', () => {
+  assert.equal(isToolPiece({ kind: 'loose', id: 'l1' }), true)
+  assert.equal(isToolPiece({ kind: 'terrain', id: 'x' }), false)
+})
+
+test('a loose token and a crisis token with one id are two pieces', () => {
+  const sel = selectPiece(selectPiece([], { kind: 'token', id: 'a' }), { kind: 'loose', id: 'a' })
+  assert.equal(sel.length, 2)
+  assert.deepEqual(presenceSelection(sel), ['token:a', 'loose:a'])
+})
+
+test('a tool selects a loose token', () => {
+  assert.equal(toolSelects({ kind: 'loose', id: 'l1' }, characters, ['host']), true)
 })

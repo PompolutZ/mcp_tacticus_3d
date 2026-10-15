@@ -1,22 +1,23 @@
-// Selected pieces: [{ kind: 'character' | 'token' | 'terrain', id }]. At most one piece of each kind
+// Selected pieces: [{ kind: 'character' | 'token' | 'loose' | 'terrain', id }]. At most one piece of each kind
 // is selected, so a character, a token and a terrain piece can be selected at the same time.
 // Selecting another piece of a kind deselects the old one. The piece selected last is at the end.
-// A tool snaps to the character or token selected last when it spawns, and measures against it (see
+// A token is a crisis token, a loose token is a character token that lies on the table (their ids are
+// separate, so they have separate kinds). A tool snaps to the character, token or loose token selected last when it spawns, and measures against it (see
 // Scene.jsx). Only an unlocked terrain piece can be selected (see Terrain.jsx).
 
 import { modelCharacterId } from './characters/models.js'
 
 export const NO_PIECES = []
 
-// A piece that the tools snap to and measure against, and that F flips: a character or a token.
+// A piece that the tools snap to and measure against, and that F flips: a character, a crisis token or a loose token.
 // Terrain is not one of them.
 export function isToolPiece(piece) {
-  return piece.kind === 'character' || piece.kind === 'token'
+  return piece.kind === 'character' || piece.kind === 'token' || piece.kind === 'loose'
 }
 
 // Whether a tool key or a tool snap selects the piece. It does not select a model of a side that this
-// browser does not play (the other side in a multiplayer room), else Place could move it. A token
-// and every other piece is selected. A second model (transform) counts for its character. See
+// browser does not play (the other side in a multiplayer room), else Place could move it. A token,
+// a loose token and every other piece is selected. A second model (transform) counts for its character. See
 // docs/features/peer-to-peer.md.
 export function toolSelects(piece, characters, playedSides) {
   if (piece.kind !== 'character') return true

@@ -1,3 +1,4 @@
+import { tokenSize } from '../tokens/tokens.js'
 import { Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import TokenLayer from './TokenLayer.jsx'
@@ -349,6 +350,8 @@ export default function Scene({
     terrainObjects,
     tokenObjects,
     tokenCenters,
+    looseObjects,
+    looseCenters,
     liveCharBody,
     modelBases,
     characterAt,
@@ -579,6 +582,7 @@ export default function Scene({
   const selectedModelId = selectedId(selection, 'character')
   const selectedCharId = selectedModelId && modelCharacterId(selectedModelId)
   const selectedTokenId = selectedId(selection, 'token')
+  const selectedLooseId = selectedId(selection, 'loose')
   const selectedTerrainId = selectedId(selection, 'terrain')
 
   // Deploy-line: R3 zone depth from the deployment edge
@@ -637,16 +641,27 @@ export default function Scene({
         getCenter: () => tokenCenters.current.get(tok.id)?.() ?? { x: tok.x, y: 0, z: tok.z },
         radius: 0.5,
       })),
+      // A token on the table: the tools snap to it and measure its real size (tokenSize)
+      ...looseTokens.map((tok) => ({
+        kind: 'loose',
+        id: tok.id,
+        getObject: () => looseObjects.current.get(tok.id),
+        getCenter: () => looseCenters.current.get(tok.id)?.() ?? { x: tok.x, y: 0, z: tok.z },
+        radius: tokenSize(tok.key) / 2,
+      })),
     ],
     [
       models,
       matTokens,
+      looseTokens,
       claimModel,
       liveCharBody,
       charObjects.current,
       charLifts.current,
       tokenObjects.current,
       tokenCenters.current,
+      looseObjects.current,
+      looseCenters.current,
     ],
   )
   // Limits a drag of a character or token with the Place, Place 1 and Throw limits of the tools. Moves p, returns it.
@@ -920,6 +935,7 @@ export default function Scene({
             gruntLists={gruntLists}
             trayShape={trayShape}
             selectedTokenId={selectedTokenId}
+            selectedLooseId={selectedLooseId}
             rangeMarkOf={rangeMarkOf}
             otherSelectedOf={otherSelectedOf}
             toggleSelect={toggleSelect}
@@ -939,6 +955,8 @@ export default function Scene({
             affiliations={affiliations}
             tokenObjects={tokenObjects}
             tokenCenters={tokenCenters}
+            looseObjects={looseObjects}
+            looseCenters={looseCenters}
             looseTokens={looseTokens}
             tokenDrag={tokenDrag}
             onTokenDragStart={onTokenDragStart}
