@@ -121,3 +121,15 @@ export function stepVelocity(current, target, dt, smoothTime) {
   const next = current + (target - current) * framePart(smoothTime, dt)
   return target === 0 && Math.abs(next) < STOP_SPEED ? 0 : next
 }
+
+// Copies the 16 numbers of a matrix into `saved` (a number array) when they differ from it. Returns true
+// when they differed. The first call (saved empty) counts as a change.
+export function matrixChanged(saved, elements) {
+  let changed = saved.length !== elements.length
+  for (let i = 0; !changed && i < elements.length; i++) changed = saved[i] !== elements[i]
+  if (changed) {
+    saved.length = 0
+    for (const e of elements) saved.push(e)
+  }
+  return changed
+}

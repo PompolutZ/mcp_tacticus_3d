@@ -18,6 +18,7 @@ import { usePing } from './scene/usePing.js'
 import { useLogOpen } from './log/useLogOpen.js'
 import { useNames } from './setup/useNames.js'
 import { KeyboardCamera } from './scene/KeyboardCamera.jsx'
+import { CameraHover } from './scene/CameraHover.jsx'
 import { WheelCamera } from './scene/WheelCamera.jsx'
 import { LoadingOverlay } from './rooms/LoadingOverlay.jsx'
 import { Preload, Ready } from './scene/Preload.jsx'
@@ -880,6 +881,7 @@ export default function App({
                 mouseButtons={CAMERA_MOUSE_BUTTONS}
               />
               <KeyboardCamera pan={heldPan} turn={heldTurn} />
+              <CameraHover />
               <WheelCamera
                 ref={wheelCameraRef}
                 wheelState={wheelState}

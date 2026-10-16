@@ -3,6 +3,7 @@ import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { Physics, useRapier } from '@react-three/rapier'
 import { KeyboardCamera } from '../scene/KeyboardCamera.jsx'
+import { CameraHover } from '../scene/CameraHover.jsx'
 import { WheelCamera } from '../scene/WheelCamera.jsx'
 import { Backdrop, Mat, SceneLights, TableSurface } from '../scene/SceneShared.jsx'
 import SelectionOutlines from '../scene/SelectionOutlines.jsx'
@@ -392,6 +393,7 @@ export default function TerrainPage() {
                 mouseButtons={CAMERA_MOUSE_BUTTONS}
               />
               <KeyboardCamera pan={heldPan} turn={heldTurn} />
+              <CameraHover />
               <WheelCamera wheelState={wheelState} />
             </Canvas>
           </div>

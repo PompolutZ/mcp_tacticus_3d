@@ -53,6 +53,8 @@ A piece under the pointer shows a white outline when this browser can use it wit
 
 No outline: locked terrain, the table, the mat, the other player's rack and dice tray, dice in the well or in the air, a token that takes no pointer (a drag preview), the turn handle, and the buttons on the table (they have a CSS hover).
 
+Hover follows the camera too: when the camera moves under a still pointer (pan or turn keys, wheel, mouse camera), the hover is computed again from the last pointer position. So the outline, the cursor, the card peek (Alt) and the piece for hotkeys match what is under the pointer now. A pointer over the HUD has no hover. During a drag the drag follows the pointer by itself.
+
 The condition "over the dice tray" is not a hover outline. It means the pointer is inside the outline of the whole own tray seen from above, whatever is in front of it (see `dice-rolling.md`, "Controls: number keys").
 
 ## Keyboard: TTS defaults

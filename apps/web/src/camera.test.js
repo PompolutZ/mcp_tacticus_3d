@@ -157,3 +157,12 @@ test('stepVelocity glides to 0 and snaps to 0', () => {
   assert.equal(v, 0)
   assert.ok(frames > 10 && frames < 100)
 })
+
+test('matrixChanged is true for the first call and for a change, false for the same numbers', async () => {
+  const { matrixChanged } = await import('./camera.js')
+  const saved = []
+  assert.equal(matrixChanged(saved, [1, 2, 3]), true)
+  assert.equal(matrixChanged(saved, [1, 2, 3]), false)
+  assert.equal(matrixChanged(saved, [1, 2, 4]), true)
+  assert.equal(matrixChanged(saved, [1, 2, 4]), false)
+})
