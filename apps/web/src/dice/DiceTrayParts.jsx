@@ -101,8 +101,13 @@ export function TrayBody({ trayKey, keysProps, onHover, bodyRef }) {
       rotation={[0, tray.yaw, 0]}
       colliders={false}
     >
+      {/* ORIENTED is set explicitly: since engine 0.15.1 FIX_INTERNAL_EDGES no longer implies it. */}
       <TrimeshCollider
-        args={[trayVertices, trayIndices, rapier.TriMeshFlags.FIX_INTERNAL_EDGES]}
+        args={[
+          trayVertices,
+          trayIndices,
+          rapier.TriMeshFlags.FIX_INTERNAL_EDGES | rapier.TriMeshFlags.ORIENTED,
+        ]}
         friction={FRICTION}
       />
       {/* A tray with these handlers counts as a hit for R3F, so a click on it does not clear the

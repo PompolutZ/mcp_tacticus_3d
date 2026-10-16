@@ -549,7 +549,7 @@ pnpm --filter web dice-sim --quick                    # 300 throws each, for fas
 pnpm --filter web dice-sim --throws 500 --multi-throws 500
 ```
 
-It uses the nested Rapier build under `@react-three/rapier` (0.14.0), not the top-level one (0.12.0, wrong version for this app) — see `docs/plans/dice-rolling.md`, Phase 3 Result, for why.
+It uses the Rapier build that `@react-three/rapier` depends on (0.19.2, file `rapier.mjs`). The app has no direct dependency on it, so the version always matches the app. See `docs/plans/dice-rolling.md`, Phase 3 Result, for the earlier version problem.
 
 See `docs/features/dice-rolling.md`, "Measurements", for the measured numbers. The gravity, upward speed and friction in `throw.js` come from the TTS measurement below. The spin is chosen by look. The Phase 3 Result in `docs/plans/dice-rolling.md` explains `DIE_SOLVER_ITERATIONS`.
 

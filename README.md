@@ -11,7 +11,7 @@ It renders a game table floating in space. The camera sits directly above the ta
 | Tool | Role |
 |---|---|
 | [Vite](https://vitejs.dev/) | Build and dev server |
-| [React 18](https://react.dev/) | UI and component tree |
+| [React 19](https://react.dev/) | UI and component tree |
 | [Three.js](https://threejs.org/) | 3D rendering |
 | [@react-three/fiber](https://docs.pmnd.rs/react-three-fiber) | React renderer for Three.js |
 | [@react-three/drei](https://github.com/pmndrs/drei) | Three.js helpers (orbit controls, stars, texture loader) |

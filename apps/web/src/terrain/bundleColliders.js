@@ -3,7 +3,7 @@
 //
 // An entry is in GLB space: relative to the piece origin, before IMPORT_ROTATION (a turn of 180° around Y,
 // see Terrain.jsx) and the placement scale. Terrain.jsx puts these colliders straight under the RigidBody,
-// not in the scaled group: @react-three/rapier 1.5 multiplies the args by the world scale of the collider
+// not in the scaled group: @react-three/rapier (1.5 and 2.2) multiplies the args by the world scale of the collider
 // object, and multiplies its position by the scale of the parent a second time (it expects the scale on
 // the RigidBody itself). A MeshCollider in the scaled group would be scaled twice too, in args and in
 // position. With no scale above them, the lib changes nothing, and this file does the scale: in the size and

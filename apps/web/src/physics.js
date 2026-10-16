@@ -37,6 +37,12 @@ export const BODY_KINEMATIC_POSITION = 2
 const CAST_TOP = 100
 const CAST_STEP = 5
 const DOWN = { x: 0, y: -1, z: 0 }
+// Each cast starts CAST_EPS before its step start and is 2 * CAST_EPS longer. Rapier engine 0.19 returns no
+// hit for a shape that touches a collider exactly at the start of the cast or exactly at maxToi (0.14 did).
+// A base with its bottom on the table (y 0) is such a touch, and so is a step end on a surface. With the
+// overlap, the contact is inside a cast. The time of impact is then CAST_EPS larger than the distance.
+// Scene units (inches).
+const CAST_EPS = 0.001
 
 // Top of the first fixed, non-sensor collider below the shape at (x, z), or null when there is none.
 // halfHeight: half the shape's height, so the result is the height of the shape's bottom.
@@ -46,16 +52,16 @@ export function castDown(world, rapier, shape, rotation, x, z, halfHeight, from 
   const filter = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
   for (let top = from; top > -CAST_STEP; top -= CAST_STEP) {
     const hit = world.castShape(
-      { x, y: top + halfHeight, z },
+      { x, y: top + halfHeight + CAST_EPS, z },
       rotation,
       DOWN,
       shape,
       0,
-      CAST_STEP,
+      CAST_STEP + 2 * CAST_EPS,
       true,
       filter,
     )
-    if (hit) return top - hit.time_of_impact
+    if (hit) return top + CAST_EPS - hit.time_of_impact
   }
   return null
 }
@@ -73,8 +79,9 @@ export function castAlong(world, rapier, shape, rotation, pos, dir, maxDistance,
 export function castAlongHit(world, rapier, shape, rotation, pos, dir, maxDistance, keep) {
   const filter = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS
   for (let done = 0; done < maxDistance; done += CAST_STEP) {
-    const from = { x: pos.x + dir.x * done, y: pos.y + dir.y * done, z: pos.z + dir.z * done }
-    const step = Math.min(CAST_STEP, maxDistance - done)
+    const back = done - CAST_EPS
+    const from = { x: pos.x + dir.x * back, y: pos.y + dir.y * back, z: pos.z + dir.z * back }
+    const step = Math.min(CAST_STEP, maxDistance - done) + 2 * CAST_EPS
     const hit = world.castShape(
       from,
       rotation,
@@ -89,7 +96,8 @@ export function castAlongHit(world, rapier, shape, rotation, pos, dir, maxDistan
       undefined,
       keep,
     )
-    if (hit) return { distance: done + hit.time_of_impact, collider: hit.collider }
+    if (hit)
+      return { distance: Math.max(0, done - CAST_EPS + hit.time_of_impact), collider: hit.collider }
   }
   return { distance: maxDistance, collider: null }
 }

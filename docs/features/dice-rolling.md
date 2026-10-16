@@ -214,7 +214,7 @@ Model bases are in their own collision group (`MODEL_GROUPS` in `src/physics.js`
 
 ### Settle
 
-Rapier 0.14 does not let the app set the thresholds for sleep, and Rapier can take seconds to put a body to sleep. So the app uses its own rule, like the settle rule of the models in `CharacterModel.jsx`. A die rests when its linear speed and its angular speed stay below a limit for a short time. The headless test decides the limits.
+Rapier does not let the app set the thresholds for sleep, and Rapier can take seconds to put a body to sleep. So the app uses its own rule, like the settle rule of the models in `CharacterModel.jsx`. A die rests when its linear speed and its angular speed stay below a limit for a short time. The headless test decides the limits.
 
 A die that still moves after 8 s reads its top face at once and counts as flat: it is stopped (zero speed, kinematic) like a rested die. With **Throw tilted dice again** on, it counts as tilted: it waits.
 

@@ -311,7 +311,7 @@ function PieceBody({
   // Fixed collider of the same kind as in the mod, so models stand and tip as they do in TTS.
   // userData: the id and Size of the piece, read from a collider through collider.parent() (the Line of Sight
   // length, see tabletools/losLength.js).
-  // The placement transform is on a group, not on RigidBody: @react-three/rapier 1.5 copies a RigidBody's
+  // The placement transform is on a group, not on RigidBody: @react-three/rapier (1.5 and 2.2) copies a RigidBody's
   // quaternion prop onto the colliders it builds from the meshes, so every collider would be turned twice.
   // A piece with a collider mesh, and a bundle piece, get no colliders from the visible mesh.
   // A bundle piece has its colliders from the `colliders` entries, all under the RigidBody with the scale

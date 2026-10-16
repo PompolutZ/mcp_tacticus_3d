@@ -32,6 +32,12 @@ const shape = () => new rapier.Cylinder(HALF_H, 0.5)
 const top = (x, z) => castDown(world, rapier, shape(), NO_ROTATION, x, z, HALF_H)
 const lower = (x, z) => lowerFloor(world, rapier, shape(), NO_ROTATION, x, z, HALF_H, top(x, z))
 
+test('a base with its bottom exactly on the table top still finds the table', () => {
+  // Engine 0.19 gives no hit for a touch exactly at the start of a cast (CAST_EPS in physics.js)
+  assert.ok(Math.abs(top(0, 0)) < 0.01)
+  assert.ok(Math.abs(castDown(world, rapier, shape(), NO_ROTATION, 0, 0, HALF_H, 0)) < 0.01)
+})
+
 test('under an overhang the lower floor is the table, the limit is the underside', () => {
   assert.ok(Math.abs(top(-6, 0) - 3) < 0.01)
   const low = lower(-6, 0)

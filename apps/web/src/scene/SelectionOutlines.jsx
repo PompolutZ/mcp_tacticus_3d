@@ -196,7 +196,7 @@ export default function SelectionOutlines({ children, composer = true, outlines 
   return (
     <RegisterContext.Provider value={register}>
       {children}
-      <EffectComposer autoClear={false} enabled={composer}>
+      <EffectComposer autoClear={false} enabled={composer} multisampling={8}>
         {passes}
       </EffectComposer>
     </RegisterContext.Provider>
