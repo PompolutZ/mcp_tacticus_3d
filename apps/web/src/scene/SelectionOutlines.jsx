@@ -95,6 +95,10 @@ function setToneMode(effect, mode) {
   effect.mode = mode
 }
 
+function setResolutionScale(effect, scale) {
+  effect.resolution.scale = scale
+}
+
 function clampEdges(effect) {
   const shader = effect.getFragmentShader()
   if (shader.includes(EDGE_CLAMPED)) return
@@ -165,7 +169,7 @@ export default function SelectionOutlines({ children, composer = true, outlines 
   // Outline does not update the scale from its props, so it is set on the effects
   useEffect(() => {
     if (!outlinesReady) return
-    for (const mode of MODES) effects[mode].resolution.scale = LINE_SCALE / dpr
+    for (const mode of MODES) setResolutionScale(effects[mode], LINE_SCALE / dpr)
   }, [dpr, effects, outlinesReady])
 
   // Created once. When the children of EffectComposer change, it builds its passes again and

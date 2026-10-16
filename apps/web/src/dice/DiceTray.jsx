@@ -57,6 +57,19 @@ const CLICK_MOVE = 4
 
 const ZERO = { x: 0, y: 0, z: 0 }
 
+// A die that rests or stands on the shelf is kinematic, and a kinematic body must have CCD off: with
+// engine 0.19, a kinematic body with CCD on is stopped by the tray wall on its way to the shelf, so it
+// stays at the wall, tilted. Both switch the body type and CCD together (the body is dynamic with
+// CCD on again for a throw).
+function setDieKinematic(rapier, rb) {
+  rb.enableCcd(false)
+  rb.setBodyType(rapier.RigidBodyType.KinematicPositionBased, true)
+}
+function setDieDynamic(rapier, rb) {
+  rb.setBodyType(rapier.RigidBodyType.Dynamic, true)
+  rb.enableCcd(true)
+}
+
 // The die's own vertices (faces.js), flattened for ConvexHullCollider's args.
 const dieVertices = Float32Array.from(D8_CORNERS.flat())
 
@@ -133,7 +146,7 @@ function Die({
       quaternion={entry.spawn.quaternion}
       colliders={false}
       userData={DIE_USER_DATA}
-      ccd
+      ccd={type === 'dynamic'}
       additionalSolverIterations={DIE_SOLVER_ITERATIONS}
       gravityScale={DIE_GRAVITY_SCALE}
       linearDamping={DIE_BODY.linearDamping}
@@ -316,7 +329,7 @@ export default function DiceTray({
     rb.wakeUp() // a sleeping body's pose is not synced to its mesh until it wakes (Pitfalls)
     // A rested die (kinematic, see the rest code in useFrame) moves again. A shelf die is never thrown.
     if (entry.slot === undefined && liveBody(world, rb) && !rb.isDynamic())
-      rb.setBodyType(rapier.RigidBodyType.Dynamic, true)
+      setDieDynamic(rapier, rb)
     entry.bump?.reset() // the throw sets the speed: it is no bump
     entry.airborne = false // a touch counts once the die was off every contact (contactStep)
     if (respawn) {
@@ -381,7 +394,7 @@ export default function DiceTray({
     const rb = entry.body
     if (!liveBody(world, rb)) return
     rb.wakeUp()
-    if (entry.slot === undefined) rb.setBodyType(rapier.RigidBodyType.KinematicPositionBased, true)
+    if (entry.slot === undefined) setDieKinematic(rapier, rb)
     entry.slot = index
     const t = rb.translation()
     const rot = rb.rotation()
@@ -606,7 +619,7 @@ export default function DiceTray({
     const rb = entry.body
     if (!liveBody(world, rb)) return
     rb.wakeUp()
-    rb.setBodyType(rapier.RigidBodyType.Dynamic, true)
+    setDieDynamic(rapier, rb)
     const point = freeDropPoint(trayKey, wellOccupiedPoints())
     const q = randomRotation()
     rb.setTranslation(point, true)
@@ -835,7 +848,7 @@ export default function DiceTray({
           if (liveBody(world, rb)) {
             rb.setLinvel(ZERO, true)
             rb.setAngvel(ZERO, true)
-            rb.setBodyType(rapier.RigidBodyType.KinematicPositionBased, true)
+            setDieKinematic(rapier, rb)
           }
           entry.state = 'well'
           entry.stillTime = 0
