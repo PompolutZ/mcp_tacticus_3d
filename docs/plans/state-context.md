@@ -1,6 +1,6 @@
 # Plan: Move App state into a zustand store
 
-Requested by the user on 2026-10-16. Status: steps 1-2 done. Branch `state-context`, worktree `../mcp_assist_3d-state-context`, from main. The plan changes many files, so no other branch is open while it runs.
+Requested by the user on 2026-10-16. Status: steps 1-3 done. Branch `state-context`, worktree `../mcp_assist_3d-state-context`, from main. The plan changes many files, so no other branch is open while it runs.
 
 Each step makes one commit and writes its **Result** below.
 
@@ -97,7 +97,7 @@ Read: about 120 Scene commits come from Scene itself, not from App, and each one
 - `src/debug/renderCount.js`: `useRenderReason(name, values)`. `values` is an object of named values. In a layout effect, it compares each value with the last commit (`Object.is`) and counts the names that changed. A commit with no changed name counts as `parent`. Same on/off rule as `useRenderCount`. Node test.
 - Call it in `Scene` with its props (all of them, as one object) and its own state and store values: `draggingCharId`, `rangeMark`, `overlapIds`, `otherOwned`, `otherDragKey`, `otherSpawn`, `otherLook`, and the state returned by its hooks.
 - `DebugPanel`: under "Renders", the reasons for Scene, sorted by count.
-- The user repeats the tool turn. The Result gets the reasons. Then the plan names the fix for that state in step 7 (or earlier, if it is small).
+- The user repeats the tool turn. The Result gets the reasons. Then the plan names the fix for that state in step 8 (or earlier, if it is small).
 
 **Result:** Done. `src/debug/renderCount.js`: `useRenderReason(name, values)` (layout effect, no deps, previous values in a ref), pure `changedReasons(prev, next)` (`mount` / changed names / `parent`), `countReasons`, `readRenderReasons(name)`. `resetRenderCounts` also clears reasons. Node tests added. `DebugPanel`: "Scene reasons" under "Renders", top 15 by count, same 500 ms timer.
 
@@ -107,9 +107,22 @@ Deviation: `Scene(props)` now destructures inside (`} = props`). The other hooks
 
 Checks: lint 40 warnings (same), tests 1012 pass, build and typecheck ok, fallow: no unused export, no clone group (`health` fails as before).
 
-**Reasons (user):** _to fill: tool turn, Scene reasons list._
+**Reasons (user):** tool turn, sandbox. Renders: App 11, Scene 161, every Scene child 161, DiceTray 322 (2 trays). Scene reasons: `hook:useTerrainHoverLabel.hoverLabelId` 148, then about 14 handler props, 12 each (from the App renders). So 148 of 161 Scene renders come from the hover label state, which only Terrain reads. Step 3 fixes it.
 
-### 3. Store skeleton and net slice
+### 3. Hover label state into Terrain
+
+- Cause (step 2): `useTerrainHoverLabel` is called in Scene, its `hoverLabelId` state changes on each hover change, and Scene renders every child. Only `Terrain` reads the value.
+- Fix: call the hook in `Terrain`, not in `Scene`. Scene passes `terrainUnder` (from `useModelRegistry`) instead of `hoverLabelId`. The hook keeps `terrainUnder` in `useLatest`, so a new function each Scene render does not re-run its effect.
+- Remove `hoverLabelId` from Scene and from its `useRenderReason` call.
+- Expected: Scene about 13 in the same tool turn (App renders plus the rest). Terrain still renders on each hover change. A per-piece store selector can cut that later.
+
+**Result:** Done. `Terrain` calls `useTerrainHoverLabel`; it takes `terrainUnder` instead of `hoverLabelId`. One Terrain instance in the app (Scene, inside `<Canvas>`, so `useThree` works); the terrain editor page mounts another without `terrainUnder`, so the hook skips its listeners there (`hasUnder` guard in the effect deps). Scene: hook call, import, `hoverLabelId` and its reason entry removed. Terrain remounts on a map or mat turn; the label state resets to null then (as the cursor re-enters). Comments in Scene, Terrain and the hook updated.
+
+Checks: lint 40 warnings (same), tests pass (web 1012), build and typecheck ok, fallow: no unused export, no clone group (`health` fails as before).
+
+**Re-measurement (user):** _to fill: same tool turn, Scene and Terrain counts, Scene reasons._
+
+### 4. Store skeleton and net slice
 
 - `apps/web/package.json`: `zustand` `^5.0.15`.
 - New `src/table/tableStore.js`: `createTableStore(net)`, the slices of the table above as empty or initial values, node test. New `src/table/TableStoreContext.jsx`: provider and `useTableStore(selector)` (zustand `useStore`), `useTableApi()` for the store object (for `getState` in handlers).
@@ -119,7 +132,7 @@ Checks: lint 40 warnings (same), tests 1012 pass, build and typecheck ok, fallow
 
 **Result:**
 
-### 4. Seat and settings slices
+### 5. Seat and settings slices
 
 - App writes the seat and settings values into the store when they change (one effect per slice, with deps).
 - `sideColors.js` and `scene/look.js` module stores go. Their readers use `useTableStore`.
@@ -127,7 +140,7 @@ Checks: lint 40 warnings (same), tests 1012 pass, build and typecheck ok, fallow
 
 **Result:**
 
-### 5. Actions slice
+### 6. Actions slice
 
 - `actions` in the store: one object, made once (decision 5). App registers the implementations after each render.
 - It replaces `table/actions.js` and `useTableActions()`: `Scene`, `TableButtons`, `Library`, `GameSetup` move to the store.
@@ -137,7 +150,7 @@ Checks: lint 40 warnings (same), tests 1012 pass, build and typecheck ok, fallow
 
 **Result:**
 
-### 6. Selection and drag slices
+### 7. Selection and drag slices
 
 - `useSelection` state moves into the store. The mirror to presence becomes a store subscription made in `createTableStore`.
 - `tokenDrag`, `toolDrag`, `toolSpawn`, `angleSpawn` move into the store. `useTokenDrag` and `useTableTools` write there.
@@ -146,7 +159,7 @@ Checks: lint 40 warnings (same), tests 1012 pass, build and typecheck ok, fallow
 
 **Result:**
 
-### 7. Scene slice
+### 8. Scene slice
 
 - `rangeMark`, `draggingCharId`, `overlapIds` move into the store. The `otherOwned`, `otherDragKey`, `otherSpawn`, `otherLook` reads move to the pieces that use them, with per-piece selectors. The cause found in step 2 is fixed here.
 - Scene-built helpers (`toggleSelect`, `dragSelect`, `rangeMarkOf`, `otherSelectedOf`, `getPieceLive`, `trayShape`, `trayPositions`, `toolModels`) become store actions or selectors.
@@ -155,7 +168,7 @@ Checks: lint 40 warnings (same), tests 1012 pass, build and typecheck ok, fallow
 
 **Result:**
 
-### 8. Measure again, memo where needed
+### 9. Measure again, memo where needed
 
 - The user repeats the baseline run and the tool turn. Numbers go in the Result, next to step 1.
 - `memo` only on components that still render because their parent rendered (the reason counter shows `parent`).

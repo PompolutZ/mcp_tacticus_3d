@@ -9,7 +9,6 @@ import { DeployRangeTool } from '../tabletools/ToolParts.jsx'
 import { TOOL_HOVER_HEIGHT } from '../tabletools/toolGeometry.js'
 import { createSceneApi } from './sceneApi.js'
 import { useModelRegistry } from './useModelRegistry.js'
-import { useTerrainHoverLabel } from '../terrain/useTerrainHoverLabel.js'
 import { useTerrainFall } from '../terrain/useTerrainFall.js'
 import { useModelClaims } from './useModelClaims.js'
 import { usePieceTurns } from './usePieceTurns.js'
@@ -430,8 +429,6 @@ export default function Scene(props) {
     return () => clearInterval(id)
   }, [basesNow])
 
-  const hoverLabelId = useTerrainHoverLabel({ showLabels, terrainUnder })
-
   const { hoveredPiece, draggedPiece, toolTurns, turnsLeft, trackPiece, turnPiece } = usePieceTurns(
     {
       heldRotate,
@@ -695,7 +692,6 @@ export default function Scene(props) {
     'store:tableActions.phases': phaseActions,
     'hook:useModelClaims.claims': claims,
     'hook:useModelClaims.claimModel': claimModel,
-    'hook:useTerrainHoverLabel.hoverLabelId': hoverLabelId,
   })
   const ownTools = tools[ownSide] ?? {}
   const otherTools = tools[otherSide] ?? {}
@@ -856,7 +852,7 @@ export default function Scene(props) {
               <Terrain
                 placements={terrain}
                 showLabels={showLabels}
-                hoverLabelId={hoverLabelId}
+                terrainUnder={terrainUnder}
                 selectedId={selectedTerrainId}
                 onSelect={(id) => toggleSelect('terrain', id)}
                 onHover={onTerrainHover}

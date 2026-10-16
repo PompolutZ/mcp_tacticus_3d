@@ -22,6 +22,7 @@ import { outlineMode, useOutline } from '../scene/SelectionOutlines.jsx'
 import { useDisposeMaterials } from '../scene/useDisposeMaterials.js'
 import { useHoverCursor, useHoverReport } from '../scene/useHoverCursor.js'
 import { useRenderCount } from '../debug/renderCount.js'
+import { useTerrainHoverLabel } from './useTerrainHoverLabel.js'
 
 const WHITE = [1, 1, 1]
 // A press that moves the pointer more than this (px) before the release is a camera drag, not a click.
@@ -366,8 +367,9 @@ function PieceBody({
 }
 
 // placements: the terrain pieces on the mat, [{ id, locked, ...placement }] (see mapTerrain in rooms/table.js).
-// hoverLabelId: id of the piece under the pointer while labels are off (Scene finds it with a ray, so
-// a locked piece gets it too), or null. That piece shows its label.
+// terrainUnder(ndc): id of the piece under the pointer, or null (Scene's ray). With labels off, Terrain
+// keeps the hovered id in its own state (useTerrainHoverLabel), so a hover change renders only Terrain,
+// not Scene. A locked piece gets the label too. Without terrainUnder there is no hover label.
 // selectedId: id of the selected piece, or null. onSelect(id), onHover(id, over), objectRef(id, obj):
 // see TerrainPiece. groupRef(id, group), onPointerDown(id, e): see TerrainPiece.
 // A placement with `rev` remounts the piece when rev changes, so its fixed body gets the new transform.
@@ -375,7 +377,7 @@ function PieceBody({
 export default function Terrain({
   placements,
   showLabels = false,
-  hoverLabelId = null,
+  terrainUnder,
   selectedId = null,
   onSelect,
   onHover,
@@ -384,6 +386,7 @@ export default function Terrain({
   onPointerDown,
 }) {
   useRenderCount('Terrain')
+  const hoverLabelId = useTerrainHoverLabel({ showLabels, terrainUnder })
   return placements.map((placement) => (
     <TerrainPiece
       key={`${placement.id}:${placement.rev ?? 0}:${placement.position[1]}`}
