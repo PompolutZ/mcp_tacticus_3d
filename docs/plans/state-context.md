@@ -1,6 +1,6 @@
 # Plan: Move App state into a zustand store
 
-Requested by the user on 2026-10-16. Status: steps 1-5 done. The user gave the OK on 2026-10-16 to run steps 4-9 back to back (coder agent per step, no stop between steps), then stop for the user test with the step 9 measurement. Branch `state-context`, worktree `../mcp_assist_3d-state-context`, from main. The plan changes many files, so no other branch is open while it runs.
+Requested by the user on 2026-10-16. Status: steps 1-6 done. The user gave the OK on 2026-10-16 to run steps 4-9 back to back (coder agent per step, no stop between steps), then stop for the user test with the step 9 measurement. Branch `state-context`, worktree `../mcp_assist_3d-state-context`, from main. The plan changes many files, so no other branch is open while it runs.
 
 Each step makes one commit and writes its **Result** below.
 
@@ -184,7 +184,26 @@ Prop counts: App → Scene 73 → 64. App → Toolbar 34 → 32. Scene → Token
 - Remove the matching props from Scene, Toolbar, TokenLayer, OwnTools, CharacterTray, RosterCards, GameSetup.
 - Risk: an action called during render sees the previous render's implementation. Actions run on events. The coder checks that none is called during render.
 
-**Result:**
+**Result:** Done. `tableStore.js`: `createActions()` makes one `actions` object and `registerActions(impls)`, once per store. Each function calls `impl.current[name]`, so it is stable. `ACTION_NAMES` (flat: hover, token, pile, tool, table, popup and toolbar actions, `showHudMessage`) and `ACTION_GROUPS` (`setup`, `characters`, `phases`, as before). `App` builds `actionImpls` each render and calls `registerActions` in a layout effect without deps (a ref write, no `set`, no subscriber). Node test for forward, replace and no notify. `table/actions.js` and `useTableActions` are gone, with their comments.
+
+Readers: `Scene`, `TokenLayer`, `OwnTools`, `CharacterTray`, `RosterCards`, `GameSetup`, `Toolbar`, `ToolRack`, `TableButtons`, `Library` use `useTableStore((s) => s.actions)`. `CharacterTray` builds its own closures with `character.id`. Scene still passes `actions.x` into leaves that keep a generic prop (`Terrain`, `DiceTray`, `PriorityMarker`, `CrisisCard`, `TacticCard`, `ScoreBoard`).
+
+Deviations:
+- Scene `useRenderReason` needs no new keys: it feeds the raw props, so the removed props are gone from it. The two `store:tableActions.*` entries are removed (the object never changes).
+- `onToolReturn` was `undefined` when the rack is off or hidden. New boolean prop `toolReturn` (Scene) and `canReturn` (OwnTools), computed in App as before. `onToolRemove` and `onToolReturn` are one action.
+- `RosterCards` takes `editable` (bool) instead of `onToggle`.
+- `GameSetup` lost `onStartRound` (it calls `phases.power(playedSides)` itself).
+- `showHudMessage` is in the store but no reader uses it yet (only App's hooks).
+- Kept as props (not in the step list): `onSelectionChange`, `onSelectedToolsChange` (step 7), refs (`dragPointRef`, `toolDragPointRef`, `heldRotate`), `tokenDrag`, `toolDrag`, `diceMenu`, `removeWaits`; popup panels of App (`TokenPanel`, `LogPanel`, `TrayPopup`, `PhaseButtons`, `RosterPopupHost`, `SettingsPopup`).
+- `useTableApi` still not exported (no reader needs `getState`).
+- The no-deps effect first got a lint warning (a `set*` call in the effect body); the object is built outside the effect, so no new warning.
+- Docs: `setup-game.md`, `character-trays.md` pointers.
+
+Render-call check: every `actions.*` call is in an event handler, a hover or drag callback, or an effect (`useHoverReport`, `useHoverPeek`, `RulerTool` store and return). None runs during render. `actions.x` is passed as a value in render, never called.
+
+Checks: format, lint 40 warnings (same), tests pass (web 1016), build and typecheck ok, fallow: no issue, no clone group (`health` fails as before, 308).
+
+Prop counts: App → Scene 64 → 35. App → Toolbar 32 → 16. Scene → TokenLayer 34 → 23. Scene → OwnTools 15 → 13.
 
 ### 7. Selection and drag slices
 

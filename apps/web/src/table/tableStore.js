@@ -10,6 +10,103 @@ import { DEFAULT_SIDE_COLORS } from '../sideColors.js'
 // see debug/useDebugLook.js and DebugPanel.jsx.
 export const DEFAULT_LOOK = { toneMapping: 'neutral', surface: 'unlit' }
 
+// The names of the actions (see createActions). Plain names are one function. The groups are objects of functions.
+const ACTION_NAMES = [
+  // Hover, for the keys and Alt (useHovered.js, useCardPeek.js)
+  'onPieceHover',
+  'onTerrainHover',
+  'onHeldHover',
+  'onTrayCardHover',
+  'onLooseHover',
+  'onPileHover',
+  'onTacticHover',
+  'onDiceTrayHover',
+  'onCardHover',
+  // Tokens, piles and tactic cards
+  'onTokenMove',
+  'onTokenTurn',
+  'onTokenHold',
+  'onSupplyDragStart',
+  'onTokenDragStart',
+  'onPileTakeStart',
+  'onPileMoveStart',
+  'onLibraryTokenDragStart',
+  'findCharacterAt',
+  'onTacticMove',
+  'onTacticSpawn',
+  // Tools. onToolReturn also removes a tool (the Line of Sight looker left).
+  'onToolStore',
+  'onToolReturn',
+  'onRangeClick',
+  'onMoveClick',
+  'onAngleClick',
+  'onLosClick',
+  'onToolDragStart',
+  // The table
+  'onTurnMat',
+  'onMapChange',
+  'onCrisisChange',
+  'onRosterLoad',
+  'onRosterRemove',
+  'onScoreMarkerMove',
+  'onSquadToggle',
+  'onDeployLineClick',
+  'showHudMessage',
+  // Popup openers and toolbar toggles
+  'onCardOpen',
+  'onTrayOpen',
+  'onAttachedOpen',
+  'onDiceMenuOpen',
+  'onDiceMenuClose',
+  'onRosterOpen',
+  'onCrisisOpen',
+  'onLobby',
+  'onSpectatorClick',
+  'onSettingsClick',
+  'onLibraryClick',
+  'onLogClick',
+  'onSetupClick',
+  'onSetupClose',
+]
+const ACTION_GROUPS = {
+  setup: [
+    'priority',
+    'deck',
+    'pick',
+    'threat',
+    'turnMat',
+    'edge',
+    'ready',
+    'affiliation',
+    'restart',
+    'browse',
+    'override',
+  ],
+  characters: ['spawn', 'damage', 'power', 'flip', 'offBoard', 'removeToken'],
+  phases: ['power', 'cleanup', 'priorityClick'],
+}
+
+// The actions that components call to change the table. The object is made once and never changes, and so is each
+// function in it: a function calls the newest implementation, which App gives to register(impls) after each render
+// (a ref write, no store change, so no reader renders). impls has the same names. An action runs in an event or an
+// effect. One called during render would see the implementation of the previous render. See docs/plans/state-context.md, step 6.
+function createActions() {
+  const impl = { current: {} }
+  const actions = {}
+  for (const name of ACTION_NAMES) actions[name] = (...args) => impl.current[name]?.(...args)
+  for (const [group, names] of Object.entries(ACTION_GROUPS)) {
+    actions[group] = {}
+    for (const name of names)
+      actions[group][name] = (...args) => impl.current[group]?.[name]?.(...args)
+  }
+  return {
+    actions,
+    registerActions: (next) => {
+      impl.current = next
+    },
+  }
+}
+
 // The store of one table: the local state that the DOM and the <Canvas> share, with no prop passing. App makes it
 // once per table document (App is keyed by it). The slices are in the plan,
 // docs/plans/state-context.md ("Store shape"). Doc data is not copied here: a component reads it with the useY* hooks (net/useY.js).
@@ -19,6 +116,7 @@ export const DEFAULT_LOOK = { toneMapping: 'neutral', surface: 'unlit' }
 // initial: values of the seat and settings slices that App knows at the first render, so no child renders with a default.
 // App writes them again when they change (layout effects).
 export function createTableStore(net, initial = {}) {
+  const { actions, registerActions } = createActions()
   return createStore(() => ({
     // net
     table: net.table,
@@ -48,7 +146,8 @@ export function createTableStore(net, initial = {}) {
     showColliders: false,
     look: DEFAULT_LOOK,
     // actions
-    actions: {},
+    actions,
+    registerActions,
     // selection
     selection: [],
     selectedTools: [],

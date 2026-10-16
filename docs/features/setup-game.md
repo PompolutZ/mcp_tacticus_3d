@@ -218,7 +218,7 @@ setup: {
 | File | Content |
 |---|---|
 | `src/setup/setup.js` | `NEW_SETUP`, `newSetup`, `setupStep`, the step changes (`chooseDeck`, `pickCard`, `chooseThreat`, `chooseEdge`, `toggleSquadCard`, `setSquadCharacters`, `toggleReady`, `placeSquad`, `chooseAffiliation`, `finishDeploy`), `placedSides`, `needsAffiliation`, `revealPlan`, `crisisRows`, `squadProblem` (why Squad ready is refused). No imports, so a Node script can check it |
-| `src/setup/GameSetup.jsx` | The crisis rows and all setup buttons. It gets the parsed rosters from App (`parsedRosters` of `useGameSetup`) and does not parse. It reads the actions from `useTableActions().setup` |
+| `src/setup/GameSetup.jsx` | The crisis rows and all setup buttons. It gets the parsed rosters from App (`parsedRosters` of `useGameSetup`) and does not parse. It reads the actions from the table store (`actions.setup`) |
 | `src/crisis/CrisisCompare.jsx` | The crisis compare overlay |
 | `src/crisis/CrisisChoose.jsx` | The Choose 1 overlay |
 | `src/setup/useAutoOpen.js` | Opens an overlay by itself once for each key |
@@ -231,7 +231,7 @@ setup: {
 | `src/rooms/store.js` | `readSquad`, `saveSquad`, `deleteSquad`, `listSquadCodes`: the stored squad of a multiplayer room |
 | `src/setup/actions.js` | `createSetupActions(table, context)`: the document writes (rosters, restart, override, browse, Priority, deck, pick, threat, edge, affiliation). Plain module; each action reads the document and writes in one transaction |
 | `src/setup/useGameSetup.js` | The confirms and HUD messages, the stored squad, the Ready and squad handlers, the reveal effect. Its `setupActions` object is what the panels call |
-| `src/table/actions.js` | The store that gives the actions to the panels inside the Canvas (`setTableActions`, `useTableActions`) |
+| `src/table/tableStore.js` | The table store. Its `actions` object gives the actions to the panels inside the Canvas. Each function calls the newest implementation that App registers after each render |
 | `src/crisis/matTokens.js` | `buildMatTokens(card, turned)`, `supplyToken` |
 | `src/characters/newCharacter.js` | `newCharacter` |
 

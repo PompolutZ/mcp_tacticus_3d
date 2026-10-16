@@ -8,13 +8,12 @@ import { useTableStore } from '../table/TableStoreContext.jsx'
 const toolKey = (kind, entry) => `${kind}-${entry.which}-${entry.spawn}`
 
 // The own tools of this player: move, angle, Line of Sight and range. Props are the values and
-// handlers that Scene.jsx has for them. onPlaceLimit(kind, limit): sets the Place limit of a tool in
+// helpers that Scene.jsx has for them. canReturn: a move drag that ends on the own rack removes the tool. The
+// handlers are the table actions (table/tableStore.js). onPlaceLimit(kind, limit): sets the Place limit of a tool in
 // the map that Scene reads to limit a drag of a piece (applyPlaceLimits). turnProps(kind): the Q / E turn props of a tool.
 export default function OwnTools({
   ownTools,
-  onToolStore,
-  onToolReturn,
-  onToolRemove,
+  canReturn,
   toolSpawn,
   angleSpawn,
   selectedTools,
@@ -29,6 +28,7 @@ export default function OwnTools({
 }) {
   useRenderCount('OwnTools')
   const ownSide = useTableStore((s) => s.ownSide)
+  const actions = useTableStore((s) => s.actions)
   // The own tool that has Place or Throw on: 'range', 'move' or null. Only one at a time. The other tool turns
   // its own off (limitTaken in useToolLimits.js). A tool that turns off clears only its slot in placeLimits.
   const [limitTool, setLimitTool] = useState(null)
@@ -39,8 +39,8 @@ export default function OwnTools({
     team: ownSide,
     side: ownSide,
     entry: ownTools[kind],
-    onStore: (fields) => onToolStore?.(kind, ownTools[kind].spawn, fields),
-    onReturn: onToolReturn && (() => onToolReturn(kind)),
+    onStore: (fields) => actions.onToolStore(kind, ownTools[kind].spawn, fields),
+    onReturn: canReturn ? () => actions.onToolReturn(kind) : undefined,
   })
   // The spawn target of the range and movement tools. undefined without one, so that RulerTool falls back
   // to target (null would mean "spawn free").
@@ -113,7 +113,7 @@ export default function OwnTools({
           onSelect={() => toggleTool('los')}
           onDragSelect={() => selectTool('los')}
           onSpawn={() => selectTool('los')}
-          onRemove={() => onToolRemove?.('los')}
+          onRemove={() => actions.onToolReturn('los')}
           models={toolModels}
           {...turnProps('los')}
         />

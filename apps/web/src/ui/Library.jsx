@@ -3,7 +3,7 @@ import { useHudMessage } from './useHudMessage.js'
 import { assetUrl } from '../assets/index.js'
 import { COLOR_NAME } from '../sideColors.js'
 import { useSideColors } from '../table/useSideColors.jsx'
-import { useTableActions } from '../table/actions.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 import { TEAMS } from '../setup/setup.js'
 import { libraryTeam } from './libraryTeam.js'
 import { CHARACTERS } from '../characters/characters.js'
@@ -47,16 +47,16 @@ const LIBRARY_ROWS = [
 // characters: the characters on the table (App state). The ones of the chosen player show green.
 // seat: { multiplayer, ownSide, mySide } (rooms/seat.js). A multiplayer room adds for the own side only, with no
 // "For" choice; a seat without a side adds nothing (libraryTeam.js).
-// A click on a character with a 3D model calls the table action characters.spawn(ch) (table/actions.js); ch has
-// team set to the chosen player.
-// onSpawnTactic(key, team): a click on a tactic card. onGemOpen(code): a click on an Infinity Gem opens its card.
-// onTokenDragStart(e, key, mode): a pointerdown on a token chip starts a drag in drag/useTokenDrag.js. mode:
-// 'single' | 'pile'.
-export function Library({ open, characters, seat, onSpawnTactic, onGemOpen, onTokenDragStart }) {
+// The clicks call the table actions (table/tableStore.js). A click on a character with a 3D model calls characters.spawn(ch); ch has
+// team set to the chosen player. onTacticSpawn(key, team): a click on a tactic card. onAttachedOpen(code): a click on an Infinity
+// Gem opens its card. onLibraryTokenDragStart(e, key, mode): a pointerdown on a token chip starts a drag in drag/useTokenDrag.js.
+// mode: 'single' | 'pile'.
+export function Library({ open, characters, seat }) {
   const [query, setQuery] = useState('')
   const [tab, setTab] = useState('all')
   const colors = useSideColors()
-  const { spawn: spawnCharacter } = useTableActions().characters
+  const actions = useTableStore((s) => s.actions)
+  const spawnCharacter = actions.characters.spawn
   const [chosen, setChosen] = useState('host')
   const team = libraryTeam(seat, chosen)
   const noSide = team === null
@@ -88,11 +88,11 @@ export function Library({ open, characters, seat, onSpawnTactic, onGemOpen, onTo
   // A gem is not placed: a click opens its card. It goes onto a character from the roster.
   function handleTactic(card) {
     if (card.gem) {
-      onGemOpen?.(card.id)
+      actions.onAttachedOpen(card.id)
       return
     }
     if (noSide) return
-    onSpawnTactic(card.key, team)
+    actions.onTacticSpawn(card.key, team)
   }
 
   function handleCharacter(ch) {
@@ -266,7 +266,9 @@ export function Library({ open, characters, seat, onSpawnTactic, onGemOpen, onTo
                           type="button"
                           className="token-chip"
                           title={t.description ? `${t.name}: ${t.description}` : t.name}
-                          onPointerDown={(e) => onTokenDragStart(e, t.key, tokenMode)}
+                          onPointerDown={(e) =>
+                            actions.onLibraryTokenDragStart(e, t.key, tokenMode)
+                          }
                         >
                           <img
                             className="token-chip-icon"

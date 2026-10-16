@@ -29,6 +29,7 @@ import TrayControls from './TrayControls.jsx'
 import { useColorTexture } from '../scene/useColorTexture.js'
 import { useHoverCursor, useHoverPeek, useHoverReport } from '../scene/useHoverCursor.js'
 import { useRenderCount } from '../debug/renderCount.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 
 // Tokens lie at the tray's own height (TRAY_Y): the "On" row just above the background plate (see
 // trays.js, TRAY_BG_Y), the Give sources just above the table, the same height as a token on the
@@ -44,8 +45,8 @@ const CLICK_MOVE = 4
 // Flip turns both (see docs/features/character-trays.md, "Second forms"). The Give sources are
 // not part of the tray: they lie on the table on the owner's side of the plate, as in TTS, and
 // move with the tray. The tokens are real size, as in TTS (see trays.js for the layout). No
-// collider (see docs/features/character-trays.md, "One tray"). A click on the card calls onOpen(): App opens
-// the whole tray in a popup (see TrayPopup.jsx).
+// collider (see docs/features/character-trays.md, "One tray"). A click on the card calls the action onTrayOpen: App opens
+// the whole tray in a popup (see TrayPopup.jsx). The actions come from the table store (table/tableStore.js).
 // objectRef: the background plate, so Scene's characterAt can hit the whole tray, the same way it
 // hits the model (see docs/features/character-trays.md, "Give tokens by drag and drop"). A token dropped
 // anywhere on the tray goes to its character, as in TTS. A token dropped on the Give sources lies
@@ -53,14 +54,14 @@ const CLICK_MOVE = 4
 // selected highlights the tray card, the same way CharacterModel.jsx highlights a selected model
 // (see useOutline below). The model itself (spawned on the card) stays the usual way to select a
 // character; the tray has no click target of its own for that.
-// onAttachedOpen(code): a click on a gem chip (TrayControls.jsx).
-// onTokenRemove(key): a click on an "On" token removes one. onTokenDragStart(nativeEvent, key): a
-// left pointerdown on a Give source starts a drag of a new token (drag/useTokenDrag.js, handleTokenDragStart).
+// Actions: onAttachedOpen(code) (a click on a gem chip, TrayControls.jsx), characters.removeToken(id, key) (a click on an "On"
+// token removes one), onTokenDragStart(nativeEvent, key, looseId, giveId) (a left pointerdown on a Give source starts a drag of
+// a new token, drag/useTokenDrag.js, handleTokenDragStart).
 // A source never runs out. The objective tokens the character holds lie on the card, but they are
 // crisis tokens, so Scene.jsx draws them (see "Hold and drop").
 // position: the tray's table position, from trays.js layoutTrays (Scene.jsx).
-// onCardHover(over): the pointer moved onto (true) or off (false) the card, for the F key.
-// onCardImageHover(card, over): the same, with the image under the pointer, { src, alt, by }, for Alt (useCardPeek.js).
+// onTrayCardHover(id, over): the pointer moved onto (true) or off (false) the card, for the F key. onCardHover(card, over): the same, with
+// the image under the pointer, { src, alt, by }, for Alt (useCardPeek.js).
 // onTokenDragStart gets the id of the character as the 4th argument: a click on a Give source gives
 // that character one token.
 // affiliation: the affiliation key of the owner's side, for its Give source (characters.js, characterGiveSources).
@@ -72,18 +73,8 @@ const CLICK_MOVE = 4
 export default function CharacterTray({
   character,
   position,
-  onOpen,
-  onDamage,
-  onPower,
-  onFlip,
-  onCardHover,
-  onCardImageHover,
-  onRemove,
   onBoard,
   removeWait = null,
-  onAttachedOpen,
-  onTokenRemove,
-  onTokenDragStart,
   selected = false,
   objectRef,
   grunts = 0,
@@ -91,6 +82,7 @@ export default function CharacterTray({
   slot = [0, 0],
 }) {
   useRenderCount('CharacterTray')
+  const actions = useTableStore((s) => s.actions)
   // Both sides of every card load when the tray mounts, so the first Flip does not wait for an image
   // (that wait hides the tray, see Scene.jsx, Suspense). The order is fixed: the loader caches by
   // the URL list.
@@ -119,7 +111,7 @@ export default function CharacterTray({
   function openPopup(e) {
     e.stopPropagation()
     if (e.delta > CLICK_MOVE || e.intersections[0]?.object !== e.object) return
-    onOpen()
+    actions.onTrayOpen(character.id)
   }
 
   // Selected or under the pointer. A click on the card opens the popup.
@@ -129,7 +121,7 @@ export default function CharacterTray({
   // onCardHover(true) while the pointer is over the card, onCardHover(false) after. The cleanup also
   // runs on unmount, so a removed tray does not stay hovered. The model and the held tokens on the
   // card stop their own pointerover, so the card is not hovered while the pointer is over them.
-  useHoverReport(cardHovered, onCardHover)
+  useHoverReport(cardHovered, (over) => actions.onTrayCardHover(character.id, over))
 
   // The same for Alt: the image of the card under the pointer, the side that faces up. A Flip shows the new side.
   useHoverPeek(
@@ -142,7 +134,7 @@ export default function CharacterTray({
         by: `tray:${character.id}:${hoveredCard}`,
       }
     },
-    onCardImageHover,
+    actions.onCardHover,
     `${hoveredCard}:${character.side}`,
   )
 
@@ -153,14 +145,14 @@ export default function CharacterTray({
   function removeOnToken(e, key) {
     e.stopPropagation()
     if (e.delta > CLICK_MOVE) return
-    onTokenRemove(key)
+    actions.characters.removeToken(character.id, key)
   }
 
   function startGive(e, key) {
     // Only the left button drags a token. A right or middle drag goes to OrbitControls (the camera).
     if (e.button !== 0) return
     e.stopPropagation()
-    onTokenDragStart(e.nativeEvent, key, null, character.id)
+    actions.onTokenDragStart(e.nativeEvent, key, null, character.id)
   }
 
   return (
@@ -248,13 +240,13 @@ export default function CharacterTray({
             <TrayControls
               character={character}
               stamina={stamina}
-              onDamage={onDamage}
-              onPower={onPower}
-              onFlip={onFlip}
-              onRemove={onRemove}
+              onDamage={(damage) => actions.characters.damage(character.id, damage)}
+              onPower={(power) => actions.characters.power(character.id, power)}
+              onFlip={() => actions.characters.flip(character.id)}
+              onRemove={() => actions.characters.offBoard(character.id)}
               onBoard={onBoard}
               removeWait={removeWait}
-              onAttachedOpen={onAttachedOpen}
+              onAttachedOpen={actions.onAttachedOpen}
             />
           </OccludedHtml>
         </group>

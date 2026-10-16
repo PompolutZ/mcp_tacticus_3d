@@ -27,7 +27,7 @@ const CRISIS_TYPES = [
 // board edge). guestSeatFree: the guest seat was free when the room opened, so Copy link shows next
 // to the room code (docs/features/rooms.md, "Room"), until the guest is seen. side, players, connection: the seats and the
 // connection of the room (RoomPlayers.jsx).
-// onLobby(): the ← Lobby button.
+// The buttons call the table actions (table/tableStore.js): onLobby is the ← Lobby button.
 export function Toolbar({
   roomCode,
   multiplayer = false,
@@ -35,34 +35,36 @@ export function Toolbar({
   side = null,
   players = null,
   connection = null,
-  onLobby,
   mapId,
-  onMapChange,
   activeRange,
   activeMove,
   angleOn,
-  onRangeClick,
-  onMoveClick,
-  onAngleClick,
-  onSpectatorClick,
-  onTurnMat,
   settingsOpen,
-  onSettingsClick,
   deployLine,
-  onDeployLineClick,
   crisis,
-  onCrisisChange,
-  onRosterLoad,
-  onRosterRemove,
   libraryOpen,
-  onLibraryClick,
   logOpen,
-  onLogClick,
   setupOpen,
-  onSetupClick,
-  onSetupClose,
 }) {
   useRenderCount('Toolbar')
+  const {
+    onLobby,
+    onMapChange,
+    onRangeClick,
+    onMoveClick,
+    onAngleClick,
+    onSpectatorClick,
+    onTurnMat,
+    onSettingsClick,
+    onDeployLineClick,
+    onCrisisChange,
+    onRosterLoad,
+    onRosterRemove,
+    onLibraryClick,
+    onLogClick,
+    onSetupClick,
+    onSetupClose,
+  } = useTableStore((s) => s.actions)
   const spectator = useTableStore((s) => s.spectator)
   const toolPlaces = useTableStore((s) => s.settings.tools)
   // The typed text stays in the field after Enter (x clears it)

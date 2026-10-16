@@ -44,7 +44,6 @@ import {
 } from './setup/setup.js'
 import { useRollOffReader } from './setup/useRollOffReader.js'
 import { useGameSetup } from './setup/useGameSetup.js'
-import { setTableActions } from './table/actions.js'
 import { gamePriority, priorityTitle } from './game/priority.js'
 import { useHudTop } from './useHudTop.js'
 import FrameStats from './debug/FrameStats.jsx'
@@ -120,7 +119,7 @@ export default function App({
       { ownSide, mySide, playedSides, hiddenSquads, settings, bindings },
     ),
   )
-  const { sceneApi, controlsRef, wheelCameraRef, pieceLives } = store.getState()
+  const { sceneApi, controlsRef, wheelCameraRef, pieceLives, registerActions } = store.getState()
   // The order of the hook calls matters, because the effects run in this order. The layout effects come
   // first. useRollOffReader (E8) comes before useGameSetup (E9): a remote update can carry a throw and a
   // setup change together, and E9 reads what E8 wrote. useTableKeys is last: its table of actions uses
@@ -492,27 +491,6 @@ export default function App({
     table,
     userId,
   })
-  // The panels on the table read the actions from the store (table/actions.js)
-  useLayoutEffect(() => {
-    setTableActions({
-      setup: setupActions,
-      characters: {
-        spawn: handleSpawn,
-        damage: handleCharacterDamage,
-        power: handleCharacterPower,
-        flip: handleCharacterFlip,
-        offBoard: handleCharacterOffBoard,
-        removeToken: handleCharacterTokenRemove,
-      },
-      phases: {
-        power: handlePowerPhase,
-        cleanup: handleCleanupPhase,
-        priorityClick: handlePriorityClick,
-      },
-    })
-    return () => setTableActions(null)
-  })
-
   // A click on a roster card: { team, tab, index }. The popup opens only on a card with an image. For a card
   // without one, the HUD shows what the app is missing. A character without an image also has no model.
   function handleRosterOpen(open) {
@@ -727,6 +705,80 @@ export default function App({
     altUp,
   })
 
+  // The components read the actions from the store (table/tableStore.js, createActions). The newest ones are
+  // registered after each render: a ref write, so no component renders for it. Last in App, so every handler
+  // above is defined.
+  const actionImpls = {
+    setup: setupActions,
+    characters: {
+      spawn: handleSpawn,
+      damage: handleCharacterDamage,
+      power: handleCharacterPower,
+      flip: handleCharacterFlip,
+      offBoard: handleCharacterOffBoard,
+      removeToken: handleCharacterTokenRemove,
+    },
+    phases: {
+      power: handlePowerPhase,
+      cleanup: handleCleanupPhase,
+      priorityClick: handlePriorityClick,
+    },
+    onPieceHover: handlePieceHover,
+    onTerrainHover: handleTerrainHover,
+    onHeldHover: handleHeldHover,
+    onTrayCardHover: handleTrayCardHover,
+    onLooseHover: handleLooseHover,
+    onPileHover: handlePileHover,
+    onTacticHover: handleTacticHover,
+    onDiceTrayHover: handleDiceTrayHover,
+    onCardHover: handleCardHover,
+    onTokenMove: handleTokenMove,
+    onTokenTurn: handleTokenTurn,
+    onTokenHold: handleTokenHold,
+    onSupplyDragStart: handleSupplyDragStart,
+    onTokenDragStart: handleTokenDragStart,
+    onPileTakeStart: handlePileTakeStart,
+    onPileMoveStart: handlePileMoveStart,
+    onLibraryTokenDragStart: handleLibraryTokenDragStart,
+    findCharacterAt,
+    onTacticMove: handleTacticMove,
+    onTacticSpawn: handleTacticSpawn,
+    onToolStore: handleToolStore,
+    onToolReturn: handleToolReturn,
+    onRangeClick: handleRangeClick,
+    onMoveClick: handleMoveClick,
+    onAngleClick: handleAngleClick,
+    onLosClick: handleLosClick,
+    onToolDragStart: startToolDrag,
+    onTurnMat: handleTurnMat,
+    onMapChange: handleMapChange,
+    onCrisisChange: handleCrisisChange,
+    onRosterLoad: handleRosterLoad,
+    onRosterRemove: handleRosterRemove,
+    onScoreMarkerMove: (marker, x, z) =>
+      setScoreMarkers((prev) => ({ ...prev, [marker]: { x, z } })),
+    onSquadToggle: handleSquadToggle,
+    onDeployLineClick: () => setDeployLine((prev) => !prev),
+    showHudMessage,
+    onCardOpen: setOpenCard,
+    onTrayOpen: setOpenTrayId,
+    onAttachedOpen: handleAttachedOpen,
+    onDiceMenuOpen: handleDiceMenuOpen,
+    onDiceMenuClose: handleDiceMenuClose,
+    onRosterOpen: handleRosterOpen,
+    onCrisisOpen: handleCrisisOpen,
+    onLobby: handleLobby,
+    onSpectatorClick: () => setSpectator((prev) => !prev),
+    onSettingsClick: () => setSettingsOpen((prev) => !prev),
+    onLibraryClick: () => setLibraryOpen((prev) => !prev),
+    onLogClick: () => setLogOpen(!logOpen),
+    onSetupClick: () => setSetupOpen((prev) => !prev),
+    onSetupClose: () => setSetupOpen(false),
+  }
+  useLayoutEffect(() => {
+    registerActions(actionImpls)
+  })
+
   return (
     <TableStoreProvider store={store}>
       <div ref={hudRootRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -772,32 +824,12 @@ export default function App({
                     cleanupDisabled,
                     cleanupTitle,
                     deployLine,
-                    onDeployLineClick: () => setDeployLine((prev) => !prev),
-                    onTurnMat: handleTurnMat,
                   }}
-                  toolRack={
-                    rackShown
-                      ? {
-                          multiplayer: Boolean(room?.multiplayer),
-                          onRangeClick: handleRangeClick,
-                          onMoveClick: handleMoveClick,
-                          onAngleClick: handleAngleClick,
-                          onLosClick: handleLosClick,
-                          onDragStart: startToolDrag,
-                        }
-                      : null
-                  }
+                  toolRack={rackShown ? { multiplayer: Boolean(room?.multiplayer) } : null}
                   terrain={terrain}
-                  onTerrainHover={handleTerrainHover}
                   characters={characters}
                   tools={tools}
-                  onToolStore={handleToolStore}
-                  onToolRemove={handleToolReturn}
-                  onToolReturn={
-                    rackShown && !rackHiddenSides(setup, rosters).includes(ownSide)
-                      ? handleToolReturn
-                      : undefined
-                  }
+                  toolReturn={rackShown && !rackHiddenSides(setup, rosters).includes(ownSide)}
                   ownPing={ownPing}
                   angleSpawn={angleSpawn}
                   toolSpawn={toolSpawn}
@@ -808,35 +840,13 @@ export default function App({
                   onSelectionChange={setSelection}
                   selectedTools={selectedTools}
                   onSelectedToolsChange={setSelectedTools}
-                  onPieceHover={handlePieceHover}
-                  onTokenMove={handleTokenMove}
-                  onTokenTurn={handleTokenTurn}
-                  onTokenHold={handleTokenHold}
-                  onHeldHover={handleHeldHover}
-                  onSupplyDragStart={handleSupplyDragStart}
-                  onTrayCardHover={handleTrayCardHover}
-                  onCardHover={handleCardHover}
-                  onTokenDragStart={handleTokenDragStart}
                   looseTokens={looseTokens}
-                  onLooseHover={handleLooseHover}
-                  onPileTakeStart={handlePileTakeStart}
-                  onPileMoveStart={handlePileMoveStart}
-                  onPileHover={handlePileHover}
-                  onTacticMove={handleTacticMove}
-                  onTacticHover={handleTacticHover}
                   tokenDrag={tokenDrag}
                   dragPointRef={dragPointRef}
                   toolDrag={toolDrag}
                   toolDragPointRef={toolDragPointRef}
-                  onCardOpen={setOpenCard}
-                  onTrayOpen={setOpenTrayId}
-                  onAttachedOpen={handleAttachedOpen}
                   diceMenu={diceMenu}
-                  onDiceMenuOpen={handleDiceMenuOpen}
-                  onDiceMenuClose={handleDiceMenuClose}
-                  findCharacterAt={findCharacterAt}
                   removeWaits={removeWaits}
-                  onDiceTrayHover={handleDiceTrayHover}
                   heldRotate={heldRotate}
                   scoreMarkers={scoreMarkers}
                   priority={priority}
@@ -844,14 +854,8 @@ export default function App({
                   affiliations={affiliations}
                   rosters={rosters}
                   parsedRosters={parsedRosters}
-                  onRosterOpen={handleRosterOpen}
-                  onCrisisOpen={handleCrisisOpen}
                   setup={viewSetup}
                   squadEdit={squadEdit}
-                  onSquadToggle={handleSquadToggle}
-                  onScoreMarkerMove={(marker, x, z) =>
-                    setScoreMarkers((prev) => ({ ...prev, [marker]: { x, z } }))
-                  }
                   poses={poses}
                 />
               </SelectionOutlines>
@@ -889,32 +893,16 @@ export default function App({
             side={room?.side ?? null}
             players={room?.players ?? null}
             connection={connection}
-            onLobby={handleLobby}
             mapId={mapId}
-            onMapChange={handleMapChange}
             activeRange={activeRange}
             activeMove={activeMove}
             angleOn={angleOn}
-            onRangeClick={handleRangeClick}
-            onMoveClick={handleMoveClick}
-            onAngleClick={handleAngleClick}
-            onSpectatorClick={() => setSpectator((prev) => !prev)}
-            onTurnMat={handleTurnMat}
             settingsOpen={settingsOpen}
-            onSettingsClick={() => setSettingsOpen((prev) => !prev)}
             deployLine={deployLine}
-            onDeployLineClick={() => setDeployLine((prev) => !prev)}
             crisis={crisis}
-            onCrisisChange={handleCrisisChange}
-            onRosterLoad={handleRosterLoad}
-            onRosterRemove={handleRosterRemove}
             libraryOpen={libraryOpen}
-            onLibraryClick={() => setLibraryOpen((prev) => !prev)}
             logOpen={logOpen}
-            onLogClick={() => setLogOpen(!logOpen)}
             setupOpen={setupOpen}
-            onSetupClick={() => setSetupOpen((prev) => !prev)}
-            onSetupClose={() => setSetupOpen(false)}
           />
         </div>
         <TokenPanel
@@ -923,14 +911,7 @@ export default function App({
           onControl={(control) => handleTokenControl(selectedToken.id, control)}
           onDamage={(damage) => handleTokenDamage(selectedToken.id, damage)}
         />
-        <Library
-          open={libraryOpen}
-          characters={characters}
-          seat={seat}
-          onSpawnTactic={handleTacticSpawn}
-          onGemOpen={handleAttachedOpen}
-          onTokenDragStart={handleLibraryTokenDragStart}
-        />
+        <Library open={libraryOpen} characters={characters} seat={seat} />
         <LogPanel
           open={logOpen}
           onOpen={() => setLogOpen(true)}

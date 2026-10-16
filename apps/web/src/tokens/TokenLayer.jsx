@@ -30,7 +30,7 @@ const NO_RAYCAST = () => null
 
 // The tokens on the table: the crisis tokens (also the held ones), the character tokens and their
 // piles, the preview of a token that is being dragged, and the new piece the other player drags.
-// Props are the values and handlers that Scene.jsx has for them.
+// Props are the values that Scene.jsx has for them. The handlers are the table actions (table/tableStore.js).
 export default function TokenLayer({
   tokens,
   characters,
@@ -43,15 +43,9 @@ export default function TokenLayer({
   otherSelectedOf,
   toggleSelect,
   dragSelect,
-  onHeldHover,
-  onPieceHover,
   applyPlaceLimits,
-  onTokenMove,
-  onTokenTurn,
   otherOwned,
   getPieceLive,
-  onTokenHold,
-  findCharacterAt,
   affiliations,
   tokenObjects,
   tokenCenters,
@@ -59,15 +53,11 @@ export default function TokenLayer({
   looseCenters,
   looseTokens,
   tokenDrag,
-  onTokenDragStart,
-  onLooseHover,
-  onPileTakeStart,
-  onPileMoveStart,
-  onPileHover,
   dragPointRef,
   otherSpawn,
 }) {
   useRenderCount('TokenLayer')
+  const actions = useTableStore((s) => s.actions)
   const playedSides = useTableStore((s) => s.playedSides)
   const [tokenPiles] = useYList(useTableStore((s) => s.table.tokenPiles))
   // Every crisis token as it is drawn. A held token lies on its holder's card: its tray-local place
@@ -97,7 +87,7 @@ export default function TokenLayer({
     <>
       {/* A held token lies on its holder's tray card (Hold and drop). A drag off the card puts
         it back on the mat (onMove). It is not a piece for the tools, so its hover goes to
-        onHeldHover, not onPieceHover: a tool key over it does not snap a tool to it (App.jsx,
+        actions.onHeldHover, not onPieceHover: a tool key over it does not snap a tool to it (App.jsx,
         handleToolKey), and the Delete key removes it. */}
       {tokenViews.map(({ token: tok, floorY }) => (
         <Suspense key={tok.id} fallback={null}>
@@ -111,16 +101,16 @@ export default function TokenLayer({
             onDragSelect={() => dragSelect('token', tok.id)}
             onHover={
               tok.heldBy
-                ? (over) => onHeldHover?.(tok.id, over)
-                : (over) => onPieceHover?.({ kind: 'token', id: tok.id }, over)
+                ? (over) => actions.onHeldHover(tok.id, over)
+                : (over) => actions.onPieceHover({ kind: 'token', id: tok.id }, over)
             }
             canDrag={!tok.placeBy || playedSides.includes(tok.placeBy)}
             constrainDrag={(raw) => {
               const p = tok.placeBy ? clampWaiting(tok, raw, TOKEN_RADIUS) : raw
               return applyPlaceLimits('token', tok.id, p)
             }}
-            onMove={(x, z) => onTokenMove(tok.id, x, z)}
-            onTurn={(yaw) => onTokenTurn(tok.id, yaw)}
+            onMove={(x, z) => actions.onTokenMove(tok.id, x, z)}
+            onTurn={(yaw) => actions.onTokenTurn(tok.id, yaw)}
             remote={otherOwned.has(`token:${tok.id}`)}
             getLivePose={getPieceLive}
             onHold={(characterId, point) => {
@@ -129,7 +119,7 @@ export default function TokenLayer({
               const shape = holder && trayShape(holder)
               const onCard =
                 holder && trayPos && onTray(holder.team, trayPos, point, shape.cards, shape.grunts)
-              onTokenHold(
+              actions.onTokenHold(
                 tok.id,
                 characterId,
                 onCard
@@ -139,7 +129,7 @@ export default function TokenLayer({
                   : null,
               )
             }}
-            findCharacter={findCharacterAt}
+            findCharacter={actions.findCharacterAt}
             controlAffiliation={tok.control ? affiliations[tok.control] : null}
             objectRef={(obj) =>
               obj ? tokenObjects.current.set(tok.id, obj) : tokenObjects.current.delete(tok.id)
@@ -160,13 +150,13 @@ export default function TokenLayer({
             token={tok}
             index={index}
             count={(tok.count ?? 1) - (tokenDrag?.active && tokenDrag.takeFrom === tok.id ? 1 : 0)}
-            onDragStart={(e) => onTokenDragStart(e, tok.key, tok.id)}
+            onDragStart={(e) => actions.onTokenDragStart(e, tok.key, tok.id)}
             selected={selectedLooseId === tok.id}
             rangeMark={rangeMarkOf('loose', tok.id)}
             otherSelected={otherSelectedOf('loose', tok.id)}
             onHover={(over) => {
-              onLooseHover?.(tok.id, over)
-              onPieceHover?.({ kind: 'loose', id: tok.id }, over)
+              actions.onLooseHover(tok.id, over)
+              actions.onPieceHover({ kind: 'loose', id: tok.id }, over)
             }}
             objects={looseObjects.current}
             centers={looseCenters.current}
@@ -183,9 +173,9 @@ export default function TokenLayer({
           <TokenPile
             key={pile.id}
             pile={pile}
-            onTakeStart={(e) => onPileTakeStart(e, pile)}
-            onMoveStart={(e) => onPileMoveStart(e, pile)}
-            onHover={(over) => onPileHover?.(pile.id, over)}
+            onTakeStart={(e) => actions.onPileTakeStart(e, pile)}
+            onMoveStart={(e) => actions.onPileMoveStart(e, pile)}
+            onHover={(over) => actions.onPileHover(pile.id, over)}
             remote={otherOwned.has(`pile:${pile.id}`)}
             getLivePose={getPieceLive}
           />

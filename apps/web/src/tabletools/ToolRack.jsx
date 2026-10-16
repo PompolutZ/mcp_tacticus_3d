@@ -236,23 +236,21 @@ function Rack({ side, tools, handlers }) {
 }
 
 // The racks. A multiplayer room shows both, and only the own one reacts to the pointer. Else only the rack of
-// the own side shows, because this browser has only its own tools. The handlers are the toolbar handlers.
+// the own side shows, because this browser has only its own tools. The handlers are the toolbar actions (the table store).
 // hiddenSides: the sides whose rack does not show, because the roster rows lie there (setup.js, rosterRowsShown).
 // A hidden rack is not mounted, so it takes no pointer.
 // onDragStart(e, kind, which, onClick): a press on an own tool or chip (tabletools/useTableTools.js, startToolDrag).
-export default function ToolRack({
-  multiplayer,
-  tools,
-  onRangeClick,
-  onMoveClick,
-  onAngleClick,
-  onLosClick,
-  onDragStart,
-  hiddenSides = [],
-}) {
+export default function ToolRack({ multiplayer, tools, hiddenSides = [] }) {
   useRenderCount('ToolRack')
   const ownSide = useTableStore((s) => s.ownSide)
-  const handlers = { onRangeClick, onMoveClick, onAngleClick, onLosClick, onDragStart }
+  const actions = useTableStore((s) => s.actions)
+  const handlers = {
+    onRangeClick: actions.onRangeClick,
+    onMoveClick: actions.onMoveClick,
+    onAngleClick: actions.onAngleClick,
+    onLosClick: actions.onLosClick,
+    onDragStart: actions.onToolDragStart,
+  }
   const sides = (multiplayer ? TEAMS : [ownSide]).filter((side) => !hiddenSides.includes(side))
   return sides.map((side) => (
     <Rack key={side} side={side} tools={tools} handlers={side === ownSide ? handlers : undefined} />

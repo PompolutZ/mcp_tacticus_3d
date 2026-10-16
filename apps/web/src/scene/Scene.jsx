@@ -38,7 +38,6 @@ import TacticTray from '../tactics/TacticTray.jsx'
 import TacticCard from '../tactics/TacticCard.jsx'
 import RosterCards from '../rosters/RosterCards.jsx'
 import GameSetup from '../setup/GameSetup.jsx'
-import { useTableActions } from '../table/actions.js'
 import { OnTable, OWNER_FACING_ROTATION } from './OnTable.jsx'
 import DiceTray from '../dice/DiceTray.jsx'
 import OtherDiceTray from '../dice/OtherDiceTray.jsx'
@@ -133,6 +132,8 @@ const noPresence = () => NO_PRESENCE
 // How often (ms) Scene looks for overlapping models
 const OVERLAP_INTERVAL = 100
 
+// The handlers (onPieceHover, onTokenMove, onCardOpen, onToolStore and the others named below) are not props. Scene and its
+// leaves call them from the actions of the store (table/tableStore.js, ACTION_NAMES), which App registers after each render.
 // mapId: key in MAPS. terrain: the terrain pieces on the mat, [{ id, locked, ...placement }] (see
 // mapTerrain in rooms/table.js). onTerrainHover(id, over): the pointer moved onto or off an unlocked piece,
 // for the Delete key. apiRef: the ref App makes (sceneApi); Scene sets its current to the calls App makes
@@ -149,8 +150,8 @@ const OVERLAP_INTERVAL = 100
 // ownSide (store): 'host' or 'guest', the side of this browser. The own entries become tools; the key of a tool is
 // its `which` and `spawn`, so a new spawn mounts it again. The entry of the other side that has a pose
 // becomes an OtherTool. onToolStore(kind, spawn, fields): a tool of the own side rests, App writes the
-// fields into its entry. onToolReturn(kind): a move drag of an own tool ended on the own rack, App removes the tool
-// (RulerTool.jsx, onReturn). Undefined: the tools do not return. onToolRemove(kind): a tool is removed for
+// fields into its entry. toolReturn: a move drag of an own tool that ends on the own rack removes the tool (action onToolReturn(kind),
+// RulerTool.jsx, onReturn). false: the tools do not return. The same action removes a tool for
 // another reason (the Line of Sight looker left the table), always set.
 // selectedTools: { range, move, angle } (see selection.js), lifted to App with its setter onSelectedToolsChange.
 // angleSpawn: { target, aim }, each { kind, id } | null, for the Toward / Away tool:
@@ -160,7 +161,7 @@ const OVERLAP_INTERVAL = 100
 // it spawns. Set by a tool key over a piece, which may be a model that the key does not select. Without
 // one, the tool snaps to the selected piece (target).
 // The tray's controls (Damage, Power, flip, Remove, a click on a token of the "On" row) and the Priority click call
-// the table actions from useTableActions() (table/actions.js).
+// the table actions from the store (table/tableStore.js).
 // onTrayCardHover(id, over): the pointer moved onto (true) or off (false) a character's tray card,
 // for the F key.
 // onTokenDragStart(e, key, looseId, giveId): pointerdown on a tray's Give source (giveId: the character of the
@@ -237,12 +238,9 @@ export default function Scene(props) {
     tableButtons,
     toolRack,
     terrain = [],
-    onTerrainHover,
     characters = [],
     tools = NO_TOOLS_RECORD,
-    onToolStore,
-    onToolReturn,
-    onToolRemove,
+    toolReturn = false,
     angleSpawn = { target: null, aim: null },
     toolSpawn = { range: null, move: null },
     deployLine = false,
@@ -252,46 +250,20 @@ export default function Scene(props) {
     onSelectionChange,
     selectedTools = NO_TOOLS,
     onSelectedToolsChange,
-    onPieceHover,
-    onTokenMove,
-    onTokenTurn,
-    onTokenHold,
-    onHeldHover,
-    onSupplyDragStart,
-    onTrayCardHover,
-    onCardHover,
-    onTokenDragStart,
     looseTokens = [],
-    onLooseHover,
-    onPileTakeStart,
-    onPileMoveStart,
-    onPileHover,
-    onTacticMove,
-    onTacticHover,
     tokenDrag = null,
     toolDrag = null,
     toolDragPointRef,
     dragPointRef,
-    onCardOpen,
-    onTrayOpen,
-    onAttachedOpen,
     diceMenu = null,
-    onDiceMenuOpen,
-    onDiceMenuClose,
-    findCharacterAt,
     removeWaits = {},
-    onDiceTrayHover,
     heldRotate,
     scoreMarkers,
     affiliations,
     rosters = { host: null, guest: null },
     parsedRosters,
-    onRosterOpen,
-    onCrisisOpen,
     setup,
     squadEdit,
-    onSquadToggle,
-    onScoreMarkerMove,
     priority,
     priorityTitle,
     poses = NO_POSES,
@@ -309,6 +281,8 @@ export default function Scene(props) {
   const ownership = useTableStore((s) => s.ownership)
   const presence = useTableStore((s) => s.presence)
   const live = useTableStore((s) => s.live)
+  // The stable actions (table/tableStore.js, createActions)
+  const actions = useTableStore((s) => s.actions)
   const [matTurns] = useYField(table.game, 'matTurns')
   const [tacticCards] = useYList(table.tactics)
   const startPose = table.poses.get
@@ -660,7 +634,6 @@ export default function Scene(props) {
   const toolTarget = toolModel(selection.findLast(isToolPiece))
   const otherSide = otherTeam(ownSide)
   const sideColors = useSideColors()
-  const { characters: characterActions, phases: phaseActions } = useTableActions()
   // Why Scene commits (DebugPanel, "Scene reasons")
   useRenderReason('Scene', {
     ...Object.fromEntries(Object.entries(props).map(([k, v]) => [`prop:${k}`, v])),
@@ -679,8 +652,6 @@ export default function Scene(props) {
     'table:spectator': spectator,
     'table:showColliders': showColliders,
     'table:turnStep': turnStep,
-    'store:tableActions.characters': characterActions,
-    'store:tableActions.phases': phaseActions,
     'hook:useModelClaims.claims': claims,
     'hook:useModelClaims.claimModel': claimModel,
   })
@@ -842,7 +813,7 @@ export default function Scene(props) {
                 terrainUnder={terrainUnder}
                 selectedId={selectedTerrainId}
                 onSelect={(id) => toggleSelect('terrain', id)}
-                onHover={onTerrainHover}
+                onHover={actions.onTerrainHover}
                 objectRef={(id, obj) =>
                   obj ? terrainObjects.current.set(id, obj) : terrainObjects.current.delete(id)
                 }
@@ -861,9 +832,9 @@ export default function Scene(props) {
                 diceLives={diceLives}
                 testHook={trayKey === ownSide}
                 openDieId={diceMenu?.trayKey === trayKey ? diceMenu.dieId : null}
-                onDieOpen={(dieId) => onDiceMenuOpen(trayKey, dieId)}
-                onMenuClose={onDiceMenuClose}
-                onHover={(over) => onDiceTrayHover?.(trayKey, over)}
+                onDieOpen={(dieId) => actions.onDiceMenuOpen(trayKey, dieId)}
+                onMenuClose={actions.onDiceMenuClose}
+                onHover={(over) => actions.onDiceTrayHover(trayKey, over)}
                 addRef={(add) => {
                   if (add) addDice.current[trayKey] = add
                   else delete addDice.current[trayKey]
@@ -878,14 +849,14 @@ export default function Scene(props) {
           <ScoreBoard
             markers={scoreMarkers}
             affiliations={affiliations}
-            onMarkerMove={onScoreMarkerMove}
+            onMarkerMove={actions.onScoreMarkerMove}
             otherOwned={otherOwned}
             getLivePose={getPieceLive}
           />
           <PriorityMarker
             priority={priority}
             title={priorityTitle}
-            onClick={phaseActions.priorityClick}
+            onClick={actions.phases.priorityClick}
           />
 
           {/* Crisis cards and tokens are relative to the player sides, not the mat, so they stay
@@ -895,8 +866,8 @@ export default function Scene(props) {
               <CrisisCard
                 cardKey={crisis.secure}
                 position={[CARD_X, CARD_Y, CARD_Z.secure]}
-                onOpen={onCardOpen}
-                onCardHover={onCardHover}
+                onOpen={actions.onCardOpen}
+                onCardHover={actions.onCardHover}
               />
             </Suspense>
           )}
@@ -905,8 +876,8 @@ export default function Scene(props) {
               <CrisisCard
                 cardKey={crisis.extract}
                 position={[CARD_X, CARD_Y, CARD_Z.extract]}
-                onOpen={onCardOpen}
-                onCardHover={onCardHover}
+                onOpen={actions.onCardOpen}
+                onCardHover={actions.onCardHover}
               />
             </Suspense>
           )}
@@ -919,7 +890,7 @@ export default function Scene(props) {
                   key={type}
                   tokenKey={supply}
                   position={supplyPilePosition(type)}
-                  onDragStart={(e) => onSupplyDragStart(e, key)}
+                  onDragStart={(e) => actions.onSupplyDragStart(e, key)}
                 />
               )
             )
@@ -936,15 +907,9 @@ export default function Scene(props) {
             otherSelectedOf={otherSelectedOf}
             toggleSelect={toggleSelect}
             dragSelect={dragSelect}
-            onHeldHover={onHeldHover}
-            onPieceHover={onPieceHover}
             applyPlaceLimits={applyPlaceLimits}
-            onTokenMove={onTokenMove}
-            onTokenTurn={onTokenTurn}
             otherOwned={otherOwned}
             getPieceLive={getPieceLive}
-            onTokenHold={onTokenHold}
-            findCharacterAt={findCharacterAt}
             affiliations={affiliations}
             tokenObjects={tokenObjects}
             tokenCenters={tokenCenters}
@@ -952,11 +917,6 @@ export default function Scene(props) {
             looseCenters={looseCenters}
             looseTokens={looseTokens}
             tokenDrag={tokenDrag}
-            onTokenDragStart={onTokenDragStart}
-            onLooseHover={onLooseHover}
-            onPileTakeStart={onPileTakeStart}
-            onPileMoveStart={onPileMoveStart}
-            onPileHover={onPileHover}
             dragPointRef={dragPointRef}
             otherSpawn={otherSpawn}
           />
@@ -997,14 +957,7 @@ export default function Scene(props) {
                         ? setup.squads[team]
                         : undefined
                     }
-                    onOpen={(tab, index) => onRosterOpen?.({ team, tab, index })}
-                    onGemOpen={onAttachedOpen}
-                    onToggle={
-                      squadEdit?.[team]
-                        ? (tab, index) => onSquadToggle?.(team, tab, index)
-                        : undefined
-                    }
-                    onCardHover={onCardHover}
+                    editable={Boolean(squadEdit?.[team])}
                   />
                 ),
             )}
@@ -1012,22 +965,19 @@ export default function Scene(props) {
             setup={setup}
             parsed={parsedRosters}
             powerOnTable={tableButtons.show.power}
-            onStartRound={() => phaseActions.power(playedSides)}
             startRoundBlock={tableButtons.powerBlockTitle(playedSides)}
-            onCrisisOpen={onCrisisOpen}
-            onCardHover={onCardHover}
           />
           {tacticCards.map((card, i) => (
             <Suspense key={card.id} fallback={null}>
               <TacticCard
                 card={card}
                 stackIndex={i}
-                onMove={(x, z) => onTacticMove(card.id, x, z)}
+                onMove={(x, z) => actions.onTacticMove(card.id, x, z)}
                 remote={otherOwned.has(`tactic:${card.id}`)}
                 getLivePose={getPieceLive}
-                onOpen={onCardOpen}
-                onHover={(over) => onTacticHover?.(card.id, over)}
-                onCardHover={onCardHover}
+                onOpen={actions.onCardOpen}
+                onHover={(over) => actions.onTacticHover(card.id, over)}
+                onCardHover={actions.onCardHover}
               />
             </Suspense>
           ))}
@@ -1046,18 +996,8 @@ export default function Scene(props) {
                   grunts={ch.host ? 0 : trayShape(ch).grunts}
                   affiliation={affiliations?.[ch.team] ?? null}
                   slot={trayShape(ch).slot}
-                  onOpen={() => onTrayOpen(ch.id)}
-                  onDamage={(damage) => characterActions.damage(ch.id, damage)}
-                  onPower={(power) => characterActions.power(ch.id, power)}
-                  onFlip={() => characterActions.flip(ch.id)}
-                  onCardHover={(over) => onTrayCardHover?.(ch.id, over)}
-                  onCardImageHover={onCardHover}
-                  onRemove={() => characterActions.offBoard(ch.id)}
                   onBoard={characterOnBoard(ch, poses)}
                   removeWait={removeWaits[ch.id] ?? null}
-                  onAttachedOpen={onAttachedOpen}
-                  onTokenRemove={(key) => characterActions.removeToken(ch.id, key)}
-                  onTokenDragStart={onTokenDragStart}
                   selected={selectedCharId === ch.id}
                   objectRef={(obj) =>
                     obj ? trayObjects.current.set(ch.id, obj) : trayObjects.current.delete(ch.id)
@@ -1088,11 +1028,11 @@ export default function Scene(props) {
               onSelect: () => toggleSelect('character', model.id),
               onDragSelect: () => dragSelect('character', model.id),
               onHover: (over) => {
-                onPieceHover?.({ kind: 'character', id: model.id }, over)
+                actions.onPieceHover({ kind: 'character', id: model.id }, over)
                 trackPiece(hoveredPiece, { kind: 'character', id: model.id }, over)
                 // A construct has no card
                 if (!model.construct)
-                  onCardHover?.(
+                  actions.onCardHover(
                     {
                       src: assetUrl(modelCardFile(model)),
                       alt: characterName(ch.key),
@@ -1160,9 +1100,7 @@ export default function Scene(props) {
 
           <OwnTools
             ownTools={ownTools}
-            onToolStore={onToolStore}
-            onToolReturn={onToolReturn}
-            onToolRemove={onToolRemove}
+            canReturn={toolReturn}
             toolSpawn={toolSpawn}
             angleSpawn={angleSpawn}
             selectedTools={selectedTools}

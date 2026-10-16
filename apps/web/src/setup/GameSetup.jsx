@@ -28,7 +28,6 @@ import { isYou, playerName, possessive, says } from './names.js'
 import { STEP_NAME, chooses, decides, rollOffText, stepChoice } from './setupText.js'
 import { TYPE, deckButton, lockedTitle, pickButton } from './deckButton.js'
 import { useSideColors } from '../table/useSideColors.jsx'
-import { useTableActions } from '../table/actions.js'
 import { useTableStore } from '../table/TableStoreContext.jsx'
 import { RosterCard } from '../rosters/RosterCards.jsx'
 import { OnTable, OWNER_FACING_ROTATION, TABLE_Y, px } from '../scene/OnTable.jsx'
@@ -431,30 +430,23 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
 // The game setup on the table: the crisis cards of the rosters next to the scoring board, and the buttons
 // of each step. The buttons lie flat on the table (OnTable). See docs/features/setup-game.md.
 // setup: see setup/setup.js. parsed: { host, guest } → parsed roster | null (useGameSetup). Only the squad panel of the team of the player (mySide in the store, null when one
-// person plays both teams) has buttons. The actions come from useTableActions().setup: { priority(team), deck(type), pick(code),
+// person plays both teams) has buttons. The actions come from the table store (table/tableStore.js), actions.setup: { priority(team), deck(type), pick(code),
 // threat(value), turnMat(direction), edge(), ready(team),
 // affiliation(team, key), restart(), browse(step | null), override(step) }, see setup/useGameSetup.js (setupActions).
-// powerOnTable: the Power button is on the table (the note names it). onStartRound(): the Power button's action,
-// for Start round 1 in the deploy step. startRoundBlock: the reason that button is off (a side has no affiliation), or null.
-// onCrisisOpen({ team, type, code, drawn }): a click on a crisis card. drawn: the card is one of the 2 drawn
-// cards with a Choose button (App.jsx opens the Choose 1 overlay for it).
-// onCardHover(card, over): for Alt (useCardPeek.js).
-export default function GameSetup({
-  setup,
-  parsed,
-  powerOnTable,
-  onStartRound,
-  startRoundBlock,
-  onCrisisOpen,
-  onCardHover,
-}) {
+// powerOnTable: the Power button is on the table (the note names it). Start round 1 in the deploy step calls the Power button's
+// action, phases.power(playedSides). startRoundBlock: the reason that button is off (a side has no affiliation), or null.
+// A click on a crisis card calls the action onCrisisOpen({ team, type, code, drawn }). drawn: the card is one of the 2 drawn
+// cards with a Choose button (App.jsx opens the Choose 1 overlay for it). The action onCardHover(card, over) is for Alt (useCardPeek.js).
+export default function GameSetup({ setup, parsed, powerOnTable, startRoundBlock }) {
   const mySide = useTableStore((s) => s.mySide)
   const ctx = useTableStore((s) => s.nameCtx)
-  const { setup: actions } = useTableActions()
+  const tableActions = useTableStore((s) => s.actions)
+  const actions = tableActions.setup
+  const playedSides = useTableStore((s) => s.playedSides)
   const rows = useMemo(() => crisisRows(setup, parsed), [setup, parsed])
   const step = setupStep(setup)
   const browsing = viewOf(setup) !== null
-  if (!actions || step === 'done' || (!parsed.host && !parsed.guest)) return null
+  if (step === 'done' || (!parsed.host && !parsed.guest)) return null
   return (
     <>
       {rows.map((row) => (
@@ -463,9 +455,11 @@ export default function GameSetup({
           row={row}
           setup={setup}
           ctx={ctx}
-          onOpen={(code) => onCrisisOpen({ team: row.team, type: row.type, code, drawn: row.use })}
+          onOpen={(code) =>
+            tableActions.onCrisisOpen({ team: row.team, type: row.type, code, drawn: row.use })
+          }
           onUse={actions.pick}
-          onCardHover={onCardHover}
+          onCardHover={tableActions.onCardHover}
         />
       ))}
       {step === 'deck' && parsed[priorityOf(setup)] && (
@@ -492,7 +486,7 @@ export default function GameSetup({
         ctx={ctx}
         actions={actions}
         powerOnTable={powerOnTable}
-        onStartRound={onStartRound}
+        onStartRound={() => tableActions.phases.power(playedSides)}
         startRoundBlock={startRoundBlock}
       />
       {step === 'squads' &&

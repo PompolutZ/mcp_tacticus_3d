@@ -1,7 +1,6 @@
 import { OnTable, TABLE_Y, px } from '../scene/OnTable.jsx'
 import { TEAMS, otherTeam } from '../setup/setup.js'
 import { useSideName } from '../table/useSideColors.jsx'
-import { useTableActions } from '../table/actions.js'
 import { useTableStore } from '../table/TableStoreContext.jsx'
 import { boardStrip, cleanupButton, powerButton } from '../tabletools/layout.js'
 import { assetUrl } from '../assets/index.js'
@@ -16,7 +15,7 @@ export const POWER_ICON = assetUrl(characterToken('1-power'))
 // docs/features/table-tools.md, "Automatic Power Phase button"). It gives Power to the characters of its own
 // side only. In a multiplayer room, only the owner presses it.
 function PowerPhaseButton({ side, ownSide, multiplayer, powerBlock }) {
-  const { power: onPowerPhase } = useTableActions().phases
+  const onPowerPhase = useTableStore((s) => s.actions.phases.power)
   const place = powerButton(side)
   const locked = multiplayer && side !== ownSide
   const otherName = useSideName(otherTeam(ownSide))
@@ -45,7 +44,7 @@ function PowerPhaseButton({ side, ownSide, multiplayer, powerBlock }) {
 // Cleanup Phase: one button for the table, between the scoring board and the mat, turned like the strip. It
 // changes shared state, so any player presses it.
 function CleanupButton({ cleanupDisabled, cleanupTitle }) {
-  const { cleanup: onCleanupPhase } = useTableActions().phases
+  const onCleanupPhase = useTableStore((s) => s.actions.phases.cleanup)
   const place = cleanupButton()
   return (
     <OnTable position={[place.x, TABLE_Y, place.z]}>
@@ -69,16 +68,8 @@ function CleanupButton({ cleanupDisabled, cleanupTitle }) {
 // Lock, and the mat turn where the toolbar has it. Deploy Lock and the mat turn change shared state, so any player presses them.
 // show: which buttons the settings put on the table (settings/settings.js). A row with no button is not drawn,
 // and a strip with no row is not drawn.
-function BoardStrip({
-  side,
-  multiplayer,
-  show,
-  ownSide,
-  powerBlockTitle,
-  onTurnMat,
-  deployLine,
-  onDeployLineClick,
-}) {
+function BoardStrip({ side, multiplayer, show, ownSide, powerBlockTitle, deployLine }) {
+  const { onTurnMat, onDeployLineClick } = useTableStore((s) => s.actions)
   const strip = boardStrip(side)
   const style = { width: px(strip.length), height: px(1) }
   const showTurn = show.matTurn && !multiplayer
@@ -133,7 +124,7 @@ function BoardStrip({
 }
 
 // All the table buttons. `ownSide` (the store) and `multiplayer` tell which Power Phase button is the player's own. The
-// other props are the handlers and states of the toolbar buttons, which these repeat.
+// other props are the states of the toolbar buttons, which these repeat. Their handlers are the table actions (table/tableStore.js).
 // show: { power, cleanup, deployLock, matTurn }, true where the settings put the button on the table.
 export default function TableButtons({ multiplayer, show, ...rest }) {
   const ownSide = useTableStore((s) => s.ownSide)

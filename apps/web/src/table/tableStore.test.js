@@ -32,3 +32,19 @@ test('setState notifies a subscriber', () => {
   assert.equal(calls, 1)
   assert.equal(store.getState().spectator, true)
 })
+
+test('an action calls the newest registered implementation, with no store change', () => {
+  const store = createTableStore({ table: {} })
+  const { actions, registerActions } = store.getState()
+  let notified = 0
+  store.subscribe(() => notified++)
+  assert.equal(actions.onCardOpen('x'), undefined)
+  registerActions({ onCardOpen: (v) => `a${v}`, phases: { power: (v) => `p${v}` } })
+  assert.equal(actions.onCardOpen(1), 'a1')
+  assert.equal(actions.phases.power(2), 'p2')
+  registerActions({ onCardOpen: (v) => `b${v}` })
+  assert.equal(actions.onCardOpen(1), 'b1')
+  assert.equal(actions.phases.power(2), undefined)
+  assert.equal(store.getState().actions, actions)
+  assert.equal(notified, 0)
+})

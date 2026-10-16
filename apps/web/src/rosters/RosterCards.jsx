@@ -11,6 +11,7 @@ import FaceMaterial from '../scene/FaceMaterial.jsx'
 import { outlineMode, useOutline } from '../scene/SelectionOutlines.jsx'
 import { useHoverCursor, useHoverPeek } from '../scene/useHoverCursor.js'
 import { OnTable } from '../scene/OnTable.jsx'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 
 const FLAT = [-Math.PI / 2, 0, 0] // the image top faces local -z, toward the mat, the same as a tray card
 const PX_PER_INCH = 100
@@ -294,19 +295,12 @@ export function RosterCard({
 // The character and Team Tactic cards of one team's roster: lie flat on the table, locked, with no physics
 // body. See docs/features/roster.md, "On the table". The crisis cards lie next to the scoring board
 // (GameSetup.jsx). code: the stored MCT code (App.jsx, rosters). squad: the places of the cards in the
-// squad, { characters, tactics } (setup/setup.js). onOpen(tab, index): a click on a card, see RosterPopup.jsx. onGemOpen(code): a click on a gem line.
-// onToggle(tab, index): the + / ✓ button of a character or Team Tactic card, or missing: no button.
+// squad, { characters, tactics } (setup/setup.js). editable: the cards have the + / ✓ button (the squad step, own side), a character or Team Tactic card only. The clicks go to the table actions
+// (table/tableStore.js): onRosterOpen({ team, tab, index }) opens the card, see RosterPopup.jsx; onAttachedOpen(code) a gem line; onSquadToggle(team, tab, index) the button.
 // tab: a key of ROSTER_TABS, index: the place of the card in that tab. In the characters and tactics tabs,
 // the place in the tab is the place in the roster list.
-export default function RosterCards({
-  team,
-  code,
-  squad,
-  onOpen,
-  onGemOpen,
-  onToggle,
-  onCardHover,
-}) {
+export default function RosterCards({ team, code, squad, editable = false }) {
+  const actions = useTableStore((s) => s.actions)
   const cards = useMemo(() => {
     // rosterLayout keeps the card order of rosterTabs (cards.js), so a count per tab gives the index.
     const next = { characters: 0, tactics: 0 }
@@ -325,10 +319,14 @@ export default function RosterCards({
           card={card}
           info={info}
           selected={selected}
-          onOpen={onOpen}
-          onGemOpen={onGemOpen}
-          onToggle={card.tab === 'characters' || card.tab === 'tactics' ? onToggle : undefined}
-          onCardHover={onCardHover}
+          onOpen={(tab, index) => actions.onRosterOpen({ team, tab, index })}
+          onGemOpen={actions.onAttachedOpen}
+          onToggle={
+            editable && (card.tab === 'characters' || card.tab === 'tactics')
+              ? (tab, index) => actions.onSquadToggle(team, tab, index)
+              : undefined
+          }
+          onCardHover={actions.onCardHover}
         />
       )
     )
