@@ -78,6 +78,8 @@ User: set both buttons to the HUD in Settings. Power is green with the icon and 
 
 ### Result
 
+Done. `PhaseButtons.jsx`: Power says **Auto Power Phase** with the Power token image (`POWER_ICON`, now exported from `ui/TableButtons.jsx`), class `phase-button--power`; Cleanup says **Auto Cleanup Phase**. CSS: `.phase-button--power` shares the green, dark text and hover rules with `.table-button--power` (selector lists, no copied values). `.phase-buttons` is a grid with equal columns, so both buttons have the width of the wider label (`min-width` removed). Disabled look unchanged. The table Cleanup button has no icon or color (plain chip, "Cleanup Phase"), so the HUD Cleanup keeps its current look with the new label. Docs: round-phases, table-tools. Checks: format, lint (40), typecheck, test, build OK.
+
 ## Step 5: One camera input at a time
 
 - Implement decision 5. Find where `OrbitControls` starts and ends a drag (its `start` / `end` events) and where `KeyboardCamera` reads held keys. One shared flag decides which input owns the camera. No per-component copies.

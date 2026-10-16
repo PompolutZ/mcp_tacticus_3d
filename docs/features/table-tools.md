@@ -90,8 +90,8 @@ One row for each item, with the choice **Table** or **HUD**. The default is **HU
 | Item | On the table | In the HUD |
 |---|---|---|
 | Range and movement tools | The tool rack | Groups **Range** (R1–R5) and **Move** (S, M, L, T/A) |
-| Automatic Power Phase | Row 1 of the board strips | Bottom right corner: **Power** (first) |
-| Cleanup Phase | One button between the scoring board and the mat | Bottom right corner: **Cleanup** (after Power) |
+| Automatic Power Phase | Row 1 of the board strips | Bottom right corner: **Auto Power Phase** (first) |
+| Cleanup Phase | One button between the scoring board and the mat | Bottom right corner: **Auto Cleanup Phase** (after Power) |
 | Deploy Lock | **Deploy Lock** in the board strip | **Deploy** → **Lock** |
 | Mat turn (Sandbox and single player rooms) | **↺** **↻** in the board strip | **Mat** → **↺** **↻**. The map select stays in the toolbar |
 

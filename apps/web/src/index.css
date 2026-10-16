@@ -1742,7 +1742,9 @@ body {
   position: absolute;
   bottom: 12px;
   right: 12px;
-  display: flex;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 10px;
   z-index: 600;
 }
@@ -1755,7 +1757,6 @@ body {
   background: var(--panel-2);
   border: 2px solid var(--line);
   border-radius: 8px;
-  min-width: 112px;
   height: 60px;
   padding: 0 20px;
   cursor: pointer;
@@ -1766,6 +1767,14 @@ body {
 
 .phase-button:hover {
   border-color: var(--ui-border);
+}
+
+/* The Power button in the HUD has the look of .table-button--power */
+.phase-button--power {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .phase-button[aria-disabled='true'] {
@@ -2540,7 +2549,8 @@ body {
 
 /* The Automatic Power Phase button: the green of the Power token (src/assets/tokens/1-power.webp), dark text.
    The size is set inline (tabletools/layout.js). It lies in the 5.4" board strip row, so gap, padding and icon are small. */
-.table-button--power {
+.table-button--power,
+.phase-button--power {
   gap: 6px;
   overflow: hidden;
   background: #42b534;
@@ -2558,7 +2568,8 @@ body {
   width: 18px;
 }
 
-.table-button--power:not([aria-disabled='true']):hover {
+.table-button--power:not([aria-disabled='true']):hover,
+.phase-button--power:not([aria-disabled='true']):hover {
   background: #5cc84e;
   border-color: #5cc84e;
 }
