@@ -216,3 +216,17 @@ After step 5 (or after step 3, if the user wants to test before three):
 - [ ] Throws and stacking of tokens work.
 - [ ] Range and movement tools, footprint projection look right.
 - [ ] Dev console: list StrictMode warnings for a later fix.
+
+## User test fix
+
+Error: the 3D view crashed in a loop, `Cannot read properties of undefined (reading 'selection')` at `SelectionOutlines.jsx` (the effect over `[entries, outlines]`), then the scene boundary remounted it again and again.
+
+Cause: `@react-three/postprocessing` 3 `EffectComposer` makes its composer in its own effect and returns null until then, so `Outline` and `ToneMapping` are not mounted when the effects of `SelectionOutlines` first run. `effects.current[mode]` was still undefined. The same risk was in the `clampEdges`, `resolution.scale` and tone mode effects. A ref callback also gets null on unmount, and a new object when the scene or camera changes.
+
+Fix: the effect objects are kept in state (ref callback sets state, pure helper `scene/effectRegistry.js` with a node test). The effects that configure them depend on that state and wait until every Outline exists. Passes are still created once; the selection is still set on the effect object.
+
+Other places checked: no other `src/` file uses `@react-three/postprocessing`; no other ref to a postprocessing component. drei refs in `src/` are not read from a mount effect of a parent of a late-rendered child (not changed).
+
+Warning sources (libraries, not our code):
+- `THREE.Clock deprecated`: `@react-three/fiber` 9.8.1 `new THREE.Clock()` in its store.
+- `deprecated parameters for the initialization function`: `@dimforge/rapier3d-compat` 0.19.2 wasm init, called by `@react-three/rapier` `r.init()`.

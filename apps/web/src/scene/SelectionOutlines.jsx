@@ -1,9 +1,10 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { useThree } from '@react-three/fiber'
 import { EffectComposer, Outline, ToneMapping } from '@react-three/postprocessing'
 import { BlendFunction, ToneMappingMode } from 'postprocessing'
 import { ACESFilmicToneMapping, AgXToneMapping, NeutralToneMapping } from 'three'
 import { DEFAULT_LOOK, useLook } from './look.js'
+import { hasAll, withEffect } from './effectRegistry.js'
 import { COLOR_HEX, hexNumber } from '../sideColors.js'
 
 // Line around a selected or hovered piece, drawn after the scene render, as TTS highlights a piece.
@@ -116,13 +117,15 @@ const RegisterContext = createContext(null)
 export default function SelectionOutlines({ children, composer = true, outlines = true }) {
   // [{ meshes, mode }], one entry for each useOutline call that has a mode
   const [entries, setEntries] = useState([])
-  // Outline effect of each mode
-  const effects = useRef({})
+  // Outline effect of each mode, and the ToneMapping effect. In state: EffectComposer renders its
+  // children only after its own effect has run, and a ref callback gets null on unmount, so the
+  // effects below that configure them run when they exist (see effectRegistry.js).
+  const [effects, setEffects] = useState({})
+  const [toneEffect, setToneEffect] = useState(null)
   const dpr = useThree((state) => state.viewport.dpr)
   const gl = useThree((state) => state.gl)
   const tone = TONE_MAPPINGS[useLook().toneMapping]
-  // ToneMapping effect
-  const toneEffect = useRef(null)
+  const outlinesReady = hasAll(effects, MODES)
 
   const register = useCallback((meshes, mode) => {
     const entry = { meshes, mode }
@@ -132,13 +135,12 @@ export default function SelectionOutlines({ children, composer = true, outlines 
 
   // An Outline with an empty selection skips its passes
   useEffect(() => {
+    if (!outlinesReady) return
     const shown = outlines ? entries : []
     for (const mode of MODES) {
-      effects.current[mode].selection.set(
-        shown.filter((e) => e.mode === mode).flatMap((e) => e.meshes),
-      )
+      effects[mode].selection.set(shown.filter((e) => e.mode === mode).flatMap((e) => e.meshes))
     }
-  }, [entries, outlines])
+  }, [entries, outlines, effects, outlinesReady])
 
   // The composer sets the renderer tone mapping to none, because ToneMapping below does it.
   // While the composer is off, the renderer must do it again, with the chosen tone mapping. With the composer on, the scene goes to a render target, so a material
@@ -152,33 +154,34 @@ export default function SelectionOutlines({ children, composer = true, outlines 
 
   // The mode is set on the effect, not as a prop of ToneMapping below, so the passes are not built again
   useEffect(() => {
-    if (toneEffect.current) setToneMode(toneEffect.current, tone.pass)
-  }, [tone])
+    if (toneEffect) setToneMode(toneEffect, tone.pass)
+  }, [tone, toneEffect])
 
   useEffect(() => {
-    for (const mode of MODES) clampEdges(effects.current[mode])
-  }, [])
+    if (!outlinesReady) return
+    for (const mode of MODES) clampEdges(effects[mode])
+  }, [effects, outlinesReady])
 
   // Outline does not update the scale from its props, so it is set on the effects
   useEffect(() => {
-    for (const mode of MODES) effects.current[mode].resolution.scale = LINE_SCALE / dpr
-  }, [dpr])
+    if (!outlinesReady) return
+    for (const mode of MODES) effects[mode].resolution.scale = LINE_SCALE / dpr
+  }, [dpr, effects, outlinesReady])
 
   // Created once. When the children of EffectComposer change, it builds its passes again and
   // compiles a new shader, so the selection is set on the effects above, not passed as a prop.
   // The composer turns off the renderer tone mapping, so ToneMapping adds it back. It starts with the
   // default mode (Neutral, see look.js); the effect above sets later switches from debug mode.
   // It comes before the outlines, so the outline colors are not tone mapped.
+  // The ref callbacks are made once, so the passes keep the same props.
   const passes = useMemo(
     () => (
       <>
-        <ToneMapping ref={toneEffect} mode={TONE_MAPPINGS[DEFAULT_LOOK.toneMapping].pass} />
+        <ToneMapping ref={setToneEffect} mode={TONE_MAPPINGS[DEFAULT_LOOK.toneMapping].pass} />
         {MODES.map((mode) => (
           <Outline
             key={mode}
-            ref={(effect) => {
-              effects.current[mode] = effect
-            }}
+            ref={(effect) => setEffects((prev) => withEffect(prev, mode, effect))}
             selection={NO_SELECTION}
             {...OUTLINES[mode]}
           />
