@@ -157,6 +157,25 @@ Per row:
 
 Not done: no other seed, no tuning. Possible cause to check (not verified): the engine step 3 left `ORIENTED` on the tray trimesh, but 0.19 contact and sleep behavior for dice against each other differs; a run with `--seed 2` and `--seed 3` would show if the x10 rise is stable.
 
+**Seeds 2-6 (added; user accepted the result on 2026-10-16):**
+
+Seeds 2-6 ran on both engines with default counts. Values are old (step 2 engine) → new. Seed 1 is from the tables above.
+
+| seed | single tilted | 10 dice tilted | 10 dice out-of-well | chi single | chi x10 |
+|---|---|---|---|---|---|
+| 1 | 2.2 → 2.3 | 1.2 → 2.3 | 0.5 → 1.1 | 5.91 → 7.32 | 11.24 → 14.03 |
+| 2 | 2.0 → 2.2 | 1.8 → 2.9 | 0.8 → 0.9 | 7.51 → 7.72 | 5.89 → 6.45 |
+| 3 | 1.9 → 2.2 | 1.5 → 2.0 | 0.8 → 1.2 | 9.92 → 1.07 | 1.55 → 4.14 |
+| 4 | 1.7 → 2.5 | 1.7 → 2.0 | 1.1 → 1.4 | 6.54 → 10.67 | 5.59 → 4.54 |
+| 5 | 1.9 → 2.4 | 2.0 → 2.0 | 1.1 → 1.3 | 5.75 → 3.28 | 7.54 → 7.99 |
+| 6 | 1.8 → 2.4 | 2.1 → 2.1 | 0.9 → 1.4 | 8.50 → 5.33 | 1.10 → 13.99 |
+
+Single die out-of-well is 0.0% everywhere. All 12 chi tests (6 seeds x 2) pass on the new engine.
+
+Averages over seeds 1-6, old → new: single tilted 1.9% → 2.3%; single out-of-well 0.0 → 0.0; 10 dice tilted 1.7% → 2.2%; 10 dice out-of-well 0.9% → 1.2%.
+
+Conclusion: seed 1 was an extreme case. The averaged change is within the step limits. Dice stay fair. Slightly more tilted and out-of-well throws, which are re-thrown.
+
 ### 5. three 0.186.1
 
 - Bump `three` to 0.186.1 (the newest that `postprocessing` 6.39.5 allows).
