@@ -117,10 +117,11 @@ Done. `framePart` and `stepVelocity` in `camera.js` (tests in `camera.test.js`).
 Request (user, 2026-10-16): "press left arrow moves camera to the right, on TTS it is in opposite direction and I think opposite direction more intuitive."
 
 - Left arrow moves the camera to the left around the point it looks at, Right to the right, as in TTS. Sign flipped in `turnCamera` (`KeyboardCamera.jsx`). Up / Down and the smoothing unchanged. Action labels: "Turn camera left / right".
+- Follow-up (user, 2026-10-16): "so should be done for up and down". Up / Down inverted the same way: Up moves the camera up (toward a top-down view), Down moves it down. Sign flipped in `turnCamera` (phi). Polar limits and smoothing unchanged. Labels: "Turn camera up / down".
 - Docs: `docs/features/key-shortcuts.md`.
 
-User: press Left: the camera moves to the left around the table, the view turns right.
+User: press Left: the camera moves to the left around the table, the view turns right. Press Up: the camera moves up, the view tilts down.
 
 ### Result
 
-Done. See above. Checks: format, lint, typecheck, test, build.
+Done, Left / Right and Up / Down. See above. Checks: format, lint, typecheck, test, build.

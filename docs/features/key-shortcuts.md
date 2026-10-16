@@ -60,7 +60,7 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 | Key | TTS action | App | Same |
 |---|---|---|---|
 | W A S D | Pan the camera | Pan the camera. Works also during any drag (a model, token, tool, card or marker); the dragged piece stays under the pointer while the camera moves | Yes |
-| Arrow keys | Turn the camera | Turn the camera around the point it looks at. Left / Right move the camera to the left / right around that point (the view turns the other way), as in TTS. Up / Down tilt the view up / down. Work also during any drag, as W A S D | Yes |
+| Arrow keys | Turn the camera | Turn the camera around the point it looks at. Left / Right move the camera to the left / right around that point (the view turns the other way), as in TTS. Up / Down move the camera up / down around that point (the view tilts down / up), as in TTS. Work also during any drag, as W A S D | Yes |
 | Space | Reset the camera. In first-person mode: fly up | Moves the camera back to the start view at once. The app has no first-person mode | Yes |
 | Z | Zoom to the pointer, press again to zoom back | Nothing | No |
 | P | Camera mode: third person, first person, top-down | Ping: an arrow in the color of your side at the pointer, see `ping.md`. The app has no camera modes | No |
@@ -90,7 +90,7 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 | F11 | Hide the GUI | Nothing | No |
 | ` | System console | Nothing | No |
 
-The direction of Left / Right matches TTS (user check, 2026-10-16). The speed of the arrow keys (90° per second) is picked by look, not compared with TTS.
+The direction of the arrows matches TTS (user check, 2026-10-16). The speed of the arrow keys (90° per second) is picked by look, not compared with TTS.
 
 Q / E turn a piece one turn step per press. The step is 15° by default, `PointerRotationSnap` in the same plist, the TTS default. The Settings popup sets it from 5° to 15° (`table-tools.md`, "Settings menu"); it also applies to the wheel and to bends. A key held for more than 0.3 s turns the piece on at 90° per second, the speed of the arrow keys. The app does not use the key repeat of the system, so the speed is the same on every computer. A held key keeps turning the piece of the press, also when the pointer leaves it. Each turn is smoothed in the same way as the wheel zoom: each frame, the piece does `1 − e^(−dt / 0.06 s)` of the turn that is left. The delay, the speed and the smoothing time are picked by look. The center of a character is its base center. The center of a movement tool is its hinge. A free tool turns around its center. A snapped tool turns around its base and stays snapped. During a turn or bend drag, a step adds to the turn of the drag, and the drag goes on from there.
 
