@@ -69,7 +69,15 @@ Deviation: the debug flag is React state in `App` (`debugOn`, dev only), no modu
 
 Checks: lint 40 warnings (same as before), tests 1010 pass, build and typecheck ok, fallow: no unused export, no clone group. `fallow` health fails with 307 above threshold, same as before the step.
 
-**Baseline (user, in the browser):** for each action, the counts after Reset.
+**Baseline (user, sandbox, 2026-10-16):** one run with all actions of the table below except the two-browser one, no Reset between them. Total commits:
+
+| App | Toolbar | Scene | TokenLayer, OwnTools, OtherTools, ToolRack, ScoreBoard, Terrain | CharacterModel (sum) | CharacterTray | DiceTray |
+|---|---|---|---|---|---|---|
+| 20 | 20 | 27 | 27 each | 23 | 37 | 57 |
+
+CrisisToken, TacticCard and OtherDiceTray did not show (none on the table). Read: every Scene commit reaches every child (27 each). Scene has 7 commits more than App, from its own state. CharacterTray and DiceTray have more than Scene, from their own state. Per action it is about 3-4 Scene commits.
+
+**Per-action baseline (not measured yet):** for each action, the counts after Reset.
 
 | Action | App | Scene | TokenLayer | DiceTray | models (sum) | other |
 |---|---|---|---|---|---|---|
