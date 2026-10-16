@@ -1,11 +1,11 @@
-import { useLook } from './look.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 
 // The material of the face (image) of a card or a token. It is the one place that sets the look of
-// all card and token faces. The surface comes from the look store. The default is Unlit, and debug
+// all card and token faces. The surface comes from the look in the store of the table. The default is Unlit, and debug
 // mode can switch it to compare (see docs/plans/playtest/playtest-1-bugs.md). Other props (side, alphaTest,
 // transparent, attach) go to the material.
 export default function FaceMaterial({ map, ...props }) {
-  const { surface } = useLook()
+  const surface = useTableStore((s) => s.look.surface)
   if (surface === 'matte') {
     return <meshPhysicalMaterial map={map} roughness={1} specularIntensity={0} {...props} />
   }

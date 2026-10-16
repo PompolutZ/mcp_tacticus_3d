@@ -102,7 +102,7 @@ import {
   sideYaw,
   viewOf,
 } from '../setup/setup.js'
-import { useSideColors } from '../sideColors.js'
+import { useSideColors } from '../table/useSideColors.jsx'
 import { useYField, useYList } from '../net/useY.js'
 import { useTableStore } from '../table/TableStoreContext.jsx'
 import { useRenderCount, useRenderReason } from '../debug/renderCount.js'
@@ -137,18 +137,16 @@ const OVERLAP_INTERVAL = 100
 // mapTerrain in rooms/table.js). onTerrainHover(id, over): the pointer moved onto or off an unlocked piece,
 // for the Delete key. apiRef: the ref App makes (sceneApi); Scene sets its current to the calls App makes
 // into Scene, see sceneApi.js.
-// showColliders: draw every physics collider as lines (the shapes physics uses, not the visible meshes)
-// turnStep: degrees of one Q / E press and wheel step (settings.turn.step; TTS default 15, PointerRotationSnap).
-// rethrowTilted: settings.rethrowTilted, a tilted die is thrown again (DiceTray.jsx)
-// showLabels: show the label (name, game Size, lock state) above each terrain piece. With labels off, the
-// piece under the pointer shows its label.
-// spectator: show the spectator view above each model (SpectatorBadge.jsx)
+// The seat and the settings are in the store of the table, App writes them (table/tableStore.js): showColliders (draw
+// every physics collider as lines), turnStep (settings.turn.step, degrees of one Q / E press and wheel step; TTS
+// default 15), spectator (the spectator view above each model, SpectatorBadge.jsx), playedSides, ownSide. Terrain
+// reads showLabels, DiceTray rethrowTilted, GameSetup mySide and nameCtx.
 // crisis: { secure, extract } chosen card keys. tokens: every crisis token on the table (see App.jsx).
 // selection: the selected pieces (see selection.js), lifted to App. onSelectionChange: the setter,
 // called with a value or an updater function.
 // onPieceHover(piece, over): the pointer moved onto (true) or off (false) a character or a token,
 // piece as { kind, id }. tools: the `tools` record of the document, side → kind → entry (storedTool.js).
-// ownSide: 'host' or 'guest', the side of this browser. The own entries become tools; the key of a tool is
+// ownSide (store): 'host' or 'guest', the side of this browser. The own entries become tools; the key of a tool is
 // its `which` and `spawn`, so a new spawn mounts it again. The entry of the other side that has a pose
 // becomes an OtherTool. onToolStore(kind, spawn, fields): a tool of the own side rests, App writes the
 // fields into its entry. onToolReturn(kind): a move drag of an own tool ended on the own rack, App removes the tool
@@ -188,7 +186,7 @@ const OVERLAP_INTERVAL = 100
 // onCrisisOpen({ team, type, code, drawn }): a click on a crisis card of the setup (GameSetup.jsx).
 // squadEdit: { host, guest } → true: the roster cards of that side have the + / ✓ button, and onSquadToggle(team,
 // tab, index) adds the card to the squad or removes it (setup/useGameSetup.js, handleSquadToggle).
-// setup: the game setup (setup/setup.js). mySide, seatPlayers: see GameSetup.jsx. When the squads
+// setup: the game setup (setup/setup.js). When the squads
 // are on the table, the roster cards are not.
 // onCardOpen({ src, alt }): a click on a crisis card (see CardPopup.jsx). onTrayOpen(id): a click
 // on a tray card opens the whole tray (see TrayPopup.jsx). onAttachedOpen(code): a click on a gem chip
@@ -207,8 +205,6 @@ const OVERLAP_INTERVAL = 100
 // sceneApi.floorPiece is R during a model drag (modelDrag: the id of the dragged own model, else null).
 // sceneApi.liftPiece is R. sceneApi.returnModels is the tray's Remove button: the models of that character
 // go back to their places on the tray.
-// playedSides: the sides this browser plays (dice tray, tool snap selection), one in a multiplayer
-// room, both otherwise.
 // A token with placeBy can be dragged only by a browser that plays that side (tokens/dropWait.js).
 // removeWaits: character id → the text that disables its Remove button while a dropped token waits, or no entry.
 // The other tray is only drawn (OtherDiceTray.jsx).
@@ -244,17 +240,11 @@ export default function Scene(props) {
     onTerrainHover,
     characters = [],
     tools = NO_TOOLS_RECORD,
-    ownSide = 'host',
     onToolStore,
     onToolReturn,
     onToolRemove,
     angleSpawn = { target: null, aim: null },
     toolSpawn = { range: null, move: null },
-    showColliders = false,
-    showLabels = false,
-    turnStep = 15,
-    rethrowTilted = false,
-    spectator = false,
     deployLine = false,
     crisis = { secure: null, extract: null },
     tokens = [],
@@ -289,7 +279,6 @@ export default function Scene(props) {
     onDiceMenuOpen,
     onDiceMenuClose,
     findCharacterAt,
-    playedSides = TEAMS,
     removeWaits = {},
     onDiceTrayHover,
     heldRotate,
@@ -302,8 +291,6 @@ export default function Scene(props) {
     setup,
     squadEdit,
     onSquadToggle,
-    mySide = null,
-    seatPlayers = null,
     onScoreMarkerMove,
     priority,
     priorityTitle,
@@ -311,6 +298,12 @@ export default function Scene(props) {
     ownPing = null,
   } = props
   useRenderCount('Scene')
+  // The seat and the settings (table/tableStore.js), written by App
+  const ownSide = useTableStore((s) => s.ownSide)
+  const playedSides = useTableStore((s) => s.playedSides)
+  const spectator = useTableStore((s) => s.spectator)
+  const showColliders = useTableStore((s) => s.showColliders)
+  const turnStep = useTableStore((s) => s.settings.turn.step)
   // The net objects and the doc slices that only Scene and its leaves read (table/tableStore.js)
   const table = useTableStore((s) => s.table)
   const ownership = useTableStore((s) => s.ownership)
@@ -681,6 +674,11 @@ export default function Scene(props) {
     'store:otherSpawn': otherSpawn,
     'store:otherLook': otherLook,
     'store:sideColors': sideColors,
+    'table:ownSide': ownSide,
+    'table:playedSides': playedSides,
+    'table:spectator': spectator,
+    'table:showColliders': showColliders,
+    'table:turnStep': turnStep,
     'store:tableActions.characters': characterActions,
     'store:tableActions.phases': phaseActions,
     'hook:useModelClaims.claims': claims,
@@ -841,7 +839,6 @@ export default function Scene(props) {
             <Suspense key={`${mapId}-${matTurns}`} fallback={null}>
               <Terrain
                 placements={terrain}
-                showLabels={showLabels}
                 terrainUnder={terrainUnder}
                 selectedId={selectedTerrainId}
                 onSelect={(id) => toggleSelect('terrain', id)}
@@ -862,7 +859,6 @@ export default function Scene(props) {
                 key={trayKey}
                 trayKey={trayKey}
                 diceLives={diceLives}
-                rethrowTilted={rethrowTilted}
                 testHook={trayKey === ownSide}
                 openDieId={diceMenu?.trayKey === trayKey ? diceMenu.dieId : null}
                 onDieOpen={(dieId) => onDiceMenuOpen(trayKey, dieId)}
@@ -942,7 +938,6 @@ export default function Scene(props) {
             dragSelect={dragSelect}
             onHeldHover={onHeldHover}
             onPieceHover={onPieceHover}
-            playedSides={playedSides}
             applyPlaceLimits={applyPlaceLimits}
             onTokenMove={onTokenMove}
             onTokenTurn={onTokenTurn}
@@ -969,15 +964,10 @@ export default function Scene(props) {
           {/* The tactic tray of each player, between the mat and the character trays, and the Team
             Tactic cards. Relative to the table, not the mat. See docs/features/team-tactic-cards.md. */}
           {/* Power Phase and the board strip of each player (docs/features/table-tools.md) */}
-          <TableButtons ownSide={ownSide} {...tableButtons} />
+          <TableButtons {...tableButtons} />
           {/* The tool rack of each player (docs/features/table-tools.md, "Tool rack") */}
           {toolRack && (
-            <ToolRack
-              ownSide={ownSide}
-              tools={tools}
-              hiddenSides={rackHiddenSides(setup, rosters)}
-              {...toolRack}
-            />
+            <ToolRack tools={tools} hiddenSides={rackHiddenSides(setup, rosters)} {...toolRack} />
           )}
           {toolDrag?.active && (
             <ToolDragGhost
@@ -1021,8 +1011,6 @@ export default function Scene(props) {
           <GameSetup
             setup={setup}
             parsed={parsedRosters}
-            mySide={mySide}
-            seatPlayers={seatPlayers}
             powerOnTable={tableButtons.show.power}
             onStartRound={() => phaseActions.power(playedSides)}
             startRoundBlock={tableButtons.powerBlockTitle(playedSides)}
@@ -1172,7 +1160,6 @@ export default function Scene(props) {
 
           <OwnTools
             ownTools={ownTools}
-            ownSide={ownSide}
             onToolStore={onToolStore}
             onToolReturn={onToolReturn}
             onToolRemove={onToolRemove}

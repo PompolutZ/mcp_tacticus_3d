@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
-import { COLOR_NAME, useSideColors } from '../sideColors.js'
+import { COLOR_NAME } from '../sideColors.js'
 
 // The context of the names (setup/names.js). seatPlayers: { players, peer } in a multiplayer room, else null.
-export function useNames(mySide, seatPlayers) {
-  const colors = useSideColors()
+// colors: the color of each side (sideColors.js). App calls it above the store provider, so it passes them in.
+export function useNames(mySide, seatPlayers, colors) {
   return useMemo(
     () => ({
       mySide,

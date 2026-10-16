@@ -211,13 +211,13 @@ export default function DiceTray({
   onHover,
   addRef,
   diceLives,
-  rethrowTilted = false,
   testHook = false,
 }) {
   useRenderCount('DiceTray')
   const { dice: store, rolls, transact } = useTableStore((s) => s.table)
   const { world } = useRapier()
   // The setting as the frame loop reads it: a change needs no new subscription
+  const rethrowTilted = useTableStore((s) => s.settings.rethrowTilted)
   const rethrowTiltedRef = useRef(rethrowTilted)
   rethrowTiltedRef.current = rethrowTilted
 

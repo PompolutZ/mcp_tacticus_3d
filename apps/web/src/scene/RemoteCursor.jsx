@@ -1,7 +1,8 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { followPart } from '../net/livePose.js'
-import { COLOR_HEX, useSideColor } from '../sideColors.js'
+import { COLOR_HEX } from '../sideColors.js'
+import { useSideColor } from '../table/useSideColors.jsx'
 import { MARKER_LIFT } from '../pieces/heights.js'
 import { useTableStore } from '../table/TableStoreContext.jsx'
 

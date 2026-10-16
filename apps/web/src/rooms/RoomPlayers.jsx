@@ -1,5 +1,6 @@
 import { avatarUrl } from '../auth/avatar.js'
-import { COLOR_NAME, useSideColors } from '../sideColors.js'
+import { COLOR_NAME } from '../sideColors.js'
+import { useSideColors } from '../table/useSideColors.jsx'
 import { TEAMS } from '../setup/setup.js'
 
 const STATUS = {

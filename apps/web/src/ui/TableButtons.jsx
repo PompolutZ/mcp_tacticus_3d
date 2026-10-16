@@ -1,7 +1,8 @@
 import { OnTable, TABLE_Y, px } from '../scene/OnTable.jsx'
 import { TEAMS, otherTeam } from '../setup/setup.js'
-import { useSideName } from '../sideColors.js'
+import { useSideName } from '../table/useSideColors.jsx'
 import { useTableActions } from '../table/actions.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 import { boardStrip, cleanupButton, powerButton } from '../tabletools/layout.js'
 import { assetUrl } from '../assets/index.js'
 import { characterToken } from '../tokens/files.js'
@@ -131,10 +132,11 @@ function BoardStrip({
   )
 }
 
-// All the table buttons. `ownSide` and `multiplayer` tell which Power Phase button is the player's own. The
+// All the table buttons. `ownSide` (the store) and `multiplayer` tell which Power Phase button is the player's own. The
 // other props are the handlers and states of the toolbar buttons, which these repeat.
 // show: { power, cleanup, deployLock, matTurn }, true where the settings put the button on the table.
-export default function TableButtons({ ownSide, multiplayer, show, ...rest }) {
+export default function TableButtons({ multiplayer, show, ...rest }) {
+  const ownSide = useTableStore((s) => s.ownSide)
   const { cleanupDisabled, cleanupTitle, ...strip } = rest
   return (
     <>

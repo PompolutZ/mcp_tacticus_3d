@@ -3,6 +3,7 @@ import { MovementRuler, AngleRuler, RangeRuler } from './RulerTool.jsx'
 import { LosTool } from './LosTool.jsx'
 import { TOOL_HOVER_HEIGHT, sameModel } from './toolGeometry.js'
 import { useRenderCount } from '../debug/renderCount.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 
 const toolKey = (kind, entry) => `${kind}-${entry.which}-${entry.spawn}`
 
@@ -11,7 +12,6 @@ const toolKey = (kind, entry) => `${kind}-${entry.which}-${entry.spawn}`
 // the map that Scene reads to limit a drag of a piece (applyPlaceLimits). turnProps(kind): the Q / E turn props of a tool.
 export default function OwnTools({
   ownTools,
-  ownSide,
   onToolStore,
   onToolReturn,
   onToolRemove,
@@ -28,6 +28,7 @@ export default function OwnTools({
   turnProps,
 }) {
   useRenderCount('OwnTools')
+  const ownSide = useTableStore((s) => s.ownSide)
   // The own tool that has Place or Throw on: 'range', 'move' or null. Only one at a time. The other tool turns
   // its own off (limitTaken in useToolLimits.js). A tool that turns off clears only its slot in placeLimits.
   const [limitTool, setLimitTool] = useState(null)

@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Color } from 'three'
-import { COLOR_HEX, useSideColor } from '../sideColors.js'
+import { COLOR_HEX } from '../sideColors.js'
+import { useSideColor } from '../table/useSideColors.jsx'
 
 // Red glow of the figure while it shows the overlap mark. Added to the colors of the material, so the
 // textures stay visible.

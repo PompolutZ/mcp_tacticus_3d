@@ -2,7 +2,8 @@ import { useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useOnMount } from './useLatest.js'
 import { playSound } from '../sound.js'
-import { COLOR_HEX, useSideColor } from '../sideColors.js'
+import { COLOR_HEX } from '../sideColors.js'
+import { useSideColor } from '../table/useSideColors.jsx'
 import { MARKER_LIFT } from '../pieces/heights.js'
 
 // Seconds that a ping shows, and the last part of it that fades out

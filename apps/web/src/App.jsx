@@ -6,7 +6,6 @@ import { assetUrl } from './assets/index.js'
 import { tacticCardBack } from './tactics/files.js'
 import Scene from './scene/Scene.jsx'
 import SelectionOutlines from './scene/SelectionOutlines.jsx'
-import { DEFAULT_SIDE_COLORS, setSideColors } from './sideColors.js'
 import { Toolbar } from './ui/Toolbar.jsx'
 import { Library } from './ui/Library.jsx'
 import { LogPanel } from './log/LogPanel.jsx'
@@ -111,14 +110,21 @@ export default function App({
   useRenderCount('App')
   // The store of the table (table/tableStore.js). One per table document, App is keyed by it. It makes the
   // refs and the Map of live pose getters that App and Scene share.
-  const [store] = useState(() => createTableStore({ table, ownership, presence, live }))
+  // The seat and the settings are known at the first render, so the store starts with them.
+  const seat = tableSeat(room)
+  const { isGuest, ownSide, playedSides, hiddenSquads, mySide } = seat
+  const { settings, bindings, updateSettings } = useSettings()
+  const [store] = useState(() =>
+    createTableStore(
+      { table, ownership, presence, live },
+      { ownSide, mySide, playedSides, hiddenSquads, settings, bindings },
+    ),
+  )
   const { sceneApi, controlsRef, wheelCameraRef, pieceLives } = store.getState()
   // The order of the hook calls matters, because the effects run in this order. The layout effects come
   // first. useRollOffReader (E8) comes before useGameSetup (E9): a remote update can carry a throw and a
   // setup change together, and E9 reads what E8 wrote. useTableKeys is last: its table of actions uses
   // what all the hooks above give.
-  const seat = tableSeat(room)
-  const { isGuest, ownSide, playedSides, hiddenSquads, mySide } = seat
   const { position: cameraPosition, target: cameraTarget } = startView(isGuest)
   // The rest poses of the models, live: Scene applies a pose that the other browser wrote
   const [poses] = useYRecord(table.poses)
@@ -160,20 +166,44 @@ export default function App({
   // roster starts it again.
   const [setup] = useYRecord(table.setup)
   // The colors of the sides (setup/setup.js, colorOf). The Sandbox (no room) keeps +z Blue. The store gives
-  // them to every component that shows a color (sideColors.js).
+  // them to every component that shows a color (sideColors.js, table/useSideColors.jsx).
   const followPriority = Boolean(room)
   const hostColor = colorOf('host', setup, followPriority)
-  useLayoutEffect(() => {
-    setSideColors({ host: hostColor, guest: hostColor === 'blue' ? 'red' : 'blue' })
-    return () => setSideColors(DEFAULT_SIDE_COLORS)
-  }, [hostColor])
+  const sideColors = useMemo(
+    () => ({ host: hostColor, guest: hostColor === 'blue' ? 'red' : 'blue' }),
+    [hostColor],
+  )
   // The names of the players for the setup texts (setup/names.js): the room players and the hello of the peer
   const seatPlayers = useMemo(
     () => (room?.multiplayer ? { players: room.players, peer: connection?.peer ?? null } : null),
     [room, connection?.peer],
   )
   // The names of the sides in the Priority texts (setup/names.js)
-  const nameCtx = useNames(mySide, seatPlayers)
+  const nameCtx = useNames(mySide, seatPlayers, sideColors)
+  // The seat slice of the store. A layout effect, so the readers show the new value in the same commit, not a frame
+  // later (the colors and the names of a side change with the roll off).
+  useLayoutEffect(() => {
+    store.setState({
+      ownSide,
+      mySide,
+      playedSides,
+      hiddenSquads,
+      seatPlayers,
+      nameCtx,
+      spectator,
+      sideColors,
+    })
+  }, [
+    store,
+    ownSide,
+    mySide,
+    playedSides,
+    hiddenSquads,
+    seatPlayers,
+    nameCtx,
+    spectator,
+    sideColors,
+  ])
   const priority = gamePriority({ priority: storedPriority }, setup)
   // Affiliation token that each player's VP marker shows: { host, guest } → key in scoreboard/affiliations.json.
   // No toolbar control: the game setup sets it, when a squad is placed and at the step affiliation (see
@@ -278,7 +308,6 @@ export default function App({
   // last card lies on top. See docs/features/team-tactic-cards.md, "State".
   const setTacticCards = table.tactics.set
   const { peekCard, handleCardHover, altDown, altUp } = useCardPeek()
-  const { settings, bindings, updateSettings } = useSettings()
   const [settingsOpen, setSettingsOpen] = useState(false)
   // The Sandbox Setup panel under the toolbar (Toolbar.jsx). Esc closes it as a popup.
   const [setupOpen, setSetupOpen] = useState(false)
@@ -610,7 +639,12 @@ export default function App({
   // Debug mode is only in the dev server. import.meta.env.DEV is false in `vite build`, so debug
   // is always false there and the build leaves out the debug code.
   const debug = import.meta.env.DEV && debugOn
-  const { mode, panel: debugPanel } = useDebugLook(debug)
+  const { mode, look, panel: debugPanel } = useDebugLook(debug)
+  // The settings slice of the store, a layout effect for the same reason as the seat slice
+  const showLabels = settings.labels
+  useLayoutEffect(() => {
+    store.setState({ settings, bindings, debugOn, showLabels, showColliders: debug, look })
+  }, [store, settings, bindings, debugOn, showLabels, debug, look])
 
   // Delete key: the handler for each kind of deleteTarget (hover.js)
   const deleteHandlers = {
@@ -757,7 +791,6 @@ export default function App({
                   onTerrainHover={handleTerrainHover}
                   characters={characters}
                   tools={tools}
-                  ownSide={ownSide}
                   onToolStore={handleToolStore}
                   onToolRemove={handleToolReturn}
                   onToolReturn={
@@ -768,11 +801,6 @@ export default function App({
                   ownPing={ownPing}
                   angleSpawn={angleSpawn}
                   toolSpawn={toolSpawn}
-                  showColliders={debug}
-                  showLabels={settings.labels}
-                  turnStep={settings.turn.step}
-                  rethrowTilted={settings.rethrowTilted}
-                  spectator={spectator}
                   deployLine={deployLine}
                   crisis={crisis}
                   tokens={tokens}
@@ -807,7 +835,6 @@ export default function App({
                   onDiceMenuOpen={handleDiceMenuOpen}
                   onDiceMenuClose={handleDiceMenuClose}
                   findCharacterAt={findCharacterAt}
-                  playedSides={playedSides}
                   removeWaits={removeWaits}
                   onDiceTrayHover={handleDiceTrayHover}
                   heldRotate={heldRotate}
@@ -820,8 +847,6 @@ export default function App({
                   onRosterOpen={handleRosterOpen}
                   onCrisisOpen={handleCrisisOpen}
                   setup={viewSetup}
-                  mySide={mySide}
-                  seatPlayers={seatPlayers}
                   squadEdit={squadEdit}
                   onSquadToggle={handleSquadToggle}
                   onScoreMarkerMove={(marker, x, z) =>
@@ -873,10 +898,8 @@ export default function App({
             onRangeClick={handleRangeClick}
             onMoveClick={handleMoveClick}
             onAngleClick={handleAngleClick}
-            spectator={spectator}
             onSpectatorClick={() => setSpectator((prev) => !prev)}
             onTurnMat={handleTurnMat}
-            settings={settings}
             settingsOpen={settingsOpen}
             onSettingsClick={() => setSettingsOpen((prev) => !prev)}
             deployLine={deployLine}
@@ -925,10 +948,6 @@ export default function App({
             setup={viewSetup}
             scoreMarkers={scoreMarkers}
             affiliations={affiliations}
-            nameCtx={nameCtx}
-            mySide={mySide}
-            hiddenSquads={hiddenSquads}
-            size={settings.spectator.size}
             libraryOpen={libraryOpen}
             logOpen={logOpen}
           />

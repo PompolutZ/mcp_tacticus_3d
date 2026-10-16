@@ -1,7 +1,7 @@
 import { SYMBOLS, SYMBOL_NAMES } from '../dice/faces.js'
 import { entryText } from '../dice/history.js'
 import { assetUrl } from '../assets/index.js'
-import { useSideColor } from '../sideColors.js'
+import { useSideColor } from '../table/useSideColors.jsx'
 import { entrySide, logText, mergeLog } from './log.js'
 import { useNames } from '../setup/useNames.js'
 

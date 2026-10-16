@@ -1,6 +1,6 @@
 # Plan: Move App state into a zustand store
 
-Requested by the user on 2026-10-16. Status: steps 1-4 done. The user gave the OK on 2026-10-16 to run steps 4-9 back to back (coder agent per step, no stop between steps), then stop for the user test with the step 9 measurement. Branch `state-context`, worktree `../mcp_assist_3d-state-context`, from main. The plan changes many files, so no other branch is open while it runs.
+Requested by the user on 2026-10-16. Status: steps 1-5 done. The user gave the OK on 2026-10-16 to run steps 4-9 back to back (coder agent per step, no stop between steps), then stop for the user test with the step 9 measurement. Branch `state-context`, worktree `../mcp_assist_3d-state-context`, from main. The plan changes many files, so no other branch is open while it runs.
 
 Each step makes one commit and writes its **Result** below.
 
@@ -157,7 +157,24 @@ Prop counts: App → Scene 85 → 73. Scene → TokenLayer 38 → 35. Scene → 
 - `sideColors.js` and `scene/look.js` module stores go. Their readers use `useTableStore`.
 - Remove the matching props from Scene, Toolbar, SpectatorColumns.
 
-**Result:**
+**Result:** Done. App writes two slices in layout effects with deps: seat (`ownSide`, `mySide`, `playedSides`, `hiddenSquads`, `seatPlayers`, `nameCtx`, `spectator`, `sideColors`) and settings (`settings`, `bindings`, `debugOn`, `showLabels`, `showColliders`, `look`). Layout, not passive, so a reader shows the new value in the same commit (colors and names change with the roll off). The store also starts with the seat, `settings` and `bindings` (`createTableStore(net, initial)`), so no child renders with a default first. App calls `useSettings` and `tableSeat` above the store for that.
+
+`sideColors.js` keeps the constants (`COLOR_HEX`, `COLOR_NAME`, `hexNumber`, `playerColorVars`), the store part is gone. New `table/useSideColors.jsx`: `useSideColors`, `useSideColor`, `useSideName` on `useTableStore`. `scene/look.js` is gone: `DEFAULT_LOOK` is in `tableStore.js`; `FaceMaterial` and `SelectionOutlines` use `useTableStore(s => s.look...)`. `useDebugLook` returns `look` (no `setLook` effect). Non-React readers: none.
+
+Leaves read the store: `Terrain` (`showLabels`), `DiceTray` (`rethrowTilted`), `GameSetup` (`mySide`, `nameCtx`), `TokenLayer` (`playedSides`), `TableButtons`, `ToolRack`, `OwnTools` (`ownSide`), `Toolbar` (`spectator`, `settings.tools`), `SpectatorColumns` (`nameCtx`, `mySide`, `hiddenSquads`, `settings.spectator.size`). `Scene` reads `ownSide`, `playedSides`, `spectator`, `showColliders`, `turnStep` itself and feeds them to `useRenderReason` (`table:*`). Scene props gone: `ownSide`, `showColliders`, `showLabels`, `turnStep`, `rethrowTilted`, `spectator`, `playedSides`, `mySide`, `seatPlayers`. Toolbar props gone: `spectator`, `settings`.
+
+Deviations:
+- `useNames` takes `colors` as a third argument. App calls it above the provider, so it cannot read the store.
+- `TerrainPage` (dev, no App) gets its own provider with a default store, since `SelectionOutlines` and `Terrain` now read it.
+- Not removed, because App or another App child still passes them: `LogPanel` (`mySide`, `seatPlayers`), `CrisisCompare`, `CrisisChoose`, `RosterPopupHost`, `SettingsPopup`, `PhaseButtons`, `Library` (`seat`). Out of the step's list. `ToolDragGhost` `side` and `Ping` `side` stay props from Scene.
+- Renamed `characters/useFigureMaterials.js` to `.jsx`: lint forbids a plain module importing the `.jsx` hook file. `table/useSideColors.jsx` is `.jsx` for the same reason.
+- `.fallowrc.json`: ignored clone id now `dup:8a38126b:2` (`TokenLayer` prop list changed). Step 8 drops it.
+- `table/actions.js` comment still says context does not cross Canvas: step 6 removes the file.
+- Feature doc `setup-game.md` ("Colors") updated.
+
+Checks: lint 40 warnings (same), tests pass (web 1015), build and typecheck ok, fallow: no unused export, no new clone group (`health` fails as before, 308).
+
+Prop counts: App → Scene 73 → 64. App → Toolbar 34 → 32. Scene → TokenLayer 35 → 34. Scene → OwnTools 16 → 15.
 
 ### 6. Actions slice
 

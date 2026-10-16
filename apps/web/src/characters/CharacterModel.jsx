@@ -34,7 +34,7 @@ import { BASE_HALF_H, BASE_RADIUS, NO_ROTATION, baseGroundY, upright } from './b
 import { useModelLift } from '../scene/useModelLift.js'
 import { useLandingSound } from './useLandingSound.js'
 import { useModelFollow } from '../scene/useModelFollow.js'
-import { useFigureMaterials } from './useFigureMaterials.js'
+import { useFigureMaterials } from './useFigureMaterials.jsx'
 import { useRenderCount } from '../debug/renderCount.js'
 
 // While dragged, the base hangs this far above the table or terrain below it

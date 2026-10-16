@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react'
 import { RosterPopup } from './RosterPopup.jsx'
 import { DEFAULT_FILTERS } from './breakdown.js'
 import { CRISIS_THREATS, ROSTER_TABS, rosterCard, rosterTabs } from './cards.js'
-import { COLOR_NAME, useSideColors } from '../sideColors.js'
+import { COLOR_NAME } from '../sideColors.js'
+import { useSideColors } from '../table/useSideColors.jsx'
 import { placedSides, possibleThreats } from '../setup/setup.js'
 
 // The roster popup of the table (RosterPopup.jsx) with the state that must outlive it. It is always

@@ -1,5 +1,6 @@
 import { tokenInfo } from '../crisis/cards.js'
-import { COLOR_NAME, useSideColors } from '../sideColors.js'
+import { COLOR_NAME } from '../sideColors.js'
+import { useSideColors } from '../table/useSideColors.jsx'
 import { TEAMS } from '../setup/setup.js'
 
 // Bottom HUD for the selected crisis token. Shows only the actions the token allows (see

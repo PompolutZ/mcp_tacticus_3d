@@ -21,7 +21,7 @@ import {
   VP_POINTS,
   snapPoint,
 } from './board.js'
-import { useSideColor } from '../sideColors.js'
+import { useSideColor } from '../table/useSideColors.jsx'
 import { TEAMS } from '../setup/setup.js'
 import { affiliationToken, BOARD_MESH, BOARD_TEXTURE, ROUND_MESH } from './files.js'
 import { TOKEN_THICKNESS } from '../tokens/solid.js'

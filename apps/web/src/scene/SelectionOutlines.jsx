@@ -3,7 +3,8 @@ import { useThree } from '@react-three/fiber'
 import { EffectComposer, Outline, ToneMapping } from '@react-three/postprocessing'
 import { BlendFunction, ToneMappingMode } from 'postprocessing'
 import { ACESFilmicToneMapping, AgXToneMapping, NeutralToneMapping } from 'three'
-import { DEFAULT_LOOK, useLook } from './look.js'
+import { DEFAULT_LOOK } from '../table/tableStore.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 import { hasAll, withEffect } from './effectRegistry.js'
 import { COLOR_HEX, hexNumber } from '../sideColors.js'
 
@@ -67,7 +68,7 @@ const OUTLINES = {
   },
 }
 const MODES = Object.keys(OUTLINES)
-// The tone mapping of each look option (look.js): the ToneMapping pass mode, and the renderer
+// The tone mapping of each look option (DEFAULT_LOOK in table/tableStore.js): the ToneMapping pass mode, and the renderer
 // constant for when the composer is off
 const TONE_MAPPINGS = {
   aces: { pass: ToneMappingMode.ACES_FILMIC, renderer: ACESFilmicToneMapping },
@@ -128,7 +129,7 @@ export default function SelectionOutlines({ children, composer = true, outlines 
   const [toneEffect, setToneEffect] = useState(null)
   const dpr = useThree((state) => state.viewport.dpr)
   const gl = useThree((state) => state.gl)
-  const tone = TONE_MAPPINGS[useLook().toneMapping]
+  const tone = TONE_MAPPINGS[useTableStore((s) => s.look.toneMapping)]
   const outlinesReady = hasAll(effects, MODES)
 
   const register = useCallback((meshes, mode) => {
@@ -175,7 +176,7 @@ export default function SelectionOutlines({ children, composer = true, outlines 
   // Created once. When the children of EffectComposer change, it builds its passes again and
   // compiles a new shader, so the selection is set on the effects above, not passed as a prop.
   // The composer turns off the renderer tone mapping, so ToneMapping adds it back. It starts with the
-  // default mode (Neutral, see look.js); the effect above sets later switches from debug mode.
+  // default mode (Neutral, see DEFAULT_LOOK in table/tableStore.js); the effect above sets later switches from debug mode.
   // It comes before the outlines, so the outline colors are not tone mapped.
   // The ref callbacks are made once, so the passes keep the same props.
   const passes = useMemo(

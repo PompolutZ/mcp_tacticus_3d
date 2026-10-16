@@ -12,6 +12,7 @@ import { affiliationName } from '../scoreboard/affiliations.js'
 import { characterToken } from '../tokens/files.js'
 import { affiliationTokenKey } from '../tokens/affiliationTokens.js'
 import { OnToken } from '../characters/TrayPopup.jsx'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 
 // Power is 0 to 10 (the tray counter)
 const MAX_POWER = 10
@@ -108,8 +109,8 @@ function Row({ character, held, off, ko }) {
 // single player room: Blue, the host, left). A header with the player name, VP and the round, then a row
 // per character and grunt in squad order (no constructs). Read-only. See docs/features/spectator-view.md,
 // "Squad columns".
-// characters, tokens, poses, setup (the viewer's setup), scoreMarkers: App state. nameCtx: names (setup/names.js).
-// mySide, hiddenSquads: the seat (rooms/seat.js). size: percent (settings.spectator.size). libraryOpen and
+// characters, tokens, poses, setup (the viewer's setup), scoreMarkers: App state.
+// nameCtx (names, setup/names.js), mySide, hiddenSquads (the seat, rooms/seat.js) and size (percent, settings.spectator.size) come from the store of the table. libraryOpen and
 // logOpen push the column on their side inward.
 export default function SpectatorColumns({
   characters,
@@ -118,13 +119,13 @@ export default function SpectatorColumns({
   setup,
   scoreMarkers,
   affiliations,
-  nameCtx,
-  mySide,
-  hiddenSquads,
-  size,
   libraryOpen,
   logOpen,
 }) {
+  const nameCtx = useTableStore((s) => s.nameCtx)
+  const mySide = useTableStore((s) => s.mySide)
+  const hiddenSquads = useTableStore((s) => s.hiddenSquads)
+  const size = useTableStore((s) => s.settings.spectator.size)
   const score = scoreFromMarkers(scoreMarkers)
   const held = heldTokensByCharacter(tokens)
   const placed = placedSides(setup)

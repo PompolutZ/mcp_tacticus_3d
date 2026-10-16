@@ -5,7 +5,7 @@ import { CARD_SIZES } from '../rosters/layout.js'
 import { CRISIS_TYPES, otherTeam, priorityOf, setupStep } from '../setup/setup.js'
 import { TYPE, deckButton } from '../setup/deckButton.js'
 import { playerName } from '../setup/names.js'
-import { useSideColors } from '../sideColors.js'
+import { useSideColors } from '../table/useSideColors.jsx'
 import { Carousel } from '../ui/Carousel.jsx'
 import { Dialog } from '../ui/Dialog.jsx'
 

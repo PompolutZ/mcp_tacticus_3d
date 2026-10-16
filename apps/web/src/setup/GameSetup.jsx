@@ -27,9 +27,9 @@ import {
 import { isYou, playerName, possessive, says } from './names.js'
 import { STEP_NAME, chooses, decides, rollOffText, stepChoice } from './setupText.js'
 import { TYPE, deckButton, lockedTitle, pickButton } from './deckButton.js'
-import { useSideColors } from '../sideColors.js'
+import { useSideColors } from '../table/useSideColors.jsx'
 import { useTableActions } from '../table/actions.js'
-import { useNames } from './useNames.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 import { RosterCard } from '../rosters/RosterCards.jsx'
 import { OnTable, OWNER_FACING_ROTATION, TABLE_Y, px } from '../scene/OnTable.jsx'
 import {
@@ -430,9 +430,8 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
 
 // The game setup on the table: the crisis cards of the rosters next to the scoring board, and the buttons
 // of each step. The buttons lie flat on the table (OnTable). See docs/features/setup-game.md.
-// setup: see setup/setup.js. parsed: { host, guest } → parsed roster | null (useGameSetup). seatPlayers: { players, peer } of a multiplayer room, for the names
-// (setup/names.js). mySide: the team of the player in a multiplayer room, or null when one
-// person plays both teams. Only that team's squad panel has buttons. The actions come from useTableActions().setup: { priority(team), deck(type), pick(code),
+// setup: see setup/setup.js. parsed: { host, guest } → parsed roster | null (useGameSetup). Only the squad panel of the team of the player (mySide in the store, null when one
+// person plays both teams) has buttons. The actions come from useTableActions().setup: { priority(team), deck(type), pick(code),
 // threat(value), turnMat(direction), edge(), ready(team),
 // affiliation(team, key), restart(), browse(step | null), override(step) }, see setup/useGameSetup.js (setupActions).
 // powerOnTable: the Power button is on the table (the note names it). onStartRound(): the Power button's action,
@@ -443,15 +442,14 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
 export default function GameSetup({
   setup,
   parsed,
-  mySide,
-  seatPlayers,
   powerOnTable,
   onStartRound,
   startRoundBlock,
   onCrisisOpen,
   onCardHover,
 }) {
-  const ctx = useNames(mySide, seatPlayers)
+  const mySide = useTableStore((s) => s.mySide)
+  const ctx = useTableStore((s) => s.nameCtx)
   const { setup: actions } = useTableActions()
   const rows = useMemo(() => crisisRows(setup, parsed), [setup, parsed])
   const step = setupStep(setup)

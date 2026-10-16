@@ -45,7 +45,6 @@ export default function TokenLayer({
   dragSelect,
   onHeldHover,
   onPieceHover,
-  playedSides,
   applyPlaceLimits,
   onTokenMove,
   onTokenTurn,
@@ -69,6 +68,7 @@ export default function TokenLayer({
   otherSpawn,
 }) {
   useRenderCount('TokenLayer')
+  const playedSides = useTableStore((s) => s.playedSides)
   const [tokenPiles] = useYList(useTableStore((s) => s.table.tokenPiles))
   // Every crisis token as it is drawn. A held token lies on its holder's card: its tray-local place
   // (heldAt) moves to the table with the tray position, and it faces the holder's player, the same

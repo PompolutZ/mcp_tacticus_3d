@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { COLOR_NAME, useSideColors } from '../sideColors.js'
+import { COLOR_NAME } from '../sideColors.js'
+import { useSideColors } from '../table/useSideColors.jsx'
 import { TEAMS } from '../setup/setup.js'
 import { MAPS } from '../terrain/maps/index.js'
 import { cardsOfType } from '../crisis/cards.js'
 import { CopyLinkButton } from '../rooms/CopyLinkButton.jsx'
 import { RoomPlayers } from '../rooms/RoomPlayers.jsx'
 import { useRenderCount } from '../debug/renderCount.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 
 const RANGES = [1, 2, 3, 4, 5]
 const MOVES = [
@@ -42,10 +44,8 @@ export function Toolbar({
   onRangeClick,
   onMoveClick,
   onAngleClick,
-  spectator,
   onSpectatorClick,
   onTurnMat,
-  settings,
   settingsOpen,
   onSettingsClick,
   deployLine,
@@ -63,11 +63,13 @@ export function Toolbar({
   onSetupClose,
 }) {
   useRenderCount('Toolbar')
+  const spectator = useTableStore((s) => s.spectator)
+  const toolPlaces = useTableStore((s) => s.settings.tools)
   // The typed text stays in the field after Enter (x clears it)
   const [rosterText, setRosterText] = useState({ host: '', guest: '' })
   // A setting of 'hud' puts the item in the toolbar, 'table' on the table (docs/features/table-tools.md,
   // "Settings menu"). The Mat group stays for the map select, also when the mat turn is on the table.
-  const hud = (item) => settings.tools[item] === 'hud'
+  const hud = (item) => toolPlaces[item] === 'hud'
   const rackHud = hud('rack')
   const deployHud = hud('deployLock')
   const matTurnHud = hud('matTurn')

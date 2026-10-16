@@ -22,6 +22,7 @@ import { outlineMode, useOutline } from '../scene/SelectionOutlines.jsx'
 import { useDisposeMaterials } from '../scene/useDisposeMaterials.js'
 import { useHoverCursor, useHoverReport } from '../scene/useHoverCursor.js'
 import { useRenderCount } from '../debug/renderCount.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 import { useTerrainHoverLabel } from './useTerrainHoverLabel.js'
 
 const WHITE = [1, 1, 1]
@@ -376,7 +377,6 @@ function PieceBody({
 // A new height (position y) does the same: a piece that falls when what it stood on is deleted.
 export default function Terrain({
   placements,
-  showLabels = false,
   terrainUnder,
   selectedId = null,
   onSelect,
@@ -386,6 +386,7 @@ export default function Terrain({
   onPointerDown,
 }) {
   useRenderCount('Terrain')
+  const showLabels = useTableStore((s) => s.showLabels)
   const hoverLabelId = useTerrainHoverLabel({ showLabels, terrainUnder })
   return placements.map((placement) => (
     <TerrainPiece

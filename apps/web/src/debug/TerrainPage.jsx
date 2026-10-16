@@ -7,6 +7,8 @@ import { WheelCamera } from '../scene/WheelCamera.jsx'
 import { Backdrop, Mat, SceneLights, TableSurface } from '../scene/SceneShared.jsx'
 import SelectionOutlines from '../scene/SelectionOutlines.jsx'
 import Terrain from '../terrain/Terrain.jsx'
+import { TableStoreProvider } from '../table/TableStoreContext.jsx'
+import { createTableStore } from '../table/tableStore.js'
 import { canvasEvents } from '../scene/canvasEvents.js'
 import { CAMERA_MOUSE_BUTTONS, MAX_POLAR_ANGLE, startView } from '../camera.js'
 import { defaultBindings } from '../input/bindings.js'
@@ -116,6 +118,8 @@ function EditableTerrain({ placements, setPlacements, selectedId, setSelectedId 
 }
 
 export default function TerrainPage() {
+  // The scene parts read the look and the settings from a store of the table; the page has the defaults
+  const [store] = useState(() => createTableStore({}))
   const [matName, setMatName] = useState(SORTED_MATS[0].name)
   const [filter, setFilter] = useState('')
   // [{ id, piece, size, position, rotation, scale, tint, locked }], relative to the mat center (TTS coords)
@@ -266,131 +270,133 @@ export default function TerrainPage() {
   }
 
   return (
-    <div className="terrain-page">
-      <aside className="terrain-panel">
-        <h2 className="terrain-heading">Map</h2>
-        <select
-          className="chip terrain-select"
-          value=""
-          aria-label="Load map"
-          onChange={(e) => loadMap(e.target.value)}
-        >
-          <option value="">Load map...</option>
-          {Object.values(MAPS).map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </select>
-        <input
-          type="text"
-          className="chip chip--text terrain-filter"
-          placeholder="id (kebab-case)"
-          aria-label="Map id"
-          value={mapId}
-          onChange={(e) => setMapId(e.target.value)}
-        />
-        <input
-          type="text"
-          className="chip chip--text terrain-filter"
-          placeholder="Name"
-          aria-label="Map name"
-          value={mapName}
-          onChange={(e) => setMapName(e.target.value)}
-        />
-        <button type="button" className="terrain-row" disabled={!idValid} onClick={exportFile}>
-          Export
-        </button>
-        <h2 className="terrain-heading">Mats</h2>
-        <ul className="terrain-list terrain-mats">
-          {SORTED_MATS.map((m) => (
-            <li key={m.name}>
-              <button
-                type="button"
-                className={m.name === matName ? 'terrain-row terrain-row--active' : 'terrain-row'}
-                onClick={() => pickMat(m.name)}
-              >
-                {m.name}
-              </button>
-            </li>
-          ))}
-        </ul>
-        <h2 className="terrain-heading">Pieces</h2>
-        <button
-          type="button"
-          className="terrain-row"
-          disabled={placements.length === 0}
-          onClick={clearPieces}
-        >
-          Clear ({placements.length})
-        </button>
-        <input
-          type="search"
-          className="chip chip--text terrain-filter"
-          placeholder="Filter by name"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-        />
-        <div className="terrain-pieces">
-          {groups.map((g) => (
-            <section key={g.key}>
-              <h3 className="terrain-group">
-                {g.title} <span className="terrain-count">{g.pieces.length}</span>
-              </h3>
-              <ul className="terrain-list">
-                {g.pieces.map((p) => (
-                  <li key={p.key}>
-                    <button type="button" className="terrain-row" onClick={() => addPiece(p)}>
-                      {p.name}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
-          {groups.length === 0 && <p className="terrain-empty">No piece</p>}
-        </div>
-      </aside>
-      <div className="terrain-canvas">
-        <div className="scene-root">
-          <Canvas
-            shadows="percentage"
-            camera={CAMERA}
-            gl={{ antialias: false }}
-            events={canvasEvents}
-            onPointerMissed={(e) => {
-              if (e.type === 'click' && e.target instanceof HTMLCanvasElement) setSelectedId(null)
-            }}
+    <TableStoreProvider store={store}>
+      <div className="terrain-page">
+        <aside className="terrain-panel">
+          <h2 className="terrain-heading">Map</h2>
+          <select
+            className="chip terrain-select"
+            value=""
+            aria-label="Load map"
+            onChange={(e) => loadMap(e.target.value)}
           >
-            <Suspense fallback={null}>
-              <Backdrop />
-              <SceneLights />
-              <SelectionOutlines>
-                <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP}>
-                  <TableSurface />
-                  <Mat mat={mat.name} rotation={matRotation} />
-                  <EditableTerrain
-                    placements={placements}
-                    setPlacements={setPlacements}
-                    selectedId={selectedId}
-                    setSelectedId={setSelectedId}
-                  />
-                </Physics>
-              </SelectionOutlines>
-            </Suspense>
-            <OrbitControls
-              makeDefault
-              target={VIEW.target}
-              minDistance={5}
-              maxDistance={50}
-              maxPolarAngle={MAX_POLAR_ANGLE}
-              mouseButtons={CAMERA_MOUSE_BUTTONS}
-            />
-            <KeyboardCamera pan={heldPan} turn={heldTurn} />
-            <WheelCamera wheelState={wheelState} />
-          </Canvas>
+            <option value="">Load map...</option>
+            {Object.values(MAPS).map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+          <input
+            type="text"
+            className="chip chip--text terrain-filter"
+            placeholder="id (kebab-case)"
+            aria-label="Map id"
+            value={mapId}
+            onChange={(e) => setMapId(e.target.value)}
+          />
+          <input
+            type="text"
+            className="chip chip--text terrain-filter"
+            placeholder="Name"
+            aria-label="Map name"
+            value={mapName}
+            onChange={(e) => setMapName(e.target.value)}
+          />
+          <button type="button" className="terrain-row" disabled={!idValid} onClick={exportFile}>
+            Export
+          </button>
+          <h2 className="terrain-heading">Mats</h2>
+          <ul className="terrain-list terrain-mats">
+            {SORTED_MATS.map((m) => (
+              <li key={m.name}>
+                <button
+                  type="button"
+                  className={m.name === matName ? 'terrain-row terrain-row--active' : 'terrain-row'}
+                  onClick={() => pickMat(m.name)}
+                >
+                  {m.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <h2 className="terrain-heading">Pieces</h2>
+          <button
+            type="button"
+            className="terrain-row"
+            disabled={placements.length === 0}
+            onClick={clearPieces}
+          >
+            Clear ({placements.length})
+          </button>
+          <input
+            type="search"
+            className="chip chip--text terrain-filter"
+            placeholder="Filter by name"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+          <div className="terrain-pieces">
+            {groups.map((g) => (
+              <section key={g.key}>
+                <h3 className="terrain-group">
+                  {g.title} <span className="terrain-count">{g.pieces.length}</span>
+                </h3>
+                <ul className="terrain-list">
+                  {g.pieces.map((p) => (
+                    <li key={p.key}>
+                      <button type="button" className="terrain-row" onClick={() => addPiece(p)}>
+                        {p.name}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+            {groups.length === 0 && <p className="terrain-empty">No piece</p>}
+          </div>
+        </aside>
+        <div className="terrain-canvas">
+          <div className="scene-root">
+            <Canvas
+              shadows="percentage"
+              camera={CAMERA}
+              gl={{ antialias: false }}
+              events={canvasEvents}
+              onPointerMissed={(e) => {
+                if (e.type === 'click' && e.target instanceof HTMLCanvasElement) setSelectedId(null)
+              }}
+            >
+              <Suspense fallback={null}>
+                <Backdrop />
+                <SceneLights />
+                <SelectionOutlines>
+                  <Physics gravity={[0, WORLD_GRAVITY, 0]} timeStep={TIME_STEP}>
+                    <TableSurface />
+                    <Mat mat={mat.name} rotation={matRotation} />
+                    <EditableTerrain
+                      placements={placements}
+                      setPlacements={setPlacements}
+                      selectedId={selectedId}
+                      setSelectedId={setSelectedId}
+                    />
+                  </Physics>
+                </SelectionOutlines>
+              </Suspense>
+              <OrbitControls
+                makeDefault
+                target={VIEW.target}
+                minDistance={5}
+                maxDistance={50}
+                maxPolarAngle={MAX_POLAR_ANGLE}
+                mouseButtons={CAMERA_MOUSE_BUTTONS}
+              />
+              <KeyboardCamera pan={heldPan} turn={heldTurn} />
+              <WheelCamera wheelState={wheelState} />
+            </Canvas>
+          </div>
         </div>
       </div>
-    </div>
+    </TableStoreProvider>
   )
 }

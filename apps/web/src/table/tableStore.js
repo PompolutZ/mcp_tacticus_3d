@@ -1,6 +1,14 @@
 import { createStore } from 'zustand/vanilla'
-import { DEFAULT_LOOK } from '../scene/look.js'
+import { effectiveBindings } from '../input/bindings.js'
+import { defaultSettings } from '../settings/settings.js'
+import { TEAMS } from '../setup/setup.js'
 import { DEFAULT_SIDE_COLORS } from '../sideColors.js'
+
+// The look of cards and tokens: tone mapping ('aces' | 'neutral' | 'agx') and surface of the faces
+// ('standard' | 'matte' | 'unlit'). See FaceMaterial.jsx. The default is Neutral and Unlit (the choice in
+// docs/plans/playtest/playtest-1-bugs.md). Debug mode can switch every option, to compare the look again,
+// see debug/useDebugLook.js and DebugPanel.jsx.
+export const DEFAULT_LOOK = { toneMapping: 'neutral', surface: 'unlit' }
 
 // The store of one table: the local state that the DOM and the <Canvas> share, with no prop passing. App makes it
 // once per table document (App is keyed by it). The slices are in the plan,
@@ -8,7 +16,9 @@ import { DEFAULT_SIDE_COLORS } from '../sideColors.js'
 //
 // net: { table, ownership, presence, live }. The store adds pieceLives, sceneApi, controlsRef and wheelCameraRef. Set once and never changed.
 // ownership, presence and live are null outside a multiplayer room.
-export function createTableStore(net) {
+// initial: values of the seat and settings slices that App knows at the first render, so no child renders with a default.
+// App writes them again when they change (layout effects).
+export function createTableStore(net, initial = {}) {
   return createStore(() => ({
     // net
     table: net.table,
@@ -24,15 +34,15 @@ export function createTableStore(net) {
     // seat
     ownSide: 'host',
     mySide: null,
-    playedSides: [],
-    hiddenSquads: {},
+    playedSides: TEAMS,
+    hiddenSquads: false,
     seatPlayers: null,
     nameCtx: null,
     spectator: false,
     sideColors: DEFAULT_SIDE_COLORS,
     // settings
-    settings: null,
-    bindings: null,
+    settings: defaultSettings(),
+    bindings: effectiveBindings(),
     debugOn: false,
     showLabels: false,
     showColliders: false,
@@ -51,5 +61,6 @@ export function createTableStore(net) {
     rangeMark: null,
     draggingCharId: null,
     overlapIds: new Set(),
+    ...initial,
   }))
 }

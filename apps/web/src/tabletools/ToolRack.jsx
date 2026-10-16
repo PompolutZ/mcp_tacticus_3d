@@ -8,6 +8,7 @@ import { outlineMode, useOutline } from '../scene/SelectionOutlines.jsx'
 import { useHoverCursor } from '../scene/useHoverCursor.js'
 import { OccludedHtml } from '../scene/LabelOcclusion.jsx'
 import { useRenderCount } from '../debug/renderCount.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 
 // The tool rack of each player: a plate with the range and movement tools in the player tint, and the R1, T/A and
 // LOS chips. See docs/features/table-tools.md, "Tool rack". The tools have no physics body. A click is the
@@ -240,7 +241,6 @@ function Rack({ side, tools, handlers }) {
 // A hidden rack is not mounted, so it takes no pointer.
 // onDragStart(e, kind, which, onClick): a press on an own tool or chip (tabletools/useTableTools.js, startToolDrag).
 export default function ToolRack({
-  ownSide,
   multiplayer,
   tools,
   onRangeClick,
@@ -251,6 +251,7 @@ export default function ToolRack({
   hiddenSides = [],
 }) {
   useRenderCount('ToolRack')
+  const ownSide = useTableStore((s) => s.ownSide)
   const handlers = { onRangeClick, onMoveClick, onAngleClick, onLosClick, onDragStart }
   const sides = (multiplayer ? TEAMS : [ownSide]).filter((side) => !hiddenSides.includes(side))
   return sides.map((side) => (

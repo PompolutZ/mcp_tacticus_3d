@@ -3,7 +3,7 @@
   "entry": ["apps/api/src/lambda.ts", "infra/bin/app.ts"],
   "ignorePatterns": ["apps/web/public/draco/**"],
   "ignoreDependencies": ["esbuild"],
-  "duplicates": { "ignoredClones": ["dup:18a62811:2"] },
+  "duplicates": { "ignoredClones": ["dup:8a38126b:2"] },
   "ignoreExports": [
     {
       "file": "apps/web/src/rooms/serverStore.js",
