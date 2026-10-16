@@ -4,7 +4,7 @@ import { OccludedHtml } from '../scene/LabelOcclusion.jsx'
 import { DoubleSide } from 'three'
 import { assetUrl } from '../assets/index.js'
 import { trayCardFile } from './files.js'
-import { trayCards } from './models.js'
+import { modelCharacterId, trayCards } from './models.js'
 import { characterGiveSources, characterName, characterStamina } from './characters.js'
 import {
   GRUNT_CARD_HEIGHT,
@@ -75,7 +75,6 @@ export default function CharacterTray({
   position,
   onBoard,
   removeWait = null,
-  selected = false,
   objectRef,
   grunts = 0,
   affiliation = null,
@@ -83,6 +82,10 @@ export default function CharacterTray({
 }) {
   useRenderCount('CharacterTray')
   const actions = useTableStore((s) => s.actions)
+  // The tray card shows the selection of its character's model too
+  const selected = useTableStore((s) =>
+    s.selection.some((p) => p.kind === 'character' && modelCharacterId(p.id) === character.id),
+  )
   // Both sides of every card load when the tray mounts, so the first Flip does not wait for an image
   // (that wait hides the tray, see Scene.jsx, Suspense). The order is fixed: the loader caches by
   // the URL list.

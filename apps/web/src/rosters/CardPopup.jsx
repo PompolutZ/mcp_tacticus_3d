@@ -1,4 +1,5 @@
 import { Overlay } from '../ui/Overlay.jsx'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 import { FACE_HEIGHT, FACE_WIDTH } from '../tactics/TacticFace.jsx'
 import TacticFaceScaled from '../tactics/TacticFaceScaled.jsx'
 
@@ -26,9 +27,10 @@ function TacticFacePopup({ tacticKey }) {
 // document.body): a tray's own drei <Html> controls must never be able to draw over it, see
 // index.css, .scene-root. A character tray card opens the whole tray instead (TrayPopup.jsx).
 // peek: the image while Alt is held (useCardPeek.js). The same image in the same place, but with no backdrop
-// and no pointer events, so the hover of the table under it goes on.
+// and no pointer events, so the hover of the table under it goes on. The peek hides during a token or tool drag.
 export function CardPopup({ card, onClose, peek = false }) {
-  if (!card) return null
+  const dragging = useTableStore((s) => !!(s.tokenDrag || s.toolDrag))
+  if (!card || (peek && dragging)) return null
 
   return (
     <Overlay

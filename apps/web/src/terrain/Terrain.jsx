@@ -23,6 +23,7 @@ import { useDisposeMaterials } from '../scene/useDisposeMaterials.js'
 import { useHoverCursor, useHoverReport } from '../scene/useHoverCursor.js'
 import { useRenderCount } from '../debug/renderCount.js'
 import { useTableStore } from '../table/TableStoreContext.jsx'
+import { selectedId as selectedPieceId } from '../selection.js'
 import { useTerrainHoverLabel } from './useTerrainHoverLabel.js'
 
 const WHITE = [1, 1, 1]
@@ -371,14 +372,14 @@ function PieceBody({
 // terrainUnder(ndc): id of the piece under the pointer, or null (Scene's ray). With labels off, Terrain
 // keeps the hovered id in its own state (useTerrainHoverLabel), so a hover change renders only Terrain,
 // not Scene. A locked piece gets the label too. Without terrainUnder there is no hover label.
-// selectedId: id of the selected piece, or null. onSelect(id), onHover(id, over), objectRef(id, obj):
+// selectedId: id of the selected piece, or null. Without it, Terrain reads the selected terrain piece from the store. onSelect(id), onHover(id, over), objectRef(id, obj):
 // see TerrainPiece. groupRef(id, group), onPointerDown(id, e): see TerrainPiece.
 // A placement with `rev` remounts the piece when rev changes, so its fixed body gets the new transform.
 // A new height (position y) does the same: a piece that falls when what it stood on is deleted.
 export default function Terrain({
   placements,
   terrainUnder,
-  selectedId = null,
+  selectedId,
   onSelect,
   onHover,
   objectRef,
@@ -387,13 +388,15 @@ export default function Terrain({
 }) {
   useRenderCount('Terrain')
   const showLabels = useTableStore((s) => s.showLabels)
+  const storeSelectedId = useTableStore((s) => selectedPieceId(s.selection, 'terrain'))
+  const shownId = selectedId ?? storeSelectedId
   const hoverLabelId = useTerrainHoverLabel({ showLabels, terrainUnder })
   return placements.map((placement) => (
     <TerrainPiece
       key={`${placement.id}:${placement.rev ?? 0}:${placement.position[1]}`}
       placement={placement}
       showLabel={showLabels || hoverLabelId === placement.id}
-      selected={selectedId === placement.id}
+      selected={shownId === placement.id}
       onSelect={() => onSelect?.(placement.id)}
       onHover={(over) => onHover?.(placement.id, over)}
       objectRef={(obj) => objectRef?.(placement.id, obj)}

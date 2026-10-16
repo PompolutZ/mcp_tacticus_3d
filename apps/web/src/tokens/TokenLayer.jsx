@@ -37,12 +37,8 @@ export default function TokenLayer({
   trayPositions,
   gruntLists,
   trayShape,
-  selectedTokenId,
-  selectedLooseId,
   rangeMarkOf,
   otherSelectedOf,
-  toggleSelect,
-  dragSelect,
   applyPlaceLimits,
   otherOwned,
   getPieceLive,
@@ -52,12 +48,12 @@ export default function TokenLayer({
   looseObjects,
   looseCenters,
   looseTokens,
-  tokenDrag,
-  dragPointRef,
   otherSpawn,
 }) {
   useRenderCount('TokenLayer')
   const actions = useTableStore((s) => s.actions)
+  const tokenDrag = useTableStore((s) => s.tokenDrag)
+  const dragPointRef = useTableStore((s) => s.dragPointRef)
   const playedSides = useTableStore((s) => s.playedSides)
   const [tokenPiles] = useYList(useTableStore((s) => s.table.tokenPiles))
   // Every crisis token as it is drawn. A held token lies on its holder's card: its tray-local place
@@ -94,11 +90,10 @@ export default function TokenLayer({
           <CrisisToken
             token={tok}
             floorY={floorY}
-            selected={selectedTokenId === tok.id}
             rangeMark={rangeMarkOf('token', tok.id)}
             otherSelected={otherSelectedOf('token', tok.id)}
-            onSelect={() => toggleSelect('token', tok.id)}
-            onDragSelect={() => dragSelect('token', tok.id)}
+            onSelect={() => actions.toggleSelect('token', tok.id)}
+            onDragSelect={() => actions.dragSelect('token', tok.id)}
             onHover={
               tok.heldBy
                 ? (over) => actions.onHeldHover(tok.id, over)
@@ -151,7 +146,6 @@ export default function TokenLayer({
             index={index}
             count={(tok.count ?? 1) - (tokenDrag?.active && tokenDrag.takeFrom === tok.id ? 1 : 0)}
             onDragStart={(e) => actions.onTokenDragStart(e, tok.key, tok.id)}
-            selected={selectedLooseId === tok.id}
             rangeMark={rangeMarkOf('loose', tok.id)}
             otherSelected={otherSelectedOf('loose', tok.id)}
             onHover={(over) => {

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import { startPointerDrag } from './pointerDrag.js'
 import { tokenDropTarget } from './tokenDrop.js'
 import { getCard } from '../crisis/cards.js'
@@ -10,9 +10,10 @@ import { clickAdd, countOf, dropCollected, firstPlace, takeOne } from '../tokens
 
 // The token drag: the drag starts from the Give sources, the Library, the piles, the table tokens and
 // the supply piles, and the release (docs/features/library.md, "Tokens"). Call it after the hooks that
-// give the character token give, the supply take and the table token remove. tokenDrag, dragPointRef
-// and findCharacterAt go to the Scene and the keys.
+// give the character token give, the supply take and the table token remove. findCharacterAt
+// goes to the Scene and the keys.
 export function useTokenDrag({
+  store,
   table,
   ownership,
   pieceLives,
@@ -24,6 +25,7 @@ export function useTokenDrag({
   handleSupplyTake,
   handleLooseRemove,
 }) {
+  // The state is in the store (table/tableStore.js): TokenLayer, the keys and the peek card read it there.
   // A token drag in progress: { tokenKey, looseId, giveId, supplyCard, pile, pileId, newId, key, active, start } | null.
   // newId: the id of the new piece of the drag (a new token, pile or supply token), else null. key: the piece
   // key of the dragged piece, `loose:`, `pile:` or `token:` (docs/features/peer-to-peer.md, "Moving objects (physics)"). looseId: the table token that is dragged, or null for a new token from a source. giveId: the character of the tray, when the press is on its Give source (a click gives it one token), else null. supplyCard: the
@@ -33,11 +35,11 @@ export function useTokenDrag({
   // shows under the pointer (Scene.jsx, TokenDragPreview). start: the pointer position at that
   // moment. The state changes only at start and when the drag becomes active, not on every
   // pointermove.
-  const [tokenDrag, setTokenDrag] = useState(null)
+  const { actions, dragPointRef } = store.getState()
+  const { setTokenDrag } = actions
   // The same drag without the active and start fields, for handleTokenRelease
   const tokenDragRef = useRef(null)
-  // The table point under the pointer, written by TokenDragPreview: { x, y, z } | null
-  const dragPointRef = useRef(null)
+  // dragPointRef: the table point under the pointer, written by TokenDragPreview: { x, y, z } | null
   // pointerdown on a character token: a tray's Give source (a new token, the source never runs out),
   // or a token on the table (looseId).
   // giveId: the character of the tray, for a Give source: a click gives it one token (startTokenDrag).
@@ -238,8 +240,6 @@ export function useTokenDrag({
   }
 
   return {
-    tokenDrag,
-    dragPointRef,
     findCharacterAt,
     handleTokenDragStart,
     handleLibraryTokenDragStart,

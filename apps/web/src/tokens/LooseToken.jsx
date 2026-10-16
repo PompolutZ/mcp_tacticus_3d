@@ -12,6 +12,8 @@ import TokenFace from './TokenFace.jsx'
 import useLiveFollow from '../scene/useLiveFollow.js'
 import { SURFACE_GAP } from '../pieces/heights.js'
 import { NO_ROTATION } from '../characters/base.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
+import { isSelected } from '../selection.js'
 
 // A thin cylinder as wide as the token finds the ground under it, the same as CrisisToken.jsx.
 const HALF_H = 0.02
@@ -23,7 +25,7 @@ const HALF_H = 0.02
 // the terrain (tokens/stack.js). token: { id, key, x, z, count?, pile? }, see App.jsx, looseTokens. index: its place in
 // that list; the tokens after it lie on top. onDragStart(nativeEvent): a left
 // pointerdown, App starts the same drag as from a source. onHover(over): for the Delete key and the tool keys.
-// selected, rangeMark, otherSelected: the outline, as for a crisis token. objects, centers: the Scene's Maps by token id for the
+// rangeMark, otherSelected: the outline, as for a crisis token. It reads from the store whether it is selected. objects, centers: the Scene's Maps by token id for the
 // tools (docs/features/range-movement-tools.md).
 // count: the number shown on top when 2 or more (token.count, a collected token's pile); Scene lowers it by 1 while a token is taken off by a drag. remote: the other player drags the token. getLivePose(key): their latest numbers. The token follows them,
 // hangs above the table like a dragged token and shows its footprint (this browser has no TokenDragPreview).
@@ -35,12 +37,12 @@ export default function LooseToken({
   count = token.count ?? 1,
   remote = false,
   getLivePose = null,
-  selected = false,
   rangeMark = null,
   otherSelected = null,
   objects,
   centers,
 }) {
+  const selected = useTableStore((s) => isSelected(s.selection, 'loose', token.id))
   const { world, rapier } = useRapier()
   const shape = useMemo(
     () => new rapier.Cylinder(HALF_H, tokenSize(token.key) / 2),

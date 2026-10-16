@@ -216,7 +216,7 @@ A character token can also lie on the table, as in TTS. A player drags it there 
 
 How the drag works:
 
-- A drag starts on `pointerdown` on a Give source (3D, the press also knows the character of the tray), a token or a pile on the table (3D) or a Library token chip (DOM). App stores it (`tokenDrag`) and turns off the camera controls.
+- A drag starts on `pointerdown` on a Give source (3D, the press also knows the character of the tray), a token or a pile on the table (3D) or a Library token chip (DOM). The table store holds it (`tokenDrag`, `src/table/tableStore.js`) and the camera controls turn off.
 - The drag becomes active after the pointer moves 4 px. Then `TokenDragPreview` shows the token at real size on the table or terrain point under the pointer. A token from the table is hidden at its old place. A release before 4 px is a click. On a Give source, the click gives 1 token to that tray's character (`giveId`, the 4th argument of `onTokenDragStart`); on any other piece, nothing happens.
 - On `pointerup`, App decides:
   1. Over a HUD panel: nothing happens. So a drag back onto the Library cancels it.

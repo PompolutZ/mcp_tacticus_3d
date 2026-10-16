@@ -36,6 +36,8 @@ import { useLandingSound } from './useLandingSound.js'
 import { useModelFollow } from '../scene/useModelFollow.js'
 import { useFigureMaterials } from './useFigureMaterials.jsx'
 import { useRenderCount } from '../debug/renderCount.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
+import { isSelected } from '../selection.js'
 
 // While dragged, the base hangs this far above the table or terrain below it
 const DRAG_HOVER = 0.3
@@ -170,6 +172,8 @@ function standeeScene(front, back, radius) {
 // overlapsAt(x, y, z): true when a base of this model at that body position overlaps another model.
 // A drag uses it for the mark and for the drop (see freePlace).
 // rangeMark: 'inRange' or 'outOfRange' while a range tool marks the model (RangeMark in ToolFootprint.jsx)
+// modelId: the id of the model. The figure reads from the store whether it is selected, so a selection change renders
+// only the figure that changes.
 // otherSelected: the side of the other player who has the model selected, or null
 // onSelect(): a click. onDragSelect(): a drag starts, the model is selected and stays selected.
 // position: where the body starts. Read only on mount: RigidBody moves its body when its position
@@ -185,7 +189,7 @@ function CharacterFigure({
   baseRadius = BASE_RADIUS,
   rotation = [0, 0, 0],
   team = 'guest',
-  selected = false,
+  modelId,
   rangeMark,
   otherSelected = null,
   overlap = false,
@@ -208,6 +212,7 @@ function CharacterFigure({
   getLivePose,
   getLiveTime,
 }) {
+  const selected = useTableStore((s) => isSelected(s.selection, 'character', modelId))
   const [startPosition] = useState(position)
   const [startQuaternion] = useState(quaternion)
   const top = useMemo(() => modelTop(scene), [scene])

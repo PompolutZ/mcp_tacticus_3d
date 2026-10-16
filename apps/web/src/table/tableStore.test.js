@@ -48,3 +48,33 @@ test('an action calls the newest registered implementation, with no store change
   assert.equal(store.getState().actions, actions)
   assert.equal(notified, 0)
 })
+
+test('the selection setters take a value or an updater and skip an equal result', () => {
+  const store = createTableStore({ table: {} })
+  const { actions } = store.getState()
+  let notified = 0
+  store.subscribe(() => notified++)
+  actions.dragSelect('character', 'a')
+  actions.toggleSelect('token', 't')
+  assert.deepEqual(store.getState().selection, [
+    { kind: 'character', id: 'a' },
+    { kind: 'token', id: 't' },
+  ])
+  actions.setSelection((prev) => prev)
+  actions.setSelectedTools((prev) => ({ ...prev, range: true }))
+  assert.equal(store.getState().selectedTools.range, true)
+  assert.equal(notified, 3)
+})
+
+test('the selection and the selected tools go to presence', () => {
+  const sent = []
+  const store = createTableStore({ table: {}, presence: { set: (f) => sent.push(f) } })
+  const { actions } = store.getState()
+  assert.equal(sent.length, 1)
+  actions.dragSelect('character', 'a')
+  actions.dragSelect('terrain', 'x')
+  actions.setSelectedTools((prev) => ({ ...prev, move: true }))
+  // the terrain piece changes the selection but not what the other player sees; presence skips the equal field
+  assert.equal(sent.length, 4)
+  assert.deepEqual(sent.at(-1), { selection: ['character:a'], tools: ['move'] })
+})

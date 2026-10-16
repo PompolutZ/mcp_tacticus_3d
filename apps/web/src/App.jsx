@@ -15,7 +15,6 @@ import { deleteTarget, flipTarget } from './hover.js'
 import { useTableKeys } from './useTableKeys.js'
 import { useCardPeek } from './rosters/useCardPeek.js'
 import { usePing } from './scene/usePing.js'
-import { useSelection } from './useSelection.js'
 import { useLogOpen } from './log/useLogOpen.js'
 import { useNames } from './setup/useNames.js'
 import { KeyboardCamera } from './scene/KeyboardCamera.jsx'
@@ -69,7 +68,7 @@ import { useDebugLook } from './debug/useDebugLook.js'
 import { useLogSounds } from './log/useLogSounds.js'
 import { useRemoteDropSounds } from './tokens/useRemoteDropSounds.js'
 import { SettingsPopup } from './settings/SettingsPopup.jsx'
-import { NO_PIECES, selectedId } from './selection.js'
+import { NO_PIECES } from './selection.js'
 import { createTableStore } from './table/tableStore.js'
 import { TableStoreProvider } from './table/TableStoreContext.jsx'
 import { useRenderCount } from './debug/renderCount.js'
@@ -119,7 +118,11 @@ export default function App({
       { ownSide, mySide, playedSides, hiddenSquads, settings, bindings },
     ),
   )
-  const { sceneApi, controlsRef, wheelCameraRef, pieceLives, registerActions } = store.getState()
+  const { sceneApi, controlsRef, wheelCameraRef, pieceLives, registerActions, actions } =
+    store.getState()
+  // The selection and the drag state are in the store. The hooks write with these (stable) setters and read the
+  // current values with store.getState() when an event runs.
+  const { setSelection } = actions
   // The order of the hook calls matters, because the effects run in this order. The layout effects come
   // first. useRollOffReader (E8) comes before useGameSetup (E9): a remote update can carry a throw and a
   // setup change together, and E9 reads what E8 wrote. useTableKeys is last: its table of actions uses
@@ -208,9 +211,6 @@ export default function App({
   // No toolbar control: the game setup sets it, when a squad is placed and at the step affiliation (see
   // docs/features/setup-game.md).
   const [affiliations] = useYField(table.game, 'affiliations')
-  // Selected pieces and tools, see selection.js. One character, one token, the range tool, the
-  // movement tool, the Toward / Away tool and the Line of Sight tool can all be selected at the same time.
-  const { selection, setSelection, selectedTools, setSelectedTools } = useSelection(presence)
   // What is under the pointer, for the keys (useHovered.js)
   const {
     hoveredRef,
@@ -231,10 +231,6 @@ export default function App({
     activeRange,
     activeMove,
     angleOn,
-    angleSpawn,
-    toolSpawn,
-    toolDrag,
-    toolDragPointRef,
     handleToolStore,
     handleRangeClick,
     handleMoveClick,
@@ -249,14 +245,11 @@ export default function App({
     startToolDrag,
     handleToolReturn,
   } = useTableTools({
+    store,
     table,
     ownSide,
     playedSides,
     characters,
-    selection,
-    setSelection,
-    selectedTools,
-    setSelectedTools,
     hoveredRef,
     sceneApi,
     controlsRef,
@@ -437,7 +430,7 @@ export default function App({
   // the pointer. With nothing under the pointer, it flips the token or character selected last (the
   // card of a character). A token without a back does not flip (handleTokenFlip).
   function handleFlipKey() {
-    const piece = flipTarget(hoveredNow(), selection)
+    const piece = flipTarget(hoveredNow(), store.getState().selection)
     if (piece?.kind === 'token') handleTokenFlip(piece.id)
     // A character piece is a model; a second model has its own id (characters/models.js)
     // A construct has no card to flip
@@ -586,8 +579,6 @@ export default function App({
 
   // The token drag: starts, release, cancel (drag/useTokenDrag.js)
   const {
-    tokenDrag,
-    dragPointRef,
     findCharacterAt,
     handleTokenDragStart,
     handleLibraryTokenDragStart,
@@ -595,6 +586,7 @@ export default function App({
     handlePileMoveStart,
     handleSupplyDragStart,
   } = useTokenDrag({
+    store,
     table,
     ownership,
     pieceLives,
@@ -607,8 +599,6 @@ export default function App({
     handleLooseRemove,
   })
 
-  const selectedTokenId = selectedId(selection, 'token')
-  const selectedToken = tokens.find((t) => t.id === selectedTokenId) ?? null
   const openTray = openTrayId ? (characters.find((ch) => ch.id === openTrayId) ?? null) : null
 
   // The roster cards that have a + / ✓ button: { host, guest } → true, the own roster in the squad step
@@ -638,9 +628,10 @@ export default function App({
     openCard || openTrayId || openRoster || crisisShown || chooseShown || settingsOpen || setupOpen,
   )
   // The state for a mouse wheel step (WheelCamera.jsx): what keyAction reads, as the resolver needs it
+  const dragActive = () => !!(store.getState().tokenDrag || store.getState().toolDrag)
   const wheelState = () => ({
     popup: popupOpen,
-    dragging: !!(tokenDrag || toolDrag),
+    dragging: dragActive(),
     overDiceTray: !!hoveredNow().diceTray,
     overPiece: !!hoveredNow().piece,
     bindings,
@@ -649,8 +640,8 @@ export default function App({
   // table of handlers uses what the hooks above give.
   const { heldPan, heldTurn, heldRotate } = useTableKeys({
     state: () => ({
-      tokenDrag,
-      toolDrag,
+      tokenDrag: store.getState().tokenDrag,
+      toolDrag: store.getState().toolDrag,
       modelDrag: (sceneApi.current?.modelDragId() ?? null) !== null,
       drag: isDragActive(),
       popup: popupOpen,
@@ -831,20 +822,10 @@ export default function App({
                   tools={tools}
                   toolReturn={rackShown && !rackHiddenSides(setup, rosters).includes(ownSide)}
                   ownPing={ownPing}
-                  angleSpawn={angleSpawn}
-                  toolSpawn={toolSpawn}
                   deployLine={deployLine}
                   crisis={crisis}
                   tokens={tokens}
-                  selection={selection}
-                  onSelectionChange={setSelection}
-                  selectedTools={selectedTools}
-                  onSelectedToolsChange={setSelectedTools}
                   looseTokens={looseTokens}
-                  tokenDrag={tokenDrag}
-                  dragPointRef={dragPointRef}
-                  toolDrag={toolDrag}
-                  toolDragPointRef={toolDragPointRef}
                   diceMenu={diceMenu}
                   removeWaits={removeWaits}
                   heldRotate={heldRotate}
@@ -906,10 +887,10 @@ export default function App({
           />
         </div>
         <TokenPanel
-          token={selectedToken}
-          onFlip={() => handleTokenFlip(selectedToken.id)}
-          onControl={(control) => handleTokenControl(selectedToken.id, control)}
-          onDamage={(damage) => handleTokenDamage(selectedToken.id, damage)}
+          tokens={tokens}
+          onFlip={handleTokenFlip}
+          onControl={handleTokenControl}
+          onDamage={handleTokenDamage}
         />
         <Library open={libraryOpen} characters={characters} seat={seat} />
         <LogPanel
@@ -934,7 +915,7 @@ export default function App({
           />
         )}
         <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
-        {!(tokenDrag || toolDrag || popupOpen) && <CardPopup card={peekCard} peek />}
+        {!popupOpen && <CardPopup card={peekCard} peek />}
         {settingsOpen && (
           <SettingsPopup
             settings={settings}

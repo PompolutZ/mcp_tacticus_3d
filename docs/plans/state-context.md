@@ -1,6 +1,6 @@
 # Plan: Move App state into a zustand store
 
-Requested by the user on 2026-10-16. Status: steps 1-6 done. The user gave the OK on 2026-10-16 to run steps 4-9 back to back (coder agent per step, no stop between steps), then stop for the user test with the step 9 measurement. Branch `state-context`, worktree `../mcp_assist_3d-state-context`, from main. The plan changes many files, so no other branch is open while it runs.
+Requested by the user on 2026-10-16. Status: steps 1-7 done. The user gave the OK on 2026-10-16 to run steps 4-9 back to back (coder agent per step, no stop between steps), then stop for the user test with the step 9 measurement. Branch `state-context`, worktree `../mcp_assist_3d-state-context`, from main. The plan changes many files, so no other branch is open while it runs.
 
 Each step makes one commit and writes its **Result** below.
 
@@ -212,7 +212,26 @@ Prop counts: App → Scene 64 → 35. App → Toolbar 32 → 16. Scene → Token
 - Readers use per-piece selectors (decision 6): models, tokens, tools, `ToolDragGhost`, CardPopup peek, key state.
 - Remove the matching props.
 
-**Result:**
+**Result:** Done. `tableStore.js`: `createActions(set)` adds stable setters `setSelection`, `setSelectedTools`, `setTokenDrag`, `setToolDrag`, `setToolSpawn`, `setAngleSpawn` (a value or an updater, no change on an equal result) and `toggleSelect(kind, id)`, `dragSelect(kind, id)`. The store also holds `dragPointRef` and `toolDragPointRef` (made once). The presence mirror is a store subscription in `createTableStore` (one push at creation, then on a `selection` or `selectedTools` change). `useSelection.js` is gone. `selection.js`: new `isSelected`. Node tests for the setters and the presence mirror.
+
+Writers: `useTokenDrag` and `useTableTools` take `store`, write with the setters, and read the selection with `getState()` in their handlers. App passes `actions.setSelection` to the other hooks as before. App reads `tokenDrag`, `toolDrag` and `selection` with `getState()` (wheel state, key state, F key).
+
+Readers (per-piece selectors, primitives or booleans): `CharacterFigure` (`isSelected(s.selection, 'character', modelId)`), `CrisisToken`, `LooseToken`, `CharacterTray` (its character's model), `Terrain` (`selectedId` of the terrain piece), `TokenPanel` (selected token id; takes `tokens` and handlers with the token id), `CardPopup` peek (hides on `tokenDrag || toolDrag`), `ToolDragGhost` (reads `toolDrag`, `toolDragPointRef`, `ownSide`; no props), `TokenLayer` (`tokenDrag`, `dragPointRef`), `OwnTools` (`toolSpawn`, `angleSpawn`, `selectedTools`, and the last tool piece, an object that changes only when that piece changes). Scene no longer reads the selection or the drags, so a selection change renders no Scene. App also no longer renders on a selection or drag change.
+
+Props gone: App → Scene `angleSpawn`, `toolSpawn`, `selection`, `onSelectionChange`, `selectedTools`, `onSelectedToolsChange`, `tokenDrag`, `dragPointRef`, `toolDrag`, `toolDragPointRef`. Scene → TokenLayer `selectedTokenId`, `selectedLooseId`, `toggleSelect`, `dragSelect`, `tokenDrag`, `dragPointRef`. Scene → OwnTools `toolSpawn`, `angleSpawn`, `selectedTools`, `onSelectedToolsChange`, `toolTarget`. Scene → `CharacterTray` and the models: `selected` (models get `modelId`). `onSelectionChange` and `onSelectedToolsChange` are removed, not kept. Scene `useRenderReason` needs no change (raw props).
+
+Deviations:
+- `useTableApi` is still not exported: no component handler needs `getState` (App is above the provider and has `store`). Fallow flags an unused export.
+- `.fallowrc.json`: the ignored clone is dropped now (the `TokenLayer` prop list is no longer a clone). Step 8 has nothing left to drop.
+- `Terrain` keeps its `selectedId` prop for `TerrainPage` (no selection store there); without it, Terrain reads the store.
+- `TokenPanel` signature changed (it was `token` + closures).
+- `CardPopup` peek keeps the `popupOpen` check in App; the drag check moved into it.
+- The presence mirror pushes once per selection change, also one that only changes a terrain piece (presence skips an equal field).
+- Doc: `character-trays.md` (token drag state is in the store).
+
+Checks: format, lint 40 warnings (same), tests pass (web 1018), build and typecheck ok, fallow: no unused export, no clone group (`health` fails as before, 308).
+
+Prop counts: App → Scene 35 → 25. App → Toolbar 16 (unchanged). Scene → TokenLayer 23 → 17. Scene → OwnTools 13 → 8.
 
 ### 8. Scene slice
 

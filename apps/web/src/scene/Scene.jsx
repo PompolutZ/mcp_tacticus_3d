@@ -56,7 +56,6 @@ import {
   characterModels,
   characterOnBoard,
   modelCardFile,
-  modelCharacterId,
   modelFigureYaw,
   modelSpawnYaw,
   trayCards,
@@ -81,15 +80,7 @@ import {
 } from '../characters/trays.js'
 import { MAT_SIZE, TABLE_WALLS } from '../table.js'
 import { RANGE_TIP } from '../tabletools/toolTips.js'
-import {
-  NO_PIECES,
-  NO_TOOLS,
-  isToolPiece,
-  selectPiece,
-  selectedId,
-  toggleSelectPiece,
-  toolSelects,
-} from '../selection.js'
+import { selectPiece, toolSelects } from '../selection.js'
 import { poseOf } from '../rooms/table.js'
 import {
   TEAMS,
@@ -143,8 +134,8 @@ const OVERLAP_INTERVAL = 100
 // default 15), spectator (the spectator view above each model, SpectatorBadge.jsx), playedSides, ownSide. Terrain
 // reads showLabels, DiceTray rethrowTilted, GameSetup mySide and nameCtx.
 // crisis: { secure, extract } chosen card keys. tokens: every crisis token on the table (see App.jsx).
-// selection: the selected pieces (see selection.js), lifted to App. onSelectionChange: the setter,
-// called with a value or an updater function.
+// The selection (selection.js), the selected tools, the tool spawn state and the token and tool drag are in the store
+// (table/tableStore.js). Each piece reads its own flag there, so Scene does not render on a selection change.
 // onPieceHover(piece, over): the pointer moved onto (true) or off (false) a character or a token,
 // piece as { kind, id }. tools: the `tools` record of the document, side → kind → entry (storedTool.js).
 // ownSide (store): 'host' or 'guest', the side of this browser. The own entries become tools; the key of a tool is
@@ -153,13 +144,6 @@ const OVERLAP_INTERVAL = 100
 // fields into its entry. toolReturn: a move drag of an own tool that ends on the own rack removes the tool (action onToolReturn(kind),
 // RulerTool.jsx, onReturn). false: the tools do not return. The same action removes a tool for
 // another reason (the Line of Sight looker left the table), always set.
-// selectedTools: { range, move, angle } (see selection.js), lifted to App with its setter onSelectedToolsChange.
-// angleSpawn: { target, aim }, each { kind, id } | null, for the Toward / Away tool:
-// the piece it snaps to when it spawns (free without one), and the piece it aims at (the mat center
-// without one). Like the other tools, it measures against the piece selected last.
-// toolSpawn: { range, move }, each { kind, id } | null: the piece the range or movement tool snaps to when
-// it spawns. Set by a tool key over a piece, which may be a model that the key does not select. Without
-// one, the tool snaps to the selected piece (target).
 // The tray's controls (Damage, Power, flip, Remove, a click on a token of the "On" row) and the Priority click call
 // the table actions from the store (table/tableStore.js).
 // onTrayCardHover(id, over): the pointer moved onto (true) or off (false) a character's tray card,
@@ -175,12 +159,6 @@ const OVERLAP_INTERVAL = 100
 // onTacticMove(id,
 // x, z): a card drag ended over the table. onTacticHover(id, over): for the F and Delete keys. A
 // click on a card opens it with onCardOpen, the same as a crisis card.
-// toolDrag: the drag of a tool from the rack, { kind, which, active, start } | null (tabletools/useTableTools.js). While it is active, a
-// flat outline of the tool follows the pointer (ToolDragGhost). toolDragPointRef: the ghost writes the table point
-// under the pointer there, for the drop (useTableTools.js).
-// tokenDrag: the token drag in progress, see drag/useTokenDrag.js. While it is active, the dragged token shows
-// under the pointer (TokenDragPreview) and, for a token from the table, not in its old place.
-// dragPointRef: the preview writes the table point under the pointer there, for the release in drag/useTokenDrag.js.
 // rosters: { host, guest } → null | { code }, the loaded rosters (RosterCards.jsx). parsedRosters: the same, parsed
 // (setup/useGameSetup.js). onRosterOpen({ team, tab,
 // index }): a click on a roster card. It opens the roster popup on that card (see RosterPopup.jsx).
@@ -241,20 +219,10 @@ export default function Scene(props) {
     characters = [],
     tools = NO_TOOLS_RECORD,
     toolReturn = false,
-    angleSpawn = { target: null, aim: null },
-    toolSpawn = { range: null, move: null },
     deployLine = false,
     crisis = { secure: null, extract: null },
     tokens = [],
-    selection = NO_PIECES,
-    onSelectionChange,
-    selectedTools = NO_TOOLS,
-    onSelectedToolsChange,
     looseTokens = [],
-    tokenDrag = null,
-    toolDrag = null,
-    toolDragPointRef,
-    dragPointRef,
     diceMenu = null,
     removeWaits = {},
     heldRotate,
@@ -528,13 +496,6 @@ export default function Scene(props) {
     lastTrayPositions.current = trayPositions
   }, [trayPositions, trayNow])
 
-  // Model id of the selected model. Its character's tray card shows the selection too.
-  const selectedModelId = selectedId(selection, 'character')
-  const selectedCharId = selectedModelId && modelCharacterId(selectedModelId)
-  const selectedTokenId = selectedId(selection, 'token')
-  const selectedLooseId = selectedId(selection, 'loose')
-  const selectedTerrainId = selectedId(selection, 'terrain')
-
   // Deploy-line: R3 zone depth from the deployment edge
   const deployTip = RANGE_TIP[3]
   const deployDepth = 2 * deployTip
@@ -629,9 +590,6 @@ export default function Scene(props) {
   }
   const toolModel = (piece) =>
     toolModels.find((model) => piece && model.kind === piece.kind && model.id === piece.id) ?? null
-  // The tools measure against the character or token selected last, and a new tool snaps to it.
-  // Place moves the selected character, also when a token was selected after it.
-  const toolTarget = toolModel(selection.findLast(isToolPiece))
   const otherSide = otherTeam(ownSide)
   const sideColors = useSideColors()
   // Why Scene commits (DebugPanel, "Scene reasons")
@@ -732,20 +690,11 @@ export default function Scene(props) {
     )
   }
 
-  // A drag selects the piece and keeps it selected, a click toggles (toggleSelect)
-  function dragSelect(kind, id) {
-    onSelectionChange((prev) => selectPiece(prev, { kind, id }))
-  }
-
-  function toggleSelect(kind, id) {
-    onSelectionChange((prev) => toggleSelectPiece(prev, { kind, id }))
-  }
-
   // A tool snapped to model. It does not select a model of a side this browser does not play.
   function selectModel(model) {
     const piece = { kind: model.kind, id: model.id }
     if (!toolSelects(piece, characters, playedSides)) return
-    onSelectionChange((prev) => selectPiece(prev, piece))
+    actions.setSelection((prev) => selectPiece(prev, piece))
   }
 
   return (
@@ -811,8 +760,7 @@ export default function Scene(props) {
               <Terrain
                 placements={terrain}
                 terrainUnder={terrainUnder}
-                selectedId={selectedTerrainId}
-                onSelect={(id) => toggleSelect('terrain', id)}
+                onSelect={(id) => actions.toggleSelect('terrain', id)}
                 onHover={actions.onTerrainHover}
                 objectRef={(id, obj) =>
                   obj ? terrainObjects.current.set(id, obj) : terrainObjects.current.delete(id)
@@ -901,12 +849,8 @@ export default function Scene(props) {
             trayPositions={trayPositions}
             gruntLists={gruntLists}
             trayShape={trayShape}
-            selectedTokenId={selectedTokenId}
-            selectedLooseId={selectedLooseId}
             rangeMarkOf={rangeMarkOf}
             otherSelectedOf={otherSelectedOf}
-            toggleSelect={toggleSelect}
-            dragSelect={dragSelect}
             applyPlaceLimits={applyPlaceLimits}
             otherOwned={otherOwned}
             getPieceLive={getPieceLive}
@@ -916,8 +860,6 @@ export default function Scene(props) {
             looseObjects={looseObjects}
             looseCenters={looseCenters}
             looseTokens={looseTokens}
-            tokenDrag={tokenDrag}
-            dragPointRef={dragPointRef}
             otherSpawn={otherSpawn}
           />
 
@@ -929,15 +871,7 @@ export default function Scene(props) {
           {toolRack && (
             <ToolRack tools={tools} hiddenSides={rackHiddenSides(setup, rosters)} {...toolRack} />
           )}
-          {toolDrag?.active && (
-            <ToolDragGhost
-              pointRef={toolDragPointRef}
-              start={toolDrag.start}
-              kind={toolDrag.kind}
-              which={toolDrag.which}
-              side={ownSide}
-            />
-          )}
+          <ToolDragGhost />
           <TacticTray team="host" />
           <TacticTray team="guest" />
           {/* The loaded rosters, in the area of the character trays (docs/features/roster.md), until the squads
@@ -998,7 +932,6 @@ export default function Scene(props) {
                   slot={trayShape(ch).slot}
                   onBoard={characterOnBoard(ch, poses)}
                   removeWait={removeWaits[ch.id] ?? null}
-                  selected={selectedCharId === ch.id}
                   objectRef={(obj) =>
                     obj ? trayObjects.current.set(ch.id, obj) : trayObjects.current.delete(ch.id)
                   }
@@ -1016,7 +949,7 @@ export default function Scene(props) {
               baseRadius: BASE_DIAMETER[model.base] / 2,
               rotation: [0, modelFigureYaw(model), 0],
               team: ch.team,
-              selected: selectedModelId === model.id,
+              modelId: model.id,
               rangeMark: rangeMarkOf('character', model.id),
               otherSelected: otherSelectedOf('character', model.id),
               overlap: overlapIds.has(model.id),
@@ -1025,8 +958,8 @@ export default function Scene(props) {
                   { x, y, z, radius: BASE_DIAMETER[model.base] / 2 },
                   modelBases(model.id),
                 ),
-              onSelect: () => toggleSelect('character', model.id),
-              onDragSelect: () => dragSelect('character', model.id),
+              onSelect: () => actions.toggleSelect('character', model.id),
+              onDragSelect: () => actions.dragSelect('character', model.id),
               onHover: (over) => {
                 actions.onPieceHover({ kind: 'character', id: model.id }, over)
                 trackPiece(hoveredPiece, { kind: 'character', id: model.id }, over)
@@ -1101,11 +1034,6 @@ export default function Scene(props) {
           <OwnTools
             ownTools={ownTools}
             canReturn={toolReturn}
-            toolSpawn={toolSpawn}
-            angleSpawn={angleSpawn}
-            selectedTools={selectedTools}
-            onSelectedToolsChange={onSelectedToolsChange}
-            toolTarget={toolTarget}
             toolModels={toolModels}
             toolModel={toolModel}
             onSnap={selectModel}

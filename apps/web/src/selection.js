@@ -49,6 +49,11 @@ export function toggleSelectPiece(selection, piece) {
     : selectPiece(selection, piece)
 }
 
+// Whether the piece of kind with id is selected, for a per-piece store selector
+export function isSelected(selection, kind, id) {
+  return selection.some((p) => p.kind === kind && p.id === id)
+}
+
 // Id of the selected piece of kind, or null
 export function selectedId(selection, kind) {
   return selection.find((p) => p.kind === kind)?.id ?? null

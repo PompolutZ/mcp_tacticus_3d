@@ -6,18 +6,30 @@ import { useSideColor } from '../table/useSideColors.jsx'
 import { TOOL_TINT } from './toolTips.js'
 import { freeSpawnYaw } from './storedTool.js'
 import { MARKER_LIFT } from '../pieces/heights.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 
 // The tool that is dragged from the rack: a flat, semi-transparent outline of its footprint in the player tint,
 // at the table or terrain point under the pointer, turned as the tool spawns free (docs/features/table-tools.md,
 // "Tool rack"). It is dimmed while a release would do nothing (over the own rack), and hidden off the table.
-// pointRef: App reads the last point, { x, y, z } or null, on release. start: { clientX, clientY } of the pointer
-// when the ghost mounts, so it shows before the next pointermove. kind, which: the tool (dropShape.js, toolArms).
-// side: the own side.
+// It reads the drag from the store (toolDrag, tableStore.js) and shows only while the drag is active. pointRef
+// (toolDragPointRef in the store): useTableTools reads the last point, { x, y, z } or null, on release. start: { clientX,
+// clientY } of the pointer when the ghost mounts, so it shows before the next pointermove. kind, which: the tool
+// (dropShape.js, toolArms). side: the own side.
 
 const OPACITY = 0.45
 const DIMMED_OPACITY = 0.12
 
-export default function ToolDragGhost({ pointRef, start, kind, which, side }) {
+export default function ToolDragGhost() {
+  const drag = useTableStore((s) => s.toolDrag)
+  const pointRef = useTableStore((s) => s.toolDragPointRef)
+  const side = useTableStore((s) => s.ownSide)
+  if (!drag?.active) return null
+  return (
+    <Ghost pointRef={pointRef} start={drag.start} kind={drag.kind} which={drag.which} side={side} />
+  )
+}
+
+function Ghost({ pointRef, start, kind, which, side }) {
   const groupRef = useRef()
   const arms = useMemo(() => toolArms(kind, which), [kind, which])
   const materials = useRef([])

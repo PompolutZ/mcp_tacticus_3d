@@ -1,4 +1,3 @@
-import { useRef, useState } from 'react'
 import { useYRecord } from '../net/useY.js'
 import { losEntry, spawnEntry } from './storedTool.js'
 import { startPointerDrag } from '../drag/pointerDrag.js'
@@ -9,19 +8,21 @@ import { NO_PIECES, NO_TOOLS, isToolPiece, selectPiece, toolSelects } from '../s
 // tool from the rack (docs/features/table-tools.md). Call it after the hover and selection hooks, before the
 // effects that place a tool.
 export function useTableTools({
+  store,
   table,
   ownSide,
   playedSides,
   characters,
-  selection,
-  setSelection,
-  selectedTools,
-  setSelectedTools,
   hoveredRef,
   sceneApi,
   controlsRef,
 }) {
   const [tools] = useYRecord(table.tools)
+  // The selection, the spawn state and the drag state are in the store (table/tableStore.js). The handlers read
+  // the selection when they run (getState), so they see the newest one.
+  const { actions, toolDragPointRef } = store.getState()
+  const { setSelection, setSelectedTools, setToolSpawn, setAngleSpawn, setToolDrag } = actions
+  const getSelection = () => store.getState().selection
 
   const ownTools = tools[ownSide]
   // The toolbar state comes from the own entries: the range number, the movement type, and whether the
@@ -30,20 +31,16 @@ export function useTableTools({
   const activeMove = ownTools?.move?.which ?? null
   const angleOn = Boolean(ownTools?.angle)
   const losOn = Boolean(ownTools?.los)
-  // Where the Toward / Away tool spawns: { target, aim }, the piece it snaps to and the piece it aims at,
+  // The state below is in the store. angleSpawn: where the Toward / Away tool spawns: { target, aim }, the piece it snaps to and the piece it aims at,
   // each { kind, id } | null. Used once, at the spawn, in this browser only.
-  const [angleSpawn, setAngleSpawn] = useState({ target: null, aim: null })
-  // Where the range and movement tools spawn: { range, move }, the piece the tool snaps to, { kind, id } | null.
+  // toolSpawn: where the range and movement tools spawn: { range, move }, the piece the tool snaps to, { kind, id } | null.
   // Set by a tool key over a piece, null for any other spawn (null: the tool snaps to the selected piece, as
   // before). Used once, at the spawn, in this browser only. Like angleSpawn.target, it also works over a model
   // that the key does not select (see handleToolKey).
-  const [toolSpawn, setToolSpawn] = useState({ range: null, move: null })
-  // A drag of a tool from the rack in progress: { kind, which, active, start } | null. active: the pointer has
+  // toolDrag: a drag of a tool from the rack in progress: { kind, which, active, start } | null. active: the pointer has
   // moved DRAG_THRESHOLD px, so the outline of the tool shows (Scene.jsx, ToolDragGhost). start: the pointer
   // position at that moment. Like the token drag, the state changes only at start and when the drag becomes active.
-  const [toolDrag, setToolDrag] = useState(null)
-  // The table point under the pointer, written by ToolDragGhost: { x, y, z } | null
-  const toolDragPointRef = useRef(null)
+  // toolDragPointRef: the table point under the pointer, written by ToolDragGhost: { x, y, z } | null
 
   // Spawn point of a tool turned on by the toolbar or by a key off the table: with a selected piece, null
   // (it snaps to the piece). Else the table point in the middle of the screen.
@@ -81,21 +78,21 @@ export function useTableTools({
   function handleRangeClick(range) {
     setToolSpawn((prev) => ({ ...prev, range: null }))
     if (activeRange === range) setOwnTool('range', null)
-    else spawnTool('range', range, toolbarSpawnAt(selection.findLast(isToolPiece)))
+    else spawnTool('range', range, toolbarSpawnAt(getSelection().findLast(isToolPiece)))
   }
 
   function handleMoveClick(move) {
     setToolSpawn((prev) => ({ ...prev, move: null }))
     if (activeMove === move) setOwnTool('move', null)
-    else spawnTool('move', move, toolbarSpawnAt(selection.findLast(isToolPiece)))
+    else spawnTool('move', move, toolbarSpawnAt(getSelection().findLast(isToolPiece)))
   }
 
   // The toolbar button: the tool spawns at the selected character, aimed at the selected token
   function handleAngleClick() {
-    const target = selection.find((p) => p.kind === 'character') ?? null
+    const target = getSelection().find((p) => p.kind === 'character') ?? null
     setAngleSpawn({
       target,
-      aim: selection.find((p) => p.kind === 'token') ?? null,
+      aim: getSelection().find((p) => p.kind === 'token') ?? null,
     })
     if (angleOn) setOwnTool('angle', null)
     else spawnTool('angle', true, toolbarSpawnAt(target))
@@ -104,6 +101,7 @@ export function useTableTools({
   // Escape clears every selection: the character, the token and the tools. The selected tools are
   // also removed from the table.
   function handleEscape() {
+    const { selectedTools } = store.getState()
     if (selectedTools.range) setOwnTool('range', null)
     if (selectedTools.move) setOwnTool('move', null)
     if (selectedTools.angle) setOwnTool('angle', null)
@@ -143,7 +141,7 @@ export function useTableTools({
   // The LOS chip of the rack, clicked: it takes the line away, or starts it at the selected character
   function handleLosClick() {
     if (losOn) setOwnTool('los', null)
-    else placeLos(selection.find((p) => p.kind === 'character') ?? null)
+    else placeLos(getSelection().find((p) => p.kind === 'character') ?? null)
   }
 
   // Key 6, the Toward / Away tool: placeAngleTool at the hovered piece and the table point under the pointer.
@@ -175,7 +173,7 @@ export function useTableTools({
     setAngleSpawn({
       target: piece,
       aim:
-        selection.findLast(
+        getSelection().findLast(
           (p) => isToolPiece(p) && !(p.kind === piece.kind && p.id === piece.id),
         ) ?? null,
     })
@@ -266,10 +264,6 @@ export function useTableTools({
     activeMove,
     angleOn,
     losOn,
-    angleSpawn,
-    toolSpawn,
-    toolDrag,
-    toolDragPointRef,
     handleToolStore,
     handleRangeClick,
     handleMoveClick,

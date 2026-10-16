@@ -4,6 +4,7 @@ import { LosTool } from './LosTool.jsx'
 import { TOOL_HOVER_HEIGHT, sameModel } from './toolGeometry.js'
 import { useRenderCount } from '../debug/renderCount.js'
 import { useTableStore } from '../table/TableStoreContext.jsx'
+import { isToolPiece } from '../selection.js'
 
 const toolKey = (kind, entry) => `${kind}-${entry.which}-${entry.spawn}`
 
@@ -14,11 +15,6 @@ const toolKey = (kind, entry) => `${kind}-${entry.which}-${entry.spawn}`
 export default function OwnTools({
   ownTools,
   canReturn,
-  toolSpawn,
-  angleSpawn,
-  selectedTools,
-  onSelectedToolsChange,
-  toolTarget,
   toolModels,
   toolModel,
   onSnap,
@@ -29,6 +25,13 @@ export default function OwnTools({
   useRenderCount('OwnTools')
   const ownSide = useTableStore((s) => s.ownSide)
   const actions = useTableStore((s) => s.actions)
+  const toolSpawn = useTableStore((s) => s.toolSpawn)
+  const angleSpawn = useTableStore((s) => s.angleSpawn)
+  const selectedTools = useTableStore((s) => s.selectedTools)
+  // The tools measure against the character or token selected last, and a new tool snaps to it.
+  // Place moves the selected character, also when a token was selected after it.
+  const targetPiece = useTableStore((s) => s.selection.findLast(isToolPiece) ?? null)
+  const toolTarget = toolModel(targetPiece)
   // The own tool that has Place or Throw on: 'range', 'move' or null. Only one at a time. The other tool turns
   // its own off (limitTaken in useToolLimits.js). A tool that turns off clears only its slot in placeLimits.
   const [limitTool, setLimitTool] = useState(null)
@@ -46,11 +49,11 @@ export default function OwnTools({
   // to target (null would mean "spawn free").
   const spawnModel = (piece) => (piece ? toolModel(piece) : undefined)
   function toggleTool(tool) {
-    onSelectedToolsChange((prev) => ({ ...prev, [tool]: !prev[tool] }))
+    actions.setSelectedTools((prev) => ({ ...prev, [tool]: !prev[tool] }))
   }
 
   function selectTool(tool) {
-    onSelectedToolsChange((prev) => ({ ...prev, [tool]: true }))
+    actions.setSelectedTools((prev) => ({ ...prev, [tool]: true }))
   }
   // The open direction of the angle tool when it is snapped to model, else null. A movement tool snapped
   // to the same character points within 45° of it.

@@ -26,6 +26,7 @@ import { SURFACE_GAP } from '../pieces/heights.js'
 import { NO_ROTATION } from '../characters/base.js'
 import { useRenderCount } from '../debug/renderCount.js'
 import { useTableStore } from '../table/TableStoreContext.jsx'
+import { isSelected } from '../selection.js'
 
 // A token is a 1" circle, TOKEN_THICKNESS thick (tokens.json size is used for the shape, not the exact
 // dims of the current tokens, which are all 1" circles)
@@ -150,7 +151,6 @@ function AffiliationMarker({ affiliation, x, radius }) {
 // constrainDrag(point): returns the point where the dragged token may be, for a limit on the drag (null: none).
 export default function CrisisToken({
   token,
-  selected,
   rangeMark,
   otherSelected = null,
   onSelect,
@@ -170,6 +170,7 @@ export default function CrisisToken({
   constrainDrag = null,
 }) {
   useRenderCount('CrisisToken')
+  const selected = useTableStore((s) => isSelected(s.selection, 'token', token.id))
   const ownership = useTableStore((s) => s.ownership)
   const pieceLives = useTableStore((s) => s.pieceLives)
   const [topMap, bottomMap, damageMap] = useTokenMaps(token)

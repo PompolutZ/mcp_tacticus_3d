@@ -9,8 +9,8 @@ export function TableStoreProvider({ store, children }) {
   return <TableStoreContext value={store}>{children}</TableStoreContext>
 }
 
-// The store object. Not exported until a handler needs getState (docs/plans/state-context.md), so fallow finds no
-// unused export.
+// The store object, for getState in an event handler (no subscription, so no render). Not exported until a component
+// handler needs getState (App is above the provider and has the store), so fallow finds no unused export.
 function useTableApi() {
   const store = useContext(TableStoreContext)
   if (!store) throw new Error('useTableApi needs a TableStoreProvider')
