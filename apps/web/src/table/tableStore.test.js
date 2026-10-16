@@ -78,3 +78,31 @@ test('the selection and the selected tools go to presence', () => {
   assert.equal(sent.length, 4)
   assert.deepEqual(sent.at(-1), { selection: ['character:a'], tools: ['move'] })
 })
+
+test('the scene setters skip the same value; overlapIds changes only when the content does', () => {
+  const store = createTableStore({ table: {} })
+  const { actions } = store.getState()
+  let notified = 0
+  store.subscribe(() => notified++)
+  actions.setDraggingCharId('a')
+  actions.setDraggingCharId('a')
+  assert.equal(notified, 1)
+  actions.setOverlapIds(new Set(['a', 'b']))
+  actions.setOverlapIds(new Set(['b', 'a']))
+  assert.equal(notified, 2)
+  actions.setOverlapIds(new Set(['a']))
+  assert.equal(notified, 3)
+  const mark = { kind: 'token', id: 't', mode: 'inRange' }
+  actions.setRangeMark(mark)
+  actions.setRangeMark(mark)
+  assert.equal(notified, 4)
+})
+
+test('the range mark goes to presence', () => {
+  const sent = []
+  const store = createTableStore({ table: {}, presence: { set: (f) => sent.push(f) } })
+  const { actions } = store.getState()
+  actions.setRangeMark({ kind: 'token', id: 't', mode: 'inRange' })
+  actions.setRangeMark(null)
+  assert.deepEqual(sent.slice(1), [{ mark: { key: 'token:t', mode: 'inRange' } }, { mark: null }])
+})

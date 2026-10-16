@@ -20,6 +20,8 @@ import {
 } from '../characters/trays.js'
 import { useYList } from '../net/useY.js'
 import { useTableStore } from '../table/TableStoreContext.jsx'
+import { useOtherSpawn } from '../table/useOtherPlayer.jsx'
+import { useTrayLayout } from '../characters/useTrayLayout.js'
 import { useRenderCount } from '../debug/renderCount.js'
 
 // Tokens held by one character lie on its card in a stack, in the order they were taken, so two
@@ -30,27 +32,21 @@ const NO_RAYCAST = () => null
 
 // The tokens on the table: the crisis tokens (also the held ones), the character tokens and their
 // piles, the preview of a token that is being dragged, and the new piece the other player drags.
-// Props are the values that Scene.jsx has for them. The handlers are the table actions (table/tableStore.js).
+// Props are the values that Scene.jsx has for them. The handlers are the table actions (table/tableStore.js). Each piece
+// reads its own claim, range mark and selection of the other player from the store (table/useOtherPlayer.jsx).
 export default function TokenLayer({
   tokens,
   characters,
-  trayPositions,
-  gruntLists,
-  trayShape,
-  rangeMarkOf,
-  otherSelectedOf,
   applyPlaceLimits,
-  otherOwned,
-  getPieceLive,
   affiliations,
   tokenObjects,
   tokenCenters,
   looseObjects,
   looseCenters,
   looseTokens,
-  otherSpawn,
 }) {
   useRenderCount('TokenLayer')
+  const { trayPositions, gruntLists, trayShape } = useTrayLayout(characters)
   const actions = useTableStore((s) => s.actions)
   const tokenDrag = useTableStore((s) => s.tokenDrag)
   const dragPointRef = useTableStore((s) => s.dragPointRef)
@@ -90,8 +86,6 @@ export default function TokenLayer({
           <CrisisToken
             token={tok}
             floorY={floorY}
-            rangeMark={rangeMarkOf('token', tok.id)}
-            otherSelected={otherSelectedOf('token', tok.id)}
             onSelect={() => actions.toggleSelect('token', tok.id)}
             onDragSelect={() => actions.dragSelect('token', tok.id)}
             onHover={
@@ -106,8 +100,6 @@ export default function TokenLayer({
             }}
             onMove={(x, z) => actions.onTokenMove(tok.id, x, z)}
             onTurn={(yaw) => actions.onTokenTurn(tok.id, yaw)}
-            remote={otherOwned.has(`token:${tok.id}`)}
-            getLivePose={getPieceLive}
             onHold={(characterId, point) => {
               const holder = characters.find((ch) => ch.id === characterId)
               const trayPos = trayPositions.get(characterId)
@@ -146,16 +138,12 @@ export default function TokenLayer({
             index={index}
             count={(tok.count ?? 1) - (tokenDrag?.active && tokenDrag.takeFrom === tok.id ? 1 : 0)}
             onDragStart={(e) => actions.onTokenDragStart(e, tok.key, tok.id)}
-            rangeMark={rangeMarkOf('loose', tok.id)}
-            otherSelected={otherSelectedOf('loose', tok.id)}
             onHover={(over) => {
               actions.onLooseHover(tok.id, over)
               actions.onPieceHover({ kind: 'loose', id: tok.id }, over)
             }}
             objects={looseObjects.current}
             centers={looseCenters.current}
-            remote={otherOwned.has(`loose:${tok.id}`)}
-            getLivePose={getPieceLive}
           />
         ),
       )}
@@ -170,8 +158,6 @@ export default function TokenLayer({
             onTakeStart={(e) => actions.onPileTakeStart(e, pile)}
             onMoveStart={(e) => actions.onPileMoveStart(e, pile)}
             onHover={(over) => actions.onPileHover(pile.id, over)}
-            remote={otherOwned.has(`pile:${pile.id}`)}
-            getLivePose={getPieceLive}
           />
         ))}
       {tokenDrag?.active && (
@@ -193,28 +179,35 @@ export default function TokenLayer({
           )}
         </TokenDragPreview>
       )}
-      {/* The new piece that the other player drags: the kind comes from the key */}
-      {otherSpawn && (
-        <OtherSpawnPreview
-          key={otherSpawn.key}
-          spawnKey={otherSpawn.key}
-          tokenKey={otherSpawn.tokenKey}
-          getLivePose={getPieceLive}
-          stacks={otherSpawn.key.startsWith('loose:')}
-        >
-          {otherSpawn.key.startsWith('token:') ? (
-            <SupplyToken tokenKey={otherSpawn.tokenKey} raycast={NO_RAYCAST} />
-          ) : otherSpawn.key.startsWith('pile:') ? (
-            <PileStack tokenKey={otherSpawn.tokenKey} interactive={false} />
-          ) : (
-            <TokenFace
-              tokenKey={otherSpawn.tokenKey}
-              size={tokenSize(otherSpawn.tokenKey)}
-              interactive={false}
-            />
-          )}
-        </OtherSpawnPreview>
-      )}
+      <OtherSpawn />
     </>
+  )
+}
+
+// The new piece that the other player drags: the kind comes from the key. Own component, so a spawn of the other
+// player renders only it, not the layer.
+function OtherSpawn() {
+  const otherSpawn = useOtherSpawn()
+  return (
+    otherSpawn && (
+      <OtherSpawnPreview
+        key={otherSpawn.key}
+        spawnKey={otherSpawn.key}
+        tokenKey={otherSpawn.tokenKey}
+        stacks={otherSpawn.key.startsWith('loose:')}
+      >
+        {otherSpawn.key.startsWith('token:') ? (
+          <SupplyToken tokenKey={otherSpawn.tokenKey} raycast={NO_RAYCAST} />
+        ) : otherSpawn.key.startsWith('pile:') ? (
+          <PileStack tokenKey={otherSpawn.tokenKey} interactive={false} />
+        ) : (
+          <TokenFace
+            tokenKey={otherSpawn.tokenKey}
+            size={tokenSize(otherSpawn.tokenKey)}
+            interactive={false}
+          />
+        )}
+      </OtherSpawnPreview>
+    )
   )
 }

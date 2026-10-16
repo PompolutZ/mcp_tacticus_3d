@@ -12,7 +12,7 @@ import { TOKEN_DRAG_LIFT } from '../tokens/solid.js'
 import DragFootprint from '../scene/DragFootprint.jsx'
 import FaceMaterial from '../scene/FaceMaterial.jsx'
 import { outlineMode, useOutline } from '../scene/SelectionOutlines.jsx'
-import useLiveFollow from '../scene/useLiveFollow.js'
+import useLiveFollow from '../scene/useLiveFollow.jsx'
 import { useColorTexture } from '../scene/useColorTexture.js'
 import { useTacticFaceMap } from './useTacticFaceTexture.js'
 import { isFaceKey } from './faceData.js'
@@ -20,6 +20,7 @@ import { NO_ROTATION } from '../characters/base.js'
 import { useHoverCursor, useHoverPeek, useHoverReport } from '../scene/useHoverCursor.js'
 import { useRenderCount } from '../debug/renderCount.js'
 import { useTableStore } from '../table/TableStoreContext.jsx'
+import { useRemote } from '../table/useOtherPlayer.jsx'
 
 // A thin box as large as the card finds the ground under it, the same as LooseToken.jsx
 const HALF_H = 0.01
@@ -47,20 +48,11 @@ const flipAngle = (flip) => flip.from + (flip.to - flip.from) * ease(flip.time /
 // onCardHover(card, over): the same, with the side that faces up, { src, alt, by }, for Alt (useCardPeek.js).
 // A drag claims `tactic:<id>` in the claims (ownership, from the table store). A cancelled drag (Escape,
 // or a lost tie) puts the card back to its place in the document.
-// remote: the other player claims the card.
-// getLivePose(key): their latest numbers. While remote, the card follows them, hangs above the table and shows
+// While the other player claims the card (useRemote), it follows their latest numbers, hangs above the table and shows
 // its footprint.
-export default function TacticCard({
-  card,
-  stackIndex,
-  onMove,
-  onOpen,
-  onHover,
-  onCardHover,
-  remote = false,
-  getLivePose = null,
-}) {
+export default function TacticCard({ card, stackIndex, onMove, onOpen, onHover, onCardHover }) {
   useRenderCount('TacticCard')
+  const remote = useRemote(`tactic:${card.id}`)
   const ownership = useTableStore((s) => s.ownership)
   const pieceLives = useTableStore((s) => s.pieceLives)
   // A card with Jarvis data draws its face (tacticFaceTexture.js); until it is ready the face is the art at
@@ -110,8 +102,6 @@ export default function TacticCard({
 
   const follow = useLiveFollow({
     pieceKey: `tactic:${card.id}`,
-    remote,
-    getLivePose,
     poseRef,
     placeRef,
   })

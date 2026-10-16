@@ -1,6 +1,8 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { followPart, lerpAngle, numbersToPose } from '../net/livePose.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
+import { useRemote } from '../table/useOtherPlayer.jsx'
 
 // A piece MOVED when its live pose is farther than this from its place in the document (inches)
 const MOVED = 0.05
@@ -9,17 +11,19 @@ const MOVED = 0.05
 // frame it moves poseRef.current a part of the way to the latest live pose of pieceKey (followPart). Until
 // the first live pose it does nothing: the piece stays where it is. When the live pose goes (the claim ended),
 // poseRef goes back to placeRef at once. Call it before the piece's own useFrame, so the piece draws the new pose.
-// remote: the other player claims the piece. getLivePose(key): the latest numbers, or null.
+// It reads from the table store whether the other player claims the piece and their latest numbers (getPieceLive).
 // poseRef: { x, z, yaw? }, the pose the piece draws. placeRef: the place in the document.
 // Returns a ref { following, moved }. following: a live pose is followed now. moved: the piece moved away from its
 // place since the follow began, so it hangs above the table and shows its footprint (a turn alone does not set
 // it). It stays on until the follow ends.
-export default function useLiveFollow({ pieceKey, remote, getLivePose, poseRef, placeRef }) {
+export default function useLiveFollow({ pieceKey, poseRef, placeRef }) {
+  const remote = useRemote(pieceKey)
+  const getLivePose = useTableStore((s) => s.getPieceLive)
   const state = useRef({ following: false, moved: false })
 
   useFrame((_, dt) => {
     const s = state.current
-    const numbers = remote && getLivePose ? getLivePose(pieceKey) : null
+    const numbers = remote ? getLivePose(pieceKey) : null
     const target = numbers && numbersToPose(pieceKey, numbers)
     if (!target) {
       if (s.following) {

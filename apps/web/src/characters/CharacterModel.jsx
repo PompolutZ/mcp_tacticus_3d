@@ -37,6 +37,12 @@ import { useModelFollow } from '../scene/useModelFollow.js'
 import { useFigureMaterials } from './useFigureMaterials.jsx'
 import { useRenderCount } from '../debug/renderCount.js'
 import { useTableStore } from '../table/TableStoreContext.jsx'
+import {
+  useOtherDragging,
+  useOtherSelected,
+  useRangeMark,
+  useRemote,
+} from '../table/useOtherPlayer.jsx'
 import { isSelected } from '../selection.js'
 
 // While dragged, the base hangs this far above the table or terrain below it
@@ -157,24 +163,24 @@ function standeeScene(front, back, radius) {
 // lift, or null when the model is not lifted. Gets null on unmount.
 // claimKey, ownership: the piece key `character:<id>` and the claims (net/ownership.js). A drag claims the key and
 // leaves the release to Scene, which releases when the body is at rest (docs/features/peer-to-peer.md, "Rules").
-// otherDragging: the other player drags this model now (ownership.otherDrag). Only then the remote model shows the
+// The other player drags this model now (useOtherDragging, ownership.otherDrag). Only then the remote model shows the
 // drag footprint, not during their lift, turn, Throw or Place (docs/features/peer-to-peer.md, "The follow").
-// remote: the other player moves this model (docs/features/peer-to-peer.md, "Bodies moved by the other browser"). The body is kinematic and its colliders give no
+// The other player moves this model (useRemote; docs/features/peer-to-peer.md, "Bodies moved by the other browser"). The body is kinematic and its colliders give no
 // contact forces, so it pushes nothing. It stays where it is. A click still selects it. Scene sets the pose
 // when this goes false (rule 5), and this puts the contact forces back.
-// getLivePose(key): the latest live pose [x, y, z, qx, qy, qz, qw] of the model, or null (LiveSync.jsx). In the
-// remote mode the model follows it each frame ("The follow") and shows the drag footprint while otherDragging.
-// getLiveTime(key): when that pose arrived, in performance.now() ms, or null. The remote model makes the sound of its
+// getPieceLive(key) of the store: the latest live pose [x, y, z, qx, qy, qz, qw] of the model, or null (LiveSync.jsx). In the
+// remote mode the model follows it each frame ("The follow") and shows the drag footprint while the other player drags it.
+// getPieceLiveTime(key): when that pose arrived, in performance.now() ms, or null. The remote model makes the sound of its
 // landing from the poses and their times (docs/features/sounds.md).
 // baseRadius: radius of the base in the model file, which has the game size
 // onHover(over): called when the pointer moves onto the model (true) and off it (false)
-// overlap: the model shows the overlap mark (overlap.js): a red outline and a red tint
+// The model shows the overlap mark (overlap.js, overlapIds of the store): a red outline and a red tint
 // overlapsAt(x, y, z): true when a base of this model at that body position overlaps another model.
 // A drag uses it for the mark and for the drop (see freePlace).
-// rangeMark: 'inRange' or 'outOfRange' while a range tool marks the model (RangeMark in ToolFootprint.jsx)
+// The range mark ('inRange' or 'outOfRange' while a range tool marks the model, RangeMark in ToolFootprint.jsx) and the
+// selection of the other player come from the store (table/useOtherPlayer.jsx).
 // modelId: the id of the model. The figure reads from the store whether it is selected, so a selection change renders
 // only the figure that changes.
-// otherSelected: the side of the other player who has the model selected, or null
 // onSelect(): a click. onDragSelect(): a drag starts, the model is selected and stays selected.
 // position: where the body starts. Read only on mount: RigidBody moves its body when its position
 // prop changes, and the spawn position follows the tray (Scene.jsx), which can move later.
@@ -190,9 +196,6 @@ function CharacterFigure({
   rotation = [0, 0, 0],
   team = 'guest',
   modelId,
-  rangeMark,
-  otherSelected = null,
-  overlap = false,
   overlapsAt,
   onSelect,
   onDragSelect,
@@ -207,12 +210,15 @@ function CharacterFigure({
   overlay,
   claimKey,
   ownership,
-  remote = false,
-  otherDragging = false,
-  getLivePose,
-  getLiveTime,
 }) {
   const selected = useTableStore((s) => isSelected(s.selection, 'character', modelId))
+  const rangeMark = useRangeMark('character', modelId)
+  const otherSelected = useOtherSelected('character', modelId)
+  const overlap = useTableStore((s) => s.overlapIds.has(modelId))
+  const remote = useRemote(claimKey)
+  const otherDragging = useOtherDragging(claimKey)
+  const getLivePose = useTableStore((s) => s.getPieceLive)
+  const getLiveTime = useTableStore((s) => s.getPieceLiveTime)
   const [startPosition] = useState(position)
   const [startQuaternion] = useState(quaternion)
   const top = useMemo(() => modelTop(scene), [scene])

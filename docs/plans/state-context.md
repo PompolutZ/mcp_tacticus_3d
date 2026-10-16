@@ -1,6 +1,6 @@
 # Plan: Move App state into a zustand store
 
-Requested by the user on 2026-10-16. Status: steps 1-7 done. The user gave the OK on 2026-10-16 to run steps 4-9 back to back (coder agent per step, no stop between steps), then stop for the user test with the step 9 measurement. Branch `state-context`, worktree `../mcp_assist_3d-state-context`, from main. The plan changes many files, so no other branch is open while it runs.
+Requested by the user on 2026-10-16. Status: steps 1-8 done; step 9 waits for the user measurement. The user gave the OK on 2026-10-16 to run steps 4-9 back to back (coder agent per step, no stop between steps), then stop for the user test with the step 9 measurement. Branch `state-context`, worktree `../mcp_assist_3d-state-context`, from main. The plan changes many files, so no other branch is open while it runs.
 
 Each step makes one commit and writes its **Result** below.
 
@@ -240,7 +240,29 @@ Prop counts: App → Scene 35 → 25. App → Toolbar 16 (unchanged). Scene → 
 - `TokenLayer`, `OwnTools`, `OtherTools`, `CharacterTray`, models read the store. Their props go.
 - Remove the `fallow` ignore `dup:aa079c9e:2` from `.fallowrc.json`.
 
-**Result:**
+**Result:** Done. `tableStore.js`: stable setters `setRangeMark`, `setDraggingCharId`, `setOverlapIds` (skip an equal value; `overlapIds` changes only when the content does). The mark mirror to presence is a store subscription (one `set` per `rangeMark` change); Scene's effect is gone. The store also holds `received` (the LiveSync ref) and stable `getPieceLive`, `getPieceLiveTime`. Tests added.
+
+New `table/useOtherPlayer.jsx` (no ownership/presence hook existed): `useRemote(key)`, `useOtherOwned`, `useOtherDragKey`, `useOtherDragging(key)`, `useOtherSpawn`, `useOtherPresence(selector)`, `useRangeMark(kind, id)`, `useOtherSelected(kind, id)`. They return primitives where they can. New `characters/useTrayLayout.js`: `trayPositions`, `gruntLists`, `trayShape`, used by Scene and TokenLayer.
+
+Moved out of Scene:
+- `useLiveFollow` (renamed `.jsx`) reads `remote` and `getPieceLive` itself. `CrisisToken`, `LooseToken`, `TokenPile`, `TacticCard`, `ScoreBoard` markers lost `remote`, `getLivePose`, `otherOwned`.
+- `CrisisToken`, `LooseToken`, `CharacterFigure` read `rangeMark` and `otherSelected` themselves. `CharacterFigure` also reads `overlap`, `remote`, `otherDragging`, `getLivePose`, `getLiveTime`. `OtherSpawnPreview` reads `getPieceLive`.
+- `TokenLayer`: `OtherSpawn` is its own component. `OtherTools` reads the side, `received` and presence (selected tools as one string, last selected key).
+- Scene local components: `DeployRanges` (own and other drag), `OtherPing`, `ClaimSync` (the other player's claims; calls `onOtherClaims` of `useModelSync`, placed after the models, so their effects run first as before).
+- `rangeMarkOf`, `otherSelectedOf`, `getPieceLive`, `trayShape`, `trayPositions` are gone from Scene (hooks or store). `toggleSelect`, `dragSelect` were already actions (step 7).
+
+Deviations:
+- `toolModels`, `toolModel`, `onSnap`, `onPlaceLimit`, `turnProps` stay in Scene: they are built from the model registry refs that only Scene has. `OwnTools` and `OtherTools` get them as props.
+- `CharacterTray` keeps `position`, `grunts`, `slot`, `affiliation`, `onBoard`: Scene lays them out. It has no other-player state.
+- `useModelSync` lost the `otherOwned` argument and returns `onOtherClaims`. The claims effect now runs in `ClaimSync`, after the poses effect of Scene (before, in the same commit, it ran in order). Only matters if a pose and a claim change in one commit.
+- `.fallowrc.json` had nothing left to drop (step 7).
+- No feature doc described this state, so none changed.
+
+Checks: format, lint 40 warnings (same), tests pass (web 1020), build and typecheck ok, fallow: no issue, no clone group (`health` fails as before, 308).
+
+Prop counts: App → Scene 25 (unchanged since step 7; the removed state was Scene's own). App → Toolbar 16 (unchanged). Scene → TokenLayer 17 → 9. Scene → OwnTools 8 → 7. Scene → OtherTools 5 → 2.
+
+Still makes Scene render: an App render (its props, many are new objects each App render), `matTurns`, `tacticCards` (doc), `ownSide`, `playedSides`, `spectator`, `showColliders`, `turnStep` (store). A claim, a drag, an overlap change, a range mark, a ping, a spawn of the other player render only their pieces.
 
 ### 9. Measure again, memo where needed
 

@@ -13,7 +13,8 @@ import { TOKEN_RADIUS } from '../crisis/CrisisToken.jsx'
 import { tokenFootprint } from '../drag/tokenDrop.js'
 import DragFootprint from '../scene/DragFootprint.jsx'
 import TokenSolid from './TokenSolid.jsx'
-import useLiveFollow from '../scene/useLiveFollow.js'
+import { useRemote } from '../table/useOtherPlayer.jsx'
+import useLiveFollow from '../scene/useLiveFollow.jsx'
 import { SURFACE_GAP } from '../pieces/heights.js'
 import { NO_ROTATION } from '../characters/base.js'
 
@@ -59,16 +60,10 @@ export function PileStack({ tokenKey, interactive = true, onPointerDown, onHover
 // the terrain under it, the same as LooseToken.jsx. See docs/features/library.md, "Pile".
 // pile: { id, key, x, z }, see App.jsx, tokenPiles. onTakeStart(nativeEvent), onMoveStart(nativeEvent):
 // App starts the token drag. onHover(over): for the Delete key.
-// remote: the other player moves the pile. getLivePose(key): their latest numbers. The pile follows them, hangs
+// While the other player moves the pile (useRemote), it follows their latest numbers, hangs
 // above the table like a dragged token and shows its footprint.
-export default function TokenPile({
-  pile,
-  onTakeStart,
-  onMoveStart,
-  onHover,
-  remote = false,
-  getLivePose = null,
-}) {
+export default function TokenPile({ pile, onTakeStart, onMoveStart, onHover }) {
+  const remote = useRemote(`pile:${pile.id}`)
   const { world, rapier } = useRapier()
   const shape = useMemo(
     () => new rapier.Cylinder(HALF_H, tokenSize(pile.key) / 2),
@@ -81,8 +76,6 @@ export default function TokenPile({
 
   const follow = useLiveFollow({
     pieceKey: `pile:${pile.id}`,
-    remote,
-    getLivePose,
     poseRef,
     placeRef,
   })

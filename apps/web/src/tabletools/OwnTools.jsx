@@ -19,7 +19,6 @@ export default function OwnTools({
   toolModel,
   onSnap,
   onPlaceLimit,
-  setRangeMark,
   turnProps,
 }) {
   useRenderCount('OwnTools')
@@ -138,7 +137,7 @@ export default function OwnTools({
             onPlaceLimit={(limit) => onPlaceLimit('range', limit)}
             limitTaken={limitTool === 'move'}
             onLimitOn={() => setLimitTool('range')}
-            onRangeMark={setRangeMark}
+            onRangeMark={actions.setRangeMark}
             {...turnProps('range')}
           />
         </Suspense>

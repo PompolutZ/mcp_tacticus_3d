@@ -21,11 +21,12 @@ import { useColorTexture } from '../scene/useColorTexture.js'
 import { useHoverCursor, useHoverReport } from '../scene/useHoverCursor.js'
 import { useOnMount } from '../scene/useLatest.js'
 import TurnHandle from '../tabletools/TurnHandle.jsx'
-import useLiveFollow from '../scene/useLiveFollow.js'
+import useLiveFollow from '../scene/useLiveFollow.jsx'
 import { SURFACE_GAP } from '../pieces/heights.js'
 import { NO_ROTATION } from '../characters/base.js'
 import { useRenderCount } from '../debug/renderCount.js'
 import { useTableStore } from '../table/TableStoreContext.jsx'
+import { useOtherSelected, useRangeMark, useRemote } from '../table/useOtherPlayer.jsx'
 import { isSelected } from '../selection.js'
 
 // A token is a 1" circle, TOKEN_THICKNESS thick (tokens.json size is used for the shape, not the exact
@@ -125,8 +126,8 @@ function AffiliationMarker({ affiliation, x, radius }) {
 // token: one entry of the tokens array in App.jsx (see buildMatTokens in crisis/matTokens.js). onMove(x, z) and
 // onTurn(yaw): called once, when a drag ends, to commit the new pose to App state.
 // onHover(over): called when the pointer moves onto the token (true) and off it (false)
-// rangeMark: 'inRange' or 'outOfRange' while a range tool marks the token (RangeMark in ToolFootprint.jsx)
-// otherSelected: the side of the other player who has the token selected, or null
+// The range mark ('inRange' or 'outOfRange' while a range tool marks the token, RangeMark in ToolFootprint.jsx) and the other
+// player's selection are read from the store (table/useOtherPlayer.jsx).
 // onSelect(): a click. onDragSelect(): a drag starts, the token is selected and stays selected.
 // onHold(characterId, point): a canHold token (Asset, Civilian, a Source's supply) was dragged and
 // released over a character (model, tray card, or the tray's DOM controls strip). point: the table
@@ -143,16 +144,13 @@ function AffiliationMarker({ affiliation, x, radius }) {
 // affiliations), or null when no player controls the token.
 // A drag and a turn claim `token:<id>` in the claims (ownership, from the
 // table store); a cancelled one (Escape, or a lost tie) puts the token back to its place in the document.
-// remote: the other player claims the token.
-// getLivePose(key): their latest numbers. While remote, the token follows them. It hangs above the table and shows
+// While the other player claims the token (useRemote), it follows their latest numbers (useLiveFollow.jsx). It hangs above the table and shows
 // its footprint when it moved, not during a turn alone.
 // canDrag: false while the token waits for the other side to place it (token.placeBy, see tokens/dropWait.js). A
 // waiting token is never held: a release lies on the table.
 // constrainDrag(point): returns the point where the dragged token may be, for a limit on the drag (null: none).
 export default function CrisisToken({
   token,
-  rangeMark,
-  otherSelected = null,
   onSelect,
   onDragSelect,
   onHover,
@@ -164,8 +162,6 @@ export default function CrisisToken({
   objectRef,
   centerRef,
   controlAffiliation = null,
-  remote = false,
-  getLivePose = null,
   canDrag = true,
   constrainDrag = null,
 }) {
@@ -173,6 +169,9 @@ export default function CrisisToken({
   const selected = useTableStore((s) => isSelected(s.selection, 'token', token.id))
   const ownership = useTableStore((s) => s.ownership)
   const pieceLives = useTableStore((s) => s.pieceLives)
+  const rangeMark = useRangeMark('token', token.id)
+  const otherSelected = useOtherSelected('token', token.id)
+  const remote = useRemote(`token:${token.id}`)
   const [topMap, bottomMap, damageMap] = useTokenMaps(token)
 
   const { camera, gl, controls } = useThree()
@@ -201,8 +200,6 @@ export default function CrisisToken({
   // The other player's drag or turn (docs/features/peer-to-peer.md, "The follow")
   const follow = useLiveFollow({
     pieceKey: `token:${token.id}`,
-    remote,
-    getLivePose,
     poseRef,
     placeRef,
   })

@@ -114,6 +114,16 @@ function createActions(set) {
   actions.setToolDrag = setter('toolDrag')
   actions.setToolSpawn = setter('toolSpawn')
   actions.setAngleSpawn = setter('angleSpawn')
+  // The scene slice: the piece that a range tool marks, the dragged own model, the models that show the overlap mark
+  actions.setRangeMark = setter('rangeMark')
+  actions.setDraggingCharId = setter('draggingCharId')
+  // marks: a Set of model ids. The store keeps the old Set when the content is the same (the 100 ms check).
+  actions.setOverlapIds = (marks) =>
+    set((s) =>
+      s.overlapIds.size === marks.size && [...marks].every((m) => s.overlapIds.has(m))
+        ? s
+        : { overlapIds: marks },
+    )
   // A click on a piece toggles it, a drag selects it and keeps it selected (selection.js)
   actions.toggleSelect = (kind, id) =>
     actions.setSelection((prev) => toggleSelectPiece(prev, { kind, id }))
@@ -141,6 +151,7 @@ function createActions(set) {
 // initial: values of the seat and settings slices that App knows at the first render, so no child renders with a default.
 // App writes them again when they change (layout effects).
 export function createTableStore(net, initial = {}) {
+  const received = { current: null }
   const store = createStore((set) => {
     const { actions, registerActions } = createActions(set)
     return {
@@ -153,6 +164,11 @@ export function createTableStore(net, initial = {}) {
       pieceLives: new Map(),
       // The calls into Scene, set by Scene on every render, null before its first effect (scene/sceneApi.js)
       sceneApi: { current: null },
+      // What LiveSync received: { pose(key), poseTime(key), tool(kind), die(key), cursor() }, or null (LiveSync.jsx)
+      received,
+      // The latest live numbers of a piece key and when they came, or null. Stable, for the pieces that follow.
+      getPieceLive: (key) => received.current?.pose(key) ?? null,
+      getPieceLiveTime: (key) => received.current?.poseTime(key) ?? null,
       controlsRef: { current: null },
       wheelCameraRef: { current: null },
       // seat
@@ -185,8 +201,12 @@ export function createTableStore(net, initial = {}) {
       toolSpawn: { range: null, move: null },
       angleSpawn: { target: null, aim: null },
       // scene
+      // The piece that a range tool measures against, { kind, id, mode: 'inRange' | 'outOfRange' } or null (RangeMark
+      // in ToolFootprint.jsx). The other player sees it through presence.
       rangeMark: null,
+      // The id of the dragged own model, else null
       draggingCharId: null,
+      // Ids of the models that show the overlap mark (Scene checks every 100 ms, sets it only on a change)
       overlapIds: new Set(),
       ...initial,
     }
@@ -199,6 +219,14 @@ export function createTableStore(net, initial = {}) {
     mirror(store.getState())
     store.subscribe((s, prev) => {
       if (s.selection !== prev.selection || s.selectedTools !== prev.selectedTools) mirror(s)
+    })
+    // The piece that the own range tool marks
+    store.subscribe((s, prev) => {
+      const { rangeMark } = s
+      if (rangeMark === prev.rangeMark) return
+      presence.set({
+        mark: rangeMark && { key: `${rangeMark.kind}:${rangeMark.id}`, mode: rangeMark.mode },
+      })
     })
   }
   return store

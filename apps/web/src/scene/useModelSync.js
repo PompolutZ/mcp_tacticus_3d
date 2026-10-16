@@ -28,7 +28,6 @@ const SLEEP_AFTER_FRAMES = 2
 export function useModelSync({
   ownership,
   poses,
-  otherOwned,
   models,
   liveCharBody,
   charLifts,
@@ -43,8 +42,6 @@ export function useModelSync({
   // The newest poses, and the poses of the last render
   const posesRef = useRef(poses)
   const prevPoses = useRef(poses)
-  // The set of the other player's claims of the last render
-  const prevOther = useRef(otherOwned)
 
   // Puts a model body at a stored pose: dynamic, exact, and asleep a few frames later ("Rules" 6)
   function applyPose(id, pose) {
@@ -122,12 +119,12 @@ export function useModelSync({
     }
   }, [poses, latest])
 
-  // The other player's claims start and end ("Rules")
-  useEffect(() => {
+  // The other player's claims start and end ("Rules"). prev, next: the Sets of their claims before and after. Scene.jsx
+  // calls it from ClaimSync, so a claim change renders that component, not Scene.
+  function onOtherClaims(prev, next) {
     const { ownership, liveCharBody } = latest.current
     const present = ownership?.otherPresent() ?? false
-    const { started, ended, gone } = claimChanges(prevOther.current, otherOwned, present)
-    prevOther.current = otherOwned
+    const { started, ended, gone } = claimChanges(prev, next, present)
     for (const key of started) {
       const id = modelIdOfKey(key)
       if (id !== null) latest.current.markMoved(id)
@@ -151,7 +148,7 @@ export function useModelSync({
         body.wakeUp()
       }
     }
-  }, [otherOwned, latest])
+  }
 
-  return { applyPose }
+  return { applyPose, onOtherClaims }
 }

@@ -1,5 +1,5 @@
 import { tokenSize } from '../tokens/tokens.js'
-import { Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { Suspense, useEffect, useMemo, useRef } from 'react'
 import { useLatest } from './useLatest.js'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import TokenLayer from '../tokens/TokenLayer.jsx'
@@ -69,9 +69,7 @@ import { CARD_X, CARD_Y, CARD_Z, supplyPilePosition } from '../crisis/layout.js'
 import { getCard } from '../crisis/cards.js'
 import { TRAYS } from '../dice/tray.js'
 import {
-  gruntsByHost,
   inTrayArea,
-  layoutTrays,
   trayModelPosition,
   traySpareModelPosition,
   trayConstructPosition,
@@ -92,7 +90,8 @@ import {
   sideYaw,
   viewOf,
 } from '../setup/setup.js'
-import { useSideColors } from '../table/useSideColors.jsx'
+import { useOtherDragKey, useOtherOwned, useOtherPresence } from '../table/useOtherPlayer.jsx'
+import { useTrayLayout } from '../characters/useTrayLayout.js'
 import { useYField, useYList } from '../net/useY.js'
 import { useTableStore } from '../table/TableStoreContext.jsx'
 import { useRenderCount, useRenderReason } from '../debug/renderCount.js'
@@ -111,14 +110,6 @@ const WAIT_NOTE_Y = 0.05
 
 const NO_TOOLS_RECORD = {}
 const NO_POSES = {}
-// The other player's claims when there is no ownership
-const NO_KEYS = new Set()
-const noSubscribe = () => () => {}
-const noKeys = () => NO_KEYS
-const noDrag = () => null
-const noSpawn = () => null
-const NO_PRESENCE = { selection: [], tools: [], mark: null, ping: null }
-const noPresence = () => NO_PRESENCE
 
 // How often (ms) Scene looks for overlapping models
 const OVERLAP_INTERVAL = 100
@@ -247,7 +238,6 @@ export default function Scene(props) {
   // The net objects and the doc slices that only Scene and its leaves read (table/tableStore.js)
   const table = useTableStore((s) => s.table)
   const ownership = useTableStore((s) => s.ownership)
-  const presence = useTableStore((s) => s.presence)
   const live = useTableStore((s) => s.live)
   // The stable actions (table/tableStore.js, createActions)
   const actions = useTableStore((s) => s.actions)
@@ -294,52 +284,15 @@ export default function Scene(props) {
   const toolLives = useRef({})
   // The own dice's live poses for LiveSync: tray side → a getter that DiceTray registers
   const diceLives = useRef({})
-  // What LiveSync received: { pose(key), poseTime(key), tool(kind), die(key), cursor() }, or null (LiveSync.jsx)
-  const received = useRef(null)
-  // The latest live numbers of a piece key, for the pieces that follow
-  const getPieceLive = (key) => received.current?.pose(key) ?? null
-  const getPieceLiveTime = (key) => received.current?.poseTime(key) ?? null
-  const [draggingCharId, setDraggingCharId] = useState(null)
-  // The piece that a range tool measures against, { kind, id, mode: 'inRange' | 'outOfRange' } or null.
-  // See RangeMark in ToolFootprint.jsx.
-  const [rangeMark, setRangeMark] = useState(null)
+  // What LiveSync received (LiveSync.jsx). It and the live getters of the pieces that follow are in the store.
+  const received = useTableStore((s) => s.received)
   // Model id → number that grows with each move of the model (overlap.js). A model that never moved has none.
   const moved = useRef(new Map())
   const moveCount = useRef(0)
   const markMoved = (id) => moved.current.set(id, ++moveCount.current)
-  // The keys that the other player claims. Their models are remote (CharacterModel.jsx).
-  const otherOwned = useSyncExternalStore(
-    ownership?.subscribe ?? noSubscribe,
-    ownership?.otherOwned ?? noKeys,
-  )
-  // The piece key of the model that the other player drags now ("Room and players")
-  const otherDragKey = useSyncExternalStore(
-    ownership?.subscribe ?? noSubscribe,
-    ownership?.otherDrag ?? noDrag,
-  )
-  // The new piece that the other player drags now, { key, tokenKey }, or null ("Moving objects (physics)")
-  const otherSpawn = useSyncExternalStore(
-    ownership?.subscribe ?? noSubscribe,
-    ownership?.otherSpawn ?? noSpawn,
-  )
-  // What the other player has selected and which piece their range tool marks ("What each player controls")
-  const otherLook = useSyncExternalStore(
-    presence?.subscribe ?? noSubscribe,
-    presence?.other ?? noPresence,
-  )
-  useEffect(() => {
-    presence?.set({
-      mark: rangeMark && {
-        key: `${rangeMark.kind}:${rangeMark.id}`,
-        mode: rangeMark.mode,
-      },
-    })
-  }, [presence, rangeMark])
   const { claimTimes, claims, claimModel } = useModelClaims({ ownership })
-  // Ids of the models that show the overlap mark
-  const [overlapIds, setOverlapIds] = useState(() => new Set())
 
-  // Every 100 ms: which models overlap. State changes only when the set changes.
+  // Every 100 ms: which models overlap. The store changes only when the set changes (setOverlapIds).
   const basesNow = useLatest(modelBases)
   useEffect(() => {
     const id = setInterval(() => {
@@ -348,12 +301,10 @@ export default function Scene(props) {
         moved: moved.current.get(m.id) ?? 0,
       }))
       const marks = overlapMarks(list)
-      setOverlapIds((prev) =>
-        prev.size === marks.size && [...marks].every((m) => prev.has(m)) ? prev : marks,
-      )
+      actions.setOverlapIds(marks)
     }, OVERLAP_INTERVAL)
     return () => clearInterval(id)
-  }, [basesNow])
+  }, [basesNow, actions])
 
   const { hoveredPiece, draggedPiece, toolTurns, turnsLeft, trackPiece, turnPiece } = usePieceTurns(
     {
@@ -363,10 +314,9 @@ export default function Scene(props) {
       liveCharBody,
     },
   )
-  const { applyPose } = useModelSync({
+  const { applyPose, onOtherClaims } = useModelSync({
     ownership,
     poses,
-    otherOwned,
     models,
     liveCharBody,
     charLifts,
@@ -469,10 +419,7 @@ export default function Scene(props) {
 
   // Tray position of every character (trays.js). A player's row recenters when that player adds
   // or removes a character, so these positions change then.
-  const trayPositions = useMemo(() => layoutTrays(characters), [characters])
-  // The grunts of each host (a grunt's card lies on its host's tray)
-  const gruntLists = useMemo(() => gruntsByHost(characters), [characters])
-  const trayShape = (ch) => trayShapeOf(ch, characters, gruntLists)
+  const { trayPositions, gruntLists, trayShape } = useTrayLayout(characters)
   // Tray positions of the last layout, to find the trays that moved.
   const lastTrayPositions = useRef(new Map())
   // A model that still stands on its tray moves with the tray, the same as TTS (moveTray in the
@@ -499,17 +446,6 @@ export default function Scene(props) {
   // Deploy-line: R3 zone depth from the deployment edge
   const deployTip = RANGE_TIP[3]
   const deployDepth = 2 * deployTip
-  const draggingChar =
-    deployLine && draggingCharId
-      ? models.find((model) => model.id === draggingCharId)?.character
-      : null
-  // The other player's drag: the model, if Deploy Lock is on and they own its key
-  const otherDragId = deployLine && otherDragKey ? modelIdOfKey(otherDragKey) : null
-  const otherDragModel =
-    otherDragId !== null && ownership?.owner(otherDragKey) === 'other'
-      ? models.find((model) => model.id === otherDragId)
-      : null
-  const otherDragChar = otherDragModel?.character ?? null
 
   // Every character and every mat token as the range and movement tools see them. A character has a
   // Rapier body; a token does not, so getCenter (not getBody) is what the tools measure with.
@@ -591,20 +527,11 @@ export default function Scene(props) {
   const toolModel = (piece) =>
     toolModels.find((model) => piece && model.kind === piece.kind && model.id === piece.id) ?? null
   const otherSide = otherTeam(ownSide)
-  const sideColors = useSideColors()
   // Why Scene commits (DebugPanel, "Scene reasons")
   useRenderReason('Scene', {
     ...Object.fromEntries(Object.entries(props).map(([k, v]) => [`prop:${k}`, v])),
-    'state:draggingCharId': draggingCharId,
-    'state:rangeMark': rangeMark,
-    'state:overlapIds': overlapIds,
     'doc:matTurns': matTurns,
     'doc:tacticCards': tacticCards,
-    'store:otherOwned': otherOwned,
-    'store:otherDragKey': otherDragKey,
-    'store:otherSpawn': otherSpawn,
-    'store:otherLook': otherLook,
-    'store:sideColors': sideColors,
     'table:ownSide': ownSide,
     'table:playedSides': playedSides,
     'table:spectator': spectator,
@@ -615,16 +542,6 @@ export default function Scene(props) {
   })
   const ownTools = tools[ownSide] ?? {}
   const otherTools = tools[otherSide] ?? {}
-  // Outline mode of the range mark on a piece, or null
-  // The own mark wins over the other player's
-  function rangeMarkOf(kind, id) {
-    if (rangeMark?.kind === kind && rangeMark.id === id) return rangeMark.mode
-    return otherLook.mark?.key === `${kind}:${id}` ? otherLook.mark.mode : null
-  }
-  // The color of the other player who has the piece selected, or null
-  function otherSelectedOf(kind, id) {
-    return otherLook.selection.includes(`${kind}:${id}`) ? sideColors[otherSide] : null
-  }
   // Table position where a model spawns: its saved pose in a room, else on its card on the tray, or for
   // a spare model (a second form without its own card), past the Give sources (trays.js). The model
   // reads it only once, when its body mounts.
@@ -712,9 +629,7 @@ export default function Scene(props) {
           <LabelOcclusionLoop registry={labelRegistry} />
           <ToolPoint pointRef={toolPoint} />
           {ownPing && <Ping key={ownPing.id} ping={ownPing} side={ownSide} />}
-          {otherLook.ping && (
-            <Ping key={otherLook.ping.id} ping={otherLook.ping} side={otherTeam(ownSide)} />
-          )}
+          <OtherPing />
           {live && ownership && (
             <>
               <LiveSync
@@ -798,8 +713,6 @@ export default function Scene(props) {
             markers={scoreMarkers}
             affiliations={affiliations}
             onMarkerMove={actions.onScoreMarkerMove}
-            otherOwned={otherOwned}
-            getLivePose={getPieceLive}
           />
           <PriorityMarker
             priority={priority}
@@ -846,21 +759,13 @@ export default function Scene(props) {
           <TokenLayer
             tokens={tokens}
             characters={characters}
-            trayPositions={trayPositions}
-            gruntLists={gruntLists}
-            trayShape={trayShape}
-            rangeMarkOf={rangeMarkOf}
-            otherSelectedOf={otherSelectedOf}
             applyPlaceLimits={applyPlaceLimits}
-            otherOwned={otherOwned}
-            getPieceLive={getPieceLive}
             affiliations={affiliations}
             tokenObjects={tokenObjects}
             tokenCenters={tokenCenters}
             looseObjects={looseObjects}
             looseCenters={looseCenters}
             looseTokens={looseTokens}
-            otherSpawn={otherSpawn}
           />
 
           {/* The tactic tray of each player, between the mat and the character trays, and the Team
@@ -907,8 +812,6 @@ export default function Scene(props) {
                 card={card}
                 stackIndex={i}
                 onMove={(x, z) => actions.onTacticMove(card.id, x, z)}
-                remote={otherOwned.has(`tactic:${card.id}`)}
-                getLivePose={getPieceLive}
                 onOpen={actions.onCardOpen}
                 onHover={(over) => actions.onTacticHover(card.id, over)}
                 onCardHover={actions.onCardHover}
@@ -950,9 +853,6 @@ export default function Scene(props) {
               rotation: [0, modelFigureYaw(model), 0],
               team: ch.team,
               modelId: model.id,
-              rangeMark: rangeMarkOf('character', model.id),
-              otherSelected: otherSelectedOf('character', model.id),
-              overlap: overlapIds.has(model.id),
               overlapsAt: (x, y, z) =>
                 overlapsAny(
                   { x, y, z, radius: BASE_DIAMETER[model.base] / 2 },
@@ -978,10 +878,6 @@ export default function Scene(props) {
                 rb ? charBodies.current.set(model.id, rb) : charBodies.current.delete(model.id),
               claimKey: modelKey(model.id),
               ownership: claims,
-              remote: otherOwned.has(modelKey(model.id)),
-              otherDragging: otherDragKey === modelKey(model.id),
-              getLivePose: getPieceLive,
-              getLiveTime: getPieceLiveTime,
               onRest: () => {
                 // One writer for each rest pose ("Rules" 5)
                 if (ownership && !ownership.writes(modelKey(model.id))) return
@@ -994,7 +890,7 @@ export default function Scene(props) {
                 lift ? charLifts.current.set(model.id, lift) : charLifts.current.delete(model.id),
               onDragStart: () => {
                 markMoved(model.id)
-                setDraggingCharId(model.id)
+                actions.setDraggingCharId(model.id)
                 ownership?.setDrag(modelKey(model.id))
                 modelDrag.current = model.id
                 trackPiece(draggedPiece, { kind: 'character', id: model.id }, true)
@@ -1002,7 +898,7 @@ export default function Scene(props) {
               // cancelled: Esc put the body back, so a Q / E turn that is not done yet is dropped
               onDragEnd: (cancelled) => {
                 if (cancelled) turnsLeft.current.delete(modelKey(model.id))
-                setDraggingCharId(null)
+                actions.setDraggingCharId(null)
                 ownership?.setDrag(null)
                 if (modelDrag.current === model.id) modelDrag.current = null
                 trackPiece(draggedPiece, { kind: 'character', id: model.id }, false)
@@ -1038,40 +934,79 @@ export default function Scene(props) {
             toolModel={toolModel}
             onSnap={selectModel}
             onPlaceLimit={setPlaceLimit}
-            setRangeMark={setRangeMark}
             turnProps={turnProps}
           />
-          {draggingChar && (
-            <Suspense fallback={null}>
-              <DeployRangeTool
-                getBody={() => liveCharBody(draggingCharId)}
-                centerZ={sideSign(draggingChar.team) * (MAT_SIZE / 2 - deployTip)}
-                yaw={sideYaw(draggingChar.team) - Math.PI / 2}
-                team={draggingChar.team}
-                hoverHeight={TOOL_HOVER_HEIGHT}
-              />
-            </Suspense>
+          {deployLine && (
+            <DeployRanges deployTip={deployTip} models={models} liveCharBody={liveCharBody} />
           )}
-          {otherDragChar && (
-            <Suspense fallback={null}>
-              <DeployRangeTool
-                getBody={() => liveCharBody(otherDragId)}
-                centerZ={sideSign(otherDragChar.team) * (MAT_SIZE / 2 - deployTip)}
-                yaw={sideYaw(otherDragChar.team) - Math.PI / 2}
-                team={otherDragChar.team}
-                hoverHeight={TOOL_HOVER_HEIGHT}
-              />
-            </Suspense>
-          )}
-          <OtherTools
-            otherTools={otherTools}
-            otherSide={otherSide}
-            otherLook={otherLook}
-            toolModels={toolModels}
-            received={received}
-          />
+          <ClaimSync onChange={onOtherClaims} />
+          <OtherTools otherTools={otherTools} toolModels={toolModels} />
         </Physics>
       </LabelOcclusionProvider>
     </>
   )
+}
+
+// The deploy lock zones (R3 deep from the deployment edge) of the dragged own model and of the model that the other
+// player drags. Own component: a drag renders it, not Scene.
+function DeployRanges({ deployTip, models, liveCharBody }) {
+  const ownership = useTableStore((s) => s.ownership)
+  const draggingCharId = useTableStore((s) => s.draggingCharId)
+  const otherDragKey = useOtherDragKey()
+  const draggingChar = draggingCharId
+    ? models.find((model) => model.id === draggingCharId)?.character
+    : null
+  // The other player's drag: the model, if they own its key
+  const otherDragId = otherDragKey ? modelIdOfKey(otherDragKey) : null
+  const otherDragModel =
+    otherDragId !== null && ownership?.owner(otherDragKey) === 'other'
+      ? models.find((model) => model.id === otherDragId)
+      : null
+  const otherDragChar = otherDragModel?.character ?? null
+  return (
+    <>
+      {draggingChar && (
+        <Suspense fallback={null}>
+          <DeployRangeTool
+            getBody={() => liveCharBody(draggingCharId)}
+            centerZ={sideSign(draggingChar.team) * (MAT_SIZE / 2 - deployTip)}
+            yaw={sideYaw(draggingChar.team) - Math.PI / 2}
+            team={draggingChar.team}
+            hoverHeight={TOOL_HOVER_HEIGHT}
+          />
+        </Suspense>
+      )}
+      {otherDragChar && (
+        <Suspense fallback={null}>
+          <DeployRangeTool
+            getBody={() => liveCharBody(otherDragId)}
+            centerZ={sideSign(otherDragChar.team) * (MAT_SIZE / 2 - deployTip)}
+            yaw={sideYaw(otherDragChar.team) - Math.PI / 2}
+            team={otherDragChar.team}
+            hoverHeight={TOOL_HOVER_HEIGHT}
+          />
+        </Suspense>
+      )}
+    </>
+  )
+}
+
+// The ping of the other player (ping.md). Own component: a ping renders it, not Scene.
+function OtherPing() {
+  const ping = useOtherPresence((p) => p.ping)
+  const side = useTableStore((s) => otherTeam(s.ownSide))
+  return ping && <Ping key={ping.id} ping={ping} side={side} />
+}
+
+// Calls onChange(prev, next) after the claims of the other player change. It renders on each change, so Scene does not.
+// It is placed after the models, so their effects (the remote mode) run first, as when Scene read the claims.
+function ClaimSync({ onChange }) {
+  const otherOwned = useOtherOwned()
+  const prev = useRef(otherOwned)
+  const latest = useLatest(onChange)
+  useEffect(() => {
+    latest.current(prev.current, otherOwned)
+    prev.current = otherOwned
+  }, [otherOwned, latest])
+  return null
 }
