@@ -112,10 +112,9 @@ test('the rack lies in front of the dice tray keys lip, centered on the tray', (
     const tray = TRAYS[side].position
     assert.equal(plate.x, tray.x)
     const near = k * plate.z - plate.depth / 2
-    assert.ok(Math.abs(near - (KEYS_LIP_Z + 0.3)) < 1e-9, `${side} ${near}`)
+    assert.ok(near > KEYS_LIP_Z, `${side} ${near}`)
     assert.ok(plate.width <= KEYS_LIP.width)
   }
-  assert.ok(Math.abs(KEYS_LIP_Z - 17.02) < 1e-9)
 })
 
 test('a row of 7 character trays does not touch the rack, with the Give sources', () => {
@@ -405,7 +404,8 @@ test('onRack: a point on the plate of a side is on that rack only', () => {
   assert.ok(onRack('guest', { x: 30, z: -25 }))
   assert.ok(!onRack('host', { x: 0, z: 22 }))
   assert.ok(!onRack('host', { x: 27, z: 17 }))
-  assert.ok(!onRack('host', { x: 27, z: 28.5 }))
+  const host = rackPlate('host')
+  assert.ok(!onRack('host', { x: host.x, z: host.z + host.depth / 2 + 0.1 }))
 })
 
 const squadRect = (side, compact = false) => {

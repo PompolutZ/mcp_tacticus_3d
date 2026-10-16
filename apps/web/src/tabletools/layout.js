@@ -22,7 +22,7 @@ const TRAY_HOST = TRAYS.host
 const RACK_X = TRAY_HOST.position.x
 // Narrower than the tray (x 20.4 to 33.6) by 0.2": a row of 7 character trays ends at x 20.5 and must not touch it
 const RACK_HALF_WIDTH = 6.4
-const KEYS_LIP_GAP = 0.3
+const KEYS_LIP_GAP = 2
 // World z of the keys lip low edge of the host tray (tray-space z turns with the tray yaw)
 const KEYS_LIP_Z = TRAY_HOST.position.z + KEYS_LIP.low.z * Math.cos(TRAY_HOST.yaw)
 const RACK_Z_MIN = KEYS_LIP_Z + KEYS_LIP_GAP

@@ -25,14 +25,14 @@ z = 17.0                                                                   dice 
 z = 18                   ─────────────── mat edge ───────────────
 z = 18.3 … 22.4          [Automatic Power  ]      tactic tray
                          [Phase            ]
-z = 17.3 … 27.9                                                            [R1][R2][R3][R4][R5]
+z = past the lip                                                           [R1][R2][R3][R4][R5]
                                                                            [L ][M ][S ][T/A]
                                                                            [LOS]
 z = 22.7 … 33.75                                  character trays, Give sources
 z = 38                   ─────────────── table edge ─────────────
 ```
 
-- **Tool rack**, in front of the dice tray of its player: x 20.6 … 33.4 (12.8" wide, centered on the tray), z 17.32 … 27.92 (10.6" deep, starting 0.3" past the keys lip of the tray, which ends at z 17.02). The tools lie along z, as seen from the player, with 5 columns from the owner's left: (R1 chip, L, LOS chip), (R2, M), (R3, S), (R4, T/A chip), (R5). In a column, the first item is on the mat side and the second below it, with a gap of 0.4". The margin is 0.3". The chips are 2" × 1" with the text toward the owner. The columns are spaced so that a 2" chip fits.
+- **Tool rack**, in front of the dice tray of its player, centered on it. It starts a gap past the keys lip of the tray. It is narrower than the tray, so a row of 7 character trays does not touch it. The tools lie along z, as seen from the player, with 5 columns from the owner's left: (R1 chip, L, LOS chip), (R2, M), (R3, S), (R4, T/A chip), (R5). In a column, the first item is on the mat side and the second below it. The chips have the text toward the owner. The columns are spaced so that a chip fits. The numbers are constants in `src/tabletools/layout.js`.
 - A row of 7 character trays ends at x 20.5, so it does not touch the rack. A row of 8 or more reaches under it. The rack draws above the tray plates, so the tools stay visible.
 - The rack is hidden while the roster rows of its side are on the table (the setup, before the squads are shown). A tool that is already on the table stays. The hidden rack takes no pointer, and a tool dropped there does not go back.
 - **Automatic Power Phase button**, 5.4" × 1" (the strip row, along z), in row 1 of the board strip of its side: x −20.5 … −19.5 (center −20), z ±12.6 … ±18.0.
