@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
+import { patchShader } from './shaderPatch.js'
 
 // Tool and token footprints painted onto the table and terrain by their materials.
 // Each user takes one slot and writes its shape and colors to it every frame.
@@ -103,12 +104,20 @@ const FRAGMENT_MAIN = /* glsl */ `
 // onBeforeCompile for a MeshStandardMaterial that shows tool and token footprints
 export function projectFootprints(shader) {
   Object.assign(shader.uniforms, uniforms)
-  shader.vertexShader = shader.vertexShader
-    .replace('#include <common>', `#include <common>${VERTEX_DECL}`)
-    .replace('#include <project_vertex>', `#include <project_vertex>${VERTEX_MAIN}`)
-  shader.fragmentShader = shader.fragmentShader
-    .replace('#include <common>', `#include <common>${FRAGMENT_DECL}`)
-    .replace('#include <tonemapping_fragment>', `${FRAGMENT_MAIN}\n#include <tonemapping_fragment>`)
+  let vs = patchShader(shader.vertexShader, '#include <common>', `#include <common>${VERTEX_DECL}`)
+  vs = patchShader(vs, '#include <project_vertex>', `#include <project_vertex>${VERTEX_MAIN}`)
+  let fs = patchShader(
+    shader.fragmentShader,
+    '#include <common>',
+    `#include <common>${FRAGMENT_DECL}`,
+  )
+  fs = patchShader(
+    fs,
+    '#include <tonemapping_fragment>',
+    `${FRAGMENT_MAIN}\n#include <tonemapping_fragment>`,
+  )
+  shader.vertexShader = vs
+  shader.fragmentShader = fs
 }
 
 function setColors(i, fill, opacity, line) {

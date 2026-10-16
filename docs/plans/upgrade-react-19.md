@@ -185,6 +185,22 @@ Conclusion: seed 1 was an extreme case. The averaged change is within the step l
 
 **Result:**
 
+Version: `three` `^0.186.1` in `apps/web/package.json` (resolved 0.186.1; `postprocessing` 6.39.5 peer ok). `@types/three` 0.186.0 was already in the tree (peer of drei and postprocessing), not a direct dep. `pnpm install`: no peer warnings.
+
+Shadows: `<Canvas shadows>` in `App.jsx` and `debug/TerrainPage.jsx` mapped to `PCFSoftShadowMap`, which r186 replaces with `PCFShadowMap` plus a console warning. Both now `shadows="percentage"` (fiber's name for `PCFShadowMap`), so there is no warning. No code sets a shadowMap type or radius. The light has `shadow-mapSize` 3072 (`SceneShared.jsx`). The edge look may be a little different from r169 soft PCF; user checks.
+
+Shader patches: each replaced string is still in r186. `#include <common>`, `#include <project_vertex>`, `#include <tonemapping_fragment>` (footprintProjection.js, meshphysical vertex and fragment) and `#include <common>`, `#include <map_fragment>` (DiceTrayParts.jsx); `sampledDiffuseColor` is still defined in `map_fragment`. No change needed. Guard added: new `src/scene/shaderPatch.js` `patchShader(source, marker, replacement)` warns in dev when the marker is missing; both patches use it.
+
+API hits: grep of `src/` and `scripts/` for the APIs removed or renamed r169 to r186 (Clock, encodings, useLegacyLights, WebGLMultipleRenderTargets, copyTextureToTexture3D, geometry merge, PCFSoftShadowMap, RGBFormat and others): none used. Imports are plain classes (Vector3, Quaternion, CanvasTexture, ExtrudeGeometry, OBJLoader, and so on). `docs/features/2d.md` render-target color note rechecked in r186 `WebGLPrograms.js`: still true, note now says "checked in r186". Scripts: `dice-sim.mjs` runs (`--seed 1 --quick`, both chi PASS); it prints a three deprecation warning that `require("three")` will be removed (comes from a dependency's CJS load, not our code). `photos-to-glb.mjs`, `lib/unity-prefab.mjs`, `lib/bundle.mjs` import only `CylinderGeometry` and `THREE.*` basics; not run (need assets).
+
+Transparent `MeshStandardMaterial` (r182 changed how they draw; user checks them). Only with the Standard look; the default look is Unlit (`meshBasicMaterial`):
+- `CrisisToken.jsx:413` damage face (`FaceMaterial transparent`).
+- `ToolRack.jsx:46` faint tool clones (OBJ `MeshStandardMaterial`, opacity `FAINT_OPACITY`).
+- `SpectatorBadge.jsx:58` badge materials forced `transparent = true` (on top, depthTest off).
+No other `transparent` standard material; other transparent ones are `meshBasicMaterial` (RosterCards, ToolDragGhost, LosTool, Ping, RemoteCursor).
+
+Checks: format ok; lint 40 warnings; test 1003 of 1003; web build ok; typecheck ok; `dice-sim --seed 1 --quick` runs; `pnpm fallow`: same as before the step (1 unlisted dependency `@dimforge/rapier3d-compat` from `dice-sim.mjs`, 306 health targets), no new unused export, no new clone group.
+
 ## User checks
 
 After step 5 (or after step 3, if the user wants to test before three):

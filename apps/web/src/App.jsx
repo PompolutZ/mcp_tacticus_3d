@@ -699,7 +699,7 @@ export default function App({
       <div className="scene-root">
         <SceneBoundary>
           <Canvas
-            shadows
+            shadows="percentage"
             camera={{ position: cameraPosition, fov: 50 }}
             // The EffectComposer in SelectionOutlines renders the scene with its own antialiasing (multisampling)
             gl={{ antialias: false }}

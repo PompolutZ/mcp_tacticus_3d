@@ -354,7 +354,7 @@ export default function TerrainPage() {
       <div className="terrain-canvas">
         <div className="scene-root">
           <Canvas
-            shadows
+            shadows="percentage"
             camera={CAMERA}
             gl={{ antialias: false }}
             events={canvasEvents}

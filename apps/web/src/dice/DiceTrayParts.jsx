@@ -9,6 +9,7 @@ import { IMPORT_ROTATION, TRAYS, TRAY_SCALE, trayColliderArrays } from './tray.j
 import { FRICTION } from '../physics.js'
 import DiceKeys from './DiceKeys.jsx'
 import { useDisposeMaterials } from '../scene/useDisposeMaterials.js'
+import { patchShader } from '../scene/shaderPatch.js'
 
 // Tray look, chosen by look in the app. The TTS texture is black except the face plates, so the
 // tray showed no shape. The black lift turns the texture black into grey before the side tint:
@@ -67,13 +68,17 @@ export function TrayBody({ trayKey, keysProps, onHover, bodyRef }) {
     })
     material.onBeforeCompile = (shader) => {
       shader.uniforms.uTrayLift = trayLift
-      shader.fragmentShader = shader.fragmentShader
-        .replace('#include <common>', '#include <common>\nuniform float uTrayLift;')
-        .replace(
-          '#include <map_fragment>',
-          `#include <map_fragment>
+      const fs = patchShader(
+        shader.fragmentShader,
+        '#include <common>',
+        '#include <common>\nuniform float uTrayLift;',
+      )
+      shader.fragmentShader = patchShader(
+        fs,
+        '#include <map_fragment>',
+        `#include <map_fragment>
   diffuseColor.rgb = diffuse * (vec3(uTrayLift) + (1.0 - uTrayLift) * sampledDiffuseColor.rgb);`,
-        )
+      )
     }
     return material
   }, [trayTexture, playerColor])
