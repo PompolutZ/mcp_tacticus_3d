@@ -51,6 +51,7 @@ import { useLatest, useOnMount } from '../scene/useLatest.js'
 import { createBumpFinder } from '../bumps.js'
 import { playShake, playSound } from '../sound.js'
 import { useRenderCount } from '../debug/renderCount.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 
 // A pointer that moved more than this many pixels between down and up was a camera drag, not a
 // click on a die.
@@ -193,10 +194,9 @@ function touchesNonDie(world, rb) {
 // DiceKeys.jsx). trayKey: 'host' | 'guest'. openDieId, onDieOpen(dieId), onMenuClose: the "Change to"
 // menu of a shelf die of this tray, lifted to App so Escape can close it. It closes when its die
 // leaves the shelf (reroll, clear, roll).
-// store: the dice record store of the table (net/doc.js). The tray reads its side at mount and
-// writes it when a die changes its place or face (dice/stored.js).
-// rolls: the roll history list of the table. transact(fn): fn writes several stores as one change.
-// The tray adds a history entry in the same change as the dice (dice/history.js).
+// The tray reads the dice record store, the roll history list and transact from the table store
+// (table/tableStore.js). It reads its side at mount and writes it when a die changes its place or face
+// (dice/stored.js). It adds a history entry in the same change as the dice (dice/history.js).
 // onHover(over): the pointer moved onto (true) or off (false) the tray, for the number keys.
 // addRef(addAfterClear): gets a function that clears the tray, then adds that many dice, for the
 // number keys, and null on unmount. Both are only given
@@ -205,9 +205,6 @@ function touchesNonDie(world, rb) {
 // die that is not on the shelf (net/livePose.js, kind die).
 export default function DiceTray({
   trayKey,
-  store,
-  rolls,
-  transact,
   openDieId = null,
   onDieOpen,
   onMenuClose,
@@ -218,6 +215,7 @@ export default function DiceTray({
   testHook = false,
 }) {
   useRenderCount('DiceTray')
+  const { dice: store, rolls, transact } = useTableStore((s) => s.table)
   const { world } = useRapier()
   // The setting as the frame loop reads it: a change needs no new subscription
   const rethrowTiltedRef = useRef(rethrowTilted)

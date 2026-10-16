@@ -1,6 +1,6 @@
 # Plan: Move App state into a zustand store
 
-Requested by the user on 2026-10-16. Status: steps 1-3 done. The user gave the OK on 2026-10-16 to run steps 4-9 back to back (coder agent per step, no stop between steps), then stop for the user test with the step 9 measurement. Branch `state-context`, worktree `../mcp_assist_3d-state-context`, from main. The plan changes many files, so no other branch is open while it runs.
+Requested by the user on 2026-10-16. Status: steps 1-4 done. The user gave the OK on 2026-10-16 to run steps 4-9 back to back (coder agent per step, no stop between steps), then stop for the user test with the step 9 measurement. Branch `state-context`, worktree `../mcp_assist_3d-state-context`, from main. The plan changes many files, so no other branch is open while it runs.
 
 Each step makes one commit and writes its **Result** below.
 
@@ -136,7 +136,20 @@ Scene 161 → 19. Terrain alone renders on hover changes (131). Scene reasons no
 - Net slice: leaves read `table`, `ownership`, `presence`, `live`, `pieceLives` from the store, and a doc slice with `useY*` when App does not need it: `ScoreBoard`, `DiceTray`, `OtherDiceTray`, `TacticCard`, `TokenLayer`, `ToolRack`, `RosterCards`, `PriorityMarker`, `Terrain`, `LiveSync`, `RemoteCursor`, `Ping`.
 - Remove the matching props from `App` → `Scene` → children. Check: no prop removed that a hook in App still reads.
 
-**Result:**
+**Result:** Done. `zustand` `^5.0.15` is a direct dependency. `src/table/tableStore.js`: `createTableStore({ table, ownership, presence, live })` with all slices of the table as initial values, node test. `src/table/TableStoreContext.jsx`: `TableStoreProvider`, `useTableStore(selector)`. `App` makes the store once (`useState`) and wraps its JSX in the provider.
+
+Net slice: `ownership`, `presence`, `live`, `pieceLives` and `table` come from the store in `Scene` and these leaves: `ScoreBoard` (markers), `CrisisToken`, `TacticCard`, `LiveSync`, `RemoteCursor`, `DiceTray`, `OtherDiceTray`. Doc slices read with `useY*`: `TokenLayer` `tokenPiles`; `Scene` `matTurns`, `tacticCards`. `startPose` and `onModelRest` are `table.poses` in Scene. App keeps `setMatTurns`, `setTokenPiles`, `setTacticCards` as plain store setters, so App no longer subscribes to those three. Props gone from App → Scene: `ownership`, `presence`, `live`, `pieceLives`, `matTurns`, `tacticCards`, `tokenPiles`, `startPose`, `diceStore`, `rollsStore`, `transact`, `onModelRest`. Gone from `TokenLayer`: `ownership`, `pieceLives`, `tokenPiles`.
+
+Deviations:
+- The store makes `pieceLives`, `sceneApi`, `controlsRef`, `wheelCameraRef` itself, and App reads them back with `store.getState()`. Passing App's refs into the store gave a new lint warning (refs during render).
+- `useTableApi` is not exported yet (fallow: unused export). Step 6 or later exports it when a handler needs it.
+- Not removed, because App still needs the value: `scoreMarkers`, `affiliations` (SpectatorColumns), `priority` (needs `nameCtx`, step 5), `rosters`, `setup`, `looseTokens` (Scene uses it), `tokens`, `poses`, `terrain`, `tools`. `ownPing` stays (App's `usePing`).
+- `.fallowrc.json`: the ignored clone id is now `dup:18a62811:2` (the `TokenLayer` prop list changed, so the hash did). Step 8 drops it.
+- No feature doc described this state flow, so none changed. The store comment points to the plan.
+
+Checks: lint 40 warnings (same), tests pass (web 1015), build and typecheck ok, fallow: no unused export, no new clone group (`health` fails as before, 308).
+
+Prop counts: App → Scene 85 → 73. Scene → TokenLayer 38 → 35. Scene → OwnTools 16 (unchanged).
 
 ### 5. Seat and settings slices
 

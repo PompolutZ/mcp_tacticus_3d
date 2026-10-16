@@ -14,6 +14,7 @@ import { TrayBody, useDieLook } from './DiceTrayParts.jsx'
 import { createPoseBumpFinder } from '../bumps.js'
 import { playShake, playSound } from '../sound.js'
 import { useRenderCount } from '../debug/renderCount.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 
 // The die's own vertices (faces.js), flattened for ConvexHullCollider's args.
 const dieVertices = Float32Array.from(D8_CORNERS.flat())
@@ -194,14 +195,15 @@ function OtherDie({ id, dice, geometry, material }) {
 }
 
 // The tray of the other player. It draws the stored side (dice/stored.js) and never writes the
-// document. trayKey: 'host' | 'guest'. store: the dice record store of the table. liveRef: what LiveSync
+// document. trayKey: 'host' | 'guest'. The dice record store is table.dice of the table store. liveRef: what LiveSync
 // received (null without a live channel).
 // A well or air die stands at its stored pose, and moves there at once when the pose changes. A shelf
 // die slides to its slot when its slot or face changes (as DiceTray.startShelfMove). A die on the
 // shelf at mount stands at its slot. An air die follows its live pose, as a remote model does, but only a pose
 // that arrived after its entry became air (the channel is unordered). The keys show the stored counts and are turned off.
-export default function OtherDiceTray({ trayKey, store, liveRef }) {
+export default function OtherDiceTray({ trayKey, liveRef }) {
   useRenderCount('OtherDiceTray')
+  const store = useTableStore((s) => s.table.dice)
   const [side] = useYField(store, trayKey)
   const { geometry, material } = useDieLook()
 

@@ -33,6 +33,7 @@ import { useHoverCursor } from '../scene/useHoverCursor.js'
 import { SURFACE_GAP } from '../pieces/heights.js'
 import { NO_ROTATION } from '../characters/base.js'
 import { useRenderCount } from '../debug/renderCount.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 
 // TTS mirrors X when it imports an OBJ. With the z → -z conversion, this is a 180° turn around Y (see
 // Terrain.jsx).
@@ -81,16 +82,14 @@ function Board() {
 // way as a crisis token. When it is released near a spot of `points`, it moves onto that spot (snapPoint).
 // position: { x, z } from App. onMove(x, z): called once, when a drag ends. shape: a Rapier shape as wide as
 // the marker, for the ground cast. halfHeight: half the shape's height. lift: extra height, for a marker
-// that lies on another one. pieceKey: the key of the claim, `marker:<host|guest|round>`. ownership: the claims
-// on pieces (net/ownership.js). pieceLives: the Map of live pose getters (net/live.js, LiveSync). remote: the other
+// that lies on another one. pieceKey: the key of the claim, `marker:<host|guest|round>`. The claims on pieces
+// (ownership) and the live pose getters (pieceLives) come from the table store (table/tableStore.js). remote: the other
 // player claims the marker. getLivePose(key): their latest numbers. While remote, the marker follows them (it
 // does not lift, so it has no footprint). A cancelled drag (Escape, or a lost tie) puts the marker back to its place
 // in the document. children: the marker, with its bottom at y = 0. They can suspend while their
 // files load; the drag does not wait for them.
 function DraggableMarker({
   pieceKey,
-  ownership,
-  pieceLives,
   remote,
   getLivePose,
   position,
@@ -103,6 +102,8 @@ function DraggableMarker({
 }) {
   const { camera, gl, controls } = useThree()
   const { world, rapier } = useRapier()
+  const ownership = useTableStore((s) => s.ownership)
+  const pieceLives = useTableStore((s) => s.pieceLives)
   const groupRef = useRef()
   // Live position during a drag. Synced from the position prop when not dragging.
   const poseRef = useRef(position)
@@ -231,8 +232,6 @@ export default function ScoreBoard({
   markers,
   affiliations,
   onMarkerMove,
-  ownership = null,
-  pieceLives = null,
   otherOwned = null,
   getLivePose = null,
 }) {
@@ -261,8 +260,6 @@ export default function ScoreBoard({
         <DraggableMarker
           key={team}
           pieceKey={`marker:${team}`}
-          ownership={ownership}
-          pieceLives={pieceLives}
           remote={otherOwned?.has(`marker:${team}`) ?? false}
           getLivePose={getLivePose}
           position={markers[team]}
@@ -282,8 +279,6 @@ export default function ScoreBoard({
       ))}
       <DraggableMarker
         pieceKey="marker:round"
-        ownership={ownership}
-        pieceLives={pieceLives}
         remote={otherOwned?.has('marker:round') ?? false}
         getLivePose={getLivePose}
         position={markers.round}

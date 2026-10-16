@@ -19,6 +19,7 @@ import { isFaceKey } from './faceData.js'
 import { NO_ROTATION } from '../characters/base.js'
 import { useHoverCursor, useHoverPeek, useHoverReport } from '../scene/useHoverCursor.js'
 import { useRenderCount } from '../debug/renderCount.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 
 // A thin box as large as the card finds the ground under it, the same as LooseToken.jsx
 const HALF_H = 0.01
@@ -44,9 +45,9 @@ const flipAngle = (flip) => flip.from + (flip.to - flip.from) * ease(flip.time /
 // onOpen({ src, alt }): a click opens the side that faces up in the card popup (CardPopup.jsx).
 // onHover(over): the pointer moved onto (true) or off (false) the card, for the F and Delete keys.
 // onCardHover(card, over): the same, with the side that faces up, { src, alt, by }, for Alt (useCardPeek.js).
-// ownership: the claims on pieces (net/ownership.js). A drag claims `tactic:<id>`. A cancelled drag (Escape,
+// A drag claims `tactic:<id>` in the claims (ownership, from the table store). A cancelled drag (Escape,
 // or a lost tie) puts the card back to its place in the document.
-// pieceLives: the Map of live pose getters (net/live.js, LiveSync). remote: the other player claims the card.
+// remote: the other player claims the card.
 // getLivePose(key): their latest numbers. While remote, the card follows them, hangs above the table and shows
 // its footprint.
 export default function TacticCard({
@@ -56,12 +57,12 @@ export default function TacticCard({
   onOpen,
   onHover,
   onCardHover,
-  ownership = null,
-  pieceLives = null,
   remote = false,
   getLivePose = null,
 }) {
   useRenderCount('TacticCard')
+  const ownership = useTableStore((s) => s.ownership)
+  const pieceLives = useTableStore((s) => s.pieceLives)
   // A card with Jarvis data draws its face (tacticFaceTexture.js); until it is ready the face is the art at
   // low opacity. A card with no Jarvis data shows its back on both sides. The back loads when the card
   // mounts, so the first flip does not wait for an image.

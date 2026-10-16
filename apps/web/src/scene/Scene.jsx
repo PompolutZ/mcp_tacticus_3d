@@ -103,6 +103,8 @@ import {
   viewOf,
 } from '../setup/setup.js'
 import { useSideColors } from '../sideColors.js'
+import { useYField, useYList } from '../net/useY.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 import { useRenderCount, useRenderReason } from '../debug/renderCount.js'
 
 // Two physics steps per frame. With one, a model dropped from high up sometimes gets stuck in terrain.
@@ -141,7 +143,6 @@ const OVERLAP_INTERVAL = 100
 // showLabels: show the label (name, game Size, lock state) above each terrain piece. With labels off, the
 // piece under the pointer shows its label.
 // spectator: show the spectator view above each model (SpectatorBadge.jsx)
-// matTurns: number of 90° counter-clockwise turns of the mat and its terrain
 // crisis: { secure, extract } chosen card keys. tokens: every crisis token on the table (see App.jsx).
 // selection: the selected pieces (see selection.js), lifted to App. onSelectionChange: the setter,
 // called with a value or an updater function.
@@ -170,10 +171,9 @@ const OVERLAP_INTERVAL = 100
 // (App.jsx).
 // looseTokens: the character tokens that lie on the table, [{ id, key, x, z }] (see App.jsx).
 // onLooseHover(id, over): the pointer moved onto or off one of them, for the Delete key.
-// tokenPiles: the piles of character tokens on the table, [{ id, key, x, z }] (see TokenPile.jsx).
 // onPileTakeStart(e, pile), onPileMoveStart(e, pile): a drag on a pile takes a token, or with Shift
 // moves the pile. onPileHover(id, over): for the Delete key.
-// tacticCards: the Team Tactic cards on the table (see TacticCard.jsx and App.jsx). onTacticMove(id,
+// onTacticMove(id,
 // x, z): a card drag ended over the table. onTacticHover(id, over): for the F and Delete keys. A
 // click on a card opens it with onCardOpen, the same as a crisis card.
 // toolDrag: the drag of a tool from the rack, { kind, which, active, start } | null (tabletools/useTableTools.js). While it is active, a
@@ -215,8 +215,6 @@ const OVERLAP_INTERVAL = 100
 // onDiceTrayHover(side, over): the pointer moved onto or off an own dice tray, for the number keys.
 // sceneApi.addDice is for the number keys over that tray. Each own tray puts a function in the addDice
 // ref that clears the tray, then adds that many dice (DiceTray.jsx).
-// diceStore: the dice record store of the table; each tray reads and writes its side (DiceTray.jsx).
-// rollsStore: the roll history list. transact(fn): fn writes several stores as one change.
 // onTokenHold(tokenId, characterId, cardPoint): a canHold token was released over a character.
 // cardPoint: the tray-local [x, z] on that character's card (trays.js, trayHeldLocal) when the
 // release point is on its tray, otherwise null.
@@ -226,20 +224,16 @@ const OVERLAP_INTERVAL = 100
 // scoreMarkers, affiliations, onScoreMarkerMove(marker, x, z): the scoring board markers, see
 // ScoreBoard.jsx.
 // priority, priorityTitle: the Priority marker (PriorityMarker.jsx). priority: the side, or null.
-// startPose(modelId): the stored pose { x, y, z, qx, qy, qz, qw } of a model (rooms/table.js, poseOf), or
-// undefined. A model with a pose starts there instead of on its tray. Read when the model mounts.
-// onModelRest(modelId, pose): the body of a model fell asleep. App stores the pose in the table document, so
-// the model starts there when the table opens again (docs/features/peer-to-peer.md, "Yjs document").
-// presence: what the other player looks at (net/presence.js). Scene writes the own range mark and reads the other's
-// selection and mark. ownership: the claims on pieces (net/ownership.js). Pieces without a body pass it to the drag code. Scene
+// From the table store (table/tableStore.js), not props: table, ownership, presence, live. Scene reads
+// matTurns (the mat turns, 90° counter-clockwise each) and the Team Tactic cards from the table document, and the
+// stored pose of a model (table.poses.get, read when the model mounts). A model that fell asleep stores its pose
+// there, so it starts there when the table opens again (docs/features/peer-to-peer.md, "Yjs document").
+// presence: Scene writes the own range mark and reads the other player's selection and mark. ownership: Scene
 // claims a model before R, Q / E, Throw, Place and a drag, releases it when the body rests, and writes the rest
-// pose (docs/features/peer-to-peer.md, "Rules").
+// pose (docs/features/peer-to-peer.md, "Rules"). live: with it, Scene mounts LiveSync and the cursor.
 // ownPing: the last ping of this browser (App, key P). The other player's ping comes with presence (ping.md).
-// live: the live hub of a multiplayer room (net/live.js), or null. With it, Scene mounts LiveSync and the cursor.
-// pieceLives: a Map, piece key → getter of the live pose of a dragged piece without a body. The drag code fills it and
-// LiveSync sends it. The pieces follow the other player's live poses while they claim them.
 // poses: the live rest poses of the models, model id → pose (the table document). A pose that the other browser
-// wrote moves the body ("Rules"). startPose is the pose at mount.
+// wrote moves the body ("Rules").
 export default function Scene(props) {
   const {
     apiRef,
@@ -261,7 +255,6 @@ export default function Scene(props) {
     turnStep = 15,
     rethrowTilted = false,
     spectator = false,
-    matTurns = 0,
     deployLine = false,
     crisis = { secure: null, extract: null },
     tokens = [],
@@ -280,11 +273,9 @@ export default function Scene(props) {
     onTokenDragStart,
     looseTokens = [],
     onLooseHover,
-    tokenPiles = [],
     onPileTakeStart,
     onPileMoveStart,
     onPileHover,
-    tacticCards = [],
     onTacticMove,
     onTacticHover,
     tokenDrag = null,
@@ -301,9 +292,6 @@ export default function Scene(props) {
     playedSides = TEAMS,
     removeWaits = {},
     onDiceTrayHover,
-    diceStore,
-    rollsStore,
-    transact,
     heldRotate,
     scoreMarkers,
     affiliations,
@@ -320,15 +308,18 @@ export default function Scene(props) {
     priority,
     priorityTitle,
     poses = NO_POSES,
-    startPose,
-    onModelRest,
-    ownership = null,
-    presence = null,
     ownPing = null,
-    live = null,
-    pieceLives = null,
   } = props
   useRenderCount('Scene')
+  // The net objects and the doc slices that only Scene and its leaves read (table/tableStore.js)
+  const table = useTableStore((s) => s.table)
+  const ownership = useTableStore((s) => s.ownership)
+  const presence = useTableStore((s) => s.presence)
+  const live = useTableStore((s) => s.live)
+  const [matTurns] = useYField(table.game, 'matTurns')
+  const [tacticCards] = useYList(table.tactics)
+  const startPose = table.poses.get
+  const onModelRest = table.poses.setField
   // Every model of every character, in spawn order (characters/models.js)
   const models = useMemo(() => characters.flatMap(characterModels), [characters])
   // The maps below are keyed by model id: a character with a second form has two models (see
@@ -683,6 +674,8 @@ export default function Scene(props) {
     'state:draggingCharId': draggingCharId,
     'state:rangeMark': rangeMark,
     'state:overlapIds': overlapIds,
+    'doc:matTurns': matTurns,
+    'doc:tacticCards': tacticCards,
     'store:otherOwned': otherOwned,
     'store:otherDragKey': otherDragKey,
     'store:otherSpawn': otherSpawn,
@@ -807,16 +800,13 @@ export default function Scene(props) {
           {live && ownership && (
             <>
               <LiveSync
-                live={live}
-                ownership={ownership}
                 getBody={(id) => liveCharBody(id)}
                 toolLives={toolLives}
                 diceLives={diceLives}
-                pieceLives={pieceLives}
                 liveRef={received}
                 hideCursor={Boolean(squadEdit?.[ownSide])}
               />
-              <RemoteCursor liveRef={received} ownership={ownership} side={otherTeam(ownSide)} />
+              <RemoteCursor liveRef={received} side={otherTeam(ownSide)} />
             </>
           )}
           <TableSurface />
@@ -871,9 +861,6 @@ export default function Scene(props) {
               <DiceTray
                 key={trayKey}
                 trayKey={trayKey}
-                store={diceStore}
-                rolls={rollsStore}
-                transact={transact}
                 diceLives={diceLives}
                 rethrowTilted={rethrowTilted}
                 testHook={trayKey === ownSide}
@@ -887,7 +874,7 @@ export default function Scene(props) {
                 }}
               />
             ) : (
-              <OtherDiceTray key={trayKey} trayKey={trayKey} store={diceStore} liveRef={received} />
+              <OtherDiceTray key={trayKey} trayKey={trayKey} liveRef={received} />
             ),
           )}
 
@@ -896,8 +883,6 @@ export default function Scene(props) {
             markers={scoreMarkers}
             affiliations={affiliations}
             onMarkerMove={onScoreMarkerMove}
-            ownership={ownership}
-            pieceLives={pieceLives}
             otherOwned={otherOwned}
             getLivePose={getPieceLive}
           />
@@ -961,8 +946,6 @@ export default function Scene(props) {
             applyPlaceLimits={applyPlaceLimits}
             onTokenMove={onTokenMove}
             onTokenTurn={onTokenTurn}
-            ownership={ownership}
-            pieceLives={pieceLives}
             otherOwned={otherOwned}
             getPieceLive={getPieceLive}
             onTokenHold={onTokenHold}
@@ -976,7 +959,6 @@ export default function Scene(props) {
             tokenDrag={tokenDrag}
             onTokenDragStart={onTokenDragStart}
             onLooseHover={onLooseHover}
-            tokenPiles={tokenPiles}
             onPileTakeStart={onPileTakeStart}
             onPileMoveStart={onPileMoveStart}
             onPileHover={onPileHover}
@@ -1053,8 +1035,6 @@ export default function Scene(props) {
                 card={card}
                 stackIndex={i}
                 onMove={(x, z) => onTacticMove(card.id, x, z)}
-                ownership={ownership}
-                pieceLives={pieceLives}
                 remote={otherOwned.has(`tactic:${card.id}`)}
                 getLivePose={getPieceLive}
                 onOpen={onCardOpen}

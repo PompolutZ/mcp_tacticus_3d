@@ -4,6 +4,7 @@ import { useRapier } from '@react-three/rapier'
 import { tablePoint } from '../drag/tablePoint.js'
 import { modelIdOfKey } from '../characters/claims.js'
 import { cursorStep, isLiveKind, poseToNumbers, sameNumbers } from '../net/livePose.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 
 // Packets at most every 33 ms, the cursor at most every 100 ms (docs/features/peer-to-peer.md, "Pose message")
 const SEND_MS = 33
@@ -16,13 +17,13 @@ const round3 = (v) => Math.round(v * 1e3) / 1e3
 
 // Sends the own live poses and the cursor, and keeps the latest poses of the other player. It lives inside
 // Physics, because it reads the bodies and the world. It renders nothing. Never log a packet.
-// live: the hub (net/live.js). ownership: net/ownership.js.
+// live (the hub, net/live.js) and ownership (net/ownership.js) come from the table store (table/tableStore.js).
 // getBody(id): the Rapier body of a model id, or undefined.
 // toolLives: a ref to { range, move, angle, los }, each a function that gives the pose of the own tool
 // { x, y, z, yaw, right, left }, or null (Tool in RulerTool.jsx registers it, the same way as turnRef).
 // diceLives: a ref to { <tray side>: getter }. A getter gives [{ key: 'die:<id>', pose }] of the own dice that
 // are not on the shelf (DiceTray registers it). Dice need no claim.
-// pieceLives: a Map, piece key → getter of the live pose { x, z, yaw? } of a dragged piece without a body, or
+// pieceLives (from the table store): a Map, piece key → getter of the live pose { x, z, yaw? } of a dragged piece without a body, or
 // null. The drag code fills it from the claim to the end of the drag (drag/pointerDrag.js).
 // hideCursor: true while the own side's Select squad is on; no cursor point is sent ("Cursor message").
 // liveRef: filled with { pose(key), poseTime(key), tool(kind), die(key), cursor() }, for the pieces that follow. State is in refs,
@@ -30,16 +31,10 @@ const round3 = (v) => Math.round(v * 1e3) / 1e3
 // null. poseTime(key): when that pose arrived, in performance.now() ms, or null. tool(kind): { pose, time } of the other player's tool, time in performance.now() ms. die(key):
 // { numbers, time } of the other player's die, or null. cursor():
 // { point: [x, y, z], time } or null.
-export default function LiveSync({
-  live,
-  ownership,
-  getBody,
-  toolLives,
-  diceLives,
-  pieceLives,
-  liveRef,
-  hideCursor = false,
-}) {
+export default function LiveSync({ getBody, toolLives, diceLives, liveRef, hideCursor = false }) {
+  const live = useTableStore((s) => s.live)
+  const ownership = useTableStore((s) => s.ownership)
+  const pieceLives = useTableStore((s) => s.pieceLives)
   const { camera, gl } = useThree()
   const { world, rapier } = useRapier()
   // key → the numbers of the last sent pose

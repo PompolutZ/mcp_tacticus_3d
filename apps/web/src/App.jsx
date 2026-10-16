@@ -72,6 +72,8 @@ import { useLogSounds } from './log/useLogSounds.js'
 import { useRemoteDropSounds } from './tokens/useRemoteDropSounds.js'
 import { SettingsPopup } from './settings/SettingsPopup.jsx'
 import { NO_PIECES, selectedId } from './selection.js'
+import { createTableStore } from './table/tableStore.js'
+import { TableStoreProvider } from './table/TableStoreContext.jsx'
 import { useRenderCount } from './debug/renderCount.js'
 
 // Draco decoder is served from public/draco, not from the default Google CDN. Module scope of the table
@@ -107,9 +109,10 @@ export default function App({
   onExit,
 }) {
   useRenderCount('App')
-  // The calls into Scene, set by Scene on every render, null before its first effect. See
-  // scene/sceneApi.js for the shape.
-  const sceneApi = useRef(null)
+  // The store of the table (table/tableStore.js). One per table document, App is keyed by it. It makes the
+  // refs and the Map of live pose getters that App and Scene share.
+  const [store] = useState(() => createTableStore({ table, ownership, presence, live }))
+  const { sceneApi, controlsRef, wheelCameraRef, pieceLives } = store.getState()
   // The order of the hook calls matters, because the effects run in this order. The layout effects come
   // first. useRollOffReader (E8) comes before useGameSetup (E9): a remote update can carry a throw and a
   // setup change together, and E9 reads what E8 wrote. useTableKeys is last: its table of actions uses
@@ -122,7 +125,8 @@ export default function App({
   const [debugOn, setDebugOn] = useState(false)
   // The spectator view above each model (SpectatorBadge.jsx)
   const [spectator, setSpectator] = useState(false)
-  const [matTurns, setMatTurns] = useYField(table.game, 'matTurns')
+  // Scene reads matTurns itself
+  const setMatTurns = (next) => table.game.setField('matTurns', next)
   const [mapId, setMapId] = useYField(table.game, 'mapId')
   // The terrain pieces on the mat, see mapTerrain in rooms/table.js. A new map replaces them. The document
   // stores each piece's index in the map data and its lock. setTerrain writes only these.
@@ -191,8 +195,6 @@ export default function App({
     handleDiceTrayHover,
     current: hoveredNow,
   } = useHovered()
-  const controlsRef = useRef(null)
-  const wheelCameraRef = useRef(null)
   const { ownPing, handlePingKey } = usePing(presence, sceneApi)
   // The tools on the table (tabletools/useTableTools.js)
   const {
@@ -271,10 +273,10 @@ export default function App({
   const [looseTokens, setLooseTokens] = useYList(table.looseTokens)
   // Piles of character tokens on the table, dropped from the Library in Pile mode: [{ id, key, x, z }].
   // A pile never runs out. See docs/features/library.md, "Pile".
-  const [tokenPiles, setTokenPiles] = useYList(table.tokenPiles)
+  const setTokenPiles = table.tokenPiles.set
   // Team Tactic cards on the table: [{ id, key, team, x, z, up }]. The order is the stack order: the
   // last card lies on top. See docs/features/team-tactic-cards.md, "State".
-  const [tacticCards, setTacticCards] = useYList(table.tactics)
+  const setTacticCards = table.tactics.set
   const { peekCard, handleCardHover, altDown, altUp } = useCardPeek()
   const { settings, bindings, updateSettings } = useSettings()
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -374,8 +376,6 @@ export default function App({
   const toolsOnTable = (item) => settings.tools[item] === 'table'
   // The own rack is on the table, so a tool dropped on it goes back to it
   const rackShown = toolsOnTable('rack')
-  // Live pose getters of the dragged pieces without a body, piece key → getter. Drag code fills it, LiveSync reads it.
-  const [pieceLives] = useState(() => new Map())
   const versionMismatch = Boolean(connection?.versionMismatch)
   const schemaMismatch = Boolean(connection?.schemaMismatch)
   // The files to load before the table shows: the map and the models (rooms/preload.js). Read once.
@@ -694,341 +694,333 @@ export default function App({
   })
 
   return (
-    <div ref={hudRootRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
-      {/* Holds the Canvas only: isolation: isolate (index.css) keeps every drei <Html> wrapper it
+    <TableStoreProvider store={store}>
+      <div ref={hudRootRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
+        {/* Holds the Canvas only: isolation: isolate (index.css) keeps every drei <Html> wrapper it
           mounts (terrain labels, the ruler tool, the tray controls) from ever drawing over the
           HUD below, no matter its z-index. See index.css, .scene-root. */}
-      <div className="scene-root">
-        <SceneBoundary>
-          <Canvas
-            shadows="percentage"
-            camera={{ position: cameraPosition, fov: 50 }}
-            // The EffectComposer in SelectionOutlines renders the scene with its own antialiasing (multisampling)
-            gl={{ antialias: false }}
-            events={canvasEvents}
-            // A click with no piece under the pointer (table, terrain, background) clears the selected
-            // pieces. The selected tools stay selected.
-            // R3F does not count a camera drag as a click. A right click is a 'contextmenu' event, and it also
-            // starts a camera turn, so it does not clear. Clicks on tool buttons (Html) are not on the canvas.
-            onPointerMissed={(e) => {
-              if (e.type === 'click' && e.target instanceof HTMLCanvasElement)
-                setSelection(NO_PIECES)
-            }}
-            onCreated={({ gl }) => {
-              const name = rendererName(gl.getContext())
-              if (isSoftwareRenderer(name)) setSoftwareRenderer(name)
-            }}
-          >
-            {/* The scene mounts when these files are in, see Preload.jsx */}
-            <Preload files={preloadFiles} />
-            <SelectionOutlines composer={mode !== 'no-composer'} outlines={mode === 'full'}>
-              <Scene
-                apiRef={sceneApi}
-                mapId={mapId}
-                tableButtons={{
-                  multiplayer: Boolean(room?.multiplayer),
-                  show: {
-                    power: toolsOnTable('power'),
-                    cleanup: toolsOnTable('cleanup'),
-                    deployLock: toolsOnTable('deployLock'),
-                    matTurn: toolsOnTable('matTurn'),
-                  },
-                  powerBlockTitle,
-                  cleanupDisabled,
-                  cleanupTitle,
-                  deployLine,
-                  onDeployLineClick: () => setDeployLine((prev) => !prev),
-                  onTurnMat: handleTurnMat,
-                }}
-                toolRack={
-                  rackShown
-                    ? {
-                        multiplayer: Boolean(room?.multiplayer),
-                        onRangeClick: handleRangeClick,
-                        onMoveClick: handleMoveClick,
-                        onAngleClick: handleAngleClick,
-                        onLosClick: handleLosClick,
-                        onDragStart: startToolDrag,
-                      }
-                    : null
-                }
-                terrain={terrain}
-                onTerrainHover={handleTerrainHover}
-                characters={characters}
-                tools={tools}
-                ownSide={ownSide}
-                onToolStore={handleToolStore}
-                onToolRemove={handleToolReturn}
-                onToolReturn={
-                  rackShown && !rackHiddenSides(setup, rosters).includes(ownSide)
-                    ? handleToolReturn
-                    : undefined
-                }
-                ownership={ownership}
-                presence={presence}
-                ownPing={ownPing}
-                live={live}
-                pieceLives={pieceLives}
-                angleSpawn={angleSpawn}
-                toolSpawn={toolSpawn}
-                showColliders={debug}
-                showLabels={settings.labels}
-                turnStep={settings.turn.step}
-                rethrowTilted={settings.rethrowTilted}
-                spectator={spectator}
-                matTurns={matTurns}
-                deployLine={deployLine}
-                crisis={crisis}
-                tokens={tokens}
-                selection={selection}
-                onSelectionChange={setSelection}
-                selectedTools={selectedTools}
-                onSelectedToolsChange={setSelectedTools}
-                onPieceHover={handlePieceHover}
-                onTokenMove={handleTokenMove}
-                onTokenTurn={handleTokenTurn}
-                onTokenHold={handleTokenHold}
-                onHeldHover={handleHeldHover}
-                onSupplyDragStart={handleSupplyDragStart}
-                onTrayCardHover={handleTrayCardHover}
-                onCardHover={handleCardHover}
-                onTokenDragStart={handleTokenDragStart}
-                looseTokens={looseTokens}
-                onLooseHover={handleLooseHover}
-                tokenPiles={tokenPiles}
-                onPileTakeStart={handlePileTakeStart}
-                onPileMoveStart={handlePileMoveStart}
-                onPileHover={handlePileHover}
-                tacticCards={tacticCards}
-                onTacticMove={handleTacticMove}
-                onTacticHover={handleTacticHover}
-                tokenDrag={tokenDrag}
-                dragPointRef={dragPointRef}
-                toolDrag={toolDrag}
-                toolDragPointRef={toolDragPointRef}
-                onCardOpen={setOpenCard}
-                onTrayOpen={setOpenTrayId}
-                onAttachedOpen={handleAttachedOpen}
-                diceMenu={diceMenu}
-                onDiceMenuOpen={handleDiceMenuOpen}
-                onDiceMenuClose={handleDiceMenuClose}
-                findCharacterAt={findCharacterAt}
-                playedSides={playedSides}
-                removeWaits={removeWaits}
-                onDiceTrayHover={handleDiceTrayHover}
-                heldRotate={heldRotate}
-                scoreMarkers={scoreMarkers}
-                priority={priority}
-                priorityTitle={priority ? priorityTitle(priority, nameCtx) : ''}
-                affiliations={affiliations}
-                rosters={rosters}
-                parsedRosters={parsedRosters}
-                onRosterOpen={handleRosterOpen}
-                onCrisisOpen={handleCrisisOpen}
-                setup={viewSetup}
-                mySide={mySide}
-                seatPlayers={seatPlayers}
-                squadEdit={squadEdit}
-                onSquadToggle={handleSquadToggle}
-                onScoreMarkerMove={(marker, x, z) =>
-                  setScoreMarkers((prev) => ({ ...prev, [marker]: { x, z } }))
-                }
-                poses={poses}
-                startPose={table.poses.get}
-                diceStore={table.dice}
-                rollsStore={table.rolls}
-                transact={table.transact}
-                onModelRest={table.poses.setField}
+        <div className="scene-root">
+          <SceneBoundary>
+            <Canvas
+              shadows="percentage"
+              camera={{ position: cameraPosition, fov: 50 }}
+              // The EffectComposer in SelectionOutlines renders the scene with its own antialiasing (multisampling)
+              gl={{ antialias: false }}
+              events={canvasEvents}
+              // A click with no piece under the pointer (table, terrain, background) clears the selected
+              // pieces. The selected tools stay selected.
+              // R3F does not count a camera drag as a click. A right click is a 'contextmenu' event, and it also
+              // starts a camera turn, so it does not clear. Clicks on tool buttons (Html) are not on the canvas.
+              onPointerMissed={(e) => {
+                if (e.type === 'click' && e.target instanceof HTMLCanvasElement)
+                  setSelection(NO_PIECES)
+              }}
+              onCreated={({ gl }) => {
+                const name = rendererName(gl.getContext())
+                if (isSoftwareRenderer(name)) setSoftwareRenderer(name)
+              }}
+            >
+              {/* The scene mounts when these files are in, see Preload.jsx */}
+              <Preload files={preloadFiles} />
+              <SelectionOutlines composer={mode !== 'no-composer'} outlines={mode === 'full'}>
+                <Scene
+                  apiRef={sceneApi}
+                  mapId={mapId}
+                  tableButtons={{
+                    multiplayer: Boolean(room?.multiplayer),
+                    show: {
+                      power: toolsOnTable('power'),
+                      cleanup: toolsOnTable('cleanup'),
+                      deployLock: toolsOnTable('deployLock'),
+                      matTurn: toolsOnTable('matTurn'),
+                    },
+                    powerBlockTitle,
+                    cleanupDisabled,
+                    cleanupTitle,
+                    deployLine,
+                    onDeployLineClick: () => setDeployLine((prev) => !prev),
+                    onTurnMat: handleTurnMat,
+                  }}
+                  toolRack={
+                    rackShown
+                      ? {
+                          multiplayer: Boolean(room?.multiplayer),
+                          onRangeClick: handleRangeClick,
+                          onMoveClick: handleMoveClick,
+                          onAngleClick: handleAngleClick,
+                          onLosClick: handleLosClick,
+                          onDragStart: startToolDrag,
+                        }
+                      : null
+                  }
+                  terrain={terrain}
+                  onTerrainHover={handleTerrainHover}
+                  characters={characters}
+                  tools={tools}
+                  ownSide={ownSide}
+                  onToolStore={handleToolStore}
+                  onToolRemove={handleToolReturn}
+                  onToolReturn={
+                    rackShown && !rackHiddenSides(setup, rosters).includes(ownSide)
+                      ? handleToolReturn
+                      : undefined
+                  }
+                  ownPing={ownPing}
+                  angleSpawn={angleSpawn}
+                  toolSpawn={toolSpawn}
+                  showColliders={debug}
+                  showLabels={settings.labels}
+                  turnStep={settings.turn.step}
+                  rethrowTilted={settings.rethrowTilted}
+                  spectator={spectator}
+                  deployLine={deployLine}
+                  crisis={crisis}
+                  tokens={tokens}
+                  selection={selection}
+                  onSelectionChange={setSelection}
+                  selectedTools={selectedTools}
+                  onSelectedToolsChange={setSelectedTools}
+                  onPieceHover={handlePieceHover}
+                  onTokenMove={handleTokenMove}
+                  onTokenTurn={handleTokenTurn}
+                  onTokenHold={handleTokenHold}
+                  onHeldHover={handleHeldHover}
+                  onSupplyDragStart={handleSupplyDragStart}
+                  onTrayCardHover={handleTrayCardHover}
+                  onCardHover={handleCardHover}
+                  onTokenDragStart={handleTokenDragStart}
+                  looseTokens={looseTokens}
+                  onLooseHover={handleLooseHover}
+                  onPileTakeStart={handlePileTakeStart}
+                  onPileMoveStart={handlePileMoveStart}
+                  onPileHover={handlePileHover}
+                  onTacticMove={handleTacticMove}
+                  onTacticHover={handleTacticHover}
+                  tokenDrag={tokenDrag}
+                  dragPointRef={dragPointRef}
+                  toolDrag={toolDrag}
+                  toolDragPointRef={toolDragPointRef}
+                  onCardOpen={setOpenCard}
+                  onTrayOpen={setOpenTrayId}
+                  onAttachedOpen={handleAttachedOpen}
+                  diceMenu={diceMenu}
+                  onDiceMenuOpen={handleDiceMenuOpen}
+                  onDiceMenuClose={handleDiceMenuClose}
+                  findCharacterAt={findCharacterAt}
+                  playedSides={playedSides}
+                  removeWaits={removeWaits}
+                  onDiceTrayHover={handleDiceTrayHover}
+                  heldRotate={heldRotate}
+                  scoreMarkers={scoreMarkers}
+                  priority={priority}
+                  priorityTitle={priority ? priorityTitle(priority, nameCtx) : ''}
+                  affiliations={affiliations}
+                  rosters={rosters}
+                  parsedRosters={parsedRosters}
+                  onRosterOpen={handleRosterOpen}
+                  onCrisisOpen={handleCrisisOpen}
+                  setup={viewSetup}
+                  mySide={mySide}
+                  seatPlayers={seatPlayers}
+                  squadEdit={squadEdit}
+                  onSquadToggle={handleSquadToggle}
+                  onScoreMarkerMove={(marker, x, z) =>
+                    setScoreMarkers((prev) => ({ ...prev, [marker]: { x, z } }))
+                  }
+                  poses={poses}
+                />
+              </SelectionOutlines>
+              <OrbitControls
+                ref={controlsRef}
+                makeDefault
+                target={cameraTarget}
+                enablePan={true}
+                // WheelCamera takes every wheel event, so this is only the pinch on a touch screen
+                enableZoom={true}
+                enableRotate={true}
+                minDistance={5}
+                maxDistance={50}
+                maxPolarAngle={MAX_POLAR_ANGLE}
+                mouseButtons={CAMERA_MOUSE_BUTTONS}
               />
-            </SelectionOutlines>
-            <OrbitControls
-              ref={controlsRef}
-              makeDefault
-              target={cameraTarget}
-              enablePan={true}
-              // WheelCamera takes every wheel event, so this is only the pinch on a touch screen
-              enableZoom={true}
-              enableRotate={true}
-              minDistance={5}
-              maxDistance={50}
-              maxPolarAngle={MAX_POLAR_ANGLE}
-              mouseButtons={CAMERA_MOUSE_BUTTONS}
-            />
-            <KeyboardCamera pan={heldPan} turn={heldTurn} />
-            <WheelCamera
-              ref={wheelCameraRef}
-              wheelState={wheelState}
-              onTurn={(dir) => sceneApi.current?.turnPiece(dir)}
-            />
-            {debug && <FrameStats />}
-            <Ready onReady={() => setReady(true)} />
-          </Canvas>
-        </SceneBoundary>
-      </div>
-      <div className="hud-top">
-        <Toolbar
-          roomCode={room?.id ?? null}
-          multiplayer={Boolean(room?.multiplayer)}
-          guestSeatFree={Boolean(room?.multiplayer && (!room.players.host || !room.players.guest))}
-          side={room?.side ?? null}
-          players={room?.players ?? null}
-          connection={connection}
-          onLobby={handleLobby}
-          mapId={mapId}
-          onMapChange={handleMapChange}
-          activeRange={activeRange}
-          activeMove={activeMove}
-          angleOn={angleOn}
-          onRangeClick={handleRangeClick}
-          onMoveClick={handleMoveClick}
-          onAngleClick={handleAngleClick}
-          spectator={spectator}
-          onSpectatorClick={() => setSpectator((prev) => !prev)}
-          onTurnMat={handleTurnMat}
-          settings={settings}
-          settingsOpen={settingsOpen}
-          onSettingsClick={() => setSettingsOpen((prev) => !prev)}
-          deployLine={deployLine}
-          onDeployLineClick={() => setDeployLine((prev) => !prev)}
-          crisis={crisis}
-          onCrisisChange={handleCrisisChange}
-          onRosterLoad={handleRosterLoad}
-          onRosterRemove={handleRosterRemove}
-          libraryOpen={libraryOpen}
-          onLibraryClick={() => setLibraryOpen((prev) => !prev)}
-          logOpen={logOpen}
-          onLogClick={() => setLogOpen(!logOpen)}
-          setupOpen={setupOpen}
-          onSetupClick={() => setSetupOpen((prev) => !prev)}
-          onSetupClose={() => setSetupOpen(false)}
+              <KeyboardCamera pan={heldPan} turn={heldTurn} />
+              <WheelCamera
+                ref={wheelCameraRef}
+                wheelState={wheelState}
+                onTurn={(dir) => sceneApi.current?.turnPiece(dir)}
+              />
+              {debug && <FrameStats />}
+              <Ready onReady={() => setReady(true)} />
+            </Canvas>
+          </SceneBoundary>
+        </div>
+        <div className="hud-top">
+          <Toolbar
+            roomCode={room?.id ?? null}
+            multiplayer={Boolean(room?.multiplayer)}
+            guestSeatFree={Boolean(
+              room?.multiplayer && (!room.players.host || !room.players.guest),
+            )}
+            side={room?.side ?? null}
+            players={room?.players ?? null}
+            connection={connection}
+            onLobby={handleLobby}
+            mapId={mapId}
+            onMapChange={handleMapChange}
+            activeRange={activeRange}
+            activeMove={activeMove}
+            angleOn={angleOn}
+            onRangeClick={handleRangeClick}
+            onMoveClick={handleMoveClick}
+            onAngleClick={handleAngleClick}
+            spectator={spectator}
+            onSpectatorClick={() => setSpectator((prev) => !prev)}
+            onTurnMat={handleTurnMat}
+            settings={settings}
+            settingsOpen={settingsOpen}
+            onSettingsClick={() => setSettingsOpen((prev) => !prev)}
+            deployLine={deployLine}
+            onDeployLineClick={() => setDeployLine((prev) => !prev)}
+            crisis={crisis}
+            onCrisisChange={handleCrisisChange}
+            onRosterLoad={handleRosterLoad}
+            onRosterRemove={handleRosterRemove}
+            libraryOpen={libraryOpen}
+            onLibraryClick={() => setLibraryOpen((prev) => !prev)}
+            logOpen={logOpen}
+            onLogClick={() => setLogOpen(!logOpen)}
+            setupOpen={setupOpen}
+            onSetupClick={() => setSetupOpen((prev) => !prev)}
+            onSetupClose={() => setSetupOpen(false)}
+          />
+        </div>
+        <TokenPanel
+          token={selectedToken}
+          onFlip={() => handleTokenFlip(selectedToken.id)}
+          onControl={(control) => handleTokenControl(selectedToken.id, control)}
+          onDamage={(damage) => handleTokenDamage(selectedToken.id, damage)}
         />
-      </div>
-      <TokenPanel
-        token={selectedToken}
-        onFlip={() => handleTokenFlip(selectedToken.id)}
-        onControl={(control) => handleTokenControl(selectedToken.id, control)}
-        onDamage={(damage) => handleTokenDamage(selectedToken.id, damage)}
-      />
-      <Library
-        open={libraryOpen}
-        characters={characters}
-        seat={seat}
-        onSpawnTactic={handleTacticSpawn}
-        onGemOpen={handleAttachedOpen}
-        onTokenDragStart={handleLibraryTokenDragStart}
-      />
-      <LogPanel
-        open={logOpen}
-        onOpen={() => setLogOpen(true)}
-        onClose={() => setLogOpen(false)}
-        rolls={rolls}
-        log={log}
-        mySide={mySide}
-        seatPlayers={seatPlayers}
-      />
-      {spectator && (
-        <SpectatorColumns
+        <Library
+          open={libraryOpen}
           characters={characters}
-          tokens={tokens}
-          poses={poses}
-          setup={viewSetup}
-          scoreMarkers={scoreMarkers}
-          affiliations={affiliations}
-          nameCtx={nameCtx}
+          seat={seat}
+          onSpawnTactic={handleTacticSpawn}
+          onGemOpen={handleAttachedOpen}
+          onTokenDragStart={handleLibraryTokenDragStart}
+        />
+        <LogPanel
+          open={logOpen}
+          onOpen={() => setLogOpen(true)}
+          onClose={() => setLogOpen(false)}
+          rolls={rolls}
+          log={log}
           mySide={mySide}
-          hiddenSquads={hiddenSquads}
-          size={settings.spectator.size}
-          libraryOpen={libraryOpen}
-          logOpen={logOpen}
+          seatPlayers={seatPlayers}
         />
-      )}
-      <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
-      {!(tokenDrag || toolDrag || popupOpen) && <CardPopup card={peekCard} peek />}
-      {settingsOpen && (
-        <SettingsPopup
-          settings={settings}
-          bindings={bindings}
-          onSettingsChange={updateSettings}
-          debug={debug}
-          onDebugClick={() => setDebugOn((prev) => !prev)}
-          showLabels={settings.labels}
-          onLabelsClick={() => updateSettings({ labels: !settings.labels })}
-          onClose={() => setSettingsOpen(false)}
-        />
-      )}
-      {crisisShown && (
-        <CrisisCompare
-          open={crisisShown}
-          setup={viewSetup}
-          parsed={parsedRosters}
-          ctx={nameCtx}
-          mySide={mySide}
-          stepRef={crisisStepRef}
-          onChoose={setupActions.deck}
-          onClose={() => setOpenCrisis(null)}
-        />
-      )}
-      {chooseShown && (
-        <CrisisChoose
+        {spectator && (
+          <SpectatorColumns
+            characters={characters}
+            tokens={tokens}
+            poses={poses}
+            setup={viewSetup}
+            scoreMarkers={scoreMarkers}
+            affiliations={affiliations}
+            nameCtx={nameCtx}
+            mySide={mySide}
+            hiddenSquads={hiddenSquads}
+            size={settings.spectator.size}
+            libraryOpen={libraryOpen}
+            logOpen={logOpen}
+          />
+        )}
+        <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
+        {!(tokenDrag || toolDrag || popupOpen) && <CardPopup card={peekCard} peek />}
+        {settingsOpen && (
+          <SettingsPopup
+            settings={settings}
+            bindings={bindings}
+            onSettingsChange={updateSettings}
+            debug={debug}
+            onDebugClick={() => setDebugOn((prev) => !prev)}
+            showLabels={settings.labels}
+            onLabelsClick={() => updateSettings({ labels: !settings.labels })}
+            onClose={() => setSettingsOpen(false)}
+          />
+        )}
+        {crisisShown && (
+          <CrisisCompare
+            open={crisisShown}
+            setup={viewSetup}
+            parsed={parsedRosters}
+            ctx={nameCtx}
+            mySide={mySide}
+            stepRef={crisisStepRef}
+            onChoose={setupActions.deck}
+            onClose={() => setOpenCrisis(null)}
+          />
+        )}
+        {chooseShown && (
+          <CrisisChoose
+            setup={setup}
+            parsed={parsedRosters}
+            ctx={nameCtx}
+            onPick={setupActions.pick}
+            onClose={() => setOpenChoose(null)}
+          />
+        )}
+        <RosterPopupHost
+          openRoster={openRoster}
+          setOpenRoster={setOpenRoster}
+          rosters={rosters}
           setup={setup}
-          parsed={parsedRosters}
-          ctx={nameCtx}
-          onPick={setupActions.pick}
-          onClose={() => setOpenChoose(null)}
+          parsedRosters={parsedRosters}
+          squadBlock={squadBlock}
+          hiddenSquads={hiddenSquads}
+          mySide={mySide}
+          ownSquad={ownSquad}
+          handleBreakdownChoose={handleBreakdownChoose}
+          handleSquadToggle={handleSquadToggle}
         />
-      )}
-      <RosterPopupHost
-        openRoster={openRoster}
-        setOpenRoster={setOpenRoster}
-        rosters={rosters}
-        setup={setup}
-        parsedRosters={parsedRosters}
-        squadBlock={squadBlock}
-        hiddenSquads={hiddenSquads}
-        mySide={mySide}
-        ownSquad={ownSquad}
-        handleBreakdownChoose={handleBreakdownChoose}
-        handleSquadToggle={handleSquadToggle}
-      />
-      {openTray && (
-        <TrayPopup
-          character={openTray}
-          heldTokens={tokens.filter((tok) => tok.heldBy === openTray.id)}
-          onClose={() => setOpenTrayId(null)}
-          onDamage={(damage) => handleCharacterDamage(openTray.id, damage)}
-          onPower={(power) => handleCharacterPower(openTray.id, power)}
-          onFlip={() => handleCharacterFlip(openTray.id)}
-          onRemove={() => handleCharacterOffBoard(openTray.id)}
-          onBoard={characterOnBoard(openTray, poses)}
-          removeWait={removeWaits[openTray.id] ?? null}
-          onTokenRemove={(key) => handleCharacterTokenRemove(openTray.id, key)}
+        {openTray && (
+          <TrayPopup
+            character={openTray}
+            heldTokens={tokens.filter((tok) => tok.heldBy === openTray.id)}
+            onClose={() => setOpenTrayId(null)}
+            onDamage={(damage) => handleCharacterDamage(openTray.id, damage)}
+            onPower={(power) => handleCharacterPower(openTray.id, power)}
+            onFlip={() => handleCharacterFlip(openTray.id)}
+            onRemove={() => handleCharacterOffBoard(openTray.id)}
+            onBoard={characterOnBoard(openTray, poses)}
+            removeWait={removeWaits[openTray.id] ?? null}
+            onTokenRemove={(key) => handleCharacterTokenRemove(openTray.id, key)}
+          />
+        )}
+        {hudMessage && <div className="hud-message">{hudMessage}</div>}
+        <HudNotice
+          lines={waitLines}
+          onShow={handleNoticeShow}
+          onDone={(line) => placeTokens(line.ids)}
         />
-      )}
-      {hudMessage && <div className="hud-message">{hudMessage}</div>}
-      <HudNotice
-        lines={waitLines}
-        onShow={handleNoticeShow}
-        onDone={(line) => placeTokens(line.ids)}
-      />
-      <PhaseButtons
-        settings={settings}
-        onPowerPhase={() => handlePowerPhase(playedSides)}
-        powerBlock={powerBlockTitle(playedSides)}
-        onCleanupPhase={handleCleanupPhase}
-        cleanupDisabled={cleanupDisabled}
-        cleanupTitle={cleanupTitle}
-      />
-      <HudWarnings
-        lifted={settings.tools.power === 'hud' || settings.tools.cleanup === 'hud'}
-        storageFailed={storageFailed}
-        serverWarning={serverWarning}
-        versionMismatch={versionMismatch}
-        schemaMismatch={schemaMismatch}
-        softwareRenderer={softwareRenderer}
-        onSoftwareRendererClose={() => setSoftwareRenderer(null)}
-      />
-      {debug && <DebugPanel {...debugPanel} />}
-      <LoadingOverlay ready={ready} />
-    </div>
+        <PhaseButtons
+          settings={settings}
+          onPowerPhase={() => handlePowerPhase(playedSides)}
+          powerBlock={powerBlockTitle(playedSides)}
+          onCleanupPhase={handleCleanupPhase}
+          cleanupDisabled={cleanupDisabled}
+          cleanupTitle={cleanupTitle}
+        />
+        <HudWarnings
+          lifted={settings.tools.power === 'hud' || settings.tools.cleanup === 'hud'}
+          storageFailed={storageFailed}
+          serverWarning={serverWarning}
+          versionMismatch={versionMismatch}
+          schemaMismatch={schemaMismatch}
+          softwareRenderer={softwareRenderer}
+          onSoftwareRendererClose={() => setSoftwareRenderer(null)}
+        />
+        {debug && <DebugPanel {...debugPanel} />}
+        <LoadingOverlay ready={ready} />
+      </div>
+    </TableStoreProvider>
   )
 }

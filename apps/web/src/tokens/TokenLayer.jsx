@@ -18,6 +18,8 @@ import {
   trayShapeOf,
   trayYaw,
 } from '../characters/trays.js'
+import { useYList } from '../net/useY.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 import { useRenderCount } from '../debug/renderCount.js'
 
 // Tokens held by one character lie on its card in a stack, in the order they were taken, so two
@@ -47,8 +49,6 @@ export default function TokenLayer({
   applyPlaceLimits,
   onTokenMove,
   onTokenTurn,
-  ownership,
-  pieceLives,
   otherOwned,
   getPieceLive,
   onTokenHold,
@@ -62,7 +62,6 @@ export default function TokenLayer({
   tokenDrag,
   onTokenDragStart,
   onLooseHover,
-  tokenPiles,
   onPileTakeStart,
   onPileMoveStart,
   onPileHover,
@@ -70,6 +69,7 @@ export default function TokenLayer({
   otherSpawn,
 }) {
   useRenderCount('TokenLayer')
+  const [tokenPiles] = useYList(useTableStore((s) => s.table.tokenPiles))
   // Every crisis token as it is drawn. A held token lies on its holder's card: its tray-local place
   // (heldAt) moves to the table with the tray position, and it faces the holder's player, the same
   // as the card (see trays.js, "An objective token that the character holds").
@@ -121,8 +121,6 @@ export default function TokenLayer({
             }}
             onMove={(x, z) => onTokenMove(tok.id, x, z)}
             onTurn={(yaw) => onTokenTurn(tok.id, yaw)}
-            ownership={ownership}
-            pieceLives={pieceLives}
             remote={otherOwned.has(`token:${tok.id}`)}
             getLivePose={getPieceLive}
             onHold={(characterId, point) => {

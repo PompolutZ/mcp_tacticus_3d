@@ -24,6 +24,7 @@ import useLiveFollow from '../scene/useLiveFollow.js'
 import { SURFACE_GAP } from '../pieces/heights.js'
 import { NO_ROTATION } from '../characters/base.js'
 import { useRenderCount } from '../debug/renderCount.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 
 // A token is a 1" circle, TOKEN_THICKNESS thick (tokens.json size is used for the shape, not the exact
 // dims of the current tokens, which are all 1" circles)
@@ -138,9 +139,9 @@ function AffiliationMarker({ affiliation, x, radius }) {
 // tools. Called with undefined on unmount, the same pattern as bodyRef/objectRef in CharacterModel.
 // controlAffiliation: the affiliation key of the player in token.control (see App.jsx,
 // affiliations), or null when no player controls the token.
-// ownership: the claims on pieces (net/ownership.js). A drag and a turn claim `token:<id>`; a cancelled
-// one (Escape, or a lost tie) puts the token back to its place in the document.
-// pieceLives: the Map of live pose getters (net/live.js, LiveSync). remote: the other player claims the token.
+// A drag and a turn claim `token:<id>` in the claims (ownership, from the
+// table store); a cancelled one (Escape, or a lost tie) puts the token back to its place in the document.
+// remote: the other player claims the token.
 // getLivePose(key): their latest numbers. While remote, the token follows them. It hangs above the table and shows
 // its footprint when it moved, not during a turn alone.
 // canDrag: false while the token waits for the other side to place it (token.placeBy, see tokens/dropWait.js). A
@@ -162,14 +163,14 @@ export default function CrisisToken({
   objectRef,
   centerRef,
   controlAffiliation = null,
-  ownership = null,
-  pieceLives = null,
   remote = false,
   getLivePose = null,
   canDrag = true,
   constrainDrag = null,
 }) {
   useRenderCount('CrisisToken')
+  const ownership = useTableStore((s) => s.ownership)
+  const pieceLives = useTableStore((s) => s.pieceLives)
   const [topMap, bottomMap, damageMap] = useTokenMaps(token)
 
   const { camera, gl, controls } = useThree()
