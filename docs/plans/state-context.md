@@ -264,6 +264,8 @@ Prop counts: App → Scene 25 (unchanged since step 7; the removed state was Sce
 
 Still makes Scene render: an App render (its props, many are new objects each App render), `matTurns`, `tacticCards` (doc), `ownSide`, `playedSides`, `spectator`, `showColliders`, `turnStep` (store). A claim, a drag, an overlap change, a range mark, a ping, a spawn of the other player render only their pieces.
 
+**Fixes after user test:** `LogPanel` called `useNames` with 2 args (step 5 added `colors`), crash. It now reads `nameCtx` from the store; App no longer passes `mySide`, `seatPlayers`. Store starts with a default `nameCtx` (was null), so a first render never reads null. Audit of steps 4-8 signature changes: all other callers match.
+
 ### 9. Measure again, memo where needed
 
 - The user repeats the baseline run and the tool turn. Numbers go in the Result, next to step 1.

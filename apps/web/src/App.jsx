@@ -899,8 +899,6 @@ export default function App({
           onClose={() => setLogOpen(false)}
           rolls={rolls}
           log={log}
-          mySide={mySide}
-          seatPlayers={seatPlayers}
         />
         {spectator && (
           <SpectatorColumns

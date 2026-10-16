@@ -3,7 +3,7 @@ import { entryText } from '../dice/history.js'
 import { assetUrl } from '../assets/index.js'
 import { useSideColor } from '../table/useSideColors.jsx'
 import { entrySide, logText, mergeLog } from './log.js'
-import { useNames } from '../setup/useNames.js'
+import { useTableStore } from '../table/TableStoreContext.jsx'
 
 function Icon({ symbol }) {
   return (
@@ -98,10 +98,10 @@ function Entry({ item, ctx }) {
 
 // The Log HUD panel at the top of the right column (docs/features/game-log.md). It shows the dice
 // history `rolls` and the game `log`, both oldest first as stored, merged by time with the newest first.
-// Collapsed, it is one bar with the newest entry. A click on the bar expands it. mySide, seatPlayers: for
-// the names of the entries (setup/useNames.js).
-export function LogPanel({ open, onOpen, onClose, rolls, log, mySide, seatPlayers }) {
-  const ctx = useNames(mySide, seatPlayers)
+// Collapsed, it is one bar with the newest entry. A click on the bar expands it. The names of the entries come from
+// the store of the table (nameCtx).
+export function LogPanel({ open, onOpen, onClose, rolls, log }) {
+  const ctx = useTableStore((s) => s.nameCtx)
   const items = mergeLog(rolls, log)
   if (!open) {
     const newest = items[0]

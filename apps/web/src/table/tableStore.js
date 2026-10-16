@@ -2,7 +2,7 @@ import { createStore } from 'zustand/vanilla'
 import { effectiveBindings } from '../input/bindings.js'
 import { defaultSettings } from '../settings/settings.js'
 import { TEAMS } from '../setup/setup.js'
-import { DEFAULT_SIDE_COLORS } from '../sideColors.js'
+import { COLOR_NAME, DEFAULT_SIDE_COLORS } from '../sideColors.js'
 import {
   NO_PIECES,
   NO_TOOLS,
@@ -177,7 +177,16 @@ export function createTableStore(net, initial = {}) {
       playedSides: TEAMS,
       hiddenSquads: false,
       seatPlayers: null,
-      nameCtx: null,
+      // App writes the real names in a layout effect, before the first paint. This one keeps a first render from reading null.
+      nameCtx: {
+        mySide: null,
+        players: null,
+        peer: null,
+        colors: {
+          host: COLOR_NAME[DEFAULT_SIDE_COLORS.host],
+          guest: COLOR_NAME[DEFAULT_SIDE_COLORS.guest],
+        },
+      },
       spectator: false,
       sideColors: DEFAULT_SIDE_COLORS,
       // settings
