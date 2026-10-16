@@ -91,3 +91,5 @@ Done. `PhaseButtons.jsx`: Power says **Auto Power Phase** with the Power token i
 User: hold W and drag with the mouse: only W moves the camera. Drag with the mouse and press an arrow: only the mouse moves it. Release, then the other input works. Keys during a model drag still pan.
 
 ### Result
+
+Done. `src/cameraOwner.js` (plain module, owner null / mouse / keys) with test `cameraOwner.test.js`. `KeyboardCamera.jsx` holds one owner: OrbitControls `start` / `end` set the mouse owner; window `pointerup`, `pointercancel` and `blur` release it (drag ends outside the canvas, lost focus). Each frame the held keys take the camera if nobody owns it; while the mouse owns it the keys do nothing, except during a piece drag (`isDragActive`). While the keys own it, `enableRotate` and `enablePan` are off, not `enabled`: `WheelCamera` reads `controls.enabled`, so the wheel would stop too. Held keys are already cleared on window blur (`useTableKeys`). Docs: key-shortcuts. Checks: format, lint (40), typecheck, test (996), build OK.

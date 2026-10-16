@@ -1,6 +1,8 @@
+import { useEffect, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { MathUtils, Spherical, Vector3 } from 'three'
-import { refreshActiveDrag } from '../drag/pointerDrag.js'
+import { isDragActive, refreshActiveDrag } from '../drag/pointerDrag.js'
+import { createCameraOwner, setMouseCamera } from '../cameraOwner.js'
 import { CAMERA_FRAME_PRIORITY, panOnTable } from '../camera.js'
 
 // Pan speed as a part of the camera distance per second, so it feels the same at every zoom
@@ -26,16 +28,50 @@ function heldDirection(held) {
 // input/bindings.js). pan, turn: refs to a Map of the held actions, action id →
 // screen direction [right, up]. While a pointer drag is in progress, it is moved again after each camera move
 // (drag/pointerDrag.js, refreshActiveDrag), so the piece stays under the pointer.
+// The first input wins: a mouse camera drag blocks the keys, and held keys turn the OrbitControls drag
+// off (cameraOwner.js, docs/features/key-shortcuts.md, "One camera input at a time").
 export function KeyboardCamera({ pan, turn }) {
   const camera = useThree((state) => state.camera)
   const controls = useThree((state) => state.controls)
 
+  const owner = useRef(null)
+  owner.current ??= createCameraOwner()
+
+  // The mouse owns the camera from the start of an OrbitControls drag to its end. The window events
+  // cover a drag that ends outside the canvas or the window, and a lost focus.
+  useEffect(() => {
+    if (!controls) return
+    const o = owner.current
+    const start = () => o.mouseStart()
+    const end = () => o.mouseEnd()
+    controls.addEventListener('start', start)
+    controls.addEventListener('end', end)
+    window.addEventListener('pointerup', end)
+    window.addEventListener('pointercancel', end)
+    const release = () => o.release()
+    window.addEventListener('blur', release)
+    return () => {
+      controls.removeEventListener('start', start)
+      controls.removeEventListener('end', end)
+      window.removeEventListener('pointerup', end)
+      window.removeEventListener('pointercancel', end)
+      window.removeEventListener('blur', release)
+      setMouseCamera(controls, true)
+    }
+  }, [controls])
+
   useFrame((_, dt) => {
     if (!controls) return
+    const held = pan.current.size > 0 || turn.current.size > 0
+    const move = owner.current.keysMove(held, isDragActive())
+    // Held keys turn the mouse camera drag off. The wheel stays on (it needs controls.enabled).
+    const mouseOn = owner.current.owner !== 'keys'
+    setMouseCamera(controls, mouseOn)
+    if (!move) return
     if (pan.current.size > 0) panCamera(heldDirection(pan.current), dt)
     if (turn.current.size > 0) turnCamera(heldDirection(turn.current), dt)
     // The pointer stands still under a moving camera: a drag follows it to the new table point
-    if (pan.current.size > 0 || turn.current.size > 0) refreshActiveDrag()
+    refreshActiveDrag()
   }, CAMERA_FRAME_PRIORITY)
 
   function panCamera([dx, dy], dt) {
