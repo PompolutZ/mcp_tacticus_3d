@@ -2,7 +2,14 @@ import { test, before } from 'node:test'
 import assert from 'node:assert/strict'
 import { createRequire } from 'node:module'
 import { NO_ROTATION } from './characters/base.js'
-import { castDown, lowerFloor, BODY_DYNAMIC, BODY_KINEMATIC_POSITION } from './physics.js'
+import {
+  castDown,
+  lowerFloor,
+  BODY_DYNAMIC,
+  BODY_KINEMATIC_POSITION,
+  setKinematic,
+  setDynamic,
+} from './physics.js'
 
 // Headless Rapier world (the same version as the app, nested under @react-three/rapier). Fixed boxes
 // stand for terrain. world.step() runs once before the casts, or castShape finds nothing.
@@ -56,4 +63,15 @@ test('too little room under the overhang: no lower floor', () => {
 test('body type constants match Rapier RigidBodyType', () => {
   assert.equal(BODY_DYNAMIC, rapier.RigidBodyType.Dynamic)
   assert.equal(BODY_KINEMATIC_POSITION, rapier.RigidBodyType.KinematicPositionBased)
+})
+
+test('setKinematic turns CCD off, setDynamic turns it on again', () => {
+  const rb = world.createRigidBody(rapier.RigidBodyDesc.dynamic().setCcdEnabled(true))
+  setKinematic(rb)
+  assert.equal(rb.bodyType(), rapier.RigidBodyType.KinematicPositionBased)
+  assert.equal(rb.isCcdEnabled(), false)
+  setDynamic(rb)
+  assert.equal(rb.bodyType(), rapier.RigidBodyType.Dynamic)
+  assert.equal(rb.isCcdEnabled(), true)
+  world.removeRigidBody(rb)
 })

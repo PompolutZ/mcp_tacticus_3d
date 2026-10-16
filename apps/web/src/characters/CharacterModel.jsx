@@ -16,8 +16,8 @@ import {
   FRICTION,
   MODEL_GROUPS,
   SOLVER_ALL,
-  BODY_DYNAMIC,
-  BODY_KINEMATIC_POSITION,
+  setDynamic,
+  setKinematic,
   SOLVER_NONE,
   lowerFloor,
 } from '../physics.js'
@@ -413,7 +413,7 @@ function CharacterFigure({
     if (remote) {
       lift.current = null
       rest.current = null
-      rb.setBodyType(BODY_KINEMATIC_POSITION, true)
+      setKinematic(rb)
     }
   }, [remote, remoteBump, lift, livePlace, liveRb])
 
@@ -439,7 +439,10 @@ function CharacterFigure({
         onDragSelect?.()
         // A drag ends a lift. The model follows the pointer and drops where it is released.
         lift.current = null
-        liveRb()?.setBodyType(BODY_KINEMATIC_POSITION, true)
+        {
+          const b = liveRb()
+          if (b) setKinematic(b)
+        }
         isDragging.current = true
         floorMode.current = 'top'
         setDragging(true)
@@ -470,7 +473,10 @@ function CharacterFigure({
         startPose.current = null
         setDragOverlap(false)
         setDragging(false)
-        liveRb()?.setBodyType(BODY_DYNAMIC, true)
+        {
+          const b = liveRb()
+          if (b) setDynamic(b)
+        }
         liveRb()?.setLinvel(ZERO, true)
         liveRb()?.setAngvel(ZERO, true)
         onDragEnd?.()
@@ -491,7 +497,7 @@ function CharacterFigure({
         setDragOverlap(false)
         setDragging(false)
         if (reason !== 'lost' && reason !== 'unmount' && rb && from) {
-          rb.setBodyType(BODY_DYNAMIC, true)
+          setDynamic(rb)
           rb.setTranslation(from.t, true)
           rb.setRotation(from.r, true)
           rb.setLinvel(ZERO, true)

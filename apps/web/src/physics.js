@@ -31,6 +31,19 @@ export const OTHER_DICE_GROUPS = interactionGroups(
 export const BODY_DYNAMIC = 0
 export const BODY_KINEMATIC_POSITION = 2
 
+// Switch a body that has `ccd` on (dice, models) between kinematic and dynamic. A kinematic body must
+// have CCD off: with engine 0.19 a kinematic body with CCD on is stopped by the colliders on its way to
+// the target (a die at the tray wall, a dragged or lifted model at terrain), so it stays short. Always
+// switch these bodies with these two, not with setBodyType. ccd: dynamic again with CCD on (default).
+export function setKinematic(rb) {
+  rb.enableCcd(false)
+  rb.setBodyType(BODY_KINEMATIC_POSITION, true)
+}
+export function setDynamic(rb, ccd = true) {
+  rb.setBodyType(BODY_DYNAMIC, true)
+  rb.enableCcd(ccd)
+}
+
 // Ground casts go straight down from this height, in steps of CAST_STEP.
 // One long cast can pass through a terrain hull without a hit (Rapier loses precision over a long
 // distance), so a model or tool would end up inside that piece. Short casts do not miss.

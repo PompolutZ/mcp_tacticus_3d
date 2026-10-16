@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { BODY_DYNAMIC, BODY_KINEMATIC_POSITION } from '../physics.js'
+import { setDynamic, setKinematic } from '../physics.js'
 
 // The R key lifts a model straight up by LIFT_HEIGHT (inches), and a second press puts it back at the
 // same place. So a player can see and select a token under it, and a Throw or Push can move a model
@@ -42,7 +42,7 @@ export function useModelLift({ liveRb, groundY, isDragging, remoteRef, clearRest
     const t = rb.translation()
     lift.current = { x: t.x, y: t.y, z: t.z, sleeping: rb.isSleeping(), up: true, landing: false }
     clearRest()
-    rb.setBodyType(BODY_KINEMATIC_POSITION, true)
+    setKinematic(rb)
   }
 
   function lowerLift() {
@@ -51,7 +51,7 @@ export function useModelLift({ liveRb, groundY, isDragging, remoteRef, clearRest
 
   function endLift(rb) {
     lift.current = null
-    rb.setBodyType(BODY_DYNAMIC, true)
+    setDynamic(rb)
     rb.setLinvel(ZERO, true)
     rb.setAngvel(ZERO, true)
   }
