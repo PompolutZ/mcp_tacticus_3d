@@ -269,7 +269,7 @@ The mod's `tokenDatabase` (in the `Database` script) has 310 rows. The TTS cache
 | Misc | 7 | 1/3/5 Power, 1/3/5 Damage, Mystic Ward | only `1 Power`, as the icon of the Power counter; and the tokens of tactic cards (next row) |
 | Use Tools, Pile | 14 | Chimichanga, Astral Ring, LMD | only the tokens of tactic cards (next row): these tokens lie on the table, not on a character |
 | Tokens of tactic cards | 17 more | Mystic Ward, Mystic Portal, Chimichanga | yes, any type: a released tactic card names them in `tokens` (`docs/features/team-tactic-cards.md`, "Token piles") |
-| Affiliation | 36 | Asgard, Wakanda | no |
+| Affiliation | 36 | Asgard, Wakanda | yes, group `affiliation`, keys `affiliation-<slug>`, built in `src/tokens/affiliationTokens.js` from `scoreboard/affiliations.json` (not in `tokens.json`); the images are in `src/assets/affiliations/` |
 | Objective types | about 130 | Extract Asset, Secure Zone | no: the crisis feature migrates them |
 
 Notes:
@@ -289,7 +289,7 @@ Output, in the same style as the crisis migration:
 | `src/tokens/files.js` | `characterToken(key)` |
 | `scripts/token-manifest.json` | Source URLs, so a second run converts only new or changed files |
 
-`group` is one of `condition`, `status` (Activated and Dazed), `character` (images in `token/character/`) and `tactic` (images in `token/tactic/`). The Library shows the groups.
+`group` is one of `affiliation` (not in the JSON, see above), `condition`, `status` (Activated and Dazed), `character` (images in `token/character/`) and `tactic` (images in `token/tactic/`). The Library shows the groups.
 
 ## Character data
 

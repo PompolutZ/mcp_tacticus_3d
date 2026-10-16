@@ -74,6 +74,9 @@ const keys = characterKeys(characters)
 // separately and does not change with a trial run of this script.
 const TOKENS_FILE = path.resolve(import.meta.dirname, '../src/tokens/tokens.json')
 const tokensData = readJson(TOKENS_FILE, TOKENS_FILE)
+const affiliationsData = readJson(
+  path.resolve(import.meta.dirname, '../src/scoreboard/affiliations.json'),
+)
 // A trial run continues from its own files, if an earlier trial run into the same directory wrote them
 const manifest = readJson(MANIFEST_OUT, MANIFEST_FILE)
 const appData = readJson(DATA_OUT, DATA_FILE)
@@ -295,6 +298,8 @@ function tokenKeys(names, field, warnings) {
   for (const name of (names ?? []).filter(Boolean)) {
     const key = tokenSlug(name)
     if (tokensData[key]?.group === 'dice') continue
+    // Affiliation tokens (group "affiliation", src/tokens/affiliationTokens.js) are the side's, not the character's
+    if (key in affiliationsData) continue
     if (key in tokensData) keys.push(key)
     else
       warnings.push(

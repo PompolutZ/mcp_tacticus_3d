@@ -41,6 +41,8 @@ User: the Library shows the Affiliation group. Drag one onto the table and onto 
 
 ### Result
 
+Done. `src/tokens/affiliationTokens.js` builds the 36 tokens from `affiliations.json` (not written to `tokens.json`, which `migrate-tokens.mjs` rewrites); `tokens.js` merges them. `characterToken` maps `affiliation-<slug>` to `affiliations/<slug>.webp`. `TOKEN_GROUPS` has Affiliation. `migrate-characters.mjs` skips affiliation names in `cToken`. New test `affiliationTokens.test.js`. Docs: library, character-trays.
+
 ## Step 2: Affiliation source in the Give row
 
 - The Give sources of each character get the side's affiliation token after Dazed, while the side has an affiliation. The source follows the current affiliation. Find the code that builds the Give row and lays it out (`characters/trays.js`, `CharacterTray.jsx`).

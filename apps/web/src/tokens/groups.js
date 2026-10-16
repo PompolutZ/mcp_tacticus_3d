@@ -6,4 +6,5 @@ export const TOKEN_GROUPS = {
   tactic: 'Tactic',
   dice: 'Dice',
   counter: 'Counters',
+  affiliation: 'Affiliation',
 }

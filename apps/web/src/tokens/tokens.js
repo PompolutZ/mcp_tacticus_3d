@@ -1,9 +1,13 @@
 // Token list built from tokens.json, the same pattern as crisis/cards.js. The 'counter' group
 // ("1 Damage", "1 Power") is in the list: the Library has it for piles. "1 Power" is also the icon
 // of the tray's Power counter, see TrayControls.jsx.
-import tokensData from './tokens.json'
+import migratedTokens from './tokens.json'
+import { AFFILIATION_TOKENS } from './affiliationTokens.js'
 import { TOKEN_SIZE } from './files.js'
 import { isCollectedEntry } from './collect.js'
+
+// tokens.json is rewritten by migrate-tokens.mjs, so the affiliation tokens are added here, not in the JSON.
+const tokensData = { ...migratedTokens, ...AFFILIATION_TOKENS }
 
 export const TOKENS = Object.entries(tokensData)
   .map(([key, t]) => ({ key, ...t }))
