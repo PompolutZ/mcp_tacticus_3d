@@ -65,7 +65,7 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 | Arrow keys | Turn the camera | Turn the camera around the point it looks at. Left / Right move the camera to the left / right around that point (the view turns the other way), as in TTS. Up / Down move the camera up / down around that point (the view tilts down / up), as in TTS. Work also during any drag, as W A S D | Yes |
 | Space | Reset the camera. In first-person mode: fly up | Moves the camera back to the start view at once. The app has no first-person mode | Yes |
 | Z | Zoom to the pointer, press again to zoom back | Nothing | No |
-| P | Camera mode: third person, first person, top-down | Ping: an arrow in the color of your side at the pointer, see `ping.md`. The app has no camera modes | No |
+| P | Camera mode: third person, first person, top-down | Nothing. The app has no camera modes | No |
 | Ctrl | First-person mode: fly down | Nothing | No |
 | F | Flip | Flips the crisis token under the pointer, the card of the character under the pointer (its model or its tray card), or the Team Tactic card under the pointer. With nothing under the pointer: the piece selected last, a token or the card of a character | Partly |
 | Q / E | Rotate the piece | Turns the dragged character or tool, else the one under the pointer, one turn step (15° by default, see Settings). A character and a free tool turn around the center. A snapped tool turns around its base and stays snapped. With Bend on, a tool bends one half (`range-movement-tools.md`, "Input rules"). Q turns counter-clockwise, E clockwise (seen from above). A token has a turn handle, no key | Partly |
@@ -80,7 +80,7 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 | M | Magnify | Nothing | No |
 | N | Nudge | Nothing | No |
 | − / + | Scale | Nothing | No |
-| Tab | Line tool | Nothing. The range and move tools are not free lines | No |
+| Tab | Line tool | Ping: an arrow in the color of your side at the pointer, see `ping.md`. The app has no free line tool (the range and move tools are not free lines) | No |
 | Ctrl + X / C / V | Cut / copy / paste | Nothing | No |
 | Number row 1–9, 0 | Over a deck or a bag: draw that many | Range and move tools. 0 removes every tool (see the next section) | No |
 | PageUp / PageDown | Previous / next state | Nothing | No |

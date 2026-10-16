@@ -139,7 +139,7 @@ test('a combo with no binding does nothing, also a text field', () => {
     [' ', 'Space'],
     ['q', 'KeyQ'],
     ['f', 'KeyF'],
-    ['p', 'KeyP'],
+    ['Tab', 'Tab'],
     ['1', 'Digit1'],
     ['6', 'Digit6'],
     ['0', 'Digit0'],
@@ -224,11 +224,18 @@ test('first-press keys: F, R, L, P act once, nothing on repeat', () => {
     ['KeyF', 'flip'],
     ['KeyR', 'lift'],
     ['KeyL', 'lock'],
-    ['KeyP', 'ping'],
   ]) {
     assert.deepEqual(act(key('x', { code })), { action, id: action })
     assert.equal(act(key('x', { code, repeat: true })), null, code)
   }
+})
+
+test('a key that stops the browser focus move does it only when it acts', () => {
+  const tab = key('Tab', { code: 'Tab' })
+  assert.deepEqual(act(tab), { action: 'ping', id: 'ping', preventDefault: true })
+  assert.equal(act(key('Tab', { code: 'Tab', repeat: true })), null)
+  assert.equal(act(key('Tab', { code: 'Tab', target: field })), null)
+  assert.equal(act(tab, { popup: true }), null)
 })
 
 test('tool keys act once: range 1-5, move 7-9, angle 6, clear 0', () => {
@@ -259,7 +266,7 @@ test('dice keys over an own tray win over the tools, also 6 and 0', () => {
 
 test('other keys do nothing', () => {
   assert.equal(act(key('z', { code: 'KeyZ' })), null)
-  assert.equal(act(key('Tab')), null)
+  assert.equal(act(key('p', { code: 'KeyP' })), null)
   assert.equal(act(key('Enter')), null)
   assert.equal(act(key('8', { code: 'Digit8' }), { diceTray: null }).action, 'move')
 })

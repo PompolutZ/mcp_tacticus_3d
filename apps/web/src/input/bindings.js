@@ -158,7 +158,8 @@ export const ACTIONS = [
     action: 'delete',
     repeats: true,
   }),
-  A('ping', 'Ping', 'Pieces', TABLE, [bind('KeyP')], { action: 'ping' }),
+  // Tab would move the browser focus
+  A('ping', 'Ping', 'Pieces', TABLE, [bind('Tab')], { action: 'ping', preventDefault: true }),
   // Windows moves the focus to the browser menu on a bare Alt
   A('peek', 'Card peek', 'Pieces', TABLE, [bind('AltLeft'), bind('AltRight')], {
     action: 'peek',

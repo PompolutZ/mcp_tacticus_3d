@@ -49,7 +49,7 @@ test('every key of today gives its action', () => {
     KeyF: 'flip',
     KeyR: 'lift',
     KeyL: 'lock',
-    KeyP: 'ping',
+    Tab: 'ping',
     Delete: 'delete',
     Backspace: 'delete',
     AltLeft: 'peek',

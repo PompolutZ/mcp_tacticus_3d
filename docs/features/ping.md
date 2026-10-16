@@ -8,7 +8,7 @@ A player points at a place on the table. The other player sees and hears it, so 
 
 ## Use
 
-- Key **P** (TTS uses P for the camera mode, the app has no camera modes). The ping is at the table, board or terrain point under the pointer. With the pointer off the table, or not over the canvas, nothing happens.
+- Key **Tab** (TTS uses Tab for the Line tool, the app has no free line tool). The binding stops the browser's focus move. In a text field or a popup Tab moves the focus as usual. The ping is at the table, board or terrain point under the pointer. With the pointer off the table, or not over the canvas, nothing happens.
 - Not while the focus is in a text field, with Ctrl, Cmd or Alt held, or while a popup or a drag is open. A held key does not repeat the ping.
 - The ping is a down arrow that bounces above the point, and a ring on the surface. Both are in the color of the side of the player. It shows for 3 s, fades in the last 0.5 s, then goes. It sits on top of models and terrain: the arrow is not hidden by them.
 - The sound `ping-bing` plays at the start (`sounds.md`). The volume slider sets it.
