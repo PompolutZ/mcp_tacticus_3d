@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { turnBody } from '../characters/base.js'
 
@@ -27,10 +27,11 @@ export function usePieceTurns({ heldRotate, turnStep, claimModel, liveCharBody }
   const turnHold = useRef({ piece: null, time: 0 })
 
   // on: the piece is now the hovered or dragged one (true), or no longer (false)
-  function trackPiece(ref, piece, on) {
+  // It reads only its arguments, so it is the same function on every render.
+  const trackPiece = useCallback((ref, piece, on) => {
     if (on) ref.current = piece
     else if (ref.current?.kind === piece.kind && ref.current.id === piece.id) ref.current = null
-  }
+  }, [])
 
   // Q / E press, as in TTS: turns the dragged character or tool, else the one under the pointer, by
   // turnStep (degrees, the setting) around its center. direction: 1 counter-clockwise seen from above, -1 clockwise.

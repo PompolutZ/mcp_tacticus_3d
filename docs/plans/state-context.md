@@ -1,6 +1,6 @@
 # Plan: Move App state into a zustand store
 
-Requested by the user on 2026-10-16. Status: steps 1-8 done; step 9 part 1 done, waits for the user measurement. The user gave the OK on 2026-10-16 to run steps 4-9 back to back (coder agent per step, no stop between steps), then stop for the user test with the step 9 measurement. Branch `state-context`, worktree `../mcp_assist_3d-state-context`, from main. The plan changes many files, so no other branch is open while it runs.
+Requested by the user on 2026-10-16. Status: steps 1-9 done, waits for the user test. The user gave the OK on 2026-10-16 to run steps 4-9 back to back (coder agent per step, no stop between steps), then stop for the user test with the step 9 measurement. Branch `state-context`, worktree `../mcp_assist_3d-state-context`, from main. The plan changes many files, so no other branch is open while it runs.
 
 Each step makes one commit and writes its **Result** below.
 
@@ -272,7 +272,7 @@ Still makes Scene render: an App render (its props, many are new objects each Ap
 - `memo` only on components that still render because their parent rendered (the reason counter shows `parent`).
 - Check that the `apiRef` assignment (Scene) does not depend on Scene rendering often. Move it to a layout effect with deps if needed.
 
-**Result:** Part 1 done.
+**Result:** Parts 1 and 2 done.
 
 **Measurement after step 8 (user, sandbox, 2026-10-16):** tool turn (spawn a tool against a model, turn it, spawn a second tool). Total commits:
 
@@ -295,7 +295,33 @@ Unmount warning ("Attempted to synchronously unmount a root while React was alre
 
 "THREE.Clock deprecated" and "deprecated parameters for the initialization function": not in `src/`, both come from libraries (three via fiber, rapier). This branch changed no dependency except `zustand`. Pre-existing.
 
-Part 2 (after the user measures again): `memo` only where reason `parent` shows, and the `apiRef` check.
+**Measurement after part 1 (user, tool turn after Reset, 2026-10-16):** total commits.
+
+| App | Toolbar | Scene | TokenLayer, OtherTools, ScoreBoard, ToolRack | OwnTools | CharacterModel (sum) | CharacterTray (sum) | DiceTray (2 trays) | Terrain |
+|---|---|---|---|---|---|---|---|---|
+| 18 | 18 | 19 | 19 | 27 | 42 | 54 | 38 | 55 |
+
+Scene reasons: `prop:poses` 8, `parent` 4, `prop:characters` 3, `prop:removeWaits` 3, `prop:tableButtons` 3, `prop:tools` 3, `table:showColliders` small.
+
+**Part 2 (done):** `memo` on `Scene`, `Toolbar`, `TableButtons`, `TokenLayer`, `OtherTools`, `OwnTools`, `ScoreBoard`, `ToolRack`, `DiceTray`, `OtherDiceTray`, `CharacterTray`, `CharacterModel`, `StandeeModel`, `Terrain`, and the new `scene/SceneModel.jsx`.
+
+Props made stable:
+- Scene (`scene/Scene.jsx`): `useCallback` for `applyPlaceLimits`, `toolModel`, `setPlaceLimit`, `selectModel`, `turnProps`, `markMoved`, `registerAddDice`, `onTerrainSelect`, `onTerrainObject`; `useMemo` for `rackHidden`. Constants `NO_LIST`, `NO_SIDE_TOOLS` replace default `[]` and `{}`. `toolModels` deps now list `markMoved`.
+- `usePieceTurns.trackPiece` and `useModelRegistry.terrainUnder` are `useCallback`.
+- `useTrayLayout`: one shape object for each character (`slot` array stays), `trayShape` is `useCallback`.
+- `CharacterTray`: prop `objectRef` replaced by `objects` (the Map ref); it makes its own `useCallback` ref.
+- Models: new `SceneModel` (memo) builds the model props in `useMemo` and reads `ownership` and `actions` from the store. Scene gives it a stable `ctx` ({ refs, now }). `now` is a `useLatest` of the helpers that only handlers read (`modelBases`, `restPose`, `onModelRest`, `applyPlaceLimits`, `deployLine`, `deployDepth`). `spawn` is a new object each render and is read only on mount, so a custom `memo` compare skips it. The spectator badge is made inside it from `spectator`, `held`, `secureTokens`.
+- `OwnDiceTray` (local in Scene) makes the `DiceTray` handlers with `useCallback`.
+- `tableButtons.powerBlockTitle` (function) became `tableButtons.powerBlock` `{ host, guest }` (strings, App computes them); `BoardStrip` and Scene's `startRoundBlock` read it. The prop stays equal when `setup` or `nameCtx` change but the texts do not.
+- `removeWaits`: new `useShallowStable` (`src/useShallowStable.js`) keeps the old object when the content is equal.
+
+Not memo or not changed:
+- `Terrain` hover label renders (55) stay: they come from its own hover state; a per-piece selector is not a small change.
+- No leaf was skipped. `TerrainPage` still passes its own props to `Terrain`.
+
+`apiRef`: the closures read only props and store values that Scene itself reads, so they change only when Scene renders. It was a passive effect after every render; now `useLayoutEffect` after every render (no deps: the closures are new functions each render, a deps list would be wrong). With Scene memo it runs rarely.
+
+Checks: format, lint 40 warnings (same), tests pass (web 1020), build and typecheck ok, fallow: no unused export, no clone group (`health` fails as before, 308).
 
 ## User checks
 

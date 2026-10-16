@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { gruntsByHost, layoutTrays, trayShapeOf } from './trays.js'
 
 // The layout of the character trays: the position of every tray (a player's row recenters when that player adds or
@@ -8,6 +8,14 @@ import { gruntsByHost, layoutTrays, trayShapeOf } from './trays.js'
 export function useTrayLayout(characters) {
   const trayPositions = useMemo(() => layoutTrays(characters), [characters])
   const gruntLists = useMemo(() => gruntsByHost(characters), [characters])
-  const trayShape = (ch) => trayShapeOf(ch, characters, gruntLists)
+  // One shape object for each character until the characters change, so a tray gets the same `slot` array
+  const shapes = useMemo(
+    () => new Map(characters.map((ch) => [ch.id, trayShapeOf(ch, characters, gruntLists)])),
+    [characters, gruntLists],
+  )
+  const trayShape = useCallback(
+    (ch) => shapes.get(ch.id) ?? trayShapeOf(ch, characters, gruntLists),
+    [shapes, characters, gruntLists],
+  )
   return { trayPositions, gruntLists, trayShape }
 }

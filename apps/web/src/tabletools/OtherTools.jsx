@@ -1,4 +1,4 @@
-import { Suspense } from 'react'
+import { Suspense, memo } from 'react'
 import { OtherTool } from './OtherTool.jsx'
 import { OtherLos } from './LosTool.jsx'
 import { useRenderCount } from '../debug/renderCount.js'
@@ -10,7 +10,7 @@ const toolKey = (kind, entry) => `${kind}-${entry.which}-${entry.spawn}`
 
 // The other player's tools. It reads from the store the side, what the other player has selected (presence) and what
 // LiveSync received.
-export default function OtherTools({ otherTools, toolModels }) {
+function OtherTools({ otherTools, toolModels }) {
   useRenderCount('OtherTools')
   const otherSide = useTableStore((s) => otherTeam(s.ownSide))
   const received = useTableStore((s) => s.received)
@@ -59,3 +59,5 @@ export default function OtherTools({ otherTools, toolModels }) {
     </>
   )
 }
+
+export default memo(OtherTools)

@@ -611,6 +611,8 @@ export default function App({
   const showCleanup = toolsOnTable('cleanup')
   const showDeployLock = toolsOnTable('deployLock')
   const showMatTurn = toolsOnTable('matTurn')
+  const powerBlockHost = powerBlockTitle(['host'])
+  const powerBlockGuest = powerBlockTitle(['guest'])
   const tableButtons = useMemo(
     () => ({
       multiplayer,
@@ -620,7 +622,7 @@ export default function App({
         deployLock: showDeployLock,
         matTurn: showMatTurn,
       },
-      powerBlockTitle,
+      powerBlock: { host: powerBlockHost, guest: powerBlockGuest },
       cleanupDisabled,
       cleanupTitle,
       deployLine,
@@ -631,7 +633,8 @@ export default function App({
       showCleanup,
       showDeployLock,
       showMatTurn,
-      powerBlockTitle,
+      powerBlockHost,
+      powerBlockGuest,
       cleanupDisabled,
       cleanupTitle,
       deployLine,

@@ -1,4 +1,4 @@
-import { Suspense, useRef, useState } from 'react'
+import { Suspense, useRef, useState, memo } from 'react'
 import { MovementRuler, AngleRuler, RangeRuler } from './RulerTool.jsx'
 import { LosTool } from './LosTool.jsx'
 import { TOOL_HOVER_HEIGHT, sameModel } from './toolGeometry.js'
@@ -12,15 +12,7 @@ const toolKey = (kind, entry) => `${kind}-${entry.which}-${entry.spawn}`
 // helpers that Scene.jsx has for them. canReturn: a move drag that ends on the own rack removes the tool. The
 // handlers are the table actions (table/tableStore.js). onPlaceLimit(kind, limit): sets the Place limit of a tool in
 // the map that Scene reads to limit a drag of a piece (applyPlaceLimits). turnProps(kind): the Q / E turn props of a tool.
-export default function OwnTools({
-  ownTools,
-  canReturn,
-  toolModels,
-  toolModel,
-  onSnap,
-  onPlaceLimit,
-  turnProps,
-}) {
+function OwnTools({ ownTools, canReturn, toolModels, toolModel, onSnap, onPlaceLimit, turnProps }) {
   useRenderCount('OwnTools')
   const ownSide = useTableStore((s) => s.ownSide)
   const actions = useTableStore((s) => s.actions)
@@ -145,3 +137,5 @@ export default function OwnTools({
     </>
   )
 }
+
+export default memo(OwnTools)

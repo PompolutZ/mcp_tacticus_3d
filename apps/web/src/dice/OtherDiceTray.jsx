@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, memo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Quaternion, Vector3 } from 'three'
 import { RigidBody, ConvexHullCollider } from '@react-three/rapier'
@@ -201,7 +201,7 @@ function OtherDie({ id, dice, geometry, material }) {
 // die slides to its slot when its slot or face changes (as DiceTray.startShelfMove). A die on the
 // shelf at mount stands at its slot. An air die follows its live pose, as a remote model does, but only a pose
 // that arrived after its entry became air (the channel is unordered). The keys show the stored counts and are turned off.
-export default function OtherDiceTray({ trayKey, liveRef }) {
+function OtherDiceTray({ trayKey, liveRef }) {
   useRenderCount('OtherDiceTray')
   const store = useTableStore((s) => s.table.dice)
   const [side] = useYField(store, trayKey)
@@ -281,3 +281,5 @@ export default function OtherDiceTray({ trayKey, liveRef }) {
     </>
   )
 }
+
+export default memo(OtherDiceTray)

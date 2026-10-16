@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState, memo } from 'react'
 import { UI_COLORS } from '../uiColors.js'
 import { TEAMS } from '../setup/setup.js'
 import { rackPlate, rackSlots, rackYaw } from './layout.js'
@@ -240,7 +240,7 @@ function Rack({ side, tools, handlers }) {
 // hiddenSides: the sides whose rack does not show, because the roster rows lie there (setup.js, rosterRowsShown).
 // A hidden rack is not mounted, so it takes no pointer.
 // onDragStart(e, kind, which, onClick): a press on an own tool or chip (tabletools/useTableTools.js, startToolDrag).
-export default function ToolRack({ multiplayer, tools, hiddenSides = [] }) {
+function ToolRack({ multiplayer, tools, hiddenSides = [] }) {
   useRenderCount('ToolRack')
   const ownSide = useTableStore((s) => s.ownSide)
   const actions = useTableStore((s) => s.actions)
@@ -256,3 +256,5 @@ export default function ToolRack({ multiplayer, tools, hiddenSides = [] }) {
     <Rack key={side} side={side} tools={tools} handlers={side === ownSide ? handlers : undefined} />
   ))
 }
+
+export default memo(ToolRack)

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, memo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { OccludedHtml } from '../scene/LabelOcclusion.jsx'
 import { RigidBody, ConvexHullCollider, useAfterPhysicsStep, useRapier } from '@react-three/rapier'
@@ -203,7 +203,7 @@ function touchesNonDie(world, rb) {
 // for the player's tray (Scene.jsx).
 // diceLives: a ref to { side: getter }. The tray registers a getter for LiveSync with the live pose of each
 // die that is not on the shelf (net/livePose.js, kind die).
-export default function DiceTray({
+function DiceTray({
   trayKey,
   openDieId = null,
   onDieOpen,
@@ -933,3 +933,5 @@ export default function DiceTray({
     </>
   )
 }
+
+export default memo(DiceTray)

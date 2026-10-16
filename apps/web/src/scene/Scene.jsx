@@ -1,5 +1,5 @@
 import { tokenSize } from '../tokens/tokens.js'
-import { Suspense, useEffect, useMemo, useRef } from 'react'
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, memo } from 'react'
 import { useLatest } from './useLatest.js'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import TokenLayer from '../tokens/TokenLayer.jsx'
@@ -13,13 +13,11 @@ import { useTerrainFall } from '../terrain/useTerrainFall.js'
 import { useModelClaims } from './useModelClaims.js'
 import { usePieceTurns } from './usePieceTurns.js'
 import { useModelSync } from './useModelSync.js'
-import CharacterModel, { StandeeModel } from '../characters/CharacterModel.jsx'
-import { modelUrls } from '../characters/modelUrls.js'
+import SceneModel from './SceneModel.jsx'
 import CharacterTray from '../characters/CharacterTray.jsx'
 import TableButtons from '../ui/TableButtons.jsx'
 import ToolRack from '../tabletools/ToolRack.jsx'
 import ToolDragGhost from '../tabletools/ToolDragGhost.jsx'
-import SpectatorBadge from '../ui/SpectatorBadge.jsx'
 import { heldTokensByCharacter } from '../game/heldTokens.js'
 import Terrain from '../terrain/Terrain.jsx'
 import CrisisCard from '../crisis/CrisisCard.jsx'
@@ -46,25 +44,18 @@ import PriorityMarker from '../game/PriorityMarker.jsx'
 import { Backdrop, Mat, SceneLights, TableSurface } from './SceneShared.jsx'
 import { BASE_DIAMETER } from '../characters/files.js'
 import { MAPS } from '../terrain/maps/index.js'
-import {
-  characterGiveSources,
-  characterName,
-  characterSize,
-  characterStamina,
-} from '../characters/characters.js'
+import { characterGiveSources, characterName, characterSize } from '../characters/characters.js'
 import {
   characterModels,
   characterOnBoard,
-  modelCardFile,
   modelFigureYaw,
   modelSpawnYaw,
   trayCards,
   yawQuaternion,
 } from '../characters/models.js'
 import { FRICTION, WORLD_GRAVITY } from '../physics.js'
-import { overlapMarks, overlapsAny } from '../characters/overlap.js'
+import { overlapMarks } from '../characters/overlap.js'
 import { modelIdOfKey, modelKey } from '../characters/claims.js'
-import { assetUrl } from '../assets/index.js'
 import { CARD_X, CARD_Y, CARD_Z, supplyPilePosition } from '../crisis/layout.js'
 import { getCard } from '../crisis/cards.js'
 import { TRAYS } from '../dice/tray.js'
@@ -110,6 +101,8 @@ const WAIT_NOTE_Y = 0.05
 
 const NO_TOOLS_RECORD = {}
 const NO_POSES = {}
+const NO_LIST = []
+const NO_SIDE_TOOLS = {}
 
 // How often (ms) Scene looks for overlapping models
 const OVERLAP_INTERVAL = 100
@@ -200,20 +193,20 @@ const OVERLAP_INTERVAL = 100
 // ownPing: the last ping of this browser (App, key P). The other player's ping comes with presence (ping.md).
 // poses: the live rest poses of the models, model id → pose (the table document). A pose that the other browser
 // wrote moves the body ("Rules").
-export default function Scene(props) {
+function Scene(props) {
   const {
     apiRef,
     mapId,
     tableButtons,
     toolRack,
-    terrain = [],
-    characters = [],
+    terrain = NO_LIST,
+    characters = NO_LIST,
     tools = NO_TOOLS_RECORD,
     toolReturn = false,
     deployLine = false,
     crisis = { secure: null, extract: null },
-    tokens = [],
-    looseTokens = [],
+    tokens = NO_LIST,
+    looseTokens = NO_LIST,
     diceMenu = null,
     removeWaits = {},
     heldRotate,
@@ -275,6 +268,10 @@ export default function Scene(props) {
   const modelDrag = useRef(null)
   // Side -> function of the own dice tray that clears it and adds dice (sceneApi.addDice). DiceTray fills it.
   const addDice = useRef({})
+  const registerAddDice = useCallback((trayKey, add) => {
+    if (add) addDice.current[trayKey] = add
+    else delete addDice.current[trayKey]
+  }, [])
   // { atPointer(), atCenter() }, filled by ToolPoint (sceneApi.pointAtPointer, pointAtCenter)
   const toolPoint = useRef(null)
   // Tool ('move' or 'range') → { owns(model, p), clamp(p, model) } while its Place, Place 1 or Throw is on,
@@ -289,7 +286,7 @@ export default function Scene(props) {
   // Model id → number that grows with each move of the model (overlap.js). A model that never moved has none.
   const moved = useRef(new Map())
   const moveCount = useRef(0)
-  const markMoved = (id) => moved.current.set(id, ++moveCount.current)
+  const markMoved = useCallback((id) => moved.current.set(id, ++moveCount.current), [])
   const { claimTimes, claims, claimModel } = useModelClaims({ ownership })
 
   // Every 100 ms: which models overlap. The store changes only when the set changes (setOverlapIds).
@@ -383,23 +380,28 @@ export default function Scene(props) {
   })
 
   // Props of a tool ('range', 'move', 'angle' or 'los') for turnPiece
-  function turnProps(tool) {
-    const piece = { kind: 'tool', id: tool }
-    return {
-      onHover: (over) => trackPiece(hoveredPiece, piece, over),
-      onDrag: (on) => trackPiece(draggedPiece, piece, on),
-      turnRef: (turn) => {
-        toolTurns.current[tool] = turn
-      },
-      liveRef: (get) => {
-        toolLives.current[tool] = get
-      },
-    }
-  }
+  // The same function on every render (the refs and trackPiece never change), so OwnTools can be memo.
+  const turnProps = useCallback(
+    (tool) => {
+      const piece = { kind: 'tool', id: tool }
+      return {
+        onHover: (over) => trackPiece(hoveredPiece, piece, over),
+        onDrag: (on) => trackPiece(draggedPiece, piece, on),
+        turnRef: (turn) => {
+          toolTurns.current[tool] = turn
+        },
+        liveRef: (get) => {
+          toolLives.current[tool] = get
+        },
+      }
+    },
+    [trackPiece, hoveredPiece, draggedPiece, toolTurns, toolLives],
+  )
 
-  // Registered on every render, so the closures above always see the latest characters/objects.
-  // The shape is documented in sceneApi.js.
-  useEffect(() => {
+  // Registered after every render of Scene, so the closures above see the latest characters and objects. Every
+  // value they read is a prop or a store value that Scene reads, so they change only when Scene renders (it is
+  // memo). A layout effect: App can call the api in the commit that follows. The shape is documented in sceneApi.js.
+  useLayoutEffect(() => {
     if (apiRef) {
       apiRef.current = createSceneApi({
         characterAt,
@@ -503,6 +505,7 @@ export default function Scene(props) {
       looseTokens,
       claimModel,
       liveCharBody,
+      markMoved,
       charObjects.current,
       charLifts.current,
       tokenObjects.current,
@@ -513,20 +516,32 @@ export default function Scene(props) {
   )
   // Limits a drag of a character or token with the Place, Place 1 and Throw limits of the tools. Moves p, returns it.
   // The limits take the tool form (getCenter, radius), not the raw model.
-  const applyPlaceLimits = (kind, id, p) => {
-    const model = toolModels.find((m) => m.kind === kind && m.id === id)
-    if (!model) return p
-    for (const limit of Object.values(placeLimits.current)) {
-      if (limit?.owns(model, p)) limit.clamp(p, model)
-    }
-    return p
-  }
-  const setPlaceLimit = (kind, limit) => {
+  const applyPlaceLimits = useCallback(
+    (kind, id, p) => {
+      const model = toolModels.find((m) => m.kind === kind && m.id === id)
+      if (!model) return p
+      for (const limit of Object.values(placeLimits.current)) {
+        if (limit?.owns(model, p)) limit.clamp(p, model)
+      }
+      return p
+    },
+    [toolModels],
+  )
+  const setPlaceLimit = useCallback((kind, limit) => {
     placeLimits.current[kind] = limit
-  }
-  const toolModel = (piece) =>
-    toolModels.find((model) => piece && model.kind === piece.kind && model.id === piece.id) ?? null
+  }, [])
+  const toolModel = useCallback(
+    (piece) =>
+      toolModels.find((model) => piece && model.kind === piece.kind && model.id === piece.id) ??
+      null,
+    [toolModels],
+  )
   const otherSide = otherTeam(ownSide)
+  const onTerrainSelect = useCallback((id) => actions.toggleSelect('terrain', id), [actions])
+  const onTerrainObject = useCallback(
+    (id, obj) => (obj ? terrainObjects.current.set(id, obj) : terrainObjects.current.delete(id)),
+    [terrainObjects.current],
+  )
   // Why Scene commits (DebugPanel, "Scene reasons")
   useRenderReason('Scene', {
     ...Object.fromEntries(Object.entries(props).map(([k, v]) => [`prop:${k}`, v])),
@@ -540,8 +555,8 @@ export default function Scene(props) {
     'hook:useModelClaims.claims': claims,
     'hook:useModelClaims.claimModel': claimModel,
   })
-  const ownTools = tools[ownSide] ?? {}
-  const otherTools = tools[otherSide] ?? {}
+  const ownTools = tools[ownSide] ?? NO_SIDE_TOOLS
+  const otherTools = tools[otherSide] ?? NO_SIDE_TOOLS
   // Table position where a model spawns: its saved pose in a room, else on its card on the tray, or for
   // a spare model (a second form without its own card), past the Give sources (trays.js). The model
   // reads it only once, when its body mounts.
@@ -589,30 +604,76 @@ export default function Scene(props) {
     )
   }
 
-  // The spectator view above a model of a character, or undefined when it is off. The model draws
-  // it, so it moves with the model (CharacterModel.jsx, overlay). Both models of a
-  // character with a second form show it.
-  function spectatorOverlay(model) {
-    if (!spectator || model.construct) return undefined
-    const ch = model.character
-    return (top) => (
-      <SpectatorBadge
-        character={ch}
-        stamina={characterStamina(ch.key, ch.side)}
-        top={top}
-        baseRadius={BASE_DIAMETER[model.base] / 2}
-        held={heldTokens.get(ch.id)}
-        secureTokens={secureTokens}
-      />
-    )
-  }
-
   // A tool snapped to model. It does not select a model of a side this browser does not play.
-  function selectModel(model) {
-    const piece = { kind: model.kind, id: model.id }
-    if (!toolSelects(piece, characters, playedSides)) return
-    actions.setSelection((prev) => selectPiece(prev, piece))
+  const selectModel = useCallback(
+    (model) => {
+      const piece = { kind: model.kind, id: model.id }
+      if (!toolSelects(piece, characters, playedSides)) return
+      actions.setSelection((prev) => selectPiece(prev, piece))
+    },
+    [characters, playedSides, actions],
+  )
+
+  // Where a model starts: it reads this only on mount (SceneModel), so a new value renders nothing
+  function spawnOf(model) {
+    const pose = startPose?.(model.id)
+    return {
+      position: modelSpawnPosition(model),
+      quaternion: pose
+        ? [pose.qx, pose.qy, pose.qz, pose.qw]
+        : startQuaternion(model.character.team),
+      rotation: [0, modelFigureYaw(model), 0],
+    }
   }
+  // What SceneModel needs: the refs and trackers never change. The helpers (now) are read by handlers only.
+  const modelNow = useLatest({
+    deployLine,
+    deployDepth,
+    applyPlaceLimits,
+    modelBases,
+    restPose,
+    onModelRest,
+  })
+  // The id of the dragged own model (sceneApi.modelDragId): set at a drag start, cleared at its end
+  const startModelDrag = useCallback((id) => {
+    modelDrag.current = id
+  }, [])
+  const endModelDrag = useCallback((id) => {
+    if (modelDrag.current === id) modelDrag.current = null
+  }, [])
+  const modelCtx = useMemo(
+    () => ({
+      refs: {
+        charBodies,
+        charObjects,
+        charLifts,
+        startModelDrag,
+        endModelDrag,
+        turnsLeft,
+        hoveredPiece,
+        draggedPiece,
+        markMoved,
+        trackPiece,
+      },
+      now: modelNow,
+    }),
+    [
+      charBodies,
+      charObjects,
+      charLifts,
+      startModelDrag,
+      endModelDrag,
+      turnsLeft,
+      hoveredPiece,
+      draggedPiece,
+      markMoved,
+      trackPiece,
+      modelNow,
+    ],
+  )
+  const rackHidden = useMemo(() => rackHiddenSides(setup, rosters), [setup, rosters])
+  const startRoundBlock =
+    playedSides.map((side) => tableButtons.powerBlock[side]).find(Boolean) ?? null
 
   return (
     <>
@@ -675,11 +736,9 @@ export default function Scene(props) {
               <Terrain
                 placements={terrain}
                 terrainUnder={terrainUnder}
-                onSelect={(id) => actions.toggleSelect('terrain', id)}
+                onSelect={onTerrainSelect}
                 onHover={actions.onTerrainHover}
-                objectRef={(id, obj) =>
-                  obj ? terrainObjects.current.set(id, obj) : terrainObjects.current.delete(id)
-                }
+                objectRef={onTerrainObject}
               />
             </Suspense>
           </group>
@@ -689,19 +748,13 @@ export default function Scene(props) {
             dice keep their state. See docs/features/dice-rolling.md. */}
           {Object.keys(TRAYS).map((trayKey) =>
             playedSides.includes(trayKey) ? (
-              <DiceTray
+              <OwnDiceTray
                 key={trayKey}
                 trayKey={trayKey}
                 diceLives={diceLives}
+                registerAddDice={registerAddDice}
                 testHook={trayKey === ownSide}
                 openDieId={diceMenu?.trayKey === trayKey ? diceMenu.dieId : null}
-                onDieOpen={(dieId) => actions.onDiceMenuOpen(trayKey, dieId)}
-                onMenuClose={actions.onDiceMenuClose}
-                onHover={(over) => actions.onDiceTrayHover(trayKey, over)}
-                addRef={(add) => {
-                  if (add) addDice.current[trayKey] = add
-                  else delete addDice.current[trayKey]
-                }}
               />
             ) : (
               <OtherDiceTray key={trayKey} trayKey={trayKey} liveRef={received} />
@@ -773,9 +826,7 @@ export default function Scene(props) {
           {/* Power Phase and the board strip of each player (docs/features/table-tools.md) */}
           <TableButtons {...tableButtons} />
           {/* The tool rack of each player (docs/features/table-tools.md, "Tool rack") */}
-          {toolRack && (
-            <ToolRack tools={tools} hiddenSides={rackHiddenSides(setup, rosters)} {...toolRack} />
-          )}
+          {toolRack && <ToolRack tools={tools} hiddenSides={rackHidden} {...toolRack} />}
           <ToolDragGhost />
           <TacticTray team="host" />
           <TacticTray team="guest" />
@@ -804,7 +855,7 @@ export default function Scene(props) {
             setup={setup}
             parsed={parsedRosters}
             powerOnTable={tableButtons.show.power}
-            startRoundBlock={tableButtons.powerBlockTitle(playedSides)}
+            startRoundBlock={startRoundBlock}
           />
           {tacticCards.map((card, i) => (
             <Suspense key={card.id} fallback={null}>
@@ -835,97 +886,23 @@ export default function Scene(props) {
                   slot={trayShape(ch).slot}
                   onBoard={characterOnBoard(ch, poses)}
                   removeWait={removeWaits[ch.id] ?? null}
-                  objectRef={(obj) =>
-                    obj ? trayObjects.current.set(ch.id, obj) : trayObjects.current.delete(ch.id)
-                  }
+                  objects={trayObjects}
                 />
               </Suspense>
             ))}
 
-          {models.map((model) => {
-            const ch = model.character
-            // The same props for a 3D model and a standee (CharacterModel.jsx)
-            const pose = startPose?.(model.id)
-            const props = {
-              position: modelSpawnPosition(model),
-              quaternion: pose ? [pose.qx, pose.qy, pose.qz, pose.qw] : startQuaternion(ch.team),
-              baseRadius: BASE_DIAMETER[model.base] / 2,
-              rotation: [0, modelFigureYaw(model), 0],
-              team: ch.team,
-              modelId: model.id,
-              overlapsAt: (x, y, z) =>
-                overlapsAny(
-                  { x, y, z, radius: BASE_DIAMETER[model.base] / 2 },
-                  modelBases(model.id),
-                ),
-              onSelect: () => actions.toggleSelect('character', model.id),
-              onDragSelect: () => actions.dragSelect('character', model.id),
-              onHover: (over) => {
-                actions.onPieceHover({ kind: 'character', id: model.id }, over)
-                trackPiece(hoveredPiece, { kind: 'character', id: model.id }, over)
-                // A construct has no card
-                if (!model.construct)
-                  actions.onCardHover(
-                    {
-                      src: assetUrl(modelCardFile(model)),
-                      alt: characterName(ch.key),
-                      by: `model:${model.id}`,
-                    },
-                    over,
-                  )
-              },
-              bodyRef: (rb) =>
-                rb ? charBodies.current.set(model.id, rb) : charBodies.current.delete(model.id),
-              claimKey: modelKey(model.id),
-              ownership: claims,
-              onRest: () => {
-                // One writer for each rest pose ("Rules" 5)
-                if (ownership && !ownership.writes(modelKey(model.id))) return
-                const rest = restPose(model.id)
-                if (rest) onModelRest?.(model.id, rest)
-              },
-              objectRef: (obj) =>
-                obj ? charObjects.current.set(model.id, obj) : charObjects.current.delete(model.id),
-              liftRef: (lift) =>
-                lift ? charLifts.current.set(model.id, lift) : charLifts.current.delete(model.id),
-              onDragStart: () => {
-                markMoved(model.id)
-                actions.setDraggingCharId(model.id)
-                ownership?.setDrag(modelKey(model.id))
-                modelDrag.current = model.id
-                trackPiece(draggedPiece, { kind: 'character', id: model.id }, true)
-              },
-              // cancelled: Esc put the body back, so a Q / E turn that is not done yet is dropped
-              onDragEnd: (cancelled) => {
-                if (cancelled) turnsLeft.current.delete(modelKey(model.id))
-                actions.setDraggingCharId(null)
-                ownership?.setDrag(null)
-                if (modelDrag.current === model.id) modelDrag.current = null
-                trackPiece(draggedPiece, { kind: 'character', id: model.id }, false)
-              },
-              // A base is within range if any part of it is within range (p8). So the base can
-              // go as far as touching the far end of the tool: its center is one radius past it.
-              constrainDrag: (p) => {
-                if (deployLine) {
-                  const limit = MAT_SIZE / 2 - deployDepth - BASE_DIAMETER[model.base] / 2
-                  if (ch.team === 'host') p.z = Math.max(p.z, limit)
-                  else p.z = Math.min(p.z, -limit)
-                }
-                applyPlaceLimits('character', model.id, p)
-              },
-              overlay: spectatorOverlay(model),
-            }
-            const urls = modelUrls(model)
-            return (
-              <Suspense key={model.id} fallback={null}>
-                {urls.standee ? (
-                  <StandeeModel urls={urls.standee} {...props} />
-                ) : (
-                  <CharacterModel url={urls.gltf} {...props} />
-                )}
-              </Suspense>
-            )
-          })}
+          {models.map((model) => (
+            <SceneModel
+              key={model.id}
+              model={model}
+              spawn={spawnOf(model)}
+              claims={claims}
+              spectator={spectator}
+              held={spectator ? heldTokens.get(model.character.id) : undefined}
+              secureTokens={spectator ? secureTokens : undefined}
+              ctx={modelCtx}
+            />
+          ))}
 
           <OwnTools
             ownTools={ownTools}
@@ -949,6 +926,30 @@ export default function Scene(props) {
 
 // The deploy lock zones (R3 deep from the deployment edge) of the dragged own model and of the model that the other
 // player drags. Own component: a drag renders it, not Scene.
+// The dice tray of a side this browser plays. The handlers are made here, so DiceTray (memo) gets the same
+// props while the menu of its die is not changed. addDice: the ref of Scene (sceneApi.addDice).
+function OwnDiceTray({ trayKey, diceLives, registerAddDice, testHook, openDieId }) {
+  const actions = useTableStore((s) => s.actions)
+  const onDieOpen = useCallback(
+    (dieId) => actions.onDiceMenuOpen(trayKey, dieId),
+    [actions, trayKey],
+  )
+  const onHover = useCallback((over) => actions.onDiceTrayHover(trayKey, over), [actions, trayKey])
+  const addRef = useCallback((add) => registerAddDice(trayKey, add), [registerAddDice, trayKey])
+  return (
+    <DiceTray
+      trayKey={trayKey}
+      diceLives={diceLives}
+      testHook={testHook}
+      openDieId={openDieId}
+      onDieOpen={onDieOpen}
+      onMenuClose={actions.onDiceMenuClose}
+      onHover={onHover}
+      addRef={addRef}
+    />
+  )
+}
+
 function DeployRanges({ deployTip, models, liveCharBody }) {
   const ownership = useTableStore((s) => s.ownership)
   const draggingCharId = useTableStore((s) => s.draggingCharId)
@@ -1010,3 +1011,5 @@ function ClaimSync({ onChange }) {
   }, [otherOwned, latest])
   return null
 }
+
+export default memo(Scene)

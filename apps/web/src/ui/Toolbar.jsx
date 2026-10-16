@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { COLOR_NAME } from '../sideColors.js'
 import { useSideColors } from '../table/useSideColors.jsx'
 import { TEAMS } from '../setup/setup.js'
@@ -28,7 +28,7 @@ const CRISIS_TYPES = [
 // to the room code (docs/features/rooms.md, "Room"), until the guest is seen. side, players, connection: the seats and the
 // connection of the room (RoomPlayers.jsx).
 // The buttons call the table actions (table/tableStore.js): onLobby is the ← Lobby button.
-export function Toolbar({
+function Toolbar({
   roomCode,
   multiplayer = false,
   guestSeatFree = false,
@@ -307,3 +307,6 @@ export function Toolbar({
     </div>
   )
 }
+
+const MemoToolbar = memo(Toolbar)
+export { MemoToolbar as Toolbar }

@@ -74,18 +74,22 @@ export function useModelRegistry({ models, characters }) {
     ])
   }
 
+  // Id of the nearest terrain piece on the ray through ndc, or null. It reads refs and the camera only, so it is
+  // the same function while the camera is (Terrain is memo).
+  const terrainUnder = useCallback(
+    (ndc) => {
+      raycaster.current.setFromCamera(ndc, camera)
+      return nearestHit(raycaster.current, terrainObjects.current)
+    },
+    [camera],
+  )
+
   // Id of the nearest terrain piece under the pointer, locked or not, or null. A locked piece gets no
   // pointer events (see Terrain.jsx), so this casts its own ray from the last pointer position. With
   // the pointer off the canvas (over the HUD or a tray's controls), it is null.
   function terrainAt() {
     if (!gl.domElement.matches(':hover')) return null
     return terrainUnder(pointer)
-  }
-
-  // Id of the nearest terrain piece on the ray through ndc, or null
-  function terrainUnder(ndc) {
-    raycaster.current.setFromCamera(ndc, camera)
-    return nearestHit(raycaster.current, terrainObjects.current)
   }
 
   // Live table position of a character's first model (Hold and drop, "Drop"): the Rapier body when there

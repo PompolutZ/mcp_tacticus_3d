@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { OnTable, TABLE_Y, px } from '../scene/OnTable.jsx'
 import { TEAMS, otherTeam } from '../setup/setup.js'
 import { useSideName } from '../table/useSideColors.jsx'
@@ -68,7 +69,7 @@ function CleanupButton({ cleanupDisabled, cleanupTitle }) {
 // Lock, and the mat turn where the toolbar has it. Deploy Lock and the mat turn change shared state, so any player presses them.
 // show: which buttons the settings put on the table (settings/settings.js). A row with no button is not drawn,
 // and a strip with no row is not drawn.
-function BoardStrip({ side, multiplayer, show, ownSide, powerBlockTitle, deployLine }) {
+function BoardStrip({ side, multiplayer, show, ownSide, powerBlock, deployLine }) {
   const { onTurnMat, onDeployLineClick } = useTableStore((s) => s.actions)
   const strip = boardStrip(side)
   const style = { width: px(strip.length), height: px(1) }
@@ -80,7 +81,7 @@ function BoardStrip({ side, multiplayer, show, ownSide, powerBlockTitle, deployL
           side={side}
           ownSide={ownSide}
           multiplayer={multiplayer}
-          powerBlock={powerBlockTitle([side])}
+          powerBlock={powerBlock[side]}
         />
       )}
       {(show.deployLock || showTurn) && (
@@ -126,7 +127,8 @@ function BoardStrip({ side, multiplayer, show, ownSide, powerBlockTitle, deployL
 // All the table buttons. `ownSide` (the store) and `multiplayer` tell which Power Phase button is the player's own. The
 // other props are the states of the toolbar buttons, which these repeat. Their handlers are the table actions (table/tableStore.js).
 // show: { power, cleanup, deployLock, matTurn }, true where the settings put the button on the table.
-export default function TableButtons({ multiplayer, show, ...rest }) {
+// powerBlock: { host, guest } → the reason that side's Power button is off, or null (a string, so the props stay equal).
+export default memo(function TableButtons({ multiplayer, show, ...rest }) {
   const ownSide = useTableStore((s) => s.ownSide)
   const { cleanupDisabled, cleanupTitle, ...strip } = rest
   return (
@@ -149,4 +151,4 @@ export default function TableButtons({ multiplayer, show, ...rest }) {
       )}
     </>
   )
-}
+})

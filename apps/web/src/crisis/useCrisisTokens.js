@@ -9,6 +9,7 @@ import { getToken } from '../tokens/tokens.js'
 import { deselectPiece } from '../selection.js'
 import { panToPoint } from '../camera.js'
 import { playSound } from '../sound.js'
+import { useShallowStable } from '../useShallowStable.js'
 import { placerSide, waitLinesOf, waitingTokens } from '../tokens/dropWait.js'
 
 // The crisis tokens on the table and the dropped objective tokens that wait for their place: the notice lines,
@@ -42,10 +43,12 @@ export function useCrisisTokens({
     [tokens, characters, playedSides, nameCtx],
   )
   // Remove is off while a dropped token of the character waits, with the same text as its title. The same object
-  // until the lines change, so Scene does not render for it.
-  const removeWaits = useMemo(
-    () => Object.fromEntries(waitLines.map((line) => [line.characterId, line.text])),
-    [waitLines],
+  // until its content changes, so Scene does not render for it.
+  const removeWaits = useShallowStable(
+    useMemo(
+      () => Object.fromEntries(waitLines.map((line) => [line.characterId, line.text])),
+      [waitLines],
+    ),
   )
   // The notice sound, once for each new drop that this browser places. The tokens of an open table play nothing.
   const seenWaiting = useRef(null)

@@ -1,6 +1,6 @@
 import { useGLTF } from '@react-three/drei'
 import { RigidBody, CylinderCollider, useRapier } from '@react-three/rapier'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, memo } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
 import {
   Box3,
@@ -91,7 +91,7 @@ function turnBetween(a, b) {
 }
 
 // url: the GLB of the model. The other props: see CharacterFigure below.
-export default function CharacterModel({ url, ...props }) {
+function CharacterModel({ url, ...props }) {
   useRenderCount('CharacterModel')
   // useGLTF caches one scene per url. Each model needs its own copy: two characters with the same
   // model (both players take Mephisto) would share one object, and it can stand in one place only.
@@ -109,7 +109,7 @@ export default function CharacterModel({ url, ...props }) {
 // scales the figurine by 0.75, 1.1 and 1.4 for a small, medium and large base, so its size follows
 // the base, but the image size of a TTS figurine at scale 1 is not known yet.
 // urls: [front, back], the two images (modelUrls). The other props: see CharacterFigure below.
-export function StandeeModel({ urls, ...props }) {
+function Standee({ urls, ...props }) {
   const [front, back] = useColorTexture(urls)
   const radius = props.baseRadius ?? BASE_RADIUS
   const scene = useMemo(() => standeeScene(front, back, radius), [front, back, radius])
@@ -593,3 +593,6 @@ function CharacterFigure({
     </RigidBody>
   )
 }
+
+export default memo(CharacterModel)
+export const StandeeModel = memo(Standee)

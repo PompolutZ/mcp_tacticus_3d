@@ -8,7 +8,7 @@ import {
   RigidBody,
   TrimeshCollider,
 } from '@react-three/rapier'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, memo } from 'react'
 import * as THREE from 'three'
 import { colliderNode, primitiveCollider, transformVertices } from './bundleColliders.js'
 import { bundleColliderMeshes, pieceUrls } from './urls.js'
@@ -376,7 +376,7 @@ function PieceBody({
 // see TerrainPiece. groupRef(id, group), onPointerDown(id, e): see TerrainPiece.
 // A placement with `rev` remounts the piece when rev changes, so its fixed body gets the new transform.
 // A new height (position y) does the same: a piece that falls when what it stood on is deleted.
-export default function Terrain({
+function Terrain({
   placements,
   terrainUnder,
   selectedId,
@@ -405,3 +405,5 @@ export default function Terrain({
     />
   ))
 }
+
+export default memo(Terrain)

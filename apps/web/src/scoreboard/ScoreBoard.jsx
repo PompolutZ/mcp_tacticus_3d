@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState, memo } from 'react'
 import { useGLTF, useTexture } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { RigidBody, useRapier } from '@react-three/rapier'
@@ -226,7 +226,7 @@ function RoundMarkerMesh() {
 // markers: { host, guest, round } → { x, z }, see App.jsx. affiliations: { host, guest } → affiliation key.
 // onMarkerMove(marker, x, z): a marker was dropped, already moved onto a spot when it was near one.
 // The app does not read the score from the board. Players read it, as on a real table.
-export default function ScoreBoard({ markers, affiliations, onMarkerMove }) {
+function ScoreBoard({ markers, affiliations, onMarkerMove }) {
   useRenderCount('ScoreBoard')
   const { rapier } = useRapier()
   // The VP marker dropped last. When both players have the same VP, it lies on top of the other one, as
@@ -282,3 +282,5 @@ export default function ScoreBoard({ markers, affiliations, onMarkerMove }) {
     </>
   )
 }
+
+export default memo(ScoreBoard)

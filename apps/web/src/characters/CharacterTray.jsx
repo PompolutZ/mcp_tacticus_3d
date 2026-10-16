@@ -1,4 +1,4 @@
-import { Suspense, useRef, useState } from 'react'
+import { Suspense, memo, useCallback, useRef, useState } from 'react'
 import { UI_COLORS } from '../uiColors.js'
 import { OccludedHtml } from '../scene/LabelOcclusion.jsx'
 import { DoubleSide } from 'three'
@@ -47,7 +47,7 @@ const CLICK_MOVE = 4
 // move with the tray. The tokens are real size, as in TTS (see trays.js for the layout). No
 // collider (see docs/features/character-trays.md, "One tray"). A click on the card calls the action onTrayOpen: App opens
 // the whole tray in a popup (see TrayPopup.jsx). The actions come from the table store (table/tableStore.js).
-// objectRef: the background plate, so Scene's characterAt can hit the whole tray, the same way it
+// objects: a ref to a Map, character id → the background plate, so Scene's characterAt can hit the whole tray, the same way it
 // hits the model (see docs/features/character-trays.md, "Give tokens by drag and drop"). A token dropped
 // anywhere on the tray goes to its character, as in TTS. A token dropped on the Give sources lies
 // on the table, because they are outside the plate. The card mesh is the outline target:
@@ -70,17 +70,22 @@ const CLICK_MOVE = 4
 // its card, On row and controls strip at `slot`, the start of its unit on the host tray (trays.js,
 // trayGruntSlot). The grunt card is portrait (trays.js, GRUNT_CARD_WIDTH). A grunt's card has only the Healthy side, and its controls have no Power and no Flip
 // (docs/features/character-trays.md, "Grunts"). The grunt's position is the host's.
-export default function CharacterTray({
+export default memo(function CharacterTray({
   character,
   position,
   onBoard,
   removeWait = null,
-  objectRef,
+  objects,
   grunts = 0,
   affiliation = null,
   slot = [0, 0],
 }) {
   useRenderCount('CharacterTray')
+  // The same function while the map and the character stay, so a render of the parent does not move the ref
+  const objectRef = useCallback(
+    (obj) => (obj ? objects.current.set(character.id, obj) : objects.current.delete(character.id)),
+    [objects.current, character.id],
+  )
   const actions = useTableStore((s) => s.actions)
   // The tray card shows the selection of its character's model too
   const selected = useTableStore((s) =>
@@ -177,7 +182,7 @@ export default function CharacterTray({
           ref={(obj) => {
             cardRef.current = obj
             // A grunt has no plate, so its card is what a dropped token finds (useModelRegistry.js, characterAt)
-            if (isGrunt) objectRef?.(obj)
+            if (isGrunt) objectRef(obj)
           }}
         >
           {cardNumbers.map((n) => (
@@ -256,4 +261,4 @@ export default function CharacterTray({
       </group>
     </group>
   )
-}
+})

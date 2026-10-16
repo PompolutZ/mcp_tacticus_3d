@@ -1,4 +1,4 @@
-import { Suspense, useMemo } from 'react'
+import { Suspense, useMemo, memo } from 'react'
 import CrisisToken, { TOKEN_RADIUS } from '../crisis/CrisisToken.jsx'
 import LooseToken from './LooseToken.jsx'
 import TokenDragPreview, { OtherSpawnPreview } from './TokenDragPreview.jsx'
@@ -34,7 +34,7 @@ const NO_RAYCAST = () => null
 // piles, the preview of a token that is being dragged, and the new piece the other player drags.
 // Props are the values that Scene.jsx has for them. The handlers are the table actions (table/tableStore.js). Each piece
 // reads its own claim, range mark and selection of the other player from the store (table/useOtherPlayer.jsx).
-export default function TokenLayer({
+function TokenLayer({
   tokens,
   characters,
   applyPlaceLimits,
@@ -211,3 +211,5 @@ function OtherSpawn() {
     )
   )
 }
+
+export default memo(TokenLayer)
