@@ -69,7 +69,7 @@ import {
   trayShapeOf,
 } from '../characters/trays.js'
 import { MAT_SIZE, TABLE_WALLS } from '../table.js'
-import { RANGE_TIP } from '../tabletools/toolTips.js'
+import { rangeLength } from '../tabletools/toolTips.js'
 import { selectPiece, toolSelects } from '../selection.js'
 import { poseOf } from '../rooms/table.js'
 import {
@@ -449,8 +449,9 @@ function Scene(props) {
   }, [trayPositions, trayNow])
 
   // Deploy-line: R3 zone depth from the deployment edge
-  const deployTip = RANGE_TIP[3]
-  const deployDepth = 2 * deployTip
+  // The R3 tool lies with its far end on the deployment edge, so it spans the whole R3 length from it.
+  const deployDepth = rangeLength(3)
+  const deployTip = deployDepth / 2
 
   // Every character and every mat token as the range and movement tools see them. A character has a
   // Rapier body; a token does not, so getCenter (not getBody) is what the tools measure with.
@@ -464,6 +465,7 @@ function Scene(props) {
     () => matTokens.filter((tok) => tok.cardKey === crisis.secure),
     [matTokens, crisis.secure],
   )
+  const contestRange = getCard(crisis.secure)?.contestRange ?? 1
   const heldTokens = useMemo(() => heldTokensByCharacter(tokens), [tokens])
   const toolModels = useMemo(
     () => [
@@ -903,6 +905,7 @@ function Scene(props) {
               spectator={spectator}
               held={spectator ? heldTokens.get(model.character.id) : undefined}
               secureTokens={spectator ? secureTokens : undefined}
+              contestRange={contestRange}
               ctx={modelCtx}
             />
           ))}

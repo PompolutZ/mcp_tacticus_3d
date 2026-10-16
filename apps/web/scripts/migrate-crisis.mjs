@@ -171,6 +171,8 @@ function planCard(card) {
   }
   const supply = supplyToken(card)
   if (supply) entry.supply = useToken(supply)
+  const contestRange = jarvisContestRange(card.ID)
+  if (contestRange) entry.contestRange = contestRange
   const files = [
     { file: crisisCardFace(key), url: card.face, label: 'face' },
     ...[...tokens].map(([tokenKey, row]) => ({
@@ -297,6 +299,14 @@ function jarvisWarnings(entry, card) {
     warnings.push(`Jarvis has the type ${found.type}`)
   if (found.threatLevel !== card.threat) warnings.push(`Jarvis has the threat ${found.threatLevel}`)
   return warnings
+}
+
+// The range at which characters contest this card's tokens, when its text changes it ("Characters Contest
+// Prison Blocks within |!range| 2 instead of |!range| 1"). Null when Jarvis has no such text: the app uses 1.
+function jarvisContestRange(code) {
+  const text = jarvis?.find((c) => c.exportCode === code)?.paragraphs?.join('\n') ?? ''
+  const m = text.match(/Contest [^.]*? within \|!range\| (\d+) instead of \|!range\| 1/)
+  return m ? Number(m[1]) : null
 }
 
 // "Strike Team Secures Sheild Relay!" and "Strike Team Secures Sheild Relay" are the same name

@@ -46,7 +46,7 @@ export function RangeMark({
     let mark = null
     if (model && snap && rigidRef.current) {
       const reached = rangeOne
-        ? withinRangeOne(snap.target, model, halfWidth)
+        ? withinRangeOne(snap.target, model)
         : footprintGap(
             toolShape(toolPose(rigidRef.current), turn),
             halfLength,
@@ -97,7 +97,7 @@ export function ToolFootprint({
     if (center) {
       const reached =
         rangeFrom && !sameModel(rangeFrom, target)
-          ? withinRangeOne(rangeFrom, target, halfWidth)
+          ? withinRangeOne(rangeFrom, target)
           : footprintGap(shape, halfLength, halfWidth, center, target.radius) <= CONTACT_EPS
       fill = reached ? FOOTPRINT_TOUCH : FOOTPRINT_APART
     }

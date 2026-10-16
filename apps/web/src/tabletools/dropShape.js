@@ -2,10 +2,10 @@
 // (tabletools/ToolDragGhost.jsx), and the rule for where a drop works. Plain module, no React. See
 // docs/features/table-tools.md, "Tool rack".
 
-import { MOVE_TIP, RANGE_TIP } from './toolTips.js'
+import { MOVE_TIP, RANGE_HALF_WIDTH, RANGE_TIP } from './toolTips.js'
 import { onRack } from './layout.js'
 
-const RANGE_WIDTH = 1
+const RANGE_WIDTH = 2 * RANGE_HALF_WIDTH
 const MOVE_WIDTH = 0.56
 // The Toward / Away tool spawns bent to a right angle: each arm 45 deg off the straight tool
 const ANGLE_BEND = Math.PI / 4

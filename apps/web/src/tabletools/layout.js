@@ -7,7 +7,7 @@
 // the trays. The board strip does not turn: it reads like
 // the scoring board for both players.
 
-import { MOVE_TIP, RANGE_TIP } from './toolTips.js'
+import { RANGE_HALF_WIDTH, moveLength, rangeLength } from './toolTips.js'
 import { TACTIC_PLATE_WIDTH, tacticTrayPosition } from '../tactics/layout.js'
 import { ROSTER_ROWS_OUTER_Z } from '../rosters/layout.js'
 import { KEYS_LIP, TRAYS } from '../dice/tray.js'
@@ -30,7 +30,7 @@ const RACK_Z_MIN = KEYS_LIP_Z + KEYS_LIP_GAP
 // The rack pieces face their owner: for host, the top points to -z (trays.js, trayYaw). Guest is turned 180 deg.
 export const rackYaw = sideYaw
 
-const RANGE_WIDTH = 1
+const RANGE_WIDTH = 2 * RANGE_HALF_WIDTH
 const MOVE_WIDTH = 0.56
 const CHIP_WIDTH = 2
 const CHIP_HEIGHT = 1
@@ -39,8 +39,6 @@ const COLUMN_GAP = 0.4
 
 // The items of a column. A tool lies along z (its length), a chip is CHIP_WIDTH along x and CHIP_HEIGHT along z
 // (the text faces the owner). sizeX, sizeZ: the footprint on the table.
-const rangeLength = (mesh) => RANGE_TIP[mesh] * 2
-const moveLength = (type) => MOVE_TIP[type] * 2
 const chip = (key) => ({
   key,
   kind: 'chip',

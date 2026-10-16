@@ -1,6 +1,7 @@
-import { Suspense, memo, useMemo, useState } from 'react'
+import { Suspense, memo, useCallback, useMemo, useState } from 'react'
 import CharacterModel, { StandeeModel } from '../characters/CharacterModel.jsx'
 import { modelUrls } from '../characters/modelUrls.js'
+import { placementHeld } from '../ui/secureNear.js'
 import SpectatorBadge from '../ui/SpectatorBadge.jsx'
 import { BASE_DIAMETER } from '../characters/files.js'
 import { characterName, characterStamina } from '../characters/characters.js'
@@ -28,7 +29,7 @@ function constrainDrag({ deployLine, deployDepth, applyPlaceLimits }, model, p) 
   applyPlaceLimits('character', model.id, p)
 }
 
-function SceneModel({ model, spawn, claims, spectator, held, secureTokens, ctx }) {
+function SceneModel({ model, spawn, claims, spectator, held, secureTokens, contestRange, ctx }) {
   const actions = useTableStore((s) => s.actions)
   const ownership = useTableStore((s) => s.ownership)
   const { refs, now } = ctx
@@ -96,6 +97,18 @@ function SceneModel({ model, spawn, claims, spectator, held, secureTokens, ctx }
       constrainDrag: (p) => constrainDrag(now.current, model, p),
     }
   }, [model, startSpawn, claims, actions, ownership, refs, now])
+  // The placement is not final: a drag, lift or throw of either player, or the body still moves. The
+  // badge shows no Secure token then (docs/features/spectator-view.md).
+  const isHeld = useCallback(() => {
+    const { charBodies, charLifts, draggedPiece } = refs
+    const body = charBodies.current.get(model.id)
+    return placementHeld({
+      owner: ownership?.owner(modelKey(model.id)),
+      dragging: draggedPiece.current?.kind === 'character' && draggedPiece.current.id === model.id,
+      lifted: Boolean(charLifts.current.get(model.id)?.isBusy()),
+      asleep: body ? body.isSleeping() : true,
+    })
+  }, [model.id, ownership, refs])
   // The spectator view above the model, which moves with it (CharacterModel.jsx, overlay). A construct has none.
   const overlay = useMemo(() => {
     if (!spectator || model.construct) return undefined
@@ -108,9 +121,11 @@ function SceneModel({ model, spawn, claims, spectator, held, secureTokens, ctx }
         baseRadius={BASE_DIAMETER[model.base] / 2}
         held={held}
         secureTokens={secureTokens}
+        contestRange={contestRange}
+        isHeld={isHeld}
       />
     )
-  }, [spectator, model, held, secureTokens])
+  }, [spectator, model, held, secureTokens, contestRange, isHeld])
   const urls = useMemo(() => modelUrls(model), [model])
   return (
     <Suspense fallback={null}>

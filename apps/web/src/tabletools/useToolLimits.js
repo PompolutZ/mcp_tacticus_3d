@@ -3,6 +3,7 @@ import { useLatest } from '../scene/useLatest.js'
 import { throwMove } from '../characters/throwPath.js'
 import { lineClamp, placeClamp, touches } from './placeLock.js'
 import { clampRange, rangeReach, withinRange } from './rangeOne.js'
+import { rangeLength } from './toolTips.js'
 import { OTHER, toolPose, toolShape, throwLine, sameModel, lockKey } from './toolGeometry.js'
 
 // Place, Place 1 and Throw of a tool: what they limit during a drag of a model (onPlaceLimit), and their
@@ -89,7 +90,7 @@ export function useToolLimits({
     if (!lockOne) return undefined
     const { onPlaceLimit } = now.current
     const { target } = snap
-    const reachOf = (model) => rangeReach(target.radius, halfWidth * 2, model.radius)
+    const reachOf = (model) => rangeReach(target.radius, rangeLength(1), model.radius)
     onPlaceLimit?.({
       owns(model, p) {
         if (sameModel(model, target)) return false

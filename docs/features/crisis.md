@@ -26,7 +26,7 @@ The rules in this doc come from the [Jarvis rules reference](https://www.jarvis-
 | Term | Meaning |
 |---|---|
 | Interact | A character within Range 1 of an objective token spends 1 Power to Interact with it. It is not an action. A character can Interact with several tokens in one Activation, but with each token only once. (p10) |
-| Contest | A character within Range 1 of an objective token contests it. A Dazed character cannot contest. Some cards change the range. For example, Lockdown uses Range 2. (p10) |
+| Contest | A character within Range 1 of an objective token contests it. A Dazed character cannot contest. Some cards change the range. For example, Lockdown uses Range 2. (p10) The app reads this range from the card data (`contestRange` in `cards.json`, default 1; the migrate script takes it from the Jarvis text). Only the spectator view uses it. |
 | Secure (verb) | The player with the most Healthy characters contesting a token secures it. If no Healthy character contests it, the player with the most Injured characters secures it. There is no marker. Players count at the moment of scoring. (p10) |
 | Control | A player who gets Control puts their marker on the token. This removes the marker of the other player. The token stays controlled while the marker is on it, no matter where the characters are. (p10–11) |
 | Hold | A character that picks up a token holds it. The token lies on the character's Stat Card. (p10) |

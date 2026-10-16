@@ -119,10 +119,10 @@ test('nearerCorner for four points', () => {
 test('withinRangeOne at the edge counts with CONTACT_EPS', () => {
   const base = (x, radius) => ({ getCenter: () => ({ x, z: 0 }), radius })
   const a = base(0, 0.7)
-  // Edge to edge gap is exactly the tool width 2 * 0.5 = 1
-  assert.ok(withinRangeOne(a, base(2.4, 0.7), 0.5))
-  assert.ok(withinRangeOne(a, base(2.4 + CONTACT_EPS / 2, 0.7), 0.5))
-  assert.ok(!withinRangeOne(a, base(2.4 + CONTACT_EPS * 2, 0.7), 0.5))
+  // Edge to edge gap is exactly Range 1
+  assert.ok(withinRangeOne(a, base(2.4, 0.7)))
+  assert.ok(withinRangeOne(a, base(2.4 + CONTACT_EPS / 2, 0.7)))
+  assert.ok(!withinRangeOne(a, base(2.4 + CONTACT_EPS * 2, 0.7)))
 })
 
 test('sameMark: null, same piece and mode', () => {

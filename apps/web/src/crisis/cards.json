@@ -560,7 +560,8 @@
         ],
         "locked": true
       }
-    ]
+    ],
+    "contestRange": 2
   },
   "mayor-fisk-vows-to-find-missing-witnesses": {
     "id": "00290301",

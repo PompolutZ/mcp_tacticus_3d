@@ -2,6 +2,10 @@
 
 Status: built.
 
+## Sizes
+
+A range or move in game terms is a tool size (R1 to R5, Short / Medium / Long), never inches. "Within R2" is within the whole long side of the R2 tool. R1 has no tool: it is the short side (width) of a range tool. The one conversion from size to inches is `rangeLength` and `moveLength` in `src/tabletools/toolTips.js`.
+
 ## What the tools are for
 
 - **Range tools** measure distance: model to model, model to terrain, model to token. They also place characters: some effects place the character itself, allies or enemies. A common use: check if a model contests a token, and put the model at the farthest spot where it still contests.

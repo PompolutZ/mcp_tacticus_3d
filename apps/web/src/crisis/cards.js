@@ -36,6 +36,7 @@ const CARDS = CRISIS_ROWS.filter((row) => row.key)
       threat: row.threat,
       tokens: card.tokens,
       supply: card.supply ?? null,
+      contestRange: card.contestRange ?? 1,
     }
   })
   .sort((a, b) => a.name.localeCompare(b.name))

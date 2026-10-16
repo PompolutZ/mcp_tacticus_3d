@@ -1,7 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  RANGE_2,
   clampToRange,
   clampWaiting,
   dropRowOffset,
@@ -15,6 +14,7 @@ import {
   waitText,
   waitingTokens,
 } from './dropWait.js'
+import { rangeLength } from '../tabletools/toolTips.js'
 
 const from = (characterId, offBoard = false) => ({ characterId, x: 1, z: 2, radius: 0.5, offBoard })
 const waits = (id, characterId, offBoard) => ({
@@ -75,10 +75,6 @@ test('a placed token has no wait and is not held', () => {
   assert.equal(placedToken({ ...waits('a', 'c1'), x: 7, z: 8 }, null).x, 7)
 })
 
-test('Range 2 is the length of the Range 2 tool', () => {
-  assert.equal(RANGE_2, 3.002)
-})
-
 test('clampToRange keeps a point inside, and cuts one outside along the line to the centre', () => {
   const centre = { x: 1, z: 1 }
   const inside = { x: 2, z: 2 }
@@ -93,7 +89,7 @@ test('clampToRange keeps a point inside, and cuts one outside along the line to 
 test('a waiting token stays within base radius + Range 2 + token radius', () => {
   const token = { placeBy: 'guest', placeFrom: from('c1') }
   const p = clampWaiting(token, { x: 100, z: 2 }, 0.5)
-  assert.ok(Math.abs(p.x - (1 + 0.5 + RANGE_2 + 0.5)) < 1e-9)
+  assert.ok(Math.abs(p.x - (1 + 0.5 + rangeLength(2) + 0.5)) < 1e-9)
   assert.equal(p.z, 2)
 })
 

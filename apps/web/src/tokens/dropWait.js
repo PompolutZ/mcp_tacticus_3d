@@ -1,7 +1,7 @@
 // Objective tokens that wait for their place (docs/features/character-trays.md, "Hold and drop"). A dropped token
 // has `placeBy` (the side that places it) and `placeFrom` { characterId, x, z, radius, offBoard } while it waits.
 // Plain module, no React.
-import { RANGE_TIP } from '../tabletools/toolTips.js'
+import { rangeLength } from '../tabletools/toolTips.js'
 import { playerName } from '../setup/names.js'
 import { otherTeam } from '../setup/setup.js'
 
@@ -70,9 +70,9 @@ export function placedToken(token, point) {
   return { ...token, ...point, heldBy: null, heldAt: null, placeBy: null, placeFrom: null }
 }
 
-// Reach of the Range 2 tool from the base edge, in inches. The tool snaps with its end on the base edge
-// (snapPose in toolGeometry.js), so its far end is a whole tool length (2 × RANGE_TIP[2]) from the edge.
-export const RANGE_2 = 2 * RANGE_TIP[2]
+// Reach of the Range 2 tool from the base edge. The tool snaps with its end on the base edge
+// (snapPose in toolGeometry.js), so its far end is a whole tool length from the edge.
+const RANGE_2 = rangeLength(2)
 
 // The point nearest to `point` that is at most `maxDistance` from `centre`. Both are { x, z }.
 export function clampToRange(point, centre, maxDistance) {

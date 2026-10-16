@@ -8,7 +8,7 @@ A viewer reads the state of each character from the model, without looking at th
 
 The badge is made of the same pieces as the character tray, so it looks the same. From top to bottom, a badge shows:
 
-- the objective tokens the character holds (Extract Asset, Civilian, supply tokens), and the Secure tokens within range 1 of its base. The same 3D disk as a crisis token on the mat or on the tray card.
+- the objective tokens the character holds (Extract Asset, Civilian, supply tokens), and the Secure tokens within the card's contest range of its base, once the model is let go. The same 3D disk as a crisis token on the mat or on the tray card.
 - the Damage and Power counters of the tray (`TrayCounters` in `TrayControls.jsx`), without the − and + buttons
 - the tokens on the character (conditions, Activated, Dazed, character and tactic tokens), as the same 3D tokens as in the tray's "On" row (`TokenFace.jsx`), with the count when it is above 1
 
@@ -33,7 +33,7 @@ These facts come from mod 3036795456: the `modelUI` XML in the "Scripts" object,
 - The height of the UI above the model is a value per character in the `Database` (`UIOffset`, mostly 200 to 300).
 - The UI stands upright above the model. It does not follow the camera. The model script sets its turn from the model's turn when the model spawns (`init`) and after each drop (`onDropped`). The bars have one copy for Blue players and one for all other colors (`Bluebars`, `Redbars`), turned 180° from each other.
 - A settings panel ("Click to Toggle Visibility") has 4 toggles per player: Extract objective icons, Secure objective icon, character bars, status tokens. The "UI Controller" stores, for each part, the list of player colors that see it. A "Telecasting" mode also shows a portrait image above each model.
-- The Securing check: center distance < base diameter / 2 + 1 + token size / 2. So the base edge is less than 1" from the token edge, which is range 1.
+- The Securing check: center distance < base diameter / 2 + 1 + token size / 2. So the base edge is less than 1" from the token edge, which is R1 (the tool width).
 - The current mod does not show the Securing icon. `updateObjective` sets `contest = false` before the check (comment `-- CB Test`), so it always clears the icon. Both spawners have this code.
 - TTS also hides the Securing icon of a Dazed model, and never shows it for Nebula and S.H.I.E.L.D. Agents.
 
@@ -48,6 +48,7 @@ These facts come from mod 3036795456: the `modelUI` XML in the "Scripts" object,
 - The badge sits above the top of the model. The app measures the model height from the model file (`modelTop` in `CharacterModel.jsx`), so it needs no `UIOffset` data. A standee uses its card height.
 - The model draws the badge inside its `RigidBody` (the `overlay` prop), so the badge moves with the model, also during a drag, a lift (R) or a Throw. The badge stays straight above the base center when the model tips over.
 - The badge is read-only. A player changes Damage, Power and tokens on the tray.
-- Range 1 to a Secure token is checked on every frame, edge to edge, seen from above, the same as the R1 tool (README "Range 1") and TTS. The badge shows the disk of each Secure token in range.
+- A Secure token shows when it is within the contest range of the base, edge to edge, seen from above, the same as the R1 tool (README "Range 1") and TTS. The range is a tool size from the Secure card (`contestRange` in `cards.json`), R1 when the card has none. It reaches as far as that tool (R1 is the tool width), so a model that Place put at the far end of the Range 2 tool shows the token. The badge shows the disk of each token in range.
+- The Secure tokens show only after the model is let go: not during a drag, a lift (R) or a Throw, and not while the body settles, for either player. A claim on the model (`docs/features/peer-to-peer.md`) or a moving body means the placement is not final. The player must not learn the contest before committing the placement. The held objective tokens show at all times.
 - The app does not apply the game rules (see `docs/features/character-trays.md`, "Players apply the rules"). A Dazed character still shows the Secure token. Nebula and S.H.I.E.L.D. Agents are not special cases.
 - No Defense values and no Telecasting portrait.

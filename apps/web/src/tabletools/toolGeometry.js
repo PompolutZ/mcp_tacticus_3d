@@ -1,13 +1,13 @@
 import * as THREE from 'three'
 import { fromLocal, toLocal } from './placeLock.js'
 import { flipTool } from './toolFlip.js'
+import { RANGE_HALF_WIDTH, rangeLength } from './toolTips.js'
 
 // Tools hang this far above the table and measure by the outline cast below them
 export const TOOL_HOVER_HEIGHT = 1
 // Movement tools are about 0.56" wide (mesh-a spans z = ±0.279)
 export const MOVE_HALF_WIDTH = 0.279
-// Range tools are 1" wide (mesh spans z = ±0.5)
-export const RANGE_HALF_WIDTH = 0.5
+export { RANGE_HALF_WIDTH }
 // Physics can nudge a resting base a little, so a small gap still counts as contact
 export const CONTACT_EPS = 0.01
 
@@ -173,12 +173,11 @@ export function lockKey(model) {
   return `${model.kind}:${model.id}`
 }
 
-// Range 1, edge to edge seen from above, between the bases of models a and b. The tool width
-// (2 * halfWidth) is range 1.
-export function withinRangeOne(a, b, halfWidth) {
+// Range 1, edge to edge seen from above, between the bases of models a and b.
+export function withinRangeOne(a, b) {
   const ca = a.getCenter()
   const cb = b.getCenter()
-  return Math.hypot(ca.x - cb.x, ca.z - cb.z) - a.radius - b.radius <= 2 * halfWidth + CONTACT_EPS
+  return Math.hypot(ca.x - cb.x, ca.z - cb.z) - a.radius - b.radius <= rangeLength(1) + CONTACT_EPS
 }
 
 // The same mark: both null, or the same piece with the same mode
