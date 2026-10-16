@@ -2,7 +2,15 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { Vector3 } from 'three'
 import { MOUSE } from 'three'
-import { CAMERA_MOUSE_BUTTONS, easeInOut, panToPoint, resetView, startView } from './camera.js'
+import {
+  CAMERA_MOUSE_BUTTONS,
+  easeInOut,
+  framePart,
+  panToPoint,
+  resetView,
+  startView,
+  stepVelocity,
+} from './camera.js'
 
 test('the ease starts at 0, ends at 1 and is half at the middle', () => {
   assert.equal(easeInOut(0), 0)
@@ -117,4 +125,35 @@ test('resetView does nothing with no controls, and does not stop the wheel', () 
   let stopped = false
   resetView(null, { stop: () => (stopped = true) }, startView(false))
   assert.equal(stopped, false)
+})
+
+test('framePart is 0 at dt 0 and grows toward 1', () => {
+  assert.equal(framePart(0.15, 0), 0)
+  assert.ok(Math.abs(framePart(0.15, 0.15) - (1 - Math.exp(-1))) < 1e-12)
+  assert.ok(framePart(0.15, 10) > 0.999)
+})
+
+test('stepVelocity eases toward the target and does not overshoot', () => {
+  const v = stepVelocity(0, 1, 1 / 60, 0.15)
+  assert.ok(v > 0 && v < 1)
+  assert.ok(stepVelocity(v, 1, 1 / 60, 0.15) > v)
+})
+
+test('stepVelocity gives the same speed at 30 and 60 fps', () => {
+  let a = 0
+  let b = 0
+  for (let i = 0; i < 30; i++) a = stepVelocity(a, 1, 1 / 60, 0.15)
+  for (let i = 0; i < 15; i++) b = stepVelocity(b, 1, 1 / 30, 0.15)
+  assert.ok(Math.abs(a - b) < 1e-9)
+})
+
+test('stepVelocity glides to 0 and snaps to 0', () => {
+  let v = 1
+  let frames = 0
+  while (v !== 0 && frames < 1000) {
+    v = stepVelocity(v, 0, 1 / 60, 0.15)
+    frames++
+  }
+  assert.equal(v, 0)
+  assert.ok(frames > 10 && frames < 100)
 })

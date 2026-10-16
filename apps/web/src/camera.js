@@ -107,3 +107,17 @@ export function resetView(controls, wheelCamera, view) {
   controls.target.set(...view.target)
   controls.update()
 }
+
+// The part of what is left that one frame of dt seconds does. Same speed at every frame rate.
+export function framePart(smoothTime, dt) {
+  return 1 - Math.exp(-dt / smoothTime)
+}
+
+// Below this speed (a part of the top speed) a glide ends
+const STOP_SPEED = 0.01
+
+// Moves a velocity toward the target by framePart. A glide to 0 snaps to 0 under STOP_SPEED, so it ends.
+export function stepVelocity(current, target, dt, smoothTime) {
+  const next = current + (target - current) * framePart(smoothTime, dt)
+  return target === 0 && Math.abs(next) < STOP_SPEED ? 0 : next
+}

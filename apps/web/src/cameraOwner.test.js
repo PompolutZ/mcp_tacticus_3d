@@ -49,3 +49,22 @@ test('release clears the owner', () => {
   o.release()
   assert.equal(o.keysMove(true), true)
 })
+
+test('a mouse drag during a glide wins', () => {
+  const o = createCameraOwner()
+  o.keysMove(true)
+  // key released, the camera still glides: active stays true
+  assert.equal(o.keysMove(true), true)
+  assert.equal(o.mouseStart(false), true)
+  assert.equal(o.owner, 'mouse')
+  assert.equal(o.keysMove(true), false)
+})
+
+test('the keys keep the camera during a glide until the velocity is 0', () => {
+  const o = createCameraOwner()
+  o.keysMove(true)
+  o.keysMove(true)
+  assert.equal(o.owner, 'keys')
+  o.keysMove(false)
+  assert.equal(o.owner, null)
+})

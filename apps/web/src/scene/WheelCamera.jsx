@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { MathUtils, Vector3 } from 'three'
-import { CAMERA_FRAME_PRIORITY, panOnTable } from '../camera.js'
+import { CAMERA_FRAME_PRIORITY, framePart, panOnTable } from '../camera.js'
 import { getAction, resolve } from '../input/bindings.js'
 
 // One mouse wheel step zooms by this factor, the same step as OrbitControls (0.95 at zoomSpeed 1).
@@ -42,11 +42,6 @@ function looksLikeTrackpad(e) {
     Number.isInteger(e.deltaY) &&
     (e.deltaX !== 0 || Math.abs(e.deltaY) < 4)
   )
-}
-
-// The part of what is left that one frame of dt seconds does
-function framePart(smoothTime, dt) {
-  return 1 - Math.exp(-dt / smoothTime)
 }
 
 // All wheel input of the camera, smoothed. A mouse wheel zooms, as in TTS. On a trackpad, a

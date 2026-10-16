@@ -8,9 +8,10 @@ export function createCameraOwner() {
     get owner() {
       return owner
     },
-    // A mouse camera drag starts. Returns false when the keys own the camera (the drag is refused).
-    mouseStart() {
-      if (owner === 'keys') return false
+    // A mouse camera drag starts. held: a camera key is held. Returns false when a held key owns the
+    // camera (the drag is refused). A glide after the release is not held: the mouse takes over.
+    mouseStart(held = true) {
+      if (owner === 'keys' && held) return false
       owner = 'mouse'
       return true
     },
@@ -18,10 +19,10 @@ export function createCameraOwner() {
     mouseEnd() {
       if (owner === 'mouse') owner = null
     },
-    // Called every frame. held: a camera key is held. dragging: a piece drag is in progress, then the
+    // Called every frame. active: a camera key is held or the camera still glides. dragging: a piece drag is in progress, then the
     // keys move the camera as always, also during a mouse press. Returns true when the keys move the camera.
-    keysMove(held, dragging = false) {
-      if (!held) {
+    keysMove(active, dragging = false) {
+      if (!active) {
         if (owner === 'keys') owner = null
         return false
       }

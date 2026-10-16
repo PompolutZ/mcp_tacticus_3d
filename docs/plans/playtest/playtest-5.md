@@ -12,6 +12,7 @@ Checks of every step: `pnpm format`, `pnpm lint` (no more warnings than before t
 2. The spectator view shows the affiliation: `Player name [Affiliation] VP Round`, as an icon.
 3. The HUD **Power** button looks like the table button: green, with the Power token icon. The HUD **Power** and **Cleanup** buttons have the same width.
 4. The camera can be moved with the mouse and with the keys, but using both at the same time moves it erratically.
+5. (User, 2026-10-16: "can we add some smoothness to how camera moves with hotkeys?") Smooth camera keys.
 
 ## Facts
 
@@ -93,3 +94,19 @@ User: hold W and drag with the mouse: only W moves the camera. Drag with the mou
 ### Result
 
 Done. `src/cameraOwner.js` (plain module, owner null / mouse / keys) with test `cameraOwner.test.js`. `KeyboardCamera.jsx` holds one owner: OrbitControls `start` / `end` set the mouse owner; window `pointerup`, `pointercancel` and `blur` release it (drag ends outside the canvas, lost focus). Each frame the held keys take the camera if nobody owns it; while the mouse owns it the keys do nothing, except during a piece drag (`isDragActive`). While the keys own it, `enableRotate` and `enablePan` are off, not `enabled`: `WheelCamera` reads `controls.enabled`, so the wheel would stop too. Held keys are already cleared on window blur (`useTableKeys`). Docs: key-shortcuts. Checks: format, lint (40), typecheck, test (996), build OK.
+
+## Step 6: Smooth key camera
+
+Request (user, 2026-10-16): "can we add some smoothness to how camera moves with hotkeys?"
+
+- Pan (W A S D) and turn (arrows) speeds ease: each frame the velocity moves toward the target (top speed while held, 0 when released) by `framePart(time, dt)`, shared with `WheelCamera.jsx` (moved to `camera.js`). `KEY_SMOOTH_TIME = 0.15` s, by look. Top speeds unchanged.
+- After release the camera glides to a stop; snap to 0 under a small threshold (`stepVelocity` in `camera.js`).
+- Ownership: the keys keep the camera until the velocity is 0. A mouse drag during the glide wins: velocity 0 at once. Blur stops the glide.
+- Keys during a piece or tool drag work as today, also smoothed.
+- Docs: `docs/features/key-shortcuts.md`.
+
+User: tap W, hold W, release W: the camera eases in and glides out. Same for arrows. Drag with the mouse during a glide: it stops and the mouse turns the camera.
+
+### Result
+
+Done. `framePart` and `stepVelocity` in `camera.js` (tests in `camera.test.js`). `KeyboardCamera.jsx` eases pan and turn velocity. `cameraOwner.js`: `keysMove(active)` with active = held or gliding; `mouseStart(held)` refuses only for a held key. OrbitControls is off only while a key is held, so a drag can start in a glide. Docs: key-shortcuts.
