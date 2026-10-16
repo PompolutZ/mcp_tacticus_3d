@@ -32,6 +32,7 @@ import { useDisposeMaterials } from '../scene/useDisposeMaterials.js'
 import { useHoverCursor } from '../scene/useHoverCursor.js'
 import { SURFACE_GAP } from '../pieces/heights.js'
 import { NO_ROTATION } from '../characters/base.js'
+import { useRenderCount } from '../debug/renderCount.js'
 
 // TTS mirrors X when it imports an OBJ. With the z → -z conversion, this is a 180° turn around Y (see
 // Terrain.jsx).
@@ -235,6 +236,7 @@ export default function ScoreBoard({
   otherOwned = null,
   getLivePose = null,
 }) {
+  useRenderCount('ScoreBoard')
   const { rapier } = useRapier()
   // The VP marker dropped last. When both players have the same VP, it lies on top of the other one, as
   // in TTS, where the second marker falls onto the first. Both edges show, so both colors can be seen.

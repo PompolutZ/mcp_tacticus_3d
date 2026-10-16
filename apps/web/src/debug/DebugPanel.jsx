@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 import { useFrameStats } from './FrameStats.jsx'
+import { readRenderCounts, resetRenderCounts, setRenderCounting } from './renderCount.js'
 
 // Parts of the rendering that can be turned off, to measure their cost. See SelectionOutlines.
 const RENDER_MODES = [
@@ -66,6 +68,41 @@ function ModeButtons({ options, value, onChange }) {
   )
 }
 
+// Render counts of useRenderCount. Reads the module counters on its own timer, so the panel
+// does not make the counted components render.
+function RenderCounts() {
+  const [rows, setRows] = useState([])
+  useEffect(() => {
+    setRenderCounting(true)
+    const timer = setInterval(() => setRows(readRenderCounts()), 500)
+    return () => {
+      clearInterval(timer)
+      setRenderCounting(false)
+    }
+  }, [])
+  return (
+    <div className="debug-stats">
+      <span className="debug-label">Renders</span>
+      <button
+        type="button"
+        className="chip"
+        title="Set all render counts to 0"
+        onClick={() => {
+          resetRenderCounts()
+          setRows([])
+        }}
+      >
+        Reset
+      </button>
+      {rows.map((row) => (
+        <Row key={row.name} label={row.name} title="Commits since Reset, and in the last second">
+          {row.total} / {row.lastSecond}
+        </Row>
+      ))}
+    </div>
+  )
+}
+
 // Numbers from FrameStats, the render mode switch and the look switches
 export function DebugPanel({
   renderMode,
@@ -120,6 +157,7 @@ export function DebugPanel({
       <ModeButtons options={RENDER_MODES} value={renderMode} onChange={onRenderModeChange} />
       <ModeButtons options={TONE_MAPPINGS} value={toneMapping} onChange={onToneMappingChange} />
       <ModeButtons options={SURFACES} value={surface} onChange={onSurfaceChange} />
+      <RenderCounts />
     </div>
   )
 }

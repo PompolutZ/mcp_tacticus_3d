@@ -104,6 +104,7 @@ import {
   viewOf,
 } from '../setup/setup.js'
 import { useSideColors } from '../sideColors.js'
+import { useRenderCount } from '../debug/renderCount.js'
 
 // Two physics steps per frame. With one, a model dropped from high up sometimes gets stuck in terrain.
 const TIME_STEP = 1 / 120
@@ -327,6 +328,7 @@ export default function Scene({
   live = null,
   pieceLives = null,
 }) {
+  useRenderCount('Scene')
   // Every model of every character, in spawn order (characters/models.js)
   const models = useMemo(() => characters.flatMap(characterModels), [characters])
   // The maps below are keyed by model id: a character with a second form has two models (see

@@ -72,6 +72,7 @@ import { useLogSounds } from './log/useLogSounds.js'
 import { useRemoteDropSounds } from './tokens/useRemoteDropSounds.js'
 import { SettingsPopup } from './settings/SettingsPopup.jsx'
 import { NO_PIECES, selectedId } from './selection.js'
+import { useRenderCount } from './debug/renderCount.js'
 
 // Draco decoder is served from public/draco, not from the default Google CDN. Module scope of the table
 // chunk, so it runs before any model loads.
@@ -105,6 +106,7 @@ export default function App({
   live = null,
   onExit,
 }) {
+  useRenderCount('App')
   // The calls into Scene, set by Scene on every render, null before its first effect. See
   // scene/sceneApi.js for the shape.
   const sceneApi = useRef(null)

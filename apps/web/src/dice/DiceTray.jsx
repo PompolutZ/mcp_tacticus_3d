@@ -50,6 +50,7 @@ import { useHoverCursor } from '../scene/useHoverCursor.js'
 import { useLatest, useOnMount } from '../scene/useLatest.js'
 import { createBumpFinder } from '../bumps.js'
 import { playShake, playSound } from '../sound.js'
+import { useRenderCount } from '../debug/renderCount.js'
 
 // A pointer that moved more than this many pixels between down and up was a camera drag, not a
 // click on a die.
@@ -216,6 +217,7 @@ export default function DiceTray({
   rethrowTilted = false,
   testHook = false,
 }) {
+  useRenderCount('DiceTray')
   const { world } = useRapier()
   // The setting as the frame loop reads it: a change needs no new subscription
   const rethrowTiltedRef = useRef(rethrowTilted)

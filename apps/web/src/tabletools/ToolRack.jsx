@@ -7,6 +7,7 @@ import { useMovementParts, useRangeParts } from './ToolParts.jsx'
 import { outlineMode, useOutline } from '../scene/SelectionOutlines.jsx'
 import { useHoverCursor } from '../scene/useHoverCursor.js'
 import { OccludedHtml } from '../scene/LabelOcclusion.jsx'
+import { useRenderCount } from '../debug/renderCount.js'
 
 // The tool rack of each player: a plate with the range and movement tools in the player tint, and the R1, T/A and
 // LOS chips. See docs/features/table-tools.md, "Tool rack". The tools have no physics body. A click is the
@@ -249,6 +250,7 @@ export default function ToolRack({
   onDragStart,
   hiddenSides = [],
 }) {
+  useRenderCount('ToolRack')
   const handlers = { onRangeClick, onMoveClick, onAngleClick, onLosClick, onDragStart }
   const sides = (multiplayer ? TEAMS : [ownSide]).filter((side) => !hiddenSides.includes(side))
   return sides.map((side) => (

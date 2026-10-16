@@ -13,6 +13,7 @@ import { followPart, sameSideQuat } from '../net/livePose.js'
 import { TrayBody, useDieLook } from './DiceTrayParts.jsx'
 import { createPoseBumpFinder } from '../bumps.js'
 import { playShake, playSound } from '../sound.js'
+import { useRenderCount } from '../debug/renderCount.js'
 
 // The die's own vertices (faces.js), flattened for ConvexHullCollider's args.
 const dieVertices = Float32Array.from(D8_CORNERS.flat())
@@ -200,6 +201,7 @@ function OtherDie({ id, dice, geometry, material }) {
 // shelf at mount stands at its slot. An air die follows its live pose, as a remote model does, but only a pose
 // that arrived after its entry became air (the channel is unordered). The keys show the stored counts and are turned off.
 export default function OtherDiceTray({ trayKey, store, liveRef }) {
+  useRenderCount('OtherDiceTray')
   const [side] = useYField(store, trayKey)
   const { geometry, material } = useDieLook()
 

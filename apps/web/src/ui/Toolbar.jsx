@@ -5,6 +5,7 @@ import { MAPS } from '../terrain/maps/index.js'
 import { cardsOfType } from '../crisis/cards.js'
 import { CopyLinkButton } from '../rooms/CopyLinkButton.jsx'
 import { RoomPlayers } from '../rooms/RoomPlayers.jsx'
+import { useRenderCount } from '../debug/renderCount.js'
 
 const RANGES = [1, 2, 3, 4, 5]
 const MOVES = [
@@ -61,6 +62,7 @@ export function Toolbar({
   onSetupClick,
   onSetupClose,
 }) {
+  useRenderCount('Toolbar')
   // The typed text stays in the field after Enter (x clears it)
   const [rosterText, setRosterText] = useState({ host: '', guest: '' })
   // A setting of 'hud' puts the item in the toolbar, 'table' on the table (docs/features/table-tools.md,

@@ -18,6 +18,7 @@ import {
   trayShapeOf,
   trayYaw,
 } from '../characters/trays.js'
+import { useRenderCount } from '../debug/renderCount.js'
 
 // Tokens held by one character lie on its card in a stack, in the order they were taken, so two
 // tokens that overlap do not z-fight. Each one is this much higher than the one before it.
@@ -68,6 +69,7 @@ export default function TokenLayer({
   dragPointRef,
   otherSpawn,
 }) {
+  useRenderCount('TokenLayer')
   // Every crisis token as it is drawn. A held token lies on its holder's card: its tray-local place
   // (heldAt) moves to the table with the tray position, and it faces the holder's player, the same
   // as the card (see trays.js, "An objective token that the character holds").

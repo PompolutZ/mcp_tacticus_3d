@@ -18,6 +18,7 @@ import { useTacticFaceMap } from './useTacticFaceTexture.js'
 import { isFaceKey } from './faceData.js'
 import { NO_ROTATION } from '../characters/base.js'
 import { useHoverCursor, useHoverPeek, useHoverReport } from '../scene/useHoverCursor.js'
+import { useRenderCount } from '../debug/renderCount.js'
 
 // A thin box as large as the card finds the ground under it, the same as LooseToken.jsx
 const HALF_H = 0.01
@@ -60,6 +61,7 @@ export default function TacticCard({
   remote = false,
   getLivePose = null,
 }) {
+  useRenderCount('TacticCard')
   // A card with Jarvis data draws its face (tacticFaceTexture.js); until it is ready the face is the art at
   // low opacity. A card with no Jarvis data shows its back on both sides. The back loads when the card
   // mounts, so the first flip does not wait for an image.

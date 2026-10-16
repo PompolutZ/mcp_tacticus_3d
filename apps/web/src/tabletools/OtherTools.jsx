@@ -1,12 +1,14 @@
 import { Suspense } from 'react'
 import { OtherTool } from './OtherTool.jsx'
 import { OtherLos } from './LosTool.jsx'
+import { useRenderCount } from '../debug/renderCount.js'
 
 const toolKey = (kind, entry) => `${kind}-${entry.which}-${entry.spawn}`
 
 // The other player's tools. otherLook: what LiveSync shows of that player (selection, tools). received:
 // the ref of what LiveSync received (Scene.jsx).
 export default function OtherTools({ otherTools, otherSide, otherLook, toolModels, received }) {
+  useRenderCount('OtherTools')
   // The other player's tool target: the last key of their selection, as a tool model
   const otherKey = otherLook.selection.at(-1)
   const otherTarget = otherKey

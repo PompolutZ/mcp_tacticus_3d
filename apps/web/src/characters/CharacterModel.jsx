@@ -35,6 +35,7 @@ import { useModelLift } from '../scene/useModelLift.js'
 import { useLandingSound } from './useLandingSound.js'
 import { useModelFollow } from '../scene/useModelFollow.js'
 import { useFigureMaterials } from './useFigureMaterials.js'
+import { useRenderCount } from '../debug/renderCount.js'
 
 // While dragged, the base hangs this far above the table or terrain below it
 const DRAG_HOVER = 0.3
@@ -83,6 +84,7 @@ function turnBetween(a, b) {
 
 // url: the GLB of the model. The other props: see CharacterFigure below.
 export default function CharacterModel({ url, ...props }) {
+  useRenderCount('CharacterModel')
   // useGLTF caches one scene per url. Each model needs its own copy: two characters with the same
   // model (both players take Mephisto) would share one object, and it can stand in one place only.
   const { scene: source } = useGLTF(url)

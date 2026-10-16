@@ -21,6 +21,7 @@ import { projectFootprints } from '../scene/footprintProjection.js'
 import { outlineMode, useOutline } from '../scene/SelectionOutlines.jsx'
 import { useDisposeMaterials } from '../scene/useDisposeMaterials.js'
 import { useHoverCursor, useHoverReport } from '../scene/useHoverCursor.js'
+import { useRenderCount } from '../debug/renderCount.js'
 
 const WHITE = [1, 1, 1]
 // A press that moves the pointer more than this (px) before the release is a camera drag, not a click.
@@ -382,6 +383,7 @@ export default function Terrain({
   groupRef,
   onPointerDown,
 }) {
+  useRenderCount('Terrain')
   return placements.map((placement) => (
     <TerrainPiece
       key={`${placement.id}:${placement.rev ?? 0}:${placement.position[1]}`}

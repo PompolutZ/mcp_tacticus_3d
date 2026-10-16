@@ -23,6 +23,7 @@ import TurnHandle from '../tabletools/TurnHandle.jsx'
 import useLiveFollow from '../scene/useLiveFollow.js'
 import { SURFACE_GAP } from '../pieces/heights.js'
 import { NO_ROTATION } from '../characters/base.js'
+import { useRenderCount } from '../debug/renderCount.js'
 
 // A token is a 1" circle, TOKEN_THICKNESS thick (tokens.json size is used for the shape, not the exact
 // dims of the current tokens, which are all 1" circles)
@@ -168,6 +169,7 @@ export default function CrisisToken({
   canDrag = true,
   constrainDrag = null,
 }) {
+  useRenderCount('CrisisToken')
   const [topMap, bottomMap, damageMap] = useTokenMaps(token)
 
   const { camera, gl, controls } = useThree()

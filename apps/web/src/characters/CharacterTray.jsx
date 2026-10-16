@@ -28,6 +28,7 @@ import TokenFace from '../tokens/TokenFace.jsx'
 import TrayControls from './TrayControls.jsx'
 import { useColorTexture } from '../scene/useColorTexture.js'
 import { useHoverCursor, useHoverPeek, useHoverReport } from '../scene/useHoverCursor.js'
+import { useRenderCount } from '../debug/renderCount.js'
 
 // Tokens lie at the tray's own height (TRAY_Y): the "On" row just above the background plate (see
 // trays.js, TRAY_BG_Y), the Give sources just above the table, the same height as a token on the
@@ -89,6 +90,7 @@ export default function CharacterTray({
   affiliation = null,
   slot = [0, 0],
 }) {
+  useRenderCount('CharacterTray')
   // Both sides of every card load when the tray mounts, so the first Flip does not wait for an image
   // (that wait hides the tray, see Scene.jsx, Suspense). The order is fixed: the loader caches by
   // the URL list.

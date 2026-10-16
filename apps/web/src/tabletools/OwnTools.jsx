@@ -2,6 +2,7 @@ import { Suspense, useRef, useState } from 'react'
 import { MovementRuler, AngleRuler, RangeRuler } from './RulerTool.jsx'
 import { LosTool } from './LosTool.jsx'
 import { TOOL_HOVER_HEIGHT, sameModel } from './toolGeometry.js'
+import { useRenderCount } from '../debug/renderCount.js'
 
 const toolKey = (kind, entry) => `${kind}-${entry.which}-${entry.spawn}`
 
@@ -26,6 +27,7 @@ export default function OwnTools({
   setRangeMark,
   turnProps,
 }) {
+  useRenderCount('OwnTools')
   // The own tool that has Place or Throw on: 'range', 'move' or null. Only one at a time. The other tool turns
   // its own off (limitTaken in useToolLimits.js). A tool that turns off clears only its slot in placeLimits.
   const [limitTool, setLimitTool] = useState(null)
