@@ -246,6 +246,51 @@ The headless test checks this with 8000 throws of one die in the tray world. Eac
 
 Owlbear Rodeo tested its dice in the same way: 2000 d20 rolls in each of 4 browsers. All passed ([blog](https://blog.owlbear.rodeo/are-owlbear-rodeos-dice-fair/)).
 
+### What fair means
+
+A die is fair when two things are true:
+
+- Each face has the same chance on every throw, 1 in 8. Hit and Blank are on 2 faces each, so each has 2 in 8.
+- One throw does not change the next. After 3 Skulls in a row, a Skull has the same chance as before.
+
+The same chance is about the long run. Over many throws, the share of each face gets closer to 1 in 8. This is the law of large numbers. A short run is uneven, also with a fair die. For example, 5 dice show no Hit, Crit or Wild in 1 throw of 32 (½ × ½ × ½ × ½ × ½). In 30 throws of 5 dice, this happens at least once in about 6 games of 10. So a game lost to a few bad throws is normal for a fair die. It is not a sign of a bias.
+
+A test cannot prove that a die is fair. It can only show that a bias, if there is one, is smaller than a limit. The chi-squared test adds up how far the 8 counts are from the expected counts. A fair die gives a value below 14.07 in 19 tests of 20.
+
+The physics engine gives the same result from the same start. The start of each throw (rotation, upward speed, direction, spin) comes from `crypto.getRandomValues`. The operating system seeds it from hardware noise, so nobody can predict it. Paid sources of "true" random numbers would not make the dice fairer.
+
+### Test in the real app
+
+`scripts/dice-night-run.mjs` rolls dice in the Sandbox of the real app, in Chrome, for a whole night with nobody at the computer. A test hook (`window.__diceTest`, dev server only) calls the same function as the Roll button. `scripts/dice-night-report.mjs` counts the results. Design: `docs/plans/dice-night-run.md`. How to run it: `scripts/README.md`.
+
+What ran:
+
+- 5 dice, with 1, 2 and 3 clicks 200 ms apart, and with 10 clicks in 2 s. 1000 throws each, so 5000 dice each.
+- 1 die with 1 click, 797 throws. The run was stopped there. 1 die with more clicks did not run.
+
+Results:
+
+| | 5 dice, 1 click | 2 clicks | 3 clicks | 10 clicks | 1 die, 1 click |
+|---|---|---|---|---|---|
+| Faces, chi-squared (pass below 14.07) | 4.03 | 7.50 | 5.17 | 5.95 | 4.98 |
+| Symbols, chi-squared (pass below 11.07) | 1.86 | 2.96 | 5.13 | 4.42 | 4.47 |
+| Tilted | 2.2% | 2.5% | 2.3% | 2.3% | 1.8% |
+| Outside the well | 0.5% | 0.6% | 0.8% | 1.7% | 0% |
+| Throw time, average (s) | 2.54 | 2.96 | 3.31 | 4.52 | 2.19 |
+| Throw time, 95% of throws under (s) | 2.94 | 3.36 | 3.74 | 5.04 | 2.72 |
+
+- All 10 tests pass. The four 5-dice runs together (20,000 dice) give chi-squared 3.7, also a pass.
+- Each face came up between 12% and 13% of the time (expected 12.5%). With 20,000 dice, the true share of each face is within about ±0.5 percentage points of the measured share. No face is high in every run.
+- Repeat clicks do not change the faces. Each extra click makes the throw about 0.4 s longer, and more dice land outside the well.
+- No throw timed out, and no die was lost.
+- Repeats: no two throws had the same physics (the same tilt and rest time for every die). Pairs of throws with the same faces happen as often as a fair die gives. In 1000 throws of 5 dice: 12–19 pairs with the same faces in the same order (fair die: about 15), and 892–969 pairs with the same faces in any order (fair die: about 949).
+
+Limits of the test:
+
+- The dice of one throw hit each other, so they are not fully independent. The test treats each die as its own throw.
+- The test counts faces. It does not check the order of results, for example a Hit always after a Skull. The repeat count above is the only check of order.
+- 797 throws of 1 die can only show a bias above about 10% per face.
+
 ## Measurements
 
 ### In TTS
