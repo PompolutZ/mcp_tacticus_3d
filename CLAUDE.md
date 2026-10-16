@@ -14,9 +14,9 @@
 - Each plan runs in its own worktree `../mcp_assist_3d-<plan>`, on branch `<plan>` from main. The coder works only there.
 - The main dir is only for user tests.
 - Work done: in the worktree, merge main into the branch. In the main dir, `git switch --detach <plan>`. The user tests. Fixes go in the worktree, then the main dir moves to the new head the same way.
-- After the OK: fast-forward main, remove the worktree, delete the branch.
+- Create a worktree with `scripts/new-worktree.sh <plan>`. It copies the `.env` files, so the user can also run the app from the worktree folder.
+- After the OK: fast-forward main, then `scripts/remove-worktree.sh <plan>` (removes the worktree, deletes the branch).
 - At most 2 plan branches are open at a time. A change across many files (a rename) runs when no other branch is open.
-- A new worktree has no `.env` files. Lint, tests and build do not need them.
 
 ## TTS assets
 
@@ -30,6 +30,10 @@ Do not open the app in a browser (playwright-cli, dev server, screenshots) to ch
 
 After a code change, run `pnpm format` and `pnpm lint`. Both are safe to run at any time.
 
+## Tests
+
+Test rules that must stay true (no overlap, inside the table, order). Do not assert a copy of a constant's value.
+
 ## Paths in docs
 
 In `docs/`, the paths `src/`, `public/`, `scripts/` and `tools/` are under `apps/web/`.
@@ -42,6 +46,7 @@ Two kinds of docs, each in its own folder.
   - First line under the title: `Status:` in one line, built, partly built or not started.
   - No dates and no plan step numbers.
   - When the behavior changes, the feature changes in the same step.
+  - A feature gives the intent and the reasons. It does not repeat numbers that are constants in the code; it names the file instead.
 - Plan (`docs/plans/`): the request, the steps and their results. A done plan does not change, except for paths.
   - A new request gets a new plan. Its lasting decisions go into the feature in the same step.
 - Plans made from a user test are in `docs/plans/playtest/`. Other plans stay in `docs/plans/`.
