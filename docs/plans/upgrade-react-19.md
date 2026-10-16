@@ -81,6 +81,23 @@ No code change, no commit unless a script needs a fix to run.
 
 **Result:**
 
+React 18, no package change, no script fix.
+
+`pnpm --filter web test`: 1002 tests, 1002 pass, 0 fail, 0 skipped (1.9 s). The physics test files pass; they print no numbers.
+
+`pnpm --filter web exec node scripts/dice-sim.mjs --seed 1` (defaults 8000 + 2000 throws): 33 s wall. Run twice, same output except the perf line (0.260 and 0.237 ms/step).
+
+| | single die | 10 dice at once |
+|---|---|---|
+| valid / attempts | 8000 / 8181 | 2006 / 2030 |
+| tilted | 2.2% | 1.2% |
+| out-of-well | 0.0% | 0.5% |
+| lost | 0.0% | 0.0% |
+| chi-squared (7 df, limit 14.07) | 5.91 PASS | 11.24 PASS |
+| face counts 1-8 | 1006 946 1010 984 1031 1034 1009 980 | 261 253 211 267 276 256 243 239 |
+
+Settle time per round: avg 2.68 s, max 3.72 s (203 rounds). 42 dice perf: 0.237-0.260 ms/step.
+
 ### 3. Upgrade React, fiber, drei, rapier, postprocessing
 
 - Bump the packages in the table (not three). Remove `@dimforge/rapier3d-compat` from `package.json` if nothing in `src/` or `scripts/` imports it. Else bump it to 0.19.2.
