@@ -1,6 +1,7 @@
 import jarvisData from './jarvis-rows.json'
 import migratedData from './characters.json'
 import { sideSize } from './size.js'
+import { withAffiliationSource } from '../tokens/affiliationTokens.js'
 
 function baseName(mm) {
   if (mm <= 35) return 'small'
@@ -155,13 +156,16 @@ export function characterSize(slug, side) {
 const ALWAYS_GIVEN = ['activated', 'dazed']
 
 // Token keys of the Give sources next to this character's tray, in order: Activated, Dazed, then
-// the tokens of the character (see docs/features/character-trays.md, "Give tokens by drag and drop").
+// the affiliation token, then the tokens of the character (see docs/features/character-trays.md, "Give tokens by drag and drop").
 // A host also lists the tokens of its grunts: a grunt has no Give sources of its own, so a player drags
 // them from the host's row onto the grunt card (docs/features/character-trays.md, "Grunts").
-export function characterGiveSources(slug) {
+// `affiliation`: the affiliation key of the character's side, or null. The affiliation token goes
+// after Dazed, as in TTS, while the side has an affiliation other than Unaffiliated.
+export function characterGiveSources(slug, affiliation = null) {
   const ch = bySlug.get(slug)
   const ofGrunts = (ch?.grunts ?? []).flatMap((grunt) => grunt.tokens)
-  return [...new Set([...ALWAYS_GIVEN, ...(ch?.tokens ?? []), ...ofGrunts])]
+  const keys = [...new Set([...ALWAYS_GIVEN, ...(ch?.tokens ?? []), ...ofGrunts])]
+  return withAffiliationSource(keys, affiliation, ALWAYS_GIVEN.length)
 }
 
 // Token keys this character cannot get on its current side (p21), when every form is immune to

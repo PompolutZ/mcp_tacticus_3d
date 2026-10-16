@@ -54,6 +54,8 @@ User: set the affiliation in the setup. Each character of that side shows the af
 
 ### Result
 
+Done. `withAffiliationSource` (`tokens/affiliationTokens.js`) puts `affiliation-<key>` after Dazed; `characterGiveSources(slug, affiliation)` uses it. `Scene.jsx` passes `affiliations[team]` to `CharacterTray` and to the spare model / construct row count. Unaffiliated adds no source. Max 11 sources, still 2 rows, so no layout change. Test `characters/giveSources.test.js`. Docs: character-trays.
+
 ## Step 3: Spectator affiliation
 
 - The spectator header shows the affiliation icon after the player name, from the side's affiliation (decision 3). Reuse the image lookup of step 1. Both the HUD columns and the 3D badge, if both show the header.

@@ -62,6 +62,7 @@ const CLICK_MOVE = 4
 // onCardImageHover(card, over): the same, with the image under the pointer, { src, alt, by }, for Alt (useCardPeek.js).
 // onTokenDragStart gets the id of the character as the 4th argument: a click on a Give source gives
 // that character one token.
+// affiliation: the affiliation key of the owner's side, for its Give source (characters.js, characterGiveSources).
 // grunts: the number of grunt cards on the tray of a host, 0 for none: the plate and the Give sources
 // follow it (trays.js). A grunt (character.host) has no plate and no Give sources: the host's tray draws
 // its card, On row and controls strip at `slot`, the start of its unit on the host tray (trays.js,
@@ -85,6 +86,7 @@ export default function CharacterTray({
   selected = false,
   objectRef,
   grunts = 0,
+  affiliation = null,
   slot = [0, 0],
 }) {
   // Both sides of every card load when the tray mounts, so the first Flip does not wait for an image
@@ -144,7 +146,7 @@ export default function CharacterTray({
 
   // Tokens on the character, in the order it got them (see characters/actions.js, giveToken).
   const onTokens = Object.entries(character.tokens ?? {})
-  const giveKeys = characterGiveSources(character.key)
+  const giveKeys = characterGiveSources(character.key, affiliation)
 
   function removeOnToken(e, key) {
     e.stopPropagation()

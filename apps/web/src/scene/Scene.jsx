@@ -711,7 +711,7 @@ export default function Scene({
     const { grunts, index } = trayShape(ch)
     if (ch.host) return trayGruntModelPosition(ch.team, trayPos, trayShape(ch).cards, index)
     if (model.card) return trayModelPosition(ch.team, trayPos, model.card)
-    const giveCount = characterGiveSources(ch.key).length
+    const giveCount = characterGiveSources(ch.key, affiliations?.[ch.team]).length
     if (!model.construct)
       return traySpareModelPosition(
         ch.team,
@@ -1060,6 +1060,7 @@ export default function Scene({
                   character={ch}
                   position={trayPositions.get(ch.id)}
                   grunts={ch.host ? 0 : trayShape(ch).grunts}
+                  affiliation={affiliations?.[ch.team] ?? null}
                   slot={trayShape(ch).slot}
                   onOpen={() => onTrayOpen(ch.id)}
                   onDamage={(damage) => characterActions.damage(ch.id, damage)}

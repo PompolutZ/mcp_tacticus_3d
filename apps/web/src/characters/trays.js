@@ -19,8 +19,8 @@ const TRAY_WIDTH = 5
 const TOKEN_GAP = 0.1
 const TOKEN_PITCH = TOKEN_SIZE + TOKEN_GAP
 const TOKENS_PER_ROW = Math.floor((TRAY_WIDTH + TOKEN_GAP) / TOKEN_PITCH)
-// The longest cToken list in the mod has 8 tokens. With Activated and Dazed, a character has up to
-// 10 Give sources, so 2 rows.
+// The longest cToken list in the mod has 8 tokens. With Activated, Dazed and the affiliation
+// token, a character has up to 11 Give sources, so 2 rows.
 
 // The parts of a tray, from the mat side to the owner's side: the "On" row of tokens, the card,
 // and the controls strip (Damage, Power, Flip, Remove, Held, see TrayControls.jsx). The Give
