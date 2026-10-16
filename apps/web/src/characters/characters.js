@@ -160,7 +160,7 @@ const ALWAYS_GIVEN = ['activated', 'dazed']
 // A host also lists the tokens of its grunts: a grunt has no Give sources of its own, so a player drags
 // them from the host's row onto the grunt card (docs/features/character-trays.md, "Grunts").
 // `affiliation`: the affiliation key of the character's side, or null. The affiliation token goes
-// after Dazed, as in TTS, while the side has an affiliation other than Unaffiliated.
+// after Dazed, as in TTS, while the side has an affiliation (Unaffiliated too).
 export function characterGiveSources(slug, affiliation = null) {
   const ch = bySlug.get(slug)
   const ofGrunts = (ch?.grunts ?? []).flatMap((grunt) => grunt.tokens)

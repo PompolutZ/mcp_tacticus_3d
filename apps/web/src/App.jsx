@@ -931,6 +931,7 @@ export default function App({
           poses={poses}
           setup={viewSetup}
           scoreMarkers={scoreMarkers}
+          affiliations={affiliations}
           nameCtx={nameCtx}
           mySide={mySide}
           hiddenSquads={hiddenSquads}

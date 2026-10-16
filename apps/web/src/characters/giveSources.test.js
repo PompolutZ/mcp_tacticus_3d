@@ -4,10 +4,9 @@ import { withAffiliationSource } from '../tokens/affiliationTokens.js'
 
 const keys = ['activated', 'dazed', 'root', 'shock']
 
-test('no affiliation or Unaffiliated: the row is as before', () => {
+test('no affiliation: the row is as before', () => {
   assert.deepEqual(withAffiliationSource(keys, null, 2), keys)
   assert.deepEqual(withAffiliationSource(keys, undefined, 2), keys)
-  assert.deepEqual(withAffiliationSource(keys, 'unaffiliated', 2), keys)
 })
 
 test('an affiliation puts its token after Dazed', () => {
@@ -15,6 +14,16 @@ test('an affiliation puts its token after Dazed', () => {
     'activated',
     'dazed',
     'affiliation-avengers',
+    'root',
+    'shock',
+  ])
+})
+
+test('Unaffiliated is an affiliation: it gets its token', () => {
+  assert.deepEqual(withAffiliationSource(keys, 'unaffiliated', 2), [
+    'activated',
+    'dazed',
+    'affiliation-unaffiliated',
     'root',
     'shock',
   ])

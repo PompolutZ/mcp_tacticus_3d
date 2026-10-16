@@ -27,7 +27,7 @@ Checks of every step: `pnpm format`, `pnpm lint` (no more warnings than before t
 1. Affiliation tokens become tokens: a new group `affiliation` with 36 tokens, so the Library also shows them (group "Affiliation"). Keys are `affiliation-<slug>`, so they cannot clash with other token keys. Size: the same as other character tokens.
 2. The affiliation source goes after Dazed, as in TTS. It shows only while the side has an affiliation. When the affiliation changes, the source changes with it. With no affiliation, the row is as today.
 3. Spectator header: `Name <affiliation icon> VP Round`. The icon is the affiliation token image, its name as the title. With no affiliation, no icon. (User, 2026-10-16: an icon, not text.)
-4. HUD Power: same green, the dark text, the Power token image and the label **Auto Power Phase** as the table button. The Cleanup label stays. Power and Cleanup get one fixed width, the width of the wider one.
+4. HUD Power: same green, the dark text, the Power token image and the label **Auto Power Phase** as the table button. The Cleanup button's label becomes **Auto Cleanup Phase**. Power and Cleanup get one fixed width, the width of the wider one. (User, 2026-10-16: both labels change.)
 5. Camera: the first input wins. A mouse camera drag (turn or pan) blocks the camera keys until the mouse button is released. A held camera key blocks a mouse camera drag until all camera keys are released. A wheel zoom or pan is left as it is, because it is a single step and is already smoothed. The camera keys during a piece drag work as today.
 
 ## Step 1: Affiliation tokens
@@ -54,7 +54,7 @@ User: set the affiliation in the setup. Each character of that side shows the af
 
 ### Result
 
-Done. `withAffiliationSource` (`tokens/affiliationTokens.js`) puts `affiliation-<key>` after Dazed; `characterGiveSources(slug, affiliation)` uses it. `Scene.jsx` passes `affiliations[team]` to `CharacterTray` and to the spare model / construct row count. Unaffiliated adds no source. Max 11 sources, still 2 rows, so no layout change. Test `characters/giveSources.test.js`. Docs: character-trays.
+Done. `withAffiliationSource` (`tokens/affiliationTokens.js`) puts `affiliation-<key>` after Dazed; `characterGiveSources(slug, affiliation)` uses it. `Scene.jsx` passes `affiliations[team]` to `CharacterTray` and to the spare model / construct row count. Unaffiliated adds no source (changed in step 3: it gets one). Max 11 sources, still 2 rows, so no layout change. Test `characters/giveSources.test.js`. Docs: character-trays.
 
 ## Step 3: Spectator affiliation
 
@@ -65,14 +65,16 @@ User: open the spectator view before and after the affiliation is set.
 
 ### Result
 
+Done. HUD columns only (the 3D badge has no header). `SpectatorColumns.jsx` gets `affiliations` from `App.jsx` and shows `AffiliationMark` (token image via `characterToken(affiliationTokenKey)`, name as title) after the name; CSS `.spectator-affiliation`. Extra: `withAffiliationSource` now adds a source for `unaffiliated` too (own token image); only no affiliation set adds none. Test updated. Docs: spectator-view, character-trays. Checks: format, lint (40), typecheck, test (990), build OK.
+
 ## Step 4: HUD phase buttons
 
-- `PhaseButtons.jsx` and `.phase-button`: Power gets the table button look (green #42B534, dark text, lighter green on hover, the Power token image left of **Auto Power Phase**). Reuse the image import and the colors from the table button. No copies of the values.
+- `PhaseButtons.jsx` and `.phase-button`: Power gets the table button look (green #42B534, dark text, lighter green on hover, the Power token image left of **Auto Power Phase**). Cleanup says **Auto Cleanup Phase**. Reuse the image import and the colors from the table button. No copies of the values.
 - Power and Cleanup have the same width.
 - The disabled look stays.
 - Docs: `docs/features/round-phases.md` or `table-tools.md`, where the HUD buttons are described.
 
-User: set both buttons to the HUD in Settings. Power is green with the icon and says Auto Power Phase. Both buttons have the same width. Disabled states look as before.
+User: set both buttons to the HUD in Settings. Power is green with the icon and says Auto Power Phase; Cleanup says Auto Cleanup Phase. Both buttons have the same width. Disabled states look as before.
 
 ### Result
 

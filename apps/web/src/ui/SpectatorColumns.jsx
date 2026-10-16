@@ -8,6 +8,9 @@ import { heldTokensByCharacter } from '../game/heldTokens.js'
 import { scoreFromMarkers } from '../scoreboard/board.js'
 import { otherTeam, placedSides } from '../setup/setup.js'
 import { playerName } from '../setup/names.js'
+import { affiliationName } from '../scoreboard/affiliations.js'
+import { characterToken } from '../tokens/files.js'
+import { affiliationTokenKey } from '../tokens/affiliationTokens.js'
 import { OnToken } from '../characters/TrayPopup.jsx'
 
 // Power is 0 to 10 (the tray counter)
@@ -33,6 +36,20 @@ function HeldMark({ token }) {
     <img
       className="spectator-held"
       src={assetUrl(crisisToken(key))}
+      alt={name}
+      title={name}
+      draggable={false}
+    />
+  )
+}
+
+// The affiliation token image of a side, its name as the title
+function AffiliationMark({ affiliation }) {
+  const name = affiliationName(affiliation)
+  return (
+    <img
+      className="spectator-affiliation"
+      src={assetUrl(characterToken(affiliationTokenKey(affiliation)))}
       alt={name}
       title={name}
       draggable={false}
@@ -100,6 +117,7 @@ export default function SpectatorColumns({
   poses,
   setup,
   scoreMarkers,
+  affiliations,
   nameCtx,
   mySide,
   hiddenSquads,
@@ -130,6 +148,7 @@ export default function SpectatorColumns({
           >
             <header className="spectator-head">
               <span className="spectator-name">{playerName(team, nameCtx)}</span>
+              {affiliations?.[team] && <AffiliationMark affiliation={affiliations[team]} />}
               <span>{score[team]} VP</span>
               {score.round && <span>Round {score.round}</span>}
             </header>

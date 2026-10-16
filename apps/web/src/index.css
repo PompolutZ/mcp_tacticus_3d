@@ -2891,6 +2891,13 @@ body {
   white-space: nowrap;
 }
 
+.spectator-affiliation {
+  flex: none;
+  align-self: center;
+  width: calc(22px * var(--s));
+  height: calc(22px * var(--s));
+}
+
 .spectator-list {
   list-style: none;
   margin: 0;
