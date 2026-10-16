@@ -124,6 +124,39 @@ Changes: package.json bumps; `@dimforge/rapier3d-compat` direct dep removed (not
 
 **Result:**
 
+STOPPED by the plan rule: 10 dice at once moved past the limits (tilted +1.1 points, out-of-well 2.2x), and its chi-squared is 14.03 against the limit 14.07. No value was tuned. User decides.
+
+`pnpm --filter web test`: 1003 tests, 1003 pass, 0 fail, 0 skipped (1.5 s). Step 2 had 1002; the extra one is the `castDown` test from step 3.
+
+`pnpm --filter web exec node scripts/dice-sim.mjs --seed 1` (defaults 8000 + 2000 throws), run twice: same output except the perf line (0.112 and 0.113 ms/step). Repeatable. Engine prints "using deprecated parameters for the initialization function" (rapier 0.19 init warning, from `dice-sim.mjs`).
+
+| | step 2 single | step 4 single | step 2 x10 | step 4 x10 |
+|---|---|---|---|---|
+| valid / attempts | 8000 / 8181 | 8000 / 8185 | 2006 / 2030 | 2003 / 2050 |
+| tilted | 2.2% | 2.3% | 1.2% | 2.3% |
+| out-of-well | 0.0% | 0.0% | 0.5% | 1.1% |
+| lost | 0.0% | 0.0% | 0.0% | 0.0% |
+| chi-squared (limit 14.07) | 5.91 PASS | 7.32 PASS | 11.24 PASS | 14.03 PASS |
+| face counts 1-8 | 1006 946 1010 984 1031 1034 1009 980 | 1059 983 1018 1000 986 988 1017 949 | 261 253 211 267 276 256 243 239 | 229 246 232 226 267 277 283 243 |
+
+| | step 2 | step 4 |
+|---|---|---|
+| settle time avg / max (rounds) | 2.68 s / 3.72 s (203) | 2.71 s / 4.23 s (205) |
+| ms/step, 42 dice | 0.237-0.260 | 0.112-0.113 |
+
+Per row:
+
+- Single die valid/attempts, tilted, out-of-well, lost: no real change (attempts 8181 to 8185, tilted +0.1).
+- Single die chi-squared: 5.91 to 7.32, still far under the limit. Fine.
+- 10 dice tilted: 1.2% to 2.3% (+1.1 points, 1.9x). Over the 1 point rule.
+- 10 dice out-of-well: 0.5% to 1.1% (2.2x, +0.6 points). Over the 2x rule.
+- 10 dice attempts: 2030 to 2050; the extra invalid throws match the tilted and out-of-well rise.
+- 10 dice chi-squared: 11.24 to 14.03. PASS but 0.04 under the limit. Faces 7 (283) and 6 (277) high, 4 (226) and 1 (229) low. With 2003 throws and a fixed seed this can be chance; it was not tested with another seed.
+- Settle avg: same. Settle max: 3.72 to 4.23 s (+14%), under 2x.
+- ms/step: 2.2x faster (new engine).
+
+Not done: no other seed, no tuning. Possible cause to check (not verified): the engine step 3 left `ORIENTED` on the tray trimesh, but 0.19 contact and sleep behavior for dice against each other differs; a run with `--seed 2` and `--seed 3` would show if the x10 rise is stable.
+
 ### 5. three 0.186.1
 
 - Bump `three` to 0.186.1 (the newest that `postprocessing` 6.39.5 allows).
