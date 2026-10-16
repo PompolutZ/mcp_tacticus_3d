@@ -1,6 +1,6 @@
 # Plan: Structure fixes
 
-Requested by the user on 2026-10-15. Status: done, waiting for the user test. Branch `structure-fixes`, worktree `../mcp_assist_3d-structure-fixes`, from main after these three plans merge into main, in this order: `docs/plans/review-fixes.md`, `docs/plans/split-large-files.md`, `docs/plans/remove-duplicates.md`. Step 14 runs only when no other plan branch is open (CLAUDE.md, "Worktrees").
+Requested by the user on 2026-10-15. Status: done. The user tested it and gave the OK on 2026-10-16. Branch `structure-fixes`, worktree `../mcp_assist_3d-structure-fixes`, from main after these three plans merge into main, in this order: `docs/plans/review-fixes.md`, `docs/plans/split-large-files.md`, `docs/plans/remove-duplicates.md`. Step 14 runs only when no other plan branch is open (CLAUDE.md, "Worktrees").
 
 Each step makes one commit and writes its **Result** below. Feature docs change in the same step as the code.
 
