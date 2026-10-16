@@ -602,7 +602,42 @@ export default function App({
   const openTray = openTrayId ? (characters.find((ch) => ch.id === openTrayId) ?? null) : null
 
   // The roster cards that have a + / ✓ button: { host, guest } → true, the own roster in the squad step
-  const squadEdit = { host: !squadBlock('host'), guest: !squadBlock('guest') }
+  const hostEdit = !squadBlock('host')
+  const guestEdit = !squadBlock('guest')
+  const squadEdit = useMemo(() => ({ host: hostEdit, guest: guestEdit }), [hostEdit, guestEdit])
+  // The props of the table buttons and the rack for Scene: the same objects until a value changes
+  const { multiplayer } = seat
+  const showPower = toolsOnTable('power')
+  const showCleanup = toolsOnTable('cleanup')
+  const showDeployLock = toolsOnTable('deployLock')
+  const showMatTurn = toolsOnTable('matTurn')
+  const tableButtons = useMemo(
+    () => ({
+      multiplayer,
+      show: {
+        power: showPower,
+        cleanup: showCleanup,
+        deployLock: showDeployLock,
+        matTurn: showMatTurn,
+      },
+      powerBlockTitle,
+      cleanupDisabled,
+      cleanupTitle,
+      deployLine,
+    }),
+    [
+      multiplayer,
+      showPower,
+      showCleanup,
+      showDeployLock,
+      showMatTurn,
+      powerBlockTitle,
+      cleanupDisabled,
+      cleanupTitle,
+      deployLine,
+    ],
+  )
+  const toolRack = useMemo(() => (rackShown ? { multiplayer } : null), [rackShown, multiplayer])
 
   // Debug mode is only in the dev server. import.meta.env.DEV is false in `vite build`, so debug
   // is always false there and the build leaves out the debug code.
@@ -803,20 +838,8 @@ export default function App({
                 <Scene
                   apiRef={sceneApi}
                   mapId={mapId}
-                  tableButtons={{
-                    multiplayer: Boolean(room?.multiplayer),
-                    show: {
-                      power: toolsOnTable('power'),
-                      cleanup: toolsOnTable('cleanup'),
-                      deployLock: toolsOnTable('deployLock'),
-                      matTurn: toolsOnTable('matTurn'),
-                    },
-                    powerBlockTitle,
-                    cleanupDisabled,
-                    cleanupTitle,
-                    deployLine,
-                  }}
-                  toolRack={rackShown ? { multiplayer: Boolean(room?.multiplayer) } : null}
+                  tableButtons={tableButtons}
+                  toolRack={toolRack}
                   terrain={terrain}
                   characters={characters}
                   tools={tools}

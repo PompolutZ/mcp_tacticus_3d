@@ -81,9 +81,13 @@ function mountFace(key) {
   const ready = new Promise((resolve) => {
     root.render(createElement(TacticFace, { tacticKey: key, onReady: resolve }))
   })
+  // In its own task, not in the microtask after `ready`: root.unmount() logs a warning when it runs while another
+  // root renders or commits (React 19, "Attempted to synchronously unmount a root while React was already rendering").
   const cleanup = () => {
-    root.unmount()
-    host.remove()
+    setTimeout(() => {
+      root.unmount()
+      host.remove()
+    }, 0)
   }
   return { host, ready, cleanup }
 }

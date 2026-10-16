@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useLatest } from '../scene/useLatest.js'
 import { getCard } from './cards.js'
 import { buildMatTokens, supplyToken } from './matTokens.js'
@@ -31,14 +31,22 @@ export function useCrisisTokens({
   wheelCameraRef,
 }) {
   // Dropped objective tokens that wait for their place (tokens/dropWait.js): one notice line for each character
-  const waitLines = waitLinesOf(tokens, characters, {
-    playedSides,
-    nameCtx,
-    nameOf: characterName,
-    tokenNameOf: (key) => getToken(key)?.name ?? key,
-  })
-  // Remove is off while a dropped token of the character waits, with the same text as its title
-  const removeWaits = Object.fromEntries(waitLines.map((line) => [line.characterId, line.text]))
+  const waitLines = useMemo(
+    () =>
+      waitLinesOf(tokens, characters, {
+        playedSides,
+        nameCtx,
+        nameOf: characterName,
+        tokenNameOf: (key) => getToken(key)?.name ?? key,
+      }),
+    [tokens, characters, playedSides, nameCtx],
+  )
+  // Remove is off while a dropped token of the character waits, with the same text as its title. The same object
+  // until the lines change, so Scene does not render for it.
+  const removeWaits = useMemo(
+    () => Object.fromEntries(waitLines.map((line) => [line.characterId, line.text])),
+    [waitLines],
+  )
   // The notice sound, once for each new drop that this browser places. The tokens of an open table play nothing.
   const seenWaiting = useRef(null)
   const latestPlaceTool = useLatest(placeTool)

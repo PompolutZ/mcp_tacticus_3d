@@ -1,6 +1,6 @@
 # Plan: Move App state into a zustand store
 
-Requested by the user on 2026-10-16. Status: steps 1-8 done; step 9 waits for the user measurement. The user gave the OK on 2026-10-16 to run steps 4-9 back to back (coder agent per step, no stop between steps), then stop for the user test with the step 9 measurement. Branch `state-context`, worktree `../mcp_assist_3d-state-context`, from main. The plan changes many files, so no other branch is open while it runs.
+Requested by the user on 2026-10-16. Status: steps 1-8 done; step 9 part 1 done, waits for the user measurement. The user gave the OK on 2026-10-16 to run steps 4-9 back to back (coder agent per step, no stop between steps), then stop for the user test with the step 9 measurement. Branch `state-context`, worktree `../mcp_assist_3d-state-context`, from main. The plan changes many files, so no other branch is open while it runs.
 
 Each step makes one commit and writes its **Result** below.
 
@@ -272,7 +272,30 @@ Still makes Scene render: an App render (its props, many are new objects each Ap
 - `memo` only on components that still render because their parent rendered (the reason counter shows `parent`).
 - Check that the `apiRef` assignment (Scene) does not depend on Scene rendering often. Move it to a layout effect with deps if needed.
 
-**Result:**
+**Result:** Part 1 done.
+
+**Measurement after step 8 (user, sandbox, 2026-10-16):** tool turn (spawn a tool against a model, turn it, spawn a second tool). Total commits:
+
+| App | Toolbar | Scene | TokenLayer, OtherTools, ScoreBoard, ToolRack | OwnTools | CharacterModel (sum) | CharacterTray | DiceTray (2 trays) | Terrain |
+|---|---|---|---|---|---|---|---|---|
+| 39 | 39 | 40 | 40 | 53 | 38 | 43 | 83 | 96 |
+
+Step 3 for comparison: App 16, Scene 19. Scene reasons: `prop:removeWaits`, `prop:squadEdit`, `prop:tableButtons`, `prop:toolRack` 40 each (new object each App render), `prop:tools` 11, `prop:characters` 9, `prop:poses` 4, `prop:scoreMarkers` 2, `table:showColliders` 1.
+
+Fixes:
+- `removeWaits` (and `waitLines`): `useMemo` in `useCrisisTokens` on `tokens`, `characters`, `playedSides`, `nameCtx`.
+- `squadEdit`: two booleans, `useMemo` in App.
+- `tableButtons`, `toolRack`: `useMemo` in App on their primitives. `powerBlockTitle` (`usePhaseActions`) is `useCallback` on `setup`, `nameCtx`, so `tableButtons` stays the same.
+- Other Scene props checked: `heldRotate` (a ref), `diceMenu`, `parsedRosters`, `viewSetup`, `crisis`, `tokens`, `characters`, `poses`, `tools`, `scoreMarkers`, `affiliations`, `rosters` are state, doc snapshots or `useMemo` already. `priorityTitle` is a string. Nothing else is new each render.
+- App renders: `useRenderReason('App', ...)` in App (props, doc reads, state, hook state). `DebugPanel` shows "App reasons" and "Scene reasons" with one shared section.
+
+App cause: not found by code reading. App has no store subscription (`getState` only; the layout effects only `setState`). App reads the doc with `useY*`, so each doc change renders it. The 39 are most likely doc changes (`tools` 11, `characters` 9, `poses` 4, `scoreMarkers` 2 as Scene sees them, with others behind them), and a longer test than step 3. The App reasons counter tells. `table:showColliders` 1 is the debug switch.
+
+Unmount warning ("Attempted to synchronously unmount a root while React was already rendering"): `tacticFaceTexture.js` `mountFace` cleanup. Not new by code: `git diff main...HEAD` for `tactics/` is `TacticCard.jsx` only (reads from the store, no change in when a face is drawn); faces are drawn once per key (cached) and the unmount code is the same as on main. It is on main too. The cause (an unmount inside a commit of another root) is not clear from code, so the fix is a guard: the cleanup runs in a `setTimeout(0)` task, never inside a render or commit.
+
+"THREE.Clock deprecated" and "deprecated parameters for the initialization function": not in `src/`, both come from libraries (three via fiber, rapier). This branch changed no dependency except `zustand`. Pre-existing.
+
+Part 2 (after the user measures again): `memo` only where reason `parent` shows, and the `apiRef` check.
 
 ## User checks
 

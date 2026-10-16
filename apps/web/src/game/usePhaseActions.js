@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { COLOR_NAME } from '../sideColors.js'
 import { getCard } from '../crisis/cards.js'
 import { characterIsGrunt, characterName, characterPowerBonus } from '../characters/characters.js'
@@ -33,12 +34,16 @@ export function usePhaseActions({
 
   // The reason Power is off for `sides`, or null. Power waits until each side it acts for has its affiliation
   // (docs/features/setup-game.md, "Affiliation"). Used by the HUD button, the table buttons and the setup chip.
-  function powerBlockTitle(sides) {
-    const side = sides.find((s) => needsAffiliation(setup, s))
-    if (!side) return null
-    const whose = isYou(side, nameCtx) ? 'your' : `${playerName(side, nameCtx)}'s`
-    return `Choose the affiliation of ${whose} squad first.`
-  }
+  // Stable while the setup and the names are: Scene gets it inside the table buttons prop.
+  const powerBlockTitle = useCallback(
+    (sides) => {
+      const side = sides.find((s) => needsAffiliation(setup, s))
+      if (!side) return null
+      const whose = isYou(side, nameCtx) ? 'your' : `${playerName(side, nameCtx)}'s`
+      return `Choose the affiliation of ${whose} squad first.`
+    },
+    [setup, nameCtx],
+  )
 
   // Power button in the toolbar and the Power Phase buttons on the table (docs/features/round-phases.md). The
   // toolbar passes the played sides, a table button its own side. With one side, the message names it.

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { useFrameStats } from './FrameStats.jsx'
 import {
   readRenderCounts,
@@ -73,16 +73,23 @@ function ModeButtons({ options, value, onChange }) {
   )
 }
 
+// The reasons of the components that feed useRenderReason (top 15 each)
+const REASON_NAMES = ['App', 'Scene']
+
+function readAllReasons() {
+  return Object.fromEntries(REASON_NAMES.map((n) => [n, readRenderReasons(n).slice(0, 15)]))
+}
+
 // Render counts of useRenderCount. Reads the module counters on its own timer, so the panel
 // does not make the counted components render.
 function RenderCounts() {
   const [rows, setRows] = useState([])
-  const [sceneReasons, setSceneReasons] = useState([])
+  const [reasons, setReasons] = useState({})
   useEffect(() => {
     setRenderCounting(true)
     const timer = setInterval(() => {
       setRows(readRenderCounts())
-      setSceneReasons(readRenderReasons('Scene').slice(0, 15))
+      setReasons(readAllReasons())
     }, 500)
     return () => {
       clearInterval(timer)
@@ -99,7 +106,7 @@ function RenderCounts() {
         onClick={() => {
           resetRenderCounts()
           setRows([])
-          setSceneReasons([])
+          setReasons({})
         }}
       >
         Reset
@@ -109,11 +116,19 @@ function RenderCounts() {
           {row.total} / {row.lastSecond}
         </Row>
       ))}
-      {sceneReasons.length > 0 && <span className="debug-label">Scene reasons</span>}
-      {sceneReasons.map((row) => (
-        <Row key={row.reason} label={row.reason} title="Scene commits where this value changed">
-          {row.count}
-        </Row>
+      {REASON_NAMES.map((name) => (
+        <Fragment key={name}>
+          {reasons[name]?.length > 0 && <span className="debug-label">{name} reasons</span>}
+          {reasons[name]?.map((row) => (
+            <Row
+              key={row.reason}
+              label={row.reason}
+              title={`${name} commits where this value changed`}
+            >
+              {row.count}
+            </Row>
+          ))}
+        </Fragment>
       ))}
     </div>
   )
