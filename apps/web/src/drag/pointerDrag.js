@@ -21,6 +21,25 @@ export function cancelActiveDrag() {
   return true
 }
 
+// Callbacks of things that follow the pointer without a drag of their own (the ghost of a token or tool drag,
+// usePointerTablePoint). They run in refreshActiveDrag.
+const refreshListeners = new Set()
+
+// Subscribes fn to refreshActiveDrag. Returns the unsubscribe function.
+export function onDragRefresh(fn) {
+  refreshListeners.add(fn)
+  return () => refreshListeners.delete(fn)
+}
+
+// The camera moved while the pointer stood still, so the point under the pointer changed. Runs onMove of the drag
+// in progress again with its last pointer event (only after the drag started), and the refresh listeners.
+// KeyboardCamera calls it after each frame that moved the camera. Each onMove only sets the pose from the pointer
+// position, so a second run with the same event has no other effect.
+export function refreshActiveDrag() {
+  activeDrag?.refresh()
+  for (const fn of refreshListeners) fn()
+}
+
 // True for a DOM event of an element that is not the canvas. An R3F event has nativeEvent.
 function isHudEvent(event) {
   return !event.nativeEvent && event.target?.tagName !== 'CANVAS'
@@ -101,6 +120,8 @@ export function startPointerDrag(event, options = {}) {
   // This drag holds the claim on key. stopLost removes the onLost listener.
   let claimed = Boolean(immediate && claims)
   let stopLost = null
+  // The last pointermove that reached the drag, for refreshActiveDrag
+  let lastMove = null
 
   if (controls) controls.enabled = false
   // A pointerdown on the canvas also starts an OrbitControls drag, which captures the pointer
@@ -140,6 +161,7 @@ export function startPointerDrag(event, options = {}) {
 
   function handleMove(ev) {
     if (ev.pointerId !== pointerId || over) return
+    lastMove = ev
     if (!dragging) {
       if (Math.hypot(ev.clientX - startX, ev.clientY - startY) < threshold) return
       if (canStart && !canStart(ev)) return
@@ -189,13 +211,19 @@ export function startPointerDrag(event, options = {}) {
     }
   }
 
-  const handle = { cancel }
+  // Runs the move again at the last pointer place, once the drag started
+  function refresh() {
+    if (dragging && !over && lastMove) handleMove(lastMove)
+  }
+
+  const handle = { cancel, refresh }
   activeDrag = handle
   target.addEventListener('pointermove', handleMove)
   target.addEventListener('pointerup', handleUp)
   if (immediate) {
     if (claimed) startClaim()
     dragging = true
+    lastMove = event
     onStart?.(event)
   }
   return handle

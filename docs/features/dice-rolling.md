@@ -6,7 +6,7 @@ Status: built.
 
 Players roll the game die in the app, as in TTS. A player chooses how many dice to roll and presses Roll. The dice jump from the player's tray into the air and spin. Then they fall and bounce on the tray, the table, terrain, models and other dice. The result is the face that points up when a die stops. The app does not choose the result with a random number.
 
-When a player presses Roll again, the dice are thrown again from where they are, also while they are in the air. A die that is high in the air is not thrown again, but its spin changes, as in TTS.
+When a player presses Roll again before any die of the throw touched anything but a die, the dice are thrown again from where they are, also while they are in the air. A repeat Roll keeps the rotation of a die of the throw and adds spin to it (see [Roll flow](#roll-flow)). After the first touch of a non-die (a touch between dice does not count), Roll does nothing until the throw ends, so a player cannot wait for a bad face and roll again.
 
 ## Players apply the rules
 
@@ -20,7 +20,7 @@ The app has the tools that the rules need. The rules come from the [Jarvis rules
 | Add dice for Crits | Players roll additional dice for Crits once per roll, not for each Crit that is rolled. (p23) |
 | Change a die to another face | A defender that has cover can change one defense die to a Block. (p18) |
 
-The rulebook has no rule for a die that rests tilted. The app throws such a die again, after the other dice are on the shelf (see [Tilted dice](#tilted-dice)).
+The rulebook has no rule for a die that rests tilted. Players decide what to do with it, so the app has a setting. By default the die reads the face nearest to up. With **Throw tilted dice again** on, the app throws it again, after the other dice are on the shelf (see [Tilted dice](#tilted-dice)).
 
 ## Terms
 
@@ -61,7 +61,7 @@ So one roll gives a Hit with a chance of 1/4, a Blank with 1/4, and each other f
 
 ## Tray
 
-Each player has a tray on their half of the table, next to the mat, on the +x side. The model is the TTS Dice Tray (an OBJ file and a texture, both in the TTS cache). The tray has the TTS color of its side: Red `{0.86, 0.10, 0.09}`, Blue `{0.12, 0.53, 1}`.
+Each player has a tray on their half of the table, next to the mat, on the +x side. The model is the TTS Dice Tray (an OBJ file and a texture, both in the TTS cache). The tray has the TTS color of its side: Red `{0.86, 0.10, 0.09}`, Blue `{0.12, 0.53, 1}`. The texture is black except the face plates, so the app lifts black to 0.03 grey and uses metalness 0.5 (roughness 0.8), chosen by look, so the shape of the tray shows. TTS uses the Cardboard material, SpecularIntensity 0.05.
 
 Sizes at the TTS tray scale 0.8, measured from the mesh:
 
@@ -117,9 +117,9 @@ The flow follows the TTS tray script, with three changes (see the list after the
 
 1. `+` adds one die. The die appears above the well at a random point, 4.8" above the floor, with a random rotation, and falls into the well. `−` removes the last added die that is not on the shelf. A tray holds at most 42 dice. This is the TTS limit, and the shelf has 42 places.
 2. Roll throws every die that is not on the shelf, from where it is (see [Throw](#throw)). Dice on the shelf do not move.
-3. When the player presses Roll while those dice move, they are thrown again from where they are, also in the air. TTS does the same, because its script does not block a second press. A die that is more than 5.6" above its rest height on the well floor is not thrown again (`ROLL_HEIGHT_LIMIT` in `src/dice/tray.js`). It only gets a new random spin (step 4 of [Throw](#throw)), so it is harder to see which face will be up. In TTS, when a player presses Roll many times, each die is thrown again only when it falls back to one height, as if it bounced on an invisible floor above the tray. Each press also changes the spin of the dice above that height. So the dice do not go higher with each press. A new die that falls into the well was not thrown yet, so Roll throws it at any height. 5.6" is the TTS height (see [Measurements](#measurements)).
-4. The app reads the top face of each die when it rests, in the well or outside it. A die that rests tilted waits. It is not thrown again yet (see [Tilted dice](#tilted-dice)).
-5. When every thrown die rests, flat or tilted, each flat die turns flat on its top face and moves to the shelf, all in one change. The dice on the shelf are sorted by face: Crit, Wild, Hit, Block, Blank, Skull. The counts update. When their slide ends, the tilted dice are thrown again from where they are. This repeats until no die is tilted. The history has one entry for the whole throw, written when the last dice reach the shelf.
+3. When the player presses Roll while those dice move and no die has touched anything but a die yet, they get a repeat Roll, also in the air. TTS also lets a second press act, because its script does not block it. A die of the throw keeps its rotation (no jump). Its spin grows: the new spin is the current spin plus a vector on a new random axis, 5–10 rad/s long, cut to 50 rad/s (`SPIN_LIMIT`). Below 5.6" above its rest height on the well floor, the die also gets a new upward speed and a new sideways speed toward a new random well point, as in a first throw. A die that is more than 5.6" above that height (`ROLL_HEIGHT_LIMIT` in `src/dice/tray.js`) only gets the spin add, so it is harder to see which face will be up. A die that is not in the current throw (new, resting, waiting, a lost die that respawns, a die that returns from the shelf) gets a first throw (see [Throw](#throw)). In TTS, when a player presses Roll many times, each die is thrown again only when it falls back to one height, as if it bounced on an invisible floor above the tray. Each press also changes the spin of the dice above that height. So the dice do not go higher with each press. A new die that falls into the well was not thrown yet, so Roll throws it at any height. 5.6" is the TTS height (see [Measurements](#measurements)). Once any thrown die of the throw touches anything that is not a die (tray, table, table edge, terrain, a model base), A touch between dice (thrown, in the well or on the shelf) does not count, and a die resting on another die is not on a floor. Roll does nothing, no throw, no new spin and no shake sound, until the throw ends: every die of it is on the shelf, none is thrown and none waits. The Roll button is disabled in that time. The tray owner's client runs the physics and the check; the other player's tray keys are off. Dice added meanwhile (`+`, number keys) wait; the next Roll after the throw ends throws them. The rethrow of tilted dice and of a lost die does not need Roll, and still happens. A die from a face plate click or `+N Crits` falls to rest and is thrown by Roll; that Roll is the start of the next throw.
+4. The app reads the top face of each die when it rests, in the well or outside it. A die that rests tilted reads its nearest face and counts as flat. With the setting **Throw tilted dice again** on, it waits instead and is not thrown again yet (see [Tilted dice](#tilted-dice)).
+5. When every thrown die rests, each die turns flat on its top face and moves to the shelf, all in one change. The dice on the shelf are sorted by face: Crit, Wild, Hit, Block, Blank, Skull. The counts update. With **Throw tilted dice again** on, only the flat dice go: when their slide ends, the tilted dice are thrown again from where they are. This repeats until no die is tilted. The history has one entry for the whole throw, written when the last dice reach the shelf.
 6. A click on a face plate moves one die with that face from the shelf back into the well. The player presses Roll to throw it.
 7. `+N Crits` adds one die for each Crit on the shelf. It works once per roll (p23), until the next Clear. For any other case, `+` still adds dice.
 8. **Change to** (the menu of a die) turns that die to the chosen face and moves it to that group on the shelf.
@@ -127,8 +127,11 @@ The flow follows the TTS tray script, with three changes (see the list after the
 
 Changes from TTS:
 
+- TTS sets a new random rotation and spin on each `roll()`. The app keeps the rotation of a die of the current throw on a repeat Roll and adds spin to it.
+- The tray look differs: black lift 0.03 and metalness 0.5, because the TTS texture is black and the tray showed no shape.
+- TTS lets a second Roll throw dice again after they landed. The app blocks Roll after the first touch of a non-die in the throw until it ends; a touch between dice does not count, to stop timed re-rolls.
 - TTS puts the dice on the shelf in the order they were added. The app sorts them by face, so the counts are easier to read.
-- TTS reads the nearest face, even when a die is tilted. The app lets a tilted die wait until the flat dice are on the shelf. Then it throws the tilted die again.
+- TTS reads the nearest face, even when a die is tilted. The app does the same by default. With **Throw tilted dice again** on, the app lets a tilted die wait until the flat dice are on the shelf. Then it throws the tilted die again.
 - The app has a menu that TTS does not have: a click on a die on the shelf opens Change to. In TTS, a click on a face count rerolls one die with that face, and the app does the same.
 
 The dice on the shelf are kinematic bodies. As a result, thrown dice bounce off them, but they cannot move them or change their face. The app stores the result of each die, so it does not read the dice on the shelf again.
@@ -164,9 +167,9 @@ For each die, the app does the same steps as TTS `roll()`:
 1. Set a random rotation with a uniform distribution (Shoemake's method). Three random Euler angles do not give a uniform distribution, so the app does not use them.
 2. Set a random upward speed of 11–19.5 in/s (`THROW_UP_MIN`, `THROW_UP_MAX`), the TTS range. The die goes up 2.4–7.6".
 3. Set a small sideways speed toward a random point in the well, at least half a die from the walls. The app computes this speed from the flight time, so most dice land in the well. Walls and other dice then change their path.
-4. Set a spin around a random axis, with a random speed of 15–50 rad/s (`THROW_SPIN_MIN`, `THROW_SPIN_MAX`). 50 is the TTS upper limit. The range is chosen by look, because TTS dice spin fast in the air. The minimum is 15 so that every throw tumbles: with a low spin the die only tilted and fell (user test, playtest 4). A spin of 7.7–11 rad/s, the TTS reading after `roll()`, made the dice only tilt in the air, and the app did not look like TTS. Faster spin makes more dice bounce out of the well (see [Headless](#headless)).
+4. Set a spin around a random axis, with a random speed of 15–35 rad/s (`THROW_SPIN_MIN`, `THROW_SPIN_MAX`). The first throw leaves room below the TTS upper limit of 50 rad/s (`SPIN_LIMIT`) for 2–3 repeat clicks; repeat clicks add spin up to that limit. The range is chosen by look, because TTS dice spin fast in the air. The minimum is 15 so that every throw tumbles: with a low spin the die only tilted and fell (user test, playtest 4). A spin of 7.7–11 rad/s, the TTS reading after `roll()`, made the dice only tilt in the air, and the app did not look like TTS. Faster spin makes more dice bounce out of the well (see [Headless](#headless)).
 
-The new speeds replace the old ones. So a die that falls goes up again, and a die in the air changes direction from where it is.
+These steps are a first throw. A repeat Roll on a die of the current throw is different: no step 1 (the rotation stays), steps 2 and 3 only below 5.6", and step 4 adds spin instead of setting it (`addedSpin` in `src/dice/throw.js`). The new speeds replace the old ones, so a die that falls goes up again, and a die in the air changes direction from where it is.
 
 Step 1 can be seen as a jump in rotation when a die lies still. TTS has the same jump. The jump is needed for fairness: when a throw is low, a die lands more often on the face that was down at the start ([Kapitaniak et al. 2012](http://kapitaniak.kdm.p.lodz.pl/papers/2012/Kapitaniak_Strzalko_Grabski_Kapitaniak.pdf)).
 
@@ -213,16 +216,17 @@ Model bases are in their own collision group (`MODEL_GROUPS` in `src/physics.js`
 
 Rapier 0.14 does not let the app set the thresholds for sleep, and Rapier can take seconds to put a body to sleep. So the app uses its own rule, like the settle rule of the models in `CharacterModel.jsx`. A die rests when its linear speed and its angular speed stay below a limit for a short time. The headless test decides the limits.
 
-A die that still moves after 8 s counts as tilted: it waits.
+A die that still moves after 8 s reads its top face at once and counts as flat: it is stopped (zero speed, kinematic) like a rested die. With **Throw tilted dice again** on, it counts as tilted: it waits.
 
 ### Tilted dice
 
 - To find the top face, the app turns each face direction by the rotation of the die. The top face is the face whose direction is closest to up (the largest dot product with up).
 - A die that lies flat on a face gives a dot product of 1. A die balanced on an edge gives 0.82.
-- A die is tilted when the dot product is below 0.966 (15°). A tilted die waits. It stays in the well, and in the document it is still in the air. The flat dice of the throw move to the shelf first. When their slide ends (`SHELF_MOVE_TIME`), the tilted dice are thrown again from where they are. This repeats until no die is tilted. So a thrown die does not hit a die that has a result.
+- A die is tilted when the dot product is below 0.966 (15°). By default a tilted die counts as flat: it gets the symbol of its top face, becomes kinematic like any rested die, and goes to the shelf with the others. The rest of this list is for the setting **Throw tilted dice again** (Settings, Dice; per browser, off by default; the client that runs the tray physics reads its own setting). With it on, a tilted die waits. It stays in the well, and in the document it is still in the air. The flat dice of the throw move to the shelf first. When their slide ends (`SHELF_MOVE_TIME`), the tilted dice are thrown again from where they are. This repeats until no die is tilted. So a thrown die does not hit a die that has a result.
 - A waiting die that moves again, for example because another die hits it, is a moving die of the throw again. The app checks its rest again.
-- A die that does not rest by 8 s waits in the same way.
-- Roll while dice wait throws them with the other dice.
+- A die that does not rest by 8 s waits in the same way. By default it reads its top face at 8 s instead.
+- A lost die (not finite, or below the table) is thrown again from above the well in both modes.
+- Roll is blocked while dice wait (the throw is not over, and a touch has happened). The waiting dice are thrown again by the app, not by Roll.
 - The history has one `throw` entry for the throw, with the results of all its dice. The app writes it with the last dice that reach the shelf. Clear drops the results that wait for it.
 - A die that rests flat outside the well counts, and moves to the shelf with the other dice. Outside the well means on the shelf, on the rim, on the table, on terrain or on a model base. TTS does the same: the tray script reads every die wherever it rests.
 - The table has invisible walls at its edge (`src/table.js`), so a die cannot fall off the table. In TTS, a die can also leave the tray but not the table.
@@ -241,6 +245,51 @@ The result comes only from physics. It is fair when three things are true:
 The headless test checks this with 8000 throws of one die in the tray world. Each face should come up about 1000 times. The chi-squared value, with 7 degrees of freedom, must be below 14.07 (α = 0.05). The test also runs with 10 dice at once, and with throws of a die that rests.
 
 Owlbear Rodeo tested its dice in the same way: 2000 d20 rolls in each of 4 browsers. All passed ([blog](https://blog.owlbear.rodeo/are-owlbear-rodeos-dice-fair/)).
+
+### What fair means
+
+A die is fair when two things are true:
+
+- Each face has the same chance on every throw, 1 in 8. Hit and Blank are on 2 faces each, so each has 2 in 8.
+- One throw does not change the next. After 3 Skulls in a row, a Skull has the same chance as before.
+
+The same chance is about the long run. Over many throws, the share of each face gets closer to 1 in 8. This is the law of large numbers. A short run is uneven, also with a fair die. For example, 5 dice show no Hit, Crit or Wild in 1 throw of 32 (½ × ½ × ½ × ½ × ½). In 30 throws of 5 dice, this happens at least once in about 6 games of 10. So a game lost to a few bad throws is normal for a fair die. It is not a sign of a bias.
+
+A test cannot prove that a die is fair. It can only show that a bias, if there is one, is smaller than a limit. The chi-squared test adds up how far the 8 counts are from the expected counts. A fair die gives a value below 14.07 in 19 tests of 20.
+
+The physics engine gives the same result from the same start. The start of each throw (rotation, upward speed, direction, spin) comes from `crypto.getRandomValues`. The operating system seeds it from hardware noise, so nobody can predict it. Paid sources of "true" random numbers would not make the dice fairer.
+
+### Test in the real app
+
+`scripts/dice-night-run.mjs` rolls dice in the Sandbox of the real app, in Chrome, for a whole night with nobody at the computer. A test hook (`window.__diceTest`, dev server only) calls the same function as the Roll button. `scripts/dice-night-report.mjs` counts the results. Design: `docs/plans/dice-night-run.md`. How to run it: `scripts/README.md`.
+
+What ran:
+
+- 5 dice, with 1, 2 and 3 clicks 200 ms apart, and with 10 clicks in 2 s. 1000 throws each, so 5000 dice each.
+- 1 die with 1 click, 797 throws. The run was stopped there. 1 die with more clicks did not run.
+
+Results:
+
+| | 5 dice, 1 click | 2 clicks | 3 clicks | 10 clicks | 1 die, 1 click |
+|---|---|---|---|---|---|
+| Faces, chi-squared (pass below 14.07) | 4.03 | 7.50 | 5.17 | 5.95 | 4.98 |
+| Symbols, chi-squared (pass below 11.07) | 1.86 | 2.96 | 5.13 | 4.42 | 4.47 |
+| Tilted | 2.2% | 2.5% | 2.3% | 2.3% | 1.8% |
+| Outside the well | 0.5% | 0.6% | 0.8% | 1.7% | 0% |
+| Throw time, average (s) | 2.54 | 2.96 | 3.31 | 4.52 | 2.19 |
+| Throw time, 95% of throws under (s) | 2.94 | 3.36 | 3.74 | 5.04 | 2.72 |
+
+- All 10 tests pass. The four 5-dice runs together (20,000 dice) give chi-squared 3.7, also a pass.
+- Each face came up between 12% and 13% of the time (expected 12.5%). With 20,000 dice, the true share of each face is within about ±0.5 percentage points of the measured share. No face is high in every run.
+- Repeat clicks do not change the faces. Each extra click makes the throw about 0.4 s longer, and more dice land outside the well.
+- No throw timed out, and no die was lost.
+- Repeats: no two throws had the same physics (the same tilt and rest time for every die). Pairs of throws with the same faces happen as often as a fair die gives. In 1000 throws of 5 dice: 12–19 pairs with the same faces in the same order (fair die: about 15), and 892–969 pairs with the same faces in any order (fair die: about 949).
+
+Limits of the test:
+
+- The dice of one throw hit each other, so they are not fully independent. The test treats each die as its own throw.
+- The test counts faces. It does not check the order of results, for example a Hit always after a Skull. The repeat count above is the only check of order.
+- 797 throws of 1 die can only show a bias above about 10% per face.
 
 ## Measurements
 
@@ -276,7 +325,7 @@ To run it: `pnpm --filter web tts-dice-measure` writes the TTS Saved Object "Dic
 | Rapid rolls: height of the next throw | Rises at first, then stays at 5.57–5.70" above the rest height |
 | Rapid rolls: spin changes | About 85 per second at 90 `roll()` calls per second, so almost every call changes the spin |
 
-The app takes the gravity, the upward speed, the friction and `ROLL_HEIGHT_LIMIT` (5.6") from these results. The spin is 15–50 rad/s (see [Throw](#throw)).
+The app takes the gravity, the upward speed, the friction and `ROLL_HEIGHT_LIMIT` (5.6") from these results. The first throw spin is 15–35 rad/s, and a repeat Roll adds 5–10 rad/s up to 50 (see [Throw](#throw)).
 
 The script now also measures the spin during the whole roll, in the flight and in the bounces. It reads the spin in two ways: from `getAngularVelocity()`, and from the change of the die's rotation between two frames. If `roll()` turns the die without physics, only the second way sees it. The script also reports the tray's friction and bounciness. These numbers come from the next run.
 
@@ -304,7 +353,7 @@ Tuning found a real bug, not just numbers to adjust: two dice that collide can o
 
 - Fairness passes on every test except one: seed 3, one die, 8000 throws (17.34). The same seed passes with 32000 throws (7.38). A fair die fails 1 test in 20 by chance.
 - A die leaves the well 0.2–0.3% of the time alone, and 0.3–0.9% with 10 dice at once (before: 2.0–2.5%).
-- A die rests tilted 1.2–1.8% of the time alone, and 0.7–2.3% with 10 dice (before: 0.4–0.7%). The app throws such a die again.
+- A die rests tilted 1.2–1.8% of the time alone, and 0.7–2.3% with 10 dice (before: 0.4–0.7%). With the default setting the die reads the nearest face. With **Throw tilted dice again** on, the app throws it again.
 - 10 dice at once settle in 3.1 s on average, 4.3 s at the worst seen. TTS gives 2.8 s on average.
 - 42 dice cost about 0.2 ms per physics step.
 

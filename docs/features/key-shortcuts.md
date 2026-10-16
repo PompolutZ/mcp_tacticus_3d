@@ -37,7 +37,7 @@ The camera buttons are in `CAMERA_MOUSE_BUTTONS` in `src/camera.js`. Left drag s
 
 The mouse wheel and the trackpad gestures are in `src/scene/WheelCamera.jsx`. OrbitControls gets no wheel event. It still zooms on a touch screen. The browser reports a mouse wheel and a two-finger swipe as the same wheel event, with no flag for the device. Therefore the app guesses from the deltas. The rules are for a Mac. A Mac trackpad sends whole pixels and starts a swipe with small steps. A Mac mouse wheel sends steps of 4.000244 px or more. A mouse that scrolls smoothly (the Magic Mouse, some Logitech mice) can count as a trackpad, so it pans. Then Ctrl + scroll zooms. A pinch is a wheel event with `ctrlKey` set in Chrome, Firefox and Safari.
 
-A mouse wheel step is a bindable input, `WheelUp` or `WheelDown`, with the Shift, Alt and Cmd flags of the event. Shift + wheel reads `deltaX` when `deltaY` is 0. A trackpad swipe, a pinch and Ctrl + wheel are not bindable. The defaults: `anywhere` zooms; `dragging` turns the dragged piece, as Q / E do. During a drag the camera is still, so a zoom binding does nothing then.
+A mouse wheel step is a bindable input, `WheelUp` or `WheelDown`, with the Shift, Alt and Cmd flags of the event. Shift + wheel reads `deltaX` when `deltaY` is 0. A trackpad swipe, a pinch and Ctrl + wheel are not bindable. The defaults: `anywhere` zooms; `dragging` turns the dragged piece, as Q / E do. During a drag the wheel turns the piece, so a zoom binding does nothing then.
 
 Wheel input is smoothed. A wheel event does not move the camera at once. Each frame, the camera does a part of the zoom or pan that is left: `1 − e^(−dt / time)`. So the speed is the same at every frame rate. The time is 0.08 s for a mouse wheel step and 0.03 s for a trackpad swipe or pinch. Both are picked by look. One mouse wheel step zooms 5%, the same step as OrbitControls. Before 2026-10-02 the wheel zoom was OrbitControls, which jumps the whole step in one frame, and a tester said that zoom felt choppier than in TTS. Space ends the zoom and pan that are left.
 
@@ -55,8 +55,8 @@ Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, 
 
 | Key | TTS action | App | Same |
 |---|---|---|---|
-| W A S D | Pan the camera | Pan the camera | Yes |
-| Arrow keys | Turn the camera | Turn the camera around the point it looks at. Left / Right turn the view left / right, Up / Down tilt it up / down | Yes |
+| W A S D | Pan the camera | Pan the camera. Works also during any drag (a model, token, tool, card or marker); the dragged piece stays under the pointer while the camera moves | Yes |
+| Arrow keys | Turn the camera | Turn the camera around the point it looks at. Left / Right turn the view left / right, Up / Down tilt it up / down. Work also during any drag, as W A S D | Yes |
 | Space | Reset the camera. In first-person mode: fly up | Moves the camera back to the start view at once. The app has no first-person mode | Yes |
 | Z | Zoom to the pointer, press again to zoom back | Nothing | No |
 | P | Camera mode: third person, first person, top-down | Ping: an arrow in the color of your side at the pointer, see `ping.md`. The app has no camera modes | No |

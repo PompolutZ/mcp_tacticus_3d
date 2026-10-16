@@ -51,13 +51,20 @@ export const DIE_GRAVITY_SCALE = DIE_GRAVITY / -WORLD_GRAVITY
 const THROW_UP_MIN = 11
 const THROW_UP_MAX = 19.5
 
-// Spin speed at the start of a throw, rad/s: 15-50, chosen by look (a spin below 15 only tilts the die, user test of playtest 4). 50 is the TTS upper limit.
+// Spin speed at the start of a first throw, rad/s: 15-35, chosen by look (a spin below 15 only
+// tilts the die, user test of playtest 4; livelier start, still room for 2-3 repeat clicks of +5-10 before SPIN_LIMIT 50). A repeat Roll adds
+// spin (addedSpin), up to SPIN_LIMIT.
 // TTS dice spin fast in the air. In TTS, getAngularVelocity() in the first frames after roll()
 // read only 7.7-11 rad/s (2026-10-01), but with 7.7-11 the app's dice only tilted in the air and
 // did not look like TTS (checked in the app, 2026-10-02). Why is not known yet:
 // scripts/tts-dice-measure.lua now also measures the spin during the whole roll.
 const THROW_SPIN_MIN = 15
-const THROW_SPIN_MAX = 50
+const THROW_SPIN_MAX = 35
+// Upper limit of a die's spin speed, rad/s: the TTS upper limit.
+export const SPIN_LIMIT = 50
+// Spin a repeat Roll adds to a die, rad/s.
+const ADD_SPIN_MIN = 5
+const ADD_SPIN_MAX = 10
 
 // Extra solver iterations for a die's rigid body only (@react-three/rapier's
 // `additionalSolverIterations` prop), on top of the world's own `numSolverIterations` (4, the
@@ -97,19 +104,25 @@ export function randomRotation(random = cryptoRandom) {
 }
 
 // A spin around a random axis, THROW_SPIN_MIN..MAX rad/s, as a plain { x, y, z } angular
-// velocity. Part of every throw. Roll also gives it alone to a die that is high in the air
-// (ROLL_HEIGHT_LIMIT in tray.js), as TTS does.
+// velocity. Part of every first throw.
 export function randomSpin(random = cryptoRandom) {
   const spin = randomUnitVector(random).multiplyScalar(lerp(random, THROW_SPIN_MIN, THROW_SPIN_MAX))
   return { x: spin.x, y: spin.y, z: spin.z }
 }
 
-// New linear and angular velocity for a throw from `position` toward `target` (both { x, y, z }
-// points in world space). Upward speed from THROW_UP_MIN..MAX. Sideways speed toward target,
-// sized so the die crosses target.y at about the time it would land there. Spin from randomSpin.
-// Called again for a die that is already in the air: the new velocities replace the old ones, so
-// it changes direction from where it is.
-export function throwVelocities(position, target, random = cryptoRandom) {
+// The spin after a repeat Roll: `current` ({ x, y, z } angular velocity) plus a vector on a new
+// random axis, ADD_SPIN_MIN..MAX rad/s long, then cut to SPIN_LIMIT rad/s.
+export function addedSpin(current, random = cryptoRandom) {
+  const add = randomUnitVector(random).multiplyScalar(lerp(random, ADD_SPIN_MIN, ADD_SPIN_MAX))
+  const spin = new Vector3(current.x + add.x, current.y + add.y, current.z + add.z)
+  if (spin.length() > SPIN_LIMIT) spin.setLength(SPIN_LIMIT)
+  return { x: spin.x, y: spin.y, z: spin.z }
+}
+
+// New linear velocity for a throw from `position` toward `target` (both { x, y, z } points in
+// world space). Upward speed from THROW_UP_MIN..MAX. Sideways speed toward target, sized so the
+// die crosses target.y at about the time it would land there.
+export function throwLinvel(position, target, random = cryptoRandom) {
   const gravity = DIE_GRAVITY
   const up = lerp(random, THROW_UP_MIN, THROW_UP_MAX)
   // Time to fall from this height, with this upward speed, to target.y:
@@ -118,7 +131,12 @@ export function throwVelocities(position, target, random = cryptoRandom) {
   const fallTime = (up + Math.sqrt(up * up + 2 * gravity * dy)) / gravity
   const dx = target.x - position.x
   const dz = target.z - position.z
-  const linvel = { x: dx / fallTime, y: up, z: dz / fallTime }
+  return { x: dx / fallTime, y: up, z: dz / fallTime }
+}
+
+// New linear and angular velocity for a first throw: throwLinvel plus randomSpin.
+export function throwVelocities(position, target, random = cryptoRandom) {
+  const linvel = throwLinvel(position, target, random)
   return { linvel, angvel: randomSpin(random) }
 }
 

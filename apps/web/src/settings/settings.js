@@ -39,6 +39,9 @@ export function defaultSettings() {
     turn: { step: DEFAULT_TURN_STEP },
     // Terrain labels (piece name and game Size) above every piece. The piece under the pointer always has one.
     labels: false,
+    // Dice: a die that rests tilted (or does not rest in 8 s) is thrown again. Off: it reads the face nearest to up
+    // (docs/features/dice-rolling.md, "Tilted dice").
+    rethrowTilted: false,
     // Only the actions the user changed: action id → [{ code, shift, ctrl, alt, meta, when }]. The others use
     // their default keys (input/bindings.js, docs/features/key-shortcuts.md).
     bindings: {},
@@ -83,6 +86,7 @@ function normalize(raw) {
   if (Number.isFinite(step))
     settings.turn.step = Math.round(Math.min(MAX_TURN_STEP, Math.max(MIN_TURN_STEP, step)))
   settings.labels = raw?.labels === true
+  settings.rethrowTilted = raw?.rethrowTilted === true
   settings.bindings = normalizeBindings(raw?.bindings)
   return settings
 }

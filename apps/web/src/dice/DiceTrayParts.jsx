@@ -10,6 +10,14 @@ import { FRICTION } from '../physics.js'
 import DiceKeys from './DiceKeys.jsx'
 import { useDisposeMaterials } from '../scene/useDisposeMaterials.js'
 
+// Tray look, chosen by look in the app. The TTS texture is black except the face plates, so the
+// tray showed no shape. The black lift turns the texture black into grey before the side tint:
+// albedo = tint * mix(lift, 1, texel).
+const TRAY_BLACK_LIFT = 0.03
+const TRAY_ROUGHNESS = 0.8
+const TRAY_METALNESS = 0.5
+const trayLift = { value: TRAY_BLACK_LIFT }
+
 // Parts that the own tray (DiceTray.jsx) and the other player's tray (OtherDiceTray.jsx) share.
 
 // The look of a die: the loaded d8 geometry and its material.
@@ -51,7 +59,23 @@ export function TrayBody({ trayKey, keysProps, onHover, bodyRef }) {
     trayTexture.colorSpace = SRGBColorSpace
     trayTexture.flipY = false
     const color = new Color().setRGB(...TOOL_TINT[playerColor], SRGBColorSpace)
-    return new MeshStandardMaterial({ map: trayTexture, color, roughness: 0.8, metalness: 0 })
+    const material = new MeshStandardMaterial({
+      map: trayTexture,
+      color,
+      roughness: TRAY_ROUGHNESS,
+      metalness: TRAY_METALNESS,
+    })
+    material.onBeforeCompile = (shader) => {
+      shader.uniforms.uTrayLift = trayLift
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nuniform float uTrayLift;')
+        .replace(
+          '#include <map_fragment>',
+          `#include <map_fragment>
+  diffuseColor.rgb = diffuse * (vec3(uTrayLift) + (1.0 - uTrayLift) * sampledDiffuseColor.rgb);`,
+        )
+    }
+    return material
   }, [trayTexture, playerColor])
 
   // Visible tray mesh: a clone of the loaded scene with the tinted material, IMPORT_ROTATION and

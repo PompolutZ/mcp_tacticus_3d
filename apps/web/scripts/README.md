@@ -574,3 +574,30 @@ pnpm --filter web yjs-size
 pnpm --filter web yjs-size --rounds 10 --seed 2
 pnpm --filter web yjs-size --pose-writes 0     # the size without pose writes
 ```
+
+# Dice night run
+
+`dice-night-run.mjs` rolls dice in the real app (Sandbox, dev server) for a whole night and writes one JSON line per throw. 8 scenarios in order: 5 dice, then 1 die, each with 1, 2, 3 clicks and a burst of 10 clicks at 200 ms. Design: `docs/plans/dice-night-run.md`.
+
+1. In the main dir, start the dev server: `pnpm --filter web dev` (port 5173).
+2. Mac on power. Do not use the Mac during the run.
+3. In a second terminal: `pnpm --filter web dice-night-run`. A Chromium window opens. Keep it visible and uncovered (no other window over it, display on). The script runs `caffeinate -dis` for its own run time.
+4. After a stop (Ctrl+C stops after the current throw, or a crash): `pnpm --filter web dice-night-run --resume --out <same folder>`. It counts the lines of each file and continues.
+
+Options: `--url` (default `http://localhost:5173/#sandbox&dicetest`), `--scenarios 5d-1c,1d-burst`, `--throws 1000`, `--out`, `--resume`.
+
+Output: `apps/web/dice-runs/<YYYY-MM-DD>/<scenario>.jsonl` (git-ignored), and `errors.log` with page errors and reloads. A throw that timed out is a line with `error`. A started scenario file without `--resume` stops the script.
+
+## Dice night run: report
+
+`dice-night-report.mjs` reads a run folder and writes `report.md` in it, and prints it.
+
+`pnpm --filter web dice-night-report` (newest folder in `apps/web/dice-runs/`), or `pnpm --filter web dice-night-report apps/web/dice-runs/<date>`. `--no-sim` skips the `dice-sim.mjs` run (about 10 s; its result lines go into the report as text; if it fails, the report prints the command to run yourself).
+
+How to read it:
+
+- The header explains chi-squared in plain words. PASS = faces (7 df) or symbols (5 df) are as even as a fair die gives, at 5%. FAIL = too uneven for luck. 1 FAIL in 16 tests is expected by chance; look for the same face high in several scenarios.
+- 1000 throws of 1 die: each face expects 125, +-11 is noise, a bias under 3-4% per face is not visible. 5 dice give 5 times more results.
+- Dice of one throw hit each other, so they are not fully independent. The test ignores this.
+- Per scenario: face and symbol tables (count, expected, diff), tilted / timed out / out of well as % of dice, lost per throw, rest time and throw time in seconds, clicks per throw. The first table has all scenarios side by side.
+- Error lines (a throw that timed out or lost the page) are counted but not in the face counts.

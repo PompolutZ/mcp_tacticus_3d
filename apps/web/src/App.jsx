@@ -772,6 +772,7 @@ export default function App({
                 showColliders={debug}
                 showLabels={settings.labels}
                 turnStep={settings.turn.step}
+                rethrowTilted={settings.rethrowTilted}
                 spectator={spectator}
                 matTurns={matTurns}
                 deployLine={deployLine}
