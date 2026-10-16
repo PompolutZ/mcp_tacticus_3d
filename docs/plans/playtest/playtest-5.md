@@ -1,6 +1,6 @@
 # Plan: Fixes from the fifth playtest
 
-Requested by the user on 2026-10-16. Status: not started.
+Requested by the user on 2026-10-16. Status: done, waiting for the user test.
 
 Branch `playtest-5`, worktree `../mcp_assist_3d-playtest-5`, from main. One coder step and one commit for each step. Each step writes its **Result** below when it is done. Feature docs change in the same step as the code.
 
