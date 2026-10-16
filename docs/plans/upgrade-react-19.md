@@ -1,6 +1,6 @@
 # Plan: Upgrade to React 19 and R3F v9
 
-Requested by the user on 2026-10-16. Status: not started. Branch `upgrade-react-19`, worktree `../mcp_assist_3d-upgrade-react-19`, from main. The plan changes the lockfile and many packages, so no other branch is open while it runs.
+Requested by the user on 2026-10-16. Status: done. The user tested it and gave the OK on 2026-10-16. A model on rare spots of the haller hood keeps rocking; the same happens on engine 0.14, so it is not fixed here. Branch `upgrade-react-19`, worktree `../mcp_assist_3d-upgrade-react-19`, from main. The plan changes the lockfile and many packages, so no other branch is open while it runs.
 
 Each step makes one commit and writes its **Result** below. Feature docs change in the same step as the code.
 
