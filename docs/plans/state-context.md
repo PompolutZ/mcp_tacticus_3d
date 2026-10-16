@@ -1,6 +1,6 @@
 # Plan: Move App state into a zustand store
 
-Requested by the user on 2026-10-16. Status: step 1 done. Branch `state-context`, worktree `../mcp_assist_3d-state-context`, from main. The plan changes many files, so no other branch is open while it runs.
+Requested by the user on 2026-10-16. Status: steps 1-2 done. Branch `state-context`, worktree `../mcp_assist_3d-state-context`, from main. The plan changes many files, so no other branch is open while it runs.
 
 Each step makes one commit and writes its **Result** below.
 
@@ -99,7 +99,15 @@ Read: about 120 Scene commits come from Scene itself, not from App, and each one
 - `DebugPanel`: under "Renders", the reasons for Scene, sorted by count.
 - The user repeats the tool turn. The Result gets the reasons. Then the plan names the fix for that state in step 7 (or earlier, if it is small).
 
-**Result:**
+**Result:** Done. `src/debug/renderCount.js`: `useRenderReason(name, values)` (layout effect, no deps, previous values in a ref), pure `changedReasons(prev, next)` (`mount` / changed names / `parent`), `countReasons`, `readRenderReasons(name)`. `resetRenderCounts` also clears reasons. Node tests added. `DebugPanel`: "Scene reasons" under "Renders", top 15 by count, same 500 ms timer.
+
+Names fed from `Scene`: all props as `prop:<name>` (raw props object, so a default value does not hide a changed prop); `state:draggingCharId`, `state:rangeMark`, `state:overlapIds`; `store:otherOwned`, `store:otherDragKey`, `store:otherSpawn`, `store:otherLook`, `store:sideColors`, `store:tableActions.characters`, `store:tableActions.phases`; `hook:useModelClaims.claims`, `hook:useModelClaims.claimModel`, `hook:useTerrainHoverLabel.hoverLabelId`.
+
+Deviation: `Scene(props)` now destructures inside (`} = props`). The other hooks (`useModelRegistry`, `usePieceTurns`, `useModelSync`, `useTerrainFall`) return only refs and functions, no state, so none is fed.
+
+Checks: lint 40 warnings (same), tests 1012 pass, build and typecheck ok, fallow: no unused export, no clone group (`health` fails as before).
+
+**Reasons (user):** _to fill: tool turn, Scene reasons list._
 
 ### 3. Store skeleton and net slice
 

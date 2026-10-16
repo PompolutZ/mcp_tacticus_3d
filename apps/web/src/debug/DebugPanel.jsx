@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useFrameStats } from './FrameStats.jsx'
-import { readRenderCounts, resetRenderCounts, setRenderCounting } from './renderCount.js'
+import {
+  readRenderCounts,
+  readRenderReasons,
+  resetRenderCounts,
+  setRenderCounting,
+} from './renderCount.js'
 
 // Parts of the rendering that can be turned off, to measure their cost. See SelectionOutlines.
 const RENDER_MODES = [
@@ -72,9 +77,13 @@ function ModeButtons({ options, value, onChange }) {
 // does not make the counted components render.
 function RenderCounts() {
   const [rows, setRows] = useState([])
+  const [sceneReasons, setSceneReasons] = useState([])
   useEffect(() => {
     setRenderCounting(true)
-    const timer = setInterval(() => setRows(readRenderCounts()), 500)
+    const timer = setInterval(() => {
+      setRows(readRenderCounts())
+      setSceneReasons(readRenderReasons('Scene').slice(0, 15))
+    }, 500)
     return () => {
       clearInterval(timer)
       setRenderCounting(false)
@@ -90,6 +99,7 @@ function RenderCounts() {
         onClick={() => {
           resetRenderCounts()
           setRows([])
+          setSceneReasons([])
         }}
       >
         Reset
@@ -97,6 +107,12 @@ function RenderCounts() {
       {rows.map((row) => (
         <Row key={row.name} label={row.name} title="Commits since Reset, and in the last second">
           {row.total} / {row.lastSecond}
+        </Row>
+      ))}
+      {sceneReasons.length > 0 && <span className="debug-label">Scene reasons</span>}
+      {sceneReasons.map((row) => (
+        <Row key={row.reason} label={row.reason} title="Scene commits where this value changed">
+          {row.count}
         </Row>
       ))}
     </div>

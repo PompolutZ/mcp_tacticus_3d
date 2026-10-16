@@ -1,4 +1,4 @@
-import { useLayoutEffect } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 
 // Counts commits per component name, for the "Renders" section of DebugPanel.
 // Plain module objects, no React state and no subscription: counting renders nothing.
@@ -33,6 +33,34 @@ export function readRenderCounts(now = performance.now()) {
 export function resetRenderCounts() {
   totals.clear()
   recent.clear()
+  reasons.clear()
+}
+
+// Why a component committed: component name -> (reason -> count)
+const reasons = new Map()
+
+// Reasons of one commit. prev null: the first commit, 'mount'. No changed name: 'parent'
+// (the parent rendered and passed nothing new). Pure.
+export function changedReasons(prev, next) {
+  if (!prev) return ['mount']
+  const changed = Object.keys(next).filter((name) => !Object.is(prev[name], next[name]))
+  return changed.length > 0 ? changed : ['parent']
+}
+
+export function countReasons(name, names) {
+  if (!enabled) return
+  let byReason = reasons.get(name)
+  if (!byReason) reasons.set(name, (byReason = new Map()))
+  for (const reason of names) byReason.set(reason, (byReason.get(reason) ?? 0) + 1)
+}
+
+// [{ reason, count }] of one component name, most counts first
+export function readRenderReasons(name) {
+  const byReason = reasons.get(name)
+  if (!byReason) return []
+  return [...byReason]
+    .map(([reason, count]) => ({ reason, count }))
+    .sort((a, b) => b.count - a.count || a.reason.localeCompare(b.reason))
 }
 
 // Call in a component, unconditionally. A layout effect without deps runs once per commit,
@@ -40,5 +68,15 @@ export function resetRenderCounts() {
 export function useRenderCount(name) {
   useLayoutEffect(() => {
     countRender(name)
+  })
+}
+
+// Call in a component, unconditionally. values: { name: value } of everything the component can
+// render for (props, state, store values). Counts each name whose value changed since the last commit.
+export function useRenderReason(name, values) {
+  const prev = useRef(null)
+  useLayoutEffect(() => {
+    countReasons(name, changedReasons(prev.current, values))
+    prev.current = values
   })
 }
