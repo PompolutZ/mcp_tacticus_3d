@@ -46,6 +46,7 @@
     "yjs": "^13.6.33"
   },
   "devDependencies": {
+    "@dimforge/rapier3d-compat": "^0.19.2",
     "@gltf-transform/core": "^4.5.0",
     "@gltf-transform/extensions": "^4.5.0",
     "@gltf-transform/functions": "^4.5.0",

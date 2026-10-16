@@ -117,6 +117,8 @@ Engine 0.19.2 changes a cast: `world.castShape` returns null for a shape that ex
 
 Changes: package.json bumps; `@dimforge/rapier3d-compat` direct dep removed (nothing imports it: tests and dice-sim resolve it through `@react-three/rapier`); `SelectionOutlines.jsx` `multisampling={8}`; `DiceTrayParts.jsx` trimesh flags `FIX_INTERNAL_EDGES | ORIENTED`; `dice-sim.mjs` loads `rapier.mjs` next to the package entry (the package `exports` blocks the subpath, so `require.resolve('.../rapier.mjs')` fails) and its comment says 0.19.2; `scripts/README.md`, `README.md` (React 19), `docs/features/dice-rolling.md`, `maps.md` version notes. Checks: format ok; lint 40 warnings (limit 40); web build ok; typecheck ok; `pnpm --filter web test`: 1003 of 1003 pass; `dice-sim --seed 1` runs (15 s); `pnpm fallow`: no unused export, no clone group.
 
+Later fix: `@dimforge/rapier3d-compat` is a direct devDependency again, `^0.19.2` (the version `@react-three/rapier` 2.2.0 uses), because `dice-sim.mjs` imports it and fallow flagged it unlisted. `dice-sim.mjs` now resolves it from its own package. `pnpm why`: one runtime copy (0.19.2); 0.12.0 is only a types-only dependency of `@types/three`.
+
 ### 4. Physics after the upgrade
 
 - Run the same tests and the same `dice-sim` command as step 2. Write both numbers side by side. The new engine gives other throws for the same seed, so compare the statistics, not single throws.

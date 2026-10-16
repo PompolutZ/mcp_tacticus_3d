@@ -51,12 +51,10 @@ import {
 } from '../src/table.js'
 
 // Rapier build the app actually uses: the one @react-three/rapier 2.x depends on (0.19.2, enhanced
-// determinism). It is resolved from @react-three/rapier, so there is no direct dependency on it.
+// determinism). package.json lists it at the same version, so pnpm installs one copy for both.
 // The package exports only its entry (the require one is rapier.cjs), so the ES build is the file next to it.
 const RAPIER_PATH = path.join(
-  path.dirname(
-    createRequire(import.meta.resolve('@react-three/rapier')).resolve('@dimforge/rapier3d-compat'),
-  ),
+  path.dirname(createRequire(import.meta.url).resolve('@dimforge/rapier3d-compat')),
   'rapier.mjs',
 )
 
