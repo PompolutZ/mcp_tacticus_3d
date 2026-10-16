@@ -241,6 +241,10 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
       </section>
       <footer className="lobby-footer">
         <a href="/privacy.html">Privacy</a>
+        <p className="lobby-disclaimer">
+          This site is not endorsed by nor affiliated with Marvel or Atomic Mass Games in any way.
+          All trademarks mentioned here are the property of their respective owners.
+        </p>
       </footer>
       {creating && (
         <NewRoomDialog
