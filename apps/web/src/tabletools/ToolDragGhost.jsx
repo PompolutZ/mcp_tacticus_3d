@@ -42,7 +42,9 @@ export default function ToolDragGhost({ pointRef, start, kind, which, side }) {
           <mesh position={[arm.length / 2, 0, 0]} rotation-x={-Math.PI / 2} raycast={() => {}}>
             <planeGeometry args={[arm.length, arm.width]} />
             <meshBasicMaterial
-              ref={(m) => (materials.current[i] = m)}
+              ref={(m) => {
+                materials.current[i] = m
+              }}
               color={tint}
               transparent
               opacity={OPACITY}

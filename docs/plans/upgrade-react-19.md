@@ -69,7 +69,7 @@ propTypes, defaultProps, string refs, `ReactDOM.render`, `findDOMNode`, legacy c
 - Wrap the 3 ref callback bodies in `{}`.
 - Check: `pnpm fallow` shows no unused export and no clone group.
 
-**Result:**
+**Result:** Removed `export` from `CHI_LIMIT_5`. Clone group ignored in `.fallowrc.json` with `duplicates.ignoredClones: ["dup:aa079c9e:2"]` (key = fingerprint + instance count; it shows again if the prop list changes). JSON has no comments, so the note is here: the match is the prop list, the state plan removes it, then drop the entry. Wrapped the 3 ref callbacks in `{}`. Checks: format, test, web build pass. Lint warnings: same count as before. `pnpm fallow`: no unused export, no clone group; only the health findings remain (306, as before).
 
 ### 2. Physics baseline on React 18
 

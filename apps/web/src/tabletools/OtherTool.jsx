@@ -100,7 +100,9 @@ function OtherToolBody({
         {parts.map((part, i) => (
           <group
             key={part.obj.uuid}
-            ref={(g) => (groups.current[i] = g)}
+            ref={(g) => {
+              groups.current[i] = g
+            }}
             rotation-y={part.side ? start.turn[part.side] : 0}
           >
             <primitive object={part.obj} />
@@ -109,7 +111,9 @@ function OtherToolBody({
         {parts.map((part, i) => (
           <ConvexHullCollider
             key={part.obj.uuid}
-            ref={(c) => (colliders.current[i] = c)}
+            ref={(c) => {
+              colliders.current[i] = c
+            }}
             args={[hulls[i]]}
             rotation={[0, part.side ? start.turn[part.side] : 0, 0]}
           />

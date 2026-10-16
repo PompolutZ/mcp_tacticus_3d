@@ -2,7 +2,7 @@
 import { FACES } from '../../src/dice/faces.js'
 
 // Chi-squared limit at 5% by degrees of freedom (only the ones the report uses)
-export const CHI_LIMIT_5 = { 5: 11.07, 7: 14.07 }
+const CHI_LIMIT_5 = { 5: 11.07, 7: 14.07 }
 
 // Expected share of each symbol, from the face table: Hit and Blank 2/8, the others 1/8
 export function symbolShares() {
