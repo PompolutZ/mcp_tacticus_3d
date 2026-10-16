@@ -120,7 +120,13 @@ Checks: lint 40 warnings (same), tests 1012 pass, build and typecheck ok, fallow
 
 Checks: lint 40 warnings (same), tests pass (web 1012), build and typecheck ok, fallow: no unused export, no clone group (`health` fails as before).
 
-**Re-measurement (user):** _to fill: same tool turn, Scene and Terrain counts, Scene reasons._
+**Re-measurement (user, sandbox, 2026-10-16):** same tool turn.
+
+| App | Toolbar | Scene | TokenLayer, OwnTools, OtherTools, ToolRack, ScoreBoard, CharacterModel (sum) | CharacterTray | DiceTray (2 trays) | Terrain |
+|---|---|---|---|---|---|---|
+| 16 | 16 | 19 | 19 each | 21 | 38 | 131 |
+
+Scene 161 → 19. Terrain alone renders on hover changes (131). Scene reasons now: only App renders, about 15 handler props at 17 each (`findCharacterAt`, `onCardHover`, `onPieceHover`, `onScoreMarkerMove` and others), because App makes new handlers each render. The actions slice (step 6) removes them.
 
 ### 4. Store skeleton and net slice
 
