@@ -141,6 +141,24 @@ export function inWell(trayKey, worldPoint) {
   return p.x >= WELL.xMin && p.x <= WELL.xMax && p.z >= WELL.zMin && p.z <= WELL.zMax
 }
 
+// The tray seen from above, as a rectangle in tray space: the whole mesh (keys lip and rim plates
+// included). Measured from tray.glb after IMPORT_ROTATION and TRAY_SCALE (the "Whole tray" row of
+// docs/features/dice-rolling.md). The corners are rounded a little; the rectangle ignores that.
+export const TRAY_OUTLINE = { xMin: -6.77, xMax: 6.77, zMin: -7.12, zMax: 9.68 }
+
+// The hotkey area is this much wider than TRAY_OUTLINE on all four sides, so the number keys still
+// work when the pointer is a little off the tray (aiming at the edge, a die or key near the rim).
+export const TRAY_HOVER_MARGIN = 1
+
+// True when a world point (only x and z count) is inside the tray outline plus TRAY_HOVER_MARGIN,
+// for tray `trayKey`. It follows the tray's position and yaw.
+export function overTray(trayKey, worldPoint) {
+  const p = worldToTray(trayKey, { x: worldPoint.x, y: 0, z: worldPoint.z })
+  const o = TRAY_OUTLINE
+  const m = TRAY_HOVER_MARGIN
+  return p.x >= o.xMin - m && p.x <= o.xMax + m && p.z >= o.zMin - m && p.z <= o.zMax + m
+}
+
 // Roll does not throw a die of the current throw again while it is higher than this above the
 // height of a die that rests on the well floor. It only gives the die a new spin. TTS does the
 // same: when Roll is pressed many times, each die is thrown again only when it falls back to about

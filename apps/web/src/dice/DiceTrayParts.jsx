@@ -17,6 +17,7 @@ import { patchShader } from '../scene/shaderPatch.js'
 const TRAY_BLACK_LIFT = 0.03
 const TRAY_ROUGHNESS = 0.8
 const TRAY_METALNESS = 0.5
+const noop = () => {}
 const trayLift = { value: TRAY_BLACK_LIFT }
 
 // Parts that the own tray (DiceTray.jsx) and the other player's tray (OtherDiceTray.jsx) share.
@@ -40,8 +41,8 @@ export function useDieLook() {
 
 // The tray body: a fixed RigidBody with the tray collider, the tinted visual and the keys.
 // bodyRef: gets the RigidBody; the tray does not hide its own keys or die menu (OccludedHtml skip).
-// keysProps: the props of DiceKeys. onHover(over): the pointer moved onto (true) or off (false) the tray.
-export function TrayBody({ trayKey, keysProps, onHover, bodyRef }) {
+// keysProps: the props of DiceKeys. solid: the tray takes pointer hits (the own tray), see below.
+export function TrayBody({ trayKey, keysProps, solid = false, bodyRef }) {
   const tray = TRAYS[trayKey]
   // The tray has the color of its side (sideColors.js), not the color of its key
   const playerColor = useSideColor(trayKey) ?? trayKey
@@ -115,14 +116,10 @@ export function TrayBody({ trayKey, keysProps, onHover, bodyRef }) {
         ]}
         friction={FRICTION}
       />
-      {/* A tray with these handlers counts as a hit for R3F, so a click on it does not clear the
-          selection (onPointerMissed in App.jsx). A die of the own tray has its own handlers, and
-          DiceTray counts the over and out events of the tray and its dice. */}
-      <group
-        scale={TRAY_SCALE}
-        onPointerOver={onHover && (() => onHover(true))}
-        onPointerOut={onHover && (() => onHover(false))}
-      >
+      {/* A tray with a handler counts as a hit for R3F, so a click on it does not clear the
+          selection (onPointerMissed in App.jsx). The number keys do not use the hit: the pointer
+          over the tray outline does (useDiceTrayPointer.js). */}
+      <group scale={TRAY_SCALE} onPointerOver={solid ? noop : undefined}>
         <primitive object={trayVisual} rotation={IMPORT_ROTATION} />
       </group>
       <DiceKeys {...keysProps} skip={() => bodyRef?.current ?? undefined} />

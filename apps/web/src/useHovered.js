@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 
 // What is under the pointer, for the keys. Refs, not state: only a key press reads them.
-// Each handler is called with over = true when the pointer moved onto the thing, false when it moved off.
+// Each handler (except the dice tray one) is called with over = true when the pointer moved onto the thing, false when it moved off.
 // current(): all hovers now, read from the refs at the call.
 export function useHovered() {
   // Character or token under the pointer: { kind, id } | null. Only the tool keys read it, so it is a ref.
@@ -62,9 +62,9 @@ export function useHovered() {
     else if (hoveredTacticRef.current === id) hoveredTacticRef.current = null
   }
 
-  function handleDiceTrayHover(side, over) {
-    if (over) diceTrayHoveredRef.current = side
-    else if (diceTrayHoveredRef.current === side) diceTrayHoveredRef.current = null
+  // side: the own tray under the pointer, or null (dice/useDiceTrayPointer.js)
+  function handleDiceTrayHover(side) {
+    diceTrayHoveredRef.current = side
   }
 
   function current() {

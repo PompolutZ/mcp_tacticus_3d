@@ -39,6 +39,7 @@ import GameSetup from '../setup/GameSetup.jsx'
 import { OnTable, OWNER_FACING_ROTATION } from './OnTable.jsx'
 import DiceTray from '../dice/DiceTray.jsx'
 import OtherDiceTray from '../dice/OtherDiceTray.jsx'
+import { useDiceTrayPointer } from '../dice/useDiceTrayPointer.js'
 import ScoreBoard from '../scoreboard/ScoreBoard.jsx'
 import PriorityMarker from '../game/PriorityMarker.jsx'
 import { Backdrop, Mat, SceneLights, TableSurface } from './SceneShared.jsx'
@@ -171,7 +172,7 @@ const OVERLAP_INTERVAL = 100
 // A token with placeBy can be dragged only by a browser that plays that side (tokens/dropWait.js).
 // removeWaits: character id → the text that disables its Remove button while a dropped token waits, or no entry.
 // The other tray is only drawn (OtherDiceTray.jsx).
-// onDiceTrayHover(side, over): the pointer moved onto or off an own dice tray, for the number keys.
+// onDiceTrayHover(side): the own dice tray under the pointer changed (side or null), for the number keys.
 // sceneApi.addDice is for the number keys over that tray. Each own tray puts a function in the addDice
 // ref that clears the tray, then adds that many dice (DiceTray.jsx).
 // onTokenHold(tokenId, characterId, cardPoint): a canHold token was released over a character.
@@ -234,6 +235,8 @@ function Scene(props) {
   const live = useTableStore((s) => s.live)
   // The stable actions (table/tableStore.js, createActions)
   const actions = useTableStore((s) => s.actions)
+  // The own dice tray under the pointer, for the number keys (dice/useDiceTrayPointer.js)
+  useDiceTrayPointer(playedSides, actions.onDiceTrayHover)
   const [matTurns] = useYField(table.game, 'matTurns')
   const [tacticCards] = useYList(table.tactics)
   const startPose = table.poses.get
@@ -934,7 +937,6 @@ function OwnDiceTray({ trayKey, diceLives, registerAddDice, testHook, openDieId 
     (dieId) => actions.onDiceMenuOpen(trayKey, dieId),
     [actions, trayKey],
   )
-  const onHover = useCallback((over) => actions.onDiceTrayHover(trayKey, over), [actions, trayKey])
   const addRef = useCallback((add) => registerAddDice(trayKey, add), [registerAddDice, trayKey])
   return (
     <DiceTray
@@ -944,7 +946,6 @@ function OwnDiceTray({ trayKey, diceLives, registerAddDice, testHook, openDieId 
       openDieId={openDieId}
       onDieOpen={onDieOpen}
       onMenuClose={actions.onDiceMenuClose}
-      onHover={onHover}
       addRef={addRef}
     />
   )

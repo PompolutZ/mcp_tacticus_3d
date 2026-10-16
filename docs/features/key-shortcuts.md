@@ -53,6 +53,8 @@ A piece under the pointer shows a white outline when this browser can use it wit
 
 No outline: locked terrain, the table, the mat, the other player's rack and dice tray, dice in the well or in the air, a token that takes no pointer (a drag preview), the turn handle, and the buttons on the table (they have a CSS hover).
 
+The condition "over the dice tray" is not a hover outline. It means the pointer is inside the outline of the whole own tray seen from above, whatever is in front of it (see `dice-rolling.md`, "Controls: number keys").
+
 ## Keyboard: TTS defaults
 
 Bindings on this Mac are the TTS defaults. The only change is Scripting 1–10, which is moved from the number pad to the number row (see the next section).

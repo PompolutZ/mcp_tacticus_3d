@@ -47,7 +47,7 @@ import { DieMenu } from './DiceKeys.jsx'
 import { TrayBody, useDieLook } from './DiceTrayParts.jsx'
 import { outlineMode, useOutline } from '../scene/SelectionOutlines.jsx'
 import { useHoverCursor } from '../scene/useHoverCursor.js'
-import { useLatest, useOnMount } from '../scene/useLatest.js'
+import { useOnMount } from '../scene/useLatest.js'
 import { createBumpFinder } from '../bumps.js'
 import { playShake, playSound } from '../sound.js'
 import { useRenderCount } from '../debug/renderCount.js'
@@ -68,7 +68,7 @@ const dieVertices = Float32Array.from(D8_CORNERS.flat())
 // `slot` set. The RigidBody ref is written into the die's entry in the parent's `dice` map (see
 // DiceTray), not kept as React state, so a physics step never has to re-render this component.
 // A click on a die on the shelf calls onOpen(id). menuOpen: this die's "Change to" menu is open.
-// onChange(id, toSymbol), onMenuClose(), onHover(over): see DiceTray.
+// onChange(id, toSymbol), onMenuClose(): see DiceTray.
 function Die({
   id,
   dice,
@@ -78,7 +78,6 @@ function Die({
   onOpen,
   onChange,
   onMenuClose,
-  onHover,
   trayBodyRef,
 }) {
   const entry = dice.current.get(id)
@@ -108,23 +107,10 @@ function Die({
     e.stopPropagation()
     onOpen(id)
   }
-  // Whether the pointer is over this die, so the tray hover ends when the die goes away
-  const over = useRef(false)
-  const hoverRef = useLatest(onHover)
-  useEffect(
-    () => () => {
-      if (over.current) hoverRef.current(false)
-    },
-    [hoverRef],
-  )
   function handleOver() {
-    over.current = true
-    onHover(true)
     if (dice.current.get(id)?.state === 'shelf') setHovered(true)
   }
   function handleOut() {
-    over.current = false
-    onHover(false)
     setHovered(false)
   }
   return (
@@ -197,7 +183,6 @@ function touchesNonDie(world, rb) {
 // The tray reads the dice record store, the roll history list and transact from the table store
 // (table/tableStore.js). It reads its side at mount and writes it when a die changes its place or face
 // (dice/stored.js). It adds a history entry in the same change as the dice (dice/history.js).
-// onHover(over): the pointer moved onto (true) or off (false) the tray, for the number keys.
 // addRef(addAfterClear): gets a function that clears the tray, then adds that many dice, for the
 // number keys, and null on unmount. Both are only given
 // for the player's tray (Scene.jsx).
@@ -208,7 +193,6 @@ function DiceTray({
   openDieId = null,
   onDieOpen,
   onMenuClose,
-  onHover,
   addRef,
   diceLives,
   testHook = false,
@@ -259,16 +243,6 @@ function DiceTray({
   // True once a thrown die of the running throw touched something (docs/features/dice-rolling.md,
   // "Roll flow" step 3). While it is true and the throw runs, roll() does nothing.
   const contactedRef = useRef(false)
-
-  // The pointer is over the tray body or over a die: onHover(true) at the first, onHover(false) at
-  // the last, whatever the order of the over and out events.
-  const hoverCount = useRef(0)
-  function hover(over) {
-    const before = hoverCount.current
-    hoverCount.current = Math.max(0, before + (over ? 1 : -1))
-    if (before === 0 && hoverCount.current > 0) onHover?.(true)
-    else if (before > 0 && hoverCount.current === 0) onHover?.(false)
-  }
 
   // True once addCrits has added dice this roll; reset by clear() (design, "Roll flow" step 7 /
   // the rulebook's "once per roll, not per Crit" rule).
@@ -909,7 +883,7 @@ function DiceTray({
       <TrayBody
         bodyRef={trayBodyRef}
         trayKey={trayKey}
-        onHover={hover}
+        solid
         keysProps={{
           state: keys,
           actions: { add, remove, roll, clear, addCrits, reroll },
@@ -926,7 +900,6 @@ function DiceTray({
           onOpen={onDieOpen}
           onChange={change}
           onMenuClose={onMenuClose}
-          onHover={hover}
           trayBodyRef={trayBodyRef}
         />
       ))}

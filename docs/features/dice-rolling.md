@@ -107,9 +107,11 @@ One limit: the keys are HTML on top of the canvas. Therefore dice and models in 
 
 ## Controls: number keys
 
+"Over" a tray means the pointer is inside the outline of the whole tray seen from above (keys lip, rim and plates included), plus a little margin around it (`TRAY_HOVER_MARGIN` in `src/dice/tray.js`), with the pointer projected onto the table. Nothing in the 3D view in front of the tray changes it: a die, a model or a tool. The pointer over the 3D view counts, including the lip buttons drawn on the tray (Clear, the number, `−`/`+`, Roll, `+N Crits`). HUD buttons and panels outside the canvas area do not count, and neither does a pointer outside the window. It is checked every frame, so a camera move under a still pointer counts.
+
 With the pointer over an own dice tray, keys 1–9 first clear the tray, then add that number of dice, and 0 adds 10, as in TTS. The history gets a Clear entry when the tray had dice. When the tray would go over 42 dice, the key adds only the dice that are left to 42. In a multiplayer room the player has one own tray, the tray of the own seat. In a single player room and the Sandbox both trays are own, and each takes the keys when the pointer is over it. Over the other player's tray the number keys act as over the table: they spawn a tool. Away from the trays, the number keys spawn tools (see `docs/features/key-shortcuts.md`).
 
-One side effect: a click on the player's tray or on one of its dice does not clear the selection. They have pointer handlers, so R3F counts the click as a hit.
+One side effect: a click on the player's tray or on one of its dice does not clear the selection. The own tray and its dice have pointer handlers, so R3F counts the click as a hit.
 
 ## Roll flow
 
