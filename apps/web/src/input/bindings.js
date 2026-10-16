@@ -94,13 +94,13 @@ export const ACTIONS = [
     held: true,
     repeats: true,
   }),
-  A('turnLeft', 'Turn view left', 'Camera', TABLE, [bind('ArrowLeft')], {
+  A('turnLeft', 'Turn camera left', 'Camera', TABLE, [bind('ArrowLeft')], {
     action: 'turn',
     dir: [-1, 0],
     held: true,
     repeats: true,
   }),
-  A('turnRight', 'Turn view right', 'Camera', TABLE, [bind('ArrowRight')], {
+  A('turnRight', 'Turn camera right', 'Camera', TABLE, [bind('ArrowRight')], {
     action: 'turn',
     dir: [1, 0],
     held: true,

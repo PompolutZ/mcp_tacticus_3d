@@ -13,6 +13,7 @@ Checks of every step: `pnpm format`, `pnpm lint` (no more warnings than before t
 3. The HUD **Power** button looks like the table button: green, with the Power token icon. The HUD **Power** and **Cleanup** buttons have the same width.
 4. The camera can be moved with the mouse and with the keys, but using both at the same time moves it erratically.
 5. (User, 2026-10-16: "can we add some smoothness to how camera moves with hotkeys?") Smooth camera keys.
+6. (User, 2026-10-16: "press left arrow moves camera to the right, on TTS it is in opposite direction and I think opposite direction more intuitive.") Invert the Left / Right arrow turn.
 
 ## Facts
 
@@ -110,3 +111,16 @@ User: tap W, hold W, release W: the camera eases in and glides out. Same for arr
 ### Result
 
 Done. `framePart` and `stepVelocity` in `camera.js` (tests in `camera.test.js`). `KeyboardCamera.jsx` eases pan and turn velocity. `cameraOwner.js`: `keysMove(active)` with active = held or gliding; `mouseStart(held)` refuses only for a held key. OrbitControls is off only while a key is held, so a drag can start in a glide. Docs: key-shortcuts.
+
+## Step 7: Arrow turn direction
+
+Request (user, 2026-10-16): "press left arrow moves camera to the right, on TTS it is in opposite direction and I think opposite direction more intuitive."
+
+- Left arrow moves the camera to the left around the point it looks at, Right to the right, as in TTS. Sign flipped in `turnCamera` (`KeyboardCamera.jsx`). Up / Down and the smoothing unchanged. Action labels: "Turn camera left / right".
+- Docs: `docs/features/key-shortcuts.md`.
+
+User: press Left: the camera moves to the left around the table, the view turns right.
+
+### Result
+
+Done. See above. Checks: format, lint, typecheck, test, build.

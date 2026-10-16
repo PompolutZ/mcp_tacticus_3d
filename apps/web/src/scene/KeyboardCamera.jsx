@@ -117,12 +117,13 @@ export function KeyboardCamera({ pan, turn }) {
   }
 
   // Turns the camera around the orbit target, the same way a mouse drag does in OrbitControls.
-  // Right turns the view to the right, so the camera moves to its left. Up tilts the view up, so
-  // the camera moves down toward the table. The tilt has the same limits as OrbitControls.
+  // As in TTS, Left moves the camera to the left around the target and Right to the right. Up tilts
+  // the view up, so the camera moves down toward the table. The tilt has the same limits as
+  // OrbitControls (docs/features/key-shortcuts.md, Arrow keys).
   function turnCamera([dx, dy], dt) {
     offset.copy(camera.position).sub(controls.target)
     spherical.setFromVector3(offset)
-    spherical.theta -= dx * TURN_RATE * dt
+    spherical.theta += dx * TURN_RATE * dt
     spherical.phi = MathUtils.clamp(
       spherical.phi + dy * TURN_RATE * dt,
       controls.minPolarAngle,
