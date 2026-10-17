@@ -86,7 +86,9 @@ The look is the comic look of the lobby (`rooms.md`, "Lobby"): paper boxes with 
 
 ## Settings menu
 
-**Settings** at the right end of the toolbar opens a popup. ✕ or Escape closes it. While it is open, the keys of the table do nothing.
+**Settings** at the right end of the toolbar opens a popup in the comic look of the HUD: a night header, a paper body, section titles as black tags, rows split by dashed lines. The yellow ✕ on the top right corner or Escape closes it. While it is open, the keys of the table do nothing. On a narrow window the popup fills the window with a small gutter. The look is in `src/settings/settings.css`.
+
+A toggle is one button that says its state in words, yellow when on: **Mode on** / **Mode off**, **Labels on** / **Labels off**, **Re-throw on** / **Re-throw off**. **Table** and **HUD** are joined buttons. A slider is red with its value in a small box.
 
 ### On the table or in the HUD
 
@@ -104,7 +106,7 @@ One row for each item, with the choice **Table** or **HUD**. The default is **HU
 - A board strip with no rows is not drawn. A row with no buttons is not drawn.
 - When the rack is in the HUD, a tool does not go back to the rack. The rack is not on the table.
 - The **Mat** group of the toolbar stays while it has the map select (the Sandbox).
-- The settings are in localStorage, key `mcp-assist-3d/settings`: `{ version, tools: { rack, power, cleanup, deployLock, matTurn }, sound: { volume }, spectator: { size }, turn: { step }, labels, rethrowTilted, bindings }`. Each tool is `'table'` or `'hud'`, the volume a whole number from 0 to 100, the spectator size a whole number from 60 to 150 (percent, default 100), the turn step a whole number from 5 to 15 (degrees, default 15), `labels` a boolean (default `false`), `rethrowTilted` a boolean (default `false`, **Throw tilted dice again** in the Dice section, see `docs/features/dice-rolling.md`). `bindings` is `{ [actionId]: [{ code, shift, ctrl, alt, meta, when }] }` with only the actions that differ from the defaults (`{}` is all defaults; an empty list is an action with no key). An unknown action, code or condition is dropped. They belong to the browser, not to the user or the room. A missing or unknown value is the default. When localStorage cannot be read, the defaults apply.
+- The settings are in localStorage, key `mcp-assist-3d/settings`: `{ version, tools: { rack, power, cleanup, deployLock, matTurn }, sound: { volume }, spectator: { size }, turn: { step }, labels, rethrowTilted, bindings }`. Each tool is `'table'` or `'hud'`, the volume a whole number from 0 to 100, the spectator size a whole number from 60 to 150 (percent, default 100), the turn step a whole number from 5 to 15 (degrees, default 15), `labels` a boolean (default `false`), `rethrowTilted` a boolean (default `false`, **Re-throw** in the Dice section, see `docs/features/dice-rolling.md`). `bindings` is `{ [actionId]: [{ code, shift, ctrl, alt, meta, when }] }` with only the actions that differ from the defaults (`{}` is all defaults; an empty list is an action with no key). An unknown action, code or condition is dropped. They belong to the browser, not to the user or the room. A missing or unknown value is the default. When localStorage cannot be read, the defaults apply.
 
 ### Debug
 
@@ -128,7 +130,7 @@ A **Turn** section has a "Turn step" slider, 5° to 15°, step 1°, default 15°
 
 ### Keys and mouse
 
-**Keys:** one row for each action, in the groups Camera, Pieces, Tools, Dice and Other. A row has the bindings as chips (× removes one), **+** to add one, and **Reset** when it differs from the defaults. **Reset all keys** restores every default. The rules are in `docs/features/key-shortcuts.md`, "Changing the keys". **Mouse:** a read-only table from `src/settings/controls.js` (`MOUSE_ROWS`). The source is `docs/features/key-shortcuts.md`.
+**Keys:** one row for each action, in the groups Camera, Pieces, Tools, Dice and Other. A row has the bindings as key caps (× removes one), a dashed **+** to add one, and **Reset** when it differs from the defaults. **Reset all keys** restores every default. The rules are in `docs/features/key-shortcuts.md`, "Changing the keys". **Mouse:** read-only rows in the same look (the action, the input as a key cap with no × and no +), from `src/settings/controls.js` (`MOUSE_ROWS`). The source is `docs/features/key-shortcuts.md`.
 
 ## Recovery
 

@@ -1,0 +1,297 @@
+/* The Settings popup (SettingsPopup.jsx, KeyBindings.jsx, docs/features/table-tools.md, "Settings menu"): a framed
+   comic dialog with a night header and a paper body. The colors and fonts are the variables of .comic
+   (rooms/comic.css); the root has .comic. The backdrop is .roster-popup-backdrop (index.css). The yellow x
+   is the child of the root (Dialog closeClassName), so the root does not scroll: the body does. */
+.settings-comic {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  box-sizing: border-box;
+  /* The window minus a 16 px gutter, so the page has no horizontal scroll */
+  width: min(900px, calc(100vw - 32px));
+  height: min(800px, calc(100vh - 32px));
+  color: var(--ink);
+  background: var(--ink);
+  border: 5px solid var(--ink);
+  box-shadow: 12px 12px 0 rgba(0, 0, 0, 0.6);
+  cursor: default;
+}
+
+.settings-comic:focus {
+  outline: none;
+}
+
+.settings-comic-close {
+  position: absolute;
+  top: -22px;
+  right: -22px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  font: 400 34px/1 var(--font-title);
+  color: var(--ink);
+  background: var(--yellow);
+  border: 4px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  transform: rotate(6deg);
+  cursor: pointer;
+  transition:
+    transform 0.08s,
+    box-shadow 0.08s;
+}
+
+.settings-comic-close:hover {
+  transform: translate(-2px, -2px) rotate(6deg);
+  box-shadow: 6px 6px 0 var(--ink);
+}
+
+.settings-comic-close:active {
+  transform: translate(3px, 3px) rotate(6deg);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.settings-comic-close:focus-visible {
+  outline: 3px solid var(--paper);
+  outline-offset: 2px;
+}
+
+.settings-head {
+  flex: none;
+  padding: 20px 30px 18px;
+}
+
+.settings-head h2 {
+  margin: 0;
+  font: 400 56px/0.9 var(--font-title);
+  letter-spacing: 0.03em;
+  color: #fff;
+  -webkit-text-stroke: 3px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 5px 5px 0 var(--ink);
+}
+
+.settings-body {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 6px 30px 30px;
+  background: var(--paper);
+}
+
+.settings-section h3 {
+  display: inline-block;
+  margin: 24px 0 6px;
+  padding: 3px 12px;
+  font: 400 22px/1.2 var(--font-title);
+  letter-spacing: 0.06em;
+  color: var(--yellow);
+  background: var(--ink);
+  transform: rotate(-1deg);
+}
+
+.settings-keys-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+
+.settings-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 20px;
+  min-height: 52px;
+  padding: 6px 0;
+  font: 500 17px/1.3 var(--font-body);
+  border-bottom: 2px dashed var(--disabled-bg);
+}
+
+.settings-text {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.settings-choice {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+}
+
+.settings-choice input[type='range'] {
+  width: min(200px, 40vw);
+  accent-color: var(--red);
+}
+
+.settings-value {
+  min-width: 44px;
+  padding: 2px 6px;
+  font: 600 14px var(--font-code);
+  text-align: center;
+  background: #fff;
+  border: 2px solid var(--ink);
+}
+
+/* Table / HUD: joined buttons */
+.settings-segment {
+  display: flex;
+}
+
+.settings-segment button + button {
+  margin-left: -3px;
+}
+
+/* The buttons of the dialog: Table / HUD, toggles, Reset all keys, Add, Cancel, Reset */
+.settings-btn {
+  height: 40px;
+  padding: 0 14px;
+  font: 700 15px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: #fff;
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+}
+
+.settings-btn[aria-pressed='true'],
+.settings-btn[aria-checked='true'] {
+  background: var(--yellow);
+}
+
+.settings-segment .settings-btn {
+  box-shadow: none;
+}
+
+.settings-segment .settings-btn[aria-checked='true'] {
+  box-shadow: inset 3px 3px 0 rgba(0, 0, 0, 0.25);
+}
+
+.settings-btn--small {
+  height: 34px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+
+.settings-btn:focus-visible,
+.settings-comic input:focus-visible,
+.settings-comic select:focus-visible,
+.key-add:focus-visible,
+.key-cap button:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.settings-hint {
+  margin: 0 0 8px;
+  font: 500 15px/1.4 var(--font-body);
+  color: var(--muted-ink);
+}
+
+.key-bindings-message {
+  min-height: 1.4em;
+  margin: 4px 0;
+  font: 600 15px var(--font-body);
+  color: var(--red);
+}
+
+.key-group h4 {
+  margin: 10px 0 0;
+  font: 700 16px var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.key-label {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.key-caps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* A key cap. The Mouse rows use it with no x */
+.key-cap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 34px;
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 0 12px;
+  font: 600 15px var(--font-code);
+  background: #fff;
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.key-cap--removable {
+  padding-right: 4px;
+}
+
+.key-cap button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  font: 600 18px/1 var(--font-body);
+  color: #5a5560;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.key-cap button:hover {
+  color: var(--red);
+}
+
+.key-cap--capture {
+  padding-right: 6px;
+  font-family: var(--font-body);
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.key-cap--capture select {
+  font: inherit;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink);
+}
+
+.key-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font: 600 20px/1 var(--font-body);
+  color: var(--ink);
+  background: #fff;
+  border: 2px dashed var(--ink);
+  cursor: pointer;
+}
+
+.key-add:hover {
+  background: var(--yellow);
+}

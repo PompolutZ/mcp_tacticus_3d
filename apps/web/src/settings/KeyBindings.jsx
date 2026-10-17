@@ -24,7 +24,7 @@ const CONDITION_LABELS = {
 }
 const GROUPS = [...new Set(ACTIONS.map((a) => a.group))]
 
-// The key table of the Settings popup: one row for each action with its bindings as chips (docs/features/
+// The key table of the Settings popup: one row for each action with its bindings as key caps (docs/features/
 // key-shortcuts.md, "Changing the keys"). bindings: the bindings in use. onChange(changed): the actions
 // that differ from the defaults (changedBindings in input/bindings.js); the settings store them.
 export function KeyBindings({ bindings, onChange }) {
@@ -166,16 +166,16 @@ export function KeyBindings({ bindings, onChange }) {
 
   return (
     <section className="settings-section">
-      <h3>Keys</h3>
-      <div className="key-bindings-head">
-        <span className="key-bindings-note">
-          Click + and press a key or turn the wheel. A key or wheel step can do one thing in one
-          place.
-        </span>
-        <button type="button" className="chip" onClick={resetAll}>
+      <div className="settings-keys-head">
+        <h3>Keys</h3>
+        <button type="button" className="settings-btn" onClick={resetAll}>
           Reset all keys
         </button>
       </div>
+      <p className="settings-hint">
+        Click + and press a key or turn the wheel. A key or wheel step can do one thing in one
+        place.
+      </p>
       <div className="key-bindings-message" role="status">
         {message}
       </div>
@@ -186,14 +186,14 @@ export function KeyBindings({ bindings, onChange }) {
             const list = bindings[a.id]
             const active = capture?.id === a.id
             return (
-              <div key={a.id} className="key-row">
+              <div key={a.id} className="settings-row">
                 <span className="key-label">{a.label}</span>
-                <span className="key-chips">
+                <span className="key-caps">
                   {list.map((b, i) => {
                     const name = inputName(b, MAC)
                     const where = b.when !== 'anywhere' ? ` · ${CONDITION_LABELS[b.when]}` : ''
                     return (
-                      <span key={`${name}-${b.when}`} className="key-chip">
+                      <span key={`${name}-${b.when}`} className="key-cap key-cap--removable">
                         {name}
                         {where}
                         <button
@@ -207,12 +207,12 @@ export function KeyBindings({ bindings, onChange }) {
                     )
                   })}
                   {active && capture.stage === 'listen' && (
-                    <span className="key-capture" ref={boxRef}>
+                    <span className="key-cap key-cap--capture" ref={boxRef}>
                       Press a key or turn the wheel
                     </span>
                   )}
                   {active && capture.stage === 'when' && (
-                    <span className="key-capture">
+                    <span className="key-cap key-cap--capture">
                       {inputName(capture.input, MAC)}
                       <select
                         aria-label={`Where ${inputName(capture.input, MAC)} works`}
@@ -227,7 +227,7 @@ export function KeyBindings({ bindings, onChange }) {
                       </select>
                       <button
                         type="button"
-                        className="chip"
+                        className="settings-btn settings-btn--small"
                         onClick={() => add(a.id, capture.input, when)}
                       >
                         Add
@@ -235,7 +235,11 @@ export function KeyBindings({ bindings, onChange }) {
                     </span>
                   )}
                   {active ? (
-                    <button type="button" className="chip" onClick={() => setCapture(null)}>
+                    <button
+                      type="button"
+                      className="settings-btn settings-btn--small"
+                      onClick={() => setCapture(null)}
+                    >
                       Cancel
                     </button>
                   ) : (
@@ -249,7 +253,11 @@ export function KeyBindings({ bindings, onChange }) {
                     </button>
                   )}
                   {!sameBindings(list, a.keys) && (
-                    <button type="button" className="chip" onClick={() => reset(a.id)}>
+                    <button
+                      type="button"
+                      className="settings-btn settings-btn--small"
+                      onClick={() => reset(a.id)}
+                    >
                       Reset
                     </button>
                   )}

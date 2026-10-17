@@ -1,6 +1,6 @@
 # Plan: HUD redesign
 
-Requested by the user on 2026-10-17. Status: OK by the user on 2026-10-17, in progress. Branch `hud-redesign`, worktree `../mcp_assist_3d-hud-redesign`.
+Requested by the user on 2026-10-17. Status: all steps built on 2026-10-17, waits for the user test. Branch `hud-redesign`, worktree `../mcp_assist_3d-hud-redesign`.
 
 No new feature doc. Each step updates the feature docs where the look or the labels change. Each step makes one commit and writes its **Result** below.
 
@@ -143,3 +143,10 @@ Read on 2026-10-17.
 - Right column: starts below the area of the flashing log bubble (fixed offset); with the Log open it moves left of the bubble and starts at `--hud-top`. Max width is the window minus the gutter (minus the pushing panel when pushed).
 - Injured side: the Dmg bar is striped red (the old orange/red split is gone).
 - `SettingsPopup.jsx`: labels "Streamer" and "Streamer columns size (%)". `index.css`: removed the `spectator-*` column rules.
+
+### Step 5
+
+- `settings/SettingsPopup.jsx`, `KeyBindings.jsx`, `settings.css` (new): night header (the `.comic-page` background), paper body that scrolls, black section tags, dashed rows, joined Table / HUD, red sliders with a value box, toggles "Mode on / off", "Labels on / off", "Re-throw on / off", key caps with x and a dashed +, yellow x (`closeClassName`). Mouse rows are the same rows with a key cap, no x and no +. Narrow window: the dialog is the window minus the gutter.
+- Small fix from Step 4: `--library-w` and `--log-w` are set once in `rooms/comic.css` and used by `library.css`, `log.css` and `streamer.css`.
+- `index.css`: removed `settings-*` and `key-*` rules.
+- Differed: the Reset, Add and Cancel buttons of a key row are small dialog buttons (the design shows none). The Keys tag and **Reset all keys** share one line.

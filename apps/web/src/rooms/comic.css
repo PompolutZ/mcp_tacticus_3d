@@ -1,6 +1,12 @@
 /* The comic look of the lobby, the join page and the table HUD parts (docs/features/rooms.md, "Lobby"). The
    colors and fonts are the variables of .comic, so the other table UI does not change. .comic-page adds the
    night page background. */
+/* The widths of the Library and the Log bubble. The Streamer columns use them to move inward, so they are set once */
+:root {
+  --library-w: 420px;
+  --log-w: 380px;
+}
+
 .comic {
   --ink: #0b0b0f;
   --paper: #fff6e0;

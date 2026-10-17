@@ -9,7 +9,7 @@
   flex-direction: column;
   box-sizing: border-box;
   /* Never wider than the window minus the gutter, so the page has no horizontal scroll */
-  width: min(420px, calc(100vw - 32px));
+  width: min(var(--library-w), calc(100vw - 32px));
   color: var(--ink);
   background: var(--paper);
   border: 4px solid var(--ink);

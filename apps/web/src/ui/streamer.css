@@ -4,8 +4,8 @@
   --s: var(--spectator-size, 1);
   /* The gutter of the HUD, and the room taken by the panel that pushes the column (Library, log bubble) */
   --gutter: 16px;
-  --left-push: calc(420px + 12px);
-  --right-push: calc(380px + 12px);
+  --left-push: calc(var(--library-w) + 12px);
+  --right-push: calc(var(--log-w) + 12px);
   position: absolute;
   top: var(--hud-top);
   box-sizing: border-box;
