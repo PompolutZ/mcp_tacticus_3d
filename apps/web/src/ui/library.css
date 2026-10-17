@@ -1,0 +1,361 @@
+/* The Library panel (Library.jsx, docs/features/library.md, "Panel"): a black header with search and filters,
+   a paper body with characters, tactic cards and tokens. The colors and fonts are the variables of .comic. */
+.library {
+  position: absolute;
+  top: var(--hud-top);
+  left: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  /* Never wider than the window minus the gutter, so the page has no horizontal scroll */
+  width: min(420px, calc(100vw - 32px));
+  color: var(--ink);
+  background: var(--paper);
+  border: 4px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--ink);
+  pointer-events: auto;
+}
+
+.library-head {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 16px 14px;
+  background: var(--ink);
+}
+
+.library-title {
+  font: 400 34px/1 var(--font-title);
+  letter-spacing: 0.04em;
+  color: var(--yellow);
+}
+
+.library-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 12px;
+  color: var(--ink);
+  background: #fff;
+  border: 3px solid var(--yellow);
+}
+
+.library-search input {
+  flex: 1;
+  min-width: 0;
+  font: 500 16px var(--font-body);
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+.library-search:focus-within {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.library-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.library-filter {
+  height: 34px;
+  padding: 0 12px;
+  font: 700 15px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--paper);
+  background: transparent;
+  border: 2px solid var(--yellow);
+  cursor: pointer;
+}
+
+.library-filter[aria-pressed='true'] {
+  color: var(--ink);
+  background: var(--yellow);
+}
+
+.library-filter:focus-visible,
+.library-mode:focus-visible,
+.library-more:focus-visible,
+.library-character:focus-visible,
+.library-tactic:focus-visible,
+.library-token:focus-visible,
+.library-for .seat-plate:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* The For row: Blue / Red plates (.seat-plate, rooms/comic.css). The chosen one is full, the other one fades. */
+.library-for {
+  gap: 10px;
+}
+
+.library-for-label {
+  font: italic 700 14px var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+
+.library-for .seat-plate {
+  padding: 3px 16px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.library-for--off {
+  opacity: 0.55;
+}
+
+/* A HUD message such as "no 3D model yet" */
+.library-message {
+  flex: none;
+  padding: 6px 16px;
+  font: 600 14px var(--font-body);
+  color: var(--ink);
+  background: var(--yellow);
+  border-bottom: 3px solid var(--ink);
+}
+
+.library-results {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 0;
+  padding: 14px 16px 20px;
+  overflow-y: auto;
+}
+
+.library-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.library-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.library-section-title {
+  font: 400 24px var(--font-title);
+  letter-spacing: 0.05em;
+}
+
+.library-more {
+  padding: 0;
+  font: 700 14px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.library-more:hover {
+  text-decoration: underline;
+}
+
+.library-character {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 6px 8px;
+  font: 600 16px var(--font-body);
+  text-align: left;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink);
+  cursor: pointer;
+}
+
+.library-character:hover:not(:disabled) {
+  background: var(--yellow);
+}
+
+.library-character:disabled {
+  cursor: not-allowed;
+}
+
+/* No 3D model yet: grey. A click shows a message. */
+.library-character--unavailable {
+  color: var(--disabled-fg);
+  background: var(--disabled-bg);
+}
+
+/* The chosen player already has this character on the table */
+.library-character--spawned {
+  background: #c9ecad;
+  box-shadow: inset 5px 0 0 #1e9e44;
+}
+
+.library-portrait {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: var(--paper);
+  object-fit: cover;
+}
+
+.library-character-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.library-code {
+  flex: none;
+  font: 600 12px var(--font-code);
+  color: var(--disabled-fg);
+}
+
+/* minmax(0, 1fr): a long card name must not make its column wider, so all cards have one size */
+.library-tactics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.library-tactic {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  padding: 0;
+  font: 700 13px/1.1 var(--font-label);
+  letter-spacing: 0.03em;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.library-tactic:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.library-tactic-image {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  object-fit: cover;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  transition:
+    transform 0.08s,
+    box-shadow 0.08s;
+}
+
+.library-tactic:hover:not(:disabled) .library-tactic-image {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--ink);
+}
+
+/* An Infinity Gem is listed only; a click opens its card */
+.library-tactic-name {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.library-tactic-tag {
+  align-self: center;
+  padding: 1px 6px;
+  font-size: 11px;
+  color: var(--yellow);
+  background: var(--ink);
+}
+
+/* Single / Pile: joined buttons */
+.library-modes {
+  display: flex;
+}
+
+.library-mode {
+  height: 34px;
+  padding: 0 14px;
+  font: 700 15px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: #fff;
+  border: 3px solid var(--ink);
+  cursor: pointer;
+}
+
+.library-mode + .library-mode {
+  margin-left: -3px;
+}
+
+.library-mode[aria-pressed='true'] {
+  background: var(--yellow);
+  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.library-token-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.library-token-group-label {
+  font: 700 14px var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.library-tokens {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.library-token {
+  aspect-ratio: 1;
+  padding: 0;
+  overflow: hidden;
+  background: var(--ink);
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: grab;
+}
+
+.library-token:hover {
+  transform: translate(-2px, -2px);
+}
+
+.library-token-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.library-empty {
+  font: 600 15px var(--font-body);
+  color: var(--muted-ink);
+}

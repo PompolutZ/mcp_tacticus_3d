@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import '../rooms/comicBase.js'
+import './library.css'
 import { useHudMessage } from './useHudMessage.js'
 import { assetUrl } from '../assets/index.js'
 import { COLOR_NAME } from '../sideColors.js'
@@ -49,7 +51,7 @@ const LIBRARY_ROWS = [
 // "For" choice; a seat without a side adds nothing (libraryTeam.js).
 // The clicks call the table actions (table/tableStore.js). A click on a character with a 3D model calls characters.spawn(ch); ch has
 // team set to the chosen player. onTacticSpawn(key, team): a click on a tactic card. onAttachedOpen(code): a click on an Infinity
-// Gem opens its card. onLibraryTokenDragStart(e, key, mode): a pointerdown on a token chip starts a drag in drag/useTokenDrag.js.
+// Gem opens its card. onLibraryTokenDragStart(e, key, mode): a pointerdown on a token button starts a drag in drag/useTokenDrag.js.
 // mode: 'single' | 'pile'.
 export function Library({ open, characters, seat }) {
   const [query, setQuery] = useState('')
@@ -115,11 +117,11 @@ export function Library({ open, characters, seat }) {
     const hidden = found[kind].length - shown(kind).length
     return (
       <div className="library-section-header">
-        <span className="group-label">{label}</span>
+        <span className="library-section-title">{label}</span>
         {controls}
         {hidden > 0 && (
           <button type="button" className="library-more" onClick={() => setTab(kind)}>
-            More ({hidden})
+            More ({hidden}) ›
           </button>
         )}
       </div>
@@ -130,42 +132,62 @@ export function Library({ open, characters, seat }) {
   const nothing = ['characters', 'tactics', 'tokens'].every((kind) => !showKind(kind))
 
   return (
-    <div className="library">
-      <input
-        type="text"
-        className="chip library-search"
-        placeholder="Search name or MCT code"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
-      <div className="library-row">
-        {TABS.map((t) => (
-          <button
-            key={t.tab}
-            type="button"
-            className={`chip${tab === t.tab ? ' chip--active' : ''}`}
-            onClick={() => setTab(t.tab)}
+    <aside className="comic library" aria-label="Library">
+      <div className="library-head">
+        <div className="library-title">Library</div>
+        <label className="library-search">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            aria-hidden="true"
           >
-            {t.label}
-          </button>
-        ))}
-      </div>
-      {!seat.multiplayer && (
-        <div className="library-row">
-          <span className="group-label">For</span>
-          {TEAMS.map((t) => (
+            <circle cx="11" cy="11" r="7" />
+            <path d="M20 20l-4-4" />
+          </svg>
+          <input
+            type="text"
+            aria-label="Search the library"
+            placeholder="Search name or MCT code"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
+        <div className="library-row" role="group" aria-label="Library filter">
+          {TABS.map((t) => (
             <button
-              key={t}
+              key={t.tab}
               type="button"
-              className={`chip${team === t ? ` chip--player-${colors[t]}` : ''}`}
-              title={`${COLOR_NAME[colors[t]]} player gets the characters and tactic cards`}
-              onClick={() => setChosen(t)}
+              className="library-filter"
+              aria-pressed={tab === t.tab}
+              onClick={() => setTab(t.tab)}
             >
-              {COLOR_NAME[colors[t]]}
+              {t.label}
             </button>
           ))}
         </div>
-      )}
+        {!seat.multiplayer && (
+          <div className="library-row library-for">
+            <span className="library-for-label">For</span>
+            {TEAMS.map((t) => (
+              <button
+                key={t}
+                type="button"
+                className={`seat-plate seat-plate--${colors[t]}${team === t ? ' library-for--on' : ' library-for--off'}`}
+                aria-pressed={team === t}
+                title={`${COLOR_NAME[colors[t]]} player gets the characters and tactic cards`}
+                onClick={() => setChosen(t)}
+              >
+                {COLOR_NAME[colors[t]]}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       {message && <div className="library-message">{message}</div>}
       <div className="library-results">
         {showKind('characters') && (
@@ -239,12 +261,13 @@ export function Library({ open, characters, seat }) {
             {sectionHeader(
               'tokens',
               'Tokens',
-              <div className="library-row">
+              <div className="library-modes" role="group" aria-label="Drop as">
                 {TOKEN_MODES.map((m) => (
                   <button
                     key={m.mode}
                     type="button"
-                    className={`chip${tokenMode === m.mode ? ' chip--active' : ''}`}
+                    className="library-mode"
+                    aria-pressed={tokenMode === m.mode}
                     title={m.title}
                     onClick={() => setTokenMode(m.mode)}
                   >
@@ -264,14 +287,14 @@ export function Library({ open, characters, seat }) {
                         <button
                           key={t.key}
                           type="button"
-                          className="token-chip"
+                          className="library-token"
                           title={t.description ? `${t.name}: ${t.description}` : t.name}
                           onPointerDown={(e) =>
                             actions.onLibraryTokenDragStart(e, t.key, tokenMode)
                           }
                         >
                           <img
-                            className="token-chip-icon"
+                            className="library-token-icon"
                             src={assetUrl(characterToken(t.key))}
                             alt={t.name}
                             draggable={false}
@@ -287,6 +310,6 @@ export function Library({ open, characters, seat }) {
         )}
         {nothing && <div className="library-empty">Nothing matches "{query}"</div>}
       </div>
-    </div>
+    </aside>
   )
 }

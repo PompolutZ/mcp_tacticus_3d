@@ -10,6 +10,8 @@ A player brings 3 kinds of things to the table: characters, Team Tactic cards an
 
 The **Library** button in the toolbar opens and closes the panel. Escape also closes it. The panel is on the left side of the screen, under the toolbar.
 
+The panel has the comic look of the table HUD. A black header holds the title, the search field with a yellow border and the filter buttons. The body is paper. Each section has a title and a "More (N) ›" link when the All filter hides items. The panel is never wider than the window minus the gutter, so the page does not scroll sideways.
+
 The panel stays open after a pick. So a player can add 5 characters, then 5 tactic cards, without opening it again.
 
 ```
@@ -29,8 +31,8 @@ The panel stays open after a pick. So a player can add 5 characters, then 5 tact
 ```
 
 - **Search:** one field for all kinds. A character matches by name or MCT code. A tactic card matches by name or MCT code. A token matches by name.
-- **Tabs:** All, Characters, Tactics, Tokens. All shows a section for each kind. The other tabs show one kind.
-- **For:** Blue or Red. The player who gets the characters and the tactic cards. Tokens belong to no player. Only in a single player room and the Sandbox, where one person plays both sides. In a multiplayer room there is no For group: the Library adds for the own side only (`src/ui/libraryTeam.js`). A seat without a side adds nothing: character rows and tactic cards are disabled, with the reason in the title.
+- **Filters:** toggle buttons All, Characters, Tactics, Tokens. The one that is on is yellow. All shows a section for each kind. The other filters show one kind.
+- **For:** Blue or Red, as plates in the side color. The chosen plate is full, the other one fades. The player who gets the characters and the tactic cards. Tokens belong to no player. Only in a single player room and the Sandbox, where one person plays both sides. In a multiplayer room there is no For group: the Library adds for the own side only (`src/ui/libraryTeam.js`). A seat without a side adds nothing: character rows and tactic cards are disabled, with the reason in the title.
 
 ## Characters
 

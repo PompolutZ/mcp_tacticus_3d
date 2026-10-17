@@ -130,3 +130,9 @@ Read on 2026-10-17.
 - Warnings, notice, HUD message: paper boxes in `ui/hud.css`; notice yellow; comic buttons.
 - `index.css`: removed `log*`, `hud-message`, `hud-notice*`, `hud-warning*`, `phase-button*`. The table buttons shared the green Power rule; only its `.phase-button--power` selectors went.
 - Differed: the closed bubble is a `div role="button"` (it holds block entries). The streamer right column does not move under the bubble yet (Step 4).
+
+### Step 3
+
+- `ui/Library.jsx` + `ui/library.css`: black header (title, search, filter toggle buttons with `aria-pressed`), paper body, rows, 3-column cards, 5-column token buttons, Single / Pile as joined toggle buttons. `.comic` on the root; width is the window minus the gutter at most.
+- The For row uses `seat-plate--blue` / `--red`; the chosen plate is full, the other fades. Spawned rows are light green, unavailable rows grey. Message, titles, gem tag, drag stay.
+- `index.css`: removed `library*` and `token-chip` (only the Library used it). `chip` and `chip--player-*` stay.
