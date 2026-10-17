@@ -23,7 +23,7 @@ import { WheelCamera } from './scene/WheelCamera.jsx'
 import { LoadingOverlay } from './rooms/LoadingOverlay.jsx'
 import { Preload, Ready } from './scene/Preload.jsx'
 import { TokenPanel } from './tokens/TokenPanel.jsx'
-import { CardPopup } from './rosters/CardPopup.jsx'
+import { CardPeek, CardPopup } from './rosters/CardPopup.jsx'
 import { TrayPopup } from './characters/TrayPopup.jsx'
 import { RosterPopupHost } from './rosters/RosterPopupHost.jsx'
 import { CrisisCompare } from './crisis/CrisisCompare.jsx'
@@ -941,7 +941,7 @@ export default function App({
           />
         )}
         <CardPopup card={openCard} onClose={() => setOpenCard(null)} />
-        {!popupOpen && <CardPopup card={peekCard} peek />}
+        {!popupOpen && <CardPeek card={peekCard} />}
         {settingsOpen && (
           <SettingsPopup
             settings={settings}

@@ -27,10 +27,9 @@ function TacticFacePopup({ tacticKey }) {
 // document.body): a tray's own drei <Html> controls must never be able to draw over it, see
 // index.css, .scene-root. A character tray card opens the whole tray instead (TrayPopup.jsx).
 // peek: the image while Alt is held (useCardPeek.js). The same image in the same place, but with no backdrop
-// and no pointer events, so the hover of the table under it goes on. The peek hides during a token or tool drag.
+// and no pointer events, so the hover of the table under it goes on. Needs no table store, so the lobby can use it.
 export function CardPopup({ card, onClose, peek = false }) {
-  const dragging = useTableStore((s) => !!(s.tokenDrag || s.toolDrag))
-  if (!card || (peek && dragging)) return null
+  if (!card) return null
 
   return (
     <Overlay
@@ -46,4 +45,12 @@ export function CardPopup({ card, onClose, peek = false }) {
       </div>
     </Overlay>
   )
+}
+
+// The Alt peek of a card (useCardPeek.js). Reads the table store, so only inside a TableStoreProvider.
+// It hides during a token or tool drag.
+export function CardPeek({ card }) {
+  const dragging = useTableStore((s) => !!(s.tokenDrag || s.toolDrag))
+  if (dragging) return null
+  return <CardPopup card={card} peek />
 }
