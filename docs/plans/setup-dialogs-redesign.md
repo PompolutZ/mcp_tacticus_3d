@@ -1,6 +1,6 @@
 # Plan: Setup dialogs redesign
 
-Requested by the user on 2026-10-17. Status: steps 1 to 3 done, waiting for the user test. Branch `setup-dialogs-redesign`, worktree `../mcp_assist_3d-setup-dialogs-redesign`.
+Requested by the user on 2026-10-17. Status: done, user test OK on 2026-10-17, merged to main. Branch `setup-dialogs-redesign`, worktree `../mcp_assist_3d-setup-dialogs-redesign`.
 
 Each step makes one commit and writes its **Result** below. Each step updates the feature docs where the look or the labels change: `squad-breakdown.md` (Step 1), `setup-game.md` "Crisis cards" (Steps 2 and 3).
 
