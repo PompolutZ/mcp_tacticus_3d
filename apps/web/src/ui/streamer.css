@@ -8,6 +8,7 @@
   --right-push: calc(var(--log-w) + 12px);
   position: absolute;
   top: var(--hud-top);
+  z-index: 2;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -32,18 +33,14 @@
   max-width: calc(100vw - 2 * var(--gutter) - var(--left-push));
 }
 
-/* Below the area of the log bubble that flashes on a new entry. An open Log is a tall bubble, so the
-   column then moves left of it and starts at the top. */
+/* The closed log bubble that flashes on a new entry (z-index 3) draws on top of this column. An open Log is a
+   tall bubble, so the column then moves left of it. */
 .streamer-col--right {
   right: var(--gutter);
-  top: calc(var(--hud-top) + 96px);
-  max-height: calc(100% - var(--hud-top) - 96px - 100px);
 }
 
 .streamer-col--right.streamer-col--pushed {
   right: calc(var(--gutter) + var(--right-push));
-  top: var(--hud-top);
-  max-height: calc(100% - var(--hud-top) - 100px);
   max-width: calc(100vw - 2 * var(--gutter) - var(--right-push));
 }
 
@@ -107,9 +104,6 @@
 
 .streamer-row {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: calc(6px * var(--s));
   min-height: calc(56px * var(--s));
   padding: calc(4px * var(--s)) calc(8px * var(--s));
   border-bottom: 2px dashed var(--ink);
@@ -132,6 +126,34 @@
   border: 2px solid var(--ink);
   border-radius: 50%;
   object-fit: cover;
+}
+
+.streamer-main {
+  display: flex;
+  flex-direction: column;
+  gap: calc(4px * var(--s));
+}
+
+/* Portrait with the tokens on the character next to it. No tokens, no row of its own beside the portrait. */
+.streamer-top {
+  display: flex;
+  align-items: center;
+  gap: calc(6px * var(--s));
+}
+
+.streamer-lower {
+  display: flex;
+  align-items: center;
+  gap: calc(6px * var(--s));
+}
+
+/* Fixed slot for the held crisis tokens, so the bars line up between rows */
+.streamer-held-slot {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  width: calc(26px * var(--s));
 }
 
 .streamer-bars {
@@ -188,11 +210,10 @@
 
 .streamer-tokens {
   display: flex;
-  flex: none;
+  flex: 1;
   flex-wrap: wrap;
   gap: calc(2px * var(--s));
-  justify-content: flex-end;
-  max-width: calc(84px * var(--s));
+  min-width: 0;
 }
 
 .streamer-tokens .tray-popup-token,

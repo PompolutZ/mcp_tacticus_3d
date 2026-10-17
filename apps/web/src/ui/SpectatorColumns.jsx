@@ -72,41 +72,51 @@ function Row({ character, held, off, ko }) {
   const tokens = Object.entries(character.tokens ?? {})
   return (
     <li className={off ? 'streamer-row streamer-row--off' : 'streamer-row'}>
-      <img
-        className="streamer-portrait"
-        src={assetUrl(characterPortrait(character.key))}
-        alt=""
-        title={name}
-        loading="lazy"
-        draggable={false}
-      />
-      <div className="streamer-bars">
-        <Bar
-          value={character.damage ?? 0}
-          max={stamina}
-          label="Damage"
-          short="Dmg"
-          className={
-            character.side === 'injured' ? 'streamer-bar--injured' : 'streamer-bar--healthy'
-          }
-        />
-        {!grunt && (
-          <Bar
-            value={character.power ?? 0}
-            max={MAX_POWER}
-            label="Power"
-            short="Pwr"
-            className="streamer-bar--power"
+      <div className="streamer-main">
+        <div className="streamer-top">
+          <img
+            className="streamer-portrait"
+            src={assetUrl(characterPortrait(character.key))}
+            alt=""
+            title={name}
+            loading="lazy"
+            draggable={false}
           />
-        )}
-      </div>
-      <div className="streamer-tokens">
-        {held.map((token) => (
-          <HeldMark key={token.id} token={token} />
-        ))}
-        {tokens.map(([key, count]) => (
-          <OnToken key={key} tokenKey={key} count={count} />
-        ))}
+          {tokens.length > 0 && (
+            <div className="streamer-tokens">
+              {tokens.map(([key, count]) => (
+                <OnToken key={key} tokenKey={key} count={count} />
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="streamer-lower">
+          <div className="streamer-bars">
+            <Bar
+              value={character.damage ?? 0}
+              max={stamina}
+              label="Damage"
+              short="Dmg"
+              className={
+                character.side === 'injured' ? 'streamer-bar--injured' : 'streamer-bar--healthy'
+              }
+            />
+            {!grunt && (
+              <Bar
+                value={character.power ?? 0}
+                max={MAX_POWER}
+                label="Power"
+                short="Pwr"
+                className="streamer-bar--power"
+              />
+            )}
+          </div>
+          <div className="streamer-held-slot">
+            {held.map((token) => (
+              <HeldMark key={token.id} token={token} />
+            ))}
+          </div>
+        </div>
       </div>
       {ko && <span className="streamer-ko">KO</span>}
     </li>

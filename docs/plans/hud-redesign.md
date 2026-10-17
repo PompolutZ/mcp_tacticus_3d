@@ -150,3 +150,9 @@ Read on 2026-10-17.
 - Small fix from Step 4: `--library-w` and `--log-w` are set once in `rooms/comic.css` and used by `library.css`, `log.css` and `streamer.css`.
 - `index.css`: removed `settings-*` and `key-*` rules.
 - Differed: the Reset, Add and Cancel buttons of a key row are small dialog buttons (the design shows none). The Keys tag and **Reset all keys** share one line.
+
+### Fixes after the user test
+
+- Log list scrolls, up to 50 entries (commit d04aaba).
+- Streamer rows: tokens on the character in a row above the bars; only held crisis tokens sit beside the bars, in a fixed slot.
+- Streamer columns start at the same top; the closed log bubble draws over the right column.
