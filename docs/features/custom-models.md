@@ -39,6 +39,7 @@ pnpm --filter web photos-to-glb ~/Pictures/crate --out /tmp/crate.glb --height 3
 |---|---|---|
 | `--out <file.glb>` | required | Output file |
 | `--base <size>` | none | `small`, `medium` or `large`: the object is a figure on a game base (35, 50 or 65 mm, `BASE_DIAMETER` in `src/characters/files.js`). Use the same size as `base` of the character in `characters.json`. See [Base](#base). |
+| `--stand` | off | The figure stands on a stand (a jar, for example) that is in the scan. The script cuts the stand off. Use it with `--base`. See [Stand](#stand). |
 | `--height <mm>` | none | Height of the real object in mm. Measure the real object. The app uses inches (1 unit = 1"), so the script converts it. |
 | `--triangles <n>` | 30000 | Maximum number of triangles. The migrated figures have about 30k. |
 | `--texture <px>` | 2048 | Maximum texture size: 1024, 2048 or 4096. The migrated characters use 1024. |
@@ -66,6 +67,19 @@ RealityKit prints a line that starts with `E5RT encountered an STL exception` (t
 
 When the real base is thicker than 3 mm, the top part of its scanned rim stays above the team color, with the scanned paint. The migrated models look the same: the team color is the bottom disk, and the scenic base on top has its own texture.
 
+## Stand
+
+A figure can stand on a jar or a block when you take the photos, so the camera sees the whole figure. Object Capture keeps the stand in the scan. Without `--stand`, `--base` takes the top of the stand as the base: the stand gets the base size and the team color.
+
+With `--stand`, the script cuts the stand off the raw scan, before the size and the base steps:
+
+1. It cuts the scan height into bands and takes the width of each band (the mean of its x and z extent).
+2. In the lower half of the scan, it finds the two bands next to each other where the width drops the most. That is the top of the stand.
+3. It deletes every triangle with a corner below that height. The base of the figure is now the bottom of the scan, and the `--base` steps work on it as usual.
+4. It prints the cut height as a part of the scan height, and the width of the figure base as a part of the stand width. Check that these are what you expect.
+
+Limit: this works only when the stand is clearly wider than the figure base. If the biggest step is not narrow enough, the script stops with an error and writes nothing. A stand that is as wide as the figure base, or a figure that gets wider above its base, is not found. The constants are in `scripts/photos-to-glb.mjs`.
+
 ## How to take the photos
 
 These rules come from Apple's Object Capture guide.
@@ -75,6 +89,7 @@ These rules come from Apple's Object Capture guide.
 - The object must fill most of the photo. More pixels on the object give more detail and a bigger texture.
 - Use even, soft light without hard shadows and without flash. The light of the photos is copied into the texture, so a shadow in the photos is a shadow on the model.
 - Use a plain background. Object Capture removes the background (object masking is on).
+- A stand under the figure (a jar, for example) is fine. Use `--stand`.
 - Shiny, transparent and very thin parts do not work well.
 
 ## Output

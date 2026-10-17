@@ -20,6 +20,8 @@ Options:
   --base <size>       small, medium or large: a figure on a game base. The scanned base is replaced by a
                       base of the game size with the team color, and its center goes to the origin.
                       Without --height, the scale comes from the base size.
+  --stand             the figure stands on a stand (a jar, for example) that is in the scan. The script
+                      finds the top of the stand and deletes the scan below it. Use it with --base.
   --height <mm>       height of the real object in mm. The app uses inches (1 unit = 1"), so the script
                       converts it. Without it and without --base, the Object Capture size is read as
                       meters. That is correct only for iPhone photos with depth data.
@@ -32,6 +34,7 @@ const { values: opts, positionals } = parseArgs({
     out: { type: 'string' },
     base: { type: 'string' },
     height: { type: 'string' },
+    stand: { type: 'boolean', default: false },
     triangles: { type: 'string', default: '30000' },
     texture: { type: 'string', default: String(TEXTURE_SIZE) },
     help: { type: 'boolean', short: 'h' },
@@ -73,6 +76,12 @@ const BASE_SEGMENTS = 48
 // because Object Capture rounds off the bottom edge: in the test, 38 mm at the bottom, 50 mm at 3.8 mm.
 const BASE_SLICE = 0.06
 const BASE_BANDS = 12
+// --stand cuts the scan height into STAND_BANDS bands and looks for the stand top in the lower
+// STAND_SEARCH of the scan. The stand top is the biggest step down in width between two bands.
+// The step must be at least this narrowing (upper width / lower width), or there is no stand.
+const STAND_BANDS = 40
+const STAND_SEARCH = 0.5
+const STAND_MAX_RATIO = 0.75
 
 if (!fs.statSync(PHOTOS, { throwIfNoEntry: false })?.isDirectory())
   throw new Error(`Not a directory: ${PHOTOS}`)
@@ -107,6 +116,7 @@ async function convert() {
   const obj = fs.readdirSync(WORK_DIR).find((f) => f.endsWith('.obj'))
   if (!obj) throw new Error(`No OBJ file in ${WORK_DIR}`)
   const doc = await readObj(path.join(WORK_DIR, obj))
+  if (opts.stand) cutStand(doc)
   placeOnTable(doc)
   if (base) replaceBase(doc)
   texturesToWebp(doc, textureSize)
@@ -203,6 +213,62 @@ function findScanBase(doc, bottom, sliceHeight) {
   return found.reduce((a, b) => (b.diameter > a.diameter ? b : a))
 }
 
+// Keeps the triangles of prim for which keep(corner heights) is true, and deletes the vertices that no
+// triangle uses now.
+function keepTriangles(prim, keep) {
+  const indices = prim.getIndices()
+  const all = indices.getArray()
+  const position = prim.getAttribute('POSITION')
+  const v = [0, 0, 0]
+  const kept = []
+  for (let i = 0; i < all.length; i += 3) {
+    const corners = [all[i], all[i + 1], all[i + 2]]
+    if (keep(corners.map((c) => position.getElement(c, v)[1]))) kept.push(...corners)
+  }
+  indices.setArray(new all.constructor(kept))
+  compactPrimitive(prim)
+}
+
+// Deletes the stand under a figure from the raw scan. The scan is cut into STAND_BANDS bands. The stand
+// top is the boundary with the smallest upper/lower width ratio in the lower part of the scan. Every
+// triangle with a corner below it is deleted, so the figure base is the bottom of the scan.
+function cutStand(doc) {
+  const { min, max } = getBounds(doc.getRoot().listScenes()[0])
+  const bandHeight = (max[1] - min[1]) / STAND_BANDS
+  const bands = Array.from({ length: STAND_BANDS }, () => ({
+    lo: [Infinity, Infinity],
+    hi: [-Infinity, -Infinity],
+  }))
+  const v = [0, 0, 0]
+  for (const prim of prims(doc)) {
+    const position = prim.getAttribute('POSITION')
+    for (let i = 0; i < position.getCount(); i++) {
+      position.getElement(i, v)
+      const band = bands[Math.min(STAND_BANDS - 1, Math.floor((v[1] - min[1]) / bandHeight))]
+      band.lo = [Math.min(band.lo[0], v[0]), Math.min(band.lo[1], v[2])]
+      band.hi = [Math.max(band.hi[0], v[0]), Math.max(band.hi[1], v[2])]
+    }
+  }
+  const widths = bands.map(({ lo, hi }) =>
+    lo[0] === Infinity ? null : (hi[0] - lo[0] + hi[1] - lo[1]) / 2,
+  )
+  let cut = null
+  for (let i = 0; i + 1 < STAND_BANDS * STAND_SEARCH; i++) {
+    if (widths[i] === null || widths[i + 1] === null) continue
+    const ratio = widths[i + 1] / widths[i]
+    if (!cut || ratio < cut.ratio) cut = { upper: i + 1, ratio }
+  }
+  if (!cut || cut.ratio >= STAND_MAX_RATIO)
+    throw new Error(
+      `--stand: no stand found. The biggest step down in width is ${cut ? cut.ratio.toFixed(2) : 'unknown'}, it must be below ${STAND_MAX_RATIO}.`,
+    )
+  const height = min[1] + cut.upper * bandHeight
+  for (const prim of prims(doc)) keepTriangles(prim, (ys) => ys.every((y) => y >= height))
+  console.log(
+    `Stand top at ${Math.round((cut.upper / STAND_BANDS) * 100)} % of the scan height. Figure base is ${cut.ratio.toFixed(2)} of the stand width.`,
+  )
+}
+
 // Replaces the scanned base with a cylinder of the game size and the material defaultMat.
 // CharacterModel.jsx gives that material the team color, as on the migrated models.
 // Scan triangles with all corners below the top of the new base are deleted. The corners of the other
@@ -211,17 +277,7 @@ function findScanBase(doc, bottom, sliceHeight) {
 function replaceBase(doc) {
   const v = [0, 0, 0]
   for (const prim of prims(doc)) {
-    const indices = prim.getIndices()
-    const all = indices.getArray()
-    const scanned = prim.getAttribute('POSITION')
-    const kept = []
-    for (let i = 0; i < all.length; i += 3) {
-      const corners = [all[i], all[i + 1], all[i + 2]]
-      if (corners.some((c) => scanned.getElement(c, v)[1] >= BASE_HEIGHT)) kept.push(...corners)
-    }
-    indices.setArray(new all.constructor(kept))
-    // Deletes the vertices that no triangle uses now
-    compactPrimitive(prim)
+    keepTriangles(prim, (corners) => corners.some((y) => y >= BASE_HEIGHT))
     const position = prim.getAttribute('POSITION')
     for (let i = 0; i < position.getCount(); i++) {
       position.getElement(i, v)
