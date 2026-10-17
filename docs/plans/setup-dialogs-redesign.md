@@ -87,3 +87,12 @@ The look of `lobby-redesign.md` ("The look"): ink, paper, yellow, red, blue, nig
 - Checks: format, lint, web tests, build.
 
 ## Results
+
+### Step 1: Breakdown tab
+
+- `BreakdownTab.jsx`: new markup and classes, same logic. Threat buttons are `role="tab"` in a `tablist` with `aria-selected` and the label "Threat 19, 38 squads". A row is a `<button>` with `aria-pressed` when a click chooses, else a plain `div`; the `div role=button` and `onKeyDown` are gone. The leader star is an svg with `role="img"` and label "leader".
+- `roster.css`: all breakdown rules, scoped to `.roster-comic`, with the design's sizes and colors. `.pop` from `comic.css` gives the hover and press; the selected threat button and the current squad row override it to keep their turn and red shadow. Narrow screen at 640 px.
+- `index.css`: all `breakdown-*` rules removed. `.chip` stays (other users).
+- `squad-breakdown.md`: look, sketch, labels.
+- Differences from the design: threat buttons are one per value of `threats` (not fixed); the "More filters" label keeps the filter count; affiliation chips keep icons; the panel has a fixed height with its own scroll (the stage keeps its size across tabs) and the dashed part comes before the More filters button, as in the design, with the buttons last in the box. Chips have a hover shadow, not `.pop`.
+- Checks: format, lint (no new warnings), web tests 1041 pass, build OK. Not checked in a browser.

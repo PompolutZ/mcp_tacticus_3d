@@ -54,7 +54,7 @@ export function BreakdownTab({ parsed, breakdown }) {
   if (parsed.characters.length > MAX_BREAKDOWN_CHARACTERS) {
     return (
       <div className="breakdown">
-        <p className="breakdown-line">
+        <p className="breakdown-message">
           This roster has more than {MAX_BREAKDOWN_CHARACTERS} characters, so there is no breakdown.
         </p>
       </div>
@@ -108,11 +108,7 @@ export function BreakdownTab({ parsed, breakdown }) {
             <button
               key={place}
               type="button"
-              className={
-                filters[key].includes(place)
-                  ? 'chip breakdown-icon-chip chip--active'
-                  : 'chip breakdown-icon-chip'
-              }
+              className={`breakdown-chip${key === 'mustNot' ? ' breakdown-chip--not' : ''}`}
               aria-pressed={filters[key].includes(place)}
               onClick={() => toggleCharacter(key, other, place)}
             >
@@ -132,7 +128,7 @@ export function BreakdownTab({ parsed, breakdown }) {
           <button
             key={value ?? 'any'}
             type="button"
-            className={value === selected ? 'chip chip--active' : 'chip'}
+            className="breakdown-seg"
             aria-pressed={value === selected}
             onClick={() => onSelect(value)}
           >
@@ -142,37 +138,42 @@ export function BreakdownTab({ parsed, breakdown }) {
       </div>
     </div>
   )
+  const hint = canChoose
+    ? 'Click a squad to choose it. Choose the Team Tactic cards on the table.'
+    : chooseBlock
   return (
     <div className="breakdown">
-      <div className="breakdown-threats">
-        {threats.map((value) => (
-          <button
-            key={value}
-            type="button"
-            className={value === threat ? 'chip chip--active' : 'chip'}
-            onClick={() => {
-              if (value !== threat) onThreatChange(value)
-            }}
-          >
-            {value} ({byThreat.get(value).length})
-          </button>
-        ))}
+      <div className="breakdown-head">
+        <div>
+          <h2 className="breakdown-title">Squad breakdown</h2>
+          <p className="breakdown-sub">Pick a threat level</p>
+        </div>
+        <div className="breakdown-threats" role="tablist" aria-label="Threat level">
+          {threats.map((value) => {
+            const count = byThreat.get(value).length
+            return (
+              <button
+                key={value}
+                type="button"
+                role="tab"
+                className="pop breakdown-threat"
+                aria-selected={value === threat}
+                aria-label={`Threat ${value}, ${count} ${count === 1 ? 'squad' : 'squads'}`}
+                onClick={() => {
+                  if (value !== threat) onThreatChange(value)
+                }}
+              >
+                <span className="breakdown-threat-level">{value}</span>
+                <span className="breakdown-threat-count">{count}</span>
+              </button>
+            )
+          })}
+        </div>
       </div>
       <div className="breakdown-filters">
         {characterRow('must', 'mustNot', 'Must have')}
-        <div>
-          <button
-            type="button"
-            className={filtersOpen ? 'chip chip--active' : 'chip'}
-            aria-expanded={filtersOpen}
-            onClick={() => setFiltersOpen(!filtersOpen)}
-          >
-            {filterCount > 0 ? `More filters (${filterCount})` : 'More filters'}{' '}
-            {filtersOpen ? '▴' : '▾'}
-          </button>
-        </div>
         {filtersOpen && (
-          <>
+          <div className="breakdown-more">
             {characterRow('mustNot', 'must', 'Must not have')}
             <div className="breakdown-filter">
               <span className="breakdown-filter-label">Affiliation</span>
@@ -181,11 +182,7 @@ export function BreakdownTab({ parsed, breakdown }) {
                   <button
                     key={key}
                     type="button"
-                    className={
-                      filters.affiliation === key
-                        ? 'chip breakdown-icon-chip chip--active'
-                        : 'chip breakdown-icon-chip'
-                    }
+                    className="breakdown-seg breakdown-seg--icon"
                     aria-pressed={filters.affiliation === key}
                     onClick={() =>
                       setFilters({ affiliation: filters.affiliation === key ? null : key })
@@ -203,7 +200,7 @@ export function BreakdownTab({ parsed, breakdown }) {
                 ))}
               </div>
             </div>
-            <div className="breakdown-filter">
+            <div className="breakdown-checks">
               <label className="breakdown-check">
                 <input
                   type="checkbox"
@@ -223,72 +220,113 @@ export function BreakdownTab({ parsed, breakdown }) {
             </div>
             {sizeRow('Min size', [null, 3, 4, 5, 6, 7], filters.minSize, setMin)}
             {sizeRow('Max size', [3, 4, 5, 6, 7, null], filters.maxSize, setMax)}
-            <div>
-              <button
-                type="button"
-                className="chip"
-                onClick={() => onFiltersChange(DEFAULT_FILTERS)}
-              >
-                Reset filters
-              </button>
-            </div>
-          </>
+          </div>
         )}
-      </div>
-      <p className="breakdown-line">
-        {rows.length === 0
-          ? filtered
-            ? `No squad has threat ${threat} with these filters.`
-            : `No squad has threat ${threat}.`
-          : `${rows.length} ${rows.length === 1 ? 'squad' : 'squads'}`}
-      </p>
-      <p className="breakdown-line">
-        {canChoose
-          ? 'Click a squad to choose it. Choose the Team Tactic cards on the table.'
-          : chooseBlock}
-      </p>
-      <ul className="breakdown-list">
-        {rows.map((row) => (
-          <li key={row.places.join('-')}>
-            <div
-              className={`breakdown-row${canChoose ? ' breakdown-row--click' : ''}${sameSquad(row.places) ? ' breakdown-row--squad' : ''}`}
-              role={canChoose ? 'button' : undefined}
-              tabIndex={canChoose ? 0 : undefined}
-              onClick={canChoose ? () => onChoose(row.places) : undefined}
-              onKeyDown={
-                canChoose
-                  ? (e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        onChoose(row.places)
-                      }
-                    }
-                  : undefined
-              }
+        <div className="breakdown-actions">
+          <button
+            type="button"
+            className="pop breakdown-more-button"
+            aria-expanded={filtersOpen}
+            onClick={() => setFiltersOpen(!filtersOpen)}
+          >
+            {filtersOpen ? 'Fewer filters' : 'More filters'}
+            {filterCount > 0 ? ` (${filterCount})` : ''}
+            <svg
+              className="breakdown-chevron"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
             >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+          {filtersOpen && (
+            <button
+              type="button"
+              className="breakdown-reset"
+              onClick={() => onFiltersChange(DEFAULT_FILTERS)}
+            >
+              Reset filters
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="breakdown-summary">
+        <span className="breakdown-count">
+          {rows.length === 0
+            ? filtered
+              ? `No squad has threat ${threat} with these filters.`
+              : `No squad has threat ${threat}.`
+            : `${rows.length} ${rows.length === 1 ? 'squad' : 'squads'}`}
+        </span>
+        <span className="breakdown-hint">{hint}</span>
+      </div>
+      <ul className="breakdown-list">
+        {rows.map((row) => {
+          const squad = sameSquad(row.places)
+          const content = (
+            <>
               <span className="breakdown-total">{row.threat}</span>
-              <div className="breakdown-characters">
+              <span className="breakdown-characters">
                 {row.places.map((place) => {
                   const character = characterByCode(parsed.characters[place].code)
                   return (
-                    <div key={place} className="breakdown-character">
+                    <span key={place} className="breakdown-character">
                       <CharacterPortrait character={character} className="breakdown-portrait" />
                       <span className="breakdown-name">{character?.name}</span>
-                    </div>
+                    </span>
                   )
                 })}
-              </div>
-              <div className="breakdown-affiliations">
+              </span>
+              <span className="breakdown-affiliations">
                 {row.affiliations.map((a) => (
                   <span key={a.key} className="breakdown-affiliation">
                     {affiliationName(a.key)}
-                    {a.leader ? ' ★' : ''}
+                    {a.leader && (
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinejoin="round"
+                        role="img"
+                        aria-label="leader"
+                      >
+                        <path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.5 1.3 6.6L12 17.2l-5.9 3.3 1.3-6.6-4.9-4.5 6.6-.8z" />
+                      </svg>
+                    )}
                   </span>
                 ))}
-              </div>
-            </div>
-          </li>
-        ))}
+              </span>
+            </>
+          )
+          return (
+            <li key={row.places.join('-')}>
+              {canChoose ? (
+                <button
+                  type="button"
+                  className={`pop breakdown-row${squad ? ' breakdown-row--squad' : ''}`}
+                  aria-pressed={squad}
+                  onClick={() => onChoose(row.places)}
+                >
+                  {content}
+                </button>
+              ) : (
+                <div className={`breakdown-row${squad ? ' breakdown-row--squad' : ''}`}>
+                  {content}
+                </div>
+              )}
+            </li>
+          )
+        })}
       </ul>
     </div>
   )
