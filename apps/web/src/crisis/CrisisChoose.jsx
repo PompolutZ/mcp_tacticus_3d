@@ -34,11 +34,13 @@ export function CrisisChoose({ setup, parsed, ctx, onPick, onClose }) {
       <header
         className={`roster-comic-head roster-comic-head--${row.type === 'secure' ? 'blue' : 'red'}`}
       >
-        <div className="roster-comic-heading">
-          <div className="roster-comic-tag">
-            {playerName(row.team, ctx)} · {noun} · pick one
+        <div className="roster-comic-head-row">
+          <div className="roster-comic-heading">
+            <div className="roster-comic-tag">
+              {playerName(row.team, ctx)} · {noun} · pick one
+            </div>
+            <h2 className="roster-comic-title">{title}</h2>
           </div>
-          <h2 className="roster-comic-title">{title}</h2>
         </div>
       </header>
       <div className="roster-comic-stage crisis-choose-stage">

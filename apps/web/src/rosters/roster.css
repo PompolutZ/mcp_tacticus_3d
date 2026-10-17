@@ -79,10 +79,8 @@
 .roster-comic-head {
   flex: 0 0 auto;
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 20px;
+  flex-direction: column;
+  gap: 12px;
   padding: 22px 30px 0;
   background-color: var(--blue);
   background-image: radial-gradient(rgba(255, 255, 255, 0.12) 24%, transparent 26%);
@@ -99,9 +97,24 @@
   background-image: radial-gradient(rgba(255, 255, 255, 0.12) 24%, transparent 26%);
 }
 
+/* Row 1 of the header: the title at the left, one action (Jarvis link, deck button) at the right */
+.roster-comic-head-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+
 .roster-comic-heading {
   min-width: 0;
-  padding-bottom: 14px;
+  padding-bottom: 10px;
+}
+
+/* Clears the yellow × on the corner */
+.roster-comic-jarvis {
+  flex: none;
+  margin: 4px 40px 0 0;
 }
 
 .roster-comic-tag {
@@ -126,13 +139,6 @@
   overflow-wrap: anywhere;
 }
 
-.roster-comic-head-side {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 14px;
-}
-
 .roster-comic .comic-button {
   text-decoration: none;
 }
@@ -145,7 +151,6 @@
 .roster-comic-tabs {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
   gap: 6px;
   margin-bottom: -5px;
 }

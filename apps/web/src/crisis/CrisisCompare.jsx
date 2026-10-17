@@ -64,38 +64,36 @@ export function CrisisCompare({ open, setup, parsed, ctx, mySide, stepRef, onCho
       onClose={onClose}
     >
       <header
-        className={`roster-comic-head crisis-compare-head roster-comic-head--${tab === 'secure' ? 'blue' : 'red'}`}
+        className={`roster-comic-head roster-comic-head--${tab === 'secure' ? 'blue' : 'red'}`}
       >
-        <div className="roster-comic-heading">
-          <div className="roster-comic-tag">
-            {mySide ? 'You' : playerName(top, ctx)} vs {otherName}
+        <div className="roster-comic-head-row">
+          <div className="roster-comic-heading">
+            <div className="roster-comic-tag">
+              {mySide ? 'You' : playerName(top, ctx)} vs {otherName}
+            </div>
+            <h2 className="roster-comic-title">Compare {noun}s</h2>
           </div>
-          <h2 className="roster-comic-title">Compare {noun}s</h2>
+          {button && (
+            <button
+              type="button"
+              className="crisis-cta"
+              disabled={button.disabled}
+              aria-disabled={button.locked !== null}
+              title={button.title}
+              onClick={
+                button.locked === null
+                  ? () => {
+                      onChoose(tab)
+                      onClose()
+                    }
+                  : undefined
+              }
+            >
+              Choose my {noun}s!
+            </button>
+          )}
         </div>
-        {button && (
-          <button
-            type="button"
-            className="crisis-cta"
-            disabled={button.disabled}
-            aria-disabled={button.locked !== null}
-            title={button.title}
-            onClick={
-              button.locked === null
-                ? () => {
-                    onChoose(tab)
-                    onClose()
-                  }
-                : undefined
-            }
-          >
-            Choose my {noun}s!
-          </button>
-        )}
-        <div
-          className="roster-comic-tabs crisis-compare-tabs"
-          role="tablist"
-          aria-label="Crisis type"
-        >
+        <div className="roster-comic-tabs" role="tablist" aria-label="Crisis type">
           {CRISIS_TYPES.map((type) => (
             <button
               key={type}

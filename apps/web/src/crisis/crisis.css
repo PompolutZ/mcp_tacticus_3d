@@ -8,21 +8,6 @@
   --card-h: clamp(110px, min(calc((100vh - 470px) / 2), 46vw), 368px);
 }
 
-.crisis-compare-head {
-  row-gap: 12px;
-}
-
-.crisis-compare-head .roster-comic-heading {
-  flex: 1;
-  padding-bottom: 6px;
-}
-
-/* The tabs sit on their own row at the bottom of the header, at the left */
-.crisis-compare-tabs {
-  flex: 1 0 100%;
-  justify-content: flex-start;
-}
-
 /* The deck button: yellow, skewed. Hover and press keep the skew. */
 .crisis-cta {
   flex: none;
@@ -151,7 +136,7 @@
     right: -10px;
   }
 
-  .crisis-compare-head {
+  .crisis-compare .roster-comic-head {
     padding: 16px 14px 0;
   }
 

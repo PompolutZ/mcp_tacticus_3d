@@ -73,49 +73,52 @@ export function RosterPopup({
       onClose={onClose}
     >
       <header className={`roster-comic-head roster-comic-head--${color ?? 'neutral'}`}>
-        <div className="roster-comic-heading">
-          {roomCode && seat && (
-            <div className="roster-comic-tag">
-              Room {roomCode} · {seat}
-            </div>
-          )}
-          <h2 className="roster-comic-title">{title}</h2>
-        </div>
-        <div className="roster-comic-head-side">
-          <JarvisLink className="comic-button pop" href={jarvisRosterUrl(parsed)}>
+        <div className="roster-comic-head-row">
+          <div className="roster-comic-heading">
+            {roomCode && seat && (
+              <div className="roster-comic-tag">
+                Room {roomCode} · {seat}
+              </div>
+            )}
+            <h2 className="roster-comic-title">{title}</h2>
+          </div>
+          <JarvisLink
+            className="comic-button pop roster-comic-jarvis"
+            href={jarvisRosterUrl(parsed)}
+          >
             Open whole roster on Jarvis
           </JarvisLink>
-          <div className="roster-comic-tabs" role="tablist" aria-label="Card type">
-            {ROSTER_TABS.map((t) => (
-              <button
-                key={t.key}
-                type="button"
-                role="tab"
-                aria-selected={t.key === tab}
-                className="roster-comic-tab"
-                disabled={tabs[t.key].length === 0}
-                onClick={() => {
-                  if (t.key !== tab) onTabChange(t.key)
-                }}
-              >
-                {t.label} <span className="roster-comic-tab-count">{tabs[t.key].length}</span>
-              </button>
-            ))}
-            {breakdown && (
-              <button
-                type="button"
-                role="tab"
-                aria-selected={tab === 'breakdown'}
-                className="roster-comic-tab"
-                disabled={parsed.characters.length === 0}
-                onClick={() => {
-                  if (tab !== 'breakdown') onTabChange('breakdown')
-                }}
-              >
-                Breakdown
-              </button>
-            )}
-          </div>
+        </div>
+        <div className="roster-comic-tabs" role="tablist" aria-label="Card type">
+          {ROSTER_TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              role="tab"
+              aria-selected={t.key === tab}
+              className="roster-comic-tab"
+              disabled={tabs[t.key].length === 0}
+              onClick={() => {
+                if (t.key !== tab) onTabChange(t.key)
+              }}
+            >
+              {t.label} <span className="roster-comic-tab-count">{tabs[t.key].length}</span>
+            </button>
+          ))}
+          {breakdown && (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'breakdown'}
+              className="roster-comic-tab"
+              disabled={parsed.characters.length === 0}
+              onClick={() => {
+                if (tab !== 'breakdown') onTabChange('breakdown')
+              }}
+            >
+              Breakdown
+            </button>
+          )}
         </div>
       </header>
       <div className="roster-comic-stage">
