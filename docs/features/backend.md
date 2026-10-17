@@ -29,7 +29,7 @@ Every AWS resource is defined in code (CDK). Nobody creates or changes AWS resou
 | Local dev | API in its own Node process (`@hono/node-server`). Vite forwards `/api` to it |
 | Tests | Vitest. Route tests through `app.request()`. Mongo store tests with Testcontainers |
 | Deploy | First from the user's machine with an assumed role. Then GitHub Actions with OIDC, on push to `main` |
-| Web hosting | Netlify, `https://mcptacticus3d.netlify.app`. Build settings in `netlify.toml`, output in `apps/web/dist` |
+| Web hosting | Netlify, `https://herotable3d.netlify.app`. Build settings in `netlify.toml`, output in `apps/web/dist` |
 
 ## Repo layout
 
@@ -130,7 +130,7 @@ The table snapshot is binary (`application/octet-stream`). Lambda base64-encodes
 - **Function.** `NodejsFunction`, `nodejs24.x`, arm64, 256 MB, 10 s timeout. arm64 costs 20 % less per GB-second, and all dependencies are plain JavaScript. The bundle is minified and has source maps. `@aws-sdk/*` is not bundled, because the Node runtime has AWS SDK v3.
 - **Function URL.** Auth type `NONE`. Since October 2025, a function URL needs two invoke permissions. CDK 2.220.0 and later adds both.
 - **CORS** is set in the function URL config only:
-  - Origin: `https://mcptacticus3d.netlify.app`.
+  - Origin: `https://herotable3d.netlify.app`.
   - Headers: `authorization`, `content-type`, `x-after` (the signaling poll).
   - Methods: GET, POST, PUT, PATCH, DELETE.
   - `maxAge`: 86400 seconds. Browsers use less: Chrome keeps a preflight result for at most 2 hours.
@@ -216,7 +216,7 @@ CDK needs `cdk bootstrap` once per account and region, with admin rights. It cre
 | API | Lambda function URL | `tsx watch src/local.ts`, port 8787. Vite forwards `/api/*` to it |
 | Store | Atlas | Memory (default), or `mongo` in Docker with `STORE=mongo` |
 | Secrets | SSM | `apps/api/.env` |
-| Discord | Redirect `https://mcptacticus3d.netlify.app/` | The same Discord application, redirect `http://localhost:5173/` |
+| Discord | Redirect `https://herotable3d.netlify.app/` | The same Discord application, redirect `http://localhost:5173/` |
 
 - `pnpm dev` at the root starts both.
 - The dev Mongo: `pnpm --filter api db:up` starts `mongo:8` from `apps/api/compose.yaml`, with a named volume. Set `STORE=mongo` in `apps/api/.env`. The data survives restarts of the API, so testers stay logged in. `db:down` stops it and keeps the data. `docker compose down -v` in `apps/api` deletes it. Port `127.0.0.1:27017`, no password.
@@ -263,7 +263,7 @@ region = eu-central-1
 
 ### Netlify
 
-The site is `https://mcptacticus3d.netlify.app`. Netlify builds the web app from git, as today. The build settings are in `netlify.toml` at the repo root, not in the Netlify UI:
+The site is `https://herotable3d.netlify.app`. Netlify builds the web app from git, as today. The build settings are in `netlify.toml` at the repo root, not in the Netlify UI:
 
 ```toml
 [build]
@@ -323,7 +323,7 @@ The site is `https://mcptacticus3d.netlify.app`. Netlify builds the web app from
 11. CORS only in the function URL config.
 12. The local API is its own Node process behind the Vite proxy. No Vite plugin.
 13. Atlas is set up with Atlas CLI commands, not with CDK.
-14. The site is `https://mcptacticus3d.netlify.app`. Its build settings are in `netlify.toml` at the repo root, not in the Netlify UI.
+14. The site is `https://herotable3d.netlify.app`. Its build settings are in `netlify.toml` at the repo root, not in the Netlify UI.
 
 ## Open questions
 

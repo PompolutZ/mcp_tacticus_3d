@@ -8,7 +8,7 @@ import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
 import * as logs from 'aws-cdk-lib/aws-logs'
 import type { Construct } from 'constructs'
 
-const SITE_ORIGIN = 'https://mcptacticus3d.netlify.app'
+const SITE_ORIGIN = 'https://herotable3d.netlify.app'
 const SSM_PREFIX = '/mcptacticus/prod/'
 const repoRoot = path.resolve(import.meta.dirname, '../..')
 

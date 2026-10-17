@@ -26,7 +26,7 @@ In TTS, the Steam account gives each player a name and an avatar. Here, the Disc
 | Users | Collection `users`. Our own user id, the Discord id is a unique field |
 | Rooms | Collection `rooms`: setup, host, two seats, and a snapshot of the table (Yjs) |
 | Single player rooms | Stay in `localStorage`, as today. They never connect to another player |
-| Site | `https://mcptacticus3d.netlify.app` |
+| Site | `https://herotable3d.netlify.app` |
 | Cost | $0. See [Cost](#cost) |
 
 ## Terms
@@ -230,7 +230,7 @@ The Discord Developer Terms of Service (effective 2024-07-08, section 5) apply t
 
 | Requirement (section) | How the app does it |
 |---|---|
-| A privacy policy that says what data the app collects, how it uses the data and shares it with Discord and third parties, and how a user can ask for deletion (5a) | The static page `apps/web/public/privacy.html`, at `https://mcptacticus3d.netlify.app/privacy.html` |
+| A privacy policy that says what data the app collects, how it uses the data and shares it with Discord and third parties, and how a user can ask for deletion (5a) | The static page `apps/web/public/privacy.html`, at `https://herotable3d.netlify.app/privacy.html` |
 | A public link to the privacy policy in the Developer Portal, and easy to reach from the app (5a) | The Privacy Policy URL field of the Discord application. The **Privacy** link in the lobby footer |
 | Share API Data only with service providers, when the law requires it, or when the user directs it (5b) | AWS and MongoDB Atlas are service providers. The opponent sees the name and avatar because the player joins a game with them. The lobby and the privacy page say this |
 | Update the data when the user asks (5b) | Each login updates the name and the avatar |
@@ -249,8 +249,8 @@ The Discord Developer Terms of Service (effective 2024-07-08, section 5) apply t
 
 - The Discord client id, the client secret and the session secret are SSM `SecureString` parameters. The Lambda reads them at cold start (backend doc, "Secrets and config"). They are not Lambda env vars, because CDK writes env var values in plain text into the template.
 - The browser reads the client id from `VITE_DISCORD_CLIENT_ID`: a Netlify env var in production, `apps/web/.env.local` in dev.
-- Discord accepts only the redirect URIs registered in the Developer Portal: `https://mcptacticus3d.netlify.app/` and `http://localhost:5173/`. So a Netlify deploy preview (another origin) cannot log in.
-- CORS is set in the function URL config, for the origin `https://mcptacticus3d.netlify.app` only (backend doc, "McpTacticusApi"). In dev, Vite forwards `/api` to the local API, so there is no CORS.
+- Discord accepts only the redirect URIs registered in the Developer Portal: `https://herotable3d.netlify.app/` and `http://localhost:5173/`. So a Netlify deploy preview (another origin) cannot log in.
+- CORS is set in the function URL config, for the origin `https://herotable3d.netlify.app` only (backend doc, "McpTacticusApi"). In dev, Vite forwards `/api` to the local API, so there is no CORS.
 - The Lambda checks every write against the seat rules. The browser hides buttons, but the Lambda decides.
 - Same as the peer-to-peer doc: no protection against cheating inside a game.
 
@@ -258,7 +258,7 @@ The Discord Developer Terms of Service (effective 2024-07-08, section 5) apply t
 
 The site has a fixed address before the Discord application gets its production redirect URI. No own domain for now.
 
-- The existing Netlify site is renamed to `mcptacticus3d` (Site configuration → General → Site details → **Change site name**). A new site was not needed.
+- The existing Netlify site is renamed to `herotable3d` (Site configuration → General → Site details → **Change site name**). A new site was not needed.
 - After the rename, the old `*.netlify.app` address returns 404. Netlify does not redirect it.
 - `localStorage` belongs to one origin. So the single player rooms that were saved on the old address do not show on the new one. This does not matter before the first release, because all data is test data.
 
@@ -267,8 +267,8 @@ The site has a fixed address before the Discord application gets its production 
 Created once, by hand, in the Discord Developer Portal:
 
 1. **New Application**. Use a name like the site (`mcptacticus3d`), because Discord shows the name on the consent screen.
-2. **OAuth2 → Redirects:** `http://localhost:5173/`, and `https://mcptacticus3d.netlify.app/` for production (not set yet).
-3. **Privacy Policy URL:** `https://mcptacticus3d.netlify.app/privacy.html`, for production (not set yet).
+2. **OAuth2 → Redirects:** `http://localhost:5173/`, and `https://herotable3d.netlify.app/` for production.
+3. **Privacy Policy URL:** `https://herotable3d.netlify.app/privacy.html`, for production (not set yet).
 4. Copy the client id to `VITE_DISCORD_CLIENT_ID` in `apps/web/.env.local`. Copy the client id and the client secret to `apps/api/.env` and `infra/.env`. Git ignores these files. `put-secrets` writes them to SSM (backend doc, "Secrets and config").
 5. No bot user. No other scopes.
 
@@ -279,7 +279,7 @@ The rules of the peer-to-peer doc apply: everything works on one Mac, and each p
 | Part | Production | Local |
 |---|---|---|
 | Auth and rooms endpoints | The Lambda | The same Hono app in a Node process, with the memory store. Vite forwards `/api/*` to it |
-| Discord login | Discord, redirect `https://mcptacticus3d.netlify.app/` | The same Discord app, redirect `http://localhost:5173/`. Needs internet |
+| Discord login | Discord, redirect `https://herotable3d.netlify.app/` | The same Discord app, redirect `http://localhost:5173/`. Needs internet |
 | Secrets | SSM | `apps/api/.env` (git ignores it). Only the API process reads it. The web app gets only `VITE_DISCORD_CLIENT_ID`, from `apps/web/.env.local` |
 | `users`, `rooms` | Atlas, database `assist3d` | Memory store (default), or the dev Mongo in Docker (see below) |
 
@@ -358,7 +358,7 @@ The rest of `apps/api` is in the backend doc ("Code"). Auth, rooms, the table an
 8. Our own user id. The Discord id is a unique field.
 9. The Discord access token is not stored.
 10. The server keeps the setup and a snapshot of the table of each multiplayer room. A player who joins sees the map and the host's roster at once.
-11. The site is `https://mcptacticus3d.netlify.app`: the existing Netlify site, renamed. No own domain.
+11. The site is `https://herotable3d.netlify.app`: the existing Netlify site, renamed. No own domain.
 
 12. Three kinds of table: Sandbox, single player room, multiplayer room.
 13. The host's browser builds the start table and sends it with `POST /rooms`. A room never has `table: null`.

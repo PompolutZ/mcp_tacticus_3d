@@ -44,7 +44,7 @@ describe('ApiStack', () => {
     t.hasResourceProperties('AWS::Lambda::Url', {
       AuthType: 'NONE',
       Cors: {
-        AllowOrigins: ['https://mcptacticus3d.netlify.app'],
+        AllowOrigins: ['https://herotable3d.netlify.app'],
         AllowHeaders: ['authorization', 'content-type', 'x-after'],
         AllowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
         MaxAge: 86400,
