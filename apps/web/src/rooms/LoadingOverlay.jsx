@@ -9,10 +9,10 @@ import { Overlay } from '../ui/Overlay.jsx'
 // count from the moment this overlay mounts.
 export function LoadingOverlay({ ready }) {
   const { progress } = useProgress()
-  
+
   if (ready) return null
 
-    return (
+  return (
     <Overlay className="loading">
       <div className="loading-panel">
         <div className="loading-title">Loading assets…</div>
