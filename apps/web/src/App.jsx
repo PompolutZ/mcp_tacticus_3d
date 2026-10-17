@@ -874,6 +874,8 @@ export default function App({
                 makeDefault
                 target={cameraTarget}
                 enablePan={true}
+                // pan along the table, like panOnTable; the default moves the target up and down, which breaks the zoom limits
+                screenSpacePanning={false}
                 // WheelCamera takes every wheel event, so this is only the pinch on a touch screen
                 enableZoom={true}
                 enableRotate={true}
