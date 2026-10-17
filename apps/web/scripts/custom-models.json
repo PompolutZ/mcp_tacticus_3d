@@ -2,13 +2,19 @@
   "adam-warlock": {
     "characters/adam-warlock/model.glb": "pnpm --filter web photos-to-glb \"<Adam Warlock 3rd photos>\" --base small --texture 1024 --tone strong"
   },
+  "bastion": {
+    "characters/bastion/model.glb": "pnpm --filter web photos-to-glb \"<Bastion 2nd photos>\" --base small --texture 1024 --tone medium"
+  },
   "moondragon": {
-    "characters/moondragon/model.glb": "pnpm --filter web photos-to-glb \"<Moondragon photos>\" --base medium --texture 1024"
+    "characters/moondragon/model.glb": "pnpm --filter web photos-to-glb \"<Moondragon photos>\" --base medium --texture 1024 --tone medium"
   },
   "quasar": {
-    "characters/quasar/model.glb": "pnpm --filter web photos-to-glb \"<Quasar photos>\" --base medium --texture 1024"
+    "characters/quasar/model.glb": "pnpm --filter web photos-to-glb \"<Quasar photos>\" --base medium --texture 1024 --tone medium"
   },
   "star-lord": {
     "characters/star-lord/model.glb": "pnpm --filter web photos-to-glb \"<Star-Lord photos>\" --base small --texture 1024"
+  },
+  "valkyrie": {
+    "characters/valkyrie/model.glb": "pnpm --filter web photos-to-glb \"<Valkyrie photos>\" --base small --texture 1024 --tone medium"
   }
 }

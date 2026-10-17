@@ -2,7 +2,7 @@
 
 Status: partly built.
 
-The script works. A custom model can replace the model of a character (see [Use for a character](#use-for-a-character)). Adam Warlock, Moondragon, Quasar and Star-Lord use one.
+The script works. A custom model can replace the model of a character (see [Use for a character](#use-for-a-character)). Adam Warlock, Bastion, Moondragon, Quasar, Star-Lord and Valkyrie use one.
 
 Not built yet:
 
