@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { isEmptyRoster } from './mct.js'
 import { missingFiles, unknownCodesMessage } from './cards.js'
+import './rosterField.css'
 
 // "1 character", "10 characters"
 const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
@@ -42,7 +43,7 @@ function MissingFiles({ parsed }) {
 // A roster field of the dialog, and what the app found in its text under it. label: the field name.
 // color: 'blue' | 'red' for the input, or missing. text: the field text.
 // plate: 'Blue' | 'Red' puts the color plate left of the input and hides the label (the new room dialog shows
-// one heading for the fields; rooms/newRoom.css). parsed: the parsed text. optional: the field can stay empty. onChange(text). The first field has the focus
+// one heading for the fields). The look is in rosterField.css, for the dialog and the join page. parsed: the parsed text. optional: the field can stay empty. onChange(text). The first field has the focus
 // when the dialog opens.
 export function RosterField({ label, color, plate, text, parsed, optional, onChange }) {
   let status = null

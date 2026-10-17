@@ -293,7 +293,7 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
             </button>
             <button
               type="submit"
-              className="new-room-create pop"
+              className="comic-go new-room-create pop"
               disabled={!canCreate}
               title={createTitle}
             >

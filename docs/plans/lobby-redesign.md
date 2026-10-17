@@ -23,6 +23,8 @@ Added by the user on 2026-10-17 (Step 5): the New room dialog, from the boards "
 - **Labels:** the design words everywhere in the UI: **Solo** ("Run both sides yourself") and **Versus** ("Share a code with a friend"). They replace "Single player" and "Multiplayer" in the dialog, the room tile tag, the "+" tile and the Settings label.
 - **Branch:** Step 5 of this plan, same branch.
 
+Added by the user on 2026-10-17 (Step 6): the Join room page in the same style, from the board "Join room".
+
 ## The look
 
 - **Style:** comic book. Dark blue page with dots, yellow rays, thick black outlines (3–5 px), hard black shadows (offset, no blur), slightly turned or skewed blocks, star bursts ("3D", "VS", "+").
@@ -118,6 +120,33 @@ Steps for coder:
 - Docs: `rooms.md` "New room" (look, labels, notes), `auth.md` "Lobby and room UI" (labels).
 - Checks: `pnpm format`, `pnpm lint`, web tests, `pnpm --filter web build`.
 
+### Step 6: Join room page
+
+The design: the lobby header and night background (already there), then two panels side by side, which wrap on a narrow screen.
+
+- **Left panel (rays, border, hard shadow):** tab "Incoming challenge!" on the top left corner, the map card (turned −4°, hard shadow).
+- **Right panel (paper, border, hard shadow):** yellow tag on the top edge, turned: "Room" + code (JetBrains Mono). "Join room" (red, condensed caps), the map name (big Bangers).
+- **Seats row:** "Host" label, host plate (skewed, Bangers), "View roster ›" link. "VS" burst. "Challenger" label, a plate: dashed white "You?" with "Paste a roster below" until the roster has a known code, then a solid plate with the own name and "Roster ready".
+- "Your roster" field.
+- Yellow note with a warning icon, turned: "Heads up! Once you join, the players and rosters of this room are locked in."
+- **Footer:** **← Lobby** (white, hard shadow), **Join the fight!** (red, skewed). Disabled: grey, title "Paste your roster first".
+
+Decisions:
+
+1. Keep all behavior of `JoinRoom.jsx`: logged out (Discord login button, or "Log in above to join"), the join error, busy state, host gone ("Deleted player"), the roster popup of the host, the random map hint "The map spawns when you join.". A random room shows the card back and "Random map" as the title (`mapFace(null)`).
+2. The map name is an h2, because the header logo is the page h1 (as in Step 2).
+3. Plates: `SeatPlate` (Step 3) with the host avatar. The plates are neutral, the same as on a multiplayer lobby tile; the design's blue and red are left out, because the side colors of a multiplayer room are set later. The challenger plate gets a dashed "empty" look. `Burst` for "VS".
+4. Labels from the design: **Join the fight!** replaces **Join**, the new note text replaces "After you join, the players and the rosters of this room cannot change.", **View roster ›** replaces "roster".
+5. `RosterField` comic look: the Step 5 rules scoped to the new room dialog become shared rules (one class for both), not a copy.
+6. Styles in `src/rooms/joinRoom.css` (or with the Step 5 shared rules where they are shared). Remove the `join-room-*` and the `new-room-*` rules from `index.css` that nothing uses after the change.
+7. Narrow screen: the panels stack, the map panel on top and shorter. No horizontal scroll.
+
+Steps for coder:
+
+- Files: `rooms/JoinRoom.jsx`, `rooms/joinRoom.css` (new), `rooms/newRoom.css`, `rooms/SeatPlate.jsx` (dashed variant), `rosters/RosterField.jsx` only if the shared class needs it, `index.css`.
+- Docs: `rooms.md` (join page look and labels, **Join** → **Join the fight!**), `auth.md` if it quotes the join labels.
+- Checks: `pnpm format`, `pnpm lint`, web tests, `pnpm --filter web build`.
+
 ## Results
 
 ### Step 1 (commit 7dd345e)
@@ -162,3 +191,13 @@ Fonts from `@fontsource` (Bangers, Barlow, Barlow Condensed, JetBrains Mono), `r
 - `index.css`: removed `new-room-backdrop`, `new-room`, `-title`, `-card`, `-random`, `-choice`, `-kinds`, `.new-room .carousel`. Kept `-hint`, `-roster`, `-input`, `-status`, `-error`, `-warning`, `-missing*`, `-actions` (join page, `RosterField`).
 - `rooms.md` "New room", `auth.md`, `table-tools.md` (Settings label) updated.
 - Differences from the design: the × is the Bangers glyph as in the roster popup, not an svg; the Random map row is one button (the whole row switches); the disabled Create room! title is "You host a room already" when the host has a room. Not checked in a browser.
+
+### Step 6
+
+- `JoinRoom.jsx` rewritten in the comic look: map panel (rays, tab "Incoming challenge!", turned card) and room panel (tag, "Join room", map name h2, seats row, roster field, yellow note, **← Lobby**, **Join the fight!**). All behavior kept. The challenger plate shows the own name and avatar (`useUser`) once the roster has a known code.
+- `rooms/joinRoom.css` (new). `SeatPlate`: `empty` (dashed), `rosterText`, `note`. `Burst` and `room-vs-text` reused for "VS".
+- Shared, not copied: `rosters/rosterField.css` (the RosterField rules moved out of `newRoom.css`, scoped to `.comic`); `.comic-go` in `comic.css` (the red skewed button, sizes by variables) now also styles **Create room!**.
+- `index.css`: removed the `new-room-hint|roster|input|status|error|warning|missing*|actions`, `link-button` and `join-room*` rules. `.lobby-seat-avatar` removed from `lobby.css`.
+- Labels: **Join the fight!**, **View roster ›**, the new note text.
+- `rooms.md` (new "Join page" section), `auth.md` updated.
+- Differences from the design: the page title h2 (logo is h1); the hint for a random room under the title; the note shows only when logged in; plates neutral (decision 3). Not checked in a browser.

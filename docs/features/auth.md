@@ -133,7 +133,7 @@ The cost of `localStorage`: a script that runs in the page (XSS) can read the to
 - The host creates the room with the map, their own roster and the start table. The other seat is free.
 - A user hosts at most one room. `POST /rooms` answers 409 "You host a multiplayer room already. Delete it first." when the user hosts one. A user can be the guest in any number of rooms.
 - Anyone with the link sees the setup of the room: the map, the host's name and avatar, and the host's roster. Only a seated player gets the table.
-- A logged-in player who opens the link of a room with a free seat sees the join page: the map card, the host, the host's roster (the same roster popup as on a lobby tile), a field for their own roster, and **Join**. The roster field is required. **Join** takes the free seat. A user who has a seat already gets 200 and no change, so a second click or a reload does no harm.
+- A logged-in player who opens the link of a room with a free seat sees the join page: the map card, the host, the host's roster (the same roster popup as on a lobby tile), a field for their own roster, and **Join the fight!**. The roster field is required. **Join the fight!** takes the free seat. A user who has a seat already gets 200 and no change, so a second click or a reload does no harm.
 - A room with two players shows "This room has two players already" to a third user (409).
 - After the join, both seats and both rosters are fixed. There is no **Leave**, no **Remove**, and no roster change. To change a player or a roster, the host deletes the room and creates a new one.
 - Only the host can **Delete** the room. The guest sees the room in their list and can open it again, until the host deletes it.

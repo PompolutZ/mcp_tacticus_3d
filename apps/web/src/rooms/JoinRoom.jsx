@@ -8,13 +8,16 @@ import { formatMctCode, isEmptyRoster } from '../rosters/mct.js'
 import { parseRosterText } from '../rosters/cards.js'
 import { joinRoom } from './serverStore.js'
 import { LobbyHeader } from './LobbyHeader.jsx'
+import { SeatPlate } from './SeatPlate.jsx'
+import { Burst } from './Burst.jsx'
+import './joinRoom.css'
 import { RosterField } from '../rosters/RosterField.jsx'
 import { RoomRosterPopup } from '../rosters/RoomRosterPopup.jsx'
 
-// The join page of a multiplayer room with a free seat (docs/features/rooms.md, "Pages"). room: the API room.
+// The join page of a multiplayer room with a free seat (docs/features/rooms.md, "Join page"). room: the API room.
 // onJoined(room): the user has the seat, and the room opens. onExit(): back to the lobby without joining.
 export function JoinRoom({ room, onJoined, onExit }) {
-  const { status } = useUser()
+  const { status, user } = useUser()
   const loggedIn = status === 'in'
   const face = mapFace(room.mapId)
   const host = room.players.host
@@ -25,8 +28,9 @@ export function JoinRoom({ room, onJoined, onExit }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [rosterOpen, setRosterOpen] = useState(false)
-  // The same rule as the Blue field of the new room dialog: the text has a known code
-  const canJoin = loggedIn && !isEmptyRoster(parsed) && !busy
+  // ready: the text has a known code (the same rule as the Blue field of the new room dialog)
+  const ready = loggedIn && !isEmptyRoster(parsed)
+  const canJoin = ready && !busy
 
   async function handleJoin(e) {
     e.preventDefault()
@@ -43,39 +47,50 @@ export function JoinRoom({ room, onJoined, onExit }) {
   return (
     <div className="lobby comic">
       <LobbyHeader />
-      <form className="join-room" onSubmit={handleJoin}>
-        <img className="join-room-card" src={assetUrl(face.src)} alt="" draggable={false} />
-        <div className="join-room-body">
-          <h2 className="join-room-title">Join room</h2>
-          <span className="join-room-map">{face.name}</span>
-          {room.mapId === null && (
-            <span className="new-room-hint">The map spawns when you join.</span>
-          )}
-          <span className="join-room-code">{room.code}</span>
-          <div className="join-room-host">
-            <span className="group-label">Host</span>
-            {host && !host.gone && (
-              <>
-                <img
-                  className="lobby-seat-avatar"
-                  src={avatarUrl(host, 40)}
-                  alt=""
-                  draggable={false}
-                />
-                <span>{host.name}</span>
-              </>
+      <div className="join-room">
+        <div className="join-room-map">
+          <span className="join-room-caption">Incoming challenge!</span>
+          <img className="join-room-card" src={assetUrl(face.src)} alt="" draggable={false} />
+        </div>
+        <form className="join-room-panel" onSubmit={handleJoin}>
+          <div className="join-room-tag">
+            <span className="join-room-tag-label">Room</span>
+            <span className="join-room-code">{room.code}</span>
+          </div>
+          <div>
+            <div className="join-room-kicker">Join room</div>
+            <h2 className="join-room-title">{face.name}</h2>
+            {room.mapId === null && (
+              <span className="join-room-hint">The map spawns when you join.</span>
             )}
-            {host?.gone && <span>Deleted player</span>}
-            {hostRoster && (
-              <button
-                type="button"
-                className="link-button"
-                title={`Show the ${hostLabel} of room ${room.code}`}
-                onClick={() => setRosterOpen(true)}
-              >
-                roster
-              </button>
-            )}
+          </div>
+          <div className="join-room-seats">
+            <div className="join-room-seat">
+              <span className="join-room-label">Host</span>
+              <SeatPlate
+                name={host?.gone ? 'Deleted player' : (host?.name ?? 'Host')}
+                avatar={host && !host.gone ? avatarUrl(host, 40) : null}
+                muted={!host || host.gone}
+                label={`Show the ${hostLabel} of room ${room.code}`}
+                rosterText="View roster ›"
+                onRoster={hostRoster ? () => setRosterOpen(true) : null}
+              />
+            </div>
+            <span className="join-room-vs">
+              <Burst size={84} color="var(--yellow)" fontSize={30}>
+                <span className="room-vs-text">VS</span>
+              </Burst>
+            </span>
+            <div className="join-room-seat join-room-seat--end">
+              <span className="join-room-label">Challenger</span>
+              <SeatPlate
+                align="end"
+                name={ready ? (user?.name ?? 'You') : 'You?'}
+                avatar={ready && user ? avatarUrl(user, 40) : null}
+                empty={!ready}
+                note={ready ? 'Roster ready' : 'Paste a roster below'}
+              />
+            </div>
           </div>
           {loggedIn ? (
             <>
@@ -89,33 +104,67 @@ export function JoinRoom({ room, onJoined, onExit }) {
                 }}
               />
               <p className="join-room-note">
-                After you join, the players and the rosters of this room cannot change.
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 3l10 18H2z" />
+                  <path d="M12 10v5M12 18v.5" />
+                </svg>
+                <span>
+                  Heads up! Once you join, the players and rosters of this room are locked in.
+                </span>
               </p>
             </>
           ) : DISCORD_ON ? (
-            <button type="button" className="chip user-login" onClick={login}>
+            <button type="button" className="comic-button pop user-login" onClick={login}>
               Log in with Discord to join
             </button>
           ) : (
-            <span className="new-room-hint">Log in above to join</span>
+            <span className="join-room-hint">Log in above to join</span>
           )}
           {error && (
-            <span className="new-room-error" role="alert">
+            <span className="join-room-error" role="alert">
               {error}
             </span>
           )}
-          <div className="new-room-actions">
-            <button type="button" className="chip" onClick={onExit}>
-              ← Lobby
+          <div className="join-room-actions">
+            <button type="button" className="join-room-back pop" onClick={onExit}>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M19 12H5M11 6l-6 6 6 6" />
+              </svg>
+              Lobby
             </button>
             {loggedIn && (
-              <button type="submit" className="chip chip--active" disabled={!canJoin}>
-                Join
+              <button
+                type="submit"
+                className="comic-go pop"
+                disabled={!canJoin}
+                title={canJoin || busy ? undefined : 'Paste your roster first'}
+              >
+                Join the fight!
               </button>
             )}
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
       {rosterOpen && (
         <RoomRosterPopup
           title={hostLabel}

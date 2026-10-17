@@ -1,7 +1,7 @@
 /* The new room dialog (NewRoomDialog.jsx, docs/features/rooms.md, "New room"): a framed comic dialog with the
    map on the left and the choices on the right. The colors and fonts are the variables of .comic
    (rooms/comic.css), which the dialog root has. Every rule is scoped to .new-room-comic, so the roster popup
-   (rosters/roster.css) and the join page, which share the fan carousel and RosterField, keep their look. */
+   (rosters/roster.css) keeps its look. The roster fields are in rosters/rosterField.css. */
 .new-room-backdrop {
   position: fixed;
   inset: 0;
@@ -314,9 +314,7 @@
 }
 
 .new-room-kind:focus-visible,
-.new-room-cancel:focus-visible,
-.new-room-create:focus-visible,
-.new-room-comic .new-room-input:focus-visible {
+.new-room-cancel:focus-visible {
   outline: 3px solid var(--red);
   outline-offset: 2px;
 }
@@ -333,125 +331,19 @@
   font-size: 15px;
 }
 
-.new-room-comic .new-room-error {
-  font-weight: 600;
-  color: var(--red);
-}
-
-/* The roster fields (RosterField.jsx) */
+/* The heading and the column of the roster fields. The fields themselves (RosterField.jsx) are in
+   rosters/rosterField.css, shared with the join page. */
 .new-room-rosters {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.new-room-rosters-title,
-.new-room-comic .new-room-roster .group-label {
+.new-room-rosters-title {
+  margin: 0;
   font: 700 18px var(--font-label);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--ink);
-  margin: 0;
-}
-
-.new-room-comic .new-room-roster {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 6px;
-}
-
-.new-room-comic .new-room-roster--plate {
-  flex-direction: row;
-  gap: 0;
-}
-
-/* The label of a field with a plate stays for screen readers */
-.new-room-comic .new-room-roster .new-room-label--hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-.new-room-plate {
-  flex: 0 0 74px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font: 400 22px var(--font-title);
-  letter-spacing: 0.05em;
-  border: 3px solid var(--ink);
-  border-right: 0;
-}
-
-.new-room-plate--blue {
-  background-color: var(--blue);
-  background-image: radial-gradient(rgba(255, 255, 255, 0.12) 24%, transparent 26%);
-  background-size: 9px 9px;
-}
-
-.new-room-plate--red {
-  background-color: var(--red);
-  background-image: radial-gradient(rgba(0, 0, 0, 0.2) 24%, transparent 26%);
-  background-size: 9px 9px;
-}
-
-.new-room-comic .new-room-roster .new-room-input {
-  flex: 1;
-  width: 100%;
-  min-width: 0;
-  height: 50px;
-  box-sizing: border-box;
-  padding: 0 14px;
-  font: 600 15px var(--font-code);
-  text-align: left;
-  color: var(--ink);
-  background: #fff;
-  border: 3px solid var(--ink);
-  border-radius: 0;
-  box-shadow: none;
-}
-
-.new-room-comic .new-room-roster .new-room-input--optional {
-  border-style: dashed;
-}
-
-.new-room-comic .new-room-input::placeholder {
-  color: var(--muted-ink);
-  opacity: 0.7;
-}
-
-.new-room-comic .new-room-status {
-  align-items: flex-start;
-  min-height: 0;
-  margin-top: -4px;
-  font-size: 13px;
-  text-align: left;
-  color: var(--muted-ink);
-}
-
-.new-room-comic .new-room-status:empty {
-  display: none;
-}
-
-.new-room-comic .new-room-warning {
-  font-weight: 600;
-  color: #8a5a00;
-}
-
-.new-room-comic .new-room-missing {
-  max-width: none;
-  margin-top: 4px;
-  background: #fff0b3;
-  border: 3px solid var(--ink);
-  border-radius: 0;
-}
-
-.new-room-comic .new-room-missing-title {
   color: var(--ink);
 }
 
@@ -496,36 +388,12 @@
   cursor: pointer;
 }
 
+/* Create room! is a .comic-go (rooms/comic.css) in this size */
 .new-room-create {
-  display: inline-flex;
-  align-items: center;
-  height: 56px;
-  padding: 0 24px;
-  font: 400 30px var(--font-title);
-  letter-spacing: 0.05em;
-  color: #fff;
-  background: var(--red);
-  border: 4px solid var(--ink);
-  box-shadow: 6px 6px 0 var(--ink);
-  transform: skewX(-8deg);
-  cursor: pointer;
-}
-
-/* The shared .pop moves with transform; keep the skew */
-.new-room-comic.comic .new-room-create:hover:not(:disabled) {
-  transform: translate(-2px, -2px) skewX(-8deg);
-}
-
-.new-room-comic.comic .new-room-create:active:not(:disabled) {
-  transform: translate(3px, 3px) skewX(-8deg);
-}
-
-.new-room-create:disabled {
-  color: var(--disabled-fg);
-  background: var(--disabled-bg);
-  border-color: var(--disabled-fg);
-  box-shadow: none;
-  cursor: not-allowed;
+  --go-h: 56px;
+  --go-size: 30px;
+  --go-pad: 24px;
+  --go-border: 4px;
 }
 
 /* A phone: the columns stack, the map on top and smaller, the right column scrolls. The frame keeps a 16 px

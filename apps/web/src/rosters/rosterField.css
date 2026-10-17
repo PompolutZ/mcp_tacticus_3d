@@ -1,0 +1,121 @@
+/* The roster field and what the app found in its text (RosterField.jsx, docs/features/rooms.md, "New room" and
+   "Pages"): shared by the new room dialog and the join page. The colors and fonts are the variables of
+   .comic (rooms/comic.css). */
+.comic .new-room-roster .group-label {
+  margin: 0;
+  font: 700 18px var(--font-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.comic .new-room-error {
+  font-weight: 600;
+  color: var(--red);
+}
+
+.comic .new-room-input:focus-visible {
+  outline: 3px solid var(--red);
+  outline-offset: 2px;
+}
+
+.comic .new-room-roster {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.comic .new-room-roster--plate {
+  flex-direction: row;
+  gap: 0;
+}
+
+/* The label of a field with a plate stays for screen readers */
+.comic .new-room-roster .new-room-label--hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.new-room-plate {
+  flex: 0 0 74px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font: 400 22px var(--font-title);
+  letter-spacing: 0.05em;
+  border: 3px solid var(--ink);
+  border-right: 0;
+}
+
+.new-room-plate--blue {
+  background-color: var(--blue);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.12) 24%, transparent 26%);
+  background-size: 9px 9px;
+}
+
+.new-room-plate--red {
+  background-color: var(--red);
+  background-image: radial-gradient(rgba(0, 0, 0, 0.2) 24%, transparent 26%);
+  background-size: 9px 9px;
+}
+
+.comic .new-room-roster .new-room-input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  height: 50px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  font: 600 15px var(--font-code);
+  text-align: left;
+  color: var(--ink);
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.comic .new-room-roster .new-room-input--optional {
+  border-style: dashed;
+}
+
+.comic .new-room-input::placeholder {
+  color: var(--muted-ink);
+  opacity: 0.7;
+}
+
+.comic .new-room-status {
+  align-items: flex-start;
+  min-height: 0;
+  margin-top: -4px;
+  font-size: 13px;
+  text-align: left;
+  color: var(--muted-ink);
+}
+
+.comic .new-room-status:empty {
+  display: none;
+}
+
+.comic .new-room-warning {
+  font-weight: 600;
+  color: #8a5a00;
+}
+
+.comic .new-room-missing {
+  max-width: none;
+  margin-top: 4px;
+  background: #fff0b3;
+  border: 3px solid var(--ink);
+  border-radius: 0;
+}
+
+.comic .new-room-missing-title {
+  color: var(--ink);
+}

@@ -585,6 +585,19 @@
   background: var(--disabled-bg);
 }
 
+/* A seat nobody has yet (the challenger of the join page) */
+.seat-plate--empty {
+  color: #8a8490;
+  background: #fff;
+  border-style: dashed;
+}
+
+.seat-note {
+  font: 700 14px var(--font-label);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
 .seat-plate--blue {
   background-color: var(--blue);
   background-image: radial-gradient(rgba(255, 255, 255, 0.12) 24%, transparent 26%);
@@ -821,13 +834,6 @@
   .lobby-sandbox-content {
     padding: 24px 16px 56px;
   }
-}
-
-/* The seat avatar of the join page (JoinRoom.jsx) */
-.lobby-seat-avatar {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
 }
 
 .lobby-footer {

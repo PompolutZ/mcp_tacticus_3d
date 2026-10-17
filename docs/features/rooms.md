@@ -76,13 +76,25 @@ The **+** tile opens a framed comic dialog on a blurred backdrop, the same style
 
 The carousel shows only maps that the app has (`apps/web/src/terrain/maps/index.js`). A map card image comes from the TTS mod. `apps/web/scripts/migrate-terrain.mjs` copies it with the map.
 
+## Join page
+
+A logged-in player who opens the link of a versus room with a free seat sees this page (`rooms/JoinRoom.jsx`). The header is the lobby header. The page has two framed panels side by side; on a narrow screen they stack, the map on top and shorter.
+
+- **Map panel** (yellow rays): the tab "Incoming challenge!" on the top left corner, and the map card turned a little with a hard shadow. A random room shows the card back.
+- **Room panel** (paper): a yellow tag "Room" with the code, "Join room" in red, and the map name as the title ("Random map" in a random room, with the hint "The map spawns when you join.").
+- **Seats:** "Host" with the host plate (avatar and name, or "Deleted player") and **View roster ›** under it (the roster popup of the host); a "VS" burst; "Challenger" with a dashed white plate "You?" and "Paste a roster below". When the roster has a known code the plate turns solid, with the own name and avatar, and says "Roster ready". The plates are neutral (`SeatPlate.jsx`), as on a versus tile: the side colors are set at the table.
+- **Your roster:** the roster field of the new room dialog (`rosters/RosterField.jsx`, `rosters/rosterField.css`), with the summary and warnings under it.
+- **Note** (yellow, turned, warning icon): "Heads up! Once you join, the players and rosters of this room are locked in."
+- **Buttons:** **← Lobby** (white) and **Join the fight!** (red, skewed). **Join the fight!** is grey, with the title "Paste your roster first", until the roster has a known code.
+- Logged out: **Log in with Discord to join** in place of the field and **Join the fight!**; in a dev build without Discord, "Log in above to join". A failed join shows "Could not join: <reason>" in red.
+
 ## Room
 
 - The player is Blue, the same as before.
 - The map is the room map. The toolbar has no map picker.
 - In a multiplayer room, the toolbar has no Setup chip (the crisis card dropdowns, the roster fields) and no mat turn buttons (↺ ↻), so the Mat group is gone. The crisis cards come from the rosters of the players, through the game setup. The player with Priority turns the mat in the setup step "edge", with ↺ **Select board edge** ↻. Both players see these buttons, and they agree who turns. **Select board edge** puts the crisis cards on the board and their tokens on the mat. After that, the mat turn stays fixed. **Restart setup** rolls off again, so Priority and the deployment edge can change, and the step "edge" comes back with the mat turn. Sandbox and single player rooms keep the Crisis dropdowns and the ↺ ↻.
 - The rosters come from the room. The Roster group has only the Red field. It loads, replaces or removes the Red roster of the room. The field is empty when the room opens, also when the room has a Red roster.
-- A multiplayer room has no Roster group and no map picker. Each player gives their own roster when they create or join the room. The new room dialog with **Versus** has only the roster of the host, "Your roster". The join page has the roster of the guest, "Your roster", and a link "<host name> roster" to the roster of the host, with no color. Single player rooms keep both roster fields.
+- A multiplayer room has no Roster group and no map picker. Each player gives their own roster when they create or join the room. The new room dialog with **Versus** has only the roster of the host, "Your roster". The join page has the roster of the guest, "Your roster", and a link **View roster ›** to the roster of the host, with no color. Single player rooms keep both roster fields.
 - A multiplayer room with **Random map** has no map when the host enters. The table, trays and HUD show as usual, with no mat and no terrain. A note on the table, in the middle of the mat, facing the host, in the style of the setup panel, says: "Random map: it spawns automatically when the second player joins the room." The note goes away when the map is set.
 - The map fill: the server picks the map when the guest joins. The guest's browser then writes the map and its terrain in one change, right after **Join**. The host's browser gets them over peer-to-peer, and the mat and terrain load with no loading screen. A player who opens the room later fills the map too, if the table still has none. Terrain ids are fixed (`<mapId>:<index>`), so two fills of the same map merge into one set of pieces.
 - **← Lobby** at the start of the toolbar writes the room record and opens the lobby. The toolbar also shows the room code.
@@ -203,6 +215,7 @@ In a single player room, the user id in `localStorage` is the owner of every roo
 | `apps/web/src/rooms/Lobby.jsx` | The lobby page: one list of single player and multiplayer rooms |
 | `apps/web/src/rooms/LobbyHero.jsx` | The hero with New room! and Open sandbox, and the join by code box |
 | `apps/web/src/rooms/roomCode.js` | The room code alphabet and length, `parseRoomCode` |
+| `apps/web/src/rooms/JoinRoom.jsx` | The join page |
 | `apps/web/src/rosters/RoomRosterPopup.jsx` | The roster popup of a room. The lobby and the join page use it |
 | `apps/web/src/rooms/NewRoomDialog.jsx` | The new room dialog: map switch, map carousel, Blue and Red roster fields |
 | `apps/web/src/ui/Switch.jsx` | An on/off switch with a label. The new room dialog uses it for **Random map** |
