@@ -6,7 +6,7 @@ The script works.
 
 Not built yet:
 
-- Loading a custom model in the app. You put the GLB where you need it.
+- Loading a custom model in the game. The `#models` page shows the candidates, see [Model viewer](model-viewer.md).
 
 ## Goal
 
@@ -30,14 +30,17 @@ There are two steps:
 ## Usage
 
 ```bash
-pnpm --filter web photos-to-glb ~/Pictures/hulk --out /tmp/hulk.glb --base large                 # a figure on a large base
-pnpm --filter web photos-to-glb ~/Pictures/hulk --out /tmp/hulk.glb --base large --texture 1024  # texture size of the migrated characters
-pnpm --filter web photos-to-glb ~/Pictures/crate --out /tmp/crate.glb --height 38                # not a figure: 38 mm tall
+pnpm --filter web photos-to-glb ~/Pictures/Hulk --base large                  # a figure on a large base, writes model-candidates/hulk.glb
+pnpm --filter web photos-to-glb ~/Pictures/Hulk --base large --texture 1024   # texture size of the migrated characters
+pnpm --filter web photos-to-glb ~/Pictures/crate --height 38                  # not a figure: 38 mm tall
+pnpm --filter web photos-to-glb ~/Pictures/crate --height 38 --out /tmp/crate.glb  # other output file
 ```
+
+The output goes to `model-candidates/`, where the `#models` page shows it. See [Model viewer](model-viewer.md).
 
 | Option | Default | Meaning |
 |---|---|---|
-| `--out <file.glb>` | required | Output file |
+| `--out <file.glb>` | `model-candidates/<name>.glb` | Output file. `<name>` is the name of the photos folder in kebab case: lowercase, each run of other characters becomes `-` (`Adam Warlock` gives `adam-warlock`). The folder is `apps/web/model-candidates/`, whatever the current directory is. It is in `.gitignore`. |
 | `--base <size>` | none | `small`, `medium` or `large`: the object is a figure on a game base (35, 50 or 65 mm, `BASE_DIAMETER` in `src/characters/files.js`). Use the same size as `base` of the character in `characters.json`. See [Base](#base). |
 | `--stand` | off | The figure stands on a stand (a jar, for example) that is in the scan. The script cuts the stand off. Use it with `--base`. See [Stand](#stand). |
 | `--height <mm>` | none | Height of the real object in mm. Measure the real object. The app uses inches (1 unit = 1"), so the script converts it. |
@@ -96,8 +99,8 @@ These rules come from Apple's Object Capture guide.
 
 | Output | Content |
 |---|---|
-| `<out>.glb` | Mesh with the material of the scan and its WebP color texture inside (`EXT_texture_webp`), Draco. With `--base`, also the base cylinder with the material `defaultMat`. |
-| `$TMPDIR/mcp-assist-3d-photogrammetry/<name>/` | OBJ, MTL, PNG and USDA from Object Capture, kept for inspection. `<name>` is the file name of `--out` without `.glb`. The script deletes this folder at the start of each run. |
+| `<out>.glb` (default `apps/web/model-candidates/<name>.glb`) | Mesh with the material of the scan and its WebP color texture inside (`EXT_texture_webp`), Draco. With `--base`, also the base cylinder with the material `defaultMat`. |
+| `$TMPDIR/mcp-assist-3d-photogrammetry/<name>/` | OBJ, MTL, PNG and USDA from Object Capture, kept for inspection. `<name>` is the file name of the output without `.glb`. The script deletes this folder at the start of each run. |
 
 The model is Y up, with the bottom at y = 0. Object Capture cannot know the front of the object, so the model can be turned around the vertical axis. In the test, it was turned by about 90°.
 
@@ -143,6 +146,6 @@ To support scanned terrain, the app needs:
 ## Decisions
 
 - **No Blender.** An earlier plan used Blender to import a USDZ file, reduce the mesh, recenter it and export a GLB. The script does not need it. When the output is a folder (not a `.usdz` file), Object Capture writes an OBJ. Its `.custom` detail level reduces the mesh and the texture to the given limits. The repo already converts OBJ files to GLB for the TTS pieces. So the pipeline has one tool less.
-- **One generic GLB.** The script does not write into `src/assets/characters/` or `src/assets/terrain/`. A scan can be a figure, a terrain piece or something else, so you choose where the file goes.
+- **One generic GLB.** The script does not write into `src/assets/characters/` or `src/assets/terrain/`. A scan can be a figure, a terrain piece or something else, so the script writes to the candidates folder, and you move the file where it belongs.
 - **A new base instead of a recolored scanned base.** The other option was to give `defaultMat` to the scan triangles below about 2.5 mm. That keeps the scanned shape. But the line of the team color would be jagged, and the base size would be about 3 % off the game size. The new cylinder has the exact game size, so it matches the base collider.
 - **`imageToWebp` uses a temp file.** Passing image bytes to `magick` through stdin hung in 2 of 30 runs with the 1.3 MB texture of a scan: `magick` waited for the rest of stdin, and Node did not write it. With a temp file, 60 of 60 runs finished. The TTS migration scripts use the same function.

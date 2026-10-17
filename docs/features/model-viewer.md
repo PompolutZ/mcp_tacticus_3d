@@ -20,6 +20,7 @@ Every GLB in `src/assets/characters/`. A row has the character name. A file that
 
 - Put `*.glb` files in `apps/web/model-candidates/`. The folder is in `.gitignore`, so a candidate is never committed by accident.
 - A new file shows in the list without a restart of the dev server. A missing folder is an empty list, and the build works without it.
+- `photos-to-glb` writes here by default (`--out` is optional).
 - The row has the file name without `.glb`, and the tag "[candidate]".
 
 ## Stats

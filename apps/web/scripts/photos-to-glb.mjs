@@ -15,8 +15,10 @@ import { compressMesh, readObj, TEXTURE_SIZE, texturesToWebp, writeGlb } from '.
 import { BASE_DIAMETER } from '../src/characters/files.js'
 
 const USAGE = `Usage:
-  node scripts/photos-to-glb.mjs <photos dir> --out <file.glb>
+  node scripts/photos-to-glb.mjs <photos dir> [--out <file.glb>]
 Options:
+  --out <file.glb>    output file (default: model-candidates/<photos folder name in kebab case>.glb,
+                      in the app folder. The #models page shows it.)
   --base <size>       small, medium or large: a figure on a game base. The scanned base is replaced by a
                       base of the game size with the team color, and its center goes to the origin.
                       Without --height, the scale comes from the base size.
@@ -40,7 +42,7 @@ const { values: opts, positionals } = parseArgs({
     help: { type: 'boolean', short: 'h' },
   },
 })
-if (opts.help || positionals.length !== 1 || !opts.out) {
+if (opts.help || positionals.length !== 1) {
   console.log(USAGE)
   process.exit(opts.help ? 0 : 1)
 }
@@ -58,7 +60,14 @@ if (![1024, 2048, 4096].includes(textureSize))
   throw new Error(`--texture must be 1024, 2048 or 4096, not "${opts.texture}"`)
 
 const PHOTOS = path.resolve(positionals[0])
-const OUT = path.resolve(opts.out)
+// Without --out the GLB goes to the gitignored candidates folder of the #models page
+const OUT = opts.out
+  ? path.resolve(opts.out)
+  : path.resolve(
+      import.meta.dirname,
+      '../model-candidates',
+      `${kebabCase(path.basename(PHOTOS))}.glb`,
+    )
 const SWIFT_SOURCE = path.join(import.meta.dirname, 'object-capture.swift')
 // tools/ is in .gitignore, like AssetRipper
 const TOOL = path.resolve(import.meta.dirname, '../tools/object-capture')
@@ -82,6 +91,13 @@ const BASE_BANDS = 12
 const STAND_BANDS = 40
 const STAND_SEARCH = 0.5
 const STAND_MAX_RATIO = 0.75
+
+function kebabCase(name) {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
 
 if (!fs.statSync(PHOTOS, { throwIfNoEntry: false })?.isDirectory())
   throw new Error(`Not a directory: ${PHOTOS}`)
