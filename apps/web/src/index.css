@@ -1535,22 +1535,21 @@ body {
   bottom: 12px;
   right: 12px;
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  gap: 10px;
+  grid-auto-flow: row;
+  gap: 6px;
   z-index: 600;
 }
 
 .phase-button {
   font: inherit;
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text);
   background: var(--panel-2);
   border: 2px solid var(--line);
   border-radius: 8px;
-  height: 60px;
-  padding: 0 20px;
+  height: 40px;
+  padding: 0 14px;
   cursor: pointer;
   transition:
     border-color 0.1s,
@@ -1684,6 +1683,11 @@ body {
   height: 22px;
   width: 22px;
   object-fit: contain;
+}
+
+.phase-button--power .table-button-icon {
+  height: 18px;
+  width: 18px;
 }
 
 .table-strip-row {

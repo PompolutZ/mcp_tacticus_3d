@@ -1,7 +1,7 @@
 import { POWER_ICON } from '../ui/TableButtons.jsx'
 
-// The Power and Cleanup buttons when the settings put them in the HUD: a group fixed in the bottom right
-// corner, Power first (docs/features/round-phases.md, docs/features/table-tools.md). The handlers, the
+// The Power and Cleanup buttons when the settings put them in the HUD: a column fixed in the bottom right
+// corner, Power on top (docs/features/round-phases.md, docs/features/table-tools.md). The handlers, the
 // disabled state and the titles are the same as on the table; App passes them.
 // shown: false hides both (phaseHudShown in setup/setup.js).
 // onPowerPhase(): gives Power to the sides this browser plays. powerBlock: the reason Power is off, or null. cleanupDisabled, cleanupTitle: the Cleanup
