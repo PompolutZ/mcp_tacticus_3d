@@ -1,6 +1,6 @@
 # Plan: HUD redesign
 
-Requested by the user on 2026-10-17. Status: all steps built on 2026-10-17, waits for the user test. Branch `hud-redesign`, worktree `../mcp_assist_3d-hud-redesign`.
+Requested by the user on 2026-10-17. Status: done, user OK on 2026-10-17. Branch `hud-redesign`, worktree `../mcp_assist_3d-hud-redesign`.
 
 No new feature doc. Each step updates the feature docs where the look or the labels change. Each step makes one commit and writes its **Result** below.
 
