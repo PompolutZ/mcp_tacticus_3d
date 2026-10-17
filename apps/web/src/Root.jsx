@@ -1,13 +1,13 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { Lobby } from './rooms/Lobby.jsx'
 import { JoinRoom } from './rooms/JoinRoom.jsx'
-import { LoadingScreen } from './rooms/LoadingScreen.jsx'
 import { startSession } from './auth/session.js'
 import { useUser } from './auth/useUser.js'
 import { getRoom } from './rooms/serverStore.js'
 import { multiplayerRoom, roomPage } from './rooms/roomPage.js'
 import { openRoom } from './rooms/store.js'
 import { MAPS } from './terrain/maps/index.js'
+import { LoadingOverlay } from './rooms/LoadingOverlay.jsx'
 
 // The table page (three.js, Rapier, models) is its own chunk. The prefetch in Root starts it once the lobby
 // shows (docs/features/rooms.md, "Loading").
@@ -164,20 +164,20 @@ export default function Root() {
   }
   if (page.page === 'sandbox')
     return (
-      <Suspense fallback={<LoadingScreen />}>
+      <Suspense fallback={<LoadingOverlay />}>
         <Table key="sandbox" onExit={handleExit} />
       </Suspense>
     )
   if (page.page === 'room') {
     if (route.page === 'single')
       return (
-        <Suspense fallback={<LoadingScreen />}>
+        <Suspense fallback={<LoadingOverlay />}>
           <Table key={singleRoom.id} room={singleRoom} onExit={handleExit} />
         </Suspense>
       )
     if (route.page === 'multiplayer')
       return (
-        <Suspense fallback={<LoadingScreen />}>
+        <Suspense fallback={<LoadingOverlay />}>
           <Table key={tableRoom.id} room={tableRoom} onExit={handleExit} />
         </Suspense>
       )
@@ -191,7 +191,7 @@ export default function Root() {
         />
       )
     // wait, fetch, or the lobby while its message opens
-    return <LoadingScreen />
+    return <LoadingOverlay />
   }
   return (
     <Lobby
