@@ -67,7 +67,7 @@ export function RosterPopup({
   return (
     <Dialog
       backdropClassName="card-popup roster-popup-backdrop"
-      className="comic roster-comic"
+      className="comic roster-comic roster-comic--popup"
       closeClassName="roster-comic-close"
       label={title}
       onClose={onClose}

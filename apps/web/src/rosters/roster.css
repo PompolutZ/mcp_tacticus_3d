@@ -18,6 +18,20 @@
   cursor: default;
 }
 
+/* The roster popup (not the crisis overlays) has one stage height for every tab, so the frame does not
+   jump. It is the card plus what the card tab needs around it: the slide padding (24 + 20), the viewport
+   padding (4), the carousel gap (4) and the footer (min-height 112, the card switch row, the extras line).
+   Narrow: the extras wrap, so one more line is reserved. */
+.roster-comic--popup {
+  --extras-more: 0px;
+  --stage-h: calc(var(--card-h) + 164px + var(--extras-more));
+}
+
+.roster-comic--popup .roster-comic-stage {
+  flex: 0 1 var(--stage-h);
+  height: var(--stage-h);
+}
+
 /* The dialog element takes the focus when it opens; no ring around the frame */
 .roster-comic:focus {
   outline: none;
@@ -202,9 +216,8 @@
 /* The Breakdown tab (BreakdownTab.jsx, docs/features/squad-breakdown.md, "Breakdown tab") lies on the stage
    as a paper panel. The panel scrolls inside. */
 .roster-comic-breakdown {
-  /* about the height of the card stage, so the frame keeps its size when the tab changes */
-  flex: 0 1 auto;
-  height: calc(var(--card-h) + 190px);
+  /* fills the stage, which has the same height in every tab of the roster popup */
+  flex: 1;
   min-height: 0;
   display: flex;
   justify-content: center;
@@ -636,6 +649,10 @@ button.breakdown-row {
 
 /* Narrow screen: the label goes above the chips, the rows wrap, nothing scrolls sideways */
 @media (max-width: 640px) {
+  .roster-comic--popup {
+    --extras-more: 42px;
+  }
+
   .roster-comic-breakdown {
     padding: 12px 8px 0;
   }
