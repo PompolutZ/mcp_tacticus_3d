@@ -37,10 +37,14 @@ The URL hash selects the page. So the browser back button works, and a reload st
 
 - `#room=<code>` is the link format of the peer-to-peer doc ("Connect flow"). So the same link invites the second player.
 - A room code that is not in this browser opens the lobby with the message "Room K7Q2-M9XD is not in this browser". With login on, the app asks the server first: a multiplayer room opens, or the join page shows (`docs/features/auth.md`, "Identity in peer-to-peer games").
+- Join by code in the lobby sets the same `#room=<code>` hash.
 - Each room and the Sandbox mount a new table, so nothing from the last table stays.
 
 ## Lobby
 
+- **Hero:** the top of the page (`LobbyHero.jsx`). The title "Assemble at the table!" with two buttons: **New room!** opens the new room dialog, the same as the **+** tile, and **Open sandbox** opens the Sandbox. The panels wrap on a narrow screen.
+- **Join by code:** a box "Got a room code?" with a field and **Join!**. The code may have lower case, spaces and no hyphen (`rooms/roomCode.js`, `parseRoomCode`). A valid code opens `#room=<code>`, and the room page logic decides the rest (room, join page, or the lobby with a message, see "Pages"). A text that is not a code shows an error under the field and opens nothing.
+- **Messages:** a message at the top of the lobby (a room link that is not found, a failed load) shows as a yellow comic box.
 - **Rooms:** a **+** tile, then one list with a tile for each single player room and each multiplayer room, the last changed room first. A single player tile shows "Single player". A multiplayer tile shows the seats, **Copy link** and **Delete** for the host (`docs/features/auth.md`, "Lobby and room UI"). With login off, the list has only single player rooms and makes no API call. A tile shows the map card, the map name, the room code and the time of the last change. A random multiplayer room shows the card back and "Random map" until the guest joins. A click on the tile enters the room.
 - A roster link on a tile is the word "roster" in the seat line (a text link, not a chip), after the player name or the color name. It shows that roster of the room in the roster popup (`docs/features/roster.md`). A link shows only when the room has that roster. A multiplayer tile has no colors, because the colors follow Priority and are set at the table: its seats and links show the player names, for example "James roster", and a free seat shows "Free seat" with no link. A single player tile shows the real color of each side, "Blue roster" and "Red roster", from the `colors` of the room record. Before the roll off these are the start colors. A room that was not opened since the record got `colors` shows "Roster 1" and "Roster 2", with no color. The popup title and color come from the link. The popup opens on the first tab with cards, usually Characters. Escape, **×** or a click on the backdrop closes it. The left and right arrows show the previous or next card.
 - On a narrow tile, **Delete** goes to a second line.
@@ -186,6 +190,8 @@ In a single player room, the user id in `localStorage` is the owner of every roo
 | `apps/web/src/net/useY.js` | `useYList`, `useYRecord`, `useYField`: React hooks over the stores |
 | `apps/web/src/rooms/preload.js` | The files to load before a table shows |
 | `apps/web/src/rooms/Lobby.jsx` | The lobby page: one list of single player and multiplayer rooms |
+| `apps/web/src/rooms/LobbyHero.jsx` | The hero with New room! and Open sandbox, and the join by code box |
+| `apps/web/src/rooms/roomCode.js` | The room code alphabet and length, `parseRoomCode` |
 | `apps/web/src/rosters/RoomRosterPopup.jsx` | The roster popup of a room. The lobby and the join page use it |
 | `apps/web/src/rooms/NewRoomDialog.jsx` | The new room dialog: map switch, map carousel, Blue and Red roster fields |
 | `apps/web/src/ui/Switch.jsx` | An on/off switch with a label. The new room dialog uses it for **Random map** |

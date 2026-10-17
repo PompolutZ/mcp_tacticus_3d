@@ -2,6 +2,7 @@
 // (rooms/tableDoc.js). See docs/features/rooms.md, "Storage". No React.
 
 import { clearDocument } from 'y-indexeddb'
+import { CODE_CHARS, CODE_LENGTH } from './roomCode.js'
 import { equal } from '../net/collections.js'
 import { readJson as read, removeKey, storageKeys, writeJson as write } from '../storage.js'
 
@@ -14,9 +15,6 @@ const USER_KEY = `${PREFIX}user`
 // rooms are not migrated (docs/features/setup-game.md, "Colors"). Version 1 had the table in the record,
 // version 2 had the rosters keyed blue / red.
 export const VERSION = 3
-// Crockford base32: no I, L, O, U, so a code read aloud or typed is not mistaken. 8 characters are 40 bits,
-// the room code of docs/features/peer-to-peer.md, "Security and abuse".
-const CODE_CHARS = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
 
 // The id of the user of this browser, made on the first call. The owner of the rooms it creates.
 function userId() {
@@ -29,9 +27,9 @@ function userId() {
 
 // A new room code, for example K7Q2-M9XD
 function newRoomCode() {
-  const bytes = crypto.getRandomValues(new Uint8Array(8))
+  const bytes = crypto.getRandomValues(new Uint8Array(CODE_LENGTH))
   const chars = [...bytes].map((b) => CODE_CHARS[b % CODE_CHARS.length])
-  return `${chars.slice(0, 4).join('')}-${chars.slice(4).join('')}`
+  return `${chars.slice(0, CODE_LENGTH / 2).join('')}-${chars.slice(CODE_LENGTH / 2).join('')}`
 }
 
 // Every room record of this browser, of any version, in key order. A record that is not an object has no

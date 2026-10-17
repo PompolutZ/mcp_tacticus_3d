@@ -8,6 +8,7 @@ import * as server from './serverStore.js'
 import { deleteStaleDocs, deleteStaleRooms, deleteStaleSquads } from './localDocs.js'
 import { roomList, rosterLinks } from './roomList.js'
 import { LobbyHeader } from './LobbyHeader.jsx'
+import { LobbyHero } from './LobbyHero.jsx'
 import { NewRoomDialog } from './NewRoomDialog.jsx'
 import { RoomRosterPopup } from '../rosters/RoomRosterPopup.jsx'
 import { CopyLinkButton } from './CopyLinkButton.jsx'
@@ -148,6 +149,11 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
           {actionError}
         </div>
       )}
+      <LobbyHero
+        onNewRoom={() => setCreating(true)}
+        onOpenSandbox={onOpenSandbox}
+        onOpenRoom={onOpenRoom}
+      />
       <section>
         <h2 className="lobby-section-title">Rooms</h2>
         <div className="lobby-rooms">

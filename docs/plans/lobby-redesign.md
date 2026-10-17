@@ -88,4 +88,15 @@ Read on 2026-10-17.
 
 ## Results
 
-(none yet)
+### Step 1 (commit 7dd345e)
+
+Fonts from `@fontsource` (Bangers, Barlow, Barlow Condensed, JetBrains Mono), `rooms/comicTheme.js`, `rooms/lobby.css` (`.comic` variables, `.pop`, `.comic-button`, `.comic-input`, burst), `Burst.jsx`, new `LobbyHeader`, restyled user menu.
+
+### Step 2
+
+- `LobbyHero.jsx`: hero (tag, "Assemble at the table!", intro, **New room!**, **Open sandbox**) and join box (bubble form, **Join!**, example code). The hero title is an h2, because the header logo is the page h1. The old Sandbox section stays until Step 3.
+- `rooms/roomCode.js`: `parseRoomCode`, with `CODE_CHARS` and `CODE_LENGTH` moved here from `store.js` (store imports them; one source). Tests in `roomCode.test.js`.
+- **Join!** calls `onOpenRoom(code)` (Root sets `#room=<code>`); an invalid text shows an inline `role="alert"` error.
+- `.lobby-notice` restyled (yellow comic box).
+- `rooms.md`: Lobby, Pages, Code table.
+- Checks: format, lint (no new warnings), build, web tests pass.
