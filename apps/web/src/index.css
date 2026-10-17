@@ -2461,6 +2461,31 @@ body {
   width: 100%;
 }
 
+/* Dev-only models page (debug/ModelsPage.jsx): the stats of the model, over the canvas */
+.models-stats {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 12px;
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+.models-stats dt {
+  color: var(--muted);
+}
+
+.models-stats dd {
+  margin: 0;
+}
+
 .terrain-empty {
   margin: 8px 0;
   color: var(--muted);

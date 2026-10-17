@@ -21,6 +21,9 @@ const TacticFaces = import.meta.env.DEV ? lazy(() => import('./debug/TacticFaces
 // Dev-only terrain page (#terrain), left out of the build the same way
 const TerrainPage = import.meta.env.DEV ? lazy(() => import('./debug/TerrainPage.jsx')) : null
 
+// Dev-only models page (#models), left out of the build the same way
+const ModelsPage = import.meta.env.DEV ? lazy(() => import('./debug/ModelsPage.jsx')) : null
+
 // The page of the URL hash (docs/features/rooms.md, "Pages"): none → Lobby, #room=<code> → Room,
 // #sandbox → Sandbox. #room=<code> is the room link format of docs/features/peer-to-peer.md.
 function pageOf(hash) {
@@ -29,6 +32,7 @@ function pageOf(hash) {
   if (params.has('sandbox')) return { page: 'sandbox' }
   if (import.meta.env.DEV && params.has('tactic-faces')) return { page: 'tactic-faces' }
   if (import.meta.env.DEV && params.has('terrain')) return { page: 'terrain' }
+  if (import.meta.env.DEV && params.has('models')) return { page: 'models' }
   return { page: 'lobby' }
 }
 
@@ -159,6 +163,13 @@ export default function Root() {
     return (
       <Suspense fallback={null}>
         <TerrainPage />
+      </Suspense>
+    )
+  }
+  if (page.page === 'models') {
+    return (
+      <Suspense fallback={null}>
+        <ModelsPage />
       </Suspense>
     )
   }

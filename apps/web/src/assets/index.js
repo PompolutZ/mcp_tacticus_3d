@@ -15,3 +15,9 @@ export function assetUrl(path) {
 
 // Whether src/assets has the file (a new map may have no card image yet)
 export const hasAsset = (path) => `./${path}` in URLS
+
+// The [path, url] pairs of the files whose path (relative to src/assets) passes `match`
+export const assetEntries = (match) =>
+  Object.entries(URLS)
+    .map(([path, url]) => [path.slice(2), url])
+    .filter(([path]) => match(path))

@@ -9,3 +9,4 @@ playwright-cli
 .env.*.local
 .fallow
 /apps/web/dice-runs/
+/apps/web/model-candidates/
