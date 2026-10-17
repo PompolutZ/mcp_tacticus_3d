@@ -1,0 +1,230 @@
+/* The Streamer columns (SpectatorColumns.jsx, docs/features/spectator-view.md, "Squad columns"). --spectator-size
+   is the setting as a factor (1 = 100%). Each column has .comic on its root (rooms/comic.css variables). */
+.streamer-col {
+  --s: var(--spectator-size, 1);
+  /* The gutter of the HUD, and the room taken by the panel that pushes the column (Library, log bubble) */
+  --gutter: 16px;
+  --left-push: calc(420px + 12px);
+  --right-push: calc(380px + 12px);
+  position: absolute;
+  top: var(--hud-top);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  /* Never wider than the window minus the gutters, so the page has no horizontal scroll */
+  width: min(calc(270px * var(--s)), calc(100vw - 2 * var(--gutter)));
+  /* Not under the bottom-right phase buttons */
+  max-height: calc(100% - var(--hud-top) - 100px);
+  font: 500 calc(13px * var(--s)) var(--font-body);
+  color: var(--ink);
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
+  pointer-events: auto;
+}
+
+.streamer-col--left {
+  left: var(--gutter);
+}
+
+.streamer-col--left.streamer-col--pushed {
+  left: calc(var(--gutter) + var(--left-push));
+  max-width: calc(100vw - 2 * var(--gutter) - var(--left-push));
+}
+
+/* Below the area of the log bubble that flashes on a new entry. An open Log is a tall bubble, so the
+   column then moves left of it and starts at the top. */
+.streamer-col--right {
+  right: var(--gutter);
+  top: calc(var(--hud-top) + 96px);
+  max-height: calc(100% - var(--hud-top) - 96px - 100px);
+}
+
+.streamer-col--right.streamer-col--pushed {
+  right: calc(var(--gutter) + var(--right-push));
+  top: var(--hud-top);
+  max-height: calc(100% - var(--hud-top) - 100px);
+  max-width: calc(100vw - 2 * var(--gutter) - var(--right-push));
+}
+
+.streamer-head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: calc(6px * var(--s));
+  padding: calc(6px * var(--s)) calc(8px * var(--s));
+  color: #fff;
+  background: var(--blue);
+  border-bottom: 3px solid var(--ink);
+}
+
+.streamer-head--red {
+  background: var(--red);
+}
+
+.streamer-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font: 400 calc(20px * var(--s)) var(--font-title);
+  letter-spacing: 0.05em;
+  text-overflow: ellipsis;
+  text-shadow:
+    -1px -1px 0 var(--ink),
+    1px -1px 0 var(--ink),
+    -1px 1px 0 var(--ink),
+    1px 1px 0 var(--ink);
+  white-space: nowrap;
+}
+
+.streamer-affiliation {
+  flex: none;
+  width: calc(24px * var(--s));
+  height: calc(24px * var(--s));
+}
+
+.streamer-tag {
+  flex: none;
+  padding: 1px calc(6px * var(--s));
+  font: 700 calc(13px * var(--s)) var(--font-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink);
+}
+
+.streamer-tag--vp {
+  background: var(--yellow);
+}
+
+.streamer-list {
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.streamer-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: calc(6px * var(--s));
+  min-height: calc(56px * var(--s));
+  padding: calc(4px * var(--s)) calc(8px * var(--s));
+  border-bottom: 2px dashed var(--ink);
+}
+
+.streamer-row:last-child {
+  border-bottom: none;
+}
+
+.streamer-row--off {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+
+.streamer-portrait {
+  flex: none;
+  width: calc(44px * var(--s));
+  height: calc(44px * var(--s));
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.streamer-bars {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: calc(4px * var(--s));
+  min-width: 0;
+}
+
+.streamer-bar {
+  display: flex;
+  align-items: center;
+  gap: calc(4px * var(--s));
+}
+
+.streamer-bar-label {
+  flex: none;
+  width: calc(26px * var(--s));
+  font: 700 calc(12px * var(--s)) var(--font-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.streamer-bar-track {
+  flex: 1;
+  min-width: 0;
+  height: calc(12px * var(--s));
+  overflow: hidden;
+  background: #fff;
+  border: 2px solid var(--ink);
+}
+
+.streamer-bar-fill {
+  height: 100%;
+  background: var(--red);
+}
+
+/* The Injured side: the same red with dark stripes */
+.streamer-bar--injured .streamer-bar-fill {
+  background: repeating-linear-gradient(-45deg, var(--red) 0 4px, #7d1218 4px 8px);
+}
+
+.streamer-bar--power .streamer-bar-fill {
+  background: var(--yellow);
+}
+
+.streamer-bar-value {
+  flex: none;
+  min-width: calc(30px * var(--s));
+  font: 600 calc(11px * var(--s)) var(--font-code);
+  text-align: right;
+}
+
+.streamer-tokens {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  gap: calc(2px * var(--s));
+  justify-content: flex-end;
+  max-width: calc(84px * var(--s));
+}
+
+.streamer-tokens .tray-popup-token,
+.streamer-held {
+  width: calc(26px * var(--s));
+  height: calc(26px * var(--s));
+}
+
+.streamer-tokens .tray-popup-token--static {
+  cursor: default;
+}
+
+.streamer-tokens .tray-popup-token-count {
+  min-width: calc(14px * var(--s));
+  font-size: calc(10px * var(--s));
+  line-height: calc(14px * var(--s));
+  border-radius: calc(7px * var(--s));
+}
+
+.streamer-ko {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 400 calc(30px * var(--s)) var(--font-title);
+  letter-spacing: 0.1em;
+  color: #fff;
+  text-shadow:
+    -2px -2px 0 var(--ink),
+    2px -2px 0 var(--ink),
+    -2px 2px 0 var(--ink),
+    2px 2px 0 var(--ink);
+  pointer-events: none;
+}

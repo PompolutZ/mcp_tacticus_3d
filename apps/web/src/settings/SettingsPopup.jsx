@@ -98,9 +98,9 @@ export function SettingsPopup({
         </label>
       </section>
       <section className="settings-section">
-        <h3>Spectator</h3>
+        <h3>Streamer</h3>
         <label className="settings-row">
-          <span>Spectator columns size (%)</span>
+          <span>Streamer columns size (%)</span>
           <span className="settings-choice">
             <input
               type="range"
@@ -108,7 +108,7 @@ export function SettingsPopup({
               max={MAX_SPECTATOR_SIZE}
               step="5"
               value={settings.spectator.size}
-              aria-label="Spectator columns size"
+              aria-label="Streamer columns size"
               onChange={(e) => onSettingsChange({ spectator: { size: Number(e.target.value) } })}
             />
             <span className="settings-volume">{settings.spectator.size}</span>

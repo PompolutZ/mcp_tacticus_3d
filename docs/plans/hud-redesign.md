@@ -136,3 +136,10 @@ Read on 2026-10-17.
 - `ui/Library.jsx` + `ui/library.css`: black header (title, search, filter toggle buttons with `aria-pressed`), paper body, rows, 3-column cards, 5-column token buttons, Single / Pile as joined toggle buttons. `.comic` on the root; width is the window minus the gutter at most.
 - The For row uses `seat-plate--blue` / `--red`; the chosen plate is full, the other fades. Spawned rows are light green, unavailable rows grey. Message, titles, gem tag, drag stay.
 - `index.css`: removed `library*` and `token-chip` (only the Library used it). `chip` and `chip--player-*` stay.
+
+### Step 4
+
+- `ui/SpectatorColumns.jsx` + `ui/streamer.css`: header in the side color with VP and Round tags, round portrait, "Dmg" red and "Pwr" yellow bars with values. `.comic` on each column root. Class names are `streamer-*`; the setting key stays `spectator`.
+- Right column: starts below the area of the flashing log bubble (fixed offset); with the Log open it moves left of the bubble and starts at `--hud-top`. Max width is the window minus the gutter (minus the pushing panel when pushed).
+- Injured side: the Dmg bar is striped red (the old orange/red split is gone).
+- `SettingsPopup.jsx`: labels "Streamer" and "Streamer columns size (%)". `index.css`: removed the `spectator-*` column rules.

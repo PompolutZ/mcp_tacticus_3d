@@ -118,9 +118,9 @@ A label hides while terrain is between the camera and the label. This covers eve
 
 A **Sound** section has a volume slider, 0 to 100, default 10. 0 is off. See `sounds.md`.
 
-### Spectator
+### Streamer
 
-A **Spectator** section has a "Spectator columns size" slider, 60 to 150 percent, default 100. It scales the squad columns of the spectator view (`spectator-view.md`, "Squad columns").
+A **Streamer** section has a "Streamer columns size" slider, 60 to 150 percent, default 100. It scales the squad columns of the spectator view (`spectator-view.md`, "Squad columns").
 
 ### Turn
 

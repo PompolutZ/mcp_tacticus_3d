@@ -13,16 +13,22 @@ import { characterToken } from '../tokens/files.js'
 import { affiliationTokenKey } from '../tokens/affiliationTokens.js'
 import { OnToken } from '../characters/TrayPopup.jsx'
 import { useTableStore } from '../table/TableStoreContext.jsx'
+import { useSideColors } from '../table/useSideColors.jsx'
+import '../rooms/comicBase.js'
+import './streamer.css'
 
 // Power is 0 to 10 (the tray counter)
 const MAX_POWER = 10
 
-function Bar({ value, max, className, label }) {
+function Bar({ value, max, className, label, short }) {
   const percent = max > 0 ? Math.min(100, Math.max(0, (value / max) * 100)) : 0
   return (
-    <div className={`spectator-bar ${className}`} title={`${label} ${value} / ${max}`}>
-      <div className="spectator-bar-fill" style={{ width: `${percent}%` }} />
-      <span className="spectator-bar-text">
+    <div className={`streamer-bar ${className}`} title={`${label} ${value} / ${max}`}>
+      <span className="streamer-bar-label">{short}</span>
+      <div className="streamer-bar-track">
+        <div className="streamer-bar-fill" style={{ width: `${percent}%` }} />
+      </div>
+      <span className="streamer-bar-value">
         {value}/{max}
       </span>
     </div>
@@ -35,7 +41,7 @@ function HeldMark({ token }) {
   const name = tokenInfo(key)?.name ?? key
   return (
     <img
-      className="spectator-held"
+      className="streamer-held"
       src={assetUrl(crisisToken(key))}
       alt={name}
       title={name}
@@ -49,7 +55,7 @@ function AffiliationMark({ affiliation }) {
   const name = affiliationName(affiliation)
   return (
     <img
-      className="spectator-affiliation"
+      className="streamer-affiliation"
       src={assetUrl(characterToken(affiliationTokenKey(affiliation)))}
       alt={name}
       title={name}
@@ -65,22 +71,23 @@ function Row({ character, held, off, ko }) {
   const stamina = characterStamina(character.key, character.side)
   const tokens = Object.entries(character.tokens ?? {})
   return (
-    <li className={off ? 'spectator-row spectator-row--off' : 'spectator-row'}>
+    <li className={off ? 'streamer-row streamer-row--off' : 'streamer-row'}>
       <img
-        className="spectator-portrait"
+        className="streamer-portrait"
         src={assetUrl(characterPortrait(character.key))}
         alt=""
         title={name}
         loading="lazy"
         draggable={false}
       />
-      <div className="spectator-bars">
+      <div className="streamer-bars">
         <Bar
           value={character.damage ?? 0}
           max={stamina}
           label="Damage"
+          short="Dmg"
           className={
-            character.side === 'injured' ? 'spectator-bar--injured' : 'spectator-bar--healthy'
+            character.side === 'injured' ? 'streamer-bar--injured' : 'streamer-bar--healthy'
           }
         />
         {!grunt && (
@@ -88,11 +95,12 @@ function Row({ character, held, off, ko }) {
             value={character.power ?? 0}
             max={MAX_POWER}
             label="Power"
-            className="spectator-bar--power"
+            short="Pwr"
+            className="streamer-bar--power"
           />
         )}
       </div>
-      <div className="spectator-tokens">
+      <div className="streamer-tokens">
         {held.map((token) => (
           <HeldMark key={token.id} token={token} />
         ))}
@@ -100,7 +108,7 @@ function Row({ character, held, off, ko }) {
           <OnToken key={key} tokenKey={key} count={count} />
         ))}
       </div>
-      {ko && <span className="spectator-ko">KO</span>}
+      {ko && <span className="streamer-ko">KO</span>}
     </li>
   )
 }
@@ -122,6 +130,7 @@ export default function SpectatorColumns({
   libraryOpen,
   logOpen,
 }) {
+  const colors = useSideColors()
   const nameCtx = useTableStore((s) => s.nameCtx)
   const mySide = useTableStore((s) => s.mySide)
   const hiddenSquads = useTableStore((s) => s.hiddenSquads)
@@ -139,7 +148,7 @@ export default function SpectatorColumns({
         const hidden = Boolean(hiddenSquads && team !== mySide && !placed[team])
         const side = i === 0 ? 'left' : 'right'
         const pushed = i === 0 ? libraryOpen : logOpen
-        const className = `spectator-col spectator-col--${side}${pushed ? ' spectator-col--pushed' : ''}`
+        const className = `comic streamer-col streamer-col--${side}${pushed ? ' streamer-col--pushed' : ''}`
         return (
           <section
             key={team}
@@ -147,14 +156,14 @@ export default function SpectatorColumns({
             style={{ '--spectator-size': size / 100 }}
             aria-label={`${playerName(team, nameCtx)}, squad`}
           >
-            <header className="spectator-head">
-              <span className="spectator-name">{playerName(team, nameCtx)}</span>
+            <header className={`streamer-head streamer-head--${colors[team]}`}>
+              <span className="streamer-name">{playerName(team, nameCtx)}</span>
               {affiliations?.[team] && <AffiliationMark affiliation={affiliations[team]} />}
-              <span>{score[team]} VP</span>
-              {score.round && <span>Round {score.round}</span>}
+              <span className="streamer-tag streamer-tag--vp">{score[team]} VP</span>
+              {score.round && <span className="streamer-tag">Round {score.round}</span>}
             </header>
             {!hidden && (
-              <ul className="spectator-list">
+              <ul className="streamer-list">
                 {characters
                   .filter((ch) => ch.team === team)
                   .map((ch) => {
