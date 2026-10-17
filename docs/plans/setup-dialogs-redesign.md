@@ -122,4 +122,4 @@ The look of `lobby-redesign.md` ("The look"): ink, paper, yellow, red, blue, nig
 - `Carousel.jsx`: in fan mode the cards are repeated (`loopCopies`) until Embla can loop. A slide position maps to its card; `onIndexChange`, aria labels ("i of count"), click and arrow scroll use the card and go the short way. A repeat or a card closer on the other side is an empty aria-hidden slide, so each card shows once. Non-fan carousels unchanged.
 - `carouselLoop.js` (new): the pure index math. `carouselLoop.test.js`: each card shows once, shown card at 0, both sides equal, nearest-copy scroll.
 - `roster.md`: loop text updated. Covers the roster popup, map picker and compare lanes. Not checked in a browser.
-
+- Breakdown Must have follows the squad on the table: `breakdown.js` `filtersWithSquad` (+ test), `RosterPopupHost.jsx` effect syncs per team on squad change, also with the popup closed. Feature `squad-breakdown.md` (Filters, State) updated. Not checked in a browser.

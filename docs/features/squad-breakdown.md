@@ -122,6 +122,7 @@ The filter box is always shown. Its first row, **Must have**, is always visible.
 - A character is in at most one of the two character rows. A click in one row takes it out of the other row.
 - A min size above the max size moves the max size up, and the other way round, the same as Jarvis.
 - The counts on the threat buttons use the filters too.
+- Must have follows the squad on the table. Each time the squad characters of a roster change (a + / ✓ on a roster card, **Add to squad**, a click on a row), Must have becomes exactly the squad's characters, and those characters leave Must not have. The other filters stay. The player can still turn chips on or off afterwards; the next squad change sets Must have again. It also works while the popup is closed. An empty squad empties Must have, but a new roster with no squad keeps the start state. Only the squad this browser may see counts: in a multiplayer room, the other roster's hidden squad gives nothing.
 - The selected threat value and the filters of each roster stay while the app is open, also when the popup closes. A new roster for that side starts with the start filters (With a leader on). They are not saved.
 
 ## Choose a squad
@@ -138,7 +139,7 @@ In the squad step, a click on a combination chooses its characters for the squad
 ## State
 
 - The breakdown is computed from the roster and the setup. Nothing of it is in the shared document.
-- `RosterPopupHost` (`src/rosters/RosterPopupHost.jsx`) is always mounted, so the choice stays when the popup closes. It keeps the selected threat value and the filters of each roster: `{ host, guest } → { code, threat, filters } | null`. `code` is the roster code that the filters belong to. A different code means a new roster, so the defaults apply. Not saved, the same as `squadSelect`.
+- `RosterPopupHost` (`src/rosters/RosterPopupHost.jsx`) is always mounted, so the choice stays when the popup closes. It keeps the selected threat value and the filters of each roster: `{ host, guest } → { code, threat, filters } | null`. `code` is the roster code that the filters belong to. A different code means a new roster, so the defaults apply. The host also syncs Must have with the visible squad in an effect, and remembers per team the last squad it synced. Not saved, the same as `squadSelect`.
 - Filters store roster places, not codes, the same as a squad (`docs/features/setup-game.md`, "State").
 
 ## Code
