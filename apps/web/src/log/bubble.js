@@ -3,8 +3,8 @@
 // Closed: how long a new entry shows in the bubble
 export const BUBBLE_SHOW_MS = 3000
 
-// Open: how many entries the bubble lists, newest first
-export const BUBBLE_ENTRIES = 10
+// Open: how many entries the bubble lists, newest first. More than fit in the window: the list scrolls.
+export const BUBBLE_ENTRIES = 50
 
 // An entry older than this when it arrives is not new: it came with a sync from the other player
 export const FRESH_MS = 5000
