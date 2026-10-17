@@ -12,7 +12,8 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   cursor: default;
-  z-index: 400;
+  /* Overlay layer, same as .card-popup (see #root in index.css). */
+  z-index: 2;
 }
 
 .new-room-comic {

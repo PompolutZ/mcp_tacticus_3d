@@ -816,7 +816,7 @@ export default function App({
       <div ref={hudRootRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
         {/* Holds the Canvas only: isolation: isolate (index.css) keeps every drei <Html> wrapper it
           mounts (terrain labels, the ruler tool, the tray controls) from ever drawing over the
-          HUD below, no matter its z-index. See index.css, .scene-root. */}
+          HUD below. See index.css, #root and .scene-root. */}
         <div className="scene-root">
           <SceneBoundary>
             <Canvas
@@ -874,6 +874,8 @@ export default function App({
                 makeDefault
                 target={cameraTarget}
                 enablePan={true}
+                // pan along the table, like panOnTable; the default moves the target up and down, which breaks the zoom limits
+                screenSpacePanning={false}
                 // WheelCamera takes every wheel event, so this is only the pinch on a touch screen
                 enableZoom={true}
                 enableRotate={true}
