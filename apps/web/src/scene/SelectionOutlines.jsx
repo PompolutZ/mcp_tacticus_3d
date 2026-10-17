@@ -70,7 +70,7 @@ const OUTLINES = {
 const MODES = Object.keys(OUTLINES)
 // The tone mapping of each look option (DEFAULT_LOOK in table/tableStore.js): the ToneMapping pass mode, and the renderer
 // constant for when the composer is off
-const TONE_MAPPINGS = {
+export const TONE_MAPPINGS = {
   aces: { pass: ToneMappingMode.ACES_FILMIC, renderer: ACESFilmicToneMapping },
   neutral: { pass: ToneMappingMode.NEUTRAL, renderer: NeutralToneMapping },
   agx: { pass: ToneMappingMode.AGX, renderer: AgXToneMapping },

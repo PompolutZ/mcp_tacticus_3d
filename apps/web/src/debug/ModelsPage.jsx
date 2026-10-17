@@ -1,15 +1,17 @@
-import { Suspense, useEffect, useLayoutEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls, useGLTF } from '@react-three/drei'
 import { Box3, Vector3 } from 'three'
 import { Physics } from '@react-three/rapier'
+import { TONE_MAPPINGS } from '../scene/SelectionOutlines.jsx'
+import { DEFAULT_LOOK } from '../table/tableStore.js'
 import { Backdrop, SceneLights, TableSurface } from '../scene/SceneShared.jsx'
 import { styleFigure } from '../characters/useFigureMaterials.jsx'
 import { assetEntries } from '../assets/index.js'
 import { COLOR_HEX } from '../sideColors.js'
 import { CAMERA_MOUSE_BUTTONS } from '../camera.js'
 import characters from '../characters/characters.json'
-import { buildModelList, filterModels } from './modelList.js'
+import { buildModelList, filterModels, sortBySize } from './modelList.js'
 
 // Dev-only page (#models, see Root.jsx): the models of the game and the candidates in model-candidates/, one at
 // a time with an orbit camera, and the stats of the model. See docs/features/model-viewer.md. It is not in the
@@ -23,6 +25,11 @@ const CANDIDATES = import.meta.glob('/model-candidates/*.glb', {
 })
 const GAME = assetEntries((path) => path.startsWith('characters/') && path.endsWith('.glb'))
 const LIST = buildModelList({ candidates: CANDIDATES, assets: GAME, names: characters })
+
+const URLS = LIST.map((row) => row.url)
+
+// Renderer options of the Canvas. The tone mapping is the one of the table.
+const GL = { antialias: false, toneMapping: TONE_MAPPINGS[DEFAULT_LOOK.toneMapping].renderer }
 
 const BASE_COLOR = COLOR_HEX.blue
 const CAMERA = { position: [0, 4, 8], fov: 40 }
@@ -78,23 +85,30 @@ function Model({ url, onStats }) {
   return <primitive object={scene} />
 }
 
-// The file size in KB of `url`, or null while it loads
-function useFileKb(url) {
-  const [loaded, setLoaded] = useState({ url: null, kb: 0 })
+// The file sizes in bytes of `urls`, { [url]: bytes }, from HEAD requests (Content-Length). A url that is not
+// known yet is asked once; a new candidate file is picked up when it is in `urls`.
+function useFileSizes(urls) {
+  const [sizes, setSizes] = useState({})
+  const asked = useRef(new Set())
   useEffect(() => {
-    let cancelled = false
-    fetch(url)
-      .then((r) => r.blob())
-      .then((blob) => !cancelled && setLoaded({ url, kb: blob.size / 1024 }))
-      .catch(() => {})
-    return () => {
-      cancelled = true
+    for (const url of urls) {
+      if (asked.current.has(url)) continue
+      asked.current.add(url)
+      fetch(url, { method: 'HEAD' })
+        .then((r) => {
+          const bytes = Number(r.headers.get('Content-Length'))
+          if (r.ok && bytes > 0) setSizes((prev) => ({ ...prev, [url]: bytes }))
+        })
+        .catch(() => {})
     }
-  }, [url])
-  return loaded.url === url ? loaded.kb : null
+  }, [urls])
+  return sizes
 }
 
-function Stats({ stats, kb }) {
+const formatKb = (bytes) =>
+  bytes === undefined ? '...' : `${Math.round(bytes / 1024).toLocaleString('en-US')} KB`
+
+function Stats({ stats, bytes }) {
   if (!stats) return null
   const [w, d, h] = stats.sizeMm.map((v) => v.toFixed(1))
   return (
@@ -104,7 +118,7 @@ function Stats({ stats, kb }) {
       <dt>Size (mm)</dt>
       <dd>{`${w} × ${d} × ${h}`}</dd>
       <dt>File</dt>
-      <dd>{kb === null ? '...' : `${Math.round(kb).toLocaleString('en-US')} KB`}</dd>
+      <dd>{formatKb(bytes)}</dd>
       <dt>Textures</dt>
       <dd>{stats.textures.length ? stats.textures.join(', ') : 'none'}</dd>
     </dl>
@@ -115,8 +129,9 @@ export default function ModelsPage() {
   const [filter, setFilter] = useState('')
   const [selected, setSelected] = useState(LIST[0] ?? null)
   const [stats, setStats] = useState(null)
-  const rows = useMemo(() => filterModels(LIST, filter), [filter])
-  const kb = useFileKb(selected?.url)
+  const sizes = useFileSizes(URLS)
+  const sorted = useMemo(() => sortBySize(LIST, sizes), [sizes])
+  const rows = useMemo(() => filterModels(sorted, filter), [sorted, filter])
 
   function select(row) {
     setStats(null)
@@ -145,6 +160,7 @@ export default function ModelsPage() {
                 onClick={() => select(row)}
               >
                 {row.group === 'candidate' ? `[candidate] ${row.name}` : row.name}
+                <small> · {formatKb(sizes[row.url])}</small>
               </button>
             </li>
           ))}
@@ -153,7 +169,9 @@ export default function ModelsPage() {
       </aside>
       <div className="terrain-canvas">
         <div className="scene-root">
-          <Canvas shadows="percentage" camera={CAMERA} gl={{ antialias: false }}>
+          {/* An explicit gl.toneMapping is applied after R3F's own default (ACES Filmic, which brightens dark models),
+              and R3F skips that default when it is set. Same tone mapping as the table. */}
+          <Canvas shadows="percentage" camera={CAMERA} gl={GL}>
             <Suspense fallback={null}>
               <Backdrop />
               <SceneLights />
@@ -174,7 +192,7 @@ export default function ModelsPage() {
             />
           </Canvas>
         </div>
-        <Stats stats={stats} kb={kb} />
+        <Stats stats={stats} bytes={sizes[selected?.url]} />
       </div>
     </div>
   )

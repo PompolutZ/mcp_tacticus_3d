@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync } from 'node:fs'
-import { buildModelList, filterModels } from './modelList.js'
+import { buildModelList, filterModels, sortBySize } from './modelList.js'
 
 const names = JSON.parse(
   readFileSync(new URL('../characters/characters.json', import.meta.url), 'utf8'),
@@ -50,4 +50,24 @@ test('the filter keeps only matching names, in any case', () => {
   assert.ok(found.length > 0)
   assert.ok(found.every((r) => r.name.toLowerCase().includes('alpha')))
   assert.equal(filterModels(list, '').length, list.length)
+})
+
+test('sorted by size: largest first, unknown sizes last, no row lost', () => {
+  // Sizes for every second row, from the row index, so that there are equal and unknown sizes
+  const sizes = {}
+  list.forEach((row, i) => {
+    if (i % 2 === 0) sizes[row.url] = (i % 7) * 1000
+  })
+  const sorted = sortBySize(list, sizes)
+  const known = sorted.filter((r) => r.url in sizes)
+  const unknown = sorted.filter((r) => !(r.url in sizes))
+  assert.deepEqual(sorted, [...known, ...unknown])
+  for (let i = 1; i < known.length; i++) {
+    assert.ok(sizes[known[i - 1].url] >= sizes[known[i].url])
+  }
+  assert.deepEqual(
+    unknown,
+    list.filter((r) => !(r.url in sizes)),
+  )
+  assert.deepEqual(sorted.map((r) => r.id).sort(), list.map((r) => r.id).sort())
 })
