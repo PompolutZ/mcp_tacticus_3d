@@ -31,7 +31,7 @@ function LoggedOut() {
     <div className="user-menu">
       {DISCORD_ON && (
         <>
-          <button type="button" className="chip user-login" onClick={login}>
+          <button type="button" className="comic-button pop user-login" onClick={login}>
             Log in with Discord
           </button>
           <p className="user-menu-note">
@@ -42,14 +42,14 @@ function LoggedOut() {
       {import.meta.env.DEV && (
         <form className="user-dev" onSubmit={handleDevLogin}>
           <input
-            className="user-dev-name"
+            className="comic-input user-dev-name"
             value={name}
             maxLength={32}
             placeholder="Dev name"
             aria-label="Dev login name"
             onChange={(e) => setName(e.target.value)}
           />
-          <button type="submit" className="chip">
+          <button type="submit" className="comic-button comic-button--small pop">
             Dev login
           </button>
           {error && <span className="user-menu-note">{error}</span>}
@@ -90,16 +90,36 @@ function LoggedIn({ user }) {
 
   return (
     <div className="user-menu" ref={ref}>
-      <button type="button" className="chip user-button" onClick={() => setOpen((o) => !o)}>
+      <button
+        type="button"
+        className="comic-button pop user-button"
+        onClick={() => setOpen((o) => !o)}
+      >
         <img className="user-avatar" src={avatarUrl(user, 56)} alt="" draggable={false} />
         <span>{user.name}</span>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          aria-hidden="true"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
       </button>
       {open && (
         <div className="user-popup">
-          <button type="button" className="chip" onClick={logout}>
+          <button type="button" className="comic-button comic-button--small pop" onClick={logout}>
             Log out
           </button>
-          <button type="button" className="chip user-delete" onClick={handleDelete}>
+          <button
+            type="button"
+            className="comic-button comic-button--small pop user-delete"
+            onClick={handleDelete}
+          >
             Delete account
           </button>
           {error && <p className="user-menu-error">{error}</p>}

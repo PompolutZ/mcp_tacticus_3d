@@ -41,7 +41,7 @@ export function JoinRoom({ room, onJoined, onExit }) {
   }
 
   return (
-    <div className="lobby">
+    <div className="lobby comic">
       <LobbyHeader />
       <form className="join-room" onSubmit={handleJoin}>
         <img className="join-room-card" src={assetUrl(face.src)} alt="" draggable={false} />

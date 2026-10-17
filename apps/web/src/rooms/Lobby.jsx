@@ -131,7 +131,7 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
   }
 
   return (
-    <div className="lobby">
+    <div className="lobby comic">
       <LobbyHeader />
       {notice && (
         <div className="lobby-notice" role="alert">
