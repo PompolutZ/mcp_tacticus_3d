@@ -1,5 +1,8 @@
 {
   "adam-warlock": {
     "characters/adam-warlock/model.glb": "pnpm --filter web photos-to-glb \"<Adam Warlock 3rd photos>\" --base small --texture 1024 --tone strong"
+  },
+  "star-lord": {
+    "characters/star-lord/model.glb": "pnpm --filter web photos-to-glb \"<Star-Lord photos>\" --base small --texture 1024"
   }
 }
