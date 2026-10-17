@@ -16,11 +16,15 @@ import { Overlay } from './Overlay.jsx'
 //   does not close the popups a second time. The key capture of Settings (KeyBindings.jsx) listens on the
 //   window in the capture phase and stops the event first.
 // backdropClassName: the class of the backdrop. className: the class of the element. as: 'div' or 'form'.
+// closeClassName: a variant of the × button. The button is then the first child of the element (not a
+// sibling of it), so a style can put it at a corner of the element; its look is in that style (the roster
+// popup, RosterPopup.jsx). Without it, the button is the round one in the screen corner (.popup-close).
 // The rest (onSubmit, ...) goes to the element.
 export function Dialog({
   label,
   className,
   backdropClassName,
+  closeClassName,
   onClose,
   closeButton = true,
   restoreFocus = true,
@@ -46,6 +50,17 @@ export function Dialog({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  const close = (
+    <button
+      type="button"
+      className={closeClassName ?? 'popup-close'}
+      aria-label="Close"
+      onClick={onClose}
+    >
+      ×
+    </button>
+  )
+
   return (
     <Overlay
       className={backdropClassName}
@@ -57,11 +72,7 @@ export function Dialog({
       }}
     >
       <FocusScope contain restoreFocus={restoreFocus}>
-        {closeButton && (
-          <button type="button" className="popup-close" aria-label="Close" onClick={onClose}>
-            ×
-          </button>
-        )}
+        {closeButton && !closeClassName && close}
         <Element
           {...rest}
           ref={ref}
@@ -71,6 +82,7 @@ export function Dialog({
           aria-label={label}
           tabIndex={-1}
         >
+          {closeButton && closeClassName && close}
           {children}
         </Element>
       </FocusScope>

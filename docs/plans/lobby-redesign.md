@@ -109,3 +109,14 @@ Fonts from `@fontsource` (Bangers, Barlow, Barlow Condensed, JetBrains Mono), `r
 - `src/assets/lobby/sandbox.webp`: the screenshot, `magick` 1600 px wide, quality 80, loaded with `assetUrl`.
 - `lobby.css`: new rules for the tiles, sandbox and footer. Old lobby rules removed. `.lobby-seat-avatar` stays (JoinRoom).
 - `rooms.md`, `auth.md`: updated.
+
+### Step 4
+
+- `ui/Dialog.jsx`: `closeClassName`; with it the × is the first child of the dialog element (so a style can put it on the frame corner). Other dialogs unchanged.
+- `rooms/comic.css` + `rooms/comicBase.js` (fonts and shared `.comic` look) split from `lobby.css`; `comicTheme.js` = base + `lobby.css`. The roster popup imports only `comicBase.js`, so the table loads no lobby layout.
+- `rosters/roster.css` (new) and `RosterPopup.jsx` rewritten: comic frame, header (tint by `color`, optional tag from `roomCode` + `seat`), folder tabs with count chips (Breakdown without count), stage with rays, footer ← "Card N of M" → / **Flip!** / **This card on Jarvis**, variants, **Add to squad**, gem tags. Flip side and variant state moved from the slide to `CardCarousel` (per card index), so the footer acts on the middle card.
+- `ui/Carousel.jsx`: `fan` (slides get `--rel` and `data-dist`, css in `roster.css`) and `renderNav`. Embla unchanged. The map picker and the crisis compare keep their look.
+- `Lobby.jsx`, `JoinRoom.jsx`, `RoomRosterPopup.jsx`: pass `roomCode` and `seat` (host/guest, or side color).
+- `index.css`: removed the `jarvis-link*`, `roster-popup-*` rules only the old popup used. Kept those that CrisisCompare, CrisisChoose and Settings use (`.roster-popup`, title, tabs, card, plate, backdrop).
+- `roster.md`, `rooms.md` updated. `src/assets/jarvis-logo.webp` is no longer used by the popup.
+

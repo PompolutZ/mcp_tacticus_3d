@@ -1,0 +1,489 @@
+/* The roster popup (RosterPopup.jsx, docs/features/roster.md, "Roster popup"): a framed comic dialog. The
+   colors and fonts are the variables of .comic (rooms/comic.css), which the popup root has, so the
+   look is the same in the lobby and on the table. The backdrop is .roster-popup-backdrop (index.css). */
+.roster-comic {
+  --card-h: min(clamp(180px, calc(100vh - 430px), 420px), 46vw);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  box-sizing: border-box;
+  width: min(1180px, calc(100vw - 48px));
+  max-height: calc(100vh - 32px);
+  color: var(--ink);
+  background: var(--ink);
+  background-image: none;
+  border: 5px solid var(--ink);
+  box-shadow: 12px 12px 0 rgba(0, 0, 0, 0.6);
+  cursor: default;
+}
+
+/* The dialog element takes the focus when it opens; no ring around the frame */
+.roster-comic:focus {
+  outline: none;
+}
+
+.roster-comic-close {
+  position: absolute;
+  top: -22px;
+  right: -22px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  font: 400 34px/1 var(--font-title);
+  color: var(--ink);
+  background: var(--yellow);
+  border: 4px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  transform: rotate(6deg);
+  cursor: pointer;
+  transition:
+    transform 0.08s,
+    box-shadow 0.08s;
+}
+
+.roster-comic-close:hover {
+  transform: translate(-2px, -2px) rotate(6deg);
+  box-shadow: 6px 6px 0 var(--ink);
+}
+
+.roster-comic-close:active {
+  transform: translate(3px, 3px) rotate(6deg);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.roster-comic-close:focus-visible {
+  outline: 3px solid var(--paper);
+  outline-offset: 2px;
+}
+
+/* The header: halftone in the color of the side (blue, red, or neutral dark blue) */
+.roster-comic-head {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 30px 0;
+  background-color: var(--blue);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.12) 24%, transparent 26%);
+  background-size: 10px 10px;
+}
+
+.roster-comic-head--red {
+  background-color: var(--red);
+  background-image: radial-gradient(rgba(0, 0, 0, 0.22) 24%, transparent 26%);
+}
+
+.roster-comic-head--neutral {
+  background-color: var(--night-dot);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.12) 24%, transparent 26%);
+}
+
+.roster-comic-heading {
+  min-width: 0;
+  padding-bottom: 14px;
+}
+
+.roster-comic-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  font: italic 700 14px var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  transform: rotate(-2deg);
+}
+
+.roster-comic-title {
+  margin: 8px 0 0;
+  font: 400 clamp(36px, 6vw, 60px) / 0.9 var(--font-title);
+  letter-spacing: 0.03em;
+  color: #fff;
+  -webkit-text-stroke: 3px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 5px 5px 0 var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.roster-comic-head-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.roster-comic .comic-button {
+  text-decoration: none;
+}
+
+.roster-comic .comic-button svg {
+  flex: none;
+}
+
+/* Folder tabs: the selected one is yellow and in line, the others are paper and pushed down */
+.roster-comic-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-bottom: -5px;
+}
+
+.roster-comic-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 18px;
+  font: 400 24px var(--font-title);
+  letter-spacing: 0.05em;
+  color: var(--ink);
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-bottom: 0;
+  transform: translateY(6px);
+  cursor: pointer;
+  transition: transform 0.08s;
+}
+
+.roster-comic-tab:hover:not(:disabled) {
+  transform: translateY(3px);
+}
+
+.roster-comic-tab[aria-selected='true'] {
+  background: var(--yellow);
+  transform: translateY(0);
+}
+
+.roster-comic-tab:disabled {
+  color: var(--disabled-fg);
+  background: var(--disabled-bg);
+  cursor: not-allowed;
+}
+
+.roster-comic-tab:focus-visible,
+.roster-comic-square:focus-visible,
+.roster-comic-flip-button:focus-visible,
+.roster-comic-chip:focus-visible,
+.roster-comic-gem:focus-visible,
+.roster-comic .comic-button:focus-visible {
+  outline: 3px solid var(--yellow);
+  outline-offset: 2px;
+}
+
+.roster-comic-tab-count {
+  padding: 1px 6px;
+  font: 600 12px var(--font-code);
+  color: #fff;
+  background: var(--ink);
+}
+
+/* The stage: dark rays, the cards, and the controls at the bottom */
+.roster-comic-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: repeating-conic-gradient(
+    from 0deg at 50% 46%,
+    #1b2457 0deg 7deg,
+    var(--night) 7deg 14deg
+  );
+}
+
+/* The Breakdown tab (BreakdownTab.jsx) lies on the stage. It scrolls; the filters stay in full. */
+.roster-comic-breakdown {
+  /* about the height of the card stage, so the frame keeps its size when the tab changes */
+  flex: 0 1 auto;
+  height: calc(var(--card-h) + 190px);
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  padding: 16px 20px;
+  overflow-y: auto;
+}
+
+.roster-comic-breakdown .breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(100%, 860px);
+  height: fit-content;
+  padding: 12px 14px;
+  background: var(--night);
+  border: 3px solid var(--ink);
+}
+
+/* The fan look of the carousel (Carousel.jsx, fan). The slide is narrower than its card, so the cards
+   overlap and the side cards tuck behind the one in the middle. The viewport is as wide as the stage in
+   every tab, centered on the shown card. --card-w comes from RosterPopup.jsx: --card-h times the card ratio. */
+.roster-comic .carousel {
+  --card-gap: calc(var(--card-w) * -0.32);
+  --view-w: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.roster-comic .carousel-viewport {
+  /* the viewport needs the room of the turned cards and the shadow above and below */
+  padding: 0 0 4px;
+}
+
+.roster-comic .carousel-slide {
+  padding: 24px 0 20px;
+}
+
+/* The slides are siblings, so the stacking order is set on the slide: the shown card on top, then the
+   next ones by distance. The cards inside have no z-index. */
+.roster-comic .carousel-slide {
+  position: relative;
+  z-index: 3;
+}
+
+.roster-comic .carousel-slide[data-dist='1'] {
+  z-index: 2;
+}
+
+.roster-comic .carousel-slide[data-dist='2'] {
+  z-index: 1;
+}
+
+.roster-comic .carousel-slide > .carousel-card {
+  transform: rotate(-1.5deg);
+}
+
+/* The hard shadow of the shown card is on each face (the front and back sides, or the one image or plate), not
+   on the flip wrapper, so it turns with the face during Flip!. The side cards have none. No drop-shadow
+   filter: it would flatten the 3D of the flip. */
+.roster-comic .carousel-slide[data-dist='0'] .roster-comic-card {
+  box-shadow: 10px 10px 0 var(--ink);
+}
+
+.roster-comic .carousel-slide--fan > .carousel-card {
+  transform: rotate(calc(var(--rel) * 6deg)) scale(0.8);
+  filter: brightness(0.62);
+  cursor: pointer;
+}
+
+.roster-comic .carousel-slide--fan[data-dist='2'] > .carousel-card {
+  transform: rotate(calc(var(--rel) * 6deg)) scale(0.66);
+  filter: brightness(0.42);
+}
+
+/* width and aspect-ratio come from RosterPopup.jsx */
+.roster-comic-card {
+  display: block;
+  box-sizing: border-box;
+  border: 4px solid var(--ink);
+  border-radius: 8px;
+  background: var(--paper);
+  object-fit: contain;
+  user-select: none;
+}
+
+/* A card with two sides. A click turns it around its vertical axis. The side that faces away is hidden. */
+.roster-comic-flip {
+  position: relative;
+  perspective: 2000px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.roster-comic-flip-inner {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.5s;
+}
+
+.roster-comic-flip--back .roster-comic-flip-inner {
+  transform: rotateY(180deg);
+}
+
+.roster-comic-side {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.roster-comic-side--back {
+  transform: rotateY(180deg);
+}
+
+.roster-comic-plate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  color: #fff;
+  text-align: center;
+}
+
+.roster-comic-plate-name {
+  font: 400 28px var(--font-title);
+  letter-spacing: 0.04em;
+  -webkit-text-stroke: 2px var(--ink);
+  paint-order: stroke fill;
+}
+
+.roster-comic-plate-code {
+  font: 600 16px var(--font-code);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.roster-comic-plate-mark {
+  font: italic 700 15px var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--yellow);
+}
+
+/* The controls under the cards: the card switch and the buttons, then the variants, squad and gems */
+.roster-comic-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px 18px;
+  /* room for a line of extras in every tab, so the carousel does not move */
+  min-height: 112px;
+}
+
+.roster-comic-nav,
+.roster-comic-extras {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.roster-comic-extras {
+  gap: 8px 10px;
+  min-height: 34px;
+}
+
+.roster-comic-variants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.roster-comic-square {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  color: var(--ink);
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  cursor: pointer;
+}
+
+.roster-comic-square svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.roster-comic-square:hover:not(:disabled) {
+  background: var(--yellow);
+}
+
+.roster-comic-square:disabled {
+  color: var(--disabled-fg);
+  background: var(--disabled-bg);
+  cursor: not-allowed;
+}
+
+.roster-comic-count {
+  min-width: 140px;
+  padding: 6px 12px;
+  box-sizing: border-box;
+  font: italic 700 16px var(--font-label);
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+}
+
+.roster-comic-flip-button {
+  height: 48px;
+  padding: 0 18px;
+  font: 400 24px var(--font-title);
+  letter-spacing: 0.05em;
+  color: var(--ink);
+  background: var(--yellow);
+  border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  cursor: pointer;
+}
+
+.roster-comic-footer .comic-button {
+  height: 48px;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+/* A variant, Add to squad: a small comic button; selected or on is yellow */
+.roster-comic-chip {
+  height: 34px;
+  padding: 0 12px;
+  font: 700 15px var(--font-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+}
+
+.roster-comic-chip[aria-selected='true'],
+.roster-comic-chip[aria-pressed='true'] {
+  background: var(--yellow);
+}
+
+.roster-comic-chip:hover {
+  background: var(--yellow-2);
+}
+
+.roster-comic-gem {
+  padding: 2px 8px;
+  font: italic 700 14px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  cursor: pointer;
+}
+
+.roster-comic-gem:hover {
+  background: var(--yellow);
+}

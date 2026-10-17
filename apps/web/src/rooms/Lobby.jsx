@@ -100,7 +100,9 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
   }
 
   function openRoster(item, { team, color, label }) {
-    setRosterView({ id: item.id, team, rosters: item.rosters, color, label })
+    // The seat of the line above the title: the host or guest of a multiplayer room, the color of a single player side
+    const seat = item.kind === 'multiplayer' ? (team === 'host' ? 'host' : 'guest') : color
+    setRosterView({ id: item.id, team, rosters: item.rosters, color, label, seat })
   }
 
   return (
@@ -321,6 +323,8 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
             rosterView.color ? `${COLOR_NAME[rosterView.color]} player roster` : rosterView.label
           }
           color={rosterView.color}
+          roomCode={rosterView.id}
+          seat={rosterView.seat}
           code={rosterView.rosters[rosterView.team].code}
           onClose={() => setRosterView(null)}
         />

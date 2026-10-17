@@ -119,6 +119,8 @@ export function JoinRoom({ room, onJoined, onExit }) {
       {rosterOpen && (
         <RoomRosterPopup
           title={hostLabel}
+          roomCode={room.code}
+          seat="host"
           code={hostRoster.code}
           onClose={() => setRosterOpen(false)}
         />
