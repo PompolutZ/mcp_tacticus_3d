@@ -19,6 +19,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  color: var(--ink);
   padding: 56px 24px 32px;
   background: repeating-conic-gradient(
     from 0deg at 50% 45%,
@@ -37,6 +38,7 @@
   font: italic 700 17px var(--font-label);
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  color: var(--ink);
   background: var(--paper);
   border: 4px solid var(--ink);
 }
