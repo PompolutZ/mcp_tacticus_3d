@@ -7,6 +7,7 @@ import {
   chooseAffiliation,
   deployLockDue,
   lockWasSet,
+  phaseHudShown,
   chooseDeck,
   chooserOf,
   browse,
@@ -570,6 +571,25 @@ test('deployLockDue is true once, when both squads are placed', () => {
   delete old.deployed
   assert.equal(deployLockDue(old), false)
   assert.equal(overrideTo(lockWasSet(both), 'squads').lockSet, false)
+})
+
+test('phaseHudShown: Versus room after both squads are placed', () => {
+  const start = squadsSetup(bothReady)
+  const both = placeSquad(
+    placeSquad(start, 'host', squad, cards),
+    'guest',
+    squad,
+    cards,
+    'unaffiliated',
+  )
+  assert.equal(phaseHudShown(lockWasSet(both), false), false)
+  assert.equal(phaseHudShown(lockWasSet(both), undefined), false)
+  assert.equal(phaseHudShown(start, true), false)
+  assert.equal(phaseHudShown(both, true), false)
+  assert.equal(phaseHudShown(lockWasSet(both), true), true)
+  assert.equal(phaseHudShown(finishDeploy(both), true), true)
+  assert.equal(phaseHudShown({ ...NEW_SETUP, deployed: true }, true), true)
+  assert.equal(phaseHudShown(overrideTo(lockWasSet(both), 'squads'), true), false)
 })
 
 test('EMPTY_SQUAD is an empty squad', () => {

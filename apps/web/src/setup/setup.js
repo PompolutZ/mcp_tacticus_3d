@@ -267,6 +267,12 @@ export function deployLockDue(setup) {
   return Boolean(placed.host && placed.guest) && setup.deployed === false && !setup.lockSet
 }
 
+// The HUD Power and Cleanup buttons show only in a Versus room, once both squads were placed (lockSet) or
+// the setup is done (deployed, also old saves), and stay for the rest of the room. docs/features/round-phases.md
+export function phaseHudShown(setup, multiplayer) {
+  return Boolean(multiplayer) && Boolean(setup?.lockSet || setup?.deployed)
+}
+
 // The setup turned Deploy Lock on
 export function lockWasSet(setup) {
   return { ...setup, lockSet: true }

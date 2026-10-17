@@ -37,6 +37,7 @@ import { parseRosterText, rosterCard, rosterTabs } from './rosters/cards.js'
 import {
   chooserOf,
   colorOf,
+  phaseHudShown,
   priorityOf,
   rackHiddenSides,
   setupStep,
@@ -168,6 +169,7 @@ export default function App({
   // The game setup: crisis cards, threat, deployment edge and squads (setup/setup.js, GameSetup.jsx). A new
   // roster starts it again.
   const [setup] = useYRecord(table.setup)
+  const phaseHud = phaseHudShown(setup, room?.multiplayer)
   // The colors of the sides (setup/setup.js, colorOf). The Sandbox (no room) keeps +z Blue. The store gives
   // them to every component that shows a color (sideColors.js, table/useSideColors.jsx).
   const followPriority = Boolean(room)
@@ -1009,6 +1011,7 @@ export default function App({
           onDone={(line) => placeTokens(line.ids)}
         />
         <PhaseButtons
+          shown={phaseHud}
           settings={settings}
           onPowerPhase={() => handlePowerPhase(playedSides)}
           powerBlock={powerBlockTitle(playedSides)}
@@ -1017,7 +1020,7 @@ export default function App({
           cleanupTitle={cleanupTitle}
         />
         <HudWarnings
-          lifted={settings.tools.power === 'hud' || settings.tools.cleanup === 'hud'}
+          lifted={phaseHud && (settings.tools.power === 'hud' || settings.tools.cleanup === 'hud')}
           storageFailed={storageFailed}
           serverWarning={serverWarning}
           versionMismatch={versionMismatch}

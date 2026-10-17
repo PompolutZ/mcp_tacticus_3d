@@ -85,7 +85,7 @@ One row at the top, never wrapped. The height is the CSS variable `--hud-top` on
 
 ### On the table or in the HUD
 
-One row for each item, with the choice **Table** or **HUD**. The default is **HUD** for Automatic Power Phase and Cleanup Phase, **Table** for the rest. Saved settings from before the `version` field get Power and Cleanup in the HUD once; after that the saved choice stays.
+One row for each item, with the choice **Table** or **HUD**. The default is **HUD** for Automatic Power Phase and Cleanup Phase, **Table** for the rest. The two HUD phase buttons appear only in a Versus room, after both squads are on the table, and stay for the rest of the room (`docs/features/round-phases.md`). Saved settings from before the `version` field get Power and Cleanup in the HUD once; after that the saved choice stays.
 
 | Item | On the table | In the HUD |
 |---|---|---|

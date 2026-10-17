@@ -173,6 +173,7 @@ function BoardPanel({
   ctx,
   actions,
   powerOnTable,
+  powerHudShown,
   onStartRound,
   startRoundBlock,
 }) {
@@ -277,7 +278,9 @@ function BoardPanel({
     hint = `Deploy one model at a time, taking turns. ${says(winner, ctx, 'deploy')} first.`
     note = powerOnTable
       ? 'Press Auto Power Phase to start round 1 when both squads are deployed.'
-      : 'Press Power (bottom right) to start round 1 when both squads are deployed.'
+      : powerHudShown
+        ? 'Press Power (bottom right) to start round 1 when both squads are deployed.'
+        : 'Press Start round 1 when both squads are deployed.'
     controls = (
       <button
         type="button"
@@ -434,10 +437,11 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
 // threat(value), turnMat(direction), edge(), ready(team),
 // affiliation(team, key), restart(), browse(step | null), override(step) }, see setup/useGameSetup.js (setupActions).
 // powerOnTable: the Power button is on the table (the note names it). Start round 1 in the deploy step calls the Power button's
+// powerHudShown: the HUD Power button is visible (Versus room after the squads are placed); else the note names the Start round 1 chip.
 // action, phases.power(playedSides). startRoundBlock: the reason that button is off (a side has no affiliation), or null.
 // A click on a crisis card calls the action onCrisisOpen({ team, type, code, drawn }). drawn: the card is one of the 2 drawn
 // cards with a Choose button (App.jsx opens the Choose 1 overlay for it). The action onCardHover(card, over) is for Alt (useCardPeek.js).
-export default function GameSetup({ setup, parsed, powerOnTable, startRoundBlock }) {
+export default function GameSetup({ setup, parsed, powerOnTable, powerHudShown, startRoundBlock }) {
   const mySide = useTableStore((s) => s.mySide)
   const ctx = useTableStore((s) => s.nameCtx)
   const tableActions = useTableStore((s) => s.actions)
@@ -486,6 +490,7 @@ export default function GameSetup({ setup, parsed, powerOnTable, startRoundBlock
         ctx={ctx}
         actions={actions}
         powerOnTable={powerOnTable}
+        powerHudShown={powerHudShown}
         onStartRound={() => tableActions.phases.power(playedSides)}
         startRoundBlock={startRoundBlock}
       />

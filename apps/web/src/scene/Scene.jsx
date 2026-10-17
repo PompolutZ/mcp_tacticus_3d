@@ -78,6 +78,7 @@ import {
   rackHiddenSides,
   rosterRowsShown,
   setupStep,
+  phaseHudShown,
   sideSign,
   sideYaw,
   viewOf,
@@ -860,6 +861,7 @@ function Scene(props) {
             setup={setup}
             parsed={parsedRosters}
             powerOnTable={tableButtons.show.power}
+            powerHudShown={phaseHudShown(setup, tableButtons.multiplayer)}
             startRoundBlock={startRoundBlock}
           />
           {tacticCards.map((card, i) => (
