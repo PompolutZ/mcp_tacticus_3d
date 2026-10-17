@@ -157,7 +157,7 @@ export function CrisisCompare({ open, setup, parsed, ctx, mySide, stepRef, onCho
                   style={{
                     '--card-w': `calc(var(--card-h) * ${CARD_SIZES[tab][0] / CARD_SIZES[tab][1]})`,
                   }}
-                  renderSlide={(i) => <CrisisFace code={codes[i]} kind={tab} comic />}
+                  renderSlide={(i) => <CrisisFace code={codes[i]} kind={tab} />}
                   renderNav={({ index, count, prev, next }) => (
                     <div className="crisis-compare-foot">
                       {plate}
@@ -201,13 +201,13 @@ export function CrisisCompare({ open, setup, parsed, ctx, mySide, stepRef, onCho
 }
 
 // One crisis card at popup size, the image of the roster crisis tab (RosterPopup.jsx). A card without an
-// image is a plate with the name and the MCT code. comic: the comic card of the roster popup
-// (rosters/roster.css), else the old card of CrisisChoose.
-export function CrisisFace({ code, kind, comic = false }) {
+// image is a plate with the name and the MCT code. The comic card of the roster popup (rosters/roster.css),
+// also used by CrisisChoose.
+export function CrisisFace({ code, kind }) {
   const info = rosterCard(code)
   const [w, h] = CARD_SIZES[kind]
   const size = { width: 'var(--card-w)', aspectRatio: `${w} / ${h}` }
-  const p = comic ? 'roster-comic' : 'roster-popup'
+  const p = 'roster-comic'
   if (info?.image)
     return (
       <img

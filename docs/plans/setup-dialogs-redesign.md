@@ -1,6 +1,6 @@
 # Plan: Setup dialogs redesign
 
-Requested by the user on 2026-10-17. Status: plan written, waiting for the user's OK. Branch `setup-dialogs-redesign`, worktree `../mcp_assist_3d-setup-dialogs-redesign`.
+Requested by the user on 2026-10-17. Status: steps 1 to 3 done, waiting for the user test. Branch `setup-dialogs-redesign`, worktree `../mcp_assist_3d-setup-dialogs-redesign`.
 
 Each step makes one commit and writes its **Result** below. Each step updates the feature docs where the look or the labels change: `squad-breakdown.md` (Step 1), `setup-game.md` "Crisis cards" (Steps 2 and 3).
 
@@ -104,4 +104,14 @@ The look of `lobby-redesign.md` ("The look"): ink, paper, yellow, red, blue, nig
 - `crisis/crisis.css` (new): card height for two lanes, the yellow skewed deck button, lane layout, the name plate, narrow screen at 640 px (16 px gutter, smaller cards, x tucked in).
 - `index.css`: `crisis-compare*` rules removed, except `.crisis-compare-empty`, which `CrisisChoose` still uses (Step 3 removes it).
 - Differences from the design: `SeatPlate` not used (its css is lobby-only and not loaded on the table), so the plate is a small `.crisis-plate` rule; its icon square is blue or red by side color (the design has fixed pink and orange); tabs are the roster tab size, not the design's larger one; the card switch count box has no shadow (as in the roster popup); the fan overlaps cards as in the roster popup, not the design's spaced cards.
+- Checks: format, lint (no new warnings), web tests 1041 pass, build OK. Not checked in a browser.
+
+### Step 3: Choose 1
+
+- `CrisisChoose.jsx`: dialog has `comic roster-comic crisis-choose` and `closeClassName="roster-comic-close"`; header halftone by card type, tag "<name> · secures · pick one" (`playerName`, which gives "You" for own cards), title "Choose 1 of <your / James's> secures!" (also the dialog label). Button is `.comic-go` (loaded through `comicBase.js`) with the label **Choose this card!**; lock, `aria-disabled`, title and click are as before. The other player gets no buttons and a yellow note "Waiting for <name> to choose a card.".
+- `CrisisFace`: the `comic` prop is gone, it always uses the roster comic card (no other user of the old card).
+- `crisis.css`: card height from the viewport height and, narrow, from the width (two cards, gap, padding); card border 5px with a 10px hard shadow; button size variables; locked look for `aria-disabled`; the note; narrow screen at 640 px (16 px gutter, smaller cards and button, x tucked in).
+- `index.css`: removed all `crisis-choose*` rules (both copies), `.crisis-compare-empty`, and the `roster-popup`, `roster-popup-title*`, `roster-popup-tabs`, `roster-popup-card`, `roster-popup-plate*` rules. Kept `.roster-popup-backdrop` (Settings, roster popup), `.card-popup*` (card popup, tray popup, Settings), `.popup-close` (Dialog default).
+- `setup-game.md` "Crisis cards": Choose 1 labels.
+- Differences from the design: the frame is not a fixed 1000x800 box but 1000 px wide and as tall as the content; the card size follows the viewport (design: 290x510 fixed); the card keeps the aspect of `CARD_SIZES`; the locked button uses the shared disabled colors; no "Chosen!" state or dimming of the other card (decision 9).
 - Checks: format, lint (no new warnings), web tests 1041 pass, build OK. Not checked in a browser.

@@ -7,15 +7,18 @@ import { Dialog } from '../ui/Dialog.jsx'
 import { CrisisFace } from './CrisisCompare.jsx'
 
 // The Choose 1 overlay of the game setup, in the first and second step (docs/features/setup-game.md, "Crisis
-// cards"): the 2 drawn cards side by side, large, each with a "Choose this card" button. The button is the
-// Choose chip of the table: same action (onPick = setupActions.pick), same lock and title (setup/deckButton.js,
-// pickButton). The other player and a browsed step see the cards without the button. A pick closes the overlay.
-// The popup frame, close button and backdrop are those of Dialog.jsx. The parent (App.jsx) owns the open
-// state. setup: the real setup. parsed: { host, guest } → parsed roster | null.
+// cards"): the 2 drawn cards side by side, large, each with a "Choose this card!" button. A comic frame like
+// the roster popup (rosters/roster.css), styled further by crisis.css; the header is blue for secures and
+// red for extracts. The button is the Choose chip of the table: same action (onPick = setupActions.pick),
+// same lock and title (setup/deckButton.js, pickButton). The other player sees the cards and a note, no
+// button. A pick closes the overlay. The parent (App.jsx) owns the open state. setup: the real setup.
+// parsed: { host, guest } → parsed roster | null.
 export function CrisisChoose({ setup, parsed, ctx, onPick, onClose }) {
   const row = crisisRows(setup, parsed).find((r) => r.use)
   if (!row) return null
+  const noun = `${TYPE[row.type].toLowerCase()}s`
   const owner = isYou(row.team, ctx) ? 'your' : possessive(row.team, ctx)
+  const title = `Choose 1 of ${owner} ${noun}!`
   // The buttons belong to the chooser. In a multiplayer room, the other player has none.
   const chooser = chooserOf(setup)
   const active = !ctx.mySide || ctx.mySide === chooser
@@ -23,46 +26,63 @@ export function CrisisChoose({ setup, parsed, ctx, onPick, onClose }) {
   return (
     <Dialog
       backdropClassName="card-popup roster-popup-backdrop"
-      className="roster-popup crisis-choose"
-      label={`Choose 1 of ${owner} ${TYPE[row.type]}s`}
+      className="comic roster-comic crisis-choose"
+      closeClassName="roster-comic-close"
+      label={title}
       onClose={onClose}
     >
-      <h2 className="roster-popup-title crisis-choose-title">
-        Choose 1 of {owner} {TYPE[row.type]}s
-      </h2>
-      <div className="crisis-choose-cards" style={{ '--card-w': `calc(var(--card-h) * ${w / h})` }}>
-        {row.codes.map((code) => {
-          const { locked, title } = pickButton(setup, rosterCard(code)?.name ?? code, ctx)
-          return (
-            <div key={code} className="crisis-choose-card">
-              <CrisisFace code={code} kind={row.type} />
-              {active && (
-                <button
-                  type="button"
-                  className="chip chip--primary"
-                  aria-disabled={locked !== null}
-                  title={title}
-                  onClick={
-                    locked === null
-                      ? () => {
-                          onPick(code)
-                          onClose()
-                        }
-                      : undefined
-                  }
-                >
-                  Choose this card
-                </button>
-              )}
-            </div>
-          )
-        })}
+      <header
+        className={`roster-comic-head roster-comic-head--${row.type === 'secure' ? 'blue' : 'red'}`}
+      >
+        <div className="roster-comic-heading">
+          <div className="roster-comic-tag">
+            {playerName(row.team, ctx)} · {noun} · pick one
+          </div>
+          <h2 className="roster-comic-title">{title}</h2>
+        </div>
+      </header>
+      <div className="roster-comic-stage crisis-choose-stage">
+        <div
+          className="crisis-choose-cards"
+          style={{ '--card-ratio': w / h, '--card-w': 'calc(var(--card-h) * var(--card-ratio))' }}
+        >
+          {row.codes.map((code) => {
+            const { locked, title: buttonTitle } = pickButton(
+              setup,
+              rosterCard(code)?.name ?? code,
+              ctx,
+            )
+            return (
+              <div key={code} className="crisis-choose-card">
+                <CrisisFace code={code} kind={row.type} />
+                {active && (
+                  <button
+                    type="button"
+                    className="comic-go"
+                    aria-disabled={locked !== null}
+                    title={buttonTitle}
+                    onClick={
+                      locked === null
+                        ? () => {
+                            onPick(code)
+                            onClose()
+                          }
+                        : undefined
+                    }
+                  >
+                    Choose this card!
+                  </button>
+                )}
+              </div>
+            )
+          })}
+        </div>
+        {!active && (
+          <p className="crisis-choose-note">
+            Waiting for {playerName(chooser, ctx)} to choose a card.
+          </p>
+        )}
       </div>
-      {!active && (
-        <p className="crisis-compare-empty">
-          Waiting for {playerName(chooser, ctx)} to choose a card.
-        </p>
-      )}
     </Dialog>
   )
 }

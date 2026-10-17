@@ -1,4 +1,4 @@
-/* The crisis overlays (CrisisCompare.jsx, docs/features/setup-game.md, "Crisis cards"). They reuse the comic
+/* The crisis overlays (CrisisCompare.jsx, CrisisChoose.jsx, docs/features/setup-game.md, "Crisis cards"). They reuse the comic
    frame, header, folder tabs, rays stage, fan carousel and card switch of the roster popup
    (rosters/roster.css), so this file holds only what differs. */
 
@@ -173,5 +173,127 @@
   .crisis-compare .roster-comic-count {
     min-width: 0;
     flex: 1;
+  }
+}
+
+/* The Choose 1 overlay (CrisisChoose.jsx): the 2 drawn cards side by side, a red button under each. The card
+   height is what fits the viewport height less the header and the button; narrow: the width limits it too
+   (two cards, the gap and the stage padding), so the cards stay side by side. */
+.roster-comic.crisis-choose {
+  --choose-gap: 72px;
+  --choose-pad: 30px;
+  --card-h: min(
+    clamp(200px, calc(100vh - 390px), 510px),
+    calc(
+      (100vw - 48px - 10px - 2 * var(--choose-pad) - var(--choose-gap)) / 2 /
+        var(--card-ratio, 0.57)
+    )
+  );
+  width: min(1000px, calc(100vw - 48px));
+}
+
+.crisis-choose-stage {
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: var(--choose-pad);
+  overflow-y: auto;
+}
+
+.crisis-choose-cards {
+  display: flex;
+  justify-content: center;
+  gap: var(--choose-gap);
+}
+
+.crisis-choose-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+}
+
+.crisis-choose .roster-comic-card {
+  border-width: 5px;
+  border-radius: 10px;
+  box-shadow: 10px 10px 0 var(--ink);
+}
+
+.crisis-choose .comic-go {
+  --go-h: 58px;
+  --go-size: 30px;
+  --go-pad: 26px;
+  transition:
+    transform 0.08s,
+    box-shadow 0.08s;
+}
+
+.crisis-choose .comic-go:hover:not([aria-disabled='true']) {
+  box-shadow: 8px 8px 0 var(--ink);
+}
+
+.crisis-choose .comic-go:active:not([aria-disabled='true']) {
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+/* Locked (not your turn): the disabled look, no hover or press */
+.comic.crisis-choose .comic-go[aria-disabled='true'] {
+  color: var(--disabled-fg);
+  background: var(--disabled-bg);
+  box-shadow: 3px 3px 0 var(--ink);
+  transform: skewX(-8deg);
+  cursor: not-allowed;
+}
+
+/* The other player: a yellow note under the cards */
+.crisis-choose-note {
+  margin: 0;
+  padding: 8px 20px;
+  font: italic 700 20px var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--yellow);
+  border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  transform: rotate(-1deg);
+}
+
+@media (max-width: 640px) {
+  .roster-comic.crisis-choose {
+    --choose-gap: 12px;
+    --choose-pad: 12px;
+    width: calc(100vw - 32px);
+  }
+
+  .crisis-choose .roster-comic-close {
+    top: -12px;
+    right: -10px;
+  }
+
+  .crisis-choose .roster-comic-head {
+    padding: 16px 14px 0;
+  }
+
+  .crisis-choose-card {
+    gap: 14px;
+  }
+
+  .crisis-choose .roster-comic-card {
+    border-width: 3px;
+    border-radius: 6px;
+    box-shadow: 5px 5px 0 var(--ink);
+  }
+
+  .crisis-choose .comic-go {
+    --go-h: 40px;
+    --go-size: 17px;
+    --go-pad: 10px;
+    --go-border: 3px;
+    max-width: 100%;
+  }
+
+  .crisis-choose-note {
+    font-size: 16px;
   }
 }
