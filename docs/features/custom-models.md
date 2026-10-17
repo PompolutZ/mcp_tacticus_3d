@@ -42,7 +42,8 @@ The output goes to `model-candidates/`, where the `#models` page shows it. See [
 |---|---|---|
 | `--out <file.glb>` | `model-candidates/<name>.glb` | Output file. `<name>` is the name of the photos folder in kebab case: lowercase, each run of other characters becomes `-` (`Adam Warlock` gives `adam-warlock`). The folder is `apps/web/model-candidates/`, whatever the current directory is. It is in `.gitignore`. |
 | `--base <size>` | none | `small`, `medium` or `large`: the object is a figure on a game base (35, 50 or 65 mm, `BASE_DIAMETER` in `src/characters/files.js`). Use the same size as `base` of the character in `characters.json`. See [Base](#base). |
-| `--stand` | off | The figure stands on a stand (a jar, for example) that is in the scan. The script cuts the stand off. Use it with `--base`. See [Stand](#stand). |
+| `--stand` | off | The figure stands on a stand that is clearly wider than its base. The script cuts the stand off. Use it with `--base`. See [Stand](#stand). |
+| `--tone <level>` | none | `light`, `medium` or `strong`: makes the color texture darker and more saturated. See [Tone](#tone). |
 | `--height <mm>` | none | Height of the real object in mm. Measure the real object. The app uses inches (1 unit = 1"), so the script converts it. |
 | `--triangles <n>` | 30000 | Maximum number of triangles. The migrated figures have about 30k. |
 | `--texture <px>` | 2048 | Maximum texture size: 1024, 2048 or 4096. The migrated characters use 1024. |
@@ -72,7 +73,7 @@ When the real base is thicker than 3 mm, the top part of its scanned rim stays a
 
 ## Stand
 
-A figure can stand on a jar or a block when you take the photos, so the camera sees the whole figure. Object Capture keeps the stand in the scan. Without `--stand`, `--base` takes the top of the stand as the base: the stand gets the base size and the team color.
+A figure can stand on a jar or a block when you take the photos, so the camera sees the whole figure. A flat dark sheet is better, see the photo rules. Object Capture keeps the stand in the scan. Without `--stand`, `--base` takes the top of the stand as the base: the stand gets the base size and the team color.
 
 With `--stand`, the script cuts the stand off the raw scan, before the size and the base steps:
 
@@ -83,6 +84,12 @@ With `--stand`, the script cuts the stand off the raw scan, before the size and 
 
 Limit: this works only when the stand is clearly wider than the figure base. If the biggest step is not narrow enough, the script stops with an error and writes nothing. A stand that is as wide as the figure base, or a figure that gets wider above its base, is not found. The constants are in `scripts/photos-to-glb.mjs`.
 
+## Tone
+
+The light of the photos goes into the texture. Photos taken in bright light give pale colors. `--tone` fixes this after the scan: it runs `magick` on the color texture (gamma and saturation) before the WebP step. The three levels are in `TONES` in `scripts/photos-to-glb.mjs`. They were tested on one scan made in too bright light, see [the plan](../plans/model-viewer.md).
+
+The fix cannot restore parts that are already white in the photos. Better photos are the first choice. Use `--tone` when a new shoot is not possible. Without `--tone`, the texture does not change.
+
 ## How to take the photos
 
 These rules come from Apple's Object Capture guide.
@@ -92,7 +99,10 @@ These rules come from Apple's Object Capture guide.
 - The object must fill most of the photo. More pixels on the object give more detail and a bigger texture.
 - Use even, soft light without hard shadows and without flash. The light of the photos is copied into the texture, so a shadow in the photos is a shadow on the model.
 - Use a plain background. Object Capture removes the background (object masking is on).
-- A stand under the figure (a jar, for example) is fine. Use `--stand`.
+- Keep the whole figure in every photo. Do not take close-ups of parts. In the test, close-ups added a background blob next to a thin part.
+- Put the figure on a flat, dull, dark sheet. This worked better than a stand.
+- A stand stays in the scan. `--stand` cuts it only when it is clearly wider than the base.
+- Use soft light, not bright light. Bright light gives pale colors, see [Tone](#tone).
 - Shiny, transparent and very thin parts do not work well.
 
 ## Output

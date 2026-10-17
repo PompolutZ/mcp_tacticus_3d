@@ -36,6 +36,32 @@ Requested on 2026-10-17. The user wants a dev page that lists all models of the 
 - Move the Adam Warlock scan from the scratchpad to `model-candidates/`.
 - Checks: format, lint, build. `--help` prints the new text.
 
+### Results of the test scans
+
+Added after step 2. The user made 3 sets of photos of Adam Warlock and compared the scans on `#models`.
+
+- Set 1 (figure on a jar, busy background): the jar stayed in the scan. `--stand` cut it off, but too high. Part of the scepter was missing.
+- Set 2 (figure on a narrow bottle, black background, many close-ups): the close-ups added a black blob next to the scepter head. Without the close-ups the blob was gone, but the bottle stayed below the base. `--stand` did not find it, because the bottle is not wider than the base.
+- Set 3 (figure flat on a dull dark sheet, the whole figure in every photo): a clean scan, 77 mm tall, about 290 KB. No cut is needed. The texture was too bright and pale.
+- A darker, more saturated texture fixed the color. The user picked the strongest of 3 tested settings.
+- The TTS model of Adam Warlock is 2.6 MB (757k triangles). The scan is about 10 times smaller.
+
+### Step 3: `--tone` option
+
+8. **`--tone <light|medium|strong>`.** The script makes the color texture darker and more saturated, with `magick`, before the WebP step. The 3 settings are the ones tested on set 3. Without `--tone`, the texture does not change.
+
+- Decision 8 in `scripts/photos-to-glb.mjs`. Update `docs/features/custom-models.md`, also the photo rules (the whole figure in every photo, no close-ups, a flat dull sheet instead of a stand).
+- Check: run the script on set 3 with `--tone strong`, compare the texture with the tested `adam-warlock-3rd-tone-strong.glb`.
+- Checks: format, lint, build.
+
+### Step 4: Scan replaces the Adam Warlock model
+
+9. **Adam Warlock uses the scan.** `src/assets/characters/adam-warlock/model.glb` becomes the set 3 scan with `--tone strong`.
+10. **The migration keeps a custom model.** A list of replaced files (character key, file, how it was made) is kept in one place. `migrate-characters.mjs` does not overwrite a file in the list, also with `--force`.
+
+- Decisions 9 and 10. Update `docs/features/custom-models.md` (a custom model can now be used for a character) and `scripts/README.md`.
+- Checks: format, lint, test, build.
+
 ## Out of scope
 
 - Two models side by side.

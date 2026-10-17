@@ -28,7 +28,17 @@ Options:
                       converts it. Without it and without --base, the Object Capture size is read as
                       meters. That is correct only for iPhone photos with depth data.
   --triangles <n>     maximum number of triangles (default 30000)
-  --texture <px>      maximum texture size: 1024, 2048 or 4096 (default ${TEXTURE_SIZE})`
+  --texture <px>      maximum texture size: 1024, 2048 or 4096 (default ${TEXTURE_SIZE})
+  --tone <level>      light, medium or strong: makes the color texture darker and more saturated.
+                      For photos taken in bright light, which give pale colors. Default: no change.`
+
+// magick arguments of --tone, applied to the color texture. They were tested on a scan of photos
+// taken in too bright light, see docs/plans/model-viewer.md (step 3).
+const TONES = {
+  light: ['-modulate', '92,120'],
+  medium: ['-gamma', '0.85', '-modulate', '100,135'],
+  strong: ['-gamma', '0.75', '-modulate', '100,150'],
+}
 
 const { values: opts, positionals } = parseArgs({
   allowPositionals: true,
@@ -39,6 +49,7 @@ const { values: opts, positionals } = parseArgs({
     stand: { type: 'boolean', default: false },
     triangles: { type: 'string', default: '30000' },
     texture: { type: 'string', default: String(TEXTURE_SIZE) },
+    tone: { type: 'string' },
     help: { type: 'boolean', short: 'h' },
   },
 })
@@ -58,6 +69,8 @@ if (!Number.isInteger(triangles) || triangles <= 0)
   throw new Error(`--triangles must be a positive integer, not "${opts.triangles}"`)
 if (![1024, 2048, 4096].includes(textureSize))
   throw new Error(`--texture must be 1024, 2048 or 4096, not "${opts.texture}"`)
+if (opts.tone !== undefined && !TONES[opts.tone])
+  throw new Error(`--tone must be ${Object.keys(TONES).join(', ')}, not "${opts.tone}"`)
 
 const PHOTOS = path.resolve(positionals[0])
 // Without --out the GLB goes to the gitignored candidates folder of the #models page
@@ -131,6 +144,7 @@ function reconstruct() {
 async function convert() {
   const obj = fs.readdirSync(WORK_DIR).find((f) => f.endsWith('.obj'))
   if (!obj) throw new Error(`No OBJ file in ${WORK_DIR}`)
+  if (opts.tone) toneTexture()
   const doc = await readObj(path.join(WORK_DIR, obj))
   if (opts.stand) cutStand(doc)
   placeOnTable(doc)
@@ -150,6 +164,15 @@ async function convert() {
     `Wrote ${shown}: ${count} triangles, ${size.join(' × ')} mm (width × depth × height), ${Math.round(fs.statSync(OUT).size / 1024)} KB`,
   )
   console.log(`Object Capture output: ${WORK_DIR}`)
+}
+
+// Changes the Object Capture color texture (PNG) in place
+function toneTexture() {
+  const png = fs.readdirSync(WORK_DIR).find((f) => f.endsWith('.png'))
+  if (!png) throw new Error(`No PNG texture in ${WORK_DIR}`)
+  const file = path.join(WORK_DIR, png)
+  execFileSync('magick', [file, ...TONES[opts.tone], file])
+  console.log(`Tone: ${opts.tone}`)
 }
 
 function prims(doc) {
