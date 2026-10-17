@@ -150,3 +150,78 @@
   letter-spacing: 0.04em;
   color: #fff;
 }
+
+/* Switch.jsx, variant "comic": a white row with the label and a hint, and a track with an ON / OFF knob.
+   On: blue track, yellow knob on the right. Off: grey track, white knob on the left. */
+.comic .switch-comic {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px 12px;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  background: #fff;
+  border: 3px solid var(--ink);
+  cursor: pointer;
+}
+
+.comic .switch-comic-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.comic .switch-comic-label {
+  font: 700 18px var(--font-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.comic .switch-comic-hint {
+  font-size: 14px;
+  color: var(--muted-ink);
+}
+
+.comic .switch-comic-track {
+  position: relative;
+  flex: 0 0 76px;
+  width: 76px;
+  height: 38px;
+  box-sizing: border-box;
+  background: var(--disabled-bg);
+  border: 3px solid var(--ink);
+}
+
+.comic .switch-comic--on .switch-comic-track {
+  background: var(--blue);
+}
+
+.comic .switch-comic-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  box-sizing: border-box;
+  font: 700 11px var(--font-label);
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink);
+  transition: left 0.1s;
+}
+
+.comic .switch-comic--on .switch-comic-knob {
+  left: 36px;
+  background: var(--yellow);
+}
+
+.comic .switch-comic:focus-visible {
+  outline: 3px solid var(--yellow);
+  outline-offset: 2px;
+}

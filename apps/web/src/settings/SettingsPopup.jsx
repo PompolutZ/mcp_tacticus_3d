@@ -15,7 +15,7 @@ const ITEMS = [
   { item: 'power', label: 'Automatic Power Phase' },
   { item: 'cleanup', label: 'Cleanup Phase' },
   { item: 'deployLock', label: 'Deploy Lock' },
-  { item: 'matTurn', label: 'Mat turn (Sandbox and single player rooms)' },
+  { item: 'matTurn', label: 'Mat turn (Sandbox and solo rooms)' },
 ]
 const PLACE_LABELS = { table: 'Table', hud: 'HUD' }
 

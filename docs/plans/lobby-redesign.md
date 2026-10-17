@@ -18,6 +18,11 @@ Answers of the user:
 - **Roster popup:** the new look on the lobby and on the table (one component). Keep the carousel with drag and swipe, in the fan look of the design.
 - **Sandbox image:** the user gives a screenshot of the table.
 
+Added by the user on 2026-10-17 (Step 5): the New room dialog, from the boards "New room — versus, random map", "New room — versus, pick a map" and "New room — solo, two rosters" (local copy `~/Downloads/Hero Table 3D — UI refresh.html`).
+
+- **Labels:** the design words everywhere in the UI: **Solo** ("Run both sides yourself") and **Versus** ("Share a code with a friend"). They replace "Single player" and "Multiplayer" in the dialog, the room tile tag, the "+" tile and the Settings label.
+- **Branch:** Step 5 of this plan, same branch.
+
 ## The look
 
 - **Style:** comic book. Dark blue page with dots, yellow rays, thick black outlines (3–5 px), hard black shadows (offset, no blur), slightly turned or skewed blocks, star bursts ("3D", "VS", "+").
@@ -86,6 +91,33 @@ Read on 2026-10-17.
 - `roster.md`: the look, if the doc describes it.
 - Checks: format, lint, tests, build.
 
+### Step 5: New room dialog
+
+The design, one component in 3 states. Frame 960×640 px, black border 5 px, hard shadow. Two columns with a 5 px black gap.
+
+- **Left column (380 px, yellow rays):** caption tab in the top left corner: "A mystery map awaits…" (Random map on) or "Pick your battleground!" (off). Random on: one card back, turned −4°, hard shadow. Random off: the map fan, the middle card turned −2° with the hard shadow, side cards smaller, darker, turned. Under it: ← (square button), box "Map N of M" + map name (Bangers), → (square button).
+- **Right column (paper):** title **New room!** (red Bangers, black outline, shadow, turned −2°). "Choose your battle" legend and two big buttons, **Solo** / **Versus** with the line under each. The active one is yellow, turned −1°, bigger shadow.
+- **Random map row (white box):** "Random map" + hint ("Turn off to pick the map yourself" / "Browse the maps on the left"), comic switch (blue track with yellow knob "ON", grey track with white knob "OFF").
+- **Versus:** "Your roster" field. **Solo:** "Rosters", a **Blue** plate (blue halftone) + field, a **Red** plate + field with a dashed border, placeholder "Optional — paste an MCT code".
+- **Footer:** yellow note, turned: Versus random "The map is revealed when the second player joins…", Versus pick "Your rival will fight on this map…", Solo "Red roster is optional — add it now or at the table.". **Cancel** (underlined text), **Create room!** (red, skewed, hard shadow). Disabled: grey, title "Paste a roster first".
+- **×:** yellow square on the top right corner, turned 6°.
+
+Decisions:
+
+1. Keep all behavior of `NewRoomDialog.jsx`: login off (no Solo/Versus choice), Versus disabled when logged out with the reason text, the "You host room … already" error, the create error, the storage error, Random map rules, Create rules, arrow keys, Escape/backdrop.
+2. Map fan: `Carousel` with `fan` and `renderNav` (from Step 4), not a copy of the design's 3 card code. Drag and swipe stay. The fan look of the map picker gets its own rules (class on the dialog), so the roster popup does not change. The caption and the "Map N of M" box use `MAPS[id].name`.
+3. `RosterField` keeps the summary, the unknown codes and the missing files box under the field, in the comic style. It gets an optional plate prop (Blue / Red). The join page also uses `RosterField`: its look there does not change in this step (the dialog styles are scoped to the dialog).
+4. The comic switch: `Switch` gets a `className` (or variant) prop. The other look stays for any other user (today only this dialog uses `Switch`; coder checks).
+5. Styles in a new `src/rooms/newRoom.css`, scoped to the dialog class, `.comic` on the dialog root, fonts from `comicBase.js`. Remove the old `new-room-*` rules from `index.css` that nothing uses after the change (check `JoinRoom.jsx` and `RosterField.jsx`, which share some).
+6. Narrow screen (phone): the columns stack, map column on top and smaller, right column scrolls. No horizontal scroll, 16 px side gutter.
+7. Labels: "Solo" and "Versus" replace "Single player" and "Multiplayer" in `Lobby.jsx` (tile tag, "+" tile "Solo or versus"), `SettingsPopup.jsx` ("Mat turn (Sandbox and solo rooms)") and the logged-out hints ("Log in with Discord to play versus", "Versus is not available: the server does not answer."). Code names (`multiplayer`, `single`) and test names do not change. In the docs, the labels and quoted texts change in `rooms.md` and `auth.md`; the other feature docs use "single player room" / "multiplayer room" as terms and stay.
+
+Steps for coder:
+
+- Files: `rooms/NewRoomDialog.jsx`, `rooms/newRoom.css` (new), `rosters/RosterField.jsx`, `ui/Switch.jsx`, `ui/Carousel.jsx` only if `fan` needs an option for the map size, `rooms/Lobby.jsx`, `settings/SettingsPopup.jsx`, `index.css`.
+- Docs: `rooms.md` "New room" (look, labels, notes), `auth.md` "Lobby and room UI" (labels).
+- Checks: `pnpm format`, `pnpm lint`, web tests, `pnpm --filter web build`.
+
 ## Results
 
 ### Step 1 (commit 7dd345e)
@@ -120,3 +152,13 @@ Fonts from `@fontsource` (Bangers, Barlow, Barlow Condensed, JetBrains Mono), `r
 - `index.css`: removed the `jarvis-link*`, `roster-popup-*` rules only the old popup used. Kept those that CrisisCompare, CrisisChoose and Settings use (`.roster-popup`, title, tabs, card, plate, backdrop).
 - `roster.md`, `rooms.md` updated. `src/assets/jarvis-logo.webp` is no longer used by the popup.
 
+### Step 5
+
+- `NewRoomDialog.jsx` rewritten in the comic look (`.comic new-room-comic`): rays map column with caption tab, card back or map fan (`Carousel` `fan` + `renderNav`, ← "Map N of M" + name →), paper column with title, **Solo** / **Versus**, Random map row, roster fields, yellow footnote, **Cancel**, **Create room!**. Yellow × through `closeClassName`. All behavior kept; the old `chip` buttons and `new-room-title` are gone.
+- `rooms/newRoom.css` (new): all rules scoped to `.new-room-comic`; the map fan rules are scoped there, so the roster popup is unchanged. Narrow screen (max-width 720 px): columns stack, map smaller, right column scrolls, 16 px gutter.
+- `RosterField`: `plate` prop (Blue / Red plate, label hidden for screen readers), `new-room-input--optional` (dashed). The join page has the same markup without them, so its look is unchanged.
+- `Switch`: `variant="comic"` and `hint` (ON / OFF row). `rooms/comic.css` holds the look. The dialog is the only `Switch` user.
+- Labels: "Solo" / "Versus" in the dialog, the tile tag, the "+" tile, `SettingsPopup.jsx` and the logged-out hints. Placeholder of the Red field: "Optional — paste an MCT code".
+- `index.css`: removed `new-room-backdrop`, `new-room`, `-title`, `-card`, `-random`, `-choice`, `-kinds`, `.new-room .carousel`. Kept `-hint`, `-roster`, `-input`, `-status`, `-error`, `-warning`, `-missing*`, `-actions` (join page, `RosterField`).
+- `rooms.md` "New room", `auth.md`, `table-tools.md` (Settings label) updated.
+- Differences from the design: the × is the Bangers glyph as in the roster popup, not an svg; the Random map row is one button (the whole row switches); the disabled Create room! title is "You host a room already" when the host has a room. Not checked in a browser.

@@ -41,9 +41,10 @@ function MissingFiles({ parsed }) {
 
 // A roster field of the dialog, and what the app found in its text under it. label: the field name.
 // color: 'blue' | 'red' for the input, or missing. text: the field text.
-// parsed: the parsed text. optional: the field can stay empty. onChange(text). The first field has the focus
+// plate: 'Blue' | 'Red' puts the color plate left of the input and hides the label (the new room dialog shows
+// one heading for the fields; rooms/newRoom.css). parsed: the parsed text. optional: the field can stay empty. onChange(text). The first field has the focus
 // when the dialog opens.
-export function RosterField({ label, color, text, parsed, optional, onChange }) {
+export function RosterField({ label, color, plate, text, parsed, optional, onChange }) {
   let status = null
   if (text.trim() && isEmptyRoster(parsed))
     status = <span className="new-room-error">No known MCT code in the text</span>
@@ -60,12 +61,22 @@ export function RosterField({ label, color, text, parsed, optional, onChange }) 
   }
   return (
     <>
-      <label className="new-room-roster">
-        <span className="group-label">{label}</span>
+      <label className={plate ? 'new-room-roster new-room-roster--plate' : 'new-room-roster'}>
+        <span className={plate ? 'group-label new-room-label--hidden' : 'group-label'}>
+          {label}
+        </span>
+        {plate && (
+          <span
+            className={`new-room-plate new-room-plate--${plate.toLowerCase()}`}
+            aria-hidden="true"
+          >
+            {plate}
+          </span>
+        )}
         <input
           type="text"
-          className={`chip ${color ? `chip--player-${color}` : ''} chip--text new-room-input`}
-          placeholder={optional ? 'Optional: paste an MCT code' : 'Paste an MCT code'}
+          className={`chip ${color ? `chip--player-${color}` : ''} chip--text new-room-input${optional ? ' new-room-input--optional' : ''}`}
+          placeholder={optional ? 'Optional — paste an MCT code' : 'Paste an MCT code'}
           value={text}
           onChange={(e) => onChange(e.target.value)}
           autoFocus={!optional}

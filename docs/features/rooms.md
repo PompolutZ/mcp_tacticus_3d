@@ -48,27 +48,31 @@ The URL hash selects the page. So the browser back button works, and a reload st
 - **Your rooms:** the title "Your rooms" with a badge "1 battle in progress" or "N battles in progress" (the number of listed rooms, hidden with no rooms). Then one list with a tile for each single player room and each multiplayer room, the last changed room first, and the **+** tile at the end. With login off, the list has only single player rooms and makes no API call.
 - **Room tile:** an article, not clickable. **Enter the fight →** is the only way into a room. The tile shows:
   - a yellow badge "Room" with the code. With a multiplayer room that has a free seat, the badge has a copy icon button, the **Copy link** of `docs/features/auth.md` ("Lobby and room UI");
-  - the map card (alt text: the map name), the tag "Multiplayer" or "Single player", the map name and "Last change" with the time. A random multiplayer room shows the card back and "Random map" until the guest joins;
+  - the map card (alt text: the map name), the tag "Versus" or "Solo", the map name and "Last change" with the time. A random multiplayer room shows the card back and "Random map" until the guest joins;
   - the two seats as plates (`SeatPlate.jsx`) with "VS" between them, and the roster link "Roster ›" under a plate;
   - **Delete** (small comic button, only on rooms that this user owns; in a multiplayer room that is the host). A browser confirm asks first, the same as **Remove** on a character tray;
   - **Enter the fight →** (red, full width).
 - **Seat colors:** a multiplayer plate is neutral (paper background) with the avatar and name, "Free seat" or "Deleted player" (grey). The colors follow Priority and are set at the table, so a multiplayer tile has no colors. A single player plate has the real color of each side, blue or red halftone, from the `colors` of the room record. Before the roll off these are the start colors. A room that was not opened since the record got `colors` shows neutral plates "Roster 1" and "Roster 2".
 - **Roster link:** shows that roster of the room in the roster popup (`docs/features/roster.md`). A link shows only when the room has that roster (aria-label: "James roster", "Blue roster", "Roster 1"). The popup title, color, room code and seat come from the link. The popup opens on the first tab with cards, usually Characters. Escape, **×** or a click on the backdrop closes it. The left and right arrows show the previous or next card.
-- **+ tile:** a red halftone button "Start a new room!" with "Single player or multiplayer" and the corner tag "To be continued…". It opens the new room dialog.
+- **+ tile:** a red halftone button "Start a new room!" with "Solo or versus" and the corner tag "To be continued…". It opens the new room dialog.
 - **Sandbox section:** a photo of a table (`src/assets/lobby/sandbox.webp`) with a dot layer, a speech bubble "The sandbox!" with **Open sandbox**, and the decoration "Wham!" (hidden on a narrow screen). It opens the Sandbox.
 - **Footer:** a line "Hero Table 3D · a fan-made tabletop", the **Privacy** link and the Marvel / Atomic Mass Games disclaimer.
 
 ## New room
 
-The **+** tile opens a dialog on a blurred backdrop, the same style as the roster popup.
+The **+** tile opens a framed comic dialog on a blurred backdrop, the same style as the roster popup. Two columns: the map on the left, the choices on the right. On a phone the columns stack: the map on top and smaller, the right column scrolls, and the frame keeps a side gutter. Code: `NewRoomDialog.jsx`, `newRoom.css`.
 
-- With login on, a choice at the top: **Single player** or **Multiplayer** (`docs/features/auth.md`, "Lobby and room UI"). With login off, the dialog makes a single player room. The rest of this list describes **Single player**.
-- **Random map** is a switch, on by default. While it is on, the dialog shows the back of a map card. Single player: the app picks the map when the player creates the room. Multiplayer: the hint says "The map spawns when the second player joins the room". The server picks the map when the guest joins, so nobody knows it before.
-- With the switch off, a carousel shows the map cards. The card in the middle is the map of the room. It is the same carousel as in the roster popup.
-- **Blue roster** and **Red roster** (single player, the start colors): a text field for the MCT code of each player. Under each field, the dialog shows what it found, for example "10 characters · 10 tactic cards · 5 Secure · 5 Extract", and the unknown codes. The parse rules are the ones of `docs/features/roster.md`. The game setup (`docs/features/setup-game.md`) needs both rosters.
-- When the app has no 3D model for a character or no image for a Team Tactic card of a roster, a warning box under its summary names these cards, for example "No 3D model for 2 characters: Angela, Bishop". On the table, these cards show as plates, and a character without a model cannot be spawned. The box is only a warning: **Create room** still works.
-- **Create room** works when the Blue code has a known card. The Red roster is optional, because the Red field of the toolbar can load it later. A Red text without a known card blocks **Create room**, so a wrong paste does not make a room without Red. **Create room** saves the room and enters it.
-- **Cancel**, Escape, **×** or a click on the backdrop closes the dialog.
+- **Left column (the map):** a yellow rays panel with a caption tab in the top left corner: "A mystery map awaits…" with Random map on, "Pick your battleground!" with it off.
+  - Random map on: one card back, turned, with a hard shadow.
+  - Random map off: the map cards in a fan, the same carousel as in the roster popup (drag, swipe, arrow keys, a click on a side card). The card in the middle is the map of the room. Under it: a ← button, a box "Map N of M" with the map name, and a → button.
+- **Right column:** the title "New room!", then the choice, **Random map**, the roster fields and the footer.
+- With login on, a choice "Choose your battle": **Solo** ("Run both sides yourself") or **Versus** ("Share a code with a friend") (`docs/features/auth.md`, "Lobby and room UI"). With login off, the dialog makes a solo room and has no choice. The rest of this list describes **Solo**.
+- **Random map** is a white row with a hint ("Turn off to pick the map yourself", "Browse the maps on the left") and an ON / OFF switch, on by default. Solo: the app picks the map when the player creates the room. Versus: the server picks the map when the guest joins, so nobody knows it before.
+- **Rosters** (solo): a blue **Blue** plate with the field for the Blue code, a red **Red** plate with the field for the Red code. The Red field has a dashed border, because it is optional. Under each field, the dialog shows what it found, for example "10 characters · 10 tactic cards · 5 Secure · 5 Extract", and the unknown codes. The parse rules are the ones of `docs/features/roster.md`. The game setup (`docs/features/setup-game.md`) needs both rosters. Versus has one field, "Your roster".
+- When the app has no 3D model for a character or no image for a Team Tactic card of a roster, a warning box under its summary names these cards, for example "No 3D model for 2 characters: Angela, Bishop". On the table, these cards show as plates, and a character without a model cannot be spawned. The box is only a warning: **Create room!** still works.
+- **Footnote** (yellow, turned): Versus with Random map "The map is revealed when the second player joins…", Versus with a chosen map "Your rival will fight on this map…", Solo "Red roster is optional — add it now or at the table."
+- **Create room!** (red) works when the Blue code has a known card. The Red roster is optional, because the Red field of the toolbar can load it later. A Red text without a known card blocks **Create room!**, so a wrong paste does not make a room without Red. While it is blocked it is grey, with the title "Paste a roster first". It saves the room and enters it.
+- **Cancel**, Escape, the yellow **×** on the frame corner or a click on the backdrop closes the dialog.
 
 The carousel shows only maps that the app has (`apps/web/src/terrain/maps/index.js`). A map card image comes from the TTS mod. `apps/web/scripts/migrate-terrain.mjs` copies it with the map.
 
@@ -78,7 +82,7 @@ The carousel shows only maps that the app has (`apps/web/src/terrain/maps/index.
 - The map is the room map. The toolbar has no map picker.
 - In a multiplayer room, the toolbar has no Setup chip (the crisis card dropdowns, the roster fields) and no mat turn buttons (↺ ↻), so the Mat group is gone. The crisis cards come from the rosters of the players, through the game setup. The player with Priority turns the mat in the setup step "edge", with ↺ **Select board edge** ↻. Both players see these buttons, and they agree who turns. **Select board edge** puts the crisis cards on the board and their tokens on the mat. After that, the mat turn stays fixed. **Restart setup** rolls off again, so Priority and the deployment edge can change, and the step "edge" comes back with the mat turn. Sandbox and single player rooms keep the Crisis dropdowns and the ↺ ↻.
 - The rosters come from the room. The Roster group has only the Red field. It loads, replaces or removes the Red roster of the room. The field is empty when the room opens, also when the room has a Red roster.
-- A multiplayer room has no Roster group and no map picker. Each player gives their own roster when they create or join the room. The new room dialog with **Multiplayer** has only the roster of the host, "Your roster". The join page has the roster of the guest, "Your roster", and a link "<host name> roster" to the roster of the host, with no color. Single player rooms keep both roster fields.
+- A multiplayer room has no Roster group and no map picker. Each player gives their own roster when they create or join the room. The new room dialog with **Versus** has only the roster of the host, "Your roster". The join page has the roster of the guest, "Your roster", and a link "<host name> roster" to the roster of the host, with no color. Single player rooms keep both roster fields.
 - A multiplayer room with **Random map** has no map when the host enters. The table, trays and HUD show as usual, with no mat and no terrain. A note on the table, in the middle of the mat, facing the host, in the style of the setup panel, says: "Random map: it spawns automatically when the second player joins the room." The note goes away when the map is set.
 - The map fill: the server picks the map when the guest joins. The guest's browser then writes the map and its terrain in one change, right after **Join**. The host's browser gets them over peer-to-peer, and the mat and terrain load with no loading screen. A player who opens the room later fills the map too, if the table still has none. Terrain ids are fixed (`<mapId>:<index>`), so two fills of the same map merge into one set of pieces.
 - **← Lobby** at the start of the toolbar writes the room record and opens the lobby. The toolbar also shows the room code.
@@ -216,7 +220,7 @@ In a single player room, the user id in `localStorage` is the owner of every roo
 5. The room saves every 2 seconds when something changed, and on leave and page close.
 6. The poses come from the physics bodies at save time. A saved model starts at its pose.
 7. A new room has no name. Its tile shows the map, the code and the time of the last change.
-8. **Create room** enters the new room at once.
+8. **Create room!** enters the new room at once.
 9. With **Random map** on, the dialog shows a card back. Single player: the map is picked at creation. Multiplayer: the server picks it when the guest joins (`docs/features/auth.md`).
 10. The carousel of the roster popup became a shared component.
 11. A file list for the loading screen comes from helpers next to the components that load the files.

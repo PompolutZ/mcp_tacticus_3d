@@ -16,26 +16,40 @@ import { Switch } from '../ui/Switch.jsx'
 import { COLOR_NAME, DEFAULT_SIDE_COLORS as START_COLORS } from '../sideColors.js'
 import { TEAMS } from '../setup/setup.js'
 import { RosterField } from '../rosters/RosterField.jsx'
+import './comicBase.js'
+import './newRoom.css'
 
 const MAP_IDS = Object.keys(MAPS)
 
-// Why Multiplayer is disabled, by the session status
-function unavailableText(status) {
-  if (status === 'error') return 'Multiplayer is not available: the server does not answer.'
-  if (status === 'loading') return 'Checking your login'
-  return DISCORD_ON ? 'Log in with Discord to play multiplayer' : 'Log in to play multiplayer'
+// The attributes of the arrow icons of the map buttons
+const ARROW = {
+  width: 22,
+  height: 22,
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 3.5,
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
 }
 
-// The dialog that creates a room (docs/features/rooms.md, "New room"): the map and the rosters of both
-// players. With Random map on, the card back shows. Single player: the app picks the map at creation. Multiplayer: the server picks it when the
-// guest joins. With it off, the map
-// card in the middle of the carousel is the map. Create room needs a Blue roster. The Red roster is
-// optional, because the Red field of the toolbar can load it later. Create room saves the room and calls
-// onCreate(room). Escape (Dialog.jsx), Cancel, × or a click on the backdrop calls onClose(). The left and right arrows
-// move the carousel, the same as in the roster popup, but not while a roster field has the focus.
+// Why Versus is disabled, by the session status
+function unavailableText(status) {
+  if (status === 'error') return 'Versus is not available: the server does not answer.'
+  if (status === 'loading') return 'Checking your login'
+  return DISCORD_ON ? 'Log in with Discord to play versus' : 'Log in to play versus'
+}
+
+// The dialog that creates a room (docs/features/rooms.md, "New room", for the look and the rules): the map on the
+// left (rooms/newRoom.css), the choice, Random map and the rosters on the right. With Random map on, the card
+// back shows; with it off, the map card in the middle of the fan carousel is the map. Create room! needs a Blue
+// roster. The Red roster is optional, because the Red field of the toolbar can load it later. It saves the room
+// and calls onCreate(room). Escape (Dialog.jsx), Cancel, × or a click on the backdrop calls onClose(). The left
+// and right arrows move the carousel, but not while a roster field has the focus.
 //
-// With login on (docs/features/rooms.md, "New room"): a choice at the top: Single player or Multiplayer. A multiplayer room
-// has one roster field, for the own side: the host always sits at +z. Create room builds the start table, posts the room to
+// With login on: a choice at the top, Solo or Versus (code names: single, multiplayer). Solo: the app picks a
+// random map at creation. Versus: one roster field, for the own side (the host always sits at +z), and the server
+// picks a random map when the guest joins. Create room! builds the start table, posts the room to
 // the server, and calls onCreate({ id: code }). hostedCode: the code of the multiplayer room that the user
 // hosts already, or null. The server allows one hosted room per user.
 export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
@@ -106,122 +120,187 @@ export function NewRoomDialog({ onCreate, onClose, hostedCode = null }) {
     setCreateError(null)
   }
 
+  const footNote = multiplayer
+    ? random
+      ? 'The map is revealed when the second player joins…'
+      : 'Your rival will fight on this map…'
+    : 'Red roster is optional — add it now or at the table.'
+  const createTitle = canCreate
+    ? undefined
+    : multiplayer && hostedCode
+      ? 'You host a room already'
+      : 'Paste a roster first'
+
   return (
     <Dialog
       as="form"
       backdropClassName="new-room-backdrop"
-      className="new-room"
+      className="comic new-room-comic"
+      closeClassName="new-room-comic-close"
       label="New room"
       onClose={onClose}
       onSubmit={handleCreate}
     >
-      <h2 className="new-room-title">New room</h2>
-      {authOn && (
-        <div className="new-room-choice">
-          <div className="new-room-kinds" role="group" aria-label="Kind of room">
+      <section className="new-room-map">
+        <div className="new-room-caption">
+          {random ? 'A mystery map awaits…' : 'Pick your battleground!'}
+        </div>
+        {random ? (
+          <>
+            <div className="new-room-stage">
+              <img
+                className="new-room-card new-room-card--back"
+                src={assetUrl(MAP_CARD_BACK)}
+                alt="Random map"
+                draggable={false}
+              />
+            </div>
+            <div className="new-room-nav-space" />
+          </>
+        ) : (
+          <Carousel
+            fan
+            count={MAP_IDS.length}
+            index={mapIndex}
+            onIndexChange={setMapIndex}
+            itemName="Map"
+            renderSlide={(i) => (
+              <img
+                className="carousel-card new-room-card"
+                src={assetUrl(hasAsset(mapCard(MAP_IDS[i])) ? mapCard(MAP_IDS[i]) : MAP_CARD_BACK)}
+                alt={MAPS[MAP_IDS[i]].name}
+                draggable={false}
+              />
+            )}
+            renderNav={({ index, count, prev, next }) => (
+              <div className="new-room-nav">
+                <button
+                  type="button"
+                  className="new-room-square pop"
+                  aria-label="Previous map"
+                  onClick={prev}
+                >
+                  <svg {...ARROW} aria-hidden="true">
+                    <path d="M15 5l-7 7 7 7" />
+                  </svg>
+                </button>
+                <div className="new-room-nav-box" aria-live="polite">
+                  <div className="new-room-nav-count">
+                    Map {index + 1} of {count}
+                  </div>
+                  <div className="new-room-nav-name">{MAPS[MAP_IDS[index]].name}</div>
+                </div>
+                <button
+                  type="button"
+                  className="new-room-square pop"
+                  aria-label="Next map"
+                  onClick={next}
+                >
+                  <svg {...ARROW} aria-hidden="true">
+                    <path d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            )}
+          />
+        )}
+      </section>
+      <div className="new-room-side">
+        <h2 className="new-room-heading">New room!</h2>
+        {authOn && (
+          <fieldset className="new-room-kinds">
+            <legend>Choose your battle</legend>
             <button
               type="button"
-              className={multiplayer ? 'chip' : 'chip chip--active'}
+              className={multiplayer ? 'new-room-kind pop' : 'new-room-kind new-room-kind--on pop'}
               aria-pressed={!multiplayer}
               onClick={() => setChoice('single')}
             >
-              Single player
+              <span className="new-room-kind-name">Solo</span>
+              <span className="new-room-kind-text">Run both sides yourself</span>
             </button>
             <button
               type="button"
-              className={multiplayer ? 'chip chip--active' : 'chip'}
+              className={multiplayer ? 'new-room-kind new-room-kind--on pop' : 'new-room-kind pop'}
               aria-pressed={multiplayer}
               disabled={!loggedIn}
               onClick={() => setChoice('multiplayer')}
             >
-              Multiplayer
+              <span className="new-room-kind-name">Versus</span>
+              <span className="new-room-kind-text">Share a code with a friend</span>
+            </button>
+            {!loggedIn && <span className="new-room-note">{unavailableText(status)}</span>}
+            {multiplayer && hostedCode && (
+              <span className="new-room-error">
+                You host room {hostedCode} already. Delete it to create a new one.
+              </span>
+            )}
+          </fieldset>
+        )}
+        <Switch
+          variant="comic"
+          checked={random}
+          onChange={setRandom}
+          label="Random map"
+          hint={random ? 'Turn off to pick the map yourself' : 'Browse the maps on the left'}
+          title={
+            multiplayer
+              ? 'On: the server picks the map when the second player joins. Off: choose the map on the left.'
+              : 'On: the app picks the map when it creates the room. Off: choose the map on the left.'
+          }
+        />
+        {multiplayer ? (
+          <RosterField
+            label="Your roster"
+            text={text.host}
+            parsed={parsed.host}
+            onChange={(value) => handleTextChange('host', value)}
+          />
+        ) : (
+          <div className="new-room-rosters" role="group" aria-labelledby="new-room-rosters">
+            <div className="new-room-rosters-title" id="new-room-rosters">
+              Rosters
+            </div>
+            {TEAMS.map((team) => (
+              <RosterField
+                key={team}
+                label={`${COLOR_NAME[START_COLORS[team]]} roster`}
+                color={START_COLORS[team]}
+                plate={COLOR_NAME[START_COLORS[team]]}
+                text={text[team]}
+                parsed={parsed[team]}
+                optional={team !== 'host'}
+                onChange={(value) => handleTextChange(team, value)}
+              />
+            ))}
+          </div>
+        )}
+        {createError && (
+          <span className="new-room-error" role="alert">
+            {createError}
+          </span>
+        )}
+        {failed && (
+          <span className="new-room-error" role="alert">
+            The browser did not store the room. Its storage is full or turned off.
+          </span>
+        )}
+        <div className="new-room-footer">
+          <div className="new-room-foot-note">{footNote}</div>
+          <div className="new-room-actions">
+            <button type="button" className="new-room-cancel" onClick={onClose}>
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="new-room-create pop"
+              disabled={!canCreate}
+              title={createTitle}
+            >
+              Create room!
             </button>
           </div>
-          {!loggedIn && <span className="new-room-hint">{unavailableText(status)}</span>}
-          {multiplayer && hostedCode && (
-            <span className="new-room-error">
-              You host room {hostedCode} already. Delete it to create a new one.
-            </span>
-          )}
         </div>
-      )}
-      <Switch
-        checked={random}
-        onChange={setRandom}
-        label="Random map"
-        title={
-          multiplayer
-            ? 'On: the server picks the map when the second player joins. Off: choose the map below.'
-            : 'On: the app picks the map when it creates the room. Off: choose the map below.'
-        }
-      />
-      {random ? (
-        <div className="new-room-random">
-          <img
-            className="new-room-card"
-            src={assetUrl(MAP_CARD_BACK)}
-            alt="Random map"
-            draggable={false}
-          />
-          <span className="new-room-hint">
-            {multiplayer
-              ? 'The map spawns when the second player joins the room'
-              : 'The app picks the map when it creates the room'}
-          </span>
-        </div>
-      ) : (
-        <Carousel
-          count={MAP_IDS.length}
-          index={mapIndex}
-          onIndexChange={setMapIndex}
-          itemName="Map"
-          renderSlide={(i) => (
-            <img
-              className="carousel-card new-room-card"
-              src={assetUrl(hasAsset(mapCard(MAP_IDS[i])) ? mapCard(MAP_IDS[i]) : MAP_CARD_BACK)}
-              alt={MAPS[MAP_IDS[i]].name}
-              draggable={false}
-            />
-          )}
-        />
-      )}
-      {multiplayer ? (
-        <RosterField
-          label="Your roster"
-          text={text.host}
-          parsed={parsed.host}
-          onChange={(value) => handleTextChange('host', value)}
-        />
-      ) : (
-        TEAMS.map((team) => (
-          <RosterField
-            key={team}
-            label={`${COLOR_NAME[START_COLORS[team]]} roster`}
-            color={START_COLORS[team]}
-            text={text[team]}
-            parsed={parsed[team]}
-            optional={team !== 'host'}
-            onChange={(value) => handleTextChange(team, value)}
-          />
-        ))
-      )}
-      {createError && (
-        <span className="new-room-error" role="alert">
-          {createError}
-        </span>
-      )}
-      {failed && (
-        <span className="new-room-error" role="alert">
-          The browser did not store the room. Its storage is full or turned off.
-        </span>
-      )}
-      <div className="new-room-actions">
-        <button type="button" className="chip" onClick={onClose}>
-          Cancel
-        </button>
-        <button type="submit" className="chip chip--active" disabled={!canCreate}>
-          Create room
-        </button>
       </div>
     </Dialog>
   )

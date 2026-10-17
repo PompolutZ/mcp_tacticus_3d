@@ -1464,7 +1464,7 @@ body {
 }
 
 /* The carousel (Carousel.jsx). The parent sets --card-w (the card width) and --view-w (the viewport
-   width), see .roster-popup .carousel and .new-room .carousel. A slide is a card and a gap. */
+   width), see .roster-comic .carousel and .new-room-comic .carousel. A slide is a card and a gap. */
 .carousel {
   --card-gap: 24px;
   --slide-w: calc(var(--card-w) + var(--card-gap));
@@ -1674,63 +1674,8 @@ body {
   color: var(--text);
 }
 
-/* The new room dialog (NewRoomDialog.jsx), on a blurred backdrop like the roster popup. Rendered through
-   Overlay.jsx. */
-.new-room-backdrop {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(5, 5, 16, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  z-index: 400;
-}
-
-/* --card-h: the height of a map card, the same with Random map on and off, so the dialog does not jump */
-.new-room {
-  --card-h: min(46vh, 420px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  max-height: 100vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 16px;
-}
-
-.new-room-title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-/* The viewport is 2 slides wide: the map in the middle and half of the maps at the sides. So 3 maps loop. */
-.new-room .carousel {
-  --card-w: calc(var(--card-h) * 4 / 7);
-  --view-w: min(calc(100vw - 32px), calc(var(--slide-w) * 2));
-}
-
-.new-room-card {
-  display: block;
-  height: var(--card-h);
-  aspect-ratio: 4 / 7;
-  border-radius: 12px;
-  user-select: none;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-}
-
-/* The card back of Random map, with the room of the carousel padding and buttons */
-.new-room-random {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 0 0;
-}
-
+/* The new-room-* rules below are for the join page (JoinRoom.jsx) and RosterField.jsx. The new room dialog
+   restyles them in rooms/newRoom.css. */
 .new-room-hint {
   font-size: 13px;
   color: var(--muted);
@@ -1810,18 +1755,6 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 2px;
-}
-
-/* The Single player or Multiplayer choice, and the side chips, of the new room dialog */
-.new-room-choice {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.new-room-kinds {
-  display: flex;
-  gap: 8px;
 }
 
 /* The join page (JoinRoom.jsx): the map card next to the room, the roster field and Join */

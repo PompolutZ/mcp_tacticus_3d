@@ -93,7 +93,7 @@ One row for each item, with the choice **Table** or **HUD**. The default is **HU
 | Automatic Power Phase | Row 1 of the board strips | Bottom right corner: **Auto Power Phase** (first) |
 | Cleanup Phase | One button between the scoring board and the mat | Bottom right corner: **Auto Cleanup Phase** (after Power) |
 | Deploy Lock | **Deploy Lock** in the board strip | **Deploy** → **Lock** |
-| Mat turn (Sandbox and single player rooms) | **↺** **↻** in the board strip | **Mat** → **↺** **↻**. The map select stays in the toolbar |
+| Mat turn (Sandbox and solo rooms) | **↺** **↻** in the board strip | **Mat** → **↺** **↻**. The map select stays in the toolbar |
 
 - An item is in one place at a time. The keys work the same in both cases.
 - A board strip with no rows is not drawn. A row with no buttons is not drawn.

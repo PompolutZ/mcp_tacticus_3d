@@ -188,7 +188,7 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
                   />
                   <div className="room-info">
                     <div>
-                      <span className="room-tag">{isMulti ? 'Multiplayer' : 'Single player'}</span>
+                      <span className="room-tag">{isMulti ? 'Versus' : 'Solo'}</span>
                     </div>
                     <h3 className="room-name">{face.name}</h3>
                     <div className="room-time">Last change {TIME.format(item.updatedAt)}</div>
@@ -274,7 +274,7 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
               </svg>
             </Burst>
             <span className="room-new-title">Start a new room!</span>
-            <span className="room-new-text">Single player or multiplayer</span>
+            <span className="room-new-text">Solo or versus</span>
             <span className="room-new-corner">To be continued…</span>
           </button>
         </div>
