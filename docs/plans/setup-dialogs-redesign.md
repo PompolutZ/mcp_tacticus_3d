@@ -123,3 +123,4 @@ The look of `lobby-redesign.md` ("The look"): ink, paper, yellow, red, blue, nig
 - `carouselLoop.js` (new): the pure index math. `carouselLoop.test.js`: each card shows once, shown card at 0, both sides equal, nearest-copy scroll.
 - `roster.md`: loop text updated. Covers the roster popup, map picker and compare lanes. Not checked in a browser.
 - Breakdown Must have follows the squad on the table: `breakdown.js` `filtersWithSquad` (+ test), `RosterPopupHost.jsx` effect syncs per team on squad change, also with the popup closed. Feature `squad-breakdown.md` (Filters, State) updated. Not checked in a browser.
+- Maximum Threat chips moved from the info panel to the chooser's squad panel place (under their roster rows, facing them), to cut camera turns. `GameSetup.jsx`: `SquadPlace` wrapper shared with `SquadPanel`, new `ThreatPanel`. Feature `setup-game.md` (Steps, Buttons) updated. Not checked in a browser.
