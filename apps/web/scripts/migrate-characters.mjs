@@ -17,6 +17,7 @@ import {
 } from './lib/convert.mjs'
 import { parseMigrateArgs } from './lib/cli.mjs'
 import { outputPath, readJson, writeJson } from './lib/files.mjs'
+import { isCustomModel } from './lib/custom-models.mjs'
 import { slug } from './lib/keys.mjs'
 import { cachedFile, downloadMissing, loadCharacterDatabase } from './lib/tts.mjs'
 import {
@@ -38,7 +39,7 @@ const USAGE = `Usage:
   node scripts/migrate-characters.mjs missing                   every character with a model or standee in the mod and no entry in character-manifest.json (not Ultimate Encounter)
 Options:
   --download    first download the missing files of each character into the TTS cache, one file at a time
-  --force       convert files again, even if character-manifest.json lists them
+  --force       convert files again, even if character-manifest.json lists them (never a custom model, see scripts/custom-models.json)
   --out <dir>   trial run: write assets to <dir>/assets, and the manifest and characters.json to <dir>, not to the repo`
 
 const { opts, positionals } = parseMigrateArgs(
@@ -47,6 +48,7 @@ const { opts, positionals } = parseMigrateArgs(
   { download: true },
 )
 
+const CUSTOM_MODELS = readJson(path.join(import.meta.dirname, 'custom-models.json'))
 const MANIFEST_FILE = path.join(import.meta.dirname, 'character-manifest.json')
 const DATA_FILE = path.resolve(import.meta.dirname, '../src/characters/characters.json')
 const MANIFEST_OUT = opts.out ? path.resolve(opts.out, 'character-manifest.json') : MANIFEST_FILE
@@ -264,6 +266,10 @@ async function migrateCharacter(row, getRipper) {
       continue
     }
     sources[f.file] = f.url
+    if (isCustomModel(CUSTOM_MODELS, key, f.file)) {
+      console.log(`  ${path.basename(f.file)}: custom model, kept (scripts/custom-models.json)`)
+      continue
+    }
     if (
       !opts.force &&
       manifest[key]?.sources[f.file] === f.url &&

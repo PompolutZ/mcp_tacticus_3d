@@ -1,0 +1,5 @@
+{
+  "adam-warlock": {
+    "characters/adam-warlock/model.glb": "pnpm --filter web photos-to-glb \"<Adam Warlock 3rd photos>\" --base small --texture 1024 --tone strong"
+  }
+}

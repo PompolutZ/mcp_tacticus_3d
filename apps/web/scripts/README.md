@@ -187,6 +187,8 @@ An affiliation is a key of `allAffiliations` in the mod's Database script, for e
 
 The script converts a file only when the manifest does not have it with the same URL. Therefore, a second run converts only new or changed files. Commit `src/assets/characters/<key>/`, `src/characters/characters.json` and `scripts/character-manifest.json` together.
 
+`scripts/custom-models.json` lists the files that a custom model replaced (character key, file under `src/assets`, how it was made). The script never converts or overwrites a listed file, also with `--force`, and prints a line when it skips one. The rest of the character still migrates, and the manifest keeps the source URL. See `docs/features/custom-models.md`.
+
 ## Download
 
 `--download` (also in `migrate-crisis` and `migrate-tactics`) downloads the files that the script uses and the TTS cache lacks, so no object has to be spawned in TTS first. The scripts without the option work as before.

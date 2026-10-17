@@ -2,11 +2,11 @@
 
 Status: partly built.
 
-The script works.
+The script works. A custom model can replace the model of a character (see [Use for a character](#use-for-a-character)). Adam Warlock uses one.
 
 Not built yet:
 
-- Loading a custom model in the game. The `#models` page shows the candidates, see [Model viewer](model-viewer.md).
+- Loading a custom model for a piece that is not a character. The `#models` page shows the candidates, see [Model viewer](model-viewer.md).
 
 ## Goal
 
@@ -147,9 +147,19 @@ To support scanned terrain, the app needs:
 - colliders for the scan, for example one convex hull or mesh collider made from the scan
 - an entry in `pieces.js` and a placement in a map JSON file
 
+## Use for a character
+
+To replace the model of a character:
+
+1. Make the GLB with `photos-to-glb`, with `--base` of the character and `--texture 1024`.
+2. Copy it to `src/assets/characters/<key>/model.glb`. The app already loads this file, so `characters.json` does not change.
+3. Add the file to `scripts/custom-models.json`: character key, file relative to `src/assets`, and how it was made (command, photo set).
+
+The list exists because `migrate-characters.mjs` would convert the TTS model again and overwrite the scan, for example with `--force` or after a new source URL. The script never converts or overwrites a listed file, also with `--force`. It prints a line when it skips one. The rest of the character still migrates, and the manifest keeps the source URL.
+
 ## Out of scope
 
-- **Loading the model in the app.** The script writes a GLB file only. It does not add a character to `characters.json` or a piece to `pieces.js`.
+- **Other pieces.** The script writes a GLB file only. It does not add a piece to `pieces.js`. A character gets its model by the copy above.
 - **Choosing the front.** A `--turn <degrees>` option could turn the model so its front faces the right way. It is not built yet.
 - **Base height.** The team color covers 3 mm for every base. A `--base-height` option could cover the whole rim of a thicker real base. It is not built yet.
 
