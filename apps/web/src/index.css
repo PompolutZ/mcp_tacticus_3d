@@ -1955,30 +1955,7 @@ body {
   border-radius: 4px;
 }
 
-/* The crisis compare overlay (CrisisCompare.jsx): two carousels, mine on top, the opponent's below. The frame
-   is .roster-popup. The card height is the larger of what fits: two halves in the viewport height (the 140px
-   per half is the title, the nav, the slide padding and the share of the tabs and the Choose button), and 5
-   cards with gaps in the viewport width. --card-ratio (width / height) is set inline. */
-.crisis-compare {
-  gap: 6px;
-}
-
-.crisis-compare .carousel {
-  --card-h: min(calc(50vh - 140px), calc((20vw - var(--card-gap)) / var(--card-ratio)));
-  --view-w: min(100vw, calc((var(--card-w) + var(--card-gap)) * 5));
-}
-
-.crisis-compare .carousel-slide {
-  padding: 4px 0 6px;
-}
-
-.crisis-compare-half {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
+/* The empty line of CrisisChoose.jsx (the compare overlay has its own in crisis/crisis.css) */
 .crisis-compare-empty {
   margin: 20px 0;
   color: var(--muted);

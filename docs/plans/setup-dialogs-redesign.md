@@ -96,3 +96,12 @@ The look of `lobby-redesign.md` ("The look"): ink, paper, yellow, red, blue, nig
 - `squad-breakdown.md`: look, sketch, labels.
 - Differences from the design: threat buttons are one per value of `threats` (not fixed); the "More filters" label keeps the filter count; affiliation chips keep icons; the panel has a fixed height with its own scroll (the stage keeps its size across tabs) and the dashed part comes before the More filters button, as in the design, with the buttons last in the box. Chips have a hover shadow, not `.pop`.
 - Checks: format, lint (no new warnings), web tests 1041 pass, build OK. Not checked in a browser.
+
+### Step 2: Compare crisis cards
+
+- `CrisisCompare.jsx`: dialog has `comic roster-comic crisis-compare` and `closeClassName="roster-comic-close"`, so the frame, header, folder tabs, rays stage, fan carousel, card switch and card rules are those of `roster.css` (not copied). Header blue on Secures, red on Extracts. Tag "You vs <name>", or "<top> vs <other>" without `mySide`. Deck button logic unchanged, label "Choose my secures!" / "Choose my extracts!". Lanes use `Carousel` with `fan` and `renderNav`; arrow-key `stepRef`, keys and indices unchanged.
+- `CrisisFace` got a `comic` prop (roster comic card classes); `CrisisChoose` still gets the old look until Step 3.
+- `crisis/crisis.css` (new): card height for two lanes, the yellow skewed deck button, lane layout, the name plate, narrow screen at 640 px (16 px gutter, smaller cards, x tucked in).
+- `index.css`: `crisis-compare*` rules removed, except `.crisis-compare-empty`, which `CrisisChoose` still uses (Step 3 removes it).
+- Differences from the design: `SeatPlate` not used (its css is lobby-only and not loaded on the table), so the plate is a small `.crisis-plate` rule; its icon square is blue or red by side color (the design has fixed pink and orange); tabs are the roster tab size, not the design's larger one; the card switch count box has no shadow (as in the roster popup); the fan overlaps cards as in the roster popup, not the design's spaced cards.
+- Checks: format, lint (no new warnings), web tests 1041 pass, build OK. Not checked in a browser.
