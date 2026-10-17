@@ -1,15 +1,32 @@
 diff --git a/web/Html.js b/web/Html.js
-index 81d68b7f4e9893a7d0b436a398bb38883d333374..00cdeb1e9118f62ef85af479e4b92b2c719ae668 100644
+index 81d68b7f4e9893a7d0b436a398bb38883d333374..260c8ef38d6e630cad9e81ac814716e51a84d594 100644
 --- a/web/Html.js
 +++ b/web/Html.js
-@@ -153,7 +153,9 @@ const Html = /* @__PURE__ */React.forwardRef(({
+@@ -140,7 +140,9 @@ const Html = /* @__PURE__ */React.forwardRef(({
+   }, [occlude]);
+   React.useLayoutEffect(() => {
+     if (group.current) {
+-      const currentRoot = root.current = ReactDOM.createRoot(el);
++      // Reuse the root: el lives as long as Html, and createRoot(el) twice on it warns and breaks.
++      if (!root.current) root.current = ReactDOM.createRoot(el);
++      const currentRoot = root.current;
+       scene.updateMatrixWorld();
+       if (transform) {
+         el.style.cssText = `position:absolute;top:0;left:0;pointer-events:none;overflow:hidden;`;
+@@ -153,7 +155,15 @@ const Html = /* @__PURE__ */React.forwardRef(({
        }
        return () => {
          if (target) target.removeChild(el);
 -        currentRoot.unmount();
 +        // Deferred: unmounting synchronously warns "Attempted to synchronously unmount a root
 +        // while React was already rendering" when <Canvas> is removed inside a react-dom commit.
-+        queueMicrotask(() => currentRoot.unmount());
++        // Only unmount if the effect did not re-run meanwhile (el re-appended, root reused).
++        queueMicrotask(() => {
++          if (root.current === currentRoot && !el.isConnected) {
++            root.current = null;
++            currentRoot.unmount();
++          }
++        });
        };
      }
    }, [target, transform]);
