@@ -448,36 +448,12 @@
   margin-right: 4px;
 }
 
-.room-copy {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  color: var(--ink);
-  background: #fff;
-  border: 2px solid var(--ink);
-  cursor: pointer;
-}
-
-.room-copy:focus-visible,
 .seat-roster:focus-visible,
 .room-enter:focus-visible,
 .room-new:focus-visible,
 .lobby-sandbox-open:focus-visible {
   outline: 3px solid var(--blue);
   outline-offset: 2px;
-}
-
-.room-copy-result {
-  font: 700 14px var(--font-label);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.room-copy-result:empty {
-  display: none;
 }
 
 .room-body {
@@ -555,74 +531,6 @@
 
 .seat--end {
   align-items: flex-end;
-}
-
-.seat-plate {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  box-sizing: border-box;
-  max-width: 100%;
-  padding: 6px 14px 6px 10px;
-  font: 400 24px var(--font-title);
-  letter-spacing: 0.05em;
-  color: #fff;
-  border: 3px solid var(--ink);
-  transform: skewX(-10deg);
-}
-
-.seat--end .seat-plate {
-  padding: 6px 10px 6px 14px;
-}
-
-.seat-plate--neutral {
-  color: var(--ink);
-  background: var(--paper);
-}
-
-.seat-plate--muted {
-  color: var(--muted-ink);
-  background: var(--disabled-bg);
-}
-
-/* A seat nobody has yet (the challenger of the join page) */
-.seat-plate--empty {
-  color: #8a8490;
-  background: #fff;
-  border-style: dashed;
-}
-
-.seat-note {
-  font: 700 14px var(--font-label);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.seat-plate--blue {
-  background-color: var(--blue);
-  background-image: radial-gradient(rgba(255, 255, 255, 0.12) 24%, transparent 26%);
-  background-size: 10px 10px;
-}
-
-.seat-plate--red {
-  background-color: var(--red);
-  background-image: radial-gradient(rgba(0, 0, 0, 0.2) 24%, transparent 26%);
-  background-size: 11px 11px;
-}
-
-.seat-avatar {
-  width: 28px;
-  height: 28px;
-  flex: none;
-  border: 2px solid var(--ink);
-  background: var(--blue);
-  object-fit: cover;
-}
-
-.seat-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .seat-roster {

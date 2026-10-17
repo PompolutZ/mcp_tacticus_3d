@@ -74,10 +74,13 @@ z = 38                   ─────────────── table edg
 
 One row at the top, never wrapped. The height is the CSS variable `--hud-top` on the HUD root (`src/useHudTop.js`, a ResizeObserver). The Library, the Log and the notice start under it.
 
-- **Left:** **← Lobby**, the room code or **Sandbox**, **Copy link** (room with a free seat), the players (multiplayer room), and in the Sandbox and single player rooms a **Setup** chip.
-- **Middle:** the table controls that the settings put in the HUD: **Mat**, **Range** and **Move**, **Deploy**. On a narrow window this part scrolls sideways.
-- **Right**, always in this order: **Library**, **Log**, **Spectator**, **Settings**. This group never shrinks, so nothing covers it.
-- **Setup** (not in a multiplayer room) toggles a panel under the chip with the **Crisis** selects and the **Roster** fields. Escape and a click outside close it.
+The look is the comic look of the lobby (`rooms.md`, "Lobby"): paper boxes with a black border and a hard shadow. Each part of the bar has the `.comic` class on its own root, so the HUD parts that keep the old look are not touched.
+
+- **Left box:** the yellow **← Lobby** button, then **Room**, the code and a copy icon button (**Copy link**), or **Sandbox** with no icon. In a multiplayer room a black divider and the players follow. The room code box always has the copy icon in a room.
+- **Setup** (Sandbox and single player rooms): a box of its own next to the left box, with the **Setup** button.
+- **Middle:** the table controls that the settings put in the HUD: **Mat**, **Range** and **Move**, **Deploy**. Each group is a paper box. Its buttons are white, and yellow when on. On a narrow window this part scrolls sideways. The page never scrolls sideways.
+- **Right box**, always in this order: **Library**, **Log**, **Streamer**, **Settings**. They are toggle buttons (`aria-pressed`): open is yellow and pressed in, closed is white with a shadow. Library, Log and Streamer can be open together. **Settings** opens the dialog. This box never shrinks, so nothing covers it.
+- **Setup** toggles a panel under its button, "Prepare for battle", with the **Crisis** selects and the **Roster** fields. The roster fields have a Blue and a Red plate before them. Escape and a click outside close it.
 
 ## Settings menu
 
@@ -135,7 +138,7 @@ A **Turn** section has a "Turn step" slider, 5° to 15°, step 1°, default 15°
 
 ## Not on the table
 
-These stay in the toolbar: the room and the players, **Library**, **Log**, the map select, **Setup** (**Crisis**, **Roster**), **Spectator**, **Settings**. In TTS, some of them are objects on the table (card bags, the Roster Maker, the Automatic Crisis Deployment buttons). The Library, the roster field and the game setup replace them.
+These stay in the toolbar: the room and the players, **Library**, **Log**, the map select, **Setup** (**Crisis**, **Roster**), **Streamer**, **Settings**. In TTS, some of them are objects on the table (card bags, the Roster Maker, the Automatic Crisis Deployment buttons). The Library, the roster field and the game setup replace them.
 
 ## How TTS does it
 

@@ -48,7 +48,7 @@ The URL hash selects the page. So the browser back button works, and a reload st
 - **Messages:** a message at the top of the lobby (a room link that is not found, a failed load) shows as a yellow comic box.
 - **Your rooms:** the title "Your rooms" with a badge "1 battle in progress" or "N battles in progress" (the number of listed rooms, hidden with no rooms). Then one list with a tile for each single player room and each multiplayer room, the last changed room first, and the **+** tile at the end. With login off, the list has only single player rooms and makes no API call.
 - **Room tile:** an article, not clickable. **Enter the fight →** is the only way into a room. The tile shows:
-  - a yellow badge "Room" with the code. With a multiplayer room that has a free seat, the badge has a copy icon button, the **Copy link** of `docs/features/auth.md` ("Lobby and room UI");
+  - a yellow badge "Room" with the code. The badge has a copy icon button, the **Copy link** of `docs/features/auth.md` ("Lobby and room UI");
   - the map card (alt text: the map name), the tag "Versus" or "Solo", the map name and "Last change" with the time. A random multiplayer room shows the card back and "Random map" until the guest joins;
   - the two seats as plates (`SeatPlate.jsx`) with "VS" between them, and the roster link "Roster ›" under a plate;
   - **Delete** (small comic button, only on rooms that this user owns; in a multiplayer room that is the host). A browser confirm asks first, the same as **Remove** on a character tray;
@@ -98,7 +98,7 @@ A logged-in player who opens the link of a versus room with a free seat sees thi
 - A multiplayer room has no Roster group and no map picker. Each player gives their own roster when they create or join the room. The new room dialog with **Versus** has only the roster of the host, "Your roster". The join page has the roster of the guest, "Your roster", and a link **View roster ›** to the roster of the host, with no color. Single player rooms keep both roster fields.
 - A multiplayer room with **Random map** has no map when the host enters. The table, trays and HUD show as usual, with no mat and no terrain. A note on the table, in the middle of the mat, facing the host, in the style of the setup panel, says: "Random map: it spawns automatically when the second player joins the room." The note goes away when the map is set.
 - The map fill: the server picks the map when the guest joins. The guest's browser then writes the map and its terrain in one change, right after **Join**. The host's browser gets them over peer-to-peer, and the mat and terrain load with no loading screen. A player who opens the room later fills the map too, if the table still has none. Terrain ids are fixed (`<mapId>:<index>`), so two fills of the same map merge into one set of pieces.
-- **← Lobby** at the start of the toolbar writes the room record and opens the lobby. The toolbar also shows the room code.
+- **← Lobby** at the start of the toolbar writes the room record and opens the lobby. The toolbar also shows the room code with the same copy icon button (**Copy link**). The Sandbox shows **Sandbox** and no icon. The toolbar button of the spectator view is **Streamer**.
 
 ## Sandbox
 

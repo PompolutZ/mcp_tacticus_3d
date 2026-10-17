@@ -1,5 +1,6 @@
-/* The comic look of the lobby and the join page (docs/features/rooms.md, "Lobby"). The colors are
-   variables of .comic, so the table UI does not change. */
+/* The comic look of the lobby, the join page and the table HUD parts (docs/features/rooms.md, "Lobby"). The
+   colors and fonts are the variables of .comic, so the other table UI does not change. .comic-page adds the
+   night page background. */
 .comic {
   --ink: #0b0b0f;
   --paper: #fff6e0;
@@ -17,10 +18,13 @@
   --font-label: 'Barlow Condensed', sans-serif;
   --font-code: 'JetBrains Mono', ui-monospace, monospace;
 
+  font-family: var(--font-body);
+}
+
+.comic-page {
   background-color: var(--night);
   background-image: radial-gradient(var(--night-dot) 24%, transparent 26%);
   background-size: 14px 14px;
-  font-family: var(--font-body);
 }
 
 /* Hover moves a block up-left, press moves it down-right; the hard shadow follows */
@@ -130,6 +134,104 @@
   border-color: var(--disabled-fg);
   box-shadow: none;
   cursor: not-allowed;
+}
+
+/* The plate of a player (SeatPlate.jsx, and RoomPlayers.jsx in the toolbar): a skewed plate in the side color */
+.seat-plate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 6px 14px 6px 10px;
+  font: 400 24px var(--font-title);
+  letter-spacing: 0.05em;
+  color: #fff;
+  border: 3px solid var(--ink);
+  transform: skewX(-10deg);
+}
+
+.seat--end .seat-plate {
+  padding: 6px 10px 6px 14px;
+}
+
+.seat-plate--neutral {
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.seat-plate--muted {
+  color: var(--muted-ink);
+  background: var(--disabled-bg);
+}
+
+/* A seat nobody has yet (the challenger of the join page) */
+.seat-plate--empty {
+  color: #8a8490;
+  background: #fff;
+  border-style: dashed;
+}
+
+.seat-note {
+  font: 700 14px var(--font-label);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.seat-plate--blue {
+  background-color: var(--blue);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.12) 24%, transparent 26%);
+  background-size: 10px 10px;
+}
+
+.seat-plate--red {
+  background-color: var(--red);
+  background-image: radial-gradient(rgba(0, 0, 0, 0.2) 24%, transparent 26%);
+  background-size: 11px 11px;
+}
+
+.seat-avatar {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border: 2px solid var(--ink);
+  background: var(--blue);
+  object-fit: cover;
+}
+
+.seat-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The copy link icon button of a room (CopyLinkButton.jsx): the lobby tile and the toolbar room box */
+.room-copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink);
+  cursor: pointer;
+}
+
+.room-copy:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.room-copy-result {
+  font: 700 14px var(--font-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.room-copy-result:empty {
+  display: none;
 }
 
 /* Star burst (Burst.jsx): black outer shape, colored inner shape */

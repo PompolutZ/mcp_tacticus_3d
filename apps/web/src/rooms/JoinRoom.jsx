@@ -45,7 +45,7 @@ export function JoinRoom({ room, onJoined, onExit }) {
   }
 
   return (
-    <div className="lobby comic">
+    <div className="lobby comic comic-page">
       <LobbyHeader />
       <div className="join-room">
         <div className="join-room-map">

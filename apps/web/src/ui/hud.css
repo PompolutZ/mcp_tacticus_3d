@@ -1,0 +1,414 @@
+/* The top bar of the table HUD (Toolbar.jsx, docs/features/table-tools.md, "Toolbar"): the room box on the
+   left, the table tools in the middle and the 4 panel buttons on the right. The colors and fonts are the
+   variables of .comic (rooms/comic.css); each part has .comic on its own root. */
+
+/* The toolbar row. One row, no wrap: the left and right boxes keep their size, the middle scrolls. */
+.hud-top {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  pointer-events: none;
+  /* No horizontal page scroll in a narrow window */
+  overflow-x: clip;
+  /* Above the panels after it in the DOM (Library, log, spectator columns, token panel): the setup
+     panel drops over them. */
+  z-index: 1;
+}
+
+.toolbar {
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 12px;
+  align-items: flex-start;
+  min-width: 0;
+  pointer-events: none;
+}
+
+.toolbar-left {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* The table tools. In a narrow window they scroll sideways and the right box stays visible. The padding
+   leaves room for the hard shadow of the boxes, which the scroll box would cut. */
+.toolbar-middle {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  padding: 0 6px 6px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+/* A paper box with a border and a hard shadow */
+.hud-box {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px 6px 6px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
+  pointer-events: all;
+}
+
+.hud-left {
+  gap: 12px;
+  min-width: 0;
+}
+
+/* In a narrow window the room box scrolls sideways, so the right box stays visible */
+@media (max-width: 900px) {
+  .hud-left {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+}
+
+.hud-right {
+  gap: 6px;
+  padding: 6px;
+}
+
+.hud-group {
+  padding: 5px 10px;
+  gap: 5px;
+}
+
+.hud-divider {
+  align-self: stretch;
+  flex: none;
+  width: 3px;
+  background: var(--ink);
+}
+
+/* The yellow Lobby button */
+.hud-lobby {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 12px 0 8px;
+  font: 400 22px var(--font-title);
+  letter-spacing: 0.05em;
+  color: var(--ink);
+  background: var(--yellow);
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+}
+
+.hud-lobby:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.hud-lobby:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.hud-lobby:focus-visible,
+.hud-toggle:focus-visible,
+.hud-chip:focus-visible,
+.hud-select:focus-visible,
+.hud-input:focus-visible,
+.hud-box .room-copy:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* "Room" + the code + the copy icon, or "Sandbox" */
+.hud-room {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.hud-room-label {
+  font: italic 700 13px var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hud-room-code {
+  font: 600 15px var(--font-code);
+  letter-spacing: 0.06em;
+}
+
+.hud-box .room-copy {
+  width: 28px;
+  height: 28px;
+}
+
+.hud-box .room-copy:hover {
+  background: var(--yellow);
+}
+
+/* The result of the copy hangs under the box, so the box keeps its size */
+.hud-box .room-copy-result {
+  position: absolute;
+  top: calc(100% + 14px);
+  left: 0;
+  padding: 2px 8px;
+  white-space: nowrap;
+  color: var(--ink);
+  background: var(--yellow);
+  border: 2px solid var(--ink);
+  z-index: 2;
+}
+
+/* A player: the plate (.seat-plate, rooms/comic.css) and a tag after it */
+.hud-player {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-player .seat-plate {
+  gap: 8px;
+  padding: 4px 12px 4px 5px;
+  font-size: 22px;
+  line-height: 1;
+  -webkit-text-stroke: 1px var(--ink);
+  paint-order: stroke fill;
+}
+
+.hud-player .seat-plate--empty,
+.hud-player .seat-plate--muted {
+  -webkit-text-stroke: 0;
+}
+
+.hud-player .seat-avatar {
+  width: 24px;
+  height: 24px;
+  border-width: 2px;
+  border-radius: 3px;
+  transform: skewX(10deg);
+}
+
+.hud-player .seat-name {
+  max-width: 160px;
+}
+
+.hud-tag {
+  font: 700 13px var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 1px 7px;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink);
+}
+
+.hud-tag--you {
+  color: #fff;
+  background: var(--ink);
+}
+
+.hud-tag--connected {
+  background: var(--yellow);
+}
+
+.hud-tag--reconnecting,
+.hud-tag--failed {
+  color: #fff;
+  background: var(--red);
+}
+
+/* The 4 panel buttons: Library, Log, Streamer, Settings. Open: yellow and pressed in. */
+.hud-toggle {
+  height: 42px;
+  padding: 0 14px;
+  font: 400 22px var(--font-title);
+  letter-spacing: 0.05em;
+  color: var(--ink);
+  background: #fff;
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+}
+
+.hud-toggle:hover:not(.hud-toggle--on) {
+  background: var(--paper);
+}
+
+.hud-toggle--on {
+  background: var(--yellow);
+  box-shadow: inset 3px 3px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* Group label and buttons of the table tools */
+.hud-label {
+  margin-right: 2px;
+  font: italic 700 13px var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.hud-chip {
+  min-width: 32px;
+  height: 30px;
+  padding: 0 9px;
+  font: 700 16px var(--font-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink);
+  cursor: pointer;
+}
+
+.hud-chip:hover:not(.hud-chip--on) {
+  background: var(--paper);
+}
+
+.hud-chip--on {
+  background: var(--yellow);
+  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.hud-chip--big {
+  height: 38px;
+  padding: 0 14px;
+  font-size: 18px;
+}
+
+.hud-chip:disabled,
+.hud-chip[aria-disabled='true'] {
+  color: var(--disabled-fg);
+  background: var(--disabled-bg);
+  cursor: not-allowed;
+}
+
+.hud-select {
+  height: 30px;
+  padding: 0 8px;
+  font: 600 15px var(--font-body);
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink);
+}
+
+.hud-select--inline {
+  max-width: 180px;
+}
+
+.hud-input {
+  min-width: 0;
+  height: 38px;
+  padding: 0 10px;
+  font: 600 14px var(--font-code);
+  color: var(--ink);
+  background: #fff;
+  border: 3px solid var(--ink);
+}
+
+/* The Sandbox Setup box: the chip and the panel under it ("Prepare for battle") */
+.hud-setup {
+  position: relative;
+  padding: 6px;
+}
+
+.hud-setup-panel {
+  position: absolute;
+  top: calc(100% + 14px);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(430px, calc(100vw - 32px));
+  padding: 24px 18px 18px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
+  /* Above the other top bar parts it drops over */
+  z-index: 1;
+}
+
+.hud-setup-tag {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  padding: 3px 12px;
+  font: italic 700 14px var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--yellow);
+  background: var(--ink);
+}
+
+.hud-setup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hud-setup-label {
+  font: 700 16px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.hud-setup-crisis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.hud-setup .hud-select {
+  height: 46px;
+  min-width: 0;
+}
+
+.hud-roster {
+  display: flex;
+  align-items: stretch;
+}
+
+.hud-roster .hud-chip {
+  margin-left: 6px;
+}
+
+.hud-roster .hud-input {
+  flex: 1;
+  height: 46px;
+}
+
+.hud-roster .hud-chip {
+  height: 46px;
+}
+
+/* The side plate before the roster field: Blue / Red with the halftone dots (.seat-plate--blue, .seat-plate--red) */
+.hud-roster-side {
+  display: flex;
+  flex: 0 0 64px;
+  align-items: center;
+  justify-content: center;
+  font: 400 20px var(--font-title);
+  letter-spacing: 0.05em;
+  color: #fff;
+  border: 3px solid var(--ink);
+  border-right: 0;
+}

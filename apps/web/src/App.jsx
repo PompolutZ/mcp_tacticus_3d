@@ -900,9 +900,6 @@ export default function App({
           <Toolbar
             roomCode={room?.id ?? null}
             multiplayer={Boolean(room?.multiplayer)}
-            guestSeatFree={Boolean(
-              room?.multiplayer && (!room.players.host || !room.players.guest),
-            )}
             side={room?.side ?? null}
             players={room?.players ?? null}
             connection={connection}

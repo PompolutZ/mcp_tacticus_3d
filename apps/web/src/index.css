@@ -57,96 +57,6 @@ body {
   isolation: isolate;
 }
 
-/* The toolbar row. One row, no wrap: the left and right groups keep their size, the middle scrolls. */
-.hud-top {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  right: 12px;
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-  pointer-events: none;
-  /* Above the panels after it in the DOM (Library, log, spectator columns, token panel): the setup
-     dropdown drops over them. */
-  z-index: 1;
-}
-
-.toolbar {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  gap: 8px;
-  align-items: center;
-  min-width: 0;
-  pointer-events: none;
-}
-
-.toolbar-left,
-.toolbar-right {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: 8px;
-}
-
-/* The table controls. On a narrow window they scroll sideways, the right group stays visible. */
-.toolbar-middle {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.toolbar-middle > .group {
-  flex: none;
-}
-
-/* The Sandbox Setup chip and its panel under it */
-.setup-chip {
-  position: relative;
-  pointer-events: all;
-}
-
-.toolbar-setup-panel {
-  pointer-events: auto;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 8px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  /* Above the other toolbar parts it drops over. */
-  z-index: 1;
-}
-
-.group {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 4px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 6px 8px;
-  pointer-events: all;
-}
-
-/* The toolbar fills the width of .hud-top, so the right group is at the right end */
-.hud-top > .toolbar {
-  flex: 1;
-}
-
 .group-label {
   font-size: 11px;
   color: var(--muted);
@@ -1036,18 +946,6 @@ body {
   padding: 1px 7px;
 }
 
-/* The room code, or "Sandbox", next to the Lobby button (Toolbar.jsx) */
-.toolbar-room {
-  margin: 0 2px 0 6px;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Roster text field in the toolbar (Toolbar.jsx), a chip with the player color */
-.roster-field {
-  display: inline-flex;
-  gap: 2px;
-}
-
 .chip--text {
   width: 110px;
   cursor: text;
@@ -1586,56 +1484,6 @@ body {
   padding: 8px 12px;
   font-size: 13px;
   color: var(--text);
-}
-
-/* The two players of a multiplayer room in the toolbar (RoomPlayers.jsx) */
-.room-players {
-  gap: 12px;
-}
-
-.room-player {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-}
-
-.room-player-team {
-  font-weight: 600;
-}
-
-.room-player--blue .room-player-team {
-  color: var(--player-blue-light);
-}
-
-.room-player--red .room-player-team {
-  color: var(--player-red-light);
-}
-
-.room-player-avatar {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-}
-
-.room-player-name {
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.room-player-status {
-  color: var(--muted);
-}
-
-.room-player-status--connected {
-  color: #58d68d;
-}
-
-.room-player-status--reconnecting,
-.room-player-status--failed {
-  color: #f5b041;
 }
 
 /* Buttons on the table (TableButtons.jsx). They lie flat, and 1 px is 0.04". The size comes from

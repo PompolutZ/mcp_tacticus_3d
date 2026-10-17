@@ -5,6 +5,8 @@ import { TEAMS } from '../setup/setup.js'
 import { MAPS } from '../terrain/maps/index.js'
 import { cardsOfType } from '../crisis/cards.js'
 import { CopyLinkButton } from '../rooms/CopyLinkButton.jsx'
+import '../rooms/comicBase.js'
+import './hud.css'
 import { RoomPlayers } from '../rooms/RoomPlayers.jsx'
 import { useRenderCount } from '../debug/renderCount.js'
 import { useTableStore } from '../table/TableStoreContext.jsx'
@@ -24,14 +26,14 @@ const CRISIS_TYPES = [
 // the room, so the toolbar has no map picker and only the Red roster field there. The Red field loads,
 // replaces or removes the Red roster of the room (docs/features/rooms.md).
 // multiplayer: the room is a multiplayer room, which has no Roster group (the rosters are fixed, docs/features/rooms.md, "Room"), no Crisis group and no Mat group (the game setup chooses the crisis cards and the
-// board edge). guestSeatFree: the guest seat was free when the room opened, so Copy link shows next
-// to the room code (docs/features/rooms.md, "Room"), until the guest is seen. side, players, connection: the seats and the
+// board edge). A room always shows the copy link icon next to its code. side, players, connection: the seats and the
 // connection of the room (RoomPlayers.jsx).
+// Each part has the .comic class on its own root (hud.css), so the HUD parts that keep the old look are not
+// touched.
 // The buttons call the table actions (table/tableStore.js): onLobby is the ← Lobby button.
 function Toolbar({
   roomCode,
   multiplayer = false,
-  guestSeatFree = false,
   side = null,
   players = null,
   connection = null,
@@ -89,62 +91,123 @@ function Toolbar({
     return () => document.removeEventListener('pointerdown', handlePointerDown)
   }, [setupOpen, onSetupClose])
   const rosterTeams = roomCode ? ['guest'] : TEAMS
+  const hudButtons = [
+    {
+      key: 'library',
+      label: 'Library',
+      title: 'Characters, Team Tactic cards and tokens to bring to the table',
+      open: libraryOpen,
+      onClick: onLibraryClick,
+    },
+    {
+      key: 'log',
+      label: 'Log',
+      title: 'The log: dice, setup, phases and Priority',
+      open: logOpen,
+      onClick: onLogClick,
+    },
+    {
+      key: 'streamer',
+      label: 'Streamer',
+      title: 'Streamer view: Damage, Power, tokens and objectives above each model',
+      open: spectator,
+      onClick: onSpectatorClick,
+    },
+    {
+      key: 'settings',
+      label: 'Settings',
+      title: 'Where the tools are, the keys and mouse controls, and the table labels',
+      open: settingsOpen,
+      onClick: onSettingsClick,
+    },
+  ]
   return (
     <div className="toolbar">
       <div className="toolbar-left">
-        <div className="group">
-          <button type="button" className="chip" title="Back to the lobby" onClick={onLobby}>
-            ← Lobby
+        <div className="comic hud-box hud-left">
+          <button type="button" className="hud-lobby" title="Back to the lobby" onClick={onLobby}>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M19 12H5M11 6l-6 6 6 6" />
+            </svg>
+            Lobby
           </button>
           <span
-            className="group-label toolbar-room"
+            className="hud-room"
             title={roomCode ? 'Room code' : 'Nothing on this table is saved'}
           >
-            {roomCode ?? 'Sandbox'}
+            <span className="hud-room-label">{roomCode ? 'Room' : 'Sandbox'}</span>
+            {roomCode && (
+              <>
+                <span className="hud-room-code">{roomCode}</span>
+                <CopyLinkButton code={roomCode} />
+              </>
+            )}
           </span>
-          {multiplayer && guestSeatFree && !connection?.peer && <CopyLinkButton code={roomCode} />}
+          {multiplayer && (
+            <>
+              <span className="hud-divider" aria-hidden="true" />
+              <RoomPlayers side={side} players={players} connection={connection} />
+            </>
+          )}
         </div>
-        {multiplayer && <RoomPlayers side={side} players={players} connection={connection} />}
         {!multiplayer && (
-          <div className="setup-chip" ref={setupRef}>
+          <div className="comic hud-box hud-setup" ref={setupRef}>
             <button
               type="button"
-              className={`chip${setupOpen ? ' chip--active' : ''}`}
+              className={`hud-chip hud-chip--big${setupOpen ? ' hud-chip--on' : ''}`}
+              aria-expanded={setupOpen}
               title="Sandbox setup: crisis cards and rosters"
               onClick={onSetupClick}
             >
               Setup
             </button>
             {setupOpen && (
-              <div className="toolbar-setup-panel">
-                <div className="group">
-                  <span className="group-label">Crisis</span>
-                  {CRISIS_TYPES.map(({ type, label }) => (
-                    <select
-                      key={type}
-                      className="chip"
-                      title={`${label} card`}
-                      value={crisis[type] ?? ''}
-                      onChange={(e) => onCrisisChange(type, e.target.value || null)}
-                    >
-                      <option value="">None</option>
-                      {cardsOfType(type).map((card) => (
-                        <option key={card.key} value={card.key}>
-                          {card.name} · {card.threat}
-                        </option>
-                      ))}
-                    </select>
-                  ))}
+              <div className="hud-setup-panel">
+                <span className="hud-setup-tag">Prepare for battle</span>
+                <div className="hud-setup-field">
+                  <span className="hud-setup-label">Crisis</span>
+                  <div className="hud-setup-crisis">
+                    {CRISIS_TYPES.map(({ type, label }) => (
+                      <select
+                        key={type}
+                        className="hud-select"
+                        title={`${label} card`}
+                        aria-label={`${label} card`}
+                        value={crisis[type] ?? ''}
+                        onChange={(e) => onCrisisChange(type, e.target.value || null)}
+                      >
+                        <option value="">None</option>
+                        {cardsOfType(type).map((card) => (
+                          <option key={card.key} value={card.key}>
+                            {card.name} · {card.threat}
+                          </option>
+                        ))}
+                      </select>
+                    ))}
+                  </div>
                 </div>
-                <div className="group">
-                  <span className="group-label">Roster</span>
+                <div className="hud-setup-field">
+                  <span className="hud-setup-label">Roster</span>
                   {rosterTeams.map((team) => {
                     const label = COLOR_NAME[colors[team]]
                     return (
-                      <span key={team} className="roster-field">
+                      <span key={team} className="hud-roster">
+                        <span className={`hud-roster-side seat-plate--${colors[team]}`}>
+                          {label}
+                        </span>
                         <input
                           type="text"
-                          className={`chip chip--player-${colors[team]} chip--text`}
+                          className="hud-input"
                           placeholder="MCT code"
                           title={`${label} roster: paste an MCT code and press Enter`}
                           value={rosterText[team]}
@@ -160,7 +223,7 @@ function Toolbar({
                         />
                         <button
                           type="button"
-                          className="chip"
+                          className="hud-chip hud-chip--big"
                           title={`Remove the ${label} roster from the table`}
                           onClick={() => {
                             setRosterText((prev) => ({ ...prev, [team]: '' }))
@@ -180,12 +243,13 @@ function Toolbar({
       </div>
       <div className="toolbar-middle">
         {showMat && (
-          <div className="group">
-            <span className="group-label">Mat</span>
+          <div className="comic hud-box hud-group">
+            <span className="hud-label">Mat</span>
             {!roomCode && (
               <select
-                className="chip"
+                className="hud-select hud-select--inline"
                 title="Map"
+                aria-label="Map"
                 value={mapId}
                 onChange={(e) => onMapChange(e.target.value)}
               >
@@ -200,7 +264,7 @@ function Toolbar({
               <>
                 <button
                   type="button"
-                  className="chip"
+                  className="hud-chip"
                   title="Turn mat 90° counter-clockwise"
                   onClick={() => onTurnMat(1)}
                 >
@@ -208,7 +272,7 @@ function Toolbar({
                 </button>
                 <button
                   type="button"
-                  className="chip"
+                  className="hud-chip"
                   title="Turn mat 90° clockwise"
                   onClick={() => onTurnMat(-1)}
                 >
@@ -220,26 +284,28 @@ function Toolbar({
         )}
         {rackHud && (
           <>
-            <div className="group">
-              <span className="group-label">Range</span>
+            <div className="comic hud-box hud-group">
+              <span className="hud-label">Range</span>
               {RANGES.map((r) => (
                 <button
                   key={r}
                   type="button"
-                  className={`chip${activeRange === r ? ' chip--active' : ''}`}
+                  className={`hud-chip${activeRange === r ? ' hud-chip--on' : ''}`}
+                  aria-pressed={activeRange === r}
                   onClick={() => onRangeClick(r)}
                 >
                   R{r}
                 </button>
               ))}
             </div>
-            <div className="group">
-              <span className="group-label">Move</span>
+            <div className="comic hud-box hud-group">
+              <span className="hud-label">Move</span>
               {MOVES.map((m) => (
                 <button
                   key={m.type}
                   type="button"
-                  className={`chip${activeMove === m.type ? ' chip--active' : ''}`}
+                  className={`hud-chip${activeMove === m.type ? ' hud-chip--on' : ''}`}
+                  aria-pressed={activeMove === m.type}
                   onClick={() => onMoveClick(m.type)}
                 >
                   {m.label}
@@ -247,7 +313,8 @@ function Toolbar({
               ))}
               <button
                 type="button"
-                className={`chip${angleOn ? ' chip--active' : ''}`}
+                className={`hud-chip${angleOn ? ' hud-chip--on' : ''}`}
+                aria-pressed={angleOn}
                 title="Toward / Away: L tool bent 90° (key 6)"
                 onClick={onAngleClick}
               >
@@ -257,11 +324,12 @@ function Toolbar({
           </>
         )}
         {deployHud && (
-          <div className="group">
-            <span className="group-label">Deploy</span>
+          <div className="comic hud-box hud-group">
+            <span className="hud-label">Deploy</span>
             <button
               type="button"
-              className={`chip${deployLine ? ' chip--active' : ''}`}
+              className={`hud-chip${deployLine ? ' hud-chip--on' : ''}`}
+              aria-pressed={deployLine}
               title="Lock models to within Range 3 of their deployment edge"
               onClick={onDeployLineClick}
             >
@@ -270,39 +338,19 @@ function Toolbar({
           </div>
         )}
       </div>
-      <div className="group toolbar-right">
-        <button
-          type="button"
-          className={`chip${libraryOpen ? ' chip--active' : ''}`}
-          title="Characters, Team Tactic cards and tokens to bring to the table"
-          onClick={onLibraryClick}
-        >
-          Library
-        </button>
-        <button
-          type="button"
-          className={`chip${logOpen ? ' chip--active' : ''}`}
-          title="The log: dice, setup, phases and Priority"
-          onClick={onLogClick}
-        >
-          Log
-        </button>
-        <button
-          type="button"
-          className={`chip${spectator ? ' chip--active' : ''}`}
-          title="Spectator view: Damage, Power, tokens and objectives above each model"
-          onClick={onSpectatorClick}
-        >
-          Spectator
-        </button>
-        <button
-          type="button"
-          className={`chip${settingsOpen ? ' chip--active' : ''}`}
-          title="Where the tools are, the keys and mouse controls, and the table labels"
-          onClick={onSettingsClick}
-        >
-          Settings
-        </button>
+      <div className="comic hud-box hud-right">
+        {hudButtons.map(({ key, label, title, open, onClick }) => (
+          <button
+            key={key}
+            type="button"
+            className={`hud-toggle${open ? ' hud-toggle--on' : ''}`}
+            aria-pressed={open}
+            title={title}
+            onClick={onClick}
+          >
+            {label}
+          </button>
+        ))}
       </div>
     </div>
   )

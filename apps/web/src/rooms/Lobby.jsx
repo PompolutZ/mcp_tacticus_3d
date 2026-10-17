@@ -106,7 +106,7 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
   }
 
   return (
-    <div className="lobby comic">
+    <div className="lobby comic comic-page">
       <LobbyHeader />
       {notice && (
         <div className="lobby-notice" role="alert">
@@ -176,7 +176,7 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
                   <span className="room-badge-label">Room</span>
                   <span className="room-badge-code">{item.id}</span>
                   {isMulti && (!room.players.host || !room.players.guest) && (
-                    <CopyLinkButton code={item.id} icon />
+                    <CopyLinkButton code={item.id} />
                   )}
                 </div>
                 <div className="room-body">

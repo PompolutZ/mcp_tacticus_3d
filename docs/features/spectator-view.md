@@ -4,7 +4,7 @@ Status: built.
 
 ## Goal
 
-A viewer reads the state of each character from the model, without looking at the trays. **Spectator** in the toolbar shows a badge above every model. A second click hides the badges.
+A viewer reads the state of each character from the model, without looking at the trays. **Streamer** in the toolbar shows a badge above every model. A second click hides the badges.
 
 The badge is made of the same pieces as the character tray, so it looks the same. From top to bottom, a badge shows:
 
@@ -14,7 +14,7 @@ The badge is made of the same pieces as the character tray, so it looks the same
 
 ## Squad columns
 
-**Spectator** also shows two HUD columns, one per squad, read-only (`SpectatorColumns.jsx`). My squad is on the left and the opponent's on the right. In the Sandbox and a single player room, Blue (the host) is on the left.
+**Streamer** also shows two HUD columns, one per squad, read-only (`SpectatorColumns.jsx`). My squad is on the left and the opponent's on the right. In the Sandbox and a single player room, Blue (the host) is on the left.
 
 - Header: the player name (`playerName`), the affiliation icon of the side, VP and "Round N". The icon is the affiliation token image (`affiliationTokenKey`, `characterToken`), its name as the title. Unaffiliated has an icon too; with no affiliation set there is none. It follows `game.affiliations`. The 3D badge has no header, so only the HUD columns show it. VP and the round come from the score markers (`scoreFromMarkers` in `scoreboard/board.js`, the same read as the Cleanup Phase). A VP marker on no spot counts 0 VP. The round is not shown when its marker is on no spot.
 - One row per character and grunt, in squad order. Constructs have no row. A row has: the portrait, the Damage bar (`damage / stamina`, orange on the Healthy side, red on the Injured side), the Power bar (`power / 10`, green; a grunt has none), the tokens on the character with counts (the tray's `OnToken`, name as the title) and the crisis tokens it holds.

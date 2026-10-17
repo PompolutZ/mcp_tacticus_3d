@@ -3,7 +3,8 @@ import { useEffect } from 'react'
 // Sets --hud-top on the HUD root: the y under the toolbar row, where the Library, the Log and the
 // notice start. The toolbar is one row that does not wrap, so its height changes only with the font
 // or the browser zoom; a ResizeObserver follows it. See docs/features/table-tools.md, "Toolbar".
-const GAP = 8
+// The gap is a little more than the hard shadow of the top boxes
+const GAP = 12
 
 export function useHudTop(rootRef) {
   useEffect(() => {

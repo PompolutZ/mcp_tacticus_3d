@@ -1,6 +1,6 @@
 # Plan: HUD redesign
 
-Requested by the user on 2026-10-17. Status: plan written, waits for the user's OK. Branch `hud-redesign`, worktree `../mcp_assist_3d-hud-redesign`.
+Requested by the user on 2026-10-17. Status: OK by the user on 2026-10-17, in progress. Branch `hud-redesign`, worktree `../mcp_assist_3d-hud-redesign`.
 
 No new feature doc. Each step updates the feature docs where the look or the labels change. Each step makes one commit and writes its **Result** below.
 
@@ -113,4 +113,11 @@ Read on 2026-10-17.
 
 ## Results
 
-(none yet)
+### Step 1
+
+- `comic.css`: `.comic` has variables and font; `.comic-page` has the night background. Only Lobby and JoinRoom roots needed it (the dialogs set their own background).
+- Plate rules (`.seat-plate*`, `.seat-avatar`, `.seat-name`) and the copy icon rules (`.room-copy*`) moved from `lobby.css` to `comic.css`, so the table loads them with `comicBase.js`.
+- New `ui/hud.css`: top bar, boxes, Lobby button, 4 toggle buttons, Setup box and panel, Mat / Range / Move / Deploy groups. `.hud-top` moved there from `index.css`.
+- `RoomPlayers.jsx` uses the `seat-plate` classes plus a tag. Team name is now the plate title only.
+- Differed from the plan: `CopyLinkButton` lost its text-button branch and the `icon` prop (the icon is the only look now). `guestSeatFree` removed from `Toolbar` and `App`. `useHudTop` gap 8 to 12 for the box shadow. The copy result text hangs under the box.
+- `index.css`: removed `.hud-top`, `toolbar*`, `.group`, `setup-chip`, `roster-field`, `room-player*`. `chip` and `group-label` stay (used elsewhere).
