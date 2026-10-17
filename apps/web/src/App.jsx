@@ -1003,7 +1003,7 @@ export default function App({
             onTokenRemove={(key) => handleCharacterTokenRemove(openTray.id, key)}
           />
         )}
-        {hudMessage && <div className="hud-message">{hudMessage}</div>}
+        {hudMessage && <div className="comic hud-message">{hudMessage}</div>}
         <HudNotice
           lines={waitLines}
           onShow={handleNoticeShow}

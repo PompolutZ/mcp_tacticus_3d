@@ -8,11 +8,13 @@ One shared list that tells what happened at the table, for both players: the dic
 
 ## Panel
 
-The Log is a HUD panel in the right column (`src/log/LogPanel.jsx`). It replaces the Rolls panel. The toolbar chip is **Log**.
+The Log is a speech bubble under the **Log** button of the toolbar (`src/log/LogPanel.jsx`, styles in `src/log/log.css`). Its tail points at the button. It replaces the Rolls panel.
 
-- Collapsed: one bar at the top of the right column with the newest entry. The bar is under the toolbar (`--hud-top`). A click on the bar, or the toolbar chip, expands it.
-- Expanded: the whole list, the newest entry first. Each entry has its time (hours and minutes) and a border in the color of its side. **Collapse** or Escape collapses it.
-- The state is per browser, in localStorage (`mcp-assist-3d/log-open`). Collapsed is the default.
+- Closed: no bubble. When a new entry is added (a dice entry or a log entry), the bubble shows it for a few seconds, then hides. A next new entry replaces the text and starts the time again. Entries that come with the table load, or with a sync from the other player at connect, do not show it. A click on the bubble opens the Log.
+- Open (the **Log** button, or a click on the bubble): the last entries, the newest first. The list scrolls. **Collapse** or Escape closes it.
+- The show time and the number of entries are constants in `src/log/bubble.js`. `freshItem` there decides what is new.
+- Each entry has its time (hours and minutes) and a mark in the color of its side. Entries are split by dashed lines.
+- The state is per browser, in localStorage (`mcp-assist-3d/log-open`). Closed is the default.
 
 The panel merges two lists by time: `rolls` (the dice, `docs/features/dice-rolling.md`, "History") and `log` (the rest). A tie goes to the `log` entry, because the roll-off result is written after the throw.
 
@@ -47,7 +49,7 @@ The panel merges two lists by time: `rolls` (the dice, `docs/features/dice-rolli
 
 A token that changes nothing (a second Dazed, a token the character is immune to) has no entry.
 
-The dice entries are the same as in the Rolls panel before.
+The dice entries are the same as in the Rolls panel before. The dice show as the face icons of the tactic cards (`src/tactics/diceIcons.js` maps the symbol to the icon), square, with no box. Blank has no icon, so the log writes **Blank** in bold.
 
 ## Entry data
 

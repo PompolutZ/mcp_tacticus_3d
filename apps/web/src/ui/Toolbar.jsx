@@ -345,6 +345,7 @@ function Toolbar({
             type="button"
             className={`hud-toggle${open ? ' hud-toggle--on' : ''}`}
             aria-pressed={open}
+            data-hud-button={key}
             title={title}
             onClick={onClick}
           >

@@ -250,113 +250,6 @@ body {
   pointer-events: auto;
 }
 
-.log {
-  position: absolute;
-  top: var(--hud-top);
-  right: 12px;
-  bottom: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 300px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 10px;
-  pointer-events: auto;
-}
-
-.log-bar {
-  bottom: auto;
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  color: inherit;
-  font: inherit;
-  font-size: 13px;
-  text-align: left;
-  cursor: pointer;
-}
-
-.log-bar-text {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.log-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.log-title {
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.log-message {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.log-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-height: 0;
-  overflow-y: auto;
-}
-
-.log-entry {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 10px;
-  padding: 4px 6px;
-  background: var(--panel-2);
-  border-left: 3px solid var(--line);
-  border-radius: 5px;
-  font-size: 13px;
-}
-
-.log-entry--blue {
-  border-left-color: var(--player-blue);
-}
-
-.log-entry--red {
-  border-left-color: var(--player-red);
-}
-
-.log-entry--clear {
-  color: var(--muted);
-}
-
-.log-time {
-  font-size: 11px;
-  color: var(--muted);
-}
-
-.log-part,
-.log-count {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.log-label {
-  font-size: 11px;
-  color: var(--muted);
-}
-
-.log-icon {
-  width: 16px;
-  height: 16px;
-  display: block;
-}
-
 .library-search {
   width: 100%;
 }
@@ -584,51 +477,6 @@ body {
 
 .token-face-label span {
   color: var(--muted);
-}
-
-/* Immunity block and similar short-lived notices (ui/useHudMessage.js): a drop can land on
-   any tray, so this sits at the top center of the screen, not next to one panel. */
-.hud-message {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 8px 14px;
-  font-size: 13px;
-  color: var(--text);
-  white-space: nowrap;
-  pointer-events: none;
-  /* Above .hud-top (the message sits over the toolbar row). */
-  z-index: 2;
-}
-
-/* Dropped objective tokens that wait for their place (HudNotice.jsx), below the HUD message */
-.hud-notice {
-  position: absolute;
-  top: var(--hud-top);
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  /* Above .hud-top (its dropdown can reach down here). */
-  z-index: 2;
-}
-
-.hud-notice-line {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 6px 10px 6px 14px;
-  font-size: 13px;
-  color: var(--text);
-  white-space: nowrap;
 }
 
 /* Keys of a dice tray (DiceKeys.jsx), drawn on the tray's lip through a drei Html transform.
@@ -1414,78 +1262,6 @@ body {
   gap: 4px;
 }
 
-/* Warnings that stay until the player closes them (ui/HudWarnings.jsx): the browser draws WebGL on the CPU
-   (softwareRenderer), or a room cannot be stored (storageFailed). Bottom right, clear of the token panel in
-   the middle and the debug panel on the left. */
-.hud-warnings {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  max-width: 360px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.hud-warnings--lifted {
-  bottom: 84px;
-}
-
-/* Power and Cleanup in the HUD: fixed in the bottom right corner (game/PhaseButtons.jsx) */
-.phase-buttons {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  display: grid;
-  grid-auto-flow: row;
-  gap: 6px;
-}
-
-.phase-button {
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-  background: var(--panel-2);
-  border: 2px solid var(--line);
-  border-radius: 8px;
-  height: 40px;
-  padding: 0 14px;
-  cursor: pointer;
-  transition:
-    border-color 0.1s,
-    background 0.1s;
-}
-
-.phase-button:hover {
-  border-color: var(--ui-border);
-}
-
-/* The Power button in the HUD has the look of .table-button--power */
-.phase-button--power {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-}
-
-.phase-button[aria-disabled='true'] {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.hud-warning {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  background: var(--panel);
-  border: 1px solid var(--warn);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 13px;
-  color: var(--text);
-}
-
 /* Buttons on the table (TableButtons.jsx). They lie flat, and 1 px is 0.04". The size comes from
    tabletools/layout.js, set inline. */
 .table-button {
@@ -1504,8 +1280,7 @@ body {
 
 /* The Automatic Power Phase button: the green of the Power token (src/assets/tokens/1-power.webp), dark text.
    The size is set inline (tabletools/layout.js). It lies in the 5.4" board strip row, so gap, padding and icon are small. */
-.table-button--power,
-.phase-button--power {
+.table-button--power {
   gap: 6px;
   overflow: hidden;
   background: #42b534;
@@ -1523,8 +1298,7 @@ body {
   width: 18px;
 }
 
-.table-button--power:not([aria-disabled='true']):hover,
-.phase-button--power:not([aria-disabled='true']):hover {
+.table-button--power:not([aria-disabled='true']):hover {
   background: #5cc84e;
   border-color: #5cc84e;
 }
@@ -1534,11 +1308,6 @@ body {
   height: 22px;
   width: 22px;
   object-fit: contain;
-}
-
-.phase-button--power .table-button-icon {
-  height: 18px;
-  width: 18px;
 }
 
 .table-strip-row {

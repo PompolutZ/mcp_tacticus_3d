@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import '../rooms/comicBase.js'
+import './hud.css'
 
 // Warnings that stay until the player closes them. storageFailed: the room could not use IndexedDB.
 // serverWarning: the text of the server warning, or null. versionMismatch: the other player uses another
@@ -21,14 +23,18 @@ export function HudWarnings({
   const [versionClosed, setVersionClosed] = useState(false)
   if (!versionMismatch && versionClosed) setVersionClosed(false)
   return (
-    <div className={`hud-warnings${lifted ? ' hud-warnings--lifted' : ''}`}>
+    <div className={`comic hud-warnings${lifted ? ' hud-warnings--lifted' : ''}`}>
       {storageWarning && (
         <div className="hud-warning" role="alert">
           <span>
             Room not saved: browser storage is not available. Changes on this table are lost when
             the page closes.
           </span>
-          <button type="button" className="chip" onClick={() => setStorageWarning(false)}>
+          <button
+            type="button"
+            className="comic-button comic-button--small"
+            onClick={() => setStorageWarning(false)}
+          >
             Close
           </button>
         </div>
@@ -38,7 +44,7 @@ export function HudWarnings({
           <span>{serverWarning}</span>
           <button
             type="button"
-            className="chip"
+            className="comic-button comic-button--small"
             onClick={() => setClosedServerWarning(serverWarning)}
           >
             Close
@@ -58,7 +64,11 @@ export function HudWarnings({
           <span>
             Your opponent uses a different version of the app. Both players should reload the page.
           </span>
-          <button type="button" className="chip" onClick={() => setVersionClosed(true)}>
+          <button
+            type="button"
+            className="comic-button comic-button--small"
+            onClick={() => setVersionClosed(true)}
+          >
             Close
           </button>
         </div>
@@ -69,7 +79,11 @@ export function HudWarnings({
             The browser draws the 3D view without the graphics card (software rendering), so the app
             is slow. Turn on hardware acceleration in the browser settings.
           </span>
-          <button type="button" className="chip" onClick={onSoftwareRendererClose}>
+          <button
+            type="button"
+            className="comic-button comic-button--small"
+            onClick={onSoftwareRendererClose}
+          >
             Close
           </button>
         </div>

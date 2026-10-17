@@ -121,3 +121,12 @@ Read on 2026-10-17.
 - `RoomPlayers.jsx` uses the `seat-plate` classes plus a tag. Team name is now the plate title only.
 - Differed from the plan: `CopyLinkButton` lost its text-button branch and the `icon` prop (the icon is the only look now). `guestSeatFree` removed from `Toolbar` and `App`. `useHudTop` gap 8 to 12 for the box shadow. The copy result text hangs under the box.
 - `index.css`: removed `.hud-top`, `toolbar*`, `.group`, `setup-chip`, `roster-field`, `room-player*`. `chip` and `group-label` stay (used elsewhere).
+
+### Step 2
+
+- `log/LogPanel.jsx` + `log/log.css`: the bubble (flash 3 s on a new entry, open list of 10). `log/bubble.js` has the constants and the pure `freshItem` (with tests). A new entry also needs to be at most 5 s old, so a sync at connect shows nothing. The tail finds the Log button through `data-hud-button="log"` (set in `Toolbar.jsx`).
+- Dice symbols: `tactics/diceIcons.js` (map, tested; no asset import, so Node tests can load it) and `diceIconUrl` in `faceIcons.js`. Blank shows bold "Blank".
+- `PhaseButtons.jsx`: big or small look, inline gem and turn icons, labels with "!" when big. `HudWarnings` `lifted` bottom is 168 px.
+- Warnings, notice, HUD message: paper boxes in `ui/hud.css`; notice yellow; comic buttons.
+- `index.css`: removed `log*`, `hud-message`, `hud-notice*`, `hud-warning*`, `phase-button*`. The table buttons shared the green Power rule; only its `.phase-button--power` selectors went.
+- Differed: the closed bubble is a `div role="button"` (it holds block entries). The streamer right column does not move under the bubble yet (Step 4).

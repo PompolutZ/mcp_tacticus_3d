@@ -72,7 +72,9 @@ z = 38                   ─────────────── table edg
 
 ## Toolbar
 
-One row at the top, never wrapped. The height is the CSS variable `--hud-top` on the HUD root (`src/useHudTop.js`, a ResizeObserver). The Library, the Log and the notice start under it.
+One row at the top, never wrapped. The height is the CSS variable `--hud-top` on the HUD root (`src/useHudTop.js`, a ResizeObserver). The Library, the Log bubble and the notice start under it.
+
+The HUD warnings, the notice of waiting tokens and the HUD message are paper boxes with a border and a hard shadow too; the notice is yellow. Their buttons (**Close**, **Show**, **Done**) are comic buttons.
 
 The look is the comic look of the lobby (`rooms.md`, "Lobby"): paper boxes with a black border and a hard shadow. Each part of the bar has the `.comic` class on its own root, so the HUD parts that keep the old look are not touched.
 
@@ -93,8 +95,8 @@ One row for each item, with the choice **Table** or **HUD**. The default is **HU
 | Item | On the table | In the HUD |
 |---|---|---|
 | Range and movement tools | The tool rack | Groups **Range** (R1–R5) and **Move** (S, M, L, T/A) |
-| Automatic Power Phase | Row 1 of the board strips | Bottom right corner: **Auto Power Phase** (first) |
-| Cleanup Phase | One button between the scoring board and the mat | Bottom right corner: **Auto Cleanup Phase** (after Power) |
+| Automatic Power Phase | Row 1 of the board strips | Bottom right corner: **Auto power phase!** (first) |
+| Cleanup Phase | One button between the scoring board and the mat | Bottom right corner: **Auto cleanup phase!** (after Power) |
 | Deploy Lock | **Deploy Lock** in the board strip | **Deploy** → **Lock** |
 | Mat turn (Sandbox and solo rooms) | **↺** **↻** in the board strip | **Mat** → **↺** **↻**. The map select stays in the toolbar |
 

@@ -1,4 +1,5 @@
 import { assetUrl } from '../assets/index.js'
+import { diceIconFile } from './diceIcons.js'
 
 // Face icons: the Jarvis PNGs as lossless WebP in src/assets/tactic-icons/, named by meaning.
 // A later step can replace a file with an SVG without a change in the component.
@@ -49,3 +50,9 @@ export const bodyIconUrl = (id) => (BODY_ICONS[id] ? faceIconUrl(BODY_ICONS[id])
 
 // True when the id has an icon
 export const hasBodyIcon = (id) => Object.hasOwn(BODY_ICONS, id)
+
+// URL of the icon of a dice symbol, or null for blank
+export function diceIconUrl(symbol) {
+  const file = diceIconFile(symbol)
+  return file ? faceIconUrl(file) : null
+}
