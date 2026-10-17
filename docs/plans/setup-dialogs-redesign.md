@@ -115,3 +115,11 @@ The look of `lobby-redesign.md` ("The look"): ink, paper, yellow, red, blue, nig
 - `setup-game.md` "Crisis cards": Choose 1 labels.
 - Differences from the design: the frame is not a fixed 1000x800 box but 1000 px wide and as tall as the content; the card size follows the viewport (design: 290x510 fixed); the card keeps the aspect of `CARD_SIZES`; the locked button uses the shared disabled colors; no "Chosen!" state or dimming of the other card (decision 9).
 - Checks: format, lint (no new warnings), web tests 1041 pass, build OK. Not checked in a browser.
+
+### Fix after user test
+
+- Bug: a lane with 5 secures at "Secure 1 of 5" put all 4 other cards on the right. Embla did not loop (5 narrow fan slides in a wide viewport), but `--rel` assumed a loop.
+- `Carousel.jsx`: in fan mode the cards are repeated (`loopCopies`) until Embla can loop. A slide position maps to its card; `onIndexChange`, aria labels ("i of count"), click and arrow scroll use the card and go the short way. A repeat or a card closer on the other side is an empty aria-hidden slide, so each card shows once. Non-fan carousels unchanged.
+- `carouselLoop.js` (new): the pure index math. `carouselLoop.test.js`: each card shows once, shown card at 0, both sides equal, nearest-copy scroll.
+- `roster.md`: loop text updated. Covers the roster popup, map picker and compare lanes. Not checked in a browser.
+
