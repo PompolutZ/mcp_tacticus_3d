@@ -124,7 +124,11 @@ function EdgeControls({ team, locked, actions }) {
     <OnTable position={[place.x, TABLE_Y, place.z]} rotation={OWNER_FACING_ROTATION[team]}>
       <div
         className="setup-edge"
-        style={{ width: px(place.width), height: px(place.depth), gap: px(EDGE_ROW_GAP) }}
+        style={{
+          width: px(place.width),
+          height: px(place.depth),
+          gap: px(EDGE_ROW_GAP),
+        }}
       >
         <div className="setup-edge-row" style={{ gap: px(EDGE_ARROW_GAP) }}>
           <button
@@ -178,7 +182,6 @@ function BoardPanel({
   startRoundBlock,
 }) {
   const view = viewOf(setup)
-  const threatLocked = lockedTitle(setup, 'the Maximum Threat', ctx)
   const colors = useSideColors()
   const winner = priorityOf(setup)
   const other = winner && otherTeam(winner)
@@ -216,21 +219,6 @@ function BoardPanel({
     hint = chooses(winner, `from ${possessive(other, ctx)} ${TYPE[second]}s`, ctx, true)
   } else if (step === 'threat') {
     hint = chooses(other, 'the Maximum Threat', ctx)
-    controls = CRISIS_TYPES.map((type) => {
-      const info = rosterCard(setup.picks[type])
-      return (
-        <button
-          key={type}
-          type="button"
-          className="chip"
-          aria-disabled={threatLocked !== null}
-          title={threatLocked ?? info.name}
-          onClick={threatLocked === null ? () => actions.threat(info.threat) : undefined}
-        >
-          {TYPE[type]} · {info.threat}
-        </button>
-      )
-    })
   } else if (step === 'edge') {
     hint = chooses(winner, 'the board edge', ctx)
     note = `Turn the mat until the deployment edge faces ${isYou(winner, ctx) ? 'you' : playerName(winner, ctx)}.`
@@ -355,6 +343,44 @@ function BoardPanel({
   )
 }
 
+// The place below the roster rows of a team (squadPanel in tabletools/layout.js), flat and facing that player.
+// The squad panel and the Maximum Threat chips use it; the threat step comes before the squad step, so they never overlap.
+function SquadPlace({ team, compact = false, children }) {
+  const place = squadPanel(team, compact)
+  return (
+    <OnTable position={[place.x, TABLE_Y, place.z]} rotation={OWNER_FACING_ROTATION[team]}>
+      <div className="setup-panel setup-panel--squad">{children}</div>
+    </OnTable>
+  )
+}
+
+// The Maximum Threat chips (Secure · 17, Extract · 18) under the roster rows of the player who chooses, facing them.
+function ThreatPanel({ team, setup, ctx, actions }) {
+  const locked = lockedTitle(setup, 'the Maximum Threat', ctx)
+  return (
+    <SquadPlace team={team}>
+      <div className="setup-note">{chooses(team, 'the Maximum Threat', ctx, true)}</div>
+      <div className="setup-row">
+        {CRISIS_TYPES.map((type) => {
+          const info = rosterCard(setup.picks[type])
+          return (
+            <button
+              key={type}
+              type="button"
+              className="chip"
+              aria-disabled={locked !== null}
+              title={locked ?? info.name}
+              onClick={locked === null ? () => actions.threat(info.threat) : undefined}
+            >
+              {TYPE[type]} · {info.threat}
+            </button>
+          )
+        })}
+      </div>
+    </SquadPlace>
+  )
+}
+
 // The squad buttons of a player, right below their roster rows (squadPanel in tabletools/layout.js), flat and facing them.
 // The roster cards have a + / ✓ button that adds them to the squad or removes them (RosterCards.jsx, setup/useGameSetup.js
 // handleSquadToggle). Squad ready works when the squad has a character and its threat is not above the Maximum
@@ -364,19 +390,20 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
   const squad = setup.squads[team]
   const ready = setup.ready[team]
   const compact = !own || placedSides(setup)[team]
-  const place = squadPanel(team, compact)
   // The other player in a multiplayer room (no squad is shown before the reveal), or a squad that is placed
   if (compact) {
     return (
-      <OnTable position={[place.x, TABLE_Y, place.z]} rotation={OWNER_FACING_ROTATION[team]}>
-        <div className="setup-panel setup-panel--squad">
-          <div className="setup-note">{ready ? 'Ready' : 'Choosing a squad'}</div>
-        </div>
-      </OnTable>
+      <SquadPlace team={team} compact>
+        <div className="setup-note">{ready ? 'Ready' : 'Choosing a squad'}</div>
+      </SquadPlace>
     )
   }
   const threat = squadThreat(parsed, squad.characters)
-  const kind = squadProblem({ threat, count: squad.characters.length, maxThreat: setup.threat })
+  const kind = squadProblem({
+    threat,
+    count: squad.characters.length,
+    maxThreat: setup.threat,
+  })
   const over = kind === 'over'
   const problem = over
     ? `The squad threat ${threat} is above the Maximum Threat ${setup.threat}`
@@ -384,49 +411,47 @@ function SquadPanel({ team, setup, parsed, own, ctx, actions }) {
       ? 'Choose at least 1 character'
       : null
   return (
-    <OnTable position={[place.x, TABLE_Y, place.z]} rotation={OWNER_FACING_ROTATION[team]}>
-      <div className="setup-panel setup-panel--squad">
-        <div className="setup-row">
-          <span className={`setup-count${over ? ' setup-count--warn' : ''}`}>
-            Threat {threat} / {setup.threat}
-          </span>
-          <span
-            className={`setup-count${squad.tactics.length > TACTIC_LIMIT ? ' setup-count--warn' : ''}`}
+    <SquadPlace team={team}>
+      <div className="setup-row">
+        <span className={`setup-count${over ? ' setup-count--warn' : ''}`}>
+          Threat {threat} / {setup.threat}
+        </span>
+        <span
+          className={`setup-count${squad.tactics.length > TACTIC_LIMIT ? ' setup-count--warn' : ''}`}
+        >
+          Tactics {squad.tactics.length} / {TACTIC_LIMIT}
+        </span>
+        {ready ? (
+          <button
+            type="button"
+            className="chip"
+            title="Squad ready is off, so the squad can change"
+            onClick={() => actions.ready(team)}
           >
-            Tactics {squad.tactics.length} / {TACTIC_LIMIT}
-          </span>
-          {ready ? (
-            <button
-              type="button"
-              className="chip"
-              title="Squad ready is off, so the squad can change"
-              onClick={() => actions.ready(team)}
-            >
-              Change squad
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="chip chip--primary"
-              aria-disabled={problem !== null}
-              title={problem ?? 'The squads go on the table when both players are ready'}
-              onClick={() => {
-                if (problem === null) actions.ready(team)
-              }}
-            >
-              Squad ready
-            </button>
-          )}
-        </div>
-        {!ready && (
-          <div className="setup-note">
-            Click + on a roster card, or choose a squad in the Breakdown tab.
-          </div>
+            Change squad
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="chip chip--primary"
+            aria-disabled={problem !== null}
+            title={problem ?? 'The squads go on the table when both players are ready'}
+            onClick={() => {
+              if (problem === null) actions.ready(team)
+            }}
+          >
+            Squad ready
+          </button>
         )}
-        {ready && <div className="setup-note">Waiting for {playerName(otherTeam(team), ctx)}.</div>}
-        {over && <div className="setup-note setup-note--warn">{problem}</div>}
       </div>
-    </OnTable>
+      {!ready && (
+        <div className="setup-note">
+          Click + on a roster card, or choose a squad in the Breakdown tab.
+        </div>
+      )}
+      {ready && <div className="setup-note">Waiting for {playerName(otherTeam(team), ctx)}.</div>}
+      {over && <div className="setup-note setup-note--warn">{problem}</div>}
+    </SquadPlace>
   )
 }
 
@@ -460,7 +485,12 @@ export default function GameSetup({ setup, parsed, powerOnTable, powerHudShown, 
           setup={setup}
           ctx={ctx}
           onOpen={(code) =>
-            tableActions.onCrisisOpen({ team: row.team, type: row.type, code, drawn: row.use })
+            tableActions.onCrisisOpen({
+              team: row.team,
+              type: row.type,
+              code,
+              drawn: row.use,
+            })
           }
           onUse={actions.pick}
           onCardHover={tableActions.onCardHover}
@@ -494,6 +524,14 @@ export default function GameSetup({ setup, parsed, powerOnTable, powerHudShown, 
         onStartRound={() => tableActions.phases.power(playedSides)}
         startRoundBlock={startRoundBlock}
       />
+      {step === 'threat' && !browsing && parsed[otherTeam(priorityOf(setup))] && (
+        <ThreatPanel
+          team={otherTeam(priorityOf(setup))}
+          setup={setup}
+          ctx={ctx}
+          actions={actions}
+        />
+      )}
       {step === 'squads' &&
         !browsing &&
         TEAMS.map((team) => (

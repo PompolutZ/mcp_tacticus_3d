@@ -71,39 +71,49 @@ The tab shows only the values that this game can still have. The values come fro
 The roster popup (`docs/features/roster.md`, "Roster popup") gets a fourth tab: **Breakdown**.
 
 - The tab shows on the table while the squad of that roster is not on the table. After the squad is placed, the tab is gone. The roster popup of the lobby has no Breakdown tab, because a room has no setup there.
-- A player can open the breakdown of both rosters, because rosters are public (p11 hides only the squads).
+- In a multiplayer room, the tab shows only on the own roster. On the other roster the tab is absent, because the breakdown shows the opponent's options, which the game does not show. A popup left on the tab for the other roster shows the first tab with cards. In the Sandbox and a solo room one person plays both sides, so both rosters have the tab.
 - The tab is disabled when the roster has no characters, the same as a tab without cards.
 - The arrow keys do nothing in this tab.
+
+Look: the comic look of the roster popup (`docs/features/lobby-redesign.md`, "The look"). A paper panel lies on the rays stage, with a border and a hard shadow. The panel scrolls inside.
 
 Layout, from top to bottom:
 
 ```
-[15 (8)] [17 (12)] [18 (14)]              threat chips: value and number of combinations
-[Must have row]                            always shown
-More filters (2) ▾                         opens the other filters
-12 squads                                  or "No squad has threat 17 with these filters."
+Squad breakdown                      [15 | 8] [17 | 12] [18 | 14]    threat buttons: value and count
+PICK A THREAT LEVEL
+┌─ filter box ─────────────────────────────────────────────┐
+│ MUST HAVE   (o) Hulk  (o) Thor  (o) Loki  (o) Wasp       │  always shown
+│ - - - - - - - - - - - - - - - - - - - - - - - - - - - -  │  only when open
+│ MUST NOT HAVE, AFFILIATION, 2 check boxes, MIN / MAX SIZE│
+│ [More filters (2) v]  Reset filters                      │  the button says Fewer filters when open
+└──────────────────────────────────────────────────────────┘
+12 squads                            hint line, or "No squad has threat 17 with these filters."
 ┌──────────────────────────────────────────────────────────┐
-│ 17  (o) (o) (o) (o)    Avengers ★  Cabal                 │  a row: total threat, portraits, affiliations
+│ 17  (o) (o) (o) (o)                  [AVENGERS *] [CABAL]│  a row: total threat, portraits, affiliations
 │     Hulk Thor Loki Wasp                                  │
 └──────────────────────────────────────────────────────────┘
 …
 ```
 
-- The area is about as wide as the carousel of the other tabs, and never wider than the screen. The filter box shows in full. The list below it takes the rest of the height and scrolls; on a short window the whole area scrolls.
-- Each row shows the total threat, the characters in roster order and the affiliations of the combination.
-- A character shows as its portrait with its name under it. The portrait is the same as in the Library (`characters/<key>/portrait.webp`). A character without a portrait (no files in the app) shows a grey circle.
-- An affiliation shows as its name. ★ after the name says that the combination has a leader for it.
-- A line over the list says what the player can do: choose a squad with a click (see below), or only look.
+- The panel is about as wide as the carousel of the other tabs, and never wider than the screen. The filter box shows in full. The whole panel scrolls.
+- Head: **Squad breakdown** and "Pick a threat level". On the right, one button per threat value: the value big, and a black chip with the number of combinations. The selected one is yellow and turned; the others are white. The screen reader reads "Threat 17, 12 squads". A click on the selected value does nothing.
+- Each row shows the total threat (big, red, outlined), the characters in roster order and the affiliations of the combination.
+- A character shows as a round portrait with its name under it. The portrait is the same as in the Library (`characters/<key>/portrait.webp`). A character without a portrait (no files in the app) shows a grey circle.
+- An affiliation shows as a black tag with its name. A yellow star after the name, read as "leader", says that the combination has a leader for it.
+- A line next to the count says what the player can do: choose a squad with a click (see below), or only look.
+- When a click chooses, a row is a button, and the row of the current squad is pressed. When it does not, a row is a plain block.
+- On a narrow screen the label of a filter row goes above its chips, the rows wrap, and nothing scrolls sideways.
 
 ## Filters
 
-The filter box is always shown. Its first row, **Must have**, is always visible. **More filters** opens and closes the rest. While a filter behind it is on, the button shows how many differ from the start state, for example "More filters (2)". Must have is not counted. At the start, **With a leader** is on and the button shows "More filters" with no count. **Reset filters** goes back to the start state.
+The filter box is always shown. Its first row, **Must have**, is always visible. **More filters** opens the rest, and then reads **Fewer filters**. While a filter behind it is on, the button shows how many differ from the start state, for example "More filters (2)". Must have is not counted. At the start, **With a leader** is on and the button shows "More filters" with no count. **Reset filters** shows only while the rest is open, and goes back to the start state.
 
 | Filter | Input | Result |
 |---|---|---|
-| Must have | A row of the roster's characters (small portrait and name). A click turns one on or off | Only combinations with all of these characters |
-| Must not have | The same row | These characters are left out before the app finds the combinations. So the list shows squads that fill the threat without them |
-| Affiliation | A chip row with the affiliation icons: **Any affiliation**, then each affiliation that a combination of the roster has at one of the shown threat values, by name. One chip at a time; a click on the chosen chip clears the filter | Any affiliation: combinations with at least one. An affiliation: combinations that have it |
+| Must have | A row of the roster's characters (small round portrait and name). A click turns one on or off. On: yellow | Only combinations with all of these characters |
+| Must not have | The same row. On: red, the name struck out | These characters are left out before the app finds the combinations. So the list shows squads that fill the threat without them |
+| Affiliation | A chip row with the affiliation icons (yellow when on): **Any affiliation**, then each affiliation that a combination of the roster has at one of the shown threat values, by name. One chip at a time; a click on the chosen chip clears the filter | Any affiliation: combinations with at least one. An affiliation: combinations that have it |
 | At least 2 affiliations | Check box | Combinations with 2 or more affiliations |
 | With a leader | Check box | Only affiliations with a leader count for the two filters above. With no affiliation chosen, a combination needs at least one affiliation with a leader |
 | Min size | **Any**, 3, 4, 5, 6, 7 | Combinations with at least that many characters |
@@ -111,14 +121,15 @@ The filter box is always shown. Its first row, **Must have**, is always visible.
 
 - A character is in at most one of the two character rows. A click in one row takes it out of the other row.
 - A min size above the max size moves the max size up, and the other way round, the same as Jarvis.
-- The counts on the threat chips use the filters too.
+- The counts on the threat buttons use the filters too.
+- Must have follows the squad on the table. Each time the squad characters of a roster change (a + / ✓ on a roster card, **Add to squad**, a click on a row), Must have becomes exactly the squad's characters, and those characters leave Must not have. The other filters stay. The player can still turn chips on or off afterwards; the next squad change sets Must have again. It also works while the popup is closed. An empty squad empties Must have, but a new roster with no squad keeps the start state. Only the squad this browser may see counts: in a multiplayer room, the other roster's hidden squad gives nothing.
 - The selected threat value and the filters of each roster stay while the app is open, also when the popup closes. A new roster for that side starts with the start filters (With a leader on). They are not saved.
 
 ## Choose a squad
 
 In the squad step, a click on a combination chooses its characters for the squad.
 
-- The click works on a roster that this browser plays, while its player has not pressed Squad ready and its squad is not on the table. In a multiplayer room, that is only the own roster. On the other roster, the rows do not take clicks.
+- The click works on a roster that this browser plays, while its player has not pressed Squad ready and its squad is not on the table. In a multiplayer room, that is only the own roster, the only one with the tab.
 - The click replaces the characters of the squad with the characters of the combination. The Team Tactic cards of the squad stay. Players choose them by hand.
 - A character without a 3D model cannot join, the same as with a click on its roster card. The other characters join, and the HUD message names the missing ones: "No model for <name> (<code>), so it cannot join the squad".
 - After the click, the popup closes. The player sees the squad frames on the table and can change the squad or add Team Tactic cards with the **+** / **✓** buttons on the roster cards.
@@ -128,7 +139,7 @@ In the squad step, a click on a combination chooses its characters for the squad
 ## State
 
 - The breakdown is computed from the roster and the setup. Nothing of it is in the shared document.
-- `RosterPopupHost` (`src/rosters/RosterPopupHost.jsx`) is always mounted, so the choice stays when the popup closes. It keeps the selected threat value and the filters of each roster: `{ host, guest } → { code, threat, filters } | null`. `code` is the roster code that the filters belong to. A different code means a new roster, so the defaults apply. Not saved, the same as `squadSelect`.
+- `RosterPopupHost` (`src/rosters/RosterPopupHost.jsx`) is always mounted, so the choice stays when the popup closes. It keeps the selected threat value and the filters of each roster: `{ host, guest } → { code, threat, filters } | null`. `code` is the roster code that the filters belong to. A different code means a new roster, so the defaults apply. The host also syncs Must have with the visible squad in an effect, and remembers per team the last squad it synced. Not saved, the same as `squadSelect`.
 - Filters store roster places, not codes, the same as a squad (`docs/features/setup-game.md`, "State").
 
 ## Code
@@ -140,7 +151,7 @@ In the squad step, a click on a combination chooses its characters for the squad
 | `src/characters/characters.js` | `alterEgo`, `peerless`, `rogue` and `leads` of each character, from Jarvis |
 | `src/setup/setup.js` | `possibleThreats(setup, parsed, threatOf)`: the threat values of the current step. `setSquadCharacters(setup, team, places)`: the squad characters of a click |
 | `src/setup/useGameSetup.js` | `handleBreakdownChoose`: the checks, the write and the close of the popup, shared with `handleRosterClick` (`writeSquad`) |
-| `src/rosters/BreakdownTab.jsx` | The Breakdown tab: threat chips, filters, the list |
+| `src/rosters/BreakdownTab.jsx` | The Breakdown tab: threat buttons, filters, the list |
 | `src/characters/CharacterPortrait.jsx` | The portrait of a character, shared with the Library |
 
 ## Out of scope
@@ -152,7 +163,7 @@ In the squad step, a click on a combination chooses its characters for the squad
 
 ## Decisions
 
-1. The tab is in the roster popup on the table, during the setup, for both rosters.
+1. The tab is in the roster popup on the table, during the setup, for both rosters in the Sandbox and a solo room, and for the own roster in a multiplayer room.
 2. A combination follows the 4 rules in [Combinations](#combinations). The total threat is exactly the value, the same as on Jarvis. Peerless (p21) and the Sentinel copies also follow Jarvis.
 3. Only the threat values that this game can still have show. With no crisis cards, all values of the Jarvis data show.
 4. Affiliations use the same rule as the Affiliation step of the setup, with Rogue Agent. The other Jarvis special cases are left out.

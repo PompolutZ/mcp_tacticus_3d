@@ -1,6 +1,12 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { DEFAULT_FILTERS, NO_FILTERS, matchesFilters, squadCombinations } from './breakdown.js'
+import {
+  DEFAULT_FILTERS,
+  NO_FILTERS,
+  filtersWithSquad,
+  matchesFilters,
+  squadCombinations,
+} from './breakdown.js'
 
 // A unit with its own name and alter ego unless given
 const unit = (place, threat, extra = {}) => ({
@@ -131,4 +137,13 @@ test('filters: leader', () => {
   // The start filters keep a combination without a leader out.
   assert.equal(matchesFilters(combo([0]), DEFAULT_FILTERS), false)
   assert.equal(matchesFilters(combo([0]), NO_FILTERS), true)
+})
+
+test('squad filters: Must have equals the squad, its places leave Must not have, the rest stays', () => {
+  const before = { ...DEFAULT_FILTERS, must: [5], mustNot: [1, 2, 3], dual: true, minSize: 4 }
+  const after = filtersWithSquad(before, [2, 0])
+  assert.deepEqual(after.must, [0, 2])
+  assert.deepEqual(after.mustNot, [1, 3])
+  assert.deepEqual({ ...after, must: 0, mustNot: 0 }, { ...before, must: 0, mustNot: 0 })
+  assert.deepEqual(filtersWithSquad(before, []).must, [])
 })

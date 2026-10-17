@@ -18,6 +18,20 @@
   cursor: default;
 }
 
+/* The roster popup (not the crisis overlays) has one stage height for every tab, so the frame does not
+   jump. It is the card plus what the card tab needs around it: the slide padding (24 + 20), the viewport
+   padding (4), the carousel gap (4) and the footer (min-height 112, the card switch row, the extras line).
+   Narrow: the extras wrap, so one more line is reserved. */
+.roster-comic--popup {
+  --extras-more: 0px;
+  --stage-h: calc(var(--card-h) + 164px + var(--extras-more));
+}
+
+.roster-comic--popup .roster-comic-stage {
+  flex: 0 1 var(--stage-h);
+  height: var(--stage-h);
+}
+
 /* The dialog element takes the focus when it opens; no ring around the frame */
 .roster-comic:focus {
   outline: none;
@@ -65,10 +79,8 @@
 .roster-comic-head {
   flex: 0 0 auto;
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 20px;
+  flex-direction: column;
+  gap: 12px;
   padding: 22px 30px 0;
   background-color: var(--blue);
   background-image: radial-gradient(rgba(255, 255, 255, 0.12) 24%, transparent 26%);
@@ -85,9 +97,24 @@
   background-image: radial-gradient(rgba(255, 255, 255, 0.12) 24%, transparent 26%);
 }
 
+/* Row 1 of the header: the title at the left, one action (Jarvis link, deck button) at the right */
+.roster-comic-head-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+
 .roster-comic-heading {
   min-width: 0;
-  padding-bottom: 14px;
+  padding-bottom: 10px;
+}
+
+/* Clears the yellow × on the corner */
+.roster-comic-jarvis {
+  flex: none;
+  margin: 4px 40px 0 0;
 }
 
 .roster-comic-tag {
@@ -112,13 +139,6 @@
   overflow-wrap: anywhere;
 }
 
-.roster-comic-head-side {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 14px;
-}
-
 .roster-comic .comic-button {
   text-decoration: none;
 }
@@ -131,7 +151,6 @@
 .roster-comic-tabs {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
   gap: 6px;
   margin-bottom: -5px;
 }
@@ -199,27 +218,487 @@
   );
 }
 
-/* The Breakdown tab (BreakdownTab.jsx) lies on the stage. It scrolls; the filters stay in full. */
+/* The Breakdown tab (BreakdownTab.jsx, docs/features/squad-breakdown.md, "Breakdown tab") lies on the stage
+   as a paper panel. The panel scrolls inside. */
 .roster-comic-breakdown {
-  /* about the height of the card stage, so the frame keeps its size when the tab changes */
-  flex: 0 1 auto;
-  height: calc(var(--card-h) + 190px);
+  /* fills the stage, which has the same height in every tab of the roster popup */
+  flex: 1;
   min-height: 0;
   display: flex;
   justify-content: center;
-  padding: 16px 20px;
-  overflow-y: auto;
+  padding: 16px 20px 0;
+  overflow: hidden;
 }
 
-.roster-comic-breakdown .breakdown {
+.roster-comic .breakdown {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  width: min(100%, 980px);
+  height: 100%;
+  padding: 22px 26px 28px;
+  overflow-y: auto;
+  color: var(--ink);
+  background: var(--paper);
+  border: 4px solid var(--ink);
+  border-bottom: 0;
+  box-shadow: 8px 0 0 var(--ink);
+}
+
+.roster-comic .breakdown > * {
+  flex: none;
+}
+
+.roster-comic .breakdown-message {
+  margin: 0;
+  font: italic 700 18px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-ink);
+}
+
+.breakdown-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.breakdown-title {
+  margin: 0;
+  font: 400 34px/1 var(--font-title);
+  letter-spacing: 0.03em;
+}
+
+.breakdown-sub {
+  margin: 0;
+  font: italic 700 15px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-ink);
+}
+
+.breakdown-threats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.breakdown-threat {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
-  width: min(100%, 860px);
-  height: fit-content;
-  padding: 12px 14px;
-  background: var(--night);
+  height: 50px;
+  padding: 0 12px 0 14px;
+  color: var(--ink);
+  background: #fff;
   border: 3px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  cursor: pointer;
+}
+
+.breakdown-threat[aria-selected='true'] {
+  background: var(--yellow);
+  box-shadow: 4px 4px 0 var(--ink);
+  transform: rotate(-2deg);
+}
+
+/* .pop (comic.css) moves the block on hover and press; the selected button keeps its turn */
+.roster-comic .breakdown .breakdown-threat[aria-selected='true']:hover {
+  transform: translate(-2px, -2px) rotate(-2deg);
+  box-shadow: 6px 6px 0 var(--ink);
+}
+
+.roster-comic .breakdown .breakdown-threat[aria-selected='true']:active {
+  transform: translate(2px, 2px) rotate(-2deg);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.breakdown-threat-level {
+  font: 400 34px/1 var(--font-title);
+  letter-spacing: 0.02em;
+}
+
+.breakdown-threat-count {
+  padding: 1px 6px;
+  font: 600 12px var(--font-code);
+  color: #fff;
+  background: var(--ink);
+}
+
+.breakdown-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 18px;
+  background: #fff;
+  border: 3px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
+}
+
+.breakdown-more {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 14px;
+  border-top: 3px dashed var(--ink);
+}
+
+.breakdown-filter {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.breakdown-filter-label {
+  padding-top: 8px;
+  font: 700 16px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.breakdown-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Character chip: round portrait and name. On is yellow; in the Must not have row it is red and struck out. */
+.breakdown-chip,
+.breakdown-seg {
+  color: var(--ink);
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  cursor: pointer;
+}
+
+.breakdown-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 12px 0 4px;
+  font: 600 15px var(--font-body);
+}
+
+.breakdown-seg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 40px;
+  height: 36px;
+  padding: 0 10px;
+  font: 700 16px var(--font-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.breakdown-seg--icon {
+  padding: 0 14px 0 4px;
+}
+
+.breakdown-seg--icon:first-child {
+  padding-left: 14px;
+}
+
+.breakdown-chip:hover,
+.breakdown-seg:hover {
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.breakdown-chip[aria-pressed='true'],
+.breakdown-seg[aria-pressed='true'] {
+  background: var(--yellow);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.breakdown-chip--not[aria-pressed='true'] {
+  color: #fff;
+  background: var(--red);
+  text-decoration: line-through;
+}
+
+.breakdown-chip:focus-visible,
+.breakdown-seg:focus-visible,
+.breakdown-threat:focus-visible,
+.breakdown-more-button:focus-visible,
+.breakdown-reset:focus-visible,
+.breakdown-row:focus-visible,
+.breakdown-check input:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.breakdown-chip-portrait {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  box-sizing: border-box;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: #fff;
+  object-fit: cover;
+  display: block;
+}
+
+.breakdown-seg .breakdown-chip-portrait {
+  width: 24px;
+  height: 24px;
+}
+
+.breakdown-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  padding-left: 142px;
+}
+
+.breakdown-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font: 600 16px var(--font-body);
+  cursor: pointer;
+}
+
+.breakdown-check input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--red);
+}
+
+.breakdown-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.breakdown-more-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px;
+  font: 700 16px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--yellow);
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+}
+
+.breakdown-chevron {
+  transition: transform 0.15s;
+}
+
+.breakdown-more-button[aria-expanded='true'] .breakdown-chevron {
+  transform: rotate(180deg);
+}
+
+.breakdown-reset {
+  height: 40px;
+  padding: 0 12px;
+  font: 700 16px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.breakdown-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.breakdown-count {
+  font: 400 28px var(--font-title);
+  letter-spacing: 0.04em;
+}
+
+.breakdown-hint {
+  font: italic 700 15px var(--font-label);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted-ink);
+}
+
+.breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0 6px 0 0;
+  list-style: none;
+}
+
+.breakdown-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 14px 18px;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  background: #fff;
+  border: 3px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
+}
+
+button.breakdown-row {
+  cursor: pointer;
+}
+
+.breakdown-row--squad {
+  background: var(--yellow);
+  box-shadow: 6px 6px 0 var(--red);
+}
+
+.roster-comic .breakdown button.breakdown-row--squad:hover {
+  box-shadow: 8px 8px 0 var(--red);
+}
+
+.roster-comic .breakdown button.breakdown-row--squad:active {
+  box-shadow: 3px 3px 0 var(--red);
+}
+
+.breakdown-total {
+  flex: none;
+  width: 56px;
+  font: 400 44px/1 var(--font-title);
+  letter-spacing: 0.02em;
+  text-align: center;
+  color: var(--red);
+  -webkit-text-stroke: 2px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 3px 3px 0 var(--ink);
+}
+
+.breakdown-characters {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+}
+
+.breakdown-character {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 84px;
+}
+
+.breakdown-portrait {
+  width: 62px;
+  height: 62px;
+  box-sizing: border-box;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  background: #fff;
+  object-fit: cover;
+  display: block;
+}
+
+.breakdown-name {
+  max-width: 100%;
+  font: 700 14px/1.1 var(--font-label);
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.breakdown-affiliations {
+  flex: none;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.breakdown-affiliation {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font: 700 14px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--ink);
+}
+
+.breakdown-affiliation svg {
+  flex: none;
+  color: var(--yellow);
+}
+
+/* Narrow screen: the label goes above the chips, the rows wrap, nothing scrolls sideways */
+@media (max-width: 640px) {
+  .roster-comic--popup {
+    --extras-more: 42px;
+  }
+
+  .roster-comic-breakdown {
+    padding: 12px 8px 0;
+  }
+
+  .roster-comic .breakdown {
+    padding: 16px 14px 22px;
+  }
+
+  .breakdown-filters {
+    padding: 12px;
+  }
+
+  .breakdown-filter {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .breakdown-filter-label {
+    padding-top: 0;
+  }
+
+  .breakdown-checks {
+    padding-left: 0;
+  }
+
+  .breakdown-row {
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    padding: 12px;
+  }
+
+  .breakdown-characters {
+    flex-basis: calc(100% - 70px);
+  }
+
+  .breakdown-affiliations {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-basis: 100%;
+    justify-content: flex-start;
+  }
 }
 
 /* The fan look of the carousel (Carousel.jsx, fan). The slide is narrower than its card, so the cards

@@ -23,6 +23,16 @@ export const NO_FILTERS = {
 // The filters a roster starts with. Players nearly always play with a leader (user, playtest 1).
 export const DEFAULT_FILTERS = { ...NO_FILTERS, leader: true }
 
+// The filters with Must have set to exactly the squad `places`. Those places leave Must not have. The other
+// filters stay. See docs/features/squad-breakdown.md, "Filters".
+export function filtersWithSquad(filters, places) {
+  return {
+    ...filters,
+    must: [...new Set(places)].sort((a, b) => a - b),
+    mustNot: filters.mustNot.filter((place) => !places.includes(place)),
+  }
+}
+
 // The combinations of `units` with a total threat of exactly `threat`: [{ places, threat }], places sorted,
 // the list sorted by places. units: [{ place, name, threat, alterEgo, peerless }] in roster order. The 4
 // rules are in docs/features/squad-breakdown.md, "Combinations".
