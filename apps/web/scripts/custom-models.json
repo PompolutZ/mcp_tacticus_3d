@@ -2,6 +2,12 @@
   "adam-warlock": {
     "characters/adam-warlock/model.glb": "pnpm --filter web photos-to-glb \"<Adam Warlock 3rd photos>\" --base small --texture 1024 --tone strong"
   },
+  "moondragon": {
+    "characters/moondragon/model.glb": "pnpm --filter web photos-to-glb \"<Moondragon photos>\" --base medium --texture 1024"
+  },
+  "quasar": {
+    "characters/quasar/model.glb": "pnpm --filter web photos-to-glb \"<Quasar photos>\" --base medium --texture 1024"
+  },
   "star-lord": {
     "characters/star-lord/model.glb": "pnpm --filter web photos-to-glb \"<Star-Lord photos>\" --base small --texture 1024"
   }
