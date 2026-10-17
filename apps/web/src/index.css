@@ -33,19 +33,24 @@ body,
   margin: 0;
 }
 
+/* Three layers, by DOM order:
+   1. the scene (.scene-root, isolated);
+   2. the app and HUD (#root, isolated): its z-index numbers only order HUD parts among themselves;
+   3. overlays: loading, dialogs, card popup. They are portals into <body> (ui/Overlay.jsx), after
+      #root, so they paint above all of #root. Their z-index only orders them among themselves. */
+#root {
+  isolation: isolate;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
 }
 
-/* Holds the Canvas only, nothing else. drei's <Html> (terrain labels, the ruler tool buttons, the
-   tray card and controls) mounts its wrappers as siblings of the <canvas> element, with a z-index
-   up to 16777271 (zIndexRange). `isolation: isolate` gives that whole subtree its own stacking
-   context, so those huge z-index values can never again out-rank a HUD element below, no matter
-   the number on either side -- only an element's place in this subtree still matters. HUD panels
-   that are DOM siblings of this element stack above it by normal rules (they all set a z-index,
-   this element does not), and true dialogs also render through Overlay.jsx, a portal straight to
-   <body>, so neither depends on this box at all. */
+/* Layer 1, the scene. Holds the Canvas only. drei's <Html> (terrain labels, the ruler tool buttons,
+   the tray card and controls) mounts wrappers next to the <canvas> with a z-index up to 16777271
+   (zIndexRange). `isolation: isolate` keeps those numbers inside this box. The HUD panels come after
+   this element in the DOM and are positioned, so they paint above it without a z-index. */
 .scene-root {
   position: absolute;
   inset: 0;
@@ -64,9 +69,9 @@ body {
   justify-content: space-between;
   gap: 8px;
   pointer-events: none;
-  /* Above every drei <Html> in the scene (terrain labels, ruler tool, tray controls): .scene-root
-     isolates their z-index, so any explicit z-index here beats them regardless of the number. */
-  z-index: 200;
+  /* Above the panels after it in the DOM (Library, log, spectator columns, token panel): the setup
+     dropdown drops over them. */
+  z-index: 1;
 }
 
 .toolbar {
@@ -121,7 +126,8 @@ body {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
-  z-index: 10;
+  /* Above the other toolbar parts it drops over. */
+  z-index: 1;
 }
 
 .group {
@@ -332,7 +338,6 @@ body {
   border-radius: 8px;
   padding: 10px;
   pointer-events: auto;
-  z-index: 200;
 }
 
 .log {
@@ -349,7 +354,6 @@ body {
   border-radius: 8px;
   padding: 10px;
   pointer-events: auto;
-  z-index: 200;
 }
 
 .log-bar {
@@ -687,7 +691,8 @@ body {
   color: var(--text);
   white-space: nowrap;
   pointer-events: none;
-  z-index: 600;
+  /* Above .hud-top (the message sits over the toolbar row). */
+  z-index: 2;
 }
 
 /* Dropped objective tokens that wait for their place (HudNotice.jsx), below the HUD message */
@@ -699,7 +704,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  z-index: 600;
+  /* Above .hud-top (its dropdown can reach down here). */
+  z-index: 2;
 }
 
 .hud-notice-line {
@@ -1060,8 +1066,8 @@ body {
   align-items: center;
   justify-content: center;
   background: var(--bg);
-  /* Above the toolbar and the terrain labels */
-  z-index: 300;
+  /* Overlay layer (portals in body): below dialogs and .card-popup. See #root. */
+  z-index: 1;
 }
 
 .loading-panel {
@@ -1110,7 +1116,6 @@ body {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 8px 12px;
-  z-index: 200;
 }
 
 .token-panel-name {
@@ -1130,7 +1135,8 @@ body {
   justify-content: center;
   background: rgba(5, 5, 16, 0.8);
   cursor: pointer;
-  z-index: 400;
+  /* Overlay layer (portals in body): above .loading. See #root. */
+  z-index: 2;
 }
 
 /* Alt over a card: no backdrop, and the pointer goes through to the table (CardPopup.jsx, peek) */
@@ -1488,7 +1494,6 @@ body {
   padding: 8px 10px;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
-  z-index: 200;
 }
 
 .debug-stats {
@@ -1522,7 +1527,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  z-index: 600;
 }
 
 .hud-warnings--lifted {
@@ -1537,7 +1541,6 @@ body {
   display: grid;
   grid-auto-flow: row;
   gap: 6px;
-  z-index: 600;
 }
 
 .phase-button {
@@ -1888,7 +1891,6 @@ body {
   border: 1px solid var(--line);
   border-radius: 8px;
   pointer-events: auto;
-  z-index: 150;
 }
 
 .spectator-col--left {
