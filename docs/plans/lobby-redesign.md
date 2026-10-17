@@ -100,3 +100,12 @@ Fonts from `@fontsource` (Bangers, Barlow, Barlow Condensed, JetBrains Mono), `r
 - `.lobby-notice` restyled (yellow comic box).
 - `rooms.md`: Lobby, Pages, Code table.
 - Checks: format, lint (no new warnings), build, web tests pass.
+
+### Step 3
+
+- `Lobby.jsx`: "Your rooms" title and count badge, room tile (article, not clickable; **Enter the fight →** is the only entry), "+" tile (last in the grid, as in the design), sandbox section, footer. The old seat line and `Seat` are gone.
+- `SeatPlate.jsx`: skewed plate (name, optional avatar) with the "Roster ›" link under it. Multiplayer plates are neutral, single player plates blue/red halftone from the room's colors.
+- `CopyLinkButton.jsx`: `icon` prop for the code badge (icon button, result text beside it, `role="status"`). The toolbar keeps the text button.
+- `src/assets/lobby/sandbox.webp`: the screenshot, `magick` 1600 px wide, quality 80, loaded with `assetUrl`.
+- `lobby.css`: new rules for the tiles, sandbox and footer. Old lobby rules removed. `.lobby-seat-avatar` stays (JoinRoom).
+- `rooms.md`, `auth.md`: updated.

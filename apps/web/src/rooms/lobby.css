@@ -276,7 +276,6 @@
   font-size: 15px;
 }
 
-/* The rest of the lobby: still the old look */
 /* The lobby (Lobby.jsx): the start page. html, body and #root hide overflow for the table, so the lobby
    scrolls in its own box. */
 .lobby {
@@ -520,205 +519,492 @@
   color: #fff;
 }
 
-.lobby-section-title {
-  margin: 36px 0 14px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+/* Your rooms (Lobby.jsx) */
+.lobby-rooms-section {
+  padding: 24px 0 64px;
 }
 
-/* A map card is 4:7, so a tile is tall. Every tile of a row has the height of the row. */
-.lobby-rooms {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 18px;
-}
-
-.lobby-tile {
-  display: flex;
-  flex-direction: column;
-  border-radius: 12px;
-  transition:
-    transform 0.15s,
-    border-color 0.15s,
-    box-shadow 0.15s;
-}
-
-.lobby-tile:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
-}
-
-.lobby-new {
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 300px;
-  font: inherit;
-  color: var(--muted);
-  background: rgba(255, 255, 255, 0.02);
-  border: 2px dashed var(--line);
-  cursor: pointer;
-}
-
-.lobby-new:hover {
-  color: var(--text);
-  border-color: var(--accent);
-}
-
-.lobby-new-plus {
-  font-size: 64px;
-  font-weight: 300;
-  line-height: 1;
-}
-
-.lobby-room {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  overflow: hidden;
-}
-
-.lobby-room:hover {
-  border-color: var(--ui-border);
-}
-
-.lobby-room-open {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 0;
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  background: none;
-  border: 0;
-  cursor: pointer;
-}
-
-.lobby-room-card {
-  display: block;
-  width: 100%;
-  aspect-ratio: 4 / 7;
-  object-fit: cover;
-  margin-bottom: 8px;
-}
-
-.lobby-room-name,
-.lobby-room-code,
-.lobby-room-time {
-  padding: 0 12px;
-}
-
-.lobby-room-name {
-  font-weight: 600;
-}
-
-.lobby-room-code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.lobby-room-time {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-/* Copy link and Delete. margin-top: auto keeps them at the bottom of a tile that is taller than its
-   content. A narrow tile puts Delete on a second line. */
-.lobby-room-actions {
+.lobby-rooms-head {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 36px;
+}
+
+.lobby-section-title {
+  margin: 0;
+  font: 400 54px/1 var(--font-title);
+  letter-spacing: 0.03em;
+  color: var(--yellow);
+  -webkit-text-stroke: 3px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 4px 4px 0 var(--ink);
+}
+
+.lobby-count {
+  padding: 2px 12px;
+  font: italic 700 16px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  transform: rotate(-2deg);
+}
+
+.lobby-rooms {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 560px), 1fr));
+  gap: 32px;
+}
+
+.room-tile {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  padding: 36px 22px 22px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 4px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--ink);
+  transform: rotate(-0.6deg);
+}
+
+.room-tile--odd {
+  transform: rotate(0.5deg);
+}
+
+.room-badge {
+  position: absolute;
+  top: -18px;
+  left: 18px;
+  display: flex;
+  align-items: center;
   gap: 8px;
-  margin: auto 12px 12px;
+  padding: 4px 6px 4px 12px;
+  background: var(--yellow);
+  border: 3px solid var(--ink);
+  transform: rotate(-2deg);
 }
 
-.lobby-room-delete:hover {
-  border-color: var(--warn);
+.room-badge-label {
+  font: italic 700 15px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.lobby-sandbox {
+.room-badge-code {
+  font: 600 15px var(--font-code);
+  letter-spacing: 0.06em;
+  margin-right: 4px;
+}
+
+.room-copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink);
+  cursor: pointer;
+}
+
+.room-copy:focus-visible,
+.seat-roster:focus-visible,
+.room-enter:focus-visible,
+.room-new:focus-visible,
+.lobby-sandbox-open:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.room-copy-result {
+  font: 700 14px var(--font-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.room-copy-result:empty {
+  display: none;
+}
+
+.room-body {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 20px;
+  min-width: 0;
+}
+
+.room-card {
+  flex: 0 0 150px;
+  width: 150px;
+  height: 264px;
+  object-fit: cover;
+  display: block;
+  border: 3px solid var(--ink);
+}
+
+.room-info {
+  flex: 1 1 280px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  max-width: 420px;
-  padding: 16px 20px;
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: border-color 0.15s;
+  gap: 12px;
 }
 
-.lobby-sandbox:hover {
-  border-color: var(--accent);
+.room-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  font: 700 14px var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--ink);
+}
+
+.room-name {
+  margin: 0;
+  font: 400 46px/0.95 var(--font-title);
+  letter-spacing: 0.03em;
+  overflow-wrap: anywhere;
+}
+
+.room-time {
+  font-size: 14px;
+  color: var(--muted-ink);
+}
+
+.room-seats {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.room-vs {
+  display: flex;
+  flex: none;
+  margin: -24px -8px 0;
+  z-index: 1;
+}
+
+.room-vs-text {
+  color: var(--ink);
+}
+
+.seat {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.seat--end {
+  align-items: flex-end;
+}
+
+.seat-plate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 6px 14px 6px 10px;
+  font: 400 24px var(--font-title);
+  letter-spacing: 0.05em;
+  color: #fff;
+  border: 3px solid var(--ink);
+  transform: skewX(-10deg);
+}
+
+.seat--end .seat-plate {
+  padding: 6px 10px 6px 14px;
+}
+
+.seat-plate--neutral {
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.seat-plate--muted {
+  color: var(--muted-ink);
+  background: var(--disabled-bg);
+}
+
+.seat-plate--blue {
+  background-color: var(--blue);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.12) 24%, transparent 26%);
+  background-size: 10px 10px;
+}
+
+.seat-plate--red {
+  background-color: var(--red);
+  background-image: radial-gradient(rgba(0, 0, 0, 0.2) 24%, transparent 26%);
+  background-size: 11px 11px;
+}
+
+.seat-avatar {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border: 2px solid var(--ink);
+  background: var(--blue);
+  object-fit: cover;
+}
+
+.seat-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seat-roster {
+  padding: 0;
+  font: 700 14px var(--font-label);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.room-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.comic .room-delete {
+  align-self: flex-start;
+  color: var(--red);
+}
+
+.comic .room-enter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 52px;
+  font: 400 26px var(--font-title);
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: var(--red);
+  border: 3px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
+  cursor: pointer;
+}
+
+/* The "+" tile */
+.comic .room-new {
+  position: relative;
+  box-sizing: border-box;
+  min-height: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 28px;
+  font: inherit;
+  color: #fff;
+  text-align: center;
+  background-color: var(--red);
+  background-image: radial-gradient(rgba(0, 0, 0, 0.2) 24%, transparent 26%);
+  background-size: 11px 11px;
+  border: 4px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--ink);
+  transform: rotate(0.6deg);
+  cursor: pointer;
+}
+
+.comic .room-new:hover:not(:disabled) {
+  transform: translate(-2px, -2px) rotate(0.6deg);
+}
+
+.comic .room-new:active:not(:disabled) {
+  transform: translate(3px, 3px) rotate(0.6deg);
+}
+
+.room-new-title {
+  font: 400 44px/1 var(--font-title);
+  letter-spacing: 0.04em;
+  -webkit-text-stroke: 2px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 4px 4px 0 var(--ink);
+}
+
+.room-new-text {
+  font: 700 17px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.room-new-corner {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  padding: 4px 14px;
+  font: italic 700 16px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--yellow);
+  border: 4px solid var(--ink);
+}
+
+/* The sandbox section: the screenshot, a dot layer, a speech bubble */
+.lobby-sandbox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 300px;
+  margin-bottom: 64px;
+  overflow: hidden;
+  border: 4px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--ink);
+}
+
+.lobby-sandbox-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.lobby-sandbox-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(11, 11, 15, 0.45) 28%, transparent 30%);
+  background-size: 7px 7px;
+}
+
+.lobby-sandbox-content {
+  position: relative;
+  max-width: 480px;
+  padding: 40px 40px 64px;
+}
+
+.lobby-sandbox-bubble {
+  position: relative;
+  padding: 22px 26px;
+  color: var(--ink);
+  background: #fff;
+  border: 4px solid var(--ink);
+  border-radius: 34px;
+}
+
+.lobby-sandbox-bubble::before,
+.lobby-sandbox-bubble::after {
+  content: '';
+  position: absolute;
+  border-style: solid;
+  border-color: transparent;
+}
+
+.lobby-sandbox-bubble::before {
+  left: 44px;
+  bottom: -34px;
+  border-width: 34px 0 0 34px;
+  border-top-color: var(--ink);
+}
+
+.lobby-sandbox-bubble::after {
+  left: 48px;
+  bottom: -24px;
+  border-width: 25px 0 0 25px;
+  border-top-color: #fff;
 }
 
 .lobby-sandbox-title {
-  font-weight: 600;
+  margin: 0;
+  font: 400 40px/1 var(--font-title);
+  letter-spacing: 0.04em;
 }
 
 .lobby-sandbox-text {
-  font-size: 13px;
-  color: var(--muted);
+  margin: 8px 0 16px;
+  font-size: 16px;
 }
 
-/* A multiplayer tile (Lobby.jsx): the seats under the map name, and the kind of a single player tile */
-.lobby-seats {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 6px;
-  padding: 0 12px 10px;
-}
-
-.lobby-side-color--blue {
-  color: #5aa9e6;
-}
-
-.lobby-side-color--red {
-  color: #e8695b;
-}
-
-.lobby-seat {
-  display: flex;
+.comic .lobby-sandbox-open {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  height: 50px;
+  padding: 0 22px;
+  font: 400 24px var(--font-title);
+  letter-spacing: 0.05em;
+  color: var(--ink);
+  background: var(--yellow);
+  border: 3px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
+  cursor: pointer;
 }
 
+.lobby-sandbox-wham {
+  position: absolute;
+  right: 48px;
+  top: 36px;
+  font: 400 120px/1 var(--font-title);
+  color: var(--yellow);
+  -webkit-text-stroke: 5px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 8px 8px 0 var(--red);
+  transform: rotate(-10deg);
+  pointer-events: none;
+}
+
+@media (max-width: 700px) {
+  .lobby-sandbox-wham {
+    display: none;
+  }
+
+  .lobby-sandbox-content {
+    padding: 24px 16px 56px;
+  }
+}
+
+/* The seat avatar of the join page (JoinRoom.jsx) */
 .lobby-seat-avatar {
   width: 20px;
   height: 20px;
   border-radius: 50%;
 }
 
-.lobby-seat-name {
-  color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.lobby-room-kind {
-  font-size: 12px;
-  color: var(--muted);
-}
-
 .lobby-footer {
-  margin-top: 48px;
-  font-size: 12px;
-  color: var(--muted);
-  opacity: 0.7;
+  padding: 22px 0 40px;
+  border-top: 3px solid var(--ink);
+  color: #c9d3ff;
+}
+
+.lobby-footer-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  font: 700 15px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lobby-footer a {
+  color: var(--yellow);
 }
 
 .lobby-disclaimer {
-  margin: 8px 0 0;
-  font-size: 11px;
+  margin: 12px 0 0;
+  font-size: 12px;
   overflow-wrap: anywhere;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { assetUrl } from '../assets/index.js'
 import { mapFace } from '../terrain/mapFace.js'
 import { avatarUrl } from '../auth/avatar.js'
@@ -12,43 +12,15 @@ import { LobbyHero } from './LobbyHero.jsx'
 import { NewRoomDialog } from './NewRoomDialog.jsx'
 import { RoomRosterPopup } from '../rosters/RoomRosterPopup.jsx'
 import { CopyLinkButton } from './CopyLinkButton.jsx'
+import { SeatPlate } from './SeatPlate.jsx'
+import { Burst } from './Burst.jsx'
 import { COLOR_NAME } from '../sideColors.js'
 import { TEAMS } from '../setup/setup.js'
 
 const TIME = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 
-// A seat of a multiplayer tile: avatar, name and the link "roster" (onRoster, or null when the seat has no
-// roster), "Free seat", or "Deleted player"
-function Seat({ player, onRoster }) {
-  let content = <span className="lobby-seat-name">Free seat</span>
-  if (player?.gone)
-    content = (
-      <>
-        <span className="lobby-seat-name">Deleted player</span>
-        {onRoster && <RosterLink onClick={onRoster} />}
-      </>
-    )
-  else if (player)
-    content = (
-      <>
-        <img className="lobby-seat-avatar" src={avatarUrl(player, 40)} alt="" draggable={false} />
-        <span className="lobby-seat-name">{player.name}</span>
-        {onRoster && <RosterLink onClick={onRoster} />}
-      </>
-    )
-  return <div className="lobby-seat">{content}</div>
-}
-
-function RosterLink({ onClick, children = 'roster' }) {
-  return (
-    <button type="button" className="link-button" onClick={onClick}>
-      {children}
-    </button>
-  )
-}
-
 // The start page (docs/features/rooms.md, "Lobby"): the single player and the multiplayer rooms in one list,
-// the last changed first, a tile that creates a room, and the Sandbox. A roster link on a tile shows that
+// the last changed first, a tile that creates a room, and the Sandbox. Only Enter the fight opens a room. A roster link on a tile shows that
 // roster of the room (rosterLinks). notice: a message to show at the top, or null. onOpenRoom(id), onOpenSandbox(): open
 // that page.
 export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
@@ -154,99 +126,182 @@ export function Lobby({ notice, onOpenRoom, onOpenSandbox }) {
         onOpenSandbox={onOpenSandbox}
         onOpenRoom={onOpenRoom}
       />
-      <section>
-        <h2 className="lobby-section-title">Rooms</h2>
-        <div className="lobby-rooms">
-          <button type="button" className="lobby-tile lobby-new" onClick={() => setCreating(true)}>
-            <span className="lobby-new-plus" aria-hidden="true">
-              +
+      <section className="lobby-rooms-section" aria-labelledby="lobby-rooms-title">
+        <div className="lobby-rooms-head">
+          <h2 id="lobby-rooms-title" className="lobby-section-title">
+            Your rooms
+          </h2>
+          {items.length > 0 && (
+            <span className="lobby-count">
+              {items.length === 1 ? '1 battle in progress' : `${items.length} battles in progress`}
             </span>
-            <span>New room</span>
-          </button>
-          {items.map((item) => {
+          )}
+        </div>
+        <div className="lobby-rooms">
+          {items.map((item, index) => {
             const room = item.room
             const isMulti = item.kind === 'multiplayer'
+            const face = mapFace(item.mapId)
             const links = new Map(rosterLinks(item).map((link) => [link.team, link]))
             const isHost = isMulti ? room.host === userId : ownsRoom(room)
+            const plates = isMulti
+              ? TEAMS.map((team) => {
+                  const player = room.players[team]
+                  const link = links.get(team)
+                  return {
+                    team,
+                    name: player?.gone ? 'Deleted player' : (player?.name ?? 'Free seat'),
+                    avatar: player && !player.gone ? avatarUrl(player, 40) : null,
+                    muted: !player || player.gone,
+                    color: null,
+                    link,
+                  }
+                })
+              : [...links].map(([team, link]) => ({
+                  team,
+                  name: link.color ? COLOR_NAME[link.color] : link.label,
+                  avatar: null,
+                  muted: false,
+                  color: link.color,
+                  link,
+                }))
             return (
-              <div key={`${item.kind}-${item.id}`} className="lobby-tile lobby-room">
-                <button
-                  type="button"
-                  className="lobby-room-open"
-                  title={`Enter room ${item.id}`}
-                  onClick={() => onOpenRoom(item.id)}
-                >
+              <article
+                key={`${item.kind}-${item.id}`}
+                className={`room-tile${index % 2 ? ' room-tile--odd' : ''}`}
+              >
+                <div className="room-badge">
+                  <span className="room-badge-label">Room</span>
+                  <span className="room-badge-code">{item.id}</span>
+                  {isMulti && (!room.players.host || !room.players.guest) && (
+                    <CopyLinkButton code={item.id} icon />
+                  )}
+                </div>
+                <div className="room-body">
                   <img
-                    className="lobby-room-card"
-                    src={assetUrl(mapFace(item.mapId).src)}
-                    alt=""
+                    className="room-card"
+                    src={assetUrl(face.src)}
+                    alt={face.name}
                     draggable={false}
                   />
-                  <span className="lobby-room-name">{mapFace(item.mapId).name}</span>
-                  <span className="lobby-room-code">{item.id}</span>
-                  <span className="lobby-room-time">Last change {TIME.format(item.updatedAt)}</span>
-                </button>
-                <div className="lobby-seats">
-                  {isMulti
-                    ? TEAMS.map((team) => (
-                        <Seat
-                          key={team}
-                          player={room.players[team]}
-                          onRoster={
-                            item.rosters?.[team] ? () => openRoster(item, links.get(team)) : null
-                          }
-                        />
-                      ))
-                    : links.size === 0 && <span className="lobby-room-kind">Single player</span>}
-                  {!isMulti &&
-                    [...links].map(([team, link]) => (
-                      <div key={team} className="lobby-seat">
-                        {link.color ? (
-                          <>
-                            <span className={`lobby-side-color lobby-side-color--${link.color}`}>
-                              {COLOR_NAME[link.color]}
-                            </span>
-                            <RosterLink onClick={() => openRoster(item, link)} />
-                          </>
-                        ) : (
-                          <RosterLink onClick={() => openRoster(item, link)}>
-                            {link.label}
-                          </RosterLink>
-                        )}
+                  <div className="room-info">
+                    <div>
+                      <span className="room-tag">{isMulti ? 'Multiplayer' : 'Single player'}</span>
+                    </div>
+                    <h3 className="room-name">{face.name}</h3>
+                    <div className="room-time">Last change {TIME.format(item.updatedAt)}</div>
+                    {plates.length > 0 && (
+                      <div className="room-seats">
+                        {plates.map((plate, i) => (
+                          <Fragment key={plate.team}>
+                            {i > 0 && (
+                              <span className="room-vs">
+                                <Burst size={64} color="var(--yellow)">
+                                  <span className="room-vs-text">VS</span>
+                                </Burst>
+                              </span>
+                            )}
+                            <SeatPlate
+                              name={plate.name}
+                              color={plate.color}
+                              avatar={plate.avatar}
+                              muted={plate.muted}
+                              align={i > 0 ? 'end' : undefined}
+                              label={plate.link?.label}
+                              onRoster={
+                                plate.link && (!isMulti || item.rosters?.[plate.team])
+                                  ? () => openRoster(item, plate.link)
+                                  : null
+                              }
+                            />
+                          </Fragment>
+                        ))}
                       </div>
-                    ))}
+                    )}
+                    <div className="room-actions">
+                      {isHost && (
+                        <button
+                          type="button"
+                          className="comic-button comic-button--small room-delete"
+                          title={`Delete room ${item.id}`}
+                          onClick={() => handleDelete(item)}
+                        >
+                          Delete
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className="pop room-enter"
+                        title={`Enter room ${item.id}`}
+                        onClick={() => onOpenRoom(item.id)}
+                      >
+                        Enter the fight
+                        <svg
+                          width="22"
+                          height="22"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M5 12h14M13 6l6 6-6 6" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="lobby-room-actions">
-                  {isMulti && (!room.players.host || !room.players.guest) && (
-                    <CopyLinkButton code={item.id} />
-                  )}
-                  {isHost && (
-                    <button
-                      type="button"
-                      className="chip lobby-room-delete"
-                      title={`Delete room ${item.id}`}
-                      onClick={() => handleDelete(item)}
-                    >
-                      Delete
-                    </button>
-                  )}
-                </div>
-              </div>
+              </article>
             )
           })}
+          <button type="button" className="pop room-new" onClick={() => setCreating(true)}>
+            <Burst size={120} color="var(--yellow)">
+              <svg
+                width="44"
+                height="44"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--ink)"
+                strokeWidth="4"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <path d="M12 4v16M4 12h16" />
+              </svg>
+            </Burst>
+            <span className="room-new-title">Start a new room!</span>
+            <span className="room-new-text">Single player or multiplayer</span>
+            <span className="room-new-corner">To be continued…</span>
+          </button>
         </div>
       </section>
-      <section>
-        <h2 className="lobby-section-title">Sandbox</h2>
-        <button type="button" className="lobby-sandbox" onClick={onOpenSandbox}>
-          <span className="lobby-sandbox-title">Open Sandbox</span>
-          <span className="lobby-sandbox-text">
-            A free table: every map, both rosters. Nothing is saved.
-          </span>
-        </button>
+      <section className="lobby-sandbox" aria-labelledby="lobby-sandbox-title">
+        <img className="lobby-sandbox-image" src={assetUrl('lobby/sandbox.webp')} alt="" />
+        <div className="lobby-sandbox-dots" />
+        <div className="lobby-sandbox-content">
+          <div className="lobby-sandbox-bubble">
+            <h2 id="lobby-sandbox-title" className="lobby-sandbox-title">
+              The sandbox!
+            </h2>
+            <p className="lobby-sandbox-text">
+              Every map, both rosters. Try lists and set-ups — nothing is saved, so go wild.
+            </p>
+            <button type="button" className="pop lobby-sandbox-open" onClick={onOpenSandbox}>
+              Open sandbox
+            </button>
+          </div>
+        </div>
+        <span className="lobby-sandbox-wham" aria-hidden="true">
+          Wham!
+        </span>
       </section>
       <footer className="lobby-footer">
-        <a href="/privacy.html">Privacy</a>
+        <div className="lobby-footer-row">
+          <span>Hero Table 3D · a fan-made tabletop</span>
+          <a href="/privacy.html">Privacy</a>
+        </div>
         <p className="lobby-disclaimer">
           This site is not endorsed by nor affiliated with Marvel or Atomic Mass Games in any way.
           All trademarks mentioned here are the property of their respective owners.
