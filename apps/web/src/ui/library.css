@@ -199,7 +199,7 @@
 /* The chosen player already has this character on the table */
 .library-character--spawned {
   background: #c9ecad;
-  box-shadow: inset 5px 0 0 #1e9e44;
+  box-shadow: inset 5px 0 0 var(--comic-green);
 }
 
 .library-portrait {

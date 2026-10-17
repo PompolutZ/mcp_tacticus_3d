@@ -156,3 +156,4 @@ Read on 2026-10-17.
 - Log list scrolls, up to 50 entries (commit d04aaba).
 - Streamer rows: tokens on the character in a row above the bars; only held crisis tokens sit beside the bars, in a fixed slot.
 - Streamer columns start at the same top; the closed log bubble draws over the right column.
+- Streamer "Pwr" bar in power green: one `--comic-green` (`rooms/comic.css`) shared with the Power phase button and the Library.

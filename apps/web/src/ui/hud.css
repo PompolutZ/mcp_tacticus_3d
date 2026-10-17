@@ -478,7 +478,7 @@
 
 .phase-button--power.phase-button--big {
   color: #fff;
-  background-color: #1e9e44;
+  background-color: var(--comic-green);
   -webkit-text-stroke: 1.5px var(--ink);
   paint-order: stroke fill;
 }
