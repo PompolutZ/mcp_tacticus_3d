@@ -9,3 +9,6 @@ allowBuilds:
   ssh2: false
   cpu-features: false
   protobufjs: false
+
+patchedDependencies:
+  '@react-three/drei@10.7.9': patches/@react-three__drei@10.7.9.patch
