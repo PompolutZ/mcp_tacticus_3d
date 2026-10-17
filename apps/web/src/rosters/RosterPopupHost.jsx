@@ -74,14 +74,15 @@ export function RosterPopupHost({
     return threats.length > 0 ? threats : CRISIS_THREATS
   }, [setup, parsedRosters])
 
-  // The Breakdown tab of the open roster popup, only while the squad of that roster is not placed
-  // (docs/features/squad-breakdown.md). Without it, a popup left on that tab shows the first tab with cards.
+  // The Breakdown tab of the open roster popup, only while the squad of that roster is not placed, and in a
+  // multiplayer room (hiddenSquads set) only on the own roster (docs/features/squad-breakdown.md). Without it, a popup left on that tab shows the first tab with cards.
   let popupBreakdown = null
   let popupSquad = null
   let rosterPopupTab = openRoster?.tab
   if (openRoster && rosters[openRoster.team]) {
     const { team } = openRoster
-    if (!placedSides(setup)[team]) {
+    const breakdownShown = !placedSides(setup)[team] && !(hiddenSquads && team !== mySide)
+    if (breakdownShown) {
       // A choice of another roster code counts as no choice. A threat that left the list shows the first
       // value; the filters stay (docs/features/squad-breakdown.md, "State").
       const stored = breakdownChoice[team]

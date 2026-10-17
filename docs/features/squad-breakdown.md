@@ -71,7 +71,7 @@ The tab shows only the values that this game can still have. The values come fro
 The roster popup (`docs/features/roster.md`, "Roster popup") gets a fourth tab: **Breakdown**.
 
 - The tab shows on the table while the squad of that roster is not on the table. After the squad is placed, the tab is gone. The roster popup of the lobby has no Breakdown tab, because a room has no setup there.
-- A player can open the breakdown of both rosters, because rosters are public (p11 hides only the squads).
+- In a multiplayer room, the tab shows only on the own roster. On the other roster the tab is absent, because the breakdown shows the opponent's options, which the game does not show. A popup left on the tab for the other roster shows the first tab with cards. In the Sandbox and a solo room one person plays both sides, so both rosters have the tab.
 - The tab is disabled when the roster has no characters, the same as a tab without cards.
 - The arrow keys do nothing in this tab.
 
@@ -129,7 +129,7 @@ The filter box is always shown. Its first row, **Must have**, is always visible.
 
 In the squad step, a click on a combination chooses its characters for the squad.
 
-- The click works on a roster that this browser plays, while its player has not pressed Squad ready and its squad is not on the table. In a multiplayer room, that is only the own roster. On the other roster, the rows do not take clicks.
+- The click works on a roster that this browser plays, while its player has not pressed Squad ready and its squad is not on the table. In a multiplayer room, that is only the own roster, the only one with the tab.
 - The click replaces the characters of the squad with the characters of the combination. The Team Tactic cards of the squad stay. Players choose them by hand.
 - A character without a 3D model cannot join, the same as with a click on its roster card. The other characters join, and the HUD message names the missing ones: "No model for <name> (<code>), so it cannot join the squad".
 - After the click, the popup closes. The player sees the squad frames on the table and can change the squad or add Team Tactic cards with the **+** / **✓** buttons on the roster cards.
@@ -163,7 +163,7 @@ In the squad step, a click on a combination chooses its characters for the squad
 
 ## Decisions
 
-1. The tab is in the roster popup on the table, during the setup, for both rosters.
+1. The tab is in the roster popup on the table, during the setup, for both rosters in the Sandbox and a solo room, and for the own roster in a multiplayer room.
 2. A combination follows the 4 rules in [Combinations](#combinations). The total threat is exactly the value, the same as on Jarvis. Peerless (p21) and the Sentinel copies also follow Jarvis.
 3. Only the threat values that this game can still have show. With no crisis cards, all values of the Jarvis data show.
 4. Affiliations use the same rule as the Affiliation step of the setup, with Rogue Agent. The other Jarvis special cases are left out.
