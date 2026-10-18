@@ -66,9 +66,7 @@ export const TERRAIN_PIECES = {
   'fire-effect-small': {
     name: 'Fire Effect (small)',
     bundle: true,
-    colliders: [
-      { shape: 'box', position: [0, 0, 0], quaternion: [0, 0, 0, 1], halfExtents: [0.5, 0.5, 0.5] },
-    ],
+    colliders: [],
   },
   'fence-size-3': { name: 'Fence', convex: true },
   'cage-size-4': { name: 'Cage', convex: false },
@@ -781,42 +779,7 @@ export const TERRAIN_PIECES = {
   'campus-light-size-1': {
     name: 'Campus Light',
     bundle: true,
-    colliders: [
-      {
-        shape: 'capsule',
-        position: [-3.4631, -3.6235, 2.3715],
-        quaternion: [0, 0, 0, 1],
-        radius: 0.5,
-        halfHeight: 0.9767,
-      },
-      {
-        shape: 'capsule',
-        position: [-3.4631, -7.4735, 2.3715],
-        quaternion: [0, 0, 0, 1],
-        radius: 0.2683,
-        halfHeight: 2.2845,
-      },
-      {
-        shape: 'capsule',
-        position: [-3.4631, -2.1735, 2.3715],
-        quaternion: [0, 0, 0, 1],
-        radius: 0.6152,
-        halfHeight: 0,
-      },
-      {
-        shape: 'box',
-        position: [-3.4631, -11.9735, 2.0315],
-        quaternion: [0, 0, 0, 1],
-        halfExtents: [0.3656, 2.6476, 0.7633],
-      },
-      {
-        shape: 'capsule',
-        position: [-3.4631, -8.5435, 1.6715],
-        quaternion: [0, 0, 0, 1],
-        radius: 0.089,
-        halfHeight: 1.5215,
-      },
-    ],
+    colliders: [],
   },
   'total-access-games-size-5': {
     name: 'Total Access Games',
@@ -4303,14 +4266,7 @@ export const TERRAIN_PIECES = {
   'sea-weed-size-2': {
     name: 'Sea Weed',
     bundle: true,
-    colliders: [
-      {
-        shape: 'box',
-        position: [0, 0.6, 0],
-        quaternion: [0, 0, 0, 1],
-        halfExtents: [0.5, 0.5, 0.5],
-      },
-    ],
+    colliders: [],
   },
   'statue-head-size-2': {
     name: 'Statue Head',
@@ -4363,9 +4319,7 @@ export const TERRAIN_PIECES = {
   'coral-size-1': {
     name: 'Coral',
     bundle: true,
-    colliders: [
-      { shape: 'box', position: [0, 0, 1], quaternion: [0, 0, 0, 1], halfExtents: [0.5, 0.5, 0.5] },
-    ],
+    colliders: [],
   },
   'jellyfish-size-2': {
     name: 'Jellyfish',
@@ -4440,14 +4394,7 @@ export const TERRAIN_PIECES = {
   'assetbundle-piece-2': {
     name: 'Smoke',
     bundle: true,
-    colliders: [
-      {
-        shape: 'box',
-        position: [0, 0, 0],
-        quaternion: [0, 0, 0, 1],
-        halfExtents: [0.15, 0.15, 0.15],
-      },
-    ],
+    colliders: [],
   },
   'chem-truck-size-4': { name: 'Chem Truck', convex: true },
   'chemical-vat-size-3-2': { name: 'Chemical Vat', convex: true, collider: true },

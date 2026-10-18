@@ -44,7 +44,21 @@ export async function readBundlePrefab(outDir) {
   const doc = await readGlb(findByLowerCasePath(primary, prefabs[0].replace(/\.prefab$/, '.glb')))
   applyRoot(doc, prefab.root)
   warnings.push(...applyMaterials(doc, project))
-  return { doc, colliders: prefab.colliders, primary, project, warnings }
+  const colliders = collidersOfVisiblePiece(doc, prefab.colliders)
+  if (colliders.length < prefab.colliders.length)
+    warnings.push(`has no mesh, so its ${prefab.colliders.length} colliders are dropped`)
+  return { doc, colliders, primary, project, warnings }
+}
+
+// A piece with nothing visible (smoke, fire, sea weed) has no collider: an invisible collider stops a Throw
+// (playtest 6). Pure: the colliders as they are, or none when the document has no vertex.
+export function collidersOfVisiblePiece(doc, colliders) {
+  const vertices = doc
+    .getRoot()
+    .listMeshes()
+    .flatMap((mesh) => mesh.listPrimitives())
+    .reduce((sum, prim) => sum + (prim.getAttribute('POSITION')?.getCount() ?? 0), 0)
+  return vertices > 0 ? colliders : []
 }
 
 // AssetRipper leaves out the prefab root transform. A new top node gets the root rotation and scale,

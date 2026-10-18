@@ -121,7 +121,7 @@ The GLB has no colliders. Colliders are components in the prefab, so the script 
 - `BoxCollider`: vehicles and the Daily Bugle.
 - `MeshCollider` with a custom mesh: the bench, the bus stop, the barrel, and the character statues. A statue collider covers only the base, the same as the Angel figure.
 
-The script copies the colliders as TTS has them, even when they look wrong. For example, `crates-size-2` has two boxes at the same place, and one corner of the mesh has no collider.
+A bundle whose GLB has no vertex (smoke, fire, sea weed, coral, the Campus Light) gets no colliders (`collidersOfVisiblePiece` in `lib/bundle.mjs`, with a warning), because an invisible collider stops a Throw. The script copies the colliders as TTS has them, even when they look wrong. For example, `crates-size-2` has two boxes at the same place, and one corner of the mesh has no collider.
 
 The script was checked on the 22 bundle pieces in Demons Downtown, Savage Land Research Site, Sinister Showdown and Old Town Road. For every piece, the box around all its colliders is in the same place as the box around its mesh. The mesh bottom is at y = 0, or it matches the placement height. The only colliders that cover much less than the mesh are the statue bases and the crates.
 

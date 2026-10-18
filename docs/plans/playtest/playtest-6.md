@@ -135,6 +135,14 @@ User: Oscorp Chemical, delete the truck, Throw a model across its old place: it 
 
 ### Result
 
+- Cause: not the truck. The Throw stopped at piece 7, `assetbundle-piece-2` ("Smoke"). Its GLB has no mesh, so nothing is drawn, but the prefab collider (fixed box, ~0.15" side, 0.04" above the mat) was copied. A headless cast (cylinder base, real Oscorp placements, Rapier) hit that collider; deleting the truck removed only the truck colliders.
+- Decision (main): a piece with nothing visible has no collider.
+- Fix: `collidersOfVisiblePiece` in `scripts/lib/bundle.mjs` (used by `readBundlePrefab`, so migration and `--colliders-only` both): no vertex in the GLB, no colliders, with a warning. `pieces.js` edited by hand to `colliders: []` as the script would write it (the data step needs the TTS cache and AssetRipper). No file was downloaded; none of the five had a `-colliders.glb`.
+- Empty `colliders` in the app: `bundleColliderMeshes` gives no mesh entries, `urls.colliders` is null, `PrimitiveColliders` maps an empty list, so the RigidBody has no collider. No error path. Pointer handling of an invisible piece not checked.
+- Pieces with an empty GLB (all 73 bundle pieces checked): `fire-effect-small` (Will He Get Away With It), `campus-light-size-1` (Busy City Disturbed, had 5 colliders), `sea-weed-size-2` and `coral-size-1` (Sunk Ship Sheltering Sinister Secrets), `assetbundle-piece-2` Smoke (Oscorp Chemical).
+- Tests: `src/terrain/noMeshCollider.test.js` (reads every bundle GLB; empty ones have `colliders: []`, Smoke among them), `scripts/lib/bundle.test.js` (the rule). No separate cast test: with no collider the Smoke place has nothing to hit.
+- Docs: `maps.md`, `scripts/README.md`.
+
 ## Step 8: Terrain textures
 
 - Decision 8. Read `apps/web/scripts/README.md` first.
