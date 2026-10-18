@@ -133,7 +133,7 @@ Sketch, seen from the owner's seat:
 
 The whole tray is a drop target for tokens. The Give sources are outside the tray, so a token dropped on them lies on the table.
 
-- Damage and Power: `−` and `+` buttons around the value.
+- Damage and Power: `−` and `+` buttons around the value. A left click on the counter body (icon or value) adds 1, a right click takes 1, with no browser menu, as in TTS. The same limits as the buttons apply (0 to Stamina, 0 to 10). The counters and buttons are sized by one CSS variable, `--tray-counter-size` in `.tray-controls` (`index.css`), so they are easy to hit; two `10/10` counters still fit the tray width. The spectator badge shows the same counters read-only, with no click and its old size.
 - When Damage equals Stamina, the counter shows it in a warning color. The app does not add the Dazed token or flip the card.
 - Flip: turns the card to the other side and sets Damage to 0, as in TTS. The F key does the same with the pointer over the card or the model, or with the character selected (see `docs/features/key-shortcuts.md`).
 - **On** row, above the card, where TTS shows the tokens on a character: one real-size 3D token per token key, with a count badge when the count is above 1. The tokens start at the owner's left, in the order the character got them. With more than 6 tokens they overlap, so the row stays as wide as the tray. A label above a token under the pointer shows its name and the mod's description (`tDescr`). A click on a token removes one.

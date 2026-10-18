@@ -127,10 +127,27 @@ export function TrayCounters({ character, stamina, onDamage, onPower }) {
 }
 
 // A single -/value/+ counter. warn shows the value in a warning color, for Damage at Stamina.
-// Without onDec and onInc it has no buttons.
+// Without onDec and onInc it has no buttons and no click. With them, a left click on the body (icon or
+// value) adds 1 and a right click takes 1, as in TTS; no browser menu, and the table does not see it.
+// onDamage/onPower clamp (actions.js), so the click needs no limit of its own.
 function Counter({ icon, alt, label, value, max, warn = false, onDec, onInc }) {
+  const clickable = Boolean(onDec && onInc)
+  function handleClick(e) {
+    if (e.target.closest('.tray-counter-btn')) return
+    e.stopPropagation()
+    onInc()
+  }
+  function handleContextMenu(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!e.target.closest('.tray-counter-btn')) onDec()
+  }
   return (
-    <div className="tray-counter">
+    <div
+      className={`tray-counter${clickable ? ' tray-counter--click' : ''}`}
+      onClick={clickable ? handleClick : undefined}
+      onContextMenu={clickable ? handleContextMenu : undefined}
+    >
       {onDec && (
         <button
           type="button"

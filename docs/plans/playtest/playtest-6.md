@@ -73,6 +73,10 @@ User: left click on Damage adds 1, right click takes 1, no browser menu. Same on
 
 ### Result
 
+- `Counter` (`TrayControls.jsx`): left click on the body adds 1, right click takes 1 (`contextmenu` preventDefault + stopPropagation). Only with onInc and onDec; the spectator badge is unchanged. Limits come from `damage`/`power` in `actions.js` (already clamp), no new rule.
+- Size: one CSS variable `--tray-counter-size: 17px` on `.tray-controls` (`index.css`; was 14px). Icon and text follow it. The badge is outside `.tray-controls`, so it keeps the 14px fallback. Two `10/10` counters fit the 200 px tray width (about 196).
+- Docs: `character-trays.md`, Controls.
+
 ## Step 4: Counters behind models
 
 - Decision 7.

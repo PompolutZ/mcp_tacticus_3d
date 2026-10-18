@@ -121,6 +121,10 @@ body {
   gap: 4px;
   pointer-events: auto;
   user-select: none;
+  /* One size for the counters on the tray card: the -/+ button side. The icon and the text follow it.
+     The spectator badge is outside .tray-controls, so it keeps the 14px fallback. 17px makes two
+     "10/10" counters about 196 of the 200 CSS px (5in) tray width. */
+  --tray-counter-size: 17px;
 }
 
 .tray-controls-row {
@@ -169,16 +173,21 @@ body {
   padding: 1px 3px;
 }
 
+/* Clickable body (Counter in TrayControls.jsx): left click +1, right click -1. */
+.tray-counter--click {
+  cursor: pointer;
+}
+
 .tray-counter-btn {
   font: inherit;
-  font-size: 10px;
+  font-size: calc(var(--tray-counter-size, 14px) * 0.72);
   line-height: 1;
   color: var(--text);
   background: var(--panel-2);
   border: 1px solid var(--line);
   border-radius: 3px;
-  width: 14px;
-  height: 14px;
+  width: var(--tray-counter-size, 14px);
+  height: var(--tray-counter-size, 14px);
   padding: 0;
   cursor: pointer;
 }
@@ -188,8 +197,8 @@ body {
 }
 
 .tray-counter-icon {
-  width: 11px;
-  height: 11px;
+  width: calc(var(--tray-counter-size, 14px) * 0.8);
+  height: calc(var(--tray-counter-size, 14px) * 0.8);
 }
 
 .tray-counter-label {
@@ -198,10 +207,10 @@ body {
 }
 
 .tray-counter-value {
-  font-size: 10px;
+  font-size: calc(var(--tray-counter-size, 14px) * 0.68);
   color: var(--text);
   font-variant-numeric: tabular-nums;
-  min-width: 20px;
+  min-width: calc(var(--tray-counter-size, 14px) * 1.4);
   text-align: center;
 }
 
