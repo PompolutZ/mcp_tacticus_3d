@@ -45,9 +45,24 @@ export function applyCounter(character, kind, step, { onDamage, onPower }) {
   else onPower?.(character.power + step)
 }
 
+// The Damage + Power button (3D strip): `step` on both counters through the same applyCounter, so the same
+// clamps apply. A counter at its limit stays, the other still changes.
+export const BOTH_LABEL = '+1 Dmg & Pow'
+export const BOTH_TITLE = 'Add 1 Damage and 1 Power. Right click takes 1 of each.'
+export function applyBoth(character, step, handlers) {
+  applyCounter(character, 'damage', step, handlers)
+  applyCounter(character, 'power', step, handlers)
+}
+
+// The button is off when a left click would change nothing: Damage is at Stamina and Power is at its max.
+export function bothDisabled(character, stamina) {
+  const [damage, power] = trayCounters(character, stamina)
+  return damage.value >= damage.max && power.value >= power.max
+}
+
 // The part of a counter at local x (inches from its center) of a counter `width` wide: the - button on
 // the left, the + button on the right, the body between. A button is BUTTON_ZONE wide.
-export const BUTTON_ZONE = 0.52
+export const BUTTON_ZONE = 0.76
 export function counterZone(x, width) {
   if (x <= -width / 2 + BUTTON_ZONE) return 'dec'
   if (x >= width / 2 - BUTTON_ZONE) return 'inc'

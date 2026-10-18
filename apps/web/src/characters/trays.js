@@ -26,7 +26,7 @@ const TOKENS_PER_ROW = Math.floor((TRAY_WIDTH + TOKEN_GAP) / TOKEN_PITCH)
 // and the controls strip (Damage, Power, Flip, Remove, Held, see TrayControls.jsx). The Give
 // sources are not part of the tray: they lie on the table on the owner's side of it.
 const ON_DEPTH = TOKEN_SIZE + TOKEN_GAP * 2
-export const TRAY_CONTROLS_DEPTH = 1.5
+export const TRAY_CONTROLS_DEPTH = 1.75
 const TRAY_DEPTH = ON_DEPTH + TRAY_CARD_HEIGHT + TRAY_CONTROLS_DEPTH
 
 // A tray lies just above the table, like a crisis card (see crisis/layout.js, CARD_Y), so it does

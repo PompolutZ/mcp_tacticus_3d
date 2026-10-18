@@ -7,7 +7,11 @@ import { attachedCards } from '../rosters/cards.js'
 import { COUNTER_ICONS } from './trayIcons.js'
 import {
   CLICK_MOVE,
+  applyBoth,
   applyCounter,
+  BOTH_LABEL,
+  BOTH_TITLE,
+  bothDisabled,
   counterStep,
   counterZone,
   removeState,
@@ -76,6 +80,16 @@ export default function TrayStrip3D({
         />
       ))}
       {!grunt && <Chip3D el={byId.flip} text="Flip" onClick={onFlip} />}
+      {!grunt && (
+        <Chip3D
+          el={byId.both}
+          text={BOTH_LABEL}
+          disabled={bothDisabled(character, stamina)}
+          hint={BOTH_TITLE}
+          onClick={() => applyBoth(character, 1, handlers)}
+          onContext={() => applyBoth(character, -1, handlers)}
+        />
+      )}
       <Chip3D
         el={byId.remove}
         text="Remove"
@@ -195,7 +209,7 @@ function useChipTexture(width, height, look) {
 
 // A chip: Flip, Remove or a gem. hint: the text of a label above it while the pointer is over it (the
 // title of the DOM chip). disabled: faded, with the not-allowed cursor, and the click is up to onClick.
-function Chip3D({ el, text, warn = false, disabled = false, hint = null, onClick }) {
+function Chip3D({ el, text, warn = false, disabled = false, hint = null, onClick, onContext }) {
   const [hover, setHover] = useState(false)
   useHoverCursor(hover, disabled ? 'not-allowed' : 'pointer')
   const map = useChipTexture(el.w, el.h, { text, warn, disabled, hover: hover && !disabled })
@@ -215,6 +229,15 @@ function Chip3D({ el, text, warn = false, disabled = false, hint = null, onClick
           e.stopPropagation()
           if (e.delta <= CLICK_MOVE) onClick()
         }}
+        onContextMenu={
+          onContext &&
+          ((e) => {
+            if (!onTop(e)) return
+            e.stopPropagation()
+            e.nativeEvent.preventDefault()
+            if (e.delta <= CLICK_MOVE) onContext()
+          })
+        }
       />
       {hover && hint && (
         <group position={[el.x, el.y, 0.05]}>

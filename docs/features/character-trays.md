@@ -97,7 +97,7 @@ Changes that follow from this:
 
 - The card image is 1800 × 1200 px, so the card plane is 4.5" × 3".
 - Tokens on a tray are real size (0.75", see [Real-size tokens](#real-size-tokens)). A row of 6 tokens fills the 5" tray width.
-- From the mat side to the owner's side, a tray has: the **On** row of tokens (0.95"), the card (3"), and the controls strip (1.5").
+- From the mat side to the owner's side, a tray has: the **On** row of tokens (0.95"), the card (3"), and the controls strip (`TRAY_CONTROLS_DEPTH` in `trays.js`; the Damage and Power buttons are large, so they are easy to hit).
 - So a tray is 5" × 5.45" (`TRAY_WIDTH` × `TRAY_DEPTH`). A background plate under all parts is slightly larger (5.6" × 6.05"), so the tray stands out from the table. The plate ends 28.75" from the table center.
 - The **Give** sources are not part of the tray. They lie on the table on the owner's side of the plate, 0.3" from it, in 2 rows of 6 (1.6"; at most 11 sources, with the affiliation token). The second row ends 30.65" from the table center; the table edge is at 34". They move with the tray.
 - There is a 0.3" gap between two plates, and between the tactic tray and the row. Without it, two trays look like one. So trays sit 5.9" apart, center to center, and `floor((72 + 0.3) / 5.9) = 12` trays fit in the table width.
@@ -123,13 +123,15 @@ Sketch, seen from the owner's seat:
 |                                   |
 +-----------------------------------+
 | Dmg [-] 3/6 [+]  Pow [-] 4/10 [+] |   controls strip, drawn in 3D
-| [Flip]                   [Remove] |
+| [Flip]  [+1 Dmg & Pow]  [Remove] |
 | Held: [Asset]                     |
 +-----------------------------------+
   (Act)(Dazed)(Root)(Shock)             Give sources on the table: drag a new
                                         token from one; second row for 7 to 12
                                         (owner's side)
 ```
+
+The 3D strip has a **+1 Dmg & Pow** chip between Flip and Remove (not on a grunt). A left click adds 1 Damage and 1 Power, a right click takes 1 of each. It calls the same Damage and Power actions as the counters (`applyBoth` in `trayControls.js`), so the limits, the stat log and the sync are the same. A counter at its limit stays and the other still changes; the chip is faded when both are at the limit. It has a text label, not icons, so it has the look of Flip and Remove.
 
 The strip of the 3D tray is drawn in the canvas, not as DOM: each part (a counter, a chip) is a flat plane with a canvas texture, so a model that stands on the tray card hides the part behind it (a DOM element always draws on top of the canvas, and drei's `occlude` cannot hide part of it). Clicks are R3F pointer events on those planes; only the nearest hit counts, so a hidden part takes no click, and a drag that moved is not a click. The cursor and a lighter look show the part under the pointer. A hover label gives the title of Remove (also its wait text) and the card name of a gem. A texture is redrawn only when its value or hover changes; Flip, Remove and gem chip textures are shared by all trays. The other player's tray looks and works the same. The popup and the Streamer badge stay DOM: there is no model to hide them.
 
@@ -349,7 +351,7 @@ A grunt is a minion that comes with a host: Hand Ninjas (Elektra, Shadowland Dar
 - **Spawn:** when a host spawns, one character per grunt spawns with it, in the same state update: from the Library, from the roster popup and with a squad reveal. The grunt is a normal entry of `characters` with `host: <host id>` (`newCharacters` in `newCharacter.js`). So Damage, tokens, the model, P2P sync and the room preload work as for any character. The host stays first in the list.
 - **Not in the Library list.** Jarvis gives a grunt no MCT code, so a grunt is not a row of the Library or of a roster. `characters.js` keeps the grunt rows of a host in `grunts`, and finds the stats in the Jarvis row of the same name.
 - **Card size:** a grunt card image is portrait, 808 × 1404 px, not 3:2 like a character card. It is drawn 2.75" wide and 4.78" high (`GRUNT_CARD_WIDTH` and `GRUNT_CARD_HEIGHT` in `trays.js`), the width of a crisis card, whose image (800 × 1400) is the same shape. TTS spawns it as a custom card with scale 1.5 (`setupGruntOne` in the Red Tray Spawner). The crisis card scale is not recorded in the repo, so the equal size is a choice by image shape, not a measured TTS value.
-- **Card on the host tray:** the grunt card lies on the tray of its host, below the host card(s) and the controls strip. It has its own "On" row above it (as wide as the card) and its own controls strip below it. The tray grows toward the owner by the depth of a grunt unit: On row, card and controls strip, 7.2", and a gap. The grunt has no tray of its own and no place in the row: it has the position of its host (`layoutTrays`).
+- **Card on the host tray:** the grunt card lies on the tray of its host, below the host card(s) and the controls strip. It has its own "On" row above it (as wide as the card) and its own controls strip below it. The tray grows toward the owner by the depth of a grunt unit: On row, card and controls strip, and a gap. The grunt has no tray of its own and no place in the row: it has the position of its host (`layoutTrays`).
 - **Sandman:** his 2 grunt cards lie side by side, 2.85" apart (card width and a gap), the first under the host card. His plate is 7.3" wide, wider toward the owner's right, and the host card, the "On" row and the Give sources keep their places. The trays after it move on, and the row stays centered (`layoutTrays`).
 - **Popups:** the tray popup sizes a grunt card by its own aspect and by the viewport height, so the card and the controls stay on the screen. The roster popup shows a grunt variant at the height of a character card, centered in its slide. The card popup of an Alt peek shows the image at its own shape, within the viewport.
 - **Model:** the grunt model spawns on its card, and moves with the tray like any model on the tray area.

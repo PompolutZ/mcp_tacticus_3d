@@ -1,9 +1,11 @@
+import { BOTH_LABEL } from './trayControls.js'
+
 // Layout of the controls strip of a 3D tray (TrayStrip3D.jsx), in inches. Plain module, no React.
 // Local x is to the right, y is up on the card (toward the mat), the origin is the strip center. The
 // sizes follow the DOM controls (index.css, .tray-controls) at 40 CSS px per inch.
 
 export const COUNTER_W = 2.3
-export const COUNTER_H = 0.55
+export const COUNTER_H = 0.8
 export const CHIP_H = 0.34
 const GAP_X = 0.15
 const GAP_Y = 0.08
@@ -14,7 +16,7 @@ export function chipWidth(text) {
 }
 
 // Rows from the top: the counters (Damage left, Power right; a grunt has Damage only), one chip per attached
-// card (gems: their labels), and Flip left with Remove right (a grunt has Remove only, centered). The block
+// card (gems: their labels), and Flip left, the Damage + Power button in the middle (not a grunt) and Remove right (a grunt has Remove only, centered). The block
 // is centered in the strip. Returns { elements: [{ id, kind: 'counter' | 'chip', x, y, w, h }], width, height }.
 export function stripLayout({ grunt = false, gems = [] }) {
   const counters = grunt ? ['damage'] : ['damage', 'power']
@@ -65,6 +67,15 @@ export function stripLayout({ grunt = false, gems = [] }) {
       x: -rowWidth / 2 + flipW / 2,
       y,
       w: flipW,
+      h: CHIP_H,
+    })
+  if (!grunt)
+    elements.push({
+      id: 'both',
+      kind: 'chip',
+      x: 0,
+      y,
+      w: chipWidth(BOTH_LABEL),
       h: CHIP_H,
     })
   elements.push({

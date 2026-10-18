@@ -37,3 +37,9 @@ test('Flip is on the left and Remove on the right', () => {
   assert.ok(byId.flip.x < 0 && byId.remove.x > 0)
   assert.ok(byId.damage.x < byId.power.x)
 })
+
+test('the Damage + Power button is between Flip and Remove, and a grunt has none', () => {
+  const byId = Object.fromEntries(stripLayout({}).elements.map((e) => [e.id, e]))
+  assert.ok(byId.flip.x < byId.both.x && byId.both.x < byId.remove.x)
+  assert.ok(!stripLayout({ grunt: true }).elements.some((e) => e.id === 'both'))
+})
