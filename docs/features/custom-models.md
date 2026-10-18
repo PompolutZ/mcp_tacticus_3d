@@ -162,6 +162,12 @@ The list exists because `migrate-characters.mjs` would convert the TTS model aga
 - **Other pieces.** The script writes a GLB file only. It does not add a piece to `pieces.js`. A character gets its model by the copy above.
 - **Choosing the front.** A `--turn <degrees>` option could turn the model so its front faces the right way. It is not built yet.
 - **Base height.** The team color covers 3 mm for every base. A `--base-height` option could cover the whole rim of a thicker real base. It is not built yet.
+- **More detail in the scan.** `--triangles` is only an upper limit. Object Capture writes fewer triangles when the photos show less detail, so a higher `--triangles` alone often changes nothing. Ideas to test on one model, to compare with the current scan:
+  1. Better photos, no code change: full-size iPhone HEIC instead of 1600 × 1200, and more photos. The whole figure stays in every photo, as in [How to take the photos](#how-to-take-the-photos), because close-ups added a blob in the test.
+  2. `featureSensitivity = .high` in `object-capture.swift`. Object Capture then looks harder for detail on smooth or plain surfaces, for example painted figures. Runs are slower.
+  3. Ask Object Capture for its full-detail mesh, then reduce it to exactly `--triangles` with gltf-transform `simplify` (meshoptimizer). The count is then always the given one, and the script controls how the mesh is reduced.
+
+  For a figure, the texture can change the look more than the triangles. Character models use `--texture 1024`, the limit in `scripts/lib/convert.mjs`.
 
 ## Decisions
 
