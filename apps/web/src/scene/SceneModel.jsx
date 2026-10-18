@@ -4,6 +4,7 @@ import { modelUrls } from '../characters/modelUrls.js'
 import SpectatorBadge from '../ui/SpectatorBadge.jsx'
 import { BASE_DIAMETER } from '../characters/files.js'
 import { characterName, characterStamina } from '../characters/characters.js'
+import { modelLabel } from '../characters/modelLabel.js'
 import { modelCardFile } from '../characters/models.js'
 import { modelKey } from '../characters/claims.js'
 import { overlapsAny } from '../characters/overlap.js'
@@ -109,13 +110,14 @@ function SceneModel({ model, spawn, claims, spectator, held, ctx }) {
       />
     )
   }, [spectator, model, held])
+  const label = useMemo(() => modelLabel(model, characterName(model.character.key)), [model])
   const urls = useMemo(() => modelUrls(model), [model])
   return (
     <Suspense fallback={null}>
       {urls.standee ? (
-        <StandeeModel urls={urls.standee} {...props} overlay={overlay} />
+        <StandeeModel urls={urls.standee} {...props} overlay={overlay} label={label} />
       ) : (
-        <CharacterModel url={urls.gltf} {...props} overlay={overlay} />
+        <CharacterModel url={urls.gltf} {...props} overlay={overlay} label={label} />
       )}
     </Suspense>
   )

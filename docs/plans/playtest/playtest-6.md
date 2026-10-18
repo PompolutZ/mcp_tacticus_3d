@@ -62,6 +62,8 @@ User: hover a model: after 1 s its name shows. Leave it: gone. Drag it: no label
 
 ### Result
 
+New `characters/modelLabel.js` (`NAME_LABEL_DELAY` 1 s, `modelLabel(model, name)`) and its test: card 1 or spare model shows the name, a second-card model shows `Name (Form)` from `secondForm`, else the name. `SceneModel.jsx` passes `label`. `CharacterModel.jsx`: local timer state, label with `OccludedHtml` and `.terrain-label` at `modelTop`; leaving or a drag hides it at once. Docs: `key-shortcuts.md` (Hover). Checks: format, lint (40 warnings before and after), typecheck, test (1063 web pass), build ok.
+
 ## Step 3: Counters by click, bigger
 
 - Decision 6. `Counter` in `characters/TrayControls.jsx` and its CSS.

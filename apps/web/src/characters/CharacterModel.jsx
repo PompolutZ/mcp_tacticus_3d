@@ -35,6 +35,8 @@ import { useModelLift } from '../scene/useModelLift.js'
 import { useLandingSound } from './useLandingSound.js'
 import { useModelFollow } from '../scene/useModelFollow.js'
 import { useFigureMaterials } from './useFigureMaterials.jsx'
+import { OccludedHtml } from '../scene/LabelOcclusion.jsx'
+import { NAME_LABEL_DELAY } from './modelLabel.js'
 import { useRenderCount } from '../debug/renderCount.js'
 import { useTableStore } from '../table/TableStoreContext.jsx'
 import {
@@ -57,6 +59,9 @@ const SETTLE_TURN = (2 * Math.PI) / 180
 // Same density for every model, so the mass follows the base size
 const BASE_DENSITY = 5
 // TTS drag of every object
+// Style of a label that takes no pointer
+const NO_POINTER = { pointerEvents: 'none' }
+
 const LINEAR_DAMPING = 0.1
 // TTS angular drag is 0.1, but the TTS base is a 32-sided prism. It loses energy each time it rolls over
 // an edge of the prism. This base is a round cylinder, which rolls on its rim without losing energy,
@@ -188,6 +193,7 @@ function standeeScene(front, back, radius) {
 // the same as position. A model of a saved room starts at its saved pose, asleep (docs/features/rooms.md).
 // overlay(top): optional, what moves with the model above it (SpectatorBadge.jsx). top: height of the
 // model top above the base bottom, in inches.
+// label: the name that shows over the model after the pointer stays on it (modelLabel.js), or undefined for none.
 function CharacterFigure({
   scene,
   position = [0, 0, 0],
@@ -208,6 +214,7 @@ function CharacterFigure({
   onDragEnd,
   constrainDrag,
   overlay,
+  label,
   claimKey,
   ownership,
 }) {
@@ -242,6 +249,18 @@ function CharacterFigure({
   const showOverlap = overlap || dragOverlap
   // Mounts the footprint of the base during a drag
   const [dragging, setDragging] = useState(false)
+  // The name label shows after the pointer stays on the model NAME_LABEL_DELAY. A drag or leaving the model hides it
+  // at once (the cleanup) and cancels the timer. The state is local, so only this model renders.
+  const [nameShown, setNameShown] = useState(false)
+  const nameWanted = hovered && !dragging
+  useEffect(() => {
+    if (!nameWanted) return undefined
+    const timer = setTimeout(() => setNameShown(true), NAME_LABEL_DELAY)
+    return () => {
+      clearTimeout(timer)
+      setNameShown(false)
+    }
+  }, [nameWanted])
   // Pose the model has stayed close to, and for how long: { t, r, time }. See SETTLE_TIME.
   const rest = useRef(null)
   // The remote prop for the closures that are made once (toggleLift)
@@ -590,6 +609,17 @@ function CharacterFigure({
         <DragFootprint getShape={footprintShape} getApart={() => dragOverlap} />
       )}
       {overlay?.(top)}
+      {label && nameWanted && nameShown && (
+        <OccludedHtml
+          position={[0, top, 0]}
+          center
+          style={NO_POINTER}
+          zIndexRange={[100, 0]}
+          className="terrain-label"
+        >
+          {label}
+        </OccludedHtml>
+      )}
     </RigidBody>
   )
 }
