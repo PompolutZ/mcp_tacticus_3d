@@ -26,6 +26,8 @@ export function useToolLimits({
   onPlaceLimit,
   limitTaken = false,
   onLimitOn,
+  // follow(model, p): a range tool turns to aim at the dragged locked piece (Place, Place 1), see Tool
+  follow,
 }) {
   // While Place is on: the far end at the time Place turned on. The Place button stays there.
   // Off: null. While Place is on, the locked character keeps its base touching the footprint.
@@ -47,7 +49,7 @@ export function useToolLimits({
   const [throwLock, setThrowLock] = useState(null)
   const throwing = selected && throwLock !== null
   // The handlers the effects below call, and the models: read when asked, they do not restart a limit
-  const now = useLatest({ models, onPlaceLimit, onLimitOn, rigidRef, world, rapier })
+  const now = useLatest({ models, onPlaceLimit, onLimitOn, rigidRef, world, rapier, follow })
 
   // Place and Place 1 lock (decision: the first character that touches the outline, or comes within
   // range 1, during a drag). The lock stays until Place turns off. A change of Place / Place 1 clears it.
@@ -77,6 +79,8 @@ export function useToolLimits({
       },
       clamp(p, model) {
         if (!rigidRef.current) return
+        // A range tool turns to aim at the piece first, then the piece is cut to the turned outline
+        now.current.follow?.(model, p)
         const spot = placeClamp(shape(), tip, halfWidth, p, model.radius)
         p.x = spot.x
         p.z = spot.z
@@ -108,6 +112,7 @@ export function useToolLimits({
       clamp(p, model) {
         const c = target.getCenter()
         if (!c) return
+        now.current.follow?.(model, p)
         const spot = clampRange(c, p, reachOf(model))
         p.x = spot.x
         p.z = spot.z

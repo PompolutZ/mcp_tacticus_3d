@@ -14,7 +14,7 @@ import { useToolLimits } from './useToolLimits.js'
 import { useToolStore } from './useToolStore.js'
 import { useFootprintGround } from './useFootprintGround.js'
 import { ToolFootprint, RangeMark } from './ToolFootprint.jsx'
-import { aimTurn } from './aimTurn.js'
+import { aimTurn, aimDir, followPose } from './aimTurn.js'
 import { toolAction } from './toolInput.js'
 import { useRangeParts, useMovementParts, hullPoints } from './ToolParts.jsx'
 import { FlatHtml, ToolButton, BendButton } from './ToolButtons.jsx'
@@ -224,6 +224,24 @@ function Tool({
   const { rapier } = useRapier()
   const hulls = useMemo(() => parts.map((part) => hullPoints(part.obj)), [parts])
 
+  // A range tool follows the locked piece (docs/features/range-movement-tools.md, "Place"): while a locked
+  // piece that is not the snapped one is dragged to point p, the tool turns around the snapped base to aim
+  // at p, the same pose as the aim turn. Sets the live body, so the store and the other player see it as
+  // any turn. Not a movement or angle tool: their shape is the path of the move.
+  function followPiece(model, p) {
+    const rb = liveRb()
+    if (!rb || !snap || bendable || angle || sameModel(model, snap.target)) return
+    const pivot = snap.target.getCenter()
+    if (!pivot) return
+    const placed = followPose(toolPose(rb), aimDir(snap, rangeOne), pivot, p)
+    const ground = groundY(placed.x, placed.z, placed.yaw)
+    rb.setTranslation(
+      { x: placed.x, y: ground === null ? rb.translation().y : ground + hoverHeight, z: placed.z },
+      true,
+    )
+    rb.setRotation(yawQuat(placed.yaw), true)
+  }
+
   function partTurn(part) {
     return part.side ? turn[part.side] : 0
   }
@@ -280,9 +298,7 @@ function Tool({
           const over = measuredRef.current
           if (over) {
             // The direction from the base into the tool: along the tool, or across it on R1
-            const dir = rangeOne
-              ? { x: 0, z: -(snap.across ?? 1) }
-              : { x: snappedSide === 'left' ? 1 : -1, z: 0 }
+            const dir = aimDir(snap, rangeOne)
             const aimed = turnAround(base, pivot, aimTurn(base.yaw, dir, pivot, over.getCenter()))
             rebase = { pose: aimed, d }
             return aimed
@@ -522,6 +538,7 @@ function Tool({
     onPlaceLimit,
     limitTaken,
     onLimitOn,
+    follow: followPiece,
   })
 
   // Angle tool, snapped: move the tool to the other side of the base, the same angle turned half

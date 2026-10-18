@@ -110,6 +110,14 @@ User: snap R1 to a model, Place 1 on, drag a token around the model: the tool tu
 
 ### Result
 
+- `aimTurn.js`: new `aimDir(snap, rangeOne)` (direction from base into the tool; `RulerTool` aim turn now uses it) and `followPose(pose, dir, pivot, p)` (aim turn pose; unchanged when p is on the base center).
+- `RulerTool.jsx`: `followPiece(model, p)` sets the live body (same write as a Q/E base turn, so store and LiveSync see it as any turn). Range tools only (no bend, no angle), snapped, locked piece not the snapped one. Passed to `useToolLimits` as `follow`.
+- `useToolLimits.js`: Place and Place 1 `clamp` call `follow` first, then cut p with the turned pose (`placeClamp` / `clampRange`, no new geometry). Place 1 limit is still range 1 from the snapped center.
+- Aims at the drag point p (the pointer-limited point), not the previous-frame center.
+- Tests (`aimTurn.test.js`): R1 width points at piece and touches base; range tool aims, cut base touches outline at full reach; piece on base center no turn. Locked == snapped and movement tool are early returns in `followPiece` (component, not unit tested).
+- Docs: `range-movement-tools.md` (Place, Range 1).
+- Checks: format, lint (40 warnings before and after), typecheck, test, build ok.
+
 ## Step 7: Throw stops midway
 
 - Decision 5. Find the cause with a headless test, then fix it. If a deleted piece leaves a collider, the test checks that the Throw line passes the old place.
