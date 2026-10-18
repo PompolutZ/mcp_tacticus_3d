@@ -5,6 +5,12 @@
   "bastion": {
     "characters/bastion/model.glb": "pnpm --filter web photos-to-glb \"<Bastion 2nd photos>\" --base small --texture 1024 --tone medium"
   },
+  "hawkeye": {
+    "characters/hawkeye/model.glb": "pnpm --filter web photos-to-glb \"<Hawkeye photos>\" --base small --texture 1024 --tone medium --triangles 60000"
+  },
+  "lockjaw": {
+    "characters/lockjaw/model.glb": "pnpm --filter web photos-to-glb \"<Lockjaw photos>\" --base medium --texture 1024 --tone medium --triangles 60000"
+  },
   "moondragon": {
     "characters/moondragon/model.glb": "pnpm --filter web photos-to-glb \"<Moondragon photos>\" --base medium --texture 1024 --tone medium"
   },
@@ -13,6 +19,9 @@
   },
   "star-lord": {
     "characters/star-lord/model.glb": "pnpm --filter web photos-to-glb \"<Star-Lord photos>\" --base small --texture 1024"
+  },
+  "thor-prince-of-asgard": {
+    "characters/thor-prince-of-asgard/model.glb": "pnpm --filter web photos-to-glb \"<Thor, Prince of Asgard photos>\" --base small --texture 1024 --tone medium --triangles 60000"
   },
   "valkyrie": {
     "characters/valkyrie/model.glb": "pnpm --filter web photos-to-glb \"<Valkyrie photos>\" --base small --texture 1024 --tone medium"
