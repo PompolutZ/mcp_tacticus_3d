@@ -167,3 +167,38 @@ User: Oscorp Chemical Pipes and Sand Scrap Barrel show textures. Dockyard Destru
 - Steps for the user (no download; mod CDN not touched): 1. `pnpm --filter web migrate-terrain` re-run for the 4 pieces only, after the fix: `--force` on Hells Kitchen, Swing Into Action, Oscorp Chemical, Sand Scrap (the other maps reuse the piece files). 2. Commit the 4 GLBs and the manifest. If the user prefers, the coder can do the fix and the run in one step; AssetRipper must be in `apps/web/tools/` of the worktree (it is only in the main dir now; a symlink works).
 - `campus-light-size-1` (Busy City Disturbed): a broken export, not decor. The prefab `Test_Lamp_Prefab` has 5 `MeshFilter` + 5 `MeshRenderer` (a lamp post of 4 cylinders and 1 cube, with `Metal_Material` and `Light_Material`) and a Light. Their meshes are Unity built-in primitives (fileID 10206 Cylinder, 10202 Cube, guid `0000000000000000e000...`), which AssetRipper cannot write to GLB, so the GLB has no vertex. The colliders (4 capsule + 1 box) match the lamp, so Step 7 dropped real solid colliders of a visible piece. Same loss on `street-light-size-1-20` (2 of its 5 mesh parts are built-in primitives: Cylinder and Capsule, missing in the GLB). Smoke (`assetbundle-piece-2`) and `fire-effect-small` have a built-in Cube mesh next to a `ParticleSystem`: decor effects, as Step 7 assumed.
 - Proposal (not done, needs OK): a loader step that reads built-in `MeshFilter` meshes in `lib/unity-prefab.mjs` and adds Unity's primitive geometry (cube 1, cylinder radius 0.5 height 2, capsule radius 0.5 height 2) with the node transform and the `.mat` color to the GLB. This fixes the Campus Light and the street light. Then Step 7's empty-piece rule leaves Campus Light and its 5 colliders back.
+
+## Step 9: Unity built-in primitive meshes
+
+Request (user, 2026-10-18): "yes, add step 9", after the Step 8 finding. `campus-light-size-1` (Busy City Disturbed) is a lamp made of Unity built-in primitives (4 cylinders, a cube). AssetRipper writes those meshes as JSON with no geometry, so the GLB is empty and Step 7 dropped its 5 colliders. `street-light-size-1-20` loses 2 of its 5 parts (a cylinder, a capsule) the same way. Smoke (`assetbundle-piece-2`) and `fire-effect-small` are particle effects and stay decor with no collider.
+
+- In `scripts/lib/unity-prefab.mjs`, a MeshFilter that points at a Unity built-in mesh (cube, cylinder, capsule, sphere, quad, plane) gets the Unity primitive geometry, with the MeshRenderer material, in the GLB. Generate the geometry in code, in Unity's sizes (cube 1, cylinder height 2 radius 0.5, capsule height 2 radius 0.5, sphere radius 0.5, plane 10×10, quad 1×1).
+- Re-run the migration for the pieces it changes, from the TTS cache only. Then Campus Light gets its colliders back by the Step 7 rule (it now has a mesh). Revert unrelated changes of a forced run, as in Step 8.
+- Tests: the primitive geometry (size, vertex count > 0). Guard: a piece with prefab colliders and built-in meshes has a non-empty GLB.
+- Docs: `apps/web/scripts/README.md`, `docs/features/maps.md`.
+
+User: Busy City Disturbed shows the Campus Light, and a model cannot pass through it. The street light shows all parts.
+
+### Result
+
+## Step 10: Swap two character trays
+
+Request (user, 2026-10-18): "players requested to be able to re-arrange character trays, so they able to change place between two trays".
+
+Decisions (user, 2026-10-18):
+- A player drags an own tray card and drops it on another own tray card. The two trays swap places. Today a left drag on the card turns the camera; on the card plate it becomes the swap drag.
+- The tray order is the squad order everywhere: the Streamer columns follow it.
+
+Plan for the coder:
+- The order is in the table document, so both players see it (find where the row order comes from: `layoutTrays` in `characters/trays.js`, the spawn order, `slot`).
+- During the drag: a ghost of the card or an outline of the target tray shows where it lands. Release on no own tray: nothing changes. Escape cancels.
+- A model that stands on its tray card (off the mat) moves with its tray. A model on the mat does not move. A model reads its position only once when its body mounts (`character-trays.md`), so move it the same way as Remove puts a model back.
+- Held tokens on the card, the On row, the Give sources and grunt cards move with their tray.
+- Only own trays. The other player's trays do not take the drag.
+- Clicks on the card (popup, F, hover) work as before.
+- Tests: the swap of the order (two trays, a grunt host, the first and last tray).
+- Docs: `docs/features/character-trays.md`, `docs/features/spectator-view.md` (column order).
+
+User: drag the first tray card onto the third: they swap, with their models on the cards. A model on the mat stays. The other browser sees the same order. Streamer columns follow.
+
+### Result
