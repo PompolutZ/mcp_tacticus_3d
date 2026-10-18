@@ -11,6 +11,9 @@
   "lockjaw": {
     "characters/lockjaw/model.glb": "pnpm --filter web photos-to-glb \"<Lockjaw photos>\" --base medium --texture 1024 --tone medium --triangles 60000"
   },
+  "magneto": {
+    "characters/magneto/model.glb": "pnpm --filter web photos-to-glb \"<Magneto photos>\" --base medium --texture 1024 --tone medium --triangles 60000"
+  },
   "moondragon": {
     "characters/moondragon/model.glb": "pnpm --filter web photos-to-glb \"<Moondragon photos>\" --base medium --texture 1024 --tone medium"
   },
