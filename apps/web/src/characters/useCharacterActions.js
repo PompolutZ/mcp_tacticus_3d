@@ -111,5 +111,6 @@ export function useCharacterActions({
     handleCharacterRemove,
     handleCharacterTokenGive,
     handleCharacterTokenRemove: actions.removeToken,
+    handleCharacterSwap: actions.swap,
   }
 }

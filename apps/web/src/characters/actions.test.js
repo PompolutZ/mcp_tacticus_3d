@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import * as Y from 'yjs'
 import { createTable } from '../net/doc.js'
 import { createCharacterActions } from './actions.js'
+import { layoutTrays } from './trays.js'
 
 const char = (id, patch = {}) => ({
   id,
@@ -134,4 +135,23 @@ test('removeToken counts down and deletes the key at 0', () => {
   assert.deepEqual(one(table, 'c').tokens, {})
   actions.removeToken('c', 'power')
   assert.equal(logs.length, 2)
+})
+
+test('swap: the order in the document changes, so the Streamer column order and the tray places follow', () => {
+  const { table, actions } = charTable([
+    char('a'),
+    char('x', { team: 'guest' }),
+    char('b'),
+    char('c'),
+  ])
+  actions.swap('a', 'c')
+  const column = (team) =>
+    table.characters
+      .read()
+      .filter((ch) => ch.team === team)
+      .map((ch) => ch.id)
+  assert.deepEqual(column('host'), ['c', 'b', 'a'])
+  assert.deepEqual(column('guest'), ['x'])
+  const place = layoutTrays(table.characters.read())
+  assert.ok(place.get('c')[0] < place.get('b')[0] && place.get('b')[0] < place.get('a')[0])
 })

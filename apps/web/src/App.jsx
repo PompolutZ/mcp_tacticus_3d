@@ -355,6 +355,7 @@ export default function App({
     handleCharacterRemove,
     handleCharacterTokenGive,
     handleCharacterTokenRemove,
+    handleCharacterSwap,
   } = useCharacterActions({
     table,
     room,
@@ -749,6 +750,7 @@ export default function App({
       flip: handleCharacterFlip,
       offBoard: handleCharacterOffBoard,
       removeToken: handleCharacterTokenRemove,
+      swap: handleCharacterSwap,
     },
     phases: {
       power: handlePowerPhase,

@@ -101,7 +101,7 @@ Changes that follow from this:
 - So a tray is 5" × 5.45" (`TRAY_WIDTH` × `TRAY_DEPTH`). A background plate under all parts is slightly larger (5.6" × 6.05"), so the tray stands out from the table. The plate ends 28.75" from the table center.
 - The **Give** sources are not part of the tray. They lie on the table on the owner's side of the plate, 0.3" from it, in 2 rows of 6 (1.6"; at most 11 sources, with the affiliation token). The second row ends 30.65" from the table center; the table edge is at 34". They move with the tray.
 - There is a 0.3" gap between two plates, and between the tactic tray and the row. Without it, two trays look like one. So trays sit 5.9" apart, center to center, and `floor((72 + 0.3) / 5.9) = 12` trays fit in the table width.
-- The row is centered on the middle line of the table. One tray sits on the line. Two trays sit one on each side of the line, and so on. The order is the spawn order, from the owner's left.
+- The row is centered on the middle line of the table. One tray sits on the line. Two trays sit one on each side of the line, and so on. The order is the spawn order, from the owner's left, until a player swaps two trays (see [Swap trays](#swap-trays)).
 - So every tray of a player moves when that player adds or removes a character. A removed character's tray leaves the row, and the row closes the gap. The same happens in TTS.
 - The card faces the owner and sits on the mat side of the tray; the controls strip sits on the owner's side, away from the mat. For the host, the top of the card image points to −z, the same as a crisis card (`CrisisCard.jsx`). A guest tray is turned by 180°.
 - A tray has no collider. Models and dice do not touch it.
@@ -144,6 +144,16 @@ The whole tray is a drop target for tokens. The plate under a tray's strip is th
 ### Models face the mat
 
 A model that spawns on its card, and one that goes back to it (Remove), faces the mat. A host model and a guest model start 180 deg apart. The TTS tray turns a model by the tray rotation + 180 + the character's `cModelRot`; a standee gets no `cModelRot`. The tray rotation is 180 for the mod's Red seat (the app's host side) and 0 for Blue. A TTS Y rotation `r` is `-r` in Three.js. The tray part (tray rotation + 180) is the start turn of the body, so Q / E and the stored pose include it. The `cModelRot` part is the turn of the figure on its body, plus the 180 deg import turn of the mod GLBs (`IMPORT_ROTATION` in `Terrain.jsx`). A stored pose keeps its own turn. The second model has the first model's `cModelRot`. See `src/characters/models.js`. One exception in TTS is not built: Ant-Man, Captain Marvel Cosmic Avenger and Emma Frost (`twoCards` with `newCard`) spawn their models with the tray rotation + 90 and no `cModelRot`.
+
+### Swap trays
+
+A player re-arranges the row by dragging the card of an own tray onto another own tray: the two trays swap places. Each tray keeps its grunts, held tokens, On row and Give sources, because they derive from the tray's place.
+
+- Left press on a card (a grunt card too, which drags its host's tray), then a move past the click threshold starts the drag. A press that does not move is a click: the popup, F and hover work as before. The 3D strip parts, the held tokens and the model keep their own clicks. The camera controls are off during the drag, as for a token drag.
+- The dragged tray's card is outlined as selected. The own tray under the pointer gets a green outline of its plate. A release on it swaps. A release on no own tray (the table, the other player's tray, the HUD) changes nothing. Esc cancels.
+- Only own trays react (`playedSides`): the other player's card takes no drag and no drop, and a left drag on it turns the camera as before. A tray swaps only with a tray of the same player.
+- The order is the order of the character list in the table document (`layoutTrays` reads it; `swapTrays` in `trays.js`, the `characters.swap` action). So the other browser sees the new order, and the Streamer columns follow it (`docs/features/spectator-view.md`). A host and its grunts move as one block.
+- A model that stands on its tray (`inTrayArea`) moves with the tray, the same as when the row shifts after a spawn or a Remove of a character (`Scene.jsx`). A model on the mat stays. Each browser moves the models of its own player.
 
 ## Attached cards
 

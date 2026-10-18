@@ -1,5 +1,6 @@
 import { Suspense, memo, useCallback, useRef, useState } from 'react'
 import { UI_COLORS } from '../uiColors.js'
+import { startPointerDrag } from '../drag/pointerDrag.js'
 import { DoubleSide } from 'three'
 import { assetUrl } from '../assets/index.js'
 import { trayCardFile } from './files.js'
@@ -84,7 +85,23 @@ export default memo(function CharacterTray({
     (obj) => (obj ? objects.current.set(character.id, obj) : objects.current.delete(character.id)),
     [objects.current, character.id],
   )
+  // The plate is also the outline target of a tray swap drag (below)
+  const plateRef = useRef()
+  const setPlate = useCallback(
+    (obj) => {
+      plateRef.current = obj
+      objectRef(obj)
+    },
+    [objectRef],
+  )
   const actions = useTableStore((s) => s.actions)
+  const table = useTableStore((s) => s.table)
+  const playedSides = useTableStore((s) => s.playedSides)
+  const controlsRef = useTableStore((s) => s.controlsRef)
+  // Swap drag (startSwap): this tray is the dragged one, or the own tray under the pointer
+  const swapId = character.host ?? character.id
+  const swapDragged = useTableStore((s) => s.trayDrag?.id === swapId)
+  const swapTarget = useTableStore((s) => !character.host && s.trayDrag?.over === character.id)
   // The tray card shows the selection of its character's model too
   const selected = useTableStore((s) =>
     s.selection.some((p) => p.kind === 'character' && modelCharacterId(p.id) === character.id),
@@ -120,8 +137,42 @@ export default memo(function CharacterTray({
     actions.onTrayOpen(character.id)
   }
 
-  // Selected or under the pointer. A click on the card opens the popup.
-  useOutline(cardRef, outlineMode(selected, cardHovered))
+  // Left press on the card of an own tray: a drag onto another own tray swaps the two trays (docs/features/
+  // character-trays.md, "Swap trays"). A press that does not move is a click (popup). The camera is off during the
+  // press. The target is the tray plate under the pointer (characterAt), of the same player. Esc cancels.
+  function startSwap(e) {
+    if (e.button !== 0 || !playedSides.includes(character.team)) return
+    e.stopPropagation()
+    const targetAt = (ev) => {
+      if (!document.elementFromPoint(ev.clientX, ev.clientY)?.closest('.scene-root')) return null
+      const found = actions.findCharacterAt(ev.clientX, ev.clientY, { models: false })
+      const list = table.characters.read()
+      const hit = list.find((c) => c.id === found)
+      const hostId = hit?.host ?? hit?.id
+      const host = list.find((c) => c.id === hostId)
+      return host && host.id !== swapId && host.team === character.team ? host.id : null
+    }
+    startPointerDrag(e.nativeEvent, {
+      controls: controlsRef.current,
+      canvas: e.nativeEvent.target,
+      onStart: () => actions.setTrayDrag({ id: swapId, over: null }),
+      onMove: (ev) => {
+        const over = targetAt(ev)
+        actions.setTrayDrag((prev) => (prev && prev.over !== over ? { ...prev, over } : prev))
+      },
+      onEnd: (ev) => {
+        const over = targetAt(ev)
+        actions.setTrayDrag(null)
+        if (over) actions.characters.swap(swapId, over)
+      },
+      onCancel: () => actions.setTrayDrag(null),
+    })
+  }
+
+  // Selected or under the pointer. A click on the card opens the popup. The tray under a swap drag is
+  // selected, the target is green.
+  useOutline(cardRef, outlineMode(selected || swapDragged, cardHovered))
+  useOutline(plateRef, swapTarget ? 'inRange' : null)
   useHoverCursor(cardHovered, 'pointer')
 
   // onCardHover(true) while the pointer is over the card, onCardHover(false) after. The cleanup also
@@ -169,7 +220,7 @@ export default memo(function CharacterTray({
         <mesh
           position={[plate.x, TRAY_BG_Y, plate.z]}
           rotation={[-Math.PI / 2, 0, 0]}
-          ref={objectRef}
+          ref={setPlate}
         >
           <planeGeometry args={[plate.width, plate.depth]} />
           <meshStandardMaterial color={UI_COLORS.trayPlate} roughness={1} />
@@ -185,6 +236,7 @@ export default memo(function CharacterTray({
               position={[0, 0, isGrunt ? GRUNT_CARD_LOCAL_Z : trayCardLocalZ(n)]}
               rotation={[-Math.PI / 2, 0, 0]}
               onClick={openPopup}
+              onPointerDown={startSwap}
               onPointerOver={(e) => {
                 e.stopPropagation()
                 setHoveredCard(n)

@@ -21,6 +21,7 @@ import {
   trayHeldWorld,
   trayPlate,
   trayPosition,
+  swapTrays,
   trayShapeOf,
 } from './trays.js'
 
@@ -218,4 +219,52 @@ test('trayShapeOf: a host, a grunt (slot and index), a grunt whose host is gone'
     index: 0,
     slot: trayGruntSlot(1, 0),
   })
+})
+
+test('swapTrays: first and last trays swap places, the middle one stays', () => {
+  const list = [char('a'), char('b'), char('c')]
+  const next = swapTrays(list, 'a', 'c')
+  assert.deepEqual(
+    next.map((ch) => ch.id),
+    ['c', 'b', 'a'],
+  )
+  const before = layoutTrays(list)
+  const after = layoutTrays(next)
+  assert.deepEqual(after.get('c'), before.get('a'))
+  assert.deepEqual(after.get('a'), before.get('c'))
+  assert.deepEqual(after.get('b'), before.get('b'))
+  // The order of the arguments does not matter
+  assert.deepEqual(swapTrays(list, 'c', 'a'), next)
+})
+
+test('swapTrays: a host keeps its grunts, which follow its tray', () => {
+  const list = [char('a'), char('ga', 'host', 'a'), char('b'), char('gb', 'host', 'b'), char('c')]
+  const next = swapTrays(list, 'a', 'b')
+  assert.deepEqual(
+    next.map((ch) => ch.id),
+    ['b', 'gb', 'a', 'ga', 'c'],
+  )
+  assert.deepEqual(gruntsByHost(next).get('a'), [list[1]])
+  // Grunt and host share a tray position, and it is the position of the new place
+  const after = layoutTrays(next)
+  assert.deepEqual(after.get('ga'), after.get('a'))
+  assert.ok(after.get('b')[0] < after.get('a')[0] && after.get('a')[0] < after.get('c')[0])
+  // A host with 2 grunts and a host with none
+  const wide = [char('a'), char('g1', 'host', 'a'), char('g2', 'host', 'a'), char('b')]
+  assert.deepEqual(
+    swapTrays(wide, 'a', 'b').map((ch) => ch.id),
+    ['b', 'a', 'g1', 'g2'],
+  )
+})
+
+test('swapTrays: the other player keeps its places; a grunt, another player, an unknown id change nothing', () => {
+  const list = [char('a'), char('x', 'guest'), char('ga', 'host', 'a'), char('b')]
+  assert.deepEqual(
+    swapTrays(list, 'a', 'b').map((ch) => ch.id),
+    ['b', 'x', 'a', 'ga'],
+  )
+  assert.equal(swapTrays(list, 'a', 'x'), list)
+  assert.equal(swapTrays(list, 'a', 'ga'), list)
+  assert.equal(swapTrays(list, 'a', 'a'), list)
+  assert.equal(swapTrays(list, 'a', 'zz'), list)
 })

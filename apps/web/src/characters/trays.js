@@ -325,6 +325,26 @@ export function layoutTrays(characters) {
   return positions
 }
 
+// The characters with the trays of hosts `idA` and `idB` swapped: the order of `characters` is the order of the
+// row (layoutTrays), so each tray moves with its grunts to the place of the other. Both must be hosts of the same
+// player; else the same array comes back. Characters of the other player keep their places.
+export function swapTrays(characters, idA, idB) {
+  const a = characters.find((ch) => ch.id === idA)
+  const b = characters.find((ch) => ch.id === idB)
+  if (!a || !b || a === b || a.host || b.host || a.team !== b.team) return characters
+  const unit = (host) => characters.filter((ch) => ch === host || ch.host === host.id)
+  const unitA = unit(a)
+  const unitB = unit(b)
+  const slots = characters.flatMap((ch, i) => (unitA.includes(ch) || unitB.includes(ch) ? [i] : []))
+  const aFirst = characters.indexOf(a) < characters.indexOf(b)
+  const filler = aFirst ? [...unitB, ...unitA] : [...unitA, ...unitB]
+  const next = [...characters]
+  slots.forEach((slot, i) => {
+    next[slot] = filler[i]
+  })
+  return next
+}
+
 // True when a table point { x, z } is on the background plate of a tray with `cards` cards at
 // `trayPos` (from trayPosition).
 export function onTray(team, trayPos, point, cards, grunts = 0) {

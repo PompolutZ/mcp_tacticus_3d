@@ -213,3 +213,10 @@ Plan for the coder:
 User: drag the first tray card onto the third: they swap, with their models on the cards. A model on the mat stays. The other browser sees the same order. Streamer columns follow.
 
 ### Result
+
+- Order: the order of `table.characters` is the row order (`layoutTrays`). `swapTrays(characters, idA, idB)` in `characters/trays.js` swaps the two host blocks (host + grunts) in the list; the slots of other characters (the other player) stay. Hosts of the same player only, else no change. Action `characters.swap` (`actions.js`, wired in `useCharacterActions.js`, `App.jsx`, `tableStore.js`) writes it with `table.characters.set`, so it syncs as any character write. No new state.
+- Drag: `CharacterTray.jsx` `startSwap` on the card meshes, `startPointerDrag` (camera controls off, Esc via `cancelActiveDrag`, under 4 px is a click so the popup works). Target: `findCharacterAt(..., { models: false })` resolves the plate under the pointer, a grunt to its host, same player only. Store slice `trayDrag { id, over }`. Highlight: dragged card `selected`, target plate `inRange` (green). Own = `playedSides` of the seat; other player's cards start nothing. No ghost.
+- Models: the existing `Scene.jsx` effect moves a model by the tray's position delta when it stood in `inTrayArea` of the old place. A swap changes both trays' positions, so it covers it; no new code. Held tokens (`TokenLayer`), On row, Give sources, grunt cards and the strip derive from `trayPositions` / the tray, so they follow. Streamer columns filter `characters` by team in list order.
+- Tests: `trays.test.js` (first and last swap with the middle one fixed and the layout positions swapped; host keeps its grunts, 2 grunts, other player keeps places; invalid pairs), `actions.test.js` (swap in the document, column order, tray places).
+- Docs: `character-trays.md` ("Swap trays"), `spectator-view.md` (tray order).
+- Checks: format, lint (40 warnings, as before), typecheck, test (1090 pass), build ok. No browser.

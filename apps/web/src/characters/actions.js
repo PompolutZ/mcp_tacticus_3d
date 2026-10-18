@@ -1,4 +1,5 @@
 import { removalOf } from './models.js'
+import { swapTrays } from './trays.js'
 
 // The document writes of the characters on the table: spawn, Damage, Power, flip, off board, remove, and the
 // tokens on a character (docs/features/character-trays.md, "State"). Plain module, no React: it writes only the
@@ -141,5 +142,11 @@ export function createCharacterActions(table, lookups) {
     })
   }
 
-  return { spawn, damage, power, flip, offBoard, remove, giveToken, removeToken }
+  // Drag of a tray card onto another own tray: the two trays swap places in the row (trays.js, swapTrays). The
+  // order of the characters is the order of the row, so the other player and the Streamer columns see it too.
+  function swap(idA, idB) {
+    table.characters.set((prev) => swapTrays(prev, idA, idB))
+  }
+
+  return { spawn, damage, power, flip, offBoard, remove, giveToken, removeToken, swap }
 }

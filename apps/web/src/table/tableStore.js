@@ -90,7 +90,7 @@ const ACTION_GROUPS = {
     'browse',
     'override',
   ],
-  characters: ['spawn', 'damage', 'power', 'flip', 'offBoard', 'removeToken'],
+  characters: ['spawn', 'damage', 'power', 'flip', 'offBoard', 'removeToken', 'swap'],
   phases: ['power', 'cleanup', 'priorityClick'],
 }
 
@@ -111,6 +111,7 @@ function createActions(set) {
   actions.setSelection = setter('selection')
   actions.setSelectedTools = setter('selectedTools')
   actions.setTokenDrag = setter('tokenDrag')
+  actions.setTrayDrag = setter('trayDrag')
   actions.setToolDrag = setter('toolDrag')
   actions.setToolSpawn = setter('toolSpawn')
   actions.setAngleSpawn = setter('angleSpawn')
@@ -206,6 +207,8 @@ export function createTableStore(net, initial = {}) {
       dragPointRef: { current: null },
       toolDragPointRef: { current: null },
       tokenDrag: null,
+      // The drag of a tray card: { id, over } (the dragged tray, the own tray under the pointer or null), else null
+      trayDrag: null,
       toolDrag: null,
       toolSpawn: { range: null, move: null },
       angleSpawn: { target: null, aim: null },
