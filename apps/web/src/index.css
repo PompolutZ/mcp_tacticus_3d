@@ -112,8 +112,8 @@ body {
   user-select: none;
 }
 
-/* Tray controls (TrayControls.jsx): sized for the 1.5in-deep strip of a tray in the 3D world,
-   mounted through a drei Html transform (see CharacterTray.jsx). 40 CSS px is 1in there. */
+/* DOM tray controls (TrayControls.jsx), now for the tray popup (the 3D tray draws its own strip, TrayStrip3D.jsx). Sized as the 1.5in-deep strip of a tray, at
+   40 CSS px per inch; the popup zooms them. */
 .tray-controls {
   display: flex;
   flex-direction: column;

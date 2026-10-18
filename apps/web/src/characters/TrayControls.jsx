@@ -1,21 +1,15 @@
 import { attachedCards } from '../rosters/cards.js'
-import { assetUrl } from '../assets/index.js'
-import { crisisMarker } from '../crisis/files.js'
-import { characterToken } from '../tokens/files.js'
+import { COUNTER_ICONS } from './trayIcons.js'
+import { applyCounter, removeState, trayCounters } from './trayControls.js'
 
-// Damage and Power reuse the mod's own counter tokens ("1 Damage", "1 Power"), see
-// docs/features/character-trays.md, "Tokens from the TTS mod".
-const DAMAGE_ICON = assetUrl(crisisMarker('damage'))
-const POWER_ICON = assetUrl(characterToken('1-power'))
-
-// Damage and Power counters and the Flip and Remove buttons, for one character's tray. The tokens on
-// the character and the Give sources are real-size 3D tokens on the tray (see CharacterTray.jsx).
-// The objective tokens the character holds lie on its card (see Scene.jsx, "Hold and drop").
-// Plain DOM, no three.js/drei: the 3D tray mounts it in a <Html transform> (see CharacterTray.jsx),
-// and a later 2D HUD panel can mount the same component (see docs/features/character-trays.md, "First
-// iteration"). data-character-id is the drop target for giving
-// tokens by drag and drop, and the target CrisisToken.jsx's own drag uses to hold a crisis token
-// (docs/features/character-trays.md, "Hold and drop").
+// Damage and Power counters and the Flip and Remove buttons for one character, as DOM. The tray popup
+// (TrayPopup.jsx) mounts them, and TrayCounters is the read-only badge above a model (SpectatorBadge.jsx).
+// The 3D tray on the table draws its own strip in the canvas (TrayStrip3D.jsx), so a model in front hides
+// it. Both share what a click does and says in trayControls.js. The tokens on the character and the Give
+// sources are real-size 3D tokens on the tray (see CharacterTray.jsx). The objective tokens the character
+// holds lie on its card (see Scene.jsx, "Hold and drop").
+// data-character-id is the drop target for giving tokens by drag and drop, and the target CrisisToken.jsx's
+// own drag uses to hold a crisis token (docs/features/character-trays.md, "Hold and drop").
 // onAttachedOpen(code): a click on a gem chip, one per attached card (see App.jsx, handleAttachedOpen).
 // The chip only reads the card, so it works on any player's tray. hideAttached: no gem chips; the
 // tray popup sets it, because its thumbnails do the same job (TrayPopup.jsx).
@@ -23,9 +17,6 @@ const POWER_ICON = assetUrl(characterToken('1-power'))
 // confirm. onBoard: a model of the character is on the mat. Without it Remove does nothing (aria-disabled,
 // not disabled, so the browser still shows the title). removeWait: the text of a dropped token that waits for its
 // place. Remove is off then, with this text as the title (docs/features/character-trays.md, "Hold and drop").
-const REMOVE_TITLE =
-  'Remove from the board: the model goes back on its card. Delete key over the card deletes the character.'
-
 export default function TrayControls({
   character,
   stamina,
@@ -38,9 +29,10 @@ export default function TrayControls({
   onAttachedOpen,
   hideAttached = false,
 }) {
+  const remove = removeState({ onBoard, removeWait })
   function handleRemove(e) {
     e.stopPropagation()
-    if (onBoard && !removeWait) onRemove()
+    if (!remove.disabled) onRemove()
   }
 
   const attached = hideAttached ? [] : attachedCards(character)
@@ -86,8 +78,8 @@ export default function TrayControls({
         <button
           type="button"
           className="chip tray-controls-remove"
-          aria-disabled={!onBoard || Boolean(removeWait)}
-          title={removeWait ?? REMOVE_TITLE}
+          aria-disabled={remove.disabled}
+          title={remove.title}
           onClick={handleRemove}
         >
           Remove
@@ -101,27 +93,24 @@ export default function TrayControls({
 // values, with no -/+ buttons: the spectator view above a model uses them so (SpectatorBadge.jsx). A grunt
 // (character.host) shows no Power counter.
 export function TrayCounters({ character, stamina, onDamage, onPower }) {
+  const handlers = { onDamage, onPower }
   return (
     <div className="tray-controls-row">
-      <Counter
-        icon={DAMAGE_ICON}
-        alt="Damage"
-        value={character.damage}
-        max={stamina}
-        warn={character.damage >= stamina}
-        onDec={onDamage && (() => onDamage(character.damage - 1))}
-        onInc={onDamage && (() => onDamage(character.damage + 1))}
-      />
-      {!character.host && (
-        <Counter
-          icon={POWER_ICON}
-          alt="Power"
-          value={character.power}
-          max={10}
-          onDec={onPower && (() => onPower(character.power - 1))}
-          onInc={onPower && (() => onPower(character.power + 1))}
-        />
-      )}
+      {trayCounters(character, stamina).map((c) => {
+        const set = c.kind === 'damage' ? onDamage : onPower
+        return (
+          <Counter
+            key={c.kind}
+            icon={COUNTER_ICONS[c.kind]}
+            alt={c.alt}
+            value={c.value}
+            max={c.max}
+            warn={c.warn}
+            onDec={set && (() => applyCounter(character, c.kind, -1, handlers))}
+            onInc={set && (() => applyCounter(character, c.kind, 1, handlers))}
+          />
+        )
+      })}
     </div>
   )
 }

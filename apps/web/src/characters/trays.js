@@ -11,7 +11,7 @@ import { trayCards } from './models.js'
 // Card face images are 1800x1200 px
 export const TRAY_CARD_WIDTH = 4.5
 export const TRAY_CARD_HEIGHT = TRAY_CARD_WIDTH * (1200 / 1800)
-const TRAY_WIDTH = 5
+export const TRAY_WIDTH = 5
 
 // Real-size character tokens (TOKEN_SIZE wide), in rows: the tokens on the character above the
 // card, and the character's Give sources on the table next to the tray. A row holds 6 tokens,
@@ -26,7 +26,7 @@ const TOKENS_PER_ROW = Math.floor((TRAY_WIDTH + TOKEN_GAP) / TOKEN_PITCH)
 // and the controls strip (Damage, Power, Flip, Remove, Held, see TrayControls.jsx). The Give
 // sources are not part of the tray: they lie on the table on the owner's side of it.
 const ON_DEPTH = TOKEN_SIZE + TOKEN_GAP * 2
-const TRAY_CONTROLS_DEPTH = 1.5
+export const TRAY_CONTROLS_DEPTH = 1.5
 const TRAY_DEPTH = ON_DEPTH + TRAY_CARD_HEIGHT + TRAY_CONTROLS_DEPTH
 
 // A tray lies just above the table, like a crisis card (see crisis/layout.js, CARD_Y), so it does

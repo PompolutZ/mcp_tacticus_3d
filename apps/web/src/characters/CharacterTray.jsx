@@ -1,6 +1,5 @@
 import { Suspense, memo, useCallback, useRef, useState } from 'react'
 import { UI_COLORS } from '../uiColors.js'
-import { OccludedHtml } from '../scene/LabelOcclusion.jsx'
 import { DoubleSide } from 'three'
 import { assetUrl } from '../assets/index.js'
 import { trayCardFile } from './files.js'
@@ -11,6 +10,7 @@ import {
   GRUNT_CARD_LOCAL_Z,
   GRUNT_CARD_WIDTH,
   GRUNT_CONTROLS_LOCAL_Z,
+  TRAY_CONTROLS_DEPTH,
   TRAY_BG_Y,
   TRAY_CARD_HEIGHT,
   TRAY_CARD_WIDTH,
@@ -25,7 +25,8 @@ import {
 import { outlineMode, useOutline } from '../scene/SelectionOutlines.jsx'
 import FaceMaterial from '../scene/FaceMaterial.jsx'
 import TokenFace from '../tokens/TokenFace.jsx'
-import TrayControls from './TrayControls.jsx'
+import TrayStrip3D from './TrayStrip3D.jsx'
+import { CLICK_MOVE } from './trayControls.js'
 import { useColorTexture } from '../scene/useColorTexture.js'
 import { useHoverCursor, useHoverPeek, useHoverReport } from '../scene/useHoverCursor.js'
 import { useRenderCount } from '../debug/renderCount.js'
@@ -35,12 +36,9 @@ import { useTableStore } from '../table/TableStoreContext.jsx'
 // trays.js, TRAY_BG_Y), the Give sources just above the table, the same height as a token on the
 // table (LooseToken.jsx).
 const TOKEN_Y = 0
-// A pointer that moved more than this many pixels between down and up was a drag, not a click on
-// an "On" token or the card.
-const CLICK_MOVE = 4
 
 // One character tray: a background plate, the "On" row of tokens on the character, the stat card
-// (the side that faces up), and the controls strip (see TrayControls.jsx). A character whose second
+// (the side that faces up), and the controls strip (see TrayStrip3D.jsx). A character whose second
 // form has its own card (Ant-Man) has that card under the first one, with the same side up, so
 // Flip turns both (see docs/features/character-trays.md, "Second forms"). The Give sources are
 // not part of the tray: they lie on the table on the owner's side of the plate, as in TTS, and
@@ -54,7 +52,7 @@ const CLICK_MOVE = 4
 // selected highlights the tray card, the same way CharacterModel.jsx highlights a selected model
 // (see useOutline below). The model itself (spawned on the card) stays the usual way to select a
 // character; the tray has no click target of its own for that.
-// Actions: onAttachedOpen(code) (a click on a gem chip, TrayControls.jsx), characters.removeToken(id, key) (a click on an "On"
+// Actions: onAttachedOpen(code) (a click on a gem chip, TrayStrip3D.jsx), characters.removeToken(id, key) (a click on an "On"
 // token removes one), onTokenDragStart(nativeEvent, key, looseId, giveId) (a left pointerdown on a Give source starts a drag of
 // a new token, drag/useTokenDrag.js, handleTokenDragStart).
 // A source never runs out. The objective tokens the character holds lie on the card, but they are
@@ -177,14 +175,10 @@ export default memo(function CharacterTray({
           <meshStandardMaterial color={UI_COLORS.trayPlate} roughness={1} />
         </mesh>
       )}
-      <group position={[slot[0], 0, slot[1]]}>
-        <group
-          ref={(obj) => {
-            cardRef.current = obj
-            // A grunt has no plate, so its card is what a dropped token finds (useModelRegistry.js, characterAt)
-            if (isGrunt) objectRef(obj)
-          }}
-        >
+      {/* A grunt has no plate, so its unit (card, On row, controls strip) is what a dropped token finds
+          (useModelRegistry.js, characterAt) */}
+      <group position={[slot[0], 0, slot[1]]} ref={isGrunt ? objectRef : undefined}>
+        <group ref={cardRef}>
           {cardNumbers.map((n) => (
             <mesh
               key={n}
@@ -238,25 +232,30 @@ export default memo(function CharacterTray({
               </group>
             )
           })}
-        {/* Rx(-pi/2) lays the Html flat on the table facing up, with its top to local -Z, the same
-          as the card. So the owner reads it the right way up. */}
+        {/* Rx(-pi/2) lays the strip flat on the table facing up, with its top to local -Z, the same as
+          the card. So the owner reads it the right way up. The strip is drawn in the canvas, so a model
+          that stands on the card hides it (TrayStrip3D.jsx). On a plate tray the plate under it is the
+          drop target. A grunt has none, so an invisible plane under its strip is. */}
         <group
           position={[0, 0.02, isGrunt ? GRUNT_CONTROLS_LOCAL_Z : trayControlsLocalZ(cards)]}
           rotation={[-Math.PI / 2, 0, 0]}
         >
-          <OccludedHtml center transform>
-            <TrayControls
-              character={character}
-              stamina={stamina}
-              onDamage={(damage) => actions.characters.damage(character.id, damage)}
-              onPower={(power) => actions.characters.power(character.id, power)}
-              onFlip={() => actions.characters.flip(character.id)}
-              onRemove={() => actions.characters.offBoard(character.id)}
-              onBoard={onBoard}
-              removeWait={removeWait}
-              onAttachedOpen={actions.onAttachedOpen}
-            />
-          </OccludedHtml>
+          {isGrunt && (
+            <mesh visible={false}>
+              <planeGeometry args={[GRUNT_CARD_WIDTH, TRAY_CONTROLS_DEPTH]} />
+            </mesh>
+          )}
+          <TrayStrip3D
+            character={character}
+            stamina={stamina}
+            onDamage={(damage) => actions.characters.damage(character.id, damage)}
+            onPower={(power) => actions.characters.power(character.id, power)}
+            onFlip={() => actions.characters.flip(character.id)}
+            onRemove={() => actions.characters.offBoard(character.id)}
+            onBoard={onBoard}
+            removeWait={removeWait}
+            onAttachedOpen={actions.onAttachedOpen}
+          />
         </group>
       </group>
     </group>

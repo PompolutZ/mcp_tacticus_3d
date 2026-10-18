@@ -33,7 +33,7 @@ Later, the app should get a 2D HUD that is separate from the 3D world. For the f
 To make the later move to a 2D HUD cheap:
 
 - All tray state lives in `App.jsx`, the same as the crisis tokens. The 3D tray only shows it.
-- The tray controls are plain DOM React components (`TrayControls`). The 3D tray mounts them in a drei `<Html transform>` element, the same way as `FlatHtml` in `ToolButtons.jsx`. A 2D HUD can later mount the same components in a normal HUD panel.
+- The tray controls have two drawings that share one logic module (`trayControls.js`: what a click does, the limits, the Remove state and title). The 3D tray on the table draws its strip in the canvas (`TrayStrip3D.jsx`, layout in `trayStrip.js`). The plain DOM React components (`TrayControls`) stay for the tray popup and for the read-only counters of the Streamer badge. A 2D HUD can mount the DOM ones in a normal HUD panel.
 
 ## Players apply the rules
 
@@ -122,7 +122,7 @@ Sketch, seen from the owner's seat:
 |     stat card (Healthy/Injured)   |   click: tray popup
 |                                   |
 +-----------------------------------+
-| Dmg [-] 3/6 [+]  Pow [-] 4/10 [+] |   DOM controls strip
+| Dmg [-] 3/6 [+]  Pow [-] 4/10 [+] |   controls strip, drawn in 3D
 | [Flip]                   [Remove] |
 | Held: [Asset]                     |
 +-----------------------------------+
@@ -131,9 +131,11 @@ Sketch, seen from the owner's seat:
                                         (owner's side)
 ```
 
-The whole tray is a drop target for tokens. The Give sources are outside the tray, so a token dropped on them lies on the table.
+The strip of the 3D tray is drawn in the canvas, not as DOM: each part (a counter, a chip) is a flat plane with a canvas texture, so a model that stands on the tray card hides the part behind it (a DOM element always draws on top of the canvas, and drei's `occlude` cannot hide part of it). Clicks are R3F pointer events on those planes; only the nearest hit counts, so a hidden part takes no click, and a drag that moved is not a click. The cursor and a lighter look show the part under the pointer. A hover label gives the title of Remove (also its wait text) and the card name of a gem. A texture is redrawn only when its value or hover changes; Flip, Remove and gem chip textures are shared by all trays. The other player's tray looks and works the same. The popup and the Streamer badge stay DOM: there is no model to hide them.
 
-- Damage and Power: `−` and `+` buttons around the value. A left click on the counter body (icon or value) adds 1, a right click takes 1, with no browser menu, as in TTS. The same limits as the buttons apply (0 to Stamina, 0 to 10). The counters and buttons are sized by one CSS variable, `--tray-counter-size` in `.tray-controls` (`index.css`), so they are easy to hit; two `10/10` counters still fit the tray width. The spectator badge shows the same counters read-only, with no click and its old size.
+The whole tray is a drop target for tokens. The plate under a tray's strip is the target of the 3D strip; a grunt has no plate, so an invisible plane under its strip is (`CharacterTray.jsx`). The Give sources are outside the tray, so a token dropped on them lies on the table.
+
+- Damage and Power: `−` and `+` buttons around the value. A left click on the counter body (icon or value) adds 1, a right click takes 1, with no browser menu, as in TTS. The same limits as the buttons apply (0 to Stamina, 0 to 10). The counters and buttons are bigger than the first version so they are easy to hit; two `10/10` counters still fit the tray width. The 3D strip sizes them in `trayStrip.js`; the DOM ones (popup) by one CSS variable, `--tray-counter-size` in `.tray-controls` (`index.css`). The spectator badge shows the same counters read-only, with no click and its old size.
 - When Damage equals Stamina, the counter shows it in a warning color. The app does not add the Dazed token or flip the card.
 - Flip: turns the card to the other side and sets Damage to 0, as in TTS. The F key does the same with the pointer over the card or the model, or with the character selected (see `docs/features/key-shortcuts.md`).
 - **On** row, above the card, where TTS shows the tokens on a character: one real-size 3D token per token key, with a count badge when the count is above 1. The tokens start at the owner's left, in the order the character got them. With more than 6 tokens they overlap, so the row stays as wide as the tray. A label above a token under the pointer shows its name and the mod's description (`tDescr`). A click on a token removes one.

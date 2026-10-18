@@ -37,7 +37,7 @@ Checks of every step: `pnpm format`, `pnpm lint` (no more warnings than before t
 4. Camera: Settings → **Left drag camera on** / **off**, default on. Off: a left drag on the empty table does nothing. Right drag and middle drag work as before. Saved in `settings` as a boolean.
 5. Throw bug: find the cause first, with a headless test (load Oscorp Chemical, delete the truck, Throw across its old place). Fix the cause, not the symptom. If the cause is something else, the coder stops and reports.
 6. Counters: a left click on the counter (icon or value) adds 1, a right click takes 1, no context menu. The − and + buttons stay. Counters and buttons get bigger on the tray card. Size by look; the coder sets one CSS value and names it. The spectator badge is read-only and does not change.
-7. Counter occlusion: a model in front of the counters hides the part behind it. First try drei `occlude="blending"` on the tray `<Html>`. If it breaks other things (canvas alpha, other labels, the badge), stop and report. The spectator badge stays on top, as today.
+7. Counter occlusion: a model in front of the controls hides the part behind it. drei `occlude="blending"` cannot work (Step 4 Result). The user chose option A (2026-10-18): the 3D tray draws its whole control strip in 3D (Damage and Power counters, the attached card gems, Flip, Remove), so the depth test hides it behind models. Clicks are R3F pointer events. Left click +1, right click −1 and the step 3 size stay. The DOM `TrayControls` stays for the tray popup (2D) and `TrayCounters` for the Streamer badge, which draws on top on purpose. The DOM controls were chosen first so a 2D view could use the same components; the popup still does.
 8. Textures: find why the two GLBs have no texture (missing in the GLB, or lost in the material copy). Fix it in the migration or in the loader, so other pieces with the same cause are fixed too. List every other piece with the same cause.
 
 ## Step 1: Streamer without Secure
@@ -86,7 +86,15 @@ User: a model on its tray card hides the counters behind it. Clicks on the count
 
 ### Result
 
-Blocked, no code. drei `occlude="blending"` needs a transparent canvas: it puts the canvas above the Html, and models cover the Html only where the canvas is transparent. The canvas draws the background image and the opaque table, so the controls would disappear under the table. It also changes the z-index and pointer events of the shared canvas for every other Html. Options: A. draw the counters in the canvas (3D, depth test, R3F clicks); B. drei raycast occlusion (whole block hides, not per pixel); C. a CSS mask from a render of model silhouettes each frame; D. move the counters where models cannot stand. Waiting for the user's choice.
+Blocked, no code. drei `occlude="blending"` needs a transparent canvas: it puts the canvas above the Html, and models cover the Html only where the canvas is transparent. The canvas draws the background image and the opaque table, so the controls would disappear under the table. It also changes the z-index and pointer events of the shared canvas for every other Html. Options: A. draw the counters in the canvas (3D, depth test, R3F clicks); B. drei raycast occlusion (whole block hides, not per pixel); C. a CSS mask from a render of model silhouettes each frame; D. move the counters where models cannot stand. The user chose A (Decision 7).
+
+Option A done:
+
+- The 3D tray draws its strip in the canvas (`characters/TrayStrip3D.jsx`): each counter and chip is one flat plane with a canvas texture (`trayStripDraw.js`), so models hide it by depth test. Layout in `trayStrip.js` (same sizes as step 3). Clicks are R3F events; only the nearest hit counts, a moved pointer is not a click, right click on a counter takes 1 and its browser menu is off. Hover: pointer cursor (not-allowed on a disabled Remove), lighter look; Remove and gem chips show the title as a label above (`.token-face-label`, as `TokenFace`).
+- Shared logic in `characters/trayControls.js` (`counterStep`, `counterZone`, `applyCounter`, `trayCounters`, `removeState`, `REMOVE_TITLE`, `CLICK_MOVE`) and `trayIcons.js`. DOM `TrayControls`/`TrayCounters` use them (popup and badge unchanged).
+- Textures: counters redraw when value or hover changes; chip textures shared by all trays, counted, disposed. Other player's tray: was not read-only before, same now.
+- Token drop: non-grunt plate already covers the strip. A grunt has no plate, so its unit group is the registered object and an invisible plane under its strip is added (`CharacterTray.jsx`).
+- Tests: `trayControls.test.js`, `trayStrip.test.js` (fit, no overlap, click to change). Docs: `character-trays.md`. Checks: format, lint (40 before and after), typecheck, test (1078 web pass), build ok.
 
 ## Step 5: Left drag camera setting
 
