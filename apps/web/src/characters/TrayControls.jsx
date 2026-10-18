@@ -1,6 +1,14 @@
 import { attachedCards } from '../rosters/cards.js'
 import { COUNTER_ICONS } from './trayIcons.js'
-import { applyCounter, removeState, trayCounters } from './trayControls.js'
+import {
+  BOTH_LABEL,
+  BOTH_TITLE,
+  applyBoth,
+  applyCounter,
+  bothDisabled,
+  removeState,
+  trayCounters,
+} from './trayControls.js'
 
 // Damage and Power counters and the Flip and Remove buttons for one character, as DOM. The tray popup
 // (TrayPopup.jsx) mounts them, and TrayCounters is the read-only badge above a model (SpectatorBadge.jsx).
@@ -73,6 +81,25 @@ export default function TrayControls({
             }}
           >
             Flip
+          </button>
+        )}
+        {!grunt && (
+          <button
+            type="button"
+            className="chip tray-controls-flip"
+            aria-disabled={bothDisabled(character, stamina)}
+            title={BOTH_TITLE}
+            onClick={(e) => {
+              e.stopPropagation()
+              applyBoth(character, 1, { onDamage, onPower })
+            }}
+            onContextMenu={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              applyBoth(character, -1, { onDamage, onPower })
+            }}
+          >
+            {BOTH_LABEL}
           </button>
         )}
         <button
