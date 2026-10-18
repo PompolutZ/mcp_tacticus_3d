@@ -222,6 +222,24 @@ test('labels: off by default, only true turns them on', () => {
   assert.equal(read(undefined), false)
 })
 
+test('leftDragCamera: on by default, only false turns it off', () => {
+  assert.equal(defaultSettings().leftDragCamera, true)
+  const read = (leftDragCamera) => {
+    const storage = fakeStorage()
+    storage.setItem(KEY, JSON.stringify({ version: VERSION, leftDragCamera }))
+    let value
+    withStorage(storage, () => {
+      value = readSettings().leftDragCamera
+    })
+    return value
+  }
+  assert.equal(read(false), false)
+  assert.equal(read(true), true)
+  assert.equal(read('no'), true)
+  assert.equal(read(0), true)
+  assert.equal(read(undefined), true)
+})
+
 test('rethrowTilted: off by default, only true turns it on', () => {
   assert.equal(defaultSettings().rethrowTilted, false)
   const read = (rethrowTilted) => {

@@ -94,8 +94,17 @@ export function startView(isGuest) {
 // Camera mouse buttons as in TTS: right drag turns, middle drag pans. Left drag also turns, because
 // the app has no box select (the TTS left drag) and a trackpad has no easy right drag. Shift, Ctrl
 // or Cmd + a turn drag pans (OrbitControls). A mouse wheel zooms. On a trackpad, a two-finger swipe
-// pans and a pinch zooms (WheelCamera.jsx).
+// pans and a pinch zooms (WheelCamera.jsx). The setting "Left drag camera" can take the left button
+// off (cameraMouseButtons).
 export const CAMERA_MOUSE_BUTTONS = { LEFT: MOUSE.ROTATE, MIDDLE: MOUSE.PAN, RIGHT: MOUSE.ROTATE }
+// Left button off: OrbitControls does nothing for null, so Shift / Ctrl / Cmd + left drag does nothing too
+const NO_LEFT_MOUSE_BUTTONS = { ...CAMERA_MOUSE_BUTTONS, LEFT: null }
+
+// The buttons for OrbitControls. leftDrag: the left button moves the camera. Always one of two shared
+// objects (R3F applies a prop again when its reference changes).
+export function cameraMouseButtons(leftDrag = true) {
+  return leftDrag ? CAMERA_MOUSE_BUTTONS : NO_LEFT_MOUSE_BUTTONS
+}
 
 // Moves the camera back to `view` ({ position, target }, see startView) at once. controls: OrbitControls, or
 // null. wheelCamera: the handle of WheelCamera ({ stop }), or null.

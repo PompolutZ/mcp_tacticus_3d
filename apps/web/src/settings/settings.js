@@ -45,6 +45,8 @@ export function defaultSettings() {
     light: { brightness: DEFAULT_BRIGHTNESS },
     // Terrain labels (piece name and game Size) above every piece. The piece under the pointer always has one.
     labels: false,
+    // Left mouse drag on the empty table moves the camera. Off: only the right and middle buttons do (docs/features/key-shortcuts.md, "Mouse").
+    leftDragCamera: true,
     // Dice: a die that rests tilted (or does not rest in 8 s) is thrown again. Off: it reads the face nearest to up
     // (docs/features/dice-rolling.md, "Tilted dice").
     rethrowTilted: false,
@@ -97,6 +99,7 @@ function normalize(raw) {
       Math.min(MAX_BRIGHTNESS, Math.max(MIN_BRIGHTNESS, brightness)),
     )
   settings.labels = raw?.labels === true
+  settings.leftDragCamera = raw?.leftDragCamera !== false
   settings.rethrowTilted = raw?.rethrowTilted === true
   settings.bindings = normalizeBindings(raw?.bindings)
   return settings

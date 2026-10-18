@@ -23,17 +23,17 @@ The users of the app are active TTS players. They already know the TTS controls.
 |---|---|---|---|
 | Left click on a piece | Pick up | Select | No |
 | Left drag on a piece | Move it | Move it at once and select it. A piece that is already selected stays selected | Yes |
-| Left drag on the empty table | Box select | Turn the camera | No |
+| Left drag on the empty table | Box select | Turn the camera. Settings → **Left drag camera off**: nothing (a left click still selects) | No |
 | Right drag on the empty table | Turn the camera | Turn the camera | Yes |
 | Right click on a piece | Context menu. While holding a piece: tap it | Nothing. The piece handlers take only the left button, so a right drag on a piece turns the camera | No |
 | Middle drag | Pan | Pan | Yes |
 | Middle click | Zoom to the pointer, click again to zoom back. On a piece: flip | Nothing | No |
 | Scroll wheel | Zoom. While holding a piece: rotate it | Zoom toward the pointer. While dragging a piece: turn it one turn step (15° by default, see Settings), as Q / E do (wheel up left, wheel down right, picked by look) | Yes |
-| Shift, Ctrl or Cmd + left or right drag | Not in the sources | Pan | — |
+| Shift, Ctrl or Cmd + left or right drag | Not in the sources | Pan. With **Left drag camera off**, only the right drag pans | — |
 | Two-finger swipe on a trackpad | Not in the sources | Pan | — |
 | Pinch on a trackpad, or Ctrl + scroll | Not in the sources | Zoom toward the pointer | — |
 
-The camera buttons are in `CAMERA_MOUSE_BUTTONS` in `src/camera.js`. Left drag still turns the camera, because the app has no box select and a trackpad has no easy right drag.
+The camera buttons are in `CAMERA_MOUSE_BUTTONS` in `src/camera.js`. Left drag turns the camera by default, because the app has no box select and a trackpad has no easy right drag. Settings → Camera → **Left drag camera** (default on) can take the left button off: `cameraMouseButtons` in `src/camera.js` gives the same map with `LEFT` off, so right and middle drag work as before and the camera keys and the wheel are not touched. The camera owner (`cameraOwner.js`) only sees drags OrbitControls starts, so it needs no change.
 
 **One camera input at a time.** The first input wins (`src/cameraOwner.js`, used in `KeyboardCamera.jsx`). A mouse camera drag (turn or pan) blocks the camera keys (W A S D, arrows) until the button is released. A held camera key blocks a mouse camera drag until all camera keys are released (OrbitControls `enableRotate` and `enablePan` are off). A wheel zoom or pan is not blocked, because it is a single, smoothed step. A glide after a key release (see below) belongs to the keys, but a mouse camera drag that starts during the glide wins: the glide stops at once. The camera keys during a piece drag work as always. A lost window focus, and a mouse release outside the canvas or the window, end the ownership.
 
@@ -172,6 +172,6 @@ Settings, the roster popup (table and lobby), the crisis compare and choose popu
 
 In order of how often a TTS player will notice them:
 
-1. **Left drag on the empty table.** It turns the camera. In TTS it box-selects, and the app has no box select.
+1. **Left drag on the empty table.** It turns the camera (the setting **Left drag camera** can turn this off). In TTS it box-selects, and the app has no box select.
 2. **Q / E** to turn a token.
 3. **Number key with no character under the pointer.** The mod only removes the tool. The app toggles it, so a second press spawns the tool again.

@@ -194,6 +194,15 @@ export function SettingsPopup({
           />
         </section>
         <section className="settings-section">
+          <h3>Camera</h3>
+          <ToggleRow
+            text="Left drag on the empty table moves the camera. Off: use right or middle drag"
+            word="Left drag camera"
+            on={settings.leftDragCamera !== false}
+            onClick={() => onSettingsChange({ leftDragCamera: settings.leftDragCamera === false })}
+          />
+        </section>
+        <section className="settings-section">
           <h3>Turn</h3>
           <SliderRow
             text="Turn step of Q / E and the wheel (°)"

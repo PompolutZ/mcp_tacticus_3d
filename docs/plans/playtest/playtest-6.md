@@ -86,6 +86,8 @@ User: a model on its tray card hides the counters behind it. Clicks on the count
 
 ### Result
 
+Blocked, no code. drei `occlude="blending"` needs a transparent canvas: it puts the canvas above the Html, and models cover the Html only where the canvas is transparent. The canvas draws the background image and the opaque table, so the controls would disappear under the table. It also changes the z-index and pointer events of the shared canvas for every other Html. Options: A. draw the counters in the canvas (3D, depth test, R3F clicks); B. drei raycast occlusion (whole block hides, not per pixel); C. a CSS mask from a render of model silhouettes each frame; D. move the counters where models cannot stand. Waiting for the user's choice.
+
 ## Step 5: Left drag camera setting
 
 - Decision 4. Settings store, `SettingsPopup.jsx`, and where `CAMERA_MOUSE_BUTTONS` is applied.
@@ -95,6 +97,8 @@ User: a model on its tray card hides the counters behind it. Clicks on the count
 User: setting off: a left drag on the table does nothing, a left click selects. Right drag turns. Reload: the setting stays.
 
 ### Result
+
+Setting `leftDragCamera` (`settings/settings.js`, boolean, only `false` is off, default on). Settings → new Camera section → **Left drag camera on/off**. `cameraMouseButtons(leftDrag)` in `camera.js` derives the map from `CAMERA_MOUSE_BUTTONS` (`LEFT: null` when off; two stable objects), used in `App.jsx`. Debug pages keep the constant. Shift/Ctrl/Cmd + left drag does nothing when off (OrbitControls ignores a null button); right drag still pans with them. `cameraOwner.js` unchanged. Tests: setting parse, buttons map on/off. Docs: `table-tools.md`, `key-shortcuts.md`.
 
 ## Step 6: Range tools follow the locked piece
 

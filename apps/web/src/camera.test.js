@@ -4,6 +4,7 @@ import { Vector3 } from 'three'
 import { MOUSE } from 'three'
 import {
   CAMERA_MOUSE_BUTTONS,
+  cameraMouseButtons,
   easeInOut,
   framePart,
   panToPoint,
@@ -92,6 +93,16 @@ test('the camera mouse buttons turn, pan and turn', () => {
     MIDDLE: MOUSE.PAN,
     RIGHT: MOUSE.ROTATE,
   })
+})
+
+test('left drag camera on keeps the buttons, off takes only the left one', () => {
+  assert.equal(cameraMouseButtons(true), CAMERA_MOUSE_BUTTONS)
+  assert.equal(cameraMouseButtons(), CAMERA_MOUSE_BUTTONS)
+  const off = cameraMouseButtons(false)
+  assert.equal(off.LEFT, null)
+  assert.equal(off.MIDDLE, MOUSE.PAN)
+  assert.equal(off.RIGHT, MOUSE.ROTATE)
+  assert.equal(cameraMouseButtons(false), off)
 })
 
 function fakeControls() {
