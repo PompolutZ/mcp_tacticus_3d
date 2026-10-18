@@ -463,13 +463,7 @@ function Scene(props) {
   // isLifted is for a Throw: a lifted character does not stop it.
   // A held token is not in this list: it is off the mat, on its holder's tray (see "Hold and drop").
   const matTokens = useMemo(() => tokens.filter((tok) => !tok.heldBy), [tokens])
-  // For the spectator view: the tokens of the Secure card on the mat, and the held tokens of each
-  // character, in the order it took them
-  const secureTokens = useMemo(
-    () => matTokens.filter((tok) => tok.cardKey === crisis.secure),
-    [matTokens, crisis.secure],
-  )
-  const contestRange = getCard(crisis.secure)?.contestRange ?? 1
+  // For the spectator view: the held tokens of each character, in the order it took them
   const heldTokens = useMemo(() => heldTokensByCharacter(tokens), [tokens])
   const toolModels = useMemo(
     () => [
@@ -909,8 +903,6 @@ function Scene(props) {
               claims={claims}
               spectator={spectator}
               held={spectator ? heldTokens.get(model.character.id) : undefined}
-              secureTokens={spectator ? secureTokens : undefined}
-              contestRange={contestRange}
               ctx={modelCtx}
             />
           ))}

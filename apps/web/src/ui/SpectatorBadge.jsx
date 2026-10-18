@@ -1,11 +1,10 @@
-import { Suspense, useRef, useState } from 'react'
+import { Suspense, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { OccludedHtml } from '../scene/LabelOcclusion.jsx'
 import { Quaternion, Vector3 } from 'three'
 import { TOKEN_SIZE } from '../tokens/files.js'
 import { TOKEN_RADIUS, TokenDisk, useTokenMaps } from '../crisis/CrisisToken.jsx'
 import TokenFace from '../tokens/TokenFace.jsx'
-import { nearSecureIds } from './secureNear.js'
 import { TrayCounters } from '../characters/TrayControls.jsx'
 
 // The badge is the tray's pieces at this scale. Picked by look, not measured: real size (1) is as
@@ -31,12 +30,8 @@ const STAND_UP = [Math.PI / 2, 0, 0]
 const ON_TOP = 10
 const NO_RAYCAST = () => null
 const NO_EVENTS = { raycast: NO_RAYCAST }
-// Range is edge to edge, seen from above (docs/features/range-movement-tools.md, "Range 1"). TTS checks the
-// same distance for its "Securing" icon (checkForSecure in the tray script: center distance < base radius +
-// range + token radius). The range is 1 unless the Secure card says otherwise (cards.json, contestRange).
 
 const UP = new Vector3(0, 1, 0)
-const center = new Vector3()
 const baseTurn = new Quaternion()
 const cameraRight = new Vector3()
 const badgeTurn = new Quaternion()
@@ -72,33 +67,18 @@ function Objective({ token }) {
 
 // Spectator view: what TTS shows above each model (see docs/features/spectator-view.md), made of the
 // tray's own pieces, so it looks the same as the tray. From top to bottom: the objective tokens the
-// character holds and the Secure tokens within the card's contest range of its base, once it is let go (the crisis token disk), the Damage
+// character holds (the crisis token disk), the Damage
 // and Power counters (TrayControls.jsx, without -/+), and the tokens on the character (TokenFace.jsx,
 // with the count). It stands upright, as in TTS, and turns only around the vertical axis to face the
 // camera. It gets smaller with distance, as in TTS.
 // Mounted inside the model's RigidBody (CharacterModel.jsx, overlay), so it moves
 // with the model. Its origin is the base bottom center.
-// top: height of the model top above the base bottom, in inches. baseRadius: game size of the base.
-// stamina: Stamina of the side that faces up. held: the crisis tokens the character holds.
-// secureTokens: the tokens of the Secure card on the mat, [{ id, x, z, ... }] (App.jsx, tokens).
-// contestRange: range (tool size, R1 to R5) from the card. isHeld(): the player still controls the placement, so no
-// Secure token shows (the contest would leak before the player commits).
-export default function SpectatorBadge({
-  character,
-  stamina,
-  top,
-  baseRadius,
-  held = [],
-  secureTokens = [],
-  contestRange = 1,
-  isHeld = () => false,
-}) {
+// top: height of the model top above the base bottom, in inches.
+// stamina: Stamina of the side that faces up. held: the crisis tokens the character holds. No Secure
+// token shows: the contest gave good players too much help (docs/features/spectator-view.md).
+export default function SpectatorBadge({ character, stamina, top, held = [] }) {
   const baseRef = useRef()
   const anchorRef = useRef()
-  // Ids of the Secure tokens in contest range, joined. The ref has the value of the last setNearIds
-  // call, so a frame without a change does not render.
-  const [nearIds, setNearIds] = useState('')
-  const lastIds = useRef('')
 
   // Priority -1: before drei's Html (priority 0) reads the badge pose, so the counters and the tokens
   // turn in the same frame. OrbitControls also uses -1 and mounts first, so the camera has already
@@ -107,7 +87,6 @@ export default function SpectatorBadge({
     const base = baseRef.current
     const anchor = anchorRef.current
     if (!base || !anchor) return
-    base.getWorldPosition(center)
     base.getWorldQuaternion(baseTurn).invert()
     // Straight above the base center and upright, also when the model tips over. A badge that tilts
     // with the camera looks like a token on the mat when the camera looks down.
@@ -118,21 +97,9 @@ export default function SpectatorBadge({
     badgeTurn.setFromAxisAngle(UP, Math.atan2(-cameraRight.z, cameraRight.x))
     anchor.quaternion.copy(baseTurn).multiply(badgeTurn)
     drawOnTop(anchor)
-    const ids = nearSecureIds(
-      center,
-      baseRadius,
-      TOKEN_RADIUS,
-      secureTokens,
-      contestRange,
-      isHeld(),
-    ).join()
-    if (ids === lastIds.current) return
-    lastIds.current = ids
-    setNearIds(ids)
   }, -1)
 
-  const near = nearIds ? secureTokens.filter((t) => nearIds.split(',').includes(t.id)) : []
-  const objectives = [...held, ...near]
+  const objectives = held
   // Tokens on the character, in the order it got them, in rows from the top left, as on the tray
   const onTokens = Object.entries(character.tokens ?? {})
   const tokenRows = Math.ceil(onTokens.length / TOKENS_PER_ROW)
