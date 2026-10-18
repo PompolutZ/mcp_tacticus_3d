@@ -58,14 +58,27 @@ export async function startAssetRipper() {
   }
 
   return {
-    // Loads one bundle and exports it twice into outDir:
+    // Loads the bundle files (the main bundle, then its secondary bundle with the materials) and exports them
+    // twice into outDir:
     // primary/ has the meshes and prefabs as GLB files, project/ has the prefabs as Unity YAML with all components
-    async exportBundle(bundleFile, outDir) {
+    async exportBundle(bundleFiles, outDir) {
       fs.rmSync(outDir, { recursive: true, force: true })
       await post('/Reset')
-      await post('/LoadFile', { Path: bundleFile })
+      // A second LoadFile replaces the first, so several files are loaded as one folder
+      const files = [bundleFiles].flat()
+      let input = files[0]
+      if (files.length > 1) {
+        input = `${outDir}.input`
+        fs.rmSync(input, { recursive: true, force: true })
+        fs.mkdirSync(input, { recursive: true })
+        files.forEach((file, n) =>
+          fs.copyFileSync(file, path.join(input, `${n}-${path.basename(file)}`)),
+        )
+      }
+      await post('/LoadFile', { Path: input })
       await post('/Export/PrimaryContent', { Path: path.join(outDir, 'primary') })
       await post('/Export/UnityProject', { Path: path.join(outDir, 'project') })
+      if (files.length > 1) fs.rmSync(input, { recursive: true, force: true })
     },
     stop,
   }

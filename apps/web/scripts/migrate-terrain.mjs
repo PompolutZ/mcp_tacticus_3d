@@ -211,10 +211,11 @@ function missingSources(key) {
 
 // App key of an already migrated piece with the same source files, or null
 function migratedKey(piece) {
-  const sources = JSON.stringify(pieceSources(piece))
-  return (
-    Object.keys(manifest.pieces).find((k) => JSON.stringify(manifest.pieces[k]) === sources) ?? null
-  )
+  // A bundle is the same file with or without its secondary bundle, so only the main one is compared
+  const same = (a, b) =>
+    a.bundle ? a.bundle === b.bundle : JSON.stringify(a) === JSON.stringify(b)
+  const sources = pieceSources(piece)
+  return Object.keys(manifest.pieces).find((k) => same(sources, manifest.pieces[k])) ?? null
 }
 
 // The mod key, made unique among the migrated pieces
@@ -308,13 +309,18 @@ async function migrateObjPiece(piece, appKey) {
   return { entry, warnings }
 }
 
+// Cached files of a bundle piece: the main bundle, then the secondary one (null for a file not in the cache)
+function bundleFiles(sources) {
+  return [sources.bundle, sources.bundleSecondary].filter(Boolean).map(cachedFile)
+}
+
 // Unity bundle piece: mesh GLB with its own materials and WebP textures, and the prefab's colliders
 async function migrateBundlePiece(piece, appKey, ripper) {
   const out = path.join(WORK_DIR, appKey)
-  await ripper.exportBundle(cachedFile(piece.assets.bundle), out)
-  const { doc, colliders, primary, project, warnings } = await readBundlePrefab(out)
-  if (piece.assets.bundleSecondary)
-    warnings.push('has a secondary bundle, which the script ignores')
+  await ripper.exportBundle(bundleFiles(pieceSources(piece)), out)
+  const { doc, colliders, primary, project, warnings } = await readBundlePrefab(out, {
+    hasSecondary: Boolean(pieceSources(piece).bundleSecondary),
+  })
 
   const entry = { name: pieceName(piece), bundle: true }
   texturesToWebp(doc)
@@ -369,15 +375,17 @@ async function rewriteColliders() {
   try {
     for (const [appKey, sources] of Object.entries(manifest.pieces)) {
       if (!sources.bundle) continue
-      const file = cachedFile(sources.bundle)
-      if (!file) {
+      const files = bundleFiles(sources)
+      if (files.some((f) => !f)) {
         console.log(`${appKey}: bundle is not in the TTS cache`)
         code = 1
         continue
       }
       const out = path.join(WORK_DIR, appKey)
-      await ripper.exportBundle(file, out)
-      const { colliders, primary, project, warnings } = await readBundlePrefab(out)
+      await ripper.exportBundle(files, out)
+      const { colliders, primary, project, warnings } = await readBundlePrefab(out, {
+        hasSecondary: Boolean(sources.bundleSecondary),
+      })
       const entries = await writeBundleColliders(appKey, colliders, primary, project, warnings)
       const same = sameEntries(entries, TERRAIN_PIECES[appKey]?.colliders)
       if (!same) code = 1

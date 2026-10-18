@@ -6,10 +6,10 @@ import * as THREE from 'three'
 import { readGlb } from './convert.mjs'
 import { readMaterial, readPrefab, walk } from './unity-prefab.mjs'
 
-// outDir: the directory that exportBundle wrote.
+// outDir: the directory that exportBundle wrote. hasSecondary: the export included the secondary bundle.
 // Returns the prefab as a glTF document with the prefab root rotation and scale applied, the prefab colliders,
 // and the two export directories: primary (GLB files) and project (Unity YAML).
-export async function readBundlePrefab(outDir) {
+export async function readBundlePrefab(outDir, { hasSecondary = false } = {}) {
   const primary = path.join(outDir, 'primary')
   const project = path.join(outDir, 'project/ExportedProject')
   const warnings = []
@@ -34,9 +34,9 @@ export async function readBundlePrefab(outDir) {
       `has ${prefabs.length} prefabs, using the first: ${prefabs[0]} (others: ${prefabs.slice(1).join(', ')})`,
     )
   const dependencies = bundleManifests.flatMap((m) => m.m_Dependencies ?? [])
-  if (dependencies.length)
+  if (dependencies.length && !hasSecondary)
     warnings.push(
-      `depends on other bundles (${dependencies.join(', ')}). TTS does not load them, so materials from them are missing in TTS as well.`,
+      `depends on other bundles (${dependencies.join(', ')}). the piece has no secondary bundle (bundleSecondary), so materials from them have no texture.`,
     )
 
   const prefab = readPrefab(fs.readFileSync(findByLowerCasePath(project, prefabs[0]), 'utf8'))

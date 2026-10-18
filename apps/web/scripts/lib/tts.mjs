@@ -186,7 +186,11 @@ export function pieceSources(piece) {
     case 'Custom_Model':
       return { mesh: a.mesh, diffuse: a.diffuse, collider: a.collider || a.mesh }
     case 'Custom_Assetbundle':
-      return { bundle: a.bundle }
+      // The secondary bundle has the shared materials and textures. TTS loads it with the main one.
+      // The same URL as the main bundle adds nothing.
+      return a.bundleSecondary && a.bundleSecondary !== a.bundle
+        ? { bundle: a.bundle, bundleSecondary: a.bundleSecondary }
+        : { bundle: a.bundle }
     case 'Custom_Tile':
     case 'Custom_Token':
       return { image: a.image }
@@ -200,7 +204,9 @@ export function pieceSources(piece) {
 export function sourceDownloads(sources) {
   return Object.entries(sources)
     .filter(([, url]) => url)
-    .map(([role, url]) => (role === 'bundle' ? { url, kind: 'model' } : { url }))
+    .map(([role, url]) =>
+      role === 'bundle' || role === 'bundleSecondary' ? { url, kind: 'model' } : { url },
+    )
 }
 
 // The mat of a card: its first Custom_Tile placement

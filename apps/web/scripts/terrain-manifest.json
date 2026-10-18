@@ -444,7 +444,8 @@
       "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/e2a5f693fdf7.obj"
     },
     "barrel-size-1": {
-      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/71aa341ac928.unity3d"
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/71aa341ac928.unity3d",
+      "bundleSecondary": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6ddde233e3b0.unity3d"
     },
     "forklift-size-2": {
       "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/99f76b743ee5.obj",
@@ -488,7 +489,8 @@
       "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6f3bcd038384.obj"
     },
     "building-size-5-4": {
-      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/957b06eee733.unity3d"
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/957b06eee733.unity3d",
+      "bundleSecondary": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/938b17c2e6ca.unity3d"
     },
     "size-2-car-4": {
       "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/cda7003e0c82.unity3d"
@@ -891,7 +893,8 @@
       "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/054f4eb9fbdd.obj"
     },
     "pipes-size-3-2": {
-      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9e281f7618b0.unity3d"
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/9e281f7618b0.unity3d",
+      "bundleSecondary": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/6ddde233e3b0.unity3d"
     },
     "acid-vat-size-3": {
       "mesh": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/da008cc8b33d.obj",
@@ -1149,7 +1152,8 @@
       "collider": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/570180430481.obj"
     },
     "nyc-bank-size-5": {
-      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/666331ca271e.unity3d"
+      "bundle": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/666331ca271e.unity3d",
+      "bundleSecondary": "https://d37ev18qvj5a3m.cloudfront.net/tts/terrain/f22ee968ebe4.unity3d"
     }
   },
   "mats": {
