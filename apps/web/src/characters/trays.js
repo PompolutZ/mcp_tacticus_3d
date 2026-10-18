@@ -11,11 +11,12 @@ import { trayCards } from './models.js'
 // Card face images are 1800x1200 px
 export const TRAY_CARD_WIDTH = 4.5
 export const TRAY_CARD_HEIGHT = TRAY_CARD_WIDTH * (1200 / 1800)
-export const TRAY_WIDTH = 5
+// Wide enough for two Damage / Power counters side by side (COUNTER_W in trayStrip.js) and 6 tokens in a row.
+export const TRAY_WIDTH = 5.8
 
 // Real-size character tokens (TOKEN_SIZE wide), in rows: the tokens on the character above the
 // card, and the character's Give sources on the table next to the tray. A row holds 6 tokens,
-// which fill the tray width exactly: 6 * 0.85 - 0.1 = 5.
+// which fit the tray width (a seventh would need 7 * 0.85 - 0.1).
 const TOKEN_GAP = 0.1
 const TOKEN_PITCH = TOKEN_SIZE + TOKEN_GAP
 const TOKENS_PER_ROW = Math.floor((TRAY_WIDTH + TOKEN_GAP) / TOKEN_PITCH)
@@ -246,8 +247,8 @@ export function trayGiveTokenPosition(index, cards, grunts = 0) {
   ]
 }
 
-// Trays sit 5.9" apart, center to center (5.6" plate + 0.3" gap). A player has one row of trays.
-// floor((72 + 0.3) / 5.9) = 12 trays fit in the table width; a row of more goes past the table
+// Trays sit a plate and a gap apart, center to center. A player has one row of trays.
+// floor((72 + 0.3) / TRAY_SPACING) trays fit in the table width; a row of more goes past the table
 // edges. A row of more than 6 trays is wider than the mat, so it goes past the mat corners (see
 // docs/features/character-trays.md, "Place on the table").
 const TRAY_SPACING = TRAY_BG_WIDTH + TRAY_GAP

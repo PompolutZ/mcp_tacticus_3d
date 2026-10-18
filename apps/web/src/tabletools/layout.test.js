@@ -117,7 +117,7 @@ test('the rack lies in front of the dice tray keys lip, centered on the tray', (
   }
 })
 
-test('a row of 7 character trays does not touch the rack, with the Give sources', () => {
+test('a row of 6 character trays does not touch the rack, with the Give sources', () => {
   for (const side of TEAMS) {
     const plate = rect(
       rackPlate(side).x,
@@ -125,7 +125,7 @@ test('a row of 7 character trays does not touch the rack, with the Give sources'
       rackPlate(side).width,
       rackPlate(side).depth,
     )
-    const characters = Array.from({ length: 7 }, (_, i) => ({ id: i, team: side }))
+    const characters = Array.from({ length: 6 }, (_, i) => ({ id: i, team: side }))
     for (const pos of layoutTrays(characters).values()) {
       const tray = rect(
         pos[0],

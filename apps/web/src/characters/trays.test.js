@@ -116,9 +116,11 @@ test('onTray and inTrayArea cover the grunt cards', () => {
   const pos = trayPosition('host', 0, 1)
   const [x, , z] = trayGruntModelPosition('host', pos, 1, 1)
   const onGrunt2 = { x, z }
-  assert.equal(onTray('host', pos, onGrunt2, 1, 0), false)
+  // The far edge of the second card is past the plate of a tray with one grunt only
+  const farEdge = { x: x + GRUNT_CARD_WIDTH / 2 - 0.01, z }
+  assert.equal(onTray('host', pos, farEdge, 1, 0), false)
   assert.equal(onTray('host', pos, onGrunt2, 1, 2), true)
-  assert.equal(inTrayArea('host', pos, onGrunt2, 0), false)
+  assert.equal(inTrayArea('host', pos, farEdge, 0), false)
   assert.equal(inTrayArea('host', pos, onGrunt2, 2), true)
   // The edge of the second card is on the plate too
   assert.equal(onTray('host', pos, { x: x + GRUNT_CARD_WIDTH / 2 - 0.01, z }, 1, 2), true)

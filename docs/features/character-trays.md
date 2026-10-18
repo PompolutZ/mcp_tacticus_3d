@@ -85,7 +85,7 @@ These facts were found in the scripts of the "Red Tray Spawner" object (`trayScr
 
 The table is 72" × 76" (`src/table.js`). The last 4" at each end, past the Give sources, hold nothing. The tool rack lies in front of the dice tray (`docs/features/table-tools.md`). The mat is 36" × 36" (`MAT_SIZE` in `Scene.jsx`), centered on the table, so its edge is 18" from the table center on every side.
 
-Each player's trays sit in one row on that player's side (host at +z, guest at −z), past the player's tactic tray. So the order from the mat is the same as in TTS: mat, tactic tray, character trays. The tactic tray plate ends 22.4" from the table center (see `docs/features/team-tactic-cards.md`, "Tactic tray"). A player never has a second row. The row is centered on the middle line of the table (x = 0), the same as TTS (`arrangeTrays` in the Red Tray Spawner). 12 trays fit in the table width. A row of more than 6 trays is wider than the mat, so it goes past the mat corners. See `src/characters/trays.js`.
+Each player's trays sit in one row on that player's side (host at +z, guest at −z), past the player's tactic tray. So the order from the mat is the same as in TTS: mat, tactic tray, character trays. The tactic tray plate ends 22.4" from the table center (see `docs/features/team-tactic-cards.md`, "Tactic tray"). A player never has a second row. The row is centered on the middle line of the table (x = 0), the same as TTS (`arrangeTrays` in the Red Tray Spawner). About 10 trays fit in the table width (`TRAY_SPACING` in `trays.js`). A row of more than 6 trays is wider than the mat, so it goes past the mat corners. See `src/characters/trays.js`.
 
 Changes that follow from this:
 
@@ -96,11 +96,11 @@ Changes that follow from this:
 ### One tray
 
 - The card image is 1800 × 1200 px, so the card plane is 4.5" × 3".
-- Tokens on a tray are real size (0.75", see [Real-size tokens](#real-size-tokens)). A row of 6 tokens fills the 5" tray width.
+- Tokens on a tray are real size (0.75", see [Real-size tokens](#real-size-tokens)). A row of 6 tokens fits the tray width (`TRAY_WIDTH`).
 - From the mat side to the owner's side, a tray has: the **On** row of tokens (0.95"), the card (3"), and the controls strip (`TRAY_CONTROLS_DEPTH` in `trays.js`; the Damage and Power buttons are large, so they are easy to hit).
-- So a tray is 5" × 5.45" (`TRAY_WIDTH` × `TRAY_DEPTH`). A background plate under all parts is slightly larger (5.6" × 6.05"), so the tray stands out from the table. The plate ends 28.75" from the table center.
+- The size of a tray is `TRAY_WIDTH` × `TRAY_DEPTH`. The width fits two Damage / Power counters with room between their buttons for the icon and the value. A background plate under all parts is slightly larger, so the tray stands out from the table.
 - The **Give** sources are not part of the tray. They lie on the table on the owner's side of the plate, 0.3" from it, in 2 rows of 6 (1.6"; at most 11 sources, with the affiliation token). The second row ends 30.65" from the table center; the table edge is at 34". They move with the tray.
-- There is a 0.3" gap between two plates, and between the tactic tray and the row. Without it, two trays look like one. So trays sit 5.9" apart, center to center, and `floor((72 + 0.3) / 5.9) = 12` trays fit in the table width.
+- There is a 0.3" gap between two plates, and between the tactic tray and the row. Without it, two trays look like one. So trays sit `TRAY_SPACING` apart, center to center, and `floor((table width + gap) / TRAY_SPACING)` trays fit in the table width.
 - The row is centered on the middle line of the table. One tray sits on the line. Two trays sit one on each side of the line, and so on. The order is the spawn order, from the owner's left, until a player swaps two trays (see [Swap trays](#swap-trays)).
 - So every tray of a player moves when that player adds or removes a character. A removed character's tray leaves the row, and the row closes the gap. The same happens in TTS.
 - The card faces the owner and sits on the mat side of the tray; the controls strip sits on the owner's side, away from the mat. For the host, the top of the card image points to −z, the same as a crisis card (`CrisisCard.jsx`). A guest tray is turned by 180°.
