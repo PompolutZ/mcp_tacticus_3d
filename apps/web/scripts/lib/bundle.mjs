@@ -4,7 +4,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import * as THREE from 'three'
 import { readGlb } from './convert.mjs'
-import { readMaterial, readPrefab, walk } from './unity-prefab.mjs'
+import { unityPrimitive } from './unity-primitives.mjs'
+import { findAssetByGuid, readMaterial, readPrefab, walk } from './unity-prefab.mjs'
 
 // outDir: the directory that exportBundle wrote. hasSecondary: the export included the secondary bundle.
 // Returns the prefab as a glTF document with the prefab root rotation and scale applied, the prefab colliders,
@@ -43,6 +44,7 @@ export async function readBundlePrefab(outDir, { hasSecondary = false } = {}) {
   warnings.push(...prefab.warnings)
   const doc = await readGlb(findByLowerCasePath(primary, prefabs[0].replace(/\.prefab$/, '.glb')))
   applyRoot(doc, prefab.root)
+  warnings.push(...addUnityMeshes(doc, prefab.meshes, project))
   warnings.push(...applyMaterials(doc, project))
   const colliders = collidersOfVisiblePiece(doc, prefab.colliders)
   if (colliders.length < prefab.colliders.length)
@@ -59,6 +61,51 @@ export function collidersOfVisiblePiece(doc, colliders) {
     .flatMap((mesh) => mesh.listPrimitives())
     .reduce((sum, prim) => sum + (prim.getAttribute('POSITION')?.getCount() ?? 0), 0)
   return vertices > 0 ? colliders : []
+}
+
+// Parts that use a Unity built-in mesh (cube, cylinder, ...) are not in AssetRipper's GLB. They are added here as
+// generated geometry (unity-primitives.mjs), each on a top-level node with its matrix, which already has the
+// prefab root. The material is the MeshRenderer's: found by its guid, and named as the Unity material, so
+// applyMaterials gives it the Unity values. Returns warnings.
+export function addUnityMeshes(doc, meshes, project) {
+  const warnings = []
+  const scene = doc.getRoot().getDefaultScene() ?? doc.getRoot().listScenes()[0]
+  const buffer = doc.getRoot().listBuffers()[0] ?? doc.createBuffer()
+  const materials = new Map()
+  const materialOf = (guid) => {
+    if (!materials.has(guid)) {
+      const file = guid && project ? findAssetByGuid(project, guid) : null
+      if (!file) {
+        warnings.push(`built-in mesh material ${guid} not found, using a default material`)
+        materials.set(guid, doc.createMaterial('default'))
+      } else {
+        const name = readMaterial(fs.readFileSync(file, 'utf8')).name
+        materials.set(
+          guid,
+          doc
+            .getRoot()
+            .listMaterials()
+            .find((m) => m.getName() === name) ?? doc.createMaterial(name),
+        )
+      }
+    }
+    return materials.get(guid)
+  }
+  const accessor = (array, type) =>
+    doc.createAccessor().setType(type).setArray(array).setBuffer(buffer)
+  for (const part of meshes) {
+    const g = unityPrimitive(part.primitive)
+    const primitive = doc
+      .createPrimitive()
+      .setAttribute('POSITION', accessor(g.positions, 'VEC3'))
+      .setAttribute('NORMAL', accessor(g.normals, 'VEC3'))
+      .setAttribute('TEXCOORD_0', accessor(g.uvs, 'VEC2'))
+      .setIndices(accessor(g.indices, 'SCALAR'))
+      .setMaterial(materialOf(part.materialGuid))
+    const mesh = doc.createMesh(part.name).addPrimitive(primitive)
+    scene.addChild(doc.createNode(part.name).setMesh(mesh).setMatrix(part.matrix))
+  }
+  return warnings
 }
 
 // AssetRipper leaves out the prefab root transform. A new top node gets the root rotation and scale,

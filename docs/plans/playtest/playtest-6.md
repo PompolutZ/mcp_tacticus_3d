@@ -181,6 +181,17 @@ User: Busy City Disturbed shows the Campus Light, and a model cannot pass throug
 
 ### Result
 
+- Code: `scripts/lib/unity-primitives.mjs` (new, geometry of cube, cylinder, capsule, sphere, plane, quad in Unity sizes); `readPrefab` returns `meshes` (MeshFilter with the built-in guid + enabled MeshRenderer on an active object, with matrix and material guid); `addUnityMeshes` in `scripts/lib/bundle.mjs` adds a node per part, with the Unity material (found by guid, values by name as for any material). Used by `readBundlePrefab`, so migration and `--colliders-only` both get it.
+- Rule for effects: a renderer whose material is Unity's own default (guid `0000000000000000f000000000000000`, Default-Diffuse) is a placeholder and is skipped. Smoke has `SteamCube` (MeshRenderer, built-in cube, default material, a MonoBehaviour) and Fire has `SmallFiresCube` the same way; without the rule both gained a 24-vertex cube. With it: both stay empty, `colliders: []`.
+- Pieces with the case (all 74 bundle pieces checked, none missing in the TTS cache): `campus-light-size-1` Campus Light (Busy City Disturbed; 4 cylinders, 1 cube) and `street-light-size-1-20` Street Light (Night Time Patrol 500; cylinder, capsule). Other pieces only use built-in meshes as MeshCollider shapes (already converted).
+- Run: `migrate-terrain --force` on Busy City Disturbed and Night Time Patrol (id 500; "Night Time Patrol" also matches 307), from the TTS cache, nothing downloaded. Both runs left manifest and maps unchanged; only the 2 GLBs changed. A trial run on 307 rewrote the manifest, the map and added GLBs: reverted. AssetRipper was symlinked in `apps/web/tools`, not committed, removed after.
+- GLB sizes: `campus-light-size-1.glb` 120 B to 3260 B; `street-light-size-1-20.glb` 8828 B to 12352 B (bounds the same, the two parts lie inside the old box). Street light colliders GLB unchanged.
+- `pieces.js`: Campus Light `colliders` back (4 capsules and 1 box, as the script printed). Step 7's guard `noMeshCollider.test.js` now also checks that these two pieces are not empty and that Campus Light has colliders.
+- Tests: `scripts/lib/unity-primitives.test.js` (size and vertex count per primitive, plane and quad normals, a prefab with a built-in mesh gives a mesh with the prefab transform and keeps its colliders, the placeholder is skipped).
+- Docs: `scripts/README.md`, `docs/features/maps.md`.
+- Checks: format, lint (40 warnings), typecheck, test (1086 pass), build ok.
+- Note: the Campus Light hangs from y -14.6 to -1.9 in GLB space (the prefab root is at y 14.7 and TTS ignores it, as the rule says); the placement y 4.713 at scale 0.25 matches. It sits 0.87 in sideways from the placement origin for the same reason (root x). Not checked against TTS.
+
 ## Step 10: Swap two character trays
 
 Request (user, 2026-10-18): "players requested to be able to re-arrange character trays, so they able to change place between two trays".

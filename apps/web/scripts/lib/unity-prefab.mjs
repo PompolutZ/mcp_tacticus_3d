@@ -12,6 +12,8 @@ import * as THREE from 'three'
 
 const TRANSFORM = 4
 const MATERIAL = 21
+const MESH_RENDERER = 23
+const MESH_FILTER = 33
 const MESH_COLLIDER = 64
 const BOX_COLLIDER = 65
 const SPHERE_COLLIDER = 135
@@ -34,6 +36,10 @@ const MIRROR_X = new THREE.Matrix4().makeScale(-1, 1, 1)
 // root: { rotation: [x, y, z, w], scale: [x, y, z] } of the prefab root, in GLB space.
 //   TTS keeps the root rotation and scale and ignores the root position. The placement heights in the
 //   Terrain Database match this (concrete barrier: expected y 1.60, stored y 1.599).
+// meshes: the parts drawn with a Unity built-in mesh, which AssetRipper leaves out of the GLB (it writes the
+//   mesh as JSON with no geometry). { primitive, name, materialGuid, matrix } with primitive one of BUILTIN_MESH
+//   values, matrix (16 numbers, column-major) from the primitive's local space to the same space as colliders.
+//   Only a MeshFilter with a MeshRenderer that has a material from the bundle (see the placeholder rule below).
 // colliders: see readCollider. Position, quaternion and scale are relative to the root, with the root rotation
 //   and scale applied, so they fit the GLB after root is applied to it.
 // warnings: collider data that the script cannot convert
@@ -88,8 +94,39 @@ export function readPrefab(yamlText) {
     if (typeof collider === 'string') warnings.push(collider)
     else colliders.push(collider)
   }
+
+  const filters = new Map(
+    [...docs.values()]
+      .filter((d) => d.classId === MESH_FILTER)
+      .map((d) => [ref(d.text, 'm_GameObject').fileID, ref(d.text, 'm_Mesh')]),
+  )
+  const meshes = []
+  for (const doc of docs.values()) {
+    if (doc.classId !== MESH_RENDERER || num(doc.text, 'm_Enabled') === 0) continue
+    const objectId = ref(doc.text, 'm_GameObject').fileID
+    const mesh = filters.get(objectId)
+    const t = transformByObject.get(objectId)
+    if (!mesh || mesh.guid !== BUILTIN_GUID || !t || !active(t)) continue
+    const primitive = BUILTIN_MESH[mesh.fileID]
+    if (!primitive) {
+      warnings.push(`MeshFilter with unknown built-in mesh ${mesh.fileID} was skipped`)
+      continue
+    }
+    const material = /m_Materials:\s*\n\s*- \{[^}]*guid: (\w+)/.exec(doc.text)
+    // A renderer with Unity's own default material (Default-Diffuse, guid 0000...f000) is a placeholder, not
+    // a model: the Smoke and Fire effect pieces have such a cube next to a ParticleSystem, and TTS shows
+    // nothing there. Skipped.
+    if (material?.[1] === BUILTIN_SHADER_GUID) continue
+    meshes.push({
+      primitive,
+      name: field(docs.get(objectId).text, 'm_Name'),
+      materialGuid: material?.[1] ?? null,
+      matrix: toGlb(toRoot(t)).toArray(),
+    })
+  }
   return {
     root: { rotation: rootRotation.toArray(), scale: rootScale.toArray() },
+    meshes,
     colliders,
     warnings,
   }

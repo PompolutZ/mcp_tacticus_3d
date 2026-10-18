@@ -779,7 +779,42 @@ export const TERRAIN_PIECES = {
   'campus-light-size-1': {
     name: 'Campus Light',
     bundle: true,
-    colliders: [],
+    colliders: [
+      {
+        shape: 'capsule',
+        position: [-3.4631, -3.6235, 2.3715],
+        quaternion: [0, 0, 0, 1],
+        radius: 0.5,
+        halfHeight: 0.9767,
+      },
+      {
+        shape: 'capsule',
+        position: [-3.4631, -7.4735, 2.3715],
+        quaternion: [0, 0, 0, 1],
+        radius: 0.2683,
+        halfHeight: 2.2845,
+      },
+      {
+        shape: 'capsule',
+        position: [-3.4631, -2.1735, 2.3715],
+        quaternion: [0, 0, 0, 1],
+        radius: 0.6152,
+        halfHeight: 0,
+      },
+      {
+        shape: 'box',
+        position: [-3.4631, -11.9735, 2.0315],
+        quaternion: [0, 0, 0, 1],
+        halfExtents: [0.3656, 2.6476, 0.7633],
+      },
+      {
+        shape: 'capsule',
+        position: [-3.4631, -8.5435, 1.6715],
+        quaternion: [0, 0, 0, 1],
+        radius: 0.089,
+        halfHeight: 1.5215,
+      },
+    ],
   },
   'total-access-games-size-5': {
     name: 'Total Access Games',

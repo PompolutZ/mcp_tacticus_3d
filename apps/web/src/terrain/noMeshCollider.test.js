@@ -26,4 +26,8 @@ test('a bundle piece with an empty mesh GLB has no colliders', async () => {
     assert.deepEqual(piece.colliders, [], `${key} (${piece.name}) has no mesh but has colliders`)
   }
   assert.ok(empty.includes('assetbundle-piece-2'), 'Smoke is an empty piece')
+  // Unity built-in meshes are generated (scripts/lib/unity-primitives.mjs), so these have a mesh and colliders
+  for (const key of ['campus-light-size-1', 'street-light-size-1-20'])
+    assert.ok(!empty.includes(key), `${key} must not be empty`)
+  assert.ok(TERRAIN_PIECES['campus-light-size-1'].colliders.length > 0, 'Campus Light is solid')
 })
